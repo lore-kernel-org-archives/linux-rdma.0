@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 06/28] i40iw: Avoid gcc warning -Wint-to-pointer-cast
-Date: Mon,  5 Sep 2016 15:07:56 -0600
-Message-ID: <1473109698-31408-7-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 05/28] hfi/ipath: Use the name of the provider for the .driver file
+Date: Mon,  5 Sep 2016 15:07:55 -0600
+Message-ID: <1473109698-31408-6-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473109698-31408-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,37 +10,72 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A u64 value needs to be casted to uintptr_t before being converted
-back into a pointer, otherwise gcc produces warning on a 32 bit
-build.
+The standard is to use the same name for the library and .driver
+file. The library is called hfi1verbs/ipathverbs so should the .driver,
+add the verbs suffix.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libi40iw/src/i40iw_uverbs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ libhfi1verbs/Makefile.am                          | 4 ++--
+ libhfi1verbs/{hfi1.driver => hfi1verbs.driver}    | 0
+ libipathverbs/Makefile.am                         | 4 ++--
+ libipathverbs/{ipath.driver => ipathverbs.driver} | 0
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+ rename libhfi1verbs/{hfi1.driver => hfi1verbs.driver} (100%)
+ rename libipathverbs/{ipath.driver => ipathverbs.driver} (100%)
 
-diff --git a/libi40iw/src/i40iw_uverbs.c b/libi40iw/src/i40iw_uverbs.c
-index da23e4c9f413..db69b66c1e90 100644
---- a/libi40iw/src/i40iw_uverbs.c
-+++ b/libi40iw/src/i40iw_uverbs.c
-@@ -858,7 +858,7 @@ int i40iw_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr, struct ibv
- 				info.op_type = I40IW_OP_TYPE_SEND;
+diff --git a/libhfi1verbs/Makefile.am b/libhfi1verbs/Makefile.am
+index 2c690b0570fb..d86ea3dd57e6 100644
+--- a/libhfi1verbs/Makefile.am
++++ b/libhfi1verbs/Makefile.am
+@@ -63,7 +63,7 @@ if HAVE_IBV_DEVICE_LIBRARY_EXTENSION
+     src_libhfi1verbs_la_LDFLAGS = -avoid-version -release @IBV_DEVICE_LIBRARY_EXTENSION@ \
+         $(hfiverbs_version_script)
+     hfiverbsconfdir = $(sysconfdir)/libibverbs.d
+-    hfiverbsconf_DATA = hfi1.driver
++    hfiverbsconf_DATA = hfi1verbs.driver
+ else
+     hfiverbslibdir = $(libdir)/infiniband
+     hfiverbslib_LTLIBRARIES = src/hfiverbs.la
+@@ -77,7 +77,7 @@ EXTRA_DIST = src/hfiverbs.h \
+     config \
+     autom4te.cache \
+     libhfi1verbs.spec.in \
+-    hfi1.driver
++    hfi1verbs.driver
  
- 			if (ib_wr->send_flags & IBV_SEND_INLINE) {
--				info.op.inline_send.data = (void *)ib_wr->sg_list[0].addr;
-+			  info.op.inline_send.data = (void *)(uintptr_t)ib_wr->sg_list[0].addr;
- 				info.op.inline_send.len = ib_wr->sg_list[0].length;
- 				ret = iwuqp->qp.ops.iw_inline_send(&iwuqp->qp, &info,
- 								   ib_wr->wr.rdma.rkey, false);
-@@ -881,7 +881,7 @@ int i40iw_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr, struct ibv
- 			info.op_type = I40IW_OP_TYPE_RDMA_WRITE;
+ dist-hook: libhfi1verbs.spec
+ 	cp libhfi1verbs.spec $(distdir)
+diff --git a/libhfi1verbs/hfi1.driver b/libhfi1verbs/hfi1verbs.driver
+similarity index 100%
+rename from libhfi1verbs/hfi1.driver
+rename to libhfi1verbs/hfi1verbs.driver
+diff --git a/libipathverbs/Makefile.am b/libipathverbs/Makefile.am
+index f9d4698c5e2c..4d3e9258d989 100644
+--- a/libipathverbs/Makefile.am
++++ b/libipathverbs/Makefile.am
+@@ -45,7 +45,7 @@ if HAVE_IBV_DEVICE_LIBRARY_EXTENSION
+     src_libipathverbs_la_LDFLAGS = -avoid-version -release @IBV_DEVICE_LIBRARY_EXTENSION@ \
+         $(ipathverbs_version_script)
+     ipathverbsconfdir = $(sysconfdir)/libibverbs.d
+-    ipathverbsconf_DATA = ipath.driver
++    ipathverbsconf_DATA = ipathverbs.driver
+ else
+     ipathverbslibdir = $(libdir)/infiniband
+     ipathverbslib_LTLIBRARIES = src/ipathverbs.la
+@@ -59,7 +59,7 @@ EXTRA_DIST = src/ipathverbs.h \
+     src/ipath-abi.h \
+     src/ipathverbs.map \
+     libipathverbs.spec.in \
+-    ipath.driver \
++    ipathverbs.driver \
+     truescale-serdes.cmds \
+     truescale.conf
  
- 			if (ib_wr->send_flags & IBV_SEND_INLINE) {
--				info.op.inline_rdma_write.data = (void *)ib_wr->sg_list[0].addr;
-+			  info.op.inline_rdma_write.data = (void *)(uintptr_t)ib_wr->sg_list[0].addr;
- 				info.op.inline_rdma_write.len = ib_wr->sg_list[0].length;
- 				info.op.inline_rdma_write.rem_addr.tag_off = ib_wr->wr.rdma.remote_addr;
- 				info.op.inline_rdma_write.rem_addr.len = ib_wr->sg_list->length;
+diff --git a/libipathverbs/ipath.driver b/libipathverbs/ipathverbs.driver
+similarity index 100%
+rename from libipathverbs/ipath.driver
+rename to libipathverbs/ipathverbs.driver
 -- 
 2.7.4
 
