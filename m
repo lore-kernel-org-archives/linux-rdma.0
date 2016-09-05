@@ -1,69 +1,63 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs 3/3] Provide remote XRC SRQ number in kernel
- post_send.
-Date: Mon, 05 Sep 2016 17:50:16 +0200
-Message-ID: <1473090616.26625.68.camel@oracle.com>
-References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
-         <1472713193-22397-4-git-send-email-knut.omang@oracle.com>
-         <67f23338-1a5c-5080-d346-8441afb47670@dev.mellanox.co.il>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 4/6] IB/srp: use IB_PD_UNSAFE_GLOBAL_RKEY
+Date: Mon, 5 Sep 2016 14:39:01 +0300
+Message-ID: <7cf3a27d-b66b-5b41-80e5-799b68bad599@mellanox.com>
+References: <1473072981-2035-1-git-send-email-hch@lst.de>
+ <1473072981-2035-5-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1255"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <67f23338-1a5c-5080-d346-8441afb47670-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1473072981-2035-5-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2016-09-01 at 12:00 +0300, Yishai Hadas wrote:
-> On 9/1/2016 9:59 AM, Knut Omang wrote:
-> > Also proper end align the ibv_kern_send_wr struct.
-> > 
-> > Requires a corresponding kernel change.
+>
+>  	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
+> @@ -3268,8 +3271,8 @@ static ssize_t srp_create_target(struct device *dev,
+>  	target->io_class	= SRP_REV16A_IB_IO_CLASS;
+>  	target->scsi_host	= target_host;
+>  	target->srp_host	= host;
+> +	target->pd		= host->srp_dev->pd;
+>  	target->lkey		= host->srp_dev->pd->local_dma_lkey;
+> -	target->global_mr	= host->srp_dev->global_mr;
+>  	target->cmd_sg_cnt	= cmd_sg_entries;
+>  	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
+>  	target->allow_ext_sg	= allow_ext_sg;
+> @@ -3524,6 +3527,7 @@ static void srp_add_one(struct ib_device *device)
+>  	struct srp_host *host;
+>  	int mr_page_shift, p;
+>  	u64 max_pages_per_mr;
+> +	unsigned int flags = 0;
+>
+>  	srp_dev = kzalloc(sizeof(*srp_dev), GFP_KERNEL);
+>  	if (!srp_dev)
+> @@ -3558,6 +3562,10 @@ static void srp_add_one(struct ib_device *device)
+>  		srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
+>  	}
+>
+> +	if (never_register || !register_always ||
+> +	    (!srp_dev->has_fmr && !srp_dev->has_fr))
+> +		flags |= IB_PD_UNSAFE_GLOBAL_RKEY;
+> +
+>  	if (srp_dev->use_fast_reg) {
+>  		srp_dev->max_pages_per_mr =
+>  			min_t(u32, srp_dev->max_pages_per_mr,
+> @@ -3573,19 +3581,10 @@ static void srp_add_one(struct ib_device *device)
+>  	INIT_LIST_HEAD(&srp_dev->dev_list);
+>
+>  	srp_dev->dev = device;
+> -	srp_dev->pd  = ib_alloc_pd(device, 0);
+> +	srp_dev->pd  = ib_alloc_pd(device, flags);
+>  	if (IS_ERR(srp_dev->pd))
+>  		goto free_dev;
 
-https://www.spinics.net/lists/linux-rdma/msg39884.html
 
-Knut
+Looks good,
 
-> 
-> Again, usually starting from a kernel patch then coming with a matching 
-> user one.
-> 
-> > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  include/infiniband/kern-abi.h | 1 +
-> >  src/cmd.c                     | 2 ++
-> >  2 files changed, 3 insertions(+)
-> > 
-> > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-> > index 8bdeef5..7b1d310 100644
-> > --- a/include/infiniband/kern-abi.h
-> > +++ b/include/infiniband/kern-abi.h
-> > @@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
-> >  	union {
-> >  		struct {
-> >  			__u32 remote_srqn;
-> > +			__u32 reserved;
-> >  		} xrc;
-> >  	} qp_type;
-> >  };
-> > diff --git a/src/cmd.c b/src/cmd.c
-> > index a418ee1..a4e2f75 100644
-> > --- a/src/cmd.c
-> > +++ b/src/cmd.c
-> > @@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-> >  			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
-> >  			tmp->wr.ud.remote_qkey = i->wr.ud.remote_qkey;
-> >  		} else {
-> > +			if (ibqp->qp_type == IBV_QPT_XRC_SEND)
-> > +				tmp->qp_type.xrc.remote_srqn = i->qp_type.xrc.remote_srqn;
-> >  			switch (i->opcode) {
-> >  			case IBV_WR_RDMA_WRITE:
-> >  			case IBV_WR_RDMA_WRITE_WITH_IMM:
-> > 
-> 
+Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
