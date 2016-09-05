@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 05/28] hfi/ipath: Use the name of the provider for the .driver file
-Date: Mon,  5 Sep 2016 15:07:55 -0600
-Message-ID: <1473109698-31408-6-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 04/28] cxgb3/4: Display correct version number in error message
+Date: Mon,  5 Sep 2016 15:07:54 -0600
+Message-ID: <1473109698-31408-5-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473109698-31408-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,72 +10,40 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The standard is to use the same name for the library and .driver
-file. The library is called hfi1verbs/ipathverbs so should the .driver,
-add the verbs suffix.
+Copy&Paste error was showing the major, not minor version.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libhfi1verbs/Makefile.am                          | 4 ++--
- libhfi1verbs/{hfi1.driver => hfi1verbs.driver}    | 0
- libipathverbs/Makefile.am                         | 4 ++--
- libipathverbs/{ipath.driver => ipathverbs.driver} | 0
- 4 files changed, 4 insertions(+), 4 deletions(-)
- rename libhfi1verbs/{hfi1.driver => hfi1verbs.driver} (100%)
- rename libipathverbs/{ipath.driver => ipathverbs.driver} (100%)
+ libcxgb3/src/iwch.c | 2 +-
+ libcxgb4/src/dev.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/libhfi1verbs/Makefile.am b/libhfi1verbs/Makefile.am
-index 2c690b0570fb..d86ea3dd57e6 100644
---- a/libhfi1verbs/Makefile.am
-+++ b/libhfi1verbs/Makefile.am
-@@ -63,7 +63,7 @@ if HAVE_IBV_DEVICE_LIBRARY_EXTENSION
-     src_libhfi1verbs_la_LDFLAGS = -avoid-version -release @IBV_DEVICE_LIBRARY_EXTENSION@ \
-         $(hfiverbs_version_script)
-     hfiverbsconfdir = $(sysconfdir)/libibverbs.d
--    hfiverbsconf_DATA = hfi1.driver
-+    hfiverbsconf_DATA = hfi1verbs.driver
- else
-     hfiverbslibdir = $(libdir)/infiniband
-     hfiverbslib_LTLIBRARIES = src/hfiverbs.la
-@@ -77,7 +77,7 @@ EXTRA_DIST = src/hfiverbs.h \
-     config \
-     autom4te.cache \
-     libhfi1verbs.spec.in \
--    hfi1.driver
-+    hfi1verbs.driver
+diff --git a/libcxgb3/src/iwch.c b/libcxgb3/src/iwch.c
+index cc6b37cad775..32447e427146 100644
+--- a/libcxgb3/src/iwch.c
++++ b/libcxgb3/src/iwch.c
+@@ -228,7 +228,7 @@ found:
+ 	if (fw_min < FW_MIN) {
+ 		PDBG("libcxgb3: non-fatal firmware version mismatch.  "
+ 			"Firmware minor number is %u and libcxgb3 needs %u.\n",
+-			fw_maj, FW_MAJ);	
++			fw_min, FW_MIN);
+ 		fflush(stderr);
+ 	}
  
- dist-hook: libhfi1verbs.spec
- 	cp libhfi1verbs.spec $(distdir)
-diff --git a/libhfi1verbs/hfi1.driver b/libhfi1verbs/hfi1verbs.driver
-similarity index 100%
-rename from libhfi1verbs/hfi1.driver
-rename to libhfi1verbs/hfi1verbs.driver
-diff --git a/libipathverbs/Makefile.am b/libipathverbs/Makefile.am
-index f9d4698c5e2c..4d3e9258d989 100644
---- a/libipathverbs/Makefile.am
-+++ b/libipathverbs/Makefile.am
-@@ -45,7 +45,7 @@ if HAVE_IBV_DEVICE_LIBRARY_EXTENSION
-     src_libipathverbs_la_LDFLAGS = -avoid-version -release @IBV_DEVICE_LIBRARY_EXTENSION@ \
-         $(ipathverbs_version_script)
-     ipathverbsconfdir = $(sysconfdir)/libibverbs.d
--    ipathverbsconf_DATA = ipath.driver
-+    ipathverbsconf_DATA = ipathverbs.driver
- else
-     ipathverbslibdir = $(libdir)/infiniband
-     ipathverbslib_LTLIBRARIES = src/ipathverbs.la
-@@ -59,7 +59,7 @@ EXTRA_DIST = src/ipathverbs.h \
-     src/ipath-abi.h \
-     src/ipathverbs.map \
-     libipathverbs.spec.in \
--    ipath.driver \
-+    ipathverbs.driver \
-     truescale-serdes.cmds \
-     truescale.conf
+diff --git a/libcxgb4/src/dev.c b/libcxgb4/src/dev.c
+index 657ed192764c..cd3217af77b2 100644
+--- a/libcxgb4/src/dev.c
++++ b/libcxgb4/src/dev.c
+@@ -448,7 +448,7 @@ found:
+ 	if (fw_min < FW_MIN) {
+ 		PDBG("libcxgb4: non-fatal firmware version mismatch.  "
+ 			"Firmware minor number is %u and libcxgb4 needs %u.\n",
+-			fw_maj, FW_MAJ);
++			fw_min, FW_MIN);
+ 		fflush(stderr);
+ 	}
  
-diff --git a/libipathverbs/ipath.driver b/libipathverbs/ipathverbs.driver
-similarity index 100%
-rename from libipathverbs/ipath.driver
-rename to libipathverbs/ipathverbs.driver
 -- 
 2.7.4
 
