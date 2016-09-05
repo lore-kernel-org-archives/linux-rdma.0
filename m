@@ -1,65 +1,51 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Sun, 4 Sep 2016 17:55:55 -0600
-Message-ID: <20160904235555.GA21542@obsidianresearch.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <4f0876ce-f3c9-83e3-d0ef-0c5656ce9462@grimberg.me>
- <53eb35b4-0320-acd9-9969-73f5817c8144@sandisk.com>
- <20160901172355.GA20472@obsidianresearch.com>
- <019b01d2047f$b9694f90$2c3beeb0$@opengridcomputing.com>
- <20160902233231.GA26309@obsidianresearch.com>
- <ef8214f8-d44d-2289-d1ed-a0998e9e05c0@sandisk.com>
- <20160903051222.GA2098@obsidianresearch.com>
- <20160904055441.GI21847@leon.nu>
+Date: Sun, 4 Sep 2016 19:51:17 -0600
+Message-ID: <20160905015117.GB21542@obsidianresearch.com>
+References: <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
+ <20160829161902.GB23557@obsidianresearch.com>
+ <20160830060842.GJ594@leon.nu>
+ <20160830071716.GA3098@infradead.org>
+ <20160830073521.GM594@leon.nu>
+ <20160830163033.GC26778@obsidianresearch.com>
+ <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
+ <20160904083517.GN21847@leon.nu>
+ <a220db98-ebbf-5df4-e011-8804442796b8@grimberg.me>
+ <280b8620-0996-a9bc-dc93-bf5d710dd6de@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160904055441.GI21847-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <280b8620-0996-a9bc-dc93-bf5d710dd6de-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 04, 2016 at 08:54:41AM +0300, Leon Romanovsky wrote:
-> On Fri, Sep 02, 2016 at 11:12:22PM -0600, Jason Gunthorpe wrote:
-> > On Fri, Sep 02, 2016 at 05:10:45PM -0700, Bart Van Assche wrote:
-> >
-> > So I added opensuse 13.2 and 42.1 to the list of docker container
-> > builders and the simple build looks like it runs OK.
-> 
-> Are you running standard docker containers or build them by yourself?
-> Can you add scripts to run containers to your rdma-plumbers repo? So it
-> will be much easier to see/debug build issues on different platforms.
+On Sun, Sep 04, 2016 at 05:40:48PM -0400, Doug Ledford wrote:
+> On 9/4/2016 6:36 AM, Sagi Grimberg wrote:
+> > 
+> >>> What I think it missing is a release schedule, stable fixes
+> >>> methodology and merge cycles. I think once we can agree on that
+> >>> a lot of the concerns will be addressed.
+> >>
+> >> This is exactly my point.
+> >> What do you think if we follow kernel release cycles and schedules? It
+> >> will give to everyone in RDMA world clear answer on WHEN question.
+> > 
+> > That can work. But, I think that we need the stable fixes to be released
+> > more frequently (Ideally on-demand, but it might be too much of an
+> > overhead both to maintainers and users).
+>
+> I don't think so.  A regular release cadence to match the kernel, and on
+> demand hot fixes seems perfectly doable to me.
 
-I mentioned this in my first email, but here is more details.
+It would be good to ask the distros what they would use. It makes very
+little sense to make releases that people are not interested in.
 
-The tooling branch contains all the scripting I used to build and test
-this thing. The docker/ directory has all the docker files and the
-script to run them.
-
-https://github.com/jgunthorpe/rdma-plumbing/tree/tooling/docker
-
-The docker script is something I've used for awhile in other places,
-there are others around as well that are similar.. The basic usage is
-like this:
-
-# Download docker base images and run all docker files
-# Do once.
-$ docker/do_docker.py build-images --env all
-
-# Run 'make' inside the container using the current source tree
-# exactly as is. Directs the build to a build-fc24 output directory
-$ docker/do_docker.py make fc24
-
-# Build a package. This runs 'git archive', imports the archive into
-# the container, transfers the spec file, fusses with the container,
-# runs rpmbuild/dpkg-buildpkg, then copies the rpms back out. Note
-# that changes must be checked in to have any impact. 
-$ docker/do_docker.py pkg fc24
-
-Folks can decide how much of this stuff should go on into the main
-repository later on..
+Following the kernel makes a lot of sense as a starting
+point. Inviting the distros to co-maintain their stable branches
+publicly might also be sensible..
 
 Jason
 --
