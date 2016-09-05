@@ -1,112 +1,88 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] RDS: Simplify code
-Date: Mon, 5 Sep 2016 08:14:22 +0300
-Message-ID: <20160905051422.GT21847@leon.nu>
-References: <1472880809-29216-1-git-send-email-christophe.jaillet@wanadoo.fr>
- <20160904122049.GQ21847@leon.nu>
- <befa1a39-cfc5-721f-e39a-369436237b1c@wanadoo.fr>
- <20160904182354.GR21847@leon.nu>
- <73fc4be8-2530-b9ab-945b-887db6dca2a6@wanadoo.fr>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Mon, 5 Sep 2016 08:29:29 +0300
+Message-ID: <20160905052929.GU21847@leon.nu>
+References: <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
+ <20160829161902.GB23557@obsidianresearch.com>
+ <20160830060842.GJ594@leon.nu>
+ <20160830071716.GA3098@infradead.org>
+ <20160830073521.GM594@leon.nu>
+ <20160830163033.GC26778@obsidianresearch.com>
+ <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
+ <20160904083517.GN21847@leon.nu>
+ <a220db98-ebbf-5df4-e011-8804442796b8@grimberg.me>
+ <280b8620-0996-a9bc-dc93-bf5d710dd6de@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="e+JRL32uBeeWnrD4"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="O7hm+SMpb/lu0d4d"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <73fc4be8-2530-b9ab-945b-887db6dca2a6@wanadoo.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <280b8620-0996-a9bc-dc93-bf5d710dd6de-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---e+JRL32uBeeWnrD4
-Content-Type: text/plain; charset=iso-8859-1
+--O7hm+SMpb/lu0d4d
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 05, 2016 at 06:38:21AM +0200, Christophe JAILLET wrote:
-> Le 04/09/2016 =E0 20:23, Leon Romanovsky a =E9crit :
-> >On Sun, Sep 04, 2016 at 05:57:20PM +0200, Christophe JAILLET wrote:
-> >>Le 04/09/2016 =E0 14:20, Leon Romanovsky a =E9crit :
-> >>>On Sat, Sep 03, 2016 at 07:33:29AM +0200, Christophe JAILLET wrote:
-> >>>>Calling 'list_splice' followed by 'INIT_LIST_HEAD' is equivalent to
-> >>>>'list_splice_init'.
-> >>>It is not 100% accurate
-> >>>
-> >>>list_splice(y, z)
-> >>>INIT_LIST_HEAD(y)
-> >>>
-> >>>=3D=3D>
-> >>>
-> >>>if (!list_empty(y))
-> >>>      __list_splice(y, z, z>next);
-> >>>INIT_LIST_HEAD(y)
-> >>>
-> >>>and not
-> >>>
-> >>>if (!list_empty(y)) {
-> >>>      __list_splice(y, z, z>next);
-> >>>      INIT_LIST_HEAD(y)
-> >>>}
-> >>>
-> >>>as list_splice_init will do.
-> >>>
-> >>You are right but if you dig further you will see that calling
-> >>INIT_LIST_HEAD on an empty list is a no-op (AFAIK).
-> >>And if this list was not already correctly initialized, then you would =
-have
-> >>some other troubles.
-> >Thank you for the suggestion,
-> >It looks like the code after that can be skipped in case of loop_conns
-> >list is empty, the tmp_list will be empty too.
+On Sun, Sep 04, 2016 at 05:40:48PM -0400, Doug Ledford wrote:
+> On 9/4/2016 6:36 AM, Sagi Grimberg wrote:
 > >
-> >174         list_for_each_entry_safe(lc, _lc, &tmp_list, loop_node) {
-> >175                 WARN_ON(lc->conn->c_passive);
-> >176                 rds_conn_destroy(lc->conn);
-> >177         }
-> Yes, but this would require some more code and test. This function doesn't
-> seem to be in a hot path, so I'm not sure that the added complexity would
-> worth it.
-> It would require a new 'list_empty()' test and some code rearrangement.
+> >>> What I think it missing is a release schedule, stable fixes
+> >>> methodology and merge cycles. I think once we can agree on that
+> >>> a lot of the concerns will be addressed.
+> >>
+> >> This is exactly my point.
+> >> What do you think if we follow kernel release cycles and schedules? It
+> >> will give to everyone in RDMA world clear answer on WHEN question.
+> >
+> > That can work. But, I think that we need the stable fixes to be released
+> > more frequently (Ideally on-demand, but it might be too much of an
+> > overhead both to maintainers and users).
 >
-> I suppose that testing for emptiness at the beginning or going through a
-> list_for_each_entry_safe on a empty list (which will exit immediately and=
- do
-> nothing) is more or less the same in term of speed. So keep the code simp=
-le
-> and readable.
+> I don't think so.  A regular release cadence to match the kernel, and on
+> demand hot fixes seems perfectly doable to me.
 
-I would expect one list_empty check at the beginning and return
-immediately, but anyway it doesn't matter.
+It is a good starting point and in addition to releases we would like to
+see the same fast piece of accepting new code into vendor specific
+user space drivers. It is hard to get rid of feelings for possible long
+submission queues.
 
->
-> CJ
->
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: 0E572FDD
+>
 
---e+JRL32uBeeWnrD4
+
+
+
+--O7hm+SMpb/lu0d4d
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXzP8uAAoJEORje4g2clinquUQALBqKuu03zYEi9fjSBWJ7DSE
-jnbiunocU4+1IX3Omnef0fPKLI3l6dDh5/E6u3T6UdfdYanhXAMXSD4ZYMbs54XO
-hiRn1HUMyeVm7NgWW6aMnco/g/DRQTony/TSMjZ4KigV37ekRLDXWhBWxvAaLcfQ
-AMwWdx0tXVPkVkZajd6f2bWGALe2ANPR2YgitCurKAJm6VJJFv9LY+AjJPiQoRAl
-E8QVPp9JsP6no8DuHaQoOypKnJoSE3z+Mt8psU7Fw/eqfBtuIRP7BN91OSRx/y5y
-ij2ydcmR0eyxkcpN/p64NSTAs+WOYGUOo2gl/ijPzalUypqE/+V0CYD+hjy09yL0
-WFawAE6FCHw5nVFlVtHIfcBf9ClS4wa8J+T0iii70fHa5VUOnSNJzl4AMZecONbH
-xKFg+dpooV+v+qbFcTxoI/SmJaho2cbBt3AYKNz1foF0ePrqgSV4vS3m7VLsQmcf
-BLTPPqOckhvYxQL3uLbS3OPAEHOXlVzIX9AQ7uXb/iJjzOzi1TEEVDFDVLjARLJ0
-JlexmXLJY5FbHSMcK9YsSBGjjmkhPeDeL3Ul6eeq/Cd/dAt7lvw+Kr0/rilsPWMc
-lxAf5M0ZHCzXJJPjVDZBl8A0z6t8s6O0W5+CXggeS6TAf80XKChfmWFhy4ry4AzG
-HXprZjaBZGoo2EdzAjQR
-=1j/s
+iQIcBAEBAgAGBQJXzQK5AAoJEORje4g2clino7YP/1JBcz7msES55/m/R5ihSSNB
+bSeJXj7nHUdmJpgnIOrpkPDkP0hb6lroCO3y9CA/Ep+5LqBkzA7r6882NeZjGrTI
+6X6zLB/dwpfCAFJ5xTNMLHlF0Zv9+5IE1LMCnT9XmrHeDdkuH9vojTSJ4LvPex15
+Inv+09+lM/LYkcv9RquDiYkwh4fdEQgGBiokfYVyhEjbfRGJVLkuva5FPsrux0kN
+jZFHa5hPtNvFWlVq6fLVjc/Xu0YYOzl5MDuJxhfBvMTv8/Kx5/+lCMCEs+VVyFM9
+3yKnkUYTz65kmL5AU+PzJ8rFFakkbaTGad4m1AqYzkGKeUWi0r2UdM5iTAM0bgkV
+feWP/6cq+C76xUr3sxWC3QVgkGWEFL5LWJqBvyfhghDqzl4NpKYbtLl+CBgvRo/M
+b15MAv8xdBnw7f1UWGD9XbJG2cTkap/m0BX6wHb/JmeW7zovKdOIIKpQbJoSA7mr
+gPicJ1tPlwl4CojXyEEZytET5V7wHkNIfPCHCbnkHXZpUo1ECu5bfevwAGKQQcXo
+VxeLrGcn5bgGxqUpALgWfM45feea0yoSJBLUJCfIQeXsqdAwak0doQDwfMaa9LbM
+nsRuQ/ESTfaJka7IRXd5tQnwEtHfLwy/t77stgPnHed9Gt/YBfgkX3rq/WxpNSNv
+eNvhG4P0gLyY4/5zQqe2
+=nC4t
 -----END PGP SIGNATURE-----
 
---e+JRL32uBeeWnrD4--
+--O7hm+SMpb/lu0d4d--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
