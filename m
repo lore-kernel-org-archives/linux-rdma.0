@@ -1,105 +1,170 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 5/6] nvme-rdma: use IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Mon,  5 Sep 2016 12:56:20 +0200
-Message-ID: <1473072981-2035-6-git-send-email-hch@lst.de>
-References: <1473072981-2035-1-git-send-email-hch@lst.de>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which
+ supports extra parameters
+Date: Mon, 05 Sep 2016 13:53:31 +0200
+Message-ID: <1473076411.3975.87.camel@oracle.com>
+References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
+         <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
+         <09e67035-0c8a-9b44-fa84-08413dd6ac46@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473072981-2035-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <09e67035-0c8a-9b44-fa84-08413dd6ac46-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/nvme/host/rdma.c | 25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+On Thu, 2016-09-01 at 11:34 +0300, Yishai Hadas wrote:
+> On 9/1/2016 9:59 AM, Knut Omang wrote:
+> > 
+> > The original call ibv_cmd_create_ah does not allow vendor specific request or
+> > response parameters to be defined and passed through to kernel space.
+> > 
+> > To keep backward compatibility, introduce a new extended call which accepts
+> > cmd and resp parameters similar to other parts of the API.
+> > Reimplement the old call to just use the new extended call.
+> > 
+> > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  include/infiniband/driver.h |  4 ++++
+> >  src/cmd.c                   | 50 +++++++++++++++++++++++++--------------------
+> >  src/libibverbs.map          |  1 +
+> >  3 files changed, 33 insertions(+), 22 deletions(-)
+> > 
+> > diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+> > index 65fa44f..c46c55f 100644
+> > --- a/include/infiniband/driver.h
+> > +++ b/include/infiniband/driver.h
+> > @@ -229,6 +229,10 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+> >  			  struct ibv_recv_wr **bad_wr);
+> >  int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> >  		      struct ibv_ah_attr *attr);
+> > +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah,
+> > +			struct ibv_ah_attr *attr,
+> > +			struct ibv_create_ah *cmd, size_t cmd_size,
+> > +			struct ibv_create_ah_resp *resp, size_t resp_size);
+> >  int ibv_cmd_destroy_ah(struct ibv_ah *ah);
+> >  int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+> >  int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+> > diff --git a/src/cmd.c b/src/cmd.c
+> > index cb9e34c..12d8640 100644
+> > --- a/src/cmd.c
+> > +++ b/src/cmd.c
+> > @@ -1463,38 +1463,44 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+> >  	return ret;
+> >  }
+> > 
+> > -int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> > -		      struct ibv_ah_attr *attr)
+> > +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_attr *attr,
+> > +			 struct ibv_create_ah *cmd, size_t cmd_size,
+> > +			 struct ibv_create_ah_resp *resp, size_t resp_size)
+> >  {
+> > -	struct ibv_create_ah      cmd;
+> > -	struct ibv_create_ah_resp resp;
+> > -
+> > -	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
+> > -	cmd.user_handle            = (uintptr_t) ah;
+> > -	cmd.pd_handle              = pd->handle;
+> > -	cmd.attr.dlid              = attr->dlid;
+> > -	cmd.attr.sl                = attr->sl;
+> > -	cmd.attr.src_path_bits     = attr->src_path_bits;
+> > -	cmd.attr.static_rate       = attr->static_rate;
+> > -	cmd.attr.is_global         = attr->is_global;
+> > -	cmd.attr.port_num          = attr->port_num;
+> > -	cmd.attr.grh.flow_label    = attr->grh.flow_label;
+> > -	cmd.attr.grh.sgid_index    = attr->grh.sgid_index;
+> > -	cmd.attr.grh.hop_limit     = attr->grh.hop_limit;
+> > -	cmd.attr.grh.traffic_class = attr->grh.traffic_class;
+> > -	memcpy(cmd.attr.grh.dgid, attr->grh.dgid.raw, 16);
+> > +	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
+> You should start with a patch extending the kernel part while supporting 
+> backwards compatibility, later on when patch applied come with a 
+> matching user space patch for a review.
+> 
+> In addition, if you supply an extended command you should work with the 
+> extended macros for issuing a command to fully enable future extensions 
+> (e.g IBV_INIT_CMD_RESP_EX_V) and with a specific EX command as done in 
+> other cases (e.g CREATE_QP_EX).
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index a4961ed..1a18547 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -58,7 +58,6 @@
- struct nvme_rdma_device {
- 	struct ib_device       *dev;
- 	struct ib_pd	       *pd;
--	struct ib_mr	       *mr;
- 	struct kref		ref;
- 	struct list_head	entry;
- };
-@@ -410,10 +409,7 @@ static void nvme_rdma_free_dev(struct kref *ref)
- 	list_del(&ndev->entry);
- 	mutex_unlock(&device_list_mutex);
- 
--	if (!register_always)
--		ib_dereg_mr(ndev->mr);
- 	ib_dealloc_pd(ndev->pd);
--
- 	kfree(ndev);
- }
- 
-@@ -446,24 +442,16 @@ nvme_rdma_find_get_device(struct rdma_cm_id *cm_id)
- 	ndev->dev = cm_id->device;
- 	kref_init(&ndev->ref);
- 
--	ndev->pd = ib_alloc_pd(ndev->dev, 0);
-+	ndev->pd = ib_alloc_pd(ndev->dev,
-+		register_always ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
- 	if (IS_ERR(ndev->pd))
- 		goto out_free_dev;
- 
--	if (!register_always) {
--		ndev->mr = ib_get_dma_mr(ndev->pd,
--					    IB_ACCESS_LOCAL_WRITE |
--					    IB_ACCESS_REMOTE_READ |
--					    IB_ACCESS_REMOTE_WRITE);
--		if (IS_ERR(ndev->mr))
--			goto out_free_pd;
--	}
--
- 	if (!(ndev->dev->attrs.device_cap_flags &
- 	      IB_DEVICE_MEM_MGT_EXTENSIONS)) {
- 		dev_err(&ndev->dev->dev,
- 			"Memory registrations not supported.\n");
--		goto out_free_mr;
-+		goto out_free_pd;
- 	}
- 
- 	list_add(&ndev->entry, &device_list);
-@@ -471,9 +459,6 @@ out_unlock:
- 	mutex_unlock(&device_list_mutex);
- 	return ndev;
- 
--out_free_mr:
--	if (!register_always)
--		ib_dereg_mr(ndev->mr);
- out_free_pd:
- 	ib_dealloc_pd(ndev->pd);
- out_free_dev:
-@@ -903,7 +888,7 @@ static int nvme_rdma_map_sg_single(struct nvme_rdma_queue *queue,
- 
- 	sg->addr = cpu_to_le64(sg_dma_address(req->sg_table.sgl));
- 	put_unaligned_le24(sg_dma_len(req->sg_table.sgl), sg->length);
--	put_unaligned_le32(queue->device->mr->rkey, sg->key);
-+	put_unaligned_le32(queue->device->pd->unsafe_global_rkey, sg->key);
- 	sg->type = NVME_KEY_SGL_FMT_DATA_DESC << 4;
- 	return 0;
- }
-@@ -988,7 +973,7 @@ static int nvme_rdma_map_data(struct nvme_rdma_queue *queue,
- 		    nvme_rdma_queue_idx(queue))
- 			return nvme_rdma_map_sg_inline(queue, req, c);
- 
--		if (!register_always)
-+		if (dev->pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)
- 			return nvme_rdma_map_sg_single(queue, req, c);
- 	}
- 
--- 
-2.1.4
+Having looked at the details, I tend to think that what I am adding here is not
+an extended command, it is more of a fix for a missing feature of 
+the original ibv_cmd_create_ah, and the only reason for introducing a new 
+call is to maintain backward comp. Introducing additional complexity 
+with the kernel involved for something that is a pure user level side
+seems somewhat overkill.
 
+Maybe I can rename it to ibv_cmd_create_ah_v2 (or v3?) to avoid associating it
+with the extended command set? 
+
+As Jason and I discussed in another subthread here, we can consolidate this into a 
+single command once we get to a common library,
+as this is all internal to the rdma user level stack.
+
+Ok?
+
+Knut
+
+> > 
+> > +	cmd->user_handle            = (uintptr_t) ah;
+> > +	cmd->pd_handle              = pd->handle;
+> > +	cmd->attr.dlid              = attr->dlid;
+> > +	cmd->attr.sl                = attr->sl;
+> > +	cmd->attr.src_path_bits     = attr->src_path_bits;
+> > +	cmd->attr.static_rate       = attr->static_rate;
+> > +	cmd->attr.is_global         = attr->is_global;
+> > +	cmd->attr.port_num          = attr->port_num;
+> > +	cmd->attr.grh.flow_label    = attr->grh.flow_label;
+> > +	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
+> > +	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
+> > +	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
+> > +	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+> > 
+> > -	if (write(pd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+> > +	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+> >  		return errno;
+> > 
+> > -	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
+> > +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+> > 
+> > -	ah->handle  = resp.handle;
+> > +	ah->handle  = resp->handle;
+> >  	ah->context = pd->context;
+> > 
+> >  	return 0;
+> >  }
+> > 
+> > +int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> > +		      struct ibv_ah_attr *attr)
+> > +{
+> > +	struct ibv_create_ah      cmd;
+> > +	struct ibv_create_ah_resp resp;
+> > +	return ibv_cmd_create_ah_ex(pd, ah, attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
+> > +}
+> > +
+> >  int ibv_cmd_destroy_ah(struct ibv_ah *ah)
+> >  {
+> >  	struct ibv_destroy_ah cmd;
+> > diff --git a/src/libibverbs.map b/src/libibverbs.map
+> > index 5134bd9..483df72 100644
+> > --- a/src/libibverbs.map
+> > +++ b/src/libibverbs.map
+> > @@ -64,6 +64,7 @@ IBVERBS_1.0 {
+> >  		ibv_cmd_post_recv;
+> >  		ibv_cmd_post_srq_recv;
+> >  		ibv_cmd_create_ah;
+> > +		ibv_cmd_create_ah_ex;
+> >  		ibv_cmd_destroy_ah;
+> >  		ibv_cmd_attach_mcast;
+> >  		ibv_cmd_detach_mcast;
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
