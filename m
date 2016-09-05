@@ -1,84 +1,112 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 1/4] IB/rxe: Fix kernel panic in udp_setup_tunnel
-Date: Mon, 5 Sep 2016 17:04:16 +0300
-Message-ID: <20160905140416.GB21847@leon.nu>
-References: <1473077359-11546-1-git-send-email-leon@kernel.org>
- <1473077359-11546-2-git-send-email-leon@kernel.org>
- <e0399c1c-567c-4996-a454-4ebefbe6e665@redhat.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which
+ supports extra parameters
+Date: Mon, 5 Sep 2016 17:05:31 +0300
+Message-ID: <50c8e0ab-f7f4-85b1-09f7-a930ad445ee0@dev.mellanox.co.il>
+References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
+ <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
+ <09e67035-0c8a-9b44-fa84-08413dd6ac46@dev.mellanox.co.il>
+ <1473076411.3975.87.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="YYM4jLJxzFJ63wjS"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e0399c1c-567c-4996-a454-4ebefbe6e665-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1473076411.3975.87.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---YYM4jLJxzFJ63wjS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Sep 05, 2016 at 09:32:42AM -0400, Doug Ledford wrote:
-> On 9/5/2016 8:09 AM, Leon Romanovsky wrote:
-> > From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
+On 9/5/2016 2:53 PM, Knut Omang wrote:
+> On Thu, 2016-09-01 at 11:34 +0300, Yishai Hadas wrote:
+>> On 9/1/2016 9:59 AM, Knut Omang wrote:
+>>>
+>>> The original call ibv_cmd_create_ah does not allow vendor specific request or
+>>> response parameters to be defined and passed through to kernel space.
+>>>
+>>> To keep backward compatibility, introduce a new extended call which accepts
+>>> cmd and resp parameters similar to other parts of the API.
+>>> Reimplement the old call to just use the new extended call.
+>>>
+>>> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>  include/infiniband/driver.h |  4 ++++
+>>>  src/cmd.c                   | 50 +++++++++++++++++++++++++--------------------
+>>>  src/libibverbs.map          |  1 +
+>>>  3 files changed, 33 insertions(+), 22 deletions(-)
+>>>
+>>> diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+>>> index 65fa44f..c46c55f 100644
+>>> --- a/include/infiniband/driver.h
+>>> +++ b/include/infiniband/driver.h
+>>> @@ -229,6 +229,10 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+>>>  			  struct ibv_recv_wr **bad_wr);
+>>>  int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+>>>  		      struct ibv_ah_attr *attr);
+>>> +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah,
+>>> +			struct ibv_ah_attr *attr,
+>>> +			struct ibv_create_ah *cmd, size_t cmd_size,
+>>> +			struct ibv_create_ah_resp *resp, size_t resp_size);
+>>>  int ibv_cmd_destroy_ah(struct ibv_ah *ah);
+>>>  int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+>>>  int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+>>> diff --git a/src/cmd.c b/src/cmd.c
+>>> index cb9e34c..12d8640 100644
+>>> --- a/src/cmd.c
+>>> +++ b/src/cmd.c
+>>> @@ -1463,38 +1463,44 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+>>>  	return ret;
+>>>  }
+>>>
+>>> -int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+>>> -		      struct ibv_ah_attr *attr)
+>>> +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_attr *attr,
+>>> +			 struct ibv_create_ah *cmd, size_t cmd_size,
+>>> +			 struct ibv_create_ah_resp *resp, size_t resp_size)
+>>>  {
+>>> -	struct ibv_create_ah      cmd;
+>>> -	struct ibv_create_ah_resp resp;
+>>> -
+>>> -	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
+>>> -	cmd.user_handle            = (uintptr_t) ah;
+>>> -	cmd.pd_handle              = pd->handle;
+>>> -	cmd.attr.dlid              = attr->dlid;
+>>> -	cmd.attr.sl                = attr->sl;
+>>> -	cmd.attr.src_path_bits     = attr->src_path_bits;
+>>> -	cmd.attr.static_rate       = attr->static_rate;
+>>> -	cmd.attr.is_global         = attr->is_global;
+>>> -	cmd.attr.port_num          = attr->port_num;
+>>> -	cmd.attr.grh.flow_label    = attr->grh.flow_label;
+>>> -	cmd.attr.grh.sgid_index    = attr->grh.sgid_index;
+>>> -	cmd.attr.grh.hop_limit     = attr->grh.hop_limit;
+>>> -	cmd.attr.grh.traffic_class = attr->grh.traffic_class;
+>>> -	memcpy(cmd.attr.grh.dgid, attr->grh.dgid.raw, 16);
+>>> +	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
+>> You should start with a patch extending the kernel part while supporting
+>> backwards compatibility, later on when patch applied come with a
+>> matching user space patch for a review.
+>>
+>> In addition, if you supply an extended command you should work with the
+>> extended macros for issuing a command to fully enable future extensions
+>> (e.g IBV_INIT_CMD_RESP_EX_V) and with a specific EX command as done in
+>> other cases (e.g CREATE_QP_EX).
 >
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> > index 0b8d2ea..e0866b4 100644
-> > --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> > +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> > @@ -249,8 +249,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
-> >  	memset(&udp_cfg, 0, sizeof(udp_cfg));
-> >
-> >  	if (ipv6) {
-> > -		udp_cfg.family = AF_INET6;
-> > -		udp_cfg.ipv6_v6only = 1;
-> > +	udp_cfg.family = AF_INET6;
-> > +	udp_cfg.ipv6_v6only = 1;
-> >  	} else {
-> >  		udp_cfg.family = AF_INET;
-> >  	}
->
-> Is my mailer displaying this wrong, or is this hunk just intentionally
-> introducing indent breakage?
+> Having looked at the details, I tend to think that what I am adding here is not
+> an extended command, it is more of a fix for a missing feature of
+> the original ibv_cmd_create_ah,
 
-You are right, it is unintentionally. I'll repost.
+You want to extend the user->kernel API to get some extra data while 
+maintaining BW compatibility. Usually you need for that an extra command 
+which better be extended from day one. Can it be done in the kernel side 
+without a new command ? please send pointer to the matching kernel patch.
 
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: 0E572FDD
->
+> Maybe I can rename it to ibv_cmd_create_ah_v2 (or v3?) to avoid associating it
+> with the extended command set?
 
+In case you need a new command, let's add it in an extended mode so that 
+future extensions will use it instead of having later v3/v4, etc.
 
-
-
---YYM4jLJxzFJ63wjS
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXzXtgAAoJEORje4g2cling6cQAJkmB2cNQegLc0hnRMMUqKjJ
-1ZBBOfYe9cgl0oIRdjBA8J7js22aAjj3bo6LOTO+LlQqzqRkDvu3j/SveFlO5oM1
-1TIJ8IrdMGNNTsMoo1LJg6Z2xCEacgHeCB+yi5R+44Ej8CusK110CZGHB39Fd8Rc
-NceK8ivHxwIJyR0Zeixaadudo/6DH1a2cMNNsImGVc/nJUicrwn1FhHTL9oZMg+W
-nXJC++QWdhmaJDe1z4ZmEyxm5S5vmJAKslMHLADj6VxcM5pXuTDpuq0If1ORoEbV
-DzP6yN/MUNGB8fvjwDiSWYfSwxW++BiVAxc26qgc2qfVk+1hkQyX1DgbFR3+iLow
-szRiGsbPOtRu9Pr+ro8EF/DH5IJ9lBsyF2SD8jgQ3KrpiUc9Nv7d+d0MjoCvGkv4
-3v3FwJ0QxgNmpvMf1Rj/RvK7p1Eg651GP51HJtaCvc5oyMPA+CN50tgCNVuvsi3d
-MUkfbb/DIEQr157Zc4XYWkvTG6csR6wEeTVqW+l3lRBzNwS0Dm6sYGbv7sF4t/UJ
-8lkFEEAeWuJYpWWgyIqVbKA406pikriwEi7kOA6ByIlJuRrjntiaSJOW/v+BfQKL
-7kUtHFuIfSrTLN2pl3JCJbRyEUn2yrCubmlSlb+jykxHeoGcupiRb0VdNSVpDiJE
-HDlXIv2MGAKygsqePMxE
-=d3+3
------END PGP SIGNATURE-----
-
---YYM4jLJxzFJ63wjS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
