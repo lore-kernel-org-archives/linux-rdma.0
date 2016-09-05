@@ -1,70 +1,80 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 4/6] RDMA/core: Move HFI1 IOCTL declarations
- to common file
-Date: Mon, 5 Sep 2016 08:31:14 +0300
-Message-ID: <20160905053113.GV21847@leon.nu>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V3 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Mon, 5 Sep 2016 08:33:42 +0300
+Message-ID: <20160905053342.GW21847@leon.nu>
 References: <1472988635-31463-1-git-send-email-leon@kernel.org>
- <1472988635-31463-5-git-send-email-leon@kernel.org>
- <20160905024158.GE21542@obsidianresearch.com>
+ <1472988635-31463-7-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="p11K2BJEgMZL61bg"
+        protocol="application/pgp-signature"; boundary="USQ0BwiCE5W4XvtQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160905024158.GE21542-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1472988635-31463-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---p11K2BJEgMZL61bg
+--USQ0BwiCE5W4XvtQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Sep 04, 2016 at 08:41:58PM -0600, Jason Gunthorpe wrote:
-> On Sun, Sep 04, 2016 at 02:30:33PM +0300, Leon Romanovsky wrote:
+On Sun, Sep 04, 2016 at 02:30:35PM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> > +/* User commands. */
-> > +#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
+> MAD and HFI1 have different naming convention, this patch
+> simplifies and unifies their defines and names.
 >
-> > +#define HFI1_IOCTL_ASSIGN_CTXT \
-> > +	_IOWR(IB_IOCTL_MAGIC, __NUM(ASSIGN_CTXT), struct hfi1_user_info)
+> As part of cleanup, the HFI1 _NUM() macro and command indexes
+> were removed. It has a potential to break applications which use
+> these defines directly, while shouldn't.
 >
-> I still vote for dropping the HFI1_CMD_ASSIGN_CTXT defines. Inlining
-> the number is far more readable than that ugly __NUM macro.
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  include/uapi/rdma/rdma_user_ioctl.h | 98 ++++++++++++++-----------------------
+>  1 file changed, 38 insertions(+), 60 deletions(-)
 >
-> If it was done consistently you might have an arugment, but just doing
-> it in one place with no purpose is silly.
 
-It is done in patch 6. It is here to preserve one-change->one-patch
-flow.
+<....>
 
->
-> Jason
+>  /*
+> - * User IOCTLs can not go above 128 if they do then see common.h and change the
+> - * base for the snoop ioctl
+> + * General blocks assignments
+> + * It is closed on purpose do not expose it it user space
 
---p11K2BJEgMZL61bg
+Doug,
+Do you mind to change "it it" to be "it to" and save to everyone
+respin?
+
+Thanks
+
+--USQ0BwiCE5W4XvtQ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXzQMhAAoJEORje4g2clinutQP/2wr5j9Cn4d4/GYHjCdq+H0N
-wlfPLQQLU/E7+B2zGm4GOvE9DDz4VtjC2Z1C78nsIGoaEcj715b9L2E7VwliepiJ
-rDvkeQENsh8u22xUj4Dua95XaQCJa0fzIIdMiRxQlfzXEVXFfEQ7nt1VceVh+rdN
-9wvkUgu0WoajGGXxrYgaaSbnVGhicABoalNnNL3GKU9SOztJECvYq3jqs8oUbn53
-pdJOlAsyC27OsGu80TPHPVZEtjmL9aw5sLhbT0ekkU6BvtdAZsiC7dv5Romuy8lv
-IofFUM8KfL/VAl7nJDpdsZb9s/Z8gUpQc3Rb8crKe5wu60iC6QHyXoCw18oyTu3l
-gw0VOsvIePFgTRn8VXYT7mhX15bsTFbxfphuiLWxjZpbaLrgxaFkib2NFhXzBhLM
-ipJZi601TqclKbgxM/NmoTXjmC0C76uem2WydDy+8dUqX5Mnzo1GtpQjFuMSzvDf
-UmecsfIZDs8RiJUvbbe+uzHvuNG/t2yWCpeaj5AZb3e10sdQYT98WizEh4KbdMYm
-XhDcyrOLjauh7bPV6Ki2Egeo/fYaAoJOTGJqLPH8v4AG46hUqXaa/nySVXC+awFK
-4/nIODY8MXoQnutPmkkZG8w0LFDIw8XGhhCfOizW91fZdGZOJf3zRbOFGGLmZ5am
-+21kXdy1GVILi3UYc29x
-=9iG/
+iQIcBAEBAgAGBQJXzQO2AAoJEORje4g2clinGiYQAIhWvPOnOL3c56Shr2iAMvfU
+hJqGBsBiNwcGvAG3t/wDWMlVcFM1fcVbuSbTx2/XKqyLYfwMwoAkvhW4xLrWk5GL
+JRlr7BFOLsjSpHJoG4hHEqbSgrgTDru6T83xvyRkpstd1LkwiORs7NxoQMq2tyj+
+JDuFR+6Ju5adhUt0rOGDDb1Xo5sZSG3aZo489d0TSChH6zpp8Jp1fa/KVUJJuznU
+0lqCUCcRXFGKSIyHU3QIG6teTma+nBu91uRymUt0UamEY20uzFNK51uYOBGliImD
+EGlkLzDP6UzEgu5eE4zR0+r1CJfLaJw0ZRK237xkwPB6sXmTUphfMZdUx1lp4Eun
+88rfxHyPV0UZHo28B4XYZ4DqsmjgIps9H8VUXLj2cVUdjXZyrJZV5/ZMDjEgTbCY
+qaB5M0jxpAwUXv+m0FTnS14WQNgn1tk0Ft/oOaK1XGh9vn8eExKC0Za8n6f8P4n8
+9cEFtAU4E8JDA3HpkZHHfZVt7L4mPhN9KicERygwE7wfXvbNfNpYQB8OLolfF4G/
+7wkjCZtp3JEL/uKGP9JhOYjkJSLYjCyAWwKpRNNBUnz1ytH3ZbOALZ0ILFS8KOiB
+qI0Fb9mRDK4APlOq0FluuK1ikqpcXgQqXgJjYSBwNsLF45xqsg6YUyaVV4woK8eB
+PE6ub/8P2HOdBNbIy3NO
+=9dTS
 -----END PGP SIGNATURE-----
 
---p11K2BJEgMZL61bg--
+--USQ0BwiCE5W4XvtQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
