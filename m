@@ -1,8 +1,7 @@
 From: Ana Guerrero =?iso-8859-1?Q?L=F3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
-Subject: [infiniband-diags PATCH 1/4] Update AM_INIT_AUTOMAKE to use
- subdir-objects
-Date: Mon, 5 Sep 2016 23:48:44 +0200
-Message-ID: <20160905214844.GA9613@pryan.ekaia.org>
+Subject: [infiniband-diags PATCH 3/4] Update the shebang to point to /bin/bash
+Date: Mon, 5 Sep 2016 23:49:02 +0200
+Message-ID: <20160905214902.GA9765@pryan.ekaia.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
@@ -12,40 +11,24 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-With this option, the objects are placed into the subdirectory of
-the build directory corresponding to the subdirectory of the source file.
-Fixes the following warning:
-
-Makefile.am:103: warning: source file 'src/ibdiag_common.c' is in a subdirectory,
-Makefile.am:103: but option 'subdir-objects' is disabled
-automake: warning: possible forward-incompatibility.
-automake: At least a source file is in a subdirectory, but the 'subdir-objects'
-automake: automake option hasn't been enabled.  For now, the corresponding output
-automake: object file(s) will be placed in the top-level directory.  However,
-automake: this behaviour will change in future Automake versions: they will
-automake: unconditionally cause object files to be placed in the same subdirectory
-automake: of the corresponding sources.
-automake: You are advised to start using 'subdir-objects' option throughout your
-automake: project, to avoid future incompatibilities.
+The script contains a few bashims and it won't run in systems such as Debian
+and Ubuntu where /bin/sh is not a symlink to /bin/bash
 
 Signed-off-by: Ana Guerrero López <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
 ---
- configure.ac | 2 +-
+ doc/generate | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index 623bc4f..75dbb8d 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -5,7 +5,7 @@ AC_INIT(infiniband-diags, 1.6.7, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_AUX_DIR(config)
- AC_CONFIG_MACRO_DIR(config)
- AM_CONFIG_HEADER(config.h)
--AM_INIT_AUTOMAKE([foreign])
-+AM_INIT_AUTOMAKE([subdir-objects])
+diff --git a/doc/generate b/doc/generate
+index 816b66f..b1339f8 100755
+--- a/doc/generate
++++ b/doc/generate
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/bash
  
- AC_SUBST(RELEASE, ${RELEASE:-unknown})
- AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
+ docdir=`dirname $0`
+ mode=$1
 -- 
 2.9.3
 
