@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 4/6] IB/srp: use IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Mon,  5 Sep 2016 12:56:19 +0200
-Message-ID: <1473072981-2035-5-git-send-email-hch@lst.de>
+Subject: [PATCH 2/6] IB/core: add support to create a unsafe global rkey to ib_create_pd
+Date: Mon,  5 Sep 2016 12:56:17 +0200
+Message-ID: <1473072981-2035-3-git-send-email-hch@lst.de>
 References: <1473072981-2035-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473072981-2035-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,201 +10,348 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 44 ++++++++++++++++---------------------
- drivers/infiniband/ulp/srp/ib_srp.h |  3 +--
- 2 files changed, 20 insertions(+), 27 deletions(-)
+Instead of exposing ib_get_dma_mr to ULPs and letting them use it more or
+less unchecked, this moves the capability of creating a global rkey into
+the RDMA core, where it can be easily audited.  It also prints a warning
+everytime this feature is used as well.
 
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c                      |  2 +-
+ drivers/infiniband/core/verbs.c                    | 27 ++++++++++++++++++----
+ drivers/infiniband/hw/mlx4/mad.c                   |  2 +-
+ drivers/infiniband/hw/mlx4/main.c                  |  2 +-
+ drivers/infiniband/hw/mlx5/main.c                  |  2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c         |  2 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c           |  2 +-
+ drivers/infiniband/ulp/isert/ib_isert.c            |  2 +-
+ drivers/infiniband/ulp/srp/ib_srp.c                |  2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c              |  2 +-
+ drivers/nvme/host/rdma.c                           |  2 +-
+ drivers/nvme/target/rdma.c                         |  2 +-
+ .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c    |  2 +-
+ include/rdma/ib_verbs.h                            | 20 +++++++++++++++-
+ net/9p/trans_rdma.c                                |  2 +-
+ net/rds/ib.c                                       |  2 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c           |  2 +-
+ net/sunrpc/xprtrdma/verbs.c                        |  2 +-
+ 18 files changed, 57 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 2d49228..95d33a3 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -3160,7 +3160,7 @@ static int ib_mad_port_open(struct ib_device *device,
+ 		goto error3;
+ 	}
+ 
+-	port_priv->pd = ib_alloc_pd(device);
++	port_priv->pd = ib_alloc_pd(device, 0);
+ 	if (IS_ERR(port_priv->pd)) {
+ 		dev_err(&device->dev, "Couldn't create ib_mad PD\n");
+ 		ret = PTR_ERR(port_priv->pd);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 9159ea5..e87b518 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -227,9 +227,11 @@ EXPORT_SYMBOL(rdma_port_get_link_layer);
+  * Every PD has a local_dma_lkey which can be used as the lkey value for local
+  * memory operations.
+  */
+-struct ib_pd *ib_alloc_pd(struct ib_device *device)
++struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
++		const char *caller)
+ {
+ 	struct ib_pd *pd;
++	int mr_access_flags = 0;
+ 
+ 	pd = device->alloc_pd(device, NULL, NULL);
+ 	if (IS_ERR(pd))
+@@ -239,24 +241,39 @@ struct ib_pd *ib_alloc_pd(struct ib_device *device)
+ 	pd->uobject = NULL;
+ 	pd->__internal_mr = NULL;
+ 	atomic_set(&pd->usecnt, 0);
++	pd->flags = flags;
+ 
+ 	if (device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+ 		pd->local_dma_lkey = device->local_dma_lkey;
+-	else {
++	else
++		mr_access_flags |= IB_ACCESS_LOCAL_WRITE;
++
++	if (flags & IB_PD_UNSAFE_GLOBAL_RKEY) {
++		pr_warn("%s: enabling unsafe global rkey\n", caller);
++		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
++	}
++
++	if (mr_access_flags) {
+ 		struct ib_mr *mr;
+ 
+-		mr = ib_get_dma_mr(pd, IB_ACCESS_LOCAL_WRITE);
++		mr = ib_get_dma_mr(pd, mr_access_flags);
+ 		if (IS_ERR(mr)) {
+ 			ib_dealloc_pd(pd);
+ 			return (struct ib_pd *)mr;
+ 		}
+ 
+ 		pd->__internal_mr = mr;
+-		pd->local_dma_lkey = pd->__internal_mr->lkey;
++
++		if (!(device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY))
++			pd->local_dma_lkey = pd->__internal_mr->lkey;
++
++		if (flags & IB_PD_UNSAFE_GLOBAL_RKEY)
++			pd->unsafe_global_rkey = pd->__internal_mr->rkey;
+ 	}
++
+ 	return pd;
+ }
+-EXPORT_SYMBOL(ib_alloc_pd);
++EXPORT_SYMBOL(__ib_alloc_pd);
+ 
+ /**
+  * ib_dealloc_pd - Deallocates a protection domain.
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 9c2e53d..517346f 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1897,7 +1897,7 @@ static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
+ 		goto err_buf;
+ 	}
+ 
+-	ctx->pd = ib_alloc_pd(ctx->ib_dev);
++	ctx->pd = ib_alloc_pd(ctx->ib_dev, 0);
+ 	if (IS_ERR(ctx->pd)) {
+ 		ret = PTR_ERR(ctx->pd);
+ 		pr_err("Couldn't create tunnel PD (%d)\n", ret);
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2af44c2..a96e78c 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1259,7 +1259,7 @@ static struct ib_xrcd *mlx4_ib_alloc_xrcd(struct ib_device *ibdev,
+ 	if (err)
+ 		goto err1;
+ 
+-	xrcd->pd = ib_alloc_pd(ibdev);
++	xrcd->pd = ib_alloc_pd(ibdev, 0);
+ 	if (IS_ERR(xrcd->pd)) {
+ 		err = PTR_ERR(xrcd->pd);
+ 		goto err2;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index f02a975..cf1eee4 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2223,7 +2223,7 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 		goto error_0;
+ 	}
+ 
+-	pd = ib_alloc_pd(&dev->ib_dev);
++	pd = ib_alloc_pd(&dev->ib_dev, 0);
+ 	if (IS_ERR(pd)) {
+ 		mlx5_ib_dbg(dev, "Couldn't create PD for sync UMR QP\n");
+ 		ret = PTR_ERR(pd);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+index c55ecb2..6067f07 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+@@ -147,7 +147,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	int ret, size;
+ 	int i;
+ 
+-	priv->pd = ib_alloc_pd(priv->ca);
++	priv->pd = ib_alloc_pd(priv->ca, 0);
+ 	if (IS_ERR(priv->pd)) {
+ 		printk(KERN_WARNING "%s: failed to allocate PD\n", ca->name);
+ 		return -ENODEV;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 1b49453..e9de992 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -88,7 +88,7 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ 		  device->comps_used, ib_dev->name,
+ 		  ib_dev->num_comp_vectors, max_cqe);
+ 
+-	device->pd = ib_alloc_pd(ib_dev);
++	device->pd = ib_alloc_pd(ib_dev, 0);
+ 	if (IS_ERR(device->pd))
+ 		goto pd_err;
+ 
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index ba6be06..8df608e 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -309,7 +309,7 @@ isert_create_device_ib_res(struct isert_device *device)
+ 	if (ret)
+ 		goto out;
+ 
+-	device->pd = ib_alloc_pd(ib_dev);
++	device->pd = ib_alloc_pd(ib_dev, 0);
+ 	if (IS_ERR(device->pd)) {
+ 		ret = PTR_ERR(device->pd);
+ 		isert_err("failed to allocate pd, device %p, ret=%d\n",
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 579b8ae..5ed1e88 100644
+index 3322ed7..579b8ae 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1262,6 +1262,7 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
- {
- 	struct srp_target_port *target = ch->target;
- 	struct srp_device *dev = target->srp_host->srp_dev;
-+	struct ib_pd *pd = target->pd;
- 	struct ib_pool_fmr *fmr;
- 	u64 io_addr = 0;
- 
-@@ -1273,9 +1274,9 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
- 	if (state->npages == 0)
- 		return 0;
- 
--	if (state->npages == 1 && target->global_mr) {
-+	if (state->npages == 1 && (pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
- 		srp_map_desc(state, state->base_dma_addr, state->dma_len,
--			     target->global_mr->rkey);
-+			     pd->unsafe_global_rkey);
- 		goto reset_state;
- 	}
- 
-@@ -1315,6 +1316,7 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- {
- 	struct srp_target_port *target = ch->target;
- 	struct srp_device *dev = target->srp_host->srp_dev;
-+	struct ib_pd *pd = target->pd;
- 	struct ib_send_wr *bad_wr;
- 	struct ib_reg_wr wr;
- 	struct srp_fr_desc *desc;
-@@ -1326,12 +1328,12 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 
- 	WARN_ON_ONCE(!dev->use_fast_reg);
- 
--	if (sg_nents == 1 && target->global_mr) {
-+	if (sg_nents == 1 && (pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
- 		unsigned int sg_offset = sg_offset_p ? *sg_offset_p : 0;
- 
- 		srp_map_desc(state, sg_dma_address(state->sg) + sg_offset,
- 			     sg_dma_len(state->sg) - sg_offset,
--			     target->global_mr->rkey);
-+			     pd->unsafe_global_rkey);
- 		if (sg_offset_p)
- 			*sg_offset_p = 0;
- 		return 1;
-@@ -1491,7 +1493,7 @@ static int srp_map_sg_dma(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 	for_each_sg(scat, sg, count, i) {
- 		srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
- 			     ib_sg_dma_len(dev->dev, sg),
--			     target->global_mr->rkey);
-+			     target->pd->unsafe_global_rkey);
- 	}
- 
- 	return 0;
-@@ -1591,6 +1593,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 			struct srp_request *req)
- {
- 	struct srp_target_port *target = ch->target;
-+	struct ib_pd *pd = target->pd;
- 	struct scatterlist *scat;
- 	struct srp_cmd *cmd = req->cmd->buf;
- 	int len, nents, count, ret;
-@@ -1626,7 +1629,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 	fmt = SRP_DATA_DESC_DIRECT;
- 	len = sizeof (struct srp_cmd) +	sizeof (struct srp_direct_buf);
- 
--	if (count == 1 && target->global_mr) {
-+	if (count == 1 && (pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
- 		/*
- 		 * The midlayer only generated a single gather/scatter
- 		 * entry, or DMA mapping coalesced everything to a
-@@ -1636,7 +1639,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 		struct srp_direct_buf *buf = (void *) cmd->add_data;
- 
- 		buf->va  = cpu_to_be64(ib_sg_dma_address(ibdev, scat));
--		buf->key = cpu_to_be32(target->global_mr->rkey);
-+		buf->key = cpu_to_be32(pd->unsafe_global_rkey);
- 		buf->len = cpu_to_be32(ib_sg_dma_len(ibdev, scat));
- 
- 		req->nmdesc = 0;
-@@ -1709,14 +1712,14 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 	memcpy(indirect_hdr->desc_list, req->indirect_desc,
- 	       count * sizeof (struct srp_direct_buf));
- 
--	if (!target->global_mr) {
-+	if (!(pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
- 		ret = srp_map_idb(ch, req, state.gen.next, state.gen.end,
- 				  idb_len, &idb_rkey);
- 		if (ret < 0)
- 			goto unmap;
- 		req->nmdesc++;
- 	} else {
--		idb_rkey = cpu_to_be32(target->global_mr->rkey);
-+		idb_rkey = cpu_to_be32(pd->unsafe_global_rkey);
- 	}
- 
- 	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
-@@ -3268,8 +3271,8 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->io_class	= SRP_REV16A_IB_IO_CLASS;
- 	target->scsi_host	= target_host;
- 	target->srp_host	= host;
-+	target->pd		= host->srp_dev->pd;
- 	target->lkey		= host->srp_dev->pd->local_dma_lkey;
--	target->global_mr	= host->srp_dev->global_mr;
- 	target->cmd_sg_cnt	= cmd_sg_entries;
- 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
- 	target->allow_ext_sg	= allow_ext_sg;
-@@ -3524,6 +3527,7 @@ static void srp_add_one(struct ib_device *device)
- 	struct srp_host *host;
- 	int mr_page_shift, p;
- 	u64 max_pages_per_mr;
-+	unsigned int flags = 0;
- 
- 	srp_dev = kzalloc(sizeof(*srp_dev), GFP_KERNEL);
- 	if (!srp_dev)
-@@ -3558,6 +3562,10 @@ static void srp_add_one(struct ib_device *device)
- 		srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
- 	}
- 
-+	if (never_register || !register_always ||
-+	    (!srp_dev->has_fmr && !srp_dev->has_fr))
-+		flags |= IB_PD_UNSAFE_GLOBAL_RKEY;
-+
- 	if (srp_dev->use_fast_reg) {
- 		srp_dev->max_pages_per_mr =
- 			min_t(u32, srp_dev->max_pages_per_mr,
-@@ -3573,19 +3581,10 @@ static void srp_add_one(struct ib_device *device)
+@@ -3573,7 +3573,7 @@ static void srp_add_one(struct ib_device *device)
  	INIT_LIST_HEAD(&srp_dev->dev_list);
  
  	srp_dev->dev = device;
--	srp_dev->pd  = ib_alloc_pd(device, 0);
-+	srp_dev->pd  = ib_alloc_pd(device, flags);
+-	srp_dev->pd  = ib_alloc_pd(device);
++	srp_dev->pd  = ib_alloc_pd(device, 0);
  	if (IS_ERR(srp_dev->pd))
  		goto free_dev;
  
--	if (never_register || !register_always ||
--	    (!srp_dev->has_fmr && !srp_dev->has_fr)) {
--		srp_dev->global_mr = ib_get_dma_mr(srp_dev->pd,
--						   IB_ACCESS_LOCAL_WRITE |
--						   IB_ACCESS_REMOTE_READ |
--						   IB_ACCESS_REMOTE_WRITE);
--		if (IS_ERR(srp_dev->global_mr))
--			goto err_pd;
--	}
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index dfa23b0..48a44af 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2475,7 +2475,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	init_waitqueue_head(&sdev->ch_releaseQ);
+ 	mutex_init(&sdev->mutex);
  
- 	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
- 		host = srp_add_port(srp_dev, p);
-@@ -3596,9 +3595,6 @@ static void srp_add_one(struct ib_device *device)
- 	ib_set_client_data(device, &srp_client, srp_dev);
- 	return;
+-	sdev->pd = ib_alloc_pd(device);
++	sdev->pd = ib_alloc_pd(device, 0);
+ 	if (IS_ERR(sdev->pd))
+ 		goto free_dev;
  
--err_pd:
--	ib_dealloc_pd(srp_dev->pd);
--
- free_dev:
- 	kfree(srp_dev);
- }
-@@ -3638,8 +3634,6 @@ static void srp_remove_one(struct ib_device *device, void *client_data)
- 		kfree(host);
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 8d2875b..a4961ed 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -446,7 +446,7 @@ nvme_rdma_find_get_device(struct rdma_cm_id *cm_id)
+ 	ndev->dev = cm_id->device;
+ 	kref_init(&ndev->ref);
+ 
+-	ndev->pd = ib_alloc_pd(ndev->dev);
++	ndev->pd = ib_alloc_pd(ndev->dev, 0);
+ 	if (IS_ERR(ndev->pd))
+ 		goto out_free_dev;
+ 
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index b4d6485..187763a 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -848,7 +848,7 @@ nvmet_rdma_find_get_device(struct rdma_cm_id *cm_id)
+ 	ndev->device = cm_id->device;
+ 	kref_init(&ndev->ref);
+ 
+-	ndev->pd = ib_alloc_pd(ndev->device);
++	ndev->pd = ib_alloc_pd(ndev->device, 0);
+ 	if (IS_ERR(ndev->pd))
+ 		goto out_free_dev;
+ 
+diff --git a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+index 4f5978b..0e4c609 100644
+--- a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
++++ b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+@@ -2465,7 +2465,7 @@ int kiblnd_dev_failover(struct kib_dev *dev)
+ 	hdev->ibh_cmid  = cmid;
+ 	hdev->ibh_ibdev = cmid->device;
+ 
+-	pd = ib_alloc_pd(cmid->device);
++	pd = ib_alloc_pd(cmid->device, 0);
+ 	if (IS_ERR(pd)) {
+ 		rc = PTR_ERR(pd);
+ 		CERROR("Can't allocate PD: %d\n", rc);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 38a08dae..4bdd898 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1370,10 +1370,13 @@ struct ib_udata {
+ 
+ struct ib_pd {
+ 	u32			local_dma_lkey;
++	u32			flags;
+ 	struct ib_device       *device;
+ 	struct ib_uobject      *uobject;
+ 	atomic_t          	usecnt; /* count all resources */
+ 
++	u32			unsafe_global_rkey;
++
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+ 	 */
+@@ -2506,8 +2509,23 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+ int ib_find_pkey(struct ib_device *device,
+ 		 u8 port_num, u16 pkey, u16 *index);
+ 
+-struct ib_pd *ib_alloc_pd(struct ib_device *device);
++enum ib_pd_flags {
++	/*
++	 * Create a memory registration for all memory in the system and place
++	 * the rkey for it into pd->unsafe_global_rkey.  This can be used by
++	 * ULPs to avoid the overhead of dynamic MRs.
++	 *
++	 * This flag is generally considered unsafe and must only be used in
++	 * extremly trusted environments.  Every use of it will log a warning
++	 * in the kernel log.
++	 */
++	IB_PD_UNSAFE_GLOBAL_RKEY	= 0x01,
++};
+ 
++struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
++		const char *caller);
++#define ib_alloc_pd(device, flags) \
++	__ib_alloc_pd((device), (flags), __func__)
+ void ib_dealloc_pd(struct ib_pd *pd);
+ 
+ /**
+diff --git a/net/9p/trans_rdma.c b/net/9p/trans_rdma.c
+index 1852e38..553ed4e 100644
+--- a/net/9p/trans_rdma.c
++++ b/net/9p/trans_rdma.c
+@@ -680,7 +680,7 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
+ 		goto error;
+ 
+ 	/* Create the Protection Domain */
+-	rdma->pd = ib_alloc_pd(rdma->cm_id->device);
++	rdma->pd = ib_alloc_pd(rdma->cm_id->device, 0);
+ 	if (IS_ERR(rdma->pd))
+ 		goto error;
+ 
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 7eaf887..5680d90 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -160,7 +160,7 @@ static void rds_ib_add_one(struct ib_device *device)
+ 	rds_ibdev->max_responder_resources = device->attrs.max_qp_rd_atom;
+ 
+ 	rds_ibdev->dev = device;
+-	rds_ibdev->pd = ib_alloc_pd(device);
++	rds_ibdev->pd = ib_alloc_pd(device, 0);
+ 	if (IS_ERR(rds_ibdev->pd)) {
+ 		rds_ibdev->pd = NULL;
+ 		goto put_dev;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index dd94401..eb2857f 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -993,7 +993,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	newxprt->sc_ord = min_t(size_t, dev->attrs.max_qp_rd_atom, newxprt->sc_ord);
+ 	newxprt->sc_ord = min_t(size_t,	svcrdma_ord, newxprt->sc_ord);
+ 
+-	newxprt->sc_pd = ib_alloc_pd(dev);
++	newxprt->sc_pd = ib_alloc_pd(dev, 0);
+ 	if (IS_ERR(newxprt->sc_pd)) {
+ 		dprintk("svcrdma: error creating PD for connect request\n");
+ 		goto errout;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 536d0be..6561d4a 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -386,7 +386,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
  	}
+ 	ia->ri_device = ia->ri_id->device;
  
--	if (srp_dev->global_mr)
--		ib_dereg_mr(srp_dev->global_mr);
- 	ib_dealloc_pd(srp_dev->pd);
- 
- 	kfree(srp_dev);
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 26bb9b0..21c6969 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -90,7 +90,6 @@ struct srp_device {
- 	struct list_head	dev_list;
- 	struct ib_device       *dev;
- 	struct ib_pd	       *pd;
--	struct ib_mr	       *global_mr;
- 	u64			mr_page_mask;
- 	int			mr_page_size;
- 	int			mr_max_size;
-@@ -179,7 +178,7 @@ struct srp_target_port {
- 	spinlock_t		lock;
- 
- 	/* read only in the hot path */
--	struct ib_mr		*global_mr;
-+	struct ib_pd		*pd;
- 	struct srp_rdma_ch	*ch;
- 	u32			ch_count;
- 	u32			lkey;
+-	ia->ri_pd = ib_alloc_pd(ia->ri_device);
++	ia->ri_pd = ib_alloc_pd(ia->ri_device, 0);
+ 	if (IS_ERR(ia->ri_pd)) {
+ 		rc = PTR_ERR(ia->ri_pd);
+ 		pr_err("rpcrdma: ib_alloc_pd() returned %d\n", rc);
 -- 
 2.1.4
 
