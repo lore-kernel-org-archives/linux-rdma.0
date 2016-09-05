@@ -1,7 +1,8 @@
 From: Ana Guerrero =?iso-8859-1?Q?L=F3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
-Subject: [infiniband-diags PATCH 2/4] Replace INCLUDES with AM_CPPFLAGS
-Date: Mon, 5 Sep 2016 23:48:52 +0200
-Message-ID: <20160905214852.GA9682@pryan.ekaia.org>
+Subject: [infiniband-diags PATCH 1/4] Update AM_INIT_AUTOMAKE to use
+ subdir-objects
+Date: Mon, 5 Sep 2016 23:48:44 +0200
+Message-ID: <20160905214844.GA9613@pryan.ekaia.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
@@ -11,44 +12,40 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes the following warnings:
+With this option, the objects are placed into the subdirectory of
+the build directory corresponding to the subdirectory of the source file.
+Fixes the following warning:
 
-Makefile.am:4: warning: 'INCLUDES' is the old name for 'AM_CPPFLAGS' (or '*_CPPFLAGS')
-
-libibnetdisc/Makefile.am:4: warning: 'INCLUDES' is the old name for 'AM_CPPFLAGS' (or '*_CPPFLAGS')
+Makefile.am:103: warning: source file 'src/ibdiag_common.c' is in a subdirectory,
+Makefile.am:103: but option 'subdir-objects' is disabled
+automake: warning: possible forward-incompatibility.
+automake: At least a source file is in a subdirectory, but the 'subdir-objects'
+automake: automake option hasn't been enabled.  For now, the corresponding output
+automake: object file(s) will be placed in the top-level directory.  However,
+automake: this behaviour will change in future Automake versions: they will
+automake: unconditionally cause object files to be placed in the same subdirectory
+automake: of the corresponding sources.
+automake: You are advised to start using 'subdir-objects' option throughout your
+automake: project, to avoid future incompatibilities.
 
 Signed-off-by: Ana Guerrero López <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
 ---
- Makefile.am              | 2 +-
- libibnetdisc/Makefile.am | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 3fea79d..1973702 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,7 +1,7 @@
- ACLOCAL_AMFLAGS = -I config
- SUBDIRS = libibnetdisc
+diff --git a/configure.ac b/configure.ac
+index 623bc4f..75dbb8d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -5,7 +5,7 @@ AC_INIT(infiniband-diags, 1.6.7, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_AUX_DIR(config)
+ AC_CONFIG_MACRO_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+-AM_INIT_AUTOMAKE([foreign])
++AM_INIT_AUTOMAKE([subdir-objects])
  
--INCLUDES = -I$(top_builddir)/include/ -I$(srcdir)/include -I$(includedir) \
-+AM_CPPFLAGS = -I$(top_builddir)/include/ -I$(srcdir)/include -I$(includedir) \
- 	-I$(includedir)/infiniband -I$(top_srcdir)/libibnetdisc/include
- 
- if DEBUG
-diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
-index 2cfcc33..fee13ca 100644
---- a/libibnetdisc/Makefile.am
-+++ b/libibnetdisc/Makefile.am
-@@ -1,7 +1,7 @@
- 
- #SUBDIRS = .
- 
--INCLUDES = -I$(srcdir)/include -I$(includedir) -I$(includedir)/infiniband
-+AM_CPPFLAGS = -I$(srcdir)/include -I$(includedir) -I$(includedir)/infiniband
- 
- lib_LTLIBRARIES = libibnetdisc.la
- sbin_PROGRAMS =
+ AC_SUBST(RELEASE, ${RELEASE:-unknown})
+ AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
 -- 
 2.9.3
 
