@@ -1,81 +1,136 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 6/6] RDMA/core: Unify style of IOCTL commands
-Date: Mon, 5 Sep 2016 08:33:42 +0300
-Message-ID: <20160905053342.GW21847@leon.nu>
-References: <1472988635-31463-1-git-send-email-leon@kernel.org>
- <1472988635-31463-7-git-send-email-leon@kernel.org>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: RE: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to the
+ Hisilicon RoCE Driver
+Date: Mon, 5 Sep 2016 10:13:54 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A6F9A2D@lhreml503-mbx>
+References: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
+ <20160824.215341.1803699371957253329.davem@davemloft.net>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A6E7FA9@lhreml503-mbx>
+ <8fa4e921-9dfc-bf2b-32c9-230136536f65@redhat.com>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A6E85C2@lhreml503-mbx>
+ <6a3c65b0-500e-c097-7ff4-15ec5f1de19c@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="USQ0BwiCE5W4XvtQ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1472988635-31463-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6a3c65b0-500e-c097-7ff4-15ec5f1de19c@redhat.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, David Miller <davem@davemloft.net>
+Cc: "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
+> -----Original Message-----
+> From: Doug Ledford [mailto:dledford@redhat.com]
+> Sent: Thursday, August 25, 2016 4:00 PM
+> To: Salil Mehta; David Miller
+> Cc: Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> mehta.salil.lnk@gmail.com; linux-rdma@vger.kernel.org;
+> netdev@vger.kernel.org; linux-kernel@vger.kernel.org; Linuxarm
+> Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to
+> the Hisilicon RoCE Driver
+> 
+> On 8/25/2016 10:50 AM, Salil Mehta wrote:
+> 
+> >> I can take both.  I already pulled net-next to get the initial hns
+> roce
+> >> reset patch from Dave, so these will apply cleanly with my tree and
+> >> merge cleanly with Dave's due to the common ancestral base.  The
+> only
+> >> problem is that if you intend to send any other patches that effect
+> >> this
+> >> code, then they would need to come through me until the 4.9 merge
+> >> window
+> >> is complete so that we don't have later merge conflicts.
+> > Ok sure, I got your point. Yes, there are few patches we need to push
+> in
+> > but are related to RoCE CM(Connection Manager) mode and would follow
+> > soon. There are no further patches we foresee which are for RoCE
+> Driver but are
+> > dependent upon HNS Ethernet driver.
+> 
+> Ok.
+> 
+> > But kindly note, there could be some patches in development in HNS
+> Ethernet driver
+> > which might sneak in through net-next. These might not be related to
+> RoCE Driver but
+> > might have some common files which might lead to conflict again
+> further down
+> > the line when you try to merge ACPI RoCE reset again. This HNS driver
+> change
+> > is very difficult for us to control since amount of development going
+> on in HNS
+> > is of much higher magnitude than the RoCE as of now. It will be
+> almost impossible
+> > for us to convince internally and shift that entire development being
+> done right
+> > now on net-next and rebase it to your internal hns-roce branch for a
+> month of time
+> > till 4.9. This will affect many features deadlines internally.
+> 
+> This is what Linus wants to avoid.  It's not necessary to shift your
+> work from one tree to another, what is needed if for your RoCE team and
+> your net team to plan out what you are going to submit for the next
+> kernel and provide a complete list of conflicting code patches to both
+> Dave and myself and allow us to pull those patches into both our trees
+> so there are no conflicts.  See the recent threads on linux-rdma about
+> the pull requests from Mellanox.  This is how it needs to be done.
+> Neither team needs to slow down, or not do your work, you simply need
+> to
+> plan that work out and provide a common base for Dave and I to apply
+> the
+> separate patches on top of.
+Hello Doug/David,
+As per above discussion, we have identified certain conflicting patches
+in HNS driver pipeline which are in conflict With already accepted HNS ACPI
+Reset patch in your internal hns-roce repo. We would like to float them on
+the lines of Mellanox git-pull request example you mentioned earlier.
 
---USQ0BwiCE5W4XvtQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+HNS driver Patches *in-pipeline* are(formally, later-on, I shall provide
+start and end commit IDs within our internal repo):
+End-commit-ID
+net: hns: fix the bug of forwarding table 
+net: hns: fix port not available after testing loopback
+net: hns: add promisc mode for hns
+net: hns: add fuzzy match of tcam table for hns
+net: hns: delete repeat read fbd num after while
+net: hns: add fini_process for v2 napi process
+net: hns: bug fix about setting coalsecs-usecs to 0
+net:hns:fix port unavailable after hnae_reserve_buffer_map fail
+start-commit-ID
 
-On Sun, Sep 04, 2016 at 02:30:35PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> MAD and HFI1 have different naming convention, this patch
-> simplifies and unifies their defines and names.
->
-> As part of cleanup, the HFI1 _NUM() macro and command indexes
-> were removed. It has a potential to break applications which use
-> these defines directly, while shouldn't.
->
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  include/uapi/rdma/rdma_user_ioctl.h | 98 ++++++++++++++-----------------------
->  1 file changed, 38 insertions(+), 60 deletions(-)
->
+All of above patches are dependent on the presence of below patch:
+"IB/hns: Add support of ACPI to HNS RoCE Reset function"
 
-<....>
+This patch is already accepted and is part of your k.o/for-4.9-topics/hns-roce.
+But this is not part of David Miller's "net-next" yet, so I was wondering
+How should I raise the pull request of above set of patches. If I include
+the already accepted patch then it will lead conflict in your repo (as it
+is already part of it) else it will lead conflict in David's net-next when
+he pulls above patches.
 
->  /*
-> - * User IOCTLs can not go above 128 if they do then see common.h and change the
-> - * base for the snoop ioctl
-> + * General blocks assignments
-> + * It is closed on purpose do not expose it it user space
+Hope the answer is not trivial and I am not missing anything here. 
+Please guide. Thanks!
 
-Doug,
-Do you mind to change "it it" to be "it to" and save to everyone
-respin?
-
-Thanks
-
---USQ0BwiCE5W4XvtQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXzQO2AAoJEORje4g2clinGiYQAIhWvPOnOL3c56Shr2iAMvfU
-hJqGBsBiNwcGvAG3t/wDWMlVcFM1fcVbuSbTx2/XKqyLYfwMwoAkvhW4xLrWk5GL
-JRlr7BFOLsjSpHJoG4hHEqbSgrgTDru6T83xvyRkpstd1LkwiORs7NxoQMq2tyj+
-JDuFR+6Ju5adhUt0rOGDDb1Xo5sZSG3aZo489d0TSChH6zpp8Jp1fa/KVUJJuznU
-0lqCUCcRXFGKSIyHU3QIG6teTma+nBu91uRymUt0UamEY20uzFNK51uYOBGliImD
-EGlkLzDP6UzEgu5eE4zR0+r1CJfLaJw0ZRK237xkwPB6sXmTUphfMZdUx1lp4Eun
-88rfxHyPV0UZHo28B4XYZ4DqsmjgIps9H8VUXLj2cVUdjXZyrJZV5/ZMDjEgTbCY
-qaB5M0jxpAwUXv+m0FTnS14WQNgn1tk0Ft/oOaK1XGh9vn8eExKC0Za8n6f8P4n8
-9cEFtAU4E8JDA3HpkZHHfZVt7L4mPhN9KicERygwE7wfXvbNfNpYQB8OLolfF4G/
-7wkjCZtp3JEL/uKGP9JhOYjkJSLYjCyAWwKpRNNBUnz1ytH3ZbOALZ0ILFS8KOiB
-qI0Fb9mRDK4APlOq0FluuK1ikqpcXgQqXgJjYSBwNsLF45xqsg6YUyaVV4woK8eB
-PE6ub/8P2HOdBNbIy3NO
-=9dTS
------END PGP SIGNATURE-----
-
---USQ0BwiCE5W4XvtQ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards
+Salil
+> > So, if I understood you correctly, this delta (which could be large),
+> when next merge
+> > window open would be taken care by you. And we can expect below to be
+> part of 4.9
+> > 1) RoCE Base driver (*Already Accepted*)
+> > 2) ACPI changes for RoCE Driver (*if accepted*)
+> >    * ACPI changes for the RoCE Driver
+> >    * ACPI changes for RoCE reset function part of the HNS driver
+> 
+> Both of these changes are already applied to my tree.  However, if you
+> submit other changes to net-next and it starts generating merge
+> conflicts, you and the net team are going to get yelled at.  If you are
+> going to have a shared driver, then you *HAVE* to work as a larger team
+> and plan your changes you submit to the linux kernel.
+> 
+> 
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG Key ID: 0E572FDD
