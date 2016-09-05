@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 12/28] ocrdma: Fix incorrect enum constant
-Date: Mon,  5 Sep 2016 15:08:02 -0600
-Message-ID: <1473109698-31408-13-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 13/28] rdmacm: Use correct format specifier for size_t
+Date: Mon,  5 Sep 2016 15:08:03 -0600
+Message-ID: <1473109698-31408-14-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473109698-31408-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -12,30 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 clang 3.6 remarks:
 
-../providers/ocrdma/ocrdma_verbs.c:597:14: warning: implicit conversion from enumeration type 'enum ibv_qp_state' to different enumeration type 'enum ocrdma_qp_state' [-Wenum-conversion]
-        qp->state = IBV_QPS_RESET;
+../librdmacm/examples/rping.c:1203:30: warning: invalid conversion specifier 'Z' [-Wformat-invalid-specifier]
+                                       "(valid range is %Zd to %d)\n",
 
-And it is not wrong.  IBV_QPS_RESET=0 and OCRDMA_QPS_RST=0 so this
-patch is a NOP.
+And indeed, the correct specifier for size_t is '%zd'
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libocrdma/src/ocrdma_verbs.c | 2 +-
+ librdmacm/examples/rping.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/libocrdma/src/ocrdma_verbs.c b/libocrdma/src/ocrdma_verbs.c
-index b3c77c47d660..60626260656d 100644
---- a/libocrdma/src/ocrdma_verbs.c
-+++ b/libocrdma/src/ocrdma_verbs.c
-@@ -620,7 +620,7 @@ struct ibv_qp *ocrdma_create_qp(struct ibv_pd *pd,
- 			qp->dpp_cq = 0;
- 		}
- 	}
--	qp->state = IBV_QPS_RESET;
-+	qp->state = OCRDMA_QPS_RST;
- 	INIT_DBLY_LIST_NODE(&qp->sq_entry);
- 	INIT_DBLY_LIST_NODE(&qp->rq_entry);
- 	return &qp->ibv_qp;
+diff --git a/librdmacm/examples/rping.c b/librdmacm/examples/rping.c
+index 2f6de08dbdf9..88ce7f96c7e8 100644
+--- a/librdmacm/examples/rping.c
++++ b/librdmacm/examples/rping.c
+@@ -1200,7 +1200,7 @@ int main(int argc, char *argv[])
+ 			if ((cb->size < RPING_MIN_BUFSIZE) ||
+ 			    (cb->size > (RPING_BUFSIZE - 1))) {
+ 				fprintf(stderr, "Invalid size %d "
+-				       "(valid range is %Zd to %d)\n",
++				       "(valid range is %zd to %d)\n",
+ 				       cb->size, RPING_MIN_BUFSIZE, RPING_BUFSIZE);
+ 				ret = EINVAL;
+ 			} else
 -- 
 2.7.4
 
