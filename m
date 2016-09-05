@@ -1,104 +1,98 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Mon, 5 Sep 2016 15:48:02 +0300
-Message-ID: <20160905124802.GX21847@leon.nu>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <4f0876ce-f3c9-83e3-d0ef-0c5656ce9462@grimberg.me>
- <53eb35b4-0320-acd9-9969-73f5817c8144@sandisk.com>
- <20160901172355.GA20472@obsidianresearch.com>
- <019b01d2047f$b9694f90$2c3beeb0$@opengridcomputing.com>
- <20160902233231.GA26309@obsidianresearch.com>
- <ef8214f8-d44d-2289-d1ed-a0998e9e05c0@sandisk.com>
- <20160903051222.GA2098@obsidianresearch.com>
- <20160904055441.GI21847@leon.nu>
- <20160904235555.GA21542@obsidianresearch.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to the
+ Hisilicon RoCE Driver
+Date: Mon, 5 Sep 2016 12:53:07 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A6F9F0D@lhreml503-mbx>
+References: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
+ <20160824.215341.1803699371957253329.davem@davemloft.net>
+ <d71edae9-805a-2000-9afa-7e8002bc498a@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XUd+PsnCfaVdInSg"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160904235555.GA21542-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <d71edae9-805a-2000-9afa-7e8002bc498a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---XUd+PsnCfaVdInSg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sun, Sep 04, 2016 at 05:55:55PM -0600, Jason Gunthorpe wrote:
-> On Sun, Sep 04, 2016 at 08:54:41AM +0300, Leon Romanovsky wrote:
-> > On Fri, Sep 02, 2016 at 11:12:22PM -0600, Jason Gunthorpe wrote:
-> > > On Fri, Sep 02, 2016 at 05:10:45PM -0700, Bart Van Assche wrote:
-> > >
-> > > So I added opensuse 13.2 and 42.1 to the list of docker container
-> > > builders and the simple build looks like it runs OK.
+> -----Original Message-----
+> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+> Sent: Thursday, August 25, 2016 12:57 PM
+> To: David Miller; Salil Mehta
+> Cc: Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to
+> the Hisilicon RoCE Driver
+> 
+> On 8/25/2016 12:53 AM, David Miller wrote:
+> > From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > Date: Wed, 24 Aug 2016 04:44:48 +0800
 > >
-> > Are you running standard docker containers or build them by yourself?
-> > Can you add scripts to run containers to your rdma-plumbers repo? So it
-> > will be much easier to see/debug build issues on different platforms.
->
-> I mentioned this in my first email, but here is more details.
->
-> The tooling branch contains all the scripting I used to build and test
-> this thing. The docker/ directory has all the docker files and the
-> script to run them.
->
-> https://github.com/jgunthorpe/rdma-plumbing/tree/tooling/docker
->
-> The docker script is something I've used for awhile in other places,
-> there are others around as well that are similar.. The basic usage is
-> like this:
->
-> # Download docker base images and run all docker files
-> # Do once.
-> $ docker/do_docker.py build-images --env all
->
-> # Run 'make' inside the container using the current source tree
-> # exactly as is. Directs the build to a build-fc24 output directory
-> $ docker/do_docker.py make fc24
->
-> # Build a package. This runs 'git archive', imports the archive into
-> # the container, transfers the spec file, fusses with the container,
-> # runs rpmbuild/dpkg-buildpkg, then copies the rpms back out. Note
-> # that changes must be checked in to have any impact.
-> $ docker/do_docker.py pkg fc24
->
-> Folks can decide how much of this stuff should go on into the main
-> repository later on..
+> >> This patch is meant to add support of ACPI to the Hisilicon RoCE
+> driver.
+> >> Following changes have been made in the driver(s):
+> >>
+> >> Patch 1/2: HNS Ethernet Driver: changes to support ACPI have been
+> done in
+> >>    the RoCE reset function part of the HNS ethernet driver. Earlier
+> it only
+> >>    supported DT/syscon.
+> >>
+> >> Patch 2/2. HNS RoCE driver: changes done in RoCE driver are meant to
+> detect
+> >>    the type and then either use DT specific or ACPI spcific
+> functions. Where
+> >>    ever possible, this patch tries to make use of "Unified Device
+> Property
+> >>    Interface" APIs to support both DT and ACPI through single
+> interface.
+> >>
+> >> NOTE 1: ACPI changes done in both of the drivers depend upon the
+> ACPI Table
+> >>      (DSDT and IORT tables) changes part of UEFI/BIOS. These changes
+> are NOT
+> >>      part of this patch-set.
+> >> NOTE 2: Reset function in Patch 1/2 depends upon the reset function
+> added in
+> >>      ACPI tables(basically DSDT table) part of the UEFI/BIOS. Again,
+> this
+> >>      change is NOT reflected in this patch-set.
+> >
+> > I can't apply this series to my tree because the hns infiniband
+> driver
+> > doesn't exist in it.
+> >
+> 
+> No.  This probably needs to go through my tree.  Although with all of
+> the requirements, I'm a bit concerned about those being present
+> elsewhere.
+> 
+Hi David,
+There is a patch in net-next for HNS Ethernet driver which has been accepted.
+"b3dc935 net: hns: remove redundant dev_err call in hns_dsaf_get_cfg()"
 
-I completely missed that tooling branch. It looks like it misses the
-Debian image.
+This patch is creating conflict with Doug Ledford's hns-roce branch. Internally,
+We have decided to let all the HNS patches pass through the hns-roce for 4.9
+Merge window to facilitate non-conflict merge of pending RoCE driver by Doug Ledford.
 
-Thanks
+Though, we are trying to take a grip of the process for this merge window but
+Somehow this one bypassed the internal process. This will create problems for
+Hns-roce during merge later this window. Can I request you to drop this patch
+For now. We shall re-submit this patch later when things have been settled at
+the RoCE/RDMA end or would come again to you through hns-roce branch.
 
->
-> Jason
+Please let me know if this is possible this time. Thanks in anticipation!
 
---XUd+PsnCfaVdInSg
-Content-Type: application/pgp-signature; name="signature.asc"
+Best regards
+Salil
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: 0E572FDD
 
-iQIcBAEBAgAGBQJXzWmCAAoJEORje4g2clinoCUP/AqqhAvPEBxYZckOnzlXrHmb
-pZ8EyOOAItnBdPzbEvZEKegrciUs1HQiyy0i+nFVcNmMllCtGAiHX4IRfC+iOict
-SQhHi3HYSf1lLNIWqE9L0yQub7odimK0cge0EhGVR+exmz6XzXnpZOd7akfTXysL
-Lq1UTTW1qDM6i7Vpcsg0kTuLK4xqKI090xwrBrMV3GCfpPSdUU+9ciTQMPYyzHWc
-WubN7k6NCENiNWHP9o5vYFOhoX8BSYdMofpXMyj32xEMeqMjRSsy6XNVp3KKgbBE
-is3Ey2ZYt9YLT5GK0xSe9LcnemFx0+3cKc2WbsaIUhZTgBISipvbaUQQBczOyeIX
-ts6CpKtEggrsXHaWN17hiYg62EtUQEcLTPALzsm8SAZPP3sbzHJeECKkkRe3jWIQ
-3geWWPW9KT8sAamrKM4HqTrootlhDL9KtKGxApTewuLlL4C+X8FzvPgVLl1VkCCo
-mMqNCCeJ8grMYMPFJzeapAIQVNcP6oBBZUqB0iWX2EwojaNgFs7HIWQpIWVhVcIl
-vk2P+lZ0Z7sP21HV6W9CEkjxTK4Gb82Z2zCntZ3S7XRU+bNt1mIZgR9hzQlMd5Pi
-wb2OMGyAH6wn4DfVF9hUrID3pwbptWNs89N/WtbFyYCsFM/jQd3RufRHHBlgUUMT
-bYuNR1OT28LG5C4vRbpA
-=umpf
------END PGP SIGNATURE-----
-
---XUd+PsnCfaVdInSg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
