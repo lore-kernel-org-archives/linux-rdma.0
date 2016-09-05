@@ -1,42 +1,33 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which
- supports extra parameters
-Date: Sun, 4 Sep 2016 20:38:17 -0600
-Message-ID: <20160905023817.GD21542@obsidianresearch.com>
-References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
- <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
- <20160901164939.GD6479@obsidianresearch.com>
- <1472750558.9410.230.camel@oracle.com>
- <20160901180512.GB20098@obsidianresearch.com>
- <1472754220.9410.236.camel@oracle.com>
- <20160902020642.GA30057@obsidianresearch.com>
- <1472802582.3975.16.camel@oracle.com>
- <1472887840.9410.364.camel@oracle.com>
+Subject: Re: [PATCH rdma-next V3 4/6] RDMA/core: Move HFI1 IOCTL declarations
+ to common file
+Date: Sun, 4 Sep 2016 20:41:58 -0600
+Message-ID: <20160905024158.GE21542@obsidianresearch.com>
+References: <1472988635-31463-1-git-send-email-leon@kernel.org>
+ <1472988635-31463-5-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1472887840.9410.364.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1472988635-31463-5-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 03, 2016 at 09:30:40AM +0200, Knut Omang wrote:
+On Sun, Sep 04, 2016 at 02:30:33PM +0300, Leon Romanovsky wrote:
 
-> Looking more closely at this whole problem, I think for my patch, 
-> the right solution is just to avoid adding a new function name and 
-> instead provide a redefinition of the original symbol with a new version 
-> using the __asm__(".symver ...) construct already nicely used for v.1.0 
-> bw compatibility - just following the pattern already established.
+> +/* User commands. */
+> +#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
 
-That is possible, but to date we have never done that and have
-continued to preserve source compatability for providers.
+> +#define HFI1_IOCTL_ASSIGN_CTXT \
+> +	_IOWR(IB_IOCTL_MAGIC, __NUM(ASSIGN_CTXT), struct hfi1_user_info)
 
-I agree the providers should be updated, but I don't see this being
-practical until after rdma-plumbing is in place..
+I still vote for dropping the HFI1_CMD_ASSIGN_CTXT defines. Inlining
+the number is far more readable than that ugly __NUM macro.
 
-So I suggest you proceed as you have with the fixed symbol version.
+If it was done consistently you might have an arugment, but just doing
+it in one place with no purpose is silly.
 
 Jason
 --
