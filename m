@@ -1,43 +1,97 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 1/4] IB/rxe: Fix kernel panic in udp_setup_tunnel
-Date: Tue, 6 Sep 2016 12:21:34 +0300
-Message-ID: <CAJ3xEMhTf1kD4s4xLzL9VgvLSozwrxSMK7Zmtok_=xJrp19BRA@mail.gmail.com>
-References: <1473077359-11546-1-git-send-email-leon@kernel.org>
- <1473077359-11546-2-git-send-email-leon@kernel.org> <CAJ3xEMiBpGRy-JGuJ=P4eUF5zyz+2bm43F-jqPHtwm=3Uz9YYA@mail.gmail.com>
- <CAJ3xEMidqQRMqP6u+SJSJVbq0weREAtAJN=eXsA_zzS0KnQ_7Q@mail.gmail.com>
- <20160906050518.GJ21847@leon.nu> <CAJ3xEMiuuCTGiWbefAFLRYART4h8YypsvGqxT69cTpkbrDdx1g@mail.gmail.com>
- <20160906085943.GL21847@leon.nu>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 00/13] IB/rdmavt/qib/hfi1/core: First round for 4.9
+Date: Tue, 06 Sep 2016 04:33:52 -0700
+Message-ID: <20160906112758.27413.46860.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160906085943.GL21847-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 6, 2016 at 11:59 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Tue, Sep 06, 2016 at 09:06:46AM +0300, Or Gerlitz wrote:
->> On Tue, Sep 6, 2016 at 8:05 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> > On Mon, Sep 05, 2016 at 10:21:15PM +0300, Or Gerlitz wrote:
->>
->> >> Hi Yoni, in this case, the trace contributes practically nothing to the
->> >> driver and kernel maintainers, please remove it.
->>
->> > 1. We got this call stack from external user and he wants to know that
->> > it is fixed.
->>
->> good to know, Yoni - we should give them credit! add Reported-by: line
->> after your author S.O.B line
->
-> Internally, It was asked too, and we decided to skip it.
-> It is uncommon to put jenkins bot name.
+Doug,
 
-I couldn't realize from your email that it was a robot finding that
-and not a human, you
-can skip the robot name or creditize the person that read the robot's
-email, if this is
-the author of the patch, no need for double credit.
+Here are a handful of fixes that we didn't think were fitting for the RC release
+so we are submitting these for 4.9. Note there is a change to the core here but
+it is pretty harmless. There are also some improvements to rdmavt.
+
+This applies on the last set of fixes I sent out for RC and can be seen in my
+git tree:
+
+https://github.com/ddalessa/kernel/tree/for-4.9
+
+---
+
+Dean Luick (1):
+      IB/hfi1: Move serdes tune inside link start function
+
+Harish Chegondi (1):
+      IB/hfi1: Fix the count of user packets submitted to an SDMA engine
+
+Mike Marciniszyn (9):
+      IB/rdmavt: Add functions to get and release QP references
+      IB/rdmavt,IB/qib,IB/hfi1: Use new QP put get routines
+      IB/core: Add ib headers for general use
+      IB/qib,IB/hfi: Use core common header file
+      IB/rdmavt: Correct sparse annotation
+      IB/hfi1: Move iowait_init() to priv allocate
+      IB/rdmavt: Move reset calldown to reset path
+      IB/rdmavt: Add qp init function
+      IB/rdmavt,IB/hfi1: Add lockdep asserts for lock debug
+
+Tadeusz Struk (1):
+      IB/hfi1: Fix locking scheme for affinity settings
+
+Tymoteusz Kielan (1):
+      IB/hfi1: Fix user-space buffers mapping with IOMMU enabled
+
+
+ drivers/infiniband/hw/hfi1/affinity.c     |   91 ++++++++-------
+ drivers/infiniband/hw/hfi1/affinity.h     |    3 
+ drivers/infiniband/hw/hfi1/chip.c         |   40 +++----
+ drivers/infiniband/hw/hfi1/chip.h         |    2 
+ drivers/infiniband/hw/hfi1/common.h       |    8 -
+ drivers/infiniband/hw/hfi1/driver.c       |   35 +++---
+ drivers/infiniband/hw/hfi1/file_ops.c     |   41 +++++--
+ drivers/infiniband/hw/hfi1/hfi.h          |   17 +--
+ drivers/infiniband/hw/hfi1/init.c         |   44 ++++---
+ drivers/infiniband/hw/hfi1/mad.c          |    1 
+ drivers/infiniband/hw/hfi1/pio.c          |   20 ++-
+ drivers/infiniband/hw/hfi1/pio.h          |    2 
+ drivers/infiniband/hw/hfi1/qp.c           |   33 +++--
+ drivers/infiniband/hw/hfi1/rc.c           |  113 ++++++++++--------
+ drivers/infiniband/hw/hfi1/ruc.c          |    4 -
+ drivers/infiniband/hw/hfi1/sdma.c         |   24 ++--
+ drivers/infiniband/hw/hfi1/sdma.h         |    3 
+ drivers/infiniband/hw/hfi1/trace.c        |   27 +---
+ drivers/infiniband/hw/hfi1/trace_ctxts.h  |   13 +-
+ drivers/infiniband/hw/hfi1/trace_ibhdrs.h |   14 +-
+ drivers/infiniband/hw/hfi1/trace_rx.h     |    4 -
+ drivers/infiniband/hw/hfi1/uc.c           |    6 -
+ drivers/infiniband/hw/hfi1/ud.c           |   12 +-
+ drivers/infiniband/hw/hfi1/user_sdma.c    |   31 ++---
+ drivers/infiniband/hw/hfi1/verbs.c        |   18 +--
+ drivers/infiniband/hw/hfi1/verbs.h        |   90 +--------------
+ drivers/infiniband/hw/hfi1/verbs_txreq.c  |    2 
+ drivers/infiniband/hw/qib/qib.h           |    1 
+ drivers/infiniband/hw/qib/qib_driver.c    |    7 -
+ drivers/infiniband/hw/qib/qib_iba7322.c   |    2 
+ drivers/infiniband/hw/qib/qib_rc.c        |   73 +++++-------
+ drivers/infiniband/hw/qib/qib_ruc.c       |    4 -
+ drivers/infiniband/hw/qib/qib_uc.c        |    6 -
+ drivers/infiniband/hw/qib/qib_ud.c        |    6 -
+ drivers/infiniband/hw/qib/qib_verbs.c     |   14 +-
+ drivers/infiniband/hw/qib/qib_verbs.h     |   94 ++-------------
+ drivers/infiniband/sw/rdmavt/qp.c         |  117 +++++++++++--------
+ include/rdma/ib_hdrs.h                    |  178 +++++++++++++++++++++++++++++
+ include/rdma/rdmavt_qp.h                  |   19 +++
+ 39 files changed, 643 insertions(+), 576 deletions(-)
+ create mode 100644 include/rdma/ib_hdrs.h
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
