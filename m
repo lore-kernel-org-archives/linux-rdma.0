@@ -1,32 +1,36 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 6/6] RDMA/core: Unify style of IOCTL
- commands
-Date: Tue, 6 Sep 2016 13:00:12 +0000
-Message-ID: <1473166808.2465.9.camel@intel.com>
-References: <1472988635-31463-1-git-send-email-leon@kernel.org>
-         <1472988635-31463-7-git-send-email-leon@kernel.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 03/28] Be explicit about _GNU_SOURCE
+Date: Tue, 6 Sep 2016 09:53:16 -0400
+Message-ID: <10942599-9bc8-78d6-d0d1-d796bd4c0607@dev.mellanox.co.il>
+References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1473109698-31408-4-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472988635-31463-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-Content-ID: <E29323655D748A47A10970AFCC195FDD-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1473109698-31408-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU3VuLCAyMDE2LTA5LTA0IGF0IDE0OjMwICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IEZyb206IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCj4gDQo+IE1B
-RCBhbmQgSEZJMSBoYXZlIGRpZmZlcmVudCBuYW1pbmcgY29udmVudGlvbiwgdGhpcyBwYXRjaA0K
-PiBzaW1wbGlmaWVzIGFuZCB1bmlmaWVzIHRoZWlyIGRlZmluZXMgYW5kIG5hbWVzLg0KPiANCj4g
-QXMgcGFydCBvZiBjbGVhbnVwLCB0aGUgSEZJMSBfTlVNKCkgbWFjcm8gYW5kIGNvbW1hbmQgaW5k
-ZXhlcw0KPiB3ZXJlIHJlbW92ZWQuIEl0IGhhcyBhIHBvdGVudGlhbCB0byBicmVhayBhcHBsaWNh
-dGlvbnMgd2hpY2ggdXNlDQo+IHRoZXNlIGRlZmluZXMgZGlyZWN0bHksIHdoaWxlIHNob3VsZG4n
-dC4NCg0KUGxlYXNlIGJlIGV4cGxpY2l0LiBJdCdzIG5vdCB0aGF0IGl0IGhhcyBwb3RlbnRpYWwu
-IEl0ICp3aWxsKiBicmVhaw0KYXBwbGljYXRpb25zIHdoaWNoIHVzZSB0aGVzZSBkZWZpbmVzIGRp
-cmVjdGx5Lg0KDQotRGVubnkNCg0K
+On 9/5/2016 5:07 PM, Jason Gunthorpe wrote:
+> The recommended way to use this macro is at the top of the source file,
+> avoid globally setting it via 'gcc -D' as few source files actually
+> need it. In this tree we only need it in 17 out of 83 sources.
+> 
+> _GNU_SOURCE changes the behaviour of a few select calls away from the C99
+> standard and should generally be minimized.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+
+>  libibumad/src/sysfs.c               | 3 ---
+
+For libibumad/sysfs.c part:
+Thanks. Applied.
+
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
