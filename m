@@ -1,75 +1,66 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Tue, 6 Sep 2016 12:34:05 -0600
-Message-ID: <20160906183405.GA27914@obsidianresearch.com>
-References: <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com>
- <20160830060842.GJ594@leon.nu>
- <20160830071716.GA3098@infradead.org>
- <20160830073521.GM594@leon.nu>
- <20160830163033.GC26778@obsidianresearch.com>
- <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
- <20160906070102.GA23248@infradead.org>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v3 01/15] IB/pvrdma: Add user-level shared functions
+Date: Tue, 6 Sep 2016 18:58:37 +0000
+Message-ID: <BLUPR0501MB8360B8A54D98AEE4B8C689FC5F90@BLUPR0501MB836.namprd05.prod.outlook.com>
+References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
+ <1470266864-16888-2-git-send-email-aditr@vmware.com>
+ <20160821112436.GA22012@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160906070102.GA23248-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20160821112436.GA22012-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 06, 2016 at 12:01:02AM -0700, Christoph Hellwig wrote:
-> On Sun, Sep 04, 2016 at 11:18:02AM +0300, Sagi Grimberg wrote:
-> > I think that having a maintainer per provider makes perfect sense
-> > and as long as you Jason (or anyone else) are committed to merging it
-> > all together and produce standard releases we are pretty much set.
-> > 
-> > What I think it missing is a release schedule, stable fixes
-> > methodology and merge cycles. I think once we can agree on that
-> > a lot of the concerns will be addressed.
-> 
-> So let's keep the maintainers as-is, e.g. each previous project
-> keepts it's own maintainer similar to driver maintainers in the
-> kernel.
+On Sun, Aug 21, 2016 at 04:24:53 -0700, Yuval Shaia wrote:
+> One minor comment.
+> Besides that:
+> 	Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>=20
+> Yuval
+>=20
+> On Wed, Aug 03, 2016 at 04:27:30PM -0700, Adit Ranadive wrote:
+> > We share some common structures with the user-level driver. This patch
+> > adds those structures and shared functions to traverse the QP/CQ rings.
+> >
+> > Changes from v2->v3:
+> >  - Defined what -1 means for an index return value in pvrdma_uapi.h
+> >
+> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/pvrdma/pvrdma_uapi.h | 248 +++++++++++++++++++++=
+++++++++
+> >  drivers/infiniband/hw/pvrdma/pvrdma_user.h |  99 ++++++++++++
+> >  2 files changed, 347 insertions(+)
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_user.h
+> >
 
-This is certainly what I imagined. Nobody else has the domain
-expertise for these sub components.
+...
 
-However, there is a lot of work just to keep everything ticking over,
-compilers change, build tooling changes, distros need hand holding,
-boring patches need accepting. That is where all maintainers should see
-value in this approach.
+> > +
+> > +/* PVRDMA receive queue work request */
+> > +struct pvrdma_rq_wqe_hdr {
+> > +	__u64 wr_id;		/* wr id */
+> > +	__u32 num_sge;		/* size of s/g array */
+> > +	__u32 total_len;	/* reserved */
+> > +};
+> > +/* Use pvrdma_sge (ib_sge) for receieve queue s/g array elements. */
+>=20
+> This comment refers to a structure that defined in patch #2.
 
-> We'll add Jason as a global maintainer for the build system or any
-> non-controverial fixes and we should be much better setup than the
-> current situation.
+In v4, will move the pvrdma_sge struct here so its more consistent.
 
-I was hoping a team including Doug would handle the general patch
-stream. Most of the patch flow today is for libibverbs and related
-anyhow. If Leon wants to handle the boring patches and provider pulls
-then that seems like a good combination.
-
-> Combine that with kernel-like major releases plus minor release on
-> demand and we should have a winning setup.
-
-I think the release cadence should be driven more by the distros, but
-following the kernel cadence is a sane place to start.
-
-Not much point in making a release if nobody is out there wanting to
-use it. I expect the distros will want to go to a more stable
-maintenance footing so we many want to offer to co-maintain a public
-LTS branch...
-
-> Now we just need to bikeshed on a good name for the repo, because
-> honestly rdma-plumbing sucks as a name :)
-
-Let the painting commence!
-
-Jason
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
