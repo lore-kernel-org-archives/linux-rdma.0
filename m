@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 02/13] IB/rdmavt, IB/qib,
- IB/hfi1: Use new QP put get routines
-Date: Tue, 06 Sep 2016 04:34:35 -0700
-Message-ID: <20160906113426.27413.51539.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 03/13] IB/core: Add ib headers for general use
+Date: Tue, 06 Sep 2016 04:34:49 -0700
+Message-ID: <20160906113440.27413.84782.stgit@scvm10.sc.intel.com>
 References: <20160906112758.27413.46860.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,241 +10,214 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160906112758.27413.46860.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This improves readability and hides the reference count
-mechanism from the client drivers.
+Add IB headers, defines, and accessors that are identical
+in both qib and hfi1 into the core includes.
+
+The accessors for be maintenance of __be64 fields since
+alignment is potentially invalid and can differ based on
+the presense of the GRH.
+
+{hfi1,qib}_ib_headers will be ib_headers.
+{hfi1,qib|_other_headers will be ib_other_headers.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/qp.c          |   11 ++++-------
- drivers/infiniband/hw/hfi1/rc.c          |    9 ++++-----
- drivers/infiniband/hw/hfi1/verbs.c       |    4 ++--
- drivers/infiniband/hw/hfi1/verbs_txreq.c |    2 +-
- drivers/infiniband/hw/qib/qib_driver.c   |    3 +--
- drivers/infiniband/hw/qib/qib_rc.c       |   12 ++++++------
- drivers/infiniband/sw/rdmavt/qp.c        |    5 ++---
- 7 files changed, 20 insertions(+), 26 deletions(-)
+ include/rdma/ib_hdrs.h |  178 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 178 insertions(+), 0 deletions(-)
+ create mode 100644 include/rdma/ib_hdrs.h
 
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index 4e4d831..63f56a8 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
-@@ -202,8 +202,7 @@ static void flush_iowait(struct rvt_qp *qp)
- 	write_seqlock_irqsave(&dev->iowait_lock, flags);
- 	if (!list_empty(&priv->s_iowait.list)) {
- 		list_del_init(&priv->s_iowait.list);
--		if (atomic_dec_and_test(&qp->refcount))
--			wake_up(&qp->wait);
-+		rvt_put_qp(qp);
- 	}
- 	write_sequnlock_irqrestore(&dev->iowait_lock, flags);
- }
-@@ -503,8 +502,7 @@ void hfi1_qp_wakeup(struct rvt_qp *qp, u32 flag)
- 	}
- 	spin_unlock_irqrestore(&qp->s_lock, flags);
- 	/* Notify hfi1_destroy_qp() if it is waiting. */
--	if (atomic_dec_and_test(&qp->refcount))
--		wake_up(&qp->wait);
-+	rvt_put_qp(qp);
- }
- 
- static int iowait_sleep(
-@@ -544,7 +542,7 @@ static int iowait_sleep(
- 			qp->s_flags |= RVT_S_WAIT_DMA_DESC;
- 			list_add_tail(&priv->s_iowait.list, &sde->dmawait);
- 			trace_hfi1_qpsleep(qp, RVT_S_WAIT_DMA_DESC);
--			atomic_inc(&qp->refcount);
-+			rvt_get_qp(qp);
- 		}
- 		write_sequnlock(&dev->iowait_lock);
- 		qp->s_flags &= ~RVT_S_BUSY;
-@@ -963,8 +961,7 @@ void notify_error_qp(struct rvt_qp *qp)
- 	if (!list_empty(&priv->s_iowait.list) && !(qp->s_flags & RVT_S_BUSY)) {
- 		qp->s_flags &= ~RVT_S_ANY_WAIT_IO;
- 		list_del_init(&priv->s_iowait.list);
--		if (atomic_dec_and_test(&qp->refcount))
--			wake_up(&qp->wait);
-+		rvt_put_qp(qp);
- 	}
- 	write_sequnlock(&dev->iowait_lock);
- 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 5da190e..acf0eb8 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -1389,7 +1389,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 				restart_rc(qp, qp->s_last_psn + 1, 0);
- 				if (list_empty(&qp->rspwait)) {
- 					qp->r_flags |= RVT_R_RSP_SEND;
--					atomic_inc(&qp->refcount);
-+					rvt_get_qp(qp);
- 					list_add_tail(&qp->rspwait,
- 						      &rcd->qp_wait_list);
- 				}
-@@ -1573,7 +1573,7 @@ static void rdma_seq_err(struct rvt_qp *qp, struct hfi1_ibport *ibp, u32 psn,
- 	restart_rc(qp, qp->s_last_psn + 1, 0);
- 	if (list_empty(&qp->rspwait)) {
- 		qp->r_flags |= RVT_R_RSP_SEND;
--		atomic_inc(&qp->refcount);
-+		rvt_get_qp(qp);
- 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 	}
- }
-@@ -1782,7 +1782,7 @@ static inline void rc_defered_ack(struct hfi1_ctxtdata *rcd,
- {
- 	if (list_empty(&qp->rspwait)) {
- 		qp->r_flags |= RVT_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
-+		rvt_get_qp(qp);
- 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 	}
- }
-@@ -1796,8 +1796,7 @@ static inline void rc_cancel_ack(struct rvt_qp *qp)
- 		return;
- 	list_del_init(&qp->rspwait);
- 	qp->r_flags &= ~RVT_R_RSP_NAK;
--	if (atomic_dec_and_test(&qp->refcount))
--		wake_up(&qp->wait);
-+	rvt_put_qp(qp);
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 2b35954..92a61c4 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -748,7 +748,7 @@ static int wait_kmem(struct hfi1_ibdev *dev,
- 			qp->s_flags |= RVT_S_WAIT_KMEM;
- 			list_add_tail(&priv->s_iowait.list, &dev->memwait);
- 			trace_hfi1_qpsleep(qp, RVT_S_WAIT_KMEM);
--			atomic_inc(&qp->refcount);
-+			rvt_get_qp(qp);
- 		}
- 		write_sequnlock(&dev->iowait_lock);
- 		qp->s_flags &= ~RVT_S_BUSY;
-@@ -959,7 +959,7 @@ static int pio_wait(struct rvt_qp *qp,
- 			was_empty = list_empty(&sc->piowait);
- 			list_add_tail(&priv->s_iowait.list, &sc->piowait);
- 			trace_hfi1_qpsleep(qp, RVT_S_WAIT_PIO);
--			atomic_inc(&qp->refcount);
-+			rvt_get_qp(qp);
- 			/* counting: only call wantpiobuf_intr if first user */
- 			if (was_empty)
- 				hfi1_sc_wantpiobuf_intr(sc, 1);
-diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.c b/drivers/infiniband/hw/hfi1/verbs_txreq.c
-index d8fb056..094ab82 100644
---- a/drivers/infiniband/hw/hfi1/verbs_txreq.c
-+++ b/drivers/infiniband/hw/hfi1/verbs_txreq.c
-@@ -109,7 +109,7 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
- 			qp->s_flags |= RVT_S_WAIT_TX;
- 			list_add_tail(&priv->s_iowait.list, &dev->txwait);
- 			trace_hfi1_qpsleep(qp, RVT_S_WAIT_TX);
--			atomic_inc(&qp->refcount);
-+			rvt_get_qp(qp);
- 		}
- 		qp->s_flags &= ~RVT_S_BUSY;
- 	}
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index 67ee643..df77d5f 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -588,8 +588,7 @@ move_along:
- 				qib_schedule_send(qp);
- 			spin_unlock_irqrestore(&qp->s_lock, flags);
- 		}
--		if (atomic_dec_and_test(&qp->refcount))
--			wake_up(&qp->wait);
-+		rvt_put_qp(qp);
- 	}
- 
- bail:
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index 444028a..38cd871 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1177,7 +1177,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 				qib_restart_rc(qp, qp->s_last_psn + 1, 0);
- 				if (list_empty(&qp->rspwait)) {
- 					qp->r_flags |= RVT_R_RSP_SEND;
--					atomic_inc(&qp->refcount);
-+					rvt_get_qp(qp);
- 					list_add_tail(&qp->rspwait,
- 						      &rcd->qp_wait_list);
- 				}
-@@ -1361,7 +1361,7 @@ static void rdma_seq_err(struct rvt_qp *qp, struct qib_ibport *ibp, u32 psn,
- 	qib_restart_rc(qp, qp->s_last_psn + 1, 0);
- 	if (list_empty(&qp->rspwait)) {
- 		qp->r_flags |= RVT_R_RSP_SEND;
--		atomic_inc(&qp->refcount);
-+		rvt_get_qp(qp);
- 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 	}
- }
-@@ -1640,7 +1640,7 @@ static int qib_rc_rcv_error(struct qib_other_headers *ohdr,
- 			 */
- 			if (list_empty(&qp->rspwait)) {
- 				qp->r_flags |= RVT_R_RSP_NAK;
--				atomic_inc(&qp->refcount);
-+				rvt_get_qp(qp);
- 				list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 			}
- 		}
-@@ -2233,7 +2233,7 @@ rnr_nak:
- 	/* Queue RNR NAK for later */
- 	if (list_empty(&qp->rspwait)) {
- 		qp->r_flags |= RVT_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
-+		rvt_get_qp(qp);
- 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 	}
- 	return;
-@@ -2245,7 +2245,7 @@ nack_op_err:
- 	/* Queue NAK for later */
- 	if (list_empty(&qp->rspwait)) {
- 		qp->r_flags |= RVT_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
-+		rvt_get_qp(qp);
- 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 	}
- 	return;
-@@ -2259,7 +2259,7 @@ nack_inv:
- 	/* Queue NAK for later */
- 	if (list_empty(&qp->rspwait)) {
- 		qp->r_flags |= RVT_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
-+		rvt_get_qp(qp);
- 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
- 	}
- 	return;
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 870b4f2..da5c8d6 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -488,8 +488,7 @@ static void rvt_remove_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp)
- 	spin_unlock_irqrestore(&rdi->qp_dev->qpt_lock, flags);
- 	if (removed) {
- 		synchronize_rcu();
--		if (atomic_dec_and_test(&qp->refcount))
--			wake_up(&qp->wait);
-+		rvt_put_qp(qp);
- 	}
- }
- 
-@@ -980,7 +979,7 @@ static void rvt_insert_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp)
- 	struct rvt_ibport *rvp = rdi->ports[qp->port_num - 1];
- 	unsigned long flags;
- 
--	atomic_inc(&qp->refcount);
-+	rvt_get_qp(qp);
- 	spin_lock_irqsave(&rdi->qp_dev->qpt_lock, flags);
- 
- 	if (qp->ibqp.qp_num <= 1) {
+diff --git a/include/rdma/ib_hdrs.h b/include/rdma/ib_hdrs.h
+new file mode 100644
+index 0000000..879faf6
+--- /dev/null
++++ b/include/rdma/ib_hdrs.h
+@@ -0,0 +1,178 @@
++/*
++ * Copyright(c) 2016 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#ifndef IB_HDRS_H
++#define IB_HDRS_H
++
++#include <linux/types.h>
++#include <asm/unaligned.h>
++#include <rdma/ib_verbs.h>
++
++#define IB_SEQ_NAK	(3 << 29)
++
++/* AETH NAK opcode values */
++#define IB_RNR_NAK                      0x20
++#define IB_NAK_PSN_ERROR                0x60
++#define IB_NAK_INVALID_REQUEST          0x61
++#define IB_NAK_REMOTE_ACCESS_ERROR      0x62
++#define IB_NAK_REMOTE_OPERATIONAL_ERROR 0x63
++#define IB_NAK_INVALID_RD_REQUEST       0x64
++
++#define IB_BTH_REQ_ACK		BIT(31)
++#define IB_BTH_SOLICITED	BIT(23)
++#define IB_BTH_MIG_REQ		BIT(22)
++
++#define IB_GRH_VERSION		6
++#define IB_GRH_VERSION_MASK	0xF
++#define IB_GRH_VERSION_SHIFT	28
++#define IB_GRH_TCLASS_MASK	0xFF
++#define IB_GRH_TCLASS_SHIFT	20
++#define IB_GRH_FLOW_MASK	0xFFFFF
++#define IB_GRH_FLOW_SHIFT	0
++#define IB_GRH_NEXT_HDR		0x1B
++
++struct ib_reth {
++	__be64 vaddr;        /* potentially unaligned */
++	__be32 rkey;
++	__be32 length;
++} __packed;
++
++struct ib_atomic_eth {
++	__be64 vaddr;        /* potentially unaligned */
++	__be32 rkey;
++	__be64 swap_data;    /* potentially unaligned */
++	__be64 compare_data; /* potentially unaligned */
++} __packed;
++
++union ib_ehdrs {
++	struct {
++		__be32 deth[2];
++		__be32 imm_data;
++	} ud;
++	struct {
++		struct ib_reth reth;
++		__be32 imm_data;
++	} rc;
++	struct {
++		__be32 aeth;
++		__be64 atomic_ack_eth; /* potentially unaligned */
++	} at;
++	__be32 imm_data;
++	__be32 aeth;
++	__be32 ieth;
++	struct ib_atomic_eth atomic_eth;
++}  __packed;
++
++struct ib_other_headers {
++	__be32 bth[3];
++	union ib_ehdrs u;
++} __packed;
++
++struct ib_header {
++	__be16 lrh[4];
++	union {
++		struct {
++			struct ib_grh grh;
++			struct ib_other_headers oth;
++		} l;
++		struct ib_other_headers oth;
++	} u;
++} __packed;
++
++/* accessors for unaligned __be64 items */
++
++static u64 ib_u64_get(__be64 *p)
++{
++	return get_unaligned_be64(p);
++}
++
++static void ib_u64_put(u64 val, __be64 *p)
++{
++	put_unaligned_be64(val, p);
++}
++
++static inline u64 get_ib_reth_vaddr(struct ib_reth *reth)
++{
++	return ib_u64_get(&reth->vaddr);
++}
++
++static inline void put_ib_reth_vaddr(u64 val, struct ib_reth *reth)
++{
++	ib_u64_put(val, &reth->vaddr);
++}
++
++static inline u64 get_ib_ateth_vaddr(struct ib_atomic_eth *ateth)
++{
++	return ib_u64_get(&ateth->vaddr);
++}
++
++static inline void put_ib_ateth_vaddr(u64 val, struct ib_atomic_eth *ateth)
++{
++	ib_u64_put(val, &ateth->vaddr);
++}
++
++static inline u64 get_ib_ateth_swap(struct ib_atomic_eth *ateth)
++{
++	return ib_u64_get(&ateth->swap_data);
++}
++
++static inline void put_ib_ateth_swap(u64 val, struct ib_atomic_eth *ateth)
++{
++	ib_u64_put(val, &ateth->swap_data);
++}
++
++static inline u64 get_ib_ateth_compare(struct ib_atomic_eth *ateth)
++{
++	return ib_u64_get(&ateth->compare_data);
++}
++
++static inline void put_ib_ateth_compare(u64 val, struct ib_atomic_eth *ateth)
++{
++	ib_u64_put(val, &ateth->compare_data);
++}
++
++#endif                          /* IB_HDRS_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
