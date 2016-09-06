@@ -1,54 +1,46 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
-Date: Tue, 6 Sep 2016 15:19:59 -0600
-Message-ID: <20160906211959.GA27106@obsidianresearch.com>
-References: <1472738739.16467.8.camel@intel.com>
- <20160901164624.GC6479@obsidianresearch.com>
- <20160901165552.GE21847@leon.nu>
- <20160901170742.GA20098@obsidianresearch.com>
- <1472749767.16467.25.camel@intel.com>
- <20160901171129.GB19982@obsidianresearch.com>
- <1472750241.16467.29.camel@intel.com>
- <20160901173320.GB20472@obsidianresearch.com>
- <20160901175222.GF21847@leon.nu>
- <20160906210313.GA24527@phlsvsds.ph.intel.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
+Date: Tue, 6 Sep 2016 15:55:48 -0600
+Message-ID: <20160906215548.GA27225@obsidianresearch.com>
+References: <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
+ <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160830184633.GE7586@obsidianresearch.com>
+ <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160830185548.GA9768@obsidianresearch.com>
+ <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160901163418.GA6479@obsidianresearch.com>
+ <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
+ <20160906200221.GE28416@obsidianresearch.com>
+ <VI1PR0501MB24290102DD3246F0CA965746C4F90@VI1PR0501MB2429.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160906210313.GA24527-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <VI1PR0501MB24290102DD3246F0CA965746C4F90@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Daniel Jurgens <danielj@mellanox.com>
+Cc: Paul Moore <paul@paul-moore.com>, Leon Romanovsky <leon@kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 06, 2016 at 05:03:14PM -0400, ira.weiny wrote:
+On Tue, Sep 06, 2016 at 08:35:56PM +0000, Daniel Jurgens wrote:
 
-> These defines are _not_ used anywhere in the kernel but rather define a
-> device specific command _offset_ within the drm vendor ioctl range.
+> I think to control access to a VLAN for RoCE there would have to
+> labels for GIDs, since that's how you select which VLAN to use.
 
-That is not completely true, the defines are used when setting up the
-kernel ioctl #. I have no idea why they did this, to me it is
-polluting a uapi header with unneeded defines which is a big no-no.
+Since people are talking about using GIDs for containers adding a GID
+constraint for all technologies makes sense to me..
 
-Userspace should certainly *NEVER* use these constants, removing them
-is the best way to achieve that.
+But rocev1 (at least mlx4) does not use vlan ids from the GID, the
+vlan id is set directly in the id, so it still seems to need direct
+containment. I also see vlan related stuff in the iwarp providers, so
+they probably have a similar requirement.
 
-> When we agreed that HFI1 would use an 0x80 offset I thought that was the
-> idea.[*]  That IB would have an upper range which was device specific and HFI1
-> would be the first users of that range.
+> required.  RDMA device handle labeling isn't granular enough for
+> what I'm trying to accomplish.  We want users with different levels
+> of permission to be able to use the same device, but restrict who
+> they can communicate with by isolating them to separate partitions.
 
-I'd rather not have non-unique ioctls if we can avoid it......
-
-But even if we do, removing these indirection constants does nothing to
-change that - other drivers can still alias 0x80.
-
-That is doable, particularly if the struct is a different size, then
-we still have unique ioctl numbers. With some care other vendors can
-probably manage...
+Sure, but maybe you should use the (device handle:pkey/vlan_id) as your
+labeling tuple not (Subnet Prefix, pkey)
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
