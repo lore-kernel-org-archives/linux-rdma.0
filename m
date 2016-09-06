@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 05/13] IB/hfi1: Move serdes tune inside link start
- function
-Date: Tue, 06 Sep 2016 04:35:20 -0700
-Message-ID: <20160906113511.27413.86328.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 09/13] IB/rdmavt: Correct sparse annotation
+Date: Tue, 06 Sep 2016 04:36:33 -0700
+Message-ID: <20160906113623.27413.51936.stgit@scvm10.sc.intel.com>
 References: <20160906112758.27413.46860.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,111 +10,45 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160906112758.27413.46860.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-All calls to tune_serdes and start_link are paired.  Move
-tune_serdes inside start_link.
+The __must_hold() is sufficent to correct the sparse
+context imbalance inside a function.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Per Documentation/sparse.txt:
+__must_hold - The specified lock is held on function entry and exit.
+
+Fixes: Commit c0a67f6ba356 ("IB/rdmavt: Annotate rvt_reset_qp()")
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   22 ++++++++--------------
- drivers/infiniband/hw/hfi1/mad.c  |    1 -
- 2 files changed, 8 insertions(+), 15 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 8e657db..cdc388c 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -6825,7 +6825,6 @@ void handle_link_up(struct work_struct *work)
- 		set_link_down_reason(ppd, OPA_LINKDOWN_REASON_SPEED_POLICY, 0,
- 				     OPA_LINKDOWN_REASON_SPEED_POLICY);
- 		set_link_state(ppd, HLS_DN_OFFLINE);
--		tune_serdes(ppd);
- 		start_link(ppd);
- 	}
- }
-@@ -6998,12 +6997,10 @@ void handle_link_down(struct work_struct *work)
- 	 * If there is no cable attached, turn the DC off. Otherwise,
- 	 * start the link bring up.
- 	 */
--	if (ppd->port_type == PORT_TYPE_QSFP && !qsfp_mod_present(ppd)) {
-+	if (ppd->port_type == PORT_TYPE_QSFP && !qsfp_mod_present(ppd))
- 		dc_shutdown(ppd->dd);
--	} else {
--		tune_serdes(ppd);
-+	else
- 		start_link(ppd);
--	}
- }
- 
- void handle_link_bounce(struct work_struct *work)
-@@ -7016,7 +7013,6 @@ void handle_link_bounce(struct work_struct *work)
- 	 */
- 	if (ppd->host_link_state & HLS_UP) {
- 		set_link_state(ppd, HLS_DN_OFFLINE);
--		tune_serdes(ppd);
- 		start_link(ppd);
- 	} else {
- 		dd_dev_info(ppd->dd, "%s: link not up (%s), nothing to do\n",
-@@ -7531,7 +7527,6 @@ done:
- 		set_link_down_reason(ppd, OPA_LINKDOWN_REASON_WIDTH_POLICY, 0,
- 				     OPA_LINKDOWN_REASON_WIDTH_POLICY);
- 		set_link_state(ppd, HLS_DN_OFFLINE);
--		tune_serdes(ppd);
- 		start_link(ppd);
- 	}
- }
-@@ -9161,6 +9156,12 @@ set_local_link_attributes_fail:
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index da5c8d6..80d2c50 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -500,12 +500,9 @@ static void rvt_remove_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp)
   */
- int start_link(struct hfi1_pportdata *ppd)
+ static void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 		  enum ib_qp_type type)
+-	__releases(&qp->s_lock)
+-	__releases(&qp->s_hlock)
+-	__releases(&qp->r_lock)
+-	__acquires(&qp->r_lock)
+-	__acquires(&qp->s_hlock)
+-	__acquires(&qp->s_lock)
++	__must_hold(&qp->r_lock)
++	__must_hold(&qp->s_hlock)
++	__must_hold(&qp->s_lock)
  {
-+	/*
-+	 * Tune the SerDes to a ballpark setting for optimal signal and bit
-+	 * error rate.  Needs to be done before starting the link.
-+	 */
-+	tune_serdes(ppd);
-+
- 	if (!ppd->link_enabled) {
- 		dd_dev_info(ppd->dd,
- 			    "%s: stopping link start because link is disabled\n",
-@@ -9401,8 +9402,6 @@ void qsfp_event(struct work_struct *work)
- 		 */
- 		set_qsfp_int_n(ppd, 1);
- 
--		tune_serdes(ppd);
--
- 		start_link(ppd);
- 	}
- 
-@@ -9544,11 +9543,6 @@ static void try_start_link(struct hfi1_pportdata *ppd)
- 	}
- 	ppd->qsfp_retry_count = 0;
- 
--	/*
--	 * Tune the SerDes to a ballpark setting for optimal signal and bit
--	 * error rate.  Needs to be done before starting the link.
--	 */
--	tune_serdes(ppd);
- 	start_link(ppd);
- }
- 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 39e42c3..46767e0 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -1013,7 +1013,6 @@ static int set_port_states(struct hfi1_pportdata *ppd, struct opa_smp *smp,
- 			 * offline.
- 			 */
- 			set_link_state(ppd, HLS_DN_OFFLINE);
--			tune_serdes(ppd);
- 			start_link(ppd);
- 		} else {
- 			set_link_state(ppd, link_state);
+ 	if (qp->state != IB_QPS_RESET) {
+ 		qp->state = IB_QPS_RESET;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
