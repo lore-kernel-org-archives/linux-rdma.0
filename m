@@ -1,66 +1,153 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v3 01/15] IB/pvrdma: Add user-level shared functions
-Date: Tue, 6 Sep 2016 18:58:37 +0000
-Message-ID: <BLUPR0501MB8360B8A54D98AEE4B8C689FC5F90@BLUPR0501MB836.namprd05.prod.outlook.com>
+Subject: RE: [PATCH v3 02/15] IB/pvrdma: Add virtual device RDMA structures
+Date: Tue, 6 Sep 2016 19:03:51 +0000
+Message-ID: <BLUPR0501MB8362BAB4087A6B335A01286C5F90@BLUPR0501MB836.namprd05.prod.outlook.com>
 References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
- <1470266864-16888-2-git-send-email-aditr@vmware.com>
- <20160821112436.GA22012@yuval-lap.uk.oracle.com>
+ <1470266864-16888-3-git-send-email-aditr@vmware.com>
+ <20160821115441.GB22012@yuval-lap.uk.oracle.com>
+ <BLUPR0501MB836ACEAF51DF69E5623EBF5C5EB0@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160825060353.GA10342@yuval-lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160821112436.GA22012-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+In-Reply-To: <20160825060353.GA10342@yuval-lap>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Aug 21, 2016 at 04:24:53 -0700, Yuval Shaia wrote:
-> One minor comment.
-> Besides that:
-> 	Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->=20
-> Yuval
->=20
-> On Wed, Aug 03, 2016 at 04:27:30PM -0700, Adit Ranadive wrote:
-> > We share some common structures with the user-level driver. This patch
-> > adds those structures and shared functions to traverse the QP/CQ rings.
+On, Wed, Aug 24, 2016 at 23:04:44 -0700, Yuval Shaia wrote:
+> On Tue, Aug 23, 2016 at 05:46:27PM +0000, Adit Ranadive wrote:
+> > On Sun, Aug 21, 2016 at 04:55:20 -0700, Yuval Shaia <yuval.shaia@oracle=
+.com> wrote:
+> > > On Wed, Aug 03, 2016 at 04:27:31PM -0700, Adit Ranadive wrote:
+> > > > This patch adds the various Verbs structures that we support in the
+> > > > virtual RDMA device. We have re-mapped the ones from the RDMA core =
+stack
+> > > > to make sure we can maintain compatibility with our backend.
+> > > >
+> > > > Changes v2->v3:
+> > > >  - Added , to end of enums missing them.
+> > > >
+> > > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > ---
+> > > >  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h | 450 +++++++++++++=
+++++++++++++
+> > > >  1 file changed, 450 insertions(+)
+> > > >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> > > >
+> > > > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h b/drive=
+rs/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> > > > new file mode 100644
+> > > > index 0000000..4bef8b4
+> > > > --- /dev/null
+> > > > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> > > > @@ -0,0 +1,450 @@
+> > > > +/*
+> > > > + * [PLEASE NOTE:  VMWARE, INC. ELECTS TO USE AND DISTRIBUTE THIS C=
+OMPONENT
+> > > > + * UNDER THE TERMS OF THE OpenIB.org BSD license.  THE ORIGINAL LI=
+CENSE TERMS
+> > > > + * ARE REPRODUCED BELOW ONLY AS A REFERENCE.]
+> > > > + *
+> > > > + * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reser=
+ved.
+> > > > + * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
+> > > > + * Copyright (c) 2004 Intel Corporation.  All rights reserved.
+> > > > + * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
+> > > > + * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
+> > > > + * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+> > > > + * Copyright (c) 2005, 2006, 2007 Cisco Systems.  All rights reser=
+ved.
+> > > > + * Copyright (c) 2015-2016 VMware, Inc.  All rights reserved.
+> > > > + *
+> > > > + * This software is available to you under a choice of one of two
+> > > > + * licenses.  You may choose to be licensed under the terms of the=
+ GNU
+> > > > + * General Public License (GPL) Version 2, available from the file
+> > > > + * COPYING in the main directory of this source tree, or the
+> > > > + * OpenIB.org BSD license below:
+> > > > + *
+> > > > + *     Redistribution and use in source and binary forms, with or
+> > > > + *     without modification, are permitted provided that the follo=
+wing
+> > > > + *     conditions are met:
+> > > > + *
+> > > > + *      - Redistributions of source code must retain the above
+> > > > + *        copyright notice, this list of conditions and the follow=
+ing
+> > > > + *        disclaimer.
+> > > > + *
+> > > > + *      - Redistributions in binary form must reproduce the above
+> > > > + *        copyright notice, this list of conditions and the follow=
+ing
+> > > > + *        disclaimer in the documentation and/or other materials
+> > > > + *        provided with the distribution.
+> > > > + *
+> > > > + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> > > > + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES=
+ OF
+> > > > + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> > > > + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOL=
+DERS
+> > > > + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN=
+ AN
+> > > > + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR =
+IN
+> > > > + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN TH=
+E
+> > > > + * SOFTWARE.
+> > > > + */
+> > > > +
+> > > > +#ifndef __PVRDMA_IB_VERBS_H__
+> > > > +#define __PVRDMA_IB_VERBS_H__
+> > > > +
+> > > > +#include <linux/types.h>
+> > > > +
+> > > > +union pvrdma_gid {
+> > > > +	__u8	raw[16];
+> > > > +	struct {
+> > > > +		__be64	subnet_prefix;
+> > > > +		__be64	interface_id;
+> > > > +	} global;
+> > > > +};
+> > >
+> > > Any reason why not to use ib_gid?
+> > > Suggesting to utilize definitions from rdma/ib_verbs.h as much as you=
+ can.
 > >
-> > Changes from v2->v3:
-> >  - Defined what -1 means for an index return value in pvrdma_uapi.h
-> >
-> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/pvrdma/pvrdma_uapi.h | 248 +++++++++++++++++++++=
-++++++++
-> >  drivers/infiniband/hw/pvrdma/pvrdma_user.h |  99 ++++++++++++
-> >  2 files changed, 347 insertions(+)
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_user.h
-> >
-
-...
-
-> > +
-> > +/* PVRDMA receive queue work request */
-> > +struct pvrdma_rq_wqe_hdr {
-> > +	__u64 wr_id;		/* wr id */
-> > +	__u32 num_sge;		/* size of s/g array */
-> > +	__u32 total_len;	/* reserved */
-> > +};
-> > +/* Use pvrdma_sge (ib_sge) for receieve queue s/g array elements. */
+> > Thanks for taking a look at this! The main reason we don't re-use the I=
+B structures here is for
+> > compatibility reasons. We re-use these PVRDMA defined structures in our=
+ virtual device too so
+> > we want to be consistent between the driver and the device itself. Thus=
+, we can protect the
+> > virtual device from any non-compatible changes in the IB structs.
+> > Hope that clarifies the issue!
 >=20
-> This comment refers to a structure that defined in patch #2.
+> Point is cleared.
+> Just want to warn for any future kernel-api inconsistency between pcrdma
+> driver and some other OFED module (e.x if your driver will ever want to
+> call ib_get_cached_gid() or something like that.
+>=20
+> Not only "future", how about internal inconsistency with for example
+> pvrdma_dev.sgid_tbl.
 
-In v4, will move the pvrdma_sge struct here so its more consistent.
+Since this gets populated with GIDs using OFED stack callbacks, we allocate=
+ them in the IB
+GID format.
 
-Thanks,
-Adit
+> I assume that for that you have the pvrdma_gid_to_ib() and
+> ib_gid_to_pvrdma() functions which enforce this "compatibility".
+
+Yes, that is correct.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
