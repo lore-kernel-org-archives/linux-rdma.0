@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc V1 2/4] IB/rxe: Fix duplicate atomic request handling
-Date: Wed,  7 Sep 2016 14:04:05 +0300
-Message-ID: <1473246247-16536-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc V1 3/4] IB/rxe: Fix race condition between requester and completer
+Date: Wed,  7 Sep 2016 14:04:06 +0300
+Message-ID: <1473246247-16536-4-git-send-email-leon@kernel.org>
 References: <1473246247-16536-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473246247-16536-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,126 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When handling ack for atomic opcodes like "fetch&add"
-or "cmp&swp", the method send_atomic_ack() saves the ack
-before sending it, in case it gets lost and never reach the
-requester. In which case the method duplicate_request()
-will need to find it using the duplicated request.psn.
-But send_atomic_ack() used a wrong psn value and thus
-the above ack was never found.
-This fix uses the ack.psn to locate the ack in case
-its needed.
-This fix also copies the ack packet to the skb's control buffer
-since duplicate_request() will need it when calling rxe_xmit_packet()
+rxe_requester() is sending a pkt with rxe_xmit_packet() and
+then calls rxe_update() to update the wqe and qp's psn values.
+But sometimes the response is received before the requester
+had time to update the wqe in which case the completer
+acts on errornous wqe values.
+This fix updates the wqe and qp before actually sending
+the request and rolls back when xmit fails.
 
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_resp.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_req.c | 57 ++++++++++++++++++++++++++++---------
+ 1 file changed, 44 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index ebb03b4..3e0f0f2 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -972,11 +972,13 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 	free_rd_atomic_resource(qp, res);
- 	rxe_advance_resp_resource(qp);
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 33b2d9d..13a848a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -511,24 +511,21 @@ static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ }
 
-+	memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(skb->cb));
+ static void update_wqe_state(struct rxe_qp *qp,
+-			     struct rxe_send_wqe *wqe,
+-			     struct rxe_pkt_info *pkt,
+-			     enum wqe_state *prev_state)
++		struct rxe_send_wqe *wqe,
++		struct rxe_pkt_info *pkt)
+ {
+-	enum wqe_state prev_state_ = wqe->state;
+-
+ 	if (pkt->mask & RXE_END_MASK) {
+ 		if (qp_type(qp) == IB_QPT_RC)
+ 			wqe->state = wqe_state_pending;
+ 	} else {
+ 		wqe->state = wqe_state_processing;
+ 	}
+-
+-	*prev_state = prev_state_;
+ }
+
+-static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+-			 struct rxe_pkt_info *pkt, int payload)
++static void update_wqe_psn(struct rxe_qp *qp,
++			   struct rxe_send_wqe *wqe,
++			   struct rxe_pkt_info *pkt,
++			   int payload)
+ {
+ 	/* number of packets left to send including current one */
+ 	int num_pkt = (wqe->dma.resid + payload + qp->mtu - 1) / qp->mtu;
+@@ -546,9 +543,34 @@ static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 		qp->req.psn = (wqe->first_psn + num_pkt) & BTH_PSN_MASK;
+ 	else
+ 		qp->req.psn = (qp->req.psn + 1) & BTH_PSN_MASK;
++}
+
+-	qp->req.opcode = pkt->opcode;
++static void save_state(struct rxe_send_wqe *wqe,
++		       struct rxe_qp *qp,
++		       struct rxe_send_wqe *rollback_wqe,
++		       struct rxe_qp *rollback_qp)
++{
++	rollback_wqe->state     = wqe->state;
++	rollback_wqe->first_psn = wqe->first_psn;
++	rollback_wqe->last_psn  = wqe->last_psn;
++	rollback_qp->req.psn    = qp->req.psn;
++}
+
++static void rollback_state(struct rxe_send_wqe *wqe,
++			   struct rxe_qp *qp,
++			   struct rxe_send_wqe *rollback_wqe,
++			   struct rxe_qp *rollback_qp)
++{
++	wqe->state     = rollback_wqe->state;
++	wqe->first_psn = rollback_wqe->first_psn;
++	wqe->last_psn  = rollback_wqe->last_psn;
++	qp->req.psn    = rollback_qp->req.psn;
++}
 +
- 	res->type = RXE_ATOMIC_MASK;
- 	res->atomic.skb = skb;
--	res->first_psn = qp->resp.psn;
--	res->last_psn = qp->resp.psn;
--	res->cur_psn = qp->resp.psn;
-+	res->first_psn = ack_pkt.psn;
-+	res->last_psn  = ack_pkt.psn;
-+	res->cur_psn   = ack_pkt.psn;
++static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++			 struct rxe_pkt_info *pkt, int payload)
++{
++	qp->req.opcode = pkt->opcode;
 
- 	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb_copy);
- 	if (rc) {
-@@ -1116,8 +1118,7 @@ static enum resp_states duplicate_request(struct rxe_qp *qp,
- 				rc = RESPST_CLEANUP;
- 				goto out;
- 			}
--			bth_set_psn(SKB_TO_PKT(skb_copy),
--				    qp->resp.psn - 1);
-+
- 			/* Resend the result. */
- 			rc = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp,
- 					     pkt, skb_copy);
+ 	if (pkt->mask & RXE_END_MASK)
+ 		qp->req.wqe_index = next_index(qp->sq.queue, qp->req.wqe_index);
+@@ -571,7 +593,8 @@ int rxe_requester(void *arg)
+ 	int mtu;
+ 	int opcode;
+ 	int ret;
+-	enum wqe_state prev_state;
++	struct rxe_qp rollback_qp;
++	struct rxe_send_wqe rollback_wqe;
+
+ next_wqe:
+ 	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
+@@ -688,13 +711,21 @@ next_wqe:
+ 		goto err;
+ 	}
+
+-	update_wqe_state(qp, wqe, &pkt, &prev_state);
++	/*
++	 * To prevent a race on wqe access between requester and completer,
++	 * wqe members state and psn need to be set before calling
++	 * rxe_xmit_packet().
++	 * Otherwise, completer might initiate an unjustified retry flow.
++	 */
++	save_state(wqe, qp, &rollback_wqe, &rollback_qp);
++	update_wqe_state(qp, wqe, &pkt);
++	update_wqe_psn(qp, wqe, &pkt, payload);
+ 	ret = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp, &pkt, skb);
+ 	if (ret) {
+ 		qp->need_req_skb = 1;
+ 		kfree_skb(skb);
+
+-		wqe->state = prev_state;
++		rollback_state(wqe, qp, &rollback_wqe, &rollback_qp);
+
+ 		if (ret == -EAGAIN) {
+ 			rxe_run_task(&qp->req.task, 1);
 --
 2.7.4
 
