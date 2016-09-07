@@ -1,24 +1,58 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc V1 1/4] IB/rxe: Fix kernel panic in udp_setup_tunnel
-Date: Wed, 7 Sep 2016 17:18:28 +0300
-Message-ID: <CAG9sBKMAKKc_fQEUYWaf88QhiDHJPPkYOHHGnJ7HcyM+5HD_vA@mail.gmail.com>
-References: <1473246247-16536-1-git-send-email-leon@kernel.org>
- <1473246247-16536-2-git-send-email-leon@kernel.org> <CAJ3xEMhskkpCprziZUZQJWUVvwc_3_MSbJco_bOyuSrwDYXFwQ@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 02/28] Include pthreads in the provider libraries
+Date: Wed, 7 Sep 2016 09:41:11 -0500
+Message-ID: <027401d20915$e0d3b620$a27b2260$@opengridcomputing.com>
+References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com> <1473109698-31408-3-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhskkpCprziZUZQJWUVvwc_3_MSbJco_bOyuSrwDYXFwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1473109698-31408-3-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Moni, can you please put your maintainer say here.
->
+> It is a mistake to not explicitly link to the libraries required.
+> Not linking causes the symbols to drop the symbol version which could
+> cause runtime problems down the road if pthreads ever goes through
+> another symbol version change.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  libcxgb3/configure.in      | 2 ++
+>  libcxgb4/configure.in      | 2 ++
+>  libhfi1verbs/configure.in  | 2 ++
+>  libi40iw/configure.ac      | 2 ++
+>  libipathverbs/configure.in | 2 ++
+>  libmlx4/configure.ac       | 2 ++
+>  libmlx5/configure.ac       | 3 +++
+>  libmthca/configure.in      | 2 ++
+>  libnes/configure.in        | 2 ++
+>  libocrdma/configure.in     | 2 ++
+>  librxe/configure.in        | 2 ++
+>  11 files changed, 23 insertions(+)
+> 
+> diff --git a/libcxgb3/configure.in b/libcxgb3/configure.in
+> index 9efc82d34f33..db9177230cae 100644
+> --- a/libcxgb3/configure.in
+> +++ b/libcxgb3/configure.in
+> @@ -24,6 +24,8 @@ then
+>  AC_CHECK_LIB(ibverbs, ibv_get_device_list, [],
+>      AC_MSG_ERROR([ibv_get_device_list() not found.  libcxgb3 requires
+> libibverbs.]))
+>  fi
+> +AC_CHECK_LIB(pthread, pthread_mutex_init, [],
+> +    AC_MSG_ERROR([pthread_mutex_init() not found.  libibverbs requires
+> libpthread.]))
+> 
 
-I see that panic messages are common in change logs and personally I
-think it adds to info about the necessity of the patch.
-Therefore I tend to agree with Leon.
+Nit: This should be "libcxgb3 requires..."  Similar change needed for all of
+this patch.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
