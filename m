@@ -1,63 +1,81 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
- ISSI > 0 mode
-Date: Wed, 7 Sep 2016 10:40:51 +0300
-Message-ID: <CAJ3xEMjxr=qMjBo=Uq-bZ7RGwp9ekWpDACdDAJ0yR_AkZXcMEw@mail.gmail.com>
-References: <1473232990-22766-1-git-send-email-dchang@suse.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Wed, 7 Sep 2016 13:25:13 +0530
+Message-ID: <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
+References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+ <1472632647-1525-2-git-send-email-pandit.parav@gmail.com> <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
+ <20160831211618.GA12660@htj.duckdns.org> <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
+ <20160901084406.GA4115@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473232990-22766-1-git-send-email-dchang-IBi9RG/b67k@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Chang <dchang-IBi9RG/b67k@public.gmane.org>, Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160901084406.GA4115-jcswGhMUV9g@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 7, 2016 at 10:23 AM, David Chang <dchang-IBi9RG/b67k@public.gmane.org> wrote:
-> When using MAD_IFC command, we should also consider avoiding in
-> ISSI > 0 mode, otherwise most of the MAD_IFC command features
-> are deprecated and cannot be used.
+Hi Matan,
 
-Ofcourse!!
+On Thu, Sep 1, 2016 at 2:14 PM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+> On Thu, Sep 01, 2016 at 10:25:40AM +0300, Matan Barak wrote:
+>> Well, if I recall, the reason doing so last time was in order to allow
+>> flexible updating of ib_core independently, which is obviously not a good
+>> reason (to say the least).
+>>
+>> Since the new ABI will probably define new object types (all recent
+>> proposals go this way), the current approach could lead to either trying to
+>> map new objects to existing cgroup resource types, which could lead to some
+>> weird non 1:1 mapping, or having a split definitions - such that each
+>> driver will declare its objects both in the cgroups mechanism and in its
+>> driver dispatch table.
 
-Mark/Meny, didn't you stpped on it / addressed that as part of some
-other counters work?
+>> Even worse than that, drivers could simply ignore the cgroups support while
+>> implementing their own resource types and get a very broken containers
+>> support.
+If drivers are broken due to ignorance of not-calling cgroup APIs,
+that should be ok.
+That particular driver should fix it.
+If the resource creation using uverbs is using well defined rdma level
+resource, uverbs level will make sure to honor cgroup limits without
+involving hw drivers anyway.
 
-Doron, don't you see this as repeated 100% failure e.g with Eth SRIOV
-VFs and/or RoCE devices?
+RDMA Verb level resource is charged/uncharged by RDMA core.
+RDMA HW level resource is charged/uncharged by RDMA HW driver using
+well defined API and resource by cgroup core.
+This scheme ensures that there is 1:1 mapping.
 
-Or.
+I don't think current definition of resource type is carved out on stone.
+They can be extended as we forward.
+As many of us agree that, they should be well defined and it should be
+agreed by cgroup and rdma community.
+
+For example, today we have RDMA_VERB_xxx resources.
+New well defined RDMA HW resources can be defined in rdma_cgroup.h
+file as RDMA_HW_xx in same enum table.
 
 >
-> Fixes: d603c809ef91 ("IB/mlx5: Fix decision on using MAD_IFC")
-> Reported-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
-> Signed-off-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> Sorry guys, but arbitrary extensibility for something not finished is the
+> worst idea ever.  We have two options here:
 >
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 1b4094baa2de..0796fb2b04f1 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -288,7 +288,8 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
+>  a) delay cgroups support until the grand rewrite is done
+>  b) add it now and deal with the consequences later
 >
->  static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
->  {
-> -       return !MLX5_CAP_GEN(dev->mdev, ib_virt);
-> +       return !dev->mdev->issi &&
-> +               !MLX5_CAP_GEN(dev->mdev, ib_virt);
->  }
->
->  enum {
-> --
-> 2.6.6
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can we do (b) now and differ adding any HW resources to cgroup until
+they are clearly called out.
+Architecture and APIs are already in place to support this.
+
+> That being said, adding random non-Verbs hardwasre to the RDMA core is
+> the second worst idea ever.
+
+We can differ adding HW resource to core and cgroup until they are
+clearly defined.
+In that case current architecture still holds good.
+
+> Guess I need to catch up with the
+> discussion and start using the flame thrower.
+
+Matan,
+Can you please point us to the new RFC/ABI email thread which
+describes the design, partitioning of code between core vs hw drivers
+etc.
