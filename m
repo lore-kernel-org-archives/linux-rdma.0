@@ -1,30 +1,28 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v3 10/15] IB/pvrdma: Add support for memory regions
-Date: Wed, 7 Sep 2016 19:06:32 +0000
-Message-ID: <BLUPR0501MB83611E62567F90A4B8FB454C5F80@BLUPR0501MB836.namprd05.prod.outlook.com>
+Subject: RE: [PATCH v3 06/15] IB/pvrdma: Add helper functions
+Date: Wed, 7 Sep 2016 19:26:09 +0000
+Message-ID: <BLUPR0501MB836DAE591F4A6DDDA121349C5F80@BLUPR0501MB836.namprd05.prod.outlook.com>
 References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
- <1470266864-16888-11-git-send-email-aditr@vmware.com>
- <20160825141505.GD27446@yuval-lap.uk.oracle.com>
+ <1470266864-16888-7-git-send-email-aditr@vmware.com>
+ <20160829120830.GA7088@yuval-lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160825141505.GD27446-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+In-Reply-To: <20160829120830.GA7088@yuval-lap>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 25, 2016 at 07:16:32 -0700, Yuval Shaia wrote:
-> On Wed, Aug 03, 2016 at 04:27:39PM -0700, Adit Ranadive wrote:
-> > This patch adds support for creating and destroying memory regions.
-> > The PVRDMA device supports User MRs, DMA MRs (no Remote
-> Read/Write
-> > support), Fast Register MRs.
-> >
-> > Changes v2->v3:
-> >  - Removed boolean in pvrdma_cmd_post.
+On Mon, Aug 29, 2016 at 05:08:46 -0700, Yuval Shaia wrote:
+> On Wed, Aug 03, 2016 at 04:27:35PM -0700, Adit Ranadive wrote:
+> > This patch adds helper functions to store guest page addresses in a
+> > page directory structure. The page directory pointer is passed down to
+> > the backend which then maps the entire memory for the RDMA object by
+> > traversing the directory. We add some more helper functions for
+> > converting to/from RDMA stack address handles from/to PVRDMA ones.
 > >
 > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -32,59 +30,226 @@ On Thu, Aug 25, 2016 at 07:16:32 -0700, Yuval Shaia wrote:
 > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > ---
-> >  drivers/infiniband/hw/pvrdma/pvrdma_mr.c | 331
-> > +++++++++++++++++++++++++++++++
-> >  1 file changed, 331 insertions(+)
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+> >  drivers/infiniband/hw/pvrdma/pvrdma_misc.c | 309
+> > +++++++++++++++++++++++++++++
+> >  1 file changed, 309 insertions(+)
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_misc.c
 > >
 
 ...
 
-> > +/**
-> > + * pvrdma_get_dma_mr - get a DMA memory region
-> > + * @pd: protection domain
-> > + * @acc: access flags
-> > + *
-> > + * @return: ib_mr pointer on success, otherwise returns an errno.
-> > + */
-> > +struct ib_mr *pvrdma_get_dma_mr(struct ib_pd *pd, int acc) {
-> > +	struct pvrdma_dev *dev =3D to_vdev(pd->device);
-> > +	struct pvrdma_user_mr *mr;
-> > +	union pvrdma_cmd_req req;
-> > +	union pvrdma_cmd_resp rsp;
-> > +	struct pvrdma_cmd_create_mr *cmd =3D &req.create_mr;
-> > +	struct pvrdma_cmd_create_mr_resp *resp =3D &rsp.create_mr_resp;
-> > +	int ret;
+> > +int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct
+> pvrdma_page_dir *pdir,
+> > +			 u64 npages, bool alloc_pages)
+> > +{
+> > +	u64 i;
 > > +
-> > +	if (acc !=3D IB_ACCESS_LOCAL_WRITE) {
+> > +	if (npages > PVRDMA_PAGE_DIR_MAX_PAGES)
+> > +		return -EINVAL;
+> > +
+> > +	memset(pdir, 0, sizeof(*pdir));
+> > +
+> > +	pdir->dir =3D dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
+> > +				       &pdir->dir_dma, GFP_KERNEL);
+> > +	if (!pdir->dir)
+> > +		goto err;
+> > +
+> > +	pdir->ntables =3D PVRDMA_PAGE_DIR_TABLE(npages - 1) + 1;
+> > +	pdir->tables =3D kcalloc(pdir->ntables, sizeof(*pdir->tables),
+> > +			       GFP_KERNEL);
+> > +	if (!pdir->tables)
+> > +		goto err;
+> > +
+> > +	for (i =3D 0; i < pdir->ntables; i++) {
+> > +		u64 *table;
+> > +		dma_addr_t table_base;
+> > +
+> > +		table =3D dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
+> > +					   &table_base, GFP_KERNEL);
+> > +		if (!table)
+> > +			goto err;
+> > +
+> > +		pdir->tables[i] =3D table;
+> > +		pdir->dir[i] =3D table_base;
 >=20
-> Since those access flags are bits i suggest to use bit operations.
-> 	if (!(acc & IB_ACCESS_LOCAL_WRITE))
+> Suggesting:
+> 		pdir->tables[i] =3D dma_alloc_coherent(&dev->pdev->dev,
+> PAGE_SIZE,
+> 						     &pdir->dir[i],
+> GFP_KERNEL);
+> 		if (!pdir->tables[i])
+> 			goto err;
+>=20
+> And get rid of the scope variables 'table' and table_base.
 
-Ok.
+Done. Thanks for the suggestion.
 
-> > +		dev_warn(&dev->pdev->dev, "unsupported dma mr access
-> flags\n");
-> > +		return ERR_PTR(-EOPNOTSUPP);
 > > +	}
 > > +
-> > +	mr =3D kzalloc(sizeof(*mr), GFP_KERNEL);
-> > +	if (!mr)
-> > +		return ERR_PTR(-ENOMEM);
+> > +	pdir->npages =3D npages;
+> > +
+> > +	if (alloc_pages) {
+> > +		pdir->pages =3D kcalloc(npages, sizeof(*pdir->pages),
+> > +				      GFP_KERNEL);
+> > +		if (!pdir->pages)
+> > +			goto err;
+> > +
+> > +		for (i =3D 0; i < pdir->npages; i++) {
+> > +			void *page;
+> > +			dma_addr_t page_dma;
+> > +
+> > +			page =3D dma_alloc_coherent(&dev->pdev->dev,
+> PAGE_SIZE,
+> > +						  &page_dma, GFP_KERNEL);
+> > +			if (!page)
+> > +				goto err;
+> > +
+> > +			pdir->pages[i] =3D page;
 >=20
-> Suggesting to do this allocation after command succeeds. This way you wil=
-l
-> not have to deal with free-ing it when cmd fails.
+> Ditto.
+>=20
+> > +			pvrdma_page_dir_insert_dma(pdir, i, page_dma);
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +
+> > +err:
+> > +	pvrdma_page_dir_cleanup(dev, pdir);
+> > +
+> > +	return -ENOMEM;
+> > +}
+> > +
+> > +static u64 *pvrdma_page_dir_table(struct pvrdma_page_dir *pdir, u64
+> > +idx) {
+> > +	return pdir->tables[PVRDMA_PAGE_DIR_TABLE(idx)];
+> > +}
+> > +
+> > +dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir,
+> u64
+> > +idx) {
+> > +	return pvrdma_page_dir_table(pdir,
+> idx)[PVRDMA_PAGE_DIR_PAGE(idx)];
+> > +}
+> > +
+> > +static void pvrdma_page_dir_cleanup_pages(struct pvrdma_dev *dev,
+> > +					  struct pvrdma_page_dir *pdir)
+> > +{
+> > +	if (pdir->pages) {
+> > +		u64 i;
+> > +
+> > +		for (i =3D 0; i < pdir->npages && pdir->pages[i]; i++) {
+> > +			dma_addr_t page_dma =3D
+> pvrdma_page_dir_get_dma(pdir, i);
+> > +
+> > +			dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
+> > +					  pdir->pages[i], page_dma);
+> > +		}
+> > +
+> > +		kfree(pdir->pages);
+> > +	}
+> > +}
+> > +
+> > +static void pvrdma_page_dir_cleanup_tables(struct pvrdma_dev *dev,
+> > +					   struct pvrdma_page_dir *pdir) {
+> > +	if (pdir->tables) {
+> > +		int i;
+> > +
+> > +		pvrdma_page_dir_cleanup_pages(dev, pdir);
+> > +
+> > +		for (i =3D 0; i < pdir->ntables; i++) {
+> > +			u64 *table =3D pdir->tables[i];
+> > +
+> > +			if (table)
+> > +				dma_free_coherent(&dev->pdev->dev,
+> PAGE_SIZE,
+> > +						  table, pdir->dir[i]);
+> > +		}
+> > +
+> > +		kfree(pdir->tables);
+> > +	}
+> > +}
+> > +
+> > +void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
+> > +			     struct pvrdma_page_dir *pdir) {
+> > +	if (pdir->dir) {
+> > +		pvrdma_page_dir_cleanup_tables(dev, pdir);
+> > +		dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
+> > +				  pdir->dir, pdir->dir_dma);
+> > +	}
+> > +}
+> > +
+> > +int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
+> > +			       dma_addr_t daddr)
+> > +{
+> > +	u64 *table;
+> > +
+> > +	if (idx >=3D pdir->npages)
+> > +		return -EINVAL;
+> > +
+> > +	table =3D pvrdma_page_dir_table(pdir, idx);
+> > +	table[PVRDMA_PAGE_DIR_PAGE(idx)] =3D daddr;
+>=20
+> Do you think it worth to unmap what is there before?
 
-Hmm, I kept it as it is in upcoming v4 mainly because if the mr alloc faile=
-d I would
-have to issue another device command to destroy the MR. I would rather free=
- the
-MR here than issue a device command to destroy it.
+I don't think so. These structures are used underneath a QP, CQ, MR to keep=
+=20
+track of already mapped application pages. Instead of passing the entire se=
+t of=20
+pages representing these RDMA constructs we create a directory containing t=
+he
+page addresses and pass only a pointer to the directory to the device. The =
+directory=20
+would be unmapped when the destroy verb is called.
+=20
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
+> > +				struct ib_umem *umem, u64 offset) {
+> > +	u64 i =3D offset;
+> > +	int j, entry;
+> > +	int ret =3D 0, len =3D 0;
+> > +	struct scatterlist *sg;
+> > +
+> > +	if (offset >=3D pdir->npages)
+> > +		return -EINVAL;
+> > +
+> > +	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+> > +		len =3D sg_dma_len(sg) >> PAGE_SHIFT;
+> > +		for (j =3D 0; j < len; j++) {
+> > +			dma_addr_t addr =3D sg_dma_address(sg) +
+> > +					  umem->page_size * j;
+> > +
+> > +			ret =3D pvrdma_page_dir_insert_dma(pdir, i, addr);
+> > +			if (ret)
+> > +				goto exit;
+> > +
+> > +			i++;
+> > +		}
+> > +	}
+> > +
+> > +exit:
+> > +	return ret;
+> > +}
+> > +
+> > +int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
+> > +				     u64 *page_list,
+> > +				     int num_pages)
+> > +{
+> > +	int i;
+> > +	int ret;
+> > +
+> > +	if (num_pages > pdir->npages)
+> > +		return -EINVAL;
+>=20
+> How about calling pvrdma_page_dir_cleanup_pages to release current
+> allocation?
+> This is not needed if you accept the comment for
+> pvrdma_page_dir_insert_dma.
 
-Thanks,
-Adit
-
+Same as above.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
