@@ -1,60 +1,82 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 7 Sep 2016 20:37:23 +0530
-Message-ID: <CAG53R5U9_QVOAAnbqxWG80G=ROSYjgRXrNkJU1BpcpHCfVOe8A@mail.gmail.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <1472632647-1525-2-git-send-email-pandit.parav@gmail.com> <20160831093836.GC3694@leon.nu>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-rc V1 1/4] IB/rxe: Fix kernel panic in
+ udp_setup_tunnel
+Date: Wed, 7 Sep 2016 11:39:35 +0000
+Message-ID: <DB6PR0501MB2037ABAB81A844F098D30738D3F80@DB6PR0501MB2037.eurprd05.prod.outlook.com>
+References: <1473246247-16536-1-git-send-email-leon@kernel.org>
+ <1473246247-16536-2-git-send-email-leon@kernel.org>
+ <CAJ3xEMhskkpCprziZUZQJWUVvwc_3_MSbJco_bOyuSrwDYXFwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160831093836.GC3694@leon.nu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Tejun Heo <tj@kernel.org>, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMhskkpCprziZUZQJWUVvwc_3_MSbJco_bOyuSrwDYXFwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
-
->> Signed-off-by: Parav Pandit <pandit.parav@gmail.com>
->> +static struct rdmacg_resource_pool *
->> +get_cg_rpool_locked(struct rdma_cgroup *cg, struct rdmacg_device *device)
->> +{
->> +     struct rdmacg_resource_pool *rpool;
->> +
->> +     rpool = find_cg_rpool_locked(cg, device);
->> +     if (rpool)
->> +             return rpool;
->> +
->> +     rpool = kzalloc(sizeof(*rpool), GFP_KERNEL);
->> +     if (!rpool)
->> +             return ERR_PTR(-ENOMEM);
->> +
->> +     rpool->device = device;
->> +     set_all_resource_max_limit(rpool);
->> +
->> +     INIT_LIST_HEAD(&rpool->cg_node);
->> +     INIT_LIST_HEAD(&rpool->dev_node);
->> +     list_add_tail(&rpool->cg_node, &cg->rpools);
->> +     list_add_tail(&rpool->dev_node, &device->rpools);
->> +     return rpool;
->> +}
->
-> <...>
->
->> +     for (p = cg; p; p = parent_rdmacg(p)) {
->> +             rpool = get_cg_rpool_locked(p, device);
->> +             if (IS_ERR_OR_NULL(rpool)) {
->
-> get_cg_rpool_locked always returns !NULL (error, or pointer)
-
-Can this change go as incremental change after this patch, since this
-patch is close to completion?
-Or I need to revise v13?
-
->
->> +                     ret = PTR_ERR(rpool);
->> +                     goto err;
->
-> I didn't review the whole series yet.
-
-Did you get a chance to review the series?
+U29ycnkgT3IgYnV0IEkgbWlnaHQgaGF2ZSBtaXNzZWQgeW91ciByZXZpZXcgY29tbWVudCByZWdh
+cmRpbmcgdGhlIGNvbW1pdCBtZXNzYWdlDQpJIGNhbid0IGZpbmQgaXQgbm93IHNvIHBsZWFzZSBz
+ZW5kIGl0IGFnYWluDQoNClRoYW5rcw0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpG
+cm9tOiBPciBHZXJsaXR6IFttYWlsdG86Z2VybGl0ei5vckBnbWFpbC5jb21dIA0KU2VudDogV2Vk
+bmVzZGF5LCBTZXB0ZW1iZXIgMDcsIDIwMTYgMjoyMSBQTQ0KVG86IExlb24gUm9tYW5vdnNreSA8
+bGVvbnJvQG1lbGxhbm94LmNvbT47IE1vbmkgU2hvdWEgPG1vbmlzQG1lbGxhbm94LmNvbT4NCkNj
+OiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+OyBsaW51eC1yZG1hQHZnZXIua2Vy
+bmVsLm9yZzsgWW9uYXRhbiBDb2hlbiA8eW9uYXRhbmNAbWVsbGFub3guY29tPg0KU3ViamVjdDog
+UmU6IFtQQVRDSCByZG1hLXJjIFYxIDEvNF0gSUIvcnhlOiBGaXgga2VybmVsIHBhbmljIGluIHVk
+cF9zZXR1cF90dW5uZWwNCg0KT24gV2VkLCBTZXAgNywgMjAxNiBhdCAyOjA0IFBNLCBMZW9uIFJv
+bWFub3Zza3kgPGxlb25Aa2VybmVsLm9yZz4gd3JvdGU6DQo+IEZyb206IFlvbmF0YW4gQ29oZW4g
+PHlvbmF0YW5jQG1lbGxhbm94LmNvbT4NCj4NCj4gRGlzYWJsZSBjcmVhdGlvbiBvZiBhIFVEUCBz
+b2NrZXQgZm9yIGlwdjYgd2hlbg0KPiBDT05GSUdfSVBWNiBpcyBub3QgZW5hYmVsZC4gU2luY2Ug
+dWRwX3NvY2tfY3JlYXRlNigpIHJldHVybnMgMCB3aGVuIA0KPiBDT05GSUdfSVBWNiBpcyBub3Qg
+c2V0DQo+DQo+IFsgICA0Ni44ODg2MzJdIElQOiBbPGMyMjA3MDVhPl0gc2V0dXBfdWRwX3R1bm5l
+bF9zb2NrKzB4Ni8weDRmDQo+IFsgICA0Ni44OTEzNTVdICpwZHB0ID0gMDAwMDAwMDAwMDAwMDAw
+MCAqcGRlID0gZjAwMGZmNTNmMDAwZmY1Mw0KPiBbICAgNDYuODkzOTE4XSBPb3BzOiAwMDAyIFsj
+MV0gUFJFRU1QVA0KPiBbICAgNDYuODk2MDE0XSBDUFU6IDAgUElEOiAxIENvbW06IHN3YXBwZXIg
+Tm90IHRhaW50ZWQgNC43LjAtcmM0LTAwMDAxLWc4NzAwZTNlICMxDQo+IFsgICA0Ni45MDAyODBd
+IEhhcmR3YXJlIG5hbWU6IFFFTVUgU3RhbmRhcmQgUEMgKGk0NDBGWCArIFBJSVgsIDE5OTYpLCBC
+SU9TIERlYmlhbi0xLjguMi0xIDA0LzAxLzIwMTQNCj4gWyAgIDQ2LjkwNDkwNV0gdGFzazogY2Yw
+NmMwNDAgdGk6IGNmMDVlMDAwIHRhc2sudGk6IGNmMDVlMDAwDQo+IFsgICA0Ni45MDc4NTRdIEVJ
+UDogMDA2MDpbPGMyMjA3MDVhPl0gRUZMQUdTOiAwMDIxMDI0NiBDUFU6IDANCj4gWyAgIDQ2Ljkx
+MTEzN10gRUlQIGlzIGF0IHNldHVwX3VkcF90dW5uZWxfc29jaysweDYvMHg0Zg0KPiBbICAgNDYu
+OTE0MDcwXSBFQVg6IDAwMDAwMDQ0IEVCWDogMDAwMDAwMDEgRUNYOiBjZjA1ZmVmMCBFRFg6IGNh
+ODE0MmUwDQo+IFsgICA0Ni45MTcyMzZdIEVTSTogYzJjNDUwNWIgRURJOiBjZjA1ZmVmMCBFQlA6
+IGNmMDVmZWQwIEVTUDogY2YwNWZlZDANCj4gWyAgIDQ2LjkxOTgzNl0gIERTOiAwMDdiIEVTOiAw
+MDdiIEZTOiAwMDAwIEdTOiAwMGUwIFNTOiAwMDY4DQo+IFsgICA0Ni45MjIwNDZdIENSMDogODAw
+NTAwMzMgQ1IyOiAwMDAwMDFmYyBDUjM6IDAyY2VjMDAwIENSNDogMDAwMDA2YjANCj4gWyAgIDQ2
+LjkyNDU1MF0gU3RhY2s6DQo+IFsgICA0Ni45MjYwMTRdICBjZjA1ZmYxMCBjMWZkNDY1NyBjYTgx
+NDJlMCAwMDAwMDAwYSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwYjcxMiAwMDAwMDAwOA0KPiBbICAg
+NDYuOTMxMjc0XSAgMDAwMDAwMDAgNmJiNWJkMDEgYzFmZDQ4ZGUgMDAwMDAwMDAgMDAwMDAwMDAg
+Y2YwNWZmMWMgMDAwMDAwMDAgMDAwMDAwMDANCj4gWyAgIDQ2LjkzNjEyMl0gIGNmMDVmZjFjIGMx
+ZmQ0YmRmIDAwMDAwMDAwIGNmMDVmZjI4IGMyYzQ1MDdiIGZmZmZmZmZmIGNmMDVmZjg4IGMyYmYx
+Yzc0DQo+IFsgICA0Ni45NDIzNTBdIENhbGwgVHJhY2U6DQo+IFsgICA0Ni45NDQ0MDNdICBbPGMx
+ZmQ0NjU3Pl0gcnhlX3NldHVwX3VkcF90dW5uZWwrMHg4Zi8weDk5DQo+IFsgICA0Ni45NDc2ODld
+ICBbPGMxZmQ0OGRlPl0gPyBuZXRfdG9fcnhlKzB4NGUvMHg0ZQ0KPiBbICAgNDYuOTUwNTY3XSAg
+WzxjMWZkNGJkZj5dIHJ4ZV9uZXRfaW5pdCsweGUvMHhhNA0KPiBbICAgNDYuOTUzMTQ3XSAgWzxj
+MmM0NTA3Yj5dIHJ4ZV9tb2R1bGVfaW5pdCsweDIwLzB4NGMNCj4gWyAgIDQ2Ljk1NTQ0OF0gIFs8
+YzJiZjFjNzQ+XSBkb19vbmVfaW5pdGNhbGwrMHg4OS8weDExMw0KPiBbICAgNDYuOTU3Nzk3XSAg
+WzxjMmJmMTVlYj5dID8gc2V0X2RlYnVnX3JvZGF0YSsweGYvMHhmDQo+IFsgICA0Ni45NTk5NjZd
+ICBbPGMyYmYxZGJjPl0gPyBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweGJlLzB4MTViDQo+IFsgICA0
+Ni45NjIyNjJdICBbPGMyYmYxZGRjPl0ga2VybmVsX2luaXRfZnJlZWFibGUrMHhkZS8weDE1Yg0K
+PiBbICAgNDYuOTY0NDE4XSAgWzxjMjMyZWI1ND5dIGtlcm5lbF9pbml0KzB4OC8weGQwDQo+IFsg
+ICA0Ni45NjY2MThdICBbPGMyMzMzMTIyPl0gcmV0X2Zyb21fa2VybmVsX3RocmVhZCsweGUvMHgy
+NA0KPiBbICAgNDYuOTY5NTkyXSAgWzxjMjMyZWI0Yz5dID8gcmVzdF9pbml0KzB4NmYvMHg2Zg0K
+DQp3aGF0IGFuIHVubmljZSB3YXkgdG8gc2V0dGxlIGEgcmV2aWV3IGRpc2N1c3Npb24uIEkgcmVw
+bGllZCB0byBhbGwgeW91ciBhcmd1bWVudHMgZXhwbGFpbmluZyB3aHkgdGhlIGNoYW5nZSBsb2cg
+aGFzIHRvIGdvLCBhbmQgdGhlIG5leHQgc3RlcCBpcyB0byBpZ25vcmUgdGhpcyBkaXNjdXNzaW9u
+IGFuZCBkbyBpdCBhZ2FpbiB3cm9uZyB3Lm8gcmVwbHlpbmc/IHNvLi4uIGFnYWluOg0KDQokIC4v
+c2NyaXB0cy9nZXRfbWFpbnRhaW5lci5wbCBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlIE1vbmkg
+U2hvdWEgPG1vbmlzQG1lbGxhbm94LmNvbT4gKHN1cHBvcnRlcjpTT0ZULVJPQ0UgRFJJVkVSIChy
+eGUpKSBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+IChzdXBwb3J0ZXI6SU5GSU5J
+QkFORCBTVUJTWVNURU0pIFNlYW4gSGVmdHkgPHNlYW4uaGVmdHlAaW50ZWwuY29tPiAoc3VwcG9y
+dGVyOklORklOSUJBTkQgU1VCU1lTVEVNKSBIYWwgUm9zZW5zdG9jayA8aGFsLnJvc2Vuc3RvY2tA
+Z21haWwuY29tPiAoc3VwcG9ydGVyOklORklOSUJBTkQgU1VCU1lTVEVNKSBsaW51eC1yZG1hQHZn
+ZXIua2VybmVsLm9yZyAob3BlbiBsaXN0OlNPRlQtUk9DRSBEUklWRVIgKHJ4ZSkpIGxpbnV4LWtl
+cm5lbEB2Z2VyLmtlcm5lbC5vcmcgKG9wZW4gbGlzdCkNCg0KTW9uaSwgY2FuIHlvdSBwbGVhc2Ug
+cHV0IHlvdXIgbWFpbnRhaW5lciBzYXkgaGVyZS4NCg0KDQoNCk9yLg0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
