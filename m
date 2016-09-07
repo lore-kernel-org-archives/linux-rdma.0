@@ -1,82 +1,134 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-rc V1 1/4] IB/rxe: Fix kernel panic in
- udp_setup_tunnel
-Date: Wed, 7 Sep 2016 11:39:35 +0000
-Message-ID: <DB6PR0501MB2037ABAB81A844F098D30738D3F80@DB6PR0501MB2037.eurprd05.prod.outlook.com>
-References: <1473246247-16536-1-git-send-email-leon@kernel.org>
- <1473246247-16536-2-git-send-email-leon@kernel.org>
- <CAJ3xEMhskkpCprziZUZQJWUVvwc_3_MSbJco_bOyuSrwDYXFwQ@mail.gmail.com>
+From: Matan Barak <matanb@mellanox.com>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Wed, 7 Sep 2016 11:51:42 +0300
+Message-ID: <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com>
+References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+ <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
+ <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
+ <20160831211618.GA12660@htj.duckdns.org>
+ <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
+ <20160901084406.GA4115@lst.de>
+ <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhskkpCprziZUZQJWUVvwc_3_MSbJco_bOyuSrwDYXFwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>, Christoph Hellwig <hch@lst.de>
+Cc: Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-U29ycnkgT3IgYnV0IEkgbWlnaHQgaGF2ZSBtaXNzZWQgeW91ciByZXZpZXcgY29tbWVudCByZWdh
-cmRpbmcgdGhlIGNvbW1pdCBtZXNzYWdlDQpJIGNhbid0IGZpbmQgaXQgbm93IHNvIHBsZWFzZSBz
-ZW5kIGl0IGFnYWluDQoNClRoYW5rcw0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpG
-cm9tOiBPciBHZXJsaXR6IFttYWlsdG86Z2VybGl0ei5vckBnbWFpbC5jb21dIA0KU2VudDogV2Vk
-bmVzZGF5LCBTZXB0ZW1iZXIgMDcsIDIwMTYgMjoyMSBQTQ0KVG86IExlb24gUm9tYW5vdnNreSA8
-bGVvbnJvQG1lbGxhbm94LmNvbT47IE1vbmkgU2hvdWEgPG1vbmlzQG1lbGxhbm94LmNvbT4NCkNj
-OiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+OyBsaW51eC1yZG1hQHZnZXIua2Vy
-bmVsLm9yZzsgWW9uYXRhbiBDb2hlbiA8eW9uYXRhbmNAbWVsbGFub3guY29tPg0KU3ViamVjdDog
-UmU6IFtQQVRDSCByZG1hLXJjIFYxIDEvNF0gSUIvcnhlOiBGaXgga2VybmVsIHBhbmljIGluIHVk
-cF9zZXR1cF90dW5uZWwNCg0KT24gV2VkLCBTZXAgNywgMjAxNiBhdCAyOjA0IFBNLCBMZW9uIFJv
-bWFub3Zza3kgPGxlb25Aa2VybmVsLm9yZz4gd3JvdGU6DQo+IEZyb206IFlvbmF0YW4gQ29oZW4g
-PHlvbmF0YW5jQG1lbGxhbm94LmNvbT4NCj4NCj4gRGlzYWJsZSBjcmVhdGlvbiBvZiBhIFVEUCBz
-b2NrZXQgZm9yIGlwdjYgd2hlbg0KPiBDT05GSUdfSVBWNiBpcyBub3QgZW5hYmVsZC4gU2luY2Ug
-dWRwX3NvY2tfY3JlYXRlNigpIHJldHVybnMgMCB3aGVuIA0KPiBDT05GSUdfSVBWNiBpcyBub3Qg
-c2V0DQo+DQo+IFsgICA0Ni44ODg2MzJdIElQOiBbPGMyMjA3MDVhPl0gc2V0dXBfdWRwX3R1bm5l
-bF9zb2NrKzB4Ni8weDRmDQo+IFsgICA0Ni44OTEzNTVdICpwZHB0ID0gMDAwMDAwMDAwMDAwMDAw
-MCAqcGRlID0gZjAwMGZmNTNmMDAwZmY1Mw0KPiBbICAgNDYuODkzOTE4XSBPb3BzOiAwMDAyIFsj
-MV0gUFJFRU1QVA0KPiBbICAgNDYuODk2MDE0XSBDUFU6IDAgUElEOiAxIENvbW06IHN3YXBwZXIg
-Tm90IHRhaW50ZWQgNC43LjAtcmM0LTAwMDAxLWc4NzAwZTNlICMxDQo+IFsgICA0Ni45MDAyODBd
-IEhhcmR3YXJlIG5hbWU6IFFFTVUgU3RhbmRhcmQgUEMgKGk0NDBGWCArIFBJSVgsIDE5OTYpLCBC
-SU9TIERlYmlhbi0xLjguMi0xIDA0LzAxLzIwMTQNCj4gWyAgIDQ2LjkwNDkwNV0gdGFzazogY2Yw
-NmMwNDAgdGk6IGNmMDVlMDAwIHRhc2sudGk6IGNmMDVlMDAwDQo+IFsgICA0Ni45MDc4NTRdIEVJ
-UDogMDA2MDpbPGMyMjA3MDVhPl0gRUZMQUdTOiAwMDIxMDI0NiBDUFU6IDANCj4gWyAgIDQ2Ljkx
-MTEzN10gRUlQIGlzIGF0IHNldHVwX3VkcF90dW5uZWxfc29jaysweDYvMHg0Zg0KPiBbICAgNDYu
-OTE0MDcwXSBFQVg6IDAwMDAwMDQ0IEVCWDogMDAwMDAwMDEgRUNYOiBjZjA1ZmVmMCBFRFg6IGNh
-ODE0MmUwDQo+IFsgICA0Ni45MTcyMzZdIEVTSTogYzJjNDUwNWIgRURJOiBjZjA1ZmVmMCBFQlA6
-IGNmMDVmZWQwIEVTUDogY2YwNWZlZDANCj4gWyAgIDQ2LjkxOTgzNl0gIERTOiAwMDdiIEVTOiAw
-MDdiIEZTOiAwMDAwIEdTOiAwMGUwIFNTOiAwMDY4DQo+IFsgICA0Ni45MjIwNDZdIENSMDogODAw
-NTAwMzMgQ1IyOiAwMDAwMDFmYyBDUjM6IDAyY2VjMDAwIENSNDogMDAwMDA2YjANCj4gWyAgIDQ2
-LjkyNDU1MF0gU3RhY2s6DQo+IFsgICA0Ni45MjYwMTRdICBjZjA1ZmYxMCBjMWZkNDY1NyBjYTgx
-NDJlMCAwMDAwMDAwYSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwYjcxMiAwMDAwMDAwOA0KPiBbICAg
-NDYuOTMxMjc0XSAgMDAwMDAwMDAgNmJiNWJkMDEgYzFmZDQ4ZGUgMDAwMDAwMDAgMDAwMDAwMDAg
-Y2YwNWZmMWMgMDAwMDAwMDAgMDAwMDAwMDANCj4gWyAgIDQ2LjkzNjEyMl0gIGNmMDVmZjFjIGMx
-ZmQ0YmRmIDAwMDAwMDAwIGNmMDVmZjI4IGMyYzQ1MDdiIGZmZmZmZmZmIGNmMDVmZjg4IGMyYmYx
-Yzc0DQo+IFsgICA0Ni45NDIzNTBdIENhbGwgVHJhY2U6DQo+IFsgICA0Ni45NDQ0MDNdICBbPGMx
-ZmQ0NjU3Pl0gcnhlX3NldHVwX3VkcF90dW5uZWwrMHg4Zi8weDk5DQo+IFsgICA0Ni45NDc2ODld
-ICBbPGMxZmQ0OGRlPl0gPyBuZXRfdG9fcnhlKzB4NGUvMHg0ZQ0KPiBbICAgNDYuOTUwNTY3XSAg
-WzxjMWZkNGJkZj5dIHJ4ZV9uZXRfaW5pdCsweGUvMHhhNA0KPiBbICAgNDYuOTUzMTQ3XSAgWzxj
-MmM0NTA3Yj5dIHJ4ZV9tb2R1bGVfaW5pdCsweDIwLzB4NGMNCj4gWyAgIDQ2Ljk1NTQ0OF0gIFs8
-YzJiZjFjNzQ+XSBkb19vbmVfaW5pdGNhbGwrMHg4OS8weDExMw0KPiBbICAgNDYuOTU3Nzk3XSAg
-WzxjMmJmMTVlYj5dID8gc2V0X2RlYnVnX3JvZGF0YSsweGYvMHhmDQo+IFsgICA0Ni45NTk5NjZd
-ICBbPGMyYmYxZGJjPl0gPyBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweGJlLzB4MTViDQo+IFsgICA0
-Ni45NjIyNjJdICBbPGMyYmYxZGRjPl0ga2VybmVsX2luaXRfZnJlZWFibGUrMHhkZS8weDE1Yg0K
-PiBbICAgNDYuOTY0NDE4XSAgWzxjMjMyZWI1ND5dIGtlcm5lbF9pbml0KzB4OC8weGQwDQo+IFsg
-ICA0Ni45NjY2MThdICBbPGMyMzMzMTIyPl0gcmV0X2Zyb21fa2VybmVsX3RocmVhZCsweGUvMHgy
-NA0KPiBbICAgNDYuOTY5NTkyXSAgWzxjMjMyZWI0Yz5dID8gcmVzdF9pbml0KzB4NmYvMHg2Zg0K
-DQp3aGF0IGFuIHVubmljZSB3YXkgdG8gc2V0dGxlIGEgcmV2aWV3IGRpc2N1c3Npb24uIEkgcmVw
-bGllZCB0byBhbGwgeW91ciBhcmd1bWVudHMgZXhwbGFpbmluZyB3aHkgdGhlIGNoYW5nZSBsb2cg
-aGFzIHRvIGdvLCBhbmQgdGhlIG5leHQgc3RlcCBpcyB0byBpZ25vcmUgdGhpcyBkaXNjdXNzaW9u
-IGFuZCBkbyBpdCBhZ2FpbiB3cm9uZyB3Lm8gcmVwbHlpbmc/IHNvLi4uIGFnYWluOg0KDQokIC4v
-c2NyaXB0cy9nZXRfbWFpbnRhaW5lci5wbCBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlIE1vbmkg
-U2hvdWEgPG1vbmlzQG1lbGxhbm94LmNvbT4gKHN1cHBvcnRlcjpTT0ZULVJPQ0UgRFJJVkVSIChy
-eGUpKSBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+IChzdXBwb3J0ZXI6SU5GSU5J
-QkFORCBTVUJTWVNURU0pIFNlYW4gSGVmdHkgPHNlYW4uaGVmdHlAaW50ZWwuY29tPiAoc3VwcG9y
-dGVyOklORklOSUJBTkQgU1VCU1lTVEVNKSBIYWwgUm9zZW5zdG9jayA8aGFsLnJvc2Vuc3RvY2tA
-Z21haWwuY29tPiAoc3VwcG9ydGVyOklORklOSUJBTkQgU1VCU1lTVEVNKSBsaW51eC1yZG1hQHZn
-ZXIua2VybmVsLm9yZyAob3BlbiBsaXN0OlNPRlQtUk9DRSBEUklWRVIgKHJ4ZSkpIGxpbnV4LWtl
-cm5lbEB2Z2VyLmtlcm5lbC5vcmcgKG9wZW4gbGlzdCkNCg0KTW9uaSwgY2FuIHlvdSBwbGVhc2Ug
-cHV0IHlvdXIgbWFpbnRhaW5lciBzYXkgaGVyZS4NCg0KDQoNCk9yLg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 07/09/2016 10:55, Parav Pandit wrote:
+> Hi Matan,
+>
+> On Thu, Sep 1, 2016 at 2:14 PM, Christoph Hellwig <hch@lst.de> wrote:
+>> On Thu, Sep 01, 2016 at 10:25:40AM +0300, Matan Barak wrote:
+>>> Well, if I recall, the reason doing so last time was in order to allow
+>>> flexible updating of ib_core independently, which is obviously not a good
+>>> reason (to say the least).
+>>>
+>>> Since the new ABI will probably define new object types (all recent
+>>> proposals go this way), the current approach could lead to either trying to
+>>> map new objects to existing cgroup resource types, which could lead to some
+>>> weird non 1:1 mapping, or having a split definitions - such that each
+>>> driver will declare its objects both in the cgroups mechanism and in its
+>>> driver dispatch table.
+>
+>>> Even worse than that, drivers could simply ignore the cgroups support while
+>>> implementing their own resource types and get a very broken containers
+>>> support.
+> If drivers are broken due to ignorance of not-calling cgroup APIs,
+> that should be ok.
+> That particular driver should fix it.
+> If the resource creation using uverbs is using well defined rdma level
+> resource, uverbs level will make sure to honor cgroup limits without
+> involving hw drivers anyway.
+>
+
+All recent proposals of the new ABI schema deals with extending the 
+flexibility of the current schema by letting drivers define their 
+specific types, actions, attributes, etc. Even more than that, the 
+dispatching starts from the driver and it chooses if it wants to use the 
+common RDMA core layer or have it's own wise implementation instead.
+Some drivers might even prefer not to implement the current verbs types.
+These decisions were made in the OFVWG meetings.
+
+Anyway, maybe we should consider using a more higher-level logic objects 
+that could fit multiple drivers requirements.
+
+> RDMA Verb level resource is charged/uncharged by RDMA core.
+> RDMA HW level resource is charged/uncharged by RDMA HW driver using
+> well defined API and resource by cgroup core.
+> This scheme ensures that there is 1:1 mapping.
+>
+
+Sounds reasonable, but what about drivers which ignore the common code 
+and implement it in their own way? What about drivers which don't 
+support the standard RDMA types at all?
+I guess we should find a balance between something abstract and common 
+enough that will ease administrator configuration but be specific enough 
+for the various models we have (or will have) in the RDMA stack.
+
+> I don't think current definition of resource type is carved out on stone.
+> They can be extended as we forward.
+> As many of us agree that, they should be well defined and it should be
+> agreed by cgroup and rdma community.
+>
+
+Of course, but since the ABI and cgroups model are somehow related, they 
+should be dealt with together and approved by Doug who participated in 
+some of the OFVWG meetings.
+
+> For example, today we have RDMA_VERB_xxx resources.
+> New well defined RDMA HW resources can be defined in rdma_cgroup.h
+> file as RDMA_HW_xx in same enum table.
+>
+
+So a driver will change the cgroups file for every new type it adds?
+Will we just have a super set enum of all crazy types vendors added?
+
+>>
+>> Sorry guys, but arbitrary extensibility for something not finished is the
+>> worst idea ever.  We have two options here:
+>>
+>>  a) delay cgroups support until the grand rewrite is done
+>>  b) add it now and deal with the consequences later
+>>
+> Can we do (b) now and differ adding any HW resources to cgroup until
+> they are clearly called out.
+> Architecture and APIs are already in place to support this.
+>
+
+Since this affect the user, it's better to think how it fits our 
+"optional standard"/"vendor types" model first. Maybe we could force all 
+standard types even if the driver we use doesn't support any of them.
+
+>> That being said, adding random non-Verbs hardwasre to the RDMA core is
+>> the second worst idea ever.
+>
+> We can differ adding HW resource to core and cgroup until they are
+> clearly defined.
+> In that case current architecture still holds good.
+>
+
+Clearly we should differ adding the actual code until a driver could 
+declare such objects, but we need to decide how to expose the standard 
+optional RDMA types (basically, the types you've added) and how future 
+driver specific types fit in.
+
+>> Guess I need to catch up with the
+>> discussion and start using the flame thrower.
+>
+> Matan,
+> Can you please point us to the new RFC/ABI email thread which
+> describes the design, partitioning of code between core vs hw drivers
+> etc.
+>
+
+One proposal is [1]. There's another one from Sean which aims for 
+similar targets regards the driver specific types.
+
+[1] https://www.spinics.net/lists/linux-rdma/msg38997.html
+
+Matan
