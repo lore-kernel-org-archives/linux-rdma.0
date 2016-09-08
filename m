@@ -1,52 +1,36 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Thu, 8 Sep 2016 13:35:12 -0600
-Message-ID: <20160908193512.GB1868@obsidianresearch.com>
-References: <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160901163418.GA6479@obsidianresearch.com>
- <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
- <20160906200221.GE28416@obsidianresearch.com>
- <VI1PR0501MB24290102DD3246F0CA965746C4F90@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160906215548.GA27225@obsidianresearch.com>
- <20160908000134.GC4515@phlsvsds.ph.intel.com>
- <DB6PR0501MB2422EA34EED4EE35EE7B1D28C4FB0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
- <20160908161948.GA21614@obsidianresearch.com>
- <20160908191457.GB26402@phlsvsds.ph.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: RFCv3: Consolidated userspace RDMA library repo
+Date: Thu, 8 Sep 2016 13:38:15 -0600
+Message-ID: <20160908193815.GA2424@obsidianresearch.com>
+References: <20160907040925.GA27361@obsidianresearch.com>
+ <2e2b54f5-1a9d-bb31-ffd9-fe6936011aaf@dev.mellanox.co.il>
+ <20160908183122.GC21614@obsidianresearch.com>
+ <fdbfdc86-80d2-bb12-e69a-d4b7976bfba6@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160908191457.GB26402@phlsvsds.ph.intel.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: "ira.weiny" <ira.weiny@intel.com>
-Cc: Daniel Jurgens <danielj@mellanox.com>, Liran Liss <liranl@mellanox.com>, Paul Moore <paul@paul-moore.com>, Leon Romanovsky <leon@kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+In-Reply-To: <fdbfdc86-80d2-bb12-e69a-d4b7976bfba6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 08, 2016 at 03:14:57PM -0400, ira.weiny wrote:
-> On Thu, Sep 08, 2016 at 10:19:48AM -0600, Jason Gunthorpe wrote:
-> > On Thu, Sep 08, 2016 at 02:12:48PM +0000, Daniel Jurgens wrote:
-> > 
-> > > It would have to include the port, but idea of using a device name
-> > > for this is pretty ugly.  <subnet_prefix,pkey> makes it very easy to
-> > > write a policy that can be deployed widely.  <device,port,pkey/vlan>
-> > > could require many different policies depending on the configuration
-> > > of each machine.
-> > 
-> > What does net do? Should we have a way to unformly label the rdma ports?
+On Thu, Sep 08, 2016 at 02:54:24PM -0400, Hal Rosenstock wrote:
+> On 9/8/2016 2:31 PM, Jason Gunthorpe wrote:
+> > I've switched to https://github.com/ofiwg/librdmacm.git, and updated
+> > the github.
 > 
-> Uniformly label them on the local node or across a cluster?
+> There's also https://github.com/shefty/librdmacm.git which has 2 more
+> commits than the github ofiwg repo. I think that may be the most up to
+> date repo.
 
-However we want. If the argument comes down to 'we stupidly choose to
-call our devices mlx5_0', then lets allow the admin rename that to
-'rdma0' and a cluster wide config file will apply uniformly. This
-approach applies to all configuration related to rdma, not just
-SELinux.
+What a mess. Lets let Sean comment when he gets back :(
 
-> > If they are not written to disk I don't see the problem, the dynamic
-> > injector will have to figure out what interface is what.
-> 
-> Who is the "dynamic injector"?
-
-Docker, for instance.
+They look like legit patches though.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
