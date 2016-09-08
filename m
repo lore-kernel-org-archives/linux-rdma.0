@@ -1,71 +1,61 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
-Date: Thu, 8 Sep 2016 16:48:30 +0300
-Message-ID: <20160908134830.GM18398@leon.nu>
-References: <20160901165552.GE21847@leon.nu>
- <20160901170742.GA20098@obsidianresearch.com>
- <1472749767.16467.25.camel@intel.com>
- <20160901171129.GB19982@obsidianresearch.com>
- <1472750241.16467.29.camel@intel.com>
- <20160901173320.GB20472@obsidianresearch.com>
- <20160901175222.GF21847@leon.nu>
- <20160906210313.GA24527@phlsvsds.ph.intel.com>
- <20160907055519.GT21847@leon.nu>
- <20160907235508.GB4515@phlsvsds.ph.intel.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
+ ISSI > 0 mode
+Date: Thu, 8 Sep 2016 17:07:52 +0300
+Message-ID: <20160908140752.GN18398@leon.nu>
+References: <1473232990-22766-1-git-send-email-dchang@suse.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Zbynv6TNPa9FrOf6"
+        protocol="application/pgp-signature"; boundary="hOh8F6DNH/RZBSFD"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160907235508.GB4515-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1473232990-22766-1-git-send-email-dchang-IBi9RG/b67k@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Zbynv6TNPa9FrOf6
+--hOh8F6DNH/RZBSFD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Sep 07, 2016 at 07:55:09PM -0400, ira.weiny wrote:
-> >
-> > 2. In new ABI, you will define your special objects, mark them as a
-> > vendor specific and the driver will be called immediately. IMHO, there
-> > is no need in special ioctl.
+On Wed, Sep 07, 2016 at 03:23:10PM +0800, David Chang wrote:
+> When using MAD_IFC command, we should also consider avoiding in
+> ISSI > 0 mode, otherwise most of the MAD_IFC command features
+> are deprecated and cannot be used.
 >
-> Well I'm still trying to get time to comment on that series.  One thing which
-> we are a bit worried about are the number of objects which may be tracked by
-> for a device and the performance to get to a special driver object (like a PSM
-> context).  Right now PSM opens a FD and associates a single context with that
-> FD so the access of that context is O(1).  The addition of special objects and
-> looking them up adds overhead which _MAY_ be ok but until we get a chance to
-> evaluate better I can't commit that what you say here is true.
+> Fixes: d603c809ef91 ("IB/mlx5: Fix decision on using MAD_IFC")
+> Reported-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
+> Signed-off-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
 
-Good to know.
+NAK,
+It is wrong, the deprecation is removed from programming manual.
 
---Zbynv6TNPa9FrOf6
+Thanks
+
+--hOh8F6DNH/RZBSFD
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX0WwuAAoJEORje4g2clinPF4P/0HGdE7Y9VSlnPafajmoMp8X
-vhoLT3nHV9gpB/a2RdZChphpQWj8bkpVN/zOz6SII8F+Bs2P5qKQI1WHcJqlHqQ5
-2px4+LAbXGkYNwhfH+1iVpbLT3pmUbcRXFwdDz1D7a4iLW5Xwnm6yitAzekuZCPa
-ViYx/ZVH2S2Z7QfAe9KFaCIZborDZ3pxeN4lnDTYOka+sOYxdUeFge08QIdOxLzW
-hgBJpxKaxx/4FJcq3CG5/lcvjU6QycgZJaBKh2y61ELDNMOjBCVXZYwf8rU/PPx+
-RZLrCdmF+vdN14DwH90QPJaFGyoDsK/zNOrY6rgK2sdzbo0S1mZjsBuHfP6YfD2n
-xubkdyg1XRei8F+IlsiQp3xFZpUZkp3SQ3hzOJ8Lz6j2kweOPKMp0ks/ZqJshcGz
-j1npCr6QYtYSCcWhAtvF3UIxwn3kl5VwkrUnxyRMfYfWCpYkp5qW6WU3MAUciIc8
-oXf72dqb4YBcv6gcQZmSJegG/as6cw9o93cUTJ9ddiVEhR6v7t7KXLYGoQGf/UqM
-nnRY+OSJaqoF1D4RP/kV3rHRBJ/OgjygZkz5EWqPvVE1y/QSuVH+WQK9eAR38Ah/
-A13a7Pq1SyJu8+jsRc9I0krPEbA6Q56fKuoPq4T81YmvFzy1+S1PmibDibqpGrUC
-8F32m2LsPB7VJ85pBH3b
-=Y9XD
+iQIcBAEBAgAGBQJX0XC4AAoJEORje4g2cliniVgP/ieCqccnXEfGTm02TrIcLbeE
+qMhccdbd2irJNhJnBQuzHpuQptOeubF12P+EWO/T/cCz9edlYFMjOjlkyKBEO9ne
+N/dpLDsO/h7hb4WvAyXf97wwoLDsV+TF5ZlLr1QJogQZHITgljOC4K+qXZ12yF0Q
+twI1nhttWRiZWlz7RaV7Ju8k9gnH9PLY7L+wFFkf5MjcMQ6Y3y6K3ne2bkcKJera
+Vy6q7ZcgyYUzauiytJJO2Ufxyu+DPzyys/aGfFlNZ5T3fRZYmFF6u/gBx6xqOA9k
+ci4xUdZr7Mx97ZSAvFG80Wdx7r+ITKok7TIAp4pohW0/U+oDlPB69Jrtkvu5ND4d
+BA4EPPa7O/8nDa70E3zd+RCXusLJ2cHF/e+xiy7p4Zd2YFaoXE43405IExJHVKsP
+9S2cUkroyCVlBXUcz4MIAHrdGWCRWLV1+3HN3GWawdtCM5TRv3w+SYohs6U+eEwH
+8QrgDYGRHefFiya5qQRZFBNnS93WVDOwWU9NY91WTmqS2Ii5zneSyBch5rZFs4L1
+ZV1e1JYK408pJt6W+gsGRxMdY77XbDFO6lxrn2j3olI8FGPoiFLqtgpHXiH/4Avh
+iJEyD/x5cjD5shN0gb3VEyyRDXqeKWb3/lcpcXIvuizknIhPjEbMxFWmN1VuFr1w
+VQpvLk6tXKuiLVI59eWH
+=3LO0
 -----END PGP SIGNATURE-----
 
---Zbynv6TNPa9FrOf6--
+--hOh8F6DNH/RZBSFD--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
