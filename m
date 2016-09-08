@@ -1,155 +1,71 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/9] ib_mad: incoming sminfo SMPs gets discarded if no
- process_mad function is registered
-Date: Thu, 8 Sep 2016 07:33:57 -0400
-Message-ID: <098f69ae-6940-589a-e9ad-c65e34c958b7@dev.mellanox.co.il>
-References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
- <1472774969-18997-2-git-send-email-knut.omang@oracle.com>
- <57867d7f-cc9f-5ec2-6632-c552e6469e40@dev.mellanox.co.il>
- <1473248532.3103.51.camel@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Thu, 8 Sep 2016 16:48:30 +0300
+Message-ID: <20160908134830.GM18398@leon.nu>
+References: <20160901165552.GE21847@leon.nu>
+ <20160901170742.GA20098@obsidianresearch.com>
+ <1472749767.16467.25.camel@intel.com>
+ <20160901171129.GB19982@obsidianresearch.com>
+ <1472750241.16467.29.camel@intel.com>
+ <20160901173320.GB20472@obsidianresearch.com>
+ <20160901175222.GF21847@leon.nu>
+ <20160906210313.GA24527@phlsvsds.ph.intel.com>
+ <20160907055519.GT21847@leon.nu>
+ <20160907235508.GB4515@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Zbynv6TNPa9FrOf6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473248532.3103.51.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160907235508.GB4515-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/7/2016 7:42 AM, Knut Omang wrote:
-> On Tue, 2016-09-06 at 10:01 -0400, Hal Rosenstock wrote:
->> On 9/1/2016 8:09 PM, Knut Omang wrote:
->>>
->>> From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>
->>> The process_mad function is an optional IB driver entry point
->>> allows a driver to intercept or modify MAD traffic.
->>  
->> process_mad is optional but currently that optionality is based on
->> whether MADs (QP0 and/or QP1) are supported or not. This is reflected in
->> the core_cap_flags and is related to the device type: IB including RoCE
->> v. non IB. The current in tree device drivers that do not support
->> process_mad are i40iw (iWARP) and usnic.
-> 
-> I see - we are introducing a new case here, then.
->>>
->>> This fix allows MAD traffic to flow down to the device also
->>> when MAD traffic is completely handled by the device
->>
->> All MAD traffic is not handled by the device.
-> 
-> Yes, in our case all MAD packet handling is done by the device, 
 
-SMInfo is not handled by device unless you have SM in hardware.
-It also depends on management class, method, and direction
-(outgoing/incoming) and in case of DR SMP the DR path.
+--Zbynv6TNPa9FrOf6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> the driver's task for MAD packets is just to forward.
+On Wed, Sep 07, 2016 at 07:55:09PM -0400, ira.weiny wrote:
+> >
+> > 2. In new ABI, you will define your special objects, mark them as a
+> > vendor specific and the driver will be called immediately. IMHO, there
+> > is no need in special ioctl.
+>
+> Well I'm still trying to get time to comment on that series.  One thing which
+> we are a bit worried about are the number of objects which may be tracked by
+> for a device and the performance to get to a special driver object (like a PSM
+> context).  Right now PSM opens a FD and associates a single context with that
+> FD so the access of that context is O(1).  The addition of special objects and
+> looking them up adds overhead which _MAY_ be ok but until we get a chance to
+> evaluate better I can't commit that what you say here is true.
 
-I think that it's a little more complex than that. See above.
+Good to know.
 
-Perhaps some of this is due to not understanding what the effects of
-forwarding are with device such as SIF where SMA (and SMI) as well as
-PMA are totally in hardware. If MAD is locally handled rather than
-"forwarded", I assume that the device generates and sends the response
-MAD, right ?
+--Zbynv6TNPa9FrOf6
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Do locally handled MADs work correctly ? Does OpenSM properly run on SIF
-? I saw a post yesterday on issue with running OpenSM on SIF in terms of
-obtaining the local PortInfo via DR SMP with hop count of 0.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
->>>
->>> and no process_mad function is provided.
->>>
->>> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>>  drivers/infiniband/core/mad.c | 6 ++++++
->>>  drivers/infiniband/core/smi.h | 6 ++----
->>>  2 files changed, 8 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
->>> index 2d49228..ece33ec 100644
->>> --- a/drivers/infiniband/core/mad.c
->>> +++ b/drivers/infiniband/core/mad.c
->>> @@ -813,6 +813,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->>>  			goto out;
->>>  	}
->>>  
->>> +	/* If device does not define the optional process_mad function it means that
->>> +	 * everything is handled in hardware:
->>> +	 */
->>> +	if (!device->process_mad)
->>> +		goto out;
->>> +
->> This changes the ib_post_send_mad flow for those devices in that it
->> takes the send rather than error path.
-> 
-> Yes, but no packets will ever be received by this function for the i40iw and usnic 
-> devices because they have said in their capabilities that they do not support SMI?
+iQIcBAEBAgAGBQJX0WwuAAoJEORje4g2clinPF4P/0HGdE7Y9VSlnPafajmoMp8X
+vhoLT3nHV9gpB/a2RdZChphpQWj8bkpVN/zOz6SII8F+Bs2P5qKQI1WHcJqlHqQ5
+2px4+LAbXGkYNwhfH+1iVpbLT3pmUbcRXFwdDz1D7a4iLW5Xwnm6yitAzekuZCPa
+ViYx/ZVH2S2Z7QfAe9KFaCIZborDZ3pxeN4lnDTYOka+sOYxdUeFge08QIdOxLzW
+hgBJpxKaxx/4FJcq3CG5/lcvjU6QycgZJaBKh2y61ELDNMOjBCVXZYwf8rU/PPx+
+RZLrCdmF+vdN14DwH90QPJaFGyoDsK/zNOrY6rgK2sdzbo0S1mZjsBuHfP6YfD2n
+xubkdyg1XRei8F+IlsiQp3xFZpUZkp3SQ3hzOJ8Lz6j2kweOPKMp0ks/ZqJshcGz
+j1npCr6QYtYSCcWhAtvF3UIxwn3kl5VwkrUnxyRMfYfWCpYkp5qW6WU3MAUciIc8
+oXf72dqb4YBcv6gcQZmSJegG/as6cw9o93cUTJ9ddiVEhR6v7t7KXLYGoQGf/UqM
+nnRY+OSJaqoF1D4RP/kV3rHRBJ/OgjygZkz5EWqPvVE1y/QSuVH+WQK9eAR38Ah/
+A13a7Pq1SyJu8+jsRc9I0krPEbA6Q56fKuoPq4T81YmvFzy1+S1PmibDibqpGrUC
+8F32m2LsPB7VJ85pBH3b
+=Y9XD
+-----END PGP SIGNATURE-----
 
-You're right - it shouldn't get here for those devices (it's based on
-MAD rather than SMI cap) - umad open would fail for the port GUID.
-
->>>  	local = kmalloc(sizeof *local, GFP_ATOMIC);
->>>  	if (!local) {
->>>  		ret = -ENOMEM;
->>> diff --git a/drivers/infiniband/core/smi.h b/drivers/infiniband/core/smi.h
->>> index 33c91c8..16a9f9a 100644
->>> --- a/drivers/infiniband/core/smi.h
->>> +++ b/drivers/infiniband/core/smi.h
->>> @@ -67,8 +67,7 @@ static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
->>>  {
->>>  	/* C14-9:3 -- We're at the end of the DR segment of path */
->>>  	/* C14-9:4 -- Hop Pointer = Hop Count + 1 -> give to SMA/SM */
->>> -	return ((device->process_mad &&
->>> -		!ib_get_smp_direction(smp) &&
->>> +	return ((!ib_get_smp_direction(smp) &&
->>>  		(smp->hop_ptr == smp->hop_cnt + 1)) ?
->>>  		IB_SMI_HANDLE : IB_SMI_DISCARD);
->>>  }
->>> @@ -82,8 +81,7 @@ static inline enum smi_action smi_check_local_returning_smp(struct ib_smp *smp,
->>>  {
->>>  	/* C14-13:3 -- We're at the end of the DR segment of path */
->>>  	/* C14-13:4 -- Hop Pointer == 0 -> give to SM */
->>> -	return ((device->process_mad &&
->>> -		ib_get_smp_direction(smp) &&
->>> +	return ((ib_get_smp_direction(smp) &&
->>>  		!smp->hop_ptr) ? IB_SMI_HANDLE : IB_SMI_DISCARD);
->>>  }
->> Also, with this approach of optional process_mad for IB device, will/how
->> will sysfs port counters be supported for this device ? This currently
->> relies on process_mad.
-> 
-> Yes, that is actually a problem for us right now. 
-> We do however think that the solution of composing a packet to send via process_mad is 
-> kind of overkill as this doesn't allow devices to optimize the way to retrieve this info.
-
-Is there a way other than via PMA to get these counters ?
-
->> It should be possible to implement a process_mad routine to return
->> ib_mad_result based on management class and perhaps attribute ID in the
->> case of SMInfo. Can this alternative approach be used for SIF ?
-> 
-> The problem is that the handle_outgoing_dr_smp function has an implicit assumption that 
-> some packets are handled by the process_mad function itself. There is no way to provide return 
-> values from the process_mad function that ensures that packets are always forwarded to the device,
-> so the only viable solution without breaking the API seems to be to not implement process_mad.
-
-Are you referring to the difference between returning 0 when no
-process_mad function as this patch does and what happens when
-process_mad returns 0 inside of the ib_mad_post_send routine ? Doesn't
-the send MAD need to be tracked in the MAD layer ? Is there some problem
-invoking ib_send_mad (or ib_send_rmpp_mad) ?
-
--- Hal
-
-> Thanks for the review,
-> 
-> Knut
-> 
->> -- Hal
-> 
+--Zbynv6TNPa9FrOf6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
