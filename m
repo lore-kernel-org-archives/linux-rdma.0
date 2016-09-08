@@ -1,62 +1,35 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Thu, 8 Sep 2016 14:12:48 +0000
-Message-ID: <DB6PR0501MB2422EA34EED4EE35EE7B1D28C4FB0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
-References: <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830184633.GE7586@obsidianresearch.com>
- <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830185548.GA9768@obsidianresearch.com>
- <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160901163418.GA6479@obsidianresearch.com>
- <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
- <20160906200221.GE28416@obsidianresearch.com>
- <VI1PR0501MB24290102DD3246F0CA965746C4F90@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160906215548.GA27225@obsidianresearch.com>
- <20160908000134.GC4515@phlsvsds.ph.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
+ ISSI > 0 mode
+Date: Thu, 8 Sep 2016 18:24:14 +0300
+Message-ID: <CAJ3xEMjO4350uZgZDRW1P+41zXOpnjXNJT3-cMPgmhf=E9zw0A@mail.gmail.com>
+References: <1473232990-22766-1-git-send-email-dchang@suse.com> <20160908140752.GN18398@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160908140752.GN18398-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: David Chang <dchang-IBi9RG/b67k@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/7/2016 7:01 PM, ira.weiny wrote:
-> On Tue, Sep 06, 2016 at 03:55:48PM -0600, Jason Gunthorpe wrote:
->> On Tue, Sep 06, 2016 at 08:35:56PM +0000, Daniel Jurgens wrote:
+On Thu, Sep 8, 2016 at 5:07 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On Wed, Sep 07, 2016 at 03:23:10PM +0800, David Chang wrote:
+>> When using MAD_IFC command, we should also consider avoiding in
+>> ISSI > 0 mode, otherwise most of the MAD_IFC command features
+>> are deprecated and cannot be used.
 >>
->>> I think to control access to a VLAN for RoCE there would have to
->>> labels for GIDs, since that's how you select which VLAN to use.
->> Since people are talking about using GIDs for containers adding a GID
->> constraint for all technologies makes sense to me..
->>
->> But rocev1 (at least mlx4) does not use vlan ids from the GID, the
->> vlan id is set directly in the id, so it still seems to need direct
->> containment. I also see vlan related stuff in the iwarp providers, so
->> they probably have a similar requirement.
->>
->>> required.  RDMA device handle labeling isn't granular enough for
->>> what I'm trying to accomplish.  We want users with different levels
->>> of permission to be able to use the same device, but restrict who
->>> they can communicate with by isolating them to separate partitions.
->> Sure, but maybe you should use the (device handle:pkey/vlan_id) as your
->> labeling tuple not (Subnet Prefix, pkey)
-> Would "device handle" here specify the port?
+>> Fixes: d603c809ef91 ("IB/mlx5: Fix decision on using MAD_IFC")
+>> Reported-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
+>> Signed-off-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
 >
-> Ira
+> NAK,
+> It is wrong, the deprecation is removed from programming manual.
 
-It would have to include the port, but idea of using a device name for this is pretty ugly.  <subnet_prefix,pkey> makes it very easy to write a policy that can be deployed widely.  <device,port,pkey/vlan> could require many different policies depending on the configuration of each machine.
-
-I've added Liran Liss, he devised the approach that's implemented.  This would be a pretty big change, with worse usability so I'd like to get his feedback. 
-
-
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+The rdma programing manual is not open to the community, there's no
+point to comment
+here if X is there or not.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
