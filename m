@@ -1,37 +1,39 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Thu, 8 Sep 2016 15:50:15 +0530
-Message-ID: <CAG53R5XkJGmatR2Yet9o44ANhMTZ3oJeFbEmrDxzasSSn_Hk0A@mail.gmail.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <1472632647-1525-2-git-send-email-pandit.parav@gmail.com> <20160831093836.GC3694@leon.nu>
- <CAG53R5U9_QVOAAnbqxWG80G=ROSYjgRXrNkJU1BpcpHCfVOe8A@mail.gmail.com> <20160908061219.GK18398@leon.nu>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: RFCv3: Consolidated userspace RDMA library repo
+Date: Thu, 8 Sep 2016 07:26:38 -0400
+Message-ID: <2e2b54f5-1a9d-bb31-ffd9-fe6936011aaf@dev.mellanox.co.il>
+References: <20160907040925.GA27361@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160908061219.GK18398@leon.nu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Tejun Heo <tj@kernel.org>, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160907040925.GA27361-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 8, 2016 at 11:42 AM, Leon Romanovsky <leon@kernel.org> wrote:
-> On Wed, Sep 07, 2016 at 08:37:23PM +0530, Parav Pandit wrote:
->> Did you get a chance to review the series?
->
-> We need to decide on fundamental question before reviewing it, which is
-> "how to fit rdmacg to new ABI model".
+On 9/7/2016 12:09 AM, Jason Gunthorpe wrote:
+> Hello Everyone,
+> 
+> I've updated the repo, and I think we are now at the point to begin to
+> engage the distribution packagers and collect their feedback. As Doug
+> has suggested, there are many modifications that the distros have done
+> that could be folded back upstream.
+> 
+> It is available at:
+>   https://github.com/jgunthorpe/rdma-plumbing
+> 
+> Prior posts on this topic are still informative:
+>   http://www.spinics.net/lists/linux-rdma/msg39026.html
+>   http://www.spinics.net/lists/linux-rdma/msg39328.html
+>   http://www.spinics.net/lists/linux-rdma/msg40014.html
 
->From last discussion with Matan in this email thread, it appears that -
-only broken case are:
-(a) HW vendor driver specific resources (if they have crazy big list),
-which cannot be abstracted out well enough, won't be controlled by
-rdma cgroup.
-(b) Such resource objects are not well defined today with new ABI model.
-If such objects are well defined today, lets call them out and discuss
-with Doug, Tejun, Christoph and larger group, whether they qualify for
-inclusion or not.
+Looks to me that librdmacm is missing some patches. Sean moved this repo
+from the OFA server to github some time ago. What repo was used as basis
+for librdmacm in rdma-plumbing ?
 
-rdma cgroup currently supports including handful of HW resource that
-can be abstracted (at least at functionality level).
-
-Please include any other option issue, if any.
+-- Hal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
