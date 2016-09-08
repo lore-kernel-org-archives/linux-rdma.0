@@ -1,50 +1,87 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Thu, 8 Sep 2016 17:47:46 +0000
-Message-ID: <VI1PR0501MB2189F0871FB7F56B7C3FAFA4B1FB0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
-References: <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830184633.GE7586@obsidianresearch.com>
- <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830185548.GA9768@obsidianresearch.com>
- <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160901163418.GA6479@obsidianresearch.com>
- <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
- <20160906200221.GE28416@obsidianresearch.com>
- <VI1PR0501MB24290102DD3246F0CA965746C4F90@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160906215548.GA27225@obsidianresearch.com>
- <20160908000134.GC4515@phlsvsds.ph.intel.com>
- <DB6PR0501MB2422EA34EED4EE35EE7B1D28C4FB0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v3 08/15] IB/pvrdma: Add support for Completion Queues
+Date: Thu, 8 Sep 2016 18:26:35 +0000
+Message-ID: <BLUPR0501MB836A35B3F4B839B1E2055A8C5FB0@BLUPR0501MB836.namprd05.prod.outlook.com>
+References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
+ <1470266864-16888-9-git-send-email-aditr@vmware.com>
+ <20160825124120.GB27446@yuval-lap.uk.oracle.com>
+ <BLUPR0501MB83629470B22B65E27B4332AC5F80@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160908081802.GA3300@yuval-lap.mynet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-In-Reply-To: <DB6PR0501MB2422EA34EED4EE35EE7B1D28C4FB0-wTfl6qNNZ1ODMMyMbWtEF8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160908081802.GA3300-Hxa29pjIrESt9MVyvc/JHg@public.gmane.org>
 Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Daniel Jurgens
+On Thu, Sep 08, 2016 at 01:18:16 -0700, Yuval Shaia wrote:=20
+> On Wed, Sep 07, 2016 at 05:25:30PM +0000, Adit Ranadive wrote:
+> > > > +
+> > > > +static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp
+> > > **cur_qp,
+> > > > +			   struct ib_wc *wc)
+> > > > +{
+> > > > +	struct pvrdma_dev *dev =3D to_vdev(cq->ibcq.device);
+> > > > +	int has_data;
+> > > > +	unsigned int head;
+> > > > +	bool tried =3D false;
+> > > > +	struct pvrdma_cqe *cqe;
+> > > > +
+> > > > +retry:
+> > > > +	has_data =3D pvrdma_idx_ring_has_data(&cq->ring_state->rx,
+> > > > +					    cq->ibcq.cqe, &head);
+> > > > +	if (has_data =3D=3D 0) {
+> > > > +		u32 val;
+> > > > +
+> > > > +		if (tried)
+> > > > +			return -EAGAIN;
+> > > > +
+> > > > +		/* Pass down POLL to give physical HCA a chance to poll. */
+> > > > +		val =3D cq->cq_handle | PVRDMA_UAR_CQ_POLL;
+> > > > +		writel(cpu_to_le32(val),
+> > > > +		       dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
+> > > > +
+> > > > +		tried =3D true;
+> > > > +		goto retry;
+> > > > +	} else if (has_data =3D=3D PVRDMA_INVALID_IDX) {
+> > > > +		/* Ring state could be corrupted. Treat as unrecoverable. */
+> > > > +		return -EINVAL;
+> > >
+> > > Please try your best not to return anything but 0 or -EAGAIN from
+> > > this function.
+> > > Returning -EINVAL will cause caller (pvrdma_poll_cq) to drop all
+> > > successive CQE in tn batch.
+> >
+> > This reason I want to return -EINVAL here is that its possible that
+> > the ring state is corrupted so any successive calls to poll_cq will lik=
+ely not
+> give any valid data.
+> > If that means successive CQEs are dropped then that should be okay
+> > since we have no idea now which CQEs were consumed.
+>=20
+> In this case you should handle the problematic CQ in driver, ULPs are not=
+ built
+> to handle it.
 
-> It would have to include the port, but idea of using a device name for this is
-> pretty ugly.  <subnet_prefix,pkey> makes it very easy to write a policy that can
-> be deployed widely.  <device,port,pkey/vlan> could require many different
-> policies depending on the configuration of each machine.
-> 
-> I've added Liran Liss, he devised the approach that's implemented.  This would
-> be a pretty big change, with worse usability so I'd like to get his feedback.
+Ok, sounds reasonable. I understand Jason's concerns. Thanks for pointing m=
+e those
+links! I can return -EAGAIN here and add a dev warning to make sure we atle=
+ast log this
+condition.
 
-This patch-set enables partition-based isolation for Infiniband networks in a very intuitive manner, that's it.
-IB partitions don't have anything to do with VLANs.
---Liran
+How would the ULP recover if the driver kept returning 0 for CQEs polled? D=
+o ULPs
+usually have some timeout notion when polling CQs?
+
+Thanks,
+Adit
 
 
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
