@@ -1,81 +1,55 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 08/15] IB/pvrdma: Add support for Completion Queues
-Date: Thu, 8 Sep 2016 11:18:03 +0300
-Message-ID: <20160908081802.GA3300@yuval-lap.mynet>
-References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
- <1470266864-16888-9-git-send-email-aditr@vmware.com>
- <20160825124120.GB27446@yuval-lap.uk.oracle.com>
- <BLUPR0501MB83629470B22B65E27B4332AC5F80@BLUPR0501MB836.namprd05.prod.outlook.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Thu, 8 Sep 2016 11:20:29 +0300
+Message-ID: <ab854d44-5634-a25f-4606-cce318c3c797@grimberg.me>
+References: <20160829161902.GB23557@obsidianresearch.com>
+ <20160830060842.GJ594@leon.nu> <20160830071716.GA3098@infradead.org>
+ <20160830073521.GM594@leon.nu> <20160830163033.GC26778@obsidianresearch.com>
+ <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
+ <20160906070102.GA23248@infradead.org>
+ <20160906183405.GA27914@obsidianresearch.com>
+ <cd964412-11f3-d1ca-ef76-830a24cb8e68@grimberg.me>
+ <924d7775-0d24-e1ca-b0ee-226df053089a@dev.mellanox.co.il>
+ <20160907155849.GE2878@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BLUPR0501MB83629470B22B65E27B4332AC5F80-84Rf5TRaNBMVDhIuTCx1aJLWcSx1hRipwIZJ9u9yWa8oOQlpcoRfSA@public.gmane.org>
+In-Reply-To: <20160907155849.GE2878-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 07, 2016 at 05:25:30PM +0000, Adit Ranadive wrote:
-> > > +
-> > > +static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp
-> > **cur_qp,
-> > > +			   struct ib_wc *wc)
-> > > +{
-> > > +	struct pvrdma_dev *dev = to_vdev(cq->ibcq.device);
-> > > +	int has_data;
-> > > +	unsigned int head;
-> > > +	bool tried = false;
-> > > +	struct pvrdma_cqe *cqe;
-> > > +
-> > > +retry:
-> > > +	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-> > > +					    cq->ibcq.cqe, &head);
-> > > +	if (has_data == 0) {
-> > > +		u32 val;
-> > > +
-> > > +		if (tried)
-> > > +			return -EAGAIN;
-> > > +
-> > > +		/* Pass down POLL to give physical HCA a chance to poll. */
-> > > +		val = cq->cq_handle | PVRDMA_UAR_CQ_POLL;
-> > > +		writel(cpu_to_le32(val),
-> > > +		       dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
-> > > +
-> > > +		tried = true;
-> > > +		goto retry;
-> > > +	} else if (has_data == PVRDMA_INVALID_IDX) {
-> > > +		/* Ring state could be corrupted. Treat as unrecoverable. */
-> > > +		return -EINVAL;
-> > 
-> > Please try your best not to return anything but 0 or -EAGAIN from this
-> > function.
-> > Returning -EINVAL will cause caller (pvrdma_poll_cq) to drop all successive
-> > CQE in tn batch.
-> 
-> This reason I want to return -EINVAL here is that its possible that the ring state is
-> corrupted so any successive calls to poll_cq will likely not give any valid data.
-> If that means successive CQEs are dropped then that should be okay since we have
-> no idea now which CQEs were consumed.
 
-In this case you should handle the problematic CQ in driver, ULPs are not
-built to handle it.
+>>> I think that Yishai and Doug maintaining libibverbs as a team would be
+>>> great. Having said that, we'll need to understand if they are fine with
+>>> it.
+>>
+>> Yes, I'm fine with taking responsibility and maintain libibverbs.
+>> I believe that it will reduce burden from Doug and escalate the
+>> development/acceptance process in the user space area.
+>
+> The suggestion from Leon is that within the maintainer team Doug would
+> deal primarily with all the user facing changes (eg libibverbs) and
+> other team members would deal with the internal things like provider
+> updates.
+>
+> No one is suggesting to transfer libibverbs away from Doug's stewardship.
 
-We had this discussion before, see here:
-http://marc.info/?l=linux-rdma&m=146851770732050&w=2
-Or here:
-https://www.spinics.net/lists/linux-rdma/msg38250.html
+I wasn't suggesting taking anything from Doug either. Personally I
+think that maintainer teams make sense also for a single
+repository/subsystem, it has several successful examples around the
+kernel.
 
-And eventually mlx4 driver was modified to return 0 or EAGAIN:
-http://marc.info/?l=linux-rdma&m=147237113803425&w=2
+Given that the patch traffic for libibverbs should be significantly
+larger than the individual device drivers, maybe it makes sense
+to share the load here (especially given that Doug has the RDMA kernel
+tree which have seen increasingly growing activity).
 
-> 
-> Thanks,
-> Adit
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Having said that, Doug as the current libibverbs maintainer should
+decide if he wants any help. Either way we can probably see how things
+roll when the process is applied...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
