@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 16/20] IB/hns: Validate mtu when modified qp
-Date: Fri, 9 Sep 2016 18:30:47 +0800
-Message-ID: <1473417051-99560-17-git-send-email-salil.mehta@huawei.com>
+Subject: [PATCH for-next 10/20] IB/hns: Modify the init of iboe lock
+Date: Fri, 9 Sep 2016 18:30:41 +0800
+Message-ID: <1473417051-99560-11-git-send-email-salil.mehta@huawei.com>
 References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,60 +9,43 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, xuwei5@hisilicon.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Peter Chen <luck.chen@huawei.com>
+Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, xuwei5@hisilicon.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, "Dongdong Huang(Donald)" <hdd.huang@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-The mtu should be validated when modify qp,so we check it.
+This lock will be used in query port interface, and will be called
+while IB device was registered to OFED frame. So, the lock of iboe
+must be initiated before IB device was registered.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Peter Chen <luck.chen@huawei.com>
+Signed-off-by: Dongdong Huang(Donald) <hdd.huang@huawei.com>
 Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_main.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 51fefbf..1c5be59 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -32,6 +32,7 @@
-  */
- 
- #include <linux/platform_device.h>
-+#include <rdma/ib_addr.h>
- #include <rdma/ib_umem.h>
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
-@@ -658,6 +659,7 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 2704076..4721c0c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -615,6 +615,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
  	struct device *dev = &hr_dev->pdev->dev;
- 	int ret = -EINVAL;
- 	int p;
-+	u32 active_mtu = 0;
  
- 	mutex_lock(&hr_qp->mutex);
+ 	iboe = &hr_dev->iboe;
++	spin_lock_init(&iboe->lock);
  
-@@ -688,6 +690,19 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		}
+ 	ib_dev = &hr_dev->ib_dev;
+ 	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
+@@ -701,8 +702,6 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 		goto error_failed_setup_mtu_gids;
  	}
  
-+	if (attr_mask & IB_QP_PATH_MTU) {
-+		p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
-+		active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
-+
-+		if (attr->path_mtu > IB_MTU_2048 ||
-+		    attr->path_mtu < IB_MTU_256 ||
-+		    attr->path_mtu > active_mtu) {
-+			dev_err(dev, "attr path_mtu(%d)invalid while modify qp",
-+				attr->path_mtu);
-+			goto out;
-+		}
-+	}
-+
- 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
- 	    attr->max_rd_atomic > hr_dev->caps.max_qp_init_rdma) {
- 		dev_err(dev, "attr max_rd_atomic invalid.attr->max_rd_atomic=%d\n",
+-	spin_lock_init(&iboe->lock);
+-
+ 	iboe->nb.notifier_call = hns_roce_netdev_event;
+ 	ret = register_netdevice_notifier(&iboe->nb);
+ 	if (ret) {
 -- 
 1.7.9.5
