@@ -1,82 +1,44 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
- ISSI > 0 mode
-Date: Fri, 9 Sep 2016 13:39:18 +0300
-Message-ID: <CAJ3xEMhK4e9tD3awWt0uFdg=ptai3c5kCeDUmOBudQ2nu46rRQ@mail.gmail.com>
-References: <1473232990-22766-1-git-send-email-dchang@suse.com>
- <20160908140752.GN18398@leon.nu> <20160909025527.GC3042@linux-kyyb.suse>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: RFC: CQ pools and implicit CQ resource allocation
+Date: Fri,  9 Sep 2016 14:36:21 +0200
+Message-ID: <1473424587-13818-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160909025527.GC3042-5oAczMR2RyTI588T0lkTTQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Chang <dchang-IBi9RG/b67k@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 9, 2016 at 5:55 AM, David Chang <dchang-IBi9RG/b67k@public.gmane.org> wrote:
-> On Thu, Sep 08, 2016 at 05:07:52PM +0300, Leon Romanovsky wrote:
->> On Wed, Sep 07, 2016 at 03:23:10PM +0800, David Chang wrote:
->> > When using MAD_IFC command, we should also consider avoiding in
->> > ISSI > 0 mode, otherwise most of the MAD_IFC command features
->> > are deprecated and cannot be used.
->> >
->> > Fixes: d603c809ef91 ("IB/mlx5: Fix decision on using MAD_IFC")
->> > Reported-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
->> > Signed-off-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
->>
->> NAK, It is wrong, the deprecation is removed from programming manual.
+This series adds support to the RDMA core to implicitly allocate the required
+CQEs when creating a QP.  The primary driver for that was to implement a
+common scheme for CQ pooling, which helps with better resource usage for
+server / target style drivers that have many outstanding connections.  In
+fact the first version of this code from Sagi did just that: add a CQ pool
+API, and convert drivers that were using some form of pooling (iSER initiator
+& target, NVMe target) to that API.  But looking at the API I felt that
+there was still way too much logic in the individual ULPs, and looked into a
+way to make that boilerplate code go away.  It turns out that we can simply
+create CQs underneath if we know the poll context that the ULP requires, so
+this series shows an approach that makes CQs mostly invisible to ULPs.
 
-What do mean by "deprecation is removed", please clarify. Do you claim
-that MAD_IFC is usable on Ethernet port or when ISSI > 0?
+One concern Sagi had when reviewing an earlier version of my edits was that
+the over allocation as part of using a pool might be harmful for client side
+driver that only have one (or a few) connections. I played around with iSER
+a bit and could not measure and slowdown, but that doesn't mean there aren't
+any down sides - I'd really like some feedback from the hardware driver
+people on what CQ sizing / allocation preferences their hardware has.
 
-Note that even if this  valid with the current firmware (and I don't
-think that is the case), the driver you are maintaining (mlx5_ib)
-needs to support previous GA firmware releases which are out there,
-for which this unknown deprecation you are talking about doesn't hold.
+This series applied on top of the "move unsafe global rkey handling to the
+RDMA core V2" series.
 
+A git tree is available at:
 
-> Without the patch, we got the following message.
-> [    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
-> ...
-> [   10.417421] mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb 2014)
-> [   10.419282] ------------[ cut here ]------------
-> [   10.419291] WARNING: CPU: 2 PID: 2517 at ../drivers/infiniband/core/cache.c:702 ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]()
+    git://git.infradead.org/users/hch/rdma.git rdma-cq
 
 
-and this reproduces 100% over Eth ports or just sometimes?
+Gitweb:
 
-> [   10.419386] CPU: 2 PID: 2517 Comm: modprobe Tainted: G                 X 4.4.19-1-default #1
-> [   10.419387] Hardware name: Dell Inc. PowerEdge R730xd/072T6D, BIOS 2.1.7 06/16/2016
-> [   10.419389]  0000000000000000 ffffffff8130d740 0000000000000000 ffffffffa04e0300
-> [   10.419395]  ffffffff8107c121
-> [   10.419400]  ffff88017bfe0000 ffff88003712b9e0 ffff88045ad905c0
-> [   10.419401]  0000000000000001 fffffffffffffffc ffffffffa04d8a58 0000000000000000
-> [   10.419406] Call Trace:
-> [   10.419415]  [<ffffffff81019a59>] dump_trace+0x59/0x310
-> [   10.419419]  [<ffffffff81019dfa>] show_stack_log_lvl+0xea/0x170
-> [   10.419421]  [<ffffffff8101ab81>] show_stack+0x21/0x40
-> [   10.419426]  [<ffffffff8130d740>] dump_stack+0x5c/0x7c
-> [   10.419431]  [<ffffffff8107c121>] warn_slowpath_common+0x81/0xb0
-> [   10.419436]  [<ffffffffa04d8a58>] ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
-> [   10.419449]  [<ffffffffa04da2dd>] add_netdev_ips+0x9d/0xa0 [ib_core]
-> [   10.419456]  [<ffffffffa04da45b>] enum_all_gids_of_dev_cb+0x7b/0xb0 [ib_core]
-> [   10.419461]  [<ffffffffa04d641d>] ib_enum_roce_netdev+0xdd/0x100 [ib_core]
-> [   10.419466]  [<ffffffffa04da5ed>] roce_rescan_device+0x1d/0x20 [ib_core]
-> [   10.419470]  [<ffffffffa04d8cdb>] ib_cache_setup_one+0x23b/0x3d0 [ib_core]
-> [   10.419475]  [<ffffffffa04d606b>] ib_register_device+0x2bb/0x4f0 [ib_core]
-> [   10.419483]  [<ffffffffa0618bbf>] mlx5_ib_add+0xaaf/0x12e0 [mlx5_ib]
-> [   10.419492]  [<ffffffffa08b76c1>] mlx5_add_device+0x41/0xa0 [mlx5_core]
-> [   10.419498]  [<ffffffffa08b7785>] mlx5_register_interface+0x65/0xa0 [mlx5_core]
-> [   10.419502]  [<ffffffffa0474030>] mlx5_ib_init+0x30/0x42 [mlx5_ib]
-> [   10.419506]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
-> [   10.419510]  [<ffffffff811827e8>] do_init_module+0x5a/0x1d7
-> [   10.419514]  [<ffffffff81103536>] load_module+0x1366/0x1c50
-> [   10.419518]  [<ffffffff81103fd0>] SYSC_finit_module+0x70/0xa0
-> [   10.419523]  [<ffffffff815e126e>] entry_SYSCALL_64_fastpath+0x12/0x6d
-> [   10.420681] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
-> [   10.420682] Leftover inexact backtrace:
-> [   10.420684] ---[ end trace fc8ccb16c9d8e28a ]---
+    http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-cq
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
