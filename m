@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 3/6] IB/isert: use implicit CQ allocation
-Date: Fri,  9 Sep 2016 14:36:24 +0200
-Message-ID: <1473424587-13818-4-git-send-email-hch@lst.de>
+Subject: [PATCH 2/6] nvmet-rdma: use implicit CQ allocation
+Date: Fri,  9 Sep 2016 14:36:23 +0200
+Message-ID: <1473424587-13818-3-git-send-email-hch@lst.de>
 References: <1473424587-13818-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -16,301 +16,144 @@ Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 [hch: ported to the new API]
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 164 ++++----------------------------
- drivers/infiniband/ulp/isert/ib_isert.h |  16 ----
- 2 files changed, 18 insertions(+), 162 deletions(-)
+ drivers/nvme/target/rdma.c | 67 ++++++++++++----------------------------------
+ 1 file changed, 17 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 8df608e..78f6b2a 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -35,8 +35,6 @@
- #define ISER_MAX_RX_CQ_LEN	(ISERT_QP_MAX_RECV_DTOS * ISERT_MAX_CONN)
- #define ISER_MAX_TX_CQ_LEN \
- 	((ISERT_QP_MAX_REQ_DTOS + ISCSI_DEF_XMIT_CMDS_MAX) * ISERT_MAX_CONN)
--#define ISER_MAX_CQ_LEN		(ISER_MAX_RX_CQ_LEN + ISER_MAX_TX_CQ_LEN + \
--				 ISERT_MAX_CONN)
- 
- static int isert_debug_level;
- module_param_named(debug_level, isert_debug_level, int, 0644);
-@@ -89,55 +87,26 @@ isert_qp_event_callback(struct ib_event *e, void *context)
- 	}
- }
- 
--static struct isert_comp *
--isert_comp_get(struct isert_conn *isert_conn)
--{
--	struct isert_device *device = isert_conn->device;
--	struct isert_comp *comp;
--	int i, min = 0;
--
--	mutex_lock(&device_list_mutex);
--	for (i = 0; i < device->comps_used; i++)
--		if (device->comps[i].active_qps <
--		    device->comps[min].active_qps)
--			min = i;
--	comp = &device->comps[min];
--	comp->active_qps++;
--	mutex_unlock(&device_list_mutex);
--
--	isert_info("conn %p, using comp %p min_index: %d\n",
--		   isert_conn, comp, min);
--
--	return comp;
--}
--
--static void
--isert_comp_put(struct isert_comp *comp)
--{
--	mutex_lock(&device_list_mutex);
--	comp->active_qps--;
--	mutex_unlock(&device_list_mutex);
--}
--
- static struct ib_qp *
--isert_create_qp(struct isert_conn *isert_conn,
--		struct isert_comp *comp,
--		struct rdma_cm_id *cma_id)
-+isert_create_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id)
- {
- 	struct isert_device *device = isert_conn->device;
- 	struct ib_qp_init_attr attr;
- 	int ret;
- 
--	memset(&attr, 0, sizeof(struct ib_qp_init_attr));
-+	memset(&attr, 0, sizeof(attr));
-+	attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
- 	attr.event_handler = isert_qp_event_callback;
- 	attr.qp_context = isert_conn;
--	attr.send_cq = comp->cq;
--	attr.recv_cq = comp->cq;
-+	attr.poll_ctx = IB_POLL_WORKQUEUE;
-+
- 	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS + 1;
--	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
- 	attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX;
- 	attr.cap.max_send_sge = device->ib_device->attrs.max_sge;
-+
-+	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
- 	attr.cap.max_recv_sge = 1;
-+
- 	attr.sq_sig_type = IB_SIGNAL_REQ_WR;
- 	attr.qp_type = IB_QPT_RC;
- 	if (device->pi_capable)
-@@ -153,25 +122,6 @@ isert_create_qp(struct isert_conn *isert_conn,
- }
- 
- static int
--isert_conn_setup_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id)
--{
--	struct isert_comp *comp;
--	int ret;
--
--	comp = isert_comp_get(isert_conn);
--	isert_conn->qp = isert_create_qp(isert_conn, comp, cma_id);
--	if (IS_ERR(isert_conn->qp)) {
--		ret = PTR_ERR(isert_conn->qp);
--		goto err;
--	}
--
--	return 0;
--err:
--	isert_comp_put(comp);
--	return ret;
--}
--
--static int
- isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
- {
- 	struct isert_device *device = isert_conn->device;
-@@ -239,63 +189,6 @@ isert_free_rx_descriptors(struct isert_conn *isert_conn)
- 	isert_conn->rx_descs = NULL;
- }
- 
--static void
--isert_free_comps(struct isert_device *device)
--{
--	int i;
--
--	for (i = 0; i < device->comps_used; i++) {
--		struct isert_comp *comp = &device->comps[i];
--
--		if (comp->cq)
--			ib_free_cq(comp->cq);
--	}
--	kfree(device->comps);
--}
--
--static int
--isert_alloc_comps(struct isert_device *device)
--{
--	int i, max_cqe, ret = 0;
--
--	device->comps_used = min(ISERT_MAX_CQ, min_t(int, num_online_cpus(),
--				 device->ib_device->num_comp_vectors));
--
--	isert_info("Using %d CQs, %s supports %d vectors support "
--		   "pi_capable %d\n",
--		   device->comps_used, device->ib_device->name,
--		   device->ib_device->num_comp_vectors,
--		   device->pi_capable);
--
--	device->comps = kcalloc(device->comps_used, sizeof(struct isert_comp),
--				GFP_KERNEL);
--	if (!device->comps) {
--		isert_err("Unable to allocate completion contexts\n");
--		return -ENOMEM;
--	}
--
--	max_cqe = min(ISER_MAX_CQ_LEN, device->ib_device->attrs.max_cqe);
--
--	for (i = 0; i < device->comps_used; i++) {
--		struct isert_comp *comp = &device->comps[i];
--
--		comp->device = device;
--		comp->cq = ib_alloc_cq(device->ib_device, comp, max_cqe, i,
--				IB_POLL_WORKQUEUE);
--		if (IS_ERR(comp->cq)) {
--			isert_err("Unable to allocate cq\n");
--			ret = PTR_ERR(comp->cq);
--			comp->cq = NULL;
--			goto out_cq;
--		}
--	}
--
--	return 0;
--out_cq:
--	isert_free_comps(device);
--	return ret;
--}
--
- static int
- isert_create_device_ib_res(struct isert_device *device)
- {
-@@ -305,16 +198,11 @@ isert_create_device_ib_res(struct isert_device *device)
- 	isert_dbg("devattr->max_sge: %d\n", ib_dev->attrs.max_sge);
- 	isert_dbg("devattr->max_sge_rd: %d\n", ib_dev->attrs.max_sge_rd);
- 
--	ret = isert_alloc_comps(device);
--	if (ret)
--		goto out;
--
- 	device->pd = ib_alloc_pd(ib_dev, 0);
- 	if (IS_ERR(device->pd)) {
--		ret = PTR_ERR(device->pd);
- 		isert_err("failed to allocate pd, device %p, ret=%d\n",
- 			  device, ret);
--		goto out_cq;
-+		return PTR_ERR(device->pd);
- 	}
- 
- 	/* Check signature cap */
-@@ -322,22 +210,6 @@ isert_create_device_ib_res(struct isert_device *device)
- 			     IB_DEVICE_SIGNATURE_HANDOVER ? true : false;
- 
- 	return 0;
--
--out_cq:
--	isert_free_comps(device);
--out:
--	if (ret > 0)
--		ret = -EINVAL;
--	return ret;
--}
--
--static void
--isert_free_device_ib_res(struct isert_device *device)
--{
--	isert_info("device %p\n", device);
--
--	ib_dealloc_pd(device->pd);
--	isert_free_comps(device);
- }
- 
- static void
-@@ -347,7 +219,7 @@ isert_device_put(struct isert_device *device)
- 	device->refcount--;
- 	isert_info("device %p refcount %d\n", device, device->refcount);
- 	if (!device->refcount) {
--		isert_free_device_ib_res(device);
-+		ib_dealloc_pd(device->pd);
- 		list_del(&device->dev_node);
- 		kfree(device);
- 	}
-@@ -540,13 +412,15 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 
- 	isert_set_nego_params(isert_conn, &event->param.conn);
- 
--	ret = isert_conn_setup_qp(isert_conn, cma_id);
--	if (ret)
-+	isert_conn->qp = isert_create_qp(isert_conn, cma_id);
-+	if (IS_ERR(isert_conn->qp)) {
-+		ret = PTR_ERR(isert_conn->qp);
- 		goto out_conn_dev;
-+	}
- 
- 	ret = isert_login_post_recv(isert_conn);
- 	if (ret)
--		goto out_conn_dev;
-+		goto out_conn_qp;
- 
- 	ret = isert_rdma_accept(isert_conn);
- 	if (ret)
-@@ -558,6 +432,8 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 
- 	return 0;
- 
-+out_conn_qp:
-+	ib_destroy_qp(isert_conn->qp);
- out_conn_dev:
- 	isert_device_put(device);
- out_rsp_dma_map:
-@@ -581,12 +457,8 @@ isert_connect_release(struct isert_conn *isert_conn)
- 	if (isert_conn->cm_id)
- 		rdma_destroy_id(isert_conn->cm_id);
- 
--	if (isert_conn->qp) {
--		struct isert_comp *comp = isert_conn->qp->recv_cq->cq_context;
--
--		isert_comp_put(comp);
-+	if (isert_conn->qp)
- 		ib_destroy_qp(isert_conn->qp);
--	}
- 
- 	if (isert_conn->login_req_buf)
- 		isert_free_login_buf(isert_conn);
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index fc791ef..2e85eed 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -162,27 +162,11 @@ struct isert_conn {
- 
- #define ISERT_MAX_CQ 64
- 
--/**
-- * struct isert_comp - iSER completion context
-- *
-- * @device:     pointer to device handle
-- * @cq:         completion queue
-- * @active_qps: Number of active QPs attached
-- *              to completion context
-- */
--struct isert_comp {
--	struct isert_device     *device;
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 187763a..fc7ed0a 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -83,7 +83,6 @@ enum nvmet_rdma_queue_state {
+ struct nvmet_rdma_queue {
+ 	struct rdma_cm_id	*cm_id;
+ 	struct nvmet_port	*port;
 -	struct ib_cq		*cq;
--	int                      active_qps;
--};
--
- struct isert_device {
- 	bool			pi_capable;
- 	int			refcount;
- 	struct ib_device	*ib_device;
- 	struct ib_pd		*pd;
--	struct isert_comp	*comps;
--	int                     comps_used;
- 	struct list_head	dev_node;
- };
+ 	atomic_t		sq_wr_avail;
+ 	struct nvmet_rdma_device *dev;
+ 	spinlock_t		state_lock;
+@@ -548,7 +547,7 @@ static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct nvmet_rdma_rsp *rsp =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, read_cqe);
+-	struct nvmet_rdma_queue *queue = cq->cq_context;
++	struct nvmet_rdma_queue *queue = wc->qp->qp_context;
  
+ 	WARN_ON(rsp->n_rdma <= 0);
+ 	atomic_add(rsp->n_rdma, &queue->sq_wr_avail);
+@@ -722,7 +721,7 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct nvmet_rdma_cmd *cmd =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_cmd, cqe);
+-	struct nvmet_rdma_queue *queue = cq->cq_context;
++	struct nvmet_rdma_queue *queue = wc->qp->qp_context;
+ 	struct nvmet_rdma_rsp *rsp;
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+@@ -877,62 +876,41 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
+ {
+ 	struct ib_qp_init_attr qp_attr;
+ 	struct nvmet_rdma_device *ndev = queue->dev;
+-	int comp_vector, nr_cqe, ret, i;
+-
+-	/*
+-	 * Spread the io queues across completion vectors,
+-	 * but still keep all admin queues on vector 0.
+-	 */
+-	comp_vector = !queue->host_qid ? 0 :
+-		queue->idx % ndev->device->num_comp_vectors;
+-
+-	/*
+-	 * Reserve CQ slots for RECV + RDMA_READ/RDMA_WRITE + RDMA_SEND.
+-	 */
+-	nr_cqe = queue->recv_queue_size + 2 * queue->send_queue_size;
+-
+-	queue->cq = ib_alloc_cq(ndev->device, queue,
+-			nr_cqe + 1, comp_vector,
+-			IB_POLL_WORKQUEUE);
+-	if (IS_ERR(queue->cq)) {
+-		ret = PTR_ERR(queue->cq);
+-		pr_err("failed to create CQ cqe= %d ret= %d\n",
+-		       nr_cqe + 1, ret);
+-		goto out;
+-	}
++	int ret, i;
+ 
+ 	memset(&qp_attr, 0, sizeof(qp_attr));
++	qp_attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
+ 	qp_attr.qp_context = queue;
+ 	qp_attr.event_handler = nvmet_rdma_qp_event;
+-	qp_attr.send_cq = queue->cq;
+-	qp_attr.recv_cq = queue->cq;
+ 	qp_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
+ 	qp_attr.qp_type = IB_QPT_RC;
++	qp_attr.poll_ctx = IB_POLL_WORKQUEUE;
++
+ 	/* +1 for drain */
+ 	qp_attr.cap.max_send_wr = queue->send_queue_size + 1;
+ 	qp_attr.cap.max_rdma_ctxs = queue->send_queue_size;
+ 	qp_attr.cap.max_send_sge = max(ndev->device->attrs.max_sge_rd,
+ 					ndev->device->attrs.max_sge);
+ 
+-	if (ndev->srq) {
++	/* +1 for drain */
++	qp_attr.cap.max_recv_wr = queue->recv_queue_size + 1;
++
++	if (ndev->srq)
+ 		qp_attr.srq = ndev->srq;
+-	} else {
+-		/* +1 for drain */
+-		qp_attr.cap.max_recv_wr = 1 + queue->recv_queue_size;
++	else
+ 		qp_attr.cap.max_recv_sge = 2;
+-	}
+ 
+ 	ret = rdma_create_qp(queue->cm_id, ndev->pd, &qp_attr);
+ 	if (ret) {
+ 		pr_err("failed to create_qp ret= %d\n", ret);
+-		goto err_destroy_cq;
++		return ret;
+ 	}
+ 
+ 	atomic_set(&queue->sq_wr_avail, qp_attr.cap.max_send_wr);
+ 
+-	pr_debug("%s: max_cqe= %d max_sge= %d sq_size = %d cm_id= %p\n",
+-		 __func__, queue->cq->cqe, qp_attr.cap.max_send_sge,
+-		 qp_attr.cap.max_send_wr, queue->cm_id);
++	pr_debug("%s: max_sge= %d sq_size = %d cm_id=%p\n", __func__,
++		qp_attr.cap.max_send_sge, qp_attr.cap.max_send_wr,
++		queue->cm_id);
+ 
+ 	if (!ndev->srq) {
+ 		for (i = 0; i < queue->recv_queue_size; i++) {
+@@ -941,18 +919,7 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
+ 		}
+ 	}
+ 
+-out:
+-	return ret;
+-
+-err_destroy_cq:
+-	ib_free_cq(queue->cq);
+-	goto out;
+-}
+-
+-static void nvmet_rdma_destroy_queue_ib(struct nvmet_rdma_queue *queue)
+-{
+-	rdma_destroy_qp(queue->cm_id);
+-	ib_free_cq(queue->cq);
++	return 0;
+ }
+ 
+ static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
+@@ -961,7 +928,7 @@ static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
+ 
+ 	nvmet_sq_destroy(&queue->nvme_sq);
+ 
+-	nvmet_rdma_destroy_queue_ib(queue);
++	rdma_destroy_qp(queue->cm_id);
+ 	if (!queue->dev->srq) {
+ 		nvmet_rdma_free_cmds(queue->dev, queue->cmds,
+ 				queue->recv_queue_size,
 -- 
 2.1.4
 
