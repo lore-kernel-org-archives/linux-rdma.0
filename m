@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 4/6] IB/srpt: use implicit CQ allocation
-Date: Fri,  9 Sep 2016 14:36:25 +0200
-Message-ID: <1473424587-13818-5-git-send-email-hch@lst.de>
+Subject: [PATCH 5/6] IB/iser: use implicit CQ allocation
+Date: Fri,  9 Sep 2016 14:36:26 +0200
+Message-ID: <1473424587-13818-6-git-send-email-hch@lst.de>
 References: <1473424587-13818-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -16,158 +16,227 @@ Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 [hch: ported to the new API]
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 46 ++++++++++++-----------------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
- 2 files changed, 15 insertions(+), 32 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h | 19 -------
+ drivers/infiniband/ulp/iser/iser_verbs.c | 90 ++++++--------------------------
+ 2 files changed, 16 insertions(+), 93 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 48a44af..7c1110a 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -785,7 +785,7 @@ static int srpt_zerolength_write(struct srpt_rdma_ch *ch)
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 0be6a7c..d3cc83a 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -318,18 +318,6 @@ struct ib_conn;
+ struct iscsi_iser_task;
  
- static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
- {
--	struct srpt_rdma_ch *ch = cq->cq_context;
-+	struct srpt_rdma_ch *ch = wc->qp->qp_context;
- 
- 	if (wc->status == IB_WC_SUCCESS) {
- 		srpt_process_wait_list(ch);
-@@ -1188,7 +1188,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
-  */
- static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
- {
--	struct srpt_rdma_ch *ch = cq->cq_context;
-+	struct srpt_rdma_ch *ch = wc->qp->qp_context;
- 	struct srpt_send_ioctx *ioctx =
- 		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
- 
-@@ -1513,7 +1513,7 @@ out_wait:
- 
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- {
--	struct srpt_rdma_ch *ch = cq->cq_context;
-+	struct srpt_rdma_ch *ch = wc->qp->qp_context;
- 	struct srpt_recv_ioctx *ioctx =
- 		container_of(wc->wr_cqe, struct srpt_recv_ioctx, ioctx.cqe);
- 
-@@ -1567,7 +1567,7 @@ static void srpt_process_wait_list(struct srpt_rdma_ch *ch)
-  */
- static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
- {
--	struct srpt_rdma_ch *ch = cq->cq_context;
-+	struct srpt_rdma_ch *ch = wc->qp->qp_context;
- 	struct srpt_send_ioctx *ioctx =
- 		container_of(wc->wr_cqe, struct srpt_send_ioctx, ioctx.cqe);
- 	enum srpt_command_state state;
-@@ -1613,23 +1613,14 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 		goto out;
- 
- retry:
--	ch->cq = ib_alloc_cq(sdev->device, ch, ch->rq_size + srp_sq_size,
--			0 /* XXX: spread CQs */, IB_POLL_WORKQUEUE);
--	if (IS_ERR(ch->cq)) {
--		ret = PTR_ERR(ch->cq);
--		pr_err("failed to create CQ cqe= %d ret= %d\n",
--		       ch->rq_size + srp_sq_size, ret);
--		goto out;
--	}
+ /**
+- * struct iser_comp - iSER completion context
+- *
+- * @cq:         completion queue
+- * @active_qps: Number of active QPs attached
+- *              to completion context
+- */
+-struct iser_comp {
+-	struct ib_cq		*cq;
+-	int                      active_qps;
+-};
 -
-+	qp_init->create_flags = IB_QP_CREATE_ASSIGN_CQS;
- 	qp_init->qp_context = (void *)ch;
- 	qp_init->event_handler
- 		= (void(*)(struct ib_event *, void*))srpt_qp_event;
--	qp_init->send_cq = ch->cq;
--	qp_init->recv_cq = ch->cq;
- 	qp_init->srq = sdev->srq;
- 	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
- 	qp_init->qp_type = IB_QPT_RC;
-+	qp_init->poll_ctx = IB_POLL_WORKQUEUE;
- 	/*
- 	 * We divide up our send queue size into half SEND WRs to send the
- 	 * completions, and half R/W contexts to actually do the RDMA
-@@ -1640,6 +1631,9 @@ retry:
- 	qp_init->cap.max_send_wr = srp_sq_size / 2;
- 	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
- 	qp_init->cap.max_send_sge = min(attrs->max_sge, SRPT_MAX_SG_PER_WQE);
-+
-+	qp_init->cap.max_recv_wr = ch->rq_size;
-+
- 	qp_init->port_num = ch->sport->port;
+-/**
+  * struct iser_device - Memory registration operations
+  *     per-device registration schemes
+  *
+@@ -365,9 +353,6 @@ struct iser_reg_ops {
+  * @event_handler: IB events handle routine
+  * @ig_list:	   entry in devices list
+  * @refcount:      Reference counter, dominated by open iser connections
+- * @comps_used:    Number of completion contexts used, Min between online
+- *                 cpus and device max completion vectors
+- * @comps:         Dinamically allocated array of completion handlers
+  * @reg_ops:       Registration ops
+  * @remote_inv_sup: Remote invalidate is supported on this device
+  */
+@@ -377,8 +362,6 @@ struct iser_device {
+ 	struct ib_event_handler      event_handler;
+ 	struct list_head             ig_list;
+ 	int                          refcount;
+-	int			     comps_used;
+-	struct iser_comp	     *comps;
+ 	const struct iser_reg_ops    *reg_ops;
+ 	bool                         remote_inv_sup;
+ };
+@@ -454,7 +437,6 @@ struct iser_fr_pool {
+  * @sig_count:           send work request signal count
+  * @rx_wr:               receive work request for batch posts
+  * @device:              reference to iser device
+- * @comp:                iser completion context
+  * @fr_pool:             connection fast registration poool
+  * @pi_support:          Indicate device T10-PI support
+  */
+@@ -465,7 +447,6 @@ struct ib_conn {
+ 	u8                           sig_count;
+ 	struct ib_recv_wr	     rx_wr[ISER_MIN_POSTED_RX];
+ 	struct iser_device          *device;
+-	struct iser_comp	    *comp;
+ 	struct iser_fr_pool          fr_pool;
+ 	bool			     pi_support;
+ 	struct ib_cqe		     reg_cqe;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index a4b791d..901d56a 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -68,62 +68,32 @@ static void iser_event_handler(struct ib_event_handler *handler,
+ static int iser_create_device_ib_res(struct iser_device *device)
+ {
+ 	struct ib_device *ib_dev = device->ib_device;
+-	int ret, i, max_cqe;
++	int ret;
  
- 	ch->qp = ib_create_qp(sdev->pd, qp_init);
-@@ -1647,19 +1641,17 @@ retry:
- 		ret = PTR_ERR(ch->qp);
- 		if (ret == -ENOMEM) {
- 			srp_sq_size /= 2;
--			if (srp_sq_size >= MIN_SRPT_SQ_SIZE) {
--				ib_destroy_cq(ch->cq);
-+			if (srp_sq_size >= MIN_SRPT_SQ_SIZE)
- 				goto retry;
--			}
- 		}
- 		pr_err("failed to create_qp ret= %d\n", ret);
--		goto err_destroy_cq;
+ 	ret = iser_assign_reg_ops(device);
+ 	if (ret)
+ 		return ret;
+ 
+-	device->comps_used = min_t(int, num_online_cpus(),
+-				 ib_dev->num_comp_vectors);
+-
+-	device->comps = kcalloc(device->comps_used, sizeof(*device->comps),
+-				GFP_KERNEL);
+-	if (!device->comps)
+-		goto comps_err;
+-
+-	max_cqe = min(ISER_MAX_CQ_LEN, ib_dev->attrs.max_cqe);
+-
+-	iser_info("using %d CQs, device %s supports %d vectors max_cqe %d\n",
+-		  device->comps_used, ib_dev->name,
+-		  ib_dev->num_comp_vectors, max_cqe);
+-
+ 	device->pd = ib_alloc_pd(ib_dev,
+ 		iser_always_reg ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
+-	if (IS_ERR(device->pd))
+-		goto pd_err;
+-
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct iser_comp *comp = &device->comps[i];
+-
+-		comp->cq = ib_alloc_cq(ib_dev, comp, max_cqe, i,
+-				       IB_POLL_SOFTIRQ);
+-		if (IS_ERR(comp->cq)) {
+-			comp->cq = NULL;
+-			goto cq_err;
+-		}
++	if (IS_ERR(device->pd)) {
++		ret = PTR_ERR(device->pd);
 +		goto out;
  	}
  
- 	atomic_set(&ch->sq_wr_avail, qp_init->cap.max_send_wr);
+ 	INIT_IB_EVENT_HANDLER(&device->event_handler, ib_dev,
+ 			      iser_event_handler);
+-	if (ib_register_event_handler(&device->event_handler))
+-		goto cq_err;
++	ret = ib_register_event_handler(&device->event_handler);
++	if (ret)
++		goto dealloc_pd;
  
--	pr_debug("%s: max_cqe= %d max_sge= %d sq_size = %d cm_id= %p\n",
--		 __func__, ch->cq->cqe, qp_init->cap.max_send_sge,
-+	pr_debug("%s: max_sge= %d sq_size = %d cm_id= %p\n",
-+		 __func__, qp_init->cap.max_send_sge,
- 		 qp_init->cap.max_send_wr, ch->cm_id);
+ 	return 0;
  
- 	ret = srpt_init_ch_qp(ch, ch->qp);
-@@ -1672,17 +1664,9 @@ out:
- 
- err_destroy_qp:
- 	ib_destroy_qp(ch->qp);
--err_destroy_cq:
--	ib_free_cq(ch->cq);
- 	goto out;
+-cq_err:
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct iser_comp *comp = &device->comps[i];
+-
+-		if (comp->cq)
+-			ib_free_cq(comp->cq);
+-	}
++dealloc_pd:
+ 	ib_dealloc_pd(device->pd);
+-pd_err:
+-	kfree(device->comps);
+-comps_err:
++out:
+ 	iser_err("failed to allocate an IB resource\n");
+-	return -1;
++	return ret;
  }
  
--static void srpt_destroy_ch_ib(struct srpt_rdma_ch *ch)
--{
--	ib_destroy_qp(ch->qp);
--	ib_free_cq(ch->cq);
--}
--
  /**
-  * srpt_close_ch() - Close an RDMA channel.
-  *
-@@ -1799,7 +1783,7 @@ static void srpt_release_channel_work(struct work_struct *w)
+@@ -132,20 +102,8 @@ comps_err:
+  */
+ static void iser_free_device_ib_res(struct iser_device *device)
+ {
+-	int i;
+-
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct iser_comp *comp = &device->comps[i];
+-
+-		ib_free_cq(comp->cq);
+-		comp->cq = NULL;
+-	}
+-
+ 	(void)ib_unregister_event_handler(&device->event_handler);
+ 	ib_dealloc_pd(device->pd);
+-
+-	kfree(device->comps);
+-	device->comps = NULL;
+ 	device->pd = NULL;
+ }
  
- 	ib_destroy_cm_id(ch->cm_id);
+@@ -423,7 +381,6 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ 	struct ib_device	*ib_dev;
+ 	struct ib_qp_init_attr	init_attr;
+ 	int			ret = -ENOMEM;
+-	int index, min_index = 0;
  
--	srpt_destroy_ch_ib(ch);
-+	ib_destroy_qp(ch->qp);
+ 	BUG_ON(ib_conn->device == NULL);
  
- 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
- 			     ch->sport->sdev, ch->rq_size,
-@@ -2056,7 +2040,7 @@ release_channel:
- 	ch->sess = NULL;
+@@ -431,26 +388,16 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ 	ib_dev = device->ib_device;
  
- destroy_ib:
--	srpt_destroy_ch_ib(ch);
-+	ib_destroy_qp(ch->qp);
+ 	memset(&init_attr, 0, sizeof init_attr);
+-
+-	mutex_lock(&ig.connlist_mutex);
+-	/* select the CQ with the minimal number of usages */
+-	for (index = 0; index < device->comps_used; index++) {
+-		if (device->comps[index].active_qps <
+-		    device->comps[min_index].active_qps)
+-			min_index = index;
+-	}
+-	ib_conn->comp = &device->comps[min_index];
+-	ib_conn->comp->active_qps++;
+-	mutex_unlock(&ig.connlist_mutex);
+-	iser_info("cq index %d used for ib_conn %p\n", min_index, ib_conn);
+-
++	init_attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
+ 	init_attr.event_handler = iser_qp_event_callback;
+ 	init_attr.qp_context	= (void *)ib_conn;
+-	init_attr.send_cq	= ib_conn->comp->cq;
+-	init_attr.recv_cq	= ib_conn->comp->cq;
++	init_attr.poll_ctx = IB_POLL_SOFTIRQ;
++
+ 	init_attr.cap.max_recv_wr  = ISER_QP_MAX_RECV_DTOS;
+-	init_attr.cap.max_send_sge = 2;
+ 	init_attr.cap.max_recv_sge = 1;
++
++	init_attr.cap.max_send_sge = 2;
++
+ 	init_attr.sq_sig_type	= IB_SIGNAL_REQ_WR;
+ 	init_attr.qp_type	= IB_QPT_RC;
+ 	if (ib_conn->pi_support) {
+@@ -483,11 +430,7 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ 	return ret;
  
- free_ring:
- 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 5818787..162eb11 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -264,7 +264,6 @@ enum rdma_ch_state {
- struct srpt_rdma_ch {
- 	struct ib_cm_id		*cm_id;
- 	struct ib_qp		*qp;
--	struct ib_cq		*cq;
- 	struct ib_cqe		zw_cqe;
- 	struct kref		kref;
- 	int			rq_size;
+ out_err:
+-	mutex_lock(&ig.connlist_mutex);
+-	ib_conn->comp->active_qps--;
+-	mutex_unlock(&ig.connlist_mutex);
+ 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
+-
+ 	return ret;
+ }
+ 
+@@ -597,7 +540,6 @@ static void iser_free_ib_conn_res(struct iser_conn *iser_conn,
+ 		  iser_conn, ib_conn->cma_id, ib_conn->qp);
+ 
+ 	if (ib_conn->qp != NULL) {
+-		ib_conn->comp->active_qps--;
+ 		rdma_destroy_qp(ib_conn->cma_id);
+ 		ib_conn->qp = NULL;
+ 	}
 -- 
 2.1.4
 
