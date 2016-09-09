@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 5/6] IB/iser: use implicit CQ allocation
-Date: Fri,  9 Sep 2016 14:36:26 +0200
-Message-ID: <1473424587-13818-6-git-send-email-hch@lst.de>
+Subject: [PATCH 6/6] nvme-rdma: use implicit CQ allocation
+Date: Fri,  9 Sep 2016 14:36:27 +0200
+Message-ID: <1473424587-13818-7-git-send-email-hch@lst.de>
 References: <1473424587-13818-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,233 +10,157 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-[hch: ported to the new API]
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h | 19 -------
- drivers/infiniband/ulp/iser/iser_verbs.c | 90 ++++++--------------------------
- 2 files changed, 16 insertions(+), 93 deletions(-)
+ drivers/nvme/host/rdma.c | 70 +++++++++++++++++++-----------------------------
+ 1 file changed, 28 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 0be6a7c..d3cc83a 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -318,18 +318,6 @@ struct ib_conn;
- struct iscsi_iser_task;
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 1a18547..e8f343f 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -95,7 +95,6 @@ struct nvme_rdma_queue {
+ 	size_t			cmnd_capsule_len;
+ 	struct nvme_rdma_ctrl	*ctrl;
+ 	struct nvme_rdma_device	*device;
+-	struct ib_cq		*ib_cq;
+ 	struct ib_qp		*qp;
  
- /**
-- * struct iser_comp - iSER completion context
-- *
-- * @cq:         completion queue
-- * @active_qps: Number of active QPs attached
-- *              to completion context
-- */
--struct iser_comp {
--	struct ib_cq		*cq;
--	int                      active_qps;
--};
--
--/**
-  * struct iser_device - Memory registration operations
-  *     per-device registration schemes
-  *
-@@ -365,9 +353,6 @@ struct iser_reg_ops {
-  * @event_handler: IB events handle routine
-  * @ig_list:	   entry in devices list
-  * @refcount:      Reference counter, dominated by open iser connections
-- * @comps_used:    Number of completion contexts used, Min between online
-- *                 cpus and device max completion vectors
-- * @comps:         Dinamically allocated array of completion handlers
-  * @reg_ops:       Registration ops
-  * @remote_inv_sup: Remote invalidate is supported on this device
-  */
-@@ -377,8 +362,6 @@ struct iser_device {
- 	struct ib_event_handler      event_handler;
- 	struct list_head             ig_list;
- 	int                          refcount;
--	int			     comps_used;
--	struct iser_comp	     *comps;
- 	const struct iser_reg_ops    *reg_ops;
- 	bool                         remote_inv_sup;
- };
-@@ -454,7 +437,6 @@ struct iser_fr_pool {
-  * @sig_count:           send work request signal count
-  * @rx_wr:               receive work request for batch posts
-  * @device:              reference to iser device
-- * @comp:                iser completion context
-  * @fr_pool:             connection fast registration poool
-  * @pi_support:          Indicate device T10-PI support
-  */
-@@ -465,7 +447,6 @@ struct ib_conn {
- 	u8                           sig_count;
- 	struct ib_recv_wr	     rx_wr[ISER_MIN_POSTED_RX];
- 	struct iser_device          *device;
--	struct iser_comp	    *comp;
- 	struct iser_fr_pool          fr_pool;
- 	bool			     pi_support;
- 	struct ib_cqe		     reg_cqe;
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index a4b791d..901d56a 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -68,62 +68,32 @@ static void iser_event_handler(struct ib_event_handler *handler,
- static int iser_create_device_ib_res(struct iser_device *device)
- {
- 	struct ib_device *ib_dev = device->ib_device;
--	int ret, i, max_cqe;
-+	int ret;
- 
- 	ret = iser_assign_reg_ops(device);
- 	if (ret)
- 		return ret;
- 
--	device->comps_used = min_t(int, num_online_cpus(),
--				 ib_dev->num_comp_vectors);
--
--	device->comps = kcalloc(device->comps_used, sizeof(*device->comps),
--				GFP_KERNEL);
--	if (!device->comps)
--		goto comps_err;
--
--	max_cqe = min(ISER_MAX_CQ_LEN, ib_dev->attrs.max_cqe);
--
--	iser_info("using %d CQs, device %s supports %d vectors max_cqe %d\n",
--		  device->comps_used, ib_dev->name,
--		  ib_dev->num_comp_vectors, max_cqe);
--
- 	device->pd = ib_alloc_pd(ib_dev,
- 		iser_always_reg ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
--	if (IS_ERR(device->pd))
--		goto pd_err;
--
--	for (i = 0; i < device->comps_used; i++) {
--		struct iser_comp *comp = &device->comps[i];
--
--		comp->cq = ib_alloc_cq(ib_dev, comp, max_cqe, i,
--				       IB_POLL_SOFTIRQ);
--		if (IS_ERR(comp->cq)) {
--			comp->cq = NULL;
--			goto cq_err;
--		}
-+	if (IS_ERR(device->pd)) {
-+		ret = PTR_ERR(device->pd);
-+		goto out;
- 	}
- 
- 	INIT_IB_EVENT_HANDLER(&device->event_handler, ib_dev,
- 			      iser_event_handler);
--	if (ib_register_event_handler(&device->event_handler))
--		goto cq_err;
-+	ret = ib_register_event_handler(&device->event_handler);
-+	if (ret)
-+		goto dealloc_pd;
- 
- 	return 0;
- 
--cq_err:
--	for (i = 0; i < device->comps_used; i++) {
--		struct iser_comp *comp = &device->comps[i];
--
--		if (comp->cq)
--			ib_free_cq(comp->cq);
--	}
-+dealloc_pd:
- 	ib_dealloc_pd(device->pd);
--pd_err:
--	kfree(device->comps);
--comps_err:
-+out:
- 	iser_err("failed to allocate an IB resource\n");
--	return -1;
-+	return ret;
+ 	unsigned long		flags;
+@@ -253,24 +252,38 @@ static int nvme_rdma_wait_for_cm(struct nvme_rdma_queue *queue)
+ 	return queue->cm_error;
  }
  
- /**
-@@ -132,20 +102,8 @@ comps_err:
-  */
- static void iser_free_device_ib_res(struct iser_device *device)
+-static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue, const int factor)
++static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue)
  {
--	int i;
--
--	for (i = 0; i < device->comps_used; i++) {
--		struct iser_comp *comp = &device->comps[i];
--
--		ib_free_cq(comp->cq);
--		comp->cq = NULL;
--	}
--
- 	(void)ib_unregister_event_handler(&device->event_handler);
- 	ib_dealloc_pd(device->pd);
--
--	kfree(device->comps);
--	device->comps = NULL;
- 	device->pd = NULL;
- }
+ 	struct nvme_rdma_device *dev = queue->device;
+ 	struct ib_qp_init_attr init_attr;
+-	int ret;
++	int ret, idx;
++	const int send_wr_factor = 3;		/* MR, SEND, INV */
  
-@@ -423,7 +381,6 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
- 	struct ib_device	*ib_dev;
- 	struct ib_qp_init_attr	init_attr;
- 	int			ret = -ENOMEM;
--	int index, min_index = 0;
- 
- 	BUG_ON(ib_conn->device == NULL);
- 
-@@ -431,26 +388,16 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
- 	ib_dev = device->ib_device;
- 
- 	memset(&init_attr, 0, sizeof init_attr);
--
--	mutex_lock(&ig.connlist_mutex);
--	/* select the CQ with the minimal number of usages */
--	for (index = 0; index < device->comps_used; index++) {
--		if (device->comps[index].active_qps <
--		    device->comps[min_index].active_qps)
--			min_index = index;
--	}
--	ib_conn->comp = &device->comps[min_index];
--	ib_conn->comp->active_qps++;
--	mutex_unlock(&ig.connlist_mutex);
--	iser_info("cq index %d used for ib_conn %p\n", min_index, ib_conn);
--
+ 	memset(&init_attr, 0, sizeof(init_attr));
 +	init_attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
- 	init_attr.event_handler = iser_qp_event_callback;
- 	init_attr.qp_context	= (void *)ib_conn;
--	init_attr.send_cq	= ib_conn->comp->cq;
--	init_attr.recv_cq	= ib_conn->comp->cq;
+ 	init_attr.event_handler = nvme_rdma_qp_event;
++	init_attr.qp_context = queue;
++	init_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
++	init_attr.qp_type = IB_QPT_RC;
 +	init_attr.poll_ctx = IB_POLL_SOFTIRQ;
 +
- 	init_attr.cap.max_recv_wr  = ISER_QP_MAX_RECV_DTOS;
--	init_attr.cap.max_send_sge = 2;
+ 	/* +1 for drain */
+-	init_attr.cap.max_send_wr = factor * queue->queue_size + 1;
++	init_attr.cap.max_send_wr = send_wr_factor * queue->queue_size + 1;
++	init_attr.cap.max_send_sge = 1 + NVME_RDMA_MAX_INLINE_SEGMENTS;
++
+ 	/* +1 for drain */
+ 	init_attr.cap.max_recv_wr = queue->queue_size + 1;
  	init_attr.cap.max_recv_sge = 1;
+-	init_attr.cap.max_send_sge = 1 + NVME_RDMA_MAX_INLINE_SEGMENTS;
+-	init_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
+-	init_attr.qp_type = IB_QPT_RC;
+-	init_attr.send_cq = queue->ib_cq;
+-	init_attr.recv_cq = queue->ib_cq;
 +
-+	init_attr.cap.max_send_sge = 2;
-+
- 	init_attr.sq_sig_type	= IB_SIGNAL_REQ_WR;
- 	init_attr.qp_type	= IB_QPT_RC;
- 	if (ib_conn->pi_support) {
-@@ -483,11 +430,7 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
- 	return ret;
++	/*
++	 * The admin queue is barely used once the controller is live, so don't
++	 * bother to spread it out.
++	 */
++	idx = nvme_rdma_queue_idx(queue);
++	if (idx > 0) {
++		init_attr.comp_vector = idx;
++		init_attr.create_flags |= IB_QP_CREATE_COMP_VECTOR;
++	}
  
- out_err:
--	mutex_lock(&ig.connlist_mutex);
--	ib_conn->comp->active_qps--;
--	mutex_unlock(&ig.connlist_mutex);
- 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
+ 	ret = rdma_create_qp(queue->cm_id, dev->pd, &init_attr);
+ 
+@@ -474,7 +487,6 @@ static void nvme_rdma_destroy_queue_ib(struct nvme_rdma_queue *queue)
+ 	struct ib_device *ibdev = dev->dev;
+ 
+ 	rdma_destroy_qp(queue->cm_id);
+-	ib_free_cq(queue->ib_cq);
+ 
+ 	nvme_rdma_free_ring(ibdev, queue->rsp_ring, queue->queue_size,
+ 			sizeof(struct nvme_completion), DMA_FROM_DEVICE);
+@@ -485,39 +497,15 @@ static void nvme_rdma_destroy_queue_ib(struct nvme_rdma_queue *queue)
+ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue,
+ 		struct nvme_rdma_device *dev)
+ {
+-	struct ib_device *ibdev = dev->dev;
+-	const int send_wr_factor = 3;			/* MR, SEND, INV */
+-	const int cq_factor = send_wr_factor + 1;	/* + RECV */
+-	int comp_vector, idx = nvme_rdma_queue_idx(queue);
 -
+ 	int ret;
+ 
+ 	queue->device = dev;
+ 
+-	/*
+-	 * The admin queue is barely used once the controller is live, so don't
+-	 * bother to spread it out.
+-	 */
+-	if (idx == 0)
+-		comp_vector = 0;
+-	else
+-		comp_vector = idx % ibdev->num_comp_vectors;
+-
+-
+-	/* +1 for ib_stop_cq */
+-	queue->ib_cq = ib_alloc_cq(dev->dev, queue,
+-				cq_factor * queue->queue_size + 1, comp_vector,
+-				IB_POLL_SOFTIRQ);
+-	if (IS_ERR(queue->ib_cq)) {
+-		ret = PTR_ERR(queue->ib_cq);
+-		goto out;
+-	}
+-
+-	ret = nvme_rdma_create_qp(queue, send_wr_factor);
++	ret = nvme_rdma_create_qp(queue);
+ 	if (ret)
+-		goto out_destroy_ib_cq;
++		goto out;
+ 
+-	queue->rsp_ring = nvme_rdma_alloc_ring(ibdev, queue->queue_size,
++	queue->rsp_ring = nvme_rdma_alloc_ring(dev->dev, queue->queue_size,
+ 			sizeof(struct nvme_completion), DMA_FROM_DEVICE);
+ 	if (!queue->rsp_ring) {
+ 		ret = -ENOMEM;
+@@ -528,8 +516,6 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue,
+ 
+ out_destroy_qp:
+ 	ib_destroy_qp(queue->qp);
+-out_destroy_ib_cq:
+-	ib_free_cq(queue->ib_cq);
+ out:
  	return ret;
  }
+@@ -781,7 +767,7 @@ static void nvme_rdma_error_recovery(struct nvme_rdma_ctrl *ctrl)
+ static void nvme_rdma_wr_error(struct ib_cq *cq, struct ib_wc *wc,
+ 		const char *op)
+ {
+-	struct nvme_rdma_queue *queue = cq->cq_context;
++	struct nvme_rdma_queue *queue = wc->qp->qp_context;
+ 	struct nvme_rdma_ctrl *ctrl = queue->ctrl;
  
-@@ -597,7 +540,6 @@ static void iser_free_ib_conn_res(struct iser_conn *iser_conn,
- 		  iser_conn, ib_conn->cma_id, ib_conn->qp);
+ 	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
+@@ -1141,7 +1127,7 @@ static int __nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc, int tag)
+ {
+ 	struct nvme_rdma_qe *qe =
+ 		container_of(wc->wr_cqe, struct nvme_rdma_qe, cqe);
+-	struct nvme_rdma_queue *queue = cq->cq_context;
++	struct nvme_rdma_queue *queue = wc->qp->qp_context;
+ 	struct ib_device *ibdev = queue->device->dev;
+ 	struct nvme_completion *cqe = qe->data;
+ 	const size_t len = sizeof(struct nvme_completion);
+@@ -1461,7 +1447,7 @@ err:
+ static int nvme_rdma_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
+ {
+ 	struct nvme_rdma_queue *queue = hctx->driver_data;
+-	struct ib_cq *cq = queue->ib_cq;
++	struct ib_cq *cq = queue->cm_id->qp->recv_cq;
+ 	struct ib_wc wc;
+ 	int found = 0;
  
- 	if (ib_conn->qp != NULL) {
--		ib_conn->comp->active_qps--;
- 		rdma_destroy_qp(ib_conn->cma_id);
- 		ib_conn->qp = NULL;
- 	}
 -- 
 2.1.4
 
