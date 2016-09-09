@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 2/6] nvmet-rdma: use implicit CQ allocation
-Date: Fri,  9 Sep 2016 14:36:23 +0200
-Message-ID: <1473424587-13818-3-git-send-email-hch@lst.de>
+Subject: [PATCH 4/6] IB/srpt: use implicit CQ allocation
+Date: Fri,  9 Sep 2016 14:36:25 +0200
+Message-ID: <1473424587-13818-5-git-send-email-hch@lst.de>
 References: <1473424587-13818-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -16,144 +16,158 @@ Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 [hch: ported to the new API]
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/nvme/target/rdma.c | 67 ++++++++++++----------------------------------
- 1 file changed, 17 insertions(+), 50 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 46 ++++++++++++-----------------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
+ 2 files changed, 15 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 187763a..fc7ed0a 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -83,7 +83,6 @@ enum nvmet_rdma_queue_state {
- struct nvmet_rdma_queue {
- 	struct rdma_cm_id	*cm_id;
- 	struct nvmet_port	*port;
--	struct ib_cq		*cq;
- 	atomic_t		sq_wr_avail;
- 	struct nvmet_rdma_device *dev;
- 	spinlock_t		state_lock;
-@@ -548,7 +547,7 @@ static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct nvmet_rdma_rsp *rsp =
- 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, read_cqe);
--	struct nvmet_rdma_queue *queue = cq->cq_context;
-+	struct nvmet_rdma_queue *queue = wc->qp->qp_context;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 48a44af..7c1110a 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -785,7 +785,7 @@ static int srpt_zerolength_write(struct srpt_rdma_ch *ch)
  
- 	WARN_ON(rsp->n_rdma <= 0);
- 	atomic_add(rsp->n_rdma, &queue->sq_wr_avail);
-@@ -722,7 +721,7 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
  {
- 	struct nvmet_rdma_cmd *cmd =
- 		container_of(wc->wr_cqe, struct nvmet_rdma_cmd, cqe);
--	struct nvmet_rdma_queue *queue = cq->cq_context;
-+	struct nvmet_rdma_queue *queue = wc->qp->qp_context;
- 	struct nvmet_rdma_rsp *rsp;
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
  
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-@@ -877,62 +876,41 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
+ 	if (wc->status == IB_WC_SUCCESS) {
+ 		srpt_process_wait_list(ch);
+@@ -1188,7 +1188,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+  */
+ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
  {
- 	struct ib_qp_init_attr qp_attr;
- 	struct nvmet_rdma_device *ndev = queue->dev;
--	int comp_vector, nr_cqe, ret, i;
--
--	/*
--	 * Spread the io queues across completion vectors,
--	 * but still keep all admin queues on vector 0.
--	 */
--	comp_vector = !queue->host_qid ? 0 :
--		queue->idx % ndev->device->num_comp_vectors;
--
--	/*
--	 * Reserve CQ slots for RECV + RDMA_READ/RDMA_WRITE + RDMA_SEND.
--	 */
--	nr_cqe = queue->recv_queue_size + 2 * queue->send_queue_size;
--
--	queue->cq = ib_alloc_cq(ndev->device, queue,
--			nr_cqe + 1, comp_vector,
--			IB_POLL_WORKQUEUE);
--	if (IS_ERR(queue->cq)) {
--		ret = PTR_ERR(queue->cq);
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 	struct srpt_send_ioctx *ioctx =
+ 		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ 
+@@ -1513,7 +1513,7 @@ out_wait:
+ 
+ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 	struct srpt_recv_ioctx *ioctx =
+ 		container_of(wc->wr_cqe, struct srpt_recv_ioctx, ioctx.cqe);
+ 
+@@ -1567,7 +1567,7 @@ static void srpt_process_wait_list(struct srpt_rdma_ch *ch)
+  */
+ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 	struct srpt_send_ioctx *ioctx =
+ 		container_of(wc->wr_cqe, struct srpt_send_ioctx, ioctx.cqe);
+ 	enum srpt_command_state state;
+@@ -1613,23 +1613,14 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		goto out;
+ 
+ retry:
+-	ch->cq = ib_alloc_cq(sdev->device, ch, ch->rq_size + srp_sq_size,
+-			0 /* XXX: spread CQs */, IB_POLL_WORKQUEUE);
+-	if (IS_ERR(ch->cq)) {
+-		ret = PTR_ERR(ch->cq);
 -		pr_err("failed to create CQ cqe= %d ret= %d\n",
--		       nr_cqe + 1, ret);
+-		       ch->rq_size + srp_sq_size, ret);
 -		goto out;
 -	}
-+	int ret, i;
- 
- 	memset(&qp_attr, 0, sizeof(qp_attr));
-+	qp_attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
- 	qp_attr.qp_context = queue;
- 	qp_attr.event_handler = nvmet_rdma_qp_event;
--	qp_attr.send_cq = queue->cq;
--	qp_attr.recv_cq = queue->cq;
- 	qp_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
- 	qp_attr.qp_type = IB_QPT_RC;
-+	qp_attr.poll_ctx = IB_POLL_WORKQUEUE;
+-
++	qp_init->create_flags = IB_QP_CREATE_ASSIGN_CQS;
+ 	qp_init->qp_context = (void *)ch;
+ 	qp_init->event_handler
+ 		= (void(*)(struct ib_event *, void*))srpt_qp_event;
+-	qp_init->send_cq = ch->cq;
+-	qp_init->recv_cq = ch->cq;
+ 	qp_init->srq = sdev->srq;
+ 	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
+ 	qp_init->qp_type = IB_QPT_RC;
++	qp_init->poll_ctx = IB_POLL_WORKQUEUE;
+ 	/*
+ 	 * We divide up our send queue size into half SEND WRs to send the
+ 	 * completions, and half R/W contexts to actually do the RDMA
+@@ -1640,6 +1631,9 @@ retry:
+ 	qp_init->cap.max_send_wr = srp_sq_size / 2;
+ 	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
+ 	qp_init->cap.max_send_sge = min(attrs->max_sge, SRPT_MAX_SG_PER_WQE);
 +
- 	/* +1 for drain */
- 	qp_attr.cap.max_send_wr = queue->send_queue_size + 1;
- 	qp_attr.cap.max_rdma_ctxs = queue->send_queue_size;
- 	qp_attr.cap.max_send_sge = max(ndev->device->attrs.max_sge_rd,
- 					ndev->device->attrs.max_sge);
- 
--	if (ndev->srq) {
-+	/* +1 for drain */
-+	qp_attr.cap.max_recv_wr = queue->recv_queue_size + 1;
++	qp_init->cap.max_recv_wr = ch->rq_size;
 +
-+	if (ndev->srq)
- 		qp_attr.srq = ndev->srq;
--	} else {
--		/* +1 for drain */
--		qp_attr.cap.max_recv_wr = 1 + queue->recv_queue_size;
-+	else
- 		qp_attr.cap.max_recv_sge = 2;
--	}
+ 	qp_init->port_num = ch->sport->port;
  
- 	ret = rdma_create_qp(queue->cm_id, ndev->pd, &qp_attr);
- 	if (ret) {
+ 	ch->qp = ib_create_qp(sdev->pd, qp_init);
+@@ -1647,19 +1641,17 @@ retry:
+ 		ret = PTR_ERR(ch->qp);
+ 		if (ret == -ENOMEM) {
+ 			srp_sq_size /= 2;
+-			if (srp_sq_size >= MIN_SRPT_SQ_SIZE) {
+-				ib_destroy_cq(ch->cq);
++			if (srp_sq_size >= MIN_SRPT_SQ_SIZE)
+ 				goto retry;
+-			}
+ 		}
  		pr_err("failed to create_qp ret= %d\n", ret);
 -		goto err_destroy_cq;
-+		return ret;
++		goto out;
  	}
  
- 	atomic_set(&queue->sq_wr_avail, qp_attr.cap.max_send_wr);
+ 	atomic_set(&ch->sq_wr_avail, qp_init->cap.max_send_wr);
  
 -	pr_debug("%s: max_cqe= %d max_sge= %d sq_size = %d cm_id= %p\n",
--		 __func__, queue->cq->cqe, qp_attr.cap.max_send_sge,
--		 qp_attr.cap.max_send_wr, queue->cm_id);
-+	pr_debug("%s: max_sge= %d sq_size = %d cm_id=%p\n", __func__,
-+		qp_attr.cap.max_send_sge, qp_attr.cap.max_send_wr,
-+		queue->cm_id);
+-		 __func__, ch->cq->cqe, qp_init->cap.max_send_sge,
++	pr_debug("%s: max_sge= %d sq_size = %d cm_id= %p\n",
++		 __func__, qp_init->cap.max_send_sge,
+ 		 qp_init->cap.max_send_wr, ch->cm_id);
  
- 	if (!ndev->srq) {
- 		for (i = 0; i < queue->recv_queue_size; i++) {
-@@ -941,18 +919,7 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
- 		}
- 	}
+ 	ret = srpt_init_ch_qp(ch, ch->qp);
+@@ -1672,17 +1664,9 @@ out:
  
--out:
--	return ret;
--
+ err_destroy_qp:
+ 	ib_destroy_qp(ch->qp);
 -err_destroy_cq:
--	ib_free_cq(queue->cq);
--	goto out;
--}
--
--static void nvmet_rdma_destroy_queue_ib(struct nvmet_rdma_queue *queue)
--{
--	rdma_destroy_qp(queue->cm_id);
--	ib_free_cq(queue->cq);
-+	return 0;
+-	ib_free_cq(ch->cq);
+ 	goto out;
  }
  
- static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
-@@ -961,7 +928,7 @@ static void nvmet_rdma_free_queue(struct nvmet_rdma_queue *queue)
+-static void srpt_destroy_ch_ib(struct srpt_rdma_ch *ch)
+-{
+-	ib_destroy_qp(ch->qp);
+-	ib_free_cq(ch->cq);
+-}
+-
+ /**
+  * srpt_close_ch() - Close an RDMA channel.
+  *
+@@ -1799,7 +1783,7 @@ static void srpt_release_channel_work(struct work_struct *w)
  
- 	nvmet_sq_destroy(&queue->nvme_sq);
+ 	ib_destroy_cm_id(ch->cm_id);
  
--	nvmet_rdma_destroy_queue_ib(queue);
-+	rdma_destroy_qp(queue->cm_id);
- 	if (!queue->dev->srq) {
- 		nvmet_rdma_free_cmds(queue->dev, queue->cmds,
- 				queue->recv_queue_size,
+-	srpt_destroy_ch_ib(ch);
++	ib_destroy_qp(ch->qp);
+ 
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
+ 			     ch->sport->sdev, ch->rq_size,
+@@ -2056,7 +2040,7 @@ release_channel:
+ 	ch->sess = NULL;
+ 
+ destroy_ib:
+-	srpt_destroy_ch_ib(ch);
++	ib_destroy_qp(ch->qp);
+ 
+ free_ring:
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 5818787..162eb11 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -264,7 +264,6 @@ enum rdma_ch_state {
+ struct srpt_rdma_ch {
+ 	struct ib_cm_id		*cm_id;
+ 	struct ib_qp		*qp;
+-	struct ib_cq		*cq;
+ 	struct ib_cqe		zw_cqe;
+ 	struct kref		kref;
+ 	int			rq_size;
 -- 
 2.1.4
 
