@@ -1,169 +1,245 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 6/6] nvme-rdma: use implicit CQ allocation
-Date: Fri,  9 Sep 2016 14:36:27 +0200
-Message-ID: <1473424587-13818-7-git-send-email-hch@lst.de>
-References: <1473424587-13818-1-git-send-email-hch@lst.de>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/9] ib_mad: incoming sminfo SMPs gets discarded if no
+ process_mad function is registered
+Date: Fri, 9 Sep 2016 10:24:06 -0400
+Message-ID: <37195bbc-0db0-8054-2174-8dc0faf7c692@dev.mellanox.co.il>
+References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
+ <1472774969-18997-2-git-send-email-knut.omang@oracle.com>
+ <57867d7f-cc9f-5ec2-6632-c552e6469e40@dev.mellanox.co.il>
+ <1473248532.3103.51.camel@oracle.com>
+ <098f69ae-6940-589a-e9ad-c65e34c958b7@dev.mellanox.co.il>
+ <1473355350.569.5.camel@oracle.com>
+ <2eddf795-71bb-1866-42d9-8a3ba3d512d4@dev.mellanox.co.il>
+ <1473387784.569.17.camel@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1473387784.569.17.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/nvme/host/rdma.c | 70 +++++++++++++++++++-----------------------------
- 1 file changed, 28 insertions(+), 42 deletions(-)
+On 9/8/2016 10:23 PM, Knut Omang wrote:
+> On Thu, 2016-09-08 at 15:02 -0400, Hal Rosenstock wrote:
+>> On 9/8/2016 1:22 PM, Knut Omang wrote:
+>>> On Thu, 2016-09-08 at 07:33 -0400, Hal Rosenstock wrote:
+>>>> On 9/7/2016 7:42 AM, Knut Omang wrote:
+>>>>> On Tue, 2016-09-06 at 10:01 -0400, Hal Rosenstock wrote:
+>>>>>> On 9/1/2016 8:09 PM, Knut Omang wrote:
+>>>>>>>
+>>>>>>> From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>>>>
+>>>>>>> The process_mad function is an optional IB driver entry point
+>>>>>>> allows a driver to intercept or modify MAD traffic.
+>>>>>>
+>>>>>> process_mad is optional but currently that optionality is based on
+>>>>>> whether MADs (QP0 and/or QP1) are supported or not. This is reflected in
+>>>>>> the core_cap_flags and is related to the device type: IB including RoCE
+>>>>>> v. non IB. The current in tree device drivers that do not support
+>>>>>> process_mad are i40iw (iWARP) and usnic.
+>>>>>
+>>>>> I see - we are introducing a new case here, then.
+>>>>>>>
+>>>>>>> This fix allows MAD traffic to flow down to the device also
+>>>>>>> when MAD traffic is completely handled by the device
+>>>>>>
+>>>>>> All MAD traffic is not handled by the device.
+>>>>>
+>>>>> Yes, in our case all MAD packet handling is done by the device,
+>>>>
+>>>> SMInfo is not handled by device unless you have SM in hardware.
+>>>> It also depends on management class, method, and direction
+>>>> (outgoing/incoming) and in case of DR SMP the DR path.
+>>>
+>>> Yes, with "handling" here we really mean "deciding what to do with it" -
+>>> in our case, the driver is not involved in those decisions at all.
+>>> That includes both inbound and outbound DR and LID routed SMInfo packets.
+>>>
+>>>>> the driver's task for MAD packets is just to forward.
+>>>>
+>>>> I think that it's a little more complex than that. See above.
+>>>>
+>>>> Perhaps some of this is due to not understanding what the effects of
+>>>> forwarding are with device such as SIF where SMA (and SMI) as well as
+>>>> PMA are totally in hardware. If MAD is locally handled rather than
+>>>> "forwarded", I assume that the device generates and sends the response
+>>>> MAD, right ?
+>>>
+>>> Yes, correct.
+>>>
+>>>> Do locally handled MADs work correctly ?
+>>>
+>>> Yes
+>>>
+>>>> Does OpenSM properly run on SIF?
+>>>
+>>> The goal is to have OpenSM work seamlessly with SIF, yes.
+>>
+>> More than whether it's a goal, I'm asking whether OpenSM currently works
+>> seamlessly with SIF with your changes (including driver not yet
+>> submitted to linux-rdma) ?
+> 
+> Yes, the SM works seamlessly with this patch and the driver.
+> 
+>>>> I saw a post yesterday on issue with running OpenSM on SIF in terms of
+>>>> obtaining the local PortInfo via DR SMP with hop count of 0.
+>>>
+>>> Do you have a link ref to this?
+>>
+>> http://lists.openfabrics.org/pipermail/users/2016-September/000607.html
+> 
+> Probably not SIF ;-)
+> 
+>>>>>>> and no process_mad function is provided.
+>>>>>>>
+>>>>>>> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>>>> ---
+>>>>>>>  drivers/infiniband/core/mad.c | 6 ++++++
+>>>>>>>  drivers/infiniband/core/smi.h | 6 ++----
+>>>>>>>  2 files changed, 8 insertions(+), 4 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+>>>>>>> index 2d49228..ece33ec 100644
+>>>>>>> --- a/drivers/infiniband/core/mad.c
+>>>>>>> +++ b/drivers/infiniband/core/mad.c
+>>>>>>> @@ -813,6 +813,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>>>>>>>  			goto out;
+>>>>>>>  	}
+>>>>>>>
+>>>>>>> +	/* If device does not define the optional process_mad function it means that
+>>>>>>> +	 * everything is handled in hardware:
+>>>>>>> +	 */
+>>>>>>> +	if (!device->process_mad)
+>>>>>>> +		goto out;
+>>>>>>> +
+>>>>>> This changes the ib_post_send_mad flow for those devices in that it
+>>>>>> takes the send rather than error path.
+>>>>>
+>>>>> Yes, but no packets will ever be received by this function for the i40iw and usnic
+>>>>> devices because they have said in their capabilities that they do not support SMI?
+>>>>
+>>>> You're right - it shouldn't get here for those devices (it's based on
+>>>> MAD rather than SMI cap) - umad open would fail for the port GUID.
+>>>
+>>> Ok, I see - good!
+>>>
+>>>>>>>  	local = kmalloc(sizeof *local, GFP_ATOMIC);
+>>>>>>>  	if (!local) {
+>>>>>>>  		ret = -ENOMEM;
+>>>>>>> diff --git a/drivers/infiniband/core/smi.h b/drivers/infiniband/core/smi.h
+>>>>>>> index 33c91c8..16a9f9a 100644
+>>>>>>> --- a/drivers/infiniband/core/smi.h
+>>>>>>> +++ b/drivers/infiniband/core/smi.h
+>>>>>>> @@ -67,8 +67,7 @@ static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
+>>>>>>>  {
+>>>>>>>  	/* C14-9:3 -- We're at the end of the DR segment of path */
+>>>>>>>  	/* C14-9:4 -- Hop Pointer = Hop Count + 1 -> give to SMA/SM */
+>>>>>>> -	return ((device->process_mad &&
+>>>>>>> -		!ib_get_smp_direction(smp) &&
+>>>>>>> +	return ((!ib_get_smp_direction(smp) &&
+>>>>>>>  		(smp->hop_ptr == smp->hop_cnt + 1)) ?
+>>>>>>>  		IB_SMI_HANDLE : IB_SMI_DISCARD);
+>>>>>>>  }
+>>>>>>> @@ -82,8 +81,7 @@ static inline enum smi_action smi_check_local_returning_smp(struct ib_smp *smp,
+>>>>>>>  {
+>>>>>>>  	/* C14-13:3 -- We're at the end of the DR segment of path */
+>>>>>>>  	/* C14-13:4 -- Hop Pointer == 0 -> give to SM */
+>>>>>>> -	return ((device->process_mad &&
+>>>>>>> -		ib_get_smp_direction(smp) &&
+>>>>>>> +	return ((ib_get_smp_direction(smp) &&
+>>>>>>>  		!smp->hop_ptr) ? IB_SMI_HANDLE : IB_SMI_DISCARD);
+>>>>>>>  }
+>>>>>> Also, with this approach of optional process_mad for IB device, will/how
+>>>>>> will sysfs port counters be supported for this device ? This currently
+>>>>>> relies on process_mad.
+>>>>>
+>>>>> Yes, that is actually a problem for us right now.
+>>>>> We do however think that the solution of composing a packet to send via process_mad is
+>>>>> kind of overkill as this doesn't allow devices to optimize the way to retrieve this info.
+>>>>
+>>>> Is there a way other than via PMA to get these counters ?
+>>>
+>>> Yes, the driver have a work request based model to request such info from the device.
+>>> This is partly firmware based so it can be extended/adapted if necessary.
+>>
+>> sysfs.c could be extended to support this in addition to the current PMA
+>> approach for PortCounters/PortCountersExtended although PMA access to
+>> your device needs to work anyhow for at least PortCounters. Perhaps a
+>> new optional device driver entry point for get_port_stats taking
+>> ib_device struct and port number and returning some stats struct ?
+> 
+> Sounds good! We do support PMA as well.
+>>
+>>>>>> It should be possible to implement a process_mad routine to return
+>>>>>> ib_mad_result based on management class and perhaps attribute ID in the
+>>>>>> case of SMInfo. Can this alternative approach be used for SIF ?
+>>>>>
+>>>>> The problem is that the handle_outgoing_dr_smp function has an implicit assumption that
+>>>>> some packets are handled by the process_mad function itself. There is no way to provide return
+>>>>> values from the process_mad function that ensures that packets are always forwarded to the device,
+>>>>> so the only viable solution without breaking the API seems to be to not implement process_mad.
+>>>>
+>>>> Are you referring to the difference between returning 0 when no
+>>>> process_mad function as this patch does and what happens when
+>>>> process_mad returns 0 inside of the ib_mad_post_send routine ?
+>>>
+>>> Yes, that sounds about right, it's been a while since we struggled with this.
+>>>
+>>>> Doesn't the send MAD need to be tracked in the MAD layer ?
+>>>
+>>> The MAD layer tracking happens above the driver, it creates and manages QP0
+>>
+>> and QP1 too
+> 
+> Yes, a similar story applies for QP1.
+> 
+>>> and sees all mad packets that gets sent as with Connect-X<n> ?
+>>
+>> Yes. That's what I'm referring to here as this is skipped since
+>> process_mad is NULL. Why wouldn't this be needed with SIF ? What happens
+>> if SIF device doesn't respond when it should ?
+>> Is there some error scenario where no response would come back ?
+> 
+> On the contrary, the idea is that the Infiniband side of SIF is up and ready to
+> handle MAD traffic etc. long before the host has booted, or if the host
+> had crashed for some reason.
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 1a18547..e8f343f 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -95,7 +95,6 @@ struct nvme_rdma_queue {
- 	size_t			cmnd_capsule_len;
- 	struct nvme_rdma_ctrl	*ctrl;
- 	struct nvme_rdma_device	*device;
--	struct ib_cq		*ib_cq;
- 	struct ib_qp		*qp;
- 
- 	unsigned long		flags;
-@@ -253,24 +252,38 @@ static int nvme_rdma_wait_for_cm(struct nvme_rdma_queue *queue)
- 	return queue->cm_error;
- }
- 
--static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue, const int factor)
-+static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue)
- {
- 	struct nvme_rdma_device *dev = queue->device;
- 	struct ib_qp_init_attr init_attr;
--	int ret;
-+	int ret, idx;
-+	const int send_wr_factor = 3;		/* MR, SEND, INV */
- 
- 	memset(&init_attr, 0, sizeof(init_attr));
-+	init_attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
- 	init_attr.event_handler = nvme_rdma_qp_event;
-+	init_attr.qp_context = queue;
-+	init_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
-+	init_attr.qp_type = IB_QPT_RC;
-+	init_attr.poll_ctx = IB_POLL_SOFTIRQ;
-+
- 	/* +1 for drain */
--	init_attr.cap.max_send_wr = factor * queue->queue_size + 1;
-+	init_attr.cap.max_send_wr = send_wr_factor * queue->queue_size + 1;
-+	init_attr.cap.max_send_sge = 1 + NVME_RDMA_MAX_INLINE_SEGMENTS;
-+
- 	/* +1 for drain */
- 	init_attr.cap.max_recv_wr = queue->queue_size + 1;
- 	init_attr.cap.max_recv_sge = 1;
--	init_attr.cap.max_send_sge = 1 + NVME_RDMA_MAX_INLINE_SEGMENTS;
--	init_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
--	init_attr.qp_type = IB_QPT_RC;
--	init_attr.send_cq = queue->ib_cq;
--	init_attr.recv_cq = queue->ib_cq;
-+
-+	/*
-+	 * The admin queue is barely used once the controller is live, so don't
-+	 * bother to spread it out.
-+	 */
-+	idx = nvme_rdma_queue_idx(queue);
-+	if (idx > 0) {
-+		init_attr.comp_vector = idx;
-+		init_attr.create_flags |= IB_QP_CREATE_COMP_VECTOR;
-+	}
- 
- 	ret = rdma_create_qp(queue->cm_id, dev->pd, &init_attr);
- 
-@@ -474,7 +487,6 @@ static void nvme_rdma_destroy_queue_ib(struct nvme_rdma_queue *queue)
- 	struct ib_device *ibdev = dev->dev;
- 
- 	rdma_destroy_qp(queue->cm_id);
--	ib_free_cq(queue->ib_cq);
- 
- 	nvme_rdma_free_ring(ibdev, queue->rsp_ring, queue->queue_size,
- 			sizeof(struct nvme_completion), DMA_FROM_DEVICE);
-@@ -485,39 +497,15 @@ static void nvme_rdma_destroy_queue_ib(struct nvme_rdma_queue *queue)
- static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue,
- 		struct nvme_rdma_device *dev)
- {
--	struct ib_device *ibdev = dev->dev;
--	const int send_wr_factor = 3;			/* MR, SEND, INV */
--	const int cq_factor = send_wr_factor + 1;	/* + RECV */
--	int comp_vector, idx = nvme_rdma_queue_idx(queue);
--
- 	int ret;
- 
- 	queue->device = dev;
- 
--	/*
--	 * The admin queue is barely used once the controller is live, so don't
--	 * bother to spread it out.
--	 */
--	if (idx == 0)
--		comp_vector = 0;
--	else
--		comp_vector = idx % ibdev->num_comp_vectors;
--
--
--	/* +1 for ib_stop_cq */
--	queue->ib_cq = ib_alloc_cq(dev->dev, queue,
--				cq_factor * queue->queue_size + 1, comp_vector,
--				IB_POLL_SOFTIRQ);
--	if (IS_ERR(queue->ib_cq)) {
--		ret = PTR_ERR(queue->ib_cq);
--		goto out;
--	}
--
--	ret = nvme_rdma_create_qp(queue, send_wr_factor);
-+	ret = nvme_rdma_create_qp(queue);
- 	if (ret)
--		goto out_destroy_ib_cq;
-+		goto out;
- 
--	queue->rsp_ring = nvme_rdma_alloc_ring(ibdev, queue->queue_size,
-+	queue->rsp_ring = nvme_rdma_alloc_ring(dev->dev, queue->queue_size,
- 			sizeof(struct nvme_completion), DMA_FROM_DEVICE);
- 	if (!queue->rsp_ring) {
- 		ret = -ENOMEM;
-@@ -528,8 +516,6 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue,
- 
- out_destroy_qp:
- 	ib_destroy_qp(queue->qp);
--out_destroy_ib_cq:
--	ib_free_cq(queue->ib_cq);
- out:
- 	return ret;
- }
-@@ -781,7 +767,7 @@ static void nvme_rdma_error_recovery(struct nvme_rdma_ctrl *ctrl)
- static void nvme_rdma_wr_error(struct ib_cq *cq, struct ib_wc *wc,
- 		const char *op)
- {
--	struct nvme_rdma_queue *queue = cq->cq_context;
-+	struct nvme_rdma_queue *queue = wc->qp->qp_context;
- 	struct nvme_rdma_ctrl *ctrl = queue->ctrl;
- 
- 	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
-@@ -1141,7 +1127,7 @@ static int __nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc, int tag)
- {
- 	struct nvme_rdma_qe *qe =
- 		container_of(wc->wr_cqe, struct nvme_rdma_qe, cqe);
--	struct nvme_rdma_queue *queue = cq->cq_context;
-+	struct nvme_rdma_queue *queue = wc->qp->qp_context;
- 	struct ib_device *ibdev = queue->device->dev;
- 	struct nvme_completion *cqe = qe->data;
- 	const size_t len = sizeof(struct nvme_completion);
-@@ -1461,7 +1447,7 @@ err:
- static int nvme_rdma_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
- {
- 	struct nvme_rdma_queue *queue = hctx->driver_data;
--	struct ib_cq *cq = queue->ib_cq;
-+	struct ib_cq *cq = queue->cm_id->qp->recv_cq;
- 	struct ib_wc wc;
- 	int found = 0;
- 
--- 
-2.1.4
+No transmission medium (including backplanes) are perfect. Isn't there
+some rare case where there is some bit error occurs causing bad CRC so
+device never sees valid local MAD or response never makes it back ?
 
+Anyhow, I think I see now. There is no such thing as local completion
+with SIF so that case is handled like any other MAD send in
+ib_post_send_mad code path (and that tracks the MAD and handles timeouts
+in case response is not received to "transaction").
+
+One minor thing:
+Since SIF device includes SMA and PMA, there should be no need for mad
+to "open" the agents. That can either be handled in mad.c:ib_mad_[init
+remove]_device to skip ib_agent_port_[open close] when
+device->process_mad is not defined or modify those routines in agent.c
+to just return if device->process_mad is not defined.
+
+-- Hal
+
+> 
+> Knut
+> 
+>> -- Hal
+>>
+>>>> Is there some problem invoking ib_send_mad (or ib_send_rmpp_mad) ?
+>>>
+>>> No, to my knowledge we are able to support the normal management
+>>> applications just as one would expect.
+>>>
+>>> Thanks,
+>>> Knut
+>>>
+>>>
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
