@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 13/20] IB/hns: Add check for some NULL pointer scenes
-Date: Fri, 9 Sep 2016 18:30:44 +0800
-Message-ID: <1473417051-99560-14-git-send-email-salil.mehta@huawei.com>
+Subject: [PATCH for-next 04/20] IB/hns: Fix bug of using uninit refcount and free
+Date: Fri, 9 Sep 2016 18:30:35 +0800
+Message-ID: <1473417051-99560-5-git-send-email-salil.mehta@huawei.com>
 References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,45 +14,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-Some pointers have not be checked when they are null,
-so we add check for them.
+In current version, it uses uninitialized parameters named
+refcount and free in hns_roce_cq_event.
+This patch initializes these parameter in cq alloc and add
+correspond process in cq free.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Dongdong Huang(Donald) <hdd.huang@huawei.com>
-Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_cq.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index f0d6315..e3e154c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -92,6 +92,12 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index a52306f..3095f06 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -152,6 +152,9 @@ static int hns_roce_cq_alloc(struct hns_roce_dev *hr_dev, int nent,
+ 	hr_cq->cons_index = 0;
+ 	hr_cq->uar = hr_uar;
  
- 		wqe = get_send_wqe(qp, ind & (qp->sq.wqe_cnt - 1));
-+		if (unlikely(!wqe)) {
-+			dev_err(dev, "get send wqe failed\n");
-+			ret = -EINVAL;
-+			*bad_wr = wr;
-+			goto out;
-+		}
- 		qp->sq.wrid[(qp->sq.head + nreq) & (qp->sq.wqe_cnt - 1)] =
- 								      wr->wr_id;
- 
-@@ -1558,6 +1564,11 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *hr_cq,
- 		sq_wqe = get_send_wqe(*cur_qp, roce_get_field(cqe->cqe_byte_4,
- 						CQE_BYTE_4_WQE_INDEX_M,
- 						CQE_BYTE_4_WQE_INDEX_S));
-+		if (unlikely(!sq_wqe)) {
-+			dev_err(dev, "Get send wqe failed!\n");
-+			return -EFAULT;
-+		}
++	atomic_set(&hr_cq->refcount, 1);
++	init_completion(&hr_cq->free);
 +
- 		switch (sq_wqe->flag & HNS_ROCE_WQE_OPCODE_MASK) {
- 		case HNS_ROCE_WQE_OPCODE_SEND:
- 			wc->opcode = IB_WC_SEND;
+ 	return 0;
+ 
+ err_radix:
+@@ -191,6 +194,11 @@ static void hns_roce_free_cq(struct hns_roce_dev *hr_dev,
+ 	/* Waiting interrupt process procedure carried out */
+ 	synchronize_irq(hr_dev->eq_table.eq[hr_cq->vector].irq);
+ 
++	/* wait for all interrupt processed */
++	if (atomic_dec_and_test(&hr_cq->refcount))
++		complete(&hr_cq->free);
++	wait_for_completion(&hr_cq->free);
++
+ 	spin_lock_irq(&cq_table->lock);
+ 	radix_tree_delete(&cq_table->tree, hr_cq->cqn);
+ 	spin_unlock_irq(&cq_table->lock);
 -- 
 1.7.9.5
