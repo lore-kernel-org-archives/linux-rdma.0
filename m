@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 18/20] IB/hns: Update the rq head when modify qp state
-Date: Fri, 9 Sep 2016 18:30:49 +0800
-Message-ID: <1473417051-99560-19-git-send-email-salil.mehta@huawei.com>
+Subject: [PATCH for-next 19/20] IB/hns: Fix the bug when platform_get_resource() exec fail
+Date: Fri, 9 Sep 2016 18:30:50 +0800
+Message-ID: <1473417051-99560-20-git-send-email-salil.mehta@huawei.com>
 References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,30 +14,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-The rq head in qpc was zero will miss the rq wqes which
-have be sent, so here we should take the real value.
+This patch mainly fixes the bug with platform_get_resource().
+It should return NULL when platform_get_resource() exec fail.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_pd.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index bdd9453..7a61d7e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2266,7 +2266,8 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index 0cd6132..05db7d5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -110,6 +110,10 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
+ 			     (hr_dev->caps.phy_num_uars - 1) + 1;
  
- 		roce_set_field(context->qpc_bytes_68,
- 			       QP_CONTEXT_QPC_BYTES_68_RQ_HEAD_M,
--			       QP_CONTEXT_QPC_BYTES_68_RQ_HEAD_S, 0);
-+			       QP_CONTEXT_QPC_BYTES_68_RQ_HEAD_S,
-+			       hr_qp->rq.head);
- 		roce_set_field(context->qpc_bytes_68,
- 			       QP_CONTEXT_QPC_BYTES_68_RQ_CUR_INDEX_M,
- 			       QP_CONTEXT_QPC_BYTES_68_RQ_CUR_INDEX_S, 0);
+ 	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(&hr_dev->pdev->dev, "memory resource not found!\n");
++		return -EINVAL;
++	}
+ 	uar->pfn = ((res->start) >> PAGE_SHIFT) + uar->index;
+ 
+ 	return 0;
 -- 
 1.7.9.5
 
