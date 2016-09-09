@@ -1,62 +1,83 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 00/20] IB/hns: Fixes for various misc. bugs
-Date: Fri, 9 Sep 2016 18:30:31 +0800
-Message-ID: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
+ ISSI > 0 mode
+Date: Fri, 9 Sep 2016 13:39:18 +0300
+Message-ID: <CAJ3xEMhK4e9tD3awWt0uFdg=ptai3c5kCeDUmOBudQ2nu46rRQ@mail.gmail.com>
+References: <1473232990-22766-1-git-send-email-dchang@suse.com>
+ <20160908140752.GN18398@leon.nu> <20160909025527.GC3042@linux-kyyb.suse>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, xuwei5@hisilicon.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160909025527.GC3042-5oAczMR2RyTI588T0lkTTQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Chang <dchang-IBi9RG/b67k@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch-set introduces fixes for various bugs and potential
-problems found during internal review and testing phases of
-the HNS RoCE driver.
+On Fri, Sep 9, 2016 at 5:55 AM, David Chang <dchang-IBi9RG/b67k@public.gmane.org> wrote:
+> On Thu, Sep 08, 2016 at 05:07:52PM +0300, Leon Romanovsky wrote:
+>> On Wed, Sep 07, 2016 at 03:23:10PM +0800, David Chang wrote:
+>> > When using MAD_IFC command, we should also consider avoiding in
+>> > ISSI > 0 mode, otherwise most of the MAD_IFC command features
+>> > are deprecated and cannot be used.
+>> >
+>> > Fixes: d603c809ef91 ("IB/mlx5: Fix decision on using MAD_IFC")
+>> > Reported-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
+>> > Signed-off-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+>>
+>> NAK, It is wrong, the deprecation is removed from programming manual.
 
-NOTE: These fixes have been done over already floated CM
-patch: https://lkml.org/lkml/2016/9/1/609
+What do mean by "deprecation is removed", please clarify. Do you claim
+that MAD_IFC is usable on Ethernet port or when ISSI > 0?
 
-Fixes have been done & tested  by Oulijun and Huwei.
+Note that even if this  valid with the current firmware (and I don't
+think that is the case), the driver you are maintaining (mlx5_ib)
+needs to support previous GA firmware releases which are out there,
+for which this unknown deprecation you are talking about doesn't hold.
 
-Lijun Ou (17):
-  IB/hns: Remove unused parameters in some functions
-  IB/hns: Remove parameters of resize cq
-  IB/hns: Add the check for pointer ctrl
-  IB/hns: Fix bug of using uninit refcount and free
-  IB/hns: Simplify function of pd alloc and qp alloc
-  IB/hns: Remove unused parameter named qp_type
-  IB/hns: Modify the init of iboe lock
-  IB/hns: Fix bug of memory leakage for registering user mr
-  IB/hns: Return bad wr while post send failed
-  IB/hns: Add check for some NULL pointer scenes
-  IB/hns: The Ack timeout need a lower limit value
-  IB/hns: Some items of qpc need to take user param
-  IB/hns: Validate mtu when modified qp
-  IB/hns: Cq has not been freed
-  IB/hns: Update the rq head when modify qp state
-  IB/hns: Fix the bug when platform_get_resource() exec fail
-  IB/hns: Delete the redundant lines in hns_roce_v1_m_qp()
 
-Wei Hu (Xavier) (3):
-  IB/hns: Fix bug of clear hem
-  IB/hns: Delete the sqp_start from the structure hns_roce_caps
-  IB/hns: Optimize code of aeq and ceq interrupt handle and fix the bug
-    of qpn
+> Without the patch, we got the following message.
+> [    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
+> ...
+> [   10.417421] mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb 2014)
+> [   10.419282] ------------[ cut here ]------------
+> [   10.419291] WARNING: CPU: 2 PID: 2517 at ../drivers/infiniband/core/cache.c:702 ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]()
 
- drivers/infiniband/hw/hns/hns_roce_cq.c     |   23 ++-
- drivers/infiniband/hw/hns/hns_roce_device.h |   13 +-
- drivers/infiniband/hw/hns/hns_roce_eq.c     |  146 +++++++++---------
- drivers/infiniband/hw/hns/hns_roce_eq.h     |    4 +
- drivers/infiniband/hw/hns/hns_roce_hem.c    |   76 +---------
- drivers/infiniband/hw/hns/hns_roce_hem.h    |    4 +
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  217 +++++++++++++++++++++++----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |    9 ++
- drivers/infiniband/hw/hns/hns_roce_main.c   |    4 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c     |    3 +
- drivers/infiniband/hw/hns/hns_roce_pd.c     |   18 +--
- drivers/infiniband/hw/hns/hns_roce_qp.c     |   39 ++---
- 12 files changed, 324 insertions(+), 232 deletions(-)
 
--- 
-1.7.9.5
+and this reproduces 100% over Eth ports or just sometimes?
+
+> [   10.419386] CPU: 2 PID: 2517 Comm: modprobe Tainted: G                 X 4.4.19-1-default #1
+> [   10.419387] Hardware name: Dell Inc. PowerEdge R730xd/072T6D, BIOS 2.1.7 06/16/2016
+> [   10.419389]  0000000000000000 ffffffff8130d740 0000000000000000 ffffffffa04e0300
+> [   10.419395]  ffffffff8107c121
+> [   10.419400]  ffff88017bfe0000 ffff88003712b9e0 ffff88045ad905c0
+> [   10.419401]  0000000000000001 fffffffffffffffc ffffffffa04d8a58 0000000000000000
+> [   10.419406] Call Trace:
+> [   10.419415]  [<ffffffff81019a59>] dump_trace+0x59/0x310
+> [   10.419419]  [<ffffffff81019dfa>] show_stack_log_lvl+0xea/0x170
+> [   10.419421]  [<ffffffff8101ab81>] show_stack+0x21/0x40
+> [   10.419426]  [<ffffffff8130d740>] dump_stack+0x5c/0x7c
+> [   10.419431]  [<ffffffff8107c121>] warn_slowpath_common+0x81/0xb0
+> [   10.419436]  [<ffffffffa04d8a58>] ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
+> [   10.419449]  [<ffffffffa04da2dd>] add_netdev_ips+0x9d/0xa0 [ib_core]
+> [   10.419456]  [<ffffffffa04da45b>] enum_all_gids_of_dev_cb+0x7b/0xb0 [ib_core]
+> [   10.419461]  [<ffffffffa04d641d>] ib_enum_roce_netdev+0xdd/0x100 [ib_core]
+> [   10.419466]  [<ffffffffa04da5ed>] roce_rescan_device+0x1d/0x20 [ib_core]
+> [   10.419470]  [<ffffffffa04d8cdb>] ib_cache_setup_one+0x23b/0x3d0 [ib_core]
+> [   10.419475]  [<ffffffffa04d606b>] ib_register_device+0x2bb/0x4f0 [ib_core]
+> [   10.419483]  [<ffffffffa0618bbf>] mlx5_ib_add+0xaaf/0x12e0 [mlx5_ib]
+> [   10.419492]  [<ffffffffa08b76c1>] mlx5_add_device+0x41/0xa0 [mlx5_core]
+> [   10.419498]  [<ffffffffa08b7785>] mlx5_register_interface+0x65/0xa0 [mlx5_core]
+> [   10.419502]  [<ffffffffa0474030>] mlx5_ib_init+0x30/0x42 [mlx5_ib]
+> [   10.419506]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
+> [   10.419510]  [<ffffffff811827e8>] do_init_module+0x5a/0x1d7
+> [   10.419514]  [<ffffffff81103536>] load_module+0x1366/0x1c50
+> [   10.419518]  [<ffffffff81103fd0>] SYSC_finit_module+0x70/0xa0
+> [   10.419523]  [<ffffffff815e126e>] entry_SYSCALL_64_fastpath+0x12/0x6d
+> [   10.420681] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
+> [   10.420682] Leftover inexact backtrace:
+> [   10.420684] ---[ end trace fc8ccb16c9d8e28a ]---
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
