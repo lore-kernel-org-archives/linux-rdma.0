@@ -1,75 +1,99 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 4/8] net: hns: delete repeat read fbd num after while
-Date: Sat, 10 Sep 2016 05:09:26 +0100
-Message-ID: <20160910040930.25988-5-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH for-next 5/8] net: hns: fix port not available after testing loopback
+Date: Sat, 10 Sep 2016 05:09:27 +0100
+Message-ID: <20160910040930.25988-6-salil.mehta@huawei.com>
 References: <20160910040930.25988-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160910040930.25988-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160910040930.25988-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Kejian Yan <yankejian@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+From: Kejian Yan <yankejian@huawei.com>
 
-Because we handle the received packets after napi, so delete the checking
-before submitting. It delete the code of read the fbd number register,
-which reduces the cpu usages while receiving packets
+After running command "ethtool -t eth0", eth0 can not be connected to
+network. It is caused by the changing the inner loopback register and
+this register cannot be changed when hns connected to network. The
+routine of setting this register needs to be removed and using promisc
+mode to let the packet looped back pass by dsaf mode.
 
-Signed-off-by: Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Reviewed-by: Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reported-by: Jun He <hjat2005@huawei.com>
+Signed-off-by: Kejian Yan <yankejian@huawei.com>
+Reviewed-by: Yisen Zhaung <yisen.zhuang@huawei.com>
+Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/net/ethernet/hisilicon/hns/hns_enet.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c  |  3 ---
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 10 ----------
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h |  1 -
+ drivers/net/ethernet/hisilicon/hns/hns_ethtool.c   |  7 +++++++
+ 4 files changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_enet.c b/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-index e6bfc51..09ed237 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-@@ -760,7 +760,7 @@ static int hns_nic_rx_poll_one(struct hns_nic_ring_data *ring_data,
- {
- 	struct hnae_ring *ring = ring_data->ring;
- 	struct sk_buff *skb;
--	int num, bnum, ex_num;
-+	int num, bnum;
- #define RCB_NOF_ALLOC_RX_BUFF_ONCE 16
- 	int recv_pkts, recv_bds, clean_count, err;
- 	int unused_count = hns_desc_unused(ring);
-@@ -770,7 +770,7 @@ static int hns_nic_rx_poll_one(struct hns_nic_ring_data *ring_data,
- 
- 	recv_pkts = 0, recv_bds = 0, clean_count = 0;
- 	num -= unused_count;
--recv:
-+
- 	while (recv_pkts < budget && recv_bds < num) {
- 		/* reuse or realloc buffers */
- 		if (clean_count + unused_count >= RCB_NOF_ALLOC_RX_BUFF_ONCE) {
-@@ -798,17 +798,6 @@ recv:
- 		recv_pkts++;
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c b/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c
+index e28d960..e0f9cdc 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c
+@@ -678,9 +678,6 @@ static int hns_ae_config_loopback(struct hnae_handle *handle,
+ 		ret = -EINVAL;
  	}
  
--	/* make all data has been write before submit */
--	if (recv_pkts < budget) {
--		ex_num = readl_relaxed(ring->io_base + RCB_REG_FBDNUM);
--		ex_num -= unused_count;
--		if (ex_num > clean_count) {
--			num += ex_num - clean_count;
--			rmb(); /*complete read rx ring bd number*/
--			goto recv;
--		}
--	}
+-	if (!ret)
+-		hns_dsaf_set_inner_lb(mac_cb->dsaf_dev, mac_cb->mac_id, en);
 -
- out:
- 	/* make all data has been write before submit */
- 	if (clean_count + unused_count > 0)
+ 	return ret;
+ }
+ 
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+index 9283bc6..827d8fb 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+@@ -768,16 +768,6 @@ void hns_dsaf_set_promisc_mode(struct dsaf_device *dsaf_dev, u32 en)
+ 				 DSAF_CFG_MIX_MODE_S, !!en);
+ }
+ 
+-void hns_dsaf_set_inner_lb(struct dsaf_device *dsaf_dev, u32 mac_id, u32 en)
+-{
+-	if (AE_IS_VER1(dsaf_dev->dsaf_ver) ||
+-	    dsaf_dev->mac_cb[mac_id]->mac_type == HNAE_PORT_DEBUG)
+-		return;
+-
+-	dsaf_set_dev_bit(dsaf_dev, DSAFV2_SERDES_LBK_0_REG + 4 * mac_id,
+-			 DSAFV2_SERDES_LBK_EN_B, !!en);
+-}
+-
+ /**
+  * hns_dsaf_tbl_stat_en - tbl
+  * @dsaf_id: dsa fabric id
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
+index 35df187..c494fc5 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
+@@ -466,6 +466,5 @@ void hns_dsaf_get_rx_mac_pause_en(struct dsaf_device *dsaf_dev, int mac_id,
+ 				  u32 *en);
+ int hns_dsaf_set_rx_mac_pause_en(struct dsaf_device *dsaf_dev, int mac_id,
+ 				 u32 en);
+-void hns_dsaf_set_inner_lb(struct dsaf_device *dsaf_dev, u32 mac_id, u32 en);
+ 
+ #endif /* __HNS_DSAF_MAIN_H__ */
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c b/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c
+index ab33487..fa91ce3 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c
+@@ -342,6 +342,13 @@ static int __lb_setup(struct net_device *ndev,
+ 		break;
+ 	}
+ 
++	if (!ret) {
++		if (loop == MAC_LOOP_NONE)
++			h->dev->ops->set_promisc_mode(
++				h, ndev->flags & IFF_PROMISC);
++		else
++			h->dev->ops->set_promisc_mode(h, 1);
++	}
+ 	return ret;
+ }
+ 
 -- 
 1.9.1
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
