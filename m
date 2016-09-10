@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 1/8] net: hns: fix port unavailable after hnae_reserve_buffer_map fail
-Date: Sat, 10 Sep 2016 05:09:23 +0100
-Message-ID: <20160910040930.25988-2-salil.mehta@huawei.com>
+Subject: [PATCH for-next 3/8] net: hns: add fini_process for v2 napi process
+Date: Sat, 10 Sep 2016 05:09:25 +0100
+Message-ID: <20160910040930.25988-4-salil.mehta@huawei.com>
 References: <20160910040930.25988-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,85 +9,119 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160910040930.25988-1-salil.mehta@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, lipeng <lipeng321@huawei.com>
+Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Daode Huang <huangdaode@hisilicon.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: lipeng <lipeng321@huawei.com>
+From: Daode Huang <huangdaode@hisilicon.com>
 
-When hnae_reserve_buffer_map fail, it will break cycle and some
-buffer description has no available memory, therefore the port will
-be unavailable.
+This patch adds fini_process for v2, it handles the packets recevied
+by the hardware in the napi porcess. With this patch, the hardware irq
+numbers will drop 50% per sec.
 
-Signed-off-by: Peng Li <lipeng321@huawei.com>
+Signed-off-by: Daode Huang <huangdaode@hisilicon.com>
 Reviewed-by: Yisen Zhuang <yisen.zhuang@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/net/ethernet/hisilicon/hns/hns_enet.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/hisilicon/hns/hns_enet.c | 45 ++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/net/ethernet/hisilicon/hns/hns_enet.c b/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-index d7e1f8c..32ff270 100644
+index 32ff270..e6bfc51 100644
 --- a/drivers/net/ethernet/hisilicon/hns/hns_enet.c
 +++ b/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-@@ -747,6 +747,14 @@ static void hns_nic_rx_up_pro(struct hns_nic_ring_data *ring_data,
- 	ndev->last_rx = jiffies;
+@@ -823,6 +823,8 @@ static void hns_nic_rx_fini_pro(struct hns_nic_ring_data *ring_data)
+ 	struct hnae_ring *ring = ring_data->ring;
+ 	int num = 0;
+ 
++	ring_data->ring->q->handle->dev->ops->toggle_ring_irq(ring, 0);
++
+ 	/* for hardware bug fixed */
+ 	num = readl_relaxed(ring->io_base + RCB_REG_FBDNUM);
+ 
+@@ -834,6 +836,20 @@ static void hns_nic_rx_fini_pro(struct hns_nic_ring_data *ring_data)
+ 	}
  }
  
-+static int hns_desc_unused(struct hnae_ring *ring)
++static void hns_nic_rx_fini_pro_v2(struct hns_nic_ring_data *ring_data)
 +{
-+	int ntc = ring->next_to_clean;
-+	int ntu = ring->next_to_use;
++	struct hnae_ring *ring = ring_data->ring;
++	int num = 0;
 +
-+	return ((ntc >= ntu) ? 0 : ring->desc_num) + ntc - ntu;
++	num = readl_relaxed(ring->io_base + RCB_REG_FBDNUM);
++
++	if (num == 0)
++		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
++			ring, 0);
++	else
++		napi_schedule(&ring_data->napi);
 +}
 +
- static int hns_nic_rx_poll_one(struct hns_nic_ring_data *ring_data,
- 			       int budget, void *v)
+ static inline void hns_nic_reclaim_one_desc(struct hnae_ring *ring,
+ 					    int *bytes, int *pkts)
  {
-@@ -755,17 +763,21 @@ static int hns_nic_rx_poll_one(struct hns_nic_ring_data *ring_data,
- 	int num, bnum, ex_num;
- #define RCB_NOF_ALLOC_RX_BUFF_ONCE 16
- 	int recv_pkts, recv_bds, clean_count, err;
-+	int unused_count = hns_desc_unused(ring);
+@@ -935,7 +951,11 @@ static int hns_nic_tx_poll_one(struct hns_nic_ring_data *ring_data,
+ static void hns_nic_tx_fini_pro(struct hns_nic_ring_data *ring_data)
+ {
+ 	struct hnae_ring *ring = ring_data->ring;
+-	int head = readl_relaxed(ring->io_base + RCB_REG_HEAD);
++	int head;
++
++	ring_data->ring->q->handle->dev->ops->toggle_ring_irq(ring, 0);
++
++	head = readl_relaxed(ring->io_base + RCB_REG_HEAD);
  
- 	num = readl_relaxed(ring->io_base + RCB_REG_FBDNUM);
- 	rmb(); /* make sure num taken effect before the other data is touched */
- 
- 	recv_pkts = 0, recv_bds = 0, clean_count = 0;
-+	num -= unused_count;
- recv:
- 	while (recv_pkts < budget && recv_bds < num) {
- 		/* reuse or realloc buffers */
--		if (clean_count >= RCB_NOF_ALLOC_RX_BUFF_ONCE) {
--			hns_nic_alloc_rx_buffers(ring_data, clean_count);
-+		if (clean_count + unused_count >= RCB_NOF_ALLOC_RX_BUFF_ONCE) {
-+			hns_nic_alloc_rx_buffers(ring_data,
-+						 clean_count + unused_count);
- 			clean_count = 0;
-+			unused_count = hns_desc_unused(ring);
- 		}
- 
- 		/* poll one pkt */
-@@ -789,7 +801,7 @@ recv:
- 	/* make all data has been write before submit */
- 	if (recv_pkts < budget) {
- 		ex_num = readl_relaxed(ring->io_base + RCB_REG_FBDNUM);
--
-+		ex_num -= unused_count;
- 		if (ex_num > clean_count) {
- 			num += ex_num - clean_count;
- 			rmb(); /*complete read rx ring bd number*/
-@@ -799,8 +811,9 @@ recv:
- 
- out:
- 	/* make all data has been write before submit */
--	if (clean_count > 0)
--		hns_nic_alloc_rx_buffers(ring_data, clean_count);
-+	if (clean_count + unused_count > 0)
-+		hns_nic_alloc_rx_buffers(ring_data,
-+					 clean_count + unused_count);
- 
- 	return recv_pkts;
+ 	if (head != ring->next_to_clean) {
+ 		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
+@@ -945,6 +965,18 @@ static void hns_nic_tx_fini_pro(struct hns_nic_ring_data *ring_data)
+ 	}
  }
+ 
++static void hns_nic_tx_fini_pro_v2(struct hns_nic_ring_data *ring_data)
++{
++	struct hnae_ring *ring = ring_data->ring;
++	int head = readl_relaxed(ring->io_base + RCB_REG_HEAD);
++
++	if (head == ring->next_to_clean)
++		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
++			ring, 0);
++	else
++		napi_schedule(&ring_data->napi);
++}
++
+ static void hns_nic_tx_clr_all_bufs(struct hns_nic_ring_data *ring_data)
+ {
+ 	struct hnae_ring *ring = ring_data->ring;
+@@ -976,10 +1008,7 @@ static int hns_nic_common_poll(struct napi_struct *napi, int budget)
+ 
+ 	if (clean_complete >= 0 && clean_complete < budget) {
+ 		napi_complete(napi);
+-		ring_data->ring->q->handle->dev->ops->toggle_ring_irq(
+-			ring_data->ring, 0);
+-		if (ring_data->fini_process)
+-			ring_data->fini_process(ring_data);
++		ring_data->fini_process(ring_data);
+ 		return 0;
+ 	}
+ 
+@@ -1755,7 +1784,8 @@ static int hns_nic_init_ring_data(struct hns_nic_priv *priv)
+ 		rd->queue_index = i;
+ 		rd->ring = &h->qs[i]->tx_ring;
+ 		rd->poll_one = hns_nic_tx_poll_one;
+-		rd->fini_process = is_ver1 ? hns_nic_tx_fini_pro : NULL;
++		rd->fini_process = is_ver1 ? hns_nic_tx_fini_pro :
++			hns_nic_tx_fini_pro_v2;
+ 
+ 		netif_napi_add(priv->netdev, &rd->napi,
+ 			       hns_nic_common_poll, NIC_TX_CLEAN_MAX_NUM);
+@@ -1767,7 +1797,8 @@ static int hns_nic_init_ring_data(struct hns_nic_priv *priv)
+ 		rd->ring = &h->qs[i - h->q_num]->rx_ring;
+ 		rd->poll_one = hns_nic_rx_poll_one;
+ 		rd->ex_process = hns_nic_rx_up_pro;
+-		rd->fini_process = is_ver1 ? hns_nic_rx_fini_pro : NULL;
++		rd->fini_process = is_ver1 ? hns_nic_rx_fini_pro :
++			hns_nic_rx_fini_pro_v2;
+ 
+ 		netif_napi_add(priv->netdev, &rd->napi,
+ 			       hns_nic_common_poll, NIC_RX_CLEAN_MAX_NUM);
 -- 
 1.9.1
