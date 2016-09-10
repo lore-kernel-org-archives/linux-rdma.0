@@ -1,99 +1,41 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 5/8] net: hns: fix port not available after testing loopback
-Date: Sat, 10 Sep 2016 05:09:27 +0100
-Message-ID: <20160910040930.25988-6-salil.mehta@huawei.com>
-References: <20160910040930.25988-1-salil.mehta@huawei.com>
+From: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
+ ISSI > 0 mode
+Date: Sat, 10 Sep 2016 14:10:10 +0800
+Message-ID: <20160910061010.GD3042@linux-kyyb.suse>
+References: <1473232990-22766-1-git-send-email-dchang@suse.com>
+ <20160908140752.GN18398@leon.nu>
+ <20160909025527.GC3042@linux-kyyb.suse>
+ <CAJ3xEMhK4e9tD3awWt0uFdg=ptai3c5kCeDUmOBudQ2nu46rRQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160910040930.25988-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Kejian Yan <yankejian@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMhK4e9tD3awWt0uFdg=ptai3c5kCeDUmOBudQ2nu46rRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kejian Yan <yankejian@huawei.com>
+On Fri, Sep 09, 2016 at 01:39:18PM +0300, Or Gerlitz wrote:
+> > Without the patch, we got the following message.
+> > [    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
+> > ...
+> > [   10.417421] mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb 2014)
+> > [   10.419282] ------------[ cut here ]------------
+> > [   10.419291] WARNING: CPU: 2 PID: 2517 at ../drivers/infiniband/core/cache.c:702 ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]()
+> 
+> 
+> and this reproduces 100% over Eth ports or just sometimes?
 
-After running command "ethtool -t eth0", eth0 can not be connected to
-network. It is caused by the changing the inner loopback register and
-this register cannot be changed when hns connected to network. The
-routine of setting this register needs to be removed and using promisc
-mode to let the packet looped back pass by dsaf mode.
+Feedback from the customer.
+It was consistently seen with fw:12.12.780
+It was never seen after updating the firmware to 12.14.1100 or higher.
+Currently in fw ver:12.16.1020.
 
-Reported-by: Jun He <hjat2005@huawei.com>
-Signed-off-by: Kejian Yan <yankejian@huawei.com>
-Reviewed-by: Yisen Zhaung <yisen.zhuang@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
----
- drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c  |  3 ---
- drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 10 ----------
- drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h |  1 -
- drivers/net/ethernet/hisilicon/hns/hns_ethtool.c   |  7 +++++++
- 4 files changed, 7 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c b/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c
-index e28d960..e0f9cdc 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c
-@@ -678,9 +678,6 @@ static int hns_ae_config_loopback(struct hnae_handle *handle,
- 		ret = -EINVAL;
- 	}
- 
--	if (!ret)
--		hns_dsaf_set_inner_lb(mac_cb->dsaf_dev, mac_cb->mac_id, en);
--
- 	return ret;
- }
- 
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-index 9283bc6..827d8fb 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-@@ -768,16 +768,6 @@ void hns_dsaf_set_promisc_mode(struct dsaf_device *dsaf_dev, u32 en)
- 				 DSAF_CFG_MIX_MODE_S, !!en);
- }
- 
--void hns_dsaf_set_inner_lb(struct dsaf_device *dsaf_dev, u32 mac_id, u32 en)
--{
--	if (AE_IS_VER1(dsaf_dev->dsaf_ver) ||
--	    dsaf_dev->mac_cb[mac_id]->mac_type == HNAE_PORT_DEBUG)
--		return;
--
--	dsaf_set_dev_bit(dsaf_dev, DSAFV2_SERDES_LBK_0_REG + 4 * mac_id,
--			 DSAFV2_SERDES_LBK_EN_B, !!en);
--}
--
- /**
-  * hns_dsaf_tbl_stat_en - tbl
-  * @dsaf_id: dsa fabric id
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-index 35df187..c494fc5 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-@@ -466,6 +466,5 @@ void hns_dsaf_get_rx_mac_pause_en(struct dsaf_device *dsaf_dev, int mac_id,
- 				  u32 *en);
- int hns_dsaf_set_rx_mac_pause_en(struct dsaf_device *dsaf_dev, int mac_id,
- 				 u32 en);
--void hns_dsaf_set_inner_lb(struct dsaf_device *dsaf_dev, u32 mac_id, u32 en);
- 
- #endif /* __HNS_DSAF_MAIN_H__ */
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c b/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c
-index ab33487..fa91ce3 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_ethtool.c
-@@ -342,6 +342,13 @@ static int __lb_setup(struct net_device *ndev,
- 		break;
- 	}
- 
-+	if (!ret) {
-+		if (loop == MAC_LOOP_NONE)
-+			h->dev->ops->set_promisc_mode(
-+				h, ndev->flags & IFF_PROMISC);
-+		else
-+			h->dev->ops->set_promisc_mode(h, 1);
-+	}
- 	return ret;
- }
- 
--- 
-1.9.1
+Thanks,
+David Chang
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
