@@ -1,39 +1,91 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: RFC: CQ pools and implicit CQ resource allocation
-Date: Sun, 11 Sep 2016 09:44:47 +0300
-Message-ID: <d0c645eb-3674-2841-bdb7-8b9e6fd46473@grimberg.me>
-References: <1473424587-13818-1-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc] IB/ipoib: Don't allow MC joins during light MC flush
+Date: Sun, 11 Sep 2016 09:46:49 +0300
+Message-ID: <1473576409-3882-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> This series adds support to the RDMA core to implicitly allocate the required
-> CQEs when creating a QP.  The primary driver for that was to implement a
-> common scheme for CQ pooling, which helps with better resource usage for
-> server / target style drivers that have many outstanding connections.  In
-> fact the first version of this code from Sagi did just that: add a CQ pool
-> API, and convert drivers that were using some form of pooling (iSER initiator
-> & target, NVMe target) to that API.  But looking at the API I felt that
-> there was still way too much logic in the individual ULPs, and looked into a
-> way to make that boilerplate code go away.  It turns out that we can simply
-> create CQs underneath if we know the poll context that the ULP requires, so
-> this series shows an approach that makes CQs mostly invisible to ULPs.
+This fix solves a race between light flush and on the fly joins.
+Light flush doesn't set the device to down and unset IPOIB_OPER_UP
+flag, this means that if while flushing we have a MC join in progress
+and the QP was attached to BC MGID we can have a mismatches when
+re-attaching a QP to the BC MGID.
 
-One other note that I wanted to raise for the folks interested in this
-is that with the RDMA core owning the completion queue pools, different
-ULPs can easily share the same completion queue (given that it uses
-the same poll context). For example, nvme-rdma host, iser and srp
-initiators can end up using the same completion queues (if running
-simultaneously on the same machine).
+The light flush would set the broadcast group to NULL causing an on
+the fly join to rejoin and reattach to the BC MCG as well as adding
+the BC MGID to the multicast list. The flush process would later on
+remove the BC MGID and detach it from the QP. On the next flush
+the BC MGID is present in the multicast list but not found when trying
+to detach it because of the previous double attach and single detach.
 
-Up until now, I couldn't think of anything that can introduce a problem
-with that but maybe someone else will...
+[18332.714265] ------------[ cut here ]------------
+[18332.717775] WARNING: CPU: 6 PID: 3767 at drivers/infiniband/core/verbs.c:280 ib_dealloc_pd+0xff/0x120 [ib_core]
+...
+[18332.775198] Hardware name: Red Hat KVM, BIOS Bochs 01/01/2011
+[18332.779411]  0000000000000000 ffff8800b50dfbb0 ffffffff813fed47 0000000000000000
+[18332.784960]  0000000000000000 ffff8800b50dfbf0 ffffffff8109add1 0000011832f58300
+[18332.790547]  ffff880226a596c0 ffff880032482000 ffff880032482830 ffff880226a59280
+[18332.796199] Call Trace:
+[18332.798015]  [<ffffffff813fed47>] dump_stack+0x63/0x8c
+[18332.801831]  [<ffffffff8109add1>] __warn+0xd1/0xf0
+[18332.805403]  [<ffffffff8109aebd>] warn_slowpath_null+0x1d/0x20
+[18332.809706]  [<ffffffffa025d90f>] ib_dealloc_pd+0xff/0x120 [ib_core]
+[18332.814384]  [<ffffffffa04f3d7c>] ipoib_transport_dev_cleanup+0xfc/0x1d0 [ib_ipoib]
+[18332.820031]  [<ffffffffa04ed648>] ipoib_ib_dev_cleanup+0x98/0x110 [ib_ipoib]
+[18332.825220]  [<ffffffffa04e62c8>] ipoib_dev_cleanup+0x2d8/0x550 [ib_ipoib]
+[18332.830290]  [<ffffffffa04e656f>] ipoib_uninit+0x2f/0x40 [ib_ipoib]
+[18332.834911]  [<ffffffff81772a8a>] rollback_registered_many+0x1aa/0x2c0
+[18332.839741]  [<ffffffff81772bd1>] rollback_registered+0x31/0x40
+[18332.844091]  [<ffffffff81773b18>] unregister_netdevice_queue+0x48/0x80
+[18332.848880]  [<ffffffffa04f489b>] ipoib_vlan_delete+0x1fb/0x290 [ib_ipoib]
+[18332.853848]  [<ffffffffa04df1cd>] delete_child+0x7d/0xf0 [ib_ipoib]
+[18332.858474]  [<ffffffff81520c08>] dev_attr_store+0x18/0x30
+[18332.862510]  [<ffffffff8127fe4a>] sysfs_kf_write+0x3a/0x50
+[18332.866349]  [<ffffffff8127f4e0>] kernfs_fop_write+0x120/0x170
+[18332.870471]  [<ffffffff81207198>] __vfs_write+0x28/0xe0
+[18332.874152]  [<ffffffff810e09bf>] ? percpu_down_read+0x1f/0x50
+[18332.878274]  [<ffffffff81208062>] vfs_write+0xa2/0x1a0
+[18332.881896]  [<ffffffff812093a6>] SyS_write+0x46/0xa0
+[18332.885632]  [<ffffffff810039b7>] do_syscall_64+0x57/0xb0
+[18332.889709]  [<ffffffff81883321>] entry_SYSCALL64_slow_path+0x25/0x25
+[18332.894727] ---[ end trace 09ebbe31f831ef17 ]---
+
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index dc6d241..be11d5d 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -1161,8 +1161,17 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 	}
+
+ 	if (level == IPOIB_FLUSH_LIGHT) {
++		int oper_up;
+ 		ipoib_mark_paths_invalid(dev);
++		/* Set IPoIB operation as down to prevent races between:
++		 * the flush flow which leaves MCG and on the fly joins
++		 * which can happen during that time. mcast restart task
++		 * should deal with join requests we missed.
++		 */
++		oper_up = test_and_clear_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 		ipoib_mcast_dev_flush(dev);
++		if (oper_up)
++			set_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 		ipoib_flush_ah(dev);
+ 	}
+
+--
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
