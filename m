@@ -1,89 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Sun, 11 Sep 2016 11:52:35 -0600
-Message-ID: <20160911175235.GB13442@obsidianresearch.com>
-References: <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
- <20160901084406.GA4115@lst.de>
- <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
- <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com>
- <20160910161442.GC29259@lst.de>
- <20160910170151.GA5230@obsidianresearch.com>
- <20160911133421.GA23384@lst.de>
- <20160911143522.GL6415@leon.nu>
- <20160911171409.GA13442@obsidianresearch.com>
- <20160911172445.GA25953@lst.de>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/26] constify local structures
+Date: Sun, 11 Sep 2016 10:56:16 -0700
+Message-ID: <1473616576.19464.10.camel@perches.com>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160911172445.GA25953@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Leon Romanovsky <leon@kernel.org>, Matan Barak <matanb@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <tpmdd-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1473599168-30561-1-git-send-email-Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tpmdd-devel>,
+	<mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tpmdd-devel>
+List-Post: <mailto:tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tpmdd-devel>,
+	<mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: tpmdd-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 11, 2016 at 07:24:45PM +0200, Christoph Hellwig wrote:
-> > > > I've posted some initial work toward a) a while ago, and once we
-> > 
-> > Did it get merged? Do you have a pointer?
-> 
-> http://www.spinics.net/lists/linux-rdma/msg31958.html
+On Sun, 2016-09-11 at 15:05 +0200, Julia Lawall wrote:
+> Constify local structures.
 
-Right, I remember that. Certainly the right direction
+Thanks Julia.
 
-> > However, everything under verbs is not straightforward. The files in
-> > userspace are not copies...
-> > 
-> > user:
-> > 
-> > struct ibv_query_device {
-> >        __u32 command;
-> >        __u16 in_words;
-> >        __u16 out_words;
-> >        __u64 response;
-> >        __u64 driver_data[0];
-> > };
-> > 
-> > kernel:
-> > 
-> > struct ib_uverbs_query_device {
-> >         __u64 response;
-> >         __u64 driver_data[0];
-> > };
-> 
-> We'll obviously need different strutures for the libibvers API
-> and the kernel interface in this case, and we'll need to figure out
-> how to properly translate them.  I think a cast, plus compile time
-> type checking ala BUILD_BUG_ON is the way to go.
+A few suggestions & questions:
 
-I'm not sure I follow, which would I cast?
+Perhaps the script should go into scripts/coccinelle/
+so that future cases could be caught by the robot
+and commit message referenced by the patch instances.
 
-BUILD_BUG_ON(sizeof(ibv_query_device) == sizeof(ib_uverbs_cmd_hdr) +
-             sizeof(ib_uverbs_query_device))
+Can you please compile the files modified using the
+appropriate defconfig/allyesconfig and show the
+movement from data to const by using
+	$ size <object>.new/old
+and include that in the changelogs (maybe next time)?
 
-?
+Is it possible for a rule to trace the instances where
+an address of a struct or struct member is taken by
+locally defined and declared function call where the
+callee does not modify any dereferenced object?
 
-> > I'm thinking the best way forward might be to use a script and
-> > transform userspace into:
-> > 
-> > struct ibv_query_device {
-> > 	struct ib_uverbs_cmd_hdr hdr;
-> > 	struct ib_uverbs_query_device cmd;
-> > };
-> 
-> That would break the users of the interface.
+ie:
 
-Sorry, I mean doing this inside rdma-plumbing. Since the change is ABI
-identical the modified libibverbs would still be binary compatible
-with all providers but not source compatible. Since all kernel
-supported providers are in rdma-plumbing we can add the '.cmd.' at the
-same time.
+struct foo {
+	int bar;
+	char *baz;
+};
 
-The kernel uapi header would stay the same.
+struct foo qux[] = {
+	{ 1, "description 1" },
+	{ 2, "dewcription 2" },
+	[ n, "etc" ]...,
+};
 
-> However automatically generating the user ABI from the kernel one
-> might still be a good idea in the long run.
+void message(struct foo *msg)
+{
+	printk("%d %s\n", msg->bar, msg->baz);
+}
 
-My preference would be to try and use the kernel headers directly.
+where some code uses
 
-Jason
+	message(qux[index]);
+
+So could a coccinelle script change:
+
+struct foo qux[] = { to const struct foo quz[] = {
+
+and
+
+void message(struct foo *msg) to void message(const struct foo *msg)
+
+
+------------------------------------------------------------------------------
