@@ -1,78 +1,96 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/ipoib: Don't allow MC joins during light MC flush
-Date: Sun, 11 Sep 2016 18:40:28 +0300
-Message-ID: <CAJ3xEMg8DJmPPK-31yjW_izfh5ZOFhxcXG9L8YeogWwMG7pd1g@mail.gmail.com>
-References: <1473576409-3882-1-git-send-email-leon@kernel.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Sun, 11 Sep 2016 11:14:09 -0600
+Message-ID: <20160911171409.GA13442@obsidianresearch.com>
+References: <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
+ <20160831211618.GA12660@htj.duckdns.org>
+ <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
+ <20160901084406.GA4115@lst.de>
+ <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
+ <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com>
+ <20160910161442.GC29259@lst.de>
+ <20160910170151.GA5230@obsidianresearch.com>
+ <20160911133421.GA23384@lst.de>
+ <20160911143522.GL6415@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473576409-3882-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160911143522.GL6415@leon.nu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Matan Barak <matanb@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 11, 2016 at 9:46 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> This fix solves a race between light flush and on the fly joins.
-> Light flush doesn't set the device to down and unset IPOIB_OPER_UP
-> flag, this means that if while flushing we have a MC join in progress
-> and the QP was attached to BC MGID we can have a mismatches when
-> re-attaching a QP to the BC MGID.
->
-> The light flush would set the broadcast group to NULL causing an on
-> the fly join to rejoin and reattach to the BC MCG as well as adding
-> the BC MGID to the multicast list. The flush process would later on
-> remove the BC MGID and detach it from the QP. On the next flush
-> the BC MGID is present in the multicast list but not found when trying
-> to detach it because of the previous double attach and single detach.
->
-> [18332.714265] ------------[ cut here ]------------
-> [18332.717775] WARNING: CPU: 6 PID: 3767 at drivers/infiniband/core/verbs.c:280 ib_dealloc_pd+0xff/0x120 [ib_core]
-> ...
-> [18332.775198] Hardware name: Red Hat KVM, BIOS Bochs 01/01/2011
-> [18332.779411]  0000000000000000 ffff8800b50dfbb0 ffffffff813fed47 0000000000000000
-> [18332.784960]  0000000000000000 ffff8800b50dfbf0 ffffffff8109add1 0000011832f58300
-> [18332.790547]  ffff880226a596c0 ffff880032482000 ffff880032482830 ffff880226a59280
-> [18332.796199] Call Trace:
-> [18332.798015]  [<ffffffff813fed47>] dump_stack+0x63/0x8c
-> [18332.801831]  [<ffffffff8109add1>] __warn+0xd1/0xf0
-> [18332.805403]  [<ffffffff8109aebd>] warn_slowpath_null+0x1d/0x20
-> [18332.809706]  [<ffffffffa025d90f>] ib_dealloc_pd+0xff/0x120 [ib_core]
-> [18332.814384]  [<ffffffffa04f3d7c>] ipoib_transport_dev_cleanup+0xfc/0x1d0 [ib_ipoib]
-> [18332.820031]  [<ffffffffa04ed648>] ipoib_ib_dev_cleanup+0x98/0x110 [ib_ipoib]
-> [18332.825220]  [<ffffffffa04e62c8>] ipoib_dev_cleanup+0x2d8/0x550 [ib_ipoib]
-> [18332.830290]  [<ffffffffa04e656f>] ipoib_uninit+0x2f/0x40 [ib_ipoib]
-> [18332.834911]  [<ffffffff81772a8a>] rollback_registered_many+0x1aa/0x2c0
-> [18332.839741]  [<ffffffff81772bd1>] rollback_registered+0x31/0x40
-> [18332.844091]  [<ffffffff81773b18>] unregister_netdevice_queue+0x48/0x80
-> [18332.848880]  [<ffffffffa04f489b>] ipoib_vlan_delete+0x1fb/0x290 [ib_ipoib]
-> [18332.853848]  [<ffffffffa04df1cd>] delete_child+0x7d/0xf0 [ib_ipoib]
-> [18332.858474]  [<ffffffff81520c08>] dev_attr_store+0x18/0x30
-> [18332.862510]  [<ffffffff8127fe4a>] sysfs_kf_write+0x3a/0x50
-> [18332.866349]  [<ffffffff8127f4e0>] kernfs_fop_write+0x120/0x170
-> [18332.870471]  [<ffffffff81207198>] __vfs_write+0x28/0xe0
-> [18332.874152]  [<ffffffff810e09bf>] ? percpu_down_read+0x1f/0x50
-> [18332.878274]  [<ffffffff81208062>] vfs_write+0xa2/0x1a0
-> [18332.881896]  [<ffffffff812093a6>] SyS_write+0x46/0xa0
-> [18332.885632]  [<ffffffff810039b7>] do_syscall_64+0x57/0xb0
-> [18332.889709]  [<ffffffff81883321>] entry_SYSCALL64_slow_path+0x25/0x25
-> [18332.894727] ---[ end trace 09ebbe31f831ef17 ]---
->
+On Sun, Sep 11, 2016 at 05:35:22PM +0300, Leon Romanovsky wrote:
 
-Hi Alex,
+> > We stil always have the common structure first.  And at least for
+> > cgroups supports that's what matters.
+> >
+> > Re the actual structures - we'll really need to make sure we
+> >
+> >  a) expose proper userspace abi headers in the kernel for all code
+> >     in the RDMA subsystem
+> >  b) actually use that in the userspace components
+> >
+> > I've posted some initial work toward a) a while ago, and once we
 
-Please add here Fixes: line/s stating what commits you are actually
-fixing, this is much more important than pasting the beloved (by Leon
-and Doug) crash dump trace
+Did it get merged? Do you have a pointer?
 
-> Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > agree on adopting your common repo I'd really like to start through
+> > with that work.  I think it's a pre-requisite for any major new
+> > userspace ABI work.
+> 
+> I started to work on it over weekend and it is worth do not do same work twice.
 
-Could be nice to have reviewed-by or acked-by or full SOB from Erez
-Sh. who is our lead IPoIB developer
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, I also agree that it is important before we tackle the uapi
+conversion to get this fully sorted.
+
+I've already done several cases working with the existing uapi headers:
+
+https://github.com/jgunthorpe/rdma-plumbing/commit/f4f40689440dbc9c57b55548b04b15fe808a1767
+https://github.com/jgunthorpe/rdma-plumbing/commit/0cf1893dce4791dafa035bcb6ee045a6ce0ff3c3
+https://github.com/jgunthorpe/rdma-plumbing/commit/0522fc42aac4a5e8fc888dcca4341c9bc1dc58ca
+
+[.. and this is a strong argument why we need the common repo, doing
+this without it would be very hard, as everything is cross-linked, I
+couldnn't unwind libibcm until I fixed a bit of verbs, and rdmacm can't
+even include its uapi header until the duplicate definitions in the
+verbs copy are delt with .. and I've also learned we are making
+changing to the kernel uapi header and since nothing uses them we never even
+compile test :( :( eg
+https://github.com/torvalds/linux/commit/b493d91d333e867a043f7ff1397bcba6e2d0dda2]
+
+However, everything under verbs is not straightforward. The files in
+userspace are not copies...
+
+user:
+
+struct ibv_query_device {
+       __u32 command;
+       __u16 in_words;
+       __u16 out_words;
+       __u64 response;
+       __u64 driver_data[0];
+};
+
+kernel:
+
+struct ib_uverbs_query_device {
+        __u64 response;
+        __u64 driver_data[0];
+};
+
+eg the userspace version stuffs the header into the struct and the
+kernel version does not. Presumably this is for efficiency so that no
+copies are required when marshaling. This impacts everything :(
+
+I'm thinking the best way forward might be to use a script and
+transform userspace into:
+
+struct ibv_query_device {
+	struct ib_uverbs_cmd_hdr hdr;
+	struct ib_uverbs_query_device cmd;
+};
+
+Jason
