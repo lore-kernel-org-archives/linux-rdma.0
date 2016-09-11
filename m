@@ -1,75 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Sat, 10 Sep 2016 11:01:51 -0600
-Message-ID: <20160910170151.GA5230@obsidianresearch.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
- <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
- <20160831211618.GA12660@htj.duckdns.org>
- <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
- <20160901084406.GA4115@lst.de>
- <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
- <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com>
- <20160910161442.GC29259@lst.de>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: RFC: CQ pools and implicit CQ resource allocation
+Date: Sun, 11 Sep 2016 09:39:56 +0300
+Message-ID: <b033c531-fe14-eded-4162-2ea2c2ccf071@grimberg.me>
+References: <1473424587-13818-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160910161442.GC29259@lst.de>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Matan Barak <matanb@mellanox.com>, Parav Pandit <pandit.parav@gmail.com>, Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1473424587-13818-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 10, 2016 at 06:14:42PM +0200, Christoph Hellwig wrote:
-> OFVWG meetings have absolutely zero relevance for Linux development.
 
-Well, to be fair there are a fair number of kernel developers on that
-particular call..
+> One concern Sagi had when reviewing an earlier version of my edits was that
+> the over allocation as part of using a pool might be harmful for client side
+> driver that only have one (or a few) connections. I played around with iSER
+> a bit and could not measure and slowdown, but that doesn't mean there aren't
+> any down sides - I'd really like some feedback from the hardware driver
+> people on what CQ sizing / allocation preferences their hardware has.
 
-> More "flexibility" for drivers just means giving up on designing a
-> coherent API and leaving it to drivers authors to add crap to their
-> own drivers.  That's a major step backwards.
+Just to clarify,
 
-Sadly, it isn't a step backwards, it is status quo - at least as far
-as the uapi is concerned.
+I don't expect this will introduce slow downs on the host/client side.
+in fact, for the same reason it helps the target/server side it will
+help the client side.
 
-Every single user space driver has its own private abi file, carefully
-hidden in their driver, and dutifully copied over to user space:
-
-providers/cxgb3/iwch-abi.h
-providers/cxgb4/cxgb4-abi.h
-providers/hfi1verbs/hfi-abi.h
-providers/i40iw/i40iw-abi.h
-providers/ipathverbs/ipath-abi.h
-providers/mlx4/mlx4-abi.h
-providers/mlx5/mlx5-abi.h
-providers/mthca/mthca-abi.h
-providers/nes/nes-abi.h
-providers/ocrdma/ocrdma_abi.h
-providers/rxe/rxe-abi.h
-
-Just to pick two random examples:
-
-struct mlx5_create_cq {
-        struct ibv_create_cq            ibv_cmd;
-        __u64                           buf_addr;
-        __u64                           db_addr;
-        __u32				cqe_size;
-};
-
-struct iwch_create_cq {
-        struct ibv_create_cq ibv_cmd;
-        uint64_t user_rptr_addr;
-};
-
-Love to hear ideas on a way forward that doesn't involve rewriting
-everything :(
-
-> They should not be using the code in drivers/infiniband.  usnic is such
-> an example of a driver that should never have been added in it's current
-> form.
-
-+1
-
-Jason
+What I was talking about is that we can end up over-allocating CQs if a
+host/client has a single connection (or a few connections) to the target
+and it may not need the pool (it is more common for target/server mode
+drivers to have a lot of connections/channels than host/client mode
+drivers). But given the benefit, I think we can tolerate it (we do that
+in iSER initiator anyhow).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
