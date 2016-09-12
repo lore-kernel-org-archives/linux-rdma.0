@@ -1,195 +1,96 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
- ISSI > 0 mode
-Date: Mon, 12 Sep 2016 09:46:17 +0300
-Message-ID: <20160912064617.GF8812@leon.nu>
-References: <1473232990-22766-1-git-send-email-dchang@suse.com>
- <20160908140752.GN18398@leon.nu>
- <20160909025527.GC3042@linux-kyyb.suse>
- <20160910074719.GG6415@leon.nu>
- <20160911071542.GH6415@leon.nu>
- <CAJ3xEMiZ5dssHMW9ypN_86PUOQxuwaRB0G1iv5=Jbzc9w76cLw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="R6sEYoIZpp9JErk7"
+Subject: [PATCH rdma-rc v1] IB/ipoib: Don't allow MC joins during light MC flush
+Date: Mon, 12 Sep 2016 09:55:28 +0300
+Message-ID: <1473663328-30743-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiZ5dssHMW9ypN_86PUOQxuwaRB0G1iv5=Jbzc9w76cLw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---R6sEYoIZpp9JErk7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This fix solves a race between light flush and on the fly joins.
+Light flush doesn't set the device to down and unset IPOIB_OPER_UP
+flag, this means that if while flushing we have a MC join in progress
+and the QP was attached to BC MGID we can have a mismatches when
+re-attaching a QP to the BC MGID.
 
-On Mon, Sep 12, 2016 at 09:28:30AM +0300, Or Gerlitz wrote:
-> On Sun, Sep 11, 2016 at 10:15 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> w=
-rote:
-> > Hi David,
-> > Please find this UNTESTED patch. We will do formal testing during the
-> > coming work week and will properly submit it for inclusion for 4.8.
->
->
-> From 9147fabc9b189e09a982de8ac30f01f04468f6ce Mon Sep 17 00:00:00 2001
-> From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date: Sun, 11 Sep 2016 10:00:27 +0300
-> Subject: [PATCH rdma-rc] IB/mlx5: Enable MAD_IFC commands for IB ports on=
-ly
->
-> MAD_IFC command is supported only for physical function (PF) drivers
-> and only when physical port is IB.
->
-> The lack of check if port is IB caused to following trace to appear.
->
-> The word drivers isn't accurate. The change log doesn't say enough on
-> the nature of the fix. You can say
-> "MAD_IFC command is supported only for physical function (PF) and when
-> the port link type is IB, enforce that"
->
-> [    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
->
-> does the FW version matters here or the bug/fix apply for all GA FWs
-> that support IB SRIOV and ETH (Roce)?
-> ...
-> [   10.417421] mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb=
- 2014)
-> [   10.419282] ------------[ cut here ]------------
-> [   10.419291] WARNING: CPU: 2 PID: 2517 at
-> ../drivers/infiniband/core/cache.c:702
-> ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
->
->
-> This trace teaches us nothing.  If you really want to keep it here,
-> say something what the trace means
->
-> ()
-> [   10.419386] CPU: 2 PID: 2517 Comm: modprobe Tainted: G X 4.4.19-1-defa=
-ult #1
-> [   10.419387] Hardware name: Dell Inc. PowerEdge R730xd/072T6D,
-> BIOS2.1.7 06/16/2016
-> [   10.419389]  0000000000000000 ffffffff8130d740 0000000000000000
-> ffffffffa04e0300
-> [   10.419395]  ffffffff8107c121
-> [   10.419400]  ffff88017bfe0000 ffff88003712b9e0 ffff88045ad905c0
-> [   10.419401]  0000000000000001 fffffffffffffffc ffffffffa04d8a58
-> 0000000000000000
-> [   10.419406] Call Trace:
-> [   10.419415]  [<ffffffff81019a59>] dump_trace+0x59/0x310
-> [   10.419419]  [<ffffffff81019dfa>] show_stack_log_lvl+0xea/0x170
-> [   10.419421]  [<ffffffff8101ab81>] show_stack+0x21/0x40
-> [   10.419426]  [<ffffffff8130d740>] dump_stack+0x5c/0x7c
-> [   10.419431]  [<ffffffff8107c121>] warn_slowpath_common+0x81/0xb0
-> [   10.419436]  [<ffffffffa04d8a58>]
-> ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
-> [   10.419449]  [<ffffffffa04da2dd>] add_netdev_ips+0x9d/0xa0 [ib_core]
-> [   10.419456]  [<ffffffffa04da45b>] enum_all_gids_of_dev_cb+0x7b/0xb0 [i=
-b_core]
-> [   10.419461]  [<ffffffffa04d641d>] ib_enum_roce_netdev+0xdd/0x100 [ib_c=
-ore]
-> [   10.419466]  [<ffffffffa04da5ed>] roce_rescan_device+0x1d/0x20 [ib_cor=
-e]
-> [   10.419470]  [<ffffffffa04d8cdb>] ib_cache_setup_one+0x23b/0x3d0 [ib_c=
-ore]
-> [   10.419475]  [<ffffffffa04d606b>] ib_register_device+0x2bb/0x4f0 [ib_c=
-ore]
-> [   10.419483]  [<ffffffffa0618bbf>] mlx5_ib_add+0xaaf/0x12e0 [mlx5_ib]
-> [   10.419492]  [<ffffffffa08b76c1>] mlx5_add_device+0x41/0xa0 [mlx5_core]
-> [   10.419498]  [<ffffffffa08b7785>] mlx5_register_interface+0x65/0xa0
-> [mlx5_core]
-> [   10.419502]  [<ffffffffa0474030>] mlx5_ib_init+0x30/0x42 [mlx5_ib]
-> [   10.419506]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
-> [   10.419510]  [<ffffffff811827e8>] do_init_module+0x5a/0x1d7
-> [   10.419514]  [<ffffffff81103536>] load_module+0x1366/0x1c50
-> [   10.419518]  [<ffffffff81103fd0>] SYSC_finit_module+0x70/0xa0
-> [   10.419523]  [<ffffffff815e126e>] entry_SYSCALL_64_fastpath+0x12/0x6d
-> [   10.420681] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x=
-6d
-> [   10.420682] Leftover inexact backtrace:
-> [   10.420684] ---[ end trace fc8ccb16c9d8e28a ]---
->
->
-> say here what commit/s you are fixing, add Fixes: line  -- I assume
-> this bug is here before 4.8-rc1 so the fix needs to go anyway to
-> stable kernels. As we're close to rc6, its better to push the patch
-> for rdma-next (4.9) and later carry it back to stable.
->
-> Reported-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
-> Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/hw/mlx5/main.c
-> b/drivers/infiniband/hw/mlx5/main.c
-> index 8150ea3..0480b64 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -288,7 +288,9 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev
-> *dev, u8 port_num,
->
->  static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
->  {
-> - return !MLX5_CAP_GEN(dev->mdev, ib_virt);
-> + if (MLX5_CAP_GEN(dev->mdev, port_type) =3D=3D MLX5_CAP_PORT_TYPE_IB)
-> + return !MLX5_CAP_GEN(dev->mdev, ib_virt);
-> + return 0;
->  }
->
->  enum {
+The light flush would set the broadcast group to NULL causing an on
+the fly join to rejoin and reattach to the BC MCG as well as adding
+the BC MGID to the multicast list. The flush process would later on
+remove the BC MGID and detach it from the QP. On the next flush
+the BC MGID is present in the multicast list but not found when trying
+to detach it because of the previous double attach and single detach.
 
-I don't know why emails from smtp.office365.com stopped to appear in linux-=
-rdma mailing list.
+[18332.714265] ------------[ cut here ]------------
+[18332.717775] WARNING: CPU: 6 PID: 3767 at drivers/infiniband/core/verbs.c:280 ib_dealloc_pd+0xff/0x120 [ib_core]
+...
+[18332.775198] Hardware name: Red Hat KVM, BIOS Bochs 01/01/2011
+[18332.779411]  0000000000000000 ffff8800b50dfbb0 ffffffff813fed47 0000000000000000
+[18332.784960]  0000000000000000 ffff8800b50dfbf0 ffffffff8109add1 0000011832f58300
+[18332.790547]  ffff880226a596c0 ffff880032482000 ffff880032482830 ffff880226a59280
+[18332.796199] Call Trace:
+[18332.798015]  [<ffffffff813fed47>] dump_stack+0x63/0x8c
+[18332.801831]  [<ffffffff8109add1>] __warn+0xd1/0xf0
+[18332.805403]  [<ffffffff8109aebd>] warn_slowpath_null+0x1d/0x20
+[18332.809706]  [<ffffffffa025d90f>] ib_dealloc_pd+0xff/0x120 [ib_core]
+[18332.814384]  [<ffffffffa04f3d7c>] ipoib_transport_dev_cleanup+0xfc/0x1d0 [ib_ipoib]
+[18332.820031]  [<ffffffffa04ed648>] ipoib_ib_dev_cleanup+0x98/0x110 [ib_ipoib]
+[18332.825220]  [<ffffffffa04e62c8>] ipoib_dev_cleanup+0x2d8/0x550 [ib_ipoib]
+[18332.830290]  [<ffffffffa04e656f>] ipoib_uninit+0x2f/0x40 [ib_ipoib]
+[18332.834911]  [<ffffffff81772a8a>] rollback_registered_many+0x1aa/0x2c0
+[18332.839741]  [<ffffffff81772bd1>] rollback_registered+0x31/0x40
+[18332.844091]  [<ffffffff81773b18>] unregister_netdevice_queue+0x48/0x80
+[18332.848880]  [<ffffffffa04f489b>] ipoib_vlan_delete+0x1fb/0x290 [ib_ipoib]
+[18332.853848]  [<ffffffffa04df1cd>] delete_child+0x7d/0xf0 [ib_ipoib]
+[18332.858474]  [<ffffffff81520c08>] dev_attr_store+0x18/0x30
+[18332.862510]  [<ffffffff8127fe4a>] sysfs_kf_write+0x3a/0x50
+[18332.866349]  [<ffffffff8127f4e0>] kernfs_fop_write+0x120/0x170
+[18332.870471]  [<ffffffff81207198>] __vfs_write+0x28/0xe0
+[18332.874152]  [<ffffffff810e09bf>] ? percpu_down_read+0x1f/0x50
+[18332.878274]  [<ffffffff81208062>] vfs_write+0xa2/0x1a0
+[18332.881896]  [<ffffffff812093a6>] SyS_write+0x46/0xa0
+[18332.885632]  [<ffffffff810039b7>] do_syscall_64+0x57/0xb0
+[18332.889709]  [<ffffffff81883321>] entry_SYSCALL64_slow_path+0x25/0x25
+[18332.894727] ---[ end trace 09ebbe31f831ef17 ]---
 
-While I posted this patch, I wrote this sentence "Please find this UNTESTED=
- patch.
-We will do formal testing during the coming work week and will properly sub=
-mit it
-for inclusion for 4.8."
+Fixes: ee1e2c82c245 ("IPoIB: Refresh paths instead of flushing them on SM change events")
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-=46rom your response, I understand that one word in capital letters is not =
-enough and
-I need to repeat it in all capital letters: "PLEASE FIND THIS UNTESTED PATC=
-H. WE WILL
-DO FORMAL TESTING DURING THE COMING WORK WEEK AND WILL PROPERLY SUBMIT IT F=
-OR
-INCLUSION FOR 4.8."
+---
+Changelog v0->v1:
+ * Added fixes lines
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-It is RAW material and no one is submitted it formally.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index dc6d241..be11d5d 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -1161,8 +1161,17 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 	}
 
-Thanks
+ 	if (level == IPOIB_FLUSH_LIGHT) {
++		int oper_up;
+ 		ipoib_mark_paths_invalid(dev);
++		/* Set IPoIB operation as down to prevent races between:
++		 * the flush flow which leaves MCG and on the fly joins
++		 * which can happen during that time. mcast restart task
++		 * should deal with join requests we missed.
++		 */
++		oper_up = test_and_clear_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 		ipoib_mcast_dev_flush(dev);
++		if (oper_up)
++			set_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 		ipoib_flush_ah(dev);
+ 	}
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+2.7.4
 
---R6sEYoIZpp9JErk7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJX1k85AAoJEORje4g2clinPikQAIyY5YU3ThkprNZsIy2zdGFE
-GnYtk7O+Y3joy76ndU+2bL6rNV2dvJcZSBHiLoTi5+qeINFigKvI5s8HLE6xMRRI
-Ku9x5EqB/pZvrXTeQk5yy+ovHVUVjtHu46I7YkX8cNnAxOn1/VSdqkZB4sDiE161
-XqWga0PEKB2XP6g2ntpa4esXrol3i9GE97nwrr620kr8beEC70bQFfntI+V9LQ4I
-l8QjG0Bvrd+zErpY1Nv7pGac362VYLCv9RrDjTNPsLr0bBLkBthge4BnoCz0aAzz
-7mNoYYwGFmj7xo5pCd1eJmVsyNNT67BK6zUnF7RxawvEq5XonzNrN7tRnVs4kCvm
-BJUGZsehdpRnzU3vw3ZZuAyiHw682uOXsU5xds+NIZpGo/OJwIWWj4bIsGBq1MU8
-n3kD7rfyQcWFSnhxQoZRu9jIsqVjc3KnLldxjYJ8PA/J6IfB3ehIxEQwST34yypu
-MNudjKWPbc8LVB24qPAVkTUxzVyIuGu2Z6VmuxGXMF3U3yanq7Br2GS2GVWv2Acc
-EC5FOdZmOkoRn5VD4+qOU1bnLo1T5u8uKJ2RcNEeRttRImLUlGrg5k1Ijy05A+0d
-cXRqzpfU27hOam1MqzXgyvln/F/HhsYc95Jz2EN5GXbc+rGJFU2GOdkF21MMXMps
-SHncLxMTK3IPoX6gYZFN
-=BlVY
------END PGP SIGNATURE-----
-
---R6sEYoIZpp9JErk7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
