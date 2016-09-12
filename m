@@ -1,92 +1,63 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 6/9] ib_uverbs: Avoid vendor specific masking of
- attributes in query_qp
-Date: Mon, 12 Sep 2016 17:05:23 +0200
-Message-ID: <1473692723.3545.21.camel@oracle.com>
-References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
-         <1472774969-18997-7-git-send-email-knut.omang@oracle.com>
-         <20160902021300.GC30057@obsidianresearch.com>
-         <1472791552.9410.258.camel@oracle.com>
-         <20160902171008.GE24997@obsidianresearch.com>
-         <1472837728.9410.340.camel@oracle.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 09/20] IB/hns: Optimize code of aeq and ceq
+ interrupt handle and fix the bug of qpn
+Date: Mon, 12 Sep 2016 15:47:48 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A713973@lhreml503-mbx>
+References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
+ <1473417051-99560-10-git-send-email-salil.mehta@huawei.com>
+ <20160912123255.GG8812@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472837728.9410.340.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160912123255.GG8812-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xuwei (O)" <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-09-02 at 19:35 +0200, Knut Omang wrote:
-> On Fri, 2016-09-02 at 11:10 -0600, Jason Gunthorpe wrote:
-> > On Fri, Sep 02, 2016 at 06:45:52AM +0200, Knut Omang wrote:
-> > > On Thu, 2016-09-01 at 20:13 -0600, Jason Gunthorpe wrote:
-> > > > On Fri, Sep 02, 2016 at 02:09:26AM +0200, Knut Omang wrote:
-> > > > > This commit removes the implementation and use of the modify_qp_mask
-> > > > > helper function from the generic OFED implementation and into individual
-> > > > > device drivers.
-> > > > > 
-> > > > > Like with use of the ib_modify_qp_is_ok function it should be up to
-> > > > > each device driver how to handle bits set in the attribute masks.
-> > > > > 
-> > > > > With the modify_qp_mask function applied in the generic code,
-> > > > > drivers would not see the bits that the user process actually sets.
-> > > > > 
-> > > > > The restrictions imposed by the filter are also beyond what
-> > > > > is imposed by the Infiniband standard, and would also limit
-> > > > > future drivers or hardware from checking for unsupported or
-> > > > > invalid settings.
-> > > > 
-> > > > I'm not excited about this direction. It is not OK for different
-> > > > drivers to use different mask algorithms, they must all behave the
-> > > > same.
-> > > 
-> > > The problem I am solving here is that SIF expects (and requires) some of 
-> > > the bits that the user correctly sets, but that Mellanox either ignore or need to
-> > > be 0. So when that mask is applied to the user input, the value that reaches
-> > > the SIF driver is not correct from SIFs perspective. 
-> > > If the values goes through as the ULP sets them, then all is fine.
-> > 
-> > I guess I still don't understand. SIF and mlx cannot have different
-> > behavior here. 
-> 
-> Rest assure, being the new kid on the block here, of course we need to 
-> work with existing applications. We try to test with whatever we can get our 
-> hands on, and make sure we behave sensibly..
-> 
-> > How is the application writer to know what to do?
-> 
-> This masking applies to XRC only.
-> The application does not need to do anything, it treats the XRC QP as any other
-> RC QP and attempt similar modify_qp operations.
-> Mlx chooses to ignore some of the bits provided. 
-> 
-> > Can you give a concrete example of the problem?
-> 
-> Maybe someone from Mellanox can explain the reason 
-> for having the filtering there in the first place,
-> and only from user mode XRC QPs?
 
-Getting some help from git blame here: 
 
-The modify_qp_mask function was introduced by this commit: 
-9977f4f64bfeb5d907a793a6880aab2d43b0bed2 by Sean Hefty.
-
-Can I ask why this function was introduced, and if it is still needed?
-
-Thanks,
-Knut
-
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> Sent: Monday, September 12, 2016 1:33 PM
+> To: Salil Mehta
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> xuwei (O); mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> Subject: Re: [PATCH for-next 09/20] IB/hns: Optimize code of aeq and
+> ceq interrupt handle and fix the bug of qpn
 > 
-> Knut
+> On Fri, Sep 09, 2016 at 06:30:40PM +0800, Salil Mehta wrote:
 > 
-> > Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ....
+> 
+> > +			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
+> > +			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S);
+> > +	phy_port = roce_get_field(aeqe->event.qp_event.qp,
+> > +			HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_M,
+> > +			HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_S);
+> > +	if (qpn <= 1)
+> > +		qpn = HNS_ROCE_MAX_PORTS * qpn + phy_port;
+> > +
+> > +	switch (event_type) {
+> > +	case HNS_ROCE_EVENT_TYPE_INV_REQ_LOCAL_WQ_ERROR:
+> > +		dev_warn(dev, "Invalid Req Local Work Queue Error.\n");
+> > +		dev_warn(dev, "QP %d, phy_port %d.\n", qpn, phy_port);
+> 
+> dev_warn like all other printk flavours supports multi-line messages.
+Yes, agreed. This can be done using single dev_warn as well, like below:
+dev_warn(dev,
+         "Invalid Req Local Work Queue Error.\n"
+         "QP %d, phy_port %d.\n", qpn, phy_port);
+
+Will change and refloat the patch.
+
+Thanks
+Salil
+> 
+> > +		break;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
