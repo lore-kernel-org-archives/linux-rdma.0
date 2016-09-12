@@ -1,45 +1,46 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 5/7] IB/mlx4: Diagnostic HW counters are not supported in slave mode
-Date: Mon, 12 Sep 2016 19:16:22 +0300
-Message-ID: <1473696984-6161-6-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 7/7] IB/mlx5: Set source mac address in FTE
+Date: Mon, 12 Sep 2016 19:16:24 +0300
+Message-ID: <1473696984-6161-8-git-send-email-leon@kernel.org>
 References: <1473696984-6161-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473696984-6161-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Modify the mlx4_ib_diag_counters() to avoid the following error in the
-hypervisor when the slave tries to query the hardware counters in SR-IOV
-mode.
+Set the source mac address in the FTE when L2 specification
+is provided.
 
-mlx4_core 0000:81:00.0: Unknown command:0x30 accepted from slave:1
-
-Fixes: 3f85f2aaabf7 ("IB/mlx4: Add diagnostic hardware counters")
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 038d2ef87572 ('IB/mlx5: Add flow steering support')
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index ac235b5..a1b7fcb 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2262,6 +2262,9 @@ static int mlx4_ib_alloc_diag_counters(struct mlx4_ib_dev *ibdev)
- 	bool per_port = !!(ibdev->dev->caps.flags2 &
- 		MLX4_DEV_CAP_FLAG2_DIAG_PER_PORT);
-
-+	if (mlx4_is_slave(ibdev->dev))
-+		return 0;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 0480b64..e19537c 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1430,6 +1430,13 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 					     dmac_47_16),
+ 				ib_spec->eth.val.dst_mac);
+ 
++		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
++					     smac_47_16),
++				ib_spec->eth.mask.src_mac);
++		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
++					     smac_47_16),
++				ib_spec->eth.val.src_mac);
 +
- 	for (i = 0; i < MLX4_DIAG_COUNTERS_TYPES; i++) {
- 		/* i == 1 means we are building port counters */
- 		if (i && !per_port)
---
+ 		if (ib_spec->eth.mask.vlan_tag) {
+ 			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
+ 				 vlan_tag, 1);
+-- 
 2.7.4
 
 --
