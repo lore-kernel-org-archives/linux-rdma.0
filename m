@@ -1,50 +1,68 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
-Date: Mon, 12 Sep 2016 22:19:18 +0530
-Message-ID: <CAG53R5UqF21z34jB2HJCTXU8w3Kbj_Jon=wBAoO5tYSqbD1f6g@mail.gmail.com>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com> <20160912163928.GK8812@leon.nu>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 01/16] vmxnet3: Move PCI Id to pci_ids.h
+Date: Mon, 12 Sep 2016 12:21:26 -0500
+Message-ID: <20160912172126.GA23532@localhost>
+References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
+ <1473655766-31628-2-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160912163928.GK8812-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1473655766-31628-2-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 12, 2016 at 10:09 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Mon, Sep 12, 2016 at 07:07:34PM +0300, Ram Amrani wrote:
->
->>  include/linux/qed/common_hsi.h                 |    1 +
->>  include/linux/qed/qed_if.h                     |    9 +-
->>  include/linux/qed/qed_ll2_if.h                 |  140 +
->>  include/linux/qed/qed_roce_if.h                |  604 ++++
->>  include/linux/qed/qede_roce.h                  |   88 +
->>  include/linux/qed/rdma_common.h                |    1 +
->
-> Something not directly related to your patches, but they brought my
-> attention to the fact that all these new (and old) rdma<->net devices
-> are polluting include/linux
->
-ocrdma driver includes be_roce.h located in net/ethernet/emulex/benet
-location instead of include/linux/.
-This file helps to bind rdma to net device or underlying hw device.
+On Sun, Sep 11, 2016 at 09:49:11PM -0700, Adit Ranadive wrote:
+> The VMXNet3 PCI Id will be shared with our paravirtual RDMA driver.
+> Moved it to the shared location in pci_ids.h.
+> 
+> Suggested-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
-May be similar change can be done for rest of the drivers for
-rdma<-->net devices?
+Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 
-
-> Filtered output:
-> =E2=9E=9C  linux-rdma git:(topic/fixes-for-4.8-2) ls -dl include/linux/*/
-> drwxrwxr-x  2 leonro leonro  4096 Aug 30 16:27 include/linux/hsi/
-> drwxrwxr-x  2 leonro leonro  4096 Sep 12 19:08 include/linux/mlx4/
-> drwxrwxr-x  2 leonro leonro  4096 Sep  7 15:31 include/linux/mlx5/
-> drwxrwxr-x  2 leonro leonro  4096 Sep  8 17:46 include/linux/qed/
->
-> Is this the right place for them?
->
-> Thanks
+> ---
+> ---
+>  drivers/net/vmxnet3/vmxnet3_int.h | 3 +--
+>  include/linux/pci_ids.h           | 1 +
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/vmxnet3/vmxnet3_int.h b/drivers/net/vmxnet3/vmxnet3_int.h
+> index 74fc030..2bd6bf8 100644
+> --- a/drivers/net/vmxnet3/vmxnet3_int.h
+> +++ b/drivers/net/vmxnet3/vmxnet3_int.h
+> @@ -119,9 +119,8 @@ enum {
+>  };
+>  
+>  /*
+> - * PCI vendor and device IDs.
+> + * Maximum devices supported.
+>   */
+> -#define PCI_DEVICE_ID_VMWARE_VMXNET3    0x07B0
+>  #define MAX_ETHERNET_CARDS		10
+>  #define MAX_PCI_PASSTHRU_DEVICE		6
+>  
+> diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+> index c58752f..98bb455 100644
+> --- a/include/linux/pci_ids.h
+> +++ b/include/linux/pci_ids.h
+> @@ -2251,6 +2251,7 @@
+>  #define PCI_DEVICE_ID_RASTEL_2PORT	0x2000
+>  
+>  #define PCI_VENDOR_ID_VMWARE		0x15ad
+> +#define PCI_DEVICE_ID_VMWARE_VMXNET3	0x07b0
+>  
+>  #define PCI_VENDOR_ID_ZOLTRIX		0x15b0
+>  #define PCI_DEVICE_ID_ZOLTRIX_2BD0	0x2bd0
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
