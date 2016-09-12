@@ -1,111 +1,71 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 9/13/2016 at 11:00PDT
-Date: Mon, 12 Sep 2016 19:23:48 +0300
-Message-ID: <20160912162348.GJ8812@leon.nu>
-References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
- <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
+Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Mon, 12 Sep 2016 19:39:28 +0300
+Message-ID: <20160912163928.GK8812@leon.nu>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="YPJ8CVbwFUtL7OFW"
+        protocol="application/pgp-signature"; boundary="IJAclU0AInkryoed"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1473696465-27986-1-git-send-email-Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---YPJ8CVbwFUtL7OFW
-Content-Type: text/plain; charset=us-ascii
+--IJAclU0AInkryoed
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 12, 2016 at 09:31:04PM +0530, Parav Pandit wrote:
-> Hi Liran,
->
-> We are almost reaching conclusions with Tejun, Christoph, Matan, Leon,
-> Jason and me with respect to rdma cgroup patches.
+On Mon, Sep 12, 2016 at 07:07:34PM +0300, Ram Amrani wrote:
 
-Interesting view on the situation :)
-Feel free to join and participate.
+>  include/linux/qed/common_hsi.h                 |    1 +
+>  include/linux/qed/qed_if.h                     |    9 +-
+>  include/linux/qed/qed_ll2_if.h                 |  140 +
+>  include/linux/qed/qed_roce_if.h                |  604 ++++
+>  include/linux/qed/qede_roce.h                  |   88 +
+>  include/linux/qed/rdma_common.h                |    1 +
 
-If time doesn't permit us, we will talk next week about
-these patches in regards to ABI.
+Something not directly related to your patches, but they brought my
+attention to the fact that all these new (and old) rdma<->net devices
+are polluting include/linux
 
->
-> There were open question towards HFI driver about how it plans to use
-> new uverbs API.
-> If time permits can we discuss this so that we can close on rdma
-> cgroup patchset?
-> I haven't been active in OFVWG meeting for uapi yet, but I will also
-> join this call.
->
-> Regards,
-> Parav Pandit
->
->
-> On Mon, Sep 12, 2016 at 8:34 PM, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > Following the recent discussions on unifying RDMA user-space, it looks like it is time to talk about a process to make it happen.
-> > Let's dedicate this week's OFVWG slot for this.
-> >
-> > Agenda items:
-> > - Repositories
-> > - Code submission and mailing lists
-> > - Release process
-> > - Schedules
-> > - Other?
-> >
-> > Thanks,
-> > --Liran
-> >
-> > Concall details
-> > ===========
-> > JOIN WEBEX MEETING
-> > https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
-> >
-> > JOIN BY PHONE
-> > 1-80-9453550 Israel toll free
-> > 1-855-299-5224 USA/Canada toll free
-> > Access code: 702 830 424
-> >
-> > Global call-in numbers:
-> > https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
-> >
-> > Toll-free calling restrictions:
-> > http://www.webex.com/pdf/tollfree_restrictions.pdf
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Filtered output:
+=E2=9E=9C  linux-rdma git:(topic/fixes-for-4.8-2) ls -dl include/linux/*/
+drwxrwxr-x  2 leonro leonro  4096 Aug 30 16:27 include/linux/hsi/
+drwxrwxr-x  2 leonro leonro  4096 Sep 12 19:08 include/linux/mlx4/
+drwxrwxr-x  2 leonro leonro  4096 Sep  7 15:31 include/linux/mlx5/
+drwxrwxr-x  2 leonro leonro  4096 Sep  8 17:46 include/linux/qed/
 
---YPJ8CVbwFUtL7OFW
+Is this the right place for them?
+
+Thanks
+
+--IJAclU0AInkryoed
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX1taUAAoJEORje4g2clinmDUQALRFpigT5p+YHJeGpyRO6uBT
-h6oHH5FQXYQ3HL7Zi0ZnS1jO7hL367a0UIMpsE4v+1Dv2v3fmb64bB3bRwQDG/n5
-W1zCcQ9ugLWaEqbvRK9lMQlSsJjb+CbXbYLbzVeu5fpdCdKW/dhvT3jsOZsua41N
-1fTHileYWIw6TsP84LWKuXHNIuUzK4mAUlXELb4cNpqJFW1vSTOWVydfrB9xGh7r
-s+iS5Ui4NdduMsOu6vG3adjJyRQgGosxO46lASbt7sbZIlwNJ3WmwwIQdlFLnNIS
-uQF5ZY2A5EkV7ILwEoeQ/5W0xhdJx7Pa7f8UV6CL47VGstwU0PBF2nhowrl/nZvr
-Cet/fETFvTxP+Z8chYcRbCbFgkLv57aoHif3qkIpPhrAQnJi7A+ZCI+HRFsJMESU
-cOkohbKThCidIb6oJ6yVbHvEdHd9ro/5GE9SSYxNuN/jYOuWCF3rnVHngi3IyHoQ
-oAs8vVoXcXYGnhHC1+o20ps/3miQdYs+0UgDDQpm/ne+BRD+sP1ELsFkTricdvXD
-FGNwDWI6luC9+NjoJ2FPd2A9x1G7YsuwWd5nQPZUJGZ8tmUyMiaupN1mEUB2ZG30
-HLrA1wkNo7TxizORhBTUqOsKVzX78N0AXjq+ukSQEQSbpYQiQYUgy6yobnfn7Hdm
-sPVW6ty8BdbcJ+F7Dbca
-=Hifu
+iQIcBAEBAgAGBQJX1tpAAAoJEORje4g2clinlqoP/2bZIzFHQx+ajhuGFIC0lPoJ
+B75PlrRmbFS4T2D4rCIlPhcrIlW48WMy3Up0Rr0pbw6sAkv3DImODMF+wnIz3PPU
+4H1rP112Yi4AIzNGM3yMEa91nXhJeJmVCgiGm4MmPVPGkc1Im5rfq2fhsDXIFfof
+Gqt4/o3zFwJUVf8cQjdezJaEr91/DkW5H+rP3epQ1Svu+ajK4c5e5ZM1aBEDXLpq
+5vXHDXRZ4O53dyQdxruVDUAQuMiZY3VUi3/4lxTEs4NDxvbb12xaF12q6/YIaI1V
+dRg7fd9tpdeZS67r8kdznTfwjQS/jf2iRcwCCNHlpE+TI2wvunP498q6hkTdN4HA
+pQ2JLQ7zfR8qg/CCvyDTprXy8kLjS51YiNH+PGlUmoibBCssg8szuCo+Hxs2FNx6
+RYmykq/yeBT2o7CgYNJAl4sGmflVTSMbf47VEJYncAmY1t1EuhyVjhV9wAspzoA8
+KK7NZsW/q5C6kXW0aQuHdsy06QJvYpfRFkwMYWh5aUQuoDzKxDz1VL7HO+62Zsmx
+T0m6sGljqJPUfYffshtCBWN4cl36qcCMn2nspmCcS1HYrnUHNXPgiNbzXvA1GGMz
+LdOxAAHg9nBvqOID5yRail67Qa+X4xZFh57vAY1YpYWkHzTtziNWkhjZaH26MEl4
+S5p2c+z3GnT+my7nhWqV
+=2uc3
 -----END PGP SIGNATURE-----
 
---YPJ8CVbwFUtL7OFW--
+--IJAclU0AInkryoed--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
