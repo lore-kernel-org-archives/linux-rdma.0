@@ -1,69 +1,99 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 9/13/2016 at 11:00PDT
-Date: Mon, 12 Sep 2016 21:31:04 +0530
-Message-ID: <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
-References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+From: Ram Amrani <Ram.Amrani@qlogic.com>
+Subject: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Mon, 12 Sep 2016 19:07:34 +0300
+Message-ID: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0-o1MPJYiShExf7S7AkGKGNcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: dledford@redhat.com, davem@davemloft.net
+Cc: Yuval.Mintz@qlogic.com, Ariel.Elior@qlogic.com, Michal.Kalderon@qlogic.com, rajesh.borundia@qlogic.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Ram Amrani <Ram.Amrani@qlogic.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Liran,
+This series introduces RoCE RDMA driver for the 579xx RDMA products by Qlogic.
+The RDMA support is added as an additional loadable module (qedr) over the Ethernet qede driver.
+The qedr module will support both RoCE and iWarp, although this series only adds RoCE support.
+The qed and qede drivers are enhanced with functionality required for RDMA support.
 
-We are almost reaching conclusions with Tejun, Christoph, Matan, Leon,
-Jason and me with respect to rdma cgroup patches.
+Any review/comment is appreciated.
 
-There were open question towards HFI driver about how it plans to use
-new uverbs API.
-If time permits can we discuss this so that we can close on rdma
-cgroup patchset?
-I haven't been active in OFVWG meeting for uapi yet, but I will also
-join this call.
+Based on net-next e19ac1578fd8eb3f7c93f2be2657deb2ccefffd7.
 
-Regards,
-Parav Pandit
+Rajesh Borundia (10):
+  Add RoCE driver framework
+  Add support for PD,PKEY and CQ verbs
+  Add support for memory registeration verbs
+  Add support for data path
+  Add LL2 RoCE interface
+  Add events support and register IB device
+  Add support for RoCE HW init
+  Add support for user context verbs
+  Add support for QP verbs
+  Add GSI support
 
+Yuval Mintz (1):
+  qed: Add LL2
 
-On Mon, Sep 12, 2016 at 8:34 PM, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Following the recent discussions on unifying RDMA user-space, it looks like it is time to talk about a process to make it happen.
-> Let's dedicate this week's OFVWG slot for this.
->
-> Agenda items:
-> - Repositories
-> - Code submission and mailing lists
-> - Release process
-> - Schedules
-> - Other?
->
-> Thanks,
-> --Liran
->
-> Concall details
-> ===========
-> JOIN WEBEX MEETING
-> https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
->
-> JOIN BY PHONE
-> 1-80-9453550 Israel toll free
-> 1-855-299-5224 USA/Canada toll free
-> Access code: 702 830 424
->
-> Global call-in numbers:
-> https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
->
-> Toll-free calling restrictions:
-> http://www.webex.com/pdf/tollfree_restrictions.pdf
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/infiniband/Kconfig                     |    2 +
+ drivers/infiniband/hw/Makefile                 |    1 +
+ drivers/infiniband/hw/qedr/Kconfig             |    7 +
+ drivers/infiniband/hw/qedr/Makefile            |    3 +
+ drivers/infiniband/hw/qedr/main.c              |  907 ++++++
+ drivers/infiniband/hw/qedr/qedr.h              |  494 ++++
+ drivers/infiniband/hw/qedr/qedr_cm.c           |  626 +++++
+ drivers/infiniband/hw/qedr/qedr_cm.h           |   61 +
+ drivers/infiniband/hw/qedr/qedr_hsi.h          |   56 +
+ drivers/infiniband/hw/qedr/qedr_hsi_rdma.h     |  748 +++++
+ drivers/infiniband/hw/qedr/qedr_user.h         |   80 +
+ drivers/infiniband/hw/qedr/verbs.c             | 3562 ++++++++++++++++++++++++
+ drivers/infiniband/hw/qedr/verbs.h             |   75 +
+ drivers/net/ethernet/qlogic/Kconfig            |    8 +
+ drivers/net/ethernet/qlogic/qed/Makefile       |    2 +
+ drivers/net/ethernet/qlogic/qed/qed.h          |   37 +-
+ drivers/net/ethernet/qlogic/qed/qed_cxt.c      |    8 +
+ drivers/net/ethernet/qlogic/qed/qed_cxt.h      |    7 +
+ drivers/net/ethernet/qlogic/qed/qed_dev.c      |  276 +-
+ drivers/net/ethernet/qlogic/qed/qed_dev_api.h  |   20 +
+ drivers/net/ethernet/qlogic/qed/qed_hsi.h      |    3 +
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c      | 1790 ++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_ll2.h      |  316 +++
+ drivers/net/ethernet/qlogic/qed/qed_main.c     |   67 +-
+ drivers/net/ethernet/qlogic/qed/qed_reg_addr.h |   29 +
+ drivers/net/ethernet/qlogic/qed/qed_roce.c     | 2975 ++++++++++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_roce.h     |  210 ++
+ drivers/net/ethernet/qlogic/qed/qed_sp.h       |    5 +
+ drivers/net/ethernet/qlogic/qed/qed_spq.c      |    8 +
+ drivers/net/ethernet/qlogic/qede/Makefile      |    1 +
+ drivers/net/ethernet/qlogic/qede/qede.h        |    9 +
+ drivers/net/ethernet/qlogic/qede/qede_main.c   |   35 +-
+ drivers/net/ethernet/qlogic/qede/qede_roce.c   |  309 ++
+ include/linux/qed/common_hsi.h                 |    1 +
+ include/linux/qed/qed_if.h                     |    9 +-
+ include/linux/qed/qed_ll2_if.h                 |  140 +
+ include/linux/qed/qed_roce_if.h                |  604 ++++
+ include/linux/qed/qede_roce.h                  |   88 +
+ include/linux/qed/rdma_common.h                |    1 +
+ include/uapi/linux/pci_regs.h                  |    3 +
+ 40 files changed, 13564 insertions(+), 19 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qedr/Kconfig
+ create mode 100644 drivers/infiniband/hw/qedr/Makefile
+ create mode 100644 drivers/infiniband/hw/qedr/main.c
+ create mode 100644 drivers/infiniband/hw/qedr/qedr.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_cm.c
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_cm.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi_rdma.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_user.h
+ create mode 100644 drivers/infiniband/hw/qedr/verbs.c
+ create mode 100644 drivers/infiniband/hw/qedr/verbs.h
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_ll2.c
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_ll2.h
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_roce.c
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_roce.h
+ create mode 100644 drivers/net/ethernet/qlogic/qede/qede_roce.c
+ create mode 100644 include/linux/qed/qed_ll2_if.h
+ create mode 100644 include/linux/qed/qed_roce_if.h
+ create mode 100644 include/linux/qed/qede_roce.h
+
+-- 
+1.8.3.1
