@@ -1,105 +1,61 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for-next 02/10] IB/hns: Register add_gid and del_gid for
- GID Table management
-Date: Mon, 12 Sep 2016 15:40:10 +0300
-Message-ID: <20160912124010.GI8812@leon.nu>
-References: <1472765845-118972-1-git-send-email-salil.mehta@huawei.com>
- <1472765845-118972-3-git-send-email-salil.mehta@huawei.com>
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: Re: [PATCH 00/26] constify local structures
+Date: Mon, 12 Sep 2016 16:16:25 +0300
+Message-ID: <20160912131625.GD957@intel.com>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
+ <20160911172105.GB5493@intel.com>
+ <alpine.DEB.2.10.1609121051050.3049@hadrien>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+ZmrHH5cGjskQnY1"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1472765845-118972-3-git-send-email-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Salil Mehta <salil.mehta@huawei.com>
-Cc: dledford@redhat.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+In-Reply-To: <alpine.DEB.2.10.1609121051050.3049@hadrien>
+Sender: linux-pm-owner@vger.kernel.org
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: linux-renesas-soc@vger.kernel.org, joe@perches.com, kernel-janitors@vger.kernel.org, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-media@vger.kernel.org, linux-can@vger.kernel.org, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devel@driverdev.osuosl.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-wireless@vger.kernel.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org, linux-spi@vger.kernel.orgl
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
+> 
+> 
+> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+> 
+> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
+> > > Constify local structures.
+> > >
+> > > The semantic patch that makes this change is as follows:
+> > > (http://coccinelle.lip6.fr/)
+> >
+> > Just my two cents but:
+> >
+> > 1. You *can* use a static analysis too to find bugs or other issues.
+> > 2. However, you should manually do the commits and proper commit
+> >    messages to subsystems based on your findings. And I generally think
+> >    that if one contributes code one should also at least smoke test changes
+> >    somehow.
+> >
+> > I don't know if I'm alone with my opinion. I just think that one should
+> > also do the analysis part and not blindly create and submit patches.
+> 
+> All of the patches are compile tested.  And the individual patches are
 
---+ZmrHH5cGjskQnY1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Compile-testing is not testing. If you are not able to test a commit,
+you should explain why.
 
-On Fri, Sep 02, 2016 at 05:37:17AM +0800, Salil Mehta wrote:
-> From: Lijun Ou <oulijun@huawei.com>
->
-> This patch adds support of add_gid() and del_gid() function in the
-> HNS RoCE driver for manipulation of the GID table associated with
-> port. This shall be used be used by CM when connection is
-> established.
->
-> Signed-off-by: Lijun Ou <oulijun@huawei.com>
-> Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
-> Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_main.c |   15 +++++++++++++++
->  1 file changed, 15 insertions(+)
->
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-> index 39e69c3..4e93120 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_main.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-> @@ -158,6 +158,19 @@ static void hns_roce_update_gids(struct hns_roce_dev *hr_dev, int port)
->  	ib_dispatch_event(&event);
->  }
->
-> +static int hns_roce_add_gid(struct ib_device *device, u8 port_num,
-> +			    unsigned int index, const union ib_gid *gid,
-> +			    const struct ib_gid_attr *attr, void **context)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int hns_roce_del_gid(struct ib_device *device, u8 port_num,
-> +			    unsigned int index, void **context)
-> +{
-> +	return 0;
-> +}
+> submitted to the relevant maintainers.  The individual commit messages
+> give a more detailed explanation of the strategy used to decide that the
+> structure was constifiable.  It seemed redundant to put that in the cover
+> letter, which will not be committed anyway.
 
-This patch makes no sense to me. It is the same as not write this
-functions at all.
+I don't mean to be harsh but I do not care about your thought process
+*that much* when I review a commit (sometimes it might make sense to
+explain that but it depends on the context).
 
-> +
->  static int handle_en_event(struct hns_roce_dev *hr_dev, u8 port,
->  			   unsigned long event)
->  {
-> @@ -639,6 +652,8 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
->  	ib_dev->get_link_layer		= hns_roce_get_link_layer;
->  	ib_dev->get_netdev		= hns_roce_get_netdev;
->  	ib_dev->query_gid		= hns_roce_query_gid;
-> +	ib_dev->add_gid			= hns_roce_add_gid;
-> +	ib_dev->del_gid			= hns_roce_del_gid;
->  	ib_dev->query_pkey		= hns_roce_query_pkey;
->  	ib_dev->alloc_ucontext		= hns_roce_alloc_ucontext;
->  	ib_dev->dealloc_ucontext	= hns_roce_dealloc_ucontext;
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I mostly only care why a particular change makes sense for this
+particular subsystem. The report given by a static analysis tool can
+be a starting point for making a commit but it's not sufficient.
+Based on the report you should look subsystems as individuals.
 
---+ZmrHH5cGjskQnY1
-Content-Type: application/pgp-signature; name="signature.asc"
+> julia
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJX1qIqAAoJEORje4g2clin/xYP/j3JraqDPAswUHtqFwjMd+mm
-sah6LeBCEMRj9EODFKWxiJ/DQKb05Iw9BwqU2A0j/PsSg5QSMKIOayHjTrmzobpI
-G3o3pftlojfeHP/1OyjSQRsA3YZZdK+WECXviHu3GvIXXuYovKS7jXHVDpgmC5AX
-iN0aujrtWHQoZPV2Q/+T4IBn1IltRVhBGkPVcUZNwYBpqJs5N9pdNDMsYKPtKnzz
-rE2PXg7g5XH0u+101mY98RY59+K70O/balMMj1of8WDCvq9u4lrYBJg3KbN04MBu
-XFeaOi6mDzY6X9IULCtk8dx0rQHIJtFjrutM0itbVn/HOtWnzec39PKh5N3eNIW2
-WMadmSf81FuEbl0ZwaeNq2heVOs8lZkaiLMMtmU2tSAiHcE4OTsudL3ut+BiUMrb
-JDFFoMuNjFL7YdOEXDXKkWbWWswjTdXwdrJBr4ogSabZO62fyTsUrJQmC7Rdu+7q
-qE5by7mffs1kjUrAOTKggga14P/7ajVI7kyu4R2T5FnsQRyoy8UvmSqIxyovMKUT
-ZjpKgPMAgpQCjYPjph3+AhoTB+M6bkCCrFvijhEiK/KhqQK9ihgA/ZZ1WCPX5yqL
-ry4xdr6JONGXeXM1bJdvFhkAW3NOZDU3IGsSGVS/pnSaKARYSnEQ7YUoTGWm728x
-kpn2hhD0S4bN2EqVLla9
-=Y8G3
------END PGP SIGNATURE-----
-
---+ZmrHH5cGjskQnY1--
+/Jarkko
