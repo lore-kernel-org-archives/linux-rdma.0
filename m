@@ -1,69 +1,52 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 01/16] vmxnet3: Move PCI Id to pci_ids.h
-Date: Mon, 12 Sep 2016 12:21:26 -0500
-Message-ID: <20160912172126.GA23532@localhost>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-2-git-send-email-aditr@vmware.com>
+From: Yuval Mintz <Yuval.Mintz@qlogic.com>
+Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Mon, 12 Sep 2016 17:39:35 +0000
+Message-ID: <CY4PR11MB17202A542AC07CBA4A65E93697FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <20160912163928.GK8812@leon.nu>,<CAG53R5UqF21z34jB2HJCTXU8w3Kbj_Jon=wBAoO5tYSqbD1f6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1473655766-31628-2-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAG53R5UqF21z34jB2HJCTXU8w3Kbj_Jon=wBAoO5tYSqbD1f6g@mail.gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>, Leon Romanovsky <leon@kernel.org>
+Cc: Ram Amrani <Ram.Amrani@qlogic.com>, Doug Ledford <dledford@redhat.com>, David Miller <davem@davemloft.net>, Ariel Elior <Ariel.Elior@qlogic.com>, Michal Kalderon <Michal.Kalderon@qlogic.com>, Rajesh Borundia <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 11, 2016 at 09:49:11PM -0700, Adit Ranadive wrote:
-> The VMXNet3 PCI Id will be shared with our paravirtual RDMA driver.
-> Moved it to the shared location in pci_ids.h.
-> 
-> Suggested-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-
-Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-
-> ---
-> ---
->  drivers/net/vmxnet3/vmxnet3_int.h | 3 +--
->  include/linux/pci_ids.h           | 1 +
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/vmxnet3/vmxnet3_int.h b/drivers/net/vmxnet3/vmxnet3_int.h
-> index 74fc030..2bd6bf8 100644
-> --- a/drivers/net/vmxnet3/vmxnet3_int.h
-> +++ b/drivers/net/vmxnet3/vmxnet3_int.h
-> @@ -119,9 +119,8 @@ enum {
->  };
->  
->  /*
-> - * PCI vendor and device IDs.
-> + * Maximum devices supported.
->   */
-> -#define PCI_DEVICE_ID_VMWARE_VMXNET3    0x07B0
->  #define MAX_ETHERNET_CARDS		10
->  #define MAX_PCI_PASSTHRU_DEVICE		6
->  
-> diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-> index c58752f..98bb455 100644
-> --- a/include/linux/pci_ids.h
-> +++ b/include/linux/pci_ids.h
-> @@ -2251,6 +2251,7 @@
->  #define PCI_DEVICE_ID_RASTEL_2PORT	0x2000
->  
->  #define PCI_VENDOR_ID_VMWARE		0x15ad
-> +#define PCI_DEVICE_ID_VMWARE_VMXNET3	0x07b0
->  
->  #define PCI_VENDOR_ID_ZOLTRIX		0x15b0
->  #define PCI_DEVICE_ID_ZOLTRIX_2BD0	0x2bd0
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pj4+wqAgaW5jbHVkZS9saW51eC9xZWQvY29tbW9uX2hzaS5owqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgfMKgwqDCoCAxICsNCj4+PsKgIGluY2x1ZGUvbGludXgvcWVkL3FlZF9pZi5o
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDkgKy0NCj4+
+PsKgIGluY2x1ZGUvbGludXgvcWVkL3FlZF9sbDJfaWYuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgIHzCoCAxNDAgKw0KPj4+wqAgaW5jbHVkZS9saW51eC9xZWQvcWVkX3JvY2VfaWYu
+aMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqAgNjA0ICsrKysNCj4+PsKgIGluY2x1
+ZGUvbGludXgvcWVkL3FlZGVfcm9jZS5owqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCB8wqDCoCA4OCArDQo+PsKgPiBpbmNsdWRlL2xpbnV4L3FlZC9yZG1hX2NvbW1vbi5owqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzCoMKgwqAgMSArDQo+Pg0KPj4gU29tZXRoaW5nIG5v
+dCBkaXJlY3RseSByZWxhdGVkIHRvIHlvdXIgcGF0Y2hlcywgYnV0IHRoZXkgYnJvdWdodCBteQ0K
+Pj4gYXR0ZW50aW9uIHRvIHRoZSBmYWN0IHRoYXQgYWxsIHRoZXNlIG5ldyAoYW5kIG9sZCkgcmRt
+YTwtPm5ldCBkZXZpY2VzDQo+PiBhcmUgcG9sbHV0aW5nIGluY2x1ZGUvbGludXgNCj4+DQo+IG9j
+cmRtYSBkcml2ZXIgaW5jbHVkZXMgYmVfcm9jZS5oIGxvY2F0ZWQgaW4gbmV0L2V0aGVybmV0L2Vt
+dWxleC9iZW5ldA0KPiBsb2NhdGlvbiBpbnN0ZWFkIG9mIGluY2x1ZGUvbGludXgvLg0KPiBUaGlz
+IGZpbGUgaGVscHMgdG8gYmluZCByZG1hIHRvIG5ldCBkZXZpY2Ugb3IgdW5kZXJseWluZyBodyBk
+ZXZpY2UuDQoNCj4gTWF5IGJlIHNpbWlsYXIgY2hhbmdlIGNhbiBiZSBkb25lIGZvciByZXN0IG9m
+IHRoZSBkcml2ZXJzIGZvcg0KPiByZG1hPC0tPm5ldCBkZXZpY2VzPw0KDQpCeSBhZGRpbmcgZXhw
+bGljaXQgaW5jbHVzaW9uIHBhdGhzIGluIHRoZSBNYWtlZmlsZSwgYSBsYQ0KY2NmbGFncy15IDo9
+IC1JZHJpdmVycy9uZXQvZXRoZXJuZXQvZW11bGV4L2JlbmV0ICAgPw0KDQpXaGlsZSB0aGlzIG1p
+Z2h0IHdvcmssIEkgcGVyc29uYWxseSBkaXNsaWtlIGl0IGFzIEkgZmluZCBpdA0KY291bnRlci1p
+bnR1aXRpdmUgd2hlbiBnb2luZyBvdmVyIHRoZSBjb2RlIC0NCkkgZG9uJ3QgZXhwZWN0IGRyaXZl
+ciB0byBsb2NhbGx5IG1vZGlmeSB0aGUgaW5jbHVzaW9uIHBhdGguDQpCZXNpZGVzLCB3ZSdyZSBn
+b2luZyB0byBbZXZlbnR1YWxseV0gYSB3aG9sZSBzdWl0ZSBvZiBkcml2ZXJzIGJhc2VkDQpvbiB0
+aGUgcWVkIG1vZHVsZSwgc29tZSBvZiB3aGljaCB3b3VsZCByZXNpZGUgdW5kZXIgZHJpdmVycy9z
+Y3NpOw0KTm90IHN1cmUgaXQncyBiZXN0IHRvIGhhdmUgMyBvciA0IGRpZmZlcmVudCBkcml2ZXJz
+IHByaXZhdGVseSBpbmNsdWRlIHRoZQ0Kc2FtZSBkaXJlY3RvcnkgdW5kZXIgYSBkaWZmZXJlbnQg
+c3Vic3lzdGVtLg0KDQo+PiBGaWx0ZXJlZCBvdXRwdXQ6DQo+PiDinpzCoCBsaW51eC1yZG1hIGdp
+dDoodG9waWMvZml4ZXMtZm9yLTQuOC0yKSBscyAtZGwgaW5jbHVkZS9saW51eC8qLw0KPj4gZHJ3
+eHJ3eHIteMKgIDIgbGVvbnJvIGxlb25yb8KgIDQwOTYgQXVnIDMwIDE2OjI3IGluY2x1ZGUvbGlu
+dXgvaHNpLw0KPj4gZHJ3eHJ3eHIteMKgIDIgbGVvbnJvIGxlb25yb8KgIDQwOTYgU2VwIDEyIDE5
+OjA4IGluY2x1ZGUvbGludXgvbWx4NC8NCj4+IGRyd3hyd3hyLXjCoCAyIGxlb25ybyBsZW9ucm/C
+oCA0MDk2IFNlcMKgIDcgMTU6MzEgaW5jbHVkZS9saW51eC9tbHg1Lw0KPj4gZHJ3eHJ3eHIteMKg
+IDIgbGVvbnJvIGxlb25yb8KgIDQwOTYgU2VwwqAgOCAxNzo0NiBpbmNsdWRlL2xpbnV4L3FlZC8N
+Cj4+DQo+PiBJcyB0aGlzIHRoZSByaWdodCBwbGFjZSBmb3IgdGhlbT8NCj4NCj4gVGhhbmtzDQog
+ICAgIA==
