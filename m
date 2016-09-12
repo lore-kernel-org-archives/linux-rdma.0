@@ -1,24 +1,28 @@
 From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v4 16/16] MAINTAINERS: Update for PVRDMA driver
-Date: Mon, 12 Sep 2016 11:52:22 -0600
-Message-ID: <20160912175222.GG5843@obsidianresearch.com>
+Subject: Re: [PATCH v4 00/16] Add Paravirtual RDMA Driver
+Date: Mon, 12 Sep 2016 12:02:51 -0600
+Message-ID: <20160912180251.GH5843@obsidianresearch.com>
 References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-17-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1473655766-31628-17-git-send-email-aditr@vmware.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <1473655766-31628-1-git-send-email-aditr@vmware.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Adit Ranadive <aditr@vmware.com>
 Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 11, 2016 at 09:49:26PM -0700, Adit Ranadive wrote:
-> Add maintainer info for the PVRDMA driver.
+On Sun, Sep 11, 2016 at 09:49:10PM -0700, Adit Ranadive wrote:
+> [2] Libpvrdma User-level library - 
+> http://git.openfabrics.org/?p=~aditr/libpvrdma.git;a=summary
 
-You can probably squash the last three patches.
+You will probably find that rdma-plumbing will be the best way to get
+your userspace component into the distributors.
 
-.. and fix the __u32 stuff throughout the entire driver please.
+  http://www.spinics.net/lists/linux-rdma/msg39026.html
+  http://www.spinics.net/lists/linux-rdma/msg39328.html
+  http://www.spinics.net/lists/linux-rdma/msg40014.html
+  http://www.spinics.net/lists/linux-rdma/msg39026.html
 
 Jason
