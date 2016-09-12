@@ -1,31 +1,31 @@
-From: Yuval Mintz <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC 02/11] Add RoCE driver framework
-Date: Mon, 12 Sep 2016 19:17:35 +0000
-Message-ID: <CY4PR11MB1720F9B74BBF82D0779FAC8F97FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>,<516b98c7-477a-4890-0d92-529dc32f2c4e@mellanox.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+ tomorrow - 9/13/2016 at 11:00PDT
+Date: Mon, 12 Sep 2016 16:10:59 +0000
+Message-ID: <VI1PR0501MB2189A67E796098853C6BA598B1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+ <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <516b98c7-477a-4890-0d92-529dc32f2c4e-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> +uint debug;
->> +module_param(debug, uint, 0);
->> +MODULE_PARM_DESC(debug, "Default debug msglevel");
-
->Why are you adding this as a module parameter?=20
-
-I believe this is mostly to follow same line as qede which also defines
-'debug' module parameter for allowing easy user control of debug
-prints [& specifically for probe prints, which can't be controlled
-otherwise].
-     =
+PiBGcm9tOiBQYXJhdiBQYW5kaXQgW21haWx0bzpwYW5kaXQucGFyYXZAZ21haWwuY29tXQ0KDQo+
+IEhpIExpcmFuLA0KPiANCj4gV2UgYXJlIGFsbW9zdCByZWFjaGluZyBjb25jbHVzaW9ucyB3aXRo
+IFRlanVuLCBDaHJpc3RvcGgsIE1hdGFuLCBMZW9uLCBKYXNvbg0KPiBhbmQgbWUgd2l0aCByZXNw
+ZWN0IHRvIHJkbWEgY2dyb3VwIHBhdGNoZXMuDQo+IA0KPiBUaGVyZSB3ZXJlIG9wZW4gcXVlc3Rp
+b24gdG93YXJkcyBIRkkgZHJpdmVyIGFib3V0IGhvdyBpdCBwbGFucyB0byB1c2UgbmV3DQo+IHV2
+ZXJicyBBUEkuDQo+IElmIHRpbWUgcGVybWl0cyBjYW4gd2UgZGlzY3VzcyB0aGlzIHNvIHRoYXQg
+d2UgY2FuIGNsb3NlIG9uIHJkbWEgY2dyb3VwDQo+IHBhdGNoc2V0Pw0KDQpTdXJlLg0KDQo+IEkg
+aGF2ZW4ndCBiZWVuIGFjdGl2ZSBpbiBPRlZXRyBtZWV0aW5nIGZvciB1YXBpIHlldCwgYnV0IEkg
+d2lsbCBhbHNvIGpvaW4gdGhpcyBjYWxsLg0KPiANCg0KV2VsY29tZSBhYm9hcmQhIDopDQoNCj4g
+UmVnYXJkcywNCj4gUGFyYXYgUGFuZGl0DQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
