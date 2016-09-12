@@ -1,123 +1,125 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Mon, 12 Sep 2016 08:07:17 +0300
-Message-ID: <20160912050717.GE8812@leon.nu>
-References: <20160901084406.GA4115@lst.de>
- <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
- <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com>
- <20160910161442.GC29259@lst.de>
- <20160910170151.GA5230@obsidianresearch.com>
- <20160911133421.GA23384@lst.de>
- <20160911143522.GL6415@leon.nu>
- <20160911171409.GA13442@obsidianresearch.com>
- <20160911172445.GA25953@lst.de>
- <20160911175235.GB13442@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
+ ISSI > 0 mode
+Date: Mon, 12 Sep 2016 09:28:30 +0300
+Message-ID: <CAJ3xEMiZ5dssHMW9ypN_86PUOQxuwaRB0G1iv5=Jbzc9w76cLw@mail.gmail.com>
+References: <1473232990-22766-1-git-send-email-dchang@suse.com>
+ <20160908140752.GN18398@leon.nu> <20160909025527.GC3042@linux-kyyb.suse>
+ <20160910074719.GG6415@leon.nu> <20160911071542.GH6415@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Oiv9uiLrevHtW1RS"
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160911175235.GB13442-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160911071542.GH6415-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Chang <dchang-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Sep 11, 2016 at 10:15 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi David,
+> Please find this UNTESTED patch. We will do formal testing during the
+> coming work week and will properly submit it for inclusion for 4.8.
 
---Oiv9uiLrevHtW1RS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Sun, Sep 11, 2016 at 11:52:35AM -0600, Jason Gunthorpe wrote:
-> On Sun, Sep 11, 2016 at 07:24:45PM +0200, Christoph Hellwig wrote:
-> > > > > I've posted some initial work toward a) a while ago, and once we
-> > >
-> > > Did it get merged? Do you have a pointer?
-> >
-> > http://www.spinics.net/lists/linux-rdma/msg31958.html
->
-> Right, I remember that. Certainly the right direction
->
-> > > However, everything under verbs is not straightforward. The files in
-> > > userspace are not copies...
-> > >
-> > > user:
-> > >
-> > > struct ibv_query_device {
-> > >        __u32 command;
-> > >        __u16 in_words;
-> > >        __u16 out_words;
-> > >        __u64 response;
-> > >        __u64 driver_data[0];
-> > > };
-> > >
-> > > kernel:
-> > >
-> > > struct ib_uverbs_query_device {
-> > >         __u64 response;
-> > >         __u64 driver_data[0];
-> > > };
-> >
-> > We'll obviously need different strutures for the libibvers API
-> > and the kernel interface in this case, and we'll need to figure out
-> > how to properly translate them.  I think a cast, plus compile time
-> > type checking ala BUILD_BUG_ON is the way to go.
->
-> I'm not sure I follow, which would I cast?
->
-> BUILD_BUG_ON(sizeof(ibv_query_device) == sizeof(ib_uverbs_cmd_hdr) +
->              sizeof(ib_uverbs_query_device))
->
-> ?
->
-> > > I'm thinking the best way forward might be to use a script and
-> > > transform userspace into:
-> > >
-> > > struct ibv_query_device {
-> > > 	struct ib_uverbs_cmd_hdr hdr;
-> > > 	struct ib_uverbs_query_device cmd;
-> > > };
-> >
-> > That would break the users of the interface.
->
-> Sorry, I mean doing this inside rdma-plumbing. Since the change is ABI
-> identical the modified libibverbs would still be binary compatible
-> with all providers but not source compatible. Since all kernel
-> supported providers are in rdma-plumbing we can add the '.cmd.' at the
-> same time.
->
-> The kernel uapi header would stay the same.
->
-> > However automatically generating the user ABI from the kernel one
-> > might still be a good idea in the long run.
->
-> My preference would be to try and use the kernel headers directly.
+>From 9147fabc9b189e09a982de8ac30f01f04468f6ce Mon Sep 17 00:00:00 2001
+From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Sun, 11 Sep 2016 10:00:27 +0300
+Subject: [PATCH rdma-rc] IB/mlx5: Enable MAD_IFC commands for IB ports only
 
-I thought the same, especially after realizing that they are almost
-copy/paste from the vendor *-abi.h files.
+MAD_IFC command is supported only for physical function (PF) drivers
+and only when physical port is IB.
 
->
-> Jason
+The lack of check if port is IB caused to following trace to appear.
 
---Oiv9uiLrevHtW1RS
-Content-Type: application/pgp-signature; name="signature.asc"
+The word drivers isn't accurate. The change log doesn't say enough on
+the nature of the fix. You can say
+"MAD_IFC command is supported only for physical function (PF) and when
+the port link type is IB, enforce that"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+[    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
 
-iQIcBAEBAgAGBQJX1jgFAAoJEORje4g2clinwkMP/11uVCZnr++BF25V91qYAo8R
-5f9mGW8KTRYAVNr8eEmsN7/BV1sjKxzeznHYgQ6HRiezOOMzcRGbFgSwujYSoo9m
-+X2t2ynpD/Y6zco95+GrGPHjoznWk9Stc7ME00jFaON2Inzpzi2SiPSCXvgF4zF2
-+woXeW1UHxk5VSQaZlLDlHBFRFvZciVkU9SKN1z8zvuUPjVqgHzlrhhvTU9hiMRy
-VPLXGu34bqtZqsKByDZc34zgh0b1EhxCYl8x3cIjisrL9UWpmKtOPzaRkVtDuUxb
-o/iBnoiwaS3/4+RjBSaHb/e9IxmZtUVwfgcd6hOUSKgoTyvD0ra9U27nBWqDbtLW
-9ogMbUK9lHxAba+zy64DcZt76s4K6hw4fcaTBrG5Zye4sQt6gArodQteHJB7ier3
-9ABeYpMkYrVE/BLUBowixYGIl3i24YQmM2ZxD50kpRxMu8Lv57NN/EzTLlQV3klr
-O0cGi42TDw+9zdkpszxfXfBEVB/tv8M7Z1vN90x3t/HIek7nKGvZsEpOTV4/ODze
-FgCs5ajuuau8s3WW8CqvwT0YxKpYEKTfcJ+SNnvmCClPSLi4E5Q5lUssEDWRkzJX
-nYD1OZL4g/ScGaUnTa6G6rTbLj+Iq2UPq6ybywI7gUdq+igh0icMqcTucqrHaFYq
-+B98vS847xmahqYy/y+U
-=TV33
------END PGP SIGNATURE-----
+does the FW version matters here or the bug/fix apply for all GA FWs
+that support IB SRIOV and ETH (Roce)?
+...
+[   10.417421] mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb 2014)
+[   10.419282] ------------[ cut here ]------------
+[   10.419291] WARNING: CPU: 2 PID: 2517 at
+../drivers/infiniband/core/cache.c:702
+ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
 
---Oiv9uiLrevHtW1RS--
+
+This trace teaches us nothing.  If you really want to keep it here,
+say something what the trace means
+
+()
+[   10.419386] CPU: 2 PID: 2517 Comm: modprobe Tainted: G X 4.4.19-1-default #1
+[   10.419387] Hardware name: Dell Inc. PowerEdge R730xd/072T6D,
+BIOS2.1.7 06/16/2016
+[   10.419389]  0000000000000000 ffffffff8130d740 0000000000000000
+ffffffffa04e0300
+[   10.419395]  ffffffff8107c121
+[   10.419400]  ffff88017bfe0000 ffff88003712b9e0 ffff88045ad905c0
+[   10.419401]  0000000000000001 fffffffffffffffc ffffffffa04d8a58
+0000000000000000
+[   10.419406] Call Trace:
+[   10.419415]  [<ffffffff81019a59>] dump_trace+0x59/0x310
+[   10.419419]  [<ffffffff81019dfa>] show_stack_log_lvl+0xea/0x170
+[   10.419421]  [<ffffffff8101ab81>] show_stack+0x21/0x40
+[   10.419426]  [<ffffffff8130d740>] dump_stack+0x5c/0x7c
+[   10.419431]  [<ffffffff8107c121>] warn_slowpath_common+0x81/0xb0
+[   10.419436]  [<ffffffffa04d8a58>]
+ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
+[   10.419449]  [<ffffffffa04da2dd>] add_netdev_ips+0x9d/0xa0 [ib_core]
+[   10.419456]  [<ffffffffa04da45b>] enum_all_gids_of_dev_cb+0x7b/0xb0 [ib_core]
+[   10.419461]  [<ffffffffa04d641d>] ib_enum_roce_netdev+0xdd/0x100 [ib_core]
+[   10.419466]  [<ffffffffa04da5ed>] roce_rescan_device+0x1d/0x20 [ib_core]
+[   10.419470]  [<ffffffffa04d8cdb>] ib_cache_setup_one+0x23b/0x3d0 [ib_core]
+[   10.419475]  [<ffffffffa04d606b>] ib_register_device+0x2bb/0x4f0 [ib_core]
+[   10.419483]  [<ffffffffa0618bbf>] mlx5_ib_add+0xaaf/0x12e0 [mlx5_ib]
+[   10.419492]  [<ffffffffa08b76c1>] mlx5_add_device+0x41/0xa0 [mlx5_core]
+[   10.419498]  [<ffffffffa08b7785>] mlx5_register_interface+0x65/0xa0
+[mlx5_core]
+[   10.419502]  [<ffffffffa0474030>] mlx5_ib_init+0x30/0x42 [mlx5_ib]
+[   10.419506]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
+[   10.419510]  [<ffffffff811827e8>] do_init_module+0x5a/0x1d7
+[   10.419514]  [<ffffffff81103536>] load_module+0x1366/0x1c50
+[   10.419518]  [<ffffffff81103fd0>] SYSC_finit_module+0x70/0xa0
+[   10.419523]  [<ffffffff815e126e>] entry_SYSCALL_64_fastpath+0x12/0x6d
+[   10.420681] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
+[   10.420682] Leftover inexact backtrace:
+[   10.420684] ---[ end trace fc8ccb16c9d8e28a ]---
+
+
+say here what commit/s you are fixing, add Fixes: line  -- I assume
+this bug is here before 4.8-rc1 so the fix needs to go anyway to
+stable kernels. As we're close to rc6, its better to push the patch
+for rdma-next (4.9) and later carry it back to stable.
+
+Reported-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/main.c
+b/drivers/infiniband/hw/mlx5/main.c
+index 8150ea3..0480b64 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -288,7 +288,9 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev
+*dev, u8 port_num,
+
+ static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
+ {
+- return !MLX5_CAP_GEN(dev->mdev, ib_virt);
++ if (MLX5_CAP_GEN(dev->mdev, port_type) == MLX5_CAP_PORT_TYPE_IB)
++ return !MLX5_CAP_GEN(dev->mdev, ib_virt);
++ return 0;
+ }
+
+ enum {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
