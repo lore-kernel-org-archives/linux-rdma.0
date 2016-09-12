@@ -1,54 +1,87 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 0/7] Second round of mlx4/mlx5 fixes for 4.8
-Date: Mon, 12 Sep 2016 19:16:17 +0300
-Message-ID: <1473696984-6161-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 1/7] IB/mlx4: Fix incorrect MC join state bit-masking on SR-IOV
+Date: Mon, 12 Sep 2016 19:16:18 +0300
+Message-ID: <1473696984-6161-2-git-send-email-leon@kernel.org>
+References: <1473696984-6161-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1473696984-6161-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Here are seven patches which fix different bugs mostly crashes and one
-patch with code cleanup. This code cleanup was needed to create fix
-without checkpatch warnings.
+Because of an incorrect bit-masking done on the join state bits, when
+handling a join request we failed to detect a difference between the
+group join state and the request join state when joining as send only
+full member (0x8). This caused the MC join request not to be sent.
+This issue is relevant only when SRIOV is enabled and SM supports
+send only full member.
 
-Available in the "topic/fixes-for-4.8-2" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+This fix separates scope bits and join states bits a nibble each.
 
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/fixes-for-4.8-2
+Fixes: b9c5d6a64358 ('IB/mlx4: Add multicast group (MCG) paravirtualization for SR-IOV')
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/mcg.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Alex Vesker (1):
-  IB/mlx4: Fix incorrect MC join state bit-masking on SR-IOV
-
-Jack Morgenstein (3):
-  IB/mlx4: Fix code indentation in QP1 MAD flow
-  IB/mlx4: Use correct subnet-prefix in QP1 mads under SRIOV
-  IB/mlx4: Fix possible vl/sl field mismatch in LRH header in QP1
-    packets
-
-Kamal Heib (1):
-  IB/mlx4: Diagnostic HW counters are not supported in slave mode
-
-Maor Gottlieb (1):
-  IB/mlx5: Set source mac address in FTE
-
-Noa Osherovich (1):
-  IB/mlx5: Enable MAD_IFC commands for IB ports only
-
- drivers/infiniband/hw/mlx4/mad.c        |  87 +++++++++++++++++++++++-
- drivers/infiniband/hw/mlx4/main.c       | 113 +++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx4/mcg.c        |  14 ++--
- drivers/infiniband/hw/mlx4/mlx4_ib.h    |   9 ++-
- drivers/infiniband/hw/mlx4/qp.c         |  60 ++++++++++++-----
- drivers/infiniband/hw/mlx5/main.c       |  11 +++-
- drivers/net/ethernet/mellanox/mlx4/fw.c |  13 ++--
- include/linux/mlx4/device.h             |  13 +++-
- 8 files changed, 284 insertions(+), 36 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index 8f7ad07..097bfcc 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -489,7 +489,7 @@ static u8 get_leave_state(struct mcast_group *group)
+ 		if (!group->members[i])
+ 			leave_state |= (1 << i);
+ 
+-	return leave_state & (group->rec.scope_join_state & 7);
++	return leave_state & (group->rec.scope_join_state & 0xf);
+ }
+ 
+ static int join_group(struct mcast_group *group, int slave, u8 join_mask)
+@@ -564,8 +564,8 @@ static void mlx4_ib_mcg_timeout_handler(struct work_struct *work)
+ 		} else
+ 			mcg_warn_group(group, "DRIVER BUG\n");
+ 	} else if (group->state == MCAST_LEAVE_SENT) {
+-		if (group->rec.scope_join_state & 7)
+-			group->rec.scope_join_state &= 0xf8;
++		if (group->rec.scope_join_state & 0xf)
++			group->rec.scope_join_state &= 0xf0;
+ 		group->state = MCAST_IDLE;
+ 		mutex_unlock(&group->lock);
+ 		if (release_group(group, 1))
+@@ -605,7 +605,7 @@ static int handle_leave_req(struct mcast_group *group, u8 leave_mask,
+ static int handle_join_req(struct mcast_group *group, u8 join_mask,
+ 			   struct mcast_req *req)
+ {
+-	u8 group_join_state = group->rec.scope_join_state & 7;
++	u8 group_join_state = group->rec.scope_join_state & 0xf;
+ 	int ref = 0;
+ 	u16 status;
+ 	struct ib_sa_mcmember_data *sa_data = (struct ib_sa_mcmember_data *)req->sa_mad.data;
+@@ -690,8 +690,8 @@ static void mlx4_ib_mcg_work_handler(struct work_struct *work)
+ 			u8 cur_join_state;
+ 
+ 			resp_join_state = ((struct ib_sa_mcmember_data *)
+-						group->response_sa_mad.data)->scope_join_state & 7;
+-			cur_join_state = group->rec.scope_join_state & 7;
++						group->response_sa_mad.data)->scope_join_state & 0xf;
++			cur_join_state = group->rec.scope_join_state & 0xf;
+ 
+ 			if (method == IB_MGMT_METHOD_GET_RESP) {
+ 				/* successfull join */
+@@ -710,7 +710,7 @@ process_requests:
+ 		req = list_first_entry(&group->pending_list, struct mcast_req,
+ 				       group_list);
+ 		sa_data = (struct ib_sa_mcmember_data *)req->sa_mad.data;
+-		req_join_state = sa_data->scope_join_state & 0x7;
++		req_join_state = sa_data->scope_join_state & 0xf;
+ 
+ 		/* For a leave request, we will immediately answer the VF, and
+ 		 * update our internal counters. The actual leave will be sent
+-- 
 2.7.4
 
 --
