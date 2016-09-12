@@ -1,92 +1,67 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 00/26] constify local structures
-Date: Sun, 11 Sep 2016 21:11:35 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1609112105250.3818@hadrien>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
- <1473616576.19464.10.camel@perches.com>
+From: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
+ ISSI > 0 mode
+Date: Mon, 12 Sep 2016 12:40:43 +0800
+Message-ID: <20160912044043.GE3042@linux-kyyb.suse>
+References: <1473232990-22766-1-git-send-email-dchang@suse.com>
+ <20160908140752.GN18398@leon.nu>
+ <20160909025527.GC3042@linux-kyyb.suse>
+ <20160910074719.GG6415@leon.nu>
+ <20160911071542.GH6415@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1473616576.19464.10.camel@perches.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Joe Perches <joe@perches.com>
-Cc: alsa-devel@alsa-project.org, Mustafa Ismail <mustafa.ismail@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, kernel-janitors@vger.kernel.org, linux-fbdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-media@vger.kernel.org, linux-pm@vger.kernel.org, linux-can@vger.kernel.org, Julia Lawall <Julia.Lawall@lip6.fr>, Shiraz Saleem <shiraz.saleem@intel.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, netdev@vger.kernel.org, Chien Tin Tung <chien.tin.tung@intel.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160911071542.GH6415-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Sep 11, 2016 at 10:15:42AM +0300, Leon Romanovsky wrote:
+> On Sat, Sep 10, 2016 at 10:47:19AM +0300, Leon Romanovsky wrote:
+> > On Fri, Sep 09, 2016 at 10:55:27AM +0800, David Chang wrote:
+> > > On Thu, Sep 08, 2016 at 05:07:52PM +0300, Leon Romanovsky wrote:
+> > > > On Wed, Sep 07, 2016 at 03:23:10PM +0800, David Chang wrote:
+> > > > > When using MAD_IFC command, we should also consider avoiding in
+> > > > > ISSI > 0 mode, otherwise most of the MAD_IFC command features
+> > > > > are deprecated and cannot be used.
+> > > > >
+> > > > > Fixes: d603c809ef91 ("IB/mlx5: Fix decision on using MAD_IFC")
+> > > > > Reported-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
+> > > > > Signed-off-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
+> > > >
+> > > > NAK,
+> > > > It is wrong, the deprecation is removed from programming manual.
+> > > >
+> > >
+> > > Without the patch, we got the following message.
+> > > [    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
+> > > ...
+> >
+> > This command is supported only for physical function (PF) drivers
+> > and only when physical port is IB without relation to ISSI.
+> >
+> > When I'll return to office (next week), I'll check that we are checking
+> > this requirement correctly.
+> >
+> > Thanks for providing dump and FW version to reproduce it.
+> 
+> Hi David,
+> 
+> Please find this UNTESTED patch. We will do formal testing during the
+> coming work week and will properly submit it for inclusion for 4.8.
+> From 9147fabc9b189e09a982de8ac30f01f04468f6ce Mon Sep 17 00:00:00 2001
+> From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Sun, 11 Sep 2016 10:00:27 +0300
+> Subject: [PATCH rdma-rc] IB/mlx5: Enable MAD_IFC commands for IB ports only
+> 
 
-On Sun, 11 Sep 2016, Joe Perches wrote:
+Ok! Will test the patch later.
 
-> On Sun, 2016-09-11 at 15:05 +0200, Julia Lawall wrote:
-> > Constify local structures.
->
-> Thanks Julia.
->
-> A few suggestions & questions:
->
-> Perhaps the script should go into scripts/coccinelle/
-> so that future cases could be caught by the robot
-> and commit message referenced by the patch instances.
-
-OK.
-
-> Can you please compile the files modified using the
-> appropriate defconfig/allyesconfig and show the
-
-I currently send patches for this issue only for files that compile using
-the x86 allyesconfig.
-
-> movement from data to const by using
-> 	$ size <object>.new/old
-> and include that in the changelogs (maybe next time)?
-
-OK, thanks for the suggestion.
-
-> Is it possible for a rule to trace the instances where
-> an address of a struct or struct member is taken by
-> locally defined and declared function call where the
-> callee does not modify any dereferenced object?
->
-> ie:
->
-> struct foo {
-> 	int bar;
-> 	char *baz;
-> };
->
-> struct foo qux[] = {
-> 	{ 1, "description 1" },
-> 	{ 2, "dewcription 2" },
-> 	[ n, "etc" ]...,
-> };
->
-> void message(struct foo *msg)
-> {
-> 	printk("%d %s\n", msg->bar, msg->baz);
-> }
->
-> where some code uses
->
-> 	message(qux[index]);
->
-> So could a coccinelle script change:
->
-> struct foo qux[] = { to const struct foo quz[] = {
->
-> and
->
-> void message(struct foo *msg) to void message(const struct foo *msg)
-
-Yes, this could be possible too.
-
-Thanks for the feedback.
-
-julia
+Thanks,
+David Chang
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
