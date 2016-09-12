@@ -1,109 +1,105 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 03/10] IB/hns: Add & initialize "node_guid"
- parameter for RDMA CM
-Date: Mon, 12 Sep 2016 15:36:23 +0300
-Message-ID: <20160912123623.GH8812@leon.nu>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for-next 02/10] IB/hns: Register add_gid and del_gid for
+ GID Table management
+Date: Mon, 12 Sep 2016 15:40:10 +0300
+Message-ID: <20160912124010.GI8812@leon.nu>
 References: <1472765845-118972-1-git-send-email-salil.mehta@huawei.com>
- <1472765845-118972-4-git-send-email-salil.mehta@huawei.com>
+ <1472765845-118972-3-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="TBNym+cBXeFsS4Vs"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="+ZmrHH5cGjskQnY1"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1472765845-118972-4-git-send-email-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+In-Reply-To: <1472765845-118972-3-git-send-email-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: dledford@redhat.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---TBNym+cBXeFsS4Vs
+--+ZmrHH5cGjskQnY1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Sep 02, 2016 at 05:37:18AM +0800, Salil Mehta wrote:
-> From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+On Fri, Sep 02, 2016 at 05:37:17AM +0800, Salil Mehta wrote:
+> From: Lijun Ou <oulijun@huawei.com>
 >
-> According to the Infiniband spec, NodeGUID uniquely identifies a
-> node. This must be initialized to some unique value. This patch
-> adds the support to the HNS RoCE driver to fetch the NodeGUID
-> value from DT or ACPI and then use this value to initialize the
-> node_guid parameter of IB device. This value shall be used by
-> RDMA CM.
+> This patch adds support of add_gid() and del_gid() function in the
+> HNS RoCE driver for manipulation of the GID table associated with
+> port. This shall be used be used by CM when connection is
+> established.
 >
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Lijun Ou <oulijun@huawei.com>
+> Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
+> Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 > ---
->  drivers/infiniband/hw/hns/hns_roce_device.h |    1 +
->  drivers/infiniband/hw/hns/hns_roce_main.c   |    7 +++++++
->  2 files changed, 8 insertions(+)
+>  drivers/infiniband/hw/hns/hns_roce_main.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
 >
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-> index ea73580..e943b98 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
-> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> @@ -74,6 +74,7 @@
->  #define MR_TYPE_DMA				0x03
->
->  #define PKEY_ID					0xffff
-> +#define GUID_LEN				8
->  #define NODE_DESC_SIZE				64
->
->  #define SERV_TYPE_RC				0
 > diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-> index 4e93120..ec27f0c 100644
+> index 39e69c3..4e93120 100644
 > --- a/drivers/infiniband/hw/hns/hns_roce_main.c
 > +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-> @@ -812,6 +812,13 @@ static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
->  	if (IS_ERR(hr_dev->reg_base))
->  		return PTR_ERR(hr_dev->reg_base);
+> @@ -158,6 +158,19 @@ static void hns_roce_update_gids(struct hns_roce_dev *hr_dev, int port)
+>  	ib_dispatch_event(&event);
+>  }
 >
-> +	/* read the node_guid of IB device from the DT or ACPI */
-> +	ret = device_property_read_u8_array(dev, "node-guid",
-> +					    (u8 *)&hr_dev->ib_dev.node_guid,
-> +					    GUID_LEN);
-> +	if (ret)
-> +		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
+> +static int hns_roce_add_gid(struct ib_device *device, u8 port_num,
+> +			    unsigned int index, const union ib_gid *gid,
+> +			    const struct ib_gid_attr *attr, void **context)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int hns_roce_del_gid(struct ib_device *device, u8 port_num,
+> +			    unsigned int index, void **context)
+> +{
+> +	return 0;
+> +}
 
-Is it error? If yes, you need to implement proper error folding. If not,
-this error shouldn't be error.
+This patch makes no sense to me. It is the same as not write this
+functions at all.
 
 > +
->  	/* get the RoCE associated ethernet ports or netdevices */
->  	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
->  		if (dev_of_node(dev)) {
+>  static int handle_en_event(struct hns_roce_dev *hr_dev, u8 port,
+>  			   unsigned long event)
+>  {
+> @@ -639,6 +652,8 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+>  	ib_dev->get_link_layer		= hns_roce_get_link_layer;
+>  	ib_dev->get_netdev		= hns_roce_get_netdev;
+>  	ib_dev->query_gid		= hns_roce_query_gid;
+> +	ib_dev->add_gid			= hns_roce_add_gid;
+> +	ib_dev->del_gid			= hns_roce_del_gid;
+>  	ib_dev->query_pkey		= hns_roce_query_pkey;
+>  	ib_dev->alloc_ucontext		= hns_roce_alloc_ucontext;
+>  	ib_dev->dealloc_ucontext	= hns_roce_dealloc_ucontext;
 > --
 > 1.7.9.5
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---TBNym+cBXeFsS4Vs
+--+ZmrHH5cGjskQnY1
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX1qFHAAoJEORje4g2clinspsP/30wPqDe16/AIpFBTFR0YTMv
-tWlg3+b0rlFNh2XoM5WVxOhJ7jvN9OGUzoLLwzgOKpTAsFqVQ2V5h3w81pLoL0vm
-KyPCTYMLxkWFfY76geWbmOCi2Tsc3sKBRjo4z+BLaDmv6kINGoCtS9XbMvyfciYO
-HBSHbUTX9pTQ8+xpCZCIpKEnRVjtNw4sfGSC6yzNSd8cp8mD9otawsBKRbLkFx8z
-dHt8xXTauQgE98npuYzNK4n4zYjyafyqCIn7qXfzcsx3X2MxPybUpYOOD5iPuO3Z
-Hi/rXh9SzqrYhqqqkN+xAxbs99w3iWVvDj+Y+ujScbArByW3fF5GX6lNkNmCNXuQ
-ATkEWcaAbI5XFjc8dLG9s+lVNhWiA57/7DfDXC9AM0HX2xgTgudRmwHbiDyaisdj
-iCiLVvrdUERolF89nsXLd1m8jJLG6QLtPVrITHPhmeaff5I0dx4cPBF74nq5KFQ6
-gE0+fgKTAQ8QdheZtmVqYrpun+GlgaE1dyl2zlljrSZViXv7sxdV4EMfDqQHbTup
-O4iBpUHvvvJpObH8L2JcygQiZAytlpCdxsNADmGnyjdroiWJFLV/mNRxDhmGiqX/
-4Of9HYrccKrGhoQRmIn2RNibVrGal2Pm/DwH7quuVloyYIoWzl6sbIujNZOq3g4M
-ahOWyLRgiL9v4PC4GxtL
-=bxBG
+iQIcBAEBAgAGBQJX1qIqAAoJEORje4g2clin/xYP/j3JraqDPAswUHtqFwjMd+mm
+sah6LeBCEMRj9EODFKWxiJ/DQKb05Iw9BwqU2A0j/PsSg5QSMKIOayHjTrmzobpI
+G3o3pftlojfeHP/1OyjSQRsA3YZZdK+WECXviHu3GvIXXuYovKS7jXHVDpgmC5AX
+iN0aujrtWHQoZPV2Q/+T4IBn1IltRVhBGkPVcUZNwYBpqJs5N9pdNDMsYKPtKnzz
+rE2PXg7g5XH0u+101mY98RY59+K70O/balMMj1of8WDCvq9u4lrYBJg3KbN04MBu
+XFeaOi6mDzY6X9IULCtk8dx0rQHIJtFjrutM0itbVn/HOtWnzec39PKh5N3eNIW2
+WMadmSf81FuEbl0ZwaeNq2heVOs8lZkaiLMMtmU2tSAiHcE4OTsudL3ut+BiUMrb
+JDFFoMuNjFL7YdOEXDXKkWbWWswjTdXwdrJBr4ogSabZO62fyTsUrJQmC7Rdu+7q
+qE5by7mffs1kjUrAOTKggga14P/7ajVI7kyu4R2T5FnsQRyoy8UvmSqIxyovMKUT
+ZjpKgPMAgpQCjYPjph3+AhoTB+M6bkCCrFvijhEiK/KhqQK9ihgA/ZZ1WCPX5yqL
+ry4xdr6JONGXeXM1bJdvFhkAW3NOZDU3IGsSGVS/pnSaKARYSnEQ7YUoTGWm728x
+kpn2hhD0S4bN2EqVLla9
+=Y8G3
 -----END PGP SIGNATURE-----
 
---TBNym+cBXeFsS4Vs--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--+ZmrHH5cGjskQnY1--
