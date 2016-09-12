@@ -1,63 +1,72 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: RFC: CQ pools and implicit CQ resource allocation
-Date: Mon, 12 Sep 2016 23:25:29 +0300
-Message-ID: <3c30fd68-664c-a15b-021d-0a67544461b1@grimberg.me>
-References: <1473424587-13818-1-git-send-email-hch@lst.de>
- <d0c645eb-3674-2841-bdb7-8b9e6fd46473@grimberg.me>
- <BCF7E723-FC50-4497-9E0B-1157CF2D4185@oracle.com>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 00/26] constify local structures
+Date: Mon, 12 Sep 2016 23:11:46 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1609122311040.3549@hadrien>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr> <20160911172105.GB5493@intel.com> <alpine.DEB.2.10.1609121051050.3049@hadrien> <20160912131625.GD957@intel.com> <877fah5j35.fsf@linux.intel.com> <20160912201450.GA8889@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BCF7E723-FC50-4497-9E0B-1157CF2D4185-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <20160912201450.GA8889@intel.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: Felipe Balbi <felipe.balbi@linux.intel.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-renesas-soc@vger.kernel.org, joe@perches.com, kernel-janitors@vger.kernel.org, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-media@vger.kernel.org, linux-can@vger.kernel.org, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devel@driverdev.osuosl.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-wireless@vger.kernel.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>t
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Chuck,
 
->> One other note that I wanted to raise for the folks interested in this
->> is that with the RDMA core owning the completion queue pools, different
->> ULPs can easily share the same completion queue (given that it uses
->> the same poll context). For example, nvme-rdma host, iser and srp
->> initiators can end up using the same completion queues (if running
->> simultaneously on the same machine).
+
+On Mon, 12 Sep 2016, Jarkko Sakkinen wrote:
+
+> On Mon, Sep 12, 2016 at 04:43:58PM +0300, Felipe Balbi wrote:
+> >
+> > Hi,
+> >
+> > Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
+> > > On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
+> > >>
+> > >>
+> > >> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+> > >>
+> > >> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
+> > >> > > Constify local structures.
+> > >> > >
+> > >> > > The semantic patch that makes this change is as follows:
+> > >> > > (http://coccinelle.lip6.fr/)
+> > >> >
+> > >> > Just my two cents but:
+> > >> >
+> > >> > 1. You *can* use a static analysis too to find bugs or other issues.
+> > >> > 2. However, you should manually do the commits and proper commit
+> > >> >    messages to subsystems based on your findings. And I generally think
+> > >> >    that if one contributes code one should also at least smoke test changes
+> > >> >    somehow.
+> > >> >
+> > >> > I don't know if I'm alone with my opinion. I just think that one should
+> > >> > also do the analysis part and not blindly create and submit patches.
+> > >>
+> > >> All of the patches are compile tested.  And the individual patches are
+> > >
+> > > Compile-testing is not testing. If you are not able to test a commit,
+> > > you should explain why.
+> >
+> > Dude, Julia has been doing semantic patching for years already and
+> > nobody has raised any concerns so far. There's already an expectation
+> > that Coccinelle *works* and Julia's sematic patches are sound.
+> >
+> > Besides, adding 'const' is something that causes virtually no functional
+> > changes to the point that build-testing is really all you need. Any
+> > problems caused by adding 'const' to a definition will be seen by build
+> > errors or warnings.
+> >
+> > Really, just stop with the pointless discussion and go read a bit about
+> > Coccinelle and what semantic patches are giving you. The work done by
+> > Julia and her peers are INRIA have measurable benefits.
+> >
+> > You're really making a thunderstorm in a glass of water.
 >
-> I've browsed the patches a little. Do you have a sense of how much
-> lock / memory contention this sharing scheme introduces on multi-socket
-> machines using multiple protocols and multiple QPs?
+> Hmm... I've been using coccinelle in cyclic basis for some time now.
+> My comment was oversized but I didn't mean it to be impolite or attack
+> of any kind for that matter.
 
-What we noticed was that usually target/server mode drivers will want
-to spread CQs across cores in order to achieve better parallelism when
-serving multiple targets. The benefit of this is better completion
-aggregation and reduce completion interrupts as we have less CQs in
-total and each CQ completes multiple QPs (send and/or recv).
+No problem :)  Thanks for the feedback.
 
-Note that the CQ API uses either irq-poll or a workqueue context, both
-guarantee that a single context will poll the completion queue at any
-point in time so no lock contention should ever exist regardless of
-how many queue-pairs are attached to it.
-
-As for memory, I don't see how the scheme can introduce any inefficient
-memory access (its just allocating larger CQs and attach more QPs to
-it). But that is a good question. I have noticed recently that
-having the RDMA queues (QP, CQ, SRQ) allocated on the "correct" numa
-socket makes a real difference (queue lock becomes a lot cheaper and
-as well as the work-queue entries fills).
-
-I have a patch set in the works that allows RDMA queues to accept
-numa_node (which can accept NUMA_NO_NODE for unaware ULPs).
-
-> Would it make sense for a ULP to indicate that it wants an unshared set
-> of resources?
-
-I thought about this before, but it would make sense if there is a good
-reason to not share the completion queue. Note that when one allocates
-a CQ with the same completion vector assignment as someone else it
-practically shares the assigned core anyhow, we'll just see interrupts 
-from both CQs so I still can't see how that is better.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+julia
