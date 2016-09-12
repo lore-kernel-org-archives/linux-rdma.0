@@ -1,69 +1,281 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 00/26] constify local structures
-Date: Mon, 12 Sep 2016 15:57:40 +0200
-Message-ID: <CAMuHMdXuvrY987eTOmV+Ltaev=LrsDGuuE0+mmjJB7cAr+19ug@mail.gmail.com>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
- <20160911172105.GB5493@intel.com> <alpine.DEB.2.10.1609121051050.3049@hadrien>
- <20160912131625.GD957@intel.com> <877fah5j35.fsf@linux.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/9] ib_mad: incoming sminfo SMPs gets discarded if no
+ process_mad function is registered
+Date: Mon, 12 Sep 2016 10:03:59 -0400
+Message-ID: <07954655-1883-4032-402e-f755bf124dce@dev.mellanox.co.il>
+References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
+ <1472774969-18997-2-git-send-email-knut.omang@oracle.com>
+ <57867d7f-cc9f-5ec2-6632-c552e6469e40@dev.mellanox.co.il>
+ <1473248532.3103.51.camel@oracle.com>
+ <098f69ae-6940-589a-e9ad-c65e34c958b7@dev.mellanox.co.il>
+ <1473355350.569.5.camel@oracle.com>
+ <2eddf795-71bb-1866-42d9-8a3ba3d512d4@dev.mellanox.co.il>
+ <1473387784.569.17.camel@oracle.com>
+ <37195bbc-0db0-8054-2174-8dc0faf7c692@dev.mellanox.co.il>
+ <1473671364.17998.17.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <877fah5j35.fsf@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Julia Lawall <julia.lawall@lip6.fr>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Joe Perches <joe@perches.com>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Linux PM list <linux-pm@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-can@vger.kernel.org, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, driverdevel <devel@driverdev.osuosl.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1473671364.17998.17.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 12, 2016 at 3:43 PM, Felipe Balbi
-<felipe.balbi@linux.intel.com> wrote:
-> Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
->> On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
->>> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
->>> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
->>> > > Constify local structures.
->>> > >
->>> > > The semantic patch that makes this change is as follows:
->>> > > (http://coccinelle.lip6.fr/)
->>> >
->>> > Just my two cents but:
->>> >
->>> > 1. You *can* use a static analysis too to find bugs or other issues.
->>> > 2. However, you should manually do the commits and proper commit
->>> >    messages to subsystems based on your findings. And I generally think
->>> >    that if one contributes code one should also at least smoke test changes
->>> >    somehow.
->>> >
->>> > I don't know if I'm alone with my opinion. I just think that one should
->>> > also do the analysis part and not blindly create and submit patches.
+On 9/12/2016 5:09 AM, Knut Omang wrote:
+> On Fri, 2016-09-09 at 10:24 -0400, Hal Rosenstock wrote:
+>> On 9/8/2016 10:23 PM, Knut Omang wrote:
 >>>
->>> All of the patches are compile tested.  And the individual patches are
+>>> On Thu, 2016-09-08 at 15:02 -0400, Hal Rosenstock wrote:
+>>>>
+>>>> On 9/8/2016 1:22 PM, Knut Omang wrote:
+>>>>>
+>>>>> On Thu, 2016-09-08 at 07:33 -0400, Hal Rosenstock wrote:
+>>>>>>
+>>>>>> On 9/7/2016 7:42 AM, Knut Omang wrote:
+>>>>>>>
+>>>>>>> On Tue, 2016-09-06 at 10:01 -0400, Hal Rosenstock wrote:
+>>>>>>>>
+>>>>>>>> On 9/1/2016 8:09 PM, Knut Omang wrote:
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>>>>>>
+>>>>>>>>> The process_mad function is an optional IB driver entry point
+>>>>>>>>> allows a driver to intercept or modify MAD traffic.
+>>>>>>>> process_mad is optional but currently that optionality is based on
+>>>>>>>> whether MADs (QP0 and/or QP1) are supported or not. This is reflected in
+>>>>>>>> the core_cap_flags and is related to the device type: IB including RoCE
+>>>>>>>> v. non IB. The current in tree device drivers that do not support
+>>>>>>>> process_mad are i40iw (iWARP) and usnic.
+>>>>>>> I see - we are introducing a new case here, then.
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> This fix allows MAD traffic to flow down to the device also
+>>>>>>>>> when MAD traffic is completely handled by the device
+>>>>>>>> All MAD traffic is not handled by the device.
+>>>>>>> Yes, in our case all MAD packet handling is done by the device,
+>>>>>> SMInfo is not handled by device unless you have SM in hardware.
+>>>>>> It also depends on management class, method, and direction
+>>>>>> (outgoing/incoming) and in case of DR SMP the DR path.
+>>>>> Yes, with "handling" here we really mean "deciding what to do with it" -
+>>>>> in our case, the driver is not involved in those decisions at all.
+>>>>> That includes both inbound and outbound DR and LID routed SMInfo packets.
+>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>> the driver's task for MAD packets is just to forward.
+>>>>>> I think that it's a little more complex than that. See above.
+>>>>>>
+>>>>>> Perhaps some of this is due to not understanding what the effects of
+>>>>>> forwarding are with device such as SIF where SMA (and SMI) as well as
+>>>>>> PMA are totally in hardware. If MAD is locally handled rather than
+>>>>>> "forwarded", I assume that the device generates and sends the response
+>>>>>> MAD, right ?
+>>>>> Yes, correct.
+>>>>>
+>>>>>>
+>>>>>> Do locally handled MADs work correctly ?
+>>>>> Yes
+>>>>>
+>>>>>>
+>>>>>> Does OpenSM properly run on SIF?
+>>>>> The goal is to have OpenSM work seamlessly with SIF, yes.
+>>>> More than whether it's a goal, I'm asking whether OpenSM currently works
+>>>> seamlessly with SIF with your changes (including driver not yet
+>>>> submitted to linux-rdma) ?
+>>> Yes, the SM works seamlessly with this patch and the driver.
+>>>
+>>>>
+>>>>>
+>>>>>>
+>>>>>> I saw a post yesterday on issue with running OpenSM on SIF in terms of
+>>>>>> obtaining the local PortInfo via DR SMP with hop count of 0.
+>>>>> Do you have a link ref to this?
+>>>> http://lists.openfabrics.org/pipermail/users/2016-September/000607.html
+>>> Probably not SIF ;-)
+>>>
+>>>>
+>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> and no process_mad function is provided.
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>>>>>> ---
+>>>>>>>>>  drivers/infiniband/core/mad.c | 6 ++++++
+>>>>>>>>>  drivers/infiniband/core/smi.h | 6 ++----
+>>>>>>>>>  2 files changed, 8 insertions(+), 4 deletions(-)
+>>>>>>>>>
+>>>>>>>>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+>>>>>>>>> index 2d49228..ece33ec 100644
+>>>>>>>>> --- a/drivers/infiniband/core/mad.c
+>>>>>>>>> +++ b/drivers/infiniband/core/mad.c
+>>>>>>>>> @@ -813,6 +813,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>>>>>>>>>  			goto out;
+>>>>>>>>>  	}
+>>>>>>>>>
+>>>>>>>>> +	/* If device does not define the optional process_mad function it means that
+>>>>>>>>> +	 * everything is handled in hardware:
+>>>>>>>>> +	 */
+>>>>>>>>> +	if (!device->process_mad)
+>>>>>>>>> +		goto out;
+>>>>>>>>> +
+>>>>>>>> This changes the ib_post_send_mad flow for those devices in that it
+>>>>>>>> takes the send rather than error path.
+>>>>>>> Yes, but no packets will ever be received by this function for the i40iw and usnic
+>>>>>>> devices because they have said in their capabilities that they do not support SMI?
+>>>>>> You're right - it shouldn't get here for those devices (it's based on
+>>>>>> MAD rather than SMI cap) - umad open would fail for the port GUID.
+>>>>> Ok, I see - good!
+>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>  	local = kmalloc(sizeof *local, GFP_ATOMIC);
+>>>>>>>>>  	if (!local) {
+>>>>>>>>>  		ret = -ENOMEM;
+>>>>>>>>> diff --git a/drivers/infiniband/core/smi.h b/drivers/infiniband/core/smi.h
+>>>>>>>>> index 33c91c8..16a9f9a 100644
+>>>>>>>>> --- a/drivers/infiniband/core/smi.h
+>>>>>>>>> +++ b/drivers/infiniband/core/smi.h
+>>>>>>>>> @@ -67,8 +67,7 @@ static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
+>>>>>>>>>  {
+>>>>>>>>>  	/* C14-9:3 -- We're at the end of the DR segment of path */
+>>>>>>>>>  	/* C14-9:4 -- Hop Pointer = Hop Count + 1 -> give to SMA/SM */
+>>>>>>>>> -	return ((device->process_mad &&
+>>>>>>>>> -		!ib_get_smp_direction(smp) &&
+>>>>>>>>> +	return ((!ib_get_smp_direction(smp) &&
+>>>>>>>>>  		(smp->hop_ptr == smp->hop_cnt + 1)) ?
+>>>>>>>>>  		IB_SMI_HANDLE : IB_SMI_DISCARD);
+>>>>>>>>>  }
+>>>>>>>>> @@ -82,8 +81,7 @@ static inline enum smi_action smi_check_local_returning_smp(struct ib_smp *smp,
+>>>>>>>>>  {
+>>>>>>>>>  	/* C14-13:3 -- We're at the end of the DR segment of path */
+>>>>>>>>>  	/* C14-13:4 -- Hop Pointer == 0 -> give to SM */
+>>>>>>>>> -	return ((device->process_mad &&
+>>>>>>>>> -		ib_get_smp_direction(smp) &&
+>>>>>>>>> +	return ((ib_get_smp_direction(smp) &&
+>>>>>>>>>  		!smp->hop_ptr) ? IB_SMI_HANDLE : IB_SMI_DISCARD);
+>>>>>>>>>  }
+>>>>>>>> Also, with this approach of optional process_mad for IB device, will/how
+>>>>>>>> will sysfs port counters be supported for this device ? This currently
+>>>>>>>> relies on process_mad.
+>>>>>>> Yes, that is actually a problem for us right now.
+>>>>>>> We do however think that the solution of composing a packet to send via process_mad is
+>>>>>>> kind of overkill as this doesn't allow devices to optimize the way to retrieve this info.
+>>>>>> Is there a way other than via PMA to get these counters ?
+>>>>> Yes, the driver have a work request based model to request such info from the device.
+>>>>> This is partly firmware based so it can be extended/adapted if necessary.
+>>>> sysfs.c could be extended to support this in addition to the current PMA
+>>>> approach for PortCounters/PortCountersExtended although PMA access to
+>>>> your device needs to work anyhow for at least PortCounters. Perhaps a
+>>>> new optional device driver entry point for get_port_stats taking
+>>>> ib_device struct and port number and returning some stats struct ?
+>>> Sounds good! We do support PMA as well.
+>>>>
+>>>>
+>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>> It should be possible to implement a process_mad routine to return
+>>>>>>>> ib_mad_result based on management class and perhaps attribute ID in the
+>>>>>>>> case of SMInfo. Can this alternative approach be used for SIF ?
+>>>>>>> The problem is that the handle_outgoing_dr_smp function has an implicit assumption that
+>>>>>>> some packets are handled by the process_mad function itself. There is no way to provide return
+>>>>>>> values from the process_mad function that ensures that packets are always forwarded to the device,
+>>>>>>> so the only viable solution without breaking the API seems to be to not implement process_mad.
+>>>>>> Are you referring to the difference between returning 0 when no
+>>>>>> process_mad function as this patch does and what happens when
+>>>>>> process_mad returns 0 inside of the ib_mad_post_send routine ?
+>>>>> Yes, that sounds about right, it's been a while since we struggled with this.
+>>>>>
+>>>>>>
+>>>>>> Doesn't the send MAD need to be tracked in the MAD layer ?
+>>>>> The MAD layer tracking happens above the driver, it creates and manages QP0
+>>>> and QP1 too
+>>> Yes, a similar story applies for QP1.
+>>>
+>>>>
+>>>>>
+>>>>> and sees all mad packets that gets sent as with Connect-X<n> ?
+>>>> Yes. That's what I'm referring to here as this is skipped since
+>>>> process_mad is NULL. Why wouldn't this be needed with SIF ? What happens
+>>>> if SIF device doesn't respond when it should ?
+>>>> Is there some error scenario where no response would come back ?
+>>> On the contrary, the idea is that the Infiniband side of SIF is up and ready to
+>>> handle MAD traffic etc. long before the host has booted, or if the host
+>>> had crashed for some reason.
+>> No transmission medium (including backplanes) are perfect. Isn't there
+>> some rare case where there is some bit error occurs causing bad CRC so
+>> device never sees valid local MAD or response never makes it back ?
+> 
+> My understanding is that this would then be a PCIe error case - relatively fatal 
+> from the host's perspective? Of course I am not claiming in any way that 
+> fatal errors can't happen...
+> 
+>> Anyhow, I think I see now. There is no such thing as local completion
+>> with SIF so that case is handled like any other MAD send in
+>> ib_post_send_mad code path (and that tracks the MAD and handles timeouts
+>> in case response is not received to "transaction").
 >>
->> Compile-testing is not testing. If you are not able to test a commit,
->> you should explain why.
->
-> Dude, Julia has been doing semantic patching for years already and
-> nobody has raised any concerns so far. There's already an expectation
-> that Coccinelle *works* and Julia's sematic patches are sound.
+>> One minor thing:
+>> Since SIF device includes SMA and PMA, there should be no need for mad
+>> to "open" the agents. That can either be handled in mad.c:ib_mad_[init
+>> remove]_device to skip ib_agent_port_[open close] when
+>> device->process_mad is not defined or modify those routines in agent.c
+>> to just return if device->process_mad is not defined.
+> 
+> It's been a while since I looked at the details there - I would have to revisit more carefully.
+> We still need to get QP0 and QP1 "created"
 
-+1
+They would be created based on rdma_cap_ib_[ mad smi] in
+ib_mad_port_open regardless of whether the agents are opened or not.
+It's just that the agents (SMA and PMA) would not be registered.
 
-> Besides, adding 'const' is something that causes virtually no functional
-> changes to the point that build-testing is really all you need. Any
-> problems caused by adding 'const' to a definition will be seen by build
-> errors or warnings.
+> so I think the current API is satisfactory from 
+> our perspective. That's probably the easiest for v1 - 
+> then we can look at further further improvements
+> once the code is in?
 
-Unfortunately in this particular case they could lead to failures that can only
-be detected at runtime, when failing o write to a read-only piece of memory,
-due to the casting away of the constness of the pointers later.
-Fortunately this was detected during code review (doh...).
+Yes, this is merely "optimization" in that it eliminates unneeded MAD
+registrations and should have no other operational impact. Those agents
+should never receive or send anything.
 
-Gr{oetje,eeting}s,
+-- Hal
 
-                        Geert
-
+> Thanks,
+> Knut
+> 
+>>
+>> -- Hal
+>>
+>>>
+>>>
+>>> Knut
+>>>
+>>>>
+>>>> -- Hal
+>>>>
+>>>>>
+>>>>>>
+>>>>>> Is there some problem invoking ib_send_mad (or ib_send_rmpp_mad) ?
+>>>>> No, to my knowledge we are able to support the normal management
+>>>>> applications just as one would expect.
+>>>>>
+>>>>> Thanks,
+>>>>> Knut
+>>>>>
+>>>>>
+>>>
+> 
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
