@@ -1,31 +1,39 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 9/13/2016 at 11:00PDT
-Date: Mon, 12 Sep 2016 16:10:59 +0000
-Message-ID: <VI1PR0501MB2189A67E796098853C6BA598B1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
-References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
- <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: RFC: CQ pools and implicit CQ resource allocation
+Date: Mon, 12 Sep 2016 23:07:45 +0300
+Message-ID: <6dd3ecbd-7109-95ff-9c86-dfea9e515538@grimberg.me>
+References: <1473424587-13818-1-git-send-email-hch@lst.de>
+ <d0c645eb-3674-2841-bdb7-8b9e6fd46473@grimberg.me>
+ <00e001d20d03$ea891100$bf9b3300$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <00e001d20d03$ea891100$bf9b3300$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBQYXJhdiBQYW5kaXQgW21haWx0bzpwYW5kaXQucGFyYXZAZ21haWwuY29tXQ0KDQo+
-IEhpIExpcmFuLA0KPiANCj4gV2UgYXJlIGFsbW9zdCByZWFjaGluZyBjb25jbHVzaW9ucyB3aXRo
-IFRlanVuLCBDaHJpc3RvcGgsIE1hdGFuLCBMZW9uLCBKYXNvbg0KPiBhbmQgbWUgd2l0aCByZXNw
-ZWN0IHRvIHJkbWEgY2dyb3VwIHBhdGNoZXMuDQo+IA0KPiBUaGVyZSB3ZXJlIG9wZW4gcXVlc3Rp
-b24gdG93YXJkcyBIRkkgZHJpdmVyIGFib3V0IGhvdyBpdCBwbGFucyB0byB1c2UgbmV3DQo+IHV2
-ZXJicyBBUEkuDQo+IElmIHRpbWUgcGVybWl0cyBjYW4gd2UgZGlzY3VzcyB0aGlzIHNvIHRoYXQg
-d2UgY2FuIGNsb3NlIG9uIHJkbWEgY2dyb3VwDQo+IHBhdGNoc2V0Pw0KDQpTdXJlLg0KDQo+IEkg
-aGF2ZW4ndCBiZWVuIGFjdGl2ZSBpbiBPRlZXRyBtZWV0aW5nIGZvciB1YXBpIHlldCwgYnV0IEkg
-d2lsbCBhbHNvIGpvaW4gdGhpcyBjYWxsLg0KPiANCg0KV2VsY29tZSBhYm9hcmQhIDopDQoNCj4g
-UmVnYXJkcywNCj4gUGFyYXYgUGFuZGl0DQoNCg==
+
+>> One other note that I wanted to raise for the folks interested in this
+>> is that with the RDMA core owning the completion queue pools, different
+>> ULPs can easily share the same completion queue (given that it uses
+>> the same poll context). For example, nvme-rdma host, iser and srp
+>> initiators can end up using the same completion queues (if running
+>> simultaneously on the same machine).
+>>
+>> Up until now, I couldn't think of anything that can introduce a problem
+>> with that but maybe someone else will...
+>
+> It would be useful to provide details on how many CQs get created and of what
+> size for an uber iSER/NVMF/SRP initiator/host and target.
+
+Are you talking about some debugfs layout?
+
+> One concern I have is that cxgb4 CQs require contiguous memory,  So a scheme
+> like CQ pooling might cause resource problems on large core systems.
+
+Note that the CQ allocation will never exceed the device max_cqe cap.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
