@@ -1,69 +1,52 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 2/9] IB/hns: Add & initialize "node_guid" parameter for RDMA CM
-Date: Tue, 13 Sep 2016 20:49:23 +0100
-Message-ID: <20160913194930.273964-3-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 for-next 6/9] IB/hns: Change the logic for allocating uar registers
+Date: Tue, 13 Sep 2016 20:49:27 +0100
+Message-ID: <20160913194930.273964-7-salil.mehta@huawei.com>
 References: <20160913194930.273964-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160913194930.273964-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160913194930.273964-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-According to the Infiniband spec, NodeGUID uniquely identifies a
-node. This must be initialized to some unique value. This patch
-adds the support to the HNS RoCE driver to fetch the NodeGUID
-value from DT or ACPI and then use this value to initialize the
-node_guid parameter of IB device. This value shall be used by
-RDMA CM.
+This patch mainly modifies the logic for allocating uar registers.
+In HiP06 SoC, HW has 8 group of uar registers for kernel and
+user space application. The uar index is assigned as follows:
+    0   ------ for kernel
+    1~7 ------ for user space application
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
-PATCH V2: Addressed the comment by Leon Romanovsky
-          * Link: https://lkml.org/lkml/2016/9/12/309
-PATCH V1: Initial Patch
----
- drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
- drivers/infiniband/hw/hns/hns_roce_main.c   | 9 +++++++++
- 2 files changed, 10 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_pd.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index ea73580..e943b98 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -74,6 +74,7 @@
- #define MR_TYPE_DMA				0x03
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index 16271b5..4109f74 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -117,7 +117,9 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
+ 	if (ret == -1)
+ 		return -ENOMEM;
  
- #define PKEY_ID					0xffff
-+#define GUID_LEN				8
- #define NODE_DESC_SIZE				64
+-	uar->index = (uar->index - 1) % hr_dev->caps.phy_num_uars + 1;
++	if (uar->index > 0)
++		uar->index = (uar->index - 1) %
++			     (hr_dev->caps.phy_num_uars - 1) + 1;
  
- #define SERV_TYPE_RC				0
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 39e69c3..f0700f4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -797,6 +797,15 @@ static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
- 	if (IS_ERR(hr_dev->reg_base))
- 		return PTR_ERR(hr_dev->reg_base);
- 
-+	/* read the node_guid of IB device from the DT or ACPI */
-+	ret = device_property_read_u8_array(dev, "node-guid",
-+					    (u8 *)&hr_dev->ib_dev.node_guid,
-+					    GUID_LEN);
-+	if (ret) {
-+		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
-+		return ret;
-+	}
-+
- 	/* get the RoCE associated ethernet ports or netdevices */
- 	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
- 		if (dev_of_node(dev)) {
+ 	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
+ 	uar->pfn = ((res->start) >> PAGE_SHIFT) + uar->index;
 -- 
 1.9.1
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
