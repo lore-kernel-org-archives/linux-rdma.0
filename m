@@ -1,82 +1,60 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 7/9] IB/hns: Fix the bug of rdma cm connecting on user mode
-Date: Tue, 13 Sep 2016 20:49:28 +0100
-Message-ID: <20160913194930.273964-8-salil.mehta@huawei.com>
-References: <20160913194930.273964-1-salil.mehta@huawei.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [net-next PATCH 00/11] iw_cxgb4,cxgbit: remove duplicate code
+Date: Tue, 13 Sep 2016 15:18:42 -0500
+Message-ID: <022b01d20dfc$05864150$1092c3f0$@opengridcomputing.com>
+References: <cover.1473781521.git.varun@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160913194930.273964-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1473781521.git.varun@chelsio.com>
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Varun Prakash' <varun@chelsio.com>, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, nab@linux-iscsi.org, dledford@redhat.com, gerlitz.or@gmail.com, indranil@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+> This patch series removes duplicate code from
+> iw_cxgb4 and cxgbit by adding common function
+> definitions in libcxgb.
+> 
+> Please review.
+> 
+> Thanks
+> Varun
+> 
+> Varun Prakash (11):
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_get_4tuple()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_find_route()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_find_route6()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_is_neg_adv()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_best_mtu()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_compute_wscale()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_tid_release()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_close_con_req()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_abort_req()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_abort_rpl()
+>   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_rx_data_ack()
+> 
+>  drivers/infiniband/hw/cxgb4/Kconfig               |   1 +
+>  drivers/infiniband/hw/cxgb4/Makefile              |   1 +
+>  drivers/infiniband/hw/cxgb4/cm.c                  | 288
+++++++----------------
+>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h            |   9 -
+>  drivers/net/ethernet/chelsio/libcxgb/Makefile     |   4 +-
+>  drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.c | 149 +++++++++++
+>  drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.h | 160 ++++++++++++
+>  drivers/target/iscsi/cxgbit/cxgbit_cm.c           | 234 +++---------------
+>  8 files changed, 428 insertions(+), 418 deletions(-)
+>  create mode 100644 drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.c
+>  create mode 100644 drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.h
+> 
 
-Fix bug of modify qp from init to init on user mode. Otherwise,
-it will oops when rmda cm established.
+This series looks good.
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 41 ++++++++++--------------------
- 1 file changed, 14 insertions(+), 27 deletions(-)
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 581e542..206957b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2395,35 +2395,22 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 	if (cur_state == IB_QPS_INIT && new_state == IB_QPS_INIT) {
- 		/* Memory barrier */
- 		wmb();
--		if (hr_qp->ibqp.qp_type == IB_QPT_GSI) {
--			/* SW update GSI rq header */
--			reg_val = roce_read(hr_dev, ROCEE_QP1C_CFG3_0_REG +
--					    QP1C_CFGN_OFFSET * hr_qp->phy_port);
--			roce_set_field(reg_val,
--				       ROCEE_QP1C_CFG3_0_ROCEE_QP1C_RQ_HEAD_M,
--				       ROCEE_QP1C_CFG3_0_ROCEE_QP1C_RQ_HEAD_S,
--				       hr_qp->rq.head);
--			roce_write(hr_dev, ROCEE_QP1C_CFG3_0_REG +
--				   QP1C_CFGN_OFFSET * hr_qp->phy_port, reg_val);
--		} else {
--			rq_db.u32_4 = 0;
--			rq_db.u32_8 = 0;
- 
--			roce_set_field(rq_db.u32_4, RQ_DOORBELL_U32_4_RQ_HEAD_M,
--				       RQ_DOORBELL_U32_4_RQ_HEAD_S,
--				       hr_qp->rq.head);
--			roce_set_field(rq_db.u32_8, RQ_DOORBELL_U32_8_QPN_M,
--				       RQ_DOORBELL_U32_8_QPN_S, hr_qp->qpn);
--			roce_set_field(rq_db.u32_8, RQ_DOORBELL_U32_8_CMD_M,
--				       RQ_DOORBELL_U32_8_CMD_S, 1);
--			roce_set_bit(rq_db.u32_8, RQ_DOORBELL_U32_8_HW_SYNC_S,
--				     1);
--
--			doorbell[0] = rq_db.u32_4;
--			doorbell[1] = rq_db.u32_8;
--
--			hns_roce_write64_k(doorbell, hr_qp->rq.db_reg_l);
-+		roce_set_field(doorbell[0], RQ_DOORBELL_U32_4_RQ_HEAD_M,
-+			       RQ_DOORBELL_U32_4_RQ_HEAD_S, hr_qp->rq.head);
-+		roce_set_field(doorbell[1], RQ_DOORBELL_U32_8_QPN_M,
-+			       RQ_DOORBELL_U32_8_QPN_S, hr_qp->qpn);
-+		roce_set_field(doorbell[1], RQ_DOORBELL_U32_8_CMD_M,
-+			       RQ_DOORBELL_U32_8_CMD_S, 1);
-+		roce_set_bit(doorbell[1], RQ_DOORBELL_U32_8_HW_SYNC_S, 1);
-+
-+		if (ibqp->uobject) {
-+			hr_qp->rq.db_reg_l = hr_dev->reg_base +
-+				     ROCEE_DB_OTHERS_L_0_REG +
-+				     DB_REG_OFFSET * hr_dev->priv_uar.index;
- 		}
-+
-+		hns_roce_write64_k(doorbell, hr_qp->rq.db_reg_l);
- 	}
- 
- 	hr_qp->state = new_state;
--- 
-1.9.1
+Thanks Varun!
+
+Steve
