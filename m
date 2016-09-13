@@ -1,40 +1,45 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 9/13/2016 at 11:00PDT
-Date: Tue, 13 Sep 2016 12:59:41 +0530
-Message-ID: <CAG53R5WjoKo4zRgyLAaB4er4kDT+uYjAj3f6adhF2YyWk1==OQ@mail.gmail.com>
-References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
- <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
- <20160913064857.GA5988@infradead.org> <CAG53R5UO50zXYF_oUUA_MUhx+xYS8FbDkTsAzon6Fn4syDyWvQ@mail.gmail.com>
- <20160913070418.GA31616@infradead.org>
+From: "Mintz, Yuval" <Yuval.Mintz@cavium.com>
+Subject: Re: [RFC 02/11] Add RoCE driver framework
+Date: Tue, 13 Sep 2016 07:18:01 +0000
+Message-ID: <BL2PR07MB2306937C8C495DB80DA776CA8DFE0@BL2PR07MB2306.namprd07.prod.outlook.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
+ <516b98c7-477a-4890-0d92-529dc32f2c4e@mellanox.com>
+ <CY4PR11MB1720F9B74BBF82D0779FAC8F97FF0@CY4PR11MB1720.namprd11.prod.outlook.com>,<20160913063806.GP8812@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160913070418.GA31616-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160913063806.GP8812@leon.nu>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Yuval Mintz <Yuval.Mintz@qlogic.com>
+Cc: Mark Bloch <markb@mellanox.com>, Ram Amrani <Ram.Amrani@qlogic.com>, "dledford@redhat.com" <dledford@redhat.com>, David Miller <davem@davemloft.net>, Ariel Elior <Ariel.Elior@qlogic.com>, Michal Kalderon <Michal.Kalderon@qlogic.com>, Rajesh Borundia <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 12:34 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> On Tue, Sep 13, 2016 at 12:31:22PM +0530, Parav Pandit wrote:
->> Sure. I just want to remind HFI folks to give their comments. There
->> has been no response from them to Matan's question.
+>> >> +uint debug;
+>> >> +module_param(debug, uint, 0);
+> >>> +MODULE_PARM_DESC(debug, "Default debug msglevel");
 >>
->> I am agreement with your point that most RDMA objects will have common
->> structure at the start and thats sufficient for cgroup to function
->> correctly. There hasn't been any disagreement yet on it.
->> So I am believing that we are good for now. Or I am missing something?
->> I will continue to have mailing list as one point for review and
->> discussion/feedback.
->
-> I think we're fine now.  The non-verbs HFSI interfaces aren't really a
-> fit for our inifiband/rdma (it should really be called ibverbs I guess)
-> interface.
+>> >Why are you adding this as a module parameter?
+>>
+>>  I believe this is mostly to follow same line as qede which also defines
+> > 'debug' module parameter for allowing easy user control of debug
+> > prints [& specifically for probe prints, which can't be controlled
+> > otherwise].
 
-ok. Current patch should be able to manage rdma devices of below drivers.
-cxgb3/4, i40iw, ib_rxe, mlx4/5, ocrdma, qed.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Can you give us an example where dynamic debug and tracing infrastructure=
+s
+> are not enough?
+
+> AFAIK, most of these debug module parameters are legacy copy/paste
+> code which is useless in real life scenarios.
+
+Define 'enough'; Using dynamic debug you can provide all the necessary
+information and at an even better granularity that's achieved by suggested
+infrastructure,  but is harder for an end-user to use. Same goes for tracin=
+g.
+
+The 'debug' option provides an easy grouping for prints related to a specif=
+ic
+area in the driver.
