@@ -1,208 +1,114 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 03/11] Add support for RoCE HW init
-Date: Mon, 12 Sep 2016 21:57:38 +0300
-Message-ID: <e5d0951a-0247-4516-1b63-aebf9933fdaa@mellanox.com>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <1473696465-27986-4-git-send-email-Ram.Amrani@qlogic.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 16/20] IB/hns: Validate mtu when modified qp
+Date: Tue, 13 Sep 2016 09:32:40 +0300
+Message-ID: <20160913063240.GO8812@leon.nu>
+References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
+ <1473417051-99560-17-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="DITGHUV3p5DjDsXt"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473696465-27986-4-git-send-email-Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1473417051-99560-17-git-send-email-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Peter Chen <luck.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+--DITGHUV3p5DjDsXt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 12/09/2016 19:07, Ram Amrani wrote:
-> Allocate and setup RoCE resources, interrupts and completion queues.
-> Adds device attributes.
-> 
-> Signed-off-by: Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+On Fri, Sep 09, 2016 at 06:30:47PM +0800, Salil Mehta wrote:
+> From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>
+> The mtu should be validated when modify qp,so we check it.
+>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Peter Chen <luck.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/hw/qedr/main.c              | 408 +++++++++++-
->  drivers/infiniband/hw/qedr/qedr.h              | 118 ++++
->  drivers/infiniband/hw/qedr/qedr_hsi.h          |  56 ++
->  drivers/infiniband/hw/qedr/qedr_hsi_rdma.h     |  96 +++
->  drivers/net/ethernet/qlogic/qed/Makefile       |   1 +
->  drivers/net/ethernet/qlogic/qed/qed.h          |  26 +-
->  drivers/net/ethernet/qlogic/qed/qed_cxt.c      |   6 +
->  drivers/net/ethernet/qlogic/qed/qed_cxt.h      |   6 +
->  drivers/net/ethernet/qlogic/qed/qed_dev.c      | 155 +++++
->  drivers/net/ethernet/qlogic/qed/qed_main.c     |  44 +-
->  drivers/net/ethernet/qlogic/qed/qed_reg_addr.h |   7 +
->  drivers/net/ethernet/qlogic/qed/qed_roce.c     | 887 +++++++++++++++++++++++++
->  drivers/net/ethernet/qlogic/qed/qed_roce.h     | 117 ++++
->  drivers/net/ethernet/qlogic/qed/qed_sp.h       |   1 +
->  drivers/net/ethernet/qlogic/qed/qed_spq.c      |   8 +
->  drivers/net/ethernet/qlogic/qede/qede_roce.c   |   2 +-
->  include/linux/qed/qed_if.h                     |   5 +-
->  include/linux/qed/qed_roce_if.h                | 345 ++++++++++
->  18 files changed, 2281 insertions(+), 7 deletions(-)
->  create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi.h
->  create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi_rdma.h
->  create mode 100644 drivers/net/ethernet/qlogic/qed/qed_roce.c
->  create mode 100644 drivers/net/ethernet/qlogic/qed/qed_roce.h
->  create mode 100644 include/linux/qed/qed_roce_if.h
-> 
-> diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-> index 3fe58a3..0b5274a 100644
-> --- a/drivers/infiniband/hw/qedr/main.c
-> +++ b/drivers/infiniband/hw/qedr/main.c
-> @@ -36,6 +36,8 @@
->  #include <linux/iommu.h>
->  #include <net/addrconf.h>
->  #include <linux/qed/qede_roce.h>
-> +#include <linux/qed/qed_chain.h>
-> +#include <linux/qed/qed_if.h>
->  #include "qedr.h"
->  
->  MODULE_DESCRIPTION("QLogic 40G/100G ROCE Driver");
-> @@ -80,6 +82,139 @@ static int qedr_register_device(struct qedr_dev *dev)
->  	return 0;
->  }
->  
-> +/* This function allocates fast-path status block memory */
-> +static int qedr_alloc_mem_sb(struct qedr_dev *dev,
-> +			     struct qed_sb_info *sb_info, u16 sb_id)
-> +{
-> +	struct status_block *sb_virt;
-> +	dma_addr_t sb_phys;
-> +	int rc;
-> +
-> +	sb_virt = dma_alloc_coherent(&dev->pdev->dev,
-> +				     sizeof(*sb_virt), &sb_phys, GFP_KERNEL);
-> +	if (!sb_virt) {
-> +		pr_err("Status block allocation failed\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	rc = dev->ops->common->sb_init(dev->cdev, sb_info,
-> +				       sb_virt, sb_phys, sb_id,
-> +				       QED_SB_TYPE_CNQ);
-> +	if (rc) {
-> +		pr_err("Status block initialization failed\n");
-> +		dma_free_coherent(&dev->pdev->dev, sizeof(*sb_virt),
-> +				  sb_virt, sb_phys);
-> +		return rc;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void qedr_free_mem_sb(struct qedr_dev *dev,
-> +			     struct qed_sb_info *sb_info, int sb_id)
-> +{
-> +	if (sb_info->sb_virt) {
-> +		dev->ops->common->sb_release(dev->cdev, sb_info, sb_id);
-> +		dma_free_coherent(&dev->pdev->dev, sizeof(*sb_info->sb_virt),
-> +				  (void *)sb_info->sb_virt, sb_info->sb_phys);
-> +	}
-> +}
-> +
-> +static void qedr_free_resources(struct qedr_dev *dev)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < dev->num_cnq; i++) {
-> +		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-> +		dev->ops->common->chain_free(dev->cdev, &dev->cnq_array[i].pbl);
-> +	}
-> +
-> +	kfree(dev->cnq_array);
-> +	kfree(dev->sb_array);
-> +	kfree(dev->sgid_tbl);
-> +}
-> +
-> +static int qedr_alloc_resources(struct qedr_dev *dev)
-> +{
-> +	struct qedr_cnq *cnq;
-> +	__le16 *cons_pi;
-> +	u16 n_entries;
-> +	int i, rc;
-> +
-> +	dev->sgid_tbl = kzalloc(sizeof(union ib_gid) *
-> +				QEDR_MAX_SGID, GFP_KERNEL);
-> +	if (!dev->sgid_tbl)
-> +		return -ENOMEM;
-> +
-> +	spin_lock_init(&dev->sgid_lock);
-> +
-> +	/* Allocate Status blocks for CNQ */
-> +	dev->sb_array = kcalloc(dev->num_cnq, sizeof(*dev->sb_array),
-> +				GFP_KERNEL);
-> +	if (!dev->sb_array) {
-> +		rc = -ENOMEM;
-> +		goto err1;
-> +	}
-> +
-> +	dev->cnq_array = kcalloc(dev->num_cnq,
-> +				 sizeof(*dev->cnq_array), GFP_KERNEL);
-> +	if (!dev->cnq_array) {
-> +		rc = -ENOMEM;
-> +		goto err2;
-> +	}
-> +
-> +	dev->sb_start = dev->ops->rdma_get_start_sb(dev->cdev);
-> +
-> +	/* Allocate CNQ PBLs */
-> +	n_entries = min_t(u32, QED_RDMA_MAX_CNQ_SIZE, QEDR_ROCE_MAX_CNQ_SIZE);
-> +	for (i = 0; i < dev->num_cnq; i++) {
-> +		cnq = &dev->cnq_array[i];
-> +
-> +		rc = qedr_alloc_mem_sb(dev, &dev->sb_array[i],
-> +				       dev->sb_start + i);
-> +		if (rc)
-> +			goto err3;
-> +
-> +		rc = dev->ops->common->chain_alloc(dev->cdev,
-> +						   QED_CHAIN_USE_TO_CONSUME,
-> +						   QED_CHAIN_MODE_PBL,
-> +						   QED_CHAIN_CNT_TYPE_U16,
-> +						   n_entries,
-> +						   sizeof(struct regpair *),
-> +						   &cnq->pbl);
-> +		if (rc)
-> +			goto err4;
-> +
-> +		cnq->dev = dev;
-> +		cnq->sb = &dev->sb_array[i];
-> +		cons_pi = dev->sb_array[i].sb_virt->pi_array;
-> +		cnq->hw_cons_ptr = &cons_pi[QED_ROCE_PROTOCOL_INDEX];
-> +		cnq->index = i;
-> +		sprintf(cnq->name, "qedr%d@pci:%s",
-> +			i, pci_name(dev->pdev));
-> +
-> +		DP_VERBOSE(dev, QEDR_MSG_INIT, "cnq[%d].cons=%d\n",
-> +			   i, qed_chain_get_cons_idx(&cnq->pbl));
-> +	}
-> +
-> +	return 0;
-> +err4:
-> +	qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-> +	for (--i; i >= 0; i--) {
-> +		dev->ops->common->chain_free(dev->cdev, &dev->cnq_array[i].pbl);
-> +		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-> +	}
-> +err3:
-> +	for (--i; i >= 0; i--)
-> +		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-> +	kfree(dev->cnq_array);
-This doesn't seem right, going from err4 to err3 i = 0, the for loop in err3
-won't do anything.
+>  drivers/infiniband/hw/hns/hns_roce_qp.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+>
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> index 51fefbf..1c5be59 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> @@ -32,6 +32,7 @@
+>   */
+>
+>  #include <linux/platform_device.h>
+> +#include <rdma/ib_addr.h>
+>  #include <rdma/ib_umem.h>
+>  #include "hns_roce_common.h"
+>  #include "hns_roce_device.h"
+> @@ -658,6 +659,7 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+>  	struct device *dev = &hr_dev->pdev->dev;
+>  	int ret = -EINVAL;
+>  	int p;
+> +	u32 active_mtu = 0;
 
-> +err2:
-> +	kfree(dev->sb_array);
-> +err1:
-> +	kfree(dev->sgid_tbl);
-> +	return rc;
-> +}
-> +
+There is no need to assign value to a variable which will be overwritten.
 
-Mark
+>
+>  	mutex_lock(&hr_qp->mutex);
+>
+> @@ -688,6 +690,19 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+>  		}
+>  	}
+>
+> +	if (attr_mask & IB_QP_PATH_MTU) {
+> +		p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
+> +		active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
+
+ib_mtu iboe_get_mtu returns "enum ib_mtu" and not u32.
+
+> +
+> +		if (attr->path_mtu > IB_MTU_2048 ||
+> +		    attr->path_mtu < IB_MTU_256 ||
+> +		    attr->path_mtu > active_mtu) {
+> +			dev_err(dev, "attr path_mtu(%d)invalid while modify qp",
+> +				attr->path_mtu);
+> +			goto out;
+> +		}
+> +	}
+> +
+>  	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
+>  	    attr->max_rd_atomic > hr_dev->caps.max_qp_init_rdma) {
+>  		dev_err(dev, "attr max_rd_atomic invalid.attr->max_rd_atomic=%d\n",
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--DITGHUV3p5DjDsXt
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX152IAAoJEORje4g2clinewQP/0xn4I8jAg8vBaTHMb3k2N14
+lPOvq6o1fUPE0Ix+PoAPtQLbnPnrAXRzRZcv0MqTZQeO/v1aejlzGtp+OVzIU149
+95sOUj3/VbxkWoLN+BOSzA1yWIvp2C45Y9RIJ8N4eSOljPwVwADcjBIbnh/0xlhK
+FqSYA/UdI3csxdynVzYQq7/tJekAt4iG3vC0yMMzm8JlaFuCGpUR++Twy85UeXVu
+ScOOQjmn6AokkvnMDiD7gUGFlMrfmBxfpzxBCoKdBiF85EyVRCbLLhljLdJRHdea
+Rtrtooc676d4gK3orzLLV5BZ2JrGhxcPNJhLZAhS85ILN9TtLFI+eb6hxUDikec1
+52pfoIKYByM1LWtljj+pgGkP9MsTqKM5evEM8Yra0ZMbwOHrjxLCBUDuWkrsnsr4
+LQezUbmc3IkEOyWxb+G1GEJ1v0VzJln+AgJREeu9TnBP4uRvyjobmEjMCMyM76mw
+cRJa8j9G1VFBpReoqQ7JscbaV/FB+BrvNpL01frEFFUakUuyJK9zz6fXdyHUwDWQ
+QdB/UvxmLx/e0s8DJJkBrRrkynjMUyXTxaWIXu8yjaILK0PX2DXw6rvqG9jdflJZ
+/YsG3chbg8h+Kz/Z173fTK4SrvZpsAnR9cN4dF3DFj0h4dlnmrxAEOC0rt4j8Hrj
+TMPzPiS+trh/Nuic3ODn
+=5Q1g
+-----END PGP SIGNATURE-----
+
+--DITGHUV3p5DjDsXt--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
