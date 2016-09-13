@@ -1,41 +1,46 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
-Date: Tue, 13 Sep 2016 09:40:00 -0600
-Message-ID: <20160913154000.GA25878@obsidianresearch.com>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <20160912180508.GI5843@obsidianresearch.com>
- <DM3PR1101MB1181DF570D4F01A0CEB1CFC7E2FE0@DM3PR1101MB1181.namprd11.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <DM3PR1101MB1181DF570D4F01A0CEB1CFC7E2FE0-xYdf0wd+uoGW1Nawvih6nR68uu4wjhmwnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Yuval Mintz <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Varun Prakash <varun@chelsio.com>
+Subject: [net-next PATCH 00/11] iw_cxgb4,cxgbit: remove duplicate code
+Date: Tue, 13 Sep 2016 21:23:55 +0530
+Message-ID: <cover.1473781521.git.varun@chelsio.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, nab@linux-iscsi.org, dledford@redhat.com, swise@opengridcomputing.com, gerlitz.or@gmail.com, indranil@chelsio.com, varun@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 08:44:06AM +0000, Ram Amrani wrote:
-> Hi Jason,
-> I see that "include/uapi/rdma" contains API that is common.
+This patch series removes duplicate code from
+iw_cxgb4 and cxgbit by adding common function
+definitions in libcxgb.
 
-It is intended to contain *all* the uapi.
+Please review.
 
-> The qedr_user.h, that I assume you are referring to, is a qedr specific API.
-> For example, we issue the ib_copy_to_udata() on structures defined in the file.
-> So per my understanding it is in place.
+Thanks
+Varun
 
-Anything that is used with copy_to/from_user, ib_copy_to/from_udata,
-etc, etc must be in a include/uapi header.
+Varun Prakash (11):
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_get_4tuple()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_find_route()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_find_route6()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_is_neg_adv()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_best_mtu()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_compute_wscale()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_tid_release()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_close_con_req()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_abort_req()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_abort_rpl()
+  libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_rx_data_ack()
 
-Any constant you might want to copy into your userspace provider must
-be in include/uapi.
+ drivers/infiniband/hw/cxgb4/Kconfig               |   1 +
+ drivers/infiniband/hw/cxgb4/Makefile              |   1 +
+ drivers/infiniband/hw/cxgb4/cm.c                  | 288 ++++++----------------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h            |   9 -
+ drivers/net/ethernet/chelsio/libcxgb/Makefile     |   4 +-
+ drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.c | 149 +++++++++++
+ drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.h | 160 ++++++++++++
+ drivers/target/iscsi/cxgbit/cxgbit_cm.c           | 234 +++---------------
+ 8 files changed, 428 insertions(+), 418 deletions(-)
+ create mode 100644 drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.c
+ create mode 100644 drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.h
 
-Avoid copying headers in your user space and use the standard kernel
-names to access your driver's uapi.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.0.2
