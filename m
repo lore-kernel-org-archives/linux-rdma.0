@@ -1,39 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Tue, 13 Sep 2016 12:06:37 -0600
-Message-ID: <20160913180637.GB6933@obsidianresearch.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FB7A@ORSMSX109.amr.corp.intel.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V2 for-next 0/9] IB/hns: Add CM(Connection Manager) Support to HNS RoCe Driver
+Date: Tue, 13 Sep 2016 20:49:21 +0100
+Message-ID: <20160913194930.273964-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB07FB7A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 04:28:42PM +0000, Hefty, Sean wrote:
+This patch-set adds the CM(Connection Manager) support to the
+HNS RoCE driver. Changes done are primarily to add support of
+APIs in IB device and some fixes over the base driver to
+support RDMA Connection Manager. This patch-set also updates
+the Device binding document as new parameter node-guid was
+added to the DT.
 
-> I haven't read through this thread completely yet, but are you
-> wanting patches applied to the current upstream trees before the
-> merge, or are you good merging them into your local trees only?
+All of the patches have been authored by Oulijun and reviewed
+by Huwei.
 
-Hi Sean,
+Change Log:
+V1->V2: Addressed the comments from Leon Romanovsky. Please refer
+        individual patch for details.
 
-For this question you can probably jump directly to this thread.
+Lijun Ou (9):
+  IB/hns: Register HNS RoCE Driver get_netdev() with IB Core
+  IB/hns: Add & initialize "node_guid" parameter for RDMA CM
+  IB/hns: Fix the value of device_cap_flags
+  IB/hns: Fix two possible bugs for rdma cm
+  IB/hns: Add phy_port for computing GSI/QPN
+  IB/hns: Change the logic for allocating uar registers
+  IB/hns: Fix the bug of rdma cm connecting on user mode
+  IB/hns: Fix two bugs for rdma cm connecting
+  IB/hns: Add node_guid definition to the bindings document
 
-http://www.spinics.net/lists/linux-rdma/msg40014.html
+ .../bindings/infiniband/hisilicon-hns-roce.txt     |  2 +
+ drivers/infiniband/hw/hns/hns_roce_device.h        |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c         | 80 +++++++++-------------
+ drivers/infiniband/hw/hns/hns_roce_main.c          | 32 ++++++++-
+ drivers/infiniband/hw/hns/hns_roce_pd.c            |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c            | 13 ++--
+ 6 files changed, 76 insertions(+), 59 deletions(-)
 
-If you send me Reviewed-by's/Acks, or otherwise then I will carry it,
-if you wish to grab them (as Steve and Sean did) then please do.
-
-Within the github the commits up to 'Unified CMake build system' are
-intended to be bug fixes to the current scheme of various kinds.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.9.1
