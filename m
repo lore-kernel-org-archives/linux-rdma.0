@@ -1,159 +1,119 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Fix decision to avoid using MAD_IFC command in
- ISSI > 0 mode
-Date: Tue, 13 Sep 2016 08:52:23 +0300
-Message-ID: <20160913055223.GM8812@leon.nu>
-References: <1473232990-22766-1-git-send-email-dchang@suse.com>
- <20160908140752.GN18398@leon.nu>
- <20160909025527.GC3042@linux-kyyb.suse>
- <20160910074719.GG6415@leon.nu>
- <20160911071542.GH6415@leon.nu>
- <20160913014023.GI3042@linux-kyyb.suse>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Tue, 13 Sep 2016 09:05:45 +0300
+Message-ID: <20160913060545.GN8812@leon.nu>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <20160912163928.GK8812@leon.nu>
+ <CAG53R5UqF21z34jB2HJCTXU8w3Kbj_Jon=wBAoO5tYSqbD1f6g@mail.gmail.com>
+ <CY4PR11MB17202A542AC07CBA4A65E93697FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="j3zO+32zXj6UcJCE"
+        protocol="application/pgp-signature"; boundary="7VkxxUl3xUvPtoxk"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160913014023.GI3042-5oAczMR2RyTI588T0lkTTQ@public.gmane.org>
+In-Reply-To: <CY4PR11MB17202A542AC07CBA4A65E93697FF0-JNf6+SjKdlG0ooKL/ADlEpPPoyLQLiKMvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Mintz <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---j3zO+32zXj6UcJCE
-Content-Type: text/plain; charset=us-ascii
+--7VkxxUl3xUvPtoxk
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 13, 2016 at 09:40:23AM +0800, David Chang wrote:
-> On Sun, Sep 11, 2016 at 10:15:42AM +0300, Leon Romanovsky wrote:
-> > On Sat, Sep 10, 2016 at 10:47:19AM +0300, Leon Romanovsky wrote:
-> > Hi David,
-> >
-> > Please find this UNTESTED patch. We will do formal testing during the
-> > coming work week and will properly submit it for inclusion for 4.8.
-> > From 9147fabc9b189e09a982de8ac30f01f04468f6ce Mon Sep 17 00:00:00 2001
-> > From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Date: Sun, 11 Sep 2016 10:00:27 +0300
-> > Subject: [PATCH rdma-rc] IB/mlx5: Enable MAD_IFC commands for IB ports only
-> >
-> > MAD_IFC command is supported only for physical function (PF) drivers
-> > and only when physical port is IB.
-> >
-> > The lack of check if port is IB caused to following trace to appear.
-> >
-> > [    8.456327] mlx5_core 0000:03:00.0: firmware version: 12.12.780
-> > ...
-> > [   10.417421] mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb 2014)
-> > [   10.419282] ------------[ cut here ]------------
-> > [   10.419291] WARNING: CPU: 2 PID: 2517 at ../drivers/infiniband/core/cache.c:702 ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]()
-> > [   10.419386] CPU: 2 PID: 2517 Comm: modprobe Tainted: G		X 4.4.19-1-default #1
-> > [   10.419387] Hardware name: Dell Inc. PowerEdge R730xd/072T6D, BIOS2.1.7 06/16/2016
-> > [   10.419389]  0000000000000000 ffffffff8130d740 0000000000000000 ffffffffa04e0300
-> > [   10.419395]  ffffffff8107c121
-> > [   10.419400]  ffff88017bfe0000 ffff88003712b9e0 ffff88045ad905c0
-> > [   10.419401]  0000000000000001 fffffffffffffffc ffffffffa04d8a58 0000000000000000
-> > [   10.419406] Call Trace:
-> > [   10.419415]  [<ffffffff81019a59>] dump_trace+0x59/0x310
-> > [   10.419419]  [<ffffffff81019dfa>] show_stack_log_lvl+0xea/0x170
-> > [   10.419421]  [<ffffffff8101ab81>] show_stack+0x21/0x40
-> > [   10.419426]  [<ffffffff8130d740>] dump_stack+0x5c/0x7c
-> > [   10.419431]  [<ffffffff8107c121>] warn_slowpath_common+0x81/0xb0
-> > [   10.419436]  [<ffffffffa04d8a58>] ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
-> > [   10.419449]  [<ffffffffa04da2dd>] add_netdev_ips+0x9d/0xa0 [ib_core]
-> > [   10.419456]  [<ffffffffa04da45b>] enum_all_gids_of_dev_cb+0x7b/0xb0 [ib_core]
-> > [   10.419461]  [<ffffffffa04d641d>] ib_enum_roce_netdev+0xdd/0x100 [ib_core]
-> > [   10.419466]  [<ffffffffa04da5ed>] roce_rescan_device+0x1d/0x20 [ib_core]
-> > [   10.419470]  [<ffffffffa04d8cdb>] ib_cache_setup_one+0x23b/0x3d0 [ib_core]
-> > [   10.419475]  [<ffffffffa04d606b>] ib_register_device+0x2bb/0x4f0 [ib_core]
-> > [   10.419483]  [<ffffffffa0618bbf>] mlx5_ib_add+0xaaf/0x12e0 [mlx5_ib]
-> > [   10.419492]  [<ffffffffa08b76c1>] mlx5_add_device+0x41/0xa0 [mlx5_core]
-> > [   10.419498]  [<ffffffffa08b7785>] mlx5_register_interface+0x65/0xa0 [mlx5_core]
-> > [   10.419502]  [<ffffffffa0474030>] mlx5_ib_init+0x30/0x42 [mlx5_ib]
-> > [   10.419506]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
-> > [   10.419510]  [<ffffffff811827e8>] do_init_module+0x5a/0x1d7
-> > [   10.419514]  [<ffffffff81103536>] load_module+0x1366/0x1c50
-> > [   10.419518]  [<ffffffff81103fd0>] SYSC_finit_module+0x70/0xa0
-> > [   10.419523]  [<ffffffff815e126e>] entry_SYSCALL_64_fastpath+0x12/0x6d
-> > [   10.420681] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
-> > [   10.420682] Leftover inexact backtrace:
-> > [   10.420684] ---[ end trace fc8ccb16c9d8e28a ]---
-> >
-> > Reported-by: David Chang <dchang-IBi9RG/b67k@public.gmane.org>
-> > Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/mlx5/main.c | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> > index 8150ea3..0480b64 100644
-> > --- a/drivers/infiniband/hw/mlx5/main.c
-> > +++ b/drivers/infiniband/hw/mlx5/main.c
-> > @@ -288,7 +288,9 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
-> >
-> >  static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
-> >  {
-> > -	return !MLX5_CAP_GEN(dev->mdev, ib_virt);
-> > +	if (MLX5_CAP_GEN(dev->mdev, port_type) == MLX5_CAP_PORT_TYPE_IB)
-> > +		return !MLX5_CAP_GEN(dev->mdev, ib_virt);
-> > +	return 0;
-> >  }
-> >
-> >  enum {
-> > --
-> > 2.7.4
+On Mon, Sep 12, 2016 at 05:39:35PM +0000, Yuval Mintz wrote:
+> >>>=C2=A0 include/linux/qed/common_hsi.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0=C2=
+=A0=C2=A0 1 +
+> >>>=C2=A0 include/linux/qed/qed_if.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0 |=C2=A0=C2=A0=C2=A0 9 +-
+> >>>=C2=A0 include/linux/qed/qed_ll2_if.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 140=
+ +
+> >>>=C2=A0 include/linux/qed/qed_roce_if.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 604 ++=
+++
+> >>>=C2=A0 include/linux/qed/qede_roce.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=
+=A0=C2=A0 88 +
+> >>=C2=A0> include/linux/qed/rdma_common.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0=C2=A0=
+=C2=A0 1 +
+> >>
+> >> Something not directly related to your patches, but they brought my
+> >> attention to the fact that all these new (and old) rdma<->net devices
+> >> are polluting include/linux
+> >>
+> > ocrdma driver includes be_roce.h located in net/ethernet/emulex/benet
+> > location instead of include/linux/.
+> > This file helps to bind rdma to net device or underlying hw device.
 >
-> We tested this patch with both fw:12.12.780 and fw:12.16.1020.
+> > May be similar change can be done for rest of the drivers for
+> > rdma<-->net devices?
 >
-> We could ping each other and could check RoCE v1 and v2 using ib_send_bw
-> as per  https://community.mellanox.com/docs/DOC-2415 on both of these
-> firmwares.
+> By adding explicit inclusion paths in the Makefile, a la
+> ccflags-y :=3D -Idrivers/net/ethernet/emulex/benet   ?
 >
-> Reported-and-tested-by: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>
+> While this might work, I personally dislike it as I find it
+> counter-intuitive when going over the code -
+> I don't expect driver to locally modify the inclusion path.
+> Besides, we're going to [eventually] a whole suite of drivers based
+> on the qed module, some of which would reside under drivers/scsi;
+> Not sure it's best to have 3 or 4 different drivers privately include the
+> same directory under a different subsystem.
 
-hi David,
+I agree with you that orcdma's way can be valuable for small drivers.
 
-Thank you for the update.
+Orcmda has small shared headers set and doesn't need to change them rapidly
+to support different devices.
 
-The good thing that this patch was sent yesterday to ML for inclusion in
-4.8 [1], and the bad thing that patchworks didn't catch my attempt to add
-this tag to the patch. I assume that it didn't recognize it.
-
-Thanks
-
-[1] https://patchwork.kernel.org/patch/9326963/
+I thought to place them in similar directory to include/soc/* and remove
+=66rom include/linux/. We have include/rdma/ and it looks like a good
+candidate.
 
 >
-> Thanks,
-> David Chang
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> Filtered output:
+> >> =E2=9E=9C=C2=A0 linux-rdma git:(topic/fixes-for-4.8-2) ls -dl include/=
+linux/*/
+> >> drwxrwxr-x=C2=A0 2 leonro leonro=C2=A0 4096 Aug 30 16:27 include/linux=
+/hsi/
+> >> drwxrwxr-x=C2=A0 2 leonro leonro=C2=A0 4096 Sep 12 19:08 include/linux=
+/mlx4/
+> >> drwxrwxr-x=C2=A0 2 leonro leonro=C2=A0 4096 Sep=C2=A0 7 15:31 include/=
+linux/mlx5/
+> >> drwxrwxr-x=C2=A0 2 leonro leonro=C2=A0 4096 Sep=C2=A0 8 17:46 include/=
+linux/qed/
+> >>
+> >> Is this the right place for them?
+> >
+> > Thanks
+>
 
---j3zO+32zXj6UcJCE
+--7VkxxUl3xUvPtoxk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX15QXAAoJEORje4g2clinjDAQAJFD1hQOUJYSQC9PE7XG/iEE
-mWLyG1kDy/16Q85oxN+RTrr3T6F6HLa5LrYIS4L+LgJu2yUVp9lzmUEGUs4d2YfQ
-2ka6L791z07O2BfGqYGBC64u/hOhujQL6aipg0UFJoUPPSnl/dp+yX7Fj6DhxRxW
-lucSOEC/1BfLG5mgOXC15DiNBYnuSMAY5lmeoicK1/3tXGuMAsOzdDfCnz26GLTr
-HAuWj8UHJRr+Rm82Jx1jLseHfm6L7t0FIX4Em4GA+T4h3kEWoGqnlQKAjQM0BwYF
-yM/+FLg1MkgC+V7O3LrQgPio2tFqQs8lhn379kyB1VxWED0IMJXs56uz9JZUmIs1
-Ix1DAhtbBYo36be9fhgVnQyz1tzSFXBE2ZrFwxjfpiAN358g97FE6RYhmBtLJP+4
-VMttaPO+flcjzPq/6vp4bdGEdgxzHzJ3mKTUBTgJN63XSyMSH4mSLYlwCFSvBFc+
-n0wRjiu9F6eqm3sM6iUXQCB13ZvUXTQcxvIpKEhVtnb73420Rufw+PHrlYBx4MD/
-UzUxLnaOTE033wMiQaKUUmjmJuokzQwgobnM6zO0YZpoxrJX6Qj6iRFktypvLQk3
-ZAJe596EsCQERqVzUkNHmzObfCRmg6UKongLBgOz/4llWujtIP5ggmt6Ux+UKUvp
-oVt4d5VaNUr7OmbO9U2I
-=97My
+iQIcBAEBAgAGBQJX15c5AAoJEORje4g2clinSJkP/2F67ghkBA2xeXOLuMoBb3Nc
+ue+MAHB8ACDfcIUhpJUkZFU0jqMUi3j0Yc0itux7mGnwEIlkBc6dTWMKQG6l3zcF
+bonsUv4B0m6U8//92R/1hkIBhiXGmwkO22tzWz469rodIrvM5I14btumHpvKrpcj
+DUk/WrTh37j+SNvViZ/xjlJUJN6H7t38Wp+arDCay8VBmElvRYejQEsSdhn9SeEi
+tay7USTmljdh6lCUJugM7usRIcxXjGXcIxu/JZoU5BmBMJvleIVK09TkyppY7HHD
+bRizp0OztjSBwW7gKRwfYZeqloo2/RvhIk+FKS9L9bqHMnqKHsQ9i9CnPbgMd9Lh
+i03fSn4wPt24NBY8cyqumfTJyKCn47KKkAXCzVzRJFbAifEnNZpQik4fl+axZPuv
+0m5avLLVdXyC+QI3KESuongZVbVHYQ9GFPHqkV76BW9Jg14V2DCkNv6tQmCdiC8X
+WQwRAbcJZWDHtBsuiww5oHidSGn+pYyhpD+FTBvEkdI0tlmay+RM68jsfdgb4alN
+ixMMGUoYOE8/BqaKyITRJDcMDCKfU0tXkg6WfHmHfpnVHjjm08JcHx6tAclDNBnB
+Xliwl+qg6hzpypUP9EweWz4U7RTWpE+AYa1la+wqTiyNRuDckMdl+Bzs8AEIncW9
+Ap49lZ2YRAM9bb2cnWrw
+=ASWE
 -----END PGP SIGNATURE-----
 
---j3zO+32zXj6UcJCE--
+--7VkxxUl3xUvPtoxk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
