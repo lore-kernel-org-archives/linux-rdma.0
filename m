@@ -1,60 +1,34 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [net-next PATCH 00/11] iw_cxgb4,cxgbit: remove duplicate code
-Date: Tue, 13 Sep 2016 15:18:42 -0500
-Message-ID: <022b01d20dfc$05864150$1092c3f0$@opengridcomputing.com>
-References: <cover.1473781521.git.varun@chelsio.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 03/28] Be explicit about _GNU_SOURCE
+Date: Tue, 13 Sep 2016 21:39:03 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB080619@ORSMSX109.amr.corp.intel.com>
+References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1473109698-31408-4-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1473781521.git.varun@chelsio.com>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Varun Prakash' <varun@chelsio.com>, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, nab@linux-iscsi.org, dledford@redhat.com, gerlitz.or@gmail.com, indranil@chelsio.com
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1473109698-31408-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This patch series removes duplicate code from
-> iw_cxgb4 and cxgbit by adding common function
-> definitions in libcxgb.
+> The recommended way to use this macro is at the top of the source file,
+> avoid globally setting it via 'gcc -D' as few source files actually
+> need it. In this tree we only need it in 17 out of 83 sources.
 > 
-> Please review.
+> _GNU_SOURCE changes the behaviour of a few select calls away from the
+> C99
+> standard and should generally be minimized.
 > 
-> Thanks
-> Varun
-> 
-> Varun Prakash (11):
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_get_4tuple()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_find_route()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_find_route6()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_is_neg_adv()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_best_mtu()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_compute_wscale()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_tid_release()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_close_con_req()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_abort_req()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_abort_rpl()
->   libcxgb,iw_cxgb4,cxgbit: add cxgb_mk_rx_data_ack()
-> 
->  drivers/infiniband/hw/cxgb4/Kconfig               |   1 +
->  drivers/infiniband/hw/cxgb4/Makefile              |   1 +
->  drivers/infiniband/hw/cxgb4/cm.c                  | 288
-++++++----------------
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h            |   9 -
->  drivers/net/ethernet/chelsio/libcxgb/Makefile     |   4 +-
->  drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.c | 149 +++++++++++
->  drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.h | 160 ++++++++++++
->  drivers/target/iscsi/cxgbit/cxgbit_cm.c           | 234 +++---------------
->  8 files changed, 428 insertions(+), 418 deletions(-)
->  create mode 100644 drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.c
->  create mode 100644 drivers/net/ethernet/chelsio/libcxgb/libcxgb_cm.h
-> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-This series looks good.
+For my parts
 
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-
-Thanks Varun!
-
-Steve
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
