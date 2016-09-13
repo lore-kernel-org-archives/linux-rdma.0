@@ -1,75 +1,88 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 9/13/2016 at 11:00PDT
-Date: Tue, 13 Sep 2016 13:32:38 +0300
-Message-ID: <20160913103238.GW8812@leon.nu>
-References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
- <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
- <20160913064857.GA5988@infradead.org>
- <CAG53R5UO50zXYF_oUUA_MUhx+xYS8FbDkTsAzon6Fn4syDyWvQ@mail.gmail.com>
- <20160913070418.GA31616@infradead.org>
+Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Tue, 13 Sep 2016 13:39:34 +0300
+Message-ID: <20160913103934.GX8812@leon.nu>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <20160912163928.GK8812@leon.nu>
+ <CAG53R5UqF21z34jB2HJCTXU8w3Kbj_Jon=wBAoO5tYSqbD1f6g@mail.gmail.com>
+ <CY4PR11MB17202A542AC07CBA4A65E93697FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
+ <20160913060545.GN8812@leon.nu>
+ <BL2PR07MB23064356EA2492675AC980A78DFE0@BL2PR07MB2306.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ItroYk2LVxvwOvi/"
+        protocol="application/pgp-signature"; boundary="jn/MQTzma+jNUHFC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160913070418.GA31616-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <BL2PR07MB23064356EA2492675AC980A78DFE0-I6Fv6QFlT9L2NWYWB7JgfuFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Yuval Mintz <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---ItroYk2LVxvwOvi/
+--jn/MQTzma+jNUHFC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Sep 13, 2016 at 12:04:18AM -0700, Christoph Hellwig wrote:
-> On Tue, Sep 13, 2016 at 12:31:22PM +0530, Parav Pandit wrote:
-> > Sure. I just want to remind HFI folks to give their comments. There
-> > has been no response from them to Matan's question.
-> >
-> > I am agreement with your point that most RDMA objects will have common
-> > structure at the start and thats sufficient for cgroup to function
-> > correctly. There hasn't been any disagreement yet on it.
-> > So I am believing that we are good for now. Or I am missing something?
-> > I will continue to have mailing list as one point for review and
-> > discussion/feedback.
+On Tue, Sep 13, 2016 at 06:48:00AM +0000, Mintz, Yuval wrote:
+> >> While this might work, I personally dislike it as I find it
+> >> counter-intuitive when going over the code -
+> >> I don't expect driver to locally modify the inclusion path.
+> >> Besides, we're going to [eventually] a whole suite of drivers based
+> >> on the qed module, some of which would reside under drivers/scsi;
+> >> Not sure it's best to have 3 or 4 different drivers privately include the
+> >> same directory under a different subsystem.
 >
-> I think we're fine now.  The non-verbs HFSI interfaces aren't really a
-> fit for our inifiband/rdma (it should really be called ibverbs I guess)
-> interface.
+> > I agree with you that orcdma's way can be valuable for small drivers.
+>
+> > Orcmda has small shared headers set and doesn't need to change them rapidly
+> > to support different devices.
+>
+> > I thought to place them in similar directory to include/soc/* and remove
+> > from include/linux/. We have include/rdma/ and it looks like a good
+> > candidate.
+>
+> I'm perfectly fine with relocating those to a different directory under include/,
+> although using 'rdma' doesn't sound like a good fit [as the headers would be
+> included by ethernet, scsi and rdma drivers].
+> Are there good existing alternatives?
 
-Out of curiosity, can you point me to the discussions where you
-expressed your objections while hfi1 was added to drivers/inifiniband?
+There is nothing that I can name.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Regardless, I don't believe this should be part of the initial submission,
+> as it would involve in relocating existing networking headers as well.
+> I think we can move those at leisure later on.
 
---ItroYk2LVxvwOvi/
+Sure, it is good time and context to discuss, but orthogonal to this
+submission.
+
+>
+> [We're in the middle of transitioning our e-mails from qlogic -> cavium,
+> so sorry if things become corrupted]
+
+--jn/MQTzma+jNUHFC
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX19XGAAoJEORje4g2clinEr0P/RtKvfDSuMoN5mhEj38GqpOY
-ZAsaGQkZ1ylZqFFokzQTJA5V9mwcMOH8rYRBKohCbT69nQrfX3kEU+IFuNQ3+sFy
-tj4X7akcmFFij20Kp61uhn7e0iK3yGoMxS1CW5/QGzOImXsI2zDi4DuGhElfuo35
-qr7J0gdGpdq2edY0wamlH0v9bhurufQXbzubULYgoSw5pxo/fbcXVoHgGwZ/qGn+
-BjA6ZqwANx+PfsHq4V0I7RkI+ug5Gs3U3hnJyU4bgJlend0gCXwqQ+EQm7uQumC6
-MZh5OaHf4iTibbMT3zPu6shGcj/+iEtDFus0hbfUJ3HLsAF7MOHHGa+2zwkCtPsw
-cN9FIWo+R3V9p/cpk40iB5YQo5bV/mmA5Ilhtf/9lEcP9Y+CVuWp0WXqSvyXYZDt
-W4itPrk5DsH0iOrrk48cmFOC9pDRbc+rmErQ9b3WHFRsk1K2NUyeYRNXXda36fv4
-kTwwSLNpVVeEhsKLqosQ0WJLDivW3QgIBllhrBEKEZAQdVZU8W8xyx6rzUcIW1dk
-1HjQRu1T36sssaBqyLFJVTGBdXi/mhhe4BlRYR+kaKSGiJWLJ4BJafk9iWBKnfnx
-u8dcEtLYj+4nyKyTW+ejmtmJ4w7GUTeLU0Xvw03rQebhyf6R09uKpoG8hblRk4UX
-BnUNv0Knkv3YIA8gYnXr
-=oEQ+
+iQIcBAEBAgAGBQJX19dmAAoJEORje4g2clin1YUP/1+UFUAU2NMfLBomkXOZVWJo
+W1YqxjWuqS9Tg9xXuqQDHLZkGRmQAz+bVZMb6bPlgnS1yXgV1nIas4O3kOl7pBCa
+pDv36QPwgpdeV4FRa+s37p7bENWJ0zoL67iUSH6dqmAKjwz55f0ipaCw/e5vxgfy
+fmS6tAkSlNM3zcxmTr+J7X4pw3MYEqa8wmSxhqjOKMgX+5RPKkCmbPae460PVlyU
+oe30U53+Rh4Mo4w3Ke7fSFpaLVTiiQ6j60EUCx/RA9wdYVLYQPmW13ZWv9Uu7kv/
+NTg4TPdQYsdOw0CfOgtItwm6gtsURkg4og9EkM2JlAAGZP1R/EPuCFL3zzVf/qUj
+41bYRFueEru9VI13NobbpKDgfPFsQShCHTdn5aNdAN4s2VdA9Z5wRzs/xPxxYYev
+5aA44KMFDsmzmXq+SVRWV7w6hqoqnWMqgIUI9F+8eJ8Ejl/evtIdRmCHipE7hbVt
+y5H3cRyYCYPCTWuQYOc37R4betDrhPh+h3+/0sYwgURMOa0cvPB57JktH1R9+lqG
+ajRWWvPK84BW8oDACpVb7UTNv3faLnWCZVbasSRahTXpV4PLsN2TovI0LiRmQBQj
+JHKFipgRcooHE8PuDVCxRkvD06a7jdLwstxHhBvUQUD1JQBcgsnjVnjrhHyZ3nw1
+fPfpOOk2IxV9nfuxrPLN
+=Ghdd
 -----END PGP SIGNATURE-----
 
---ItroYk2LVxvwOvi/--
+--jn/MQTzma+jNUHFC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
