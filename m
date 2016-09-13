@@ -1,26 +1,70 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFC 03/11] Add support for RoCE HW init
-Date: Tue, 13 Sep 2016 17:38:13 +0300
-Message-ID: <29e0d88d-63f2-2b30-2856-a0e94cf31f8e@grimberg.me>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [RFC 07/11] Add support for memory registeration verbs
+Date: Tue, 13 Sep 2016 17:44:58 +0300
+Message-ID: <7fa4a9b8-7cb1-0f83-d6e5-1055ae59bce4@grimberg.me>
 References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <1473696465-27986-4-git-send-email-Ram.Amrani@qlogic.com>
+ <1473696465-27986-8-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473696465-27986-4-git-send-email-Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1473696465-27986-8-git-send-email-Ram.Amrani@qlogic.com>
+Sender: netdev-owner@vger.kernel.org
+To: Ram Amrani <Ram.Amrani@qlogic.com>, dledford@redhat.com, davem@davemloft.net
+Cc: Yuval.Mintz@qlogic.com, Ariel.Elior@qlogic.com, Michal.Kalderon@qlogic.com, rajesh.borundia@qlogic.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> +	dev->max_sge = min_t(u32, RDMA_MAX_SGE_PER_SQ_WQE,
-> +			     RDMA_MAX_SGE_PER_RQ_WQE);
+> +struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd, int max_page_list_len)
+> +{
+> +	struct qedr_pd *pd = get_qedr_pd(ibpd);
+> +	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
+> +	struct qedr_mr *mr;
+> +	int rc = -ENOMEM;
+> +
+> +	DP_VERBOSE(dev, QEDR_MSG_MR,
+> +		   "qedr_alloc_frmr pd = %d max_page_list_len= %d\n", pd->pd_id,
+> +		   max_page_list_len);
+> +
+> +	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+> +	if (!mr)
+> +		return ERR_PTR(rc);
+> +
+> +	mr->dev = dev;
+> +	mr->type = QEDR_MR_FRMR;
+> +
+> +	rc = init_mr_info(dev, &mr->info, max_page_list_len, 1);
+> +	if (rc)
+> +		goto err0;
+> +
+> +	rc = dev->ops->rdma_alloc_tid(dev->rdma_ctx, &mr->hw_mr.itid);
+> +	if (rc) {
+> +		DP_ERR(dev, "roce alloc tid returned an error %d\n", rc);
+> +		goto err0;
+> +	}
+> +
+> +	/* Index only, 18 bit long, lkey = itid << 8 | key */
+> +	mr->hw_mr.tid_type = QED_RDMA_TID_FMR;
+> +	mr->hw_mr.key = 0;
+> +	mr->hw_mr.pd = pd->pd_id;
 
-Our kernel target mode consumers sort of rely on max_sge_rd, you need
-to make sure to set it too.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Do you have a real MR<->PD association in HW? If so, can you point
+me to the code that binds it? If not, any reason not to expose
+the local_dma_lkey?
+
+> +struct ib_mr *qedr_get_dma_mr(struct ib_pd *ibpd, int acc)
+> +{
+> +	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
+> +	struct qedr_pd *pd = get_qedr_pd(ibpd);
+> +	struct qedr_mr *mr;
+> +	int rc;
+> +
+> +	if (acc & IB_ACCESS_MW_BIND) {
+> +		DP_ERR(dev, "Unsupported access flags received for dma mr\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+
+This check looks like it really belongs in the core, it would help
+everyone if you move it...
+
+Although I know Christoph is trying to get rid of this API altogether...
