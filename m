@@ -1,59 +1,70 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [RFC 02/11] Add RoCE driver framework
-Date: Tue, 13 Sep 2016 09:46:23 -0500
-Message-ID: <018901d20dcd$98d0c040$ca7240c0$@opengridcomputing.com>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com> <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 0/6] server-side NFS/RDMA patches proposed for v4.9
+Date: Tue, 13 Sep 2016 10:52:33 -0400
+Message-ID: <20160913144246.5733.66229.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Ram Amrani' <Ram.Amrani@qlogic.com>, dledford@redhat.com, davem@davemloft.net
-Cc: Yuval.Mintz@qlogic.com, Ariel.Elior@qlogic.com, Michal.Kalderon@qlogic.com, rajesh.borundia@qlogic.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Adds a skeletal implementation of the qed* RoCE driver -
-> basically the ability to communicate with the qede driver and
-> receive notifications from it regarding various init/exit events.
-> 
-> Signed-off-by: Rajesh Borundia <rajesh.borundia@qlogic.com>
-> Signed-off-by: Ram Amrani <Ram.Amrani@qlogic.com>
-> ---
->  drivers/infiniband/Kconfig                   |   2 +
->  drivers/infiniband/hw/Makefile               |   1 +
->  drivers/infiniband/hw/qedr/Kconfig           |   7 +
->  drivers/infiniband/hw/qedr/Makefile          |   3 +
->  drivers/infiniband/hw/qedr/main.c            | 293 +++++++++++++++++++++++++
->  drivers/infiniband/hw/qedr/qedr.h            |  60 ++++++
->  drivers/net/ethernet/qlogic/qede/Makefile    |   1 +
->  drivers/net/ethernet/qlogic/qede/qede.h      |   9 +
->  drivers/net/ethernet/qlogic/qede/qede_main.c |  35 ++-
->  drivers/net/ethernet/qlogic/qede/qede_roce.c | 309
-> +++++++++++++++++++++++++++
->  include/linux/qed/qed_if.h                   |   3 +-
->  include/linux/qed/qede_roce.h                |  88 ++++++++
->  include/uapi/linux/pci_regs.h                |   3 +
->  13 files changed, 803 insertions(+), 11 deletions(-)
->  create mode 100644 drivers/infiniband/hw/qedr/Kconfig
->  create mode 100644 drivers/infiniband/hw/qedr/Makefile
->  create mode 100644 drivers/infiniband/hw/qedr/main.c
->  create mode 100644 drivers/infiniband/hw/qedr/qedr.h
->  create mode 100644 drivers/net/ethernet/qlogic/qede/qede_roce.c
->  create mode 100644 include/linux/qed/qede_roce.h
+Hi Bruce-
 
-<snip>
+These are ready for you to consider for your "for v4.9" branch. They
+include:
 
-> @@ -189,8 +189,7 @@ static int qede_netdev_event(struct notifier_block *this,
-> unsigned long event,
->  	struct ethtool_drvinfo drvinfo;
->  	struct qede_dev *edev;
-> 
-> -	/* Currently only support name change */
-> -	if (event != NETDEV_CHANGENAME)
-> +	if ((event != NETDEV_CHANGENAME) && (event !=
-> NETDEV_CHANGEADDR))
+- Fix a couple of reference counting issues
+- Introduce simple RDMA-CM private message exchange
+- Support Remote Invalidation
 
-nit: You don't really need the extra parens here.
+Available in the "nfsd-rdma-for-4.9" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.9
+
+
+Changes since v2:
+- Rebased on v4.8-rc6
+- "SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is in use" has been merged
+- Revert 64c59a3726f2 (add a "Cc: stable" if you think that's appropriate)
+
+
+Changes since v1:
+- Rebased on v4.8-rc3
+- Added Reviewed-by tags
+- Fixed additional bugs found in v4.8
+
+
+---
+
+Chuck Lever (6):
+      svcauth_gss: Revert 64c59a3726f2 ("Remove unnecessary allocation")
+      svcrdma: Tail iovec leaves an orphaned DMA mapping
+      svcrdma: Skip put_page() when send_reply() fails
+      rpcrdma: RDMA/CM private message data structure
+      svcrdma: Server-side support for rpcrdma_connect_private
+      svcrdma: support Remote Invalidation
+
+
+ include/linux/sunrpc/rpc_rdma.h            |   35 ++++++++++++
+ include/linux/sunrpc/svc_rdma.h            |   10 +++
+ net/sunrpc/auth_gss/svcauth_gss.c          |    5 +-
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    2 -
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |    2 -
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   82 ++++++++++++++++++++--------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |   60 +++++++++++++++++---
+ 7 files changed, 159 insertions(+), 37 deletions(-)
+
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
