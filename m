@@ -1,96 +1,32 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [PATCH v4 05/16] IB/pvrdma: Add functions for Verbs support
-Date: Wed, 14 Sep 2016 15:28:12 +0300
-Message-ID: <20160914122811.GD15800@yuval-lap.uk.oracle.com>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-6-git-send-email-aditr@vmware.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: Versioning scheme for rdma-plumbing
+Date: Wed, 14 Sep 2016 05:28:20 -0700
+Message-ID: <20160914122820.GA32048@infradead.org>
+References: <20160914044745.GB7975@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1473655766-31628-6-git-send-email-aditr@vmware.com>
-Sender: netdev-owner@vger.kernel.org
-To: Adit Ranadive <aditr@vmware.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
+In-Reply-To: <20160914044745.GB7975-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 11, 2016 at 09:49:15PM -0700, Adit Ranadive wrote:
-> +
-> +/**
-> + * pvrdma_alloc_pd - allocate protection domain
-> + * @ibdev: the IB device
-> + * @context: user context
-> + * @udata: user data
-> + *
-> + * @return: the ib_pd protection domain pointer on success, otherwise errno.
-> + */
-> +struct ib_pd *pvrdma_alloc_pd(struct ib_device *ibdev,
-> +			      struct ib_ucontext *context,
-> +			      struct ib_udata *udata)
-> +{
-> +	struct pvrdma_pd *pd;
-> +	struct pvrdma_dev *dev = to_vdev(ibdev);
-> +	union pvrdma_cmd_req req;
-> +	union pvrdma_cmd_resp rsp;
-> +	struct pvrdma_cmd_create_pd *cmd = &req.create_pd;
-> +	struct pvrdma_cmd_create_pd_resp *resp = &rsp.create_pd_resp;
-> +	int ret;
-> +	void *ptr;
-> +
-> +	/* Check allowed max pds */
-> +	if (!atomic_add_unless(&dev->num_pds, 1, dev->dsr->caps.max_pd))
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	memset(cmd, 0, sizeof(*cmd));
-> +	cmd->hdr.cmd = PVRDMA_CMD_CREATE_PD;
-> +	cmd->ctx_handle = (context) ? to_vucontext(context)->ctx_handle : 0;
-> +	ret = pvrdma_cmd_post(dev, &req, &rsp);
-> +	if (ret < 0) {
-> +		dev_warn(&dev->pdev->dev,
-> +			 "failed to allocate protection domain, error: %d\n",
-> +			 ret);
-> +		ptr = ERR_PTR(ret);
-> +		goto err;
-> +	} else if (resp->hdr.ack != PVRDMA_CMD_CREATE_PD_RESP) {
-> +		dev_warn(&dev->pdev->dev,
-> +			 "unknown response for allocate protection domain\n");
-> +		ptr = ERR_PTR(-EFAULT);
-> +		goto err;
-> +	}
-> +
-> +	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
-> +	if (!pd) {
-> +		ptr = ERR_PTR(-ENOMEM);
-> +		goto err;
-> +	}
+Hi Jason,
 
-I know that this was my suggestion but also remember that you raised a
-(correct) argument that it is preferred to first do other allocation and
-free them if command fails then the other way around where failure of
-memory allocation (like here) will force us to do the opposite command
-(pvrdma_dealloc_pd in this case).
+thanks for the writeup.  Versioning is always a bit of a bikeshedding
+exercise, but I'd still vote for following the kernel versioning (while
+fully agreeing with your thiughts on shared library versioning).
 
-So either accept your way (better) or call pvrdma_dealloc_pd when kmalloc
-fails.
+Two reasons for that:
 
-> +
-> +	pd->privileged = !context;
-> +	pd->pd_handle = resp->pd_handle;
-> +	pd->pdn = resp->pd_handle;
-> +
-> +	if (context) {
-> +		if (ib_copy_to_udata(udata, &pd->pdn, sizeof(__u32))) {
-> +			dev_warn(&dev->pdev->dev,
-> +				 "failed to copy back protection domain\n");
-> +			pvrdma_dealloc_pd(&pd->ibpd);
-> +			return ERR_PTR(-EFAULT);
-> +		}
-> +	}
-> +
-> +	/* u32 pd handle */
-> +	return  &pd->ibpd;
-> +
-> +err:
-> +	atomic_dec(&dev->num_pds);
-> +	return ptr;
-> +}
+ - it's a good marker of what version of the userspace code you need
+   to take advtantage of new kernel features
+ - it allows for much smoother minor updates.  I hope this will be
+   rare, but my experience from various projects tells me that they
+   will occasionally be needed.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
