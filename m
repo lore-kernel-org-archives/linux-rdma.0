@@ -1,38 +1,51 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 9/13/2016 at 11:00PDT
-Date: Wed, 14 Sep 2016 11:13:49 -0600
-Message-ID: <20160914171349.GG16014@obsidianresearch.com>
-References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
- <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
- <20160913064857.GA5988@infradead.org>
- <CAG53R5UO50zXYF_oUUA_MUhx+xYS8FbDkTsAzon6Fn4syDyWvQ@mail.gmail.com>
- <20160913070418.GA31616@infradead.org>
- <20160913103238.GW8812@leon.nu>
- <20160914123059.GA868@infradead.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Wed, 14 Sep 2016 11:17:37 -0600
+Message-ID: <20160914171737.GH16014@obsidianresearch.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <20160912180508.GI5843@obsidianresearch.com>
+ <DM3PR1101MB1181DF570D4F01A0CEB1CFC7E2FE0@DM3PR1101MB1181.namprd11.prod.outlook.com>
+ <20160913154000.GA25878@obsidianresearch.com>
+ <SN1PR07MB2207486633D88B5C65D547F9F8F10@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160914123059.GA868-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207486633D88B5C65D547F9F8F10@SN1PR07MB2207.namprd07.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Amrani, Ram" <Ram.Amrani@cavium.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, David Miller <davem@davemloft.net>, Yuval Mintz <Yuval.Mintz@qlogic.com>, Ariel Elior <Ariel.Elior@qlogic.com>, Michal Kalderon <Michal.Kalderon@qlogic.com>, Rajesh Borundia <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 05:30:59AM -0700, Christoph Hellwig wrote:
+On Wed, Sep 14, 2016 at 02:44:47PM +0000, Amrani, Ram wrote:
+> > Anything that is used with copy_to/from_user, ib_copy_to/from_udata, 
+> > etc, etc must be in a include/uapi header.
+> > 
+> > Any constant you might want to copy into your userspace provider must 
+> > be in include/uapi.
+> > 
+> I understand you mean something like
+> https://www.spinics.net/lists/linux-rdma/msg40414.html ([RFC
+> rdma-next 0/3] Move mlx5 vendor specific to UAPI directory)
 
-> I'm not fine with HFI exposing the non-verbs interfaces through
-> drivers/infiniband/core interface, which as far as I can tell it
-> currently does not even do, although some discussions here suggest
-> that a future interface should cater to those interface.
+Yes.
 
-The counter balance is that the Kernel Community has had a lot of bad
-experiences with drivers growing their own user APIs and 'subsystem'
-like functionality.
+> > Avoid copying headers in your user space and use the standard kernel 
+> > names to access your driver's uapi.
+
+> So the user library should be able to compile against these headers
+> in their location and not hold identical copies.
+
+Yes, but you will need identical copies for supporting old distros.
+
+> What do you mean by "standard kernel names"?
+
+By that I mean 'identical copies' do not copy the file and then
+randomly change it giving things different names or putting different
+content in structs.
+
+You will want to submit your user provider to rdma-plumbing to get it
+into the distros, we are planning to set it as the vehicle for code
+targeting 4.9
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
