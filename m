@@ -1,109 +1,84 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [RFC 02/11] Add RoCE driver framework
-Date: Wed, 14 Sep 2016 16:00:32 +0300
-Message-ID: <20160914130032.GB26069@leon.nu>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
- <516b98c7-477a-4890-0d92-529dc32f2c4e@mellanox.com>
- <CY4PR11MB1720F9B74BBF82D0779FAC8F97FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
- <20160913063806.GP8812@leon.nu>
- <BL2PR07MB2306937C8C495DB80DA776CA8DFE0@BL2PR07MB2306.namprd07.prod.outlook.com>
- <20160913101616.GT8812@leon.nu>
- <BL2PR07MB2306533A710B9EC40F56E8678DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+ tomorrow - 9/13/2016 at 11:00PDT
+Date: Wed, 14 Sep 2016 16:09:38 +0300
+Message-ID: <20160914130938.GC26069@leon.nu>
+References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+ <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
+ <20160913064857.GA5988@infradead.org>
+ <CAG53R5UO50zXYF_oUUA_MUhx+xYS8FbDkTsAzon6Fn4syDyWvQ@mail.gmail.com>
+ <20160913070418.GA31616@infradead.org>
+ <20160913103238.GW8812@leon.nu>
+ <20160914123059.GA868@infradead.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="Y5rl02BVI9TCfPar"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BL2PR07MB2306533A710B9EC40F56E8678DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Mintz, Yuval" <Yuval.Mintz@cavium.com>
-Cc: Yuval Mintz <Yuval.Mintz@qlogic.com>, Mark Bloch <markb@mellanox.com>, Ram Amrani <Ram.Amrani@qlogic.com>, "dledford@redhat.com" <dledford@redhat.com>, David Miller <davem@davemloft.net>, Ariel Elior <Ariel.Elior@qlogic.com>, Michal Kalderon <Michal.Kalderon@qlogic.com>, Rajesh Borundia <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+In-Reply-To: <20160914123059.GA868-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---gatW/ieO32f1wygP
-Content-Type: text/plain; charset=iso-8859-1
+--Y5rl02BVI9TCfPar
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 14, 2016 at 08:15:23AM +0000, Mintz, Yuval wrote:
-> > > >> >> +uint debug;
-> > > >> >> +module_param(debug, uint, 0);
-> > > > >>> +MODULE_PARM_DESC(debug, "Default debug msglevel");
-> > > >>
-> > > >> >Why are you adding this as a module parameter?
-> > > >>
-> > > >>=A0 I believe this is mostly to follow same line as qede which also=
- defines
-> > > > > 'debug' module parameter for allowing easy user control of debug
-> > > > > prints [& specifically for probe prints, which can't be controlled
-> > > > > otherwise].
-> > >
-> > > > Can you give us an example where dynamic debug and tracing infrastr=
-uctures
-> > > > are not enough?
-> > >
-> > > > AFAIK, most of these debug module parameters are legacy copy/paste
-> > > > code which is useless in real life scenarios.
-> > >
-> > > Define 'enough'; Using dynamic debug you can provide all the necessary
-> > > information and at an even better granularity that's achieved by sugg=
-ested
-> > > infrastructure,=A0 but is harder for an end-user to use. Same goes fo=
-r tracing.
-> > >
-> > > The 'debug' option provides an easy grouping for prints related to a =
-specific
-> > > area in the driver.
+On Wed, Sep 14, 2016 at 05:30:59AM -0700, Christoph Hellwig wrote:
+> On Tue, Sep 13, 2016 at 01:32:38PM +0300, Leon Romanovsky wrote:
+> > > I think we're fine now.  The non-verbs HFSI interfaces aren't really a
+> > > fit for our inifiband/rdma (it should really be called ibverbs I gues=
+s)
+> > > interface.
 > >
-> > It is hard to agree with you that user which knows how-to load modules
-> > with parameters won't success to enable debug prints.
+> > Out of curiosity, can you point me to the discussions where you
+> > expressed your objections while hfi1 was added to drivers/inifiniband?
 >
-> I think you're giving too much credit to the end-user. :-D
+> No idea what you mean.  I'm fine with HFI living in drivers/infiniband,
+> although other places for it might not be wrong either.
 >
-> > In addition, global increase in debug level for whole driver will create
-> > printk storm in dmesg and give nothing to debuggability.
->
-> So basically, what you're claiming is that ethtool 'msglvl' setting for d=
-evices
-> is completely obselete. While this *might* be true, we use it extensively
-> in our qede and qed drivers; The debug module parameter merely provides
-> a manner of setting the debug value prior to initial probe for all interf=
-aces.
-> qedr follows the same practice.
+> I'm not fine with HFI exposing the non-verbs interfaces through
+> drivers/infiniband/core interface, which as far as I can tell it
+> currently does not even do, although some discussions here suggest
+> that a future interface should cater to those interface.
 
-Thanks for this excellent example. Ethtool 'msglvl' adds this
-dynamically, while your DEBUG argument works for loading module
-only.
-
-If you want dynamic prints, you have two options:
-1. Add support of ethtool to whole RDMA stack.
-2. Use dynamic tracing infrastructure.
-
-Which option do you prefer?
+I see your point. Latest discussionis or more correct lack of interest
+=66rom Intel folks for proposed ABI suggest that it is best to limit this
+ABI to verbs objects only. In such way, memcg will fit natively into
+the stack.
 
 >
+> The real mistake was adding usnic, which has not business in
+> drivers/infiniband/ at all.
 
---gatW/ieO32f1wygP
+
+
+--Y5rl02BVI9TCfPar
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX2UnwAAoJEORje4g2clinXrUP/2jArl7b+PGt0i9yxTsJrdxO
-URi5euxXshp4XLpbPoayz9+GKiFwol7cA/8S6nYUqNWYCeQiAD9uoVWpzip6y5jt
-iFtYs6z/FQY/mJr3LYjeuAk98B0a0/lPqAJNRwJCZQf3GqVCN4Bz7ktayEd8lNlN
-G7CMSmPe6iIPfMWB/IZlS1VY2BBeUS+dwuOrn0ipBwncKU1w6m1jm7k5k17lZOIJ
-m/Wj02mJKy8HB4rq87gb4jPqTDGaOTZAOG2Wl7mGevpZPlMz5kXlylEMxLQaLNkO
-6duig4IT6KVXvrA8XRm/xN1ibzf4saySG0lQpL/8qxaTauPljLl5ts7AQ5egb9RW
-anqkaTSMVRZgYWvGfeGzgr+SGU/tFP3UwRYwf4ZvlQCrCu5zFntAKVAvIs2o6s6+
-/zWW9C0OEvZ7Qg6oK4OJhJA9YolXh/Hzb6zEzOIErcxq4bzLPNagmKIgIPT0Qmmo
-r0CuQJcznhxrRICyZz7Z8LriL6JtlsyaFupHL/ZPiEWsGJrHXNp2dzYDrO5rOmEN
-Mhjn4cIvmnnWo0TlHYGHaQD237IE1LBXf7u9el02WfI2Sc+cdgYLs8NAZjtwcCQ8
-jgGdIanvpro+DhSeDCLtamUroFcXiju5gWYxS9IIVVbcMkEV0VM7NityGecRO583
-FkcvMHOkUa/oQ/2pP+VT
-=EsM4
+iQIcBAEBAgAGBQJX2UwSAAoJEORje4g2clinIw4QALUsw+S2HkVENAh6yDsK9eJK
+nSFPaTO4LdiJ9mDJt5d/k4bogefFxE97sbYZtOXXQezD4kYdYGA7qVHIPgSNvNLS
+m+KrLt7gpLWumNO0C+IqNJRyZDzFAbXEcWDH4HGxTiSRJzO7wPwWT0V0krig8kMt
+roDAJKDP85WuklC5Atm5UrXdQPmGXSihXZZdNBP3584zmP3gUNxrgRiJ6LsDo1R0
+pJlj1UzJBH2oHk+RKEF6YtQnGnVC1+o2LgorgspXOIFrUxjLsSN7l/urvIhVHqdZ
+tH7+ybnNmHigQv3R2I6msv2amXn5UWirkCFIL7ef1xkK3tEdSPu+hYeupL1LzOdx
+QoV210gr7IjgDtAbK0ZqqeLac7DIAVlt92Xdk8++FJ4moK5vCrY+WQME4MKuAtrq
+FNuDdgAknFVrLPeJIoEu6gvHsm7IJ8x19O7tR8WDVHeJ5NjENdKBzs+x4393/bx5
+VrzwmVJWrMyVFRkCl9VtockdYNB+gMcbqRVZOyckjKGt6jVKKyEbDHCdpxW48a+P
+5vA3RfmAprpfr0Z+It0v+T3UmgbINWYwu2S5RY93Ug6ffM0shxBDfZjjYSACP8bi
+aRmwEuqqGcVxn6uKKu/ItP3jb3em/HPtRLB9qFaR+Aboz3U7w9x3jIioPHPjb+G+
+U7zZeQbWWune77207UWM
+=f4ko
 -----END PGP SIGNATURE-----
 
---gatW/ieO32f1wygP--
+--Y5rl02BVI9TCfPar--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
