@@ -1,40 +1,39 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [RFC rdma-next 0/3] Move mlx5 vendor specific to UAPI directory
-Date: Wed, 14 Sep 2016 11:27:26 +0300
-Message-ID: <1473841649-8923-1-git-send-email-leon@kernel.org>
+Subject: [RFC rdma-next 2/3] IB/core: Export mlx5 vendor specific strucutres
+Date: Wed, 14 Sep 2016 11:27:28 +0300
+Message-ID: <1473841649-8923-3-git-send-email-leon@kernel.org>
+References: <1473841649-8923-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1473841649-8923-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The consolidate library revealed the fact that vendor specific
-structures and defines are copy/pasted between kernel and user-space,
-instead of sharing.
-
-This RFC was tested by compilation only and not-ready for merge yet.
-
-Leon Romanovsky (3):
-  IB/mlx5: Move and decouple user vendor structures
-  IB/core: Export mlx5 vendor specific strucutres
-  MAINTAINERS: Add mlx5 uapi file
-
- MAINTAINERS                            |   1 +
- drivers/infiniband/hw/mlx5/cq.c        |   1 -
- drivers/infiniband/hw/mlx5/main.c      |   1 -
- drivers/infiniband/hw/mlx5/mlx5_ib.h   |  37 +++++
- drivers/infiniband/hw/mlx5/mr.c        |   1 -
- drivers/infiniband/hw/mlx5/qp.c        |   1 -
- drivers/infiniband/hw/mlx5/srq.c       |   1 -
- drivers/infiniband/hw/mlx5/user.h      | 281 ---------------------------------
- include/uapi/rdma/Kbuild               |   1 +
- include/uapi/rdma/providers/Kbuild     |   2 +
- include/uapi/rdma/providers/mlx5-abi.h | 242 ++++++++++++++++++++++++++++
- 11 files changed, 283 insertions(+), 286 deletions(-)
- delete mode 100644 drivers/infiniband/hw/mlx5/user.h
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ include/uapi/rdma/Kbuild           | 1 +
+ include/uapi/rdma/providers/Kbuild | 2 ++
+ 2 files changed, 3 insertions(+)
  create mode 100644 include/uapi/rdma/providers/Kbuild
- create mode 100644 include/uapi/rdma/providers/mlx5-abi.h
 
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index 4edb0f2..e804cc3 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -7,3 +7,4 @@ header-y += rdma_netlink.h
+ header-y += rdma_user_cm.h
+ header-y += hfi/
+ header-y += rdma_user_rxe.h
++header-y += providers/
+diff --git a/include/uapi/rdma/providers/Kbuild b/include/uapi/rdma/providers/Kbuild
+new file mode 100644
+index 0000000..d863744
+--- /dev/null
++++ b/include/uapi/rdma/providers/Kbuild
+@@ -0,0 +1,2 @@
++# UAPI Header export list
++header-y += mlx5-abi.h
 --
 2.7.4
 
