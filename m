@@ -1,35 +1,46 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 02/28] Include pthreads in the provider libraries
-Date: Wed, 14 Sep 2016 10:01:50 -0600
-Message-ID: <20160914160150.GA16014@obsidianresearch.com>
-References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-3-git-send-email-jgunthorpe@obsidianresearch.com>
- <2961f191-3020-ed18-0200-ce569c19326b@dev.mellanox.co.il>
+From: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Subject: Re: [PATCH] net/mlx4_en: fix off by one in error handling
+Date: Wed, 14 Sep 2016 18:08:44 +0200 (CEST)
+Message-ID: <alpine.LFD.2.20.1609141757040.1730@schleppi>
+References: <alpine.LFD.2.20.1609141305360.1727@schleppi> <df5834ee-00c2-3f18-ae83-8bb06b6c675b@gmail.com> <alpine.LFD.2.20.1609141548390.11022@schleppi> <b2197c51-57a9-ab01-e940-9850a39484d6@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2961f191-3020-ed18-0200-ce569c19326b-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <b2197c51-57a9-ab01-e940-9850a39484d6@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tariq Toukan <ttoukan.linux@gmail.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 06:15:45PM +0300, Yishai Hadas wrote:
-> On 9/6/2016 12:07 AM, Jason Gunthorpe wrote:
-> >It is a mistake to not explicitly link to the libraries required.
-> >Not linking causes the symbols to drop the symbol version which could
-> >cause runtime problems down the road if pthreads ever goes through
-> >another symbol version change.
-> 
-> Where in this patch the provider links explicitly with pthreads as you
-> pointed that should be done ? can see only a check that pthread exists and
-> has the pthread_mutex_init symbol.
+On Wed, 14 Sep 2016, Tariq Toukan wrote:
+> On 14/09/2016 4:53 PM, Sebastian Ott wrote:
+> > On Wed, 14 Sep 2016, Tariq Toukan wrote:
+> > > On 14/09/2016 2:09 PM, Sebastian Ott wrote:
+> > > > If an error occurs in mlx4_init_eq_table the index used in the
+> > > > err_out_unmap label is one too big which results in a panic in
+> > > > mlx4_free_eq. This patch fixes the index in the error path.
+> > > You are right, but your change below does not cover all cases.
+> > > The full solution looks like this:
+> > >
+> > > @@ -1260,7 +1260,7 @@ int mlx4_init_eq_table(struct mlx4_dev *dev)
+> > >                                               eq);
+> > >                  }
+> > >                  if (err)
+> > > -                       goto err_out_unmap;
+> > > +                       goto err_out_unmap_excluded;
+> > In this case a call to mlx4_create_eq failed. Do you really have to call
+> > mlx4_free_eq for this index again?
+>
+> We agree on this part, that's why here we should goto the _excluded_ label.
+> For all other parts, we should not exclude the eq in the highest index, and
+> thus we goto the _non_excluded_ label.
 
-AC_CHECK_LIB adds the library to the link line as well.
+But that's exactly what the original patch does. If the failure is within
+the for loop at index i, we do the cleanup starting at index i-1. If the
+failure is after the for loop then i == dev->caps.num_comp_vectors + 1
+and we do the cleanup starting at index i == dev->caps.num_comp_vectors.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In the latter case your patch would have an out of bounds array access.
+
+Regards,
+Sebastian
