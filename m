@@ -1,28 +1,29 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [net-next PATCH 00/11] iw_cxgb4,cxgbit: remove duplicate code
-Date: Wed, 14 Sep 2016 11:32:43 +0300
-Message-ID: <CAJ3xEMi_w3nhqSpODsm=Cs42dg9w0Cu3Cc-0mZvauY7Coc+fwg@mail.gmail.com>
-References: <cover.1473781521.git.varun@chelsio.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFC 02/11] Add RoCE driver framework
+Date: Wed, 14 Sep 2016 07:30:23 +0000
+Message-ID: <SN1PR07MB2207EA31C3D872AF50CC9B75F8F10@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
+ <018901d20dcd$98d0c040$ca7240c0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1473781521.git.varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <018901d20dcd$98d0c040$ca7240c0$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Varun Prakash <varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 6:53 PM, Varun Prakash <varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
-> This patch series removes duplicate code from
-> iw_cxgb4 and cxgbit by adding common function definitions in libcxgb.
+> > +	if ((event !=3D NETDEV_CHANGENAME) && (event !=3D
+> > NETDEV_CHANGEADDR))
+>=20
+> nit: You don't really need the extra parens here.
+>=20
+Sure, thanks. Will remove.
+=20
 
-Is that bunch of misc functionalities or you can provide a more high
-level description what
-you are cleaning out. Also, what other areas are you planning to
-refactor following the review
-comments we had on the target driver?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
