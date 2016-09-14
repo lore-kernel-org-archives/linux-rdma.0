@@ -1,64 +1,74 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Tue, 13 Sep 2016 22:04:58 -0600
-Message-ID: <20160914040458.GA7975@obsidianresearch.com>
-References: <53eb35b4-0320-acd9-9969-73f5817c8144@sandisk.com>
- <20160901172355.GA20472@obsidianresearch.com>
- <019b01d2047f$b9694f90$2c3beeb0$@opengridcomputing.com>
- <20160902233231.GA26309@obsidianresearch.com>
- <ef8214f8-d44d-2289-d1ed-a0998e9e05c0@sandisk.com>
- <20160903051222.GA2098@obsidianresearch.com>
- <20160904055441.GI21847@leon.nu>
- <20160904235555.GA21542@obsidianresearch.com>
- <20160905124802.GX21847@leon.nu>
- <20160905174636.GC14403@obsidianresearch.com>
+Subject: Versioning scheme for rdma-plumbing
+Date: Tue, 13 Sep 2016 22:47:45 -0600
+Message-ID: <20160914044745.GB7975@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160905174636.GC14403-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 05, 2016 at 11:46:36AM -0600, Jason Gunthorpe wrote:
-> On Mon, Sep 05, 2016 at 03:48:02PM +0300, Leon Romanovsky wrote:
-> 
-> > > Folks can decide how much of this stuff should go on into the main
-> > > repository later on..
-> > 
-> > I completely missed that tooling branch. It looks like it misses the
-> > Debian image.
-> 
-> Only 'make' works for Debian. There is no .deb packaging yet.
+Hi all,
 
-I have just pushed sample Debian packaging, please let me know what
-you think.
+Here are my thoughts on how to version this thing. I've completed the
+proposed Debian packaging to the point of being lintian clean and now
+have a reasonable idea what their sensitivies are.
 
-The DEB stuff is much closer to production ready than the RPM example,
-and illistrates my proposed package split:
+I've written a small file discussing the issue here:
 
-ibverbs-providers_11-1_amd64.deb
-ibverbs-utils_11-1_amd64.deb
-iwpmd_11-1_amd64.deb
-libibcm-dev_1.0.11-1_amd64.deb
-libibcm1-dbg_1.0.11-1_amd64.deb
-libibcm1_1.0.11-1_amd64.deb
-libibumad-dev_3.1.11-1_amd64.deb
-libibumad3-dbg_3.1.11-1_amd64.deb
-libibumad3_3.1.11-1_amd64.deb
-libibverbs-dev_1.2.11-1_amd64.deb
-libibverbs1-dbg_1.2.11-1_amd64.deb
-libibverbs1_1.2.11-1_amd64.deb
-librdmacm-dev_1.1.11-1_amd64.deb
-librdmacm1-dbg_1.1.11-1_amd64.deb
-librdmacm1_1.1.11-1_amd64.deb
-rdmacm-utils_11-1_amd64.deb
-srptools_11-1_amd64.deb
+https://github.com/jgunthorpe/rdma-plumbing/blob/master/Documentation/versioning.md
 
-Debian will be able to gain 5 new providers, iwpmd and a spattering of
-newer versions.
+The gist is, I recommend using a single increasing integer for the
+overall tree. I think udev popularized this scheme for stable plumbing.
+
+The shlibs files will become sensibly labeled using a semantic style
+soname.abi.release scheme. Eg the next release of libibverbs (assuming
+no ABI change) would be 'libibverbs.so.1.2.11', (with the usual link
+from 'libibverbs.so.1').
+
+This conveys actual information now, '1.2' indicates that @IBVERBS_1.2
+and better symbols are present, and '11' indicates it is release 11 of
+the overall tree.
+
+These file names serve no functional purpose (we have used
+libibverbs.so.1.0.0 forever), so this is all bikeshedding - but
+distros that package the libraries seperately (eg debian) should have
+sensible versions for them, and this is a forumula to get there.
+
+We will start applying symbol versions and ABI versioning sanely, so
+if new ABI symbols are added they will be correctly tagged eg
+@IBVERBS_1.3 and the libibverbs version will change to '1.3.11' and so
+on. This will make RPM work properly.
+
+umad has released 1.3.10.1, so I'm suggesting sarting at '11'. There
+is no particularly strong reason for that. (since libibumad3's package
+version will change to 3.1.XX anyhow)
+
+As debian uses a split package it will then use the above scheme for
+shared libary package versions:
+
+ libibverbs1 1.2.11-1
+ libibumad3 3.1.11-1
+ librdmacm1 1.1.11-1
+
+And use the overall release number for other things:
+
+ ibverbs-utils 11-1
+
+This is all largely automated.
+
+The providers are versioned with the top level, there is no longer an
+place to put a provider specific version, nor do I think it is desired
+for the same reason we don't like it in the kernel..
+
+I thought about using the kernel version, but we are not so strongly
+linked to the kernel to make that really useful, and it makes the
+names longer..
+
+Thoughts?
 
 Jason
 --
