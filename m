@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libibverbs 2/7] Introduce Receive Work Queue indirection table and its verbs
-Date: Wed, 14 Sep 2016 16:56:23 +0300
-Message-ID: <1473861388-22064-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 libibverbs 6/7] Expose RSS related capabilities
+Date: Wed, 14 Sep 2016 16:56:27 +0300
+Message-ID: <1473861388-22064-7-git-send-email-yishaih@mellanox.com>
 References: <1473861388-22064-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473861388-22064-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,280 +10,155 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce Receive Work Queue (WQ) indirection table and its
-create/destroy verbs. This object can be used to spread incoming
-traffic to different receive Work Queues.
+Expose RSS related capabilities, it includes:
 
-A Receive WQ indirection table points to variable size of WQs.  This
-table is given to a QP in downstream patches.
+- QP types that support RSS on the device.
+- Max number of receive work queue indirection tables that
+  could be opened on the device.
+- Max size of a receive work queue indirection table.
+- Max number of work queues of receive type that
+  could be opened on the device.
+
+- Bit mask of the supported types of hash functions.
+- Bit mask of the supported RX fields that can participate
+  in the RX hashing.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/driver.h   | 11 ++++++-
- include/infiniband/kern-abi.h | 29 +++++++++++++++++-
- include/infiniband/verbs.h    | 71 +++++++++++++++++++++++++++++++++++++++++++
- src/cmd.c                     | 68 +++++++++++++++++++++++++++++++++++++++++
- src/libibverbs.map            |  2 ++
- 5 files changed, 179 insertions(+), 2 deletions(-)
+ examples/devinfo.c            | 24 ++++++++++++++++++++++++
+ include/infiniband/kern-abi.h | 10 ++++++++++
+ include/infiniband/verbs.h    | 10 ++++++++++
+ src/cmd.c                     | 19 +++++++++++++++++++
+ 4 files changed, 63 insertions(+)
 
-diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index 706445b..72866a0 100644
---- a/include/infiniband/driver.h
-+++ b/include/infiniband/driver.h
-@@ -250,7 +250,16 @@ int ibv_cmd_modify_wq(struct ibv_wq *wq, struct ibv_wq_attr *attr,
- 		      struct ibv_modify_wq *cmd, size_t cmd_core_size,
- 		      size_t cmd_size);
- int ibv_cmd_destroy_wq(struct ibv_wq *wq);
--
-+int ibv_cmd_create_rwq_ind_table(struct ibv_context *context,
-+				 struct ibv_rwq_ind_table_init_attr *init_attr,
-+				 struct ibv_rwq_ind_table *rwq_ind_table,
-+				 struct ibv_create_rwq_ind_table *cmd,
-+				 size_t cmd_core_size,
-+				 size_t cmd_size,
-+				 struct ibv_create_rwq_ind_table_resp *resp,
-+				 size_t resp_core_size,
-+				 size_t resp_size);
-+int ibv_cmd_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table);
- int ibv_dontfork_range(void *base, size_t size);
- int ibv_dofork_range(void *base, size_t size);
+diff --git a/examples/devinfo.c b/examples/devinfo.c
+index c497650..1d0c2db 100644
+--- a/examples/devinfo.c
++++ b/examples/devinfo.c
+@@ -364,6 +364,28 @@ static void print_tso_caps(const struct ibv_tso_caps *caps)
+ 	}
+ }
  
++static void print_rss_caps(const struct ibv_rss_caps *caps)
++{
++	uint32_t unknown_general_caps = ~(1 << IBV_QPT_RAW_PACKET |
++					  1 << IBV_QPT_UD);
++	printf("\trss_caps:\n");
++	printf("\t\tmax_rwq_indirection_tables:\t\t\t%u\n", caps->max_rwq_indirection_tables);
++	printf("\t\tmax_rwq_indirection_table_size:\t\t\t%u\n", caps->max_rwq_indirection_table_size);
++	printf("\t\trx_hash_function:\t\t\t\t0x%x\n", caps->rx_hash_function);
++	printf("\t\trx_hash_fields_mask:\t\t\t\t0x%" PRIX64 "\n", caps->rx_hash_fields_mask);
++
++	if (caps->supported_qpts) {
++		printf("\t\tsupported_qp:\n");
++		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_RAW_PACKET))
++			printf("\t\t\t\t\tSUPPORT_RAW_PACKET\n");
++		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_UD))
++			printf("\t\t\t\t\tSUPPORT_UD\n");
++		if (caps->supported_qpts & unknown_general_caps)
++			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
++			       caps->supported_qpts & unknown_general_caps);
++	}
++}
++
+ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ {
+ 	struct ibv_context *ctx;
+@@ -465,6 +487,8 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		printf("\tdevice_cap_flags_ex:\t\t0x%" PRIX64 "\n", device_attr.device_cap_flags_ex);
+ 		print_device_cap_flags_ex(device_attr.device_cap_flags_ex);
+ 		print_tso_caps(&device_attr.tso_caps);
++		print_rss_caps(&device_attr.rss_caps);
++		printf("\tmax_wq_type_rq:\t\t\t%u\n", device_attr.max_wq_type_rq);
+ 	}
+ 
+ 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
 diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 081918f..674045b 100644
+index 9f7964e..381fd50 100644
 --- a/include/infiniband/kern-abi.h
 +++ b/include/infiniband/kern-abi.h
-@@ -119,7 +119,9 @@ enum {
- 	IB_USER_VERBS_CMD_DESTROY_FLOW,
- 	IB_USER_VERBS_CMD_CREATE_WQ,
- 	IB_USER_VERBS_CMD_MODIFY_WQ,
--	IB_USER_VERBS_CMD_DESTROY_WQ
-+	IB_USER_VERBS_CMD_DESTROY_WQ,
-+	IB_USER_VERBS_CMD_CREATE_RWQ_IND_TBL,
-+	IB_USER_VERBS_CMD_DESTROY_RWQ_IND_TBL,
+@@ -271,6 +271,13 @@ struct ibv_odp_caps_resp {
+ 	__u32 reserved;
  };
  
- /*
-@@ -1131,6 +1133,8 @@ enum {
- 	IB_USER_VERBS_CMD_CREATE_WQ_V2 = -1,
- 	IB_USER_VERBS_CMD_MODIFY_WQ_V2 = -1,
- 	IB_USER_VERBS_CMD_DESTROY_WQ_V2 = -1,
-+	IB_USER_VERBS_CMD_CREATE_RWQ_IND_TBL_V2 = -1,
-+	IB_USER_VERBS_CMD_DESTROY_RWQ_IND_TBL_V2 = -1,
++struct ibv_rss_caps_resp {
++	__u32 supported_qpts;
++	__u32 max_rwq_indirection_tables;
++	__u32 max_rwq_indirection_table_size;
++	__u32 reserved;
++};
++
+ struct ibv_query_device_resp_ex {
+ 	struct ibv_query_device_resp base;
+ 	__u32 comp_mask;
+@@ -279,6 +286,9 @@ struct ibv_query_device_resp_ex {
+ 	__u64 timestamp_mask;
+ 	__u64 hca_core_clock;
+ 	__u64 device_cap_flags_ex;
++	struct ibv_rss_caps_resp rss_caps;
++	__u32  max_wq_type_rq;
++	__u32 reserved;
  };
  
- struct ibv_modify_srq_v3 {
-@@ -1206,4 +1210,27 @@ struct ibv_modify_wq  {
- 	__u32 curr_wq_state;
- };
- 
-+struct ibv_create_rwq_ind_table {
-+	struct ex_hdr hdr;
-+	__u32 comp_mask;
-+	__u32 log_ind_tbl_size;
-+	/* Following are wq handles based on log_ind_tbl_size, must be 64 bytes aligned.
-+	 * __u32 wq_handle1
-+	 * __u32 wq_handle2
-+	 */
-+};
-+
-+struct ibv_create_rwq_ind_table_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 ind_tbl_handle;
-+	__u32 ind_tbl_num;
-+};
-+
-+struct ibv_destroy_rwq_ind_table {
-+	struct ex_hdr hdr;
-+	__u32 comp_mask;
-+	__u32 ind_tbl_handle;
-+};
-+
- #endif /* KERN_ABI_H */
+ struct ibv_query_port {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index c549bd3..491e254 100644
+index eab5d1b..e994c21 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -652,6 +652,34 @@ struct ibv_wq_attr {
- 	enum	ibv_wq_state	curr_wq_state;
+@@ -238,6 +238,14 @@ enum ibv_rx_hash_fields {
+ 	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7
  };
  
-+/*
-+ * Receive Work Queue Indirection Table.
-+ * It's used in order to distribute incoming packets between different
-+ * Receive Work Queues. Associating Receive WQs with different CPU cores
-+ * allows to workload the traffic between different CPU cores.
-+ * The Indirection Table can contain only WQs of type IBV_WQT_RQ.
-+*/
-+struct ibv_rwq_ind_table {
-+	struct ibv_context *context;
-+	int ind_tbl_handle;
-+	int ind_tbl_num;
-+	uint32_t comp_mask;
++struct ibv_rss_caps {
++	uint32_t supported_qpts;
++	uint32_t max_rwq_indirection_tables;
++	uint32_t max_rwq_indirection_table_size;
++	uint64_t rx_hash_fields_mask; /* enum ibv_rx_hash_fields */
++	uint8_t  rx_hash_function; /* enum ibv_rx_hash_function_flags */
 +};
 +
-+enum ibv_ind_table_init_attr_mask {
-+	IBV_CREATE_IND_TABLE_RESERVED = (1 << 0)
-+};
-+
-+/*
-+ * Receive Work Queue Indirection Table attributes
-+ */
-+struct ibv_rwq_ind_table_init_attr {
-+	uint32_t log_ind_tbl_size;
-+	/* Each entry is a pointer to a Receive Work Queue */
-+	struct ibv_wq **ind_tbl;
-+	uint32_t comp_mask;
-+};
-+
- enum ibv_qp_type {
- 	IBV_QPT_RC = 2,
- 	IBV_QPT_UC,
-@@ -1339,6 +1367,9 @@ enum verbs_context_mask {
+ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+@@ -246,6 +254,8 @@ struct ibv_device_attr_ex {
+ 	uint64_t		hca_core_clock;
+ 	uint64_t		device_cap_flags_ex;
+ 	struct ibv_tso_caps	tso_caps;
++	struct ibv_rss_caps     rss_caps;
++	uint32_t		max_wq_type_rq;
+ };
  
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	int (*destroy_rwq_ind_table)(struct ibv_rwq_ind_table *rwq_ind_table);
-+	struct ibv_rwq_ind_table *(*create_rwq_ind_table)(struct ibv_context *context,
-+							  struct ibv_rwq_ind_table_init_attr *init_attr);
- 	int (*destroy_wq)(struct ibv_wq *wq);
- 	int (*modify_wq)(struct ibv_wq *wq, struct ibv_wq_attr *wq_attr);
- 	struct ibv_wq * (*create_wq)(struct ibv_context *context,
-@@ -2032,6 +2063,46 @@ static inline int ibv_destroy_wq(struct ibv_wq *wq)
- 	return vctx->destroy_wq(wq);
- }
- 
-+/*
-+ * ibv_create_rwq_ind_table - Creates a receive work queue Indirection Table
-+ * @context: ibv_context.
-+ * @init_attr: A list of initial attributes required to create the Indirection Table.
-+ * Return Value
-+ * ibv_create_rwq_ind_table returns a pointer to the created
-+ * Indirection Table, or NULL if the request fails.
-+ */
-+static inline struct ibv_rwq_ind_table *ibv_create_rwq_ind_table(struct ibv_context *context,
-+								 struct ibv_rwq_ind_table_init_attr *init_attr)
-+{
-+	struct verbs_context *vctx;
-+
-+	vctx = verbs_get_ctx_op(context, create_rwq_ind_table);
-+	if (!vctx) {
-+		errno = ENOSYS;
-+		return NULL;
-+	}
-+
-+	return vctx->create_rwq_ind_table(context, init_attr);
-+}
-+
-+/*
-+ * ibv_destroy_rwq_ind_table - Destroys the specified Indirection Table.
-+ * @rwq_ind_table: The Indirection Table to destroy.
-+ * Return Value
-+ * ibv_destroy_rwq_ind_table() returns 0 on success, or the value of errno
-+ * on failure (which indicates the failure reason).
-+*/
-+static inline int ibv_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table)
-+{
-+	struct verbs_context *vctx;
-+
-+	vctx = verbs_get_ctx_op(rwq_ind_table->context, destroy_rwq_ind_table);
-+	if (!vctx)
-+		return ENOSYS;
-+
-+	return vctx->destroy_rwq_ind_table(rwq_ind_table);
-+}
-+
- /**
-  * ibv_post_send - Post a list of work requests to a send queue.
-  *
+ enum ibv_mtu {
 diff --git a/src/cmd.c b/src/cmd.c
-index 6599eca..11f5de9 100644
+index 21f972a..11f6509 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -1757,3 +1757,71 @@ int ibv_cmd_destroy_wq(struct ibv_wq *wq)
+@@ -213,6 +213,25 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ 			attr->device_cap_flags_ex = resp->device_cap_flags_ex;
+ 	}
  
- 	return ret;
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, rss_caps) +
++			 sizeof(attr->rss_caps)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, rss_caps) +
++		    sizeof(resp->rss_caps)) {
++			attr->rss_caps.supported_qpts = resp->rss_caps.supported_qpts;
++			attr->rss_caps.max_rwq_indirection_tables = resp->rss_caps.max_rwq_indirection_tables;
++			attr->rss_caps.max_rwq_indirection_table_size = resp->rss_caps.max_rwq_indirection_table_size;
++		}
++	}
++
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, max_wq_type_rq) +
++			 sizeof(attr->max_wq_type_rq)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, max_wq_type_rq) +
++		    sizeof(resp->max_wq_type_rq))
++			attr->max_wq_type_rq = resp->max_wq_type_rq;
++	}
++
+ 	return 0;
  }
-+
-+int ibv_cmd_create_rwq_ind_table(struct ibv_context *context,
-+				 struct ibv_rwq_ind_table_init_attr *init_attr,
-+				 struct ibv_rwq_ind_table *rwq_ind_table,
-+				 struct ibv_create_rwq_ind_table *cmd,
-+				 size_t cmd_core_size,
-+				 size_t cmd_size,
-+				 struct ibv_create_rwq_ind_table_resp *resp,
-+				 size_t resp_core_size,
-+				 size_t resp_size)
-+{
-+	int err, i;
-+	uint32_t required_tbl_size, alloc_tbl_size;
-+	uint32_t *tbl_start;
-+	int num_tbl_entries;
-+
-+	if (init_attr->comp_mask >= IBV_CREATE_IND_TABLE_RESERVED)
-+		return EINVAL;
-+
-+	alloc_tbl_size = cmd_core_size - sizeof(*cmd);
-+	num_tbl_entries = 1 << init_attr->log_ind_tbl_size;
-+
-+	/* Data must be u64 aligned */
-+	required_tbl_size = (num_tbl_entries * sizeof(uint32_t)) < sizeof(uint64_t) ?
-+			sizeof(uint64_t) : (num_tbl_entries * sizeof(uint32_t));
-+
-+	if (alloc_tbl_size < required_tbl_size)
-+		return EINVAL;
-+
-+	tbl_start = (uint32_t *)((uint8_t *)cmd + sizeof(*cmd));
-+	for (i = 0; i < num_tbl_entries; i++)
-+		tbl_start[i] = init_attr->ind_tbl[i]->handle;
-+
-+	IBV_INIT_CMD_RESP_EX_V(cmd, cmd_core_size, cmd_size,
-+			       CREATE_RWQ_IND_TBL, resp,
-+			       resp_core_size, resp_size);
-+	cmd->log_ind_tbl_size = init_attr->log_ind_tbl_size;
-+	cmd->comp_mask = 0;
-+
-+	err = write(context->cmd_fd, cmd, cmd_size);
-+	if (err != cmd_size)
-+		return errno;
-+
-+	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-+
-+	if (resp->response_length < resp_core_size)
-+		return EINVAL;
-+
-+	rwq_ind_table->ind_tbl_handle = resp->ind_tbl_handle;
-+	rwq_ind_table->ind_tbl_num = resp->ind_tbl_num;
-+	rwq_ind_table->context = context;
-+	return 0;
-+}
-+
-+int ibv_cmd_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table)
-+{
-+	struct ibv_destroy_rwq_ind_table cmd;
-+	int ret = 0;
-+
-+	memset(&cmd, 0, sizeof(cmd));
-+	IBV_INIT_CMD_EX(&cmd, sizeof(cmd), DESTROY_RWQ_IND_TBL);
-+	cmd.ind_tbl_handle = rwq_ind_table->ind_tbl_handle;
-+
-+	if (write(rwq_ind_table->context->cmd_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
-+		ret = errno;
-+
-+	return ret;
-+}
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 78a06dd..4de9d64 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -125,5 +125,7 @@ IBVERBS_1.3 {
- 		ibv_cmd_create_wq;
- 		ibv_cmd_modify_wq;
- 		ibv_cmd_destroy_wq;
-+		ibv_cmd_create_rwq_ind_table;
-+		ibv_cmd_destroy_rwq_ind_table;
  
- } IBVERBS_1.0;
 -- 
 1.8.3.1
 
