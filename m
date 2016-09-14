@@ -1,32 +1,57 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: Re: [PATCH v4 00/16] Add Paravirtual RDMA Driver
-Date: Wed, 14 Sep 2016 19:44:45 +0000
-Message-ID: <DM2PR0501MB844473AE0FCAD0FD748D43DC5F10@DM2PR0501MB844.namprd05.prod.outlook.com>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <20160912180251.GH5843@obsidianresearch.com>
- <BLUPR0501MB836ED564F2AE7AB9221AC25C5FF0@BLUPR0501MB836.namprd05.prod.outlook.com>
- <20160914173636.GA10309@obsidianresearch.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC rdma-next 0/3] Move mlx5 vendor specific to UAPI directory
+Date: Wed, 14 Sep 2016 15:46:07 -0400 (EDT)
+Message-ID: <1495514480.6044744.1473882367077.JavaMail.zimbra@redhat.com>
+References: <1473841649-8923-1-git-send-email-leon@kernel.org> <20160914172145.GI16014@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160914173636.GA10309@obsidianresearch.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, pv-drivers <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Jorgen S. Hansen" <jhansen@vmware.com>, Aditya Sarwade <asarwade@vmware.com>, George Zhang <georgezhang@vmware.com>, Bryan Tan <bryantan@vmware.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160914172145.GI16014-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 10:37:00 -0700, Jason Gunthorpe wrote:
-> We desire to use this as the vehical for the userspace included with the =
-4.9
-> kernel.
->=20
-> I anticipate the tree will be running by Oct 1.
 
-Thanks. So does this mean that the libraries distributed via OFED (openfabr=
-ics.org)
-will be now from the rdma-plumbing git tree?
-Or is the switch to happen only when distros start shipping with the 4.9 ke=
-rnel by
-default?
+
+----- Original Message -----
+> From: "Jason Gunthorpe" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> To: "Leon Romanovsky" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Sent: Wednesday, September 14, 2016 1:21:45 PM
+> Subject: Re: [RFC rdma-next 0/3] Move mlx5 vendor specific to UAPI directory
+> 
+> On Wed, Sep 14, 2016 at 11:27:26AM +0300, Leon Romanovsky wrote:
+> > The consolidate library revealed the fact that vendor specific
+> > structures and defines are copy/pasted between kernel and user-space,
+> > instead of sharing.
+> > 
+> > This RFC was tested by compilation only and not-ready for merge yet.
+> 
+> Yah, this is exactly what I had in mind. We need to give this
+> treatment to all the drivers :|
+> 
+> > Leon Romanovsky (3):
+> >   IB/mlx5: Move and decouple user vendor structures
+> >   IB/core: Export mlx5 vendor specific strucutres
+> >   MAINTAINERS: Add mlx5 uapi file
+> 
+> One patch is probably enough, 3 patches per driver is going to be
+> alot.
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Leon, I have not kept up with testing all the mlx5 changes and latest patches.
+Going to wait until this settles then will take snapshot and start testing.
+
+Thanks
+Laurence
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
