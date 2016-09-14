@@ -1,258 +1,40 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libibverbs 2/2] Add support for UD traffic on RoCE v2
-Date: Wed, 14 Sep 2016 17:31:52 +0300
-Message-ID: <1473863512-11218-3-git-send-email-yishaih@mellanox.com>
-References: <1473863512-11218-1-git-send-email-yishaih@mellanox.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Wed, 14 Sep 2016 14:44:47 +0000
+Message-ID: <SN1PR07MB2207486633D88B5C65D547F9F8F10@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <20160912180508.GI5843@obsidianresearch.com>
+ <DM3PR1101MB1181DF570D4F01A0CEB1CFC7E2FE0@DM3PR1101MB1181.namprd11.prod.outlook.com>
+ <20160913154000.GA25878@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473863512-11218-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160913154000.GA25878-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Yuval Mintz <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Anything that is used with copy_to/from_user, ib_copy_to/from_udata,=20
+> etc, etc must be in a include/uapi header.
+>=20
+> Any constant you might want to copy into your userspace provider must=20
+> be in include/uapi.
+>=20
+I understand you mean something like https://www.spinics.net/lists/linux-rd=
+ma/msg40414.html ([RFC rdma-next 0/3] Move mlx5 vendor specific to UAPI dir=
+ectory)
 
-When creating an Address Handle from a Work Completion, source GID index must
-be set. To enable RoCE v2, libibverbs should select the right GID index for
-it.
+> Avoid copying headers in your user space and use the standard kernel=20
+> names to access your driver's uapi.
+So the user library should be able to compile against these headers in thei=
+r location and not hold identical copies.
+What do you mean by "standard kernel names"?
 
-RoCE v2 is using UDP/IP layers so a WC's GRH could be either an IB GRH, IPv4
-header or an IPv6 header. Libibverbs should be able to differ between them in a
-driver-agnostic way to avoid API changes.
-
-This patch is using the fact that for RoCE v2, the GRH is either an IPv6 header
-or 20 garbled bytes followed by an IPv4 header, as defined in RoCE v2 annex.
-The annex also specifies that for packets with IPv4 header, the version number
-is 4, for packets with IPv6 header it's 6 or the packet is silently dropped.
-This fact is also taken into account when parsing the GRH.
-
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/verbs.c | 178 +++++++++++++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 159 insertions(+), 19 deletions(-)
-
-diff --git a/src/verbs.c b/src/verbs.c
-index 08f03e3..fc8b9f6 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -41,6 +41,7 @@
- #include <stdlib.h>
- #include <errno.h>
- #include <string.h>
-+#include <linux/ip.h>
- #include <dirent.h>
- 
- #include "ibverbs.h"
-@@ -651,48 +652,187 @@ int ibv_query_gid_type(struct ibv_context *context, uint8_t port_num,
- }
- 
- static int ibv_find_gid_index(struct ibv_context *context, uint8_t port_num,
--			      union ibv_gid *gid)
-+			      union ibv_gid *gid, enum ibv_gid_type gid_type)
- {
-+	enum ibv_gid_type sgid_type = 0;
- 	union ibv_gid sgid;
- 	int i = 0, ret;
- 
- 	do {
--		ret = ibv_query_gid(context, port_num, i++, &sgid);
--	} while (!ret && memcmp(&sgid, gid, sizeof *gid));
-+		ret = ibv_query_gid(context, port_num, i, &sgid);
-+		if (!ret) {
-+			ret = ibv_query_gid_type(context, port_num, i,
-+						 &sgid_type);
-+		}
-+		i++;
-+	} while (!ret && (memcmp(&sgid, gid, sizeof(*gid)) ||
-+		 (gid_type != sgid_type)));
- 
- 	return ret ? ret : i - 1;
- }
- 
--int ibv_init_ah_from_wc(struct ibv_context *context, uint8_t port_num,
--			struct ibv_wc *wc, struct ibv_grh *grh,
--			struct ibv_ah_attr *ah_attr)
-+static inline void map_ipv4_addr_to_ipv6(__be32 ipv4, struct in6_addr *ipv6)
-+{
-+	ipv6->s6_addr32[0] = 0;
-+	ipv6->s6_addr32[1] = 0;
-+	ipv6->s6_addr32[2] = htonl(0x0000FFFF);
-+	ipv6->s6_addr32[3] = ipv4;
-+}
-+
-+static inline uint16_t ipv4_calc_hdr_csum(uint16_t *data, unsigned int num_hwords)
-+{
-+	unsigned int i = 0;
-+	uint32_t sum = 0;
-+
-+	for (i = 0; i < num_hwords; i++)
-+		sum += *(data++);
-+
-+	sum = (sum & 0xffff) + (sum >> 16);
-+
-+	return ~sum;
-+}
-+
-+static inline int get_grh_header_version(struct ibv_grh *grh)
-+{
-+	int ip6h_version = (ntohl(grh->version_tclass_flow) >> 28) & 0xf;
-+	struct iphdr *ip4h = (struct iphdr *)((void *)grh + 20);
-+	struct iphdr ip4h_checked;
-+
-+	if (ip6h_version != 6) {
-+		if (ip4h->version == 4)
-+			return 4;
-+		errno = EPROTONOSUPPORT;
-+		return -1;
-+	}
-+	/* version may be 6 or 4 */
-+	if (ip4h->ihl != 5) /* IPv4 header length must be 5 for RoCE v2. */
-+		return 6;
-+	/*
-+	* Verify checksum.
-+	* We can't write on scattered buffers so we have to copy to temp
-+	* buffer.
-+	*/
-+	memcpy(&ip4h_checked, ip4h, sizeof(ip4h_checked));
-+	/* Need to set the checksum field (check) to 0 before re-calculating
-+	 * the checksum.
-+	 */
-+	ip4h_checked.check = 0;
-+	ip4h_checked.check = ipv4_calc_hdr_csum((uint16_t *)&ip4h_checked, 10);
-+	/* if IPv4 header checksum is OK, believe it */
-+	if (ip4h->check == ip4h_checked.check)
-+		return 4;
-+	return 6;
-+}
-+
-+static inline void set_ah_attr_generic_fields(struct ibv_ah_attr *ah_attr,
-+					      struct ibv_wc *wc,
-+					      struct ibv_grh *grh,
-+					      uint8_t port_num)
- {
- 	uint32_t flow_class;
--	int ret;
- 
--	memset(ah_attr, 0, sizeof *ah_attr);
-+	flow_class = ntohl(grh->version_tclass_flow);
-+	ah_attr->grh.flow_label = flow_class & 0xFFFFF;
- 	ah_attr->dlid = wc->slid;
- 	ah_attr->sl = wc->sl;
- 	ah_attr->src_path_bits = wc->dlid_path_bits;
- 	ah_attr->port_num = port_num;
-+}
- 
--	if (wc->wc_flags & IBV_WC_GRH) {
--		ah_attr->is_global = 1;
--		ah_attr->grh.dgid = grh->sgid;
-+static inline int set_ah_attr_by_ipv4(struct ibv_context *context,
-+				      struct ibv_ah_attr *ah_attr,
-+				      struct iphdr *ip4h, uint8_t port_num)
-+{
-+	union ibv_gid sgid;
-+	int ret;
-+
-+	/* No point searching multicast GIDs in GID table */
-+	if (IN_CLASSD(ntohl(ip4h->daddr))) {
-+		errno = EINVAL;
-+		return -1;
-+	}
- 
--		ret = ibv_find_gid_index(context, port_num, &grh->dgid);
--		if (ret < 0)
--			return ret;
-+	map_ipv4_addr_to_ipv6(ip4h->daddr, (struct in6_addr *)&sgid);
-+	ret = ibv_find_gid_index(context, port_num, &sgid,
-+				 IBV_GID_TYPE_ROCE_V2);
-+	if (ret < 0)
-+		return ret;
- 
--		ah_attr->grh.sgid_index = (uint8_t) ret;
--		flow_class = ntohl(grh->version_tclass_flow);
--		ah_attr->grh.flow_label = flow_class & 0xFFFFF;
--		ah_attr->grh.hop_limit = grh->hop_limit;
--		ah_attr->grh.traffic_class = (flow_class >> 20) & 0xFF;
-+	map_ipv4_addr_to_ipv6(ip4h->saddr,
-+			      (struct in6_addr *)&ah_attr->grh.dgid);
-+	ah_attr->grh.sgid_index = (uint8_t) ret;
-+	ah_attr->grh.hop_limit = ip4h->ttl;
-+	ah_attr->grh.traffic_class = ip4h->tos;
-+
-+	return 0;
-+}
-+
-+#define IB_NEXT_HDR    0x1b
-+static inline int set_ah_attr_by_ipv6(struct ibv_context *context,
-+				  struct ibv_ah_attr *ah_attr,
-+				  struct ibv_grh *grh, uint8_t port_num)
-+{
-+	uint32_t flow_class;
-+	uint32_t sgid_type;
-+	int ret;
-+
-+	/* No point searching multicast GIDs in GID table */
-+	if (grh->dgid.raw[0] == 0xFF) {
-+		errno = EINVAL;
-+		return -1;
-+	}
-+
-+	ah_attr->grh.dgid = grh->sgid;
-+	if (grh->next_hdr == IPPROTO_UDP) {
-+		sgid_type = IBV_GID_TYPE_ROCE_V2;
-+	} else if (grh->next_hdr == IB_NEXT_HDR) {
-+		sgid_type = IBV_GID_TYPE_IB_ROCE_V1;
-+	} else {
-+		errno = EPROTONOSUPPORT;
-+		return -1;
- 	}
-+
-+	ret = ibv_find_gid_index(context, port_num, &grh->dgid,
-+				 sgid_type);
-+	if (ret < 0)
-+		return ret;
-+
-+	ah_attr->grh.sgid_index = (uint8_t) ret;
-+	flow_class = ntohl(grh->version_tclass_flow);
-+	ah_attr->grh.hop_limit = grh->hop_limit;
-+	ah_attr->grh.traffic_class = (flow_class >> 20) & 0xFF;
-+
- 	return 0;
- }
- 
-+int ibv_init_ah_from_wc(struct ibv_context *context, uint8_t port_num,
-+			struct ibv_wc *wc, struct ibv_grh *grh,
-+			struct ibv_ah_attr *ah_attr)
-+{
-+	int version;
-+	int ret = 0;
-+
-+	memset(ah_attr, 0, sizeof *ah_attr);
-+	set_ah_attr_generic_fields(ah_attr, wc, grh, port_num);
-+
-+	if (wc->wc_flags & IBV_WC_GRH) {
-+		ah_attr->is_global = 1;
-+		version = get_grh_header_version(grh);
-+
-+		if (version == 4)
-+			ret = set_ah_attr_by_ipv4(context, ah_attr,
-+						  (struct iphdr *)((void *)grh + 20),
-+						  port_num);
-+		else if (version == 6)
-+			ret = set_ah_attr_by_ipv6(context, ah_attr, grh,
-+						  port_num);
-+		else
-+			ret = -1;
-+	}
-+
-+	return ret;
-+}
-+
- struct ibv_ah *ibv_create_ah_from_wc(struct ibv_pd *pd, struct ibv_wc *wc,
- 				     struct ibv_grh *grh, uint8_t port_num)
- {
--- 
-1.8.3.1
+Thanks,
+Ram
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
