@@ -1,73 +1,70 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [RFC 07/11] Add support for memory registeration verbs
-Date: Wed, 14 Sep 2016 12:25:30 +0300
-Message-ID: <4b392963-c14c-d793-147a-67b08e97ee06@grimberg.me>
+From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC 02/11] Add RoCE driver framework
+Date: Wed, 14 Sep 2016 08:15:23 +0000
+Message-ID: <BL2PR07MB2306533A710B9EC40F56E8678DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
 References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <1473696465-27986-8-git-send-email-Ram.Amrani@qlogic.com>
- <7fa4a9b8-7cb1-0f83-d6e5-1055ae59bce4@grimberg.me>
- <BLUPR0701MB192207820BA5CF59A835181088F10@BLUPR0701MB1922.namprd07.prod.outlook.com>
+ <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
+ <516b98c7-477a-4890-0d92-529dc32f2c4e@mellanox.com>
+ <CY4PR11MB1720F9B74BBF82D0779FAC8F97FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
+ <20160913063806.GP8812@leon.nu>
+ <BL2PR07MB2306937C8C495DB80DA776CA8DFE0@BL2PR07MB2306.namprd07.prod.outlook.com>,<20160913101616.GT8812@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <BLUPR0701MB192207820BA5CF59A835181088F10@BLUPR0701MB1922.namprd07.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, Ram Amrani <Ram.Amrani@qlogic.com>, "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "Yuval.Mintz@qlogic.com" <Yuval.Mintz@qlogic.com>, "Ariel.Elior@qlogic.com" <Ariel.Elior@qlogic.com>, "Michal.Kalderon@qlogic.com" <Michal.Kalderon@qlogic.com>, "rajesh.borundia@qlogic.com" <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160913101616.GT8812-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yuval Mintz <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> > >> >> +uint debug;
+> > >> >> +module_param(debug, uint, 0);
+> > > >>> +MODULE_PARM_DESC(debug, "Default debug msglevel");
+> > >>
+> > >> >Why are you adding this as a module parameter?
+> > >>
+> > >>=A0 I believe this is mostly to follow same line as qede which also d=
+efines
+> > > > 'debug' module parameter for allowing easy user control of debug
+> > > > prints [& specifically for probe prints, which can't be controlled
+> > > > otherwise].
+> >
+> > > Can you give us an example where dynamic debug and tracing infrastruc=
+tures
+> > > are not enough?
+> >
+> > > AFAIK, most of these debug module parameters are legacy copy/paste
+> > > code which is useless in real life scenarios.
+> >
+> > Define 'enough'; Using dynamic debug you can provide all the necessary
+> > information and at an even better granularity that's achieved by sugges=
+ted
+> > infrastructure,=A0 but is harder for an end-user to use. Same goes for =
+tracing.
+> >
+> > The 'debug' option provides an easy grouping for prints related to a sp=
+ecific
+> > area in the driver.
+>=20
+> It is hard to agree with you that user which knows how-to load modules
+> with parameters won't success to enable debug prints.
 
->>> +struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd, int
->>> +max_page_list_len) {
->>> +	struct qedr_pd *pd = get_qedr_pd(ibpd);
->>> +	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
->>> +	struct qedr_mr *mr;
->>> +	int rc = -ENOMEM;
->>> +
->>> +	DP_VERBOSE(dev, QEDR_MSG_MR,
->>> +		   "qedr_alloc_frmr pd = %d max_page_list_len= %d\n", pd-
->>> pd_id,
->>> +		   max_page_list_len);
->>> +
->>> +	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
->>> +	if (!mr)
->>> +		return ERR_PTR(rc);
->>> +
->>> +	mr->dev = dev;
->>> +	mr->type = QEDR_MR_FRMR;
->>> +
->>> +	rc = init_mr_info(dev, &mr->info, max_page_list_len, 1);
->>> +	if (rc)
->>> +		goto err0;
->>> +
->>> +	rc = dev->ops->rdma_alloc_tid(dev->rdma_ctx, &mr->hw_mr.itid);
->>> +	if (rc) {
->>> +		DP_ERR(dev, "roce alloc tid returned an error %d\n", rc);
->>> +		goto err0;
->>> +	}
->>> +
->>> +	/* Index only, 18 bit long, lkey = itid << 8 | key */
->>> +	mr->hw_mr.tid_type = QED_RDMA_TID_FMR;
->>> +	mr->hw_mr.key = 0;
->>> +	mr->hw_mr.pd = pd->pd_id;
->>
->> Do you have a real MR<->PD association in HW? If so, can you point me to the
->> code that binds it? If not, any reason not to expose the local_dma_lkey?
->>
-> Yes, we send the pd id to the FW in function qed_rdma_register_tid.
+I think you're giving too much credit to the end-user. :-D
 
-Right, thanks.
+> In addition, global increase in debug level for whole driver will create
+> printk storm in dmesg and give nothing to debuggability.
 
-> In any case, if we didn't have the association in HW
-> Wouldn't the local_dma_lkey be relevant only to dma_mr ? ( code snippet above refers to FMR)
+So basically, what you're claiming is that ethtool 'msglvl' setting for dev=
+ices
+is completely obselete. While this *might* be true, we use it extensively
+in our qede and qed drivers; The debug module parameter merely provides
+a manner of setting the debug value prior to initial probe for all interfac=
+es.
+qedr follows the same practice.
 
-I was just sticking to a location in the code where you associate
-MR<->PD...
-
-The local_dma_lkey is a special key that spans the entire memory space
-and unlike the notorious dma_mr, its not associated with a PD.
-
-See the code in ib_alloc_pd(), if the device does not support a single
-device local dma lkey, the core allocates a dma mr associated with
-the pd. If your device has such a key, you can save a dma mr allocation
-for each pd in the system.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
