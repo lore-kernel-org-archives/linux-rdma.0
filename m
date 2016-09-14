@@ -1,117 +1,115 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [libibverbs, 1/2] Add ibv_query_gid_type to support RoCE v2 UD
- traffic
-Date: Tue, 13 Sep 2016 19:10:01 -0600
-Message-ID: <20160914011001.GA32157@obsidianresearch.com>
-References: <1472575905-25471-2-git-send-email-yishaih@mellanox.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 16/20] IB/hns: Validate mtu when modified qp
+Date: Wed, 14 Sep 2016 02:07:27 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A716DDE@lhreml503-mbx>
+References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
+ <1473417051-99560-17-git-send-email-salil.mehta@huawei.com>
+ <20160913063240.GO8812@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1472575905-25471-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160913063240.GO8812-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xuwei (O)" <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "chenguolong (A)" <luck.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 30, 2016 at 07:51:44PM +0300, Yishai Hadas wrote:
 
-> diff --git a/src/libibverbs.map b/src/libibverbs.map
-> index 5134bd9..a7d3339 100644
-> +++ b/src/libibverbs.map
-> @@ -119,4 +119,6 @@ IBVERBS_1.1 {
->  		ibv_cmd_open_qp;
->  		ibv_cmd_rereg_mr;
->  
-> +		ibv_query_gid_type;
-> +
->  } IBVERBS_1.0;
 
-NAK on incorrect use of the map file.
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> Sent: Tuesday, September 13, 2016 7:33 AM
+> To: Salil Mehta
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> xuwei (O); mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm; chenguolong (A)
+> Subject: Re: [PATCH for-next 16/20] IB/hns: Validate mtu when modified
+> qp
+> 
+> On Fri, Sep 09, 2016 at 06:30:47PM +0800, Salil Mehta wrote:
+> > From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> >
+> > The mtu should be validated when modify qp,so we check it.
+> >
+> > Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Peter Chen <luck.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/hns/hns_roce_qp.c |   15 +++++++++++++++
+> >  1 file changed, 15 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c
+> b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> > index 51fefbf..1c5be59 100644
+> > --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
+> > +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> > @@ -32,6 +32,7 @@
+> >   */
+> >
+> >  #include <linux/platform_device.h>
+> > +#include <rdma/ib_addr.h>
+> >  #include <rdma/ib_umem.h>
+> >  #include "hns_roce_common.h"
+> >  #include "hns_roce_device.h"
+> > @@ -658,6 +659,7 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct
+> ib_qp_attr *attr,
+> >  	struct device *dev = &hr_dev->pdev->dev;
+> >  	int ret = -EINVAL;
+> >  	int p;
+> > +	u32 active_mtu = 0;
+> 
+> There is no need to assign value to a variable which will be
+> overwritten.
+Agreed. This initialization seems redundant. Will remove. Thanks!
 
-Also for your other patches.
+Best regards
+Salil
+> 
+> >
+> >  	mutex_lock(&hr_qp->mutex);
+> >
+> > @@ -688,6 +690,19 @@ int hns_roce_modify_qp(struct ib_qp *ibqp,
+> struct ib_qp_attr *attr,
+> >  		}
+> >  	}
+> >
+> > +	if (attr_mask & IB_QP_PATH_MTU) {
+> > +		p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp-
+> >port;
+> > +		active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
+> 
+> ib_mtu iboe_get_mtu returns "enum ib_mtu" and not u32.
+Ok. This can be converted to 'enum'. Will change. Thanks!
 
-Use IBVERBS_1.3 as the symbol label.
-
-I wrote this for rdma-plumbing to describe the appropriate approach.
-
-[..]
-
-# Shared Library Versions
-
-The shared libraries use the typical semantic versioning scheme, eg
-*libibumad* has a version like `3.1.11`.
-
-The version number is broken up into three fields:
-- '3' is called the SONAME and is embedded into the ELF:
-   ```sh
-   $ readelf -ds build/lib/libibumad.so.3.1.11
-    0x000000000000000e (SONAME)             Library soname: [libibumad.so.3]
-   ```
-
-   We do not expect this value to ever change for our libraries. It indicates
-   the overall ABI, changing it means the library will not dynamically to old
-   programs link anymore.
-
-- '1' is called the ABI level and is used within the ELF as the last component
-   symbol version tag.  This version must be changed every time a new symbol
-   is introduced. It allows the user to see what version of the ABI the
-   library provides.
-
-- '11' is the overall release number and is copied from `PACKAGE_VERSION` This
-  version increases with every package release, even if the library code did
-  not change. It allows the user to see what upstream source was used to build
-  the library.
-
-This version is encoded into the filename `build/lib/libibumad.so.3.1.11` and
-a symlink from `libibumad.so.3` to `build/lib/libibumad.so.3.1.11` is created.
-
-## Shared Library Symbol Versions
-
-Symbol versions are a linker technique that lets the library author provide
-two symbols with different ABIs that have the same API name. The linker
-differentiates the two cases internally. This allows the library author to
-change the ABI that the API uses. This project typically does not make use of
-this feature.
-
-As a secondary feature, the symbol version is also used by package managers
-like RPM to manage the ABI level. To make this work properly the ABI level
-must be correctly encoded into the symbol version.
-
-## Adding a new symbol
-
-First, increase the ABI level of the library. It is safe to re-use the ABI
-level for multiple new functions within a single release, but once a release
-is tagged the ABI level becomes *immutable*. The maintainer can provide
-guidence on what ABI level to use for each series.
-
-```diff
- rdma_library(ibumad libibumad.map
-   # See Documentation/versioning.md
--  3 3.1.${PACKAGE_VERSION}
-+  3 3.2.${PACKAGE_VERSION}
-```
-
-Next, add your new symbol to the symbol version file:
-
-```diff
-+ IBUMAD_3.2 {
-+ 	global:
-+ 		umad_new_symbol;
-+ } IBUMAD_1.0;
-```
-
-NOTE: Once a release is made the stanzas in the map file are *immutable* and
-cannot be changed. Do not add your new symbol to old stanzas.
-
-The new symbol should appear in the ELF:
-
-```sh
-$ readelf -s build/lib/libibumad.so.3.1.11
- 35: 00000000000031e0   450 FUNC    GLOBAL DEFAULT   12 umad_new_symbol@@IBUMAD_3.2
-```
-
-Finally update the `debian/libibumad3.symbols` file.
+Best regards
+Salil 
+> 
+> > +
+> > +		if (attr->path_mtu > IB_MTU_2048 ||
+> > +		    attr->path_mtu < IB_MTU_256 ||
+> > +		    attr->path_mtu > active_mtu) {
+> > +			dev_err(dev, "attr path_mtu(%d)invalid while modify
+> qp",
+> > +				attr->path_mtu);
+> > +			goto out;
+> > +		}
+> > +	}
+> > +
+> >  	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
+> >  	    attr->max_rd_atomic > hr_dev->caps.max_qp_init_rdma) {
+> >  		dev_err(dev, "attr max_rd_atomic invalid.attr-
+> >max_rd_atomic=%d\n",
+> > --
+> > 1.7.9.5
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
