@@ -1,140 +1,73 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 14 Sep 2016 14:49:56 +0530
-Message-ID: <CAG53R5WwPKTSg-5T9WMLCsRt=PN+w+T8gXcjBux_c=dirz-H8Q@mail.gmail.com>
-References: <20160901084406.GA4115@lst.de> <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
- <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com> <20160910161442.GC29259@lst.de>
- <20160910170151.GA5230@obsidianresearch.com> <20160911133421.GA23384@lst.de>
- <20160911143522.GL6415@leon.nu> <20160911171409.GA13442@obsidianresearch.com>
- <20160911172445.GA25953@lst.de> <20160911175235.GB13442@obsidianresearch.com>
- <20160912050717.GE8812@leon.nu> <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
- <13a00119-e629-2d34-d08b-c02bb6beceea@mellanox.com>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [RFC 07/11] Add support for memory registeration verbs
+Date: Wed, 14 Sep 2016 12:25:30 +0300
+Message-ID: <4b392963-c14c-d793-147a-67b08e97ee06@grimberg.me>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1473696465-27986-8-git-send-email-Ram.Amrani@qlogic.com>
+ <7fa4a9b8-7cb1-0f83-d6e5-1055ae59bce4@grimberg.me>
+ <BLUPR0701MB192207820BA5CF59A835181088F10@BLUPR0701MB1922.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <13a00119-e629-2d34-d08b-c02bb6beceea-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <BLUPR0701MB192207820BA5CF59A835181088F10@BLUPR0701MB1922.namprd07.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, Ram Amrani <Ram.Amrani@qlogic.com>, "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "Yuval.Mintz@qlogic.com" <Yuval.Mintz@qlogic.com>, "Ariel.Elior@qlogic.com" <Ariel.Elior@qlogic.com>, "Michal.Kalderon@qlogic.com" <Michal.Kalderon@qlogic.com>, "rajesh.borundia@qlogic.com" <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Matan,
 
-On Wed, Sep 14, 2016 at 1:44 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 14/09/2016 10:06, Parav Pandit wrote:
+>>> +struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd, int
+>>> +max_page_list_len) {
+>>> +	struct qedr_pd *pd = get_qedr_pd(ibpd);
+>>> +	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
+>>> +	struct qedr_mr *mr;
+>>> +	int rc = -ENOMEM;
+>>> +
+>>> +	DP_VERBOSE(dev, QEDR_MSG_MR,
+>>> +		   "qedr_alloc_frmr pd = %d max_page_list_len= %d\n", pd-
+>>> pd_id,
+>>> +		   max_page_list_len);
+>>> +
+>>> +	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+>>> +	if (!mr)
+>>> +		return ERR_PTR(rc);
+>>> +
+>>> +	mr->dev = dev;
+>>> +	mr->type = QEDR_MR_FRMR;
+>>> +
+>>> +	rc = init_mr_info(dev, &mr->info, max_page_list_len, 1);
+>>> +	if (rc)
+>>> +		goto err0;
+>>> +
+>>> +	rc = dev->ops->rdma_alloc_tid(dev->rdma_ctx, &mr->hw_mr.itid);
+>>> +	if (rc) {
+>>> +		DP_ERR(dev, "roce alloc tid returned an error %d\n", rc);
+>>> +		goto err0;
+>>> +	}
+>>> +
+>>> +	/* Index only, 18 bit long, lkey = itid << 8 | key */
+>>> +	mr->hw_mr.tid_type = QED_RDMA_TID_FMR;
+>>> +	mr->hw_mr.key = 0;
+>>> +	mr->hw_mr.pd = pd->pd_id;
 >>
->> Hi Dennis,
+>> Do you have a real MR<->PD association in HW? If so, can you point me to the
+>> code that binds it? If not, any reason not to expose the local_dma_lkey?
 >>
->> Do you know how would HFI1 driver would work along with rdma cgroup?
->>
->> Hi Matan, Leon, Jason,
->> Apart from HFI1, is there any other concern?
->
->
-> I just wonder how things like RSS will work. For example, a RSS QP doesn't
-> really have a queue (if I recall, it's connected to work queues via an
-> indirection table). So, when a user creates such a QP, do you want to
-> account it as a regular QP?
-> How are work queues accounted?
+> Yes, we send the pd id to the FW in function qed_rdma_register_tid.
 
-ib_create_rwq_ind_table verb allows creating indirection table.
-I assume it allows creating multiple such tables.
-If it is so, than number of tables should be a cgroup resource that we
-can add in follow on patch.
-By doing so, one container doesn't takeaway all the tables.
+Right, thanks.
 
->
->
->> Or Patch is good to go?
->>
->> 4.8 dates are close by (2 weeks) and there are two git trees involved
->> (that might cause merge error to Linus) so if there are no issues, I
->> would like to make request to Doug to consider it for 4.8 early on.
->>
->> Parav
->>
->> On Mon, Sep 12, 2016 at 10:37 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>>
->>> On Sun, Sep 11, 2016 at 11:52:35AM -0600, Jason Gunthorpe wrote:
->>>>
->>>> On Sun, Sep 11, 2016 at 07:24:45PM +0200, Christoph Hellwig wrote:
->>>>>>>>
->>>>>>>> I've posted some initial work toward a) a while ago, and once we
->>>>>>
->>>>>>
->>>>>> Did it get merged? Do you have a pointer?
->>>>>
->>>>>
->>>>> http://www.spinics.net/lists/linux-rdma/msg31958.html
->>>>
->>>>
->>>> Right, I remember that. Certainly the right direction
->>>>
->>>>>> However, everything under verbs is not straightforward. The files in
->>>>>> userspace are not copies...
->>>>>>
->>>>>> user:
->>>>>>
->>>>>> struct ibv_query_device {
->>>>>>        __u32 command;
->>>>>>        __u16 in_words;
->>>>>>        __u16 out_words;
->>>>>>        __u64 response;
->>>>>>        __u64 driver_data[0];
->>>>>> };
->>>>>>
->>>>>> kernel:
->>>>>>
->>>>>> struct ib_uverbs_query_device {
->>>>>>         __u64 response;
->>>>>>         __u64 driver_data[0];
->>>>>> };
->>>>>
->>>>>
->>>>> We'll obviously need different strutures for the libibvers API
->>>>> and the kernel interface in this case, and we'll need to figure out
->>>>> how to properly translate them.  I think a cast, plus compile time
->>>>> type checking ala BUILD_BUG_ON is the way to go.
->>>>
->>>>
->>>> I'm not sure I follow, which would I cast?
->>>>
->>>> BUILD_BUG_ON(sizeof(ibv_query_device) == sizeof(ib_uverbs_cmd_hdr) +
->>>>              sizeof(ib_uverbs_query_device))
->>>>
->>>> ?
->>>>
->>>>>> I'm thinking the best way forward might be to use a script and
->>>>>> transform userspace into:
->>>>>>
->>>>>> struct ibv_query_device {
->>>>>>   struct ib_uverbs_cmd_hdr hdr;
->>>>>>   struct ib_uverbs_query_device cmd;
->>>>>> };
->>>>>
->>>>>
->>>>> That would break the users of the interface.
->>>>
->>>>
->>>> Sorry, I mean doing this inside rdma-plumbing. Since the change is ABI
->>>> identical the modified libibverbs would still be binary compatible
->>>> with all providers but not source compatible. Since all kernel
->>>> supported providers are in rdma-plumbing we can add the '.cmd.' at the
->>>> same time.
->>>>
->>>> The kernel uapi header would stay the same.
->>>>
->>>>> However automatically generating the user ABI from the kernel one
->>>>> might still be a good idea in the long run.
->>>>
->>>>
->>>> My preference would be to try and use the kernel headers directly.
->>>
->>>
->>> I thought the same, especially after realizing that they are almost
->>> copy/paste from the vendor *-abi.h files.
->>>
->>>>
->>>> Jason
->
->
+> In any case, if we didn't have the association in HW
+> Wouldn't the local_dma_lkey be relevant only to dma_mr ? ( code snippet above refers to FMR)
+
+I was just sticking to a location in the code where you associate
+MR<->PD...
+
+The local_dma_lkey is a special key that spans the entire memory space
+and unlike the notorious dma_mr, its not associated with a PD.
+
+See the code in ib_alloc_pd(), if the device does not support a single
+device local dma lkey, the core allocates a dma mr associated with
+the pd. If your device has such a key, you can save a dma mr allocation
+for each pd in the system.
