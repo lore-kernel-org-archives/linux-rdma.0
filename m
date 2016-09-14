@@ -1,52 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 1/7] Introduce Work Queue object and its
- verbs
-Date: Wed, 14 Sep 2016 11:05:23 -0600
-Message-ID: <20160914170523.GF16014@obsidianresearch.com>
-References: <1473861388-22064-1-git-send-email-yishaih@mellanox.com>
- <1473861388-22064-2-git-send-email-yishaih@mellanox.com>
+Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+ tomorrow - 9/13/2016 at 11:00PDT
+Date: Wed, 14 Sep 2016 11:13:49 -0600
+Message-ID: <20160914171349.GG16014@obsidianresearch.com>
+References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+ <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
+ <20160913064857.GA5988@infradead.org>
+ <CAG53R5UO50zXYF_oUUA_MUhx+xYS8FbDkTsAzon6Fn4syDyWvQ@mail.gmail.com>
+ <20160913070418.GA31616@infradead.org>
+ <20160913103238.GW8812@leon.nu>
+ <20160914123059.GA868@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1473861388-22064-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160914123059.GA868-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 04:56:22PM +0300, Yishai Hadas wrote:
->  		ibv_cmd_create_qp_ex2;
->  		ibv_cmd_open_qp;
->  		ibv_cmd_rereg_mr;
-> +};
-> +
-> +IBVERBS_1.3 {
-> +        global:
-> +		ibv_cmd_create_wq;
-> +		ibv_cmd_modify_wq;
-> +		ibv_cmd_destroy_wq;
->
->  } IBVERBS_1.0;
+On Wed, Sep 14, 2016 at 05:30:59AM -0700, Christoph Hellwig wrote:
 
-No, this still isn't right. Please spend some time to learn about this
-stuff...
+> I'm not fine with HFI exposing the non-verbs interfaces through
+> drivers/infiniband/core interface, which as far as I can tell it
+> currently does not even do, although some discussions here suggest
+> that a future interface should cater to those interface.
 
-diff --git a/libibverbs/src/libibverbs.map b/libibverbs/src/libibverbs.map
-index 2278aba0bb3a..75440b05bc3e 100644
---- a/libibverbs/src/libibverbs.map
-+++ b/libibverbs/src/libibverbs.map
-@@ -121,3 +121,10 @@ IBVERBS_1.1 {
- 		ibv_cmd_rereg_mr;
- 
- } IBVERBS_1.0;
-+
-+IBVERBS_1.3 {
-+	    global:
-+		ibv_cmd_create_wq;
-+		ibv_cmd_destroy_wq;
-+		ibv_cmd_modify_wq;
-+} IBVERBS_1.1;
+The counter balance is that the Kernel Community has had a lot of bad
+experiences with drivers growing their own user APIs and 'subsystem'
+like functionality.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
