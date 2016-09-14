@@ -1,51 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [RFC 00/11] QLogic RDMA Driver (qedr) RFC
-Date: Wed, 14 Sep 2016 11:17:37 -0600
-Message-ID: <20160914171737.GH16014@obsidianresearch.com>
-References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
- <20160912180508.GI5843@obsidianresearch.com>
- <DM3PR1101MB1181DF570D4F01A0CEB1CFC7E2FE0@DM3PR1101MB1181.namprd11.prod.outlook.com>
- <20160913154000.GA25878@obsidianresearch.com>
- <SN1PR07MB2207486633D88B5C65D547F9F8F10@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC rdma-next 0/3] Move mlx5 vendor specific to UAPI directory
+Date: Wed, 14 Sep 2016 11:21:45 -0600
+Message-ID: <20160914172145.GI16014@obsidianresearch.com>
+References: <1473841649-8923-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <SN1PR07MB2207486633D88B5C65D547F9F8F10@SN1PR07MB2207.namprd07.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Amrani, Ram" <Ram.Amrani@cavium.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, David Miller <davem@davemloft.net>, Yuval Mintz <Yuval.Mintz@qlogic.com>, Ariel Elior <Ariel.Elior@qlogic.com>, Michal Kalderon <Michal.Kalderon@qlogic.com>, Rajesh Borundia <rajesh.borundia@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+In-Reply-To: <1473841649-8923-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 02:44:47PM +0000, Amrani, Ram wrote:
-> > Anything that is used with copy_to/from_user, ib_copy_to/from_udata, 
-> > etc, etc must be in a include/uapi header.
-> > 
-> > Any constant you might want to copy into your userspace provider must 
-> > be in include/uapi.
-> > 
-> I understand you mean something like
-> https://www.spinics.net/lists/linux-rdma/msg40414.html ([RFC
-> rdma-next 0/3] Move mlx5 vendor specific to UAPI directory)
+On Wed, Sep 14, 2016 at 11:27:26AM +0300, Leon Romanovsky wrote:
+> The consolidate library revealed the fact that vendor specific
+> structures and defines are copy/pasted between kernel and user-space,
+> instead of sharing.
+> 
+> This RFC was tested by compilation only and not-ready for merge yet.
 
-Yes.
+Yah, this is exactly what I had in mind. We need to give this
+treatment to all the drivers :|
 
-> > Avoid copying headers in your user space and use the standard kernel 
-> > names to access your driver's uapi.
+> Leon Romanovsky (3):
+>   IB/mlx5: Move and decouple user vendor structures
+>   IB/core: Export mlx5 vendor specific strucutres
+>   MAINTAINERS: Add mlx5 uapi file
 
-> So the user library should be able to compile against these headers
-> in their location and not hold identical copies.
-
-Yes, but you will need identical copies for supporting old distros.
-
-> What do you mean by "standard kernel names"?
-
-By that I mean 'identical copies' do not copy the file and then
-randomly change it giving things different names or putting different
-content in structs.
-
-You will want to submit your user provider to rdma-plumbing to get it
-into the distros, we are planning to set it as the vehicle for code
-targeting 4.9
+One patch is probably enough, 3 patches per driver is going to be
+alot.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
