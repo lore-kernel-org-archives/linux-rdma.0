@@ -1,1045 +1,419 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 12/16] IB/pvrdma: Add Queue Pair support
-Date: Wed, 14 Sep 2016 19:32:46 +0300
-Message-ID: <20160914163245.GB3216@yuval-lap.Home>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-13-git-send-email-aditr@vmware.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 26/28] Avoid gcc 5.4 warning -Wunused-result
+Date: Wed, 14 Sep 2016 19:35:42 +0300
+Message-ID: <3b8df987-b422-a59c-4dc0-8a99524ab45e@dev.mellanox.co.il>
+References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1473109698-31408-27-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1473655766-31628-13-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1473109698-31408-27-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-No more comments.
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 9/6/2016 12:08 AM, Jason Gunthorpe wrote:
+> It used to be you could suppress this with (void), however the gcc
+> developers have decided to get rid of that.
+>
+> So, look closely at each occurrence and decide what to do:
+> - *pingpong: Join the error handling with the if statement directly
+>    above
+> - niegh: read on a timer_fd should never fail, so just use assert.
+>    The assert is compiled out for Release builds so this is no-change
+> - acm: Failure of ucma_set_server_port is detected by a 0 return
+>    so check fscanf and return appropriately. This is no change since
+>    fscanf failure was assumed to have left server_port as 0 (though
+>    I doubt the standard supports that usage)
+> - rsocket: This looks super sketchy. At least lets make the intent clear
+>    with a read_all/write_all wrapper that calls assert. Most likely
+>    this code is wrong..
+>    Mangle the code with failable_fscanf to make it clear, but as with
+>    acm, I don't think the standard supports this usage.
+>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  libibverbs/examples/rc_pingpong.c  | 15 +++++-----
+>  libibverbs/examples/srq_pingpong.c | 13 +++++++--
+>  libibverbs/examples/uc_pingpong.c  | 15 +++++-----
+>  libibverbs/examples/ud_pingpong.c  | 17 +++++-------
+>  libibverbs/src/neigh.c             |  7 +++--
+>  librdmacm/src/acm.c                |  3 +-
+>  librdmacm/src/rsocket.c            | 56 +++++++++++++++++++++++++++-----------
+>  7 files changed, 78 insertions(+), 48 deletions(-)
+>
+> diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
+> index 1fad16a0be7c..7bcc413a0f1d 100644
+> --- a/libibverbs/examples/rc_pingpong.c
+> +++ b/libibverbs/examples/rc_pingpong.c
+> @@ -208,14 +208,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
+>  		goto out;
+>  	}
+>
+> -	if (read(sockfd, msg, sizeof msg) != sizeof msg) {
+> -		perror("client read");
+> -		fprintf(stderr, "Couldn't read remote address\n");
+> +	if (read(sockfd, msg, sizeof msg) != sizeof msg ||
+> +	    write(sockfd, "done", sizeof "done") != sizeof "done") {
+> +		perror("client read/write");
+> +		fprintf(stderr, "Couldn't read/write remote address\n");
 
-On Sun, Sep 11, 2016 at 09:49:22PM -0700, Adit Ranadive wrote:
-> This patch adds the ability to create, modify, query and destroy QPs. The
-> PVRDMA device supports RC, UD and GSI QPs.
-> 
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
-> Changes v3->v4:
->  - Removed an unnecessary switch case.
->  - Unified the returns in pvrdma_create_qp to use one exit point.
->  - Renamed pvrdma_flush_cqe to _pvrdma_flush_cqe since we need a lock to
->  be held when calling this.
->  - Updated to use wrapper for UAR write for QP.
->  - Updated conversion function to func_name(dst, src) format.
->  - Renamed max_gs to max_sg.
->  - Renamed cap variable to req_cap in pvrdma_set_sq/rq_size.
->  - Changed dev_warn to dev_warn_ratelimited in pvrdma_post_send/recv.
->  - Added nesting locking for flushing CQs when destroying/resetting a QP.
->  - Added missing ret value.
-> 
-> Changes v2->v3:
->  - Removed boolean in pvrdma_cmd_post.
-> ---
->  drivers/infiniband/hw/pvrdma/pvrdma_qp.c | 980 +++++++++++++++++++++++++++++++
->  1 file changed, 980 insertions(+)
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_qp.c
-> 
-> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/pvrdma/pvrdma_qp.c
-> new file mode 100644
-> index 0000000..4163186
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_qp.c
-> @@ -0,0 +1,980 @@
-> +/*
-> + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of EITHER the GNU General Public License
-> + * version 2 as published by the Free Software Foundation or the BSD
-> + * 2-Clause License. This program is distributed in the hope that it
-> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-> + * See the GNU General Public License version 2 for more details at
-> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program available in the file COPYING in the main
-> + * directory of this source tree.
-> + *
-> + * The BSD 2-Clause License
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-> + * OF THE POSSIBILITY OF SUCH DAMAGE.
-> + */
-> +
-> +#include <asm/page.h>
-> +#include <linux/io.h>
-> +#include <linux/wait.h>
-> +#include <rdma/ib_addr.h>
-> +#include <rdma/ib_smi.h>
-> +#include <rdma/ib_user_verbs.h>
-> +
-> +#include "pvrdma.h"
-> +#include "pvrdma_user.h"
-> +
-> +static inline void get_cqs(struct pvrdma_qp *qp, struct pvrdma_cq **send_cq,
-> +			   struct pvrdma_cq **recv_cq)
-> +{
-> +	*send_cq = to_vcq(qp->ibqp.send_cq);
-> +	*recv_cq = to_vcq(qp->ibqp.recv_cq);
-> +}
-> +
-> +static void pvrdma_lock_cqs(struct pvrdma_cq *scq, struct pvrdma_cq *rcq,
-> +			    unsigned long *scq_flags,
-> +			    unsigned long *rcq_flags)
-> +	__acquires(scq->cq_lock) __acquires(rcq->cq_lock)
-> +{
-> +	if (scq == rcq) {
-> +		spin_lock_irqsave(&scq->cq_lock, *scq_flags);
-> +		__acquire(rcq->cq_lock);
-> +	} else if (scq->cq_handle < rcq->cq_handle) {
-> +		spin_lock_irqsave(&scq->cq_lock, *scq_flags);
-> +		spin_lock_irqsave_nested(&rcq->cq_lock, *rcq_flags,
-> +					 SINGLE_DEPTH_NESTING);
-> +	} else {
-> +		spin_lock_irqsave(&rcq->cq_lock, *rcq_flags);
-> +		spin_lock_irqsave_nested(&scq->cq_lock, *scq_flags,
-> +					 SINGLE_DEPTH_NESTING);
-> +	}
-> +}
-> +
-> +static void pvrdma_unlock_cqs(struct pvrdma_cq *scq, struct pvrdma_cq *rcq,
-> +			      unsigned long *scq_flags,
-> +			      unsigned long *rcq_flags)
-> +	__releases(scq->cq_lock) __releases(rcq->cq_lock)
-> +{
-> +	if (scq == rcq) {
-> +		__release(rcq->cq_lock);
-> +		spin_unlock_irqrestore(&scq->cq_lock, *scq_flags);
-> +	} else if (scq->cq_handle < rcq->cq_handle) {
-> +		spin_unlock_irqrestore(&rcq->cq_lock, *rcq_flags);
-> +		spin_unlock_irqrestore(&scq->cq_lock, *scq_flags);
-> +	} else {
-> +		spin_unlock_irqrestore(&scq->cq_lock, *scq_flags);
-> +		spin_unlock_irqrestore(&rcq->cq_lock, *rcq_flags);
-> +	}
-> +}
-> +
-> +static void pvrdma_reset_qp(struct pvrdma_qp *qp)
-> +{
-> +	struct pvrdma_cq *scq, *rcq;
-> +	unsigned long scq_flags, rcq_flags;
-> +
-> +	/* Clean up cqes */
-> +	get_cqs(qp, &scq, &rcq);
-> +	pvrdma_lock_cqs(scq, rcq, &scq_flags, &rcq_flags);
-> +
-> +	_pvrdma_flush_cqe(qp, scq);
-> +	if (scq != rcq)
-> +		_pvrdma_flush_cqe(qp, rcq);
-> +
-> +	pvrdma_unlock_cqs(scq, rcq, &scq_flags, &rcq_flags);
-> +
-> +	/*
-> +	 * Reset queuepair. The checks are because usermode queuepairs won't
-> +	 * have kernel ringstates.
-> +	 */
-> +	if (qp->rq.ring) {
-> +		atomic_set(&qp->rq.ring->cons_head, 0);
-> +		atomic_set(&qp->rq.ring->prod_tail, 0);
-> +	}
-> +	if (qp->sq.ring) {
-> +		atomic_set(&qp->sq.ring->cons_head, 0);
-> +		atomic_set(&qp->sq.ring->prod_tail, 0);
-> +	}
-> +}
-> +
-> +static int pvrdma_set_rq_size(struct pvrdma_dev *dev,
-> +			      struct ib_qp_cap *req_cap,
-> +			      struct pvrdma_qp *qp)
-> +{
-> +	if (req_cap->max_recv_wr > dev->dsr->caps.max_qp_wr ||
-> +	    req_cap->max_recv_sge > dev->dsr->caps.max_sge) {
-> +		dev_warn(&dev->pdev->dev, "recv queue size invalid\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	qp->rq.wqe_cnt = roundup_pow_of_two(max(1U, req_cap->max_recv_wr));
-> +	qp->rq.max_sg = roundup_pow_of_two(max(1U, req_cap->max_recv_sge));
-> +
-> +	/* Write back */
-> +	req_cap->max_recv_wr = qp->rq.wqe_cnt;
-> +	req_cap->max_recv_sge = qp->rq.max_sg;
-> +
-> +	qp->rq.wqe_size = roundup_pow_of_two(sizeof(struct pvrdma_rq_wqe_hdr) +
-> +					     sizeof(struct ib_sge) *
-> +					     qp->rq.max_sg);
-> +	qp->npages_recv = (qp->rq.wqe_cnt * qp->rq.wqe_size + PAGE_SIZE - 1) /
-> +			  PAGE_SIZE;
-> +
-> +	return 0;
-> +}
-> +
-> +static int pvrdma_set_sq_size(struct pvrdma_dev *dev, struct ib_qp_cap *req_cap,
-> +			      enum ib_qp_type type, struct pvrdma_qp *qp)
-> +{
-> +	if (req_cap->max_send_wr > dev->dsr->caps.max_qp_wr ||
-> +	    req_cap->max_send_sge > dev->dsr->caps.max_sge) {
-> +		dev_warn(&dev->pdev->dev, "send queue size invalid\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	qp->sq.wqe_cnt = roundup_pow_of_two(max(1U, req_cap->max_send_wr));
-> +	qp->sq.max_sg = roundup_pow_of_two(max(1U, req_cap->max_send_sge));
-> +
-> +	/* Write back */
-> +	req_cap->max_send_wr = qp->sq.wqe_cnt;
-> +	req_cap->max_send_sge = qp->sq.max_sg;
-> +
-> +	qp->sq.wqe_size = roundup_pow_of_two(sizeof(struct pvrdma_sq_wqe_hdr) +
-> +					     sizeof(struct ib_sge) *
-> +					     qp->sq.max_sg);
-> +	/* Note: one extra page for the header. */
-> +	qp->npages_send = 1 + (qp->sq.wqe_cnt * qp->sq.wqe_size +
-> +			       PAGE_SIZE - 1) / PAGE_SIZE;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * pvrdma_create_qp - create queue pair
-> + * @pd: protection domain
-> + * @init_attr: queue pair attributes
-> + * @udata: user data
-> + *
-> + * @return: the ib_qp pointer on success, otherwise returns an errno.
-> + */
-> +struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> +			       struct ib_qp_init_attr *init_attr,
-> +			       struct ib_udata *udata)
-> +{
-> +	struct pvrdma_qp *qp = NULL;
-> +	struct pvrdma_dev *dev = to_vdev(pd->device);
-> +	struct pvrdma_cq *send_cq, *recv_cq;
-> +	union pvrdma_cmd_req req;
-> +	union pvrdma_cmd_resp rsp;
-> +	struct pvrdma_cmd_create_qp *cmd = &req.create_qp;
-> +	struct pvrdma_cmd_create_qp_resp *resp = &rsp.create_qp_resp;
-> +	struct pvrdma_create_qp ucmd;
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	if (init_attr->create_flags) {
-> +		dev_warn(&dev->pdev->dev,
-> +			 "invalid create queuepair flags %#x\n",
-> +			 init_attr->create_flags);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	if (init_attr->qp_type != IB_QPT_RC &&
-> +	    init_attr->qp_type != IB_QPT_UD &&
-> +	    init_attr->qp_type != IB_QPT_GSI) {
-> +		dev_warn(&dev->pdev->dev, "queuepair type %d not supported\n",
-> +			 init_attr->qp_type);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	if (!atomic_add_unless(&dev->num_qps, 1, dev->dsr->caps.max_qp))
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	switch (init_attr->qp_type) {
-> +	case IB_QPT_GSI:
-> +		if (init_attr->port_num == 0 ||
-> +		    init_attr->port_num > pd->device->phys_port_cnt ||
-> +		    udata) {
-> +			dev_warn(&dev->pdev->dev, "invalid queuepair attrs\n");
-> +			ret = -EINVAL;
-> +			goto err_qp;
-> +		}
-> +		/* fall through */
-> +	case IB_QPT_RC:
-> +	case IB_QPT_UD:
-> +		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-> +		if (!qp) {
-> +			ret = -ENOMEM;
-> +			goto err_qp;
-> +		}
-> +
-> +		spin_lock_init(&qp->sq.lock);
-> +		spin_lock_init(&qp->rq.lock);
-> +		mutex_init(&qp->mutex);
-> +		atomic_set(&qp->refcnt, 1);
-> +		init_waitqueue_head(&qp->wait);
-> +
-> +		qp->state = IB_QPS_RESET;
-> +
-> +		if (pd->uobject && udata) {
-> +			dev_dbg(&dev->pdev->dev,
-> +				"create queuepair from user space\n");
-> +
-> +			if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
-> +				ret = -EFAULT;
-> +				goto err_qp;
-> +			}
-> +
-> +			/* set qp->sq.wqe_cnt, shift, buf_size.. */
-> +			qp->rumem = ib_umem_get(pd->uobject->context,
-> +						ucmd.rbuf_addr,
-> +						ucmd.rbuf_size, 0, 0);
-> +			if (IS_ERR(qp->rumem)) {
-> +				ret = PTR_ERR(qp->rumem);
-> +				goto err_qp;
-> +			}
-> +
-> +			qp->sumem = ib_umem_get(pd->uobject->context,
-> +						ucmd.sbuf_addr,
-> +						ucmd.sbuf_size, 0, 0);
-> +			if (IS_ERR(qp->sumem)) {
-> +				ib_umem_release(qp->rumem);
-> +				ret = PTR_ERR(qp->sumem);
-> +				goto err_qp;
-> +			}
-> +
-> +			qp->npages_send = ib_umem_page_count(qp->sumem);
-> +			qp->npages_recv = ib_umem_page_count(qp->rumem);
-> +			qp->npages = qp->npages_send + qp->npages_recv;
-> +		} else {
-> +			qp->is_kernel = true;
-> +
-> +			send_cq = to_vcq(init_attr->send_cq);
-> +			recv_cq = to_vcq(init_attr->recv_cq);
-> +
-> +			ret = pvrdma_set_sq_size(to_vdev(pd->device),
-> +						 &init_attr->cap,
-> +						 init_attr->qp_type, qp);
-> +			if (ret)
-> +				goto err_qp;
-> +
-> +			ret = pvrdma_set_rq_size(to_vdev(pd->device),
-> +						 &init_attr->cap, qp);
-> +			if (ret)
-> +				goto err_qp;
-> +
-> +			qp->npages = qp->npages_send + qp->npages_recv;
-> +
-> +			/* Skip header page. */
-> +			qp->sq.offset = PAGE_SIZE;
-> +
-> +			/* Recv queue pages are after send pages. */
-> +			qp->rq.offset = qp->npages_send * PAGE_SIZE;
-> +		}
-> +
-> +		if (qp->npages < 0 || qp->npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
-> +			dev_warn(&dev->pdev->dev,
-> +				 "overflow pages in queuepair\n");
-> +			ret = -EINVAL;
-> +			goto err_umem;
-> +		}
-> +
-> +		ret = pvrdma_page_dir_init(dev, &qp->pdir, qp->npages,
-> +					   qp->is_kernel);
-> +		if (ret) {
-> +			dev_warn(&dev->pdev->dev,
-> +				 "could not allocate page directory\n");
-> +			goto err_umem;
-> +		}
-> +
-> +		if (!qp->is_kernel) {
-> +			pvrdma_page_dir_insert_umem(&qp->pdir, qp->sumem, 0);
-> +			pvrdma_page_dir_insert_umem(&qp->pdir, qp->rumem,
-> +						    qp->npages_send);
-> +		} else {
-> +			/* Ring state is always the first page. */
-> +			qp->sq.ring = qp->pdir.pages[0];
-> +			qp->rq.ring = &qp->sq.ring[1];
-> +		}
-> +		break;
-> +	default:
-> +		ret = -EINVAL;
-> +		goto err_qp;
-> +	}
-> +
-> +	/* Not supported */
-> +	init_attr->cap.max_inline_data = 0;
-> +
-> +	memset(cmd, 0, sizeof(*cmd));
-> +	cmd->hdr.cmd = PVRDMA_CMD_CREATE_QP;
-> +	cmd->pd_handle = to_vpd(pd)->pd_handle;
-> +	cmd->send_cq_handle = to_vcq(init_attr->send_cq)->cq_handle;
-> +	cmd->recv_cq_handle = to_vcq(init_attr->recv_cq)->cq_handle;
-> +	cmd->max_send_wr = init_attr->cap.max_send_wr;
-> +	cmd->max_recv_wr = init_attr->cap.max_recv_wr;
-> +	cmd->max_send_sge = init_attr->cap.max_send_sge;
-> +	cmd->max_recv_sge = init_attr->cap.max_recv_sge;
-> +	cmd->max_inline_data = init_attr->cap.max_inline_data;
-> +	cmd->sq_sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR) ? 1 : 0;
-> +	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
-> +	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
-> +	cmd->total_chunks = qp->npages;
-> +	cmd->send_chunks = qp->npages_send - 1;
-> +	cmd->pdir_dma = qp->pdir.dir_dma;
-> +
-> +	dev_dbg(&dev->pdev->dev, "create queuepair with %d, %d, %d, %d\n",
-> +		cmd->max_send_wr, cmd->max_recv_wr, cmd->max_send_sge,
-> +		cmd->max_recv_sge);
-> +
-> +	ret = pvrdma_cmd_post(dev, &req, &rsp);
-> +	if (ret < 0 || resp->hdr.ack != PVRDMA_CMD_CREATE_QP_RESP) {
-> +		dev_warn(&dev->pdev->dev, "could not create queuepair\n");
-> +		goto err_pdir;
-> +	}
-> +
-> +	/* max_send_wr/_recv_wr/_send_sge/_recv_sge/_inline_data */
-> +	qp->qp_handle = resp->qpn;
-> +	qp->port = init_attr->port_num;
-> +	qp->ibqp.qp_num = resp->qpn;
-> +	spin_lock_irqsave(&dev->qp_tbl_lock, flags);
-> +	dev->qp_tbl[qp->qp_handle % dev->dsr->caps.max_qp] = qp;
-> +	spin_unlock_irqrestore(&dev->qp_tbl_lock, flags);
-> +
-> +	return &qp->ibqp;
-> +
-> +err_pdir:
-> +	pvrdma_page_dir_cleanup(dev, &qp->pdir);
-> +err_umem:
-> +	if (pd->uobject && udata) {
-> +		if (qp->rumem)
-> +			ib_umem_release(qp->rumem);
-> +		if (qp->sumem)
-> +			ib_umem_release(qp->sumem);
-> +	}
-> +err_qp:
-> +	kfree(qp);
-> +	atomic_dec(&dev->num_qps);
-> +
-> +	return ERR_PTR(ret);
-> +}
-> +
-> +static void pvrdma_free_qp(struct pvrdma_qp *qp)
-> +{
-> +	struct pvrdma_dev *dev = to_vdev(qp->ibqp.device);
-> +	struct pvrdma_cq *scq;
-> +	struct pvrdma_cq *rcq;
-> +	unsigned long flags, scq_flags, rcq_flags;
-> +
-> +	/* In case cq is polling */
-> +	get_cqs(qp, &scq, &rcq);
-> +	pvrdma_lock_cqs(scq, rcq, &scq_flags, &rcq_flags);
-> +
-> +	_pvrdma_flush_cqe(qp, scq);
-> +	if (scq != rcq)
-> +		_pvrdma_flush_cqe(qp, rcq);
-> +
-> +	spin_lock_irqsave(&dev->qp_tbl_lock, flags);
-> +	dev->qp_tbl[qp->qp_handle] = NULL;
-> +	spin_unlock_irqrestore(&dev->qp_tbl_lock, flags);
-> +
-> +	pvrdma_unlock_cqs(scq, rcq, &scq_flags, &rcq_flags);
-> +
-> +	atomic_dec(&qp->refcnt);
-> +	wait_event(qp->wait, !atomic_read(&qp->refcnt));
-> +
-> +	pvrdma_page_dir_cleanup(dev, &qp->pdir);
-> +
-> +	kfree(qp);
-> +
-> +	atomic_dec(&dev->num_qps);
-> +}
-> +
-> +/**
-> + * pvrdma_destroy_qp - destroy a queue pair
-> + * @qp: the queue pair to destroy
-> + *
-> + * @return: 0 on success.
-> + */
-> +int pvrdma_destroy_qp(struct ib_qp *qp)
-> +{
-> +	struct pvrdma_qp *vqp = to_vqp(qp);
-> +	union pvrdma_cmd_req req;
-> +	struct pvrdma_cmd_destroy_qp *cmd = &req.destroy_qp;
-> +	int ret;
-> +
-> +	memset(cmd, 0, sizeof(*cmd));
-> +	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_QP;
-> +	cmd->qp_handle = vqp->qp_handle;
-> +
-> +	ret = pvrdma_cmd_post(to_vdev(qp->device), &req, NULL);
-> +	if (ret < 0) {
-> +		struct pvrdma_dev *dev = to_vdev(qp->device);
-> +
-> +		dev_warn(&dev->pdev->dev, "destroy queuepair failed\n");
-> +	}
-> +
-> +	pvrdma_free_qp(vqp);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * pvrdma_modify_qp - modify queue pair attributes
-> + * @ibqp: the queue pair
-> + * @attr: the new queue pair's attributes
-> + * @attr_mask: attributes mask
-> + * @udata: user data
-> + *
-> + * @returns 0 on success, otherwise returns an errno.
-> + */
-> +int pvrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-> +		     int attr_mask, struct ib_udata *udata)
-> +{
-> +	struct pvrdma_dev *dev = to_vdev(ibqp->device);
-> +	struct pvrdma_qp *qp = to_vqp(ibqp);
-> +	union pvrdma_cmd_req req;
-> +	union pvrdma_cmd_resp rsp;
-> +	struct pvrdma_cmd_modify_qp *cmd = &req.modify_qp;
-> +	int cur_state, next_state;
-> +	int ret;
-> +
-> +	/* Sanity checking. Should need lock here */
-> +	mutex_lock(&qp->mutex);
-> +	cur_state = (attr_mask & IB_QP_CUR_STATE) ? attr->cur_qp_state :
-> +		qp->state;
-> +	next_state = (attr_mask & IB_QP_STATE) ? attr->qp_state : cur_state;
-> +
-> +	if (!ib_modify_qp_is_ok(cur_state, next_state, ibqp->qp_type,
-> +				attr_mask, IB_LINK_LAYER_ETHERNET)) {
-> +		ret = -EINVAL;
+It's just an example, however, better to have an accurate error message 
+and separate into 2 stubs.
+
+>  		goto out;
+>  	}
+>
+> -	write(sockfd, "done", sizeof "done");
+> -
+>  	rem_dest = malloc(sizeof *rem_dest);
+>  	if (!rem_dest)
+>  		goto out;
+> @@ -316,14 +315,14 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
+>  	gid_to_wire_gid(&my_dest->gid, gid);
+>  	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
+>  							my_dest->psn, gid);
+> -	if (write(connfd, msg, sizeof msg) != sizeof msg) {
+> -		fprintf(stderr, "Couldn't send local address\n");
+> +	if (write(connfd, msg, sizeof msg) != sizeof msg ||
+> +	    read(connfd, msg, sizeof msg) != sizeof msg) {
+> +		fprintf(stderr, "Couldn't send/recv local address\n");
+
+Same comment as of above.
+
+>  		free(rem_dest);
+>  		rem_dest = NULL;
+>  		goto out;
+>  	}
+>
+> -	read(connfd, msg, sizeof msg);
+>
+>  out:
+>  	close(connfd);
+> diff --git a/libibverbs/examples/srq_pingpong.c b/libibverbs/examples/srq_pingpong.c
+> index 929b736545c7..e6492dc553fd 100644
+> --- a/libibverbs/examples/srq_pingpong.c
+> +++ b/libibverbs/examples/srq_pingpong.c
+> @@ -222,8 +222,10 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
+>  		wire_gid_to_gid(gid, &rem_dest[i].gid);
+>  	}
+>
+> -	write(sockfd, "done", sizeof "done");
+> -
+> +	if (write(sockfd, "done", sizeof "done") != sizeof "done") {
+> +		perror("client write");
 > +		goto out;
 > +	}
-> +
-> +	if (attr_mask & IB_QP_PORT) {
-> +		if (attr->port_num == 0 ||
-> +		    attr->port_num > ibqp->device->phys_port_cnt) {
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +	}
-> +
-> +	if (attr_mask & IB_QP_MIN_RNR_TIMER) {
-> +		if (attr->min_rnr_timer > 31) {
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +	}
-> +
-> +	if (attr_mask & IB_QP_PKEY_INDEX) {
-> +		if (attr->pkey_index >= dev->dsr->caps.max_pkeys) {
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +	}
-> +
-> +	if (attr_mask & IB_QP_QKEY)
-> +		qp->qkey = attr->qkey;
-> +
-> +	if (cur_state == next_state && cur_state == IB_QPS_RESET) {
-> +		ret = 0;
+>  out:
+>  	close(sockfd);
+>  	return rem_dest;
+> @@ -333,7 +335,12 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
+>  		}
+>  	}
+>
+> -	read(connfd, msg, sizeof msg);
+> +	if (read(connfd, msg, sizeof msg) != sizeof msg) {
+> +		perror("client write");
+> +		free(rem_dest);
+> +		rem_dest = NULL;
 > +		goto out;
 > +	}
-> +
-> +	qp->state = next_state;
-> +	memset(cmd, 0, sizeof(*cmd));
-> +	cmd->hdr.cmd = PVRDMA_CMD_MODIFY_QP;
-> +	cmd->qp_handle = qp->qp_handle;
-> +	cmd->attr_mask = ib_qp_attr_mask_to_pvrdma(attr_mask);
-> +	cmd->attrs.qp_state = ib_qp_state_to_pvrdma(attr->qp_state);
-> +	cmd->attrs.cur_qp_state =
-> +		ib_qp_state_to_pvrdma(attr->cur_qp_state);
-> +	cmd->attrs.path_mtu = ib_mtu_to_pvrdma(attr->path_mtu);
-> +	cmd->attrs.path_mig_state =
-> +		ib_mig_state_to_pvrdma(attr->path_mig_state);
-> +	cmd->attrs.qkey = attr->qkey;
-> +	cmd->attrs.rq_psn = attr->rq_psn;
-> +	cmd->attrs.sq_psn = attr->sq_psn;
-> +	cmd->attrs.dest_qp_num = attr->dest_qp_num;
-> +	cmd->attrs.qp_access_flags =
-> +		ib_access_flags_to_pvrdma(attr->qp_access_flags);
-> +	cmd->attrs.pkey_index = attr->pkey_index;
-> +	cmd->attrs.alt_pkey_index = attr->alt_pkey_index;
-> +	cmd->attrs.en_sqd_async_notify = attr->en_sqd_async_notify;
-> +	cmd->attrs.sq_draining = attr->sq_draining;
-> +	cmd->attrs.max_rd_atomic = attr->max_rd_atomic;
-> +	cmd->attrs.max_dest_rd_atomic = attr->max_dest_rd_atomic;
-> +	cmd->attrs.min_rnr_timer = attr->min_rnr_timer;
-> +	cmd->attrs.port_num = attr->port_num;
-> +	cmd->attrs.timeout = attr->timeout;
-> +	cmd->attrs.retry_cnt = attr->retry_cnt;
-> +	cmd->attrs.rnr_retry = attr->rnr_retry;
-> +	cmd->attrs.alt_port_num = attr->alt_port_num;
-> +	cmd->attrs.alt_timeout = attr->alt_timeout;
-> +	ib_qp_cap_to_pvrdma(&cmd->attrs.cap, &attr->cap);
-> +	ib_ah_attr_to_pvrdma(&cmd->attrs.ah_attr, &attr->ah_attr);
-> +	ib_ah_attr_to_pvrdma(&cmd->attrs.alt_ah_attr, &attr->alt_ah_attr);
-> +	ret = pvrdma_cmd_post(dev, &req, &rsp);
-> +	if (ret < 0 || rsp.hdr.ack != PVRDMA_CMD_MODIFY_QP_RESP ||
-> +	    rsp.hdr.err > 0) {
-> +		dev_warn(&dev->pdev->dev,
-> +			 "could not modify queuepair\n");
-> +		if (ret == 0) {
-> +			if (rsp.hdr.ack != PVRDMA_CMD_MODIFY_QP_RESP)
-> +				ret = -EINVAL;
-> +			else
-> +				ret = rsp.hdr.err;
-> +		}
-> +	}
-> +
-> +	if (ret == 0 && next_state == IB_QPS_RESET)
-> +		pvrdma_reset_qp(qp);
-> +
-> +out:
-> +	mutex_unlock(&qp->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static inline void *get_sq_wqe(struct pvrdma_qp *qp, int n)
+>
+>  out:
+>  	close(connfd);
+> diff --git a/libibverbs/examples/uc_pingpong.c b/libibverbs/examples/uc_pingpong.c
+> index 3802e3821773..d132de98694a 100644
+> --- a/libibverbs/examples/uc_pingpong.c
+> +++ b/libibverbs/examples/uc_pingpong.c
+> @@ -176,13 +176,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
+>  		goto out;
+>  	}
+>
+> -	if (read(sockfd, msg, sizeof msg) != sizeof msg) {
+> -		perror("client read");
+> -		fprintf(stderr, "Couldn't read remote address\n");
+> +	if (read(sockfd, msg, sizeof msg) != sizeof msg ||
+> +	    write(sockfd, "done", sizeof "done") != sizeof "done") {
+> +		perror("client read/write");
+> +		fprintf(stderr, "Couldn't read/write remote address\n");
+>  		goto out;
+>  	}
+>
+> -	write(sockfd, "done", sizeof "done");
+>
+>  	rem_dest = malloc(sizeof *rem_dest);
+>  	if (!rem_dest)
+> @@ -284,15 +284,14 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
+>  	gid_to_wire_gid(&my_dest->gid, gid);
+>  	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
+>  							my_dest->psn, gid);
+> -	if (write(connfd, msg, sizeof msg) != sizeof msg) {
+> -		fprintf(stderr, "Couldn't send local address\n");
+> +	if (write(connfd, msg, sizeof msg) != sizeof msg ||
+> +	    read(connfd, msg, sizeof msg) != sizeof msg) {
+> +		fprintf(stderr, "Couldn't send/recv local address\n");
+>  		free(rem_dest);
+>  		rem_dest = NULL;
+>  		goto out;
+>  	}
+>
+> -	read(connfd, msg, sizeof msg);
+> -
+>  out:
+>  	close(connfd);
+>  	return rem_dest;
+> diff --git a/libibverbs/examples/ud_pingpong.c b/libibverbs/examples/ud_pingpong.c
+> index fa99b9e51dfb..67da4bd90f32 100644
+> --- a/libibverbs/examples/ud_pingpong.c
+> +++ b/libibverbs/examples/ud_pingpong.c
+> @@ -176,14 +176,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
+>  		goto out;
+>  	}
+>
+> -	if (read(sockfd, msg, sizeof msg) != sizeof msg) {
+> -		perror("client read");
+> -		fprintf(stderr, "Couldn't read remote address\n");
+> +	if (read(sockfd, msg, sizeof msg) != sizeof msg ||
+> +	    write(sockfd, "done", sizeof "done") != sizeof "done") {
+> +		perror("client read/write");
+> +		fprintf(stderr, "Couldn't read/write remote address\n");
+>  		goto out;
+>  	}
+>
+> -	write(sockfd, "done", sizeof "done");
+> -
+>  	rem_dest = malloc(sizeof *rem_dest);
+>  	if (!rem_dest)
+>  		goto out;
+> @@ -282,15 +281,13 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
+>  	gid_to_wire_gid(&my_dest->gid, gid);
+>  	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
+>  							my_dest->psn, gid);
+> -	if (write(connfd, msg, sizeof msg) != sizeof msg) {
+> -		fprintf(stderr, "Couldn't send local address\n");
+> +	if (write(connfd, msg, sizeof msg) != sizeof msg ||
+> +	    read(connfd, msg, sizeof msg) != sizeof msg) {
+> +		fprintf(stderr, "Couldn't send/recv local address\n");
+>  		free(rem_dest);
+>  		rem_dest = NULL;
+>  		goto out;
+>  	}
+> -
+> -	read(connfd, msg, sizeof msg);
+> -
+>  out:
+>  	close(connfd);
+>  	return rem_dest;
+> diff --git a/libibverbs/src/neigh.c b/libibverbs/src/neigh.c
+> index 6b6e58cd52f8..5acfcf06fcde 100644
+> --- a/libibverbs/src/neigh.c
+> +++ b/libibverbs/src/neigh.c
+> @@ -19,6 +19,7 @@
+>  #include <unistd.h>
+>  #include <ifaddrs.h>
+>  #include <netdb.h>
+> +#include <assert.h>
+>  #ifndef _LINUX_IF_H
+>  #include <net/if.h>
+>  #else
+> @@ -372,9 +373,11 @@ static struct nl_addr *process_get_neigh_mac(
+>
+>  			if (FD_ISSET(timer_fd, &fdset)) {
+>  				uint64_t read_val;
+> +				ssize_t rc;
+>
+> -				(void)read(timer_fd, &read_val,
+> -					   sizeof(read_val));
+> +				rc =
+> +				    read(timer_fd, &read_val, sizeof(read_val));
+> +				assert(rc == sizeof(read_val));
+>  				if (++retries >=  NUM_OF_TRIES) {
+>  					if (!errno)
+>  						errno = EDESTADDRREQ;
+> diff --git a/librdmacm/src/acm.c b/librdmacm/src/acm.c
+> index f0da01e6d286..c097bb923b55 100644
+> --- a/librdmacm/src/acm.c
+> +++ b/librdmacm/src/acm.c
+> @@ -121,7 +121,8 @@ static int ucma_set_server_port(void)
+>  	FILE *f;
+>
+>  	if ((f = fopen("/var/run/ibacm.port", "r" STREAM_CLOEXEC))) {
+> -		fscanf(f, "%" SCNu16, &server_port);
+> +		if (fscanf(f, "%" SCNu16, &server_port) != 1)
+> +			server_port = 0;
+>  		fclose(f);
+>  	}
+>  	return server_port;
+> diff --git a/librdmacm/src/rsocket.c b/librdmacm/src/rsocket.c
+> index 818505fbe02e..5645f40d2460 100644
+> --- a/librdmacm/src/rsocket.c
+> +++ b/librdmacm/src/rsocket.c
+> @@ -404,6 +404,20 @@ struct ds_udp_header {
+>
+>  #define ds_next_qp(qp) container_of((qp)->list.next, struct ds_qp, list)
+>
+> +static void write_all(int fd, const void *msg, size_t len)
 > +{
-> +	return pvrdma_page_dir_get_ptr(&qp->pdir,
-> +				       qp->sq.offset + n * qp->sq.wqe_size);
+> +	// FIXME: if fd is a socket this really needs to handle EINTR and other conditions.
+> +	ssize_t rc = write(fd, msg, len);
+> +	assert(rc == len);
 > +}
 > +
-> +static inline void *get_rq_wqe(struct pvrdma_qp *qp, int n)
+> +static void read_all(int fd, void *msg, size_t len)
 > +{
-> +	return pvrdma_page_dir_get_ptr(&qp->pdir,
-> +				       qp->rq.offset + n * qp->rq.wqe_size);
+> +	// FIXME: if fd is a socket this really needs to handle EINTR and other conditions.
+> +	ssize_t rc = read(fd, msg, len);
+> +	assert(rc == len);
 > +}
 > +
-> +static int set_reg_seg(struct pvrdma_sq_wqe_hdr *wqe_hdr, struct ib_reg_wr *wr)
-> +{
-> +	struct pvrdma_user_mr *mr = to_vmr(wr->mr);
-> +
-> +	wqe_hdr->wr.fast_reg.iova_start = mr->ibmr.iova;
-> +	wqe_hdr->wr.fast_reg.pl_pdir_dma = mr->pdir.dir_dma;
-> +	wqe_hdr->wr.fast_reg.page_shift = mr->page_shift;
-> +	wqe_hdr->wr.fast_reg.page_list_len = mr->npages;
-> +	wqe_hdr->wr.fast_reg.length = mr->ibmr.length;
-> +	wqe_hdr->wr.fast_reg.access_flags = wr->access;
-> +	wqe_hdr->wr.fast_reg.rkey = wr->key;
-> +
-> +	return pvrdma_page_dir_insert_page_list(&mr->pdir, mr->pages,
-> +						mr->npages);
-> +}
-> +
-> +/**
-> + * pvrdma_post_send - post send work request entries on a QP
-> + * @ibqp: the QP
-> + * @wr: work request list to post
-> + * @bad_wr: the first bad WR returned
-> + *
-> + * @return: 0 on success, otherwise errno returned.
-> + */
-> +int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
-> +		     struct ib_send_wr **bad_wr)
-> +{
-> +	struct pvrdma_qp *qp = to_vqp(ibqp);
-> +	struct pvrdma_dev *dev = to_vdev(ibqp->device);
-> +	unsigned long flags;
-> +	struct pvrdma_sq_wqe_hdr *wqe_hdr;
-> +	struct ib_sge *sge;
-> +	int i, index;
-> +	int nreq;
-> +	int ret;
-> +
-> +	/*
-> +	 * In states lower than RTS, we can fail immediately. In other states,
-> +	 * just post and let the device figure it out.
-> +	 */
-> +	if (qp->state < IB_QPS_RTS) {
-> +		*bad_wr = wr;
-> +		return -EINVAL;
+>  static void ds_insert_qp(struct rsocket *rs, struct ds_qp *qp)
+>  {
+>  	if (!rs->qp_list)
+> @@ -444,8 +458,8 @@ static int rs_notify_svc(struct rs_svc *svc, struct rsocket *rs, int cmd)
+>  	msg.cmd = cmd;
+>  	msg.status = EINVAL;
+>  	msg.rs = rs;
+> -	write(svc->sock[0], &msg, sizeof msg);
+> -	read(svc->sock[0], &msg, sizeof msg);
+> +	write_all(svc->sock[0], &msg, sizeof msg);
+> +	read_all(svc->sock[0], &msg, sizeof msg);
+>  	ret = rdma_seterrno(msg.status);
+>  	if (svc->cnt)
+>  		goto unlock;
+> @@ -484,6 +498,15 @@ static int rs_scale_to_value(int value, int bits)
+>  	       value : (value & ~(1 << (bits - 1))) << bits;
+>  }
+>
+> +/* gcc > ~5 will not allow (void)fscanf to suppress -Wunused-result, but this
+> +   will do it.  In this case ignoring the result is OK (but horribly
+> +   unfriendly to user) since the library has a sane default. */
+> +#define failable_fscanf(f, fmt, ...)                                           \
+> +	{                                                                      \
+> +		int rc = fscanf(f, fmt, __VA_ARGS__);                          \
+> +		(void) rc;                                                     \
 > +	}
 > +
-> +	spin_lock_irqsave(&qp->sq.lock, flags);
-> +
-> +	index = pvrdma_idx(&qp->sq.ring->prod_tail, qp->sq.wqe_cnt);
-> +	for (nreq = 0; wr; nreq++, wr = wr->next) {
-> +		unsigned int tail;
-> +
-> +		if (unlikely(!pvrdma_idx_ring_has_space(
-> +				qp->sq.ring, qp->sq.wqe_cnt, &tail))) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "send queue is full\n");
-> +			*bad_wr = wr;
-> +			ret = -ENOMEM;
-> +			goto out;
-> +		}
-> +
-> +		if (unlikely(wr->num_sge > qp->sq.max_sg || wr->num_sge < 0)) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "send SGE overflow\n");
-> +			*bad_wr = wr;
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +
-> +		if (unlikely(wr->opcode < 0)) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "invalid send opcode\n");
-> +			*bad_wr = wr;
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +
-> +		/*
-> +		 * Only support UD, RC.
-> +		 * Need to check opcode table for thorough checking.
-> +		 * opcode		_UD	_UC	_RC
-> +		 * _SEND		x	x	x
-> +		 * _SEND_WITH_IMM	x	x	x
-> +		 * _RDMA_WRITE			x	x
-> +		 * _RDMA_WRITE_WITH_IMM		x	x
-> +		 * _LOCAL_INV			x	x
-> +		 * _SEND_WITH_INV		x	x
-> +		 * _RDMA_READ				x
-> +		 * _ATOMIC_CMP_AND_SWP			x
-> +		 * _ATOMIC_FETCH_AND_ADD		x
-> +		 * _MASK_ATOMIC_CMP_AND_SWP		x
-> +		 * _MASK_ATOMIC_FETCH_AND_ADD		x
-> +		 * _REG_MR				x
-> +		 *
-> +		 */
-> +		if (qp->ibqp.qp_type != IB_QPT_UD &&
-> +		    qp->ibqp.qp_type != IB_QPT_RC &&
-> +			wr->opcode != IB_WR_SEND) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "unsupported queuepair type\n");
-> +			*bad_wr = wr;
-> +			ret = -EINVAL;
-> +			goto out;
-> +		} else if (qp->ibqp.qp_type == IB_QPT_UD ||
-> +			   qp->ibqp.qp_type == IB_QPT_GSI) {
-> +			if (wr->opcode != IB_WR_SEND &&
-> +			    wr->opcode != IB_WR_SEND_WITH_IMM) {
-> +				dev_warn_ratelimited(&dev->pdev->dev,
-> +						     "invalid send opcode\n");
-> +				*bad_wr = wr;
-> +				ret = -EINVAL;
-> +				goto out;
-> +			}
-> +		}
-> +
-> +		wqe_hdr = (struct pvrdma_sq_wqe_hdr *)get_sq_wqe(qp, index);
-> +		memset(wqe_hdr, 0, sizeof(*wqe_hdr));
-> +		wqe_hdr->wr_id = wr->wr_id;
-> +		wqe_hdr->num_sge = wr->num_sge;
-> +		wqe_hdr->opcode = ib_wr_opcode_to_pvrdma(wr->opcode);
-> +		wqe_hdr->send_flags = ib_send_flags_to_pvrdma(wr->send_flags);
-> +		if (wr->opcode == IB_WR_SEND_WITH_IMM ||
-> +		    wr->opcode == IB_WR_RDMA_WRITE_WITH_IMM)
-> +			wqe_hdr->ex.imm_data = wr->ex.imm_data;
-> +
-> +		switch (qp->ibqp.qp_type) {
-> +		case IB_QPT_GSI:
-> +		case IB_QPT_UD:
-> +			if (unlikely(!ud_wr(wr)->ah)) {
-> +				dev_warn_ratelimited(&dev->pdev->dev,
-> +						     "invalid address handle\n");
-> +				*bad_wr = wr;
-> +				ret = -EINVAL;
-> +				goto out;
-> +			}
-> +
-> +			/*
-> +			 * Use qkey from qp context if high order bit set,
-> +			 * otherwise from work request.
-> +			 */
-> +			wqe_hdr->wr.ud.remote_qpn = ud_wr(wr)->remote_qpn;
-> +			wqe_hdr->wr.ud.remote_qkey =
-> +				ud_wr(wr)->remote_qkey & 0x80000000 ?
-> +				qp->qkey : ud_wr(wr)->remote_qkey;
-> +			wqe_hdr->wr.ud.av = to_vah(ud_wr(wr)->ah)->av;
-> +
-> +			break;
-> +		case IB_QPT_RC:
-> +			switch (wr->opcode) {
-> +			case IB_WR_RDMA_READ:
-> +			case IB_WR_RDMA_WRITE:
-> +			case IB_WR_RDMA_WRITE_WITH_IMM:
-> +				wqe_hdr->wr.rdma.remote_addr =
-> +					rdma_wr(wr)->remote_addr;
-> +				wqe_hdr->wr.rdma.rkey = rdma_wr(wr)->rkey;
-> +				break;
-> +			case IB_WR_LOCAL_INV:
-> +			case IB_WR_SEND_WITH_INV:
-> +				wqe_hdr->ex.invalidate_rkey =
-> +					wr->ex.invalidate_rkey;
-> +				break;
-> +			case IB_WR_ATOMIC_CMP_AND_SWP:
-> +			case IB_WR_ATOMIC_FETCH_AND_ADD:
-> +				wqe_hdr->wr.atomic.remote_addr =
-> +					atomic_wr(wr)->remote_addr;
-> +				wqe_hdr->wr.atomic.rkey = atomic_wr(wr)->rkey;
-> +				wqe_hdr->wr.atomic.compare_add =
-> +					atomic_wr(wr)->compare_add;
-> +				if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP)
-> +					wqe_hdr->wr.atomic.swap =
-> +						atomic_wr(wr)->swap;
-> +				break;
-> +			case IB_WR_REG_MR:
-> +				ret = set_reg_seg(wqe_hdr, reg_wr(wr));
-> +				if (ret < 0) {
-> +					dev_warn_ratelimited(&dev->pdev->dev,
-> +							     "Failed to set fast register work request\n");
-> +					*bad_wr = wr;
-> +					goto out;
-> +				}
-> +				break;
-> +			default:
-> +				break;
-> +			}
-> +
-> +			break;
-> +		default:
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "invalid queuepair type\n");
-> +			ret = -EINVAL;
-> +			*bad_wr = wr;
-> +			goto out;
-> +		}
-> +
-> +		sge = (struct ib_sge *)(wqe_hdr + 1);
-> +		for (i = 0; i < wr->num_sge; i++) {
-> +			/* Need to check wqe_size 0 or max size */
-> +			sge->addr = wr->sg_list[i].addr;
-> +			sge->length = wr->sg_list[i].length;
-> +			sge->lkey = wr->sg_list[i].lkey;
-> +			sge++;
-> +		}
-> +
-> +		/* Make sure wqe is written before index update */
-> +		smp_wmb();
-> +
-> +		index++;
-> +		if (unlikely(index >= qp->sq.wqe_cnt))
-> +			index = 0;
-> +		/* Update shared sq ring */
-> +		pvrdma_idx_ring_inc(&qp->sq.ring->prod_tail,
-> +				    qp->sq.wqe_cnt);
-> +	}
-> +
-> +	ret = 0;
-> +
-> +out:
-> +	spin_unlock_irqrestore(&qp->sq.lock, flags);
-> +
-> +	if (!ret)
-> +		pvrdma_write_uar_qp(dev, PVRDMA_UAR_QP_SEND | qp->qp_handle);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * pvrdma_post_receive - post receive work request entries on a QP
-> + * @ibqp: the QP
-> + * @wr: the work request list to post
-> + * @bad_wr: the first bad WR returned
-> + *
-> + * @return: 0 on success, otherwise errno returned.
-> + */
-> +int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
-> +		     struct ib_recv_wr **bad_wr)
-> +{
-> +	struct pvrdma_dev *dev = to_vdev(ibqp->device);
-> +	unsigned long flags;
-> +	struct pvrdma_qp *qp = to_vqp(ibqp);
-> +	struct pvrdma_rq_wqe_hdr *wqe_hdr;
-> +	struct ib_sge *sge;
-> +	int index, nreq;
-> +	int ret = 0;
-> +	int i;
-> +
-> +	/*
-> +	 * In the RESET state, we can fail immediately. For other states,
-> +	 * just post and let the device figure it out.
-> +	 */
-> +	if (qp->state == IB_QPS_RESET) {
-> +		*bad_wr = wr;
-> +		return -EINVAL;
-> +	}
-> +
-> +	spin_lock_irqsave(&qp->rq.lock, flags);
-> +
-> +	index = pvrdma_idx(&qp->rq.ring->prod_tail, qp->rq.wqe_cnt);
-> +	for (nreq = 0; wr; nreq++, wr = wr->next) {
-> +		unsigned int tail;
-> +
-> +		if (unlikely(wr->num_sge > qp->rq.max_sg ||
-> +			     wr->num_sge < 0)) {
-> +			ret = -EINVAL;
-> +			*bad_wr = wr;
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "recv SGE overflow\n");
-> +			goto out;
-> +		}
-> +
-> +		if (unlikely(!pvrdma_idx_ring_has_space(
-> +				qp->rq.ring, qp->rq.wqe_cnt, &tail))) {
-> +			ret = -ENOMEM;
-> +			*bad_wr = wr;
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "recv queue full\n");
-> +			goto out;
-> +		}
-> +
-> +		wqe_hdr = (struct pvrdma_rq_wqe_hdr *)get_rq_wqe(qp, index);
-> +		wqe_hdr->wr_id = wr->wr_id;
-> +		wqe_hdr->num_sge = wr->num_sge;
-> +		wqe_hdr->total_len = 0;
-> +
-> +		sge = (struct ib_sge *)(wqe_hdr + 1);
-> +		for (i = 0; i < wr->num_sge; i++) {
-> +			sge->addr = wr->sg_list[i].addr;
-> +			sge->length = wr->sg_list[i].length;
-> +			sge->lkey = wr->sg_list[i].lkey;
-> +			sge++;
-> +		}
-> +
-> +		/* Make sure wqe is written before index update */
-> +		smp_wmb();
-> +
-> +		index++;
-> +		if (unlikely(index >= qp->rq.wqe_cnt))
-> +			index = 0;
-> +		/* Update shared rq ring */
-> +		pvrdma_idx_ring_inc(&qp->rq.ring->prod_tail,
-> +				    qp->rq.wqe_cnt);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&qp->rq.lock, flags);
-> +
-> +	pvrdma_write_uar_qp(dev, PVRDMA_UAR_QP_RECV | qp->qp_handle);
-> +
-> +	return ret;
-> +
-> +out:
-> +	spin_unlock_irqrestore(&qp->rq.lock, flags);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * pvrdma_query_qp - query a queue pair's attributes
-> + * @ibqp: the queue pair to query
-> + * @attr: the queue pair's attributes
-> + * @attr_mask: attributes mask
-> + * @init_attr: initial queue pair attributes
-> + *
-> + * @returns 0 on success, otherwise returns an errno.
-> + */
-> +int pvrdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-> +		    int attr_mask, struct ib_qp_init_attr *init_attr)
-> +{
-> +	struct pvrdma_dev *dev = to_vdev(ibqp->device);
-> +	struct pvrdma_qp *qp = to_vqp(ibqp);
-> +	union pvrdma_cmd_req req;
-> +	union pvrdma_cmd_resp rsp;
-> +	struct pvrdma_cmd_query_qp *cmd = &req.query_qp;
-> +	struct pvrdma_cmd_query_qp_resp *resp = &rsp.query_qp_resp;
-> +	int ret = 0;
-> +
-> +	mutex_lock(&qp->mutex);
-> +
-> +	if (qp->state == IB_QPS_RESET) {
-> +		attr->qp_state = IB_QPS_RESET;
-> +		goto out;
-> +	}
-> +
-> +	memset(cmd, 0, sizeof(*cmd));
-> +	cmd->hdr.cmd = PVRDMA_CMD_QUERY_QP;
-> +	cmd->qp_handle = qp->qp_handle;
-> +	cmd->attr_mask = ib_qp_attr_mask_to_pvrdma(attr_mask);
-> +
-> +	ret = pvrdma_cmd_post(dev, &req, &rsp);
-> +	if (ret < 0 || resp->hdr.ack != PVRDMA_CMD_QUERY_QP_RESP) {
-> +		dev_warn(&dev->pdev->dev, "could not query queuepair\n");
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
-> +	attr->qp_state = pvrdma_qp_state_to_ib(resp->attrs.qp_state);
-> +	attr->cur_qp_state =
-> +		pvrdma_qp_state_to_ib(resp->attrs.cur_qp_state);
-> +	attr->path_mtu = pvrdma_mtu_to_ib(resp->attrs.path_mtu);
-> +	attr->path_mig_state =
-> +		pvrdma_mig_state_to_ib(resp->attrs.path_mig_state);
-> +	attr->qkey = resp->attrs.qkey;
-> +	attr->rq_psn = resp->attrs.rq_psn;
-> +	attr->sq_psn = resp->attrs.sq_psn;
-> +	attr->dest_qp_num = resp->attrs.dest_qp_num;
-> +	attr->qp_access_flags =
-> +		pvrdma_access_flags_to_ib(resp->attrs.qp_access_flags);
-> +	attr->pkey_index = resp->attrs.pkey_index;
-> +	attr->alt_pkey_index = resp->attrs.alt_pkey_index;
-> +	attr->en_sqd_async_notify = resp->attrs.en_sqd_async_notify;
-> +	attr->sq_draining = resp->attrs.sq_draining;
-> +	attr->max_rd_atomic = resp->attrs.max_rd_atomic;
-> +	attr->max_dest_rd_atomic = resp->attrs.max_dest_rd_atomic;
-> +	attr->min_rnr_timer = resp->attrs.min_rnr_timer;
-> +	attr->port_num = resp->attrs.port_num;
-> +	attr->timeout = resp->attrs.timeout;
-> +	attr->retry_cnt = resp->attrs.retry_cnt;
-> +	attr->rnr_retry = resp->attrs.rnr_retry;
-> +	attr->alt_port_num = resp->attrs.alt_port_num;
-> +	attr->alt_timeout = resp->attrs.alt_timeout;
-> +	pvrdma_qp_cap_to_ib(&attr->cap, &resp->attrs.cap);
-> +	pvrdma_ah_attr_to_ib(&attr->ah_attr, &resp->attrs.ah_attr);
-> +	pvrdma_ah_attr_to_ib(&attr->alt_ah_attr, &resp->attrs.alt_ah_attr);
-> +
-> +	qp->state = attr->qp_state;
-> +
-> +	ret = 0;
-> +
-> +out:
-> +	attr->cur_qp_state = attr->qp_state;
-> +
-> +	init_attr->event_handler = qp->ibqp.event_handler;
-> +	init_attr->qp_context = qp->ibqp.qp_context;
-> +	init_attr->send_cq = qp->ibqp.send_cq;
-> +	init_attr->recv_cq = qp->ibqp.recv_cq;
-> +	init_attr->srq = qp->ibqp.srq;
-> +	init_attr->xrcd = NULL;
-> +	init_attr->cap = attr->cap;
-> +	init_attr->sq_sig_type = 0;
-> +	init_attr->qp_type = qp->ibqp.qp_type;
-> +	init_attr->create_flags = 0;
-> +	init_attr->port_num = qp->port;
-> +
-> +	mutex_unlock(&qp->mutex);
-> +	return ret;
-> +}
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  void rs_configure(void)
+>  {
+>  	FILE *f;
+> @@ -501,27 +524,27 @@ void rs_configure(void)
+>  	ucma_ib_init();
+>
+>  	if ((f = fopen(RS_CONF_DIR "/polling_time", "r"))) {
+> -		(void) fscanf(f, "%u", &polling_time);
+> +		failable_fscanf(f, "%u", &polling_time);
+>  		fclose(f);
+>  	}
+>
+>  	if ((f = fopen(RS_CONF_DIR "/inline_default", "r"))) {
+> -		(void) fscanf(f, "%hu", &def_inline);
+> +		failable_fscanf(f, "%hu", &def_inline);
+>  		fclose(f);
+>  	}
+>
+>  	if ((f = fopen(RS_CONF_DIR "/sqsize_default", "r"))) {
+> -		(void) fscanf(f, "%hu", &def_sqsize);
+> +		failable_fscanf(f, "%hu", &def_sqsize);
+>  		fclose(f);
+>  	}
+>
+>  	if ((f = fopen(RS_CONF_DIR "/rqsize_default", "r"))) {
+> -		(void) fscanf(f, "%hu", &def_rqsize);
+> +		failable_fscanf(f, "%hu", &def_rqsize);
+>  		fclose(f);
+>  	}
+>
+>  	if ((f = fopen(RS_CONF_DIR "/mem_default", "r"))) {
+> -		(void) fscanf(f, "%u", &def_mem);
+> +		failable_fscanf(f, "%u", &def_mem);
+>  		fclose(f);
+>
+>  		if (def_mem < 1)
+> @@ -529,14 +552,14 @@ void rs_configure(void)
+>  	}
+>
+>  	if ((f = fopen(RS_CONF_DIR "/wmem_default", "r"))) {
+> -		(void) fscanf(f, "%u", &def_wmem);
+> +		failable_fscanf(f, "%u", &def_wmem);
+>  		fclose(f);
+>  		if (def_wmem < RS_SNDLOWAT)
+>  			def_wmem = RS_SNDLOWAT << 1;
+>  	}
+>
+>  	if ((f = fopen(RS_CONF_DIR "/iomap_size", "r"))) {
+> -		(void) fscanf(f, "%hu", &def_iomap_size);
+> +		failable_fscanf(f, "%hu", &def_iomap_size);
+>  		fclose(f);
+>
+>  		/* round to supported values */
+> @@ -3345,7 +3368,8 @@ static int rs_set_keepalive(struct rsocket *rs, int on)
+>  	if (on) {
+>  		if (!rs->keepalive_time) {
+>  			if ((f = fopen("/proc/sys/net/ipv4/tcp_keepalive_time", "r"))) {
+> -				(void) fscanf(f, "%u", &rs->keepalive_time);
+> +				if (fscanf(f, "%u", &rs->keepalive_time) != 1)
+> +					rs->keepalive_time = 7200;
+>  				fclose(f);
+>  			} else {
+>  				rs->keepalive_time = 7200;
+> @@ -3985,7 +4009,7 @@ static void udp_svc_process_sock(struct rs_svc *svc)
+>  {
+>  	struct rs_svc_msg msg;
+>
+> -	read(svc->sock[1], &msg, sizeof msg);
+> +	read_all(svc->sock[1], &msg, sizeof msg);
+>  	switch (msg.cmd) {
+>  	case RS_SVC_ADD_DGRAM:
+>  		msg.status = rs_svc_add_rs(svc, msg.rs);
+> @@ -4009,7 +4033,7 @@ static void udp_svc_process_sock(struct rs_svc *svc)
+>  		break;
+>  	}
+>
+> -	write(svc->sock[1], &msg, sizeof msg);
+> +	write_all(svc->sock[1], &msg, sizeof msg);
+>  }
+>
+>  static uint8_t udp_svc_sgid_index(struct ds_dest *dest, union ibv_gid *sgid)
+> @@ -4184,7 +4208,7 @@ static void *udp_svc_run(void *arg)
+>  	ret = rs_svc_grow_sets(svc, 4);
+>  	if (ret) {
+>  		msg.status = ret;
+> -		write(svc->sock[1], &msg, sizeof msg);
+> +		write_all(svc->sock[1], &msg, sizeof msg);
+>  		return (void *) (uintptr_t) ret;
+>  	}
+>
+> @@ -4222,7 +4246,7 @@ static void tcp_svc_process_sock(struct rs_svc *svc)
+>  	struct rs_svc_msg msg;
+>  	int i;
+>
+> -	read(svc->sock[1], &msg, sizeof msg);
+> +	read_all(svc->sock[1], &msg, sizeof msg);
+>  	switch (msg.cmd) {
+>  	case RS_SVC_ADD_KEEPALIVE:
+>  		msg.status = rs_svc_add_rs(svc, msg.rs);
+> @@ -4253,7 +4277,7 @@ static void tcp_svc_process_sock(struct rs_svc *svc)
+>  	default:
+>  		break;
+>  	}
+> -	write(svc->sock[1], &msg, sizeof msg);
+> +	write_all(svc->sock[1], &msg, sizeof msg);
+>  }
+>
+>  /*
+> @@ -4282,7 +4306,7 @@ static void *tcp_svc_run(void *arg)
+>  	ret = rs_svc_grow_sets(svc, 16);
+>  	if (ret) {
+>  		msg.status = ret;
+> -		write(svc->sock[1], &msg, sizeof msg);
+> +		write_all(svc->sock[1], &msg, sizeof msg);
+>  		return (void *) (uintptr_t) ret;
+>  	}
+>
+>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
