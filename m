@@ -1,37 +1,29 @@
 From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 02/28] Include pthreads in the provider libraries
-Date: Wed, 14 Sep 2016 19:27:52 +0300
-Message-ID: <cae96cdf-a174-230c-4e60-ad570ee2baa0@dev.mellanox.co.il>
+Subject: Re: [PATCH 03/28] Be explicit about _GNU_SOURCE
+Date: Wed, 14 Sep 2016 19:30:03 +0300
+Message-ID: <465a194a-cc3b-6096-a5ba-52445d4f5475@dev.mellanox.co.il>
 References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-3-git-send-email-jgunthorpe@obsidianresearch.com>
- <2961f191-3020-ed18-0200-ce569c19326b@dev.mellanox.co.il>
- <20160914160150.GA16014@obsidianresearch.com>
+ <1473109698-31408-4-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160914160150.GA16014-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1473109698-31408-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/14/2016 7:01 PM, Jason Gunthorpe wrote:
-> On Wed, Sep 14, 2016 at 06:15:45PM +0300, Yishai Hadas wrote:
->> On 9/6/2016 12:07 AM, Jason Gunthorpe wrote:
->>> It is a mistake to not explicitly link to the libraries required.
->>> Not linking causes the symbols to drop the symbol version which could
->>> cause runtime problems down the road if pthreads ever goes through
->>> another symbol version change.
->>
->> Where in this patch the provider links explicitly with pthreads as you
->> pointed that should be done ? can see only a check that pthread exists and
->> has the pthread_mutex_init symbol.
+On 9/6/2016 12:07 AM, Jason Gunthorpe wrote:
+> The recommended way to use this macro is at the top of the source file,
+> avoid globally setting it via 'gcc -D' as few source files actually
+> need it. In this tree we only need it in 17 out of 83 sources.
 >
-> AC_CHECK_LIB adds the library to the link line as well.
+> _GNU_SOURCE changes the behaviour of a few select calls away from the C99
+> standard and should generally be minimized.
 >
 
-Just verified, this is correct, will take into libmlx4/libmlx5.
+I'm fine with that, will take the relevant parts into libmlx4/libmlx5.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
