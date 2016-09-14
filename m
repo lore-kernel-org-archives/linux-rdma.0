@@ -1,60 +1,29 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 09/28] mlx5: Fix gcc 6.4 uninitialized variable warning
-Date: Wed, 14 Sep 2016 18:39:10 +0300
-Message-ID: <0ba444b7-6af4-72f3-d3d6-c27b73421679@dev.mellanox.co.il>
-References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-10-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v4 01/16] vmxnet3: Move PCI Id to pci_ids.h
+Date: Wed, 14 Sep 2016 16:00:25 +0000
+Message-ID: <DM2PR0501MB844852987661859C6654E40C5F10@DM2PR0501MB844.namprd05.prod.outlook.com>
+References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
+ <1473655766-31628-2-git-send-email-aditr@vmware.com>
+ <20160914110854.GA15800@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473109698-31408-10-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160914110854.GA15800-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/6/2016 12:07 AM, Jason Gunthorpe wrote:
-> gcc 6.4 remarks:
->
-> ../providers/mlx5/cq.c:647:10: warning: 'wc_byte_len' may be used uninitialized in this function [-Wmaybe-uninitialized]
->     err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe,
->            lazy ? wc_byte_len : wc->byte_len);
-> The path is because handle_good_req_lazy does not set its wc_byte_len
-> outputs under certain case conditions.
+On Wed, Sep 14, 2016 at 04:09:12 -0700, Yuval Shaia wrote:
+> Please update vmxnet3_drv.c accordingly.
 
-wc_byte_len defined as uint32_t uninitialized_var(wc_byte_len) to 
-prevent this warning, isn't this macro applicable ?
+Any reason why? I don't think we need to. Vmxnet3 should just pick up the m=
+oved
+PCI device id from pci_ids.h file.
 
-> Perhaps it is possible that the hardware never produces a completion
-> with opcodes and scatter flags that could trigger this,
-It can't happen, no real functional issue.
-
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  libmlx5/src/cq.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/libmlx5/src/cq.c b/libmlx5/src/cq.c
-> index 88097037eea0..163205bddeb8 100644
-> --- a/libmlx5/src/cq.c
-> +++ b/libmlx5/src/cq.c
-> @@ -235,7 +235,10 @@ static inline void handle_good_req_lazy(struct mlx5_cqe64 *cqe, uint32_t *pwc_by
->  		break;
->  	case MLX5_OPCODE_UMR:
->  		*umr_opcode = wq->wr_data[idx];
-> +		*pwc_byte_len = 0;
-
-This case is a data path flow, need to prevent adding non applicable code.
-
->  		break;
-> +	default:
-> +		*pwc_byte_len = 0;
->  	}
->  }
->
->
-
+- Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
