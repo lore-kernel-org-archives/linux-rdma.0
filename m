@@ -1,93 +1,48 @@
 From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [PATCH v4 09/16] IB/pvrdma: Add support for Completion Queues
-Date: Thu, 15 Sep 2016 10:36:12 +0300
-Message-ID: <20160915073611.GA3851@yuval-lap.uk.oracle.com>
+Subject: Re: [PATCH v4 01/16] vmxnet3: Move PCI Id to pci_ids.h
+Date: Thu, 15 Sep 2016 10:55:26 +0300
+Message-ID: <20160915075525.GB3851@yuval-lap.uk.oracle.com>
 References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-10-git-send-email-aditr@vmware.com>
- <20160914124321.GE15800@yuval-lap.uk.oracle.com>
- <BLUPR0501MB836640F5ECEAB3A99CD82BFC5F00@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <1473655766-31628-2-git-send-email-aditr@vmware.com>
+ <20160914110854.GA15800@yuval-lap.uk.oracle.com>
+ <DM2PR0501MB844852987661859C6654E40C5F10@DM2PR0501MB844.namprd05.prod.outlook.com>
+ <20160914162452.GA3216@yuval-lap.Home>
+ <DM2PR0501MB84422A1029EE72FC727F960C5F10@DM2PR0501MB844.namprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <BLUPR0501MB836640F5ECEAB3A99CD82BFC5F00@BLUPR0501MB836.namprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <DM2PR0501MB84422A1029EE72FC727F960C5F10@DM2PR0501MB844.namprd05.prod.outlook.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Adit Ranadive <aditr@vmware.com>
 Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, pv-drivers <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Jorgen S. Hansen" <jhansen@vmware.com>, Aditya Sarwade <asarwade@vmware.com>, George Zhang <georgezhang@vmware.com>, Bryan Tan <bryantan@vmware.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Adit,
-Please see my comments inline.
-
-Besides that I have no more comment for this patch.
+Besides that no more comments.
 
 Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
 
-Yuval
-
-On Thu, Sep 15, 2016 at 12:07:29AM +0000, Adit Ranadive wrote:
-> On Wed, Sep 14, 2016 at 05:43:37 -0700, Yuval Shaia wrote:
-> > On Sun, Sep 11, 2016 at 09:49:19PM -0700, Adit Ranadive wrote:
-> > > +
-> > > +static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp
-> > **cur_qp,
-> > > +			   struct ib_wc *wc)
-> > > +{
-> > > +	struct pvrdma_dev *dev = to_vdev(cq->ibcq.device);
-> > > +	int has_data;
-> > > +	unsigned int head;
-> > > +	bool tried = false;
-> > > +	struct pvrdma_cqe *cqe;
-> > > +
-> > > +retry:
-> > > +	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-> > > +					    cq->ibcq.cqe, &head);
-> > > +	if (has_data == 0) {
-> > > +		if (tried)
-> > > +			return -EAGAIN;
-> > > +
-> > > +		/* Pass down POLL to give physical HCA a chance to poll. */
-> > > +		pvrdma_write_uar_cq(dev, cq->cq_handle |
-> > PVRDMA_UAR_CQ_POLL);
-> > > +
-> > > +		tried = true;
-> > > +		goto retry;
-> > > +	} else if (has_data == PVRDMA_INVALID_IDX) {
+On Wed, Sep 14, 2016 at 07:36:34PM +0000, Adit Ranadive wrote:
+> On Wed, Sep 14, 2016 at 09:25:18 -0700, Yuval Shaia wrote:
+> > On Wed, Sep 14, 2016 at 04:00:25PM +0000, Adit Ranadive wrote:
+> > > On Wed, Sep 14, 2016 at 04:09:12 -0700, Yuval Shaia wrote:
+> > > > Please update vmxnet3_drv.c accordingly.
+> > >
+> > > Any reason why? I don't think we need to. Vmxnet3 should just pick up
+> > > the moved PCI device id from pci_ids.h file.
 > > 
-> > I didn't went throw the entire life cycle of RX-ring's head and tail but you
-> > need to make sure that PVRDMA_INVALID_IDX error is recoverable one, i.e
-> > there is probability that in the next call to pvrdma_poll_one it will be fine.
-> > Otherwise it is an endless loop.
+> > So now you need to include it from vmxnet3_drv.c.
+> > Same with pvrdma_main.c
 > 
-> We have never run into this issue internally but I don't think we can recover here 
-
-I briefly reviewed the life cycle of RX-ring's head and tail and didn't
-caught any suspicious place that might corrupt it.
-So glad to see that you never encountered this case.
-
-> in the driver. The only way to recover would be to destroy and recreate the CQ 
-> which we shouldn't do since it could be used by multiple QPs. 
-
-Agree.
-But don't they hit the same problem too?
-
-> We don't have a way yet to recover in the device. Once we add that this check
-> should go away.
-
-To be honest i have no idea how to do that - i was expecting driver's vendors
-to come up with an ideas :)
-I once came up with an idea to force restart of the driver but it was
-rejected.
-
+> If you're asking me to include pci_ids.h in our drivers we already do that
+> by including pci.h in both the drivers. 
+> pci.h already includes pci_ids.h - 
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/linux/pci.h#n35
 > 
-> The reason I returned an error value from poll_cq in v3 was to break the possible 
-> loop so that it might give clients a chance to recover. But since poll_cq is not expected
-> to fail I just log the device error here. I can revert to that version if you want to break
-> the possible loop.
-
-Clients (ULPs) cannot recover from this case. They even do not check the
-reason of the error and treats any error as -EAGAIN.
-
+> If that's going to change maybe someone from the PCI group can comment on.
+> 
+> Thanks,
+> Adit
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo@vger.kernel.org
