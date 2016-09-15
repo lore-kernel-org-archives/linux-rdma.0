@@ -1,68 +1,57 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 12/20] IB/hns: Return bad wr while post send
- failed
-Date: Thu, 15 Sep 2016 12:07:42 +0300
-Message-ID: <20160915090742.GV26069@leon.nu>
+Subject: Re: [PATCH for-next 03/20] IB/hns: Add the check for pointer ctrl
+Date: Thu, 15 Sep 2016 13:07:57 +0300
+Message-ID: <20160915100757.GW26069@leon.nu>
 References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
- <1473417051-99560-13-git-send-email-salil.mehta@huawei.com>
+ <1473417051-99560-4-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="xVUAO+xN0VJlKSe3"
+        protocol="application/pgp-signature"; boundary="hSsVBZHIO2Q9XETc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1473417051-99560-13-git-send-email-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1473417051-99560-4-git-send-email-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, "Dongdong Huang(Donald)" <hdd.huang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---xVUAO+xN0VJlKSe3
+--hSsVBZHIO2Q9XETc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Sep 09, 2016 at 06:30:43PM +0800, Salil Mehta wrote:
+On Fri, Sep 09, 2016 at 06:30:34PM +0800, Salil Mehta wrote:
 > From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 >
-> While post failed, hns roce should return the wr failed to user.
-> We omitted this while qp type is wrong and fixed it.
+> The pointer ctrl may be null, so we add check for it.
 >
 > Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Dongdong Huang(Donald) <hdd.huang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
 >
 > diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> index f4d2515..f0d6315 100644
+> index 5f76fc1..ea47ec4 100644
 > --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 > +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> @@ -264,8 +264,10 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->  			}
->  			ind++;
->  		} else {
-
-You should move the check of supported QPs to the beginning of post_send
-and don't enter into the loop at all.
-
-> -			dev_dbg(dev, "unSupported QP type\n");
-> -			break;
-> +			dev_err(dev, "unSupported QP type\n");
-
-During initial review of hns driver, Lijun was asked to canonize debug
-messages and don't use different styles and especially sUcH case.
-
-> +			ret = -EOPNOTSUPP;
-> +			*bad_wr = wr;
-
-IMHO, the proper thing is to return NULL, because this is not wrong wr.
-
-> +			goto out;
+> @@ -336,6 +336,12 @@ int hns_roce_v1_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
 >  		}
->  	}
 >
+>  		ctrl = get_recv_wqe(hr_qp, ind);
+> +		if (unlikely(!ctrl)) {
+
+Yes, as you wrote, this check and patch are redundant too.
+
+> +			dev_err(dev, "Get recv wqe failed!\n");
+> +			ret = -EINVAL;
+> +			*bad_wr = wr;
+> +			goto out;
+> +		}
+>
+>  		roce_set_field(ctrl->rwqe_byte_12,
+>  			       RQ_WQE_CTRL_RWQE_BYTE_12_RWQE_SGE_NUM_M,
 > --
 > 1.7.9.5
 >
@@ -71,28 +60,28 @@ IMHO, the proper thing is to return NULL, because this is not wrong wr.
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---xVUAO+xN0VJlKSe3
+--hSsVBZHIO2Q9XETc
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX2mTeAAoJEORje4g2clinSwgQAIxiBtp+xVZy5C/wWpGAKgpV
-L0mYm6PD7hoZthTRZVkiaSEUnNBfc/bB+lpob6wuk0xWdwNgp3j5YWNy1DfnygS1
-4DWl+KbbUQvZDDLlh+CZl26wcvJy9+OifTOJnxvzh3oJ6Z/AHpgujye3RzHaKr0R
-uiFXHjl1lBVK5HlzCwXh8aYL9CjXVYB743TXBgouputXkG8ORtNO5UP/CHYl0eef
-Td7hgaEPB7zysvwvfvdXeMdEW15BSh//sliF3ZXzWYPo3E3HxnpKwaeVhYV6qxvo
-hRpthaHR8Tmy4NY25GTXSygdSqQc5z97DNsiO2BWYPjWSTueg+u7rqdBzSA2OlvM
-UUbhGU8/5+29Z776NJ8bb2WBwp6+olTAgZLgiCq0hsPPh9Mkg44vsGs73PDPkRwf
-tmt9lbKXWX1WRyRPKn1r32i4fIrlMGOZxqDwOVRNyZSZY83ipAnykcI5EiuULIBn
-moKk7RD7XJWZWbVVI2ndMHVEqqJpOcTr72nDMj32P6gZWveFcy4BX68Hc8Y2WozH
-nfTDIkpI55rR9EW6JClgrbUmuUYZ7psJjqj6dlCti+ucSqQBHnfCRpX1l14LyFS3
-jyWefhFZtaTdOSq1a6y0fhJkEoV6EJNnV2EM8roqSFySgnuJYKQeZA6OCNJRpASK
-YE5bya5/KA3k1WYxFS+T
-=sNIe
+iQIcBAEBAgAGBQJX2nL9AAoJEORje4g2clinZmMP/im4M9pdOpBR/vDGAf3ZqRq4
+1pnQHNkUXP8+NO8DHAiWHRazz0+yGB80kPheumaDQdObK9/9mVzxZABtluT1TXqJ
+ZF4GSCzUCqEf9OpPFxKSvAj4o9DoTNsAkJnUpdrW7g3TyJvvmG+zW1L/9CFVIxUt
+UCpEZQoPS8shmB/BINlBuBYgMk+bZAotHeo1DgFFJjYAwuHco3eIwPuhyyjyaTK4
+wR0SILcczDlg19PbqfbFK3eAX/if2HFmoVPRb1qWHi9kKXpNmdRLXdA8I4jgB5Da
+Xtz+DGPVrjxxlv5i1g2/wv/a0V8Z6ePcLbESFdwNJRHe3AWzt5bsHh5F5V9ewtm3
+lIOAw2CGMe6Wt1ATL9aLSKnLlJtLzTgT4v0M8CtCmj2viDmGbRxGGXLVNSPzULgg
+BA9GN4E3YKdjDfbhpERrPIq34zHqj3HYxlXVE0om/dt9z7K+Lp2nhhH6do59uvBc
+2Txls9++u2OiWg3jSpPxdwVZ1xzkR2duNcEn2TNF3xWzgBkI4ZMj73wSH5Sfe1rV
+kGeNsf5E4IWnhi9R+CPtV2J3TgzT6djBH9T0JwJOLlU9ZlVavbOEKvU+uMWBNttA
+vlAwHFrva16z+I7TLLEmIvbTqpgDOPXv9aMbfWZ9zvzz48GrJysSS+iUFvjVFEIm
+tTUthHwCYEdMdidZaruD
+=pkJw
 -----END PGP SIGNATURE-----
 
---xVUAO+xN0VJlKSe3--
+--hSsVBZHIO2Q9XETc--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
