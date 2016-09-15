@@ -1,58 +1,49 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 15 Sep 2016 14:36:54 -0500
-Message-ID: <02a501d20f88$8386bca0$8a9435e0$@opengridcomputing.com>
-References: <20160915065242.GO26069@leon.nu> <20160915080600.GA31776@infradead.org> <20160915081149.GT26069@leon.nu> <20160915081327.GA7572@infradead.org> <20160915083945.GU26069@leon.nu> <20160915160427.GC18154@obsidianresearch.com> <01e901d20f6b$7ae067d0$70a13770$@opengridcomputing.com> <20160915163756.GB26069@leon.nu> <20160915164931.GC26111@obsidianresearch.com> <022e01d20f84$a3685870$ea390950$@opengridcomputing.com> <20160915192628.GB437@obsidianresearch.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V3 for-next 0/9] IB/hns: Add CM(Connection Manager) Support to HNS RoCe Driver
+Date: Thu, 15 Sep 2016 23:48:05 +0100
+Message-ID: <20160915224814.656184-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160915192628.GB437-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-> > > > Do we want to create rdma-tools after this task will be completed? For
-> > example
-> > > > with debug and performance tools in it.
-> > >
-> > > Prolification of repositories is exactly what this is intended to
-> > > prevent :(
-> >
-> > The goal would be to move all the tools/cmds/etc into one repo.  How is that
-> > prolification?
-> 
-> I guess I should wait and see what could end up in there before
-> commenting...
-> 
+This patch-set adds the CM(Connection Manager) support to the
+HNS RoCE driver. Changes done are primarily to add support of
+APIs in IB device and some fixes over the base driver to
+support RDMA Connection Manager. This patch-set also updates
+the Device binding document as new parameter node-guid was
+added to the DT.
 
-I think we should shelf this discussion until we get our current project done...
+All of the patches have been authored by Oulijun and reviewed
+by Huwei.
 
-But... :)
+Change Log:
+V2->V3: Fixed the compilation break reported by kbuild
+V1->V2: Addressed the comments from Leon Romanovsky.
 
-A quick gander at the OFED packages produces this list of possible candidates:
+Please refer individual patch for details.
 
-dapl  (perhaps dapl should be in rdma-plumbing?)
-fabtests
-ibacm
-ibpd
-ibsim
-ibutils
-infiniband-diags
-infinipath-psm
-mstflint
-opensm
-perftest
-qlvnictools
-qperf
-rds-tools
+Lijun Ou (9):
+  IB/hns: Register HNS RoCE Driver get_netdev() with IB Core
+  IB/hns: Add & initialize "node_guid" parameter for RDMA CM
+  IB/hns: Fix the value of device_cap_flags
+  IB/hns: Fix two possible bugs for rdma cm
+  IB/hns: Add phy_port for computing GSI/QPN
+  IB/hns: Change the logic for allocating uar registers
+  IB/hns: Fix the bug of rdma cm connecting on user mode
+  IB/hns: Fix two bugs for rdma cm connecting
+  IB/hns: Add node_guid definition to the bindings document
 
+ .../bindings/infiniband/hisilicon-hns-roce.txt     |  2 +
+ drivers/infiniband/hw/hns/hns_roce_device.h        |  5 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c         | 82 +++++++++-------------
+ drivers/infiniband/hw/hns/hns_roce_main.c          | 32 ++++++++-
+ drivers/infiniband/hw/hns/hns_roce_pd.c            |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c            | 14 ++--
+ 6 files changed, 77 insertions(+), 62 deletions(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.9.1
