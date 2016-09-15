@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 22/22] xprtrdma: Eliminate rpcrdma_receive_worker()
-Date: Thu, 15 Sep 2016 10:57:57 -0400
-Message-ID: <20160915145757.11080.61796.stgit@manet.1015granger.net>
+Subject: [PATCH v3 21/22] xprtrdma: Rename rpcrdma_receive_wc()
+Date: Thu, 15 Sep 2016 10:57:49 -0400
+Message-ID: <20160915145748.11080.20759.stgit@manet.1015granger.net>
 References: <20160915143440.11080.89241.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,73 +13,45 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: the extra layer of indirection doesn't add value.
+Clean up: When converting xprtrdma to use the new CQ API, I missed a
+spot. The naming convention elsewhere is:
+
+  {svc_rdma,rpcrdma}_wc_{operation}
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |    4 +++-
- net/sunrpc/xprtrdma/verbs.c     |   11 +----------
- net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
- 3 files changed, 5 insertions(+), 12 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 63bf011..d987c2d 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -977,8 +977,10 @@ rpcrdma_conn_func(struct rpcrdma_ep *ep)
-  * allowed to timeout, to discover the errors at that time.
-  */
- void
--rpcrdma_reply_handler(struct rpcrdma_rep *rep)
-+rpcrdma_reply_handler(struct work_struct *work)
- {
-+	struct rpcrdma_rep *rep =
-+			container_of(work, struct rpcrdma_rep, rr_work);
- 	struct rpcrdma_msg *headerp;
- 	struct rpcrdma_req *req;
- 	struct rpc_rqst *rqst;
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 48a2b67..cbab98b 100644
+index eeaca9c..48a2b67 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -129,15 +129,6 @@ rpcrdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
- 		       wc->status, wc->vendor_err);
+@@ -161,13 +161,13 @@ rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
  }
  
--static void
--rpcrdma_receive_worker(struct work_struct *work)
--{
--	struct rpcrdma_rep *rep =
--			container_of(work, struct rpcrdma_rep, rr_work);
--
--	rpcrdma_reply_handler(rep);
--}
--
- /* Perform basic sanity checking to avoid using garbage
-  * to update the credit grant value.
+ /**
+- * rpcrdma_receive_wc - Invoked by RDMA provider for each polled Receive WC
++ * rpcrdma_wc_receive - Invoked by RDMA provider for each polled Receive WC
+  * @cq:	completion queue (ignored)
+  * @wc:	completed WR
+  *
   */
-@@ -919,7 +910,7 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
- 	rep->rr_device = ia->ri_device;
- 	rep->rr_cqe.done = rpcrdma_wc_receive;
- 	rep->rr_rxprt = r_xprt;
--	INIT_WORK(&rep->rr_work, rpcrdma_receive_worker);
-+	INIT_WORK(&rep->rr_work, rpcrdma_reply_handler);
- 	rep->rr_recv_wr.next = NULL;
- 	rep->rr_recv_wr.wr_cqe = &rep->rr_cqe;
- 	rep->rr_recv_wr.sg_list = &rep->rr_rdmabuf->rg_iov;
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index b2823d9..0d35b76 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -535,7 +535,7 @@ rpcrdma_data_dir(bool writing)
-  */
- void rpcrdma_connect_worker(struct work_struct *);
- void rpcrdma_conn_func(struct rpcrdma_ep *);
--void rpcrdma_reply_handler(struct rpcrdma_rep *);
-+void rpcrdma_reply_handler(struct work_struct *);
+ static void
+-rpcrdma_receive_wc(struct ib_cq *cq, struct ib_wc *wc)
++rpcrdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct ib_cqe *cqe = wc->wr_cqe;
+ 	struct rpcrdma_rep *rep = container_of(cqe, struct rpcrdma_rep,
+@@ -917,7 +917,7 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
+ 	}
  
- /*
-  * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
+ 	rep->rr_device = ia->ri_device;
+-	rep->rr_cqe.done = rpcrdma_receive_wc;
++	rep->rr_cqe.done = rpcrdma_wc_receive;
+ 	rep->rr_rxprt = r_xprt;
+ 	INIT_WORK(&rep->rr_work, rpcrdma_receive_worker);
+ 	rep->rr_recv_wr.next = NULL;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
