@@ -1,122 +1,124 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH for-next 13/20] IB/hns: Add check for some NULL pointer
- scenes
-Date: Thu, 15 Sep 2016 03:41:30 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A719A2B@lhreml503-mbx>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 10/20] IB/hns: Modify the init of iboe lock
+Date: Thu, 15 Sep 2016 03:49:36 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A719A69@lhreml503-mbx>
 References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
- <1473417051-99560-14-git-send-email-salil.mehta@huawei.com>
- <20160913065937.GS8812@leon.nu>
+ <1473417051-99560-11-git-send-email-salil.mehta@huawei.com>
+ <20160913065028.GR8812@leon.nu>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A716DF6@lhreml503-mbx>
+ <20160914050455.GY8812@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160913065937.GS8812@leon.nu>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160914050455.GY8812-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "Huangdongdong (Donald)" <hdd.huang@huawei.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xuwei (O)" <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Huangdongdong (Donald)" <hdd.huang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
 > -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> owner@vger.kernel.org] On Behalf Of Leon Romanovsky
-> Sent: Tuesday, September 13, 2016 8:00 AM
+> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> Sent: Wednesday, September 14, 2016 6:05 AM
 > To: Salil Mehta
-> Cc: dledford@redhat.com; Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
-> xuwei (O); mehta.salil.lnk@gmail.com; linux-rdma@vger.kernel.org;
-> linux-kernel@vger.kernel.org; Linuxarm; Huangdongdong (Donald)
-> Subject: Re: [PATCH for-next 13/20] IB/hns: Add check for some NULL
-> pointer scenes
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> xuwei (O); mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm; Huangdongdong (Donald)
+> Subject: Re: [PATCH for-next 10/20] IB/hns: Modify the init of iboe
+> lock
 > 
-> On Fri, Sep 09, 2016 at 06:30:44PM +0800, Salil Mehta wrote:
-> > From: Lijun Ou <oulijun@huawei.com>
+> On Wed, Sep 14, 2016 at 02:09:37AM +0000, Salil Mehta wrote:
 > >
-> > Some pointers have not be checked when they are null,
-> > so we add check for them.
 > >
-> > Signed-off-by: Lijun Ou <oulijun@huawei.com>
-> > Signed-off-by: Dongdong Huang(Donald) <hdd.huang@huawei.com>
-> > Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
-> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+> > > -----Original Message-----
+> > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> > > Sent: Tuesday, September 13, 2016 7:50 AM
+> > > To: Salil Mehta
+> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng
+> (Yisen);
+> > > xuwei (O); mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > > linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm; Huangdongdong (Donald)
+> > > Subject: Re: [PATCH for-next 10/20] IB/hns: Modify the init of iboe
+> > > lock
+> > >
+> > > On Fri, Sep 09, 2016 at 06:30:41PM +0800, Salil Mehta wrote:
+> > > > From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > >
+> > > > This lock will be used in query port interface, and will be
+> called
+> > > > while IB device was registered to OFED frame. So, the lock of
+> iboe
+> > > > must be initiated before IB device was registered.
+> > >
+> > > Sorry,
+> > > what did you mean by writing "OFED frame"?
+> > It is a typo. It was OFED framework but I guess more appropriate word
+> > might have been 'IB core' layer of Infiniband. Will fix this. Thanks!
 > 
-> I may admit that I didn't check your code to read the implementations
-> of
-> get_send_wqe() and hns_roce_v1_poll_one(), but based on my assumption
-> that the code is similar to mlx4.
+> As a general note, and I understand that these contributors are not
+> native English speakers, and I understand the desire to submit the
+> right
+> code and code should speak by itself, but can you invest more time in
+> commit messages and write them in English?
 > 
-> These failures can't occur.
-> 
-> Can you throw a light on how did you find them and check it?
+> Thanks
 Hi Leon,
-Looks like this is another redundant patch. These return checks should
-never be required. I think the mistake lies in the wrong check placed
-inside below function:
-
-void *get_send_wqe(struct hns_roce_qp *hr_qp, int n)
-{
-.................................................
-.................................................
-/* To Be Deleted: Below check is redundantly placed. */
-	if ((n < 0) || (n > hr_qp->sq.wqe_cnt)) {
-		dev_err(&hr_dev->pdev->dev, "sq wqe index:%d,sq wqe cnt:%d\r\n",
-			n, hr_qp->sq.wqe_cnt);
-		return NULL;
-	}
-
-	return get_wqe(hr_qp, hr_qp->sq.offset + (n << hr_qp->sq.wqe_shift));
-}
-
-and perhaps same is the case in function get_rcv_wqe(). The same check needs
-to be removed from there as well and also the error handling in the calling
-functions. Thanks for figuring it out. Will correct in the subsequent patch.
+Yes, will try to make them better.
 
 Best regards
-Salil 
-> 
-> > ---
-> >  drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   11 +++++++++++
-> >  1 file changed, 11 insertions(+)
+Salil
 > >
-> > diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> > index f0d6315..e3e154c 100644
-> > --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> > +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> > @@ -92,6 +92,12 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp,
-> struct ib_send_wr *wr,
-> >  		}
-> >
-> >  		wqe = get_send_wqe(qp, ind & (qp->sq.wqe_cnt - 1));
-> > +		if (unlikely(!wqe)) {
-> > +			dev_err(dev, "get send wqe failed\n");
-> > +			ret = -EINVAL;
-> > +			*bad_wr = wr;
-> > +			goto out;
-> > +		}
-> >  		qp->sq.wrid[(qp->sq.head + nreq) & (qp->sq.wqe_cnt - 1)] =
-> >  								      wr->wr_id;
-> >
-> > @@ -1558,6 +1564,11 @@ static int hns_roce_v1_poll_one(struct
-> hns_roce_cq *hr_cq,
-> >  		sq_wqe = get_send_wqe(*cur_qp, roce_get_field(cqe-
-> >cqe_byte_4,
-> >  						CQE_BYTE_4_WQE_INDEX_M,
-> >  						CQE_BYTE_4_WQE_INDEX_S));
-> > +		if (unlikely(!sq_wqe)) {
-> > +			dev_err(dev, "Get send wqe failed!\n");
-> > +			return -EFAULT;
-> > +		}
-> > +
-> >  		switch (sq_wqe->flag & HNS_ROCE_WQE_OPCODE_MASK) {
-> >  		case HNS_ROCE_WQE_OPCODE_SEND:
-> >  			wc->opcode = IB_WC_SEND;
-> > --
-> > 1.7.9.5
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Best regards
+> > Salil
+> > >
+> > > >
+> > > > Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > Signed-off-by: Dongdong Huang(Donald) <hdd.huang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > ---
+> > > >  drivers/infiniband/hw/hns/hns_roce_main.c |    3 +--
+> > > >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > > >
+> > > > diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c
+> > > b/drivers/infiniband/hw/hns/hns_roce_main.c
+> > > > index 2704076..4721c0c 100644
+> > > > --- a/drivers/infiniband/hw/hns/hns_roce_main.c
+> > > > +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+> > > > @@ -615,6 +615,7 @@ static int hns_roce_register_device(struct
+> > > hns_roce_dev *hr_dev)
+> > > >  	struct device *dev = &hr_dev->pdev->dev;
+> > > >
+> > > >  	iboe = &hr_dev->iboe;
+> > > > +	spin_lock_init(&iboe->lock);
+> > > >
+> > > >  	ib_dev = &hr_dev->ib_dev;
+> > > >  	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
+> > > > @@ -701,8 +702,6 @@ static int hns_roce_register_device(struct
+> > > hns_roce_dev *hr_dev)
+> > > >  		goto error_failed_setup_mtu_gids;
+> > > >  	}
+> > > >
+> > > > -	spin_lock_init(&iboe->lock);
+> > > > -
+> > > >  	iboe->nb.notifier_call = hns_roce_netdev_event;
+> > > >  	ret = register_netdevice_notifier(&iboe->nb);
+> > > >  	if (ret) {
+> > > > --
+> > > > 1.7.9.5
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-
+> rdma"
+> > > in
+> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-
+> info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
