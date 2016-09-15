@@ -1,59 +1,56 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 21/22] xprtrdma: Rename rpcrdma_receive_wc()
-Date: Thu, 15 Sep 2016 10:57:49 -0400
-Message-ID: <20160915145748.11080.20759.stgit@manet.1015granger.net>
-References: <20160915143440.11080.89241.stgit@manet.1015granger.net>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 21/28] mlx5: Avoid gcc 5.4 warning -Wempty-body
+Date: Thu, 15 Sep 2016 18:15:08 +0300
+Message-ID: <a6336efd-af82-1111-899a-e922ba2f915b@dev.mellanox.co.il>
+References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1473109698-31408-22-git-send-email-jgunthorpe@obsidianresearch.com>
+ <6214bd07-f40c-8458-73a2-c07383c5d85a@dev.mellanox.co.il>
+ <20160914165519.GC16014@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160915143440.11080.89241.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160914165519.GC16014-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: When converting xprtrdma to use the new CQ API, I missed a
-spot. The naming convention elsewhere is:
+On 9/14/2016 7:55 PM, Jason Gunthorpe wrote:
+> No compiler we support will leave behind a function call for an empty
+> static inline.
+>
+> I just checked, the assembly is the same before/after modulo compiler
+> non-determinism. There are no extra function calls.
+>
+>>> enum {
+>>> diff --git a/libmlx5/src/qp.c b/libmlx5/src/qp.c
+>>> index c805fcae4123..23270e50af7a 100644
+>>> +++ b/libmlx5/src/qp.c
+>>> @@ -356,9 +356,7 @@ static inline int copy_eth_inline_headers(struct ibv_qp *ibqp,
+>>> 	int inl_hdr_size = MLX5_ETH_L2_INLINE_HEADER_SIZE;
+>>> 	int inl_hdr_copy_size = 0;
+>>> 	int j = 0;
+>>> -#ifdef MLX5_DEBUG
+>>> 	FILE *fp = to_mctx(ibqp->context)->dbg_fp;
+>>> -#endif
+>>
+>> This is data path flow, dropping the #ifdef may cause a redundant assignment
+>> for 'fp' here.
+>
+> Nope:
+>
+> $ nm --size libmlx4-rdmv2.so
+> [before]
+> 0000000000001637 t _mlx5_post_send
+> [after]
+> 0000000000001637 t _mlx5_post_send
+>
+> The compilers are very smart, you don't need to hand hold them.
 
-  {svc_rdma,rpcrdma}_wc_{operation}
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index eeaca9c..48a2b67 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -161,13 +161,13 @@ rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
- }
- 
- /**
-- * rpcrdma_receive_wc - Invoked by RDMA provider for each polled Receive WC
-+ * rpcrdma_wc_receive - Invoked by RDMA provider for each polled Receive WC
-  * @cq:	completion queue (ignored)
-  * @wc:	completed WR
-  *
-  */
- static void
--rpcrdma_receive_wc(struct ib_cq *cq, struct ib_wc *wc)
-+rpcrdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct ib_cqe *cqe = wc->wr_cqe;
- 	struct rpcrdma_rep *rep = container_of(cqe, struct rpcrdma_rep,
-@@ -917,7 +917,7 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
- 	}
- 
- 	rep->rr_device = ia->ri_device;
--	rep->rr_cqe.done = rpcrdma_receive_wc;
-+	rep->rr_cqe.done = rpcrdma_wc_receive;
- 	rep->rr_rxprt = r_xprt;
- 	INIT_WORK(&rep->rr_work, rpcrdma_receive_worker);
- 	rep->rr_recv_wr.next = NULL;
-
+Thanks for checking that, will take into our regression system to run on 
+before formally taking.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
