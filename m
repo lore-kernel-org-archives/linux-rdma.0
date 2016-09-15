@@ -1,119 +1,107 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 21/28] mlx5: Avoid gcc 5.4 warning -Wempty-body
-Date: Thu, 15 Sep 2016 08:18:40 +0300
-Message-ID: <20160915051840.GJ26069@leon.nu>
-References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-22-git-send-email-jgunthorpe@obsidianresearch.com>
- <6214bd07-f40c-8458-73a2-c07383c5d85a@dev.mellanox.co.il>
- <20160914165519.GC16014@obsidianresearch.com>
+From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFC 02/11] Add RoCE driver framework
+Date: Thu, 15 Sep 2016 05:11:03 +0000
+Message-ID: <BL2PR07MB23060C776EDAE92B84FCFB768DF00@BL2PR07MB2306.namprd07.prod.outlook.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1473696465-27986-3-git-send-email-Ram.Amrani@qlogic.com>
+ <516b98c7-477a-4890-0d92-529dc32f2c4e@mellanox.com>
+ <CY4PR11MB1720F9B74BBF82D0779FAC8F97FF0@CY4PR11MB1720.namprd11.prod.outlook.com>
+ <20160913063806.GP8812@leon.nu>
+ <BL2PR07MB2306937C8C495DB80DA776CA8DFE0@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160913101616.GT8812@leon.nu>
+ <BL2PR07MB2306533A710B9EC40F56E8678DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160914130032.GB26069@leon.nu>
+ <BL2PR07MB23066BBC4A019365A632E2FA8DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160915043716.GD26069@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="x0KprKst+ZOYEj2z"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160914165519.GC16014-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160915043716.GD26069-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---x0KprKst+ZOYEj2z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Sep 14, 2016 at 10:55:19AM -0600, Jason Gunthorpe wrote:
-> On Wed, Sep 14, 2016 at 07:25:25PM +0300, Yishai Hadas wrote:
-> > >Which is functionally okay, but strange.
+> > > If you want dynamic prints, you have two options:
+> > > 1. Add support of ethtool to whole RDMA stack.
+> > > 2. Use dynamic tracing infrastructure.
 > >
-> > As you pointed, there is no functional issue with that.
->
-> Yet is a common enough errnonous construction to attract a compiler
-> warning. Don't do it.
->
-> Further, it is just a way to attract bit rot in your dbg macros if you
-> don't check the format string during a normal compile.
->
-> > >It is much better to make mlx5_dbg an empty static inline, this way it
-> > >continues to do parameter type validation even when disabled, and we
-> > >can drop the sprinkling of #ifdef MLX5_DEBUG everywhere.
-> >
-> > The idea was to have an 'empty' code when this macro is used as some code is
-> > done in the data path, see below notes.
->
-> Yes, I know what the intent was, this change does exactly the same thing.
->
-> > >+static inline void mlx5_dbg(FILE *fp, uint32_t mask, const char *fmt, ...)
-> > >+{
-> > >+}
-> > > #endif
-> >
-> > Inline is not guaranteed by the compiler, calling empty function in some
-> > data data path flows should be prevented.
->
-> No compiler we support will leave behind a function call for an empty
-> static inline.
->
-> I just checked, the assembly is the same before/after modulo compiler
-> non-determinism. There are no extra function calls.
+> > > Which option do you prefer?
+> > Option 3 - continuing this discussion. :-)
+>=20
+> Sorry,
+> I was under impression that you want this driver to be merged, but it loo=
+ks like It
+> was incorrect assumption. Let's continue discussion.
 
-There is always inline attribute to tell to GCC to inline it.
-#define ALWAYS_INLINE inline __attribute__ ((always_inline))
+No, this is an RFC - there's no chance for *this* to merge, but this is exa=
+ctly
+the right time to discuss this sort of stuff.
 
->
-> > > enum {
-> > >diff --git a/libmlx5/src/qp.c b/libmlx5/src/qp.c
-> > >index c805fcae4123..23270e50af7a 100644
-> > >+++ b/libmlx5/src/qp.c
-> > >@@ -356,9 +356,7 @@ static inline int copy_eth_inline_headers(struct ibv_qp *ibqp,
-> > > 	int inl_hdr_size = MLX5_ETH_L2_INLINE_HEADER_SIZE;
-> > > 	int inl_hdr_copy_size = 0;
-> > > 	int j = 0;
-> > >-#ifdef MLX5_DEBUG
-> > > 	FILE *fp = to_mctx(ibqp->context)->dbg_fp;
-> > >-#endif
-> >
-> > This is data path flow, dropping the #ifdef may cause a redundant assignment
-> > for 'fp' here.
->
-> Nope:
->
-> $ nm --size libmlx4-rdmv2.so
-> [before]
-> 0000000000001637 t _mlx5_post_send
-> [after]
-> 0000000000001637 t _mlx5_post_send
->
-> The compilers are very smart, you don't need to hand hold them.
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Perhaps I misread your intentions - I thought that by dynamic debug
+> > you meant that all debug in RDMA should be pr_debug() based, and
+> > therefore my objection regarding the ease with which users can
+> > configure it.
+>=20
+> It is not for all RDMA, but in your proposed driver. You are adding this =
+"debug"
+> module argument to your module.
 
---x0KprKst+ZOYEj2z
-Content-Type: application/pgp-signature; name="signature.asc"
+I don't get your answer.=20
+I made a generic remark [and actually one in favor of your arguments],
+and instead of saying something meaningful you bash the driver.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> > If all you meant was 'dynamically set' as opposed to 'statically set'
+> > then I agree that having that sort of configurability is preferable
+> > [Even though end-user would still probably prefer a module parameter
+> > for reproductions; As the name implies, 'debug' isn't meant to be used
+> > in other situations].
+>=20
+> We are not adding code just for fun, but for a real reason, and especiall=
+y
+> interfaces which will be visible to user.
+>=20
+> The overall expectation from the driver's authors that they are submittin=
+g driver
+> which doesn't have bringup issues. For real life scenarios, where the bug=
+s will be
+> reveled after some time of usage, this global debug is useless.
 
-iQIcBAEBAgAGBQJX2i8wAAoJEORje4g2clin8eQP/RAhizlUrnGLxpsUwgiQnPlH
-cz/YBLDtg/KaRbIyPx+uApWjgAAzneMQuxffDZKAxvZndl+b3rdVH/lHTst8W9mc
-fFLOATBtoHRidWi/rMUYuvSh2bfzrpndPd10su3WkrppcY3iHtYh75FArmceq2MK
-F630RQ4ilAwh/Tdg+Orf5bCBvXLIXEK8lOSRhgC8NKAPzJJQKM80LPQZGhqhE6nu
-0D08+IiJONkkGxesyg2ditcxslPyUiyoxyMlBnIG125VjHoG9dlXjrhwN20k8TYL
-KLzV9WcN9+aH0CJCvFHvavw+kDnXY4MpGyT3YsdDjFrrN6jWm8ek6JRecojz714t
-KIUTwDR+vLMHsLuIINqbGFqgG4Wqe9EcMhhfo84jqEHQZyna2mKmsbesDVixSh4G
-A+8OF3LxRUtk3tn+n9MV36shJy9ZUuJbYMtT6mERiPHixvsFcyMIH+5K06Hlbmqf
-24KhnLbRnXzIT91ymgzwEi9ndt5J1qVzo1KuK5NuD7fMnar/B2x/+wA3gJIKg80g
-uarip7xxyElDYbafg7aqGoExa/vTmbmqAfzSD3/rybsyGaEDEqfTTGOu4N+ki6MK
-M4+0s2+dWgngHF3x9KTOkLIzloiFGmPsJ/FghSyoLcYL8/Zlz+e9hdCZBw4Gq3uM
-fugPiAL6DeelzS48TZwt
-=joJU
------END PGP SIGNATURE-----
+This has nothing to do with bringup; Real drivers are experiencing issues y=
+ears after
+they're productized.
 
---x0KprKst+ZOYEj2z--
+> > Do notice you would be harming user-experience of reproductions though
+> > - as it would have to follow different mechanisms to open debug prints
+> > of various qed* components.
+>=20
+> I don't understand this point at all. Do you think that it is normal to a=
+sk user to
+> debug your driver? Is this called "user-experience"?
+
+No, I call this 'user involved in fixing the driver' - it has nothing to do=
+ with
+user-experience. Sometimes user have specifics in his system that can't
+be easily identified and thus lab reproductions fail, and the user assists
+in the reproduction. While I never claimed this is good practice it does ha=
+ppen.
+
+> As a summary, I didn't see in your responses any real life example where =
+you will
+> need global debug level for your driver.
+
+Not sure what you you're expecting - a list of BZs /private e-mails where
+user reproductions were needed?
+You're basically ignoring my claims that such are used, instead wanting
+"evidence". I'm not going to try and produce any such.
+
+Doug - I think we need a definite answer from you here; Doesn't look like
+this discussion would bear any fruit.
+If a debug module parameter is completely unacceptable, we'd remove it
+[regardless of what I think about it].
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
