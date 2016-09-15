@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V3 for-next 9/9] IB/hns: Add node_guid definition to the bindings document
-Date: Thu, 15 Sep 2016 23:48:14 +0100
-Message-ID: <20160915224814.656184-10-salil.mehta@huawei.com>
+Subject: [PATCH V3 for-next 8/9] IB/hns: Fix two bugs for rdma cm connecting
+Date: Thu, 15 Sep 2016 23:48:13 +0100
+Message-ID: <20160915224814.656184-9-salil.mehta@huawei.com>
 References: <20160915224814.656184-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,35 +14,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-This patch adds node_guid definition in bindings document.
-The value of node_guid will be used during RDMA connection.
+This patch mainly modify the value of HNS_ROCE_SL_SHIFT
+and delete the lines for assigning for the field of
+local_enable_e2e_credit in QP1C.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 3 ---
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-index f97993b..d3b273e 100644
---- a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-+++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-@@ -14,6 +14,7 @@ length of memory mapped region.
- representing a ethernet device.
- - dsaf-handle: phandle, specifies a reference to a node
- representing a dsaf device.
-+- node_guid: a number that uniquely identifies a device or component
- - #address-cells: must be 2
- - #size-cells: must be 2
- Optional properties:
-@@ -32,6 +33,7 @@ Example:
- 			dma-coherent;
- 			eth-handle = <&eth2 &eth3 &eth4 &eth5 &eth6 &eth7>;
- 			dsaf-handle = <&soc0_dsa>;
-+			node-guid = [00 9A CD 00 00 01 02 03];
- 			#address-cells = <2>;
- 			#size-cells = <2>;
- 			interrupt-parent = <&mbigen_dsa>;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index e8d2734..4d02bcf 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -62,7 +62,7 @@
+ #define HNS_ROCE_AEQE_OF_VEC_NUM		1
+ 
+ /* 4G/4K = 1M */
+-#define HNS_ROCE_SL_SHIFT			29
++#define HNS_ROCE_SL_SHIFT			28
+ #define HNS_ROCE_TCLASS_SHIFT			20
+ #define HNS_ROCE_FLOW_LABLE_MASK		0xfffff
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 110efd3..5ffdf7a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -1734,9 +1734,6 @@ static int hns_roce_v1_m_sqp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 		roce_set_bit(context->qp1c_bytes_16,
+ 			     QP1C_BYTES_16_SIGNALING_TYPE_S,
+ 			     hr_qp->sq_signal_bits);
+-		roce_set_bit(context->qp1c_bytes_16,
+-			     QP1C_BYTES_16_LOCAL_ENABLE_E2E_CREDIT_S,
+-			     hr_qp->sq_signal_bits);
+ 		roce_set_bit(context->qp1c_bytes_16, QP1C_BYTES_16_RQ_BA_FLG_S,
+ 			     1);
+ 		roce_set_bit(context->qp1c_bytes_16, QP1C_BYTES_16_SQ_BA_FLG_S,
 -- 
 1.9.1
