@@ -1,32 +1,39 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v4 05/16] IB/pvrdma: Add functions for Verbs support
-Date: Wed, 14 Sep 2016 23:15:37 -0700
-Message-ID: <20160915061537.GC4869@infradead.org>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-6-git-send-email-aditr@vmware.com>
- <20160914124947.GA14616@infradead.org>
- <BLUPR0501MB836AB8BF5108322033C5DD6C5F00@BLUPR0501MB836.namprd05.prod.outlook.com>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Wed, 14 Sep 2016 23:17:53 -0700
+Message-ID: <20160915061753.GD4869@infradead.org>
+References: <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
+ <20160829161902.GB23557@obsidianresearch.com>
+ <20160830060842.GJ594@leon.nu>
+ <20160830071716.GA3098@infradead.org>
+ <20160830073521.GM594@leon.nu>
+ <20160830163033.GC26778@obsidianresearch.com>
+ <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
+ <20160906070102.GA23248@infradead.org>
+ <6d47ca96-25eb-8358-879d-fc646ddda9cb@grimberg.me>
+ <20160906110729.GM21847@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BLUPR0501MB836AB8BF5108322033C5DD6C5F00-84Rf5TRaNBMVDhIuTCx1aJLWcSx1hRipwIZJ9u9yWa8oOQlpcoRfSA@public.gmane.org>
+In-Reply-To: <20160906110729.GM21847-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 15, 2016 at 12:10:10AM +0000, Adit Ranadive wrote:
-> On Wed, Sep 14, 2016 at 05:49:50 -0700 Christoph Hellwig wrote:
-> > > +	props->max_fmr = dev->dsr->caps.max_fmr;
-> > > +	props->max_map_per_fmr = dev->dsr->caps.max_map_per_fmr;
-> > 
-> > Please don't add FMR support to any new drivers.
+On Tue, Sep 06, 2016 at 02:07:29PM +0300, Leon Romanovsky wrote:
+> On Tue, Sep 06, 2016 at 11:50:54AM +0300, Sagi Grimberg wrote:
+> >
+> > librdma maybe?
 > 
-> We don't and our device reports these as 0. If you want me to more explicit I
-> can remove the zero'd out properties.
+> It is not exactly library.
+> Maybe rdma-bundle?
 
-Oh, ok.  I'll withdraw my comment then.
+Or simple rdma-user?
+
+Either way, plumbing is just a horrible out of place and confusing name
+for software and we'll need to get rid of it.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
