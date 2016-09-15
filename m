@@ -1,80 +1,149 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 15 Sep 2016 19:37:56 +0300
-Message-ID: <20160915163756.GB26069@leon.nu>
-References: <6d47ca96-25eb-8358-879d-fc646ddda9cb@grimberg.me>
- <20160906110729.GM21847@leon.nu>
- <20160915061753.GD4869@infradead.org>
- <20160915065242.GO26069@leon.nu>
- <20160915080600.GA31776@infradead.org>
- <20160915081149.GT26069@leon.nu>
- <20160915081327.GA7572@infradead.org>
- <20160915083945.GU26069@leon.nu>
- <20160915160427.GC18154@obsidianresearch.com>
- <01e901d20f6b$7ae067d0$70a13770$@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 libibverbs 0/7] RSS support
+Date: Thu, 15 Sep 2016 14:19:00 -0400
+Message-ID: <82a5d950-aa53-ef12-c54c-8043d026d046@redhat.com>
+References: <1473943691-3087-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vWfgMjdKllQeoPX8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="4dmvUkiJvmSk60l3Ou2Urf22cfGU2rEr3"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <01e901d20f6b$7ae067d0$70a13770$@opengridcomputing.com>
+In-Reply-To: <1473943691-3087-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---vWfgMjdKllQeoPX8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--4dmvUkiJvmSk60l3Ou2Urf22cfGU2rEr3
+Content-Type: multipart/mixed; boundary="CeoeGBRiM0NP7wdbf4K79tHAP8w1K1WWB";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
+ sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
+Message-ID: <82a5d950-aa53-ef12-c54c-8043d026d046-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 libibverbs 0/7] RSS support
+References: <1473943691-3087-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1473943691-3087-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On Thu, Sep 15, 2016 at 11:09:04AM -0500, Steve Wise wrote:
-> > On Thu, Sep 15, 2016 at 11:39:45AM +0300, Leon Romanovsky wrote:
-> >
-> > > Easy option is to include "rdma" word in the name and enjoy built-in
-> > > UI to release packages [1].
-> >
-> > I think we should do this, I agree with Christoph, if you go through
-> > the github gui and pick the clone path in 'Clone or Download' then the
-> > resulting clone should be called rdma-user/
-> >
->
-> Ditto.  And I like rdma-user over rdma-userspace...
+--CeoeGBRiM0NP7wdbf4K79tHAP8w1K1WWB
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Looks nice.
+On 9/15/2016 8:48 AM, Yishai Hadas wrote:
+> Hi Doug,
+>=20
+> Sending V2 to align the map file with the GCC syntax, details below.
+> No other changes from V1.
+>=20
+> The series was tested successfully with mlx5 driver (lib, kernel) and c=
+an be
+> accessed also from my openfabrics GIT at:
+> git://openfabrics.org/~yishaih/libibverbs.git branch: rss_v2
+>=20
+> This patch-set exposes to user space the required objects and verbs in =
+order to
+> allow verbs based solution to utilize the RSS offload capability.
+>=20
+> The kernel part for the 5 first patches was already accepted into 4.8, =
+the
+> capabilities patch (#6) was sent few weeks ago into 4.9, reviewed by Sa=
+gi
+> Grimberg and waits to your acceptance. The last patch adds and updates =
+relevant
+> man pages.
+>=20
+> Yishai
+>=20
+> In General:
+> RSS (Receive Side Scaling) technology allows to spread incoming=20
+> traffic between different receive descriptor queues.
+> Assigning each queue to different CPU core allows to better load=20
+> balance the incoming traffic and improve performance.
+>=20
+> Extra details can be found in each commit message.=20
+>=20
+> Patches:
+> #1: Introduces Work Queue object and its verbs.
+> #2: Introduces Receive Work Queue indirection table and its verbs.
+> #3: Extends create QP to get a Receive-Work-Queue-indirection table.
+> #4: Extends create QP to get RX hash data.
+> #5: Tracks asynchronous events on a work queue.
+> #6: Exposes RSS related capabilities.
+> #7: Updates man pages for RSS usage.
+>=20
+> Changes from V1:
+> patch #1: Align the map file around IBVERBS_1.3 to match the GCC syntax=
+ as described in below wiki:
+>           https://gcc.gnu.org/wiki/SymbolVersioning.
+>=20
+> Changes from V0:
+> patches 1 & 2: Use IBVERBS_1.3 as the symbol label.
+>=20
+> Yishai Hadas (7):
+>   Introduce Work Queue object and its verbs
+>   Introduce Receive Work Queue indirection table and its verbs
+>   Extend create QP to get a Receive Work Queue indirection table
+>   Extend create QP to get RX hash data
+>   Track asynchronous events on a work queue
+>   Expose RSS related capabilities
+>   Update man pages for RSS usage
+>=20
+>  Makefile.am                    |  10 +-
+>  examples/devinfo.c             |  24 ++++
+>  include/infiniband/driver.h    |  23 ++++
+>  include/infiniband/kern-abi.h  |  92 +++++++++++++-
+>  include/infiniband/verbs.h     | 282 +++++++++++++++++++++++++++++++++=
++++++++-
+>  man/ibv_create_qp_ex.3         |  14 +-
+>  man/ibv_create_rwq_ind_table.3 |  58 +++++++++
+>  man/ibv_create_wq.3            |  59 +++++++++
+>  man/ibv_modify_wq.3            |  43 +++++++
+>  man/ibv_query_device_ex.3      |  10 ++
+>  src/cmd.c                      | 213 ++++++++++++++++++++++++++++++-
+>  src/device.c                   |  15 +++
+>  src/libibverbs.map             |   9 ++
+>  13 files changed, 842 insertions(+), 10 deletions(-)
+>  create mode 100644 man/ibv_create_rwq_ind_table.3
+>  create mode 100644 man/ibv_create_wq.3
+>  create mode 100644 man/ibv_modify_wq.3
+>=20
 
-Do we want to create rdma-tools after this task will be completed? For example
-with debug and performance tools in it.
+Series applied.
 
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
 
---vWfgMjdKllQeoPX8
+
+--CeoeGBRiM0NP7wdbf4K79tHAP8w1K1WWB--
+
+--4dmvUkiJvmSk60l3Ou2Urf22cfGU2rEr3
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJX2s5kAAoJEORje4g2clinm/4QAJcMwOlVZagb/8UPIkCU7LpS
-ZtIvMdLAH9cwN0eMU4DjVa1NZLne9jotps/UHHZo0kM9vlOjWNSgHHlj6NRmQbZZ
-AclnIanobETGR7g+DD3l/iFst89Ngb/kT3HyiYJiWdn+kRE1pRb61nxS0UDtKlWa
-JhEAWdVks9c6pY7kXdtUKN1Ic8ebYNIo8zz6uxq6RETp+JhdvrQQPxfohWuJEHaT
-vBDUDpeTOqe852ADzjRCMto+YUuPnbuEGDHQtGJT00QBDB4HFbgqMAFAeVkLPoz2
-bwz2IHLHkcA8U8gaw2E+6yeBab4urXG+oUnP0DOEr9hJbT833ApJf0U+PGjOODXX
-7s6MiebNYCR3TV0fpT8UrpwCmsPPA7edH3qizk/2jJN/4J1zDygV02NqoMqtw4aw
-X2Wd/qXzEhAvHZpHpGENjH36ISFDYXz+kS+wwHBZucV+l2AhfaNjD3lJAOPs8Tyq
-U6NxP1p/k1RGqOVZWuXs5OdKSGAnt719e3XCt2+ivrfPcpzzm5pNEtTEHY9owewP
-FkFh4bWC9dWYe4adyFkITTgPhu7t5En4UKPw1j6HDyq/neJvPQ4yorqcckaoXCec
-o2DgMZmx7O+zIfnRk934bHYsagMM6rwSvrCM1pnKZMqhbBm2Kmc9ZjsRML/hzTd4
-QSm24nWxDDPzGPiL432x
-=1yyj
+iQIcBAEBCAAGBQJX2uYgAAoJELgmozMOVy/dWjsP+gJbQMadmkEUJBL9rP9AoNkJ
+YtqecqDlOpF1oZsQSXedOwJsUhRQk/+j74xL69tAMOF485Xrqe1mSW/WBjO1gjtU
+XjexZGaKqBNOYqGoFNViuGHrGd+k40loILfER8/IrPA5dCcpEMWBa+jFZVdLEHLL
+OZgLKbbyD7UVfYnDnzvb/3dOHYvPjE57mUEzs2LWdNPEf1aNUKeDMsdMNaSxVqxW
+eZIq33J+fWYtp32hj090ZyfCQQ7VRQUlQIiOizNEMQyGHqyANV7qfw+iSoY6oA1U
+PfNpqN133OpmhAqPSI8vZJJFfy86lGE6I5pWQGXtgmbZezKsM/KOOIQ5LTrX+kxn
+/uPzV4tsYDqLGSi3P3kydPMCIEoVc2Jd4ZcO4G3TfTqChJYbaofTnieQNMaMFPsT
+Jf5jHhycxr/PzAmb+Wj+we2AiGqHnGe8EniqEjJO47v5HIzXanMVcpvz11p/8Fvj
+WU/u/fwOXVbBKjMh5H6KQ6NS75wq0UpM/xKXRuzyH17bTeginyxTWUt238u0hh7q
+wJbryyZvaVqD+sCkbrAdi+t94m1Dx6R6dG0EG894pk551dgWrLloS2VSbtVcvmly
+bxnaOni/ZjXT2zN4kQ1cG2JlMqzyNQZqDMcqaPdno9SzMawLx2luJ1BJt0YzZPoy
+bAlY1YN39UUCRqKhD+fq
+=T7xb
 -----END PGP SIGNATURE-----
 
---vWfgMjdKllQeoPX8--
+--4dmvUkiJvmSk60l3Ou2Urf22cfGU2rEr3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
