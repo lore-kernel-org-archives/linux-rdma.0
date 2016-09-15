@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 15/22] rpcrdma: RDMA/CM private message data structure
-Date: Thu, 15 Sep 2016 10:56:59 -0400
-Message-ID: <20160915145659.11080.54491.stgit@manet.1015granger.net>
+Subject: [PATCH v3 17/22] xprtrdma: Basic support for Remote Invalidation
+Date: Thu, 15 Sep 2016 10:57:16 -0400
+Message-ID: <20160915145716.11080.65525.stgit@manet.1015granger.net>
 References: <20160915143440.11080.89241.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,74 +13,249 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce data structure used by both client and server to exchange
-implementation details during RDMA/CM connection establishment.
+Have frwr's ro_unmap_sync recognize an invalidated rkey that appears
+as part of a Receive completion. Local invalidation can be skipped
+for that rkey.
 
-This is an experimental out-of-band exchange between Linux
-RPC-over-RDMA Version One implementations, replacing the deprecated
-CCP (see RFC 5666bis). The purpose of this extension is to enable
-prototyping of features that might be introduced in a subsequent
-version of RPC-over-RDMA.
-
-Suggested by Christoph Hellwig and Devesh Sharma.
+Use an out-of-band signaling mechanism to indicate to the server
+that the client is prepared to receive RDMA Send With Invalidate.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- include/linux/sunrpc/rpc_rdma.h |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ net/sunrpc/xprtrdma/fmr_ops.c   |    2 ++
+ net/sunrpc/xprtrdma/frwr_ops.c  |   13 +++++++++++++
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   18 ++++++++++++++----
+ net/sunrpc/xprtrdma/transport.c |    5 +++--
+ net/sunrpc/xprtrdma/verbs.c     |    8 +++++++-
+ net/sunrpc/xprtrdma/xprt_rdma.h |    5 +++++
+ 6 files changed, 44 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index 3b1ff38..a7da6bf 100644
---- a/include/linux/sunrpc/rpc_rdma.h
-+++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -41,6 +41,7 @@
- #define _LINUX_SUNRPC_RPC_RDMA_H
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 16690a1..1ebb09e 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -273,6 +273,7 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 	 */
+ 	list_for_each_entry(mw, &req->rl_registered, mw_list)
+ 		list_add_tail(&mw->fmr.fm_mr->list, &unmap_list);
++	r_xprt->rx_stats.local_inv_needed++;
+ 	rc = ib_unmap_fmr(&unmap_list);
+ 	if (rc)
+ 		goto out_reset;
+@@ -330,4 +331,5 @@ const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+ 	.ro_init_mr			= fmr_op_init_mr,
+ 	.ro_release_mr			= fmr_op_release_mr,
+ 	.ro_displayname			= "fmr",
++	.ro_send_w_inv_ok		= 0,
+ };
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index fcfcf3a..e82d5cf 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -67,6 +67,8 @@
+  * pending send queue WRs before the transport is reconnected.
+  */
  
- #include <linux/types.h>
-+#include <linux/bitops.h>
++#include <linux/sunrpc/rpc_rdma.h>
++
+ #include "xprt_rdma.h"
  
- #define RPCRDMA_VERSION		1
- #define rpcrdma_version		cpu_to_be32(RPCRDMA_VERSION)
-@@ -129,4 +130,38 @@ enum rpcrdma_proc {
- #define rdma_done	cpu_to_be32(RDMA_DONE)
- #define rdma_error	cpu_to_be32(RDMA_ERROR)
+ #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+@@ -471,6 +473,7 @@ static void
+ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ {
+ 	struct ib_send_wr *invalidate_wrs, *pos, *prev, *bad_wr;
++	struct rpcrdma_rep *rep = req->rl_reply;
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 	struct rpcrdma_mw *mw, *tmp;
+ 	struct rpcrdma_frmr *f;
+@@ -486,6 +489,12 @@ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 	f = NULL;
+ 	invalidate_wrs = pos = prev = NULL;
+ 	list_for_each_entry(mw, &req->rl_registered, mw_list) {
++		if ((rep->rr_wc_flags & IB_WC_WITH_INVALIDATE) &&
++		    (mw->mw_handle == rep->rr_inv_rkey)) {
++			mw->frmr.fr_state = FRMR_IS_INVALID;
++			continue;
++		}
++
+ 		pos = __frwr_prepare_linv_wr(mw);
  
-+/*
-+ * Private extension to RPC-over-RDMA Version One.
-+ * Message passed during RDMA-CM connection set-up.
-+ *
-+ * Add new fields at the end, and don't permute existing
-+ * fields.
-+ */
-+struct rpcrdma_connect_private {
-+	__be32			cp_magic;
-+	u8			cp_version;
-+	u8			cp_flags;
-+	u8			cp_send_size;
-+	u8			cp_recv_size;
-+} __packed;
+ 		if (!invalidate_wrs)
+@@ -495,6 +504,8 @@ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 		prev = pos;
+ 		f = &mw->frmr;
+ 	}
++	if (!f)
++		goto unmap;
+ 
+ 	/* Strong send queue ordering guarantees that when the
+ 	 * last WR in the chain completes, all WRs in the chain
+@@ -509,6 +520,7 @@ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 	 * replaces the QP. The RPC reply handler won't call us
+ 	 * unless ri_id->qp is a valid pointer.
+ 	 */
++	r_xprt->rx_stats.local_inv_needed++;
+ 	rc = ib_post_send(ia->ri_id->qp, invalidate_wrs, &bad_wr);
+ 	if (rc)
+ 		goto reset_mrs;
+@@ -575,4 +587,5 @@ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+ 	.ro_init_mr			= frwr_op_init_mr,
+ 	.ro_release_mr			= frwr_op_release_mr,
+ 	.ro_displayname			= "frwr",
++	.ro_send_w_inv_ok		= RPCRDMA_CMP_F_SND_W_INV_OK,
+ };
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index ea734c2..31a434d 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -231,7 +231,8 @@ rpcrdma_convert_kvec(struct kvec *vec, struct rpcrdma_mr_seg *seg, int n)
+ 
+ static int
+ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+-	enum rpcrdma_chunktype type, struct rpcrdma_mr_seg *seg)
++	enum rpcrdma_chunktype type, struct rpcrdma_mr_seg *seg,
++	bool reminv_expected)
+ {
+ 	int len, n, p, page_base;
+ 	struct page **ppages;
+@@ -273,6 +274,13 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+ 	if (type == rpcrdma_readch)
+ 		return n;
+ 
++	/* When encoding the Write list, some servers need to see an extra
++	 * segment for odd-length Write chunks. The upper layer provides
++	 * space in the tail iovec for this purpose.
++	 */
++	if (type == rpcrdma_writech && reminv_expected)
++		return n;
 +
-+#define rpcrdma_cmp_magic	__cpu_to_be32(0xf6ab0e18)
+ 	if (xdrbuf->tail[0].iov_len) {
+ 		/* the rpcrdma protocol allows us to omit any trailing
+ 		 * xdr pad bytes, saving the server an RDMA operation. */
+@@ -329,7 +337,7 @@ rpcrdma_encode_read_list(struct rpcrdma_xprt *r_xprt,
+ 	if (rtype == rpcrdma_areadch)
+ 		pos = 0;
+ 	seg = req->rl_segments;
+-	nsegs = rpcrdma_convert_iovs(&rqst->rq_snd_buf, pos, rtype, seg);
++	nsegs = rpcrdma_convert_iovs(&rqst->rq_snd_buf, pos, rtype, seg, false);
+ 	if (nsegs < 0)
+ 		return ERR_PTR(nsegs);
+ 
+@@ -393,7 +401,8 @@ rpcrdma_encode_write_list(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+ 	seg = req->rl_segments;
+ 	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf,
+ 				     rqst->rq_rcv_buf.head[0].iov_len,
+-				     wtype, seg);
++				     wtype, seg,
++				     r_xprt->rx_ia.ri_reminv_expected);
+ 	if (nsegs < 0)
+ 		return ERR_PTR(nsegs);
+ 
+@@ -458,7 +467,8 @@ rpcrdma_encode_reply_chunk(struct rpcrdma_xprt *r_xprt,
+ 	}
+ 
+ 	seg = req->rl_segments;
+-	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf, 0, wtype, seg);
++	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf, 0, wtype, seg,
++				     r_xprt->rx_ia.ri_reminv_expected);
+ 	if (nsegs < 0)
+ 		return ERR_PTR(nsegs);
+ 
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 5adaa1d..7e11d71 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -730,10 +730,11 @@ void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
+ 		   r_xprt->rx_stats.failed_marshal_count,
+ 		   r_xprt->rx_stats.bad_reply_count,
+ 		   r_xprt->rx_stats.nomsg_call_count);
+-	seq_printf(seq, "%lu %lu %lu\n",
++	seq_printf(seq, "%lu %lu %lu %lu\n",
+ 		   r_xprt->rx_stats.mrs_recovered,
+ 		   r_xprt->rx_stats.mrs_orphaned,
+-		   r_xprt->rx_stats.mrs_allocated);
++		   r_xprt->rx_stats.mrs_allocated,
++		   r_xprt->rx_stats.local_inv_needed);
+ }
+ 
+ static int
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 6bab841..e2d6390 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -185,6 +185,9 @@ rpcrdma_receive_wc(struct ib_cq *cq, struct ib_wc *wc)
+ 		__func__, rep, wc->byte_len);
+ 
+ 	rep->rr_len = wc->byte_len;
++	rep->rr_wc_flags = wc->wc_flags;
++	rep->rr_inv_rkey = wc->ex.invalidate_rkey;
 +
-+enum {
-+	RPCRDMA_CMP_VERSION		= 1,
-+	RPCRDMA_CMP_F_SND_W_INV_OK	= BIT(0),
-+};
-+
-+static inline u8
-+rpcrdma_encode_buffer_size(unsigned int size)
-+{
-+	return (size >> 10) - 1;
-+}
-+
-+static inline unsigned int
-+rpcrdma_decode_buffer_size(u8 val)
-+{
-+	return ((unsigned int)val + 1) << 10;
-+}
-+
- #endif				/* _LINUX_SUNRPC_RPC_RDMA_H */
+ 	ib_dma_sync_single_for_cpu(rep->rr_device,
+ 				   rdmab_addr(rep->rr_rdmabuf),
+ 				   rep->rr_len, DMA_FROM_DEVICE);
+@@ -212,12 +215,15 @@ rpcrdma_update_connect_private(struct rpcrdma_xprt *r_xprt,
+ 	const struct rpcrdma_connect_private *pmsg = param->private_data;
+ 	unsigned int rsize, wsize;
+ 
++	/* Default settings for RPC-over-RDMA Version One */
++	r_xprt->rx_ia.ri_reminv_expected = false;
+ 	rsize = RPCRDMA_V1_DEF_INLINE_SIZE;
+ 	wsize = RPCRDMA_V1_DEF_INLINE_SIZE;
+ 
+ 	if (pmsg &&
+ 	    pmsg->cp_magic == rpcrdma_cmp_magic &&
+ 	    pmsg->cp_version == RPCRDMA_CMP_VERSION) {
++		r_xprt->rx_ia.ri_reminv_expected = true;
+ 		rsize = rpcrdma_decode_buffer_size(pmsg->cp_send_size);
+ 		wsize = rpcrdma_decode_buffer_size(pmsg->cp_recv_size);
+ 	}
+@@ -568,7 +574,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
+ 	/* Prepare RDMA-CM private message */
+ 	pmsg->cp_magic = rpcrdma_cmp_magic;
+ 	pmsg->cp_version = RPCRDMA_CMP_VERSION;
+-	pmsg->cp_flags = 0;
++	pmsg->cp_flags |= ia->ri_ops->ro_send_w_inv_ok;
+ 	pmsg->cp_send_size = rpcrdma_encode_buffer_size(cdata->inline_wsize);
+ 	pmsg->cp_recv_size = rpcrdma_encode_buffer_size(cdata->inline_rsize);
+ 	ep->rep_remote_cma.private_data = pmsg;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 89df168..64b4e22 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -74,6 +74,7 @@ struct rpcrdma_ia {
+ 	unsigned int		ri_max_frmr_depth;
+ 	unsigned int		ri_max_inline_write;
+ 	unsigned int		ri_max_inline_read;
++	bool			ri_reminv_expected;
+ 	struct ib_qp_attr	ri_qp_attr;
+ 	struct ib_qp_init_attr	ri_qp_init_attr;
+ };
+@@ -187,6 +188,8 @@ enum {
+ struct rpcrdma_rep {
+ 	struct ib_cqe		rr_cqe;
+ 	unsigned int		rr_len;
++	int			rr_wc_flags;
++	u32			rr_inv_rkey;
+ 	struct ib_device	*rr_device;
+ 	struct rpcrdma_xprt	*rr_rxprt;
+ 	struct work_struct	rr_work;
+@@ -385,6 +388,7 @@ struct rpcrdma_stats {
+ 	unsigned long		mrs_recovered;
+ 	unsigned long		mrs_orphaned;
+ 	unsigned long		mrs_allocated;
++	unsigned long		local_inv_needed;
+ };
+ 
+ /*
+@@ -408,6 +412,7 @@ struct rpcrdma_memreg_ops {
+ 				      struct rpcrdma_mw *);
+ 	void		(*ro_release_mr)(struct rpcrdma_mw *);
+ 	const char	*ro_displayname;
++	const int	ro_send_w_inv_ok;
+ };
+ 
+ extern const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
