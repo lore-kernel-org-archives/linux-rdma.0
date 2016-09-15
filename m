@@ -1,49 +1,75 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V3 for-next 0/9] IB/hns: Add CM(Connection Manager) Support to HNS RoCe Driver
-Date: Thu, 15 Sep 2016 23:48:05 +0100
-Message-ID: <20160915224814.656184-1-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V3 for-next 2/9] IB/hns: Add & initialize "node_guid" parameter for RDMA CM
+Date: Thu, 15 Sep 2016 23:48:07 +0100
+Message-ID: <20160915224814.656184-3-salil.mehta@huawei.com>
+References: <20160915224814.656184-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160915224814.656184-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch-set adds the CM(Connection Manager) support to the
-HNS RoCE driver. Changes done are primarily to add support of
-APIs in IB device and some fixes over the base driver to
-support RDMA Connection Manager. This patch-set also updates
-the Device binding document as new parameter node-guid was
-added to the DT.
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-All of the patches have been authored by Oulijun and reviewed
-by Huwei.
+According to the Infiniband spec, NodeGUID uniquely identifies a
+node. This must be initialized to some unique value. This patch
+adds the support to the HNS RoCE driver to fetch the NodeGUID
+value from DT or ACPI and then use this value to initialize the
+node_guid parameter of IB device. This value shall be used by
+RDMA CM.
 
-Change Log:
-V2->V3: Fixed the compilation break reported by kbuild
-V1->V2: Addressed the comments from Leon Romanovsky.
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+PATCH V2: Addressed the comment by Leon Romanovsky
+          * Link: https://lkml.org/lkml/2016/9/12/309
+PATCH V1: Initial Patch
+---
+ drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-Please refer individual patch for details.
-
-Lijun Ou (9):
-  IB/hns: Register HNS RoCE Driver get_netdev() with IB Core
-  IB/hns: Add & initialize "node_guid" parameter for RDMA CM
-  IB/hns: Fix the value of device_cap_flags
-  IB/hns: Fix two possible bugs for rdma cm
-  IB/hns: Add phy_port for computing GSI/QPN
-  IB/hns: Change the logic for allocating uar registers
-  IB/hns: Fix the bug of rdma cm connecting on user mode
-  IB/hns: Fix two bugs for rdma cm connecting
-  IB/hns: Add node_guid definition to the bindings document
-
- .../bindings/infiniband/hisilicon-hns-roce.txt     |  2 +
- drivers/infiniband/hw/hns/hns_roce_device.h        |  5 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c         | 82 +++++++++-------------
- drivers/infiniband/hw/hns/hns_roce_main.c          | 32 ++++++++-
- drivers/infiniband/hw/hns/hns_roce_pd.c            |  4 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c            | 14 ++--
- 6 files changed, 77 insertions(+), 62 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index ea73580..e943b98 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -74,6 +74,7 @@
+ #define MR_TYPE_DMA				0x03
+ 
+ #define PKEY_ID					0xffff
++#define GUID_LEN				8
+ #define NODE_DESC_SIZE				64
+ 
+ #define SERV_TYPE_RC				0
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 39e69c3..f0700f4 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -797,6 +797,15 @@ static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+ 	if (IS_ERR(hr_dev->reg_base))
+ 		return PTR_ERR(hr_dev->reg_base);
+ 
++	/* read the node_guid of IB device from the DT or ACPI */
++	ret = device_property_read_u8_array(dev, "node-guid",
++					    (u8 *)&hr_dev->ib_dev.node_guid,
++					    GUID_LEN);
++	if (ret) {
++		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
++		return ret;
++	}
++
+ 	/* get the RoCE associated ethernet ports or netdevices */
+ 	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
+ 		if (dev_of_node(dev)) {
 -- 
 1.9.1
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
