@@ -1,58 +1,22 @@
-From: Tariq Toukan <ttoukan.linux@gmail.com>
-Subject: Re: [PATCH] net/mlx4_en: fix off by one in error handling
-Date: Thu, 15 Sep 2016 15:18:32 +0300
-Message-ID: <2f37b3b3-af5d-6bf9-e972-1ddcb4535682@gmail.com>
-References: <alpine.LFD.2.20.1609141305360.1727@schleppi>
- <df5834ee-00c2-3f18-ae83-8bb06b6c675b@gmail.com>
- <alpine.LFD.2.20.1609141548390.11022@schleppi>
- <b2197c51-57a9-ab01-e940-9850a39484d6@gmail.com>
- <alpine.LFD.2.20.1609141757040.1730@schleppi>
+From: Jones <comsea-ib6/yItWtweNbuNIgksMxg@public.gmane.org>
+Subject: I hope this email meets you well in good health condition
+Date: Thu, 15 Sep 2016 09:33:44 -0300 (BRT)
+Message-ID: <1763045775.12870.1473942824241.JavaMail.zimbra__19088.3450130515$1473943636$gmane$org@itajai.sc.gov.br>
+Reply-To: Jones <1214178231-9uewiaClKEY@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.20.1609141757040.1730@schleppi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Yishai Hadas <yishaih@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+How you doing today? I hope you are doing well. My name is Jones, from the US. I'm in Syria right now fighting ISIS. I want to get to know you better, if I may be so bold. I consider myself an easy-going man, and I am currently looking for a relationship in which I feel loved. Please tell me more about yourself, if you don't mind.
 
+Hope to hear from you soon.
 
-On 14/09/2016 7:08 PM, Sebastian Ott wrote:
-> On Wed, 14 Sep 2016, Tariq Toukan wrote:
->> On 14/09/2016 4:53 PM, Sebastian Ott wrote:
->>> On Wed, 14 Sep 2016, Tariq Toukan wrote:
->>>> On 14/09/2016 2:09 PM, Sebastian Ott wrote:
->>>>> If an error occurs in mlx4_init_eq_table the index used in the
->>>>> err_out_unmap label is one too big which results in a panic in
->>>>> mlx4_free_eq. This patch fixes the index in the error path.
->>>> You are right, but your change below does not cover all cases.
->>>> The full solution looks like this:
->>>>
->>>> @@ -1260,7 +1260,7 @@ int mlx4_init_eq_table(struct mlx4_dev *dev)
->>>>                                                eq);
->>>>                   }
->>>>                   if (err)
->>>> -                       goto err_out_unmap;
->>>> +                       goto err_out_unmap_excluded;
->>> In this case a call to mlx4_create_eq failed. Do you really have to call
->>> mlx4_free_eq for this index again?
->> We agree on this part, that's why here we should goto the _excluded_ label.
->> For all other parts, we should not exclude the eq in the highest index, and
->> thus we goto the _non_excluded_ label.
-> But that's exactly what the original patch does. If the failure is within
-> the for loop at index i, we do the cleanup starting at index i-1. If the
-> failure is after the for loop then i == dev->caps.num_comp_vectors + 1
-> and we do the cleanup starting at index i == dev->caps.num_comp_vectors.
->
-> In the latter case your patch would have an out of bounds array access.
-Indeed. Agreed.
-
-> Regards,
-> Sebastian
->
-
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
-
-Thanks!
+Regards,
+Jones
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
