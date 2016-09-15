@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 libibverbs 2/2] Add support for UD traffic on RoCE v2
-Date: Thu, 15 Sep 2016 15:51:17 +0300
-Message-ID: <1473943877-6049-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 libibverbs 1/2] Add ibv_query_gid_type to support RoCE v2 UD traffic
+Date: Thu, 15 Sep 2016 15:51:16 +0300
+Message-ID: <1473943877-6049-2-git-send-email-yishaih@mellanox.com>
 References: <1473943877-6049-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473943877-6049-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,244 +12,141 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When creating an Address Handle from a Work Completion, source GID index must
-be set. To enable RoCE v2, libibverbs should select the right GID index for
-it.
+Currently, libibverbs does not support UD traffic for RoCE v2 since
+it can't differ between v1 and v2 GIDs (both have the same GID, only
+the version is different). This means that GID index can't be
+selected correctly.
 
-RoCE v2 is using UDP/IP layers so a WC's GRH could be either an IB GRH, IPv4
-header or an IPv6 header. Libibverbs should be able to differ between them in a
-driver-agnostic way to avoid API changes.
-
-This patch is using the fact that for RoCE v2, the GRH is either an IPv6 header
-or 20 garbled bytes followed by an IPv4 header, as defined in RoCE v2 annex.
-The annex also specifies that for packets with IPv4 header, the version number
-is 4, for packets with IPv6 header it's 6 or the packet is silently dropped.
-This fact is also taken into account when parsing the GRH.
+This patch introduces ibv_query_gid_type helper function to be used
+by libibverbs and its vendors to return GID type based on its GID
+index by using the relevant sysfs.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/verbs.c | 178 +++++++++++++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 159 insertions(+), 19 deletions(-)
+ include/infiniband/driver.h |  7 +++++
+ src/libibverbs.map          |  5 ++++
+ src/verbs.c                 | 65 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 77 insertions(+)
 
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 65fa44f..d4b6f58 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -86,6 +86,11 @@ enum verbs_qp_mask {
+ 	VERBS_QP_RESERVED	= 1 << 1
+ };
+ 
++enum ibv_gid_type {
++	IBV_GID_TYPE_IB_ROCE_V1,
++	IBV_GID_TYPE_ROCE_V2,
++};
++
+ struct verbs_qp {
+ 	struct ibv_qp		qp;
+ 	uint32_t		comp_mask;
+@@ -258,4 +263,6 @@ static inline int verbs_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
+ 	return ENOSYS;
+ }
+ 
++int ibv_query_gid_type(struct ibv_context *context, uint8_t port_num,
++		       unsigned int index, enum ibv_gid_type *type);
+ #endif /* INFINIBAND_DRIVER_H */
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index 5134bd9..f0403e4 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -120,3 +120,8 @@ IBVERBS_1.1 {
+ 		ibv_cmd_rereg_mr;
+ 
+ } IBVERBS_1.0;
++
++IBVERBS_1.3 {
++	global:
++		ibv_query_gid_type;
++} IBVERBS_1.1;
 diff --git a/src/verbs.c b/src/verbs.c
-index 08f03e3..fc8b9f6 100644
+index 68888c3..08f03e3 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
 @@ -41,6 +41,7 @@
  #include <stdlib.h>
  #include <errno.h>
  #include <string.h>
-+#include <linux/ip.h>
- #include <dirent.h>
++#include <dirent.h>
  
  #include "ibverbs.h"
-@@ -651,48 +652,187 @@ int ibv_query_gid_type(struct ibv_context *context, uint8_t port_num,
+ #ifndef NRESOLVE_NEIGH
+@@ -585,6 +586,70 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
  }
+ default_symver(__ibv_create_ah, ibv_create_ah);
  
- static int ibv_find_gid_index(struct ibv_context *context, uint8_t port_num,
--			      union ibv_gid *gid)
-+			      union ibv_gid *gid, enum ibv_gid_type gid_type)
- {
-+	enum ibv_gid_type sgid_type = 0;
- 	union ibv_gid sgid;
- 	int i = 0, ret;
- 
- 	do {
--		ret = ibv_query_gid(context, port_num, i++, &sgid);
--	} while (!ret && memcmp(&sgid, gid, sizeof *gid));
-+		ret = ibv_query_gid(context, port_num, i, &sgid);
-+		if (!ret) {
-+			ret = ibv_query_gid_type(context, port_num, i,
-+						 &sgid_type);
-+		}
-+		i++;
-+	} while (!ret && (memcmp(&sgid, gid, sizeof(*gid)) ||
-+		 (gid_type != sgid_type)));
- 
- 	return ret ? ret : i - 1;
- }
- 
--int ibv_init_ah_from_wc(struct ibv_context *context, uint8_t port_num,
--			struct ibv_wc *wc, struct ibv_grh *grh,
--			struct ibv_ah_attr *ah_attr)
-+static inline void map_ipv4_addr_to_ipv6(__be32 ipv4, struct in6_addr *ipv6)
++/* GID types as appear in sysfs, no change is expected as of ABI
++ * compatibility.
++ */
++#define V1_TYPE "IB/RoCE v1"
++#define V2_TYPE "RoCE v2"
++int ibv_query_gid_type(struct ibv_context *context, uint8_t port_num,
++		       unsigned int index, enum ibv_gid_type *type)
 +{
-+	ipv6->s6_addr32[0] = 0;
-+	ipv6->s6_addr32[1] = 0;
-+	ipv6->s6_addr32[2] = htonl(0x0000FFFF);
-+	ipv6->s6_addr32[3] = ipv4;
-+}
++	char name[32];
++	char buff[11];
 +
-+static inline uint16_t ipv4_calc_hdr_csum(uint16_t *data, unsigned int num_hwords)
-+{
-+	unsigned int i = 0;
-+	uint32_t sum = 0;
++	snprintf(name, sizeof(name), "ports/%d/gid_attrs/types/%d", port_num,
++		 index);
 +
-+	for (i = 0; i < num_hwords; i++)
-+		sum += *(data++);
-+
-+	sum = (sum & 0xffff) + (sum >> 16);
-+
-+	return ~sum;
-+}
-+
-+static inline int get_grh_header_version(struct ibv_grh *grh)
-+{
-+	int ip6h_version = (ntohl(grh->version_tclass_flow) >> 28) & 0xf;
-+	struct iphdr *ip4h = (struct iphdr *)((void *)grh + 20);
-+	struct iphdr ip4h_checked;
-+
-+	if (ip6h_version != 6) {
-+		if (ip4h->version == 4)
-+			return 4;
-+		errno = EPROTONOSUPPORT;
-+		return -1;
-+	}
-+	/* version may be 6 or 4 */
-+	if (ip4h->ihl != 5) /* IPv4 header length must be 5 for RoCE v2. */
-+		return 6;
-+	/*
-+	* Verify checksum.
-+	* We can't write on scattered buffers so we have to copy to temp
-+	* buffer.
-+	*/
-+	memcpy(&ip4h_checked, ip4h, sizeof(ip4h_checked));
-+	/* Need to set the checksum field (check) to 0 before re-calculating
-+	 * the checksum.
++	/* Reset errno so that we can rely on its value upon any error flow in
++	 * ibv_read_sysfs_file.
 +	 */
-+	ip4h_checked.check = 0;
-+	ip4h_checked.check = ipv4_calc_hdr_csum((uint16_t *)&ip4h_checked, 10);
-+	/* if IPv4 header checksum is OK, believe it */
-+	if (ip4h->check == ip4h_checked.check)
-+		return 4;
-+	return 6;
-+}
++	errno = 0;
++	if (ibv_read_sysfs_file(context->device->ibdev_path, name, buff,
++				sizeof(buff)) <= 0) {
++		char *dir_path;
++		DIR *dir;
 +
-+static inline void set_ah_attr_generic_fields(struct ibv_ah_attr *ah_attr,
-+					      struct ibv_wc *wc,
-+					      struct ibv_grh *grh,
-+					      uint8_t port_num)
- {
- 	uint32_t flow_class;
--	int ret;
- 
--	memset(ah_attr, 0, sizeof *ah_attr);
-+	flow_class = ntohl(grh->version_tclass_flow);
-+	ah_attr->grh.flow_label = flow_class & 0xFFFFF;
- 	ah_attr->dlid = wc->slid;
- 	ah_attr->sl = wc->sl;
- 	ah_attr->src_path_bits = wc->dlid_path_bits;
- 	ah_attr->port_num = port_num;
-+}
- 
--	if (wc->wc_flags & IBV_WC_GRH) {
--		ah_attr->is_global = 1;
--		ah_attr->grh.dgid = grh->sgid;
-+static inline int set_ah_attr_by_ipv4(struct ibv_context *context,
-+				      struct ibv_ah_attr *ah_attr,
-+				      struct iphdr *ip4h, uint8_t port_num)
-+{
-+	union ibv_gid sgid;
-+	int ret;
-+
-+	/* No point searching multicast GIDs in GID table */
-+	if (IN_CLASSD(ntohl(ip4h->daddr))) {
-+		errno = EINVAL;
-+		return -1;
++		if (errno == EINVAL) {
++			/* In IB, this file doesn't exist and the kernel sets
++			 * errno to -EINVAL.
++			 */
++			*type = IBV_GID_TYPE_IB_ROCE_V1;
++			return 0;
++		}
++		if (asprintf(&dir_path, "%s/%s/%d/%s/",
++			     context->device->ibdev_path, "ports", port_num,
++			     "gid_attrs") < 0)
++			return -1;
++		dir = opendir(dir_path);
++		free(dir_path);
++		if (!dir) {
++			if (errno == ENOENT)
++				/* Assuming that if gid_attrs doesn't exist,
++				 * we have an old kernel and all GIDs are
++				 * IB/RoCE v1
++				 */
++				*type = IBV_GID_TYPE_IB_ROCE_V1;
++			else
++				return -1;
++		} else {
++			closedir(dir);
++			errno = EFAULT;
++			return -1;
++		}
++	} else {
++		if (!strcmp(buff, V1_TYPE)) {
++			*type = IBV_GID_TYPE_IB_ROCE_V1;
++		} else if (!strcmp(buff, V2_TYPE)) {
++			*type = IBV_GID_TYPE_ROCE_V2;
++		} else {
++			errno = ENOTSUP;
++			return -1;
++		}
 +	}
- 
--		ret = ibv_find_gid_index(context, port_num, &grh->dgid);
--		if (ret < 0)
--			return ret;
-+	map_ipv4_addr_to_ipv6(ip4h->daddr, (struct in6_addr *)&sgid);
-+	ret = ibv_find_gid_index(context, port_num, &sgid,
-+				 IBV_GID_TYPE_ROCE_V2);
-+	if (ret < 0)
-+		return ret;
- 
--		ah_attr->grh.sgid_index = (uint8_t) ret;
--		flow_class = ntohl(grh->version_tclass_flow);
--		ah_attr->grh.flow_label = flow_class & 0xFFFFF;
--		ah_attr->grh.hop_limit = grh->hop_limit;
--		ah_attr->grh.traffic_class = (flow_class >> 20) & 0xFF;
-+	map_ipv4_addr_to_ipv6(ip4h->saddr,
-+			      (struct in6_addr *)&ah_attr->grh.dgid);
-+	ah_attr->grh.sgid_index = (uint8_t) ret;
-+	ah_attr->grh.hop_limit = ip4h->ttl;
-+	ah_attr->grh.traffic_class = ip4h->tos;
 +
 +	return 0;
 +}
 +
-+#define IB_NEXT_HDR    0x1b
-+static inline int set_ah_attr_by_ipv6(struct ibv_context *context,
-+				  struct ibv_ah_attr *ah_attr,
-+				  struct ibv_grh *grh, uint8_t port_num)
-+{
-+	uint32_t flow_class;
-+	uint32_t sgid_type;
-+	int ret;
-+
-+	/* No point searching multicast GIDs in GID table */
-+	if (grh->dgid.raw[0] == 0xFF) {
-+		errno = EINVAL;
-+		return -1;
-+	}
-+
-+	ah_attr->grh.dgid = grh->sgid;
-+	if (grh->next_hdr == IPPROTO_UDP) {
-+		sgid_type = IBV_GID_TYPE_ROCE_V2;
-+	} else if (grh->next_hdr == IB_NEXT_HDR) {
-+		sgid_type = IBV_GID_TYPE_IB_ROCE_V1;
-+	} else {
-+		errno = EPROTONOSUPPORT;
-+		return -1;
- 	}
-+
-+	ret = ibv_find_gid_index(context, port_num, &grh->dgid,
-+				 sgid_type);
-+	if (ret < 0)
-+		return ret;
-+
-+	ah_attr->grh.sgid_index = (uint8_t) ret;
-+	flow_class = ntohl(grh->version_tclass_flow);
-+	ah_attr->grh.hop_limit = grh->hop_limit;
-+	ah_attr->grh.traffic_class = (flow_class >> 20) & 0xFF;
-+
- 	return 0;
- }
- 
-+int ibv_init_ah_from_wc(struct ibv_context *context, uint8_t port_num,
-+			struct ibv_wc *wc, struct ibv_grh *grh,
-+			struct ibv_ah_attr *ah_attr)
-+{
-+	int version;
-+	int ret = 0;
-+
-+	memset(ah_attr, 0, sizeof *ah_attr);
-+	set_ah_attr_generic_fields(ah_attr, wc, grh, port_num);
-+
-+	if (wc->wc_flags & IBV_WC_GRH) {
-+		ah_attr->is_global = 1;
-+		version = get_grh_header_version(grh);
-+
-+		if (version == 4)
-+			ret = set_ah_attr_by_ipv4(context, ah_attr,
-+						  (struct iphdr *)((void *)grh + 20),
-+						  port_num);
-+		else if (version == 6)
-+			ret = set_ah_attr_by_ipv6(context, ah_attr, grh,
-+						  port_num);
-+		else
-+			ret = -1;
-+	}
-+
-+	return ret;
-+}
-+
- struct ibv_ah *ibv_create_ah_from_wc(struct ibv_pd *pd, struct ibv_wc *wc,
- 				     struct ibv_grh *grh, uint8_t port_num)
+ static int ibv_find_gid_index(struct ibv_context *context, uint8_t port_num,
+ 			      union ibv_gid *gid)
  {
 -- 
 1.8.3.1
