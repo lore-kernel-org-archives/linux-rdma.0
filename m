@@ -1,128 +1,114 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 09/28] mlx5: Fix gcc 6.4 uninitialized variable warning
-Date: Thu, 15 Sep 2016 17:26:33 +0300
-Message-ID: <f54fd76a-975f-900a-d996-2ae208402ae8@dev.mellanox.co.il>
-References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-10-git-send-email-jgunthorpe@obsidianresearch.com>
- <0ba444b7-6af4-72f3-d3d6-c27b73421679@dev.mellanox.co.il>
- <20160914163716.GB16014@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/22] client-side NFS/RDMA patches ready for v4.9
+Date: Thu, 15 Sep 2016 10:54:54 -0400
+Message-ID: <20160915143440.11080.89241.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160914163716.GB16014-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/14/2016 7:37 PM, Jason Gunthorpe wrote:
+Hi Anna-
 
->
-> Okay, great, in that case you can gain more speed by writing code the
-> compiler can understand. In this instance we don't need to test for
-> (cqe64->op_own & MLX5_INLINE_SCATTER_XX) after we have disproven it by
-> checking for !(MLX5_OPCODE_RDMA_READ,MLX5_OPCODE_ATOMIC_CS,MLX5_OPCODE_ATOMIC_FA)
+The following patch series is ready for you to consider for v4.9. It
+makes these changes:
 
-I'm fine with that approach, still can improve your patch see below.
+- Correct use of DMA API
+- Delay DMA mapping to permit device driver unload
+- Introduce simple RDMA-CM private message exchange
+- Support for Remote Invalidation and large inline thresholds
+- Use s/g list when sending RPC Calls
 
->  1 file changed, 32 insertions(+), 27 deletions(-)
->
-> diff --git a/libmlx5/src/cq.c b/libmlx5/src/cq.c
-> index 88097037eea0..91c568e2f4b6 100644
-> --- a/libmlx5/src/cq.c
-> +++ b/libmlx5/src/cq.c
-> @@ -222,23 +222,6 @@ static inline void handle_good_req(struct ibv_wc *wc, struct mlx5_cqe64 *cqe, st
->  	}
->  }
->
-> -static inline void handle_good_req_lazy(struct mlx5_cqe64 *cqe, uint32_t *pwc_byte_len,
-> -					int *umr_opcode, struct mlx5_wq *wq, int idx)
-> -{
-> -	switch (ntohl(cqe->sop_drop_qpn) >> 24) {
-> -	case MLX5_OPCODE_RDMA_READ:
-> -		*pwc_byte_len  = ntohl(cqe->byte_cnt);
-> -		break;
-> -	case MLX5_OPCODE_ATOMIC_CS:
-> -	case MLX5_OPCODE_ATOMIC_FA:
-> -		*pwc_byte_len  = 8;
-> -		break;
-> -	case MLX5_OPCODE_UMR:
-> -		*umr_opcode = wq->wr_data[idx];
-> -		break;
-> -	}
-> -}
-> -
->  static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *cqe,
->  					struct mlx5_qp *qp, struct mlx5_srq *srq)
->  {
-> @@ -634,7 +617,6 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
->  	switch (opcode) {
->  	case MLX5_CQE_REQ:
->  	{
-> -		uint32_t uninitialized_var(wc_byte_len);
->  		mqp = get_req_context(mctx, cur_rsc,
->  				      (cqe_ver ? (ntohl(cqe64->srqn_uidx) & 0xffffff) : qpn),
->  				      cqe_ver);
-> @@ -643,17 +625,40 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
->  		wq = &mqp->sq;
->  		wqe_ctr = ntohs(cqe64->wqe_counter);
->  		idx = wqe_ctr & (wq->wqe_cnt - 1);
-> -		if (lazy)
-> -			handle_good_req_lazy(cqe64, &wc_byte_len, &cq->umr_opcode, wq, idx);
-> -		else
-> +		if (lazy) {
-> +			uint32_t wc_byte_len;
-> +
-> +			switch (ntohl(cqe64->sop_drop_qpn) >> 24) {
-> +			case MLX5_OPCODE_UMR:
-> +				cq->umr_opcode = wq->wr_data[idx];
-> +				break;
-> +
-> +			case MLX5_OPCODE_RDMA_READ:
-> +				wc_byte_len = ntohl(cqe64->byte_cnt);
-> +				goto scatter_out;
-> +			case MLX5_OPCODE_ATOMIC_CS:
-> +			case MLX5_OPCODE_ATOMIC_FA:
-> +				wc_byte_len = 8;
-> +
-> +			scatter_out:
-> +				if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
-> +					err = mlx5_copy_to_send_wqe(
-> +					    mqp, wqe_ctr, cqe, wc_byte_len);
-> +				else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
-> +					err = mlx5_copy_to_send_wqe(
-> +					    mqp, wqe_ctr, cqe - 1, wc_byte_len);
-> +				break;
-> +			}
-> +		} else {
->  			handle_good_req(wc, cqe64, wq, idx);
->
-> -		if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
-> -			err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe,
-> -						    lazy ? wc_byte_len : wc->byte_len);
-> -		else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
-> -			err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe - 1,
-> -						     lazy ? wc_byte_len : wc->byte_len);
-> +			if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
-> +				err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe,
-> +							    wc->byte_len);
-> +			else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
-> +				err = mlx5_copy_to_send_wqe(
-> +				    mqp, wqe_ctr, cqe - 1, wc->byte_len);
-> +		}
->
->  		if (lazy) {
->  			cq->ibv_cq.wr_id = wq->wrid[idx];
->
+I've tested using iozone, git's "make test", and xfstests in the
+following Linux-on-Linux configurations:
 
-This 'if' can be omitted and its body can be embedded above for both 
-lazy/non-lazy modes.
+- iommu enabled on both client and server
+- FMR and FRWR client memory registration
+- NFSv3, NFSv4.0, and NFSv4.1
+- sec=sys, krb5, krb5i, and krb5p
+- inline threshold sizes of 1KB, 4KB, 8KB, 16KB, 32KB, and 64KB
 
-Will handle that in our side and put into our regression system, once 
-the patch will be approved will take it into my formal GIT so that you 
-can take it from there.
+There is an issue with NFSv4.1 callback on sec=krb5[ip] mounts when
+using inline thresholds above 8KB that I'm still tracking down. This
+issue can be encountered only by unrepentent knob-tweakers, so I'm
+calling this series good-to-go.
+
+
+Available in the "nfs-rdma-for-4.9" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.9
+
+
+Changes since v2:
+- Rebased on v4.8-rc6 + merged fixes
+- Addressed Anna's review comments
+- Days of test experience
+
+
+Changes since v1:
+- Rebased on v4.8-rc3
+- Addressed Trond's comments in 02/22 and 03/22
+- Addressed kbuild robot warnings
+- Gather Send patch (18/22) rewritten
+
+---
+
+Chuck Lever (22):
+      xprtrdma: Eliminate INLINE_THRESHOLD macros
+      SUNRPC: Refactor rpc_xdr_buf_init()
+      SUNRPC: Generalize the RPC buffer allocation API
+      SUNRPC: Generalize the RPC buffer release API
+      SUNRPC: Separate buffer pointers for RPC Call and Reply messages
+      SUNRPC: Add a transport-specific private field in rpc_rqst
+      xprtrdma: Initialize separate RPC call and reply buffers
+      xprtrdma: Use smaller buffers for RPC-over-RDMA headers
+      xprtrdma: Replace DMA_BIDIRECTIONAL
+      xprtrdma: Delay DMA mapping Send and Receive buffers
+      xprtrdma: Eliminate "ia" argument in rpcrdma_{alloc,free}_regbuf
+      xprtrdma: Simplify rpcrdma_ep_post_recv()
+      xprtrdma: Move send_wr to struct rpcrdma_req
+      xprtrdma: Move recv_wr to struct rpcrdma_rep
+      rpcrdma: RDMA/CM private message data structure
+      xprtrdma: Client-side support for rpcrdma_connect_private
+      xprtrdma: Basic support for Remote Invalidation
+      xprtrdma: Use gathered Send for large inline messages
+      xprtrdma: Support larger inline thresholds
+      xprtrmda: Report address of frmr, not mw
+      xprtrdma: Rename rpcrdma_receive_wc()
+      xprtrdma: Eliminate rpcrdma_receive_worker()
+
+
+ include/linux/sunrpc/rpc_rdma.h            |   39 +++
+ include/linux/sunrpc/sched.h               |    4 
+ include/linux/sunrpc/xdr.h                 |   12 +
+ include/linux/sunrpc/xprt.h                |   12 +
+ include/linux/sunrpc/xprtrdma.h            |    4 
+ net/sunrpc/backchannel_rqst.c              |    8 -
+ net/sunrpc/clnt.c                          |   36 +--
+ net/sunrpc/sched.c                         |   35 ++-
+ net/sunrpc/xprt.c                          |    2 
+ net/sunrpc/xprtrdma/backchannel.c          |   53 +----
+ net/sunrpc/xprtrdma/fmr_ops.c              |    7 -
+ net/sunrpc/xprtrdma/frwr_ops.c             |   26 ++
+ net/sunrpc/xprtrdma/rpc_rdma.c             |  323 +++++++++++++++++-----------
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   19 +-
+ net/sunrpc/xprtrdma/transport.c            |  202 ++++++++++--------
+ net/sunrpc/xprtrdma/verbs.c                |  237 ++++++++++++---------
+ net/sunrpc/xprtrdma/xprt_rdma.h            |  108 ++++++---
+ net/sunrpc/xprtsock.c                      |   23 +-
+ 18 files changed, 676 insertions(+), 474 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
