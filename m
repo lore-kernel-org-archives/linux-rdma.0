@@ -1,91 +1,79 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 7/8] ib_{uverbs/core}: add new ib_create_qp_ex with udata arg
-Date: Fri, 16 Sep 2016 20:31:18 +0200
-Message-ID: <2cb7931da6c4d02199c1efddc38c33efde9a5683.1474049924.git-series.knut.omang@oracle.com>
+From: Knut Omang <knut.omang@oracle.com>
+Subject: [PATCH v2 5/8] ib_uverbs: Add padding to end align ib_uverbs_reg_mr_resp
+Date: Fri, 16 Sep 2016 20:31:16 +0200
+Message-ID: <aafa787a72e9df9a40b292fb33833e67ffb46c6a.1474049924.git-series.knut.omang@oracle.com>
 References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
+In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
+References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Knut Omang <knut.omang@oracle.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Necessary to get device specific arguments through to XRC QPs.
-Added new local header file to serve as support interface
-between ib_core and ib_uverbs.
+The ib_uverbs_reg_mr_resp structure was not 64 bit end aligned
+as required by the protocol. This causes alignment issues
+if a device specific driver needs to transfer extra response
+arguments.
 
-Right now there is a lot of duplicate setup code in uverbs_cmd.c
-on the ib_uverbs side and verbs.c on the ib_core side. This commit
-is a quick fix to have XRC support working, but similar calls
-can be added to consolidate the code for other parts of the API.
+Avoid breaking backward compatibility by improving the handling
+of the length checking in ib_uverbs_reg_mr to consider the case
+where the kernel has been updated, but user space still has
+the old length without padding.
+
+Signed-off-by: Knut Omang <knut.omang@oracle.com>
 ---
- drivers/infiniband/core/core_priv.h  |  3 +++
- drivers/infiniband/core/uverbs_cmd.c |  2 +-
- drivers/infiniband/core/verbs.c      | 13 +++++++++++--
- 3 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 10 ++++++----
+ include/uapi/rdma/ib_user_verbs.h    |  1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 19d499d..0819006 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -152,5 +152,8 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
- 			     struct netlink_callback *cb);
- int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
- 			     struct netlink_callback *cb);
-+struct ib_qp *ib_create_qp_ex(struct ib_pd *pd,
-+			struct ib_qp_init_attr *qp_init_attr,
-+			struct ib_udata *udata);
- 
- #endif /* _CORE_PRIV_H */
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7033d10..7f4470e 100644
+index dbc5885..fa8a717 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1907,7 +1907,7 @@ static int create_qp(struct ib_uverbs_file *file,
- 		}
+@@ -967,16 +967,18 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+ 	struct ib_pd                *pd;
+ 	struct ib_mr                *mr;
+ 	int                          ret;
++	size_t resp_size = sizeof resp;
  
- 	if (cmd->qp_type == IB_QPT_XRC_TGT)
--		qp = ib_create_qp(pd, &attr);
-+		qp = ib_create_qp_ex(pd, &attr, uhw);
- 	else
- 		qp = device->create_qp(pd, &attr, uhw);
+-	if (out_len < sizeof resp)
+-		return -ENOSPC;
++	if (out_len < resp_size) {
++		resp_size = out_len;
++	}
  
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 6efe23d..8f71b00 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -751,8 +751,9 @@ static struct ib_qp *ib_create_xrc_qp(struct ib_qp *qp,
- 	return qp;
- }
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
  
--struct ib_qp *ib_create_qp(struct ib_pd *pd,
--			   struct ib_qp_init_attr *qp_init_attr)
-+struct ib_qp *ib_create_qp_ex(struct ib_pd *pd,
-+			struct ib_qp_init_attr *qp_init_attr,
-+			struct ib_udata *udata)
- {
- 	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
- 	struct ib_qp *qp;
-@@ -836,6 +837,14 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	INIT_UDATA(&udata, buf + sizeof cmd,
+ 		   (unsigned long) cmd.response + sizeof resp,
+-		   in_len - sizeof cmd, out_len - sizeof resp);
++		   in_len - sizeof cmd, out_len - resp_size);
  
- 	return qp;
- }
-+EXPORT_SYMBOL(ib_create_qp_ex);
-+
-+
-+struct ib_qp *ib_create_qp(struct ib_pd *pd,
-+			   struct ib_qp_init_attr *qp_init_attr)
-+{
-+	return ib_create_qp_ex(pd, qp_init_attr,NULL);
-+}
- EXPORT_SYMBOL(ib_create_qp);
+ 	if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
+ 		return -EINVAL;
+@@ -1030,7 +1032,7 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+ 	resp.mr_handle = uobj->id;
  
- static const struct {
+ 	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+-			 &resp, sizeof resp)) {
++			 &resp, resp_size)) {
+ 		ret = -EFAULT;
+ 		goto err_copy;
+ 	}
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 7f035f4..6b8c9c0 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -307,6 +307,7 @@ struct ib_uverbs_reg_mr_resp {
+ 	__u32 mr_handle;
+ 	__u32 lkey;
+ 	__u32 rkey;
++	__u32 reserved;
+ };
+ 
+ struct ib_uverbs_rereg_mr {
 -- 
 git-series 0.8.10
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
