@@ -1,73 +1,85 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rdma_rxe: Ensure rdma_rxe module init occurs at correct
- time
-Date: Fri, 16 Sep 2016 14:06:01 -0400
-Message-ID: <2fa6c4b3-6fcb-b0f1-adaf-94895710827d@redhat.com>
-References: <1473975936-9970-1-git-send-email-sbates@raithlin.com>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Fri, 16 Sep 2016 14:08:28 -0400
+Message-ID: <49cccafd-e492-7f1c-4449-68c2c26948e7@redhat.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB07FB7A@ORSMSX109.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB07FBE1@ORSMSX109.amr.corp.intel.com>
+ <20160913180342.GA6933@obsidianresearch.com>
+ <9aaeb3e2-9283-9850-0dfa-d1ea150e7408@dev.mellanox.co.il>
+ <20160916170403.GB15159@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="2ncclWjq8m5rxw132kd4lgURhdhat26BO"
+ boundary="RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473975936-9970-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160916170403.GB15159-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---2ncclWjq8m5rxw132kd4lgURhdhat26BO
-Content-Type: multipart/mixed; boundary="pEQjBtO6E57lbOEUbc4oKH117ABnKXouU";
+--RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg
+Content-Type: multipart/mixed; boundary="e7Xfb2sl0h7I1Wva9OTvBRIMsbmrHbfeG";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
- linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <2fa6c4b3-6fcb-b0f1-adaf-94895710827d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rdma_rxe: Ensure rdma_rxe module init occurs at correct
- time
-References: <1473975936-9970-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1473975936-9970-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>,
+ "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
+ "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <49cccafd-e492-7f1c-4449-68c2c26948e7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+References: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB07FB7A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB07FBE1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <20160913180342.GA6933-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <9aaeb3e2-9283-9850-0dfa-d1ea150e7408-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+ <20160916170403.GB15159-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160916170403.GB15159-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
---pEQjBtO6E57lbOEUbc4oKH117ABnKXouU
+--e7Xfb2sl0h7I1Wva9OTvBRIMsbmrHbfeG
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/15/2016 5:45 PM, Stephen Bates wrote:
-> When the Soft-RoCE module is built into the kernel there is a
-> initialization issue when CONFIG_IPV6 is selected. Use late_initcall
-> to ensure the rxe module is loaded later. This fix is based on one
-> proposed by Logan Gunthorpe on a much older code base [1].
+On 9/16/2016 1:04 PM, Jason Gunthorpe wrote:
+> On Fri, Sep 16, 2016 at 12:56:55PM -0400, Hal Rosenstock wrote:
+>> On 9/13/2016 2:03 PM, Jason Gunthorpe wrote:
+>>> opensm is not qualified since it rides on the other libraries.
+>>
+>> I'm not sure whether opensm should be in or out. However, I don't
+>> understand the not qualified part. It does seem to be similar to both
+>> srptools and ibacm which are all daemons and live on top of libibverbs=
 
-Your commit message doesn't make sense.  You start by saying that
-soft-RoCE is compiled in, then say "the rxe module is loaded later".
-Well, which is it?  I'm not sure exactly the problem you are fixing.
-However, I know that the series Leon posted for the rxe driver included
-a fix specifically for IPv6 tunnel creation issues that result in an
-oops.  I suspect that patch might solve your problem.  So, I'm going to
-drop this patch.  Once you get a chance to test with the other patch
-applied, if your problem still exists, then please repost this patch
-with a clearer commit message and we can add this as well.
+>> and libibumad (ibacm has addition netlink socket support).
+>=20
+> srp_daemon and iwpmd are both bits of code that reasonably could have
+> lived in the kernel but have been punted to user space to keep the
+> kernel simpler. For instance srp_daemon's job is to collect service
+> record from the SM and tell the kernel about it.
+>=20
+> ibacm can reasonably considered a linked subcomponent of librdmacm.
+>=20
+>> What are the metrics for inclusion ?
+>=20
+> Unclear :)
+>=20
+>> What other libraries are you referring to ? OpenSM lives on top of
+>> libibumad and two internal libraries (complib and a "vendor" library).=
 
-> [1] https://github.com/sbates130272/qemu-minimal/blob/rdma/patches/\
->   0001-Changes-needed-to-use-rxe-compiled-into-the-kernel.patch
 >=20
-> Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Those are the libraries.
 >=20
-> diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rx=
-e/rxe.c
-> index 08e09d9..97bc74a 100644
-> --- a/drivers/infiniband/sw/rxe/rxe.c
-> +++ b/drivers/infiniband/sw/rxe/rxe.c
-> @@ -392,5 +392,5 @@ static void __exit rxe_module_exit(void)
->  	pr_info("rxe: unloaded\n");
->  }
-> =20
-> -module_init(rxe_module_init);
-> +late_initcall(rxe_module_init);
->  module_exit(rxe_module_exit);
->=20
+> opensm is not bound to kernel, does not use the kernel 'uabi' headers,
+> is not a part of the kernel that was delgated to userspace, and is not
+> required/related to any of the subcomponents already in the tree.
+
+Not to mention it's also a complex beast ;-)
 
 
 --=20
@@ -75,9 +87,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---pEQjBtO6E57lbOEUbc4oKH117ABnKXouU--
+--e7Xfb2sl0h7I1Wva9OTvBRIMsbmrHbfeG--
 
---2ncclWjq8m5rxw132kd4lgURhdhat26BO
+--RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -86,22 +98,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX3DSJAAoJELgmozMOVy/dq7kP/jBT89mau44jHpJPvISzdOWG
-eRnXo5i6aYdvay3ZT9L541JebjSSrWYkl4ohjHo3Ah8f7Fai+C1pI/CTJI/moZNx
-iGs6YdTKXbYJnWjE7UdYZELG9GlD/PObKxxZIWz0s74NowVJiHvZjqL+xR9GWu/z
-UiSx3gIt4rxfFS+ZTa87PvWGyROrdJmVC7FGZLyJa7WXXi3GHmlQ6xBnaVR0GB9I
-ZCyDYpH8zUfkDC1x0Zx7RwR7OYJ25uQ/GkoZtXTDz3hlGS1TjYkUwfbaA3gkeyI4
-pOczM6afqxgWISEEUu2mEFEvyCrIbmcXPBQc2krUOOV2W6HCuFdvMpHgYVtgs0A3
-maK0yjjQaHRYjbDpLW+ofUCN6BY1HmYSxTcnrMiLCSY1FdI6uz7Ok2UPrtbeGL/8
-uHUlY7HM2zhnN0+aCoyAbOLdwGum+L0yPBuigXObcrqbABpFRLYn5ArvQ7/L7zRB
-ZWokMPbHsgPVd78BUuh6SEPvV3d5cTQRc97tr4MhKWodqiVOVLuyE3exvmtlLzZ0
-Vg5wO5WBiiRq9siCKeBKRtv/I8sMScnPj+MoVco5uLRMeQKCk8/D9fPinKf0AHG4
-cb5F3FOf1qADvcP9CEWgBCUHl+NX7CLUlq5oll5Hp6KFUPACRkeYfXFXj3i4v9vo
-Pl1xmq+3qDT0Uk4G4e6T
-=jaKl
+iQIcBAEBCAAGBQJX3DUcAAoJELgmozMOVy/d9aEP/jFSP25Uq/gMuof/Mhi43hAZ
+WzEgnLyaU958IKDdo3OdipfmW7O9X24x4OXvenq5fiRemzsIZr8Lgfb673jhvi79
+hIjencoyJVHS5G9QSVtq1d+DdHrgLxAhMZiBG+RmvIgdoTOEUAq7eejmW4lS3bI1
+isyWHVpvsWxEnVSNeVlpcR5ep4K+lE2nnvxAuU0sylDR2Yi5Km1rQxWs5OC5pQi8
+I0OO1tkib+lYTOwMOq3BQ1PxM/TB0zPXNS2cg7nM76db0GA6/ANLq+yetc7pj2w5
+GQYLp1R1T55bk+aNSBHOWez3xEv2IE0HClvhdygEDUvoG3K0ddRXWgK0RuX1hzgE
+F2UKSSYaFBO6y6cK1f/2JhyOdH9l+Zv0bZhgBT+ubGwgj62g4yrRtDIiVC/H9k0C
+2+ruPbOzXXGwn5ADM2xlWcj3z1aV3RRJroUPc6MEiHN9G+i4nMkOskltkg9nGZS/
+qrcURzfW2eTjWaJoi3ifiW9IP85Sp5Yw98HP/O7vNtuxUgGMF0ydXmI+RblgK51T
+no3cPE/AZjXYdS7iUDgRcoaCgdgDIlWdYTUEHum9Inpj8nWuUvTPReq68bjX4AIY
+B1sOtpb+oGviIwPlK+QvQwxki5MiFCOfwAsncpMdUayEUB+Krm/5MD9pIaIbhYOn
+GumY7jpGcFULUd4FncEX
+=1wTF
 -----END PGP SIGNATURE-----
 
---2ncclWjq8m5rxw132kd4lgURhdhat26BO--
+--RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
