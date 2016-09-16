@@ -1,95 +1,78 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Fri, 16 Sep 2016 14:08:28 -0400
-Message-ID: <49cccafd-e492-7f1c-4449-68c2c26948e7@redhat.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FB7A@ORSMSX109.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FBE1@ORSMSX109.amr.corp.intel.com>
- <20160913180342.GA6933@obsidianresearch.com>
- <9aaeb3e2-9283-9850-0dfa-d1ea150e7408@dev.mellanox.co.il>
- <20160916170403.GB15159@obsidianresearch.com>
+Subject: Re: [PATCH] IB/rdmavt: free the userspace memory region with kfree
+ instead of vfree
+Date: Fri, 16 Sep 2016 14:10:11 -0400
+Message-ID: <501a2833-c985-a118-4259-f25f934a745f@redhat.com>
+References: <20160909071537.18821-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg"
+ boundary="3cW54S2DFP9GBoEfv9CIf9ixBlPgBXapS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160916170403.GB15159-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160909071537.18821-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg
-Content-Type: multipart/mixed; boundary="e7Xfb2sl0h7I1Wva9OTvBRIMsbmrHbfeG";
+--3cW54S2DFP9GBoEfv9CIf9ixBlPgBXapS
+Content-Type: multipart/mixed; boundary="5jFIoitV33MdK8JuJsKuskvcNr92EQl5X";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>,
- "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
- "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <49cccafd-e492-7f1c-4449-68c2c26948e7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-References: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <1828884A29C6694DAF28B7E6B8A82373AB07FB7A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
- <1828884A29C6694DAF28B7E6B8A82373AB07FBE1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
- <20160913180342.GA6933-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <9aaeb3e2-9283-9850-0dfa-d1ea150e7408-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
- <20160916170403.GB15159-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20160916170403.GB15159-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>,
+ Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock
+ <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <501a2833-c985-a118-4259-f25f934a745f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rdmavt: free the userspace memory region with kfree
+ instead of vfree
+References: <20160909071537.18821-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+In-Reply-To: <20160909071537.18821-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
---e7Xfb2sl0h7I1Wva9OTvBRIMsbmrHbfeG
-Content-Type: text/plain; charset=windows-1252
+--5jFIoitV33MdK8JuJsKuskvcNr92EQl5X
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 9/16/2016 1:04 PM, Jason Gunthorpe wrote:
-> On Fri, Sep 16, 2016 at 12:56:55PM -0400, Hal Rosenstock wrote:
->> On 9/13/2016 2:03 PM, Jason Gunthorpe wrote:
->>> opensm is not qualified since it rides on the other libraries.
->>
->> I'm not sure whether opensm should be in or out. However, I don't
->> understand the not qualified part. It does seem to be similar to both
->> srptools and ibacm which are all daemons and live on top of libibverbs=
+On 9/9/2016 3:15 AM, Colin King wrote:
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+>=20
+> The userspace memory region 'mr' is allocated with kzalloc in
+> __rvt_alloc_mr  however it is incorrectly being freed with vfree in
+> __rvt_free_mr. Fix this by using kfree to free it.
+>=20
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rdmavt/mr.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/=
+rdmavt/mr.c
+> index 80c4b6b..46b6497 100644
+> --- a/drivers/infiniband/sw/rdmavt/mr.c
+> +++ b/drivers/infiniband/sw/rdmavt/mr.c
+> @@ -294,7 +294,7 @@ static void __rvt_free_mr(struct rvt_mr *mr)
+>  {
+>  	rvt_deinit_mregion(&mr->mr);
+>  	rvt_free_lkey(&mr->mr);
+> -	vfree(mr);
+> +	kfree(mr);
+>  }
+> =20
+>  /**
+>=20
 
->> and libibumad (ibacm has addition netlink socket support).
->=20
-> srp_daemon and iwpmd are both bits of code that reasonably could have
-> lived in the kernel but have been punted to user space to keep the
-> kernel simpler. For instance srp_daemon's job is to collect service
-> record from the SM and tell the kernel about it.
->=20
-> ibacm can reasonably considered a linked subcomponent of librdmacm.
->=20
->> What are the metrics for inclusion ?
->=20
-> Unclear :)
->=20
->> What other libraries are you referring to ? OpenSM lives on top of
->> libibumad and two internal libraries (complib and a "vendor" library).=
-
->=20
-> Those are the libraries.
->=20
-> opensm is not bound to kernel, does not use the kernel 'uabi' headers,
-> is not a part of the kernel that was delgated to userspace, and is not
-> required/related to any of the subcomponents already in the tree.
-
-Not to mention it's also a complex beast ;-)
-
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---e7Xfb2sl0h7I1Wva9OTvBRIMsbmrHbfeG--
+--5jFIoitV33MdK8JuJsKuskvcNr92EQl5X--
 
---RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg
+--3cW54S2DFP9GBoEfv9CIf9ixBlPgBXapS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -98,22 +81,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX3DUcAAoJELgmozMOVy/d9aEP/jFSP25Uq/gMuof/Mhi43hAZ
-WzEgnLyaU958IKDdo3OdipfmW7O9X24x4OXvenq5fiRemzsIZr8Lgfb673jhvi79
-hIjencoyJVHS5G9QSVtq1d+DdHrgLxAhMZiBG+RmvIgdoTOEUAq7eejmW4lS3bI1
-isyWHVpvsWxEnVSNeVlpcR5ep4K+lE2nnvxAuU0sylDR2Yi5Km1rQxWs5OC5pQi8
-I0OO1tkib+lYTOwMOq3BQ1PxM/TB0zPXNS2cg7nM76db0GA6/ANLq+yetc7pj2w5
-GQYLp1R1T55bk+aNSBHOWez3xEv2IE0HClvhdygEDUvoG3K0ddRXWgK0RuX1hzgE
-F2UKSSYaFBO6y6cK1f/2JhyOdH9l+Zv0bZhgBT+ubGwgj62g4yrRtDIiVC/H9k0C
-2+ruPbOzXXGwn5ADM2xlWcj3z1aV3RRJroUPc6MEiHN9G+i4nMkOskltkg9nGZS/
-qrcURzfW2eTjWaJoi3ifiW9IP85Sp5Yw98HP/O7vNtuxUgGMF0ydXmI+RblgK51T
-no3cPE/AZjXYdS7iUDgRcoaCgdgDIlWdYTUEHum9Inpj8nWuUvTPReq68bjX4AIY
-B1sOtpb+oGviIwPlK+QvQwxki5MiFCOfwAsncpMdUayEUB+Krm/5MD9pIaIbhYOn
-GumY7jpGcFULUd4FncEX
-=1wTF
+iQIcBAEBCAAGBQJX3DWDAAoJELgmozMOVy/dbrgP/2JWj9Lt+/XJckJZLHFhBDgC
+RosMyq5KpNF/UHCi5URP+fLXfQ15L+QZthNm1jarN+4/VuTLX4xf/T5VbJFiSkj6
+9/Rx1KvtcmJocbWTzceXOglzIerEcaqpeWCjEwz2YF0mwk5lLbp6ZAr6bSLGJfot
+uamf0+3fm9nSaX/TCeNBo0eFYkgRxwE1Ryuus65YH29eTVKbz8iWKN/l3+wmcN/i
+RVPMT1s/68GOHEueu8JV7UVe3NAEUBDuHdBbYXiHU+Ruq9TAzZxKXkrsn2+uIifb
+QKUllvKEwMLFfcEp2l1stJd6cCK0eHHPR3mwHdAyE7q2SpQf6FXR6hIeeaxU6CO0
+d2JLD2hmldLXD175xdR1iF1Akep3fasJzqCOhAfKMIID9cnydkN0NYQ3vJjiigui
+j/S0QsJ+EZ3Z9AW2JxrvODxOpmwx+rNcUzkoMuRcyTPMs9DsYVsybf6l8JGfIhKZ
+IFjSX4WENQKhLySxiqAPqSqHMS/Yaug7031uqMVWsn2wQv2Z22U9148C1M/qtP8M
+LYUoqLdRsb20Z/U80wzCpmhxpbfvx+df03QqeuJLdomTPvezlUDe9eCgeJ4PgBT+
+ZC+fop+ukoNiy2j6hlnXjp74jpTKJekF5RjdPQ83Jgs8XbfW6kbldsEbLV5JEQFb
+Jbl+1zLe+g+TFTh1zkPo
+=ALod
 -----END PGP SIGNATURE-----
 
---RiswWhlcX3SqkcnfggM4ARPJbLsISUpTg--
+--3cW54S2DFP9GBoEfv9CIf9ixBlPgBXapS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
