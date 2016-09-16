@@ -1,68 +1,66 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Fri, 16 Sep 2016 07:06:11 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E24EE4644@CRSMSX101.amr.corp.intel.com>
-References: <20160915065242.GO26069@leon.nu>
- <20160915080600.GA31776@infradead.org> <20160915081149.GT26069@leon.nu>
- <20160915081327.GA7572@infradead.org> <20160915083945.GU26069@leon.nu>
- <20160915160427.GC18154@obsidianresearch.com>
- <01e901d20f6b$7ae067d0$70a13770$@opengridcomputing.com>
- <20160915163756.GB26069@leon.nu>
- <20160915164931.GC26111@obsidianresearch.com>
- <022e01d20f84$a3685870$ea390950$@opengridcomputing.com>
- <20160915192628.GB437@obsidianresearch.com>
- <02a501d20f88$8386bca0$8a9435e0$@opengridcomputing.com>
+Subject: RE: [Ofvwg] [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG)
+ meeting tomorrow - 9/13/2016 at 11:00PDT
+Date: Fri, 16 Sep 2016 07:19:31 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E24EE469A@CRSMSX101.amr.corp.intel.com>
+References: <VI1PR0501MB2189FBF50563679C4E61B1EFB1FF0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+ <CAG53R5XUDkVgu5R2wHOyxd0FGEuEU+CTf1H_d9=Mk+DnDS51Ug@mail.gmail.com>
+ <20160913064857.GA5988@infradead.org>
+ <CAG53R5UO50zXYF_oUUA_MUhx+xYS8FbDkTsAzon6Fn4syDyWvQ@mail.gmail.com>
+ <20160913070418.GA31616@infradead.org> <20160913103238.GW8812@leon.nu>
+ <20160914123059.GA868@infradead.org>
+ <20160914171349.GG16014@obsidianresearch.com>
+ <20160915050005.GF26069@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <02a501d20f88$8386bca0$8a9435e0$@opengridcomputing.com>
+In-Reply-To: <20160915050005.GF26069-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yarong@>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 > 
-> > > > > Do we want to create rdma-tools after this task will be
-> > > > > completed? For
-> > > example
-> > > > > with debug and performance tools in it.
-> > > >
-> > > > Prolification of repositories is exactly what this is intended to
-> > > > prevent :(
-> > >
-> > > The goal would be to move all the tools/cmds/etc into one repo.  How
-> > > is that prolification?
+> On Wed, Sep 14, 2016 at 11:13:49AM -0600, Jason Gunthorpe wrote:
+> > On Wed, Sep 14, 2016 at 05:30:59AM -0700, Christoph Hellwig wrote:
 > >
-> > I guess I should wait and see what could end up in there before
-> > commenting...
+> > > I'm not fine with HFI exposing the non-verbs interfaces through
+> > > drivers/infiniband/core interface, which as far as I can tell it
+> > > currently does not even do, although some discussions here suggest
+> > > that a future interface should cater to those interface.
 > >
+> > The counter balance is that the Kernel Community has had a lot of bad
+> > experiences with drivers growing their own user APIs and 'subsystem'
+> > like functionality.
 > 
-> I think we should shelf this discussion until we get our current project done...
-> 
-> But... :)
-> 
-> A quick gander at the OFED packages produces this list of possible
-> candidates:
-> 
-> dapl  (perhaps dapl should be in rdma-plumbing?) fabtests ibacm ibpd ibsim
-> ibutils infiniband-diags infinipath-psm mstflint opensm perftest qlvnictools
-> qperf rds-tools
+> Do you see any desire of HFI authors to move to new general user API?
 
-I strongly suggest against adding anything that is not a library and even then I like what Jason has said previously.  "This is a library targeted for kernel APIs."  So, for example, libibmad was not included.  In fact architecturally I think ibmad should go away somehow.  The main user is infiniband-diags but there are some other users of it so I have not been able to deprecate it.
+Obviously we designed to have PSM be it's own interface just like qib was.
 
-I guess my opinion is I don't want to see this repo become "OFED" in a different form.  There are valid reasons to have separate packages.  It is really the support libraries which have been a pain.
+I see advantages and disadvantages for both us and the community with both directions.
+
+The largest issue we have right now is that we are not sure about the performance of PSM through the proposed interface.  Lack of performance would, of course, be a show stopper.  Validating performance will take time and will probably not be effective until we get farther down the interface.
+
+Frankly, I just have not had time to try to evaluate what it would take to get a command through the new interface.  I have spent some time assessing which commands (verbs and PSM) need to be fast path.  And I have done a quick review of the latest rfc from a few weeks ago from Matan.  I hoping to find more time soon.
+
+For the current set of patches, I noticed an "escape clause" for vendor specific IOCTLs.
+
+        if (cmd == RDMA_DIRECT_IOCTL) {
+                /* TODO? */
+                err = -ENOSYS;
+                goto out;
+        } else {
+
+I think we should have this but to Christophs point if you have something like this why not just have a separate cdev?
+
+Christoph, do you think the addition of the PSM interface to infiniband/core is a pollution of that ABI?  I made a similar argument that from a user side opening /dev/infiniband/uverbsX and then doing PSM on that FD was "unclean".   Jason however, brought up some good points on why we may want to do that.
+
+Frankly I think we should focus on verbs and keep the interface flexible, which is what we are doing.
 
 Ira
 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
