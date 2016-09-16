@@ -1,7 +1,7 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 3/8] ib_umem: With the new ib_umem_get_attrs, simplify ib_umem_get
-Date: Fri, 16 Sep 2016 20:31:14 +0200
-Message-ID: <1ed37efb20798db49b5d6789a0e2fb77b83848b1.1474049924.git-series.knut.omang@oracle.com>
+Subject: [PATCH v2 4/8] ib: Add udata argument to create_ah
+Date: Fri, 16 Sep 2016 20:31:15 +0200
+Message-ID: <dae6bf04776faf040f44d01bebdc35e79fe1d1d0.1474049924.git-series.knut.omang@oracle.com>
 References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
@@ -9,370 +9,309 @@ In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-seri
 References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>, Hans-C
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of having most drivers provide a specialized
-and weakly typed "boolean" argument
-dmasync = 0 argument which are only set to nonzero 3 places,
-instead let these special use cases use the
-more generic ib_umem_get_attrs which gives access to
-the full range of dma attributes and also dma direction,
-and eliminate the dmasync parameter from the ib_umem_get call,
+Most of the ib device driver entry points supports optional
+device specific parameter transfer between user space and kernel space
+via the udata argument - add a similar argument for ib_create_ah.
 
-Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Update all infiniband drivers to include this agument
+in their driver entry point implementation.
 ---
- drivers/infiniband/core/umem.c               |  8 ++------
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |  2 +-
- drivers/infiniband/hw/cxgb4/mem.c            |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  2 +-
- drivers/infiniband/hw/mlx4/cq.c              |  4 ++--
- drivers/infiniband/hw/mlx4/doorbell.c        |  2 +-
- drivers/infiniband/hw/mlx4/mr.c              |  5 ++---
- drivers/infiniband/hw/mlx4/qp.c              |  2 +-
- drivers/infiniband/hw/mlx4/srq.c             |  2 +-
- drivers/infiniband/hw/mlx5/cq.c              | 12 +++++++-----
- drivers/infiniband/hw/mlx5/doorbell.c        |  2 +-
- drivers/infiniband/hw/mlx5/mr.c              |  2 +-
- drivers/infiniband/hw/mlx5/qp.c              |  4 ++--
- drivers/infiniband/hw/mlx5/srq.c             |  2 +-
- drivers/infiniband/hw/mthca/mthca_provider.c |  8 ++++++--
- drivers/infiniband/hw/nes/nes_verbs.c        |  2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  2 +-
- drivers/infiniband/sw/rdmavt/mr.c            |  2 +-
- drivers/infiniband/sw/rxe/rxe_mr.c           |  2 +-
- include/rdma/ib_umem.h                       |  4 ++--
- 20 files changed, 36 insertions(+), 35 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c         | 10 +++++++++-
+ drivers/infiniband/core/verbs.c              |  2 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |  3 ++-
+ drivers/infiniband/hw/cxgb4/provider.c       |  3 ++-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  3 ++-
+ drivers/infiniband/hw/mlx4/ah.c              |  3 ++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |  3 ++-
+ drivers/infiniband/hw/mlx5/ah.c              |  3 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |  3 ++-
+ drivers/infiniband/hw/mthca/mthca_provider.c |  3 ++-
+ drivers/infiniband/hw/nes/nes_verbs.c        |  3 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c     |  5 +++--
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h     |  3 ++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  3 ++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  3 ++-
+ drivers/infiniband/sw/rxe/rxe_verbs.c        |  3 ++-
+ include/rdma/ib_verbs.h                      |  3 ++-
+ 17 files changed, 41 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 699a0f7..938c940 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -77,15 +77,11 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
-  * @addr: userspace virtual address to start at
-  * @size: length of region to pin
-  * @access: IB_ACCESS_xxx flags for memory being pinned
-- * @dmasync: flush in-flight DMA when the memory region is written
-  */
- struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
--			    size_t size, int access, int dmasync)
-+			    size_t size, int access)
- {
--	unsigned long dma_attrs = 0;
--	if (dmasync)
--		dma_attrs |= DMA_ATTR_WRITE_BARRIER;
--	return ib_umem_get_attrs(context, addr, size, access, DMA_BIDIRECTIONAL, dma_attrs);
-+	return ib_umem_get_attrs(context, addr, size, access, DMA_BIDIRECTIONAL, 0);
- }
- EXPORT_SYMBOL(ib_umem_get);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index f664731..dbc5885 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2874,6 +2874,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	struct ib_pd			*pd;
+ 	struct ib_ah			*ah;
+ 	struct ib_ah_attr		attr;
++	struct ib_udata                 udata;
+ 	int ret;
  
+ 	if (out_len < sizeof resp)
+@@ -2882,6 +2883,10 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
++	INIT_UDATA(&udata, buf + sizeof cmd,
++		(unsigned long) cmd.response + sizeof resp,
++		in_len - sizeof cmd, out_len - sizeof resp);
++
+ 	uobj = kmalloc(sizeof *uobj, GFP_KERNEL);
+ 	if (!uobj)
+ 		return -ENOMEM;
+@@ -2908,14 +2913,17 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	memset(&attr.dmac, 0, sizeof(attr.dmac));
+ 	memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
+ 
+-	ah = ib_create_ah(pd, &attr);
++	ah = pd->device->create_ah(pd, &attr, &udata);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto err_put;
+ 	}
+ 
++	ah->device  = pd->device;
++	ah->pd      = pd;
+ 	ah->uobject  = uobj;
+ 	uobj->object = ah;
++	atomic_inc(&pd->usecnt);
+ 
+ 	ret = idr_add_uobj(&ib_uverbs_ah_idr, uobj);
+ 	if (ret)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f2b776e..6efe23d 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -293,7 +293,7 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
+ {
+ 	struct ib_ah *ah;
+ 
+-	ah = pd->device->create_ah(pd, ah_attr);
++	ah = pd->device->create_ah(pd, ah_attr, NULL);
+ 
+ 	if (!IS_ERR(ah)) {
+ 		ah->device  = pd->device;
 diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 3edb806..4225479 100644
+index 4225479..ffdf530 100644
 --- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
 +++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -576,7 +576,7 @@ static struct ib_mr *iwch_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+@@ -62,7 +62,8 @@
+ #include "common.h"
  
- 	mhp->rhp = rhp;
+ static struct ib_ah *iwch_ah_create(struct ib_pd *pd,
+-				    struct ib_ah_attr *ah_attr)
++				    struct ib_ah_attr *ah_attr,
++				    struct ib_udata *udata)
+ {
+ 	return ERR_PTR(-ENOSYS);
+ }
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index df127ce..b476df0 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -59,7 +59,8 @@ module_param(fastreg_support, int, 0644);
+ MODULE_PARM_DESC(fastreg_support, "Advertise fastreg support (default=1)");
  
--	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc);
- 	if (IS_ERR(mhp->umem)) {
- 		err = PTR_ERR(mhp->umem);
- 		kfree(mhp);
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 0b91b0f..7a30b55 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -509,7 +509,7 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 
- 	mhp->rhp = rhp;
- 
--	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc);
- 	if (IS_ERR(mhp->umem)) {
- 		err = PTR_ERR(mhp->umem);
- 		kfree_skb(mhp->dereg_skb);
+ static struct ib_ah *c4iw_ah_create(struct ib_pd *pd,
+-				    struct ib_ah_attr *ah_attr)
++				    struct ib_ah_attr *ah_attr,
++				    struct ib_udata *udata)
+ {
+ 	return ERR_PTR(-ENOSYS);
+ }
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 2360338..3cf1c23 100644
+index 3cf1c23..c814a2e 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -1703,7 +1703,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
- 
- 	if (length > I40IW_MAX_MR_SIZE)
- 		return ERR_PTR(-EINVAL);
--	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	region = ib_umem_get(pd->uobject->context, start, length, acc);
- 	if (IS_ERR(region))
- 		return (struct ib_mr *)region;
- 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index d6fc8a6..8c3ef00 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -141,8 +141,8 @@ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *cont
- 	int err;
- 	int cqe_size = dev->dev->caps.cqe_size;
- 
--	*umem = ib_umem_get(context, buf_addr, cqe * cqe_size,
--			    IB_ACCESS_LOCAL_WRITE, 1);
-+	*umem = ib_umem_get_attrs(context, buf_addr, cqe * cqe_size,
-+			IB_ACCESS_LOCAL_WRITE, DMA_BIDIRECTIONAL, DMA_ATTR_WRITE_BARRIER);
- 	if (IS_ERR(*umem))
- 		return PTR_ERR(*umem);
- 
-diff --git a/drivers/infiniband/hw/mlx4/doorbell.c b/drivers/infiniband/hw/mlx4/doorbell.c
-index c517409..f87aa5f 100644
---- a/drivers/infiniband/hw/mlx4/doorbell.c
-+++ b/drivers/infiniband/hw/mlx4/doorbell.c
-@@ -62,7 +62,7 @@ int mlx4_ib_db_map_user(struct mlx4_ib_ucontext *context, unsigned long virt,
- 	page->user_virt = (virt & PAGE_MASK);
- 	page->refcnt    = 0;
- 	page->umem      = ib_umem_get(&context->ibucontext, virt & PAGE_MASK,
--				      PAGE_SIZE, 0, 0);
-+				      PAGE_SIZE, 0);
- 	if (IS_ERR(page->umem)) {
- 		err = PTR_ERR(page->umem);
- 		kfree(page);
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 5d73989..31ee0f7 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -148,7 +148,7 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	/* Force registering the memory as writable. */
- 	/* Used for memory re-registeration. HCA protects the access */
- 	mr->umem = ib_umem_get(pd->uobject->context, start, length,
--			       access_flags | IB_ACCESS_LOCAL_WRITE, 0);
-+			       access_flags | IB_ACCESS_LOCAL_WRITE);
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
- 		goto err_free;
-@@ -230,8 +230,7 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
- 		ib_umem_release(mmr->umem);
- 		mmr->umem = ib_umem_get(mr->uobject->context, start, length,
- 					mr_access_flags |
--					IB_ACCESS_LOCAL_WRITE,
--					0);
-+					IB_ACCESS_LOCAL_WRITE);
- 		if (IS_ERR(mmr->umem)) {
- 			err = PTR_ERR(mmr->umem);
- 			/* Prevent mlx4_ib_dereg_mr from free'ing invalid pointer */
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 768085f..363b1cb 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -742,7 +742,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 			goto err;
- 
- 		qp->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--				       qp->buf_size, 0, 0);
-+				       qp->buf_size, 0);
- 		if (IS_ERR(qp->umem)) {
- 			err = PTR_ERR(qp->umem);
- 			goto err;
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index 0597f3e..31c297b 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -115,7 +115,7 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 		}
- 
- 		srq->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--					buf_size, 0, 0);
-+					buf_size, 0);
- 		if (IS_ERR(srq->umem)) {
- 			err = PTR_ERR(srq->umem);
- 			goto err_srq;
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 35a9f71..c505f0b 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -776,9 +776,11 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 
- 	*cqe_size = ucmd.cqe_size;
- 
--	cq->buf.umem = ib_umem_get(context, ucmd.buf_addr,
--				   entries * ucmd.cqe_size,
--				   IB_ACCESS_LOCAL_WRITE, 1);
-+	cq->buf.umem = ib_umem_get_attrs(context, ucmd.buf_addr,
-+					 entries * ucmd.cqe_size,
-+					 IB_ACCESS_LOCAL_WRITE,
-+					 DMA_BIDIRECTIONAL,
-+					 DMA_ATTR_WRITE_BARRIER);
- 	if (IS_ERR(cq->buf.umem)) {
- 		err = PTR_ERR(cq->buf.umem);
- 		return err;
-@@ -1137,8 +1139,8 @@ static int resize_user(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
- 	if (ucmd.reserved0 || ucmd.reserved1)
- 		return -EINVAL;
- 
--	umem = ib_umem_get(context, ucmd.buf_addr, entries * ucmd.cqe_size,
--			   IB_ACCESS_LOCAL_WRITE, 1);
-+	umem = ib_umem_get_attrs(context, ucmd.buf_addr, entries * ucmd.cqe_size,
-+			IB_ACCESS_LOCAL_WRITE, DMA_BIDIRECTIONAL, DMA_ATTR_WRITE_BARRIER);
- 	if (IS_ERR(umem)) {
- 		err = PTR_ERR(umem);
- 		return err;
-diff --git a/drivers/infiniband/hw/mlx5/doorbell.c b/drivers/infiniband/hw/mlx5/doorbell.c
-index a0e4e6d..b9f8158 100644
---- a/drivers/infiniband/hw/mlx5/doorbell.c
-+++ b/drivers/infiniband/hw/mlx5/doorbell.c
-@@ -64,7 +64,7 @@ int mlx5_ib_db_map_user(struct mlx5_ib_ucontext *context, unsigned long virt,
- 	page->user_virt = (virt & PAGE_MASK);
- 	page->refcnt    = 0;
- 	page->umem      = ib_umem_get(&context->ibucontext, virt & PAGE_MASK,
--				      PAGE_SIZE, 0, 0);
-+				      PAGE_SIZE, 0);
- 	if (IS_ERR(page->umem)) {
- 		err = PTR_ERR(page->umem);
- 		kfree(page);
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 6f7e347..baca6e7 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -822,7 +822,7 @@ static struct ib_umem *mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
+@@ -2564,7 +2564,8 @@ static int i40iw_query_pkey(struct ib_device *ibdev,
+  * @ah_attr: address handle attributes
+  */
+ static struct ib_ah *i40iw_create_ah(struct ib_pd *ibpd,
+-				     struct ib_ah_attr *attr)
++				struct ib_ah_attr *attr,
++				struct ib_udata *udata)
  {
+ 	return ERR_PTR(-ENOSYS);
+ }
+diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
+index 5fc6233..1ea2ba3 100644
+--- a/drivers/infiniband/hw/mlx4/ah.c
++++ b/drivers/infiniband/hw/mlx4/ah.c
+@@ -124,7 +124,8 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ 	return &ah->ibah;
+ }
+ 
+-struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
++struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata)
+ {
+ 	struct mlx4_ib_ah *ah;
+ 	struct ib_ah *ret;
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 7c5832e..c3812e3 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -740,7 +740,8 @@ int mlx4_ib_arm_cq(struct ib_cq *cq, enum ib_cq_notify_flags flags);
+ void __mlx4_ib_cq_clean(struct mlx4_ib_cq *cq, u32 qpn, struct mlx4_ib_srq *srq);
+ void mlx4_ib_cq_clean(struct mlx4_ib_cq *cq, u32 qpn, struct mlx4_ib_srq *srq);
+ 
+-struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr);
++struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata);
+ int mlx4_ib_query_ah(struct ib_ah *ibah, struct ib_ah_attr *ah_attr);
+ int mlx4_ib_destroy_ah(struct ib_ah *ah);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
+index 745efa4..b5d0f9a 100644
+--- a/drivers/infiniband/hw/mlx5/ah.c
++++ b/drivers/infiniband/hw/mlx5/ah.c
+@@ -64,7 +64,8 @@ static struct ib_ah *create_ib_ah(struct mlx5_ib_dev *dev,
+ 	return &ah->ibah;
+ }
+ 
+-struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
++struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_ah *ah;
  	struct mlx5_ib_dev *dev = to_mdev(pd->device);
- 	struct ib_umem *umem = ib_umem_get(pd->uobject->context, start, length,
--					   access_flags, 0);
-+					   access_flags);
- 	if (IS_ERR(umem)) {
- 		mlx5_ib_err(dev, "umem get failed (%ld)\n", PTR_ERR(umem));
- 		return (void *)umem;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index f3c943f..3a48d9d 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -632,7 +632,7 @@ static int mlx5_ib_umem_get(struct mlx5_ib_dev *dev,
- {
- 	int err;
- 
--	*umem = ib_umem_get(pd->uobject->context, addr, size, 0, 0);
-+	*umem = ib_umem_get(pd->uobject->context, addr, size, 0);
- 	if (IS_ERR(*umem)) {
- 		mlx5_ib_dbg(dev, "umem_get failed\n");
- 		return PTR_ERR(*umem);
-@@ -684,7 +684,7 @@ static int create_user_rq(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 
- 	context = to_mucontext(pd->uobject->context);
- 	rwq->umem = ib_umem_get(pd->uobject->context, ucmd->buf_addr,
--			       rwq->buf_size, 0, 0);
-+			       rwq->buf_size, 0);
- 	if (IS_ERR(rwq->umem)) {
- 		mlx5_ib_dbg(dev, "umem_get failed\n");
- 		err = PTR_ERR(rwq->umem);
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index ed6ac52..f2f614c 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -112,7 +112,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	srq->wq_sig = !!(ucmd.flags & MLX5_SRQ_FLAG_SIGNATURE);
- 
- 	srq->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr, buf_size,
--				0, 0);
-+				0);
- 	if (IS_ERR(srq->umem)) {
- 		mlx5_ib_dbg(dev, "failed umem get, size %d\n", buf_size);
- 		err = PTR_ERR(srq->umem);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index a59034a..82a1ccd 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -726,7 +726,8 @@ void mlx5_ib_free_srq_wqe(struct mlx5_ib_srq *srq, int wqe_index);
+ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ 		 u8 port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
+ 		 const void *in_mad, void *response_mad);
+-struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr);
++struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata);
+ int mlx5_ib_query_ah(struct ib_ah *ibah, struct ib_ah_attr *ah_attr);
+ int mlx5_ib_destroy_ah(struct ib_ah *ah);
+ struct ib_srq *mlx5_ib_create_srq(struct ib_pd *pd,
 diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index da2335f..86c60dc 100644
+index 86c60dc..9618e32 100644
 --- a/drivers/infiniband/hw/mthca/mthca_provider.c
 +++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -910,6 +910,7 @@ static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	int i, k, entry;
- 	int err = 0;
- 	int write_mtt_size;
-+	unsigned long dma_attrs = 0;
+@@ -409,7 +409,8 @@ static int mthca_dealloc_pd(struct ib_pd *pd)
+ }
  
- 	if (udata->inlen - sizeof (struct ib_uverbs_cmd_hdr) < sizeof ucmd) {
- 		if (!to_mucontext(pd->uobject->context)->reg_mr_warned) {
-@@ -926,8 +927,11 @@ static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
- 
--	mr->umem = ib_umem_get(pd->uobject->context, start, length, acc,
--			       ucmd.mr_attrs & MTHCA_MR_DMASYNC);
-+	if (ucmd.mr_attrs & MTHCA_MR_DMASYNC)
-+		dma_attrs |= DMA_ATTR_WRITE_BARRIER;
-+
-+	mr->umem = ib_umem_get_attrs(pd->uobject->context, start, length, acc,
-+				DMA_BIDIRECTIONAL, dma_attrs);
- 
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
+ static struct ib_ah *mthca_ah_create(struct ib_pd *pd,
+-				     struct ib_ah_attr *ah_attr)
++				     struct ib_ah_attr *ah_attr,
++				     struct ib_udata *udata)
+ {
+ 	int err;
+ 	struct mthca_ah *ah;
 diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index bd69125..f417e1d 100644
+index f417e1d..76862c9 100644
 --- a/drivers/infiniband/hw/nes/nes_verbs.c
 +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2170,7 +2170,7 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	u8 stag_key;
- 	int first_page = 1;
- 
--	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	region = ib_umem_get(pd->uobject->context, start, length, acc);
- 	if (IS_ERR(region)) {
- 		return (struct ib_mr *)region;
- 	}
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index b1a3d91..5c80765 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -967,7 +967,7 @@ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
- 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(status);
--	mr->umem = ib_umem_get(ibpd->uobject->context, start, len, acc, 0);
-+	mr->umem = ib_umem_get(ibpd->uobject->context, start, len, acc);
- 	if (IS_ERR(mr->umem)) {
- 		status = -EFAULT;
- 		goto umem_err;
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 80c4b6b..564724a 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -369,7 +369,7 @@ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 		return ERR_PTR(-EINVAL);
- 
- 	umem = ib_umem_get(pd->uobject->context, start, length,
--			   mr_access_flags, 0);
-+			   mr_access_flags);
- 	if (IS_ERR(umem))
- 		return (void *)umem;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index f3dab65..f4d47fd 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -169,7 +169,7 @@ int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
- 	void			*vaddr;
- 	int err;
- 
--	umem = ib_umem_get(pd->ibpd.uobject->context, start, length, access, 0);
-+	umem = ib_umem_get(pd->ibpd.uobject->context, start, length, access);
- 	if (IS_ERR(umem)) {
- 		pr_warn("err %d from rxe_umem_get\n",
- 			(int)PTR_ERR(umem));
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index 2876679..472c2f6 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -84,7 +84,7 @@ static inline size_t ib_umem_num_pages(struct ib_umem *umem)
- 
- #ifdef CONFIG_INFINIBAND_USER_MEM
- struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
--			    size_t size, int access, int dmasync);
-+			    size_t size, int access);
- struct ib_umem *ib_umem_get_attrs(struct ib_ucontext *context, unsigned long addr,
- 				  size_t size, int access,
- 				  enum dma_data_direction dir,
-@@ -100,7 +100,7 @@ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
- 
- static inline struct ib_umem *ib_umem_get(struct ib_ucontext *context,
- 					  unsigned long addr, size_t size,
--					  int access, int dmasync) {
-+					  int access) {
- 	return ERR_PTR(-EINVAL);
+@@ -771,7 +771,8 @@ static int nes_dealloc_pd(struct ib_pd *ibpd)
+ /**
+  * nes_create_ah
+  */
+-static struct ib_ah *nes_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
++static struct ib_ah *nes_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata)
+ {
+ 	return ERR_PTR(-ENOSYS);
  }
- static inline struct ib_umem *ib_umem_get_attrs(struct ib_ucontext *context,
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index 797362a..c65ac29 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -154,7 +154,8 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 	return status;
+ }
+ 
+-struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
++struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr,
++			struct ib_udata *udata)
+ {
+ 	u32 *ahid_addr;
+ 	int status;
+@@ -203,7 +204,7 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
+ 						      &sgid_attr.ndev->ifindex,
+ 						      NULL);
+ 		if (status) {
+-			pr_err("%s(): Failed to resolve dmac from gid." 
++			pr_err("%s(): Failed to resolve dmac from gid."
+ 				"status = %d\n", __func__, status);
+ 			goto av_conf_err;
+ 		}
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+index 3856dd4..327b888 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+@@ -50,7 +50,8 @@ enum {
+ 	OCRDMA_AH_L3_TYPE_MASK		= 0x03,
+ 	OCRDMA_AH_L3_TYPE_SHIFT		= 0x1D /* 29 bits */
+ };
+-struct ib_ah *ocrdma_create_ah(struct ib_pd *, struct ib_ah_attr *);
++struct ib_ah *ocrdma_create_ah(struct ib_pd *, struct ib_ah_attr *,
++			struct ib_udata *);
+ int ocrdma_destroy_ah(struct ib_ah *);
+ int ocrdma_query_ah(struct ib_ah *, struct ib_ah_attr *);
+ int ocrdma_modify_ah(struct ib_ah *, struct ib_ah_attr *);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index a5bfbba..9051193 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -738,7 +738,8 @@ int usnic_ib_mmap(struct ib_ucontext *context,
+ 
+ /* In ib callbacks section -  Start of stub funcs */
+ struct ib_ah *usnic_ib_create_ah(struct ib_pd *pd,
+-					struct ib_ah_attr *ah_attr)
++				struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata)
+ {
+ 	usnic_dbg("\n");
+ 	return ERR_PTR(-EPERM);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+index 0d9d2e6..1eecd8e 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+@@ -75,7 +75,8 @@ int usnic_ib_dealloc_ucontext(struct ib_ucontext *ibcontext);
+ int usnic_ib_mmap(struct ib_ucontext *context,
+ 			struct vm_area_struct *vma);
+ struct ib_ah *usnic_ib_create_ah(struct ib_pd *pd,
+-					struct ib_ah_attr *ah_attr);
++				struct ib_ah_attr *ah_attr,
++				struct ib_udata *udata);
+ int usnic_ib_destroy_ah(struct ib_ah *ah);
+ int usnic_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			struct ib_send_wr **bad_wr);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 4552be9..64ade0b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -314,7 +314,8 @@ static int rxe_init_av(struct rxe_dev *rxe, struct ib_ah_attr *attr,
+ 	return err;
+ }
+ 
+-static struct ib_ah *rxe_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
++static struct ib_ah *rxe_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr,
++				struct ib_udata *udata)
+ {
+ 	int err;
+ 	struct rxe_dev *rxe = to_rdev(ibpd->device);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8e90dd2..192d591 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1879,7 +1879,8 @@ struct ib_device {
+ 					       struct ib_udata *udata);
+ 	int                        (*dealloc_pd)(struct ib_pd *pd);
+ 	struct ib_ah *             (*create_ah)(struct ib_pd *pd,
+-						struct ib_ah_attr *ah_attr);
++						struct ib_ah_attr *ah_attr,
++						struct ib_udata *udata);
+ 	int                        (*modify_ah)(struct ib_ah *ah,
+ 						struct ib_ah_attr *ah_attr);
+ 	int                        (*query_ah)(struct ib_ah *ah,
 -- 
 git-series 0.8.10
 --
