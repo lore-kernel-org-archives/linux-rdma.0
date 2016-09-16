@@ -1,73 +1,63 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [infiniband-diags PATCH 1/4] Update AM_INIT_AUTOMAKE to use
- subdir-objects
-Date: Fri, 16 Sep 2016 07:02:01 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E24EE4623@CRSMSX101.amr.corp.intel.com>
-References: <20160905214844.GA9613@pryan.ekaia.org>
+Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Fri, 16 Sep 2016 07:06:11 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E24EE4644@CRSMSX101.amr.corp.intel.com>
+References: <20160915065242.GO26069@leon.nu>
+ <20160915080600.GA31776@infradead.org> <20160915081149.GT26069@leon.nu>
+ <20160915081327.GA7572@infradead.org> <20160915083945.GU26069@leon.nu>
+ <20160915160427.GC18154@obsidianresearch.com>
+ <01e901d20f6b$7ae067d0$70a13770$@opengridcomputing.com>
+ <20160915163756.GB26069@leon.nu>
+ <20160915164931.GC26111@obsidianresearch.com>
+ <022e01d20f84$a3685870$ea390950$@opengridcomputing.com>
+ <20160915192628.GB437@obsidianresearch.com>
+ <02a501d20f88$8386bca0$8a9435e0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160905214844.GA9613-2v28OwtJ5VXkvb5ro2YpKQ@public.gmane.org>
+In-Reply-To: <02a501d20f88$8386bca0$8a9435e0$@opengridcomputing.com>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?iso-8859-1?Q?Ana_Guerrero_L=F3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yarong@>
 List-Id: linux-rdma@vger.kernel.org
 
-Ana,
+> 
+> > > > > Do we want to create rdma-tools after this task will be
+> > > > > completed? For
+> > > example
+> > > > > with debug and performance tools in it.
+> > > >
+> > > > Prolification of repositories is exactly what this is intended to
+> > > > prevent :(
+> > >
+> > > The goal would be to move all the tools/cmds/etc into one repo.  How
+> > > is that prolification?
+> >
+> > I guess I should wait and see what could end up in there before
+> > commenting...
+> >
+> 
+> I think we should shelf this discussion until we get our current project done...
+> 
+> But... :)
+> 
+> A quick gander at the OFED packages produces this list of possible
+> candidates:
+> 
+> dapl  (perhaps dapl should be in rdma-plumbing?) fabtests ibacm ibpd ibsim
+> ibutils infiniband-diags infinipath-psm mstflint opensm perftest qlvnictools
+> qperf rds-tools
 
-I just wanted to let you know that I have these in my Queue and will get to them soon.
+I strongly suggest against adding anything that is not a library and even then I like what Jason has said previously.  "This is a library targeted for kernel APIs."  So, for example, libibmad was not included.  In fact architecturally I think ibmad should go away somehow.  The main user is infiniband-diags but there are some other users of it so I have not been able to deprecate it.
+
+I guess my opinion is I don't want to see this repo become "OFED" in a different form.  There are valid reasons to have separate packages.  It is really the support libraries which have been a pain.
 
 Ira
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ana Guerrero López
-> Sent: Monday, September 05, 2016 2:49 PM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [infiniband-diags PATCH 1/4] Update AM_INIT_AUTOMAKE to use
-> subdir-objects
 > 
-> With this option, the objects are placed into the subdirectory of the build
-> directory corresponding to the subdirectory of the source file.
-> Fixes the following warning:
 > 
-> Makefile.am:103: warning: source file 'src/ibdiag_common.c' is in a
-> subdirectory,
-> Makefile.am:103: but option 'subdir-objects' is disabled
-> automake: warning: possible forward-incompatibility.
-> automake: At least a source file is in a subdirectory, but the 'subdir-objects'
-> automake: automake option hasn't been enabled.  For now, the
-> corresponding output
-> automake: object file(s) will be placed in the top-level directory.  However,
-> automake: this behaviour will change in future Automake versions: they will
-> automake: unconditionally cause object files to be placed in the same
-> subdirectory
-> automake: of the corresponding sources.
-> automake: You are advised to start using 'subdir-objects' option throughout
-> your
-> automake: project, to avoid future incompatibilities.
-> 
-> Signed-off-by: Ana Guerrero López <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
-> ---
->  configure.ac | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/configure.ac b/configure.ac index 623bc4f..75dbb8d 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -5,7 +5,7 @@ AC_INIT(infiniband-diags, 1.6.7, linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
->  AC_CONFIG_AUX_DIR(config)
->  AC_CONFIG_MACRO_DIR(config)
->  AM_CONFIG_HEADER(config.h)
-> -AM_INIT_AUTOMAKE([foreign])
-> +AM_INIT_AUTOMAKE([subdir-objects])
-> 
->  AC_SUBST(RELEASE, ${RELEASE:-unknown})
->  AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
-> --
-> 2.9.3
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
