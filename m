@@ -1,198 +1,154 @@
-From: Knut Omang <knut.omang@oracle.com>
-Subject: [PATCH v2 8/8] ib_uverbs: Support for kernel implementation of XRC
-Date: Fri, 16 Sep 2016 20:31:19 +0200
-Message-ID: <88ffb8c9407a71069b52e155dde308a36dfaf247.1474049924.git-series.knut.omang@oracle.com>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 6/8] ib_uverbs: Avoid vendor specific masking of attributes in query_qp
+Date: Fri, 16 Sep 2016 20:31:17 +0200
+Message-ID: <d4523e413ed864bbd0a4e52d09d5814722b6a9dd.1474049924.git-series.knut.omang@oracle.com>
 References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
-In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
-References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Knut Omang <knut.omang@oracle.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Leon Romanovsky <leonro@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Extends the kernel/user space interface for work requests to also provide
-the XRC shared receive queue number. Necessary to support
-kernel level implementation of user verbs for XRC.
+This commit removes the implementation and use of the modify_qp_mask
+helper function from the generic OFED implementation and into individual
+device drivers.
 
-Requires a corresponding libibverbs change to support XRC.
+Like with use of the ib_modify_qp_is_ok function it should be up to
+each device driver how to handle bits set in the attribute masks.
 
-Also fix kernel support for XRC broken by commit
+With the modify_qp_mask function applied in the generic code,
+drivers would not see the bits that the user process actually sets.
 
-"IB: remove xrc_remote_srq_num from struct ib_send_wr"
-
-which removed a field needed to support kernel side XRC as part of an effort
-to trim a work request to sizes dependent of the actual request instead
-of the union approach.
-
-With this commit I try to follow the pattern outlined by that cleanup
-to also support kernel side XRC. Since XRC attributes are associated with
-QP type and are (almost) orthogonal to the type of request, the XRC
-specific attribute(s) would have to be applicable to several different
-work request type specific subtypes. Since the subtypes have different sizes,
-putting the xrc specific attributes at the end would require accessor functions
-and to keep explicit track of the size of the subtype used.
-
-The chosen solution is to introduce the xrc specific attributes at the top of
-the struct instead, this way type checking is taking care of most issues,
-except that extra care is needed at deallocation time. Note that this requires
-padding of the xrc specific attributes that matches the size of struct ib_sge,
-to avoid that the ALIGN() calls used to ensure that the scatter list of the
-work is aligned does not extend beyond the size of the allocates space:
-
-struct ib_xrc_wr
-{
-  <xrc specific part>;
-  struct ib_send_wr wr;
-}
-< subtype extensions will still extend ib_send_wr down here >
-
-Signed-off-by: Knut Omang <knut.omang@oracle.com>
+The restrictions imposed by the filter are also beyond what
+is imposed by the Infiniband standard, and would also limit
+future drivers or hardware from checking for unsupported or
+invalid settings.
 ---
- drivers/infiniband/core/uverbs_cmd.c | 40 +++++++++++++++++++++++------
- include/rdma/ib_verbs.h              | 12 +++++++++-
- include/uapi/rdma/ib_user_verbs.h    |  2 +-
- 3 files changed, 46 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 19 ++-----------------
+ drivers/infiniband/hw/mlx4/qp.c      | 19 ++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/qp.c      | 17 +++++++++++++++++
+ 3 files changed, 37 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7f4470e..152e617 100644
+index fa8a717..7033d10 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2471,12 +2471,30 @@ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
- 	return in_len;
+@@ -2316,20 +2316,6 @@ out:
+ 	return ret ? ret : in_len;
  }
  
--static void *alloc_wr(size_t wr_size, __u32 num_sge)
-+static void *alloc_wr(struct ib_qp *qp, size_t wr_size, __u32 num_sge)
- {
--	return kmalloc(ALIGN(wr_size, sizeof (struct ib_sge)) +
--			 num_sge * sizeof (struct ib_sge), GFP_KERNEL);
-+	void *wr;
-+	size_t xrc_ext = qp->qp_type == IB_QPT_XRC_INI ?
-+		sizeof(struct ib_xrc_wr) - sizeof(struct ib_send_wr) :
-+		0;
-+
-+	wr = kmalloc(ALIGN(wr_size + xrc_ext, sizeof (struct ib_sge)) +
-+		num_sge * sizeof (struct ib_sge), GFP_KERNEL);
-+	if (unlikely(!wr))
-+		return wr;
-+
-+	return wr + xrc_ext;
- };
- 
-+static void free_wr(struct ib_qp *qp, struct ib_send_wr *wr)
-+{
-+	void *d;
-+	if (unlikely(!wr))
-+		return;
-+	d = qp->qp_type == IB_QPT_XRC_INI ? xrc_wr(wr) : (void *)wr;
-+	kfree(d);
-+}
-+
- ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+-/* Remove ignored fields set in the attribute mask */
+-static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
+-{
+-	switch (qp_type) {
+-	case IB_QPT_XRC_INI:
+-		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
+-	case IB_QPT_XRC_TGT:
+-		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
+-				IB_QP_RNR_RETRY);
+-	default:
+-		return mask;
+-	}
+-}
+-
+ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
  			    struct ib_device *ib_dev,
  			    const char __user *buf, int in_len,
-@@ -2511,6 +2529,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 		goto out;
- 
- 	is_ud = qp->qp_type == IB_QPT_UD;
-+
- 	sg_ind = 0;
- 	last = NULL;
- 	for (i = 0; i < cmd.wr_count; ++i) {
-@@ -2536,7 +2555,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			}
- 
- 			next_size = sizeof(*ud);
--			ud = alloc_wr(next_size, user_wr->num_sge);
-+			ud = alloc_wr(qp, next_size, user_wr->num_sge);
- 			if (!ud) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2558,7 +2577,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			struct ib_rdma_wr *rdma;
- 
- 			next_size = sizeof(*rdma);
--			rdma = alloc_wr(next_size, user_wr->num_sge);
-+			rdma = alloc_wr(qp, next_size, user_wr->num_sge);
- 			if (!rdma) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2573,7 +2592,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			struct ib_atomic_wr *atomic;
- 
- 			next_size = sizeof(*atomic);
--			atomic = alloc_wr(next_size, user_wr->num_sge);
-+			atomic = alloc_wr(qp, next_size, user_wr->num_sge);
- 			if (!atomic) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2589,7 +2608,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			   user_wr->opcode == IB_WR_SEND_WITH_IMM ||
- 			   user_wr->opcode == IB_WR_SEND_WITH_INV) {
- 			next_size = sizeof(*next);
--			next = alloc_wr(next_size, user_wr->num_sge);
-+			next = alloc_wr(qp, next_size, user_wr->num_sge);
- 			if (!next) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2607,6 +2626,11 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			next->ex.invalidate_rkey = user_wr->ex.invalidate_rkey;
- 		}
- 
-+		if (qp->qp_type == IB_QPT_XRC_INI) {
-+			struct ib_xrc_wr *xrc = xrc_wr(next);
-+			xrc->remote_srqn = user_wr->xrc_remote_srq_num;
-+		}
-+
- 		if (!last)
- 			wr = next;
- 		else
-@@ -2655,7 +2679,7 @@ out_put:
- 		if (is_ud && ud_wr(wr)->ah)
- 			put_ah_read(ud_wr(wr)->ah);
- 		next = wr->next;
--		kfree(wr);
-+		free_wr(qp, wr);
- 		wr = next;
+@@ -2407,10 +2393,9 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
+ 		ret = ib_resolve_eth_dmac(qp, attr, &cmd.attr_mask);
+ 		if (ret)
+ 			goto release_qp;
+-		ret = qp->device->modify_qp(qp, attr,
+-			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
++		ret = qp->device->modify_qp(qp, attr, cmd.attr_mask, &udata);
+ 	} else {
+-		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, cmd.attr_mask));
++		ret = ib_modify_qp(qp, attr, cmd.attr_mask);
  	}
  
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 192d591..093d68e 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1276,6 +1276,18 @@ static inline struct ib_sig_handover_wr *sig_handover_wr(struct ib_send_wr *wr)
- 	return container_of(wr, struct ib_sig_handover_wr, wr);
+ 	if (ret)
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 363b1cb..3a5061f 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2154,6 +2154,20 @@ out:
+ 	return err;
  }
  
-+struct ib_xrc_wr {
-+	u32 			remote_srqn;
-+	u32			reserved1;
-+	u64			reserved2;
-+	struct ib_send_wr	wr;
-+};
-+
-+static inline struct ib_xrc_wr *xrc_wr(struct ib_send_wr *wr)
++/* filter out ignored fields set in the attribute mask */
++static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
 +{
-+	return container_of(wr, struct ib_xrc_wr, wr);
++	switch (qp_type) {
++	case IB_QPT_XRC_INI:
++		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
++	case IB_QPT_XRC_TGT:
++		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
++				IB_QP_RNR_RETRY);
++	default:
++		return mask;
++	}
 +}
 +
- struct ib_recv_wr {
- 	struct ib_recv_wr      *next;
- 	union {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 6b8c9c0..db74a5e 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -725,6 +725,8 @@ struct ib_uverbs_send_wr {
- 			__u32 reserved;
- 		} ud;
- 	} wr;
-+	__u32 xrc_remote_srq_num;
-+	__u32 reserved;
- };
+ static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 			      int attr_mask, struct ib_udata *udata)
+ {
+@@ -2162,6 +2176,10 @@ static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	enum ib_qp_state cur_state, new_state;
+ 	int err = -EINVAL;
+ 	int ll;
++
++	if (udata)
++		attr_mask = modify_qp_mask(ibqp->qp_type, attr_mask);
++
+ 	mutex_lock(&qp->mutex);
  
- struct ib_uverbs_post_send {
+ 	cur_state = attr_mask & IB_QP_CUR_STATE ? attr->cur_qp_state : qp->state;
+@@ -3501,4 +3519,3 @@ out:
+ 	mutex_unlock(&qp->mutex);
+ 	return err;
+ }
+-
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 3a48d9d..5006ab0 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2737,6 +2737,20 @@ out:
+ 	return err;
+ }
+ 
++/* filter out ignored fields set in the attribute mask */
++static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
++{
++	switch (qp_type) {
++	case IB_QPT_XRC_INI:
++		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
++	case IB_QPT_XRC_TGT:
++		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
++				IB_QP_RNR_RETRY);
++	default:
++		return mask;
++	}
++}
++
+ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		      int attr_mask, struct ib_udata *udata)
+ {
+@@ -2751,6 +2765,9 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	if (ibqp->rwq_ind_tbl)
+ 		return -ENOSYS;
+ 
++	if (udata)
++		attr_mask = modify_qp_mask(ibqp->qp_type, attr_mask);
++
+ 	if (unlikely(ibqp->qp_type == IB_QPT_GSI))
+ 		return mlx5_ib_gsi_modify_qp(ibqp, attr, attr_mask);
+ 
 -- 
 git-series 0.8.10
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
