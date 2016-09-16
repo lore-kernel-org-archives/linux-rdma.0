@@ -1,59 +1,81 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc v1] IB/ipoib: Don't allow MC joins during light MC
- flush
-Date: Fri, 16 Sep 2016 14:11:26 -0400
-Message-ID: <4ff87d50-eecb-9ee8-3a4a-958fe6d0d750@redhat.com>
-References: <1473663328-30743-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH rdma-rc V1 0/4] RXE fixes for 4.8
+Date: Fri, 16 Sep 2016 14:31:33 -0400
+Message-ID: <62a81c50-c4a7-7bf8-e2d2-48c4cc39b058@redhat.com>
+References: <1473246247-16536-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="1jEENTd6XM8ICA3GUS4NItpiWDKktBL2B"
+ boundary="DmXt234IVMqhtOUBQUQcErbagKJxeI4FF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473663328-30743-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1473246247-16536-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1jEENTd6XM8ICA3GUS4NItpiWDKktBL2B
-Content-Type: multipart/mixed; boundary="kJcTw8uW8JNnCt1wnT6gnvVbJEWdMuvEw";
+--DmXt234IVMqhtOUBQUQcErbagKJxeI4FF
+Content-Type: multipart/mixed; boundary="aLMiNQ2G83c3wwrwsQSkvAB62cq9tt6RR";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <4ff87d50-eecb-9ee8-3a4a-958fe6d0d750-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc v1] IB/ipoib: Don't allow MC joins during light MC
- flush
-References: <1473663328-30743-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <1473663328-30743-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <62a81c50-c4a7-7bf8-e2d2-48c4cc39b058-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc V1 0/4] RXE fixes for 4.8
+References: <1473246247-16536-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1473246247-16536-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---kJcTw8uW8JNnCt1wnT6gnvVbJEWdMuvEw
+--aLMiNQ2G83c3wwrwsQSkvAB62cq9tt6RR
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/12/2016 2:55 AM, Leon Romanovsky wrote:
-> From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 9/7/2016 7:04 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> This fix solves a race between light flush and on the fly joins.
-> Light flush doesn't set the device to down and unset IPOIB_OPER_UP
-> flag, this means that if while flushing we have a MC join in progress
-> and the QP was attached to BC MGID we can have a mismatches when
-> re-attaching a QP to the BC MGID.
+> Hi Doug,
+>=20
+> Please find the following four patches from Yonatan which
+> fix numerous issues in RXE code.
+>=20
+> Thanks
+>=20
+> Changelog v0->v1:
+>  * Patch 1:
+>    * removed second call to register_netdevice_notifier()
+>    * fix indentation issues
+>    * separated rxe_net_init() into two functions
+>=20
+> Yonatan Cohen (4):
+>   IB/rxe: Fix kernel panic in udp_setup_tunnel
+>   IB/rxe: Fix duplicate atomic request handling
+>   IB/rxe: Fix race condition between requester and completer
+>   IB/rxe: Fix kmem_cache leak
+>=20
+>  drivers/infiniband/sw/rxe/rxe.c      | 25 ++++++++++++++--
+>  drivers/infiniband/sw/rxe/rxe_comp.c | 13 ++++++++
+>  drivers/infiniband/sw/rxe/rxe_net.c  | 55 ++++++++++++++++------------=
+------
+>  drivers/infiniband/sw/rxe/rxe_net.h  |  5 +++-
+>  drivers/infiniband/sw/rxe/rxe_req.c  | 57 ++++++++++++++++++++++++++++=
+--------
+>  drivers/infiniband/sw/rxe/rxe_resp.c | 11 +++----
+>  6 files changed, 114 insertions(+), 52 deletions(-)
+>=20
+> --
+> 2.7.4
+>=20
 
-[ snip ]
-
-Thanks, applied.
-
+Thanks, series applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---kJcTw8uW8JNnCt1wnT6gnvVbJEWdMuvEw--
+--aLMiNQ2G83c3wwrwsQSkvAB62cq9tt6RR--
 
---1jEENTd6XM8ICA3GUS4NItpiWDKktBL2B
+--DmXt234IVMqhtOUBQUQcErbagKJxeI4FF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,22 +84,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX3DXOAAoJELgmozMOVy/dvm8P/iMPkMULPKAoSO2qd+V7XN6q
-pBT/7ltjB+g9zuFXGNbd5v6BltSqzG2sT6Aj1T15HiqQnTd1wEVf3yktStV0L9L/
-Vk9G2ySagFQr0jbfhuaXvnqrbj88oYEWnUwXCl6Tn+CcKQ5JTeKxJcjjNdKBxw/L
-bSlhzfIOksehQ3d5PE9KU1qBl1iTTmWZCEkjCYgWZgLdwAZVy4baOUqL+amNClBH
-zQnsex5PIWfRPUIpy4Kh7NDJes9UfIt7K5q5AGXRVsrDV1G4T+kVvT+KuzvIwcQt
-M3kgZzcMC+g7XXkOwqN/VF+8uDXP1pdcdASZDqA9ZKGq1YxqG0G2g+qfVClgU5Yo
-cb7dwTZXCJCzb3T8pkZXpZqmQ9sxCd4LbzqNF9hQdIhVyEcWIKnBvK1SvXQ31h2h
-DrgE+ssgsRbY3xKD9PbJCDMAK4aQYeSDwn3h6E/7Zai/Lgy23PZqHYvAkZiH5VIX
-DqE4cMb/dpcGKviJmF0W7rwt22D3s01QTnhhQqHjMJaK9D8onqE66DlFZw50XURV
-WgwRT8j3d93psDgKaknI38UOzrMccRXqnzm/AzXoLljBTGN2BaJaY6ZzejVrrO6f
-3044YJJHODydZT7ZWY6qE49oeT+DCA66iBnxguwtiWruneV1NJDzsChWI+XBQDXk
-p8OX9cfPagxY9lKfER6u
-=UeEu
+iQIcBAEBCAAGBQJX3DqFAAoJELgmozMOVy/drZcP/3B4t5FkcCkYyIsiF2bfHPl6
+xDTrUJHIN7UWurGnma2PG8amlDHB3Ykm990Ano2LiJ5U1Js/p/ddlXt1uLcQYW/H
+jqFGJuBw/N7xkbtqKUc0Mi7gpPRnGfQRrZVUjV0F64u+CFFGDe2RBE8jQ9aiifGp
+sf4CyiohvqY7kPqbw2lW3bmt5ZqDjdMr8fjeACNN7PyGVz7EvVKjvZsM58+4WF0G
+o9TInAJVOg4Jb+9KSbZxdu1J9HbGujgM1GiRmLU5zseCgMeiiSWPfabvr7JgeBF2
+0Tl9HVS3GQP2lRt59MQz6TrgbhHoVU1kbWeNxfK+LBT3J2WjqMkiGM8cRQloUrOe
+eQRVM8VCwWxZQ4LRZYsLh4AaHjEd7fvrF4ZJRePBAXOI0yBe75Q4eiSNE1gQ+mz6
+CBQzFJgLj2Ii+pZ5iq+P7bVfD4tg9ufOicvhxP8bWko+wmqoer3bov+oKwzi9lpg
+AC92B//wMH1Co+pAt1/VENvS0+cPWJgfm+DZwXgU/ckBKyy6Z6OM3Ze0r3spOo4S
+3COLxKCPzhFyi7WgIpE0rWtTDymVvyh2vk1rgUmK6ysCvfRpZBJUaqNcMxVvJyxF
+QWliIdgTEkb+rz2z+XIwDuDh08vJTjwHV4vljZTpjAO7ORzIv1MEbSTuNvmEA7iQ
+cI5E/8PPwxypsXA5vmGd
+=1vGn
 -----END PGP SIGNATURE-----
 
---1jEENTd6XM8ICA3GUS4NItpiWDKktBL2B--
+--DmXt234IVMqhtOUBQUQcErbagKJxeI4FF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
