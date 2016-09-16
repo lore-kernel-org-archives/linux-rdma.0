@@ -1,127 +1,85 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 00/22] Remove deprecated create_workqueue instances
-Date: Fri, 16 Sep 2016 13:26:26 -0400
-Message-ID: <67bc634b-80c9-7848-2859-e39652daeb53@redhat.com>
-References: <cover.1471283717.git.bhaktipriya96@gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: fix GFP_KERNEL in spinlock context
+Date: Fri, 16 Sep 2016 13:55:28 -0400
+Message-ID: <6f9a4f4d-573b-a74e-28e2-213f119815e6@redhat.com>
+References: <1472849213-27579-1-git-send-email-khoroshilov@ispras.ru>
+ <CAG9sBKPQf=G0WpJXf0UAhDXdtaF9i5ZXBQ8rCv9nEORBKjp28g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="AFKc72sN6tn2wUFUXpqq2IWRago45L0gh"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1471283717.git.bhaktipriya96@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>, Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Leon Romanovsky <leonro@mellanox.com>, Chuck Lever <chuck.lever@oracle.com>, Mark Bloch <markb@mellanox.com>, Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Christoph Lameter <cl@linux.com>, Erez Shitrit <erezsh@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Florian Westphal <fw@strlen.de>, Guy Shapiro <guysh@mellanox.com>, Eli Cohen <eli@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Matan Barak <matanb@mellanox.com>, Chien Tin Tung <chien.tin.tung@intel.com>, Mustafa Ismail <mustaf>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
+ boundary="XFodmjkSxHtLcPS7w8CPBDgQ8XGTVRFMD"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG9sBKPQf=G0WpJXf0UAhDXdtaF9i5ZXBQ8rCv9nEORBKjp28g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---AFKc72sN6tn2wUFUXpqq2IWRago45L0gh
-Content-Type: multipart/mixed; boundary="72iI65baB6AL6qbIfvQ14pfmEmPbhAOmr";
+--XFodmjkSxHtLcPS7w8CPBDgQ8XGTVRFMD
+Content-Type: multipart/mixed; boundary="EqWNwvwrsDlSXbAwejlwI1QiFUUfsLv2h";
  protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>,
- Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>,
- Hal Rosenstock <hal.rosenstock@gmail.com>,
- Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
- Leon Romanovsky <leonro@mellanox.com>, Chuck Lever <chuck.lever@oracle.com>,
- Mark Bloch <markb@mellanox.com>,
- Hans Westgaard Ry <hans.westgaard.ry@oracle.com>,
- Christoph Lameter <cl@linux.com>, Erez Shitrit <erezsh@mellanox.com>,
- Haggai Eran <haggaie@mellanox.com>, Florian Westphal <fw@strlen.de>,
- Guy Shapiro <guysh@mellanox.com>, Eli Cohen <eli@mellanox.com>,
- Or Gerlitz <ogerlitz@mellanox.com>, Faisal Latif <faisal.latif@intel.com>,
- Matan Barak <matanb@mellanox.com>, Chien Tin Tung
- <chien.tin.tung@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>,
- Shiraz Saleem <shiraz.saleem@intel.com>,
- Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
- Steve Wise <swise@chelsio.com>, Mike Marciniszyn <infinipath@intel.com>,
- Bart Van Assche <bart.vanassche@sandisk.com>,
- Yotam Kenneth <yotamke@mellanox.com>,
- Somnath Kotur <Somnath.Kotur@Avagotech.Com>, Moni Shoua
- <monis@mellanox.com>, Shachar Raindel <raindel@mellanox.com>,
- Parav Pandit <pandit.parav@gmail.com>, Sagi Grimberg <sagi@grimberg.me>,
- Christoph Hellwig <hch@infradead.org>, Dean Luick <dean.luick@intel.com>,
- Ira Weiny <ira.weiny@intel.com>, Kaike Wan <kaike.wan@intel.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- Tejun Heo <tj@kernel.org>
-Message-ID: <67bc634b-80c9-7848-2859-e39652daeb53@redhat.com>
-Subject: Re: [PATCH 00/22] Remove deprecated create_workqueue instances
-References: <cover.1471283717.git.bhaktipriya96@gmail.com>
-In-Reply-To: <cover.1471283717.git.bhaktipriya96@gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+ linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
+Message-ID: <6f9a4f4d-573b-a74e-28e2-213f119815e6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: fix GFP_KERNEL in spinlock context
+References: <1472849213-27579-1-git-send-email-khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+ <CAG9sBKPQf=G0WpJXf0UAhDXdtaF9i5ZXBQ8rCv9nEORBKjp28g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAG9sBKPQf=G0WpJXf0UAhDXdtaF9i5ZXBQ8rCv9nEORBKjp28g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
---72iI65baB6AL6qbIfvQ14pfmEmPbhAOmr
-Content-Type: text/plain; charset=windows-1252
+--EqWNwvwrsDlSXbAwejlwI1QiFUUfsLv2h
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 8/15/2016 1:57 PM, Bhaktipriya Shridhar wrote:
-> This patch set removes the instances of deprecated
-> create_singlethread_workqueue (scheduled for removal) in
-> drivers/infiniband by making the appropriate conversions.
->=20
-> Bhaktipriya Shridhar (22):
->   IB/sa : Remove deprecated create_singlethread_workqueue
->   IB/mad: Remove deprecated create_singlethread_workqueue
->   IB/multicast: Remove deprecated create_singlethread_workqueue
->   IB/ucma: Remove deprecated create_singlethread_workqueue
->   IB/cma: Remove deprecated create_singlethread_workqueue
->   IB/addr: Remove deprecated create_singlethread_workqueue
->   IB/iwcm: Remove deprecated create_singlethread_workqueue
->   iw_cxgb3: Remove deprecated create_singlethread_workqueue
->   IB/qib: Remove deprecated create_singlethread_workqueue
->   iw_cxgb4: Remove deprecated create_singlethread_workqueue
->   IB/mthca: Remove deprecated create_singlethread_workqueue
->   i40iw_main: Remove deprecated create_singlethread_workqueue
->   i40iw_cm: Remove deprecated create_singlethread_workqueue
->   IB/mlx5: Remove deprecated create_singlethread_workqueue
->   IB/mlx5/odp: Remove deprecated create_singlethread_workqueue
->   IB/mlx4: Remove deprecated create_singlethread_workqueue
->   IB/mlx4/mad: Remove deprecated create_singlethread_workqueue
->   IB/mlx4/mcg: Remove deprecated create_singlethread_workqueue
->   IB/nes: Remove deprecated create_singlethread_workqueue
->   IB/ipoib: Remove deprecated create_singlethread_workqueue
->   IB/ipoib_verbs: Remove deprecated create_singlethread_workqueue
->   IB/mlx4/alias_GUID: Remove deprecated create_singlethread_workqueue
->=20
->  drivers/infiniband/core/addr.c             | 2 +-
->  drivers/infiniband/core/cma.c              | 2 +-
->  drivers/infiniband/core/iwcm.c             | 2 +-
->  drivers/infiniband/core/mad.c              | 2 +-
->  drivers/infiniband/core/multicast.c        | 2 +-
->  drivers/infiniband/core/sa_query.c         | 2 +-
->  drivers/infiniband/core/ucma.c             | 3 ++-
->  drivers/infiniband/hw/cxgb3/iwch_cm.c      | 2 +-
->  drivers/infiniband/hw/cxgb4/cm.c           | 2 +-
->  drivers/infiniband/hw/i40iw/i40iw_cm.c     | 7 +++++--
->  drivers/infiniband/hw/i40iw/i40iw_main.c   | 2 +-
->  drivers/infiniband/hw/mlx4/alias_GUID.c    | 2 +-
->  drivers/infiniband/hw/mlx4/mad.c           | 4 ++--
->  drivers/infiniband/hw/mlx4/main.c          | 2 +-
->  drivers/infiniband/hw/mlx4/mcg.c           | 4 ++--
->  drivers/infiniband/hw/mlx5/mr.c            | 2 +-
->  drivers/infiniband/hw/mlx5/odp.c           | 4 ++--
->  drivers/infiniband/hw/mthca/mthca_catas.c  | 2 +-
->  drivers/infiniband/hw/nes/nes_cm.c         | 4 ++--
->  drivers/infiniband/hw/qib/qib_init.c       | 4 ++--
->  drivers/infiniband/ulp/ipoib/ipoib_main.c  | 3 ++-
->  drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 2 +-
->  22 files changed, 33 insertions(+), 28 deletions(-)
->=20
-> --
-> 2.1.4
+On 9/4/2016 6:01 AM, Moni Shoua wrote:
+> On Fri, Sep 2, 2016 at 11:46 PM, Alexey Khoroshilov
+> <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org> wrote:
+>> There is skb_clone(skb, GFP_KERNEL) in spinlock context
+>> in rxe_rcv_mcast_pkt().
+>>
+>> Found by Linux Driver Verification project (linuxtesting.org).
+>>
+>> Signed-off-by: Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+>> ---
+>>  drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband=
+/sw/rxe/rxe_recv.c
+>> index 3d464c23e08b..144d2f129fcd 100644
+>> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
+>> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+>> @@ -312,7 +312,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe,=
+ struct sk_buff *skb)
+>>                  * make a copy of the skb to post to the next qp
+>>                  */
+>>                 skb_copy =3D (mce->qp_list.next !=3D &mcg->qp_list) ?
+>> -                               skb_clone(skb, GFP_KERNEL) : NULL;
+>> +                               skb_clone(skb, GFP_ATOMIC) : NULL;
+>>
+>>                 pkt->qp =3D qp;
+>>                 rxe_add_ref(qp);
+>> --
+>> 2.7.4
+>>
+> Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
 
-The commit message of patch 20/22 was not matching what you actually
-did.  I fixed that up (the commit message, the patch was right), then
-series applied.
+Thanks, applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---72iI65baB6AL6qbIfvQ14pfmEmPbhAOmr--
+--EqWNwvwrsDlSXbAwejlwI1QiFUUfsLv2h--
 
---AFKc72sN6tn2wUFUXpqq2IWRago45L0gh
+--XFodmjkSxHtLcPS7w8CPBDgQ8XGTVRFMD
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -130,19 +88,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX3CtCAAoJELgmozMOVy/dgJwQALZcOYM0um7CgZxe5ESom6XX
-3Dsu0alXHP+kn+Ogw8AiWaXMcu1PrPLkRA4tflMWIl/HBYpwMet2byU+027W3M65
-pMMpSbmxjhvp8rHA2tpXYuK/DgsTsDooJrBTS99tozhZmW8UxvSSo74a1BXdERkL
-vP5IEsEYFAzwW4LnS3NHZqxPfGu3cKtztYBA2Ytow/3kj/uIIr0nS5tdWeoYn+wD
-YjEPeNlF2WoPCZBtsXsn1OUWUgapGjHPqZOU/ymlX4BlNSW+XXafHXLxevkyzCab
-Nkcdlw0t981DYlRy701aCDPZNN2/eENwed20kYYxSHHVz6YmZgPXlJnhMwQHk53u
-KXqgei6Oh0RLQQUEUTKcDn0IrQc/8X2wZnyfoyS2ez10qBrvdDhJLXAzlvQzPyQW
-oWlLc2ZSRMRJqW7QeYHn3EGaYhWQbycO+EvepT5Va3zjz0FqDzD9Xn5UU796vK6X
-/B5Dh5eMtQU3FOxFmDclfLKqM366VrLFigkZW8nE3iUYmsIXZy9MbnohVJo2lklF
-xruQ24hZ603NyTh972arumP/rCwWfQGKUXn5oW3cF1TTEyHsvnWJCwYPm83iV4x+
-RsyNOFQlUFedLZ908wl7lVA2EzV1wJ/Ig0j3BkPhV1huRH6ZMTiqfCjKBWl65W7+
-ZFWEwz+VK1dtKeIA7Al/
-=ZgOP
+iQIcBAEBCAAGBQJX3DIQAAoJELgmozMOVy/dK8gP+gMyTr6Q3vnce+tkxLT42WZg
+F7GjdGfjiwX7lbP2uI+I24w0GGBHHSaSFuoVa9Q3dd4lsv5F9pYHRwvRaTMXd0pA
+l1kA2Kj4SyxpdPTvQ+VEXYqyEa/PCCKvqyLVG5zhefrrMoE8JFIZ6JTjgDZoFQzz
+4PNiWgHoSuaWb1U6/U8TVLR7Uo2+HiZa89xwEgnaY4l+7GAuwRR/YHzZO18FyiK/
+XeT2BD0ZmcX9UqbLzWepryacy/MqykCyVN57ZFJx1msYQlmP3qthLTBKu59UhEFO
+EoLWGf4An4HzGMTgVlfZguh6DfDjoO2iH4pqygnnH74lt1Rj76f+0iD30l2C2xf4
+MtUGYMnU/0glJDB2TU+Br6H/Bjk/ALsGHxiJ/V4uTLkVekQCQyQwIN0lWUDjvnQT
+WnE0zQtD3T1aoXt3I5xHK8gubqCbDmYgxNf4haPfGdq7i71XA2ctFbUK6wy1DS9O
+RsCkF6rO9Id1F4bJKqIWUFScp794h74zWR7HOloKdP1Hwq+mcaHW/3n8yjWXRxs/
+J68X5kkMt/YXlY5egwAOnYkjpGJgSiKwl3Xbb5LKlEVs9VmcbhUZTd16/Rdgwwdn
+vjjnpkI2XWLLxR2LiKd8p3AmLj48CYuASeF7GKsEYW/19KxLdBSOVwLEtk+Thyu+
+u0D6y/7IUj6cqg0t3EwX
+=BV/Z
 -----END PGP SIGNATURE-----
 
---AFKc72sN6tn2wUFUXpqq2IWRago45L0gh--
+--XFodmjkSxHtLcPS7w8CPBDgQ8XGTVRFMD--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
