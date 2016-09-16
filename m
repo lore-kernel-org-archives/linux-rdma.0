@@ -1,39 +1,141 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 8/8] ib_uverbs: Support for kernel implementation of
- XRC
-Date: Fri, 16 Sep 2016 13:31:03 -0600
-Message-ID: <20160916193102.GB28859@obsidianresearch.com>
-References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
- <88ffb8c9407a71069b52e155dde308a36dfaf247.1474049924.git-series.knut.omang@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 16 Sep 2016 16:19:46 -0400
+Message-ID: <e3d11140-72ac-ca99-2dac-d3cc520f1cf0@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="gHhRCw78LP0dGrrvfjpEtHkp93ijPUKg4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <88ffb8c9407a71069b52e155dde308a36dfaf247.1474049924.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 16, 2016 at 08:31:19PM +0200, Knut Omang wrote:
-> +++ b/include/uapi/rdma/ib_user_verbs.h
-> @@ -725,6 +725,8 @@ struct ib_uverbs_send_wr {
->  			__u32 reserved;
->  		} ud;
->  	} wr;
-> +	__u32 xrc_remote_srq_num;
-> +	__u32 reserved;
->  };
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--gHhRCw78LP0dGrrvfjpEtHkp93ijPUKg4
+Content-Type: multipart/mixed; boundary="gj5voRBCA4BwAD2qFoQgqlwHnOVIAtlCF";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
+ linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <e3d11140-72ac-ca99-2dac-d3cc520f1cf0-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
 
-You still need to discuss why this is OK...
+--gj5voRBCA4BwAD2qFoQgqlwHnOVIAtlCF
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Are you doing all this just to be able to use the existing post_send user
-space path in the common code? Is there a kernel XRC user planned?
+Hi Linus,
 
-Another approach would be to implement post_send in your driver and
-not rely on this common code path.
+This is likely the last rdma pull request this cycle.  The new rxe
+driver had a few issues (you probably saw the boot bot bug report) and
+they should be addressed now.  There are a couple other fixes here,
+mainly mlx4.  There are still two outstanding issues that need resolved
+but I don't think their fix will make this kernel cycle.
 
-Jason
+Here's the boilerplate:
+
+The following changes since commit 16170d9c102764f76c58aad244e947f4e3f445=
+90:
+
+  IB/hfi1: Rework debugfs to use SRCU (2016-09-02 14:26:55 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
+
+for you to fetch changes up to e4618d40eb3dc1a6d1f55f7150ea25bb23ab410a:
+
+  IB/rdmavt: Don't vfree a kzalloc'ed memory region (2016-09-16 14:14:23
+-0400)
+
+----------------------------------------------------------------
+Round three of 4.8 rc fixes
+
+- Various fixes to rdmavt, ipoib, mlx5, mlx4, rxe
+
+----------------------------------------------------------------
+Alex Vesker (2):
+      IB/ipoib: Don't allow MC joins during light MC flush
+      IB/mlx4: Fix incorrect MC join state bit-masking on SR-IOV
+
+Alexey Khoroshilov (1):
+      IB/rxe: fix GFP_KERNEL in spinlock context
+
+Colin Ian King (1):
+      IB/rdmavt: Don't vfree a kzalloc'ed memory region
+
+Jack Morgenstein (2):
+      IB/mlx4: Fix code indentation in QP1 MAD flow
+      IB/mlx4: Use correct subnet-prefix in QP1 mads under SR-IOV
+
+Kamal Heib (1):
+      IB/mlx4: Diagnostic HW counters are not supported in slave mode
+
+Maor Gottlieb (1):
+      IB/mlx5: Set source mac address in FTE
+
+Noa Osherovich (1):
+      IB/mlx5: Enable MAD_IFC commands for IB ports only
+
+Yonatan Cohen (4):
+      IB/rxe: Fix kernel panic in udp_setup_tunnel
+      IB/rxe: Fix duplicate atomic request handling
+      IB/rxe: Fix race condition between requester and completer
+      IB/rxe: Fix kmem_cache leak
+
+ drivers/infiniband/hw/mlx4/mad.c        | 23 +++++++++++++
+ drivers/infiniband/hw/mlx4/main.c       |  3 ++
+ drivers/infiniband/hw/mlx4/mcg.c        | 14 ++++----
+ drivers/infiniband/hw/mlx4/mlx4_ib.h    |  2 +-
+ drivers/infiniband/hw/mlx4/qp.c         | 37 +++++++++++----------
+ drivers/infiniband/hw/mlx5/main.c       | 11 ++++++-
+ drivers/infiniband/sw/rdmavt/mr.c       |  2 +-
+ drivers/infiniband/sw/rxe/rxe.c         | 25 +++++++++++++--
+ drivers/infiniband/sw/rxe/rxe_comp.c    | 13 ++++++++
+ drivers/infiniband/sw/rxe/rxe_net.c     | 55
++++++++++++++++----------------
+ drivers/infiniband/sw/rxe/rxe_net.h     |  5 ++-
+ drivers/infiniband/sw/rxe/rxe_recv.c    |  2 +-
+ drivers/infiniband/sw/rxe/rxe_req.c     | 57
++++++++++++++++++++++++++--------
+ drivers/infiniband/sw/rxe/rxe_resp.c    | 11 ++++---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |  9 ++++++
+ 15 files changed, 189 insertions(+), 80 deletions(-)
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--gj5voRBCA4BwAD2qFoQgqlwHnOVIAtlCF--
+
+--gHhRCw78LP0dGrrvfjpEtHkp93ijPUKg4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJX3FPiAAoJELgmozMOVy/dIosP/jC0+JOGkQPZFEBAQzFoFisx
+X1xaYdOqLV25RfndMIM5AeZ/W3NQ+eJbzYdRmOEpyThfGHG+rBbOt8BgXhaG7Ff6
+0uNbTvr8xmGa8ukHJQwWFYcKgv4yl3ZMDvcWIklOlMIv/y8MpmNi62bAK+gLKvSk
+GrNEkcWDEtPMLpudnDFY5wqglloXjCOGT+0PeENLZb9p5Y7Dp0YZlluSaKMomdnJ
+KFz5QChHN1jkkaZL0yf3JaGAutdijDo7arNTDj866ZfBRRa/SqezXg3Y1gee3rNA
+Cr8b3w/WBXuqKk45uR0RKSQu3uwBUDDMBjF8OorMVIymCjiUmg1lqD0MkNqRJQhP
+ZUN4ByKbFEXhLMsyOB2vu9tcRcmixDzqY0K+qmK2abJHQkRkgKfht/8tTBHBP9j0
+sz0QDVKTsbhRWkr/13DgaP7nvBPfziqZxUHHkXkeQhq2wG4FPAIt+F0OCPZTl48r
+Ne13LXzr8/OnbR4vpazP5oQ5bpBTKMdIF66eE+Pcc7acaVAO+OFMyKrsb89Xauax
+8GaAVeYEn5qeKubDnQToN25R9eSb8AZ74/fTHocTfsnHHQGq3Rd2bLx8B+vQTts0
++5ckV/6rTLYDmTlCYJJaYEbx07iUfeTF6iWtlKrHb1qKlqhHZYIdnaUCwNmUT/eY
+pVb/Jb07FxlGTMtGlF2/
+=YMlu
+-----END PGP SIGNATURE-----
+
+--gHhRCw78LP0dGrrvfjpEtHkp93ijPUKg4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
