@@ -1,38 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Fri, 16 Sep 2016 16:24:37 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08C5F3@ORSMSX109.amr.corp.intel.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FB7A@ORSMSX109.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FBE1@ORSMSX109.amr.corp.intel.com>
- <20160913180342.GA6933@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08075C@ORSMSX109.amr.corp.intel.com>
- <20160913222539.GB29095@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB080798@ORSMSX109.amr.corp.intel.com>
- <edc4c963-847a-e973-f1f1-ab9b78ad9d19@redhat.com>
- <20160916161626.GB2833@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v4 00/16] Add Paravirtual RDMA Driver
+Date: Fri, 16 Sep 2016 10:32:01 -0600
+Message-ID: <20160916163201.GC13911@obsidianresearch.com>
+References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
+ <20160912180251.GH5843@obsidianresearch.com>
+ <BLUPR0501MB836ED564F2AE7AB9221AC25C5FF0@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160914173636.GA10309@obsidianresearch.com>
+ <DM2PR0501MB844473AE0FCAD0FD748D43DC5F10@DM2PR0501MB844.namprd05.prod.outlook.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DE14CE8@ORSMSX115.amr.corp.intel.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DE14D3E@ORSMSX115.amr.corp.intel.com>
+ <20160914225910.GB3567@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160916161626.GB2833-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160914225910.GB3567@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Woodruff, Robert J" <robert.j.woodruff@intel.com>
+Cc: Adit Ranadive <aditr@vmware.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, pv-drivers <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Jorgen S. Hansen" <jhansen@vmware.com>, Aditya Sarwade <asarwade@vmware.com>, George Zhang <georgezhang@vmware.com>, Bryan Tan <bryantan@vmware.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> > I would.  Mainly because it is tied to both the kernel uAPI (via
-> > netlink)and to librdmacm
-> 
-> With what little I know about ibacm I'm inclined to agree. It seems
-> like a utility for librdmacm, and is consuming a kernel interface.
-> 
-> Reconsider Sean?
+On Wed, Sep 14, 2016 at 04:59:10PM -0600, Jason Gunthorpe wrote:
 
-Yes - Doug made a good point.  The librdmacm and ibacm share a protocol, which I think I ended up copying into both packages.
+> > package follows that licensing model for accepting any new code into
+> > that combined repo ?
+> 
+> As with the kernel we'd discourage 're-licensing' existing files.
+> 
+> However, since this is not a OFA project, I, personally, would not
+> turn away a GPLv2 compatible contribution, but I am proposing that the
+> 'default' license for the project be OFA compatible.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I should be clearer here. I am *strongly* opposed to anything that
+changes the license of the existing 4 core libraries away from the
+GPLv2 or OpenIB.org situation we have today. (that includes to other
+varients of the BSD license)
+
+I just checked and we appear to be completely OK on this point today.
+
+Jason
