@@ -1,31 +1,69 @@
-From: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: Fix error return code in c4iw_rdev_open()
-Date: Fri, 16 Sep 2016 22:20:18 -0500
-Message-ID: <50446B79-8354-435D-AA7D-1084D6E52200@ogc.us>
-References: <1474072897-30502-1-git-send-email-weiyj.lk@gmail.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH libibverbs v2 2/3] Add padding to get proper end alignment of ibv_reg_mr_resp
+Date: Sat, 17 Sep 2016 05:59:12 +0200
+Message-ID: <d189bdc3e8e76a9bf4023efe6b0b5d8e3ddae4c1.1474063039.git-series.knut.omang@oracle.com>
+References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474072897-30502-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The user/kernel level API requires all parameter blocks to be
+64 bit end aligned.
 
-> On Sep 16, 2016, at 7:41 PM, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> 
-> Fix to return error code -ENOMEM from the __get_free_page() error
-> handling case instead of 0, as done elsewhere in this function.
-> 
-> Fixes: 05eb23893c2c ("cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes")
-> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Also clean up some valgrind/memory initialization issues.
 
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ include/infiniband/kern-abi.h | 1 +
+ src/cmd.c                     | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index f70fa44..8bdeef5 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -367,6 +367,7 @@ struct ibv_reg_mr_resp {
+ 	__u32 mr_handle;
+ 	__u32 lkey;
+ 	__u32 rkey;
++	__u32 reserved;
+ };
+ 
+ struct ibv_rereg_mr {
+diff --git a/src/cmd.c b/src/cmd.c
+index 12d8640..a418ee1 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -1470,6 +1470,7 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
+ 	cmd->user_handle            = (uintptr_t) ah;
+ 	cmd->pd_handle              = pd->handle;
++	cmd->reserved               = 0;
+ 	cmd->attr.dlid              = attr->dlid;
+ 	cmd->attr.sl                = attr->sl;
+ 	cmd->attr.src_path_bits     = attr->src_path_bits;
+@@ -1480,12 +1481,14 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
+ 	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
+ 	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
+ 	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
++	cmd->attr.grh.reserved      = 0;
++	cmd->attr.reserved          = 0;
+ 	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+ 
+ 	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+ 		return errno;
+ 
+-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+ 
+ 	ah->handle  = resp->handle;
+ 	ah->context = pd->context;
+-- 
+git-series 0.8.10
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
