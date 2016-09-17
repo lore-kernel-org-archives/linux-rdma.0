@@ -1,51 +1,45 @@
-From: Knut Omang <knut.omang@oracle.com>
-Subject: Re: [PATCH v2 0/8] SIF related verbs patches
-Date: Fri, 16 Sep 2016 22:42:02 +0200
-Message-ID: <1474058522.20134.47.camel@oracle.com>
-References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
-         <92bb7bce-b72f-54e1-59ab-1a93a084b10e@oracle.com>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: Fix error return code in c4iw_rdev_open()
+Date: Sat, 17 Sep 2016 00:41:37 +0000
+Message-ID: <1474072897-30502-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <92bb7bce-b72f-54e1-59ab-1a93a084b10e@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-09-16 at 13:30 -0700, Santosh Shilimkar wrote:
-> Hi Knut,
-> 
-> On 9/16/2016 11:31 AM, Knut Omang wrote:
-> > This patch set contains the changes and bug fixes necessary
-> > to support Oracle's new Infiniband HCA (SIF) from the kernel side.
-> >
-> > The exception is patch 3 which is a useful consolidation and simplification
-> > made possible by patch 2 and the replacement of the dma_attr type with
-> > a plain bitmask.
-> >
-> > The changes to other rdma drivers are just trivial consequences of
-> > the extended umem_get and create_ah calls and should hopefully be
-> > uncontroversial.
-> >
-> > Patches 4-7 are related to corresponding libibverbs patches.
-> > These make minor changes (fixing end alignment) to some uverbs
-> > data structures, but these are carefully made to be backward
-> > binary compatible between user and kernel for existing provider
-> > libraries.
-> >
-> You have missed SOBs on few patches accidentally. You might want to
-> fix that for next post :-)
-> 
-> regards,
-> Santosh
+From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-An unfortunate side effect of getting going with the otherwise excellent
-git series tools that the -ns option I have been using to 'git format-patch'
-git lost. 
+Fix to return error code -ENOMEM from the __get_free_page() error
+handling case instead of 0, as done elsewhere in this function.
 
-I have fixed the series for the next post,
+Fixes: 05eb23893c2c ("cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes")
+Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/device.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks for spotting it,
-Knut
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 3c4b212..3f7f869 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -828,8 +828,10 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	}
+ 	rdev->status_page = (struct t4_dev_status_page *)
+ 			    __get_free_page(GFP_KERNEL);
+-	if (!rdev->status_page)
++	if (!rdev->status_page) {
++		err = -ENOMEM;
+ 		goto destroy_ocqp_pool;
++	}
+ 	rdev->status_page->qp_start = rdev->lldi.vr->qp.start;
+ 	rdev->status_page->qp_size = rdev->lldi.vr->qp.size;
+ 	rdev->status_page->cq_start = rdev->lldi.vr->cq.start;
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
