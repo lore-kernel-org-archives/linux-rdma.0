@@ -1,128 +1,124 @@
-From: Leon Romanovsky <leonro@leon.nu>
-Subject: Re: [PATCH v4 09/16] IB/pvrdma: Add support for Completion Queues
-Date: Sun, 18 Sep 2016 20:07:07 +0300
-Message-ID: <20160918170707.GL2923@leon.nu>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-10-git-send-email-aditr@vmware.com>
- <20160914124321.GE15800@yuval-lap.uk.oracle.com>
- <BLUPR0501MB836640F5ECEAB3A99CD82BFC5F00@BLUPR0501MB836.namprd05.prod.outlook.com>
- <20160915073611.GA3851@yuval-lap.uk.oracle.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9ToWwKEyhugL+MAz"
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160915073611.GA3851@yuval-lap.uk.oracle.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: Adit Ranadive <aditr@vmware.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, pv-drivers <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Jorgen S. Hansen" <jhansen@vmware.com>, Aditya Sarwade <asarwade@vmware.com>, George Zhang <georgezhang@vmware.com>, Bryan Tan <bryantan@vmware.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next V1 2/5] IB/mlx5: Merge vports flow steering during LAG
+Date: Sun, 18 Sep 2016 20:48:01 +0300
+Message-ID: <1474220884-21341-3-git-send-email-leon@kernel.org>
+References: <1474220884-21341-1-git-send-email-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---9ToWwKEyhugL+MAz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is done in two steps:
+1) Issuing CREATE_VPORT_LAG in order to have Ethernet traffic from
+both ports arriving on PF0 root flowtable, so we will be able to catch
+all raw-eth traffic on PF0.
+2) Creation of LAG demux flowtable in order to direct all non-raw-eth
+traffic back to its source port, assuring that normal Ethernet
+traffic "jumps" to the root flowtable of its RX port (non-LAG behavior).
 
-On Thu, Sep 15, 2016 at 10:36:12AM +0300, Yuval Shaia wrote:
-> Hi Adit,
-> Please see my comments inline.
->
-> Besides that I have no more comment for this patch.
->
-> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
->
-> Yuval
->
-> On Thu, Sep 15, 2016 at 12:07:29AM +0000, Adit Ranadive wrote:
-> > On Wed, Sep 14, 2016 at 05:43:37 -0700, Yuval Shaia wrote:
-> > > On Sun, Sep 11, 2016 at 09:49:19PM -0700, Adit Ranadive wrote:
-> > > > +
-> > > > +static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp
-> > > **cur_qp,
-> > > > +			   struct ib_wc *wc)
-> > > > +{
-> > > > +	struct pvrdma_dev *dev = to_vdev(cq->ibcq.device);
-> > > > +	int has_data;
-> > > > +	unsigned int head;
-> > > > +	bool tried = false;
-> > > > +	struct pvrdma_cqe *cqe;
-> > > > +
-> > > > +retry:
-> > > > +	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-> > > > +					    cq->ibcq.cqe, &head);
-> > > > +	if (has_data == 0) {
-> > > > +		if (tried)
-> > > > +			return -EAGAIN;
-> > > > +
-> > > > +		/* Pass down POLL to give physical HCA a chance to poll. */
-> > > > +		pvrdma_write_uar_cq(dev, cq->cq_handle |
-> > > PVRDMA_UAR_CQ_POLL);
-> > > > +
-> > > > +		tried = true;
-> > > > +		goto retry;
-> > > > +	} else if (has_data == PVRDMA_INVALID_IDX) {
-> > >
-> > > I didn't went throw the entire life cycle of RX-ring's head and tail but you
-> > > need to make sure that PVRDMA_INVALID_IDX error is recoverable one, i.e
-> > > there is probability that in the next call to pvrdma_poll_one it will be fine.
-> > > Otherwise it is an endless loop.
-> >
-> > We have never run into this issue internally but I don't think we can recover here
->
-> I briefly reviewed the life cycle of RX-ring's head and tail and didn't
-> caught any suspicious place that might corrupt it.
-> So glad to see that you never encountered this case.
->
-> > in the driver. The only way to recover would be to destroy and recreate the CQ
-> > which we shouldn't do since it could be used by multiple QPs.
->
-> Agree.
-> But don't they hit the same problem too?
->
-> > We don't have a way yet to recover in the device. Once we add that this check
-> > should go away.
->
-> To be honest i have no idea how to do that - i was expecting driver's vendors
-> to come up with an ideas :)
-> I once came up with an idea to force restart of the driver but it was
-> rejected.
->
-> >
-> > The reason I returned an error value from poll_cq in v3 was to break the possible
-> > loop so that it might give clients a chance to recover. But since poll_cq is not expected
-> > to fail I just log the device error here. I can revert to that version if you want to break
-> > the possible loop.
->
-> Clients (ULPs) cannot recover from this case. They even do not check the
-> reason of the error and treats any error as -EAGAIN.
+Signed-off-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c    | 49 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ 2 files changed, 50 insertions(+)
 
-It is because poll_one is not expected to fall.
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e2cdd93..acb1891 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2529,6 +2529,47 @@ static void get_dev_fw_str(struct ib_device *ibdev, char *str,
+ 		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
+ }
+ 
++static int mlx5_roce_lag_init(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_flow_namespace *ns = mlx5_get_flow_namespace(mdev,
++								 MLX5_FLOW_NAMESPACE_LAG);
++	struct mlx5_flow_table *ft;
++	int err;
++
++	if (!ns || !mlx5_lag_is_active(mdev))
++		return 0;
++
++	err = mlx5_cmd_create_vport_lag(mdev);
++	if (err)
++		return err;
++
++	ft = mlx5_create_lag_demux_flow_table(ns, 0, 0);
++	if (IS_ERR(ft)) {
++		err = PTR_ERR(ft);
++		goto err_destroy_vport_lag;
++	}
++
++	dev->flow_db.lag_demux_ft = ft;
++	return 0;
++
++err_destroy_vport_lag:
++	mlx5_cmd_destroy_vport_lag(mdev);
++	return err;
++}
++
++static void mlx5_roce_lag_cleanup(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_core_dev *mdev = dev->mdev;
++
++	if (dev->flow_db.lag_demux_ft) {
++		mlx5_destroy_flow_table(dev->flow_db.lag_demux_ft);
++		dev->flow_db.lag_demux_ft = NULL;
++
++		mlx5_cmd_destroy_vport_lag(mdev);
++	}
++}
++
+ static void mlx5_remove_roce_notifier(struct mlx5_ib_dev *dev)
+ {
+ 	if (dev->roce.nb.notifier_call) {
+@@ -2552,8 +2593,15 @@ static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
+ 	if (err)
+ 		goto err_unregister_netdevice_notifier;
+ 
++	err = mlx5_roce_lag_init(dev);
++	if (err)
++		goto err_disable_roce;
++
+ 	return 0;
+ 
++err_disable_roce:
++	mlx5_nic_vport_disable_roce(dev->mdev);
++
+ err_unregister_netdevice_notifier:
+ 	mlx5_remove_roce_notifier(dev);
+ 	return err;
+@@ -2561,6 +2609,7 @@ err_unregister_netdevice_notifier:
+ 
+ static void mlx5_disable_roce(struct mlx5_ib_dev *dev)
+ {
++	mlx5_roce_lag_cleanup(dev);
+ 	mlx5_nic_vport_disable_roce(dev->mdev);
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index a59034a..d06ae88 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -156,6 +156,7 @@ struct mlx5_ib_flow_handler {
+ 
+ struct mlx5_ib_flow_db {
+ 	struct mlx5_ib_flow_prio	prios[MLX5_IB_NUM_FLOW_FT];
++	struct mlx5_flow_table		*lag_demux_ft;
+ 	/* Protect flow steering bypass flow tables
+ 	 * when add/del flow rules.
+ 	 * only single add/removal of flow steering rule could be done
+-- 
+2.7.4
 
->
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---9ToWwKEyhugL+MAz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJX3sm7AAoJEORje4g2clinRrwP/1EFDeDViJt15ncCnvxRxk/M
-GxzKk8yfT7UqCv+ZX8kDIIm/o1RyLgmZov6SPm2ldXk63xfriWqe1RAVd120WTcM
-ZaD+kum8bXtwPSOCqnSfPk3uN0CVWnxHPOXcculF10sR4UcMctGAP5IjLzmGV55l
-xLZtnVbhaQEs7dpeAUYDk9h4+NOiedewb3YUaA/rsNp8+ceZB1jRTPX+JY5OBdEV
-RDmHUo72m0sING0lRLOX7TWXv6xpOk2Jqq3r3SgzPAemI9FZynCWEhiGuF010dMW
-R+uhA22NwOwobLXf7beBQ4/cgHm1PlUM7Cjkhx3sZb7N9+/01tCSI4kzIhtsOTfc
-bdPs/LH2gNMdm8mj5NJCDXPRK47IMVVmJ9qysUEElM5ierPHby7Y2R2951cS8x1G
-dM6VDVAw9YyBUNKK/yWfYRQMS/mYbmhBk4lZahp7Z96IaO3tMCo7Sncp28hQ5hm6
-L8+za80kyotyR6TQ9zRHjLfZ4xVNH8Zru9lOyYl9IO+f0KsNTOTNu5AU+80q3PLG
-pmXfyD8TItf5ldFwrfXr67ER1Nx2jGkJ3fhoD6KSry0krZguo5lilCSCz/HK4QB7
-KL4uOSVr4sOft5gZtzvQC/ek3H7Onz6+JhVzWdhto/+zzpUsCQDgVlj4QTbPaFSO
-CiVjr5sJf/59kVnuyG1V
-=ll8U
------END PGP SIGNATURE-----
-
---9ToWwKEyhugL+MAz--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
