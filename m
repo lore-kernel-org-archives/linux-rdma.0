@@ -1,78 +1,101 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 0/5] mlx5 IB RoCE LAG
-Date: Sun, 18 Sep 2016 20:47:59 +0300
-Message-ID: <1474220884-21341-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 3/5] IB/mlx5: Port status track LAG master, when LAG is active
+Date: Sun, 18 Sep 2016 20:48:02 +0300
+Message-ID: <1474220884-21341-4-git-send-email-leon@kernel.org>
+References: <1474220884-21341-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This feature keeps track, using netdev LAG events,
-of the bonding and link status of each port's PF netdev.
+From: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When both of the card's PF netdevs are enslaved exclusively
-to the same bond master, LAG state is active.
-Bond mode must be one of:
-1 (active-backup), 2 (XOR), or 4 (802.3ad).
+When LAG is active, port up/down events should be triggered
+by tracking the LAG master, and not one of the two slave
+netdevs.
 
-During LAG, a single IB device is present for both ports.
-This allows for load balancing and high availability to be
-managed by the driver, abstracting it away from ULPs.
-Such an IB device is given a name of "mlx5_bond_X".
+In the same manner, ib_query_port() should return the details
+of the LAG master.
 
-LAG mode is determined by the bond driver.
-In load balancing (modes 2 and 4), QPs are assigned to ports
-in a round-robin fashion, on QP transition from RESET->INIT.
-In high availability (mode 1), all QPs are assigned to the active
-slave, determined by bond driver.
+Signed-off-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
 
-Please note that if the link state of a port becomes down when
-mode is load balancing, all QPs will be moved to the other port,
-and will be moved back once both ports are up again.
-
-This feature itself split into mlx5_core and mlx5_ib parts, while mlx5_core was
-already submitted and accepted:
-  1) mlx5_core: Implements RoCE LAG infrastructure and API.
-    a) Bond device LAG events tracking.
-    b) Decisions as to whether LAG state is active.
-    c) Firmware commands to enter and exit LAG state.
-    d) Manages HA behavior.
-  2) mlx5_ib: Uses core infrastructure to implement RoCE LAG.
-    a) Chooses an "mlx5_bond_X" device name when LAG is active.
-    b) Implements QP load balancing.
-    c) Merges steering, such that both port's traffic arrives on
-       PF0's root flow table. This is used for processing
-       both port's usermode Ethernet traffic on PF0.
-    d) Creates a special flow table that diverts all
-       non-usermode Ethernet traffic received on port 2
-       back to PF1's root flow table (since non-usermode Ethernet
-       should not be affected by LAG).
-
-Available in the "topic/roce-lag-mlx5" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/roce-lag-mlx5
-
-Changelog v0 -> v1:
- * Rebased over k.o/for-4.9 branch to fix compilation issues
-
-Thanks
-
-Aviv Heller (5):
-  IB/mlx5: Port events in RoCE now rely on netdev events
-  IB/mlx5: Merge vports flow steering during LAG
-  IB/mlx5: Port status track LAG master, when LAG is active
-  IB/mlx5: Set unique device name on LAG
-  IB/mlx5: LAG QP load balancing
-
- drivers/infiniband/hw/mlx5/main.c    | 150 +++++++++++++++++++++++++++++++----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   2 +
- drivers/infiniband/hw/mlx5/qp.c      |  61 ++++++++++++--
- 3 files changed, 191 insertions(+), 22 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index acb1891..47f8088 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -118,8 +118,17 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 		break;
+ 
+ 	case NETDEV_UP:
+-	case NETDEV_DOWN:
+-		if (ndev == ibdev->roce.netdev && ibdev->ib_active) {
++	case NETDEV_DOWN: {
++		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(ibdev->mdev);
++		struct net_device *upper = NULL;
++
++		if (lag_ndev) {
++			upper = netdev_master_upper_dev_get(lag_ndev);
++			dev_put(lag_ndev);
++		}
++
++		if ((upper == ndev || (!upper && ndev == ibdev->roce.netdev))
++		    && ibdev->ib_active) {
+ 			struct ib_event ibev = {0};
+ 
+ 			ibev.device = &ibdev->ib_dev;
+@@ -129,6 +138,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 			ib_dispatch_event(&ibev);
+ 		}
+ 		break;
++	}
+ 
+ 	default:
+ 		break;
+@@ -143,6 +153,10 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
+ 	struct mlx5_ib_dev *ibdev = to_mdev(device);
+ 	struct net_device *ndev;
+ 
++	ndev = mlx5_lag_get_roce_netdev(ibdev->mdev);
++	if (ndev)
++		return ndev;
++
+ 	/* Ensure ndev does not disappear before we invoke dev_hold()
+ 	 */
+ 	read_lock(&ibdev->roce.netdev_lock);
+@@ -158,7 +172,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 				struct ib_port_attr *props)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+-	struct net_device *ndev;
++	struct net_device *ndev, *upper;
+ 	enum ib_mtu ndev_ib_mtu;
+ 	u16 qkey_viol_cntr;
+ 
+@@ -182,6 +196,17 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	if (!ndev)
+ 		return 0;
+ 
++	if (mlx5_lag_is_active(dev->mdev)) {
++		rcu_read_lock();
++		upper = netdev_master_upper_dev_get_rcu(ndev);
++		if (upper) {
++			dev_put(ndev);
++			ndev = upper;
++			dev_hold(ndev);
++		}
++		rcu_read_unlock();
++	}
++
+ 	if (netif_running(ndev) && netif_carrier_ok(ndev)) {
+ 		props->state      = IB_PORT_ACTIVE;
+ 		props->phys_state = 5;
+-- 
 2.7.4
 
 --
