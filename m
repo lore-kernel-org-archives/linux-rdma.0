@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/5] IB/mlx5: Port status track LAG master, when LAG is active
-Date: Sun, 18 Sep 2016 13:08:14 +0300
-Message-ID: <1474193296-28062-4-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 2/5] IB/mlx5: Merge vports flow steering during LAG
+Date: Sun, 18 Sep 2016 13:08:13 +0300
+Message-ID: <1474193296-28062-3-git-send-email-leon@kernel.org>
 References: <1474193296-28062-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474193296-28062-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,89 +12,109 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When LAG is active, port up/down events should be triggered
-by tracking the LAG master, and not one of the two slave
-netdevs.
-
-In the same manner, ib_query_port() should return the details
-of the LAG master.
+This is done in two steps:
+1) Issuing CREATE_VPORT_LAG in order to have Ethernet traffic from
+both ports arriving on PF0 root flowtable, so we will be able to catch
+all raw-eth traffic on PF0.
+2) Creation of LAG demux flowtable in order to direct all non-raw-eth
+traffic back to its source port, assuring that normal Ethernet
+traffic "jumps" to the root flowtable of its RX port (non-LAG behavior).
 
 Signed-off-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 49 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ 2 files changed, 50 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index ea766d3..1373650 100644
+index de7558b..ea766d3 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -117,8 +117,17 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 		break;
+@@ -2533,6 +2533,47 @@ static void get_dev_fw_str(struct ib_device *ibdev, char *str,
+ 		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
+ }
  
- 	case NETDEV_UP:
--	case NETDEV_DOWN:
--		if (ndev == ibdev->roce.netdev && ibdev->ib_active) {
-+	case NETDEV_DOWN: {
-+		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(ibdev->mdev);
-+		struct net_device *upper = NULL;
++static int mlx5_roce_lag_init(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_flow_namespace *ns = mlx5_get_flow_namespace(mdev,
++								 MLX5_FLOW_NAMESPACE_LAG);
++	struct mlx5_flow_table *ft;
++	int err;
 +
-+		if (lag_ndev) {
-+			upper = netdev_master_upper_dev_get(lag_ndev);
-+			dev_put(lag_ndev);
-+		}
++	if (!ns || !mlx5_lag_is_active(mdev))
++		return 0;
 +
-+		if ((upper == ndev || (!upper && ndev == ibdev->roce.netdev))
-+		    && ibdev->ib_active) {
- 			struct ib_event ibev = {0};
- 
- 			ibev.device = &ibdev->ib_dev;
-@@ -128,6 +137,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 			ib_dispatch_event(&ibev);
- 		}
- 		break;
++	err = mlx5_cmd_create_vport_lag(mdev);
++	if (err)
++		return err;
++
++	ft = mlx5_create_lag_demux_flow_table(ns, 0, 0);
++	if (IS_ERR(ft)) {
++		err = PTR_ERR(ft);
++		goto err_destroy_vport_lag;
 +	}
- 
- 	default:
- 		break;
-@@ -142,6 +152,10 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
- 	struct mlx5_ib_dev *ibdev = to_mdev(device);
- 	struct net_device *ndev;
- 
-+	ndev = mlx5_lag_get_roce_netdev(ibdev->mdev);
-+	if (ndev)
-+		return ndev;
 +
- 	/* Ensure ndev does not disappear before we invoke dev_hold()
- 	 */
- 	read_lock(&ibdev->roce.netdev_lock);
-@@ -157,7 +171,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 				struct ib_port_attr *props)
++	dev->flow_db.lag_demux_ft = ft;
++	return 0;
++
++err_destroy_vport_lag:
++	mlx5_cmd_destroy_vport_lag(mdev);
++	return err;
++}
++
++static void mlx5_roce_lag_cleanup(struct mlx5_ib_dev *dev)
++{
++	struct mlx5_core_dev *mdev = dev->mdev;
++
++	if (dev->flow_db.lag_demux_ft) {
++		mlx5_destroy_flow_table(dev->flow_db.lag_demux_ft);
++		dev->flow_db.lag_demux_ft = NULL;
++
++		mlx5_cmd_destroy_vport_lag(mdev);
++	}
++}
++
+ static void mlx5_remove_roce_notifier(struct mlx5_ib_dev *dev)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(device);
--	struct net_device *ndev;
-+	struct net_device *ndev, *upper;
- 	enum ib_mtu ndev_ib_mtu;
- 	u16 qkey_viol_cntr;
+ 	if (dev->roce.nb.notifier_call) {
+@@ -2556,8 +2597,15 @@ static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
+ 	if (err)
+ 		goto err_unregister_netdevice_notifier;
  
-@@ -181,6 +195,17 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	if (!ndev)
- 		return 0;
- 
-+	if (mlx5_lag_is_active(dev->mdev)) {
-+		rcu_read_lock();
-+		upper = netdev_master_upper_dev_get_rcu(ndev);
-+		if (upper) {
-+			dev_put(ndev);
-+			ndev = upper;
-+			dev_hold(ndev);
-+		}
-+		rcu_read_unlock();
-+	}
++	err = mlx5_roce_lag_init(dev);
++	if (err)
++		goto err_disable_roce;
 +
- 	if (netif_running(ndev) && netif_carrier_ok(ndev)) {
- 		props->state      = IB_PORT_ACTIVE;
- 		props->phys_state = 5;
+ 	return 0;
+ 
++err_disable_roce:
++	mlx5_nic_vport_disable_roce(dev->mdev);
++
+ err_unregister_netdevice_notifier:
+ 	mlx5_remove_roce_notifier(dev);
+ 	return err;
+@@ -2565,6 +2613,7 @@ err_unregister_netdevice_notifier:
+ 
+ static void mlx5_disable_roce(struct mlx5_ib_dev *dev)
+ {
++	mlx5_roce_lag_cleanup(dev);
+ 	mlx5_nic_vport_disable_roce(dev->mdev);
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 372385d..b13063a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -156,6 +156,7 @@ struct mlx5_ib_flow_handler {
+ 
+ struct mlx5_ib_flow_db {
+ 	struct mlx5_ib_flow_prio	prios[MLX5_IB_NUM_FLOW_FT];
++	struct mlx5_flow_table		*lag_demux_ft;
+ 	/* Protect flow steering bypass flow tables
+ 	 * when add/del flow rules.
+ 	 * only single add/removal of flow steering rule could be done
 -- 
 2.7.4
 
