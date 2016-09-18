@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 4/5] IB/mlx5: Set unique device name on LAG
-Date: Sun, 18 Sep 2016 20:48:03 +0300
-Message-ID: <1474220884-21341-5-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 5/5] IB/mlx5: LAG QP load balancing
+Date: Sun, 18 Sep 2016 20:48:04 +0300
+Message-ID: <1474220884-21341-6-git-send-email-leon@kernel.org>
 References: <1474220884-21341-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,41 +12,152 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-IB bond device name is now 'mlx5_bond_X', instead of
-'mlx5_X'.
+When LAG is active, QP tx affinity (the physical port
+to which a QP is affined, or the TIS in case of raw-eth)
+is set in a round robin fashion during state transition
+from RESET to INIT.
 
 Signed-off-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ drivers/infiniband/hw/mlx5/qp.c      | 61 +++++++++++++++++++++++++++++++++---
+ 2 files changed, 57 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 47f8088..c01e529 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2750,6 +2750,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	struct mlx5_ib_dev *dev;
- 	enum rdma_link_layer ll;
- 	int port_type_cap;
-+	const char *name;
- 	int err;
- 	int i;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index d06ae88..5802253 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -603,6 +603,7 @@ struct mlx5_roce {
+ 	rwlock_t		netdev_lock;
+ 	struct net_device	*netdev;
+ 	struct notifier_block	nb;
++	atomic_t		next_port;
+ };
  
-@@ -2782,7 +2783,12 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ struct mlx5_ib_dev {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index f3c943f..d1065ae 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1862,7 +1862,7 @@ static void get_cqs(enum ib_qp_type qp_type,
+ }
  
- 	MLX5_INIT_DOORBELL_LOCK(&dev->uar_lock);
+ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+-				u16 operation);
++				u16 operation, u8 lag_tx_affinity);
  
--	strlcpy(dev->ib_dev.name, "mlx5_%d", IB_DEVICE_NAME_MAX);
-+	if (!mlx5_lag_is_active(mdev))
-+		name = "mlx5_%d";
-+	else
-+		name = "mlx5_bond_%d";
+ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ {
+@@ -1888,7 +1888,7 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 						  NULL, &base->mqp);
+ 		} else {
+ 			err = modify_raw_packet_qp(dev, qp,
+-						   MLX5_CMD_OP_2RST_QP);
++						   MLX5_CMD_OP_2RST_QP, 0);
+ 		}
+ 		if (err)
+ 			mlx5_ib_warn(dev, "mlx5_ib: modify QP 0x%06x to RESET failed\n",
+@@ -2152,6 +2152,31 @@ static int modify_raw_packet_eth_prio(struct mlx5_core_dev *dev,
+ 	return err;
+ }
+ 
++static int modify_raw_packet_tx_affinity(struct mlx5_core_dev *dev,
++					 struct mlx5_ib_sq *sq, u8 tx_affinity)
++{
++	void *in;
++	void *tisc;
++	int inlen;
++	int err;
 +
-+	strlcpy(dev->ib_dev.name, name, IB_DEVICE_NAME_MAX);
- 	dev->ib_dev.owner		= THIS_MODULE;
- 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
- 	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
++	inlen = MLX5_ST_SZ_BYTES(modify_tis_in);
++	in = mlx5_vzalloc(inlen);
++	if (!in)
++		return -ENOMEM;
++
++	MLX5_SET(modify_tis_in, in, bitmask.lag_tx_port_affinity, 1);
++
++	tisc = MLX5_ADDR_OF(modify_tis_in, in, ctx);
++	MLX5_SET(tisc, tisc, lag_tx_port_affinity, tx_affinity);
++
++	err = mlx5_core_modify_tis(dev, sq->tisn, in, inlen);
++
++	kvfree(in);
++
++	return err;
++}
++
+ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			 const struct ib_ah_attr *ah,
+ 			 struct mlx5_qp_path *path, u8 port, int attr_mask,
+@@ -2421,7 +2446,7 @@ out:
+ }
+ 
+ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+-				u16 operation)
++				u16 operation, u8 tx_affinity)
+ {
+ 	struct mlx5_ib_raw_packet_qp *raw_packet_qp = &qp->raw_packet_qp;
+ 	struct mlx5_ib_rq *rq = &raw_packet_qp->rq;
+@@ -2460,8 +2485,16 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			return err;
+ 	}
+ 
+-	if (qp->sq.wqe_cnt)
++	if (qp->sq.wqe_cnt) {
++		if (tx_affinity) {
++			err = modify_raw_packet_tx_affinity(dev->mdev, sq,
++							    tx_affinity);
++			if (err)
++				return err;
++		}
++
+ 		return modify_raw_packet_qp_sq(dev->mdev, sq, sq_state);
++	}
+ 
+ 	return 0;
+ }
+@@ -2519,6 +2552,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	int mlx5_st;
+ 	int err;
+ 	u16 op;
++	u8 tx_affinity = 0;
+ 
+ 	context = kzalloc(sizeof(*context), GFP_KERNEL);
+ 	if (!context)
+@@ -2548,6 +2582,23 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 		}
+ 	}
+ 
++	if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
++		if ((ibqp->qp_type == IB_QPT_RC) ||
++		    (ibqp->qp_type == IB_QPT_UD &&
++		     !(qp->flags & MLX5_IB_QP_SQPN_QP1)) ||
++		    (ibqp->qp_type == IB_QPT_UC) ||
++		    (ibqp->qp_type == IB_QPT_RAW_PACKET) ||
++		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
++		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
++			if (mlx5_lag_is_active(dev->mdev)) {
++				tx_affinity = (unsigned int)atomic_add_return(1,
++						&dev->roce.next_port) %
++						MLX5_MAX_PORTS + 1;
++				context->flags |= cpu_to_be32(tx_affinity << 24);
++			}
++		}
++	}
++
+ 	if (is_sqp(ibqp->qp_type)) {
+ 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
+ 	} else if (ibqp->qp_type == IB_QPT_UD ||
+@@ -2690,7 +2741,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET)
+-		err = modify_raw_packet_qp(dev, qp, op);
++		err = modify_raw_packet_qp(dev, qp, op, tx_affinity);
+ 	else
+ 		err = mlx5_core_qp_modify(dev->mdev, op, optpar, context,
+ 					  &base->mqp);
 -- 
 2.7.4
 
