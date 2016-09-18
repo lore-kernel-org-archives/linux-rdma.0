@@ -1,112 +1,98 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: RE: [PATCH v4 09/16] IB/pvrdma: Add support for Completion Queues
-Date: Sun, 18 Sep 2016 20:36:55 +0000
-Message-ID: <BLUPR0501MB83604E10410486A3F068950C5F50@BLUPR0501MB836.namprd05.prod.outlook.com>
-References: <1473655766-31628-1-git-send-email-aditr@vmware.com>
- <1473655766-31628-10-git-send-email-aditr@vmware.com>
- <20160914124321.GE15800@yuval-lap.uk.oracle.com>
- <BLUPR0501MB836640F5ECEAB3A99CD82BFC5F00@BLUPR0501MB836.namprd05.prod.outlook.com>
- <20160915073611.GA3851@yuval-lap.uk.oracle.com>
- <20160918170707.GL2923@leon.nu>
+From: "Stephen Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] rdma_rxe: Ensure rdma_rxe module init occurs at correct
+ time
+Date: Sun, 18 Sep 2016 18:59:16 -0500
+Message-ID: <a3e5f61b65cdf92c192daef1da319718.squirrel@webmail.raithlin.com>
+References: <1473975936-9970-1-git-send-email-sbates@raithlin.com>
+    <2fa6c4b3-6fcb-b0f1-adaf-94895710827d@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160918170707.GL2923@leon.nu>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@leon.nu>, Yuval Shaia <yuval.shaia@oracle.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, pv-drivers <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Jorgen S. Hansen" <jhansen@vmware.com>, Aditya Sarwade <asarwade@vmware.com>, George Zhang <georgezhang@vmware.com>, Bryan Tan <bryantan@vmware.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2fa6c4b3-6fcb-b0f1-adaf-94895710827d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 18, 2016 at 10:07:18 -0700, Leon Romanovsky wrote:=20
-> On Thu, Sep 15, 2016 at 10:36:12AM +0300, Yuval Shaia wrote:
-> > Hi Adit,
-> > Please see my comments inline.
-> >
-> > Besides that I have no more comment for this patch.
-> >
-> > Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-> >
-> > Yuval
-> >
-> > On Thu, Sep 15, 2016 at 12:07:29AM +0000, Adit Ranadive wrote:
-> > > On Wed, Sep 14, 2016 at 05:43:37 -0700, Yuval Shaia wrote:
-> > > > On Sun, Sep 11, 2016 at 09:49:19PM -0700, Adit Ranadive wrote:
-> > > > > +
-> > > > > +static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_q=
-p
-> > > > **cur_qp,
-> > > > > +			   struct ib_wc *wc)
-> > > > > +{
-> > > > > +	struct pvrdma_dev *dev =3D to_vdev(cq->ibcq.device);
-> > > > > +	int has_data;
-> > > > > +	unsigned int head;
-> > > > > +	bool tried =3D false;
-> > > > > +	struct pvrdma_cqe *cqe;
-> > > > > +
-> > > > > +retry:
-> > > > > +	has_data =3D pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-> > > > > +					    cq->ibcq.cqe, &head);
-> > > > > +	if (has_data =3D=3D 0) {
-> > > > > +		if (tried)
-> > > > > +			return -EAGAIN;
-> > > > > +
-> > > > > +		/* Pass down POLL to give physical HCA a chance to poll. */
-> > > > > +		pvrdma_write_uar_cq(dev, cq->cq_handle |
-> > > > PVRDMA_UAR_CQ_POLL);
-> > > > > +
-> > > > > +		tried =3D true;
-> > > > > +		goto retry;
-> > > > > +	} else if (has_data =3D=3D PVRDMA_INVALID_IDX) {
-> > > >
-> > > > I didn't went throw the entire life cycle of RX-ring's head and tai=
-l but you
-> > > > need to make sure that PVRDMA_INVALID_IDX error is recoverable one,=
- i.e
-> > > > there is probability that in the next call to pvrdma_poll_one it wi=
-ll be fine.
-> > > > Otherwise it is an endless loop.
-> > >
-> > > We have never run into this issue internally but I don't think we can=
- recover here
-> >
-> > I briefly reviewed the life cycle of RX-ring's head and tail and didn't
-> > caught any suspicious place that might corrupt it.
-> > So glad to see that you never encountered this case.
-> >
-> > > in the driver. The only way to recover would be to destroy and recrea=
-te the CQ
-> > > which we shouldn't do since it could be used by multiple QPs.
-> >
-> > Agree.
-> > But don't they hit the same problem too?
-> >
-> > > We don't have a way yet to recover in the device. Once we add that th=
-is check
-> > > should go away.
-> >
-> > To be honest i have no idea how to do that - i was expecting driver's v=
-endors
-> > to come up with an ideas :)
-> > I once came up with an idea to force restart of the driver but it was
-> > rejected.
-> >
-> > >
-> > > The reason I returned an error value from poll_cq in v3 was to break =
-the possible
-> > > loop so that it might give clients a chance to recover. But since pol=
-l_cq is not expected
-> > > to fail I just log the device error here. I can revert to that versio=
-n if you want to break
-> > > the possible loop.
-> >
-> > Clients (ULPs) cannot recover from this case. They even do not check th=
-e
-> > reason of the error and treats any error as -EAGAIN.
->=20
-> It is because poll_one is not expected to fall.
+On Fri, September 16, 2016 1:06 pm, Doug Ledford wrote:
+> On 9/15/2016 5:45 PM, Stephen Bates wrote:
+>
+>> When the Soft-RoCE module is built into the kernel there is a
+>> initialization issue when CONFIG_IPV6 is selected. Use late_initcall to
+>> ensure the rxe module is loaded later. This fix is based on one proposed
+>> by Logan Gunthorpe on a much older code base [1].
+>
+> Your commit message doesn't make sense.  You start by saying that
+> soft-RoCE is compiled in, then say "the rxe module is loaded later". Well,
+> which is it?  I'm not sure exactly the problem you are fixing. However, I
+> know that the series Leon posted for the rxe driver included a fix
+> specifically for IPv6 tunnel creation issues that result in an oops.  I
+> suspect that patch might solve your problem.  So, I'm going to drop this
+> patch.  Once you get a chance to test with the other patch applied, if
+> your problem still exists, then please repost this patch with a clearer
+> commit message and we can add this as well.
 
-Poll_one is an internal function in our driver. ULPs should still be okay I=
- think as long as poll_cq
-does not fail, no?
+Doug
+
+Yes on reflection the commit message associated with this patch was not as
+clear as it could have been. Apologies. I will be more explicit on the v1.
+To answer your questions:
+
+1. This patch should be applied on top of the three patches that came from
+Leon [1]. I will make that clear in v1.
+
+2. My patch applies to the case where rmda_rxe is built-in and not when it
+is a module. Currently the module_init is called before IPv6 is setup and
+that results in a load failure of rxe.
+
+3. When rdma_rxe is built as a module the problem is not observed because
+the rdma_rxe module is not probed until the system is up and running.
+
+4. The change from module_init to late_initcall means that IPv6 has had
+enough time to come up befoe the rdma_rxe init is executed.
+
+I hope that clarifies things. I will get a v1 out shortly with an improved
+commit log.
+
+[1] http://marc.info/?l=linux-rdma&m=147307739626544&w=2
+
+Cheers
+
+Stephen Bates
+
+>
+>> [1] https://github.com/sbates130272/qemu-minimal/blob/rdma/patches/\
+>> 0001-Changes-needed-to-use-rxe-compiled-into-the-kernel.patch
+>>
+>>
+>> Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+>> ---
+>> drivers/infiniband/sw/rxe/rxe.c | 2 +- 1 file changed, 1 insertion(+), 1
+>> deletion(-)
+>>
+>> diff --git a/drivers/infiniband/sw/rxe/rxe.c
+>> b/drivers/infiniband/sw/rxe/rxe.c index 08e09d9..97bc74a 100644 ---
+>> a/drivers/infiniband/sw/rxe/rxe.c +++ b/drivers/infiniband/sw/rxe/rxe.c
+>> @@ -392,5 +392,5 @@ static void __exit rxe_module_exit(void)
+>> pr_info("rxe: unloaded\n");
+>> }
+>>
+>>
+>> -module_init(rxe_module_init);
+>> +late_initcall(rxe_module_init);
+>> module_exit(rxe_module_exit);
+>>
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> GPG Key ID: 0E572FDD
+>
+>
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
