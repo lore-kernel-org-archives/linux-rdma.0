@@ -1,59 +1,75 @@
-From: Baoyou Xie <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] net/mlx5: clean function declarations in eswitch.c up
-Date: Sun, 18 Sep 2016 16:44:22 +0800
-Message-ID: <1474188262-9929-1-git-send-email-baoyou.xie@linaro.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 0/5] mlx5 IB RoCE LAG
+Date: Sun, 18 Sep 2016 13:08:11 +0300
+Message-ID: <1474193296-28062-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, xie.baoyou-Th6q7B73Y6EnDS1+zs4M5A@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We get 2 warnings when building kernel with W=1:
-drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:463:5: warning: no previous prototype for 'esw_offloads_init' [-Wmissing-prototypes]
-drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:521:6: warning: no previous prototype for 'esw_offloads_cleanup' [-Wmissing-prototypes]
+This feature keeps track, using netdev LAG events,
+of the bonding and link status of each port's PF netdev.
 
-In fact, both functions are declared in
-drivers/net/ethernet/mellanox/mlx5/core/eswitch.c,but should be
-declared in a header file, thus can be recognized in other file.
+When both of the card's PF netdevs are enslaved exclusively
+to the same bond master, LAG state is active.
+Bond mode must be one of:
+1 (active-backup), 2 (XOR), or 4 (802.3ad).
 
-So this patch moves the declarations into
-drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+During LAG, a single IB device is present for both ports.
+This allows for load balancing and high availability to be
+managed by the driver, abstracting it away from ULPs.
+Such an IB device is given a name of "mlx5_bond_X".
 
-Signed-off-by: Baoyou Xie <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 3 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h | 3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+LAG mode is determined by the bond driver.
+In load balancing (modes 2 and 4), QPs are assigned to ports
+in a round-robin fashion, on QP transition from RESET->INIT.
+In high availability (mode 1), all QPs are assigned to the active
+slave, determined by bond driver.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 1014305..b453cb6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -81,9 +81,6 @@ enum {
- 			    MC_ADDR_CHANGE | \
- 			    PROMISC_CHANGE)
- 
--int esw_offloads_init(struct mlx5_eswitch *esw, int nvports);
--void esw_offloads_cleanup(struct mlx5_eswitch *esw, int nvports);
--
- static int arm_vport_context_events_cmd(struct mlx5_core_dev *dev, u16 vport,
- 					u32 events_mask)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index a961409..3bc5336 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -201,6 +201,9 @@ struct mlx5_eswitch {
- 	int                     mode;
- };
- 
-+void esw_offloads_cleanup(struct mlx5_eswitch *esw, int nvports);
-+int esw_offloads_init(struct mlx5_eswitch *esw, int nvports);
-+
- /* E-Switch API */
- int mlx5_eswitch_init(struct mlx5_core_dev *dev);
- void mlx5_eswitch_cleanup(struct mlx5_eswitch *esw);
--- 
+Please note that if the link state of a port becomes down when
+mode is load balancing, all QPs will be moved to the other port,
+and will be moved back once both ports are up again.
+
+This feature itself split into mlx5_core and mlx5_ib parts, while mlx5_core was
+already submitted and accepted:
+  1) mlx5_core: Implements RoCE LAG infrastructure and API.
+    a) Bond device LAG events tracking.
+    b) Decisions as to whether LAG state is active.
+    c) Firmware commands to enter and exit LAG state.
+    d) Manages HA behavior.
+  2) mlx5_ib: Uses core infrastructure to implement RoCE LAG.
+    a) Chooses an "mlx5_bond_X" device name when LAG is active.
+    b) Implements QP load balancing.
+    c) Merges steering, such that both port's traffic arrives on
+       PF0's root flow table. This is used for processing
+       both port's usermode Ethernet traffic on PF0.
+    d) Creates a special flow table that diverts all
+       non-usermode Ethernet traffic received on port 2
+       back to PF1's root flow table (since non-usermode Ethernet
+       should not be affected by LAG).
+
+Available in the "topic/roce-lag-mlx5" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/roce-lag-mlx5
+
+Thanks
+
+Aviv Heller (5):
+  IB/mlx5: Port events in RoCE now rely on netdev events
+  IB/mlx5: Merge vports flow steering during LAG
+  IB/mlx5: Port status track LAG master, when LAG is active
+  IB/mlx5: Set unique device name on LAG
+  IB/mlx5: LAG QP load balancing
+
+ drivers/infiniband/hw/mlx5/main.c    | 150 +++++++++++++++++++++++++++++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   2 +
+ drivers/infiniband/hw/mlx5/qp.c      |  61 ++++++++++++--
+ 3 files changed, 191 insertions(+), 22 deletions(-)
+
+--
 2.7.4
 
 --
