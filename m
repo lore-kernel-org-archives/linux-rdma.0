@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 2/8] IB/cxgb3: Move user vendor structures
-Date: Sun, 18 Sep 2016 13:50:17 +0300
-Message-ID: <1474195823-10429-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 3/8] IB/cxgb4: Move user vendor structures
+Date: Sun, 18 Sep 2016 13:50:18 +0300
+Message-ID: <1474195823-10429-4-git-send-email-leon@kernel.org>
 References: <1474195823-10429-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474195823-10429-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,59 +10,45 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch moves cxgb3 vendor's specific structures to
+This patch moves cxgb4 vendor's specific structures to
 common UAPI folder which will be visible to all consumers.
 
 These structures are used by user-space library driver
-(libcxgb3) and currently manually copied to that library.
+(libcxgb4) and currently manually copied to that library.
 
 This move will allow cross-compile against these files and
 simplify introduction of vendor specific data.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch.c          |  2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c |  2 +-
- drivers/infiniband/hw/cxgb3/iwch_user.h     | 74 ----------------------------
- include/uapi/rdma/cxgb3-abi.h               | 76 +++++++++++++++++++++++++++++
- 4 files changed, 78 insertions(+), 76 deletions(-)
- delete mode 100644 drivers/infiniband/hw/cxgb3/iwch_user.h
- create mode 100644 include/uapi/rdma/cxgb3-abi.h
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  2 +-
+ drivers/infiniband/hw/cxgb4/user.h     | 80 ---------------------------------
+ include/uapi/rdma/cxgb4-abi.h          | 82 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 83 insertions(+), 81 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/cxgb4/user.h
+ create mode 100644 include/uapi/rdma/cxgb4-abi.h
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch.c b/drivers/infiniband/hw/cxgb3/iwch.c
-index 8e77dc5..b3e1132 100644
---- a/drivers/infiniband/hw/cxgb3/iwch.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch.c
-@@ -36,7 +36,7 @@
- 
- #include "cxgb3_offload.h"
- #include "iwch_provider.h"
--#include "iwch_user.h"
-+#include <rdma/cxgb3-abi.h>
- #include "iwch.h"
- #include "iwch_cm.h"
- 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 3edb806..1642413 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index aa47e0a..f83604b 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
 @@ -58,7 +58,7 @@
- #include "iwch.h"
- #include "iwch_provider.h"
- #include "iwch_cm.h"
--#include "iwch_user.h"
-+#include <rdma/cxgb3-abi.h>
- #include "common.h"
+ #include "cxgb4.h"
+ #include "cxgb4_uld.h"
+ #include "l2t.h"
+-#include "user.h"
++#include <rdma/cxgb4-abi.h>
  
- static struct ib_ah *iwch_ah_create(struct ib_pd *pd,
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_user.h b/drivers/infiniband/hw/cxgb3/iwch_user.h
+ #define DRV_NAME "iw_cxgb4"
+ #define MOD DRV_NAME ":"
+diff --git a/drivers/infiniband/hw/cxgb4/user.h b/drivers/infiniband/hw/cxgb4/user.h
 deleted file mode 100644
-index a277c31..0000000
---- a/drivers/infiniband/hw/cxgb3/iwch_user.h
+index 295f422..0000000
+--- a/drivers/infiniband/hw/cxgb4/user.h
 +++ /dev/null
-@@ -1,74 +0,0 @@
+@@ -1,80 +0,0 @@
 -/*
-- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
+- * Copyright (c) 2009-2010 Chelsio, Inc. All rights reserved.
 - *
 - * This software is available to you under a choice of one of two
 - * licenses.  You may choose to be licensed under the terms of the GNU
@@ -92,10 +78,10 @@ index a277c31..0000000
 - * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 - * SOFTWARE.
 - */
--#ifndef __IWCH_USER_H__
--#define __IWCH_USER_H__
+-#ifndef __C4IW_USER_H__
+-#define __C4IW_USER_H__
 -
--#define IWCH_UVERBS_ABI_VERSION	1
+-#define C4IW_UVERBS_ABI_VERSION	3
 -
 -/*
 - * Make sure that all structs defined in this file remain laid out so
@@ -104,45 +90,51 @@ index a277c31..0000000
 - * In particular do not use pointer types -- pass pointers in __u64
 - * instead.
 - */
--struct iwch_create_cq_req {
--	__u64 user_rptr_addr;
--};
--
--struct iwch_create_cq_resp_v0 {
+-struct c4iw_create_cq_resp {
 -	__u64 key;
+-	__u64 gts_key;
+-	__u64 memsize;
 -	__u32 cqid;
--	__u32 size_log2;
+-	__u32 size;
+-	__u32 qid_mask;
+-	__u32 reserved; /* explicit padding (optional for i386) */
 -};
 -
--struct iwch_create_cq_resp {
--	__u64 key;
--	__u32 cqid;
--	__u32 size_log2;
--	__u32 memsize;
--	__u32 reserved;
+-
+-enum {
+-	C4IW_QPF_ONCHIP = (1<<0)
 -};
 -
--struct iwch_create_qp_resp {
--	__u64 key;
--	__u64 db_key;
--	__u32 qpid;
--	__u32 size_log2;
--	__u32 sq_size_log2;
--	__u32 rq_size_log2;
+-struct c4iw_create_qp_resp {
+-	__u64 ma_sync_key;
+-	__u64 sq_key;
+-	__u64 rq_key;
+-	__u64 sq_db_gts_key;
+-	__u64 rq_db_gts_key;
+-	__u64 sq_memsize;
+-	__u64 rq_memsize;
+-	__u32 sqid;
+-	__u32 rqid;
+-	__u32 sq_size;
+-	__u32 rq_size;
+-	__u32 qid_mask;
+-	__u32 flags;
 -};
 -
--struct iwch_reg_user_mr_resp {
--	__u32 pbl_addr;
+-struct c4iw_alloc_ucontext_resp {
+-	__u64 status_page_key;
+-	__u32 status_page_size;
+-	__u32 reserved; /* explicit padding (optional for i386) */
 -};
 -#endif
-diff --git a/include/uapi/rdma/cxgb3-abi.h b/include/uapi/rdma/cxgb3-abi.h
+diff --git a/include/uapi/rdma/cxgb4-abi.h b/include/uapi/rdma/cxgb4-abi.h
 new file mode 100644
-index 0000000..48a19bd
+index 0000000..4c46658
 --- /dev/null
-+++ b/include/uapi/rdma/cxgb3-abi.h
-@@ -0,0 +1,76 @@
++++ b/include/uapi/rdma/cxgb4-abi.h
+@@ -0,0 +1,82 @@
 +/*
-+ * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
++ * Copyright (c) 2009-2010 Chelsio, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -172,12 +164,12 @@ index 0000000..48a19bd
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#ifndef CXGB3_ABI_USER_H
-+#define CXBG3_ABI_USER_H
++#ifndef CXGB4_ABI_USER_H
++#define CXGB4_ABI_USER_H
 +
 +#include <linux/types.h>
 +
-+#define IWCH_UVERBS_ABI_VERSION	1
++#define C4IW_UVERBS_ABI_VERSION	3
 +
 +/*
 + * Make sure that all structs defined in this file remain laid out so
@@ -186,37 +178,43 @@ index 0000000..48a19bd
 + * In particular do not use pointer types -- pass pointers in __u64
 + * instead.
 + */
-+struct iwch_create_cq_req {
-+	__u64 user_rptr_addr;
-+};
-+
-+struct iwch_create_cq_resp_v0 {
++struct c4iw_create_cq_resp {
 +	__u64 key;
++	__u64 gts_key;
++	__u64 memsize;
 +	__u32 cqid;
-+	__u32 size_log2;
++	__u32 size;
++	__u32 qid_mask;
++	__u32 reserved; /* explicit padding (optional for i386) */
 +};
 +
-+struct iwch_create_cq_resp {
-+	__u64 key;
-+	__u32 cqid;
-+	__u32 size_log2;
-+	__u32 memsize;
-+	__u32 reserved;
++
++enum {
++	C4IW_QPF_ONCHIP = (1<<0)
 +};
 +
-+struct iwch_create_qp_resp {
-+	__u64 key;
-+	__u64 db_key;
-+	__u32 qpid;
-+	__u32 size_log2;
-+	__u32 sq_size_log2;
-+	__u32 rq_size_log2;
++struct c4iw_create_qp_resp {
++	__u64 ma_sync_key;
++	__u64 sq_key;
++	__u64 rq_key;
++	__u64 sq_db_gts_key;
++	__u64 rq_db_gts_key;
++	__u64 sq_memsize;
++	__u64 rq_memsize;
++	__u32 sqid;
++	__u32 rqid;
++	__u32 sq_size;
++	__u32 rq_size;
++	__u32 qid_mask;
++	__u32 flags;
 +};
 +
-+struct iwch_reg_user_mr_resp {
-+	__u32 pbl_addr;
++struct c4iw_alloc_ucontext_resp {
++	__u64 status_page_key;
++	__u32 status_page_size;
++	__u32 reserved; /* explicit padding (optional for i386) */
 +};
-+#endif /* CXGB3_ABI_USER_H */
++#endif /* CXGB4_ABI_USER_H */
 -- 
 2.7.4
 
