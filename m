@@ -1,75 +1,53 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/5] mlx5 IB RoCE LAG
-Date: Sun, 18 Sep 2016 13:08:11 +0300
-Message-ID: <1474193296-28062-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 4/5] IB/mlx5: Set unique device name on LAG
+Date: Sun, 18 Sep 2016 13:08:15 +0300
+Message-ID: <1474193296-28062-5-git-send-email-leon@kernel.org>
+References: <1474193296-28062-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474193296-28062-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This feature keeps track, using netdev LAG events,
-of the bonding and link status of each port's PF netdev.
+From: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When both of the card's PF netdevs are enslaved exclusively
-to the same bond master, LAG state is active.
-Bond mode must be one of:
-1 (active-backup), 2 (XOR), or 4 (802.3ad).
+IB bond device name is now 'mlx5_bond_X', instead of
+'mlx5_X'.
 
-During LAG, a single IB device is present for both ports.
-This allows for load balancing and high availability to be
-managed by the driver, abstracting it away from ULPs.
-Such an IB device is given a name of "mlx5_bond_X".
+Signed-off-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-LAG mode is determined by the bond driver.
-In load balancing (modes 2 and 4), QPs are assigned to ports
-in a round-robin fashion, on QP transition from RESET->INIT.
-In high availability (mode 1), all QPs are assigned to the active
-slave, determined by bond driver.
-
-Please note that if the link state of a port becomes down when
-mode is load balancing, all QPs will be moved to the other port,
-and will be moved back once both ports are up again.
-
-This feature itself split into mlx5_core and mlx5_ib parts, while mlx5_core was
-already submitted and accepted:
-  1) mlx5_core: Implements RoCE LAG infrastructure and API.
-    a) Bond device LAG events tracking.
-    b) Decisions as to whether LAG state is active.
-    c) Firmware commands to enter and exit LAG state.
-    d) Manages HA behavior.
-  2) mlx5_ib: Uses core infrastructure to implement RoCE LAG.
-    a) Chooses an "mlx5_bond_X" device name when LAG is active.
-    b) Implements QP load balancing.
-    c) Merges steering, such that both port's traffic arrives on
-       PF0's root flow table. This is used for processing
-       both port's usermode Ethernet traffic on PF0.
-    d) Creates a special flow table that diverts all
-       non-usermode Ethernet traffic received on port 2
-       back to PF1's root flow table (since non-usermode Ethernet
-       should not be affected by LAG).
-
-Available in the "topic/roce-lag-mlx5" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/roce-lag-mlx5
-
-Thanks
-
-Aviv Heller (5):
-  IB/mlx5: Port events in RoCE now rely on netdev events
-  IB/mlx5: Merge vports flow steering during LAG
-  IB/mlx5: Port status track LAG master, when LAG is active
-  IB/mlx5: Set unique device name on LAG
-  IB/mlx5: LAG QP load balancing
-
- drivers/infiniband/hw/mlx5/main.c    | 150 +++++++++++++++++++++++++++++++----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   2 +
- drivers/infiniband/hw/mlx5/qp.c      |  61 ++++++++++++--
- 3 files changed, 191 insertions(+), 22 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 1373650..c46884b 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2754,6 +2754,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	struct mlx5_ib_dev *dev;
+ 	enum rdma_link_layer ll;
+ 	int port_type_cap;
++	const char *name;
+ 	int err;
+ 	int i;
+ 
+@@ -2786,7 +2787,12 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 
+ 	MLX5_INIT_DOORBELL_LOCK(&dev->uar_lock);
+ 
+-	strlcpy(dev->ib_dev.name, "mlx5_%d", IB_DEVICE_NAME_MAX);
++	if (!mlx5_lag_is_active(mdev))
++		name = "mlx5_%d";
++	else
++		name = "mlx5_bond_%d";
++
++	strlcpy(dev->ib_dev.name, name, IB_DEVICE_NAME_MAX);
+ 	dev->ib_dev.owner		= THIS_MODULE;
+ 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
+ 	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
+-- 
 2.7.4
 
 --
