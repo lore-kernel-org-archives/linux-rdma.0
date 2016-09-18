@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 1/5] IB/mlx5: Port events in RoCE now rely on netdev events
-Date: Sun, 18 Sep 2016 20:48:00 +0300
-Message-ID: <1474220884-21341-2-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 4/5] IB/mlx5: Set unique device name on LAG
+Date: Sun, 18 Sep 2016 20:48:03 +0300
+Message-ID: <1474220884-21341-5-git-send-email-leon@kernel.org>
 References: <1474220884-21341-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,149 +12,41 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since ib_query_port() in RoCE returns the state of its netdev as the port
-state, it makes sense to propagate the port up/down events to ib_core
-when the netdev port state changes, instead of relying on traditional
-core events.
-
-This also keeps both the event and ib_query_port() synchronized.
+IB bond device name is now 'mlx5_bond_X', instead of
+'mlx5_X'.
 
 Signed-off-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 66 ++++++++++++++++++++++++++++++---------
- 1 file changed, 51 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f02a975..e2cdd93 100644
+index 47f8088..c01e529 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -107,13 +107,32 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 	struct mlx5_ib_dev *ibdev = container_of(this, struct mlx5_ib_dev,
- 						 roce.nb);
- 
--	if ((event != NETDEV_UNREGISTER) && (event != NETDEV_REGISTER))
--		return NOTIFY_DONE;
-+	switch (event) {
-+	case NETDEV_REGISTER:
-+	case NETDEV_UNREGISTER:
-+		write_lock(&ibdev->roce.netdev_lock);
-+		if (ndev->dev.parent == &ibdev->mdev->pdev->dev)
-+			ibdev->roce.netdev = (event == NETDEV_UNREGISTER) ?
-+					     NULL : ndev;
-+		write_unlock(&ibdev->roce.netdev_lock);
-+		break;
- 
--	write_lock(&ibdev->roce.netdev_lock);
--	if (ndev->dev.parent == &ibdev->mdev->pdev->dev)
--		ibdev->roce.netdev = (event == NETDEV_UNREGISTER) ? NULL : ndev;
--	write_unlock(&ibdev->roce.netdev_lock);
-+	case NETDEV_UP:
-+	case NETDEV_DOWN:
-+		if (ndev == ibdev->roce.netdev && ibdev->ib_active) {
-+			struct ib_event ibev = {0};
-+
-+			ibev.device = &ibdev->ib_dev;
-+			ibev.event = (event == NETDEV_UP) ?
-+				     IB_EVENT_PORT_ACTIVE : IB_EVENT_PORT_ERR;
-+			ibev.element.port_num = 1;
-+			ib_dispatch_event(&ibev);
-+		}
-+		break;
-+
-+	default:
-+		break;
-+	}
- 
- 	return NOTIFY_DONE;
- }
-@@ -2093,14 +2112,19 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 		break;
- 
- 	case MLX5_DEV_EVENT_PORT_UP:
--		ibev.event = IB_EVENT_PORT_ACTIVE;
--		port = (u8)param;
--		break;
--
- 	case MLX5_DEV_EVENT_PORT_DOWN:
- 	case MLX5_DEV_EVENT_PORT_INITIALIZED:
--		ibev.event = IB_EVENT_PORT_ERR;
- 		port = (u8)param;
-+
-+		/* In RoCE, port up/down events are handled in
-+		 * mlx5_netdev_event().
-+		 */
-+		if (mlx5_ib_port_link_layer(&ibdev->ib_dev, port) ==
-+			IB_LINK_LAYER_ETHERNET)
-+			return;
-+
-+		ibev.event = (event == MLX5_DEV_EVENT_PORT_UP) ?
-+			     IB_EVENT_PORT_ACTIVE : IB_EVENT_PORT_ERR;
- 		break;
- 
- 	case MLX5_DEV_EVENT_LID_CHANGE:
-@@ -2505,14 +2529,24 @@ static void get_dev_fw_str(struct ib_device *ibdev, char *str,
- 		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
- }
- 
-+static void mlx5_remove_roce_notifier(struct mlx5_ib_dev *dev)
-+{
-+	if (dev->roce.nb.notifier_call) {
-+		unregister_netdevice_notifier(&dev->roce.nb);
-+		dev->roce.nb.notifier_call = NULL;
-+	}
-+}
-+
- static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
- {
+@@ -2750,6 +2750,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	struct mlx5_ib_dev *dev;
+ 	enum rdma_link_layer ll;
+ 	int port_type_cap;
++	const char *name;
  	int err;
+ 	int i;
  
- 	dev->roce.nb.notifier_call = mlx5_netdev_event;
- 	err = register_netdevice_notifier(&dev->roce.nb);
--	if (err)
-+	if (err) {
-+		dev->roce.nb.notifier_call = NULL;
- 		return err;
-+	}
+@@ -2782,7 +2783,12 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
  
- 	err = mlx5_nic_vport_enable_roce(dev->mdev);
- 	if (err)
-@@ -2521,14 +2555,13 @@ static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
- 	return 0;
+ 	MLX5_INIT_DOORBELL_LOCK(&dev->uar_lock);
  
- err_unregister_netdevice_notifier:
--	unregister_netdevice_notifier(&dev->roce.nb);
-+	mlx5_remove_roce_notifier(dev);
- 	return err;
- }
- 
- static void mlx5_disable_roce(struct mlx5_ib_dev *dev)
- {
- 	mlx5_nic_vport_disable_roce(dev->mdev);
--	unregister_netdevice_notifier(&dev->roce.nb);
- }
- 
- static void mlx5_ib_dealloc_q_counters(struct mlx5_ib_dev *dev)
-@@ -2877,8 +2910,10 @@ err_rsrc:
- 	destroy_dev_resources(&dev->devr);
- 
- err_disable_roce:
--	if (ll == IB_LINK_LAYER_ETHERNET)
-+	if (ll == IB_LINK_LAYER_ETHERNET) {
- 		mlx5_disable_roce(dev);
-+		mlx5_remove_roce_notifier(dev);
-+	}
- 
- err_free_port:
- 	kfree(dev->port);
-@@ -2894,6 +2929,7 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
- 	struct mlx5_ib_dev *dev = context;
- 	enum rdma_link_layer ll = mlx5_ib_port_link_layer(&dev->ib_dev, 1);
- 
-+	mlx5_remove_roce_notifier(dev);
- 	ib_unregister_device(&dev->ib_dev);
- 	mlx5_ib_dealloc_q_counters(dev);
- 	destroy_umrc_res(dev);
+-	strlcpy(dev->ib_dev.name, "mlx5_%d", IB_DEVICE_NAME_MAX);
++	if (!mlx5_lag_is_active(mdev))
++		name = "mlx5_%d";
++	else
++		name = "mlx5_bond_%d";
++
++	strlcpy(dev->ib_dev.name, name, IB_DEVICE_NAME_MAX);
+ 	dev->ib_dev.owner		= THIS_MODULE;
+ 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
+ 	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
 -- 
 2.7.4
 
