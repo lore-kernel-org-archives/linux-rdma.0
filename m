@@ -1,82 +1,41 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1] ibacm: Handle EP expiration time
-Date: Mon, 19 Sep 2016 00:46:08 -0700
-Message-ID: <1474271168-22662-1-git-send-email-yuval.shaia@oracle.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFC 06/11] Add support for QP verbs
+Date: Mon, 19 Sep 2016 09:00:26 +0000
+Message-ID: <SN1PR07MB220747A2D035F7284901951CF8F40@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1473696465-27986-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1473696465-27986-7-git-send-email-Ram.Amrani@qlogic.com>
+ <20160915130556.GA26069@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160915130556.GA26069-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <Yuval.Mintz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Old destination records are removed from EP's dest_map after timeout is
-expired in order to maintain a correct cache.
+> > +
+> > +	rc =3D ib_get_cached_gid(ibqp->device, attr->ah_attr.port_num,
+> > +			       attr->ah_attr.grh.sgid_index, &gid, &gid_attr);
+> > +	if (!rc && !memcmp(&gid, &zgid, sizeof(gid)))
+> > +		rc =3D -ENOENT;
+> > +
+> > +	if (!rc && gid_attr.ndev) {
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v0 -> v1:
-	* Move the status and timeout check to acmp_acquire_dest (i.e.
-	  deleteis_dest_ready).
-	* Fix typo (Record expiered).
-	* Use NULL instead of 0
----
- prov/acmp/src/acmp.c |   29 ++++++++++++++++++++---------
- 1 files changed, 20 insertions(+), 9 deletions(-)
+<snip>
 
-diff --git a/prov/acmp/src/acmp.c b/prov/acmp/src/acmp.c
-index ec64631..1778ca3 100644
---- a/prov/acmp/src/acmp.c
-+++ b/prov/acmp/src/acmp.c
-@@ -356,6 +356,16 @@ acmp_put_dest(struct acmp_dest *dest)
- 	}
- }
- 
-+/* Caller must hold ep lock. */
-+static void
-+acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
-+{
-+	acm_log(2, "%s\n", dest->name);
-+	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1],
-+		acmp_compare_dest);
-+	acmp_put_dest(dest);
-+}
-+
- static struct acmp_dest *
- acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
- {
-@@ -366,6 +376,16 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
- 	acm_log(2, "%s\n", log_data);
- 	lock_acquire(&ep->lock);
- 	dest = acmp_get_dest(ep, addr_type, addr);
-+	if (dest && dest->state == ACMP_READY &&
-+	    dest->addr_timeout != 0xFFFFFFFFFFFFFFFF) {
-+		acm_log(2, "Record valid for the next %ld minute(s)\n",
-+			dest->addr_timeout - time_stamp_min());
-+		if (time_stamp_min() >= dest->addr_timeout) {
-+			acm_log(2, "Record expired\n");
-+			acmp_remove_dest(ep, dest);
-+			dest = NULL;
-+		}
-+	}
- 	if (!dest) {
- 		dest = acmp_alloc_dest(addr_type, addr);
- 		if (dest) {
-@@ -378,15 +398,6 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
- 	return dest;
- }
- 
--/* Caller must hold ep lock. */
--//static void
--//acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
--//{
--//	acm_log(2, "%s\n", dest->name);
--//	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1], acmp_compare_dest);
--//	acmp_put_dest(dest);
--//}
--
- static struct acmp_request *acmp_alloc_req(uint64_t id, struct acm_msg *msg)
- {
- 	struct acmp_request *req;
--- 
-1.7.1
+> > +		}
+> > +	}
+> > +	if (rc)
+> > +		return -EINVAL;
+>=20
+> I think it is better to check "rc" right after call to ib_get_cached_gid(=
+).
+
+Somehow this e-mail slipped.
+Thanks, will update.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
