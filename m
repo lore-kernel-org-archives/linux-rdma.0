@@ -1,93 +1,53 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] IB/rxe: avoid putting a large struct rxe_qp on stack
-Date: Mon, 19 Sep 2016 13:57:26 +0200
-Message-ID: <20160919115826.553858-1-arnd@arndb.de>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: VERBOSE flags
+Date: Mon, 19 Sep 2016 12:29:43 +0000
+Message-ID: <1474288178.6520.12.camel@intel.com>
+References: <CALq1K=KfU+N87pyfjfSd=G-thpyR0mjzuuxQ8eTuqrc2Mb+yZQ@mail.gmail.com>
+         <77cd1f09-fa39-6f75-6c01-c7ef18909f30@redhat.com>
+         <CALq1K=+0S-YnXQo5Hvc3bdOBNuEpowdSMYJThdmHqMNwOu8z1Q@mail.gmail.com>
+         <0a26585a-2e54-1c24-d212-0e2469afb8d8@redhat.com>
+         <20160919061558.GG3273@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160919061558.GG3273-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
+Content-ID: <C4AE57D40EF763458EBDB8B1AF202435-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A race condition fix added an rxe_qp structure to the stack in order
-to be able to perform rollback in rxe_requester(), but the structure
-is large enough to trigger the warning for possible stack overflow:
-
-drivers/infiniband/sw/rxe/rxe_req.c: In function 'rxe_requester':
-drivers/infiniband/sw/rxe/rxe_req.c:757:1: error: the frame size of 2064 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
-
-This changes the rollback function to only save the psn inside
-the qp, which is the only field we access in the rollback_qp
-anyway.
-
-Fixes: 3050b9985024 ("IB/rxe: Fix race condition between requester and completer")
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_req.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 13a848a518e8..cf1ffac25585 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -548,23 +548,23 @@ static void update_wqe_psn(struct rxe_qp *qp,
- static void save_state(struct rxe_send_wqe *wqe,
- 		       struct rxe_qp *qp,
- 		       struct rxe_send_wqe *rollback_wqe,
--		       struct rxe_qp *rollback_qp)
-+		       u32 *rollback_psn)
- {
- 	rollback_wqe->state     = wqe->state;
- 	rollback_wqe->first_psn = wqe->first_psn;
- 	rollback_wqe->last_psn  = wqe->last_psn;
--	rollback_qp->req.psn    = qp->req.psn;
-+	*rollback_psn		= qp->req.psn;
- }
- 
- static void rollback_state(struct rxe_send_wqe *wqe,
- 			   struct rxe_qp *qp,
- 			   struct rxe_send_wqe *rollback_wqe,
--			   struct rxe_qp *rollback_qp)
-+			   u32 rollback_psn)
- {
- 	wqe->state     = rollback_wqe->state;
- 	wqe->first_psn = rollback_wqe->first_psn;
- 	wqe->last_psn  = rollback_wqe->last_psn;
--	qp->req.psn    = rollback_qp->req.psn;
-+	qp->req.psn    = rollback_psn;
- }
- 
- static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
-@@ -593,8 +593,8 @@ int rxe_requester(void *arg)
- 	int mtu;
- 	int opcode;
- 	int ret;
--	struct rxe_qp rollback_qp;
- 	struct rxe_send_wqe rollback_wqe;
-+	u32 rollback_psn;
- 
- next_wqe:
- 	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
-@@ -717,7 +717,7 @@ int rxe_requester(void *arg)
- 	 * rxe_xmit_packet().
- 	 * Otherwise, completer might initiate an unjustified retry flow.
- 	 */
--	save_state(wqe, qp, &rollback_wqe, &rollback_qp);
-+	save_state(wqe, qp, &rollback_wqe, &rollback_psn);
- 	update_wqe_state(qp, wqe, &pkt);
- 	update_wqe_psn(qp, wqe, &pkt, payload);
- 	ret = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp, &pkt, skb);
-@@ -725,7 +725,7 @@ int rxe_requester(void *arg)
- 		qp->need_req_skb = 1;
- 		kfree_skb(skb);
- 
--		rollback_state(wqe, qp, &rollback_wqe, &rollback_qp);
-+		rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
- 
- 		if (ret == -EAGAIN) {
- 			rxe_run_task(&qp->req.task, 1);
--- 
-2.9.0
-
+T24gTW9uLCAyMDE2LTA5LTE5IGF0IDA5OjE1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IFRoZSBmdW5jdGlvbiBwb2ludGVycyB3aWxsIGNhdXNlIHVzIHRvIGNyZWF0ZSB0d28gc2lt
+aWxhciBmdW5jdGlvbnMNCj4gKGRlYnVnL3JlZ3VsYXIpIGZvciBldmVyeSBpbXBvcnRhbnQgZnVu
+Y3Rpb24uIEl0IHdpbGwgbGVhdmUgdG8gY29kZQ0KPiBkdXBsaWNhdGlvbiBhbmQvb3IgaW50cm9k
+dWNpbmcgb2YgbmV3IGNvZGUgdG8gZmlsbCBhZGRpdGlvbmFsIGZpZWxkcw0KPiBpbiByZXR1cm5z
+IHRvIGRlYnVnIGZ1bmN0aW9ucywgc28gdGhleSB3aWxsIGJlIGFibGUgdG8gcHJpbnQgaXQuDQoN
+CkkgZG8gc29ydCBvZiBsaWtlIERvdWcncyBpZGVhLiBJdCBtZWFucyB5b3UgY2FuIGVhc2lseSBp
+bnN0cnVtZW50IHRoZQ0KaGVjayBvdXQgb2YgYSByb3V0aW5lIGFuZCBoYXZlIGl0IGFsd2F5cyBh
+dmFpbGFibGUuIEl0IHByb3ZpZGVzIG1vcmUNCmZsZXhpYmlsaXR5IGluIHdoYXQgeW91IGNhbiBk
+byBpbiBhIGRlYnVnIHZlcnNpb24uDQoNCllvdSBkbyBtYWtlIGEgdmFsaWQgcG9pbnQgdGhvdWdo
+IGFib3V0IGR1cGxpY2F0aW5nIGNvZGUuIFBlcmhhcHMgdGhhdA0KY2FuIGJlIGFsbGV2aWF0ZWQg
+dG8gc29tZSBleHRlbnQganVzdCBieSByZWZhY3RvcmluZyBhbmQgYWRkaW5nDQppbmxpbmVzLCBl
+dGMuIMKgDQoNCj4gSSB3YW50ZWQgdG8gcHJvcG9zZSB0byB1c2UgdHJhY2Vwb2ludHMgdG8gcHJv
+dmlkZSBkZWJ1ZyBpbmZvcm1hdGlvbg0KPiBpbg0KPiBkYXRhIHBhdGhzLiBUaGUgdHJhY2Vwb2lu
+dHMgaW5mcmFzdHJ1Y3R1cmUgdXNlcyBob29rcyBpbiB0aGUgY29kZQ0KPiB3aXRoDQo+IG1pbmlt
+YWwgaW1wYWN0IG9uIHBlcmZvcm1hbmNlLg0KDQpUaGlzIGlzIHNvIGZhciB0aGUgcGF0aCB3ZSBo
+YXZlIGNob3NlbiBmb3IgaGZpMS4gV2UgaGF2ZSBhIG51bWJlciBvZg0KdHJhY2Vwb2ludHMgaW4g
+dmFyaW91cyBwYXJ0cyBvZiB0aGUgY29kZS4gQWdhaW4gaXQncyBhdmFpbGFibGUgb24NCmRlbWFu
+ZCB3aXRob3V0IHNwZWNpYWwga2VybmVscyBvciBib290L2RyaXZlciBvcHRpb25zLsKgDQoNCj4g
+PiBUaGVuIHdlIGNhbiBkcm9wIHRoZSBDT05GSUdfKl9ERUJVRyBvcHRpb25zIG91dCBvZiBhbGwg
+b2YgdGhlDQo+ID4gZHJpdmVycy7CoMKgVGhhdCB3b3VsZCBiZSBteSBwcmVmZXJlbmNlLsKgwqBJ
+IGRvbid0IHdhbnQgYW55IGNvbXBpbGUNCj4gPiB0aW1lDQo+ID4gb3B0aW9ucyBiZWNhdXNlIHlv
+dSBuZXZlciB3aWxsIGJlIHJ1bm5pbmcgYSBkZWJ1ZyBrZXJuZWwgd2hlbiB5b3UNCj4gPiBuZWVk
+DQo+ID4gaXQuwqDCoFBlciBkZXZpY2UsIHJ1biB0aW1lIHNlbGVjdGFibGUgc28gdGhhdCB5b3Ug
+Z2V0IDAgb3ZlcmhlYWQgaW4NCj4gPiB0aGUNCj4gPiBub3JtYWwgY2FzZSBpcyB3aGF0IEkgd291
+bGQgbGlrZSB0byBzZWUuDQo+IA0KPiBHcmVhdCwNCj4gV2UgYXJlIGFsaWduZWQgb24gdGhpcyBw
+b2ludCwgc28gZG8gSS4gSSBzZWUgbm8gcmVhc29uIGluIHNwZWNpYWwNCj4gY29tcGlsZWQNCj4g
+a2VybmVsIG9yIGdsb2JhbCBtb2R1bGUgcGFyYW1ldGVyIHRvIHByaW50IGRlYnVnIHByaW50cyBm
+b3Igd2hvbGUNCj4gZHJpdmVyLg0KDQpTYW1lIGhlcmUuDQoNCi1EZW5ueQ==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
