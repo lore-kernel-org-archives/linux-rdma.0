@@ -1,103 +1,65 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: VERBOSE flags
-Date: Mon, 19 Sep 2016 16:25:18 +0300
-Message-ID: <20160919132518.GH3273@leon.nu>
-References: <CALq1K=KfU+N87pyfjfSd=G-thpyR0mjzuuxQ8eTuqrc2Mb+yZQ@mail.gmail.com>
- <77cd1f09-fa39-6f75-6c01-c7ef18909f30@redhat.com>
- <CALq1K=+0S-YnXQo5Hvc3bdOBNuEpowdSMYJThdmHqMNwOu8z1Q@mail.gmail.com>
- <0a26585a-2e54-1c24-d212-0e2469afb8d8@redhat.com>
- <20160919061558.GG3273@leon.nu>
- <1474288178.6520.12.camel@intel.com>
+Subject: Re: [PATCH] IB/rxe: avoid putting a large struct rxe_qp on stack
+Date: Mon, 19 Sep 2016 16:28:11 +0300
+Message-ID: <20160919132811.GI3273@leon.nu>
+References: <20160919115826.553858-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="WIIRZ1HQ6FgrlPgb"
+        protocol="application/pgp-signature"; boundary="BghK6+krpKHjj+jk"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1474288178.6520.12.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160919115826.553858-1-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---WIIRZ1HQ6FgrlPgb
-Content-Type: text/plain; charset=iso-8859-1
+--BghK6+krpKHjj+jk
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 19, 2016 at 12:29:43PM +0000, Dalessandro, Dennis wrote:
-> On Mon, 2016-09-19 at 09:15 +0300, Leon Romanovsky wrote:
-> > The function pointers will cause us to create two similar functions
-> > (debug/regular) for every important function. It will leave to code
-> > duplication and/or introducing of new code to fill additional fields
-> > in returns to debug functions, so they will be able to print it.
+On Mon, Sep 19, 2016 at 01:57:26PM +0200, Arnd Bergmann wrote:
+> A race condition fix added an rxe_qp structure to the stack in order
+> to be able to perform rollback in rxe_requester(), but the structure
+> is large enough to trigger the warning for possible stack overflow:
 >
-> I do sort of like Doug's idea. It means you can easily instrument the
-> heck out of a routine and have it always available. It provides more
-> flexibility in what you can do in a debug version.
+> drivers/infiniband/sw/rxe/rxe_req.c: In function 'rxe_requester':
+> drivers/infiniband/sw/rxe/rxe_req.c:757:1: error: the frame size of 2064 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
 >
-> You do make a valid point though about duplicating code. Perhaps that
-> can be alleviated to some extent just by refactoring and adding
-> inlines, etc. =A0
+> This changes the rollback function to only save the psn inside
+> the qp, which is the only field we access in the rollback_qp
+> anyway.
+>
+> Fixes: 3050b9985024 ("IB/rxe: Fix race condition between requester and completer")
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-At the end, we will invent tracepoints :)
+Thanks Arnd,
+It is much cleaner approach.
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->
-> > I wanted to propose to use tracepoints to provide debug information
-> > in
-> > data paths. The tracepoints infrastructure uses hooks in the code
-> > with
-> > minimal impact on performance.
->
-> This is so far the path we have chosen for hfi1. We have a number of
-> tracepoints in various parts of the code. Again it's available on
-> demand without special kernels or boot/driver options.=A0
-
-CONFIG_SDMA_VERBOSITY ????
-
->
-> > > Then we can drop the CONFIG_*_DEBUG options out of all of the
-> > > drivers.=A0=A0That would be my preference.=A0=A0I don't want any comp=
-ile
-> > > time
-> > > options because you never will be running a debug kernel when you
-> > > need
-> > > it.=A0=A0Per device, run time selectable so that you get 0 overhead in
-> > > the
-> > > normal case is what I would like to see.
-> >
-> > Great,
-> > We are aligned on this point, so do I. I see no reason in special
-> > compiled
-> > kernel or global module parameter to print debug prints for whole
-> > driver.
->
-> Same here.
->
-> -Denny
-
---WIIRZ1HQ6FgrlPgb
+--BghK6+krpKHjj+jk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX3+c+AAoJEORje4g2clinQEoQAId0jLZNwxR9eUyPseaiMwg7
-5X+gnoBCtUWE+2z8adQIp2fLuTt8/jg0oUW6sgA+en5OuFNpFEzmEkFUnI7e3D0u
-cV8+bDkWG930kZxTopjkoym2okNF4nmi2HLLKVHXoDwZ6FxOZ+6CdbXgmrMuTQAV
-cgZ28LCPw7NcINthamylgb3nZ86nv9lqakeB6T8X96nAMfssow1N4vcQbpUIXM23
-m5sKJQNGJL90KY5JvQxBYerwALgc3187JguaMNb1bsh8X490/QAW+xbCoYDZHAcs
-f2qnHnwhRbXz3Kgx/czLOuY+x6JMVFK8KrOgZHkKMGvIDCLjeyEjAkZlCRv6sddA
-WPX/Z5C3Wzj6dthjChxRIlquiZjadqhspcBV82nPqHEe2vhFvX87KLxaZJCk2JjJ
-pcIQoUq0KINa8P1q/+ksV4bVUGTiaMRIz0BOmb4ywZYtXe2PDMvS4yI9FJROzAAH
-R6JY1iFSuxZKIxDI1cQavUu54puTMkmohX2/DesRgLNL/qXqbSxMUR2wgDCws9/4
-f4zvDfPUIytjqPBkbScxXBPkUnprQB6te/6gLMq/IcyL0S9gGWnRfrWQgkU1YZC4
-WQVC6vWe3OAmwSpoKn3trGDAPWW022eQBAa3o4P97RlvwW/0cq7GRWOiSqN1ypew
-N2RSi8NE79kb8qpfw3mW
-=TdyJ
+iQIcBAEBAgAGBQJX3+frAAoJEORje4g2clinRvwP/20emKinhCI5tw5jDqq/iiix
+/o+ts/ome1bIjordQDXPtGW6uzwnnQLG4jW1IHr3U2U2onjxfhtrUH4OfL1FM4Y8
+whYnTHpKwbhprEkQo2K6LjDAlkvIINVOxgy7HIz2q+Qtl7OhBSHtxmSf2d7TMiZ4
+vhG0ZoVPzn0VcYX5mwVZ/aOJqwrVIm1EgcWV3GIPD1pyB/eB9z6LgKX0ulXcGs3e
+oQg4S8mp+fh5b4ZwqTZYz/eAkJp5mjNIBqSbAELOC1m6WZaboAWrys8tJbFwASfd
+uQarrppeHh07qn5YqhNMNF3RRwQ7UeFH6YaARrGT67QBYGOe7RFLikjHtEz4EDaF
+CYL5E7NcvNNXdS3nu7GIH4iQ+bU5exwdU4Eb9sAci06weJW0sQjOnVj2Mtg9QheM
+fyM3v5+SitjVC2ww2nedrH73CPhqzIO3eFfPdhilyetnUAOEZUpLuq6dEzbgAhld
+MU8rODdw21yAsEQPRMPzZjLLvwHlje0qSyz/iMaxVwtse5kbdbD5ekPiO6wuzmAc
+8DiuWm4N2Y3wC3w3QxryXyM+RjXu7HfKT8txPHQRkIWBeodeYOSOIuwEW2w4GM2G
+U9I+ISMSP/ZGBevm+e7iC44qKefsoz1wpQ2RijpamCjbzJ3ndP2SKppCpId7uTmn
+rrOKuFvs7b3bW+4xULV2
+=ekQc
 -----END PGP SIGNATURE-----
 
---WIIRZ1HQ6FgrlPgb--
+--BghK6+krpKHjj+jk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
