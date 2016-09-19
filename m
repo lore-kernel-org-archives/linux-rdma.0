@@ -1,53 +1,49 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: VERBOSE flags
-Date: Mon, 19 Sep 2016 12:29:43 +0000
-Message-ID: <1474288178.6520.12.camel@intel.com>
-References: <CALq1K=KfU+N87pyfjfSd=G-thpyR0mjzuuxQ8eTuqrc2Mb+yZQ@mail.gmail.com>
-         <77cd1f09-fa39-6f75-6c01-c7ef18909f30@redhat.com>
-         <CALq1K=+0S-YnXQo5Hvc3bdOBNuEpowdSMYJThdmHqMNwOu8z1Q@mail.gmail.com>
-         <0a26585a-2e54-1c24-d212-0e2469afb8d8@redhat.com>
-         <20160919061558.GG3273@leon.nu>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] ibacm: Handle EP expiration time
+Date: Mon, 19 Sep 2016 16:21:38 +0300
+Message-ID: <20160919132138.GA21320@yuval-lap.uk.oracle.com>
+References: <1474271168-22662-1-git-send-email-yuval.shaia@oracle.com>
+ <387b0fc4-949f-b8e2-6ac3-136e5ab2e127@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919061558.GG3273-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C4AE57D40EF763458EBDB8B1AF202435-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <387b0fc4-949f-b8e2-6ac3-136e5ab2e127-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE2LTA5LTE5IGF0IDA5OjE1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IFRoZSBmdW5jdGlvbiBwb2ludGVycyB3aWxsIGNhdXNlIHVzIHRvIGNyZWF0ZSB0d28gc2lt
-aWxhciBmdW5jdGlvbnMNCj4gKGRlYnVnL3JlZ3VsYXIpIGZvciBldmVyeSBpbXBvcnRhbnQgZnVu
-Y3Rpb24uIEl0IHdpbGwgbGVhdmUgdG8gY29kZQ0KPiBkdXBsaWNhdGlvbiBhbmQvb3IgaW50cm9k
-dWNpbmcgb2YgbmV3IGNvZGUgdG8gZmlsbCBhZGRpdGlvbmFsIGZpZWxkcw0KPiBpbiByZXR1cm5z
-IHRvIGRlYnVnIGZ1bmN0aW9ucywgc28gdGhleSB3aWxsIGJlIGFibGUgdG8gcHJpbnQgaXQuDQoN
-CkkgZG8gc29ydCBvZiBsaWtlIERvdWcncyBpZGVhLiBJdCBtZWFucyB5b3UgY2FuIGVhc2lseSBp
-bnN0cnVtZW50IHRoZQ0KaGVjayBvdXQgb2YgYSByb3V0aW5lIGFuZCBoYXZlIGl0IGFsd2F5cyBh
-dmFpbGFibGUuIEl0IHByb3ZpZGVzIG1vcmUNCmZsZXhpYmlsaXR5IGluIHdoYXQgeW91IGNhbiBk
-byBpbiBhIGRlYnVnIHZlcnNpb24uDQoNCllvdSBkbyBtYWtlIGEgdmFsaWQgcG9pbnQgdGhvdWdo
-IGFib3V0IGR1cGxpY2F0aW5nIGNvZGUuIFBlcmhhcHMgdGhhdA0KY2FuIGJlIGFsbGV2aWF0ZWQg
-dG8gc29tZSBleHRlbnQganVzdCBieSByZWZhY3RvcmluZyBhbmQgYWRkaW5nDQppbmxpbmVzLCBl
-dGMuIMKgDQoNCj4gSSB3YW50ZWQgdG8gcHJvcG9zZSB0byB1c2UgdHJhY2Vwb2ludHMgdG8gcHJv
-dmlkZSBkZWJ1ZyBpbmZvcm1hdGlvbg0KPiBpbg0KPiBkYXRhIHBhdGhzLiBUaGUgdHJhY2Vwb2lu
-dHMgaW5mcmFzdHJ1Y3R1cmUgdXNlcyBob29rcyBpbiB0aGUgY29kZQ0KPiB3aXRoDQo+IG1pbmlt
-YWwgaW1wYWN0IG9uIHBlcmZvcm1hbmNlLg0KDQpUaGlzIGlzIHNvIGZhciB0aGUgcGF0aCB3ZSBo
-YXZlIGNob3NlbiBmb3IgaGZpMS4gV2UgaGF2ZSBhIG51bWJlciBvZg0KdHJhY2Vwb2ludHMgaW4g
-dmFyaW91cyBwYXJ0cyBvZiB0aGUgY29kZS4gQWdhaW4gaXQncyBhdmFpbGFibGUgb24NCmRlbWFu
-ZCB3aXRob3V0IHNwZWNpYWwga2VybmVscyBvciBib290L2RyaXZlciBvcHRpb25zLsKgDQoNCj4g
-PiBUaGVuIHdlIGNhbiBkcm9wIHRoZSBDT05GSUdfKl9ERUJVRyBvcHRpb25zIG91dCBvZiBhbGwg
-b2YgdGhlDQo+ID4gZHJpdmVycy7CoMKgVGhhdCB3b3VsZCBiZSBteSBwcmVmZXJlbmNlLsKgwqBJ
-IGRvbid0IHdhbnQgYW55IGNvbXBpbGUNCj4gPiB0aW1lDQo+ID4gb3B0aW9ucyBiZWNhdXNlIHlv
-dSBuZXZlciB3aWxsIGJlIHJ1bm5pbmcgYSBkZWJ1ZyBrZXJuZWwgd2hlbiB5b3UNCj4gPiBuZWVk
-DQo+ID4gaXQuwqDCoFBlciBkZXZpY2UsIHJ1biB0aW1lIHNlbGVjdGFibGUgc28gdGhhdCB5b3Ug
-Z2V0IDAgb3ZlcmhlYWQgaW4NCj4gPiB0aGUNCj4gPiBub3JtYWwgY2FzZSBpcyB3aGF0IEkgd291
-bGQgbGlrZSB0byBzZWUuDQo+IA0KPiBHcmVhdCwNCj4gV2UgYXJlIGFsaWduZWQgb24gdGhpcyBw
-b2ludCwgc28gZG8gSS4gSSBzZWUgbm8gcmVhc29uIGluIHNwZWNpYWwNCj4gY29tcGlsZWQNCj4g
-a2VybmVsIG9yIGdsb2JhbCBtb2R1bGUgcGFyYW1ldGVyIHRvIHByaW50IGRlYnVnIHByaW50cyBm
-b3Igd2hvbGUNCj4gZHJpdmVyLg0KDQpTYW1lIGhlcmUuDQoNCi1EZW5ueQ==
+On Mon, Sep 19, 2016 at 07:22:54AM -0400, Hal Rosenstock wrote:
+> > +
+> >  static struct acmp_dest *
+> >  acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
+> >  {
+> > @@ -366,6 +376,16 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
+> >  	acm_log(2, "%s\n", log_data);
+> >  	lock_acquire(&ep->lock);
+> >  	dest = acmp_get_dest(ep, addr_type, addr);
+> > +	if (dest && dest->state == ACMP_READY &&
+> > +	    dest->addr_timeout != 0xFFFFFFFFFFFFFFFF) {
+> 
+> Nit related to the timeout check:
+> In acmp.c, (uint64_t)~0ULL is used in other places for this. Should this
+> addr_timeout check be changed to some infinite or no timeout define
+> along with the other occurrences for consistency and better code
+> readability ?
+
+Will do.
+
+> 
+> -- Hal
+> 
+> > +		acm_log(2, "Record valid for the next %ld minute(s)\n",
+> > +			dest->addr_timeout - time_stamp_min());
+> > +		if (time_stamp_min() >= dest->addr_timeout) {
+> > +			acm_log(2, "Record expired\n");
+> > +			acmp_remove_dest(ep, dest);
+> > +			dest = NULL;
+> > +		}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
