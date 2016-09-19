@@ -1,35 +1,33 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Mon, 19 Sep 2016 18:58:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08D2CD@ORSMSX109.amr.corp.intel.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FB7A@ORSMSX109.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB07FBE1@ORSMSX109.amr.corp.intel.com>
- <20160913180342.GA6933@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08075C@ORSMSX109.amr.corp.intel.com>
- <20160913222539.GB29095@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB080798@ORSMSX109.amr.corp.intel.com>
- <edc4c963-847a-e973-f1f1-ab9b78ad9d19@redhat.com>
- <20160916161626.GB2833@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08C5F3@ORSMSX109.amr.corp.intel.com>
- <20160919185502.GA12436@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: update rdma-plumbing Documentation
+Date: Mon, 19 Sep 2016 13:25:50 -0600
+Message-ID: <20160919192550.GA7486@obsidianresearch.com>
+References: <1474300593-31922-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919185502.GA12436-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1474300593-31922-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> I would delete the windows support in that package if we take it into
-> rdma-core.
-> 
-> Is that OK?
+On Mon, Sep 19, 2016 at 08:56:24AM -0700, Christoph Hellwig wrote:
+> Get rid of the per-subproject README files and instead improve the top-level
+> README.md as well as adding a few new files for more details to Documentation/
 
-That's fine with me.  I haven't tested on windows in a long time.  I'm not sure how usable it is, as no one is maintaining the libibverbs and libibumad windows ports.
+Thanks Christoph, this all looks great to me.
+
+Thanks for taking the time to switch to markdown, since we are decided
+to use github that will work well.
+
+If you don't mind I'll squish patch 2 'remove empty documentation
+files' into 'Remove the auto* based build systems'
+
+For now I'll pop these onto my tree so they don't get lost.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
