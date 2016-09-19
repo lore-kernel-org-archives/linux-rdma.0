@@ -1,81 +1,96 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 3/3] Provide remote XRC SRQ number in
- kernel post_send.
-Date: Mon, 19 Sep 2016 11:12:36 +0200
-Message-ID: <1474276356.24045.93.camel@oracle.com>
-References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
-         <d57e9dc45f6f4aed9dfb86a498226dab99e530a4.1474063039.git-series.knut.omang@oracle.com>
-         <20160919052911.GF3273@leon.nu>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1] ibacm: Handle EP expiration time
+Date: Mon, 19 Sep 2016 07:22:54 -0400
+Message-ID: <387b0fc4-949f-b8e2-6ac3-136e5ab2e127@dev.mellanox.co.il>
+References: <1474271168-22662-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919052911.GF3273-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1474271168-22662-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2016-09-19 at 08:29 +0300, Leon Romanovsky wrote:
-> On Sat, Sep 17, 2016 at 05:59:13AM +0200, Knut Omang wrote:
-> > 
-> > Also proper end align the ibv_kern_send_wr struct.
-> > 
-> > Requires a corresponding kernel change.
-> > 
-> > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  include/infiniband/kern-abi.h | 1 +
-> >  src/cmd.c                     | 2 ++
-> >  2 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-> > index 8bdeef5..7b1d310 100644
-> > --- a/include/infiniband/kern-abi.h
-> > +++ b/include/infiniband/kern-abi.h
-> > @@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
-> >  	union {
-> >  		struct {
-> >  			__u32 remote_srqn;
-> > +			__u32 reserved;
-> >  		} xrc;
-> >  	} qp_type;
-> >  };
-> > diff --git a/src/cmd.c b/src/cmd.c
-> > index a418ee1..a4e2f75 100644
-> > --- a/src/cmd.c
-> > +++ b/src/cmd.c
-> > @@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-> >  			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
-> >  			tmp->wr.ud.remote_qkey = i->wr.ud.remote_qkey;
-> >  		} else {
-> > +			if (ibqp->qp_type == IBV_QPT_XRC_SEND)
-> > +				tmp->qp_type.xrc.remote_srqn = i->qp_type.xrc.remote_srqn;
-> It will be checked for all QPTs and for all consumers. Any chances to
-> optimize it?
+On 9/19/2016 3:46 AM, Yuval Shaia wrote:
+> Old destination records are removed from EP's dest_map after timeout is
+> expired in order to maintain a correct cache.
+> 
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v0 -> v1:
+> 	* Move the status and timeout check to acmp_acquire_dest (i.e.
+> 	  deleteis_dest_ready).
+> 	* Fix typo (Record expiered).
+> 	* Use NULL instead of 0
+> ---
+>  prov/acmp/src/acmp.c |   29 ++++++++++++++++++++---------
+>  1 files changed, 20 insertions(+), 9 deletions(-)
+> 
+> diff --git a/prov/acmp/src/acmp.c b/prov/acmp/src/acmp.c
+> index ec64631..1778ca3 100644
+> --- a/prov/acmp/src/acmp.c
+> +++ b/prov/acmp/src/acmp.c
+> @@ -356,6 +356,16 @@ acmp_put_dest(struct acmp_dest *dest)
+>  	}
+>  }
+>  
+> +/* Caller must hold ep lock. */
+> +static void
+> +acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
+> +{
+> +	acm_log(2, "%s\n", dest->name);
+> +	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1],
+> +		acmp_compare_dest);
+> +	acmp_put_dest(dest);
+> +}
+> +
+>  static struct acmp_dest *
+>  acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
+>  {
+> @@ -366,6 +376,16 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
+>  	acm_log(2, "%s\n", log_data);
+>  	lock_acquire(&ep->lock);
+>  	dest = acmp_get_dest(ep, addr_type, addr);
+> +	if (dest && dest->state == ACMP_READY &&
+> +	    dest->addr_timeout != 0xFFFFFFFFFFFFFFFF) {
 
-All QPTs except UD, yes.
+Nit related to the timeout check:
+In acmp.c, (uint64_t)~0ULL is used in other places for this. Should this
+addr_timeout check be changed to some infinite or no timeout define
+along with the other occurrences for consistency and better code
+readability ?
 
-The easiest is perhaps just to remove the test (and set the attribute in all cases), which will work fine
-as long as the qp_type union is not used for anything else, but is it worth 
-the loss of intuitiveness/future potential correctness of the code?
+-- Hal
 
-Note that this is for user mode post_send implemented by the kernel, not the "fast path"
-pure user mode.
-
-Knut
-
-> > 
-> >  			switch (i->opcode) {
-> >  			case IBV_WR_RDMA_WRITE:
-> >  			case IBV_WR_RDMA_WRITE_WITH_IMM:
-> > --
-> > git-series 0.8.10
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		acm_log(2, "Record valid for the next %ld minute(s)\n",
+> +			dest->addr_timeout - time_stamp_min());
+> +		if (time_stamp_min() >= dest->addr_timeout) {
+> +			acm_log(2, "Record expired\n");
+> +			acmp_remove_dest(ep, dest);
+> +			dest = NULL;
+> +		}
+> +	}
+>  	if (!dest) {
+>  		dest = acmp_alloc_dest(addr_type, addr);
+>  		if (dest) {
+> @@ -378,15 +398,6 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
+>  	return dest;
+>  }
+>  
+> -/* Caller must hold ep lock. */
+> -//static void
+> -//acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
+> -//{
+> -//	acm_log(2, "%s\n", dest->name);
+> -//	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1], acmp_compare_dest);
+> -//	acmp_put_dest(dest);
+> -//}
+> -
+>  static struct acmp_request *acmp_alloc_req(uint64_t id, struct acm_msg *msg)
+>  {
+>  	struct acmp_request *req;
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
