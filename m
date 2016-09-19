@@ -1,72 +1,35 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: VERBOSE flags
-Date: Mon, 19 Sep 2016 13:34:39 +0000
-Message-ID: <1474292075.6520.28.camel@intel.com>
-References: <CALq1K=KfU+N87pyfjfSd=G-thpyR0mjzuuxQ8eTuqrc2Mb+yZQ@mail.gmail.com>
-         <77cd1f09-fa39-6f75-6c01-c7ef18909f30@redhat.com>
-         <CALq1K=+0S-YnXQo5Hvc3bdOBNuEpowdSMYJThdmHqMNwOu8z1Q@mail.gmail.com>
-         <0a26585a-2e54-1c24-d212-0e2469afb8d8@redhat.com>
-         <20160919061558.GG3273@leon.nu> <1474288178.6520.12.camel@intel.com>
-         <20160919132518.GH3273@leon.nu>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 0/2] cxgb4 FR_NSMR_TPTE_WR support
+Date: Mon, 19 Sep 2016 09:17:01 -0500
+Message-ID: <007f01d21280$7d1556b0$77400410$@opengridcomputing.com>
+References: <cover.1474037695.git.swise@opengridcomputing.com> <20160919.011633.1357649774235825501.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919132518.GH3273-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
-Content-ID: <814673B7B71CE547B7AE7403D210A173-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160919.011633.1357649774235825501.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: 'David Miller' <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE2LTA5LTE5IGF0IDE2OjI1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIE1vbiwgU2VwIDE5LCAyMDE2IGF0IDEyOjI5OjQzUE0gKzAwMDAsIERhbGVzc2FuZHJv
-LCBEZW5uaXMgd3JvdGU6DQo+ID4gT24gTW9uLCAyMDE2LTA5LTE5IGF0IDA5OjE1ICswMzAwLCBM
-ZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiBUaGUgZnVuY3Rpb24gcG9pbnRlcnMgd2lsbCBj
-YXVzZSB1cyB0byBjcmVhdGUgdHdvIHNpbWlsYXINCj4gPiA+IGZ1bmN0aW9ucw0KPiA+ID4gKGRl
-YnVnL3JlZ3VsYXIpIGZvciBldmVyeSBpbXBvcnRhbnQgZnVuY3Rpb24uIEl0IHdpbGwgbGVhdmUg
-dG8NCj4gPiA+IGNvZGUNCj4gPiA+IGR1cGxpY2F0aW9uIGFuZC9vciBpbnRyb2R1Y2luZyBvZiBu
-ZXcgY29kZSB0byBmaWxsIGFkZGl0aW9uYWwNCj4gPiA+IGZpZWxkcw0KPiA+ID4gaW4gcmV0dXJu
-cyB0byBkZWJ1ZyBmdW5jdGlvbnMsIHNvIHRoZXkgd2lsbCBiZSBhYmxlIHRvIHByaW50IGl0Lg0K
-PiA+IA0KPiA+IEkgZG8gc29ydCBvZiBsaWtlIERvdWcncyBpZGVhLiBJdCBtZWFucyB5b3UgY2Fu
-IGVhc2lseSBpbnN0cnVtZW50DQo+ID4gdGhlDQo+ID4gaGVjayBvdXQgb2YgYSByb3V0aW5lIGFu
-ZCBoYXZlIGl0IGFsd2F5cyBhdmFpbGFibGUuIEl0IHByb3ZpZGVzDQo+ID4gbW9yZQ0KPiA+IGZs
-ZXhpYmlsaXR5IGluIHdoYXQgeW91IGNhbiBkbyBpbiBhIGRlYnVnIHZlcnNpb24uDQo+ID4gDQo+
-ID4gWW91IGRvIG1ha2UgYSB2YWxpZCBwb2ludCB0aG91Z2ggYWJvdXQgZHVwbGljYXRpbmcgY29k
-ZS4gUGVyaGFwcw0KPiA+IHRoYXQNCj4gPiBjYW4gYmUgYWxsZXZpYXRlZCB0byBzb21lIGV4dGVu
-dCBqdXN0IGJ5IHJlZmFjdG9yaW5nIGFuZCBhZGRpbmcNCj4gPiBpbmxpbmVzLCBldGMuIMKgDQo+
-IA0KPiBBdCB0aGUgZW5kLCB3ZSB3aWxsIGludmVudCB0cmFjZXBvaW50cyA6KQ0KPiANCj4gPiAN
-Cj4gPiA+IEkgd2FudGVkIHRvIHByb3Bvc2UgdG8gdXNlIHRyYWNlcG9pbnRzIHRvIHByb3ZpZGUg
-ZGVidWcNCj4gPiA+IGluZm9ybWF0aW9uDQo+ID4gPiBpbg0KPiA+ID4gZGF0YSBwYXRocy4gVGhl
-IHRyYWNlcG9pbnRzIGluZnJhc3RydWN0dXJlIHVzZXMgaG9va3MgaW4gdGhlIGNvZGUNCj4gPiA+
-IHdpdGgNCj4gPiA+IG1pbmltYWwgaW1wYWN0IG9uIHBlcmZvcm1hbmNlLg0KPiA+IA0KPiA+IFRo
-aXMgaXMgc28gZmFyIHRoZSBwYXRoIHdlIGhhdmUgY2hvc2VuIGZvciBoZmkxLiBXZSBoYXZlIGEg
-bnVtYmVyDQo+ID4gb2YNCj4gPiB0cmFjZXBvaW50cyBpbiB2YXJpb3VzIHBhcnRzIG9mIHRoZSBj
-b2RlLiBBZ2FpbiBpdCdzIGF2YWlsYWJsZSBvbg0KPiA+IGRlbWFuZCB3aXRob3V0IHNwZWNpYWwg
-a2VybmVscyBvciBib290L2RyaXZlciBvcHRpb25zLsKgDQo+IA0KPiBDT05GSUdfU0RNQV9WRVJC
-T1NJVFkgPz8/Pw0KDQpZZXMgd2UgZG8gaGF2ZSB0aGF0LCB3aGljaCBpbGx1c3RyYXRlcyB0aGF0
-IHRyYWNlIHBvaW50cyBjYW4gbm90IGRvDQpldmVyeXRoaW5nLiBJIGhhZCBob3BlZCB0byBkZXBy
-ZWNhdGUgdGhhdCBhdCBzb21lIHBvaW50LiBSZWdhcmRsZXNzLA0Kc29tZXRpbWVzIHlvdSB3YW50
-IGFkZGl0aW9uYWwgY29kZSB0byBiZSBhZGRlZCBvciB0byBkbyBzb21ldGhpbmcNCnNsaWdodGx5
-IGRpZmZlcmVudC4gWW91IGNhbid0IGRvIHRoYXQgd2l0aCBhIHRyYWNlcG9pbnQuDQoNCllvdSBj
-YW4gc2VlIHdlIHVzZSB0cmFjZXBvaW50cyBwcmV0dHkgZXh0ZW5zaXZlbHkgYW5kIHRoYXQgaXMg
-b3VyIG1haW4NCnZlaGljbGUgZm9yIGRlYnVnZ2luZy4gSGVyZSBpcyB3aGVyZSBhbGwgdGhlIGRl
-ZmluaXRpb25zIGFyZToNCg0KJCBscyB0cmFjZV8qDQp0cmFjZV9jdHh0cy5owqDCoHRyYWNlX2Ri
-Zy5owqDCoHRyYWNlX2liaGRycy5owqDCoHRyYWNlX21pc2MuaMKgwqB0cmFjZV9yYy5owqDCoHQN
-CnJhY2VfcnguaMKgwqB0cmFjZV90eC5oDQoNCi1EZW5ueQ0KDQo+ID4gDQo+ID4gPiA+IFRoZW4g
-d2UgY2FuIGRyb3AgdGhlIENPTkZJR18qX0RFQlVHIG9wdGlvbnMgb3V0IG9mIGFsbCBvZiB0aGUN
-Cj4gPiA+ID4gZHJpdmVycy7CoMKgVGhhdCB3b3VsZCBiZSBteSBwcmVmZXJlbmNlLsKgwqBJIGRv
-bid0IHdhbnQgYW55DQo+ID4gPiA+IGNvbXBpbGUNCj4gPiA+ID4gdGltZQ0KPiA+ID4gPiBvcHRp
-b25zIGJlY2F1c2UgeW91IG5ldmVyIHdpbGwgYmUgcnVubmluZyBhIGRlYnVnIGtlcm5lbCB3aGVu
-DQo+ID4gPiA+IHlvdQ0KPiA+ID4gPiBuZWVkDQo+ID4gPiA+IGl0LsKgwqBQZXIgZGV2aWNlLCBy
-dW4gdGltZSBzZWxlY3RhYmxlIHNvIHRoYXQgeW91IGdldCAwIG92ZXJoZWFkDQo+ID4gPiA+IGlu
-DQo+ID4gPiA+IHRoZQ0KPiA+ID4gPiBub3JtYWwgY2FzZSBpcyB3aGF0IEkgd291bGQgbGlrZSB0
-byBzZWUuDQo+ID4gPiANCj4gPiA+IEdyZWF0LA0KPiA+ID4gV2UgYXJlIGFsaWduZWQgb24gdGhp
-cyBwb2ludCwgc28gZG8gSS4gSSBzZWUgbm8gcmVhc29uIGluIHNwZWNpYWwNCj4gPiA+IGNvbXBp
-bGVkDQo+ID4gPiBrZXJuZWwgb3IgZ2xvYmFsIG1vZHVsZSBwYXJhbWV0ZXIgdG8gcHJpbnQgZGVi
-dWcgcHJpbnRzIGZvciB3aG9sZQ0KPiA+ID4gZHJpdmVyLg0KPiA+IA0KPiA+IFNhbWUgaGVyZS4N
-Cj4gPiANCj4gPiAtRGVubnk=
+
+> 
+> From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Date: Fri, 16 Sep 2016 07:54:55 -0700
+> 
+> > This series enables a new work request to optimize small REG_MR
+> > operations.  This is intended for 4.9.  If everyone agrees, I suggest
+> > Doug take both the cxgb4 and iw_cxgb4 patches through his tree.
+> 
+> I'm assuming this mean that I do _not_ apply these to my tree.
+
+Yes, if you're ok with that. 
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
