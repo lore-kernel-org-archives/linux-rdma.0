@@ -1,96 +1,57 @@
-From: "Stephen Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] rdma_rxe: Ensure rdma_rxe module init occurs at correct
- time
-Date: Sun, 18 Sep 2016 18:59:16 -0500
-Message-ID: <a3e5f61b65cdf92c192daef1da319718.squirrel@webmail.raithlin.com>
-References: <1473975936-9970-1-git-send-email-sbates@raithlin.com>
-    <2fa6c4b3-6fcb-b0f1-adaf-94895710827d@redhat.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 2/2] iw_cxgb4: add fast-path for small REG_MR operations
+Date: Sun, 18 Sep 2016 19:40:29 -0500
+Message-ID: <0bd501d2120e$6bf5aaf0$43e100d0$@opengridcomputing.com>
+References: <cover.1474037695.git.swise@opengridcomputing.com> <3153440ff068cc56a517af2ba6be2b0de0f4dd99.1474037695.git.swise@opengridcomputing.com> <20160918142242.GJ2923@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2fa6c4b3-6fcb-b0f1-adaf-94895710827d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160918142242.GJ2923-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Leon Romanovsky' <leonro-2ukJVAZIZ/Y@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, September 16, 2016 1:06 pm, Doug Ledford wrote:
-> On 9/15/2016 5:45 PM, Stephen Bates wrote:
->
->> When the Soft-RoCE module is built into the kernel there is a
->> initialization issue when CONFIG_IPV6 is selected. Use late_initcall to
->> ensure the rxe module is loaded later. This fix is based on one proposed
->> by Logan Gunthorpe on a much older code base [1].
->
-> Your commit message doesn't make sense.  You start by saying that
-> soft-RoCE is compiled in, then say "the rxe module is loaded later". Well,
-> which is it?  I'm not sure exactly the problem you are fixing. However, I
-> know that the series Leon posted for the rxe driver included a fix
-> specifically for IPv6 tunnel creation issues that result in an oops.  I
-> suspect that patch might solve your problem.  So, I'm going to drop this
-> patch.  Once you get a chance to test with the other patch applied, if
-> your problem still exists, then please repost this patch with a clearer
-> commit message and we can add this as well.
+> On Fri, Sep 16, 2016 at 07:54:52AM -0700, Steve Wise wrote:
+> > When processing a REG_MR work request, if fw supports the
+> > FW_RI_NSMR_TPTE_WR work request, and if the page list for this
+> > registration is <= 2 pages, and the current state of the mr is INVALID,
+> > then use FW_RI_NSMR_TPTE_WR to pass down a fully populated TPTE for
+> FW
+> > to write.  This avoids FW having to do an async read of the TPTE
+blocking
+> > the SQ until the read completes.
+> >
+> > To know if the current MR state is INVALID or not, iw_cxgb4 must track
+the
+> > state of each fastreg MR.  The c4iw_mr struct state is updated as REG_MR
+> > and LOCAL_INV WRs are posted and completed, when a reg_mr is
+> destroyed,
+> > and when RECV completions are processed that include a local
+invalidation.
+> >
+> > This optimization increases small IO IOPS for both iSER and NVMF.
+> >
+> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > ---
+> 
+> <...>
+> 
+> > +			      struct ib_reg_wr *wr, struct c4iw_mr *mhp,
+> > +			      u8 *len16)
+> > +{
+> > +	__be64 *p = (__be64 *)fr->pbl;
+> > +
+> > +	fr->r2 = cpu_to_be32(0);
+> 
+> Is there any difference between the line above and "fr->r2 = 0"?
 
-Doug
+It makes sparse happy, IIRC...
 
-Yes on reflection the commit message associated with this patch was not as
-clear as it could have been. Apologies. I will be more explicit on the v1.
-To answer your questions:
 
-1. This patch should be applied on top of the three patches that came from
-Leon [1]. I will make that clear in v1.
-
-2. My patch applies to the case where rmda_rxe is built-in and not when it
-is a module. Currently the module_init is called before IPv6 is setup and
-that results in a load failure of rxe.
-
-3. When rdma_rxe is built as a module the problem is not observed because
-the rdma_rxe module is not probed until the system is up and running.
-
-4. The change from module_init to late_initcall means that IPv6 has had
-enough time to come up befoe the rdma_rxe init is executed.
-
-I hope that clarifies things. I will get a v1 out shortly with an improved
-commit log.
-
-[1] http://marc.info/?l=linux-rdma&m=147307739626544&w=2
-
-Cheers
-
-Stephen Bates
-
->
->> [1] https://github.com/sbates130272/qemu-minimal/blob/rdma/patches/\
->> 0001-Changes-needed-to-use-rxe-compiled-into-the-kernel.patch
->>
->>
->> Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
->> ---
->> drivers/infiniband/sw/rxe/rxe.c | 2 +- 1 file changed, 1 insertion(+), 1
->> deletion(-)
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe.c
->> b/drivers/infiniband/sw/rxe/rxe.c index 08e09d9..97bc74a 100644 ---
->> a/drivers/infiniband/sw/rxe/rxe.c +++ b/drivers/infiniband/sw/rxe/rxe.c
->> @@ -392,5 +392,5 @@ static void __exit rxe_module_exit(void)
->> pr_info("rxe: unloaded\n");
->> }
->>
->>
->> -module_init(rxe_module_init);
->> +late_initcall(rxe_module_init);
->> module_exit(rxe_module_exit);
->>
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> GPG Key ID: 0E572FDD
->
->
->
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
