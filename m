@@ -1,8 +1,11 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 7/9] move librdmacm documentation to Documentation/
-Date: Mon, 19 Sep 2016 08:56:31 -0700
-Message-ID: <1474300593-31922-8-git-send-email-hch@lst.de>
+Subject: [PATCH 4/9] move rxe documentation to Documentation/
+Date: Mon, 19 Sep 2016 08:56:28 -0700
+Message-ID: <1474300593-31922-5-git-send-email-hch@lst.de>
 References: <1474300593-31922-1-git-send-email-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=a
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474300593-31922-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -10,135 +13,112 @@ To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-And drop bits that are outdated or replaced by top-level Documentation.
+Very little of the rxe RADME.md is relevant with the kernel driver upstream,
+and the userspace provider part of this repository.  Move the remaining bits
+to Documentation/rxe.md and delete the rest.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- Documentation/librdmacm.md | 46 ++++++++++++++++++++++++++++++++++
- librdmacm/README           | 61 ----------------------------------------------
- 2 files changed, 46 insertions(+), 61 deletions(-)
- create mode 100644 Documentation/librdmacm.md
- delete mode 100644 librdmacm/README
+ Documentation/rxe.md    | 19 +++++++++++++++
+ providers/rxe/README.md | 63 -------------------------------------------------
+ 2 files changed, 19 insertions(+), 63 deletions(-)
+ create mode 100644 Documentation/rxe.md
+ delete mode 100644 providers/rxe/README.md
 
-diff --git a/Documentation/librdmacm.md b/Documentation/librdmacm.md
+diff --git a/Documentation/rxe.md b/Documentation/rxe.md
 new file mode 100644
-index 0000000..5eb8d31
+index 0000000..ec5ba58
 --- /dev/null
-+++ b/Documentation/librdmacm.md
-@@ -0,0 +1,46 @@
-+# Device files
++++ b/Documentation/rxe.md
+@@ -0,0 +1,19 @@
++# Configure Soft-RoCE (RXE):
 +
-+The userspace CMA uses a single device file regardless of the number
-+of adapters or ports present.
++Load rdma_rxe kernel module using the rxe_cfg script included in the librxe RPM:
 +
-+To create the appropriate character device file automatically with
-+udev, a rule like
++rxe_cfg start (this might require sudo or root privileges)
 +
-+    KERNEL="rdma_cm", NAME="infiniband/%k", MODE="0666"
++Create RXE device over network interface (e.g. eth0):
 +
-+can be used.  This will create the device node named
++rxe_cfg add eth0
 +
-+    /dev/infiniband/rdma_cm
++Use the status command to display the current configuration:
++rxe_cfg status
 +
-+or you can create it manually
-+
-+  mknod /dev/infiniband/rdma_cm c 231 255
-+
-+
-+# Common issues
-+
-+Using multiple interfaces
-+	The librdmacm does support multiple interfaces.  To make use
-+	of multiple interfaces, however, you need to instruct linux
-+	to only send ARP reples on the interface targetted in the ARP
-+	request.  This can be done using a command similar to the
-+	following:
-+
-+	sysctl -w net.ipv4.conf.all.arp_ignore=2
-+
-+	Without this change, it's possible for linux to resopnd to ARP
-+	requests on a different interface (IP address) than the IP
-+	address carried in the ARP request.  This causes the RDMA stack
-+	to incorrectly map the remote IP address to the wrong RDMA
-+	device.
-+
-+Using loopback
-+	The librdmacm relies on ARP to resolve IP address to RDMA
-+	addresses.  To support loopback connections between different
-+	ports on the same system, ARP must be enabled for local
-+	resolution:
-+
-+	sysctl net.ipv4.conf.all.accept_local=1
-+
-+	Without this setting, loopback connections may timeout
-+	during address resolution.
-diff --git a/librdmacm/README b/librdmacm/README
++If configured successfully, you should see output similar to the following:
++    Name  Link  Driver   Speed  NMTU  IPv4_addr  RDEV  RMTU         
++    eth0  yes   mlx4_en                          rxe0  1024  (3) 
++ 
++If you are using a Mellanox HCA: Need to make sure that the mlx4_ib kernel module is not loaded (modprobe –rv mlx4_ib) in the soft-RoCE machine.
++Now you have an Infiniband device called “rxe0” that can be used to run any RoCE app.
+diff --git a/providers/rxe/README.md b/providers/rxe/README.md
 deleted file mode 100644
-index e1f2227..0000000
---- a/librdmacm/README
+index 743edd1..0000000
+--- a/providers/rxe/README.md
 +++ /dev/null
-@@ -1,61 +0,0 @@
--This README is for userspace RDMA cm library.
+@@ -1,63 +0,0 @@
+-# librxe-dev
+-Development repository for RXE user space code.
+-Soft RDMA over Ethernet (RoCE) Driver
 -
+-Source
 -
--Building
--========
--To make this directory, run:
--./autogen.sh && ./configure && make && make install
+-Kernel Space Driver
 -
--Typically the autogen and configure steps only need be done the first
--time unless configure.in or Makefile.am changes.
+-This repository contains a full kernel source tree, with the RoCE driver code located in the directory drivers/infiniband/hw/rxe.
 -
--Libraries are installed by default at /usr/local/lib.
+-Github: https://github.com/SoftRoCE/rxe-dev.git 
+-Active Branch: master-next
+-User Space Library
 -
+-Github: https://github.com/SoftRoCE/librxe-dev.git (this repository)
+-Current Version: librxe-1.0.0
+-Build Instructions
 -
--Device files
--============
--The userspace CMA uses a single device file regardless of the number
--of adapters or ports present.
+-Compile and install kernel:
 -
--To create the appropriate character device file automatically with
--udev, a rule like
+-Clone kernel git:
+-git clone https://github.com/SoftRoCE/rxe-dev.git
+-Compile kernel:
+-Enter the source directory cd rxe-dev
+-cp /boot/config-$(uname –r) .config
+-make menuconfig
+-Need to enable “Software RDMA over Ethernet (RoCE) driver” in category "Device Drivers -> Infiniband"
+-Need to enable CONFIG_INFINIBAND_ADDR_TRANS=y and CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS=y in new config file .config
+-make –j 32
+-make modules_install
+-make install
+-Verify that the new kernel entry is added (e.g. to grub); if not, need to add it manually.
+-Boot with new kernel.
+-Install user space library (librxe):
 -
--    KERNEL="rdma_cm", NAME="infiniband/%k", MODE="0666"
+-Install the following package (example shown using RedHat):
+-yum install perl-Switch (name might vary according to distribution)
+-Make sure that the following upstream user space libraries are installed:
+-libibverbs
+-libibverbs-devel
+-libibverbs-utils
+-librdmacm
+-librdmacm-devel
+-librdmacm-utils
+-Compile and install user space library librxe:
+-git clone https://github.com/SoftRoCE/librxe-dev.git
+-cd librxe-dev
+-./configure --libdir=/usr/lib64/ --prefix=
+-make
+-make install
+-Configure Soft-RoCE (RXE):
 -
--can be used.  This will create the device node named
--
--    /dev/infiniband/rdma_cm
--
--or you can create it manually
--
--  mknod /dev/infiniband/rdma_cm c 231 255
--
--
--Common issues
--=============
--
--Using multiple interfaces
--	The librdmacm does support multiple interfaces.  To make use
--	of multiple interfaces, however, you need to instruct linux
--	to only send ARP reples on the interface targetted in the ARP
--	request.  This can be done using a command similar to the
--	following:
--
--	sysctl -w net.ipv4.conf.all.arp_ignore=2
--
--	Without this change, it's possible for linux to resopnd to ARP
--	requests on a different interface (IP address) than the IP
--	address carried in the ARP request.  This causes the RDMA stack
--	to incorrectly map the remote IP address to the wrong RDMA
--	device.
--
--Using loopback
--	The librdmacm relies on ARP to resolve IP address to RDMA
--	addresses.  To support loopback connections between different
--	ports on the same system, ARP must be enabled for local
--	resolution:
--
--	sysctl net.ipv4.conf.all.accept_local=1
--
--	Without this setting, loopback connections may timeout
--	during address resolution.
+-Load rdma_rxe kernel module using the rxe_cfg script included in the librxe RPM:
+-rxe_cfg start (this might require sudo or root privileges)
+-Create RXE device over network interface (e.g. eth0):
+-rxe_cfg add eth0
+-Use the status command to display the current configuration:
+-rxe_cfg status
+-If configured successfully, you should see output similar to the following:
+-    Name  Link  Driver   Speed  NMTU  IPv4_addr  RDEV  RMTU         
+-    eth0  yes   mlx4_en                          rxe0  1024  (3) 
+-If you are using a Mellanox HCA: Need to make sure that the mlx4_ib kernel module is not loaded (modprobe –rv mlx4_ib) in the soft-RoCE machine.
+-Now you have an Infiniband device called “rxe0” that can be used to run any RoCE app.
 -- 
 2.1.4
 
