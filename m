@@ -1,91 +1,45 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2] ibacm: Handle EP expiration time
-Date: Mon, 19 Sep 2016 10:28:21 -0700
-Message-ID: <1474306101-24718-1-git-send-email-yuval.shaia@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Mon, 19 Sep 2016 12:55:02 -0600
+Message-ID: <20160919185502.GA12436@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB07FB7A@ORSMSX109.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB07FBE1@ORSMSX109.amr.corp.intel.com>
+ <20160913180342.GA6933@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB08075C@ORSMSX109.amr.corp.intel.com>
+ <20160913222539.GB29095@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB080798@ORSMSX109.amr.corp.intel.com>
+ <edc4c963-847a-e973-f1f1-ab9b78ad9d19@redhat.com>
+ <20160916161626.GB2833@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB08C5F3@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB08C5F3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Old destination records are removed from EP's dest_map after timeout is
-expired in order to maintain a correct cache.
+On Fri, Sep 16, 2016 at 04:24:37PM +0000, Hefty, Sean wrote:
+> > > I would.  Mainly because it is tied to both the kernel uAPI (via
+> > > netlink)and to librdmacm
+> > 
+> > With what little I know about ibacm I'm inclined to agree. It seems
+> > like a utility for librdmacm, and is consuming a kernel interface.
+> > 
+> > Reconsider Sean?
+> 
+> Yes - Doug made a good point.  The librdmacm and ibacm share a
+> protocol, which I think I ended up copying into both packages.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v0 -> v1:
-	* Move the status and timeout check to acmp_acquire_dest
-	* Fix typo (Record expiered).
-	* Use NULL instead of 0
-v1 -> v2:
-	* (uint64_t)~0ULL instead of 0xFFFFFFFFFFFFFFFF
-	* Calculate expiration time once
----
- prov/acmp/src/acmp.c |   32 +++++++++++++++++++++++---------
- 1 files changed, 23 insertions(+), 9 deletions(-)
+I would delete the windows support in that package if we take it into
+rdma-core.
 
-diff --git a/prov/acmp/src/acmp.c b/prov/acmp/src/acmp.c
-index ec64631..a26ed83 100644
---- a/prov/acmp/src/acmp.c
-+++ b/prov/acmp/src/acmp.c
-@@ -356,16 +356,39 @@ acmp_put_dest(struct acmp_dest *dest)
- 	}
- }
- 
-+/* Caller must hold ep lock. */
-+static void
-+acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
-+{
-+	acm_log(2, "%s\n", dest->name);
-+	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1],
-+		acmp_compare_dest);
-+	acmp_put_dest(dest);
-+}
-+
- static struct acmp_dest *
- acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
- {
- 	struct acmp_dest *dest;
-+	int64_t rec_expr_minutes;
- 
- 	acm_format_name(2, log_data, sizeof log_data,
- 			addr_type, addr, ACM_MAX_ADDRESS);
- 	acm_log(2, "%s\n", log_data);
- 	lock_acquire(&ep->lock);
- 	dest = acmp_get_dest(ep, addr_type, addr);
-+	if (dest && dest->state == ACMP_READY &&
-+	    dest->addr_timeout != (uint64_t)~0ULL) {
-+		rec_expr_minutes = dest->addr_timeout - time_stamp_min();
-+		if (rec_expr_minutes <= 0) {
-+			acm_log(2, "Record expired\n");
-+			acmp_remove_dest(ep, dest);
-+			dest = NULL;
-+		} else {
-+			acm_log(2, "Record valid for the next %ld minute(s)\n",
-+				rec_expr_minutes);
-+		}
-+	}
- 	if (!dest) {
- 		dest = acmp_alloc_dest(addr_type, addr);
- 		if (dest) {
-@@ -378,15 +401,6 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
- 	return dest;
- }
- 
--/* Caller must hold ep lock. */
--//static void
--//acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
--//{
--//	acm_log(2, "%s\n", dest->name);
--//	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1], acmp_compare_dest);
--//	acmp_put_dest(dest);
--//}
--
- static struct acmp_request *acmp_alloc_req(uint64_t id, struct acm_msg *msg)
- {
- 	struct acmp_request *req;
--- 
-1.7.1
+Is that OK?
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
