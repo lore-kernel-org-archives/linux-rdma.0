@@ -1,60 +1,49 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 1/3] Add new call ibv_cmd_create_ah_ex
- which supports extra parameters
-Date: Mon, 19 Sep 2016 10:59:42 -0600
-Message-ID: <20160919165942.GB11836@obsidianresearch.com>
-References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
- <5cc0157c0f05701d8cb1334e6ee11e1e7be6fa24.1474063039.git-series.knut.omang@oracle.com>
- <20160919030122.GA23152@obsidianresearch.com>
- <1474257063.20134.103.camel@oracle.com>
- <20160919040854.GA28241@obsidianresearch.com>
- <1474259364.20134.114.camel@oracle.com>
- <1474259792.20134.117.camel@oracle.com>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Mon, 19 Sep 2016 22:30:15 +0530
+Message-ID: <CAG53R5XZRtG4BeLv9wdLB4wW4iDLnEPHeoynaTPi_Sp6ht_3fA@mail.gmail.com>
+References: <20160901084406.GA4115@lst.de> <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
+ <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com> <20160910161442.GC29259@lst.de>
+ <20160910170151.GA5230@obsidianresearch.com> <20160911133421.GA23384@lst.de>
+ <20160911143522.GL6415@leon.nu> <20160911171409.GA13442@obsidianresearch.com>
+ <20160911172445.GA25953@lst.de> <20160911175235.GB13442@obsidianresearch.com>
+ <20160912050717.GE8812@leon.nu> <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
+ <1474290618.6520.23.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1474259792.20134.117.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1474290618.6520.23.camel@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
+Cc: "leon@kernel.org" <leon@kernel.org>, "lizefan@huawei.com" <lizefan@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "cgroups@vger.kernel.org" <cgroups@vger.kernel.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "hch@lst.de" <hch@lst.de>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "haggaie@mellanox.com" <haggaie@mellanox.com>, "hannes@cmpxchg.org" <hannes@cmpxchg.org>, "Hefty, Sean" <sean.hefty@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "james.l.morris@oracle.com" <james.l.morris@oracle.com>, "tj@kernel.org" <tj@kernel.org>, "liranl@mellanox.com" <liranl@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 19, 2016 at 06:36:32AM +0200, Knut Omang wrote:
-> diff --git a/src/libibverbs.map b/src/libibverbs.map
-> index 5134bd9..979980d 100644
-> +++ b/src/libibverbs.map
-> @@ -118,5 +118,15 @@ IBVERBS_1.1 {
->                 ibv_cmd_create_qp_ex2;
->                 ibv_cmd_open_qp;
->                 ibv_cmd_rereg_mr;
->  } IBVERBS_1.0;
-> 
-> +IBVERBS_1.2 {
-> +} IBVERBS_1.1;
+Hi Denny,
 
-This is the right idea, but we won't be going back to fix the bad tags
-from 1.2 and other releases so this can be dropped.
+On Mon, Sep 19, 2016 at 6:40 PM, Dalessandro, Dennis
+<dennis.dalessandro@intel.com> wrote:
+> On Wed, 2016-09-14 at 12:36 +0530, Parav Pandit wrote:
+>> Hi Dennis,
+>>
+>> Do you know how would HFI1 driver would work along with rdma cgroup?
+>
+> Keep in mind HFI1 driver has two "modes" of operation. We support
+> verbs, and would surely fall in line with whatever cgroups do for IB
+> core.
+Thanks for the feedback.
 
-> +IBVERBS_1.3 {
-> +} IBVERBS_1.2;
+> For our psm interface, not sure how cgroups would come into play.
+> Psm is designed to expose the hw to user and avoid the kernel when
+> possible adding more kernel control is sort of contrary to that.
+>
+Yes, PSM is currently out of RDMA cgroup and in future we can take a
+look on how things shape as subsystem if it does.
 
-If you pull from Doug's tree right now you'll get a populated version
-of this stanza
-
-> +IBVERBS_1.4 {
-> + global:
-> +         ibv_cmd_create_ah_ex;
-> +} IBVERBS_1.3;
-
-Right. Doug will have to figure out a process for these, eg if he
-hasn't released 1.3 yet then this can be folded into 1.3.
-
-It is critical that once a release is made that the existing stanza's
-not be changed.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Now that being said, Christoph recently made mention of maybe having a
+> drivers/psm [1]. I really haven't had a chance to think about the
+> implications of that, but maybe it's worth considering, after all we
+> have two implementations, qib and hfi1. So anyway I'm not sure we need
+> to be too concerned about cgroups right now as far as psm side of
+> things goes.
+>
+o.k.
