@@ -1,96 +1,93 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1] ibacm: Handle EP expiration time
-Date: Mon, 19 Sep 2016 07:22:54 -0400
-Message-ID: <387b0fc4-949f-b8e2-6ac3-136e5ab2e127@dev.mellanox.co.il>
-References: <1474271168-22662-1-git-send-email-yuval.shaia@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] IB/rxe: avoid putting a large struct rxe_qp on stack
+Date: Mon, 19 Sep 2016 13:57:26 +0200
+Message-ID: <20160919115826.553858-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474271168-22662-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/19/2016 3:46 AM, Yuval Shaia wrote:
-> Old destination records are removed from EP's dest_map after timeout is
-> expired in order to maintain a correct cache.
-> 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> v0 -> v1:
-> 	* Move the status and timeout check to acmp_acquire_dest (i.e.
-> 	  deleteis_dest_ready).
-> 	* Fix typo (Record expiered).
-> 	* Use NULL instead of 0
-> ---
->  prov/acmp/src/acmp.c |   29 ++++++++++++++++++++---------
->  1 files changed, 20 insertions(+), 9 deletions(-)
-> 
-> diff --git a/prov/acmp/src/acmp.c b/prov/acmp/src/acmp.c
-> index ec64631..1778ca3 100644
-> --- a/prov/acmp/src/acmp.c
-> +++ b/prov/acmp/src/acmp.c
-> @@ -356,6 +356,16 @@ acmp_put_dest(struct acmp_dest *dest)
->  	}
->  }
->  
-> +/* Caller must hold ep lock. */
-> +static void
-> +acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
-> +{
-> +	acm_log(2, "%s\n", dest->name);
-> +	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1],
-> +		acmp_compare_dest);
-> +	acmp_put_dest(dest);
-> +}
-> +
->  static struct acmp_dest *
->  acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
->  {
-> @@ -366,6 +376,16 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
->  	acm_log(2, "%s\n", log_data);
->  	lock_acquire(&ep->lock);
->  	dest = acmp_get_dest(ep, addr_type, addr);
-> +	if (dest && dest->state == ACMP_READY &&
-> +	    dest->addr_timeout != 0xFFFFFFFFFFFFFFFF) {
+A race condition fix added an rxe_qp structure to the stack in order
+to be able to perform rollback in rxe_requester(), but the structure
+is large enough to trigger the warning for possible stack overflow:
 
-Nit related to the timeout check:
-In acmp.c, (uint64_t)~0ULL is used in other places for this. Should this
-addr_timeout check be changed to some infinite or no timeout define
-along with the other occurrences for consistency and better code
-readability ?
+drivers/infiniband/sw/rxe/rxe_req.c: In function 'rxe_requester':
+drivers/infiniband/sw/rxe/rxe_req.c:757:1: error: the frame size of 2064 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
 
--- Hal
+This changes the rollback function to only save the psn inside
+the qp, which is the only field we access in the rollback_qp
+anyway.
 
-> +		acm_log(2, "Record valid for the next %ld minute(s)\n",
-> +			dest->addr_timeout - time_stamp_min());
-> +		if (time_stamp_min() >= dest->addr_timeout) {
-> +			acm_log(2, "Record expired\n");
-> +			acmp_remove_dest(ep, dest);
-> +			dest = NULL;
-> +		}
-> +	}
->  	if (!dest) {
->  		dest = acmp_alloc_dest(addr_type, addr);
->  		if (dest) {
-> @@ -378,15 +398,6 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
->  	return dest;
->  }
->  
-> -/* Caller must hold ep lock. */
-> -//static void
-> -//acmp_remove_dest(struct acmp_ep *ep, struct acmp_dest *dest)
-> -//{
-> -//	acm_log(2, "%s\n", dest->name);
-> -//	tdelete(dest->address, &ep->dest_map[dest->addr_type - 1], acmp_compare_dest);
-> -//	acmp_put_dest(dest);
-> -//}
-> -
->  static struct acmp_request *acmp_alloc_req(uint64_t id, struct acm_msg *msg)
->  {
->  	struct acmp_request *req;
-> 
+Fixes: 3050b9985024 ("IB/rxe: Fix race condition between requester and completer")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_req.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 13a848a518e8..cf1ffac25585 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -548,23 +548,23 @@ static void update_wqe_psn(struct rxe_qp *qp,
+ static void save_state(struct rxe_send_wqe *wqe,
+ 		       struct rxe_qp *qp,
+ 		       struct rxe_send_wqe *rollback_wqe,
+-		       struct rxe_qp *rollback_qp)
++		       u32 *rollback_psn)
+ {
+ 	rollback_wqe->state     = wqe->state;
+ 	rollback_wqe->first_psn = wqe->first_psn;
+ 	rollback_wqe->last_psn  = wqe->last_psn;
+-	rollback_qp->req.psn    = qp->req.psn;
++	*rollback_psn		= qp->req.psn;
+ }
+ 
+ static void rollback_state(struct rxe_send_wqe *wqe,
+ 			   struct rxe_qp *qp,
+ 			   struct rxe_send_wqe *rollback_wqe,
+-			   struct rxe_qp *rollback_qp)
++			   u32 rollback_psn)
+ {
+ 	wqe->state     = rollback_wqe->state;
+ 	wqe->first_psn = rollback_wqe->first_psn;
+ 	wqe->last_psn  = rollback_wqe->last_psn;
+-	qp->req.psn    = rollback_qp->req.psn;
++	qp->req.psn    = rollback_psn;
+ }
+ 
+ static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+@@ -593,8 +593,8 @@ int rxe_requester(void *arg)
+ 	int mtu;
+ 	int opcode;
+ 	int ret;
+-	struct rxe_qp rollback_qp;
+ 	struct rxe_send_wqe rollback_wqe;
++	u32 rollback_psn;
+ 
+ next_wqe:
+ 	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
+@@ -717,7 +717,7 @@ int rxe_requester(void *arg)
+ 	 * rxe_xmit_packet().
+ 	 * Otherwise, completer might initiate an unjustified retry flow.
+ 	 */
+-	save_state(wqe, qp, &rollback_wqe, &rollback_qp);
++	save_state(wqe, qp, &rollback_wqe, &rollback_psn);
+ 	update_wqe_state(qp, wqe, &pkt);
+ 	update_wqe_psn(qp, wqe, &pkt, payload);
+ 	ret = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp, &pkt, skb);
+@@ -725,7 +725,7 @@ int rxe_requester(void *arg)
+ 		qp->need_req_skb = 1;
+ 		kfree_skb(skb);
+ 
+-		rollback_state(wqe, qp, &rollback_wqe, &rollback_qp);
++		rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
+ 
+ 		if (ret == -EAGAIN) {
+ 			rxe_run_task(&qp->req.task, 1);
+-- 
+2.9.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
