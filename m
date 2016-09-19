@@ -1,58 +1,38 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 2/2] iw_cxgb4: add fast-path for small REG_MR operations
-Date: Sun, 18 Sep 2016 19:40:29 -0500
-Message-ID: <0bd501d2120e$6bf5aaf0$43e100d0$@opengridcomputing.com>
-References: <cover.1474037695.git.swise@opengridcomputing.com> <3153440ff068cc56a517af2ba6be2b0de0f4dd99.1474037695.git.swise@opengridcomputing.com> <20160918142242.GJ2923@leon.nu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs v2 1/3] Add new call ibv_cmd_create_ah_ex
+ which supports extra parameters
+Date: Sun, 18 Sep 2016 21:01:22 -0600
+Message-ID: <20160919030122.GA23152@obsidianresearch.com>
+References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
+ <5cc0157c0f05701d8cb1334e6ee11e1e7be6fa24.1474063039.git-series.knut.omang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160918142242.GJ2923-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <5cc0157c0f05701d8cb1334e6ee11e1e7be6fa24.1474063039.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leonro-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Fri, Sep 16, 2016 at 07:54:52AM -0700, Steve Wise wrote:
-> > When processing a REG_MR work request, if fw supports the
-> > FW_RI_NSMR_TPTE_WR work request, and if the page list for this
-> > registration is <= 2 pages, and the current state of the mr is INVALID,
-> > then use FW_RI_NSMR_TPTE_WR to pass down a fully populated TPTE for
-> FW
-> > to write.  This avoids FW having to do an async read of the TPTE
-blocking
-> > the SQ until the read completes.
-> >
-> > To know if the current MR state is INVALID or not, iw_cxgb4 must track
-the
-> > state of each fastreg MR.  The c4iw_mr struct state is updated as REG_MR
-> > and LOCAL_INV WRs are posted and completed, when a reg_mr is
-> destroyed,
-> > and when RECV completions are processed that include a local
-invalidation.
-> >
-> > This optimization increases small IO IOPS for both iSER and NVMF.
-> >
-> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > ---
-> 
-> <...>
-> 
-> > +			      struct ib_reg_wr *wr, struct c4iw_mr *mhp,
-> > +			      u8 *len16)
-> > +{
-> > +	__be64 *p = (__be64 *)fr->pbl;
-> > +
-> > +	fr->r2 = cpu_to_be32(0);
-> 
-> Is there any difference between the line above and "fr->r2 = 0"?
+On Sat, Sep 17, 2016 at 05:59:11AM +0200, Knut Omang wrote:
+> @@ -118,5 +118,9 @@ IBVERBS_1.1 {
+>  		ibv_cmd_create_qp_ex2;
+>  		ibv_cmd_open_qp;
+>  		ibv_cmd_rereg_mr;
+> +};
+>  
+> +IBVERBS_1.3 {
+> +	global:
+> +		ibv_cmd_create_ah_ex;
+>  } IBVERBS_1.0;
 
-It makes sparse happy, IIRC...
+This will probably end up being 1.4, and the 'tree' structure is
+wrong, do not move this line:
 
+>  } IBVERBS_1.0;
 
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
