@@ -1,49 +1,279 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Mon, 19 Sep 2016 22:30:15 +0530
-Message-ID: <CAG53R5XZRtG4BeLv9wdLB4wW4iDLnEPHeoynaTPi_Sp6ht_3fA@mail.gmail.com>
-References: <20160901084406.GA4115@lst.de> <CAG53R5Ws4BJKqeEYfEoEx5kuaXUmhDKcXfH4Vx=LTMK6tKMG0A@mail.gmail.com>
- <ae3adcc4-253e-f87c-6ff6-202c91599f48@mellanox.com> <20160910161442.GC29259@lst.de>
- <20160910170151.GA5230@obsidianresearch.com> <20160911133421.GA23384@lst.de>
- <20160911143522.GL6415@leon.nu> <20160911171409.GA13442@obsidianresearch.com>
- <20160911172445.GA25953@lst.de> <20160911175235.GB13442@obsidianresearch.com>
- <20160912050717.GE8812@leon.nu> <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
- <1474290618.6520.23.camel@intel.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/9] move libibverbs documentation to Documentation/
+Date: Mon, 19 Sep 2016 22:32:37 +0530
+Message-ID: <CAG53R5XWtJtV0Jmu0Pso2zxkTc0RfOEw6eD+YnfKwof3rYsrgw@mail.gmail.com>
+References: <1474300593-31922-1-git-send-email-hch@lst.de> <1474300593-31922-6-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1474290618.6520.23.camel@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
-Cc: "leon@kernel.org" <leon@kernel.org>, "lizefan@huawei.com" <lizefan@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "cgroups@vger.kernel.org" <cgroups@vger.kernel.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "hch@lst.de" <hch@lst.de>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "haggaie@mellanox.com" <haggaie@mellanox.com>, "hannes@cmpxchg.org" <hannes@cmpxchg.org>, "Hefty, Sean" <sean.hefty@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "james.l.morris@oracle.com" <james.l.morris@oracle.com>, "tj@kernel.org" <tj@kernel.org>, "liranl@mellanox.com" <liranl@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474300593-31922-6-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Denny,
+Little unrelated but related to directory movement?
 
-On Mon, Sep 19, 2016 at 6:40 PM, Dalessandro, Dennis
-<dennis.dalessandro@intel.com> wrote:
-> On Wed, 2016-09-14 at 12:36 +0530, Parav Pandit wrote:
->> Hi Dennis,
->>
->> Do you know how would HFI1 driver would work along with rdma cgroup?
->
-> Keep in mind HFI1 driver has two "modes" of operation. We support
-> verbs, and would surely fall in line with whatever cgroups do for IB
-> core.
-Thanks for the feedback.
+Is there a desire to move SRP, iSER initiator to scsi directory
+instead of infiniband/drivers/ulp similar to other scsi initiator low
+level drivers?
 
-> For our psm interface, not sure how cgroups would come into play.
-> Psm is designed to expose the hw to user and avoid the kernel when
-> possible adding more kernel control is sort of contrary to that.
->
-Yes, PSM is currently out of RDMA cgroup and in future we can take a
-look on how things shape as subsystem if it does.
+Parav
 
-> Now that being said, Christoph recently made mention of maybe having a
-> drivers/psm [1]. I really haven't had a chance to think about the
-> implications of that, but maybe it's worth considering, after all we
-> have two implementations, qib and hfi1. So anyway I'm not sure we need
-> to be too concerned about cgroups right now as far as psm side of
-> things goes.
+
+On Mon, Sep 19, 2016 at 9:26 PM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+> And drop bits that are outdated or replaced by top-level Documentation.
 >
-o.k.
+> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> ---
+>  Documentation/libibverbs.md |  58 ++++++++++++++++
+>  libibverbs/README           | 164 --------------------------------------------
+>  2 files changed, 58 insertions(+), 164 deletions(-)
+>  create mode 100644 Documentation/libibverbs.md
+>  delete mode 100644 libibverbs/README
+>
+> diff --git a/Documentation/libibverbs.md b/Documentation/libibverbs.md
+> new file mode 100644
+> index 0000000..cbe076e
+> --- /dev/null
+> +++ b/Documentation/libibverbs.md
+> @@ -0,0 +1,58 @@
+> +# Introduction
+> +
+> +libibverbs is a library that allows programs to use RDMA "verbs" for
+> +direct access to RDMA (currently InfiniBand and iWARP) hardware from
+> +userspace.  For more information on RDMA verbs, see the InfiniBand
+> +Architecture Specification vol. 1, especially chapter 11, and the RDMA
+> +Consortium's RDMA Protocol Verbs Specification.
+> +
+> +# Using libibverbs
+> +
+> +### Device nodes
+> +
+> +The verbs library expects special character device files named
+> +/dev/infiniband/uverbsN to be created.  When you load the kernel
+> +modules, including both the low-level driver for your IB hardware as
+> +well as the ib_uverbs module, you should see one or more uverbsN
+> +entries in /sys/class/infiniband_verbs in addition to the
+> +/dev/infiniband/uverbsN character device files.
+> +
+> +To create the appropriate character device files automatically with
+> +udev, a rule like
+> +
+> +    KERNEL="uverbs*", NAME="infiniband/%k"
+> +
+> +can be used.  This will create device nodes named
+> +
+> +    /dev/infiniband/uverbs0
+> +
+> +and so on.  Since the RDMA userspace verbs should be safe for use by
+> +non-privileged users, you may want to add an appropriate MODE or GROUP
+> +to your udev rule.
+> +
+> +### Permissions
+> +
+> +To use IB verbs from userspace, a process must be able to access the
+> +appropriate /dev/infiniband/uverbsN special device file.  You can
+> +check the permissions on this file with the command
+> +
+> +       ls -l /dev/infiniband/uverbs*
+> +
+> +Make sure that the permissions on these files are such that the
+> +user/group that your verbs program runs as can access the device file.
+> +
+> +To use IB verbs from userspace, a process must also have permission to
+> +tell the kernel to lock sufficient memory for all of your registered
+> +memory regions as well as the memory used internally by IB resources
+> +such as queue pairs (QPs) and completion queues (CQs).  To check your
+> +resource limits, use the command
+> +
+> +       ulimit -l
+> +
+> +(or "limit memorylocked" for csh-like shells).
+> +
+> +If you see a small number such as 32 (the units are KB) then you will
+> +need to increase this limit.  This is usually done for ordinary users
+> +via the file /etc/security/limits.conf.  More configuration may be
+> +necessary if you are logging in via OpenSSH and your sshd is
+> +configured to use privilege separation.
+> diff --git a/libibverbs/README b/libibverbs/README
+> deleted file mode 100644
+> index 848eb05..0000000
+> --- a/libibverbs/README
+> +++ /dev/null
+> @@ -1,164 +0,0 @@
+> -Introduction
+> -============
+> -
+> -libibverbs is a library that allows programs to use RDMA "verbs" for
+> -direct access to RDMA (currently InfiniBand and iWARP) hardware from
+> -userspace.  For more information on RDMA verbs, see the InfiniBand
+> -Architecture Specification vol. 1, especially chapter 11, and the RDMA
+> -Consortium's RDMA Protocol Verbs Specification.
+> -
+> -Using libibverbs
+> -================
+> -
+> -Device nodes
+> -------------
+> -
+> -The verbs library expects special character device files named
+> -/dev/infiniband/uverbsN to be created.  When you load the kernel
+> -modules, including both the low-level driver for your IB hardware as
+> -well as the ib_uverbs module, you should see one or more uverbsN
+> -entries in /sys/class/infiniband_verbs in addition to the
+> -/dev/infiniband/uverbsN character device files.
+> -
+> -To create the appropriate character device files automatically with
+> -udev, a rule like
+> -
+> -    KERNEL="uverbs*", NAME="infiniband/%k"
+> -
+> -can be used.  This will create device nodes named
+> -
+> -    /dev/infiniband/uverbs0
+> -
+> -and so on.  Since the RDMA userspace verbs should be safe for use by
+> -non-privileged users, you may want to add an appropriate MODE or GROUP
+> -to your udev rule.
+> -
+> -Permissions
+> ------------
+> -
+> -To use IB verbs from userspace, a process must be able to access the
+> -appropriate /dev/infiniband/uverbsN special device file.  You can
+> -check the permissions on this file with the command
+> -
+> -       ls -l /dev/infiniband/uverbs*
+> -
+> -Make sure that the permissions on these files are such that the
+> -user/group that your verbs program runs as can access the device file.
+> -
+> -To use IB verbs from userspace, a process must also have permission to
+> -tell the kernel to lock sufficient memory for all of your registered
+> -memory regions as well as the memory used internally by IB resources
+> -such as queue pairs (QPs) and completion queues (CQs).  To check your
+> -resource limits, use the command
+> -
+> -       ulimit -l
+> -
+> -(or "limit memorylocked" for csh-like shells).
+> -
+> -If you see a small number such as 32 (the units are KB) then you will
+> -need to increase this limit.  This is usually done for ordinary users
+> -via the file /etc/security/limits.conf.  More configuration may be
+> -necessary if you are logging in via OpenSSH and your sshd is
+> -configured to use privilege separation.
+> -
+> -Valgrind support
+> -----------------
+> -
+> -When running applications that use libibverbs under the Valgrind
+> -memory-checking debugger, Valgrind will falsely report "read from
+> -uninitialized" for memory that was initialized by the kernel drivers.
+> -Specifically, Valgrind cannot see when kernel drivers write to
+> -userspace memory, so when the process reads from that memory, Valgrind
+> -incorrectly assumes that the memory contents are uninitialized, and
+> -therefore raises a warning.
+> -
+> -libibverbs can be built with specific support for the Valgrind
+> -memory-checking debugger by specifying the --with-valgrind command
+> -line argument to configure.  This flag enables code in libibverbs to
+> -tell Valgrind "this memory may look uninitialized, but it's really
+> -OK," which therefore suppresses the incorrect "read from
+> -uninitialized" warnings.  This code adds trivial overhead to the
+> -critical performance path, so it is disabled by default.  The intent
+> -is that production users can use a "normal" build of libibverbs and
+> -developers can use the "valgrind debug" build by simply switching
+> -their LD_LIBRARY_PATH environment variables.
+> -
+> -Libibverbs needs some header files from Valgrind in order to compile
+> -this support; it is important to use the header files from the same
+> -version of Valgrind that will be used at run time.  You may need to
+> -specify the directory where Valgrind's header files are installed as
+> -an argument to --with-valgrind.  For example
+> -
+> -       ./configure --with-valgrind=/opt/valgrind
+> -
+> -will make the libibverbs build look for valgrind headers in
+> -/opt/valgrind/include
+> -
+> -Reporting bugs
+> -==============
+> -
+> -Bugs should be reported to the OpenFabrics mailing list
+> -<general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>.  In your bug report, please include:
+> -
+> - * Information about your system:
+> -   - Linux distribution and version
+> -   - Linux kernel and version
+> -   - InfiniBand/iWARP hardware and firmware version
+> -   - ... any other relevant information
+> -
+> - * How to reproduce the bug.  Command line arguments for a libibverbs
+> -   example program or source code that other developers can
+> -   compile and run is most convenient.
+> -
+> - * If the bug is a crash, the exact output printed out when the crash
+> -   occurred, including any kernel messages produced.
+> -
+> - * If a verbs call is mysteriously returning an error or failing, the
+> -   output of "strace -ewrite -ewrite=all <command>".
+> -
+> -Submitting patches
+> -==================
+> -
+> -Patches should also be submitted to the OpenFabrics mailing list
+> -<general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>.  Please use unified diff form (the -u
+> -option to GNU diff), and include a good description of what your patch
+> -does and why it should be applied.  If your patch fixes a bug, please
+> -make sure to describe the bug and how your fix works.
+> -
+> -Please include a change to the ChangeLog file (in standard GNU
+> -changelog format) as part of your patch.
+> -
+> -Make sure that your contribution can be licensed under the same
+> -license as the original code you are patching, and that you have all
+> -necessary permissions to release your work.
+> -
+> -TODO
+> -====
+> -
+> -1.1 series
+> -----------
+> -
+> -The libibverbs API and ABI are frozen for all releases in the 1.1
+> -series.  Methods were added to struct ibv_context to implement the
+> -following features, so it should be possible to add them in a future
+> -release in the 1.1 series:
+> -
+> - * Memory window (MW) support.
+> -
+> - * Implement the reregister memory region (MR) verb.  We will add an
+> -   extension to the IB spec to allow the application to indicate that
+> -   the region is only being extended, and that operations in progress
+> -   should _not_ fail (contrary to the IB spec, which states that
+> -   reregister must be implemented so that it behaves equivalently to a
+> -   deregister followed by a register).
+> -
+> -Other possibilities
+> --------------------
+> -
+> -There are no plans to implement the following features, which would be
+> -needed for completeness but don't seem particularly useful.  However,
+> -if there is demand from application developers or an implementation is
+> -contributed, then the feature may be added.
+> -
+> - * Implement the query address handle (AH) verb.
+> - * Implement the query memory region (MR) verb.
+> --
+> 2.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
