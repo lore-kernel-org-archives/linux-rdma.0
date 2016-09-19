@@ -1,262 +1,122 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 5/9] move libibverbs documentation to Documentation/
-Date: Mon, 19 Sep 2016 08:56:29 -0700
-Message-ID: <1474300593-31922-6-git-send-email-hch@lst.de>
-References: <1474300593-31922-1-git-send-email-hch@lst.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: VERBOSE flags
+Date: Mon, 19 Sep 2016 12:03:34 -0400
+Message-ID: <02761057-02de-d3d1-13d9-ca64e4ee9556@redhat.com>
+References: <CALq1K=KfU+N87pyfjfSd=G-thpyR0mjzuuxQ8eTuqrc2Mb+yZQ@mail.gmail.com>
+ <77cd1f09-fa39-6f75-6c01-c7ef18909f30@redhat.com>
+ <CALq1K=+0S-YnXQo5Hvc3bdOBNuEpowdSMYJThdmHqMNwOu8z1Q@mail.gmail.com>
+ <0a26585a-2e54-1c24-d212-0e2469afb8d8@redhat.com>
+ <20160919061558.GG3273@leon.nu>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="mnds0thGEtNEh440sVxhqUNHeHv9efd0m"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474300593-31922-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160919061558.GG3273-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-And drop bits that are outdated or replaced by top-level Documentation.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--mnds0thGEtNEh440sVxhqUNHeHv9efd0m
+Content-Type: multipart/mixed; boundary="mHN21BPgVwX4SF4RVIbu3uesrWpkcIxPB";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <02761057-02de-d3d1-13d9-ca64e4ee9556-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: VERBOSE flags
+References: <CALq1K=KfU+N87pyfjfSd=G-thpyR0mjzuuxQ8eTuqrc2Mb+yZQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <77cd1f09-fa39-6f75-6c01-c7ef18909f30-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <CALq1K=+0S-YnXQo5Hvc3bdOBNuEpowdSMYJThdmHqMNwOu8z1Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <0a26585a-2e54-1c24-d212-0e2469afb8d8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160919061558.GG3273-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160919061558.GG3273-2ukJVAZIZ/Y@public.gmane.org>
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- Documentation/libibverbs.md |  58 ++++++++++++++++
- libibverbs/README           | 164 --------------------------------------------
- 2 files changed, 58 insertions(+), 164 deletions(-)
- create mode 100644 Documentation/libibverbs.md
- delete mode 100644 libibverbs/README
+--mHN21BPgVwX4SF4RVIbu3uesrWpkcIxPB
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/libibverbs.md b/Documentation/libibverbs.md
-new file mode 100644
-index 0000000..cbe076e
---- /dev/null
-+++ b/Documentation/libibverbs.md
-@@ -0,0 +1,58 @@
-+# Introduction
-+
-+libibverbs is a library that allows programs to use RDMA "verbs" for
-+direct access to RDMA (currently InfiniBand and iWARP) hardware from
-+userspace.  For more information on RDMA verbs, see the InfiniBand
-+Architecture Specification vol. 1, especially chapter 11, and the RDMA
-+Consortium's RDMA Protocol Verbs Specification.
-+
-+# Using libibverbs
-+
-+### Device nodes
-+
-+The verbs library expects special character device files named
-+/dev/infiniband/uverbsN to be created.  When you load the kernel
-+modules, including both the low-level driver for your IB hardware as
-+well as the ib_uverbs module, you should see one or more uverbsN
-+entries in /sys/class/infiniband_verbs in addition to the
-+/dev/infiniband/uverbsN character device files.
-+
-+To create the appropriate character device files automatically with
-+udev, a rule like
-+
-+    KERNEL="uverbs*", NAME="infiniband/%k"
-+
-+can be used.  This will create device nodes named
-+
-+    /dev/infiniband/uverbs0
-+
-+and so on.  Since the RDMA userspace verbs should be safe for use by
-+non-privileged users, you may want to add an appropriate MODE or GROUP
-+to your udev rule.
-+
-+### Permissions
-+
-+To use IB verbs from userspace, a process must be able to access the
-+appropriate /dev/infiniband/uverbsN special device file.  You can
-+check the permissions on this file with the command
-+
-+	ls -l /dev/infiniband/uverbs*
-+
-+Make sure that the permissions on these files are such that the
-+user/group that your verbs program runs as can access the device file.
-+
-+To use IB verbs from userspace, a process must also have permission to
-+tell the kernel to lock sufficient memory for all of your registered
-+memory regions as well as the memory used internally by IB resources
-+such as queue pairs (QPs) and completion queues (CQs).  To check your
-+resource limits, use the command
-+
-+	ulimit -l
-+
-+(or "limit memorylocked" for csh-like shells).
-+
-+If you see a small number such as 32 (the units are KB) then you will
-+need to increase this limit.  This is usually done for ordinary users
-+via the file /etc/security/limits.conf.  More configuration may be
-+necessary if you are logging in via OpenSSH and your sshd is
-+configured to use privilege separation.
-diff --git a/libibverbs/README b/libibverbs/README
-deleted file mode 100644
-index 848eb05..0000000
---- a/libibverbs/README
-+++ /dev/null
-@@ -1,164 +0,0 @@
--Introduction
--============
--
--libibverbs is a library that allows programs to use RDMA "verbs" for
--direct access to RDMA (currently InfiniBand and iWARP) hardware from
--userspace.  For more information on RDMA verbs, see the InfiniBand
--Architecture Specification vol. 1, especially chapter 11, and the RDMA
--Consortium's RDMA Protocol Verbs Specification.
--
--Using libibverbs
--================
--
--Device nodes
--------------
--
--The verbs library expects special character device files named
--/dev/infiniband/uverbsN to be created.  When you load the kernel
--modules, including both the low-level driver for your IB hardware as
--well as the ib_uverbs module, you should see one or more uverbsN
--entries in /sys/class/infiniband_verbs in addition to the
--/dev/infiniband/uverbsN character device files.
--
--To create the appropriate character device files automatically with
--udev, a rule like
--
--    KERNEL="uverbs*", NAME="infiniband/%k"
--
--can be used.  This will create device nodes named
--
--    /dev/infiniband/uverbs0
--
--and so on.  Since the RDMA userspace verbs should be safe for use by
--non-privileged users, you may want to add an appropriate MODE or GROUP
--to your udev rule.
--
--Permissions
-------------
--
--To use IB verbs from userspace, a process must be able to access the
--appropriate /dev/infiniband/uverbsN special device file.  You can
--check the permissions on this file with the command
--
--	ls -l /dev/infiniband/uverbs*
--
--Make sure that the permissions on these files are such that the
--user/group that your verbs program runs as can access the device file.
--
--To use IB verbs from userspace, a process must also have permission to
--tell the kernel to lock sufficient memory for all of your registered
--memory regions as well as the memory used internally by IB resources
--such as queue pairs (QPs) and completion queues (CQs).  To check your
--resource limits, use the command
--
--	ulimit -l
--
--(or "limit memorylocked" for csh-like shells).
--
--If you see a small number such as 32 (the units are KB) then you will
--need to increase this limit.  This is usually done for ordinary users
--via the file /etc/security/limits.conf.  More configuration may be
--necessary if you are logging in via OpenSSH and your sshd is
--configured to use privilege separation.
--
--Valgrind support
------------------
--
--When running applications that use libibverbs under the Valgrind
--memory-checking debugger, Valgrind will falsely report "read from
--uninitialized" for memory that was initialized by the kernel drivers.
--Specifically, Valgrind cannot see when kernel drivers write to
--userspace memory, so when the process reads from that memory, Valgrind
--incorrectly assumes that the memory contents are uninitialized, and
--therefore raises a warning.
--
--libibverbs can be built with specific support for the Valgrind
--memory-checking debugger by specifying the --with-valgrind command
--line argument to configure.  This flag enables code in libibverbs to
--tell Valgrind "this memory may look uninitialized, but it's really
--OK," which therefore suppresses the incorrect "read from
--uninitialized" warnings.  This code adds trivial overhead to the
--critical performance path, so it is disabled by default.  The intent
--is that production users can use a "normal" build of libibverbs and
--developers can use the "valgrind debug" build by simply switching
--their LD_LIBRARY_PATH environment variables.
--
--Libibverbs needs some header files from Valgrind in order to compile
--this support; it is important to use the header files from the same
--version of Valgrind that will be used at run time.  You may need to
--specify the directory where Valgrind's header files are installed as
--an argument to --with-valgrind.  For example
--
--	./configure --with-valgrind=/opt/valgrind
--
--will make the libibverbs build look for valgrind headers in
--/opt/valgrind/include
--
--Reporting bugs
--==============
--
--Bugs should be reported to the OpenFabrics mailing list
--<general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>.  In your bug report, please include:
--
-- * Information about your system:
--   - Linux distribution and version
--   - Linux kernel and version
--   - InfiniBand/iWARP hardware and firmware version
--   - ... any other relevant information
--
-- * How to reproduce the bug.  Command line arguments for a libibverbs
--   example program or source code that other developers can
--   compile and run is most convenient.
--
-- * If the bug is a crash, the exact output printed out when the crash
--   occurred, including any kernel messages produced.
--
-- * If a verbs call is mysteriously returning an error or failing, the
--   output of "strace -ewrite -ewrite=all <command>".
--
--Submitting patches
--==================
--
--Patches should also be submitted to the OpenFabrics mailing list
--<general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>.  Please use unified diff form (the -u
--option to GNU diff), and include a good description of what your patch
--does and why it should be applied.  If your patch fixes a bug, please
--make sure to describe the bug and how your fix works.
--
--Please include a change to the ChangeLog file (in standard GNU
--changelog format) as part of your patch.
--
--Make sure that your contribution can be licensed under the same
--license as the original code you are patching, and that you have all
--necessary permissions to release your work.
--
--TODO
--====
--
--1.1 series
------------
--
--The libibverbs API and ABI are frozen for all releases in the 1.1
--series.  Methods were added to struct ibv_context to implement the
--following features, so it should be possible to add them in a future
--release in the 1.1 series:
--
-- * Memory window (MW) support.
--
-- * Implement the reregister memory region (MR) verb.  We will add an
--   extension to the IB spec to allow the application to indicate that
--   the region is only being extended, and that operations in progress
--   should _not_ fail (contrary to the IB spec, which states that
--   reregister must be implemented so that it behaves equivalently to a
--   deregister followed by a register).
--
--Other possibilities
---------------------
--
--There are no plans to implement the following features, which would be
--needed for completeness but don't seem particularly useful.  However,
--if there is demand from application developers or an implementation is
--contributed, then the feature may be added.
--
-- * Implement the query address handle (AH) verb.
-- * Implement the query memory region (MR) verb.
--- 
-2.1.4
+On 9/19/2016 2:15 AM, Leon Romanovsky wrote:
+> On Sun, Sep 18, 2016 at 04:35:37PM -0400, Doug Ledford wrote:
 
+> Doug,
+> The function pointers will cause us to create two similar functions
+> (debug/regular) for every important function. It will leave to code
+> duplication and/or introducing of new code to fill additional fields
+> in returns to debug functions, so they will be able to print it.
+
+That's situationally specific.  The original patch you posted that I
+said no to is an example of where this wouldn't have been true.
+Basically it all boils down to whether or not your debug code can be a
+wrapper of your existing function or if it needs to be embedded in the
+middle of it.  If the latter, then you are more likely to have code
+duplication as you point out.  But, then refactoring code can help with
+that problem too.
+
+> I wanted to propose to use tracepoints to provide debug information in
+> data paths. The tracepoints infrastructure uses hooks in the code with
+> minimal impact on performance.
+
+Yes, but one of the things you said before was "zero impact on normal
+operations", but with tracepoints you just said "minimal impact".  So it
+sounds like tracepoints don't meet your own initial requirements.  I'm
+not against them, but utilizing the entry points allows for achievment
+of the "zero impact" requirement.  And as Denny pointed out, some things
+can't be done with tracepoints.  So, the final solution might be a mix
+of different things including different entry points, tracepoints, and
+some core infrastructure.
+
+>=20
+>> Then we can drop the CONFIG_*_DEBUG options out of all of the
+>> drivers.  That would be my preference.  I don't want any compile time
+>> options because you never will be running a debug kernel when you need=
+
+>> it.  Per device, run time selectable so that you get 0 overhead in the=
+
+>> normal case is what I would like to see.
+>=20
+> Great,
+> We are aligned on this point, so do I. I see no reason in special compi=
+led
+> kernel or global module parameter to print debug prints for whole drive=
+r.
+
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--mHN21BPgVwX4SF4RVIbu3uesrWpkcIxPB--
+
+--mnds0thGEtNEh440sVxhqUNHeHv9efd0m
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJX4AxWAAoJELgmozMOVy/dEs8P/RYsEQT/IqEZvIAao9Rk/ApG
+ZQbWlRUXuGybxrSJooIpsriSP9thNC1DdTi79+6f0Pu0v8siFc53J0JkZ0V0Ntd6
+3eHwpukLSSapz8Q0hbmSkHLfICnM/PPxlza8HSrPhgPcYZA6lVpLO8iNfqKVbBld
+DGepI8Io56EBeZ8amQ9uvmZ0VyHfxKyu3FNQvsSpnYzSGls/H8zrzVcLEwFiUErd
+VgA0Uvhq/t1SjH/2iFsAh/eiDToBvvS1kin0/QI0f9xqNjFoY8WEK80Jzyrn8qjN
+N3ScXj/14b4w4HFKpcPPsu4piBBoAgewYhOzHGNY7MUa8C36upE9nsbpFUx1GrcE
+imp5iaC3cgmNnwOnAIWWF2jciqe/Xo9pWAQuBN5sjVhrBj0lhVcArxpyvcAyml8B
+2sLmHQoQToA68D3lnM2Jl0QxFen+d29KCC1LM9gppFXQIh7puSNowoOjqYMR0wA5
+SJK1lUtFbmtZLyszwsW3o6VxoPpMQB4mxJUCUrJXhPxZICST9rOPY4MU3ZQhXdMj
+wBQwEFFyIEOltAb+99bM0q9q7ElwkwypxP+6ZZHylrPl6lkByhkQ+e/8ohCpUIpt
+69Z5/NJGAdqD578mgKwOafTRu0rEgL33ReF+1H9ZYPKmbxzduiFSz6MMUeA585WD
+3P/w05jaggAcL46MPO+H
+=Po+K
+-----END PGP SIGNATURE-----
+
+--mnds0thGEtNEh440sVxhqUNHeHv9efd0m--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
