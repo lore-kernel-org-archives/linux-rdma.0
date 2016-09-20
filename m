@@ -1,98 +1,90 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 3/3] Provide remote XRC SRQ number in
- kernel post_send.
-Date: Tue, 20 Sep 2016 12:43:30 +0200
-Message-ID: <1474368210.8837.3.camel@oracle.com>
-References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
-         <d57e9dc45f6f4aed9dfb86a498226dab99e530a4.1474063039.git-series.knut.omang@oracle.com>
-         <20160919052911.GF3273@leon.nu> <1474276356.24045.93.camel@oracle.com>
-         <20160920101839.GF26673@leon.nu>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH v2 5/8] ib_uverbs: Add padding to end align
+ ib_uverbs_reg_mr_resp
+Date: Tue, 20 Sep 2016 13:45:34 +0300
+Message-ID: <f049462a-5cd0-10bf-320b-c5bc634e93b9@dev.mellanox.co.il>
+References: <cover.15d71ac2c57534f1170c2c48374d3841ed75e676.1474049924.git-series.knut.omang@oracle.com>
+ <aafa787a72e9df9a40b292fb33833e67ffb46c6a.1474049924.git-series.knut.omang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160920101839.GF26673-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <aafa787a72e9df9a40b292fb33833e67ffb46c6a.1474049924.git-series.knut.omang@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Knut Omang <knut.omang@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2016-09-20 at 13:18 +0300, Leon Romanovsky wrote:
-> On Mon, Sep 19, 2016 at 11:12:36AM +0200, Knut Omang wrote:
-> > 
-> > On Mon, 2016-09-19 at 08:29 +0300, Leon Romanovsky wrote:
-> > > 
-> > > On Sat, Sep 17, 2016 at 05:59:13AM +0200, Knut Omang wrote:
-> > > > 
-> > > > 
-> > > > Also proper end align the ibv_kern_send_wr struct.
-> > > > 
-> > > > Requires a corresponding kernel change.
-> > > > 
-> > > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > > ---
-> > > >  include/infiniband/kern-abi.h | 1 +
-> > > >  src/cmd.c                     | 2 ++
-> > > >  2 files changed, 3 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-> > > > index 8bdeef5..7b1d310 100644
-> > > > --- a/include/infiniband/kern-abi.h
-> > > > +++ b/include/infiniband/kern-abi.h
-> > > > @@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
-> > > >  	union {
-> > > >  		struct {
-> > > >  			__u32 remote_srqn;
-> > > > +			__u32 reserved;
-> > > >  		} xrc;
-> > > >  	} qp_type;
-> > > >  };
-> > > > diff --git a/src/cmd.c b/src/cmd.c
-> > > > index a418ee1..a4e2f75 100644
-> > > > --- a/src/cmd.c
-> > > > +++ b/src/cmd.c
-> > > > @@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-> > > >  			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
-> > > >  			tmp->wr.ud.remote_qkey = i->wr.ud.remote_qkey;
-> > > >  		} else {
-> > > > +			if (ibqp->qp_type == IBV_QPT_XRC_SEND)
-> > > > +				tmp->qp_type.xrc.remote_srqn = i->qp_type.xrc.remote_srqn;
-> > > It will be checked for all QPTs and for all consumers. Any chances to
-> > > optimize it?
-> > All QPTs except UD, yes.
-> > 
-> > The easiest is perhaps just to remove the test (and set the attribute in all cases), which will work fine
-> > as long as the qp_type union is not used for anything else, but is it worth 
-> > the loss of intuitiveness/future potential correctness of the code?
-> Let's concentrate on the present and as far as I see there are no kernel users who
-> need this field xrc.remote_srqn field.
+On 9/16/2016 9:31 PM, Knut Omang wrote:
+> The ib_uverbs_reg_mr_resp structure was not 64 bit end aligned
+> as required by the protocol. This causes alignment issues
+> if a device specific driver needs to transfer extra response
+> arguments.
+>
+> Avoid breaking backward compatibility by improving the handling
+> of the length checking in ib_uverbs_reg_mr to consider the case
+> where the kernel has been updated, but user space still has
+> the old length without padding.
+>
+> Signed-off-by: Knut Omang <knut.omang@oracle.com>
+> ---
+>  drivers/infiniband/core/uverbs_cmd.c | 10 ++++++----
+>  include/uapi/rdma/ib_user_verbs.h    |  1 +
+>  2 files changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index dbc5885..fa8a717 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -967,16 +967,18 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+>  	struct ib_pd                *pd;
+>  	struct ib_mr                *mr;
+>  	int                          ret;
+> +	size_t resp_size = sizeof resp;
+>
+> -	if (out_len < sizeof resp)
+> -		return -ENOSPC;
+> +	if (out_len < resp_size) {
+> +		resp_size = out_len;
+> +	}
 
-So I assume then that you are ok with this code, given my explanation?
+You don't preserve the minimum response size error checking in your code 
+(i.e  -ENOSPC). We can expect an error if outlen is less than the
+offset of rkey in ib_uverbs_reg_mr_resp.
 
-Thanks,
-Knut
+Please note that below call to copy_to_user will succeed as it copies 
+now based on resp_size and won't return the basic mandatory output.
 
-> > 
-> > 
-> > Note that this is for user mode post_send implemented by the kernel, not the "fast path"
-> > pure user mode.
-> > 
-> > Knut
-> > 
-> > > 
-> > > > 
-> > > > 
-> > > >  			switch (i->opcode) {
-> > > >  			case IBV_WR_RDMA_WRITE:
-> > > >  			case IBV_WR_RDMA_WRITE_WITH_IMM:
-> > > > --
-> > > > git-series 0.8.10
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>  	if (copy_from_user(&cmd, buf, sizeof cmd))
+>  		return -EFAULT;
+>
+>  	INIT_UDATA(&udata, buf + sizeof cmd,
+>  		   (unsigned long) cmd.response + sizeof resp,
+> -		   in_len - sizeof cmd, out_len - sizeof resp);
+> +		   in_len - sizeof cmd, out_len - resp_size);
+>
+>  	if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
+>  		return -EINVAL;
+> @@ -1030,7 +1032,7 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+>  	resp.mr_handle = uobj->id;
+>
+>  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+> -			 &resp, sizeof resp)) {
+> +			 &resp, resp_size)) {
+>  		ret = -EFAULT;
+>  		goto err_copy;
+>  	}
+> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+> index 7f035f4..6b8c9c0 100644
+> --- a/include/uapi/rdma/ib_user_verbs.h
+> +++ b/include/uapi/rdma/ib_user_verbs.h
+> @@ -307,6 +307,7 @@ struct ib_uverbs_reg_mr_resp {
+>  	__u32 mr_handle;
+>  	__u32 lkey;
+>  	__u32 rkey;
+> +	__u32 reserved;
+>  };
+>
+>  struct ib_uverbs_rereg_mr {
+>
