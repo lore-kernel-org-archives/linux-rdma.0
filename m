@@ -1,50 +1,67 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v3 0/3] SIF related libibverbs patches
-Date: Tue, 20 Sep 2016 08:22:23 +0200
-Message-ID: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang@oracle.com>
+Subject: [PATCH libibverbs v3 2/3] Add padding to get proper end alignment of ibv_reg_mr_resp
+Date: Tue, 20 Sep 2016 08:22:25 +0200
+Message-ID: <e1cad6ff893c18644b8e29a693bc72ea1d57866f.1474352400.git-series.knut.omang@oracle.com>
+References: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the initial patch series for the work of upstreaming the driver and
-user level library for SIF, the new Oracle HCA.
+The user/kernel level API requires all parameter blocks to be
+64 bit end aligned.
 
-These patches are needed to support SIF - Oracle's new Infiniband HCA stack
-from user mode. A corresponding patch set for the kernel is needed.
+Also clean up some valgrind/memory initialization issues.
 
-Patch 1 introduces a new ibv_cmd_create_ah_ex under a new .so file version
-IBVERBS_1.3 in order to preserve backward binary compatibility with older
-provider builds.
+Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ include/infiniband/kern-abi.h | 1 +
+ src/cmd.c                     | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-We need patch 2 because we need a provider specific extension to the ibv_reg_mr response,
-which breaks if alignment criterias are violated.
-
-Patch 3 is similar to patch 2 except that no provider libs uses this code path
-(kernel supported XRC send) until now, so no extra backward compatibility measures
-are needed.
-
-Changes since v2:
-  - Rebase to latest libibverbs (3b39733)
-  - Use IBVERBS_1.4 instead of 1.3 in map file
-
-Changes since v1:
-  - Introduce the new ibv_cmd_create_ah_ex as a new version IBVERBS_1.3 in the
-    map file.
-
-Knut Omang (3):
-  Add new call ibv_cmd_create_ah_ex which supports extra parameters
-  Add padding to get proper end alignment of ibv_reg_mr_resp
-  Provide remote XRC SRQ number in kernel post_send.
-
- include/infiniband/driver.h   |  4 +++-
- include/infiniband/kern-abi.h |  2 +-
- src/cmd.c                     | 55 +++++++++++++++++++++---------------
- src/libibverbs.map            |  6 +++-
- 4 files changed, 44 insertions(+), 23 deletions(-)
-
-base-commit: 3b3973377f0dbccb11323b86e267308052cc4458
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 381fd50..ddea393 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -382,6 +382,7 @@ struct ibv_reg_mr_resp {
+ 	__u32 mr_handle;
+ 	__u32 lkey;
+ 	__u32 rkey;
++	__u32 reserved;
+ };
+ 
+ struct ibv_rereg_mr {
+diff --git a/src/cmd.c b/src/cmd.c
+index 58b9dcd..381dcc7 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -1500,6 +1500,7 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
+ 	cmd->user_handle            = (uintptr_t) ah;
+ 	cmd->pd_handle              = pd->handle;
++	cmd->reserved               = 0;
+ 	cmd->attr.dlid              = attr->dlid;
+ 	cmd->attr.sl                = attr->sl;
+ 	cmd->attr.src_path_bits     = attr->src_path_bits;
+@@ -1510,12 +1511,14 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
+ 	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
+ 	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
+ 	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
++	cmd->attr.grh.reserved      = 0;
++	cmd->attr.reserved          = 0;
+ 	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+ 
+ 	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+ 		return errno;
+ 
+-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+ 
+ 	ah->handle  = resp->handle;
+ 	ah->context = pd->context;
 -- 
 git-series 0.8.10
 --
