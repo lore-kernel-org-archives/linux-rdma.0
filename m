@@ -1,141 +1,125 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v3 1/3] Add new call ibv_cmd_create_ah_ex which supports extra parameters
-Date: Tue, 20 Sep 2016 08:22:24 +0200
-Message-ID: <d551c3792e884443903c67212f505082cd53b135.1474352400.git-series.knut.omang@oracle.com>
-References: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH libibverbs v2 3/3] Provide remote XRC SRQ number in
+ kernel post_send.
+Date: Tue, 20 Sep 2016 13:18:39 +0300
+Message-ID: <20160920101839.GF26673@leon.nu>
+References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
+ <d57e9dc45f6f4aed9dfb86a498226dab99e530a4.1474063039.git-series.knut.omang@oracle.com>
+ <20160919052911.GF3273@leon.nu>
+ <1474276356.24045.93.camel@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="8TaQrIeukR7mmbKf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1474276356.24045.93.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The original call ibv_cmd_create_ah does not allow vendor specific request or
-response parameters to be defined and passed through to kernel space.
 
-To keep backward compatibility, introduce a new extended call which accepts
-cmd and resp parameters similar to other parts of the API.
-Reimplement the old call to just use the new extended call.
+--8TaQrIeukR7mmbKf
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The new call is versioned in the shared library as IBVERBS_1.4.
+On Mon, Sep 19, 2016 at 11:12:36AM +0200, Knut Omang wrote:
+> On Mon, 2016-09-19 at 08:29 +0300, Leon Romanovsky wrote:
+> > On Sat, Sep 17, 2016 at 05:59:13AM +0200, Knut Omang wrote:
+> > >
+> > > Also proper end align the ibv_kern_send_wr struct.
+> > >
+> > > Requires a corresponding kernel change.
+> > >
+> > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > > =A0include/infiniband/kern-abi.h | 1 +
+> > > =A0src/cmd.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0| 2 ++
+> > > =A02 files changed, 3 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-=
+abi.h
+> > > index 8bdeef5..7b1d310 100644
+> > > --- a/include/infiniband/kern-abi.h
+> > > +++ b/include/infiniband/kern-abi.h
+> > > @@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
+> > > =A0	union {
+> > > =A0		struct {
+> > > =A0			__u32 remote_srqn;
+> > > +			__u32 reserved;
+> > > =A0		} xrc;
+> > > =A0	} qp_type;
+> > > =A0};
+> > > diff --git a/src/cmd.c b/src/cmd.c
+> > > index a418ee1..a4e2f75 100644
+> > > --- a/src/cmd.c
+> > > +++ b/src/cmd.c
+> > > @@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, stru=
+ct ibv_send_wr *wr,
+> > > =A0			tmp->wr.ud.remote_qpn=A0=A0=3D i->wr.ud.remote_qpn;
+> > > =A0			tmp->wr.ud.remote_qkey =3D i->wr.ud.remote_qkey;
+> > > =A0		} else {
+> > > +			if (ibqp->qp_type =3D=3D IBV_QPT_XRC_SEND)
+> > > +				tmp->qp_type.xrc.remote_srqn =3D i->qp_type.xrc.remote_srqn;
+> > It will be checked for all QPTs and for all consumers. Any chances to
+> > optimize it?
+>
+> All QPTs except UD, yes.
+>
+> The easiest is perhaps just to remove the test (and set the attribute in =
+all cases), which will work fine
+> as long as the qp_type union is not used for anything else, but is it wor=
+th=A0
+> the loss of intuitiveness/future potential correctness of the code?
 
-Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- include/infiniband/driver.h |  4 +++-
- src/cmd.c                   | 50 +++++++++++++++++++++-----------------
- src/libibverbs.map          |  6 ++++-
- 3 files changed, 37 insertions(+), 23 deletions(-)
+Let's concentrate on the present and as far as I see there are no kernel us=
+ers who
+need this field xrc.remote_srqn field.
 
-diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index ea3dade..9356dc8 100644
---- a/include/infiniband/driver.h
-+++ b/include/infiniband/driver.h
-@@ -234,6 +234,10 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
- 			  struct ibv_recv_wr **bad_wr);
- int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
- 		      struct ibv_ah_attr *attr);
-+int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah,
-+			struct ibv_ah_attr *attr,
-+			struct ibv_create_ah *cmd, size_t cmd_size,
-+			struct ibv_create_ah_resp *resp, size_t resp_size);
- int ibv_cmd_destroy_ah(struct ibv_ah *ah);
- int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
- int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
-diff --git a/src/cmd.c b/src/cmd.c
-index 11f6509..58b9dcd 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -1493,38 +1493,44 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
- 	return ret;
- }
- 
--int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
--		      struct ibv_ah_attr *attr)
-+int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_attr *attr,
-+			 struct ibv_create_ah *cmd, size_t cmd_size,
-+			 struct ibv_create_ah_resp *resp, size_t resp_size)
- {
--	struct ibv_create_ah      cmd;
--	struct ibv_create_ah_resp resp;
--
--	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
--	cmd.user_handle            = (uintptr_t) ah;
--	cmd.pd_handle              = pd->handle;
--	cmd.attr.dlid              = attr->dlid;
--	cmd.attr.sl                = attr->sl;
--	cmd.attr.src_path_bits     = attr->src_path_bits;
--	cmd.attr.static_rate       = attr->static_rate;
--	cmd.attr.is_global         = attr->is_global;
--	cmd.attr.port_num          = attr->port_num;
--	cmd.attr.grh.flow_label    = attr->grh.flow_label;
--	cmd.attr.grh.sgid_index    = attr->grh.sgid_index;
--	cmd.attr.grh.hop_limit     = attr->grh.hop_limit;
--	cmd.attr.grh.traffic_class = attr->grh.traffic_class;
--	memcpy(cmd.attr.grh.dgid, attr->grh.dgid.raw, 16);
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
-+	cmd->user_handle            = (uintptr_t) ah;
-+	cmd->pd_handle              = pd->handle;
-+	cmd->attr.dlid              = attr->dlid;
-+	cmd->attr.sl                = attr->sl;
-+	cmd->attr.src_path_bits     = attr->src_path_bits;
-+	cmd->attr.static_rate       = attr->static_rate;
-+	cmd->attr.is_global         = attr->is_global;
-+	cmd->attr.port_num          = attr->port_num;
-+	cmd->attr.grh.flow_label    = attr->grh.flow_label;
-+	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
-+	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
-+	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
-+	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
- 
--	if (write(pd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
-+	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
- 		return errno;
- 
--	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
-+	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
- 
--	ah->handle  = resp.handle;
-+	ah->handle  = resp->handle;
- 	ah->context = pd->context;
- 
- 	return 0;
- }
- 
-+int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
-+		      struct ibv_ah_attr *attr)
-+{
-+	struct ibv_create_ah      cmd;
-+	struct ibv_create_ah_resp resp; 
-+	return ibv_cmd_create_ah_ex(pd, ah, attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
-+}
-+
- int ibv_cmd_destroy_ah(struct ibv_ah *ah)
- {
- 	struct ibv_destroy_ah cmd;
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 46744e5..ddba63a 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -118,7 +118,6 @@ IBVERBS_1.1 {
- 		ibv_cmd_create_qp_ex2;
- 		ibv_cmd_open_qp;
- 		ibv_cmd_rereg_mr;
--
- } IBVERBS_1.0;
- 
- IBVERBS_1.3 {
-@@ -130,3 +129,8 @@ IBVERBS_1.3 {
- 		ibv_cmd_destroy_rwq_ind_table;
- 		ibv_query_gid_type;
- } IBVERBS_1.1;
-+
-+IBVERBS_1.4 {
-+	global:
-+		ibv_cmd_create_ah_ex;
-+} IBVERBS_1.3;
--- 
-git-series 0.8.10
+>
+> Note that this is for user mode post_send implemented by the kernel, not =
+the "fast path"
+> pure user mode.
+>
+> Knut
+>
+> > >
+> > > =A0			switch (i->opcode) {
+> > > =A0			case IBV_WR_RDMA_WRITE:
+> > > =A0			case IBV_WR_RDMA_WRITE_WITH_IMM:
+> > > --
+> > > git-series 0.8.10
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at=A0=A0http://vger.kernel.org/majordomo-info.html
+
+--8TaQrIeukR7mmbKf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX4Qz/AAoJEORje4g2clinhLQP/18w+mJNDqZkQxNlm1PKOtYz
+nCqwbCAPw8aRAYtypwy9Q3PocyWxkHGrjNmc0rVPe8vORxs6gNDFnFi1Q2cReEB+
+z4cqO6GDHNulVnjLdNSFqh9Lv+INo69qTZ5wSBKDgKWJtNYCY/8hNvtVU2ob2iwy
+SJ9GPGL3cqnj85a27k+R9ZKVtXNuACPJC5wRqWHE28lyKku846JSlDYUJtYBhLnA
+vrkkDXV/4P4yLBsc9XXMjfZc2kEYL1ZP+p+jRg5wQPuadD6FO33U5sqaevVGrom+
+4XlZXpX/VmPuo5tcDBXArX67ZcrQf/Q2Tl2TFTMWpjH+rGd0W6VqPliM6My1dMTy
+qal/tkQn/pQ3wbDLjbaGysTPjDkCLG9GSm9ggesFQG53eQMqjJ/vadR4Nb0nsX0t
+m47KKeC9stw5/P045FE9E7ML0KtXk0s6MB7LdCsPqSbeco74IhN5vQlXszzfKwqw
+gLCEToXxbxXHrFo57JAhBLzdD7f4YOYaisH3VaaJY+47ngqdEF1EDWmFHstw6jL4
+8TR2Q7zOyHhdXVfdl53G3jl5ZvSHD4KIBtuXpsH2ClxrAkgIfwZ2pANc9oyg8TPT
+F279uBBZw54hMqnqyZko7ABwTUBX6zINItEdMjPENCpLmM/AWT4WP1xc73N3gM+D
+18y140aKQ+wvnxca9N66
+=PYRW
+-----END PGP SIGNATURE-----
+
+--8TaQrIeukR7mmbKf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
