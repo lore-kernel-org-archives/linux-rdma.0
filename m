@@ -1,108 +1,184 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 3/3] Provide remote XRC SRQ number in
- kernel post_send.
-Date: Tue, 20 Sep 2016 15:38:46 +0200
-Message-ID: <1474378726.20134.140.camel@oracle.com>
-References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
-         <d57e9dc45f6f4aed9dfb86a498226dab99e530a4.1474063039.git-series.knut.omang@oracle.com>
-         <20160919052911.GF3273@leon.nu> <1474276356.24045.93.camel@oracle.com>
-         <20160920101839.GF26673@leon.nu> <1474368210.8837.3.camel@oracle.com>
-         <20160920110115.GJ26673@leon.nu> <1474369715.8837.19.camel@oracle.com>
-         <20160920121741.GL26673@leon.nu>
+Subject: Re: [PATCH libibverbs v3 1/3] Add new call ibv_cmd_create_ah_ex
+ which supports extra parameters
+Date: Tue, 20 Sep 2016 16:05:50 +0200
+Message-ID: <1474380350.20134.162.camel@oracle.com>
+References: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang@oracle.com>
+         <d551c3792e884443903c67212f505082cd53b135.1474352400.git-series.knut.omang@oracle.com>
+         <550041ef-b105-c079-068c-d96278ec34f1@dev.mellanox.co.il>
+         <1474371459.8837.32.camel@oracle.com> <20160920132945.GO26673@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160920121741.GL26673-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160920132945.GO26673-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2016-09-20 at 15:17 +0300, Leon Romanovsky wrote:
-> On Tue, Sep 20, 2016 at 01:08:35PM +0200, Knut Omang wrote:
-> > On Tue, 2016-09-20 at 14:01 +0300, Leon Romanovsky wrote:
-> > > On Tue, Sep 20, 2016 at 12:43:30PM +0200, Knut Omang wrote:
+On Tue, 2016-09-20 at 16:29 +0300, Leon Romanovsky wrote:
+> On Tue, Sep 20, 2016 at 01:37:39PM +0200, Knut Omang wrote:
+> > On Tue, 2016-09-20 at 14:17 +0300, Yishai Hadas wrote:
+> > > On 9/20/2016 9:22 AM, Knut Omang wrote:
 > > > >
-> > > > On Tue, 2016-09-20 at 13:18 +0300, Leon Romanovsky wrote:
-> > > > >
-> > > > > On Mon, Sep 19, 2016 at 11:12:36AM +0200, Knut Omang wrote:
-> > > > > >
-> > > > > >
-> > > > > > On Mon, 2016-09-19 at 08:29 +0300, Leon Romanovsky wrote:
-> > > > > > >
-> > > > > > >
-> > > > > > > On Sat, Sep 17, 2016 at 05:59:13AM +0200, Knut Omang wrote:
-> > > > > > > >
-> > > > > > > >
-> > > > > > > >
-> > > > > > > > Also proper end align the ibv_kern_send_wr struct.
-> > > > > > > >
-> > > > > > > > Requires a corresponding kernel change.
-> > > > > > > >
-> > > > > > > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > > > > > > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > > > > > > ---
-> > > > > > > >  include/infiniband/kern-abi.h | 1 +
-> > > > > > > >  src/cmd.c                     | 2 ++
-> > > > > > > >  2 files changed, 3 insertions(+), 0 deletions(-)
-> > > > > > > >
-> > > > > > > > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-> > > > > > > > index 8bdeef5..7b1d310 100644
-> > > > > > > > --- a/include/infiniband/kern-abi.h
-> > > > > > > > +++ b/include/infiniband/kern-abi.h
-> > > > > > > > @@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
-> > > > > > > >  	union {
-> > > > > > > >  		struct {
-> > > > > > > >  			__u32 remote_srqn;
-> > > > > > > > +			__u32 reserved;
-> > > > > > > >  		} xrc;
-> > > > > > > >  	} qp_type;
-> > > > > > > >  };
-> > > > > > > > diff --git a/src/cmd.c b/src/cmd.c
-> > > > > > > > index a418ee1..a4e2f75 100644
-> > > > > > > > --- a/src/cmd.c
-> > > > > > > > +++ b/src/cmd.c
-> > > > > > > > @@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-> > > > > > > >  			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
-> > > > > > > >  			tmp->wr.ud.remote_qkey = i->wr.ud.remote_qkey;
-> > > > > > > >  		} else {
-> > > > > > > > +			if (ibqp->qp_type == IBV_QPT_XRC_SEND)
-> > > > > > > > +				tmp->qp_type.xrc.remote_srqn = i->qp_type.xrc.remote_srqn;
-> > > > > > > It will be checked for all QPTs and for all consumers. Any chances to
-> > > > > > > optimize it?
-> > > > > > All QPTs except UD, yes.
-> > > > > >
-> > > > > > The easiest is perhaps just to remove the test (and set the attribute in all cases), which will work fine
-> > > > > > as long as the qp_type union is not used for anything else, but is it worth 
-> > > > > > the loss of intuitiveness/future potential correctness of the code?
-> > > > > Let's concentrate on the present and as far as I see there are no kernel users who
-> > > > > need this field xrc.remote_srqn field.
-> > > > So I assume then that you are ok with this code, given my explanation?
-> > > Partially,
-> > >
-> > > I'm fine with the claim about readability and the fact that
-> > > this code is not in data-path relaxed me a little bit.
+> > > > The original call ibv_cmd_create_ah does not allow vendor specific request or
+> > > > response parameters to be defined and passed through to kernel space.
+> > > >
+> > > > To keep backward compatibility, introduce a new extended call which accepts
+> > > > cmd and resp parameters similar to other parts of the API.
+> > > > Reimplement the old call to just use the new extended call.
+> > > >
+> > > > The new call is versioned in the shared library as IBVERBS_1.4.
+> > > >
+> > > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > > ---
+> > > >  include/infiniband/driver.h |  4 +++-
+> > > >  src/cmd.c                   | 50 +++++++++++++++++++++-----------------
+> > > >  src/libibverbs.map          |  6 ++++-
+> > > >  3 files changed, 37 insertions(+), 23 deletions(-)
+> > > >
+> > > > diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+> > > > index ea3dade..9356dc8 100644
+> > > > --- a/include/infiniband/driver.h
+> > > > +++ b/include/infiniband/driver.h
+> > > > @@ -234,6 +234,10 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+> > > >  			  struct ibv_recv_wr **bad_wr);
+> > > >  int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> > > >  		      struct ibv_ah_attr *attr);
+> > > > +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah,
+> > > > +			struct ibv_ah_attr *attr,
+> > > > +			struct ibv_create_ah *cmd, size_t cmd_size,
+> > > > +			struct ibv_create_ah_resp *resp, size_t resp_size);
+> > > >  int ibv_cmd_destroy_ah(struct ibv_ah *ah);
+> > > >  int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+> > > >  int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+> > > > diff --git a/src/cmd.c b/src/cmd.c
+> > > > index 11f6509..58b9dcd 100644
+> > > > --- a/src/cmd.c
+> > > > +++ b/src/cmd.c
+> > > > @@ -1493,38 +1493,44 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+> > > >  	return ret;
+> > > >  }
+> > > >
+> > > > -int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> > > > -		      struct ibv_ah_attr *attr)
+> > > > +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_attr *attr,
+> > > > +			 struct ibv_create_ah *cmd, size_t cmd_size,
+> > > > +			 struct ibv_create_ah_resp *resp, size_t resp_size)
+> > > >  {
+> > > > -	struct ibv_create_ah      cmd;
+> > > > -	struct ibv_create_ah_resp resp;
+> > > > -
+> > > > -	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
+> > > > -	cmd.user_handle            = (uintptr_t) ah;
+> > > > -	cmd.pd_handle              = pd->handle;
+> > > > -	cmd.attr.dlid              = attr->dlid;
+> > > > -	cmd.attr.sl                = attr->sl;
+> > > > -	cmd.attr.src_path_bits     = attr->src_path_bits;
+> > > > -	cmd.attr.static_rate       = attr->static_rate;
+> > > > -	cmd.attr.is_global         = attr->is_global;
+> > > > -	cmd.attr.port_num          = attr->port_num;
+> > > > -	cmd.attr.grh.flow_label    = attr->grh.flow_label;
+> > > > -	cmd.attr.grh.sgid_index    = attr->grh.sgid_index;
+> > > > -	cmd.attr.grh.hop_limit     = attr->grh.hop_limit;
+> > > > -	cmd.attr.grh.traffic_class = attr->grh.traffic_class;
+> > > > -	memcpy(cmd.attr.grh.dgid, attr->grh.dgid.raw, 16);
+> > > > +	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
+> > > > +	cmd->user_handle            = (uintptr_t) ah;
+> > > > +	cmd->pd_handle              = pd->handle;
+> > > > +	cmd->attr.dlid              = attr->dlid;
+> > > > +	cmd->attr.sl                = attr->sl;
+> > > > +	cmd->attr.src_path_bits     = attr->src_path_bits;
+> > > > +	cmd->attr.static_rate       = attr->static_rate;
+> > > > +	cmd->attr.is_global         = attr->is_global;
+> > > > +	cmd->attr.port_num          = attr->port_num;
+> > > > +	cmd->attr.grh.flow_label    = attr->grh.flow_label;
+> > > > +	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
+> > > > +	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
+> > > > +	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
+> > > > +	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+> > > >
+> > > > -	if (write(pd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+> > > > +	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+> > > >  		return errno;
+> > > >
+> > > > -	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
+> > > > +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+> > > >
+> > > > -	ah->handle  = resp.handle;
+> > > > +	ah->handle  = resp->handle;
+> > > >  	ah->context = pd->context;
+> > > >
+> > > >  	return 0;
+> > > >  }
+> > > >
+> > > > +int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> > > > +		      struct ibv_ah_attr *attr)
+> > > > +{
+> > > > +	struct ibv_create_ah      cmd;
+> > > > +	struct ibv_create_ah_resp resp;
+> > > > +	return ibv_cmd_create_ah_ex(pd, ah, attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
+> > > > +}
+> > > > +
+> > > >  int ibv_cmd_destroy_ah(struct ibv_ah *ah)
+> > > >  {
+> > > >  	struct ibv_destroy_ah cmd;
+> > > > diff --git a/src/libibverbs.map b/src/libibverbs.map
+> > > > index 46744e5..ddba63a 100644
+> > > > --- a/src/libibverbs.map
+> > > > +++ b/src/libibverbs.map
+> > > > @@ -118,7 +118,6 @@ IBVERBS_1.1 {
+> > > >  		ibv_cmd_create_qp_ex2;
+> > > >  		ibv_cmd_open_qp;
+> > > >  		ibv_cmd_rereg_mr;
+> > > > -
+> > > >  } IBVERBS_1.0;
+> > > >
+> > > >  IBVERBS_1.3 {
+> > > > @@ -130,3 +129,8 @@ IBVERBS_1.3 {
+> > > >  		ibv_cmd_destroy_rwq_ind_table;
+> > > >  		ibv_query_gid_type;
+> > > >  } IBVERBS_1.1;
+> > > > +
+> > > > +IBVERBS_1.4 {
+> > > Any reason to add 1.4 instead of using 1.3 ? in my understanding the 
+> > > idea is that new symbols for next release will use a new ABI version, 
+> > > this is what 1.3 already supplied. Added Jason for his input as well.
 > >
-> > Good!
+> > good point - Jason?
 > >
-> > > I'm not fine with the part that this code doesn't do anything in kernel.
+> > > >
+> > > > +	global:
+> > > > +		ibv_cmd_create_ah_ex;
+> > > When do you plan to contribute the driver code for that ? for now no 
+> > > upstream drivers uses this API, taking some code for future usage with 
+> > > no current usage is not the preferred way.
 > >
-> > I know, I have two big patch sets one kernel and one for the new "rdma consolidated" 
-> > in the queue that should fix that, just want to save a few versions of those 
-> > ~32000 lines of code by preparing the baseline :-)
+> > The plan is ASAP, the kernel side has been approved for release by Oracle's
+> > legal dep, but the user library is still stuck, and with an undesirable
+> > license combination given Jason's recent consolidation efforts :-/
 > 
-> It won't save. We DO believe you that this this new addition to UAPI is really
-> needed, but we NEED to see that it is unavoidable.
-> 
-> The proper flow for submission is driver->kernel_core->libraries and not
-> kernel_core->libraries->driver.
+> Jason didn't change licenses. You still can release your driver under
+> dual-license in similar way to other drivers.
 
-Ok, got it..
+The problem is that libsif is stuck under a BSD only license imposed by 
+the first set of lawyers involved, and to be compatible, we need it 
+to be dual license GPLv2 + BSD like the rest of the provider libraries.
 
 Knut
 
-> Thanks
+> >
+> > Knut
+> >
+> > > >
+> > > > +} IBVERBS_1.3;
+> > > >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
