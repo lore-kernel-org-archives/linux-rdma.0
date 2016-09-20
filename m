@@ -1,93 +1,120 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] Support for Chelsio T6 devices
-Date: Tue, 20 Sep 2016 13:21:08 +0300
-Message-ID: <20160920102108.GG26673@leon.nu>
-References: <20160919200957.8777AE0BC1@smtp.ogc.us>
+From: Ram Amrani <Ram.Amrani@cavium.com>
+Subject: [RFC v2 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Tue, 20 Sep 2016 13:35:52 +0300
+Message-ID: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="c7hkjup166d4FzgN"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160919200957.8777AE0BC1-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, dledford@redhat.com
+Cc: Ariel.Elior@cavium.com, Michal.Kalderon@cavium.com, Yuval.Mintz@cavium.com, rajesh.borundia@cavium.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Ram amrani <Ram.Amrani@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ram amrani <Ram.Amrani@cavium.com>
 
---c7hkjup166d4FzgN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This series introduces RoCE RDMA driver for the 579xx RDMA products by Qlogic.
+The RDMA support is added as an additional loadable module (qedr) over the
+Ethernet qede driver.
+The qedr module will support both RoCE and iWarp, although this series only
+adds RoCE support.
+The qed and qede drivers are enhanced with functionality required for RDMA
+support.
 
-On Mon, Sep 19, 2016 at 12:55:16PM -0700, Steve Wise wrote:
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
->  src/perftest_parameters.c |    1 +
->  src/perftest_parameters.h |    3 ++-
->  2 files changed, 3 insertions(+), 1 deletions(-)
->
-> diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
-> index a21b6eb..0d1ea2f 100755
-> --- a/src/perftest_parameters.c
-> +++ b/src/perftest_parameters.c
-> @@ -1326,6 +1326,7 @@ enum ctx_device ib_dev_name(struct ibv_context *context)
->  			case 4  : dev_fname = CHELSIO_T4; break;
->  			case 11 :
->  			case 5  : dev_fname = CHELSIO_T5; break;
-> +			case 6  : dev_fname = CHELSIO_T6; break;
->  			default : dev_fname = UNKNOWN; break;
->  		}
->
-> diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
-> index 448e398..727a65f 100755
-> --- a/src/perftest_parameters.h
-> +++ b/src/perftest_parameters.h
-> @@ -269,7 +269,8 @@ enum ctx_device {
->  	CONNECTX4		= 10,
->  	CONNECTX4LX		= 11,
->  	QLOGIC_E4		= 12,
-> -	QLOGIC_AH		= 13
-> +	QLOGIC_AH		= 13,
-> +	CHELSIO_T6		= 14
+Based on net-next 4c73195edbe3a5d7e14ea549bb261cf35c29f0cc.
 
-Nit comment,
-if you use "14," and not "14", the next submitter will send patch with
-less churn.
+The series adds on top of RFC v1:
+* a check for all drivers that IB_ACCESS_MW_BIND isn't set for ib_get_dma_mr
+* relocation of qedr user API to include/rdma/uapi/providers/
+* removal of qedr_devlist_local
+* fixed error handling in qedr_alloc_resources()
+* configuration of PBL in ib_map_mr_sg() driver implementation,
+  rather than post_send's IB_WR_REG_MR
+* misc.: placed code in proper patch, fixed a few comments,
+  removed extra parentheses
 
->  };
->
->  /* Units for rate limiter */
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for everyone which pointed out problems in the driver.
 
---c7hkjup166d4FzgN
-Content-Type: application/pgp-signature; name="signature.asc"
+Any review/comment is appreciated.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Yuval Mintz (1):
+  qed: Add LL2
 
-iQIcBAEBAgAGBQJX4Q2UAAoJEORje4g2clinPEkP/1s/9uLHvDhgQwCW8890vC3N
-W3U6Fv12XXgBtkcdxg3oMS24mT/FzJ/HdfYNO2bJHdum8cYZEDWUQ5iVrmg3poDy
-2e7z/LV3MEDNnrbFUIxv1vfGmYJgTOPZNwVXMz0y2tDomwH0g8f5eZo9A90F+OWg
-YcOcyIUzY0GwqcYyI3Higk0UNoJGkNz/6Cr0T0Gk+r4Z2z5PEUE6nuZAbUamnavz
-C8zbphZ69ROToZkg0rTQLCBXWFyCVhd3wnSERWDA0Ai9+VcWdx60mwlmwM2UFbN7
-nuejNsFlgrjhbrITKCfMo5ktOjkxKGY/MpX2mWuyDkkepF67OJOxRxxswujAfTVV
-XL2XmDr4CCf6dzaDAZcpdOOrQjpaP77VwSQY/kiZ7WkVo1OuX8hfFaC0eh9nfAvs
-NVg1kmjYrZy2u46PM/LWiAT6/7x7mtwOWBSC7lPYpHsWbRvZF5M9jx4Ck+qXwIK+
-aQmIokP7A8WQyKu6Xw6wQaIIvPlBfTA6kZ0a+F5J71Z1o9lcPBxjSx+II73gzs9w
-ffgMR+ZK0rfI+QzH/hwuXAbv39dt6ARtuLG+PziRkkQp4QRzFvEOBEIzSBsug0QE
-x4t9+adLE2UVOypZ7UjMBnKXAWnbAmfvoBVH7+GESCCj2YGSBltJQcsqGebRmnU2
-BTOvg+XWOxBeHAfNOjH+
-=sb8n
------END PGP SIGNATURE-----
+Rajesh Borundia (10):
+  qedr: Add RoCE driver framework
+  qedr: Add support for RoCE HW init
+  qedr: Add support for user context verbs
+  qedr: Add support for PD,PKEY and CQ verbs
+  qedr: Add support for QP verbs
+  qedr: Add support for memory registeration verbs
+  qedr: Add support for data path
+  qedr: Add LL2 RoCE interface
+  qedr: Add GSI support
+  qedr: Add events support and register IB device
 
---c7hkjup166d4FzgN--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ram Amrani (1):
+  IB/core: add a protection to ib_get_dma_mr
+
+ drivers/infiniband/Kconfig                     |    2 +
+ drivers/infiniband/core/verbs.c                |    3 +
+ drivers/infiniband/hw/Makefile                 |    1 +
+ drivers/infiniband/hw/qedr/Kconfig             |    7 +
+ drivers/infiniband/hw/qedr/Makefile            |    3 +
+ drivers/infiniband/hw/qedr/main.c              |  893 ++++++
+ drivers/infiniband/hw/qedr/qedr.h              |  494 ++++
+ drivers/infiniband/hw/qedr/qedr_cm.c           |  626 +++++
+ drivers/infiniband/hw/qedr/qedr_cm.h           |   61 +
+ drivers/infiniband/hw/qedr/qedr_hsi.h          |   56 +
+ drivers/infiniband/hw/qedr/qedr_hsi_rdma.h     |  748 +++++
+ drivers/infiniband/hw/qedr/verbs.c             | 3523 ++++++++++++++++++++++++
+ drivers/infiniband/hw/qedr/verbs.h             |   75 +
+ drivers/net/ethernet/qlogic/Kconfig            |    8 +
+ drivers/net/ethernet/qlogic/qed/Makefile       |    2 +
+ drivers/net/ethernet/qlogic/qed/qed.h          |   38 +-
+ drivers/net/ethernet/qlogic/qed/qed_cxt.c      |    8 +
+ drivers/net/ethernet/qlogic/qed/qed_cxt.h      |    7 +
+ drivers/net/ethernet/qlogic/qed/qed_dev.c      |  276 +-
+ drivers/net/ethernet/qlogic/qed/qed_dev_api.h  |   20 +
+ drivers/net/ethernet/qlogic/qed/qed_hsi.h      |    3 +
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c      | 1790 ++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_ll2.h      |  316 +++
+ drivers/net/ethernet/qlogic/qed/qed_main.c     |   67 +-
+ drivers/net/ethernet/qlogic/qed/qed_reg_addr.h |   30 +-
+ drivers/net/ethernet/qlogic/qed/qed_roce.c     | 2975 ++++++++++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_roce.h     |  210 ++
+ drivers/net/ethernet/qlogic/qed/qed_sp.h       |    5 +
+ drivers/net/ethernet/qlogic/qed/qed_spq.c      |    8 +
+ drivers/net/ethernet/qlogic/qede/Makefile      |    1 +
+ drivers/net/ethernet/qlogic/qede/qede.h        |    9 +
+ drivers/net/ethernet/qlogic/qede/qede_main.c   |   35 +-
+ drivers/net/ethernet/qlogic/qede/qede_roce.c   |  309 +++
+ include/linux/qed/common_hsi.h                 |    1 +
+ include/linux/qed/qed_if.h                     |    9 +-
+ include/linux/qed/qed_ll2_if.h                 |  140 +
+ include/linux/qed/qed_roce_if.h                |  604 ++++
+ include/linux/qed/qede_roce.h                  |   88 +
+ include/linux/qed/rdma_common.h                |    1 +
+ include/uapi/linux/pci_regs.h                  |    3 +
+ include/uapi/rdma/providers/qedr-abi.h         |   81 +
+ 41 files changed, 13516 insertions(+), 20 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qedr/Kconfig
+ create mode 100644 drivers/infiniband/hw/qedr/Makefile
+ create mode 100644 drivers/infiniband/hw/qedr/main.c
+ create mode 100644 drivers/infiniband/hw/qedr/qedr.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_cm.c
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_cm.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi.h
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi_rdma.h
+ create mode 100644 drivers/infiniband/hw/qedr/verbs.c
+ create mode 100644 drivers/infiniband/hw/qedr/verbs.h
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_ll2.c
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_ll2.h
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_roce.c
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_roce.h
+ create mode 100644 drivers/net/ethernet/qlogic/qede/qede_roce.c
+ create mode 100644 include/linux/qed/qed_ll2_if.h
+ create mode 100644 include/linux/qed/qed_roce_if.h
+ create mode 100644 include/linux/qed/qede_roce.h
+ create mode 100644 include/uapi/rdma/providers/qedr-abi.h
+
+-- 
+1.8.3.1
