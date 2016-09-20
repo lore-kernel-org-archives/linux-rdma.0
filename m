@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 11/19] IB/hns: Return bad wr while post send failed
-Date: Tue, 20 Sep 2016 17:07:04 +0100
-Message-ID: <20160920160712.1190216-12-salil.mehta@huawei.com>
+Subject: [PATCH V2 for-next 10/19] IB/hns: Fix bug of memory leakage for registering user mr
+Date: Tue, 20 Sep 2016 17:07:03 +0100
+Message-ID: <20160920160712.1190216-11-salil.mehta@huawei.com>
 References: <20160920160712.1190216-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,49 +14,36 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-While post failed, hns roce should return the wr failed to user.
-We omitted this while qp type is wrong and fixed it.
+While the page size attribute of umem is illegal, we should release
+umem that get by ib_umem_get interface.
+
+Also, we should return a non-zero value while pbl number is wrong.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Dongdong Huang(Donald) <hdd.huang@huawei.com>
 Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
-PATCH V2: Addressed commnets by Leon Romanovsky
-          Link: https://lkml.org/lkml/2016/9/15/98
-PATCH V1: Initial submit
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 65c3192..1205d1a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -73,8 +73,14 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	u32 ind = 0;
- 	int ret = 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 59f5e2b..fb87883 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -564,11 +564,14 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	if (mr->umem->page_size != HNS_ROCE_HEM_PAGE_SIZE) {
+ 		dev_err(dev, "Just support 4K page size but is 0x%x now!\n",
+ 			mr->umem->page_size);
++		ret = -EINVAL;
++		goto err_umem;
+ 	}
  
--	spin_lock_irqsave(&qp->sq.lock, flags);
-+	if (unlikely(ibqp->qp_type != IB_QPT_GSI &&
-+		ibqp->qp_type != IB_QPT_RC)) {
-+		dev_err(dev, "un-supported QP type\n");
-+		*bad_wr = NULL;
-+		return -EOPNOTSUPP;
-+	}
- 
-+	spin_lock_irqsave(&qp->sq.lock, flags);
- 	ind = qp->sq_next_wqe;
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		if (hns_roce_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq)) {
-@@ -263,9 +269,6 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 					      HNS_ROCE_WQE_SGE_NUM_BIT);
- 			}
- 			ind++;
--		} else {
--			dev_dbg(dev, "unSupported QP type\n");
--			break;
- 		}
+ 	if (n > HNS_ROCE_MAX_MTPT_PBL_NUM) {
+ 		dev_err(dev, " MR len %lld err. MR is limited to 4G at most!\n",
+ 			length);
++		ret = -EINVAL;
+ 		goto err_umem;
  	}
  
 -- 
