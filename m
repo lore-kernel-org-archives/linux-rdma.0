@@ -1,119 +1,85 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 01/19] IB/hns: Remove unused parameters in some functions
-Date: Tue, 20 Sep 2016 17:06:54 +0100
-Message-ID: <20160920160712.1190216-2-salil.mehta@huawei.com>
-References: <20160920160712.1190216-1-salil.mehta@huawei.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC v2 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Tue, 20 Sep 2016 19:23:06 +0300
+Message-ID: <20160920162306.GP26673@leon.nu>
+References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
+ <20160920121151.GK26673@leon.nu>
+ <CY1PR0701MB133773B2CB71FA6362CADCFF90F70@CY1PR0701MB1337.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160920160712.1190216-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ssZxAlvqSOvXAj81"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CY1PR0701MB133773B2CB71FA6362CADCFF90F70-UpKza+2NMNLi6bjPjkn3FE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
 
-The parameter named collapsed unused in hns_roce_cq_alloc.
-Also, parameter named doorbell_lock unsed in
-hns_roce_v1_cq_set_ci. This patch optimize these parameters.
+--ssZxAlvqSOvXAj81
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  7 +++----
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 -
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 13 ++++---------
- drivers/infiniband/hw/hns/hns_roce_main.c   |  1 -
- 4 files changed, 7 insertions(+), 15 deletions(-)
+On Tue, Sep 20, 2016 at 01:33:25PM +0000, Elior, Ariel wrote:
+> > On Tue, Sep 20, 2016 at 01:35:52PM +0300, Ram Amrani wrote:
+> ...
+> > > The series adds on top of RFC v1:
+> > > * a check for all drivers that IB_ACCESS_MW_BIND isn't set for ib_get_dma_mr
+> > > * relocation of qedr user API to include/rdma/uapi/providers/
+> > > * removal of qedr_devlist_local
+> > > * fixed error handling in qedr_alloc_resources()
+> > > * configuration of PBL in ib_map_mr_sg() driver implementation,
+> > >   rather than post_send's IB_WR_REG_MR
+> > > * misc.: placed code in proper patch, fixed a few comments,
+> > >   removed extra parentheses
+> > >
+> > > Thanks for everyone which pointed out problems in the driver.
+> > >
+> > > Any review/comment is appreciated.
+> >
+> > Very nice,
+> > Any reason why didn't you drop debug module parameter and decided to
+> > mimic already available kernel core functionality?
+> >
+> > You got technical explanations why it is bad idea to use it. If you need additional
+> > voices
+> > to support my claims, you will find them in thread about VERBOSE flag and responses
+> > from
+> > Doug, and Dennis.
+> >
+> > Thanks
+> Hi Leon,
+> The RFC cover letter lists what has been addressed. Debug printouts are not addressed in V2 as the discussion on that topic is not concluded (more thoughts from us on debug printouts incoming on the thread). There were many comments to V1 which are not relevant to debug printouts which are addressed by V2. We are requesting further comment, hence RFC V2. Rest assured, if it is the final opinion in the relevant discussion that pr_debug is the way to go, that's what we'll do.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 875597b..10fd209 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -83,8 +83,7 @@ static int hns_roce_sw2hw_cq(struct hns_roce_dev *dev,
- static int hns_roce_cq_alloc(struct hns_roce_dev *hr_dev, int nent,
- 			     struct hns_roce_mtt *hr_mtt,
- 			     struct hns_roce_uar *hr_uar,
--			     struct hns_roce_cq *hr_cq, int vector,
--			     int collapsed)
-+			     struct hns_roce_cq *hr_cq, int vector)
- {
- 	struct hns_roce_cmd_mailbox *mailbox = NULL;
- 	struct hns_roce_cq_table *cq_table = NULL;
-@@ -338,8 +337,8 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 	}
- 
- 	/* Allocate cq index, fill cq_context */
--	ret = hns_roce_cq_alloc(hr_dev, cq_entries, &hr_cq->hr_buf.hr_mtt,
--				uar, hr_cq, vector, 0);
-+	ret = hns_roce_cq_alloc(hr_dev, cq_entries, &hr_cq->hr_buf.hr_mtt, uar,
-+				hr_cq, vector);
- 	if (ret) {
- 		dev_err(dev, "Creat CQ .Failed to cq_alloc.\n");
- 		goto err_mtt;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 4d02bcf..db974e4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -536,7 +536,6 @@ struct hns_roce_dev {
- 	struct hns_roce_uar     priv_uar;
- 	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
- 	spinlock_t		sm_lock;
--	spinlock_t		cq_db_lock;
- 	spinlock_t		bt_cmd_lock;
- 	struct hns_roce_ib_iboe iboe;
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 5ffdf7a..48c0862 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1189,9 +1189,7 @@ static struct hns_roce_cqe *next_cqe_sw(struct hns_roce_cq *hr_cq)
- 	return get_sw_cqe(hr_cq, hr_cq->cons_index);
- }
- 
--void hns_roce_v1_cq_set_ci(struct hns_roce_cq *hr_cq, u32 cons_index,
--			   spinlock_t *doorbell_lock)
--
-+void hns_roce_v1_cq_set_ci(struct hns_roce_cq *hr_cq, u32 cons_index)
- {
- 	u32 doorbell[2];
- 
-@@ -1251,8 +1249,7 @@ static void __hns_roce_v1_cq_clean(struct hns_roce_cq *hr_cq, u32 qpn,
- 		*/
- 		wmb();
- 
--		hns_roce_v1_cq_set_ci(hr_cq, hr_cq->cons_index,
--				   &to_hr_dev(hr_cq->ib_cq.device)->cq_db_lock);
-+		hns_roce_v1_cq_set_ci(hr_cq, hr_cq->cons_index);
- 	}
- }
- 
-@@ -1588,10 +1585,8 @@ int hns_roce_v1_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
- 			break;
- 	}
- 
--	if (npolled) {
--		hns_roce_v1_cq_set_ci(hr_cq, hr_cq->cons_index,
--				      &to_hr_dev(ibcq->device)->cq_db_lock);
--	}
-+	if (npolled)
-+		hns_roce_v1_cq_set_ci(hr_cq, hr_cq->cons_index);
- 
- 	spin_unlock_irqrestore(&hr_cq->lock, flags);
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index a9960ba..4b44998 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -951,7 +951,6 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
- 	struct device *dev = &hr_dev->pdev->dev;
- 
- 	spin_lock_init(&hr_dev->sm_lock);
--	spin_lock_init(&hr_dev->cq_db_lock);
- 	spin_lock_init(&hr_dev->bt_cmd_lock);
- 
- 	ret = hns_roce_init_uar_table(hr_dev);
--- 
-1.9.1
+The module parameters is no-go.
+
+> Thanks,
+> Ariel
+
+--ssZxAlvqSOvXAj81
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX4WJqAAoJEORje4g2clinrYQP/2C1Dvqnvy9stcXYuHaz/XzZ
+pqi5d3Tijv7byl0M+9dt5Aw6Oz9Khu4tIcZkPgdIIrlacmZX8lZk4LmYD0oX+sdn
+dIo5SG4YOpviq5hCDTpTJWcEnhSziFPln5DJ5siZeg/Mj8J6luD1wBg3AC4+JoT2
+77Mo+WB0M2oXbSDCHQHulj3MfNDyoVA4aja7+K6S7jwuLp6fODtQrMXLPq6mzHtY
+4/D8S79UolA46B2LNYx2BmeysuA/Emb4UgZNsfAiu79+0vRHkJiRPs8iUgBTM1zm
+MkzhhiJdlUyZAtyL3LXBUslApsQJyyNsGPwqS38mcuy0SK7iDGw9IgPsf+gCjnxO
+kcc1oxkGbJuJIfVZ0Smpo/Sn7kjohyeinFe9EoB+OJzhNuRw5scFN+9wT9VGgrUl
+06G6eRjnRyjfWf/puCbFEHhi/nGK6DVMyfOsRRpQHY9yjgAZ/+uinJm2TwQu4eoa
+8x9Y3hPAGEH/AdODo782bkoo/AhQbeMIddGTVfqrAHqEaIAe4mTELPe4+b+ogGV/
+l/+rE2X7woAlUo9W2ZvmkvebA/VKv3SYHoaQJDYNMdycs5y4ca0aaiB99+EsStxG
+wjBZvaY9RpCP9Wte8UpscrH2RrSD+a4WoPnnFaAkIquopzW3mVxXmXA4clXYus5v
+UUUaeUS2vlj7XflOrA9k
+=QGOX
+-----END PGP SIGNATURE-----
+
+--ssZxAlvqSOvXAj81--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
