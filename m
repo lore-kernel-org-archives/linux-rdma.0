@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 15/19] IB/hns: Cq has not been freed
-Date: Tue, 20 Sep 2016 17:07:08 +0100
-Message-ID: <20160920160712.1190216-16-salil.mehta@huawei.com>
+Subject: [PATCH V2 for-next 17/19] IB/hns: Fix the bug when platform_get_resource() exec fail
+Date: Tue, 20 Sep 2016 17:07:10 +0100
+Message-ID: <20160920160712.1190216-18-salil.mehta@huawei.com>
 References: <20160920160712.1190216-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,42 +9,35 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160920160712.1190216-1-salil.mehta@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Peter Chen <luck.chen@huawei.com>
+Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-Cq has not been freed when fail to ib_copy_to_udata, so need to
-free it.
+This patch mainly fixes the bug with platform_get_resource().
+It should return NULL when platform_get_resource() exec fail.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Peter Chen <luck.chen@huawei.com>
 Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_pd.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 3095f06..0973659 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -357,12 +357,15 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 	if (context) {
- 		if (ib_copy_to_udata(udata, &hr_cq->cqn, sizeof(u64))) {
- 			ret = -EFAULT;
--			goto err_mtt;
-+			goto err_cqc;
- 		}
- 	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index 0cd6132..05db7d5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -110,6 +110,10 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
+ 			     (hr_dev->caps.phy_num_uars - 1) + 1;
  
- 	return &hr_cq->ib_cq;
+ 	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(&hr_dev->pdev->dev, "memory resource not found!\n");
++		return -EINVAL;
++	}
+ 	uar->pfn = ((res->start) >> PAGE_SHIFT) + uar->index;
  
-+err_cqc:
-+	hns_roce_free_cq(hr_dev, hr_cq);
-+
- err_mtt:
- 	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
- 	if (context)
+ 	return 0;
 -- 
 1.9.1
