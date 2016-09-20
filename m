@@ -1,84 +1,144 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC v2 00/11] QLogic RDMA Driver (qedr) RFC
-Date: Tue, 20 Sep 2016 19:23:06 +0300
-Message-ID: <20160920162306.GP26673@leon.nu>
+Subject: Re: [RFC v2 06/12] qedr: Add support for QP verbs
+Date: Tue, 20 Sep 2016 19:30:48 +0300
+Message-ID: <20160920163048.GQ26673@leon.nu>
 References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
- <20160920121151.GK26673@leon.nu>
- <CY1PR0701MB133773B2CB71FA6362CADCFF90F70@CY1PR0701MB1337.namprd07.prod.outlook.com>
+ <1474367764-9555-7-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ssZxAlvqSOvXAj81"
+        protocol="application/pgp-signature"; boundary="nWEzmRaGLXxZdI3i"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CY1PR0701MB133773B2CB71FA6362CADCFF90F70-UpKza+2NMNLi6bjPjkn3FE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1474367764-9555-7-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---ssZxAlvqSOvXAj81
+--nWEzmRaGLXxZdI3i
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Sep 20, 2016 at 01:33:25PM +0000, Elior, Ariel wrote:
-> > On Tue, Sep 20, 2016 at 01:35:52PM +0300, Ram Amrani wrote:
-> ...
-> > > The series adds on top of RFC v1:
-> > > * a check for all drivers that IB_ACCESS_MW_BIND isn't set for ib_get_dma_mr
-> > > * relocation of qedr user API to include/rdma/uapi/providers/
-> > > * removal of qedr_devlist_local
-> > > * fixed error handling in qedr_alloc_resources()
-> > > * configuration of PBL in ib_map_mr_sg() driver implementation,
-> > >   rather than post_send's IB_WR_REG_MR
-> > > * misc.: placed code in proper patch, fixed a few comments,
-> > >   removed extra parentheses
-> > >
-> > > Thanks for everyone which pointed out problems in the driver.
-> > >
-> > > Any review/comment is appreciated.
-> >
-> > Very nice,
-> > Any reason why didn't you drop debug module parameter and decided to
-> > mimic already available kernel core functionality?
-> >
-> > You got technical explanations why it is bad idea to use it. If you need additional
-> > voices
-> > to support my claims, you will find them in thread about VERBOSE flag and responses
-> > from
-> > Doug, and Dennis.
-> >
-> > Thanks
-> Hi Leon,
-> The RFC cover letter lists what has been addressed. Debug printouts are not addressed in V2 as the discussion on that topic is not concluded (more thoughts from us on debug printouts incoming on the thread). There were many comments to V1 which are not relevant to debug printouts which are addressed by V2. We are requesting further comment, hence RFC V2. Rest assured, if it is the final opinion in the relevant discussion that pr_debug is the way to go, that's what we'll do.
+On Tue, Sep 20, 2016 at 01:35:58PM +0300, Ram Amrani wrote:
+> From: Ram amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>
+> Add support for Queue Pair verbs which adds, deletes,
+> modifies and queries Queue Pairs.
+>
+> Signed-off-by: Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qedr/main.c          |   15 +-
+>  drivers/infiniband/hw/qedr/qedr.h          |  126 +++
+>  drivers/infiniband/hw/qedr/qedr_cm.h       |   40 +
+>  drivers/infiniband/hw/qedr/qedr_hsi_rdma.h |   11 +
+>  drivers/infiniband/hw/qedr/verbs.c         | 1095 ++++++++++++++++++++++++-
+>  drivers/infiniband/hw/qedr/verbs.h         |    7 +
+>  drivers/net/ethernet/qlogic/qed/qed_cxt.h  |    1 +
+>  drivers/net/ethernet/qlogic/qed/qed_roce.c | 1211 ++++++++++++++++++++++++++++
+>  drivers/net/ethernet/qlogic/qed/qed_roce.h |   71 ++
+>  include/linux/qed/qed_roce_if.h            |  144 ++++
+>  include/uapi/rdma/providers/qedr-abi.h     |   35 +
 
-The module parameters is no-go.
+Please be aware that the last version for ABI header files doesn't have
+"provider" name in directory path (include/uapi/rdma/qedr-abi.h)
 
-> Thanks,
-> Ariel
 
---ssZxAlvqSOvXAj81
+>  11 files changed, 2753 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/qedr/qedr_cm.h
+>
+> diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+> index c99dd6a..10ad9ed 100644
+> --- a/drivers/infiniband/hw/qedr/main.c
+> +++ b/drivers/infiniband/hw/qedr/main.c
+> @@ -52,7 +52,7 @@ uint debug;
+>  module_param(debug, uint, 0);
+>  MODULE_PARM_DESC(debug, "Default debug msglevel");
+>
+> -static LIST_HEAD(qedr_dev_list);
+
+You are removing code which was added in previous patches, why do you do
+it?
+
+> +#define QEDR_WQ_MULTIPLIER_DFT	(3)
+>
+>  void qedr_ib_dispatch_event(struct qedr_dev *dev, u8 port_num,
+>  			    enum ib_event_type type)
+> @@ -99,7 +99,11 @@ static int qedr_register_device(struct qedr_dev *dev)
+>  				     QEDR_UVERBS(CREATE_CQ) |
+>  				     QEDR_UVERBS(RESIZE_CQ) |
+>  				     QEDR_UVERBS(DESTROY_CQ) |
+> -				     QEDR_UVERBS(REQ_NOTIFY_CQ);
+> +				     QEDR_UVERBS(REQ_NOTIFY_CQ) |
+> +				     QEDR_UVERBS(CREATE_QP) |
+> +				     QEDR_UVERBS(MODIFY_QP) |
+> +				     QEDR_UVERBS(QUERY_QP) |
+> +				     QEDR_UVERBS(DESTROY_QP);
+>
+>  	dev->ibdev.phys_port_cnt = 1;
+>  	dev->ibdev.num_comp_vectors = dev->num_cnq;
+> @@ -124,6 +128,11 @@ static int qedr_register_device(struct qedr_dev *dev)
+>  	dev->ibdev.resize_cq = qedr_resize_cq;
+>  	dev->ibdev.req_notify_cq = qedr_arm_cq;
+>
+> +	dev->ibdev.create_qp = qedr_create_qp;
+> +	dev->ibdev.modify_qp = qedr_modify_qp;
+> +	dev->ibdev.query_qp = qedr_query_qp;
+> +	dev->ibdev.destroy_qp = qedr_destroy_qp;
+> +
+>  	dev->ibdev.query_pkey = qedr_query_pkey;
+>
+>  	dev->ibdev.dma_device = &dev->pdev->dev;
+> @@ -619,6 +628,8 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
+>  		goto init_err;
+>  	}
+>
+> +	dev->wq_multiplier = QEDR_WQ_MULTIPLIER_DFT;
+> +
+>  	qedr_pci_set_atomic(dev, pdev);
+>
+>  	rc = qedr_alloc_resources(dev);
+> diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+> index dd974d5..05017be 100644
+> --- a/drivers/infiniband/hw/qedr/qedr.h
+> +++ b/drivers/infiniband/hw/qedr/qedr.h
+> @@ -49,6 +49,9 @@
+>  enum DP_QEDR_MODULE {
+>  	QEDR_MSG_INIT = 0x10000,
+
+We prefer shift notation (1 << 16) instead of 0x10000.
+
+>  	QEDR_MSG_CQ = 0x20000,
+> +	QEDR_MSG_RQ = 0x40000,
+> +	QEDR_MSG_SQ = 0x80000,
+> +	QEDR_MSG_QP = (QEDR_MSG_SQ | QEDR_MSG_RQ),
+>  	QEDR_MSG_MR = 0x100000,
+>  	QEDR_MSG_MISC = 0x400000,
+>  };
+
+--nWEzmRaGLXxZdI3i
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX4WJqAAoJEORje4g2clinrYQP/2C1Dvqnvy9stcXYuHaz/XzZ
-pqi5d3Tijv7byl0M+9dt5Aw6Oz9Khu4tIcZkPgdIIrlacmZX8lZk4LmYD0oX+sdn
-dIo5SG4YOpviq5hCDTpTJWcEnhSziFPln5DJ5siZeg/Mj8J6luD1wBg3AC4+JoT2
-77Mo+WB0M2oXbSDCHQHulj3MfNDyoVA4aja7+K6S7jwuLp6fODtQrMXLPq6mzHtY
-4/D8S79UolA46B2LNYx2BmeysuA/Emb4UgZNsfAiu79+0vRHkJiRPs8iUgBTM1zm
-MkzhhiJdlUyZAtyL3LXBUslApsQJyyNsGPwqS38mcuy0SK7iDGw9IgPsf+gCjnxO
-kcc1oxkGbJuJIfVZ0Smpo/Sn7kjohyeinFe9EoB+OJzhNuRw5scFN+9wT9VGgrUl
-06G6eRjnRyjfWf/puCbFEHhi/nGK6DVMyfOsRRpQHY9yjgAZ/+uinJm2TwQu4eoa
-8x9Y3hPAGEH/AdODo782bkoo/AhQbeMIddGTVfqrAHqEaIAe4mTELPe4+b+ogGV/
-l/+rE2X7woAlUo9W2ZvmkvebA/VKv3SYHoaQJDYNMdycs5y4ca0aaiB99+EsStxG
-wjBZvaY9RpCP9Wte8UpscrH2RrSD+a4WoPnnFaAkIquopzW3mVxXmXA4clXYus5v
-UUUaeUS2vlj7XflOrA9k
-=QGOX
+iQIcBAEBAgAGBQJX4WQ4AAoJEORje4g2clind6UP/jeGfgIoum6baf+kwQQajJhq
+cyjhnajrj0xu+hskjHac9uREIxVXLhEemsLl7mqq9IDrNFpqa9Gh8sFBlm7fyJEb
+ozJ6ig4catjqjU1grLuFPWlbnShP2mF3B26viiWHl40S4+A+tj4IsO8SHFQTlr2Z
+O06H7fJE6SWyJVMnOixSqsoWPeL/Jgb4GD+7EviNo5d6eiSr4jsgLdcgslzAlPYS
+fXhq4OLSgF+eQmAkPEPdd5i/+GY4HJBAGUeLjz1LDY0+cJsmbRSu8QQDMa0Yi7Tw
+lcUIxj+PAFgLnq4lMUN1+ewdn7izV5HB6CuxMMjfTz082sKl/CLdwPK8JVhPBC5Z
+TvF5+JCakmFbNMQPo93XpTZ/NNUpRS32u0tBrnc8ectEwxw/51hi+92RShrK8UYj
+KBvf+LjdHHqmgladqcMQWabZoj1D8i1m2yCjmq7bPhDqJwI4NC/VxaFTafEFoZ2c
+W17+rzGP13XB7RJUu5MbvqFvt7K5DTkHuDGjwr9fPX4iwQoc68KkwjttU2hGltV6
+qO+euciDkbHIxKfNfRAlTdbvDLDK4QJO1+INE3zlZTyAqoNIhRMr+WtxUVSmphPS
+9sCHI+GhvP5953pChNodQpZDYHj/JaTFsnQdBkiJUepR0pnPKF2T988kimlBcWTD
+mzzMB3aCIBE+3wdhNRgJ
+=ikMp
 -----END PGP SIGNATURE-----
 
---ssZxAlvqSOvXAj81--
+--nWEzmRaGLXxZdI3i--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
