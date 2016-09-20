@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 18/19] IB/hns: Delete the redundant lines in hns_roce_v1_m_qp()
-Date: Tue, 20 Sep 2016 17:07:11 +0100
-Message-ID: <20160920160712.1190216-19-salil.mehta@huawei.com>
+Subject: [PATCH V2 for-next 19/19] IB/hns: Fix for removal of redundant code
+Date: Tue, 20 Sep 2016 17:07:12 +0100
+Message-ID: <20160920160712.1190216-20-salil.mehta@huawei.com>
 References: <20160920160712.1190216-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,62 +12,70 @@ To: dledford@redhat.com
 Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
-
-It doesn't need to assign for the filed of qp state in qpc separately
-when qp happen to migrate state which supported in RoCE engine v1.
+This patch removes the redundant code lines present in the
+functions get_send_wqe() and get_recv_wqe(). This also fixes
+the error in calculating the SQ WQE.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
-PATCH V2: Addressed comments provided by Leon Romanovsky
-          Link: https://lkml.org/lkml/2016/9/15/123
-PATCH V1: Initial Submit
+PATCH V1: This has been create to address the Leon
+          Romanovsky's comment provided in below patches:
+	  Link: https://lkml.org/lkml/2016/9/15/117
+	  Link: https://lkml.org/lkml/2016/9/13/54
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  3 ++-
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 18 ------------------
+ 2 files changed, 2 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 2070e9e..d52eeda 100644
+index d52eeda..71232e5 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2387,11 +2387,6 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 		roce_set_bit(context->qpc_bytes_140,
- 			     QP_CONTEXT_QPC_BYTES_140_RNR_RETRY_FLG_S, 0);
+@@ -1552,7 +1552,8 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *hr_cq,
+ 		/* SQ conrespond to CQE */
+ 		sq_wqe = get_send_wqe(*cur_qp, roce_get_field(cqe->cqe_byte_4,
+ 						CQE_BYTE_4_WQE_INDEX_M,
+-						CQE_BYTE_4_WQE_INDEX_S));
++						CQE_BYTE_4_WQE_INDEX_S)&
++						((*cur_qp)->sq.wqe_cnt-1));
+ 		switch (sq_wqe->flag & HNS_ROCE_WQE_OPCODE_MASK) {
+ 		case HNS_ROCE_WQE_OPCODE_SEND:
+ 			wc->opcode = IB_WC_SEND;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 6a38909..e86dd8d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -784,29 +784,11 @@ static void *get_wqe(struct hns_roce_qp *hr_qp, int offset)
  
--		roce_set_field(context->qpc_bytes_144,
--			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_M,
--			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_S,
--			       attr->qp_state);
+ void *get_recv_wqe(struct hns_roce_qp *hr_qp, int n)
+ {
+-	struct ib_qp *ibqp = &hr_qp->ibqp;
+-	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
 -
- 		roce_set_field(context->qpc_bytes_148,
- 			       QP_CONTEXT_QPC_BYTES_148_CHECK_FLAG_M,
- 			       QP_CONTEXT_QPC_BYTES_148_CHECK_FLAG_S, 0);
-@@ -2498,21 +2493,15 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 			       QP_CONTEXT_QPC_BYTES_188_TX_RETRY_CUR_INDEX_M,
- 			       QP_CONTEXT_QPC_BYTES_188_TX_RETRY_CUR_INDEX_S,
- 			       0);
--	} else if ((cur_state == IB_QPS_INIT && new_state == IB_QPS_RESET) ||
-+	} else if (!((cur_state == IB_QPS_INIT && new_state == IB_QPS_RESET) ||
- 		   (cur_state == IB_QPS_INIT && new_state == IB_QPS_ERR) ||
- 		   (cur_state == IB_QPS_RTR && new_state == IB_QPS_RESET) ||
- 		   (cur_state == IB_QPS_RTR && new_state == IB_QPS_ERR) ||
- 		   (cur_state == IB_QPS_RTS && new_state == IB_QPS_RESET) ||
- 		   (cur_state == IB_QPS_RTS && new_state == IB_QPS_ERR) ||
- 		   (cur_state == IB_QPS_ERR && new_state == IB_QPS_RESET) ||
--		   (cur_state == IB_QPS_ERR && new_state == IB_QPS_ERR)) {
--		roce_set_field(context->qpc_bytes_144,
--			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_M,
--			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_S,
--			       attr->qp_state);
+-	if ((n < 0) || (n > hr_qp->rq.wqe_cnt)) {
+-		dev_err(&hr_dev->pdev->dev, "rq wqe index:%d,rq wqe cnt:%d\r\n",
+-			n, hr_qp->rq.wqe_cnt);
+-		return NULL;
+-	}
 -
--	} else {
--		dev_err(dev, "not support this modify\n");
-+		   (cur_state == IB_QPS_ERR && new_state == IB_QPS_ERR))) {
-+		dev_err(dev, "not support this status migration\n");
- 		goto out;
- 	}
+ 	return get_wqe(hr_qp, hr_qp->rq.offset + (n << hr_qp->rq.wqe_shift));
+ }
+ 
+ void *get_send_wqe(struct hns_roce_qp *hr_qp, int n)
+ {
+-	struct ib_qp *ibqp = &hr_qp->ibqp;
+-	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+-
+-	if ((n < 0) || (n > hr_qp->sq.wqe_cnt)) {
+-		dev_err(&hr_dev->pdev->dev, "sq wqe index:%d,sq wqe cnt:%d\r\n",
+-			n, hr_qp->sq.wqe_cnt);
+-		return NULL;
+-	}
+-
+ 	return get_wqe(hr_qp, hr_qp->sq.offset + (n << hr_qp->sq.wqe_shift));
+ }
  
 -- 
 1.9.1
