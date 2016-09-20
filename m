@@ -1,267 +1,78 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 for-next 08/19] IB/hns: Optimize code of aeq and ceq interrupt handle and fix the bug of qpn
-Date: Tue, 20 Sep 2016 17:07:01 +0100
-Message-ID: <20160920160712.1190216-9-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 for-next 14/19] IB/hns: Validate mtu when modified qp
+Date: Tue, 20 Sep 2016 17:07:07 +0100
+Message-ID: <20160920160712.1190216-15-salil.mehta@huawei.com>
 References: <20160920160712.1190216-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160920160712.1190216-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, xuwei5@hisilicon.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160920160712.1190216-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Peter Chen <luck.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-This patch optimized the codes of aeq and ceq interrupt handle
-and fixed the bug in the calculation of qpn. For the special
-qp(GSI or SMI), calculated the qp number according to physical
-port and the qpn reported in the event of async event queue.
+The mtu should be validated when modify qp,so we check it.
 
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Peter Chen <luck.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
-PATCH V2: Addressed Leon Romanovsky's comment
-         Link: https://lkml.org/lkml/2016/9/12/303
-PATCH V1: Initial patch
+PATCH V2: Addressed Leon Romanovsky's comments
+          Link: https://lkml.org/lkml/2016/9/13/39
+PATCH V1: Initial Submit
 ---
- drivers/infiniband/hw/hns/hns_roce_eq.c | 146 ++++++++++++++++----------------
- drivers/infiniband/hw/hns/hns_roce_eq.h |   4 +
- 2 files changed, 75 insertions(+), 75 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_eq.c b/drivers/infiniband/hw/hns/hns_roce_eq.c
-index 98af7fe..21e21b0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_eq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_eq.c
-@@ -66,9 +66,6 @@ static void hns_roce_wq_catas_err_handle(struct hns_roce_dev *hr_dev,
- {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index dd1b214..6a38909 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -32,6 +32,7 @@
+  */
+ 
+ #include <linux/platform_device.h>
++#include <rdma/ib_addr.h>
+ #include <rdma/ib_umem.h>
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+@@ -657,6 +658,7 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
  	struct device *dev = &hr_dev->pdev->dev;
+ 	int ret = -EINVAL;
+ 	int p;
++	enum ib_mtu active_mtu;
  
--	qpn = roce_get_field(aeqe->event.qp_event.qp,
--			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
--			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S);
- 	dev_warn(dev, "Local Work Queue Catastrophic Error.\n");
- 	switch (roce_get_field(aeqe->asyn, HNS_ROCE_AEQE_U32_4_EVENT_SUB_TYPE_M,
- 			       HNS_ROCE_AEQE_U32_4_EVENT_SUB_TYPE_S)) {
-@@ -96,13 +93,6 @@ static void hns_roce_wq_catas_err_handle(struct hns_roce_dev *hr_dev,
- 	default:
- 		break;
+ 	mutex_lock(&hr_qp->mutex);
+ 
+@@ -687,6 +689,19 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		}
  	}
--
--	hns_roce_qp_event(hr_dev, roce_get_field(aeqe->event.qp_event.qp,
--					HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
--					HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S),
--			  roce_get_field(aeqe->asyn,
--					HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--					HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
- }
  
- static void hns_roce_local_wq_access_err_handle(struct hns_roce_dev *hr_dev,
-@@ -111,9 +101,6 @@ static void hns_roce_local_wq_access_err_handle(struct hns_roce_dev *hr_dev,
- {
- 	struct device *dev = &hr_dev->pdev->dev;
- 
--	qpn = roce_get_field(aeqe->event.qp_event.qp,
--			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
--			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S);
- 	dev_warn(dev, "Local Access Violation Work Queue Error.\n");
- 	switch (roce_get_field(aeqe->asyn, HNS_ROCE_AEQE_U32_4_EVENT_SUB_TYPE_M,
- 			       HNS_ROCE_AEQE_U32_4_EVENT_SUB_TYPE_S)) {
-@@ -141,13 +128,69 @@ static void hns_roce_local_wq_access_err_handle(struct hns_roce_dev *hr_dev,
- 	default:
- 		break;
- 	}
-+}
++	if (attr_mask & IB_QP_PATH_MTU) {
++		p = attr_mask & IB_QP_PORT ? (attr->port_num - 1) : hr_qp->port;
++		active_mtu = iboe_get_mtu(hr_dev->iboe.netdevs[p]->mtu);
 +
-+static void hns_roce_qp_err_handle(struct hns_roce_dev *hr_dev,
-+				   struct hns_roce_aeqe *aeqe,
-+				   int event_type)
-+{
-+	struct device *dev = &hr_dev->pdev->dev;
-+	int phy_port;
-+	int qpn;
-+
-+	qpn = roce_get_field(aeqe->event.qp_event.qp,
-+			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
-+			     HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S);
-+	phy_port = roce_get_field(aeqe->event.qp_event.qp,
-+			HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_M,
-+			HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_S);
-+	if (qpn <= 1)
-+		qpn = HNS_ROCE_MAX_PORTS * qpn + phy_port;
-+
-+	switch (event_type) {
-+	case HNS_ROCE_EVENT_TYPE_INV_REQ_LOCAL_WQ_ERROR:
-+		dev_warn(dev, "Invalid Req Local Work Queue Error.\n"
-+			      "QP %d, phy_port %d.\n", qpn, phy_port);
-+		break;
-+	case HNS_ROCE_EVENT_TYPE_WQ_CATAS_ERROR:
-+		hns_roce_wq_catas_err_handle(hr_dev, aeqe, qpn);
-+		break;
-+	case HNS_ROCE_EVENT_TYPE_LOCAL_WQ_ACCESS_ERROR:
-+		hns_roce_local_wq_access_err_handle(hr_dev, aeqe, qpn);
-+		break;
-+	default:
-+		break;
++		if (attr->path_mtu > IB_MTU_2048 ||
++		    attr->path_mtu < IB_MTU_256 ||
++		    attr->path_mtu > active_mtu) {
++			dev_err(dev, "attr path_mtu(%d)invalid while modify qp",
++				attr->path_mtu);
++			goto out;
++		}
 +	}
 +
-+	hns_roce_qp_event(hr_dev, qpn, event_type);
-+}
-+
-+static void hns_roce_cq_err_handle(struct hns_roce_dev *hr_dev,
-+				   struct hns_roce_aeqe *aeqe,
-+				   int event_type)
-+{
-+	struct device *dev = &hr_dev->pdev->dev;
-+	u32 cqn;
-+
-+	cqn = le32_to_cpu(roce_get_field(aeqe->event.cq_event.cq,
-+		    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M,
-+		    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S));
-+
-+	switch (event_type) {
-+	case HNS_ROCE_EVENT_TYPE_CQ_ACCESS_ERROR:
-+		dev_warn(dev, "CQ 0x%x access err.\n", cqn);
-+		break;
-+	case HNS_ROCE_EVENT_TYPE_CQ_OVERFLOW:
-+		dev_warn(dev, "CQ 0x%x overflow\n", cqn);
-+		break;
-+	case HNS_ROCE_EVENT_TYPE_CQ_ID_INVALID:
-+		dev_warn(dev, "CQ 0x%x ID invalid.\n", cqn);
-+		break;
-+	default:
-+		break;
-+	}
- 
--	hns_roce_qp_event(hr_dev, roce_get_field(aeqe->event.qp_event.qp,
--					 HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
--					 HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S),
--			  roce_get_field(aeqe->asyn,
--					 HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--					 HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
-+	hns_roce_cq_event(hr_dev, cqn, event_type);
- }
- 
- static void hns_roce_db_overflow_handle(struct hns_roce_dev *hr_dev,
-@@ -185,7 +228,7 @@ static int hns_roce_aeq_int(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
- 	struct device *dev = &hr_dev->pdev->dev;
- 	struct hns_roce_aeqe *aeqe;
- 	int aeqes_found = 0;
--	int qpn = 0;
-+	int event_type;
- 
- 	while ((aeqe = next_aeqe_sw(eq))) {
- 		dev_dbg(dev, "aeqe = %p, aeqe->asyn.event_type = 0x%lx\n", aeqe,
-@@ -195,9 +238,10 @@ static int hns_roce_aeq_int(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
- 		/* Memory barrier */
- 		rmb();
- 
--		switch (roce_get_field(aeqe->asyn,
--			HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--			HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S)) {
-+		event_type = roce_get_field(aeqe->asyn,
-+				HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
-+				HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S);
-+		switch (event_type) {
- 		case HNS_ROCE_EVENT_TYPE_PATH_MIG:
- 			dev_warn(dev, "PATH MIG not supported\n");
- 			break;
-@@ -211,23 +255,9 @@ static int hns_roce_aeq_int(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
- 			dev_warn(dev, "PATH MIG failed\n");
- 			break;
- 		case HNS_ROCE_EVENT_TYPE_INV_REQ_LOCAL_WQ_ERROR:
--			dev_warn(dev, "qpn = 0x%lx\n",
--			roce_get_field(aeqe->event.qp_event.qp,
--				       HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
--				       HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S));
--			hns_roce_qp_event(hr_dev,
--				roce_get_field(aeqe->event.qp_event.qp,
--					HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M,
--					HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S),
--				roce_get_field(aeqe->asyn,
--					HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--					HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
--			break;
- 		case HNS_ROCE_EVENT_TYPE_WQ_CATAS_ERROR:
--			hns_roce_wq_catas_err_handle(hr_dev, aeqe, qpn);
--			break;
- 		case HNS_ROCE_EVENT_TYPE_LOCAL_WQ_ACCESS_ERROR:
--			hns_roce_local_wq_access_err_handle(hr_dev, aeqe, qpn);
-+			hns_roce_qp_err_handle(hr_dev, aeqe, event_type);
- 			break;
- 		case HNS_ROCE_EVENT_TYPE_SRQ_LIMIT_REACH:
- 		case HNS_ROCE_EVENT_TYPE_SRQ_CATAS_ERROR:
-@@ -235,40 +265,9 @@ static int hns_roce_aeq_int(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
- 			dev_warn(dev, "SRQ not support!\n");
- 			break;
- 		case HNS_ROCE_EVENT_TYPE_CQ_ACCESS_ERROR:
--			dev_warn(dev, "CQ 0x%lx access err.\n",
--			roce_get_field(aeqe->event.cq_event.cq,
--				       HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M,
--				       HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S));
--			hns_roce_cq_event(hr_dev,
--			le32_to_cpu(roce_get_field(aeqe->event.cq_event.cq,
--				    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M,
--				    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S)),
--			roce_get_field(aeqe->asyn,
--				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
--			break;
- 		case HNS_ROCE_EVENT_TYPE_CQ_OVERFLOW:
--			dev_warn(dev, "CQ 0x%lx overflow\n",
--			roce_get_field(aeqe->event.cq_event.cq,
--				       HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M,
--				       HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S));
--			hns_roce_cq_event(hr_dev,
--			le32_to_cpu(roce_get_field(aeqe->event.cq_event.cq,
--				    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M,
--				    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S)),
--			roce_get_field(aeqe->asyn,
--				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
--			break;
- 		case HNS_ROCE_EVENT_TYPE_CQ_ID_INVALID:
--			dev_warn(dev, "CQ ID invalid.\n");
--			hns_roce_cq_event(hr_dev,
--			le32_to_cpu(roce_get_field(aeqe->event.cq_event.cq,
--				    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M,
--				    HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S)),
--			roce_get_field(aeqe->asyn,
--				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
-+			hns_roce_cq_err_handle(hr_dev, aeqe, event_type);
- 			break;
- 		case HNS_ROCE_EVENT_TYPE_PORT_CHANGE:
- 			dev_warn(dev, "port change.\n");
-@@ -290,11 +289,8 @@ static int hns_roce_aeq_int(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
- 				     HNS_ROCE_AEQE_EVENT_CE_EVENT_CEQE_CEQN_S));
- 			break;
- 		default:
--			dev_warn(dev, "Unhandled event 0x%lx on EQ %d at index %u\n",
--				 roce_get_field(aeqe->asyn,
--					      HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
--					      HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S),
--				 eq->eqn, eq->cons_index);
-+			dev_warn(dev, "Unhandled event %d on EQ %d at index %u\n",
-+				 event_type, eq->eqn, eq->cons_index);
- 			break;
- 		};
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_eq.h b/drivers/infiniband/hw/hns/hns_roce_eq.h
-index fe43881..c6d212d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_eq.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_eq.h
-@@ -107,6 +107,10 @@ struct hns_roce_aeqe {
- #define HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_M   \
- 	(((1UL << 24) - 1) << HNS_ROCE_AEQE_EVENT_QP_EVENT_QP_QPN_S)
- 
-+#define HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_S 25
-+#define HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_M   \
-+	(((1UL << 3) - 1) << HNS_ROCE_AEQE_EVENT_QP_EVENT_PORT_NUM_S)
-+
- #define HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S 0
- #define HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_M   \
- 	(((1UL << 16) - 1) << HNS_ROCE_AEQE_EVENT_CQ_EVENT_CQ_CQN_S)
+ 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
+ 	    attr->max_rd_atomic > hr_dev->caps.max_qp_init_rdma) {
+ 		dev_err(dev, "attr max_rd_atomic invalid.attr->max_rd_atomic=%d\n",
 -- 
 1.9.1
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
