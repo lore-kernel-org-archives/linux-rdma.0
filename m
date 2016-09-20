@@ -1,55 +1,56 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v2 perftest] Support for Chelsio T6 devices
-Date: Tue, 20 Sep 2016 07:16:38 -0700
-Message-ID: <20160920141917.AFE07E0BC1@smtp.ogc.us>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC v2 04/12] qedr: Add support for user context verbs
+Date: Tue, 20 Sep 2016 09:27:29 -0600
+Message-ID: <20160920152729.GC32020@obsidianresearch.com>
+References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
+ <1474367764-9555-5-git-send-email-Ram.Amrani@cavium.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1474367764-9555-5-git-send-email-Ram.Amrani@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: Ram Amrani <Ram.Amrani@cavium.com>
+Cc: davem@davemloft.net, dledford@redhat.com, Ariel.Elior@cavium.com, Michal.Kalderon@cavium.com, Yuval.Mintz@cavium.com, rajesh.borundia@cavium.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+On Tue, Sep 20, 2016 at 01:35:56PM +0300, Ram Amrani wrote:
+> +++ b/include/uapi/rdma/providers/qedr-abi.h
+> @@ -0,0 +1,27 @@
+> +/* QLogic qed NIC Driver
+> + * Copyright (c) 2015 QLogic Corporation
+> + *
+> + * This software is available under the terms of the GNU General Public License
+> + * (GPL) Version 2, available from the file COPYING in the main directory of
+> + * this source tree.
+> + */
+> +#ifndef __QEDR_USER_H__
+> +#define __QEDR_USER_H__
+> +
+> +#define QEDR_ABI_VERSION		(6)
+> +
+> +/* user kernel communication data structures. */
+> +
+> +struct qedr_alloc_ucontext_resp {
+> +	u64 db_pa;
+> +	u32 db_size;
+> +
+> +	u32 max_send_wr;
+> +	u32 max_recv_wr;
+> +	u32 max_srq_wr;
+> +	u32 sges_per_send_wr;
+> +	u32 sges_per_recv_wr;
+> +	u32 sges_per_srq_wr;
 
-Changes since v1:
+uapi headers need the __ varients and the #include <linux/types.h>
 
-fixed nit suggested by Leon
+Follow what Leon has done.
 
----
- src/perftest_parameters.c |    1 +
- src/perftest_parameters.h |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletions(-)
+> +	int max_cqes;
 
-diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
-index a21b6eb..0d1ea2f 100755
---- a/src/perftest_parameters.c
-+++ b/src/perftest_parameters.c
-@@ -1326,6 +1326,7 @@ enum ctx_device ib_dev_name(struct ibv_context *context)
- 			case 4  : dev_fname = CHELSIO_T4; break;
- 			case 11 :
- 			case 5  : dev_fname = CHELSIO_T5; break;
-+			case 6  : dev_fname = CHELSIO_T6; break;
- 			default : dev_fname = UNKNOWN; break;
- 		}
- 
-diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
-index 448e398..dc57efb 100755
---- a/src/perftest_parameters.h
-+++ b/src/perftest_parameters.h
-@@ -269,7 +269,8 @@ enum ctx_device {
- 	CONNECTX4		= 10,
- 	CONNECTX4LX		= 11,
- 	QLOGIC_E4		= 12,
--	QLOGIC_AH		= 13
-+	QLOGIC_AH		= 13,
-+	CHELSIO_T6		= 14,
- };
- 
- /* Units for rate limiter */
--- 
-1.7.1
+Do not use int here.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there really only 1 struct? Your driver never uses udata for
+anything else?
+
+Jason
