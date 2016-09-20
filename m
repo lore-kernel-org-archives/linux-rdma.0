@@ -1,64 +1,53 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 1/3] Add new call ibv_cmd_create_ah_ex
- which supports extra parameters
-Date: Tue, 20 Sep 2016 06:42:15 +0200
-Message-ID: <1474346535.20134.133.camel@oracle.com>
-References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
-         <5cc0157c0f05701d8cb1334e6ee11e1e7be6fa24.1474063039.git-series.knut.omang@oracle.com>
-         <20160919030122.GA23152@obsidianresearch.com>
-         <1474257063.20134.103.camel@oracle.com>
-         <20160919040854.GA28241@obsidianresearch.com>
-         <1474259364.20134.114.camel@oracle.com>
-         <1474259792.20134.117.camel@oracle.com>
-         <20160919165942.GB11836@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH libibverbs v3 3/3] Provide remote XRC SRQ number in kernel post_send.
+Date: Tue, 20 Sep 2016 08:22:26 +0200
+Message-ID: <7cbd28d106bbb49d03fbf0cac2e2948cb9e269bb.1474352400.git-series.knut.omang@oracle.com>
+References: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919165942.GB11836-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2016-09-19 at 10:59 -0600, Jason Gunthorpe wrote:
-> On Mon, Sep 19, 2016 at 06:36:32AM +0200, Knut Omang wrote:
-> > diff --git a/src/libibverbs.map b/src/libibverbs.map
-> > index 5134bd9..979980d 100644
-> > +++ b/src/libibverbs.map
-> > @@ -118,5 +118,15 @@ IBVERBS_1.1 {
-> >                 ibv_cmd_create_qp_ex2;
-> >                 ibv_cmd_open_qp;
-> >                 ibv_cmd_rereg_mr;
-> >  } IBVERBS_1.0;
-> > 
-> > +IBVERBS_1.2 {
-> > +} IBVERBS_1.1;
-> 
-> This is the right idea, but we won't be going back to fix the bad tags
-> from 1.2 and other releases so this can be dropped.
-> 
-> > +IBVERBS_1.3 {
-> > +} IBVERBS_1.2;
-> 
-> If you pull from Doug's tree right now you'll get a populated version
-> of this stanza
-> 
-> > +IBVERBS_1.4 {
-> > + global:
-> > +         ibv_cmd_create_ah_ex;
-> > +} IBVERBS_1.3;
-> 
-> Right. Doug will have to figure out a process for these, eg if he
-> hasn't released 1.3 yet then this can be folded into 1.3.
-> 
-> It is critical that once a release is made that the existing stanza's
-> not be changed.
+Also proper end align the ibv_kern_send_wr struct.
 
-Ok, fine - I see no 1.3.x tag yet so will post av v3 with this fix now.
+Requires a corresponding kernel change.
 
-Thanks,
-Knut
+Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ include/infiniband/kern-abi.h | 1 +
+ src/cmd.c                     | 2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index ddea393..a0b5315 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -821,6 +821,7 @@ struct ibv_kern_send_wr {
+ 	union {
+ 		struct {
+ 			__u32 remote_srqn;
++			__u32 reserved;
+ 		} xrc;
+ 	} qp_type;
+ };
+diff --git a/src/cmd.c b/src/cmd.c
+index 381dcc7..bd85add 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -1323,6 +1323,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
+ 			tmp->wr.ud.remote_qkey = i->wr.ud.remote_qkey;
+ 		} else {
++			if (ibqp->qp_type == IBV_QPT_XRC_SEND)
++				tmp->qp_type.xrc.remote_srqn = i->qp_type.xrc.remote_srqn;
+ 			switch (i->opcode) {
+ 			case IBV_WR_RDMA_WRITE:
+ 			case IBV_WR_RDMA_WRITE_WITH_IMM:
+-- 
+git-series 0.8.10
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
