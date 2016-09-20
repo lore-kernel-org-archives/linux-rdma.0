@@ -1,45 +1,38 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC v2 06/12] qedr: Add support for QP verbs
-Date: Tue, 20 Sep 2016 09:28:49 -0600
-Message-ID: <20160920152849.GD32020@obsidianresearch.com>
-References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
- <1474367764-9555-7-git-send-email-Ram.Amrani@cavium.com>
+Subject: Re: [PATCH libibverbs v3 1/3] Add new call ibv_cmd_create_ah_ex
+ which supports extra parameters
+Date: Tue, 20 Sep 2016 09:32:17 -0600
+Message-ID: <20160920153217.GE32020@obsidianresearch.com>
+References: <cover.b0b7418bec346c028215053b3e58e097aa822563.1474352400.git-series.knut.omang@oracle.com>
+ <d551c3792e884443903c67212f505082cd53b135.1474352400.git-series.knut.omang@oracle.com>
+ <550041ef-b105-c079-068c-d96278ec34f1@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1474367764-9555-7-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <550041ef-b105-c079-068c-d96278ec34f1-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 20, 2016 at 01:35:58PM +0300, Ram Amrani wrote:
-> +++ b/include/uapi/rdma/providers/qedr-abi.h
-> @@ -43,4 +43,39 @@ struct qedr_create_cq_uresp {
->         u16 icid;
->  };
+On Tue, Sep 20, 2016 at 02:17:04PM +0300, Yishai Hadas wrote:
 
-Ugh, each patch keeps adding to this?
+> Any reason to add 1.4 instead of using 1.3 ? in my understanding the idea is
+> that new symbols for next release will use a new ABI version, this is what
+> 1.3 already supplied. Added Jason for his input as well.
 
-> +struct qedr_create_qp_ureq {
-> +       u32 qp_handle_hi;
-> +       u32 qp_handle_lo;
-> +
-> +       /* SQ */
-> +       /* user space virtual address of SQ buffer */
-> +       u64 sq_addr;
-> +
-> +       /* length of SQ buffer */
-> +       size_t sq_len;
+Doug indicated he was going to roll a 1.3 release RSN, up to him what
+number it will be eventually.
+ 
+> >+	global:
+> >+		ibv_cmd_create_ah_ex;
+> 
+> When do you plan to contribute the driver code for that ? for now no
+> upstream drivers uses this API, taking some code for future usage with no
+> current usage is not the preferred way.
 
-Do not use size_t, that is just asking for 32/64 bit interop problems.
-
-> +struct qedr_create_qp_uresp {
-> +       u32 qp_id;
-> +       int atomic_supported;
-
-int again, etc. You get the idea.
+Even a github reference with your pre-submission driver would be useful
 
 Jason
 --
