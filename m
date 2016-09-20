@@ -1,33 +1,109 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/8] Export vendors specific ABIs
-Date: Tue, 20 Sep 2016 10:32:49 -0700
-Message-ID: <0b8136eb-d9da-5543-8622-482afe92e5fa@vmware.com>
-References: <1474195823-10429-1-git-send-email-leon@kernel.org>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 18/20] IB/hns: Update the rq head when modify
+ qp state
+Date: Tue, 20 Sep 2016 17:49:14 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A724BF6@lhreml503-mbx>
+References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
+ <1473417051-99560-19-git-send-email-salil.mehta@huawei.com>
+ <20160915101246.GX26069@leon.nu>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A724AFE@lhreml503-mbx>
+ <20160920170553.GU26673@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474195823-10429-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20160920170553.GU26673-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xuwei (O)" <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun Sep 18 2016 03:50:15 GMT-0700 (PDT), Leon Romanovsky wrote:
-> The consolidate library revealed the fact that vendor specific
-> structures and defines are copy/pasted between kernel and user-space.
+
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> Sent: Tuesday, September 20, 2016 6:06 PM
+> To: Salil Mehta
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> xuwei (O); mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> Subject: Re: [PATCH for-next 18/20] IB/hns: Update the rq head when
+> modify qp state
 > 
-> This patch set moves these headers from internal driver directory to common
-> place and unifies their name to be drivername-abi.h, so it will be easily shared
-> by numerous libraries supported in https://github.com/linux-rdma/rdma-core
+> On Tue, Sep 20, 2016 at 04:56:35PM +0000, Salil Mehta wrote:
+> >
+> >
+> > > -----Original Message-----
+> > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > > Sent: Thursday, September 15, 2016 11:13 AM
+> > > To: Salil Mehta
+> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng
+> (Yisen);
+> > > xuwei (O); mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > > linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> > > Subject: Re: [PATCH for-next 18/20] IB/hns: Update the rq head when
+> > > modify qp state
+> > >
+> > > On Fri, Sep 09, 2016 at 06:30:49PM +0800, Salil Mehta wrote:
+> > > > From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > >
+> > > > The rq head in qpc was zero will miss the rq wqes which
+> > > > have be sent, so here we should take the real value.
+> > > >
+> > > > Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > Reviewed-by:  Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > ---
+> > > >  drivers/infiniband/hw/hns/hns_roce_hw_v1.c |    3 ++-
+> > > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > > >
+> > > > diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> > > b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> > > > index bdd9453..7a61d7e 100644
+> > > > --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> > > > +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> > > > @@ -2266,7 +2266,8 @@ static int hns_roce_v1_m_qp(struct ib_qp
+> *ibqp,
+> > > const struct ib_qp_attr *attr,
+> > > >
+> > > >  		roce_set_field(context->qpc_bytes_68,
+> > > >  			       QP_CONTEXT_QPC_BYTES_68_RQ_HEAD_M,
+> > > > -			       QP_CONTEXT_QPC_BYTES_68_RQ_HEAD_S, 0);
+> > > > +			       QP_CONTEXT_QPC_BYTES_68_RQ_HEAD_S,
+> > > > +			       hr_qp->rq.head);
+> > >
+> > > Are you sure that it should be list_head and not value?
+> > This is correct. Variable head is not list_head but a u32 value.
+> > Hope I understood your point correctly.
 > 
+> Thanks, you understood me right.
+> The name "head" mislead me.
+> Sorry for that.
+No worries at all :)
 
-I had asked this to Leon offline but he recommended to ask on the ML.
-
-What happens if this shared functionality is split between multiple files? Can we 
-just add them in the same folder (so uapi/rdma/provider-abi1.h,
-uapi/rdma/provider-abi2.h, etc.)?
-
+Thanks
+Salil
+> 
+> >
+> > Best regards
+> > Salil
+> > >
+> > > >  		roce_set_field(context->qpc_bytes_68,
+> > > >  			       QP_CONTEXT_QPC_BYTES_68_RQ_CUR_INDEX_M,
+> > > >  			       QP_CONTEXT_QPC_BYTES_68_RQ_CUR_INDEX_S,
+> 0);
+> > > > --
+> > > > 1.7.9.5
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-
+> rdma"
+> > > in
+> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-
+> info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
