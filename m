@@ -1,42 +1,64 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Mon, 19 Sep 2016 16:54:18 -0600
-Message-ID: <20160919225418.GA22760@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB07FBE1@ORSMSX109.amr.corp.intel.com>
- <20160913180342.GA6933@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08075C@ORSMSX109.amr.corp.intel.com>
- <20160913222539.GB29095@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB080798@ORSMSX109.amr.corp.intel.com>
- <edc4c963-847a-e973-f1f1-ab9b78ad9d19@redhat.com>
- <20160916161626.GB2833@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08C5F3@ORSMSX109.amr.corp.intel.com>
- <20160919185502.GA12436@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08D2CD@ORSMSX109.amr.corp.intel.com>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH libibverbs v2 1/3] Add new call ibv_cmd_create_ah_ex
+ which supports extra parameters
+Date: Tue, 20 Sep 2016 06:42:15 +0200
+Message-ID: <1474346535.20134.133.camel@oracle.com>
+References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
+         <5cc0157c0f05701d8cb1334e6ee11e1e7be6fa24.1474063039.git-series.knut.omang@oracle.com>
+         <20160919030122.GA23152@obsidianresearch.com>
+         <1474257063.20134.103.camel@oracle.com>
+         <20160919040854.GA28241@obsidianresearch.com>
+         <1474259364.20134.114.camel@oracle.com>
+         <1474259792.20134.117.camel@oracle.com>
+         <20160919165942.GB11836@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB08D2CD-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20160919165942.GB11836-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 19, 2016 at 06:58:52PM +0000, Hefty, Sean wrote:
-> > I would delete the windows support in that package if we take it into
-> > rdma-core.
+On Mon, 2016-09-19 at 10:59 -0600, Jason Gunthorpe wrote:
+> On Mon, Sep 19, 2016 at 06:36:32AM +0200, Knut Omang wrote:
+> > diff --git a/src/libibverbs.map b/src/libibverbs.map
+> > index 5134bd9..979980d 100644
+> > +++ b/src/libibverbs.map
+> > @@ -118,5 +118,15 @@ IBVERBS_1.1 {
+> >                 ibv_cmd_create_qp_ex2;
+> >                 ibv_cmd_open_qp;
+> >                 ibv_cmd_rereg_mr;
+> >  } IBVERBS_1.0;
 > > 
-> > Is that OK?
+> > +IBVERBS_1.2 {
+> > +} IBVERBS_1.1;
 > 
-> That's fine with me.  I haven't tested on windows in a long time.
-> I'm not sure how usable it is, as no one is maintaining the
-> libibverbs and libibumad windows ports.
+> This is the right idea, but we won't be going back to fix the bad tags
+> from 1.2 and other releases so this can be dropped.
+> 
+> > +IBVERBS_1.3 {
+> > +} IBVERBS_1.2;
+> 
+> If you pull from Doug's tree right now you'll get a populated version
+> of this stanza
+> 
+> > +IBVERBS_1.4 {
+> > + global:
+> > +         ibv_cmd_create_ah_ex;
+> > +} IBVERBS_1.3;
+> 
+> Right. Doug will have to figure out a process for these, eg if he
+> hasn't released 1.3 yet then this can be folded into 1.3.
+> 
+> It is critical that once a release is made that the existing stanza's
+> not be changed.
 
-Okay, it is up now. I haven't done all the steps, but call it a draft.
+Ok, fine - I see no 1.3.x tag yet so will post av v3 with this fix now.
 
-https://github.com/jgunthorpe/rdma-plumbing/tree/master/ibacm
-
-Jason
+Thanks,
+Knut
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
