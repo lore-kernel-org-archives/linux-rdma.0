@@ -1,125 +1,92 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 3/3] Provide remote XRC SRQ number in
- kernel post_send.
-Date: Tue, 20 Sep 2016 13:18:39 +0300
-Message-ID: <20160920101839.GF26673@leon.nu>
-References: <cover.0e6854f557aa8aa6ed7681cdf58397ef4f106505.1474063039.git-series.knut.omang@oracle.com>
- <d57e9dc45f6f4aed9dfb86a498226dab99e530a4.1474063039.git-series.knut.omang@oracle.com>
- <20160919052911.GF3273@leon.nu>
- <1474276356.24045.93.camel@oracle.com>
+Subject: Re: [PATCH] Support for Chelsio T6 devices
+Date: Tue, 20 Sep 2016 13:21:08 +0300
+Message-ID: <20160920102108.GG26673@leon.nu>
+References: <20160919200957.8777AE0BC1@smtp.ogc.us>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="8TaQrIeukR7mmbKf"
+        protocol="application/pgp-signature"; boundary="c7hkjup166d4FzgN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1474276356.24045.93.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160919200957.8777AE0BC1-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---8TaQrIeukR7mmbKf
-Content-Type: text/plain; charset=iso-8859-1
+--c7hkjup166d4FzgN
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 19, 2016 at 11:12:36AM +0200, Knut Omang wrote:
-> On Mon, 2016-09-19 at 08:29 +0300, Leon Romanovsky wrote:
-> > On Sat, Sep 17, 2016 at 05:59:13AM +0200, Knut Omang wrote:
-> > >
-> > > Also proper end align the ibv_kern_send_wr struct.
-> > >
-> > > Requires a corresponding kernel change.
-> > >
-> > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > > =A0include/infiniband/kern-abi.h | 1 +
-> > > =A0src/cmd.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0| 2 ++
-> > > =A02 files changed, 3 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-=
-abi.h
-> > > index 8bdeef5..7b1d310 100644
-> > > --- a/include/infiniband/kern-abi.h
-> > > +++ b/include/infiniband/kern-abi.h
-> > > @@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
-> > > =A0	union {
-> > > =A0		struct {
-> > > =A0			__u32 remote_srqn;
-> > > +			__u32 reserved;
-> > > =A0		} xrc;
-> > > =A0	} qp_type;
-> > > =A0};
-> > > diff --git a/src/cmd.c b/src/cmd.c
-> > > index a418ee1..a4e2f75 100644
-> > > --- a/src/cmd.c
-> > > +++ b/src/cmd.c
-> > > @@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, stru=
-ct ibv_send_wr *wr,
-> > > =A0			tmp->wr.ud.remote_qpn=A0=A0=3D i->wr.ud.remote_qpn;
-> > > =A0			tmp->wr.ud.remote_qkey =3D i->wr.ud.remote_qkey;
-> > > =A0		} else {
-> > > +			if (ibqp->qp_type =3D=3D IBV_QPT_XRC_SEND)
-> > > +				tmp->qp_type.xrc.remote_srqn =3D i->qp_type.xrc.remote_srqn;
-> > It will be checked for all QPTs and for all consumers. Any chances to
-> > optimize it?
+On Mon, Sep 19, 2016 at 12:55:16PM -0700, Steve Wise wrote:
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  src/perftest_parameters.c |    1 +
+>  src/perftest_parameters.h |    3 ++-
+>  2 files changed, 3 insertions(+), 1 deletions(-)
 >
-> All QPTs except UD, yes.
+> diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
+> index a21b6eb..0d1ea2f 100755
+> --- a/src/perftest_parameters.c
+> +++ b/src/perftest_parameters.c
+> @@ -1326,6 +1326,7 @@ enum ctx_device ib_dev_name(struct ibv_context *context)
+>  			case 4  : dev_fname = CHELSIO_T4; break;
+>  			case 11 :
+>  			case 5  : dev_fname = CHELSIO_T5; break;
+> +			case 6  : dev_fname = CHELSIO_T6; break;
+>  			default : dev_fname = UNKNOWN; break;
+>  		}
 >
-> The easiest is perhaps just to remove the test (and set the attribute in =
-all cases), which will work fine
-> as long as the qp_type union is not used for anything else, but is it wor=
-th=A0
-> the loss of intuitiveness/future potential correctness of the code?
+> diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
+> index 448e398..727a65f 100755
+> --- a/src/perftest_parameters.h
+> +++ b/src/perftest_parameters.h
+> @@ -269,7 +269,8 @@ enum ctx_device {
+>  	CONNECTX4		= 10,
+>  	CONNECTX4LX		= 11,
+>  	QLOGIC_E4		= 12,
+> -	QLOGIC_AH		= 13
+> +	QLOGIC_AH		= 13,
+> +	CHELSIO_T6		= 14
 
-Let's concentrate on the present and as far as I see there are no kernel us=
-ers who
-need this field xrc.remote_srqn field.
+Nit comment,
+if you use "14," and not "14", the next submitter will send patch with
+less churn.
 
+>  };
 >
-> Note that this is for user mode post_send implemented by the kernel, not =
-the "fast path"
-> pure user mode.
+>  /* Units for rate limiter */
+> --
+> 1.7.1
 >
-> Knut
->
-> > >
-> > > =A0			switch (i->opcode) {
-> > > =A0			case IBV_WR_RDMA_WRITE:
-> > > =A0			case IBV_WR_RDMA_WRITE_WITH_IMM:
-> > > --
-> > > git-series 0.8.10
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at=A0=A0http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---8TaQrIeukR7mmbKf
+--c7hkjup166d4FzgN
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX4Qz/AAoJEORje4g2clinhLQP/18w+mJNDqZkQxNlm1PKOtYz
-nCqwbCAPw8aRAYtypwy9Q3PocyWxkHGrjNmc0rVPe8vORxs6gNDFnFi1Q2cReEB+
-z4cqO6GDHNulVnjLdNSFqh9Lv+INo69qTZ5wSBKDgKWJtNYCY/8hNvtVU2ob2iwy
-SJ9GPGL3cqnj85a27k+R9ZKVtXNuACPJC5wRqWHE28lyKku846JSlDYUJtYBhLnA
-vrkkDXV/4P4yLBsc9XXMjfZc2kEYL1ZP+p+jRg5wQPuadD6FO33U5sqaevVGrom+
-4XlZXpX/VmPuo5tcDBXArX67ZcrQf/Q2Tl2TFTMWpjH+rGd0W6VqPliM6My1dMTy
-qal/tkQn/pQ3wbDLjbaGysTPjDkCLG9GSm9ggesFQG53eQMqjJ/vadR4Nb0nsX0t
-m47KKeC9stw5/P045FE9E7ML0KtXk0s6MB7LdCsPqSbeco74IhN5vQlXszzfKwqw
-gLCEToXxbxXHrFo57JAhBLzdD7f4YOYaisH3VaaJY+47ngqdEF1EDWmFHstw6jL4
-8TR2Q7zOyHhdXVfdl53G3jl5ZvSHD4KIBtuXpsH2ClxrAkgIfwZ2pANc9oyg8TPT
-F279uBBZw54hMqnqyZko7ABwTUBX6zINItEdMjPENCpLmM/AWT4WP1xc73N3gM+D
-18y140aKQ+wvnxca9N66
-=PYRW
+iQIcBAEBAgAGBQJX4Q2UAAoJEORje4g2clinPEkP/1s/9uLHvDhgQwCW8890vC3N
+W3U6Fv12XXgBtkcdxg3oMS24mT/FzJ/HdfYNO2bJHdum8cYZEDWUQ5iVrmg3poDy
+2e7z/LV3MEDNnrbFUIxv1vfGmYJgTOPZNwVXMz0y2tDomwH0g8f5eZo9A90F+OWg
+YcOcyIUzY0GwqcYyI3Higk0UNoJGkNz/6Cr0T0Gk+r4Z2z5PEUE6nuZAbUamnavz
+C8zbphZ69ROToZkg0rTQLCBXWFyCVhd3wnSERWDA0Ai9+VcWdx60mwlmwM2UFbN7
+nuejNsFlgrjhbrITKCfMo5ktOjkxKGY/MpX2mWuyDkkepF67OJOxRxxswujAfTVV
+XL2XmDr4CCf6dzaDAZcpdOOrQjpaP77VwSQY/kiZ7WkVo1OuX8hfFaC0eh9nfAvs
+NVg1kmjYrZy2u46PM/LWiAT6/7x7mtwOWBSC7lPYpHsWbRvZF5M9jx4Ck+qXwIK+
+aQmIokP7A8WQyKu6Xw6wQaIIvPlBfTA6kZ0a+F5J71Z1o9lcPBxjSx+II73gzs9w
+ffgMR+ZK0rfI+QzH/hwuXAbv39dt6ARtuLG+PziRkkQp4QRzFvEOBEIzSBsug0QE
+x4t9+adLE2UVOypZ7UjMBnKXAWnbAmfvoBVH7+GESCCj2YGSBltJQcsqGebRmnU2
+BTOvg+XWOxBeHAfNOjH+
+=sb8n
 -----END PGP SIGNATURE-----
 
---8TaQrIeukR7mmbKf--
+--c7hkjup166d4FzgN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
