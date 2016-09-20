@@ -1,60 +1,73 @@
-From: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [RFC v2 00/11] QLogic RDMA Driver (qedr) RFC
-Date: Tue, 20 Sep 2016 13:33:25 +0000
-Message-ID: <CY1PR0701MB133773B2CB71FA6362CADCFF90F70@CY1PR0701MB1337.namprd07.prod.outlook.com>
-References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
- <20160920121151.GK26673@leon.nu>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 for-next 00/19] IB/hns: Fixes for various misc. bugs
+Date: Tue, 20 Sep 2016 17:06:53 +0100
+Message-ID: <20160920160712.1190216-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160920121151.GK26673-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Tue, Sep 20, 2016 at 01:35:52PM +0300, Ram Amrani wrote:
-...
-> > The series adds on top of RFC v1:
-> > * a check for all drivers that IB_ACCESS_MW_BIND isn't set for ib_get_d=
-ma_mr
-> > * relocation of qedr user API to include/rdma/uapi/providers/
-> > * removal of qedr_devlist_local
-> > * fixed error handling in qedr_alloc_resources()
-> > * configuration of PBL in ib_map_mr_sg() driver implementation,
-> >   rather than post_send's IB_WR_REG_MR
-> > * misc.: placed code in proper patch, fixed a few comments,
-> >   removed extra parentheses
-> >
-> > Thanks for everyone which pointed out problems in the driver.
-> >
-> > Any review/comment is appreciated.
->=20
-> Very nice,
-> Any reason why didn't you drop debug module parameter and decided to
-> mimic already available kernel core functionality?
->=20
-> You got technical explanations why it is bad idea to use it. If you need =
-additional
-> voices
-> to support my claims, you will find them in thread about VERBOSE flag and=
- responses
-> from
-> Doug, and Dennis.
->=20
-> Thanks
-Hi Leon,
-The RFC cover letter lists what has been addressed. Debug printouts are not=
- addressed in V2 as the discussion on that topic is not concluded (more tho=
-ughts from us on debug printouts incoming on the thread). There were many c=
-omments to V1 which are not relevant to debug printouts which are addressed=
- by V2. We are requesting further comment, hence RFC V2. Rest assured, if i=
-t is the final opinion in the relevant discussion that pr_debug is the way =
-to go, that's what we'll do.
-Thanks,
-Ariel
+This patch-set introduces fixes for various bugs and potential
+problems found during internal review and testing phases of
+the HNS RoCE driver.
+
+NOTE: These fixes have been done over already floated CM
+patch: https://lkml.org/lkml/2016/9/1/609
+
+All fixes have been done & tested by Oulijun and Huwei.
+
+V1->V2: * PATCH 3/20 and 13/20 have been dropped after rework
+          of comments by Leon Romanovsky on V1 patch.
+        * New patch "Fix for removal of redundant code" has
+          been added to remove the redundant code.
+
+Lijun Ou (15):
+  IB/hns: Remove unused parameters in some functions
+  IB/hns: Remove parameters of resize cq
+  IB/hns: Fix bug of using uninit refcount and free
+  IB/hns: Simplify function of pd alloc and qp alloc
+  IB/hns: Remove unused parameter named qp_type
+  IB/hns: Modify the init of iboe lock
+  IB/hns: Fix bug of memory leakage for registering user mr
+  IB/hns: Return bad wr while post send failed
+  IB/hns: The Ack timeout need a lower limit value
+  IB/hns: Some items of qpc need to take user param
+  IB/hns: Validate mtu when modified qp
+  IB/hns: Cq has not been freed
+  IB/hns: Update the rq head when modify qp state
+  IB/hns: Fix the bug when platform_get_resource() exec fail
+  IB/hns: Delete the redundant lines in hns_roce_v1_m_qp()
+
+Salil Mehta (1):
+  IB/hns: Fix for removal of redundant code
+
+Wei Hu (Xavier) (3):
+  IB/hns: Fix bug of clear hem
+  IB/hns: Delete the sqp_start from the structure hns_roce_caps
+  IB/hns: Optimize code of aeq and ceq interrupt handle and fix the bug
+    of qpn
+
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |  23 +--
+ drivers/infiniband/hw/hns/hns_roce_device.h |  13 +-
+ drivers/infiniband/hw/hns/hns_roce_eq.c     | 146 ++++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_eq.h     |   4 +
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  76 +---------
+ drivers/infiniband/hw/hns/hns_roce_hem.h    |   4 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 211 +++++++++++++++++++++++-----
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   9 ++
+ drivers/infiniband/hw/hns/hns_roce_main.c   |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |   3 +
+ drivers/infiniband/hw/hns/hns_roce_pd.c     |  18 +--
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  57 +++-----
+ 12 files changed, 312 insertions(+), 256 deletions(-)
+
+-- 
+1.9.1
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
