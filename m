@@ -1,97 +1,113 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH for-next 20/20] IB/hns: Delete the redundant lines in
- hns_roce_v1_m_qp()
-Date: Tue, 20 Sep 2016 16:57:52 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A724B0E@lhreml503-mbx>
-References: <1473417051-99560-1-git-send-email-salil.mehta@huawei.com>
- <1473417051-99560-21-git-send-email-salil.mehta@huawei.com>
- <20160915101529.GY26069@leon.nu>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC 02/11] Add RoCE driver framework
+Date: Tue, 20 Sep 2016 20:03:51 +0300
+Message-ID: <20160920170351.GT26673@leon.nu>
+References: <20160913063806.GP8812@leon.nu>
+ <BL2PR07MB2306937C8C495DB80DA776CA8DFE0@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160913101616.GT8812@leon.nu>
+ <BL2PR07MB2306533A710B9EC40F56E8678DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160914130032.GB26069@leon.nu>
+ <BL2PR07MB23066BBC4A019365A632E2FA8DF10@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160915043716.GD26069@leon.nu>
+ <BL2PR07MB23060C776EDAE92B84FCFB768DF00@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160915054235.GK26069@leon.nu>
+ <CY1PR0701MB13376438A5767BC844EA35C290F70@CY1PR0701MB1337.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160915101529.GY26069@leon.nu>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mW9eGbZzDIYYWqGs"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CY1PR0701MB13376438A5767BC844EA35C290F70-UpKza+2NMNLi6bjPjkn3FE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Ariel Elior <Ariel.Elior-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> owner@vger.kernel.org] On Behalf Of Leon Romanovsky
-> Sent: Thursday, September 15, 2016 11:15 AM
-> To: Salil Mehta
-> Cc: dledford@redhat.com; Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
-> xuwei (O); mehta.salil.lnk@gmail.com; linux-rdma@vger.kernel.org;
-> linux-kernel@vger.kernel.org; Linuxarm
-> Subject: Re: [PATCH for-next 20/20] IB/hns: Delete the redundant lines
-> in hns_roce_v1_m_qp()
-> 
-> On Fri, Sep 09, 2016 at 06:30:51PM +0800, Salil Mehta wrote:
-> > From: Lijun Ou <oulijun@huawei.com>
-> >
-> > It doesn't need to assign for the filed of qp state in qpc separately
-> > when qp happen to migrate state which supported in RoCE engine v1.
-> >
-> > Signed-off-by: Lijun Ou <oulijun@huawei.com>
-> > Reviewed-by:  Wei Hu (Xavier) <xavier.huwei@huawei.com>
-> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-> > ---
-> >  drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   14 +++-----------
-> >  1 file changed, 3 insertions(+), 11 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> > index 7a61d7e..3bc32fc 100644
-> > --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> > +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> > @@ -2405,11 +2405,6 @@ static int hns_roce_v1_m_qp(struct ib_qp
-> *ibqp, const struct ib_qp_attr *attr,
-> >  		roce_set_bit(context->qpc_bytes_140,
-> >  			     QP_CONTEXT_QPC_BYTES_140_RNR_RETRY_FLG_S, 0);
-> >
-> > -		roce_set_field(context->qpc_bytes_144,
-> > -			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_M,
-> > -			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_S,
-> > -			       attr->qp_state);
-> > -
-> >  		roce_set_field(context->qpc_bytes_148,
-> >  			       QP_CONTEXT_QPC_BYTES_148_CHECK_FLAG_M,
-> >  			       QP_CONTEXT_QPC_BYTES_148_CHECK_FLAG_S, 0);
-> > @@ -2524,13 +2519,10 @@ static int hns_roce_v1_m_qp(struct ib_qp
-> *ibqp, const struct ib_qp_attr *attr,
-> >  		   (cur_state == IB_QPS_RTS && new_state == IB_QPS_ERR) ||
-> >  		   (cur_state == IB_QPS_ERR && new_state == IB_QPS_RESET)
-> ||
-> >  		   (cur_state == IB_QPS_ERR && new_state == IB_QPS_ERR)) {
-> > -		roce_set_field(context->qpc_bytes_144,
-> > -			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_M,
-> > -			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_S,
-> > -			       attr->qp_state);
-> > -
-> > +		/* It will not do additional options in engine v1 */
-> > +		;
-> 
-> It will leave empty if() {..}, it is worth to rewrite to have one if
-> for
-> error path only.
-Agreed & changed in patch v2!
 
-Thanks
-Salil
-> 
-> >  	} else {
-> > -		dev_err(dev, "not support this modify\n");
-> > +		dev_err(dev, "not support this status migration\n");
-> >  		goto out;
-> >  	}
+--mW9eGbZzDIYYWqGs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Sep 20, 2016 at 03:04:12PM +0000, Elior, Ariel wrote:
+> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > On Thu, Sep 15, 2016 at 05:11:03AM +0000, Mintz, Yuval wrote:
+> > > > As a summary, I didn't see in your responses any real life example where you will
+> > > > need global debug level for your driver.
+> > >
+> > > Not sure what you you're expecting - a list of BZs /private e-mails where
+> > > user reproductions were needed?
+> > > You're basically ignoring my claims that such are used, instead wanting
+> > > "evidence". I'm not going to try and produce any such.
 > >
-> > --
-> > 1.7.9.5
+> > I asked an example and not evidence, where "modprobe your_driver
+> > debug=1" will be superior to "modprobe your_driver dyndbg==pmf".
 > >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > https://www.kernel.org/doc/Documentation/dynamic-debug-howto.txt
+> Hi,
+>
+> dyndbg vs module param:
+> Dynamic debug has two very nice features: dynamic activation/configuration and per line/file/module/format activation. The module param has neither, but it does have a few merits which I am not sure dyndbg has:
+> (1)
+> It can activate printouts according to *flow*. A lot of thought has been put into associating the right printout in our driver at the right verbosity level with the right "flow tag" (e.g. QEDR_MSG_INIT, QEDR_MSG_QP). The module parameter accepts a bitmask which allows setting any subset of these flows. This means that with the correct values for the parameter I can open only "init" printouts, or only "Memory Region" printouts, even if these cross multiple files / functions and don't share a common format. Presumably, one would claim that we could add the "flow tag" to the format to every printout according to its flow, but that would encumber the printouts, and also doesn't scale well to printouts which belong to multiple flows, where the current approach allows this (QEDR_MSG_SQ | QEDR_
+ MSG_RQ).
+
+Dynamic prints are enabled per-print. The best possible granularity
+which you can achieve.
+
+> (2)
+> As Yuval pointed out, there are users out there which have no trouble loading a driver with a module parameter, at probe or at kernel boot, but would be at a loss in mounting debugfs and dumping a matchspec script into a node there. As kernel developers, educating users is part of what we do, but it comes with a cost.
+
+You are free to add this parameter to your out-of-tree driver. As I said
+before to Yuval your module "debug" is equal to "dyndbg". Your users can
+use it and is already available in kernel.
+
+> (3)
+> debugfs can be compiled out of the kernel in some codesize sensitive environments, or may not exist in an emergency shell or kdump kernel, whereas the module parameter would always be there.
+>
+> Simply allowing our module parameter mechanism to be dynamically activated is very straightforward - we planned on adding a debugfs node for that anyway. But I would keep the module parameter for the sake of those less capable users and also for when debugfs is not available as detailed in (3) above.
+
+This is an example why we don't want this module parameter, once added it
+will be with us forever.
+
+>
+> I certainly see the merits of joining an existing infrastructure instead of implementing our own thing, but I would like to know if there are ways of obtaining the merits I listed for our approach via that infrastructure.
+>
+> Leon, aside of commenting on the above, can you give an example of a driver which in your opinion does a good job of using dyndbg?
+
+All modern drivers in this subsystem are supporting dyndbg out of the
+box.
+
+General note, can you please configure your email to wrap lines? It is
+very hard to read, follow and respond to lines with >800 symbols in them.
+
+>
+> Thanks,
+> Ariel
+>
+
+--mW9eGbZzDIYYWqGs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX4Wv3AAoJEORje4g2clinSSUQAL6PvnA1iECV7HnJh9Vs5iO4
+6bTqgzZoCRxWh8vgu5EE7sfJMC64O4ND65uKM/2IeHa8YmmzYb4juVPBT3T7mPqC
+3lXh5UIG8N0/CKVudhQTcVD0pROmBDCbGwtU4sNKJV+8LpUtpDH19G5SShbfiHW7
+pc4bTL4tNNu6gmuUEsnpoY9WFa5g75Fp3Wr7yhqME+i1ChTeZ8sECGWxVxm06ram
+pwDuFOTskZVXSUnaoC5TxrHHm62HkDyZYN2ucb+UQ2RG6ITRFBWep0dABn6f6TKp
+rKu4ctd9dcu3OhLka8D3NOT4yxgOfWCRrQmLNQBmcuQb9Hhwsej5Rw3bSauEZJHe
+TBTvhHb7SVYK8j2hWbQ8wbrUNzjWKoVGPbs/0PUKFuGZipkfBcoxe/o+ohG1ox5c
+HOBMaLrL3iHUwec0a7wLM/IA13rZ8Z88QhHX+IzkBtUPIuMtGTsKNUR79CtApqRT
+R8UA28X+8hSMqtF4OEdDQkifMqS+UGma2/IbM3jB1OqEdDnqfPgTY4HNY3FeQdev
+7VV9HcUrSq0Re/hZMx2Voaf4bxbF/s/twTcpXXcK1hKmSBc19fCHgjf/7FVx85+i
+Gdw3ldQt0oL8gJGm51n0V6alfu7sXIjWz0q5C18vHDKMFLUPeqjeZqQYjvmd9hWH
+mbjrMyn/JjypFVdiiaq9
+=kJkA
+-----END PGP SIGNATURE-----
+
+--mW9eGbZzDIYYWqGs--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
