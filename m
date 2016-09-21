@@ -1,46 +1,58 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 21 Sep 2016 10:26:45 -0400
-Message-ID: <20160921142645.GB10734@htj.duckdns.org>
-References: <20160910170151.GA5230@obsidianresearch.com>
- <20160911133421.GA23384@lst.de>
- <20160911143522.GL6415@leon.nu>
- <20160911171409.GA13442@obsidianresearch.com>
- <20160911172445.GA25953@lst.de>
- <20160911175235.GB13442@obsidianresearch.com>
- <20160912050717.GE8812@leon.nu>
- <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
- <20160915185629.GF26069@leon.nu>
- <CAG53R5XBS0B5XaTzjKC3-zgoB2-fz2ctbk_E2YG76zBgzOfG-A@mail.gmail.com>
+From: "Amrani, Ram" <Ram.Amrani@cavium.com>
+Subject: RE: [RFC v2 06/12] qedr: Add support for QP verbs
+Date: Wed, 21 Sep 2016 14:15:39 +0000
+Message-ID: <SN1PR07MB2207C1EC2C5C86C607D0255AF8F60@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
+ <1474367764-9555-7-git-send-email-Ram.Amrani@cavium.com>
+ <20160920163048.GQ26673@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5XBS0B5XaTzjKC3-zgoB2-fz2ctbk_E2YG76zBgzOfG-A@mail.gmail.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@lst.de>, Matan Barak <matanb@mellanox.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160920163048.GQ26673@leon.nu>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "dledford@redhat.com" <dledford@redhat.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Mintz, Yuval" <Yuval.Mintz@cavium.com>, "Borundia, Rajesh" <Rajesh.Borundia@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Parav.
+> >  include/uapi/rdma/providers/qedr-abi.h     |   35 +
+>=20
+> Please be aware that the last version for ABI header files doesn't have "=
+provider"
+> name in directory path (include/uapi/rdma/qedr-abi.h)
 
-On Wed, Sep 21, 2016 at 10:13:38AM +0530, Parav Pandit wrote:
-> We have completed review from Tejun, Christoph.
-> HFI driver folks also provided feedback for Intel drivers.
-> Matan's also doesn't have any more comments.
-> 
-> If possible, if you can also review, it will be helpful.
-> 
-> I have some more changes unrelated to cgroup in same files in both the git tree.
-> Pushing them now either results into merge conflict later on for
-> Doug/Tejun, or requires rebase and resending patch.
-> If you can review, we can avoid such rework.
+OK. Note that I was using https://www.spinics.net/lists/linux-rdma/msg40414=
+.html that dates to 7 days ago and it contains the "providers" folder.
+Can you point to the most recent patch?
 
-My impression of the thread was that there doesn't seem to be enough
-of consensus around how rdma resources should be defined.  Is that
-part agreed upon now?
+> > diff --git a/drivers/infiniband/hw/qedr/main.c
+> > b/drivers/infiniband/hw/qedr/main.c
+> > index c99dd6a..10ad9ed 100644
+> > --- a/drivers/infiniband/hw/qedr/main.c
+> > +++ b/drivers/infiniband/hw/qedr/main.c
+> > @@ -52,7 +52,7 @@ uint debug;
+> >  module_param(debug, uint, 0);
+> >  MODULE_PARM_DESC(debug, "Default debug msglevel");
+> >
+> > -static LIST_HEAD(qedr_dev_list);
+>=20
+> You are removing code which was added in previous patches, why do you do =
+it?
+>=20
 
-Thanks.
+Sure. Will fix. Thanks.
 
--- 
-tejun
+> > diff --git a/drivers/infiniband/hw/qedr/qedr.h
+> > b/drivers/infiniband/hw/qedr/qedr.h
+> > index dd974d5..05017be 100644
+> > --- a/drivers/infiniband/hw/qedr/qedr.h
+> > +++ b/drivers/infiniband/hw/qedr/qedr.h
+> > @@ -49,6 +49,9 @@
+> >  enum DP_QEDR_MODULE {
+> >  	QEDR_MSG_INIT =3D 0x10000,
+>=20
+> We prefer shift notation (1 << 16) instead of 0x10000.
+>=20
+
+OK, I'll convert accordingly.
