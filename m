@@ -1,41 +1,50 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 19/23] iwpmd: Install ancillary files for iwpm
-Date: Wed, 21 Sep 2016 16:08:45 -0600
-Message-ID: <1474495729-17604-20-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 16/23] ibcm: Move documentation to Documentation/
+Date: Wed, 21 Sep 2016 16:08:42 -0600
+Message-ID: <1474495729-17604-17-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474495729-17604-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There were installed manually inside the rpm spec file, our
-standard is to do them during 'make install'
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+And drop bits that are outdated or replaced by top-level Documentation.
+
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- iwpmd/src/CMakeLists.txt | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ libibcm/README => Documentation/libibcm.md | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
+ rename libibcm/README => Documentation/libibcm.md (54%)
 
-diff --git a/iwpmd/src/CMakeLists.txt b/iwpmd/src/CMakeLists.txt
-index 5ffc21264ae2..e6255b597733 100644
---- a/iwpmd/src/CMakeLists.txt
-+++ b/iwpmd/src/CMakeLists.txt
-@@ -7,6 +7,10 @@ target_link_libraries(iwpmd
-   ${NL_LIBRARIES}
-   ${CMAKE_THREAD_LIBS_INIT}
-   )
--# FIXME iwpmd_init init.d file
--# FIXME iwpmd.service systemd file
--# FIXME iwpmd.conf
-+
-+install(FILES "../iwpmd.service" DESTINATION "${CMAKE_INSTALL_SYSTEMD_SERVICEDIR}")
-+install(FILES "../iwpmd_init"
-+  DESTINATION "${CMAKE_INSTALL_INITDDIR}"
-+  RENAME "iwpmd"
-+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
-+install(FILES "../iwpmd.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}")
+diff --git a/libibcm/README b/Documentation/libibcm.md
+similarity index 54%
+rename from libibcm/README
+rename to Documentation/libibcm.md
+index 4dda13c185eb..663e7736d2f1 100644
+--- a/libibcm/README
++++ b/Documentation/libibcm.md
+@@ -1,16 +1,4 @@
+-This README is for userspace cm library.
+-
+-Building
+-
+-To make this directory, run:
+-./autogen.sh && ./configure && make && make install
+-
+-Typically the autogen and configure steps only need be done the first
+-time unless configure.in or Makefile.am changes.
+-
+-Libraries are installed by default at /usr/local/lib.
+-
+-Device files
++# Device files
+ 
+ The userspace CM uses a device file per adapter present.
+ 
 -- 
 2.1.4
 
