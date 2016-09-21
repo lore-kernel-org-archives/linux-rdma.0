@@ -1,60 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 03/23] Add reporting bugs and submitting patches sections to README.md
-Date: Wed, 21 Sep 2016 16:08:29 -0600
-Message-ID: <1474495729-17604-4-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 08/23] ocrdma: Fix incorrect enum constant
+Date: Wed, 21 Sep 2016 16:08:34 -0600
+Message-ID: <1474495729-17604-9-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474495729-17604-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+clang 3.6 remarks:
 
-Based on the wording from the libibverbs and srp_daemon README files.
+../providers/ocrdma/ocrdma_verbs.c:597:14: warning: implicit conversion from enumeration type 'enum ibv_qp_state' to different enumeration type 'enum ocrdma_qp_state' [-Wenum-conversion]
+        qp->state = IBV_QPS_RESET;
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+And it is not wrong.  IBV_QPS_RESET=0 and OCRDMA_QPS_RST=0 so this
+patch is a NOP.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- README.md | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ libocrdma/src/ocrdma_verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/README.md b/README.md
-index 65c7644ad770..8c31944c91a8 100644
---- a/README.md
-+++ b/README.md
-@@ -95,3 +95,31 @@ $ install -m755 ninja /usr/local/bin/ninja
- ```
- 
- Use the 'cmake3' program in place of `cmake` in the above instructions.
-+
-+# Reporting bugs
-+
-+Bugs should be reported to the <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> mailing list
-+In your bug report, please include:
-+
-+ * Information about your system:
-+   - Linux distribution and version
-+   - Linux kernel and version
-+   - InfiniBand hardware and firmware version
-+   - ... any other relevant information
-+
-+ * How to reproduce the bug.
-+
-+ * If the bug is a crash, the exact output printed out when the crash
-+   occurred, including any kernel messages produced.
-+
-+# Submitting patches
-+
-+Patches should also be submitted to the <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-+mailing list.  Please use unified diff form (the -u option to GNU diff),
-+and include a good description of what your patch does and why it should
-+be applied.  If your patch fixes a bug, please make sure to describe the
-+bug and how your fix works.
-+
-+Make sure that your contribution can be licensed under the same
-+license as the original code you are patching, and that you have all
-+necessary permissions to release your work.
+diff --git a/libocrdma/src/ocrdma_verbs.c b/libocrdma/src/ocrdma_verbs.c
+index b3c77c47d660..60626260656d 100644
+--- a/libocrdma/src/ocrdma_verbs.c
++++ b/libocrdma/src/ocrdma_verbs.c
+@@ -620,7 +620,7 @@ struct ibv_qp *ocrdma_create_qp(struct ibv_pd *pd,
+ 			qp->dpp_cq = 0;
+ 		}
+ 	}
+-	qp->state = IBV_QPS_RESET;
++	qp->state = OCRDMA_QPS_RST;
+ 	INIT_DBLY_LIST_NODE(&qp->sq_entry);
+ 	INIT_DBLY_LIST_NODE(&qp->rq_entry);
+ 	return &qp->ibv_qp;
 -- 
 2.1.4
 
