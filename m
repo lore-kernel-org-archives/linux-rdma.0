@@ -1,48 +1,57 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 09/23] verbs: Fix incorrect type of len
-Date: Wed, 21 Sep 2016 16:08:35 -0600
-Message-ID: <1474495729-17604-10-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 06/23] nes: Fix clang 3.6 warning -Wtautological-constant-out-of-range-compare
+Date: Wed, 21 Sep 2016 16:08:32 -0600
+Message-ID: <1474495729-17604-7-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474495729-17604-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-gcc remarks:
+clang will miscompile this code because it make assumptions
+about the signededness of enums.
 
-../librdmacm/examples/udpong.c:301:11: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
-   if (len < 0)
-
-len is set by:
-		len = svr_recv(&msg, sizeof msg, &addr, &addrlen);
-
-And svr_recv returns:
-
-static ssize_t svr_recv(struct message *msg, size_t size,
-
-So clearly len is the wrong type, and the error test does
-not work.
+Instead create a constant for an invalid ibv_wc_opcode and use that
+everywhere. Unsigned enums will use -1, signed enums should use INT_MAX.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- librdmacm/examples/udpong.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ libnes/src/nes_uverbs.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/librdmacm/examples/udpong.c b/librdmacm/examples/udpong.c
-index 6affc62d5a84..0f44f50e6e88 100644
---- a/librdmacm/examples/udpong.c
-+++ b/librdmacm/examples/udpong.c
-@@ -291,7 +291,7 @@ out:
+diff --git a/libnes/src/nes_uverbs.c b/libnes/src/nes_uverbs.c
+index 12e6222313ad..80891d6243c7 100644
+--- a/libnes/src/nes_uverbs.c
++++ b/libnes/src/nes_uverbs.c
+@@ -471,13 +471,15 @@ int nes_ima_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 	}
  
- static int svr_run(void)
- {
--	size_t len;
-+	ssize_t len;
- 	int ret;
+ 	while (cqe_count < num_entries) {
+-		entry->opcode = -1;
++		const enum ibv_wc_opcode INVAL_OP = -1;
++
++		entry->opcode = INVAL_OP;
+ 		cqe = &cqes[head];
+ 		cqe_misc =
+ 			le32_to_cpu(cqe->cqe_words[NES_NIC_CQE_MISC_IDX]);
+ 		if (cqe_misc & NES_NIC_CQE_VALID) {
+ 			memset(entry, 0, sizeof *entry);
+-			entry->opcode = -1;
++			entry->opcode = INVAL_OP;
+ 			cqe->cqe_words[NES_NIC_CQE_MISC_IDX] = 0;
+ 			entry->status = (cqe_misc & NES_NIC_CQE_ERRV_MASK) >>
+ 						NES_NIC_CQE_ERRV_SHIFT;
+@@ -523,7 +525,7 @@ int nes_ima_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 			if (++head >= cq_size)
+ 				head = 0;
  
- 	ret = svr_bind();
+-			if (entry->opcode != -1) {
++			if (entry->opcode != INVAL_OP) {
+ 				/* it is possible that no entry will be
+ 				  available */
+ 				cqe_count++;
 -- 
 2.1.4
 
