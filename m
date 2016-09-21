@@ -1,50 +1,70 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 16/23] ibcm: Move documentation to Documentation/
-Date: Wed, 21 Sep 2016 16:08:42 -0600
-Message-ID: <1474495729-17604-17-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 17/23] umad: Replace .nl with .sp in man pages
+Date: Wed, 21 Sep 2016 16:08:43 -0600
+Message-ID: <1474495729-17604-18-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474495729-17604-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Debian's Lintian remarks:
 
-And drop bits that are outdated or replaced by top-level Documentation.
+W: rdma-plumbing: manpage-has-errors-from-man usr/share/man/man3/umad_get_ca.3.gz 11: warning: macro `nl' not defined
+W: rdma-plumbing: manpage-has-errors-from-man usr/share/man/man3/umad_get_port.3.gz 11: warning: macro `nl' not defined
+W: rdma-plumbing: manpage-has-errors-from-man usr/share/man/man3/umad_init.3.gz 11: warning: macro `nl' not defined
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+We use .sp in other the man pages to separate function signatures, follow
+that practice consistently.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libibcm/README => Documentation/libibcm.md | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
- rename libibcm/README => Documentation/libibcm.md (54%)
+ libibumad/man/umad_get_ca.3   | 2 +-
+ libibumad/man/umad_get_port.3 | 2 +-
+ libibumad/man/umad_init.3     | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/libibcm/README b/Documentation/libibcm.md
-similarity index 54%
-rename from libibcm/README
-rename to Documentation/libibcm.md
-index 4dda13c185eb..663e7736d2f1 100644
---- a/libibcm/README
-+++ b/Documentation/libibcm.md
-@@ -1,16 +1,4 @@
--This README is for userspace cm library.
--
--Building
--
--To make this directory, run:
--./autogen.sh && ./configure && make && make install
--
--Typically the autogen and configure steps only need be done the first
--time unless configure.in or Makefile.am changes.
--
--Libraries are installed by default at /usr/local/lib.
--
--Device files
-+# Device files
- 
- The userspace CM uses a device file per adapter present.
- 
+diff --git a/libibumad/man/umad_get_ca.3 b/libibumad/man/umad_get_ca.3
+index 2f5fd1a71420..8de61d06d6d3 100644
+--- a/libibumad/man/umad_get_ca.3
++++ b/libibumad/man/umad_get_ca.3
+@@ -8,7 +8,7 @@ umad_get_ca, umad_release_ca \- get and release InfiniBand device port attribute
+ .B #include <infiniband/umad.h>
+ .sp
+ .BI "int umad_get_ca(char " "*ca_name" ", umad_ca_t " "*ca" );
+-.nl
++.sp
+ .BI "int umad_release_ca(umad_ca_t " "*ca" );
+ .fi
+ .SH "DESCRIPTION"
+diff --git a/libibumad/man/umad_get_port.3 b/libibumad/man/umad_get_port.3
+index 863afa7f8286..8dfa1d61933f 100644
+--- a/libibumad/man/umad_get_port.3
++++ b/libibumad/man/umad_get_port.3
+@@ -8,7 +8,7 @@ umad_get_port, umad_release_port \- open and close an InfiniBand port
+ .B #include <infiniband/umad.h>
+ .sp
+ .BI "int umad_get_port(char " "*ca_name" ", int " "portnum" ", umad_port_t " "*port" );
+-.nl
++.sp
+ .BI "int umad_release_port(umad_port_t " "*port" );
+ .fi
+ .SH "DESCRIPTION"
+diff --git a/libibumad/man/umad_init.3 b/libibumad/man/umad_init.3
+index a8108773c09f..4c22d927d8ec 100644
+--- a/libibumad/man/umad_init.3
++++ b/libibumad/man/umad_init.3
+@@ -8,7 +8,7 @@ umad_init, umad_done \- perform library initialization and finalization
+ .B #include <infiniband/umad.h>
+ .sp
+ .BI "int umad_init(void);
+-.nl
++.sp
+ .BI "int umad_done(void);
+ .fi
+ .SH "DESCRIPTION"
 -- 
 2.1.4
 
