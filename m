@@ -1,45 +1,34 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 13/16] Remove Debian and RPM packaging files
-Date: Wed, 21 Sep 2016 09:52:39 -0600
-Message-ID: <20160921155239.GB1510@obsidianresearch.com>
-References: <1474409425-15769-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474409425-15769-14-git-send-email-jgunthorpe@obsidianresearch.com>
- <2447bfda-5a48-18db-94b3-d031d5913a8e@dev.mellanox.co.il>
+Subject: Re: [RFC v2 06/12] qedr: Add support for QP verbs
+Date: Wed, 21 Sep 2016 09:55:09 -0600
+Message-ID: <20160921155509.GC1510@obsidianresearch.com>
+References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
+ <1474367764-9555-7-git-send-email-Ram.Amrani@cavium.com>
+ <20160920152849.GD32020@obsidianresearch.com>
+ <SN1PR07MB2207B94372F7A910C0E6AF0AF8F60@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2447bfda-5a48-18db-94b3-d031d5913a8e-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207B94372F7A910C0E6AF0AF8F60-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 05:00:41PM +0300, Yishai Hadas wrote:
-> On 9/21/2016 1:10 AM, Jason Gunthorpe wrote:
-> >These no longer apply to the combined build.
+On Wed, Sep 21, 2016 at 02:23:46PM +0000, Amrani, Ram wrote:
+> > Ugh, each patch keeps adding to this?
 > 
-> Taking this patch without introducing an alternative leaves the system
-> without an option to build RPMs as it removes all packaging files.
+> The logic in the patch series is to have each patch contain only
+> what is necessary for the specific functionality it adds.  This made
+> it harder on us to prepare but, IMHO, easier for the reviewer.  If
+> you'd like to have this file in one chunk, I can do this. What do
+> you prefer?
 
-The packaging was largely broken at the merge commit when we renamed
-the sub trees. It was rendered totally useless by commit 11 which
-deleted the build system it relied on. There is no reason to keep the
-files at this point in the git history.
+I wouldn't change anything at this point, but I'm not sure it is
+easier to review like this than the one patch per file scheme.
 
-> What is the plan here ?
-
-As I explined in the cover letter my preview tree contains
-RPM and DEB packaging. It will take a bit before all the prerequists
-for those patches go through the review process. Use my preview tree
-to test packaging please.
-
-This is only the first 16 out of 80 patches.
-
-> In addition, did we come to a decision re having RPM per component ?
-
-This is not our decision. The distros will follow their internal
-policies. I recommend the layout seen in the debian/ sample packaging.
+Do you have a git tree?
 
 Jason
 --
