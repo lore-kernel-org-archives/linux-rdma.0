@@ -1,596 +1,387 @@
 From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 11/16] Remove the auto* based build systems
-Date: Wed, 21 Sep 2016 16:53:23 +0300
-Message-ID: <6e3d2ab0-7c86-fe1c-affd-b7fb9ba59c20@dev.mellanox.co.il>
+Subject: Re: [PATCH 13/16] Remove Debian and RPM packaging files
+Date: Wed, 21 Sep 2016 17:00:41 +0300
+Message-ID: <2447bfda-5a48-18db-94b3-d031d5913a8e@dev.mellanox.co.il>
 References: <1474409425-15769-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474409425-15769-12-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1474409425-15769-14-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474409425-15769-12-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1474409425-15769-14-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 9/21/2016 1:10 AM, Jason Gunthorpe wrote:
-> The unified cmake version provides the same functionality now.
+> These no longer apply to the combined build.
 
-Can you explain how cmake preservers some compilation options which were 
-enabled per vendor ? for example with previous build system someone 
-could run configure of libmlx5 with --with-mlx5_debug, how can it be 
-done now ?
+Taking this patch without introducing an alternative leaves the system 
+without an option to build RPMs as it removes all packaging files.
+
+What is the plan here ?
+In addition, did we come to a decision re having RPM per component ?
 
 > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > ---
->  ibacm/INSTALL                       |     0
->  ibacm/Makefile.am                   |    49 -
->  ibacm/NEWS                          |     0
->  ibacm/README                        |    12 -
->  ibacm/autogen.sh                    |     5 -
->  ibacm/configure.ac                  |   106 -
->  iwpmd/Makefile.am                   |    11 -
->  iwpmd/NEWS                          |     0
->  iwpmd/autogen.sh                    |     3 -
->  iwpmd/configure.ac                  |    37 -
->  libcxgb3/Makefile.am                |    27 -
->  libcxgb3/autogen.sh                 |     8 -
->  libcxgb3/config/.gitignore          |     0
->  libcxgb3/configure.in               |    69 -
->  libcxgb3/cxgb3.driver               |     1 -
->  libcxgb3/src/iwch.map               |     6 -
->  libcxgb4/Makefile.am                |    27 -
->  libcxgb4/autogen.sh                 |     8 -
->  libcxgb4/config/config.guess        |  1439 ----
->  libcxgb4/config/config.sub          |  1811 -----
->  libcxgb4/config/depcomp             |   530 --
->  libcxgb4/config/install-sh          |   323 -
->  libcxgb4/configure.in               |    69 -
->  libcxgb4/cxgb4.driver               |     1 -
->  libcxgb4/src/cxgb4.map              |     6 -
->  libhfi1verbs/Makefile.am            |    83 -
->  libhfi1verbs/autogen.sh             |    64 -
->  libhfi1verbs/configure.in           |   126 -
->  libhfi1verbs/hfi1verbs.driver       |     1 -
->  libhfi1verbs/makefile               |   107 -
->  libhfi1verbs/makesrpm.sh            |    21 -
->  libhfi1verbs/src/hfiverbs.map       |     4 -
->  libi40iw/Makefile.am                |    26 -
->  libi40iw/configure.ac               |    74 -
->  libi40iw/i40iw.driver               |     1 -
->  libi40iw/src/i40iw.map              |    39 -
->  libibcm/INSTALL                     |     0
->  libibcm/Makefile.am                 |    35 -
->  libibcm/NEWS                        |     0
->  libibcm/autogen.sh                  |     9 -
->  libibcm/configure.in                |    72 -
->  libibumad/Makefile.am               |    75 -
->  libibumad/autogen.sh                |    11 -
->  libibumad/configure.in              |    72 -
->  libibverbs/Makefile.am              |   132 -
->  libibverbs/autogen.sh               |     4 -
->  libibverbs/config/.gitignore        |     8 -
->  libibverbs/configure.ac             |   124 -
->  libipathverbs/Makefile.am           |    79 -
->  libipathverbs/autogen.sh            |    43 -
->  libipathverbs/configure.in          |   120 -
->  libipathverbs/ipathverbs.driver     |     1 -
->  libipathverbs/src/ipathverbs.map    |     4 -
->  libmlx4/Makefile.am                 |    19 -
->  libmlx4/autogen.sh                  |     4 -
->  libmlx4/config/.gitignore           |     8 -
->  libmlx4/configure.ac                |    96 -
->  libmlx4/mlx4.driver                 |     1 -
->  libmlx4/src/mlx4.map                |     5 -
->  libmlx5/Makefile.am                 |    27 -
->  libmlx5/autogen.sh                  |     7 -
->  libmlx5/config/.gitignore           |     8 -
->  libmlx5/configure.ac                |   108 -
->  libmlx5/m4/ax_gcc_func_attribute.m4 |   223 -
->  libmlx5/mlx5.driver                 |     1 -
->  libmlx5/src/mlx5.map                |     5 -
->  libmthca/Makefile.am                |    29 -
->  libmthca/autogen.sh                 |     8 -
->  libmthca/config/.gitignore          |     8 -
->  libmthca/configure.in               |    82 -
->  libmthca/mthca.driver               |     1 -
->  libmthca/src/mthca.map              |     5 -
->  libnes/Makefile.am                  |    26 -
->  libnes/autogen.sh                   |    12 -
->  libnes/config/.gitignore            |     0
->  libnes/configure.in                 |    74 -
->  libnes/nes.driver                   |     1 -
->  libnes/src/nes.map                  |     5 -
->  libocrdma/Makefile.am               |    23 -
->  libocrdma/autogen.sh                |     8 -
->  libocrdma/config/.gitignore         |     8 -
->  libocrdma/configure.in              |    70 -
->  libocrdma/ocrdma.driver             |     1 -
->  libocrdma/src/ocrdma.map            |     5 -
->  librdmacm/INSTALL                   |     0
->  librdmacm/Makefile.am               |   141 -
->  librdmacm/NEWS                      |     0
->  librdmacm/autogen.sh                |     5 -
->  librdmacm/configure.ac              |   108 -
->  librxe/AUTHORS                      |     0
->  librxe/COPYING                      |     0
->  librxe/INSTALL                      |     0
->  librxe/Makefile.am                  |    36 -
->  librxe/Makefile.in                  |   939 ---
->  librxe/NEWS                         |     0
->  librxe/README                       |     0
->  librxe/aclocal.m4                   |  9390 ----------------------
->  librxe/config.h.in                  |    89 -
->  librxe/config/config.guess          |  1526 ----
->  librxe/config/config.sub            |  1658 ----
->  librxe/config/depcomp               |   530 --
->  librxe/config/install-sh            |   519 --
->  librxe/config/ltmain.sh             |  9636 ----------------------
->  librxe/config/missing               |   360 -
->  librxe/configure                    | 14728 ----------------------------------
->  librxe/configure.in                 |    77 -
->  librxe/librxe.spec                  |    55 -
->  librxe/rxe.driver                   |     1 -
->  librxe/src/rxe.map                  |     5 -
->  srp_daemon/Makefile.am              |    80 -
->  srp_daemon/autogen.sh               |     7 -
->  srp_daemon/build-deb.sh             |    68 -
->  srp_daemon/configure.ac             |    73 -
->  113 files changed, 46792 deletions(-)
->  delete mode 100644 ibacm/INSTALL
->  delete mode 100644 ibacm/Makefile.am
->  delete mode 100644 ibacm/NEWS
->  delete mode 100644 ibacm/README
->  delete mode 100755 ibacm/autogen.sh
->  delete mode 100644 ibacm/configure.ac
->  delete mode 100644 iwpmd/Makefile.am
->  delete mode 100644 iwpmd/NEWS
->  delete mode 100755 iwpmd/autogen.sh
->  delete mode 100644 iwpmd/configure.ac
->  delete mode 100644 libcxgb3/Makefile.am
->  delete mode 100755 libcxgb3/autogen.sh
->  delete mode 100644 libcxgb3/config/.gitignore
->  delete mode 100644 libcxgb3/configure.in
->  delete mode 100644 libcxgb3/cxgb3.driver
->  delete mode 100644 libcxgb3/src/iwch.map
->  delete mode 100644 libcxgb4/Makefile.am
->  delete mode 100755 libcxgb4/autogen.sh
->  delete mode 100755 libcxgb4/config/config.guess
->  delete mode 100755 libcxgb4/config/config.sub
->  delete mode 100755 libcxgb4/config/depcomp
->  delete mode 100755 libcxgb4/config/install-sh
->  delete mode 100644 libcxgb4/configure.in
->  delete mode 100644 libcxgb4/cxgb4.driver
->  delete mode 100644 libcxgb4/src/cxgb4.map
->  delete mode 100644 libhfi1verbs/Makefile.am
->  delete mode 100755 libhfi1verbs/autogen.sh
->  delete mode 100644 libhfi1verbs/configure.in
->  delete mode 100644 libhfi1verbs/hfi1verbs.driver
->  delete mode 100644 libhfi1verbs/makefile
->  delete mode 100644 libhfi1verbs/makesrpm.sh
->  delete mode 100644 libhfi1verbs/src/hfiverbs.map
->  delete mode 100644 libi40iw/Makefile.am
->  delete mode 100644 libi40iw/configure.ac
->  delete mode 100644 libi40iw/i40iw.driver
->  delete mode 100644 libi40iw/src/i40iw.map
->  delete mode 100644 libibcm/INSTALL
->  delete mode 100644 libibcm/Makefile.am
->  delete mode 100644 libibcm/NEWS
->  delete mode 100755 libibcm/autogen.sh
->  delete mode 100644 libibcm/configure.in
->  delete mode 100644 libibumad/Makefile.am
->  delete mode 100755 libibumad/autogen.sh
->  delete mode 100644 libibumad/configure.in
->  delete mode 100644 libibverbs/Makefile.am
->  delete mode 100755 libibverbs/autogen.sh
->  delete mode 100644 libibverbs/config/.gitignore
->  delete mode 100644 libibverbs/configure.ac
->  delete mode 100644 libipathverbs/Makefile.am
->  delete mode 100755 libipathverbs/autogen.sh
->  delete mode 100644 libipathverbs/configure.in
->  delete mode 100644 libipathverbs/ipathverbs.driver
->  delete mode 100644 libipathverbs/src/ipathverbs.map
->  delete mode 100644 libmlx4/Makefile.am
->  delete mode 100755 libmlx4/autogen.sh
->  delete mode 100644 libmlx4/config/.gitignore
->  delete mode 100644 libmlx4/configure.ac
->  delete mode 100644 libmlx4/mlx4.driver
->  delete mode 100644 libmlx4/src/mlx4.map
->  delete mode 100644 libmlx5/Makefile.am
->  delete mode 100755 libmlx5/autogen.sh
->  delete mode 100644 libmlx5/config/.gitignore
->  delete mode 100644 libmlx5/configure.ac
->  delete mode 100644 libmlx5/m4/ax_gcc_func_attribute.m4
->  delete mode 100644 libmlx5/mlx5.driver
->  delete mode 100644 libmlx5/src/mlx5.map
->  delete mode 100644 libmthca/Makefile.am
->  delete mode 100755 libmthca/autogen.sh
->  delete mode 100644 libmthca/config/.gitignore
->  delete mode 100644 libmthca/configure.in
->  delete mode 100644 libmthca/mthca.driver
->  delete mode 100644 libmthca/src/mthca.map
->  delete mode 100644 libnes/Makefile.am
->  delete mode 100755 libnes/autogen.sh
->  delete mode 100644 libnes/config/.gitignore
->  delete mode 100644 libnes/configure.in
->  delete mode 100644 libnes/nes.driver
->  delete mode 100644 libnes/src/nes.map
->  delete mode 100644 libocrdma/Makefile.am
->  delete mode 100644 libocrdma/autogen.sh
->  delete mode 100644 libocrdma/config/.gitignore
->  delete mode 100644 libocrdma/configure.in
->  delete mode 100644 libocrdma/ocrdma.driver
->  delete mode 100644 libocrdma/src/ocrdma.map
->  delete mode 100644 librdmacm/INSTALL
->  delete mode 100644 librdmacm/Makefile.am
->  delete mode 100644 librdmacm/NEWS
->  delete mode 100755 librdmacm/autogen.sh
->  delete mode 100644 librdmacm/configure.ac
->  delete mode 100644 librxe/AUTHORS
->  delete mode 100644 librxe/COPYING
->  delete mode 100644 librxe/INSTALL
->  delete mode 100644 librxe/Makefile.am
->  delete mode 100644 librxe/Makefile.in
->  delete mode 100644 librxe/NEWS
->  delete mode 100644 librxe/README
->  delete mode 100644 librxe/aclocal.m4
->  delete mode 100644 librxe/config.h.in
->  delete mode 100755 librxe/config/config.guess
->  delete mode 100755 librxe/config/config.sub
->  delete mode 100755 librxe/config/depcomp
->  delete mode 100755 librxe/config/install-sh
->  delete mode 100755 librxe/config/ltmain.sh
->  delete mode 100755 librxe/config/missing
->  delete mode 100755 librxe/configure
->  delete mode 100644 librxe/configure.in
->  delete mode 100644 librxe/librxe.spec
->  delete mode 100644 librxe/rxe.driver
->  delete mode 100644 librxe/src/rxe.map
->  delete mode 100644 srp_daemon/Makefile.am
->  delete mode 100755 srp_daemon/autogen.sh
->  delete mode 100755 srp_daemon/build-deb.sh
->  delete mode 100644 srp_daemon/configure.ac
+>  ibacm/ibacm.spec.in                                |  90 -----
+>  iwpmd/iwpmd.spec.in                                | 127 -------
+>  libcxgb3/libcxgb3.spec.in                          |  55 ---
+>  libcxgb4/libcxgb4.spec.in                          |  55 ---
+>  libhfi1verbs/libhfi1.spec.in                       | 109 ------
+>  libi40iw/libi40iw.spec.in                          |  72 ----
+>  libibcm/libibcm.spec.in                            |  53 ---
+>  libibumad/libibumad.spec.in                        |  74 ----
+>  libibverbs/debian/changelog                        | 139 --------
+>  libibverbs/debian/compat                           |   1 -
+>  libibverbs/debian/control                          |  80 -----
+>  libibverbs/debian/copyright                        |  49 ---
+>  libibverbs/debian/ibverbs-utils.install            |   2 -
+>  libibverbs/debian/libibverbs-dev.install           |   4 -
+>  libibverbs/debian/libibverbs-dev.links             |  16 -
+>  libibverbs/debian/libibverbs1.install              |   1 -
+>  libibverbs/debian/libibverbs1.postinst             |  10 -
+>  libibverbs/debian/rules                            |  11 -
+>  libibverbs/debian/source/format                    |   1 -
+>  libibverbs/debian/watch                            |   3 -
+>  libibverbs/libibverbs.spec.in                      | 169 ---------
+>  libipathverbs/libipathverbs.spec.in                | 104 ------
+>  libmlx4/debian/changelog                           |  73 ----
+>  libmlx4/debian/compat                              |   1 -
+>  libmlx4/debian/control                             |  47 ---
+>  libmlx4/debian/copyright                           |  43 ---
+>  libmlx4/debian/libmlx4-1.install                   |   2 -
+>  libmlx4/debian/libmlx4-dev.install                 |   1 -
+>  .../debian/patches/driver-plugin-directory.patch   |  10 -
+>  libmlx4/debian/patches/series                      |   1 -
+>  libmlx4/debian/rules                               |  10 -
+>  libmlx4/debian/source/format                       |   1 -
+>  libmlx4/debian/watch                               |   3 -
+>  libmlx4/libmlx4.spec.in                            |  90 -----
+>  libmlx5/debian/changelog                           |  18 -
+>  libmlx5/debian/compat                              |   1 -
+>  libmlx5/debian/control                             |  47 ---
+>  libmlx5/debian/copyright                           |  43 ---
+>  libmlx5/debian/libmlx5-1.install                   |   2 -
+>  libmlx5/debian/libmlx5-dev.install                 |   1 -
+>  .../debian/patches/driver-plugin-directory.patch   |  10 -
+>  libmlx5/debian/patches/series                      |   1 -
+>  libmlx5/debian/rules                               |  10 -
+>  libmlx5/debian/source/format                       |   1 -
+>  libmlx5/debian/watch                               |   3 -
+>  libmlx5/libmlx5.spec.in                            |  60 ----
+>  libmthca/debian/changelog                          |  73 ----
+>  libmthca/debian/compat                             |   1 -
+>  libmthca/debian/control                            |  48 ---
+>  libmthca/debian/copyright                          |  44 ---
+>  libmthca/debian/libmthca-dev.install               |   1 -
+>  libmthca/debian/libmthca1.install                  |   2 -
+>  .../debian/patches/driver-plugin-directory.patch   |  10 -
+>  libmthca/debian/patches/series                     |   1 -
+>  libmthca/debian/rules                              |  10 -
+>  libmthca/debian/source/format                      |   1 -
+>  libmthca/debian/watch                              |   3 -
+>  libmthca/libmthca.spec.in                          |  97 ------
+>  libnes/libnes.spec.in                              | 107 ------
+>  libocrdma/libocrdma.spec.in                        |  71 ----
+>  librdmacm/librdmacm.spec.in                        |  79 -----
+>  librxe/librxe.spec.in                              |  55 ---
+>  srp_daemon/debian/changelog                        |  11 -
+>  srp_daemon/debian/compat                           |   1 -
+>  srp_daemon/debian/control                          |  14 -
+>  srp_daemon/debian/copyright                        | 376 ---------------------
+>  srp_daemon/debian/postinst                         |  26 --
+>  srp_daemon/debian/prerm                            |  11 -
+>  srp_daemon/debian/rules                            |  14 -
+>  srp_daemon/debian/source/format                    |   1 -
+>  srp_daemon/srptools.spec.in                        | 141 --------
+>  71 files changed, 2902 deletions(-)
+>  delete mode 100644 ibacm/ibacm.spec.in
+>  delete mode 100644 iwpmd/iwpmd.spec.in
+>  delete mode 100644 libcxgb3/libcxgb3.spec.in
+>  delete mode 100644 libcxgb4/libcxgb4.spec.in
+>  delete mode 100644 libhfi1verbs/libhfi1.spec.in
+>  delete mode 100644 libi40iw/libi40iw.spec.in
+>  delete mode 100644 libibcm/libibcm.spec.in
+>  delete mode 100644 libibumad/libibumad.spec.in
+>  delete mode 100644 libibverbs/debian/changelog
+>  delete mode 100644 libibverbs/debian/compat
+>  delete mode 100644 libibverbs/debian/control
+>  delete mode 100644 libibverbs/debian/copyright
+>  delete mode 100644 libibverbs/debian/ibverbs-utils.install
+>  delete mode 100644 libibverbs/debian/libibverbs-dev.install
+>  delete mode 100644 libibverbs/debian/libibverbs-dev.links
+>  delete mode 100644 libibverbs/debian/libibverbs1.install
+>  delete mode 100644 libibverbs/debian/libibverbs1.postinst
+>  delete mode 100755 libibverbs/debian/rules
+>  delete mode 100644 libibverbs/debian/source/format
+>  delete mode 100644 libibverbs/debian/watch
+>  delete mode 100644 libibverbs/libibverbs.spec.in
+>  delete mode 100644 libipathverbs/libipathverbs.spec.in
+>  delete mode 100644 libmlx4/debian/changelog
+>  delete mode 100644 libmlx4/debian/compat
+>  delete mode 100644 libmlx4/debian/control
+>  delete mode 100644 libmlx4/debian/copyright
+>  delete mode 100644 libmlx4/debian/libmlx4-1.install
+>  delete mode 100644 libmlx4/debian/libmlx4-dev.install
+>  delete mode 100644 libmlx4/debian/patches/driver-plugin-directory.patch
+>  delete mode 100644 libmlx4/debian/patches/series
+>  delete mode 100755 libmlx4/debian/rules
+>  delete mode 100644 libmlx4/debian/source/format
+>  delete mode 100644 libmlx4/debian/watch
+>  delete mode 100644 libmlx4/libmlx4.spec.in
+>  delete mode 100644 libmlx5/debian/changelog
+>  delete mode 100644 libmlx5/debian/compat
+>  delete mode 100644 libmlx5/debian/control
+>  delete mode 100644 libmlx5/debian/copyright
+>  delete mode 100644 libmlx5/debian/libmlx5-1.install
+>  delete mode 100644 libmlx5/debian/libmlx5-dev.install
+>  delete mode 100644 libmlx5/debian/patches/driver-plugin-directory.patch
+>  delete mode 100644 libmlx5/debian/patches/series
+>  delete mode 100755 libmlx5/debian/rules
+>  delete mode 100644 libmlx5/debian/source/format
+>  delete mode 100644 libmlx5/debian/watch
+>  delete mode 100644 libmlx5/libmlx5.spec.in
+>  delete mode 100644 libmthca/debian/changelog
+>  delete mode 100644 libmthca/debian/compat
+>  delete mode 100644 libmthca/debian/control
+>  delete mode 100644 libmthca/debian/copyright
+>  delete mode 100644 libmthca/debian/libmthca-dev.install
+>  delete mode 100644 libmthca/debian/libmthca1.install
+>  delete mode 100644 libmthca/debian/patches/driver-plugin-directory.patch
+>  delete mode 100644 libmthca/debian/patches/series
+>  delete mode 100755 libmthca/debian/rules
+>  delete mode 100644 libmthca/debian/source/format
+>  delete mode 100644 libmthca/debian/watch
+>  delete mode 100644 libmthca/libmthca.spec.in
+>  delete mode 100644 libnes/libnes.spec.in
+>  delete mode 100644 libocrdma/libocrdma.spec.in
+>  delete mode 100644 librdmacm/librdmacm.spec.in
+>  delete mode 100644 librxe/librxe.spec.in
+>  delete mode 100644 srp_daemon/debian/changelog
+>  delete mode 100644 srp_daemon/debian/compat
+>  delete mode 100644 srp_daemon/debian/control
+>  delete mode 100644 srp_daemon/debian/copyright
+>  delete mode 100644 srp_daemon/debian/postinst
+>  delete mode 100644 srp_daemon/debian/prerm
+>  delete mode 100755 srp_daemon/debian/rules
+>  delete mode 100644 srp_daemon/debian/source/format
+>  delete mode 100644 srp_daemon/srptools.spec.in
 >
-> diff --git a/ibacm/INSTALL b/ibacm/INSTALL
+> diff --git a/ibacm/ibacm.spec.in b/ibacm/ibacm.spec.in
 > deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/ibacm/Makefile.am b/ibacm/Makefile.am
+> index bc337e213516..000000000000
+> diff --git a/iwpmd/iwpmd.spec.in b/iwpmd/iwpmd.spec.in
 > deleted file mode 100644
-> index c5cdc6905714..000000000000
-> diff --git a/ibacm/NEWS b/ibacm/NEWS
+> index b00dab0a123e..000000000000
+> diff --git a/libcxgb3/libcxgb3.spec.in b/libcxgb3/libcxgb3.spec.in
 > deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/ibacm/README b/ibacm/README
+> index 1ae72d793111..000000000000
+> diff --git a/libcxgb4/libcxgb4.spec.in b/libcxgb4/libcxgb4.spec.in
 > deleted file mode 100644
-> index d7868280a500..000000000000
-> diff --git a/ibacm/autogen.sh b/ibacm/autogen.sh
+> index 6b4294468cf0..000000000000
+> diff --git a/libhfi1verbs/libhfi1.spec.in b/libhfi1verbs/libhfi1.spec.in
+> deleted file mode 100644
+> index c6a11ee2a450..000000000000
+> diff --git a/libi40iw/libi40iw.spec.in b/libi40iw/libi40iw.spec.in
+> deleted file mode 100644
+> index 4e794fa1898c..000000000000
+> diff --git a/libibcm/libibcm.spec.in b/libibcm/libibcm.spec.in
+> deleted file mode 100644
+> index ce082726e7dc..000000000000
+> diff --git a/libibumad/libibumad.spec.in b/libibumad/libibumad.spec.in
+> deleted file mode 100644
+> index b01757ff0ef3..000000000000
+> diff --git a/libibverbs/debian/changelog b/libibverbs/debian/changelog
+> deleted file mode 100644
+> index 3ae7711648ce..000000000000
+> diff --git a/libibverbs/debian/compat b/libibverbs/debian/compat
+> deleted file mode 100644
+> index 7f8f011eb73d..000000000000
+> diff --git a/libibverbs/debian/control b/libibverbs/debian/control
+> deleted file mode 100644
+> index a26b75c2aea1..000000000000
+> diff --git a/libibverbs/debian/copyright b/libibverbs/debian/copyright
+> deleted file mode 100644
+> index 5009e7a6039e..000000000000
+> diff --git a/libibverbs/debian/ibverbs-utils.install b/libibverbs/debian/ibverbs-utils.install
+> deleted file mode 100644
+> index 98d15831b4c5..000000000000
+> diff --git a/libibverbs/debian/libibverbs-dev.install b/libibverbs/debian/libibverbs-dev.install
+> deleted file mode 100644
+> index b4c75ce6f1c3..000000000000
+> diff --git a/libibverbs/debian/libibverbs-dev.links b/libibverbs/debian/libibverbs-dev.links
+> deleted file mode 100644
+> index 702902885798..000000000000
+> diff --git a/libibverbs/debian/libibverbs1.install b/libibverbs/debian/libibverbs1.install
+> deleted file mode 100644
+> index 0f3523db5354..000000000000
+> diff --git a/libibverbs/debian/libibverbs1.postinst b/libibverbs/debian/libibverbs1.postinst
+> deleted file mode 100644
+> index 784458a6e0b5..000000000000
+> diff --git a/libibverbs/debian/rules b/libibverbs/debian/rules
 > deleted file mode 100755
-> index 24c0a769be34..000000000000
-> diff --git a/ibacm/configure.ac b/ibacm/configure.ac
+> index 205a8b75e47e..000000000000
+> diff --git a/libibverbs/debian/source/format b/libibverbs/debian/source/format
 > deleted file mode 100644
-> index 3a05bf0b3eb2..000000000000
-> diff --git a/iwpmd/Makefile.am b/iwpmd/Makefile.am
+> index 163aaf8d82b6..000000000000
+> diff --git a/libibverbs/debian/watch b/libibverbs/debian/watch
 > deleted file mode 100644
-> index fbb4334da961..000000000000
-> diff --git a/iwpmd/NEWS b/iwpmd/NEWS
+> index eff271adabca..000000000000
+> diff --git a/libibverbs/libibverbs.spec.in b/libibverbs/libibverbs.spec.in
 > deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/iwpmd/autogen.sh b/iwpmd/autogen.sh
+> index 040948efce17..000000000000
+> diff --git a/libipathverbs/libipathverbs.spec.in b/libipathverbs/libipathverbs.spec.in
+> deleted file mode 100644
+> index d029696d70ef..000000000000
+> diff --git a/libmlx4/debian/changelog b/libmlx4/debian/changelog
+> deleted file mode 100644
+> index ec7ba21e0573..000000000000
+> diff --git a/libmlx4/debian/compat b/libmlx4/debian/compat
+> deleted file mode 100644
+> index 7f8f011eb73d..000000000000
+> diff --git a/libmlx4/debian/control b/libmlx4/debian/control
+> deleted file mode 100644
+> index ab08e00e4eeb..000000000000
+> diff --git a/libmlx4/debian/copyright b/libmlx4/debian/copyright
+> deleted file mode 100644
+> index db07a25fcbf1..000000000000
+> diff --git a/libmlx4/debian/libmlx4-1.install b/libmlx4/debian/libmlx4-1.install
+> deleted file mode 100644
+> index 8cab406b098d..000000000000
+> diff --git a/libmlx4/debian/libmlx4-dev.install b/libmlx4/debian/libmlx4-dev.install
+> deleted file mode 100644
+> index 8f70e5214388..000000000000
+> diff --git a/libmlx4/debian/patches/driver-plugin-directory.patch b/libmlx4/debian/patches/driver-plugin-directory.patch
+> deleted file mode 100644
+> index fd73a739f424..000000000000
+> diff --git a/libmlx4/debian/patches/series b/libmlx4/debian/patches/series
+> deleted file mode 100644
+> index 213f49e4c278..000000000000
+> diff --git a/libmlx4/debian/rules b/libmlx4/debian/rules
 > deleted file mode 100755
-> index 6abb4f8446bd..000000000000
-> diff --git a/iwpmd/configure.ac b/iwpmd/configure.ac
+> index 9d15bec7c2a8..000000000000
+> diff --git a/libmlx4/debian/source/format b/libmlx4/debian/source/format
 > deleted file mode 100644
-> index 5d5388ba2ed9..000000000000
-> diff --git a/libcxgb3/Makefile.am b/libcxgb3/Makefile.am
+> index 163aaf8d82b6..000000000000
+> diff --git a/libmlx4/debian/watch b/libmlx4/debian/watch
 > deleted file mode 100644
-> index 99f1cae08531..000000000000
-> diff --git a/libcxgb3/autogen.sh b/libcxgb3/autogen.sh
+> index 06bae51d7eb3..000000000000
+> diff --git a/libmlx4/libmlx4.spec.in b/libmlx4/libmlx4.spec.in
+> deleted file mode 100644
+> index 3c93122b5a02..000000000000
+> diff --git a/libmlx5/debian/changelog b/libmlx5/debian/changelog
+> deleted file mode 100644
+> index f43b43f41dfd..000000000000
+> diff --git a/libmlx5/debian/compat b/libmlx5/debian/compat
+> deleted file mode 100644
+> index 7f8f011eb73d..000000000000
+> diff --git a/libmlx5/debian/control b/libmlx5/debian/control
+> deleted file mode 100644
+> index 0aceae4a25ae..000000000000
+> diff --git a/libmlx5/debian/copyright b/libmlx5/debian/copyright
+> deleted file mode 100644
+> index db07a25fcbf1..000000000000
+> diff --git a/libmlx5/debian/libmlx5-1.install b/libmlx5/debian/libmlx5-1.install
+> deleted file mode 100644
+> index 1af89543be5a..000000000000
+> diff --git a/libmlx5/debian/libmlx5-dev.install b/libmlx5/debian/libmlx5-dev.install
+> deleted file mode 100644
+> index 7de9fbe4978b..000000000000
+> diff --git a/libmlx5/debian/patches/driver-plugin-directory.patch b/libmlx5/debian/patches/driver-plugin-directory.patch
+> deleted file mode 100644
+> index 91eb0482b3bb..000000000000
+> diff --git a/libmlx5/debian/patches/series b/libmlx5/debian/patches/series
+> deleted file mode 100644
+> index 213f49e4c278..000000000000
+> diff --git a/libmlx5/debian/rules b/libmlx5/debian/rules
 > deleted file mode 100755
-> index fd47839cae8c..000000000000
-> diff --git a/libcxgb3/config/.gitignore b/libcxgb3/config/.gitignore
+> index c8a46746512a..000000000000
+> diff --git a/libmlx5/debian/source/format b/libmlx5/debian/source/format
 > deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/libcxgb3/configure.in b/libcxgb3/configure.in
+> index 163aaf8d82b6..000000000000
+> diff --git a/libmlx5/debian/watch b/libmlx5/debian/watch
 > deleted file mode 100644
-> index cc254a6e5d8d..000000000000
-> diff --git a/libcxgb3/cxgb3.driver b/libcxgb3/cxgb3.driver
+> index cf13e694b2f8..000000000000
+> diff --git a/libmlx5/libmlx5.spec.in b/libmlx5/libmlx5.spec.in
 > deleted file mode 100644
-> index cfa6186bf714..000000000000
-> diff --git a/libcxgb3/src/iwch.map b/libcxgb3/src/iwch.map
+> index 8c73c40fea39..000000000000
+> diff --git a/libmthca/debian/changelog b/libmthca/debian/changelog
 > deleted file mode 100644
-> index 59a8baead48f..000000000000
-> diff --git a/libcxgb4/Makefile.am b/libcxgb4/Makefile.am
+> index d106ed76b49a..000000000000
+> diff --git a/libmthca/debian/compat b/libmthca/debian/compat
 > deleted file mode 100644
-> index f75d9641ce12..000000000000
-> diff --git a/libcxgb4/autogen.sh b/libcxgb4/autogen.sh
+> index 7f8f011eb73d..000000000000
+> diff --git a/libmthca/debian/control b/libmthca/debian/control
+> deleted file mode 100644
+> index 5ad14106b85c..000000000000
+> diff --git a/libmthca/debian/copyright b/libmthca/debian/copyright
+> deleted file mode 100644
+> index 04abee0b74f7..000000000000
+> diff --git a/libmthca/debian/libmthca-dev.install b/libmthca/debian/libmthca-dev.install
+> deleted file mode 100644
+> index e8122b99f572..000000000000
+> diff --git a/libmthca/debian/libmthca1.install b/libmthca/debian/libmthca1.install
+> deleted file mode 100644
+> index 7d1d899e896f..000000000000
+> diff --git a/libmthca/debian/patches/driver-plugin-directory.patch b/libmthca/debian/patches/driver-plugin-directory.patch
+> deleted file mode 100644
+> index 2ed7a66a24c0..000000000000
+> diff --git a/libmthca/debian/patches/series b/libmthca/debian/patches/series
+> deleted file mode 100644
+> index 213f49e4c278..000000000000
+> diff --git a/libmthca/debian/rules b/libmthca/debian/rules
 > deleted file mode 100755
-> index fd47839cae8c..000000000000
-> diff --git a/libcxgb4/config/config.guess b/libcxgb4/config/config.guess
+> index 902923802e67..000000000000
+> diff --git a/libmthca/debian/source/format b/libmthca/debian/source/format
+> deleted file mode 100644
+> index 163aaf8d82b6..000000000000
+> diff --git a/libmthca/debian/watch b/libmthca/debian/watch
+> deleted file mode 100644
+> index 8010f867b5d5..000000000000
+> diff --git a/libmthca/libmthca.spec.in b/libmthca/libmthca.spec.in
+> deleted file mode 100644
+> index f23a159a5b97..000000000000
+> diff --git a/libnes/libnes.spec.in b/libnes/libnes.spec.in
+> deleted file mode 100644
+> index 251365aedd1d..000000000000
+> diff --git a/libocrdma/libocrdma.spec.in b/libocrdma/libocrdma.spec.in
+> deleted file mode 100644
+> index 5f7d9f13c527..000000000000
+> diff --git a/librdmacm/librdmacm.spec.in b/librdmacm/librdmacm.spec.in
+> deleted file mode 100644
+> index e89aa16095bf..000000000000
+> diff --git a/librxe/librxe.spec.in b/librxe/librxe.spec.in
+> deleted file mode 100644
+> index 16dbaa615946..000000000000
+> diff --git a/srp_daemon/debian/changelog b/srp_daemon/debian/changelog
+> deleted file mode 100644
+> index edf8422ace3f..000000000000
+> diff --git a/srp_daemon/debian/compat b/srp_daemon/debian/compat
+> deleted file mode 100644
+> index 45a4fb75db86..000000000000
+> diff --git a/srp_daemon/debian/control b/srp_daemon/debian/control
+> deleted file mode 100644
+> index c2b24a5d66ff..000000000000
+> diff --git a/srp_daemon/debian/copyright b/srp_daemon/debian/copyright
+> deleted file mode 100644
+> index 34994d31ea0b..000000000000
+> diff --git a/srp_daemon/debian/postinst b/srp_daemon/debian/postinst
+> deleted file mode 100644
+> index 12e59820e44a..000000000000
+> diff --git a/srp_daemon/debian/prerm b/srp_daemon/debian/prerm
+> deleted file mode 100644
+> index eb39bcb74d3c..000000000000
+> diff --git a/srp_daemon/debian/rules b/srp_daemon/debian/rules
 > deleted file mode 100755
-> index 61754411ea95..000000000000
-> diff --git a/libcxgb4/config/config.sub b/libcxgb4/config/config.sub
-> deleted file mode 100755
-> index 16cd209d75ed..000000000000
-> diff --git a/libcxgb4/config/depcomp b/libcxgb4/config/depcomp
-> deleted file mode 100755
-> index 04701da536f3..000000000000
-> diff --git a/libcxgb4/config/install-sh b/libcxgb4/config/install-sh
-> deleted file mode 100755
-> index 4d4a9519eaf8..000000000000
-> diff --git a/libcxgb4/configure.in b/libcxgb4/configure.in
+> index 648c6aa5c167..000000000000
+> diff --git a/srp_daemon/debian/source/format b/srp_daemon/debian/source/format
 > deleted file mode 100644
-> index 2bb930399a3e..000000000000
-> diff --git a/libcxgb4/cxgb4.driver b/libcxgb4/cxgb4.driver
+> index 163aaf8d82b6..000000000000
+> diff --git a/srp_daemon/srptools.spec.in b/srp_daemon/srptools.spec.in
 > deleted file mode 100644
-> index e041cb24c610..000000000000
-> diff --git a/libcxgb4/src/cxgb4.map b/libcxgb4/src/cxgb4.map
-> deleted file mode 100644
-> index 59a8baead48f..000000000000
-> diff --git a/libhfi1verbs/Makefile.am b/libhfi1verbs/Makefile.am
-> deleted file mode 100644
-> index 135e2a2f3ec0..000000000000
-> diff --git a/libhfi1verbs/autogen.sh b/libhfi1verbs/autogen.sh
-> deleted file mode 100755
-> index 738b034eb59a..000000000000
-> diff --git a/libhfi1verbs/configure.in b/libhfi1verbs/configure.in
-> deleted file mode 100644
-> index a8218914f53f..000000000000
-> diff --git a/libhfi1verbs/hfi1verbs.driver b/libhfi1verbs/hfi1verbs.driver
-> deleted file mode 100644
-> index 3ceb7ee85afb..000000000000
-> diff --git a/libhfi1verbs/makefile b/libhfi1verbs/makefile
-> deleted file mode 100644
-> index 000e123aa70c..000000000000
-> diff --git a/libhfi1verbs/makesrpm.sh b/libhfi1verbs/makesrpm.sh
-> deleted file mode 100644
-> index eedc578a71e4..000000000000
-> diff --git a/libhfi1verbs/src/hfiverbs.map b/libhfi1verbs/src/hfiverbs.map
-> deleted file mode 100644
-> index d3517dd0f59b..000000000000
-> diff --git a/libi40iw/Makefile.am b/libi40iw/Makefile.am
-> deleted file mode 100644
-> index 98d6f8ae1226..000000000000
-> diff --git a/libi40iw/configure.ac b/libi40iw/configure.ac
-> deleted file mode 100644
-> index 108ffd5999b9..000000000000
-> diff --git a/libi40iw/i40iw.driver b/libi40iw/i40iw.driver
-> deleted file mode 100644
-> index 7dab2f03b9e9..000000000000
-> diff --git a/libi40iw/src/i40iw.map b/libi40iw/src/i40iw.map
-> deleted file mode 100644
-> index 112420a1d1c1..000000000000
-> diff --git a/libibcm/INSTALL b/libibcm/INSTALL
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/libibcm/Makefile.am b/libibcm/Makefile.am
-> deleted file mode 100644
-> index ff0b1ded12a3..000000000000
-> diff --git a/libibcm/NEWS b/libibcm/NEWS
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/libibcm/autogen.sh b/libibcm/autogen.sh
-> deleted file mode 100755
-> index f433312161d2..000000000000
-> diff --git a/libibcm/configure.in b/libibcm/configure.in
-> deleted file mode 100644
-> index 145e3a4cebf2..000000000000
-> diff --git a/libibumad/Makefile.am b/libibumad/Makefile.am
-> deleted file mode 100644
-> index 1dddf7bb2ffd..000000000000
-> diff --git a/libibumad/autogen.sh b/libibumad/autogen.sh
-> deleted file mode 100755
-> index 4827884ba1f1..000000000000
-> diff --git a/libibumad/configure.in b/libibumad/configure.in
-> deleted file mode 100644
-> index 0b2794baad40..000000000000
-> diff --git a/libibverbs/Makefile.am b/libibverbs/Makefile.am
-> deleted file mode 100644
-> index 1361e96feb7d..000000000000
-> diff --git a/libibverbs/autogen.sh b/libibverbs/autogen.sh
-> deleted file mode 100755
-> index 6c9233e01a60..000000000000
-> diff --git a/libibverbs/config/.gitignore b/libibverbs/config/.gitignore
-> deleted file mode 100644
-> index 4d4c7b1710b0..000000000000
-> diff --git a/libibverbs/configure.ac b/libibverbs/configure.ac
-> deleted file mode 100644
-> index a8046f3c5a72..000000000000
-> diff --git a/libipathverbs/Makefile.am b/libipathverbs/Makefile.am
-> deleted file mode 100644
-> index 4d3e9258d989..000000000000
-> diff --git a/libipathverbs/autogen.sh b/libipathverbs/autogen.sh
-> deleted file mode 100755
-> index 493c586fdef7..000000000000
-> diff --git a/libipathverbs/configure.in b/libipathverbs/configure.in
-> deleted file mode 100644
-> index 9718d56e4411..000000000000
-> diff --git a/libipathverbs/ipathverbs.driver b/libipathverbs/ipathverbs.driver
-> deleted file mode 100644
-> index d2125786170b..000000000000
-> diff --git a/libipathverbs/src/ipathverbs.map b/libipathverbs/src/ipathverbs.map
-> deleted file mode 100644
-> index d3517dd0f59b..000000000000
-> diff --git a/libmlx4/Makefile.am b/libmlx4/Makefile.am
-> deleted file mode 100644
-> index 9bb90e964fe9..000000000000
-> diff --git a/libmlx4/autogen.sh b/libmlx4/autogen.sh
-> deleted file mode 100755
-> index 6c9233e01a60..000000000000
-> diff --git a/libmlx4/config/.gitignore b/libmlx4/config/.gitignore
-> deleted file mode 100644
-> index 4d4c7b1710b0..000000000000
-> diff --git a/libmlx4/configure.ac b/libmlx4/configure.ac
-> deleted file mode 100644
-> index 4a500c3f4885..000000000000
-> diff --git a/libmlx4/mlx4.driver b/libmlx4/mlx4.driver
-> deleted file mode 100644
-> index 4d29fa818afe..000000000000
-> diff --git a/libmlx4/src/mlx4.map b/libmlx4/src/mlx4.map
-> deleted file mode 100644
-> index ae8ed861f956..000000000000
-> diff --git a/libmlx5/Makefile.am b/libmlx5/Makefile.am
-> deleted file mode 100644
-> index 345d5afbcfee..000000000000
-> diff --git a/libmlx5/autogen.sh b/libmlx5/autogen.sh
-> deleted file mode 100755
-> index b0ad85eb4cb9..000000000000
-> diff --git a/libmlx5/config/.gitignore b/libmlx5/config/.gitignore
-> deleted file mode 100644
-> index 4d4c7b1710b0..000000000000
-> diff --git a/libmlx5/configure.ac b/libmlx5/configure.ac
-> deleted file mode 100644
-> index dca7c81a88ce..000000000000
-> diff --git a/libmlx5/m4/ax_gcc_func_attribute.m4 b/libmlx5/m4/ax_gcc_func_attribute.m4
-> deleted file mode 100644
-> index c788ca9bd435..000000000000
-> diff --git a/libmlx5/mlx5.driver b/libmlx5/mlx5.driver
-> deleted file mode 100644
-> index 5190aa59ab50..000000000000
-> diff --git a/libmlx5/src/mlx5.map b/libmlx5/src/mlx5.map
-> deleted file mode 100644
-> index ae8ed861f956..000000000000
-> diff --git a/libmthca/Makefile.am b/libmthca/Makefile.am
-> deleted file mode 100644
-> index 1dd9a7ba8601..000000000000
-> diff --git a/libmthca/autogen.sh b/libmthca/autogen.sh
-> deleted file mode 100755
-> index fd47839cae8c..000000000000
-> diff --git a/libmthca/config/.gitignore b/libmthca/config/.gitignore
-> deleted file mode 100644
-> index 4d4c7b1710b0..000000000000
-> diff --git a/libmthca/configure.in b/libmthca/configure.in
-> deleted file mode 100644
-> index c5454436bf8f..000000000000
-> diff --git a/libmthca/mthca.driver b/libmthca/mthca.driver
-> deleted file mode 100644
-> index 5880a477f9c4..000000000000
-> diff --git a/libmthca/src/mthca.map b/libmthca/src/mthca.map
-> deleted file mode 100644
-> index ae8ed861f956..000000000000
-> diff --git a/libnes/Makefile.am b/libnes/Makefile.am
-> deleted file mode 100644
-> index ade8e8b1eee8..000000000000
-> diff --git a/libnes/autogen.sh b/libnes/autogen.sh
-> deleted file mode 100755
-> index 1e486f86b880..000000000000
-> diff --git a/libnes/config/.gitignore b/libnes/config/.gitignore
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/libnes/configure.in b/libnes/configure.in
-> deleted file mode 100644
-> index 08e9948ed13c..000000000000
-> diff --git a/libnes/nes.driver b/libnes/nes.driver
-> deleted file mode 100644
-> index 1d8d85d51758..000000000000
-> diff --git a/libnes/src/nes.map b/libnes/src/nes.map
-> deleted file mode 100644
-> index ae8ed861f956..000000000000
-> diff --git a/libocrdma/Makefile.am b/libocrdma/Makefile.am
-> deleted file mode 100644
-> index 9b786e2b51a4..000000000000
-> diff --git a/libocrdma/autogen.sh b/libocrdma/autogen.sh
-> deleted file mode 100644
-> index fd47839cae8c..000000000000
-> diff --git a/libocrdma/config/.gitignore b/libocrdma/config/.gitignore
-> deleted file mode 100644
-> index 4d4c7b1710b0..000000000000
-> diff --git a/libocrdma/configure.in b/libocrdma/configure.in
-> deleted file mode 100644
-> index 659d79f52f25..000000000000
-> diff --git a/libocrdma/ocrdma.driver b/libocrdma/ocrdma.driver
-> deleted file mode 100644
-> index dead9f84707e..000000000000
-> diff --git a/libocrdma/src/ocrdma.map b/libocrdma/src/ocrdma.map
-> deleted file mode 100644
-> index ae8ed861f956..000000000000
-> diff --git a/librdmacm/INSTALL b/librdmacm/INSTALL
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librdmacm/Makefile.am b/librdmacm/Makefile.am
-> deleted file mode 100644
-> index edfb36bb4149..000000000000
-> diff --git a/librdmacm/NEWS b/librdmacm/NEWS
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librdmacm/autogen.sh b/librdmacm/autogen.sh
-> deleted file mode 100755
-> index 24c0a769be34..000000000000
-> diff --git a/librdmacm/configure.ac b/librdmacm/configure.ac
-> deleted file mode 100644
-> index 4a43995f317c..000000000000
-> diff --git a/librxe/AUTHORS b/librxe/AUTHORS
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librxe/COPYING b/librxe/COPYING
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librxe/INSTALL b/librxe/INSTALL
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librxe/Makefile.am b/librxe/Makefile.am
-> deleted file mode 100644
-> index 972ae3b390b7..000000000000
-> diff --git a/librxe/Makefile.in b/librxe/Makefile.in
-> deleted file mode 100644
-> index aa536082e9ef..000000000000
-> diff --git a/librxe/NEWS b/librxe/NEWS
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librxe/README b/librxe/README
-> deleted file mode 100644
-> index e69de29bb2d1..000000000000
-> diff --git a/librxe/aclocal.m4 b/librxe/aclocal.m4
-> deleted file mode 100644
-> index 4ccc6e2225b5..000000000000
-> diff --git a/librxe/config.h.in b/librxe/config.h.in
-> deleted file mode 100644
-> index eda71c5b3524..000000000000
-> diff --git a/librxe/config/config.guess b/librxe/config/config.guess
-> deleted file mode 100755
-> index f32079abda66..000000000000
-> diff --git a/librxe/config/config.sub b/librxe/config/config.sub
-> deleted file mode 100755
-> index 6759825a5b7f..000000000000
-> diff --git a/librxe/config/depcomp b/librxe/config/depcomp
-> deleted file mode 100755
-> index 04701da536f3..000000000000
-> diff --git a/librxe/config/install-sh b/librxe/config/install-sh
-> deleted file mode 100755
-> index a5897de6ea7f..000000000000
-> diff --git a/librxe/config/ltmain.sh b/librxe/config/ltmain.sh
-> deleted file mode 100755
-> index 3061e3c5a2f7..000000000000
-> diff --git a/librxe/config/missing b/librxe/config/missing
-> deleted file mode 100755
-> index 894e786e16c1..000000000000
-> diff --git a/librxe/configure b/librxe/configure
-> deleted file mode 100755
-> index a2af18f879ef..000000000000
-> diff --git a/librxe/configure.in b/librxe/configure.in
-> deleted file mode 100644
-> index 957d65000704..000000000000
-> diff --git a/librxe/librxe.spec b/librxe/librxe.spec
-> deleted file mode 100644
-> index 7f65163c1079..000000000000
-> diff --git a/librxe/rxe.driver b/librxe/rxe.driver
-> deleted file mode 100644
-> index ed63053225fd..000000000000
-> diff --git a/librxe/src/rxe.map b/librxe/src/rxe.map
-> deleted file mode 100644
-> index 710d82708fd1..000000000000
-> diff --git a/srp_daemon/Makefile.am b/srp_daemon/Makefile.am
-> deleted file mode 100644
-> index 7efea9d6d506..000000000000
-> diff --git a/srp_daemon/autogen.sh b/srp_daemon/autogen.sh
-> deleted file mode 100755
-> index 3dd3326f43f8..000000000000
-> diff --git a/srp_daemon/build-deb.sh b/srp_daemon/build-deb.sh
-> deleted file mode 100755
-> index 481fa1895623..000000000000
-> diff --git a/srp_daemon/configure.ac b/srp_daemon/configure.ac
-> deleted file mode 100644
-> index c3ce076fdee5..000000000000
+> index 750cab3cc485..000000000000
 >
 
 --
