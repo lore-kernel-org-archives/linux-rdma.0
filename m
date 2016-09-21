@@ -1,47 +1,27 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [RFC v2 07/12] qedr: Add support for memory registeration verbs
-Date: Wed, 21 Sep 2016 12:53:58 -0700
-Message-ID: <a20d6d9f-4428-4a6c-fb2a-089fd95e6908@grimberg.me>
-References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
- <1474367764-9555-8-git-send-email-Ram.Amrani@cavium.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 14/16] ibacm: Remove windows support files
+Date: Wed, 21 Sep 2016 20:17:29 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08DE1E@ORSMSX109.amr.corp.intel.com>
+References: <1474409425-15769-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1474409425-15769-15-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1474367764-9555-8-git-send-email-Ram.Amrani@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: Ram Amrani <Ram.Amrani@cavium.com>, davem@davemloft.net, dledford@redhat.com
-Cc: Ariel.Elior@cavium.com, Michal.Kalderon@cavium.com, Yuval.Mintz@cavium.com, rajesh.borundia@cavium.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474409425-15769-15-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> Building these is no longer supported.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-> +static int qedr_set_page(struct ib_mr *ibmr, u64 addr)
-> +{
-> +	struct qedr_mr *mr = get_qedr_mr(ibmr);
-> +	struct qedr_pbl *pbl_table;
-> +	struct regpair *pbe;
-> +	u32 pbes_in_page;
-> +
-> +	if (unlikely(mr->npages == mr->info.pbl_info.num_pbes)) {
-> +		DP_ERR(mr->dev, "qedr_set_page failes when %d\n", mr->npages);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	DP_VERBOSE(mr->dev, QEDR_MSG_MR, "qedr_set_page pages[%d] = 0x%llx\n",
-> +		   mr->npages, addr);
-> +
-> +	pbes_in_page = mr->info.pbl_info.pbl_size / sizeof(u64);
-> +	pbl_table = mr->info.pbl_table + (mr->npages / pbes_in_page);
-> +	pbe = (struct regpair *)pbl_table->va;
-> +	pbe +=  mr->npages % pbes_in_page;
-> +	pbe->lo = cpu_to_le32((u32)addr);
-> +	pbe->hi = cpu_to_le32((u32)upper_32_bits(addr));
-> +
-> +	mr->npages++;
-> +
-> +	return 0;
-> +}
+Thanks
 
-Looks better.
-
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
