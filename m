@@ -1,52 +1,60 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Tue, 20 Sep 2016 19:43:34 -0400
-Message-ID: <CAHC9VhRXDMiK5V0rOQTvtZB0Q8jTX7XecGmAfRhm8oqF9aBaiw@mail.gmail.com>
-References: <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com>
- <20160830074607.GN594@leon.nu> <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
- <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830184633.GE7586@obsidianresearch.com> <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830185548.GA9768@obsidianresearch.com> <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160901163418.GA6479@obsidianresearch.com> <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
- <20160906200221.GE28416@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20160906200221.GE28416@obsidianresearch.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Daniel Jurgens <danielj@mellanox.com>
-Cc: Leon Romanovsky <leon@kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH 1/3] IB/device: Convert ib-comp-wq to be CPU-bound
+Date: Tue, 20 Sep 2016 20:37:43 -0700
+Message-ID: <1474429063-22407-1-git-send-email-sagi@grimberg.me>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 6, 2016 at 4:02 PM, Jason Gunthorpe
-<jgunthorpe@obsidianresearch.com> wrote:
-> On Thu, Sep 01, 2016 at 02:06:46PM -0400, Paul Moore wrote:
->
->> Jason and/or Daniel, I think it would be helpful if you could explain
->> both the InifiniBand and IP based approaches for those of us who know
->> SELinux, but not necessarily the RDMA and InfiniBand portions of this
->> discussion.  Be verbose and explain it as if we were idiots (I get
->> called that enough, it must be true).
->
-> Well, I'm not really familiar with SELinux, I know a little bit about
-> how labels are applied in the netstack, but not that much...
->
-> The RDMA subsystem supports 4 different networking standards, and they
-> each have their own objects..
+This workqueue is used by our storage target mode ULPs
+via the new CQ API. Recent observations when working
+with very high-end flash storage devices reveal that
+UNBOUND workqueue threads can migrate between cpu cores
+and even numa nodes (although some numa locality is accounted
+for).
 
-All right, I'm done traveling for a bit and it seems like this
-discussion has settled into a stalemate so let's try to pick things
-back up and sort this out.
+While this attribute can be useful in some workloads,
+it does not fit in very nicely with the normal
+run-to-completion model we usually use in our target-mode
+ULPs and the block-mq irq<->cpu affinity facilities.
 
-Starting we a better RDMA education for me.
+The whole block-mq concept is that the completion will
+land on the same cpu where the submission was performed.
+The fact that our submitter thread is migrating cpus
+can break this locality.
 
-So far the discussion has been around providing access controls at the
-transport layer, are there any RDMA entities that are transport
-agnostic that might be better suited for what we are trying to do?  Or
-is it simply that the RDMA layer is tied so tightly to the underlying
-transport that we can't separate the two and have to consider them as
-one?
+We assume that as a target mode ULP, we will serve multiple
+initiators/clients and we can spread the load enough without
+having to use unbound kworkers.
 
+Also, while we're at it, expose this workqueue via sysfs which
+is harmless and can be useful for debug.
+
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/core/device.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 760ef603a468..15f4bdf89fe1 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -999,8 +999,7 @@ static int __init ib_core_init(void)
+ 		return -ENOMEM;
+ 
+ 	ib_comp_wq = alloc_workqueue("ib-comp-wq",
+-			WQ_UNBOUND | WQ_HIGHPRI | WQ_MEM_RECLAIM,
+-			WQ_UNBOUND_MAX_ACTIVE);
++			WQ_HIGHPRI | WQ_MEM_RECLAIM | WQ_SYSFS, 0);
+ 	if (!ib_comp_wq) {
+ 		ret = -ENOMEM;
+ 		goto err;
 -- 
-paul moore
-www.paul-moore.com
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
