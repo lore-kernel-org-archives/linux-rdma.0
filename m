@@ -1,65 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 21/23] rxe: Move documentation to Documentation/
-Date: Wed, 21 Sep 2016 16:08:47 -0600
-Message-ID: <1474495729-17604-22-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Dong Young Yoon <dyoon-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Subject: Unreliable Connection (IBV_QPT_UC) and rdma_accept()
+Date: Wed, 21 Sep 2016 19:07:14 -0400
+Message-ID: <13A5FB85-6677-4641-85F1-0670F62F17E4@umich.edu>
+Mime-Version: 1.0 (Mac OS X Mail 10.0 \(3226\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474495729-17604-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Hi all,
 
-Very little of the rxe RADME.md is relevant with the kernel driver upstream,
-and the userspace provider part of this repository.  Move the remaining bits
-to Documentation/rxe.md and delete the rest.
+I have been trying to implement simple client/server system that uses UC =
+instead of RC in order to test the performance of RDMA Writes under UC =
+against RDMA Reads under RC. When I switch from RC to UC, rdma_accept() =
+at the server fails with =E2=80=9CInvalid Argument (EINVAL)=E2=80=9D. I =
+have tried various values for queue pair attributes and also tried =
+RDMA_PS_IB, RDMA_PS_UDP for rdma_create_id(), but nothing has worked for =
+me. The problem seems to be very similar to what had been discussed in =
+this thread last year: =
+http://www.spinics.net/lists/linux-rdma/msg23071.html, yet I could not =
+find the solution to the problem in the thread.
+Has there been any development regarding UC since then? I am more than =
+happy to provide more information that would help in resolving this =
+issue.
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- Documentation/rxe.md | 22 ++++++++++++++++++
- librxe/README.md     | 63 ----------------------------------------------------
- 2 files changed, 22 insertions(+), 63 deletions(-)
- create mode 100644 Documentation/rxe.md
- delete mode 100644 librxe/README.md
-
-diff --git a/Documentation/rxe.md b/Documentation/rxe.md
-new file mode 100644
-index 000000000000..8e753decb3cb
---- /dev/null
-+++ b/Documentation/rxe.md
-@@ -0,0 +1,22 @@
-+# Configure Soft-RoCE (RXE):
-+
-+Load rdma_rxe kernel module using the rxe_cfg script included in the librxe RPM:
-+
-+	# rxe_cfg start (this might require sudo or root privileges)
-+
-+Create RXE device over network interface (e.g. eth0):
-+
-+	# rxe_cfg add eth0
-+
-+Use the status command to display the current configuration:
-+rxe_cfg status
-+
-+If configured successfully, you should see output similar to the following:
-+
-+```
-+    Name  Link  Driver   Speed  NMTU  IPv4_addr  RDEV  RMTU
-+    eth0  yes   mlx4_en                          rxe0  1024  (3)
-+```
-+
-+If you are using a Mellanox HCA: Need to make sure that the mlx4_ib kernel module is not loaded (modprobe –rv mlx4_ib) in the soft-RoCE machine.
-+Now you have an Infiniband device called “rxe0” that can be used to run any RoCE app.
-diff --git a/librxe/README.md b/librxe/README.md
-deleted file mode 100644
-index 743edd1421bf..000000000000
--- 
-2.1.4
+Thanks,
+Dong Young
+--
+Dong Young Yoon
+PhD Candidate in Computer Science
+University of Michigan
+2260 Hayward St.
+Ann Arbor, MI 48109-2121
+Office: 4957 Beyster
+Phone: 734-780-9175
+Email: dyoon-63aXycvo3TyHXe+LvDLADg@public.gmane.org=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
