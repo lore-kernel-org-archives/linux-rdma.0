@@ -1,46 +1,58 @@
-From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Wed, 21 Sep 2016 12:16:27 -0400
-Message-ID: <20160921161626.GA27837@phlsvsds.ph.intel.com>
-References: <20160906200221.GE28416@obsidianresearch.com> <VI1PR0501MB24290102DD3246F0CA965746C4F90@VI1PR0501MB2429.eurprd05.prod.outlook.com> <20160906215548.GA27225@obsidianresearch.com> <20160908000134.GC4515@phlsvsds.ph.intel.com> <DB6PR0501MB2422EA34EED4EE35EE7B1D28C4FB0@DB6PR0501MB2422.eurprd05.prod.outlook.com> <20160908161948.GA21614@obsidianresearch.com> <DB6PR0501MB24227FF5BE230C826615111FC4FB0@DB6PR0501MB2422.eurprd05.prod.outlook.com> <20160908183611.GD21614@obsidianresearch.com> <VI1PR0501MB2429AAD28BD78334C1FE0E5AC4FB0@VI1PR0501MB2429.eurprd05.prod.outlook.com> <20160908193235.GA1868@obsidianresearch.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Wed, 21 Sep 2016 13:21:29 -0400
+Message-ID: <20160921172129.GB27837@phlsvsds.ph.intel.com>
+References: <20160823185441.GA1233@obsidianresearch.com> <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com> <20160825173916.GC20612@obsidianresearch.com> <20160825195246.GI1916@redhat.com> <20160825201306.GA5421@obsidianresearch.com> <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227@redhat.com> <20160828132804.GN594@leon.nu> <20160828183627.GC12783@obsidianresearch.com> <20160829062918.GR594@leon.nu> <fcfcff11-fe5c-6cf5-3575-52da4b9241ed@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160908193235.GA1868@obsidianresearch.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Daniel Jurgens <danielj@mellanox.com>, Liran Liss <liranl@mellanox.com>, Paul Moore <paul@paul-moore.com>, Leon Romanovsky <leon@kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+In-Reply-To: <fcfcff11-fe5c-6cf5-3575-52da4b9241ed-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 08, 2016 at 01:32:35PM -0600, Jason Gunthorpe wrote:
-> On Thu, Sep 08, 2016 at 06:59:13PM +0000, Daniel Jurgens wrote:
 > 
-> > >> Net has variety of means of enforcement, one of which is controlling
-> > >> access to ports <tcp/udp,port number>, which is the most like what
-> > >> I'm doing here.
-> > > No, the analog the tcp/udp,port number is <ib, service_id> 
+> Unfortunataely, what you speak of is not really realistic, both for the
+> reasons I've cited and a whole litany of other reasons I didn't mention.
 > 
-> > I should have been clearer here.  From the SELinux perspective this
-> > scheme is very similar to net ports.
+> But I don't think Jason jumped in to work on this because of the goal of
+> making Red Hat's life easier in packaging up the separate code.  He did
+> it for upstream related reasons:
 > 
-> It really isn't. net ports and service_ids are global things that do
-> not need machine-specific customizations while subnet prefix or device
-> name/port are both machine-local information.
+> 1) Put all of the providers and libibverbs in one place so that they can
+> be kept in sync.  This allows us to do the exact same thing we do with
+> the kernel in user space.  Namely, if someone makes an incompatible
+> change in the libibverbs core, we can require that they fix up all
+> providers in the same patch series.  This works rather well for the
+> kernel, and it would be good to bring that policy to user space too.
+> 
+> 2) Put all of the kernel interacting libraries in one place.  This makes
+> it easier to perform the write->ioctl conversion we've been discussing
+> as there would be only one larger package that needs to be updated for
+> any given kernel ioctl update.
+> 
+> 3) Bring librdmacm and libibverbs together so that the occasional
+> incompatible update between the two is not an issue any more.
+> 
+> 4) Create an easier to build/install package for developers to use.
+> 
+> Those are the issues we should be discussing the relative merits of in
+> order to determine whether this work should be adopted.
+> 
 
-I agree that service_ids are more analogous to net ports.
-
-However, subnet prefixes are _not_ machine-local.  They are controlled by the
-Admin of the fabric by a central entity (the SM).  This is more helpful than in
-ethernet where if you configure the wrong port with the wrong subnet things
-just don't work.  In IB I can physically plug my network into any IB port I
-want and the system is _told_ which "subnet" that port belongs to.  (OPA is the
-same way.)
-
-So for IB/OPA a subnet prefix is a really good way to ID which network (subnet)
-you want to use.  Unfortunately, I'm not sure how to translate that to
-iwarp/roce seamlessly except to have some concept of "domain" as I mentioned in
-my other email.
+I see one more benefit here.  This should give us an opportunity to consolidate
+and clarify the interface to the _users_ of these libraries.  For example it
+has always bothered me is there are about 3 places that a PathRecord struct was
+defined.  To be clear I think PathRecords should be hidden from the user but in
+general keeping a clean interface to the user between librdmacm, libibverbs,
+and to a lesser extent (or maybe not at all) libibumad would be very nice for
+the end user.
 
 Ira
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
