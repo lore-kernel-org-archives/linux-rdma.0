@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 22/23] srp_daemon: Move documentation to Documentation/
-Date: Wed, 21 Sep 2016 16:08:48 -0600
-Message-ID: <1474495729-17604-23-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 11/23] verbs: Move documentation to Documentation/
+Date: Wed, 21 Sep 2016 16:08:37 -0600
+Message-ID: <1474495729-17604-12-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474495729-17604-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -16,62 +16,79 @@ And drop bits that are outdated or replaced by top-level Documentation.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- Documentation/ibsrpdm.md | 41 ++++++++++++++++++++++++
- srp_daemon/README        | 82 ------------------------------------------------
- 2 files changed, 41 insertions(+), 82 deletions(-)
- create mode 100644 Documentation/ibsrpdm.md
- delete mode 100644 srp_daemon/README
+ Documentation/libibverbs.md |  58 ++++++++++++++++
+ libibverbs/README           | 164 --------------------------------------------
+ 2 files changed, 58 insertions(+), 164 deletions(-)
+ create mode 100644 Documentation/libibverbs.md
+ delete mode 100644 libibverbs/README
 
-diff --git a/Documentation/ibsrpdm.md b/Documentation/ibsrpdm.md
+diff --git a/Documentation/libibverbs.md b/Documentation/libibverbs.md
 new file mode 100644
-index 000000000000..0fc544d0352a
+index 000000000000..cbe076e0fcab
 --- /dev/null
-+++ b/Documentation/ibsrpdm.md
-@@ -0,0 +1,41 @@
-+# Using ibsrpdm
++++ b/Documentation/libibverbs.md
+@@ -0,0 +1,58 @@
++# Introduction
 +
-+ibsrpdm is used for discovering and connecting to SRP SCSI targets on
-+InfiniBand fabrics.  These targets can be accessed with the InfiniBand SRP
-+initiator module, "ib_srp," included in Linux kernels 2.6.15 and newer.
++libibverbs is a library that allows programs to use RDMA "verbs" for
++direct access to RDMA (currently InfiniBand and iWARP) hardware from
++userspace.  For more information on RDMA verbs, see the InfiniBand
++Architecture Specification vol. 1, especially chapter 11, and the RDMA
++Consortium's RDMA Protocol Verbs Specification.
 +
-+To run ibsrpdm, the ib_umad module must be loaded, as well as an appropriate
-+low-level driver for the installed IB hardware.
++# Using libibverbs
 +
-+With no command line parameters, ibsrpdm displays information about
-+SRP targets in human-readable form:
++### Device nodes
 +
-+    # ibsrpdm
-+    IO Unit Info:
-+        port LID:        0009
-+        port GID:        fe800000000000000005ad00000013e9
-+        change ID:       73b0
-+        max controllers: 0x01
++The verbs library expects special character device files named
++/dev/infiniband/uverbsN to be created.  When you load the kernel
++modules, including both the low-level driver for your IB hardware as
++well as the ib_uverbs module, you should see one or more uverbsN
++entries in /sys/class/infiniband_verbs in addition to the
++/dev/infiniband/uverbsN character device files.
 +
-+        controller[  1]
-+            GUID:      0005ad00000013e7
-+            vendor ID: 0005ad
-+            device ID: 0005ad
-+            IO class : 0100
-+            ID:        Topspin SRP/FC TCA
-+            service entries: 2
-+                service[  0]: 0000000000000066 / SRP.T10:20030003BA27CC7A
-+                service[  1]: 0000000000000066 / SRP.T10:20030003BA27CF53
++To create the appropriate character device files automatically with
++udev, a rule like
 +
-+With the "-c" flag, ibsrpdm displays information in a form that can be
-+written to the kernel SRP initiators add_target file to connect to the
-+SRP targets.  For example:
++    KERNEL="uverbs*", NAME="infiniband/%k"
 +
-+    # ibsrpdm -c
-+    id_ext=20030003BA27CC7A,ioc_guid=0005ad00000013e7,dgid=fe800000000000000005ad00000013e9,pkey=ffff,service_id=0000000000000066
-+    id_ext=20030003BA27CF53,ioc_guid=0005ad00000013e7,dgid=fe800000000000000005ad00000013e9,pkey=ffff,service_id=0000000000000066
++can be used.  This will create device nodes named
 +
-+Given this, the command below will connect to the first target
-+discovered from the first port of the local HCA device "mthca0":
++    /dev/infiniband/uverbs0
 +
-+    # echo -n id_ext=20030003BA27CC7A,ioc_guid=0005ad00000013e7,dgid=fe800000000000000005ad00000013e9,pkey=ffff,service_id=0000000000000066 > /sys/class/infiniband_srp/srp-mthca0-1/add_target
-diff --git a/srp_daemon/README b/srp_daemon/README
++and so on.  Since the RDMA userspace verbs should be safe for use by
++non-privileged users, you may want to add an appropriate MODE or GROUP
++to your udev rule.
++
++### Permissions
++
++To use IB verbs from userspace, a process must be able to access the
++appropriate /dev/infiniband/uverbsN special device file.  You can
++check the permissions on this file with the command
++
++	ls -l /dev/infiniband/uverbs*
++
++Make sure that the permissions on these files are such that the
++user/group that your verbs program runs as can access the device file.
++
++To use IB verbs from userspace, a process must also have permission to
++tell the kernel to lock sufficient memory for all of your registered
++memory regions as well as the memory used internally by IB resources
++such as queue pairs (QPs) and completion queues (CQs).  To check your
++resource limits, use the command
++
++	ulimit -l
++
++(or "limit memorylocked" for csh-like shells).
++
++If you see a small number such as 32 (the units are KB) then you will
++need to increase this limit.  This is usually done for ordinary users
++via the file /etc/security/limits.conf.  More configuration may be
++necessary if you are logging in via OpenSSH and your sshd is
++configured to use privilege separation.
+diff --git a/libibverbs/README b/libibverbs/README
 deleted file mode 100644
-index c44f11c5c51e..000000000000
+index 848eb05917fb..000000000000
 -- 
 2.1.4
 
