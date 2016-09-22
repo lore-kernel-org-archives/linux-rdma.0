@@ -1,75 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 17/23] umad: Replace .nl with .sp in man pages
-Date: Thu, 22 Sep 2016 16:25:44 +0300
-Message-ID: <20160922132544.GE4088@leon.nu>
-References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474495729-17604-18-git-send-email-jgunthorpe@obsidianresearch.com>
- <0225b26e-0b88-0116-9c23-0b1e6bcd8e50@dev.mellanox.co.il>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [RFC v2 06/12] qedr: Add support for QP verbs
+Date: Thu, 22 Sep 2016 16:32:18 +0300
+Message-ID: <20160922133218.GF4088@leon.nu>
+References: <1474367764-9555-1-git-send-email-Ram.Amrani@cavium.com>
+ <1474367764-9555-7-git-send-email-Ram.Amrani@cavium.com>
+ <20160920163048.GQ26673@leon.nu>
+ <SN1PR07MB2207C1EC2C5C86C607D0255AF8F60@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="bi5JUZtvcfApsciF"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="/aVve/J9H4Wl5yVO"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <0225b26e-0b88-0116-9c23-0b1e6bcd8e50-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <SN1PR07MB2207C1EC2C5C86C607D0255AF8F60@SN1PR07MB2207.namprd07.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Amrani, Ram" <Ram.Amrani@cavium.com>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "dledford@redhat.com" <dledford@redhat.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Mintz, Yuval" <Yuval.Mintz@cavium.com>, "Borundia, Rajesh" <Rajesh.Borundia@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---bi5JUZtvcfApsciF
+--/aVve/J9H4Wl5yVO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Sep 22, 2016 at 08:27:06AM -0400, Hal Rosenstock wrote:
-> On 9/21/2016 6:08 PM, Jason Gunthorpe wrote:
-> > Debian's Lintian remarks:
+On Wed, Sep 21, 2016 at 02:15:39PM +0000, Amrani, Ram wrote:
+> > >  include/uapi/rdma/providers/qedr-abi.h     |   35 +
 > >
-> > W: rdma-plumbing: manpage-has-errors-from-man usr/share/man/man3/umad_get_ca.3.gz 11: warning: macro `nl' not defined
-> > W: rdma-plumbing: manpage-has-errors-from-man usr/share/man/man3/umad_get_port.3.gz 11: warning: macro `nl' not defined
-> > W: rdma-plumbing: manpage-has-errors-from-man usr/share/man/man3/umad_init.3.gz 11: warning: macro `nl' not defined
-> >
-> > We use .sp in other the man pages to separate function signatures, follow
-> > that practice consistently.
-> >
-> > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > Please be aware that the last version for ABI header files doesn't have "provider"
+> > name in directory path (include/uapi/rdma/qedr-abi.h)
 >
-> Thanks. Applied.
+> OK. Note that I was using https://www.spinics.net/lists/linux-rdma/msg40414.html that dates to 7 days ago and it contains the "providers" folder.
+> Can you point to the most recent patch?
 
-Hal,
-We started to move everything to https://github.com/linux-rdma/rdma-core
-and it will be applied there.
+http://marc.info/?l=linux-rdma&m=147419583317034&w=2
 
->
-> -- Hal
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll post new version soon. It will add mthca driver to the list of
+moved drivers.
 
---bi5JUZtvcfApsciF
+--/aVve/J9H4Wl5yVO
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX49vXAAoJEORje4g2clindHAQAK6w1gteCv7ySvTJHjM6blB/
-nGMCAncKB+fGtV5v7RA07+2XwxMkA0xcCFj26Y5J9wW5SQa6D+n6zcz/NEzVtntf
-ll/OQITP6expFKRjhHmS6ORMHMgzLzV8Jer9tw8r5voaNRdPZx7i3OCOpNxj4SSX
-bgF+KL9NRbK3QsYkWug0f8JmHUW/kag5jiCaDoHv+SEost99sMmUYphNxcNeC2MY
-kwvBJX+OpLzYh4Pb+kLqOIFVF2j2kRC9w+q5jxHNyzGyF0HbHvJnMn9tS0B1oqSv
-JMpBUlbTK3NKoFRJ+HrzLpRMUrqH7I/3B72yhrjcI5AnUUPmWJpcuyolU6ou8KhX
-a1As5dhnnSRZYTOmEF9jqjyKlMGywJyzSHHA6pjerl60pwXm1qcwEKjllaNyxxQx
-pMFsBdVxfVB8oV5dRcmSEM8qePk6LN7auPH1PtGvag5CuX1IjrhAbAwuzeXEHZXu
-iimNWTa8vV9AmOQq42nucq1cGHE7d08SvvgqIjbgiwaa3YSNq/LJaakPYsZYzfa+
-AYmPevX3VEDQMz8ClNBOw5AiI9AENW7dgdqjDGF8tgKoCnd3+BAU67c12Hmd9d86
-Le98raP44PdizcdwUeprBLadgHR30tyQnpOnLSa7BWCbXIkwGu4x+Q9p+yxtC9v5
-ph3o/3C30xEa8kRWDSKG
-=UWYI
+iQIcBAEBAgAGBQJX491iAAoJEORje4g2clinPfYP/RBg6gjMwZ9xwvsi9fpK/HlQ
+OycSDuFXhOXxkKE8bJAI3xKiydUiiwXG4qIkOgrPT4FPxQRxIxpG8K3Gu3fYuo3U
+GYmPW1x6iy5mnbd6oS30Xex/lLdar5B0YgKstRo+LhFjXtb3xYo1smKsHuHb0pXg
+KOUbZ7UyCESuxAoH9W5UjEkWxma9Hdk6tbkwIOkcMTSLn5TuTqn1o7Iym4vAD6zb
+FRobZ3iqw+g8sWEFVEQq03H3nqkY6w5G2KQfB2ZLvq/t6EttMdfGvHnPyj2z3M0X
+2h0t7uNmyDcqQ9mFj7yIvYLa3iY6OopGG1r4Cyt3FiyxoSuV9zTOETM9VG5TP6rX
+90y6kGZNzdDn4/M+rAw4zFiWv4Nca6++9GYuhBXZM2LSJxfW5kc/dZExjZNAdQhc
+6KwxeJAViI2xRUj8ps1PwxZXKhRAi9AgghZCc6933no8eyY83mJGOEwAL6XSn8IB
+4I8ncjxyX040XCqTVX1/WwfmXYw9OfAifHPKN4a0Re1hS4lmV03xZRGUdjMzs+uj
+5djzieh1cBcGGD7q0rXvUN1blDvu7tNjRCC1OSmBISXGcE17PCG3A0IxpSkVDee5
+HQfCoo+pnD1UM51faJSdeiPFjHXBay4fzP//sY/MKeQjquixjEM1/PVm3xhMjg/Z
+j6c1cql0mfGLicjN1rYD
+=xUkQ
 -----END PGP SIGNATURE-----
 
---bi5JUZtvcfApsciF--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--/aVve/J9H4Wl5yVO--
