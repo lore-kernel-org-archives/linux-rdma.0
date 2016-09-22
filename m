@@ -1,31 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 04/23] mlx5: Add cmake options to replace
- --with-mlx5_debug/mw_debug
-Date: Thu, 22 Sep 2016 09:29:13 -0600
-Message-ID: <20160922152913.GA15212@obsidianresearch.com>
-References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474495729-17604-5-git-send-email-jgunthorpe@obsidianresearch.com>
- <6249c5da-7ff1-6727-9c5f-2315054bcf5d@dev.mellanox.co.il>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: rdma-core, cmake/ninja question
+Date: Thu, 22 Sep 2016 10:35:06 -0500
+Message-ID: <00cc01d214e6$e4cb2d80$ae618880$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6249c5da-7ff1-6727-9c5f-2315054bcf5d-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Need to consider whether there are other symbols in the original
-> repositories that require similar patch. (e.g. valgrind, resolve-neigh,
-> etc.)
+Hey Jason, newb question:  
 
-Those two are taken care of already.
+How do I force the rdma-core to build with /usr as the install prefix, /etc as
+the config dir, and /usr/lib64 as the lib dir?  It seems to default to
+/usr/local..
 
-However, I'm of the opinion we should drop !resolve-neigh and nl1 as a
-compile time option.
+Thanks!
 
-Jason
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
