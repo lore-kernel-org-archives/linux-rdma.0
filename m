@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V2 4/9] IB/mlx4: Move user vendor structures
-Date: Thu, 22 Sep 2016 17:31:14 +0300
-Message-ID: <1474554679-21953-5-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V2 5/9] IB/ocrdma: Move user vendor structures
+Date: Thu, 22 Sep 2016 17:31:15 +0300
+Message-ID: <1474554679-21953-6-git-send-email-leon@kernel.org>
 References: <1474554679-21953-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474554679-21953-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,7 +10,7 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch moves mlx4 vendor's specific structures to
+This patch moves ocrdma vendor's specific structures to
 common UAPI folder which will be visible to all consumers.
 
 These structures are used by user-space library driver
@@ -19,296 +19,356 @@ These structures are used by user-space library driver
 This move will allow cross-compile against these files and
 simplify introduction of vendor specific data.
 
+In addition, it changes types to be __uXX instead of uXX.
+
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/cq.c   |   2 +-
- drivers/infiniband/hw/mlx4/main.c |   2 +-
- drivers/infiniband/hw/mlx4/qp.c   |   2 +-
- drivers/infiniband/hw/mlx4/srq.c  |   2 +-
- drivers/infiniband/hw/mlx4/user.h | 107 --------------------------------------
- include/uapi/rdma/mlx4-abi.h      | 107 ++++++++++++++++++++++++++++++++++++++
- 6 files changed, 111 insertions(+), 111 deletions(-)
- delete mode 100644 drivers/infiniband/hw/mlx4/user.h
- create mode 100644 include/uapi/rdma/mlx4-abi.h
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h   | 149 ---------------------------
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   2 +-
+ include/uapi/rdma/ocrdma-abi.h              | 151 ++++++++++++++++++++++++++++
+ 4 files changed, 153 insertions(+), 151 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+ create mode 100644 include/uapi/rdma/ocrdma-abi.h
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 006db64..9ba29c3 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -37,7 +37,7 @@
- #include <linux/slab.h>
- 
- #include "mlx4_ib.h"
--#include "user.h"
-+#include <rdma/mlx4-abi.h>
- 
- static void mlx4_ib_cq_comp(struct mlx4_cq *cq)
- {
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 2af44c2..75c65f4 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -55,7 +55,7 @@
- #include <linux/mlx4/qp.h>
- 
- #include "mlx4_ib.h"
--#include "user.h"
-+#include <rdma/mlx4-abi.h>
- 
- #define DRV_NAME	MLX4_IB_DRV_NAME
- #define DRV_VERSION	"2.2-1"
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 768085f..44c8a0d 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -47,7 +47,7 @@
- #include <linux/mlx4/qp.h>
- 
- #include "mlx4_ib.h"
--#include "user.h"
-+#include <rdma/mlx4-abi.h>
- 
- static void mlx4_ib_lock_cqs(struct mlx4_ib_cq *send_cq,
- 			     struct mlx4_ib_cq *recv_cq);
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index 0597f3e..7dd3f26 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -37,7 +37,7 @@
- #include <linux/vmalloc.h>
- 
- #include "mlx4_ib.h"
--#include "user.h"
-+#include <rdma/mlx4-abi.h>
- 
- static void *get_wqe(struct mlx4_ib_srq *srq, int n)
- {
-diff --git a/drivers/infiniband/hw/mlx4/user.h b/drivers/infiniband/hw/mlx4/user.h
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
 deleted file mode 100644
-index 07e6769..0000000
---- a/drivers/infiniband/hw/mlx4/user.h
+index 430b135..0000000
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
 +++ /dev/null
-@@ -1,107 +0,0 @@
--/*
-- * Copyright (c) 2007 Cisco Systems, Inc. All rights reserved.
-- * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
+@@ -1,149 +0,0 @@
+-/* This file is part of the Emulex RoCE Device Driver for
+- * RoCE (RDMA over Converged Ethernet) adapters.
+- * Copyright (C) 2012-2015 Emulex. All rights reserved.
+- * EMULEX and SLI are trademarks of Emulex.
+- * www.emulex.com
 - *
-- * This software is available to you under a choice of one of two
-- * licenses.  You may choose to be licensed under the terms of the GNU
-- * General Public License (GPL) Version 2, available from the file
-- * COPYING in the main directory of this source tree, or the
-- * OpenIB.org BSD license below:
+- * This software is available to you under a choice of one of two licenses.
+- * You may choose to be licensed under the terms of the GNU General Public
+- * License (GPL) Version 2, available from the file COPYING in the main
+- * directory of this source tree, or the BSD license below:
 - *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
 - *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
+- * - Redistributions of source code must retain the above copyright notice,
+- *   this list of conditions and the following disclaimer.
 - *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
+- * - Redistributions in binary form must reproduce the above copyright
+- *   notice, this list of conditions and the following disclaimer in
+- *   the documentation and/or other materials provided with the distribution.
 - *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- * Contact Information:
+- * linux-drivers-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+- *
+- * Emulex
+- * 3333 Susan Street
+- * Costa Mesa, CA 92626
 - */
 -
--#ifndef MLX4_IB_USER_H
--#define MLX4_IB_USER_H
+-#ifndef __OCRDMA_ABI_H__
+-#define __OCRDMA_ABI_H__
 -
--#include <linux/types.h>
+-#define OCRDMA_ABI_VERSION 2
+-#define OCRDMA_BE_ROCE_ABI_VERSION 1
+-/* user kernel communication data structures. */
 -
--/*
-- * Increment this value if any changes that break userspace ABI
-- * compatibility are made.
-- */
--
--#define MLX4_IB_UVERBS_NO_DEV_CAPS_ABI_VERSION	3
--#define MLX4_IB_UVERBS_ABI_VERSION		4
--
--/*
-- * Make sure that all structs defined in this file remain laid out so
-- * that they pack the same way on 32-bit and 64-bit architectures (to
-- * avoid incompatibility between 32-bit userspace and 64-bit kernels).
-- * In particular do not use pointer types -- pass pointers in __u64
-- * instead.
-- */
--
--struct mlx4_ib_alloc_ucontext_resp_v3 {
--	__u32	qp_tab_size;
--	__u16	bf_reg_size;
--	__u16	bf_regs_per_page;
+-struct ocrdma_alloc_ucontext_resp {
+-	u32 dev_id;
+-	u32 wqe_size;
+-	u32 max_inline_data;
+-	u32 dpp_wqe_size;
+-	u64 ah_tbl_page;
+-	u32 ah_tbl_len;
+-	u32 rqe_size;
+-	u8 fw_ver[32];
+-	/* for future use/new features in progress */
+-	u64 rsvd1;
+-	u64 rsvd2;
 -};
 -
--struct mlx4_ib_alloc_ucontext_resp {
--	__u32	dev_caps;
--	__u32	qp_tab_size;
--	__u16	bf_reg_size;
--	__u16	bf_regs_per_page;
--	__u32	cqe_size;
+-struct ocrdma_alloc_pd_ureq {
+-	u64 rsvd1;
 -};
 -
--struct mlx4_ib_alloc_pd_resp {
--	__u32	pdn;
--	__u32	reserved;
+-struct ocrdma_alloc_pd_uresp {
+-	u32 id;
+-	u32 dpp_enabled;
+-	u32 dpp_page_addr_hi;
+-	u32 dpp_page_addr_lo;
+-	u64 rsvd1;
 -};
 -
--struct mlx4_ib_create_cq {
--	__u64	buf_addr;
--	__u64	db_addr;
+-struct ocrdma_create_cq_ureq {
+-	u32 dpp_cq;
+-	u32 rsvd; /* pad */
 -};
 -
--struct mlx4_ib_create_cq_resp {
--	__u32	cqn;
--	__u32	reserved;
+-#define MAX_CQ_PAGES 8
+-struct ocrdma_create_cq_uresp {
+-	u32 cq_id;
+-	u32 page_size;
+-	u32 num_pages;
+-	u32 max_hw_cqe;
+-	u64 page_addr[MAX_CQ_PAGES];
+-	u64 db_page_addr;
+-	u32 db_page_size;
+-	u32 phase_change;
+-	/* for future use/new features in progress */
+-	u64 rsvd1;
+-	u64 rsvd2;
 -};
 -
--struct mlx4_ib_resize_cq {
--	__u64	buf_addr;
+-#define MAX_QP_PAGES 8
+-#define MAX_UD_AV_PAGES 8
+-
+-struct ocrdma_create_qp_ureq {
+-	u8 enable_dpp_cq;
+-	u8 rsvd;
+-	u16 dpp_cq_id;
+-	u32 rsvd1;	/* pad */
 -};
 -
--struct mlx4_ib_create_srq {
--	__u64	buf_addr;
--	__u64	db_addr;
+-struct ocrdma_create_qp_uresp {
+-	u16 qp_id;
+-	u16 sq_dbid;
+-	u16 rq_dbid;
+-	u16 resv0;	/* pad */
+-	u32 sq_page_size;
+-	u32 rq_page_size;
+-	u32 num_sq_pages;
+-	u32 num_rq_pages;
+-	u64 sq_page_addr[MAX_QP_PAGES];
+-	u64 rq_page_addr[MAX_QP_PAGES];
+-	u64 db_page_addr;
+-	u32 db_page_size;
+-	u32 dpp_credit;
+-	u32 dpp_offset;
+-	u32 num_wqe_allocated;
+-	u32 num_rqe_allocated;
+-	u32 db_sq_offset;
+-	u32 db_rq_offset;
+-	u32 db_shift;
+-	u64 rsvd[11];
+-} __packed;
+-
+-struct ocrdma_create_srq_uresp {
+-	u16 rq_dbid;
+-	u16 resv0;	/* pad */
+-	u32 resv1;
+-
+-	u32 rq_page_size;
+-	u32 num_rq_pages;
+-
+-	u64 rq_page_addr[MAX_QP_PAGES];
+-	u64 db_page_addr;
+-
+-	u32 db_page_size;
+-	u32 num_rqe_allocated;
+-	u32 db_rq_offset;
+-	u32 db_shift;
+-
+-	u64 rsvd2;
+-	u64 rsvd3;
 -};
 -
--struct mlx4_ib_create_srq_resp {
--	__u32	srqn;
--	__u32	reserved;
--};
--
--struct mlx4_ib_create_qp {
--	__u64	buf_addr;
--	__u64	db_addr;
--	__u8	log_sq_bb_count;
--	__u8	log_sq_stride;
--	__u8	sq_no_prefetch;
--	__u8	reserved[5];
--};
--
--#endif /* MLX4_IB_USER_H */
-diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
+-#endif				/* __OCRDMA_ABI_H__ */
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 07d0c6c..6393038 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -56,7 +56,7 @@
+ #include "be_roce.h"
+ #include "ocrdma_hw.h"
+ #include "ocrdma_stats.h"
+-#include "ocrdma_abi.h"
++#include <rdma/ocrdma-abi.h>
+ 
+ MODULE_VERSION(OCRDMA_ROCE_DRV_VERSION);
+ MODULE_DESCRIPTION(OCRDMA_ROCE_DRV_DESC " " OCRDMA_ROCE_DRV_VERSION);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 0aa8547..6af44f8 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -51,7 +51,7 @@
+ #include "ocrdma.h"
+ #include "ocrdma_hw.h"
+ #include "ocrdma_verbs.h"
+-#include "ocrdma_abi.h"
++#include <rdma/ocrdma-abi.h>
+ 
+ int ocrdma_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
+ {
+diff --git a/include/uapi/rdma/ocrdma-abi.h b/include/uapi/rdma/ocrdma-abi.h
 new file mode 100644
-index 0000000..af43175
+index 0000000..9f28191
 --- /dev/null
-+++ b/include/uapi/rdma/mlx4-abi.h
-@@ -0,0 +1,107 @@
-+/*
-+ * Copyright (c) 2007 Cisco Systems, Inc. All rights reserved.
-+ * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
++++ b/include/uapi/rdma/ocrdma-abi.h
+@@ -0,0 +1,151 @@
++/* This file is part of the Emulex RoCE Device Driver for
++ * RoCE (RDMA over Converged Ethernet) adapters.
++ * Copyright (C) 2012-2015 Emulex. All rights reserved.
++ * EMULEX and SLI are trademarks of Emulex.
++ * www.emulex.com
 + *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
++ * This software is available to you under a choice of one of two licenses.
++ * You may choose to be licensed under the terms of the GNU General Public
++ * License (GPL) Version 2, available from the file COPYING in the main
++ * directory of this source tree, or the BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
 + *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
++ * - Redistributions of source code must retain the above copyright notice,
++ *   this list of conditions and the following disclaimer.
 + *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
++ * - Redistributions in binary form must reproduce the above copyright
++ *   notice, this list of conditions and the following disclaimer in
++ *   the documentation and/or other materials provided with the distribution.
 + *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
++ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contact Information:
++ * linux-drivers-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
++ *
++ * Emulex
++ * 3333 Susan Street
++ * Costa Mesa, CA 92626
 + */
 +
-+#ifndef MLX4_ABI_USER_H
-+#define MLX4_ABI_USER_H
++#ifndef OCRDMA_ABI_USER_H
++#define OCRDMA_ABI_USER_H
 +
 +#include <linux/types.h>
 +
-+/*
-+ * Increment this value if any changes that break userspace ABI
-+ * compatibility are made.
-+ */
++#define OCRDMA_ABI_VERSION 2
++#define OCRDMA_BE_ROCE_ABI_VERSION 1
++/* user kernel communication data structures. */
 +
-+#define MLX4_IB_UVERBS_NO_DEV_CAPS_ABI_VERSION	3
-+#define MLX4_IB_UVERBS_ABI_VERSION		4
-+
-+/*
-+ * Make sure that all structs defined in this file remain laid out so
-+ * that they pack the same way on 32-bit and 64-bit architectures (to
-+ * avoid incompatibility between 32-bit userspace and 64-bit kernels).
-+ * In particular do not use pointer types -- pass pointers in __u64
-+ * instead.
-+ */
-+
-+struct mlx4_ib_alloc_ucontext_resp_v3 {
-+	__u32	qp_tab_size;
-+	__u16	bf_reg_size;
-+	__u16	bf_regs_per_page;
++struct ocrdma_alloc_ucontext_resp {
++	__u32 dev_id;
++	__u32 wqe_size;
++	__u32 max_inline_data;
++	__u32 dpp_wqe_size;
++	__u64 ah_tbl_page;
++	__u32 ah_tbl_len;
++	__u32 rqe_size;
++	__u8 fw_ver[32];
++	/* for future use/new features in progress */
++	__u64 rsvd1;
++	__u64 rsvd2;
 +};
 +
-+struct mlx4_ib_alloc_ucontext_resp {
-+	__u32	dev_caps;
-+	__u32	qp_tab_size;
-+	__u16	bf_reg_size;
-+	__u16	bf_regs_per_page;
-+	__u32	cqe_size;
++struct ocrdma_alloc_pd_ureq {
++	__u64 rsvd1;
 +};
 +
-+struct mlx4_ib_alloc_pd_resp {
-+	__u32	pdn;
-+	__u32	reserved;
++struct ocrdma_alloc_pd_uresp {
++	__u32 id;
++	__u32 dpp_enabled;
++	__u32 dpp_page_addr_hi;
++	__u32 dpp_page_addr_lo;
++	__u64 rsvd1;
 +};
 +
-+struct mlx4_ib_create_cq {
-+	__u64	buf_addr;
-+	__u64	db_addr;
++struct ocrdma_create_cq_ureq {
++	__u32 dpp_cq;
++	__u32 rsvd; /* pad */
 +};
 +
-+struct mlx4_ib_create_cq_resp {
-+	__u32	cqn;
-+	__u32	reserved;
++#define MAX_CQ_PAGES 8
++struct ocrdma_create_cq_uresp {
++	__u32 cq_id;
++	__u32 page_size;
++	__u32 num_pages;
++	__u32 max_hw_cqe;
++	__u64 page_addr[MAX_CQ_PAGES];
++	__u64 db_page_addr;
++	__u32 db_page_size;
++	__u32 phase_change;
++	/* for future use/new features in progress */
++	__u64 rsvd1;
++	__u64 rsvd2;
 +};
 +
-+struct mlx4_ib_resize_cq {
-+	__u64	buf_addr;
++#define MAX_QP_PAGES 8
++#define MAX_UD_AV_PAGES 8
++
++struct ocrdma_create_qp_ureq {
++	__u8 enable_dpp_cq;
++	__u8 rsvd;
++	__u16 dpp_cq_id;
++	__u32 rsvd1;	/* pad */
 +};
 +
-+struct mlx4_ib_create_srq {
-+	__u64	buf_addr;
-+	__u64	db_addr;
++struct ocrdma_create_qp_uresp {
++	__u16 qp_id;
++	__u16 sq_dbid;
++	__u16 rq_dbid;
++	__u16 resv0;	/* pad */
++	__u32 sq_page_size;
++	__u32 rq_page_size;
++	__u32 num_sq_pages;
++	__u32 num_rq_pages;
++	__u64 sq_page_addr[MAX_QP_PAGES];
++	__u64 rq_page_addr[MAX_QP_PAGES];
++	__u64 db_page_addr;
++	__u32 db_page_size;
++	__u32 dpp_credit;
++	__u32 dpp_offset;
++	__u32 num_wqe_allocated;
++	__u32 num_rqe_allocated;
++	__u32 db_sq_offset;
++	__u32 db_rq_offset;
++	__u32 db_shift;
++	__u64 rsvd[11];
++} __packed;
++
++struct ocrdma_create_srq_uresp {
++	__u16 rq_dbid;
++	__u16 resv0;	/* pad */
++	__u32 resv1;
++
++	__u32 rq_page_size;
++	__u32 num_rq_pages;
++
++	__u64 rq_page_addr[MAX_QP_PAGES];
++	__u64 db_page_addr;
++
++	__u32 db_page_size;
++	__u32 num_rqe_allocated;
++	__u32 db_rq_offset;
++	__u32 db_shift;
++
++	__u64 rsvd2;
++	__u64 rsvd3;
 +};
 +
-+struct mlx4_ib_create_srq_resp {
-+	__u32	srqn;
-+	__u32	reserved;
-+};
-+
-+struct mlx4_ib_create_qp {
-+	__u64	buf_addr;
-+	__u64	db_addr;
-+	__u8	log_sq_bb_count;
-+	__u8	log_sq_stride;
-+	__u8	sq_no_prefetch;
-+	__u8	reserved[5];
-+};
-+
-+#endif /* MLX4_ABI_USER_H */
++#endif	/* OCRDMA_ABI_USER_H */
 -- 
 2.7.4
 
