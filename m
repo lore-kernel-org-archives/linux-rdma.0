@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V2 5/9] IB/ocrdma: Move user vendor structures
-Date: Thu, 22 Sep 2016 17:31:15 +0300
-Message-ID: <1474554679-21953-6-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V2 6/9] IB/nes: Move user vendor structures
+Date: Thu, 22 Sep 2016 17:31:16 +0300
+Message-ID: <1474554679-21953-7-git-send-email-leon@kernel.org>
 References: <1474554679-21953-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474554679-21953-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,7 +10,7 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch moves ocrdma vendor's specific structures to
+This patch moves nes vendor's specific structures to
 common UAPI folder which will be visible to all consumers.
 
 These structures are used by user-space library driver
@@ -19,356 +19,268 @@ These structures are used by user-space library driver
 This move will allow cross-compile against these files and
 simplify introduction of vendor specific data.
 
-In addition, it changes types to be __uXX instead of uXX.
-
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_abi.h   | 149 ---------------------------
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   2 +-
- include/uapi/rdma/ocrdma-abi.h              | 151 ++++++++++++++++++++++++++++
- 4 files changed, 153 insertions(+), 151 deletions(-)
- delete mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_abi.h
- create mode 100644 include/uapi/rdma/ocrdma-abi.h
+ drivers/infiniband/hw/nes/nes.h      |   2 +-
+ drivers/infiniband/hw/nes/nes_user.h | 114 -----------------------------------
+ include/uapi/rdma/nes-abi.h          | 114 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 115 insertions(+), 115 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/nes/nes_user.h
+ create mode 100644 include/uapi/rdma/nes-abi.h
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+diff --git a/drivers/infiniband/hw/nes/nes.h b/drivers/infiniband/hw/nes/nes.h
+index bd9d132..e7430c9 100644
+--- a/drivers/infiniband/hw/nes/nes.h
++++ b/drivers/infiniband/hw/nes/nes.h
+@@ -165,7 +165,7 @@ do { \
+ #include "nes_hw.h"
+ #include "nes_verbs.h"
+ #include "nes_context.h"
+-#include "nes_user.h"
++#include <rdma/nes-abi.h>
+ #include "nes_cm.h"
+ #include "nes_mgt.h"
+ 
+diff --git a/drivers/infiniband/hw/nes/nes_user.h b/drivers/infiniband/hw/nes/nes_user.h
 deleted file mode 100644
-index 430b135..0000000
---- a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+index 529c421..0000000
+--- a/drivers/infiniband/hw/nes/nes_user.h
 +++ /dev/null
-@@ -1,149 +0,0 @@
--/* This file is part of the Emulex RoCE Device Driver for
-- * RoCE (RDMA over Converged Ethernet) adapters.
-- * Copyright (C) 2012-2015 Emulex. All rights reserved.
-- * EMULEX and SLI are trademarks of Emulex.
-- * www.emulex.com
+@@ -1,114 +0,0 @@
+-/*
+- * Copyright (c) 2006 - 2011 Intel Corporation.  All rights reserved.
+- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+- * Copyright (c) 2005 Cisco Systems.  All rights reserved.
+- * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
 - *
-- * This software is available to you under a choice of one of two licenses.
-- * You may choose to be licensed under the terms of the GNU General Public
-- * License (GPL) Version 2, available from the file COPYING in the main
-- * directory of this source tree, or the BSD license below:
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
 - *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
 - *
-- * - Redistributions of source code must retain the above copyright notice,
-- *   this list of conditions and the following disclaimer.
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
 - *
-- * - Redistributions in binary form must reproduce the above copyright
-- *   notice, this list of conditions and the following disclaimer in
-- *   the documentation and/or other materials provided with the distribution.
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
 - *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
-- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
 - *
-- * Contact Information:
-- * linux-drivers-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
-- *
-- * Emulex
-- * 3333 Susan Street
-- * Costa Mesa, CA 92626
 - */
 -
--#ifndef __OCRDMA_ABI_H__
--#define __OCRDMA_ABI_H__
+-#ifndef NES_USER_H
+-#define NES_USER_H
 -
--#define OCRDMA_ABI_VERSION 2
--#define OCRDMA_BE_ROCE_ABI_VERSION 1
--/* user kernel communication data structures. */
+-#include <linux/types.h>
 -
--struct ocrdma_alloc_ucontext_resp {
--	u32 dev_id;
--	u32 wqe_size;
--	u32 max_inline_data;
--	u32 dpp_wqe_size;
--	u64 ah_tbl_page;
--	u32 ah_tbl_len;
--	u32 rqe_size;
--	u8 fw_ver[32];
--	/* for future use/new features in progress */
--	u64 rsvd1;
--	u64 rsvd2;
+-#define NES_ABI_USERSPACE_VER 2
+-#define NES_ABI_KERNEL_VER    2
+-
+-/*
+- * Make sure that all structs defined in this file remain laid out so
+- * that they pack the same way on 32-bit and 64-bit architectures (to
+- * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+- * In particular do not use pointer types -- pass pointers in __u64
+- * instead.
+- */
+-
+-struct nes_alloc_ucontext_req {
+-	__u32 reserved32;
+-	__u8  userspace_ver;
+-	__u8  reserved8[3];
 -};
 -
--struct ocrdma_alloc_pd_ureq {
--	u64 rsvd1;
+-struct nes_alloc_ucontext_resp {
+-	__u32 max_pds; /* maximum pds allowed for this user process */
+-	__u32 max_qps; /* maximum qps allowed for this user process */
+-	__u32 wq_size; /* size of the WQs (sq+rq) allocated to the mmaped area */
+-	__u8  virtwq;  /* flag to indicate if virtual WQ are to be used or not */
+-	__u8  kernel_ver;
+-	__u8  reserved[2];
 -};
 -
--struct ocrdma_alloc_pd_uresp {
--	u32 id;
--	u32 dpp_enabled;
--	u32 dpp_page_addr_hi;
--	u32 dpp_page_addr_lo;
--	u64 rsvd1;
+-struct nes_alloc_pd_resp {
+-	__u32 pd_id;
+-	__u32 mmap_db_index;
 -};
 -
--struct ocrdma_create_cq_ureq {
--	u32 dpp_cq;
--	u32 rsvd; /* pad */
+-struct nes_create_cq_req {
+-	__u64 user_cq_buffer;
+-	__u32 mcrqf;
+-	__u8 reserved[4];
 -};
 -
--#define MAX_CQ_PAGES 8
--struct ocrdma_create_cq_uresp {
--	u32 cq_id;
--	u32 page_size;
--	u32 num_pages;
--	u32 max_hw_cqe;
--	u64 page_addr[MAX_CQ_PAGES];
--	u64 db_page_addr;
--	u32 db_page_size;
--	u32 phase_change;
--	/* for future use/new features in progress */
--	u64 rsvd1;
--	u64 rsvd2;
+-struct nes_create_qp_req {
+-	__u64 user_wqe_buffers;
+-	__u64 user_qp_buffer;
 -};
 -
--#define MAX_QP_PAGES 8
--#define MAX_UD_AV_PAGES 8
--
--struct ocrdma_create_qp_ureq {
--	u8 enable_dpp_cq;
--	u8 rsvd;
--	u16 dpp_cq_id;
--	u32 rsvd1;	/* pad */
+-enum iwnes_memreg_type {
+-	IWNES_MEMREG_TYPE_MEM = 0x0000,
+-	IWNES_MEMREG_TYPE_QP = 0x0001,
+-	IWNES_MEMREG_TYPE_CQ = 0x0002,
+-	IWNES_MEMREG_TYPE_MW = 0x0003,
+-	IWNES_MEMREG_TYPE_FMR = 0x0004,
+-	IWNES_MEMREG_TYPE_FMEM = 0x0005,
 -};
 -
--struct ocrdma_create_qp_uresp {
--	u16 qp_id;
--	u16 sq_dbid;
--	u16 rq_dbid;
--	u16 resv0;	/* pad */
--	u32 sq_page_size;
--	u32 rq_page_size;
--	u32 num_sq_pages;
--	u32 num_rq_pages;
--	u64 sq_page_addr[MAX_QP_PAGES];
--	u64 rq_page_addr[MAX_QP_PAGES];
--	u64 db_page_addr;
--	u32 db_page_size;
--	u32 dpp_credit;
--	u32 dpp_offset;
--	u32 num_wqe_allocated;
--	u32 num_rqe_allocated;
--	u32 db_sq_offset;
--	u32 db_rq_offset;
--	u32 db_shift;
--	u64 rsvd[11];
--} __packed;
--
--struct ocrdma_create_srq_uresp {
--	u16 rq_dbid;
--	u16 resv0;	/* pad */
--	u32 resv1;
--
--	u32 rq_page_size;
--	u32 num_rq_pages;
--
--	u64 rq_page_addr[MAX_QP_PAGES];
--	u64 db_page_addr;
--
--	u32 db_page_size;
--	u32 num_rqe_allocated;
--	u32 db_rq_offset;
--	u32 db_shift;
--
--	u64 rsvd2;
--	u64 rsvd3;
+-struct nes_mem_reg_req {
+-	__u32 reg_type;	/* indicates if id is memory, QP or CQ */
+-	__u32 reserved;
 -};
 -
--#endif				/* __OCRDMA_ABI_H__ */
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 07d0c6c..6393038 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -56,7 +56,7 @@
- #include "be_roce.h"
- #include "ocrdma_hw.h"
- #include "ocrdma_stats.h"
--#include "ocrdma_abi.h"
-+#include <rdma/ocrdma-abi.h>
- 
- MODULE_VERSION(OCRDMA_ROCE_DRV_VERSION);
- MODULE_DESCRIPTION(OCRDMA_ROCE_DRV_DESC " " OCRDMA_ROCE_DRV_VERSION);
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 0aa8547..6af44f8 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -51,7 +51,7 @@
- #include "ocrdma.h"
- #include "ocrdma_hw.h"
- #include "ocrdma_verbs.h"
--#include "ocrdma_abi.h"
-+#include <rdma/ocrdma-abi.h>
- 
- int ocrdma_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
- {
-diff --git a/include/uapi/rdma/ocrdma-abi.h b/include/uapi/rdma/ocrdma-abi.h
+-struct nes_create_cq_resp {
+-	__u32 cq_id;
+-	__u32 cq_size;
+-	__u32 mmap_db_index;
+-	__u32 reserved;
+-};
+-
+-struct nes_create_qp_resp {
+-	__u32 qp_id;
+-	__u32 actual_sq_size;
+-	__u32 actual_rq_size;
+-	__u32 mmap_sq_db_index;
+-	__u32 mmap_rq_db_index;
+-	__u32 nes_drv_opt;
+-};
+-
+-#endif				/* NES_USER_H */
+diff --git a/include/uapi/rdma/nes-abi.h b/include/uapi/rdma/nes-abi.h
 new file mode 100644
-index 0000000..9f28191
+index 0000000..6eb3734
 --- /dev/null
-+++ b/include/uapi/rdma/ocrdma-abi.h
-@@ -0,0 +1,151 @@
-+/* This file is part of the Emulex RoCE Device Driver for
-+ * RoCE (RDMA over Converged Ethernet) adapters.
-+ * Copyright (C) 2012-2015 Emulex. All rights reserved.
-+ * EMULEX and SLI are trademarks of Emulex.
-+ * www.emulex.com
++++ b/include/uapi/rdma/nes-abi.h
+@@ -0,0 +1,114 @@
++/*
++ * Copyright (c) 2006 - 2011 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2005 Cisco Systems.  All rights reserved.
++ * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
 + *
-+ * This software is available to you under a choice of one of two licenses.
-+ * You may choose to be licensed under the terms of the GNU General Public
-+ * License (GPL) Version 2, available from the file COPYING in the main
-+ * directory of this source tree, or the BSD license below:
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
 + *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
-+ * - Redistributions of source code must retain the above copyright notice,
-+ *   this list of conditions and the following disclaimer.
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
 + *
-+ * - Redistributions in binary form must reproduce the above copyright
-+ *   notice, this list of conditions and the following disclaimer in
-+ *   the documentation and/or other materials provided with the distribution.
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
 + *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
 + *
-+ * Contact Information:
-+ * linux-drivers-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
-+ *
-+ * Emulex
-+ * 3333 Susan Street
-+ * Costa Mesa, CA 92626
 + */
 +
-+#ifndef OCRDMA_ABI_USER_H
-+#define OCRDMA_ABI_USER_H
++#ifndef NES_ABI_USER_H
++#define NES_ABI_USER_H
 +
 +#include <linux/types.h>
 +
-+#define OCRDMA_ABI_VERSION 2
-+#define OCRDMA_BE_ROCE_ABI_VERSION 1
-+/* user kernel communication data structures. */
++#define NES_ABI_USERSPACE_VER 2
++#define NES_ABI_KERNEL_VER    2
 +
-+struct ocrdma_alloc_ucontext_resp {
-+	__u32 dev_id;
-+	__u32 wqe_size;
-+	__u32 max_inline_data;
-+	__u32 dpp_wqe_size;
-+	__u64 ah_tbl_page;
-+	__u32 ah_tbl_len;
-+	__u32 rqe_size;
-+	__u8 fw_ver[32];
-+	/* for future use/new features in progress */
-+	__u64 rsvd1;
-+	__u64 rsvd2;
++/*
++ * Make sure that all structs defined in this file remain laid out so
++ * that they pack the same way on 32-bit and 64-bit architectures (to
++ * avoid incompatibility between 32-bit userspace and 64-bit kernels).
++ * In particular do not use pointer types -- pass pointers in __u64
++ * instead.
++ */
++
++struct nes_alloc_ucontext_req {
++	__u32 reserved32;
++	__u8  userspace_ver;
++	__u8  reserved8[3];
 +};
 +
-+struct ocrdma_alloc_pd_ureq {
-+	__u64 rsvd1;
++struct nes_alloc_ucontext_resp {
++	__u32 max_pds; /* maximum pds allowed for this user process */
++	__u32 max_qps; /* maximum qps allowed for this user process */
++	__u32 wq_size; /* size of the WQs (sq+rq) allocated to the mmaped area */
++	__u8  virtwq;  /* flag to indicate if virtual WQ are to be used or not */
++	__u8  kernel_ver;
++	__u8  reserved[2];
 +};
 +
-+struct ocrdma_alloc_pd_uresp {
-+	__u32 id;
-+	__u32 dpp_enabled;
-+	__u32 dpp_page_addr_hi;
-+	__u32 dpp_page_addr_lo;
-+	__u64 rsvd1;
++struct nes_alloc_pd_resp {
++	__u32 pd_id;
++	__u32 mmap_db_index;
 +};
 +
-+struct ocrdma_create_cq_ureq {
-+	__u32 dpp_cq;
-+	__u32 rsvd; /* pad */
++struct nes_create_cq_req {
++	__u64 user_cq_buffer;
++	__u32 mcrqf;
++	__u8 reserved[4];
 +};
 +
-+#define MAX_CQ_PAGES 8
-+struct ocrdma_create_cq_uresp {
++struct nes_create_qp_req {
++	__u64 user_wqe_buffers;
++	__u64 user_qp_buffer;
++};
++
++enum iwnes_memreg_type {
++	IWNES_MEMREG_TYPE_MEM = 0x0000,
++	IWNES_MEMREG_TYPE_QP = 0x0001,
++	IWNES_MEMREG_TYPE_CQ = 0x0002,
++	IWNES_MEMREG_TYPE_MW = 0x0003,
++	IWNES_MEMREG_TYPE_FMR = 0x0004,
++	IWNES_MEMREG_TYPE_FMEM = 0x0005,
++};
++
++struct nes_mem_reg_req {
++	__u32 reg_type;	/* indicates if id is memory, QP or CQ */
++	__u32 reserved;
++};
++
++struct nes_create_cq_resp {
 +	__u32 cq_id;
-+	__u32 page_size;
-+	__u32 num_pages;
-+	__u32 max_hw_cqe;
-+	__u64 page_addr[MAX_CQ_PAGES];
-+	__u64 db_page_addr;
-+	__u32 db_page_size;
-+	__u32 phase_change;
-+	/* for future use/new features in progress */
-+	__u64 rsvd1;
-+	__u64 rsvd2;
++	__u32 cq_size;
++	__u32 mmap_db_index;
++	__u32 reserved;
 +};
 +
-+#define MAX_QP_PAGES 8
-+#define MAX_UD_AV_PAGES 8
-+
-+struct ocrdma_create_qp_ureq {
-+	__u8 enable_dpp_cq;
-+	__u8 rsvd;
-+	__u16 dpp_cq_id;
-+	__u32 rsvd1;	/* pad */
++struct nes_create_qp_resp {
++	__u32 qp_id;
++	__u32 actual_sq_size;
++	__u32 actual_rq_size;
++	__u32 mmap_sq_db_index;
++	__u32 mmap_rq_db_index;
++	__u32 nes_drv_opt;
 +};
 +
-+struct ocrdma_create_qp_uresp {
-+	__u16 qp_id;
-+	__u16 sq_dbid;
-+	__u16 rq_dbid;
-+	__u16 resv0;	/* pad */
-+	__u32 sq_page_size;
-+	__u32 rq_page_size;
-+	__u32 num_sq_pages;
-+	__u32 num_rq_pages;
-+	__u64 sq_page_addr[MAX_QP_PAGES];
-+	__u64 rq_page_addr[MAX_QP_PAGES];
-+	__u64 db_page_addr;
-+	__u32 db_page_size;
-+	__u32 dpp_credit;
-+	__u32 dpp_offset;
-+	__u32 num_wqe_allocated;
-+	__u32 num_rqe_allocated;
-+	__u32 db_sq_offset;
-+	__u32 db_rq_offset;
-+	__u32 db_shift;
-+	__u64 rsvd[11];
-+} __packed;
-+
-+struct ocrdma_create_srq_uresp {
-+	__u16 rq_dbid;
-+	__u16 resv0;	/* pad */
-+	__u32 resv1;
-+
-+	__u32 rq_page_size;
-+	__u32 num_rq_pages;
-+
-+	__u64 rq_page_addr[MAX_QP_PAGES];
-+	__u64 db_page_addr;
-+
-+	__u32 db_page_size;
-+	__u32 num_rqe_allocated;
-+	__u32 db_rq_offset;
-+	__u32 db_shift;
-+
-+	__u64 rsvd2;
-+	__u64 rsvd3;
-+};
-+
-+#endif	/* OCRDMA_ABI_USER_H */
++#endif	/* NES_ABI_USER_H */
 -- 
 2.7.4
 
