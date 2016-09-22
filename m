@@ -1,40 +1,34 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 17/23] umad: Replace .nl with .sp in man pages
-Date: Thu, 22 Sep 2016 12:10:57 -0600
-Message-ID: <20160922181057.GH6994@obsidianresearch.com>
-References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474495729-17604-18-git-send-email-jgunthorpe@obsidianresearch.com>
- <0225b26e-0b88-0116-9c23-0b1e6bcd8e50@dev.mellanox.co.il>
- <20160922132544.GE4088@leon.nu>
- <eccf516a-b193-5f35-4b78-02c6c7b2161c@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Unreliable Connection (IBV_QPT_UC) and rdma_accept()
+Date: Thu, 22 Sep 2016 17:45:27 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08E1A2@ORSMSX109.amr.corp.intel.com>
+References: <13A5FB85-6677-4641-85F1-0670F62F17E4@umich.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <eccf516a-b193-5f35-4b78-02c6c7b2161c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <13A5FB85-6677-4641-85F1-0670F62F17E4-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dong Young Yoon <dyoon-63aXycvo3TyHXe+LvDLADg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 22, 2016 at 09:50:55AM -0400, Hal Rosenstock wrote:
-> On 9/22/2016 9:25 AM, Leon Romanovsky wrote:
-
-> I'm tracking changes in current repo until things have fully switched
-> over. I thought that was what was said to do. Previous changes that
-> Jason pushed were also integrated there. So yes, there's some
-> duplication of effort until the old repos can safely be abandoned.
-
-I took the prior changes you merged via rebase my tree on yours, that
-helped clarify what repos were still active or not. Thanks for
-responding.
-
-We have stated no more rebasing, so future patches will be applied
-directly to the rdma-core tree hosted in the shared github.
-
-It is enough now to just ack the patches, as with the kernel.
-
-Jason
+PiBJIGhhdmUgYmVlbiB0cnlpbmcgdG8gaW1wbGVtZW50IHNpbXBsZSBjbGllbnQvc2VydmVyIHN5
+c3RlbSB0aGF0IHVzZXMNCj4gVUMgaW5zdGVhZCBvZiBSQyBpbiBvcmRlciB0byB0ZXN0IHRoZSBw
+ZXJmb3JtYW5jZSBvZiBSRE1BIFdyaXRlcyB1bmRlcg0KPiBVQyBhZ2FpbnN0IFJETUEgUmVhZHMg
+dW5kZXIgUkMuIFdoZW4gSSBzd2l0Y2ggZnJvbSBSQyB0byBVQywNCj4gcmRtYV9hY2NlcHQoKSBh
+dCB0aGUgc2VydmVyIGZhaWxzIHdpdGgg4oCcSW52YWxpZCBBcmd1bWVudCAoRUlOVkFMKeKAnS4g
+SQ0KPiBoYXZlIHRyaWVkIHZhcmlvdXMgdmFsdWVzIGZvciBxdWV1ZSBwYWlyIGF0dHJpYnV0ZXMg
+YW5kIGFsc28gdHJpZWQNCj4gUkRNQV9QU19JQiwgUkRNQV9QU19VRFAgZm9yIHJkbWFfY3JlYXRl
+X2lkKCksIGJ1dCBub3RoaW5nIGhhcyB3b3JrZWQNCj4gZm9yIG1lLiBUaGUgcHJvYmxlbSBzZWVt
+cyB0byBiZSB2ZXJ5IHNpbWlsYXIgdG8gd2hhdCBoYWQgYmVlbiBkaXNjdXNzZWQNCj4gaW4gdGhp
+cyB0aHJlYWQgbGFzdCB5ZWFyOiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LQ0K
+PiByZG1hL21zZzIzMDcxLmh0bWwsIHlldCBJIGNvdWxkIG5vdCBmaW5kIHRoZSBzb2x1dGlvbiB0
+byB0aGUgcHJvYmxlbSBpbg0KPiB0aGUgdGhyZWFkLg0KPiBIYXMgdGhlcmUgYmVlbiBhbnkgZGV2
+ZWxvcG1lbnQgcmVnYXJkaW5nIFVDIHNpbmNlIHRoZW4/IEkgYW0gbW9yZSB0aGFuDQo+IGhhcHB5
+IHRvIHByb3ZpZGUgbW9yZSBpbmZvcm1hdGlvbiB0aGF0IHdvdWxkIGhlbHAgaW4gcmVzb2x2aW5n
+IHRoaXMNCj4gaXNzdWUuDQoNCkkgYmVsaWV2ZSB0aGUgc29sdXRpb24gaXMgdG8gdXNlIHBvcnQg
+c3BhY2UgUkRNQV9QU19JQiwgd2l0aCBxcF90eXBlID0gVUMuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
