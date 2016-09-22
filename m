@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V2 2/9] IB/cxgb3: Move user vendor structures
-Date: Thu, 22 Sep 2016 17:31:12 +0300
-Message-ID: <1474554679-21953-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V2 4/9] IB/mlx4: Move user vendor structures
+Date: Thu, 22 Sep 2016 17:31:14 +0300
+Message-ID: <1474554679-21953-5-git-send-email-leon@kernel.org>
 References: <1474554679-21953-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474554679-21953-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,60 +10,88 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch moves cxgb3 vendor's specific structures to
+This patch moves mlx4 vendor's specific structures to
 common UAPI folder which will be visible to all consumers.
 
 These structures are used by user-space library driver
-(libcxgb3) and currently manually copied to that library.
+(libmlx4) and currently manually copied to that library.
 
 This move will allow cross-compile against these files and
 simplify introduction of vendor specific data.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch.c          |  2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c |  2 +-
- drivers/infiniband/hw/cxgb3/iwch_user.h     | 74 ----------------------------
- include/uapi/rdma/cxgb3-abi.h               | 76 +++++++++++++++++++++++++++++
- 4 files changed, 78 insertions(+), 76 deletions(-)
- delete mode 100644 drivers/infiniband/hw/cxgb3/iwch_user.h
- create mode 100644 include/uapi/rdma/cxgb3-abi.h
+ drivers/infiniband/hw/mlx4/cq.c   |   2 +-
+ drivers/infiniband/hw/mlx4/main.c |   2 +-
+ drivers/infiniband/hw/mlx4/qp.c   |   2 +-
+ drivers/infiniband/hw/mlx4/srq.c  |   2 +-
+ drivers/infiniband/hw/mlx4/user.h | 107 --------------------------------------
+ include/uapi/rdma/mlx4-abi.h      | 107 ++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 111 insertions(+), 111 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/mlx4/user.h
+ create mode 100644 include/uapi/rdma/mlx4-abi.h
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch.c b/drivers/infiniband/hw/cxgb3/iwch.c
-index 8e77dc5..b3e1132 100644
---- a/drivers/infiniband/hw/cxgb3/iwch.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch.c
-@@ -36,7 +36,7 @@
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 006db64..9ba29c3 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -37,7 +37,7 @@
+ #include <linux/slab.h>
  
- #include "cxgb3_offload.h"
- #include "iwch_provider.h"
--#include "iwch_user.h"
-+#include <rdma/cxgb3-abi.h>
- #include "iwch.h"
- #include "iwch_cm.h"
+ #include "mlx4_ib.h"
+-#include "user.h"
++#include <rdma/mlx4-abi.h>
  
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 3edb806..1642413 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -58,7 +58,7 @@
- #include "iwch.h"
- #include "iwch_provider.h"
- #include "iwch_cm.h"
--#include "iwch_user.h"
-+#include <rdma/cxgb3-abi.h>
- #include "common.h"
+ static void mlx4_ib_cq_comp(struct mlx4_cq *cq)
+ {
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2af44c2..75c65f4 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -55,7 +55,7 @@
+ #include <linux/mlx4/qp.h>
  
- static struct ib_ah *iwch_ah_create(struct ib_pd *pd,
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_user.h b/drivers/infiniband/hw/cxgb3/iwch_user.h
+ #include "mlx4_ib.h"
+-#include "user.h"
++#include <rdma/mlx4-abi.h>
+ 
+ #define DRV_NAME	MLX4_IB_DRV_NAME
+ #define DRV_VERSION	"2.2-1"
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 768085f..44c8a0d 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -47,7 +47,7 @@
+ #include <linux/mlx4/qp.h>
+ 
+ #include "mlx4_ib.h"
+-#include "user.h"
++#include <rdma/mlx4-abi.h>
+ 
+ static void mlx4_ib_lock_cqs(struct mlx4_ib_cq *send_cq,
+ 			     struct mlx4_ib_cq *recv_cq);
+diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
+index 0597f3e..7dd3f26 100644
+--- a/drivers/infiniband/hw/mlx4/srq.c
++++ b/drivers/infiniband/hw/mlx4/srq.c
+@@ -37,7 +37,7 @@
+ #include <linux/vmalloc.h>
+ 
+ #include "mlx4_ib.h"
+-#include "user.h"
++#include <rdma/mlx4-abi.h>
+ 
+ static void *get_wqe(struct mlx4_ib_srq *srq, int n)
+ {
+diff --git a/drivers/infiniband/hw/mlx4/user.h b/drivers/infiniband/hw/mlx4/user.h
 deleted file mode 100644
-index a277c31..0000000
---- a/drivers/infiniband/hw/cxgb3/iwch_user.h
+index 07e6769..0000000
+--- a/drivers/infiniband/hw/mlx4/user.h
 +++ /dev/null
-@@ -1,74 +0,0 @@
+@@ -1,107 +0,0 @@
 -/*
-- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
+- * Copyright (c) 2007 Cisco Systems, Inc. All rights reserved.
+- * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
 - *
 - * This software is available to you under a choice of one of two
 - * licenses.  You may choose to be licensed under the terms of the GNU
@@ -93,10 +121,19 @@ index a277c31..0000000
 - * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 - * SOFTWARE.
 - */
--#ifndef __IWCH_USER_H__
--#define __IWCH_USER_H__
 -
--#define IWCH_UVERBS_ABI_VERSION	1
+-#ifndef MLX4_IB_USER_H
+-#define MLX4_IB_USER_H
+-
+-#include <linux/types.h>
+-
+-/*
+- * Increment this value if any changes that break userspace ABI
+- * compatibility are made.
+- */
+-
+-#define MLX4_IB_UVERBS_NO_DEV_CAPS_ABI_VERSION	3
+-#define MLX4_IB_UVERBS_ABI_VERSION		4
 -
 -/*
 - * Make sure that all structs defined in this file remain laid out so
@@ -105,45 +142,69 @@ index a277c31..0000000
 - * In particular do not use pointer types -- pass pointers in __u64
 - * instead.
 - */
--struct iwch_create_cq_req {
--	__u64 user_rptr_addr;
+-
+-struct mlx4_ib_alloc_ucontext_resp_v3 {
+-	__u32	qp_tab_size;
+-	__u16	bf_reg_size;
+-	__u16	bf_regs_per_page;
 -};
 -
--struct iwch_create_cq_resp_v0 {
--	__u64 key;
--	__u32 cqid;
--	__u32 size_log2;
+-struct mlx4_ib_alloc_ucontext_resp {
+-	__u32	dev_caps;
+-	__u32	qp_tab_size;
+-	__u16	bf_reg_size;
+-	__u16	bf_regs_per_page;
+-	__u32	cqe_size;
 -};
 -
--struct iwch_create_cq_resp {
--	__u64 key;
--	__u32 cqid;
--	__u32 size_log2;
--	__u32 memsize;
--	__u32 reserved;
+-struct mlx4_ib_alloc_pd_resp {
+-	__u32	pdn;
+-	__u32	reserved;
 -};
 -
--struct iwch_create_qp_resp {
--	__u64 key;
--	__u64 db_key;
--	__u32 qpid;
--	__u32 size_log2;
--	__u32 sq_size_log2;
--	__u32 rq_size_log2;
+-struct mlx4_ib_create_cq {
+-	__u64	buf_addr;
+-	__u64	db_addr;
 -};
 -
--struct iwch_reg_user_mr_resp {
--	__u32 pbl_addr;
+-struct mlx4_ib_create_cq_resp {
+-	__u32	cqn;
+-	__u32	reserved;
 -};
--#endif
-diff --git a/include/uapi/rdma/cxgb3-abi.h b/include/uapi/rdma/cxgb3-abi.h
+-
+-struct mlx4_ib_resize_cq {
+-	__u64	buf_addr;
+-};
+-
+-struct mlx4_ib_create_srq {
+-	__u64	buf_addr;
+-	__u64	db_addr;
+-};
+-
+-struct mlx4_ib_create_srq_resp {
+-	__u32	srqn;
+-	__u32	reserved;
+-};
+-
+-struct mlx4_ib_create_qp {
+-	__u64	buf_addr;
+-	__u64	db_addr;
+-	__u8	log_sq_bb_count;
+-	__u8	log_sq_stride;
+-	__u8	sq_no_prefetch;
+-	__u8	reserved[5];
+-};
+-
+-#endif /* MLX4_IB_USER_H */
+diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
 new file mode 100644
-index 0000000..48a19bd
+index 0000000..af43175
 --- /dev/null
-+++ b/include/uapi/rdma/cxgb3-abi.h
-@@ -0,0 +1,76 @@
++++ b/include/uapi/rdma/mlx4-abi.h
+@@ -0,0 +1,107 @@
 +/*
-+ * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
++ * Copyright (c) 2007 Cisco Systems, Inc. All rights reserved.
++ * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -173,12 +234,19 @@ index 0000000..48a19bd
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#ifndef CXGB3_ABI_USER_H
-+#define CXBG3_ABI_USER_H
++
++#ifndef MLX4_ABI_USER_H
++#define MLX4_ABI_USER_H
 +
 +#include <linux/types.h>
 +
-+#define IWCH_UVERBS_ABI_VERSION	1
++/*
++ * Increment this value if any changes that break userspace ABI
++ * compatibility are made.
++ */
++
++#define MLX4_IB_UVERBS_NO_DEV_CAPS_ABI_VERSION	3
++#define MLX4_IB_UVERBS_ABI_VERSION		4
 +
 +/*
 + * Make sure that all structs defined in this file remain laid out so
@@ -187,37 +255,60 @@ index 0000000..48a19bd
 + * In particular do not use pointer types -- pass pointers in __u64
 + * instead.
 + */
-+struct iwch_create_cq_req {
-+	__u64 user_rptr_addr;
++
++struct mlx4_ib_alloc_ucontext_resp_v3 {
++	__u32	qp_tab_size;
++	__u16	bf_reg_size;
++	__u16	bf_regs_per_page;
 +};
 +
-+struct iwch_create_cq_resp_v0 {
-+	__u64 key;
-+	__u32 cqid;
-+	__u32 size_log2;
++struct mlx4_ib_alloc_ucontext_resp {
++	__u32	dev_caps;
++	__u32	qp_tab_size;
++	__u16	bf_reg_size;
++	__u16	bf_regs_per_page;
++	__u32	cqe_size;
 +};
 +
-+struct iwch_create_cq_resp {
-+	__u64 key;
-+	__u32 cqid;
-+	__u32 size_log2;
-+	__u32 memsize;
-+	__u32 reserved;
++struct mlx4_ib_alloc_pd_resp {
++	__u32	pdn;
++	__u32	reserved;
 +};
 +
-+struct iwch_create_qp_resp {
-+	__u64 key;
-+	__u64 db_key;
-+	__u32 qpid;
-+	__u32 size_log2;
-+	__u32 sq_size_log2;
-+	__u32 rq_size_log2;
++struct mlx4_ib_create_cq {
++	__u64	buf_addr;
++	__u64	db_addr;
 +};
 +
-+struct iwch_reg_user_mr_resp {
-+	__u32 pbl_addr;
++struct mlx4_ib_create_cq_resp {
++	__u32	cqn;
++	__u32	reserved;
 +};
-+#endif /* CXGB3_ABI_USER_H */
++
++struct mlx4_ib_resize_cq {
++	__u64	buf_addr;
++};
++
++struct mlx4_ib_create_srq {
++	__u64	buf_addr;
++	__u64	db_addr;
++};
++
++struct mlx4_ib_create_srq_resp {
++	__u32	srqn;
++	__u32	reserved;
++};
++
++struct mlx4_ib_create_qp {
++	__u64	buf_addr;
++	__u64	db_addr;
++	__u8	log_sq_bb_count;
++	__u8	log_sq_stride;
++	__u8	sq_no_prefetch;
++	__u8	reserved[5];
++};
++
++#endif /* MLX4_ABI_USER_H */
 -- 
 2.7.4
 
