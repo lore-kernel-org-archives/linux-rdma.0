@@ -1,32 +1,61 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core, cmake/ninja question
-Date: Thu, 22 Sep 2016 13:38:55 -0600
-Message-ID: <20160922193855.GA1599@obsidianresearch.com>
-References: <00cc01d214e6$e4cb2d80$ae618880$@opengridcomputing.com>
- <20160922154814.GB15212@obsidianresearch.com>
- <014501d214ed$6e4472f0$4acd58d0$@opengridcomputing.com>
- <20160922163143.GC6994@obsidianresearch.com>
- <019201d21501$3a191a80$ae4b4f80$@opengridcomputing.com>
- <20160922192932.GA25659@obsidianresearch.com>
- <01a301d21508$559b52d0$00d1f870$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] libcxgb4: fix firmware version string
+Date: Thu, 22 Sep 2016 12:29:55 -0700
+Message-ID: <20160922201503.CFB88E08CA@smtp.ogc.us>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <01a301d21508$559b52d0$00d1f870$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 22, 2016 at 02:34:28PM -0500, Steve Wise wrote:
+c4iw_query_device() was incorrectly unpacking
+the 64b version number from the driver.  This resulted
+in ibv_devinfo showing garbage fw verion strings.
 
-> So if I have a libcxgb4 change to submit, I should submit it against rdma-core,
-> ja?
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Yes, Doug or Leon will apply it.
+---
 
-Jason
+Testing out the new process. :)
+
+---
+ libcxgb4/src/verbs.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/libcxgb4/src/verbs.c b/libcxgb4/src/verbs.c
+index 3d46f0a..aed547d 100644
+--- a/libcxgb4/src/verbs.c
++++ b/libcxgb4/src/verbs.c
+@@ -52,7 +52,7 @@ int c4iw_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ {
+ 	struct ibv_query_device cmd;
+ 	uint64_t raw_fw_ver;
+-	unsigned major, minor, sub_minor;
++	u8 major, minor, sub_minor, build;
+ 	int ret;
+ 
+ 	ret = ibv_cmd_query_device(context, attr, &raw_fw_ver, &cmd,
+@@ -60,12 +60,13 @@ int c4iw_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ 	if (ret)
+ 		return ret;
+ 
+-	major = (raw_fw_ver >> 32) & 0xffff;
+-	minor = (raw_fw_ver >> 16) & 0xffff;
+-	sub_minor = raw_fw_ver & 0xffff;
++	major = (raw_fw_ver >> 24) & 0xff;
++	minor = (raw_fw_ver >> 16) & 0xff;
++	sub_minor = (raw_fw_ver >> 8) & 0xff;
++	build = raw_fw_ver & 0xff;
+ 
+ 	snprintf(attr->fw_ver, sizeof attr->fw_ver,
+-		 "%d.%d.%d", major, minor, sub_minor);
++		 "%d.%d.%d.%d", major, minor, sub_minor, build);
+ 
+ 	return 0;
+ }
+-- 
+2.7.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
