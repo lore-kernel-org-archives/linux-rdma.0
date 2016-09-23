@@ -1,76 +1,56 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: move unsafe global rkey handling to the RDMA core V2
-Date: Fri, 23 Sep 2016 13:48:01 -0400
-Message-ID: <060990ad-7937-ad43-f1e9-d807b62049c8@redhat.com>
-References: <1473072981-2035-1-git-send-email-hch@lst.de>
- <20160919155459.GA5547@infradead.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Improve global COPYING files
+Date: Fri, 23 Sep 2016 11:48:48 -0600
+Message-ID: <20160923174848.GC13920@obsidianresearch.com>
+References: <20160923041340.GA11269@obsidianresearch.com>
+ <20160923080655.GM4088@leon.nu>
+ <20160923152412.GB11269@obsidianresearch.com>
+ <20160923171003.GR4088@leon.nu>
+ <1828884A29C6694DAF28B7E6B8A82373AB08E66F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="abBv3aEvcq9FxruRk7I6dVbGwx0R762SL"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919155459.GA5547-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB08E66F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---abBv3aEvcq9FxruRk7I6dVbGwx0R762SL
-Content-Type: multipart/mixed; boundary="P949l4bQgAM8htXNM71iNm9TxQeVF5ncT";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <060990ad-7937-ad43-f1e9-d807b62049c8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: move unsafe global rkey handling to the RDMA core V2
-References: <1473072981-2035-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
- <20160919155459.GA5547-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-In-Reply-To: <20160919155459.GA5547-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+On Fri, Sep 23, 2016 at 05:23:29PM +0000, Hefty, Sean wrote:
 
---P949l4bQgAM8htXNM71iNm9TxQeVF5ncT
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> If this combined repo is intended to support the plumbing for the
+> linux-rdma subsystem, then I think it must support code that is
+> submitted under GPL only.
 
-On 9/19/2016 11:54 AM, Christoph Hellwig wrote:
-> Doug, any comments on this series?  I'd really like to get it in for
-> this merge window.
->=20
+Hum, I don't think that follows.
 
-Series applied, thanks.
+My expectation in the kernel is that the entire RDMA subystem and
+drivers follows the overall licensing model of the kernel and does not
+require userspace to follow any specific license, and certainly does
+not require userspace to follow the GPLv2.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
+> Much of the tradition code can remain dual-license, but new provider
+> code, for example, should be submit-able under GPL.
 
+I do not support that recommendation.
 
---P949l4bQgAM8htXNM71iNm9TxQeVF5ncT--
+The FSF has made very clear their position on GPL licensing of plugins
+(see https://www.gnu.org/licenses/gpl-faq.en.html), and allowing a
+GPLv2 only plugin or library code would break our community's promise
+to our customers - that the library core is usable in any application.
 
---abBv3aEvcq9FxruRk7I6dVbGwx0R762SL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+It would be a complicated discussion if someone proposed a GPLv2 only
+provider.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+A LGPLv2-only provider would be more acceptable, and I would encourage
+anyone who wishes to have the protections of the GPLv2 in their
+provider to go that route. I suspect it would still be controversial.
 
-iQIcBAEBCAAGBQJX5WrRAAoJELgmozMOVy/d3roQALTS87H87gKOHq25jkbv3hwQ
-lRu4k+znF04A4vx4FSqH73JO+++mclArEjh5cyp2uC7TYWX3/lvLKjKPTvwKNeX+
-R0al1E/aQiIphOM+d+td81eTwDVCE0bMQ4buag/DCh6RKiaFtPUgKXV2jDZATrx4
-DX00DVAgqfRasgoFdMwLSpiUxaZ8EIcKdclrXMWDS9ddkK0sIL0JoFkNNThJyXyI
-TZW0Ldj2Ft2WKEXswOKonzVwq1CXU/PtLJPOUbw8UwlpoSJLr1UKLcTPUhHDI1oF
-wxz6AU+u+f+AZlb9BPzgZkJa2a1hvBYyHj8xitwJGUS7i4ekY8TSYwjFc+vGGrsK
-kZbuJ7vfkkhxbqC2FDLEkFSLS2hRJscga+cZLD6VEXmhqEWpNEEhhIP6xSY0EFpL
-nTWoK3LoXXebI/K9uiK50vaQCA3WHtgv++vK+ALHt+jQlYyFs2olPmN7D3fsAW7X
-1yTcGKlXTjCnorTuohS4OXwxK7u0S0Cu8maE0z/R+0yzNX92wqH0qeKTLT6bt8fK
-FHMm3KGbaRyfVEmqlL7YXaI77fvHRGsgIP5pP6Ee+2PEulbo7zx6leoiG2W4yp+c
-deou1A+eZRH6sgMSDzzn5s7w8/HElmI9e+7eC3PmLT6A4P9/Cb43kWEVeYpyMcun
-i9s65Mc8yGQyOIi+h4TN
-=twiM
------END PGP SIGNATURE-----
+I would prefer to see us continue with the dual license approach, and
+obviously all OFA member companies have agreed to do that.
 
---abBv3aEvcq9FxruRk7I6dVbGwx0R762SL--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
