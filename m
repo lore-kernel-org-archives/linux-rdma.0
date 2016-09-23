@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [RFC PATCH 04/11] IB/core: Change lid size in struct ib_port_attr from 16 to 32 bits
-Date: Fri, 23 Sep 2016 13:44:27 -0400
-Message-ID: <1474652674-13110-5-git-send-email-ira.weiny@intel.com>
+Subject: [RFC PATCH 08/11] IB/IPoIB: Retrieve 32 bit LIDs from path records when running on OPA devices
+Date: Fri, 23 Sep 2016 13:44:31 -0400
+Message-ID: <1474652674-13110-9-git-send-email-ira.weiny@intel.com>
 References: <1474652674-13110-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474652674-13110-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,122 +12,128 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-lid field in port_attr is increased to 32 bits. This enables core
-components to use the larger addresses if needed.
-The user ABI is unchanged and return 16 bit values when queried.
+Path record responses will contain the 32 bit LID information in the
+SGID and DGID field of the responses. Modify IPoIB to use these extended
+LIDs in datagram and connected mode communication.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c           | 8 +++++---
- drivers/infiniband/hw/mlx4/alias_GUID.c        | 2 +-
- drivers/infiniband/hw/mlx4/mad.c               | 2 +-
- drivers/infiniband/hw/mthca/mthca_mad.c        | 2 +-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c          | 2 +-
- include/rdma/ib_verbs.h                        | 2 +-
- 7 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  4 +++-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 11 +++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 26 ++++++++++++++++++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  2 +-
+ 4 files changed, 41 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 4cb5238edceb..286ba8ca8cbd 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -515,11 +515,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
- 	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
- 	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
- 	resp.pkey_tbl_len    = attr.pkey_tbl_len;
--	resp.lid 	     = attr.lid;
--	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
-+	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
- 		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
--	else
-+		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
-+	} else {
- 		resp.sm_lid  = (u16)attr.sm_lid;
-+		resp.lid     = (u16)attr.lid;
-+	}
- 	resp.lmc 	     = attr.lmc;
- 	resp.max_vl_num      = attr.max_vl_num;
- 	resp.sm_sl 	     = attr.sm_sl;
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index c74ef2620b85..1b0a9abbe0ca 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -527,7 +527,7 @@ static int set_guid_rec(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 9dbfcc0ab577..448a46bec769 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -352,7 +352,7 @@ struct ipoib_dev_priv {
+ 	u32		  qkey;
  
- 	memset(&guid_info_rec, 0, sizeof (struct ib_sa_guidinfo_rec));
+ 	union ib_gid local_gid;
+-	u16	     local_lid;
++	u32	     local_lid;
  
--	guid_info_rec.lid = cpu_to_be16(attr.lid);
-+	guid_info_rec.lid = cpu_to_be16((u16)attr.lid);
- 	guid_info_rec.block_num = index;
+ 	unsigned int admin_mtu;
+ 	unsigned int mcast_mtu;
+@@ -421,6 +421,8 @@ struct ipoib_path {
+ 	struct rb_node	      rb_node;
+ 	struct list_head      list;
+ 	int  		      valid;
++	u32		      dlid;
++	u32		      slid;
+ };
  
- 	memcpy(guid_info_rec.guid_info_list, rec_det->all_recs,
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 9c2e53d28f98..39c098a9c3d5 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -794,7 +794,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
- 	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
- 	    !ib_query_port(ibdev, port_num, &pattr))
--		prev_lid = pattr.lid;
-+		prev_lid = (u16)pattr.lid;
+ struct ipoib_neigh {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 4ad297d3de89..3499171913ef 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -38,6 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/moduleparam.h>
++#include <rdma/ib_addr.h>
  
- 	err = mlx4_MAD_IFC(to_mdev(ibdev),
- 			   (mad_flags & IB_MAD_IGNORE_MKEY ? MLX4_MAD_IFC_IGNORE_MKEY : 0) |
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 7c3f2fb44ba5..ad63fa406d45 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -254,7 +254,7 @@ int mthca_process_mad(struct ib_device *ibdev,
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
- 	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
- 	    !ib_query_port(ibdev, port_num, &pattr))
--		prev_lid = pattr.lid;
-+		prev_lid = (u16)pattr.lid;
+ #include "ipoib.h"
  
- 	err = mthca_MAD_IFC(to_mdev(ibdev),
- 			    mad_flags & IB_MAD_IGNORE_MKEY,
+@@ -1356,6 +1357,16 @@ static void ipoib_cm_tx_start(struct work_struct *work)
+ 		}
+ 		memcpy(&pathrec, &p->path->pathrec, sizeof pathrec);
+ 
++		if (rdma_cap_opa_ah(priv->ca, priv->port)) {
++			if (p->path->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
++				pathrec.dgid.global.interface_id =
++					OPA_MAKE_ID(p->path->dlid);
++
++			if (p->path->slid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
++				pathrec.sgid.global.interface_id =
++					OPA_MAKE_ID(p->path->slid);
++		}
++
+ 		spin_unlock_irqrestore(&priv->lock, flags);
+ 		netif_tx_unlock_bh(dev);
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index cc1c1b062ea5..2bcde9822e3a 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -52,6 +52,7 @@
+ #include <linux/inetdevice.h>
+ #include <rdma/ib_cache.h>
+ #include <linux/pci.h>
++#include <rdma/ib_addr.h>
+ 
+ #define DRV_VERSION "1.0.0"
+ 
+@@ -766,6 +767,31 @@ static void path_rec_completion(int status,
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 
+ 	if (!IS_ERR_OR_NULL(ah)) {
++		/*
++		 * Extended LIDs might get programmed into GIDs in the
++		 * case of OPA devices. Since we have created the ah
++		 * above which would have made use of the lids, now is
++		 * a good time to change them back to regular GIDs after
++		 * saving the extended LIDs.
++		 */
++		if (rdma_cap_opa_ah(priv->ca, priv->port) &&
++		    ib_is_opa_gid(&pathrec->sgid)) {
++			path->slid = opa_get_lid_from_gid(&pathrec->sgid);
++			pathrec->sgid = path->pathrec.sgid;
++		} else {
++			path->slid = be16_to_cpu(pathrec->slid);
++		}
++
++		if (rdma_cap_opa_ah(priv->ca, priv->port) &&
++		    ib_is_opa_gid(&pathrec->dgid)) {
++			path->dlid = opa_get_lid_from_gid(&pathrec->dgid);
++			pathrec->dgid = path->pathrec.dgid;
++		} else {
++			path->dlid = be16_to_cpu(pathrec->dlid);
++		}
++		ipoib_dbg(priv, "PathRec SGID %pI6 DGID %pI6\n",
++			  pathrec->sgid.raw, pathrec->dgid.raw);
++
+ 		path->pathrec = *pathrec;
+ 
+ 		old_ah   = path->ah;
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index d3394b6add24..bff73b53bff8 100644
+index bff73b53bff8..d3394b6add24 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 @@ -581,7 +581,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
  			  port_attr.state);
  		return;
  	}
--	priv->local_lid = port_attr.lid;
-+	priv->local_lid = (u16)port_attr.lid;
+-	priv->local_lid = (u16)port_attr.lid;
++	priv->local_lid = port_attr.lid;
  	netif_addr_lock_bh(dev);
  
  	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 87c911804d62..c14071afc78a 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -515,7 +515,7 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 		goto err_query_port;
- 
- 	sport->sm_lid = (u16)port_attr.sm_lid;
--	sport->lid = port_attr.lid;
-+	sport->lid = (u16)port_attr.lid;
- 
- 	ret = ib_query_gid(sport->sdev->device, sport->port, 0, &sport->gid,
- 			   NULL);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index b4c070a3ecdf..75ddef64fea7 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -508,7 +508,7 @@ struct ib_port_attr {
- 	u32			bad_pkey_cntr;
- 	u32			qkey_viol_cntr;
- 	u16			pkey_tbl_len;
--	u16			lid;
-+	u32			lid;
- 	u32			sm_lid;
- 	u8			lmc;
- 	u8			max_vl_num;
 -- 
 1.8.2
 
