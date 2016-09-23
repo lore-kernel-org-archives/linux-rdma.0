@@ -1,107 +1,111 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 00/13] Policy changes and packaging support
-Date: Fri, 23 Sep 2016 13:16:55 -0600
-Message-ID: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 01/13] Be consistent about defining NDEBUG
+Date: Fri, 23 Sep 2016 13:16:56 -0600
+Message-ID: <1474658228-5390-2-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474658228-5390-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John Jolly <jjolly-IBi9RG/b67k@public.gmane.org>, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the next batch of rdma-core updates, these 13 patches deal primarily
-with how the package is built and the install paths afterwards. Most likely
-these changes are mainly of interest to packagers.
+We setup the two standard CMake build_types so that Release includes
+NDEBUG and RelWithDebInfo does not (by default CMake sets it in both).
 
-The discussion here is informative for some of the patches:
- http://www.spinics.net/lists/linux-rdma/msg39578.html
+The recommendation is for packagers to use Release (by setting
+-DCMAKE_BUILD_TYPE=Release) and developers use RelWithDebInfo
+(the default)
 
-View the commits on github:
+This also replaces the default flags for Release with the RelWithDebInfo,
+flags (-O2 -g -DNDEBUG) which is what we consider suitable for packaging.
+The CMake default of -O3 is not tested.
 
- https://github.com/linux-rdma/rdma-core/pull/3
+Note that all the packaging systems I looked at force NDEBUG into the
+CFLAGS.
 
-Please forward Acks and I will update the commits.
-
-One important thing to note is that this series pretty much eliminates all
-hard coded paths from the tree. While this is a good thing, it means the
-default behavior is to set SYSCONFDIR to /usr/local/etc/, which is probably
-not what people testing the daemons really want. Compile with:
-
- cmake -GNinja .. -DCMAKE_INSTALL_SYSCONFDIR:PATH=/etc
-
-Which is similar to the configure --sysconfdir option
-
-Jason Gunthorpe (13):
-  Be consistent about defining NDEBUG
-  Switch valgrind memcheck.h to on by default
-  Do not produce libtool .la files
-  Do not produce static libraries by default
-  Have cmake run man pages through text substitution
-  Consolidate definitions for paths into config.h
-  Pass ancillary files that use paths through cmake substitution
-  srp_daemon: Move lock file into /var/run/
-  verbs: Move the providers into /usr/lib.../libibverbs by default
-  ipathverbs: Move truescale-serdes.cmds to /usr/libexec/
-  srp_daemon: Add the debian initscripts as an option
-  Document a versioning strategy and use it
-  Remove ibsupport-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org from MAINTAINERS
-
- CMakeLists.txt                                     |  47 +++++-
- Documentation/versioning.md                        | 108 ++++++++++++++
- MAINTAINERS                                        |   1 -
- buildlib/RDMA_BuildType.cmake                      |  41 ++++++
- buildlib/config.h.in                               |  16 +-
- buildlib/rdma_functions.cmake                      | 162 ++++++---------------
- ibacm/CMakeLists.txt                               |   7 +-
- ibacm/ibacm.init.in                                |   2 +-
- ibacm/linux/osd.h                                  |   2 +-
- ibacm/man/{ibacm_prov.7 => ibacm_prov.7.in}        |   4 +-
- ibacm/src/acm.c                                    |   6 +-
- ibacm/src/acme.c                                   |  10 +-
- ibacm/src/libacm.c                                 |   2 +-
- iwpmd/CMakeLists.txt                               |   4 +-
- iwpmd/{iwpmd.1 => iwpmd.1.in}                      |   2 +-
- iwpmd/{iwpmd.conf.5 => iwpmd.conf.5.in}            |   2 +-
- iwpmd/src/iwarp_pm.h                               |   1 -
- iwpmd/src/iwarp_pm_server.c                        |   1 +
- libibcm/src/CMakeLists.txt                         |   4 +-
- libibcm/src/libibcm.map                            |   1 +
- libibumad/src/CMakeLists.txt                       |   4 +-
- libibumad/src/libibumad.map                        |   1 +
- libibverbs/src/CMakeLists.txt                      |   4 +-
- libibverbs/src/init.c                              |  55 +++++--
- libibverbs/src/libibverbs.map                      |   1 +
- libipathverbs/CMakeLists.txt                       |   6 +-
- libipathverbs/dracut_install                       |   2 +-
- libipathverbs/truescale.conf                       |   1 -
- libipathverbs/truescale.conf.in                    |   1 +
- librdmacm/man/CMakeLists.txt                       |   2 +-
- librdmacm/man/{rsocket.7 => rsocket.7.in}          |   4 +-
- librdmacm/src/CMakeLists.txt                       |   4 +-
- librdmacm/src/acm.c                                |   2 +-
- librdmacm/src/cma.h                                |   9 --
- librdmacm/src/librdmacm.map                        |   1 +
- srp_daemon/man/CMakeLists.txt                      |   2 +-
- srp_daemon/man/{srp_daemon.1 => srp_daemon.1.in}   |   8 +-
- srp_daemon/srp_daemon/CMakeLists.txt               |  33 +++--
- srp_daemon/srp_daemon/srp_daemon.c                 |   6 +-
- .../srp_daemon/{srp_daemon.sh => srp_daemon.sh.in} |   4 +-
- srp_daemon/srp_daemon/srpd.in                      |   6 +-
- srp_daemon/srptools.default                        |  14 ++
- srp_daemon/srptools.init                           |  89 +++++++++++
- 43 files changed, 468 insertions(+), 214 deletions(-)
- create mode 100644 Documentation/versioning.md
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ CMakeLists.txt                |  5 +++++
+ buildlib/RDMA_BuildType.cmake | 41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
  create mode 100644 buildlib/RDMA_BuildType.cmake
- rename ibacm/man/{ibacm_prov.7 => ibacm_prov.7.in} (95%)
- rename iwpmd/{iwpmd.1 => iwpmd.1.in} (98%)
- rename iwpmd/{iwpmd.conf.5 => iwpmd.conf.5.in} (92%)
- delete mode 100644 libipathverbs/truescale.conf
- create mode 100644 libipathverbs/truescale.conf.in
- rename librdmacm/man/{rsocket.7 => rsocket.7.in} (97%)
- rename srp_daemon/man/{srp_daemon.1 => srp_daemon.1.in} (90%)
- rename srp_daemon/srp_daemon/{srp_daemon.sh => srp_daemon.sh.in} (95%)
- create mode 100644 srp_daemon/srptools.default
- create mode 100644 srp_daemon/srptools.init
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a829cd477c52..06dd98203349 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,6 +7,9 @@
+ # Common options passed to cmake are:
+ #  -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+ #      Write a compile_commands.json file for clang tooling
++#  -DCMAKE_BUILD_TYPE=RelWithDebInfo
++#      Change the optimization level, Debug disables optimization,
++#      Release is for packagers
+ #  -DENABLE_VALGRIND=1 (default disabled)
+ #      Embed valgrind notations, this has a tiny negative performance impact
+ #  -DENABLE_RESOLVE_NEIGH=0 (default enabled)
+@@ -58,12 +61,14 @@ include(CheckCCompilerFlag)
+ include(CheckIncludeFile)
+ include(CheckTypeSize)
+ include(RDMA_EnableCStd)
++include(RDMA_BuildType)
+ include(RDMA_DoFixup)
+ include(publish_headers)
+ include(rdma_functions)
+ 
+ #-------------------------
+ # Setup the basic C compiler
++RDMA_BuildType()
+ include_directories(${BUILD_INCLUDE})
+ # FIXME: Eliminate HAVE_CONFIG_H, we always have it.
+ add_definitions(-DHAVE_CONFIG_H)
+diff --git a/buildlib/RDMA_BuildType.cmake b/buildlib/RDMA_BuildType.cmake
+new file mode 100644
+index 000000000000..4f7485c397a0
+--- /dev/null
++++ b/buildlib/RDMA_BuildType.cmake
+@@ -0,0 +1,41 @@
++# COPYRIGHT (c) 2015 Obsidian Research Corporation. See COPYING file
++
++function(RDMA_BuildType)
++  set(build_types Debug Release RelWithDebInfo MinSizeRel)
++
++  # Set the default build type to RelWithDebInfo. Since RDMA is typically used
++  # in performance contexts it doesn't make much sense to have the default build
++  # turn off the optimizer.
++  if(NOT CMAKE_BUILD_TYPE)
++    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE String
++      "Options are ${build_types}"
++      FORCE
++      )
++    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${build_types})
++  endif()
++
++  # Release should be used by packagers, it is the same as the default RelWithDebInfo,
++  # this means it uses -O2 and -DNDEBUG (not -O3)
++  foreach (language CXX C)
++    set(VAR_TO_MODIFY "CMAKE_${language}_FLAGS_RELEASE")
++    if ("${${VAR_TO_MODIFY}}" STREQUAL "${${VAR_TO_MODIFY}_INIT}")
++      set(${VAR_TO_MODIFY} "${CMAKE_${language}_FLAGS_RELWITHDEBINFO_INIT}"
++	  CACHE STRING "Default flags for Release configuration" FORCE)
++    endif()
++  endforeach()
++
++  # RelWithDebInfo should be used by developers, it is the same as Release but
++  # with the -DNDEBUG removed
++  foreach (language CXX C)
++    set(VAR_TO_MODIFY "CMAKE_${language}_FLAGS_RELWITHDEBINFO")
++    if (${${VAR_TO_MODIFY}} STREQUAL ${${VAR_TO_MODIFY}_INIT})
++	string(REGEX REPLACE "(^| )[/-]D *NDEBUG($| )"
++	  " "
++	  replacement
++	  "${${VAR_TO_MODIFY}}"
++	  )
++	set(${VAR_TO_MODIFY} "${replacement}"
++	    CACHE STRING "Default flags for RelWithDebInfo configuration" FORCE)
++    endif()
++  endforeach()
++endfunction()
 -- 
 2.1.4
 
