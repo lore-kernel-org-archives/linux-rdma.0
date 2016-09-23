@@ -1,68 +1,72 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Fri, 23 Sep 2016 13:26:42 +0000
-Message-ID: <VI1PR0501MB24299E036F1FCD335A2C2049C4C80@VI1PR0501MB2429.eurprd05.prod.outlook.com>
-References: <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com>
- <20160830074607.GN594@leon.nu>
- <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
- <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830184633.GE7586@obsidianresearch.com>
- <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830185548.GA9768@obsidianresearch.com>
- <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160901163418.GA6479@obsidianresearch.com>
- <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
- <20160906200221.GE28416@obsidianresearch.com>
- <CAHC9VhRXDMiK5V0rOQTvtZB0Q8jTX7XecGmAfRhm8oqF9aBaiw@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Improve global COPYING files
+Date: Fri, 23 Sep 2016 09:24:12 -0600
+Message-ID: <20160923152412.GB11269@obsidianresearch.com>
+References: <20160923041340.GA11269@obsidianresearch.com>
+ <20160923080655.GM4088@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160923080655.GM4088-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/20/2016 6:43 PM, Paul Moore wrote:
-> On Tue, Sep 6, 2016 at 4:02 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> On Thu, Sep 01, 2016 at 02:06:46PM -0400, Paul Moore wrote:
->>
->>> Jason and/or Daniel, I think it would be helpful if you could explain
->>> both the InifiniBand and IP based approaches for those of us who know
->>> SELinux, but not necessarily the RDMA and InfiniBand portions of this
->>> discussion.  Be verbose and explain it as if we were idiots (I get
->>> called that enough, it must be true).
->> Well, I'm not really familiar with SELinux, I know a little bit about
->> how labels are applied in the netstack, but not that much...
->>
->> The RDMA subsystem supports 4 different networking standards, and they
->> each have their own objects..
-> All right, I'm done traveling for a bit and it seems like this
-> discussion has settled into a stalemate so let's try to pick things
-> back up and sort this out.
->
-> Starting we a better RDMA education for me.
->
-> So far the discussion has been around providing access controls at the
-> transport layer, are there any RDMA entities that are transport
-> agnostic that might be better suited for what we are trying to do?  Or
-> is it simply that the RDMA layer is tied so tightly to the underlying
-> transport that we can't separate the two and have to consider them as
-> one?
-Welcome back Paul.
+On Fri, Sep 23, 2016 at 11:06:55AM +0300, Leon Romanovsky wrote:
+> On Thu, Sep 22, 2016 at 10:13:40PM -0600, Jason Gunthorpe wrote:
+> > Upon deeper analysis it seems there are two variations of the 'OpenIB.org BSD
+> > license', I am calling them the MIT and FreeBSD variants. They differ only in
+> > the text of the disclaimer. The MIT version is used widely as the source
+> > license so that version should be the 'default' in the source tree, not the
+> > FreeBSD version I had selected initially.
+> >
+> > Retain the FreeBSD version as we will refer to it in future commits.
+> >
+> > Elaborate the COPYING file to discuss the license situation in
+> > more depth.
+> 
+> I doubt that we have appropriate knowledge to come into meaningful
+> conclusion after "discussion". It is legal issue which should be
+> handled by relevant legal departments.
 
-I don't think there is a transport agnostic way to provide the kind of control I use in this patch set, which is very Infiniband specific.  RoCE uses VLANs and they are conceptually similar to subnet partitions, but the means of using them is completely different.  To use a different VLAN the user must select a GID for that VLAN.  One could provide a means to control RoCE access to VLANs by labeling GIDs and controlling them in a similar way to how I do PKeys.  That approach doesn't help with Infiniband partitions though, because the same GID can be used on multiple partitions.  It's also not very desirable from a policy writers perspective because it makes it so a bespoke policy is required per node.
+Hi Leon,
 
-Regardless of any other approaches one might like to use to provide access control for RDMA non-Infiniband transport I think controlling access to Infiniband PKeys is still a desirable feature and I don't see any other way to have that.
+I think the commit message was not clear, let me try again:
 
+[PATCH] Document copyright situation and select default license
 
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+This patch is not intended to change the copyright or license
+situation of any of the original code.
+
+Documentation is provided that identifies the various licenses we
+have in the source tree.
+
+The default license for new items after the 'Initial commit' merge is
+corrected to match the majority license already in use. This is the
+license we recommend all new code use. This corrects a mistake I made
+in the 'Unified CMake build system' patch which selected the wrong
+license file.
+
+Also provide specific guidance on how the 18 different COPYING files
+and per-file copyright headers are intended to be interpreted
+within the merged tree.
+
+=======
+
+As you know I've sent emails to various parties on licensing issues,
+as those issues are corrected we can update the tree and the copying
+summary.
+
+We've already had success correcting one mistake from Intel and
+Chelsio, thank you very much to those companies.
+
+It is important we clearly document the current situation so our
+downstreams can properly distribute this code.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
