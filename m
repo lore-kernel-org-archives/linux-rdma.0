@@ -1,67 +1,116 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 0/9] Export vendors specific ABIs
-Date: Fri, 23 Sep 2016 12:42:02 -0400
-Message-ID: <701c2cd1-a47a-807d-41dc-c8057dd073bd@redhat.com>
-References: <1474554679-21953-1-git-send-email-leon@kernel.org>
- <20160922144716.GA10032@infradead.org> <20160922160924.GI4088@leon.nu>
+Subject: Re: [PATCH rdma-rc 4/7] IB/mlx4: Fix possible vl/sl field mismatch in
+ LRH header in QP1 packets
+Date: Fri, 23 Sep 2016 12:48:08 -0400
+Message-ID: <b79f57ef-4dc2-5d54-9533-0d4e1e939ebb@redhat.com>
+References: <1473696984-6161-1-git-send-email-leon@kernel.org>
+ <1473696984-6161-5-git-send-email-leon@kernel.org>
+ <4ad7c7fb-71a4-8ac4-f3a2-d0b4f2001385@redhat.com>
+ <20160918065356.GA2923@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="pbWU4TTjdVsvAA3FKlKFG67wX6X6nw6I5"
+ boundary="LFQcbv2PS5smnhgPnkWJ9QMEXVU1uTUFK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160922160924.GI4088-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160918065356.GA2923-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---pbWU4TTjdVsvAA3FKlKFG67wX6X6nw6I5
-Content-Type: multipart/mixed; boundary="OUGe7mNOJKLkfk2q2UBwvEUh9AshFnOgj";
+--LFQcbv2PS5smnhgPnkWJ9QMEXVU1uTUFK
+Content-Type: multipart/mixed; boundary="GAWtwum1U9N45vM2HKvfqQmCcfAk7iigG";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Message-ID: <701c2cd1-a47a-807d-41dc-c8057dd073bd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 0/9] Export vendors specific ABIs
-References: <1474554679-21953-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <20160922144716.GA10032-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> <20160922160924.GI4088-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20160922160924.GI4088-2ukJVAZIZ/Y@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Message-ID: <b79f57ef-4dc2-5d54-9533-0d4e1e939ebb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 4/7] IB/mlx4: Fix possible vl/sl field mismatch in
+ LRH header in QP1 packets
+References: <1473696984-6161-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <1473696984-6161-5-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <4ad7c7fb-71a4-8ac4-f3a2-d0b4f2001385-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160918065356.GA2923-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160918065356.GA2923-2ukJVAZIZ/Y@public.gmane.org>
 
---OUGe7mNOJKLkfk2q2UBwvEUh9AshFnOgj
+--GAWtwum1U9N45vM2HKvfqQmCcfAk7iigG
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/22/2016 12:09 PM, Leon Romanovsky wrote:
-> On Thu, Sep 22, 2016 at 07:47:16AM -0700, Christoph Hellwig wrote:
->> Although I would have removed patch 8
+On 9/18/2016 2:53 AM, Leon Romanovsky wrote:
+> On Fri, Sep 16, 2016 at 02:01:57PM -0400, Doug Ledford wrote:
+>> On 9/12/2016 12:16 PM, Leon Romanovsky wrote:
+>>> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>>>
+>>> In MLX qp packets, the LRH (built by the driver) has both a VL field
+>>> and an SL field. When building a QP1 packet, the VL field should
+>>> reflect the SLtoVL mapping and not arbitrarily contain zero (as is
+>>> done now). This bug causes credit problems in IB switches at
+>>> high rates of QP1 packets.
+>>>
+>>> The fix is to cache the SL to VL mapping in the driver, and look up
+>>> the VL mapped to the SL provided in the send request when sending
+>>> QP1 packets.
+>>>
+>>> For FW versions which support generating a port_management_config_cha=
+nge
+>>> event with subtype sl-to-vl-table-change, the driver uses that event
+>>> to update its sl-to-vl mapping cache.  Otherwise, the driver snoops
+>>> incoming SMP mads to update the cache.
+>>>
+>>> There remains the case where the FW is running in secure-host mode
+>>> (so no QP0 packets are delivered to the driver), and the FW does not
+>>> generate the sl2vl mapping change event. To support this case, the
+>>> driver updates (via querying the FW) its sl2vl mapping cache when
+>>> running in secure-host mode when it receives either a Port Up event
+>>> or a client-reregister event (where the port is still up, but there
+>>> may have been an opensm failover).
+>>> OpenSM modifies the sl2vl mapping before Port Up and Client-reregiste=
+r
+>>> events occur, so if there is a mapping change the driver's cache will=
+
+>>> be properly updated.
+>>>
+>>> Fixes: 225c7b1feef1 ("IB/mlx4: Add a driver Mellanox ConnectX InfiniB=
+and adapters")
+>>> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>>> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/hw/mlx4/mad.c        |  64 ++++++++++++++++++-
+>>>  drivers/infiniband/hw/mlx4/main.c       | 110 ++++++++++++++++++++++=
++++++++++-
+>>>  drivers/infiniband/hw/mlx4/mlx4_ib.h    |   7 ++
+>>>  drivers/infiniband/hw/mlx4/qp.c         |  23 ++++++-
+>>>  drivers/net/ethernet/mellanox/mlx4/fw.c |  13 ++--
+>>>  include/linux/mlx4/device.h             |  13 +++-
+>>>  6 files changed, 220 insertions(+), 10 deletions(-)
+>>
+>> That's a lot more code churn than I would like to see in a late RC.  I=
+'m
+>> going to drop this patch and move it to 4.9 instead.  If this fixed an=
+
+>> oops or something like that, I would be more open to taking it now, bu=
+t
+>> the problem being resolved is credits on a switch.  That isn't the sor=
+t
+>> of showstopper issue that would justify this large of a patch this lat=
+e
+>> in the cycle.
 >=20
-> I'm not sure about it, but anyway it is separate patch which can be
-> easily dropped by Doug when he will apply it.
+> No problem, Thanks.
 
-Mostly easily, yes.
+This is now in my 4.9-misc branch.
 
->> and add the Kconfig changes to
->> each individual driver change instead.
->=20
-> I want logically separate move part and export part of this patch
-> series.
-
-There's no reason to separate them.  And it leaves dangling uapi header
-files that are in the uapi directory but not listed in the Kconfig.  I
-squashed the Kconfig changes and also the MAINTAINERS changes down into
-the main patches, so the series is now only 7 patches.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---OUGe7mNOJKLkfk2q2UBwvEUh9AshFnOgj--
+--GAWtwum1U9N45vM2HKvfqQmCcfAk7iigG--
 
---pbWU4TTjdVsvAA3FKlKFG67wX6X6nw6I5
+--LFQcbv2PS5smnhgPnkWJ9QMEXVU1uTUFK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,22 +119,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX5VtaAAoJELgmozMOVy/d/MIP+gMgGkb2IsHDawv/pVfXa5dE
-d29bJURhYXlfI7s0e6huBZSbPi/LAvgeZ6VmewQpO3CRwV0pltMQHe543zepizqw
-41P193OMefrt5l7DfIs1vfRlZRlosklgN5xi9c4HSbigzOkUw9Dmwdv1uDmNyLS3
-a7Du6cmHYghnRcX6ls6bXVsIfk58Oz5IHPfatSozewdgMIRxHk5BME2YrZC603U7
-SoypXrnQC/mC0b87tskAqINpiqCNwaQM2LPmKp+TmUWAHQtw4i21bsDQ5HTIryd/
-HnoJAmUbU3z2lmsailkQGuurCttzAtAun3YKdVa8OgEtzihxYATwWVYS/VisbKaA
-Km95g3o0yt8xzeBkjxgVfpoSzRg5sVttpDL6z04G3kRFyHLp0XUirJ0jCae1iSyN
-mxkdbzEjYFCUtqGVVT04nvixhnjhyr5TOEViaSFaNyqoSXc7g38u80D4CBp3QhpV
-f1UPrAa9yrSB/iWk835GTL/9I+rZxfWc6JpCO6pds59PhEzjlFkRqSyBuLJaVRNn
-ZoG2OAKLmmvmvThn3pOgvePsWAXbFkAeQ+sEbzoc4+Oihi2SsXQtpoqCz4llKdXU
-D9pLTXG4nWwwsCgORydY+M0k8yT8rV67cZlM12+SJNmacobmeWaQ2hy+6G3keMay
-tM3HXAAIGAEzmFTDXr3l
-=bxDP
+iQIcBAEBCAAGBQJX5VzIAAoJELgmozMOVy/dPfIQALmFBABXP23acVZWZsu6WPvj
+7K3Q+QUP6lEh2qQ4h6BntW3WFZEx1lyoX/c/3aH4rxffmj9ZwdDbM3ojFAWhCxcY
+p6KkpzR4HnLAyiYhqQvA5bY3xl4kzY1eOcMjt6omcTTGc2Mer8cKLQ+ucqgSQ+Lp
+Q+V+rUS12H8tiVGoRH0Cl6Od3vfU74cVmUPaD6d+hg16jKL9ermVgo/+WS6B6bW+
+9kYAx2Ye40W6sMlADk53E3HNPYKQ9Hm21goiT5oygLOR10QQvtp7ugoohcJJq4+u
+HH+dO3edaexfoyZRWfZaYyFih+QBqlqFB1HuA+NlqtXhgPljbUi7jp4X0hN1kr7z
+crMDIt26CR2QSUbrKMIj+MYOIUAS1o18WBZF6QwT9fkyK3UP0bgeU5XlMd7ezihi
+aa3yl/k7uQl+QAioXerXHzWGGS1YwOBAw/JmuSCQoalOv+HRWzPg/qSkCL+MOM+X
+drLMMT2smYjNop0uwwjRvMaszAXcyXhrRN/avt+1H6+Y4FnoYs3Z4iwXr9ta8s6e
+fX5GbJhESXmo1tZ4tvf+r9xtvbIHUvA82WwFskEzgDXTdgXCl2ysknFCpdDU3e5t
+ZvMhsf/MN76UFB63u0wz+cb25gZphRqiS0lE70ZIp4S8A0yTPVTZvVnQjrKT07pz
+3ZgqKHWTgAvS7SM93UWU
+=X9E9
 -----END PGP SIGNATURE-----
 
---pbWU4TTjdVsvAA3FKlKFG67wX6X6nw6I5--
+--LFQcbv2PS5smnhgPnkWJ9QMEXVU1uTUFK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
