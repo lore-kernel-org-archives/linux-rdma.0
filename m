@@ -1,76 +1,24 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v3 0/6] server-side NFS/RDMA patches proposed for v4.9
-Date: Thu, 22 Sep 2016 16:38:57 -0400
-Message-ID: <20160922203857.GB313@fieldses.org>
-References: <20160913144246.5733.66229.stgit@klimt.1015granger.net>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 22/23] srp_daemon: Move documentation to Documentation/
+Date: Thu, 22 Sep 2016 17:07:20 -0700
+Message-ID: <afe33b1c-758d-3057-1431-87009c679e08@sandisk.com>
+References: <1474495729-17604-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1474495729-17604-23-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160913144246.5733.66229.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474495729-17604-23-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 10:52:33AM -0400, Chuck Lever wrote:
-> Hi Bruce-
-> 
-> These are ready for you to consider for your "for v4.9" branch. They
-> include:
+On 09/21/2016 03:08 PM, Jason Gunthorpe wrote:
+> [ ... ]
 
-Sorry for the delay--applying for for 4.9.--b.
-
-> 
-> - Fix a couple of reference counting issues
-> - Introduce simple RDMA-CM private message exchange
-> - Support Remote Invalidation
-> 
-> Available in the "nfsd-rdma-for-4.9" topic branch of this git repo:
-> 
-> git://git.linux-nfs.org/projects/cel/cel-2.6.git
-> 
-> 
-> Or for browsing:
-> 
-> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.9
-> 
-> 
-> Changes since v2:
-> - Rebased on v4.8-rc6
-> - "SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is in use" has been merged
-> - Revert 64c59a3726f2 (add a "Cc: stable" if you think that's appropriate)
-> 
-> 
-> Changes since v1:
-> - Rebased on v4.8-rc3
-> - Added Reviewed-by tags
-> - Fixed additional bugs found in v4.8
-> 
-> 
-> ---
-> 
-> Chuck Lever (6):
->       svcauth_gss: Revert 64c59a3726f2 ("Remove unnecessary allocation")
->       svcrdma: Tail iovec leaves an orphaned DMA mapping
->       svcrdma: Skip put_page() when send_reply() fails
->       rpcrdma: RDMA/CM private message data structure
->       svcrdma: Server-side support for rpcrdma_connect_private
->       svcrdma: support Remote Invalidation
-> 
-> 
->  include/linux/sunrpc/rpc_rdma.h            |   35 ++++++++++++
->  include/linux/sunrpc/svc_rdma.h            |   10 +++
->  net/sunrpc/auth_gss/svcauth_gss.c          |    5 +-
->  net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    2 -
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |    2 -
->  net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   82 ++++++++++++++++++++--------
->  net/sunrpc/xprtrdma/svc_rdma_transport.c   |   60 +++++++++++++++++---
->  7 files changed, 159 insertions(+), 37 deletions(-)
-> 
-> --
-> Chuck Lever
+Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
