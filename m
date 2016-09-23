@@ -1,107 +1,75 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 6/6] RDMA/core: Unify style of IOCTL commands
-Date: Fri, 23 Sep 2016 13:32:54 -0400
-Message-ID: <669b7bcf-14e6-ea13-4f67-ab6f702bab7c@redhat.com>
-References: <1472988635-31463-1-git-send-email-leon@kernel.org>
- <1472988635-31463-7-git-send-email-leon@kernel.org>
- <1473166808.2465.9.camel@intel.com> <20160907070109.GC3639@leon.nu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Improve global COPYING files
+Date: Fri, 23 Sep 2016 11:34:21 -0600
+Message-ID: <20160923173421.GB13920@obsidianresearch.com>
+References: <20160923041340.GA11269@obsidianresearch.com>
+ <20160923080655.GM4088@leon.nu>
+ <20160923152412.GB11269@obsidianresearch.com>
+ <20160923171003.GR4088@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="HkwhHxWhm0uSUMRXoIstIMP6Tkb09WjPE"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160907070109.GC3639-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160923171003.GR4088-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---HkwhHxWhm0uSUMRXoIstIMP6Tkb09WjPE
-Content-Type: multipart/mixed; boundary="f56mE5ABHhQreKav6x4cNxrbuQ9IWTrD7";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
- "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <669b7bcf-14e6-ea13-4f67-ab6f702bab7c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 6/6] RDMA/core: Unify style of IOCTL commands
-References: <1472988635-31463-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1472988635-31463-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1473166808.2465.9.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> <20160907070109.GC3639-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20160907070109.GC3639-2ukJVAZIZ/Y@public.gmane.org>
+On Fri, Sep 23, 2016 at 08:10:03PM +0300, Leon Romanovsky wrote:
 
---f56mE5ABHhQreKav6x4cNxrbuQ9IWTrD7
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+> I sure that this question will sound dumb for you, but can we unify all
+> code under OFA's licenses (dual-license)? I don't feel comfortable with
+> this multi-license situation.
 
-On 9/7/2016 3:01 AM, Leon Romanovsky wrote:
-> On Tue, Sep 06, 2016 at 01:00:12PM +0000, Dalessandro, Dennis wrote:
->> On Sun, 2016-09-04 at 14:30 +0300, Leon Romanovsky wrote:
->>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>
->>> MAD and HFI1 have different naming convention, this patch
->>> simplifies and unifies their defines and names.
->>>
->>> As part of cleanup, the HFI1 _NUM() macro and command indexes
->>> were removed. It has a potential to break applications which use
->>> these defines directly, while shouldn't.
->>
->> Please be explicit. It's not that it has potential. It *will* break
->> applications which use these defines directly.
->=20
-> Yes, you are right.
->=20
-> Doug,
-> What do you expect from me? Respin?
+It is an excellent question.
 
-No, I reworded the commit message myself:
+To do this we would need the OFA to talk to each of the member
+companies and get them to sign some kind of legal change of copyright
+document. Assuming all of the member companies agree, and all the
+member companies are the exhaustive copyright owners then the code can
+be placed under a single uniform license.
 
+As I understand it all OFA members were required to agree to use a
+specific licensing scheme, including specific license text when they
+signed the OFA membership agreement. What we are seeing here is that
+the corporate legal side agreed to something but the developers made
+small errors along the way, and those errors were later copied by
+other developers and spread widely. So the OFA has a basis for
+requests of this nature.
 
-    RDMA/core: Unify style of IOCTL commands
+For instance, a legal statement from Mellanox that all code they
+contributed is available under the GPLv2 or *either* MIT or FreeBSD
+license varient would allow immediately placing all Mellanox
+copyrighted code under the single Default License. I expect this is
+what Mellanox intended to do anyhow, the fact that ibverbs and all
+their providers had an error in the COPYING file is simply
+an unfortunate mistake.
 
-    MAD and HFI1 have different naming convention, this patch
-    simplifies and unifies their defines and names.
+These sorts of license issues are typical in historical code bases. I
+would say we are in pretty good shape, from what I can tell absolutely
+everything is unambiguously licensed under at least the GPLv2, or a
+compatible license.
 
-    As part of cleanup, the HFI1 _NUM() macro and command indexes were
-    removed (controversial). This will cause intentional (and arguably
-    unnecessary) breakage to the PSM user space library.
+Almost everything is alternatively licensed under some kind of BSD
+license. The notable exception is ipathverbs and rxe. It is also
+unfortunate we have so many BSD variants.
 
+Further, almost all C code is licensed under the dual GPLv2/OpenIB.org
+(MIT) license. The kernel is similar, almost all C code is using the
+MIT variant. Hence my desire to make that the license for new code in
+the tree.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
+I would say this is a pretty good result.
 
+My ultimate suggestion is that we push the non-default copyright into
+the impacted files, eg add short licenses headers to the man pages,
+etc, and then delete the extraneous COPYING files once every single
+file has a correct license statement. From that point we can look at
+switching individual files based on the above Legal process to the
+Default License, or just leave them as is - a historical quirk.
 
---f56mE5ABHhQreKav6x4cNxrbuQ9IWTrD7--
-
---HkwhHxWhm0uSUMRXoIstIMP6Tkb09WjPE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJX5WdGAAoJELgmozMOVy/dexwQAIhQthZXD8mdC4O1xXxhy6bC
-k5XO/9hH3i+pzU8HtOmHFsL3RaxoIhXfpda1juCfgxVk4gwxyvHjOkLiwyeAlFB1
-H5F9Zx14mmEb3XYEvhjsb2UO8W5f7oq3eKA2mDSqyk4hFgMBLJ1wGITiNfwjT7gd
-UC9PmL3jnmEnxF69+yfKW7hvL5x5giFFzk9X5QscWuoRr3ChnxOewSNQTG4iCgR0
-i/JasxbyT8Xi0hjnrASL19nwENJ+b/STs9s6zTDRtXdxpxFIEjEC977u8fdFJFEV
-k4Zyllvp5J+M05t3wcQXdoBaS51Ha+3fvXaisXyfM3i96X8U+9RQP/uyfGYQYpHt
-ncDWIV1ukfyaRCDmXG2MZKU08XStPK29ohXgnOJdZL6fjcMpKNY/uFvZ1O4Dzvmc
-Aq+zRTl83elbkl0ugmdXE+DjbbnOHfL54Q09O+Rlc7/OTF3UP6NZD/xCRYN3+hWp
-/CL/mb5+yUD0IoRsyi7PA06z2q4xu7T3U/uQboU2C3NLaGnuk9O8WS41kuBK4iaf
-Jjov3ZCfgW8WZz9kQ15H9agS83jl99+4qxzeofvUB6rypMOqhcANE7Qtotu7MKBD
-hh39Cl8IJITR33lp40HNWgCKNsI6f1nWmSHcAG65NzSTnJeIRFURg9grWorGkaXo
-B6gauhOm6ZMTvINO1v6m
-=pj3g
------END PGP SIGNATURE-----
-
---HkwhHxWhm0uSUMRXoIstIMP6Tkb09WjPE--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
