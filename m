@@ -1,26 +1,19 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ibacm: move Documentation to Documentation/
-Date: Sat, 24 Sep 2016 01:23:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08EAC5@ORSMSX109.amr.corp.intel.com>
-References: <1474677279-30407-1-git-send-email-hch@lst.de>
+From: "Mr.Campbell Neiman" <campbellneiman-fOdFMYwuEsI@public.gmane.org>
+Subject: RE RE
+Date: Sat, 24 Sep 2016 13:04:11 +0700
+Message-ID: <31357973f223325c1765277db933474d.squirrel__13674.2850220346$1474709865$gmane$org@issotastore.com>
+Reply-To: campbellneiman-9uewiaClKEY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474677279-30407-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> And drop various bits that aren't relevant for our unified tree
-> (Windows support, build instructions, etc).
-> 
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Thanks!
+This message is the last notification about U USD14.5 million bearing our
+Name as Beneficiary, all effort to reach you have not be successful,
+Please if you Receive this message kindly respond back stating your Desire
+to make the claim, Reconfirm your full name and age Mr. Mr.Campbell Neiman
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
