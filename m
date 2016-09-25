@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5] IB/hfi1: Add irq affinity notification handler
-Date: Sun, 25 Sep 2016 07:44:37 -0700
-Message-ID: <20160925144435.12088.42999.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 4/5] IB/hfi1: Add new debugfs sdma_cpu_list file
+Date: Sun, 25 Sep 2016 07:44:44 -0700
+Message-ID: <20160925144442.12088.95386.stgit@scvm10.sc.intel.com>
 References: <20160925144248.12088.71489.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,10 +15,8 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch adds an irq affinity notification handler.
-When a user changes interrupt affinity settings for an sdma engine,
-the driver needs to make changes to its internal sde structures and
-also update the affinity_hint.
+Add a debugfs sdma_cpu_list file that can be used to examine the CPU to
+sdma engine assignments for the whole device.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -26,172 +24,134 @@ Reviewed-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.or
 Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/affinity.c |  112 ++++++++++++++++++++++++++++++---
- drivers/infiniband/hw/hfi1/hfi.h      |    1 
- 2 files changed, 103 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hfi1/debugfs.c |   38 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/sdma.c    |   43 ++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/sdma.h    |    2 ++
+ 3 files changed, 83 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index 17c805a..a26a9a0 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -47,6 +47,7 @@
- #include <linux/topology.h>
- #include <linux/cpumask.h>
- #include <linux/module.h>
-+#include <linux/interrupt.h>
- 
- #include "hfi.h"
- #include "affinity.h"
-@@ -309,6 +310,101 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- }
- 
- /*
-+ * Function updates the irq affinity hint for msix after it has been changed
-+ * by the user using the /proc/irq interface. This function only accepts
-+ * one cpu in the mask.
-+ */
-+static void hfi1_update_sdma_affinity(struct hfi1_msix_entry *msix, int cpu)
-+{
-+	struct sdma_engine *sde = msix->arg;
-+	struct hfi1_devdata *dd = sde->dd;
-+	struct hfi1_affinity_node *entry;
-+	struct cpu_mask_set *set;
-+	int i, old_cpu;
-+
-+	if (cpu > num_online_cpus() || cpu == sde->cpu)
-+		return;
-+
-+	mutex_lock(&node_affinity.lock);
-+	entry = node_affinity_lookup(dd->node);
-+	if (!entry)
-+		goto unlock;
-+
-+	old_cpu = sde->cpu;
-+	sde->cpu = cpu;
-+	cpumask_clear(&msix->mask);
-+	cpumask_set_cpu(cpu, &msix->mask);
-+	dd_dev_dbg(dd, "IRQ vector: %u, type %s engine %u -> cpu: %d\n",
-+		   msix->msix.vector, irq_type_names[msix->type],
-+		   sde->this_idx, cpu);
-+	irq_set_affinity_hint(msix->msix.vector, &msix->mask);
-+
-+	/*
-+	 * Set the new cpu in the hfi1_affinity_node and clean
-+	 * the old cpu if it is not used by any other IRQ
-+	 */
-+	set = &entry->def_intr;
-+	cpumask_set_cpu(cpu, &set->mask);
-+	cpumask_set_cpu(cpu, &set->used);
-+	for (i = 0; i < dd->num_msix_entries; i++) {
-+		struct hfi1_msix_entry *other_msix;
-+
-+		other_msix = &dd->msix_entries[i];
-+		if (other_msix->type != IRQ_SDMA || other_msix == msix)
-+			continue;
-+
-+		if (cpumask_test_cpu(old_cpu, &other_msix->mask))
-+			goto unlock;
-+	}
-+	cpumask_clear_cpu(old_cpu, &set->mask);
-+	cpumask_clear_cpu(old_cpu, &set->used);
-+unlock:
-+	mutex_unlock(&node_affinity.lock);
-+}
-+
-+static void hfi1_irq_notifier_notify(struct irq_affinity_notify *notify,
-+				     const cpumask_t *mask)
-+{
-+	int cpu = cpumask_first(mask);
-+	struct hfi1_msix_entry *msix = container_of(notify,
-+						    struct hfi1_msix_entry,
-+						    notify);
-+
-+	/* Only one CPU configuration supported currently */
-+	hfi1_update_sdma_affinity(msix, cpu);
-+}
-+
-+static void hfi1_irq_notifier_release(struct kref *ref)
-+{
-+	/*
-+	 * This is required by affinity notifier. We don't have anything to
-+	 * free here.
-+	 */
-+}
-+
-+static void hfi1_setup_sdma_notifier(struct hfi1_msix_entry *msix)
-+{
-+	struct irq_affinity_notify *notify = &msix->notify;
-+
-+	notify->irq = msix->msix.vector;
-+	notify->notify = hfi1_irq_notifier_notify;
-+	notify->release = hfi1_irq_notifier_release;
-+
-+	if (irq_set_affinity_notifier(notify->irq, notify))
-+		pr_err("Failed to register sdma irq affinity notifier for irq %d\n",
-+		       notify->irq);
-+}
-+
-+static void hfi1_cleanup_sdma_notifier(struct hfi1_msix_entry *msix)
-+{
-+	struct irq_affinity_notify *notify = &msix->notify;
-+
-+	if (irq_set_affinity_notifier(notify->irq, NULL))
-+		pr_err("Failed to cleanup sdma irq affinity notifier for irq %d\n",
-+		       notify->irq);
-+}
-+
-+/*
-  * Function sets the irq affinity for msix.
-  * It *must* be called with node_affinity.lock held.
-  */
-@@ -374,22 +470,17 @@ static int get_irq_affinity(struct hfi1_devdata *dd,
- 		cpumask_set_cpu(cpu, &set->used);
- 	}
- 
--	switch (msix->type) {
--	case IRQ_SDMA:
--		sde->cpu = cpu;
--		break;
--	case IRQ_GENERAL:
--	case IRQ_RCVCTXT:
--	case IRQ_OTHER:
--		break;
--	}
--
- 	cpumask_set_cpu(cpu, &msix->mask);
- 	dd_dev_info(dd, "IRQ vector: %u, type %s %s -> cpu: %d\n",
- 		    msix->msix.vector, irq_type_names[msix->type],
- 		    extra, cpu);
- 	irq_set_affinity_hint(msix->msix.vector, &msix->mask);
- 
-+	if (msix->type == IRQ_SDMA) {
-+		sde->cpu = cpu;
-+		hfi1_setup_sdma_notifier(msix);
-+	}
-+
- 	free_cpumask_var(diff);
- 	return 0;
- }
-@@ -417,6 +508,7 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
- 	switch (msix->type) {
- 	case IRQ_SDMA:
- 		set = &entry->def_intr;
-+		hfi1_cleanup_sdma_notifier(msix);
- 		break;
- 	case IRQ_GENERAL:
- 		/* Don't do accounting for general contexts */
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 59f69fa..7eef11b 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -531,6 +531,7 @@ struct hfi1_msix_entry {
- 	void *arg;
- 	char name[MAX_NAME_SIZE];
- 	cpumask_t mask;
-+	struct irq_affinity_notify notify;
+diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
+index 5e9be16..632ba21 100644
+--- a/drivers/infiniband/hw/hfi1/debugfs.c
++++ b/drivers/infiniband/hw/hfi1/debugfs.c
+@@ -933,6 +933,43 @@ static const struct counter_info port_cntr_ops[] = {
+ 	DEBUGFS_OPS("asic_flags", asic_flags_read, asic_flags_write),
  };
  
- /* per-SL CCA information */
++static void *_sdma_cpu_list_seq_start(struct seq_file *s, loff_t *pos)
++{
++	if (*pos >= num_online_cpus())
++		return NULL;
++
++	return pos;
++}
++
++static void *_sdma_cpu_list_seq_next(struct seq_file *s, void *v, loff_t *pos)
++{
++	++*pos;
++	if (*pos >= num_online_cpus())
++		return NULL;
++
++	return pos;
++}
++
++static void _sdma_cpu_list_seq_stop(struct seq_file *s, void *v)
++{
++	/* nothing allocated */
++}
++
++static int _sdma_cpu_list_seq_show(struct seq_file *s, void *v)
++{
++	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
++	struct hfi1_devdata *dd = dd_from_dev(ibd);
++	loff_t *spos = v;
++	loff_t i = *spos;
++
++	sdma_seqfile_dump_cpu_list(s, dd, (unsigned long)i);
++	return 0;
++}
++
++DEBUGFS_SEQ_FILE_OPS(sdma_cpu_list);
++DEBUGFS_SEQ_FILE_OPEN(sdma_cpu_list)
++DEBUGFS_FILE_OPS(sdma_cpu_list);
++
+ void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
+ {
+ 	char name[sizeof("port0counters") + 1];
+@@ -961,6 +998,7 @@ void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
+ 	DEBUGFS_SEQ_FILE_CREATE(ctx_stats, ibd->hfi1_ibdev_dbg, ibd);
+ 	DEBUGFS_SEQ_FILE_CREATE(qp_stats, ibd->hfi1_ibdev_dbg, ibd);
+ 	DEBUGFS_SEQ_FILE_CREATE(sdes, ibd->hfi1_ibdev_dbg, ibd);
++	DEBUGFS_SEQ_FILE_CREATE(sdma_cpu_list, ibd->hfi1_ibdev_dbg, ibd);
+ 	/* dev counter files */
+ 	for (i = 0; i < ARRAY_SIZE(cntr_ops); i++)
+ 		DEBUGFS_FILE_CREATE(cntr_ops[i].name,
+diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+index 8cfa960..fd39bca 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.c
++++ b/drivers/infiniband/hw/hfi1/sdma.c
+@@ -1093,6 +1093,49 @@ static void sdma_rht_free(void *ptr, void *arg)
+ 	kfree(rht_node);
+ }
+ 
++/**
++ * sdma_seqfile_dump_cpu_list() - debugfs dump the cpu to sdma mappings
++ * @s: seq file
++ * @dd: hfi1_devdata
++ * @cpuid: cpu id
++ *
++ * This routine dumps the process to sde mappings per cpu
++ */
++void sdma_seqfile_dump_cpu_list(struct seq_file *s,
++				struct hfi1_devdata *dd,
++				unsigned long cpuid)
++{
++	struct sdma_rht_node *rht_node;
++	int i, j;
++
++	rht_node = rhashtable_lookup_fast(&dd->sdma_rht, &cpuid,
++					  sdma_rht_params);
++	if (!rht_node)
++		return;
++
++	seq_printf(s, "cpu%3lu: ", cpuid);
++	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++) {
++		if (!rht_node->map[i] || !rht_node->map[i]->ctr)
++			continue;
++
++		seq_printf(s, " vl%d: [", i);
++
++		for (j = 0; j < rht_node->map[i]->ctr; j++) {
++			if (!rht_node->map[i]->sde[j])
++				continue;
++
++			if (j > 0)
++				seq_puts(s, ",");
++
++			seq_printf(s, " sdma%2d",
++				   rht_node->map[i]->sde[j]->this_idx);
++		}
++		seq_puts(s, " ]");
++	}
++
++	seq_puts(s, "\n");
++}
++
+ /*
+  * Free the indicated map struct
+  */
+diff --git a/drivers/infiniband/hw/hfi1/sdma.h b/drivers/infiniband/hw/hfi1/sdma.h
+index 93025f6..56257ea 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.h
++++ b/drivers/infiniband/hw/hfi1/sdma.h
+@@ -1068,6 +1068,8 @@ ssize_t sdma_set_cpu_to_sde_map(struct sdma_engine *sde, const char *buf,
+ 				size_t count);
+ int sdma_engine_get_vl(struct sdma_engine *sde);
+ void sdma_seqfile_dump_sde(struct seq_file *s, struct sdma_engine *);
++void sdma_seqfile_dump_cpu_list(struct seq_file *s, struct hfi1_devdata *dd,
++				unsigned long cpuid);
+ 
+ #ifdef CONFIG_SDMA_VERBOSITY
+ void sdma_dumpstate(struct sdma_engine *);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
