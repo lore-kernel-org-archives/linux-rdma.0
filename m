@@ -1,111 +1,75 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v5 02/16] IB/pvrdma: Add user-level shared functions
-Date: Sun, 25 Sep 2016 15:29:36 +0300
-Message-ID: <20160925122936.GC4088@leon.nu>
-References: <cover.1474759181.git.aditr@vmware.com>
- <b52db7f59d69089f7b1d53311574143c4da8252a.1474759181.git.aditr@vmware.com>
- <20160925072624.GV4088@leon.nu>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 00/13] IB/hfi1,qib: Round 2 of hfi1/qib fixes for 4.9
+Date: Sun, 25 Sep 2016 07:40:49 -0700
+Message-ID: <20160925143656.10261.85231.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tzjrJU3+iJ6c5SNx"
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160925072624.GV4088@leon.nu>
-Sender: linux-pci-owner@vger.kernel.org
-To: Adit Ranadive <aditr@vmware.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Here is the next round of fixes and clean ups for hfi1/qib for 4.9. Mostly minor
+fixes but there is a fix for stable in here. It is marked to Cc the stable list
+in the commit message so no special handling should be needed on your part.
 
---tzjrJU3+iJ6c5SNx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Patches should apply on your GitHub hfi1 branch and are availabe in my GitRepo as
+well:
+https://github.com/ddalessa/kernel/tree/for-4.9
 
-On Sun, Sep 25, 2016 at 10:26:24AM +0300, Leon Romanovsky wrote:
+---
 
-<...>
+Dean Luick (2):
+      IB/hfi1: Extend i2c timeout
+      IB/hfi1: Act on external device timeout
 
-> > +
-> > +/* PVRDMA send queue work request */
-> > +struct pvrdma_sq_wqe_hdr {
-> > +	__u64 wr_id;		/* wr id */
-> > +	__u32 num_sge;		/* size of s/g array */
-> > +	__u32 total_len;	/* reserved */
-> > +	__u32 opcode;		/* operation type */
-> > +	__u32 send_flags;	/* wr flags */
-> > +	union {
-> > +		__u32 imm_data;
-> > +		__u32 invalidate_rkey;
-> > +	} ex;
-> > +	__u32 reserved;
-> > +	union {
-> > +		struct {
-> > +			__u64 remote_addr;
-> > +			__u32 rkey;
-> > +			__u8 reserved[4];
-> > +		} rdma;
-> > +		struct {
-> > +			__u64 remote_addr;
-> > +			__u64 compare_add;
-> > +			__u64 swap;
-> > +			__u32 rkey;
-> > +			__u32 reserved;
-> > +		} atomic;
-> > +		struct {
-> > +			__u64 remote_addr;
-> > +			__u32 log_arg_sz;
-> > +			__u32 rkey;
-> > +			union {
-> > +				struct pvrdma_exp_cmp_swap  cmp_swap;
-> > +				struct pvrdma_exp_fetch_add fetch_add;
-> > +			} wr_data;
-> > +		} masked_atomics;
-> > +		struct {
-> > +			__u64 iova_start;
-> > +			__u64 pl_pdir_dma;
-> > +			__u32 page_shift;
-> > +			__u32 page_list_len;
-> > +			__u32 length;
-> > +			__u32 access_flags;
-> > +			__u32 rkey;
-> > +		} fast_reg;
-> > +		struct {
-> > +			__u32 remote_qpn;
-> > +			__u32 remote_qkey;
-> > +			struct pvrdma_av av;
-> > +		} ud;
-> > +	} wr;
-> > +};
->
-> No, I have half-baked patch series which refactors this structure in kernel.
+Dennis Dalessandro (3):
+      IB/qib: Remove qpt_mask global
+      IB/hfi1: Cleanup tasklet refs in comments
+      IB/hfi1: Remove unused variable from devdata
 
-Sorry, this patch series is not needed in kernel.
+Harish Chegondi (1):
+      IB/hfi1: Adjust hardware buffering parameter
 
-> There is no need to put this structure in UAPI.
+Jakub Pawlak (1):
+      IB/hfi1: Fix resource release in context allocation
 
-This is still relevant.
+Jianxin Xiong (1):
+      IB/hfi1: Increase default settings of max_cqes and max_qps
 
-Thanks
+Mike Marciniszyn (2):
+      IB/hfi1: Consolidate pio control masks into single definition
+      IB/hfi1: Fix defered ack race with qp destroy
 
---tzjrJU3+iJ6c5SNx
-Content-Type: application/pgp-signature; name="signature.asc"
+Sebastian Sanchez (3):
+      IB/hfi1: Remove filtering of Set(PkeyTable) in HFI SMA
+      IB/hfi1: Do not read more than a SGE length
+      IB/hfi1: Combine shift copy and byte copy for SGE reads
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX58MwAAoJEORje4g2clinbaEP/RExt9Kvb4GHs6B9R/0/5qEY
-/+kXf1ciwmCYanyRmpwjM3lsBaPIo3XIDtHi+O6371MmLwiH0UYW9nCvAXJt51D3
-Oce7JvGafQQmwqsv4nAhH3kTKYE/C/lmtIHN6sdAf6lAUZnxoDyFyoFLx3k3sf1K
-wLUzLTVSP9Hy0PRQEFw1z8p3ii9nlb7lQV/zqfBM7C6PsrTGrF/Y4GIu1jlCrwEe
-s32HIrLsR5yUEPDiEJ1A2SRwwsuM9lwcXV2Nk3xQjyv9WJetnTPKUFVCtIRv8Aol
-qjZ3Le8hD0XqndFQcTIIhzlimWcRtjNAdaQC5pkf05q9OOcD/Tp8VugQoRj/r1K5
-wl2brfrqbsJN43FdF+sopWIwSlNmtSoMVIFDDPKuhEw9uYt/3R3jibzxgR6E7hXF
-+ZH13K69MlXB1tpe8PW7ZSDacn3UZN+XPVzZLEnu17MqViTmDq/5v4Of8K9dQLGn
-yz/SiCe25d86sK+2p1OIJBqFGFx1F9qNYZtQNn3aw3V0Gy/o/9u2Oj5Cgm8QLLms
-bH391hgjC/MYAYS/X8fYLVMjxKK8Exr6ng8SN4yL3EGkZFq7j9IRqhAd0eklcIfk
-H8pDoXKHSd/5gCh4ILnZ0RpvX/r48YZEytMgpLIA2+OIzRr3A9tYAleCaJNafisd
-cKgMjmwmmJFjp0tP6CHP
-=KqTV
------END PGP SIGNATURE-----
+ drivers/infiniband/hw/hfi1/chip.c     |    8 +
+ drivers/infiniband/hw/hfi1/chip.h     |    6 +
+ drivers/infiniband/hw/hfi1/file_ops.c |   17 ++
+ drivers/infiniband/hw/hfi1/hfi.h      |    2 
+ drivers/infiniband/hw/hfi1/init.c     |    1 
+ drivers/infiniband/hw/hfi1/mad.c      |    6 -
+ drivers/infiniband/hw/hfi1/pio_copy.c |  246 ++++++++-------------------------
+ drivers/infiniband/hw/hfi1/qsfp.c     |    2 
+ drivers/infiniband/hw/hfi1/rc.c       |   33 ++--
+ drivers/infiniband/hw/hfi1/ruc.c      |    6 -
+ drivers/infiniband/hw/hfi1/uc.c       |    9 -
+ drivers/infiniband/hw/hfi1/verbs.c    |   40 ++++-
+ drivers/infiniband/hw/hfi1/verbs.h    |    3 
+ drivers/infiniband/hw/qib/qib.h       |    1 
+ drivers/infiniband/hw/qib/qib_qp.c    |   13 --
+ drivers/infiniband/hw/qib/qib_verbs.c |    2 
+ 16 files changed, 136 insertions(+), 259 deletions(-)
 
---tzjrJU3+iJ6c5SNx--
+--
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
