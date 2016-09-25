@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/5] IB/hfi1: Document new sysfs entries for hfi1 driver
-Date: Sun, 25 Sep 2016 07:44:51 -0700
-Message-ID: <20160925144449.12088.81828.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 2/5] IB/hfi1: Add a new VL sysfs attribute for sdma engines
+Date: Sun, 25 Sep 2016 07:44:30 -0700
+Message-ID: <20160925144428.12088.80972.stgit@scvm10.sc.intel.com>
 References: <20160925144248.12088.71489.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,8 +15,8 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch adds description for the sdma engine related sysfs entries
-for the HFI1 driver.
+This patch adds a read-only "VL" attribute for the sysfs entry of each
+sdma engine. It will allow the user to check VL to sdma engine mappings.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -24,50 +24,40 @@ Reviewed-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.or
 Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Documentation/infiniband/sysfs.txt |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/sysfs.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/infiniband/sysfs.txt b/Documentation/infiniband/sysfs.txt
-index 45bcafe..77570d1 100644
---- a/Documentation/infiniband/sysfs.txt
-+++ b/Documentation/infiniband/sysfs.txt
-@@ -89,6 +89,36 @@ HFI1
-    nctxts - number of allowed contexts (PSM2)
-    chip_reset - diagnostic (root only)
-    boardversion - board version
+diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
+index 836eea5..edba224 100644
+--- a/drivers/infiniband/hw/hfi1/sysfs.c
++++ b/drivers/infiniband/hw/hfi1/sysfs.c
+@@ -826,12 +826,25 @@ static ssize_t sde_store_cpu_to_sde_map(struct sdma_engine *sde,
+ 	return sdma_set_cpu_to_sde_map(sde, buf, count);
+ }
+ 
++static ssize_t sde_show_vl(struct sdma_engine *sde, char *buf)
++{
++	int vl;
 +
-+   sdma<N>/ - one directory per sdma engine (0 - 15)
-+	sdma<N>/cpu_list - read-write, list of cpus for user-process to sdma
-+			   engine assignment.
-+	sdma<N>/vl - read-only, vl the sdma engine maps to.
++	vl = sdma_engine_get_vl(sde);
++	if (vl < 0)
++		return vl;
 +
-+	The new interface will give the user control on the affinity settings
-+	for the hfi1 device.
-+	As an example, to set an sdma engine irq affinity and thread affinity
-+	of a user processes to use the sdma engine, which is "near" in terms
-+	of NUMA configuration, or physical cpu location, the user will do:
++	return snprintf(buf, PAGE_SIZE, "%d\n", vl);
++}
 +
-+	echo "3" > /proc/irq/<N>/smp_affinity_list
-+	echo "4-7" > /sys/devices/.../sdma3/cpu_list
-+	cat /sys/devices/.../sdma3/vl
-+	0
-+	echo "8" > /proc/irq/<M>/smp_affinity_list
-+	echo "9-12" > /sys/devices/.../sdma4/cpu_list
-+	cat /sys/devices/.../sdma4/vl
-+	1
-+
-+	to make sure that when a process runs on cpus 4,5,6, or 7,
-+	and uses vl=0, then sdma engine 3 is selected by the driver,
-+	and also the interrupt of the sdma engine 3 is steered to cpu 3.
-+	Similarly, when a process runs on cpus 9,10,11, or 12 and sets vl=1,
-+	then engine 4 will be selected and the irq of the sdma engine 4 is
-+	steered to cpu 8.
-+	This assumes that in the above N is the irq number of "sdma3",
-+	and M is irq number of "sdma4" in the /proc/interrupts file.
-+
-    ports/1/
-           CCMgtA/
-                cc_settings_bin - CCA tables used by PSM2
+ static SDE_ATTR(cpu_list, S_IWUSR | S_IRUGO,
+ 		sde_show_cpu_to_sde_map,
+ 		sde_store_cpu_to_sde_map);
++static SDE_ATTR(vl, S_IRUGO, sde_show_vl, NULL);
+ 
+ static struct sde_attribute *sde_attribs[] = {
+-	&sde_attr_cpu_list
++	&sde_attr_cpu_list,
++	&sde_attr_vl
+ };
+ 
+ /*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
