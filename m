@@ -1,53 +1,33 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 0/5] Add directory to place common code and move trivial functions into it
-Date: Sun, 25 Sep 2016 09:50:02 +0300
-Message-ID: <1474786207-2149-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-core 1/5] cmake: Update build instructions in CmakeList
+Date: Sun, 25 Sep 2016 09:50:03 +0300
+Message-ID: <1474786207-2149-2-git-send-email-leon@kernel.org>
+References: <1474786207-2149-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1474786207-2149-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is patch series which adds directory to place common code.
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-Highlights of this this series:
-1. The min/max functions were moved into it.
-2. OCRDMA list implementation was chosen as common code.
-3. Libmlx5 was converted to use that list.h.
-4. Remove container_of and offset local declarations.
-
-View the commits on github:
-
-https://github.com/linux-rdma/rdma-core/pull/4
-
-Leon Romanovsky (5):
-  cmake: Update build instructions in CmakeList
-  utils: Create utils directory to put all common code and move min/max
-    into it
-  utils: Remove container_of and offset local declarations
-  libocrdma: Move ocrdma's list implementation into common directory
-  libmlx5: Convert libmlx5 to use common list implementation
-
- CMakeLists.txt                    |   7 +
- ibacm/linux/osd.h                 |   8 +-
- libibverbs/examples/rc_pingpong.c |   8 +-
- libmlx5/src/buf.c                 |  13 +-
- libmlx5/src/list.h                | 331 --------------------------------------
- libmlx5/src/mlx5.h                |  20 +--
- libocrdma/src/ocrdma_list.h       | 104 ------------
- libocrdma/src/ocrdma_main.c       |   8 +-
- libocrdma/src/ocrdma_main.h       |  12 +-
- libocrdma/src/ocrdma_verbs.c      |  16 +-
- librdmacm/src/cma.h               |  11 +-
- utils/list.h                      | 111 +++++++++++++
- utils/math.h                      |  44 +++++
- 13 files changed, 196 insertions(+), 497 deletions(-)
- delete mode 100644 libmlx5/src/list.h
- delete mode 100644 libocrdma/src/ocrdma_list.h
- create mode 100644 utils/list.h
- create mode 100644 utils/math.h
-
---
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a829cd4..557d3a8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,7 @@
+ # COPYRIGHT (c) 2016 Obsidian Research Corporation. See COPYING file
+ # Run cmake as:
+ #  mkdir build
++#  cd build
+ #  cmake -GNinja ..
+ #  ninja
+ #
+-- 
 2.7.4
 
 --
