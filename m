@@ -1,133 +1,61 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/4] IB/hfi1: Add ability to read platform config from the
- EPROM
-Date: Sun, 25 Sep 2016 07:49:42 -0700
-Message-ID: <20160925144941.13602.27411.stgit@scvm10.sc.intel.com>
-References: <20160925144724.13602.38549.stgit@scvm10.sc.intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 4/5] libocrdma: Move ocrdma's list
+ implementation into common directory
+Date: Sun, 25 Sep 2016 19:13:15 +0300
+Message-ID: <20160925161315.GD4088@leon.nu>
+References: <1474786207-2149-1-git-send-email-leon@kernel.org>
+ <1474786207-2149-5-git-send-email-leon@kernel.org>
+ <20160925144121.GA12246@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="kb0TSCuX821Ar6UT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160925144724.13602.38549.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160925144121.GA12246-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add a function to read the platform configuration file from
-the EPROM.
+--kb0TSCuX821Ar6UT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/eprom.c |   82 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/eprom.h |    2 +
- 2 files changed, 84 insertions(+), 0 deletions(-)
+On Sun, Sep 25, 2016 at 07:41:21AM -0700, Christoph Hellwig wrote:
+> This implementation was also copy and pasted from the Linux kernel
+> one, including the kernel document comments, and an incorrect license
+> was added to it.  It should be removed just like the Mellanox copy.
 
-diff --git a/drivers/infiniband/hw/hfi1/eprom.c b/drivers/infiniband/hw/hfi1/eprom.c
-index 30ecd94..e70c223 100644
---- a/drivers/infiniband/hw/hfi1/eprom.c
-+++ b/drivers/infiniband/hw/hfi1/eprom.c
-@@ -203,3 +203,85 @@ int eprom_init(struct hfi1_devdata *dd)
- done_asic:
- 	return ret;
- }
-+
-+/* magic character sequence that trails an image */
-+#define IMAGE_TRAIL_MAGIC "egamiAPO"
-+
-+/*
-+ * Read all of partition 1.  The actual file is at the front.  Adjust
-+ * the returned size if a trailing image magic is found.
-+ */
-+static int read_partition_platform_config(struct hfi1_devdata *dd, void **data,
-+					  u32 *size)
-+{
-+	void *buffer;
-+	void *p;
-+	u32 length;
-+	int ret;
-+
-+	buffer = kmalloc(P1_SIZE, GFP_KERNEL);
-+	if (!buffer)
-+		return -ENOMEM;
-+
-+	ret = read_length(dd, P1_START, P1_SIZE, buffer);
-+	if (ret) {
-+		kfree(buffer);
-+		return ret;
-+	}
-+
-+	/* scan for image magic that may trail the actual data */
-+	p = strnstr(buffer, IMAGE_TRAIL_MAGIC, P1_SIZE);
-+	if (p)
-+		length = p - buffer;
-+	else
-+		length = P1_SIZE;
-+
-+	*data = buffer;
-+	*size = length;
-+	return 0;
-+}
-+
-+/*
-+ * Read the platform configuration file from the EPROM.
-+ *
-+ * On success, an allocated buffer containing the data and its size are
-+ * returned.  It is up to the caller to free this buffer.
-+ *
-+ * Return value:
-+ *   0	      - success
-+ *   -ENXIO   - no EPROM is available
-+ *   -EBUSY   - not able to acquire access to the EPROM
-+ *   -ENOENT  - no recognizable file written
-+ *   -ENOMEM  - buffer could not be allocated
-+ */
-+int eprom_read_platform_config(struct hfi1_devdata *dd, void **data, u32 *size)
-+{
-+	u32 directory[EP_PAGE_DWORDS]; /* aligned buffer */
-+	int ret;
-+
-+	if (!dd->eprom_available)
-+		return -ENXIO;
-+
-+	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
-+	if (ret)
-+		return -EBUSY;
-+
-+	/* read the last page of P0 for the EPROM format magic */
-+	ret = read_length(dd, P1_START - EP_PAGE_SIZE, EP_PAGE_SIZE, directory);
-+	if (ret)
-+		goto done;
-+
-+	/* last dword of P0 contains a magic indicator */
-+	if (directory[EP_PAGE_DWORDS - 1] == 0) {
-+		/* partition format */
-+		ret = read_partition_platform_config(dd, data, size);
-+		goto done;
-+	}
-+
-+	/* nothing recognized */
-+	ret = -ENOENT;
-+
-+done:
-+	release_chip_resource(dd, CR_EPROM);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/hfi1/eprom.h b/drivers/infiniband/hw/hfi1/eprom.h
-index b7ac9ce..e774184 100644
---- a/drivers/infiniband/hw/hfi1/eprom.h
-+++ b/drivers/infiniband/hw/hfi1/eprom.h
-@@ -48,3 +48,5 @@
- struct hfi1_devdata;
- 
- int eprom_init(struct hfi1_devdata *dd);
-+int eprom_read_platform_config(struct hfi1_devdata *dd, void **buf_ret,
-+			       u32 *size_ret);
+Awesome,
+Any suggestion where can we get list.h compliant with BSD license?
+Is this enough [1] ?
 
+[1]
+https://github.com/lattera/freebsd/blob/master/sys/ofed/include/linux/list.h
+
+--kb0TSCuX821Ar6UT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX5/eaAAoJEORje4g2clinyREQAIzRYoiAwPgYRySYQ00dWlOZ
+k9GYnQv8+0phoP9JQ8Y7gFERjuhJe6grGUuA3ksfypUXlR/sI5ATnlNZhAyzw4SF
+0K7+E8CnsGbTI7fScsBQqc8jP6DOEJScQ6bfL+6zPjPdLWnTP4bcm9Ei2tF9ZAGd
+0N4RFi7Tv1X0oqQPx6FuzTAkCugbsBFQ2Q/2KsCwrKsZnyIm96mGTiH1h8Y9qa46
+ulJaB1t6NLFLLq9ZjDElkw7j04pzq4U0Q2CW5eAKAEiPvTycmhfJEVEnNTALsEU+
++Cf4gTwL346uk+hxtyah6dXhVrGGHWkiGia4bAEJgwGtDLzpe4BzOGf55FZvXM2W
+zXh7u3XS07Mp8irsKpovNW09fbZGwBZhoSaHZAtMUFTBZGkchxjWvRFM/ia4NQ49
+tANYsGTR4TyC3Shw6nytyalWWQLKOEFamYVVn+dIumqZdvFGJp+4Qht1es0sSWJc
+oQCL564IhqZVoYCF5a7gG0v7VCmBjIh2s2mY2VUvu+kBdsTARkBrBadvJY4oZAFg
+pW0qT8EyLrI2Axw7LSkipPXtJ8q7JVoVBEuG2vg2QtjL7RFgYebdkhjUX13fsAN3
+YgPMtsf7PLuLHq8kmCQQ04vyJ/72RZ5C7hrg6Re8d4h7YUN7jBa4ul1Em5bvkfB2
+71lpyJENSDMxBUyAAqTI
+=z3P0
+-----END PGP SIGNATURE-----
+
+--kb0TSCuX821Ar6UT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
