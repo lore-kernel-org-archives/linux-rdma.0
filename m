@@ -1,41 +1,47 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 12/13] IB/hfi1: Remove unused variable from devdata
-Date: Sun, 25 Sep 2016 07:42:16 -0700
-Message-ID: <20160925144213.10261.79086.stgit@scvm10.sc.intel.com>
-References: <20160925143656.10261.85231.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 0/5] IB/hfi1: sdma engine affinity improvements
+Date: Sun, 25 Sep 2016 07:44:15 -0700
+Message-ID: <20160925144248.12088.71489.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160925143656.10261.85231.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We no longer use an error tasklet. Remove it from the hfi1_devdata
-structure.
+This patch series is a set of performance improvements that deal with handling
+the affinity of sdma engines. This allows users more control over which CPU
+cores are used by the driver for sdma engines. It includes a way to dump out the
+current values and a handler for when the user changes irq affinity. The changes
+to sysfs are also documented.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This applies on top of the last series submitted and can be seen in my GitHub:
+https://github.com/ddalessa/kernel/tree/for-4.9
+
 ---
- drivers/infiniband/hw/hfi1/hfi.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 52ffd11..5711620 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1061,8 +1061,6 @@ struct hfi1_devdata {
- 	u8 psxmitwait_supported;
- 	/* cycle length of PS* counters in HW (in picoseconds) */
- 	u16 psxmitwait_check_rate;
--	/* high volume overflow errors deferred to tasklet */
--	struct tasklet_struct error_tasklet;
- 
- 	/* MSI-X information */
- 	struct hfi1_msix_entry *msix_entries;
+Tadeusz Struk (5):
+      IB/hfi1: Add sysfs interface for affinity setup
+      IB/hfi1: Add a new VL sysfs attribute for sdma engines
+      IB/hfi1: Add irq affinity notification handler
+      IB/hfi1: Add new debugfs sdma_cpu_list file
+      IB/hfi1: Document new sysfs entries for hfi1 driver
 
+
+ Documentation/infiniband/sysfs.txt     |   30 +++
+ drivers/infiniband/hw/hfi1/affinity.c  |  112 +++++++++-
+ drivers/infiniband/hw/hfi1/debugfs.c   |   38 +++
+ drivers/infiniband/hw/hfi1/hfi.h       |    3 
+ drivers/infiniband/hw/hfi1/sdma.c      |  353 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/sdma.h      |   10 +
+ drivers/infiniband/hw/hfi1/sysfs.c     |  103 +++++++++
+ drivers/infiniband/hw/hfi1/user_sdma.c |    9 -
+ 8 files changed, 641 insertions(+), 17 deletions(-)
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
