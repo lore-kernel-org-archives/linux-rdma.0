@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 2/5] utils: Create utils directory to put all common code and move min/max into it
-Date: Sun, 25 Sep 2016 09:50:04 +0300
-Message-ID: <1474786207-2149-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-core 4/5] libocrdma: Move ocrdma's list implementation into common directory
+Date: Sun, 25 Sep 2016 09:50:06 +0300
+Message-ID: <1474786207-2149-5-git-send-email-leon@kernel.org>
 References: <1474786207-2149-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1474786207-2149-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,150 +12,284 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- CMakeLists.txt                    |  6 ++++++
- ibacm/linux/osd.h                 |  5 ++---
- libibverbs/examples/rc_pingpong.c |  8 +------
- libmlx5/src/mlx5.h                | 16 ++------------
- librdmacm/src/cma.h               |  5 ++---
- utils/math.h                      | 44 +++++++++++++++++++++++++++++++++++++++
- 6 files changed, 57 insertions(+), 27 deletions(-)
- create mode 100644 utils/math.h
+ libocrdma/src/ocrdma_list.h  | 104 -------------------------------------------
+ libocrdma/src/ocrdma_main.c  |   8 ++--
+ libocrdma/src/ocrdma_main.h  |  12 ++---
+ libocrdma/src/ocrdma_verbs.c |  16 +++----
+ utils/list.h                 | 104 +++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 122 insertions(+), 122 deletions(-)
+ delete mode 100644 libocrdma/src/ocrdma_list.h
+ create mode 100644 utils/list.h
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 557d3a8..c997c6d 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -38,6 +38,8 @@ set(BUILD_INCLUDE ${CMAKE_BINARY_DIR}/include)
- set(BUILD_BIN ${CMAKE_BINARY_DIR}/bin)
- # Libraries
- set(BUILD_LIB ${CMAKE_BINARY_DIR}/lib)
-+# Common code
-+set(COMMON_CODE utils)
- 
- # Location to place provider .driver files
- set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/libibverbs.d")
-@@ -139,6 +141,10 @@ RDMA_AddOptCFlag(CMAKE_SHARED_LINKER_FLAGS SUPPORTS_NO_UNDEFINED "-Wl,--no-undef
- find_package(LDSymVer REQUIRED)
- 
- #-------------------------
-+# Common code
-+include_directories(${COMMON_CODE})
-+
-+#-------------------------
- # Find libraries
- # pthread
- FIND_PACKAGE (Threads REQUIRED)
-diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
-index 5ca4c6f..ec18f7b 100644
---- a/ibacm/linux/osd.h
-+++ b/ibacm/linux/osd.h
-@@ -46,6 +46,8 @@
- #include <sys/time.h>
- #include <netinet/in.h>
- 
-+#include "../../utils/math.h"
-+
- #define ACM_CONF_DIR  IBACM_CONFIG_PATH
- #define ACM_ADDR_FILE "ibacm_addr.cfg"
- #define ACM_OPTS_FILE "ibacm_opts.cfg"
-@@ -56,9 +58,6 @@
- #define container_of(ptr, type, field) \
- 	((type *) ((void *) ptr - offsetof(type, field)))
- 
--#define min(a, b) (a < b ? a : b)
--#define max(a, b) (a > b ? a : b)
+diff --git a/libocrdma/src/ocrdma_list.h b/libocrdma/src/ocrdma_list.h
+deleted file mode 100644
+index 1e0f1ff..0000000
+--- a/libocrdma/src/ocrdma_list.h
++++ /dev/null
+@@ -1,104 +0,0 @@
+-/*
+- * Copyright (C) 2008-2013 Emulex.  All rights reserved.
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT  LIMITED TO, THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR  A PARTICULAR PURPOSE
+- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+- * THE POSSIBILITY OF SUCH DAMAGE.
+- */
 -
- #if __BYTE_ORDER == __LITTLE_ENDIAN
- #define htonll(x) bswap_64(x)
- #else
-diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
-index 9676783..cc45741 100644
---- a/libibverbs/examples/rc_pingpong.c
-+++ b/libibverbs/examples/rc_pingpong.c
-@@ -49,13 +49,7 @@
- 
- #include "pingpong.h"
- 
--#ifndef max
--#define max(x, y) (((x) > (y)) ? (x) : (y))
--#endif
+-#ifndef __OCRDMA_LIST_H__
+-#define __OCRDMA_LIST_H__
 -
--#ifndef min
--#define min(x, y) (((x) < (y)) ? (x) : (y))
--#endif
-+#include "../../utils/math.h"
+-struct ocrdma_list_node {
+-	struct ocrdma_list_node *next, *prev;
+-};
+-
+-struct ocrdma_list_head {
+-	struct ocrdma_list_node node;
+-	pthread_mutex_t lock;
+-};
+-
+-#define DBLY_LIST_HEAD_INIT(name) { { &(name.node), &(name.node) } , \
+-                        PTHREAD_MUTEX_INITIALIZER }
+-
+-#define DBLY_LIST_HEAD(name) \
+-	struct ocrdma_list_head name = DBLY_LIST_HEAD_INIT(name); \
+-
+-#define INIT_DBLY_LIST_NODE(ptr) do { \
+-	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
+-} while (0)
+-
+-#define INIT_DBLY_LIST_HEAD(ptr) INIT_DBLY_LIST_NODE(ptr.node)
+-
+-static inline void __list_add_node(struct ocrdma_list_node *new,
+-				       struct ocrdma_list_node *prev,
+-				       struct ocrdma_list_node *next)
+-{
+-	next->prev = new;
+-	new->next = next;
+-	new->prev = prev;
+-	prev->next = new;
+-}
+-
+-static inline void list_add_node_tail(struct ocrdma_list_node *new,
+-					  struct ocrdma_list_head *head)
+-{
+-	__list_add_node(new, head->node.prev, &head->node);
+-}
+-
+-static inline void __list_del_node(struct ocrdma_list_node *prev,
+-				       struct ocrdma_list_node *next)
+-{
+-	next->prev = prev;
+-	prev->next = next;
+-}
+-
+-static inline void list_del_node(struct ocrdma_list_node *entry)
+-{
+-	__list_del_node(entry->prev, entry->next);
+-	entry->next = entry->prev = 0;
+-}
+-
+-#define list_lock(head) pthread_mutex_lock(&((head)->lock))
+-#define list_unlock(head) pthread_mutex_unlock(&((head)->lock))
+-
+-#define list_node(ptr, type, member) \
+-    ((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member)))
+-
+-/**
+- * list_for_each_node_safe	-	iterate over a list safe against removal of list entry
+- * @pos:	the &struct ocrdma_list_head to use as a loop counter.
+- * @n:		another &struct ocrdma_list_head to use as temporary storage
+- * @head:	the head for your list.
+- */
+-#define list_for_each_node_safe(pos, n, head) \
+-	for (pos = (head)->node.next, n = pos->next; pos != &((head)->node); \
+-		pos = n, n = pos->next)
+-
+-#endif				/* __OCRDMA_LIST_H__ */
+diff --git a/libocrdma/src/ocrdma_main.c b/libocrdma/src/ocrdma_main.c
+index 5c494d8..6bd892c 100644
+--- a/libocrdma/src/ocrdma_main.c
++++ b/libocrdma/src/ocrdma_main.c
+@@ -46,7 +46,7 @@
+ 
+ #include "ocrdma_main.h"
+ #include "ocrdma_abi.h"
+-#include "ocrdma_list.h"
++#include "../../utils/list.h"
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
+@@ -68,7 +68,7 @@ struct {
+ 	UCNA(EMULEX, GEN1), UCNA(EMULEX, GEN2), UCNA(EMULEX, GEN2_VF)
+ };
+ 
+-static DBLY_LIST_HEAD(ocrdma_dev_list);
++static LIST_HEAD(ocrdma_dev_list);
+ 
+ static struct ibv_context *ocrdma_alloc_context(struct ibv_device *, int);
+ static void ocrdma_free_context(struct ibv_context *);
+@@ -222,7 +222,7 @@ found:
+ 	pthread_mutex_init(&dev->dev_lock, NULL);
+ 	pthread_spin_init(&dev->flush_q_lock, PTHREAD_PROCESS_PRIVATE);
+ 	dev->ibv_dev.ops = ocrdma_dev_ops;
+-	INIT_DBLY_LIST_NODE(&dev->entry);
++	INIT_LIST_NODE(&dev->entry);
+ 	list_lock(&ocrdma_dev_list);
+ 	list_add_node_tail(&dev->entry, &ocrdma_dev_list);
+ 	list_unlock(&ocrdma_dev_list);
+@@ -244,7 +244,7 @@ void ocrdma_register_driver(void)
+ static __attribute__ ((destructor))
+ void ocrdma_unregister_driver(void)
+ {
+-	struct ocrdma_list_node *cur, *tmp;
++	struct list_node *cur, *tmp;
+ 	struct ocrdma_device *dev;
+ 	list_lock(&ocrdma_dev_list);
+ 	list_for_each_node_safe(cur, tmp, &ocrdma_dev_list) {
+diff --git a/libocrdma/src/ocrdma_main.h b/libocrdma/src/ocrdma_main.h
+index c81188b..c7359c8 100644
+--- a/libocrdma/src/ocrdma_main.h
++++ b/libocrdma/src/ocrdma_main.h
+@@ -42,7 +42,7 @@
+ #include <infiniband/driver.h>
+ #include <infiniband/arch.h>
+ 
+-#include "ocrdma_list.h"
++#include "../../utils/list.h"
+ 
+ #define ocrdma_err(format, arg...) printf(format, ##arg)
+ 
+@@ -58,7 +58,7 @@ struct ocrdma_device {
+ 	struct ocrdma_qp **qp_tbl;
+ 	pthread_mutex_t dev_lock;
+ 	pthread_spinlock_t flush_q_lock;
+-	struct ocrdma_list_node entry;
++	struct list_node entry;
+ 	int id;
+ 	int gen;
+ 	uint32_t wqe_size;
+@@ -106,8 +106,8 @@ struct ocrdma_cq {
+ 	uint8_t deferred_arm;
+ 	uint8_t deferred_sol;
+ 	uint8_t first_arm;
+-	struct ocrdma_list_head sq_head;
+-	struct ocrdma_list_head rq_head;
++	struct list_head sq_head;
++	struct list_head rq_head;
+ };
  
  enum {
- 	PINGPONG_RECV_WRID = 1,
-diff --git a/libmlx5/src/mlx5.h b/libmlx5/src/mlx5.h
-index dc90892..453aeb8 100644
---- a/libmlx5/src/mlx5.h
-+++ b/libmlx5/src/mlx5.h
-@@ -42,6 +42,8 @@
- #include "list.h"
- #include "bitmap.h"
+@@ -203,8 +203,8 @@ struct ocrdma_qp {
  
-+#include "../../utils/math.h"
-+
- #ifdef __GNUC__
- #define likely(x)	__builtin_expect((x), 1)
- #define unlikely(x)	__builtin_expect((x), 0)
-@@ -91,20 +93,6 @@
+ 	enum ibv_qp_type qp_type;
+ 	enum ocrdma_qp_state state;
+-	struct ocrdma_list_node sq_entry;
+-	struct ocrdma_list_node rq_entry;
++	struct list_node sq_entry;
++	struct list_node rq_entry;
+ 	uint16_t id;
+ 	uint16_t rsvd;
+ 	uint32_t db_shift;
+diff --git a/libocrdma/src/ocrdma_verbs.c b/libocrdma/src/ocrdma_verbs.c
+index 6062626..3efc8bb 100644
+--- a/libocrdma/src/ocrdma_verbs.c
++++ b/libocrdma/src/ocrdma_verbs.c
+@@ -51,7 +51,7 @@
  
- #endif
+ #include "ocrdma_main.h"
+ #include "ocrdma_abi.h"
+-#include "ocrdma_list.h"
++#include "../../utils/list.h"
  
--#ifndef min
--#define min(a, b) \
--	({ typeof(a) _a = (a); \
--	   typeof(b) _b = (b); \
--	   _a < _b ? _a : _b; })
--#endif
--
--#ifndef max
--#define max(a, b) \
--	({ typeof(a) _a = (a); \
--	   typeof(b) _b = (b); \
--	   _a > _b ? _a : _b; })
--#endif
--
- #define HIDDEN		__attribute__((visibility("hidden")))
+ static void ocrdma_ring_cq_db(struct ocrdma_cq *cq, uint32_t armed,
+ 			      int solicited, uint32_t num_cqe);
+@@ -307,8 +307,8 @@ static struct ibv_cq *ocrdma_create_cq_common(struct ibv_context *context,
+ 		ocrdma_ring_cq_db(cq, 0, 0, 0);
+ 	}
+ 	cq->ibv_cq.cqe = cqe;
+-	INIT_DBLY_LIST_HEAD(&cq->sq_head);
+-	INIT_DBLY_LIST_HEAD(&cq->rq_head);
++	INIT_LIST_HEAD(&cq->sq_head);
++	INIT_LIST_HEAD(&cq->rq_head);
+ 	return &cq->ibv_cq;
+ cq_err2:
+ 	(void)ibv_cmd_destroy_cq(&cq->ibv_cq);
+@@ -621,8 +621,8 @@ struct ibv_qp *ocrdma_create_qp(struct ibv_pd *pd,
+ 		}
+ 	}
+ 	qp->state = OCRDMA_QPS_RST;
+-	INIT_DBLY_LIST_NODE(&qp->sq_entry);
+-	INIT_DBLY_LIST_NODE(&qp->rq_entry);
++	INIT_LIST_NODE(&qp->sq_entry);
++	INIT_LIST_NODE(&qp->rq_entry);
+ 	return &qp->ibv_qp;
  
- #ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
-diff --git a/librdmacm/src/cma.h b/librdmacm/src/cma.h
-index 98eba8d..d640688 100644
---- a/librdmacm/src/cma.h
-+++ b/librdmacm/src/cma.h
-@@ -47,6 +47,8 @@
- #include <rdma/rdma_cma.h>
- #include <infiniband/ib.h>
+ map_err:
+@@ -663,7 +663,7 @@ static int ocrdma_is_qp_in_sq_flushlist(struct ocrdma_cq *cq,
+ 					struct ocrdma_qp *qp)
+ {
+ 	struct ocrdma_qp *list_qp;
+-	struct ocrdma_list_node *cur, *tmp;
++	struct list_node *cur, *tmp;
+ 	int found = 0;
+ 	list_for_each_node_safe(cur, tmp, &cq->sq_head) {
+ 		list_qp = list_node(cur, struct ocrdma_qp, sq_entry);
+@@ -679,7 +679,7 @@ static int ocrdma_is_qp_in_rq_flushlist(struct ocrdma_cq *cq,
+ 					struct ocrdma_qp *qp)
+ {
+ 	struct ocrdma_qp *list_qp;
+-	struct ocrdma_list_node *cur, *tmp;
++	struct list_node *cur, *tmp;
+ 	int found = 0;
+ 	list_for_each_node_safe(cur, tmp, &cq->rq_head) {
+ 		list_qp = list_node(cur, struct ocrdma_qp, rq_entry);
+@@ -2034,7 +2034,7 @@ int ocrdma_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
+ 	int cqes_to_poll = num_entries;
+ 	int num_os_cqe = 0, err_cqes = 0;
+ 	struct ocrdma_qp *qp;
+-	struct ocrdma_list_node *cur, *tmp;
++	struct list_node *cur, *tmp;
  
-+#include "../../utils/math.h"
-+
- #ifdef INCLUDE_VALGRIND
- #   include <valgrind/memcheck.h>
- #   ifndef VALGRIND_MAKE_MEM_DEFINED
-@@ -68,9 +70,6 @@ static inline uint64_t htonll(uint64_t x) { return x; }
- static inline uint64_t ntohll(uint64_t x) { return x; }
- #endif
- 
--#define max(a, b) ((a) > (b) ? a : b)
--#define min(a, b) ((a) < (b) ? a : b)
--
- #ifndef container_of
- #define container_of(ptr, type, field) \
- 	((type *) ((void *)ptr - offsetof(type, field)))
-diff --git a/utils/math.h b/utils/math.h
+ 	cq = get_ocrdma_cq(ibcq);
+ 	pthread_spin_lock(&cq->cq_lock);
+diff --git a/utils/list.h b/utils/list.h
 new file mode 100644
-index 0000000..ffef543
+index 0000000..e229348
 --- /dev/null
-+++ b/utils/math.h
-@@ -0,0 +1,44 @@
++++ b/utils/list.h
+@@ -0,0 +1,104 @@
 +/*
++ * Copyright (C) 2008-2013 Emulex.  All rights reserved.
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
 + * General Public License (GPL) Version 2, available from the file
 + * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
++ * BSD license below:
 + *
 + *     Redistribution and use in source and binary forms, with or
 + *     without modification, are permitted provided that the following
@@ -170,30 +304,89 @@ index 0000000..ffef543
 + *        disclaimer in the documentation and/or other materials
 + *        provided with the distribution.
 + *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT  LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR  A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
++ * THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#ifndef _RDMA_MATH_H_
-+#define _RDMA_MATH_H_
-+/*
-+ * This include contains all common mathematical functions
-+ */
-+#ifndef min
-+#define min(a, b)	(((a) < (b)) ? (a) : (b))
-+#endif
++#ifndef _RDMA_LIST_H__
++#define _RDMA_LIST_H__
 +
-+#ifndef max
-+#define max(a, b) 	(((a) > (b)) ? (a) : (b))
-+#endif
-+#endif /* _RDMA_MATH_H_ */
++struct list_node {
++	struct list_node *next, *prev;
++};
++
++struct list_head {
++	struct list_node node;
++	pthread_mutex_t lock;
++};
++
++#define LIST_HEAD_INIT(name) { { &(name.node), &(name.node) } , \
++                        PTHREAD_MUTEX_INITIALIZER }
++
++#define LIST_HEAD(name) \
++	struct list_head name = LIST_HEAD_INIT(name); \
++
++#define INIT_LIST_NODE(ptr) do { \
++	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
++} while (0)
++
++#define INIT_LIST_HEAD(ptr) INIT_LIST_NODE(ptr.node)
++
++static inline void __list_add_node(struct list_node *new,
++				   struct list_node *prev,
++				   struct list_node *next)
++{
++	next->prev = new;
++	new->next = next;
++	new->prev = prev;
++	prev->next = new;
++}
++
++static inline void list_add_node_tail(struct list_node *new,
++				      struct list_head *head)
++{
++	__list_add_node(new, head->node.prev, &head->node);
++}
++
++static inline void __list_del_node(struct list_node *prev,
++				   struct list_node *next)
++{
++	next->prev = prev;
++	prev->next = next;
++}
++
++static inline void list_del_node(struct list_node *entry)
++{
++	__list_del_node(entry->prev, entry->next);
++	entry->next = entry->prev = 0;
++}
++
++#define list_lock(head) pthread_mutex_lock(&((head)->lock))
++#define list_unlock(head) pthread_mutex_unlock(&((head)->lock))
++
++#define list_node(ptr, type, member) \
++    ((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member)))
++
++/**
++ * list_for_each_node_safe	-	iterate over a list safe against removal of list entry
++ * @pos:	the &struct list_head to use as a loop counter.
++ * @n:		another &struct list_head to use as temporary storage
++ * @head:	the head for your list.
++ */
++#define list_for_each_node_safe(pos, n, head) \
++	for (pos = (head)->node.next, n = pos->next; pos != &((head)->node); \
++		pos = n, n = pos->next)
++
++#endif /* _RDMA_LIST_H_ */
 -- 
 2.7.4
 
