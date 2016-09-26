@@ -1,26 +1,30 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Improve ib_map_mr_sg() documentation
-Date: Mon, 26 Sep 2016 18:14:48 +0200
-Message-ID: <20160926161448.GA18005@lst.de>
-References: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
+Date: Mon, 26 Sep 2016 10:51:04 -0600
+Message-ID: <20160926165104.GA12011@obsidianresearch.com>
+References: <cover.1474759181.git.aditr@vmware.com>
+ <20160925070352.GU4088@leon.nu>
+ <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 26, 2016 at 09:09:42AM -0700, Bart Van Assche wrote:
-> Document that ib_map_mr_sg() is able to map physically discontiguous
-> sg-lists as a single MR. Change IB_MR_TYPE_SG_GAPS_REG into
-> IB_MR_TYPE_SG_GAPS.
+On Sun, Sep 25, 2016 at 10:25:12PM -0700, Adit Ranadive wrote:
+> > As Jason said, you need a very good reason to split and create number of
+> > files per-driver in UAPI folder.
+> 
+> I can move the pvrdma-uapi.h back to the pvrdma driver folder.
 
-Thanks a lot Bart, this look fine:
+Just don't copy any of the content into your user space provider.
 
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Thanks
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
