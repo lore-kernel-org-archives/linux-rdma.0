@@ -1,68 +1,39 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] IB/srp: Avoid that certain sg-lists trigger an infinite
- loop with FMR
-Date: Mon, 26 Sep 2016 12:58:49 -0700
-Message-ID: <22a7b1b4-1a65-1a92-ef77-6f404de278fd@sandisk.com>
-References: <c5bd10df-225d-df4c-c765-97551348dbbd@sandisk.com>
+From: Adit Ranadive <aditr@vmware.com>
+Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
+Date: Mon, 26 Sep 2016 13:40:10 -0700
+Message-ID: <b4e0acd9-e1a2-f6ac-0afa-c0fd62dd62f0@vmware.com>
+References: <cover.1474759181.git.aditr@vmware.com>
+ <20160925070352.GU4088@leon.nu>
+ <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9@vmware.com>
+ <20160926165104.GA12011@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c5bd10df-225d-df4c-c765-97551348dbbd-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160926165104.GA12011@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Leon Romanovsky <leon@kernel.org>, dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that mapping an sg-list in which the first element has a
-non-zero offset triggers an infinite loop when using FMR. This
-patch makes the FMR mapping code similar to that of ib_sg_to_pages().
+On Mon, Sep 26, 2016 at 10:51:04AM -0600, Jason Gunthorpe wrote:
+> On Sun, Sep 25, 2016 at 10:25:12PM -0700, Adit Ranadive wrote:
+> > > As Jason said, you need a very good reason to split and create number of
+> > > files per-driver in UAPI folder.
+> > 
+> > I can move the pvrdma-uapi.h back to the pvrdma driver folder.
+> 
+> Just don't copy any of the content into your user space provider.
 
-Note: older Mellanox HCAs do not support non-zero offsets for FMR.
-See also commit 8c4037b501ac ("IB/srp: always avoid non-zero offsets
-into an FMR").
+Thanks. I wanted to clarify regarding device specific structures since that
+is what our pvrdma-uapi.h file has.
 
-Reported-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+Wouldnt they be some overlap between the user-space and kernel driver? Or is
+it expected that the common structures (even device specific ones) be moved to
+the ABI file?
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 06bb7a905635..29ec5e2f247e 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1416,7 +1416,9 @@ static int srp_map_sg_entry(struct srp_map_state *state,
- 
- 	while (dma_len) {
- 		unsigned offset = dma_addr & ~dev->mr_page_mask;
--		if (state->npages == dev->max_pages_per_mr || offset != 0) {
-+
-+		if (state->npages == dev->max_pages_per_mr ||
-+		    (state->npages > 0 && offset != 0)) {
- 			ret = srp_map_finish_fmr(state, ch);
- 			if (ret)
- 				return ret;
-@@ -1433,12 +1435,12 @@ static int srp_map_sg_entry(struct srp_map_state *state,
- 	}
- 
- 	/*
--	 * If the last entry of the MR wasn't a full page, then we need to
-+	 * If the end of the MR is not on a page boundary then we need to
- 	 * close it out and start a new one -- we can only merge at page
- 	 * boundaries.
- 	 */
- 	ret = 0;
--	if (len != dev->mr_page_size)
-+	if ((dma_addr & ~dev->mr_page_mask) != 0)
- 		ret = srp_map_finish_fmr(state, ch);
- 	return ret;
- }
--- 
-2.10.0
+For the mlx4 driver I see that the structures in include/linux/mlx4/qp.h
+and in libmlx4/src/wqe.h are similar.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Adit
