@@ -1,37 +1,53 @@
-From: "Amrani, Ram" <Ram.Amrani@cavium.com>
-Subject: RE: [RFC v3 00/11] QLogic RDMA Driver (qedr) RFC
-Date: Mon, 26 Sep 2016 15:45:56 +0000
-Message-ID: <SN1PR07MB22070DA963EE029137924C72F8CD0@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <1474899407-12635-1-git-send-email-Ram.Amrani@cavium.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] IB/core: Improve ib_map_mr_sg() documentation
+Date: Mon, 26 Sep 2016 09:09:42 -0700
+Message-ID: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1474899407-12635-1-git-send-email-Ram.Amrani@cavium.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: "davem@davemloft.net" <davem@davemloft.net>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "Elior, Ariel" <Ariel.Elior@cavium.com>, "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Mintz, Yuval" <Yuval.Mintz@cavium.com>, "Borundia, Rajesh" <Rajesh.Borundia@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The series adds on top of RFC v2:
-> * fix licensing header to dual license
-> * remove 'debug' module paramter and make use of pr_debug
-> * relocation of qedr user API to include/rdma/uapi/
-> * use the __u32/64 in uapi and include types.h
-> * advance ABI version (since shifting to __u32/64 changed the ABI)
-> * remove the check for all drivers that IB_ACCESS_MW_BIND isn't set
->   in ib_get_dma_mr. It will be sent in a dedicated patch.
-> * misc.: fixed typos, removed redundant includes
->=20
-> For RFC v2 visit http://marc.info/?l=3Dlinux-rdma&m=3D147436779328618&w=
-=3D2
+Document that ib_map_mr_sg() is able to map physically discontiguous
+sg-lists as a single MR. Change IB_MR_TYPE_SG_GAPS_REG into
+IB_MR_TYPE_SG_GAPS.
 
-I see that the following e-mails were sent with "PATCH" in the subject rath=
-er than "RFC v3".
-This is a mistake. All e-mails are intended to be "RFC v3".
-I don't think it should matter much for reading and reviewing purposes, but=
- don't hesitate if=20
-you would like me to re-send with fixed headers.
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Ram
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f2b776efab3a..ff75be35cf28 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1812,13 +1812,13 @@ EXPORT_SYMBOL(ib_set_vf_guid);
+  *
+  * Constraints:
+  * - The first sg element is allowed to have an offset.
+- * - Each sg element must be aligned to page_size (or physically
+- *   contiguous to the previous element). In case an sg element has a
+- *   non contiguous offset, the mapping prefix will not include it.
++ * - Each sg element must either be aligned to page_size or virtually
++ *   contiguous to the previous element. In case an sg element has a
++ *   non-contiguous offset, the mapping prefix will not include it.
+  * - The last sg element is allowed to have length less than page_size.
+  * - If sg_nents total byte length exceeds the mr max_num_sge * page_size
+  *   then only max_num_sg entries will be mapped.
+- * - If the MR was allocated with type IB_MR_TYPE_SG_GAPS_REG, non of these
++ * - If the MR was allocated with type IB_MR_TYPE_SG_GAPS, none of these
+  *   constraints holds and the page_size argument is ignored.
+  *
+  * Returns the number of sg elements that were mapped to the memory region.
+-- 
+2.10.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
