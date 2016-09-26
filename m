@@ -1,32 +1,44 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 13/13] Remove ibsupport-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org from MAINTAINERS
-Date: Mon, 26 Sep 2016 19:12:01 +0000
-Message-ID: <1474917117.18510.6.camel@intel.com>
-References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1474658228-5390-14-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1474724600.6625.1.camel@intel.com>
-         <20160924165645.GA16206@obsidianresearch.com>
-         <1474744719.6625.3.camel@intel.com>
-         <20160926181206.GA28992@obsidianresearch.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
+ - 9/27/2016 at 11:00PDT
+Date: Mon, 26 Sep 2016 18:59:45 +0000
+Message-ID: <VI1PR0501MB21892BC34F24CD4A23F911F0B1CD0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160926181206.GA28992-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
-Content-ID: <8DD7C344B683D643847AE3147F73DA28-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE2LTA5LTI2IGF0IDEyOjEyIC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFNhdCwgU2VwIDI0LCAyMDE2IGF0IDA3OjE4OjQyUE0gKzAwMDAsIERhbGVzc2FuZHJv
-LCBEZW5uaXMgd3JvdGU6DQo+ID4gQWN0dWFsbHkgb24gc2Vjb25kIHRob3VnaHQsIG1heWJlIGJl
-dHRlciB0byB1c2U6DQo+ID4gDQo+ID4gaW5maW5pcGF0aCA8aW5maW5pcGF0aEBpbnRlbC5jb20+
-DQo+IA0KPiBUaGlzIE9rPw0KPiANCj4gaHR0cHM6Ly9naXRodWIuY29tL2pndW50aG9ycGUvcmRt
-YS1wbHVtYmluZy9jb21taXQvYjg0MzZiOWIyMWJjOWY4NDMyDQo+IGJiYTZiNDk1NzNlYTMxZGI5
-NDUxMDENCg0KV29ya3MgZm9yIG1lLiBUaGFua3MuDQoNCi1EZW5ueQ==
+Agenda - ABI proposal update:
+- Additional TLV type for file descriptors
+- New common handlers
+
+--Liran
+
+
+Concall details
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+JOIN WEBEX MEETING
+https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+
+JOIN BY PHONE
+1-80-9453550 Israel toll free
+1-855-299-5224 USA/Canada toll free
+Access code: 702 830 424
+
+Global call-in numbers:
+https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=
+=3DMC&ED=3D457637257&tollFree=3D1
+
+Toll-free calling restrictions:
+http://www.webex.com/pdf/tollfree_restrictions.pdf
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
