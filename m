@@ -1,44 +1,28 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
- - 9/27/2016 at 11:00PDT
-Date: Mon, 26 Sep 2016 18:59:45 +0000
-Message-ID: <VI1PR0501MB21892BC34F24CD4A23F911F0B1CD0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/2] Avoid that certain sg-lists trigger an infinite loop with
+ FMR
+Date: Mon, 26 Sep 2016 12:56:29 -0700
+Message-ID: <c5bd10df-225d-df4c-c765-97551348dbbd@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Agenda - ABI proposal update:
-- Additional TLV type for file descriptors
-- New common handlers
+Hello Doug,
 
---Liran
+It would be appreciated if the following two patches would be considered 
+for inclusion in kernel v4.9:
 
+0001-IB-srp-Remove-an-unused-argument.patch
+0002-IB-srp-Avoid-that-certain-sg-lists-trigger-an-infini.patch
 
-Concall details
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-JOIN WEBEX MEETING
-https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+Thanks,
 
-JOIN BY PHONE
-1-80-9453550 Israel toll free
-1-855-299-5224 USA/Canada toll free
-Access code: 702 830 424
-
-Global call-in numbers:
-https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=
-=3DMC&ED=3D457637257&tollFree=3D1
-
-Toll-free calling restrictions:
-http://www.webex.com/pdf/tollfree_restrictions.pdf
-
-
-
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
