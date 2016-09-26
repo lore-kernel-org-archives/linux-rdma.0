@@ -1,29 +1,26 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
-Date: Mon, 26 Sep 2016 10:51:04 -0600
-Message-ID: <20160926165104.GA12011@obsidianresearch.com>
-References: <cover.1474759181.git.aditr@vmware.com>
- <20160925070352.GU4088@leon.nu>
- <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9@vmware.com>
+Subject: Re: [PATCH 1/4] IB/hfi1: Restore EPROM read ability
+Date: Mon, 26 Sep 2016 10:52:47 -0600
+Message-ID: <20160926165247.GB12011@obsidianresearch.com>
+References: <20160925144724.13602.38549.stgit@scvm10.sc.intel.com>
+ <20160925144926.13602.47716.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160925144926.13602.47716.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 25, 2016 at 10:25:12PM -0700, Adit Ranadive wrote:
-> > As Jason said, you need a very good reason to split and create number of
-> > files per-driver in UAPI folder.
-> 
-> I can move the pvrdma-uapi.h back to the pvrdma driver folder.
+On Sun, Sep 25, 2016 at 07:49:29AM -0700, Dennis Dalessandro wrote:
+> +	for (offset = 0; offset < len; offset += EP_PAGE_SIZE) {
+> +		read_page(dd, start + offset, buffer);
+> +		if (copy_to_user((void __user *)(addr + offset),
 
-Just don't copy any of the content into your user space provider.
+If it is not being used by userpsace then do not call copy_to_user...
 
-Thanks
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
