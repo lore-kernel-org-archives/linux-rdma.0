@@ -1,168 +1,151 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 13/16] IB/pvrdma: Add the main driver module for PVRDMA
-Date: Mon, 26 Sep 2016 10:27:40 +0300
-Message-ID: <20160926072739.GB6352@yuval-lap.Home>
-References: <cover.1474759181.git.aditr@vmware.com>
- <8db982c37a0a96b37df02826564474a216922f25.1474759181.git.aditr@vmware.com>
+From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] ibportstate: Fixed peer port probing
+ when using DR routing
+Date: Mon, 26 Sep 2016 10:12:18 +0200
+Message-ID: <57E8D862.8060407@oracle.com>
+References: <430aa17fd12cdcfd735b4215938dc4279e33572d.1474612678.git-series.knut.omang@oracle.com>
+ <01da2b4d-270a-f8c9-3d5f-ec7a4c0b7d22@dev.mellanox.co.il>
+ <20160926053442.GE29780@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8db982c37a0a96b37df02826564474a216922f25.1474759181.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160926053442.GE29780-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 24, 2016 at 04:21:37PM -0700, Adit Ranadive wrote:
-> +
-> +	/* Currently, the driver only supports RoCE mode. */
-> +	if (dev->dsr->caps.mode != PVRDMA_DEVICE_MODE_ROCE) {
-> +		dev_err(&pdev->dev, "unsupported transport %d\n",
-> +			dev->dsr->caps.mode);
-> +		ret = -EINVAL;
 
-This is some fatal error with the device, not that something wrong with the
-function's argument.
-Suggesting to replace with -EFAULT.
 
-> +		goto err_free_cq_ring;
-> +	}
-> +
-> +	/* Currently, the driver only supports RoCE V1. */
-> +	if (!(dev->dsr->caps.gid_types & PVRDMA_GID_TYPE_FLAG_ROCE_V1)) {
-> +		dev_err(&pdev->dev, "driver needs RoCE v1 support\n");
-> +		ret = -EINVAL;
+On 09/26/2016 07:34 AM, ira.weiny wrote:
+> On Fri, Sep 23, 2016 at 09:06:45AM -0400, Hal Rosenstock wrote:
+>> On 9/23/2016 2:42 AM, Knut Omang wrote:
+>>> From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Title might be better as:
+>> ibportstate: Fixed switch peer port probing when using DR routing
+> Agreed.
+Thanks for the suggestion. I will change this.
+>
+>
+>>> When querying a remote port
+>> on a switch
+I will change this.
+>>
+>>> using ibportportstate,
+>> Typo: ibportstate
+I will change this.
+>>
+>>> queries to the peer port
+>>> would result in timeouts. The reason for this is that the DR path (or partial
+>>> DR path was not correctly constructed.
+>> It looks like there are 2 cases fixed below and it's best to describe
+>> them. My take on it is:
+>> 1. local LID (for switch port 0) is not yet configured
+>> 2. SMI requester port (I think this is what you term remote port above)
+>> is on local rather than remote switch
+>> Is that accurate ?
+It is correct that this patch does cover 2 cases.
 
-Ditto.
+The two cases are:
+1. The user has run ibportstate with a direct route, e.g.
+     "ibportstate -D 0,1,15 6"
 
-> +		goto err_free_cq_ring;
-> +	}
-> +
-> +	/* Paired vmxnet3 will have same bus, slot. But func will be 0 */
-> +	pdev_net = pci_get_slot(pdev->bus, PCI_DEVFN(PCI_SLOT(pdev->devfn), 0));
-> +	if (!pdev_net) {
-> +		dev_err(&pdev->dev, "failed to find paired net device\n");
-> +		ret = -ENODEV;
-> +		goto err_free_cq_ring;
-> +	}
-> +
-> +	if (pdev_net->vendor != PCI_VENDOR_ID_VMWARE ||
-> +	    pdev_net->device != PCI_DEVICE_ID_VMWARE_VMXNET3) {
-> +		dev_err(&pdev->dev, "failed to find paired vmxnet3 device\n");
-> +		pci_dev_put(pdev_net);
-> +		ret = -ENODEV;
-> +		goto err_free_cq_ring;
-> +	}
-> +
-> +	dev->netdev = pci_get_drvdata(pdev_net);
-> +	pci_dev_put(pdev_net);
-> +	if (!dev->netdev) {
-> +		dev_err(&pdev->dev, "failed to get vmxnet3 device\n");
-> +		ret = -ENODEV;
-> +		goto err_free_cq_ring;
-> +	}
-> +
-> +	dev_info(&pdev->dev, "paired device to %s\n", dev->netdev->name);
-> +
-> +	/* Interrupt setup */
-> +	ret = pvrdma_alloc_intrs(dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to allocate interrupts\n");
-> +		ret = -ENOMEM;
-> +		goto err_netdevice;
-> +	}
-> +
-> +	/* Allocate UAR table. */
-> +	ret = pvrdma_uar_table_init(dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to allocate UAR table\n");
-> +		ret = -ENOMEM;
-> +		goto err_free_intrs;
-> +	}
-> +
-> +	/* Allocate GID table */
-> +	dev->sgid_tbl = kcalloc(dev->dsr->caps.gid_tbl_len,
-> +				sizeof(union ib_gid), GFP_KERNEL);
-> +	if (!dev->sgid_tbl) {
-> +		ret = -ENOMEM;
-> +		goto err_free_uar_table;
-> +	}
-> +	dev_dbg(&pdev->dev, "gid table len %d\n", dev->dsr->caps.gid_tbl_len);
-> +
-> +	pvrdma_enable_intrs(dev);
-> +
-> +	/* Activate pvrdma device */
-> +	pvrdma_write_reg(dev, PVRDMA_REG_CTL, PVRDMA_DEVICE_CTL_ACTIVATE);
-> +
-> +	/* Make sure the write is complete before reading status. */
-> +	mb();
-> +
-> +	/* Check if device was successfully activated */
-> +	ret = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-> +	if (ret != 0) {
-> +		dev_err(&pdev->dev, "failed to activate device\n");
-> +		ret = -EINVAL;
+    In this case, the current implementation will use a direct route of
+    "0,6" when probing the peer node. Instead, the portnumber it should 
+be using the
+    direct route "0,1,15,6".
 
-Suggesting -EFAULT.
-
-> +		goto err_disable_intr;
-> +	}
-> +
-> +	/* Register IB device */
-> +	ret = pvrdma_register_device(dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to register IB device\n");
-> +		goto err_disable_intr;
-> +	}
-> +
-> +	dev->nb_netdev.notifier_call = pvrdma_netdevice_event;
-> +	ret = register_netdevice_notifier(&dev->nb_netdev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to register netdevice events\n");
-> +		goto err_unreg_ibdev;
-> +	}
-> +
-> +	dev_info(&pdev->dev, "attached to device\n");
-> +	return 0;
-> +
-> +err_unreg_ibdev:
-> +	ib_unregister_device(&dev->ib_dev);
-> +err_disable_intr:
-> +	pvrdma_disable_intrs(dev);
-> +	kfree(dev->sgid_tbl);
-> +err_free_uar_table:
-> +	pvrdma_uar_table_cleanup(dev);
-> +err_free_intrs:
-> +	pvrdma_free_irq(dev);
-> +	pvrdma_disable_msi_all(dev);
-> +err_netdevice:
-> +	unregister_netdevice_notifier(&dev->nb_netdev);
-> +err_free_cq_ring:
-> +	pvrdma_page_dir_cleanup(dev, &dev->cq_pdir);
-> +err_free_async_ring:
-> +	pvrdma_page_dir_cleanup(dev, &dev->async_pdir);
-> +err_free_slots:
-> +	pvrdma_free_slots(dev);
-> +err_free_dsr:
-> +	dma_free_coherent(&pdev->dev, sizeof(*dev->dsr), dev->dsr,
-> +			  dev->dsrbase);
-> +err_uar_unmap:
-> +	iounmap(dev->driver_uar.map);
-> +err_unmap_regs:
-> +	iounmap(dev->regs);
-> +err_free_resource:
-> +	pci_release_regions(pdev);
-> +err_disable_pdev:
-> +	pci_disable_device(pdev);
-> +	pci_set_drvdata(pdev, NULL);
-> +err_free_device:
-> +	mutex_lock(&pvrdma_device_list_lock);
-> +	list_del(&dev->device_link);
-> +	mutex_unlock(&pvrdma_device_list_lock);
-> +	ib_dealloc_device(&dev->ib_dev);
-> +	return ret;
-> +}
+2. The other case is actually a workaround for a problem with partial DR 
+routing on
+     some of our switches. As this is a workaround for a problem 
+elsewhere, I release
+     that it should not be part of the ibportstate utility. I will 
+remove this part of the
+     commit.
+>>
+>>> Signed-off-by: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> Reviewed-by: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>   src/ibportstate.c | 36 +++++++++++++++++++++++++++---------
+>>>   1 file changed, 27 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/src/ibportstate.c b/src/ibportstate.c
+>>> index cb47aa9..cd0f680 100644
+>>> --- a/src/ibportstate.c
+>>> +++ b/src/ibportstate.c
+>>> @@ -1,6 +1,8 @@
+>>>   /*
+>>>    * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+>>>    * Copyright (c) 2010,2011 Mellanox Technologies LTD.  All rights reserved.
+>>> + * Copyright (c) 2011, 2015, Oracle and/or its affiliates. All rights reserved.
+>>> + *
+>>>    *
+>>>    * This software is available to you under a choice of one of two
+>>>    * licenses.  You may choose to be licensed under the terms of the GNU
+>>> @@ -655,15 +657,31 @@ int main(int argc, char **argv)
+>>>   
+>>>   			/* Setup portid for peer port */
+>>>   			memcpy(&peerportid, &portid, sizeof(peerportid));
+>>> -			peerportid.drpath.cnt = 1;
+>>> -			peerportid.drpath.p[1] = (uint8_t) portnum;
+>>> -
+>>> -			/* Set DrSLID to local lid */
+>>> -			if (resolve_self(ibd_ca, ibd_ca_port, &selfportid,
+>>> -						&selfport, 0) < 0)
+>>> -				IBEXIT("could not resolve self");
+>>> -			peerportid.drpath.drslid = (uint16_t) selfportid.lid;
+>>> -			peerportid.drpath.drdlid = 0xffff;
+>>> +			if (portid.lid == 0) {
+>>> +				peerportid.drpath.cnt = portid.drpath.cnt + 1;
+> Nit: peerportid.drpath.cnt++;
+Thanks I will change that.
+>
+> Ira
+>
+>>> +				if (peerportid.drpath.cnt == IB_SUBNET_PATH_HOPS_MAX) {
+>>> +					exit(0);
+>> Nit: IBEXIT("Too many hops") rather than exit(0)
+Thanks, I will correct that.
+>>
+>>> +				}
+>>> +				peerportid.drpath.p[peerportid.drpath.cnt] = (uint8_t) portnum;
+>>> +			} else {
+>>> +				/* Set DrSLID to local lid */
+>>> +				if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+>>> +						       ibd_dest_type, ibd_sm_id, srcport) < 0)
+>>> +					IBEXIT("could not resolve self");
+>>> +
+>>> +				peerportid.drpath.cnt = 1;
+>>> +				peerportid.drpath.p[1] = (uint8_t) portnum;
+>>> +
+>>> +
+>> Nit: Eliminate extra blank line
+Thanks, I will correct that.
+>>
+>>> +				/* Use partial LID routing if remote switch */
+>>> +				if ((portid.lid == selfportid.lid)) {
+>>> +					peerportid.drpath.drslid = 0xffff;
+>>> +					peerportid.drpath.drdlid = 0xffff;
+>>> +				} else {
+>>> +					peerportid.drpath.drslid = selfportid.lid;
+>>> +					peerportid.drpath.drdlid = 0xffff;
+>>> +				}
+>> The following can be factored out of the above if/else:
+>> 				peerportid.drpath.drdlid = 0xffff;
+Thanks, I will do that (I believe this will removed from the commit as 
+explained above).
+>>
+>>> +			}
+>>>   
+>>>   			/* Get peer port NodeInfo to obtain peer port number */
+>>>   			is_peer_switch = get_node_info(&peerportid, data);
+>>>
+>>> base-commit: 2937cf99350a2e423b705e8b8dd10499796a7b41
+>>>
+Thanks for the review,
+Dag
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
