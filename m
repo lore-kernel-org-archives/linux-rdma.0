@@ -1,65 +1,32 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/9] Introduce blk_quiesce_queue() and blk_resume_queue()
-Date: Mon, 26 Sep 2016 11:46:44 -0700
-Message-ID: <9cffd6ee-2940-b2b7-cbfc-47dd6307593a@sandisk.com>
-References: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com>
- <20160926183308.GA13309@redhat.com>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 13/13] Remove ibsupport-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org from MAINTAINERS
+Date: Mon, 26 Sep 2016 19:12:01 +0000
+Message-ID: <1474917117.18510.6.camel@intel.com>
+References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
+         <1474658228-5390-14-git-send-email-jgunthorpe@obsidianresearch.com>
+         <1474724600.6625.1.camel@intel.com>
+         <20160924165645.GA16206@obsidianresearch.com>
+         <1474744719.6625.3.camel@intel.com>
+         <20160926181206.GA28992@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160926183308.GA13309-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160926181206.GA28992-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <8DD7C344B683D643847AE3147F73DA28-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/26/2016 11:33 AM, Mike Snitzer wrote:
-> On Mon, Sep 26 2016 at  2:25pm -0400,
-> Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
->
->> Hello Jens,
->>
->> Multiple block drivers need the functionality to stop a request
->> queue and to wait until all ongoing request_fn() / queue_rq() calls
->> have finished without waiting until all outstanding requests have
->> finished. Hence this patch series that introduces the
->> blk_quiesce_queue() and blk_resume_queue() functions. The dm-mq, SRP
->> and nvme patches in this patch series are three examples of where
->> these functions are useful. These patches apply on top of the
->> September 21 version of your for-4.9/block branch. The individual
->> patches in this series are:
->>
->> 0001-blk-mq-Introduce-blk_mq_queue_stopped.patch
->> 0002-dm-Fix-a-race-condition-related-to-stopping-and-star.patch
->> 0003-RFC-nvme-Use-BLK_MQ_S_STOPPED-instead-of-QUEUE_FLAG_.patch
->> 0004-block-Move-blk_freeze_queue-and-blk_unfreeze_queue-c.patch
->> 0005-block-Extend-blk_freeze_queue_start-to-the-non-blk-m.patch
->> 0006-block-Rename-mq_freeze_wq-and-mq_freeze_depth.patch
->> 0007-blk-mq-Introduce-blk_quiesce_queue-and-blk_resume_qu.patch
->> 0008-SRP-transport-Port-srp_wait_for_queuecommand-to-scsi.patch
->> 0009-RFC-nvme-Fix-a-race-condition.patch
->
-> Hi Bart,
->
-> How much testing has this series seen?  Did you run it against the
-> mptest testsuite? https://github.com/snitm/mptest
->
-> I did notice patch 2 should come after patch 7 (not sure if other
-> patches are out of order).
-
-Hello Mike,
-
-Regarding testing: I have primarily used my srp-test regression test 
-suite to test this patch series because that test suite uncovered a 
-dm-mq race that was not discovered by mptest. I'm currently running 
-xfstests (to verify an ib_srp change that is not in this patch series) 
-and will run mptest next.
-
-You are right that patch 2 should come after patch 7. The order of the 
-other patches in this series should be fine.
-
-Bart.
+T24gTW9uLCAyMDE2LTA5LTI2IGF0IDEyOjEyIC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFNhdCwgU2VwIDI0LCAyMDE2IGF0IDA3OjE4OjQyUE0gKzAwMDAsIERhbGVzc2FuZHJv
+LCBEZW5uaXMgd3JvdGU6DQo+ID4gQWN0dWFsbHkgb24gc2Vjb25kIHRob3VnaHQsIG1heWJlIGJl
+dHRlciB0byB1c2U6DQo+ID4gDQo+ID4gaW5maW5pcGF0aCA8aW5maW5pcGF0aEBpbnRlbC5jb20+
+DQo+IA0KPiBUaGlzIE9rPw0KPiANCj4gaHR0cHM6Ly9naXRodWIuY29tL2pndW50aG9ycGUvcmRt
+YS1wbHVtYmluZy9jb21taXQvYjg0MzZiOWIyMWJjOWY4NDMyDQo+IGJiYTZiNDk1NzNlYTMxZGI5
+NDUxMDENCg0KV29ya3MgZm9yIG1lLiBUaGFua3MuDQoNCi1EZW5ueQ==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
