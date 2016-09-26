@@ -1,42 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 05/13] Have cmake run man pages through text substitution
-Date: Mon, 26 Sep 2016 12:21:54 -0600
-Message-ID: <20160926182154.GA27094@obsidianresearch.com>
-References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474658228-5390-6-git-send-email-jgunthorpe@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08E9D8@ORSMSX109.amr.corp.intel.com>
- <20160923213819.GC8490@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24EEBF1A@CRSMSX101.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08EFE3@ORSMSX109.amr.corp.intel.com>
- <20160926174713.GF22965@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24EEC6E9@CRSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH 0/9] Introduce blk_quiesce_queue() and blk_resume_queue()
+Date: Mon, 26 Sep 2016 11:25:54 -0700
+Message-ID: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E24EEC6E9-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-block-owner@vger.kernel.org>
+Sender: linux-block-owner@vger.kernel.org
+To: Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 26, 2016 at 06:17:03PM +0000, Weiny, Ira wrote:
+Hello Jens,
 
-> > rst2man is incredibly widely distributed: it comes with python-docutils which
-> > is widely included in every distribution. I have no idea why people would
-> > complain to you on that point. If something comes in-box in all the distros
-> > then it is fair game to depend upon, IMHO.
-> 
-> I thought so to.  But python-docutils is in the "optional" section of RH.
+Multiple block drivers need the functionality to stop a request queue 
+and to wait until all ongoing request_fn() / queue_rq() calls have 
+finished without waiting until all outstanding requests have finished. 
+Hence this patch series that introduces the blk_quiesce_queue() and 
+blk_resume_queue() functions. The dm-mq, SRP and nvme patches in this 
+patch series are three examples of where these functions are useful. 
+These patches apply on top of the September 21 version of your 
+for-4.9/block branch. The individual patches in this series are:
 
-I mean it is available via 'yum' with no special repositories. I do
-not expect software to build out of the box on any arbitary distro
-install. I expect builders to install the required set of
-packages. This is why the exect package set is documented in the
-README.md
+0001-blk-mq-Introduce-blk_mq_queue_stopped.patch
+0002-dm-Fix-a-race-condition-related-to-stopping-and-star.patch
+0003-RFC-nvme-Use-BLK_MQ_S_STOPPED-instead-of-QUEUE_FLAG_.patch
+0004-block-Move-blk_freeze_queue-and-blk_unfreeze_queue-c.patch
+0005-block-Extend-blk_freeze_queue_start-to-the-non-blk-m.patch
+0006-block-Rename-mq_freeze_wq-and-mq_freeze_depth.patch
+0007-blk-mq-Introduce-blk_quiesce_queue-and-blk_resume_qu.patch
+0008-SRP-transport-Port-srp_wait_for_queuecommand-to-scsi.patch
+0009-RFC-nvme-Fix-a-race-condition.patch
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Bart.
