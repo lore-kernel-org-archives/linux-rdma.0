@@ -1,62 +1,43 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [infiniband-diags PATCH 2/4] Replace INCLUDES with AM_CPPFLAGS
-Date: Mon, 26 Sep 2016 00:56:28 -0400
-Message-ID: <20160926045627.GB29780@phlsvsds.ph.intel.com>
-References: <20160905214852.GA9682@pryan.ekaia.org>
+Subject: Re: [infiniband-diags PATCH 3/4] Update the shebang to point to /bin/bash
+Date: Mon, 26 Sep 2016 00:56:44 -0400
+Message-ID: <20160926045643.GC29780@phlsvsds.ph.intel.com>
+References: <20160905214902.GA9765@pryan.ekaia.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160905214852.GA9682-2v28OwtJ5VXkvb5ro2YpKQ@public.gmane.org>
+In-Reply-To: <20160905214902.GA9765-2v28OwtJ5VXkvb5ro2YpKQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ana Guerrero =?iso-8859-1?Q?L=F3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 05, 2016 at 11:48:52PM +0200, Ana Guerrero López wrote:
-> Fixes the following warnings:
-> 
-> Makefile.am:4: warning: 'INCLUDES' is the old name for 'AM_CPPFLAGS' (or '*_CPPFLAGS')
-> 
-> libibnetdisc/Makefile.am:4: warning: 'INCLUDES' is the old name for 'AM_CPPFLAGS' (or '*_CPPFLAGS')
+On Mon, Sep 05, 2016 at 11:49:02PM +0200, Ana Guerrero López wrote:
+> The script contains a few bashims and it won't run in systems such as Debian
+> and Ubuntu where /bin/sh is not a symlink to /bin/bash
 > 
 > Signed-off-by: Ana Guerrero López <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
 
 Thanks Applied,
 Ira
 
+>
 > ---
->  Makefile.am              | 2 +-
->  libibnetdisc/Makefile.am | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+>  doc/generate | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/Makefile.am b/Makefile.am
-> index 3fea79d..1973702 100644
-> --- a/Makefile.am
-> +++ b/Makefile.am
-> @@ -1,7 +1,7 @@
->  ACLOCAL_AMFLAGS = -I config
->  SUBDIRS = libibnetdisc
+> diff --git a/doc/generate b/doc/generate
+> index 816b66f..b1339f8 100755
+> --- a/doc/generate
+> +++ b/doc/generate
+> @@ -1,4 +1,4 @@
+> -#!/bin/sh
+> +#!/bin/bash
 >  
-> -INCLUDES = -I$(top_builddir)/include/ -I$(srcdir)/include -I$(includedir) \
-> +AM_CPPFLAGS = -I$(top_builddir)/include/ -I$(srcdir)/include -I$(includedir) \
->  	-I$(includedir)/infiniband -I$(top_srcdir)/libibnetdisc/include
->  
->  if DEBUG
-> diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
-> index 2cfcc33..fee13ca 100644
-> --- a/libibnetdisc/Makefile.am
-> +++ b/libibnetdisc/Makefile.am
-> @@ -1,7 +1,7 @@
->  
->  #SUBDIRS = .
->  
-> -INCLUDES = -I$(srcdir)/include -I$(includedir) -I$(includedir)/infiniband
-> +AM_CPPFLAGS = -I$(srcdir)/include -I$(includedir) -I$(includedir)/infiniband
->  
->  lib_LTLIBRARIES = libibnetdisc.la
->  sbin_PROGRAMS =
+>  docdir=`dirname $0`
+>  mode=$1
 > -- 
 > 2.9.3
 > 
