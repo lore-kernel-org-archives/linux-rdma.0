@@ -1,51 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/5] libocrdma: Move ocrdma's list
- implementation into common directory
-Date: Mon, 26 Sep 2016 16:23:19 -0600
-Message-ID: <20160926222319.GA2358@obsidianresearch.com>
-References: <1474786207-2149-1-git-send-email-leon@kernel.org>
- <1474786207-2149-5-git-send-email-leon@kernel.org>
- <20160925144121.GA12246@infradead.org>
- <20160925161315.GD4088@leon.nu>
- <20160925162203.GA32434@infradead.org>
- <20160926174057.GD22965@obsidianresearch.com>
- <20160926221440.GA5878@infradead.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/9] Introduce blk_quiesce_queue() and blk_resume_queue()
+Date: Mon, 26 Sep 2016 15:26:37 -0700
+Message-ID: <8c5fb60c-0bb5-e405-eaba-576b5f8bd244@sandisk.com>
+References: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com>
+ <20160926183308.GA13309@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160926221440.GA5878-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20160926183308.GA13309-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 26, 2016 at 03:14:40PM -0700, Christoph Hellwig wrote:
-> On Mon, Sep 26, 2016 at 11:40:57AM -0600, Jason Gunthorpe wrote:
-> > Copyright isn't a patent,
-> 
-> I know very well, thanks..
+On 09/26/2016 11:33 AM, Mike Snitzer wrote:
+> How much testing has this series seen?  Did you run it against the
+> mptest testsuite? https://github.com/snitm/mptest
 
-Right, mainly for others..
+Hello Mike,
 
-> > assuming freebsd didn't copy any code and
-> > just implemented the same API independently (eg it is an Independent
-> > Creation) they should be OK from a copyright perspective.
-> 
-> That's a big IF, as I'm honestly not sure it is.  I don't want to blame
-> anywone because I really don't know but if I had to decided to use it
-> or not I would error on the safe side.
+The output of mptest with MULTIPATH_BACKEND_MODULE="scsidebug":
+# ./runtest
+[ ... ]
+SUCCESS
+** summary **
+PASSED:  test_00_no_failure test_01_sdev_offline test_02_sdev_delete 
+test_03_dm_failpath test_04_dm_switchpg
+FAILED:
 
-Sounds reasonable.
+I think this is the output we were hoping to see :-)
 
-> > As should be
-> > Rusty's version in CCAN.
-> 
-> That's a much safer choice.  It's a lightly different API, though.
-
-Leon? Does this seem doable to you?
-
-Jason
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
