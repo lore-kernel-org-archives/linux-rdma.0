@@ -1,38 +1,47 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/9] Introduce blk_quiesce_queue() and blk_resume_queue()
-Date: Mon, 26 Sep 2016 15:26:37 -0700
-Message-ID: <8c5fb60c-0bb5-e405-eaba-576b5f8bd244@sandisk.com>
-References: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com>
- <20160926183308.GA13309@redhat.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
+Date: Mon, 26 Sep 2016 17:42:23 -0500
+Message-ID: <20160926224223.GA3309@localhost>
+References: <cover.1474759181.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160926183308.GA13309-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1474759181.git.aditr@vmware.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Adit Ranadive <aditr@vmware.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/26/2016 11:33 AM, Mike Snitzer wrote:
-> How much testing has this series seen?  Did you run it against the
-> mptest testsuite? https://github.com/snitm/mptest
+On Sat, Sep 24, 2016 at 04:21:24PM -0700, Adit Ranadive wrote:
+>  MAINTAINERS                                    |    9 +
+>  drivers/infiniband/Kconfig                     |    1 +
+>  drivers/infiniband/hw/Makefile                 |    1 +
+>  drivers/infiniband/hw/pvrdma/Kconfig           |    7 +
+>  drivers/infiniband/hw/pvrdma/Makefile          |    3 +
+>  drivers/infiniband/hw/pvrdma/pvrdma.h          |  473 +++++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_cmd.c      |  117 +++
+>  drivers/infiniband/hw/pvrdma/pvrdma_cq.c       |  426 +++++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_defs.h     |  301 ++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h  |  342 +++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c |  127 +++
+>  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h |  444 +++++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_main.c     | 1220 ++++++++++++++++++++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_misc.c     |  304 ++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_mr.c       |  334 +++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_qp.c       |  973 +++++++++++++++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_verbs.c    |  577 +++++++++++
+>  drivers/infiniband/hw/pvrdma/pvrdma_verbs.h    |  108 +++
+>  drivers/net/vmxnet3/vmxnet3_int.h              |    3 +-
+>  include/linux/pci_ids.h                        |    1 +
+>  include/uapi/rdma/Kbuild                       |    2 +
+>  include/uapi/rdma/pvrdma-abi.h                 |   99 ++
+>  include/uapi/rdma/pvrdma-uapi.h                |  255 +++++
 
-Hello Mike,
+Hi Adit,
 
-The output of mptest with MULTIPATH_BACKEND_MODULE="scsidebug":
-# ./runtest
-[ ... ]
-SUCCESS
-** summary **
-PASSED:  test_00_no_failure test_01_sdev_offline test_02_sdev_delete 
-test_03_dm_failpath test_04_dm_switchpg
-FAILED:
+You don't need to cc linux-pci just because of the one-line change to
+pci_ids.h.  I've already acked that, and the rest is just noise to the
+main linux-pci audience.
 
-I think this is the output we were hoping to see :-)
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
