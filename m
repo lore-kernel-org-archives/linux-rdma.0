@@ -1,32 +1,26 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 05/13] Have cmake run man pages through text substitution
-Date: Mon, 26 Sep 2016 15:19:53 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08EFE3@ORSMSX109.amr.corp.intel.com>
-References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474658228-5390-6-git-send-email-jgunthorpe@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB08E9D8@ORSMSX109.amr.corp.intel.com>
- <20160923213819.GC8490@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24EEBF1A@CRSMSX101.amr.corp.intel.com>
+Subject: RE: [PATCH rdma-core 3/5] utils: Remove container_of and offset
+ local declarations
+Date: Mon, 26 Sep 2016 15:32:57 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08F080@ORSMSX109.amr.corp.intel.com>
+References: <1474786207-2149-1-git-send-email-leon@kernel.org>
+ <1474786207-2149-4-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E24EEBF1A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1474786207-2149-4-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Infiniband-diags uses rst through rst2man.  But if I had to do it over
-> I would probably do it different.  rst2man is not always installed and
-> has caused build issues for some people.  Whatever tool we use I would
-> recommend it be something common.  I'm not too familiar with markdown.
-> Is this really common now?
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Only by those who want to provide actual documentation.
- 
-Libfabric uses a daemon that checks for updates to the markdown pages.  If it finds any, it generates the man page and commits those changes to the source tree.  So the tar file always has the actual man page.  Our tool selection was based on what worked well with github and web page generation.
+For ibacm/librdmacm:
+
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
