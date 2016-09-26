@@ -1,27 +1,37 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-core 3/5] utils: Remove container_of and offset
- local declarations
-Date: Mon, 26 Sep 2016 15:32:57 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB08F080@ORSMSX109.amr.corp.intel.com>
-References: <1474786207-2149-1-git-send-email-leon@kernel.org>
- <1474786207-2149-4-git-send-email-leon@kernel.org>
+From: "Amrani, Ram" <Ram.Amrani@cavium.com>
+Subject: RE: [RFC v3 00/11] QLogic RDMA Driver (qedr) RFC
+Date: Mon, 26 Sep 2016 15:45:56 +0000
+Message-ID: <SN1PR07MB22070DA963EE029137924C72F8CD0@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1474899407-12635-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474786207-2149-4-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1474899407-12635-1-git-send-email-Ram.Amrani@cavium.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: "davem@davemloft.net" <davem@davemloft.net>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "Elior, Ariel" <Ariel.Elior@cavium.com>, "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Mintz, Yuval" <Yuval.Mintz@cavium.com>, "Borundia, Rajesh" <Rajesh.Borundia@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> The series adds on top of RFC v2:
+> * fix licensing header to dual license
+> * remove 'debug' module paramter and make use of pr_debug
+> * relocation of qedr user API to include/rdma/uapi/
+> * use the __u32/64 in uapi and include types.h
+> * advance ABI version (since shifting to __u32/64 changed the ABI)
+> * remove the check for all drivers that IB_ACCESS_MW_BIND isn't set
+>   in ib_get_dma_mr. It will be sent in a dedicated patch.
+> * misc.: fixed typos, removed redundant includes
+>=20
+> For RFC v2 visit http://marc.info/?l=3Dlinux-rdma&m=3D147436779328618&w=
+=3D2
 
-For ibacm/librdmacm:
+I see that the following e-mails were sent with "PATCH" in the subject rath=
+er than "RFC v3".
+This is a mistake. All e-mails are intended to be "RFC v3".
+I don't think it should matter much for reading and reviewing purposes, but=
+ don't hesitate if=20
+you would like me to re-send with fixed headers.
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ram
