@@ -1,36 +1,42 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
-Date: Mon, 26 Sep 2016 14:16:20 -0700
-Message-ID: <b1b78471-c136-fd24-6d4c-96e855e03b3b@vmware.com>
-References: <cover.1474759181.git.aditr@vmware.com>
- <20160925070352.GU4088@leon.nu>
- <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9@vmware.com>
- <20160926165104.GA12011@obsidianresearch.com>
- <b4e0acd9-e1a2-f6ac-0afa-c0fd62dd62f0@vmware.com>
- <20160926210724.GA16413@obsidianresearch.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH rdma-core 4/5] libocrdma: Move ocrdma's list
+ implementation into common directory
+Date: Mon, 26 Sep 2016 15:14:40 -0700
+Message-ID: <20160926221440.GA5878@infradead.org>
+References: <1474786207-2149-1-git-send-email-leon@kernel.org>
+ <1474786207-2149-5-git-send-email-leon@kernel.org>
+ <20160925144121.GA12246@infradead.org>
+ <20160925161315.GD4088@leon.nu>
+ <20160925162203.GA32434@infradead.org>
+ <20160926174057.GD22965@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160926210724.GA16413@obsidianresearch.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Leon Romanovsky <leon@kernel.org>, dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160926174057.GD22965-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 26, 2016 at 14:07:24PM -0700, Jason Gunthorpe wrote:
-> On Mon, Sep 26, 2016 at 01:40:10PM -0700, Adit Ranadive wrote:
-> 
-> > Wouldnt they be some overlap between the user-space and kernel driver? Or is
-> > it expected that the common structures (even device specific ones) be moved to
-> > the ABI file?
-> 
-> Yes, even device specific structures must be in the abi file. Anything
-> that is used with copy_to_user/copy_from_user/etc.
-> 
+On Mon, Sep 26, 2016 at 11:40:57AM -0600, Jason Gunthorpe wrote:
+> Copyright isn't a patent,
 
-Ok. Will make sure we consolidate the common stuff in the ABI file in the 
-next version.
+I know very well, thanks..
 
-Thanks,
-Adit
+> assuming freebsd didn't copy any code and
+> just implemented the same API independently (eg it is an Independent
+> Creation) they should be OK from a copyright perspective.
+
+That's a big IF, as I'm honestly not sure it is.  I don't want to blame
+anywone because I really don't know but if I had to decided to use it
+or not I would error on the safe side.
+
+> As should be
+> Rusty's version in CCAN.
+
+That's a much safer choice.  It's a lightly different API, though.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
