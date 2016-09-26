@@ -1,114 +1,93 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [infiniband-diags PATCH 4/4] A few typo fixes in the manpages
-Date: Mon, 26 Sep 2016 00:56:59 -0400
-Message-ID: <20160926045659.GD29780@phlsvsds.ph.intel.com>
-References: <20160905214910.GA9795@pryan.ekaia.org>
+From: Adit Ranadive <aditr@vmware.com>
+Subject: Re: [PATCH v5 13/16] IB/pvrdma: Add the main driver module for PVRDMA
+Date: Sun, 25 Sep 2016 22:10:43 -0700
+Message-ID: <da4a09fc-bef1-60ea-f9af-7c505a9af6d6@vmware.com>
+References: <cover.1474759181.git.aditr@vmware.com>
+ <8db982c37a0a96b37df02826564474a216922f25.1474759181.git.aditr@vmware.com>
+ <20160925075703.GX4088@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160905214910.GA9795-2v28OwtJ5VXkvb5ro2YpKQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ana Guerrero =?iso-8859-1?Q?L=F3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160925075703.GX4088@leon.nu>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 05, 2016 at 11:49:10PM +0200, Ana Guerrero López wrote:
-> They have been detected by lintian, the Debian package checker
-> 
-> Signed-off-by: Ana Guerrero López <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
+On sun, Sep 25 2016 at 10:57:03AM +0300, Leon Romanovsky wrote:
+> On Sat, Sep 24, 2016 at 04:21:37PM -0700, Adit Ranadive wrote:
+> > This patch adds the support to register a RDMA device with the kernel RDMA
+> > stack as well as a kernel module. This also initializes the underlying
+> > virtual PCI device.
+> >
+> > Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+> > Reviewed-by: Jorgen Hansen <jhansen@vmware.com>
+> > Reviewed-by: George Zhang <georgezhang@vmware.com>
+> > Reviewed-by: Aditya Sarwade <asarwade@vmware.com>
+> > Reviewed-by: Bryan Tan <bryantan@vmware.com>
+> > Signed-off-by: Adit Ranadive <aditr@vmware.com>
 
-Thanks Applied,
-Ira
+<...>
 
-> ---
->  doc/rst/iblinkinfo.8.in.rst       | 4 ++--
->  doc/rst/ibqueryerrors.8.in.rst    | 2 +-
->  doc/rst/infiniband-diags.8.in.rst | 4 ++--
->  doc/rst/rdma-ndd.8.in.rst         | 4 ++--
->  4 files changed, 7 insertions(+), 7 deletions(-)
+> > +
+> > +#include <linux/errno.h>
+> > +#include <linux/inetdevice.h>
+> > +#include <linux/init.h>
+> > +#include <linux/module.h>
+> > +#include <linux/slab.h>
+> > +#include <rdma/ib_addr.h>
+> > +#include <rdma/ib_smi.h>
+> > +#include <rdma/ib_user_verbs.h>
+> > +#include <net/addrconf.h>
+> > +#include <rdma/pvrdma-abi.h>
+> > +
+> > +#include "pvrdma.h"
+> > +
+> > +#define DRV_NAME	"pvrdma"
+> > +#define DRV_VERSION	"1.0"
+> > +#define DRV_RELDATE	"January 1, 2013"
+> > +
+> > +static const char pvrdma_version[] =
+> > +	DRV_NAME ": PVRDMA InfiniBand driver v"
+> > +	DRV_VERSION " (" DRV_RELDATE ")\n";
 > 
-> diff --git a/doc/rst/iblinkinfo.8.in.rst b/doc/rst/iblinkinfo.8.in.rst
-> index ee2aefb..5f87f37 100644
-> --- a/doc/rst/iblinkinfo.8.in.rst
-> +++ b/doc/rst/iblinkinfo.8.in.rst
-> @@ -57,7 +57,7 @@ The node to start a partial scan can be specified with the following addresses.
->  
->  **--switch, -S <port_guid>** same as "-G". (provided only for backward compatibility)
->  
-> -How much of the scan to be printed can be controled with the following.
-> +How much of the scan to be printed can be controlled with the following.
->  
->  **--all, -a**
->  Print all nodes found in a partial fabric scan.  Normally a
-> @@ -81,7 +81,7 @@ Filter downports indicated in a ibnetdiscover cache.  If a port was previously
->  indicated as down in the specified cache, and is still down, do not output it in the
->  resulting output.  This option may be particularly useful for environments
->  where switches are not fully populated, thus much of the default iblinkinfo
-> -info is considered unuseful.  See **ibnetdiscover** for information on caching
-> +info is considered useless.  See **ibnetdiscover** for information on caching
->  ibnetdiscover output.
->  
->  
-> diff --git a/doc/rst/ibqueryerrors.8.in.rst b/doc/rst/ibqueryerrors.8.in.rst
-> index df2901c..0a7992b 100644
-> --- a/doc/rst/ibqueryerrors.8.in.rst
-> +++ b/doc/rst/ibqueryerrors.8.in.rst
-> @@ -63,7 +63,7 @@ using a QoS aware routing engine as it can cause a credit deadlock.
->  
->  **CAUTION** clearing data or error counters will occur regardless of if they
->  are printed or not.  See **--counters** and **--data** for details on
-> -controling which counters are printed.
-> +controlling which counters are printed.
->  
->  **--details** include receive error and transmit discard details
->  
-> diff --git a/doc/rst/infiniband-diags.8.in.rst b/doc/rst/infiniband-diags.8.in.rst
-> index 7776a30..be77ce3 100644
-> --- a/doc/rst/infiniband-diags.8.in.rst
-> +++ b/doc/rst/infiniband-diags.8.in.rst
-> @@ -120,8 +120,8 @@ Switch Forwarding Table info
->  
->  	See: ibtracert, ibroute, dump_lfts, dump_mfts, check_lft_balance, ibfindnodesusing
->  
-> -Peformance counters
-> --------------------
-> +Performance counters
-> +--------------------
->  
->  	See: ibqueryerrors, perfquery
->  
-> diff --git a/doc/rst/rdma-ndd.8.in.rst b/doc/rst/rdma-ndd.8.in.rst
-> index 708a5ab..1d126db 100644
-> --- a/doc/rst/rdma-ndd.8.in.rst
-> +++ b/doc/rst/rdma-ndd.8.in.rst
-> @@ -27,7 +27,7 @@ those changes.
->  DETAILS
->  =======
->  
-> -Full operation of this deamon requires kernels which support polling of the
-> +Full operation of this daemon requires kernels which support polling of the
->  procfs hostname file as well as libudev.
->  
->  If your system does not support either of these features, the daemon will set
-> @@ -37,7 +37,7 @@ the Node Descriptions at start up and then sleep forever.
->  Node Description format
->  -----------------------
->  
-> -The deamon uses the nd_format configuration option within the ibdiags.conf
-> +The daemon uses the nd_format configuration option within the ibdiags.conf
->  file.  %h and %d can be used as wildcards in that string to specify the dynamic
->  use of <hostname> and <device> respectively.
->  
-> -- 
-> 2.9.3
+> This is a good example why driver version and reldate are useless in
+> kernel. We are in 2016 and not in 2013. All these data are forgotten to
+> update right after the developer copied it from other pre-historic driver
+> (very common practice in netdev). It is worth to stop to use this totally
+> useless defines.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Sorry, in our case it was the Mellanox mlx4 driver :). Yeah, I can remove
+DRV_VERSION and DRV_RELDATE. I'll keep the MODULE_VERSION since we keep
+track of our virtual driver versions that way. So when there are any changes
+to our driver we typically bump up the version. Not sure if that's a netdev
+or misc device practice and if thats followed here.
+
+<...>
+
+> > +static void pvrdma_get_fw_ver_str(struct ib_device *device, char *str,
+> > +				  size_t str_len)
+> > +{
+> > +	struct pvrdma_dev *dev =
+> > +		container_of(device, struct pvrdma_dev, ib_dev);
+> > +	snprintf(str, str_len, "%d.%d.%d\n",
+> > +		 (int) (dev->dsr->caps.fw_ver >> 32),
+> > +		 (int) (dev->dsr->caps.fw_ver >> 16) & 0xffff,
+> > +		 (int) dev->dsr->caps.fw_ver & 0xffff);
+> > +}
+> 
+> Yuval already pointed it to you.
+> Thanks to Ira, we have general function in core to print FW version.
+> Please use them.
+> 
+
+If you are referring to commit 5fa76c20458518ed6181adddef2e31c5afc0745c
+then isnt this is exactly what Ira did for the other providers?
+Here, the pvrdma_get_fw_ver_str function is registered as a callback for
+the get_dev_fw_str API. Please our pvrdma_register_device function where
+we register our callbacks with ib_core:
+https://patchwork.kernel.org/patch/9349357/
+
+> > +	dev->ib_dev.get_dev_fw_str = pvrdma_get_fw_ver_str;
