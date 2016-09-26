@@ -1,7 +1,8 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/2] IB/srp: Remove an unused argument
-Date: Mon, 26 Sep 2016 12:57:10 -0700
-Message-ID: <3aa07053-fc94-6ea7-83bc-0b12711c3161@sandisk.com>
+Subject: [PATCH 2/2] IB/srp: Avoid that certain sg-lists trigger an infinite
+ loop with FMR
+Date: Mon, 26 Sep 2016 12:58:49 -0700
+Message-ID: <22a7b1b4-1a65-1a92-ef77-6f404de278fd@sandisk.com>
 References: <c5bd10df-225d-df4c-c765-97551348dbbd@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,33 +14,51 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Avoid that mapping an sg-list in which the first element has a
+non-zero offset triggers an infinite loop when using FMR. This
+patch makes the FMR mapping code similar to that of ib_sg_to_pages().
+
+Note: older Mellanox HCAs do not support non-zero offsets for FMR.
+See also commit 8c4037b501ac ("IB/srp: always avoid non-zero offsets
+into an FMR").
+
+Reported-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 513f2ec..06bb7a9 100644
+index 06bb7a905635..29ec5e2f247e 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1402,7 +1402,7 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+@@ -1416,7 +1416,9 @@ static int srp_map_sg_entry(struct srp_map_state *state,
  
- static int srp_map_sg_entry(struct srp_map_state *state,
- 			    struct srp_rdma_ch *ch,
--			    struct scatterlist *sg, int sg_index)
-+			    struct scatterlist *sg)
- {
- 	struct srp_target_port *target = ch->target;
- 	struct srp_device *dev = target->srp_host->srp_dev;
-@@ -1455,7 +1455,7 @@ static int srp_map_sg_fmr(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 	state->fmr.end = req->fmr_list + ch->target->mr_per_cmd;
- 
- 	for_each_sg(scat, sg, count, i) {
--		ret = srp_map_sg_entry(state, ch, sg, i);
-+		ret = srp_map_sg_entry(state, ch, sg);
- 		if (ret)
- 			return ret;
+ 	while (dma_len) {
+ 		unsigned offset = dma_addr & ~dev->mr_page_mask;
+-		if (state->npages == dev->max_pages_per_mr || offset != 0) {
++
++		if (state->npages == dev->max_pages_per_mr ||
++		    (state->npages > 0 && offset != 0)) {
+ 			ret = srp_map_finish_fmr(state, ch);
+ 			if (ret)
+ 				return ret;
+@@ -1433,12 +1435,12 @@ static int srp_map_sg_entry(struct srp_map_state *state,
  	}
+ 
+ 	/*
+-	 * If the last entry of the MR wasn't a full page, then we need to
++	 * If the end of the MR is not on a page boundary then we need to
+ 	 * close it out and start a new one -- we can only merge at page
+ 	 * boundaries.
+ 	 */
+ 	ret = 0;
+-	if (len != dev->mr_page_size)
++	if ((dma_addr & ~dev->mr_page_mask) != 0)
+ 		ret = srp_map_finish_fmr(state, ch);
+ 	return ret;
+ }
 -- 
 2.10.0
 
