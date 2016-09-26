@@ -1,28 +1,128 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
-Date: Sun, 25 Sep 2016 22:25:12 -0700
-Message-ID: <9f65ab5c-d8c2-e8e3-9334-5d1865a20dc9@vmware.com>
-References: <cover.1474759181.git.aditr@vmware.com>
- <20160925070352.GU4088@leon.nu>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] ibportstate: Fixed peer port probing when using DR routing
+Date: Mon, 26 Sep 2016 01:34:43 -0400
+Message-ID: <20160926053442.GE29780@phlsvsds.ph.intel.com>
+References: <430aa17fd12cdcfd735b4215938dc4279e33572d.1474612678.git-series.knut.omang@oracle.com> <01da2b4d-270a-f8c9-3d5f-ec7a4c0b7d22@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160925070352.GU4088@leon.nu>
-Sender: linux-pci-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <01da2b4d-270a-f8c9-3d5f-ec7a4c0b7d22-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 25 2016 at 10:03:52AM +0300, Leon Romanovsky wrote:
-> On Sat, Sep 24, 2016 at 04:21:24PM -0700, Adit Ranadive wrote:
+On Fri, Sep 23, 2016 at 09:06:45AM -0400, Hal Rosenstock wrote:
+> On 9/23/2016 2:42 AM, Knut Omang wrote:
+> > From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > 
-> <...>
-> 
-> >  include/uapi/rdma/pvrdma-abi.h                 |   99 ++
-> >  include/uapi/rdma/pvrdma-uapi.h                |  255 +++++
-> 
-> As Jason said, you need a very good reason to split and create number of
-> files per-driver in UAPI folder.
+> Title might be better as:
+> ibportstate: Fixed switch peer port probing when using DR routing
 
-I can move the pvrdma-uapi.h back to the pvrdma driver folder.
+Agreed.
+
+> 
+> > 
+> > When querying a remote port 
+> 
+> on a switch
+> 
+> > using ibportportstate,
+> 
+> Typo: ibportstate
+> 
+> > queries to the peer port
+> > would result in timeouts. The reason for this is that the DR path (or partial
+> > DR path was not correctly constructed.
+> 
+> It looks like there are 2 cases fixed below and it's best to describe
+> them. My take on it is:
+> 1. local LID (for switch port 0) is not yet configured
+> 2. SMI requester port (I think this is what you term remote port above)
+> is on local rather than remote switch
+> Is that accurate ?
+> 
+> > Signed-off-by: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  src/ibportstate.c | 36 +++++++++++++++++++++++++++---------
+> >  1 file changed, 27 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/src/ibportstate.c b/src/ibportstate.c
+> > index cb47aa9..cd0f680 100644
+> > --- a/src/ibportstate.c
+> > +++ b/src/ibportstate.c
+> > @@ -1,6 +1,8 @@
+> >  /*
+> >   * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+> >   * Copyright (c) 2010,2011 Mellanox Technologies LTD.  All rights reserved.
+> > + * Copyright (c) 2011, 2015, Oracle and/or its affiliates. All rights reserved.
+> > + *
+> >   *
+> >   * This software is available to you under a choice of one of two
+> >   * licenses.  You may choose to be licensed under the terms of the GNU
+> > @@ -655,15 +657,31 @@ int main(int argc, char **argv)
+> >  
+> >  			/* Setup portid for peer port */
+> >  			memcpy(&peerportid, &portid, sizeof(peerportid));
+> > -			peerportid.drpath.cnt = 1;
+> > -			peerportid.drpath.p[1] = (uint8_t) portnum;
+> > -
+> > -			/* Set DrSLID to local lid */
+> > -			if (resolve_self(ibd_ca, ibd_ca_port, &selfportid,
+> > -						&selfport, 0) < 0)
+> > -				IBEXIT("could not resolve self");
+> > -			peerportid.drpath.drslid = (uint16_t) selfportid.lid;
+> > -			peerportid.drpath.drdlid = 0xffff;
+> > +			if (portid.lid == 0) {
+> > +				peerportid.drpath.cnt = portid.drpath.cnt + 1;
+
+Nit: peerportid.drpath.cnt++;
+
+Ira
+
+> > +				if (peerportid.drpath.cnt == IB_SUBNET_PATH_HOPS_MAX) {
+> > +					exit(0);
+> 
+> Nit: IBEXIT("Too many hops") rather than exit(0)
+> 
+> > +				}
+> > +				peerportid.drpath.p[peerportid.drpath.cnt] = (uint8_t) portnum;
+> > +			} else {
+> > +				/* Set DrSLID to local lid */
+> > +				if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+> > +						       ibd_dest_type, ibd_sm_id, srcport) < 0)
+> > +					IBEXIT("could not resolve self");
+> > +
+> > +				peerportid.drpath.cnt = 1;
+> > +				peerportid.drpath.p[1] = (uint8_t) portnum;
+> > +
+> > +
+> 
+> Nit: Eliminate extra blank line
+> 
+> > +				/* Use partial LID routing if remote switch */
+> > +				if ((portid.lid == selfportid.lid)) {
+> > +					peerportid.drpath.drslid = 0xffff;
+> > +					peerportid.drpath.drdlid = 0xffff;
+> > +				} else {
+> > +					peerportid.drpath.drslid = selfportid.lid;
+> > +					peerportid.drpath.drdlid = 0xffff;
+> > +				}
+> 
+> The following can be factored out of the above if/else:
+> 				peerportid.drpath.drdlid = 0xffff;
+> 
+> > +			}
+> >  
+> >  			/* Get peer port NodeInfo to obtain peer port number */
+> >  			is_peer_switch = get_node_info(&peerportid, data);
+> > 
+> > base-commit: 2937cf99350a2e423b705e8b8dd10499796a7b41
+> > 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
