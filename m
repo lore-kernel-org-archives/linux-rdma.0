@@ -1,33 +1,74 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH v5 13/16] IB/pvrdma: Add the main driver module for
- PVRDMA
-Date: Tue, 27 Sep 2016 09:21:27 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DB010A6EA@AcuExch.aculab.com>
-References: <cover.1474759181.git.aditr@vmware.com>
- <8db982c37a0a96b37df02826564474a216922f25.1474759181.git.aditr@vmware.com>
- <20160926072739.GB6352@yuval-lap.Home>
- <651b18ee-55ca-0c72-af9c-c55c42b57fd1@vmware.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 5/9] block: Extend blk_freeze_queue_start() to the
+ non-blk-mq path
+Date: Tue, 27 Sep 2016 21:22:05 +0800
+Message-ID: <CACVXFVO=GFp=ArC_FT+xPSmL84m01fX6bzReBQ8DeLQ4fUD5cQ@mail.gmail.com>
+References: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com> <7c8af8d2-2ac9-2767-5e5f-8de72eba3814@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <651b18ee-55ca-0c72-af9c-c55c42b57fd1@vmware.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: 'Adit Ranadive' <aditr@vmware.com>, Yuval Shaia <yuval.shaia@oracle.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "pv-drivers@vmware.com" <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "jhansen@vmware.com" <jhansen@vmware.com>, "asarwade@vmware.com" <asarwade@vmware.com>, "georgezhang@vmware.com" <georgezhang@vmware.com>, "bryantan@vmware.com" <bryantan@vmware.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <7c8af8d2-2ac9-2767-5e5f-8de72eba3814@sandisk.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogQWRpdCBSYW5hZGl2ZQ0KPiBTZW50OiAyNiBTZXB0ZW1iZXIgMjAxNiAxOToxNQ0KPiBP
-biBNb24sIFNlcCAyNiwgMjAxNiBhdCAwMDoyNzo0MEFNIC0wNzAwLCBZdXZhbCBTaGFpYSB3cm90
-ZToNCj4gPiBPbiBTYXQsIFNlcCAyNCwgMjAxNiBhdCAwNDoyMTozN1BNIC0wNzAwLCBBZGl0IFJh
-bmFkaXZlIHdyb3RlOg0KPiA+ID4gKw0KPiA+ID4gKwkvKiBDdXJyZW50bHksIHRoZSBkcml2ZXIg
-b25seSBzdXBwb3J0cyBSb0NFIG1vZGUuICovDQo+ID4gPiArCWlmIChkZXYtPmRzci0+Y2Fwcy5t
-b2RlICE9IFBWUkRNQV9ERVZJQ0VfTU9ERV9ST0NFKSB7DQo+ID4gPiArCQlkZXZfZXJyKCZwZGV2
-LT5kZXYsICJ1bnN1cHBvcnRlZCB0cmFuc3BvcnQgJWRcbiIsDQo+ID4gPiArCQkJZGV2LT5kc3It
-PmNhcHMubW9kZSk7DQo+ID4gPiArCQlyZXQgPSAtRUlOVkFMOw0KPiA+DQo+ID4gVGhpcyBpcyBz
-b21lIGZhdGFsIGVycm9yIHdpdGggdGhlIGRldmljZSwgbm90IHRoYXQgc29tZXRoaW5nIHdyb25n
-IHdpdGggdGhlDQo+ID4gZnVuY3Rpb24ncyBhcmd1bWVudC4NCj4gPiBTdWdnZXN0aW5nIHRvIHJl
-cGxhY2Ugd2l0aCAtRUZBVUxULg0KPiA+DQo+IA0KPiBUaGFua3MsIHdpbGwgZml4IHRoaXMgb25l
-IGFuZCB0aGUgb3RoZXJzIGhlcmUuDQoNCldvbid0IEVGQVVMVCBnZW5lcmF0ZSBTSUdTRUdWID8N
-Cg0KCURhdmlkDQoNCg==
+On Tue, Sep 27, 2016 at 2:27 AM, Bart Van Assche
+<bart.vanassche@sandisk.com> wrote:
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> ---
+>  block/blk-core.c | 15 ++++++---------
+>  1 file changed, 6 insertions(+), 9 deletions(-)
+>
+> diff --git a/block/blk-core.c b/block/blk-core.c
+> index 8cc8006..5ecc7ab 100644
+> --- a/block/blk-core.c
+> +++ b/block/blk-core.c
+> @@ -689,7 +689,10 @@ void blk_freeze_queue_start(struct request_queue *q)
+>         freeze_depth = atomic_inc_return(&q->mq_freeze_depth);
+>         if (freeze_depth == 1) {
+>                 percpu_ref_kill(&q->q_usage_counter);
+> -               blk_mq_run_hw_queues(q, false);
+> +               if (q->mq_ops)
+> +                       blk_mq_run_hw_queues(q, false);
+> +               else if (q->request_fn)
+> +                       blk_run_queue(q);
+
+Just wondering if you have a non-blk-mq drivers which need this change,
+cause we only hold .q_usage_counter for sync bio.
+
+>         }
+>  }
+>
+> @@ -700,17 +703,11 @@ void blk_freeze_queue_wait(struct request_queue *q)
+>
+>  /*
+>   * Guarantee no request is in use, so we can change any data structure of
+> - * the queue afterward.
+> + * the queue afterward. Increases q->mq_freeze_depth and waits until
+> + * q->q_usage_counter drops to zero.
+>   */
+>  void blk_freeze_queue(struct request_queue *q)
+>  {
+> -       /*
+> -        * In the !blk_mq case we are only calling this to kill the
+> -        * q_usage_counter, otherwise this increases the freeze depth
+> -        * and waits for it to return to zero.  For this reason there is
+> -        * no blk_unfreeze_queue(), and blk_freeze_queue() is not
+> -        * exported to drivers as the only user for unfreeze is blk_mq.
+> -        */
+>         blk_freeze_queue_start(q);
+>         blk_freeze_queue_wait(q);
+>  }
+> --
+> 2.10.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Ming Lei
