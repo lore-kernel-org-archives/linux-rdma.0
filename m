@@ -1,47 +1,41 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v5 00/16] Add Paravirtual RDMA Driver
-Date: Mon, 26 Sep 2016 17:42:23 -0500
-Message-ID: <20160926224223.GA3309@localhost>
-References: <cover.1474759181.git.aditr@vmware.com>
+From: Hannes Reinecke <hare@suse.de>
+Subject: Re: [PATCH 1/9] blk-mq: Introduce blk_mq_queue_stopped()
+Date: Tue, 27 Sep 2016 08:20:57 +0200
+Message-ID: <5a954988-1b81-5bc2-c2e9-5e0eae927a46@suse.de>
+References: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com>
+ <b2210943-62b2-959a-569a-a404da03bcae@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1474759181.git.aditr@vmware.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Adit Ranadive <aditr@vmware.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, pv-drivers@vmware.com, netdev@vger.kernel.org, linux-pci@vger.kernel.org, jhansen@vmware.com, asarwade@vmware.com, georgezhang@vmware.com, bryantan@vmware.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <b2210943-62b2-959a-569a-a404da03bcae@sandisk.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>, Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 24, 2016 at 04:21:24PM -0700, Adit Ranadive wrote:
->  MAINTAINERS                                    |    9 +
->  drivers/infiniband/Kconfig                     |    1 +
->  drivers/infiniband/hw/Makefile                 |    1 +
->  drivers/infiniband/hw/pvrdma/Kconfig           |    7 +
->  drivers/infiniband/hw/pvrdma/Makefile          |    3 +
->  drivers/infiniband/hw/pvrdma/pvrdma.h          |  473 +++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_cmd.c      |  117 +++
->  drivers/infiniband/hw/pvrdma/pvrdma_cq.c       |  426 +++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_defs.h     |  301 ++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h  |  342 +++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c |  127 +++
->  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h |  444 +++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_main.c     | 1220 ++++++++++++++++++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_misc.c     |  304 ++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_mr.c       |  334 +++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_qp.c       |  973 +++++++++++++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_verbs.c    |  577 +++++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_verbs.h    |  108 +++
->  drivers/net/vmxnet3/vmxnet3_int.h              |    3 +-
->  include/linux/pci_ids.h                        |    1 +
->  include/uapi/rdma/Kbuild                       |    2 +
->  include/uapi/rdma/pvrdma-abi.h                 |   99 ++
->  include/uapi/rdma/pvrdma-uapi.h                |  255 +++++
+On 09/26/2016 08:26 PM, Bart Van Assche wrote:
+> The function blk_queue_stopped() allows to test whether or not a
+> traditional request queue has been stopped. Introduce a helper
+> function that allows block drivers to query easily whether or not
+> one or more hardware contexts of a blk-mq queue have been stopped.
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Cc: Jens Axboe <axboe@fb.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> ---
+>  block/blk-mq.c         | 20 ++++++++++++++++++++
+>  include/linux/blk-mq.h |  1 +
+>  2 files changed, 21 insertions(+)
+> 
+Reviewed-by: Hannes Reinecke <hare@suse.com>
 
-Hi Adit,
+Cheers,
 
-You don't need to cc linux-pci just because of the one-line change to
-pci_ids.h.  I've already acked that, and the rest is just noise to the
-main linux-pci audience.
-
-Bjorn
+Hannes
+-- 
+Dr. Hannes Reinecke		   Teamlead Storage & Networking
+hare@suse.de			               +49 911 74053 688
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: F. Imendörffer, J. Smithard, J. Guild, D. Upmanyu, G. Norton
+HRB 21284 (AG Nürnberg)
