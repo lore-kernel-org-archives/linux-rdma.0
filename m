@@ -1,37 +1,92 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/9] block: Extend blk_freeze_queue_start() to the
- non-blk-mq path
-Date: Tue, 27 Sep 2016 08:55:42 -0700
-Message-ID: <d15c920e-8333-b970-4e8c-4a3fbf148bb4@sandisk.com>
-References: <7948dbb8-6333-dc62-2673-4da35b4dfdbc@sandisk.com>
- <7c8af8d2-2ac9-2767-5e5f-8de72eba3814@sandisk.com>
- <CACVXFVO=GFp=ArC_FT+xPSmL84m01fX6bzReBQ8DeLQ4fUD5cQ@mail.gmail.com>
- <a8e8796e-7266-4c8a-a4eb-31cedf73ec8a@sandisk.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 4/5] libocrdma: Move ocrdma's list
+ implementation into common directory
+Date: Tue, 27 Sep 2016 19:14:09 +0300
+Message-ID: <ff764b75-19af-340b-7228-328462c524ae@dev.mellanox.co.il>
+References: <1474786207-2149-1-git-send-email-leon@kernel.org>
+ <1474786207-2149-5-git-send-email-leon@kernel.org>
+ <20160925144121.GA12246@infradead.org> <20160925161315.GD4088@leon.nu>
+ <20160925162203.GA32434@infradead.org>
+ <20160926174057.GD22965@obsidianresearch.com>
+ <20160926221440.GA5878@infradead.org>
+ <20160926222319.GA2358@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a8e8796e-7266-4c8a-a4eb-31cedf73ec8a-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160926222319.GA2358-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/27/2016 07:42 AM, Bart Van Assche wrote:
-> Jens, regarding non-blk-mq mode and q_usage_counter: do you prefer that
-> I rework patch 8/9 such that blk_quiesce_queue() and blk_resume_queue()
-> are only used in blk-mq mode or are you OK with adding a
-> blk_queue_enter() call in get_request() and a blk_queue_exit() call to
-> __blk_put_request()?
+On 9/27/2016 1:23 AM, Jason Gunthorpe wrote:
+> On Mon, Sep 26, 2016 at 03:14:40PM -0700, Christoph Hellwig wrote:
+>> On Mon, Sep 26, 2016 at 11:40:57AM -0600, Jason Gunthorpe wrote:
+>>> Copyright isn't a patent,
+>>
+>> I know very well, thanks..
+>
+> Right, mainly for others..
+>
+>>> assuming freebsd didn't copy any code and
+>>> just implemented the same API independently (eg it is an Independent
+>>> Creation) they should be OK from a copyright perspective.
+>>
+>> That's a big IF, as I'm honestly not sure it is.  I don't want to blame
+>> anywone because I really don't know but if I had to decided to use it
+>> or not I would error on the safe side.
+>
+> Sounds reasonable.
+>
+>>> As should be
+>>> Rusty's version in CCAN.
+>>
+>> That's a much safer choice.  It's a lightly different API, though.
+>
+> Leon? Does this seem doable to you?
 
-(replying to my own e-mail)
+Hi Jason,
 
-Although it is easy to make q_usage_counter count non-blk-mq requests, 
-extending the blk_quiesce_queue() waiting mechanism to the non-blk-mq 
-path is non-trivial. To limit the number of changes in this patch series 
-I will drop the non-blk-mq changes from this patch series.
+Leon is out of office for a week, I can take it from here and come to 
+the list in coming days with a new candidate series based on previous notes.
 
-Bart.
+Few notes to sync on:
+1) Looking at ocrdma_list.h it extends the list default functionality to 
+use an internal mutex, see list_lock & list_unlock calls. This is not a 
+standard usage of a list. It may require some logic outside list.h to 
+replace the usage without introducing the mutex in the shared new H file.
+
+2) Taking list.h from the 'CCAN' URL requires taking as well few other H 
+files that it uses internally (e.g. build_assert.h). In few cases I 
+don't see any reason to take the full file into rdma-core (e.g. 
+ccan/str/str.h for stringify) will take only the needed functionality 
+into list.h.
+
+3) Need to clean up the 'CCAN' files from its include to "config.h",  in 
+addition, need to consider the functionality that need to be taken when 
+there are some #if HAVE_XXX internally. (see #if HAVE_TYPEOF in list.h).
+
+4) Re the licensing disclaimer in each H file, what do you suggest to 
+put ? for example minmax.h uses licenses/CC0 see 
+https://github.com/rustyrussell/ccan/blob/master/ccan/minmax/LICENSE 
+which is different comparing list.h which is ../../licenses/BSD-MIT.
+
+Yishai
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
