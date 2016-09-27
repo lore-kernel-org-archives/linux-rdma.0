@@ -1,47 +1,43 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: Re: [PATCH v5 13/16] IB/pvrdma: Add the main driver module for PVRDMA
-Date: Tue, 27 Sep 2016 11:50:44 -0700
-Message-ID: <979bf690-1566-8674-5c46-4108006fb32a@vmware.com>
-References: <cover.1474759181.git.aditr@vmware.com>
- <8db982c37a0a96b37df02826564474a216922f25.1474759181.git.aditr@vmware.com>
- <20160926072739.GB6352@yuval-lap.Home>
- <651b18ee-55ca-0c72-af9c-c55c42b57fd1@vmware.com>
- <063D6719AE5E284EB5DD2968C1650D6DB010A6EA@AcuExch.aculab.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 0/2] cxgb4 FR_NSMR_TPTE_WR support
+Date: Tue, 27 Sep 2016 17:03:44 -0500
+Message-ID: <023401d2190b$03b00e50$0b102af0$@opengridcomputing.com>
+References: <cover.1474037695.git.swise@opengridcomputing.com>        <20160919.011633.1357649774235825501.davem@davemloft.net>        <007f01d21280$7d1556b0$77400410$@opengridcomputing.com> <20160919.102920.1126387243122900012.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DB010A6EA@AcuExch.aculab.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>, Yuval Shaia <yuval.shaia@oracle.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "pv-drivers@vmware.com" <pv-drivers@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "jhansen@vmware.com" <jhansen@vmware.com>, "asarwade@vmware.com" <asarwade@vmware.com>, "georgezhang@vmware.com" <georgezhang@vmware.com>, "bryantan@vmware.com" <bryantan@vmware.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160919.102920.1126387243122900012.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'David Miller' <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 27, 2016 at 09:21:27AM +0000, David Laight wrote:
-> From: Adit Ranadive
-> > Sent: 26 September 2016 19:15
-> > On Mon, Sep 26, 2016 at 00:27:40AM -0700, Yuval Shaia wrote:
-> > > On Sat, Sep 24, 2016 at 04:21:37PM -0700, Adit Ranadive wrote:
-> > > > +
-> > > > +	/* Currently, the driver only supports RoCE mode. */
-> > > > +	if (dev->dsr->caps.mode != PVRDMA_DEVICE_MODE_ROCE) {
-> > > > +		dev_err(&pdev->dev, "unsupported transport %d\n",
-> > > > +			dev->dsr->caps.mode);
-> > > > +		ret = -EINVAL;
-> > >
-> > > This is some fatal error with the device, not that something wrong with the
-> > > function's argument.
-> > > Suggesting to replace with -EFAULT.
-> > >
-> > 
-> > Thanks, will fix this one and the others here.
 > 
-> Won't EFAULT generate SIGSEGV ?
+> >
+> >>
+> >> From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> >> Date: Fri, 16 Sep 2016 07:54:55 -0700
+> >>
+> >> > This series enables a new work request to optimize small REG_MR
+> >> > operations.  This is intended for 4.9.  If everyone agrees, I suggest
+> >> > Doug take both the cxgb4 and iw_cxgb4 patches through his tree.
+> >>
+> >> I'm assuming this mean that I do _not_ apply these to my tree.
+> >
+> > Yes, if you're ok with that.
+> 
+> I am.
 
-Since this is called at module load time, wouldn't the module load fail with
-this error rather than generate a SIGSEGV?
+Doug, please include this for 4.9 if it looks good to you.  Let me know.
 
-I'm slightly unclear about what would if it is compiled into the kernel though
-I think it should fail with the error.
+Thanks,
 
-The only other error value to return here that could make sense is EIO.
+Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
