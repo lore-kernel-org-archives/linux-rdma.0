@@ -1,71 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core] Add a .travis.yml file
-Date: Wed, 28 Sep 2016 17:28:57 -0600
-Message-ID: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH v2 0/7] Introduce blk_quiesce_queue() and blk_resume_queue()
+Date: Wed, 28 Sep 2016 16:57:07 -0700
+Message-ID: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-block-owner@vger.kernel.org>
+Sender: linux-block-owner@vger.kernel.org
+To: Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Necessary to use the Travis CI service.
+Hello Jens,
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- .travis.yml | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100644 .travis.yml
+Multiple block drivers need the functionality to stop a request queue 
+and to wait until all ongoing request_fn() / queue_rq() calls have 
+finished without waiting until all outstanding requests have finished. 
+Hence this patch series that introduces the blk_mq_quiesce_queue() and 
+blk_mq_resume_queue() functions. The dm-mq, SRP and nvme patches in this 
+patch series are three examples of where these functions are useful. 
+These patches apply on top of the September 21 version of your 
+for-4.9/block branch.
 
-Now that travis is enabled on repo, we need a yml file to make it run.
+The changes compared to the previous version of this patch series are:
+- Dropped the non-blk-mq changes from this patch series.
+- Added support for harware queues with BLK_MQ_F_BLOCKING set.
+- Added a call stack to the description of the dm race fix patch.
+- Dropped the non-scsi-mq changes from the SRP patch.
+- Added a patch that introduces blk_mq_queue_stopped() in the dm driver.
 
-Here is a basic one.
+The individual patches in this series are:
 
-I don't test with distros as old as precise and I don't expect that glibc to
-be new enough to build this (eg missing timerfd, O_CLOEXEC, etc), and the
-cmake certainly isn't. So we use the trusty 'beta' environment and install
-gcc 6.2.
+0001-blk-mq-Introduce-blk_mq_queue_stopped.patch
+0002-dm-Use-BLK_MQ_S_STOPPED-instead-of-QUEUE_FLAG_STOPPE.patch
+0003-RFC-nvme-Use-BLK_MQ_S_STOPPED-instead-of-QUEUE_FLAG_.patch
+0004-blk-mq-Introduce-blk_quiesce_queue-and-blk_resume_qu.patch
+0005-dm-Fix-a-race-condition-related-to-stopping-and-star.patch
+0006-SRP-transport-Port-srp_wait_for_queuecommand-to-scsi.patch
+0007-RFC-nvme-Fix-a-race-condition.patch
 
-See it in action:
+Thanks,
 
-https://github.com/linux-rdma/rdma-core/pull/7
-
-diff --git a/.travis.yml b/.travis.yml
-new file mode 100644
-index 000000000000..e09dd32ffa9f
---- /dev/null
-+++ b/.travis.yml
-@@ -0,0 +1,28 @@
-+language: c
-+# We need at least cmake 2.12, this means we need to use trusty.
-+# Precise's glibc, etc predates what we are willing to support.
-+# No reason for sudo.
-+sudo: required
-+dist: trusty
-+addons:
-+  apt:
-+    sources:
-+      - ubuntu-toolchain-r-test
-+    packages:
-+      - build-essential
-+      - cmake
-+      - debhelper
-+      - gcc
-+      - gcc-6
-+      - libnl-3-dev
-+      - libnl-route-3-dev
-+      - make
-+      - ninja-build
-+      - pkg-config
-+      - python
-+      - valgrind
-+script:
-+  - mkdir build
-+  - cd build
-+  - CC=gcc-6 cmake -GNinja ..
-+  - ninja
--- 
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
