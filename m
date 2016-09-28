@@ -1,102 +1,63 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/13] Policy changes and packaging support
-Date: Wed, 28 Sep 2016 14:27:47 -0400
-Message-ID: <57EC0BA3.6060506@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 11/13] srp_daemon: Add the debian initscripts as an option
+Date: Wed, 28 Sep 2016 12:47:08 -0600
+Message-ID: <20160928184708.GA31472@obsidianresearch.com>
 References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1474658228-5390-12-git-send-email-jgunthorpe@obsidianresearch.com>
+ <57EC0B75.3000101@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="jfpjRxfuMVLTkgbFR22K7Wi4daxur0NfT"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474658228-5390-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <57EC0B75.3000101-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John Jolly <jjolly-IBi9RG/b67k@public.gmane.org>, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---jfpjRxfuMVLTkgbFR22K7Wi4daxur0NfT
-Content-Type: multipart/mixed; boundary="JuXXGug5BgmL6rtm0nnNcAGlXg3OrlM07";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John Jolly <jjolly-IBi9RG/b67k@public.gmane.org>,
- Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Message-ID: <57EC0BA3.6060506-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/13] Policy changes and packaging support
-References: <1474658228-5390-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1474658228-5390-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On Wed, Sep 28, 2016 at 02:27:01PM -0400, Doug Ledford wrote:
+> On 9/23/16 3:17 PM, Jason Gunthorpe wrote:
+> > Necessary to reproduce the Debian packaging.
+> > 
+> > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> >  CMakeLists.txt                       |  3 ++
+> >  srp_daemon/srp_daemon/CMakeLists.txt | 29 ++++++++----
+> >  srp_daemon/srptools.default          | 14 ++++++
+> >  srp_daemon/srptools.init             | 89 ++++++++++++++++++++++++++++++++++++
+> 
+> Would it be best to have directories for related install files for a
+> specific OS?  For instance, srp_daemon/debian/ and srp_daemon/redhat/?
+> It's not that I expect to put a redhat init script for srpd in place,
+> but the script for debian is likely to not work properly on redhat, so
+> having it in an OS directory would at least make that clear.
 
---JuXXGug5BgmL6rtm0nnNcAGlXg3OrlM07
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+To be clear, there is already an initscript that (perhaps?) is for
+RedHat - but it isn't even close to the Debian version. So this patch
+introduces two scripts for srp_dameon, which I hated doing..
 
-On 9/23/16 3:16 PM, Jason Gunthorpe wrote:
-> This is the next batch of rdma-core updates, these 13 patches deal prim=
-arily
-> with how the package is built and the install paths afterwards. Most li=
-kely
-> these changes are mainly of interest to packagers.
->=20
-> The discussion here is informative for some of the patches:
->  http://www.spinics.net/lists/linux-rdma/msg39578.html
->=20
-> View the commits on github:
->=20
->  https://github.com/linux-rdma/rdma-core/pull/3
->=20
-> Please forward Acks and I will update the commits.
->=20
-> One important thing to note is that this series pretty much eliminates =
-all
-> hard coded paths from the tree. While this is a good thing, it means th=
-e
-> default behavior is to set SYSCONFDIR to /usr/local/etc/, which is prob=
-ably
-> not what people testing the daemons really want. Compile with:
->=20
->  cmake -GNinja .. -DCMAKE_INSTALL_SYSCONFDIR:PATH=3D/etc
->=20
-> Which is similar to the configure --sysconfdir option
+I'll drop this patch from the series and we can go ahead with the
+other patches in the series.
 
-Series looks good modulo the few feedback items.
+For now I'll put the initscript in the Debian packaging patch and we
+can think about what to do later. I think it can be moved to the
+debian/ directory as well.
 
+Going forward I think we need to make some decisions..
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>    GPG Key ID: 0E572FDD
-  Red Hat, Inc.
-  100 E. Davie St
-  Raleigh, NC 27601 USA
+1) Do we want to do something with the initscripts so distros can use
+   them? Is that even possible? I think Debian uses the bundled
+   acm initscript, didn't look at suse.
 
+   Is Debian the only major distro that still ships init scripts?
+   Does FC/RH exclusively ship systemd unit files now?
 
---JuXXGug5BgmL6rtm0nnNcAGlXg3OrlM07--
+   Maybe we should delete the initscripts entirely.
 
---jfpjRxfuMVLTkgbFR22K7Wi4daxur0NfT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+2) I'd like to support cross-distro systemd unit files upstream.
+   Is that feasible? We are short unit files, could you
+   contribute yours?
 
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCgAGBQJX7AujAAoJELgmozMOVy/dzlQP/1WmM5CSMBMdazoCURyG5TQV
-t6CLLILdS8wAnQazTwJkf0CLMnW6egGybMxnJPtMF3o+lxOJNYWxGcaROg8odrg+
-eFqC+zkGZe59qiDTLlGND0NczdliBNXfqmjbtQyqGZaWNSG8oIm/xrKqZLmCfnVo
-p7xSC3yZvRu3w2ZPoXRDsIY7Y5WwTp0hI+cxD1lTXOkvEUch/FiLcrlHaodC3Y3v
-wUWdM1wIVfKlk4iOydzATMKMjeyWz8cyBFs8h//YBZe7f1zCKWwxeN2isPEctNp3
-dMx2ZFlqc+SNrjhE9mV4pblSG95+mYQXgSVqjSDgyjqAjclCE4SrUcLPMbJOueTg
-Xhs6Ar6BXynxSAjT8HI1CG7aG1/2CiWvyIotulWLexpIIWzxVOZQhpNBs5HfJJEC
-X+vo3X1QdK5k3BLbqXAA6T0aGI8acz91tWsoxMVm88jznf4ceB07NpyEJgdAEO8O
-sNe49iUg/A1hlVEH4/0hz9sF8kZ0mesi0tHRwWuPF0Dzxj153ZnMCzTGkyYEq4IJ
-idFLEWc9mnPxjstMFmAQkurT96OBftKK6bIYM6SdzeSNuKN8r73MalArGCMZDZq8
-IA6crX5FHXB/od4n2QNpEifD4bvcGNCpHos3C2AqQFcbAr8pe0Rqi2mk9INdilSv
-WXnA3NPDmJsA+juBNt3f
-=DEhZ
------END PGP SIGNATURE-----
-
---jfpjRxfuMVLTkgbFR22K7Wi4daxur0NfT--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
