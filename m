@@ -1,44 +1,70 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 11/13] srp_daemon: Add the debian initscripts as an option
-Date: Wed, 28 Sep 2016 15:13:04 -0600
-Message-ID: <20160928211304.GA3395@obsidianresearch.com>
-References: <1474658228-5390-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1474658228-5390-12-git-send-email-jgunthorpe@obsidianresearch.com>
- <57EC0B75.3000101@redhat.com>
- <20160928184708.GA31472@obsidianresearch.com>
- <57EC120F.7070506@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH rdma-core] Add a .travis.yml file
+Date: Wed, 28 Sep 2016 17:28:57 -0600
+Message-ID: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57EC120F.7070506-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 28, 2016 at 02:55:11PM -0400, Doug Ledford wrote:
+Necessary to use the Travis CI service.
 
-> I'm in favor of providing a good, reliable, correct set of startup files
-> for each of the major distro flavors.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ .travis.yml | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 .travis.yml
 
-Okay, how about a initscripts/{debian,centos6,suse..} directory tree,
-and centralize all the initscripts there? Some one who understands
-this can then try and eventually make sense of the duplication?
+Now that travis is enabled on repo, we need a yml file to make it run.
 
-> > We are short unit files, could you
-> >    contribute yours?
-> 
-> Absolutely.  I'd like to basically import the entire redhat rdma package
-> into this, but it will take a little sorting things out to get all of
-> the files and such in the right place.  And that's a precursor to our
-> srpd unit file as it lists a specific dependency on the rdma unit file.
+Here is a basic one.
 
-Yeah, that rdma unit file and udev integration really needs to be
-upstream and in all distros if we are going to have any hope of having
-upstream unit files...
+I don't test with distros as old as precise and I don't expect that glibc to
+be new enough to build this (eg missing timerfd, O_CLOEXEC, etc), and the
+cmake certainly isn't. So we use the trusty 'beta' environment and install
+gcc 6.2.
 
-Jason
+See it in action:
+
+https://github.com/linux-rdma/rdma-core/pull/7
+
+diff --git a/.travis.yml b/.travis.yml
+new file mode 100644
+index 000000000000..e09dd32ffa9f
+--- /dev/null
++++ b/.travis.yml
+@@ -0,0 +1,28 @@
++language: c
++# We need at least cmake 2.12, this means we need to use trusty.
++# Precise's glibc, etc predates what we are willing to support.
++# No reason for sudo.
++sudo: required
++dist: trusty
++addons:
++  apt:
++    sources:
++      - ubuntu-toolchain-r-test
++    packages:
++      - build-essential
++      - cmake
++      - debhelper
++      - gcc
++      - gcc-6
++      - libnl-3-dev
++      - libnl-route-3-dev
++      - make
++      - ninja-build
++      - pkg-config
++      - python
++      - valgrind
++script:
++  - mkdir build
++  - cd build
++  - CC=gcc-6 cmake -GNinja ..
++  - ninja
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
