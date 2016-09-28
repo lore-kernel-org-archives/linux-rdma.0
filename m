@@ -1,152 +1,165 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] Bug Fixes and Code Improvement in HNS driver
-Date: Wed, 28 Sep 2016 10:57:07 -0400
-Message-ID: <57EBDA43.3010708@redhat.com>
-References: <20160910040930.25988-1-salil.mehta@huawei.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="4AEoGKI3F6350wQiDT8Hq0haakDc6aQKx"
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC ABI V4 0/7] SG-based RDMA ABI Proposal
+Date: Wed, 28 Sep 2016 18:10:10 +0300
+Message-ID: <1475075417-30189-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160910040930.25988-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4AEoGKI3F6350wQiDT8Hq0haakDc6aQKx
-Content-Type: multipart/mixed; boundary="wju4WsmooMkfHttlCT0HHOCsJJoGsRQTQ";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
- "oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
- "yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
- "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Message-ID: <57EBDA43.3010708-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] Bug Fixes and Code Improvement in HNS driver
-References: <20160910040930.25988-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <20160910040930.25988-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+The following patch set comes to enrich security model as a follow up
+to commit e6bd18f57aad ('IB/security: Restrict use of the write() interface').
 
---wju4WsmooMkfHttlCT0HHOCsJJoGsRQTQ
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+DISCLAIMER:
+These patches are far from being completed. They present working init_ucontext
+and query_device (both regular and extended version). In addition, they are
+given as a basis of discussions.
 
-On 9/10/16 12:09 AM, Salil Mehta wrote:
-> This patch-set introduces fix to some Bugs, potential problems
-> and code improvements identified during internal review and
-> testing of Hisilicon Network Subsystem driver.
->=20
-> Hi Doug,
-> These are few HNS patches which are not related to HNS RoCE driver but
-> are being sent through your repository hns-roce (as requested) to mitig=
-ate
-> any conflicts with HNS RoCE driver for the 4.9 merge window. In future
-> i.e. after 4.9 we will go by more formal git-pull request method once
-> HNS RoCE base driver becomes part of 4.9.
+NOT ALL COMMENTS GIVEN ON PREVIOUS VERSIONS ARE HANDLED IN THIS SERIES,
+SOME OF THEM WILL BE HANDLED IN THE FUTURE.
 
-Hi Salil,
+The ideas presented here are based on our V1/V2/V3 series in addition to some
+ideas presented in OFVWG and Sean's series.
 
-I've chatted with Dave Miller about this series.  Here's where we stand.
+This patch series add ioctl() interface to the existing write() interface and
+provide an easy route to backport this change to legacy supported systems.
+Analyzing the current uverbs role in dispatching and parsing commands, we find
+that:
+(a) uverbs validates the basic properties of the command
+(b) uverbs is responsible of doing all the IDR and uobject management and
+    locking. It's also responsible of handling completion FDs.
+(c) uverbs transforms the user<-->kernel ABI to kernel API.
 
-First, the review feedback from Dave:
+(a) and (b) are valid for every kABI. Although the nature of commands could
+change, they still have to be validated and transform to kernel pointers.
+In order to avoid duplications between the various drivers, we would like to
+keep (a) and (b) as shared code.
 
----
+In addition, this is a good time to expand the ABI to be more scalable, so we
+added a few goals:
+(1) Command's attributes shall be extensible in an easy one. Either by allowing
+    drivers to have their own extensible set of attributes or core code
+    extensible attributes. Moreover, driver's specific attributes could some
+    day become core's standard attributes. We would like to still support
+    old user-space while avoid duplicating the code in kernel.
+(2) Each driver may have specific type system (i.e QP, CQ, ....). It may
+    or may not even implement the standard type system. It could extend this
+    type system in the future. Try to avoid duplicating existing types or
+    actions.
+(3) Do not change or recompile driver libraries and don't copy their data.
+(4) Efficient dispatching.
 
-In patch #7, their comments are mis-formatted and these
-hns guys do this a lot.
+Thus, in order to allow this flexibility, we decide giving (a) and (b) as a
+common infrastructure, but use per-driver guidelines in order to do that
+parsing and uobject management. Handlers are also set by the drivers
+themselves (though they can point to either shared common code) or
+driver specific code.
 
-	/*fix hardware broadcast/multicast packets queue loopback */
+Since types are no longer enforced by the common infrastructure, there is no
+point of pre-allocating common IDR types in the common code. Instead, we
+provide an API for driver to add new types. We use one IDR per driver
+for all its types. The driver declared all its supported types, their
+free function and release order. After that, all uboject, exclusive access
+and types are handled automatically for the driver by the infrastructure.
 
-They seem to have a hard time putting an initial space in the comment,
-and properly capitalizing and punctuating their sentences.
+Scatter gather was chosen in order to allow us not to recompile user space
+drivers. By using pointers to driver specific data, we could just use it
+without introduce copying data and without changing the user-space driver at
+all.
 
-Also in that new function, they need to order local variables from
-longest to shortest line (reverse christmas tree format).
+We chose to go with non blocking lock user objects. When exclusive
+(WRITE or DESTROY) access is required, we dispatch the action if and only if
+no other action needs this object as well. Otherwise, -EBUSY is returned to
+the user-space. Device removal is synced with SRCU as of today.
+If we were using locks, we would have need to sort the given user-space handles.
+Otherwise, a user-space application may result in causing a deadlock.
+Moving to a non blocking lock based behaviour, the dispatching in kernel
+becomes more efficient.
 
-Patch #6 has the local variable ordering issue as well as does patch
-#3.
+Further uverbs related subsystem (such as RDMA-CM) may use other fds or use
+other ioctl codes.
 
----
+Note, we might switch to submitting one task (i.e - change locking schema) once
+the concepts are more mature.
 
-Please address those issues and resubmit.
+Regards,
+Liran, Haggai, Leon and Matan
 
-As for the method of resubmission, please send the set to netdev@ and
-also linux-rdma@, make note that, as a one off thing, these will need to
-go through my tree to avoid conflicts with patches already in my tree,
-and that future submissions will follow the Mellanox model of submitting
-shared code to both mine and David's tree that is needed to avoid
-conflicts for that merge window's submissions.  After the netdev people
-have reviewed it, and Dave acks it, either he can pick it up and sort
-the conflicts out, or I can pick it up.
+TODO:
+1. Check other models for implementing FDs (as suggested in OFVWG).
+2. Currently, this code only works with the new ioctl based libibverbs.
+   Make this compatible with the old version.
+3. Rebase over latest kernel bits.
 
->=20
-> Daode Huang (6):
->   net: hns: bug fix about setting coalsecs-usecs to 0
->   net: hns: add fini_process for v2 napi process
->   net: hns: delete repeat read fbd num after while
->   net: hns: fix the bug of forwarding table
->   net: hns: bug fix about broadcast/multicast packets
->   net: hns: delete redundant broadcast packet filter process
->=20
-> Kejian Yan (1):
->   net: hns: fix port not available after testing loopback
->=20
-> lipeng (1):
->   net: hns: fix port unavailable after hnae_reserve_buffer_map fail
->=20
->  drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c  |  11 ++-
->  drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c  |  13 ++-
->  drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h  |   2 +
->  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c |  10 --
->  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h |   1 -
->  drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c  |  16 ++++
->  drivers/net/ethernet/hisilicon/hns/hns_dsaf_reg.h  |   4 +
->  drivers/net/ethernet/hisilicon/hns/hns_enet.c      | 106 +++++++++++++=
-+-------
->  drivers/net/ethernet/hisilicon/hns/hns_ethtool.c   |   7 ++
->  9 files changed, 117 insertions(+), 53 deletions(-)
->=20
+Changes from V3:
+1. Add create_cq and create_comp_channel.
+2. Add FD as ib_uobject into the type system
 
+Changes from V2:
+1. Use types declerations in order to declare release order and free function
+2. Allow the driver to extend and use existing building blocks in any level:
+        a. Add more types
+        b. Add actions to exsiting types
+        c. Add attributes to existing actions (existed in V2)
+   Such a driver will only duplicate structs which it actually changed.
+3. Fixed bugs in ucontext teardown and type allocation/locking.
+4. Add reg_mr and init_pd
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>    GPG Key ID: 0E572FDD
-  Red Hat, Inc.
-  100 E. Davie St
-  Raleigh, NC 27601 USA
+Changes from V1:
+1. Refined locking system
+	a. try_read_lock and write lock to sync exclusive access
+	b. SRCU to sync device removal from commands execution
+	c. Future rwsem to sync close context from commands execution
+2. Added temporary udata usage for vendor's data
+3. Add query_device and init_ucontext command with mlx5 implementation
+4. Fixed bugs in ioctl dispatching
+5. Change callbacks to get ib_uverbs_file instead of ucontext
+6. Add general types initialization and cleanups
 
+Leon Romanovsky (2):
+  RDMA/core: Export RDMA IOCTL declarations
+  RDMA/core: Refactor IDR to be per-device
 
---wju4WsmooMkfHttlCT0HHOCsJJoGsRQTQ--
+Matan Barak (5):
+  RDMA/core: Add support for custom types
+  RDMA/core: Add new ioctl interface
+  RDMA/core: Add initialize and cleanup of common types
+  RDMA/core: Add uverbs types, actions, handlers and attributes
+  IB/mlx5: Implement common uverb objects
 
---4AEoGKI3F6350wQiDT8Hq0haakDc6aQKx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+ drivers/infiniband/core/Makefile           |   3 +-
+ drivers/infiniband/core/device.c           |  18 +
+ drivers/infiniband/core/rdma_core.c        | 505 +++++++++++++++++++
+ drivers/infiniband/core/rdma_core.h        |  77 +++
+ drivers/infiniband/core/user_mad.c         |   2 +-
+ drivers/infiniband/core/uverbs.h           |  30 +-
+ drivers/infiniband/core/uverbs_cmd.c       | 157 +++---
+ drivers/infiniband/core/uverbs_ioctl.c     | 306 ++++++++++++
+ drivers/infiniband/core/uverbs_ioctl_cmd.c | 757 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c      | 165 ++-----
+ drivers/infiniband/hw/mlx5/main.c          |   3 +
+ include/rdma/ib_verbs.h                    |  33 +-
+ include/rdma/rdma_ioctl.h                  |  38 ++
+ include/rdma/uverbs_ioctl.h                | 342 +++++++++++++
+ include/rdma/uverbs_ioctl_cmd.h            | 254 ++++++++++
+ include/uapi/rdma/Kbuild                   |   1 +
+ include/uapi/rdma/ib_user_mad.h            |  12 -
+ include/uapi/rdma/ib_user_verbs.h          |  13 +
+ include/uapi/rdma/rdma_user_ioctl.h        |  82 ++++
+ 19 files changed, 2571 insertions(+), 227 deletions(-)
+ create mode 100644 drivers/infiniband/core/rdma_core.c
+ create mode 100644 drivers/infiniband/core/rdma_core.h
+ create mode 100644 drivers/infiniband/core/uverbs_ioctl.c
+ create mode 100644 drivers/infiniband/core/uverbs_ioctl_cmd.c
+ create mode 100644 include/rdma/rdma_ioctl.h
+ create mode 100644 include/rdma/uverbs_ioctl.h
+ create mode 100644 include/rdma/uverbs_ioctl_cmd.h
+ create mode 100644 include/uapi/rdma/rdma_user_ioctl.h
 
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+-- 
+2.7.4
 
-iQIcBAEBCgAGBQJX69pDAAoJELgmozMOVy/dTjIP/RF/Wpn1+VAKCaGKYJewKlH/
-Zchi0jFK16cAzrKo7p1oDMzTGT/XOMjU9uIM7kwrrJKP7FPQkjezmsaYcOol6F0X
-axM2k8ZYZOZ/z7uHU0ZnNLws54aBAxMABhpiyJ35iNbH83vEmQPPdogh+9JaZI+Q
-cGzq4CaK/ZCJOo64+I5UJ+TafVqzcyC6QynYctZja4BtUJ54dZAkyRxv/YUTLpEm
-axOgyAzdcDnGGyVKCIRIl+nuMLGQ7ucGQQYW6TDPdsNzhS5lwKh4mSm3p1LeOt1K
-hoKCWcb3zBVG3z1WRWc8L1mBQxEUSq/kVNFXQO8LEtEK+OwzqmbZB/usmBhIEw4U
-FWXFrDqNW+2IGXUv+uli+FcjJ60YC22KEkhSlerKRHRsGWcaTreW0pXq4sJ6b+Lw
-Smap6Za4oIS1yRf6ajvwr829X/YngRryh+tjbX1oREle101X9qTR7rZIwmDiIOMW
-ID3PE4CFok5XLLPB3/obQapJx7lj48ETxJ6WiVM+Ci6aykdkXDTQJX5+eh7VxYdk
-Uqo2FokGJtF5eAphDw441cZssavfwJOa950kGhBHQuKzBYcmysEsh+RGARXe6pEI
-B9U/kkcfU7b6TwtE0I2xBTd+bZiaY9TsXASLc4EvJN10ey6AxTmVhRgwcRIukq9D
-BXlS90uVDT3TwAMstBiM
-=lb5S
------END PGP SIGNATURE-----
-
---4AEoGKI3F6350wQiDT8Hq0haakDc6aQKx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
