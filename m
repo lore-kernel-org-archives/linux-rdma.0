@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 4/5] libmlx5: Move to use CCAN list functionality
-Date: Wed, 28 Sep 2016 18:33:08 +0300
-Message-ID: <1475076789-14359-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 2/5] ccan: Add CCAN min and max functionality
+Date: Wed, 28 Sep 2016 18:33:06 +0300
+Message-ID: <1475076789-14359-3-git-send-email-yishaih@mellanox.com>
 References: <1475076789-14359-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475076789-14359-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,422 +10,308 @@ To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Move to use CCAN list functionality which its license meets
-the project needs.
+Add CCAN min/max functionality and use it among the project.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libmlx5/src/buf.c  |  11 +-
- libmlx5/src/list.h | 312 -----------------------------------------------------
- libmlx5/src/mlx5.c |   2 +-
- libmlx5/src/mlx5.h |   4 +-
- 4 files changed, 8 insertions(+), 321 deletions(-)
- delete mode 100644 libmlx5/src/list.h
+ CMakeLists.txt                    |  1 +
+ buildlib/publish_headers.cmake    | 18 ++++++++---
+ ccan/CMakeLists.txt               |  5 +++
+ ccan/build_assert.h               | 40 ++++++++++++++++++++++++
+ ccan/config.h                     |  2 ++
+ ccan/minmax.h                     | 65 +++++++++++++++++++++++++++++++++++++++
+ ibacm/linux/osd.h                 |  5 ++-
+ libibverbs/examples/rc_pingpong.c |  8 +----
+ libmlx5/src/mlx5.h                | 15 +--------
+ librdmacm/src/cma.h               |  5 ++-
+ 10 files changed, 133 insertions(+), 31 deletions(-)
+ create mode 100644 ccan/CMakeLists.txt
+ create mode 100644 ccan/build_assert.h
+ create mode 100644 ccan/config.h
+ create mode 100644 ccan/minmax.h
 
-diff --git a/libmlx5/src/buf.c b/libmlx5/src/buf.c
-index c827930..1a681c6 100644
---- a/libmlx5/src/buf.c
-+++ b/libmlx5/src/buf.c
-@@ -259,7 +259,6 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
- 			  size_t size, int page_size)
- {
- 	int found = 0;
--	LIST_HEAD(slist);
- 	int nchunk;
- 	struct mlx5_hugetlb_mem *hmem;
- 	int ret;
-@@ -268,7 +267,7 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
- 	nchunk = buf->length / MLX5_Q_CHUNK_SIZE;
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a829cd4..34a21d1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -221,6 +221,7 @@ configure_file("${BUILDLIB}/config.h.in" "${BUILD_INCLUDE}/config.h" ESCAPE_QUOT
  
- 	mlx5_spin_lock(&mctx->hugetlb_lock);
--	list_for_each_entry(hmem, &mctx->hugetlb_list, list) {
-+	list_for_each(&mctx->hugetlb_list, hmem, entry) {
- 		if (bitmap_avail(&hmem->bitmap)) {
- 			buf->base = bitmap_alloc_range(&hmem->bitmap, nchunk, 1);
- 			if (buf->base != -1) {
-@@ -297,9 +296,9 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
+ #-------------------------
+ # Sub-directories
++add_subdirectory(ccan)
+ # Libraries
+ add_subdirectory(libibumad/src)
+ add_subdirectory(libibumad/man)
+diff --git a/buildlib/publish_headers.cmake b/buildlib/publish_headers.cmake
+index ccd2296..c1909d6 100644
+--- a/buildlib/publish_headers.cmake
++++ b/buildlib/publish_headers.cmake
+@@ -1,10 +1,9 @@
+ # COPYRIGHT (c) 2016 Obsidian Research Corporation. See COPYING file
  
- 		mlx5_spin_lock(&mctx->hugetlb_lock);
- 		if (bitmap_avail(&hmem->bitmap))
--			list_add(&hmem->list, &mctx->hugetlb_list);
-+			list_add(&mctx->hugetlb_list, &hmem->entry);
- 		else
--			list_add_tail(&hmem->list, &mctx->hugetlb_list);
-+			list_add_tail(&mctx->hugetlb_list, &hmem->entry);
- 		mlx5_spin_unlock(&mctx->hugetlb_lock);
- 	}
+-# Copy headers from the source directory to the proper place in the
+-# build/include directory
+-function(PUBLISH_HEADERS DEST)
++# Same as publish_headers but does not install them during the install phase
++function(publish_internal_headers DEST)
+   if(NOT ARGN)
+-    message(SEND_ERROR "Error: PUBLISH_HEADERS called without any files")
++    message(SEND_ERROR "Error: publish_internal_headers called without any files")
+     return()
+   endif()
  
-@@ -318,7 +317,7 @@ out_fork:
- 	mlx5_spin_lock(&mctx->hugetlb_lock);
- 	bitmap_free_range(&hmem->bitmap, buf->base, nchunk);
- 	if (bitmap_empty(&hmem->bitmap)) {
--		list_del(&hmem->list);
-+		list_del(&hmem->entry);
- 		mlx5_spin_unlock(&mctx->hugetlb_lock);
- 		free_huge_mem(hmem);
- 	} else
-@@ -335,7 +334,7 @@ static void free_huge_buf(struct mlx5_context *ctx, struct mlx5_buf *buf)
- 	mlx5_spin_lock(&ctx->hugetlb_lock);
- 	bitmap_free_range(&buf->hmem->bitmap, buf->base, nchunk);
- 	if (bitmap_empty(&buf->hmem->bitmap)) {
--		list_del(&buf->hmem->list);
-+		list_del(&buf->hmem->entry);
- 		mlx5_spin_unlock(&ctx->hugetlb_lock);
- 		free_huge_mem(buf->hmem);
- 	} else
-diff --git a/libmlx5/src/list.h b/libmlx5/src/list.h
-deleted file mode 100644
-index 4f96482..0000000
---- a/libmlx5/src/list.h
-+++ /dev/null
-@@ -1,312 +0,0 @@
--#ifndef _LINUX_LIST_H
--#define _LINUX_LIST_H
+@@ -15,6 +14,17 @@ function(PUBLISH_HEADERS DEST)
+     get_filename_component(FIL ${SFIL} NAME)
+     execute_process(COMMAND "ln" "-Tsf"
+       "${CMAKE_CURRENT_SOURCE_DIR}/${SFIL}" "${DDIR}/${FIL}")
++  endforeach()
++endfunction()
++
++# Copy headers from the source directory to the proper place in the
++# build/include directory. This also installs them into /usr/include/xx during
++# the install phase
++function(publish_headers DEST)
++  publish_internal_headers("${DEST}" ${ARGN})
++
++  foreach(SFIL ${ARGN})
++    get_filename_component(FIL ${SFIL} NAME)
+     install(FILES "${SFIL}" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${DEST}/" RENAME "${FIL}")
+   endforeach()
+ endfunction()
+diff --git a/ccan/CMakeLists.txt b/ccan/CMakeLists.txt
+new file mode 100644
+index 0000000..8c5f750
+--- /dev/null
++++ b/ccan/CMakeLists.txt
+@@ -0,0 +1,5 @@
++publish_internal_headers(ccan
++  minmax.h
++  build_assert.h
++  config.h
++  )
+diff --git a/ccan/build_assert.h b/ccan/build_assert.h
+new file mode 100644
+index 0000000..b9ecd84
+--- /dev/null
++++ b/ccan/build_assert.h
+@@ -0,0 +1,40 @@
++/* CC0 (Public domain) - see LICENSE file for details */
++#ifndef CCAN_BUILD_ASSERT_H
++#define CCAN_BUILD_ASSERT_H
++
++/**
++ * BUILD_ASSERT - assert a build-time dependency.
++ * @cond: the compile-time condition which must be true.
++ *
++ * Your compile will fail if the condition isn't true, or can't be evaluated
++ * by the compiler.  This can only be used within a function.
++ *
++ * Example:
++ *	#include <stddef.h>
++ *	...
++ *	static char *foo_to_char(struct foo *foo)
++ *	{
++ *		// This code needs string to be at start of foo.
++ *		BUILD_ASSERT(offsetof(struct foo, string) == 0);
++ *		return (char *)foo;
++ *	}
++ */
++#define BUILD_ASSERT(cond) \
++	do { (void) sizeof(char [1 - 2*!(cond)]); } while(0)
++
++/**
++ * BUILD_ASSERT_OR_ZERO - assert a build-time dependency, as an expression.
++ * @cond: the compile-time condition which must be true.
++ *
++ * Your compile will fail if the condition isn't true, or can't be evaluated
++ * by the compiler.  This can be used in an expression: its value is "0".
++ *
++ * Example:
++ *	#define foo_to_char(foo)					\
++ *		 ((char *)(foo)						\
++ *		  + BUILD_ASSERT_OR_ZERO(offsetof(struct foo, string) == 0))
++ */
++#define BUILD_ASSERT_OR_ZERO(cond) \
++	(sizeof(char [1 - 2*!(cond)]) - 1)
++
++#endif /* CCAN_BUILD_ASSERT_H */
+diff --git a/ccan/config.h b/ccan/config.h
+new file mode 100644
+index 0000000..b89ac94
+--- /dev/null
++++ b/ccan/config.h
+@@ -0,0 +1,2 @@
++#define HAVE_STATEMENT_EXPR 1
++#define HAVE_TYPEOF 1
+diff --git a/ccan/minmax.h b/ccan/minmax.h
+new file mode 100644
+index 0000000..5642f65
+--- /dev/null
++++ b/ccan/minmax.h
+@@ -0,0 +1,65 @@
++/* CC0 (Public domain) - see LICENSE file for details */
++#ifndef CCAN_MINMAX_H
++#define CCAN_MINMAX_H
++
++#include "config.h"
++
++#include <ccan/build_assert.h>
++
++#if !HAVE_STATEMENT_EXPR || !HAVE_TYPEOF
++/*
++ * Without these, there's no way to avoid unsafe double evaluation of
++ * the arguments
++ */
++#error Sorry, minmax module requires statement expressions and typeof
++#endif
++
++#if HAVE_BUILTIN_TYPES_COMPATIBLE_P
++#define MINMAX_ASSERT_COMPATIBLE(a, b) \
++	BUILD_ASSERT(__builtin_types_compatible_p(a, b))
++#else
++#define MINMAX_ASSERT_COMPATIBLE(a, b) \
++	do { } while (0)
++#endif
++
++#define min(a, b) \
++	({ \
++		typeof(a) _a = (a); \
++		typeof(b) _b = (b); \
++		MINMAX_ASSERT_COMPATIBLE(typeof(_a), typeof(_b)); \
++		_a < _b ? _a : _b; \
++	})
++
++#define max(a, b) \
++	({ \
++		typeof(a) _a = (a); \
++		typeof(b) _b = (b); \
++		MINMAX_ASSERT_COMPATIBLE(typeof(_a), typeof(_b)); \
++		_a > _b ? _a : _b; \
++	})
++
++#define clamp(v, f, c)	(max(min((v), (c)), (f)))
++
++
++#define min_t(t, a, b) \
++	({ \
++		t _ta = (a); \
++		t _tb = (b); \
++		min(_ta, _tb); \
++	})
++#define max_t(t, a, b) \
++	({ \
++		t _ta = (a); \
++		t _tb = (b); \
++		max(_ta, _tb); \
++	})
++
++#define clamp_t(t, v, f, c) \
++	({ \
++		t _tv = (v); \
++		t _tf = (f); \
++		t _tc = (c); \
++		clamp(_tv, _tf, _tc); \
++	})
++
++#endif /* CCAN_MINMAX_H */
+diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
+index 0113d10..f03980f 100644
+--- a/ibacm/linux/osd.h
++++ b/ibacm/linux/osd.h
+@@ -46,6 +46,8 @@
+ #include <sys/time.h>
+ #include <netinet/in.h>
+ 
++#include <ccan/minmax.h>
++
+ #define ACM_CONF_DIR  IBACM_CONFIG_PATH
+ #define ACM_ADDR_FILE "ibacm_addr.cfg"
+ #define ACM_OPTS_FILE "ibacm_opts.cfg"
+@@ -53,9 +55,6 @@
+ #define LIB_DESTRUCTOR __attribute__((destructor))
+ #define CDECL_FUNC
+ 
+-#define min(a, b) (a < b ? a : b)
+-#define max(a, b) (a > b ? a : b)
 -
--/*
-- * These are non-NULL pointers that will result in page faults
-- * under normal circumstances, used to verify that nobody uses
-- * non-initialized list entries.
-- */
--#define LIST_POISON1  ((void *) 0x00100100)
--#define LIST_POISON2  ((void *) 0x00200200)
--
--/*
-- * Simple doubly linked list implementation.
-- *
-- * Some of the internal functions ("__xxx") are useful when
-- * manipulating whole lists rather than single entries, as
-- * sometimes we already know the next/prev entries and we can
-- * generate better code by using them directly rather than
-- * using the generic single-entry routines.
-- */
--
--struct list_head {
--	struct list_head *next, *prev;
--};
--
--#define LIST_HEAD_INIT(name) { &(name), &(name) }
--
--#define LIST_HEAD(name) \
--	struct list_head name = LIST_HEAD_INIT(name)
--
--#define INIT_LIST_HEAD(ptr) do { \
--	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
--} while (0)
--
--/*
-- * Insert a new entry between two known consecutive entries.
-- *
-- * This is only for internal list manipulation where we know
-- * the prev/next entries already!
-- */
--static inline void __list_add(struct list_head *new,
--			      struct list_head *prev,
--			      struct list_head *next)
--{
--	next->prev = new;
--	new->next = next;
--	new->prev = prev;
--	prev->next = new;
--}
--
--/**
-- * list_add - add a new entry
-- * @new: new entry to be added
-- * @head: list head to add it after
-- *
-- * Insert a new entry after the specified head.
-- * This is good for implementing stacks.
-- */
--static inline void list_add(struct list_head *new, struct list_head *head)
--{
--	__list_add(new, head, head->next);
--}
--
--/**
-- * list_add_tail - add a new entry
-- * @new: new entry to be added
-- * @head: list head to add it before
-- *
-- * Insert a new entry before the specified head.
-- * This is useful for implementing queues.
-- */
--static inline void list_add_tail(struct list_head *new, struct list_head *head)
--{
--	__list_add(new, head->prev, head);
--}
--
--/*
-- * Delete a list entry by making the prev/next entries
-- * point to each other.
-- *
-- * This is only for internal list manipulation where we know
-- * the prev/next entries already!
-- */
--static inline void __list_del(struct list_head *prev, struct list_head *next)
--{
--	next->prev = prev;
--	prev->next = next;
--}
--
--/**
-- * list_del - deletes entry from list.
-- * @entry: the element to delete from the list.
-- * Note: list_empty on entry does not return true after this, the entry is
-- * in an undefined state.
-- */
--static inline void list_del(struct list_head *entry)
--{
--	__list_del(entry->prev, entry->next);
--	entry->next = LIST_POISON1;
--	entry->prev = LIST_POISON2;
--}
--
--/**
-- * list_del_init - deletes entry from list and reinitialize it.
-- * @entry: the element to delete from the list.
-- */
--static inline void list_del_init(struct list_head *entry)
--{
--	__list_del(entry->prev, entry->next);
--	INIT_LIST_HEAD(entry);
--}
--
--/**
-- * list_move - delete from one list and add as another's head
-- * @list: the entry to move
-- * @head: the head that will precede our entry
-- */
--static inline void list_move(struct list_head *list, struct list_head *head)
--{
--	__list_del(list->prev, list->next);
--	list_add(list, head);
--}
--
--/**
-- * list_move_tail - delete from one list and add as another's tail
-- * @list: the entry to move
-- * @head: the head that will follow our entry
-- */
--static inline void list_move_tail(struct list_head *list,
--				  struct list_head *head)
--{
--	__list_del(list->prev, list->next);
--	list_add_tail(list, head);
--}
--
--/**
-- * list_empty - tests whether a list is empty
-- * @head: the list to test.
-- */
--static inline int list_empty(const struct list_head *head)
--{
--	return head->next == head;
--}
--
--/**
-- * list_empty_careful - tests whether a list is
-- * empty _and_ checks that no other CPU might be
-- * in the process of still modifying either member
-- *
-- * NOTE: using list_empty_careful() without synchronization
-- * can only be safe if the only activity that can happen
-- * to the list entry is list_del_init(). Eg. it cannot be used
-- * if another CPU could re-list_add() it.
-- *
-- * @head: the list to test.
-- */
--static inline int list_empty_careful(const struct list_head *head)
--{
--	struct list_head *next = head->next;
--	return (next == head) && (next == head->prev);
--}
--
--static inline void __list_splice(struct list_head *list,
--				 struct list_head *head)
--{
--	struct list_head *first = list->next;
--	struct list_head *last = list->prev;
--	struct list_head *at = head->next;
--
--	first->prev = head;
--	head->next = first;
--
--	last->next = at;
--	at->prev = last;
--}
--
--/**
-- * list_splice - join two lists
-- * @list: the new list to add.
-- * @head: the place to add it in the first list.
-- */
--static inline void list_splice(struct list_head *list, struct list_head *head)
--{
--	if (!list_empty(list))
--		__list_splice(list, head);
--}
--
--/**
-- * list_splice_init - join two lists and reinitialise the emptied list.
-- * @list: the new list to add.
-- * @head: the place to add it in the first list.
-- *
-- * The list at @list is reinitialised
-- */
--static inline void list_splice_init(struct list_head *list,
--				    struct list_head *head)
--{
--	if (!list_empty(list)) {
--		__list_splice(list, head);
--		INIT_LIST_HEAD(list);
--	}
--}
--
--/**
-- * list_entry - get the struct for this entry
-- * @ptr:	the &struct list_head pointer.
-- * @type:	the type of the struct this is embedded in.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_entry(ptr, type, member) \
--	container_of(ptr, type, member)
--
--/**
-- * list_for_each	-	iterate over a list
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- */
--#define list_for_each(pos, head) \
--	for (pos = (head)->next; prefetch(pos->next), pos != (head); \
--		pos->next)
--
--/**
-- * __list_for_each	-	iterate over a list
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- *
-- * This variant differs from list_for_each() in that it's the
-- * simplest possible list iteration code, no prefetching is done.
-- * Use this for code that knows the list to be very short (empty
-- * or 1 entry) most of the time.
-- */
--#define __list_for_each(pos, head) \
--	for (pos = (head)->next; pos != (head); pos = pos->next)
--
--/**
-- * list_for_each_prev	-	iterate over a list backwards
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @head:	the head for your list.
-- */
--#define list_for_each_prev(pos, head) \
--	for (pos = (head)->prev; prefetch(pos->prev), pos != (head); \
--		pos = pos->prev)
--
--/**
-- * list_for_each_safe	-	iterate over a list safe against removal of list entry
-- * @pos:	the &struct list_head to use as a loop counter.
-- * @n:		another &struct list_head to use as temporary storage
-- * @head:	the head for your list.
-- */
--#define list_for_each_safe(pos, n, head) \
--	for (pos = (head)->next, n = pos->next; pos != (head); \
--		pos = n, n = pos->next)
--
--/**
-- * list_for_each_entry	-	iterate over list of given type
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_for_each_entry(pos, head, member)				\
--	for (pos = list_entry((head)->next, typeof(*pos), member);	\
--		&pos->member != (head);					\
--		pos = list_entry(pos->member.next, typeof(*pos), member))
--
--/**
-- * list_for_each_entry_reverse - iterate backwards over list of given type.
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_for_each_entry_reverse(pos, head, member)			\
--	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
--		prefetch(pos->member.prev), &pos->member != (head);	\
--		pos = list_entry(pos->member.prev, typeof(*pos), member))
--
--/**
-- * list_prepare_entry - prepare a pos entry for use as a start point in
-- *			list_for_each_entry_continue
-- * @pos:	the type * to use as a start point
-- * @head:	the head of the list
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_prepare_entry(pos, head, member) \
--	((pos) ? : list_entry(head, typeof(*pos), member))
--
--/**
-- * list_for_each_entry_continue -	iterate over list of given type
-- *			continuing after existing point
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_for_each_entry_continue(pos, head, member)		\
--	for (pos = list_entry(pos->member.next, typeof(*pos), member);	\
--		prefetch(pos->member.next), &pos->member != (head);	\
--		pos = list_entry(pos->member.next, typeof(*pos), member))
--
--/**
-- * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
-- * @pos:	the type * to use as a loop counter.
-- * @n:		another type * to use as temporary storage
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-- */
--#define list_for_each_entry_safe(pos, n, head, member)			\
--	for (pos = list_entry((head)->next, typeof(*pos), member),	\
--		n = list_entry(pos->member.next, typeof(*pos), member);	\
--	     &pos->member != (head);					\
--	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
--
+ #if __BYTE_ORDER == __LITTLE_ENDIAN
+ #define htonll(x) bswap_64(x)
+ #else
+diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
+index 9676783..3ea4670 100644
+--- a/libibverbs/examples/rc_pingpong.c
++++ b/libibverbs/examples/rc_pingpong.c
+@@ -49,13 +49,7 @@
+ 
+ #include "pingpong.h"
+ 
+-#ifndef max
+-#define max(x, y) (((x) > (y)) ? (x) : (y))
 -#endif
 -
-diff --git a/libmlx5/src/mlx5.c b/libmlx5/src/mlx5.c
-index 262a969..058b52f 100644
---- a/libmlx5/src/mlx5.c
-+++ b/libmlx5/src/mlx5.c
-@@ -730,7 +730,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	mlx5_read_env(&vdev->device, context);
+-#ifndef min
+-#define min(x, y) (((x) < (y)) ? (x) : (y))
+-#endif
++#include <ccan/minmax.h>
  
- 	mlx5_spinlock_init(&context->hugetlb_lock);
--	INIT_LIST_HEAD(&context->hugetlb_list);
-+	list_head_init(&context->hugetlb_list);
- 
- 	context->ibv_ctx.ops = mlx5_ctx_ops;
- 
+ enum {
+ 	PINGPONG_RECV_WRID = 1,
 diff --git a/libmlx5/src/mlx5.h b/libmlx5/src/mlx5.h
-index 80c69a4..6c4e830 100644
+index dc90892..80c69a4 100644
 --- a/libmlx5/src/mlx5.h
 +++ b/libmlx5/src/mlx5.h
-@@ -39,7 +39,7 @@
- #include <infiniband/driver.h>
- #include <infiniband/arch.h>
+@@ -41,6 +41,7 @@
  #include "mlx5-abi.h"
--#include "list.h"
-+#include <ccan/list.h>
+ #include "list.h"
  #include "bitmap.h"
- #include <ccan/minmax.h>
++#include <ccan/minmax.h>
  
-@@ -354,7 +354,7 @@ struct mlx5_hugetlb_mem {
- 	int			shmid;
- 	void		       *shmaddr;
- 	struct mlx5_bitmap	bitmap;
--	struct list_head	list;
-+	struct list_node	entry;
- };
+ #ifdef __GNUC__
+ #define likely(x)	__builtin_expect((x), 1)
+@@ -91,20 +92,6 @@
  
- struct mlx5_buf {
+ #endif
+ 
+-#ifndef min
+-#define min(a, b) \
+-	({ typeof(a) _a = (a); \
+-	   typeof(b) _b = (b); \
+-	   _a < _b ? _a : _b; })
+-#endif
+-
+-#ifndef max
+-#define max(a, b) \
+-	({ typeof(a) _a = (a); \
+-	   typeof(b) _b = (b); \
+-	   _a > _b ? _a : _b; })
+-#endif
+-
+ #define HIDDEN		__attribute__((visibility("hidden")))
+ 
+ #ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
+diff --git a/librdmacm/src/cma.h b/librdmacm/src/cma.h
+index e773591..68abe54 100644
+--- a/librdmacm/src/cma.h
++++ b/librdmacm/src/cma.h
+@@ -47,6 +47,8 @@
+ #include <rdma/rdma_cma.h>
+ #include <infiniband/ib.h>
+ 
++#include <ccan/minmax.h>
++
+ #ifdef INCLUDE_VALGRIND
+ #   include <valgrind/memcheck.h>
+ #   ifndef VALGRIND_MAKE_MEM_DEFINED
+@@ -68,9 +70,6 @@ static inline uint64_t htonll(uint64_t x) { return x; }
+ static inline uint64_t ntohll(uint64_t x) { return x; }
+ #endif
+ 
+-#define max(a, b) ((a) > (b) ? a : b)
+-#define min(a, b) ((a) < (b) ? a : b)
+-
+ /*
+  * Fast synchronization for low contention locking.
+  */
 -- 
 1.8.3.1
 
