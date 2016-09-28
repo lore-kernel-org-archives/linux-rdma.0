@@ -1,39 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/5] Licensing and cleanup issues
-Date: Wed, 28 Sep 2016 11:26:58 -0600
-Message-ID: <20160928172658.GC22668@obsidianresearch.com>
-References: <1475076789-14359-1-git-send-email-yishaih@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: David Decotigny <ddecotig-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v1] mlx4: remove unused fields
+Date: Wed, 28 Sep 2016 11:00:04 -0700
+Message-ID: <1475085604-101493-1-git-send-email-ddecotig@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1475076789-14359-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, David Decotigny <decot-Ypc/8FJVVoBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 28, 2016 at 06:33:04PM +0300, Yishai Hadas wrote:
-> Look at ccan/config.h I just hard coded few required HAVE_XXX which
-> expects to be available in Linux/distros environment.
-> In case you think that it should be changed to be set dynamically with cmake please
-> make the relevant changes as you are more familiar by that time with cmake.
+From: David Decotigny <decot-Ypc/8FJVVoBWk0Htik3J/w@public.gmane.org>
 
-I checked and we are safe to wire these constants in
-buildlib/config.h.in - they are supported by all configurations I test
-for.
+This also can address following UBSAN warnings:
+[   36.640343] ================================================================================
+[   36.648772] UBSAN: Undefined behaviour in drivers/net/ethernet/mellanox/mlx4/fw.c:857:26
+[   36.656853] shift exponent 64 is too large for 32-bit type 'int'
+[   36.663348] ================================================================================
+[   36.671783] ================================================================================
+[   36.680213] UBSAN: Undefined behaviour in drivers/net/ethernet/mellanox/mlx4/fw.c:861:27
+[   36.688297] shift exponent 35 is too large for 32-bit type 'int'
+[   36.694702] ================================================================================
 
-I updated the sample patch I sent you and added on to fix the mixmax_t
-issues.
+Tested:
+  reboot with UBSAN, no warning.
 
-https://github.com/jgunthorpe/rdma-plumbing/tree/for-yishai
+Signed-off-by: David Decotigny <decot-Ypc/8FJVVoBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/fw.c | 4 ----
+ drivers/net/ethernet/mellanox/mlx4/fw.h | 2 --
+ 2 files changed, 6 deletions(-)
 
-Squish them down add add my Signed-off-by for all the cmake stuff
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index 090bf81..f9cbc67 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -853,12 +853,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 	dev_cap->max_eqs = 1 << (field & 0xf);
+ 	MLX4_GET(field, outbox, QUERY_DEV_CAP_RSVD_MTT_OFFSET);
+ 	dev_cap->reserved_mtts = 1 << (field >> 4);
+-	MLX4_GET(field, outbox, QUERY_DEV_CAP_MAX_MRW_SZ_OFFSET);
+-	dev_cap->max_mrw_sz = 1 << field;
+ 	MLX4_GET(field, outbox, QUERY_DEV_CAP_RSVD_MRW_OFFSET);
+ 	dev_cap->reserved_mrws = 1 << (field & 0xf);
+-	MLX4_GET(field, outbox, QUERY_DEV_CAP_MAX_MTT_SEG_OFFSET);
+-	dev_cap->max_mtt_seg = 1 << (field & 0x3f);
+ 	MLX4_GET(size, outbox, QUERY_DEV_CAP_NUM_SYS_EQ_OFFSET);
+ 	dev_cap->num_sys_eqs = size & 0xfff;
+ 	MLX4_GET(field, outbox, QUERY_DEV_CAP_MAX_REQ_QP_OFFSET);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.h b/drivers/net/ethernet/mellanox/mlx4/fw.h
+index f11614f..5343a05 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.h
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.h
+@@ -80,9 +80,7 @@ struct mlx4_dev_cap {
+ 	int max_eqs;
+ 	int num_sys_eqs;
+ 	int reserved_mtts;
+-	int max_mrw_sz;
+ 	int reserved_mrws;
+-	int max_mtt_seg;
+ 	int max_requester_per_qp;
+ 	int max_responder_per_qp;
+ 	int max_rdma_global;
+-- 
+2.8.0.rc3.226.g39d4020
 
-FYI, of you rebase your license_cleanup branch the PR on github will
-update to reflect the revisions, no need for a new PR.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
