@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 5/5] libocrdma: Move to use CCAN list functionality
-Date: Wed, 28 Sep 2016 18:33:09 +0300
-Message-ID: <1475076789-14359-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 4/5] libmlx5: Move to use CCAN list functionality
+Date: Wed, 28 Sep 2016 18:33:08 +0300
+Message-ID: <1475076789-14359-5-git-send-email-yishaih@mellanox.com>
 References: <1475076789-14359-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475076789-14359-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -15,80 +15,113 @@ the project needs.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libocrdma/src/ocrdma_list.h  | 104 -------------------------------------------
- libocrdma/src/ocrdma_main.c  |  24 +++++-----
- libocrdma/src/ocrdma_main.h  |  12 ++---
- libocrdma/src/ocrdma_verbs.c |  33 +++++++-------
- 4 files changed, 33 insertions(+), 140 deletions(-)
- delete mode 100644 libocrdma/src/ocrdma_list.h
+ libmlx5/src/buf.c  |  11 +-
+ libmlx5/src/list.h | 312 -----------------------------------------------------
+ libmlx5/src/mlx5.c |   2 +-
+ libmlx5/src/mlx5.h |   4 +-
+ 4 files changed, 8 insertions(+), 321 deletions(-)
+ delete mode 100644 libmlx5/src/list.h
 
-diff --git a/libocrdma/src/ocrdma_list.h b/libocrdma/src/ocrdma_list.h
+diff --git a/libmlx5/src/buf.c b/libmlx5/src/buf.c
+index c827930..1a681c6 100644
+--- a/libmlx5/src/buf.c
++++ b/libmlx5/src/buf.c
+@@ -259,7 +259,6 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
+ 			  size_t size, int page_size)
+ {
+ 	int found = 0;
+-	LIST_HEAD(slist);
+ 	int nchunk;
+ 	struct mlx5_hugetlb_mem *hmem;
+ 	int ret;
+@@ -268,7 +267,7 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
+ 	nchunk = buf->length / MLX5_Q_CHUNK_SIZE;
+ 
+ 	mlx5_spin_lock(&mctx->hugetlb_lock);
+-	list_for_each_entry(hmem, &mctx->hugetlb_list, list) {
++	list_for_each(&mctx->hugetlb_list, hmem, entry) {
+ 		if (bitmap_avail(&hmem->bitmap)) {
+ 			buf->base = bitmap_alloc_range(&hmem->bitmap, nchunk, 1);
+ 			if (buf->base != -1) {
+@@ -297,9 +296,9 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
+ 
+ 		mlx5_spin_lock(&mctx->hugetlb_lock);
+ 		if (bitmap_avail(&hmem->bitmap))
+-			list_add(&hmem->list, &mctx->hugetlb_list);
++			list_add(&mctx->hugetlb_list, &hmem->entry);
+ 		else
+-			list_add_tail(&hmem->list, &mctx->hugetlb_list);
++			list_add_tail(&mctx->hugetlb_list, &hmem->entry);
+ 		mlx5_spin_unlock(&mctx->hugetlb_lock);
+ 	}
+ 
+@@ -318,7 +317,7 @@ out_fork:
+ 	mlx5_spin_lock(&mctx->hugetlb_lock);
+ 	bitmap_free_range(&hmem->bitmap, buf->base, nchunk);
+ 	if (bitmap_empty(&hmem->bitmap)) {
+-		list_del(&hmem->list);
++		list_del(&hmem->entry);
+ 		mlx5_spin_unlock(&mctx->hugetlb_lock);
+ 		free_huge_mem(hmem);
+ 	} else
+@@ -335,7 +334,7 @@ static void free_huge_buf(struct mlx5_context *ctx, struct mlx5_buf *buf)
+ 	mlx5_spin_lock(&ctx->hugetlb_lock);
+ 	bitmap_free_range(&buf->hmem->bitmap, buf->base, nchunk);
+ 	if (bitmap_empty(&buf->hmem->bitmap)) {
+-		list_del(&buf->hmem->list);
++		list_del(&buf->hmem->entry);
+ 		mlx5_spin_unlock(&ctx->hugetlb_lock);
+ 		free_huge_mem(buf->hmem);
+ 	} else
+diff --git a/libmlx5/src/list.h b/libmlx5/src/list.h
 deleted file mode 100644
-index 1e0f1ff..0000000
---- a/libocrdma/src/ocrdma_list.h
+index 4f96482..0000000
+--- a/libmlx5/src/list.h
 +++ /dev/null
-@@ -1,104 +0,0 @@
+@@ -1,312 +0,0 @@
+-#ifndef _LINUX_LIST_H
+-#define _LINUX_LIST_H
+-
 -/*
-- * Copyright (C) 2008-2013 Emulex.  All rights reserved.
-- * This software is available to you under a choice of one of two
-- * licenses.  You may choose to be licensed under the terms of the GNU
-- * General Public License (GPL) Version 2, available from the file
-- * COPYING in the main directory of this source tree, or the
-- * BSD license below:
+- * These are non-NULL pointers that will result in page faults
+- * under normal circumstances, used to verify that nobody uses
+- * non-initialized list entries.
+- */
+-#define LIST_POISON1  ((void *) 0x00100100)
+-#define LIST_POISON2  ((void *) 0x00200200)
+-
+-/*
+- * Simple doubly linked list implementation.
 - *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
-- *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
-- *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT  LIMITED TO, THE
-- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR  A PARTICULAR PURPOSE
-- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-- * THE POSSIBILITY OF SUCH DAMAGE.
+- * Some of the internal functions ("__xxx") are useful when
+- * manipulating whole lists rather than single entries, as
+- * sometimes we already know the next/prev entries and we can
+- * generate better code by using them directly rather than
+- * using the generic single-entry routines.
 - */
 -
--#ifndef __OCRDMA_LIST_H__
--#define __OCRDMA_LIST_H__
--
--struct ocrdma_list_node {
--	struct ocrdma_list_node *next, *prev;
+-struct list_head {
+-	struct list_head *next, *prev;
 -};
 -
--struct ocrdma_list_head {
--	struct ocrdma_list_node node;
--	pthread_mutex_t lock;
--};
+-#define LIST_HEAD_INIT(name) { &(name), &(name) }
 -
--#define DBLY_LIST_HEAD_INIT(name) { { &(name.node), &(name.node) } , \
--                        PTHREAD_MUTEX_INITIALIZER }
+-#define LIST_HEAD(name) \
+-	struct list_head name = LIST_HEAD_INIT(name)
 -
--#define DBLY_LIST_HEAD(name) \
--	struct ocrdma_list_head name = DBLY_LIST_HEAD_INIT(name); \
--
--#define INIT_DBLY_LIST_NODE(ptr) do { \
+-#define INIT_LIST_HEAD(ptr) do { \
 -	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
 -} while (0)
 -
--#define INIT_DBLY_LIST_HEAD(ptr) INIT_DBLY_LIST_NODE(ptr.node)
--
--static inline void __list_add_node(struct ocrdma_list_node *new,
--				       struct ocrdma_list_node *prev,
--				       struct ocrdma_list_node *next)
+-/*
+- * Insert a new entry between two known consecutive entries.
+- *
+- * This is only for internal list manipulation where we know
+- * the prev/next entries already!
+- */
+-static inline void __list_add(struct list_head *new,
+-			      struct list_head *prev,
+-			      struct list_head *next)
 -{
 -	next->prev = new;
 -	new->next = next;
@@ -96,258 +129,303 @@ index 1e0f1ff..0000000
 -	prev->next = new;
 -}
 -
--static inline void list_add_node_tail(struct ocrdma_list_node *new,
--					  struct ocrdma_list_head *head)
+-/**
+- * list_add - add a new entry
+- * @new: new entry to be added
+- * @head: list head to add it after
+- *
+- * Insert a new entry after the specified head.
+- * This is good for implementing stacks.
+- */
+-static inline void list_add(struct list_head *new, struct list_head *head)
 -{
--	__list_add_node(new, head->node.prev, &head->node);
+-	__list_add(new, head, head->next);
 -}
 -
--static inline void __list_del_node(struct ocrdma_list_node *prev,
--				       struct ocrdma_list_node *next)
+-/**
+- * list_add_tail - add a new entry
+- * @new: new entry to be added
+- * @head: list head to add it before
+- *
+- * Insert a new entry before the specified head.
+- * This is useful for implementing queues.
+- */
+-static inline void list_add_tail(struct list_head *new, struct list_head *head)
+-{
+-	__list_add(new, head->prev, head);
+-}
+-
+-/*
+- * Delete a list entry by making the prev/next entries
+- * point to each other.
+- *
+- * This is only for internal list manipulation where we know
+- * the prev/next entries already!
+- */
+-static inline void __list_del(struct list_head *prev, struct list_head *next)
 -{
 -	next->prev = prev;
 -	prev->next = next;
 -}
 -
--static inline void list_del_node(struct ocrdma_list_node *entry)
+-/**
+- * list_del - deletes entry from list.
+- * @entry: the element to delete from the list.
+- * Note: list_empty on entry does not return true after this, the entry is
+- * in an undefined state.
+- */
+-static inline void list_del(struct list_head *entry)
 -{
--	__list_del_node(entry->prev, entry->next);
--	entry->next = entry->prev = 0;
+-	__list_del(entry->prev, entry->next);
+-	entry->next = LIST_POISON1;
+-	entry->prev = LIST_POISON2;
 -}
 -
--#define list_lock(head) pthread_mutex_lock(&((head)->lock))
--#define list_unlock(head) pthread_mutex_unlock(&((head)->lock))
--
--#define list_node(ptr, type, member) \
--    ((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member)))
+-/**
+- * list_del_init - deletes entry from list and reinitialize it.
+- * @entry: the element to delete from the list.
+- */
+-static inline void list_del_init(struct list_head *entry)
+-{
+-	__list_del(entry->prev, entry->next);
+-	INIT_LIST_HEAD(entry);
+-}
 -
 -/**
-- * list_for_each_node_safe	-	iterate over a list safe against removal of list entry
-- * @pos:	the &struct ocrdma_list_head to use as a loop counter.
-- * @n:		another &struct ocrdma_list_head to use as temporary storage
+- * list_move - delete from one list and add as another's head
+- * @list: the entry to move
+- * @head: the head that will precede our entry
+- */
+-static inline void list_move(struct list_head *list, struct list_head *head)
+-{
+-	__list_del(list->prev, list->next);
+-	list_add(list, head);
+-}
+-
+-/**
+- * list_move_tail - delete from one list and add as another's tail
+- * @list: the entry to move
+- * @head: the head that will follow our entry
+- */
+-static inline void list_move_tail(struct list_head *list,
+-				  struct list_head *head)
+-{
+-	__list_del(list->prev, list->next);
+-	list_add_tail(list, head);
+-}
+-
+-/**
+- * list_empty - tests whether a list is empty
+- * @head: the list to test.
+- */
+-static inline int list_empty(const struct list_head *head)
+-{
+-	return head->next == head;
+-}
+-
+-/**
+- * list_empty_careful - tests whether a list is
+- * empty _and_ checks that no other CPU might be
+- * in the process of still modifying either member
+- *
+- * NOTE: using list_empty_careful() without synchronization
+- * can only be safe if the only activity that can happen
+- * to the list entry is list_del_init(). Eg. it cannot be used
+- * if another CPU could re-list_add() it.
+- *
+- * @head: the list to test.
+- */
+-static inline int list_empty_careful(const struct list_head *head)
+-{
+-	struct list_head *next = head->next;
+-	return (next == head) && (next == head->prev);
+-}
+-
+-static inline void __list_splice(struct list_head *list,
+-				 struct list_head *head)
+-{
+-	struct list_head *first = list->next;
+-	struct list_head *last = list->prev;
+-	struct list_head *at = head->next;
+-
+-	first->prev = head;
+-	head->next = first;
+-
+-	last->next = at;
+-	at->prev = last;
+-}
+-
+-/**
+- * list_splice - join two lists
+- * @list: the new list to add.
+- * @head: the place to add it in the first list.
+- */
+-static inline void list_splice(struct list_head *list, struct list_head *head)
+-{
+-	if (!list_empty(list))
+-		__list_splice(list, head);
+-}
+-
+-/**
+- * list_splice_init - join two lists and reinitialise the emptied list.
+- * @list: the new list to add.
+- * @head: the place to add it in the first list.
+- *
+- * The list at @list is reinitialised
+- */
+-static inline void list_splice_init(struct list_head *list,
+-				    struct list_head *head)
+-{
+-	if (!list_empty(list)) {
+-		__list_splice(list, head);
+-		INIT_LIST_HEAD(list);
+-	}
+-}
+-
+-/**
+- * list_entry - get the struct for this entry
+- * @ptr:	the &struct list_head pointer.
+- * @type:	the type of the struct this is embedded in.
+- * @member:	the name of the list_struct within the struct.
+- */
+-#define list_entry(ptr, type, member) \
+-	container_of(ptr, type, member)
+-
+-/**
+- * list_for_each	-	iterate over a list
+- * @pos:	the &struct list_head to use as a loop counter.
 - * @head:	the head for your list.
 - */
--#define list_for_each_node_safe(pos, n, head) \
--	for (pos = (head)->node.next, n = pos->next; pos != &((head)->node); \
+-#define list_for_each(pos, head) \
+-	for (pos = (head)->next; prefetch(pos->next), pos != (head); \
+-		pos->next)
+-
+-/**
+- * __list_for_each	-	iterate over a list
+- * @pos:	the &struct list_head to use as a loop counter.
+- * @head:	the head for your list.
+- *
+- * This variant differs from list_for_each() in that it's the
+- * simplest possible list iteration code, no prefetching is done.
+- * Use this for code that knows the list to be very short (empty
+- * or 1 entry) most of the time.
+- */
+-#define __list_for_each(pos, head) \
+-	for (pos = (head)->next; pos != (head); pos = pos->next)
+-
+-/**
+- * list_for_each_prev	-	iterate over a list backwards
+- * @pos:	the &struct list_head to use as a loop counter.
+- * @head:	the head for your list.
+- */
+-#define list_for_each_prev(pos, head) \
+-	for (pos = (head)->prev; prefetch(pos->prev), pos != (head); \
+-		pos = pos->prev)
+-
+-/**
+- * list_for_each_safe	-	iterate over a list safe against removal of list entry
+- * @pos:	the &struct list_head to use as a loop counter.
+- * @n:		another &struct list_head to use as temporary storage
+- * @head:	the head for your list.
+- */
+-#define list_for_each_safe(pos, n, head) \
+-	for (pos = (head)->next, n = pos->next; pos != (head); \
 -		pos = n, n = pos->next)
 -
--#endif				/* __OCRDMA_LIST_H__ */
-diff --git a/libocrdma/src/ocrdma_main.c b/libocrdma/src/ocrdma_main.c
-index 5c494d8..064ecb3 100644
---- a/libocrdma/src/ocrdma_main.c
-+++ b/libocrdma/src/ocrdma_main.c
-@@ -46,7 +46,7 @@
+-/**
+- * list_for_each_entry	-	iterate over list of given type
+- * @pos:	the type * to use as a loop counter.
+- * @head:	the head for your list.
+- * @member:	the name of the list_struct within the struct.
+- */
+-#define list_for_each_entry(pos, head, member)				\
+-	for (pos = list_entry((head)->next, typeof(*pos), member);	\
+-		&pos->member != (head);					\
+-		pos = list_entry(pos->member.next, typeof(*pos), member))
+-
+-/**
+- * list_for_each_entry_reverse - iterate backwards over list of given type.
+- * @pos:	the type * to use as a loop counter.
+- * @head:	the head for your list.
+- * @member:	the name of the list_struct within the struct.
+- */
+-#define list_for_each_entry_reverse(pos, head, member)			\
+-	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
+-		prefetch(pos->member.prev), &pos->member != (head);	\
+-		pos = list_entry(pos->member.prev, typeof(*pos), member))
+-
+-/**
+- * list_prepare_entry - prepare a pos entry for use as a start point in
+- *			list_for_each_entry_continue
+- * @pos:	the type * to use as a start point
+- * @head:	the head of the list
+- * @member:	the name of the list_struct within the struct.
+- */
+-#define list_prepare_entry(pos, head, member) \
+-	((pos) ? : list_entry(head, typeof(*pos), member))
+-
+-/**
+- * list_for_each_entry_continue -	iterate over list of given type
+- *			continuing after existing point
+- * @pos:	the type * to use as a loop counter.
+- * @head:	the head for your list.
+- * @member:	the name of the list_struct within the struct.
+- */
+-#define list_for_each_entry_continue(pos, head, member)		\
+-	for (pos = list_entry(pos->member.next, typeof(*pos), member);	\
+-		prefetch(pos->member.next), &pos->member != (head);	\
+-		pos = list_entry(pos->member.next, typeof(*pos), member))
+-
+-/**
+- * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
+- * @pos:	the type * to use as a loop counter.
+- * @n:		another type * to use as temporary storage
+- * @head:	the head for your list.
+- * @member:	the name of the list_struct within the struct.
+- */
+-#define list_for_each_entry_safe(pos, n, head, member)			\
+-	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+-		n = list_entry(pos->member.next, typeof(*pos), member);	\
+-	     &pos->member != (head);					\
+-	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
+-
+-#endif
+-
+diff --git a/libmlx5/src/mlx5.c b/libmlx5/src/mlx5.c
+index 262a969..058b52f 100644
+--- a/libmlx5/src/mlx5.c
++++ b/libmlx5/src/mlx5.c
+@@ -730,7 +730,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	mlx5_read_env(&vdev->device, context);
  
- #include "ocrdma_main.h"
- #include "ocrdma_abi.h"
--#include "ocrdma_list.h"
-+#include <ccan/list.h>
+ 	mlx5_spinlock_init(&context->hugetlb_lock);
+-	INIT_LIST_HEAD(&context->hugetlb_list);
++	list_head_init(&context->hugetlb_list);
  
- #include <sys/types.h>
- #include <sys/stat.h>
-@@ -68,7 +68,8 @@ struct {
- 	UCNA(EMULEX, GEN1), UCNA(EMULEX, GEN2), UCNA(EMULEX, GEN2_VF)
- };
+ 	context->ibv_ctx.ops = mlx5_ctx_ops;
  
--static DBLY_LIST_HEAD(ocrdma_dev_list);
-+static LIST_HEAD(ocrdma_dev_list);
-+static pthread_mutex_t ocrdma_dev_list_lock = PTHREAD_MUTEX_INITIALIZER;
- 
- static struct ibv_context *ocrdma_alloc_context(struct ibv_device *, int);
- static void ocrdma_free_context(struct ibv_context *);
-@@ -222,10 +223,10 @@ found:
- 	pthread_mutex_init(&dev->dev_lock, NULL);
- 	pthread_spin_init(&dev->flush_q_lock, PTHREAD_PROCESS_PRIVATE);
- 	dev->ibv_dev.ops = ocrdma_dev_ops;
--	INIT_DBLY_LIST_NODE(&dev->entry);
--	list_lock(&ocrdma_dev_list);
--	list_add_node_tail(&dev->entry, &ocrdma_dev_list);
--	list_unlock(&ocrdma_dev_list);
-+	list_node_init(&dev->entry);
-+	pthread_mutex_lock(&ocrdma_dev_list_lock);
-+	list_add_tail(&ocrdma_dev_list, &dev->entry);
-+	pthread_mutex_unlock(&ocrdma_dev_list_lock);
- 	return &dev->ibv_dev;
- qp_err:
- 	free(dev);
-@@ -244,14 +245,13 @@ void ocrdma_register_driver(void)
- static __attribute__ ((destructor))
- void ocrdma_unregister_driver(void)
- {
--	struct ocrdma_list_node *cur, *tmp;
- 	struct ocrdma_device *dev;
--	list_lock(&ocrdma_dev_list);
--	list_for_each_node_safe(cur, tmp, &ocrdma_dev_list) {
--		dev = list_node(cur, struct ocrdma_device, entry);
-+	struct ocrdma_device *dev_tmp;
-+	pthread_mutex_lock(&ocrdma_dev_list_lock);
-+	list_for_each_safe(&ocrdma_dev_list, dev, dev_tmp, entry) {
- 		pthread_mutex_destroy(&dev->dev_lock);
- 		pthread_spin_destroy(&dev->flush_q_lock);
--		list_del_node(&dev->entry);
-+		list_del(&dev->entry);
- 		/*
- 		 * Avoid freeing the dev here since MPI get SIGSEGV
- 		 * in few error cases because of reference to ib_dev
-@@ -260,5 +260,5 @@ void ocrdma_unregister_driver(void)
- 		 */
- 		/* free(dev); */
- 	}
--	list_unlock(&ocrdma_dev_list);
-+	pthread_mutex_unlock(&ocrdma_dev_list_lock);
- }
-diff --git a/libocrdma/src/ocrdma_main.h b/libocrdma/src/ocrdma_main.h
-index c81188b..b8be6e5 100644
---- a/libocrdma/src/ocrdma_main.h
-+++ b/libocrdma/src/ocrdma_main.h
-@@ -42,7 +42,7 @@
+diff --git a/libmlx5/src/mlx5.h b/libmlx5/src/mlx5.h
+index 80c69a4..6c4e830 100644
+--- a/libmlx5/src/mlx5.h
++++ b/libmlx5/src/mlx5.h
+@@ -39,7 +39,7 @@
  #include <infiniband/driver.h>
  #include <infiniband/arch.h>
- 
--#include "ocrdma_list.h"
+ #include "mlx5-abi.h"
+-#include "list.h"
 +#include <ccan/list.h>
+ #include "bitmap.h"
+ #include <ccan/minmax.h>
  
- #define ocrdma_err(format, arg...) printf(format, ##arg)
- 
-@@ -58,7 +58,7 @@ struct ocrdma_device {
- 	struct ocrdma_qp **qp_tbl;
- 	pthread_mutex_t dev_lock;
- 	pthread_spinlock_t flush_q_lock;
--	struct ocrdma_list_node entry;
-+	struct list_node entry;
- 	int id;
- 	int gen;
- 	uint32_t wqe_size;
-@@ -106,8 +106,8 @@ struct ocrdma_cq {
- 	uint8_t deferred_arm;
- 	uint8_t deferred_sol;
- 	uint8_t first_arm;
--	struct ocrdma_list_head sq_head;
--	struct ocrdma_list_head rq_head;
-+	struct list_head sq_head;
-+	struct list_head rq_head;
+@@ -354,7 +354,7 @@ struct mlx5_hugetlb_mem {
+ 	int			shmid;
+ 	void		       *shmaddr;
+ 	struct mlx5_bitmap	bitmap;
+-	struct list_head	list;
++	struct list_node	entry;
  };
  
- enum {
-@@ -203,8 +203,8 @@ struct ocrdma_qp {
- 
- 	enum ibv_qp_type qp_type;
- 	enum ocrdma_qp_state state;
--	struct ocrdma_list_node sq_entry;
--	struct ocrdma_list_node rq_entry;
-+	struct list_node sq_entry;
-+	struct list_node rq_entry;
- 	uint16_t id;
- 	uint16_t rsvd;
- 	uint32_t db_shift;
-diff --git a/libocrdma/src/ocrdma_verbs.c b/libocrdma/src/ocrdma_verbs.c
-index 6062626..413c706 100644
---- a/libocrdma/src/ocrdma_verbs.c
-+++ b/libocrdma/src/ocrdma_verbs.c
-@@ -51,7 +51,7 @@
- 
- #include "ocrdma_main.h"
- #include "ocrdma_abi.h"
--#include "ocrdma_list.h"
-+#include <ccan/list.h>
- 
- static void ocrdma_ring_cq_db(struct ocrdma_cq *cq, uint32_t armed,
- 			      int solicited, uint32_t num_cqe);
-@@ -307,8 +307,8 @@ static struct ibv_cq *ocrdma_create_cq_common(struct ibv_context *context,
- 		ocrdma_ring_cq_db(cq, 0, 0, 0);
- 	}
- 	cq->ibv_cq.cqe = cqe;
--	INIT_DBLY_LIST_HEAD(&cq->sq_head);
--	INIT_DBLY_LIST_HEAD(&cq->rq_head);
-+	list_head_init(&cq->sq_head);
-+	list_head_init(&cq->rq_head);
- 	return &cq->ibv_cq;
- cq_err2:
- 	(void)ibv_cmd_destroy_cq(&cq->ibv_cq);
-@@ -621,8 +621,8 @@ struct ibv_qp *ocrdma_create_qp(struct ibv_pd *pd,
- 		}
- 	}
- 	qp->state = OCRDMA_QPS_RST;
--	INIT_DBLY_LIST_NODE(&qp->sq_entry);
--	INIT_DBLY_LIST_NODE(&qp->rq_entry);
-+	list_node_init(&qp->sq_entry);
-+	list_node_init(&qp->rq_entry);
- 	return &qp->ibv_qp;
- 
- map_err:
-@@ -663,10 +663,9 @@ static int ocrdma_is_qp_in_sq_flushlist(struct ocrdma_cq *cq,
- 					struct ocrdma_qp *qp)
- {
- 	struct ocrdma_qp *list_qp;
--	struct ocrdma_list_node *cur, *tmp;
-+	struct ocrdma_qp *list_qp_tmp;
- 	int found = 0;
--	list_for_each_node_safe(cur, tmp, &cq->sq_head) {
--		list_qp = list_node(cur, struct ocrdma_qp, sq_entry);
-+	list_for_each_safe(&cq->sq_head, list_qp, list_qp_tmp, sq_entry) {
- 		if (qp == list_qp) {
- 			found = 1;
- 			break;
-@@ -679,10 +678,9 @@ static int ocrdma_is_qp_in_rq_flushlist(struct ocrdma_cq *cq,
- 					struct ocrdma_qp *qp)
- {
- 	struct ocrdma_qp *list_qp;
--	struct ocrdma_list_node *cur, *tmp;
-+	struct ocrdma_qp *list_qp_tmp;
- 	int found = 0;
--	list_for_each_node_safe(cur, tmp, &cq->rq_head) {
--		list_qp = list_node(cur, struct ocrdma_qp, rq_entry);
-+	list_for_each_safe(&cq->rq_head, list_qp, list_qp_tmp, rq_entry) {
- 		if (qp == list_qp) {
- 			found = 1;
- 			break;
-@@ -708,11 +706,11 @@ static void ocrdma_del_flush_qp(struct ocrdma_qp *qp)
- 	pthread_spin_lock(&dev->flush_q_lock);
- 	found = ocrdma_is_qp_in_sq_flushlist(qp->sq_cq, qp);
- 	if (found)
--		list_del_node(&qp->sq_entry);
-+		list_del(&qp->sq_entry);
- 	if (!qp->srq) {
- 		found = ocrdma_is_qp_in_rq_flushlist(qp->rq_cq, qp);
- 		if (found)
--			list_del_node(&qp->rq_entry);
-+			list_del(&qp->rq_entry);
- 	}
- 	pthread_spin_unlock(&dev->flush_q_lock);
- }
-@@ -724,11 +722,11 @@ static void ocrdma_flush_qp(struct ocrdma_qp *qp)
- 	pthread_spin_lock(&qp->dev->flush_q_lock);
- 	found = ocrdma_is_qp_in_sq_flushlist(qp->sq_cq, qp);
- 	if (!found)
--		list_add_node_tail(&qp->sq_entry, &qp->sq_cq->sq_head);
-+		list_add_tail(&qp->sq_cq->sq_head, &qp->sq_entry);
- 	if (!qp->srq) {
- 		found = ocrdma_is_qp_in_rq_flushlist(qp->rq_cq, qp);
- 		if (!found)
--			list_add_node_tail(&qp->rq_entry, &qp->rq_cq->rq_head);
-+			list_add_tail(&qp->rq_cq->rq_head, &qp->rq_entry);
- 	}
- 	pthread_spin_unlock(&qp->dev->flush_q_lock);
- }
-@@ -2034,7 +2032,7 @@ int ocrdma_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
- 	int cqes_to_poll = num_entries;
- 	int num_os_cqe = 0, err_cqes = 0;
- 	struct ocrdma_qp *qp;
--	struct ocrdma_list_node *cur, *tmp;
-+	struct ocrdma_qp *qp_tmp;
- 
- 	cq = get_ocrdma_cq(ibcq);
- 	pthread_spin_lock(&cq->cq_lock);
-@@ -2045,8 +2043,7 @@ int ocrdma_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
- 	if (cqes_to_poll) {
- 		wc = wc + num_os_cqe;
- 		pthread_spin_lock(&cq->dev->flush_q_lock);
--		list_for_each_node_safe(cur, tmp, &cq->sq_head) {
--			qp = list_node(cur, struct ocrdma_qp, sq_entry);
-+		list_for_each_safe(&cq->sq_head, qp, qp_tmp, sq_entry) {
- 			if (cqes_to_poll == 0)
- 				break;
- 			err_cqes = ocrdma_add_err_cqe(cq, cqes_to_poll, qp, wc);
+ struct mlx5_buf {
 -- 
 1.8.3.1
 
