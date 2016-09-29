@@ -1,309 +1,247 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 3/9] Remove HAVE_IBV_*
-Date: Thu, 29 Sep 2016 14:47:50 -0600
-Message-ID: <1475182076-5411-4-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 2/9] Remove HAVE_VALGRIND_MEMCHECK_H/INCLUDE_VALGRIND
+Date: Thu, 29 Sep 2016 14:47:49 -0600
+Message-ID: <1475182076-5411-3-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475182076-5411-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "open list:HF1 USERSPACE PROVIDER for hf1.ko" <intel-opa-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-These were used to support building provider plugins against old
-versions of libibverbs. Since libibverbs is now included together
-with the provider that is no longer possible or supported.
+The cmake build system guarantees that valgrind/memcheck.h is present.
+If the system does not have it, or valgrind is disabled, then it is
+replaced with a dummy header full of empty stubs.
+
+Thus all the copy&paste boiler plate is consolidated into buildlib.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- buildlib/config.h.in           |  6 -----
- libhfi1verbs/src/hfiverbs.c    | 18 -------------
- libipathverbs/src/ipathverbs.c | 18 -------------
- libmlx5/src/buf.c              | 19 --------------
- libmlx5/src/mlx5.c             |  4 ---
- libmlx5/src/verbs.c            |  2 --
- libmthca/src/buf.c             | 19 --------------
- libmthca/src/mthca.c           | 58 ------------------------------------------
- librxe/src/rxe.c               | 14 ----------
- 9 files changed, 158 deletions(-)
+ buildlib/config.h.in               |  4 ----
+ libibcm/src/cm.c                   | 11 +----------
+ libibumad/src/umad.c               | 14 +-------------
+ libibverbs/src/ibverbs.h           | 14 +-------------
+ libmlx4/src/mlx4.h                 | 18 +-----------------
+ libmlx5/src/mlx5.h                 | 18 +-----------------
+ libmthca/src/mthca.h               | 18 +-----------------
+ librdmacm/src/cma.h                | 11 +----------
+ srp_daemon/srp_daemon/srp_daemon.h |  5 -----
+ 9 files changed, 7 insertions(+), 106 deletions(-)
 
 diff --git a/buildlib/config.h.in b/buildlib/config.h.in
-index a02be9cfb0f7..3b94ea3e4f51 100644
+index 0a87457e6d7a..a02be9cfb0f7 100644
 --- a/buildlib/config.h.in
 +++ b/buildlib/config.h.in
-@@ -1,12 +1,6 @@
- #ifndef CONFIG_H_IN
- #define CONFIG_H_IN
+@@ -21,10 +21,6 @@
+ // FIXME: Remove this, The cmake version hard-requires new style CLOEXEC support
+ #define STREAM_CLOEXEC "e"
  
--// FIXME: Remove this, ibverbs is included so we don't need to detect
--#define HAVE_IBV_DOFORK_RANGE 1
--#define HAVE_IBV_DONTFORK_RANGE 1
--#define HAVE_IBV_REGISTER_DRIVER 1
--#define HAVE_IBV_READ_SYSFS_FILE 1
+-// FIXME: Remove this, cmake always provides a valgrind/memcheck.h
+-#define HAVE_VALGRIND_MEMCHECK_H 1
+-#define INCLUDE_VALGRIND 1
 -
- #define HAVE_STATEMENT_EXPR 1
- #define HAVE_BUILTIN_TYPES_COMPATIBLE_P 1
- #define HAVE_TYPEOF 1
-diff --git a/libhfi1verbs/src/hfiverbs.c b/libhfi1verbs/src/hfiverbs.c
-index d2b7dd450992..e28afc7fcc89 100644
---- a/libhfi1verbs/src/hfiverbs.c
-+++ b/libhfi1verbs/src/hfiverbs.c
-@@ -217,25 +217,7 @@ found:
- 	return &dev->ibv_dev;
- }
+ #define IBV_CONFIG_DIR "@CONFIG_DIR@"
+ #define RS_CONF_DIR "@CMAKE_INSTALL_FULL_SYSCONFDIR@/rdma/rsocket"
+ #define IWPM_CONFIG_FILE "@CMAKE_INSTALL_FULL_SYSCONFDIR@/iwpmd.conf"
+diff --git a/libibcm/src/cm.c b/libibcm/src/cm.c
+index ebe36bef89e6..f775923aa73c 100644
+--- a/libibcm/src/cm.c
++++ b/libibcm/src/cm.c
+@@ -49,16 +49,7 @@
+ #include <infiniband/driver.h>
+ #include <infiniband/marshall.h>
  
--#ifdef HAVE_IBV_REGISTER_DRIVER
- static __attribute__((constructor)) void hfi1_register_driver(void)
- {
- 	ibv_register_driver("hfi1verbs", hfi1_driver_init);
- }
--#else
--/*
-- * Export the old libsysfs sysfs_class_device-based driver entry point
-- * if libibverbs does not export an ibv_register_driver() function.
-- */
--struct ibv_device *openib_driver_init(struct sysfs_class_device *sysdev)
--{
--        int abi_ver = 0;
--        char value[8];
--
--        if (ibv_read_sysfs_file(sysdev->path, "abi_version",
--                                value, sizeof value) > 0)
--                abi_ver = strtol(value, NULL, 10);
--
--        return hfi1_driver_init(sysdev->path, abi_ver);
--}
--#endif /* HAVE_IBV_REGISTER_DRIVER */
-diff --git a/libipathverbs/src/ipathverbs.c b/libipathverbs/src/ipathverbs.c
-index 9a19d0ab98ae..4b945f6c58ec 100644
---- a/libipathverbs/src/ipathverbs.c
-+++ b/libipathverbs/src/ipathverbs.c
-@@ -216,25 +216,7 @@ found:
- 	return &dev->ibv_dev;
- }
- 
--#ifdef HAVE_IBV_REGISTER_DRIVER
- static __attribute__((constructor)) void ipath_register_driver(void)
- {
- 	ibv_register_driver("ipathverbs", ipath_driver_init);
- }
--#else
--/*
-- * Export the old libsysfs sysfs_class_device-based driver entry point
-- * if libibverbs does not export an ibv_register_driver() function.
-- */
--struct ibv_device *openib_driver_init(struct sysfs_class_device *sysdev)
--{
--        int abi_ver = 0;
--        char value[8];
--
--        if (ibv_read_sysfs_file(sysdev->path, "abi_version",
--                                value, sizeof value) > 0)
--                abi_ver = strtol(value, NULL, 10);
--
--        return ipath_driver_init(sysdev->path, abi_ver);
--}
--#endif /* HAVE_IBV_REGISTER_DRIVER */
-diff --git a/libmlx5/src/buf.c b/libmlx5/src/buf.c
-index 7e06095d0352..853450ae93b3 100644
---- a/libmlx5/src/buf.c
-+++ b/libmlx5/src/buf.c
-@@ -42,25 +42,6 @@
- #include "mlx5.h"
- #include "bitmap.h"
- 
--#if !(defined(HAVE_IBV_DONTFORK_RANGE) && defined(HAVE_IBV_DOFORK_RANGE))
--
--/*
-- * If libibverbs isn't exporting these functions, then there's no
-- * point in doing it here, because the rest of libibverbs isn't going
-- * to be fork-safe anyway.
-- */
--static int ibv_dontfork_range(void *base, size_t size)
--{
--	return 0;
--}
--
--static int ibv_dofork_range(void *base, size_t size)
--{
--	return 0;
--}
--
--#endif /* HAVE_IBV_DONTFORK_RANGE && HAVE_IBV_DOFORK_RANGE */
--
- static int mlx5_bitmap_init(struct mlx5_bitmap *bitmap, uint32_t num,
- 			    uint32_t mask)
- {
-diff --git a/libmlx5/src/mlx5.c b/libmlx5/src/mlx5.c
-index 121a833062f1..f24e5043dfe6 100644
---- a/libmlx5/src/mlx5.c
-+++ b/libmlx5/src/mlx5.c
-@@ -42,10 +42,6 @@
- #include <sched.h>
- #include <sys/param.h>
- 
--#ifndef HAVE_IBV_REGISTER_DRIVER
--#include <sysfs/libsysfs.h>
+-#ifdef INCLUDE_VALGRIND
+-#   include <valgrind/memcheck.h>
+-#   ifndef VALGRIND_MAKE_MEM_DEFINED
+-#       warning "Valgrind requested, but VALGRIND_MAKE_MEM_DEFINED undefined"
+-#   endif
 -#endif
 -
- #include "mlx5.h"
- #include "mlx5-abi.h"
- 
-diff --git a/libmlx5/src/verbs.c b/libmlx5/src/verbs.c
-index 58673f4433fd..acbabc814621 100644
---- a/libmlx5/src/verbs.c
-+++ b/libmlx5/src/verbs.c
-@@ -993,9 +993,7 @@ static const char *qptype2key(enum ibv_qp_type type)
- 	case IBV_QPT_RC: return "HUGE_RC";
- 	case IBV_QPT_UC: return "HUGE_UC";
- 	case IBV_QPT_UD: return "HUGE_UD";
--#ifdef _NOT_EXISTS_IN_OFED_2_0
- 	case IBV_QPT_RAW_PACKET: return "HUGE_RAW_ETH";
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#   define VALGRIND_MAKE_MEM_DEFINED(addr,len)
 -#endif
- 	default: return "HUGE_NA";
- 	}
- }
-diff --git a/libmthca/src/buf.c b/libmthca/src/buf.c
-index 78e7b89c4db5..c03ee1f9a3e4 100644
---- a/libmthca/src/buf.c
-+++ b/libmthca/src/buf.c
-@@ -38,25 +38,6 @@
++#include <valgrind/memcheck.h>
  
- #include "mthca.h"
+ #define PFX "libibcm: "
  
--#if !(defined(HAVE_IBV_DONTFORK_RANGE) && defined(HAVE_IBV_DOFORK_RANGE))
--
--/*
-- * If libibverbs isn't exporting these functions, then there's no
-- * point in doing it here, because the rest of libibverbs isn't going
-- * to be fork-safe anyway.
-- */
--static int ibv_dontfork_range(void *base, size_t size)
--{
--	return 0;
--}
--
--static int ibv_dofork_range(void *base, size_t size)
--{
--	return 0;
--}
--
--#endif /* HAVE_IBV_DONTFORK_RANGE && HAVE_IBV_DOFORK_RANGE */
--
- int mthca_alloc_buf(struct mthca_buf *buf, size_t size, int page_size)
- {
- 	int ret;
-diff --git a/libmthca/src/mthca.c b/libmthca/src/mthca.c
-index d6bda2d29d66..d5660ceef7e0 100644
---- a/libmthca/src/mthca.c
-+++ b/libmthca/src/mthca.c
-@@ -41,16 +41,6 @@
- #include <pthread.h>
- #include <string.h>
+diff --git a/libibumad/src/umad.c b/libibumad/src/umad.c
+index 176d112e125b..0c969f1eb8ad 100644
+--- a/libibumad/src/umad.c
++++ b/libibumad/src/umad.c
+@@ -52,19 +52,7 @@
  
--#ifndef HAVE_IBV_REGISTER_DRIVER
--#include <sysfs/libsysfs.h>
+ #define IB_OPENIB_OUI                 (0x001405)
+ 
+-#ifdef HAVE_VALGRIND_MEMCHECK_H
+-
+-#  include <valgrind/memcheck.h>
+-
+-#  ifndef VALGRIND_MAKE_MEM_DEFINED
+-#    warning "Valgrind support requested, but VALGRIND_MAKE_MEM_DEFINED not available"
+-#  endif
+-
+-#endif				/* HAVE_VALGRIND_MEMCHECK_H */
+-
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#  define VALGRIND_MAKE_MEM_DEFINED(addr,len)
+-#endif
++#include <valgrind/memcheck.h>
+ 
+ typedef struct ib_user_mad_reg_req {
+ 	uint32_t id;
+diff --git a/libibverbs/src/ibverbs.h b/libibverbs/src/ibverbs.h
+index 062a490915b0..7892af4ad247 100644
+--- a/libibverbs/src/ibverbs.h
++++ b/libibverbs/src/ibverbs.h
+@@ -38,19 +38,7 @@
+ 
+ #include <infiniband/driver.h>
+ 
+-#ifdef HAVE_VALGRIND_MEMCHECK_H
+-
+-#  include <valgrind/memcheck.h>
+-
+-#  ifndef VALGRIND_MAKE_MEM_DEFINED
+-#    warning "Valgrind support requested, but VALGRIND_MAKE_MEM_DEFINED not available"
+-#  endif
+-
+-#endif /* HAVE_VALGRIND_MEMCHECK_H */
+-
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#  define VALGRIND_MAKE_MEM_DEFINED(addr, len) 0
+-#endif
++#include <valgrind/memcheck.h>
+ 
+ #define HIDDEN		__attribute__((visibility ("hidden")))
+ 
+diff --git a/libmlx4/src/mlx4.h b/libmlx4/src/mlx4.h
+index feea3386f9a7..4551141d2007 100644
+--- a/libmlx4/src/mlx4.h
++++ b/libmlx4/src/mlx4.h
+@@ -47,23 +47,7 @@
+ #define uninitialized_var(x) x = x
+ #endif
+ 
+-#ifdef HAVE_VALGRIND_MEMCHECK_H
+-
+-#  include <valgrind/memcheck.h>
+-
+-#  if !defined(VALGRIND_MAKE_MEM_DEFINED) || !defined(VALGRIND_MAKE_MEM_UNDEFINED)
+-#    warning "Valgrind support requested, but VALGRIND_MAKE_MEM_(UN)DEFINED not available"
+-#  endif
+-
+-#endif /* HAVE_VALGRIND_MEMCHECK_H */
+-
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#  define VALGRIND_MAKE_MEM_DEFINED(addr,len)
 -#endif
 -
--#ifndef HAVE_IBV_READ_SYSFS_FILE
--#include <sys/types.h>
--#include <sys/stat.h>
--#include <fcntl.h>
+-#ifndef VALGRIND_MAKE_MEM_UNDEFINED
+-#  define VALGRIND_MAKE_MEM_UNDEFINED(addr,len)
+-#endif
++#include <valgrind/memcheck.h>
+ 
+ #ifndef rmb
+ #  define rmb() mb()
+diff --git a/libmlx5/src/mlx5.h b/libmlx5/src/mlx5.h
+index 6c4e83002028..aa8b6feceb4e 100644
+--- a/libmlx5/src/mlx5.h
++++ b/libmlx5/src/mlx5.h
+@@ -52,23 +52,7 @@
+ #define uninitialized_var(x) x = x
+ #endif
+ 
+-#ifdef HAVE_VALGRIND_MEMCHECK_H
+-
+-#  include <valgrind/memcheck.h>
+-
+-#  if !defined(VALGRIND_MAKE_MEM_DEFINED) || !defined(VALGRIND_MAKE_MEM_UNDEFINED)
+-#    warning "Valgrind support requested, but VALGRIND_MAKE_MEM_(UN)DEFINED not available"
+-#  endif
+-
+-#endif /* HAVE_VALGRIND_MEMCHECK_H */
+-
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#  define VALGRIND_MAKE_MEM_DEFINED(addr, len)
 -#endif
 -
- #include "mthca.h"
- #include "mthca-abi.h"
+-#ifndef VALGRIND_MAKE_MEM_UNDEFINED
+-#  define VALGRIND_MAKE_MEM_UNDEFINED(addr, len)
+-#endif
++#include <valgrind/memcheck.h>
  
-@@ -224,36 +214,6 @@ static struct ibv_device_ops mthca_dev_ops = {
- 	.free_context  = mthca_free_context
- };
+ #ifndef rmb
+ #  define rmb() mb()
+diff --git a/libmthca/src/mthca.h b/libmthca/src/mthca.h
+index bd1e7a2b1dc0..18d52291343f 100644
+--- a/libmthca/src/mthca.h
++++ b/libmthca/src/mthca.h
+@@ -39,23 +39,7 @@
+ #include <infiniband/driver.h>
+ #include <infiniband/arch.h>
  
--/*
-- * Keep a private implementation of HAVE_IBV_READ_SYSFS_FILE to handle
-- * old versions of libibverbs that didn't implement it.  This can be
-- * removed when libibverbs 1.0.3 or newer is available "everywhere."
-- */
--#ifndef HAVE_IBV_READ_SYSFS_FILE
--static int ibv_read_sysfs_file(const char *dir, const char *file,
--			       char *buf, size_t size)
--{
--	char path[256];
--	int fd;
--	int len;
+-#ifdef HAVE_VALGRIND_MEMCHECK_H
 -
--	snprintf(path, sizeof path, "%s/%s", dir, file);
+-#  include <valgrind/memcheck.h>
 -
--	fd = open(path, O_RDONLY);
--	if (fd < 0)
--		return -1;
+-#  if !defined(VALGRIND_MAKE_MEM_DEFINED) || !defined(VALGRIND_MAKE_MEM_UNDEFINED)
+-#    warning "Valgrind support requested, but VALGRIND_MAKE_MEM_(UN)DEFINED not available"
+-#  endif
 -
--	len = read(fd, buf, size);
+-#endif /* HAVE_VALGRIND_MEMCHECK_H */
 -
--	close(fd);
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#  define VALGRIND_MAKE_MEM_DEFINED(addr,len)
+-#endif
 -
--	if (len > 0 && buf[len - 1] == '\n')
--		buf[--len] = '\0';
--
--	return len;
--}
--#endif /* HAVE_IBV_READ_SYSFS_FILE */
--
- static struct ibv_device *mthca_driver_init(const char *uverbs_sys_path,
- 					    int abi_version)
- {
-@@ -300,25 +260,7 @@ found:
- 	return &dev->ibv_dev;
- }
+-#ifndef VALGRIND_MAKE_MEM_UNDEFINED
+-#  define VALGRIND_MAKE_MEM_UNDEFINED(addr,len)
+-#endif
++#include <valgrind/memcheck.h>
  
--#ifdef HAVE_IBV_REGISTER_DRIVER
- static __attribute__((constructor)) void mthca_register_driver(void)
- {
- 	ibv_register_driver("mthca", mthca_driver_init);
- }
--#else
--/*
-- * Export the old libsysfs sysfs_class_device-based driver entry point
-- * if libibverbs does not export an ibv_register_driver() function.
-- */
--struct ibv_device *openib_driver_init(struct sysfs_class_device *sysdev)
--{
--	int abi_ver = 0;
--	char value[8];
--
--	if (ibv_read_sysfs_file(sysdev->path, "abi_version",
--				value, sizeof value) > 0)
--		abi_ver = strtol(value, NULL, 10);
--
--	return mthca_driver_init(sysdev->path, abi_ver);
--}
--#endif /* HAVE_IBV_REGISTER_DRIVER */
-diff --git a/librxe/src/rxe.c b/librxe/src/rxe.c
-index 6bd04d696c41..ef7434e1d506 100644
---- a/librxe/src/rxe.c
-+++ b/librxe/src/rxe.c
-@@ -935,22 +935,8 @@ static struct ibv_device *rxe_driver_init(const char *uverbs_sys_path,
- 	return &dev->ibv_dev;
- }
+ #ifndef rmb
+ #  define rmb() mb()
+diff --git a/librdmacm/src/cma.h b/librdmacm/src/cma.h
+index d6005538227f..16a55a67af9e 100644
+--- a/librdmacm/src/cma.h
++++ b/librdmacm/src/cma.h
+@@ -47,16 +47,7 @@
  
--#ifdef HAVE_IBV_REGISTER_DRIVER
- static __attribute__ ((constructor))
- void rxe_register_driver(void)
- {
- 	ibv_register_driver("rxe", rxe_driver_init);
- }
--#else
--struct ibv_device *openib_driver_init(struct sysfs_class_device *sysdev)
--{
--	int abi_ver = 0;
--	char value[8];
+ #include <ccan/minmax.h>
+ 
+-#ifdef INCLUDE_VALGRIND
+-#   include <valgrind/memcheck.h>
+-#   ifndef VALGRIND_MAKE_MEM_DEFINED
+-#       warning "Valgrind requested, but VALGRIND_MAKE_MEM_DEFINED undefined"
+-#   endif
+-#endif
 -
--	if (ibv_read_sysfs_file(sysdev->path, "abi_version",
--				value, sizeof value) > 0)
--		abi_ver = strtol(value, NULL, 10);
--
--	return rxe_driver_init(sysdev->path, abi_ver);
--}
--#endif /* HAVE_IBV_REGISTER_DRIVER */
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#   define VALGRIND_MAKE_MEM_DEFINED(addr,len)
+-#endif
++#include <valgrind/memcheck.h>
+ 
+ #define PFX "librdmacm: "
+ 
+diff --git a/srp_daemon/srp_daemon/srp_daemon.h b/srp_daemon/srp_daemon/srp_daemon.h
+index 6d1575519bc3..d6a2d8a84728 100644
+--- a/srp_daemon/srp_daemon/srp_daemon.h
++++ b/srp_daemon/srp_daemon/srp_daemon.h
+@@ -408,12 +408,7 @@ typedef struct {
+ 	char filler[MAD_BLOCK_SIZE];
+ } srp_ib_user_mad_t;
+ 
+-#if defined(HAVE_VALGRIND_DRD_H) && defined(ENABLE_VALGRIND)
+ #include <valgrind/drd.h>
+-#endif
+-#ifndef ANNOTATE_BENIGN_RACE_SIZED
+-#define ANNOTATE_BENIGN_RACE_SIZED(a, b, c) do { } while(0)
+-#endif
+ 
+ #define pr_human(arg...)				\
+ 	do {						\
 -- 
 2.1.4
 
