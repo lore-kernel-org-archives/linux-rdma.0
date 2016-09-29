@@ -1,55 +1,78 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: RQ overflow seen running isert traffic
-Date: Thu, 29 Sep 2016 09:12:38 -0500
-Message-ID: <003d01d21a5b$88c2a750$9a47f5f0$@opengridcomputing.com>
-References: <20160927070157.GA13140@chelsio.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] IB/core: correctly handle rdma_rw_init_mrs() failure
+Date: Thu, 29 Sep 2016 07:31:33 -0700
+Message-ID: <20160929143217.F2C8DE0BD1@smtp.ogc.us>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160927070157.GA13140-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Hi Sagi,
-> I've been trying to understand the isert functionality with respect to
-> RDMA Receive Queue sizing and Queue full handling. Here is the problem
-> is see with iw_cxgb4:
-> 
-> After running few minutes of iSER traffic with iw_cxgb4, I am seeing
-> post receive failures due to receive queue full returning -ENOMEM.
-> In case of iw_cxgb4 the RQ size is 130 with qp attribute max_recv_wr = 129,
-> passed down by isert to iw_cxgb4.isert decides on max_recv_wr as 129 based
-> on (ISERT_QP_MAX_RECV_DTOS = ISCSI_DEF_XMIT_CMDS_MAX = 128) + 1.
-> 
+Function ib_create_qp() was failing to return an error when
+rdma_rw_init_mrs() fails, causing a crash further down in ib_create_qp()
+when trying to dereferece the qp pointer which was actually a negative
+errno.
 
-Just to clarify:  The RQ size of 130 in iw_cxgb4 has to do with how the the SW
-and HW share the queue state.  It will always be at least 1 more than the
-application's size.  So the RQ depth is 129, and a post_recv() is done when the
-RQ is full, which should never happen...
+The crash:
 
-> My debug suggests that at some point isert tries to post more than
-> 129 receive WRs into the RQ and fails as the queue is full already. From
-> the code most of the recv wr are posted only after a recieve completion,
-> but few datain operations(isert_put_datain()) are done independent of
-> receive completions. In fact the last WR failed to post in to RQ is from
-> isert_put_datain() through target_complete_ok_work(). CQ stats at the
-> time of failure shows the cq polled to empty.
-> 
-> How could I check for the possible conditions leading to this issue?
-> I am happy to provide you any details further.
-> Thanks for your time.
->
-> Bharat.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+crash> log|grep BUG
+[  136.458121] BUG: unable to handle kernel NULL pointer dereference at 0000000000000098
+crash> bt
+PID: 3736   TASK: ffff8808543215c0  CPU: 2   COMMAND: "kworker/u64:2"
+ #0 [ffff88084d323340] machine_kexec at ffffffff8105fbb0
+ #1 [ffff88084d3233b0] __crash_kexec at ffffffff81116758
+ #2 [ffff88084d323480] crash_kexec at ffffffff8111682d
+ #3 [ffff88084d3234b0] oops_end at ffffffff81032bd6
+ #4 [ffff88084d3234e0] no_context at ffffffff8106e431
+ #5 [ffff88084d323530] __bad_area_nosemaphore at ffffffff8106e610
+ #6 [ffff88084d323590] bad_area_nosemaphore at ffffffff8106e6f4
+ #7 [ffff88084d3235a0] __do_page_fault at ffffffff8106ebdc
+ #8 [ffff88084d323620] do_page_fault at ffffffff8106f057
+ #9 [ffff88084d323660] page_fault at ffffffff816e3148
+    [exception RIP: ib_create_qp+427]
+    RIP: ffffffffa02554fb  RSP: ffff88084d323718  RFLAGS: 00010246
+    RAX: 0000000000000004  RBX: fffffffffffffff4  RCX: 000000018020001f
+    RDX: ffff880830997fc0  RSI: 0000000000000001  RDI: ffff88085f407200
+    RBP: ffff88084d323778   R8: 0000000000000001   R9: ffffea0020bae210
+    R10: ffffea0020bae218  R11: 0000000000000001  R12: ffff88084d3237c8
+    R13: 00000000fffffff4  R14: ffff880859fa5000  R15: ffff88082eb89800
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+#10 [ffff88084d323780] rdma_create_qp at ffffffffa0782681 [rdma_cm]
+#11 [ffff88084d3237b0] nvmet_rdma_create_queue_ib at ffffffffa07c43f3 [nvmet_rdma]
+#12 [ffff88084d323860] nvmet_rdma_alloc_queue at ffffffffa07c5ba9 [nvmet_rdma]
+#13 [ffff88084d323900] nvmet_rdma_queue_connect at ffffffffa07c5c96 [nvmet_rdma]
+#14 [ffff88084d323980] nvmet_rdma_cm_handler at ffffffffa07c6450 [nvmet_rdma]
+#15 [ffff88084d3239b0] iw_conn_req_handler at ffffffffa0787480 [rdma_cm]
+#16 [ffff88084d323a60] cm_conn_req_handler at ffffffffa0775f06 [iw_cm]
+#17 [ffff88084d323ab0] process_event at ffffffffa0776019 [iw_cm]
+#18 [ffff88084d323af0] cm_work_handler at ffffffffa0776170 [iw_cm]
+#19 [ffff88084d323cb0] process_one_work at ffffffff810a1483
+#20 [ffff88084d323d90] worker_thread at ffffffff810a211d
+#21 [ffff88084d323ec0] kthread at ffffffff810a6c5c
+#22 [ffff88084d323f50] ret_from_fork at ffffffff816e1ebf
+
+Fixes: 632bc3f65081 ("IB/core, RDMA RW API: Do not exceed QP SGE send limit")
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+ drivers/infiniband/core/verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f2b776e..5f88ccd 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -821,7 +821,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 		if (ret) {
+ 			pr_err("failed to init MR pool ret= %d\n", ret);
+ 			ib_destroy_qp(qp);
+-			qp = ERR_PTR(ret);
++			return ERR_PTR(ret);
+ 		}
+ 	}
+ 
+-- 
+2.7.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
