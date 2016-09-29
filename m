@@ -1,112 +1,64 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Improve global COPYING files
-Date: Thu, 29 Sep 2016 12:26:48 -0400
-Message-ID: <57ED40C8.901@redhat.com>
-References: <20160923041340.GA11269@obsidianresearch.com>
- <20160929160053.GA11879@infradead.org>
- <20160929161659.GA774@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core: cmake minimum version issue on RH 6.5
+Date: Thu, 29 Sep 2016 10:46:53 -0600
+Message-ID: <20160929164653.GC774@obsidianresearch.com>
+References: <5169a490-10b4-cb9f-d7b7-fb552692f1f6@dev.mellanox.co.il>
+ <57ED2E87.50008@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="tTI1u5tG4497WX9Pxh70tJKj6fgpWkCF3"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160929161659.GA774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <57ED2E87.50008-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---tTI1u5tG4497WX9Pxh70tJKj6fgpWkCF3
-Content-Type: multipart/mixed; boundary="surALNcnGeeBfslgfe1Qm742kOWQxrOfw";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Message-ID: <57ED40C8.901-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Improve global COPYING files
-References: <20160923041340.GA11269-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <20160929160053.GA11879-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
- <20160929161659.GA774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20160929161659.GA774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On Thu, Sep 29, 2016 at 11:08:55AM -0400, Doug Ledford wrote:
+> On 9/29/16 7:40 AM, Yishai Hadas wrote:
+> > Hi Jason,
+> > 
+> > Currently there is a hard requirement of cmake minimum version of 2.8.11
+> > to build the rdma-core project. (i.e. cmake_minimum_required(VERSION
+> > 2.8.11 ATAL_ERROR)).
+> > 
+> > 
+> > Trying to build with default yum install of cmake on RH6.5 fails as it
+> > doesn't meet the above requirement. (i.e. cmake version 2.6-patch 4).
+> > 
+> > As a test phase, we tried to comment out this limitation from the cmake
+> > files, however, the build failed with few other errors. (e.g. CMake
+> > Error at buildlib/rdma_functions.cmake:39 (set_property):
+> > set_property could not find TARGET APPEND_STRING. Perhaps it has not yet
+> > been created).
+> > 
+> > Is it a real requirement for above cmake minimum version in this project
+> > ? if yes, where the appropriate cmake should come from to work on RH6.5.
 
---surALNcnGeeBfslgfe1Qm742kOWQxrOfw
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> Is anyone really running 6.5?  I mean the current version in the 6
+> family is 6.8, and there are significant improvements between 6.5 and 6.8.
 
-On 9/29/16 12:16 PM, Jason Gunthorpe wrote:
-> On Thu, Sep 29, 2016 at 09:00:53AM -0700, Christoph Hellwig wrote:
->> Hi Jason,
->>
->> any chance you could simply follow the modern debian copyright file
->> format:
->=20
-> I was thinking about doing that.. But choose not to for this first
-> draft.
->=20
-> 1) I'd have to go and unwind on a file by file basis exactly what
->    every licnese is. Right now I've just done a survey. There are many
->    copyrightable files with no license text, and many potentially
->    non-copyrightable files with no license text as well. All that
->    needs to be figured out first.
->=20
->    I would like to add at least short license headers to every file.
-> 2) It seems to require listing the copyright owners for every file,
->    this is a royal pain, IMHO. Many copyrightable files do not have
->    copyright data, so it would have to be mined out of git. I have
->    a script that does that someplace..
->=20
-> My thinking was to start small, document the survey results (and agree
-> my interpetation is sensible), then work on achiveing full copyright
-> headers, then use that to build the debian format.
->=20
-> I'd appreciate help, eg patches moving toward #1 and eliminating the
-> free COPYING files and unlicnesed items. I think it will take a bit to
-> get there, I still have a bit wack of patches to get applied on other
-> topics..
+Indeed, I did my testing on CentOS 6.8 and everything is fine. I
+expect that RHEL6.8 has the same cmake version.
 
-I just merged a pull request of yours, and that was the last outstanding
-pull request in the github.  I still have to sort through patches on the
-list that aren't in the github interface...but at least 20 or so of your
-outstanding patches were taken in today.
+Simple Options:
+- Upgrade to 6.8 and forget about 6.5, it is years old and deficient
+  on security updates at this point?
+- Do your build on 6.8, the resulting binary should still work on 6.5?
+- Cherry pick the cmake RPM from 6.8 eg
+   yum install  ftp://fr2.rpmfind.net/linux/centos/6.8/os/x86_64/Packages/cmake-2.8.12.2-4.el6.x86_64.rpm
+- Use EPEL according to the README.md and install cmake3 from EPEL.
+  I don't know if EPEL supports obsolete distros.
+  
+> > Is it a real requirement for above cmake minimum version in this project
+> > ? if yes.
 
+It is a real requirement, cmake has lots of tools to deal with changes
+across versions so it could probably be relaxed, but I've tried to
+keep everything simple so I'm not excited about a bunch more stuff to
+support a 7 year old version of cmake.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>    GPG Key ID: 0E572FDD
-  Red Hat, Inc.
-  100 E. Davie St
-  Raleigh, NC 27601 USA
-
-
---surALNcnGeeBfslgfe1Qm742kOWQxrOfw--
-
---tTI1u5tG4497WX9Pxh70tJKj6fgpWkCF3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCgAGBQJX7UDIAAoJELgmozMOVy/d8XkP/3igb+DOlGWNreFsrGtAyy5l
-qEfL+Rnn19OKnQGy8p0uJDBXnKD/AvJz9+3Q+l4EHBVnRBCKRCQP9KWJnxdhvebS
-EtagI/zk6wnBkxLHj/qcq8eJ0JSv/b9CvbQNrPHOSGm7FbZOSPB8Q1kbUKh7Yr5y
-kNQL7lx1S33Cc/gNY9i/sSDNYBLDrwyfe+dektrSP3wcZK4cqkHEno7n0ylRgUe5
-q2lfkeYOlS0UTEYz+4UoYiQ9otqB3iiWOHh5F5RvJqbcPBDe4k71UHpncCX+zRtW
-zZTyjHtHJaMvO9ZxT4JVg1r+vsoUlCBIa3q0N1A+9EBANh6IriJp47/tz44+6Vt9
-2ADo9KF13X3Yuz1Sd3d6yGVpcRwzDdSxteWJNt25CGsz/BUtz5JvwUzaZ94Atzvz
-87ZophCd3zpuyKySLrL6gC0Eqbyfj6jLHyxoZFHcEGbbWJVk9jexUNfsqm5y93ZU
-/xaQ9jUch0YLLXgx5mB77iKa2LLCAKx7Kmqp0MaIHovsNp3cqmRGgH574NH1/97m
-Z0QJrgAAZaHJyerUJ1yaKl4ZAljekuTT9wCI6tacGph1jemticE7Z31kTMHe8p5B
-KJfAhMrTKW2CwDxOSuQTTVj/vfrWqmJOrUUy06IrRNICW6qLLmIMyEQqxOeQ12Lq
-Yod9kcp2zjSH4+/RVLSy
-=1dWC
------END PGP SIGNATURE-----
-
---tTI1u5tG4497WX9Pxh70tJKj6fgpWkCF3--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
