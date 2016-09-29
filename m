@@ -1,38 +1,63 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Improve global COPYING files
-Date: Thu, 29 Sep 2016 16:55:18 -0600
-Message-ID: <20160929225518.GB7421@obsidianresearch.com>
-References: <20160923041340.GA11269@obsidianresearch.com>
- <20160929160053.GA11879@infradead.org>
- <20160929161659.GA774@obsidianresearch.com>
- <57ED40C8.901@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>
+Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
+Date: Thu, 29 Sep 2016 18:46:02 -0500
+Message-ID: <F2C34CC4-5C7D-4382-873D-9E14B81A44B3@ogc.us>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com> <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com> <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com> <20160929222802.GC27229@obsidianresearch.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57ED40C8.901-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160929222802.GC27229-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 29, 2016 at 12:26:48PM -0400, Doug Ledford wrote:
 
-> I just merged a pull request of yours, and that was the last outstanding
-> pull request in the github.  I still have to sort through patches on the
-> list that aren't in the github interface...but at least 20 or so of your
-> outstanding patches were taken in today.
 
-Yep thanks, making progress, sent another 13 or so, I think there are
-about 10 left now. Most of what remains in my preview tree needs a bit
-more work I think.
+> On Sep 29, 2016, at 5:28 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> 
+> On Thu, Sep 29, 2016 at 04:26:52PM -0500, Steve Wise wrote:
+> 
+>>> +/* Generally speaking, PCI systems auto-byteswap on PCI accesses, so this is
+>>> +   probably wrong */
+>>> +#define cpu_to_pci32(val) htole32(val)
+>> 
+>> If this was wrong, then nothing would work.  So I think you should
+>> remove the comment.
+> 
+> I added the comment because cxgb* was the only provider that seemed to
+> be obviously byte swapping MMIO.
+> 
+> Since htole32 is a NOP on x86 and ARM64 the driver would work fine
+> with or without it. Do you know this driver works on big endian
+> powerpc? That would help answer the question for sure.
+> 
 
-The last big useful item is the directory rename/flatting patches, eg
-to move libX/src/ to under providers/ and to flatten other directories.
+Yes, PowerPC and arm. 
 
-Oh, and the packaging files..
+> I looked at this some more, and I still don't really know what is the
+> right answer.
+> 
+> In the kernel the swapping behavior of 'writel' is architecture (and
+> sometimes even platform) specific. Looking at the kernel headers
+> suggests that BE PPC needs an explicit swap and BE ARM does not (eg
+> the hardware swaps). Maybe. There are a lot of layers of macros in
+> this area..
+> 
+> However, I can't find an obvious swap in mlx4, which I think is the
+> most widely tested provider. Does it work on BE PPC?
+> 
+> One of the things I'd like to see done is to consolidate the mmio
+> accessors.. The note was a reminder to try and figure out what is
+> actually right here.. Appreciate any help!
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
