@@ -1,63 +1,37 @@
-From: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>
-Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
-Date: Thu, 29 Sep 2016 18:46:02 -0500
-Message-ID: <F2C34CC4-5C7D-4382-873D-9E14B81A44B3@ogc.us>
-References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com> <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com> <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com> <20160929222802.GC27229@obsidianresearch.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/9] Remove HAVE_VALGRIND_MEMCHECK_H/INCLUDE_VALGRIND
+Date: Thu, 29 Sep 2016 16:48:25 -0700
+Message-ID: <610a3086-07bd-baa7-11e2-88642c0e2297@sandisk.com>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1475182076-5411-3-git-send-email-jgunthorpe@obsidianresearch.com>
+ <aef5ce41-14bf-9869-88c8-ab5796634a8c@acm.org>
+ <20160929223415.GD27229@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160929222802.GC27229-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160929223415.GD27229-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 09/29/2016 03:34 PM, Jason Gunthorpe wrote:
+> On Thu, Sep 29, 2016 at 02:01:26PM -0700, Bart Van Assche wrote:
+>> Independent of this patch: Valgrind has a stable ABI so I propose to add a
+>> copy of the memcheck.h header file to the rdma-core source tree. Many other
+>> open source projects already do this.
+>
+> Interesting idea, what do you see as the benefit?
 
+Hello Jason,
 
-> On Sep 29, 2016, at 5:28 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> 
-> On Thu, Sep 29, 2016 at 04:26:52PM -0500, Steve Wise wrote:
-> 
->>> +/* Generally speaking, PCI systems auto-byteswap on PCI accesses, so this is
->>> +   probably wrong */
->>> +#define cpu_to_pci32(val) htole32(val)
->> 
->> If this was wrong, then nothing would work.  So I think you should
->> remove the comment.
-> 
-> I added the comment because cxgb* was the only provider that seemed to
-> be obviously byte swapping MMIO.
-> 
-> Since htole32 is a NOP on x86 and ARM64 the driver would work fine
-> with or without it. Do you know this driver works on big endian
-> powerpc? That would help answer the question for sure.
-> 
+That would allow to annotate rdma-core code correctly for Valgrind 
+without introducing a dependency on the valgrind-devel package. As you 
+know most Linux distro's by default do not install the valgrind-devel 
+package.
 
-Yes, PowerPC and arm. 
-
-> I looked at this some more, and I still don't really know what is the
-> right answer.
-> 
-> In the kernel the swapping behavior of 'writel' is architecture (and
-> sometimes even platform) specific. Looking at the kernel headers
-> suggests that BE PPC needs an explicit swap and BE ARM does not (eg
-> the hardware swaps). Maybe. There are a lot of layers of macros in
-> this area..
-> 
-> However, I can't find an obvious swap in mlx4, which I think is the
-> most widely tested provider. Does it work on BE PPC?
-> 
-> One of the things I'd like to see done is to consolidate the mmio
-> accessors.. The note was a reminder to try and figure out what is
-> actually right here.. Appreciate any help!
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
