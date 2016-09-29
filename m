@@ -1,60 +1,87 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Add a .travis.yml file
-Date: Thu, 29 Sep 2016 11:20:08 -0400
-Message-ID: <57ED3128.4060509@redhat.com>
-References: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core] Improve global COPYING files
+Date: Thu, 29 Sep 2016 11:53:31 -0400
+Message-ID: <57ED38FB.4060006@redhat.com>
+References: <20160923041340.GA11269@obsidianresearch.com>
+ <20160923080655.GM4088@leon.nu> <20160923152412.GB11269@obsidianresearch.com>
+ <20160923171003.GR4088@leon.nu>
+ <1828884A29C6694DAF28B7E6B8A82373AB08E66F@ORSMSX109.amr.corp.intel.com>
+ <20160923174848.GC13920@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="sqiGx93ho8VKpG4o5RCj8IckVb6uDMoU0"
+ boundary="rU2XjFkRdikxnwtQNU0Vnmfgt9LHVTrP7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475105337-18002-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160923174848.GC13920-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---sqiGx93ho8VKpG4o5RCj8IckVb6uDMoU0
-Content-Type: multipart/mixed; boundary="RLviQKrA35FJkV8Gd1gANd4cLn20X1RuH";
+--rU2XjFkRdikxnwtQNU0Vnmfgt9LHVTrP7
+Content-Type: multipart/mixed; boundary="xqhNIEAQmpH1l9PuWFBkWFFuCQr5D880U";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
  "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <57ED3128.4060509-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Add a .travis.yml file
-References: <1475105337-18002-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1475105337-18002-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Message-ID: <57ED38FB.4060006-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Improve global COPYING files
+References: <20160923041340.GA11269-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20160923080655.GM4088-2ukJVAZIZ/Y@public.gmane.org> <20160923152412.GB11269-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20160923171003.GR4088-2ukJVAZIZ/Y@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB08E66F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <20160923174848.GC13920-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160923174848.GC13920-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
---RLviQKrA35FJkV8Gd1gANd4cLn20X1RuH
+--xqhNIEAQmpH1l9PuWFBkWFFuCQr5D880U
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/28/16 7:28 PM, Jason Gunthorpe wrote:
-> Necessary to use the Travis CI service.
+On 9/23/16 1:48 PM, Jason Gunthorpe wrote:
+> On Fri, Sep 23, 2016 at 05:23:29PM +0000, Hefty, Sean wrote:
 >=20
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  .travis.yml | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
->  create mode 100644 .travis.yml
+>> If this combined repo is intended to support the plumbing for the
+>> linux-rdma subsystem, then I think it must support code that is
+>> submitted under GPL only.
 >=20
-> Now that travis is enabled on repo, we need a yml file to make it run.
+> Hum, I don't think that follows.
 >=20
-> Here is a basic one.
+> My expectation in the kernel is that the entire RDMA subystem and
+> drivers follows the overall licensing model of the kernel and does not
+> require userspace to follow any specific license, and certainly does
+> not require userspace to follow the GPLv2.
 >=20
-> I don't test with distros as old as precise and I don't expect that gli=
-bc to
-> be new enough to build this (eg missing timerfd, O_CLOEXEC, etc), and t=
-he
-> cmake certainly isn't. So we use the trusty 'beta' environment and inst=
-all
-> gcc 6.2.
+>> Much of the tradition code can remain dual-license, but new provider
+>> code, for example, should be submit-able under GPL.
 >=20
-> See it in action:
+> I do not support that recommendation.
 >=20
-> https://github.com/linux-rdma/rdma-core/pull/7
+> The FSF has made very clear their position on GPL licensing of plugins
+> (see https://www.gnu.org/licenses/gpl-faq.en.html), and allowing a
+> GPLv2 only plugin or library code would break our community's promise
+> to our customers - that the library core is usable in any application.
+>=20
+> It would be a complicated discussion if someone proposed a GPLv2 only
+> provider.
+>=20
+> A LGPLv2-only provider would be more acceptable, and I would encourage
+> anyone who wishes to have the protections of the GPLv2 in their
+> provider to go that route. I suspect it would still be controversial.
+>=20
+> I would prefer to see us continue with the dual license approach, and
+> obviously all OFA member companies have agreed to do that.
 
-Merged, thanks.
+I agree with Jason here.  Dual license or at least LGPL is needed on
+providers because they will be linked to by other programs.  Libraries
+shouldn't taint user programs.  But we do have some leaf code in the
+overall rdma-core repo.  Things like iwpmd and ibacm.  These could be
+licensed GPL only and still be OK.  So I think it's OK for the repo to
+support GPL only, we just have to be clear about the fact that GPL only
+is not the default as this repo is more about libraries than leaf utiliti=
+es.
 
 
 --=20
@@ -64,9 +91,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>    GPG Key ID: 0
   Raleigh, NC 27601 USA
 
 
---RLviQKrA35FJkV8Gd1gANd4cLn20X1RuH--
+--xqhNIEAQmpH1l9PuWFBkWFFuCQr5D880U--
 
---sqiGx93ho8VKpG4o5RCj8IckVb6uDMoU0
+--rU2XjFkRdikxnwtQNU0Vnmfgt9LHVTrP7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -75,22 +102,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Comment: GPGTools - https://gpgtools.org
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCgAGBQJX7TEoAAoJELgmozMOVy/d2pwP/1nx+0lLhd4MIeytzKIz1W3L
-HkEpbaDoqUE7BUGELzzuNOd5Nq5VmmpClQuCurMK70oK4FvdcvXfSDtvFOpCbnWF
-LEW+2BKJOvQ8mszjZIrzxeXNOb0k3Vuo16DNXgNtB6JWDcB0n6oCQOenr2pjQPad
-Wspx3zPi0IVrBHtHUfLaQC7nf6iDwjU+XXI7wBgE7Mq3KyVbJEswIk4PocB4jKvE
-blcYZEfjQTP6JBZRDDuDsMZ4Mj3RiRqJ3YgoJB+t/v/YiZeMCMN0gK4grD2SI1gq
-lg/R5O0hZZpGTaxzXASRZQdYVJqWQydc+CmtcD5YJEcK0jLLBOT1wIntMmln0I2o
-SqxgV+kfDRAnGkYXVMDQUFU6N1Ob+WrSjOGVnOaGbnlATZxkiNl7dKGaUTyZ+sOo
-r5GnG6bbyDVZpHERD5ztpmlx+T1DEPMbZ9UkvyGhzzQtNZqhTJ8EkryfHLxtxKeX
-RDcJtpm/38ewbwGdL3MYc/5Yjsi1FfejrU6/lUeEOHxFVmhl1vhZXeNUdqSxT+Us
-nomlyC+dFLXbVIG1eIXLGwMyMG7dTpEhCnZw8buWzuQ5KpNKzwYlXiUhNg4hY5Q8
-XKjSCqX7Ek31voPwtzD/HhBN1XX+Zoxaij5oH+mwM+bqRauHSdSnpJH1Aj4Mtb7h
-gKyAd7+z15U5AHX9tnRR
-=FycU
+iQIcBAEBCgAGBQJX7Tj8AAoJELgmozMOVy/do6QP/jdtEAGpl+a1duRJGQim6vkt
+t+8Qm5lzbQ/41gnNDIYRmFlkw1NSKWLmmuPGVxBkhWMfvucZSUisf3vcsow83hSv
+jU1LBlqgwudDLVRQ0oNJpWhIFWwJeQ/HOvqEwNRYoopVf+0qyWQnXWgEUaZx68I0
+k5SvF8+oyDkGdcvnZckd87MyS2FZ/EtNH50ZiuFt/H4L1vS2nWD9TmvNBvg635b7
+ah/S7yCXPHXhtKO+27pR9dFqAgvbcvSLhqHemwTiu/85+RxxD7N+4i3/1oOvfq0a
+VKGmMckC+qrAzKjZSY2PkCDwYt8wJ2u9oL6csxETdcmI+MSkcSVEY9ecl+h2ffm4
+L5GhrVFNtCENOxp1LfxbfdcJ2EtNb/aXMlAFSJFkkB+Oi+HxGIX3/F3pqqPqA9qd
+7ji1rbAQ5CC+8jhy50y+M1IJrrurlEcI7r68CupeDwWhU5nCu8v7N0ANJLm+Ef/9
+m6XQixgmlwecFf9i47yWQijzmDTqKWicxiO81Skhk1XAslncePjyCbU0SIvXTqhC
+sa/YV2twa15AuNnoyjQoa2FiJFIYLbFBogVnt5qhj/3pzH2o+kPVDHpSBMuLZKfN
+dNNI0ZiQAYHXsdP2srhLtqVxxLL3l108Pw2IQuWuNzsvk2b9dDsd3gWkEYo7hWyZ
+2SV8pDTMVKvFdKyI7ITP
+=LDoE
 -----END PGP SIGNATURE-----
 
---sqiGx93ho8VKpG4o5RCj8IckVb6uDMoU0--
+--rU2XjFkRdikxnwtQNU0Vnmfgt9LHVTrP7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
