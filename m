@@ -1,66 +1,56 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH v2 3/7] [RFC] nvme: Use BLK_MQ_S_STOPPED instead of
- QUEUE_FLAG_STOPPED in blk-mq code
-Date: Wed, 28 Sep 2016 17:02:50 -0700
-Message-ID: <9faa7607-eb3e-ce41-b09e-1e10492a5f45@sandisk.com>
-References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
+From: <wwresson-epfaOiJH9AY@public.gmane.org>
+Subject: 10740 linux-rdma
+Date: Thu, 29 Sep 2016 03:01:27 -0000
+Message-ID: <147511808729.17353.6580061418896660727@ucom.am>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: application/zip; name="EMAIL_477567171_linux-rdma.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: attachment
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Make nvme_requeue_req() check BLK_MQ_S_STOPPED instead of
-QUEUE_FLAG_STOPPED. Remove the QUEUE_FLAG_STOPPED manipulations
-that became superfluous because of this change. This patch fixes
-a race condition: using queue_flag_clear_unlocked() is not safe
-if any other function that manipulates the queue flags can be
-called concurrently, e.g. blk_cleanup_queue(). Untested.
-
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagi@grimberg.me>
----
- drivers/nvme/host/core.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 4669c05..d791fba 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -205,7 +205,7 @@ void nvme_requeue_req(struct request *req)
- 
- 	blk_mq_requeue_request(req);
- 	spin_lock_irqsave(req->q->queue_lock, flags);
--	if (!blk_queue_stopped(req->q))
-+	if (!blk_mq_queue_stopped(req->q))
- 		blk_mq_kick_requeue_list(req->q);
- 	spin_unlock_irqrestore(req->q->queue_lock, flags);
- }
-@@ -2080,10 +2080,6 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
- 
- 	mutex_lock(&ctrl->namespaces_mutex);
- 	list_for_each_entry(ns, &ctrl->namespaces, list) {
--		spin_lock_irq(ns->queue->queue_lock);
--		queue_flag_set(QUEUE_FLAG_STOPPED, ns->queue);
--		spin_unlock_irq(ns->queue->queue_lock);
--
- 		blk_mq_cancel_requeue_work(ns->queue);
- 		blk_mq_stop_hw_queues(ns->queue);
- 	}
-@@ -2097,7 +2093,6 @@ void nvme_start_queues(struct nvme_ctrl *ctrl)
- 
- 	mutex_lock(&ctrl->namespaces_mutex);
- 	list_for_each_entry(ns, &ctrl->namespaces, list) {
--		queue_flag_clear_unlocked(QUEUE_FLAG_STOPPED, ns->queue);
- 		blk_mq_start_stopped_hw_queues(ns->queue, true);
- 		blk_mq_kick_requeue_list(ns->queue);
- 	}
--- 
-2.10.0
-
+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
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
