@@ -1,27 +1,32 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] IB/core: correctly handle rdma_rw_init_mrs() failure
-Date: Thu, 29 Sep 2016 20:18:46 -0700
-Message-ID: <a27d40a8-3e63-0a27-19c3-6e0e479bb022@sandisk.com>
-References: <20160929143217.F2C8DE0BD1@smtp.ogc.us>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH V2 for-next 0/8] Bug Fixes and Code Improvement in HNS
+ driver
+Date: Fri, 30 Sep 2016 01:33:41 -0400 (EDT)
+Message-ID: <20160930.013341.118711534087556597.davem@davemloft.net>
+References: <20160929170916.631972-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160929143217.F2C8DE0BD1-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160929170916.631972-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: salil.mehta@huawei.com
+Cc: dledford@redhat.com, yisen.zhuang@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/29/16 07:32, Steve Wise wrote:
-> Function ib_create_qp() was failing to return an error when
-> rdma_rw_init_mrs() fails, causing a crash further down in ib_create_qp()
-> when trying to dereferece the qp pointer which was actually a negative
-> errno.
+From: Salil Mehta <salil.mehta@huawei.com>
+Date: Thu, 29 Sep 2016 18:09:08 +0100
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> This patch-set introduces fix to some Bugs, potential problems
+> and code improvements identified during internal review and
+> testing of Hisilicon Network Subsystem driver.
+> 
+> Submit Change
+> V1->V2: This addresses the feedbacks provided by David Miller
+>         and Doug Ledford
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So Doug my understanding is if this makes it through review
+this is going to be merged into your tree, you prepare a
+branch for me, and then I pull from that?
+
+Thanks in advance.
