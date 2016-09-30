@@ -1,114 +1,45 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 3/3] IB/hfi1: Use EPROM platform configuration read
-Date: Fri, 30 Sep 2016 04:41:45 -0700
-Message-ID: <20160930114145.12716.18135.stgit@scvm10.sc.intel.com>
-References: <20160930114009.12716.95241.stgit@scvm10.sc.intel.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Towards qedr patch series
+Date: Fri, 30 Sep 2016 13:04:39 +0000
+Message-ID: <SN1PR07MB22077D482047551775FE4BCFF8C10@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <DM3PR07MB2201E202E535C987EEAA3BFDF8CA0@DM3PR07MB2201.namprd07.prod.outlook.com>,<57EC1C46.6070502@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160930114009.12716.95241.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <57EC1C46.6070502-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> There are currently 5 (5!!!) entirely new drivers that people want to
+> get merged.=A0 Reviewing those monstrous beasts is a nightmare.=A0 The
+> chances that I will get to yours for 4.9 are slim at best.
 
-The driver will now try to read directly from the EPROM as its
-first choice for the platform configuration file.
+Phew, that is a awful lot.
+We will do all that we can on our side to increase the chances of making it=
+ to 4.9.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/chip.c     |    9 +++++----
- drivers/infiniband/hw/hfi1/platform.c |   32 +++++++++++++++++++++-----------
- 2 files changed, 26 insertions(+), 15 deletions(-)
+> However, on the off chance that I might get to it, base the qed patches
+> against Dave's net-next (up until the merge window opens, then base it
+> on his net tree as that's what will get merged).=A0 The qedr patches
+> should be based on my current k.o/for-4.9 branch off of k.o.=A0 When you
+> submit any patches, I would suggest doing it in two separate submissions
+> (if possible).=A0 One that is just the preparatory qed patches.=A0 They
+> should be sent to netdev@ and linux-rdma@.=A0 The submission should note
+> that they are intended to be taken with the qedr driver.=A0 If netdev@
+> reviews/acks the series, then Dave can let me know if he wants me to
+> take the series and keep with with the remaining qedr series, or if he
+> wants to take them himself and I just make sure my pull request of the
+> qedr patches goes to Linus after his.=A0
+> The second set would obviously be
+> the new qedr driver.=A0 It need not go to netdev.=A0 Once it's here, then
+> it's a matter of the netdev@ people signing off on the qed series
+> changes, me signing off on the qedr changes, then it can go in.
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 88394cd..9bf5f23 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -14566,6 +14566,11 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 	if (ret)
- 		goto bail_cleanup;
- 
-+	/* call before get_platform_config(), after init_chip_resources() */
-+	ret = eprom_init(dd);
-+	if (ret)
-+		goto bail_free_rcverr;
-+
- 	/* Needs to be called before hfi1_firmware_init */
- 	get_platform_config(dd);
- 
-@@ -14686,10 +14691,6 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 	if (ret)
- 		goto bail_free_cntrs;
- 
--	ret = eprom_init(dd);
--	if (ret)
--		goto bail_free_rcverr;
--
- 	goto bail;
- 
- bail_free_rcverr:
-diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
-index 965c8ae..2024331 100644
---- a/drivers/infiniband/hw/hfi1/platform.c
-+++ b/drivers/infiniband/hw/hfi1/platform.c
-@@ -47,29 +47,39 @@
- 
- #include "hfi.h"
- #include "efivar.h"
-+#include "eprom.h"
- 
- void get_platform_config(struct hfi1_devdata *dd)
- {
- 	int ret = 0;
- 	unsigned long size = 0;
- 	u8 *temp_platform_config = NULL;
-+	u32 esize;
-+
-+	ret = eprom_read_platform_config(dd, (void **)&temp_platform_config,
-+					 &esize);
-+	if (!ret) {
-+		/* success */
-+		size = esize;
-+		goto success;
-+	}
-+	/* fail, try EFI variable */
- 
- 	ret = read_hfi1_efi_var(dd, "configuration", &size,
- 				(void **)&temp_platform_config);
--	if (ret) {
--		dd_dev_info(dd,
--			    "%s: Failed to get platform config from UEFI, falling back to request firmware\n",
--			    __func__);
--		/* fall back to request firmware */
--		platform_config_load = 1;
--		goto bail;
--	}
-+	if (!ret)
-+		goto success;
-+
-+	dd_dev_info(dd,
-+		    "%s: Failed to get platform config from UEFI, falling back to request firmware\n",
-+		    __func__);
-+	/* fall back to request firmware */
-+	platform_config_load = 1;
-+	return;
- 
-+success:
- 	dd->platform_config.data = temp_platform_config;
- 	dd->platform_config.size = size;
--
--bail:
--	/* exit */;
- }
- 
- void free_platform_config(struct hfi1_devdata *dd)
-
+OK=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
