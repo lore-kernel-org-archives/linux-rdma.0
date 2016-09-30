@@ -1,45 +1,40 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Re: Towards qedr patch series
-Date: Fri, 30 Sep 2016 13:04:39 +0000
-Message-ID: <SN1PR07MB22077D482047551775FE4BCFF8C10@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <DM3PR07MB2201E202E535C987EEAA3BFDF8CA0@DM3PR07MB2201.namprd07.prod.outlook.com>,<57EC1C46.6070502@redhat.com>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 4/9] Do not use
+ IBV_CMD_(REG_MR|RESIZE_CQ)_HAS_RESP_PARAMS
+Date: Fri, 30 Sep 2016 13:07:14 +0000
+Message-ID: <1475240830.18752.4.camel@intel.com>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
+         <1475182076-5411-5-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57EC1C46.6070502-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1475182076-5411-5-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
+Content-ID: <D9EEFCF91855B14DBF6BE889F134535B-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "intel-opa-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <intel-opa-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> There are currently 5 (5!!!) entirely new drivers that people want to
-> get merged.=A0 Reviewing those monstrous beasts is a nightmare.=A0 The
-> chances that I will get to yours for 4.9 are slim at best.
-
-Phew, that is a awful lot.
-We will do all that we can on our side to increase the chances of making it=
- to 4.9.
-
-> However, on the off chance that I might get to it, base the qed patches
-> against Dave's net-next (up until the merge window opens, then base it
-> on his net tree as that's what will get merged).=A0 The qedr patches
-> should be based on my current k.o/for-4.9 branch off of k.o.=A0 When you
-> submit any patches, I would suggest doing it in two separate submissions
-> (if possible).=A0 One that is just the preparatory qed patches.=A0 They
-> should be sent to netdev@ and linux-rdma@.=A0 The submission should note
-> that they are intended to be taken with the qedr driver.=A0 If netdev@
-> reviews/acks the series, then Dave can let me know if he wants me to
-> take the series and keep with with the remaining qedr series, or if he
-> wants to take them himself and I just make sure my pull request of the
-> qedr patches goes to Linus after his.=A0
-> The second set would obviously be
-> the new qedr driver.=A0 It need not go to netdev.=A0 Once it's here, then
-> it's a matter of the netdev@ people signing off on the qed series
-> changes, me signing off on the qedr changes, then it can go in.
-
-OK=
+T24gVGh1LCAyMDE2LTA5LTI5IGF0IDE0OjQ3IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IFRoZXNlIHdlcmUgdXNlZCB0byBzdXBwb3J0IGJ1aWxkaW5nIHByb3ZpZGVyIHBsdWdpbnMg
+YWdhaW5zdCBvbGQNCj4gdmVyc2lvbnMgb2YgbGliaWJ2ZXJicy4gU2luY2UgbGliaWJ2ZXJicyBp
+cyBub3cgaW5jbHVkZWQgdG9nZXRoZXINCj4gd2l0aCB0aGUgcHJvdmlkZXIgdGhhdCBpcyBubyBs
+b25nZXIgcG9zc2libGUgb3Igc3VwcG9ydGVkLg0KPiANCj4gVGhlIGRlZmluZSBpcyBrZXB0IGFz
+IGl0IGlzIGluIGEgcHVibGljIGhlYWRlci4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEphc29uIEd1
+bnRob3JwZSA8amd1bnRob3JwZUBvYnNpZGlhbnJlc2VhcmNoLmNvbT4NCj4gLS0tDQo+IMKgbGli
+aGZpMXZlcmJzL3NyYy92ZXJicy5jwqDCoMKgwqB8IDE1ICsrKy0tLS0tLS0tLS0tLQ0KPiDCoGxp
+Ymk0MGl3L3NyYy9pNDBpd191dmVyYnMuYyB8IDI2IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+DQo+IMKgbGliaXBhdGh2ZXJicy9zcmMvdmVyYnMuY8KgwqDCoHwgMTYgKysrLS0tLS0tLS0tLS0t
+LQ0KPiDCoGxpYm1seDUvc3JjL3ZlcmJzLmPCoMKgwqDCoMKgwqDCoMKgwqB8IDE4ICsrKystLS0t
+LS0tLS0tLS0tLQ0KPiDCoGxpYm10aGNhL3NyYy92ZXJicy5jwqDCoMKgwqDCoMKgwqDCoHwgMjYg
+KysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gwqBsaWJuZXMvc3JjL25lc191dmVyYnMuY8Kg
+wqDCoMKgwqB8IDM1IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IMKgbGli
+cnhlL3NyYy9yeGUuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHwgMTYgKysrLS0tLS0tLS0tLS0t
+LQ0KPiDCoDcgZmlsZXMgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygrKSwgMTMzIGRlbGV0aW9ucygt
+KQ0KDQpGb3IgbGliaGZpMXZlcmJzIGFuZCBsaWJpcGF0aHZlcmJzOg0KDQpBY2tlZC1ieTogRGVu
+bmlzIERhbGVzc2FuZHJvIDxkZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29tPg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
