@@ -1,53 +1,48 @@
-From: Robert LeBlanc <robert@leblancnet.us>
-Subject: iscsi_trx going into D state
-Date: Fri, 30 Sep 2016 11:14:57 -0600
-Message-ID: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: EACCES errors using preload libs
+Date: Fri, 30 Sep 2016 12:43:02 -0500
+Message-ID: <09db01d21b42$17aad9b0$47008d10$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: linux-scsi@vger.kernel.org
+Content-Type: text/plain;
+        charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We are having a reoccurring problem where iscsi_trx is going into D
-state. It seems like it is waiting for a session tear down to happen
-or something, but keeps waiting. We have to reboot these targets on
-occasion. This is running the 4.4.12 kernel and we have seen it on
-several previous 4.4.x and 4.2.x kernels. There is no message in dmesg
-or /var/log/messages. This seems to happen with increased frequency
-when we have a disruption in our Infiniband fabric, but can happen
-without any changes to the fabric (other than hosts rebooting).
+Hey Jason,  I'm looking into a problem that appears to have been introduced
+by:
 
-# ps aux | grep iscsi | grep D
-root      4185  0.0  0.0      0     0 ?        D    Sep29   0:00 [iscsi_trx]
-root     18505  0.0  0.0      0     0 ?        D    Sep29   0:00 [iscsi_np]
+commit e6bd18f57aad1a2d1ef40e646d03ed0f2515c9e3
+Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Date:   Sun Apr 10 19:13:13 2016 -0600
 
-# cat /proc/4185/stack
-[<ffffffff814cc999>] target_wait_for_sess_cmds+0x49/0x1a0
-[<ffffffffa087292b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
-[<ffffffff814f0de2>] iscsit_close_connection+0x162/0x840
-[<ffffffff814df8df>] iscsit_take_action_for_connection_exit+0x7f/0x100
-[<ffffffff814effc0>] iscsi_target_rx_thread+0x5a0/0xe80
-[<ffffffff8109c6f8>] kthread+0xd8/0xf0
-[<ffffffff8172004f>] ret_from_fork+0x3f/0x70
-[<ffffffffffffffff>] 0xffffffffffffffff
+    IB/security: Restrict use of the write() interface
 
-# cat /proc/18505/stack
-[<ffffffff814f0c71>] iscsit_stop_session+0x1b1/0x1c0
-[<ffffffff814e2436>] iscsi_check_for_session_reinstatement+0x1e6/0x270
-[<ffffffff814e4df0>] iscsi_target_check_for_existing_instances+0x30/0x40
-[<ffffffff814e4f40>] iscsi_target_do_login+0x140/0x640
-[<ffffffff814e62dc>] iscsi_target_start_negotiation+0x1c/0xb0
-[<ffffffff814e402b>] iscsi_target_login_thread+0xa9b/0xfc0
-[<ffffffff8109c6f8>] kthread+0xd8/0xf0
-[<ffffffff8172004f>] ret_from_fork+0x3f/0x70
-[<ffffffffffffffff>] 0xffffffffffffffff
+I'm using a preload library (similar to rsockets) that enables a user-mode
+UDP stack over chelsio hardware.  The preload lib uses user rdma verbs
+calls.  In some cases, verbs calls are getting EACCES.  Can you explain what
+"suspicious" write API calls this is disallowing:
 
-What can we do to help get this resolved?
+static inline bool ib_safe_file_access(struct file *filp)
+{
+        return filp->f_cred == current_cred() && segment_eq(get_fs(),
+USER_DS);
+}
+
+The single case I see failing so far is trying to preload my library with
+netserver.  If I run netserver with '-D -f' which avoids fork() calls, it
+works fine.  If I omit the -f, then the forked process gets an EACCES error
+trying to do ibv_query_device().  Thoughts?
 
 Thanks,
 
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
