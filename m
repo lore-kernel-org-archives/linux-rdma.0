@@ -1,271 +1,48 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v2 4/7] blk-mq: Introduce blk_quiesce_queue() and
- blk_resume_queue()
-Date: Fri, 30 Sep 2016 08:55:59 -0700
-Message-ID: <9fb67745-954c-a70f-a89a-d184c99ae9aa@sandisk.com>
-References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
- <a9eb4e95-6d77-e527-c42a-fd2e6f104bed@sandisk.com>
- <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="------------655A73FFD4840F0A4750FEA7"
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH 1/2] net/mlx5e: shut up maybe-uninitialized warning
+Date: Fri, 30 Sep 2016 18:17:09 +0200
+Message-ID: <20160930161734.70928-1-arnd@arndb.de>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirva-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---------------655A73FFD4840F0A4750FEA7
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Build-testing this driver with -Wmaybe-uninitialized gives a new false-positive
+warning that I can't really explain:
 
-On 09/29/16 14:51, Ming Lei wrote:
-> On Thu, Sep 29, 2016 at 7:59 AM, Bart Van Assche
-> <bart.vanassche@sandisk.com> wrote:
->> blk_quiesce_queue() prevents that new queue_rq() invocations
->
-> blk_mq_quiesce_queue()
+drivers/net/ethernet/mellanox/mlx5/core/en_tc.c: In function 'mlx5e_configure_flower':
+drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:509:3: error: 'old_attr' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-Thanks, I will update the patch title and patch description.
+It's obvious from the code that 'old_attr' is initialized whenever 'old'
+is non-NULL here. The warning appears with all versions I tested from gcc-4.7
+through gcc-6.1, and I could not come up with a way to rewrite the function
+in a more readable way that avoids the warning, so I'm adding another
+initialization to shut it up.
 
->> +void blk_mq_quiesce_queue(struct request_queue *q)
->> +{
->> +       struct blk_mq_hw_ctx *hctx;
->> +       unsigned int i;
->> +       bool res, rcu = false;
->> +
->> +       spin_lock_irq(q->queue_lock);
->> +       WARN_ON_ONCE(blk_queue_quiescing(q));
->> +       queue_flag_set(QUEUE_FLAG_QUIESCING, q);
->> +       spin_unlock_irq(q->queue_lock);
->> +
->> +       res = __blk_mq_freeze_queue_start(q, false);
->
-> Looks the implementation is a bit tricky and complicated, if the percpu
-> usage counter isn't killed, it isn't necessary to touch .mq_freeze_depth
-> since you use QUEUE_FLAG_QUIESCING to set/get this status of
-> the queue.
- >
- > Then using synchronize_rcu() and rcu_read_lock()/rcu_read_unlock()
- > with the flag of QUIESCING may be enough to wait for completing
- > of ongoing invocations of .queue_rq() and avoid to run new .queue_rq,
- > right?
-
-That's an interesting thought. Can you have a look at the attached patch 
-in which blk_mq_quiesce_queue() no longer manipulates the 
-mq_freeze_depth counter?
-
->> +       WARN_ON_ONCE(!res);
->> +       queue_for_each_hw_ctx(q, hctx, i) {
->> +               if (hctx->flags & BLK_MQ_F_BLOCKING) {
->> +                       mutex_lock(&hctx->queue_rq_mutex);
->> +                       mutex_unlock(&hctx->queue_rq_mutex);
->
-> Could you explain a bit why all BLOCKING is treated so special? And
-> that flag just means the hw queue always need to schedule asynchronously,
-> and of course even though the flag isn't set, it still may be run
-> asynchronously too. So looks it should be enough to just use RCU.
-
-The mutex manipulations introduce atomic stores in the hot path. Hence 
-the use of synchronize_rcu() and rcu_read_lock()/rcu_read_unlock() when 
-possible. Since BLK_MQ_F_BLOCKING indicates that .queue_rq() may sleep 
-and since sleeping is not allowed while holding the RCU read lock, 
-queue_rq_mutex has been introduced for the BLK_MQ_F_BLOCKING case.
-
-Bart.
-
---------------655A73FFD4840F0A4750FEA7
-Content-Type: text/x-patch;
-	name="0001-blk-mq-Introduce-blk_mq_quiesce_queue.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0001-blk-mq-Introduce-blk_mq_quiesce_queue.patch"
-
->From 3a549df53eba84fad94279484e54f9c43b2d6626 Mon Sep 17 00:00:00 2001
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Date: Tue, 27 Sep 2016 10:52:36 -0700
-Subject: [PATCH] blk-mq: Introduce blk_mq_quiesce_queue()
-
-blk_mq_quiesce_queue() waits until ongoing .queue_rq() invocations
-have finished. This function does *not* wait until all outstanding
-requests have finished (this means invocation of request.end_io()).
-
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Hannes Reinecke <hare@suse.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Fixes: 8b32580df1cb ("net/mlx5e: Add TC vlan action for SRIOV offloads")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 ---
- block/blk-mq.c         | 69 +++++++++++++++++++++++++++++++++++++++++++++-----
- include/linux/blk-mq.h |  2 ++
- include/linux/blkdev.h |  4 +++
- 3 files changed, 69 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/block/blk-mq.c b/block/blk-mq.c
-index d8c45de..57701c5 100644
---- a/block/blk-mq.c
-+++ b/block/blk-mq.c
-@@ -115,6 +115,32 @@ void blk_mq_unfreeze_queue(struct request_queue *q)
- }
- EXPORT_SYMBOL_GPL(blk_mq_unfreeze_queue);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index a350b7171e3d..ce8c54d18906 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -451,7 +451,7 @@ int mlx5e_configure_flower(struct mlx5e_priv *priv, __be16 protocol,
+ 	struct mlx5e_tc_flow *flow;
+ 	struct mlx5_flow_spec *spec;
+ 	struct mlx5_flow_rule *old = NULL;
+-	struct mlx5_esw_flow_attr *old_attr;
++	struct mlx5_esw_flow_attr *old_attr = NULL;
+ 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
  
-+/**
-+ * blk_mq_quiesce_queue() - wait until all ongoing queue_rq calls have finished
-+ *
-+ * Note: this function does not prevent that the struct request end_io()
-+ * callback function is invoked. Additionally, it is not prevented that
-+ * new queue_rq() calls occur unless the queue has been stopped first.
-+ */
-+void blk_mq_quiesce_queue(struct request_queue *q)
-+{
-+	struct blk_mq_hw_ctx *hctx;
-+	unsigned int i;
-+	bool res, rcu = false;
-+
-+	queue_for_each_hw_ctx(q, hctx, i) {
-+		if (hctx->flags & BLK_MQ_F_BLOCKING) {
-+			mutex_lock(&hctx->queue_rq_mutex);
-+			mutex_unlock(&hctx->queue_rq_mutex);
-+		} else {
-+			rcu = true;
-+		}
-+	}
-+	if (rcu)
-+		synchronize_rcu();
-+}
-+EXPORT_SYMBOL_GPL(blk_mq_quiesce_queue);
-+
- void blk_mq_wake_waiters(struct request_queue *q)
- {
- 	struct blk_mq_hw_ctx *hctx;
-@@ -782,7 +808,7 @@ static inline unsigned int queued_to_index(unsigned int queued)
-  * of IO. In particular, we'd like FIFO behaviour on handling existing
-  * items on the hctx->dispatch list. Ignore that for now.
-  */
--static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
-+static void blk_mq_process_rq_list(struct blk_mq_hw_ctx *hctx)
- {
- 	struct request_queue *q = hctx->queue;
- 	struct request *rq;
-@@ -791,7 +817,7 @@ static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
- 	struct list_head *dptr;
- 	int queued;
- 
--	if (unlikely(test_bit(BLK_MQ_S_STOPPED, &hctx->state)))
-+	if (unlikely(blk_queue_quiescing(q)))
- 		return;
- 
- 	WARN_ON(!cpumask_test_cpu(raw_smp_processor_id(), hctx->cpumask) &&
-@@ -887,6 +913,22 @@ static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
- 	}
- }
- 
-+static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
-+{
-+	if (unlikely(test_bit(BLK_MQ_S_STOPPED, &hctx->state)))
-+		return;
-+
-+	if (hctx->flags & BLK_MQ_F_BLOCKING) {
-+		mutex_lock(&hctx->queue_rq_mutex);
-+		blk_mq_process_rq_list(hctx);
-+		mutex_unlock(&hctx->queue_rq_mutex);
-+	} else {
-+		rcu_read_lock();
-+		blk_mq_process_rq_list(hctx);
-+		rcu_read_unlock();
-+	}
-+}
-+
- /*
-  * It'd be great if the workqueue API had a way to pass
-  * in a mask and had some smarts for more clever placement.
-@@ -1341,7 +1383,7 @@ static blk_qc_t blk_mq_make_request(struct request_queue *q, struct bio *bio)
- 		blk_mq_bio_to_request(rq, bio);
- 
- 		/*
--		 * We do limited pluging. If the bio can be merged, do that.
-+		 * We do limited plugging. If the bio can be merged, do that.
- 		 * Otherwise the existing request in the plug list will be
- 		 * issued. So the plug list will have one request at most
- 		 */
-@@ -1361,9 +1403,23 @@ static blk_qc_t blk_mq_make_request(struct request_queue *q, struct bio *bio)
- 		blk_mq_put_ctx(data.ctx);
- 		if (!old_rq)
- 			goto done;
--		if (!blk_mq_direct_issue_request(old_rq, &cookie))
--			goto done;
--		blk_mq_insert_request(old_rq, false, true, true);
-+
-+		if (data.hctx->flags & BLK_MQ_F_BLOCKING) {
-+			mutex_lock(&data.hctx->queue_rq_mutex);
-+			if (blk_queue_quiescing(q) ||
-+			    blk_mq_direct_issue_request(old_rq, &cookie) != 0)
-+				blk_mq_insert_request(old_rq, false, true,
-+						      true);
-+			mutex_unlock(&data.hctx->queue_rq_mutex);
-+		} else {
-+			rcu_read_lock();
-+			if (blk_queue_quiescing(q) ||
-+			    blk_mq_direct_issue_request(old_rq, &cookie) != 0)
-+				blk_mq_insert_request(old_rq, false, true,
-+						      true);
-+			rcu_read_unlock();
-+		}
-+
- 		goto done;
- 	}
- 
-@@ -1702,6 +1758,7 @@ static int blk_mq_init_hctx(struct request_queue *q,
- 	INIT_DELAYED_WORK(&hctx->delay_work, blk_mq_delay_work_fn);
- 	spin_lock_init(&hctx->lock);
- 	INIT_LIST_HEAD(&hctx->dispatch);
-+	mutex_init(&hctx->queue_rq_mutex);
- 	hctx->queue = q;
- 	hctx->queue_num = hctx_idx;
- 	hctx->flags = set->flags & ~BLK_MQ_F_TAG_SHARED;
-diff --git a/include/linux/blk-mq.h b/include/linux/blk-mq.h
-index 368c460d..4b970f1 100644
---- a/include/linux/blk-mq.h
-+++ b/include/linux/blk-mq.h
-@@ -41,6 +41,8 @@ struct blk_mq_hw_ctx {
- 
- 	struct blk_mq_tags	*tags;
- 
-+	struct mutex		queue_rq_mutex;
-+
- 	unsigned long		queued;
- 	unsigned long		run;
- #define BLK_MQ_MAX_DISPATCH_ORDER	7
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index c47c358..6c2d987 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -505,6 +505,7 @@ struct request_queue {
- #define QUEUE_FLAG_FUA	       24	/* device supports FUA writes */
- #define QUEUE_FLAG_FLUSH_NQ    25	/* flush not queueuable */
- #define QUEUE_FLAG_DAX         26	/* device supports DAX */
-+#define QUEUE_FLAG_QUIESCING   27
- 
- #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_STACKABLE)	|	\
-@@ -595,6 +596,8 @@ static inline void queue_flag_clear(unsigned int flag, struct request_queue *q)
- #define blk_queue_secure_erase(q) \
- 	(test_bit(QUEUE_FLAG_SECERASE, &(q)->queue_flags))
- #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
-+#define blk_queue_quiescing(q)	test_bit(QUEUE_FLAG_QUIESCING,	\
-+					 &(q)->queue_flags)
- 
- #define blk_noretry_request(rq) \
- 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
-@@ -824,6 +827,7 @@ extern void __blk_run_queue(struct request_queue *q);
- extern void __blk_run_queue_uncond(struct request_queue *q);
- extern void blk_run_queue(struct request_queue *);
- extern void blk_run_queue_async(struct request_queue *q);
-+extern void blk_mq_quiesce_queue(struct request_queue *q);
- extern int blk_rq_map_user(struct request_queue *, struct request *,
- 			   struct rq_map_data *, void __user *, unsigned long,
- 			   gfp_t);
+ 	if (esw && esw->mode == SRIOV_OFFLOADS)
 -- 
-2.10.0
+2.9.0
 
-
---------------655A73FFD4840F0A4750FEA7--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
