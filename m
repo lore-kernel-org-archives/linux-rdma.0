@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 2/3] IB/hfi1: Add ability to read platform config from
- the EPROM
-Date: Fri, 30 Sep 2016 04:41:40 -0700
-Message-ID: <20160930114139.12716.97279.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 3/3] IB/hfi1: Use EPROM platform configuration read
+Date: Fri, 30 Sep 2016 04:41:45 -0700
+Message-ID: <20160930114145.12716.18135.stgit@scvm10.sc.intel.com>
 References: <20160930114009.12716.95241.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,117 +15,99 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add a function to read the platform configuration file from
-the EPROM.
+The driver will now try to read directly from the EPROM as its
+first choice for the platform configuration file.
 
 Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/eprom.c |   82 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/eprom.h |    2 +
- 2 files changed, 84 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c     |    9 +++++----
+ drivers/infiniband/hw/hfi1/platform.c |   32 +++++++++++++++++++++-----------
+ 2 files changed, 26 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/eprom.c b/drivers/infiniband/hw/hfi1/eprom.c
-index 30ecd94..e70c223 100644
---- a/drivers/infiniband/hw/hfi1/eprom.c
-+++ b/drivers/infiniband/hw/hfi1/eprom.c
-@@ -203,3 +203,85 @@ int eprom_init(struct hfi1_devdata *dd)
- done_asic:
- 	return ret;
- }
-+
-+/* magic character sequence that trails an image */
-+#define IMAGE_TRAIL_MAGIC "egamiAPO"
-+
-+/*
-+ * Read all of partition 1.  The actual file is at the front.  Adjust
-+ * the returned size if a trailing image magic is found.
-+ */
-+static int read_partition_platform_config(struct hfi1_devdata *dd, void **data,
-+					  u32 *size)
-+{
-+	void *buffer;
-+	void *p;
-+	u32 length;
-+	int ret;
-+
-+	buffer = kmalloc(P1_SIZE, GFP_KERNEL);
-+	if (!buffer)
-+		return -ENOMEM;
-+
-+	ret = read_length(dd, P1_START, P1_SIZE, buffer);
-+	if (ret) {
-+		kfree(buffer);
-+		return ret;
-+	}
-+
-+	/* scan for image magic that may trail the actual data */
-+	p = strnstr(buffer, IMAGE_TRAIL_MAGIC, P1_SIZE);
-+	if (p)
-+		length = p - buffer;
-+	else
-+		length = P1_SIZE;
-+
-+	*data = buffer;
-+	*size = length;
-+	return 0;
-+}
-+
-+/*
-+ * Read the platform configuration file from the EPROM.
-+ *
-+ * On success, an allocated buffer containing the data and its size are
-+ * returned.  It is up to the caller to free this buffer.
-+ *
-+ * Return value:
-+ *   0	      - success
-+ *   -ENXIO   - no EPROM is available
-+ *   -EBUSY   - not able to acquire access to the EPROM
-+ *   -ENOENT  - no recognizable file written
-+ *   -ENOMEM  - buffer could not be allocated
-+ */
-+int eprom_read_platform_config(struct hfi1_devdata *dd, void **data, u32 *size)
-+{
-+	u32 directory[EP_PAGE_DWORDS]; /* aligned buffer */
-+	int ret;
-+
-+	if (!dd->eprom_available)
-+		return -ENXIO;
-+
-+	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
-+	if (ret)
-+		return -EBUSY;
-+
-+	/* read the last page of P0 for the EPROM format magic */
-+	ret = read_length(dd, P1_START - EP_PAGE_SIZE, EP_PAGE_SIZE, directory);
-+	if (ret)
-+		goto done;
-+
-+	/* last dword of P0 contains a magic indicator */
-+	if (directory[EP_PAGE_DWORDS - 1] == 0) {
-+		/* partition format */
-+		ret = read_partition_platform_config(dd, data, size);
-+		goto done;
-+	}
-+
-+	/* nothing recognized */
-+	ret = -ENOENT;
-+
-+done:
-+	release_chip_resource(dd, CR_EPROM);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/hfi1/eprom.h b/drivers/infiniband/hw/hfi1/eprom.h
-index b7ac9ce..e774184 100644
---- a/drivers/infiniband/hw/hfi1/eprom.h
-+++ b/drivers/infiniband/hw/hfi1/eprom.h
-@@ -48,3 +48,5 @@
- struct hfi1_devdata;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 88394cd..9bf5f23 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -14566,6 +14566,11 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	if (ret)
+ 		goto bail_cleanup;
  
- int eprom_init(struct hfi1_devdata *dd);
-+int eprom_read_platform_config(struct hfi1_devdata *dd, void **buf_ret,
-+			       u32 *size_ret);
++	/* call before get_platform_config(), after init_chip_resources() */
++	ret = eprom_init(dd);
++	if (ret)
++		goto bail_free_rcverr;
++
+ 	/* Needs to be called before hfi1_firmware_init */
+ 	get_platform_config(dd);
+ 
+@@ -14686,10 +14691,6 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	if (ret)
+ 		goto bail_free_cntrs;
+ 
+-	ret = eprom_init(dd);
+-	if (ret)
+-		goto bail_free_rcverr;
+-
+ 	goto bail;
+ 
+ bail_free_rcverr:
+diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
+index 965c8ae..2024331 100644
+--- a/drivers/infiniband/hw/hfi1/platform.c
++++ b/drivers/infiniband/hw/hfi1/platform.c
+@@ -47,29 +47,39 @@
+ 
+ #include "hfi.h"
+ #include "efivar.h"
++#include "eprom.h"
+ 
+ void get_platform_config(struct hfi1_devdata *dd)
+ {
+ 	int ret = 0;
+ 	unsigned long size = 0;
+ 	u8 *temp_platform_config = NULL;
++	u32 esize;
++
++	ret = eprom_read_platform_config(dd, (void **)&temp_platform_config,
++					 &esize);
++	if (!ret) {
++		/* success */
++		size = esize;
++		goto success;
++	}
++	/* fail, try EFI variable */
+ 
+ 	ret = read_hfi1_efi_var(dd, "configuration", &size,
+ 				(void **)&temp_platform_config);
+-	if (ret) {
+-		dd_dev_info(dd,
+-			    "%s: Failed to get platform config from UEFI, falling back to request firmware\n",
+-			    __func__);
+-		/* fall back to request firmware */
+-		platform_config_load = 1;
+-		goto bail;
+-	}
++	if (!ret)
++		goto success;
++
++	dd_dev_info(dd,
++		    "%s: Failed to get platform config from UEFI, falling back to request firmware\n",
++		    __func__);
++	/* fall back to request firmware */
++	platform_config_load = 1;
++	return;
+ 
++success:
+ 	dd->platform_config.data = temp_platform_config;
+ 	dd->platform_config.size = size;
+-
+-bail:
+-	/* exit */;
+ }
+ 
+ void free_platform_config(struct hfi1_devdata *dd)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
