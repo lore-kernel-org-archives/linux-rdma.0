@@ -1,96 +1,98 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/7] Extend flow steering IPv4 and IPv6
- specification.
-Date: Sat, 1 Oct 2016 19:38:21 -0400
-Message-ID: <aa7b3656-b225-415d-852b-5fdd1cc462c8@redhat.com>
-References: <1472565516-11591-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH rdma-next V1 0/5] mlx5 IB RoCE LAG
+Date: Sat, 1 Oct 2016 19:39:45 -0400
+Message-ID: <83c14753-a732-dd16-e940-0d3df6bb0689@redhat.com>
+References: <1474220884-21341-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="oWKEOXuvkpKwHIEJLDXFxNTGchRperVMl"
+ boundary="iufGm3LRevNl6Hf5SchmNpDvV4rfMtD6D"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472565516-11591-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---oWKEOXuvkpKwHIEJLDXFxNTGchRperVMl
-Content-Type: multipart/mixed; boundary="BgWHivo3GnWlXw7UJJbk6a21EhQdAbJDU";
+--iufGm3LRevNl6Hf5SchmNpDvV4rfMtD6D
+Content-Type: multipart/mixed; boundary="8495j4hS9O1IKA8UDealWO6VmEeiM0wEX";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <aa7b3656-b225-415d-852b-5fdd1cc462c8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/7] Extend flow steering IPv4 and IPv6
- specification.
-References: <1472565516-11591-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <1472565516-11591-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Message-ID: <83c14753-a732-dd16-e940-0d3df6bb0689-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 0/5] mlx5 IB RoCE LAG
+References: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1474220884-21341-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---BgWHivo3GnWlXw7UJJbk6a21EhQdAbJDU
+--8495j4hS9O1IKA8UDealWO6VmEeiM0wEX
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/30/2016 9:58 AM, Leon Romanovsky wrote:
-> This patch set extends the IPv4 and IPv6 flow specification.
+On 9/18/2016 1:47 PM, Leon Romanovsky wrote:
+> This feature keeps track, using netdev LAG events,
+> of the bonding and link status of each port's PF netdev.
 >=20
-> New fields in IPv4:
->  1. Type of Service
->  2. Time to Live
->  3. Flags
->  4. Protocol
+> When both of the card's PF netdevs are enslaved exclusively
+> to the same bond master, LAG state is active.
+> Bond mode must be one of:
+> 1 (active-backup), 2 (XOR), or 4 (802.3ad).
 >=20
-> New fields in IPv6:
->  1. Traffic Class
->  2. Flow Label
->  3. Next Header
->  4. Hop Limit
+> During LAG, a single IB device is present for both ports.
+> This allows for load balancing and high availability to be
+> managed by the driver, abstracting it away from ULPs.
+> Such an IB device is given a name of "mlx5_bond_X".
 >=20
-> The first patch in this series adds support to extend the flow
-> steering specification. Previously, user flow specification
-> and kernel flow specification were must to be equal in their size.
+> LAG mode is determined by the bond driver.
+> In load balancing (modes 2 and 4), QPs are assigned to ports
+> in a round-robin fashion, on QP transition from RESET->INIT.
+> In high availability (mode 1), all QPs are assigned to the active
+> slave, determined by bond driver.
 >=20
-> To support extensions, we change the flow specifications conditions
-> test to be as following:
->  1. Every mask field that is given by the user and doesn't exist in
->     kernel is validated to be zero. Thus, new user-space would only fai=
-l
->     if it's using (i.e field_mask !=3D 0) a field which doesn't exist i=
-n
->     the current kernel version.
->  2. All types are known by the kernel.
->  3. If the kernel is newer than the user-space, all fields (and by
->     that, their masks) weren't given by the user are assumed as zeros
->     and ignored.
->  4. The ABI declares filters as 32bit aligned. This is necessary to
->     avoid unaligned access when reading the header.
+> Please note that if the link state of a port becomes down when
+> mode is load balancing, all QPs will be moved to the other port,
+> and will be moved back once both ports are up again.
 >=20
-> Changes from v0 to v1:
->  * Add Reviewed-by from Sagi G.
->  * Split mlx4, mlx5 and uverbs to separate patches
->  * Rename IB/core to be IB/uverbs
+> This feature itself split into mlx5_core and mlx5_ib parts, while mlx5_=
+core was
+> already submitted and accepted:
+>   1) mlx5_core: Implements RoCE LAG infrastructure and API.
+>     a) Bond device LAG events tracking.
+>     b) Decisions as to whether LAG state is active.
+>     c) Firmware commands to enter and exit LAG state.
+>     d) Manages HA behavior.
+>   2) mlx5_ib: Uses core infrastructure to implement RoCE LAG.
+>     a) Chooses an "mlx5_bond_X" device name when LAG is active.
+>     b) Implements QP load balancing.
+>     c) Merges steering, such that both port's traffic arrives on
+>        PF0's root flow table. This is used for processing
+>        both port's usermode Ethernet traffic on PF0.
+>     d) Creates a special flow table that diverts all
+>        non-usermode Ethernet traffic received on port 2
+>        back to PF1's root flow table (since non-usermode Ethernet
+>        should not be affected by LAG).
 >=20
-> Available in the "topic/ext-flow" topic branch of this git repo:
+> Available in the "topic/roce-lag-mlx5" topic branch of this git repo:
 > git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
 >=20
 > Or for browsing:
 > https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=
-=3Dtopic/ext-flow
+=3Dtopic/roce-lag-mlx5
 
-Extension was done in a way that made sense and adhered to the standard.
- All items added to the extension are generic flow variables that make
-sense for anyone that would implement raw eth flow rules.  Series applied=
-=2E
+Because I didn't take everything you submitted in the order you
+submitted it, there were a number of conflicts I had to fix up, but
+series applied.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---BgWHivo3GnWlXw7UJJbk6a21EhQdAbJDU--
+--8495j4hS9O1IKA8UDealWO6VmEeiM0wEX--
 
---oWKEOXuvkpKwHIEJLDXFxNTGchRperVMl
+--iufGm3LRevNl6Hf5SchmNpDvV4rfMtD6D
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -99,22 +101,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8EjtAAoJELgmozMOVy/dqgQP/iqezzv9nylDmJUjhZOYlxPl
-bvMfCzvlAS++K+vvggDQUiX+qnErzvgzHIYpE82IFxxJzENz2mAHQmmme+N9MZJZ
-NGLp/MODs6YNgJbGT+RJO/6Gepa3WOif0ngzdWHw8VAGBRTswPdVYDxttkOSTKBY
-oBLmN5GNHewYknrwotp8Wl8AQ/E7aauKdihS6jPgcbB+lR9Q00naQb+pZDkKGw2l
-QGwx5Fhsub831BhogOy5TIKfdNrTJyeTYkOWj2Ze3dHGHH4Dxw+bapRvLDx/hrkR
-gWh6G2QwY3FIMv0gX/wxsB5IV3ucTNxfw/IGUsvC+oC7qg/ahiv3mYFh86ig6maP
-X/O3MuiZNxY3HddTRREow4JkGY93rUQUu75ybHPQCF23yLGmvcD6vMN0EMMRzAd+
-tlM412WcaN3hdPOMapXGJF4f3NyD3hPOu3zSw9LqMBXYcmOyvTHFiHmthJpqQqU4
-0UU0xio/0Np97KKzswE63XGj0Dhk0odmGZrZT6A1ZaJg3eIJXR817tT43n3OH91Y
-nLp/hO+tvftHqJHA9DpRguuns2vzHp06Ih/r0NuP/7zW2/MGsVkVZYKfO8anBdTt
-YjYhhP5Rh4hhOw2uxVSerVLty1iPlf9p9lzmRDisG1A2JP01RE0KT8UwMOfQmFdm
-Iwv1il2vZ+/Ja53ib80u
-=8P6q
+iQIcBAEBCAAGBQJX8ElBAAoJELgmozMOVy/dK3QQALy8o8nGsJbdNvvpxUZrQOK+
+y9OzYG/C7VjOYmlNP3rHDQ3bMSR9h2d6yrsS/2epougJkIeXwwoLjCTKUIly4uhU
+GrnlW7XpAR3/bZZPEisT7PtQKWPTVekICjpQm17d7DztLl6ZM/MtIh/JZMYwwDnh
+ekyG1HW+skBCnDhntkYywFElK/Scyag+7EAPpj7T+cxH9leIuOG2+y55kiwvLlFb
+iljt/vexRSBx7pXmKBXdQmYu82QPJrGZYA3fyQeb/6ZAlLiIHdfnHKrSKOrk1SRI
+33h4as9amwIjj45wtESrwc1WWZFVEHfNAQXdLt0ADVeqAfr3o30epTDTwmT81YYM
+dDxjYT1CUsL3/8Bi+xC/160XiLLOUbTZOoIDSZkbpkAP+2al2qasus6M+igCdXw5
+6Go4PLQ1buiYKtZXHAEzEw1nTaGH1YFS/g6sV3G1IMCn4EWHtHOP5fypQPa4yVXV
+Fsq/pF3F+s52Vs0sfrpIqQBh5udrpyvPAB0gUkfYG/NSXCFdZiGrnPFCCCySzAUu
+YCf+/78Js7Kt4UYZK2E8ACqVLTO3jZvHhhhEeQbZNIggR/cY1wUTu7qWVdd2kKdh
+0RZi0f/iGUmySlH2/U3K1WUbRa4cFqhZlDVCDVZhq2/A5Jjy8ZIGYQ2yap8B1B6N
+8FkmxFxqd9mshSkmw8iZ
+=EP64
 -----END PGP SIGNATURE-----
 
---oWKEOXuvkpKwHIEJLDXFxNTGchRperVMl--
+--iufGm3LRevNl6Hf5SchmNpDvV4rfMtD6D--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
