@@ -1,54 +1,49 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: IB/core: IB/rdmavt: Fix kernel crash for reg MR
-Date: Sat, 1 Oct 2016 19:10:53 -0400
-Message-ID: <a8e03f71-1fab-72b7-805a-8264a3c2f8c7@redhat.com>
-References: <1475094347-18402-1-git-send-email-pandit.parav@gmail.com>
+Subject: Re: [PATCH] IB/rxe: impoved debug prints & other code cleanup
+Date: Sat, 1 Oct 2016 19:11:19 -0400
+Message-ID: <423df9bc-03cf-dcdf-9a6a-8120f86b290d@redhat.com>
+References: <1475094386-18449-1-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="1w9OGQD7DT1JhcuK39B4QXm99tRSDwWaD"
+ boundary="oJUWcjUcUFuF49R0oIsHqL020BgruGS5g"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475094347-18402-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1475094386-18449-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1w9OGQD7DT1JhcuK39B4QXm99tRSDwWaD
-Content-Type: multipart/mixed; boundary="J4j9joX4T41BJ5G12C62mPQo3q0pQFpfK";
+--oJUWcjUcUFuF49R0oIsHqL020BgruGS5g
+Content-Type: multipart/mixed; boundary="XRDGt4J6nMpo26pKAgPJkfllCjBMgp81N";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
- monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <a8e03f71-1fab-72b7-805a-8264a3c2f8c7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: IB/core: IB/rdmavt: Fix kernel crash for reg MR
-References: <1475094347-18402-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-In-Reply-To: <1475094347-18402-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <423df9bc-03cf-dcdf-9a6a-8120f86b290d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: impoved debug prints & other code cleanup
+References: <1475094386-18449-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1475094386-18449-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
---J4j9joX4T41BJ5G12C62mPQo3q0pQFpfK
+--XRDGt4J6nMpo26pKAgPJkfllCjBMgp81N
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/28/2016 4:25 PM, Parav Pandit wrote:
-> This patch fixes below kernel crash on memory registration for rxe
-> and other transport drivers which has dma_ops extension.
+On 9/28/2016 4:26 PM, Parav Pandit wrote:
+> 1. Debugging qp state transitions and qp errors in loopback and
+> multiple QP tests is difficult without qp numbers in debug logs.
+> This patch adds qp number to important debug logs.
 >=20
-> IB/core invokes ib_map_sg_attrs() in generic manner with dma attributes=
-
-> which is used by mlx5 and mthca adapters.
-> However in doing so it ignored honoring dma_ops extension of software b=
-ased
-> transports for sg map/unmap operation.
-> This results into calling dma_map_sg_attrs of hardware virtual device
-> resulting in crash for null reference.
+> 2. Instead of having rxe: prefix in few logs and not having in
+> few logs, using uniform module name prefix using pr_fmt macro.
 >=20
-> Fix: It extends core to support sg_map/unmap_attrs and transport driver=
-s
-> to implement those dma_ops callback functions.
-> Verified usign perftest applications.
+> 3. Code cleanup for various warnings reported by checkpatch for
+> incomplete unsigned data type, line over 80 characters, return
+> statements.
+>=20
+> Signed-off-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-The commit message had to be largely rewritten, but the code was applied.=
-
+Thanks, applied.
 
 
 --=20
@@ -56,9 +51,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---J4j9joX4T41BJ5G12C62mPQo3q0pQFpfK--
+--XRDGt4J6nMpo26pKAgPJkfllCjBMgp81N--
 
---1w9OGQD7DT1JhcuK39B4QXm99tRSDwWaD
+--oJUWcjUcUFuF49R0oIsHqL020BgruGS5g
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -67,22 +62,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8EJ9AAoJELgmozMOVy/dd68P/0AtW7sAdF8zo/xGykEoffdb
-MbN2ZAWaNiNjUBvm8sKDvuUA4mXBxOGP6NuFbx5ODdV3uiBsgjy9t4f6gaWf+UXE
-xZ0hmorB8hinUWlXVK6NTkPX8viyq4PO3yj1mfG3/HYe8wzR99flHLK8u/8HYOEO
-HVyW291wOWuc4LS7mxIVeSfNhsrBFQAKKMzRe02WuzIna1VZs/Fz5eq6fH9uVMPA
-gGqqvm3oFniqKcxm77MypvfrrNyonixxzDTo0YmCqqtvnD+VpAG/Q2pkJYP+bvn6
-F1ZM8ic+9tygrUWac674uq1tPPpvNUy2qMUWv7sAUTFxotXuCguSeJztoiNOl0av
-uPoy3cvSNo2nIG6xBo5U+mAHins3NrN7EKzWJ+8cDgf4J8RF1/fnTx9vJKcOITYA
-P8DAKf8OUx80SjbNA1aa0tTaTx1RgUpHjR7I0yFxm1BHAeCKl3h2bME/pLkqpeBa
-SMZHUIEPN2Z0FIAO+Q0W+YpOpcE3H5YkcSQZjDmMxUqC/7OL8tuDBXhsxij7sNJe
-ugFQ0cWzzXiL1k3kOTuLQVKblyLKOfHv0rhTmyhDCJ+SGInFhbyj6tLoo/wlTQoN
-Jbqn5opTiZBmIsXp/KyKz4MRVe2v0sZUnMZV9ml8rjgz/iBSe72gKL/8dV2vPUw3
-P7nT6tA/v8CVloNY26qj
-=DFg0
+iQIcBAEBCAAGBQJX8EKXAAoJELgmozMOVy/dxCoP/RSnGEUl52AWANnv+sLFeVor
+z7HVuu7mtrRUKIdpKm716jzRKOK0QGjPQGUUCj7hQK9IHKVSgMow8CzPYXjzwSg2
+XNPcHy/59O03LdoO0hjG+FfC5FRiFIhQQ3jdRUzurQJk+5qeX0wpzkLwhioL1mUE
+mH/nBVa51p+NbBkT6ow47hNXltV3D0xw2WkhCr8pWDyZ9z8EJA8V8X2WUrEv3Qm4
+fsDIiz997PTXJxp0wg4l4YIGBa1FcKZSKpj8HWKRH8IjyUgkLPLD5LoGDv73Be+J
+xqsK1mg4l7N955oc9puRGfdPTxtydAeRK3gsEgx5xdTP4zBxRVfe43iqeHQ0nca7
+j8hiB7+VqoN0TM0Drk0aooU4swCcv4wbI8xJXvTfWHRkkO6HJrAg9Ry0oKAvcycO
+2IFfsgHZogtg1qKRV/jGUsRIZE5Q1M23v1cjomgZpb8kc2w3I0YxZzolaYBowCY+
+vXVuvlOAsG38Ms4n02l6spaAdlDUtUhk0zSpWC3CKk4PpDZndEYzHJIC4kgJgmwB
+jSppOUH2y2R8yO9tLEyXe/YhdhfYRsz69+sObLjnRc8mdHDGxRwiFj72kQdl/iMP
+CHe0pgead68JA3RRYiZ7Zachbr0s2bLEFM24U7T3ppIn6h49kzD9CRp6OsRG34sK
+tN1DRpt3vXEuEUgzrI0m
+=0iAE
 -----END PGP SIGNATURE-----
 
---1w9OGQD7DT1JhcuK39B4QXm99tRSDwWaD--
+--oJUWcjUcUFuF49R0oIsHqL020BgruGS5g--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
