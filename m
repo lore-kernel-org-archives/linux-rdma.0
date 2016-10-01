@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/4] IB/hfi1: Update SMA ingress checks for response packets
-Date: Fri, 30 Sep 2016 20:11:09 -0700
-Message-ID: <20161001031109.15264.1242.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 2/4] IB/core: Fix atomic regression with ib_hdrs
+Date: Fri, 30 Sep 2016 20:11:04 -0700
+Message-ID: <20161001031103.15264.95520.stgit@scvm10.sc.intel.com>
 References: <20161001030935.15264.34730.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,106 +10,55 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161001030935.15264.34730.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fix "unsupported method" error by skipping ingress pkey checks on
-response SMA packets.
+The struct containing atomic_ack_eth isn't packed
+which causes the atomic ack 64 bit values to be offset
+incorrectly breaking atomic operations for qib and hfi1.
 
+Fix by declaring the struct packed.
+
+There were some inline declarations missing in the new
+accessors.  Add those.
+
+Fixes: ea454191a7a9 ("IB/core: Add ib headers for general use")
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/ud.c |   49 +++++++++++++++++++--------------------
- 1 files changed, 24 insertions(+), 25 deletions(-)
+ include/rdma/ib_hdrs.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 090e716..97ae24b 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -559,8 +559,8 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+diff --git a/include/rdma/ib_hdrs.h b/include/rdma/ib_hdrs.h
+index 879faf6..408439f 100644
+--- a/include/rdma/ib_hdrs.h
++++ b/include/rdma/ib_hdrs.h
+@@ -100,7 +100,7 @@ union ib_ehdrs {
+ 	struct {
+ 		__be32 aeth;
+ 		__be64 atomic_ack_eth; /* potentially unaligned */
+-	} at;
++	} __packed at;
+ 	__be32 imm_data;
+ 	__be32 aeth;
+ 	__be32 ieth;
+@@ -125,12 +125,12 @@ struct ib_header {
  
- /*
-  * opa_smp_check() - Do the regular pkey checking, and the additional
-- * checks for SMPs specified in OPAv1 rev 0.90, section 9.10.26
-- * ("SMA Packet Checks").
-+ * checks for SMPs specified in OPAv1 rev 1.0, 9/19/2016 update, section
-+ * 9.10.25 ("SMA Packet Checks").
-  *
-  * Note that:
-  *   - Checks are done using the pkey directly from the packet's BTH,
-@@ -603,23 +603,28 @@ static int opa_smp_check(struct hfi1_ibport *ibp, u16 pkey, u8 sc5,
+ /* accessors for unaligned __be64 items */
  
- 	/*
- 	 * SMPs fall into one of four (disjoint) categories:
--	 * SMA request, SMA response, trap, or trap repress.
--	 * Our response depends, in part, on which type of
--	 * SMP we're processing.
-+	 * SMA request, SMA response, SMA trap, or SMA trap repress.
-+	 * Our response depends, in part, on which type of SMP we're
-+	 * processing.
- 	 *
--	 * If this is not an SMA request, or trap repress:
--	 *   - accept MAD if the port is running an SM
--	 *   - pkey == FULL_MGMT_P_KEY =>
--	 *       reply with unsupported method (i.e., just mark
--	 *       the smp's status field here, and let it be
--	 *       processed normally)
--	 *   - pkey != LIM_MGMT_P_KEY =>
--	 *       increment port recv constraint errors, drop MAD
--	 * If this is an SMA request or trap repress:
-+	 * If this is an SMA response, skip the check here.
-+	 *
-+	 * If this is an SMA request or SMA trap repress:
- 	 *   - pkey != FULL_MGMT_P_KEY =>
- 	 *       increment port recv constraint errors, drop MAD
-+	 *
-+	 * Otherwise:
-+	 *    - accept if the port is running an SM
-+	 *    - drop MAD if it's an SMA trap
-+	 *    - pkey == FULL_MGMT_P_KEY =>
-+	 *        reply with unsupported method
-+	 *    - pkey != FULL_MGMT_P_KEY =>
-+	 *	  increment port recv constraint errors, drop MAD
- 	 */
- 	switch (smp->method) {
-+	case IB_MGMT_METHOD_GET_RESP:
-+	case IB_MGMT_METHOD_REPORT_RESP:
-+		break;
- 	case IB_MGMT_METHOD_GET:
- 	case IB_MGMT_METHOD_SET:
- 	case IB_MGMT_METHOD_REPORT:
-@@ -629,23 +634,17 @@ static int opa_smp_check(struct hfi1_ibport *ibp, u16 pkey, u8 sc5,
- 			return 1;
- 		}
- 		break;
--	case IB_MGMT_METHOD_SEND:
--	case IB_MGMT_METHOD_TRAP:
--	case IB_MGMT_METHOD_GET_RESP:
--	case IB_MGMT_METHOD_REPORT_RESP:
-+	default:
- 		if (ibp->rvp.port_cap_flags & IB_PORT_SM)
- 			return 0;
-+		if (smp->method == IB_MGMT_METHOD_TRAP)
-+			return 1;
- 		if (pkey == FULL_MGMT_P_KEY) {
- 			smp->status |= IB_SMP_UNSUP_METHOD;
- 			return 0;
- 		}
--		if (pkey != LIM_MGMT_P_KEY) {
--			ingress_pkey_table_fail(ppd, pkey, slid);
--			return 1;
--		}
--		break;
--	default:
--		break;
-+		ingress_pkey_table_fail(ppd, pkey, slid);
-+		return 1;
- 	}
- 	return 0;
+-static u64 ib_u64_get(__be64 *p)
++static inline u64 ib_u64_get(__be64 *p)
+ {
+ 	return get_unaligned_be64(p);
+ }
+ 
+-static void ib_u64_put(u64 val, __be64 *p)
++static inline void ib_u64_put(u64 val, __be64 *p)
+ {
+ 	put_unaligned_be64(val, p);
  }
 
 --
