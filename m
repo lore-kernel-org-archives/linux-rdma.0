@@ -1,55 +1,61 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Avoid scheduling tasklet for userspace QP
-Date: Sat, 1 Oct 2016 19:09:25 -0400
-Message-ID: <f7a23e79-574d-2bcf-3f9a-a2ca9c60c447@redhat.com>
-References: <1475094252-18304-1-git-send-email-pandit.parav@gmail.com>
+Subject: Re: [PATCH] IB/rxe: Fix sending out loopback packet on netdev
+ interface.
+Date: Sat, 1 Oct 2016 19:10:03 -0400
+Message-ID: <a9d00766-3815-4cb4-77ae-eaedd6e6cf8a@redhat.com>
+References: <1475094282-18352-1-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="4RegtsuooKdTU5VP0STli3c23nSPUF5dg"
+ boundary="Tu1r0fDTWBBSsF59tDigX5gR6w1EONLAR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475094252-18304-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1475094282-18352-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4RegtsuooKdTU5VP0STli3c23nSPUF5dg
-Content-Type: multipart/mixed; boundary="XtMBHne2qu2Iwn5FqXXPLg0L2o9KpO0fN";
+--Tu1r0fDTWBBSsF59tDigX5gR6w1EONLAR
+Content-Type: multipart/mixed; boundary="DFMHrfKHSwjsgQwaFQM81gePgQJmwkMIn";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
  linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <f7a23e79-574d-2bcf-3f9a-a2ca9c60c447-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Avoid scheduling tasklet for userspace QP
-References: <1475094252-18304-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-In-Reply-To: <1475094252-18304-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Message-ID: <a9d00766-3815-4cb4-77ae-eaedd6e6cf8a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Fix sending out loopback packet on netdev
+ interface.
+References: <1475094282-18352-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1475094282-18352-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
---XtMBHne2qu2Iwn5FqXXPLg0L2o9KpO0fN
+--DFMHrfKHSwjsgQwaFQM81gePgQJmwkMIn
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 9/28/2016 4:24 PM, Parav Pandit wrote:
-> This patch avoids scheduing tasklet for WQE and protocol processing
-> for user space QP. It performs the task in calling process context.
+> Bug: prepare4 and prepare6 sets loopback mask in pkt_info structure
+> instance of skb.
+> While xmit_packet and other requester side functions use
+> pkt_info from stack. Due to which loopback mask bit set to wrong
+> pkt_info structure. This resuilts into sending out packet to actual
+> netdev and loopback functionality is broken.
 >=20
-> To improve code readability kernel spacific post_send handling moved to=
-
-> post_send_kernel() function.
+> Fix: Similar to other requester side functions, prepare() variants to
+> set loopback mask bit on pkt_info structure used by other functions.
+> Verified with perftest applications.
 >=20
 > Signed-off-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Thanks, applied.
-
+You're commit message had to be largely rewritten, but the code was appli=
+ed.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---XtMBHne2qu2Iwn5FqXXPLg0L2o9KpO0fN--
+--DFMHrfKHSwjsgQwaFQM81gePgQJmwkMIn--
 
---4RegtsuooKdTU5VP0STli3c23nSPUF5dg
+--Tu1r0fDTWBBSsF59tDigX5gR6w1EONLAR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -58,22 +64,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8EIlAAoJELgmozMOVy/dFZgP/2cuxOda6xTifuyudCf8LG7p
-Nc1qcW0EFVz4KDG28sif/j2VMA6d4v1s/MSrEOHXdNd92DpjUKP0ycp3zRvb6LUb
-WRyVcWNwW3eqtmnhYOOf1VcrdI2wApJMtO7c/34RbZPSYqpPPax6riISCMHam7hm
-GJ2VkotPj9UGRwHbPIOxBArDrstYkvoSrFNuZyv0y6zDW1J2a13QDv67yXDRVqe/
-e58vbNwKSFxnjuNBCqxSXren/XoF928kqWqE4ZGi+olFSxXkmCdvCYPGAsJX3Mln
-Qvc+zyDgLVyOdiczMkn1bKZayZqmGzuKqiZ6VNSvTvdC1O4hvKIsaqlzRFXwnwIQ
-ZDGDYOQAbkYSRSzaq7mRNKh9ZkbMwcZLkGXfItnJY8d5w93KJ9YvMcuNhxHsFXxU
-y+O37za1f8cFm+wKVYFJIjFEQ6TuEo+dRmqHyx3U15/xQcyPprK4yH4DNGPjNOop
-HHHqazqa/CxgX1P4vp1DDbKTXSeLShYGjrXoBvTZQ9JbzC+wyYExA4exKR0lvBLr
-z+eK6hhaySHtfJlNGQtd5rs4Vayf/d0L2ceQ8NttGeX+n+8vqwrJI0Cok1Yq5x3h
-lX1qxsdTrwjtQteUyYh2TW7mGl4LxXHEMlQ22+pZpQX1ikrZ4dl1FSPrQtSlwOL1
-ke6c4jYsgjIeYEgXw+56
-=XTo+
+iQIcBAEBCAAGBQJX8EJLAAoJELgmozMOVy/d9r0P+wTdK9r6SCdfqb3lKjQlO/MG
+wLObQ51pqq6yRdtC7r8RCRuxjBh3M4W2tdPQGsifRM/2Umi/+Ilics0e4VOHRrDu
+Z5saBNI6uv/T7heaKGRLZvE9439JZfcz2pO6400jtGHcfruMczFc4me8Sj7hvRBk
+TLBTriwaT5DBb/tZo/2cnWc2sQH36MAnIK4znJV9XpLbrk0S/D5rwlZbbo2VGhJK
+u4dYg2MZRYokEg+gpZMJ+opov3deJYGzWlMva6LGnKvJwM9o4S6Zu6Bk9+chpNHD
+V0hOY/JRjMHI/8raODslFKPA9JXIwTM6fYEWb+8p/SMxTHkqLWecoUPxGmXQD31W
+49XUqMTnXMYxTpFiQXz18Gy8qFoyEddzKjFf1RJzQxD0kfOtDJMgS+DvHcDTv0Eu
+sRC9wM4UKOmQhU0h95YI5FY6qeOHtRyqnKzQa5La31+iV6V0djBo08ihgeLNo+cA
+PKctuUnk4Sbi74d0qPraN6hfy39wseQSJJDv9whl49+P4KzJwjW62TOcUWw7ELNk
+uQUxcpbIIxpqiVKewrGe72XkfNawylHj6fR5K0/GWCAhnmWjZHJ8BVFOL758Rqc/
+i1rQp7nOEBYD8w6KCgpsNVYAqppo3Hx+Oip8fr2f1toQ4b0j78SzC1OmDRSZ462I
+09MoQ9iwL4RWsyilW8gk
+=xcfh
 -----END PGP SIGNATURE-----
 
---4RegtsuooKdTU5VP0STli3c23nSPUF5dg--
+--Tu1r0fDTWBBSsF59tDigX5gR6w1EONLAR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
