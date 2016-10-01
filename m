@@ -1,138 +1,84 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 4/7] blk-mq: Introduce blk_quiesce_queue() and blk_resume_queue()
-Date: Sun, 2 Oct 2016 06:56:19 +0800
-Message-ID: <CACVXFVMY19vuDjsECg2uX0_y_K7DUaaGqXPX9PYiBy5sfXmAEw@mail.gmail.com>
-References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
- <a9eb4e95-6d77-e527-c42a-fd2e6f104bed@sandisk.com> <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
- <9fb67745-954c-a70f-a89a-d184c99ae9aa@sandisk.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] rdma_rxe: Ensure rdma_rxe init occurs at correct time
+Date: Sat, 1 Oct 2016 19:03:40 -0400
+Message-ID: <ca8674c6-eb71-a076-36ee-dfd84a7b45cd@redhat.com>
+References: <1474644731-27818-1-git-send-email-sbates@raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9fb67745-954c-a70f-a89a-d184c99ae9aa-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1474644731-27818-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 30, 2016 at 11:55 PM, Bart Van Assche
-<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> On 09/29/16 14:51, Ming Lei wrote:
->>
->> On Thu, Sep 29, 2016 at 7:59 AM, Bart Van Assche
->> <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
->>>
->>> blk_quiesce_queue() prevents that new queue_rq() invocations
->>
->>
->> blk_mq_quiesce_queue()
->
->
-> Thanks, I will update the patch title and patch description.
->
->>> +void blk_mq_quiesce_queue(struct request_queue *q)
->>> +{
->>> +       struct blk_mq_hw_ctx *hctx;
->>> +       unsigned int i;
->>> +       bool res, rcu = false;
->>> +
->>> +       spin_lock_irq(q->queue_lock);
->>> +       WARN_ON_ONCE(blk_queue_quiescing(q));
->>> +       queue_flag_set(QUEUE_FLAG_QUIESCING, q);
->>> +       spin_unlock_irq(q->queue_lock);
->>> +
->>> +       res = __blk_mq_freeze_queue_start(q, false);
->>
->>
->> Looks the implementation is a bit tricky and complicated, if the percpu
->> usage counter isn't killed, it isn't necessary to touch .mq_freeze_depth
->> since you use QUEUE_FLAG_QUIESCING to set/get this status of
->> the queue.
->
->>
->> Then using synchronize_rcu() and rcu_read_lock()/rcu_read_unlock()
->> with the flag of QUIESCING may be enough to wait for completing
->> of ongoing invocations of .queue_rq() and avoid to run new .queue_rq,
->> right?
->
-> That's an interesting thought. Can you have a look at the attached patch in
-> which blk_mq_quiesce_queue() no longer manipulates the mq_freeze_depth
-> counter?
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF
+Content-Type: multipart/mixed; boundary="TQgNVr03xteubWJpJRNogv1N7ig833Hce";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Message-ID: <ca8674c6-eb71-a076-36ee-dfd84a7b45cd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] rdma_rxe: Ensure rdma_rxe init occurs at correct time
+References: <1474644731-27818-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1474644731-27818-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 
-About this part of manipulating 'mq_freeze_depth', your new patch looks
-better and cleaner.
+--TQgNVr03xteubWJpJRNogv1N7ig833Hce
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
->
->>> +       WARN_ON_ONCE(!res);
->>> +       queue_for_each_hw_ctx(q, hctx, i) {
->>> +               if (hctx->flags & BLK_MQ_F_BLOCKING) {
->>> +                       mutex_lock(&hctx->queue_rq_mutex);
->>> +                       mutex_unlock(&hctx->queue_rq_mutex);
->>
->>
->> Could you explain a bit why all BLOCKING is treated so special? And
->> that flag just means the hw queue always need to schedule asynchronously,
->> and of course even though the flag isn't set, it still may be run
->> asynchronously too. So looks it should be enough to just use RCU.
->
->
-> The mutex manipulations introduce atomic stores in the hot path. Hence the
-> use of synchronize_rcu() and rcu_read_lock()/rcu_read_unlock() when
-> possible. Since BLK_MQ_F_BLOCKING indicates that .queue_rq() may sleep and
-> since sleeping is not allowed while holding the RCU read lock,
-> queue_rq_mutex has been introduced for the BLK_MQ_F_BLOCKING case.
+On 9/23/2016 11:32 AM, Stephen Bates wrote:
+> This patch is based off v4.8-rc6 with the recent rxe bugfix patchset
+> applied [1].
+>=20
+> There is a problem when CONFIG_RDMA_RXE=3Dy and CONFIG_IPV6=3Dy. This
+> results in the rdma_rxe initialization occurring before the IPv6
+> services are ready. This patch delays the initialization of rdma_rxe
+> until after the IPv6 services are ready. This fix is based on one
+> proposed by Logan Gunthorpe on a much older code base [2].
+>=20
+> [1] http://marc.info/?l=3Dlinux-rdma&m=3D147307739626544&w=3D2
+>=20
+> [2] https://github.com/sbates130272/qemu-minimal/blob/rdma/patches/\
+>   0001-Changes-needed-to-use-rxe-compiled-into-the-kernel.patch
 
-OK, got it.
+Thanks, applied.
 
-But this part looks still not good enough:
 
-> +static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
-> +{
-> +       if (unlikely(test_bit(BLK_MQ_S_STOPPED, &hctx->state)))
-> +               return;
-> +
-> +       if (hctx->flags & BLK_MQ_F_BLOCKING) {
-> +               mutex_lock(&hctx->queue_rq_mutex);
-> +               blk_mq_process_rq_list(hctx);
-> +               mutex_unlock(&hctx->queue_rq_mutex);
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
 
-With the new mutex, .queue_rq can't be run concurrently any more, even
-though the hw queue can be mapped to more than one CPUs. So maybe
-srcu for BLK_MQ_F_BLOCKING?
 
-> +       } else {
-> +               rcu_read_lock();
-> +               blk_mq_process_rq_list(hctx);
-> +               rcu_read_unlock();
->         }
+--TQgNVr03xteubWJpJRNogv1N7ig833Hce--
 
-...
+--WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> -               if (!blk_mq_direct_issue_request(old_rq, &cookie))
-> -                       goto done;
-> -               blk_mq_insert_request(old_rq, false, true, true);
-> +
-> +               if (data.hctx->flags & BLK_MQ_F_BLOCKING) {
-> +                       mutex_lock(&data.hctx->queue_rq_mutex);
-> +                       if (blk_queue_quiescing(q) ||
-> +                           blk_mq_direct_issue_request(old_rq, &cookie) != 0)
-> +                               blk_mq_insert_request(old_rq, false, true,
-> +                                                     true);
-> +                       mutex_unlock(&data.hctx->queue_rq_mutex);
-> +               } else {
-> +                       rcu_read_lock();
-> +                       if (blk_queue_quiescing(q) ||
-> +                           blk_mq_direct_issue_request(old_rq, &cookie) != 0)
-> +                               blk_mq_insert_request(old_rq, false, true,
-> +                                                     true);
-> +                       rcu_read_unlock();
-> +               }
-> +
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-If we just call the rcu/srcu read lock(or the mutex) around .queue_rq(), the
-above code needn't to be duplicated any more.
+iQIcBAEBCAAGBQJX8EDMAAoJELgmozMOVy/dVvoP/03YUa726So1xFAZ3u9y++Eg
+Slvk6H7PaGW8zI+sYOcOdoi4LtJel9EAcrJlM1iB0SkA9kcYdfvijs9RiPWRBCBc
+4aTY8UGANeO+emDyX4k6C/x+Jj7EjTCxAOqZKIFfjtDQO3QWcD1GjgH040HcOzGD
+Qgbog6t01jE2cFXfyacNNZSsMjCJiCAFvSo3fSvQz7BgH+EdB7qNqIx9O3tYhePl
+6p+MzOZFvbU3WrsfDbPEh/EeGeJZEvMVBDPMt2jJaymBvTQR4Y7/e8ERqxURluvT
+i4FFV7njUyuVQy9IAndAGHIICR3aYbXaMV7Uj10GM+H2QYT2VdGaL3gLXvvmzI22
+5DFWoQEyauIFUQz3UIGk0r0ppB/8DE17gA3YvzGWQBb6frXvCV1v/U4xXV90Jgn/
+5cnT5czt2Zz171Rs65glwPoT/C3wFSTeJGl1BE+e2UXPbgyv8FBGwP51/s2jpGPE
+DstBxc38UUwe2lwdeBZS4PyjYOA5hwOcV3XbyD/n7TI91r43FmuTqIgZEctOQBB/
+0AOqkg7UEdWmC70elwyLY62AENjIpDbWTz3T74P5Fd/zJiDeCvn7a4wyybD/kYOY
+pinhZYhv7aL0HggUMvEJ6UpvaFmJaS+73+ZayeNZfVhZx853x9fAandW+FUzjoYh
+bOhweL4N9oKV+0LUbpui
+=Y4TE
+-----END PGP SIGNATURE-----
 
-Thanks,
-Ming Lei
+--WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
