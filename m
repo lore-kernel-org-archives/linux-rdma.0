@@ -1,48 +1,43 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1] rdma_rxe: Ensure rdma_rxe init occurs at correct time
-Date: Sat, 1 Oct 2016 19:03:40 -0400
-Message-ID: <ca8674c6-eb71-a076-36ee-dfd84a7b45cd@redhat.com>
-References: <1474644731-27818-1-git-send-email-sbates@raithlin.com>
+Subject: Re: [PATCH] IB/rxe: Avoid scheduling tasklet for userspace QP
+Date: Sat, 1 Oct 2016 19:09:25 -0400
+Message-ID: <f7a23e79-574d-2bcf-3f9a-a2ca9c60c447@redhat.com>
+References: <1475094252-18304-1-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF"
+ boundary="4RegtsuooKdTU5VP0STli3c23nSPUF5dg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1474644731-27818-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1475094252-18304-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF
-Content-Type: multipart/mixed; boundary="TQgNVr03xteubWJpJRNogv1N7ig833Hce";
+--4RegtsuooKdTU5VP0STli3c23nSPUF5dg
+Content-Type: multipart/mixed; boundary="XtMBHne2qu2Iwn5FqXXPLg0L2o9KpO0fN";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Message-ID: <ca8674c6-eb71-a076-36ee-dfd84a7b45cd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1] rdma_rxe: Ensure rdma_rxe init occurs at correct time
-References: <1474644731-27818-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1474644731-27818-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <f7a23e79-574d-2bcf-3f9a-a2ca9c60c447-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Avoid scheduling tasklet for userspace QP
+References: <1475094252-18304-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1475094252-18304-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
---TQgNVr03xteubWJpJRNogv1N7ig833Hce
+--XtMBHne2qu2Iwn5FqXXPLg0L2o9KpO0fN
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/23/2016 11:32 AM, Stephen Bates wrote:
-> This patch is based off v4.8-rc6 with the recent rxe bugfix patchset
-> applied [1].
+On 9/28/2016 4:24 PM, Parav Pandit wrote:
+> This patch avoids scheduing tasklet for WQE and protocol processing
+> for user space QP. It performs the task in calling process context.
 >=20
-> There is a problem when CONFIG_RDMA_RXE=3Dy and CONFIG_IPV6=3Dy. This
-> results in the rdma_rxe initialization occurring before the IPv6
-> services are ready. This patch delays the initialization of rdma_rxe
-> until after the IPv6 services are ready. This fix is based on one
-> proposed by Logan Gunthorpe on a much older code base [2].
+> To improve code readability kernel spacific post_send handling moved to=
+
+> post_send_kernel() function.
 >=20
-> [1] http://marc.info/?l=3Dlinux-rdma&m=3D147307739626544&w=3D2
->=20
-> [2] https://github.com/sbates130272/qemu-minimal/blob/rdma/patches/\
->   0001-Changes-needed-to-use-rxe-compiled-into-the-kernel.patch
+> Signed-off-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Thanks, applied.
 
@@ -52,9 +47,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---TQgNVr03xteubWJpJRNogv1N7ig833Hce--
+--XtMBHne2qu2Iwn5FqXXPLg0L2o9KpO0fN--
 
---WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF
+--4RegtsuooKdTU5VP0STli3c23nSPUF5dg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -63,22 +58,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8EDMAAoJELgmozMOVy/dVvoP/03YUa726So1xFAZ3u9y++Eg
-Slvk6H7PaGW8zI+sYOcOdoi4LtJel9EAcrJlM1iB0SkA9kcYdfvijs9RiPWRBCBc
-4aTY8UGANeO+emDyX4k6C/x+Jj7EjTCxAOqZKIFfjtDQO3QWcD1GjgH040HcOzGD
-Qgbog6t01jE2cFXfyacNNZSsMjCJiCAFvSo3fSvQz7BgH+EdB7qNqIx9O3tYhePl
-6p+MzOZFvbU3WrsfDbPEh/EeGeJZEvMVBDPMt2jJaymBvTQR4Y7/e8ERqxURluvT
-i4FFV7njUyuVQy9IAndAGHIICR3aYbXaMV7Uj10GM+H2QYT2VdGaL3gLXvvmzI22
-5DFWoQEyauIFUQz3UIGk0r0ppB/8DE17gA3YvzGWQBb6frXvCV1v/U4xXV90Jgn/
-5cnT5czt2Zz171Rs65glwPoT/C3wFSTeJGl1BE+e2UXPbgyv8FBGwP51/s2jpGPE
-DstBxc38UUwe2lwdeBZS4PyjYOA5hwOcV3XbyD/n7TI91r43FmuTqIgZEctOQBB/
-0AOqkg7UEdWmC70elwyLY62AENjIpDbWTz3T74P5Fd/zJiDeCvn7a4wyybD/kYOY
-pinhZYhv7aL0HggUMvEJ6UpvaFmJaS+73+ZayeNZfVhZx853x9fAandW+FUzjoYh
-bOhweL4N9oKV+0LUbpui
-=Y4TE
+iQIcBAEBCAAGBQJX8EIlAAoJELgmozMOVy/dFZgP/2cuxOda6xTifuyudCf8LG7p
+Nc1qcW0EFVz4KDG28sif/j2VMA6d4v1s/MSrEOHXdNd92DpjUKP0ycp3zRvb6LUb
+WRyVcWNwW3eqtmnhYOOf1VcrdI2wApJMtO7c/34RbZPSYqpPPax6riISCMHam7hm
+GJ2VkotPj9UGRwHbPIOxBArDrstYkvoSrFNuZyv0y6zDW1J2a13QDv67yXDRVqe/
+e58vbNwKSFxnjuNBCqxSXren/XoF928kqWqE4ZGi+olFSxXkmCdvCYPGAsJX3Mln
+Qvc+zyDgLVyOdiczMkn1bKZayZqmGzuKqiZ6VNSvTvdC1O4hvKIsaqlzRFXwnwIQ
+ZDGDYOQAbkYSRSzaq7mRNKh9ZkbMwcZLkGXfItnJY8d5w93KJ9YvMcuNhxHsFXxU
+y+O37za1f8cFm+wKVYFJIjFEQ6TuEo+dRmqHyx3U15/xQcyPprK4yH4DNGPjNOop
+HHHqazqa/CxgX1P4vp1DDbKTXSeLShYGjrXoBvTZQ9JbzC+wyYExA4exKR0lvBLr
+z+eK6hhaySHtfJlNGQtd5rs4Vayf/d0L2ceQ8NttGeX+n+8vqwrJI0Cok1Yq5x3h
+lX1qxsdTrwjtQteUyYh2TW7mGl4LxXHEMlQ22+pZpQX1ikrZ4dl1FSPrQtSlwOL1
+ke6c4jYsgjIeYEgXw+56
+=XTo+
 -----END PGP SIGNATURE-----
 
---WWvW7HT7WqmT5q5bCbKiKrD0c53bpg5vF--
+--4RegtsuooKdTU5VP0STli3c23nSPUF5dg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
