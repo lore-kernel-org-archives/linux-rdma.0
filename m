@@ -1,101 +1,96 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: PROBLEM: nvmet rxe : Kernel oops when running nvmf IO over
- rdma_rxe
-Date: Sun, 2 Oct 2016 15:16:42 +0300
-Message-ID: <e50c485a-00b0-e896-34de-856714fcb454@grimberg.me>
-References: <1475179824-10377-1-git-send-email-sbates@raithlin.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/9] Dead Code Removal
+Date: Sun, 2 Oct 2016 08:58:39 -0400
+Message-ID: <eb3a5c2e-58de-c5c5-9fbc-31fea4bd8b57@redhat.com>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="0Nn0lSRvBfnoi3H46AeUKhJDdLJa3KSE5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475179824-10377-1-git-send-email-sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1475182076-5411-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi All
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--0Nn0lSRvBfnoi3H46AeUKhJDdLJa3KSE5
+Content-Type: multipart/mixed; boundary="SpC6R05XMjc7TwFg9wU5dg432khivMWgS";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <eb3a5c2e-58de-c5c5-9fbc-31fea4bd8b57-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/9] Dead Code Removal
+References: <1475182076-5411-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1475182076-5411-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Hey Stephen,
+--SpC6R05XMjc7TwFg9wU5dg432khivMWgS
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> So I thought I would try and run NVMe over Fabrics over
-> Soft-RoCE. Both were adding to 4.8 so what could possibly go wrong
-> ;-).
+On 9/29/2016 4:47 PM, Jason Gunthorpe wrote:
+> This removes various #ifdef type stuff that no longer makes any sense.
+> cmake is arranged in a way that avoids alot of the ifdefs around header=
+ files.
+>=20
+> The BYTE_ORDER patch is more substantial and consolidates everything ar=
+ound
+> glibc's endian.h
+>=20
+> See
+>=20
+> https://github.com/linux-rdma/rdma-core/pull/10
+>=20
+> Jason Gunthorpe (9):
+>   Remove HAVE_CONFIG_H
+>   Remove HAVE_VALGRIND_MEMCHECK_H/INCLUDE_VALGRIND
+>   Remove HAVE_IBV_*
+>   Do not use IBV_CMD_(REG_MR|RESIZE_CQ)_HAS_RESP_PARAMS
+>   Remove HAVE_SYMVER_SUPPORT
+>   Remove old compat definitions of wmb/rmb/etc
+>   Remove old MADV_DONTFORK/DOFORK compat
+>   Remove most checks of __BYTE_ORDER
+>   nes: Remove code guarded by HAVE_DECL_IBV_QPT_RAW_ETH
 
-Obviously... :)
+Thanks, series applied.  Jason, you hadn't pushed your updated comments
+regarding the t4.h file and PCI byte swapping, so that will need to be
+updated when you get comments back about what the mlx drivers do in
+regard to this.
 
-> Problem
-> -------
->
-> Kernel panics when attempting to run NVMe over Fabrics I/O over
-> soft-RoCE.
->
-> Interestingly nvme discover and connect seem to go well. In some cases
-> I even seem to be able to issue some IO against the /dev/nvme0n1
-> device on the host. However pretty quick I get a kernel oops on the
-> target as shown below.
 
-Hmm, does this crash happens even if there is no IO? probably
-if not discover works well.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
 
-> My testing of soft-roce itself using userspace tools like ib_write_bw
-> seem to be passing. So I am thinking the interaction between the
-> kernel space interface for RXE and NVMf are not playing well
-> together.
 
-Thats a fair assumption...
+--SpC6R05XMjc7TwFg9wU5dg432khivMWgS--
 
-> Oops Trace
-> -----------
->
-> I am including a couple of lines before the oops because I suspect
-> they might be relevant. addr2line decodes the last addrss in the call
-> trace as
->
-> ida_simple_remove(&nvmet_rdma_queue_ida, queue->idx);
+--0Nn0lSRvBfnoi3H46AeUKhJDdLJa3KSE5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Hmm, How did you get to this line?
-I got:
---
-$ gdb drivers/nvme/target/nvmet-rdma.ko
-GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.04) 7.11.1
-Copyright (C) 2016 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later 
-<http://gnu.org/licenses/gpl.html>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-and "show warranty" for details.
-This GDB was configured as "x86_64-linux-gnu".
-Type "show configuration" for configuration details.
-For bug reporting instructions, please see:
-<http://www.gnu.org/software/gdb/bugs/>.
-Find the GDB manual and other documentation resources online at:
-<http://www.gnu.org/software/gdb/documentation/>.
-For help, type "help".
-Type "apropos word" to search for commands related to "word"...
-Reading symbols from drivers/nvme/target/nvmet-rdma.ko...done.
-(gdb) l *(nvmet_rdma_free_rsps+0x80)
-0xa20 is in nvmet_rdma_free_rsps (drivers/nvme/target/rdma.c:430).
-425		int i, nr_rsps = queue->recv_queue_size * 2;
-426	
-427		for (i = 0; i < nr_rsps; i++) {
-428			struct nvmet_rdma_rsp *rsp = &queue->rsps[i];
-429	
-430			list_del(&rsp->free_list);
-431			nvmet_rdma_free_rsp(ndev, rsp);
-432		}
-433		kfree(queue->rsps);
-434	}
-(gdb)
---
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Anyway, this looks like a use-after-free condition. The strange thing
-is that we don't see any queues being freed twice (we have a print
-there)...
+iQIcBAEBCAAGBQJX8QSFAAoJELgmozMOVy/dU8wP/1KkEP/U5Gezu1UGhEHRvTMN
+Qh11cAOmvzb7QGa6vS5Tr7S20b6UCvrZcSxCE/ZtzwjZlxxi41/XZwRl4XTYXzLA
+BTrVyPC6ulWvU3YTtxUktlFpm0YWd85utqNCVmhoMvcr849wwx6bLul+FYXFmqgt
+O97CoWmXbP1T7Hx8TF1bVTIgIfASGOM5BiVju8/NsJHFy6GnM/xMKrXaGHC8m1qe
+kF3FMy5UWzfxXTugS4w0ZNR9OaUfWGokpWiG7fQtzASayWwxE9jLAgxx1V+B3jB6
+hvj+DJaTIREKMwPGp5RJw7t2BUEEnd7qx3513fGqQGQxFFs6J8YgUbP9XBZfWJC5
+ooMKOJAwbz0TRpIVqW9HFvfLV5+FLC3xAcI1CprOMctJaU+0zLS6wMdPgyeQ35TY
+setKFhVgue4676a+6QMotke5pdDwzL60RSEJWdo8lbVmnffhzSIJu/JZrX6sNcdT
+Oycb8qkOwl5cNbQKARS1IPFACbbe36Jjboo0NHpcPmHF6SGHaRJ1Aes6Zp30NAoo
+MmxTb2nwZl1Bx4Xy6RgmOxMwW+5Xcx8oS4DhqxJKE4F4rXSnFY4CCT/+TTpzGbu5
+3pzZjZcHfFSlvcBJFOG/GVlJ/CmvnB9ncq8HLMNlKnjNPclC/2PM/+w+M6SxRDgg
+D2p5phoQMwdgM2hhrGJq
+=ycwE
+-----END PGP SIGNATURE-----
 
-I suspect that either we have some problems with the draining logic in
-rxe or, we uncovered a bug in nvmet-rdma that is triggered with rxe on
-a VM (back when I tested this I didn't get this, so things must have
-changed...)
+--0Nn0lSRvBfnoi3H46AeUKhJDdLJa3KSE5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
