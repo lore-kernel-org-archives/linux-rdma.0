@@ -1,70 +1,92 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma-core: cmake minimum version issue on RH 6.5
-Date: Sun, 2 Oct 2016 09:14:16 -0400
-Message-ID: <9df240d0-0d57-0283-c3f9-d500d8e6e999@redhat.com>
-References: <5169a490-10b4-cb9f-d7b7-fb552692f1f6@dev.mellanox.co.il>
- <57ED2E87.50008@redhat.com> <20160929164653.GC774@obsidianresearch.com>
+Subject: Re: [PATCH 00/13] IB/hfi1,qib: Round 2 of hfi1/qib fixes for 4.9
+Date: Sun, 2 Oct 2016 09:29:02 -0400
+Message-ID: <76e5572a-e71e-51d1-b97b-7fbabb99bd05@redhat.com>
+References: <20160925143656.10261.85231.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX"
+ boundary="rH6IKOCOg6RK5V0wEMdhXg2BgcaoivND8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160929164653.GC774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160925143656.10261.85231.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX
-Content-Type: multipart/mixed; boundary="SQSR4dfGMe3AqiVQT1Gjk6PKiEleHi9Gx";
+--rH6IKOCOg6RK5V0wEMdhXg2BgcaoivND8
+Content-Type: multipart/mixed; boundary="7bgfeC3NgCKU5oHLCkj7B5mbIo7idoI0F";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <9df240d0-0d57-0283-c3f9-d500d8e6e999-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma-core: cmake minimum version issue on RH 6.5
-References: <5169a490-10b4-cb9f-d7b7-fb552692f1f6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
- <57ED2E87.50008-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> <20160929164653.GC774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20160929164653.GC774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <76e5572a-e71e-51d1-b97b-7fbabb99bd05-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/13] IB/hfi1,qib: Round 2 of hfi1/qib fixes for 4.9
+References: <20160925143656.10261.85231.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160925143656.10261.85231.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 
---SQSR4dfGMe3AqiVQT1Gjk6PKiEleHi9Gx
-Content-Type: text/plain; charset=windows-1252
+--7bgfeC3NgCKU5oHLCkj7B5mbIo7idoI0F
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 9/29/2016 12:46 PM, Jason Gunthorpe wrote:
-> On Thu, Sep 29, 2016 at 11:08:55AM -0400, Doug Ledford wrote:
-
-
->> Is anyone really running 6.5?  I mean the current version in the 6
->> family is 6.8, and there are significant improvements between 6.5 and =
-6.8.
+On 9/25/2016 10:40 AM, Dennis Dalessandro wrote:
+> Here is the next round of fixes and clean ups for hfi1/qib for 4.9. Mos=
+tly minor
+> fixes but there is a fix for stable in here. It is marked to Cc the sta=
+ble list
+> in the commit message so no special handling should be needed on your p=
+art.
 >=20
-> Indeed, I did my testing on CentOS 6.8 and everything is fine. I
-> expect that RHEL6.8 has the same cmake version.
+> Patches should apply on your GitHub hfi1 branch and are availabe in my =
+GitRepo as
+> well:
+> https://github.com/ddalessa/kernel/tree/for-4.9
 >=20
-> Simple Options:
-> - Upgrade to 6.8 and forget about 6.5, it is years old and deficient
->   on security updates at this point?
+> ---
+>=20
+> Dean Luick (2):
+>       IB/hfi1: Extend i2c timeout
+>       IB/hfi1: Act on external device timeout
+>=20
+> Dennis Dalessandro (3):
+>       IB/qib: Remove qpt_mask global
+>       IB/hfi1: Cleanup tasklet refs in comments
+>       IB/hfi1: Remove unused variable from devdata
+>=20
+> Harish Chegondi (1):
+>       IB/hfi1: Adjust hardware buffering parameter
+>=20
+> Jakub Pawlak (1):
+>       IB/hfi1: Fix resource release in context allocation
+>=20
+> Jianxin Xiong (1):
+>       IB/hfi1: Increase default settings of max_cqes and max_qps
+>=20
+> Mike Marciniszyn (2):
+>       IB/hfi1: Consolidate pio control masks into single definition
+>       IB/hfi1: Fix defered ack race with qp destroy
+>=20
+> Sebastian Sanchez (3):
+>       IB/hfi1: Remove filtering of Set(PkeyTable) in HFI SMA
+>       IB/hfi1: Do not read more than a SGE length
+>       IB/hfi1: Combine shift copy and byte copy for SGE reads
 
-I have no interest in trying to support 6.5.  It's older than dirt.
-
-> - Do your build on 6.8, the resulting binary should still work on 6.5?
-
-I think is an acceptable workaround that allows us to not support 6.5
-directly as it can be indirectly supported.
-
+Thanks, series applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---SQSR4dfGMe3AqiVQT1Gjk6PKiEleHi9Gx--
+--7bgfeC3NgCKU5oHLCkj7B5mbIo7idoI0F--
 
---bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX
+--rH6IKOCOg6RK5V0wEMdhXg2BgcaoivND8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,22 +95,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8QgpAAoJELgmozMOVy/d7QQP/1DgC9xsOz5RtKxEaGWOZZjB
-eOcHRtOxSIpZEYYWLTXE8G0KaGX0sHcz3JjyblLYizLd2To3fi5WeOfwaWXhdXli
-Is2AKh+E30vrslwJvmUOQdZJP8EQNEbp2OcNx85za824cABI844v9HicUH7LLnJy
-8W76pHqVnKprzKyS/HIstNRr0eP6Qz7AAd4436eHIQFI2/9qqz64lv4ilUEnzRny
-hhl/4TpPuY1/pn8QrdgnJryE0KFBSOQFDsAti61KRUBY1UUrWn7Nre/9KI1qixal
-6v6kIkZgLQF6kSte4HkTWVlhV57AGP4xCDutY3i9YB5DvE0W35GOHLuG2mZZzm2R
-AOB94bs77LGUt7w8nEgUr+qPILnDAsoSr9MHtMgNwPBnC8E9+lnPN8Xe2P4FTJbj
-Pz3kP6IDOSf0fdR79Ac+32UsfIF2DzGI/G7fDyvIA3xezZakBoaCKWKYSSrWvvr6
-XxSgdzXKVh1G/8D5l71koG4a+hA2su8bbwFeidZdCvMG1rntdUbXSNifqeyKlBkg
-+trrzpRH1y/q4I2H2QZgdZ27qGAYiJ4uaqJZrS4w2zI0lSQdjhZg4AuFlExukqf/
-1F+AVzD68ld5lwrZHNu8IuqMu3KA1RR5AAtlXGBOCa+HYG8HkPWuFJUeyFW+nwNJ
-QgsZoRtsDnrbTRDPVOE7
-=Ep/j
+iQIcBAEBCAAGBQJX8QueAAoJELgmozMOVy/dl0IQAJoFtPV9qooqfrdBkPLUtedj
+jAPfTsDNBsscD3Xx05B4TweZ0FJuxAupf7IuJXS0EJ6vPdQ/MJsHTlLfETAz+moE
+ejhOcQnQXKk1KFprLViLWTk/P+8d1uttfKkcKIuOSKEGLKvqu9ea90qSHnCUvSCT
+5wybCc8EVisOqPUnhPizesfO6+3S5uy33a/tE6u7V14YSIRUY5LgcuKjFI89xZJ5
+gTsTiPELZrmLgvGVAJPAFf2AG6QZ2QdAPuoO4wskqaIs7kHPTznjnwRjdmNUSweT
+rytYuxsbhPwaBiQtVXEVF0xvhiKvC+x3AEvWlPrXo6yoWEkqQ3HtVWZt5MDvzQjm
+0WQzWAstv4a7KvyIkF+FSbbVpGkpfEfcqkIoxI/NgrgXh6G3zuB6DQA4DZzIQUcy
+qzC0HLEYt3E1dZCCVSAlu4YA0v1HzlA4iCJZxc4g84ICuTzhoYlrIGXaYRPqfoSu
+VkYaRF2U3iVG3dfBy5ebZtQSYINhsTdryW349AQgWi5sDgYPL9vADL3FENeg4J0o
+xNQpf4TgQpChbHAQtUudwo0HKr1zNs9Q/stQ/Qoto9J27SWcb5jngTt3wSdctMNY
+jmDXRVWwX2iTakfRaKOjJRIv4TvObUCkVdlzgveuhULXfYcXnAuoswsfKsTpYPM3
+ZTsAtS/Ir8QJgsu2V+fW
+=R5b1
 -----END PGP SIGNATURE-----
 
---bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX--
+--rH6IKOCOg6RK5V0wEMdhXg2BgcaoivND8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
