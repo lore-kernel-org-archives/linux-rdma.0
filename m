@@ -1,60 +1,60 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/4] libcxgb4: header file/copyright clean up
-Date: Sun, 2 Oct 2016 09:12:06 -0400
-Message-ID: <64b9a1a9-ec91-eb80-91ee-db325a709274@redhat.com>
-References: <cover.1475253317.git.swise@opengridcomputing.com>
- <09b401d21b39$0fff6f90$2ffe4eb0$@opengridcomputing.com>
- <0a2a01d21b59$92b6ab90$b82402b0$@opengridcomputing.com>
+Subject: Re: rdma-core: cmake minimum version issue on RH 6.5
+Date: Sun, 2 Oct 2016 09:14:16 -0400
+Message-ID: <9df240d0-0d57-0283-c3f9-d500d8e6e999@redhat.com>
+References: <5169a490-10b4-cb9f-d7b7-fb552692f1f6@dev.mellanox.co.il>
+ <57ED2E87.50008@redhat.com> <20160929164653.GC774@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="1iw4lJjEarFrUa5ER2RvbdcMNFOIteLC8"
+ boundary="bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0a2a01d21b59$92b6ab90$b82402b0$@opengridcomputing.com>
+In-Reply-To: <20160929164653.GC774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1iw4lJjEarFrUa5ER2RvbdcMNFOIteLC8
-Content-Type: multipart/mixed; boundary="2uxMKb303Bc4si9oOcEEwFQ2dTSBut9Au";
+--bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX
+Content-Type: multipart/mixed; boundary="SQSR4dfGMe3AqiVQT1Gjk6PKiEleHi9Gx";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Message-ID: <64b9a1a9-ec91-eb80-91ee-db325a709274-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/4] libcxgb4: header file/copyright clean up
-References: <cover.1475253317.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
- <09b401d21b39$0fff6f90$2ffe4eb0$@opengridcomputing.com>
- <0a2a01d21b59$92b6ab90$b82402b0$@opengridcomputing.com>
-In-Reply-To: <0a2a01d21b59$92b6ab90$b82402b0$@opengridcomputing.com>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <9df240d0-0d57-0283-c3f9-d500d8e6e999-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: rdma-core: cmake minimum version issue on RH 6.5
+References: <5169a490-10b4-cb9f-d7b7-fb552692f1f6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+ <57ED2E87.50008-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> <20160929164653.GC774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160929164653.GC774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
---2uxMKb303Bc4si9oOcEEwFQ2dTSBut9Au
+--SQSR4dfGMe3AqiVQT1Gjk6PKiEleHi9Gx
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 9/30/2016 4:31 PM, Steve Wise wrote:
->>> These patches clean up the header files in libcxgb4 by synching them
->>> with the equivalent upstream versions. The net result of this is prop=
-er
->>> dual license copyrights. I also got rid of the libcxgb4/src/queue.h a=
-nd
->>> replaced it with the ccan list header.
->>
->> I also create a pull request on github.  I _think_ it is correct :)
->>
->> https://github.com/linux-rdma/rdma-core/pull/11
->=20
-> And patch 2 didn't make it, probably due to its size.  You can review i=
-t via
-> the pull request if you wish.
+On 9/29/2016 12:46 PM, Jason Gunthorpe wrote:
+> On Thu, Sep 29, 2016 at 11:08:55AM -0400, Doug Ledford wrote:
 
-I don't even notice that any more.  If you send it to both me and the
-list, then my mail filter deletes the copy from the list and moves the
-copy to me into my list folder.  As a result, I don't notice when items
-don't make it to the list.  In any case, I merged your pull request, than=
-ks.
+
+>> Is anyone really running 6.5?  I mean the current version in the 6
+>> family is 6.8, and there are significant improvements between 6.5 and =
+6.8.
+>=20
+> Indeed, I did my testing on CentOS 6.8 and everything is fine. I
+> expect that RHEL6.8 has the same cmake version.
+>=20
+> Simple Options:
+> - Upgrade to 6.8 and forget about 6.5, it is years old and deficient
+>   on security updates at this point?
+
+I have no interest in trying to support 6.5.  It's older than dirt.
+
+> - Do your build on 6.8, the resulting binary should still work on 6.5?
+
+I think is an acceptable workaround that allows us to not support 6.5
+directly as it can be indirectly supported.
 
 
 --=20
@@ -62,9 +62,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---2uxMKb303Bc4si9oOcEEwFQ2dTSBut9Au--
+--SQSR4dfGMe3AqiVQT1Gjk6PKiEleHi9Gx--
 
---1iw4lJjEarFrUa5ER2RvbdcMNFOIteLC8
+--bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,22 +73,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8QemAAoJELgmozMOVy/d/2YP/1+PbVnQGJneDEqoHzN+XJG3
-qCfdu0QNeRYFzTsZlPfHFJOPGQizphrdPmOp2unoE8QRtNkT75CpOb16yXS5FRAv
-eabHb1Bx7ijtxvlcJAXQN9oaLwIn1Hn40FSrKMrIbJgxG3GViLI6vCCmkNjb/Dsl
-jdJzXIyf2LnjisqNQDQ51Lals8c4XdxDFy/5SUchyJ6+K3AmPtACmzjaVCLyg8nD
-XuGcjdQprxgEOHJT3J3lfFtvlAio41XLTGASQquW0oWMDKJyggYY+K7cJ8iWJvTi
-EYpZ+2jyk+vInCxixDpTHjVfjSBfS1mZdA9xANRnSVSwkSPWGdy7Zs8We2kpgFdC
-iyvPCS3dOlLLkdorKrgopTq0ISoGlMELCJgi3MSMZ8mrSoU1pGuxBNEwFhzy844A
-h4QcoI4aW0wEdbWrWadQZNmoZp+E4yeOTSdDg6k6/vGj5CAZWQGfkk3Ww9OD4hUd
-+RBC7mqx1K7iQWt1ScnyO8rnJ5ZV/ri5k9PSdhSeN1MCM5vBfhb0ujSfWBDxcQQS
-R9lp9xspsc2NafnJU/O5BV4FyhRd7kiwAEbHbVrSvSyq1qva7wY4ubP4q0N0tRSd
-usfe/MbX5rj9oRyMdz0x6JA3FWGwn8vtH/V5+nnWX0ZOLNXeUfNV0b9gxpkNkvDg
-a//okTYG22e4b63OQ30e
-=U+BM
+iQIcBAEBCAAGBQJX8QgpAAoJELgmozMOVy/d7QQP/1DgC9xsOz5RtKxEaGWOZZjB
+eOcHRtOxSIpZEYYWLTXE8G0KaGX0sHcz3JjyblLYizLd2To3fi5WeOfwaWXhdXli
+Is2AKh+E30vrslwJvmUOQdZJP8EQNEbp2OcNx85za824cABI844v9HicUH7LLnJy
+8W76pHqVnKprzKyS/HIstNRr0eP6Qz7AAd4436eHIQFI2/9qqz64lv4ilUEnzRny
+hhl/4TpPuY1/pn8QrdgnJryE0KFBSOQFDsAti61KRUBY1UUrWn7Nre/9KI1qixal
+6v6kIkZgLQF6kSte4HkTWVlhV57AGP4xCDutY3i9YB5DvE0W35GOHLuG2mZZzm2R
+AOB94bs77LGUt7w8nEgUr+qPILnDAsoSr9MHtMgNwPBnC8E9+lnPN8Xe2P4FTJbj
+Pz3kP6IDOSf0fdR79Ac+32UsfIF2DzGI/G7fDyvIA3xezZakBoaCKWKYSSrWvvr6
+XxSgdzXKVh1G/8D5l71koG4a+hA2su8bbwFeidZdCvMG1rntdUbXSNifqeyKlBkg
++trrzpRH1y/q4I2H2QZgdZ27qGAYiJ4uaqJZrS4w2zI0lSQdjhZg4AuFlExukqf/
+1F+AVzD68ld5lwrZHNu8IuqMu3KA1RR5AAtlXGBOCa+HYG8HkPWuFJUeyFW+nwNJ
+QgsZoRtsDnrbTRDPVOE7
+=Ep/j
 -----END PGP SIGNATURE-----
 
---1iw4lJjEarFrUa5ER2RvbdcMNFOIteLC8--
+--bopjsNK1V1gcOqs8H8lkFCXh17WnN2CNX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
