@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 08/16] IB/pvrdma: Add device command support
-Date: Sun, 2 Oct 2016 19:10:28 -0700
-Message-ID: <7f19172610c62f2f70a1c7212ba954a9173b0c2f.1475458407.git.aditr@vmware.com>
+Subject: [PATCH v6 01/16] vmxnet3: Move PCI Id to pci_ids.h
+Date: Sun, 2 Oct 2016 19:10:21 -0700
+Message-ID: <f57db463d10bf8bc010d15442ca66c8e40635844.1475458407.git.aditr@vmware.com>
 References: <cover.1475458407.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,160 +12,45 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch enables posting Verb requests and receiving responses to/from
-the backend PVRDMA emulation layer.
+The VMXNet3 PCI Id will be shared with our paravirtual RDMA driver.
+Moved it to the shared location in pci_ids.h.
 
+Suggested-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
-Changes v5->v6:
- - Ensure we return an error code if read from error register fails.
+ drivers/net/vmxnet3/vmxnet3_int.h | 3 +--
+ include/linux/pci_ids.h           | 1 +
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Changes v4->v5:
- - Moved the timeout to pvrdma_cmd_recv.
- - Added additional response code parameter to pvrdma_cmd_post.
-
-Changes v3->v4:
- - Removed the min check and added a BUILD_BUG_ON check for size.
-
-Changes v2->v3:
- - Converted pvrdma_cmd_recv to inline.
- - Added a min check in the memcpy to cmd_slot.
- - Removed the boolean from pvrdma_cmd_post.
----
- drivers/infiniband/hw/pvrdma/pvrdma_cmd.c | 119 ++++++++++++++++++++++++++++++
- 1 file changed, 119 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-new file mode 100644
-index 0000000..4a78c53
---- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-@@ -0,0 +1,119 @@
-+/*
-+ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of EITHER the GNU General Public License
-+ * version 2 as published by the Free Software Foundation or the BSD
-+ * 2-Clause License. This program is distributed in the hope that it
-+ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-+ * See the GNU General Public License version 2 for more details at
-+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program available in the file COPYING in the main
-+ * directory of this source tree.
-+ *
-+ * The BSD 2-Clause License
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#include <linux/list.h>
-+
-+#include "pvrdma.h"
-+
-+#define PVRDMA_CMD_TIMEOUT	10000 /* ms */
-+
-+static inline int pvrdma_cmd_recv(struct pvrdma_dev *dev,
-+				  union pvrdma_cmd_resp *resp,
-+				  unsigned resp_code)
-+{
-+	int err;
-+
-+	dev_dbg(&dev->pdev->dev, "receive response from device\n");
-+
-+	err = wait_for_completion_interruptible_timeout(&dev->cmd_done,
-+			msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
-+	if (err == 0 || err == -ERESTARTSYS) {
-+		dev_warn(&dev->pdev->dev,
-+			 "completion timeout or interrupted\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	spin_lock(&dev->cmd_lock);
-+	memcpy(resp, dev->resp_slot, sizeof(*resp));
-+	spin_unlock(&dev->cmd_lock);
-+
-+	if (resp->hdr.ack != resp_code) {
-+		dev_warn(&dev->pdev->dev,
-+			 "unknown response %#x expected %#x\n",
-+			 resp->hdr.ack, resp_code);
-+		return -EFAULT;
-+	}
-+
-+	return 0;
-+}
-+
-+int
-+pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
-+		union pvrdma_cmd_resp *resp, unsigned resp_code)
-+{
-+	int err;
-+
-+	dev_dbg(&dev->pdev->dev, "post request to device\n");
-+
-+	/* Serializiation */
-+	down(&dev->cmd_sema);
-+
-+	BUILD_BUG_ON(sizeof(union pvrdma_cmd_req) !=
-+		     sizeof(struct pvrdma_cmd_modify_qp));
-+
-+	spin_lock(&dev->cmd_lock);
-+	memcpy(dev->cmd_slot, req, sizeof(*req));
-+	spin_unlock(&dev->cmd_lock);
-+
-+	init_completion(&dev->cmd_done);
-+	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
-+
-+	/* Make sure the request is written before reading status. */
-+	mb();
-+
-+	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-+	if (err == 0) {
-+		if (resp != NULL)
-+			err = pvrdma_cmd_recv(dev, resp, resp_code);
-+	} else {
-+		dev_warn(&dev->pdev->dev,
-+			 "failed to write request error reg: %d\n", err);
-+		err = -EFAULT;
-+	}
-+
-+	up(&dev->cmd_sema);
-+
-+	return err;
-+}
+diff --git a/drivers/net/vmxnet3/vmxnet3_int.h b/drivers/net/vmxnet3/vmxnet3_int.h
+index 74fc030..2bd6bf8 100644
+--- a/drivers/net/vmxnet3/vmxnet3_int.h
++++ b/drivers/net/vmxnet3/vmxnet3_int.h
+@@ -119,9 +119,8 @@ enum {
+ };
+ 
+ /*
+- * PCI vendor and device IDs.
++ * Maximum devices supported.
+  */
+-#define PCI_DEVICE_ID_VMWARE_VMXNET3    0x07B0
+ #define MAX_ETHERNET_CARDS		10
+ #define MAX_PCI_PASSTHRU_DEVICE		6
+ 
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index c58752f..98bb455 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -2251,6 +2251,7 @@
+ #define PCI_DEVICE_ID_RASTEL_2PORT	0x2000
+ 
+ #define PCI_VENDOR_ID_VMWARE		0x15ad
++#define PCI_DEVICE_ID_VMWARE_VMXNET3	0x07b0
+ 
+ #define PCI_VENDOR_ID_ZOLTRIX		0x15b0
+ #define PCI_DEVICE_ID_ZOLTRIX_2BD0	0x2bd0
 -- 
 2.7.4
 
