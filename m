@@ -1,38 +1,34 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH 1/2] net/mlx5e: shut up maybe-uninitialized warning
-Date: Mon, 03 Oct 2016 01:56:01 -0400 (EDT)
-Message-ID: <20161003.015601.1695276307529816567.davem@davemloft.net>
-References: <20160930161734.70928-1-arnd@arndb.de>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH] staging: lustre: ko2iblbd: handle ib_dereg_mr removal
+Date: Mon, 3 Oct 2016 00:31:04 -0700
+Message-ID: <20161003073104.GA28412@infradead.org>
+References: <1475461351-21495-1-git-send-email-jsimmons@infradead.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160930161734.70928-1-arnd-r2nGTMty4D4@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arnd-r2nGTMty4D4@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirva-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <1475461351-21495-1-git-send-email-jsimmons@infradead.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: James Simmons <jsimmons@infradead.org>
+Cc: devel@driverdev.osuosl.org, Andreas Dilger <andreas.dilger@intel.com>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Oleg Drokin <oleg.drokin@intel.com>, Lustre Development List <lustre-devel@lists.lustre.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Date: Fri, 30 Sep 2016 18:17:09 +0200
+Hell no.  If you had actually read the changelog you'd see that there
+is a reason the functions went away, and simply calling the underlying
+methods (which also will go away) will not fix it.
 
-> Build-testing this driver with -Wmaybe-uninitialized gives a new false-positive
-> warning that I can't really explain:
-> 
-> drivers/net/ethernet/mellanox/mlx5/core/en_tc.c: In function 'mlx5e_configure_flower':
-> drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:509:3: error: 'old_attr' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> 
-> It's obvious from the code that 'old_attr' is initialized whenever 'old'
-> is non-NULL here. The warning appears with all versions I tested from gcc-4.7
-> through gcc-6.1, and I could not come up with a way to rewrite the function
-> in a more readable way that avoids the warning, so I'm adding another
-> initialization to shut it up.
-> 
-> Fixes: 8b32580df1cb ("net/mlx5e: Add TC vlan action for SRIOV offloads")
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-
-Applied.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please go back reading the changelogs, and while we're at it read some
+basic introductions into the RDMA programming model.  As a little
+shortcut: relying on any form of a global registration for the rkey
+is inherently unsafe and only allowed as an option variant for
+very trusted environments (thing single box appliances).  You'll need
+to do a real memory registration here and not drag that old crap along.
