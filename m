@@ -1,56 +1,58 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Improve ib_map_mr_sg() documentation
-Date: Mon, 3 Oct 2016 10:38:00 -0400
-Message-ID: <34a7530c-6532-1df9-c34a-aafc3e603dd3@redhat.com>
-References: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec@sandisk.com>
+Subject: Re: [PATCH 0/2] Avoid that certain sg-lists trigger an infinite loop
+ with FMR
+Date: Mon, 3 Oct 2016 10:38:18 -0400
+Message-ID: <f493c0dd-9cea-2de7-ac77-cac0e180b6fa@redhat.com>
+References: <c5bd10df-225d-df4c-c765-97551348dbbd@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="CWNKlsERc6umuRrKeD2Q9xRe86GsaqKck"
+ boundary="2W1AV6LdJic0cevSSK1IqBG3hlmAhQWDR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <c5bd10df-225d-df4c-c765-97551348dbbd-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CWNKlsERc6umuRrKeD2Q9xRe86GsaqKck
-Content-Type: multipart/mixed; boundary="pmrPL7qKMLqoOhpcKMrmEfLSklLfAD92U";
+--2W1AV6LdJic0cevSSK1IqBG3hlmAhQWDR
+Content-Type: multipart/mixed; boundary="mfd7PVuXrnLDQBN5fUMQbftKnqBCmXglh";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>,
- linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <34a7530c-6532-1df9-c34a-aafc3e603dd3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Improve ib_map_mr_sg() documentation
-References: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-In-Reply-To: <b75ad680-88e5-e725-80cd-9a0b41bbb2ec-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <f493c0dd-9cea-2de7-ac77-cac0e180b6fa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/2] Avoid that certain sg-lists trigger an infinite loop
+ with FMR
+References: <c5bd10df-225d-df4c-c765-97551348dbbd-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <c5bd10df-225d-df4c-c765-97551348dbbd-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 
---pmrPL7qKMLqoOhpcKMrmEfLSklLfAD92U
+--mfd7PVuXrnLDQBN5fUMQbftKnqBCmXglh
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 9/26/2016 12:09 PM, Bart Van Assche wrote:
-> Document that ib_map_mr_sg() is able to map physically discontiguous
-> sg-lists as a single MR. Change IB_MR_TYPE_SG_GAPS_REG into
-> IB_MR_TYPE_SG_GAPS.
+On 9/26/2016 3:56 PM, Bart Van Assche wrote:
+> Hello Doug,
 >=20
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> It would be appreciated if the following two patches would be considere=
+d
+> for inclusion in kernel v4.9:
+>=20
+> 0001-IB-srp-Remove-an-unused-argument.patch
+> 0002-IB-srp-Avoid-that-certain-sg-lists-trigger-an-infini.patch
 
 Thanks, applied.
-
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---pmrPL7qKMLqoOhpcKMrmEfLSklLfAD92U--
+--mfd7PVuXrnLDQBN5fUMQbftKnqBCmXglh--
 
---CWNKlsERc6umuRrKeD2Q9xRe86GsaqKck
+--2W1AV6LdJic0cevSSK1IqBG3hlmAhQWDR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,22 +61,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8m1IAAoJELgmozMOVy/duqwP/jLRP7OVEDRsOirHKx33SCco
-e7R3aUOA3z23OrJlQT/g15PGIpHJcq4TT3X0XZmOSZTf2MjIyDUp2hsCCZkzgw1I
-gOzxPmozY7iIgFQk9e/amsduf63lOYTPvZ5+2CN11cAAuyPjKSTeMleqFsFjAeLb
-wXikv135CoPFWNUgU3cH2XF/K4MJnkLwLg/21Nsl5EFKT0m3sDROyv0XeSZ7t19A
-MuDRzkgQVLSXKrkJYcftrttcBkB7U6gcik+4MEOjoW9SlRChE7k24PcMiDKkMtBe
-93DiM+UjBTHdhBL2a7ENfodXXRsCbL+toGbAzdIISrH6J/1vhTD6hKTe2Ok6s0mh
-33aE6nLlQylLVV6Jt+n9ZJYVaNPBrKYzJjNqnyHcLj1JvBSPAe0FOpRZm1JjUDVq
-ovir04NYSOI7hNO7BfUR6k3DmGKn5eJtvL7RM4bs8CFhm5P2ghrGShfP2Zu7MO0+
-v4+mz7yKNBBNFcUwJy/LY00btlPza6LUFstEiOhLAiImr+jZqUsiB/pivI48cpFb
-gYHUY78KxiA+/3RcB/fvLtalB0h6Jow2wH3PbwJAJwAbqf9L8WrXGdk+CvTDqNFu
-ebrSHHsDrA3Ah0+VpRBr6CyUIcaayrGKdys5K5ROaiJLhXBaF3+6jrM4iQ2dasei
-4uummhncIS3slkDoOXH/
-=mt+g
+iQIcBAEBCAAGBQJX8m1aAAoJELgmozMOVy/dEVQP/0pg9QvzWMxoUsLlVISQ6tT9
+Efvt797OwgcA50m9Gtyc2f91O3ZPxtuv0SSpCCFLa7STkC9H1YZhAm8w8X5vwSbG
+8xAsGblYS7sDbhvBZ2kivoKkI74Ruut8mPXJbEM+TZM39fPMIPxyTXHQsXFuf4qF
+2bwLN6u02uxxy8rxyssOizKJCxjI7XR9MqAwhOHrduSh+QYdsiAeFMqJTatpLSEB
+eyQh0yYUVNTfK5Nkuq5XeTiwYB9teDhDz+2golYQ5JKniiVO8I1bHSF1NljnLNYT
+uoOo4QLA6HlamrKBSCnWiVL9jjjFio/6PPLFfkUUnncXGeksgvWmrm0JomnQqxi2
+1YCU/aJVBk+R6WhKEEfN+kJ2ccGVBpvuBajpT8qBkncYgmmotNouqfsYrvQXVmvJ
+9G9xHDoWLSd4xY04QbCgcr51LulT5nohvQ51JI8uqr6pc7zf/1/PBMBCvbsL4Kgf
+vPlTQvALg8y7UgHVKcjl719GEPSJkK+xkIQug+BrS/TLqQ4wA+KNMe1KvSerovPB
+zJURe2KRT57B/3200QtmravDgARm4ZqNTnTfIYNjq5pHsD7KtfHJpnKqCdPQiPaV
+cJ2w24bd14dgiSOV770uTV2cg86pi9Wp/x42afwzIpNDJluT7X8ExKOd83NxElQL
+bz9uc01BjMjOPFwnjZp7
+=OtXG
 -----END PGP SIGNATURE-----
 
---CWNKlsERc6umuRrKeD2Q9xRe86GsaqKck--
+--2W1AV6LdJic0cevSSK1IqBG3hlmAhQWDR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
