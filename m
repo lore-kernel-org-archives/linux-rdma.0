@@ -1,131 +1,413 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: correctly handle rdma_rw_init_mrs() failure
-Date: Mon, 3 Oct 2016 10:44:18 -0400
-Message-ID: <e9ed2f5c-bac8-b93c-0f7f-45e86e8c999d@redhat.com>
-References: <20160929143217.F2C8DE0BD1@smtp.ogc.us>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ibacm: move Documentation to Documentation/
+Date: Mon, 3 Oct 2016 14:44:27 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB092274@ORSMSX109.amr.corp.intel.com>
+References: <1474677279-30407-1-git-send-email-hch@lst.de>
+ <20161003143412.GA18210@infradead.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="qIF1u8fCUhlduenclcNdwNvNlE7MLNSSN"
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160929143217.F2C8DE0BD1-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
+In-Reply-To: <20161003143412.GA18210-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---qIF1u8fCUhlduenclcNdwNvNlE7MLNSSN
-Content-Type: multipart/mixed; boundary="7HaFTVrk1Wgg99rGG4H2cQPq3sNRvKoAi";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
-Message-ID: <e9ed2f5c-bac8-b93c-0f7f-45e86e8c999d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: correctly handle rdma_rw_init_mrs() failure
-References: <20160929143217.F2C8DE0BD1-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
-In-Reply-To: <20160929143217.F2C8DE0BD1-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
+Who is merging patches that are submitted to the mailing list?  AFAIK, I don't have write access to the repo.
 
---7HaFTVrk1Wgg99rGG4H2cQPq3sNRvKoAi
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 9/29/2016 10:31 AM, Steve Wise wrote:
-> Function ib_create_qp() was failing to return an error when
-> rdma_rw_init_mrs() fails, causing a crash further down in ib_create_qp(=
-)
-> when trying to dereferece the qp pointer which was actually a negative
-> errno.
->=20
-> The crash:
->=20
-> crash> log|grep BUG
-> [  136.458121] BUG: unable to handle kernel NULL pointer dereference at=
- 0000000000000098
-> crash> bt
-> PID: 3736   TASK: ffff8808543215c0  CPU: 2   COMMAND: "kworker/u64:2"
->  #0 [ffff88084d323340] machine_kexec at ffffffff8105fbb0
->  #1 [ffff88084d3233b0] __crash_kexec at ffffffff81116758
->  #2 [ffff88084d323480] crash_kexec at ffffffff8111682d
->  #3 [ffff88084d3234b0] oops_end at ffffffff81032bd6
->  #4 [ffff88084d3234e0] no_context at ffffffff8106e431
->  #5 [ffff88084d323530] __bad_area_nosemaphore at ffffffff8106e610
->  #6 [ffff88084d323590] bad_area_nosemaphore at ffffffff8106e6f4
->  #7 [ffff88084d3235a0] __do_page_fault at ffffffff8106ebdc
->  #8 [ffff88084d323620] do_page_fault at ffffffff8106f057
->  #9 [ffff88084d323660] page_fault at ffffffff816e3148
->     [exception RIP: ib_create_qp+427]
->     RIP: ffffffffa02554fb  RSP: ffff88084d323718  RFLAGS: 00010246
->     RAX: 0000000000000004  RBX: fffffffffffffff4  RCX: 000000018020001f=
-
->     RDX: ffff880830997fc0  RSI: 0000000000000001  RDI: ffff88085f407200=
-
->     RBP: ffff88084d323778   R8: 0000000000000001   R9: ffffea0020bae210=
-
->     R10: ffffea0020bae218  R11: 0000000000000001  R12: ffff88084d3237c8=
-
->     R13: 00000000fffffff4  R14: ffff880859fa5000  R15: ffff88082eb89800=
-
->     ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
-> #10 [ffff88084d323780] rdma_create_qp at ffffffffa0782681 [rdma_cm]
-> #11 [ffff88084d3237b0] nvmet_rdma_create_queue_ib at ffffffffa07c43f3 [=
-nvmet_rdma]
-> #12 [ffff88084d323860] nvmet_rdma_alloc_queue at ffffffffa07c5ba9 [nvme=
-t_rdma]
-> #13 [ffff88084d323900] nvmet_rdma_queue_connect at ffffffffa07c5c96 [nv=
-met_rdma]
-> #14 [ffff88084d323980] nvmet_rdma_cm_handler at ffffffffa07c6450 [nvmet=
-_rdma]
-> #15 [ffff88084d3239b0] iw_conn_req_handler at ffffffffa0787480 [rdma_cm=
-]
-> #16 [ffff88084d323a60] cm_conn_req_handler at ffffffffa0775f06 [iw_cm]
-> #17 [ffff88084d323ab0] process_event at ffffffffa0776019 [iw_cm]
-> #18 [ffff88084d323af0] cm_work_handler at ffffffffa0776170 [iw_cm]
-> #19 [ffff88084d323cb0] process_one_work at ffffffff810a1483
-> #20 [ffff88084d323d90] worker_thread at ffffffff810a211d
-> #21 [ffff88084d323ec0] kthread at ffffffff810a6c5c
-> #22 [ffff88084d323f50] ret_from_fork at ffffffff816e1ebf
->=20
-> Fixes: 632bc3f65081 ("IB/core, RDMA RW API: Do not exceed QP SGE send l=
-imit")
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-
-Thanks, applied.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
-
-
---7HaFTVrk1Wgg99rGG4H2cQPq3sNRvKoAi--
-
---qIF1u8fCUhlduenclcNdwNvNlE7MLNSSN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJX8m7CAAoJELgmozMOVy/dEvsQAI5MgK4g8sfS29XO0W4cfeiD
-L3WBQml7Zt+Yhn2Xm+Aqs+55czj1VI7m+MOnMIdH2BLS8jx0W9qk9g8ogyT/MMC1
-MT+2qgWli9BMIM0IbbyTyeXBuNUvBbC/iCkDPiAV8csVq9xDq1qUOpmZvlpDEuXG
-FdhBtb5DH//tc797yl27x9+f5HuLvo6bJFTcPkaNL2gMBrol9k4bplBt2xsXX90u
-sm4Xzp9VdoyD4SGhtZAKsfXhJWh2O3dEjM5eTWI/2IyzHCAKVYRUFTnmFGlMFaZH
-5AZPvNIlYFdtRcc1WqDVCQs6/M9BKrxub0dtrCMLIHBdkpnKzXj5aKsLWRgYowvx
-ugs4HFGusdT4So1XIQ6i81WQt3xd56R6SDZX0ZCxLVdTeChJe2t616+133whuMan
-ZVlltEwgRZc7FTnWNQDq0f6mfipzg+1fVydRNF1Gb5ImAmy2RmoO6wvTEbjcO2o0
-PEM9nBN4vDq5zieQgift1bHy2DTvkFqj+RamAxcNrsWycEiPQwfMF4eCnSq9/D5Y
-jqc+Ha2cLLl4KmE2GmneD5ySeNBv9Mgg1WGIHSNhvqZD5f7mumo7xx+++67xGCd7
-i/N7YsSa+FTxSD4udKwijN2ub9e7S5f+2h7ySpH1mAdRukv+MboHYYHZegoZR3GJ
-bEEO7+MRbGHtddcaIBnL
-=nx0f
------END PGP SIGNATURE-----
-
---qIF1u8fCUhlduenclcNdwNvNlE7MLNSSN--
+> ping?
+> 
+> On Fri, Sep 23, 2016 at 05:34:39PM -0700, Christoph Hellwig wrote:
+> > And drop various bits that aren't relevant for our unified tree
+> > (Windows support, build instructions, etc).
+> >
+> > Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> > ---
+> >  Documentation/ibacm.md | 109 ++++++++++++++++++++++++++++++++++++++
+> >  ibacm/acm_notes.txt    | 141 ---------------------------------------
+> ----------
+> >  2 files changed, 109 insertions(+), 141 deletions(-)
+> >  create mode 100644 Documentation/ibacm.md
+> >  delete mode 100644 ibacm/acm_notes.txt
+> >
+> > diff --git a/Documentation/ibacm.md b/Documentation/ibacm.md
+> > new file mode 100644
+> > index 0000000..8ed293d
+> > --- /dev/null
+> > +++ b/Documentation/ibacm.md
+> > @@ -0,0 +1,109 @@
+> > +# The Assistant for InfiniBand Communication Management (IB ACM)
+> > +
+> > +The IB ACM library implements and provides a framework for name,
+> address, and
+> > +route resolution services over InfiniBand.  The IB ACM provides
+> information
+> > +needed to establish a connection, but does not implement the CM
+> protocol.
+> > +
+> > +IB ACM services are used by librdmacm to implement the
+> rdma_resolve_addr,
+> > +rdma_resolve_route, and rdma_getaddrinfo routines.
+> > +
+> > +The IB ACM is focused on being scalable and efficient.  The current
+> > +implementation limits network traffic, SA interactions, and
+> centralized
+> > +services.  ACM supports multiple resolution protocols in order to
+> handle
+> > +different fabric topologies.
+> > +
+> > +This release is limited in its handling of dynamic changes.
+> > +
+> > +The IB ACM package is comprised of two components: the ibacm service
+> > +and a test/configuration utility - ib_acme.
+> > +
+> > +# Details
+> > +
+> > +### ib_acme
+> > +
+> > +The ib_acme program serves a dual role.  It acts as a utility to
+> test
+> > +ibacm operation and help verify if the ibacm service and selected
+> > +protocol is usable for a given cluster configuration.
+> Additionally,
+> > +it automatically generates ibacm configuration files to assist with
+> > +or eliminate manual setup.
+> > +
+> > +
+> > +### acm configuration files
+> > +
+> > +The ibacm service relies on two configuration files.
+> > +
+> > +The acm_addr.cfg file contains name and address mappings for each IB
+> > +<device, port, pkey> endpoint.  Although the names in the
+> acm_addr.cfg
+> > +file can be anything, ib_acme maps the host name and IP addresses to
+> > +the IB endpoints.
+> > +
+> > +The acm_opts.cfg file provides a set of configurable options for the
+> > +ibacm service, such as timeout, number of retries, logging level,
+> etc.
+> > +ib_acme generates the acm_opts.cfg file using static information.  A
+> > +future enhancement would adjust options based on the current system
+> > +and cluster size.
+> > +
+> > +### ibacm
+> > +
+> > +The ibacm service is responsible for resolving names and addresses
+> to
+> > +InfiniBand path information and caching such data. It is implemented
+> as a
+> > +daemon that execute with administrative privileges.
+> > +
+> > +The ibacm implements a client interface over TCP sockets, which is
+> > +abstracted by the librdmacm library.  One or more back-end protocols
+> are
+> > +used by the ibacm service to satisfy user requests.  Although the
+> > +ibacm supports standard SA path record queries on the back-end, it
+> > +provides an experimental multicast resolution protocol in hope of
+> > +achieving greater scalability.  The latter is not usable on all
+> fabric
+> > +topologies, specifically ones that may not have reversible paths.
+> > +Users should use the ib_acme utility to verify that multicast
+> protocol
+> > +is usable before running other applications.
+> > +
+> > +Conceptually, the ibacm service implements an ARP like protocol and
+> either
+> > +uses IB multicast records to construct path record data or queries
+> the
+> > +SA directly, depending on the selected route protocol.  By default,
+> the
+> > +ibacm services uses and caches SA path record queries.
+> > +
+> > +Specifically, all IB endpoints join a number of multicast groups.
+> > +Multicast groups differ based on rates, mtu, sl, etc., and are
+> prioritized.
+> > +All participating endpoints must be able to communicate on the
+> lowest
+> > +priority multicast group.  The ibacm assigns one or more
+> names/addresses
+> > +to each IB endpoint using the acm_addr.cfg file.  Clients provide
+> source
+> > +and destination names or addresses as input to the service, and
+> receive
+> > +as output path record data.
+> > +
+> > +The service maps a client's source name/address to a local IB
+> endpoint.
+> > +If a client does not provide a source address, then the ibacm
+> service
+> > +will select one based on the destination and local routing tables.
+> If the
+> > +destination name/address is not cached locally, it sends a multicast
+> > +request out on the lowest priority multicast group on the local
+> endpoint.
+> > +The request carries a list of multicast groups that the sender can
+> use.
+> > +The recipient of the request selects the highest priority multicast
+> group
+> > +that it can use as well and returns that information directly to the
+> sender.
+> > +The request data is cached by all endpoints that receive the
+> multicast
+> > +request message.  The source endpoint also caches the response and
+> uses
+> > +the multicast group that was selected to construct or obtain path
+> record
+> > +data, which is returned to the client.
+> > +
+> > +The current implementation of the IB ACM has several additional
+> restrictions:
+> > +- The ibacm is limited in its handling of dynamic changes;
+> > +  the ibacm should be stopped and restarted if a cluster is
+> reconfigured.
+> > +- Support for IPv6 has not been verified.
+> > +- The number of addresses that can be assigned to a single endpoint
+> is
+> > +  limited to 4.
+> > +- The number of multicast groups that an endpoint can support is
+> limited to 2.
+> > +
+> > +The ibacm contains several internal caches.  These include  caches
+> for
+> > +GID  and  LID  destination  addresses.   These caches can be
+> optionally
+> > +preloaded.  ibacm supports the OpenSM dump_pr plugin "full"
+> PathRecord
+> > +format which is used to preload these caches.  The file format is
+> specified
+> > +in the ibacm_opts.cfg file via the route_preload setting which
+> should
+> > +be set to opensm_full_v1 for this file format.  Default format is
+> > +none which does not preload these caches.  See dump_pr.notes.txt in
+> dump_pr
+> > +for more information on the opensm_full_v1 file format and how to
+> configure
+> > +OpenSM to generate this file.
+> > +
+> > +Additionally, the name, IPv4, and IPv6 caches can be be preloaded by
+> using
+> > +the addr_preload option.  The default is none which does not preload
+> these
+> > +caches.  To preload these caches, set this option to acm_hosts and
+> > +configure the addr_data_file appropriately.
+> > diff --git a/ibacm/acm_notes.txt b/ibacm/acm_notes.txt
+> > deleted file mode 100644
+> > index c975555..0000000
+> > --- a/ibacm/acm_notes.txt
+> > +++ /dev/null
+> > @@ -1,141 +0,0 @@
+> > -Assistant for InfiniBand Communication Management (IB ACM)
+> > -
+> > -Note: The IB ACM should be considered experimental.
+> > -
+> > -
+> > -Overview
+> > ---------
+> > -The IB ACM package implements and provides a framework for
+> experimental name,
+> > -address, and route resolution services over InfiniBand.  It is
+> intended to
+> > -address connection setup scalability issues running MPI applications
+> on
+> > -large clusters.  The IB ACM provides information needed to establish
+> a
+> > -connection, but does not implement the CM protocol.
+> > -
+> > -The librdmacm can invoke IB ACM services when built using the --
+> with-ib_acm
+> > -option.  The IB ACM services tie in under the rdma_resolve_addr,
+> > -rdma_resolve_route, and rdma_getaddrinfo routines.  For maximum
+> benefit,
+> > -the rdma_getaddrinfo routine should be used, however existing
+> applications
+> > -should still see significant connection scaling benefits using the
+> calls
+> > -available in librdmacm 1.0.11 and previous releases.
+> > -
+> > -The IB ACM is focused on being scalable and efficient.  The current
+> > -implementation limits network traffic, SA interactions, and
+> centralized
+> > -services.  ACM supports multiple resolution protocols in order to
+> handle
+> > -different fabric topologies.
+> > -
+> > -This release is limited in its handling of dynamic changes.
+> > -
+> > -The IB ACM package is comprised of two components: the ibacm service
+> > -and a test/configuration utility - ib_acme.  Both are userspace
+> components
+> > -and are available for Linux and Windows.  Additional details are
+> given below.
+> > -
+> > -
+> > -Quick Start Guide
+> > ------------------
+> > -1. Prerequisites: libibverbs and libibumad must be installed.
+> > -   The IB stack should be running with IPoIB configured.
+> > -   These steps assume that the user has administrative privileges.
+> > -2. Install the IB ACM package
+> > -   This installs ibacm, and ib_acme.
+> > -3. Run ib_acme -A -O
+> > -   This will generate IB ACM address and options configuration
+> files.
+> > -   (acm_addr.cfg and acm_opts.cfg)
+> > -4. Run ibacm -D
+> > -   This will run ibacm as service/daemon.
+> > -   Because ibacm uses the libibumad interfaces, it should be run
+> with
+> > -   administrative privileges.
+> > -5. Optionally, run ib_acme -s <source_ip> -d <dest_ip> -v
+> > -   This will verify that the ibacm service is running.
+> > -5. Install librdmacm.
+> > -   The librdmacm will automatically use the ibacm service.
+> > -   On failures, the librdmacm will fall back to normal resolution.
+> > -
+> > -
+> > -Details
+> > --------
+> > -ib_acme:
+> > -The ib_acme program serves a dual role.  It acts as a utility to
+> test
+> > -ibacm operation and help verify if the ibacm service and selected
+> > -protocol is usable for a given cluster configuration.
+> Additionally,
+> > -it automatically generates ibacm configuration files to assist with
+> > -or eliminate manual setup.
+> > -
+> > -
+> > -acm configuration files:
+> > -The ibacm service relies on two configuration files.
+> > -
+> > -The acm_addr.cfg file contains name and address mappings for each IB
+> > -<device, port, pkey> endpoint.  Although the names in the
+> acm_addr.cfg
+> > -file can be anything, ib_acme maps the host name and IP addresses to
+> > -the IB endpoints.
+> > -
+> > -The acm_opts.cfg file provides a set of configurable options for the
+> > -ibacm service, such as timeout, number of retries, logging level,
+> etc.
+> > -ib_acme generates the acm_opts.cfg file using static information.  A
+> > -future enhancement would adjust options based on the current system
+> > -and cluster size.
+> > -
+> > -
+> > -ibacm:
+> > -The ibacm service is responsible for resolving names and addresses
+> to
+> > -InfiniBand path information and caching such data. It is implemented
+> as a
+> > -daemon that execute with administrative privileges.
+> > -
+> > -The ibacm implements a client interface over TCP sockets, which is
+> > -abstracted by the librdmacm library.  One or more back-end protocols
+> are
+> > -used by the ibacm service to satisfy user requests.  Although the
+> > -ibacm supports standard SA path record queries on the back-end, it
+> > -provides an experimental multicast resolution protocol in hope of
+> > -achieving greater scalability.  The latter is not usable on all
+> fabric
+> > -topologies, specifically ones that may not have reversible paths.
+> > -Users should use the ib_acme utility to verify that multicast
+> protocol
+> > -is usable before running other applications.
+> > -
+> > -Conceptually, the ibacm service implements an ARP like protocol and
+> either
+> > -uses IB multicast records to construct path record data or queries
+> the
+> > -SA directly, depending on the selected route protocol.  By default,
+> the
+> > -ibacm services uses and caches SA path record queries.
+> > -
+> > -Specifically, all IB endpoints join a number of multicast groups.
+> > -Multicast groups differ based on rates, mtu, sl, etc., and are
+> prioritized.
+> > -All participating endpoints must be able to communicate on the
+> lowest
+> > -priority multicast group.  The ibacm assigns one or more
+> names/addresses
+> > -to each IB endpoint using the acm_addr.cfg file.  Clients provide
+> source
+> > -and destination names or addresses as input to the service, and
+> receive
+> > -as output path record data.
+> > -
+> > -The service maps a client's source name/address to a local IB
+> endpoint.
+> > -If a client does not provide a source address, then the ibacm
+> service
+> > -will select one based on the destination and local routing tables.
+> If the
+> > -destination name/address is not cached locally, it sends a multicast
+> > -request out on the lowest priority multicast group on the local
+> endpoint.
+> > -The request carries a list of multicast groups that the sender can
+> use.
+> > -The recipient of the request selects the highest priority multicast
+> group
+> > -that it can use as well and returns that information directly to the
+> sender.
+> > -The request data is cached by all endpoints that receive the
+> multicast
+> > -request message.  The source endpoint also caches the response and
+> uses
+> > -the multicast group that was selected to construct or obtain path
+> record
+> > -data, which is returned to the client.
+> > -
+> > -The current implementation of the IB ACM has several additional
+> restrictions:
+> > -- The ibacm is limited in its handling of dynamic changes;
+> > -  the ibacm should be stopped and restarted if a cluster is
+> reconfigured.
+> > -- Support for IPv6 has not been verified.
+> > -- The number of addresses that can be assigned to a single endpoint
+> is
+> > -  limited to 4.
+> > -- The number of multicast groups that an endpoint can support is
+> limited to 2.
+> > -
+> > -The ibacm contains several internal caches.  These include  caches
+> for
+> > -GID  and  LID  destination  addresses.   These caches can be
+> optionally
+> > -preloaded.  ibacm supports the OpenSM dump_pr plugin "full"
+> PathRecord
+> > -format which is used to preload these caches.  The file format is
+> specified
+> > -in the ibacm_opts.cfg file via the route_preload setting which
+> should
+> > -be set to opensm_full_v1 for this file format.  Default format is
+> > -none which does not preload these caches.  See dump_pr.notes.txt in
+> dump_pr
+> > -for more information on the opensm_full_v1 file format and how to
+> configure
+> > -OpenSM to generate this file.
+> > -
+> > -Additionally, the name, IPv4, and IPv6 caches can be be preloaded by
+> using
+> > -the addr_preload option.  The default is none which does not preload
+> these
+> > -caches.  To preload these caches, set this option to acm_hosts and
+> > -configure the addr_data_file appropriately.
+> > --
+> > 2.1.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---end quoted text---
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
