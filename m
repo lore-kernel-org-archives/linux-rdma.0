@@ -1,170 +1,268 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 03/16] IB/pvrdma: Add functions for ring traversal
-Date: Sun, 2 Oct 2016 19:10:23 -0700
-Message-ID: <72f95d36213c2bbcc1ec31c36c8f24e3aa10c4a2.1475458407.git.aditr@vmware.com>
-References: <cover.1475458407.git.aditr@vmware.com>
+Subject: [PATCH v6 00/16] Add Paravirtual RDMA Driver
+Date: Sun, 2 Oct 2016 19:10:20 -0700
+Message-ID: <cover.1475458407.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1475458407.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds functions to traverse the CQ and QP rings. These
-are independent from the user-space defined ones.
+Hi Doug, others,
 
-Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+This patch series adds a driver for a paravirtual RDMA device. The device
+is developed for VMware's Virtual Machines and allows existing RDMA
+applications to continue to use existing Verbs API when deployed in VMs on
+ESXi. We recently did a presentation in the OFA Workshop [1] regarding this
+device.
+
+Description and RDMA Support
+============================
+The virtual device is exposed as a dual function PCIe device. One part is
+a virtual network device (VMXNet3) which provides networking properties
+like MAC, IP addresses to the RDMA part of the device. The networking
+properties are used to register GIDs required by RDMA applications to
+communicate.
+
+These patches add support and the all required infrastructure for letting
+applications use such a device. We support the mandatory Verbs API as well
+as the base memory management extensions (Local Inv, Send with Inv and Fast
+Register Work Requests). We currently support both Reliable Connected and
+Unreliable Datagram QPs but do not support Shared Receive Queues (SRQs).
+Also, we support the following types of Work Requests:
+ o Send/Receive (with or without Immediate Data)
+ o RDMA Write (with or without Immediate Data)
+ o RDMA Read
+ o Local Invalidate
+ o Send with Invalidate
+ o Fast Register Work Requests
+
+This version only adds support for version 1 of RoCE. We will add RoCEv2
+support in a future patch. We do support registration of both MAC-based and
+IP-based GIDs. I have also created a git tree for our user-level driver [2].
+
+Testing
+=======
+We have tested this internally for various types of Guest OS - Red Hat,
+Centos, Ubuntu 12.04/14.04/16.04, Oracle Enterprise Linux, SLES 12
+using backported versions of this driver. The tests included several runs
+of the performance tests (included with OFED), Intel MPI PingPong benchmark
+on OpenMPI, krping for FRWRs. Mellanox has been kind enough to test the
+backported version of the driver internally on their hardware using a
+VMware provided ESX build. I have also applied and tested this with Doug's
+k.o/for-4.9 branch (commit 5603910b). Note, that this patch series should be
+applied all together. I split out the commits so that it may be easier to
+review.
+
+PVRDMA Resources
+================
+[1] OFA Workshop Presentation - 
+https://openfabrics.org/images/eventpresos/2016presentations/102parardma.pdf
+[2] Libpvrdma User-level library - 
+http://git.openfabrics.org/?p=~aditr/libpvrdma.git;a=summary
 ---
 Changes v5->v6:
- - These functions were originally in pvrdma_uapi.h which is now removed.
----
- drivers/infiniband/hw/pvrdma/pvrdma_ring.h | 131 +++++++++++++++++++++++++++++
- 1 file changed, 131 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ring.h
+ - PATCH [02/16]
+     - Removed the pvrdma-uapi.h file and moved common structures into
+       pvrdma-abi.h.
+     - Moved enums and structs common to user-level and kernel driver into
+       pvrdma-abi.h.
+     - Changed _exp_ to _ex_ for extended structures.
+ - PATCH [03/16]
+     - These functions were originally in pvrdma_uapi.h which is now removed.
+     - pvrdma_uapi.h -> pvrdma_ring.h.
+ - PATCH [04/16]
+     - Removed the pvrdma_defs.h file. The contents of that are placed in the
+       pvrdma_dev_api header file.
+     - Removed include of pvrdma_ib_verbs.h.
+ - PATCH [05/16]
+     - Structs/enums defined in pvrdma_ib_verbs.h (removed) are now in
+       pvrdma_verbs.h.
+ - PATCH [06/16]
+     - Update the header includes for abi and ring headers.
+ - PATCH [08/16]
+     - Ensure we return an error code if read from error register fails.
+ - PATCH [09, 12/16]
+     - Removed duplicate include of abi header.
+ - PATCH [13/16]
+     - Removed a duplicate include of ABI header.
+     - Removed the driver release date and a const string.
+     - Updated some functions to return -EFAULT instead of -EINVAL.
+ - PATCH [16/16]
+     - Removed maintainer info for pvrdma-abi.h.
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_ring.h b/drivers/infiniband/hw/pvrdma/pvrdma_ring.h
-new file mode 100644
-index 0000000..ed9022a
---- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_ring.h
-@@ -0,0 +1,131 @@
-+/*
-+ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of EITHER the GNU General Public License
-+ * version 2 as published by the Free Software Foundation or the BSD
-+ * 2-Clause License. This program is distributed in the hope that it
-+ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-+ * See the GNU General Public License version 2 for more details at
-+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program available in the file COPYING in the main
-+ * directory of this source tree.
-+ *
-+ * The BSD 2-Clause License
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#ifndef __PVRDMA_RING_H__
-+#define __PVRDMA_RING_H__
-+
-+#include <linux/types.h>
-+
-+#define PVRDMA_INVALID_IDX	-1	/* Invalid index. */
-+
-+struct pvrdma_ring {
-+	atomic_t prod_tail;	/* Producer tail. */
-+	atomic_t cons_head;	/* Consumer head. */
-+};
-+
-+struct pvrdma_ring_state {
-+	struct pvrdma_ring tx;	/* Tx ring. */
-+	struct pvrdma_ring rx;	/* Rx ring. */
-+};
-+
-+static inline int pvrdma_idx_valid(__u32 idx, __u32 max_elems)
-+{
-+	/* Generates fewer instructions than a less-than. */
-+	return (idx & ~((max_elems << 1) - 1)) == 0;
-+}
-+
-+static inline __s32 pvrdma_idx(atomic_t *var, __u32 max_elems)
-+{
-+	const unsigned int idx = atomic_read(var);
-+
-+	if (pvrdma_idx_valid(idx, max_elems))
-+		return idx & (max_elems - 1);
-+	return PVRDMA_INVALID_IDX;
-+}
-+
-+static inline void pvrdma_idx_ring_inc(atomic_t *var, __u32 max_elems)
-+{
-+	__u32 idx = atomic_read(var) + 1;	/* Increment. */
-+
-+	idx &= (max_elems << 1) - 1;		/* Modulo size, flip gen. */
-+	atomic_set(var, idx);
-+}
-+
-+static inline __s32 pvrdma_idx_ring_has_space(const struct pvrdma_ring *r,
-+					      __u32 max_elems, __u32 *out_tail)
-+{
-+	const __u32 tail = atomic_read(&r->prod_tail);
-+	const __u32 head = atomic_read(&r->cons_head);
-+
-+	if (pvrdma_idx_valid(tail, max_elems) &&
-+	    pvrdma_idx_valid(head, max_elems)) {
-+		*out_tail = tail & (max_elems - 1);
-+		return tail != (head ^ max_elems);
-+	}
-+	return PVRDMA_INVALID_IDX;
-+}
-+
-+static inline __s32 pvrdma_idx_ring_has_data(const struct pvrdma_ring *r,
-+					     __u32 max_elems, __u32 *out_head)
-+{
-+	const __u32 tail = atomic_read(&r->prod_tail);
-+	const __u32 head = atomic_read(&r->cons_head);
-+
-+	if (pvrdma_idx_valid(tail, max_elems) &&
-+	    pvrdma_idx_valid(head, max_elems)) {
-+		*out_head = head & (max_elems - 1);
-+		return tail != head;
-+	}
-+	return PVRDMA_INVALID_IDX;
-+}
-+
-+static inline bool pvrdma_idx_ring_is_valid_idx(const struct pvrdma_ring *r,
-+						__u32 max_elems, __u32 *idx)
-+{
-+	const __u32 tail = atomic_read(&r->prod_tail);
-+	const __u32 head = atomic_read(&r->cons_head);
-+
-+	if (pvrdma_idx_valid(tail, max_elems) &&
-+	    pvrdma_idx_valid(head, max_elems) &&
-+	    pvrdma_idx_valid(*idx, max_elems)) {
-+		if (tail > head && (*idx < tail && *idx >= head))
-+			return true;
-+		else if (head > tail && (*idx >= head || *idx < tail))
-+			return true;
-+	}
-+	return false;
-+}
-+
-+#endif /* __PVRDMA_RING_H__ */
+Changes v4->v5:
+ - PATCH [02/16]
+     - Moved pvrdma_uapi.h and pvrdma_user.h into common UAPI folder.
+     - Renamed to pvrdma-uapi.h and pvrdma-abi.h respectively.
+     - Prefixed unsigned vars with __.
+ - PATCH [03/16]
+     - Removed __ prefix for unsigned vars.
+ - PATCH [04/16]
+     - Update include for headers moved to UAPI.
+     - Removed __ prefix for unsigned vars.
+ - PATCH [05/16]
+     - Update include for headers in UAPI folder.
+     - Removed setting any properties that are reported by device as 0.
+     - Simplified modify_port.
+     - PD should be allocated first in kernel then in device.
+     - Update to pvrdma_cmd_post for creating/destroying PD, Query port/device.
+ - PATCH [06/16]
+     - pvrdma_cmd_post takes the response code.
+ - PATCH [07/16]
+     - Correct var type passed to dma_alloc_coherent.
+ - PATCH [08/16]
+     - Moved the timeout to pvrdma_cmd_recv.
+     - Added additional response code parameter to pvrdma_cmd_post.
+ - PATCH [09/16]
+     - Updated include for headers in UAPI folder.
+     - Changed from EINVAL to ENOMEM if atomic add fails.
+     - Added error code if destroy cq command failed.
+     - Update to pvrdma_cmd_post for creating/destroying CQ.
+ - PATCH [11/16]
+     - Check the access flags correctly for DMA MR.
+     - Update to pvrdma_cmd_post for creating/destroying MRs.
+ - PATCH [12/16]
+     - Updated include for headers in UAPI folder.
+     - Update to pvrdma_cmd_post for creating/destroying/querying/modifying QPs.
+     - Use the pvrdma_sge struct when posting WRs/allocating QP memory.
+     - Removed two set but unused variables.
+ - PATCH [13/16]
+     - Removed two unnecessary lines.
+     - Updated include for headers in UAPI folder.
+     - Update to pvrdma_cmd_post for add/delete GIDs.
+     - Add error code in dev_warn if pvrdma_cmd_post failed.
+ - PATCH [16/16]
+     - Added pvrdma files to common UAPI folder.
+
+Changes v3->v4:
+ - Rebased on for-4.9 branch - commit 64278fe89b729
+   ("Merge branch 'hns-roce' into k.o/for-4.9")
+ - PATCH [01/16]
+     - New in v4 - Moved vmxnet3 id to pci_ids.h
+ - PATCH [02,03/16]
+     - pvrdma_sge was moved into pvrdma_uapi.h
+ - PATCH [04/16]
+     - Removed explicit enum values.
+ - PATCH [05/16]
+     - Renamed priviledged -> privileged.
+     - Added error numbers for command errors.
+     - Removed unnecessary goto in modify_device.
+     - Moved pd allocation to after command execution.
+     - Removed an incorrect atomic_dec.
+ - PATCH [06/16]
+     - Renamed priviledged -> privileged.
+     - Renamed pvrdma_flush_cqe to _pvrdma_flush_cqe since we hold a lock
+     to call it.
+     - Added wrapper functions for writing to UARs for CQ/QP.
+     - The conversion functions are updated as func_name(dst, src) format.
+     - Renamed max_gs to max_sg.
+     - Added work struct for net device events.
+ - PATCH [07/16]
+     - Updated conversion functions to func_name(dst, src) format.
+     - Removed unneeded local variables.
+ - PATCH [08/16]
+     - Removed the min check and added a BUILD_BUG_ON check for size.
+ - PATCH [09/16]
+     - Added a pvrdma_destroy_cq in the error path.
+     - Renamed pvrdma_flush_cqe to _pvrdma_flush_cqe since we need a lock to
+     be held while calling this.
+     - Updated to use wrapper for UAR write for CQ.
+     - Ensure that poll_cq does not return error values.
+ - PATCH [10/16]
+     - Removed an unnecessary comment.
+ - PATCH [11/16]
+     - Changed access flag check for DMA MR to using bit operation.
+     - Removed some local variables.
+ - PATCH [12/16]
+     - Removed an unnecessary switch case.
+     - Unified the returns in pvrdma_create_qp to use one exit point.
+     - Renamed pvrdma_flush_cqe to _pvrdma_flush_cqe since we need a lock to
+     be held when calling this.
+     - Updated to use wrapper for UAR write for QP.
+     - Updated conversion function to func_name(dst, src) format.
+     - Renamed max_gs to max_sg.
+     - Renamed cap variable to req_cap in pvrdma_set_sq/rq_size.
+     - Changed dev_warn to dev_warn_ratelimited in pvrdma_post_send/recv.
+     - Added nesting locking for flushing CQs when destroying/resetting a QP.
+     - Added missing ret value.
+ - PATCH [13/16]
+     - Fixed some checkpatch warnings.
+     - Added support for new get_dev_fw_str API.
+     - Added event workqueue for netdevice events.
+     - Restructured the pvrdma_pci_remove function a little bit.
+ - PATCH [14/16]
+     - Enforced dependency on VMXNet3 module.
+
+Changes v2->v3:
+ - I reordered the patches so that the definitions of enums, structures is
+ before their use (suggested by Yuval Shaia) so its easier to review.
+ - Removed an unneccesary bool in pvrdma_cmd_post (suggested by Yuval Shaia).
+ - Made the use of comma at end of enums consistent across files (suggested
+ by Leon Romanovsky).
+
+Changes v1->v2:
+ - Patch [07/15] - Addressed Yuval Shaia's comments and 32-bit build errors.
+
+---
+Adit Ranadive (16):
+  vmxnet3: Move PCI Id to pci_ids.h
+  IB/pvrdma: Add user-level shared functions
+  IB/pvrdma: Add functions for ring traversal
+  IB/pvrdma: Add the paravirtual RDMA device specification
+  IB/pvrdma: Add functions for Verbs support
+  IB/pvrdma: Add paravirtual rdma device
+  IB/pvrdma: Add helper functions
+  IB/pvrdma: Add device command support
+  IB/pvrdma: Add support for Completion Queues
+  IB/pvrdma: Add UAR support
+  IB/pvrdma: Add support for memory regions
+  IB/pvrdma: Add Queue Pair support
+  IB/pvrdma: Add the main driver module for PVRDMA
+  IB/pvrdma: Add Kconfig and Makefile
+  IB: Add PVRDMA driver
+  MAINTAINERS: Update for PVRDMA driver
+
+ MAINTAINERS                                    |    7 +
+ drivers/infiniband/Kconfig                     |    1 +
+ drivers/infiniband/hw/Makefile                 |    1 +
+ drivers/infiniband/hw/pvrdma/Kconfig           |    7 +
+ drivers/infiniband/hw/pvrdma/Makefile          |    3 +
+ drivers/infiniband/hw/pvrdma/pvrdma.h          |  474 ++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_cmd.c      |  119 +++
+ drivers/infiniband/hw/pvrdma/pvrdma_cq.c       |  425 +++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h  |  586 ++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c |  127 +++
+ drivers/infiniband/hw/pvrdma/pvrdma_main.c     | 1211 ++++++++++++++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_misc.c     |  304 ++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_mr.c       |  334 +++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_qp.c       |  972 +++++++++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_ring.h     |  131 +++
+ drivers/infiniband/hw/pvrdma/pvrdma_verbs.c    |  577 +++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_verbs.h    |  435 +++++++++
+ drivers/net/vmxnet3/vmxnet3_int.h              |    3 +-
+ include/linux/pci_ids.h                        |    1 +
+ include/uapi/rdma/Kbuild                       |    2 +
+ include/uapi/rdma/pvrdma-abi.h                 |  289 ++++++
+ 21 files changed, 6007 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/infiniband/hw/pvrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/pvrdma/Makefile
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cq.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_main.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_misc.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_qp.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ring.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_verbs.h
+ create mode 100644 include/uapi/rdma/pvrdma-abi.h
+
 -- 
 2.7.4
 
