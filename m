@@ -1,68 +1,87 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rdmavt: Trivial function comment corrected.
-Date: Mon, 3 Oct 2016 10:55:56 -0400
-Message-ID: <506c9cb3-7183-1341-05de-875438f62c96@redhat.com>
-References: <1473775850-11991-1-git-send-email-pandit.parav@gmail.com>
+Subject: Re: [PATCH 0/4] Two fixes for prev 4.9 and two new fixes
+Date: Mon, 3 Oct 2016 11:33:29 -0400
+Message-ID: <3027d54b-b321-9158-6749-e80c9b821252@redhat.com>
+References: <20161001030935.15264.34730.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="bsuftgx1kWGgJbuitqJB93AviabVhHFJx"
+ boundary="dFAgNgts2ovaOCPDncjbWD9pgpkHww4id"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1473775850-11991-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20161001030935.15264.34730.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bsuftgx1kWGgJbuitqJB93AviabVhHFJx
-Content-Type: multipart/mixed; boundary="Mm3JG3RPm8EiE5HdAAN2cglXvH9oSeJ0W";
+--dFAgNgts2ovaOCPDncjbWD9pgpkHww4id
+Content-Type: multipart/mixed; boundary="NftDMdUdRA0Sui46JKtNwicSd2InlkT3l";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <506c9cb3-7183-1341-05de-875438f62c96-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rdmavt: Trivial function comment corrected.
-References: <1473775850-11991-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-In-Reply-To: <1473775850-11991-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn
+ <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <3027d54b-b321-9158-6749-e80c9b821252-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/4] Two fixes for prev 4.9 and two new fixes
+References: <20161001030935.15264.34730.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20161001030935.15264.34730.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 
---Mm3JG3RPm8EiE5HdAAN2cglXvH9oSeJ0W
-Content-Type: text/plain; charset=windows-1252
+--NftDMdUdRA0Sui46JKtNwicSd2InlkT3l
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 9/13/2016 10:10 AM, Parav Pandit wrote:
-> Corrected function name in comment from qib_ to rvt_.
+On 9/30/2016 11:10 PM, Dennis Dalessandro wrote:
+> Doug,
 >=20
-> Signed-off-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> The first two patches here are fixes for patches you picked up in your =
+hfi1
+> branch for 4.9. You may want to squash them. The commit SHAs referrence=
+d are
+> from your GitHub repo.
+>=20
+> Pathces 3 and 4 are new fixes for 4.9.
+
+Thanks, I squashed the two fixes in and applied the other two.
+
+> Patches can also be viewed in my repo at:
+> https://github.com/ddalessa/kernel/tree/for-4.9
+>=20
 > ---
->  drivers/infiniband/sw/rdmavt/qp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/=
-rdmavt/qp.c
-> index bdb540f..40186ca 100644
-> --- a/drivers/infiniband/sw/rdmavt/qp.c
-> +++ b/drivers/infiniband/sw/rdmavt/qp.c
-> @@ -996,7 +996,7 @@ static void rvt_insert_qp(struct rvt_dev_info *rdi,=
- struct rvt_qp *qp)
->  }
-> =20
->  /**
-> - * qib_modify_qp - modify the attributes of a queue pair
-> + * rvt_modify_qp - modify the attributes of a queue pair
->   * @ibqp: the queue pair who's attributes we're modifying
->   * @attr: the new attributes
->   * @attr_mask: the mask of attributes to modify
+> Ira Weiny (1):
+>       IB/hfi1: Fix invalid lockdep assert
+>=20
+> Jianxin Xiong (1):
+>       IB/hfi1: Update SMA ingress checks for response packets
+>=20
+> Mike Marciniszyn (2):
+>       IB/core: Fix atomic regression with ib_hdrs
+>       IB/hfi1: Fix trace of atomic ack
+>=20
+>=20
+>  drivers/infiniband/hw/hfi1/qp.c    |    1 -
+>  drivers/infiniband/hw/hfi1/trace.c |    4 +--
+>  drivers/infiniband/hw/hfi1/ud.c    |   49 ++++++++++++++++++----------=
+--------
+>  drivers/infiniband/hw/hfi1/verbs.c |    2 +
+>  include/rdma/ib_hdrs.h             |    6 ++--
+>  5 files changed, 30 insertions(+), 32 deletions(-)
+>=20
+> --
+> -Denny
 >=20
 
-Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---Mm3JG3RPm8EiE5HdAAN2cglXvH9oSeJ0W--
+--NftDMdUdRA0Sui46JKtNwicSd2InlkT3l--
 
---bsuftgx1kWGgJbuitqJB93AviabVhHFJx
+--dFAgNgts2ovaOCPDncjbWD9pgpkHww4id
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -71,22 +90,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX8nF8AAoJELgmozMOVy/dOXcQAItcOwIZ8c0EB8isKMIXq23Z
-J3aDaqtXq5W5e4SumBy+G54Vg4Gyuy0P2uT1QY4hEgjimVCL5rUQKKHeOcTzsNUR
-y0azWHQYeLlNgDU6gyQgqF79JuveItvxZDPGC1vxuv48JQvtWPrhWmRj6Girz7aS
-O9cUQtAeZ9gsIAEbFjzajg3M37f26fZ33lUI2rTsJk/mw8b9PqG7i10j/zNRdd/7
-4LEnuj83unpqES24jYIDAq2YLTRlgtC6JHC09BQ5k3B5eUwmYNgiWYUf1Eqyvmx7
-OxeDJRVKV64xZX5plNvGmYbH1Wd+gt8e3AQ65ocobgCjtnI/dfrTmPANJuEP+R+4
-tQHkAvRQH3RN8wMopmWlmEcNbcGzlt6uTJ2MoAz7hv6aCQJz6QD6rIX1/H9Zlho4
-YdLA7AiMHYI3YWRCKOmvAERZlutgJxvdhjIuLFkIQELz6/khvChTPttzJwK4KmLW
-J9I9zOMVZTHEtY3hx1BIIiAyl0P0Qm4QQ1pK1MWX/CBvh4ZSor0tPJCToFKSbRRC
-4F+5D4LkwBL4rB2Tdy4aclgBQvhBH9d7CgCaH8cg+3HGPSrDdnnzKx/2+7ltCEGu
-G8EJZba4Tyb0IWr4SD8mlpC0wWJLDMwdkTHbqFCoNCG59vVv1vj7zHLNhUF2uVn+
-h+cd82VGdsdCMOqvIh1w
-=vWdy
+iQIcBAEBCAAGBQJX8npJAAoJELgmozMOVy/dzkcQAI70DvKa9JCbXXpzRdCvgcq5
+XvhM4Ti+UMZXbcMHW4JE57r7bb16uyHoZfCKXZZO3Kt8qQlC/ntnUjOf3LGLn4pT
+a14JuKq2GvzNmsxBmsV+PcK04OVQXGs3nF/Pk4PFMoJsDIXZ3pS157F2qw008u3P
+S3FynnT42TM03SwmxJ5WyskDwjB3j7q2hpseKRwYZMG9EeAiICUK2wL0tpAt9JOq
+rDfa8msNkfccYaPPf3Qg5HnMZniYBV0kP5nKREHDZn1YuQLEeJAdvqGX8EC7w/KX
+1Y2hdhDPIiPJPvg8MtmU60QVy5Fip0dN+BULp6jsDtHT+FKYnMRYEkEe6jiUa6wR
+tbVIkA56a2wqUTls9V0SjUrXv6KqWOKNuwW335Az/aphfg3Zooaep27nz9HMEEdG
+MBPuk2B8JeFKTpEoOz/tp409x32uc94o1gGLKDZKCcb+pTr6rMjSyvU20/ShjjwG
+MmaPBbC0gLb07T5A+sjOTd4JTZNc26aZNTtfsZ9tbHK+iT3XO6nPVQYx6VFGlYhs
+FCXXHwlYWfaZ0MXmMwOkzrJM2/aPVFPmgs5LU1Zjpg1M4clht3VVZ1Ibf6iFOeV9
+b3el+SX+k2RSfHLT3te46hlR/wapsl2qbT+noJ//XNovABpa8SUn73LZUzcUb2X+
+ET+X0xxagVhWBS8k6IxK
+=kTAC
 -----END PGP SIGNATURE-----
 
---bsuftgx1kWGgJbuitqJB93AviabVhHFJx--
+--dFAgNgts2ovaOCPDncjbWD9pgpkHww4id--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
