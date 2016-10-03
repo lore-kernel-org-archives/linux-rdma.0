@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 02/16] IB/pvrdma: Add user-level shared functions
-Date: Sun, 2 Oct 2016 19:10:22 -0700
-Message-ID: <515c704574423b16feb4c3d97847156623a8d042.1475458407.git.aditr@vmware.com>
+Subject: [PATCH v6 06/16] IB/pvrdma: Add paravirtual rdma device
+Date: Sun, 2 Oct 2016 19:10:26 -0700
+Message-ID: <767949584f10ff45085b08e60fc31954562eda6a.1475458407.git.aditr@vmware.com>
 References: <cover.1475458407.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,8 +12,9 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We share some common structures with the user-level driver. This patch adds
-those structures and shared functions to traverse the QP/CQ rings.
+This patch adds the main device-level structures and functions to be used
+to provide RDMA functionality. Also, we define conversion functions from
+the IB core stack structures to the device-specific ones.
 
 Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -23,41 +24,34 @@ Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
 Changes v5->v6:
- - Removed the pvrdma-uapi.h file and moved common structures into
- pvrdma-abi.h.
- - Moved enums and structs common to user-level and kernel driver into
- pvrdma-abi.h.
- - Changed _exp_ to _ex_ for extended structures.
+ - Update the header includes for abi and ring headers.
 
 Changes v4->v5:
- - Moved pvrdma_uapi.h and pvrdma_user.h into common UAPI folder.
- - Renamed to pvrdma-uapi.h and pvrdma-abi.h respectively.
- - Prefixed unsigned vars with __.
+ - pvrdma_cmd_post takes the response code.
 
 Changes v3->v4:
- - Moved pvrdma_sge into pvrdma_uapi.h
----
- include/uapi/rdma/Kbuild       |   2 +
- include/uapi/rdma/pvrdma-abi.h | 289 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 291 insertions(+)
- create mode 100644 include/uapi/rdma/pvrdma-abi.h
+ - Renamed pvrdma_flush_cqe to _pvrdma_flush_cqe since we hold a lock
+ to call it.
+ - Added wrapper functions for writing to UARs for CQ/QP.
+ - The conversion functions are updated as func_name(dst, src) format.
+ - Renamed max_gs to max_sg.
+ - Added work struct for net device events.
+ - priviledged -> privileged.
 
-diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-index ac62908..04357ba 100644
---- a/include/uapi/rdma/Kbuild
-+++ b/include/uapi/rdma/Kbuild
-@@ -8,3 +8,5 @@ header-y += rdma_netlink.h
- header-y += rdma_user_cm.h
- header-y += hfi/
- header-y += rdma_user_rxe.h
-+header-y += pvrdma-abi.h
-+header-y += pvrdma-uapi.h
-diff --git a/include/uapi/rdma/pvrdma-abi.h b/include/uapi/rdma/pvrdma-abi.h
+Changes v2->v3:
+ - Removed VMware vendor id redefinition.
+ - Removed the boolean in pvrdma_cmd_post.
+---
+ drivers/infiniband/hw/pvrdma/pvrdma.h | 474 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 474 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
+
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma.h b/drivers/infiniband/hw/pvrdma/pvrdma.h
 new file mode 100644
-index 0000000..5ca0e91
+index 0000000..deb6792
 --- /dev/null
-+++ b/include/uapi/rdma/pvrdma-abi.h
-@@ -0,0 +1,289 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma.h
+@@ -0,0 +1,474 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -103,250 +97,435 @@ index 0000000..5ca0e91
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#ifndef __PVRDMA_ABI_H__
-+#define __PVRDMA_ABI_H__
++#ifndef __PVRDMA_H__
++#define __PVRDMA_H__
 +
-+#include <linux/types.h>
++#include <linux/compiler.h>
++#include <linux/interrupt.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/pci.h>
++#include <linux/semaphore.h>
++#include <linux/workqueue.h>
++#include <rdma/ib_umem.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/pvrdma-abi.h>
 +
-+#define PVRDMA_UVERBS_ABI_VERSION	3		/* ABI Version. */
-+#define PVRDMA_UAR_HANDLE_MASK		0x00FFFFFF	/* Bottom 24 bits. */
-+#define PVRDMA_UAR_QP_OFFSET		0		/* QP doorbell. */
-+#define PVRDMA_UAR_QP_SEND		BIT(30)		/* Send bit. */
-+#define PVRDMA_UAR_QP_RECV		BIT(31)		/* Recv bit. */
-+#define PVRDMA_UAR_CQ_OFFSET		4		/* CQ doorbell. */
-+#define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
-+#define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
-+#define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
++#include "pvrdma_ring.h"
++#include "pvrdma_dev_api.h"
++#include "pvrdma_verbs.h"
 +
-+enum pvrdma_wr_opcode {
-+	PVRDMA_WR_RDMA_WRITE,
-+	PVRDMA_WR_RDMA_WRITE_WITH_IMM,
-+	PVRDMA_WR_SEND,
-+	PVRDMA_WR_SEND_WITH_IMM,
-+	PVRDMA_WR_RDMA_READ,
-+	PVRDMA_WR_ATOMIC_CMP_AND_SWP,
-+	PVRDMA_WR_ATOMIC_FETCH_AND_ADD,
-+	PVRDMA_WR_LSO,
-+	PVRDMA_WR_SEND_WITH_INV,
-+	PVRDMA_WR_RDMA_READ_WITH_INV,
-+	PVRDMA_WR_LOCAL_INV,
-+	PVRDMA_WR_FAST_REG_MR,
-+	PVRDMA_WR_MASKED_ATOMIC_CMP_AND_SWP,
-+	PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD,
-+	PVRDMA_WR_BIND_MW,
-+	PVRDMA_WR_REG_SIG_MR,
++/* NOT the same as BIT_MASK(). */
++#define PVRDMA_MASK(n) ((n << 1) - 1)
++
++/*
++ * VMware PVRDMA PCI device id.
++ */
++#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
++
++struct pvrdma_dev;
++
++struct pvrdma_page_dir {
++	dma_addr_t dir_dma;
++	u64 *dir;
++	int ntables;
++	u64 **tables;
++	u64 npages;
++	void **pages;
 +};
 +
-+enum pvrdma_wc_status {
-+	PVRDMA_WC_SUCCESS,
-+	PVRDMA_WC_LOC_LEN_ERR,
-+	PVRDMA_WC_LOC_QP_OP_ERR,
-+	PVRDMA_WC_LOC_EEC_OP_ERR,
-+	PVRDMA_WC_LOC_PROT_ERR,
-+	PVRDMA_WC_WR_FLUSH_ERR,
-+	PVRDMA_WC_MW_BIND_ERR,
-+	PVRDMA_WC_BAD_RESP_ERR,
-+	PVRDMA_WC_LOC_ACCESS_ERR,
-+	PVRDMA_WC_REM_INV_REQ_ERR,
-+	PVRDMA_WC_REM_ACCESS_ERR,
-+	PVRDMA_WC_REM_OP_ERR,
-+	PVRDMA_WC_RETRY_EXC_ERR,
-+	PVRDMA_WC_RNR_RETRY_EXC_ERR,
-+	PVRDMA_WC_LOC_RDD_VIOL_ERR,
-+	PVRDMA_WC_REM_INV_RD_REQ_ERR,
-+	PVRDMA_WC_REM_ABORT_ERR,
-+	PVRDMA_WC_INV_EECN_ERR,
-+	PVRDMA_WC_INV_EEC_STATE_ERR,
-+	PVRDMA_WC_FATAL_ERR,
-+	PVRDMA_WC_RESP_TIMEOUT_ERR,
-+	PVRDMA_WC_GENERAL_ERR,
++struct pvrdma_cq {
++	struct ib_cq ibcq;
++	int offset;
++	spinlock_t cq_lock; /* Poll lock. */
++	struct pvrdma_uar_map *uar;
++	struct ib_umem *umem;
++	struct pvrdma_ring_state *ring_state;
++	struct pvrdma_page_dir pdir;
++	u32 cq_handle;
++	bool is_kernel;
++	atomic_t refcnt;
++	wait_queue_head_t wait;
 +};
 +
-+enum pvrdma_wc_opcode {
-+	PVRDMA_WC_SEND,
-+	PVRDMA_WC_RDMA_WRITE,
-+	PVRDMA_WC_RDMA_READ,
-+	PVRDMA_WC_COMP_SWAP,
-+	PVRDMA_WC_FETCH_ADD,
-+	PVRDMA_WC_BIND_MW,
-+	PVRDMA_WC_LSO,
-+	PVRDMA_WC_LOCAL_INV,
-+	PVRDMA_WC_FAST_REG_MR,
-+	PVRDMA_WC_MASKED_COMP_SWAP,
-+	PVRDMA_WC_MASKED_FETCH_ADD,
-+	PVRDMA_WC_RECV = 1 << 7,
-+	PVRDMA_WC_RECV_RDMA_WITH_IMM,
++struct pvrdma_id_table {
++	u32 last;
++	u32 top;
++	u32 max;
++	u32 mask;
++	spinlock_t lock; /* Table lock. */
++	unsigned long *table;
 +};
 +
-+enum pvrdma_wc_flags {
-+	PVRDMA_WC_GRH			= 1 << 0,
-+	PVRDMA_WC_WITH_IMM		= 1 << 1,
-+	PVRDMA_WC_WITH_INVALIDATE	= 1 << 2,
-+	PVRDMA_WC_IP_CSUM_OK		= 1 << 3,
-+	PVRDMA_WC_WITH_SMAC		= 1 << 4,
-+	PVRDMA_WC_WITH_VLAN		= 1 << 5,
-+	PVRDMA_WC_FLAGS_MAX		= PVRDMA_WC_WITH_VLAN,
++struct pvrdma_uar_map {
++	unsigned long pfn;
++	void __iomem *map;
++	int index;
 +};
 +
-+struct pvrdma_alloc_ucontext_resp {
-+	__u32 qp_tab_size;
-+	__u32 reserved;
++struct pvrdma_uar_table {
++	struct pvrdma_id_table tbl;
++	int size;
 +};
 +
-+struct pvrdma_alloc_pd_resp {
-+	__u32 pdn;
-+	__u32 reserved;
++struct pvrdma_ucontext {
++	struct ib_ucontext ibucontext;
++	struct pvrdma_dev *dev;
++	struct pvrdma_uar_map uar;
++	u64 ctx_handle;
 +};
 +
-+struct pvrdma_create_cq {
-+	__u64 buf_addr;
-+	__u32 buf_size;
-+	__u32 reserved;
++struct pvrdma_pd {
++	struct ib_pd ibpd;
++	u32 pdn;
++	u32 pd_handle;
++	int privileged;
 +};
 +
-+struct pvrdma_create_cq_resp {
-+	__u32 cqn;
-+	__u32 reserved;
++struct pvrdma_mr {
++	u32 mr_handle;
++	u64 iova;
++	u64 size;
 +};
 +
-+struct pvrdma_resize_cq {
-+	__u64 buf_addr;
-+	__u32 buf_size;
-+	__u32 reserved;
++struct pvrdma_user_mr {
++	struct ib_mr ibmr;
++	struct ib_umem *umem;
++	struct pvrdma_mr mmr;
++	struct pvrdma_page_dir pdir;
++	u64 *pages;
++	u32 npages;
++	u32 max_pages;
++	u32 page_shift;
 +};
 +
-+struct pvrdma_create_srq {
-+	__u64 buf_addr;
++struct pvrdma_wq {
++	struct pvrdma_ring *ring;
++	spinlock_t lock; /* Work queue lock. */
++	int wqe_cnt;
++	int wqe_size;
++	int max_sg;
++	int offset;
 +};
 +
-+struct pvrdma_create_srq_resp {
-+	__u32 srqn;
-+	__u32 reserved;
++struct pvrdma_ah {
++	struct ib_ah ibah;
++	struct pvrdma_av av;
 +};
 +
-+struct pvrdma_create_qp {
-+	__u64 rbuf_addr;
-+	__u64 sbuf_addr;
-+	__u32 rbuf_size;
-+	__u32 sbuf_size;
-+	__u64 qp_addr;
++struct pvrdma_qp {
++	struct ib_qp ibqp;
++	u32 qp_handle;
++	u32 qkey;
++	struct pvrdma_wq sq;
++	struct pvrdma_wq rq;
++	struct ib_umem *rumem;
++	struct ib_umem *sumem;
++	struct pvrdma_page_dir pdir;
++	int npages;
++	int npages_send;
++	int npages_recv;
++	u32 flags;
++	u8 port;
++	u8 state;
++	bool is_kernel;
++	struct mutex mutex; /* QP state mutex. */
++	atomic_t refcnt;
++	wait_queue_head_t wait;
 +};
 +
-+/* PVRDMA masked atomic compare and swap */
-+struct pvrdma_ex_cmp_swap {
-+	__u64 swap_val;
-+	__u64 compare_val;
-+	__u64 swap_mask;
-+	__u64 compare_mask;
++struct pvrdma_dev {
++	/* PCI device-related information. */
++	struct ib_device ib_dev;
++	struct pci_dev *pdev;
++	void __iomem *regs;
++	struct pvrdma_device_shared_region *dsr; /* Shared region pointer */
++	dma_addr_t dsrbase; /* Shared region base address */
++	void *cmd_slot;
++	void *resp_slot;
++	unsigned long flags;
++	struct list_head device_link;
++
++	/* Locking and interrupt information. */
++	spinlock_t cmd_lock; /* Command lock. */
++	struct semaphore cmd_sema;
++	struct completion cmd_done;
++	struct {
++		enum pvrdma_intr_type type; /* Intr type */
++		struct msix_entry msix_entry[PVRDMA_MAX_INTERRUPTS];
++		irq_handler_t handler[PVRDMA_MAX_INTERRUPTS];
++		u8 enabled[PVRDMA_MAX_INTERRUPTS];
++		u8 size;
++	} intr;
++
++	/* RDMA-related device information. */
++	union ib_gid *sgid_tbl;
++	struct pvrdma_ring_state *async_ring_state;
++	struct pvrdma_page_dir async_pdir;
++	struct pvrdma_ring_state *cq_ring_state;
++	struct pvrdma_page_dir cq_pdir;
++	struct pvrdma_cq **cq_tbl;
++	spinlock_t cq_tbl_lock;
++	struct pvrdma_qp **qp_tbl;
++	spinlock_t qp_tbl_lock;
++	struct pvrdma_uar_table uar_table;
++	struct pvrdma_uar_map driver_uar;
++	__be64 sys_image_guid;
++	spinlock_t desc_lock; /* Device modification lock. */
++	u32 port_cap_mask;
++	struct mutex port_mutex; /* Port modification mutex. */
++	bool ib_active;
++	atomic_t num_qps;
++	atomic_t num_cqs;
++	atomic_t num_pds;
++	atomic_t num_ahs;
++
++	/* Network device information. */
++	struct net_device *netdev;
++	struct notifier_block nb_netdev;
 +};
 +
-+/* PVRDMA masked atomic fetch and add */
-+struct pvrdma_ex_fetch_add {
-+	__u64 add_val;
-+	__u64 field_boundary;
++struct pvrdma_netdevice_work {
++	struct work_struct work;
++	struct net_device *event_netdev;
++	unsigned long event;
 +};
 +
-+/* PVRDMA address vector. */
-+struct pvrdma_av {
-+	__u32 port_pd;
-+	__u32 sl_tclass_flowlabel;
-+	__u8 dgid[16];
-+	__u8 src_path_bits;
-+	__u8 gid_index;
-+	__u8 stat_rate;
-+	__u8 hop_limit;
-+	__u8 dmac[6];
-+	__u8 reserved[6];
-+};
++static inline struct pvrdma_dev *to_vdev(struct ib_device *ibdev)
++{
++	return container_of(ibdev, struct pvrdma_dev, ib_dev);
++}
 +
-+/* PVRDMA scatter/gather entry */
-+struct pvrdma_sge {
-+	__u64   addr;
-+	__u32   length;
-+	__u32   lkey;
-+};
++static inline struct
++pvrdma_ucontext *to_vucontext(struct ib_ucontext *ibucontext)
++{
++	return container_of(ibucontext, struct pvrdma_ucontext, ibucontext);
++}
 +
-+/* PVRDMA receive queue work request */
-+struct pvrdma_rq_wqe_hdr {
-+	__u64 wr_id;		/* wr id */
-+	__u32 num_sge;		/* size of s/g array */
-+	__u32 total_len;	/* reserved */
-+};
-+/* Use pvrdma_sge (ib_sge) for receive queue s/g array elements. */
++static inline struct pvrdma_pd *to_vpd(struct ib_pd *ibpd)
++{
++	return container_of(ibpd, struct pvrdma_pd, ibpd);
++}
 +
-+/* PVRDMA send queue work request */
-+struct pvrdma_sq_wqe_hdr {
-+	__u64 wr_id;		/* wr id */
-+	__u32 num_sge;		/* size of s/g array */
-+	__u32 total_len;	/* reserved */
-+	__u32 opcode;		/* operation type */
-+	__u32 send_flags;	/* wr flags */
-+	union {
-+		__u32 imm_data;
-+		__u32 invalidate_rkey;
-+	} ex;
-+	__u32 reserved;
-+	union {
-+		struct {
-+			__u64 remote_addr;
-+			__u32 rkey;
-+			__u8 reserved[4];
-+		} rdma;
-+		struct {
-+			__u64 remote_addr;
-+			__u64 compare_add;
-+			__u64 swap;
-+			__u32 rkey;
-+			__u32 reserved;
-+		} atomic;
-+		struct {
-+			__u64 remote_addr;
-+			__u32 log_arg_sz;
-+			__u32 rkey;
-+			union {
-+				struct pvrdma_ex_cmp_swap  cmp_swap;
-+				struct pvrdma_ex_fetch_add fetch_add;
-+			} wr_data;
-+		} masked_atomics;
-+		struct {
-+			__u64 iova_start;
-+			__u64 pl_pdir_dma;
-+			__u32 page_shift;
-+			__u32 page_list_len;
-+			__u32 length;
-+			__u32 access_flags;
-+			__u32 rkey;
-+		} fast_reg;
-+		struct {
-+			__u32 remote_qpn;
-+			__u32 remote_qkey;
-+			struct pvrdma_av av;
-+		} ud;
-+	} wr;
-+};
-+/* Use pvrdma_sge (ib_sge) for send queue s/g array elements. */
++static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
++{
++	return container_of(ibcq, struct pvrdma_cq, ibcq);
++}
 +
-+/* Completion queue element. */
-+struct pvrdma_cqe {
-+	__u64 wr_id;
-+	__u64 qp;
-+	__u32 opcode;
-+	__u32 status;
-+	__u32 byte_len;
-+	__u32 imm_data;
-+	__u32 src_qp;
-+	__u32 wc_flags;
-+	__u32 vendor_err;
-+	__u16 pkey_index;
-+	__u16 slid;
-+	__u8 sl;
-+	__u8 dlid_path_bits;
-+	__u8 port_num;
-+	__u8 smac[6];
-+	__u8 reserved2[7]; /* Pad to next power of 2 (64). */
-+};
++static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
++{
++	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
++}
 +
-+#endif /* __PVRDMA_ABI_H__ */
++static inline struct pvrdma_qp *to_vqp(struct ib_qp *ibqp)
++{
++	return container_of(ibqp, struct pvrdma_qp, ibqp);
++}
++
++static inline struct pvrdma_ah *to_vah(struct ib_ah *ibah)
++{
++	return container_of(ibah, struct pvrdma_ah, ibah);
++}
++
++static inline void pvrdma_write_reg(struct pvrdma_dev *dev, u32 reg, u32 val)
++{
++	writel(cpu_to_le32(val), dev->regs + reg);
++}
++
++static inline u32 pvrdma_read_reg(struct pvrdma_dev *dev, u32 reg)
++{
++	return le32_to_cpu(readl(dev->regs + reg));
++}
++
++static inline void pvrdma_write_uar_cq(struct pvrdma_dev *dev, u32 val)
++{
++	writel(cpu_to_le32(val), dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
++}
++
++static inline void pvrdma_write_uar_qp(struct pvrdma_dev *dev, u32 val)
++{
++	writel(cpu_to_le32(val), dev->driver_uar.map + PVRDMA_UAR_QP_OFFSET);
++}
++
++static inline void *pvrdma_page_dir_get_ptr(struct pvrdma_page_dir *pdir,
++					    u64 offset)
++{
++	return pdir->pages[offset / PAGE_SIZE] + (offset % PAGE_SIZE);
++}
++
++static inline enum pvrdma_mtu ib_mtu_to_pvrdma(enum ib_mtu mtu)
++{
++	return (enum pvrdma_mtu)mtu;
++}
++
++static inline enum ib_mtu pvrdma_mtu_to_ib(enum pvrdma_mtu mtu)
++{
++	return (enum ib_mtu)mtu;
++}
++
++static inline enum pvrdma_port_state ib_port_state_to_pvrdma(
++					enum ib_port_state state)
++{
++	return (enum pvrdma_port_state)state;
++}
++
++static inline enum ib_port_state pvrdma_port_state_to_ib(
++					enum pvrdma_port_state state)
++{
++	return (enum ib_port_state)state;
++}
++
++static inline int ib_port_cap_flags_to_pvrdma(int flags)
++{
++	return flags & PVRDMA_MASK(PVRDMA_PORT_CAP_FLAGS_MAX);
++}
++
++static inline int pvrdma_port_cap_flags_to_ib(int flags)
++{
++	return flags;
++}
++
++static inline enum pvrdma_port_width ib_port_width_to_pvrdma(
++					enum ib_port_width width)
++{
++	return (enum pvrdma_port_width)width;
++}
++
++static inline enum ib_port_width pvrdma_port_width_to_ib(
++					enum pvrdma_port_width width)
++{
++	return (enum ib_port_width)width;
++}
++
++static inline enum pvrdma_port_speed ib_port_speed_to_pvrdma(
++					enum ib_port_speed speed)
++{
++	return (enum pvrdma_port_speed)speed;
++}
++
++static inline enum ib_port_speed pvrdma_port_speed_to_ib(
++					enum pvrdma_port_speed speed)
++{
++	return (enum ib_port_speed)speed;
++}
++
++static inline int pvrdma_qp_attr_mask_to_ib(int attr_mask)
++{
++	return attr_mask;
++}
++
++static inline int ib_qp_attr_mask_to_pvrdma(int attr_mask)
++{
++	return attr_mask & PVRDMA_MASK(PVRDMA_QP_ATTR_MASK_MAX);
++}
++
++static inline enum pvrdma_mig_state ib_mig_state_to_pvrdma(
++					enum ib_mig_state state)
++{
++	return (enum pvrdma_mig_state)state;
++}
++
++static inline enum ib_mig_state pvrdma_mig_state_to_ib(
++					enum pvrdma_mig_state state)
++{
++	return (enum ib_mig_state)state;
++}
++
++static inline int ib_access_flags_to_pvrdma(int flags)
++{
++	return flags;
++}
++
++static inline int pvrdma_access_flags_to_ib(int flags)
++{
++	return flags & PVRDMA_MASK(PVRDMA_ACCESS_FLAGS_MAX);
++}
++
++static inline enum pvrdma_qp_type ib_qp_type_to_pvrdma(enum ib_qp_type type)
++{
++	return (enum pvrdma_qp_type)type;
++}
++
++static inline enum ib_qp_type pvrdma_qp_type_to_ib(enum pvrdma_qp_type type)
++{
++	return (enum ib_qp_type)type;
++}
++
++static inline enum pvrdma_qp_state ib_qp_state_to_pvrdma(enum ib_qp_state state)
++{
++	return (enum pvrdma_qp_state)state;
++}
++
++static inline enum ib_qp_state pvrdma_qp_state_to_ib(enum pvrdma_qp_state state)
++{
++	return (enum ib_qp_state)state;
++}
++
++static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opcode op)
++{
++	return (enum pvrdma_wr_opcode)op;
++}
++
++static inline enum ib_wc_status pvrdma_wc_status_to_ib(
++					enum pvrdma_wc_status status)
++{
++	return (enum ib_wc_status)status;
++}
++
++static inline int pvrdma_wc_opcode_to_ib(int opcode)
++{
++	return opcode;
++}
++
++static inline int pvrdma_wc_flags_to_ib(int flags)
++{
++	return flags;
++}
++
++static inline int ib_send_flags_to_pvrdma(int flags)
++{
++	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
++}
++
++void pvrdma_qp_cap_to_ib(struct ib_qp_cap *dst,
++			 const struct pvrdma_qp_cap *src);
++void ib_qp_cap_to_pvrdma(struct pvrdma_qp_cap *dst,
++			 const struct ib_qp_cap *src);
++void pvrdma_gid_to_ib(union ib_gid *dst, const union pvrdma_gid *src);
++void ib_gid_to_pvrdma(union pvrdma_gid *dst, const union ib_gid *src);
++void pvrdma_global_route_to_ib(struct ib_global_route *dst,
++			       const struct pvrdma_global_route *src);
++void ib_global_route_to_pvrdma(struct pvrdma_global_route *dst,
++			       const struct ib_global_route *src);
++void pvrdma_ah_attr_to_ib(struct ib_ah_attr *dst,
++			  const struct pvrdma_ah_attr *src);
++void ib_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
++			  const struct ib_ah_attr *src);
++
++int pvrdma_uar_table_init(struct pvrdma_dev *dev);
++void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
++
++int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
++void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
++
++void _pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq);
++
++int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct pvrdma_page_dir *pdir,
++			 u64 npages, bool alloc_pages);
++void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
++			     struct pvrdma_page_dir *pdir);
++int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
++			       dma_addr_t daddr);
++int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
++				struct ib_umem *umem, u64 offset);
++dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir, u64 idx);
++int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
++				     u64 *page_list, int num_pages);
++
++int pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
++		    union pvrdma_cmd_resp *rsp, unsigned resp_code);
++
++#endif /* __PVRDMA_H__ */
 -- 
 2.7.4
 
