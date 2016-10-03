@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 04/16] IB/pvrdma: Add the paravirtual RDMA device specification
-Date: Sun, 2 Oct 2016 19:10:24 -0700
-Message-ID: <91c11ca3f020a5be2621f03c294a02044ccfce7c.1475458407.git.aditr@vmware.com>
+Subject: [PATCH v6 11/16] IB/pvrdma: Add support for memory regions
+Date: Sun, 2 Oct 2016 19:10:31 -0700
+Message-ID: <c10297a752ab7a038c14067f27ff2a3cae476413.1475458407.git.aditr@vmware.com>
 References: <cover.1475458407.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,9 +12,9 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch describes the main specification of the underlying virtual RDMA
-device. The pvrdma_dev_api header file defines the Verbs commands and
-their parameters that can be issued to the device backend.
+This patch adds support for creating and destroying memory regions. The
+PVRDMA device supports User MRs, DMA MRs (no Remote Read/Write support),
+Fast Register MRs.
 
 Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -23,32 +23,27 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
-Changes v5->v6:
- - Removed the pvrdma_defs.h file. The contents of that are placed in the
-   pvrdma_dev_api header file.
- - Removed include of pvrdma_ib_verbs.h.
-
 Changes v4->v5:
- - Update include for headers moved to UAPI.
- - Removed __ prefix for unsigned vars.
+ - Check the access flags correctly for DMA MR.
+ - Update to pvrdma_cmd_post for creating/destroying MRs.
 
 Changes v3->v4:
- - Removed explicit enum values.
+ - Changed access flag check for DMA MR to using bit operation.
+ - Removed some local variables.
 
 Changes v2->v3:
- - Defined 9 and 18 for page directory.
- - Stripped spaces in some comments.
+ - Removed boolean in pvrdma_cmd_post.
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h | 586 ++++++++++++++++++++++++++
- 1 file changed, 586 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h
+ drivers/infiniband/hw/pvrdma/pvrdma_mr.c | 334 +++++++++++++++++++++++++++++++
+ 1 file changed, 334 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_mr.c
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_mr.c b/drivers/infiniband/hw/pvrdma/pvrdma_mr.c
 new file mode 100644
-index 0000000..c067686
+index 0000000..8519f32
 --- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h
-@@ -0,0 +1,586 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+@@ -0,0 +1,334 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -94,547 +89,295 @@ index 0000000..c067686
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#ifndef __PVRDMA_DEV_API_H__
-+#define __PVRDMA_DEV_API_H__
++#include <linux/list.h>
++#include <linux/slab.h>
 +
-+#include <linux/types.h>
++#include "pvrdma.h"
 +
-+#include "pvrdma_verbs.h"
-+
-+#define PVRDMA_VERSION			17
-+#define PVRDMA_BOARD_ID			1
-+#define PVRDMA_REV_ID			1
-+
-+/*
-+ * Masks and accessors for page directory, which is a two-level lookup:
-+ * page directory -> page table -> page. Only one directory for now, but we
-+ * could expand that easily. 9 bits for tables, 9 bits for pages, gives one
-+ * gigabyte for memory regions and so forth.
++/**
++ * pvrdma_get_dma_mr - get a DMA memory region
++ * @pd: protection domain
++ * @acc: access flags
++ *
++ * @return: ib_mr pointer on success, otherwise returns an errno.
 + */
++struct ib_mr *pvrdma_get_dma_mr(struct ib_pd *pd, int acc)
++{
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_user_mr *mr;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
++	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
++	int ret;
 +
-+#define PVRDMA_PDIR_SHIFT		18
-+#define PVRDMA_PTABLE_SHIFT		9
-+#define PVRDMA_PAGE_DIR_DIR(x)		(((x) >> PVRDMA_PDIR_SHIFT) & 0x1)
-+#define PVRDMA_PAGE_DIR_TABLE(x)	(((x) >> PVRDMA_PTABLE_SHIFT) & 0x1ff)
-+#define PVRDMA_PAGE_DIR_PAGE(x)		((x) & 0x1ff)
-+#define PVRDMA_PAGE_DIR_MAX_PAGES	(1 * 512 * 512)
-+#define PVRDMA_MAX_FAST_REG_PAGES	128
++	/* Support only LOCAL_WRITE flag for DMA MRs */
++	if (acc & ~IB_ACCESS_LOCAL_WRITE) {
++		dev_warn(&dev->pdev->dev,
++			 "unsupported dma mr access flags %#x\n", acc);
++		return ERR_PTR(-EOPNOTSUPP);
++	}
 +
-+/*
-+ * Max MSI-X vectors.
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->access_flags = acc;
++	cmd->flags = PVRDMA_MR_FLAG_DMA;
++
++	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_MR_RESP);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev,
++			 "could not get DMA mem region, error: %d\n", ret);
++		kfree(mr);
++		return ERR_PTR(ret);
++	}
++
++	mr->mmr.mr_handle = resp->mr_handle;
++	mr->ibmr.lkey = resp->lkey;
++	mr->ibmr.rkey = resp->rkey;
++
++	return &mr->ibmr;
++}
++
++/**
++ * pvrdma_reg_user_mr - register a userspace memory region
++ * @pd: protection domain
++ * @start: starting address
++ * @length: length of region
++ * @virt_addr: I/O virtual address
++ * @access_flags: access flags for memory region
++ * @udata: user data
++ *
++ * @return: ib_mr pointer on success, otherwise returns an errno.
 + */
++struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
++				 u64 virt_addr, int access_flags,
++				 struct ib_udata *udata)
++{
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_user_mr *mr = NULL;
++	struct ib_umem *umem;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
++	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
++	int nchunks;
++	int ret;
++	int entry;
++	struct scatterlist *sg;
 +
-+#define PVRDMA_MAX_INTERRUPTS	3
++	if (length == 0 || length > dev->dsr->caps.max_mr_size) {
++		dev_warn(&dev->pdev->dev, "invalid mem region length\n");
++		return ERR_PTR(-EINVAL);
++	}
 +
-+/* Register offsets within PCI resource on BAR1. */
-+#define PVRDMA_REG_VERSION	0x00	/* R: Version of device. */
-+#define PVRDMA_REG_DSRLOW	0x04	/* W: Device shared region low PA. */
-+#define PVRDMA_REG_DSRHIGH	0x08	/* W: Device shared region high PA. */
-+#define PVRDMA_REG_CTL		0x0c	/* W: PVRDMA_DEVICE_CTL */
-+#define PVRDMA_REG_REQUEST	0x10	/* W: Indicate device request. */
-+#define PVRDMA_REG_ERR		0x14	/* R: Device error. */
-+#define PVRDMA_REG_ICR		0x18	/* R: Interrupt cause. */
-+#define PVRDMA_REG_IMR		0x1c	/* R/W: Interrupt mask. */
-+#define PVRDMA_REG_MACL		0x20	/* R/W: MAC address low. */
-+#define PVRDMA_REG_MACH		0x24	/* R/W: MAC address high. */
++	umem = ib_umem_get(pd->uobject->context, start,
++			   length, access_flags, 0);
++	if (IS_ERR(umem)) {
++		dev_warn(&dev->pdev->dev,
++			 "could not get umem for mem region\n");
++		return ERR_CAST(umem);
++	}
 +
-+/* Object flags. */
-+#define PVRDMA_CQ_FLAG_ARMED_SOL	BIT(0)	/* Armed for solicited-only. */
-+#define PVRDMA_CQ_FLAG_ARMED		BIT(1)	/* Armed. */
-+#define PVRDMA_MR_FLAG_DMA		BIT(0)	/* DMA region. */
-+#define PVRDMA_MR_FLAG_FRMR		BIT(1)	/* Fast reg memory region. */
++	nchunks = 0;
++	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry)
++		nchunks += sg_dma_len(sg) >> PAGE_SHIFT;
 +
-+/*
-+ * Atomic operation capability (masked versions are extended atomic
-+ * operations.
++	if (nchunks < 0 || nchunks > PVRDMA_PAGE_DIR_MAX_PAGES) {
++		dev_warn(&dev->pdev->dev, "overflow %d pages in mem region\n",
++			 nchunks);
++		ret = -EINVAL;
++		goto err_umem;
++	}
++
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr) {
++		ret = -ENOMEM;
++		goto err_umem;
++	}
++
++	mr->mmr.iova = virt_addr;
++	mr->mmr.size = length;
++	mr->umem = umem;
++
++	ret = pvrdma_page_dir_init(dev, &mr->pdir, nchunks, false);
++	if (ret) {
++		dev_warn(&dev->pdev->dev,
++			 "could not allocate page directory\n");
++		goto err_umem;
++	}
++
++	ret = pvrdma_page_dir_insert_umem(&mr->pdir, mr->umem, 0);
++	if (ret)
++		goto err_pdir;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
++	cmd->start = start;
++	cmd->length = length;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->access_flags = access_flags;
++	cmd->nchunks = nchunks;
++	cmd->pdir_dma = mr->pdir.dir_dma;
++
++	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_MR_RESP);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev,
++			 "could not register mem region, error: %d\n", ret);
++		goto err_pdir;
++	}
++
++	mr->mmr.mr_handle = resp->mr_handle;
++	mr->ibmr.lkey = resp->lkey;
++	mr->ibmr.rkey = resp->rkey;
++
++	return &mr->ibmr;
++
++err_pdir:
++	pvrdma_page_dir_cleanup(dev, &mr->pdir);
++err_umem:
++	ib_umem_release(umem);
++	kfree(mr);
++
++	return ERR_PTR(ret);
++}
++
++/**
++ * pvrdma_alloc_mr - allocate a memory region
++ * @pd: protection domain
++ * @mr_type: type of memory region
++ * @max_num_sg: maximum number of pages
++ *
++ * @return: ib_mr pointer on success, otherwise returns an errno.
 + */
++struct ib_mr *pvrdma_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
++			      u32 max_num_sg)
++{
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_user_mr *mr;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
++	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
++	int size = max_num_sg * sizeof(u64);
++	int ret;
 +
-+#define PVRDMA_ATOMIC_OP_COMP_SWAP	BIT(0)	/* Compare and swap. */
-+#define PVRDMA_ATOMIC_OP_FETCH_ADD	BIT(1)	/* Fetch and add. */
-+#define PVRDMA_ATOMIC_OP_MASK_COMP_SWAP	BIT(2)	/* Masked compare and swap. */
-+#define PVRDMA_ATOMIC_OP_MASK_FETCH_ADD	BIT(3)	/* Masked fetch and add. */
++	if (mr_type != IB_MR_TYPE_MEM_REG ||
++	    max_num_sg > PVRDMA_MAX_FAST_REG_PAGES)
++		return ERR_PTR(-EINVAL);
 +
-+/*
-+ * Base Memory Management Extension flags to support Fast Reg Memory Regions
-+ * and Fast Reg Work Requests. Each flag represents a verb operation and we
-+ * must support all of them to qualify for the BMME device cap.
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->pages = kzalloc(size, GFP_KERNEL);
++	if (!mr->pages) {
++		ret = -ENOMEM;
++		goto freemr;
++	}
++
++	ret = pvrdma_page_dir_init(dev, &mr->pdir, max_num_sg, false);
++	if (ret) {
++		dev_warn(&dev->pdev->dev,
++			 "failed to allocate page dir for mr\n");
++		ret = -ENOMEM;
++		goto freepages;
++	}
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->access_flags = 0;
++	cmd->flags = PVRDMA_MR_FLAG_FRMR;
++	cmd->nchunks = max_num_sg;
++
++	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_MR_RESP);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev,
++			 "could not create FR mem region, error: %d\n", ret);
++		goto freepdir;
++	}
++
++	mr->max_pages = max_num_sg;
++	mr->mmr.mr_handle = resp->mr_handle;
++	mr->ibmr.lkey = resp->lkey;
++	mr->ibmr.rkey = resp->rkey;
++	mr->page_shift = PAGE_SHIFT;
++	mr->umem = NULL;
++
++	return &mr->ibmr;
++
++freepdir:
++	pvrdma_page_dir_cleanup(dev, &mr->pdir);
++freepages:
++	kfree(mr->pages);
++freemr:
++	kfree(mr);
++	return ERR_PTR(ret);
++}
++
++/**
++ * pvrdma_dereg_mr - deregister a memory region
++ * @ibmr: memory region
++ *
++ * @return: 0 on success.
 + */
++int pvrdma_dereg_mr(struct ib_mr *ibmr)
++{
++	struct pvrdma_user_mr *mr = to_vmr(ibmr);
++	struct pvrdma_dev *dev = to_vdev(ibmr->device);
++	union pvrdma_cmd_req req;
++	struct pvrdma_cmd_destroy_mr *cmd = &req.destroy_mr;
++	int ret;
 +
-+#define PVRDMA_BMME_FLAG_LOCAL_INV	BIT(0)	/* Local Invalidate. */
-+#define PVRDMA_BMME_FLAG_REMOTE_INV	BIT(1)	/* Remote Invalidate. */
-+#define PVRDMA_BMME_FLAG_FAST_REG_WR	BIT(2)	/* Fast Reg Work Request. */
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_MR;
++	cmd->mr_handle = mr->mmr.mr_handle;
++	ret = pvrdma_cmd_post(dev, &req, NULL, 0);
++	if (ret < 0)
++		dev_warn(&dev->pdev->dev,
++			 "could not deregister mem region, error: %d\n", ret);
 +
-+/*
-+ * GID types. The interpretation of the gid_types bit field in the device
-+ * capabilities will depend on the device mode. For now, the device only
-+ * supports RoCE as mode, so only the different GID types for RoCE are
-+ * defined.
-+ */
++	pvrdma_page_dir_cleanup(dev, &mr->pdir);
++	if (mr->umem)
++		ib_umem_release(mr->umem);
 +
-+#define PVRDMA_GID_TYPE_FLAG_ROCE_V1	BIT(0)
-+#define PVRDMA_GID_TYPE_FLAG_ROCE_V2	BIT(1)
++	kfree(mr->pages);
++	kfree(mr);
 +
-+enum pvrdma_pci_resource {
-+	PVRDMA_PCI_RESOURCE_MSIX,	/* BAR0: MSI-X, MMIO. */
-+	PVRDMA_PCI_RESOURCE_REG,	/* BAR1: Registers, MMIO. */
-+	PVRDMA_PCI_RESOURCE_UAR,	/* BAR2: UAR pages, MMIO, 64-bit. */
-+	PVRDMA_PCI_RESOURCE_LAST,	/* Last. */
-+};
++	return 0;
++}
 +
-+enum pvrdma_device_ctl {
-+	PVRDMA_DEVICE_CTL_ACTIVATE,	/* Activate device. */
-+	PVRDMA_DEVICE_CTL_QUIESCE,	/* Quiesce device. */
-+	PVRDMA_DEVICE_CTL_RESET,	/* Reset device. */
-+};
++static int pvrdma_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct pvrdma_user_mr *mr = to_vmr(ibmr);
 +
-+enum pvrdma_intr_vector {
-+	PVRDMA_INTR_VECTOR_RESPONSE,	/* Command response. */
-+	PVRDMA_INTR_VECTOR_ASYNC,	/* Async events. */
-+	PVRDMA_INTR_VECTOR_CQ,		/* CQ notification. */
-+	/* Additional CQ notification vectors. */
-+};
++	if (mr->npages == mr->max_pages)
++		return -ENOMEM;
 +
-+enum pvrdma_intr_cause {
-+	PVRDMA_INTR_CAUSE_RESPONSE	= (1 << PVRDMA_INTR_VECTOR_RESPONSE),
-+	PVRDMA_INTR_CAUSE_ASYNC		= (1 << PVRDMA_INTR_VECTOR_ASYNC),
-+	PVRDMA_INTR_CAUSE_CQ		= (1 << PVRDMA_INTR_VECTOR_CQ),
-+};
++	mr->pages[mr->npages++] = addr;
++	return 0;
++}
 +
-+enum pvrdma_intr_type {
-+	PVRDMA_INTR_TYPE_INTX,		/* Legacy. */
-+	PVRDMA_INTR_TYPE_MSI,		/* MSI. */
-+	PVRDMA_INTR_TYPE_MSIX,		/* MSI-X. */
-+};
++int pvrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		     unsigned int *sg_offset)
++{
++	struct pvrdma_user_mr *mr = to_vmr(ibmr);
++	struct pvrdma_dev *dev = to_vdev(ibmr->device);
++	int ret;
 +
-+enum pvrdma_gos_bits {
-+	PVRDMA_GOS_BITS_UNK,		/* Unknown. */
-+	PVRDMA_GOS_BITS_32,		/* 32-bit. */
-+	PVRDMA_GOS_BITS_64,		/* 64-bit. */
-+};
++	mr->npages = 0;
 +
-+enum pvrdma_gos_type {
-+	PVRDMA_GOS_TYPE_UNK,		/* Unknown. */
-+	PVRDMA_GOS_TYPE_LINUX,		/* Linux. */
-+};
++	ret = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, pvrdma_set_page);
++	if (ret < 0)
++		dev_warn(&dev->pdev->dev, "could not map sg to pages\n");
 +
-+enum pvrdma_device_mode {
-+	PVRDMA_DEVICE_MODE_ROCE,	/* RoCE. */
-+	PVRDMA_DEVICE_MODE_IWARP,	/* iWarp. */
-+	PVRDMA_DEVICE_MODE_IB,		/* InfiniBand. */
-+};
-+
-+struct pvrdma_gos_info {
-+	u32 gos_bits:2;			/* W: PVRDMA_GOS_BITS_ */
-+	u32 gos_type:4;			/* W: PVRDMA_GOS_TYPE_ */
-+	u32 gos_ver:16;			/* W: Guest OS version. */
-+	u32 gos_misc:10;		/* W: Other. */
-+	u32 pad;			/* Pad to 8-byte alignment. */
-+};
-+
-+struct pvrdma_device_caps {
-+	u64 fw_ver;				/* R: Query device. */
-+	__be64 node_guid;
-+	__be64 sys_image_guid;
-+	u64 max_mr_size;
-+	u64 page_size_cap;
-+	u64 atomic_arg_sizes;			/* EX verbs. */
-+	u32 ex_comp_mask;			/* EX verbs. */
-+	u32 device_cap_flags2;			/* EX verbs. */
-+	u32 max_fa_bit_boundary;		/* EX verbs. */
-+	u32 log_max_atomic_inline_arg;		/* EX verbs. */
-+	u32 vendor_id;
-+	u32 vendor_part_id;
-+	u32 hw_ver;
-+	u32 max_qp;
-+	u32 max_qp_wr;
-+	u32 device_cap_flags;
-+	u32 max_sge;
-+	u32 max_sge_rd;
-+	u32 max_cq;
-+	u32 max_cqe;
-+	u32 max_mr;
-+	u32 max_pd;
-+	u32 max_qp_rd_atom;
-+	u32 max_ee_rd_atom;
-+	u32 max_res_rd_atom;
-+	u32 max_qp_init_rd_atom;
-+	u32 max_ee_init_rd_atom;
-+	u32 max_ee;
-+	u32 max_rdd;
-+	u32 max_mw;
-+	u32 max_raw_ipv6_qp;
-+	u32 max_raw_ethy_qp;
-+	u32 max_mcast_grp;
-+	u32 max_mcast_qp_attach;
-+	u32 max_total_mcast_qp_attach;
-+	u32 max_ah;
-+	u32 max_fmr;
-+	u32 max_map_per_fmr;
-+	u32 max_srq;
-+	u32 max_srq_wr;
-+	u32 max_srq_sge;
-+	u32 max_uar;
-+	u32 gid_tbl_len;
-+	u16 max_pkeys;
-+	u8  local_ca_ack_delay;
-+	u8  phys_port_cnt;
-+	u8  mode;				/* PVRDMA_DEVICE_MODE_ */
-+	u8  atomic_ops;				/* PVRDMA_ATOMIC_OP_* bits */
-+	u8  bmme_flags;				/* FRWR Mem Mgmt Extensions */
-+	u8  gid_types;				/* PVRDMA_GID_TYPE_FLAG_ */
-+	u8  reserved[4];
-+};
-+
-+struct pvrdma_ring_page_info {
-+	u32 num_pages;				/* Num pages incl. header. */
-+	u32 reserved;				/* Reserved. */
-+	u64 pdir_dma;				/* Page directory PA. */
-+};
-+
-+#pragma pack(push, 1)
-+
-+struct pvrdma_device_shared_region {
-+	u32 driver_version;			/* W: Driver version. */
-+	u32 pad;				/* Pad to 8-byte align. */
-+	struct pvrdma_gos_info gos_info;	/* W: Guest OS information. */
-+	u64 cmd_slot_dma;			/* W: Command slot address. */
-+	u64 resp_slot_dma;			/* W: Response slot address. */
-+	struct pvrdma_ring_page_info async_ring_pages;
-+						/* W: Async ring page info. */
-+	struct pvrdma_ring_page_info cq_ring_pages;
-+						/* W: CQ ring page info. */
-+	u32 uar_pfn;				/* W: UAR pageframe. */
-+	u32 pad2;				/* Pad to 8-byte align. */
-+	struct pvrdma_device_caps caps;		/* R: Device capabilities. */
-+};
-+
-+#pragma pack(pop)
-+
-+/* Event types. Currently a 1:1 mapping with enum ib_event. */
-+enum pvrdma_eqe_type {
-+	PVRDMA_EVENT_CQ_ERR,
-+	PVRDMA_EVENT_QP_FATAL,
-+	PVRDMA_EVENT_QP_REQ_ERR,
-+	PVRDMA_EVENT_QP_ACCESS_ERR,
-+	PVRDMA_EVENT_COMM_EST,
-+	PVRDMA_EVENT_SQ_DRAINED,
-+	PVRDMA_EVENT_PATH_MIG,
-+	PVRDMA_EVENT_PATH_MIG_ERR,
-+	PVRDMA_EVENT_DEVICE_FATAL,
-+	PVRDMA_EVENT_PORT_ACTIVE,
-+	PVRDMA_EVENT_PORT_ERR,
-+	PVRDMA_EVENT_LID_CHANGE,
-+	PVRDMA_EVENT_PKEY_CHANGE,
-+	PVRDMA_EVENT_SM_CHANGE,
-+	PVRDMA_EVENT_SRQ_ERR,
-+	PVRDMA_EVENT_SRQ_LIMIT_REACHED,
-+	PVRDMA_EVENT_QP_LAST_WQE_REACHED,
-+	PVRDMA_EVENT_CLIENT_REREGISTER,
-+	PVRDMA_EVENT_GID_CHANGE,
-+};
-+
-+/* Event queue element. */
-+struct pvrdma_eqe {
-+	u32 type;	/* Event type. */
-+	u32 info;	/* Handle, other. */
-+};
-+
-+/* CQ notification queue element. */
-+struct pvrdma_cqne {
-+	u32 info;	/* Handle */
-+};
-+
-+enum {
-+	PVRDMA_CMD_FIRST,
-+	PVRDMA_CMD_QUERY_PORT = PVRDMA_CMD_FIRST,
-+	PVRDMA_CMD_QUERY_PKEY,
-+	PVRDMA_CMD_CREATE_PD,
-+	PVRDMA_CMD_DESTROY_PD,
-+	PVRDMA_CMD_CREATE_MR,
-+	PVRDMA_CMD_DESTROY_MR,
-+	PVRDMA_CMD_CREATE_CQ,
-+	PVRDMA_CMD_RESIZE_CQ,
-+	PVRDMA_CMD_DESTROY_CQ,
-+	PVRDMA_CMD_CREATE_QP,
-+	PVRDMA_CMD_MODIFY_QP,
-+	PVRDMA_CMD_QUERY_QP,
-+	PVRDMA_CMD_DESTROY_QP,
-+	PVRDMA_CMD_CREATE_UC,
-+	PVRDMA_CMD_DESTROY_UC,
-+	PVRDMA_CMD_CREATE_BIND,
-+	PVRDMA_CMD_DESTROY_BIND,
-+	PVRDMA_CMD_MAX,
-+};
-+
-+enum {
-+	PVRDMA_CMD_FIRST_RESP = (1 << 31),
-+	PVRDMA_CMD_QUERY_PORT_RESP = PVRDMA_CMD_FIRST_RESP,
-+	PVRDMA_CMD_QUERY_PKEY_RESP,
-+	PVRDMA_CMD_CREATE_PD_RESP,
-+	PVRDMA_CMD_DESTROY_PD_RESP_NOOP,
-+	PVRDMA_CMD_CREATE_MR_RESP,
-+	PVRDMA_CMD_DESTROY_MR_RESP_NOOP,
-+	PVRDMA_CMD_CREATE_CQ_RESP,
-+	PVRDMA_CMD_RESIZE_CQ_RESP,
-+	PVRDMA_CMD_DESTROY_CQ_RESP_NOOP,
-+	PVRDMA_CMD_CREATE_QP_RESP,
-+	PVRDMA_CMD_MODIFY_QP_RESP,
-+	PVRDMA_CMD_QUERY_QP_RESP,
-+	PVRDMA_CMD_DESTROY_QP_RESP,
-+	PVRDMA_CMD_CREATE_UC_RESP,
-+	PVRDMA_CMD_DESTROY_UC_RESP_NOOP,
-+	PVRDMA_CMD_CREATE_BIND_RESP_NOOP,
-+	PVRDMA_CMD_DESTROY_BIND_RESP_NOOP,
-+	PVRDMA_CMD_MAX_RESP,
-+};
-+
-+struct pvrdma_cmd_hdr {
-+	u64 response;		/* Key for response lookup. */
-+	u32 cmd;		/* PVRDMA_CMD_ */
-+	u32 reserved;		/* Reserved. */
-+};
-+
-+struct pvrdma_cmd_resp_hdr {
-+	u64 response;		/* From cmd hdr. */
-+	u32 ack;		/* PVRDMA_CMD_XXX_RESP */
-+	u8 err;			/* Error. */
-+	u8 reserved[3];		/* Reserved. */
-+};
-+
-+struct pvrdma_cmd_query_port {
-+	struct pvrdma_cmd_hdr hdr;
-+	u8 port_num;
-+	u8 reserved[7];
-+};
-+
-+struct pvrdma_cmd_query_port_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	struct pvrdma_port_attr attrs;
-+};
-+
-+struct pvrdma_cmd_query_pkey {
-+	struct pvrdma_cmd_hdr hdr;
-+	u8 port_num;
-+	u8 index;
-+	u8 reserved[6];
-+};
-+
-+struct pvrdma_cmd_query_pkey_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u16 pkey;
-+	u8 reserved[6];
-+};
-+
-+struct pvrdma_cmd_create_uc {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 pfn; /* UAR page frame number */
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_uc_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 ctx_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_destroy_uc {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 ctx_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_pd {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 ctx_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_pd_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 pd_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_destroy_pd {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 pd_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_mr {
-+	struct pvrdma_cmd_hdr hdr;
-+	u64 start;
-+	u64 length;
-+	u64 pdir_dma;
-+	u32 pd_handle;
-+	u32 access_flags;
-+	u32 flags;
-+	u32 nchunks;
-+};
-+
-+struct pvrdma_cmd_create_mr_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 mr_handle;
-+	u32 lkey;
-+	u32 rkey;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_destroy_mr {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 mr_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_cq {
-+	struct pvrdma_cmd_hdr hdr;
-+	u64 pdir_dma;
-+	u32 ctx_handle;
-+	u32 cqe;
-+	u32 nchunks;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_cq_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 cq_handle;
-+	u32 cqe;
-+};
-+
-+struct pvrdma_cmd_resize_cq {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 cq_handle;
-+	u32 cqe;
-+};
-+
-+struct pvrdma_cmd_resize_cq_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 cqe;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_destroy_cq {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 cq_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_qp {
-+	struct pvrdma_cmd_hdr hdr;
-+	u64 pdir_dma;
-+	u32 pd_handle;
-+	u32 send_cq_handle;
-+	u32 recv_cq_handle;
-+	u32 srq_handle;
-+	u32 max_send_wr;
-+	u32 max_recv_wr;
-+	u32 max_send_sge;
-+	u32 max_recv_sge;
-+	u32 max_inline_data;
-+	u32 lkey;
-+	u32 access_flags;
-+	u16 total_chunks;
-+	u16 send_chunks;
-+	u16 max_atomic_arg;
-+	u8 sq_sig_all;
-+	u8 qp_type;
-+	u8 is_srq;
-+	u8 reserved[3];
-+};
-+
-+struct pvrdma_cmd_create_qp_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 qpn;
-+	u32 max_send_wr;
-+	u32 max_recv_wr;
-+	u32 max_send_sge;
-+	u32 max_recv_sge;
-+	u32 max_inline_data;
-+};
-+
-+struct pvrdma_cmd_modify_qp {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 qp_handle;
-+	u32 attr_mask;
-+	struct pvrdma_qp_attr attrs;
-+};
-+
-+struct pvrdma_cmd_query_qp {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 qp_handle;
-+	u32 attr_mask;
-+};
-+
-+struct pvrdma_cmd_query_qp_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	struct pvrdma_qp_attr attrs;
-+};
-+
-+struct pvrdma_cmd_destroy_qp {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 qp_handle;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_destroy_qp_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	u32 events_reported;
-+	u8 reserved[4];
-+};
-+
-+struct pvrdma_cmd_create_bind {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 mtu;
-+	u32 vlan;
-+	u32 index;
-+	u8 new_gid[16];
-+	u8 gid_type;
-+	u8 reserved[3];
-+};
-+
-+struct pvrdma_cmd_destroy_bind {
-+	struct pvrdma_cmd_hdr hdr;
-+	u32 index;
-+	u8 dest_gid[16];
-+	u8 reserved[4];
-+};
-+
-+union pvrdma_cmd_req {
-+	struct pvrdma_cmd_hdr hdr;
-+	struct pvrdma_cmd_query_port query_port;
-+	struct pvrdma_cmd_query_pkey query_pkey;
-+	struct pvrdma_cmd_create_uc create_uc;
-+	struct pvrdma_cmd_destroy_uc destroy_uc;
-+	struct pvrdma_cmd_create_pd create_pd;
-+	struct pvrdma_cmd_destroy_pd destroy_pd;
-+	struct pvrdma_cmd_create_mr create_mr;
-+	struct pvrdma_cmd_destroy_mr destroy_mr;
-+	struct pvrdma_cmd_create_cq create_cq;
-+	struct pvrdma_cmd_resize_cq resize_cq;
-+	struct pvrdma_cmd_destroy_cq destroy_cq;
-+	struct pvrdma_cmd_create_qp create_qp;
-+	struct pvrdma_cmd_modify_qp modify_qp;
-+	struct pvrdma_cmd_query_qp query_qp;
-+	struct pvrdma_cmd_destroy_qp destroy_qp;
-+	struct pvrdma_cmd_create_bind create_bind;
-+	struct pvrdma_cmd_destroy_bind destroy_bind;
-+};
-+
-+union pvrdma_cmd_resp {
-+	struct pvrdma_cmd_resp_hdr hdr;
-+	struct pvrdma_cmd_query_port_resp query_port_resp;
-+	struct pvrdma_cmd_query_pkey_resp query_pkey_resp;
-+	struct pvrdma_cmd_create_uc_resp create_uc_resp;
-+	struct pvrdma_cmd_create_pd_resp create_pd_resp;
-+	struct pvrdma_cmd_create_mr_resp create_mr_resp;
-+	struct pvrdma_cmd_create_cq_resp create_cq_resp;
-+	struct pvrdma_cmd_resize_cq_resp resize_cq_resp;
-+	struct pvrdma_cmd_create_qp_resp create_qp_resp;
-+	struct pvrdma_cmd_query_qp_resp query_qp_resp;
-+	struct pvrdma_cmd_destroy_qp_resp destroy_qp_resp;
-+};
-+
-+#endif /* __PVRDMA_DEV_API_H__ */
++	return ret;
++}
 -- 
 2.7.4
 
