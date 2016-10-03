@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 16/16] MAINTAINERS: Update for PVRDMA driver
-Date: Sun, 2 Oct 2016 19:10:36 -0700
-Message-ID: <60752c4ec2db73aa238b71d6c036fad9342ce44a.1475458407.git.aditr@vmware.com>
+Subject: [PATCH v6 14/16] IB/pvrdma: Add Kconfig and Makefile
+Date: Sun, 2 Oct 2016 19:10:34 -0700
+Message-ID: <5f568688d24515ae8e0dfb99aaf0c4e1ccc3dc3e.1475458407.git.aditr@vmware.com>
 References: <cover.1475458407.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,7 +12,7 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add maintainer info for the PVRDMA driver.
+This patch adds a Kconfig and Makefile for the PVRDMA driver.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -20,33 +20,37 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
-Changes v5->v6:
- - Removed maintainer info for pvrdma-abi.h.
-
-Changes v4->v5:
- - Added pvrdma files to common UAPI folder.
+Changes v3->v4:
+ - Enforced dependency on VMXNet3
 ---
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/infiniband/hw/pvrdma/Kconfig  | 7 +++++++
+ drivers/infiniband/hw/pvrdma/Makefile | 3 +++
+ 2 files changed, 10 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/pvrdma/Makefile
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 87e23cd..ff63d19 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12615,6 +12615,13 @@ S:	Maintained
- F:	drivers/scsi/vmw_pvscsi.c
- F:	drivers/scsi/vmw_pvscsi.h
- 
-+VMWARE PVRDMA DRIVER
-+M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-+M:	VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+S:	Maintained
-+F:	drivers/infiniband/hw/pvrdma/
+diff --git a/drivers/infiniband/hw/pvrdma/Kconfig b/drivers/infiniband/hw/pvrdma/Kconfig
+new file mode 100644
+index 0000000..b345679
+--- /dev/null
++++ b/drivers/infiniband/hw/pvrdma/Kconfig
+@@ -0,0 +1,7 @@
++config INFINIBAND_PVRDMA
++	tristate "VMware Paravirtualized RDMA Driver"
++	depends on NETDEVICES && ETHERNET && PCI && INET && VMXNET3
++	---help---
++	  This driver provides low-level support for VMware Paravirtual
++	  RDMA adapter. It interacts with the VMXNet3 driver to provide
++	  Ethernet capabilities.
+diff --git a/drivers/infiniband/hw/pvrdma/Makefile b/drivers/infiniband/hw/pvrdma/Makefile
+new file mode 100644
+index 0000000..e6f078b
+--- /dev/null
++++ b/drivers/infiniband/hw/pvrdma/Makefile
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_INFINIBAND_PVRDMA) += pvrdma.o
 +
- VOLTAGE AND CURRENT REGULATOR FRAMEWORK
- M:	Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
- M:	Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
++pvrdma-y := pvrdma_cmd.o pvrdma_cq.o pvrdma_doorbell.o pvrdma_main.o pvrdma_misc.o pvrdma_mr.o pvrdma_qp.o pvrdma_verbs.o
 -- 
 2.7.4
 
