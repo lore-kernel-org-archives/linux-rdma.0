@@ -1,103 +1,27 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RDMA developer gatherings around Kernel Summit and Linux
- Plumbers in Santa Fe
-Date: Tue, 4 Oct 2016 18:36:56 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E24EF39A6@CRSMSX101.amr.corp.intel.com>
-References: <alpine.DEB.2.20.1610040344500.11122@east.gentwo.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 0/7] qed*: Add qedr infrastructure support,Re:
+ [PATCH net-next 0/7] qed*: Add qedr infrastructure support
+Date: Tue, 04 Oct 2016 19:59:45 -0400 (EDT)
+Message-ID: <20161004.195945.1239283105752882824.davem@davemloft.net>
+References: <1475348401-31392-1-git-send-email-Yuval.Mintz@caviumnetworks.com>
+        <20161003.232446.1827173235395776859.davem@davemloft.net>
+        <ad89ec53-2355-e466-0ceb-92da51cc2a62@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1610040344500.11122-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <ad89ec53-2355-e466-0ceb-92da51cc2a62-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "shewa-YOWKrPYUwWM@public.gmane.org" <shewa-YOWKrPYUwWM@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Yuval.Mintz-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram.Amrani-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org, Michal.Kalderon-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org, Ariel.Elior-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Christoph,
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date: Tue, 4 Oct 2016 08:04:20 -0400
 
-I just want to be sure that the Tuesday session at LPC is located at the Community Convention Center:
+> Are you going to merge this in 4.9 or is this going into net-next?
 
-Sante Fe Community Convention Center
-201 W. Marcy Street
-Santa Fe, New Mexico 87501
-United States
-
-Or is that also at the Hilton?
-
-Thanks,
-Ira
-
-> -----Original Message-----
-> From: Christoph Lameter [mailto:cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org]
-> Sent: Tuesday, October 04, 2016 2:16 AM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>; Fleck, John <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>;
-> leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; skc-YOWKrPYUwWM@public.gmane.org;
-> shewa-YOWKrPYUwWM@public.gmane.org
-> Subject: RDMA developer gatherings around Kernel Summit and Linux
-> Plumbers in Santa Fe
-> 
-> We now have confirmation about the meetings related to the KS and LPC.
-> The events will be held at the:
-> 
-> 	Hilton Santa Fe
-> 	100 Sandoval St.
-> 	Santa Fe, NM 87501
-> 	Phone: (505)988-2811
-> 
-> We meet specifically on the subject matter of RDMA two days:
-> 
-> - RDMA workshop on Tuesday, 1st of November
-> 
-> 	Meeting in Sweeney B 9am till 5pm.
-> 	See
-> http://linuxplumbersconf.org/2016/ocw/events/LPC2016/tracks/609
-> 
-> 	This is part of the Kernel Summit and the Linux Plumbers
-> 	Conference. Only open to KS and LPC attendees with an invitation.
-> 
-> - RDMA Summit on Saturday the 5th of November
-> 
-> 	Meeting in the Canyon Ballroom 9am till 4pm.
-> 
-> 	This event is sponsored by the Open Fabrics Alliance and will be
-> 	open to all
-> 
-> 
-> We think the workshop could be focusing more on the technical topics (some
-> of which could be carried over to Saturday if necessary because we have
-> more time then. The "Summit" would also be including management issues,
-> long range plans and OFA related material. We will summarize what
-> happened on Tuesday for those who were not able to participate earlier.
-> 
-> Each day we thought we could cover 6 subjects. 3 in the morning 3 in the
-> afternoon.
-> 
-> Initial ideas for sessions:
-> 
-> Workshop:
-> 	- New ioctl ABI and issues related to that
-> 	- Consolidated libraries. Closer integration of librdmacm to
-> 		libibverbs etc.
-> 	- Using standard network tools/techniques for IB interfaces.
-> 	- Debuggability and tracing (also can standard tools help here?)
-> 	- State of Multicast support
-> 	- Containers and RDMA
-> 
-> Summit:
-> 	- Licensing (GPL vs. Dual licensed)
-> 	- Integration with other subsystems (GPUs, network, PCI etc ...)
-> 	- Roadmap and future of RDMA
-> 	- Leftover issues and TODO for consolidated library.
-> 	- Submission process for multi-subsystem drivers (f.e ROCE)
-> 
-> 
-> Feedback would be appreciated so that we can workout an agenda that is
-> useful for all participants.
-
+4.9, it will go into the pull request I send to Linus later today.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
