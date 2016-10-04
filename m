@@ -1,35 +1,41 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: RDMA developer gatherings around Kernel Summit and Linux Plumbers
- in Santa Fe
-Date: Tue, 4 Oct 2016 15:26:56 +0000
-Message-ID: <7BAAE610-98A0-47FC-993B-77401AA32F4A@ornl.gov>
-References: <alpine.DEB.2.20.1610040344500.11122@east.gentwo.org>
- <20161004124513.GA12483@infradead.org>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: iscsi_trx going into D state
+Date: Tue, 4 Oct 2016 10:39:27 -0600
+Message-ID: <CAANLjFp15z7+3FCzr2fqTf+FC7rboOGNq=DUE59tACaOfeO02g@mail.gmail.com>
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+ <20161004075545.j52mg3a2jckrchlp@linux-x5ow.site> <5cfc7eb8-c59d-4b7a-3dee-99e17d72f251@suse.de>
+ <20161004114642.GA2377@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161004124513.GA12483-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <283F2A6EA00A8940A2E682A59312AC73-1Heg1YXhbW8@public.gmane.org>
+In-Reply-To: <20161004114642.GA2377-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, "shewa-YOWKrPYUwWM@public.gmane.org" <shewa-YOWKrPYUwWM@public.gmane.org>
+Cc: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Oct 4, 2016, at 8:45 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
->=20
->> Summit:
->> 	- Licensing (GPL vs. Dual licensed)
->=20
-> So we're finally going to bring OFA in front of an anti-trust code
-> to bring down their silly Dual licensing requirement for their members.
-> Can't see any other reason why this would be brought up again, as they
-> obviously can't force anyone else under a dual licensing scheme
-> requirement for Linux code.
+Do you want me to try this patch or wait for some of the suggestions
+Christoph brought up to be Incorporated?
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
-What is the purpose of this comment?
 
+On Tue, Oct 4, 2016 at 5:46 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> On Tue, Oct 04, 2016 at 11:11:18AM +0200, Hannes Reinecke wrote:
+>> Hmm. Looking at the code it looks as we might miss some calls to
+>> 'complete'. Can you try with the attached patch?
+>
+> That only looks slightly better than the original.  What this really
+> needs is a waitqueue and and waitevent on sess->ncon.  Although
+> that will need a bit more refactoring around that code.  There also
+> are a few more ovbious issues around it, e.g. iscsit_close_connection
+> needs to use atomic_dec_and_test on sess->nconn instead of having
+> separate atomic_dec and atomic_read calls, and a lot of the 0 or 1
+> atomic_ts in this code should be replaced with atomic bitops.
+>
+> Btw, there also was a fix from Lee in this area that added a missing
+> wakeup, make sure your tree already has that.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
