@@ -1,33 +1,51 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ibacm: move Documentation to Documentation/
-Date: Mon, 3 Oct 2016 18:04:09 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB092424@ORSMSX109.amr.corp.intel.com>
-References: <1474677279-30407-1-git-send-email-hch@lst.de>
- <20161003143412.GA18210@infradead.org>
- <1828884A29C6694DAF28B7E6B8A82373AB092274@ORSMSX109.amr.corp.intel.com>
- <20161003163611.GA1496@lst.de> <20161003175257.GA9620@obsidianresearch.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 0/7] qed*: Add qedr infrastructure support
+Date: Mon, 03 Oct 2016 23:24:46 -0400 (EDT)
+Message-ID: <20161003.232446.1827173235395776859.davem@davemloft.net>
+References: <1475348401-31392-1-git-send-email-Yuval.Mintz@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161003175257.GA9620-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1475348401-31392-1-git-send-email-Yuval.Mintz@caviumnetworks.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yuval.Mintz@caviumnetworks.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Ram.Amrani@caviumnetworks.com, Michal.Kalderon@caviumnetworks.com, Ariel.Elior@caviumnetworks.com, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-> > > Who is merging patches that are submitted to the mailing list?
-> > > AFAIK, I don't have write access to the repo.
-> 
-> Doug and Leon - however I belive Leon is on a break right now.
-> 
-> Sean, do you want write access too?
+From: Yuval Mintz <Yuval.Mintz@caviumnetworks.com>
+Date: Sat, 1 Oct 2016 21:59:54 +0300
 
-Either way, really.  I could merge in changes to ibacm and librdmacm, but those haven't gotten many updates recently.  So, if Doug is already going to pull in mailing list patches for verbs, I'm fine with him pulling those changes in as well.
+> In the last couple of weeks we've been sending RFCs for the qedr
+> driver - the RoCE driver for QLogic FastLinQ 4xxxx line of adapters.
+> Latest RFC can be found at [1].
+> 
+> At Doug's advice [2], we've decided to split the series into two:
+>  - first part contains the qed backbone that's necessary for all the
+> configurations relating to the qedr driver, as well as the qede
+> infrastructure that is used for communication between the qedr and qede.
+>  - Second part consists of the actual qedr driver and introduces almost
+> no changes to qed/qede.
+> 
+> This is the first of said two parts. The second half would be sent
+> later this week.
+> 
+> The only 'oddity' in the devision are the Kconfig options - 
+> As this series introduces both LL2 and QEDR-based logic in qed/qede,
+> I wanted to add the CONFIG_INFINIBAND_QEDR option here [with default n].
+> Otherwise, a lot of the code introduced would be dead-code [won't even
+> be compiled] until qedr is accepted.
+> As a result I've placed the config option in an odd place - under
+> qlogic's Kconfig. The second series would then remove that option
+> and add it in its correct place under the infiniband Kconfig.
+> [I'm fine with pushing it there to begin with, but I didn't want to
+> 'contaminate' non-qlogic configuration files with half-baked options].
+> 
+> Dave - I don't think you were E-mailed with Doug's suggestion.
+> I think the notion was to have the two halves accepted side-by-side,
+> but actually the first has no dependency issues, so it's also
+> possible to simply take this first to net-next, and push the qedr
+> into rdma once it's merged. But it's basically up to you and Doug;
+> We'd align with whatever suits you best.
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll take this, series applied, thanks.
