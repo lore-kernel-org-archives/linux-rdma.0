@@ -1,52 +1,44 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH v2 4/7] blk-mq: Introduce blk_quiesce_queue() and
- blk_resume_queue()
-Date: Wed, 5 Oct 2016 22:10:41 +0300
-Message-ID: <732bf5d6-d7a8-6ff0-6501-8a3d46f12fab@grimberg.me>
-References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
- <a9eb4e95-6d77-e527-c42a-fd2e6f104bed@sandisk.com>
- <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
- <9fb67745-954c-a70f-a89a-d184c99ae9aa@sandisk.com>
- <CACVXFVMY19vuDjsECg2uX0_y_K7DUaaGqXPX9PYiBy5sfXmAEw@mail.gmail.com>
- <a11bb09a-6207-f4a8-cfd4-4fe5627c1700@sandisk.com>
- <09238e87-7d60-89c9-98b0-e51caa0c0839@grimberg.me>
- <6d612be9-7ba7-888e-f9c6-f8aa4ef1606a@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
+Date: Wed, 5 Oct 2016 13:12:29 -0600
+Message-ID: <20161005191229.GI18636@obsidianresearch.com>
+References: <20161005143054.4844-1-henry.orosco@intel.com>
+ <20161005153530.GA11148@flatif-MOBL1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <6d612be9-7ba7-888e-f9c6-f8aa4ef1606a@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>, Ming Lei <tom.leiming@gmail.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161005153530.GA11148@flatif-MOBL1>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Oct 05, 2016 at 10:35:30AM -0500, Faisal Latif wrote:
+> On Wed, Oct 05, 2016 at 07:30:54AM -0700, Henry Orosco wrote:
+> Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  MAINTAINERS | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index cc77b9a..32f535e 100644
+> > +++ b/MAINTAINERS
+> > @@ -6188,6 +6188,7 @@ R:     Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  R:     Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  R:     Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  R:     Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > +R:     Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  L:     linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >  S:     Supported
+> >  F:     drivers/infiniband/hw/i40iw/
+> 
+> Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
->>> Hello Ming,
->>>
->>> Can you have a look at the attached patch? That patch uses an srcu read
->>> lock for all queue types, whether or not the BLK_MQ_F_BLOCKING flag has
->>> been set. Additionally, I have dropped the QUEUE_FLAG_QUIESCING flag.
->>> Just like previous versions, this patch has been tested.
->>
->> Hey Bart,
->>
->> Do we care about the synchronization of queue_rq and/or
->> blk_mq_run_hw_queue of the hctx is not stopped?
->>
->> I'm wandering if we can avoid introducing new barriers in the
->> submission path of its not absolutely needed.
->
-> Hello Sagi,
+Are any of you going to continue supporting the user space component
+that now lives in rdma-core?
 
-Hey Bart,
-
->
-> I'm not sure whether the new blk_quiesce_queue() function is useful
-> without stopping all hardware contexts first. In other words, in my view
-> setting BLK_MQ_F_BLOCKING flag before calling blk_quiesce_queue() is
-> sufficient and I don't think that a new QUEUE_FLAG_QUIESCING flag is
-> necessary.
-
-I was referring to weather we can take srcu in the submission path
-conditional of the hctx being STOPPED?
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
