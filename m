@@ -1,63 +1,78 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 5 Oct 2016 14:22:57 +0300
-Message-ID: <20161005112257.GD9282@leon.nu>
-References: <20160911172445.GA25953@lst.de>
- <20160911175235.GB13442@obsidianresearch.com>
- <20160912050717.GE8812@leon.nu>
- <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
- <20160915185629.GF26069@leon.nu>
- <CAG53R5XBS0B5XaTzjKC3-zgoB2-fz2ctbk_E2YG76zBgzOfG-A@mail.gmail.com>
- <20160921142645.GB10734@htj.duckdns.org>
- <CAG53R5WMuojhzFGmqk6nHfypd9Hq4dGsWRKjtUyMZ=RezU-LhQ@mail.gmail.com>
- <CAG53R5VqQ6UzsuzcovsD+ufv3HaEQEbUpaf3kDo4zLOrAf__8A@mail.gmail.com>
- <20161005063735.GC3086@lst.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Add a .travis.yml file
+Date: Wed, 5 Oct 2016 14:51:32 +0300
+Message-ID: <20161005115132.GE9282@leon.nu>
+References: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IDYEmSnFhs3mNXr+"
-Return-path: <linux-doc-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="XuV1QlJbYrcVoo+x"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161005063735.GC3086@lst.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Parav Pandit <pandit.parav@gmail.com>, Tejun Heo <tj@kernel.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Matan Barak <matanb@mellanox.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+In-Reply-To: <1475105337-18002-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---IDYEmSnFhs3mNXr+
-Content-Type: text/plain; charset=us-ascii
+--XuV1QlJbYrcVoo+x
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 05, 2016 at 08:37:35AM +0200, Christoph Hellwig wrote:
-> FYI, the patches look fine to me:
+On Wed, Sep 28, 2016 at 05:28:57PM -0600, Jason Gunthorpe wrote:
+> Necessary to use the Travis CI service.
 >
-> Acked-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  .travis.yml | 28 ++++++++++++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+>  create mode 100644 .travis.yml
 >
-> but we're past the merge window for 4.9 now unfortunately.
+> Now that travis is enabled on repo, we need a yml file to make it run.
+>
+> Here is a basic one.
+>
+> I don't test with distros as old as precise and I don't expect that glibc=
+ to
+> be new enough to build this (eg missing timerfd, O_CLOEXEC, etc), and the
+> cmake certainly isn't. So we use the trusty 'beta' environment and install
+> gcc 6.2.
 
-IMHO, it still can make it.
+I'm using 16.04 and it has gcc 5.4.0 as a default. Don't you think that
+6.2 is too "new" for us and other distributions?
+
+=E2=9E=9C  linux-rdma git:(master) gcc --version
+gcc (Ubuntu 5.4.0-6ubuntu1~16.04.2) 5.4.0 20160609
+Copyright (C) 2015 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Thanks
 
---IDYEmSnFhs3mNXr+
+--XuV1QlJbYrcVoo+x
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX9OKRAAoJEORje4g2clinT0IP/2Zb3F5ORMYnGaJtiwLBRKdc
-euN/Oc348US1G45fpQs9QCXLNRtWxsAfgwgVayfaQ1W4+dACAlDWteDAFgfjMU3O
-Q9PQoxX9qDjraUdeTSCmnkNXpVxzhdXpUu+zdUAPdtlwZqU9v/h85p6a533knLBz
-RIlZr77CqKuzYl5BmadmgWttcrFtNwf+PXYs9lqlSDVLtnqo+enUoQHJ88VsX7bY
-djT8ObwZurTRnnhax+NZWyPYy8xxmpqtxV8a0tdUHXOPrPJ1i/to7hbCQs0ZBBLz
-8L54/RLP2Q1zYM//jd+hGgA+orX+PPTaCWx60VBdijgk4V9hkGqGZbF2k4nt5HHJ
-2PEDLxnpz2cNwO94RRBu+uL5bDfoqIL0XjmtRmx50Rua8+cQ9GRPxxhKeYxlxcw0
-Wj5CxiI8GD7a6vYoz9w3M7z7cgQf2/MYGNb/kB/rI8Kbuv9xsVyW4JqyLNq3gpNU
-eiP4kHLSwFC2oyzN17J9fEOG7tgLeL9Ew/Hyheo0RpEhM3BQPyndRzjOCNXhkX6F
-m9dYPP2u0OBJa5XqnRfk4FBNkLPz262/DMElOeRR5O7OrMI3d1LexyhzG33OYgt4
-vUUIex7XPU9sf3Ki5NPuauO21djhuQ3Xv/nKfH/QKeTb4nu61aFavzJdp72uUbcB
-bAOVRR1gmEltWtVAeEry
-=Ldqq
+iQIcBAEBAgAGBQJX9OlEAAoJEORje4g2clinZ3gP/iZolCQQP5OJTyypR7cX099c
+sCDf/J2unFDaR88dIW6Pvxv5ep9Hf/nbLVo960kj+1iSdM4Vccv6I5d5X+qsFdG+
+tW8UO1S0v0+TP5w81wdHgpKyjKVi3y1Oxba+wJd79v1uBPWiXkSQ1FVlOBymDDbi
+P1O8tSEo0pVeCMapcilua+X/z5TCCJ6WHoD4aSA+FaoTNjajy8XC1IBiZu38Ixg0
+bJVeWa0qIZg9LsYBsal7qQ+A08klzBw2zUrCRESwdKsjCDkXYNJJ+VkMNqVjKv6b
+ekBPNZqpPqg88qMuq5S/ddJGBBN6lcMrxtrWvwmzrYOaysPygXH45TOuz3WTRM4u
+mMJVGOqupYXHlG+hERekBZW4RYhXSGdJiu4ig+KVe3RZUhfS37jjVfpXNp4TnA6J
+DlQwpvWvpnebLrDRrszDs1GUZjjMAE9n8gnCC5yDc/V0uU+b1A0DTjcChib6OPdN
+l4lD7ME/1Mn57tflh/y9LJAYnrPkkJ7ooEWfbutISsu/mFmF06KfjmhvbP0NHQKz
+npYHtRNtaOJu9MRNqYnR1SZ8novdbUXFpI9F3zGq/RTGiF5XPbpO4Mh3xyN8SFZA
+kgL7sr49ouJyO7SN4ZwOio0vCvJN4/mdMU/5NElV8Sntu3rZ3fwU0eB0jLER5L8E
+1N+fuhKMgsXAYITnIjvL
+=bLwf
 -----END PGP SIGNATURE-----
 
---IDYEmSnFhs3mNXr+--
+--XuV1QlJbYrcVoo+x--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
