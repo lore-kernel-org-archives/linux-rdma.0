@@ -1,44 +1,42 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
-Date: Wed, 5 Oct 2016 18:16:45 +0300
-Message-ID: <fd7d47c8-6a06-6169-b840-abfbc239ad75@dev.mellanox.co.il>
-References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com>
- <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com>
- <20160929222802.GC27229@obsidianresearch.com>
- <F2C34CC4-5C7D-4382-873D-9E14B81A44B3@ogc.us>
- <20160930000800.GA7570@obsidianresearch.com>
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
+Date: Wed, 5 Oct 2016 10:35:30 -0500
+Message-ID: <20161005153530.GA11148@flatif-MOBL1>
+References: <20161005143054.4844-1-henry.orosco@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160930000800.GA7570-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161005143054.4844-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/30/2016 3:08 AM, Jason Gunthorpe wrote:
-> On Thu, Sep 29, 2016 at 06:46:02PM -0500, Steve Wise wrote:
->>> I added the comment because cxgb* was the only provider that seemed to
->>> be obviously byte swapping MMIO.
->>>
->>> Since htole32 is a NOP on x86 and ARM64 the driver would work fine
->>> with or without it. Do you know this driver works on big endian
->>> powerpc? That would help answer the question for sure.
->>
->> Yes, PowerPC and arm.
->
-> Okay great. Maybe Yishai can explain what mlx drivers are doing..
+On Wed, Oct 05, 2016 at 07:30:54AM -0700, Henry Orosco wrote:
+Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index cc77b9a..32f535e 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -6188,6 +6188,7 @@ R:     Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>  R:     Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>  R:     Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>  R:     Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> +R:     Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>  L:     linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>  S:     Supported
+>  F:     drivers/infiniband/hw/i40iw/
+> -- 
+> 2.8.3
 
-MLX drivers use BE format for QPN as part of writing a door bell in both 
-X86 and PPC BE as their NICs expect to get, code is certified to work 
-fine on both.
+Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Specifically,
-Upon QP creation the code uses htonl for setting qp->doorbell_qpn (see 
-mlx4_create_qp_ex), later on this value is used without any change upon 
-writing a door bell. (see mmio_writel). No PCI swap is expected.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
