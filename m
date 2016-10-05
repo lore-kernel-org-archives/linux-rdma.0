@@ -1,69 +1,76 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: RQ overflow seen running isert traffic
-Date: Wed, 5 Oct 2016 09:14:12 +0300
-Message-ID: <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me>
-References: <20160927070157.GA13140@chelsio.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ibacm: move Documentation to Documentation/
+Date: Wed, 5 Oct 2016 09:14:24 +0300
+Message-ID: <20161005061424.GB9282@leon.nu>
+References: <1474677279-30407-1-git-send-email-hch@lst.de>
+ <20161003143412.GA18210@infradead.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB092274@ORSMSX109.amr.corp.intel.com>
+ <20161003163611.GA1496@lst.de>
+ <20161003175257.GA9620@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB092424@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160927070157.GA13140@chelsio.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Potnuri Bharat Teja <bharat@chelsio.com>
-Cc: swise@opengridcomputing.com, target-devel@vger.kernel.org, nab@linux-iscsi.org, linux-rdma@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="xgyAXRrhYN0wYx8y"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB092424-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Hi Sagi,
+--xgyAXRrhYN0wYx8y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hey Baharat,
-
-Sorry for the late response, its the holiday
-season in Israel...
-
-> I've been trying to understand the isert functionality with respect to
-> RDMA Receive Queue sizing and Queue full handling. Here is the problem
-> is see with iw_cxgb4:
+On Mon, Oct 03, 2016 at 06:04:09PM +0000, Hefty, Sean wrote:
+> > > > Who is merging patches that are submitted to the mailing list?
+> > > > AFAIK, I don't have write access to the repo.
+> >
+> > Doug and Leon - however I belive Leon is on a break right now.
+> >
+> > Sean, do you want write access too?
 >
-> After running few minutes of iSER traffic with iw_cxgb4, I am seeing
-> post receive failures due to receive queue full returning -ENOMEM.
-> In case of iw_cxgb4 the RQ size is 130 with qp attribute max_recv_wr = 129,
-> passed down by isert to iw_cxgb4.isert decides on max_recv_wr as 129 based
-> on (ISERT_QP_MAX_RECV_DTOS = ISCSI_DEF_XMIT_CMDS_MAX = 128) + 1.
+> Either way, really.  I could merge in changes to ibacm and librdmacm, but those haven't gotten many updates recently.  So, if Doug is already going to pull in mailing list patches for verbs, I'm fine with him pulling those changes in as well.
 
-That's correct.
+I was OOO in last days and didn't handle anything :).
+
+In a day or two, I'll get an access to properly mark status
+of the patches in patchworks and will be more responsive.
+
+Thanks
 
 >
-> My debug suggests that at some point isert tries to post more than
-> 129 receive WRs into the RQ and fails as the queue is full already. From
-> the code most of the recv wr are posted only after a recieve completion,
-> but few datain operations(isert_put_datain()) are done independent of
-> receive completions.
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Interesting. I suspect that this issue haven't come up is that
-the devices I used to test with allocate the send/recv queues in
-the next power of 2 (which would be 256) which was enough to hide
-this I guess...
+--xgyAXRrhYN0wYx8y
+Content-Type: application/pgp-signature; name="signature.asc"
 
-We repost the recv buffer under the following conditions:
-1. We are queueing data + response (datain) or just response (dataout)
-and we are done with the recv buffer.
-2. We got a unsolicited dataout.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Can you please turn off unsolicited dataouts and see if this
-still happen? (InitialR2T=Yes)
+iQIcBAEBAgAGBQJX9Jo/AAoJEORje4g2clinDigP/3WHeuw6RL6NvfMncEIugZB9
+8eG4DU8mKJoMrEw7J9lECfsg53+ZW367Y8NjzOaAXP2i8t84S8p7oEMDrCTYrDtY
+F5YKSaODmqYEbNZMvojLtMMqNwWEwC/HNOKAcIoESJtKRW7aHPOHGnuF6WnMNS1K
+lu4j6KKKk3Fbm2Mt/rjDZ1HfMrBA7s72tQe/1PfagTSACaRXSw6nA8VAg1DI9Dfz
+2Q+Jg6Z0eNAFl32vF8q9rYfKB3VcGQKo9U7hXtH6Q2vXUiRwJsJPpUXjOKMDO0K2
+tvooGM14ek16tb0wUfeFuem/JajrC9cXljXKzvy4cR12tRhxZyCDklLsM34WuV/4
+Ifw/OdRqRStFMUbRRdpcLC9ETU3WVa+Mr+DDqGXlUUwKlg4bJp3Qxjqn2WJFh5Xg
+RYorK6p0Hz/eX9720OMtAMG9smYuWEw2dOgs7KOHuJwdGtrQzIkQXuGJw1PHR3BT
+VGv//8tMsRs2U1KrN8352l63nfhFYM5EIntDDU0b+X7tYCmC7ENkDE5PYpGbhanq
+BEsjSs9I9vqRt0N2BLEzlJI3w+mS3SkiGab1kUKi+A4N7d7lIblJze01+ObnDI0K
+w15EIYMNvW1739SeRtsVBG5RfyMeqH6JVQyJHcVn/4F69I8XgsvZ0ZIhYttLxGFh
+bdMYbUaetRHLhr/OtRlN
+=O2Or
+-----END PGP SIGNATURE-----
 
-> In fact the last WR failed to post in to RQ is from
-> isert_put_datain() through target_complete_ok_work(). CQ stats at the
-> time of failure shows the cq polled to empty.
-
-That is strange, each scsi command should trigger iscsit_queue_data_in
-just once. Can you provide evidence of a command that triggers it more
-than once?
-
-Another possible reason is that we somehow get to put_data_in and
-put_response for the same command (which we should never do because
-we handle the response in put_data_in).
-
-Thanks for reporting.
-Sagi.
+--xgyAXRrhYN0wYx8y--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
