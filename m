@@ -1,30 +1,33 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 3/7] [RFC] nvme: Use BLK_MQ_S_STOPPED instead of
- QUEUE_FLAG_STOPPED in blk-mq code
-Date: Wed, 5 Oct 2016 20:43:39 +0300
-Message-ID: <94f3c8ab-9f62-889b-78a0-93f32a20c4e0@grimberg.me>
-References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
- <9faa7607-eb3e-ce41-b09e-1e10492a5f45@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
+Date: Wed, 5 Oct 2016 11:44:49 -0600
+Message-ID: <20161005174449.GG18636@obsidianresearch.com>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com>
+ <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com>
+ <20160929222802.GC27229@obsidianresearch.com>
+ <F2C34CC4-5C7D-4382-873D-9E14B81A44B3@ogc.us>
+ <20160930000800.GA7570@obsidianresearch.com>
+ <fd7d47c8-6a06-6169-b840-abfbc239ad75@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9faa7607-eb3e-ce41-b09e-1e10492a5f45-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <fd7d47c8-6a06-6169-b840-abfbc239ad75-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Make nvme_requeue_req() check BLK_MQ_S_STOPPED instead of
-> QUEUE_FLAG_STOPPED. Remove the QUEUE_FLAG_STOPPED manipulations
-> that became superfluous because of this change. This patch fixes
-> a race condition: using queue_flag_clear_unlocked() is not safe
-> if any other function that manipulates the queue flags can be
-> called concurrently, e.g. blk_cleanup_queue(). Untested.
+On Wed, Oct 05, 2016 at 06:16:45PM +0300, Yishai Hadas wrote:
 
-This looks good to me, but I know keith had all sort of
-creative ways to challenge this are so I'd wait for his
-input...
+> Upon QP creation the code uses htonl for setting qp->doorbell_qpn (see
+> mlx4_create_qp_ex), later on this value is used without any change upon
+> writing a door bell. (see mmio_writel). No PCI swap is expected.
+
+Thanks, so the mlx drivers are doing what the kernel calls writel_be()?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
