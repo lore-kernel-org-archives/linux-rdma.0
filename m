@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH qedr 08/10] qedr: Add LL2 RoCE interface
-Date: Wed, 5 Oct 2016 18:48:01 +0300
-Message-ID: <1475682483-9878-9-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH qedr 10/10] qedr: Add events support and register IB device
+Date: Wed, 5 Oct 2016 18:48:03 +0300
+Message-ID: <1475682483-9878-11-git-send-email-Ram.Amrani@cavium.com>
 References: <1475682483-9878-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,80 +12,252 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add light L2 interface for RoCE.
+Add error handling support.
+Register ib device with ib stack.
 
 Signed-off-by: Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/main.c | 34 +++++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/qedr/qedr.h |  2 +-
- 2 files changed, 34 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/qedr/main.c  | 113 ++++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/qedr/verbs.c |  37 ++++++++++++
+ drivers/infiniband/hw/qedr/verbs.h |   9 +++
+ 3 files changed, 157 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 86c23d2..d423f72 100644
+index 306a393..2e12c19 100644
 --- a/drivers/infiniband/hw/qedr/main.c
 +++ b/drivers/infiniband/hw/qedr/main.c
-@@ -722,6 +722,38 @@ static void qedr_shutdown(struct qedr_dev *dev)
- 	qedr_remove(dev);
+@@ -79,10 +79,25 @@ static void qedr_get_dev_fw_str(struct ib_device *ibdev, char *str,
+ 		 (fw_ver >> 8) & 0xFF, fw_ver & 0xFF);
  }
  
-+static void qedr_mac_address_change(struct qedr_dev *dev)
++static struct net_device *qedr_get_netdev(struct ib_device *dev, u8 port_num)
 +{
-+	union ib_gid *sgid = &dev->sgid_tbl[0];
-+	u8 guid[8], mac_addr[6];
-+	int rc;
++	struct qedr_dev *qdev;
 +
-+	/* Update SGID */
-+	ether_addr_copy(&mac_addr[0], dev->ndev->dev_addr);
-+	guid[0] = mac_addr[0] ^ 2;
-+	guid[1] = mac_addr[1];
-+	guid[2] = mac_addr[2];
-+	guid[3] = 0xff;
-+	guid[4] = 0xfe;
-+	guid[5] = mac_addr[3];
-+	guid[6] = mac_addr[4];
-+	guid[7] = mac_addr[5];
-+	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
-+	memcpy(&sgid->raw[8], guid, sizeof(guid));
++	qdev = get_qedr_dev(dev);
++	dev_hold(qdev->ndev);
 +
-+	/* Update LL2 */
-+	rc = dev->ops->roce_ll2_set_mac_filter(dev->cdev,
-+					       dev->gsi_ll2_mac_address,
-+					       dev->ndev->dev_addr);
-+
-+	ether_addr_copy(dev->gsi_ll2_mac_address, dev->ndev->dev_addr);
-+
-+	qedr_ib_dispatch_event(dev, 1, IB_EVENT_GID_CHANGE);
-+
-+	if (rc)
-+		DP_ERR(dev, "Error updating mac filter\n");
++	/* The HW vendor's device driver must guarantee
++	 * that this function returns NULL before the net device reaches
++	 * NETDEV_UNREGISTER_FINAL state.
++	 */
++	return qdev->ndev;
 +}
 +
- /* event handling via NIC driver ensures that all the NIC specific
-  * initialization done before RoCE driver notifies
-  * event to stack.
-@@ -739,7 +771,7 @@ static void qedr_notify(struct qedr_dev *dev, enum qede_roce_event event)
- 		qedr_shutdown(dev);
- 		break;
- 	case QEDE_CHANGE_ADDR:
--		qedr_ib_dispatch_event(dev, 1, IB_EVENT_GID_CHANGE);
-+		qedr_mac_address_change(dev);
- 		break;
- 	default:
- 		pr_err("Event not supported\n");
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index a623663..9e282fe 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -147,7 +147,7 @@ struct qedr_dev {
- 	u8			dp_level;
- 	u8			num_hwfns;
- 	uint			wq_multiplier;
--
-+	u8			gsi_ll2_mac_address[ETH_ALEN];
- };
+ static int qedr_register_device(struct qedr_dev *dev)
+ {
+ 	strlcpy(dev->ibdev.name, "qedr%d", IB_DEVICE_NAME_MAX);
  
- #define QEDR_MAX_SQ_PBL			(0x8000)
++	dev->ibdev.node_guid = dev->attr.node_guid;
+ 	memcpy(dev->ibdev.node_desc, QEDR_NODE_DESC, sizeof(QEDR_NODE_DESC));
+ 	dev->ibdev.owner = THIS_MODULE;
+ 	dev->ibdev.uverbs_abi_ver = QEDR_ABI_VERSION;
+@@ -151,12 +166,16 @@ static int qedr_register_device(struct qedr_dev *dev)
+ 	dev->ibdev.post_send = qedr_post_send;
+ 	dev->ibdev.post_recv = qedr_post_recv;
+ 
++	dev->ibdev.process_mad = qedr_process_mad;
++	dev->ibdev.get_port_immutable = qedr_port_immutable;
++	dev->ibdev.get_netdev = qedr_get_netdev;
++
+ 	dev->ibdev.dma_device = &dev->pdev->dev;
+ 
+ 	dev->ibdev.get_link_layer = qedr_link_layer;
+ 	dev->ibdev.get_dev_fw_str = qedr_get_dev_fw_str;
+ 
+-	return 0;
++	return ib_register_device(&dev->ibdev, NULL);
+ }
+ 
+ /* This function allocates fast-path status block memory */
+@@ -554,6 +573,91 @@ static int qedr_set_device_attr(struct qedr_dev *dev)
+ 
+ 	return 0;
+ }
++void qedr_unaffiliated_event(void *context,
++			     u8 event_code)
++{
++	pr_err("unaffiliated event not implemented yet\n");
++}
++
++void qedr_affiliated_event(void *context, u8 e_code, void *fw_handle)
++{
++#define EVENT_TYPE_NOT_DEFINED	0
++#define EVENT_TYPE_CQ		1
++#define EVENT_TYPE_QP		2
++	struct qedr_dev *dev = (struct qedr_dev *)context;
++	union event_ring_data *data = fw_handle;
++	u64 roce_handle64 = ((u64)data->roce_handle.hi << 32) +
++			    data->roce_handle.lo;
++	u8 event_type = EVENT_TYPE_NOT_DEFINED;
++	struct ib_event event;
++	struct ib_cq *ibcq;
++	struct ib_qp *ibqp;
++	struct qedr_cq *cq;
++	struct qedr_qp *qp;
++
++	switch (e_code) {
++	case ROCE_ASYNC_EVENT_CQ_OVERFLOW_ERR:
++		event.event = IB_EVENT_CQ_ERR;
++		event_type = EVENT_TYPE_CQ;
++		break;
++	case ROCE_ASYNC_EVENT_SQ_DRAINED:
++		event.event = IB_EVENT_SQ_DRAINED;
++		event_type = EVENT_TYPE_QP;
++		break;
++	case ROCE_ASYNC_EVENT_QP_CATASTROPHIC_ERR:
++		event.event = IB_EVENT_QP_FATAL;
++		event_type = EVENT_TYPE_QP;
++		break;
++	case ROCE_ASYNC_EVENT_LOCAL_INVALID_REQUEST_ERR:
++		event.event = IB_EVENT_QP_REQ_ERR;
++		event_type = EVENT_TYPE_QP;
++		break;
++	case ROCE_ASYNC_EVENT_LOCAL_ACCESS_ERR:
++		event.event = IB_EVENT_QP_ACCESS_ERR;
++		event_type = EVENT_TYPE_QP;
++		break;
++	default:
++		DP_ERR(dev, "unsupported event %d on handle=%llx\n", e_code,
++		       roce_handle64);
++	}
++
++	switch (event_type) {
++	case EVENT_TYPE_CQ:
++		cq = (struct qedr_cq *)(uintptr_t)roce_handle64;
++		if (cq) {
++			ibcq = &cq->ibcq;
++			if (ibcq->event_handler) {
++				event.device = ibcq->device;
++				event.element.cq = ibcq;
++				ibcq->event_handler(&event, ibcq->cq_context);
++			}
++		} else {
++			WARN(1,
++			     "Error: CQ event with NULL pointer ibcq. Handle=%llx\n",
++			     roce_handle64);
++		}
++		DP_ERR(dev, "CQ event %d on hanlde %p\n", e_code, cq);
++		break;
++	case EVENT_TYPE_QP:
++		qp = (struct qedr_qp *)(uintptr_t)roce_handle64;
++		if (qp) {
++			ibqp = &qp->ibqp;
++			if (ibqp->event_handler) {
++				event.device = ibqp->device;
++				event.element.qp = ibqp;
++				ibqp->event_handler(&event, ibqp->qp_context);
++			}
++		} else {
++			WARN(1,
++			     "Error: QP event with NULL pointer ibqp. Handle=%llx\n",
++			     roce_handle64);
++		}
++		DP_ERR(dev, "QP event %d on hanlde %p\n", e_code, qp);
++		break;
++	default:
++		break;
++	}
++}
+ 
+ static int qedr_init_hw(struct qedr_dev *dev)
+ {
+@@ -583,6 +687,8 @@ static int qedr_init_hw(struct qedr_dev *dev)
+ 		cur_pbl->pbl_ptr = (u64)p_phys_table;
+ 	}
+ 
++	events.affiliated_event = qedr_affiliated_event;
++	events.unaffiliated_event = qedr_unaffiliated_event;
+ 	events.context = dev;
+ 
+ 	in_params->events = &events;
+@@ -681,11 +787,13 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(qedr_attributes); i++)
+ 		if (device_create_file(&dev->ibdev.dev, qedr_attributes[i]))
+-			goto reg_err;
++			goto sysfs_err;
+ 
+ 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr driver loaded successfully\n");
+ 	return dev;
+ 
++sysfs_err:
++	ib_unregister_device(&dev->ibdev);
+ reg_err:
+ 	qedr_sync_free_irqs(dev);
+ irq_err:
+@@ -705,6 +813,7 @@ static void qedr_remove(struct qedr_dev *dev)
+ 	 * of the registered clients.
+ 	 */
+ 	qedr_remove_sysfiles(dev);
++	ib_unregister_device(&dev->ibdev);
+ 
+ 	qedr_stop_hw(dev);
+ 	qedr_sync_free_irqs(dev);
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 378eafa..2bf6440 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -3513,3 +3513,40 @@ int qedr_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ 	spin_unlock_irqrestore(&cq->cq_lock, flags);
+ 	return done;
+ }
++
++int qedr_process_mad(struct ib_device *ibdev, int process_mad_flags,
++		     u8 port_num,
++		     const struct ib_wc *in_wc,
++		     const struct ib_grh *in_grh,
++		     const struct ib_mad_hdr *mad_hdr,
++		     size_t in_mad_size, struct ib_mad_hdr *out_mad,
++		     size_t *out_mad_size, u16 *out_mad_pkey_index)
++{
++	struct qedr_dev *dev = get_qedr_dev(ibdev);
++
++	DP_DEBUG(dev, QEDR_MSG_GSI,
++		 "QEDR_PROCESS_MAD in_mad %x %x %x %x %x %x %x %x\n",
++		 mad_hdr->attr_id, mad_hdr->base_version, mad_hdr->attr_mod,
++		 mad_hdr->class_specific, mad_hdr->class_version,
++		 mad_hdr->method, mad_hdr->mgmt_class, mad_hdr->status);
++	return IB_MAD_RESULT_SUCCESS;
++}
++
++int qedr_port_immutable(struct ib_device *ibdev, u8 port_num,
++			struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = qedr_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE |
++				    RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
++
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/qedr/verbs.h b/drivers/infiniband/hw/qedr/verbs.h
+index fbc6db5..a9b5e67 100644
+--- a/drivers/infiniband/hw/qedr/verbs.h
++++ b/drivers/infiniband/hw/qedr/verbs.h
+@@ -89,4 +89,13 @@ int qedr_post_send(struct ib_qp *, struct ib_send_wr *,
+ 		   struct ib_send_wr **bad_wr);
+ int qedr_post_recv(struct ib_qp *, struct ib_recv_wr *,
+ 		   struct ib_recv_wr **bad_wr);
++int qedr_process_mad(struct ib_device *ibdev, int process_mad_flags,
++		     u8 port_num, const struct ib_wc *in_wc,
++		     const struct ib_grh *in_grh,
++		     const struct ib_mad_hdr *in_mad,
++		     size_t in_mad_size, struct ib_mad_hdr *out_mad,
++		     size_t *out_mad_size, u16 *out_mad_pkey_index);
++
++int qedr_port_immutable(struct ib_device *ibdev, u8 port_num,
++			struct ib_port_immutable *immutable);
+ #endif
 -- 
 1.8.3.1
 
