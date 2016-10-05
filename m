@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH qedr 02/10] qedr: Add support for RoCE HW init
-Date: Wed, 5 Oct 2016 18:47:55 +0300
-Message-ID: <1475682483-9878-3-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH qedr 03/10] qedr: Add support for user context verbs
+Date: Wed, 5 Oct 2016 18:47:56 +0300
+Message-ID: <1475682483-9878-4-git-send-email-Ram.Amrani@cavium.com>
 References: <1475682483-9878-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,660 +12,601 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allocate and setup RoCE resources, interrupts and completion queues.
-Adds device attributes.
+Add support for ucontext, query port, add and del gid verbs.
 
 Signed-off-by: Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/main.c          | 418 ++++++++++++++++++++++++++++-
- drivers/infiniband/hw/qedr/qedr.h          | 123 +++++++++
- drivers/infiniband/hw/qedr/qedr_hsi.h      |  56 ++++
- drivers/infiniband/hw/qedr/qedr_hsi_rdma.h |  96 +++++++
- 4 files changed, 691 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi.h
- create mode 100644 drivers/infiniband/hw/qedr/qedr_hsi_rdma.h
+ drivers/infiniband/hw/qedr/Makefile |   2 +-
+ drivers/infiniband/hw/qedr/main.c   |  26 +++
+ drivers/infiniband/hw/qedr/qedr.h   |  34 +++
+ drivers/infiniband/hw/qedr/verbs.c  | 455 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/qedr/verbs.h  |  52 +++++
+ include/uapi/rdma/qedr-abi.h        |  53 +++++
+ 6 files changed, 621 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/hw/qedr/verbs.c
+ create mode 100644 drivers/infiniband/hw/qedr/verbs.h
+ create mode 100644 include/uapi/rdma/qedr-abi.h
 
+diff --git a/drivers/infiniband/hw/qedr/Makefile b/drivers/infiniband/hw/qedr/Makefile
+index 3a5b7a2..b10f2b1 100644
+--- a/drivers/infiniband/hw/qedr/Makefile
++++ b/drivers/infiniband/hw/qedr/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_INFINIBAND_QEDR) := qedr.o
+ 
+-qedr-y := main.o
++qedr-y := main.o verbs.o
 diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 7387d02..8d299bb 100644
+index 8d299bb..7c6d8a7 100644
 --- a/drivers/infiniband/hw/qedr/main.c
 +++ b/drivers/infiniband/hw/qedr/main.c
-@@ -36,6 +36,8 @@
+@@ -32,6 +32,7 @@
+ #include <linux/module.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/ib_user_verbs.h>
+ #include <linux/netdevice.h>
  #include <linux/iommu.h>
  #include <net/addrconf.h>
- #include <linux/qed/qede_roce.h>
-+#include <linux/qed/qed_chain.h>
-+#include <linux/qed/qed_if.h>
+@@ -39,6 +40,8 @@
+ #include <linux/qed/qed_chain.h>
+ #include <linux/qed/qed_if.h>
  #include "qedr.h"
++#include "verbs.h"
++#include <rdma/qedr-abi.h>
  
  MODULE_DESCRIPTION("QLogic 40G/100G ROCE Driver");
-@@ -61,6 +63,17 @@ static enum rdma_link_layer qedr_link_layer(struct ib_device *device,
- 	return IB_LINK_LAYER_ETHERNET;
- }
+ MODULE_AUTHOR("QLogic Corporation");
+@@ -80,6 +83,29 @@ static int qedr_register_device(struct qedr_dev *dev)
  
-+static void qedr_get_dev_fw_str(struct ib_device *ibdev, char *str,
-+				size_t str_len)
-+{
-+	struct qedr_dev *qedr = get_qedr_dev(ibdev);
-+	u32 fw_ver = (u32)qedr->attr.fw_ver;
-+
-+	snprintf(str, str_len, "%d. %d. %d. %d",
-+		 (fw_ver >> 24) & 0xFF, (fw_ver >> 16) & 0xFF,
-+		 (fw_ver >> 8) & 0xFF, fw_ver & 0xFF);
-+}
-+
- static int qedr_register_device(struct qedr_dev *dev)
- {
- 	strlcpy(dev->ibdev.name, "qedr%d", IB_DEVICE_NAME_MAX);
-@@ -69,10 +82,141 @@ static int qedr_register_device(struct qedr_dev *dev)
+ 	memcpy(dev->ibdev.node_desc, QEDR_NODE_DESC, sizeof(QEDR_NODE_DESC));
  	dev->ibdev.owner = THIS_MODULE;
++	dev->ibdev.uverbs_abi_ver = QEDR_ABI_VERSION;
++
++	dev->ibdev.uverbs_cmd_mask = QEDR_UVERBS(GET_CONTEXT) |
++				     QEDR_UVERBS(QUERY_DEVICE) |
++				     QEDR_UVERBS(QUERY_PORT);
++
++	dev->ibdev.phys_port_cnt = 1;
++	dev->ibdev.num_comp_vectors = dev->num_cnq;
++	dev->ibdev.node_type = RDMA_NODE_IB_CA;
++
++	dev->ibdev.query_device = qedr_query_device;
++	dev->ibdev.query_port = qedr_query_port;
++	dev->ibdev.modify_port = qedr_modify_port;
++
++	dev->ibdev.query_gid = qedr_query_gid;
++	dev->ibdev.add_gid = qedr_add_gid;
++	dev->ibdev.del_gid = qedr_del_gid;
++
++	dev->ibdev.alloc_ucontext = qedr_alloc_ucontext;
++	dev->ibdev.dealloc_ucontext = qedr_dealloc_ucontext;
++	dev->ibdev.mmap = qedr_mmap;
++
++	dev->ibdev.dma_device = &dev->pdev->dev;
  
  	dev->ibdev.get_link_layer = qedr_link_layer;
-+	dev->ibdev.get_dev_fw_str = qedr_get_dev_fw_str;
+ 	dev->ibdev.get_dev_fw_str = qedr_get_dev_fw_str;
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index 1adbebb..2091c0d 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -49,6 +49,7 @@
+ 		 DP_NAME(dev) ? DP_NAME(dev) : "", ## __VA_ARGS__)
  
- 	return 0;
- }
+ #define QEDR_MSG_INIT "INIT"
++#define QEDR_MSG_MISC "MISC"
  
-+/* This function allocates fast-path status block memory */
-+static int qedr_alloc_mem_sb(struct qedr_dev *dev,
-+			     struct qed_sb_info *sb_info, u16 sb_id)
+ struct qedr_dev;
+ 
+@@ -176,6 +177,39 @@ struct qedr_dev {
+ 
+ #define QEDR_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
+ 
++#define QEDR_ROCE_PKEY_MAX 1
++#define QEDR_ROCE_PKEY_TABLE_LEN 1
++#define QEDR_ROCE_PKEY_DEFAULT 0xffff
++
++struct qedr_ucontext {
++	struct ib_ucontext ibucontext;
++	struct qedr_dev *dev;
++	struct qedr_pd *pd;
++	u64 dpi_addr;
++	u64 dpi_phys_addr;
++	u32 dpi_size;
++	u16 dpi;
++
++	struct list_head mm_head;
++
++	/* Lock to protect mm list */
++	struct mutex mm_list_lock;
++};
++
++struct qedr_mm {
++	struct {
++		u64 phy_addr;
++		unsigned long len;
++	} key;
++	struct list_head entry;
++};
++
++static inline
++struct qedr_ucontext *get_qedr_ucontext(struct ib_ucontext *ibucontext)
 +{
-+	struct status_block *sb_virt;
-+	dma_addr_t sb_phys;
-+	int rc;
-+
-+	sb_virt = dma_alloc_coherent(&dev->pdev->dev,
-+				     sizeof(*sb_virt), &sb_phys, GFP_KERNEL);
-+	if (!sb_virt) {
-+		pr_err("Status block allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	rc = dev->ops->common->sb_init(dev->cdev, sb_info,
-+				       sb_virt, sb_phys, sb_id,
-+				       QED_SB_TYPE_CNQ);
-+	if (rc) {
-+		pr_err("Status block initialization failed\n");
-+		dma_free_coherent(&dev->pdev->dev, sizeof(*sb_virt),
-+				  sb_virt, sb_phys);
-+		return rc;
-+	}
-+
-+	return 0;
++	return container_of(ibucontext, struct qedr_ucontext, ibucontext);
 +}
 +
-+static void qedr_free_mem_sb(struct qedr_dev *dev,
-+			     struct qed_sb_info *sb_info, int sb_id)
+ static inline struct qedr_dev *get_qedr_dev(struct ib_device *ibdev)
+ {
+ 	return container_of(ibdev, struct qedr_dev, ibdev);
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+new file mode 100644
+index 0000000..ab5f11a
+--- /dev/null
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -0,0 +1,455 @@
++/* QLogic qedr NIC Driver
++ * Copyright (c) 2015-2016  QLogic Corporation
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and /or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++#include <linux/dma-mapping.h>
++#include <linux/crc32.h>
++#include <net/ip.h>
++#include <net/ipv6.h>
++#include <net/udp.h>
++#include <linux/iommu.h>
++
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_user_verbs.h>
++#include <rdma/iw_cm.h>
++#include <rdma/ib_umem.h>
++#include <rdma/ib_addr.h>
++#include <rdma/ib_cache.h>
++
++#include "qedr_hsi.h"
++#include <linux/qed/qed_if.h>
++#include "qedr.h"
++#include "verbs.h"
++#include <rdma/qedr-abi.h>
++
++int qedr_query_gid(struct ib_device *ibdev, u8 port, int index,
++		   union ib_gid *sgid)
 +{
-+	if (sb_info->sb_virt) {
-+		dev->ops->common->sb_release(dev->cdev, sb_info, sb_id);
-+		dma_free_coherent(&dev->pdev->dev, sizeof(*sb_info->sb_virt),
-+				  (void *)sb_info->sb_virt, sb_info->sb_phys);
-+	}
-+}
++	struct qedr_dev *dev = get_qedr_dev(ibdev);
++	int rc = 0;
 +
-+static void qedr_free_resources(struct qedr_dev *dev)
-+{
-+	int i;
++	if (!rdma_cap_roce_gid_table(ibdev, port))
++		return -ENODEV;
 +
-+	for (i = 0; i < dev->num_cnq; i++) {
-+		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-+		dev->ops->common->chain_free(dev->cdev, &dev->cnq_array[i].pbl);
++	rc = ib_get_cached_gid(ibdev, port, index, sgid, NULL);
++	if (rc == -EAGAIN) {
++		memcpy(sgid, &zgid, sizeof(*sgid));
++		return 0;
 +	}
 +
-+	kfree(dev->cnq_array);
-+	kfree(dev->sb_array);
-+	kfree(dev->sgid_tbl);
-+}
++	DP_DEBUG(dev, QEDR_MSG_INIT, "query gid: index=%d %llx:%llx\n", index,
++		 sgid->global.interface_id, sgid->global.subnet_prefix);
 +
-+static int qedr_alloc_resources(struct qedr_dev *dev)
-+{
-+	struct qedr_cnq *cnq;
-+	__le16 *cons_pi;
-+	u16 n_entries;
-+	int i, rc;
-+
-+	dev->sgid_tbl = kzalloc(sizeof(union ib_gid) *
-+				QEDR_MAX_SGID, GFP_KERNEL);
-+	if (!dev->sgid_tbl)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&dev->sgid_lock);
-+
-+	/* Allocate Status blocks for CNQ */
-+	dev->sb_array = kcalloc(dev->num_cnq, sizeof(*dev->sb_array),
-+				GFP_KERNEL);
-+	if (!dev->sb_array) {
-+		rc = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	dev->cnq_array = kcalloc(dev->num_cnq,
-+				 sizeof(*dev->cnq_array), GFP_KERNEL);
-+	if (!dev->cnq_array) {
-+		rc = -ENOMEM;
-+		goto err2;
-+	}
-+
-+	dev->sb_start = dev->ops->rdma_get_start_sb(dev->cdev);
-+
-+	/* Allocate CNQ PBLs */
-+	n_entries = min_t(u32, QED_RDMA_MAX_CNQ_SIZE, QEDR_ROCE_MAX_CNQ_SIZE);
-+	for (i = 0; i < dev->num_cnq; i++) {
-+		cnq = &dev->cnq_array[i];
-+
-+		rc = qedr_alloc_mem_sb(dev, &dev->sb_array[i],
-+				       dev->sb_start + i);
-+		if (rc)
-+			goto err3;
-+
-+		rc = dev->ops->common->chain_alloc(dev->cdev,
-+						   QED_CHAIN_USE_TO_CONSUME,
-+						   QED_CHAIN_MODE_PBL,
-+						   QED_CHAIN_CNT_TYPE_U16,
-+						   n_entries,
-+						   sizeof(struct regpair *),
-+						   &cnq->pbl);
-+		if (rc)
-+			goto err4;
-+
-+		cnq->dev = dev;
-+		cnq->sb = &dev->sb_array[i];
-+		cons_pi = dev->sb_array[i].sb_virt->pi_array;
-+		cnq->hw_cons_ptr = &cons_pi[QED_ROCE_PROTOCOL_INDEX];
-+		cnq->index = i;
-+		sprintf(cnq->name, "qedr%d@pci:%s", i, pci_name(dev->pdev));
-+
-+		DP_DEBUG(dev, QEDR_MSG_INIT, "cnq[%d].cons=%d\n",
-+			 i, qed_chain_get_cons_idx(&cnq->pbl));
-+	}
-+
-+	return 0;
-+err4:
-+	qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-+err3:
-+	for (--i; i >= 0; i--) {
-+		dev->ops->common->chain_free(dev->cdev, &dev->cnq_array[i].pbl);
-+		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
-+	}
-+	kfree(dev->cnq_array);
-+err2:
-+	kfree(dev->sb_array);
-+err1:
-+	kfree(dev->sgid_tbl);
 +	return rc;
 +}
 +
- /* QEDR sysfs interface */
- static ssize_t show_rev(struct device *device, struct device_attribute *attr,
- 			char *buf)
-@@ -146,9 +290,237 @@ static void qedr_pci_set_atomic(struct qedr_dev *dev, struct pci_dev *pdev)
- 	}
- }
- 
-+static const struct qed_rdma_ops *qed_ops;
-+
-+#define HILO_U64(hi, lo)		((((u64)(hi)) << 32) + (lo))
-+
-+static irqreturn_t qedr_irq_handler(int irq, void *handle)
++int qedr_add_gid(struct ib_device *device, u8 port_num,
++		 unsigned int index, const union ib_gid *gid,
++		 const struct ib_gid_attr *attr, void **context)
 +{
-+	u16 hw_comp_cons, sw_comp_cons;
-+	struct qedr_cnq *cnq = handle;
++	if (!rdma_cap_roce_gid_table(device, port_num))
++		return -EINVAL;
 +
-+	qed_sb_ack(cnq->sb, IGU_INT_DISABLE, 0);
++	if (port_num > QEDR_MAX_PORT)
++		return -EINVAL;
 +
-+	qed_sb_update_sb_idx(cnq->sb);
++	if (!context)
++		return -EINVAL;
 +
-+	hw_comp_cons = le16_to_cpu(*cnq->hw_cons_ptr);
-+	sw_comp_cons = qed_chain_get_cons_idx(&cnq->pbl);
-+
-+	/* Align protocol-index and chain reads */
-+	rmb();
-+
-+	while (sw_comp_cons != hw_comp_cons) {
-+		sw_comp_cons = qed_chain_get_cons_idx(&cnq->pbl);
-+		cnq->n_comp++;
-+	}
-+
-+	qed_ops->rdma_cnq_prod_update(cnq->dev->rdma_ctx, cnq->index,
-+				      sw_comp_cons);
-+
-+	qed_sb_ack(cnq->sb, IGU_INT_ENABLE, 1);
-+
-+	return IRQ_HANDLED;
++	return 0;
 +}
 +
-+static void qedr_sync_free_irqs(struct qedr_dev *dev)
++int qedr_del_gid(struct ib_device *device, u8 port_num,
++		 unsigned int index, void **context)
 +{
-+	u32 vector;
-+	int i;
++	if (!rdma_cap_roce_gid_table(device, port_num))
++		return -EINVAL;
 +
-+	for (i = 0; i < dev->int_info.used_cnt; i++) {
-+		if (dev->int_info.msix_cnt) {
-+			vector = dev->int_info.msix[i * dev->num_hwfns].vector;
-+			synchronize_irq(vector);
-+			free_irq(vector, &dev->cnq_array[i]);
-+		}
-+	}
++	if (port_num > QEDR_MAX_PORT)
++		return -EINVAL;
 +
-+	dev->int_info.used_cnt = 0;
++	if (!context)
++		return -EINVAL;
++
++	return 0;
 +}
 +
-+static int qedr_req_msix_irqs(struct qedr_dev *dev)
++int qedr_query_device(struct ib_device *ibdev,
++		      struct ib_device_attr *attr, struct ib_udata *udata)
 +{
-+	int i, rc = 0;
++	struct qedr_dev *dev = get_qedr_dev(ibdev);
++	struct qedr_device_attr *qattr = &dev->attr;
 +
-+	if (dev->num_cnq > dev->int_info.msix_cnt) {
++	if (!dev->rdma_ctx) {
 +		DP_ERR(dev,
-+		       "Interrupt mismatch: %d CNQ queues > %d MSI-x vectors\n",
-+		       dev->num_cnq, dev->int_info.msix_cnt);
++		       "qedr_query_device called with invalid params rdma_ctx=%p\n",
++		       dev->rdma_ctx);
 +		return -EINVAL;
 +	}
 +
-+	for (i = 0; i < dev->num_cnq; i++) {
-+		rc = request_irq(dev->int_info.msix[i * dev->num_hwfns].vector,
-+				 qedr_irq_handler, 0, dev->cnq_array[i].name,
-+				 &dev->cnq_array[i]);
-+		if (rc) {
-+			DP_ERR(dev, "Request cnq %d irq failed\n", i);
-+			qedr_sync_free_irqs(dev);
-+		} else {
-+			DP_DEBUG(dev, QEDR_MSG_INIT,
-+				 "Requested cnq irq for %s [entry %d]. Cookie is at %p\n",
-+				 dev->cnq_array[i].name, i,
-+				 &dev->cnq_array[i]);
-+			dev->int_info.used_cnt++;
-+		}
-+	}
++	memset(attr, 0, sizeof(*attr));
 +
-+	return rc;
++	attr->fw_ver = qattr->fw_ver;
++	attr->sys_image_guid = qattr->sys_image_guid;
++	attr->max_mr_size = qattr->max_mr_size;
++	attr->page_size_cap = qattr->page_size_caps;
++	attr->vendor_id = qattr->vendor_id;
++	attr->vendor_part_id = qattr->vendor_part_id;
++	attr->hw_ver = qattr->hw_ver;
++	attr->max_qp = qattr->max_qp;
++	attr->max_qp_wr = max_t(u32, qattr->max_sqe, qattr->max_rqe);
++	attr->device_cap_flags = IB_DEVICE_CURR_QP_STATE_MOD |
++	    IB_DEVICE_RC_RNR_NAK_GEN |
++	    IB_DEVICE_LOCAL_DMA_LKEY | IB_DEVICE_MEM_MGT_EXTENSIONS;
++
++	attr->max_sge = qattr->max_sge;
++	attr->max_sge_rd = qattr->max_sge;
++	attr->max_cq = qattr->max_cq;
++	attr->max_cqe = qattr->max_cqe;
++	attr->max_mr = qattr->max_mr;
++	attr->max_mw = qattr->max_mw;
++	attr->max_pd = qattr->max_pd;
++	attr->atomic_cap = dev->atomic_cap;
++	attr->max_fmr = qattr->max_fmr;
++	attr->max_map_per_fmr = 16;
++	attr->max_qp_init_rd_atom =
++	    1 << (fls(qattr->max_qp_req_rd_atomic_resc) - 1);
++	attr->max_qp_rd_atom =
++	    min(1 << (fls(qattr->max_qp_resp_rd_atomic_resc) - 1),
++		attr->max_qp_init_rd_atom);
++
++	attr->max_srq = qattr->max_srq;
++	attr->max_srq_sge = qattr->max_srq_sge;
++	attr->max_srq_wr = qattr->max_srq_wr;
++
++	attr->local_ca_ack_delay = qattr->dev_ack_delay;
++	attr->max_fast_reg_page_list_len = qattr->max_mr / 8;
++	attr->max_pkeys = QEDR_ROCE_PKEY_MAX;
++	attr->max_ah = qattr->max_ah;
++
++	return 0;
 +}
 +
-+static int qedr_setup_irqs(struct qedr_dev *dev)
++#define QEDR_SPEED_SDR		(1)
++#define QEDR_SPEED_DDR		(2)
++#define QEDR_SPEED_QDR		(4)
++#define QEDR_SPEED_FDR10	(8)
++#define QEDR_SPEED_FDR		(16)
++#define QEDR_SPEED_EDR		(32)
++
++static inline void get_link_speed_and_width(int speed, u8 *ib_speed,
++					    u8 *ib_width)
++{
++	switch (speed) {
++	case 1000:
++		*ib_speed = QEDR_SPEED_SDR;
++		*ib_width = IB_WIDTH_1X;
++		break;
++	case 10000:
++		*ib_speed = QEDR_SPEED_QDR;
++		*ib_width = IB_WIDTH_1X;
++		break;
++
++	case 20000:
++		*ib_speed = QEDR_SPEED_DDR;
++		*ib_width = IB_WIDTH_4X;
++		break;
++
++	case 25000:
++		*ib_speed = QEDR_SPEED_EDR;
++		*ib_width = IB_WIDTH_1X;
++		break;
++
++	case 40000:
++		*ib_speed = QEDR_SPEED_QDR;
++		*ib_width = IB_WIDTH_4X;
++		break;
++
++	case 50000:
++		*ib_speed = QEDR_SPEED_QDR;
++		*ib_width = IB_WIDTH_4X;
++		break;
++
++	case 100000:
++		*ib_speed = QEDR_SPEED_EDR;
++		*ib_width = IB_WIDTH_4X;
++		break;
++
++	default:
++		/* Unsupported */
++		*ib_speed = QEDR_SPEED_SDR;
++		*ib_width = IB_WIDTH_1X;
++	}
++}
++
++int qedr_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr *attr)
++{
++	struct qedr_dev *dev;
++	struct qed_rdma_port *rdma_port;
++
++	dev = get_qedr_dev(ibdev);
++	if (port > 1) {
++		DP_ERR(dev, "invalid_port=0x%x\n", port);
++		return -EINVAL;
++	}
++
++	if (!dev->rdma_ctx) {
++		DP_ERR(dev, "rdma_ctx is NULL\n");
++		return -EINVAL;
++	}
++
++	rdma_port = dev->ops->rdma_query_port(dev->rdma_ctx);
++	memset(attr, 0, sizeof(*attr));
++
++	if (rdma_port->port_state == QED_RDMA_PORT_UP) {
++		attr->state = IB_PORT_ACTIVE;
++		attr->phys_state = 5;
++	} else {
++		attr->state = IB_PORT_DOWN;
++		attr->phys_state = 3;
++	}
++	attr->max_mtu = IB_MTU_4096;
++	attr->active_mtu = iboe_get_mtu(dev->ndev->mtu);
++	attr->lid = 0;
++	attr->lmc = 0;
++	attr->sm_lid = 0;
++	attr->sm_sl = 0;
++	attr->port_cap_flags = IB_PORT_IP_BASED_GIDS;
++	attr->gid_tbl_len = QEDR_MAX_SGID;
++	attr->pkey_tbl_len = QEDR_ROCE_PKEY_TABLE_LEN;
++	attr->bad_pkey_cntr = rdma_port->pkey_bad_counter;
++	attr->qkey_viol_cntr = 0;
++	get_link_speed_and_width(rdma_port->link_speed,
++				 &attr->active_speed, &attr->active_width);
++	attr->max_msg_sz = rdma_port->max_msg_size;
++	attr->max_vl_num = 4;
++
++	return 0;
++}
++
++int qedr_modify_port(struct ib_device *ibdev, u8 port, int mask,
++		     struct ib_port_modify *props)
++{
++	struct qedr_dev *dev;
++
++	dev = get_qedr_dev(ibdev);
++	if (port > 1) {
++		DP_ERR(dev, "invalid_port=0x%x\n", port);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int qedr_add_mmap(struct qedr_ucontext *uctx, u64 phy_addr,
++			 unsigned long len)
++{
++	struct qedr_mm *mm;
++
++	mm = kzalloc(sizeof(*mm), GFP_KERNEL);
++	if (!mm)
++		return -ENOMEM;
++	mm->key.phy_addr = phy_addr;
++	/* This function might be called with a length which is not a multiple
++	 * of PAGE_SIZE, while the mapping is PAGE_SIZE grained and the kernel
++	 * forces this granularity by increasing the requested size if needed.
++	 * When qedr_mmap is called, it will search the list with the updated
++	 * length as a key. To prevent search failures, the length is rounded up
++	 * in advance to PAGE_SIZE.
++	 */
++	mm->key.len = roundup(len, PAGE_SIZE);
++	INIT_LIST_HEAD(&mm->entry);
++
++	mutex_lock(&uctx->mm_list_lock);
++	list_add(&mm->entry, &uctx->mm_head);
++	mutex_unlock(&uctx->mm_list_lock);
++
++	DP_DEBUG(uctx->dev, QEDR_MSG_MISC,
++		 "added (addr=0x%llx,len=0x%lx) for ctx=%p\n",
++		 (unsigned long long)mm->key.phy_addr,
++		 (unsigned long)mm->key.len, uctx);
++
++	return 0;
++}
++
++static bool qedr_search_mmap(struct qedr_ucontext *uctx, u64 phy_addr,
++			     unsigned long len)
++{
++	bool found = false;
++	struct qedr_mm *mm;
++
++	mutex_lock(&uctx->mm_list_lock);
++	list_for_each_entry(mm, &uctx->mm_head, entry) {
++		if (len != mm->key.len || phy_addr != mm->key.phy_addr)
++			continue;
++
++		found = true;
++		break;
++	}
++	mutex_unlock(&uctx->mm_list_lock);
++	DP_DEBUG(uctx->dev, QEDR_MSG_MISC,
++		 "searched for (addr=0x%llx,len=0x%lx) for ctx=%p, result=%d\n",
++		 mm->key.phy_addr, mm->key.len, uctx, found);
++
++	return found;
++}
++
++struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
++					struct ib_udata *udata)
 +{
 +	int rc;
++	struct qedr_ucontext *ctx;
++	struct qedr_alloc_ucontext_resp uresp;
++	struct qedr_dev *dev = get_qedr_dev(ibdev);
++	struct qed_rdma_add_user_out_params oparams;
 +
-+	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr_setup_irqs\n");
++	if (!udata)
++		return ERR_PTR(-EFAULT);
 +
-+	/* Learn Interrupt configuration */
-+	rc = dev->ops->rdma_set_rdma_int(dev->cdev, dev->num_cnq);
-+	if (rc < 0)
-+		return rc;
-+	rc = dev->ops->rdma_get_rdma_int(dev->cdev, &dev->int_info);
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return ERR_PTR(-ENOMEM);
++
++	rc = dev->ops->rdma_add_user(dev->rdma_ctx, &oparams);
 +	if (rc) {
-+		DP_DEBUG(dev, QEDR_MSG_INIT, "get_rdma_int failed\n");
-+		return rc;
-+	}
-+
-+	if (dev->int_info.msix_cnt) {
-+		DP_DEBUG(dev, QEDR_MSG_INIT, "rdma msix_cnt = %d\n",
-+			 dev->int_info.msix_cnt);
-+		rc = qedr_req_msix_irqs(dev);
-+		if (rc)
-+			return rc;
-+	}
-+	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr_setup_irqs succeeded\n");
-+	return 0;
-+}
-+
-+static int qedr_set_device_attr(struct qedr_dev *dev)
-+{
-+	struct qed_rdma_device *qed_attr;
-+	struct qedr_device_attr *attr;
-+	u32 page_size;
-+
-+	/* Part 1 - query core capabilities */
-+	qed_attr = dev->ops->rdma_query_device(dev->rdma_ctx);
-+
-+	/* Part 2 - check capabilities */
-+	page_size = ~dev->attr.page_size_caps + 1;
-+	if (page_size > PAGE_SIZE) {
 +		DP_ERR(dev,
-+		       "Kernel PAGE_SIZE is %ld which is smaller than minimum page size (%d) required by qedr\n",
-+		       PAGE_SIZE, page_size);
-+		return -ENODEV;
++		       "failed to allocate a DPI for a new RoCE application, rc=%d. To overcome this consider to increase the number of DPIs, increase the doorbell BAR size or just close unnecessary RoCE applications. In order to increase the number of DPIs consult the qedr readme\n",
++		       rc);
++		goto err;
 +	}
 +
-+	/* Part 3 - copy and update capabilities */
-+	attr = &dev->attr;
-+	attr->vendor_id = qed_attr->vendor_id;
-+	attr->vendor_part_id = qed_attr->vendor_part_id;
-+	attr->hw_ver = qed_attr->hw_ver;
-+	attr->fw_ver = qed_attr->fw_ver;
-+	attr->node_guid = qed_attr->node_guid;
-+	attr->sys_image_guid = qed_attr->sys_image_guid;
-+	attr->max_cnq = qed_attr->max_cnq;
-+	attr->max_sge = qed_attr->max_sge;
-+	attr->max_inline = qed_attr->max_inline;
-+	attr->max_sqe = min_t(u32, qed_attr->max_wqe, QEDR_MAX_SQE);
-+	attr->max_rqe = min_t(u32, qed_attr->max_wqe, QEDR_MAX_RQE);
-+	attr->max_qp_resp_rd_atomic_resc = qed_attr->max_qp_resp_rd_atomic_resc;
-+	attr->max_qp_req_rd_atomic_resc = qed_attr->max_qp_req_rd_atomic_resc;
-+	attr->max_dev_resp_rd_atomic_resc =
-+	    qed_attr->max_dev_resp_rd_atomic_resc;
-+	attr->max_cq = qed_attr->max_cq;
-+	attr->max_qp = qed_attr->max_qp;
-+	attr->max_mr = qed_attr->max_mr;
-+	attr->max_mr_size = qed_attr->max_mr_size;
-+	attr->max_cqe = min_t(u64, qed_attr->max_cqe, QEDR_MAX_CQES);
-+	attr->max_mw = qed_attr->max_mw;
-+	attr->max_fmr = qed_attr->max_fmr;
-+	attr->max_mr_mw_fmr_pbl = qed_attr->max_mr_mw_fmr_pbl;
-+	attr->max_mr_mw_fmr_size = qed_attr->max_mr_mw_fmr_size;
-+	attr->max_pd = qed_attr->max_pd;
-+	attr->max_ah = qed_attr->max_ah;
-+	attr->max_pkey = qed_attr->max_pkey;
-+	attr->max_srq = qed_attr->max_srq;
-+	attr->max_srq_wr = qed_attr->max_srq_wr;
-+	attr->dev_caps = qed_attr->dev_caps;
-+	attr->page_size_caps = qed_attr->page_size_caps;
-+	attr->dev_ack_delay = qed_attr->dev_ack_delay;
-+	attr->reserved_lkey = qed_attr->reserved_lkey;
-+	attr->bad_pkey_counter = qed_attr->bad_pkey_counter;
-+	attr->max_stats_queues = qed_attr->max_stats_queues;
++	ctx->dpi = oparams.dpi;
++	ctx->dpi_addr = oparams.dpi_addr;
++	ctx->dpi_phys_addr = oparams.dpi_phys_addr;
++	ctx->dpi_size = oparams.dpi_size;
++	INIT_LIST_HEAD(&ctx->mm_head);
++	mutex_init(&ctx->mm_list_lock);
 +
-+	return 0;
++	memset(&uresp, 0, sizeof(uresp));
++
++	uresp.db_pa = ctx->dpi_phys_addr;
++	uresp.db_size = ctx->dpi_size;
++	uresp.max_send_wr = dev->attr.max_sqe;
++	uresp.max_recv_wr = dev->attr.max_rqe;
++	uresp.max_srq_wr = dev->attr.max_srq_wr;
++	uresp.sges_per_send_wr = QEDR_MAX_SQE_ELEMENTS_PER_SQE;
++	uresp.sges_per_recv_wr = QEDR_MAX_RQE_ELEMENTS_PER_RQE;
++	uresp.sges_per_srq_wr = dev->attr.max_srq_sge;
++	uresp.max_cqes = QEDR_MAX_CQES;
++
++	rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
++	if (rc)
++		goto err;
++
++	ctx->dev = dev;
++
++	rc = qedr_add_mmap(ctx, ctx->dpi_phys_addr, ctx->dpi_size);
++	if (rc)
++		goto err;
++
++	DP_DEBUG(dev, QEDR_MSG_INIT, "Allocating user context %p\n",
++		 &ctx->ibucontext);
++	return &ctx->ibucontext;
++
++err:
++	kfree(ctx);
++	return ERR_PTR(rc);
 +}
 +
-+static int qedr_init_hw(struct qedr_dev *dev)
++int qedr_dealloc_ucontext(struct ib_ucontext *ibctx)
 +{
-+	struct qed_rdma_add_user_out_params out_params;
-+	struct qed_rdma_start_in_params *in_params;
-+	struct qed_rdma_cnq_params *cur_pbl;
-+	struct qed_rdma_events events;
-+	dma_addr_t p_phys_table;
-+	u32 page_cnt;
++	struct qedr_ucontext *uctx = get_qedr_ucontext(ibctx);
++	struct qedr_mm *mm, *tmp;
++	int status = 0;
++
++	DP_DEBUG(uctx->dev, QEDR_MSG_INIT, "Deallocating user context %p\n",
++		 uctx);
++	uctx->dev->ops->rdma_remove_user(uctx->dev->rdma_ctx, uctx->dpi);
++
++	list_for_each_entry_safe(mm, tmp, &uctx->mm_head, entry) {
++		DP_DEBUG(uctx->dev, QEDR_MSG_MISC,
++			 "deleted (addr=0x%llx,len=0x%lx) for ctx=%p\n",
++			 mm->key.phy_addr, mm->key.len, uctx);
++		list_del(&mm->entry);
++		kfree(mm);
++	}
++
++	kfree(uctx);
++	return status;
++}
++
++int qedr_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct qedr_ucontext *ucontext = get_qedr_ucontext(context);
++	struct qedr_dev *dev = get_qedr_dev(context->device);
++	unsigned long vm_page = vma->vm_pgoff << PAGE_SHIFT;
++	u64 unmapped_db = dev->db_phys_addr;
++	unsigned long len = (vma->vm_end - vma->vm_start);
 +	int rc = 0;
-+	int i;
++	bool found;
 +
-+	in_params =  kzalloc(sizeof(*in_params), GFP_KERNEL);
-+	if (!in_params) {
-+		rc = -ENOMEM;
-+		goto out;
++	DP_DEBUG(dev, QEDR_MSG_INIT,
++		 "qedr_mmap called vm_page=0x%lx vm_pgoff=0x%lx unmapped_db=0x%llx db_size=%x, len=%lx\n",
++		 vm_page, vma->vm_pgoff, unmapped_db, dev->db_size, len);
++	if (vma->vm_start & (PAGE_SIZE - 1)) {
++		DP_ERR(dev, "Vma_start not page aligned = %ld\n",
++		       vma->vm_start);
++		return -EINVAL;
 +	}
 +
-+	in_params->desired_cnq = dev->num_cnq;
-+	for (i = 0; i < dev->num_cnq; i++) {
-+		cur_pbl = &in_params->cnq_pbl_list[i];
-+
-+		page_cnt = qed_chain_get_page_cnt(&dev->cnq_array[i].pbl);
-+		cur_pbl->num_pbl_pages = page_cnt;
-+
-+		p_phys_table = qed_chain_get_pbl_phys(&dev->cnq_array[i].pbl);
-+		cur_pbl->pbl_ptr = (u64)p_phys_table;
++	found = qedr_search_mmap(ucontext, vm_page, len);
++	if (!found) {
++		DP_ERR(dev, "Vma_pgoff not found in mapped array = %ld\n",
++		       vma->vm_pgoff);
++		return -EINVAL;
 +	}
 +
-+	events.context = dev;
++	DP_DEBUG(dev, QEDR_MSG_INIT, "Mapping doorbell bar\n");
 +
-+	in_params->events = &events;
-+	in_params->cq_mode = QED_RDMA_CQ_MODE_32_BITS;
-+	in_params->max_mtu = dev->ndev->mtu;
-+	ether_addr_copy(&in_params->mac_addr[0], dev->ndev->dev_addr);
++	if ((vm_page >= unmapped_db) && (vm_page <= (unmapped_db +
++						     dev->db_size))) {
++		DP_DEBUG(dev, QEDR_MSG_INIT, "Mapping doorbell bar\n");
++		if (vma->vm_flags & VM_READ) {
++			DP_ERR(dev, "Trying to map doorbell bar for read\n");
++			return -EPERM;
++		}
 +
-+	rc = dev->ops->rdma_init(dev->cdev, in_params);
-+	if (rc)
-+		goto out;
++		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
 +
-+	rc = dev->ops->rdma_add_user(dev->rdma_ctx, &out_params);
-+	if (rc)
-+		goto out;
-+
-+	dev->db_addr = (void *)(uintptr_t)out_params.dpi_addr;
-+	dev->db_phys_addr = out_params.dpi_phys_addr;
-+	dev->db_size = out_params.dpi_size;
-+	dev->dpi = out_params.dpi;
-+
-+	rc = qedr_set_device_attr(dev);
-+out:
-+	kfree(in_params);
-+	if (rc)
-+		DP_ERR(dev, "Init HW Failed rc = %d\n", rc);
-+
++		rc = io_remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
++					PAGE_SIZE, vma->vm_page_prot);
++	} else {
++		DP_DEBUG(dev, QEDR_MSG_INIT, "Mapping chains\n");
++		rc = remap_pfn_range(vma, vma->vm_start,
++				     vma->vm_pgoff, len, vma->vm_page_prot);
++	}
++	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr_mmap return code: %d\n", rc);
 +	return rc;
 +}
-+
-+void qedr_stop_hw(struct qedr_dev *dev)
-+{
-+	dev->ops->rdma_remove_user(dev->rdma_ctx, dev->dpi);
-+	dev->ops->rdma_stop(dev->rdma_ctx);
-+}
-+
- static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
- 				 struct net_device *ndev)
- {
-+	struct qed_dev_rdma_info dev_info;
- 	struct qedr_dev *dev;
- 	int rc = 0, i;
- 
-@@ -164,21 +536,60 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
- 	dev->ndev = ndev;
- 	dev->cdev = cdev;
- 
-+	qed_ops = qed_get_rdma_ops();
-+	if (!qed_ops) {
-+		DP_ERR(dev, "Failed to get qed roce operations\n");
-+		goto init_err;
-+	}
-+
-+	dev->ops = qed_ops;
-+	rc = qed_ops->fill_dev_info(cdev, &dev_info);
-+	if (rc)
-+		goto init_err;
-+
-+	dev->num_hwfns = dev_info.common.num_hwfns;
-+	dev->rdma_ctx = dev->ops->rdma_get_rdma_ctx(cdev);
-+
-+	dev->num_cnq = dev->ops->rdma_get_min_cnq_msix(cdev);
-+	if (!dev->num_cnq) {
-+		DP_ERR(dev, "not enough CNQ resources.\n");
-+		goto init_err;
-+	}
-+
-+
- 	qedr_pci_set_atomic(dev, pdev);
- 
-+	rc = qedr_alloc_resources(dev);
-+	if (rc)
-+		goto init_err;
-+
-+	rc = qedr_init_hw(dev);
-+	if (rc)
-+		goto alloc_err;
-+
-+	rc = qedr_setup_irqs(dev);
-+	if (rc)
-+		goto irq_err;
-+
- 	rc = qedr_register_device(dev);
- 	if (rc) {
- 		DP_ERR(dev, "Unable to allocate register device\n");
--		goto init_err;
-+		goto reg_err;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(qedr_attributes); i++)
- 		if (device_create_file(&dev->ibdev.dev, qedr_attributes[i]))
--			goto init_err;
-+			goto reg_err;
- 
- 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr driver loaded successfully\n");
- 	return dev;
- 
-+reg_err:
-+	qedr_sync_free_irqs(dev);
-+irq_err:
-+	qedr_stop_hw(dev);
-+alloc_err:
-+	qedr_free_resources(dev);
- init_err:
- 	ib_dealloc_device(&dev->ibdev);
- 	DP_ERR(dev, "qedr driver load failed rc=%d\n", rc);
-@@ -193,6 +604,9 @@ static void qedr_remove(struct qedr_dev *dev)
- 	 */
- 	qedr_remove_sysfiles(dev);
- 
-+	qedr_stop_hw(dev);
-+	qedr_sync_free_irqs(dev);
-+	qedr_free_resources(dev);
- 	ib_dealloc_device(&dev->ibdev);
- }
- 
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index 8014170..1adbebb 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -35,7 +35,10 @@
- #include <linux/pci.h>
- #include <rdma/ib_addr.h>
- #include <linux/qed/qed_if.h>
-+#include <linux/qed/qed_chain.h>
-+#include <linux/qed/qed_roce_if.h>
- #include <linux/qed/qede_roce.h>
-+#include "qedr_hsi.h"
- 
- #define QEDR_MODULE_VERSION	"8.10.10.0"
- #define QEDR_NODE_DESC "QLogic 579xx RoCE HCA"
-@@ -47,6 +50,60 @@
- 
- #define QEDR_MSG_INIT "INIT"
- 
-+struct qedr_dev;
-+
-+struct qedr_cnq {
-+	struct qedr_dev		*dev;
-+	struct qed_chain	pbl;
-+	struct qed_sb_info	*sb;
-+	char			name[32];
-+	u64			n_comp;
-+	__le16			*hw_cons_ptr;
-+	u8			index;
-+};
-+
-+#define QEDR_MAX_SGID 128
-+
-+struct qedr_device_attr {
-+	u32	vendor_id;
-+	u32	vendor_part_id;
-+	u32	hw_ver;
-+	u64	fw_ver;
-+	u64	node_guid;
-+	u64	sys_image_guid;
-+	u8	max_cnq;
-+	u8	max_sge;
-+	u16	max_inline;
-+	u32	max_sqe;
-+	u32	max_rqe;
-+	u8	max_qp_resp_rd_atomic_resc;
-+	u8	max_qp_req_rd_atomic_resc;
-+	u64	max_dev_resp_rd_atomic_resc;
-+	u32	max_cq;
-+	u32	max_qp;
-+	u32	max_mr;
-+	u64	max_mr_size;
-+	u32	max_cqe;
-+	u32	max_mw;
-+	u32	max_fmr;
-+	u32	max_mr_mw_fmr_pbl;
-+	u64	max_mr_mw_fmr_size;
-+	u32	max_pd;
-+	u32	max_ah;
-+	u8	max_pkey;
-+	u32	max_srq;
-+	u32	max_srq_wr;
-+	u8	max_srq_sge;
-+	u8	max_stats_queues;
-+	u32	dev_caps;
-+
-+	u64	page_size_caps;
-+	u8	dev_ack_delay;
-+	u32	reserved_lkey;
-+	u32	bad_pkey_counter;
-+	struct qed_rdma_events events;
-+};
-+
- struct qedr_dev {
- 	struct ib_device	ibdev;
- 	struct qed_dev		*cdev;
-@@ -55,7 +112,73 @@ struct qedr_dev {
- 
- 	enum ib_atomic_cap	atomic_cap;
- 
-+	void *rdma_ctx;
-+	struct qedr_device_attr attr;
-+
-+	const struct qed_rdma_ops *ops;
-+	struct qed_int_info	int_info;
-+
-+	struct qed_sb_info	*sb_array;
-+	struct qedr_cnq		*cnq_array;
-+	int			num_cnq;
-+	int			sb_start;
-+
-+	void __iomem		*db_addr;
-+	u64			db_phys_addr;
-+	u32			db_size;
-+	u16			dpi;
-+
-+	union ib_gid *sgid_tbl;
-+
-+	/* Lock for sgid table */
-+	spinlock_t sgid_lock;
-+
-+	u64			guid;
-+
- 	u32			dp_module;
- 	u8			dp_level;
-+	u8			num_hwfns;
- };
-+
-+#define QEDR_MAX_SQ_PBL			(0x8000)
-+#define QEDR_MAX_SQ_PBL_ENTRIES		(0x10000 / sizeof(void *))
-+#define QEDR_SQE_ELEMENT_SIZE		(sizeof(struct rdma_sq_sge))
-+#define QEDR_MAX_SQE_ELEMENTS_PER_SQE	(ROCE_REQ_MAX_SINGLE_SQ_WQE_SIZE / \
-+					 QEDR_SQE_ELEMENT_SIZE)
-+#define QEDR_MAX_SQE_ELEMENTS_PER_PAGE	((RDMA_RING_PAGE_SIZE) / \
-+					 QEDR_SQE_ELEMENT_SIZE)
-+#define QEDR_MAX_SQE			((QEDR_MAX_SQ_PBL_ENTRIES) *\
-+					 (RDMA_RING_PAGE_SIZE) / \
-+					 (QEDR_SQE_ELEMENT_SIZE) /\
-+					 (QEDR_MAX_SQE_ELEMENTS_PER_SQE))
-+/* RQ */
-+#define QEDR_MAX_RQ_PBL			(0x2000)
-+#define QEDR_MAX_RQ_PBL_ENTRIES		(0x10000 / sizeof(void *))
-+#define QEDR_RQE_ELEMENT_SIZE		(sizeof(struct rdma_rq_sge))
-+#define QEDR_MAX_RQE_ELEMENTS_PER_RQE	(RDMA_MAX_SGE_PER_RQ_WQE)
-+#define QEDR_MAX_RQE_ELEMENTS_PER_PAGE	((RDMA_RING_PAGE_SIZE) / \
-+					 QEDR_RQE_ELEMENT_SIZE)
-+#define QEDR_MAX_RQE			((QEDR_MAX_RQ_PBL_ENTRIES) *\
-+					 (RDMA_RING_PAGE_SIZE) / \
-+					 (QEDR_RQE_ELEMENT_SIZE) /\
-+					 (QEDR_MAX_RQE_ELEMENTS_PER_RQE))
-+
-+#define QEDR_CQE_SIZE	(sizeof(union rdma_cqe))
-+#define QEDR_MAX_CQE_PBL_SIZE (512 * 1024)
-+#define QEDR_MAX_CQE_PBL_ENTRIES (((QEDR_MAX_CQE_PBL_SIZE) / \
-+				  sizeof(u64)) - 1)
-+#define QEDR_MAX_CQES ((u32)((QEDR_MAX_CQE_PBL_ENTRIES) * \
-+			     (QED_CHAIN_PAGE_SIZE) / QEDR_CQE_SIZE))
-+
-+#define QEDR_ROCE_MAX_CNQ_SIZE		(0x4000)
-+
-+#define QEDR_MAX_PORT			(1)
-+
-+#define QEDR_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
-+
-+static inline struct qedr_dev *get_qedr_dev(struct ib_device *ibdev)
-+{
-+	return container_of(ibdev, struct qedr_dev, ibdev);
-+}
-+
- #endif
-diff --git a/drivers/infiniband/hw/qedr/qedr_hsi.h b/drivers/infiniband/hw/qedr/qedr_hsi.h
+diff --git a/drivers/infiniband/hw/qedr/verbs.h b/drivers/infiniband/hw/qedr/verbs.h
 new file mode 100644
-index 0000000..66d2752
+index 0000000..9472044
 --- /dev/null
-+++ b/drivers/infiniband/hw/qedr/qedr_hsi.h
-@@ -0,0 +1,56 @@
++++ b/drivers/infiniband/hw/qedr/verbs.h
+@@ -0,0 +1,52 @@
 +/* QLogic qedr NIC Driver
 + * Copyright (c) 2015-2016  QLogic Corporation
 + *
@@ -697,37 +638,33 @@ index 0000000..66d2752
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#ifndef __QED_HSI_ROCE__
-+#define __QED_HSI_ROCE__
++#ifndef __QEDR_VERBS_H__
++#define __QEDR_VERBS_H__
 +
-+#include <linux/qed/common_hsi.h>
-+#include <linux/qed/roce_common.h>
-+#include "qedr_hsi_rdma.h"
++int qedr_query_device(struct ib_device *ibdev,
++		      struct ib_device_attr *attr, struct ib_udata *udata);
++int qedr_query_port(struct ib_device *, u8 port, struct ib_port_attr *props);
++int qedr_modify_port(struct ib_device *, u8 port, int mask,
++		     struct ib_port_modify *props);
 +
-+/* Affiliated asynchronous events / errors enumeration */
-+enum roce_async_events_type {
-+	ROCE_ASYNC_EVENT_NONE = 0,
-+	ROCE_ASYNC_EVENT_COMM_EST = 1,
-+	ROCE_ASYNC_EVENT_SQ_DRAINED,
-+	ROCE_ASYNC_EVENT_SRQ_LIMIT,
-+	ROCE_ASYNC_EVENT_LAST_WQE_REACHED,
-+	ROCE_ASYNC_EVENT_CQ_ERR,
-+	ROCE_ASYNC_EVENT_LOCAL_INVALID_REQUEST_ERR,
-+	ROCE_ASYNC_EVENT_LOCAL_CATASTROPHIC_ERR,
-+	ROCE_ASYNC_EVENT_LOCAL_ACCESS_ERR,
-+	ROCE_ASYNC_EVENT_QP_CATASTROPHIC_ERR,
-+	ROCE_ASYNC_EVENT_CQ_OVERFLOW_ERR,
-+	ROCE_ASYNC_EVENT_SRQ_EMPTY,
-+	MAX_ROCE_ASYNC_EVENTS_TYPE
-+};
++int qedr_query_gid(struct ib_device *, u8 port, int index, union ib_gid *gid);
 +
-+#endif /* __QED_HSI_ROCE__ */
-diff --git a/drivers/infiniband/hw/qedr/qedr_hsi_rdma.h b/drivers/infiniband/hw/qedr/qedr_hsi_rdma.h
++struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *, struct ib_udata *);
++int qedr_dealloc_ucontext(struct ib_ucontext *);
++
++int qedr_mmap(struct ib_ucontext *, struct vm_area_struct *vma);
++int qedr_del_gid(struct ib_device *device, u8 port_num,
++		 unsigned int index, void **context);
++int qedr_add_gid(struct ib_device *device, u8 port_num,
++		 unsigned int index, const union ib_gid *gid,
++		 const struct ib_gid_attr *attr, void **context);
++#endif
+diff --git a/include/uapi/rdma/qedr-abi.h b/include/uapi/rdma/qedr-abi.h
 new file mode 100644
-index 0000000..3e508fb
+index 0000000..f7c7fff
 --- /dev/null
-+++ b/drivers/infiniband/hw/qedr/qedr_hsi_rdma.h
-@@ -0,0 +1,96 @@
++++ b/include/uapi/rdma/qedr-abi.h
+@@ -0,0 +1,53 @@
 +/* QLogic qedr NIC Driver
 + * Copyright (c) 2015-2016  QLogic Corporation
 + *
@@ -759,71 +696,28 @@ index 0000000..3e508fb
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#ifndef __QED_HSI_RDMA__
-+#define __QED_HSI_RDMA__
++#ifndef __QEDR_USER_H__
++#define __QEDR_USER_H__
 +
-+#include <linux/qed/rdma_common.h>
++#include <linux/types.h>
 +
-+/* rdma completion notification queue element */
-+struct rdma_cnqe {
-+	struct regpair	cq_handle;
++#define QEDR_ABI_VERSION		(8)
++
++/* user kernel communication data structures. */
++
++struct qedr_alloc_ucontext_resp {
++	__u64 db_pa;
++	__u32 db_size;
++
++	__u32 max_send_wr;
++	__u32 max_recv_wr;
++	__u32 max_srq_wr;
++	__u32 sges_per_send_wr;
++	__u32 sges_per_recv_wr;
++	__u32 sges_per_srq_wr;
++	__u32 max_cqes;
 +};
-+
-+struct rdma_cqe_responder {
-+	struct regpair srq_wr_id;
-+	struct regpair qp_handle;
-+	__le32 imm_data_or_inv_r_Key;
-+	__le32 length;
-+	__le32 imm_data_hi;
-+	__le16 rq_cons;
-+	u8 flags;
-+};
-+
-+struct rdma_cqe_requester {
-+	__le16 sq_cons;
-+	__le16 reserved0;
-+	__le32 reserved1;
-+	struct regpair qp_handle;
-+	struct regpair reserved2;
-+	__le32 reserved3;
-+	__le16 reserved4;
-+	u8 flags;
-+	u8 status;
-+};
-+
-+struct rdma_cqe_common {
-+	struct regpair reserved0;
-+	struct regpair qp_handle;
-+	__le16 reserved1[7];
-+	u8 flags;
-+	u8 status;
-+};
-+
-+/* rdma completion queue element */
-+union rdma_cqe {
-+	struct rdma_cqe_responder resp;
-+	struct rdma_cqe_requester req;
-+	struct rdma_cqe_common cmn;
-+};
-+
-+struct rdma_sq_sge {
-+	__le32 length;
-+	struct regpair	addr;
-+	__le32 l_key;
-+};
-+
-+struct rdma_rq_sge {
-+	struct regpair addr;
-+	__le32 length;
-+	__le32 flags;
-+};
-+
-+struct rdma_srq_sge {
-+	struct regpair addr;
-+	__le32 length;
-+	__le32 l_key;
-+};
-+#endif /* __QED_HSI_RDMA__ */
++#endif /* __QEDR_USER_H__ */
 -- 
 1.8.3.1
 
