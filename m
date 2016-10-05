@@ -1,43 +1,43 @@
-From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
-Date: Wed, 5 Oct 2016 10:35:30 -0500
-Message-ID: <20161005153530.GA11148@flatif-MOBL1>
-References: <20161005143054.4844-1-henry.orosco@intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Wed, 5 Oct 2016 11:36:13 -0400
+Message-ID: <20161005153613.GD26977@htj.duckdns.org>
+References: <20160911175235.GB13442@obsidianresearch.com>
+ <20160912050717.GE8812@leon.nu>
+ <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
+ <20160915185629.GF26069@leon.nu>
+ <CAG53R5XBS0B5XaTzjKC3-zgoB2-fz2ctbk_E2YG76zBgzOfG-A@mail.gmail.com>
+ <20160921142645.GB10734@htj.duckdns.org>
+ <CAG53R5WMuojhzFGmqk6nHfypd9Hq4dGsWRKjtUyMZ=RezU-LhQ@mail.gmail.com>
+ <CAG53R5VqQ6UzsuzcovsD+ufv3HaEQEbUpaf3kDo4zLOrAf__8A@mail.gmail.com>
+ <20161005063735.GC3086@lst.de>
+ <20161005112257.GD9282@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161005143054.4844-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20161005112257.GD9282@leon.nu>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Parav Pandit <pandit.parav@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Matan Barak <matanb@mellanox.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 05, 2016 at 07:30:54AM -0700, Henry Orosco wrote:
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  MAINTAINERS | 1 +
->  1 file changed, 1 insertion(+)
+Hello,
+
+On Wed, Oct 05, 2016 at 02:22:57PM +0300, Leon Romanovsky wrote:
+> On Wed, Oct 05, 2016 at 08:37:35AM +0200, Christoph Hellwig wrote:
+> > FYI, the patches look fine to me:
+> >
+> > Acked-by: Christoph Hellwig <hch@lst.de>
+> >
+> > but we're past the merge window for 4.9 now unfortunately.
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index cc77b9a..32f535e 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6188,6 +6188,7 @@ R:     Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  R:     Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  R:     Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  R:     Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> +R:     Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  L:     linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->  S:     Supported
->  F:     drivers/infiniband/hw/i40iw/
-> -- 
-> 2.8.3
+> IMHO, it still can make it.
 
-Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Most likely, we only have three / four days till rc1 opens, I think
+it's too late.  Let's target the next one.
 
+Thanks.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+tejun
