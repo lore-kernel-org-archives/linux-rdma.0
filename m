@@ -1,62 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RDMA developer gatherings around Kernel Summit and Linux
- Plumbers in Santa Fe
-Date: Wed, 5 Oct 2016 12:31:56 -0600
-Message-ID: <20161005183156.GH18636@obsidianresearch.com>
-References: <alpine.DEB.2.20.1610040344500.11122@east.gentwo.org>
- <20161004124513.GA12483@infradead.org>
- <7BAAE610-98A0-47FC-993B-77401AA32F4A@ornl.gov>
- <alpine.DEB.2.20.1610050242260.27600@east.gentwo.org>
- <20161005083218.GA16922@infradead.org>
- <BED3F60E-08E7-4C29-8A52-E7F879BE46A4@ornl.gov>
- <20161005131811.GA24546@infradead.org>
- <96C6AF13-B968-41C2-9AB3-CAB5F91D72A1@ornl.gov>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH v2 4/7] blk-mq: Introduce blk_quiesce_queue() and
+ blk_resume_queue()
+Date: Wed, 5 Oct 2016 12:05:48 -0700
+Message-ID: <6d612be9-7ba7-888e-f9c6-f8aa4ef1606a@sandisk.com>
+References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
+ <a9eb4e95-6d77-e527-c42a-fd2e6f104bed@sandisk.com>
+ <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
+ <9fb67745-954c-a70f-a89a-d184c99ae9aa@sandisk.com>
+ <CACVXFVMY19vuDjsECg2uX0_y_K7DUaaGqXPX9PYiBy5sfXmAEw@mail.gmail.com>
+ <a11bb09a-6207-f4a8-cfd4-4fe5627c1700@sandisk.com>
+ <09238e87-7d60-89c9-98b0-e51caa0c0839@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <96C6AF13-B968-41C2-9AB3-CAB5F91D72A1-1Heg1YXhbW8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, "shewa-YOWKrPYUwWM@public.gmane.org" <shewa-YOWKrPYUwWM@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <09238e87-7d60-89c9-98b0-e51caa0c0839@grimberg.me>
+Sender: linux-block-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>, Ming Lei <tom.leiming@gmail.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 05, 2016 at 01:49:56PM +0000, Atchley, Scott wrote:
+On 10/05/2016 11:14 AM, Sagi Grimberg wrote:
+>> Hello Ming,
+>>
+>> Can you have a look at the attached patch? That patch uses an srcu read
+>> lock for all queue types, whether or not the BLK_MQ_F_BLOCKING flag has
+>> been set. Additionally, I have dropped the QUEUE_FLAG_QUIESCING flag.
+>> Just like previous versions, this patch has been tested.
+>
+> Hey Bart,
+>
+> Do we care about the synchronization of queue_rq and/or
+> blk_mq_run_hw_queue of the hctx is not stopped?
+>
+> I'm wandering if we can avoid introducing new barriers in the
+> submission path of its not absolutely needed.
 
-> I am trying to understand the issue from both points of view. Again,
-> I ask you to help me understand how requesting dual-licensing hurts
-> the adoption of RDMA technology. I can understand the vendor???s
-> concerns about having to write software twice for GPL and non-GPL
-> environments.
+Hello Sagi,
 
-The opposing point of view is that every time an opensource project is
-forked or taken propriety by a company the opensource project itself
-suffers. (and this is by no means a universal view, but let us
-explore it)
+I'm not sure whether the new blk_quiesce_queue() function is useful 
+without stopping all hardware contexts first. In other words, in my view 
+setting BLK_MQ_F_BLOCKING flag before calling blk_quiesce_queue() is 
+sufficient and I don't think that a new QUEUE_FLAG_QUIESCING flag is 
+necessary.
 
-A good example of this harm in our community would be opensm. Many
-sites are now running a build of 'opensm' that does not come with
-source.
-
->From the OFA perspective, many of the companies using the code outside
-Linux are not OFA members, do not contribute financially, and do not
-contribute their bugfixes or other code. Yet, they get a 'free ride'
-when the OFA encourages Linux-focused member companies to use the dual
-license.
-
-I can understand why the OFA adopted this position at the start, but
-IMHO, it is time to stop. The OFA should not be spending its limited
-resources to benefit the non-Linux community.
-
-Further, it is hard to see why the OFA board should burn what little
-good will it has in the Linux community by acting to the benifit of a
-nebulous sub-group of non-Linux members (that may not even exist today).
-
-In the end I hope the bylaws will be revised to allow for
-GPLv2/LGPLv2-only as a legtimiate license choice for OFA projects.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
