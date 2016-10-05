@@ -1,46 +1,69 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Add a .travis.yml file
-Date: Wed, 5 Oct 2016 09:39:42 -0700
-Message-ID: <0de7bc15-5e2e-8240-ba84-a5a95dcb2834@sandisk.com>
-References: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <20161005115132.GE9282@leon.nu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
+Date: Wed, 5 Oct 2016 11:33:59 -0600
+Message-ID: <20161005173359.GF18636@obsidianresearch.com>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com>
+ <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com>
+ <20160929222802.GC27229@obsidianresearch.com>
+ <20161005153701.GA12295@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161005115132.GE9282-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161005153701.GA12295-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/05/2016 04:51 AM, Leon Romanovsky wrote:
-> On Wed, Sep 28, 2016 at 05:28:57PM -0600, Jason Gunthorpe wrote:
->> Necessary to use the Travis CI service.
->>
->> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> ---
->>  .travis.yml | 28 ++++++++++++++++++++++++++++
->>  1 file changed, 28 insertions(+)
->>  create mode 100644 .travis.yml
->>
->> Now that travis is enabled on repo, we need a yml file to make it run.
->>
->> Here is a basic one.
->>
->> I don't test with distros as old as precise and I don't expect that glibc to
->> be new enough to build this (eg missing timerfd, O_CLOEXEC, etc), and the
->> cmake certainly isn't. So we use the trusty 'beta' environment and install
->> gcc 6.2.
->
-> I'm using 16.04 and it has gcc 5.4.0 as a default. Don't you think that
-> 6.2 is too "new" for us and other distributions?
+On Wed, Oct 05, 2016 at 08:37:01AM -0700, Christoph Hellwig wrote:
+> On Thu, Sep 29, 2016 at 04:28:02PM -0600, Jason Gunthorpe wrote:
+> > In the kernel the swapping behavior of 'writel' is architecture (and
+> > sometimes even platform) specific. Looking at the kernel headers
+> > suggests that BE PPC needs an explicit swap and BE ARM does not (eg
+> > the hardware swaps). Maybe. There are a lot of layers of macros in
+> > this area..
+> 
+> read{s,l,q} and write{s,l,q} in the kernel always perform an implicit
+> bytestap, that is the device is expected to use a LE layout.  This
+> is not architecture specific, otherwise hell would break lose.
 
-Hi Leon,
+Right, stated differently, the kernel requires that writel()/etc
+always produce the same PCI-E packet on the wire. (eg writel(1)
+produces a TLP with bit 0 of the data payload set)
 
-The rolling release distro that is running on my laptop includes gcc 6.2.1.
+But each arch implements its own set of instructions to get there,
+that is what I mean by architecture specific.
 
-Bart.
+> But none of this has an affect on userspace mappings of registers, as
+> those don't go through the kernel read{s,l,q} and write{s,l,q}
+> helpers,
+
+Not going through the kernel's writel is the whole problem. The writel
+helper generates the arch-specific instruction sequence required to
+issue generate the required PCI-E packet.
+
+Today (at best, some drivers do not even do this) our userspace
+assumes all archs implement writel as:
+
+   *(u32 *)reg = cpu_to_le32(val);
+
+Which is a good start, but not portable to every arch the kernel
+supports.
+
+> Btw, one thing that would be useful is to introduce endiane annoatations
+> for sparse in rdma-core.   I've added these to a few userspace projects
+> already, here is the most recent example:
+> 
+> https://github.com/linux-nvme/nvme-cli/commit/126b8beb35b76fe9f61b137e34aea66b64c07b25
+
+Yeah, it would be nice to get that working too. I guess we need to
+standardize on the cpu_to_xx macro style as a first step?
+
+The __iomem annotation would be nice as well.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
