@@ -1,8 +1,8 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: RDMA developer gatherings around Kernel Summit and Linux Plumbers
- in Santa Fe
-Date: Wed, 5 Oct 2016 13:49:56 +0000
-Message-ID: <96C6AF13-B968-41C2-9AB3-CAB5F91D72A1@ornl.gov>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: RDMA developer gatherings around Kernel Summit and Linux
+ Plumbers in Santa Fe
+Date: Wed, 5 Oct 2016 07:08:16 -0700
+Message-ID: <20161005140816.GA19331@infradead.org>
 References: <alpine.DEB.2.20.1610040344500.11122@east.gentwo.org>
  <20161004124513.GA12483@infradead.org>
  <7BAAE610-98A0-47FC-993B-77401AA32F4A@ornl.gov>
@@ -10,69 +10,35 @@ References: <alpine.DEB.2.20.1610040344500.11122@east.gentwo.org>
  <20161005083218.GA16922@infradead.org>
  <BED3F60E-08E7-4C29-8A52-E7F879BE46A4@ornl.gov>
  <20161005131811.GA24546@infradead.org>
+ <96C6AF13-B968-41C2-9AB3-CAB5F91D72A1@ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161005131811.GA24546-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <980E1B7C5AB8054F8ABAB2F50B04CDFB-1Heg1YXhbW8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <96C6AF13-B968-41C2-9AB3-CAB5F91D72A1-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, "shewa-YOWKrPYUwWM@public.gmane.org" <shewa-YOWKrPYUwWM@public.gmane.org>
+To: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, "shewa-YOWKrPYUwWM@public.gmane.org" <shewa-YOWKrPYUwWM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBPbiBPY3QgNSwgMjAxNiwgYXQgOToxOCBBTSwgQ2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBpbmZy
-YWRlYWQub3JnPiB3cm90ZToNCj4gDQo+IFtzbmlwcGVkIHRoZSBtYXJrZXRpbmcgQlMgYW5kIGdl
-dHRpbmcgc3RyYWlnaHQgdG8gdGhlIHBvaW50Li5dDQoNCk5vdCBtYXJrZXRpbmcgQlMuIFNpbXBs
-ZSBmYWN0cyBvbiB0aGUgYmFja2dyb3VuZCBvZiB0aGUgaXNzdWVzLiBEbyBub3QgbWlzY2hhcmFj
-dGVyaXplIG15IHJlbWFya3MuDQoNCg0KPj4gNS4gVGhlIG9ubHkgb25lIGluIHRoaXMgdGhyZWFk
-IHRyeWluZyB0byBmb3JjZSBhIGxpY2Vuc2Ugb2Ygb3RoZXJzIGlzIG5vdCB0aGUgT0ZBLg0KPiAN
-Cj4gVGhhdCBpcyBub3QgdGhlIGNhc2UuICBPRkEgaGFzIGJlZW4gY29uc3RhbnRseSBwdXNoaW5n
-IHRocm91Z2ggdmFyaW91cw0KPiBjaGFubmVscyB0byBmb3JjZSBEdWFsIGxpY2Vuc2luZyBvZiBS
-RE1BIHJlbGF0ZWQgY29kZSBjb250cmlidXRlIHRvIHRoZQ0KPiBMaW51eCBrZXJuZWwuDQo+IA0K
-PiBDYW4geW91IHBsZWFzZSBjb25maXJtIG9uIGJlaGFsZiBvZiB0aGUgT0ZBIGJvYXJkIHRoYXQg
-T0ZBIHdpbGwgc3RvcA0KPiBidWxseWluZyBMaW51eCBrZXJuZWwgY29udHJpYnV0b3JzIG9yIG90
-aGVyd2lzZSB0cnkgdG8gaW5mbHVlbmNlDQo+IGxpY2Vuc2luZyBvZiBjb2RlIGNvbnRyaWJ1dGVk
-IHRvIHRoZSBMaW51eCBrZXJuZWwgdGhhdCBoYXMgbm90IGJlZW4NCj4gZGV2ZWxvcGVkIGJ5IHRo
-ZSBPRkEuDQo+IA0KPiBPbmNlIHdlIGhhdmUgdGhhdCBzb3J0ZWQgb3V0IEkgdGhpbmsgd2UncmUg
-YWxsIGluIHZpb2xlbnQgYWdyZWVtZW50Lg0KDQpBcyBJIGluIG15IGVtYWlsLCBJIGRvIG5vdCBz
-cGVhayBmb3IgT0ZBIG9yIG15IG9yZ2FuaXphdGlvbi4gSSBhbSBzcGVha2luZyBmb3IgbXlzZWxm
-Lg0KDQpUaGUgaXNzdWUgaXMgY29kZSB3YXMgYWRkZWQgaW4gYmV0d2VlbiB0aGUgdmVuZG9yc+KA
-mSBWZXJicyBkcml2ZXJzIChub3cgY2FsbGVkIHByb3ZpZGVycz8pIGFuZCB0aGUgdXBwZXIgbGF5
-ZXIgcHJvdG9jb2xzIChVTFBzKSB0aGF0IGlzIEdQTCBvbmx5LiBUaGUgY29kZSBzdGFuZGFyZGl6
-ZXMgY29tbW9uIGNvZGUgcGF0aHMgdGhhdCBlYWNoIFVMUCBwcmV2aW91c2x5IGltcGxlbWVudGVk
-LiBIb3BlZnVsbHkgdGhlIGNvZGUgaXMgbW9yZSBzdGFibGUgYW5kIGEgZml4IHRoZXJlIGZpeGVz
-IGl0IGV2ZXJ5d2hlcmUuIFRoaXMgY29kZSBhbGxvd3MgdGhlIFVMUHMgdG8gZm9jdXMgb24gdGhl
-aXIgcHJvdG9jb2wtc3BlY2lmaWMgYmVoYXZpb3IuIFRlY2huaWNhbGx5LCB0aGlzIGlzIGEgZ29v
-ZCB0aGluZy4NCg0KVGhlIGlzc3VlLCBJIGJlbGlldmUsIGZyb20gdGhlIE9GQeKAmXMgcGVyc3Bl
-Y3RpdmUgaXMgdGhhdCBjb2RlIHRoYXQgdGhleSBtb3N0bHkgZGV2ZWxvcGVkIGFuZCBjb250cmli
-dXRlZCAgKGRyaXZlcnMgYW5kIFVMUHMpIHdoaWNoIGlzIGR1YWwtbGljZW5zZWQgdG8gYWxsb3cg
-aXQgdG8gYmUgdXNlZCBpbiBub24tTGludXggT1NlcyBoYXMgYmVlbiByZWR1Y2VkIGFuZCBzb21l
-dGhpbmcgY3JpdGljYWwgaW5zZXJ0ZWQgaW4gYmV0d2VlbiB0aGF0IGNhbm5vdCBiZSB1c2VkIGlu
-IG5vbi1MaW51eCBPU2VzICgqQlNEIG9yIFdpbmRvd3MpLiBUaHVzLCB0aGVyZSBpcyBoZWFydGJ1
-cm4uDQoNClRoZSBPRkEgY2Fubm90IGNoYW5nZSB0aGUgZmFjdCB0aGF0IHRoaXMgY29kZSBoYXMg
-YmVlbiBhY2NlcHRlZCBpbiB0aGUga2VybmVsLiBUaGUgT0ZBIGFza2VkIHRoYXQgaXQgYmUgZHVh
-bC1saWNlbnNlZCBhbmQgdGhlIGFuc3dlciB3YXMgbm8uIFRoZSBPRkEgY2Fubm90IGRvIGFueXRo
-aW5nIGFib3V0IHRoYXQuDQoNCkFTIGZvciBidWxseWluZyBMaW51eCBrZXJuZWwgY29udHJpYnV0
-b3JzLCBtYW55IGNvbnRyaWJ1dG9ycyBhcmUgdmVuZG9yIGVtcGxveWVlcyBhbmQsIGFzIGV2ZXJ5
-d2hlcmUsIHRoZSBlbXBsb3llciBkaWN0YXRlcyB0aGUgbGljZW5zZSBmb3IgdGhlIGNvZGUgcHJv
-ZHVjZWQgYXQgY29tcGFueSBleHBlbnNlLiBGb3IgY29udHJpYnV0b3JzIHRoYXQgYXJlIG5vdCBl
-bXBsb3llZXMgb2YgT0ZBIG1lbWJlcnMsIHRoZSBPRkEgaGFzIG5vIGluZmx1ZW5jZSBvciBpbXBh
-Y3QsIHRodXMgbm8gbWVhbnMgdG8gYnVsbHkuDQoNCkkgYmVsaWV2ZSB0aGUgZ29hbCBvZiBPRkHi
-gJlzIHJlcXVlc3QgZm9yIGR1YWwtbGljZW5zaW5nIG9mIHRoZSBuZXcgY29kZSB3YXMgbGVnaXRp
-bWF0ZSBmcm9tIHRoZWlyIHBlcnNwZWN0aXZlLiBJIGFsc28gYmVsaWV2ZSB0aGUgZGVjaXNpb24g
-b2YgdGhlIGRldmVsb3BlciBpcyBoaXMgb3duIGFuZCBubyBvbmUgY2FuIGZvcmNlIGhpbSB0byBj
-aGFuZ2UuDQoNCkkgYW0gdHJ5aW5nIHRvIHVuZGVyc3RhbmQgdGhlIGlzc3VlIGZyb20gYm90aCBw
-b2ludHMgb2Ygdmlldy4gQWdhaW4sIEkgYXNrIHlvdSB0byBoZWxwIG1lIHVuZGVyc3RhbmQgaG93
-IHJlcXVlc3RpbmcgZHVhbC1saWNlbnNpbmcgaHVydHMgdGhlIGFkb3B0aW9uIG9mIFJETUEgdGVj
-aG5vbG9neS4gSSBjYW4gdW5kZXJzdGFuZCB0aGUgdmVuZG9y4oCZcyBjb25jZXJucyBhYm91dCBo
-YXZpbmcgdG8gd3JpdGUgc29mdHdhcmUgdHdpY2UgZm9yIEdQTCBhbmQgbm9uLUdQTCBlbnZpcm9u
-bWVudHMuDQoNCkFnYWluLCBJIGFtIGEgdXNlciB0aGF0IHdhbnRzIHN0YW5kYXJkcyB0aGF0IGFs
-bG93IGlubm92YXRpb24gYW5kIGNvbXBldGl0aW9uLiBIZWxwIG1lIHVuZGVyc3RhbmQuDQoNClAu
-Uy4gSSB3aWxsIGJlIG5laXRoZXIgYXQgdGhlIExQQyBvciB0aGUgUkRNQSBTdW1taXQuDQoNClAu
-UC5TLiBSZW1lbWJlciwgSSBhbSBvbmx5IHNwZWFraW5nIGZvciBteXNlbGYgYW5kIG5vdCB0aGUg
-T0ZBIG9yIG15IGVtcGxveWVyLg0KDQoNCg0KDQo=
+On Wed, Oct 05, 2016 at 01:49:56PM +0000, Atchley, Scott wrote:
+> Not marketing BS. Simple facts on the background of the issues. Do not mischaracterize my remarks.
+
+It is.  And so is most of this mail.  If we can't have a useful
+technical conversation this is pointless.
+
+What remains from all this backtracking is that your as a board member
+(but speaking just for yourself) are perfectly fine with bullying
+cotributors to the Linux kernel for no good reason.
+
+Just another reason to ignore OFA as much as possible and make sure we
+can get the Linux RDMA stack up to standards, similar to how Microsoft
+managed to have a state of the art stack way better than Linux at the
+moment but taking things into their own hands and ignoring OFA.
+
+Let OFA continue die a slow death by infighting of it's two main members
+and the lack of a clear vision, while we'll make sure RDMA in Linux is
+top notch.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
