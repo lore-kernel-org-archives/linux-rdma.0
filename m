@@ -1,43 +1,49 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 5 Oct 2016 11:36:13 -0400
-Message-ID: <20161005153613.GD26977@htj.duckdns.org>
-References: <20160911175235.GB13442@obsidianresearch.com>
- <20160912050717.GE8812@leon.nu>
- <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
- <20160915185629.GF26069@leon.nu>
- <CAG53R5XBS0B5XaTzjKC3-zgoB2-fz2ctbk_E2YG76zBgzOfG-A@mail.gmail.com>
- <20160921142645.GB10734@htj.duckdns.org>
- <CAG53R5WMuojhzFGmqk6nHfypd9Hq4dGsWRKjtUyMZ=RezU-LhQ@mail.gmail.com>
- <CAG53R5VqQ6UzsuzcovsD+ufv3HaEQEbUpaf3kDo4zLOrAf__8A@mail.gmail.com>
- <20161005063735.GC3086@lst.de>
- <20161005112257.GD9282@leon.nu>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
+Date: Wed, 5 Oct 2016 08:37:01 -0700
+Message-ID: <20161005153701.GA12295@infradead.org>
+References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com>
+ <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com>
+ <20160929222802.GC27229@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161005112257.GD9282@leon.nu>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Parav Pandit <pandit.parav@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Matan Barak <matanb@mellanox.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+In-Reply-To: <20160929222802.GC27229-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Thu, Sep 29, 2016 at 04:28:02PM -0600, Jason Gunthorpe wrote:
+> In the kernel the swapping behavior of 'writel' is architecture (and
+> sometimes even platform) specific. Looking at the kernel headers
+> suggests that BE PPC needs an explicit swap and BE ARM does not (eg
+> the hardware swaps). Maybe. There are a lot of layers of macros in
+> this area..
 
-On Wed, Oct 05, 2016 at 02:22:57PM +0300, Leon Romanovsky wrote:
-> On Wed, Oct 05, 2016 at 08:37:35AM +0200, Christoph Hellwig wrote:
-> > FYI, the patches look fine to me:
-> >
-> > Acked-by: Christoph Hellwig <hch@lst.de>
-> >
-> > but we're past the merge window for 4.9 now unfortunately.
-> 
-> IMHO, it still can make it.
+read{s,l,q} and write{s,l,q} in the kernel always perform an implicit
+bytestap, that is the device is expected to use a LE layout.  This
+is not architecture specific, otherwise hell would break lose.
 
-Most likely, we only have three / four days till rc1 opens, I think
-it's too late.  Let's target the next one.
+If the device has a BE layout you'll need to use ioread*be/iowrite*be
+instead.
 
-Thanks.
+But none of this has an affect on userspace mappings of registers, as
+those don't go through the kernel read{s,l,q} and write{s,l,q} helpers,
+so if you mmap the resource directly your need to manually byte swap
+to whatever the hardware expects - which seems to be LE for Chelsio
+and BE for Mellanox.
 
--- 
-tejun
+Btw, one thing that would be useful is to introduce endiane annoatations
+for sparse in rdma-core.   I've added these to a few userspace projects
+already, here is the most recent example:
+
+https://github.com/linux-nvme/nvme-cli/commit/126b8beb35b76fe9f61b137e34aea66b64c07b25
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
