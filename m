@@ -1,34 +1,56 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
-Date: Wed,  5 Oct 2016 09:30:54 -0500
-Message-ID: <20161005143054.4844-1-henry.orosco@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH v2 4/7] blk-mq: Introduce blk_quiesce_queue() and
+ blk_resume_queue()
+Date: Wed, 5 Oct 2016 07:46:58 -0700
+Message-ID: <b42d5056-c2cb-8f0f-1a65-70740605ff22@sandisk.com>
+References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
+ <a9eb4e95-6d77-e527-c42a-fd2e6f104bed@sandisk.com>
+ <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
+ <9fb67745-954c-a70f-a89a-d184c99ae9aa@sandisk.com>
+ <CACVXFVMY19vuDjsECg2uX0_y_K7DUaaGqXPX9PYiBy5sfXmAEw@mail.gmail.com>
+ <a11bb09a-6207-f4a8-cfd4-4fe5627c1700@sandisk.com>
+ <CACVXFVO21wDRrZtB0A5qn5KEn-rjnewQxYyN_aAWoQrKSMvmig@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CACVXFVO21wDRrZtB0A5qn5KEn-rjnewQxYyN_aAWoQrKSMvmig@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+On 10/04/16 21:32, Ming Lei wrote:
+> On Wed, Oct 5, 2016 at 12:16 PM, Bart Van Assche
+> <bart.vanassche@sandisk.com> wrote:
+>> On 10/01/16 15:56, Ming Lei wrote:
+>>>
+>>> If we just call the rcu/srcu read lock(or the mutex) around .queue_rq(),
+>>> the above code needn't to be duplicated any more.
+>>
+>> Can you have a look at the attached patch? That patch uses an srcu read lock
+>> for all queue types, whether or not the BLK_MQ_F_BLOCKING flag has been set.
+>
+> That is much cleaner now.
+>
+>> Additionally, I have dropped the QUEUE_FLAG_QUIESCING flag. Just like
+>> previous versions, this patch has been tested.
+>
+> I think the flag of QUEUE_FLAG_QUIESCING is still needed because we
+> have to set this flag to prevent new coming .queue_rq() from being run,
+> and synchronize_srcu() won't wait for completion of that at all (see
+> section of 'Update-Side Primitives' in [1]).
+>
+> [1] https://lwn.net/Articles/202847/
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index cc77b9a..32f535e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6188,6 +6188,7 @@ R:     Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- R:     Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- R:     Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- R:     Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+R:     Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- L:     linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- S:     Supported
- F:     drivers/infiniband/hw/i40iw/
--- 
-2.8.3
+Hello Ming,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How about using the existing flag BLK_MQ_S_STOPPED instead of 
+introducing a new QUEUE_FLAG_QUIESCING flag? From the comment above 
+blk_mq_quiesce_queue() in the patch that was attached to my previous 
+e-mail: "Additionally, it is not prevented that new queue_rq() calls 
+occur unless the queue has been stopped first."
+
+Thanks,
+
+Bart.
