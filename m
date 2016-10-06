@@ -1,54 +1,44 @@
-From: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
-Subject: Re: RDMA developer gatherings around Kernel Summit and Linux
- Plumbers in Santa Fe
-Date: Thu, 6 Oct 2016 18:33:45 +0000
-Message-ID: <E82DA475-17F6-461C-A927-66AE4AE22D72@ccn-mail.lanl.gov>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH qedr 04/10] qedr: Add support for PD,PKEY and CQ verbs
+Date: Thu, 6 Oct 2016 18:34:44 +0000
+Message-ID: <SN1PR07MB2207C35D34DEBA9D8DA13322F8C70@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1475682483-9878-1-git-send-email-Ram.Amrani@cavium.com>
+ <1475682483-9878-5-git-send-email-Ram.Amrani@cavium.com>,<20161006133357.GP9282@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161006133357.GP9282-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
-Content-ID: <A3171A2926821C4E82485D94F958259D-r1tBtT6b1V2fRvmTrFJqzg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQpDaHJpc3RvcGgsDQoNCkkgYW0gdGhlIGN1cnJlbnQgQ2hhaXIgb2YgdGhlIE9GQSwgYW5kIHRo
-ZXJlZm9yZSBkbyBzcGVhayBmb3IgdGhlIE9GQS4NCkkgd2lsbCBiZSBhdCB0aGUgTFBDIGFuZCB3
-aWxsIGF0dGVuZCBib3RoIFJETUEgc2Vzc2lvbnMuDQoNClRoZSBPRkHigJlzIHBvc2l0aW9uIG9u
-IHRoaXMgaXMgbm90IGNhc3QgaW4gc3RvbmUuDQpXZSByZWFsaXplIHRoYXQgT0ZTIGhhcyBtYXR1
-cmVkIGFuZCBubyBsb25nZXIgbmVlZHMgdGhlIGNhcmUgYW5kIGZlZWRpbmcgaXQgZGlkIH44IHll
-YXJzIGFnby4NClRoYXQgc2FpZCwgdGhlIE9GQSBiZWxpZXZlcyB0aGVyZSBpcyBzdGlsbCB2YWx1
-ZSBpbiBvdXIgZXhpc3RlbmNlLg0KKCBldmVuIGlmIHlvdSB3aXNoIHdlIHNob3VsZCBkaWUgYSBz
-bG93IGRlYXRoIDopDQoNClRoZSBPRkHigJlzIHBvc2l0aW9uIGlzIHRoYXQgd2UgaGF2ZSBzb21l
-IG1lbWJlciBjb21wYW5pZXMgdGhhdCByZXF1aXJlIGR1YWwgbGljZW5zZSBpbiBvcmRlciB0byBv
-ZmZlciBwcm9kdWN0cyBhbmQgc29sdXRpb25zIHRoYXQgcmVwYWNrYWdlIE9GUyBzb2Z0d2FyZSBv
-biBub24tTGludXggT1NzLiAgV2UgYXJlIGluIHRoZSBwcm9jZXNzIG9mIGZpbmRpbmcgb3V0IGZy
-b20gdGhvc2UgbWVtYmVycyB3aGF0IGJpdHMgYXJlIGNyaXRpY2FsIHRvIHRoYXQgcmUtcGFja2Fn
-aW5nLiAgV2UgYWxzbyBiZWxpZXZlLCBjb250cmFyeSB0byB5b3VyIHVuZGVyc3RhbmRpbmcsIHRo
-YXQgd2UgY2Fubm90IGZvcmNlIGR1YWwgbGljZW5zZSBvbiB0aGUgZW50aXJlIFJETUEga2VybmVs
-IHN1YnN5c3RlbS4gIA0KDQpCYWNrIGluIEp1bmUgd2UgYmVnYW4gYW4gZWZmb3J0IHRvIHNlZSBp
-ZiB0aGF0IHdhcyBwb3NzaWJsZS4gICggdGhhdCA9IGtlZXBpbmcgdGhlIGtlcm5lbCBiaXRzIGR1
-YWwgbGljZW5zZWQgKSAgUGFydCBvZiB0aGF0IGVmZm9ydCB3YXMgYW4gZW1haWwgSSBzZW50IHlv
-dSB0byBhc2sgaWYgeW91IHdvdWxkIGJlIHdpbGxpbmcgdG8gZHVhbCBsaWNlbnNlIHlvdXIgcmVj
-ZW50IHBhdGNoZXMuICBZb3UgbmV2ZXIgcmVzcG9uZGVkLCBzbyBJIGFzc3VtZWQgeW91IEEuICBu
-ZXZlciBzYXcgdGhlIGVtYWlsICBCLiAgdHJhc2hlZCBpdCB3aXRoIHByZWp1ZGljZSAgQy4gd2Vy
-ZSB0b28gYnVzeSB0byByZXNwb25kLiAgIEhvcGVmdWxseSB5b3UgZGlkIG5vdCBjb25zaWRlciB0
-aGF0IGVtYWlsIOKAnGJ1bGx5aW5n4oCdLCBhcyBJIGJlbGlldmUgSSB1c2VkIHRoZSB3b3JkcyDi
-gJxBbnkgY2hhbmNlIHlvdeKAmWQgYmUgd2lsbGluZ+KAnSDigKYgYW5kIGp1c3QgInRob3VnaHQg
-SeKAmWQgYXNr4oCdLg0KDQpXZSBhbHNvIGhhdmUgY29uc2lkZXJlZCBhIGNsZWFuIHJvb20gYXBw
-cm9hY2ggdG8gcmUtY3JlYXRpbmcgdGhlIHNpbmdsZSBsaWNlbnNlZCBwYXRjaGVzLCBidXQgaGF2
-ZSBkZWNpZGVkIHRoYXQgbWF5IG5vdCBiZSByZWFsaXN0aWMuDQoNClRoZXJlZm9yZSwgd2UgLSB0
-aGUgT0ZBIC0gYXJlIHRyeWluZyB0byBzdHJpa2UgYSBiYWxhbmNlIHRoYXQgd29ya3MgZm9yIG91
-ciBtZW1iZXJzIGFuZCB3aWxsIHN1cnZpdmUgaW4gdGhlIHJlYWwgd29ybGQuDQpJZiB3ZSBkaWUg
-YSBzbG93IGRlYXRoIGFuZCB0aGUgdmFyaW91cyBVTFBzIHRoYXQgcmVseSBvbiBSRE1BIGNvbnRp
-bnVlIHRvIGdyb3cgYW5kIGltcHJvdmUgLSBzbyBiZSBpdC4NCkFuZCB5b3UgY2FuIGRhbmNlIG9u
-IG91ciBncmF2ZS4NCg0KDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PQ0KU3VzYW4gQ291bHRlciAvIEhQQy1ERVMNCk5ldHdvcmsgQ2FwYWJpbGl0eSBM
-ZWFkDQooNTA1KSA2NjctODQyNQ0K4oCcT25jZSBpbiBhIHdoaWxlIHlvdSBnZXQgc2hvd24gdGhl
-IGxpZ2h0DQogICAgSW4gdGhlIHN0cmFuZ2VzdCBvZiBwbGFjZXMgaWYgeW91IGxvb2sgYXQgaXQg
-cmlnaHTigJ0gIFJvYmVydCBIdW50ZXINCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09DQoNCg0KDQoNCg0KDQoNCg==
+
+>> +=A0=A0=A0=A0 pd =3D kzalloc(sizeof(*pd), GFP_KERNEL);
+>> +=A0=A0=A0=A0 if (!pd) {
+>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 DP_ERR(dev, "failed to alloce PD\n=
+");
+>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 return ERR_PTR(-ENOMEM);
+>> +=A0=A0=A0=A0 }
+>> +
+>> +=A0=A0=A0=A0 if (!dev->rdma_ctx) {
+>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 DP_ERR(dev, "invlaid RDMA context\=
+n");
+>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 return ERR_PTR(-EINVAL);
+>
+>Don't you want to free pd which was allocated a couple of lines before?
+
+Good catch. Thanks.
+
+>> +=A0=A0=A0=A0 pbe =3D (struct regpair *)pbl_tbl->va;
+>> +=A0=A0=A0=A0 if (!pbe) {
+>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 DP_ERR(dev, "pbe is NULL\n");
+>
+>=A0????
+
+Yep,=A0I'll change=A0this.    =
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
