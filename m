@@ -1,21 +1,19 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 08/17] Move providers into providers/
-Date: Thu, 6 Oct 2016 16:33:01 -0500
-Message-ID: <02f701d22019$372e5420$a58afc60$@opengridcomputing.com>
-References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com> <1475787103-13283-9-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: RE: [PATCH rdma-core 09/17] iwpmd: Flatten iwpmd/src into iwpmd/
+Date: Thu, 6 Oct 2016 16:33:27 -0500
+Message-ID: <02f901d22019$462d70a0$d28851e0$@opengridcomputing.com>
+References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com> <1475787103-13283-10-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475787103-13283-9-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1475787103-13283-10-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Dennis Dalessandro' <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'open list:IPATH/QIB USERSPACE PROVIDER (for ib_qib.ko)'" <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-For the cxgb* parts:
 
 Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
