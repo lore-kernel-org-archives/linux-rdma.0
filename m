@@ -1,43 +1,29 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
-Date: Thu, 6 Oct 2016 15:09:02 +0300
-Message-ID: <5cfdc1c2-4546-1b5f-c5a1-670d75ba03f1@dev.mellanox.co.il>
-References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com>
- <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com>
- <20160929222802.GC27229@obsidianresearch.com>
- <F2C34CC4-5C7D-4382-873D-9E14B81A44B3@ogc.us>
- <20160930000800.GA7570@obsidianresearch.com>
- <fd7d47c8-6a06-6169-b840-abfbc239ad75@dev.mellanox.co.il>
- <20161005174449.GG18636@obsidianresearch.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Thu, 6 Oct 2016 18:25:11 +0530
+Message-ID: <CAG53R5WdFE-Ck7iQrsqrVEAPn0OoL5DM4RNwa3Ayc+W0jggUEw@mail.gmail.com>
+References: <20160911171409.GA13442@obsidianresearch.com> <20160911172445.GA25953@lst.de>
+ <20160911175235.GB13442@obsidianresearch.com> <20160912050717.GE8812@leon.nu>
+ <CAG53R5X4stfy5+Jmg+XReUJqt56Z-zABK+UEswHW1dXhH-9cNw@mail.gmail.com>
+ <20160915185629.GF26069@leon.nu> <CAG53R5XBS0B5XaTzjKC3-zgoB2-fz2ctbk_E2YG76zBgzOfG-A@mail.gmail.com>
+ <20160921142645.GB10734@htj.duckdns.org> <CAG53R5WMuojhzFGmqk6nHfypd9Hq4dGsWRKjtUyMZ=RezU-LhQ@mail.gmail.com>
+ <CAG53R5VqQ6UzsuzcovsD+ufv3HaEQEbUpaf3kDo4zLOrAf__8A@mail.gmail.com> <20161005063735.GC3086@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161005174449.GG18636-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161005063735.GC3086-jcswGhMUV9g@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/5/2016 8:44 PM, Jason Gunthorpe wrote:
-> On Wed, Oct 05, 2016 at 06:16:45PM +0300, Yishai Hadas wrote:
+Hi Christoph,
+
+On Wed, Oct 5, 2016 at 12:07 PM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+> FYI, the patches look fine to me:
 >
->> Upon QP creation the code uses htonl for setting qp->doorbell_qpn (see
->> mlx4_create_qp_ex), later on this value is used without any change upon
->> writing a door bell. (see mmio_writel). No PCI swap is expected.
+> Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 >
-> Thanks, so the mlx drivers are doing what the kernel calls writel_be()?
+Thanks a lot for review.
 
-It's logically the same. You can look also in mlx4 driver code in the 
-kernel [1], writel() is used on qp->doorbell_qpn which was previously 
-set to be BE as the hardware expects.
-
-[1] 
-http://lxr.free-electrons.com/source/drivers/infiniband/hw/mlx4/qp.c#L3223
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Parav
