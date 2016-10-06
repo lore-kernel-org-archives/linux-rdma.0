@@ -1,63 +1,65 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
-Date: Thu, 6 Oct 2016 15:36:59 -0600
-Message-ID: <20161006213659.GA14459@obsidianresearch.com>
-References: <20161005143054.4844-1-henry.orosco@intel.com>
- <20161005153530.GA11148@flatif-MOBL1>
- <20161005191229.GI18636@obsidianresearch.com>
- <13AA599688F47243B14FCFCCC2C803BB10A8C79D@fmsmsx104.amr.corp.intel.com>
- <02e701d22018$5d7ca740$1875f5c0$@opengridcomputing.com>
+From: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
+Subject: Re: RDMA developer gatherings around Kernel Summit and Linux
+ Plumbers in Santa Fe
+Date: Thu, 6 Oct 2016 22:34:21 +0000
+Message-ID: <22FBC9C9-5DB6-4A88-9160-D04E8A5C299A@ccn-mail.lanl.gov>
+References: <E82DA475-17F6-461C-A927-66AE4AE22D72@ccn-mail.lanl.gov>
+ <e6b8a6e9-19cd-dbe0-e885-995b91c55137@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <02e701d22018$5d7ca740$1875f5c0$@opengridcomputing.com>
+In-Reply-To: <e6b8a6e9-19cd-dbe0-e885-995b91c55137-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <0B6865A27AAA91428BB4662EEC6B93CF-r1tBtT6b1V2fRvmTrFJqzg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "'Nikolova, Tatyana E'" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Latif, Faisal'" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Orosco, Henry'" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 06, 2016 at 04:26:56PM -0500, Steve Wise wrote:
-> > 
-> > Hi Jason,
-> > 
-> > I will continue to maintain libnes, libi40iw and libiwpm in rdma-core.  Steve
-> Wise
-> > has significantly contributed to libiwpm which is iWarp related service and he
-> may
-> > be interested in co-maintaining it.
-> 
-> Sure.
-
-Great, added to my pull request:
-
->From d8aca8da1cb51bb9ec43284a3060145ccddca69a Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date: Thu, 6 Oct 2016 15:35:22 -0600
-Subject: [PATCH] iwpmd: Add Steve Wise as a MAINTAINER
-
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Acked-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e4f3554ea46a..49413a6544df 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -76,6 +76,7 @@ F:	providers/ipathverbs/
- 
- IWARP PORT MAPPER DAEMON (for iwarp kernel providers)
- M:	Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+M:	Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
- H:	Robert Sharp <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- S:	Supported
- F:	iwpmd/
--- 
-2.7.4
-
+DQo+IE9uIE9jdCA2LCAyMDE2LCBhdCAyOjE5IFBNLCBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFu
+YXNzY2hlQHNhbmRpc2suY29tPiB3cm90ZToNCj4gDQo+IE9uIDEwLzA2LzIwMTYgMTE6MzMgQU0s
+IENvdWx0ZXIsIFN1c2FuIEsgd3JvdGU6DQo+PiBUaGUgT0ZB4oCZcyBwb3NpdGlvbiBpcyB0aGF0
+IHdlIGhhdmUgc29tZSBtZW1iZXIgY29tcGFuaWVzIHRoYXQgcmVxdWlyZQ0KPiA+IGR1YWwgbGlj
+ZW5zZSBpbiBvcmRlciB0byBvZmZlciBwcm9kdWN0cyBhbmQgc29sdXRpb25zIHRoYXQgcmVwYWNr
+YWdlDQo+ID4gT0ZTIHNvZnR3YXJlIG9uIG5vbi1MaW51eCBPU3MuICBXZSBhcmUgaW4gdGhlIHBy
+b2Nlc3Mgb2YgZmluZGluZyBvdXQNCj4gPiBmcm9tIHRob3NlIG1lbWJlcnMgd2hhdCBiaXRzIGFy
+ZSBjcml0aWNhbCB0byB0aGF0IHJlLXBhY2thZ2luZy4gIFdlDQo+ID4gYWxzbyBiZWxpZXZlLCBj
+b250cmFyeSB0byB5b3VyIHVuZGVyc3RhbmRpbmcsIHRoYXQgd2UgY2Fubm90IGZvcmNlIGR1YWwN
+Cj4gPiBsaWNlbnNlIG9uIHRoZSBlbnRpcmUgUkRNQSBrZXJuZWwgc3Vic3lzdGVtLg0KPiANCj4g
+SGVsbG8gU3VzYW4sDQo+IA0KPiBUaGFuayB5b3UgZm9yIGhhdmluZyBjbGFyaWZpZWQgdGhlIHBv
+c2l0aW9uIG9mIHRoZSBPRkEuDQo+IA0KPiBXaGF0IGlzIG5vdCBjbGVhciB0byBtZSBpcyB3aGF0
+IGFyZSB0aGVzZSBwcm9kdWN0cyBhbmQgd2hvIGFyZSB0aGVzZSBjb21wYW5pZXM/DQo+IEFuZCB3
+aHkgZG8gdGhlc2UgY29tcGFuaWVzIHRoaW5rIHRoYXQgdGhleSBuZWVkIGEgQlNEIGxpY2Vuc2U/
+IElmIHRoZSBMaW51eCBSRE1BIGNvZGUgdGhhdCBpcyByZXBhY2thZ2VkIGlzIGJ1aWx0IGFzIGEg
+c2VwYXJhdGUgbW9kdWxlIHRoZW4gdGhleSBkb24ndCBuZWVkIHRoZSBCU0QgbGljZW5zZS4gR1BM
+IHNob3VsZCBiZSBmaW5lLiBSdW4tdGltZSBsb2FkaW5nIG9mIGtlcm5lbCBtb2R1bGVzIGNyZWF0
+ZXMgd2hhdCBpcyBjb25zaWRlcmVkIGFzIGEgY29sbGVjdGl2ZSB3b3JrIHVuZGVyIGNvcHlyaWdo
+dCBsYXcuIFRoZSAidmlyYWwiIHByb3BlcnR5IG9mIEdQTCBvbmx5IGFwcGxpZXMgdG8gZGVyaXZh
+dGl2ZSB3b3Jrcy4gQSBjb2xsZWN0aXZlIHdvcmsgaXMgbm90IHRoZSBzYW1lIGFzIGEgZGVyaXZh
+dGl2ZSB3b3JrLiBUaGlzIGlzIGV4cGxhaW5lZCBpbiBkZXRhaWwgYnkgc2V2ZXJhbCBhdXRob3Jz
+LiBFLmcuIExhd3JlbmNlIFJvc2VuIGV4cGxhaW5zIHRoaXMgaW4gaGlzIGJvb2sgIk9wZW4gU291
+cmNlIExpY2Vuc2luZyIsIFNvZnR3YXJlIEZyZWVkb20gYW5kIEludGVsbGVjdHVhbCBQcm9wZXJ0
+eSBMYXcsIFByZW50aWNlIEhhbGwsIDIwMDQgKGh0dHA6Ly93d3cucm9zZW5sYXcuY29tL29zbGJv
+b2suaHRtKS4NCg0KVGhlIE9GQSBpcyBjdXJyZW50bHkgdHJ5aW5nIHRvIGZpZ3VyZSBvdXQgZXhh
+Y3RseSB3aGljaCBvZiBvdXIgbWVtYmVyIGNvbXBhbmllcyBjYXJlIGFib3V0IGFuZCBoYXZlIGEg
+bmVlZCBmb3IgZHVhbCBsaWNlbnNlLg0KVW50aWwgd2UgZmluaXNoIHB1bGxpbmcgdGhhdCB0aHJl
+YWQsIEkgY2Fubm90IGFuc3dlciB0aGUgcXVlc3Rpb24uDQpUaGUgZHVhbCBsaWNlbnNlIHJlcXVp
+cmVtZW50IGhhcyBleGlzdGVkIGEgbG9uZyB0aW1lLCBidXQgaXQgaXMgPnBvc3NpYmxlPCBpdCBt
+YXkgbm8gbG9uZ2VyIGJlIG5lZWRlZCBpbiBtYW55IGluc3RhbmNlcy4NClNvIGZhciwgb25lIGNv
+bXBhbnkgaGFzIHN1Z2dlc3RlZCBMR1BMIHdvdWxkIGJlIGp1c3QgZmluZS4NCg0KSXQgaXMgbXkg
+YmVsaWVmIChhbmQgaG9wZSkgdGhhdCB3aGVuIHB1c2hlZCB0byBleHBsYWluIHRoZWlyIG5lZWQs
+IHRoZXkgbWF5IGZpbmQgb3V0IHRoZXkgZG9u4oCZdCBuZWVkIGl0Lg0KSXQgY291bGQgYmUgaGlz
+dG9yaWNhbCBwcmVjZWRlbnQgYW5kIG92ZXJseSBjYXV0aW91cyBtYW5hZ2VtZW50Lg0KDQpUaGFu
+ayB5b3UgZm9yIHRoZSBib29rIHJlZmVyZW5jZSAtIEkganVzdCBib3VnaHQgaXQuICANCg0KPiAN
+Cj4gUGxlYXNlIG5vdGUgdGhhdCB0aGUgYWJvdmUgaXMgbXkgb3duIG9waW5pb24gYW5kIGhhcyBu
+b3QgYmVlbiByZXZpZXdlZCBieSB0aGUgY29ycG9yYXRlIGxlZ2FsIHRlYW0uDQoNCk1lIHRvby4g
+IDopDQoNCj4gDQo+IEJhcnQuDQoNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09DQpTdXNhbiBDb3VsdGVyIC8gSFBDLURFUw0KTmV0d29yayBDYXBhYmls
+aXR5IExlYWQNCig1MDUpIDY2Ny04NDI1DQrigJxPbmNlIGluIGEgd2hpbGUgeW91IGdldCBzaG93
+biB0aGUgbGlnaHQNCiAgICBJbiB0aGUgc3RyYW5nZXN0IG9mIHBsYWNlcyBpZiB5b3UgbG9vayBh
+dCBpdCByaWdodOKAnSAgUm9iZXJ0IEh1bnRlcg0KPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT0NCg0KDQoNCg0KDQoNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
