@@ -1,80 +1,96 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 07/17] verbs: Remove -fno-strict-aliasing
-Date: Thu,  6 Oct 2016 14:51:33 -0600
-Message-ID: <1475787103-13283-8-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 09/17] iwpmd: Flatten iwpmd/src into iwpmd/
+Date: Thu,  6 Oct 2016 14:51:35 -0600
+Message-ID: <1475787103-13283-10-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Debian and SuSE have both shipped without adding -fno-strict-aliasing,
-and the upstream source did not have this flag until
-678f7fa7dde82 ("Makefile.am: Don't allow strict aliasing by default").
-
-Thus we can infer that strict aliasing is tested and works.
-
-Avoid the one warning this causes with a simple coding change.
+Since the directory only produces one program.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libibverbs/examples/CMakeLists.txt | 2 --
- libibverbs/examples/pingpong.c     | 9 ++++++---
- libibverbs/src/CMakeLists.txt      | 2 --
- 3 files changed, 6 insertions(+), 7 deletions(-)
+ CMakeLists.txt                    |  1 -
+ iwpmd/CMakeLists.txt              | 17 +++++++++++++++++
+ iwpmd/{src => }/iwarp_pm.h        |  0
+ iwpmd/{src => }/iwarp_pm_common.c |  0
+ iwpmd/{src => }/iwarp_pm_helper.c |  0
+ iwpmd/{src => }/iwarp_pm_server.c |  0
+ iwpmd/{src => }/iwpm_netlink.h    |  0
+ iwpmd/src/CMakeLists.txt          | 16 ----------------
+ 8 files changed, 17 insertions(+), 17 deletions(-)
+ rename iwpmd/{src => }/iwarp_pm.h (100%)
+ rename iwpmd/{src => }/iwarp_pm_common.c (100%)
+ rename iwpmd/{src => }/iwarp_pm_helper.c (100%)
+ rename iwpmd/{src => }/iwarp_pm_server.c (100%)
+ rename iwpmd/{src => }/iwpm_netlink.h (100%)
+ delete mode 100644 iwpmd/src/CMakeLists.txt
 
-diff --git a/libibverbs/examples/CMakeLists.txt b/libibverbs/examples/CMakeLists.txt
-index 76e333bd0106..dc4c4978daa3 100644
---- a/libibverbs/examples/CMakeLists.txt
-+++ b/libibverbs/examples/CMakeLists.txt
-@@ -1,5 +1,3 @@
--set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${NO_STRICT_ALIASING_FLAGS}")
--
- # Shared example files
- add_library(ibverbs_tools STATIC
-   pingpong.c
-diff --git a/libibverbs/examples/pingpong.c b/libibverbs/examples/pingpong.c
-index f6a50e9c62aa..1d5028e699a7 100644
---- a/libibverbs/examples/pingpong.c
-+++ b/libibverbs/examples/pingpong.c
-@@ -59,19 +59,22 @@ void wire_gid_to_gid(const char *wgid, union ibv_gid *gid)
- 	char tmp[9];
- 	uint32_t v32;
- 	int i;
-+	uint32_t tmp_gid[4];
- 
- 	for (tmp[8] = 0, i = 0; i < 4; ++i) {
- 		memcpy(tmp, wgid + i * 8, 8);
- 		sscanf(tmp, "%x", &v32);
--		*(uint32_t *)(&gid->raw[i * 4]) = ntohl(v32);
-+		tmp_gid[i] = ntohl(v32);
- 	}
-+	memcpy(gid, tmp_gid, sizeof(*gid));
- }
- 
- void gid_to_wire_gid(const union ibv_gid *gid, char wgid[])
- {
-+	uint32_t tmp_gid[4];
- 	int i;
- 
-+	memcpy(tmp_gid, gid, sizeof(tmp_gid));
- 	for (i = 0; i < 4; ++i)
--		sprintf(&wgid[i * 8], "%08x",
--			htonl(*(uint32_t *)(gid->raw + i * 4)));
-+		sprintf(&wgid[i * 8], "%08x", htonl(tmp_gid[i]));
- }
-diff --git a/libibverbs/src/CMakeLists.txt b/libibverbs/src/CMakeLists.txt
-index 6989f7730c5e..fb69037b869b 100644
---- a/libibverbs/src/CMakeLists.txt
-+++ b/libibverbs/src/CMakeLists.txt
-@@ -1,5 +1,3 @@
--set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${NO_STRICT_ALIASING_FLAGS}")
--
- publish_headers(infiniband
-   ../include/infiniband/arch.h
-   ../include/infiniband/driver.h
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 45a857085832..b3c4589f4d5b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -277,7 +277,6 @@ add_subdirectory(providers/rxe/man)
+ add_subdirectory(ibacm)
+ if (NOT NL_KIND EQUAL 0)
+   add_subdirectory(iwpmd)
+-  add_subdirectory(iwpmd/src)
+ endif()
+ add_subdirectory(libibcm/examples)
+ add_subdirectory(libibumad/tests)
+diff --git a/iwpmd/CMakeLists.txt b/iwpmd/CMakeLists.txt
+index 89a715128076..ee9e5a3dfeb2 100644
+--- a/iwpmd/CMakeLists.txt
++++ b/iwpmd/CMakeLists.txt
+@@ -1,4 +1,21 @@
++rdma_executable(iwpmd
++  iwarp_pm_common.c
++  iwarp_pm_helper.c
++  iwarp_pm_server.c
++  )
++target_link_libraries(iwpmd LINK_PRIVATE
++  ${NL_LIBRARIES}
++  ${CMAKE_THREAD_LIBS_INIT}
++  )
++
+ rdma_man_pages(
+   iwpmd.1.in
+   iwpmd.conf.5.in
+   )
++
++install(FILES "iwpmd.service" DESTINATION "${CMAKE_INSTALL_SYSTEMD_SERVICEDIR}")
++install(FILES "iwpmd_init"
++  DESTINATION "${CMAKE_INSTALL_INITDDIR}"
++  RENAME "iwpmd"
++  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
++install(FILES "iwpmd.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}")
+diff --git a/iwpmd/src/iwarp_pm.h b/iwpmd/iwarp_pm.h
+similarity index 100%
+rename from iwpmd/src/iwarp_pm.h
+rename to iwpmd/iwarp_pm.h
+diff --git a/iwpmd/src/iwarp_pm_common.c b/iwpmd/iwarp_pm_common.c
+similarity index 100%
+rename from iwpmd/src/iwarp_pm_common.c
+rename to iwpmd/iwarp_pm_common.c
+diff --git a/iwpmd/src/iwarp_pm_helper.c b/iwpmd/iwarp_pm_helper.c
+similarity index 100%
+rename from iwpmd/src/iwarp_pm_helper.c
+rename to iwpmd/iwarp_pm_helper.c
+diff --git a/iwpmd/src/iwarp_pm_server.c b/iwpmd/iwarp_pm_server.c
+similarity index 100%
+rename from iwpmd/src/iwarp_pm_server.c
+rename to iwpmd/iwarp_pm_server.c
+diff --git a/iwpmd/src/iwpm_netlink.h b/iwpmd/iwpm_netlink.h
+similarity index 100%
+rename from iwpmd/src/iwpm_netlink.h
+rename to iwpmd/iwpm_netlink.h
+diff --git a/iwpmd/src/CMakeLists.txt b/iwpmd/src/CMakeLists.txt
+deleted file mode 100644
+index 727db7eff744..000000000000
 -- 
 2.1.4
 
