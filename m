@@ -1,43 +1,46 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Add a .travis.yml file
-Date: Thu, 6 Oct 2016 10:10:09 -0600
-Message-ID: <20161006161009.GE1224@obsidianresearch.com>
-References: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <20161005115132.GE9282@leon.nu>
- <20161005163250.GB18636@obsidianresearch.com>
- <20161006045337.GK9282@leon.nu>
+Subject: Re: Introduction of libqedr to the Consolidated Userspace RDMA
+ Library Repo
+Date: Thu, 6 Oct 2016 10:34:27 -0600
+Message-ID: <20161006163427.GG1224@obsidianresearch.com>
+References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161006045337.GK9282-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <SN1PR07MB22073DF8F016A275DA036F8EF8C70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 06, 2016 at 07:53:37AM +0300, Leon Romanovsky wrote:
+On Thu, Oct 06, 2016 at 08:08:29AM +0000, Amrani, Ram wrote:
+> Hi Jason,
+> Yesterday the qedr (Qlogic Everest Driver for RDMA) patch was sent.
 
-> > I don't understand how a compiler can be too new? The next round of
-> > rolling release distros are likely to use this compiler, and those are
-> > the distros that will first pick to up rdma-core.
-> 
-> I have an issue in front of my eyes where kernel fails to build with old
-> gcc version, while new gcc version works.
+> Even before it being accepted I would like to start working on
+> preparing and adding our user space library for qedr (libqedr) to
+> the consolidated userspace RDMA library repo.  I see that a lot of
+> work is being done by you and so I want to understand how to prepare
+> the code, what is the process and when is a good time to join.
 
-Heh, last week I had the opposite..
+Hi Ram,
 
-> My experience shows the same, however I want to minimize the test burden
-> on the users.
+If you prepare a branch of rdma-core on github I can give it a quick
+look over.
 
-IMHO, it is more valuable to run a build on the full distro stack than
-to try and inject old compiler variations into travis. Old system
-libraries are just as likely to fail a build as the compiler.
+The technical steps are fairly simple, create a
+provider/qedr directory, add your source code, copy the CMakeLists.txt
+style from another provider, add a line to the sorted list in the top
+level CMakeLists.txt, update README.md, COPYING.md and MAINTAINERS
 
-I don't have any way to do that automatically. IMHO Travis is not able to
-handle that sort of workload.
+You will want to look at the various patches I've prepared and ensure
+you cover off the basic cleanups that have already been done, and that
+your code compiles warning-free on FC24.
 
-Perhaps a pre-release pass through OBS or something like it is the answer here?
+Once you feel everything is ready then post it to the mailing list and
+send a pull request. For the mailing list you can just split the
+patches by file..
 
 Jason
 --
