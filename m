@@ -1,125 +1,152 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 12/17] umad: Flatten libibumad/src,include into libibumad/
-Date: Thu,  6 Oct 2016 14:51:38 -0600
-Message-ID: <1475787103-13283-13-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 14/17] rdmacm: Flatten librdmacm/src,include into librdmacm/
+Date: Thu,  6 Oct 2016 14:51:40 -0600
+Message-ID: <1475787103-13283-15-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The top level dir produces the library and test/ produces
-the test programs.
+The top level dir produces the library and examples/ produces
+the example programs.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- CMakeLists.txt                                  |  2 +-
- libibumad/CMakeLists.txt                        | 16 ++++++++++++++++
- libibumad/{src => }/libibumad.map               |  0
- libibumad/src/CMakeLists.txt                    | 16 ----------------
- libibumad/{src => }/sysfs.c                     |  0
- libibumad/{src => }/umad.c                      |  0
- libibumad/{include/infiniband => }/umad.h       |  0
- libibumad/{include/infiniband => }/umad_cm.h    |  0
- libibumad/{include/infiniband => }/umad_sa.h    |  0
- libibumad/{include/infiniband => }/umad_sm.h    |  0
- libibumad/{src => }/umad_str.c                  |  0
- libibumad/{include/infiniband => }/umad_str.h   |  0
- libibumad/{include/infiniband => }/umad_types.h |  0
- 13 files changed, 17 insertions(+), 17 deletions(-)
- create mode 100644 libibumad/CMakeLists.txt
- rename libibumad/{src => }/libibumad.map (100%)
- delete mode 100644 libibumad/src/CMakeLists.txt
- rename libibumad/{src => }/sysfs.c (100%)
- rename libibumad/{src => }/umad.c (100%)
- rename libibumad/{include/infiniband => }/umad.h (100%)
- rename libibumad/{include/infiniband => }/umad_cm.h (100%)
- rename libibumad/{include/infiniband => }/umad_sa.h (100%)
- rename libibumad/{include/infiniband => }/umad_sm.h (100%)
- rename libibumad/{src => }/umad_str.c (100%)
- rename libibumad/{include/infiniband => }/umad_str.h (100%)
- rename libibumad/{include/infiniband => }/umad_types.h (100%)
+ CMakeLists.txt                              |  2 +-
+ librdmacm/{src => }/CMakeLists.txt          | 10 +++++-----
+ librdmacm/{src => }/acm.c                   |  0
+ librdmacm/{src => }/addrinfo.c              |  0
+ librdmacm/{src => }/cma.c                   |  0
+ librdmacm/{src => }/cma.h                   |  0
+ librdmacm/{include/infiniband => }/ib.h     |  0
+ librdmacm/{src => }/indexer.c               |  0
+ librdmacm/{src => }/indexer.h               |  0
+ librdmacm/{src => }/librdmacm.map           |  0
+ librdmacm/{src => }/librspreload.map        |  0
+ librdmacm/{src => }/preload.c               |  0
+ librdmacm/{include/rdma => }/rdma_cma.h     |  0
+ librdmacm/{include/rdma => }/rdma_cma_abi.h |  0
+ librdmacm/{include/rdma => }/rdma_verbs.h   |  0
+ librdmacm/{src => }/rsocket.c               |  0
+ librdmacm/{include/rdma => }/rsocket.h      |  0
+ 17 files changed, 6 insertions(+), 6 deletions(-)
+ rename librdmacm/{src => }/CMakeLists.txt (89%)
+ rename librdmacm/{src => }/acm.c (100%)
+ rename librdmacm/{src => }/addrinfo.c (100%)
+ rename librdmacm/{src => }/cma.c (100%)
+ rename librdmacm/{src => }/cma.h (100%)
+ rename librdmacm/{include/infiniband => }/ib.h (100%)
+ rename librdmacm/{src => }/indexer.c (100%)
+ rename librdmacm/{src => }/indexer.h (100%)
+ rename librdmacm/{src => }/librdmacm.map (100%)
+ rename librdmacm/{src => }/librspreload.map (100%)
+ rename librdmacm/{src => }/preload.c (100%)
+ rename librdmacm/{include/rdma => }/rdma_cma.h (100%)
+ rename librdmacm/{include/rdma => }/rdma_cma_abi.h (100%)
+ rename librdmacm/{include/rdma => }/rdma_verbs.h (100%)
+ rename librdmacm/{src => }/rsocket.c (100%)
+ rename librdmacm/{include/rdma => }/rsocket.h (100%)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index f857f9118a11..88eb968d45ba 100644
+index a0ec5ecd9da0..64f9797c980c 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -251,7 +251,7 @@ configure_file("${BUILDLIB}/config.h.in" "${BUILD_INCLUDE}/config.h" ESCAPE_QUOT
- # Sub-directories
- add_subdirectory(ccan)
- # Libraries
--add_subdirectory(libibumad/src)
-+add_subdirectory(libibumad)
+@@ -255,7 +255,7 @@ add_subdirectory(libibumad)
  add_subdirectory(libibumad/man)
- add_subdirectory(libibverbs/src)
+ add_subdirectory(libibverbs)
  add_subdirectory(libibverbs/man)
-diff --git a/libibumad/CMakeLists.txt b/libibumad/CMakeLists.txt
-new file mode 100644
-index 000000000000..7036aa35d36a
---- /dev/null
-+++ b/libibumad/CMakeLists.txt
-@@ -0,0 +1,16 @@
-+publish_headers(infiniband
-+  umad.h
-+  umad_cm.h
-+  umad_sa.h
-+  umad_sm.h
-+  umad_str.h
-+  umad_types.h
-+  )
-+
-+rdma_library(ibumad libibumad.map
-+  # See Documentation/versioning.md
-+  3 3.1.${PACKAGE_VERSION}
-+  sysfs.c
-+  umad.c
-+  umad_str.c
-+  )
-diff --git a/libibumad/src/libibumad.map b/libibumad/libibumad.map
+-add_subdirectory(librdmacm/src)
++add_subdirectory(librdmacm)
+ add_subdirectory(librdmacm/man)
+ add_subdirectory(libibcm)
+ 
+diff --git a/librdmacm/src/CMakeLists.txt b/librdmacm/CMakeLists.txt
+similarity index 89%
+rename from librdmacm/src/CMakeLists.txt
+rename to librdmacm/CMakeLists.txt
+index bff631ea7f0d..b3dafba0bc6a 100644
+--- a/librdmacm/src/CMakeLists.txt
++++ b/librdmacm/CMakeLists.txt
+@@ -1,11 +1,11 @@
+ publish_headers(rdma
+-  ../include/rdma/rdma_cma.h
+-  ../include/rdma/rdma_cma_abi.h
+-  ../include/rdma/rdma_verbs.h
+-  ../include/rdma/rsocket.h
++  rdma_cma.h
++  rdma_cma_abi.h
++  rdma_verbs.h
++  rsocket.h
+   )
+ publish_headers(infiniband
+-  ../include/infiniband/ib.h
++  ib.h
+   )
+ 
+ rdma_library(rdmacm librdmacm.map
+diff --git a/librdmacm/src/acm.c b/librdmacm/acm.c
 similarity index 100%
-rename from libibumad/src/libibumad.map
-rename to libibumad/libibumad.map
-diff --git a/libibumad/src/CMakeLists.txt b/libibumad/src/CMakeLists.txt
-deleted file mode 100644
-index fbd15893d973..000000000000
-diff --git a/libibumad/src/sysfs.c b/libibumad/sysfs.c
+rename from librdmacm/src/acm.c
+rename to librdmacm/acm.c
+diff --git a/librdmacm/src/addrinfo.c b/librdmacm/addrinfo.c
 similarity index 100%
-rename from libibumad/src/sysfs.c
-rename to libibumad/sysfs.c
-diff --git a/libibumad/src/umad.c b/libibumad/umad.c
+rename from librdmacm/src/addrinfo.c
+rename to librdmacm/addrinfo.c
+diff --git a/librdmacm/src/cma.c b/librdmacm/cma.c
 similarity index 100%
-rename from libibumad/src/umad.c
-rename to libibumad/umad.c
-diff --git a/libibumad/include/infiniband/umad.h b/libibumad/umad.h
+rename from librdmacm/src/cma.c
+rename to librdmacm/cma.c
+diff --git a/librdmacm/src/cma.h b/librdmacm/cma.h
 similarity index 100%
-rename from libibumad/include/infiniband/umad.h
-rename to libibumad/umad.h
-diff --git a/libibumad/include/infiniband/umad_cm.h b/libibumad/umad_cm.h
+rename from librdmacm/src/cma.h
+rename to librdmacm/cma.h
+diff --git a/librdmacm/include/infiniband/ib.h b/librdmacm/ib.h
 similarity index 100%
-rename from libibumad/include/infiniband/umad_cm.h
-rename to libibumad/umad_cm.h
-diff --git a/libibumad/include/infiniband/umad_sa.h b/libibumad/umad_sa.h
+rename from librdmacm/include/infiniband/ib.h
+rename to librdmacm/ib.h
+diff --git a/librdmacm/src/indexer.c b/librdmacm/indexer.c
 similarity index 100%
-rename from libibumad/include/infiniband/umad_sa.h
-rename to libibumad/umad_sa.h
-diff --git a/libibumad/include/infiniband/umad_sm.h b/libibumad/umad_sm.h
+rename from librdmacm/src/indexer.c
+rename to librdmacm/indexer.c
+diff --git a/librdmacm/src/indexer.h b/librdmacm/indexer.h
 similarity index 100%
-rename from libibumad/include/infiniband/umad_sm.h
-rename to libibumad/umad_sm.h
-diff --git a/libibumad/src/umad_str.c b/libibumad/umad_str.c
+rename from librdmacm/src/indexer.h
+rename to librdmacm/indexer.h
+diff --git a/librdmacm/src/librdmacm.map b/librdmacm/librdmacm.map
 similarity index 100%
-rename from libibumad/src/umad_str.c
-rename to libibumad/umad_str.c
-diff --git a/libibumad/include/infiniband/umad_str.h b/libibumad/umad_str.h
+rename from librdmacm/src/librdmacm.map
+rename to librdmacm/librdmacm.map
+diff --git a/librdmacm/src/librspreload.map b/librdmacm/librspreload.map
 similarity index 100%
-rename from libibumad/include/infiniband/umad_str.h
-rename to libibumad/umad_str.h
-diff --git a/libibumad/include/infiniband/umad_types.h b/libibumad/umad_types.h
+rename from librdmacm/src/librspreload.map
+rename to librdmacm/librspreload.map
+diff --git a/librdmacm/src/preload.c b/librdmacm/preload.c
 similarity index 100%
-rename from libibumad/include/infiniband/umad_types.h
-rename to libibumad/umad_types.h
+rename from librdmacm/src/preload.c
+rename to librdmacm/preload.c
+diff --git a/librdmacm/include/rdma/rdma_cma.h b/librdmacm/rdma_cma.h
+similarity index 100%
+rename from librdmacm/include/rdma/rdma_cma.h
+rename to librdmacm/rdma_cma.h
+diff --git a/librdmacm/include/rdma/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
+similarity index 100%
+rename from librdmacm/include/rdma/rdma_cma_abi.h
+rename to librdmacm/rdma_cma_abi.h
+diff --git a/librdmacm/include/rdma/rdma_verbs.h b/librdmacm/rdma_verbs.h
+similarity index 100%
+rename from librdmacm/include/rdma/rdma_verbs.h
+rename to librdmacm/rdma_verbs.h
+diff --git a/librdmacm/src/rsocket.c b/librdmacm/rsocket.c
+similarity index 100%
+rename from librdmacm/src/rsocket.c
+rename to librdmacm/rsocket.c
+diff --git a/librdmacm/include/rdma/rsocket.h b/librdmacm/rsocket.h
+similarity index 100%
+rename from librdmacm/include/rdma/rsocket.h
+rename to librdmacm/rsocket.h
 -- 
 2.1.4
 
