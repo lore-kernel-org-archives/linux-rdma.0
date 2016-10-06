@@ -1,66 +1,42 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH 8/9] Remove most checks of __BYTE_ORDER
-Date: Thu, 6 Oct 2016 04:40:45 -0700
-Message-ID: <20161006114045.GA25762@infradead.org>
+Date: Thu, 6 Oct 2016 15:09:02 +0300
+Message-ID: <5cfdc1c2-4546-1b5f-c5a1-670d75ba03f1@dev.mellanox.co.il>
 References: <1475182076-5411-1-git-send-email-jgunthorpe@obsidianresearch.com>
  <1475182076-5411-9-git-send-email-jgunthorpe@obsidianresearch.com>
  <00e001d21a98$3265f6e0$9731e4a0$@opengridcomputing.com>
  <20160929222802.GC27229@obsidianresearch.com>
- <20161005153701.GA12295@infradead.org>
- <20161005173359.GF18636@obsidianresearch.com>
+ <F2C34CC4-5C7D-4382-873D-9E14B81A44B3@ogc.us>
+ <20160930000800.GA7570@obsidianresearch.com>
+ <fd7d47c8-6a06-6169-b840-abfbc239ad75@dev.mellanox.co.il>
+ <20161005174449.GG18636@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161005173359.GF18636-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161005174449.GG18636-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 05, 2016 at 11:33:59AM -0600, Jason Gunthorpe wrote:
-> Right, stated differently, the kernel requires that writel()/etc
-> always produce the same PCI-E packet on the wire. (eg writel(1)
-> produces a TLP with bit 0 of the data payload set)
+On 10/5/2016 8:44 PM, Jason Gunthorpe wrote:
+> On Wed, Oct 05, 2016 at 06:16:45PM +0300, Yishai Hadas wrote:
+>
+>> Upon QP creation the code uses htonl for setting qp->doorbell_qpn (see
+>> mlx4_create_qp_ex), later on this value is used without any change upon
+>> writing a door bell. (see mmio_writel). No PCI swap is expected.
+>
+> Thanks, so the mlx drivers are doing what the kernel calls writel_be()?
 
-Exactly.
+It's logically the same. You can look also in mlx4 driver code in the 
+kernel [1], writel() is used on qp->doorbell_qpn which was previously 
+set to be BE as the hardware expects.
 
-> Not going through the kernel's writel is the whole problem. The writel
-> helper generates the arch-specific instruction sequence required to
-> issue generate the required PCI-E packet.
+[1] 
+http://lxr.free-electrons.com/source/drivers/infiniband/hw/mlx4/qp.c#L3223
 
-All the architectures (including your quoted above ARM example) seem
-to do the byte swap in software.  That seems to be important for
-accesses like memcpy_{to,from}_io, which would be painful to handle.
 
-But yes, in theory an architecture could do it any way it wants.
-
-> Today (at best, some drivers do not even do this) our userspace
-> assumes all archs implement writel as:
-> 
->    *(u32 *)reg = cpu_to_le32(val);
-> 
-> Which is a good start, but not portable to every arch the kernel
-> supports.
-
-It should do the right thing for every architecture that matters.
-Thay beeing said having an iomem abstraction certainly makes sense
-for various reasons, and handling any oddball architecture (or rather
-PCI hostbridge implemtation, I would not expect something this
-broken to be universal) would come as a bonus.
-
-> Yeah, it would be nice to get that working too. I guess we need to
-> standardize on the cpu_to_xx macro style as a first step?
-
-Any style will work as long as it separate the swap directions,
-but for a low-level Linux projects using the kernel style certainly
-makes sene.
-
-> The __iomem annotation would be nice as well.
-
-I can look into that as well.  Usuaully the first step before adding
-sparse annotations is fixing all the misc sparse warnings, as typical
-userspace projects have a not too stellar code quality.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
