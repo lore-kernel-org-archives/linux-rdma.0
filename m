@@ -1,43 +1,119 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v2 4/7] blk-mq: Introduce blk_quiesce_queue() and
- blk_resume_queue()
-Date: Wed, 5 Oct 2016 16:00:38 -0700
-Message-ID: <686e3937-0068-0f52-1208-1a832ff591c2@sandisk.com>
-References: <f153ee47-e599-c333-92b0-d5da475012f3@sandisk.com>
- <a9eb4e95-6d77-e527-c42a-fd2e6f104bed@sandisk.com>
- <CACVXFVOO4P3RsnWci8XHdFoYBhNPq0KqjWJddsie-92+31bpEg@mail.gmail.com>
- <9fb67745-954c-a70f-a89a-d184c99ae9aa@sandisk.com>
- <CACVXFVMY19vuDjsECg2uX0_y_K7DUaaGqXPX9PYiBy5sfXmAEw@mail.gmail.com>
- <a11bb09a-6207-f4a8-cfd4-4fe5627c1700@sandisk.com>
- <09238e87-7d60-89c9-98b0-e51caa0c0839@grimberg.me>
- <6d612be9-7ba7-888e-f9c6-f8aa4ef1606a@sandisk.com>
- <732bf5d6-d7a8-6ff0-6501-8a3d46f12fab@grimberg.me>
- <07628c2f-3a4e-b12e-663a-b0711ce20cc9@sandisk.com>
- <CACVXFVMwQnOuUukEMO8CyG3sPOg6DxuKAZx+5FT+LS+hGAcWVQ@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Improve global COPYING files
+Date: Thu, 6 Oct 2016 07:30:00 +0300
+Message-ID: <20161006043000.GJ9282@leon.nu>
+References: <20160923041340.GA11269@obsidianresearch.com>
+ <20160923080655.GM4088@leon.nu>
+ <20160923152412.GB11269@obsidianresearch.com>
+ <20160923171003.GR4088@leon.nu>
+ <20160923173421.GB13920@obsidianresearch.com>
+ <20161005124939.GF9282@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <CACVXFVMwQnOuUukEMO8CyG3sPOg6DxuKAZx+5FT+LS+hGAcWVQ@mail.gmail.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="C7PTD44AewjTsiSV"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161005124939.GF9282-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/05/2016 03:49 PM, Ming Lei wrote:
-> We can use srcu read lock for BLOCKING and rcu read lock for non-BLOCKING,
-> by putting *_read_lock() and *_read_unlock() into two wrappers, which
-> should minimize the cost of srcu read lock & unlock and the code is still easy
-> to read & verify.
 
-Hello Ming,
+--C7PTD44AewjTsiSV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The lock checking algorithms in the sparse and smatch static checkers 
-are unable to deal with code of the type "if (condition) (un)lock()". So 
-unless someone has a better proposal my preference is to use the 
-approach from the patch at the start of this e-mail thread.
+On Wed, Oct 05, 2016 at 03:49:39PM +0300, Leon Romanovsky wrote:
+> On Fri, Sep 23, 2016 at 11:34:21AM -0600, Jason Gunthorpe wrote:
+> > On Fri, Sep 23, 2016 at 08:10:03PM +0300, Leon Romanovsky wrote:
+> >
+> > > I sure that this question will sound dumb for you, but can we unify all
+> > > code under OFA's licenses (dual-license)? I don't feel comfortable with
+> > > this multi-license situation.
+> >
+> > It is an excellent question.
+> >
+> > To do this we would need the OFA to talk to each of the member
+> > companies and get them to sign some kind of legal change of copyright
+> > document. Assuming all of the member companies agree, and all the
+> > member companies are the exhaustive copyright owners then the code can
+> > be placed under a single uniform license.
+> >
+> > As I understand it all OFA members were required to agree to use a
+> > specific licensing scheme, including specific license text when they
+> > signed the OFA membership agreement. What we are seeing here is that
+> > the corporate legal side agreed to something but the developers made
+> > small errors along the way, and those errors were later copied by
+> > other developers and spread widely. So the OFA has a basis for
+> > requests of this nature.
+> >
+> > For instance, a legal statement from Mellanox that all code they
+> > contributed is available under the GPLv2 or *either* MIT or FreeBSD
+> > license varient would allow immediately placing all Mellanox
+> > copyrighted code under the single Default License. I expect this is
+> > what Mellanox intended to do anyhow, the fact that ibverbs and all
+> > their providers had an error in the COPYING file is simply
+> > an unfortunate mistake.
+> >
+> > These sorts of license issues are typical in historical code bases. I
+> > would say we are in pretty good shape, from what I can tell absolutely
+> > everything is unambiguously licensed under at least the GPLv2, or a
+> > compatible license.
+> >
+> > Almost everything is alternatively licensed under some kind of BSD
+> > license. The notable exception is ipathverbs and rxe. It is also
+> > unfortunate we have so many BSD variants.
+> >
+> > Further, almost all C code is licensed under the dual GPLv2/OpenIB.org
+> > (MIT) license. The kernel is similar, almost all C code is using the
+> > MIT variant. Hence my desire to make that the license for new code in
+> > the tree.
+> >
+> > I would say this is a pretty good result.
+> >
+> > My ultimate suggestion is that we push the non-default copyright into
+> > the impacted files, eg add short licenses headers to the man pages,
+> > etc, and then delete the extraneous COPYING files once every single
+> > file has a correct license statement. From that point we can look at
+> > switching individual files based on the above Legal process to the
+> > Default License, or just leave them as is - a historical quirk.
+>
+> It looks like a lot of work to do and it can be handled by anyone.
+> Can OPA handle this?
 
-Thanks,
+Sorry,
+OFA and not OPA.
 
-Bart.
+>
+> >
+> > Jason
 
+
+
+--C7PTD44AewjTsiSV
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX9dNIAAoJEORje4g2clin1ncQAJQyGsvuJI1J6EaetOnPsInc
+qjccO+0NiXNHtkEIQMEJ1+otbA2HNyjF+joIsvCTSlnN55w7Y4J56Uk24nBddmY7
+yCbwncyZjCdj6GfOhVhrZBuy9dJrT8V+tWGi1nMmJHSUlpnehjXYlNBB6YdDTlB0
+C+wUvRETRsz6EituNv5cfMzd1JcN4Bl98YS3Jy+5mb3rhTftAB7Q6M2Ipk6B+2tc
+ZJfFToWy2S5AsuHWB5WwoOEcfDGjew5uTN4b4ST4Nk44Hei2GJwT5Vu8fgIcd5U0
+f3oE5O75hgvyF7r/S/1LJ8PdjMYALhG3JGpsxgq+AjwLIVECQZXeH7r249JdomVJ
+tWGim214vPO/EBvrcx6zErpF7zkqkCbsmtQ7Mmqqa9OSA7v+NMSKQ+kOm8Kzy6JC
+BR5D/LxalzTF/D29fZ3AgOlbPq3ti9HWEr9tNvSUNOE2OLDlSR595Whl6x6jZIa5
+t1YR0hPWYpaSiYetmeQ71mRxUcMS75Dcysfyo5IO9+WZtDCy0AMjJqbCwQlbCg2J
+p2sQ4CS+LWtd22mLecOq3QtzDyhkDST+6gI+rEkbiVk8gA1EhLF0/Xrs7A15zyS6
+O2oex7ivNmPgWOCQUF83FeZzFdUsgWUaxVk8ATQNeFbLJs2FAdbco8KkXqUcz6Rg
+yFS9SJyUUuJFYpeTHFo3
+=KMgJ
+-----END PGP SIGNATURE-----
+
+--C7PTD44AewjTsiSV--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
