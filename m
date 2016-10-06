@@ -1,118 +1,41 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Improve global COPYING files
-Date: Thu, 6 Oct 2016 07:30:00 +0300
-Message-ID: <20161006043000.GJ9282@leon.nu>
-References: <20160923041340.GA11269@obsidianresearch.com>
- <20160923080655.GM4088@leon.nu>
- <20160923152412.GB11269@obsidianresearch.com>
- <20160923171003.GR4088@leon.nu>
- <20160923173421.GB13920@obsidianresearch.com>
- <20161005124939.GF9282@leon.nu>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] IB/{core,hw}: Add constant for node_desc
+Date: Thu, 6 Oct 2016 07:46:13 +0300
+Message-ID: <20161006044611.GA4327@yuval-lap.sg.oracle.com>
+References: <1472147827-14609-1-git-send-email-yuval.shaia@oracle.com>
+ <c39be0ef-d170-d40d-aac4-0c157fc843b7@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="C7PTD44AewjTsiSV"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161005124939.GF9282-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <c39be0ef-d170-d40d-aac4-0c157fc843b7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Aug 26, 2016 at 09:57:06AM -0400, Doug Ledford wrote:
+> On 8/25/2016 1:57 PM, Yuval Shaia wrote:
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > v0 -> v1:
+> > 	* Exclude some files from commit based on Jason's comment
+> > v1 -> v2:
+> > 	* Re-include all the excluded files with BUILD_BUG_ON
+> 
+> v2 applied, thanks.
 
---C7PTD44AewjTsiSV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have a bad feeling that this one slipped out.
 
-On Wed, Oct 05, 2016 at 03:49:39PM +0300, Leon Romanovsky wrote:
-> On Fri, Sep 23, 2016 at 11:34:21AM -0600, Jason Gunthorpe wrote:
-> > On Fri, Sep 23, 2016 at 08:10:03PM +0300, Leon Romanovsky wrote:
-> >
-> > > I sure that this question will sound dumb for you, but can we unify all
-> > > code under OFA's licenses (dual-license)? I don't feel comfortable with
-> > > this multi-license situation.
-> >
-> > It is an excellent question.
-> >
-> > To do this we would need the OFA to talk to each of the member
-> > companies and get them to sign some kind of legal change of copyright
-> > document. Assuming all of the member companies agree, and all the
-> > member companies are the exhaustive copyright owners then the code can
-> > be placed under a single uniform license.
-> >
-> > As I understand it all OFA members were required to agree to use a
-> > specific licensing scheme, including specific license text when they
-> > signed the OFA membership agreement. What we are seeing here is that
-> > the corporate legal side agreed to something but the developers made
-> > small errors along the way, and those errors were later copied by
-> > other developers and spread widely. So the OFA has a basis for
-> > requests of this nature.
-> >
-> > For instance, a legal statement from Mellanox that all code they
-> > contributed is available under the GPLv2 or *either* MIT or FreeBSD
-> > license varient would allow immediately placing all Mellanox
-> > copyrighted code under the single Default License. I expect this is
-> > what Mellanox intended to do anyhow, the fact that ibverbs and all
-> > their providers had an error in the COPYING file is simply
-> > an unfortunate mistake.
-> >
-> > These sorts of license issues are typical in historical code bases. I
-> > would say we are in pretty good shape, from what I can tell absolutely
-> > everything is unambiguously licensed under at least the GPLv2, or a
-> > compatible license.
-> >
-> > Almost everything is alternatively licensed under some kind of BSD
-> > license. The notable exception is ipathverbs and rxe. It is also
-> > unfortunate we have so many BSD variants.
-> >
-> > Further, almost all C code is licensed under the dual GPLv2/OpenIB.org
-> > (MIT) license. The kernel is similar, almost all C code is using the
-> > MIT variant. Hence my desire to make that the license for new code in
-> > the tree.
-> >
-> > I would say this is a pretty good result.
-> >
-> > My ultimate suggestion is that we push the non-default copyright into
-> > the impacted files, eg add short licenses headers to the man pages,
-> > etc, and then delete the extraneous COPYING files once every single
-> > file has a correct license statement. From that point we can look at
-> > switching individual files based on the above Legal process to the
-> > Default License, or just leave them as is - a historical quirk.
->
-> It looks like a lot of work to do and it can be handled by anyone.
-> Can OPA handle this?
-
-Sorry,
-OFA and not OPA.
-
->
-> >
-> > Jason
+> 
+> 
+> -- 
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: 0E572FDD
+> 
 
 
 
---C7PTD44AewjTsiSV
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJX9dNIAAoJEORje4g2clin1ncQAJQyGsvuJI1J6EaetOnPsInc
-qjccO+0NiXNHtkEIQMEJ1+otbA2HNyjF+joIsvCTSlnN55w7Y4J56Uk24nBddmY7
-yCbwncyZjCdj6GfOhVhrZBuy9dJrT8V+tWGi1nMmJHSUlpnehjXYlNBB6YdDTlB0
-C+wUvRETRsz6EituNv5cfMzd1JcN4Bl98YS3Jy+5mb3rhTftAB7Q6M2Ipk6B+2tc
-ZJfFToWy2S5AsuHWB5WwoOEcfDGjew5uTN4b4ST4Nk44Hei2GJwT5Vu8fgIcd5U0
-f3oE5O75hgvyF7r/S/1LJ8PdjMYALhG3JGpsxgq+AjwLIVECQZXeH7r249JdomVJ
-tWGim214vPO/EBvrcx6zErpF7zkqkCbsmtQ7Mmqqa9OSA7v+NMSKQ+kOm8Kzy6JC
-BR5D/LxalzTF/D29fZ3AgOlbPq3ti9HWEr9tNvSUNOE2OLDlSR595Whl6x6jZIa5
-t1YR0hPWYpaSiYetmeQ71mRxUcMS75Dcysfyo5IO9+WZtDCy0AMjJqbCwQlbCg2J
-p2sQ4CS+LWtd22mLecOq3QtzDyhkDST+6gI+rEkbiVk8gA1EhLF0/Xrs7A15zyS6
-O2oex7ivNmPgWOCQUF83FeZzFdUsgWUaxVk8ATQNeFbLJs2FAdbco8KkXqUcz6Rg
-yFS9SJyUUuJFYpeTHFo3
-=KMgJ
------END PGP SIGNATURE-----
-
---C7PTD44AewjTsiSV--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
