@@ -1,80 +1,54 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Add a .travis.yml file
-Date: Thu, 6 Oct 2016 20:52:55 +0300
-Message-ID: <20161006175255.GS9282@leon.nu>
-References: <1475105337-18002-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <20161005115132.GE9282@leon.nu>
- <20161005163250.GB18636@obsidianresearch.com>
- <20161006045337.GK9282@leon.nu>
- <20161006161009.GE1224@obsidianresearch.com>
+From: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
+Subject: Re: RDMA developer gatherings around Kernel Summit and Linux
+ Plumbers in Santa Fe
+Date: Thu, 6 Oct 2016 18:33:45 +0000
+Message-ID: <E82DA475-17F6-461C-A927-66AE4AE22D72@ccn-mail.lanl.gov>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tqSMaTz1cCSspCQ4"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161006161009.GE1224-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A3171A2926821C4E82485D94F958259D-r1tBtT6b1V2fRvmTrFJqzg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---tqSMaTz1cCSspCQ4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Oct 06, 2016 at 10:10:09AM -0600, Jason Gunthorpe wrote:
-> On Thu, Oct 06, 2016 at 07:53:37AM +0300, Leon Romanovsky wrote:
->
-> > > I don't understand how a compiler can be too new? The next round of
-> > > rolling release distros are likely to use this compiler, and those are
-> > > the distros that will first pick to up rdma-core.
-> >
-> > I have an issue in front of my eyes where kernel fails to build with old
-> > gcc version, while new gcc version works.
->
-> Heh, last week I had the opposite..
->
-> > My experience shows the same, however I want to minimize the test burden
-> > on the users.
->
-> IMHO, it is more valuable to run a build on the full distro stack than
-> to try and inject old compiler variations into travis. Old system
-> libraries are just as likely to fail a build as the compiler.
->
-> I don't have any way to do that automatically. IMHO Travis is not able to
-> handle that sort of workload.
->
-> Perhaps a pre-release pass through OBS or something like it is the answer here?
-
-Yeah,
-Let's start simple and sort it later on.
-
->
-> Jason
-
---tqSMaTz1cCSspCQ4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJX9o93AAoJEORje4g2clinowMP/3dsJNRPNAFrbj+BB6L5ClTB
-zqxj5N4tcGWiKz16CnWsE5DXMnG0sBOiZCe3CBpbdMIx7Ul0FH40/UJ+KeC4BAQI
-i0SO7cubH6Rk+7mwQF3gZS833vgUg3i+XDz37CNSp7cpSPfqh4olwXXHXVzUXK0I
-T3hPmcCeS4fU6pOjfBkkXFLQslna+8e20aWty4A22HuMFTaVo8725zTT1ZebYvIJ
-xOq/ggY6pIEHBqeLJzQncOq6OnMyapcxgn1F7/g/4twE+WON0GtayjJv2Gp7c6MD
-5iqJyDollBsmMijQlXSc01XhVyZWFUHr1iuV9MrQdXf0GC1A8lFy5ZNoBSSx/Lt2
-B/XOChV6gUpM/mm2jDBf0qQEY3b/+6f+HONAj+QIqfOZyrrccuplaarFmrvUTdFF
-/eenAfpOn1icdysrUak/OLxc59/4K13lu79k555crcoKD0NcOhfNQAr1pIPhxybz
-EG5r3mEKTTJpj4BkkmoPuI0N+uT9LrwfalX4kISrSbtUhGJBm2y25j6BcRKY/UuR
-wJz4pPB1xPfEClkIR1IOu/YXWNtRJjcPvxKAbU4k9aiQKujdbFCLyZMaqUVhpkvG
-166CXW48NgH655N72xnequXUEqHUvEg1s89kd3cBomCkw9N/l7lopvcM0k5d05nj
-l/szmxDSHAk06akaAVUD
-=PZCO
------END PGP SIGNATURE-----
-
---tqSMaTz1cCSspCQ4--
+DQpDaHJpc3RvcGgsDQoNCkkgYW0gdGhlIGN1cnJlbnQgQ2hhaXIgb2YgdGhlIE9GQSwgYW5kIHRo
+ZXJlZm9yZSBkbyBzcGVhayBmb3IgdGhlIE9GQS4NCkkgd2lsbCBiZSBhdCB0aGUgTFBDIGFuZCB3
+aWxsIGF0dGVuZCBib3RoIFJETUEgc2Vzc2lvbnMuDQoNClRoZSBPRkHigJlzIHBvc2l0aW9uIG9u
+IHRoaXMgaXMgbm90IGNhc3QgaW4gc3RvbmUuDQpXZSByZWFsaXplIHRoYXQgT0ZTIGhhcyBtYXR1
+cmVkIGFuZCBubyBsb25nZXIgbmVlZHMgdGhlIGNhcmUgYW5kIGZlZWRpbmcgaXQgZGlkIH44IHll
+YXJzIGFnby4NClRoYXQgc2FpZCwgdGhlIE9GQSBiZWxpZXZlcyB0aGVyZSBpcyBzdGlsbCB2YWx1
+ZSBpbiBvdXIgZXhpc3RlbmNlLg0KKCBldmVuIGlmIHlvdSB3aXNoIHdlIHNob3VsZCBkaWUgYSBz
+bG93IGRlYXRoIDopDQoNClRoZSBPRkHigJlzIHBvc2l0aW9uIGlzIHRoYXQgd2UgaGF2ZSBzb21l
+IG1lbWJlciBjb21wYW5pZXMgdGhhdCByZXF1aXJlIGR1YWwgbGljZW5zZSBpbiBvcmRlciB0byBv
+ZmZlciBwcm9kdWN0cyBhbmQgc29sdXRpb25zIHRoYXQgcmVwYWNrYWdlIE9GUyBzb2Z0d2FyZSBv
+biBub24tTGludXggT1NzLiAgV2UgYXJlIGluIHRoZSBwcm9jZXNzIG9mIGZpbmRpbmcgb3V0IGZy
+b20gdGhvc2UgbWVtYmVycyB3aGF0IGJpdHMgYXJlIGNyaXRpY2FsIHRvIHRoYXQgcmUtcGFja2Fn
+aW5nLiAgV2UgYWxzbyBiZWxpZXZlLCBjb250cmFyeSB0byB5b3VyIHVuZGVyc3RhbmRpbmcsIHRo
+YXQgd2UgY2Fubm90IGZvcmNlIGR1YWwgbGljZW5zZSBvbiB0aGUgZW50aXJlIFJETUEga2VybmVs
+IHN1YnN5c3RlbS4gIA0KDQpCYWNrIGluIEp1bmUgd2UgYmVnYW4gYW4gZWZmb3J0IHRvIHNlZSBp
+ZiB0aGF0IHdhcyBwb3NzaWJsZS4gICggdGhhdCA9IGtlZXBpbmcgdGhlIGtlcm5lbCBiaXRzIGR1
+YWwgbGljZW5zZWQgKSAgUGFydCBvZiB0aGF0IGVmZm9ydCB3YXMgYW4gZW1haWwgSSBzZW50IHlv
+dSB0byBhc2sgaWYgeW91IHdvdWxkIGJlIHdpbGxpbmcgdG8gZHVhbCBsaWNlbnNlIHlvdXIgcmVj
+ZW50IHBhdGNoZXMuICBZb3UgbmV2ZXIgcmVzcG9uZGVkLCBzbyBJIGFzc3VtZWQgeW91IEEuICBu
+ZXZlciBzYXcgdGhlIGVtYWlsICBCLiAgdHJhc2hlZCBpdCB3aXRoIHByZWp1ZGljZSAgQy4gd2Vy
+ZSB0b28gYnVzeSB0byByZXNwb25kLiAgIEhvcGVmdWxseSB5b3UgZGlkIG5vdCBjb25zaWRlciB0
+aGF0IGVtYWlsIOKAnGJ1bGx5aW5n4oCdLCBhcyBJIGJlbGlldmUgSSB1c2VkIHRoZSB3b3JkcyDi
+gJxBbnkgY2hhbmNlIHlvdeKAmWQgYmUgd2lsbGluZ+KAnSDigKYgYW5kIGp1c3QgInRob3VnaHQg
+SeKAmWQgYXNr4oCdLg0KDQpXZSBhbHNvIGhhdmUgY29uc2lkZXJlZCBhIGNsZWFuIHJvb20gYXBw
+cm9hY2ggdG8gcmUtY3JlYXRpbmcgdGhlIHNpbmdsZSBsaWNlbnNlZCBwYXRjaGVzLCBidXQgaGF2
+ZSBkZWNpZGVkIHRoYXQgbWF5IG5vdCBiZSByZWFsaXN0aWMuDQoNClRoZXJlZm9yZSwgd2UgLSB0
+aGUgT0ZBIC0gYXJlIHRyeWluZyB0byBzdHJpa2UgYSBiYWxhbmNlIHRoYXQgd29ya3MgZm9yIG91
+ciBtZW1iZXJzIGFuZCB3aWxsIHN1cnZpdmUgaW4gdGhlIHJlYWwgd29ybGQuDQpJZiB3ZSBkaWUg
+YSBzbG93IGRlYXRoIGFuZCB0aGUgdmFyaW91cyBVTFBzIHRoYXQgcmVseSBvbiBSRE1BIGNvbnRp
+bnVlIHRvIGdyb3cgYW5kIGltcHJvdmUgLSBzbyBiZSBpdC4NCkFuZCB5b3UgY2FuIGRhbmNlIG9u
+IG91ciBncmF2ZS4NCg0KDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PQ0KU3VzYW4gQ291bHRlciAvIEhQQy1ERVMNCk5ldHdvcmsgQ2FwYWJpbGl0eSBM
+ZWFkDQooNTA1KSA2NjctODQyNQ0K4oCcT25jZSBpbiBhIHdoaWxlIHlvdSBnZXQgc2hvd24gdGhl
+IGxpZ2h0DQogICAgSW4gdGhlIHN0cmFuZ2VzdCBvZiBwbGFjZXMgaWYgeW91IGxvb2sgYXQgaXQg
+cmlnaHTigJ0gIFJvYmVydCBIdW50ZXINCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09DQoNCg0KDQoNCg0KDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
