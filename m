@@ -1,96 +1,71 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 09/17] iwpmd: Flatten iwpmd/src into iwpmd/
-Date: Thu,  6 Oct 2016 14:51:35 -0600
-Message-ID: <1475787103-13283-10-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 06/17] umad: Use symlinks instead of a NROFF .so directive
+Date: Thu,  6 Oct 2016 14:51:32 -0600
+Message-ID: <1475787103-13283-7-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since the directory only produces one program.
+This is consistent with the rest of tree.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- CMakeLists.txt                    |  1 -
- iwpmd/CMakeLists.txt              | 17 +++++++++++++++++
- iwpmd/{src => }/iwarp_pm.h        |  0
- iwpmd/{src => }/iwarp_pm_common.c |  0
- iwpmd/{src => }/iwarp_pm_helper.c |  0
- iwpmd/{src => }/iwarp_pm_server.c |  0
- iwpmd/{src => }/iwpm_netlink.h    |  0
- iwpmd/src/CMakeLists.txt          | 16 ----------------
- 8 files changed, 17 insertions(+), 17 deletions(-)
- rename iwpmd/{src => }/iwarp_pm.h (100%)
- rename iwpmd/{src => }/iwarp_pm_common.c (100%)
- rename iwpmd/{src => }/iwarp_pm_helper.c (100%)
- rename iwpmd/{src => }/iwarp_pm_server.c (100%)
- rename iwpmd/{src => }/iwpm_netlink.h (100%)
- delete mode 100644 iwpmd/src/CMakeLists.txt
+ libibumad/man/CMakeLists.txt        | 8 ++++----
+ libibumad/man/umad_attribute_str.3  | 3 ---
+ libibumad/man/umad_mad_status_str.3 | 3 ---
+ libibumad/man/umad_method_str.3     | 3 ---
+ 4 files changed, 4 insertions(+), 13 deletions(-)
+ delete mode 100644 libibumad/man/umad_attribute_str.3
+ delete mode 100644 libibumad/man/umad_mad_status_str.3
+ delete mode 100644 libibumad/man/umad_method_str.3
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 45a857085832..b3c4589f4d5b 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -277,7 +277,6 @@ add_subdirectory(providers/rxe/man)
- add_subdirectory(ibacm)
- if (NOT NL_KIND EQUAL 0)
-   add_subdirectory(iwpmd)
--  add_subdirectory(iwpmd/src)
- endif()
- add_subdirectory(libibcm/examples)
- add_subdirectory(libibumad/tests)
-diff --git a/iwpmd/CMakeLists.txt b/iwpmd/CMakeLists.txt
-index 89a715128076..ee9e5a3dfeb2 100644
---- a/iwpmd/CMakeLists.txt
-+++ b/iwpmd/CMakeLists.txt
-@@ -1,4 +1,21 @@
-+rdma_executable(iwpmd
-+  iwarp_pm_common.c
-+  iwarp_pm_helper.c
-+  iwarp_pm_server.c
-+  )
-+target_link_libraries(iwpmd LINK_PRIVATE
-+  ${NL_LIBRARIES}
-+  ${CMAKE_THREAD_LIBS_INIT}
-+  )
-+
+diff --git a/libibumad/man/CMakeLists.txt b/libibumad/man/CMakeLists.txt
+index b7a191261ec0..4831d3b1625c 100644
+--- a/libibumad/man/CMakeLists.txt
++++ b/libibumad/man/CMakeLists.txt
+@@ -1,7 +1,6 @@
  rdma_man_pages(
-   iwpmd.1.in
-   iwpmd.conf.5.in
+   umad_addr_dump.3
+   umad_alloc.3
+-  umad_attribute_str.3
+   umad_class_str.3
+   umad_close_port.3
+   umad_debug.3
+@@ -17,8 +16,6 @@ rdma_man_pages(
+   umad_get_pkey.3
+   umad_get_port.3
+   umad_init.3
+-  umad_mad_status_str.3
+-  umad_method_str.3
+   umad_open_port.3
+   umad_poll.3
+   umad_recv.3
+@@ -36,7 +33,10 @@ rdma_man_pages(
+   umad_unregister.3
    )
-+
-+install(FILES "iwpmd.service" DESTINATION "${CMAKE_INSTALL_SYSTEMD_SERVICEDIR}")
-+install(FILES "iwpmd_init"
-+  DESTINATION "${CMAKE_INSTALL_INITDDIR}"
-+  RENAME "iwpmd"
-+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
-+install(FILES "iwpmd.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}")
-diff --git a/iwpmd/src/iwarp_pm.h b/iwpmd/iwarp_pm.h
-similarity index 100%
-rename from iwpmd/src/iwarp_pm.h
-rename to iwpmd/iwarp_pm.h
-diff --git a/iwpmd/src/iwarp_pm_common.c b/iwpmd/iwarp_pm_common.c
-similarity index 100%
-rename from iwpmd/src/iwarp_pm_common.c
-rename to iwpmd/iwarp_pm_common.c
-diff --git a/iwpmd/src/iwarp_pm_helper.c b/iwpmd/iwarp_pm_helper.c
-similarity index 100%
-rename from iwpmd/src/iwarp_pm_helper.c
-rename to iwpmd/iwarp_pm_helper.c
-diff --git a/iwpmd/src/iwarp_pm_server.c b/iwpmd/iwarp_pm_server.c
-similarity index 100%
-rename from iwpmd/src/iwarp_pm_server.c
-rename to iwpmd/iwarp_pm_server.c
-diff --git a/iwpmd/src/iwpm_netlink.h b/iwpmd/iwpm_netlink.h
-similarity index 100%
-rename from iwpmd/src/iwpm_netlink.h
-rename to iwpmd/iwpm_netlink.h
-diff --git a/iwpmd/src/CMakeLists.txt b/iwpmd/src/CMakeLists.txt
+ rdma_alias_man_pages(
++  umad_class_str.3 umad_attribute_str.3
++  umad_class_str.3 umad_mad_status_str.3
++  umad_class_str.3 umad_method_str.3
+   umad_get_ca.3 umad_release_ca.3
+   umad_get_port.3 umad_release_port.3
+   umad_init.3 umad_done.3
+-  )
+\ No newline at end of file
++  )
+diff --git a/libibumad/man/umad_attribute_str.3 b/libibumad/man/umad_attribute_str.3
 deleted file mode 100644
-index 727db7eff744..000000000000
+index f5e6b02ca933..000000000000
+diff --git a/libibumad/man/umad_mad_status_str.3 b/libibumad/man/umad_mad_status_str.3
+deleted file mode 100644
+index f5e6b02ca933..000000000000
+diff --git a/libibumad/man/umad_method_str.3 b/libibumad/man/umad_method_str.3
+deleted file mode 100644
+index f5e6b02ca933..000000000000
 -- 
 2.1.4
 
