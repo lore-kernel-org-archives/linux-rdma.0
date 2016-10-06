@@ -1,43 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 01/17] Update Intel lists in MAINTAINERS
-Date: Thu,  6 Oct 2016 14:51:27 -0600
-Message-ID: <1475787103-13283-2-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 05/17] rdmacm: Drop SONAME in rspreload
+Date: Thu,  6 Oct 2016 14:51:31 -0600
+Message-ID: <1475787103-13283-6-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Try again to get this information right.
+A LD_PRELOAD library should not have a SONAME, switch cmake from
+SHARED to MODEL mode.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- MAINTAINERS | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ librdmacm/src/CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9048311afdbe..c7587596f5ee 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -54,7 +54,7 @@ HF1 USERSPACE PROVIDER (for hf1.ko)
- M:	Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- S:	Supported
--L:	intel-opa-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-+L:	intel-opa-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org (moderated for non-subscribers)
- F:	libhfi1verbs/
+diff --git a/librdmacm/src/CMakeLists.txt b/librdmacm/src/CMakeLists.txt
+index 0a60786c5f7a..bff631ea7f0d 100644
+--- a/librdmacm/src/CMakeLists.txt
++++ b/librdmacm/src/CMakeLists.txt
+@@ -22,10 +22,12 @@ target_link_libraries(rdmacm LINK_PRIVATE ${CMAKE_THREAD_LIBS_INIT})
  
- I40IW USERSPACE PROVIDER (for i40iw.ko)
-@@ -70,7 +70,7 @@ F:	ibacm/*
- IPATH/QIB USERSPACE PROVIDER (for ib_qib.ko)
- M:	Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
--L:	infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+L:	infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
- S:	Supported
- F:	libipathverbs/
- 
+ # The preload library is a bit special, it needs to be open coded
+ # Since it is a LD_PRELOAD it has no soname, and is installed in sub dir
+-add_library(rspreload SHARED
++add_library(rspreload MODULE
+   preload.c
+   indexer.c
+   )
++# Even though this is a module we still want to use Wl,--no-undefined
++set_target_properties(rspreload PROPERTIES LINK_FLAGS ${CMAKE_SHARED_LINKER_FLAGS})
+ set_target_properties(rspreload PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
+ rdma_set_library_map(rspreload librspreload.map)
+ target_link_libraries(rspreload LINK_PRIVATE
 -- 
 2.1.4
 
