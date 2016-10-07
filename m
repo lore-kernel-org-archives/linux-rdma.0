@@ -1,64 +1,102 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [Bug 176901] New: Running ib_rdma_bw over rxe loopback triggers a
- kernel oops
-Date: Fri, 7 Oct 2016 09:49:07 -0700
-Message-ID: <9822c558-91d0-8d6a-8f64-07949d9fdaf7@sandisk.com>
-References: <bug-176901-11804@https.bugzilla.kernel.org/>
- <CAG53R5X-=b1RFR87ieL4e=ANTV0JfjO6qm8_AdXWeudQQ17oSA@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 00/17] Fixes, flattening and packaging
+Date: Fri, 7 Oct 2016 13:07:44 -0400
+Message-ID: <ed5eadc6-db9b-8238-9ec2-9ba1cf7dfca2@redhat.com>
+References: <1475787103-13283-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="owT0fPMijlsO1NrwbWDtidkqWchqxTpjD"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5X-=b1RFR87ieL4e=ANTV0JfjO6qm8_AdXWeudQQ17oSA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/06/16 20:28, Parav Pandit wrote:
-> On Fri, Oct 7, 2016 at 4:53 AM,  <bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org> wrote:
->> https://bugzilla.kernel.org/show_bug.cgi?id=176901
-> This bug is fixed with my patch [1] and Doug ack also about merging fix.
->
-> [1] https://patchwork.kernel.org/patch/9354863/
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--owT0fPMijlsO1NrwbWDtidkqWchqxTpjD
+Content-Type: multipart/mixed; boundary="gRhFdMFNkbNWeTfJvOr5vKAlak83C8v7m";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <ed5eadc6-db9b-8238-9ec2-9ba1cf7dfca2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 00/17] Fixes, flattening and packaging
+References: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1475787103-13283-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Hello Parav,
+--gRhFdMFNkbNWeTfJvOr5vKAlak83C8v7m
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for the feedback. Do you perhaps know which branch Doug will 
-send to Linus? I haven't found any post-v4.8 rxe changes in Doug's 
-for-4.9-good branch:
+On 10/6/2016 4:51 PM, Jason Gunthorpe wrote:
+> This is mostly a grab bag of the finished work left in my tree:
+>=20
+>  - Missed items for the last merge
+>  - Fix a few mistakes in the earlier patches and build system
+>  - Final rename of directories to make the tree shallower (eg eliminate=
+ src/, add providers/)
+>  - RPM and DEB packaging
+>=20
+> See
+>=20
+> https://github.com/linux-rdma/rdma-core/pull/13
+>=20
+> Jason Gunthorpe (17):
+>   Update Intel lists in MAINTAINERS
+>   Update COPYING to reflect recent cxgb4 merge
+>   Update comment in cxbg* drivers
+>   Remove missed auto* related files
+>   rdmacm: Drop SONAME in rspreload
+>   umad: Use symlinks instead of a NROFF .so directive
+>   verbs: Remove -fno-strict-aliasing
+>   Move providers into providers/
+>   iwpmd: Flatten iwpmd/src into iwpmd/
+>   srp_deamon: Flatten srp_daemon/src,etc into srp_daemon/
+>   ibcm: Flatten libibcm/src,include into libibcm/
+>   umad: Flatten libibumad/src,include into libibumad/
+>   verbs: Flatten libibverbs/src,include into libibverbs/
+>   rdmacm: Flatten librdmacm/src,include into librdmacm/
+>   Combined RPM Spec file
+>   srp_daemon: Add the debian initscripts as an option
+>   Debian Packaging
 
-$ git log --format=oneline v4.8..dledford/k.o/for-4.9-good 
-drivers/infiniband/sw include/uapi/rdma/*rxe*
-60747ef4d173c2747bf7f0377fb22846cb422195 Merge 
-git://git.kernel.org/pub/scm/linux/kernel/git/davem/net
-
-Something else I was wondering about is whether or not the rdma_rxe 
-driver should allow being attached to a bridge interface? Apparently the 
-rdma_rxe driver allows attaching to both the non-bridged and the bridged 
-interfaces, resulting in duplicate GIDs:
-
-# modprobe rdma_rxe
-# brctl addbr virbr0
-# brctl addif virbr0 eth1
-# rxe_cfg add eth1
-# rxe_cfg add virbr0
-# rxe_cfg
-   Name    Link  Driver      Speed  NMTU  IPv4_addr      RDEV  RMTU
-   eth0    yes   virtio_net         1500  192.168.1.123
-   eth1    no    virtio_net         1500                 rxe0
-   virbr0  no    bridge             1500                 rxe1
-# (cd /sys/class/infiniband && grep -aH '' */ports/*/gids/0)
-rxe0/ports/1/gids/0:fe80:0000:0000:0000:5054:00ff:fefd:2e4e
-rxe1/ports/1/gids/0:fe80:0000:0000:0000:5054:00ff:fefd:2e4e
-
-Should it ever be allowed that two different ports have the same GID?
-
-Thanks,
-
-Bart.
+Thanks Jason, series (including the addition of adding Steve Wise to the
+Maintainers file for iwpmd) applied.
 
 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--gRhFdMFNkbNWeTfJvOr5vKAlak83C8v7m--
+
+--owT0fPMijlsO1NrwbWDtidkqWchqxTpjD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJX99ZmAAoJELgmozMOVy/dn9gP/iz3uiRuq3O2vT8T4gjE5q7l
+mDbH+f4VojNWo2oRjozamd6IyI5nxejFw6hjpAtjbdQ09Msl4tylxcj/yYq0+7L+
+WoA0m2IAVWDVeoJF5bSCB0aZ4505socx9vJ+RpFR8guk1EPogo0Xt2/CwWRRFoaa
+zGvPJQDrfk8/nkZg6eTLnF0TxyhbJtUL+8doCQKeBlKokqdks2wktQPn+7kDbOEb
+XKITf5lEQBSZRo8wrr3iS9UFuKBK1cSgwt1G3otWiZU2lQ2ytgKuqLIBJaTVn/rF
+rAlykEeGzOjwtmMG/+VvOygfG2PCjtxdR5wKgzKnkqs654W1jKGqf6ony/i9XPYA
+gH+0olRX04bek5DNKHw3aiXmZUHCBv4fjiGBUMD7hnROKBru5ZsRUek1PflwrqAO
+u4RqHr/TW79VIocFTcLswzPC6usbAcmKShUfroXc0jofgMrrRYdzk+RjJvwfISJj
+IaNlj8gwNjNEOYNEskfzP598w8NRT1RisxW6pYaamDT5ha6FJoJIacmmUX10qi4U
+RQGTuiPGVkKr9Dd/wT0YbSU+LiNKdiM89UNQQv7//UcT/zmkHtimzd16Lft8iqgu
+M3vF19QTz5oeHSVFlMR2O6ayZiyZItPDY95SxFufuyKDYaccpmQ6+qx3V2IjYOKF
+e3VOqhDfh9mU6jc4Bpdd
+=E6Xa
+-----END PGP SIGNATURE-----
+
+--owT0fPMijlsO1NrwbWDtidkqWchqxTpjD--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
