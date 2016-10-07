@@ -1,80 +1,75 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 5/5] Update TravisCI to use clang 3.9 as well
-Date: Fri,  7 Oct 2016 16:36:12 -0600
-Message-ID: <1475879772-29458-6-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Bug 176901] New: Running ib_rdma_bw over rxe loopback triggers a
+ kernel oops
+Date: Sat, 8 Oct 2016 04:54:31 +0530
+Message-ID: <CAG53R5WZh2NTQ_FPE0RQ-vuSb11LVhgyFpSLsgLtP04qQOkyLQ@mail.gmail.com>
+References: <bug-176901-11804@https.bugzilla.kernel.org/> <CAG53R5X-=b1RFR87ieL4e=ANTV0JfjO6qm8_AdXWeudQQ17oSA@mail.gmail.com>
+ <9822c558-91d0-8d6a-8f64-07949d9fdaf7@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475879772-29458-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <9822c558-91d0-8d6a-8f64-07949d9fdaf7-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Now that the build runs warning free on clang 3.9 as well.
+Hi Bart,
 
-clang has a different set of static checker type warnings.
+On Fri, Oct 7, 2016 at 10:19 PM, Bart Van Assche
+<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> Hello Parav,
+>
+>
+> Something else I was wondering about is whether or not the rdma_rxe driver
+> should allow being attached to a bridge interface?
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- .travis.yml | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+My take is it should not to avoid mis configurations.
+Below fix is required, which I tested to not allow on bridge type devices.
+I will send formal patch.
 
-diff --git a/.travis.yml b/.travis.yml
-index a2b9e3b8c3f3..d81b699294eb 100644
---- a/.travis.yml
-+++ b/.travis.yml
-@@ -1,15 +1,23 @@
- language: c
- # We need at least cmake 2.12, this means we need to use trusty.
- # Precise's glibc, etc predates what we are willing to support.
--# No reason for sudo.
-+# sudo is required to get the trusty image, and at present to enable llvm 3.9
- sudo: required
- dist: trusty
- addons:
-+  # We run our builds sequentially in one VM rather than try and use the
-+  # matrix feature. This is because Travis is unreasonably inefficient
-+  # doing this APT setup pass.
-   apt:
-     sources:
-+      # sourceline because travis won't white list trusty builds, and hasn't
-+      # whitelisted 3.9
-+      - sourceline: "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main"
-+        key_url: "http://apt.llvm.org/llvm-snapshot.gpg.key"
-       - ubuntu-toolchain-r-test
-     packages:
-       - build-essential
-+      - clang-3.9
-       - cmake
-       - debhelper
-       - gcc
-@@ -25,16 +33,22 @@ addons:
-       # 32 bit support packages
-       - gcc-multilib
-       - lib32gcc-6-dev
-+
- script:
--  - mkdir build build32
-+  - mkdir build build-clang build32
-   - cd build
-   # The goal is warning free compile on latest gcc.
-   - CC=gcc-6 CFLAGS=-Werror cmake -GNinja ..
-   - ninja
- 
-+  # .. and latest clang
-+  - cd ../build-clang
-+  - CC=clang-3.9 CFLAGS=-Werror cmake -GNinja ..
-+  - ninja
-+
-   # 32 bit build
-   - cd ../build32
--  # travis's trusty is not configured in a way that enables all32 bit
-+  # travis's trusty is not configured in a way that enables all 32 bit
-   # packages. We could fix this with some sudo stuff.. For now turn off libnl
-   - CC=gcc-6 CFLAGS="-Werror -m32" cmake -GNinja .. -DENABLE_RESOLVE_NEIGH=0
-   - ninja
--- 
-2.1.4
+diff --git a/drivers/infiniband/sw/rxe/rxe_sysfs.c
+b/drivers/infiniband/sw/rxe/rxe_sysfs.c
+index cf8e778..7f4e0f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_sysfs.c
++++ b/drivers/infiniband/sw/rxe/rxe_sysfs.c
+@@ -90,7 +90,11 @@ static int rxe_param_set_add(const char *val, const
+struct kernel_param *kp)
+                err = -EINVAL;
+                goto err;
+        }
+-
++       if (netif_is_bridge_master(ndev)) {
++               pr_err("bridge device %s is unsupported\n", intf);
++               err = -EINVAL;
++               goto err;
++       }
+        if (net_to_rxe(ndev)) {
+                pr_err("rxe: already configured on %s\n", intf);
+                err = -EINVAL;
 
+> Apparently the rdma_rxe
+> driver allows attaching to both the non-bridged and the bridged interfaces,
+> resulting in duplicate GIDs:
+>
+> # modprobe rdma_rxe
+> # brctl addbr virbr0
+> # brctl addif virbr0 eth1
+> # rxe_cfg add eth1
+> # rxe_cfg add virbr0
+> # rxe_cfg
+>   Name    Link  Driver      Speed  NMTU  IPv4_addr      RDEV  RMTU
+>   eth0    yes   virtio_net         1500  192.168.1.123
+>   eth1    no    virtio_net         1500                 rxe0
+>   virbr0  no    bridge             1500                 rxe1
+> # (cd /sys/class/infiniband && grep -aH '' */ports/*/gids/0)
+> rxe0/ports/1/gids/0:fe80:0000:0000:0000:5054:00ff:fefd:2e4e
+> rxe1/ports/1/gids/0:fe80:0000:0000:0000:5054:00ff:fefd:2e4e
+>
+> Should it ever be allowed that two different ports have the same GID?
+>
+Not sure. It might be allowed LAG mode (at least IP based GID).
+I am not upto date of recent LAG updates from Leon.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
