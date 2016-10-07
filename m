@@ -1,35 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 2/5] ibacm: Avoid clang 3.8 warning -Wmissing-field-initializers
-Date: Fri,  7 Oct 2016 16:36:09 -0600
-Message-ID: <1475879772-29458-3-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 0/5] clang support
+Date: Fri,  7 Oct 2016 16:36:07 -0600
+Message-ID: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475879772-29458-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The canonical way to zero fill a struct in this tree is {}.
+This series gets clang running warning free and has travis run the build
+through clang-3.9 so we don't break it again.
 
-Fixes: 0db49b8b3e8f ("Avoid clang 3.6 warning -Wmissing-field-initializers")
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- ibacm/prov/acmp/src/acmp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Jason Gunthorpe (5):
+  Pull uninitialized_var into util/compiler.h
+  ibacm: Avoid clang 3.8 warning -Wmissing-field-initializers
+  mthca: Avoid bogus gcc 4.8 warning -Wmaybe-uninitialized
+  Improve linker flag detection to work with clang and -Werror
+  Update TravisCI to use clang 3.9 as well
 
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index 3f590d0b51f3..d70501aff8e8 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -2118,7 +2118,7 @@ static void acmp_parse_osm_fullv1_lid2guid(FILE *f, uint64_t *lid2guid)
- static int acmp_parse_osm_fullv1_paths(FILE *f, uint64_t *lid2guid, struct acmp_ep *ep)
- {
- 	union ibv_gid sgid, dgid;
--	struct ibv_port_attr attr = { 0 };
-+	struct ibv_port_attr attr = {};
- 	struct acmp_dest *dest;
- 	char s[128];
- 	char *p, *ptr, *p_guid, *p_lid;
+ .travis.yml                    | 20 +++++++++++++++++---
+ CMakeLists.txt                 | 22 ++++++++++++++--------
+ buildlib/FindLDSymVer.cmake    | 16 ++++++++++++----
+ buildlib/RDMA_EnableCStd.cmake | 25 +++++++++++++++++++++++++
+ ibacm/prov/acmp/src/acmp.c     |  2 +-
+ providers/cxgb4/cq.c           |  1 +
+ providers/cxgb4/libcxgb4.h     |  2 --
+ providers/cxgb4/qp.c           |  1 +
+ providers/mlx4/mlx4.h          |  4 ----
+ providers/mlx4/qp.c            |  1 +
+ providers/mlx5/mlx5.h          |  4 ----
+ providers/mlx5/qp.c            |  1 +
+ providers/mthca/qp.c           | 23 +++++------------------
+ util/CMakeLists.txt            |  3 +++
+ util/compiler.h                | 18 ++++++++++++++++++
+ 15 files changed, 99 insertions(+), 44 deletions(-)
+ create mode 100644 util/CMakeLists.txt
+ create mode 100644 util/compiler.h
+
 -- 
 2.1.4
 
