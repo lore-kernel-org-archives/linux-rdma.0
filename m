@@ -1,8 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/5] rxe_cfg: Use Perl functions instead of parsing the output
- of shell commands
-Date: Fri, 7 Oct 2016 11:38:22 -0700
-Message-ID: <51c02d54-9189-2993-a9cb-a6f6452e9ff3@sandisk.com>
+Subject: [PATCH 3/5] rxe_cfg: Do not suppress stderr
+Date: Fri, 7 Oct 2016 11:39:00 -0700
+Message-ID: <b97aebd2-37fc-c526-0bf6-438c194111a1@sandisk.com>
 References: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,146 +13,84 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunth
 Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Suppressing stderr if stdout is already redirected is wrong. Hence
+do not suppress stderr. If e.g. the ib_uverbs kernel module is not
+loaded, without this patch no error messages are printed. With this
+patch applied the following is printed:
+
+Failed to get IB devices list: Function not implemented
+
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- providers/rxe/rxe_cfg | 67 ++++++++++++++++++++++++---------------------------
- 1 file changed, 31 insertions(+), 36 deletions(-)
+ providers/rxe/rxe_cfg | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/providers/rxe/rxe_cfg b/providers/rxe/rxe_cfg
-index 6783dc78c340..0310d25bad91 100755
+index 1e6a5db2f2b8..a4e9c0407a8b 100755
 --- a/providers/rxe/rxe_cfg
 +++ b/providers/rxe/rxe_cfg
-@@ -35,6 +35,7 @@
- use warnings;
- use strict;
- 
-+use File::Basename;
+@@ -39,7 +39,6 @@ use File::Basename;
  use Getopt::Long;
  use Switch;
  
-@@ -67,20 +68,25 @@ my @mlx4_port;
- my @mlx4_ether;
- my @roce_list;
+-my $z = "2>/dev/null";
+ my $help = 0;
+ my $no_persist = 0;
+ my $debug = 0;
+@@ -150,7 +149,7 @@ sub get_dev_info {
  
-+# Read a file and return its contents as a string.
-+sub read_file {
-+    my $filename = shift;
-+    my $result = "";
-+
-+    if (open(FILE, $filename)) {
-+	$result = <FILE>;
-+	close FILE;
-+    }
-+    return $result;
-+}
-+
- #get mapping between rxe and eth devices
- sub get_names {
--    return if (!(-e "/sys/class/infiniband"));
--
--    my @list;
--    my $rxe;
--    my $eth;
-     my $i = 0;
-     
--    @list = `ls /sys/class/infiniband | grep rxe $z`;
--    foreach $rxe (@list) {
--	chomp($rxe);
--
--	$eth = `cat /sys/class/infiniband/$rxe/parent $z`;
-+    foreach my $rxe (glob("/sys/class/infiniband/rxe*")) {
-+	$rxe = basename($rxe);
-+	my $eth = read_file("/sys/class/infiniband/$rxe/parent");
- 	chomp($eth);
+ 	$eth_list[$i++] = $eth;
+ 
+-	@lines = `ethtool -i $eth $z`;
++	@lines = `ethtool -i $eth`;
+ 	foreach $line (@lines) {
+ 	    chomp($line);
+ 
+@@ -171,7 +170,7 @@ sub get_dev_info {
+ 	$link_state{$eth} = "";
+ 	$link_speed{$eth} = "";
+ 
+-	@lines = `ethtool $eth $z`;
++	@lines = `ethtool $eth`;
+ 	foreach $line (@lines) {
+ 	    chomp($line);
+ 
+@@ -190,7 +189,7 @@ sub get_dev_info {
+ 	$ipv4_addr{$eth} = "            ";
+ 	$eth_mtu{$eth} = "";
+ 
+-	@lines = `ifconfig $eth $z`;
++	@lines = `ifconfig $eth`;
+ 	foreach $line (@lines) {
+ 	    # get IP address
+ 	    if ($line =~ /inet addr/) {
+@@ -211,7 +210,7 @@ sub get_dev_info {
+     # get rxe mtu
+     foreach my $rxe (@rxe_array) {
  	
- 	if (($eth =~ /[\w]+[\d]/)
-@@ -98,25 +104,13 @@ sub get_names {
+-	@lines  = `ibv_devinfo -d $rxe $z`;
++	@lines = `ibv_devinfo -d $rxe`;
+ 	foreach $line (@lines) {
+ 	    if ($line =~ "active_mtu") {
+ 		$line =~ s/^\s+active_mtu:\s+//g;
+@@ -494,7 +493,7 @@ sub get_devinfo {
+     my $rxe = $_[0];
  
- # get list of Mellanox RoCE ports
- sub get_mlx4_list {
--    return if (!(-e "/sys/class/infiniband"));
--
--    my @list;
--    my $mlx4;
--    my @ports;
--    my $port;
--    my $link;
-     my $i = 0;
- 
--    @list = `ls /sys/class/infiniband | grep mlx4_ $z`;
--    foreach $mlx4 (@list) {
--	chomp($mlx4);
--	chdir("/sys/class/infiniband/$mlx4/ports");
--
--	@ports = `ls $z`;
--	foreach $port (@ports) {
--	    chomp($port);
--
--	    $link= `cat $port/link_layer $z`;
-+    foreach my $mlx4 (glob("/sys/class/infiniband/mlx4_*")) {
-+	$mlx4 = basename($mlx4);
-+	foreach my $port (glob("/sys/class/infiniband/$mlx4/ports/*")) {
-+	    $port = basename($port);
-+	    my $link = read_file("$port/link_layer");
- 	    chomp($link);
- 
- 	    if ($link =~ "Ethernet") {
-@@ -141,10 +135,10 @@ sub get_dev_info {
-     get_mlx4_list();
- 
-     my @my_eth_list = ();
--    my @my_eth_devs = `ls /sys/class/net`;
--    foreach my $my_eth_dev (@my_eth_devs) {
--        chomp($my_eth_dev);
--        my $my_dev_type = `cat /sys/class/net/${my_eth_dev}/type`;
-+    foreach my $my_eth_dev (glob("/sys/class/net/*")) {
-+	$my_eth_dev = basename($my_eth_dev);
-+        my $my_dev_type = read_file("/sys/class/net/${my_eth_dev}/type");
-+	chomp($my_dev_type);
-         if ($my_dev_type == "1") {
-             push(@my_eth_list, "$my_eth_dev");
-         }
-@@ -378,11 +372,11 @@ sub do_status {
- 
- # read file containing list of ethernet devices into a list
- sub populate_persistence {
--    my @lines = `cat $persistence_file $z`;
--    my $line;
-     my $i = 0;
-     
--    foreach $line (@lines) {
-+    open FILE, $persistence_file;
-+    while(<FILE>) {
-+	my $line = $_;
- 	chomp($line);
- 	$line =~ s/^\s+//g;
- 	if ($line =~ /[\w]+[\d]/) {
-@@ -394,6 +388,7 @@ sub populate_persistence {
- 	    }
- 	}
-     }
-+    close FILE;
- 
-     $num_persistent = $i;
+     my $cmd = "ibv_devinfo -d $rxe";
+-    return `$cmd $z`;
++    return `$cmd`;
  }
-@@ -604,7 +599,7 @@ sub do_debug {
- 	}
-     }
  
--    my $current = `cat $debugfile $z`;
-+    my $current = read_file($debugfile);
-     chomp($current);
-     if ($current > 0) {
- 	print "Debug is ON ($current)\n";
-@@ -681,7 +676,7 @@ sub main {
-     }
- 
+ # allow unsupported modules to load in SLES11 if allowed
+@@ -679,7 +678,7 @@ sub main {
      # create persistence file if necessary
--    `mkdir -p $persistence_path $z`;
-+    mkdir -p $persistence_path;
+     mkdir -p $persistence_path;
      if (!(-e $persistence_file)) {
-         `touch $persistence_file $z`;
+-        `touch $persistence_file $z`;
++        `touch $persistence_file`;
      }
+ 
+     # Get full context of the configuration
 -- 
 2.10.0
 
