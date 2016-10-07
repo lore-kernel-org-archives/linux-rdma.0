@@ -1,123 +1,159 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH qedr 04/10] qedr: Add support for PD,PKEY and CQ verbs
-Date: Fri, 7 Oct 2016 17:24:54 +0300
-Message-ID: <20161007142454.GU9282@leon.nu>
-References: <1475682483-9878-1-git-send-email-Ram.Amrani@cavium.com>
- <1475682483-9878-5-git-send-email-Ram.Amrani@cavium.com>
- <20161006133357.GP9282@leon.nu>
- <CY1PR0701MB1337AC7B933E917765C3EBC990C60@CY1PR0701MB1337.namprd07.prod.outlook.com>
+Subject: Re: [PATCH rdma-next 00/10] Hardware tag matching support
+Date: Fri, 7 Oct 2016 17:56:20 +0300
+Message-ID: <20161007145620.GV9282@leon.nu>
+References: <1472382050-25908-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="V4yrq4dHtCqH+JvC"
+        protocol="application/pgp-signature"; boundary="BcZrms9gUsdgyR6a"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CY1PR0701MB1337AC7B933E917765C3EBC990C60-UpKza+2NMNLi6bjPjkn3FE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1472382050-25908-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---V4yrq4dHtCqH+JvC
+--BcZrms9gUsdgyR6a
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 07, 2016 at 10:47:18AM +0000, Elior, Ariel wrote:
-> > > @@ -66,6 +85,12 @@ struct rdma_cqe_common {
-> > >     struct regpair qp_handle;
-> > >     __le16 reserved1[7];
-> > >     u8 flags;
-> > > +#define RDMA_CQE_COMMON_TOGGLE_BIT_MASK  0x1
-> > > +#define RDMA_CQE_COMMON_TOGGLE_BIT_SHIFT 0
-> > > +#define RDMA_CQE_COMMON_TYPE_MASK        0x3
-> > > +#define RDMA_CQE_COMMON_TYPE_SHIFT       1
-> > > +#define RDMA_CQE_COMMON_RESERVED2_MASK   0x1F
-> > > +#define RDMA_CQE_COMMON_RESERVED2_SHIFT  3
-> > >     u8 status;
-> >
-> > It is VERY uncommon to mix defines and structs together.
-> > Please don't do it, it confuses a lot and doesn't help to
-> > readability/debug.
+On Sun, Aug 28, 2016 at 02:00:40PM +0300, Leon Romanovsky wrote:
+> Message Passing Interface (MPI) is a communication protocol that is
+> widely used for exchange of messages among processes in high-performance
+> computing (HPC) systems. Messages sent from a sending process to a
+> destination process are marked with an identifying label, referred to as
+> a tag. Destination processes post buffers in local memory that are
+> similarly marked with tags. When a message is received by the receiver
+> (i.e., the host computer on which the destination process is running),
+> the message is stored in a buffer whose tag matches the message tag. The
+> process of finding a buffer with a matching tag for the received packet
+> is called tag matching.
 >
-> Hi Leon,
-> Firstly, thanks for investing your time in reviewing our driver.
-> As for mixed defines and structures, far from being very uncommon, they are
-> actually ubiquitous throughout the kernel and are used by the foremost
-> developers (Dave Miller, Linus, Jeff Kirsher).
-
-Net subsystem is very different from other kernel community.
-For example, this article from LWN [1] - "Coding-style exceptionalism"
-talks about it.
-
+> There are two protocols that are generally used to send messages over
+> MPI: The "Eager Protocol" is best suited to small messages that are
+> simply sent to the destination process and received in an appropriate
+> matching buffer. The "Rendezvous Protocol" is better suited to large
+> messages. In Rendezvous, when the sender process has a large message to
+> send, it first sends a small message to the destination process
+> announcing its intention to send the large message. This small message
+> is referred to as an RTS (ready to send) message. The RTS includes the
+> message tag and buffer address in the sender. The destination process
+> matches the RTS to a posted receive buffer, or posts such a buffer if
+> one does not already exist. Once a matching receive buffer has been
+> posted at the destination process side, the receiver initiates a remote
+> direct memory access (RDMA) read request to read the data from the
+> buffer address listed by the sender in the RTS message.
 >
-> In infiniband tree alone, at least three drivers employ this:
-> drivers/infiniband/hw/ocrdma/ocrdma_sli.h line 1900
-> drivers/infiniband/hw/mthca/mthca_user.h line 68
-> drivers/infiniband/hw/cxgb3/cxio_hal.h line 116
-
-All of them are copy-paste from pre-historic era.
-
+> MPI tag matching, when performed in software by a host processor, can
+> consume substantial host resources, thus detracting from the performance
+> of the actual software applications that are using MPI for
+> communications. One possible solution is to offload the entire tag
+> matching process to a peripheral hardware device, such as a network
+> interface controller (NIC). In this case, the software application using
+> MPI will post a set of buffers in a memory of the host processor and
+> will pass the entire list of tags associated with the buffers to the
+> NIC. In large-scale networks, however, the NIC may be required to
+> simultaneously support many communicating processes and contexts
+> (referred to in MPI parlance as "ranks" and "communicators,"
+> respectively). NIC access to and matching of the large lists of tags
+> involved in such a scenario can itself become a bottleneck. The NIC must
+> also be able to handle "unexpected" traffic, for which buffers and tags
+> have not yet been posted, which may also degrade performance.
 >
-> In the net subsystem, it is even more widely used (~14k places), including
-> mellanox and intel drivers, as well as our bnx2x and qed* drivers and many
-> others. A few examples can be seen under:
-> drivers/net/ethernet/mellanox/mlx4/en_port.h line 94
-> drivers/net/ethernet/mellanox/mlx4/mlx4_en.h line 345
-> drivers/net/ethernet/mellanox/mlx4/fw.c line 2759
-
-Thanks for pointing it.
-We will fix it.
-
-> drivers/net/ethernet/intel/ixgbe/ixgbe.h line 623 (Jeff Kirsher)
-> drivers/net/ethernet/broadcom/tg3.h line 2540 (Dave Miller)
-> ixgbe.h uses this exactly like we do in the code you cited.
+> When the NIC receives a message over the network from one of the peer
+> processes, and the message contains a label in accordance with the
+> protocol, the NIC compares the label to the labels in the part of the
+> list that was pushed to the NIC. Upon finding a match to the label, the
+> NIC writes data conveyed in the message to the buffer in the memory that
+> is associated with this label and submits a notification to the software
+> process. The notification serves two purposes: both to indicate to the
+> software process that the label has been consumed, so that the process
+> will update the list of the labels posted to the NIC; and to inform the
+> software process that the data are available in the buffer. In some
+> cases (such as when the NIC retrieves the data from the remote node by
+> RDMA), the NIC may submit two notifications, in the form of completion
+> reports, of which the first informs the software process of the
+> consumption of the label and the second announces availability of the
+> data.
 >
-> In other kernel cornerstones:
-> fs/ext4/ext4.h line 1287 (Linus)
-
-1. From git blame, this define was added in 2010 !!!!
-2. It has totally different meaning from your code - to mark the
-position in the structure.
-
-> include/net/sock.h line 312 (Dave)
-
-Net is a bad example.
-
+> This patch series adds to Mellanox ConnectX HCA driver support of
+> tag matching. It introduces new hardware object eXtended shared Receive
+> Queue (XRQ), which follows SRQ semantics with addition of extended
+> receive buffers topologies and offloads. This series adds tag matching
+> topology and rendezvouz offload.
 >
-> I don't think there are grounds for objecting to this style. We'll take care
-> of the rest of your comments.
+> Available in the "topic/xrq" topic branch of this git repo:
+> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+>
+> Or for browsing:
+> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/xrq
 
-As you wish, at the end it will be Doug's decision, if he wants to see
-driver submitted in 2016 in different coding style from rest of the subsystem.
+Hi Doug,
 
-[1] https://lwn.net/Articles/694755/
+For any reasons, I don't see this patch set in your tree. Did I miss it?
+
+Thanks
 
 >
 > Thanks,
-> Ariel
+>   Artemy & Leon
+>
+> Artemy Kovalyov (10):
+>   IB/core: Add XRQ capabilities
+>   IB/core: Make CQ separate part of SRQ context
+>   IB/core: Add new SRQ type IB_SRQT_TAG_MATCHING
+>   IB/uverbs: Expose tag matching capabilties to UAPI
+>   IB/uverbs: Expose XRQ capabilities
+>   IB/uverbs: Add XRQ creation parameter to UAPI
+>   IB/uverbs: Add new SRQ type IB_SRQT_TAG_MATCHING
+>   IB/mlx5: Fill XRQ capabilities
+>   net/mlx5: Add XRQ support
+>   IB/mlx5: Support IB_SRQT_TAG_MATCHING
+>
+>  drivers/infiniband/core/uverbs_cmd.c          |  31 +++++-
+>  drivers/infiniband/core/verbs.c               |  16 +--
+>  drivers/infiniband/hw/mlx5/main.c             |  21 +++-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |   6 ++
+>  drivers/infiniband/hw/mlx5/srq.c              |  15 ++-
+>  drivers/net/ethernet/mellanox/mlx5/core/srq.c | 150 ++++++++++++++++++++++++--
+>  include/linux/mlx5/driver.h                   |   1 +
+>  include/linux/mlx5/srq.h                      |   5 +
+>  include/rdma/ib_verbs.h                       |  61 +++++++++--
+>  include/uapi/rdma/ib_user_verbs.h             |  36 ++++++-
+>  10 files changed, 307 insertions(+), 35 deletions(-)
+>
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---V4yrq4dHtCqH+JvC
+--BcZrms9gUsdgyR6a
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX97A2AAoJEORje4g2clinV/EP/AiJRfTDtq9IEU61wMR7lMi7
-wHcxuc6kDZqOuqLB5IX99vTyna6RcbKwp5xkVMdUHzWdf0AXcUJdRxzdWFCspIn2
-XO0LDnOPJ72l3Z6FJ2ZmzlrAWk/Um8JlglxbU08QdipHRJUv1eE3sL0dVlEdwNIQ
-YTQ+ur0Af++9rGTr+eV5vbMX8XGzb8Y70JP7dZZrZfuqzidczlzrNQ91n/J5ieyo
-eKUfJMRWkWsULAgc/i3cVlghPMuNe6TBbhSvCz1AsIF7iex4n8bmlaatVgfCWmvC
-CQRpb07WmDvgeWi/pjUfaYF6Q1jB5p0VXtXi2vM2zkRrkFp63VFvXCXKl1wrW9s4
-grj7HmbkeGIEgaGrHFFL9xhhSHpxe/V3ddqIvcm1/FTLiSIzsABVq7RXwSqqFMcd
-IkQcdeRHW7rQ4ci+L5YYqm35rRIyYzdXGnoJF84OLdgKyopW9//gq41QWth/X7tv
-zbonDlfgUUK15mhISnIlbQ6g4lhtONqOuZz09dvF3PQEd4D4YYU12fgr8tXXnQ21
-D/FyRCj8lc3ZTGfG36xpcZQ9WZIHd/gB+vniCQeY93zZrXDT2At9l7w31u6dV54e
-oXy8NBBKskFqL15WeY0P+yPUJ5HaIHNdqA2vaOFKLysDsl750vk8Ua5LA8KygKTw
-4JMpHq5xfJVT6cc6Hr9W
-=0SCN
+iQIcBAEBAgAGBQJX97eUAAoJEORje4g2clinSeYP/0tDKPiP3bNqv1B8BMNm4bx8
+WJrX8OV4OFHn9bjVVRzq6v1dYfXEeznKyhZVZGBEVvuvJCpvZj5U5h5i5aXqm6Bb
+R9dK90+VjfPHZV3DX7qTJGm0O2HXiojL8jlQ7teDwtMav6YG2dnXyOikvYJgCts4
+MKmEFlZXDkZihZ12bAjKdjsg7EoIbG2tyn5ZFdjJapDsNRfXuUkJXuOyLZCH5fF5
+dluXGVHM8BfCiJZj+LJ5oNkKLKYpHGPngmx20H7m/cPhaYZodC8mUCd/GrOXZOL+
+s/2ihDsPNa1cOZBMLNSdxjtdLmnJgzgjtVzBqoBfGKHYNIbaA48MMCFlXj17YaMh
+riTttvzCGcPS8MLUx0YVjASS7TolCTmTVOcbbPAp3jptDV9matSNsrCPPZaEUBVh
+tCbmvyvIeYtdY6SfFvdKXRpe8NZZNPMmphHKhK+pZt/5AhBHWiOnDSa9tWvgNXT6
+wY5NHjlQk05kDsOJITdxxYJQnMhay8OBOHCwyD89XcRd6jGD1eqy/667inXCAw2w
+y6WMCdhWGpw5+tbrJ8R8Gdbjd/SwwAOBdWwwdXKB3DX6TQv1YaVLCSRQOkFfy23G
+5OY5HUcu8MzxhEm1jLv8q2/JfURtDuyak90btxAk45F+tygE2hUtURcluu8SpPkn
+kpuH9xaFhpKMqrM3xk9Y
+=1f7+
 -----END PGP SIGNATURE-----
 
---V4yrq4dHtCqH+JvC--
+--BcZrms9gUsdgyR6a--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
