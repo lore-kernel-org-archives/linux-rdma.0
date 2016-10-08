@@ -1,75 +1,45 @@
-From: Zhu Lingshan <lszhu@suse.com>
-Subject: Re: iscsi_trx going into D state
-Date: Sat, 8 Oct 2016 10:59:12 +0800
-Message-ID: <880e374c-cf8b-f276-e930-57b09fe1a686@suse.com>
-References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Introduction of libqedr to the Consolidated Userspace RDMA
+ Library Repo
+Date: Sat, 8 Oct 2016 12:49:43 +0000
+Message-ID: <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>,<20161006163427.GG1224@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Robert LeBlanc <robert@leblancnet.us>, linux-rdma@vger.kernel.org
-Cc: linux-scsi@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161006163427.GG1224-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Robert,
 
-I also see this issue, but this is not the only code path can trigger 
-this problem, I think you may also see iscsi_np in D status. I fixed one 
-code path whitch still not merged to mainline. I will forward you my 
-patch later. Note: my patch only fixed one code path, you may see other 
-call statck with D status.
 
-Thanks,
-BR
-Zhu Lingshan
+>If you prepare a branch of rdma-core on github I can give it a quick
+>look over.
+>
+>The technical steps are fairly simple, create a
+>provider/qedr directory, add your source code, copy the CMakeLists.txt
+>style from another provider, add a line to the sorted list in the top
+>level CMakeLists.txt, update README.md, COPYING.md and MAINTAINERS
+>
+>You will want to look at the various patches I've prepared and ensure
+>you cover off the basic cleanups that have already been done, and that
+>your code compiles warning-free on FC24.
+>
+>Once you feel everything is ready then post it to the mailing list and
+>send a pull request. For the mailing list you can just split the
+>patches by file..
+>
+>Jason
 
-在 2016/10/1 1:14, Robert LeBlanc 写道:
-> We are having a reoccurring problem where iscsi_trx is going into D
-> state. It seems like it is waiting for a session tear down to happen
-> or something, but keeps waiting. We have to reboot these targets on
-> occasion. This is running the 4.4.12 kernel and we have seen it on
-> several previous 4.4.x and 4.2.x kernels. There is no message in dmesg
-> or /var/log/messages. This seems to happen with increased frequency
-> when we have a disruption in our Infiniband fabric, but can happen
-> without any changes to the fabric (other than hosts rebooting).
->
-> # ps aux | grep iscsi | grep D
-> root      4185  0.0  0.0      0     0 ?        D    Sep29   0:00 [iscsi_trx]
-> root     18505  0.0  0.0      0     0 ?        D    Sep29   0:00 [iscsi_np]
->
-> # cat /proc/4185/stack
-> [<ffffffff814cc999>] target_wait_for_sess_cmds+0x49/0x1a0
-> [<ffffffffa087292b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
-> [<ffffffff814f0de2>] iscsit_close_connection+0x162/0x840
-> [<ffffffff814df8df>] iscsit_take_action_for_connection_exit+0x7f/0x100
-> [<ffffffff814effc0>] iscsi_target_rx_thread+0x5a0/0xe80
-> [<ffffffff8109c6f8>] kthread+0xd8/0xf0
-> [<ffffffff8172004f>] ret_from_fork+0x3f/0x70
-> [<ffffffffffffffff>] 0xffffffffffffffff
->
-> # cat /proc/18505/stack
-> [<ffffffff814f0c71>] iscsit_stop_session+0x1b1/0x1c0
-> [<ffffffff814e2436>] iscsi_check_for_session_reinstatement+0x1e6/0x270
-> [<ffffffff814e4df0>] iscsi_target_check_for_existing_instances+0x30/0x40
-> [<ffffffff814e4f40>] iscsi_target_do_login+0x140/0x640
-> [<ffffffff814e62dc>] iscsi_target_start_negotiation+0x1c/0xb0
-> [<ffffffff814e402b>] iscsi_target_login_thread+0xa9b/0xfc0
-> [<ffffffff8109c6f8>] kthread+0xd8/0xf0
-> [<ffffffff8172004f>] ret_from_fork+0x3f/0x70
-> [<ffffffffffffffff>] 0xffffffffffffffff
->
-> What can we do to help get this resolved?
->
-> Thanks,
->
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Thanks, we'll start on it.
 
+
+    =
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
