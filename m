@@ -1,118 +1,98 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH qedr 04/10] qedr: Add support for PD,PKEY and CQ verbs
-Date: Sat, 8 Oct 2016 18:39:42 +0300
-Message-ID: <20161008153942.GY9282@leon.nu>
-References: <1475682483-9878-1-git-send-email-Ram.Amrani@cavium.com>
- <1475682483-9878-5-git-send-email-Ram.Amrani@cavium.com>
- <20161006133357.GP9282@leon.nu>
- <CY1PR0701MB1337AC7B933E917765C3EBC990C60@CY1PR0701MB1337.namprd07.prod.outlook.com>
- <20161007142454.GU9282@leon.nu>
- <a146f562-1970-e939-1bd5-074af868f7d6@redhat.com>
+Subject: Re: [PATCH] i40iw: Add Quality of Service support
+Date: Sat, 8 Oct 2016 18:41:39 +0300
+Message-ID: <20161008154139.GZ9282@leon.nu>
+References: <20161006152128.14940-1-henry.orosco@intel.com>
+ <20161006160016.GQ9282@leon.nu>
+ <20161006212659.GB6664@horosco-MOBL2.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="YPAu9GJT3m1iC0FS"
+        protocol="application/pgp-signature"; boundary="6ysXqiu0yoUmUNJB"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <a146f562-1970-e939-1bd5-074af868f7d6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161006212659.GB6664-ZmvEvTIhtuUfyugFOqMDN/ooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---YPAu9GJT3m1iC0FS
+--6ysXqiu0yoUmUNJB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sat, Oct 08, 2016 at 09:35:06AM -0400, Doug Ledford wrote:
-> On 10/7/2016 10:24 AM, Leon Romanovsky wrote:
-> > On Fri, Oct 07, 2016 at 10:47:18AM +0000, Elior, Ariel wrote:
-> >>>> @@ -66,6 +85,12 @@ struct rdma_cqe_common {
-> >>>>     struct regpair qp_handle;
-> >>>>     __le16 reserved1[7];
-> >>>>     u8 flags;
-> >>>> +#define RDMA_CQE_COMMON_TOGGLE_BIT_MASK  0x1
-> >>>> +#define RDMA_CQE_COMMON_TOGGLE_BIT_SHIFT 0
-> >>>> +#define RDMA_CQE_COMMON_TYPE_MASK        0x3
-> >>>> +#define RDMA_CQE_COMMON_TYPE_SHIFT       1
-> >>>> +#define RDMA_CQE_COMMON_RESERVED2_MASK   0x1F
-> >>>> +#define RDMA_CQE_COMMON_RESERVED2_SHIFT  3
-> >>>>     u8 status;
-> >>>
-> >>> It is VERY uncommon to mix defines and structs together.
-> >>> Please don't do it, it confuses a lot and doesn't help to
-> >>> readability/debug.
-> >>
-> >> Hi Leon,
-> >> Firstly, thanks for investing your time in reviewing our driver.
-> >> As for mixed defines and structures, far from being very uncommon, they are
-> >> actually ubiquitous throughout the kernel and are used by the foremost
-> >> developers (Dave Miller, Linus, Jeff Kirsher).
+On Thu, Oct 06, 2016 at 04:26:59PM -0500, Henry Orosco wrote:
+> On Thu, Oct 06, 2016 at 07:00:16PM +0300, Leon Romanovsky wrote:
+> > On Thu, Oct 06, 2016 at 10:21:28AM -0500, Henry Orosco wrote:
+> > > Add support for QoS on QPs. Upon device initialization,
+> > > a map is created from user priority to queue set
+> > > handles. On QP creation, use ToS to look up the queue
+> > > set handle for use with the QP.
+> > >
+> > > Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/hw/i40iw/i40iw.h       |   9 ++
+> > >  drivers/infiniband/hw/i40iw/i40iw_cm.c    |  30 +++++-
+> > >  drivers/infiniband/hw/i40iw/i40iw_cm.h    |   2 +-
+> > >  drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 151 +++++++++++++++++++++++++++++-
+> > >  drivers/infiniband/hw/i40iw/i40iw_d.h     |   2 +
+> > >  drivers/infiniband/hw/i40iw/i40iw_hw.c    |  25 ++---
+> > >  drivers/infiniband/hw/i40iw/i40iw_main.c  |  64 +++++++++++--
+> > >  drivers/infiniband/hw/i40iw/i40iw_osdep.h |   2 +
+> > >  drivers/infiniband/hw/i40iw/i40iw_p.h     |   2 +
+> > >  drivers/infiniband/hw/i40iw/i40iw_puda.c  |   3 +-
+> > >  drivers/infiniband/hw/i40iw/i40iw_type.h  |  18 +++-
+> > >  drivers/infiniband/hw/i40iw/i40iw_utils.c |  45 +++++++++
+> > >  drivers/infiniband/hw/i40iw/i40iw_verbs.c |   6 +-
+> > >  13 files changed, 323 insertions(+), 36 deletions(-)
 > >
-> > Net subsystem is very different from other kernel community.
-> > For example, this article from LWN [1] - "Coding-style exceptionalism"
-> > talks about it.
+> > I believe that it can be split to series.
 >
-> > [1] https://lwn.net/Articles/694755/
->
-> That article only refers to multi-line comments, not to embedding
-> #defines inside of structs that the #defines are used with.
+> As all this code is a logical unit for QoS support, we thought
+> it best to submit as a single patch.
 
-That article supports my claim that net subsystem is different from the
-rest of the kernel.
+Large logical unit --> patchset
+~400 lines of code --> large unit
 
 >
-> My personal taste on things like this is that if you had something like
-> a variable with a result code, then use a separate enum for the possible
-> options.  However, in this case, you have a multi-mask item and the
-> defines are the three masks and their shifts.  I'm OK with that being
-> mixed in or being separate, but if it's separate, I would want it
-> immediately before the struct with a comment specifying that this is the
-> format of the status byte in the struct.  What I wouldn't want is the
-> #defines moved far away from the struct with a bunch of other defines
-> where the context of the struct is lost.
-
-It looks like you are neutral on the topic, and I'm against mixing these
-specific defines with structures. Every change in such define changes
-struct as well which can be easily missed out.
-
-Ram,
-Please invest an extra effort and help the reviewers to accomplish their
-task.
-
-Thanks
-
+> Doug, what is your preference?
+> >
+> > >  mode change 100644 => 100755 drivers/infiniband/hw/i40iw/i40iw_cm.c
+> > >  mode change 100644 => 100755 drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> >
+> > Why did you change file's mode from 644 to 755?
+>
+> Nice catch! Will send out another version with this fixed.
 >
 > --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: 0E572FDD
->
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
-
-
---YPAu9GJT3m1iC0FS
+--6ysXqiu0yoUmUNJB
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX+RM+AAoJEORje4g2clinv5gQAI/gYrAhYhblUmfoHJKGaKXS
-Dl0AlNG/k3Yh9jJkN017ux4UbzYhZgUMjUQslGT3kp8tU/kPNFn8cNL97j/BVxfv
-zeV/dZycRxPSv1PU/ZlMEY36CX8+TS8iSxXhUO7rH2dEfDxIolpvgVCcIc50lsyO
-9Y1Rn3EW1aPJVTROodNd0ZLwo+greALv16vi7XnYextKLd4mDTVQrMIa/enzIcYp
-Nje7L3wChXQWS0559JFFjEzwve3400qus4375T3xfEa71H6UCs0suGud4u9qEwxA
-xHtGyUNHF1DnqDw0tecy0OaPlA7xE10w6nODapXmLXb8b1AM505yl6Eazba7VH1m
-v+WPfw2KMWypsR2zNx25AbxEeR1RyMomSe4r0kTc8sHHNXjZdG3kTKJNiVc3Pphz
-1ZaXAxgd5P0WahhriOksx/j9jHbW+yYqJicaWu9nguhWDSVLJ3HKwNcMwan9uDqg
-H42UFIP7nn4ldyZi4uFkpEJwDGV5la2aoS36pAdB2pvZassIZW/6s3m2l0/1bMec
-GE1r4ah7POklEgYAPOMzb6mUA+wJRLxxcrL3+lxmbr3Gyns3biUqFocg8zFeUK3y
-P9EKTFIt92sAy6g50qcH4FBFJJSPeSE2mMScmAQELbKbE5WOXxy8rE8GVrDax33b
-ZWlyJrE/6Djzmc4ruTZF
-=7ZgL
+iQIcBAEBAgAGBQJX+ROzAAoJEORje4g2clinzm4QAJ75fyG01fX7/B6FClLip7Ru
+BcSFZubMlWmAgD2GfS3mGp7OhbxESuYlTRFpOCirsIaXLZUdEkH3kFsN7mmLcA72
+sHG/5UR9bFKQMYaIJBhJXIrtXfW6IuBjmoFqCyk8Z7dqQRX8vCoI/7Fzb236mTVk
+ON3kawGdfVAvL9cx5BaeB83xP2dAmCr603oHCYZuOEWAI93QncLzbOeV9ANx3O3Q
+5R74WU+XxrQMHKyo0LTDcd2nkV90c62u/8TTJ+ivj0ojlSa3Sx7n04Z1XE3r6ws+
+5RvHPb7ADByJSplMnD0PboOKh8m78StkFMsY2xhOqAtPBmvoOwRx/E/LZ+uQNQs8
+ifVP36nVg5Fv+295TPoHDXM8QuLcBhstDUG7D9OfSW5sFxEHFx7aT+cFNzer02KM
+kLhQcPR9QzitM4ffdY5frRcv9k31Wx5JgPMwft6I4uAR/TmydGo/jyzqD+zaYxu0
+8Z+9baDVMwGatuMCgcs3ZnPSV3YGIotwyxvj6eLNe7t9vZl0HfOgsIZMHi0dLftJ
++z9bhlDq6/f/fq58V7P//Nuv54Y1x/aUXPR9nF77E6tOjI44QVpvyI9DfKTk7u1B
+I9Z6Wq788FsRzOjwOoIG2EM8QmwGGbZ1sGiqneL5S9KAu/gGkuQIJI/SDEhy7mca
+wnt9X03KbwO79SbFxXzi
+=49Uc
 -----END PGP SIGNATURE-----
 
---YPAu9GJT3m1iC0FS--
+--6ysXqiu0yoUmUNJB--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
