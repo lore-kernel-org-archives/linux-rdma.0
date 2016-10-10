@@ -1,42 +1,139 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: capturing the error log from rdma-core
-Date: Mon, 10 Oct 2016 09:16:59 -0700
-Message-ID: <20161010161659.GA2219@infradead.org>
-References: <20161010153013.GA22997@infradead.org>
- <20161010161246.GB26805@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] add a build.sh helper to allow for a one-stop build
+Date: Mon, 10 Oct 2016 10:47:58 -0600
+Message-ID: <20161010164758.GB1796@obsidianresearch.com>
+References: <1476113282-19194-1-git-send-email-hch@lst.de>
+ <c2d80cd4-74b8-8391-1855-3c666f611d91@acm.org>
+ <20161010155949.GA20091@lst.de>
+ <ec4f3158-a25d-7cd8-216c-fbec52577e75@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161010161246.GB26805-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <ec4f3158-a25d-7cd8-216c-fbec52577e75-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 10, 2016 at 10:12:46AM -0600, Jason Gunthorpe wrote:
-> On Mon, Oct 10, 2016 at 08:30:13AM -0700, Christoph Hellwig wrote:
+On Mon, Oct 10, 2016 at 09:17:11AM -0700, Bart Van Assche wrote:
+> On 10/10/16 08:59, Christoph Hellwig wrote:
+> >On Mon, Oct 10, 2016 at 08:56:33AM -0700, Bart Van Assche wrote:
+> >>Have you considered to make this script stop immediately if one of the
+> >>steps fails, e.g. as follows?
+> >
+> >How about just ading a
+> >
+> >set -e
+> >
+> >to the beginning to get this automatically?
 > 
-> > what's the best way to generate a log of the compiler errors with the
-> > shiny new rdma-core build system?  With make I'd do make 2>err.log
-> > but with the new build system the verbose build output and the errors
-> > are mixed in the same stream, so this isn't possible anymore.
-> 
-> If I understand you, you want to split STDOUT and STDERR because
-> sparse puts differentiated output on each FD?
+> That would also work. But if there is a space anywhere in the path in which
+> the rdma-core repository exists, mkdir $BUILDDIR will have to be changed
+> into mkdir "$BUILDDIR".
 
-No, sparse only outputs to SDTERR.  But for some reason the rdma-core
-build system multiplexes this back into STDOUT.
+Is this OK?
 
-> I think the simplest approach for you will be to use make when doing
-> this kind of work:
-> 
-> $ mkdir build-make
-> $ cd build-make
-> $ CC=cgcc cmake
-> $ make 1> a 2> b
+>From 6362ec4c1ddec0f6b2a1bf052cdfde63cbf73d90 Mon Sep 17 00:00:00 2001
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Date: Mon, 10 Oct 2016 10:46:47 -0600
+Subject: [PATCH] Add a build.sh helper to allow for a one-stop build
 
-Ok..
+This allows for a quick build instead of typing the whole mkdir, cd,
+cmake and ninja sequence.
+
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ README.md | 17 +----------------
+ build.sh  | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 16 deletions(-)
+ create mode 100755 build.sh
+
+diff --git a/README.md b/README.md
+index 98ec5a7d695f..66aee3f49f00 100644
+--- a/README.md
++++ b/README.md
+@@ -36,10 +36,7 @@ Additional service daemons are provided for:
+ This project uses a cmake based build system. Quick start:
+ 
+ ```sh
+-$ mkdir build
+-$ cd build
+-$ cmake -GNinja ..
+-$ ninja
++$ bash build.sh
+ ```
+ 
+ *build/bin* will contain the sample programs and *build/lib* will contain the
+@@ -76,16 +73,6 @@ Install required packages:
+ $ yum install cmake gcc libnl3-devel make pkgconfig valgrind-devel
+ ```
+ 
+-For end users, the package can be built using GNU Make and the old cmake
+-included with the distro:
+-
+-```sh
+-$ mkdir build
+-$ cd build
+-$ cmake  ..
+-$ make
+-```
+-
+ Developers are suggested to install more modern tooling for the best experience.
+ 
+ ```sh
+@@ -96,8 +83,6 @@ $ unzip ninja-linux.zip
+ $ install -m755 ninja /usr/local/bin/ninja
+ ```
+ 
+-Use the 'cmake3' program in place of `cmake` in the above instructions.
+-
+ # Reporting bugs
+ 
+ Bugs should be reported to the <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> mailing list
+diff --git a/build.sh b/build.sh
+new file mode 100755
+index 000000000000..76205e6af921
+--- /dev/null
++++ b/build.sh
+@@ -0,0 +1,33 @@
++#!/bin/bash
++set -e
++
++SRCDIR=`dirname $0`
++BUILDDIR="$SRCDIR/build"
++
++if [ ! -d "$BUILDDIR" ]; then
++    mkdir "$BUILDDIR"
++fi
++
++if hash cmake3 2>/dev/null; then
++    # CentOS users are encouraged to install cmake3 from EPEL
++    CMAKE=cmake3
++else
++    CMAKE=cmake
++fi
++
++if hash ninja-build 2>/dev/null; then
++    # Fedora uses this name
++    NINJA=ninja-build
++elif hash ninja 2>/dev/null; then
++    NINJA=ninja
++fi
++
++cd "$BUILDDIR"
++
++if [ "x$NINJA" == "x" ]; then
++    cmake ..
++    make
++else
++    cmake -GNinja ..
++    $NINJA
++fi
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
