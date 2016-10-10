@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/6] IB/hfi1: Remove redundant sysfs irq affinity entry
-Date: Mon, 10 Oct 2016 06:14:50 -0700
-Message-ID: <20161010131450.17586.15776.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 2/6] IB/hfi1: Inline sdma_txclean() for verbs pio
+Date: Mon, 10 Oct 2016 06:14:34 -0700
+Message-ID: <20161010131433.17586.31365.stgit@scvm10.sc.intel.com>
 References: <20161010131249.17586.23789.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,177 +10,147 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161010131249.17586.23789.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The IRQ affinity entry is not needed after the irq notifier patch has been
-added to the hfi1 driver.
-The irq affinity settings for SDMA engine should be set using the standard
-/proc/irq/<N>/ interface.
+Short circuit sdma_txclean() by adding an __sdma_txclean()
+that is only called when the tx has sdma mappings.
 
-Reviewed-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Convert internal calls to __sdma_txclean().
+
+This removes a call from the critical path.
+
+Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/affinity.c |   72 ---------------------------------
- drivers/infiniband/hw/hfi1/affinity.h |    4 --
- drivers/infiniband/hw/hfi1/sysfs.c    |   25 -----------
- 3 files changed, 0 insertions(+), 101 deletions(-)
+ drivers/infiniband/hw/hfi1/sdma.c |   18 +++++++++---------
+ drivers/infiniband/hw/hfi1/sdma.h |   12 +++++++++---
+ 2 files changed, 18 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index a26a9a0..67ea85a 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -775,75 +775,3 @@ void hfi1_put_proc_affinity(int cpu)
+diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+index fd39bca..7102a07 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.c
++++ b/drivers/infiniband/hw/hfi1/sdma.c
+@@ -375,7 +375,7 @@ static inline void complete_tx(struct sdma_engine *sde,
+ 			   sde->head_sn, tx->sn);
+ 	sde->head_sn++;
+ #endif
+-	sdma_txclean(sde->dd, tx);
++	__sdma_txclean(sde->dd, tx);
+ 	if (complete)
+ 		(*complete)(tx, res);
+ 	if (wait && iowait_sdma_dec(wait))
+@@ -1643,7 +1643,7 @@ static inline u8 ahg_mode(struct sdma_txreq *tx)
+ }
+ 
+ /**
+- * sdma_txclean() - clean tx of mappings, descp *kmalloc's
++ * __sdma_txclean() - clean tx of mappings, descp *kmalloc's
+  * @dd: hfi1_devdata for unmapping
+  * @tx: tx request to clean
+  *
+@@ -1653,7 +1653,7 @@ static inline u8 ahg_mode(struct sdma_txreq *tx)
+  * The code can be called multiple times without issue.
+  *
+  */
+-void sdma_txclean(
++void __sdma_txclean(
+ 	struct hfi1_devdata *dd,
+ 	struct sdma_txreq *tx)
+ {
+@@ -3080,7 +3080,7 @@ static int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
+ 		tx->descp[i] = tx->descs[i];
+ 	return 0;
+ enomem:
+-	sdma_txclean(dd, tx);
++	__sdma_txclean(dd, tx);
+ 	return -ENOMEM;
+ }
+ 
+@@ -3109,14 +3109,14 @@ int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
+ 
+ 	rval = _extend_sdma_tx_descs(dd, tx);
+ 	if (rval) {
+-		sdma_txclean(dd, tx);
++		__sdma_txclean(dd, tx);
+ 		return rval;
  	}
- 	mutex_unlock(&affinity->lock);
- }
--
--int hfi1_set_sdma_affinity(struct hfi1_devdata *dd, const char *buf,
--			   size_t count)
--{
--	struct hfi1_affinity_node *entry;
--	cpumask_var_t mask;
--	int ret, i;
--
--	mutex_lock(&node_affinity.lock);
--	entry = node_affinity_lookup(dd->node);
--
--	if (!entry) {
--		ret = -EINVAL;
--		goto unlock;
--	}
--
--	ret = zalloc_cpumask_var(&mask, GFP_KERNEL);
--	if (!ret) {
--		ret = -ENOMEM;
--		goto unlock;
--	}
--
--	ret = cpulist_parse(buf, mask);
--	if (ret)
--		goto out;
--
--	if (!cpumask_subset(mask, cpu_online_mask) || cpumask_empty(mask)) {
--		dd_dev_warn(dd, "Invalid CPU mask\n");
--		ret = -EINVAL;
--		goto out;
--	}
--
--	/* reset the SDMA interrupt affinity details */
--	init_cpu_mask_set(&entry->def_intr);
--	cpumask_copy(&entry->def_intr.mask, mask);
--
--	/* Reassign the affinity for each SDMA interrupt. */
--	for (i = 0; i < dd->num_msix_entries; i++) {
--		struct hfi1_msix_entry *msix;
--
--		msix = &dd->msix_entries[i];
--		if (msix->type != IRQ_SDMA)
--			continue;
--
--		ret = get_irq_affinity(dd, msix);
--
--		if (ret)
--			break;
--	}
--out:
--	free_cpumask_var(mask);
--unlock:
--	mutex_unlock(&node_affinity.lock);
--	return ret ? ret : strnlen(buf, PAGE_SIZE);
--}
--
--int hfi1_get_sdma_affinity(struct hfi1_devdata *dd, char *buf)
--{
--	struct hfi1_affinity_node *entry;
--
--	mutex_lock(&node_affinity.lock);
--	entry = node_affinity_lookup(dd->node);
--
--	if (!entry) {
--		mutex_unlock(&node_affinity.lock);
--		return -EINVAL;
--	}
--
--	cpumap_print_to_pagebuf(true, buf, &entry->def_intr.mask);
--	mutex_unlock(&node_affinity.lock);
--	return strnlen(buf, PAGE_SIZE);
--}
-diff --git a/drivers/infiniband/hw/hfi1/affinity.h b/drivers/infiniband/hw/hfi1/affinity.h
-index b89ea3c..42e6331 100644
---- a/drivers/infiniband/hw/hfi1/affinity.h
-+++ b/drivers/infiniband/hw/hfi1/affinity.h
-@@ -102,10 +102,6 @@ int hfi1_get_proc_affinity(int);
- /* Release a CPU used by a user process. */
- void hfi1_put_proc_affinity(int);
  
--int hfi1_get_sdma_affinity(struct hfi1_devdata *dd, char *buf);
--int hfi1_set_sdma_affinity(struct hfi1_devdata *dd, const char *buf,
--			   size_t count);
--
- struct hfi1_affinity_node {
- 	int node;
- 	struct cpu_mask_set def_intr;
-diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
-index edba224..919a547 100644
---- a/drivers/infiniband/hw/hfi1/sysfs.c
-+++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -49,7 +49,6 @@
- #include "hfi.h"
- #include "mad.h"
- #include "trace.h"
--#include "affinity.h"
+ 	/* If coalesce buffer is allocated, copy data into it */
+ 	if (tx->coalesce_buf) {
+ 		if (type == SDMA_MAP_NONE) {
+-			sdma_txclean(dd, tx);
++			__sdma_txclean(dd, tx);
+ 			return -EINVAL;
+ 		}
  
- /*
-  * Start of per-port congestion control structures and support code
-@@ -623,27 +622,6 @@ static ssize_t show_tempsense(struct device *device,
- 	return ret;
- }
+@@ -3124,7 +3124,7 @@ int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
+ 			kvaddr = kmap(page);
+ 			kvaddr += offset;
+ 		} else if (WARN_ON(!kvaddr)) {
+-			sdma_txclean(dd, tx);
++			__sdma_txclean(dd, tx);
+ 			return -EINVAL;
+ 		}
  
--static ssize_t show_sdma_affinity(struct device *device,
--				  struct device_attribute *attr, char *buf)
--{
--	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
--	struct hfi1_devdata *dd = dd_from_dev(dev);
--
--	return hfi1_get_sdma_affinity(dd, buf);
--}
--
--static ssize_t store_sdma_affinity(struct device *device,
--				   struct device_attribute *attr,
--				   const char *buf, size_t count)
--{
--	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
--	struct hfi1_devdata *dd = dd_from_dev(dev);
--
--	return hfi1_set_sdma_affinity(dd, buf, count);
--}
--
- /*
-  * end of per-unit (or driver, in some cases, but replicated
-  * per unit) functions
-@@ -658,8 +636,6 @@ static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
- static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
- static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
- static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
--static DEVICE_ATTR(sdma_affinity, S_IWUSR | S_IRUGO, show_sdma_affinity,
--		   store_sdma_affinity);
+@@ -3154,7 +3154,7 @@ int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
+ 				      DMA_TO_DEVICE);
  
- static struct device_attribute *hfi1_attributes[] = {
- 	&dev_attr_hw_rev,
-@@ -670,7 +646,6 @@ static struct device_attribute *hfi1_attributes[] = {
- 	&dev_attr_boardversion,
- 	&dev_attr_tempsense,
- 	&dev_attr_chip_reset,
--	&dev_attr_sdma_affinity,
- };
+ 		if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
+-			sdma_txclean(dd, tx);
++			__sdma_txclean(dd, tx);
+ 			return -ENOSPC;
+ 		}
  
- int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
+@@ -3196,7 +3196,7 @@ int _pad_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
+ 	if ((unlikely(tx->num_desc == tx->desc_limit))) {
+ 		rval = _extend_sdma_tx_descs(dd, tx);
+ 		if (rval) {
+-			sdma_txclean(dd, tx);
++			__sdma_txclean(dd, tx);
+ 			return rval;
+ 		}
+ 	}
+diff --git a/drivers/infiniband/hw/hfi1/sdma.h b/drivers/infiniband/hw/hfi1/sdma.h
+index 56257ea..21f1e28 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.h
++++ b/drivers/infiniband/hw/hfi1/sdma.h
+@@ -667,7 +667,13 @@ int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
+ 			   int type, void *kvaddr, struct page *page,
+ 			   unsigned long offset, u16 len);
+ int _pad_sdma_tx_descs(struct hfi1_devdata *, struct sdma_txreq *);
+-void sdma_txclean(struct hfi1_devdata *, struct sdma_txreq *);
++void __sdma_txclean(struct hfi1_devdata *, struct sdma_txreq *);
++
++static inline void sdma_txclean(struct hfi1_devdata *dd, struct sdma_txreq *tx)
++{
++	if (tx->num_desc)
++		__sdma_txclean(dd, tx);
++}
+ 
+ /* helpers used by public routines */
+ static inline void _sdma_close_tx(struct hfi1_devdata *dd,
+@@ -753,7 +759,7 @@ static inline int sdma_txadd_page(
+ 		       DMA_TO_DEVICE);
+ 
+ 	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
+-		sdma_txclean(dd, tx);
++		__sdma_txclean(dd, tx);
+ 		return -ENOSPC;
+ 	}
+ 
+@@ -834,7 +840,7 @@ static inline int sdma_txadd_kvaddr(
+ 		       DMA_TO_DEVICE);
+ 
+ 	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
+-		sdma_txclean(dd, tx);
++		__sdma_txclean(dd, tx);
+ 		return -ENOSPC;
+ 	}
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
