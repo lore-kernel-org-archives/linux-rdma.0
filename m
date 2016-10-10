@@ -1,79 +1,72 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] Pull uninitialized_var into util/compiler.h
-Date: Mon, 10 Oct 2016 07:09:30 +0300
-Message-ID: <20161010040930.GF9282@leon.nu>
-References: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1475879772-29458-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <20161009054601.GB9282@leon.nu>
- <20161009230150.GB12551@obsidianresearch.com>
+Subject: Re: [PATCH V2] i40iw: Add Quality of Service support
+Date: Mon, 10 Oct 2016 07:27:10 +0300
+Message-ID: <20161010042710.GH9282@leon.nu>
+References: <20161007204747.6420-1-henry.orosco@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="gnQ/OOKD4CRsnGw/"
+        protocol="application/pgp-signature"; boundary="jOtImjXIA9XXnHrK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161009230150.GB12551-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161007204747.6420-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---gnQ/OOKD4CRsnGw/
+--jOtImjXIA9XXnHrK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Oct 09, 2016 at 05:01:51PM -0600, Jason Gunthorpe wrote:
-> On Sun, Oct 09, 2016 at 08:46:01AM +0300, Leon Romanovsky wrote:
->
-> > 1. Can we remove this uninitialized_var at all and simply replace by
-> > default values?
->
-> I think people would complain about the extra stores. gcc 6 will
-> eliminate them, but older compilers will not.
+On Fri, Oct 07, 2016 at 03:47:47PM -0500, Henry Orosco wrote:
 
-This unintialized_var(x) adds extra store too (... x = x ...).
+<...>
 
 >
-> But yes, we could do this.
->
-> > 2. Do we really want additional folder to ccan with such common headers?
-> > What about rename ccan to be util and put this new file there (in case
-> > you proceed with it)?
->
-> I see the ccan directory as stuf from ccan that we are not going to
-> change, while util is for new stuff specific to this tree.
+>  	switch (iwdev->init_state) {
+>  	case RDMA_DEV_REGISTERED:
+> @@ -1628,6 +1642,7 @@ static int i40iw_open(struct i40e_info *ldev, struct i40e_client *client)
+>  		iwdev->init_state = RDMA_DEV_REGISTERED;
+>  		iwdev->iw_status = 1;
+>  		i40iw_port_ibevent(iwdev);
+> +		iwdev->param_wq = create_singlethread_workqueue("l2params");
+>  		i40iw_pr_info("i40iw_open completed\n");
 
-And I see this folder as a location of shared code with different utils
-(ccan, custom, e.t.c), but it doesn't really matter now and I will be fine
-with any directory structure layout.
+No, please don't use this interface, For reference, see latest work from Bhaktipriya
+Shridhar to eliminate this call. Doug and Dave sent a pull request with it to Linus in
+last merge cycle.
 
-Thanks
+Also, 1) you should check if this call succeeded and 2) ask yourself if
+special workqueue is needed.
 
->
-> Jason
+>  		return 0;
+>  	} while (0);
 
---gnQ/OOKD4CRsnGw/
+Thanks.
+
+--jOtImjXIA9XXnHrK
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX+xR6AAoJEORje4g2clin3fEP/1/heMSP26bv5y7kxdYcRSJV
-aWj0xdZaUGYmrvzJHTamxDsFUe1ImDoSOIp8BBuSxqWy3+evvlIchzDw4XYzpTTZ
-j1t4LSIQ0ht8/5CdvyhC8RJEhGSWEmuBw+8ukncfrBIMznEOH7NEgT5ygo9++zYe
-ul1G/2jYI6twvvZ7ikXZ/uwYrF+wRXap12FQw4ddtomX2SwYd+l/caqYywHmpgFb
-MljSAWwY5mVwx2dkIbFfKC/zJK3ia9Jck8IrY7ciJ2c4vrGox3Surof3Du75APSm
-1y88jmsxE70t3EzmaeGhTegmIjlMwMuCLhOv7H7TtIIQGrlgJPCBscRO99VnSiFX
-YSfQAapXTrHsF3+JK0eudBofRrfsBnhYacrUzMtESKsv1sGV6+dBfzTfWTpQniAG
-8C31adNS/i+fDPtvOUh0s7W52kgL/LDozsoStb2bjdMX0MPvZ8cCdOIUZNO3kPi6
-gtS0vOkgtX7RVRbtose3PuK/ooZJYXdCz1wl0Sz4+vpRJMSQd7eAjKlzju0GRTIS
-m49781e9XRHNfb8O/5B0Yhywq3Zq0h6cR2TkoAiwOao7xJ6vChaADdXzkaMgB3v6
-6scx+GxLCFXr+8cGRcwBNWdyVcqWWnQ6yidpXz2WZ+QlD4fHjosvXzbBgBO1A1C6
-KZtKxc19kV52jL44c8rX
-=eOA/
+iQIcBAEBAgAGBQJX+xieAAoJEORje4g2clin+9YP/ijOEgIkdmxVJT/XEjmBDXEO
+c7LIf5OdT3s6dVzKwnMU+/omMNny/j2x/Knjk/DdWqa2jW/HCMBHEQsymQYoHOK8
+XZuskIOe8+H2ywZ1mgWunGNIM0QpcRB6QfacXCe+5qdbRqV8oyMdI8iGK0NgbGb2
+w54EkDlK/z9Qpzzn2qmpZHdvULbmZDoEJ9vL2+zT3B6UNXR65T6xFFJlGKsX3YGx
+bKuxkdz/hGNaQe7c0wR8dA4I0C/PkspfyIDFuv+tx1i7KcLx499Rc9Dk3HMJRCMq
+GURWTokWU+CKwyT2Wt0itZT53z/NEmYl33kAKwRsfsFZ824+QueajstOmviu0FbW
+T9XkL5naytYtOFG6f2EYCljggTehlh5swUxzPPaG/p3epmpL9iax7UX5qy5DsmAY
+0Sx5U/LsNp0xfLETTtb7ls+EzTudopfs4CNSSoVG0tbJAgu85fNo/51ouXmt8y5t
+hHxvT4a5eyy6nQen5ikv61yzPizupiNv2c44PkTGsnns825j8BK+r2Z4C0Gt+0GH
+wzAVkTPjvtt1aeMFW2WCGsMCsYdKX+OLzG4nEL+C5cF8rlM0BCYdeGpa9yfrjQSl
+IBdt3A9ADNFXEsJMTE/xG6rHsJoM8UEEOxBM7/3LiyDUKvY0Ofuolp/kF7dxu3zZ
+LUfTMK2mKyxc/n+x1alw
+=yLqj
 -----END PGP SIGNATURE-----
 
---gnQ/OOKD4CRsnGw/--
+--jOtImjXIA9XXnHrK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
