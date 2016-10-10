@@ -1,35 +1,57 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH] cxgb4: missing dereference in poll_cq
-Date: Mon, 10 Oct 2016 17:27:33 +0200
-Message-ID: <1476113253-16880-1-git-send-email-hch@lst.de>
+Subject: [PATCH] add a build.sh helper to allow for a one-stop build
+Date: Mon, 10 Oct 2016 17:28:02 +0200
+Message-ID: <1476113282-19194-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sparse complains about using plain integer as NULL pointer here, but
-I suspect we really want to check the value anyway, and Steve
-confirmed that's indeed the case.
+This allows for a quick build instead of typing the whole mkdir, cd,
+cmake and ninja sequence.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- providers/cxgb4/cq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ README.md |  5 +----
+ build.sh  | 12 ++++++++++++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+ create mode 100755 build.sh
 
-diff --git a/providers/cxgb4/cq.c b/providers/cxgb4/cq.c
-index 1ed7dfd..3c8dd26 100644
---- a/providers/cxgb4/cq.c
-+++ b/providers/cxgb4/cq.c
-@@ -438,7 +438,7 @@ static int poll_cq(struct t4_wq *wq, struct t4_cq *cq, struct t4_cqe *cqe,
- 		if (!*cqe_flushed && CQE_STATUS(hw_cqe))
- 			dump_cqe(hw_cqe);
+diff --git a/README.md b/README.md
+index 98ec5a7..2ddecc3 100644
+--- a/README.md
++++ b/README.md
+@@ -36,10 +36,7 @@ Additional service daemons are provided for:
+ This project uses a cmake based build system. Quick start:
  
--		BUG_ON((cqe_flushed == 0) && !SW_CQE(hw_cqe));
-+		BUG_ON((*cqe_flushed == 0) && !SW_CQE(hw_cqe));
- 		goto proc_cqe;
- 	}
+ ```sh
+-$ mkdir build
+-$ cd build
+-$ cmake -GNinja ..
+-$ ninja
++$ sh build.sh
+ ```
  
+ *build/bin* will contain the sample programs and *build/lib* will contain the
+diff --git a/build.sh b/build.sh
+new file mode 100755
+index 0000000..e3d85eb
+--- /dev/null
++++ b/build.sh
+@@ -0,0 +1,12 @@
++#!/bin/sh
++
++SRCDIR=`dirname $0`
++BUILDDIR="$SRCDIR/build"
++
++if [ ! -d "$BUILDDIR" ]; then
++    mkdir $BUILDDIR
++fi
++
++cd $BUILDDIR
++cmake -GNinja ..
++ninja
 -- 
 2.10.1.382.ga23ca1b
 
