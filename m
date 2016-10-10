@@ -1,94 +1,76 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git (tag for-linus)
-Date: Sun, 9 Oct 2016 23:07:47 -0400
-Message-ID: <7cde7be3-4391-7d65-521f-16d9c9d74e8f@redhat.com>
-References: <00af6acf-ec90-ea0e-68d6-f9e962c89bd3@redhat.com>
- <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/5 for rdma-core] Five rxe_cfg patches
+Date: Mon, 10 Oct 2016 07:02:05 +0300
+Message-ID: <20161010040205.GE9282@leon.nu>
+References: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="OK53jSRKIdUi8xfdPeKGNf9hGueJsdBc8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="p//XFgTqeVWI1epd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OK53jSRKIdUi8xfdPeKGNf9hGueJsdBc8
-Content-Type: multipart/mixed; boundary="VkNED1eV3tNsBL0d4x8Fsx3aKKEGgq1TL";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
- Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <7cde7be3-4391-7d65-521f-16d9c9d74e8f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git (tag for-linus)
-References: <00af6acf-ec90-ea0e-68d6-f9e962c89bd3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-In-Reply-To: <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
---VkNED1eV3tNsBL0d4x8Fsx3aKKEGgq1TL
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+--p//XFgTqeVWI1epd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 10/9/2016 8:14 PM, Linus Torvalds wrote:
-> On Fri, Oct 7, 2016 at 3:24 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrot=
-e:
->>
->> 1) cxgb4 - keep the head version in your tree, my tree and the common
->> ancestor were prior to a refactoring in your tree that moved uld_attac=
-h
->> from cxgb4_main.c to cxgb4_uld.c
->=20
-> Hmm. As far as I can tell, a proper merge also involves adding the line=
+On Fri, Oct 07, 2016 at 11:37:43AM -0700, Bart Van Assche wrote:
+> Hello Doug, Jason and Moni,
+>
+> These five patches is what I came up with after having had a look at the
+> rxe_cfg source code. It would be appreciated if these patches would be
+> considered for inclusion in the rdma-core repository. The filenames of these
+> patches are:
+>
+> 0001-rxe_cfg-Use-Perl-functions-instead-of-parsing-the-ou.patch
+> 0002-rxe_cfg-Initialize-rxe_mtu-even-if-ibv_definfo-fails.patch
+> 0003-rxe_cfg-Do-not-suppress-stderr.patch
+> 0004-rxe_cfg-Remove-dead-code-from-show_module_status.patch
+> 0005-rxe_cfg-Use-printf-instead-of-using-a-loop.patch
 
->=20
->         lld->fr_nsmr_tpte_wr_support =3D adap->params.fr_nsmr_tpte_wr_s=
-upport;
->=20
-> to uld_init() in cxgb4_uld.c.
->=20
-> I did so, and it all seems to build find for me, but I obviously
-> cannot do any testing. Somebody with the proper cxgb4 hardware should
-> verify.
+Hi Bart,
 
-Thanks for that catch, we'll get it tested.
+Thank you for investing time, Moni started to look/test them and update
+us on the result.
 
+Thanks.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
+>
+> Thanks,
+>
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
---VkNED1eV3tNsBL0d4x8Fsx3aKKEGgq1TL--
-
---OK53jSRKIdUi8xfdPeKGNf9hGueJsdBc8
+--p//XFgTqeVWI1epd
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJX+wYKAAoJELgmozMOVy/djtQP/36pFDK/2vzRpz1nJUFoPzPZ
-2vgPSdI+/0r6fR4/gZ+NFLBYcpYvGrArfBD39NVqFxhdR0G03kTA3B3Nirfyj349
-0j9+CYx/be7ehEAR31FHJWdyUcxpZE4FEnAvzHwhZvlpM9+UUdKR5Qvz8d+AW3eM
-FrvnY1I1PDSrUuFQuJ6mQCtbRp8eE034lvxjs9fRRXhNyuQJZlZ+Oi8STOCu5Kyd
-10VdVwr9gc2kN0SqsVxBElySQ52+7nvz/garQtWI3hJ5NuksLtHmvcmQaPEBQJb8
-5NXno8iVuiEKn792vt1zBYb1DGadFhdeoXLE0QLMESDaUOkcdgrhhhh1rmskPg/t
-BD1PR9n5FMOpnq6vAPMTRfk6O1tlUgMpJnyvQEPIO/V0KOYllelK2yHgeq1MXYPn
-mK6BRgT/h3ugPzXhG657i7txu2jv4fVjUUJXXfNZYRdvK39LJMaZZ4E7nQBGByWT
-zVAxYhBo6SnkHgkauqG5IBXlAugiLOgNYBieliSyshLMATZ/1GmUjG1wVTBTGaup
-MZgoThfMMDmJk6ECyd74rQpZbP4ZmLuoxSkReAXgJ4SqhjqfCI0uCGPbnL5VQYRn
-D5+Xdb9LWWP2j2fpVvDp9wrgMI7LVPsZCTJNutRiSzMBMwo+BBs/Xjg2j6Zezls3
-nxIxCTAd1ZjXdQr9F5E6
-=xj4r
+iQIcBAEBAgAGBQJX+xK9AAoJEORje4g2clinvxMP/09WLWf1KpqeBqCY30qOpU1E
+X7Quec/Nzhcv+2dnZ2ZVBU/fNdmhTB+IY7wxLpdWTY9W7q9u4AG1j1JVDv6Fzo0g
+mjhww4o6dsUhsSCGiTrPFX9wHekRo1Aq+ojusjYLvxDKbgoOoccOpJ7eEEU4Ej6p
+oAVc7nmnniJHF9GfbW6kqMrHpX3w0p4eUUZ3bO3GvIvyjaKltT7fYGI6bEY8Gk+R
+MGa1GGMKrgANtGZEjvR35sJmUtpOms3sbMQSlibxtrVBBOxd3ImmfM1SJ3/2jOZg
+a1xYh8bSRvgL5qOcwQ1eBlyGdPCbRFaFxtedwKZ7nNGPUq3dh13cllX/6CGpW6UP
+Jk9AAactf6TW2iso5lg5jJZNamnh80TzALZdUUeOeZTd34yNiNmJ43D762YlMiU4
+eSVYnqozY0QnJ50itQFDkEpDJQpYWY2psmC/YCcUP9oxKX4aNTOVCOJzIkKi/OYg
+BaUNEvzmTdAnJiszzZS3rlFO5CaoObXlJMe7E3GWpgeAAfwDE0W1XkV1Rxqwi9Yq
+3c1oOFFhmBxUhnXQrHA89oTtCkqqs5vr6wxDOU+LocgTh+8idUOczHrKihwoOURF
+E/YQEDSWhhuIHuSvic1+h80qJPkzzS5o3o8NvSF+2cMNonP7sWvwNOLK2GYrObAd
+meFASmgfAmtrfs0tL/DD
+=fn7Y
 -----END PGP SIGNATURE-----
 
---OK53jSRKIdUi8xfdPeKGNf9hGueJsdBc8--
+--p//XFgTqeVWI1epd--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
