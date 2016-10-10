@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/6] IB/hfi1: Optimize lkey validation structures
-Date: Mon, 10 Oct 2016 06:14:39 -0700
-Message-ID: <20161010131439.17586.29496.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 5/6] IB/hfi1: Remove redundant sysfs irq affinity entry
+Date: Mon, 10 Oct 2016 06:14:50 -0700
+Message-ID: <20161010131450.17586.15776.stgit@scvm10.sc.intel.com>
 References: <20161010131249.17586.23789.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,101 +10,177 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161010131249.17586.23789.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Profiling shows that the key validation is susceptible
-to cache line trading when accessing the lkey table.
+The IRQ affinity entry is not needed after the irq notifier patch has been
+added to the hfi1 driver.
+The irq affinity settings for SDMA engine should be set using the standard
+/proc/irq/<N>/ interface.
 
-Fix by separating out the read mostly fields from the write
-fields.   In addition the shift amount, which is function
-of the lkey table size, is precomputed and stored with the
-table pointer.   Since both the shift and table pointer
-are in the same read mostly cacheline, this saves a cache
-line in this hot path.
-
-Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mr.c |   10 +++++-----
- include/rdma/rdmavt_mr.h          |   10 +++++++---
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/hfi1/affinity.c |   72 ---------------------------------
+ drivers/infiniband/hw/hfi1/affinity.h |    4 --
+ drivers/infiniband/hw/hfi1/sysfs.c    |   25 -----------
+ 3 files changed, 0 insertions(+), 101 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 46b6497..4acf179 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -84,6 +84,7 @@ int rvt_driver_mr_init(struct rvt_dev_info *rdi)
- 		lkey_table_size = rdi->dparms.lkey_table_size;
+diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
+index a26a9a0..67ea85a 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.c
++++ b/drivers/infiniband/hw/hfi1/affinity.c
+@@ -775,75 +775,3 @@ void hfi1_put_proc_affinity(int cpu)
  	}
- 	rdi->lkey_table.max = 1 << lkey_table_size;
-+	rdi->lkey_table.shift = 32 - lkey_table_size;
- 	lk_tab_size = rdi->lkey_table.max * sizeof(*rdi->lkey_table.table);
- 	rdi->lkey_table.table = (struct rvt_mregion __rcu **)
- 			       vmalloc_node(lk_tab_size, rdi->dparms.node);
-@@ -774,7 +775,6 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 	struct rvt_mregion *mr;
- 	unsigned n, m;
- 	size_t off;
--	struct rvt_dev_info *dev = ib_to_rvt(pd->ibpd.device);
+ 	mutex_unlock(&affinity->lock);
+ }
+-
+-int hfi1_set_sdma_affinity(struct hfi1_devdata *dd, const char *buf,
+-			   size_t count)
+-{
+-	struct hfi1_affinity_node *entry;
+-	cpumask_var_t mask;
+-	int ret, i;
+-
+-	mutex_lock(&node_affinity.lock);
+-	entry = node_affinity_lookup(dd->node);
+-
+-	if (!entry) {
+-		ret = -EINVAL;
+-		goto unlock;
+-	}
+-
+-	ret = zalloc_cpumask_var(&mask, GFP_KERNEL);
+-	if (!ret) {
+-		ret = -ENOMEM;
+-		goto unlock;
+-	}
+-
+-	ret = cpulist_parse(buf, mask);
+-	if (ret)
+-		goto out;
+-
+-	if (!cpumask_subset(mask, cpu_online_mask) || cpumask_empty(mask)) {
+-		dd_dev_warn(dd, "Invalid CPU mask\n");
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+-	/* reset the SDMA interrupt affinity details */
+-	init_cpu_mask_set(&entry->def_intr);
+-	cpumask_copy(&entry->def_intr.mask, mask);
+-
+-	/* Reassign the affinity for each SDMA interrupt. */
+-	for (i = 0; i < dd->num_msix_entries; i++) {
+-		struct hfi1_msix_entry *msix;
+-
+-		msix = &dd->msix_entries[i];
+-		if (msix->type != IRQ_SDMA)
+-			continue;
+-
+-		ret = get_irq_affinity(dd, msix);
+-
+-		if (ret)
+-			break;
+-	}
+-out:
+-	free_cpumask_var(mask);
+-unlock:
+-	mutex_unlock(&node_affinity.lock);
+-	return ret ? ret : strnlen(buf, PAGE_SIZE);
+-}
+-
+-int hfi1_get_sdma_affinity(struct hfi1_devdata *dd, char *buf)
+-{
+-	struct hfi1_affinity_node *entry;
+-
+-	mutex_lock(&node_affinity.lock);
+-	entry = node_affinity_lookup(dd->node);
+-
+-	if (!entry) {
+-		mutex_unlock(&node_affinity.lock);
+-		return -EINVAL;
+-	}
+-
+-	cpumap_print_to_pagebuf(true, buf, &entry->def_intr.mask);
+-	mutex_unlock(&node_affinity.lock);
+-	return strnlen(buf, PAGE_SIZE);
+-}
+diff --git a/drivers/infiniband/hw/hfi1/affinity.h b/drivers/infiniband/hw/hfi1/affinity.h
+index b89ea3c..42e6331 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.h
++++ b/drivers/infiniband/hw/hfi1/affinity.h
+@@ -102,10 +102,6 @@ int hfi1_get_proc_affinity(int);
+ /* Release a CPU used by a user process. */
+ void hfi1_put_proc_affinity(int);
  
- 	/*
- 	 * We use LKEY == zero for kernel virtual addresses
-@@ -782,6 +782,8 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 	 */
- 	rcu_read_lock();
- 	if (sge->lkey == 0) {
-+		struct rvt_dev_info *dev = ib_to_rvt(pd->ibpd.device);
-+
- 		if (pd->user)
- 			goto bail;
- 		mr = rcu_dereference(dev->dma_mr);
-@@ -798,8 +800,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 		isge->n = 0;
- 		goto ok;
- 	}
--	mr = rcu_dereference(
--		rkt->table[(sge->lkey >> (32 - dev->dparms.lkey_table_size))]);
-+	mr = rcu_dereference(rkt->table[sge->lkey >> rkt->shift]);
- 	if (unlikely(!mr || atomic_read(&mr->lkey_invalid) ||
- 		     mr->lkey != sge->lkey || mr->pd != &pd->ibpd))
- 		goto bail;
-@@ -899,8 +900,7 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 		goto ok;
- 	}
- 
--	mr = rcu_dereference(
--		rkt->table[(rkey >> (32 - dev->dparms.lkey_table_size))]);
-+	mr = rcu_dereference(rkt->table[rkey >> rkt->shift]);
- 	if (unlikely(!mr || atomic_read(&mr->lkey_invalid) ||
- 		     mr->lkey != rkey || qp->ibqp.pd != mr->pd))
- 		goto bail;
-diff --git a/include/rdma/rdmavt_mr.h b/include/rdma/rdmavt_mr.h
-index 6b3c6c8..de59de2 100644
---- a/include/rdma/rdmavt_mr.h
-+++ b/include/rdma/rdmavt_mr.h
-@@ -90,11 +90,15 @@ struct rvt_mregion {
- #define RVT_MAX_LKEY_TABLE_BITS 23
- 
- struct rvt_lkey_table {
--	spinlock_t lock; /* protect changes in this struct */
--	u32 next;               /* next unused index (speeds search) */
--	u32 gen;                /* generation count */
-+	/* read mostly fields */
- 	u32 max;                /* size of the table */
-+	u32 shift;              /* lkey/rkey shift */
- 	struct rvt_mregion __rcu **table;
-+	/* writeable fields */
-+	/* protect changes in this struct */
-+	spinlock_t lock ____cacheline_aligned_in_smp;
-+	u32 next;               /* next unused index (speeds search) */
-+	u32 gen;                /* generation count */
- };
+-int hfi1_get_sdma_affinity(struct hfi1_devdata *dd, char *buf);
+-int hfi1_set_sdma_affinity(struct hfi1_devdata *dd, const char *buf,
+-			   size_t count);
+-
+ struct hfi1_affinity_node {
+ 	int node;
+ 	struct cpu_mask_set def_intr;
+diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
+index edba224..919a547 100644
+--- a/drivers/infiniband/hw/hfi1/sysfs.c
++++ b/drivers/infiniband/hw/hfi1/sysfs.c
+@@ -49,7 +49,6 @@
+ #include "hfi.h"
+ #include "mad.h"
+ #include "trace.h"
+-#include "affinity.h"
  
  /*
+  * Start of per-port congestion control structures and support code
+@@ -623,27 +622,6 @@ static ssize_t show_tempsense(struct device *device,
+ 	return ret;
+ }
+ 
+-static ssize_t show_sdma_affinity(struct device *device,
+-				  struct device_attribute *attr, char *buf)
+-{
+-	struct hfi1_ibdev *dev =
+-		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
+-	struct hfi1_devdata *dd = dd_from_dev(dev);
+-
+-	return hfi1_get_sdma_affinity(dd, buf);
+-}
+-
+-static ssize_t store_sdma_affinity(struct device *device,
+-				   struct device_attribute *attr,
+-				   const char *buf, size_t count)
+-{
+-	struct hfi1_ibdev *dev =
+-		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
+-	struct hfi1_devdata *dd = dd_from_dev(dev);
+-
+-	return hfi1_set_sdma_affinity(dd, buf, count);
+-}
+-
+ /*
+  * end of per-unit (or driver, in some cases, but replicated
+  * per unit) functions
+@@ -658,8 +636,6 @@ static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
+ static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
+ static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
+ static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
+-static DEVICE_ATTR(sdma_affinity, S_IWUSR | S_IRUGO, show_sdma_affinity,
+-		   store_sdma_affinity);
+ 
+ static struct device_attribute *hfi1_attributes[] = {
+ 	&dev_attr_hw_rev,
+@@ -670,7 +646,6 @@ static struct device_attribute *hfi1_attributes[] = {
+ 	&dev_attr_boardversion,
+ 	&dev_attr_tempsense,
+ 	&dev_attr_chip_reset,
+-	&dev_attr_sdma_affinity,
+ };
+ 
+ int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
