@@ -1,46 +1,36 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PULL REQUEST] Please pull rdma.git (tag for-linus)
-Date: Mon, 10 Oct 2016 09:40:53 -0500
-Message-ID: <00f001d22304$4d7b1900$e8714b00$@opengridcomputing.com>
-References: <00af6acf-ec90-ea0e-68d6-f9e962c89bd3@redhat.com> <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags v2] ibportstate: Fixed switch peer port
+ probing when using DR routing
+Date: Mon, 10 Oct 2016 10:57:01 -0400
+Message-ID: <079f879e-9b81-4faa-ab3b-1ea68a5e2799@dev.mellanox.co.il>
+References: <8d3851995d389220a979543740862bd8884cacac.1476089300.git-series.knut.omang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <8d3851995d389220a979543740862bd8884cacac.1476089300.git-series.knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Linus Torvalds' <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/10/2016 4:50 AM, Knut Omang wrote:
+> From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > 
-> On Fri, Oct 7, 2016 at 3:24 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> > 1) cxgb4 - keep the head version in your tree, my tree and the common
-> > ancestor were prior to a refactoring in your tree that moved uld_attach
-> > from cxgb4_main.c to cxgb4_uld.c
-> 
-> Hmm. As far as I can tell, a proper merge also involves adding the line
-> 
->         lld->fr_nsmr_tpte_wr_support = adap->params.fr_nsmr_tpte_wr_support;
-> 
-> to uld_init() in cxgb4_uld.c.
-> 
-> I did so, and it all seems to build find for me, but I obviously
-> cannot do any testing. Somebody with the proper cxgb4 hardware should
-> verify.
-> 
-> Of course, it only affects the very special IB_WR_REG_MR fastpath
-> case, so maybe nobody much cares. Adding Steve Wise to the cc, to make
-> sure somebody actually tests this.
->
+> ibportstate queries to a remote peer port on a switch using direct
+> routing would result in timeouts. The reason for this is that the
+> DR path was not correctly constructed.
 
-I will test/verify this today.  
- 
-Steve
+Should the following be added here to make it clearer:
+in case where local LID for switch port 0 is not yet configured.
+?
 
+> 
+> Signed-off-by: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
