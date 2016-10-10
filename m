@@ -1,107 +1,160 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 26/28] Avoid gcc 5.4 warning -Wunused-result
-Date: Mon, 10 Oct 2016 13:06:25 +0300
-Message-ID: <1e022827-f28c-e2cd-2b6a-edfb713ed0b5@dev.mellanox.co.il>
-References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-27-git-send-email-jgunthorpe@obsidianresearch.com>
- <9ae84345-4427-4689-e6d1-0bfa3eb19630@dev.mellanox.co.il>
- <20161009231936.GA24139@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH 2/3] iwpmd: use ccan list.h for mapping_reqs
+Date: Mon, 10 Oct 2016 11:41:53 +0200
+Message-ID: <1476092514-18188-3-git-send-email-hch@lst.de>
+References: <1476092514-18188-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161009231936.GA24139-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1476092514-18188-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/10/2016 2:19 AM, Jason Gunthorpe wrote:
-> On Sun, Oct 09, 2016 at 04:31:17PM +0300, Yishai Hadas wrote:
->
->>> -	if (write(connfd, msg, sizeof msg) != sizeof msg) {
->>> -		fprintf(stderr, "Couldn't send local address\n");
->>> +	if (write(connfd, msg, sizeof msg) != sizeof msg ||
->>> +	    read(connfd, msg, sizeof msg) != sizeof msg) {
->>> +		fprintf(stderr, "Couldn't send/recv local address\n");
->>
->> At that step the server expects to read a "done" response from its client,
->> checking whether the read was done for sizeof msg which is much larger will
->> fail.
->
-> This OK?
+Trivial conversion, nothing to see here.
 
-Yes, below patch solves the issue.
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+---
+ iwpmd/iwarp_pm.h        |  5 ++---
+ iwpmd/iwarp_pm_helper.c | 14 +++-----------
+ iwpmd/iwarp_pm_server.c | 11 ++++-------
+ 3 files changed, 9 insertions(+), 21 deletions(-)
 
-> From db525af53140c3b7604ab45406ed8845cb6171e1 Mon Sep 17 00:00:00 2001
-> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Date: Sun, 9 Oct 2016 17:17:54 -0600
-> Subject: [PATCH] verbs: Fix read error check in pingpong
->
-> Turns out these reads rely on the short readed caused by EOS.
->
-> Fixes: f3912df771db (Avoid gcc 5.4 warning -Wunused-result)
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  libibverbs/examples/rc_pingpong.c  | 2 +-
->  libibverbs/examples/srq_pingpong.c | 2 +-
->  libibverbs/examples/uc_pingpong.c  | 2 +-
->  libibverbs/examples/ud_pingpong.c  | 2 +-
->  4 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
-> index c92e551c00e6..aca7bac4491b 100644
-> --- a/libibverbs/examples/rc_pingpong.c
-> +++ b/libibverbs/examples/rc_pingpong.c
-> @@ -309,7 +309,7 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
->  	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
->  							my_dest->psn, gid);
->  	if (write(connfd, msg, sizeof msg) != sizeof msg ||
-> -	    read(connfd, msg, sizeof msg) != sizeof msg) {
-> +	    read(connfd, msg, sizeof msg) != sizeof "done") {
->  		fprintf(stderr, "Couldn't send/recv local address\n");
->  		free(rem_dest);
->  		rem_dest = NULL;
-> diff --git a/libibverbs/examples/srq_pingpong.c b/libibverbs/examples/srq_pingpong.c
-> index 863ff10dd0f4..8f55d78e87d4 100644
-> --- a/libibverbs/examples/srq_pingpong.c
-> +++ b/libibverbs/examples/srq_pingpong.c
-> @@ -333,7 +333,7 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
->  		}
->  	}
->
-> -	if (read(connfd, msg, sizeof msg) != sizeof msg) {
-> +	if (read(connfd, msg, sizeof msg) != sizeof "done") {
->  		perror("client write");
->  		free(rem_dest);
->  		rem_dest = NULL;
-> diff --git a/libibverbs/examples/uc_pingpong.c b/libibverbs/examples/uc_pingpong.c
-> index 2b105b947cf3..b565bacaff2a 100644
-> --- a/libibverbs/examples/uc_pingpong.c
-> +++ b/libibverbs/examples/uc_pingpong.c
-> @@ -283,7 +283,7 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
->  	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
->  							my_dest->psn, gid);
->  	if (write(connfd, msg, sizeof msg) != sizeof msg ||
-> -	    read(connfd, msg, sizeof msg) != sizeof msg) {
-> +	    read(connfd, msg, sizeof msg) != sizeof "done") {
->  		fprintf(stderr, "Couldn't send/recv local address\n");
->  		free(rem_dest);
->  		rem_dest = NULL;
-> diff --git a/libibverbs/examples/ud_pingpong.c b/libibverbs/examples/ud_pingpong.c
-> index d0cd73cc0fae..ddb68cf8624b 100644
-> --- a/libibverbs/examples/ud_pingpong.c
-> +++ b/libibverbs/examples/ud_pingpong.c
-> @@ -280,7 +280,7 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
->  	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
->  							my_dest->psn, gid);
->  	if (write(connfd, msg, sizeof msg) != sizeof msg ||
-> -	    read(connfd, msg, sizeof msg) != sizeof msg) {
-> +	    read(connfd, msg, sizeof msg) != sizeof "done") {
->  		fprintf(stderr, "Couldn't send/recv local address\n");
->  		free(rem_dest);
->  		rem_dest = NULL;
->
+diff --git a/iwpmd/iwarp_pm.h b/iwpmd/iwarp_pm.h
+index 57153cc..48c9f80 100644
+--- a/iwpmd/iwarp_pm.h
++++ b/iwpmd/iwarp_pm.h
+@@ -134,7 +134,6 @@ typedef union sockaddr_union {
+ 
+ enum {
+ 	IWPM_LIST_MAPPED_PORTS,
+-	IWPM_LIST_MAP_REQUESTS,
+ };
+ 
+ typedef struct iwpm_list {
+@@ -174,8 +173,7 @@ typedef struct iwpm_send_msg {
+ } iwpm_send_msg;
+ 
+ typedef struct iwpm_mapping_request {
+-	struct iwpm_mapping_request *   next;
+-	struct iwpm_mapping_request *   prev;
++	struct list_node		entry;
+ 	struct sockaddr_storage		src_addr;
+ 	struct sockaddr_storage		remote_addr;
+ 	__u16 				nlmsg_type;     /* Message content */
+@@ -293,5 +291,6 @@ void remove_list_element(iwpm_list **, iwpm_list *, int);
+ void free_iwpm_mapped_ports(void);
+ 
+ extern struct list_head pending_messages;
++extern struct list_head mapping_reqs;
+ 
+ #endif
+diff --git a/iwpmd/iwarp_pm_helper.c b/iwpmd/iwarp_pm_helper.c
+index ebcff58..8aa8e40 100644
+--- a/iwpmd/iwarp_pm_helper.c
++++ b/iwpmd/iwarp_pm_helper.c
+@@ -35,7 +35,6 @@
+ 
+ extern iwpm_mapped_port *mapped_ports;
+ extern iwpm_mapped_port *pending_ports;
+-extern iwpm_mapping_request *mapping_reqs; 
+ 
+ extern pthread_cond_t cond_req_complete; 
+ extern pthread_mutex_t map_req_mutex;
+@@ -96,8 +95,7 @@ iwpm_mapping_request *create_iwpm_map_request(struct nlmsghdr *req_nlh,
+ void add_iwpm_map_request(iwpm_mapping_request *iwpm_map_req)
+ {
+ 	pthread_mutex_lock(&map_req_mutex);
+-	add_list_element((iwpm_list **)&mapping_reqs, (iwpm_list **)&iwpm_map_req, 
+-				IWPM_LIST_MAP_REQUESTS);
++	list_add(&mapping_reqs, &iwpm_map_req->entry);
+ 	/* if not wake, signal the thread that a new request has been posted */
+ 	if (!wake)
+ 		pthread_cond_signal(&cond_req_complete);
+@@ -117,8 +115,7 @@ void remove_iwpm_map_request(iwpm_mapping_request *iwpm_map_req)
+ 			"Timeout for request (type = %u pid = %d)\n",
+ 			iwpm_map_req->msg_type, iwpm_map_req->nlmsg_pid);
+ 	}
+-	remove_list_element((iwpm_list **)&mapping_reqs, (iwpm_list *)iwpm_map_req,
+-				IWPM_LIST_MAP_REQUESTS);
++	list_del(&iwpm_map_req->entry);
+ 	if (iwpm_map_req->send_msg)
+ 		free(iwpm_map_req->send_msg);
+ 	free(iwpm_map_req);
+@@ -140,7 +137,7 @@ int update_iwpm_map_request(__u64 assochandle, struct sockaddr_storage *src_addr
+ 
+ 	pthread_mutex_lock(&map_req_mutex);
+ 	/* look for a matching entry in the list */
+-	for (iwpm_map_req = mapping_reqs; iwpm_map_req != NULL; iwpm_map_req = iwpm_map_req->next) {
++	list_for_each(&mapping_reqs, iwpm_map_req, entry) {
+ 		if (assochandle == iwpm_map_req->assochandle && 
+ 				(msg_type & iwpm_map_req->msg_type) &&
+ 				check_same_sockaddr(src_addr, &iwpm_map_req->src_addr)) {
+@@ -626,17 +623,12 @@ int add_iwpm_pending_msg(iwpm_send_msg *send_msg)
+ static void assign_list_head(iwpm_list **list, iwpm_list *list_element, int list_type) 
+ {
+ 	iwpm_mapped_port **ports;
+-	iwpm_mapping_request **requests;
+ 
+ 	switch (list_type) {
+ 		case IWPM_LIST_MAPPED_PORTS:
+ 			ports = (iwpm_mapped_port **)list;
+ 			*ports = (iwpm_mapped_port *)list_element;
+ 			break;
+-		case IWPM_LIST_MAP_REQUESTS:
+-			requests = (iwpm_mapping_request **)list;
+-			*requests = (iwpm_mapping_request *)list_element;
+-			break;
+ 		default:
+ 			break;
+ 	}
+diff --git a/iwpmd/iwarp_pm_server.c b/iwpmd/iwarp_pm_server.c
+index a45ccbd..db73c6f 100644
+--- a/iwpmd/iwarp_pm_server.c
++++ b/iwpmd/iwarp_pm_server.c
+@@ -38,7 +38,7 @@ const char iwpm_ulib_name [] = "iWarpPortMapperUser";
+ int iwpm_version = 3;
+ 
+ iwpm_mapped_port *mapped_ports = NULL;        /* list of mapped ports */
+-volatile iwpm_mapping_request *mapping_reqs = NULL;    /* list of map tracking objects */
++LIST_HEAD(mapping_reqs);		      /* list of map tracking objects */
+ LIST_HEAD(pending_messages);		      /* list of pending wire messages */
+ iwpm_client client_list[IWARP_PM_MAX_CLIENTS];/* list of iwarp port mapper clients */
+ int mapinfo_num_list[IWARP_PM_MAX_CLIENTS];   /* list of iwarp port mapper clients */
+@@ -96,7 +96,7 @@ void *iwpm_mapping_reqs_handler()
+ 	while (1) {
+ 		pthread_mutex_lock(&map_req_mutex);
+ 		wake = 0;
+-		if (!mapping_reqs) {
++		if (list_empty(&mapping_reqs)) {
+ 			/* wait until a new mapping request is posted */
+ 			ret = pthread_cond_wait(&cond_req_complete, &map_req_mutex);
+ 			if (ret) {
+@@ -111,9 +111,7 @@ void *iwpm_mapping_reqs_handler()
+ 		do { 
+ 			pthread_mutex_lock(&map_req_mutex);
+ 			wake = 1;
+-			iwpm_map_req = (iwpm_mapping_request *)mapping_reqs;
+-			while (iwpm_map_req) {
+-				next_map_req = iwpm_map_req->next;
++			list_for_each_safe(&mapping_reqs, iwpm_map_req, next_map_req, entry) {
+ 				if (iwpm_map_req->timeout > 0) {
+ 					if (iwpm_map_req->timeout < IWPM_MAP_REQ_TIMEOUT &&
+ 							iwpm_map_req->msg_type != IWARP_PM_REQ_ACK) { 
+@@ -130,11 +128,10 @@ void *iwpm_mapping_reqs_handler()
+ 				} else {
+ 					remove_iwpm_map_request(iwpm_map_req);
+ 				}
+-				iwpm_map_req = next_map_req;
+ 			}
+ 			pthread_mutex_unlock(&map_req_mutex);
+ 			sleep(1); 
+-		} while (mapping_reqs);
++		} while (!list_empty(&mapping_reqs));
+ 	}
+ mapping_reqs_handler_exit:
+ 	return NULL;
+-- 
+2.10.1.382.ga23ca1b
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
