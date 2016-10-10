@@ -1,27 +1,38 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: switch iwpm to ccan list.h
-Date: Mon, 10 Oct 2016 07:07:28 -0700
-Message-ID: <b665dc5a-f323-af60-d187-12054cdc3771@sandisk.com>
-References: <1476092514-18188-1-git-send-email-hch@lst.de>
+From: Henrique Almeida <hdante.lnls-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Patches for librxe-dev
+Date: Mon, 10 Oct 2016 11:12:02 -0300
+Message-ID: <CAP_Z8ckRONhy5Fy6VEYbfk5KVa5mbES1wyfPfsEX3fY=LOn=hw@mail.gmail.com>
+References: <CAP_Z8c=zx-DL1yFTZSRy=myQ1n4pqkcfH+Zi1MLDeHPEwDGRQw@mail.gmail.com>
+ <4c6c926d-d5a4-7149-c3dc-b0945b134da0@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476092514-18188-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <4c6c926d-d5a4-7149-c3dc-b0945b134da0-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/10/16 02:41, Christoph Hellwig wrote:
-> I've started running sparse on the rdma-core code, and one of the
-> worst offenders is the iwpmd list code, so this (untested) patch
-> set converts it over to the ccan list.h helpers.  Reviews and
-> testing appreciated.
+ Ok, but I think the SoftRoCE repository is mentioned in kernelnewbies.
 
-For the whole series:
+ https://kernelnewbies.org/Linux_4.8#head-d5eeeba16221162ce670139e945ab118b2aa772a
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+
+2016-10-10 11:00 GMT-03:00 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
+> On 10/10/16 06:49, Henrique Almeida wrote:
+>>
+>> Hello, how can I send patches for SoftRoCE library ? Last week I
+>> tried sending a pull request on github, but it looks like no one is
+>> watching it.
+>
+>
+> Maybe the README of the librxe-dev project should be updated to indicate
+> that that project has been superseded by the rdma-core project and that new
+> contributions should be submitted to the latter project
+> (https://github.com/linux-rdma/rdma-core)?
+>
+> Bart.
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
