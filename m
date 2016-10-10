@@ -1,26 +1,37 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 1/5] Pull uninitialized_var into util/compiler.h
-Date: Mon, 10 Oct 2016 10:18:51 -0500
-Message-ID: <015801d22309$9b1554f0$d13ffed0$@opengridcomputing.com>
-References: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com> <1475879772-29458-2-git-send-email-jgunthorpe@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH] cxgb4: missing dereference in poll_cq
+Date: Mon, 10 Oct 2016 17:27:33 +0200
+Message-ID: <1476113253-16880-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1475879772-29458-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> The new common definition turns it off for new compilers since
-> it is not needed and is too easy to abuse.
-> 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sparse complains about using plain integer as NULL pointer here, but
+I suspect we really want to check the value anyway, and Steve
+confirmed that's indeed the case.
 
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ providers/cxgb4/cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+diff --git a/providers/cxgb4/cq.c b/providers/cxgb4/cq.c
+index 1ed7dfd..3c8dd26 100644
+--- a/providers/cxgb4/cq.c
++++ b/providers/cxgb4/cq.c
+@@ -438,7 +438,7 @@ static int poll_cq(struct t4_wq *wq, struct t4_cq *cq, struct t4_cqe *cqe,
+ 		if (!*cqe_flushed && CQE_STATUS(hw_cqe))
+ 			dump_cqe(hw_cqe);
+ 
+-		BUG_ON((cqe_flushed == 0) && !SW_CQE(hw_cqe));
++		BUG_ON((*cqe_flushed == 0) && !SW_CQE(hw_cqe));
+ 		goto proc_cqe;
+ 	}
+ 
+-- 
+2.10.1.382.ga23ca1b
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
