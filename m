@@ -1,76 +1,79 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/5 for rdma-core] Five rxe_cfg patches
-Date: Mon, 10 Oct 2016 07:02:05 +0300
-Message-ID: <20161010040205.GE9282@leon.nu>
-References: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9@sandisk.com>
+Subject: Re: [PATCH rdma-core 1/5] Pull uninitialized_var into util/compiler.h
+Date: Mon, 10 Oct 2016 07:09:30 +0300
+Message-ID: <20161010040930.GF9282@leon.nu>
+References: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1475879772-29458-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20161009054601.GB9282@leon.nu>
+ <20161009230150.GB12551@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="p//XFgTqeVWI1epd"
+        protocol="application/pgp-signature"; boundary="gnQ/OOKD4CRsnGw/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20161009230150.GB12551-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---p//XFgTqeVWI1epd
+--gnQ/OOKD4CRsnGw/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 07, 2016 at 11:37:43AM -0700, Bart Van Assche wrote:
-> Hello Doug, Jason and Moni,
+On Sun, Oct 09, 2016 at 05:01:51PM -0600, Jason Gunthorpe wrote:
+> On Sun, Oct 09, 2016 at 08:46:01AM +0300, Leon Romanovsky wrote:
 >
-> These five patches is what I came up with after having had a look at the
-> rxe_cfg source code. It would be appreciated if these patches would be
-> considered for inclusion in the rdma-core repository. The filenames of these
-> patches are:
+> > 1. Can we remove this uninitialized_var at all and simply replace by
+> > default values?
 >
-> 0001-rxe_cfg-Use-Perl-functions-instead-of-parsing-the-ou.patch
-> 0002-rxe_cfg-Initialize-rxe_mtu-even-if-ibv_definfo-fails.patch
-> 0003-rxe_cfg-Do-not-suppress-stderr.patch
-> 0004-rxe_cfg-Remove-dead-code-from-show_module_status.patch
-> 0005-rxe_cfg-Use-printf-instead-of-using-a-loop.patch
+> I think people would complain about the extra stores. gcc 6 will
+> eliminate them, but older compilers will not.
 
-Hi Bart,
-
-Thank you for investing time, Moni started to look/test them and update
-us on the result.
-
-Thanks.
+This unintialized_var(x) adds extra store too (... x = x ...).
 
 >
-> Thanks,
+> But yes, we could do this.
 >
-> Bart.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 2. Do we really want additional folder to ccan with such common headers?
+> > What about rename ccan to be util and put this new file there (in case
+> > you proceed with it)?
+>
+> I see the ccan directory as stuf from ccan that we are not going to
+> change, while util is for new stuff specific to this tree.
 
---p//XFgTqeVWI1epd
+And I see this folder as a location of shared code with different utils
+(ccan, custom, e.t.c), but it doesn't really matter now and I will be fine
+with any directory structure layout.
+
+Thanks
+
+>
+> Jason
+
+--gnQ/OOKD4CRsnGw/
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX+xK9AAoJEORje4g2clinvxMP/09WLWf1KpqeBqCY30qOpU1E
-X7Quec/Nzhcv+2dnZ2ZVBU/fNdmhTB+IY7wxLpdWTY9W7q9u4AG1j1JVDv6Fzo0g
-mjhww4o6dsUhsSCGiTrPFX9wHekRo1Aq+ojusjYLvxDKbgoOoccOpJ7eEEU4Ej6p
-oAVc7nmnniJHF9GfbW6kqMrHpX3w0p4eUUZ3bO3GvIvyjaKltT7fYGI6bEY8Gk+R
-MGa1GGMKrgANtGZEjvR35sJmUtpOms3sbMQSlibxtrVBBOxd3ImmfM1SJ3/2jOZg
-a1xYh8bSRvgL5qOcwQ1eBlyGdPCbRFaFxtedwKZ7nNGPUq3dh13cllX/6CGpW6UP
-Jk9AAactf6TW2iso5lg5jJZNamnh80TzALZdUUeOeZTd34yNiNmJ43D762YlMiU4
-eSVYnqozY0QnJ50itQFDkEpDJQpYWY2psmC/YCcUP9oxKX4aNTOVCOJzIkKi/OYg
-BaUNEvzmTdAnJiszzZS3rlFO5CaoObXlJMe7E3GWpgeAAfwDE0W1XkV1Rxqwi9Yq
-3c1oOFFhmBxUhnXQrHA89oTtCkqqs5vr6wxDOU+LocgTh+8idUOczHrKihwoOURF
-E/YQEDSWhhuIHuSvic1+h80qJPkzzS5o3o8NvSF+2cMNonP7sWvwNOLK2GYrObAd
-meFASmgfAmtrfs0tL/DD
-=fn7Y
+iQIcBAEBAgAGBQJX+xR6AAoJEORje4g2clin3fEP/1/heMSP26bv5y7kxdYcRSJV
+aWj0xdZaUGYmrvzJHTamxDsFUe1ImDoSOIp8BBuSxqWy3+evvlIchzDw4XYzpTTZ
+j1t4LSIQ0ht8/5CdvyhC8RJEhGSWEmuBw+8ukncfrBIMznEOH7NEgT5ygo9++zYe
+ul1G/2jYI6twvvZ7ikXZ/uwYrF+wRXap12FQw4ddtomX2SwYd+l/caqYywHmpgFb
+MljSAWwY5mVwx2dkIbFfKC/zJK3ia9Jck8IrY7ciJ2c4vrGox3Surof3Du75APSm
+1y88jmsxE70t3EzmaeGhTegmIjlMwMuCLhOv7H7TtIIQGrlgJPCBscRO99VnSiFX
+YSfQAapXTrHsF3+JK0eudBofRrfsBnhYacrUzMtESKsv1sGV6+dBfzTfWTpQniAG
+8C31adNS/i+fDPtvOUh0s7W52kgL/LDozsoStb2bjdMX0MPvZ8cCdOIUZNO3kPi6
+gtS0vOkgtX7RVRbtose3PuK/ooZJYXdCz1wl0Sz4+vpRJMSQd7eAjKlzju0GRTIS
+m49781e9XRHNfb8O/5B0Yhywq3Zq0h6cR2TkoAiwOao7xJ6vChaADdXzkaMgB3v6
+6scx+GxLCFXr+8cGRcwBNWdyVcqWWnQ6yidpXz2WZ+QlD4fHjosvXzbBgBO1A1C6
+KZtKxc19kV52jL44c8rX
+=eOA/
 -----END PGP SIGNATURE-----
 
---p//XFgTqeVWI1epd--
+--gnQ/OOKD4CRsnGw/--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
