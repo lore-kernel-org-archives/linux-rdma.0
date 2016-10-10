@@ -1,28 +1,45 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: Patches for librxe-dev
-Date: Mon, 10 Oct 2016 07:00:34 -0700
-Message-ID: <4c6c926d-d5a4-7149-c3dc-b0945b134da0@acm.org>
-References: <CAP_Z8c=zx-DL1yFTZSRy=myQ1n4pqkcfH+Zi1MLDeHPEwDGRQw@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PULL REQUEST] Please pull rdma.git (tag for-linus)
+Date: Mon, 10 Oct 2016 09:40:53 -0500
+Message-ID: <00f001d22304$4d7b1900$e8714b00$@opengridcomputing.com>
+References: <00af6acf-ec90-ea0e-68d6-f9e962c89bd3@redhat.com> <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+        charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAP_Z8c=zx-DL1yFTZSRy=myQ1n4pqkcfH+Zi1MLDeHPEwDGRQw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Henrique Almeida <hdante.lnls-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Linus Torvalds' <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/10/16 06:49, Henrique Almeida wrote:
-> Hello, how can I send patches for SoftRoCE library ? Last week I
-> tried sending a pull request on github, but it looks like no one is
-> watching it.
+> 
+> On Fri, Oct 7, 2016 at 3:24 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> >
+> > 1) cxgb4 - keep the head version in your tree, my tree and the common
+> > ancestor were prior to a refactoring in your tree that moved uld_attach
+> > from cxgb4_main.c to cxgb4_uld.c
+> 
+> Hmm. As far as I can tell, a proper merge also involves adding the line
+> 
+>         lld->fr_nsmr_tpte_wr_support = adap->params.fr_nsmr_tpte_wr_support;
+> 
+> to uld_init() in cxgb4_uld.c.
+> 
+> I did so, and it all seems to build find for me, but I obviously
+> cannot do any testing. Somebody with the proper cxgb4 hardware should
+> verify.
+> 
+> Of course, it only affects the very special IB_WR_REG_MR fastpath
+> case, so maybe nobody much cares. Adding Steve Wise to the cc, to make
+> sure somebody actually tests this.
+>
 
-Maybe the README of the librxe-dev project should be updated to indicate 
-that that project has been superseded by the rdma-core project and that 
-new contributions should be submitted to the latter project 
-(https://github.com/linux-rdma/rdma-core)?
-
-Bart.
+I will test/verify this today.  
+ 
+Steve
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
