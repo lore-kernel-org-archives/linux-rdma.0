@@ -1,163 +1,81 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Mon, 10 Oct 2016 11:59:45 +0530
-Message-ID: <CAG53R5UM6nSTZ7=0S9reKGX45CpNBi8soSDVZyXkN-z0_XXWWQ@mail.gmail.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <20161005112206.GC9282@leon.nu> <CAG53R5VNVb=8-LJbDRqjtOZG347ucPuc420bcfnDgBKMoKqU-w@mail.gmail.com>
- <20161010044623.GI9282@leon.nu>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH qedr 04/10] qedr: Add support for PD,PKEY and CQ verbs
+Date: Mon, 10 Oct 2016 10:24:07 +0300
+Message-ID: <20161010072407.GJ9282@leon.nu>
+References: <1475682483-9878-1-git-send-email-Ram.Amrani@cavium.com>
+ <1475682483-9878-5-git-send-email-Ram.Amrani@cavium.com>
+ <20161006133357.GP9282@leon.nu>
+ <SN1PR07MB22070099EE40A67B81D14C75F8DB0@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="MRqhvNSJsMAynmoC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161010044623.GI9282-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <SN1PR07MB22070099EE40A67B81D14C75F8DB0-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
 
-On Mon, Oct 10, 2016 at 10:16 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Thu, Oct 06, 2016 at 07:19:24PM +0530, Parav Pandit wrote:
->> Hi Leon,
->>
->> On Wed, Oct 5, 2016 at 4:52 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> > On Wed, Aug 31, 2016 at 02:07:24PM +0530, Parav Pandit wrote:
->> >> rdmacg: IB/core: rdma controller support
->> >>
->> >> Overview:
->> >> Currently user space applications can easily take away all the rdma
->> >> device specific resources such as AH, CQ, QP, MR etc. Due to which other
->> >> applications in other cgroup or kernel space ULPs may not even get chance
->> >> to allocate any rdma resources. This results into service unavailibility.
->> >>
->> >> RDMA cgroup addresses this issue by allowing resource accounting,
->> >> limit enforcement on per cgroup, per rdma device basis.
->> >>
->> >> RDMA uverbs layer will enforce limits on well defined RDMA verb
->> >> resources without any HCA vendor device driver involvement.
->> >>
->> >> RDMA uverbs layer will not do limit enforcement of HCA hw vendor
->> >> specific resources. Instead rdma cgroup provides set of APIs
->> >> through which vendor specific drivers can do resource accounting
->> >> by making use of rdma cgroup.
->> >
->> > Hi Parav,
->> > I want to propose an extension to the RDMA cgroup which can be done as
->> > follow-up patches.
->> >
->> > Let's add new global type, which will control whole HCA (for example in percentages). It will
->> > allow natively define new objects without need to introduce them to the user.
->> >
->> In other cgroup such as CPU, this is done using cpu.weight API. Where
->> percentage or weight is configured by the user.
->> In this mode, resources taken away from other cgroup proportionately.
->> It works for cpu because its mainly stateless resource unlike rdma
->> resources.
->> So if we want to simplify user configuration similarly,
->> percentage/weight configuration can be extended.
->> This way they need not be introduced to users.
->> I hope your definition of "user" is actual end-user and not rdma cgroup. Right?
->
-> Yes, "user" -> "admin".
-> I think that percentage is more intuitive to them and will be much easier to
-> explain how to use it. I always have in mind "swappiness" field and the
-> numerous questions on how to configure it.
->
->> In other words, new object should be still added as new enum value in
->> rdma_cgroup.h?
->
-> Yes, I had in mind something like IB_CGROUP_HCA, this is why it can be
-> done as a future work after accepting current patches.
->
-What I meant is,
-today we have RDMACG_VERB_RESOURCE_QP etc,
-We will additionally have RDMACG_VERB_RESOURCE_INDIRECT_TBL etc in
-cgroup_rdma.h.
-So that its available for admin to override it.
+--MRqhvNSJsMAynmoC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->> Only than it can be overwritten by specific UVERBs type as you
->> described below. I think thats what you meant as you described below.
+On Mon, Oct 10, 2016 at 06:34:43AM +0000, Amrani, Ram wrote:
+> > > +/* * CQE requester status enumeration */ enum
+> > > +rdma_cqe_requester_status_enum {
+> > > +	RDMA_CQE_REQ_STS_OK,
+> > > +	RDMA_CQE_REQ_STS_BAD_RESPONSE_ERR,
+> > > +	RDMA_CQE_REQ_STS_LOCAL_LENGTH_ERR,
+> > > +	RDMA_CQE_REQ_STS_LOCAL_QP_OPERATION_ERR,
+> > > +	RDMA_CQE_REQ_STS_LOCAL_PROTECTION_ERR,
+> > > +	RDMA_CQE_REQ_STS_MEMORY_MGT_OPERATION_ERR,
+> > > +	RDMA_CQE_REQ_STS_REMOTE_INVALID_REQUEST_ERR,
+> > > +	RDMA_CQE_REQ_STS_REMOTE_ACCESS_ERR,
+> > > +	RDMA_CQE_REQ_STS_REMOTE_OPERATION_ERR,
+> > > +	RDMA_CQE_REQ_STS_RNR_NAK_RETRY_CNT_ERR,
+> > > +	RDMA_CQE_REQ_STS_TRANSPORT_RETRY_CNT_ERR,
+> > > +	RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR,
+> > > +	MAX_RDMA_CQE_REQUESTER_STATUS_ENUM
+> >
+> > Please add "," at the last line of enums, it will allow future changes to these
+> > enums with minimal churn.
 >
-> Exactly.
->
->>
->> Otherwise charging/uncharging this new percentage resource can get messy.
->
-> Agree
->
->>
->> > This HCA share will be overwritten by specific UVERBS types which you
->> > already defined.
->> >
->> > What do you think?
->>
->> So to refine your proposal from cgroup perspective, instead of adding
->> new resource type in rdma_cgroup.h for percentage, I prefer to have
->>
->> Existing
->> 1. rdma.max
->> 2. rdma.current
->> New,
->> 3. rdma.weight
->> This ABI will have similar API to say
->> echo "mlx4_0 50" > rdma.weight.
->> Where 50 is weight of the resources.
->> For example,
->> for one cgroup instance weight=sum=100% resource for a given cgroup.
->> for three cgroup instances percentage=(weight/sum)% = 50/(50+50+50) = 33%.
->> One cgroup gets 33% resource.
->>
->> Weight can be in range of 1 to 10,000 similar to cpu cgroup.
->
-> This is exactly what I don't like, the percentage will remove from the
-> user the translation needs between weight and actual limitation.
->
-> IMHO CPU used weights because everything there is in weights :).
->
-I admit weight are not very intuitive, I was aligning to the existing
-other cgroup interfaces which achieves similar functionality.
-I will let Tejun approve the "percentage" or "ratio" new file
-interface as its little different than weight.
+> This is a good idea and I've applied it to several enums in the patch.
+> However, I think that this specific enum should left be as is since the last element should always remain last as it is a MAX_*
 
->>
->> This might work if applications running in all cgroups are similar.
->> But weight doesn't do justice, when there are different type of
->> applications running in each cgroup. Such as few running libfabric
->> based apps, few running MPI, others directly using ibverbs.
->> So as you said rdma.max configuration would be required for management
->> plane to override weight (percentage) for certain resources.
->
-> Why?
-> The device exposes max values during initialization and if user asked
-> for 20% percent of HCA, he will get max*0.2.
-
-Because every application may not be equivalent of other application.
-For example, some require one to one QP and PD mapping.
-Some share single PD across multiple QPs.
-Some have ratio of 100 MRs per QP, as factor of memory size and operations.
-some servers like to have 1K MRs per QP.
-So if we have just weight, it will equally distributes MRs per QP in
-all cgroup and that either leads to unused resource per cgroup or,
-lesser number of cg instances.
-So fine tuning required for individual one, which we already have.
-
-weight or percentage helps in abstracting as starting point. So I like
-to add it too.
-
-
+It makes sense,
+Thanks
 
 >
->>
->>
->> >
->> > Except this proposal,
->> > Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> >
->> > Thanks.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--MRqhvNSJsMAynmoC
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX+0IXAAoJEORje4g2clina/UP/1M5JnpwtSw5mBP3EYaYbMJz
+y5aBMkVQbn3Xx+9w/bfhXo3KoYYMLyz+B72GeRt5tHli8dHoUuXTVst/e/2MNYE1
+nqZ3Q4TL2S/ZQOWyef845Huv47OXq0Z3yMAhHzmUCTUImxL/zz+OTsnHsB2xPZj6
+Y8k3X138HwtD2SkxcV9JnN0OaFOtictYfhb3VC/3X1xFuU04AFKPyfTqkdFrE3Gb
+8aI1ue5unMkkUnoO1piIv+xO0fg9uGcxvCih6hBznixStALiWMhja9GBmNe0NbTJ
+AIVFs55kBXpwt8gzBB0/HAPArQIezK1iriAGs1OTQs5RCYtg8WLjPxMlGsN9ieTR
+/A5wpZcau2hMHT6wlNLqexyUDMVLCXlQiCPlFO8CHJyF6UL4E0MUDIteEvc2svCa
+mdi2iPPkhhKCJOwmJ335cl0IWTKpMlqk95jg8jzC4h0TXQ09TH0rbivlSacAerxA
+OqoAC77FOuenQxGg5SYHRVFzGdeab0uxv+SRaw5A3L85xUo08XQUe0MtbY35yHr7
+G2qzkB7iJ8UlQh4cwdNrzCQM6l2Ya8jr+FpdK8wz+1fHwuALNOYZ3foWiMvY2ElP
+dXc0yfRFapAjIMQ+zId+JUiX47g4R7aTpozyj6DnbLCTiLeWwAfugFkKdFFtd4qS
+83lOhMokq5qlLRTnbQph
+=05Al
+-----END PGP SIGNATURE-----
+
+--MRqhvNSJsMAynmoC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
