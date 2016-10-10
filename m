@@ -1,49 +1,49 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] i40iw: Add Quality of Service support
-Date: Mon, 10 Oct 2016 12:58:10 -0500
-Message-ID: <20161010175810.GA3312@horosco-MOBL2.amr.corp.intel.com>
-References: <20161007204747.6420-1-henry.orosco@intel.com>
- <20161010042710.GH9282@leon.nu>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PULL REQUEST] Please pull rdma.git (tag for-linus)
+Date: Mon, 10 Oct 2016 14:23:25 -0500
+Message-ID: <02b801d2232b$c5d4cff0$517e6fd0$@opengridcomputing.com>
+References: <00af6acf-ec90-ea0e-68d6-f9e962c89bd3@redhat.com> <CA+55aFw5tftp1Da5Hs8ks+=hiodZ_NTCH3Z9efPxDVo7h75RAw@mail.gmail.com> <00f101d22304$4d874e00$e895ea00$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161010042710.GH9282-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <00f101d22304$4d874e00$e895ea00$@opengridcomputing.com>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Linus Torvalds' <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 10, 2016 at 07:27:10AM +0300, Leon Romanovsky wrote:
-> On Fri, Oct 07, 2016 at 03:47:47PM -0500, Henry Orosco wrote:
-> 
-> <...>
-> 
+> > > 1) cxgb4 - keep the head version in your tree, my tree and the common
+> > > ancestor were prior to a refactoring in your tree that moved uld_attach
+> > > from cxgb4_main.c to cxgb4_uld.c
 > >
-> >  	switch (iwdev->init_state) {
-> >  	case RDMA_DEV_REGISTERED:
-> > @@ -1628,6 +1642,7 @@ static int i40iw_open(struct i40e_info *ldev, struct i40e_client *client)
-> >  		iwdev->init_state = RDMA_DEV_REGISTERED;
-> >  		iwdev->iw_status = 1;
-> >  		i40iw_port_ibevent(iwdev);
-> > +		iwdev->param_wq = create_singlethread_workqueue("l2params");
-> >  		i40iw_pr_info("i40iw_open completed\n");
+> > Hmm. As far as I can tell, a proper merge also involves adding the line
+> >
+> >         lld->fr_nsmr_tpte_wr_support =
+> > adap->params.fr_nsmr_tpte_wr_support;
+> >
+> > to uld_init() in cxgb4_uld.c.
+> >
+> > I did so, and it all seems to build find for me, but I obviously
+> > cannot do any testing. Somebody with the proper cxgb4 hardware should
+> > verify.
+> >
+> > Of course, it only affects the very special IB_WR_REG_MR fastpath
+> > case, so maybe nobody much cares. Adding Steve Wise to the cc, to make
+> > sure somebody actually tests this.
+> >
 > 
-> No, please don't use this interface, For reference, see latest work from Bhaktipriya
-> Shridhar to eliminate this call. Doug and Dave sent a pull request with it to Linus in
-> last merge cycle.
-> 
+> I will test/verify this today.
 
-Ah, missed that. Will send out another version. Thanks!
+Hey Linus,
 
-> Also, 1) you should check if this call succeeded and 2) ask yourself if
-> special workqueue is needed.
-> 
-> >  		return 0;
-> >  	} while (0);
-> 
-> Thanks.
+The commits in your master branch check out ok.
 
+Thanks!
+
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
