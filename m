@@ -1,71 +1,74 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: build failure on linus' latest master branch
-Date: Tue, 11 Oct 2016 22:36:33 +0300
-Message-ID: <20161011193633.GN9282@leon.nu>
-References: <01ca01d2230c$b8ade6f0$2a09b4d0$@opengridcomputing.com>
- <20161011120219.GM9282@leon.nu>
- <004701d223cc$0772cbb0$16586310$@opengridcomputing.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] Pull uninitialized_var into util/compiler.h
+Date: Tue, 11 Oct 2016 22:46:33 +0300
+Message-ID: <20161011194633.GP9282@leon.nu>
+References: <1475879772-29458-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1475879772-29458-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20161009054601.GB9282@leon.nu>
+ <20161009230150.GB12551@obsidianresearch.com>
+ <20161010040930.GF9282@leon.nu>
+ <20161011180517.GA17866@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="m8RPluiNA7RIyL8J"
+        protocol="application/pgp-signature"; boundary="9rkt7tfZQigMla7f"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <004701d223cc$0772cbb0$16586310$@opengridcomputing.com>
+In-Reply-To: <20161011180517.GA17866-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---m8RPluiNA7RIyL8J
+--9rkt7tfZQigMla7f
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Oct 11, 2016 at 09:30:35AM -0500, Steve Wise wrote:
-> > > Is there a fix for this?
-> >
-> > We investigated a lot this failure and it appears on specific and very
-> > old GCC 4.4.
-> > http://www.spinics.net/lists/linux-rdma/msg39135.html
-> > http://marc.info/?t=147614305200001&r=1&w=2
-> >
-> > And the fix is http://marc.info/?l=linux-netdev&m=147615976207362&w=2
-> >
+On Tue, Oct 11, 2016 at 12:05:17PM -0600, Jason Gunthorpe wrote:
+> On Mon, Oct 10, 2016 at 07:09:30AM +0300, Leon Romanovsky wrote:
 >
-> Thanks.  So was it ever merged?
+> > > I think people would complain about the extra stores. gcc 6 will
+> > > eliminate them, but older compilers will not.
+> >
+> > This unintialized_var(x) adds extra store too (... x = x ...).
+>
+> I have confirmed that the unintialized_var macro does not impact code
+> generation on the old gccs while the =0 approach does.
 
-Not yet, I hope that Dave or Doug will forward that patch to Linus
-before -rc1 is released.
+Ohh, thanks.
+
+But I'm still left under impression of this article [1] that using such
+macro is a bad thing and we are "punishing" all users of modern compilers.
+
+[1] https://lwn.net/Articles/529954/
 
 >
+> So no extra store.
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Jason
 
---m8RPluiNA7RIyL8J
+--9rkt7tfZQigMla7f
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX/T9BAAoJEORje4g2clinih0P/RZWHN+cs/Jn5YUyXe0TVoJP
-BFJgeFi8QG2b/ZPSq35o8ZWBmoW4zB++yqq+GvjLvA57weaDqsiN9D+gtvFHZzBq
-iQ8lAOmzhy8O5BdxYVuZWDPLq9qd2BMELqXozQh4C/Rb2OmyBOJEZcOaRckJxeXY
-MHm4IjPo5LCn6hYwYYGbaKek5GmTKQ2LbO8HdSqkWwFBF949wFhW3cGnYTura6WQ
-MKKobUvENqnJSZVu2z/Nd+n9PKrJfgwMOSwi5+uCDh2vQ82qI1SnGX0bChTP2j7J
-c8lDYANPG655fQQ/+RvQbpwX70LedNcCqAYCDn6ivH6BT9iaE6q+02xh9IJz4hYz
-/b9jkYuqQ8/TOjoQWVDRQhNCrkMX2aRUm4w4CuCy0y+iLny1JZGk+tM4ZaykRsCT
-E9K7IdaY0cgvc37J2D1dJQVDpOcdZWDCCGKzfSczXz5w6XXou2Bbh4tFHzLNuRSp
-TSHWxjdQHoI8ka9Y1ybtlcQvE2SAXD0NIZ9DPNKWeZ68Ll94H85fFeBuENGRjcbK
-6iimbCdJd0jsTgTmz2RR9grb+PVXmwFWzw4tWjVWpc8Tsfi7UnktzZhB4A4LyJot
-7hLoGpagOpM1GK34m+B/p12fhzBynksMOwUpcrjzIKl0pNjfzdel8z8mFixQluDS
-pozq4AyGlkSqsnqp7srV
-=v98S
+iQIcBAEBAgAGBQJX/UGZAAoJEORje4g2clinME4P/jVCkdWH77jcRSe6LtD7eOo9
+rmTonvCKKKhqzPJ8Qq0nr1EyBrhnclscdkyxW0xeLZMD0MpXTQLC3EFdbywVptfZ
+zU/mt0OoOg1rs8czeValDIpZ4lIpQPzegsOnN0DwKd4vRlxXsiAzKNNS5f6yrM8B
+FAlDSl9/gmXhQiNelXl6Sr0fUHKvSt5ErX+gUXekDFT6TFBiU18fG8fcS4++Hg2i
+M2EDKpqnVOHz+CENAOfm7n1QN0ufZPrpZ5oH8tgo0HC9QScAkWt7qxcRPKAdYqkP
+LIqQ9p2r72xFodjQgxOTJxb8ExNDOwYom3+0a+dCiuN0Kq6NaNHIQXJB4pIGiurD
+SA662KyNT4uAqotZbGN5/YHAP8gClfsbLmUYXSCLg1B/F8sksiaiO6bt/SRUVnr7
+7r3JSfY6G8Q13AdnoEf56+mkyqNgbUEB0/r9RJzFxDPjz1PFLFUcUrqLiEze0AwR
+W045Yvuo4FP8nKkP1cVj3ymC3Vb7mWxdPrQE3TOVD/IDWq1xSHb0di9OCEIK7wJA
+9mX9qnMggLdw3jWEZTo+8uYLowg7U0hLmCl/LWxWn/06Xb7dG5PI73qdxEx32zSt
+AnLf56zrBHu+6HRZ4Gg10EuVCxQROFT4SzNSWnsKba2G2YLLayJPotuPXFPv8tu/
+CErQPgEHT3pgMrKo/IDV
+=NTKb
 -----END PGP SIGNATURE-----
 
---m8RPluiNA7RIyL8J--
+--9rkt7tfZQigMla7f--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
