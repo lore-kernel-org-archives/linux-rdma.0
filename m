@@ -1,8 +1,8 @@
-From: "Friedrich Mayrhofer" <dmoreno-rA2a9LRTzaJDKb6jAj2qbg@public.gmane.org>
-Subject: I Hope You Get My Message This Time
-Date: Tue, 11 Oct 2016 04:14:28 +0200
-Message-ID: <4da6e0d87319fda0d24cd0de2bcc2fed.squirrel__39179.3290306397$1476153052$gmane$org@correo.etsii.upm.es>
-Reply-To: friedrichmayrhofer222-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: "Friedrich Mayrhofer.." <dmoreno-rA2a9LRTzaJDKb6jAj2qbg@public.gmane.org>
+Subject: Good News
+Date: Tue, 11 Oct 2016 05:24:06 +0200
+Message-ID: <fd7df274cd78360bc1abc38e74822efd.squirrel@correo.etsii.upm.es>
+Reply-To: friedrichmayhofer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -13,6 +13,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
+-- 
 This is the second time i am sending you this mail.
 
 I, Friedrich Mayrhofer Donate $ 1,000,000.00 to You, Email  Me personally
