@@ -1,90 +1,57 @@
-From: Doug Ledford <dledford@redhat.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Subject: Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
  header
-Date: Tue, 11 Oct 2016 13:41:56 -0400
-Message-ID: <22f61258-9bcf-0adc-f23f-79a4f1d50c6a@redhat.com>
+Date: Tue, 11 Oct 2016 12:01:19 -0600
+Message-ID: <20161011180119.GB17319@obsidianresearch.com>
 References: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni@redhat.com>
  <20161011173216.GA16892@obsidianresearch.com>
+ <22f61258-9bcf-0adc-f23f-79a4f1d50c6a@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="vA5hsB2xeFr65TAs3FUjgd0DW0A6cgooj"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161011173216.GA16892@obsidianresearch.com>
+Content-Disposition: inline
+In-Reply-To: <22f61258-9bcf-0adc-f23f-79a4f1d50c6a@redhat.com>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Paolo Abeni <pabeni@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, netdev@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---vA5hsB2xeFr65TAs3FUjgd0DW0A6cgooj
-Content-Type: multipart/mixed; boundary="kHs6K67EtAgNWuXLfk7XLU6XKePiQkjeA";
- protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
- Paolo Abeni <pabeni@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>,
- Hal Rosenstock <hal.rosenstock@gmail.com>, netdev@vger.kernel.org
-Message-ID: <22f61258-9bcf-0adc-f23f-79a4f1d50c6a@redhat.com>
-Subject: Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
- header
-References: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni@redhat.com>
- <20161011173216.GA16892@obsidianresearch.com>
-In-Reply-To: <20161011173216.GA16892@obsidianresearch.com>
+On Tue, Oct 11, 2016 at 01:41:56PM -0400, Doug Ledford wrote:
 
---kHs6K67EtAgNWuXLfk7XLU6XKePiQkjeA
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> declare the header.  The problem then became that the sg setup is such
+> that we are limited to 16 4k pages for the sg array, so that header had
+> to come out of the 64k maximum mtu.
 
-On 10/11/2016 1:32 PM, Jason Gunthorpe wrote:
-> On Tue, Oct 11, 2016 at 07:15:44PM +0200, Paolo Abeni wrote:
->=20
->> Also the connected mode maximum mtu is reduced by 16 bytes to
->> cope with the increased hard header len.
->=20
-> Changing the MTU is going to cause annoying interop problems, can you
-> avoid this?
+Oh, that clarifies things..
 
-(Paolo did the work I'm describing here, I'm just giving the explanation
-he gave me):
+Hum, so various options become:
+ - Use >=17 SGL entries when creating the QP. Is this possible
+   on common adapters?
+ - Use the FRWR infrastructure when necessary. Is there any chance
+   the majority of skbs will have at least two physically
+   continuous pages to make this overhead rare? Perhaps as a fall
+   back if many adaptors can do >=17 SGLs 
+ - Pad the hard header out to 4k and discard the first page
+   when building the sgl
+ - Memcopy the first ~8k into a contiguous 8k region on send
+ - Move the pseudo header to the end so it can cross the page
+   barrier without needing a sgl entry. (probably impossible?)
+ 
+>From Paolo
 
-Not using this particular solution I don't think.  We tried it without
-increasing the declared hard header length and it broke when dealing
-with skb_clone/GSO paths.  In order to make the LL pseudo header get
-copied along with the rest of the encap and data on clone, we had to
-declare the header.  The problem then became that the sg setup is such
-that we are limited to 16 4k pages for the sg array, so that header had
-to come out of the 64k maximum mtu.
+> AFAICS the max mtu is already underlying h/w dependent, how does such
+> differences are currently coped by ? (I'm sorry I lack some/a lot of IB
+> back-ground)
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG Key ID: 0E572FDD
+It isn't h/w dependent. In CM mode the MTU is 65520 because that is
+what is hard coded into the ipoib driver. We tell everyone to use that
+number. Eg see RH's docs on the subject:
 
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Networking_Guide/sec-Configuring_IPoIB.html
 
---kHs6K67EtAgNWuXLfk7XLU6XKePiQkjeA--
+AFAIK, today everyone just wires that number into their scripts, so we
+have to mass change everything to the smaller number. That sounds
+really hard, IMHO if there is any way to avoid it we should, even if
+it is a little costly.
 
---vA5hsB2xeFr65TAs3FUjgd0DW0A6cgooj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJX/SRkAAoJELgmozMOVy/dv4cP/Ro5Hpvmk2Q9O7QeKGDc0Wh6
-QH+o5Ipz246cgV/NrEaqkMKFMupnZjiXbA7RfNXIkXiiTYLzGuJGpwM1F/G9/hIT
-qHohrVMrxxTVwbhQ9o7NyYcoBaOUX7mbQc50xVGNQ3DTcg88H76HqQ+vwuTAuY8h
-en5hpZG8d4ASqy8+gpajHp0jq/x3KBn0YnpC0FsA7hXJG+YmdaZ2AniWEusEf0Y4
-oIU4d80ISt2k6ybq9lzyDWteOhmRo33F2rT6cLWBBdzUzkPC+iJeQJLyBUx0Doe4
-wRLiW7VU/mYXefO09YFdiH+o+uyMLfqtnyKuuWF/F84t5/XnWrZsNo/pU5e2oyTI
-AVbYZPrrKLLyaaurE6DrjWgMTb2zcRZnrjsYPsy6zqL5y89yqd7EmFbk0k2PinHM
-Quj/ka7dXb23E6LRulRYHQgT0pSjaJ+RppVsuGXWqvNQ6qBeaeeaGzJ7JGoS3MLt
-fpmBXibqFL7oQlVjxfyyvsiZKxPXqZjaHBGfhNarVNjIuNOgRr/H9obece1prWRf
-YmmGpavwuyS4jAVdm4EDxr6ohwKK1H7+a1T5dd57d7dmW9DCLv8e5fZ7b/xMZX7E
-2XhI6SZT4h+Foj/yLVO+JieG+ZOzuMNvsVJ3wvIR2W3KsbtfAYjamXHTU75WM9pA
-gLX9Nlu0HgZW9sAb9ZQJ
-=PkDJ
------END PGP SIGNATURE-----
-
---vA5hsB2xeFr65TAs3FUjgd0DW0A6cgooj--
+Jason
