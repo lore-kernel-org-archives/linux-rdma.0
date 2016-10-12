@@ -1,66 +1,52 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [bug report] IB/hfi1: Prevent NULL pointer deferences in
- caching code
-Date: Wed, 12 Oct 2016 13:43:55 +0000
-Message-ID: <1476279831.26962.25.camel@intel.com>
-References: <20161012060402.GC12841@mwanda>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: false checkpatch finding?
+Date: Wed, 12 Oct 2016 14:04:11 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2D0F608F@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161012060402.GC12841@mwanda>
 Content-Language: en-US
-Content-ID: <F151E0CDB76CD04F814822EA5880EB25-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Haralanov, Mitko" <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Andy Whitcroft <apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmtzIERhbiwgd2UnbGwgdGFrZSBjYXJlIG9mIGl0Lg0KDQotRGVubnkNCg0KT24gV2VkLCAy
-MDE2LTEwLTEyIGF0IDA5OjA2ICswMzAwLCBEYW4gQ2FycGVudGVyIHdyb3RlOg0KPiBIZWxsbyBN
-aXRrbyBIYXJhbGFub3YsDQo+IA0KPiBUaGUgcGF0Y2ggZjE5YmQ2NDNkYmRlOiAiSUIvaGZpMTog
-UHJldmVudCBOVUxMIHBvaW50ZXIgZGVmZXJlbmNlcyBpbg0KPiBjYWNoaW5nIGNvZGUiIGZyb20g
-QXByIDEyLCAyMDE2LCBsZWFkcyB0byB0aGUgZm9sbG93aW5nIHN0YXRpYw0KPiBjaGVja2VyIHdh
-cm5pbmc6DQo+IA0KPiAJZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdXNlcl9zZG1hLmM6MTE0
-NyBwaW5fdmVjdG9yX3BhZ2VzKCkNCj4gCXdhcm46ICdyYl9ub2RlJyBpc24ndCBhbiBFUlJfUFRS
-DQo+IA0KPiBkcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS91c2VyX3NkbWEuYw0KPiDCoCAxMTM1
-wqDCoHN0YXRpYyBpbnQgcGluX3ZlY3Rvcl9wYWdlcyhzdHJ1Y3QgdXNlcl9zZG1hX3JlcXVlc3Qg
-KnJlcSwNCj4gwqAgMTEzNsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCB1c2VyX3NkbWFfaW92ZWMgKmlvdmVjKQ0KPiDCoCAx
-MTM3wqDCoHsNCj4gwqAgMTEzOMKgwqDCoMKgwqDCoMKgwqDCoMKgaW50IHJldCA9IDAsIHBpbm5l
-ZCwgbnBhZ2VzLCBjbGVhcmVkOw0KPiDCoCAxMTM5wqDCoMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qg
-cGFnZSAqKnBhZ2VzOw0KPiDCoCAxMTQwwqDCoMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgaGZpMV91
-c2VyX3NkbWFfcGt0X3EgKnBxID0gcmVxLT5wcTsNCj4gwqAgMTE0McKgwqDCoMKgwqDCoMKgwqDC
-oMKgc3RydWN0IHNkbWFfbW11X25vZGUgKm5vZGUgPSBOVUxMOw0KPiDCoCAxMTQywqDCoMKgwqDC
-oMKgwqDCoMKgwqBzdHJ1Y3QgbW11X3JiX25vZGUgKnJiX25vZGU7DQo+IMKgIDExNDPCoMKgDQo+
-IMKgIDExNDTCoMKgwqDCoMKgwqDCoMKgwqDCoHJiX25vZGUgPSBoZmkxX21tdV9yYl9leHRyYWN0
-KHBxLT5oYW5kbGVyLA0KPiDCoCAxMTQ1wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAodW5zaWduZWQg
-bG9uZylpb3ZlYy0NCj4gPmlvdi5pb3ZfYmFzZSwNCj4gwqAgMTE0NsKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgaW92ZWMtPmlvdi5pb3ZfbGVuKTsNCj4gwqAgMTE0N8KgwqDCoMKgwqDCoMKgwqDCoMKg
-aWYgKHJiX25vZGUgJiYgIUlTX0VSUihyYl9ub2RlKSkNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoF5eXl5eXl5eXl5eXl5e
-Xg0KPiANCj4gaGZpMV9tbXVfcmJfZXh0cmFjdCgpIG5ldmVyIHJldHVybnMgZXJyb3IgcG9pbnRl
-cnMuwqDCoFBseiBkZWxldGUuDQo+IA0KPiDCoCAxMTQ4wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgbm9kZSA9IGNvbnRhaW5lcl9vZihyYl9ub2RlLCBzdHJ1Y3QNCj4gc2RtYV9t
-bXVfbm9kZSwgcmIpOw0KPiDCoCAxMTQ5wqDCoMKgwqDCoMKgwqDCoMKgwqBlbHNlDQo+IMKgIDEx
-NTDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByYl9ub2RlID0gTlVMTDsNCj4g
-wqAgMTE1McKgwqANCj4gwqAgMTE1MsKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKCFub2RlKSB7DQo+
-IMKgIDExNTPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBub2RlID0ga3phbGxv
-YyhzaXplb2YoKm5vZGUpLCBHRlBfS0VSTkVMKTsNCj4gwqAgMTE1NMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoGlmICghbm9kZSkNCj4gwqAgMTE1NcKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gLUVOT01FTTsNCj4gwqAg
-MTE1NsKgwqANCj4gwqAgMTE1N8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5v
-ZGUtPnJiLmFkZHIgPSAodW5zaWduZWQgbG9uZylpb3ZlYy0NCj4gPmlvdi5pb3ZfYmFzZTsNCj4g
-wqAgMTE1OMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5vZGUtPnBxID0gcHE7
-DQo+IMKgIDExNTnCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBhdG9taWNfc2V0
-KCZub2RlLT5yZWZjb3VudCwgMCk7DQo+IMKgIDExNjDCoMKgwqDCoMKgwqDCoMKgwqDCoH0NCj4g
-DQo+IHJlZ2FyZHMsDQo+IGRhbiBjYXJwZW50ZXINCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJv
-bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIA0KPiBp
-bg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0K
-PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0wqDCoGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
-b21vLWluZm8uaHRtbA==
+<4.8 tree>/scripts/checkpatch.pl -F foo.h
+WARNING: Missing a blank line after declarations
+#3: FILE: foo.h:3:
++       unsigned long f1;
++       volatile __le64 f2.
+
+WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
+#3: FILE: foo.h:3:
++       volatile __le64 f2.
+
+total: 0 errors, 2 warnings, 4 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+foo.h has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Adding a gratuitous blank line after f1 silences the bogus warning.
+
+The volatile warning is ok because this is a hardware written field.
+
+Snip the test file from below.
+
+Mike
+
+<snip foo.h>
+struct foo {
+	unsigned long f1;
+	volatile __le64 f2.
+};
+</snip foo.h>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
