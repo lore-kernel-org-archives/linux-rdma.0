@@ -1,49 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core release?
-Date: Wed, 12 Oct 2016 10:47:59 -0600
-Message-ID: <20161012164759.GB18838@obsidianresearch.com>
-References: <20161012105103.GA30534@infradead.org>
- <CALq1K=JEkvN_4tZL9D53c6-EH9E4efay8rmoyBEyB-7Sxr6H-w@mail.gmail.com>
- <59ebde13-0fcd-0640-e750-bb6e57bfb921@redhat.com>
- <00c801d22496$f31798f0$d946cad0$@opengridcomputing.com>
- <20161012163149.GA20174@infradead.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] add a build.sh helper to allow for a one-stop build
+Date: Wed, 12 Oct 2016 20:31:55 +0300
+Message-ID: <20161012173155.GV9282@leon.nu>
+References: <1476113282-19194-1-git-send-email-hch@lst.de>
+ <c2d80cd4-74b8-8391-1855-3c666f611d91@acm.org>
+ <20161010155949.GA20091@lst.de>
+ <ec4f3158-a25d-7cd8-216c-fbec52577e75@acm.org>
+ <20161010164758.GB1796@obsidianresearch.com>
+ <20161012093015.GS9282@leon.nu>
+ <20161012105208.GA9491@lst.de>
+ <20161012121845.GT9282@leon.nu>
+ <20161012122220.GU9282@leon.nu>
+ <20161012163834.GA18838@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="eRJUXWYUKFXpoo3g"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161012163149.GA20174-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20161012163834.GA18838-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Leon Romanovsky' <leon-2ukJVAZIZ/Y@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 12, 2016 at 09:31:49AM -0700, 'Christoph Hellwig' wrote:
-> On Wed, Oct 12, 2016 at 09:43:08AM -0500, Steve Wise wrote:
-> > I recommend we release something for OFED-4.8 to pull in.  That
-> > might help flush out the release process earlier rather than
-> > later.  Either way, though, I want the latest libcxgb4 in OFED-4.8
-> > to support the new chelsio HW.  But we talked about the repo being
-> > "always stable", so I guess the OFA could just pull the code and
-> > use it?  Still would be nice to have it released...
-> 
-> Yeah, I'd much prefer to release early, release often.  If people
-> don't feel quite comfortable with the new bundle yet we can officially
-> call it a pre-release.
 
-One of the best ways to get it tested is to get it to go through the
-full OFED process.
+--eRJUXWYUKFXpoo3g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Woody, what could we do to help make that happen? Do you know of any
-blocker?
+On Wed, Oct 12, 2016 at 10:38:34AM -0600, Jason Gunthorpe wrote:
+> On Wed, Oct 12, 2016 at 03:22:20PM +0300, Leon Romanovsky wrote:
+>
+> > Done, applied.
+>
+> Are you going to sweep up the rest of the list patches too?
 
-I think this will be the best for everyone. I also predict that OFED
-will be under pressure to quickly take up the new drivers that will
-land in 4.9, and their user space will live in rdma-core.
+Yes, I'll do it tomorrow.
+Thanks
 
-I also propose we give someone from the OFED team repo access and they
-can maintain a public branch for ofed-4.8 with any backported fixes.
+>
+> Jason
 
-Jason
+--eRJUXWYUKFXpoo3g
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJX/nOLAAoJEORje4g2clinrAgP/izdkoAGOZuIA98nUnNQFUt+
+2Iu2nZ2kt8xAujcnm9cdfRJK12C18xyE7E8ViE3YeSWbM7gre8UyOrhM4CV5KtOK
+XxZCR0ZS0J2LmtRpqRt3toXTJMxVSbRIYclh8YA8KpraaArN8ghLeRp4HYnn2W1K
+SZxiQbN6Km+1VDpWWoFlyx/S30rWaFcvUC6zV7WCxH0+hOhTLI3Jeb5uQ7Sv+/EE
++KlCm6K1uVT29ZFC1WoPjgmA4cYWjgGUQjTU1LQyd4h4VY0HQl2Wu5qbaUDZrswN
+dpR1Xd05TrYommWvXzA7E/oT4Y9OuxoEiTYq3gIOPil4ogN+QYfi4frGBoHT6PVv
+NrZkEtvqEDriS1uKHsn8T01eHiH80qyxnYebg7iKtDiwvqm+sY0RQV5udHHf6sn4
+PkSNeq2Rtt73oPp1HhEVBEt6pgW5WbK/Ge6wr/NZUobF41o7jZghkyh33Mpl/mCQ
+MMQI5qWr6Q+NIUYNQccrHDG/qnwhs4eozIA5mjHLUM6zlG/eQsh567p5K5IEtKFt
+UDsEYgpByuHrrZIqC/MBC0B8NnxOuDc/Bg6jCY0DtLV8Rd9SUQRgPGnx5NpweE+e
+FUw81oRv25A9T7d+qo8O37QRnI7S7dd00r3obnz31IIm28l4wS8gZZOjdTcBD8Cu
+Rzk20VaHKK/QSud2ggHz
+=TXJT
+-----END PGP SIGNATURE-----
+
+--eRJUXWYUKFXpoo3g--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
