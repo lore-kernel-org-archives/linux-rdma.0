@@ -1,17 +1,25 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: rdma-core release?
-Date: Wed, 12 Oct 2016 03:51:03 -0700
-Message-ID: <20161012105103.GA30534@infradead.org>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH] add a build.sh helper to allow for a one-stop build
+Date: Wed, 12 Oct 2016 12:52:08 +0200
+Message-ID: <20161012105208.GA9491@lst.de>
+References: <1476113282-19194-1-git-send-email-hch@lst.de> <c2d80cd4-74b8-8391-1855-3c666f611d91@acm.org> <20161010155949.GA20091@lst.de> <ec4f3158-a25d-7cd8-216c-fbec52577e75@acm.org> <20161010164758.GB1796@obsidianresearch.com> <20161012093015.GS9282@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20161012093015.GS9282-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Are we planning on having a rdma-core release now that 4.8 is out
-and we want a matching userspace release?
+[full quote deleted, sigh..]
+
+> What do you think about following code, instead of 3 lines above?
+> 
+> + mkdir -p "$BUILDDIR"
+
+Fine with me.  Feel free to send an incremental patch.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
