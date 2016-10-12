@@ -1,159 +1,147 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 net-next] net/mlx5: Add MLX5_ARRAY_SET64 to fix
- BUILD_BUG_ON
-Date: Wed, 12 Oct 2016 11:50:22 +0300
-Message-ID: <20161012085022.GR9282@leon.nu>
-References: <1476237430-11756-1-git-send-email-saeedm@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] add a build.sh helper to allow for a one-stop build
+Date: Wed, 12 Oct 2016 12:30:15 +0300
+Message-ID: <20161012093015.GS9282@leon.nu>
+References: <1476113282-19194-1-git-send-email-hch@lst.de>
+ <c2d80cd4-74b8-8391-1855-3c666f611d91@acm.org>
+ <20161010155949.GA20091@lst.de>
+ <ec4f3158-a25d-7cd8-216c-fbec52577e75@acm.org>
+ <20161010164758.GB1796@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="MGmrTRZxVujQoXMz"
+        protocol="application/pgp-signature"; boundary="8bIXokQePRfDuBGo"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1476237430-11756-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161010164758.GB1796-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Herbert <tom-BjP2VixgY4xUbtYUoyoikg@public.gmane.org>, David Laight <David.Laight-JxhZ9S5GRejQT0dZR+AlfA@public.gmane.org>, kernel-team-b10kYP2dOMg@public.gmane.org, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---MGmrTRZxVujQoXMz
+--8bIXokQePRfDuBGo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Oct 12, 2016 at 04:57:10AM +0300, Saeed Mahameed wrote:
-> From: Tom Herbert <tom-BjP2VixgY4xUbtYUoyoikg@public.gmane.org>
+On Mon, Oct 10, 2016 at 10:47:58AM -0600, Jason Gunthorpe wrote:
+> On Mon, Oct 10, 2016 at 09:17:11AM -0700, Bart Van Assche wrote:
+> > On 10/10/16 08:59, Christoph Hellwig wrote:
+> > >On Mon, Oct 10, 2016 at 08:56:33AM -0700, Bart Van Assche wrote:
+> > >>Have you considered to make this script stop immediately if one of the
+> > >>steps fails, e.g. as follows?
+> > >
+> > >How about just ading a
+> > >
+> > >set -e
+> > >
+> > >to the beginning to get this automatically?
+> >
+> > That would also work. But if there is a space anywhere in the path in which
+> > the rdma-core repository exists, mkdir $BUILDDIR will have to be changed
+> > into mkdir "$BUILDDIR".
 >
-> I am hitting this in mlx5:
+> Is this OK?
 >
-> drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c: In function
-> reclaim_pages_cmd.clone.0:
-> drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:346: error: call
-> to __compiletime_assert_346 declared with attribute error:
-> BUILD_BUG_ON failed: __mlx5_bit_off(manage_pages_out, pas[i]) % 64
-> drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c: In function give_pages:
-> drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:291: error: call
-> to __compiletime_assert_291 declared with attribute error:
-> BUILD_BUG_ON failed: __mlx5_bit_off(manage_pages_in, pas[i]) % 64
+> From 6362ec4c1ddec0f6b2a1bf052cdfde63cbf73d90 Mon Sep 17 00:00:00 2001
+> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Date: Mon, 10 Oct 2016 10:46:47 -0600
+> Subject: [PATCH] Add a build.sh helper to allow for a one-stop build
 >
-> Problem is that this is doing a BUILD_BUG_ON on a non-constant
-> expression because of trying to take offset of pas[i] in the
-> structure.
+> This allows for a quick build instead of typing the whole mkdir, cd,
+> cmake and ninja sequence.
 >
-> Fix is to create MLX5_ARRAY_SET64 that takes an additional argument
-> that is the field index to separate between BUILD_BUG_ON on the array
-> constant field and the indexed field to assign the value to.
-> There are two callers of MLX5_SET64 that are trying to get a variable
-> offset, change those to call MLX5_ARRAY_SET64 passing 'pas' and 'i'
-> as the arguments to use in the offset check and the indexed value
-> assignment.
->
-> Fixes: a533ed5e179cd ("net/mlx5: Pages management commands via mlx5 ifc")
-> Signed-off-by: Tom Herbert <tom-BjP2VixgY4xUbtYUoyoikg@public.gmane.org>
-> Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > ---
+>  README.md | 17 +----------------
+>  build.sh  | 33 +++++++++++++++++++++++++++++++++
+>  2 files changed, 34 insertions(+), 16 deletions(-)
+>  create mode 100755 build.sh
 >
-> Hi Dave,
+> diff --git a/README.md b/README.md
+> index 98ec5a7d695f..66aee3f49f00 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -36,10 +36,7 @@ Additional service daemons are provided for:
+>  This project uses a cmake based build system. Quick start:
 >
-> I hope this version of this patch will make it to -rc1, I made
-> some changes to the original version Tom submitted.  Following David Laight
-> suggestion to separate the array index from the constant array field to have
-> a more natural API.
+>  ```sh
+> -$ mkdir build
+> -$ cd build
+> -$ cmake -GNinja ..
+> -$ ninja
+> +$ bash build.sh
+>  ```
 >
-> Thanks,
-> Saeed.
+>  *build/bin* will contain the sample programs and *build/lib* will contain the
+> @@ -76,16 +73,6 @@ Install required packages:
+>  $ yum install cmake gcc libnl3-devel make pkgconfig valgrind-devel
+>  ```
 >
+> -For end users, the package can be built using GNU Make and the old cmake
+> -included with the distro:
+> -
+> -```sh
+> -$ mkdir build
+> -$ cd build
+> -$ cmake  ..
+> -$ make
+> -```
+> -
+>  Developers are suggested to install more modern tooling for the best experience.
 >
->  drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c |  4 ++--
->  include/linux/mlx5/device.h                         | 13 +++++++++++--
->  2 files changed, 13 insertions(+), 4 deletions(-)
-
-Hi Dave and Doug,
-
-Any chances that this fix will be forwarded to Linus in merge window?
-
-I don't know if you (Dave) had in mind to send additional pull request to
-Linus in this merge window, but Doug is definitely planning, and it will
-be awesome if it includes this fix in it.
-
-Thanks
-
+>  ```sh
+> @@ -96,8 +83,6 @@ $ unzip ninja-linux.zip
+>  $ install -m755 ninja /usr/local/bin/ninja
+>  ```
 >
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-> index d458515..cc4fd61 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-> @@ -287,7 +287,7 @@ retry:
+> -Use the 'cmake3' program in place of `cmake` in the above instructions.
+> -
+>  # Reporting bugs
 >
->  			goto retry;
->  		}
-> -		MLX5_SET64(manage_pages_in, in, pas[i], addr);
-> +		MLX5_ARRAY_SET64(manage_pages_in, in, pas, i, addr);
->  	}
->
->  	MLX5_SET(manage_pages_in, in, opcode, MLX5_CMD_OP_MANAGE_PAGES);
-> @@ -344,7 +344,7 @@ static int reclaim_pages_cmd(struct mlx5_core_dev *dev,
->  		if (fwp->func_id != func_id)
->  			continue;
->
-> -		MLX5_SET64(manage_pages_out, out, pas[i], fwp->addr);
-> +		MLX5_ARRAY_SET64(manage_pages_out, out, pas, i, fwp->addr);
->  		i++;
->  	}
->
-> diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-> index 77c1417..5827614 100644
-> --- a/include/linux/mlx5/device.h
-> +++ b/include/linux/mlx5/device.h
-> @@ -92,12 +92,21 @@ __mlx5_mask(typ, fld))
->  	___t; \
->  })
->
-> -#define MLX5_SET64(typ, p, fld, v) do { \
-> +#define __MLX5_SET64(typ, p, fld, v) do { \
->  	BUILD_BUG_ON(__mlx5_bit_sz(typ, fld) != 64); \
-> -	BUILD_BUG_ON(__mlx5_bit_off(typ, fld) % 64); \
->  	*((__be64 *)(p) + __mlx5_64_off(typ, fld)) = cpu_to_be64(v); \
->  } while (0)
->
-> +#define MLX5_SET64(typ, p, fld, v) do { \
-> +	BUILD_BUG_ON(__mlx5_bit_off(typ, fld) % 64); \
-> +	__MLX5_SET64(typ, p, fld, v); \
-> +} while (0)
+>  Bugs should be reported to the <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> mailing list
+> diff --git a/build.sh b/build.sh
+> new file mode 100755
+> index 000000000000..76205e6af921
+> --- /dev/null
+> +++ b/build.sh
+> @@ -0,0 +1,33 @@
+> +#!/bin/bash
+> +set -e
 > +
-> +#define MLX5_ARRAY_SET64(typ, p, fld, idx, v) do { \
-> +	BUILD_BUG_ON(__mlx5_bit_off(typ, fld) % 64); \
-> +	__MLX5_SET64(typ, p, fld[idx], v); \
-> +} while (0)
+> +SRCDIR=`dirname $0`
+> +BUILDDIR="$SRCDIR/build"
 > +
->  #define MLX5_GET64(typ, p, fld) be64_to_cpu(*((__be64 *)(p) + __mlx5_64_off(typ, fld)))
->
->  #define MLX5_GET64_PR(typ, p, fld) ({ \
-> --
-> 2.7.4
->
+> +if [ ! -d "$BUILDDIR" ]; then
+> +    mkdir "$BUILDDIR"
+> +fi
 
---MGmrTRZxVujQoXMz
+What do you think about following code, instead of 3 lines above?
+
++ mkdir -p "$BUILDDIR"
+
+--8bIXokQePRfDuBGo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJX/flNAAoJEORje4g2clin9nAQAM3Wi9V0zuE6rnFJ5a1poGZ6
-UypLXtFE7uE3EHecD6yTdxwb5a2MVJckqUGZmX2PTRhSZqy4q0YAAChpqvlkHE2D
-gCDcCLY3R0cdhcq+z8oFRrkuELyg4/GPEnMngwDPXcGFKe2js1oOzMUi2WBO6zc2
-NmMRggYR3VRBc4gYzZgwZmIcvyVRrmULzDcDe8dpReLoov3My8NCSCDYm7whJ2nh
-nJAkiAyPdmkKKc4Du2bECkw9aXby8MZ3J1oQXTrV/13UJZU+KOO8JoI+zrHlvglZ
-ViKjleny70fZIwn/pK1nPotNLcZ5IDGawGQ68Exl8dMkowmU6j572moBJc4cGxvU
-AMtuDVNgV+CWTh3zzadoYAXda24Xn8AD20SHx9HF6t09e72PkCmfqVK/MjGSmqNH
-q2eWi4TYOrdCi3zhQa55oMXLmO0gBSISkDTSWAZfGXFOBVL+LFEvyLJOBsDBd5MG
-oPzz3DIIOa0js3UOK8zssdqY5ahXo6Ps4rbddV7As4/yt+iEAEo2JLpYwF0+Lkuo
-D6DEAkXKU8C3w3wULRqouupXdZJ9DIEM2bWpunvixfQYXJr4V/XuOf16XZZw9vHR
-r8GByz6HoE/qSwFOD4H2Bn5mEkljmldh9yiTdwVk/LWdHcj5O+27eKSPE1Q1H9EA
-bLj0qQiDDsf0uchqxqtc
-=BYzO
+iQIcBAEBAgAGBQJX/gKnAAoJEORje4g2clint6MQAIxCyKY1M0lNmtKVuuG9M0eZ
+CeGp7uVxcz4Djva9lzRNbP0TKLP97/SIf5YdAlqGHnjO6AX1/I7UBUdft/ha/6fX
+jTib5rYbZ1zvefOtT8ggH1A8Ueyq1lCGt3y3LOlalzy2lrYiQDjgAOz/GW1zQQfL
+DNuZNDDhqraLavNVnHJ7TIFMnloPsO7TTy+RLjAplCdU2c/399K63UrbDMxU7FKh
+y8SsN7iazn/AsyCuqImRMnVA/HKOOBynUGFKzraXnSZZODKUmmoxhUVSf4zFFwrY
+2iFxGacNGaZWtIksQRGhyMfLfHMvft03Wj8tzl8JrJg0x+e85CLCUR6rChVUs/Wk
+q3IQblQdBRX+F0Vw3fGwwc9I3d+6AtVwnMMRT31i9Udiiy3LqCL2SZRsevSUpzuj
+uczj+pD1ZzrlD4BVavQOWk6rhGiymMj9wRJeag0ERdyQX9EOPwj58zwkP3yUornO
+Uxzn3wrItnDyvIe7cZar02EI9el2XeIkKha207WSRMwXJYd56CLOYmR2KR1/kar+
+JJIuiwUBhejYHtJJYCK8HnyALhNXsSJ62TdDCc8dQ62B/TzQKTrPqdhU86dG6/2i
+sYTlisS8HWvsO+jzIwOEouxjeFobpv/G8x9s1rRId+wlBQiyq2Pm7qb1JaAwAnfH
+FewfXfn66F45FfxR9MWK
+=JbEM
 -----END PGP SIGNATURE-----
 
---MGmrTRZxVujQoXMz--
+--8bIXokQePRfDuBGo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
