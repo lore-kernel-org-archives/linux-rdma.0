@@ -1,81 +1,94 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 26/28] Avoid gcc 5.4 warning -Wunused-result
-Date: Wed, 12 Oct 2016 14:07:50 -0400
-Message-ID: <4efde437-85f8-340d-3ec8-876727d84fd2@redhat.com>
-References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1473109698-31408-27-git-send-email-jgunthorpe@obsidianresearch.com>
- <9ae84345-4427-4689-e6d1-0bfa3eb19630@dev.mellanox.co.il>
- <20161009231936.GA24139@obsidianresearch.com>
- <1e022827-f28c-e2cd-2b6a-edfb713ed0b5@dev.mellanox.co.il>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
+ header
+Date: Wed, 12 Oct 2016 14:21:46 -0400
+Message-ID: <4779d199-4515-ee06-af0f-69e1d1b86b86@redhat.com>
+References: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni@redhat.com>
+ <20161011173216.GA16892@obsidianresearch.com>
+ <22f61258-9bcf-0adc-f23f-79a4f1d50c6a@redhat.com>
+ <20161011180119.GB17319@obsidianresearch.com>
+ <1476209407.448.9.camel@redhat.com>
+ <073e0007-a43b-134d-ba7e-b290304be585@redhat.com>
+ <20161011183019.GC20253@obsidianresearch.com>
+ <9bed7085-949b-c68b-91ed-f930702a6a94@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="wF5uSeGImEQ21VWnmLWW21CbfPfvp1xmD"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1e022827-f28c-e2cd-2b6a-edfb713ed0b5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ boundary="IAmVhdT75FG2B94rwtsEAu9BUF5L6OI6G"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <9bed7085-949b-c68b-91ed-f930702a6a94@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wF5uSeGImEQ21VWnmLWW21CbfPfvp1xmD
-Content-Type: multipart/mixed; boundary="mNID4HbQFd0hlUlkpfDLACuWBM1BLuKhv";
+--IAmVhdT75FG2B94rwtsEAu9BUF5L6OI6G
+Content-Type: multipart/mixed; boundary="ohePGETKNmv91mOwiBIJ5lxsD9ltNDiwJ";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
- Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>,
- Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
- Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
- Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <4efde437-85f8-340d-3ec8-876727d84fd2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 26/28] Avoid gcc 5.4 warning -Wunused-result
-References: <1473109698-31408-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <1473109698-31408-27-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <9ae84345-4427-4689-e6d1-0bfa3eb19630-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
- <20161009231936.GA24139-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <1e022827-f28c-e2cd-2b6a-edfb713ed0b5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-In-Reply-To: <1e022827-f28c-e2cd-2b6a-edfb713ed0b5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org,
+ Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock
+ <hal.rosenstock@gmail.com>, netdev@vger.kernel.org
+Message-ID: <4779d199-4515-ee06-af0f-69e1d1b86b86@redhat.com>
+Subject: Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
+ header
+References: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni@redhat.com>
+ <20161011173216.GA16892@obsidianresearch.com>
+ <22f61258-9bcf-0adc-f23f-79a4f1d50c6a@redhat.com>
+ <20161011180119.GB17319@obsidianresearch.com>
+ <1476209407.448.9.camel@redhat.com>
+ <073e0007-a43b-134d-ba7e-b290304be585@redhat.com>
+ <20161011183019.GC20253@obsidianresearch.com>
+ <9bed7085-949b-c68b-91ed-f930702a6a94@redhat.com>
+In-Reply-To: <9bed7085-949b-c68b-91ed-f930702a6a94@redhat.com>
 
---mNID4HbQFd0hlUlkpfDLACuWBM1BLuKhv
+--ohePGETKNmv91mOwiBIJ5lxsD9ltNDiwJ
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/10/2016 6:06 AM, Yishai Hadas wrote:
-> On 10/10/2016 2:19 AM, Jason Gunthorpe wrote:
->> On Sun, Oct 09, 2016 at 04:31:17PM +0300, Yishai Hadas wrote:
+On 10/11/2016 2:50 PM, Doug Ledford wrote:
+> On 10/11/2016 2:30 PM, Jason Gunthorpe wrote:
+>> On Tue, Oct 11, 2016 at 02:17:51PM -0400, Doug Ledford wrote:
 >>
->>>> -    if (write(connfd, msg, sizeof msg) !=3D sizeof msg) {
->>>> -        fprintf(stderr, "Couldn't send local address\n");
->>>> +    if (write(connfd, msg, sizeof msg) !=3D sizeof msg ||
->>>> +        read(connfd, msg, sizeof msg) !=3D sizeof msg) {
->>>> +        fprintf(stderr, "Couldn't send/recv local address\n");
->>>
->>> At that step the server expects to read a "done" response from its
->>> client,
->>> checking whether the read was done for sizeof msg which is much
->>> larger will
->>> fail.
+>>> Well, not exactly.  Even if we put 65520 into the scripts, the kernel=
+
+>>> will silently drop it down to 65504.  It actually won't require anyon=
+e
+>>> change anything, they just won't get the full value.  I experimented
+>>> with this in the past for other reasons and an overly large MTU setti=
+ng
+>>> just resulted in the max MTU.  I don't know if that's changed, but if=
+ it
+>>> still works that way, this is much less of an issue than it might
+>>> otherwise be.
 >>
->> This OK?
+>> So it is just docs and relying on PMTU? That is not as bad..
+>>
+>> Still would be nice to avoid if at all possible..
 >=20
-> Yes, below patch solves the issue.
+> I agree, but we have a test getting ready to commence.  We'll know
+> shortly how much the reduced MTU effects things because they aren't
+> going to alter any of their setup, just put the new kernel in place, an=
+d
+> see what happens.
+>=20
+>=20
 
-Merged, thanks.
-
+Long story short on the MTU stuff, the setups whined a bit about not
+being able to set the desired MTU, used the new max MTU instead, and
+things otherwise worked fine.  But, Paolo submitted a v2 patch that
+removes this change, so it's all moot anyway.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---mNID4HbQFd0hlUlkpfDLACuWBM1BLuKhv--
+--ohePGETKNmv91mOwiBIJ5lxsD9ltNDiwJ--
 
---wF5uSeGImEQ21VWnmLWW21CbfPfvp1xmD
+--IAmVhdT75FG2B94rwtsEAu9BUF5L6OI6G
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -84,23 +97,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJX/nv2AAoJELgmozMOVy/dmgYQALd6cS8MsXQCkvirEMV0Bhl/
-brITbRo8uX8RgAvTXwq3eU7kyLeCc0BpwoV3wNDY7asG2yajIF81jKgv5iVt1uCr
-2swc8KZAlRnoHGLeNPcuQbI7YnPIaMcg1Px7ZiwF943rtvr9Iny0np+oaVoMZLqP
-boXQ37NCnP7ju1/W9xco6v66PlCRWH1T6QvEpMMCxLNdFr+fI4vTKJHSyreI2JQl
-tntnimkcX0UilZfLkewFfv6+O8L1n0HXbfB+hc2klODJ35HUqssdlsQPE5HMXdCo
-j/Kwv/o4TuJQO5RbraZGKXbdFsBFENpnS72Ck5EdJ2rJo6pkHYSTJDQXlMYA+1g+
-t4mRkkOrv5nQRkwfn4eTACevnvmJXjRZ8DuxF+tWGhSde30l1MDU67O/a4lWCjWK
-3JeAye7fX661YqINUfDf0/eU8nXZuyic0IhQH2CHyb6fAf629aSYyBpUGLYzXtJc
-Z1bJg7s9MBpuLk9qHc2aIg3hxQu00aMnQ9P/Ry4dPvHGS1n3roH74Oc7XHYDpUrv
-/u6RWWDq2n3Ko0dpBDOeyK6rjZsLAndHRndyj4EIAUpabD4vFzMnlrQkP4Pb1YVj
-R5P1g+YJ/ZIVrQJRb7kaCIDMG/QtdXwnvb1EUbo72EOwUa1j/iRYJtxB6UgMBtMS
-/z2dx3l3QcK/bINqVt/C
-=c+ah
+iQIcBAEBCAAGBQJX/n86AAoJELgmozMOVy/dHbkQAKsGv79P83AHzQZNVYqsErOy
+lMVPVe0CKnfgxmko1UioWhxNVWdp0tPuWQhD40nP3PWegZ786gGuNXEUQxQeZ69W
+3P0EkD+JNQfmBA+rugyogPQCsHwjZ2AFeoMaQNMF+oswEPdUy5xp3EKZM2ztQNO6
+B/wedPSDq3cmCW0NH5N0AItczUftljgDIMBziRhddoPUX+3Wu3cAE9W7bFwQFnvg
+NA1uHWG7j8VPhualbXEAkZVGbimq58F8ZA2SAoIc+xwe8KiQufl6zdl3GeD9Bt9o
+AfmqUZ+hFGSEG1NiL4iuRPVTGyEAFZo1vFsqC9H385farnxYL/YHqCwzcsChxeNw
+x/FtPw1dPbFwb+uKzh03MZmTlJopriWHojBXernIvUnEabeXRD2qGWzrFWIr5JIa
+p+p2zlRA35lgXQyGQPSKtQWSMjvfNesVG0Ly97IVzSe82nTwzNoINfK/XDWGey+a
+VztDw3Jn7Ju1/Nx/3YTmktjVLhXCpwg+8FdRakMuMqqRnzoNmdNVugL5VugU7V4K
+YmBhGU9c7vxbG5mMT1Yd17tvZ5qWDpViuwtli28MCYFlCD5Dh0HJwh7VdCpFU6Iy
+nHkAG/1nta5AjXN5z/ouJs5kMF5vQlLpU5rqWD77s+Y9TChsMraL1yTpEqFKtYcN
+/+/lYrHtf7HDROYzcu1h
+=pZLb
 -----END PGP SIGNATURE-----
 
---wF5uSeGImEQ21VWnmLWW21CbfPfvp1xmD--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--IAmVhdT75FG2B94rwtsEAu9BUF5L6OI6G--
