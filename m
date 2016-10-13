@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 01/17] cxgb3: handle global variables properly
-Date: Thu, 13 Oct 2016 21:56:00 +0200
-Message-ID: <1476388576-22863-2-git-send-email-hch@lst.de>
+Subject: [PATCH 10/17] ocrdma: mark symbols static where possible
+Date: Thu, 13 Oct 2016 21:56:09 +0200
+Message-ID: <1476388576-22863-11-git-send-email-hch@lst.de>
 References: <1476388576-22863-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476388576-22863-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -9,47 +9,38 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We'll need to define them in one compilation unit and use an extern
-declaration in the headers.
-
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- providers/cxgb3/cxio_wr.h | 6 +++---
- providers/cxgb3/iwch.c    | 4 ++++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ providers/ocrdma/ocrdma_main.c  | 2 +-
+ providers/ocrdma/ocrdma_verbs.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/providers/cxgb3/cxio_wr.h b/providers/cxgb3/cxio_wr.h
-index e154795..d56c529 100644
---- a/providers/cxgb3/cxio_wr.h
-+++ b/providers/cxgb3/cxio_wr.h
-@@ -633,9 +633,9 @@ static inline unsigned t3_cq_depth(struct t3_cq *cq)
- 	return (1UL<<cq->size_log2);
+diff --git a/providers/ocrdma/ocrdma_main.c b/providers/ocrdma/ocrdma_main.c
+index f3830d9..39da8f0 100644
+--- a/providers/ocrdma/ocrdma_main.c
++++ b/providers/ocrdma/ocrdma_main.c
+@@ -59,7 +59,7 @@
+ 	{ .vendor = PCI_VENDOR_ID_##v,        \
+ 	  .device = PCI_DEVICE_ID_EMULEX_##d }
+ 
+-struct {
++static struct {
+ 	unsigned vendor;
+ 	unsigned device;
+ } ucna_table[] = {
+diff --git a/providers/ocrdma/ocrdma_verbs.c b/providers/ocrdma/ocrdma_verbs.c
+index 163bf23..c5dd74b 100644
+--- a/providers/ocrdma/ocrdma_verbs.c
++++ b/providers/ocrdma/ocrdma_verbs.c
+@@ -608,7 +608,7 @@ mbx_err:
+ 	return NULL;
  }
  
--unsigned long iwch_page_size;
--unsigned long iwch_page_shift;
--unsigned long iwch_page_mask;
-+extern unsigned long iwch_page_size;
-+extern unsigned long iwch_page_shift;
-+extern unsigned long iwch_page_mask;
- 
- #define PAGE_ALIGN(x) (((x) + iwch_page_mask) & ~iwch_page_mask)
- 
-diff --git a/providers/cxgb3/iwch.c b/providers/cxgb3/iwch.c
-index aa9b108..804726c 100644
---- a/providers/cxgb3/iwch.c
-+++ b/providers/cxgb3/iwch.c
-@@ -105,6 +105,10 @@ static struct ibv_context_ops iwch_ctx_ops = {
- 	.req_notify_cq = iwch_arm_cq,
- };
- 
-+unsigned long iwch_page_size;
-+unsigned long iwch_page_shift;
-+unsigned long iwch_page_mask;
-+
- static struct ibv_context *iwch_alloc_context(struct ibv_device *ibdev,
- 					      int cmd_fd)
+-enum ocrdma_qp_state get_ocrdma_qp_state(enum ibv_qp_state qps)
++static enum ocrdma_qp_state get_ocrdma_qp_state(enum ibv_qp_state qps)
  {
+ 	switch (qps) {
+ 	case IBV_QPS_RESET:
 -- 
 2.1.4
 
