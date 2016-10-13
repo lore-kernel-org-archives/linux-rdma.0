@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 02/32] libibumad: create sysfs.h instead of using extern declarations in umad.c
-Date: Thu, 13 Oct 2016 19:51:05 +0200
-Message-ID: <1476381095-20041-3-git-send-email-hch@lst.de>
+Subject: [PATCH 13/32] librdmacm: mark symbols static where possible
+Date: Thu, 13 Oct 2016 19:51:16 +0200
+Message-ID: <1476381095-20041-14-git-send-email-hch@lst.de>
 References: <1476381095-20041-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476381095-20041-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -9,70 +9,144 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-So that we have the prototypes available in the implementation file
-and do get proper type checking for them.
-
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- libibumad/sysfs.c |  1 +
- libibumad/sysfs.h | 10 ++++++++++
- libibumad/umad.c  |  7 +------
- 3 files changed, 12 insertions(+), 6 deletions(-)
- create mode 100644 libibumad/sysfs.h
+ librdmacm/addrinfo.c              |  2 +-
+ librdmacm/examples/rcopy.c        |  4 ++--
+ librdmacm/examples/rdma_client.c  | 10 +++++-----
+ librdmacm/examples/rdma_server.c  | 10 +++++-----
+ librdmacm/examples/rdma_xclient.c | 10 +++++-----
+ librdmacm/examples/rdma_xserver.c | 10 +++++-----
+ librdmacm/rsocket.c               |  2 +-
+ 7 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/libibumad/sysfs.c b/libibumad/sysfs.c
-index 011e411..83f89b4 100644
---- a/libibumad/sysfs.c
-+++ b/libibumad/sysfs.c
-@@ -44,6 +44,7 @@
- #include <byteswap.h>
- #include <netinet/in.h>
- #include <infiniband/arch.h>
-+#include "sysfs.h"
+diff --git a/librdmacm/addrinfo.c b/librdmacm/addrinfo.c
+index 2f4e674..2c515a2 100644
+--- a/librdmacm/addrinfo.c
++++ b/librdmacm/addrinfo.c
+@@ -43,7 +43,7 @@
+ #include <rdma/rdma_cma.h>
+ #include <infiniband/ib.h>
  
- static int ret_code(void)
+-struct rdma_addrinfo nohints;
++static struct rdma_addrinfo nohints;
+ 
+ static void ucma_convert_to_ai(struct addrinfo *ai, struct rdma_addrinfo *rai)
  {
-diff --git a/libibumad/sysfs.h b/libibumad/sysfs.h
-new file mode 100644
-index 0000000..7f8cbfe
---- /dev/null
-+++ b/libibumad/sysfs.h
-@@ -0,0 +1,10 @@
-+#ifndef _UMAD_SYSFS_H
-+#define _UMAD_SYSFS_H
-+
-+extern int sys_read_string(const char *dir_name, const char *file_name, char *str, int len);
-+extern int sys_read_guid(const char *dir_name, const char *file_name, uint64_t * net_guid);
-+extern int sys_read_gid(const char *dir_name, const char *file_name, uint8_t * gid);
-+extern int sys_read_uint64(const char *dir_name, const char *file_name, uint64_t * u);
-+extern int sys_read_uint(const char *dir_name, const char *file_name, unsigned *u);
-+
-+#endif /* _UMAD_SYSFS_H */
-diff --git a/libibumad/umad.c b/libibumad/umad.c
-index 0c969f1..8860b99 100644
---- a/libibumad/umad.c
-+++ b/libibumad/umad.c
-@@ -53,6 +53,7 @@
- #define IB_OPENIB_OUI                 (0x001405)
+diff --git a/librdmacm/examples/rcopy.c b/librdmacm/examples/rcopy.c
+index 085b017..38f6929 100644
+--- a/librdmacm/examples/rcopy.c
++++ b/librdmacm/examples/rcopy.c
+@@ -59,8 +59,8 @@ static char *src_file;
+ static struct timeval start, end;
+ //static void buf[1024 * 1024];
+ static uint64_t bytes;
+-int fd;
+-void *file_addr;
++static int fd;
++static void *file_addr;
  
- #include <valgrind/memcheck.h>
-+#include "sysfs.h"
+ enum {
+ 	CMD_NOOP,
+diff --git a/librdmacm/examples/rdma_client.c b/librdmacm/examples/rdma_client.c
+index d7f65f5..fd7bbc2 100644
+--- a/librdmacm/examples/rdma_client.c
++++ b/librdmacm/examples/rdma_client.c
+@@ -39,11 +39,11 @@
+ static char *server = "127.0.0.1";
+ static char *port = "7471";
  
- typedef struct ib_user_mad_reg_req {
- 	uint32_t id;
-@@ -77,12 +78,6 @@ struct ib_user_mad_reg_req2 {
- 	uint8_t  reserved[3];
- };
+-struct rdma_cm_id *id;
+-struct ibv_mr *mr, *send_mr;
+-int send_flags;
+-uint8_t send_msg[16];
+-uint8_t recv_msg[16];
++static struct rdma_cm_id *id;
++static struct ibv_mr *mr, *send_mr;
++static int send_flags;
++static uint8_t send_msg[16];
++static uint8_t recv_msg[16];
  
--extern int sys_read_string(const char *dir_name, const char *file_name, char *str, int len);
--extern int sys_read_guid(const char *dir_name, const char *file_name, uint64_t * net_guid);
--extern int sys_read_gid(const char *dir_name, const char *file_name, uint8_t * gid);
--extern int sys_read_uint64(const char *dir_name, const char *file_name, uint64_t * u);
--extern int sys_read_uint(const char *dir_name, const char *file_name, unsigned *u);
--
- #define IBWARN(fmt, args...) fprintf(stderr, "ibwarn: [%d] %s: " fmt "\n", getpid(), __func__, ## args)
+ static int run(void)
+ {
+diff --git a/librdmacm/examples/rdma_server.c b/librdmacm/examples/rdma_server.c
+index d98d11a..3c7c15e 100644
+--- a/librdmacm/examples/rdma_server.c
++++ b/librdmacm/examples/rdma_server.c
+@@ -38,11 +38,11 @@
  
- #define TRACE	if (umaddebug)	IBWARN
+ static char *port = "7471";
+ 
+-struct rdma_cm_id *listen_id, *id;
+-struct ibv_mr *mr, *send_mr;
+-int send_flags;
+-uint8_t send_msg[16];
+-uint8_t recv_msg[16];
++static struct rdma_cm_id *listen_id, *id;
++static struct ibv_mr *mr, *send_mr;
++static int send_flags;
++static uint8_t send_msg[16];
++static uint8_t recv_msg[16];
+ 
+ static int run(void)
+ {
+diff --git a/librdmacm/examples/rdma_xclient.c b/librdmacm/examples/rdma_xclient.c
+index 8dba266..d86fee1 100644
+--- a/librdmacm/examples/rdma_xclient.c
++++ b/librdmacm/examples/rdma_xclient.c
+@@ -40,12 +40,12 @@
+ static char *server = "127.0.0.1";
+ static char port[6] = "7471";
+ 
+-struct rdma_cm_id *id;
+-struct ibv_mr *mr;
+-struct rdma_addrinfo hints;
++static struct rdma_cm_id *id;
++static struct ibv_mr *mr;
++static struct rdma_addrinfo hints;
+ 
+-uint8_t send_msg[16];
+-uint32_t srqn;
++static uint8_t send_msg[16];
++static uint32_t srqn;
+ 
+ static int post_send(void)
+ {
+diff --git a/librdmacm/examples/rdma_xserver.c b/librdmacm/examples/rdma_xserver.c
+index 69f170b..f838e7d 100644
+--- a/librdmacm/examples/rdma_xserver.c
++++ b/librdmacm/examples/rdma_xserver.c
+@@ -40,12 +40,12 @@
+ 
+ static char *port = "7471";
+ 
+-struct rdma_cm_id *listen_id, *id;
+-struct ibv_mr *mr;
+-struct rdma_addrinfo hints;
++static struct rdma_cm_id *listen_id, *id;
++static struct ibv_mr *mr;
++static struct rdma_addrinfo hints;
+ 
+-uint8_t recv_msg[16];
+-uint32_t srqn;
++static uint8_t recv_msg[16];
++static uint32_t srqn;
+ 
+ static int create_srq(void)
+ {
+diff --git a/librdmacm/rsocket.c b/librdmacm/rsocket.c
+index 7e7a38e..e0755dd 100644
+--- a/librdmacm/rsocket.c
++++ b/librdmacm/rsocket.c
+@@ -505,7 +505,7 @@ static int rs_scale_to_value(int value, int bits)
+ 		(void) rc;                                                     \
+ 	}
+ 
+-void rs_configure(void)
++static void rs_configure(void)
+ {
+ 	FILE *f;
+ 	static int init;
 -- 
 2.1.4
 
