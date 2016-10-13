@@ -1,50 +1,30 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 5/5] rxe_cfg: Use printf() instead of using a loop
-Date: Thu, 13 Oct 2016 14:07:17 +0300
-Message-ID: <bcdf5ba2-19f9-f926-73dc-5c5a17b2fd7e@mellanox.com>
-References: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9@sandisk.com>
- <278745ec-1e31-4379-27d9-40f371d30c29@sandisk.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 00/10] Hardware tag matching support
+Date: Thu, 13 Oct 2016 17:02:13 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB095429@ORSMSX109.amr.corp.intel.com>
+References: <1472382050-25908-1-git-send-email-leon@kernel.org>
+ <20161007145620.GV9282@leon.nu>
+ <1828884A29C6694DAF28B7E6B8A82373AB093986@ORSMSX109.amr.corp.intel.com>
+ <6259953b-27fe-77c9-ea90-af744f188671@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <278745ec-1e31-4379-27d9-40f371d30c29-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <6259953b-27fe-77c9-ea90-af744f188671-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/7/2016 9:39 PM, Bart Van Assche wrote:
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> ---
->  providers/rxe/rxe_cfg | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
->
-> diff --git a/providers/rxe/rxe_cfg b/providers/rxe/rxe_cfg
-> index 0a3dcf16957c..6c414fbda6fd 100755
-> --- a/providers/rxe/rxe_cfg
-> +++ b/providers/rxe/rxe_cfg
-> @@ -241,7 +241,6 @@ sub status_print {
->      my @flen = ();
->      my $num_fields = 0;
->      my $i;
-> -    my $j;
->      my $pad;
->      my $line;
->
-> @@ -281,9 +280,7 @@ sub status_print {
->  	    else {
->  		print "   ";
->  	    }
-> -	    for ($j = 0; $j < $pad; $j++) {
-> -		print " ";
-> -	    }
-> +	    printf("%*s", $pad, "");
->  	}
->  	print "\n";
->      }
->
-ack
+> I doubt they have, but they change the kernel to user library API.  I'm
+> not so worried about that since it's entirely under our control.  It's
+> the user library to application API that I would be more concerned
+> with.
+
+I thought there was an agreement that since verbs implies a hardware implementation, then all kernel to user ABI changes to verbs would go through some external organization, such as the OFVWG, for discussion and approval.  Has that changed? 
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
