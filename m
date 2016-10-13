@@ -1,94 +1,121 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] IB/hns: Add driver files for hns RoCE driver
-Date: Thu, 13 Oct 2016 14:43:41 +0300
-Message-ID: <20161013114341.GA8275@mwanda>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH V2 for-next 0/8] Bug Fixes and Code Improvement in HNS
+ driver
+Date: Thu, 13 Oct 2016 07:57:00 -0400
+Message-ID: <5c193c81-8907-09cb-a120-bff5b4782b00@redhat.com>
+References: <20160929170916.631972-1-salil.mehta@huawei.com>
+ <20160930.013341.118711534087556597.davem@davemloft.net>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A74F326@lhreml503-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="mmi38dDkkiqpfxokG9MgI0nnkSuk6B2VN"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F91A74F326@lhreml503-mbx>
+Sender: netdev-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>, David Miller <davem@davemloft.net>
+Cc: "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello oulijun,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--mmi38dDkkiqpfxokG9MgI0nnkSuk6B2VN
+Content-Type: multipart/mixed; boundary="WO20sxl4RMJTc8XbFcF4HGXG8m5w832EU";
+ protected-headers="v1"
+From: Doug Ledford <dledford@redhat.com>
+To: Salil Mehta <salil.mehta@huawei.com>, David Miller <davem@davemloft.net>
+Cc: "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>,
+ "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>,
+ "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ Linuxarm <linuxarm@huawei.com>
+Message-ID: <5c193c81-8907-09cb-a120-bff5b4782b00@redhat.com>
+Subject: Re: [PATCH V2 for-next 0/8] Bug Fixes and Code Improvement in HNS
+ driver
+References: <20160929170916.631972-1-salil.mehta@huawei.com>
+ <20160930.013341.118711534087556597.davem@davemloft.net>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A74F326@lhreml503-mbx>
+In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F91A74F326@lhreml503-mbx>
 
-The patch 9a4435375cd1: "IB/hns: Add driver files for hns RoCE
-driver" from Jul 21, 2016, leads to the following static checker
-warning:
+--WO20sxl4RMJTc8XbFcF4HGXG8m5w832EU
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-	drivers/infiniband/hw/hns/hns_roce_mr.c:575 hns_roce_reg_user_mr()
-	warn: no lower bound on 'n'
+On 10/13/2016 7:26 AM, Salil Mehta wrote:
+>> -----Original Message-----
+>> From: David Miller [mailto:davem@davemloft.net]
+>> Sent: Friday, September 30, 2016 6:34 AM
+>> To: Salil Mehta
+>> Cc: dledford@redhat.com; Zhuangyuzeng (Yisen); Huwei (Xavier); oulijun=
+;
+>> mehta.salil.lnk@gmail.com; linux-rdma@vger.kernel.org;
+>> netdev@vger.kernel.org; linux-kernel@vger.kernel.org; Linuxarm
+>> Subject: Re: [PATCH V2 for-next 0/8] Bug Fixes and Code Improvement in=
 
-drivers/infiniband/hw/hns/hns_roce_mr.c
-   542  struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-   543                                     u64 virt_addr, int access_flags,
-   544                                     struct ib_udata *udata)
-   545  {
-   546          struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
-   547          struct device *dev = &hr_dev->pdev->dev;
-   548          struct hns_roce_mr *mr = NULL;
-   549          int ret = 0;
-   550          int n = 0;
-                ^^^^^^^^^
+>> HNS driver
+>>
+>> From: Salil Mehta <salil.mehta@huawei.com>
+>> Date: Thu, 29 Sep 2016 18:09:08 +0100
+>>
+>>> This patch-set introduces fix to some Bugs, potential problems
+>>> and code improvements identified during internal review and
+>>> testing of Hisilicon Network Subsystem driver.
+>>>
+>>> Submit Change
+>>> V1->V2: This addresses the feedbacks provided by David Miller
+>>>         and Doug Ledford
+>>
+>> So Doug my understanding is if this makes it through review
+> Hi Dave,
+> A gentle reminder regarding this. I was wondering if you think these
+> have been reviewed enough and by any chance these patches can be includ=
+ed
+> in current 4.9 merge window. This will save us a lot of effort.
+>=20
+> As I understand Doug is waiting for your review approval on this
+> patch-set.
 
-Notice this is signed.  Please don't initialize variables to bogus
-values.  The compiler has a feature to warn about uninitialized
-variables but by assigning bogus valus to "n" then you are disabling the
-safety checks and potentially hiding bugs.
+I am, and I was just getting ready to ask again today myself.
 
-   551  
-   552          mr = kmalloc(sizeof(*mr), GFP_KERNEL);
-   553          if (!mr)
-   554                  return ERR_PTR(-ENOMEM);
-   555  
-   556          mr->umem = ib_umem_get(pd->uobject->context, start, length,
-   557                                 access_flags, 0);
-   558          if (IS_ERR(mr->umem)) {
-   559                  ret = PTR_ERR(mr->umem);
-   560                  goto err_free;
-   561          }
-   562  
-   563          n = ib_umem_page_count(mr->umem);
-
-Depending on the config then ib_umem_page_count() can return -EINVAL.
-Probably it's not possible here.  Anyway, probably the right thing is
-to check:
-
-	if (n < 0) {
-		ret = -EINVAL;
-		goto umem;
-	}
-
-It silences the static checker warning.
-
-   564          if (mr->umem->page_size != HNS_ROCE_HEM_PAGE_SIZE) {
-   565                  dev_err(dev, "Just support 4K page size but is 0x%x now!\n",
-   566                          mr->umem->page_size);
-
-Should we continue here or is there supposed to be a goto umem;?
-
-   567          }
-   568  
-   569          if (n > HNS_ROCE_MAX_MTPT_PBL_NUM) {
-   570                  dev_err(dev, " MR len %lld err. MR is limited to 4G at most!\n",
-   571                          length);
+> Thanks in anticipation
+> Best regards
+> Salil =20
+>> this is going to be merged into your tree, you prepare a
+>> branch for me, and then I pull from that?
+>>
+>> Thanks in advance.
 
 
-We should be setting "ret = -EINVAL;" here.
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG Key ID: 0E572FDD
 
-   572                  goto err_umem;
-   573          }
-   574  
-   575          ret = hns_roce_mr_alloc(hr_dev, to_hr_pd(pd)->pdn, virt_addr, length,
-   576                                  access_flags, n, mr);
-   577          if (ret)
-   578                  goto err_umem;
-   579  
 
-regards,
-dan carpenter
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--WO20sxl4RMJTc8XbFcF4HGXG8m5w832EU--
+
+--mmi38dDkkiqpfxokG9MgI0nnkSuk6B2VN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJX/3aSAAoJELgmozMOVy/dlZkQAKXw+Qvg9I56C8I9O0Oq698n
+g+bucQfTq5YXXGvmGiTBLKorPc8GdRajFyv3wbRQiOcAOGWFXSda3X0ePEFuJ2Qp
+UrafChHX8QfUOwh7zSTZY6mabcGmCNaRn/2Qm9mTH5iJ+HGnhuNIIog31LSGYTAn
+bPiilboAyq1bx9uBWT0SPY+DNd6cLC9ao8Jhgwi2IC8Jd0Aqc7MvEi75BSg1ClV0
+MkOKEfWPTfmQNOyUUHS4lXG48lIk+SxqtE9iIQ/OKYImAFkTPcqS80nraczCV/69
+wK4lZ4p8mqxJN/hxfFOtn1BcQbpUg5ZEmqxM1vdvMl5m69z5RVNfboNWkAaSa/4M
+P0ITYyAMp4iE0SXsEJwtI08g94wOLrgUjrH5kxqZyw45KX8aGaoFv7TlrBOq5icg
+2lPmbrOWF0CfgxlQuM+A9B1zkJqWG2Zi5LvrLzAVyimWasrzE4Yj3TqwLQbW7cQW
+Nd4UzNG6jTciFsNMzZ4GGWBrYGtUrrm/QyqEZB1f4mLSiFJbGxsE3lwLX6+sa6vP
+2ty2dm0E3oaNJzzCBFQdjKMa19o2RSjBu40hocfn8hJOXmu63F6dPUaS9tsAJr14
+zYQ+ICgK2QT1g6r5mlJ56pBTCrd34rBJTQ4wpcpYp8MwLXDIIze4eMSP8vbMsh7W
+arcCBJ3fWG8AlgDC3KHu
+=UuZD
+-----END PGP SIGNATURE-----
+
+--mmi38dDkkiqpfxokG9MgI0nnkSuk6B2VN--
