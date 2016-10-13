@@ -1,14 +1,15 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 01/32] libibumad: include umad_str.h in umad_str.c
-Date: Thu, 13 Oct 2016 15:58:21 -0400
-Message-ID: <b5d29b7b-64ae-5bbb-67a1-50242d8780f1@dev.mellanox.co.il>
+Subject: Re: [PATCH 02/32] libibumad: create sysfs.h instead of using extern
+ declarations in umad.c
+Date: Thu, 13 Oct 2016 15:58:36 -0400
+Message-ID: <12effa2f-ea35-039e-f2ab-4afa7f3f1290@dev.mellanox.co.il>
 References: <1476381095-20041-1-git-send-email-hch@lst.de>
- <1476381095-20041-2-git-send-email-hch@lst.de>
+ <1476381095-20041-3-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476381095-20041-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1476381095-20041-3-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
@@ -20,6 +21,71 @@ On 10/13/2016 1:51 PM, Christoph Hellwig wrote:
 > Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
 Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+> ---
+>  libibumad/sysfs.c |  1 +
+>  libibumad/sysfs.h | 10 ++++++++++
+>  libibumad/umad.c  |  7 +------
+>  3 files changed, 12 insertions(+), 6 deletions(-)
+>  create mode 100644 libibumad/sysfs.h
+> 
+> diff --git a/libibumad/sysfs.c b/libibumad/sysfs.c
+> index 011e411..83f89b4 100644
+> --- a/libibumad/sysfs.c
+> +++ b/libibumad/sysfs.c
+> @@ -44,6 +44,7 @@
+>  #include <byteswap.h>
+>  #include <netinet/in.h>
+>  #include <infiniband/arch.h>
+> +#include "sysfs.h"
+>  
+>  static int ret_code(void)
+>  {
+> diff --git a/libibumad/sysfs.h b/libibumad/sysfs.h
+> new file mode 100644
+> index 0000000..7f8cbfe
+> --- /dev/null
+> +++ b/libibumad/sysfs.h
+> @@ -0,0 +1,10 @@
+> +#ifndef _UMAD_SYSFS_H
+> +#define _UMAD_SYSFS_H
+
+What about copyright for this new file ?
+
+> +
+> +extern int sys_read_string(const char *dir_name, const char *file_name, char *str, int len);
+> +extern int sys_read_guid(const char *dir_name, const char *file_name, uint64_t * net_guid);
+> +extern int sys_read_gid(const char *dir_name, const char *file_name, uint8_t * gid);
+> +extern int sys_read_uint64(const char *dir_name, const char *file_name, uint64_t * u);
+> +extern int sys_read_uint(const char *dir_name, const char *file_name, unsigned *u);
+> +
+> +#endif /* _UMAD_SYSFS_H */
+> diff --git a/libibumad/umad.c b/libibumad/umad.c
+> index 0c969f1..8860b99 100644
+> --- a/libibumad/umad.c
+> +++ b/libibumad/umad.c
+> @@ -53,6 +53,7 @@
+>  #define IB_OPENIB_OUI                 (0x001405)
+>  
+>  #include <valgrind/memcheck.h>
+> +#include "sysfs.h"
+>  
+>  typedef struct ib_user_mad_reg_req {
+>  	uint32_t id;
+> @@ -77,12 +78,6 @@ struct ib_user_mad_reg_req2 {
+>  	uint8_t  reserved[3];
+>  };
+>  
+> -extern int sys_read_string(const char *dir_name, const char *file_name, char *str, int len);
+> -extern int sys_read_guid(const char *dir_name, const char *file_name, uint64_t * net_guid);
+> -extern int sys_read_gid(const char *dir_name, const char *file_name, uint8_t * gid);
+> -extern int sys_read_uint64(const char *dir_name, const char *file_name, uint64_t * u);
+> -extern int sys_read_uint(const char *dir_name, const char *file_name, unsigned *u);
+> -
+>  #define IBWARN(fmt, args...) fprintf(stderr, "ibwarn: [%d] %s: " fmt "\n", getpid(), __func__, ## args)
+>  
+>  #define TRACE	if (umaddebug)	IBWARN
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
