@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 16/17] mlx5: use NULL instead of 0 for NULL pointers
-Date: Thu, 13 Oct 2016 21:56:15 +0200
-Message-ID: <1476388576-22863-17-git-send-email-hch@lst.de>
+Subject: [PATCH 17/17] mlx5: use proper ANSI-C prototypes for functions without arguments
+Date: Thu, 13 Oct 2016 21:56:16 +0200
+Message-ID: <1476388576-22863-18-git-send-email-hch@lst.de>
 References: <1476388576-22863-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476388576-22863-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -11,22 +11,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- providers/mlx5/mlx5.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ providers/mlx5/cq.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 4b05dc4..747e242 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -310,7 +310,7 @@ static void mlx5_local_cpu_set(struct ibv_device *ibdev, cpu_set_t *cpu_set)
- 			p ++;
- 		}
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index 2a53c89..ecfd6eb 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -384,7 +384,7 @@ static enum ibv_wc_status mlx5_handle_error_cqe(struct mlx5_err_cqe *cqe)
+ }
  
--		word = strtoul(p, 0, 16);
-+		word = strtoul(p, NULL, 16);
+ #if defined(__x86_64__) || defined (__i386__)
+-static inline unsigned long get_cycles()
++static inline unsigned long get_cycles(void)
+ {
+ 	uint32_t low, high;
+ 	uint64_t val;
+@@ -394,7 +394,7 @@ static inline unsigned long get_cycles()
+ 	return val;
+ }
  
- 		for (k = 0; word; ++k, word >>= 1)
- 			if (word & 1)
+-static void mlx5_stall_poll_cq()
++static void mlx5_stall_poll_cq(void)
+ {
+ 	int i;
+ 
 -- 
 2.1.4
 
