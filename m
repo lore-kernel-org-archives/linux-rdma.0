@@ -1,363 +1,55 @@
-From: Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH v3] IB/ipoib: move back IB LL address into the hard header
-Date: Thu, 13 Oct 2016 18:26:56 +0200
-Message-ID: <9fce9b87ecc4c5c4f03401359806f40b1dcd0eb3.1476374992.git.pabeni@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, netdev@vger.kernel.org, David Miller <davem@davemloft.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Introduction of libqedr to the Consolidated Userspace RDMA
+ Library Repo
+Date: Thu, 13 Oct 2016 10:29:42 -0600
+Message-ID: <20161013162942.GA5468@obsidianresearch.com>
+References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20161006163427.GG1224@obsidianresearch.com>
+ <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0@SN1PR07MB2207.namprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-After the commit 9207f9d45b0a ("net: preserve IP control block
-during GSO segmentation"), the GSO CB and the IPoIB CB conflict.
-That destroy the IPoIB address information cached there,
-causing a severe performance regression, as better described here:
+On Thu, Oct 13, 2016 at 02:37:24PM +0000, Amrani, Ram wrote:
+> > >You will want to look at the various patches I've prepared and ensure
+> > >you cover off the basic cleanups that have already been done, and that
+> > >your code compiles warning-free on FC24.
+> 
+> By cleanups, do you mean to make sure the code compiles warning-free under 
+> the various flags mentioned throughout the git log (-Wempty-body and etc.),
 
-http://marc.info/?l=linux-kernel&m=146787279825501&w=2
+Yes, Travis will enforce this.
 
-This change moves the data cached by the IPoIB driver from the
-skb control lock into the IPoIB hard header, as done before
-the commit 936d7de3d736 ("IPoIB: Stop lying about hard_header_len
-and use skb->cb to stash LL addresses").
-In order to avoid GRO issue, on packet reception, the IPoIB driver
-stash into the skb a dummy pseudo header, so that the received
-packets have actually a hard header matching the declared length.
-To avoid changing the connected mode maximum mtu, the allocated
-head buffer size is increased by the pseudo header length.
+> or are there other kinds of cleanups that I'm missing?
 
-After this commit, IPoIB performances are back to pre-regression
-value.
+Yes, many of the drivers copied the same stuff that is now gone. Here
+is a sampling
 
-v2 -> v3: rebased
-v1 -> v2: avoid changing the max mtu, increasing the head buf size
+https://github.com/linux-rdma/rdma-core/commit/1df0888f6a736e1612ce8b054d6c17651ebd003f
+https://github.com/linux-rdma/rdma-core/commit/6771a2051ea5efd30e142866f722d2dae6f565a7
+https://github.com/linux-rdma/rdma-core/commit/f29b3285f82815da3abdfea5be5c4f2d1ca92743
+https://github.com/linux-rdma/rdma-core/commit/9358a8a5484d1caa0c7ad1826e07d2105f58cc4e
+https://github.com/linux-rdma/rdma-core/commit/c5c7e32796b19c3707620a3d2f6b32d00d2fbc3c
 
-Fixes: 9207f9d45b0a ("net: preserve IP control block during GSO segmentation")
-Signed-off-by: Paolo Abeni <pabeni@redhat.com>
----
- drivers/infiniband/ulp/ipoib/ipoib.h           | 20 +++++++---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 15 +++----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c        | 12 +++---
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 54 ++++++++++++++++----------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  6 ++-
- 5 files changed, 64 insertions(+), 43 deletions(-)
+> > >Once you feel everything is ready then post it to the mailing list and
+> > >send a pull request. For the mailing list you can just split the
+> > >patches by file..
+> 
+> As we don't have a publically accessed server I cannot do this at
+> the moment (I'm checking how we can set one up).  Is it OK if I send
+> you the update as a series of patches?
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 7b8d2d9..da12717 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -63,6 +63,8 @@ enum ipoib_flush_level {
- 
- enum {
- 	IPOIB_ENCAP_LEN		  = 4,
-+	IPOIB_PSEUDO_LEN	  = 20,
-+	IPOIB_HARD_LEN		  = IPOIB_ENCAP_LEN + IPOIB_PSEUDO_LEN,
- 
- 	IPOIB_UD_HEAD_SIZE	  = IB_GRH_BYTES + IPOIB_ENCAP_LEN,
- 	IPOIB_UD_RX_SG		  = 2, /* max buffer needed for 4K mtu */
-@@ -134,15 +136,21 @@ struct ipoib_header {
- 	u16	reserved;
- };
- 
--struct ipoib_cb {
--	struct qdisc_skb_cb	qdisc_cb;
--	u8			hwaddr[INFINIBAND_ALEN];
-+struct ipoib_pseudo_header {
-+	u8	hwaddr[INFINIBAND_ALEN];
- };
- 
--static inline struct ipoib_cb *ipoib_skb_cb(const struct sk_buff *skb)
-+static inline void skb_add_pseudo_hdr(struct sk_buff *skb)
- {
--	BUILD_BUG_ON(sizeof(skb->cb) < sizeof(struct ipoib_cb));
--	return (struct ipoib_cb *)skb->cb;
-+	char *data = skb_push(skb, IPOIB_PSEUDO_LEN);
-+
-+	/*
-+	 * only the ipoib header is present now, make room for a dummy
-+	 * pseudo header and set skb field accordingly
-+	 */
-+	memset(data, 0, IPOIB_PSEUDO_LEN);
-+	skb_reset_mac_header(skb);
-+	skb_pull(skb, IPOIB_HARD_LEN);
- }
- 
- /* Used for all multicast joins (broadcast, IPv4 mcast and IPv6 mcast) */
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 4ad297d..339a1ee 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -63,6 +63,8 @@
- #define IPOIB_CM_RX_DELAY       (3 * 256 * HZ)
- #define IPOIB_CM_RX_UPDATE_MASK (0x3)
- 
-+#define IPOIB_CM_RX_RESERVE     (ALIGN(IPOIB_HARD_LEN, 16) - IPOIB_ENCAP_LEN)
-+
- static struct ib_qp_attr ipoib_cm_err_attr = {
- 	.qp_state = IB_QPS_ERR
- };
-@@ -146,15 +148,15 @@ static struct sk_buff *ipoib_cm_alloc_rx_skb(struct net_device *dev,
- 	struct sk_buff *skb;
- 	int i;
- 
--	skb = dev_alloc_skb(IPOIB_CM_HEAD_SIZE + 12);
-+	skb = dev_alloc_skb(ALIGN(IPOIB_CM_HEAD_SIZE + IPOIB_PSEUDO_LEN, 16));
- 	if (unlikely(!skb))
- 		return NULL;
- 
- 	/*
--	 * IPoIB adds a 4 byte header. So we need 12 more bytes to align the
-+	 * IPoIB adds a IPOIB_ENCAP_LEN byte header, this will align the
- 	 * IP header to a multiple of 16.
- 	 */
--	skb_reserve(skb, 12);
-+	skb_reserve(skb, IPOIB_CM_RX_RESERVE);
- 
- 	mapping[0] = ib_dma_map_single(priv->ca, skb->data, IPOIB_CM_HEAD_SIZE,
- 				       DMA_FROM_DEVICE);
-@@ -624,9 +626,9 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	if (wc->byte_len < IPOIB_CM_COPYBREAK) {
- 		int dlen = wc->byte_len;
- 
--		small_skb = dev_alloc_skb(dlen + 12);
-+		small_skb = dev_alloc_skb(dlen + IPOIB_CM_RX_RESERVE);
- 		if (small_skb) {
--			skb_reserve(small_skb, 12);
-+			skb_reserve(small_skb, IPOIB_CM_RX_RESERVE);
- 			ib_dma_sync_single_for_cpu(priv->ca, rx_ring[wr_id].mapping[0],
- 						   dlen, DMA_FROM_DEVICE);
- 			skb_copy_from_linear_data(skb, small_skb->data, dlen);
-@@ -663,8 +665,7 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 
- copied:
- 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
--	skb_reset_mac_header(skb);
--	skb_pull(skb, IPOIB_ENCAP_LEN);
-+	skb_add_pseudo_hdr(skb);
- 
- 	++dev->stats.rx_packets;
- 	dev->stats.rx_bytes += skb->len;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index be11d5d..830fecb 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -128,16 +128,15 @@ static struct sk_buff *ipoib_alloc_rx_skb(struct net_device *dev, int id)
- 
- 	buf_size = IPOIB_UD_BUF_SIZE(priv->max_ib_mtu);
- 
--	skb = dev_alloc_skb(buf_size + IPOIB_ENCAP_LEN);
-+	skb = dev_alloc_skb(buf_size + IPOIB_HARD_LEN);
- 	if (unlikely(!skb))
- 		return NULL;
- 
- 	/*
--	 * IB will leave a 40 byte gap for a GRH and IPoIB adds a 4 byte
--	 * header.  So we need 4 more bytes to get to 48 and align the
--	 * IP header to a multiple of 16.
-+	 * the IP header will be at IPOIP_HARD_LEN + IB_GRH_BYTES, that is
-+	 * 64 bytes aligned
- 	 */
--	skb_reserve(skb, 4);
-+	skb_reserve(skb, sizeof(struct ipoib_pseudo_header));
- 
- 	mapping = priv->rx_ring[id].mapping;
- 	mapping[0] = ib_dma_map_single(priv->ca, skb->data, buf_size,
-@@ -253,8 +252,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	skb_pull(skb, IB_GRH_BYTES);
- 
- 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
--	skb_reset_mac_header(skb);
--	skb_pull(skb, IPOIB_ENCAP_LEN);
-+	skb_add_pseudo_hdr(skb);
- 
- 	++dev->stats.rx_packets;
- 	dev->stats.rx_bytes += skb->len;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5636fc3..b58d9dc 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -925,9 +925,12 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
- 				ipoib_neigh_free(neigh);
- 				goto err_drop;
- 			}
--			if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE)
-+			if (skb_queue_len(&neigh->queue) <
-+			    IPOIB_MAX_PATH_REC_QUEUE) {
-+				/* put pseudoheader back on for next time */
-+				skb_push(skb, IPOIB_PSEUDO_LEN);
- 				__skb_queue_tail(&neigh->queue, skb);
--			else {
-+			} else {
- 				ipoib_warn(priv, "queue length limit %d. Packet drop.\n",
- 					   skb_queue_len(&neigh->queue));
- 				goto err_drop;
-@@ -964,7 +967,7 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
- }
- 
- static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
--			     struct ipoib_cb *cb)
-+			     struct ipoib_pseudo_header *phdr)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ipoib_path *path;
-@@ -972,16 +975,18 @@ static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 
--	path = __path_find(dev, cb->hwaddr + 4);
-+	path = __path_find(dev, phdr->hwaddr + 4);
- 	if (!path || !path->valid) {
- 		int new_path = 0;
- 
- 		if (!path) {
--			path = path_rec_create(dev, cb->hwaddr + 4);
-+			path = path_rec_create(dev, phdr->hwaddr + 4);
- 			new_path = 1;
- 		}
- 		if (path) {
- 			if (skb_queue_len(&path->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
-+				/* put pseudoheader back on for next time */
-+				skb_push(skb, IPOIB_PSEUDO_LEN);
- 				__skb_queue_tail(&path->queue, skb);
- 			} else {
- 				++dev->stats.tx_dropped;
-@@ -1009,10 +1014,12 @@ static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
- 			  be16_to_cpu(path->pathrec.dlid));
- 
- 		spin_unlock_irqrestore(&priv->lock, flags);
--		ipoib_send(dev, skb, path->ah, IPOIB_QPN(cb->hwaddr));
-+		ipoib_send(dev, skb, path->ah, IPOIB_QPN(phdr->hwaddr));
- 		return;
- 	} else if ((path->query || !path_rec_start(dev, path)) &&
- 		   skb_queue_len(&path->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
-+		/* put pseudoheader back on for next time */
-+		skb_push(skb, IPOIB_PSEUDO_LEN);
- 		__skb_queue_tail(&path->queue, skb);
- 	} else {
- 		++dev->stats.tx_dropped;
-@@ -1026,13 +1033,15 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ipoib_neigh *neigh;
--	struct ipoib_cb *cb = ipoib_skb_cb(skb);
-+	struct ipoib_pseudo_header *phdr;
- 	struct ipoib_header *header;
- 	unsigned long flags;
- 
-+	phdr = (struct ipoib_pseudo_header *) skb->data;
-+	skb_pull(skb, sizeof(*phdr));
- 	header = (struct ipoib_header *) skb->data;
- 
--	if (unlikely(cb->hwaddr[4] == 0xff)) {
-+	if (unlikely(phdr->hwaddr[4] == 0xff)) {
- 		/* multicast, arrange "if" according to probability */
- 		if ((header->proto != htons(ETH_P_IP)) &&
- 		    (header->proto != htons(ETH_P_IPV6)) &&
-@@ -1045,13 +1054,13 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 			return NETDEV_TX_OK;
- 		}
- 		/* Add in the P_Key for multicast*/
--		cb->hwaddr[8] = (priv->pkey >> 8) & 0xff;
--		cb->hwaddr[9] = priv->pkey & 0xff;
-+		phdr->hwaddr[8] = (priv->pkey >> 8) & 0xff;
-+		phdr->hwaddr[9] = priv->pkey & 0xff;
- 
--		neigh = ipoib_neigh_get(dev, cb->hwaddr);
-+		neigh = ipoib_neigh_get(dev, phdr->hwaddr);
- 		if (likely(neigh))
- 			goto send_using_neigh;
--		ipoib_mcast_send(dev, cb->hwaddr, skb);
-+		ipoib_mcast_send(dev, phdr->hwaddr, skb);
- 		return NETDEV_TX_OK;
- 	}
- 
-@@ -1060,16 +1069,16 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 	case htons(ETH_P_IP):
- 	case htons(ETH_P_IPV6):
- 	case htons(ETH_P_TIPC):
--		neigh = ipoib_neigh_get(dev, cb->hwaddr);
-+		neigh = ipoib_neigh_get(dev, phdr->hwaddr);
- 		if (unlikely(!neigh)) {
--			neigh_add_path(skb, cb->hwaddr, dev);
-+			neigh_add_path(skb, phdr->hwaddr, dev);
- 			return NETDEV_TX_OK;
- 		}
- 		break;
- 	case htons(ETH_P_ARP):
- 	case htons(ETH_P_RARP):
- 		/* for unicast ARP and RARP should always perform path find */
--		unicast_arp_send(skb, dev, cb);
-+		unicast_arp_send(skb, dev, phdr);
- 		return NETDEV_TX_OK;
- 	default:
- 		/* ethertype not supported by IPoIB */
-@@ -1086,11 +1095,13 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 			goto unref;
- 		}
- 	} else if (neigh->ah) {
--		ipoib_send(dev, skb, neigh->ah, IPOIB_QPN(cb->hwaddr));
-+		ipoib_send(dev, skb, neigh->ah, IPOIB_QPN(phdr->hwaddr));
- 		goto unref;
- 	}
- 
- 	if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
-+		/* put pseudoheader back on for next time */
-+		skb_push(skb, sizeof(*phdr));
- 		spin_lock_irqsave(&priv->lock, flags);
- 		__skb_queue_tail(&neigh->queue, skb);
- 		spin_unlock_irqrestore(&priv->lock, flags);
-@@ -1122,8 +1133,8 @@ static int ipoib_hard_header(struct sk_buff *skb,
- 			     unsigned short type,
- 			     const void *daddr, const void *saddr, unsigned len)
- {
-+	struct ipoib_pseudo_header *phdr;
- 	struct ipoib_header *header;
--	struct ipoib_cb *cb = ipoib_skb_cb(skb);
- 
- 	header = (struct ipoib_header *) skb_push(skb, sizeof *header);
- 
-@@ -1132,12 +1143,13 @@ static int ipoib_hard_header(struct sk_buff *skb,
- 
- 	/*
- 	 * we don't rely on dst_entry structure,  always stuff the
--	 * destination address into skb->cb so we can figure out where
-+	 * destination address into skb hard header so we can figure out where
- 	 * to send the packet later.
- 	 */
--	memcpy(cb->hwaddr, daddr, INFINIBAND_ALEN);
-+	phdr = (struct ipoib_pseudo_header *) skb_push(skb, sizeof(*phdr));
-+	memcpy(phdr->hwaddr, daddr, INFINIBAND_ALEN);
- 
--	return sizeof *header;
-+	return IPOIB_HARD_LEN;
- }
- 
- static void ipoib_set_mcast_list(struct net_device *dev)
-@@ -1759,7 +1771,7 @@ void ipoib_setup(struct net_device *dev)
- 
- 	dev->flags		|= IFF_BROADCAST | IFF_MULTICAST;
- 
--	dev->hard_header_len	 = IPOIB_ENCAP_LEN;
-+	dev->hard_header_len	 = IPOIB_HARD_LEN;
- 	dev->addr_len		 = INFINIBAND_ALEN;
- 	dev->type		 = ARPHRD_INFINIBAND;
- 	dev->tx_queue_len	 = ipoib_sendq_size * 2;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index d3394b6..1909dd2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -796,9 +796,11 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 			__ipoib_mcast_add(dev, mcast);
- 			list_add_tail(&mcast->list, &priv->multicast_list);
- 		}
--		if (skb_queue_len(&mcast->pkt_queue) < IPOIB_MAX_MCAST_QUEUE)
-+		if (skb_queue_len(&mcast->pkt_queue) < IPOIB_MAX_MCAST_QUEUE) {
-+			/* put pseudoheader back on for next time */
-+			skb_push(skb, sizeof(struct ipoib_pseudo_header));
- 			skb_queue_tail(&mcast->pkt_queue, skb);
--		else {
-+		} else {
- 			++dev->stats.tx_dropped;
- 			dev_kfree_skb_any(skb);
- 		}
--- 
-1.8.3.1
+You don't need a server, just a personal github account.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
