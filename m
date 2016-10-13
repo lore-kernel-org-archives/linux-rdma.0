@@ -1,48 +1,37 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
- header
-Date: Thu, 13 Oct 2016 10:24:32 -0400 (EDT)
-Message-ID: <20161013.102432.1450901395774429343.davem@davemloft.net>
-References: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni@redhat.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: Introduction of libqedr to the Consolidated Userspace RDMA
+ Library Repo
+Date: Thu, 13 Oct 2016 14:37:24 +0000
+Message-ID: <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>,<20161006163427.GG1224@obsidianresearch.com>
+ <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Date: Tue, 11 Oct 2016 19:15:44 +0200
+> >You will want to look at the various patches I've prepared and ensure
+> >you cover off the basic cleanups that have already been done, and that
+> >your code compiles warning-free on FC24.
 
-> After the commit 9207f9d45b0a ("net: preserve IP control block
-> during GSO segmentation"), the GSO CB and the IPoIB CB conflict.
-> That destroy the IPoIB address information cached there,
-> causing a severe performance regression, as better described here:
-> 
-> http://marc.info/?l=linux-kernel&m=146787279825501&w=2
-> 
-> This change moves the data cached by the IPoIB driver from the
-> skb control lock into the IPoIB hard header, as done before
-> the commit 936d7de3d736 ("IPoIB: Stop lying about hard_header_len
-> and use skb->cb to stash LL addresses").
-> In order to avoid GRO issue, on packet reception, the IPoIB driver
-> stash into the skb a dummy pseudo header, so that the received
-> packets have actually a hard header matching the declared length.
-> Also the connected mode maximum mtu is reduced by 16 bytes to
-> cope with the increased hard header len.
-> 
-> After this commit, IPoIB performances are back to pre-regression
-> value.
-> 
-> Fixes: 9207f9d45b0a ("net: preserve IP control block during GSO segmentation")
-> Signed-off-by: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+By cleanups, do you mean to make sure the code compiles warning-free under=
+=20
+the various flags mentioned throughout the git log (-Wempty-body and etc.),
+or are there other kinds of cleanups that I'm missing?
 
-Not providing an accurate hard_header_len causes many problems.
+> >Once you feel everything is ready then post it to the mailing list and
+> >send a pull request. For the mailing list you can just split the
+> >patches by file..
 
-In fact we recently fixed the mlxsw driver to stop doing this.
+As we don't have a publically accessed server I cannot do this at the momen=
+t (I'm checking how we can set one up).
+Is it OK if I send you the update as a series of patches?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
