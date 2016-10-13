@@ -1,31 +1,68 @@
-From: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH net-next 00/11] net: Fix netdev adjacency tracking
-Date: Thu, 13 Oct 2016 08:32:40 -0600
-Message-ID: <eedea44e-24de-e6f7-c42f-a13461d16d6a@cumulusnetworks.com>
-References: <1476305519-28833-1-git-send-email-dsa@cumulusnetworks.com>
- <20161013073424.GB1816@nanopsycho.orion>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
+ header,Re: [PATCH] IB/ipoib: move back the IB LL address into the hard
+ header
+Date: Thu, 13 Oct 2016 10:43:14 -0400 (EDT)
+Message-ID: <20161013.104314.1842951254979604965.davem@davemloft.net>
+References: <1dbd83dfe7f435eecc5bc460e901b47758280f30.1476206016.git.pabeni@redhat.com>
+        <20161013.102432.1450901395774429343.davem@davemloft.net>
+        <20ace6ee-b9e4-073c-56e7-29b2c50ae2d5@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161013073424.GB1816-6KJVSR23iU488b5SBfVpbw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
-Cc: jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.vosburgh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20ace6ee-b9e4-073c-56e7-29b2c50ae2d5@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: pabeni@redhat.com, linux-rdma@vger.kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/13/16 1:34 AM, Jiri Pirko wrote:
-> 
-> Although I didn't like the "all-list" idea when Veaceslav pushed it
-> because it looked to me like a big hammer, it turned out to be very handy
-> and quick for traversing neighbours. Why it cannot be fixed?
-> 
-> The walks with possibly hundreds of function calls instead of a single
-> list traverse worries me.
-> 
+From: Doug Ledford <dledford@redhat.com>
+Date: Thu, 13 Oct 2016 10:35:35 -0400
 
-I have been looking at this code for a week now. Every solution I came up with that solved the original problems introduced new ones -- usually with adjacency remove expecting an adjacency that did not exist. In the end I came to the conclusion it is not possible to maintain an all_adj_list when the upper tree can have multiple paths to the top device. If someone thinks otherwise I am happy to test a patch.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On 10/13/2016 10:24 AM, David Miller wrote:
+>> From: Paolo Abeni <pabeni@redhat.com>
+>> Date: Tue, 11 Oct 2016 19:15:44 +0200
+>> 
+>>> After the commit 9207f9d45b0a ("net: preserve IP control block
+>>> during GSO segmentation"), the GSO CB and the IPoIB CB conflict.
+>>> That destroy the IPoIB address information cached there,
+>>> causing a severe performance regression, as better described here:
+>>>
+>>> http://marc.info/?l=linux-kernel&m=146787279825501&w=2
+>>>
+>>> This change moves the data cached by the IPoIB driver from the
+>>> skb control lock into the IPoIB hard header, as done before
+>>> the commit 936d7de3d736 ("IPoIB: Stop lying about hard_header_len
+>>> and use skb->cb to stash LL addresses").
+>>> In order to avoid GRO issue, on packet reception, the IPoIB driver
+>>> stash into the skb a dummy pseudo header, so that the received
+>>> packets have actually a hard header matching the declared length.
+>>> Also the connected mode maximum mtu is reduced by 16 bytes to
+>>> cope with the increased hard header len.
+>>>
+>>> After this commit, IPoIB performances are back to pre-regression
+>>> value.
+>>>
+>>> Fixes: 9207f9d45b0a ("net: preserve IP control block during GSO segmentation")
+>>> Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+>> 
+>> Not providing an accurate hard_header_len causes many problems.
+>> 
+>> In fact we recently fixed the mlxsw driver to stop doing this.
+>> 
+> 
+> Sure, but there are too many users of the cb struct, and whatever
+> problems you are saying there are by lying about the hard header len are
+> dwarfed by the problems caused by the inability to store the ll address
+> anywhere between hard_header and send time.
+
+IB wants to pass addressing information between layers, it needs to
+find a safe way to do that.  The currently propsoed patch does not
+meet this criteria.
+
+Pushing metadata before the head of the SKB data pointer is illegal,
+as the layers in between might want to push protocol headers, mirror
+the packet to another interface, etc.
+
+So this "metadata in SKB data" approach is buggy too.
