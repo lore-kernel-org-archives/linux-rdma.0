@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 06/17] i40iw: remove unused variable i40iw_debug_level
-Date: Thu, 13 Oct 2016 21:56:05 +0200
-Message-ID: <1476388576-22863-7-git-send-email-hch@lst.de>
+Subject: [PATCH 14/17] nes: use NULL instead of 0 for NULL pointers
+Date: Thu, 13 Oct 2016 21:56:13 +0200
+Message-ID: <1476388576-22863-15-git-send-email-hch@lst.de>
 References: <1476388576-22863-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476388576-22863-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -11,22 +11,22 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- providers/i40iw/i40iw_umain.c | 2 --
- 1 file changed, 2 deletions(-)
+ providers/nes/nes_uverbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/providers/i40iw/i40iw_umain.c b/providers/i40iw/i40iw_umain.c
-index 0540ee7..8d7b655 100644
---- a/providers/i40iw/i40iw_umain.c
-+++ b/providers/i40iw/i40iw_umain.c
-@@ -46,8 +46,6 @@
- #include "i40iw_umain.h"
- #include "i40iw-abi.h"
+diff --git a/providers/nes/nes_uverbs.c b/providers/nes/nes_uverbs.c
+index f404ffd..7e7bb90 100644
+--- a/providers/nes/nes_uverbs.c
++++ b/providers/nes/nes_uverbs.c
+@@ -324,7 +324,7 @@ int nes_ima_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 	uint32_t head;
+ 	uint32_t cq_size;
  
--unsigned int i40iw_debug_level;
--
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <fcntl.h>
+-	volatile struct nes_hw_nic_cqe *cqe = 0;
++	volatile struct nes_hw_nic_cqe *cqe = NULL;
+ 	volatile struct nes_hw_nic_cqe *cqes;
+ 
+ 	struct nes_uqp *nesuqp = nesucq->udqp;
 -- 
 2.1.4
 
