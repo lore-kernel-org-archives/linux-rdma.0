@@ -1,148 +1,163 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Thu, 13 Oct 2016 16:34:55 +0530
-Message-ID: <CAG53R5Uai0sG+i02R34Eg1LZUSZbt4arz2KAqB4cbxtgp2VLRg@mail.gmail.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <20161005112206.GC9282@leon.nu> <CAG53R5VNVb=8-LJbDRqjtOZG347ucPuc420bcfnDgBKMoKqU-w@mail.gmail.com>
- <20161010044623.GI9282@leon.nu> <CAG53R5UM6nSTZ7=0S9reKGX45CpNBi8soSDVZyXkN-z0_XXWWQ@mail.gmail.com>
- <20161010122545.GA27360@mtj.duckdns.org> <CAG53R5V5yE4PsDBjP9BieG_=39M0G1kx-AfBEzWK4LUCxNnYBA@mail.gmail.com>
- <20161010132014.GD29742@mtj.duckdns.org> <CAG53R5ULKCqtw45E6t4hYdRV+y_OQqVazf=7A7Ax_XAJ2K0_dw@mail.gmail.com>
- <20161013103430.GB9282@leon.nu>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/5] rxe_cfg: Use Perl functions instead of parsing the
+ output of shell commands
+Date: Thu, 13 Oct 2016 13:53:21 +0300
+Message-ID: <c8c6f9e8-3c85-b956-dba3-91191f72974a@mellanox.com>
+References: <bf5dba39-7e14-23ee-4aa1-2a276d629fe9@sandisk.com>
+ <51c02d54-9189-2993-a9cb-a6f6452e9ff3@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161013103430.GB9282-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <51c02d54-9189-2993-a9cb-a6f6452e9ff3-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
-
-
-On Thu, Oct 13, 2016 at 4:04 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Mon, Oct 10, 2016 at 07:02:11PM +0530, Parav Pandit wrote:
->> Hi Tejun,
->>
->> On Mon, Oct 10, 2016 at 6:50 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> > Hello, Parav.
->> >
->> > On Mon, Oct 10, 2016 at 06:43:59PM +0530, Parav Pandit wrote:
->> >> > Also, I don't get what you mean by using percentage and when people
->> >> > brought up this idea, it always has been stemming from
->> >> > misunderstanding.  Can you please elaborate how percentage based
->> >> > proportional control would work?  What would 100% mean when cgroups
->> >> > can come and go?
->> >>
->> >> When 100% is given to one cgroup, all resources of all type can be
->> >> charged by processes of that cgroup.
->> >> Resources are stateful resource. So when cgroup goes away, they go
->> >> back to global pool (or hw).
->> >> Giving 100% to two cgroups is configuration error anyway (or without config).
->> >
->> > That isn't proportional control.  That's using percentage as the unit
->> > to implement absolute limits.  Proportional control implies work
->> > conservation.
->> >
->> >> As you know weight configuration allows automatic increase/decrease of
->> >> resource to other cgroups when one of them go away, as opposed to
->> >> absolute value. How this is going to work in exact terms for stateful
->> >
->> > Hmm.... so are you saying that ti'd be work-conserving?
->> They cannot be work conversing.
->>
->> > But what does
->> > it mean to say "30%" and then have it all resources when there are no
->> > other users.  Also, is it even possible to take back what have already
->> > been allocated and are in use?
->> >
->> Most resources that I know of, and whats described in current
->> cgroup_rdma.h are not work conversing, therefore it cannot be taken
->> back.
->>
->> >> Nop. Thats not true.
->> >> (a) Every new resource has to be defined in cgroup_rdma.h
->> >> (b) charge()/uncharge() has to happen by the cgroup for each.
->> >> (c) Letting drivers do will make things fall apart. There are no APIs
->> >> exposed either to let drivers know process cgroup either. There is no
->> >> intention either.
->> >>
->> >> (d) ratio means -if adapter has
->> >> 100 resources of type - A,
->> >> 80 resource of type - B,
->> >>
->> >> 10% for cgroup-1 means,
->> >> 10 resource of type - A
->> >> 8 resource of type - B
->> >
->> > So, this is not work-conserving.  There's too much confusion here.
->>
->> Give me some more time, I will think more and take feeback from Leon
->> and others on
->> (a) how can we implement or want to implement weight like
->> functionality for non-work-conversing resource
+On 10/7/2016 9:38 PM, Bart Van Assche wrote:
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  providers/rxe/rxe_cfg | 67 ++++++++++++++++++++++++---------------------------
+>  1 file changed, 31 insertions(+), 36 deletions(-)
 >
-> I'm not fully understand the question. RDMA resources are static and
-> won't be recalculated dynamically for running cgroups consumers while
-> new cgroup is started. In this situation, weights and percentages are
-> the same.
+> diff --git a/providers/rxe/rxe_cfg b/providers/rxe/rxe_cfg
+> index 6783dc78c340..0310d25bad91 100755
+> --- a/providers/rxe/rxe_cfg
+> +++ b/providers/rxe/rxe_cfg
+> @@ -35,6 +35,7 @@
+>  use warnings;
+>  use strict;
 >
-Let me try again to take weights example.
-
-total resources distributed is based on equation:
-
-resource_of_cg = weight_of_cg * max_resource_of_hca / (sum of all weights)
-
-say there is only one cg-A. Lets say it has weight of 20.
-max_resource_of_hca = 100.
-
-So total resource_for_cg_A = (20 * 100) / 20 = 100 (all resources).
-
-Now new cg-B is created with weight of 20.
-So with new cg-B, cg-A and cg-B will get 50 resources.
-
-With cg-C creation with weight of 20, each cg gets 33 resources.
-
-Which means that resources are recalculated dynamically on
-running/creating new cgroups.
-
->> (b) what could be its acceptable limitations of that interface would be
->> before we propose you.
+> +use File::Basename;
+>  use Getopt::Long;
+>  use Switch;
 >
-> More easy is to summarize requirements:
-> 1. It needs to be convenient for users.
-> 2. It can limit any future objects without change in user tools.
-
-Why don't we have such requirements on the actual dataplane and
-control plane APIs side (similar to having abstract socket APIs).
-Instead we expect applications to change to make use of new verbs
-objects for performance, functionality etc.
-
-New future objects can be limited if we introduce weights/percentage
-knob but at the cost of not able to tune for performance.
-Usually end-users will use application templates when they deploy for
-specific applications, such as mongodb, MPI cluster, glusterFS cluster
-etc.
-So those application specific plug-in would program exact ratio of MR
-to QP or PD to QP etc by writing values to rdma.max depending on MPI
-rank, cluster size etc.
-
-weights API allow to auto adjust the value for existing cgroups when
-new cgroups are added/removed when deployed application is not well
-defined.
-
+> @@ -67,20 +68,25 @@ my @mlx4_port;
+>  my @mlx4_ether;
+>  my @roce_list;
 >
->>
->> At minimum we would need to expose actual value in rdma.max in
->> subsequent patch, instead of exposing just "max" string. I don't want
->> to complicate this discussion but similar functionality is needed for
->> pid controller as well to expose actual value.
->>
->> >
->> > Thanks.
->> >
->> > --
->> > tejun
+> +# Read a file and return its contents as a string.
+> +sub read_file {
+> +    my $filename = shift;
+> +    my $result = "";
+> +
+> +    if (open(FILE, $filename)) {
+> +	$result = <FILE>;
+> +	close FILE;
+> +    }
+> +    return $result;
+> +}
+> +
+>  #get mapping between rxe and eth devices
+>  sub get_names {
+> -    return if (!(-e "/sys/class/infiniband"));
+> -
+> -    my @list;
+> -    my $rxe;
+> -    my $eth;
+>      my $i = 0;
+>
+> -    @list = `ls /sys/class/infiniband | grep rxe $z`;
+> -    foreach $rxe (@list) {
+> -	chomp($rxe);
+> -
+> -	$eth = `cat /sys/class/infiniband/$rxe/parent $z`;
+> +    foreach my $rxe (glob("/sys/class/infiniband/rxe*")) {
+> +	$rxe = basename($rxe);
+> +	my $eth = read_file("/sys/class/infiniband/$rxe/parent");
+>  	chomp($eth);
+>  	
+>  	if (($eth =~ /[\w]+[\d]/)
+> @@ -98,25 +104,13 @@ sub get_names {
+>
+>  # get list of Mellanox RoCE ports
+>  sub get_mlx4_list {
+> -    return if (!(-e "/sys/class/infiniband"));
+> -
+> -    my @list;
+> -    my $mlx4;
+> -    my @ports;
+> -    my $port;
+> -    my $link;
+>      my $i = 0;
+>
+> -    @list = `ls /sys/class/infiniband | grep mlx4_ $z`;
+> -    foreach $mlx4 (@list) {
+> -	chomp($mlx4);
+> -	chdir("/sys/class/infiniband/$mlx4/ports");
+> -
+> -	@ports = `ls $z`;
+> -	foreach $port (@ports) {
+> -	    chomp($port);
+> -
+> -	    $link= `cat $port/link_layer $z`;
+> +    foreach my $mlx4 (glob("/sys/class/infiniband/mlx4_*")) {
+> +	$mlx4 = basename($mlx4);
+> +	foreach my $port (glob("/sys/class/infiniband/$mlx4/ports/*")) {
+> +	    $port = basename($port);
+> +	    my $link = read_file("$port/link_layer");
+>  	    chomp($link);
+>
+>  	    if ($link =~ "Ethernet") {
+> @@ -141,10 +135,10 @@ sub get_dev_info {
+>      get_mlx4_list();
+>
+>      my @my_eth_list = ();
+> -    my @my_eth_devs = `ls /sys/class/net`;
+> -    foreach my $my_eth_dev (@my_eth_devs) {
+> -        chomp($my_eth_dev);
+> -        my $my_dev_type = `cat /sys/class/net/${my_eth_dev}/type`;
+> +    foreach my $my_eth_dev (glob("/sys/class/net/*")) {
+> +	$my_eth_dev = basename($my_eth_dev);
+> +        my $my_dev_type = read_file("/sys/class/net/${my_eth_dev}/type");
+> +	chomp($my_dev_type);
+>          if ($my_dev_type == "1") {
+>              push(@my_eth_list, "$my_eth_dev");
+>          }
+> @@ -378,11 +372,11 @@ sub do_status {
+>
+>  # read file containing list of ethernet devices into a list
+>  sub populate_persistence {
+> -    my @lines = `cat $persistence_file $z`;
+> -    my $line;
+>      my $i = 0;
+>
+> -    foreach $line (@lines) {
+> +    open FILE, $persistence_file;
+> +    while(<FILE>) {
+> +	my $line = $_;
+>  	chomp($line);
+>  	$line =~ s/^\s+//g;
+>  	if ($line =~ /[\w]+[\d]/) {
+> @@ -394,6 +388,7 @@ sub populate_persistence {
+>  	    }
+>  	}
+>      }
+> +    close FILE;
+>
+>      $num_persistent = $i;
+>  }
+> @@ -604,7 +599,7 @@ sub do_debug {
+>  	}
+>      }
+>
+> -    my $current = `cat $debugfile $z`;
+> +    my $current = read_file($debugfile);
+>      chomp($current);
+>      if ($current > 0) {
+>  	print "Debug is ON ($current)\n";
+> @@ -681,7 +676,7 @@ sub main {
+>      }
+>
+>      # create persistence file if necessary
+> -    `mkdir -p $persistence_path $z`;
+> +    mkdir -p $persistence_path;
+>      if (!(-e $persistence_file)) {
+>          `touch $persistence_file $z`;
+>      }
+>
+ack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
