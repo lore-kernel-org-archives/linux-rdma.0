@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 15/17] mlx5: mark symbols static where possible
-Date: Thu, 13 Oct 2016 21:56:14 +0200
-Message-ID: <1476388576-22863-16-git-send-email-hch@lst.de>
+Subject: [PATCH 11/17] ocrdma: use NULL instead of 0 for NULL pointers
+Date: Thu, 13 Oct 2016 21:56:10 +0200
+Message-ID: <1476388576-22863-12-git-send-email-hch@lst.de>
 References: <1476388576-22863-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476388576-22863-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -11,36 +11,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- providers/mlx5/mlx5.c  | 2 +-
- providers/mlx5/verbs.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ providers/ocrdma/ocrdma_verbs.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index f24e504..4b05dc4 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -62,7 +62,7 @@
- 	{ .vendor = PCI_VENDOR_ID_##v,			\
- 	  .device = d }
- 
--struct {
-+static struct {
- 	unsigned		vendor;
- 	unsigned		device;
- } hca_table[] = {
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index ef85a63..e288ebf 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1184,7 +1184,7 @@ enum {
- 					IBV_QP_INIT_ATTR_RX_HASH),
- };
- 
--struct ibv_qp *create_qp(struct ibv_context *context,
-+static struct ibv_qp *create_qp(struct ibv_context *context,
- 			 struct ibv_qp_init_attr_ex *attr)
+diff --git a/providers/ocrdma/ocrdma_verbs.c b/providers/ocrdma/ocrdma_verbs.c
+index c5dd74b..7e066dc 100644
+--- a/providers/ocrdma/ocrdma_verbs.c
++++ b/providers/ocrdma/ocrdma_verbs.c
+@@ -455,7 +455,7 @@ int ocrdma_destroy_srq(struct ibv_srq *ibsrq)
+ 		free(srq->rqe_wr_id_tbl);
+ 	if (srq->db_va) {
+ 		munmap((void *)srq->db_va, srq->db_size);
+-		srq->db_va = 0;
++		srq->db_va = NULL;
+ 	}
+ 	if (srq->rq.va) {
+ 		munmap(srq->rq.va, srq->rq.len);
+@@ -591,7 +591,7 @@ struct ibv_qp *ocrdma_create_qp(struct ibv_pd *pd,
+ 	} else {
+ 		if (qp->dpp_cq) {
+ 			ocrdma_destroy_cq(&qp->dpp_cq->ibv_cq);
+-			qp->dpp_cq = 0;
++			qp->dpp_cq = NULL;
+ 		}
+ 	}
+ 	qp->state = OCRDMA_QPS_RST;
+@@ -1789,7 +1789,7 @@ static void ocrdma_update_free_srq_cqe(struct ibv_wc *ibwc,
+ 				       struct ocrdma_cqe *cqe,
+ 				       struct ocrdma_qp *qp)
  {
- 	struct mlx5_create_qp		cmd;
+-	struct ocrdma_srq *srq = 0;
++	struct ocrdma_srq *srq = NULL;
+ 	uint32_t wqe_idx;
+ 
+ 	srq = get_ocrdma_srq(qp->ibv_qp.srq);
 -- 
 2.1.4
 
