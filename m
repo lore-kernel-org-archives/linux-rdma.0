@@ -1,23 +1,29 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: trivial sparse fixes for rdma-core
-Date: Fri, 14 Oct 2016 07:18:43 +0200
-Message-ID: <20161014051843.GB8073@lst.de>
-References: <1476381095-20041-1-git-send-email-hch@lst.de> <20161013190326.GA19904@obsidianresearch.com> <20161014043705.GF9282@leon.nu>
+Subject: Re: sparse fixes, part2
+Date: Fri, 14 Oct 2016 07:31:59 +0200
+Message-ID: <20161014053159.GA8255@lst.de>
+References: <1476388576-22863-1-git-send-email-hch@lst.de> <20161014040602.GA5726@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161014043705.GF9282-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20161014040602.GA5726-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 14, 2016 at 07:37:05AM +0300, Leon Romanovsky wrote:
-> I didn't look on it yet, but maybe someone already knows the answer.
-> Can we run static analyzer tools as part of our TravisCI runs?
+On Thu, Oct 13, 2016 at 10:06:02PM -0600, Jason Gunthorpe wrote:
+> Though, I had to use '#pragma GCC diagnostic ignored
+> "-Wmissing-prototypes"' to deal with the symver stuff.. Couldn't find
+> a better way..
 
-Just run CC=cgcc cmake for sparse..
+I was planning on adding a header to define them just to shut up
+sparse.  This is one of the bigger sets or remaining warnings, the
+other beeing pthread macros abusing 0 as NULL (probably unfixable by us),
+direct use of __sync_* builting (we should move over to C99 atomics or
+something similar) nad various misc issues.  But as non of them are trivial
+I didn't want to send that with the patch bomb.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
