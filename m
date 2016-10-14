@@ -1,33 +1,59 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 04/17] ipathverbs: mark symbols static where possible
-Date: Fri, 14 Oct 2016 10:32:08 +0000
-Message-ID: <1476441126.26962.47.camel@intel.com>
-References: <1476388576-22863-1-git-send-email-hch@lst.de>
-         <1476388576-22863-5-git-send-email-hch@lst.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: =?utf-8?B?44CQRm9yIGhlbHDjgJEgc29t?= =?utf-8?Q?e?= tips for
+ upstream the userspace driver code of hns_roce
+Date: Fri, 14 Oct 2016 14:55:04 +0300
+Message-ID: <20161014115504.GG9282@leon.nu>
+References: <57FF414A.3000200@huawei.com>
+ <20161013093659.GA9282@leon.nu>
+ <58008835.3060403@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="M8BZqbl6q5NSES+8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476388576-22863-5-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-US
-Content-ID: <8EFE04F6D61A5F469D312F8A066A6260-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <58008835.3060403-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE2LTEwLTEzIGF0IDIxOjU2ICswMjAwLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90
-ZToNCj4gU2lnbmVkLW9mZi1ieTogQ2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+DQo+IC0t
-LQ0KPiDCoHByb3ZpZGVycy9pcGF0aHZlcmJzL2lwYXRodmVyYnMuYyB8IDIgKy0NCj4gwqAxIGZp
-bGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkNCj4gDQo+IGRpZmYgLS1n
-aXQgYS9wcm92aWRlcnMvaXBhdGh2ZXJicy9pcGF0aHZlcmJzLmMNCj4gYi9wcm92aWRlcnMvaXBh
-dGh2ZXJicy9pcGF0aHZlcmJzLmMNCj4gaW5kZXggNGI5NDVmNi4uZTk1Mzg2NCAxMDA2NDQNCj4g
-LS0tIGEvcHJvdmlkZXJzL2lwYXRodmVyYnMvaXBhdGh2ZXJicy5jDQo+ICsrKyBiL3Byb3ZpZGVy
-cy9pcGF0aHZlcmJzL2lwYXRodmVyYnMuYw0KPiBAQCAtNzcsNyArNzcsNyBAQA0KPiDCoAl7IC52
-ZW5kb3IgPSBQQ0lfVkVORE9SX0lEXyMjdiwJCQlcDQo+IMKgCcKgwqAuZGV2aWNlID0gUENJX0RF
-VklDRV9JRF9JTkZJTklQQVRIXyMjZCB9DQo+IMKgDQo+IC1zdHJ1Y3Qgew0KPiArc3RhdGljIHN0
-cnVjdCB7DQo+IMKgCXVuc2lnbmVkCQl2ZW5kb3I7DQo+IMKgCXVuc2lnbmVkCQlkZXZpY2U7DQo+
-IMKgfSBoY2FfdGFibGVbXSA9IHsNCg0KUmV2aWV3ZWQtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8
-ZGVubmlzLmRhbGVzc2FuZHJvQGludGVsLmNvbT4=
+
+--M8BZqbl6q5NSES+8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Oct 14, 2016 at 03:24:37PM +0800, oulijun wrote:
+> Hi, Leon
+>   I have learned the guide and I am working it.
+>   I have learned the README.md in the branch of rdma-core.
+>   According to the instruction for building the user-space stack, it only
+>   support to build in Debian/Fedora/OpenSuSE/centos and ubuntu is not?
+
+Did you install all required tools as mentioned in the readme?
+I'm using Ubuntu and it builds on it perfectly.
+
+--M8BZqbl6q5NSES+8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYAMeYAAoJEORje4g2clin5YcQALHVtWm1OQrQX6zNWzqVeTOV
+21R4Id1PZSYAyRVGQ1enmmv1wK7AsIbnw63MZ6JLMOOxNLP76H36i0KubPWCyUnh
+TqX7fk6qQ37NgzRxPDXFATd4o2fPaY4zUFilniw/RqDJEl8GRfXNp2gp5Ik/C9Iz
+JOhle5jLvBwXc9kATrCprehFzPDzMhOI5NUnJZ4Hn8wiBRvDWszm6Gn41u1+ko/j
+4fw99sSpPKUEL13KyTsGv+trGhn7G8NSxBte2GZiXcT5t9i3llNpp3ciXAl6vyVy
+3NdmOjYE8dpR5MUWOVeRviaKM6Hx/WrSHUjUwGxcaLREijZCXTQr+FKvcWFnsFCI
+9Eljn8tRT8Z10cECXljQ7GIP+JI/C1O3G8g+F+UFzFaQq+RZzAPIxfRe4jzuopEZ
+ot2wxrNwQrv0Bt3uiaBxs4kVYfH0H5glkc7q/+dIX0cIFgOMP828WGNON1JZ5S7j
+arDXaFNLRhn/m9/nztOMBavYwgQWq6nVBYnVtdO3LzRKz8E3zTm3pfaBI33uq5qB
+ZUuYarRHvLtuyd1XjehGDRX17qdmGef86sB+KGnoKVc598b0K4En2iwC7KKDP017
+agTfPXxS7DZqdLJbPe/58zOdM/eF8ljcC6ErXOo7ZqF8m9Eus0CartroHOEanOjy
+RAeVSmtHWNrn/khlN/ar
+=8Dq8
+-----END PGP SIGNATURE-----
+
+--M8BZqbl6q5NSES+8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
