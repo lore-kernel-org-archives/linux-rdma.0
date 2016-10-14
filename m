@@ -1,242 +1,121 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 2/2] Enable -Wmissing-prototypes
-Date: Thu, 13 Oct 2016 22:10:11 -0600
-Message-ID: <1476418211-6277-2-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1476418211-6277-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 1/2] Enable -Wstrict-prototypes
+Date: Thu, 13 Oct 2016 22:10:10 -0600
+Message-ID: <1476418211-6277-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476418211-6277-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is useful to detect functions which probably should be static.
-
-One wrinkle is the use of .symver macros in verbs. These require
-non-static definitions that cannot have the same name as the public
-prototype. Locally disable the warning to deal with that.
+All bad cases are fixed now. This is useful to detect non-ISO
+function signatures which use surprising and counter intuitive
+rules.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- CMakeLists.txt                     | 1 +
- buildlib/FindLDSymVer.cmake        | 2 ++
- ibacm/src/acm_util.h               | 2 ++
- ibacm/src/acme.c                   | 7 ++-----
- ibacm/src/parse.c                  | 1 +
- libibverbs/compat-1_0.c            | 2 ++
- libibverbs/device.c                | 2 ++
- libibverbs/examples/devinfo.c      | 4 ++--
- libibverbs/examples/rc_pingpong.c  | 4 ++--
- libibverbs/examples/srq_pingpong.c | 2 +-
- libibverbs/examples/uc_pingpong.c  | 2 +-
- libibverbs/examples/ud_pingpong.c  | 2 +-
- libibverbs/verbs.c                 | 2 ++
- 13 files changed, 21 insertions(+), 12 deletions(-)
+ CMakeLists.txt                      | 7 +++++++
+ ibacm/src/acm.c                     | 2 +-
+ ibacm/src/acme.c                    | 2 +-
+ ibacm/src/libacm.h                  | 2 +-
+ libibverbs/examples/xsrq_pingpong.c | 4 ++--
+ librdmacm/cma.h                     | 4 ++--
+ 6 files changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1fb634c43991..59533411006b 100644
+index 4d291d2c3fb7..1fb634c43991 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -110,6 +110,7 @@ RDMA_EnableCStd()
- # FIXME: I wonder how many of the signed compares are bugs?
- RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WARNINGS
-   "-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter")
-+RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WMISSING_PROTOTYPES "-Wmissing-prototypes")
+@@ -246,6 +246,13 @@ if (NOT LIBC_HAS_LIBRT)
+ endif()
  
- # At some point around 5.4 gcc fixed missing-field-initializers to ignore this
- # common idiom we use extensively. Since this is a useful warning for
-diff --git a/buildlib/FindLDSymVer.cmake b/buildlib/FindLDSymVer.cmake
-index 7169b2c4db68..9d3c12dcef46 100644
---- a/buildlib/FindLDSymVer.cmake
-+++ b/buildlib/FindLDSymVer.cmake
-@@ -27,8 +27,10 @@ endif()
- 
- # And matching source, this also checks that .symver asm works
- check_c_source_compiles("
-+void ibv_get_device_list_1(void);
- void ibv_get_device_list_1(void){}
- asm(\".symver ibv_get_device_list_1, ibv_get_device_list@IBVERBS_1.1\");
-+void ibv_get_device_list_0(void);
- void ibv_get_device_list_0(void){}
- asm(\".symver ibv_get_device_list_0, ibv_get_device_list@@IBVERBS_1.0\");
- 
-diff --git a/ibacm/src/acm_util.h b/ibacm/src/acm_util.h
-index 2bcf28086c7b..5243f8a7e750 100644
---- a/ibacm/src/acm_util.h
-+++ b/ibacm/src/acm_util.h
-@@ -53,4 +53,6 @@ typedef void (*acm_if_iter_cb)(char *ifname, union ibv_gid *gid, uint16_t pkey,
- 				char *ip_str, void *ctx);
- int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx);
- 
-+char **parse(char *args, int *count);
+ #-------------------------
++# Final warning flags
 +
- #endif /* ACM_IF_H */
++# Old version of cmake used 'main(){..}' as their test program which breaks with -Werror.
++# So set this flag last.
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WSTRICT_PROTOTYPES "-Wstrict-prototypes")
++
++#-------------------------
+ # Build Prep
+ # Write out a git ignore file to the build directory if it isn't the source
+ # directory. For developer convenience
+diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
+index 146fbff61857..9186677fcc6f 100644
+--- a/ibacm/src/acm.c
++++ b/ibacm/src/acm.c
+@@ -2421,7 +2421,7 @@ static void acm_event_handler(struct acmc_device *dev)
+ 	ibv_ack_async_event(&event);
+ }
+ 
+-static void acm_activate_devices()
++static void acm_activate_devices(void)
+ {
+ 	struct acmc_device *dev;
+ 	DLIST_ENTRY *dev_entry;
 diff --git a/ibacm/src/acme.c b/ibacm/src/acme.c
-index 2bce0da4ec8a..6b5b2ecb7f8a 100644
+index e96d36ff9fc0..2bce0da4ec8a 100644
 --- a/ibacm/src/acme.c
 +++ b/ibacm/src/acme.c
-@@ -74,9 +74,6 @@ int verbose;
- struct ibv_context **verbs;
- int dev_cnt;
- 
--extern int gen_addr_ip(FILE *f);
--extern char **parse(char *args, int *count);
--
- #define VPRINT(format, ...) do { if (verbose) printf(format, ## __VA_ARGS__ ); } while (0)
- 
- static void show_usage(char *program)
-@@ -958,7 +955,7 @@ static int query_svcs(void)
- 	return ret;
+@@ -512,7 +512,7 @@ static void show_path(struct ibv_path_record *path)
+ 	printf("  packet lifetime: %d\n", path->packetlifetime & 0x1F);
  }
  
--char *opt_arg(int argc, char **argv)
-+static char *opt_arg(int argc, char **argv)
+-static uint32_t get_resolve_flags()
++static uint32_t get_resolve_flags(void)
  {
- 	if (optarg)
- 		return optarg;
-@@ -969,7 +966,7 @@ char *opt_arg(int argc, char **argv)
- 	return NULL;
+ 	uint32_t flags = 0;
+ 
+diff --git a/ibacm/src/libacm.h b/ibacm/src/libacm.h
+index 359a6af3bb29..4ef2859fa9d6 100644
+--- a/ibacm/src/libacm.h
++++ b/ibacm/src/libacm.h
+@@ -34,7 +34,7 @@
+ #include <infiniband/acm.h>
+ 
+ int ib_acm_connect(char *dest_svc);
+-void ib_acm_disconnect();
++void ib_acm_disconnect(void);
+ 
+ int ib_acm_resolve_name(char *src, char *dest,
+ 	struct ibv_path_data **paths, int *count, uint32_t flags,
+diff --git a/libibverbs/examples/xsrq_pingpong.c b/libibverbs/examples/xsrq_pingpong.c
+index c22893e0e721..b90f0eb7e27f 100644
+--- a/libibverbs/examples/xsrq_pingpong.c
++++ b/libibverbs/examples/xsrq_pingpong.c
+@@ -354,7 +354,7 @@ static int send_termination_ack(int index)
+ 	return 0;
  }
  
--void parse_perf_arg(char *arg)
-+static void parse_perf_arg(char *arg)
+-static int pp_client_termination()
++static int pp_client_termination(void)
  {
- 	if (!strnicmp("col", arg, 3)) {
- 		perf_query = PERF_QUERY_COL;
-diff --git a/ibacm/src/parse.c b/ibacm/src/parse.c
-index 83ce8439edac..52e66ab814e3 100644
---- a/ibacm/src/parse.c
-+++ b/ibacm/src/parse.c
-@@ -30,6 +30,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include "acm_util.h"
- 
- static char *expand(char *basename, char *args, int *str_cnt, int *str_size)
- {
-diff --git a/libibverbs/compat-1_0.c b/libibverbs/compat-1_0.c
-index b286fd73eb01..af852f9ff481 100644
---- a/libibverbs/compat-1_0.c
-+++ b/libibverbs/compat-1_0.c
-@@ -40,6 +40,8 @@
- 
- #include "ibverbs.h"
- 
-+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-+
- struct ibv_pd_1_0 {
- 	struct ibv_context_1_0 *context;
- 	uint32_t		handle;
-diff --git a/libibverbs/device.c b/libibverbs/device.c
-index b4864e3e384b..8950f2a3d711 100644
---- a/libibverbs/device.c
-+++ b/libibverbs/device.c
-@@ -47,6 +47,8 @@
- 
- #include "ibverbs.h"
- 
-+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-+
- static pthread_once_t device_list_once = PTHREAD_ONCE_INIT;
- static int num_devices;
- static struct ibv_device **device_list;
-diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
-index 5fd1affa455d..78e92b95c3ca 100644
---- a/libibverbs/examples/devinfo.c
-+++ b/libibverbs/examples/devinfo.c
-@@ -283,7 +283,7 @@ static void print_device_cap_flags(uint32_t dev_cap_flags)
- 		       dev_cap_flags & unknown_flags);
+ 	if (send_termination_ack(0))
+ 		return 1;
+@@ -364,7 +364,7 @@ static int pp_client_termination()
+ 	return 0;
  }
  
--void print_odp_trans_caps(uint32_t trans)
-+static void print_odp_trans_caps(uint32_t trans)
- {
- 	uint32_t unknown_transport_caps = ~(IBV_ODP_SUPPORT_SEND |
- 					    IBV_ODP_SUPPORT_RECV |
-@@ -310,7 +310,7 @@ void print_odp_trans_caps(uint32_t trans)
- 	}
- }
- 
--void print_odp_caps(const struct ibv_odp_caps *caps)
-+static void print_odp_caps(const struct ibv_odp_caps *caps)
- {
- 	uint64_t unknown_general_caps = ~(IBV_ODP_SUPPORT);
- 
-diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
-index aca7bac4491b..7c70457183d9 100644
---- a/libibverbs/examples/rc_pingpong.c
-+++ b/libibverbs/examples/rc_pingpong.c
-@@ -78,7 +78,7 @@ struct pingpong_context {
- 	uint64_t		 completion_timestamp_mask;
- };
- 
--struct ibv_cq *pp_cq(struct pingpong_context *ctx)
-+static struct ibv_cq *pp_cq(struct pingpong_context *ctx)
- {
- 	return use_ts ? ibv_cq_ex_to_cq(ctx->cq_s.cq_ex) :
- 		ctx->cq_s.cq;
-@@ -496,7 +496,7 @@ clean_ctx:
- 	return NULL;
- }
- 
--int pp_close_ctx(struct pingpong_context *ctx)
-+static int pp_close_ctx(struct pingpong_context *ctx)
- {
- 	if (ibv_destroy_qp(ctx->qp)) {
- 		fprintf(stderr, "Couldn't destroy QP\n");
-diff --git a/libibverbs/examples/srq_pingpong.c b/libibverbs/examples/srq_pingpong.c
-index 8f55d78e87d4..e2993bfdacbf 100644
---- a/libibverbs/examples/srq_pingpong.c
-+++ b/libibverbs/examples/srq_pingpong.c
-@@ -497,7 +497,7 @@ clean_ctx:
- 	return NULL;
- }
- 
--int pp_close_ctx(struct pingpong_context *ctx, int num_qp)
-+static int pp_close_ctx(struct pingpong_context *ctx, int num_qp)
+-static int pp_server_termination()
++static int pp_server_termination(void)
  {
  	int i;
  
-diff --git a/libibverbs/examples/uc_pingpong.c b/libibverbs/examples/uc_pingpong.c
-index b565bacaff2a..3220cccd633b 100644
---- a/libibverbs/examples/uc_pingpong.c
-+++ b/libibverbs/examples/uc_pingpong.c
-@@ -426,7 +426,7 @@ clean_ctx:
- 	return NULL;
- }
+diff --git a/librdmacm/cma.h b/librdmacm/cma.h
+index c2f603d6f439..1610e178dfdb 100644
+--- a/librdmacm/cma.h
++++ b/librdmacm/cma.h
+@@ -138,8 +138,8 @@ extern int af_ib_support;
  
--int pp_close_ctx(struct pingpong_context *ctx)
-+static int pp_close_ctx(struct pingpong_context *ctx)
- {
- 	if (ibv_destroy_qp(ctx->qp)) {
- 		fprintf(stderr, "Couldn't destroy QP\n");
-diff --git a/libibverbs/examples/ud_pingpong.c b/libibverbs/examples/ud_pingpong.c
-index ddb68cf8624b..e6a419c4d588 100644
---- a/libibverbs/examples/ud_pingpong.c
-+++ b/libibverbs/examples/ud_pingpong.c
-@@ -438,7 +438,7 @@ clean_ctx:
- 	return NULL;
- }
+ #define RAI_ROUTEONLY		0x01000000
  
--int pp_close_ctx(struct pingpong_context *ctx)
-+static int pp_close_ctx(struct pingpong_context *ctx)
- {
- 	if (ibv_destroy_qp(ctx->qp)) {
- 		fprintf(stderr, "Couldn't destroy QP\n");
-diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
-index b470ba043658..7c5b1dd501bb 100644
---- a/libibverbs/verbs.c
-+++ b/libibverbs/verbs.c
-@@ -130,6 +130,8 @@ enum ibv_rate mbps_to_ibv_rate(int mbps)
- 	}
- }
+-void ucma_ib_init();
+-void ucma_ib_cleanup();
++void ucma_ib_init(void);
++void ucma_ib_cleanup(void);
+ void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints);
  
-+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-+
- int __ibv_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *device_attr)
- {
+ struct ib_connect_hdr {
 -- 
 2.1.4
 
