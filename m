@@ -1,159 +1,203 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/4] rpm spec: install documentation too
-Date: Fri, 14 Oct 2016 16:52:04 -0600
-Message-ID: <20161014225204.GB16509@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
+ infrastructure bits
+Date: Fri, 14 Oct 2016 17:19:34 -0600
+Message-ID: <20161014231934.GC16509@obsidianresearch.com>
 References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-2-jarod@redhat.com>
+ <20161014192136.11731-3-jarod@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161014192136.11731-2-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161014192136.11731-3-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 14, 2016 at 03:21:33PM -0400, Jarod Wilson wrote:
-> At least in the Red Hat world, we like to install the documentation files
-> provided in a given source tree.
+On Fri, Oct 14, 2016 at 03:21:34PM -0400, Jarod Wilson wrote:
+> Red Hat has been shipping an "rdma" package, as well as it's own systemd
+> unit files for some daemons for a while now, in both Fedora and Red Hat
+> Enterprise Linux. Some of these are fairly RH-specific, but might be of
+> use to others, so we'd like to move them into the upstream source tree.
 
-I think other distros would like to do this too, can you use this
-patch instead?
+We have a directory called 'debian', so lets just have one called
+'redhat'..
 
->From a23838ccc05574b1975741770abcbd66f7587293 Mon Sep 17 00:00:00 2001
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Date: Fri, 14 Oct 2016 15:21:33 -0400
-Subject: [PATCH] Install end user focused documentation files
+The below comments are my view on what we should try and move into
+common cross-distro locations..
 
-We recommend that all distros ship these.
+Common stuff should be installed via cmake
 
-Suggested-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- CMakeLists.txt                   | 3 ++-
- Documentation/CMakeLists.txt     | 8 ++++++++
- debian/ibacm.install             | 1 +
- debian/ibverbs-providers.install | 1 +
- debian/libibcm1.install          | 1 +
- debian/libibverbs1.install       | 1 +
- debian/librdmacm1.install        | 1 +
- debian/srptools.install          | 1 +
- rdma-core.spec                   | 4 +++-
- 9 files changed, 19 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/CMakeLists.txt
+> diff --git a/glue/redhat/ibacm.service b/glue/redhat/ibacm.service
+> new file mode 100644
+> index 0000000..1cd031a
+> +++ b/glue/redhat/ibacm.service
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a23aa860e6d3f2..6d2960e22b77b2 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -21,7 +21,7 @@
- #      Use the historical search path for providers, in the standard system library.
- 
- cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
--project(RDMA C)
-+project(rdma-core C)
- 
- # CMake likes to use -rdynamic too much, they fixed it in 3.4.
- if(POLICY CMP0065)
-@@ -321,6 +321,7 @@ configure_file("${BUILDLIB}/config.h.in" "${BUILD_INCLUDE}/config.h" ESCAPE_QUOT
- # Sub-directories
- add_subdirectory(ccan)
- add_subdirectory(util)
-+add_subdirectory(Documentation)
- # Libraries
- add_subdirectory(libibumad)
- add_subdirectory(libibumad/man)
-diff --git a/Documentation/CMakeLists.txt b/Documentation/CMakeLists.txt
-new file mode 100644
-index 00000000000000..619b8587f11f11
---- /dev/null
-+++ b/Documentation/CMakeLists.txt
-@@ -0,0 +1,8 @@
-+install(FILES
-+  ibacm.md
-+  ibsrpdm.md
-+  libibcm.md
-+  libibverbs.md
-+  librdmacm.md
-+  rxe.md
-+  DESTINATION "${CMAKE_INSTALL_DOCDIR}")
-diff --git a/debian/ibacm.install b/debian/ibacm.install
-index 2bb9591c051dbe..f2a6c53eb79d02 100644
---- a/debian/ibacm.install
-+++ b/debian/ibacm.install
-@@ -8,3 +8,4 @@ usr/share/man/man1/ib_acme.1
- usr/share/man/man1/ibacm.1
- usr/share/man/man7/ibacm.7
- usr/share/man/man7/ibacm_prov.7
-+usr/share/doc/rdma-core/ibacm.md usr/share/doc/ibacm/
-diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
-index 1b4121874b2cc1..7458540b37714d 100644
---- a/debian/ibverbs-providers.install
-+++ b/debian/ibverbs-providers.install
-@@ -5,3 +5,4 @@ usr/lib/truescale-serdes.cmds
- usr/share/man/man8/rxe_cfg.8
- usr/share/man/man7/rxe.7
- usr/bin/rxe_cfg
-+usr/share/doc/rdma-core/rxe.md usr/share/doc/ibverbs-providers/
-diff --git a/debian/libibcm1.install b/debian/libibcm1.install
-index 6f270b7f3bfac3..a0ace6ebf2eac3 100644
---- a/debian/libibcm1.install
-+++ b/debian/libibcm1.install
-@@ -1 +1,2 @@
- usr/lib/*/libibcm*.so.*
-+usr/share/doc/rdma-core/libibcm.md usr/share/doc/libibcm1/
-diff --git a/debian/libibverbs1.install b/debian/libibverbs1.install
-index 78a7f76d39c3e4..83bdd802b48d5c 100644
---- a/debian/libibverbs1.install
-+++ b/debian/libibverbs1.install
-@@ -1 +1,2 @@
- usr/lib/*/libibverbs*.so.*
-+usr/share/doc/rdma-core/libibverbs.md usr/share/doc/libibverbs1/
-diff --git a/debian/librdmacm1.install b/debian/librdmacm1.install
-index c17048e6e46307..09140ab84de7dc 100644
---- a/debian/librdmacm1.install
-+++ b/debian/librdmacm1.install
-@@ -1,2 +1,3 @@
- usr/lib/*/librdmacm*.so.*
- usr/lib/*/rsocket/librspreload*.so*
-+usr/share/doc/rdma-core/librdmacm.md usr/share/doc/librdmacm1/
-diff --git a/debian/srptools.install b/debian/srptools.install
-index 17b909d721a978..9c0701526e3cd8 100644
---- a/debian/srptools.install
-+++ b/debian/srptools.install
-@@ -6,3 +6,4 @@ usr/sbin/ibsrpdm
- usr/sbin/srp_daemon
- usr/share/man/man1/ibsrpdm.1
- usr/share/man/man1/srp_daemon.1
-+usr/share/doc/rdma-core/ibsrpdm.md usr/share/doc/srptools/
-diff --git a/rdma-core.spec b/rdma-core.spec
-index 96c86fe06f3ae9..47b7d87e403219 100644
---- a/rdma-core.spec
-+++ b/rdma-core.spec
-@@ -85,7 +85,8 @@ This is a simple example without the split sub packages to get things started.
-          -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
- 	 -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{my_unitdir} \
- 	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
--	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir}
-+	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
-+	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version}
- %make_jobs
- 
- %install
-@@ -110,6 +111,7 @@ rm -rf %{buildroot}/%{my_unitdir}/
- %{_libdir}/rsocket/*
- %{_sbindir}/*
- %{_libexecdir}/*
-+%{_docdir}/%{name}-%{version}/*
- %if 0%{?_unitdir:1}
- %{_unitdir}/*
- %else
--- 
-2.7.4
+Can we just put this in ibacm/ ?
 
+> +Requires=rdma.service
+> +After=rdma.service opensm.service
 
+This is the only RH specific thiing I see.. Could we standardize on
+something here and use it on all distros? rdma-available.target?
 
+> +++ b/glue/redhat/iwpmd.service
+> @@ -0,0 +1,12 @@
+> +[Unit]
+> +Description=Starts the IWPMD daemon
+> +Documentation=file:///usr/share/doc/iwpmd/README
+
+File does not exit? There is a man page now
+
+We already have a iwpmd/iwpmd.service that is almost identical, can you
+you just update it and drop this version?
+
+> +++ b/glue/redhat/rdma.cxgb3.sys.modprobe
+> @@ -0,0 +1 @@
+> +install cxgb3 /sbin/modprobe --ignore-install cxgb3 $CMDLINE_OPTS && /sbin/modprobe iw_cxgb3
+> diff --git a/glue/redhat/rdma.cxgb4.sys.modprobe b/glue/redhat/rdma.cxgb4.sys.modprobe
+> new file mode 100644
+> index 0000000..44163ab
+> +++ b/glue/redhat/rdma.cxgb4.sys.modprobe
+> @@ -0,0 +1 @@
+> +install cxgb4 /sbin/modprobe --ignore-install cxgb4 $CMDLINE_OPTS && /sbin/modprobe iw_cxgb4
+
+What are these for? Should they be cross distro? Why are only a few
+drivers this special?
+
+> +++ b/glue/redhat/rdma.fixup-mtrr.awk
+> @@ -0,0 +1,160 @@
+> +# This is a simple script that checks the contents of /proc/mtrr to see if
+> +# the BIOS maker for the computer took the easy way out in terms of
+> +# specifying memory regions when there is a hole below 4GB for PCI access
+> +# and the machine has 4GB or more of RAM.  When the contents of /proc/mtrr
+> +# show a 4GB mapping of write-back cached RAM, minus punch out hole(s) of
+> +# uncacheable regions (the area reserved for PCI access), then it becomes
+> +# impossible for the ib_ipath driver to set write_combining on its PIO
+> +# buffers.  To correct the problem, remap the lower memory region in various
+> +# chunks up to the start of the punch out hole(s), then delete the punch out
+> +# hole(s) entirely as they aren't needed any more.  That way, ib_ipath will
+> +# be able to set write_combining on its PIO memory access region.
+
+Yuk, a thousand times yuk.
+
+I thought the mtrr cleanup built into modern kernel took care of this?
+
+Really though, this needs to be fixed upstream in the kernel :|
+
+> diff --git a/glue/redhat/rdma.kernel-init b/glue/redhat/rdma.kernel-init
+> new file mode 100644
+> index 0000000..6cb4732
+> +++ b/glue/redhat/rdma.kernel-init
+
+I wonder if this could be split into a generic 'load the modules' part
+and a distro specific part? Every distro needs systemd to load the
+extra modules because out auto-loading is broken - IMHO, and that is
+pretty complex unfortunately.
+
+> +errata_58()
+> +{
+> +    # Check AMD chipset issue Errata #58
+> +    if test -x /sbin/lspci && test -x /sbin/setpci; then
+> +	if ( /sbin/lspci -nd 1022:1100 | grep "1100" > /dev/null ) &&
+> +	   ( /sbin/lspci -nd 1022:7450 | grep "7450" > /dev/null ) &&
+> +	   ( /sbin/lspci -nd 15b3:5a46 | grep "5a46" > /dev/null ); then
+> +	    CURVAL=`/sbin/setpci -d 1022:1100 69`
+
+Another yuk. Why isn't this handled upstream in drivers/pci/quirks.c
+with the rest of the 8131 errata?
+
+Fortunately I expect all 8131 hardware is long since gone, that chip
+was end-of-manufacturing'd very quickly 2003ish IIRC.
+
+> +++ b/glue/redhat/rdma.service
+> @@ -0,0 +1,15 @@
+> +[Unit]
+> +Description=Initialize the iWARP/InfiniBand/RDMA stack in the kernel
+> +Documentation=file:/etc/rdma/rdma.conf
+> +RefuseManualStop=true
+> +DefaultDependencies=false
+> +Conflicts=emergency.target emergency.service
+> +Before=network.target remote-fs-pre.target
+
+This is an area we really need to cross-distro standardize - we really
+need a set of rdma-*.targets.
+
+eg
+ rdma-available.target
+   - RDMA hardware is available and all prep is done
+     opensm (if installed) is started, etc
+     Use in place of rdma.service
+  rdma-detected.target
+   - udev detected rdma hardware
+
+> +++ b/glue/redhat/rdma.udev-ipoib-naming.rules
+> @@ -0,0 +1,13 @@
+> +# This is a sample udev rules file that demonstrates how to get udev to
+> +# set the name of IPoIB interfaces to whatever you wish.  There is a
+> +# 16 character limit on network device names though, so don't go too nuts
+> +#
+> +# Important items to note: ATTR{type}=="32" is IPoIB interfaces, and the
+> +# ATTR{address} match must start with ?* and only reference the last 8
+> +# bytes of the address or else the address might not match on any given
+> +# start of the IPoIB stack
+> +#
+> +# Note: as of rhel7, udev is case sensitive on the address field match
+> +# and all addresses need to be in lower case.
+> +#
+> +# ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{type}=="32", ATTR{address}=="?*00:02:c9:03:00:31:78:f2", NAME="mlx4_ib3"
+
+This should be a cross distro file.
+
+> +++ b/glue/redhat/rdma.udev-rules
+> @@ -0,0 +1,18 @@
+> +# We list all the various kernel modules that drive hardware in the
+> +# InfiniBand stack (and a few in the network stack that might not actually
+> +# be RDMA capable, but we don't know that at this time and it's safe to
+> +# enable the IB stack, so do so unilaterally) and on load of any of that
+> +# hardware, we trigger the rdma.service load in systemd
+> +
+> +SUBSYSTEM=="module", KERNEL=="cxgb*", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma.service"
+> +SUBSYSTEM=="module", KERNEL=="ib_*", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma.service"
+> +SUBSYSTEM=="module", KERNEL=="mlx*", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma.service"
+> +SUBSYSTEM=="module", KERNEL=="iw_*", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma.service"
+> +SUBSYSTEM=="module", KERNEL=="be2net", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma.service"
+> +SUBSYSTEM=="module", KERNEL=="enic", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma.service"
+
+Also cross distro
+
+> +# When we detect a new verbs device is added to the system, set the node
+> +# description on that device
+> +# If rdma-ndd is installed, defer the setting of the node description to it.
+> +SUBSYSTEM=="infiniband", KERNEL=="*", ACTION=="add", TEST!="/usr/sbin/rdma-ndd", RUN+="/bin/bash -c 'sleep 1; echo -n `hostname -s` %k > /sys/class/infiniband/%k/node_desc'"
+
+Shouldn't this udev drop-in by in the rdma-ndd package?
+
+> +++ b/glue/redhat/srp_daemon.service
+> @@ -0,0 +1,17 @@
+> +[Unit]
+> +Description=Start or stop the daemon that attaches to SRP devices
+> +Documentation=file:///etc/rdma/rdma.conf file:///etc/srp_daemon.conf
+> +DefaultDependencies=false
+> +Conflicts=emergency.target emergency.service
+> +Requires=rdma.service
+> +Wants=opensm.service
+> +After=rdma.service opensm.service
+> +After=network.target
+> +Before=remote-fs-pre.target
+
+Also should be common, why does it reference opensm.service?
+
+> +
+> +[Service]
+> +Type=simple
+> +ExecStart=/usr/sbin/srp_daemon.sh
+
+Hurm, someday we have to make better systemd integration for these
+daemons..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
