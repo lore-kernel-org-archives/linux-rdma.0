@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 4/8] Enable -Wredundant-decls
-Date: Fri, 14 Oct 2016 16:14:13 -0600
-Message-ID: <1476483257-16308-5-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 1/8] rdmacm: constify rdma_getaddrinfo public function
+Date: Fri, 14 Oct 2016 16:14:10 -0600
+Message-ID: <1476483257-16308-2-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1476483257-16308-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476483257-16308-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,124 +10,123 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is useful to detect possible confusion/mistakes around function
-prototypes.
-
-Old libnl includes such a mistake so this warning is only turned on with
-new distros.
+Like getaddrinfo most of the arguments should be const.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- CMakeLists.txt        | 20 ++++++++++++++++++++
- ibacm/src/acm_util.h  |  4 ++--
- libibverbs/neigh.c    |  3 ---
- librdmacm/preload.c   |  2 --
- providers/mlx4/mlx4.h |  6 ------
- 5 files changed, 22 insertions(+), 13 deletions(-)
+ librdmacm/acm.c                  |  3 ++-
+ librdmacm/addrinfo.c             | 14 ++++++++------
+ librdmacm/cma.h                  |  3 ++-
+ librdmacm/man/rdma_getaddrinfo.3 |  6 +++---
+ librdmacm/rdma_cma.h             |  4 ++--
+ 5 files changed, 17 insertions(+), 13 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 58de78d6cde0..bd58a7039618 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -269,6 +269,23 @@ endif()
- RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WSTRICT_PROTOTYPES "-Wstrict-prototypes")
- RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WOLD_STYLE_DEFINITION "-Wold-style-definition")
+diff --git a/librdmacm/acm.c b/librdmacm/acm.c
+index ad6706b2592e..ccd5494c631d 100644
+--- a/librdmacm/acm.c
++++ b/librdmacm/acm.c
+@@ -363,7 +363,8 @@ static int ucma_ib_addr(struct sockaddr *addr, socklen_t len)
+ 	return len && addr && (addr->sa_family == AF_IB);
+ }
  
-+# Old versions of libnl have a duplicated rtnl_route_put, disbale the warning on those
-+# systems
-+if (NOT NL_KIND EQUAL 0)
-+  set(SAFE_CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")
-+  set(SAFE_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
-+  set(CMAKE_REQUIRED_INCLUDES "${NL_INCLUDE_DIRS}")
-+  set(CMAKE_REQUIRED_FLAGS "-Wredundant-decls")
-+  CHECK_C_SOURCE_COMPILES("
-+ #include <netlink/route/route.h>
-+ int main(int argc,const char *argv[]) { return 0; }"
-+  HAVE_C_WREDUNDANT_DECLS
-+  FAIL_REGEX "warning")
-+  set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
-+  set(CMAKE_REQUIRED_FLAGS "${SAFE_CMAKE_REQUIRED_FLAGS}")
-+endif()
-+RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WREDUNDANT_DECLS "-Wredundant-decls")
-+
- #-------------------------
- # Build Prep
- # Write out a git ignore file to the build directory if it isn't the source
-@@ -354,3 +371,6 @@ endif()
- if (NOT HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS)
-   message(STATUS " -Wmissing-field-initializers does NOT work")
- endif()
-+if (NOT HAVE_C_WREDUNDANT_DECLS)
-+  message(STATUS " -Wredundant-decls does NOT work")
-+endif()
-diff --git a/ibacm/src/acm_util.h b/ibacm/src/acm_util.h
-index 055122cbeb86..a83d915f13e8 100644
---- a/ibacm/src/acm_util.h
-+++ b/ibacm/src/acm_util.h
-@@ -31,17 +31,17 @@
- #define ACM_IF_H
- 
- #include <infiniband/verbs.h>
-+#include <infiniband/acm_prov.h>
- 
- #ifdef ACME_PRINTS
- 
-+#undef acm_log
- #define acm_log(level, format, ...) \
- 	printf(format, ## __VA_ARGS__)
- 
- #else /* !ACME_PRINTS */
- #define acm_log(level, format, ...) \
- 	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
--
--void acm_write(int level, const char *format, ...);
- #endif /* ACME_PRINTS */
- 
- int acm_if_is_ib(char *ifname);
-diff --git a/libibverbs/neigh.c b/libibverbs/neigh.c
-index 67a83eb0fd27..1856aab74842 100644
---- a/libibverbs/neigh.c
-+++ b/libibverbs/neigh.c
-@@ -36,9 +36,6 @@ extern unsigned int if_nametoindex(__const char *__ifname) __THROW;
- #define MAX(a, b) ((a) > (b) ? (a) : (b))
- #define MIN(a, b) ((a) < (b) ? (a) : (b))
- 
--/* Workaround - declaration missing */
--extern int		rtnl_link_vlan_get_id(struct rtnl_link *);
--
- #ifndef HAVE_LIBNL1
- #include <netlink/route/link/vlan.h>
- #endif
-diff --git a/librdmacm/preload.c b/librdmacm/preload.c
-index cf258bf8eb3a..c924f499b7c7 100644
---- a/librdmacm/preload.c
-+++ b/librdmacm/preload.c
-@@ -132,8 +132,6 @@ struct config_entry {
- 
- static struct config_entry *config;
- static int config_cnt;
--extern char *program_invocation_short_name;
--
- 
- static void free_config(void)
+-void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints)
++void ucma_ib_resolve(struct rdma_addrinfo **rai,
++		     const struct rdma_addrinfo *hints)
  {
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index a2d39e169c15..b851e953c36b 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -85,12 +85,6 @@ struct mlx4_xsrq_table {
- 	int			  mask;
- };
+ 	struct acm_msg msg;
+ 	struct acm_ep_addr_data *data;
+diff --git a/librdmacm/addrinfo.c b/librdmacm/addrinfo.c
+index 2c515a257a27..ac346438a6d0 100644
+--- a/librdmacm/addrinfo.c
++++ b/librdmacm/addrinfo.c
+@@ -45,7 +45,8 @@
  
--void mlx4_init_xsrq_table(struct mlx4_xsrq_table *xsrq_table, int size);
--struct mlx4_srq *mlx4_find_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
--int mlx4_store_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn,
--		    struct mlx4_srq *srq);
--void mlx4_clear_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
--
- enum {
- 	MLX4_XRC_QPN_BIT     = (1 << 23)
- };
+ static struct rdma_addrinfo nohints;
+ 
+-static void ucma_convert_to_ai(struct addrinfo *ai, struct rdma_addrinfo *rai)
++static void ucma_convert_to_ai(struct addrinfo *ai,
++			       const struct rdma_addrinfo *rai)
+ {
+ 	memset(ai, 0, sizeof(*ai));
+ 	if (rai->ai_flags & RAI_PASSIVE)
+@@ -141,7 +142,8 @@ static int ucma_convert_in6(int ps, struct sockaddr_ib **dst, socklen_t *dst_len
+ }
+ 
+ static int ucma_convert_to_rai(struct rdma_addrinfo *rai,
+-			       struct rdma_addrinfo *hints, struct addrinfo *ai)
++			       const struct rdma_addrinfo *hints,
++			       const struct addrinfo *ai)
+ {
+ 	int ret;
+ 
+@@ -210,8 +212,8 @@ static int ucma_convert_to_rai(struct rdma_addrinfo *rai,
+ 	return ret;
+ }
+ 
+-static int ucma_getaddrinfo(char *node, char *service,
+-			    struct rdma_addrinfo *hints,
++static int ucma_getaddrinfo(const char *node, const char *service,
++			    const struct rdma_addrinfo *hints,
+ 			    struct rdma_addrinfo *rai)
+ {
+ 	struct addrinfo ai_hints;
+@@ -232,8 +234,8 @@ static int ucma_getaddrinfo(char *node, char *service,
+ 	return ret;
+ }
+ 
+-int rdma_getaddrinfo(char *node, char *service,
+-		     struct rdma_addrinfo *hints,
++int rdma_getaddrinfo(const char *node, const char *service,
++		     const struct rdma_addrinfo *hints,
+ 		     struct rdma_addrinfo **res)
+ {
+ 	struct rdma_addrinfo *rai;
+diff --git a/librdmacm/cma.h b/librdmacm/cma.h
+index 1610e178dfdb..6fe786052dff 100644
+--- a/librdmacm/cma.h
++++ b/librdmacm/cma.h
+@@ -140,7 +140,8 @@ extern int af_ib_support;
+ 
+ void ucma_ib_init(void);
+ void ucma_ib_cleanup(void);
+-void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints);
++void ucma_ib_resolve(struct rdma_addrinfo **rai,
++		     const struct rdma_addrinfo *hints);
+ 
+ struct ib_connect_hdr {
+ 	uint8_t  cma_version;
+diff --git a/librdmacm/man/rdma_getaddrinfo.3 b/librdmacm/man/rdma_getaddrinfo.3
+index cd819c6cdf42..9e133ffea0a5 100644
+--- a/librdmacm/man/rdma_getaddrinfo.3
++++ b/librdmacm/man/rdma_getaddrinfo.3
+@@ -5,9 +5,9 @@ rdma_getaddrinfo \- Provides transport independent address translation.
+ .B "#include <rdma/rdma_cma.h>"
+ .P
+ .B "int" rdma_getaddrinfo
+-.BI "(char *" node ","
+-.BI "char *" service ","
+-.BI "struct rdma_addrinfo *" hints ","
++.BI "(const char *" node ","
++.BI "const char *" service ","
++.BI "const struct rdma_addrinfo *" hints ","
+ .BI "struct rdma_addrinfo **" res ");"
+ .SH ARGUMENTS
+ .IP "node" 12
+diff --git a/librdmacm/rdma_cma.h b/librdmacm/rdma_cma.h
+index 2055665a1496..45c492ab6217 100644
+--- a/librdmacm/rdma_cma.h
++++ b/librdmacm/rdma_cma.h
+@@ -668,8 +668,8 @@ int rdma_migrate_id(struct rdma_cm_id *id, struct rdma_event_channel *channel);
+ /**
+  * rdma_getaddrinfo - RDMA address and route resolution service.
+  */
+-int rdma_getaddrinfo(char *node, char *service,
+-		     struct rdma_addrinfo *hints,
++int rdma_getaddrinfo(const char *node, const char *service,
++		     const struct rdma_addrinfo *hints,
+ 		     struct rdma_addrinfo **res);
+ 
+ void rdma_freeaddrinfo(struct rdma_addrinfo *res);
 -- 
 2.1.4
 
