@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 6/8] acm: Fix format string usage with acm_log
-Date: Fri, 14 Oct 2016 16:14:15 -0600
-Message-ID: <1476483257-16308-7-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 4/8] Enable -Wredundant-decls
+Date: Fri, 14 Oct 2016 16:14:13 -0600
+Message-ID: <1476483257-16308-5-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1476483257-16308-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1476483257-16308-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,204 +10,124 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enable format string checking for acm_write and clean up everything.
+This is useful to detect possible confusion/mistakes around function
+prototypes.
+
+Old libnl includes such a mistake so this warning is only turned on with
+new distros.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- ibacm/include/infiniband/acm_prov.h |  3 ++-
- ibacm/prov/acmp/src/acmp.c          | 26 ++++++++++++++------------
- ibacm/src/acm.c                     | 15 ++++++++-------
- 3 files changed, 24 insertions(+), 20 deletions(-)
+ CMakeLists.txt        | 20 ++++++++++++++++++++
+ ibacm/src/acm_util.h  |  4 ++--
+ libibverbs/neigh.c    |  3 ---
+ librdmacm/preload.c   |  2 --
+ providers/mlx4/mlx4.h |  6 ------
+ 5 files changed, 22 insertions(+), 13 deletions(-)
 
-diff --git a/ibacm/include/infiniband/acm_prov.h b/ibacm/include/infiniband/acm_prov.h
-index 00baf582b74e..adfcf8162b8c 100644
---- a/ibacm/include/infiniband/acm_prov.h
-+++ b/ibacm/include/infiniband/acm_prov.h
-@@ -85,7 +85,8 @@ int provider_query(struct acm_provider **info, uint32_t *version);
- /* Functions exported from core */
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 58de78d6cde0..bd58a7039618 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -269,6 +269,23 @@ endif()
+ RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WSTRICT_PROTOTYPES "-Wstrict-prototypes")
+ RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WOLD_STYLE_DEFINITION "-Wold-style-definition")
+ 
++# Old versions of libnl have a duplicated rtnl_route_put, disbale the warning on those
++# systems
++if (NOT NL_KIND EQUAL 0)
++  set(SAFE_CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")
++  set(SAFE_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
++  set(CMAKE_REQUIRED_INCLUDES "${NL_INCLUDE_DIRS}")
++  set(CMAKE_REQUIRED_FLAGS "-Wredundant-decls")
++  CHECK_C_SOURCE_COMPILES("
++ #include <netlink/route/route.h>
++ int main(int argc,const char *argv[]) { return 0; }"
++  HAVE_C_WREDUNDANT_DECLS
++  FAIL_REGEX "warning")
++  set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
++  set(CMAKE_REQUIRED_FLAGS "${SAFE_CMAKE_REQUIRED_FLAGS}")
++endif()
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WREDUNDANT_DECLS "-Wredundant-decls")
++
+ #-------------------------
+ # Build Prep
+ # Write out a git ignore file to the build directory if it isn't the source
+@@ -354,3 +371,6 @@ endif()
+ if (NOT HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS)
+   message(STATUS " -Wmissing-field-initializers does NOT work")
+ endif()
++if (NOT HAVE_C_WREDUNDANT_DECLS)
++  message(STATUS " -Wredundant-decls does NOT work")
++endif()
+diff --git a/ibacm/src/acm_util.h b/ibacm/src/acm_util.h
+index 055122cbeb86..a83d915f13e8 100644
+--- a/ibacm/src/acm_util.h
++++ b/ibacm/src/acm_util.h
+@@ -31,17 +31,17 @@
+ #define ACM_IF_H
+ 
+ #include <infiniband/verbs.h>
++#include <infiniband/acm_prov.h>
+ 
+ #ifdef ACME_PRINTS
+ 
++#undef acm_log
+ #define acm_log(level, format, ...) \
+ 	printf(format, ## __VA_ARGS__)
+ 
+ #else /* !ACME_PRINTS */
  #define acm_log(level, format, ...) \
  	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
--extern void acm_write(int level, const char *format, ...);
-+extern void acm_write(int level, const char *format, ...)
-+    __attribute__((format(printf, 2, 3)));
- extern void acm_format_name(int level, char *name, size_t name_size,
- 	uint8_t addr_type, const uint8_t *addr, size_t addr_size);
+-
+-void acm_write(int level, const char *format, ...);
+ #endif /* ACME_PRINTS */
  
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index 9ec7db44b0d1..fd579dff9d4e 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -55,6 +55,7 @@
- #include <netinet/in.h>
- #include <linux/netlink.h>
- #include <linux/rtnetlink.h>
-+#include <inttypes.h>
- #include "acm_util.h"
- #include "acm_mad.h"
+ int acm_if_is_ib(char *ifname);
+diff --git a/libibverbs/neigh.c b/libibverbs/neigh.c
+index 67a83eb0fd27..1856aab74842 100644
+--- a/libibverbs/neigh.c
++++ b/libibverbs/neigh.c
+@@ -36,9 +36,6 @@ extern unsigned int if_nametoindex(__const char *__ifname) __THROW;
+ #define MAX(a, b) ((a) > (b) ? (a) : (b))
+ #define MIN(a, b) ((a) < (b) ? (a) : (b))
  
-@@ -383,7 +384,7 @@ acmp_acquire_dest(struct acmp_ep *ep, uint8_t addr_type, const uint8_t *addr)
- 			acmp_remove_dest(ep, dest);
- 			dest = NULL;
- 		} else {
--			acm_log(2, "Record valid for the next %ld minute(s)\n",
-+			acm_log(2, "Record valid for the next %" PRId64 " minute(s)\n",
- 				rec_expr_minutes);
- 		}
- 	}
-@@ -411,7 +412,7 @@ static struct acmp_request *acmp_alloc_req(uint64_t id, struct acm_msg *msg)
- 
- 	req->id = id;
- 	memcpy(&req->msg, msg, sizeof(req->msg));
--	acm_log(2, "id %llu, req %p\n", id, req);
-+	acm_log(2, "id %" PRIu64 ", req %p\n", id, req);
- 	return req;
- }
- 
-@@ -935,7 +936,7 @@ acmp_resolve_response(uint64_t id, struct acm_msg *req_msg,
- {
- 	struct acm_msg msg;
- 
--	acm_log(2, "client %lld, status 0x%x\n", id, status);
-+	acm_log(2, "client %" PRIu64 ", status 0x%x\n", id, status);
- 	memset(&msg, 0, sizeof msg);
- 
- 	if (dest) {
-@@ -981,7 +982,7 @@ acmp_complete_queued_req(struct acmp_dest *dest, uint8_t status)
- 		req = container_of(entry, struct acmp_request, entry);
- 		lock_release(&dest->lock);
- 
--		acm_log(2, "completing request, client %d\n", req->id);
-+		acm_log(2, "completing request, client %" PRIu64 "\n", req->id);
- 		acmp_resolve_response(req->id, &req->msg, dest, status);
- 		acmp_free_req(req);
- 
-@@ -1016,7 +1017,8 @@ acmp_dest_sa_resp(struct acm_sa_mad *mad)
- 		acmp_init_path_av(dest->ep->port, dest);
- 		dest->addr_timeout = time_stamp_min() + (unsigned) addr_timeout;
- 		dest->route_timeout = time_stamp_min() + (unsigned) route_timeout;
--		acm_log(2, "timeout addr %llu route %llu\n", dest->addr_timeout, dest->route_timeout);
-+		acm_log(2, "timeout addr %" PRIu64 " route %" PRIu64 "\n",
-+			dest->addr_timeout, dest->route_timeout);
- 		dest->state = ACMP_READY;
- 	} else {
- 		dest->state = ACMP_INIT;
-@@ -1726,7 +1728,7 @@ static uint8_t acmp_queue_req(struct acmp_dest *dest, uint64_t id, struct acm_ms
- {
- 	struct acmp_request *req;
- 
--	acm_log(2, "id %llu\n", id);
-+	acm_log(2, "id %" PRIu64 "\n", id);
- 	req = acmp_alloc_req(id, msg);
- 	if (!req) {
- 		return ACM_STATUS_ENOMEM;
-@@ -2446,8 +2448,8 @@ static struct acmp_port *acmp_get_port(struct acm_endpoint *endpoint)
- 	struct acmp_device *dev;
- 	DLIST_ENTRY *dev_entry;
- 
--	acm_log(1, "dev 0x%llx port %d pkey 0x%x\n",
--		endpoint->port->dev->dev_guid, endpoint->port->port_num, 
-+	acm_log(1, "dev 0x%" PRIx64 " port %d pkey 0x%x\n",
-+		endpoint->port->dev->dev_guid, endpoint->port->port_num,
- 		endpoint->pkey);
- 	for (dev_entry = acmp_dev_list.Next; dev_entry != &acmp_dev_list;
- 	     dev_entry = dev_entry->Next) {
-@@ -2466,7 +2468,7 @@ acmp_get_ep(struct acmp_port *port, struct acm_endpoint *endpoint)
- 	struct acmp_ep *ep;
- 	DLIST_ENTRY *entry;
- 
--	acm_log(1, "dev 0x%llx port %d pkey 0x%x\n",
-+	acm_log(1, "dev 0x%" PRIx64 " port %d pkey 0x%x\n",
- 		endpoint->port->dev->dev_guid, endpoint->port->port_num, endpoint->pkey);
- 	for (entry = port->ep_list.Next; entry != &port->ep_list;
- 	     entry = entry->Next) {
-@@ -2769,7 +2771,7 @@ static int acmp_open_dev(const struct acm_device *device, void **dev_context)
- 	DLIST_ENTRY *dev_entry;
- 	struct ibv_context *verbs;
- 
--	acm_log(1, "dev_guid 0x%llx %s\n", device->dev_guid, 
-+	acm_log(1, "dev_guid 0x%" PRIx64 " %s\n", device->dev_guid,
- 		device->verbs->device->name);
- 
- 	for (dev_entry = acmp_dev_list.Next; dev_entry != &acmp_dev_list;
-@@ -2777,7 +2779,7 @@ static int acmp_open_dev(const struct acm_device *device, void **dev_context)
- 		dev = container_of(dev_entry, struct acmp_device, entry);
- 
- 		if (dev->guid == device->dev_guid) {
--			acm_log(2, "dev_guid 0x%llx already exits\n", 
-+			acm_log(2, "dev_guid 0x%" PRIx64 " already exits\n",
- 				device->dev_guid);
- 			*dev_context = dev;
- 			dev->device = device;
-@@ -2859,7 +2861,7 @@ static void acmp_close_dev(void *dev_context)
- {
- 	struct acmp_device *dev = dev_context;
- 
--	acm_log(1, "dev_guid 0x%llx\n", dev->device->dev_guid);
-+	acm_log(1, "dev_guid 0x%" PRIx64 "\n", dev->device->dev_guid);
- 	dev->device = NULL;
- }
- 
-diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
-index 523b78082ff8..befe94203dd3 100644
---- a/ibacm/src/acm.c
-+++ b/ibacm/src/acm.c
-@@ -62,6 +62,7 @@
- #include <rdma/ib_user_sa.h>
+-/* Workaround - declaration missing */
+-extern int		rtnl_link_vlan_get_id(struct rtnl_link *);
+-
+ #ifndef HAVE_LIBNL1
+ #include <netlink/route/link/vlan.h>
  #endif
- #include <poll.h>
-+#include <inttypes.h>
- #include "acm_mad.h"
- #include "acm_util.h"
- #ifdef HAVE_NETLINK
-@@ -1471,7 +1472,7 @@ static int acm_nl_parse_path_attr(struct nlattr *attr,
- 	case LS_NLA_TYPE_SERVICE_ID:
- 		sid = (uint64_t *) NLA_DATA(attr);
- 		if (NLA_LEN(attr) == sizeof(*sid)) {
--			acm_log(2, "service_id 0x%llx\n", *sid);
-+			acm_log(2, "service_id 0x%" PRIx64 "\n", *sid);
- 			path->service_id = htonll(*sid);
- 		} else {
- 			ret = -1;
-@@ -2207,7 +2208,7 @@ static void acm_port_get_gid_tbl(struct acmc_port *port)
- 					    &port->gid_tbl[j]);
- 			if (ret || !port->gid_tbl[j].global.interface_id)
- 				break;
--			acm_log(2, "guid %d: 0x%llx %llx\n", j,
-+			acm_log(2, "guid %d: 0x%" PRIx64 " %" PRIx64 "\n", j,
- 				port->gid_tbl[j].global.subnet_prefix, 
- 				port->gid_tbl[j].global.interface_id);
- 		}
-@@ -2577,8 +2578,8 @@ static void acm_load_prov_config(void)
- 			continue;
- 		}
- 		prefix = strtoull(p, NULL, 0);
--		acm_log(2, "provider %s subnet_prefix 0x%llx\n", prov_name, 
--			prefix);
-+		acm_log(2, "provider %s subnet_prefix 0x%" PRIx64 "\n",
-+			prov_name, prefix);
- 		/* Convert it into network byte order */
- 		prefix = htonll(prefix);
+diff --git a/librdmacm/preload.c b/librdmacm/preload.c
+index cf258bf8eb3a..c924f499b7c7 100644
+--- a/librdmacm/preload.c
++++ b/librdmacm/preload.c
+@@ -132,8 +132,6 @@ struct config_entry {
  
-@@ -2667,8 +2668,8 @@ static int acm_open_providers(void)
+ static struct config_entry *config;
+ static int config_cnt;
+-extern char *program_invocation_short_name;
+-
  
- 		if (version != ACM_PROV_VERSION ||
- 		    provider->size != sizeof(struct acm_provider)) {
--			acm_log(0, "Error -unmatched provider version 0x%08x (size %d)"
--				" core 0x%08x (size %d)\n", version, provider->size,
-+			acm_log(0, "Error -unmatched provider version 0x%08x (size %zd)"
-+				" core 0x%08x (size %zd)\n", version, provider->size,
- 				ACM_PROV_VERSION, sizeof(struct acm_provider));
- 			dlclose(handle);
- 			continue;
-@@ -2863,7 +2864,7 @@ static void acmc_recv_mad(struct acmc_port *port)
- 	}
+ static void free_config(void)
+ {
+diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
+index a2d39e169c15..b851e953c36b 100644
+--- a/providers/mlx4/mlx4.h
++++ b/providers/mlx4/mlx4.h
+@@ -85,12 +85,6 @@ struct mlx4_xsrq_table {
+ 	int			  mask;
+ };
  
- 	hdr = &resp.sa_mad.mad_hdr;
--	acm_log(2, "bv %x cls %x cv %x mtd %x st %d tid %llx at %x atm %x\n",
-+	acm_log(2, "bv %x cls %x cv %x mtd %x st %d tid %" PRIx64 "x at %x atm %x\n",
- 		hdr->base_version, hdr->mgmt_class, hdr->class_version,
- 		hdr->method, hdr->status, hdr->tid, hdr->attr_id, hdr->attr_mod);
- 	found = 0;
+-void mlx4_init_xsrq_table(struct mlx4_xsrq_table *xsrq_table, int size);
+-struct mlx4_srq *mlx4_find_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
+-int mlx4_store_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn,
+-		    struct mlx4_srq *srq);
+-void mlx4_clear_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
+-
+ enum {
+ 	MLX4_XRC_QPN_BIT     = (1 << 23)
+ };
 -- 
 2.1.4
 
