@@ -1,53 +1,48 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next 00/11] net: Fix netdev adjacency tracking
-Date: Fri, 14 Oct 2016 10:17:30 -0400 (EDT)
-Message-ID: <20161014.101730.404820561372500741.davem@davemloft.net>
-References: <1476305519-28833-1-git-send-email-dsa@cumulusnetworks.com>
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH v3] IB/ipoib: move back IB LL address into the hard
+ header
+Date: Fri, 14 Oct 2016 16:48:50 +0200
+Message-ID: <1476456530.5591.1.camel@redhat.com>
+References: <9fce9b87ecc4c5c4f03401359806f40b1dcd0eb3.1476374992.git.pabeni@redhat.com>
+         <CAJ3xEMi7DY7_3vM+553dC4w17W==CdUdtn5PdzzCCUxtj434dQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476305519-28833-1-git-send-email-dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org
-Cc: jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.vosburgh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMi7DY7_3vM+553dC4w17W==CdUdtn5PdzzCCUxtj434dQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: David Miller <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Erez Shitrit <erezsh@mellanox.com>, Alex Vesker <valex@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Linux Netdev List <netdev@vger.kernel.org>, "talal@mellanox.com" <talal@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
-Date: Wed, 12 Oct 2016 13:51:48 -0700
+On Fri, 2016-10-14 at 13:23 +0300, Or Gerlitz wrote:
+> 
+> Paolo,
+> 
+> Is this fix backportable to any kernel since the breakage? 
 
-> The netdev adjacency tracking is failing to create proper dependencies
-> for some topologies. For example this topology
-> 
->         +--------+
->         |  myvrf |
->         +--------+
->           |    |
->           |  +---------+
->           |  | macvlan |
->           |  +---------+
->           |    |
->       +----------+
->       |  bridge  |
->       +----------+
->           |
->       +--------+
->       | bond0  |
->       +--------+
->           |
->       +--------+
->       |  eth3  |
->       +--------+
-> 
-> hits 1 of 2 problems depending on the order of enslavement. The base set of
-> commands for both cases:
-> 
->     ip link add bond1 type bond
->     ip link set bond1 up
+yes, AFAIK this is beck-portable.
 
-Your diagram uses the device name "bond0" but all of your command examples
-use "bond1".  Please fix this up, thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> AFAIR,
+> Roland mentioned
+> that a 2nd change introduced in 4.7-rc1 changed things a bit more such
+> that the fix
+> he had in his head didn't apply any more.
+
+If you refer to shrinking both IPoIB and gso control buffer, as proposed
+by Roland in:
+
+http://marc.info/?l=linux-kernel&m=146787279825501&w=2
+
+that will not work, since the gso control buffer is grown a bit since
+the first time the bug was detected.
+
+This patch does not have that sort of issue.
+
+> I am still travelling after netdev and would like to put an eye on the
+> patch and also see that @mellanox.com someone
+
+Not sure if that helps, but a 3rd party has already confirmed privately
+that this patch fixes the bug for them.
+
+Paolo
