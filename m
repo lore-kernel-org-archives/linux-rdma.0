@@ -1,110 +1,76 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [bug] build the user-space stack code in github is fail on ubuntu
-Date: Fri, 14 Oct 2016 17:24:55 +0800
-Message-ID: <5800A467.2020602@huawei.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] IB/ipoib: move back IB LL address into the hard header
+Date: Fri, 14 Oct 2016 13:23:31 +0300
+Message-ID: <CAJ3xEMi7DY7_3vM+553dC4w17W==CdUdtn5PdzzCCUxtj434dQ@mail.gmail.com>
+References: <9fce9b87ecc4c5c4f03401359806f40b1dcd0eb3.1476374992.git.pabeni@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9fce9b87ecc4c5c4f03401359806f40b1dcd0eb3.1476374992.git.pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,leon
-it is fail for building rdma-core branch.
-build environment: ubuntu
+On Thu, Oct 13, 2016 at 7:26 PM, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> After the commit 9207f9d45b0a ("net: preserve IP control block
+> during GSO segmentation"), the GSO CB and the IPoIB CB conflict.
 
-is the user-space stack in github not support to ubuntu?
+the commit --> commit (remove the word "the" to make the sentence a
+bit more clear)
 
-ubuntu@62fe1357a077:~/rdma_core/rdma-core$ cd build_1
-ubuntu@62fe1357a077:~/rdma_core/rdma-core/build_1$ cmake ..
--- The C compiler identification is GNU 4.8.4
--- Check for working C compiler: /usr/bin/cc
--- Check for working C compiler: /usr/bin/cc -- works
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Could NOT find PkgConfig (missing:  PKG_CONFIG_EXECUTABLE)
--- Performing Test SUPPORTS_GNU99
--- Performing Test SUPPORTS_GNU99 - Success
--- Performing Test HAVE_C_WARNINGS
--- Performing Test HAVE_C_WARNINGS - Success
--- Performing Test HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS
--- Performing Test HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS - Failed
--- Performing Test HAVE_C_WNO_MISSING_FIELD_INITIALIZERS
--- Performing Test HAVE_C_WNO_MISSING_FIELD_INITIALIZERS - Success
--- Performing Test HAVE_NO_STRICT_ALIASING
--- Performing Test HAVE_NO_STRICT_ALIASING - Success
--- Performing Test HAS_CLOEXEC
--- Performing Test HAS_CLOEXEC - Success
--- Performing Test HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
--- Performing Test HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE - Success
--- Performing Test SUPPORTS_AS_NEEDED
--- Performing Test SUPPORTS_AS_NEEDED - Success
--- Performing Test SUPPORTS_NO_UNDEFINED
--- Performing Test SUPPORTS_NO_UNDEFINED - Success
--- Performing Test _LDSYMVER_SUCCESS
--- Performing Test _LDSYMVER_SUCCESS - Success
--- Found LDSymVer: GNU
--- Looking for include file pthread.h
--- Looking for include file pthread.h - found
--- Looking for pthread_create
--- Looking for pthread_create - not found
--- Looking for pthread_create in pthreads
--- Looking for pthread_create in pthreads - not found
--- Looking for pthread_create in pthread
--- Looking for pthread_create in pthread - found
--- Found Threads: TRUE
-CMake Error at CMakeLists.txt:199 (message):
-  Cannot find libnl-3.0 or libnl-1
+> That destroy the IPoIB address information cached there,
+> causing a severe performance regression, as better described here:
 
+> http://marc.info/?l=linux-kernel&m=146787279825501&w=2
 
--- Configuring incomplete, errors occurred!
-See also "/home/ubuntu/rdma_core/rdma-core/build_1/CMakeFiles/CMakeOutput.log".
-See also "/home/ubuntu/rdma_core/rdma-core/build_1/CMakeFiles/CMakeError.log".
-ubuntu@62fe1357a077:~/rdma_core/rdma-core/build_1$ sudo apt-get install libnl-3.0
-[sudo] password for ubuntu:
-Reading package lists... Done
-Building dependency tree
-Reading state information... Done
-E: Unable to locate package libnl-3.0
-E: Couldn't find any package by regex 'libnl-3.0'
-ubuntu@62fe1357a077:~/rdma_core/rdma-core/build_1$ sudo apt-get install libnl-1
-Reading package lists... Done
-Building dependency tree
-Reading state information... Done
-E: Unable to locate package libnl-1
+I don't think that links into this archive last for long.. try to find
+something better
+best if you can provide quick wording telling what is broken (e.g HW LSO)
 
-but if i directly use the build.sh, the log as fllows:
--- The C compiler identification is GNU 4.8.4
--- Check for working C compiler using: Ninja
--- Check for working C compiler using: Ninja -- broken
-CMake Error at /usr/share/cmake-2.8/Modules/CMakeTestCCompiler.cmake:61 (message):
-  The C compiler "/usr/bin/cc" is not able to compile a simple test program.
+> This change moves the data cached by the IPoIB driver from the
+> skb control lock into the IPoIB hard header, as done before
 
-  It fails with the following output:
+lock --> block ?
 
-   Change Dir: /home/ubuntu/rdma_core/rdma-core/build/CMakeFiles/CMakeTmp
+> the commit 936d7de3d736 ("IPoIB: Stop lying about hard_header_len
 
+the commit --> commit
 
+> and use skb->cb to stash LL addresses").
+> In order to avoid GRO issue, on packet reception, the IPoIB driver
+> stash into the skb a dummy pseudo header, so that the received
+> packets have actually a hard header matching the declared length.
+> To avoid changing the connected mode maximum mtu, the allocated
+> head buffer size is increased by the pseudo header length.
 
-  Run Build Command:/usr/sbin/ninja cmTryCompileExec2838577708
+> After this commit, IPoIB performances are back to pre-regression
+> value.
+>
+> v2 -> v3: rebased
+> v1 -> v2: avoid changing the max mtu, increasing the head buf size
 
-  log: reading configuration file: cmTryCompileExec2838577708
+> Fixes: 9207f9d45b0a ("net: preserve IP control block during GSO segmentation")
+> Signed-off-by: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
+Paolo,
 
+Is this fix backportable to any kernel since the breakage? AFAIR,
+Roland mentioned
+that a 2nd change introduced in 4.7-rc1 changed things a bit more such
+that the fix
+he had in his head didn't apply any more.
 
-  die: error: unable to read configuration file
+Dave, Doug
 
+I am still travelling after netdev and would like to put an eye on the
+patch and also see that @mellanox.com someone
+provides a  tested-by ack. Considering the fact that the bug is soon
+to (de-)celebrate it's 1st anniversary and as we're still not in rc1,
+the patch has enough time to get into 4.9... can you let it be here
+for another week or so?
 
-
-  CMake will not be able to correctly generate this project.
-Call Stack (most recent call first):
-  CMakeLists.txt:24 (project)
-
-
--- Configuring incomplete, errors occurred!
-
+Or
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
