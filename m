@@ -1,120 +1,166 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/4] rdma-core infrastructure
-Date: Sat, 15 Oct 2016 12:26:19 +0300
-Message-ID: <20161015092619.GJ9282@leon.nu>
-References: <20161014192136.11731-1-jarod@redhat.com>
+Subject: Re: [PATCH rdma-core 1/2] Enable -Wstrict-prototypes
+Date: Sat, 15 Oct 2016 12:45:27 +0300
+Message-ID: <20161015094527.GL9282@leon.nu>
+References: <1476418211-6277-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Ft0o2zvssPbUStej"
+        protocol="application/pgp-signature"; boundary="n8d7KAgWmJ23Ts4y"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161014192136.11731-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1476418211-6277-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Ft0o2zvssPbUStej
+--n8d7KAgWmJ23Ts4y
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 14, 2016 at 03:21:32PM -0400, Jarod Wilson wrote:
-> This is a set of patches to make some minor changes to the stock spec file,
-> add a bunch of userspace glue that Red Hat has been shipping on it's own in
-> Red Hat Enterprise Linux and Fedora for a while now, and a revised split
-> package spec file that we're likely to use in at least RHEL, to preserve the
-> current packaging split.
-
-Jarod,
-
-I'm far a way from packaging, so I have very general questions.
-1. You mentioned FC, but used glue/redhat/. Is it applicable for Centos?
-2. Do  FC and Centos need similar files in structure?
-3. Does it make sense to rename glue/ to be packages/ and move debian there?
-
+On Thu, Oct 13, 2016 at 10:10:10PM -0600, Jason Gunthorpe wrote:
+> All bad cases are fixed now. This is useful to detect non-ISO
+> function signatures which use surprising and counter intuitive
+> rules.
 >
-> Jarod Wilson (4):
->   rpm spec: install documentation too
->   glue/redhat: add udev/systemd/etc infrastructure bits
->   glue/redhat: copy stock spec for RH customization
->   glue/redhat/spec: build split rpm packages
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+
+Thanks, applied
+
+> ---
+>  CMakeLists.txt                      | 7 +++++++
+>  ibacm/src/acm.c                     | 2 +-
+>  ibacm/src/acme.c                    | 2 +-
+>  ibacm/src/libacm.h                  | 2 +-
+>  libibverbs/examples/xsrq_pingpong.c | 4 ++--
+>  librdmacm/cma.h                     | 4 ++--
+>  6 files changed, 14 insertions(+), 7 deletions(-)
 >
->  glue/redhat/ibacm.service                |  12 +
->  glue/redhat/iwpmd.service                |  12 +
->  glue/redhat/rdma-core.spec               | 534 +++++++++++++++++++++++++++++++
->  glue/redhat/rdma.conf                    |  25 ++
->  glue/redhat/rdma.cxgb3.sys.modprobe      |   1 +
->  glue/redhat/rdma.cxgb4.sys.modprobe      |   1 +
->  glue/redhat/rdma.fixup-mtrr.awk          | 160 +++++++++
->  glue/redhat/rdma.ifdown-ib               | 183 +++++++++++
->  glue/redhat/rdma.ifup-ib                 | 308 ++++++++++++++++++
->  glue/redhat/rdma.kernel-init             | 262 +++++++++++++++
->  glue/redhat/rdma.mlx4-setup.sh           |  91 ++++++
->  glue/redhat/rdma.mlx4.conf               |  27 ++
->  glue/redhat/rdma.mlx4.sys.modprobe       |   5 +
->  glue/redhat/rdma.mlx4.user.modprobe      |  21 ++
->  glue/redhat/rdma.modules-setup.sh        |  30 ++
->  glue/redhat/rdma.service                 |  15 +
->  glue/redhat/rdma.sriov-init              | 137 ++++++++
->  glue/redhat/rdma.sriov-vfs               |  41 +++
->  glue/redhat/rdma.udev-ipoib-naming.rules |  13 +
->  glue/redhat/rdma.udev-rules              |  18 ++
->  glue/redhat/srp_daemon.service           |  17 +
->  rdma-core.spec                           |   4 +
->  22 files changed, 1917 insertions(+)
->  create mode 100644 glue/redhat/ibacm.service
->  create mode 100644 glue/redhat/iwpmd.service
->  create mode 100644 glue/redhat/rdma-core.spec
->  create mode 100644 glue/redhat/rdma.conf
->  create mode 100644 glue/redhat/rdma.cxgb3.sys.modprobe
->  create mode 100644 glue/redhat/rdma.cxgb4.sys.modprobe
->  create mode 100644 glue/redhat/rdma.fixup-mtrr.awk
->  create mode 100644 glue/redhat/rdma.ifdown-ib
->  create mode 100644 glue/redhat/rdma.ifup-ib
->  create mode 100644 glue/redhat/rdma.kernel-init
->  create mode 100644 glue/redhat/rdma.mlx4-setup.sh
->  create mode 100644 glue/redhat/rdma.mlx4.conf
->  create mode 100644 glue/redhat/rdma.mlx4.sys.modprobe
->  create mode 100644 glue/redhat/rdma.mlx4.user.modprobe
->  create mode 100644 glue/redhat/rdma.modules-setup.sh
->  create mode 100644 glue/redhat/rdma.service
->  create mode 100644 glue/redhat/rdma.sriov-init
->  create mode 100644 glue/redhat/rdma.sriov-vfs
->  create mode 100644 glue/redhat/rdma.udev-ipoib-naming.rules
->  create mode 100644 glue/redhat/rdma.udev-rules
->  create mode 100644 glue/redhat/srp_daemon.service
+> diff --git a/CMakeLists.txt b/CMakeLists.txt
+> index 4d291d2c3fb7..1fb634c43991 100644
+> --- a/CMakeLists.txt
+> +++ b/CMakeLists.txt
+> @@ -246,6 +246,13 @@ if (NOT LIBC_HAS_LIBRT)
+>  endif()
 >
+>  #-------------------------
+> +# Final warning flags
+> +
+> +# Old version of cmake used 'main(){..}' as their test program which breaks with -Werror.
+> +# So set this flag last.
+> +RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WSTRICT_PROTOTYPES "-Wstrict-prototypes")
+> +
+> +#-------------------------
+>  # Build Prep
+>  # Write out a git ignore file to the build directory if it isn't the source
+>  # directory. For developer convenience
+> diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
+> index 146fbff61857..9186677fcc6f 100644
+> --- a/ibacm/src/acm.c
+> +++ b/ibacm/src/acm.c
+> @@ -2421,7 +2421,7 @@ static void acm_event_handler(struct acmc_device *dev)
+>  	ibv_ack_async_event(&event);
+>  }
+>
+> -static void acm_activate_devices()
+> +static void acm_activate_devices(void)
+>  {
+>  	struct acmc_device *dev;
+>  	DLIST_ENTRY *dev_entry;
+> diff --git a/ibacm/src/acme.c b/ibacm/src/acme.c
+> index e96d36ff9fc0..2bce0da4ec8a 100644
+> --- a/ibacm/src/acme.c
+> +++ b/ibacm/src/acme.c
+> @@ -512,7 +512,7 @@ static void show_path(struct ibv_path_record *path)
+>  	printf("  packet lifetime: %d\n", path->packetlifetime & 0x1F);
+>  }
+>
+> -static uint32_t get_resolve_flags()
+> +static uint32_t get_resolve_flags(void)
+>  {
+>  	uint32_t flags = 0;
+>
+> diff --git a/ibacm/src/libacm.h b/ibacm/src/libacm.h
+> index 359a6af3bb29..4ef2859fa9d6 100644
+> --- a/ibacm/src/libacm.h
+> +++ b/ibacm/src/libacm.h
+> @@ -34,7 +34,7 @@
+>  #include <infiniband/acm.h>
+>
+>  int ib_acm_connect(char *dest_svc);
+> -void ib_acm_disconnect();
+> +void ib_acm_disconnect(void);
+>
+>  int ib_acm_resolve_name(char *src, char *dest,
+>  	struct ibv_path_data **paths, int *count, uint32_t flags,
+> diff --git a/libibverbs/examples/xsrq_pingpong.c b/libibverbs/examples/xsrq_pingpong.c
+> index c22893e0e721..b90f0eb7e27f 100644
+> --- a/libibverbs/examples/xsrq_pingpong.c
+> +++ b/libibverbs/examples/xsrq_pingpong.c
+> @@ -354,7 +354,7 @@ static int send_termination_ack(int index)
+>  	return 0;
+>  }
+>
+> -static int pp_client_termination()
+> +static int pp_client_termination(void)
+>  {
+>  	if (send_termination_ack(0))
+>  		return 1;
+> @@ -364,7 +364,7 @@ static int pp_client_termination()
+>  	return 0;
+>  }
+>
+> -static int pp_server_termination()
+> +static int pp_server_termination(void)
+>  {
+>  	int i;
+>
+> diff --git a/librdmacm/cma.h b/librdmacm/cma.h
+> index c2f603d6f439..1610e178dfdb 100644
+> --- a/librdmacm/cma.h
+> +++ b/librdmacm/cma.h
+> @@ -138,8 +138,8 @@ extern int af_ib_support;
+>
+>  #define RAI_ROUTEONLY		0x01000000
+>
+> -void ucma_ib_init();
+> -void ucma_ib_cleanup();
+> +void ucma_ib_init(void);
+> +void ucma_ib_cleanup(void);
+>  void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints);
+>
+>  struct ib_connect_hdr {
 > --
-> 2.10.0
+> 2.1.4
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---Ft0o2zvssPbUStej
+--n8d7KAgWmJ23Ts4y
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYAfY7AAoJEORje4g2clinGSkP/1DQr6hJUPBshYDcPDwA+aXL
-NtAnCCGvVwy3wfdlpylH6/TPj6msOuAIxiDjAZYCpqyGWRMRkyaZ2kAjU04Kbw3k
-nXAsKnuTwGqv5hnM/gijf1nCzUHIPpVrqsAirUsWWX3vTwZbfeCvCbTYXWvAFyHd
-r7AgTlcp4tmfQhTzo9rpur5HtG4PiZJd/gP/dQGJU55NxoJfS8Or57BUiBiLjI4L
-1i+bpRB62xSxrLol9ArFNLxXCZQPE/ERpAQ4GzCjNI8SfNatWixEGMK+jBzCGsGn
-8TkwjUF3SJ/USgcJ1xYd9i7mvAzD+bZ434fUBvF1BVpb9YfxNMKvc+DLcuoRwxX9
-eYeHrERqDEQ0d+oauVsIUrvTekqKYuyvLXso9kXmCmkw+d5OWBPoWC/XysV+CBxE
-PwUnqHbdVZJ1rQB3mKvRxn7ubhQXOMfCfIBO0x2e3wTV9pPbHtwX5tlfmR0JMIpW
-T4cE+qYslZWH4NRhKmFD2tssD9HGTVzMB3R0A/blP5okGFtfyNlJ+Hy/nOcDNxqu
-QV8zk6clXp6QBd+4VvwlHQKHTibRR5Qhxfb2uOuM49Q6IznLoLm5V0W1koeLI4zp
-TzO0X8CeT0blCONI8XRuCOlI091ULCmHbq19LZHZWdoUSR+KDJBPHvXdxA6sqC6y
-joshehmfXKxzWi52gmco
-=Y550
+iQIcBAEBAgAGBQJYAfq3AAoJEORje4g2clindn4P/3cphX02LWIGU92Vh9NX+i9d
+pWTui0SxYRPDEEPAR61/pE6AO5qEcfoe1SADoGYeaWuyQiXN+HYdQ1NRAc5rey8V
+bManKtU5LPp20a2KFPbMJyb3mxVW7SV85LKk3zNmCVysra1siJLE0U3faCyMHnX3
+NHUNT9Rvpxcul3xtbuzssMVe8weW+1XE3H2ul2D6YxhU62cAibb2Grbhq0vq5WMf
+zAh3qB4aG5WPhi5snj0NSD9BazUUj++6jwdIqoUlLaqh2XpdD3wg7GvkCKcPomJE
++ERzy+NviShiZv+xAYU7el8OVjGkdEcihoZOAyLYahOAjLajqPBMKuIZ5lslEiBW
+4E9D7blpyllzGCG7kW4rSVnOmaj1DkJkBSzpqQLOXirAZG6mFhJcO2CD28uy3pjC
+voEbwaOKvDpS0oVmTne7GB+Mcb5F9k53osLVtt9Q0sEZECnrNddiCwaZuSa0VgY0
+03b7FsJ2NeDvJ1YqWg3RJ/ObbfdVAwKyPvVO5SU6s72A39TKIb7wuew4awo934zy
+LZo9C+rqPmFQMhLJVi6DM55BOsAl3fQpN3LSrGeeHVb7Fo2WpVbxL0bsAk06ibfv
+8BfJiaRya+yoEbDjKFENddLVZT6urezv6rNsEHIF7dTBiqU4QduMI9wl/UKL0D7e
+5gvoXkZ+QD+W8YwyJSjT
+=RPSy
 -----END PGP SIGNATURE-----
 
---Ft0o2zvssPbUStej--
+--n8d7KAgWmJ23Ts4y--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
