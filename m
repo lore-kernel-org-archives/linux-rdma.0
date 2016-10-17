@@ -1,49 +1,36 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 03/12] IB/hfi1: Fix an Oops on pci device force remove
-Date: Mon, 17 Oct 2016 10:07:31 -0600
-Message-ID: <20161017160731.GA5679@obsidianresearch.com>
-References: <20161017103326.7934.21558.stgit@scvm10.sc.intel.com>
- <20161017111918.7934.72325.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH rdma-core 0/4] rdma-core infrastructure
+Date: Mon, 17 Oct 2016 10:11:54 -0600
+Message-ID: <20161017161154.GB5679@obsidianresearch.com>
+References: <20161014192136.11731-1-jarod@redhat.com>
+ <20161015092619.GJ9282@leon.nu>
+ <20161017155159.GG14983@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161017111918.7934.72325.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20161017155159.GG14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 17, 2016 at 04:19:19AM -0700, Dennis Dalessandro wrote:
-> @@ -183,6 +183,7 @@ static int hfi1_file_open(struct inode *inode, struct file *fp)
->  		fd->rec_cpu_num = -1; /* no cpu affinity by default */
->  		fd->mm = current->mm;
->  		atomic_inc(&fd->mm->mm_count);
-> +		atomic_inc(&dd->user_refcount);
+On Mon, Oct 17, 2016 at 11:51:59AM -0400, Jarod Wilson wrote:
 
-This doesn't look like enough locking on acquire.. What prevents the
-driver from already having been unloaded at this point?
+> > 3. Does it make sense to rename glue/ to be packages/ and move debian there?
+> 
+> That, or as Jason has suggested, just have a top-level redhat directory,
+> same as the debian one. Don't really care much what it's called, just as
+> long as we can get (at least most of) this stuff into the tree, rather
+> than having it lingering in our own special package.
 
-> +static void wait_for_clients(struct hfi1_devdata *dd)
-> +{
-> +	/*
-> +	 * Remove the device init value and wait for active
-> +	 * users to finish if there are any.
-> +	 */
-> +	if (atomic_sub_return(1, &dd->user_refcount))
-> +		wait_for_completion(&dd->user_comp);
-> +}
+The debian/ directory has to be top level for debian tools, so I'm
+inclined to just follow the pattern and go with redhat/.
 
-Shouldn't this be a while loop to avoid races?
+I think it is no problem to take what you have right away, but lets
+try to move as much as is trivial/sensible into common places.
 
-.. and shouldn't the inc 'latch off' once the removal process starts?
-
-I think you need to study how kernfs_drain is implemented and
-basically copy that approach, including the locking.
-
-FWIW, it is much easier and probably long term better to arrange
-things so the FD can remain open but just return ENODEV to all calls.
-Eg the srcu based approach in uverbs.
+Maybe we can tackle the larger questions (eg systemd) later..
 
 Jason
 --
