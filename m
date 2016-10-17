@@ -1,28 +1,25 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 3/8] verbs: Use cmake to detect if net/if.h vs netling/route/link.h is broken
-Date: Mon, 17 Oct 2016 09:48:56 -0500
-Message-ID: <018301d22885$9644fa30$c2ceee90$@opengridcomputing.com>
-References: <1476483257-16308-1-git-send-email-jgunthorpe@obsidianresearch.com> <1476483257-16308-4-git-send-email-jgunthorpe@obsidianresearch.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 2/2] rds: Remove duplicate prefix from
+ rds_conn_path_error use
+Date: Mon, 17 Oct 2016 11:07:39 -0400 (EDT)
+Message-ID: <20161017.110739.894569165695479745.davem@davemloft.net>
+References: <cover.1476557523.git.joe@perches.com>
+        <832b0d2c1b31c10db7692f65f1ba77e779db15e1.1476557523.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476483257-16308-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <832b0d2c1b31c10db7692f65f1ba77e779db15e1.1476557523.git.joe@perches.com>
+Sender: netdev-owner@vger.kernel.org
+To: joe@perches.com
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH rdma-core 3/8] verbs: Use cmake to detect if net/if.h vs
-> netling/route/link.h is broken
+From: Joe Perches <joe@perches.com>
+Date: Sat, 15 Oct 2016 11:53:22 -0700
 
-nit: netling -> netlink
+> rds_conn_path_error already prefixes "RDS:" to the output.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied.
