@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH 7/8] IB/mthca: Replace counting semaphore event_sem with wait condition
-Date: Mon, 17 Oct 2016 22:01:01 +0530
-Message-ID: <1476721862-7070-8-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH 4/8] IB/mthca: Replace semaphore poll_sem with mutex
+Date: Mon, 17 Oct 2016 22:00:58 +0530
+Message-ID: <1476721862-7070-5-git-send-email-binoy.jayan@linaro.org>
 References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
@@ -10,80 +10,90 @@ To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal R
 Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Counting semaphores are going away in the future, so replace the semaphore
-mthca_cmd::event_sem with an open-coded implementation.
+The semaphore 'poll_sem' is a simple mutex, so it should be written as one.
+Semaphores are going away in the future.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/mthca/mthca_cmd.c | 12 ++++++++----
- drivers/infiniband/hw/mthca/mthca_dev.h |  3 ++-
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 10 +++++-----
+ drivers/infiniband/hw/mthca/mthca_cmd.h |  1 +
+ drivers/infiniband/hw/mthca/mthca_dev.h |  2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
-index 0cb58ea..5b8d5ea 100644
+index c7f49bb..0cb58ea 100644
 --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
 +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
-@@ -417,7 +417,8 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
- 	int err = 0;
- 	struct mthca_cmd_context *context;
+@@ -347,7 +347,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+ 	unsigned long end;
+ 	u8 status;
  
--	down(&dev->cmd.event_sem);
-+	wait_event(dev->cmd.event_sem.wq,
-+		   atomic_add_unless(&dev->cmd.event_sem.count, -1, 0));
+-	down(&dev->cmd.poll_sem);
++	mutex_lock(&dev->cmd.poll_mutex);
  
- 	spin_lock(&dev->cmd.context_lock);
- 	BUG_ON(dev->cmd.free_head < 0);
-@@ -459,7 +460,8 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
- 	dev->cmd.free_head = context - dev->cmd.context;
- 	spin_unlock(&dev->cmd.context_lock);
+ 	err = mthca_cmd_post(dev, in_param,
+ 			     out_param ? *out_param : 0,
+@@ -382,7 +382,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+ 	}
  
--	up(&dev->cmd.event_sem);
-+	if (atomic_inc_return(&dev->cmd.event_sem.count) == 1)
-+		wake_up(&dev->cmd.event_sem.wq);
+ out:
+-	up(&dev->cmd.poll_sem);
++	mutex_unlock(&dev->cmd.poll_mutex);
  	return err;
  }
  
-@@ -571,7 +573,8 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
- 	dev->cmd.context[dev->cmd.max_cmds - 1].next = -1;
- 	dev->cmd.free_head = 0;
+@@ -520,7 +520,7 @@ static int mthca_cmd_imm(struct mthca_dev *dev,
+ int mthca_cmd_init(struct mthca_dev *dev)
+ {
+ 	mutex_init(&dev->cmd.hcr_mutex);
+-	sema_init(&dev->cmd.poll_sem, 1);
++	mutex_init(&dev->cmd.poll_mutex);
+ 	dev->cmd.flags = 0;
  
--	sema_init(&dev->cmd.event_sem, dev->cmd.max_cmds);
-+	init_waitqueue_head(&dev->cmd.event_sem.wq);
-+	atomic_set(&dev->cmd.event_sem.count, dev->cmd.max_cmds);
- 	spin_lock_init(&dev->cmd.context_lock);
+ 	dev->hcr = ioremap(pci_resource_start(dev->pdev, 0) + MTHCA_HCR_BASE,
+@@ -582,7 +582,7 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
  
- 	for (dev->cmd.token_mask = 1;
-@@ -597,7 +600,8 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
- 	dev->cmd.flags &= ~MTHCA_CMD_USE_EVENTS;
+ 	dev->cmd.flags |= MTHCA_CMD_USE_EVENTS;
  
- 	for (i = 0; i < dev->cmd.max_cmds; ++i)
--		down(&dev->cmd.event_sem);
-+		wait_event(dev->cmd.event_sem.wq,
-+			   atomic_add_unless(&dev->cmd.event_sem.count, -1, 0));
+-	down(&dev->cmd.poll_sem);
++	mutex_lock(&dev->cmd.poll_mutex);
+ 
+ 	return 0;
+ }
+@@ -601,7 +601,7 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
  
  	kfree(dev->cmd.context);
  
+-	up(&dev->cmd.poll_sem);
++	mutex_unlock(&dev->cmd.poll_mutex);
+ }
+ 
+ struct mthca_mailbox *mthca_alloc_mailbox(struct mthca_dev *dev,
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.h b/drivers/infiniband/hw/mthca/mthca_cmd.h
+index d2e5b19..a7f197e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.h
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.h
+@@ -35,6 +35,7 @@
+ #ifndef MTHCA_CMD_H
+ #define MTHCA_CMD_H
+ 
++#include <linux/mutex.h>
+ #include <rdma/ib_verbs.h>
+ 
+ #define MTHCA_MAILBOX_SIZE 4096
 diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
-index 87ab964..1f88835c 100644
+index 4393a02..87ab964 100644
 --- a/drivers/infiniband/hw/mthca/mthca_dev.h
 +++ b/drivers/infiniband/hw/mthca/mthca_dev.h
-@@ -46,6 +46,7 @@
- #include <linux/list.h>
- #include <linux/semaphore.h>
- 
-+#include <rdma/ib_sa.h>
- #include "mthca_provider.h"
- #include "mthca_doorbell.h"
- 
-@@ -121,7 +122,7 @@ struct mthca_cmd {
+@@ -120,7 +120,7 @@ enum {
+ struct mthca_cmd {
  	struct pci_pool          *pool;
  	struct mutex              hcr_mutex;
- 	struct mutex		  poll_mutex;
--	struct semaphore 	  event_sem;
-+	struct ib_semaphore 	  event_sem;
+-	struct semaphore 	  poll_sem;
++	struct mutex		  poll_mutex;
+ 	struct semaphore 	  event_sem;
  	int              	  max_cmds;
  	spinlock_t                context_lock;
- 	int                       free_head;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
