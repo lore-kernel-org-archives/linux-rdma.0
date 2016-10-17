@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH 6/8] IB/hns: Replace counting semaphore event_sem with wait condition
-Date: Mon, 17 Oct 2016 22:01:00 +0530
-Message-ID: <1476721862-7070-7-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH 7/8] IB/mthca: Replace counting semaphore event_sem with wait condition
+Date: Mon, 17 Oct 2016 22:01:01 +0530
+Message-ID: <1476721862-7070-8-git-send-email-binoy.jayan@linaro.org>
 References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
@@ -11,95 +11,79 @@ Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger
 List-Id: linux-rdma@vger.kernel.org
 
 Counting semaphores are going away in the future, so replace the semaphore
-hns_roce_cmdq::event_sem with an open-coded implementation.
+mthca_cmd::event_sem with an open-coded implementation.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 16 ++++++++++++----
- drivers/infiniband/hw/hns/hns_roce_device.h |  3 ++-
- include/rdma/ib_sa.h                        |  5 +++++
- 3 files changed, 19 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 12 ++++++++----
+ drivers/infiniband/hw/mthca/mthca_dev.h |  3 ++-
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 1421fdb..3e76717 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -248,10 +248,14 @@ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
- {
- 	int ret = 0;
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index 0cb58ea..5b8d5ea 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -417,7 +417,8 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
+ 	int err = 0;
+ 	struct mthca_cmd_context *context;
  
--	down(&hr_dev->cmd.event_sem);
-+	wait_event(hr_dev->cmd.event_sem.wq,
-+		   atomic_add_unless(&hr_dev->cmd.event_sem.count, -1, 0));
-+
- 	ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
- 				       in_modifier, op_modifier, op, timeout);
--	up(&hr_dev->cmd.event_sem);
-+
-+	if (atomic_inc_return(&hr_dev->cmd.event_sem.count) == 1)
-+		wake_up(&hr_dev->cmd.event_sem.wq);
+-	down(&dev->cmd.event_sem);
++	wait_event(dev->cmd.event_sem.wq,
++		   atomic_add_unless(&dev->cmd.event_sem.count, -1, 0));
  
- 	return ret;
+ 	spin_lock(&dev->cmd.context_lock);
+ 	BUG_ON(dev->cmd.free_head < 0);
+@@ -459,7 +460,8 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
+ 	dev->cmd.free_head = context - dev->cmd.context;
+ 	spin_unlock(&dev->cmd.context_lock);
+ 
+-	up(&dev->cmd.event_sem);
++	if (atomic_inc_return(&dev->cmd.event_sem.count) == 1)
++		wake_up(&dev->cmd.event_sem.wq);
+ 	return err;
  }
-@@ -313,7 +317,9 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
- 	hr_cmd->context[hr_cmd->max_cmds - 1].next = -1;
- 	hr_cmd->free_head = 0;
  
--	sema_init(&hr_cmd->event_sem, hr_cmd->max_cmds);
-+	init_waitqueue_head(&hr_cmd->event_sem.wq);
-+	atomic_set(&hr_cmd->event_sem.count, hr_cmd->max_cmds);
-+
- 	spin_lock_init(&hr_cmd->context_lock);
+@@ -571,7 +573,8 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
+ 	dev->cmd.context[dev->cmd.max_cmds - 1].next = -1;
+ 	dev->cmd.free_head = 0;
  
- 	hr_cmd->token_mask = CMD_TOKEN_MASK;
-@@ -332,7 +338,9 @@ void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
- 	hr_cmd->use_events = 0;
+-	sema_init(&dev->cmd.event_sem, dev->cmd.max_cmds);
++	init_waitqueue_head(&dev->cmd.event_sem.wq);
++	atomic_set(&dev->cmd.event_sem.count, dev->cmd.max_cmds);
+ 	spin_lock_init(&dev->cmd.context_lock);
  
- 	for (i = 0; i < hr_cmd->max_cmds; ++i)
--		down(&hr_cmd->event_sem);
-+		wait_event(hr_cmd->event_sem.wq,
-+			   atomic_add_unless(
-+			   &hr_dev->cmd.event_sem.count, -1, 0));
+ 	for (dev->cmd.token_mask = 1;
+@@ -597,7 +600,8 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
+ 	dev->cmd.flags &= ~MTHCA_CMD_USE_EVENTS;
  
- 	kfree(hr_cmd->context);
- 	mutex_unlock(&hr_cmd->poll_mutex);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 2afe075..6aed04a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -34,6 +34,7 @@
- #define _HNS_ROCE_DEVICE_H
+ 	for (i = 0; i < dev->cmd.max_cmds; ++i)
+-		down(&dev->cmd.event_sem);
++		wait_event(dev->cmd.event_sem.wq,
++			   atomic_add_unless(&dev->cmd.event_sem.count, -1, 0));
  
- #include <rdma/ib_verbs.h>
+ 	kfree(dev->cmd.context);
+ 
+diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
+index 87ab964..1f88835c 100644
+--- a/drivers/infiniband/hw/mthca/mthca_dev.h
++++ b/drivers/infiniband/hw/mthca/mthca_dev.h
+@@ -46,6 +46,7 @@
+ #include <linux/list.h>
+ #include <linux/semaphore.h>
+ 
 +#include <rdma/ib_sa.h>
- #include <linux/mutex.h>
+ #include "mthca_provider.h"
+ #include "mthca_doorbell.h"
  
- #define DRV_NAME "hns_roce"
-@@ -364,7 +365,7 @@ struct hns_roce_cmdq {
- 	* Event mode: cmd register mutex protection,
- 	* ensure to not exceed max_cmds and user use limit region
- 	*/
--	struct semaphore	event_sem;
-+	struct ib_semaphore	event_sem;
- 	int			max_cmds;
- 	spinlock_t		context_lock;
- 	int			free_head;
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 5ee7aab..1901042 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -291,6 +291,11 @@ struct ib_sa_service_rec {
- #define IB_SA_GUIDINFO_REC_GID6		IB_SA_COMP_MASK(10)
- #define IB_SA_GUIDINFO_REC_GID7		IB_SA_COMP_MASK(11)
- 
-+struct ib_semaphore {
-+	wait_queue_head_t wq;
-+	atomic_t count;
-+};
-+
- struct ib_sa_guidinfo_rec {
- 	__be16	lid;
- 	u8	block_num;
+@@ -121,7 +122,7 @@ struct mthca_cmd {
+ 	struct pci_pool          *pool;
+ 	struct mutex              hcr_mutex;
+ 	struct mutex		  poll_mutex;
+-	struct semaphore 	  event_sem;
++	struct ib_semaphore 	  event_sem;
+ 	int              	  max_cmds;
+ 	spinlock_t                context_lock;
+ 	int                       free_head;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
