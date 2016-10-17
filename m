@@ -1,55 +1,56 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 11/12] IB/hfi1: Delete unused lock
-Date: Mon, 17 Oct 2016 04:20:04 -0700
-Message-ID: <20161017112003.7934.714.stgit@scvm10.sc.intel.com>
-References: <20161017103326.7934.21558.stgit@scvm10.sc.intel.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: =?UTF-8?Q?Re:_=e3=80=90For_help=e3=80=91_some_tips_for_upstream_the?=
+ =?UTF-8?Q?_userspace_driver_code_of_hns=5froce?=
+Date: Mon, 17 Oct 2016 19:29:25 +0800
+Message-ID: <5804B615.2010002@huawei.com>
+References: <57FF414A.3000200@huawei.com> <20161013093659.GA9282@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161017103326.7934.21558.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20161013093659.GA9282-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+在 2016/10/13 17:36, Leon Romanovsky 写道:
+> On Thu, Oct 13, 2016 at 04:09:46PM +0800, oulijun wrote:
+>> Hi, Doug Ledford
+>>    Now, I am preparing for upstreaming the userspace driver code of hns_roce.  But, we have
+>> some difficulty how to upstream it. for example,
+>>    i) which branch of ofed should we upstream ?
+>>    ii) if want to upstream the userspace driver of hns_roce successfully, how we should do?
+>>
+>>   Can you give me some guides?
+> 
+> Hi Lijun,
+> 
+> Our main library for all user-space stack is located at github [1].
+> Please see similar question from Ram [2] and Jason's response [3] to it.
+> 
+> [1] github.com/linux-rdma/rdma-core
+> [2[ http://marc.info/?l=linux-rdma&m=147574131706820&w=2
+> [3] http://marc.info/?l=linux-rdma&m=147577168016989&w=2
+> 
+> Thanks.
+> 
+>>
+>> thanks
+>> Lijun Ou
+>>
+Hi, leon
+  if i will upstream the patch for user-space code, how to guarantee the code format satisfied the rdma-core.git?
+As is known to all, the kernel driver code will be checked by checkpatch.pl,  the rdma-core.git also use the
+checkpatch.pl script?
 
-The lock is an unused vestige from qib. Remove it.
+thanks
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/hfi.h  |    2 --
- drivers/infiniband/hw/hfi1/init.c |    1 -
- 2 files changed, 0 insertions(+), 3 deletions(-)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 6f05f68..1707334 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -605,8 +605,6 @@ struct hfi1_pportdata {
- 	struct mutex hls_lock;
- 	u32 host_link_state;
- 
--	spinlock_t            sdma_alllock ____cacheline_aligned_in_smp;
--
- 	u32 lstate;	/* logical link state */
- 
- 	/* these are the "32 bit" regs */
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 4a7e741..c317e69 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -507,7 +507,6 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
- 	INIT_WORK(&ppd->qsfp_info.qsfp_work, qsfp_event);
- 
- 	mutex_init(&ppd->hls_lock);
--	spin_lock_init(&ppd->sdma_alllock);
- 	spin_lock_init(&ppd->qsfp_info.qsfp_lock);
- 
- 	ppd->qsfp_info.ppd = ppd;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
