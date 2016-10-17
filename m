@@ -1,58 +1,51 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/4] rpm spec: install documentation too
-Date: Mon, 17 Oct 2016 11:53:34 -0400
-Message-ID: <20161017155334.GH14983@redhat.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-2-jarod@redhat.com>
- <20161014225204.GB16509@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 03/12] IB/hfi1: Fix an Oops on pci device force remove
+Date: Mon, 17 Oct 2016 10:07:31 -0600
+Message-ID: <20161017160731.GA5679@obsidianresearch.com>
+References: <20161017103326.7934.21558.stgit@scvm10.sc.intel.com>
+ <20161017111918.7934.72325.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161014225204.GB16509-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161017111918.7934.72325.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 14, 2016 at 04:52:04PM -0600, Jason Gunthorpe wrote:
-> On Fri, Oct 14, 2016 at 03:21:33PM -0400, Jarod Wilson wrote:
-> > At least in the Red Hat world, we like to install the documentation files
-> > provided in a given source tree.
-> 
-> I think other distros would like to do this too, can you use this
-> patch instead?
+On Mon, Oct 17, 2016 at 04:19:19AM -0700, Dennis Dalessandro wrote:
+> @@ -183,6 +183,7 @@ static int hfi1_file_open(struct inode *inode, struct file *fp)
+>  		fd->rec_cpu_num = -1; /* no cpu affinity by default */
+>  		fd->mm = current->mm;
+>  		atomic_inc(&fd->mm->mm_count);
+> +		atomic_inc(&dd->user_refcount);
 
-Ah. Yeah. My cmake-fu is ... lacking. That does look like a better way to
-go. I'll pull this into my working tree and play with it.
+This doesn't look like enough locking on acquire.. What prevents the
+driver from already having been unloaded at this point?
 
-> From a23838ccc05574b1975741770abcbd66f7587293 Mon Sep 17 00:00:00 2001
-> From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Date: Fri, 14 Oct 2016 15:21:33 -0400
-> Subject: [PATCH] Install end user focused documentation files
-> 
-> We recommend that all distros ship these.
-> 
-> Suggested-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  CMakeLists.txt                   | 3 ++-
->  Documentation/CMakeLists.txt     | 8 ++++++++
->  debian/ibacm.install             | 1 +
->  debian/ibverbs-providers.install | 1 +
->  debian/libibcm1.install          | 1 +
->  debian/libibverbs1.install       | 1 +
->  debian/librdmacm1.install        | 1 +
->  debian/srptools.install          | 1 +
->  rdma-core.spec                   | 4 +++-
->  9 files changed, 19 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/CMakeLists.txt
-...
+> +static void wait_for_clients(struct hfi1_devdata *dd)
+> +{
+> +	/*
+> +	 * Remove the device init value and wait for active
+> +	 * users to finish if there are any.
+> +	 */
+> +	if (atomic_sub_return(1, &dd->user_refcount))
+> +		wait_for_completion(&dd->user_comp);
+> +}
 
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Shouldn't this be a while loop to avoid races?
 
+.. and shouldn't the inc 'latch off' once the removal process starts?
+
+I think you need to study how kernfs_drain is implemented and
+basically copy that approach, including the locking.
+
+FWIW, it is much easier and probably long term better to arrange
+things so the FD can remain open but just return ENODEV to all calls.
+Eg the srcu based approach in uverbs.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
