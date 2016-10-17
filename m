@@ -1,40 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 02/11] net: Introduce new api for walking
- upper and lower devices
-Date: Mon, 17 Oct 2016 10:42:00 -0400 (EDT)
-Message-ID: <20161017.104200.2266025643403507437.davem@davemloft.net>
-References: <1476494931-31813-1-git-send-email-dsa@cumulusnetworks.com>
-        <1476494931-31813-3-git-send-email-dsa@cumulusnetworks.com>
-        <20161017052121.2322279d@xeon-e3>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-core 3/8] verbs: Use cmake to detect if net/if.h vs netling/route/link.h is broken
+Date: Mon, 17 Oct 2016 09:48:56 -0500
+Message-ID: <018301d22885$9644fa30$c2ceee90$@opengridcomputing.com>
+References: <1476483257-16308-1-git-send-email-jgunthorpe@obsidianresearch.com> <1476483257-16308-4-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161017052121.2322279d@xeon-e3>
-Sender: netdev-owner@vger.kernel.org
-To: stephen@networkplumber.org
-Cc: dsa@cumulusnetworks.com, jiri@mellanox.com, netdev@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1476483257-16308-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Stephen Hemminger <stephen@networkplumber.org>
-Date: Mon, 17 Oct 2016 05:21:21 -0700
+> Subject: [PATCH rdma-core 3/8] verbs: Use cmake to detect if net/if.h vs
+> netling/route/link.h is broken
 
-> You should write this more succinctly as:
-> 
-> static bool __netdev_has_upper_dev(struct net_device *upper_dev, void *data)
-> {
-> 	struct net_device *dev = data;
-> 
-> 	return upper_dev == dev;
-> }
-> 
-> bool netdev_has_upper_dev_all_rcu(struct net_device *dev,
-> 				  struct net_device *upper_dev)
-> {
-> 	return netdev_walk_all_upper_dev_rcu(dev,
-> 			__netdev_has_upper_dev, upper_dev);
-> }
-> 
-> No if/else needed. No cast of void * ptr need. Use const if possible?
+nit: netling -> netlink
 
-Agreed.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
