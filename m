@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/12] IB/hfi1: Unify access to GUID entries
-Date: Mon, 17 Oct 2016 04:19:30 -0700
-Message-ID: <20161017111929.7934.31847.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 06/12] IB/hfi1: Optimize devdata cachelines
+Date: Mon, 17 Oct 2016 04:19:35 -0700
+Message-ID: <20161017111935.7934.23337.stgit@scvm10.sc.intel.com>
 References: <20161017103326.7934.21558.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,253 +10,308 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161017103326.7934.21558.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch consolidates the node GUIDs and the port GUID handling
-and unifies access to these items. The knowledge of hfi1 GUIDs'
-design and their location are kept in accessors to centralize access.
+Profiling shows hot path struct members that need
+to be in a minimum set of cachelines.
+
+Group these struct member in the same cacheline:
+	sc2vl_lock
+	sc2vl
+	rhf_rcv_function_map
+	rcv_limit
+	rhf_offset
+
+Group these struct member in the same cacheline:
+	process_pio_send
+	process_dma_send
+	pport
+	rcd
+	int_counter
+	flags
+	num_pports
+	first_user_ctxt
+
+Fill holes in struct hfi1_devdata revealed by pahole.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c  |    4 ++--
- drivers/infiniband/hw/hfi1/hfi.h   |   19 +++++++++++++++++--
- drivers/infiniband/hw/hfi1/mad.c   |   19 ++++++++++---------
- drivers/infiniband/hw/hfi1/ruc.c   |   16 +++-------------
- drivers/infiniband/hw/hfi1/verbs.c |   15 +++++++--------
- drivers/infiniband/hw/hfi1/verbs.h |    3 ---
- 6 files changed, 39 insertions(+), 37 deletions(-)
+ drivers/infiniband/hw/hfi1/hfi.h |  111 +++++++++++++++++++-------------------
+ 1 files changed, 56 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 7992152..a0f05d7 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9567,11 +9567,11 @@ int bringup_serdes(struct hfi1_pportdata *ppd)
- 	if (HFI1_CAP_IS_KSET(EXTENDED_PSN))
- 		add_rcvctrl(dd, RCV_CTRL_RCV_EXTENDED_PSN_ENABLE_SMASK);
- 
--	guid = ppd->guid;
-+	guid = ppd->guids[HFI1_PORT_GUID_INDEX];
- 	if (!guid) {
- 		if (dd->base_guid)
- 			guid = dd->base_guid + ppd->port - 1;
--		ppd->guid = guid;
-+		ppd->guids[HFI1_PORT_GUID_INDEX] = guid;
- 	}
- 
- 	/* Set linkinit_reason on power up per OPA spec */
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 368e96c..87847cc 100644
+index 87847cc..bec4607 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -512,6 +512,9 @@ struct rvt_sge_state;
- #define HFI1_MIN_VLS_SUPPORTED 1
- #define HFI1_MAX_VLS_SUPPORTED 8
+@@ -852,32 +852,29 @@ struct hfi1_devdata {
+ 	u8 __iomem *kregend;
+ 	/* physical address of chip for io_remap, etc. */
+ 	resource_size_t physaddr;
+-	/* receive context data */
+-	struct hfi1_ctxtdata **rcd;
++	/* Per VL data. Enough for all VLs but not all elements are set/used. */
++	struct per_vl_data vld[PER_VL_SEND_CONTEXTS];
+ 	/* send context data */
+ 	struct send_context_info *send_contexts;
+ 	/* map hardware send contexts to software index */
+ 	u8 *hw_to_sw;
+ 	/* spinlock for allocating and releasing send context resources */
+ 	spinlock_t sc_lock;
+-	/* Per VL data. Enough for all VLs but not all elements are set/used. */
+-	struct per_vl_data vld[PER_VL_SEND_CONTEXTS];
+ 	/* lock for pio_map */
+ 	spinlock_t pio_map_lock;
++	/* Send Context initialization lock. */
++	spinlock_t sc_init_lock;
++	/* lock for sdma_map */
++	spinlock_t                          sde_map_lock;
+ 	/* array of kernel send contexts */
+ 	struct send_context **kernel_send_context;
+ 	/* array of vl maps */
+ 	struct pio_vl_map __rcu *pio_map;
+-	/* seqlock for sc2vl */
+-	seqlock_t sc2vl_lock;
+-	u64 sc2vl[4];
+-	/* Send Context initialization lock. */
+-	spinlock_t sc_init_lock;
++	/* default flags to last descriptor */
++	u64 default_desc1;
  
-+#define HFI1_GUIDS_PER_PORT  5
-+#define HFI1_PORT_GUID_INDEX 0
+ 	/* fields common to all SDMA engines */
+ 
+-	/* default flags to last descriptor */
+-	u64 default_desc1;
+ 	volatile __le64                    *sdma_heads_dma; /* DMA'ed by chip */
+ 	dma_addr_t                          sdma_heads_phys;
+ 	void                               *sdma_pad_dma; /* DMA'ed by chip */
+@@ -888,8 +885,6 @@ struct hfi1_devdata {
+ 	u32                                 chip_sdma_engines;
+ 	/* num used */
+ 	u32                                 num_sdma;
+-	/* lock for sdma_map */
+-	spinlock_t                          sde_map_lock;
+ 	/* array of engines sized by num_sdma */
+ 	struct sdma_engine                 *per_sdma;
+ 	/* array of vl maps */
+@@ -898,14 +893,11 @@ struct hfi1_devdata {
+ 	wait_queue_head_t		  sdma_unfreeze_wq;
+ 	atomic_t			  sdma_unfreeze_count;
+ 
++	u32 lcb_access_count;		/* count of LCB users */
 +
- static inline void incr_cntr64(u64 *cntr)
- {
- 	if (*cntr < (u64)-1LL)
-@@ -582,8 +585,9 @@ struct hfi1_pportdata {
- 	u32 port_type;
- 	struct qsfp_data qsfp_info;
+ 	/* common data between shared ASIC HFIs in this OS */
+ 	struct hfi1_asic_data *asic_data;
  
--	/* GUID for this interface, in host order */
--	u64 guid;
-+	/* GUIDs for this interface, in host order, guids[0] is a port guid */
-+	u64 guids[HFI1_GUIDS_PER_PORT];
-+
- 	/* GUID for peer interface, in host order */
- 	u64 neighbor_guid;
- 
-@@ -1637,6 +1641,17 @@ static inline u16 hfi1_get_pkey(struct hfi1_ibport *ibp, unsigned index)
- }
- 
- /*
-+ * Return the indexed GUID from the port GUIDs table.
-+ */
-+static inline __be64 get_sguid(struct hfi1_ibport *ibp, unsigned int index)
-+{
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+
-+	WARN_ON(index >= HFI1_GUIDS_PER_PORT);
-+	return cpu_to_be64(ppd->guids[index]);
-+}
-+
-+/*
-  * Called by readers of cc_state only, must call under rcu_read_lock().
-  */
- static inline struct cc_state *get_cc_state(struct hfi1_pportdata *ppd)
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 9487c9b..0ef62e6 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -336,20 +336,20 @@ static int __subn_get_opa_nodeinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	ni = (struct opa_node_info *)data;
- 
- 	/* GUID 0 is illegal */
--	if (am || pidx >= dd->num_pports || dd->pport[pidx].guid == 0) {
-+	if (am || pidx >= dd->num_pports || ibdev->node_guid == 0 ||
-+	    get_sguid(to_iport(ibdev, port), HFI1_PORT_GUID_INDEX) == 0) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 		return reply((struct ib_mad_hdr *)smp);
- 	}
- 
--	ni->port_guid = cpu_to_be64(dd->pport[pidx].guid);
-+	ni->port_guid = get_sguid(to_iport(ibdev, port), HFI1_PORT_GUID_INDEX);
- 	ni->base_version = OPA_MGMT_BASE_VERSION;
- 	ni->class_version = OPA_SMI_CLASS_VERSION;
- 	ni->node_type = 1;     /* channel adapter */
- 	ni->num_ports = ibdev->phys_port_cnt;
- 	/* This is already in network order */
- 	ni->system_image_guid = ib_hfi1_sys_image_guid;
--	/* Use first-port GUID as node */
--	ni->node_guid = cpu_to_be64(dd->pport->guid);
-+	ni->node_guid = ibdev->node_guid;
- 	ni->partition_cap = cpu_to_be16(hfi1_get_npkeys(dd));
- 	ni->device_id = cpu_to_be16(dd->pcidev->device);
- 	ni->revision = cpu_to_be32(dd->minrev);
-@@ -373,19 +373,20 @@ static int subn_get_nodeinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 
- 	/* GUID 0 is illegal */
- 	if (smp->attr_mod || pidx >= dd->num_pports ||
--	    dd->pport[pidx].guid == 0)
-+	    ibdev->node_guid == 0 ||
-+	    get_sguid(to_iport(ibdev, port), HFI1_PORT_GUID_INDEX) == 0) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
--	else
--		nip->port_guid = cpu_to_be64(dd->pport[pidx].guid);
-+		return reply((struct ib_mad_hdr *)smp);
-+	}
- 
-+	nip->port_guid = get_sguid(to_iport(ibdev, port), HFI1_PORT_GUID_INDEX);
- 	nip->base_version = OPA_MGMT_BASE_VERSION;
- 	nip->class_version = OPA_SMI_CLASS_VERSION;
- 	nip->node_type = 1;     /* channel adapter */
- 	nip->num_ports = ibdev->phys_port_cnt;
- 	/* This is already in network order */
- 	nip->sys_guid = ib_hfi1_sys_image_guid;
--	 /* Use first-port GUID as node */
--	nip->node_guid = cpu_to_be64(dd->pport->guid);
-+	nip->node_guid = ibdev->node_guid;
- 	nip->partition_cap = cpu_to_be16(hfi1_get_npkeys(dd));
- 	nip->device_id = cpu_to_be16(dd->pcidev->device);
- 	nip->revision = cpu_to_be32(dd->minrev);
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index a1576ae..5a70e91 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -239,16 +239,6 @@ bail:
- 	return ret;
- }
- 
--static __be64 get_sguid(struct hfi1_ibport *ibp, unsigned index)
--{
--	if (!index) {
--		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-	/* hfi1_pportdata, points to array of (physical) port-specific
+-	 * data structs, indexed by pidx (0..n-1)
+-	 */
+-	struct hfi1_pportdata *pport;
 -
--		return cpu_to_be64(ppd->guid);
--	}
--	return ibp->guids[index - 1];
--}
+ 	/* mem-mapped pointer to base of PIO buffers */
+ 	void __iomem *piobase;
+ 	/*
+@@ -922,20 +914,13 @@ struct hfi1_devdata {
+ 	/* send context numbers and sizes for each type */
+ 	struct sc_config_sizes sc_sizes[SC_MAX];
+ 
+-	u32 lcb_access_count;		/* count of LCB users */
 -
- static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
- {
- 	return (gid->global.interface_id == id &&
-@@ -699,9 +689,9 @@ u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
- 	/* The SGID is 32-bit aligned. */
- 	hdr->sgid.global.subnet_prefix = ibp->rvp.gid_prefix;
- 	hdr->sgid.global.interface_id =
--		grh->sgid_index && grh->sgid_index < ARRAY_SIZE(ibp->guids) ?
--		ibp->guids[grh->sgid_index - 1] :
--			cpu_to_be64(ppd_from_ibp(ibp)->guid);
-+		grh->sgid_index < HFI1_GUIDS_PER_PORT ?
-+		get_sguid(ibp, grh->sgid_index) :
-+		get_sguid(ibp, HFI1_PORT_GUID_INDEX);
- 	hdr->dgid = grh->dgid;
+ 	char *boardname; /* human readable board info */
  
- 	/* GRH header size in 32-bit words. */
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 9c3c237..6d8e37f 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1485,15 +1485,11 @@ static int hfi1_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
- 			    int guid_index, __be64 *guid)
- {
- 	struct hfi1_ibport *ibp = container_of(rvp, struct hfi1_ibport, rvp);
--	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-	/* device (not port) flags, basically device capabilities */
+-	u32 flags;
+-
+ 	/* reset value */
+ 	u64 z_int_counter;
+ 	u64 z_rcv_limit;
+ 	u64 z_send_schedule;
+-	/* percpu int_counter */
+-	u64 __percpu *int_counter;
+-	u64 __percpu *rcv_limit;
++
+ 	u64 __percpu *send_schedule;
+ 	/* number of receive contexts in use by the driver */
+ 	u32 num_rcv_contexts;
+@@ -950,6 +935,7 @@ struct hfi1_devdata {
+ 	/* base receive interrupt timeout, in CSR units */
+ 	u32 rcv_intr_timeout_csr;
  
--	if (guid_index == 0)
--		*guid = cpu_to_be64(ppd->guid);
--	else if (guid_index < HFI1_GUIDS_PER_PORT)
--		*guid = ibp->guids[guid_index - 1];
--	else
-+	if (guid_index >= HFI1_GUIDS_PER_PORT)
- 		return -EINVAL;
++	u32 freezelen; /* max length of freezemsg */
+ 	u64 __iomem *egrtidbase;
+ 	spinlock_t sendctrl_lock; /* protect changes to SendCtrl */
+ 	spinlock_t rcvctrl_lock; /* protect changes to RcvCtrl */
+@@ -971,7 +957,6 @@ struct hfi1_devdata {
+ 	 * IB link status cheaply
+ 	 */
+ 	struct hfi1_status *status;
+-	u32 freezelen; /* max length of freezemsg */
  
-+	*guid = get_sguid(ibp, guid_index);
- 	return 0;
- }
+ 	/* revision register shadow */
+ 	u64 revision;
+@@ -999,6 +984,8 @@ struct hfi1_devdata {
+ 	u16 rcvegrbufsize_shift;
+ 	/* both sides of the PCIe link are gen3 capable */
+ 	u8 link_gen3_capable;
++	/* default link down value (poll/sleep) */
++	u8 link_default;
+ 	/* localbus width (1, 2,4,8,16,32) from config space  */
+ 	u32 lbus_width;
+ 	/* localbus speed in MHz */
+@@ -1034,8 +1021,6 @@ struct hfi1_devdata {
+ 	u8 hfi1_id;
+ 	/* implementation code */
+ 	u8 icode;
+-	/* default link down value (poll/sleep) */
+-	u8 link_default;
+ 	/* vAU of this device */
+ 	u8 vau;
+ 	/* vCU of this device */
+@@ -1046,27 +1031,17 @@ struct hfi1_devdata {
+ 	u16 vl15_init;
  
-@@ -1622,6 +1618,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	struct hfi1_ibdev *dev = &dd->verbs_dev;
- 	struct ib_device *ibdev = &dev->rdi.ibdev;
- 	struct hfi1_pportdata *ppd = dd->pport;
-+	struct hfi1_ibport *ibp = &ppd->ibport_data;
- 	unsigned i;
- 	int ret;
- 	size_t lcpysz = IB_DEVICE_NAME_MAX;
-@@ -1642,17 +1639,19 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	if (ret)
- 		goto err_verbs_txreq;
+ 	/* Misc small ints */
+-	/* Number of physical ports available */
+-	u8 num_pports;
+-	/* Lowest context number which can be used by user processes */
+-	u8 first_user_ctxt;
+ 	u8 n_krcv_queues;
+ 	u8 qos_shift;
+-	u8 qpn_mask;
  
-+	/* Use first-port GUID as node guid */
-+	ibdev->node_guid = get_sguid(ibp, HFI1_PORT_GUID_INDEX);
+-	u16 rhf_offset; /* offset of RHF within receive header entry */
+ 	u16 irev;	/* implementation revision */
+ 	u16 dc8051_ver; /* 8051 firmware version */
+ 
++	spinlock_t hfi1_diag_trans_lock; /* protect diag observer ops */
+ 	struct platform_config platform_config;
+ 	struct platform_config_cache pcfg_cache;
+ 
+ 	struct diag_client *diag_client;
+-	spinlock_t hfi1_diag_trans_lock; /* protect diag observer ops */
+-
+-	u8 psxmitwait_supported;
+-	/* cycle length of PS* counters in HW (in picoseconds) */
+-	u16 psxmitwait_check_rate;
+ 
+ 	/* MSI-X information */
+ 	struct hfi1_msix_entry *msix_entries;
+@@ -1081,6 +1056,9 @@ struct hfi1_devdata {
+ 
+ 	struct rcv_array_data rcv_entries;
+ 
++	/* cycle length of PS* counters in HW (in picoseconds) */
++	u16 psxmitwait_check_rate;
 +
  	/*
- 	 * The system image GUID is supposed to be the same for all
- 	 * HFIs in a single system but since there can be other
- 	 * device types in the system, we can't be sure this is unique.
+ 	 * 64 bit synthetic counters
  	 */
- 	if (!ib_hfi1_sys_image_guid)
--		ib_hfi1_sys_image_guid = cpu_to_be64(ppd->guid);
-+		ib_hfi1_sys_image_guid = ibdev->node_guid;
- 	lcpysz = strlcpy(ibdev->name, class_name(), lcpysz);
- 	strlcpy(ibdev->name + lcpysz, "_%d", IB_DEVICE_NAME_MAX - lcpysz);
- 	ibdev->owner = THIS_MODULE;
--	ibdev->node_guid = cpu_to_be64(ppd->guid);
- 	ibdev->phys_port_cnt = dd->num_pports;
- 	ibdev->dma_device = &dd->pcidev->dev;
- 	ibdev->modify_device = modify_device;
-diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index 7a8af39..e6b8930 100644
---- a/drivers/infiniband/hw/hfi1/verbs.h
-+++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -73,7 +73,6 @@ struct hfi1_packet;
- #include "iowait.h"
+@@ -1113,11 +1091,11 @@ struct hfi1_devdata {
+ 	struct err_info_rcvport err_info_rcvport;
+ 	struct err_info_constraint err_info_rcv_constraint;
+ 	struct err_info_constraint err_info_xmit_constraint;
+-	u8 err_info_uncorrectable;
+-	u8 err_info_fmconfig;
  
- #define HFI1_MAX_RDMA_ATOMIC     16
--#define HFI1_GUIDS_PER_PORT	5
+ 	atomic_t drop_packet;
+ 	u8 do_drop;
++	u8 err_info_uncorrectable;
++	u8 err_info_fmconfig;
  
- /*
-  * Increment this value if any changes that break userspace ABI
-@@ -169,8 +168,6 @@ struct hfi1_ibport {
- 	struct rvt_qp __rcu *qp[2];
- 	struct rvt_ibport rvp;
+ 	/*
+ 	 * Software counters for the status bits defined by the
+@@ -1140,51 +1118,74 @@ struct hfi1_devdata {
+ 	u64 sw_cce_err_status_aggregate;
+ 	/* Software counter that aggregates all bypass packet rcv errors */
+ 	u64 sw_rcv_bypass_packet_errors;
+-	/* receive interrupt functions */
+-	rhf_rcv_function_ptr *rhf_rcv_function_map;
++	/* receive interrupt function */
+ 	rhf_rcv_function_ptr normal_rhf_rcv_functions[8];
  
--	__be64 guids[HFI1_GUIDS_PER_PORT	- 1];	/* writable GUIDs */
++	/* Save the enabled LCB error bits */
++	u64 lcb_err_en;
++
+ 	/*
+ 	 * Handlers for outgoing data so that snoop/capture does not
+ 	 * have to have its hooks in the send path
+ 	 */
+-	send_routine process_pio_send;
++	send_routine process_pio_send ____cacheline_aligned_in_smp;
+ 	send_routine process_dma_send;
+ 	void (*pio_inline_send)(struct hfi1_devdata *dd, struct pio_buf *pbuf,
+ 				u64 pbc, const void *from, size_t count);
++	/* hfi1_pportdata, points to array of (physical) port-specific
++	 * data structs, indexed by pidx (0..n-1)
++	 */
++	struct hfi1_pportdata *pport;
++	/* receive context data */
++	struct hfi1_ctxtdata **rcd;
++	u64 __percpu *int_counter;
++	/* device (not port) flags, basically device capabilities */
++	u16 flags;
++	/* Number of physical ports available */
++	u8 num_pports;
++	/* Lowest context number which can be used by user processes */
++	u8 first_user_ctxt;
++	/* adding a new field here would make it part of this cacheline */
++
++	/* seqlock for sc2vl */
++	seqlock_t sc2vl_lock ____cacheline_aligned_in_smp;
++	u64 sc2vl[4];
++	/* receive interrupt functions */
++	rhf_rcv_function_ptr *rhf_rcv_function_map;
++	u64 __percpu *rcv_limit;
++	u16 rhf_offset; /* offset of RHF within receive header entry */
++	/* adding a new field here would make it part of this cacheline */
+ 
+ 	/* OUI comes from the HW. Used everywhere as 3 separate bytes. */
+ 	u8 oui1;
+ 	u8 oui2;
+ 	u8 oui3;
++	u8 dc_shutdown;
++
+ 	/* Timer and counter used to detect RcvBufOvflCnt changes */
+ 	struct timer_list rcverr_timer;
+-	u32 rcv_ovfl_cnt;
+ 
+ 	wait_queue_head_t event_queue;
+ 
+-	/* Save the enabled LCB error bits */
+-	u64 lcb_err_en;
+-	u8 dc_shutdown;
 -
- 	/* the first 16 entries are sl_to_vl for !OPA */
- 	u8 sl_to_sc[32];
- 	u8 sc_to_sl[32];
+ 	/* receive context tail dummy address */
+ 	__le64 *rcvhdrtail_dummy_kvaddr;
+ 	dma_addr_t rcvhdrtail_dummy_dma;
+ 
+-	bool eprom_available;	/* true if EPROM is available for this device */
+-	bool aspm_supported;	/* Does HW support ASPM */
+-	bool aspm_enabled;	/* ASPM state: enabled/disabled */
++	u32 rcv_ovfl_cnt;
+ 	/* Serialize ASPM enable/disable between multiple verbs contexts */
+ 	spinlock_t aspm_lock;
+ 	/* Number of verbs contexts which have disabled ASPM */
+ 	atomic_t aspm_disabled_cnt;
+ 	/* Keeps track of user space clients */
+ 	atomic_t user_refcount;
++	struct hfi1_affinity *affinity;
+ 	/* Used to wait for outstanding user space clients before dev removal */
+ 	struct completion user_comp;
+-
+-	struct hfi1_affinity *affinity;
++	bool eprom_available;	/* true if EPROM is available for this device */
++	bool aspm_supported;	/* Does HW support ASPM */
++	bool aspm_enabled;	/* ASPM state: enabled/disabled */
+ 	struct rhashtable sdma_rht;
++
+ 	struct kobject kobj;
+ };
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
