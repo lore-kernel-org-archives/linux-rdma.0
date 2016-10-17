@@ -1,57 +1,72 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: =?UTF-8?Q?Re:_=e3=80=90For_help=e3=80=91_some_tips_for_upstream_the?=
- =?UTF-8?Q?_userspace_driver_code_of_hns=5froce?=
-Date: Mon, 17 Oct 2016 19:29:25 +0800
-Message-ID: <5804B615.2010002@huawei.com>
-References: <57FF414A.3000200@huawei.com> <20161013093659.GA9282@leon.nu>
+From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+Subject: Re: [PATCH net-next 02/11] net: Introduce new api for walking upper
+ and lower devices
+Date: Mon, 17 Oct 2016 05:21:21 -0700
+Message-ID: <20161017052121.2322279d@xeon-e3>
+References: <1476494931-31813-1-git-send-email-dsa@cumulusnetworks.com>
+        <1476494931-31813-3-git-send-email-dsa@cumulusnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161013093659.GA9282-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1476494931-31813-3-git-send-email-dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
+Cc: jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.vosburgh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-在 2016/10/13 17:36, Leon Romanovsky 写道:
-> On Thu, Oct 13, 2016 at 04:09:46PM +0800, oulijun wrote:
->> Hi, Doug Ledford
->>    Now, I am preparing for upstreaming the userspace driver code of hns_roce.  But, we have
->> some difficulty how to upstream it. for example,
->>    i) which branch of ofed should we upstream ?
->>    ii) if want to upstream the userspace driver of hns_roce successfully, how we should do?
->>
->>   Can you give me some guides?
-> 
-> Hi Lijun,
-> 
-> Our main library for all user-space stack is located at github [1].
-> Please see similar question from Ram [2] and Jason's response [3] to it.
-> 
-> [1] github.com/linux-rdma/rdma-core
-> [2[ http://marc.info/?l=linux-rdma&m=147574131706820&w=2
-> [3] http://marc.info/?l=linux-rdma&m=147577168016989&w=2
-> 
-> Thanks.
-> 
->>
->> thanks
->> Lijun Ou
->>
-Hi, leon
-  if i will upstream the patch for user-space code, how to guarantee the code format satisfied the rdma-core.git?
-As is known to all, the kernel driver code will be checked by checkpatch.pl,  the rdma-core.git also use the
-checkpatch.pl script?
+On Fri, 14 Oct 2016 18:28:42 -0700
+David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org> wrote:
 
-thanks
+>  
+>  /**
+> + * netdev_has_upper_dev_all - Check if device is linked to an upper device
+> + * @dev: device
+> + * @upper_dev: upper device to check
+> + *
+> + * Find out if a device is linked to specified upper device and return true
+> + * in case it is. Note that this checks the entire upper device chain.
+> + * The caller must hold rcu lock.
+> + */
+> +
+> +static int __netdev_has_upper_dev(struct net_device *upper_dev, void *data)
+> +{
+> +	struct net_device *dev = (struct net_device *)data;
+> +
+> +	if (upper_dev == dev)
+> +		return 1;
+> +
+> +	return 0;
+> +}
+> +
+> +bool netdev_has_upper_dev_all_rcu(struct net_device *dev,
+> +				  struct net_device *upper_dev)
+> +{
+> +	if (netdev_walk_all_upper_dev_rcu(dev, __netdev_has_upper_dev,
+> +					  upper_dev))
+> +		return true;
+> +
+> +	return false;
+> +}
+> +EXPORT_SYMBOL(netdev_has_upper_dev_all_rcu);
 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You should write this more succinctly as:
 
+static bool __netdev_has_upper_dev(struct net_device *upper_dev, void *data)
+{
+	struct net_device *dev = data;
 
+	return upper_dev == dev;
+}
+
+bool netdev_has_upper_dev_all_rcu(struct net_device *dev,
+				  struct net_device *upper_dev)
+{
+	return netdev_walk_all_upper_dev_rcu(dev,
+			__netdev_has_upper_dev, upper_dev);
+}
+
+No if/else needed. No cast of void * ptr need. Use const if possible?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
