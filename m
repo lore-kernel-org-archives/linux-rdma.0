@@ -1,161 +1,94 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: iscsi_trx going into D state
-Date: Mon, 17 Oct 2016 13:03:04 -0600
-Message-ID: <CAANLjFqRznPV_Xa431j-R5LKdZE=pRzsn-q0oJWC=WETU0EN8g@mail.gmail.com>
-References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
- <880e374c-cf8b-f276-e930-57b09fe1a686@suse.com> <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 4/4] glue/redhat/spec: build split rpm packages
+Date: Mon, 17 Oct 2016 13:07:05 -0600
+Message-ID: <20161017190705.GB8122@obsidianresearch.com>
+References: <20161014192136.11731-1-jarod@redhat.com>
+ <20161014192136.11731-5-jarod@redhat.com>
+ <20161014233904.GD16509@obsidianresearch.com>
+ <20161017184506.GL14983@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161017184506.GL14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In addition, on the client we see:
+On Mon, Oct 17, 2016 at 02:45:06PM -0400, Jarod Wilson wrote:
 
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb3-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb4-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libhfi1-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libi40iw-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libipathverbs-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx4-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx5-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmthca-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libnes-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libocrdma-11-1.el7.x86_64.rpm
+> > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/librxe-11-1.el7.x86_64.rpm
+> > 
+> > Does this mean RH is not going to do a single package for the
+> > providers? You know another 5 or so are coming..
+> 
+> Putting all the providers in a single sub-package is certainly something
+> we could do. With rpm virtual Provides and Obsoletes, we could make the
+> upgrade path transparent to at least yum/dnf/rpm, but it might still
+> confuse people who go looking for the same package they've always had
+> installed, so it could be something we do in Fedora and the next RHEL
+> major release, rather than in a current RHEL minor update.
 
+I would strongly encoruage this - the current scheme is silly, you
+need to know to look for the right provider to get things working
+(which is very much unlike the way the kernel modules work).
 
-On Mon, Oct 17, 2016 at 10:32 AM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wro=
-te:
-> Some more info as we hit this this morning. We have volumes mirrored
-> between two targets and we had one target on the kernel with the three
-> patches mentioned in this thread [0][1][2] and the other was on a
-> kernel without the patches. We decided that after a week and a half we
-> wanted to get both targets on the same kernel so we rebooted the
-> non-patched target. Within an hour we saw iSCSI in D state with the
-> same stack trace so it seems that we are not hitting any of the
-> WARN_ON lines. We are getting both iscsi_trx and iscsi_np both in D
-> state, this time we have two iscsi_trx processes in D state. I don't
-> know if stale sessions on the clients could be contributing to this
-> issue (the target trying to close non-existent sessions??). This is on
-> 4.4.23. Any more debug info we can throw at this problem to help?
->
-> Thank you,
-> Robert LeBlanc
->
-> # ps aux | grep D | grep iscsi
-> root     16525  0.0  0.0      0     0 ?        D    08:50   0:00 [iscsi_n=
-p]
-> root     16614  0.0  0.0      0     0 ?        D    08:50   0:00 [iscsi_t=
-rx]
-> root     16674  0.0  0.0      0     0 ?        D    08:50   0:00 [iscsi_t=
-rx]
->
-> # for i in 16525 16614 16674; do echo $i; cat /proc/$i/stack; done
-> 16525
-> [<ffffffff814f0d5f>] iscsit_stop_session+0x19f/0x1d0
-> [<ffffffff814e2516>] iscsi_check_for_session_reinstatement+0x1e6/0x270
-> [<ffffffff814e4ed0>] iscsi_target_check_for_existing_instances+0x30/0x40
-> [<ffffffff814e5020>] iscsi_target_do_login+0x140/0x640
-> [<ffffffff814e63bc>] iscsi_target_start_negotiation+0x1c/0xb0
-> [<ffffffff814e410b>] iscsi_target_login_thread+0xa9b/0xfc0
-> [<ffffffff8109c748>] kthread+0xd8/0xf0
-> [<ffffffff8172018f>] ret_from_fork+0x3f/0x70
-> [<ffffffffffffffff>] 0xffffffffffffffff
-> 16614
-> [<ffffffff814cca79>] target_wait_for_sess_cmds+0x49/0x1a0
-> [<ffffffffa064692b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
-> [<ffffffff814f0ef2>] iscsit_close_connection+0x162/0x870
-> [<ffffffff814df9bf>] iscsit_take_action_for_connection_exit+0x7f/0x100
-> [<ffffffff814f00a0>] iscsi_target_rx_thread+0x5a0/0xe80
-> [<ffffffff8109c748>] kthread+0xd8/0xf0
-> [<ffffffff8172018f>] ret_from_fork+0x3f/0x70
-> [<ffffffffffffffff>] 0xffffffffffffffff
-> 16674
-> [<ffffffff814cca79>] target_wait_for_sess_cmds+0x49/0x1a0
-> [<ffffffffa064692b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
-> [<ffffffff814f0ef2>] iscsit_close_connection+0x162/0x870
-> [<ffffffff814df9bf>] iscsit_take_action_for_connection_exit+0x7f/0x100
-> [<ffffffff814f00a0>] iscsi_target_rx_thread+0x5a0/0xe80
-> [<ffffffff8109c748>] kthread+0xd8/0xf0
-> [<ffffffff8172018f>] ret_from_fork+0x3f/0x70
-> [<ffffffffffffffff>] 0xffffffffffffffff
->
->
-> [0] https://www.spinics.net/lists/target-devel/msg13463.html
-> [1] http://marc.info/?l=3Dlinux-scsi&m=3D147282568910535&w=3D2
-> [2] http://www.spinics.net/lists/linux-scsi/msg100221.html
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
->
->
-> On Fri, Oct 7, 2016 at 8:59 PM, Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org> wrote:
->> Hi Robert,
->>
->> I also see this issue, but this is not the only code path can trigger th=
-is
->> problem, I think you may also see iscsi_np in D status. I fixed one code
->> path whitch still not merged to mainline. I will forward you my patch la=
-ter.
->> Note: my patch only fixed one code path, you may see other call statck w=
-ith
->> D status.
->>
->> Thanks,
->> BR
->> Zhu Lingshan
->>
->>
->> =E5=9C=A8 2016/10/1 1:14, Robert LeBlanc =E5=86=99=E9=81=93:
->>>
->>> We are having a reoccurring problem where iscsi_trx is going into D
->>> state. It seems like it is waiting for a session tear down to happen
->>> or something, but keeps waiting. We have to reboot these targets on
->>> occasion. This is running the 4.4.12 kernel and we have seen it on
->>> several previous 4.4.x and 4.2.x kernels. There is no message in dmesg
->>> or /var/log/messages. This seems to happen with increased frequency
->>> when we have a disruption in our Infiniband fabric, but can happen
->>> without any changes to the fabric (other than hosts rebooting).
->>>
->>> # ps aux | grep iscsi | grep D
->>> root      4185  0.0  0.0      0     0 ?        D    Sep29   0:00
->>> [iscsi_trx]
->>> root     18505  0.0  0.0      0     0 ?        D    Sep29   0:00
->>> [iscsi_np]
->>>
->>> # cat /proc/4185/stack
->>> [<ffffffff814cc999>] target_wait_for_sess_cmds+0x49/0x1a0
->>> [<ffffffffa087292b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
->>> [<ffffffff814f0de2>] iscsit_close_connection+0x162/0x840
->>> [<ffffffff814df8df>] iscsit_take_action_for_connection_exit+0x7f/0x100
->>> [<ffffffff814effc0>] iscsi_target_rx_thread+0x5a0/0xe80
->>> [<ffffffff8109c6f8>] kthread+0xd8/0xf0
->>> [<ffffffff8172004f>] ret_from_fork+0x3f/0x70
->>> [<ffffffffffffffff>] 0xffffffffffffffff
->>>
->>> # cat /proc/18505/stack
->>> [<ffffffff814f0c71>] iscsit_stop_session+0x1b1/0x1c0
->>> [<ffffffff814e2436>] iscsi_check_for_session_reinstatement+0x1e6/0x270
->>> [<ffffffff814e4df0>] iscsi_target_check_for_existing_instances+0x30/0x4=
-0
->>> [<ffffffff814e4f40>] iscsi_target_do_login+0x140/0x640
->>> [<ffffffff814e62dc>] iscsi_target_start_negotiation+0x1c/0xb0
->>> [<ffffffff814e402b>] iscsi_target_login_thread+0xa9b/0xfc0
->>> [<ffffffff8109c6f8>] kthread+0xd8/0xf0
->>> [<ffffffff8172004f>] ret_from_fork+0x3f/0x70
->>> [<ffffffffffffffff>] 0xffffffffffffffff
->>>
->>> What can we do to help get this resolved?
->>>
->>> Thanks,
->>>
->>> ----------------
->>> Robert LeBlanc
->>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
+Suggest to dump the providers in libiverbs or add a ibverbs-providers
+package..
+
+Or at least start adding new providers (Eg rxe,hfi) to a -providers package.
+
+> > > +install -D -m0644 Documentation/{ibacm,ibsrpdm,libibcm,libibverbs,librdmacm,rxe}.md %{buildroot}/%{_docdir}/%{name}-%{version}/
+> > > +install -D -m0644 README.md %{buildroot}/%{_docdir}/%{name}-%{version}/
+> > 
+> > I guess README should go in that patch I sent you..
+> 
+> D'oh, yeah, I'll mix that in here locally.
+
+I think you can just add ../README.md to the
+Documentation/CMakeFile.txt
+
+> > > +%{buildroot}/%{_bindir}/ib_acme -D . -O
+> > > +# Fixup a multilib conflict in ibacm_opts.cfg:
+> > > +sed -i -e '/^# Specifies the directory of the provider libraries$/ a\
+> > > +# Use /usr/lib64/ibacm on 64bit, /usr/lib/libacm on 32bit.
+> > > +' -e 's%^\(# provider_lib_path
+> > > /usr/\)lib\(64\)\?/ibacm$%\1lib64/ibacm%' ibacm_opts.cfg
+> > 
+> > Hum? I'm pretty sure this is basically fixed in the code now, was done here
+> > 5eebdb9baaaae420a4bb16e586a96807823916a0
+> > 
+> > Adjusting the comment like that doesn't really make sense, the acm
+> > daemon has a fixed endianness and looks in a single place to load the
+> > plugin. If someone wants to use 32 bit plugins they have to install
+> > the 32 bit acm daemon, which would have the 32 bit path in the sample
+> > conf file...
+> 
+> This was just copy and paste from our existing libacm spec, might well be
+> something that was fixed and I just missed it.
+
+It looks OK as-is to me, I'd drop it now.
+
+> They weren't getting installed, so I threw that hack in, meant to
+> actually say something about that, got lost in the shuffle. I'll
+> double-check if they're still not getting installed... Okay, they're
+> getting installed now. May have just been a transient error with an
+> earlier tarball, or something else I did wrong. I'll drop that bit.
+
+How strange.. FWIW, the tarball should be built with git-archive ..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
