@@ -1,147 +1,81 @@
-From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH 8/8] IB/mlx5: Replace counting semaphore sem with wait condition
-Date: Mon, 17 Oct 2016 22:01:02 +0530
-Message-ID: <1476721862-7070-9-git-send-email-binoy.jayan@linaro.org>
+From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 5/8] IB/isert: Replace semaphore sem with completion
+Date: Mon, 17 Oct 2016 22:00:59 +0530
+Message-ID: <1476721862-7070-6-git-send-email-binoy.jayan@linaro.org>
 References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1476721862-7070-1-git-send-email-binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Counting semaphores are going away in the future, so replace the semaphore
-umr_common::sem with an open-coded implementation.
+The semaphore 'sem' in isert_device is used as completion, so convert
+it to struct completion. Semaphores are going away in the future.
 
-Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
+Signed-off-by: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    |  3 ++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  3 ++-
- drivers/infiniband/hw/mlx5/mr.c      | 28 +++++++++++++++++++---------
- 3 files changed, 23 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 6 +++---
+ drivers/infiniband/ulp/isert/ib_isert.h | 3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2217477..5667ea8 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2520,7 +2520,8 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 	dev->umrc.cq = cq;
- 	dev->umrc.pd = pd;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 6dd43f6..de80f56 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -619,7 +619,7 @@
+ 	mutex_unlock(&isert_np->mutex);
  
--	sema_init(&dev->umrc.sem, MAX_UMR_WR);
-+	init_waitqueue_head(&dev->umrc.sem.wq);
-+	atomic_set(&dev->umrc.sem.count, MAX_UMR_WR);
- 	ret = mlx5_mr_cache_init(dev);
- 	if (ret) {
- 		mlx5_ib_warn(dev, "mr cache init failed %d\n", ret);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index dcdcd19..60e2d29 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -45,6 +45,7 @@
- #include <linux/mlx5/transobj.h>
- #include <rdma/ib_user_verbs.h>
- #include <rdma/mlx5-abi.h>
-+#include <rdma/ib_sa.h>
+ 	isert_info("np %p: Allow accept_np to continue\n", isert_np);
+-	up(&isert_np->sem);
++	complete(&isert_np->comp);
+ }
  
- #define mlx5_ib_dbg(dev, format, arg...)				\
- pr_debug("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name, __func__,	\
-@@ -533,7 +534,7 @@ struct umr_common {
- 	struct ib_qp	*qp;
- 	/* control access to UMR QP
- 	 */
+ static void
+@@ -2311,7 +2311,7 @@ struct rdma_cm_id *
+ 		isert_err("Unable to allocate struct isert_np\n");
+ 		return -ENOMEM;
+ 	}
+-	sema_init(&isert_np->sem, 0);
++	init_completion(&isert_np->comp);
+ 	mutex_init(&isert_np->mutex);
+ 	INIT_LIST_HEAD(&isert_np->accepted);
+ 	INIT_LIST_HEAD(&isert_np->pending);
+@@ -2427,7 +2427,7 @@ struct rdma_cm_id *
+ 	int ret;
+ 
+ accept_wait:
+-	ret = down_interruptible(&isert_np->sem);
++	ret = wait_for_completion_interruptible(&isert_np->comp);
+ 	if (ret)
+ 		return -ENODEV;
+ 
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index c02ada5..a1277c0 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -3,6 +3,7 @@
+ #include <linux/in6.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/rdma_cm.h>
++#include <linux/completion.h>
+ #include <rdma/rw.h>
+ #include <scsi/iser.h>
+ 
+@@ -190,7 +191,7 @@ struct isert_device {
+ 
+ struct isert_np {
+ 	struct iscsi_np         *np;
 -	struct semaphore	sem;
-+	struct ib_semaphore	sem;
- };
- 
- enum {
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index d4ad672..7c2af26 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -900,7 +900,9 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	prep_umr_reg_wqe(pd, &umrwr.wr, &sg, dma, npages, mr->mmkey.key,
- 			 page_shift, virt_addr, len, access_flags);
- 
--	down(&umrc->sem);
-+	wait_event(umrc->sem.wq,
-+		   atomic_add_unless(&umrc->sem.count, -1, 0));
-+
- 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
- 	if (err) {
- 		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
-@@ -920,7 +922,8 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	mr->live = 1;
- 
- unmap_dma:
--	up(&umrc->sem);
-+	if (atomic_inc_return(&umrc->sem.count) == 1)
-+		wake_up(&umrc->sem.wq);
- 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
- 
- 	kfree(mr_pas);
-@@ -1031,7 +1034,8 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
- 		wr.mkey = mr->mmkey.key;
- 		wr.target.offset = start_page_index;
- 
--		down(&umrc->sem);
-+		wait_event(umrc->sem.wq,
-+			   atomic_add_unless(&umrc->sem.count, -1, 0));
- 		err = ib_post_send(umrc->qp, &wr.wr, &bad);
- 		if (err) {
- 			mlx5_ib_err(dev, "UMR post send failed, err %d\n", err);
-@@ -1043,7 +1047,8 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
- 				err = -EFAULT;
- 			}
- 		}
--		up(&umrc->sem);
-+		if (atomic_inc_return(&umrc->sem.count) == 1)
-+			wake_up(&umrc->sem.wq);
- 	}
- 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
- 
-@@ -1224,15 +1229,18 @@ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- 	umrwr.wr.wr_cqe = &umr_context.cqe;
- 	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmkey.key);
- 
--	down(&umrc->sem);
-+	wait_event(umrc->sem.wq,
-+		   atomic_add_unless(&umrc->sem.count, -1, 0));
- 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
- 	if (err) {
--		up(&umrc->sem);
-+		if (atomic_inc_return(&umrc->sem.count) == 1)
-+			wake_up(&umrc->sem.wq);
- 		mlx5_ib_dbg(dev, "err %d\n", err);
- 		goto error;
- 	} else {
- 		wait_for_completion(&umr_context.done);
--		up(&umrc->sem);
-+		if (atomic_inc_return(&umrc->sem.count) == 1)
-+			wake_up(&umrc->sem.wq);
- 	}
- 	if (umr_context.status != IB_WC_SUCCESS) {
- 		mlx5_ib_warn(dev, "unreg umr failed\n");
-@@ -1291,7 +1299,8 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
- 	}
- 
- 	/* post send request to UMR QP */
--	down(&umrc->sem);
-+	wait_event(umrc->sem.wq,
-+		   atomic_add_unless(&umrc->sem.count, -1, 0));
- 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
- 
- 	if (err) {
-@@ -1305,7 +1314,8 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
- 		}
- 	}
- 
--	up(&umrc->sem);
-+	if (atomic_inc_return(&umrc->sem.count) == 1)
-+		wake_up(&umrc->sem.wq);
- 	if (flags & IB_MR_REREG_TRANS) {
- 		dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
- 		kfree(mr_pas);
++	struct completion	comp;
+ 	struct rdma_cm_id	*cm_id;
+ 	struct mutex		mutex;
+ 	struct list_head	accepted;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
