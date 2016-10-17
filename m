@@ -1,103 +1,147 @@
-From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 3/8] IB/hns: Replace semaphore poll_sem with mutex
-Date: Mon, 17 Oct 2016 22:00:57 +0530
-Message-ID: <1476721862-7070-4-git-send-email-binoy.jayan@linaro.org>
+From: Binoy Jayan <binoy.jayan@linaro.org>
+Subject: [PATCH 8/8] IB/mlx5: Replace counting semaphore sem with wait condition
+Date: Mon, 17 Oct 2016 22:01:02 +0530
+Message-ID: <1476721862-7070-9-git-send-email-binoy.jayan@linaro.org>
 References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476721862-7070-1-git-send-email-binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The semaphore 'poll_sem' is a simple mutex, so it should be written as one.
-Semaphores are going away in the future.
+Counting semaphores are going away in the future, so replace the semaphore
+umr_common::sem with an open-coded implementation.
 
-Signed-off-by: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 12 ++++++------
- drivers/infiniband/hw/hns/hns_roce_device.h |  3 ++-
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  3 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  3 ++-
+ drivers/infiniband/hw/mlx5/mr.c      | 28 +++++++++++++++++++---------
+ 3 files changed, 23 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 2a0b6c0..1421fdb 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -119,7 +119,7 @@ static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
- 	return ret;
- }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2217477..5667ea8 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2520,7 +2520,8 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 	dev->umrc.cq = cq;
+ 	dev->umrc.pd = pd;
  
--/* this should be called with "poll_sem" */
-+/* this should be called with "poll_mutex" */
- static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
- 				    u64 out_param, unsigned long in_modifier,
- 				    u8 op_modifier, u16 op,
-@@ -167,10 +167,10 @@ static int hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
- {
- 	int ret;
+-	sema_init(&dev->umrc.sem, MAX_UMR_WR);
++	init_waitqueue_head(&dev->umrc.sem.wq);
++	atomic_set(&dev->umrc.sem.count, MAX_UMR_WR);
+ 	ret = mlx5_mr_cache_init(dev);
+ 	if (ret) {
+ 		mlx5_ib_warn(dev, "mr cache init failed %d\n", ret);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index dcdcd19..60e2d29 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -45,6 +45,7 @@
+ #include <linux/mlx5/transobj.h>
+ #include <rdma/ib_user_verbs.h>
+ #include <rdma/mlx5-abi.h>
++#include <rdma/ib_sa.h>
  
--	down(&hr_dev->cmd.poll_sem);
-+	mutex_lock(&hr_dev->cmd.poll_mutex);
- 	ret = __hns_roce_cmd_mbox_poll(hr_dev, in_param, out_param, in_modifier,
- 				       op_modifier, op, timeout);
--	up(&hr_dev->cmd.poll_sem);
-+	mutex_unlock(&hr_dev->cmd.poll_mutex);
+ #define mlx5_ib_dbg(dev, format, arg...)				\
+ pr_debug("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name, __func__,	\
+@@ -533,7 +534,7 @@ struct umr_common {
+ 	struct ib_qp	*qp;
+ 	/* control access to UMR QP
+ 	 */
+-	struct semaphore	sem;
++	struct ib_semaphore	sem;
+ };
  
- 	return ret;
- }
-@@ -275,7 +275,7 @@ int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
- 	struct device *dev = &hr_dev->pdev->dev;
+ enum {
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index d4ad672..7c2af26 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -900,7 +900,9 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	prep_umr_reg_wqe(pd, &umrwr.wr, &sg, dma, npages, mr->mmkey.key,
+ 			 page_shift, virt_addr, len, access_flags);
  
- 	mutex_init(&hr_dev->cmd.hcr_mutex);
--	sema_init(&hr_dev->cmd.poll_sem, 1);
-+	mutex_init(&hr_dev->cmd.poll_mutex);
- 	hr_dev->cmd.use_events = 0;
- 	hr_dev->cmd.toggle = 1;
- 	hr_dev->cmd.max_cmds = CMD_MAX_NUM;
-@@ -319,7 +319,7 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
- 	hr_cmd->token_mask = CMD_TOKEN_MASK;
- 	hr_cmd->use_events = 1;
+-	down(&umrc->sem);
++	wait_event(umrc->sem.wq,
++		   atomic_add_unless(&umrc->sem.count, -1, 0));
++
+ 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+ 	if (err) {
+ 		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
+@@ -920,7 +922,8 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	mr->live = 1;
  
--	down(&hr_cmd->poll_sem);
-+	mutex_lock(&hr_cmd->poll_mutex);
+ unmap_dma:
+-	up(&umrc->sem);
++	if (atomic_inc_return(&umrc->sem.count) == 1)
++		wake_up(&umrc->sem.wq);
+ 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
  
- 	return 0;
- }
-@@ -335,7 +335,7 @@ void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
- 		down(&hr_cmd->event_sem);
+ 	kfree(mr_pas);
+@@ -1031,7 +1034,8 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
+ 		wr.mkey = mr->mmkey.key;
+ 		wr.target.offset = start_page_index;
  
- 	kfree(hr_cmd->context);
--	up(&hr_cmd->poll_sem);
-+	mutex_unlock(&hr_cmd->poll_mutex);
- }
+-		down(&umrc->sem);
++		wait_event(umrc->sem.wq,
++			   atomic_add_unless(&umrc->sem.count, -1, 0));
+ 		err = ib_post_send(umrc->qp, &wr.wr, &bad);
+ 		if (err) {
+ 			mlx5_ib_err(dev, "UMR post send failed, err %d\n", err);
+@@ -1043,7 +1047,8 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
+ 				err = -EFAULT;
+ 			}
+ 		}
+-		up(&umrc->sem);
++		if (atomic_inc_return(&umrc->sem.count) == 1)
++			wake_up(&umrc->sem.wq);
+ 	}
+ 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
  
- struct hns_roce_cmd_mailbox
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 3417315..2afe075 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -34,6 +34,7 @@
- #define _HNS_ROCE_DEVICE_H
+@@ -1224,15 +1229,18 @@ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmkey.key);
  
- #include <rdma/ib_verbs.h>
-+#include <linux/mutex.h>
+-	down(&umrc->sem);
++	wait_event(umrc->sem.wq,
++		   atomic_add_unless(&umrc->sem.count, -1, 0));
+ 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+ 	if (err) {
+-		up(&umrc->sem);
++		if (atomic_inc_return(&umrc->sem.count) == 1)
++			wake_up(&umrc->sem.wq);
+ 		mlx5_ib_dbg(dev, "err %d\n", err);
+ 		goto error;
+ 	} else {
+ 		wait_for_completion(&umr_context.done);
+-		up(&umrc->sem);
++		if (atomic_inc_return(&umrc->sem.count) == 1)
++			wake_up(&umrc->sem.wq);
+ 	}
+ 	if (umr_context.status != IB_WC_SUCCESS) {
+ 		mlx5_ib_warn(dev, "unreg umr failed\n");
+@@ -1291,7 +1299,8 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+ 	}
  
- #define DRV_NAME "hns_roce"
+ 	/* post send request to UMR QP */
+-	down(&umrc->sem);
++	wait_event(umrc->sem.wq,
++		   atomic_add_unless(&umrc->sem.count, -1, 0));
+ 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
  
-@@ -358,7 +359,7 @@ struct hns_roce_cmdq {
- 	struct dma_pool		*pool;
- 	u8 __iomem		*hcr;
- 	struct mutex		hcr_mutex;
--	struct semaphore	poll_sem;
-+	struct mutex		poll_mutex;
- 	/*
- 	* Event mode: cmd register mutex protection,
- 	* ensure to not exceed max_cmds and user use limit region
+ 	if (err) {
+@@ -1305,7 +1314,8 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+ 		}
+ 	}
+ 
+-	up(&umrc->sem);
++	if (atomic_inc_return(&umrc->sem.count) == 1)
++		wake_up(&umrc->sem.wq);
+ 	if (flags & IB_MR_REREG_TRANS) {
+ 		dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 		kfree(mr_pas);
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
