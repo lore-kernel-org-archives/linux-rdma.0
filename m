@@ -1,50 +1,62 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
- infrastructure bits
-Date: Mon, 17 Oct 2016 13:14:48 -0600
-Message-ID: <20161017191448.GC8122@obsidianresearch.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-3-jarod@redhat.com>
- <20161014231934.GC16509@obsidianresearch.com>
- <20161017162221.GI14983@redhat.com>
- <20161017174611.GB6430@obsidianresearch.com>
- <20161017182037.GK14983@redhat.com>
- <a6c8091e-fe83-8413-77d7-4aac053b8e62@redhat.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 0/8] infiniband: Remove semaphores
+Date: Mon, 17 Oct 2016 22:06:16 +0200
+Message-ID: <6244597.a6XMUIxjP0@wuerfel>
+References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org> <216461f1-3070-c93a-a560-7560a727cb8d@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <a6c8091e-fe83-8413-77d7-4aac053b8e62-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <216461f1-3070-c93a-a560-7560a727cb8d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 17, 2016 at 02:56:37PM -0400, Doug Ledford wrote:
- 
-> Since it got snipped, I'm pretty sure it just lists opensm in the Wants=
-> tag.  With systemd, that's a soft dependency.  Only if opensm is
-> installed and configured to start anyway does systemd then order this
-> item after opensm.  Since you need opensm for links to come up anyway,
-> it makes sense for the order of startup for RDMA related items to be:
+On Monday, October 17, 2016 9:57:34 AM CEST Bart Van Assche wrote:
+> On 10/17/2016 09:30 AM, Binoy Jayan wrote:
+> > These are a set of patches which removes semaphores from infiniband.
+> > These are part of a bigger effort to eliminate all semaphores from the
+> > linux kernel.
+> 
+> Hello Binoy,
+> 
+> Why do you think it would be a good idea to eliminate all semaphores 
+> from the Linux kernel? I don't know anyone who doesn't consider 
+> semaphores a useful abstraction.
 
-Daemons should not require opensm to be started to operate
-correctly.
+There are a several reasons why the semaphores as defined in the
+kernel are bad and we should get rid of them:
 
-If they do we surely have a boot race bug that should be fixed,
-because we cannot rely on a remote SM to have configured the port the
-time window betweeen rdma.service completion and dependent service
-start.
+- semaphores cannot be analysed using lockdep, since they don't
+  always fit in the simpler 'mutex' semantics
 
-So I view every use of a opensm dependent in a unit file as either
-unnecessary or working around a bug.. Lets ID the bugs so we at least
-know where we stand..
+- those that are basically mutexes should be converted to mutexes
+  for efficiency and consistency anyway
 
-Plus, there are more SM's than opensm, so we really should not
-hardwire a single SM in the service files upstream, but try and work
-with all the SMs...
+- the semaphores that are not just used as mutexes are typically
+  used as completions and should just be converted to completions
+  for simplicity
 
-Jason
+- when running a preempt-rt kernel, semaphores suffer from priority
+  inversion problems, while mutexes use use priority inheritance
+  as a countermeasure
+
+There are very few remaining semaphores in the kernel and generally
+speaking we'd be better off removing them all so no new users
+show up in the future. Most of them are trivial to replace with
+mutexes or completions. For the ones that are not trivially replaced,
+we have to look at each one and decide what to do about them,
+there usually is some solution that actually improves the code.
+
+Using an open-coded semaphore as a replacement is probably just
+the last resort that we can consider once we are down to the
+last handful of users. I haven't looked at drivers/infiniband/
+yet for this, but I believe that drivers/acpi/ is a case for
+which I see no better alternative (the AML bytecode requires
+counting semaphore semantics).
+
+	Arnd
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
