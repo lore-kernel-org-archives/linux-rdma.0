@@ -1,137 +1,108 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: RQ overflow seen running isert traffic
-Date: Mon, 17 Oct 2016 13:29:41 -0500
-Message-ID: <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com>
-References: <20160927070157.GA13140@chelsio.com> <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me> <20161017111655.GA21245@chelsio.com>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 4/4] glue/redhat/spec: build split rpm packages
+Date: Mon, 17 Oct 2016 14:45:06 -0400
+Message-ID: <20161017184506.GL14983@redhat.com>
+References: <20161014192136.11731-1-jarod@redhat.com>
+ <20161014192136.11731-5-jarod@redhat.com>
+ <20161014233904.GD16509@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20161017111655.GA21245@chelsio.com>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Potnuri Bharat Teja' <bharat@chelsio.com>, 'Sagi Grimberg' <sagi@grimberg.me>
-Cc: target-devel@vger.kernel.org, nab@linux-iscsi.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161014233904.GD16509-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Wednesday, October 10/05/16, 2016 at 11:44:12 +0530, Sagi Grimberg wrote:
-> >
-> > > Hi Sagi,
-> >
-> > Hey Baharat,
-> >
-> > Sorry for the late response, its the holiday
-> > season in Israel...
-> >
-> > > I've been trying to understand the isert functionality with respect to
-> > > RDMA Receive Queue sizing and Queue full handling. Here is the problem
-> > > is see with iw_cxgb4:
-> > >
-> > > After running few minutes of iSER traffic with iw_cxgb4, I am seeing
-> > > post receive failures due to receive queue full returning -ENOMEM.
-> > > In case of iw_cxgb4 the RQ size is 130 with qp attribute max_recv_wr =
-129,
-> > > passed down by isert to iw_cxgb4.isert decides on max_recv_wr as 129 based
-> > > on (ISERT_QP_MAX_RECV_DTOS = ISCSI_DEF_XMIT_CMDS_MAX = 128) + 1.
-> >
-> > That's correct.
+On Fri, Oct 14, 2016 at 05:39:04PM -0600, Jason Gunthorpe wrote:
+> On Fri, Oct 14, 2016 at 03:21:36PM -0400, Jarod Wilson wrote:
 > 
-> Hi Sagi,
-> Sorry for the late reply, I had to recheck my findings before I reply
-> you back.
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/iwpmd-11-1.el7.x86_64.rpm
 > 
-> My interpretation of the queue full issue was not complete, got carried
-> away by the recieve queue and missed the SQ failure due to full among
-> the debug logs.
-> 
-> Here is what was happening:
-> It was the SQ full first and fails to get posted with ENOMEM, due to this
-> the command is queued to queue full list this will schedule it to post at
-> later instance and this repeated try for posting will cause the rq to get
-> full. For everyfurther try sq post will any way fail and an extra rq wr is
-> posted as a part of datain() leading it to be full too.
-> 
-> This happened a bit earlier in my case, since I corrected the the
-> iser_put_datain() to return error to LIO.
-> 
-> Here is the failure log on a fresh 4.8 kernel:
-> isert: isert_rdma_rw_ctx_post: Cmd: ffff882ec8c96e60 failed to post RDMA
-> res <===here is the post send failure due to ENOMEM.
-> ABORT_TASK: Found referenced iSCSI task_tag: 33
-> ABORT_TASK: Sending TMR_FUNCTION_COMPLETE for ref_tag: 33
-> isert: isert_post_recv: ib_post_recv() failed with ret: -22
-> isert: isert_post_response: ib_post_recv failed with -22
-> isert: isert_post_recv: ib_post_recv() failed with ret: -22
-> isert: isert_post_response: ib_post_recv failed with -22
-> isert: isert_post_recv: ib_post_recv() failed with ret: -22
-> isert: isert_post_response: ib_post_recv failed with -22
-> isert: isert_post_recv: ib_post_recv() failed with ret: -22
-> isert: isert_post_response: ib_post_recv failed with -22
-> isert: isert_post_recv: ib_post_recv() failed with ret: -22
-> isert: isert_post_response: ib_post_recv failed with -22
-> cxgb4 0000:84:00.4: AE qpid 1026 opcode 10 status 0x1 type 1 len 0x0
-> wrid.hi 0x0 wrid.lo 0x4c01
-> isert: isert_qp_event_callback: QP access error (3): conn
-> ffff8817ddc46000
-> iSCSI Login timeout on Network Portal 10.40.40.198:3260
-> INFO: task iscsi_np:14744 blocked for more than 120 seconds.
-> 
-> Here are the QP and CQ stats before my assert for queue full:
-> qhp->attr.sq_num_entries 523
-> qhp->attr.rq_num_entries 129
-> qhp->wq.sq.qid 1026
-> qhp->wq.rq.qid 1027
-> qhp->wq.sq.in_use 523 <=== SQ to the brim
-> qhp->wq.sq.size 524 <=== SQ size
-> qhp->wq.sq.cidx 391
-> qhp->wq.sq.pidx 390
-> qhp->wq.sq.wq_pidx 202
-> qhp->wq.sq.wq_pidx_inc 0
-> qhp->wq.sq.flush_cidx 391
-> qhp->wq.rq.in_use 128
-> qhp->wq.rq.size 130
-> qhp->wq.rq.cidx 112
-> qhp->wq.rq.pidx 110
-> qhp->wq.rq.wq_pidx 240
-> qhp->wq.rq.wq_pidx_inc 0
-> qhp->wq.flushed 0
-> chp->cq.cqid 1024
-> chp->cq.size 6335
-> chp->cq.cidx 4978
-> chp->cq.sw_cidx 4126
-> chp->cq.sw_pidx 4126
-> chp->cq.sw_in_use 0
-> chp->cq.cidx_inc 0
-> 
-> As an experiment I tried increasing the ISCSI_DEF_XMIT_CMDS_MAX to 256
-> instead of 128, which incase of iwarp creates SQ with size 1548, the
-> issue is not seen.
-> I doubt if the SQ is not sized properly incase of iWARP Or factored
-> incorrectly in the rdma api for iser IOP.
-> 
-> I am digging for root cause.
-> 
-> Thanks for your time,
-> Bharat.
-> 
+> FC used to call this libiwpm for some reason..
 
-Hey Sagi, I'm looking at isert_create_qp() and it appears to not be correctly
-sizing the SQ:
+Ah. I may need to add an Obsoletes: for that particular case then.
 
-...
-#define ISERT_QP_MAX_REQ_DTOS   (ISCSI_DEF_XMIT_CMDS_MAX +    \
-                                ISERT_MAX_TX_MISC_PDUS  + \
-                                ISERT_MAX_RX_MISC_PDUS)
-...
-        attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS + 1;
-        attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
-...
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libibcm-11-1.el7.x86_64.rpm
+> 
+> Do you want to try and do as I did with debian and put the SONAME data
+> into the package version for the libraries? eg
+> 
+> libibcm1_1.0.11-1_amd64.deb
 
-I think above snipit assumes a DTO consumes exactly one WR/WQE in the SQ.  But
-the DTO can be broken into multiple WRs to handle REG_MRs, multiple WRITE or
-READ WRs due to limits on local sge depths target sge depths, etc.  Yes?  Or am
-I all wet?  Or perhaps isert doesn't require the SQ to be the max possible
-because it flow controls the DTO submissions? 
+No, that's a debian-ism that Red Hat has never really followed. The soname
+data is already captured in the rpm metadata.
 
-Stevo
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb3-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb4-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libhfi1-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libi40iw-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libipathverbs-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx4-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx5-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmthca-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libnes-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libocrdma-11-1.el7.x86_64.rpm
+> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/librxe-11-1.el7.x86_64.rpm
+> 
+> Does this mean RH is not going to do a single package for the
+> providers? You know another 5 or so are coming..
+
+Putting all the providers in a single sub-package is certainly something
+we could do. With rpm virtual Provides and Obsoletes, we could make the
+upgrade path transparent to at least yum/dnf/rpm, but it might still
+confuse people who go looking for the same package they've always had
+installed, so it could be something we do in Fedora and the next RHEL
+major release, rather than in a current RHEL minor update.
+
+> Any feedback if things build on your supported arches? I'd be
+> interested to see compiler log if it isn't silent.
+> 
+> > +install -D -m0644 Documentation/{ibacm,ibsrpdm,libibcm,libibverbs,librdmacm,rxe}.md %{buildroot}/%{_docdir}/%{name}-%{version}/
+> > +install -D -m0644 README.md %{buildroot}/%{_docdir}/%{name}-%{version}/
+> 
+> I guess README should go in that patch I sent you..
+
+D'oh, yeah, I'll mix that in here locally.
+
+> > +%{buildroot}/%{_bindir}/ib_acme -D . -O
+> > +# Fixup a multilib conflict in ibacm_opts.cfg:
+> > +sed -i -e '/^# Specifies the directory of the provider libraries$/ a\
+> > +# Use /usr/lib64/ibacm on 64bit, /usr/lib/libacm on 32bit.
+> > +' -e 's%^\(# provider_lib_path
+> > /usr/\)lib\(64\)\?/ibacm$%\1lib64/ibacm%' ibacm_opts.cfg
+> 
+> Hum? I'm pretty sure this is basically fixed in the code now, was done here
+> 5eebdb9baaaae420a4bb16e586a96807823916a0
+> 
+> Adjusting the comment like that doesn't really make sense, the acm
+> daemon has a fixed endianness and looks in a single place to load the
+> plugin. If someone wants to use 32 bit plugins they have to install
+> the 32 bit acm daemon, which would have the 32 bit path in the sample
+> conf file...
+
+This was just copy and paste from our existing libacm spec, might well be
+something that was fixed and I just missed it.
+
+> > +install -D -m0644 ibacm/man/*.1 %{buildroot}/%{_mandir}/man1/
+> > +install -D -m0644 ibacm/man/*.7 %{buildroot}/%{_mandir}/man7/
+> > +sed -e 's|@ACM_PROVIDER_DIR@|%{libdir}/%{name}/|g' -e 's|@CMAKE_INSTALL_FULL_LOCALSTATEDIR@|%{_localstatedir}|g' ibacm/man/ibacm_prov.7.in > %{buildroot}/%{_mandir}/man7/ibacm_prov.7
+> 
+> ?? cmake is supposed to install these.. Looks like it works. What did
+> you need done here to open code it?
+
+They weren't getting installed, so I threw that hack in, meant to
+actually say something about that, got lost in the shuffle. I'll
+double-check if they're still not getting installed... Okay, they're
+getting installed now. May have just been a transient error with an
+earlier tarball, or something else I did wrong. I'll drop that bit.
+
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
