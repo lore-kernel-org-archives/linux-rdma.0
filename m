@@ -1,107 +1,189 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/4] glue/redhat/spec: build split rpm packages
-Date: Mon, 17 Oct 2016 14:45:06 -0400
-Message-ID: <20161017184506.GL14983@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
+ infrastructure bits
+Date: Mon, 17 Oct 2016 14:56:37 -0400
+Message-ID: <a6c8091e-fe83-8413-77d7-4aac053b8e62@redhat.com>
 References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-5-jarod@redhat.com>
- <20161014233904.GD16509@obsidianresearch.com>
+ <20161014192136.11731-3-jarod@redhat.com>
+ <20161014231934.GC16509@obsidianresearch.com>
+ <20161017162221.GI14983@redhat.com>
+ <20161017174611.GB6430@obsidianresearch.com>
+ <20161017182037.GK14983@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="tichrVOUv2Uw4JsSw0eFKwqwfIr0765BF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161014233904.GD16509-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161017182037.GK14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 14, 2016 at 05:39:04PM -0600, Jason Gunthorpe wrote:
-> On Fri, Oct 14, 2016 at 03:21:36PM -0400, Jarod Wilson wrote:
-> 
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/iwpmd-11-1.el7.x86_64.rpm
-> 
-> FC used to call this libiwpm for some reason..
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--tichrVOUv2Uw4JsSw0eFKwqwfIr0765BF
+Content-Type: multipart/mixed; boundary="N72bOuiUFVWD4H3xrGIHANbfVBaAxOpts";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <a6c8091e-fe83-8413-77d7-4aac053b8e62-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
+ infrastructure bits
+References: <20161014192136.11731-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161014192136.11731-3-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161014231934.GC16509-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20161017162221.GI14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161017174611.GB6430-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20161017182037.GK14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161017182037.GK14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Ah. I may need to add an Obsoletes: for that particular case then.
+--N72bOuiUFVWD4H3xrGIHANbfVBaAxOpts
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libibcm-11-1.el7.x86_64.rpm
-> 
-> Do you want to try and do as I did with debian and put the SONAME data
-> into the package version for the libraries? eg
-> 
-> libibcm1_1.0.11-1_amd64.deb
+On 10/17/2016 2:20 PM, Jarod Wilson wrote:
+> On Mon, Oct 17, 2016 at 11:46:11AM -0600, Jason Gunthorpe wrote:
+>> On Mon, Oct 17, 2016 at 12:22:21PM -0400, Jarod Wilson wrote:
 
-No, that's a debian-ism that Red Hat has never really followed. The soname
-data is already captured in the rpm metadata.
+>>>>> diff --git a/glue/redhat/ibacm.service b/glue/redhat/ibacm.service
+>>>>> new file mode 100644
+>>>>> index 0000000..1cd031a
+>>>>> +++ b/glue/redhat/ibacm.service
+>>>>
+>>>> Can we just put this in ibacm/ ?
+>>>
+>>> Probably.
+>>
+>> Okay, the only thing I really don't like being upstream is the
+>> opensm.service..
+>>
+>> Do you know why acm needs that?
+>=20
+> I think Doug already attempted to address this elsewhere in the thread,=
 
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb3-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb4-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libhfi1-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libi40iw-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libipathverbs-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx4-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx5-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmthca-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libnes-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libocrdma-11-1.el7.x86_64.rpm
-> > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/librxe-11-1.el7.x86_64.rpm
-> 
-> Does this mean RH is not going to do a single package for the
-> providers? You know another 5 or so are coming..
+> and he'd know better than me.
 
-Putting all the providers in a single sub-package is certainly something
-we could do. With rpm virtual Provides and Obsoletes, we could make the
-upgrade path transparent to at least yum/dnf/rpm, but it might still
-confuse people who go looking for the same package they've always had
-installed, so it could be something we do in Fedora and the next RHEL
-major release, rather than in a current RHEL minor update.
+Since it got snipped, I'm pretty sure it just lists opensm in the Wants=3D=
 
-> Any feedback if things build on your supported arches? I'd be
-> interested to see compiler log if it isn't silent.
-> 
-> > +install -D -m0644 Documentation/{ibacm,ibsrpdm,libibcm,libibverbs,librdmacm,rxe}.md %{buildroot}/%{_docdir}/%{name}-%{version}/
-> > +install -D -m0644 README.md %{buildroot}/%{_docdir}/%{name}-%{version}/
-> 
-> I guess README should go in that patch I sent you..
+tag.  With systemd, that's a soft dependency.  Only if opensm is
+installed and configured to start anyway does systemd then order this
+item after opensm.  Since you need opensm for links to come up anyway,
+it makes sense for the order of startup for RDMA related items to be:
 
-D'oh, yeah, I'll mix that in here locally.
+rdma-core
+\-opensm
+  \-Everything else
 
-> > +%{buildroot}/%{_bindir}/ib_acme -D . -O
-> > +# Fixup a multilib conflict in ibacm_opts.cfg:
-> > +sed -i -e '/^# Specifies the directory of the provider libraries$/ a\
-> > +# Use /usr/lib64/ibacm on 64bit, /usr/lib/libacm on 32bit.
-> > +' -e 's%^\(# provider_lib_path
-> > /usr/\)lib\(64\)\?/ibacm$%\1lib64/ibacm%' ibacm_opts.cfg
-> 
-> Hum? I'm pretty sure this is basically fixed in the code now, was done here
-> 5eebdb9baaaae420a4bb16e586a96807823916a0
-> 
-> Adjusting the comment like that doesn't really make sense, the acm
-> daemon has a fixed endianness and looks in a single place to load the
-> plugin. If someone wants to use 32 bit plugins they have to install
-> the 32 bit acm daemon, which would have the 32 bit path in the sample
-> conf file...
+Because of that, I think I had opensm listed as a want in pretty much
+everything, but as already stated, it's a soft dependency and systemd
+ignores it if you don't have opensm configured to run on that machine.
 
-This was just copy and paste from our existing libacm spec, might well be
-something that was fixed and I just missed it.
 
-> > +install -D -m0644 ibacm/man/*.1 %{buildroot}/%{_mandir}/man1/
-> > +install -D -m0644 ibacm/man/*.7 %{buildroot}/%{_mandir}/man7/
-> > +sed -e 's|@ACM_PROVIDER_DIR@|%{libdir}/%{name}/|g' -e 's|@CMAKE_INSTALL_FULL_LOCALSTATEDIR@|%{_localstatedir}|g' ibacm/man/ibacm_prov.7.in > %{buildroot}/%{_mandir}/man7/ibacm_prov.7
-> 
-> ?? cmake is supposed to install these.. Looks like it works. What did
-> you need done here to open code it?
+>>>>> +SUBSYSTEM=3D=3D"module", KERNEL=3D=3D"cxgb*", ACTION=3D=3D"add", T=
+AG+=3D"systemd", ENV{SYSTEMD_WANTS}=3D"rdma.service"
+>>>>> +SUBSYSTEM=3D=3D"module", KERNEL=3D=3D"ib_*", ACTION=3D=3D"add", TA=
+G+=3D"systemd", ENV{SYSTEMD_WANTS}=3D"rdma.service"
+>>>>> +SUBSYSTEM=3D=3D"module", KERNEL=3D=3D"mlx*", ACTION=3D=3D"add", TA=
+G+=3D"systemd", ENV{SYSTEMD_WANTS}=3D"rdma.service"
+>>>>> +SUBSYSTEM=3D=3D"module", KERNEL=3D=3D"iw_*", ACTION=3D=3D"add", TA=
+G+=3D"systemd", ENV{SYSTEMD_WANTS}=3D"rdma.service"
+>>>>> +SUBSYSTEM=3D=3D"module", KERNEL=3D=3D"be2net", ACTION=3D=3D"add", =
+TAG+=3D"systemd", ENV{SYSTEMD_WANTS}=3D"rdma.service"
+>>>>> +SUBSYSTEM=3D=3D"module", KERNEL=3D=3D"enic", ACTION=3D=3D"add", TA=
+G+=3D"systemd", ENV{SYSTEMD_WANTS}=3D"rdma.service"
+>>>>
+>>>> Also cross distro
+>>>
+>>> Yeah, these are definitely prime candidates for being cross-distro. A=
+nd
+>>> really, I was thinking maybe these should be part of the core upstrea=
+m
+>>> udev/systemd rules set, rather than something we ship here.
+>>
+>> Okay. The trick will be to standardize the systemd_wants name ..
+>=20
+> Perhaps rdma-core should go with rdma-core.service? We were shipping a
+> package called 'rdma' that carried that.
 
-They weren't getting installed, so I threw that hack in, meant to
-actually say something about that, got lost in the shuffle. I'll
-double-check if they're still not getting installed... Okay, they're
-getting installed now. May have just been a transient error with an
-earlier tarball, or something else I did wrong. I'll drop that bit.
+Whatever the service file is, that's what the name is.  I'm partial to
+just leaving it as rdma.service.  The -core suffix doesn't add anything
+of value IMO, and we really are initializing the entire rdma stack minus
+just those upper layer protocols that have their own setup.
 
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+>>>>> +# When we detect a new verbs device is added to the system, set th=
+e node
+>>>>> +# description on that device
+>>>>> +# If rdma-ndd is installed, defer the setting of the node descript=
+ion to it.
+>>>>> +SUBSYSTEM=3D=3D"infiniband", KERNEL=3D=3D"*", ACTION=3D=3D"add", T=
+EST!=3D"/usr/sbin/rdma-ndd", RUN+=3D"/bin/bash -c 'sleep 1; echo -n `host=
+name -s` %k > /sys/class/infiniband/%k/node_desc'"
+>>>>
+>>>> Shouldn't this udev drop-in by in the rdma-ndd package?
+>>>
+>>> Honestly don't even have a clue what rdma-ndd is. :) Don't remember w=
+hat
+>>> Doug said about this one...
+>>
+>> Guess I didn't read closely enough, this is used if rdma-ndd is not
+>> installed..
 
+A bit of a chicken and egg issue here isn't there?  Wasn't rdma-ndd part
+of ibutils?  And since ibutils isn't in rdma-core, how do we know if
+it's installed?
+
+>> So something like that should be upstream, but the 'sleep 1' is ugly -=
+
+>> this should probably be a systemd service that runs after
+>> network-online.target not as a script run from udev?
+>>
+>> rdma-ndd dynamically sets the NodeDescription to the hostname in the
+>> adaptor for the subnet manager/tools to ready. I guess this hunk is
+>> setting the NodeDescription one-shot at boot..
+>=20
+> Rather than having this janky udev rule, what if we simply made rdma-nd=
+d
+> part of what's installed with rdma-core, rather than something found in=
+
+> yet another infiniband package? (Looks like it's in infiniband-diags,
+> wasn't even aware rdma-ndd existed until looking at this here).
+
+It's probably a good candidate to be pulled back to rdma-core.  Ira?
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--N72bOuiUFVWD4H3xrGIHANbfVBaAxOpts--
+
+--tichrVOUv2Uw4JsSw0eFKwqwfIr0765BF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJYBR7sAAoJELgmozMOVy/dRtIP/jfcJ0eYeMvFlCrRwYApOsVO
+QfgcunWn0zDNdxq9cuWYzuUAzLexvRL06B0ZD5LvT78N3C4xm+4J/IKfzQ/ICb79
+AgViS6tyBhyEH5hVCVylsxvZyhjP3kUjxtGjRcp5iMNMlNpHZL8VITYC0fJj/nno
+gSXAPy3HQ4jafi3HVKrKBzJjWE2fQ81rtBGAyTLKx7E5PrvVSGv3K9ZGEUBObp90
+ZrcTdItka8SOXFEDDq5frXOYkSWAsizdqiuLtWxduDU3PLxtH9H/Ie6zZxg0Dg4k
+kX3ixrA4XyNRgQL7iPBPivt9bCNcD7mvpzSWBqFouiDz1MQB5QZJFi56EP1p49QG
+WeanKpImCIqRy1GOsuvo08XBRYQnagj8AXFi5IR82NNqcsgg0bdQvK72bumbQPC3
+qUMIJszXARoKBltU7YVoKTPYdAJa0AqCobmTW/Lf/FSy1xsPhA2w+nBIbq6QJx3N
+VOktqsNYOMMtxNEToELMgEA+LX+4tlUGGYhOBKDgatAF3LQpifhbkQFGwmrycmKz
+Twawt9wlzet92N3WjOghPa6iUjcbtrMTNxuMu61tneavJ7x8MMIWc8nB18THJk8O
+RCUJ/QFJz2Sg8OT/7K6nD3iHNm55FRrf/mFMt1o07mHA/UTTkf6K2RuI9jT2d8rw
+v7H4sT5bYVhXN/JIbh3R
+=Mz8d
+-----END PGP SIGNATURE-----
+
+--tichrVOUv2Uw4JsSw0eFKwqwfIr0765BF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
