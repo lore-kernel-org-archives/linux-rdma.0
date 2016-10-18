@@ -1,71 +1,128 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: SQ overflow seen running isert traffic
-Date: Tue, 18 Oct 2016 09:34:33 -0500
-Message-ID: <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
-References: <20160927070157.GA13140@chelsio.com> <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me> <20161017111655.GA21245@chelsio.com> <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com> <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me> <20161018112801.GA3117@chelsio.com> <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 4/4] glue/redhat/spec: build split rpm packages
+Date: Tue, 18 Oct 2016 10:44:11 -0400
+Message-ID: <20161018144411.GS14983@redhat.com>
+References: <20161014192136.11731-1-jarod@redhat.com>
+ <20161014192136.11731-5-jarod@redhat.com>
+ <20161014233904.GD16509@obsidianresearch.com>
+ <20161017184506.GL14983@redhat.com>
+ <20161017190705.GB8122@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20161017190705.GB8122-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Oct 17, 2016 at 01:07:05PM -0600, Jason Gunthorpe wrote:
+> On Mon, Oct 17, 2016 at 02:45:06PM -0400, Jarod Wilson wrote:
 > 
-> > I tried out this change and it works fine with iwarp. I dont see SQ
-> > overflow. Apparently we have increased the sq too big to overflow. I am
-going
-> > to let it run with higher workloads for longer time, to see if it holds
-good.
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb3-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libcxgb4-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libhfi1-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libi40iw-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libipathverbs-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx4-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmlx5-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libmthca-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libnes-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/libocrdma-11-1.el7.x86_64.rpm
+> > > > Wrote: /home/jwilson/rpmbuild/RPMS/x86_64/librxe-11-1.el7.x86_64.rpm
+> > > 
+> > > Does this mean RH is not going to do a single package for the
+> > > providers? You know another 5 or so are coming..
+> > 
+> > Putting all the providers in a single sub-package is certainly something
+> > we could do. With rpm virtual Provides and Obsoletes, we could make the
+> > upgrade path transparent to at least yum/dnf/rpm, but it might still
+> > confuse people who go looking for the same package they've always had
+> > installed, so it could be something we do in Fedora and the next RHEL
+> > major release, rather than in a current RHEL minor update.
 > 
-> Actually on second thought, this patch is an overkill. Effectively we
-> now set:
+> I would strongly encoruage this - the current scheme is silly, you
+> need to know to look for the right provider to get things working
+> (which is very much unlike the way the kernel modules work).
 > 
-> MAX_CMD=266
-> and max_rdma_ctx=128 so together we take 394 which seems to too much.
-> 
-> If we go by the scheme of 1 rdma + 1 send for each IO we need:
-> - 128 sends
-> - 128 rdmas
-> - 10 miscs
-> 
-> so this gives 266.
-> 
-> Perhaps this is due to the fact that iWARP needs to register memory for
-> rdma reads as well? (and also rdma writes > 128k for chelsio HW right?)
->
+> Suggest to dump the providers in libiverbs or add a ibverbs-providers
+> package..
 
-iWARP definitely needs to register memory for the target of reads, due to
-REMOTE_WRITE requirement for the protocol.  The source of a write doesn't need
-to register memory, but the SGE depth can cause multiple WRITE WRs to be
-required to service the IO.  And in theory there should be some threshold where
-it might be better performance-wise to do a memory register + 1 WRITE vs X
-WRITEs.    
+I'm playing with a setup where libibverbs includes all the providers now.
+I think I like it. It'd require some documentation to explain where libfoo
+went, but it doesn't look too bad:
 
-As you mentioned, the RW API should account for this, but perhaps it is still
-off some.  Bharat, have a look into the RDMA-RW API and let us see if we can
-figure out if the additional SQ depth it adds is sufficient.
- 
-> What is the workload you are running? with immediatedata enabled you
-> should issue reg+rdma_read+send only for writes > 8k.
+$ sudo rpm -Uvh libibverbs-11-1.el7.x86_64.rpm libibverbs-utils-11-1.el7.x86_64.rpm
+Preparing...                          ################################# [100%]
+Updating / installing...
+   1:libibverbs-11-1.el7              ################################# [ 14%]
+   2:libibverbs-utils-11-1.el7        ################################# [ 29%]
+Cleaning up / removing...
+   3:libibverbs-utils-1.2.1-1.el7     ################################# [ 43%]
+   4:libi40iw-0.5.227-2.el7           ################################# [ 57%]
+   5:libocrdma-1.0.8-1.el7            ################################# [ 71%]
+   6:libmlx5-1.2.1-8.el7              ################################# [ 86%]
+   7:libibverbs-1.2.1-1.el7           ################################# [100%]
+
+Seems I have the Provides/Obsoletes correct at least. This also eliminates
+the somewhat gross libibverbs-driver Provides from each driver and the
+matching Requires in libibverbs-utils, which I like...
+
+Doug, any thoughts from you on this front?
+
+> > > > +install -D -m0644 Documentation/{ibacm,ibsrpdm,libibcm,libibverbs,librdmacm,rxe}.md %{buildroot}/%{_docdir}/%{name}-%{version}/
+> > > > +install -D -m0644 README.md %{buildroot}/%{_docdir}/%{name}-%{version}/
+> > > 
+> > > I guess README should go in that patch I sent you..
+> > 
+> > D'oh, yeah, I'll mix that in here locally.
 > 
-> Does this happen when you run only reads for example?
+> I think you can just add ../README.md to the
+> Documentation/CMakeFile.txt
+
+First cut, I added a Files line to the root CMakeLists.txt. Would the
+above be preferred over that? Both seem to work.
+
+> > > > +%{buildroot}/%{_bindir}/ib_acme -D . -O
+> > > > +# Fixup a multilib conflict in ibacm_opts.cfg:
+> > > > +sed -i -e '/^# Specifies the directory of the provider libraries$/ a\
+> > > > +# Use /usr/lib64/ibacm on 64bit, /usr/lib/libacm on 32bit.
+> > > > +' -e 's%^\(# provider_lib_path
+> > > > /usr/\)lib\(64\)\?/ibacm$%\1lib64/ibacm%' ibacm_opts.cfg
+> > > 
+> > > Hum? I'm pretty sure this is basically fixed in the code now, was done here
+> > > 5eebdb9baaaae420a4bb16e586a96807823916a0
+> > > 
+> > > Adjusting the comment like that doesn't really make sense, the acm
+> > > daemon has a fixed endianness and looks in a single place to load the
+> > > plugin. If someone wants to use 32 bit plugins they have to install
+> > > the 32 bit acm daemon, which would have the 32 bit path in the sample
+> > > conf file...
+> > 
+> > This was just copy and paste from our existing libacm spec, might well be
+> > something that was fixed and I just missed it.
 > 
-> I guess its time to get the sq accounting into shape...
+> It looks OK as-is to me, I'd drop it now.
 
-So to sum up - 2 issues:
+Dropped, things do look fine w/o that.
 
-1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
-overflows.  So the SQ sizing needs more investigation.
+> > They weren't getting installed, so I threw that hack in, meant to
+> > actually say something about that, got lost in the shuffle. I'll
+> > double-check if they're still not getting installed... Okay, they're
+> > getting installed now. May have just been a transient error with an
+> > earlier tarball, or something else I did wrong. I'll drop that bit.
+> 
+> How strange.. FWIW, the tarball should be built with git-archive ..
 
-2) if the SQ is full, then the iSER/target code is supposed to resubmit.  And
-apparently that isn't working.
+There was a ton of churn from what I was doing, I blame me. ;) All good
+now, and yes, creating tarballs with git archive:
 
-Steve.
+$ git archive --prefix=rdma-core-11/ -o ~/rpmbuild/SOURCES/rdma-core-11.tgz --format tar.gz HEAD
+
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
