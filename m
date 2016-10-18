@@ -1,99 +1,46 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] libibumad/sysfs.h: Add copyright
-Date: Tue, 18 Oct 2016 20:30:53 +0300
-Message-ID: <20161018173053.GI25013@leon.nu>
-References: <dfe69226-fb23-0bd5-c371-ad55c1356340@dev.mellanox.co.il>
+From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: [PATCH] qedr: return -EINVAL if pd is null and avoid null ptr dereference
+Date: Tue, 18 Oct 2016 19:39:28 +0100
+Message-ID: <20161018183928.8539-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9iyR+p8Z2cn535Lj"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <dfe69226-fb23-0bd5-c371-ad55c1356340-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
---9iyR+p8Z2cn535Lj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Currently, if pd is null then we hit a null pointer derference
+on accessing pd->pd_id.  Instead of just printing an error message
+we should also return -EINVAL immediately.
 
-On Tue, Oct 18, 2016 at 01:20:18PM -0400, Hal Rosenstock wrote:
->
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+---
+ drivers/infiniband/hw/qedr/verbs.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks, applied.
-https://github.com/linux-rdma/rdma-core/pull/22
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index a615142..b2a0eb8 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -511,8 +511,10 @@ int qedr_dealloc_pd(struct ib_pd *ibpd)
+ 	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
+ 	struct qedr_pd *pd = get_qedr_pd(ibpd);
+ 
+-	if (!pd)
++	if (!pd) {
+ 		pr_err("Invalid PD received in dealloc_pd\n");
++		return -EINVAL;
++	}
+ 
+ 	DP_DEBUG(dev, QEDR_MSG_INIT, "Deallocating PD %d\n", pd->pd_id);
+ 	dev->ops->rdma_dealloc_pd(dev->rdma_ctx, pd->pd_id);
+-- 
+2.9.3
 
-> ---
-> diff --git a/libibumad/sysfs.h b/libibumad/sysfs.h
-> index 7f8cbfe..489f24b 100644
-> --- a/libibumad/sysfs.h
-> +++ b/libibumad/sysfs.h
-> @@ -1,3 +1,35 @@
-> +/*
-> + * Copyright (c) 2008 Voltaire Inc.  All rights reserved.
-> + *
-> + * This software is available to you under a choice of one of two
-> + * licenses.  You may choose to be licensed under the terms of the GNU
-> + * General Public License (GPL) Version 2, available from the file
-> + * COPYING in the main directory of this source tree, or the
-> + * OpenIB.org BSD license below:
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + *
-> + */
->  #ifndef _UMAD_SYSFS_H
->  #define _UMAD_SYSFS_H
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---9iyR+p8Z2cn535Lj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYBlxNAAoJEORje4g2clin1jEP/14DXVJcPmYtap9QGRF8sqOz
-2dRxo2dF7KW739JucFruqnXHMmlKBhE24yV/3bnepWnVjZJLJH9yv4WvQoNMisLr
-3R8tvhHSj/DKPoi3bpbXhfx9V3LrnGx/7dHmyz2Qp/m/8fLGNEDbIKDXuCiQ4I//
-RAanxpuQV8EIigK9PU0vDRDTv8QuJOWg4sFbJQ2UFbWdr/f3T+ZZpl9kc54zRXR+
-akX3YCz2z7BTeBfRhQHPMQBCvMRIPNKzN3a5LyORUhfJ8tX5bSxovFtuS3FniBOL
-OR+RRGrFAxxiep0/9x3LxApgJ1EfdSGuBhRlYSbzYZulm8VE0qNJ1tj4mKaUsY1v
-eu33UX/hO6IIBwa+HgPWhYP6BAq96L41Pz7M91FRpqdvim1PVUt1riX1REjCgCih
-PXgR4dxT2s05/H/vfltic+d4TWG9nBl1IgVAm3dH2Sr8gka+VnT4Ovhm3LRm5qRn
-gP/mLA+cgE3k7fSs5KWwOBHSJRm6CSUFKmtePwKrvTua/FVI83wFQq08a7tpgUBC
-0OMYNNBQSmApgmpPnrjb3B6zeJC7829Rk8KYsz1dzCjZc5nGLFs4bdLMkIHWMMqe
-RojUr7dmuYwmHyCTU79kyXg7Igi5Ukx1tZxLPDn8CVr+m6/8DHK/ejQLhKHw9/VM
-1jF9G3IyiyGX8DBvnoBk
-=9cWI
------END PGP SIGNATURE-----
-
---9iyR+p8Z2cn535Lj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
