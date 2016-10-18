@@ -1,73 +1,61 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
- pass FOLL_* flags
-Date: Tue, 18 Oct 2016 17:30:50 +0200
-Message-ID: <20161018153050.GC13117@dhcp22.suse.cz>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH v3 net-next 00/11] net: Fix netdev adjacency tracking
+Date: Tue, 18 Oct 2016 11:46:31 -0400 (EDT)
+Message-ID: <20161018.114631.1954199143257806104.davem@davemloft.net>
+References: <1476756953-30923-1-git-send-email-dsa@cumulusnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh@
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1476756953-30923-1-git-send-email-dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org
+Cc: jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.vosburgh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 13-10-16 01:20:10, Lorenzo Stoakes wrote:
-> This patch series adjusts functions in the get_user_pages* family such that
-> desired FOLL_* flags are passed as an argument rather than implied by flags.
+From: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
+Date: Mon, 17 Oct 2016 19:15:42 -0700
+
+> The netdev adjacency tracking is failing to create proper dependencies
+> for some topologies. For example this topology
+ ...
+> hits 1 of 2 problems depending on the order of enslavement. The base set of
+> commands for both cases:
+ ...
+> Case 1 enslave macvlan to the vrf before enslaving the bond to the bridge:
+ ...
+> Attempts to delete the VRF:
+>     ip link delete myvrf
 > 
-> The purpose of this change is to make the use of FOLL_FORCE explicit so it is
-> easier to grep for and clearer to callers that this flag is being used. The use
-> of FOLL_FORCE is an issue as it overrides missing VM_READ/VM_WRITE flags for the
-> VMA whose pages we are reading from/writing to, which can result in surprising
-> behaviour.
+> trigger the BUG in __netdev_adjacent_dev_remove:
+ ...
+> When the BUG is converted to a WARN_ON it shows 4 missing adjacencies:
+>   eth3 - myvrf, mvrf - eth3, bond1 - myvrf and myvrf - bond1
 > 
-> The patch series came out of the discussion around commit 38e0885, which
-> addressed a BUG_ON() being triggered when a page was faulted in with PROT_NONE
-> set but having been overridden by FOLL_FORCE. do_numa_page() was run on the
-> assumption the page _must_ be one marked for NUMA node migration as an actual
-> PROT_NONE page would have been dealt with prior to this code path, however
-> FOLL_FORCE introduced a situation where this assumption did not hold.
+> All of those are because the __netdev_upper_dev_link function does not
+> properly link macvlan lower devices to myvrf when it is enslaved.
+ ...
+> Rather than try to maintain a linked list of all upper and lower devices
+> per netdevice, only track the direct neighbors. The remaining stack can
+> be determined by recursively walking the neighbors.
 > 
-> See https://marc.info/?l=linux-mm&m=147585445805166 for the patch proposal.
+> The existing netdev_for_each_all_upper_dev_rcu,
+> netdev_for_each_all_lower_dev and netdev_for_each_all_lower_dev_rcu macros
+> are replaced with APIs that walk the upper and lower device lists. The
+> new APIs take a callback function and a data arg that is passed to the
+> callback for each device in the list. Drivers using the old macros are
+> converted in separate patches to make it easier on reviewers. It is an
+> API conversion only; no functional change is intended.
 
-I like this cleanup. Tracking FOLL_FORCE users was always a nightmare
-and the flag behavior is really subtle so we should better be explicit
-about it. I haven't gone through each patch separately but rather
-applied the whole series and checked the resulting diff. This all seems
-OK to me and feel free to add
-Acked-by: Michal Hocko <mhocko@suse.com>
+Series applied, but the recursion is disappointing.
 
-I am wondering whether we can go further. E.g. it is not really clear to
-me whether we need an explicit FOLL_REMOTE when we can in fact check
-mm != current->mm and imply that. Maybe there are some contexts which
-wouldn't work, I haven't checked.
+If we run into problems due to kernel stack depth because of this with
+some configurations (reasonable or not, if we allow it then it can't
+crash the kernel), we will either need to find a way to make this walk
+iterative or revert these changes.
 
-Then I am also wondering about FOLL_TOUCH behavior.
-__get_user_pages_unlocked has only few callers which used to be
-get_user_pages_unlocked before 1e9877902dc7e ("mm/gup: Introduce
-get_user_pages_remote()"). To me a dropped FOLL_TOUCH seems
-unintentional. Now that get_user_pages_unlocked has gup_flags argument I
-guess we might want to get rid of the __g-u-p-u version altogether, no?
-
-__get_user_pages is quite low level and imho shouldn't be exported. It's
-only user - kvm - should rather pull those two functions to gup instead
-and export them. There is nothing really KVM specific in them.
-
-I also cannot say I would be entirely thrilled about get_user_pages_locked,
-we only have one user which can simply do lock g-u-p unlock AFAICS.
-
-I guess there is more work in that area and I do not want to impose all
-that work on you, but I couldn't resist once I saw you playing in that
-area ;) Definitely a good start!
--- 
-Michal Hocko
-SUSE Labs
-
+Thanks.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
