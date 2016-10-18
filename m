@@ -1,46 +1,56 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/4] glue/redhat/spec: build split rpm packages
-Date: Tue, 18 Oct 2016 13:28:53 -0600
-Message-ID: <20161018192853.GA16536@obsidianresearch.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-5-jarod@redhat.com>
- <20161014233904.GD16509@obsidianresearch.com>
- <20161017184506.GL14983@redhat.com>
- <20161017190705.GB8122@obsidianresearch.com>
- <20161018144411.GS14983@redhat.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Wed, 19 Oct 2016 01:32:01 +0530
+Message-ID: <CAG53R5UciPpa5d8BWyR-tks3LBrBwRCN2NyBbbm1e3EE-OWSYQ@mail.gmail.com>
+References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+ <20161005112206.GC9282@leon.nu> <CAG53R5VNVb=8-LJbDRqjtOZG347ucPuc420bcfnDgBKMoKqU-w@mail.gmail.com>
+ <20161010044623.GI9282@leon.nu> <CAG53R5UM6nSTZ7=0S9reKGX45CpNBi8soSDVZyXkN-z0_XXWWQ@mail.gmail.com>
+ <20161010122545.GA27360@mtj.duckdns.org> <CAG53R5V5yE4PsDBjP9BieG_=39M0G1kx-AfBEzWK4LUCxNnYBA@mail.gmail.com>
+ <20161010132014.GD29742@mtj.duckdns.org> <CAG53R5ULKCqtw45E6t4hYdRV+y_OQqVazf=7A7Ax_XAJ2K0_dw@mail.gmail.com>
+ <20161013231413.GA32534@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161018144411.GS14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161013231413.GA32534-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 18, 2016 at 10:44:11AM -0400, Jarod Wilson wrote:
+Hi Tejun,
 
-> > I think you can just add ../README.md to the
-> > Documentation/CMakeFile.txt
-> 
-> First cut, I added a Files line to the root CMakeLists.txt. Would the
-> above be preferred over that? Both seem to work.
+Sorry for the late response. I was traveling during weekend.
 
-It is nitpicky, but I'd put it in the Documentation/CMakelists as
-currently the top level is all setup and doesn't build or install
-anything.
+On Fri, Oct 14, 2016 at 4:44 AM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> Hello, Parav.
+>
+> On Mon, Oct 10, 2016 at 07:02:11PM +0530, Parav Pandit wrote:
+>> Give me some more time, I will think more and take feeback from Leon
+>> and others on
+>> (a) how can we implement or want to implement weight like
+>> functionality for non-work-conversing resource
+>
+> I think what you want is just a way to specify absolute limits using
+> percentages of what's available at the time of configuration -
+> e.g. being able to say "allow upto 30% of what's available in the
+> parent".
 
-eg the top level plays a role like configure.ac
+Yes. I am concerned about how to configure < 1% value to avoid
+floating point math in kernel as thats discouraged.
+Configuring in range of 1 to 100% for a given resource limits to only
+100 or less cgroup instances which I think is not desired.
 
-Might be more familiar for people..
+> If so, the simplest way would be simply updating the
+> existing knobs to accept % inputs in addition to absolute values on
+> writes.
 
-> $ git archive --prefix=rdma-core-11/ -o ~/rpmbuild/SOURCES/rdma-core-11.tgz --format tar.gz HEAD
+I was not sure to overload rdma.max file for accepting % inputs as
+thats not done in other cgroups. So I was thinking more of weights
+interface which avoids floating point problem and also allows much
+wider configuration range.
 
-Yah, that is the right thing, it should match the tar file what github
-will autogenerate when we make a tag.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Thanks.
+>
+> --
+> tejun
