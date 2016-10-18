@@ -1,49 +1,73 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
- infrastructure bits
-Date: Tue, 18 Oct 2016 10:51:04 -0400
-Message-ID: <20161018145104.GT14983@redhat.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-3-jarod@redhat.com>
- <20161014231934.GC16509@obsidianresearch.com>
- <20161017162221.GI14983@redhat.com>
- <20161017174611.GB6430@obsidianresearch.com>
- <20161017182037.GK14983@redhat.com>
- <20161017185657.GA8122@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24F0A408@CRSMSX101.amr.corp.intel.com>
- <20161017201309.GA24291@obsidianresearch.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
+ pass FOLL_* flags
+Date: Tue, 18 Oct 2016 17:30:50 +0200
+Message-ID: <20161018153050.GC13117@dhcp22.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20161017201309.GA24291-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh@
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 17, 2016 at 02:13:09PM -0600, Jason Gunthorpe wrote:
-> On Mon, Oct 17, 2016 at 07:10:46PM +0000, Weiny, Ira wrote:
+On Thu 13-10-16 01:20:10, Lorenzo Stoakes wrote:
+> This patch series adjusts functions in the get_user_pages* family such that
+> desired FOLL_* flags are passed as an argument rather than implied by flags.
 > 
-> > What I have been worried about is conflicts between infiniband-diags
-> > and the new rdma-core.  RH made a separate package out of rdma-ndd
-> > so that would be easy but I don't think other distros have.
+> The purpose of this change is to make the use of FOLL_FORCE explicit so it is
+> easier to grep for and clearer to callers that this flag is being used. The use
+> of FOLL_FORCE is an issue as it overrides missing VM_READ/VM_WRITE flags for the
+> VMA whose pages we are reading from/writing to, which can result in surprising
+> behaviour.
 > 
-> > So how do you obsolete "part" of a package?
+> The patch series came out of the discussion around commit 38e0885, which
+> addressed a BUG_ON() being triggered when a page was faulted in with PROT_NONE
+> set but having been overridden by FOLL_FORCE. do_numa_page() was run on the
+> assumption the page _must_ be one marked for NUMA node migration as an actual
+> PROT_NONE page would have been dealt with prior to this code path, however
+> FOLL_FORCE introduced a situation where this assumption did not hold.
 > 
-> The distros know how to do this, they just conflict with the old
-> version of infiniband-diags.
+> See https://marc.info/?l=linux-mm&m=147585445805166 for the patch proposal.
 
-Yeah, basically, you spin up a new infiniband-diags package that doesn't
-have rdma-ndd and a new rdma-core package that includes it, along with (in
-rpm-ese) 'Conflicts: infiniband-diags < <first version w/o rdma-ndd>', and
-that should pretty much cover it.
+I like this cleanup. Tracking FOLL_FORCE users was always a nightmare
+and the flag behavior is really subtle so we should better be explicit
+about it. I haven't gone through each patch separately but rather
+applied the whole series and checked the resulting diff. This all seems
+OK to me and feel free to add
+Acked-by: Michal Hocko <mhocko@suse.com>
 
+I am wondering whether we can go further. E.g. it is not really clear to
+me whether we need an explicit FOLL_REMOTE when we can in fact check
+mm != current->mm and imply that. Maybe there are some contexts which
+wouldn't work, I haven't checked.
+
+Then I am also wondering about FOLL_TOUCH behavior.
+__get_user_pages_unlocked has only few callers which used to be
+get_user_pages_unlocked before 1e9877902dc7e ("mm/gup: Introduce
+get_user_pages_remote()"). To me a dropped FOLL_TOUCH seems
+unintentional. Now that get_user_pages_unlocked has gup_flags argument I
+guess we might want to get rid of the __g-u-p-u version altogether, no?
+
+__get_user_pages is quite low level and imho shouldn't be exported. It's
+only user - kvm - should rather pull those two functions to gup instead
+and export them. There is nothing really KVM specific in them.
+
+I also cannot say I would be entirely thrilled about get_user_pages_locked,
+we only have one user which can simply do lock g-u-p unlock AFAICS.
+
+I guess there is more work in that area and I do not want to impose all
+that work on you, but I couldn't resist once I saw you playing in that
+area ;) Definitely a good start!
 -- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Michal Hocko
+SUSE Labs
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
