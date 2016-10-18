@@ -1,36 +1,33 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: SQ overflow seen running isert traffic
-Date: Tue, 18 Oct 2016 14:03:56 -0500
-Message-ID: <01ab01d22972$6031c250$209546f0$@opengridcomputing.com>
-References: <20160927070157.GA13140@chelsio.com> <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me> <20161017111655.GA21245@chelsio.com> <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com> <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me> <20161018112801.GA3117@chelsio.com> <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me> <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com> <20161018161313.GC24189@obsidianresearch.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH rdma-core] libibumad/sysfs.h: Add copyright
+Date: Tue, 18 Oct 2016 12:07:45 -0700
+Message-ID: <20161018190745.GA26381@infradead.org>
+References: <dfe69226-fb23-0bd5-c371-ad55c1356340@dev.mellanox.co.il>
+ <20161018184352.GA15413@infradead.org>
+ <c1796e9a-32dc-62d2-481d-7decdc87700b@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20161018161313.GC24189@obsidianresearch.com>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>
-Cc: 'Sagi Grimberg' <sagi@grimberg.me>, 'Potnuri Bharat Teja' <bharat@chelsio.com>, target-devel@vger.kernel.org, nab@linux-iscsi.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <c1796e9a-32dc-62d2-481d-7decdc87700b-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Tue, Oct 18, 2016 at 09:34:33AM -0500, Steve Wise wrote:
+On Tue, Oct 18, 2016 at 02:53:44PM -0400, Hal Rosenstock wrote:
+> On 10/18/2016 2:43 PM, Christoph Hellwig wrote:
+> > That seems like an odd copyright statement for a file that I created..
+> > 
+> > While the delcarations came from another file the whitespaces and
+> > oinclude headers take up just as little lines and have just as little
+> > substance..
 > 
-> > 1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
-> > overflows.  So the SQ sizing needs more investigation.
-> 
-> NFS had this sort of problem - in that case it was because the code
-> was assuming that a RQ completion implied SQ space - that is not
-> legal, only direct completions from SQ WCs can guide available space
-> in the SQ..
-> 
+> What's the best thing to do ?
 
-Agreed.  And this could be the case Bharat is hitting. (I wonder if there is a
-clever way we can tell?)  I don't see I the code that isert flow controls SQ WR
-submission based on SQ completions.  
-
-It would be nice to have some core API, maybe in rdma-rw, that could handle this
-by queuing and processing when the SQ has resources...
-
-Steve.
+Just not bother with copyright notices for trivial files.  E.g. we don't
+bother with one for README.md or rdma-core.spec either.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
