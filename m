@@ -1,61 +1,27 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: ???For help??? configure crossbar build tool in CMakelist.txt
-Date: Tue, 18 Oct 2016 09:50:04 -0600
-Message-ID: <20161018155004.GA24189@obsidianresearch.com>
-References: <5805FF8C.1060902@huawei.com>
+From: David Ahern <dsa@cumulusnetworks.com>
+Subject: Re: [PATCH v3 net-next 00/11] net: Fix netdev adjacency tracking
+Date: Tue, 18 Oct 2016 09:58:23 -0600
+Message-ID: <295372c1-a359-d560-2856-45e5f0c183be@cumulusnetworks.com>
+References: <1476756953-30923-1-git-send-email-dsa@cumulusnetworks.com>
+ <20161018.114631.1954199143257806104.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5805FF8C.1060902-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161018.114631.1954199143257806104.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: jiri@mellanox.com, netdev@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 18, 2016 at 06:55:08PM +0800, oulijun wrote:
-
->   if I use crossbar build tool aarch64-linux-gnu-gcc for building
->   the directory(provider/hns), what i should do it ?
-
-You cannot cross compile only a part of the project, you must cross
-compile everything.
-
-$ mkdir build; cd build
-$ CC=aarch64-linux-gnu-gcc cmake -GNinja
-$ ninja
-
-I haven't extensively tested cross compiling, you may run into
-problems, in particular I know pkgconfig for libnl doesn't work
-reliably when cross compiling.
-
-You may need to build with -DENABLE_RESOLVE_NEIGH=0 if you don't have
-a cross compiled libnl3 available.
-
-> My modification currently according to the others as fllows:
+On 10/18/16 9:46 AM, David Miller wrote:
+> Series applied, but the recursion is disappointing.
 > 
-> in the file : provider/hns/CMakelist.txt
-> 
-> set(CMAKE_C_COMPILER /opt/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux/bin/aarch64-linux-gnu-gcc)
+> If we run into problems due to kernel stack depth because of this with
+> some configurations (reasonable or not, if we allow it then it can't
+> crash the kernel), we will either need to find a way to make this walk
+> iterative or revert these changes.
 
-This is not the right approach, the hns provider CMakelist should
-detect the compiler is not ARM64 and just do nothing.
+understood.
 
-Perhaps something like this:
-
-CHECK_C_SOURCE_COMPILES("
-#ifndef __ARM64__
-#error Failed
-#endif
- int main(int argc,const char *argv[]) { return 1; }"
- HAVE_ARCH_ARM64)
-
-if (HAVE_ARCH_ARM64)
- [..]
-endif()
- 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Since 4.9 is tagged as the next LTS I would like to see the series applied to it at some point - assuming no problems show up with wider exposure in net-next.
