@@ -1,35 +1,130 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 03/28] [v2] infiniband: shut up a maybe-uninitialized warning
-Date: Tue, 18 Oct 2016 12:18:55 +0200
-Message-ID: <9469876.gij7f9Mh1b@wuerfel>
-References: <20161017220342.1627073-1-arnd@arndb.de> <20161017220557.1688282-3-arnd@arndb.de> <33302790-0a4c-e2b3-868d-3e7dadbd3c07@mellanox.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: =?UTF-8?Q?=e3=80=90For_help=e3=80=91_configure_crossbar_build_tool_?=
+ =?UTF-8?Q?in_CMakelist.txt?=
+Date: Tue, 18 Oct 2016 18:55:08 +0800
+Message-ID: <5805FF8C.1060902@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <33302790-0a4c-e2b3-868d-3e7dadbd3c07-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday, October 18, 2016 9:47:31 AM CEST Haggai Eran wrote:
-> On 10/18/2016 1:05 AM, Arnd Bergmann wrote:
-> > @@ -1309,7 +1311,7 @@ static bool validate_net_dev(struct net_device *net_dev,
-> >  static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
-> >                                         const struct cma_req_info *req)
-> >  {
-> > -     struct sockaddr_storage listen_addr_storage, src_addr_storage;
-> > +     struct sockaddr_storage listen_addr_storage = {}, src_addr_storage = {};
-> 
-> Doesn't this still translate to an extra initialization that Doug was
-> worried about?
+Hi, all
 
-Thanks for spotting this. I must have screwed up while rebasing the patch
-at some point, this one change should not be there, the other changes by
-themselves sufficiently address the warning.
+   I am working for debugging userspace code  of hns in rdma-core.git.
 
-	Arnd
+  I have met a cmake question now.  please give a help for me.
+
+  if I use crossbar build tool aarch64-linux-gnu-gcc for building the directory(provider/hns),  what i should do it ?
+
+My modification currently according to the others as fllows:
+
+in the file : provider/hns/CMakelist.txt
+
+set(CMAKE_C_COMPILER /opt/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux/bin/aarch64-linux-gnu-gcc)
+
+but the modification is fail
+
+-- The C compiler identification is GNU 4.8.4
+-- Check for working C compiler using: Ninja
+-- Check for working C compiler using: Ninja -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- cmake_share:
+-- GNU:
+-- BUILD_BIN_DIR:/home/ubuntu/rdma-core/build/bin
+-- CMAKE_INSTALL: /usr/local/var/run
+-- Found PkgConfig: /usr/bin/pkg-config (found version "0.26")
+-- rdma_build: Debug;Release;RelWithDebInfo;MinSizeRel
+-- BUILD_INCLUDE_DIR:/home/ubuntu/rdma-core/build/include
+-- Performing Test SUPPORTS_GNU99
+-- Performing Test SUPPORTS_GNU99 - Success
+-- Performing Test HAVE_C_WARNINGS
+-- Performing Test HAVE_C_WARNINGS - Success
+-- Performing Test HAVE_C_WMISSING_PROTOTYPES
+-- Performing Test HAVE_C_WMISSING_PROTOTYPES - Success
+-- Performing Test HAVE_C_WMISSING_DECLARATIONS
+-- Performing Test HAVE_C_WMISSING_DECLARATIONS - Success
+-- Performing Test HAVE_C_WWRITE_STRINGS
+-- Performing Test HAVE_C_WWRITE_STRINGS - Success
+-- Performing Test HAVE_C_WFORMAT_2
+-- Performing Test HAVE_C_WFORMAT_2 - Success
+-- Performing Test HAVE_C_WORKING_SHADOW
+-- Performing Test HAVE_C_WORKING_SHADOW - Success
+-- Performing Test HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS
+-- Performing Test HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS - Failed
+-- Performing Test HAVE_C_WNO_MISSING_FIELD_INITIALIZERS
+-- Performing Test HAVE_C_WNO_MISSING_FIELD_INITIALIZERS - Success
+-- Performing Test HAVE_NO_STRICT_ALIASING
+-- Performing Test HAVE_NO_STRICT_ALIASING - Success
+-- Performing Test HAS_CLOEXEC
+-- Performing Test HAS_CLOEXEC - Success
+-- Performing Test HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
+-- Performing Test HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE - Success
+-- Performing Test SUPPORTS_AS_NEEDED
+-- Performing Test SUPPORTS_AS_NEEDED - Success
+-- Performing Test SUPPORTS_NO_UNDEFINED
+-- Performing Test SUPPORTS_NO_UNDEFINED - Success
+-- Performing Test _LDSYMVER_SUCCESS
+-- Performing Test _LDSYMVER_SUCCESS - Success
+-- Found LDSymVer: GNU
+-- Looking for include file pthread.h
+-- Looking for include file pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - not found
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- checking for modules 'libnl-3.0;libnl-route-3.0'
+--   found libnl-3.0, version 3.2.21
+--   found libnl-route-3.0, version 3.2.21
+-- Performing Test HAVE_WORKING_IF_H
+-- Performing Test HAVE_WORKING_IF_H - Failed
+-- Check size of long
+-- Check size of long - done
+-- Looking for rdma/rdma_user_rxe.h
+-- Looking for rdma/rdma_user_rxe.h - not found
+-- Looking for valgrind/memcheck.h
+-- Looking for valgrind/memcheck.h - found
+-- Looking for valgrind/drd.h
+-- Looking for valgrind/drd.h - found
+-- Performing Test LIBC_HAS_LIBRT
+-- Performing Test LIBC_HAS_LIBRT - Success
+-- Performing Test HAVE_C_WSTRICT_PROTOTYPES
+-- Performing Test HAVE_C_WSTRICT_PROTOTYPES - Success
+-- Performing Test HAVE_C_WOLD_STYLE_DEFINITION
+-- Performing Test HAVE_C_WOLD_STYLE_DEFINITION - Success
+-- Performing Test HAVE_C_WREDUNDANT_DECLS
+-- Performing Test HAVE_C_WREDUNDANT_DECLS - Failed
+-- c_complier: /opt/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux/bin/aarch64-linux-gnu-gcc
+-- Missing Optional Items:
+--  netlink/route/link.h and net/if.h NOT co-includable (old headers)
+--  rdma/rdma_user_rxe.h NOT found (old system kernel headers)
+--  -Wmissing-field-initializers does NOT work
+--  -Wredundant-decls does NOT work
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/ubuntu/rdma-core/build
+[115/164] Building C object providers/hns/CMakeFiles/hns-rdmav2.dir/hns_roce_u_hw_v1.c.o
+FAILED: /usr/bin/cc  -Dhns_rdmav2_EXPORTS -std=gnu99 -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wformat=2 -Wshadow -Wno-missing-field-initializers -Wstrict-prototypes -Wold-style-definition -O2 -g  -fPIC -Iinclude -I/usr/include/libnl3 -MMD -MT providers/hns/CMakeFiles/hns-rdmav2.dir/hns_roce_u_hw_v1.c.o -MF "providers/hns/CMakeFiles/hns-rdmav2.dir/hns_roce_u_hw_v1.c.o.d" -o providers/hns/CMakeFiles/hns-rdmav2.dir/hns_roce_u_hw_v1.c.o -c ../providers/hns/hns_roce_u_hw_v1.c
+../providers/hns/hns_roce_u_hw_v1.c: Assembler messages:
+../providers/hns/hns_roce_u_hw_v1.c:830: Error: number of operands mismatch for `ds'
+../providers/hns/hns_roce_u_hw_v1.c:264: Error: number of operands mismatch for `ds'
+../providers/hns/hns_roce_u_hw_v1.c:413: Error: number of operands mismatch for `ds'
+../providers/hns/hns_roce_u_hw_v1.c:586: Error: number of operands mismatch for `ds'
+../providers/hns/hns_roce_u_hw_v1.c:630: Error: number of operands mismatch for `ds'
+[115/164] Building C object ibacm/CMakeFiles/ibacm.dir/src/acm.c.o
+ninja: build stopped: subcommand failed.
+
+
+
+.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
