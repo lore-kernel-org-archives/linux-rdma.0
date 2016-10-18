@@ -1,51 +1,73 @@
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: Re: [PATCH 04/10] mm: replace get_user_pages_locked() write/force
- parameters with gup_flags
-Date: Tue, 18 Oct 2016 14:56:09 +0100
-Message-ID: <20161018135609.GA30025@lucifer>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161013002020.3062-5-lstoakes@gmail.com>
- <20161018125425.GD29967@quack2.suse.cz>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: SQ overflow seen running isert traffic
+Date: Tue, 18 Oct 2016 09:34:33 -0500
+Message-ID: <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
+References: <20160927070157.GA13140@chelsio.com> <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me> <20161017111655.GA21245@chelsio.com> <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com> <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me> <20161018112801.GA3117@chelsio.com> <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161018125425.GD29967@quack2.suse.cz>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 18, 2016 at 02:54:25PM +0200, Jan Kara wrote:
-> > @@ -1282,7 +1282,7 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
-> >  			    int write, int force, struct page **pages,
-> >  			    struct vm_area_struct **vmas);
-> >  long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
-> > -		    int write, int force, struct page **pages, int *locked);
-> > +		    unsigned int gup_flags, struct page **pages, int *locked);
+> 
+> > I tried out this change and it works fine with iwarp. I dont see SQ
+> > overflow. Apparently we have increased the sq too big to overflow. I am
+going
+> > to let it run with higher workloads for longer time, to see if it holds
+good.
+> 
+> Actually on second thought, this patch is an overkill. Effectively we
+> now set:
+> 
+> MAX_CMD=266
+> and max_rdma_ctx=128 so together we take 394 which seems to too much.
+> 
+> If we go by the scheme of 1 rdma + 1 send for each IO we need:
+> - 128 sends
+> - 128 rdmas
+> - 10 miscs
+> 
+> so this gives 266.
+> 
+> Perhaps this is due to the fact that iWARP needs to register memory for
+> rdma reads as well? (and also rdma writes > 128k for chelsio HW right?)
 >
-> Hum, the prototype is inconsistent with e.g. __get_user_pages_unlocked()
-> where gup_flags come after **pages argument. Actually it makes more sense
-> to have it before **pages so that input arguments come first and output
-> arguments second but I don't care that much. But it definitely should be
-> consistent...
 
-It was difficult to decide quite how to arrange parameters as there was
-inconsitency with regards to parameter ordering already - for example
-__get_user_pages() places its flags argument before pages whereas, as you note,
-__get_user_pages_unlocked() puts them afterwards.
+iWARP definitely needs to register memory for the target of reads, due to
+REMOTE_WRITE requirement for the protocol.  The source of a write doesn't need
+to register memory, but the SGE depth can cause multiple WRITE WRs to be
+required to service the IO.  And in theory there should be some threshold where
+it might be better performance-wise to do a memory register + 1 WRITE vs X
+WRITEs.    
 
-I ended up compromising by trying to match the existing ordering of the function
-as much as I could by replacing write, force pairs with gup_flags in the same
-location (with the exception of get_user_pages_unlocked() which I felt should
-match __get_user_pages_unlocked() in signature) or if there was already a
-gup_flags parameter as in the case of __get_user_pages_unlocked() I simply
-removed the write, force pair and left the flags as the last parameter.
+As you mentioned, the RW API should account for this, but perhaps it is still
+off some.  Bharat, have a look into the RDMA-RW API and let us see if we can
+figure out if the additional SQ depth it adds is sufficient.
+ 
+> What is the workload you are running? with immediatedata enabled you
+> should issue reg+rdma_read+send only for writes > 8k.
+> 
+> Does this happen when you run only reads for example?
+> 
+> I guess its time to get the sq accounting into shape...
 
-I am happy to rearrange parameters as needed, however I am not sure if it'd be
-worthwhile for me to do so (I am keen to try to avoid adding too much noise here
-:)
+So to sum up - 2 issues:
 
-If we were to rearrange parameters for consistency I'd suggest adjusting
-__get_user_pages_unlocked() to put gup_flags before pages and do the same with
-get_user_pages_unlocked(), let me know what you think.
+1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
+overflows.  So the SQ sizing needs more investigation.
+
+2) if the SQ is full, then the iSER/target code is supposed to resubmit.  And
+apparently that isn't working.
+
+Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
