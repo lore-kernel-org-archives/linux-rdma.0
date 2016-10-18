@@ -1,27 +1,39 @@
-From: David Ahern <dsa@cumulusnetworks.com>
-Subject: Re: [PATCH v3 net-next 00/11] net: Fix netdev adjacency tracking
-Date: Tue, 18 Oct 2016 09:58:23 -0600
-Message-ID: <295372c1-a359-d560-2856-45e5f0c183be@cumulusnetworks.com>
-References: <1476756953-30923-1-git-send-email-dsa@cumulusnetworks.com>
- <20161018.114631.1954199143257806104.davem@davemloft.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: building rdma-core from travis
+Date: Tue, 18 Oct 2016 10:07:16 -0600
+Message-ID: <20161018160716.GB24189@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A82373AB096A7B@ORSMSX109.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB096A91@ORSMSX109.amr.corp.intel.com>
+ <20161018050834.GF25013@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161018.114631.1954199143257806104.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: jiri@mellanox.com, netdev@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161018050834.GF25013-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/18/16 9:46 AM, David Miller wrote:
-> Series applied, but the recursion is disappointing.
+On Tue, Oct 18, 2016 at 08:08:34AM +0300, Leon Romanovsky wrote:
+> > > I can see that travis runs successfully against rdma-core.  Was there a
+> > > magic setting used to work-around the travis version?
+> >
+> > It looks like rdma-core requires the 'trusty' build on travis...
 > 
-> If we run into problems due to kernel stack depth because of this with
-> some configurations (reasonable or not, if we allow it then it can't
-> crash the kernel), we will either need to find a way to make this walk
-> iterative or revert these changes.
+> Yes, you are right.
+> "# We need at least cmake 2.12, this means we need to use trusty."
+> http://marc.info/?l=linux-rdma&m=147587977913428&w=2
 
-understood.
+Right. rdma-core does not support precise, at all. Aside from cmake,
+the original source packages had some non-functional 'compat' for such
+an old glibc (from 2012!) that I stripped out as well.
 
-Since 4.9 is tagged as the next LTS I would like to see the series applied to it at some point - assuming no problems show up with wider exposure in net-next.
+I can't recommend that anybody working on a c-language project should
+be using the precise images on travis for anything <shrug>
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
