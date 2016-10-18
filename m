@@ -1,128 +1,99 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] IB/mad: Eliminate redundant SM class version defines for OPA
-Date: Tue, 18 Oct 2016 13:20:29 -0400
-Message-ID: <3995ed79-d933-1c93-1fa6-3f03b7e51d44@dev.mellanox.co.il>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] libibumad/sysfs.h: Add copyright
+Date: Tue, 18 Oct 2016 20:30:53 +0300
+Message-ID: <20161018173053.GI25013@leon.nu>
+References: <dfe69226-fb23-0bd5-c371-ad55c1356340@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9iyR+p8Z2cn535Lj"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <dfe69226-fb23-0bd5-c371-ad55c1356340-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-and rename class version define to indicate SM rather than SMP or SMI
+--9iyR+p8Z2cn535Lj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 40cbd6b..bc2a9c2 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -769,7 +769,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	 * If we are at the start of the LID routed part, don't update the
- 	 * hop_ptr or hop_cnt.  See section 14.2.2, Vol 1 IB spec.
- 	 */
--	if (opa && smp->class_version == OPA_SMP_CLASS_VERSION) {
-+	if (opa && smp->class_version == OPA_SM_CLASS_VERSION) {
- 		u32 opa_drslid;
- 
- 		if ((opa_get_smp_direction(opa_smp)
-@@ -2167,7 +2167,7 @@ static bool generate_unmatched_resp(const struct ib_mad_private *recv,
- 	struct ib_mad_hdr *mad_hdr = (struct ib_mad_hdr *)recv->mad;
- 
- 	if (opa && mad_hdr->base_version == OPA_MGMT_BASE_VERSION &&
--	    mad_hdr->class_version == OPA_SMI_CLASS_VERSION)
-+	    mad_hdr->class_version == OPA_SM_CLASS_VERSION)
- 		return handle_opa_smi(port_priv, qp_info, wc, port_num, recv,
- 				      response);
- 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 9487c9b..320e4da 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -128,7 +128,7 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- 	smp = send_buf->mad;
- 	smp->base_version = OPA_MGMT_BASE_VERSION;
- 	smp->mgmt_class = IB_MGMT_CLASS_SUBN_LID_ROUTED;
--	smp->class_version = OPA_SMI_CLASS_VERSION;
-+	smp->class_version = OPA_SM_CLASS_VERSION;
- 	smp->method = IB_MGMT_METHOD_TRAP;
- 	ibp->rvp.tid++;
- 	smp->tid = cpu_to_be64(ibp->rvp.tid);
-@@ -343,7 +343,7 @@ static int __subn_get_opa_nodeinfo(struct opa_smp *smp, u32 am, u8 *data,
- 
- 	ni->port_guid = cpu_to_be64(dd->pport[pidx].guid);
- 	ni->base_version = OPA_MGMT_BASE_VERSION;
--	ni->class_version = OPA_SMI_CLASS_VERSION;
-+	ni->class_version = OPA_SM_CLASS_VERSION;
- 	ni->node_type = 1;     /* channel adapter */
- 	ni->num_ports = ibdev->phys_port_cnt;
- 	/* This is already in network order */
-@@ -379,7 +379,7 @@ static int subn_get_nodeinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 		nip->port_guid = cpu_to_be64(dd->pport[pidx].guid);
- 
- 	nip->base_version = OPA_MGMT_BASE_VERSION;
--	nip->class_version = OPA_SMI_CLASS_VERSION;
-+	nip->class_version = OPA_SM_CLASS_VERSION;
- 	nip->node_type = 1;     /* channel adapter */
- 	nip->num_ports = ibdev->phys_port_cnt;
- 	/* This is already in network order */
-@@ -2302,7 +2302,7 @@ static int pma_get_opa_classportinfo(struct opa_pma_mad *pmp,
- 		pmp->mad_hdr.status |= IB_SMP_INVALID_FIELD;
- 
- 	p->base_version = OPA_MGMT_BASE_VERSION;
--	p->class_version = OPA_SMI_CLASS_VERSION;
-+	p->class_version = OPA_SM_CLASS_VERSION;
- 	/*
- 	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
- 	 */
-@@ -4022,7 +4022,7 @@ static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
- 
- 	am = be32_to_cpu(smp->attr_mod);
- 	attr_id = smp->attr_id;
--	if (smp->class_version != OPA_SMI_CLASS_VERSION) {
-+	if (smp->class_version != OPA_SM_CLASS_VERSION) {
- 		smp->status |= IB_SMP_UNSUP_VERSION;
- 		ret = reply((struct ib_mad_hdr *)smp);
- 		return ret;
-@@ -4232,7 +4232,7 @@ static int process_perf_opa(struct ib_device *ibdev, u8 port,
- 
- 	*out_mad = *in_mad;
- 
--	if (pmp->mad_hdr.class_version != OPA_SMI_CLASS_VERSION) {
-+	if (pmp->mad_hdr.class_version != OPA_SM_CLASS_VERSION) {
- 		pmp->mad_hdr.status |= IB_SMP_UNSUP_VERSION;
- 		return reply((struct ib_mad_hdr *)pmp);
- 	}
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index c8a773f..981214b 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -46,7 +46,7 @@
- #define IB_MGMT_BASE_VERSION			1
- #define OPA_MGMT_BASE_VERSION			0x80
- 
--#define OPA_SMP_CLASS_VERSION			0x80
-+#define OPA_SM_CLASS_VERSION			0x80
- 
- /* Management classes */
- #define IB_MGMT_CLASS_SUBN_LID_ROUTED		0x01
-diff --git a/include/rdma/opa_smi.h b/include/rdma/opa_smi.h
-index 4a529ef..f789611 100644
---- a/include/rdma/opa_smi.h
-+++ b/include/rdma/opa_smi.h
-@@ -44,8 +44,6 @@
- #define OPA_MAX_SLS				32
- #define OPA_MAX_SCS				32
- 
--#define OPA_SMI_CLASS_VERSION			0x80
--
- #define OPA_LID_PERMISSIVE			cpu_to_be32(0xFFFFFFFF)
- 
- struct opa_smp {
+On Tue, Oct 18, 2016 at 01:20:18PM -0400, Hal Rosenstock wrote:
+>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks, applied.
+https://github.com/linux-rdma/rdma-core/pull/22
+
+> ---
+> diff --git a/libibumad/sysfs.h b/libibumad/sysfs.h
+> index 7f8cbfe..489f24b 100644
+> --- a/libibumad/sysfs.h
+> +++ b/libibumad/sysfs.h
+> @@ -1,3 +1,35 @@
+> +/*
+> + * Copyright (c) 2008 Voltaire Inc.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + *
+> + */
+>  #ifndef _UMAD_SYSFS_H
+>  #define _UMAD_SYSFS_H
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--9iyR+p8Z2cn535Lj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYBlxNAAoJEORje4g2clin1jEP/14DXVJcPmYtap9QGRF8sqOz
+2dRxo2dF7KW739JucFruqnXHMmlKBhE24yV/3bnepWnVjZJLJH9yv4WvQoNMisLr
+3R8tvhHSj/DKPoi3bpbXhfx9V3LrnGx/7dHmyz2Qp/m/8fLGNEDbIKDXuCiQ4I//
+RAanxpuQV8EIigK9PU0vDRDTv8QuJOWg4sFbJQ2UFbWdr/f3T+ZZpl9kc54zRXR+
+akX3YCz2z7BTeBfRhQHPMQBCvMRIPNKzN3a5LyORUhfJ8tX5bSxovFtuS3FniBOL
+OR+RRGrFAxxiep0/9x3LxApgJ1EfdSGuBhRlYSbzYZulm8VE0qNJ1tj4mKaUsY1v
+eu33UX/hO6IIBwa+HgPWhYP6BAq96L41Pz7M91FRpqdvim1PVUt1riX1REjCgCih
+PXgR4dxT2s05/H/vfltic+d4TWG9nBl1IgVAm3dH2Sr8gka+VnT4Ovhm3LRm5qRn
+gP/mLA+cgE3k7fSs5KWwOBHSJRm6CSUFKmtePwKrvTua/FVI83wFQq08a7tpgUBC
+0OMYNNBQSmApgmpPnrjb3B6zeJC7829Rk8KYsz1dzCjZc5nGLFs4bdLMkIHWMMqe
+RojUr7dmuYwmHyCTU79kyXg7Igi5Ukx1tZxLPDn8CVr+m6/8DHK/ejQLhKHw9/VM
+1jF9G3IyiyGX8DBvnoBk
+=9cWI
+-----END PGP SIGNATURE-----
+
+--9iyR+p8Z2cn535Lj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
