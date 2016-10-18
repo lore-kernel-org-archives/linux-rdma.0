@@ -1,67 +1,62 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: building rdma-core from travis
-Date: Tue, 18 Oct 2016 08:08:34 +0300
-Message-ID: <20161018050834.GF25013@leon.nu>
-References: <1828884A29C6694DAF28B7E6B8A82373AB096A7B@ORSMSX109.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB096A91@ORSMSX109.amr.corp.intel.com>
+From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 6/8] IB/hns: Replace counting semaphore event_sem with
+ wait condition
+Date: Tue, 18 Oct 2016 10:46:45 +0530
+Message-ID: <CAHv-k__KG4wZ+dCEALRjw1U_eS2eQA63Qy=mzFjXD5SqFz85ew@mail.gmail.com>
+References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org>
+ <1476721862-7070-7-git-send-email-binoy.jayan@linaro.org> <5900385.6T4BAIyXjD@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="xkXJwpr35CY/Lc3I"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB096A91-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <5900385.6T4BAIyXjD@wuerfel>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux kernel mailing list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---xkXJwpr35CY/Lc3I
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Oct 18, 2016 at 12:06:19AM +0000, Hefty, Sean wrote:
-> > CMake Error at CMakeLists.txt:23 (cmake_minimum_required):
-> >
-> >   CMake 2.8.11 or higher is required.  You are running version 2.8.7
-> >
-> >
-> > I can see that travis runs successfully against rdma-core.  Was there a
-> > magic setting used to work-around the travis version?
+On 18 October 2016 at 01:59, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+> On Monday, October 17, 2016 10:01:00 PM CEST Binoy Jayan wrote:
+>> --- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+>> @@ -248,10 +248,14 @@ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+>>  {
+>>         int ret = 0;
+>>
+>> -       down(&hr_dev->cmd.event_sem);
+>> +       wait_event(hr_dev->cmd.event_sem.wq,
+>> +                  atomic_add_unless(&hr_dev->cmd.event_sem.count, -1, 0));
+>> +
+>>         ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
+>>                                        in_modifier, op_modifier, op, timeout);
+>> -       up(&hr_dev->cmd.event_sem);
+>> +
+>> +       if (atomic_inc_return(&hr_dev->cmd.event_sem.count) == 1)
+>> +               wake_up(&hr_dev->cmd.event_sem.wq);
+>>
+>>         return ret;
+>>  }
 >
-> It looks like rdma-core requires the 'trusty' build on travis...
+> This is the only interesting use of the event_sem that cares about
+> the counting and it protects the __hns_roce_cmd_mbox_wait() from being
+> entered too often. The count here is the number of size of the
+> hr_dev->cmd.context[] array.
+>
+> However, that function already use a spinlock to protect that array
+> and pick the correct context. I think changing the inner function
+> to handle the case of 'no context available' by using a waitqueue
+> without counting anything would be a reasonable transformation
+> away from the semaphore.
+>
+>         Arnd
 
-Yes, you are right.
-"# We need at least cmake 2.12, this means we need to use trusty."
-http://marc.info/?l=linux-rdma&m=147587977913428&w=2
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Arnd,
 
---xkXJwpr35CY/Lc3I
-Content-Type: application/pgp-signature; name="signature.asc"
+Thank you for replying for the questions. I''ll look for alternatives
+for patches
+6,7 and 8 and resend the series.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYBa5SAAoJEORje4g2clinuPkQAMFOB8b7k3Ldu6Vemtx0zXe0
-8MUED7ffK6V94NE6O1qQQXvHAPaKmzJ/6v07yjMOd5fmddbLBWKk574iiobsZ+wT
-jBV3JfQkkXirsIAym1FK6pv2LixYYcg/kJaknUs/iUxyX7ZwBeSEQVzTCU7JOtwy
-YFtrCoXjMwRLpxvzyh6INwPZfVuOMEQFb6ZkBr5lELf8wh4DOZba6JdEM/nNauWl
-ES+ldT/oJBrQY+FQ42trhxoccU+Dy7BeCD5Fhn9D5oXVSCmPe9ZqaQhRxPY1H974
-qbruuOPfbcE/haKH05MEuxLwFeZjT5xedDnrbQ3GRp1F9/l5GF1k0MF8BwU6I+RP
-3uuMUfsB4pBFXq73BLpr2pKkoedzTXUjkRoFkKnvY7gBN6d6xsxGjwK4kiRulCY4
-DQzPK3MsFSuhVo6e1NEvYK0wieTxMmX0A0loJq2Ora7bGaEidDkFIbxMIex8Tkpi
-+rZYP+wNHjhqqbD/uKYAfPQpuNLDasjXcyEoVp/09juQ/JKCy/MtjTpeKe4RcmDV
-haou30A6ICPfLr3QAbRn/GFmjYI34gJqlHf/nTj4WQsOv1HgV5X0eMgJdQOOlau3
-6jAF9DnOhBa+U6HGiNjCTzZDjrlg9WuBD5Rkim0QlmG4r8t3EH1TKmDhf6s/l1ag
-IM5IWD1yagIrF8ipNwkA
-=juWl
------END PGP SIGNATURE-----
-
---xkXJwpr35CY/Lc3I--
+-Binoy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
