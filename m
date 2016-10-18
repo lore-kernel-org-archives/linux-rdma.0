@@ -1,57 +1,41 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: building rdma-core from travis
-Date: Tue, 18 Oct 2016 11:00:07 -0600
-Message-ID: <20161018170007.GA11537@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB096A7B@ORSMSX109.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB096A91@ORSMSX109.amr.corp.intel.com>
- <20161018050834.GF25013@leon.nu>
- <20161018160716.GB24189@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB096CC3@ORSMSX109.amr.corp.intel.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 03/28] [v2] infiniband: shut up a maybe-uninitialized
+ warning
+Date: Tue, 18 Oct 2016 13:32:13 +0300
+Message-ID: <08ccbb7b-b265-999c-56c9-2fa0b28c85a9@mellanox.com>
+References: <20161017220342.1627073-1-arnd@arndb.de>
+ <20161017220557.1688282-3-arnd@arndb.de>
+ <33302790-0a4c-e2b3-868d-3e7dadbd3c07@mellanox.com>
+ <9469876.gij7f9Mh1b@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB096CC3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <9469876.gij7f9Mh1b@wuerfel>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 18, 2016 at 04:31:23PM +0000, Hefty, Sean wrote:
-> > Right. rdma-core does not support precise, at all. Aside from cmake,
-> > the original source packages had some non-functional 'compat' for such
-> > an old glibc (from 2012!) that I stripped out as well.
+On 10/18/2016 1:18 PM, Arnd Bergmann wrote:
+> On Tuesday, October 18, 2016 9:47:31 AM CEST Haggai Eran wrote:
+>> On 10/18/2016 1:05 AM, Arnd Bergmann wrote:
+>>> @@ -1309,7 +1311,7 @@ static bool validate_net_dev(struct net_device *net_dev,
+>>>  static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
+>>>                                         const struct cma_req_info *req)
+>>>  {
+>>> -     struct sockaddr_storage listen_addr_storage, src_addr_storage;
+>>> +     struct sockaddr_storage listen_addr_storage = {}, src_addr_storage = {};
+>>
+>> Doesn't this still translate to an extra initialization that Doug was
+>> worried about?
 > 
-> To people who use vi to write C code with text-based email for their
-> code review process, 2012 is spaceship futuristic.
+> Thanks for spotting this. I must have screwed up while rebasing the patch
+> at some point, this one change should not be there, the other changes by
+> themselves sufficiently address the warning.
 
-Well, those people will suffer then *shrug*
+Okay, other than this the patch looks good to me.
 
-> > I can't recommend that anybody working on a c-language project should
-> > be using the precise images on travis for anything <shrug>
-> 
-> We use containers, which are supposed to be faster for processing.
-
-I seem to recall the GCE images have faster CPUs but spend more time
-booting the VM.
-
-For rdma-core I counter balanced the VM spin up time by avoiding the
-matrix feature. rdma-core has a very fast compile at 19s, I can run
-all four compiler passes in less time than it takes to spin up and
-configure the VM, container or not :\.
-
-For something like libfabric you might get a win if you do the same
-and run fabtests on one of the compiler's output instead of for both.
-
-Plus, if you use trusty you don't need to download and compile
-rdma-core, just install libibverbs-dev and librdmacm-dev from Ubuntu.
-
-But at the end of the day, it depend what you expect out of
-travis. rdma-core has travis setup to try and show that the code is
-clean with bleeding edge rolling release distros (eg forward
-looking).
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
