@@ -1,41 +1,59 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 03/28] [v2] infiniband: shut up a maybe-uninitialized
- warning
-Date: Tue, 18 Oct 2016 13:32:13 +0300
-Message-ID: <08ccbb7b-b265-999c-56c9-2fa0b28c85a9@mellanox.com>
-References: <20161017220342.1627073-1-arnd@arndb.de>
- <20161017220557.1688282-3-arnd@arndb.de>
- <33302790-0a4c-e2b3-868d-3e7dadbd3c07@mellanox.com>
- <9469876.gij7f9Mh1b@wuerfel>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH rdma-core] libibumad/sysfs.h: Add copyright
+Date: Tue, 18 Oct 2016 13:20:18 -0400
+Message-ID: <dfe69226-fb23-0bd5-c371-ad55c1356340@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9469876.gij7f9Mh1b@wuerfel>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/18/2016 1:18 PM, Arnd Bergmann wrote:
-> On Tuesday, October 18, 2016 9:47:31 AM CEST Haggai Eran wrote:
->> On 10/18/2016 1:05 AM, Arnd Bergmann wrote:
->>> @@ -1309,7 +1311,7 @@ static bool validate_net_dev(struct net_device *net_dev,
->>>  static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
->>>                                         const struct cma_req_info *req)
->>>  {
->>> -     struct sockaddr_storage listen_addr_storage, src_addr_storage;
->>> +     struct sockaddr_storage listen_addr_storage = {}, src_addr_storage = {};
->>
->> Doesn't this still translate to an extra initialization that Doug was
->> worried about?
-> 
-> Thanks for spotting this. I must have screwed up while rebasing the patch
-> at some point, this one change should not be there, the other changes by
-> themselves sufficiently address the warning.
 
-Okay, other than this the patch looks good to me.
-
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/libibumad/sysfs.h b/libibumad/sysfs.h
+index 7f8cbfe..489f24b 100644
+--- a/libibumad/sysfs.h
++++ b/libibumad/sysfs.h
+@@ -1,3 +1,35 @@
++/*
++ * Copyright (c) 2008 Voltaire Inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
+ #ifndef _UMAD_SYSFS_H
+ #define _UMAD_SYSFS_H
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
