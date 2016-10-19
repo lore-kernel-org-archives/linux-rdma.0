@@ -1,90 +1,86 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [PATCH net-next 6/6] net: use core MTU range checking in misc
- drivers
-Date: Thu, 20 Oct 2016 00:38:46 +0200
-Message-ID: <20161020003846.64f85f7e@kant>
-References: <20161019023333.15760-1-jarod@redhat.com>
-        <20161019023333.15760-7-jarod@redhat.com>
-        <20161019160546.GC11224@bistromath.localdomain>
+From: Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
+Date: Wed, 19 Oct 2016 16:54:54 -0600
+Message-ID: <20161019225454.GA17086@cgy1-donard.priv.deltatee.com>
+References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
+ <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
+ <CAPcyv4ht=ZtQOyUp8khzzJtZhWcsaCgQi=feEuaj1AY3f9wd=g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161019160546.GC11224@bistromath.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sabrina Dubroca <sd@queasysnail.net>, Jarod Wilson <jarod@redhat.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, Cliff Whickman <cpw@sgi.com>, Robin Holt <robinmholt@gmail.com>, Jes Sorensen <jes@trained-monkey.org>, Marek Lindner <mareklindner@neomailbox.ch>, Simon Wunderlich <sw@simonwunderlich.de>, Antonio Quartulli <a@unstable.cc>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-block-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4ht=ZtQOyUp8khzzJtZhWcsaCgQi=feEuaj1AY3f9wd=g@mail.gmail.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, haggaie@mellanox.com, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@fb.com>, Jonathan Corbet <corbet@lwn.net>, jim.macdonald@everspin.com, sbates@raithin.com, Logan Gunthorpe <logang@deltatee.com>, David Woodhouse <dwmw2@infradead.org>, "Raj, Ashok" <ashok.raj@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Oct 19 Sabrina Dubroca wrote:
-> 2016-10-18, 22:33:33 -0400, Jarod Wilson wrote:
-> [...]
-> > diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
-> > index 309311b..b5f125c 100644
-> > --- a/drivers/firewire/net.c
-> > +++ b/drivers/firewire/net.c
-> > @@ -1349,15 +1349,6 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
-> >  	return NETDEV_TX_OK;
-> >  }
-> >  
-> > -static int fwnet_change_mtu(struct net_device *net, int new_mtu)
-> > -{
-> > -	if (new_mtu < 68)
-> > -		return -EINVAL;
-> > -
-> > -	net->mtu = new_mtu;
-> > -	return 0;
-> > -}
-> > -  
-> 
-> This doesn't do any upper bound checking.
+> >>
+> >> If you're only using the block-device as a entry-point to create
+> >> dax-mappings then a device-dax (drivers/dax/) character-device might
+> >> be a better fit.
+> >>
+> >
+> > We chose a block device because we felt it was intuitive for users to
+> > carve up a memory region but putting a DAX filesystem on it and creating
+> > files on that DAX aware FS. It seemed like a convenient way to
+> > partition up the region and to be easily able to get the DMA address
+> > for the memory backing the device.
+> >
+> > That said I would be very keen to get other peoples thoughts on how
+> > they would like to see this done. And I know some people have had some
+> > reservations about using DAX mounted FS to do this in the past.
+>
+> I guess it depends on the expected size of these devices BARs, but I
+> get the sense they may be smaller / more precious such that you
+> wouldn't want to spend capacity on filesystem metadata? For the target
+> use case is it assumed that these device BARs are always backed by
+> non-volatile memory?  Otherwise this is a mkfs each boot for a
+> volatile device.
 
-I need to check more closely, but I think the RFC 2734 encapsulation spec
-and our implementation do not impose a particular upper limit.  Though I
-guess it's bad to let userland set arbitrarily large values here.
+Dan
 
-> >  static const struct ethtool_ops fwnet_ethtool_ops = {
-> >  	.get_link	= ethtool_op_get_link,
-> >  };
-> > @@ -1366,7 +1357,6 @@ static const struct net_device_ops fwnet_netdev_ops = {
-> >  	.ndo_open       = fwnet_open,
-> >  	.ndo_stop	= fwnet_stop,
-> >  	.ndo_start_xmit = fwnet_tx,
-> > -	.ndo_change_mtu = fwnet_change_mtu,
-> >  };
-> >  
-> >  static void fwnet_init_dev(struct net_device *net)
-> > @@ -1481,6 +1471,8 @@ static int fwnet_probe(struct fw_unit *unit,
-> >  	max_mtu = (1 << (card->max_receive + 1))
-> >  		  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
-> >  	net->mtu = min(1500U, max_mtu);
-> > +	net->min_mtu = ETH_MIN_MTU;
-> > +	net->max_mtu = net->mtu;  
-> 
-> But that will now prevent increasing the MTU above the initial value?
+Fair point and this is a concern I share. We are not assuming that all
+iopmem devices are backed by non-volatile memory so the mkfs
+recreation comment is valid. All in all I think you are persuading us
+to take a look at /dev/dax ;-). I will see if anyone else chips in
+with their thoughts on this.
 
-Indeed, therefore NAK.
+>
+> >>
+> >> > 2. Memory Segment Spacing. This patch has the same limitations that
+> >> > ZONE_DEVICE does in that memory regions must be spaces at least
+> >> > SECTION_SIZE bytes part. On x86 this is 128MB and there are cases where
+> >> > BARs can be placed closer together than this. Thus ZONE_DEVICE would not
+> >> > be usable on neighboring BARs. For our purposes, this is not an issue as
+> >> > we'd only be looking at enabling a single BAR in a given PCIe device.
+> >> > More exotic use cases may have problems with this.
+> >>
+> >> I'm working on patches for 4.10 to allow mixing multiple
+> >> devm_memremap_pages() allocations within the same physical section.
+> >> Hopefully this won't be a problem going forward.
+> >>
+> >
+> > Thanks Dan. Your patches will help address the problem of how to
+> > partition a /dev/dax device but they don't help the case then BARs
+> > themselves are small, closely spaced and non-segment aligned. However
+> > I think most people using iopmem will want to use reasonbly large
+> > BARs so I am not sure item 2 is that big of an issue.
+>
+> I think you might have misunderstood what I'm proposing.  The patches
+> I'm working on are separate from a facility to carve up a /dev/dax
+> device.  The effort is to allow devm_memremap_pages() to maintain
+> several allocations within the same 128MB section.  I need this for
+> persistent memory to handle platforms that mix pmem and system-ram in
+> the same section.  I want to be able to map ZONE_DEVICE pages for a
+> portion of a section and be able to remove portions of section that
+> may collide with allocations of a different lifetime.
 
-PS:
-If the IP packet plus encapsulation header fits into IEEE 1394 packet
-payload, it is transported without link fragmentation.  If it does not
-fit, link fragmentation occurs (which reduces bandwidth a bit and
-consumes additional buffering resources at the transmitter and the
-receiver).
+Oh I did misunderstand. This is very cool and would be useful to us.
+One more reason to consider moving to /dev/dax in the next spin of
+this patchset ;-).
 
-Broadcast and multicast packets are transmitted via IEEE 1394 asynchronous
-stream packets at a low bus speed (because our code does not attempt to
-find the maximum speed and size that is supported by all potential
-listeners).  This limits the payload to 512 bytes.
+Thanks
 
-Unicast packets are transmitted via IEEE 1394 asynchronous write request
-packets at optimum speed.  In most cases, this means that 2048 bytes
-payload is possible, in some cases 4096 bytes.  Many CardBus FireWire
-cards support only 1024 bytes payload of these packets though.
-Furthermore, some low-speed long-haul cablings may cap the bus speed and
-thereby the payload size to 1024 or 512 bytes, but this is uncommon in
-practice.
--- 
-Stefan Richter
--======----- =-=- =-=--
-http://arcgraph.de/sr/
+Stephen
