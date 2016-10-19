@@ -1,102 +1,79 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
-Date: Wed, 19 Oct 2016 12:58:29 -0700
-Message-ID: <CAPcyv4ht=ZtQOyUp8khzzJtZhWcsaCgQi=feEuaj1AY3f9wd=g@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] memremap.c : Add support for ZONE_DEVICE IO memory
+ with struct pages.
+Date: Wed, 19 Oct 2016 13:01:06 -0700
+Message-ID: <CAPcyv4iTFpZ1b74Wf+qWe9=Annp+-OCy+pFMS7Fo7quUFwhM4g@mail.gmail.com>
 References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
- <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com> <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
+ <1476826937-20665-2-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gmiqMNb+Q88Mf-9fFb4z4uAfWbbEWrv42OBH8838SSPQ@mail.gmail.com>
+ <20161019184028.GB16550@cgy1-donard.priv.deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
-Sender: owner-linux-mm@kvack.org
-To: Stephen Bates <sbates@raithlin.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, haggaie@mellanox.com, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@fb.com>, Jonathan Corbet <corbet@lwn.net>, jim.macdonald@everspin.com, sbates@raithin.com, Logan Gunthorpe <logang@deltatee.com>, David Woodhouse <dwmw2@infradead.org>, "Raj, Ashok" <ashok.raj@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20161019184028.GB16550-Fu/sLxIRQ7hz7qcAzjI/l7KmtST0zaCzZeezCHUQhQ4@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 11:48 AM, Stephen Bates <sbates@raithlin.com> wrote:
-> On Tue, Oct 18, 2016 at 08:51:15PM -0700, Dan Williams wrote:
->> [ adding Ashok and David for potential iommu comments ]
+On Wed, Oct 19, 2016 at 11:40 AM, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org> wrote:
+> On Wed, Oct 19, 2016 at 10:50:25AM -0700, Dan Williams wrote:
+>> On Tue, Oct 18, 2016 at 2:42 PM, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org> wrote:
+>> > From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+>> >
+>> > We build on recent work that adds memory regions owned by a device
+>> > driver (ZONE_DEVICE) [1] and to add struct page support for these new
+>> > regions of memory [2].
+>> >
+>> > 1. Add an extra flags argument into dev_memremap_pages to take in a
+>> > MEMREMAP_XX argument. We update the existing calls to this function to
+>> > reflect the change.
+>> >
+>> > 2. For completeness, we add MEMREMAP_WT support to the memremap;
+>> > however we have no actual need for this functionality.
+>> >
+>> > 3. We add the static functions, add_zone_device_pages and
+>> > remove_zone_device pages. These are similar to arch_add_memory except
+>> > they don't create the memory mapping. We don't believe these need to be
+>> > made arch specific, but are open to other opinions.
+>> >
+>> > 4. dev_memremap_pages and devm_memremap_pages_release are updated to
+>> > treat IO memory slightly differently. For IO memory we use a combination
+>> > of the appropriate io_remap function and the zone_device pages functions
+>> > created above. A flags variable and kaddr pointer are added to struct
+>> > page_mem to facilitate this for the release function. We also set up
+>> > the page attribute tables for the mapped region correctly based on the
+>> > desired mapping.
+>> >
 >>
+>> This description says "what" is being done, but not "why".
 >
 > Hi Dan
 >
-> Thanks for adding Ashok and David!
+> We discuss the motivation in the cover letter.
 >
 >>
->> I agree with the motivation and the need for a solution, but I have
->> some questions about this implementation.
->>
->> >
->> > Consumers
->> > ---------
->> >
->> > We provide a PCIe device driver in an accompanying patch that can be
->> > used to map any PCIe BAR into a DAX capable block device. For
->> > non-persistent BARs this simply serves as an alternative to using
->> > system memory bounce buffers. For persistent BARs this can serve as an
->> > additional storage device in the system.
->>
->> Why block devices?  I wonder if iopmem was initially designed back
->> when we were considering enabling DAX for raw block devices.  However,
->> that support has since been ripped out / abandoned.  You currently
->> need a filesystem on top of a block-device to get DAX operation.
->> Putting xfs or ext4 on top of PCI-E memory mapped range seems awkward
->> if all you want is a way to map the bar for another PCI-E device in
->> the topology.
->>
->> If you're only using the block-device as a entry-point to create
->> dax-mappings then a device-dax (drivers/dax/) character-device might
->> be a better fit.
->>
+>> In the cover letter, "[PATCH 0/3] iopmem : A block device for PCIe
+>> memory",  it mentions that the lack of I/O coherency is a known issue
+>> and users of this functionality need to be cognizant of the pitfalls.
+>> If that is the case why do we need support for different cpu mapping
+>> types than the default write-back cache setting?  It's up to the
+>> application to handle cache cpu flushing similar to what we require of
+>> device-dax users in the persistent memory case.
 >
-> We chose a block device because we felt it was intuitive for users to
-> carve up a memory region but putting a DAX filesystem on it and creating
-> files on that DAX aware FS. It seemed like a convenient way to
-> partition up the region and to be easily able to get the DMA address
-> for the memory backing the device.
->
-> That said I would be very keen to get other peoples thoughts on how
-> they would like to see this done. And I know some people have had some
-> reservations about using DAX mounted FS to do this in the past.
+> Some of the iopmem hardware we have tested has certain alignment
+> restrictions on BAR accesses. At the very least we require write
+> combine mappings for these. We then felt it appropriate to add the
+> other mappings for the sake of completeness.
 
-I guess it depends on the expected size of these devices BARs, but I
-get the sense they may be smaller / more precious such that you
-wouldn't want to spend capacity on filesystem metadata? For the target
-use case is it assumed that these device BARs are always backed by
-non-volatile memory?  Otherwise this is a mkfs each boot for a
-volatile device.
-
->>
->> > 2. Memory Segment Spacing. This patch has the same limitations that
->> > ZONE_DEVICE does in that memory regions must be spaces at least
->> > SECTION_SIZE bytes part. On x86 this is 128MB and there are cases where
->> > BARs can be placed closer together than this. Thus ZONE_DEVICE would not
->> > be usable on neighboring BARs. For our purposes, this is not an issue as
->> > we'd only be looking at enabling a single BAR in a given PCIe device.
->> > More exotic use cases may have problems with this.
->>
->> I'm working on patches for 4.10 to allow mixing multiple
->> devm_memremap_pages() allocations within the same physical section.
->> Hopefully this won't be a problem going forward.
->>
->
-> Thanks Dan. Your patches will help address the problem of how to
-> partition a /dev/dax device but they don't help the case then BARs
-> themselves are small, closely spaced and non-segment aligned. However
-> I think most people using iopmem will want to use reasonbly large
-> BARs so I am not sure item 2 is that big of an issue.
-
-I think you might have misunderstood what I'm proposing.  The patches
-I'm working on are separate from a facility to carve up a /dev/dax
-device.  The effort is to allow devm_memremap_pages() to maintain
-several allocations within the same 128MB section.  I need this for
-persistent memory to handle platforms that mix pmem and system-ram in
-the same section.  I want to be able to map ZONE_DEVICE pages for a
-portion of a section and be able to remove portions of section that
-may collide with allocations of a different lifetime.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+If the device can support write-combine then it can support bursts, so
+I wonder why it couldn't support read bursts for cache fills...
