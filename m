@@ -1,60 +1,32 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Wed, 19 Oct 2016 10:33:45 -0400
-Message-ID: <20161019143345.GA18532@htj.duckdns.org>
-References: <20161010044623.GI9282@leon.nu>
- <CAG53R5UM6nSTZ7=0S9reKGX45CpNBi8soSDVZyXkN-z0_XXWWQ@mail.gmail.com>
- <20161010122545.GA27360@mtj.duckdns.org>
- <CAG53R5V5yE4PsDBjP9BieG_=39M0G1kx-AfBEzWK4LUCxNnYBA@mail.gmail.com>
- <20161010132014.GD29742@mtj.duckdns.org>
- <CAG53R5ULKCqtw45E6t4hYdRV+y_OQqVazf=7A7Ax_XAJ2K0_dw@mail.gmail.com>
- <20161013231413.GA32534@mtj.duckdns.org>
- <CAG53R5UciPpa5d8BWyR-tks3LBrBwRCN2NyBbbm1e3EE-OWSYQ@mail.gmail.com>
- <20161018215134.GB2761@htj.duckdns.org>
- <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH v3 02/11] blk-mq: Introduce blk_mq_hctx_stopped()
+Date: Wed, 19 Oct 2016 08:58:55 -0700
+Message-ID: <4c09e48d-4b23-915a-bf60-c58d0aae6007@sandisk.com>
+References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com>
+ <b5b0ffcc-767d-1b90-9c5a-52c57690dea8@sandisk.com>
+ <20161019131900.GB6323@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20161019131900.GB6323@lst.de>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@fb.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
-
-On Wed, Oct 19, 2016 at 03:04:52PM +0530, Parav Pandit wrote:
-> > Heh, we can go for per-mil and use %0 as the suffix if absolutely
-> > necessary but is this a real issue?
+On 10/19/2016 06:19 AM, Christoph Hellwig wrote:
+> On Tue, Oct 18, 2016 at 02:49:09PM -0700, Bart Van Assche wrote:
+>> Multiple functions test the BLK_MQ_S_STOPPED bit so introduce
+>> a helper function that performs this test.
 >
-> We need to provide current version to exceed the 100 containers limit first. :-)
-> Please let me know if such user interface already exist as reference point.
-> I prefer to avoid introducing such configuration.
+> Looks sensible.  Any reason to have it in the public blk-mq.h instead
+> of the private one, though?  I see that dm is using it with this patch,
+> but that usage should go away once your full series is merged, right?
 
-We don't have such usage yet.  rdmacg would be the first one doing
-something like this.
+Hello Christoph,
 
-> > I think it's a lot more consistent to implement all absoulte limits
-> > through max.
->
-> I agree. I will implement reporting actual max values instead of
-> reporting "max" string so that percentage configuration can be done by
-> the user space tools.
-> (post merging of v12).
-> Waiting for direction from Doug.
+Moving the blk_mq_hctx_stopped() declaration from the public to the 
+private blk-mq.h header file should be possible. I will look into this.
 
-That doesn't sound like a good idea.  What happens when the amount of
-available resources changes either through underlying resource changes
-or config changes in one of the ancestors?  What "max" means is "no
-limit is imposed" which is different from "limit it to 100% of what's
-currently available".
-
-Thanks.
-
--- 
-tejun
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
