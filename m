@@ -1,57 +1,105 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
- pass FOLL_* flags
-Date: Wed, 19 Oct 2016 19:01:27 +0200
-Message-ID: <20161019170127.GN24393@dhcp22.suse.cz>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161018153050.GC13117@dhcp22.suse.cz>
- <20161019085815.GA22239@lucifer>
- <20161019090727.GE7517@dhcp22.suse.cz>
- <5807A427.7010200@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <5807A427.7010200@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh@vger.
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] IB/hns: Move HNS RoCE user vendor structures
+Date: Wed, 19 Oct 2016 20:13:07 +0300
+Message-ID: <1476897187-15991-1-git-send-email-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed 19-10-16 09:49:43, Dave Hansen wrote:
-> On 10/19/2016 02:07 AM, Michal Hocko wrote:
-> > On Wed 19-10-16 09:58:15, Lorenzo Stoakes wrote:
-> >> On Tue, Oct 18, 2016 at 05:30:50PM +0200, Michal Hocko wrote:
-> >>> I am wondering whether we can go further. E.g. it is not really clear to
-> >>> me whether we need an explicit FOLL_REMOTE when we can in fact check
-> >>> mm != current->mm and imply that. Maybe there are some contexts which
-> >>> wouldn't work, I haven't checked.
-> >>
-> >> This flag is set even when /proc/self/mem is used. I've not looked deeply into
-> >> this flag but perhaps accessing your own memory this way can be considered
-> >> 'remote' since you're not accessing it directly. On the other hand, perhaps this
-> >> is just mistaken in this case?
-> > 
-> > My understanding of the flag is quite limited as well. All I know it is
-> > related to protection keys and it is needed to bypass protection check.
-> > See arch_vma_access_permitted. See also 1b2ee1266ea6 ("mm/core: Do not
-> > enforce PKEY permissions on remote mm access").
-> 
-> Yeah, we need the flag to tell us when PKEYs should be applied or not.
-> The current task's PKRU (pkey rights register) should really only be
-> used to impact access to the task's memory, but has no bearing on how a
-> given task should access remote memory.
+This patch moves HNS vendor's specific structures to
+common UAPI folder which will be visible to all consumers.
 
-The question I had earlier was whether this has to be an explicit FOLL
-flag used by g-u-p users or we can just use it internally when mm !=
-current->mm
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_cq.c                          | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c                        | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c                          | 2 +-
+ include/uapi/rdma/Kbuild                                         | 1 +
+ .../hw/hns/hns_roce_user.h => include/uapi/rdma/hns-abi.h        | 9 +++++----
+ 5 files changed, 9 insertions(+), 7 deletions(-)
+ rename drivers/infiniband/hw/hns/hns_roce_user.h => include/uapi/rdma/hns-abi.h (94%)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 0973659..d8a1764 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -35,7 +35,7 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
+-#include "hns_roce_user.h"
++#include <rdma/hns-abi.h>
+ #include "hns_roce_common.h"
+ 
+ static void hns_roce_ib_cq_comp(struct hns_roce_cq *hr_cq)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 764e35a..354f100 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -37,7 +37,7 @@
+ #include <rdma/ib_user_verbs.h>
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+-#include "hns_roce_user.h"
++#include <rdma/hns-abi.h>
+ #include "hns_roce_hem.h"
+ 
+ /**
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index e86dd8d..5d13b6b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -37,7 +37,7 @@
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+ #include "hns_roce_hem.h"
+-#include "hns_roce_user.h"
++#include <rdma/hns-abi.h>
+ 
+ #define SQP_NUM				(2 * HNS_ROCE_MAX_PORTS)
+ 
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index f14ab7f..b54f10d 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -14,3 +14,4 @@ header-y += mlx5-abi.h
+ header-y += mthca-abi.h
+ header-y += nes-abi.h
+ header-y += ocrdma-abi.h
++header-y += hns-abi.h
+diff --git a/drivers/infiniband/hw/hns/hns_roce_user.h b/include/uapi/rdma/hns-abi.h
+similarity index 94%
+rename from drivers/infiniband/hw/hns/hns_roce_user.h
+rename to include/uapi/rdma/hns-abi.h
+index a28f761..5d74019 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_user.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -30,8 +30,10 @@
+  * SOFTWARE.
+  */
+ 
+-#ifndef _HNS_ROCE_USER_H
+-#define _HNS_ROCE_USER_H
++#ifndef HNS_ABI_USER_H
++#define HNS_ABI_USER_H
++
++#include <linux/types.h>
+ 
+ struct hns_roce_ib_create_cq {
+ 	__u64   buf_addr;
+@@ -49,5 +51,4 @@ struct hns_roce_ib_create_qp {
+ struct hns_roce_ib_alloc_ucontext_resp {
+ 	__u32	qp_tab_size;
+ };
+-
+-#endif /*_HNS_ROCE_USER_H */
++#endif /* HNS_ABI_USER_H */
 -- 
-Michal Hocko
-SUSE Labs
+2.7.4
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
