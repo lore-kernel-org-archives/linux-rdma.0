@@ -1,48 +1,49 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: New providers in rdma-core
-Date: Wed, 19 Oct 2016 11:59:26 -0600
-Message-ID: <20161019175926.GD29879@obsidianresearch.com>
-References: <CALq1K=+nEP0jFOCxj30HA0+bg0L1bF5+xiBcAC2bRwUz+M6+eQ@mail.gmail.com>
- <20161019163913.GA30843@infradead.org>
- <6b57d79c-dbd3-cd9b-061e-27a3d3968845@vmware.com>
+From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 03/12] IB/hfi1: Fix an Oops on pci device force remove
+Date: Wed, 19 Oct 2016 11:01:26 -0700
+Message-ID: <da4554b2-fb63-71f3-ada2-506807a96756@intel.com>
+References: <20161017103326.7934.21558.stgit@scvm10.sc.intel.com>
+ <20161017111918.7934.72325.stgit@scvm10.sc.intel.com>
+ <20161017160731.GA5679@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6b57d79c-dbd3-cd9b-061e-27a3d3968845-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161017160731.GA5679-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 10:28:36AM -0700, Adit Ranadive wrote:
+Hi Jason,
+On 10/17/2016 09:07 AM, Jason Gunthorpe wrote:
+>> +		atomic_inc(&dd->user_refcount);
+> This doesn't look like enough locking on acquire.. What prevents the
+> driver from already having been unloaded at this point?
 
-> > Requiring installed super updtodate kernel headers isn't going to
-> > help development.  It would be good to keep a copy of the kernel
-> > headers in the rdma-core repo, similar to what most kernel tools
-> > tied to bleeding edge ABIs do.
+Thanks for your feedback. We will address this in v2.
+
 > 
-> Thanks for the heads up. I had a few questions regarding the ABI stuff.
-> What happens in case of providers that arent part of the kernel as yet?
-> I would like to send out a pull request soonish for libpvrdma. I would 
-> need to include the abi files in that request since cmake would fail.
+> Shouldn't this be a while loop to avoid races?
+> 
+> .. and shouldn't the inc 'latch off' once the removal process starts?
+> 
+> I think you need to study how kernfs_drain is implemented and
+> basically copy that approach, including the locking.
 
-Follow the pattern rxe is using:
+as to kernfs_drain approach, I think the same mechanism as in ib_verbs
+will work better here.
 
-CHECK_INCLUDE_FILE("rdma/rdma_user_rxe.h" HAVE_RDMA_USER_RXE)
-RDMA_DoFixup("${HAVE_RDMA_USER_RXE}" "rdma/rdma_user_rxe.h")
+> 
+> FWIW, it is much easier and probably long term better to arrange
+> things so the FD can remain open but just return ENODEV to all calls.
+> Eg the srcu based approach in uverbs.
 
-Which uses the compat header file in
-buildlib/fixup-include/rdma-rdma_user_rxe.h, which must be a
-byte-for-byte copy of the kernel header.
-
-> Or do you want me to wait till Doug adds the PVRDMA driver to the tree?
-
-FWIW, we can't take a rdma-core provider until the kernel side is
-accepted, but you can certainly start the process now and get it to an
-OK state. Doug will be able to take both parts simultaneously.
-
-Jason
+We need to hold the device because not all the clients will talk to the
+device via the FD. The PIO clients for instance don't go to kernel.
+Thanks,
+-- 
+TS
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
