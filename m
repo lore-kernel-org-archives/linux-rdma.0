@@ -1,24 +1,34 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v3 07/11] dm: Fix a race condition related to stopping
-        and starting queues
-Date: Wed, 19 Oct 2016 15:30:50 +0200
-Message-ID: <20161019133050.GG6323@lst.de>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com> <1e89a7d7-5cae-40b1-ce31-09d630e6f33d@sandisk.com>
+Subject: Re: [PATCH v3 06/11] dm: Use BLK_MQ_S_STOPPED instead of
+        QUEUE_FLAG_STOPPED in blk-mq code
+Date: Wed, 19 Oct 2016 15:28:04 +0200
+Message-ID: <20161019132804.GF6323@lst.de>
+References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com> <e5facfd0-82d5-10cb-712b-13d7950b78b8@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-scsi-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1e89a7d7-5cae-40b1-ce31-09d630e6f33d@sandisk.com>
+In-Reply-To: <e5facfd0-82d5-10cb-712b-13d7950b78b8@sandisk.com>
 Sender: linux-scsi-owner@vger.kernel.org
 To: Bart Van Assche <bart.vanassche@sandisk.com>
 Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks good:
+This looks good:
 
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 
-FYI, I wonder how many of the blk_mq_stop_hw_queues do not need
-the quiesce call.  In the long run it might be better to have
-blk_mq_stop_hw_queues to stop an quiesce, and have a
-__blk_mq_stop_hw_queues variant to just stop.
+On Tue, Oct 18, 2016 at 02:51:33PM -0700, Bart Van Assche wrote:
+>  static void dm_mq_start_queue(struct request_queue *q)
+>  {
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(q->queue_lock, flags);
+> -	queue_flag_clear(QUEUE_FLAG_STOPPED, q);
+> -	spin_unlock_irqrestore(q->queue_lock, flags);
+> -
+>  	blk_mq_start_stopped_hw_queues(q, true);
+>  	blk_mq_kick_requeue_list(q);
+
+FYI, I'm tempted to say we should always call blk_mq_kick_requeue_list
+from blk_mq_start_stopped_hw_queues, but that's a separate issue.
