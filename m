@@ -1,55 +1,28 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v3 11/11] nvme: Fix a race condition
-Date: Wed, 19 Oct 2016 15:41:31 +0200
-Message-ID: <20161019134131.GD6809@lst.de>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com> <2a29b7ec-0113-3450-9a36-b925b47b1fb0@sandisk.com>
+From: Robin Holt <robinmholt@gmail.com>
+Subject: Re: [PATCH net-next 6/6] net: use core MTU range checking in misc drivers
+Date: Wed, 19 Oct 2016 09:37:22 -0500
+Message-ID: <CAPp3RGrEcXcbiyaREVo=onx2oqRZvDPYHxTiS3c=v3vmg_hwCQ@mail.gmail.com>
+References: <20161019023333.15760-1-jarod@redhat.com> <20161019023333.15760-7-jarod@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-block-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2a29b7ec-0113-3450-9a36-b925b47b1fb0@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161019023333.15760-7-jarod@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jarod Wilson <jarod@redhat.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, Cliff Whickman <cpw@sgi.com>, Jes Sorensen <jes@trained-monkey.org>, Marek Lindner <mareklindner@neomailbox.ch>, Simon Wunderlich <sw@simonwunderlich.de>, Antonio Quartulli <a@unstable.cc>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+On Tue, Oct 18, 2016 at 9:33 PM, Jarod Wilson <jarod@redhat.com> wrote:
+> CC: netdev@vger.kernel.org
+> CC: Stefan Richter <stefanr@s5r6.in-berlin.de>
+> CC: Faisal Latif <faisal.latif@intel.com>
+> CC: linux-rdma@vger.kernel.org
+> CC: Cliff Whickman <cpw@sgi.com>
 
-this looks great!
+Acked-by: Robin Holt <robinmholt@gmail.com>
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-
-Some minor nitpicks below:
-
->  void nvme_requeue_req(struct request *req)
->  {
-> +	blk_mq_requeue_request(req, true);
->  }
->  EXPORT_SYMBOL_GPL(nvme_requeue_req);
-
-Please just remove the nvme_requeue_req wrapper.
-
->  
-> @@ -2074,11 +2068,14 @@ EXPORT_SYMBOL_GPL(nvme_kill_queues);
->  void nvme_stop_queues(struct nvme_ctrl *ctrl)
->  {
->  	struct nvme_ns *ns;
-> +	struct request_queue *q;
->  
->  	mutex_lock(&ctrl->namespaces_mutex);
->  	list_for_each_entry(ns, &ctrl->namespaces, list) {
-> +		q = ns->queue;
-> +		blk_mq_cancel_requeue_work(q);
-> +		blk_mq_stop_hw_queues(q);
-> +		blk_mq_quiesce_queue(q);
->  	}
-
-I'd keep the q declaration in the minimal scope, e.g.
-
-	list_for_each_entry(ns, &ctrl->namespaces, list) {
-		struct request_queue *q = ns->queue;
-
-		blk_mq_cancel_requeue_work(q);
-		blk_mq_stop_hw_queues(q);
-		blk_mq_quiesce_queue(q);
-	}
+> CC: Jes Sorensen <jes@trained-monkey.org>
+> CC: Marek Lindner <mareklindner@neomailbox.ch>
+> CC: Simon Wunderlich <sw@simonwunderlich.de>
+> CC: Antonio Quartulli <a@unstable.cc>
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
