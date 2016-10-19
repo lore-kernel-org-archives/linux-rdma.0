@@ -1,62 +1,66 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Thu, 20 Oct 2016 01:24:42 +0530
-Message-ID: <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
-References: <20161010122545.GA27360@mtj.duckdns.org> <CAG53R5V5yE4PsDBjP9BieG_=39M0G1kx-AfBEzWK4LUCxNnYBA@mail.gmail.com>
- <20161010132014.GD29742@mtj.duckdns.org> <CAG53R5ULKCqtw45E6t4hYdRV+y_OQqVazf=7A7Ax_XAJ2K0_dw@mail.gmail.com>
- <20161013231413.GA32534@mtj.duckdns.org> <CAG53R5UciPpa5d8BWyR-tks3LBrBwRCN2NyBbbm1e3EE-OWSYQ@mail.gmail.com>
- <20161018215134.GB2761@htj.duckdns.org> <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
- <20161019143345.GA18532@htj.duckdns.org> <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
- <20161019192006.GB3044@htj.duckdns.org>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: New providers in rdma-core
+Date: Wed, 19 Oct 2016 12:51:02 -0700
+Message-ID: <12243e3b-87cf-2bd4-d097-1dd0a7907f41@vmware.com>
+References: <CALq1K=+nEP0jFOCxj30HA0+bg0L1bF5+xiBcAC2bRwUz+M6+eQ@mail.gmail.com>
+ <20161019163913.GA30843@infradead.org>
+ <6b57d79c-dbd3-cd9b-061e-27a3d3968845@vmware.com>
+ <20161019175926.GD29879@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161019192006.GB3044-piEFEHQLUPpN0TnZuCh8vA@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161019175926.GD29879-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+On Wed, Oct 19, 2016 at 11:59:26AM -0600, Jason Gunthorpe wrote:
+> On Wed, Oct 19, 2016 at 10:28:36AM -0700, Adit Ranadive wrote:
+> 
+> > > Requiring installed super updtodate kernel headers isn't going to
+> > > help development.  It would be good to keep a copy of the kernel
+> > > headers in the rdma-core repo, similar to what most kernel tools
+> > > tied to bleeding edge ABIs do.
+> > 
+> > Thanks for the heads up. I had a few questions regarding the ABI stuff.
+> > What happens in case of providers that arent part of the kernel as yet?
+> > I would like to send out a pull request soonish for libpvrdma. I would 
+> > need to include the abi files in that request since cmake would fail.
+> 
+> Follow the pattern rxe is using:
+> 
+> CHECK_INCLUDE_FILE("rdma/rdma_user_rxe.h" HAVE_RDMA_USER_RXE)
+> RDMA_DoFixup("${HAVE_RDMA_USER_RXE}" "rdma/rdma_user_rxe.h")
+> 
+> Which uses the compat header file in
+> buildlib/fixup-include/rdma-rdma_user_rxe.h, which must be a
+> byte-for-byte copy of the kernel header.
 
-On Thu, Oct 20, 2016 at 12:50 AM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hello,
->
-> On Thu, Oct 20, 2016 at 12:33:53AM +0530, Parav Pandit wrote:
->> > or config changes in one of the ancestors?  What "max" means is "no
->> > limit is imposed" which is different from "limit it to 100% of what's
->> > currently available".
->>
->> Charging is hierarchical for rdmacg too.
->> rdma.max configuration exist at all the levels so ancestors change
->> won't affect its children.
->> rdma.max absolute (or future percentage) value is with reference to
->> the total device resources.
->
-> Ah, right, the percentage is out of the total device resources
-> regardless of the hierarchical restrictions.  I still don't think it's
-> a good idea for rdmacg to deviate from the common interface
-> conventions.  If you want to do the percentage calculation in the
-> userland and the base numbers are system-wide numbers which are
-> hardware dependent, it'd be best if there's an existing place where
-> the numbers can be exposed naturally.  That'd be more in line with
-> others too.  The amount of total resources available for the device
-> isn't tied to cgroup after all.
->
-userland can get the max numbers using other framework which is used
-by control & data plane available in C library form or in form of
-system tools.
-I was preferring to get and set through same interface because,
-It simplifies user land software which is often not written in C so
-its likely that it needs to rely on system tools and parse the
-content, iterate through devices etc.
-Getting these info through rdma.max just makes it simple. There will
-be logic built to read/write rdma.max in userland anyway, which can be
-leveraged for percentage calculation instead of doing it from two
-places.
+I see that rxe still has a rxe-abi header in the providers/rxe folder.
+Would that also move to the kernel as part of the conversion?
 
+One of the things I'm unclear about what happends to the IBV structs
+included in the user-level ABI headers, for example, the ibv_get_context_resp
+here:
+https://github.com/linux-rdma/rdma-core/blob/master/providers/mlx4/mlx4-abi.h#L48
 
-> Thanks.
->
-> --
-> tejun
+Since these are not present in the kernel, how would the libibverbs/core
+uverbs stack handle this? Would there be forthcoming changes for that too?
+
+> > Or do you want me to wait till Doug adds the PVRDMA driver to the tree?
+> 
+> FWIW, we can't take a rdma-core provider until the kernel side is
+> accepted, but you can certainly start the process now and get it to an
+> OK state. Doug will be able to take both parts simultaneously.
+> 
+
+Makes sense.
+
+Thanks,
+Adit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
