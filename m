@@ -1,32 +1,61 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v3 02/11] blk-mq: Introduce blk_mq_hctx_stopped()
-Date: Wed, 19 Oct 2016 08:58:55 -0700
-Message-ID: <4c09e48d-4b23-915a-bf60-c58d0aae6007@sandisk.com>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com>
- <b5b0ffcc-767d-1b90-9c5a-52c57690dea8@sandisk.com>
- <20161019131900.GB6323@lst.de>
+From: Sabrina Dubroca <sd@queasysnail.net>
+Subject: Re: [PATCH net-next 6/6] net: use core MTU range checking in misc
+ drivers
+Date: Wed, 19 Oct 2016 18:05:46 +0200
+Message-ID: <20161019160546.GC11224@bistromath.localdomain>
+References: <20161019023333.15760-1-jarod@redhat.com>
+ <20161019023333.15760-7-jarod@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20161019131900.GB6323@lst.de>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@fb.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161019023333.15760-7-jarod@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, Cliff Whickman <cpw@sgi.com>, Robin Holt <robinmholt@gmail.com>, Jes Sorensen <jes@trained-monkey.org>, Marek Lindner <mareklindner@neomailbox.ch>, Simon Wunderlich <sw@simonwunderlich.de>, Antonio Quartulli <a@unstable.cc>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/19/2016 06:19 AM, Christoph Hellwig wrote:
-> On Tue, Oct 18, 2016 at 02:49:09PM -0700, Bart Van Assche wrote:
->> Multiple functions test the BLK_MQ_S_STOPPED bit so introduce
->> a helper function that performs this test.
->
-> Looks sensible.  Any reason to have it in the public blk-mq.h instead
-> of the private one, though?  I see that dm is using it with this patch,
-> but that usage should go away once your full series is merged, right?
+2016-10-18, 22:33:33 -0400, Jarod Wilson wrote:
+[...]
+> diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
+> index 309311b..b5f125c 100644
+> --- a/drivers/firewire/net.c
+> +++ b/drivers/firewire/net.c
+> @@ -1349,15 +1349,6 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
+>  	return NETDEV_TX_OK;
+>  }
+>  
+> -static int fwnet_change_mtu(struct net_device *net, int new_mtu)
+> -{
+> -	if (new_mtu < 68)
+> -		return -EINVAL;
+> -
+> -	net->mtu = new_mtu;
+> -	return 0;
+> -}
+> -
 
-Hello Christoph,
+This doesn't do any upper bound checking.
 
-Moving the blk_mq_hctx_stopped() declaration from the public to the 
-private blk-mq.h header file should be possible. I will look into this.
+>  static const struct ethtool_ops fwnet_ethtool_ops = {
+>  	.get_link	= ethtool_op_get_link,
+>  };
+> @@ -1366,7 +1357,6 @@ static const struct net_device_ops fwnet_netdev_ops = {
+>  	.ndo_open       = fwnet_open,
+>  	.ndo_stop	= fwnet_stop,
+>  	.ndo_start_xmit = fwnet_tx,
+> -	.ndo_change_mtu = fwnet_change_mtu,
+>  };
+>  
+>  static void fwnet_init_dev(struct net_device *net)
+> @@ -1481,6 +1471,8 @@ static int fwnet_probe(struct fw_unit *unit,
+>  	max_mtu = (1 << (card->max_receive + 1))
+>  		  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
+>  	net->mtu = min(1500U, max_mtu);
+> +	net->min_mtu = ETH_MIN_MTU;
+> +	net->max_mtu = net->mtu;
 
-Bart.
+But that will now prevent increasing the MTU above the initial value?
+
+-- 
+Sabrina
