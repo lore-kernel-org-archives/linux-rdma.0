@@ -1,34 +1,42 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v3 06/11] dm: Use BLK_MQ_S_STOPPED instead of
-        QUEUE_FLAG_STOPPED in blk-mq code
-Date: Wed, 19 Oct 2016 15:28:04 +0200
-Message-ID: <20161019132804.GF6323@lst.de>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com> <e5facfd0-82d5-10cb-712b-13d7950b78b8@sandisk.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 6/8] IB/hns: Replace counting semaphore event_sem with wait condition
+Date: Wed, 19 Oct 2016 17:15:10 +0200
+Message-ID: <4225681.X40Xeo72dr@wuerfel>
+References: <1476721862-7070-1-git-send-email-binoy.jayan@linaro.org> <5900385.6T4BAIyXjD@wuerfel> <CAHv-k__KG4wZ+dCEALRjw1U_eS2eQA63Qy=mzFjXD5SqFz85ew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <e5facfd0-82d5-10cb-712b-13d7950b78b8@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHv-k__KG4wZ+dCEALRjw1U_eS2eQA63Qy=mzFjXD5SqFz85ew@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Binoy Jayan <binoy.jayan@linaro.org>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, Linux kernel mailing list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This looks good:
+On Tuesday, October 18, 2016 10:46:45 AM CEST Binoy Jayan wrote:
+> Thank you for replying for the questions. I''ll look for alternatives
+> for patches 6,7 and 8 and resend the series.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Ok, thanks!
 
-On Tue, Oct 18, 2016 at 02:51:33PM -0700, Bart Van Assche wrote:
->  static void dm_mq_start_queue(struct request_queue *q)
->  {
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(q->queue_lock, flags);
-> -	queue_flag_clear(QUEUE_FLAG_STOPPED, q);
-> -	spin_unlock_irqrestore(q->queue_lock, flags);
-> -
->  	blk_mq_start_stopped_hw_queues(q, true);
->  	blk_mq_kick_requeue_list(q);
+I also looked at patch 8 some more and noticed that those four
+functions all do the exact same sequence:
 
-FYI, I'm tempted to say we should always call blk_mq_kick_requeue_list
-from blk_mq_start_stopped_hw_queues, but that's a separate issue.
+- initialize a mlx5_ib_umr_context on the stack
+- assign "umrwr.wr.wr_cqe = &umr_context.cqe"
+- take the semaphore
+- call ib_post_send with a single ib_send_wr
+- wait for the mlx5_ib_umr_done() function to get called
+- if we get back a failure, print a warning and return -EFAULT.
+- release the semaphore
+
+Moving all of these into a shared helper function would be
+a good cleanup, and it leaves only a single function using
+the semaphore, which can then be rewritten to use something
+else.
+
+The existing completion in there can be simplified to a
+wait_event, since we are waiting for the return value to
+be filled.
+
+	Arnd
