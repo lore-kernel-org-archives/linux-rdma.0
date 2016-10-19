@@ -1,73 +1,80 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 178581] New: v4.9-rc1: Deadlock while unloading IPoIB
-Date: Wed, 19 Oct 2016 20:31:33 +0000
-Message-ID: <bug-178581-11804@https.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] i40iw: Enable message packing
+Date: Wed, 19 Oct 2016 15:32:53 -0500
+Message-ID: <20161019203253.14316-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=178581
+Remove the parameter to disable message packing and
+always enable it.
 
-            Bug ID: 178581
-           Summary: v4.9-rc1: Deadlock while unloading IPoIB
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: v4.9-rc1
-          Hardware: x86-64
-                OS: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-          Reporter: bvanassche-HInyCGIudOg@public.gmane.org
-        Regression: No
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 5 -----
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 2 +-
+ drivers/infiniband/hw/i40iw/i40iw_type.h | 2 +-
+ 3 files changed, 2 insertions(+), 7 deletions(-)
 
-Created attachment 241991
-  --> https://bugzilla.kernel.org/attachment.cgi?id=241991&action=edit
-Lockdep output
-
-The output produced by lockdep has been attached. Call trace from that
-attachment:
-
-Call Trace:
- [<ffffffff81329695>] dump_stack+0x68/0x93
- [<ffffffff810baafe>] print_circular_bug+0x1be/0x210
- [<ffffffff810bd31c>] __lock_acquire+0x10fc/0x1270
- [<ffffffff810bd8b9>] lock_acquire+0xe9/0x1d0
- [<ffffffff8126275a>] __kernfs_remove+0x24a/0x310
- [<ffffffff812632ae>] kernfs_remove+0x1e/0x30
- [<ffffffff8126559c>] sysfs_remove_dir+0x4c/0x80
- [<ffffffff8132bec8>] kobject_del+0x18/0x50
- [<ffffffff81450fb0>] device_del+0x190/0x240
- [<ffffffff81550a27>] netdev_unregister_kobject+0x57/0x60
- [<ffffffff81527df0>] rollback_registered_many+0x220/0x370
- [<ffffffff81527f6c>] rollback_registered+0x2c/0x40
- [<ffffffff81528e54>] unregister_netdevice_queue+0x44/0x90
- [<ffffffff81528eb7>] unregister_netdev+0x17/0x20
- [<ffffffffa02bdc47>] ipoib_remove_one+0x97/0xe0 [ib_ipoib]
- [<ffffffffa032c539>] ib_unregister_device+0xa9/0x150 [ib_core]
- [<ffffffffa036d7e5>] mlx4_ib_remove+0x65/0x250 [mlx4_ib]
- [<ffffffffa025131e>] mlx4_remove_device+0x6e/0x80 [mlx4_core]
- [<ffffffffa0251738>] mlx4_unregister_device+0x48/0x90 [mlx4_core]
- [<ffffffffa025364d>] mlx4_unload_one+0x7d/0x310 [mlx4_core]
- [<ffffffffa02539cd>] mlx4_shutdown+0x5d/0x70 [mlx4_core]
- [<ffffffff8136c768>] pci_device_shutdown+0x28/0x60
- [<ffffffff81452f70>] device_shutdown+0xd0/0x1d0
- [<ffffffff8108c7e1>] kernel_restart_prepare+0x31/0x40
- [<ffffffff8108c88d>] kernel_restart+0xd/0x50
- [<ffffffff8108cad9>] SYSC_reboot+0xf9/0x1e0
- [<ffffffff8108cc09>] SyS_reboot+0x9/0x10
- [<ffffffff8163ed2a>] entry_SYSCALL_64_fastpath+0x18/0xad
-
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index 31c4a0c..6c6a1ef 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -429,12 +429,10 @@ static enum i40iw_status_code i40iw_sc_cqp_init(struct i40iw_sc_cqp *cqp,
+ /**
+  * i40iw_sc_cqp_create - create cqp during bringup
+  * @cqp: struct for cqp hw
+- * @disable_pfpdus: if pfpdu to be disabled
+  * @maj_err: If error, major err number
+  * @min_err: If error, minor err number
+  */
+ static enum i40iw_status_code i40iw_sc_cqp_create(struct i40iw_sc_cqp *cqp,
+-						  bool disable_pfpdus,
+ 						  u16 *maj_err,
+ 						  u16 *min_err)
+ {
+@@ -453,9 +451,6 @@ static enum i40iw_status_code i40iw_sc_cqp_create(struct i40iw_sc_cqp *cqp,
+ 	temp = LS_64(cqp->hw_sq_size, I40IW_CQPHC_SQSIZE) |
+ 	       LS_64(cqp->struct_ver, I40IW_CQPHC_SVER);
+ 
+-	if (disable_pfpdus)
+-		temp |= LS_64(1, I40IW_CQPHC_DISABLE_PFPDUS);
+-
+ 	set_64bit_val(cqp->host_ctx, 0, temp);
+ 	set_64bit_val(cqp->host_ctx, 8, cqp->sq_pa);
+ 	temp = LS_64(cqp->enabled_vf_count, I40IW_CQPHC_ENABLED_VFS) |
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index e6dafc7..2a4ca8a 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -603,7 +603,7 @@ static enum i40iw_status_code i40iw_create_cqp(struct i40iw_device *iwdev)
+ 		i40iw_pr_err("cqp init status %d\n", status);
+ 		goto exit;
+ 	}
+-	status = dev->cqp_ops->cqp_create(dev->cqp, true, &maj_err, &min_err);
++	status = dev->cqp_ops->cqp_create(dev->cqp, &maj_err, &min_err);
+ 	if (status) {
+ 		i40iw_pr_err("cqp create status %d maj_err %d min_err %d\n",
+ 			     status, maj_err, min_err);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index b6f448a..d1847e6 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -988,7 +988,7 @@ struct i40iw_cqp_query_fpm_values {
+ struct i40iw_cqp_ops {
+ 	enum i40iw_status_code (*cqp_init)(struct i40iw_sc_cqp *,
+ 					   struct i40iw_cqp_init_info *);
+-	enum i40iw_status_code (*cqp_create)(struct i40iw_sc_cqp *, bool, u16 *, u16 *);
++	enum i40iw_status_code (*cqp_create)(struct i40iw_sc_cqp *, u16 *, u16 *);
+ 	void (*cqp_post_sq)(struct i40iw_sc_cqp *);
+ 	u64 *(*cqp_get_next_send_wqe)(struct i40iw_sc_cqp *, u64 scratch);
+ 	enum i40iw_status_code (*cqp_destroy)(struct i40iw_sc_cqp *);
 -- 
-You are receiving this mail because:
-You are watching the assignee of the bug.
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
