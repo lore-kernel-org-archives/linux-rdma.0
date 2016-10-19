@@ -1,88 +1,152 @@
-From: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
-Date: Wed, 19 Oct 2016 12:48:14 -0600
-Message-ID: <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
- <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
+ infrastructure bits
+Date: Wed, 19 Oct 2016 12:59:20 -0600
+Message-ID: <20161019185920.GA20600@obsidianresearch.com>
+References: <20161014192136.11731-3-jarod@redhat.com>
+ <20161014231934.GC16509@obsidianresearch.com>
+ <20161017162221.GI14983@redhat.com>
+ <20161017174611.GB6430@obsidianresearch.com>
+ <20161017182037.GK14983@redhat.com>
+ <20161017185657.GA8122@obsidianresearch.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E24F0A408@CRSMSX101.amr.corp.intel.com>
+ <20161017201309.GA24291@obsidianresearch.com>
+ <20161018145104.GT14983@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E24F0DF57@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E24F0DF57-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Raj, Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 18, 2016 at 08:51:15PM -0700, Dan Williams wrote:
-> [ adding Ashok and David for potential iommu comments ]
->
+On Wed, Oct 19, 2016 at 06:38:52PM +0000, Weiny, Ira wrote:
 
-Hi Dan
+> I have the C code ported to rdma-core but how do I do this in cmake?
 
-Thanks for adding Ashok and David!
+Attached, you will also need
 
->
-> I agree with the motivation and the need for a solution, but I have
-> some questions about this implementation.
->
-> >
-> > Consumers
-> > ---------
-> >
-> > We provide a PCIe device driver in an accompanying patch that can be
-> > used to map any PCIe BAR into a DAX capable block device. For
-> > non-persistent BARs this simply serves as an alternative to using
-> > system memory bounce buffers. For persistent BARs this can serve as an
-> > additional storage device in the system.
->
-> Why block devices?  I wonder if iopmem was initially designed back
-> when we were considering enabling DAX for raw block devices.  However,
-> that support has since been ripped out / abandoned.  You currently
-> need a filesystem on top of a block-device to get DAX operation.
-> Putting xfs or ext4 on top of PCI-E memory mapped range seems awkward
-> if all you want is a way to map the bar for another PCI-E device in
-> the topology.
->
-> If you're only using the block-device as a entry-point to create
-> dax-mappings then a device-dax (drivers/dax/) character-device might
-> be a better fit.
->
+target_link_libraries(rdma-ndd ${UDEV_LIBRARIES})
 
-We chose a block device because we felt it was intuitive for users to
-carve up a memory region but putting a DAX filesystem on it and creating
-files on that DAX aware FS. It seemed like a convenient way to
-partition up the region and to be easily able to get the DMA address
-for the memory backing the device.
+>         PKG_CHECK_EXISTS(libudev >= 218, [with_dev_logging=no],
+>                         [with_udev_logging=yes])
+>         if test "$with_udev_logging" = "yes"; then
+>                 AC_DEFINE_UNQUOTED([HAVE_UDEV_LOGGING], 1,
+>                                 [whether libudev logging can be used])
 
-That said I would be very keen to get other peoples thoughts on how
-they would like to see this done. And I know some people have had some
-reservations about using DAX mounted FS to do this in the past.
+Dump HAVE_UDEV_LOGGING from the code, upstream deleted support for it:
 
->
-> > 2. Memory Segment Spacing. This patch has the same limitations that
-> > ZONE_DEVICE does in that memory regions must be spaces at least
-> > SECTION_SIZE bytes part. On x86 this is 128MB and there are cases where
-> > BARs can be placed closer together than this. Thus ZONE_DEVICE would not
-> > be usable on neighboring BARs. For our purposes, this is not an issue as
-> > we'd only be looking at enabling a single BAR in a given PCIe device.
-> > More exotic use cases may have problems with this.
->
-> I'm working on patches for 4.10 to allow mixing multiple
-> devm_memremap_pages() allocations within the same physical section.
-> Hopefully this won't be a problem going forward.
->
+https://www.redhat.com/archives/libvir-list/2014-December/msg00749.html
 
-Thanks Dan. Your patches will help address the problem of how to
-partition a /dev/dax device but they don't help the case then BARs
-themselves are small, closely spaced and non-segment aligned. However
-I think most people using iopmem will want to use reasonbly large
-BARs so I am not sure item 2 is that big of an issue.
+src.c:3:2: warning: 'udev_set_log_fn' is deprecated (declared at /usr/include/libudev.h:41) [-Wdeprecated-declarations]
+  int main(int argc,const char *argv[]) {udev_set_log_fn(NULL, NULL); return 0;}
+  ^
 
-> I haven't yet grokked the motivation for this, but I'll go comment on
-> that separately.
+> I've found a "modules" file which looks like it has a compatible BSD
+> license and could be added but is there a better way?
 
-Thanks Dan!
+Basically the right idea, but I prefer to avoid pkgconfig whenever
+possible as it screws up cross compiling.
+
+> I also have to convert the man page from *.rst to man in some way...
+> Would it be ok if I put a dependency on rst2man in the repo?
+
+We have talked about it, maybe for now just include both the .rst and
+the rst2man output and we can revisit it..
+
+Jason
+
+>From b0062acc238e06289aa946dacd5c534cf6c68d7d Mon Sep 17 00:00:00 2001
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Date: Wed, 19 Oct 2016 12:57:25 -0600
+Subject: [PATCH] Add a dependency on libudev
+
+incomplete, needs the RH stuff too.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ .travis.yml             |  1 +
+ CMakeLists.txt          |  4 ++++
+ README.md               |  2 +-
+ buildlib/FindUDev.cmake | 10 ++++++++++
+ debian/control          |  1 +
+ 5 files changed, 17 insertions(+), 1 deletion(-)
+ create mode 100644 buildlib/FindUDev.cmake
+
+diff --git a/.travis.yml b/.travis.yml
+index d81b699294eb..d9c36cc9c649 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -24,6 +24,7 @@ addons:
+       - gcc-6
+       - libnl-3-dev
+       - libnl-route-3-dev
++      - libudev-dev
+       - make
+       - ninja-build
+       - pkg-config
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a23aa860e6d3..9402bacf70ce 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -237,6 +237,10 @@ if (NOT NL_KIND EQUAL 0)
+   set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
+ endif()
+ 
++# udev
++find_package(UDev REQUIRED)
++include_directories(${UDEV_INCLUDE_DIRS})
++
+ # Statically determine sizeof(long), this is largely unnecessary, no new code
+ # should rely on this.
+ check_type_size("long" SIZEOF_LONG BUILTIN_TYPES_ONLY LANGUAGE C)
+diff --git a/README.md b/README.md
+index 66aee3f49f00..d24fd0bf2606 100644
+--- a/README.md
++++ b/README.md
+@@ -48,7 +48,7 @@ only load from the system path.
+ ### Debian Derived
+ 
+ ```sh
+-$ apt-get install build-essential cmake gcc libnl-3-dev libnl-route-3-dev ninja-build pkg-config valgrind
++$ apt-get install build-essential cmake gcc libudev-dev libnl-3-dev libnl-route-3-dev ninja-build pkg-config valgrind
+ ```
+ 
+ ### Fedora
+diff --git a/buildlib/FindUDev.cmake b/buildlib/FindUDev.cmake
+new file mode 100644
+index 000000000000..ce05ddf991a1
+--- /dev/null
++++ b/buildlib/FindUDev.cmake
+@@ -0,0 +1,10 @@
++# COPYRIGHT (c) 2016 Obsidian Research Corporation. See COPYING file
++
++find_library(LIBUDEV_LIBRARY NAMES udev libudev)
++
++set(UDEV_LIBRARIES ${LIBUDEV_LIBRARY})
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(UDev REQUIRED_VARS LIBUDEV_LIBRARY)
++
++mark_as_advanced(LIBUDEV_LIBRARY)
+diff --git a/debian/control b/debian/control
+index 2335d1f4814d..ed9850a348be 100644
+--- a/debian/control
++++ b/debian/control
+@@ -8,6 +8,7 @@ Build-Depends: build-essential,
+ 	       dh-systemd,
+ 	       dpkg-dev (>= 1.17),
+ 	       gcc,
++	       libudev-dev,
+ 	       libnl-3-dev,
+ 	       libnl-route-3-dev,
+ 	       make,
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
