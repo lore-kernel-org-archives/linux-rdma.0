@@ -1,38 +1,68 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: Introduction of libqedr to the Consolidated Userspace RDMA
- Library Repo
-Date: Wed, 19 Oct 2016 16:08:12 +0000
-Message-ID: <SN1PR07MB220719CE0C668A321520311DF8D20@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161006163427.GG1224@obsidianresearch.com>
- <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90@SN1PR07MB2207.namprd07.prod.outlook.com>
- <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161013162942.GA5468@obsidianresearch.com>
- <SN1PR07MB220745646BCC093BCB5A4553F8DF0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161014164229.GB6258@obsidianresearch.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH v3 04/11] blk-mq: Introduce blk_mq_quiesce_queue()
+Date: Wed, 19 Oct 2016 09:13:39 -0700
+Message-ID: <921009c0-5c2e-75f1-a903-986ce21ee9e8@sandisk.com>
+References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com>
+ <e42a952c-f245-eb39-d0a1-0336035573f9@sandisk.com>
+ <20161019132321.GD6323@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161014164229.GB6258-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20161019132321.GD6323@lst.de>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@fb.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
-I've created a user account on github, forked rdma_plumbing and added libqe=
-dr in multiple patches,
-after I've verified that it builds warning free and in-line with previous c=
-leanups.
-I've sent a pull request to linux-rdma rather than rdma-plumbing. Is that O=
-K?
+On 10/19/2016 06:23 AM, Christoph Hellwig wrote:
+>> +/**
+>> + * blk_mq_quiesce_queue() - wait until all ongoing queue_rq calls have finished
+>> + *
+>> + * Note: this function does not prevent that the struct request end_io()
+>> + * callback function is invoked. Additionally, it is not prevented that
+>> + * new queue_rq() calls occur unless the queue has been stopped first.
+>> + */
+>> +void blk_mq_quiesce_queue(struct request_queue *q)
+>
+> If this is intended to be a kerneldoc comment you need to document the 'q'
+> parameter.  If not you should drop the magic "/**" marker.
 
-Thanks,
-Ram
+Good catch. I will document the 'q' parameter.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
+>> +{
+>> +	int srcu_idx;
+>> +
+>> +	WARN_ON(!cpumask_test_cpu(raw_smp_processor_id(), hctx->cpumask) &&
+>> +		cpu_online(hctx->next_cpu));
+>> +
+>> +	if (!(hctx->flags & BLK_MQ_F_BLOCKING)) {
+>> +		rcu_read_lock();
+>> +		blk_mq_process_rq_list(hctx);
+>> +		rcu_read_unlock();
+>> +	} else {
+>> +		srcu_idx = srcu_read_lock(&hctx->queue_rq_srcu);
+>> +		blk_mq_process_rq_list(hctx);
+>> +		srcu_read_unlock(&hctx->queue_rq_srcu, srcu_idx);
+>> +	}
+>> +}
+>
+> Can you document these synchronization changes in detail in the changelog?
+
+Sure, I will do that.
+
+>> +static void blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
+>> +				      struct request *rq, blk_qc_t *cookie)
+>> +{
+>> +	if (blk_mq_hctx_stopped(hctx) ||
+>> +	    blk_mq_direct_issue_request(rq, cookie) != 0)
+>> +		blk_mq_insert_request(rq, false, true, true);
+>> +}
+>
+> Any reason not to merge this function with blk_mq_direct_issue_request?
+
+That sounds like a good idea to me. I will make the proposed change.
+
+Bart.
+
