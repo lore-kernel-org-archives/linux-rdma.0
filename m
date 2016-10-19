@@ -1,152 +1,72 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
- infrastructure bits
-Date: Wed, 19 Oct 2016 12:59:20 -0600
-Message-ID: <20161019185920.GA20600@obsidianresearch.com>
-References: <20161014192136.11731-3-jarod@redhat.com>
- <20161014231934.GC16509@obsidianresearch.com>
- <20161017162221.GI14983@redhat.com>
- <20161017174611.GB6430@obsidianresearch.com>
- <20161017182037.GK14983@redhat.com>
- <20161017185657.GA8122@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24F0A408@CRSMSX101.amr.corp.intel.com>
- <20161017201309.GA24291@obsidianresearch.com>
- <20161018145104.GT14983@redhat.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24F0DF57@CRSMSX101.amr.corp.intel.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Thu, 20 Oct 2016 00:33:53 +0530
+Message-ID: <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
+References: <20161010044623.GI9282@leon.nu> <CAG53R5UM6nSTZ7=0S9reKGX45CpNBi8soSDVZyXkN-z0_XXWWQ@mail.gmail.com>
+ <20161010122545.GA27360@mtj.duckdns.org> <CAG53R5V5yE4PsDBjP9BieG_=39M0G1kx-AfBEzWK4LUCxNnYBA@mail.gmail.com>
+ <20161010132014.GD29742@mtj.duckdns.org> <CAG53R5ULKCqtw45E6t4hYdRV+y_OQqVazf=7A7Ax_XAJ2K0_dw@mail.gmail.com>
+ <20161013231413.GA32534@mtj.duckdns.org> <CAG53R5UciPpa5d8BWyR-tks3LBrBwRCN2NyBbbm1e3EE-OWSYQ@mail.gmail.com>
+ <20161018215134.GB2761@htj.duckdns.org> <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
+ <20161019143345.GA18532@htj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E24F0DF57-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20161019143345.GA18532-piEFEHQLUPpN0TnZuCh8vA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 06:38:52PM +0000, Weiny, Ira wrote:
+Hi Tejun,
 
-> I have the C code ported to rdma-core but how do I do this in cmake?
+On Wed, Oct 19, 2016 at 8:03 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> Hello,
+>
+> On Wed, Oct 19, 2016 at 03:04:52PM +0530, Parav Pandit wrote:
+>> > Heh, we can go for per-mil and use %0 as the suffix if absolutely
+>> > necessary but is this a real issue?
+>>
+>> We need to provide current version to exceed the 100 containers limit first. :-)
+>> Please let me know if such user interface already exist as reference point.
+>> I prefer to avoid introducing such configuration.
+>
+> We don't have such usage yet.  rdmacg would be the first one doing
+> something like this.
+>
+>> > I think it's a lot more consistent to implement all absoulte limits
+>> > through max.
+>>
+>> I agree. I will implement reporting actual max values instead of
+>> reporting "max" string so that percentage configuration can be done by
+>> the user space tools.
+>> (post merging of v12).
+>> Waiting for direction from Doug.
+>
+> That doesn't sound like a good idea.  What happens when the amount of
+> available resources changes either through underlying resource changes
 
-Attached, you will also need
+To my knowledge device configuration cannot change on the fly while
+its still active.
+PCIe SR-IOV VF might be able to do so. In that case we might need to
+introduce event notifier framework.
+This can be possibility regardless of percentage configuration if such
+device comes up.
+However this appears far fetched.
 
-target_link_libraries(rdma-ndd ${UDEV_LIBRARIES})
+> or config changes in one of the ancestors?  What "max" means is "no
+> limit is imposed" which is different from "limit it to 100% of what's
+> currently available".
+Charging is hierarchical for rdmacg too.
+rdma.max configuration exist at all the levels so ancestors change
+won't affect its children.
+rdma.max absolute (or future percentage) value is with reference to
+the total device resources.
 
->         PKG_CHECK_EXISTS(libudev >= 218, [with_dev_logging=no],
->                         [with_udev_logging=yes])
->         if test "$with_udev_logging" = "yes"; then
->                 AC_DEFINE_UNQUOTED([HAVE_UDEV_LOGGING], 1,
->                                 [whether libudev logging can be used])
 
-Dump HAVE_UDEV_LOGGING from the code, upstream deleted support for it:
-
-https://www.redhat.com/archives/libvir-list/2014-December/msg00749.html
-
-src.c:3:2: warning: 'udev_set_log_fn' is deprecated (declared at /usr/include/libudev.h:41) [-Wdeprecated-declarations]
-  int main(int argc,const char *argv[]) {udev_set_log_fn(NULL, NULL); return 0;}
-  ^
-
-> I've found a "modules" file which looks like it has a compatible BSD
-> license and could be added but is there a better way?
-
-Basically the right idea, but I prefer to avoid pkgconfig whenever
-possible as it screws up cross compiling.
-
-> I also have to convert the man page from *.rst to man in some way...
-> Would it be ok if I put a dependency on rst2man in the repo?
-
-We have talked about it, maybe for now just include both the .rst and
-the rst2man output and we can revisit it..
-
-Jason
-
->From b0062acc238e06289aa946dacd5c534cf6c68d7d Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date: Wed, 19 Oct 2016 12:57:25 -0600
-Subject: [PATCH] Add a dependency on libudev
-
-incomplete, needs the RH stuff too.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- .travis.yml             |  1 +
- CMakeLists.txt          |  4 ++++
- README.md               |  2 +-
- buildlib/FindUDev.cmake | 10 ++++++++++
- debian/control          |  1 +
- 5 files changed, 17 insertions(+), 1 deletion(-)
- create mode 100644 buildlib/FindUDev.cmake
-
-diff --git a/.travis.yml b/.travis.yml
-index d81b699294eb..d9c36cc9c649 100644
---- a/.travis.yml
-+++ b/.travis.yml
-@@ -24,6 +24,7 @@ addons:
-       - gcc-6
-       - libnl-3-dev
-       - libnl-route-3-dev
-+      - libudev-dev
-       - make
-       - ninja-build
-       - pkg-config
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a23aa860e6d3..9402bacf70ce 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -237,6 +237,10 @@ if (NOT NL_KIND EQUAL 0)
-   set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
- endif()
- 
-+# udev
-+find_package(UDev REQUIRED)
-+include_directories(${UDEV_INCLUDE_DIRS})
-+
- # Statically determine sizeof(long), this is largely unnecessary, no new code
- # should rely on this.
- check_type_size("long" SIZEOF_LONG BUILTIN_TYPES_ONLY LANGUAGE C)
-diff --git a/README.md b/README.md
-index 66aee3f49f00..d24fd0bf2606 100644
---- a/README.md
-+++ b/README.md
-@@ -48,7 +48,7 @@ only load from the system path.
- ### Debian Derived
- 
- ```sh
--$ apt-get install build-essential cmake gcc libnl-3-dev libnl-route-3-dev ninja-build pkg-config valgrind
-+$ apt-get install build-essential cmake gcc libudev-dev libnl-3-dev libnl-route-3-dev ninja-build pkg-config valgrind
- ```
- 
- ### Fedora
-diff --git a/buildlib/FindUDev.cmake b/buildlib/FindUDev.cmake
-new file mode 100644
-index 000000000000..ce05ddf991a1
---- /dev/null
-+++ b/buildlib/FindUDev.cmake
-@@ -0,0 +1,10 @@
-+# COPYRIGHT (c) 2016 Obsidian Research Corporation. See COPYING file
-+
-+find_library(LIBUDEV_LIBRARY NAMES udev libudev)
-+
-+set(UDEV_LIBRARIES ${LIBUDEV_LIBRARY})
-+
-+include(FindPackageHandleStandardArgs)
-+find_package_handle_standard_args(UDev REQUIRED_VARS LIBUDEV_LIBRARY)
-+
-+mark_as_advanced(LIBUDEV_LIBRARY)
-diff --git a/debian/control b/debian/control
-index 2335d1f4814d..ed9850a348be 100644
---- a/debian/control
-+++ b/debian/control
-@@ -8,6 +8,7 @@ Build-Depends: build-essential,
- 	       dh-systemd,
- 	       dpkg-dev (>= 1.17),
- 	       gcc,
-+	       libudev-dev,
- 	       libnl-3-dev,
- 	       libnl-route-3-dev,
- 	       make,
--- 
-2.1.4
-
+> Thanks.
+>
+> --
+> tejun
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
