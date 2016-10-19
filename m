@@ -1,44 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: New providers in rdma-core
-Date: Wed, 19 Oct 2016 11:13:26 -0600
-Message-ID: <20161019171326.GA29879@obsidianresearch.com>
-References: <CALq1K=+nEP0jFOCxj30HA0+bg0L1bF5+xiBcAC2bRwUz+M6+eQ@mail.gmail.com>
- <20161019163913.GA30843@infradead.org>
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions
+ to explicitly pass FOLL_* flags
+Date: Wed, 19 Oct 2016 10:23:55 -0700
+Message-ID: <5807AC2B.4090208@linux.intel.com>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161018153050.GC13117@dhcp22.suse.cz> <20161019085815.GA22239@lucifer>
+ <20161019090727.GE7517@dhcp22.suse.cz> <5807A427.7010200@linux.intel.com>
+ <20161019170127.GN24393@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161019163913.GA30843-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20161019170127.GN24393@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, x86@kernel.org, Hugh Dickins <hughd@google.com>, linux-media@vger.kernel.org, Rik van Riel <riel@redhat.com>, intel-gfx@lists.freedesktop.org, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Stoakes <lstoakes@gmail.com>, linux-cris-kernel@axis.com, Linus Torvalds <torvalds@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org, linux-fs
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 09:39:13AM -0700, Christoph Hellwig wrote:
-
-> Requiring installed super updtodate kernel headers isn't going to
-> help development.  It would be good to keep a copy of the kernel
-> headers in the rdma-core repo, similar to what most kernel tools
-> tied to bleeding edge ABIs do.
-
-Yes, this is already happening, eg rdma/rdma_user_rxe.h is cached in
-the tree, and I have a patch to move the rdma_netlink.h to that scheme
-as well.
-
-cmake has a scheme where it detects if the system header is too
-old/missing and if so transparently arranges things so that
-
- #include <rdma/rdma_user_rxe.h>
-
-Uses the internal copy.
-
-I also want to add a cmake option to use the kernel headers from a
-kernel tree - nobody has been testing that changes to the kernel
-headers work with the user space either, and eg the changes the
-netlink broke stuff :/
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMTAvMTkvMjAxNiAxMDowMSBBTSwgTWljaGFsIEhvY2tvIHdyb3RlOgo+IFRoZSBxdWVzdGlv
+biBJIGhhZCBlYXJsaWVyIHdhcyB3aGV0aGVyIHRoaXMgaGFzIHRvIGJlIGFuIGV4cGxpY2l0IEZP
+TEwKPiBmbGFnIHVzZWQgYnkgZy11LXAgdXNlcnMgb3Igd2UgY2FuIGp1c3QgdXNlIGl0IGludGVy
+bmFsbHkgd2hlbiBtbSAhPQo+IGN1cnJlbnQtPm1tCgpUaGUgcmVhc29uIEkgY2hvc2Ugbm90IHRv
+IGRvIHRoYXQgd2FzIHRoYXQgZGVmZXJyZWQgd29yayBnZXRzIHJ1biB1bmRlcgphIGJhc2ljYWxs
+eSByYW5kb20gJ2N1cnJlbnQnLiAgSWYgd2UganVzdCB1c2UgJ21tICE9IGN1cnJlbnQtPm1tJywg
+dGhlbgp0aGUgZGVmZXJyZWQgd29yayB3aWxsIHNvbWV0aW1lcyBoYXZlIHBrZXlzIGVuZm9yY2Vk
+IGFuZCBzb21ldGltZXMgbm90LApiYXNpY2FsbHkgcmFuZG9tbHkuCgpXZSB3YW50IHRvIGJlIGNv
+bnNpc3RlbnQgd2l0aCB3aGV0aGVyIHRoZXkgYXJlIGVuZm9yY2VkIG9yIG5vdCwgc28gd2UKZXhw
+bGljaXRseSBpbmRpY2F0ZSB0aGF0IGJ5IGNhbGxpbmcgdGhlIHJlbW90ZSB2YXJpYW50IHZzLiBw
+bGFpbi4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50
+ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
