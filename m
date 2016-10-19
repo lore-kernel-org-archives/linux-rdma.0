@@ -1,66 +1,102 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: New providers in rdma-core
-Date: Wed, 19 Oct 2016 12:51:02 -0700
-Message-ID: <12243e3b-87cf-2bd4-d097-1dd0a7907f41@vmware.com>
-References: <CALq1K=+nEP0jFOCxj30HA0+bg0L1bF5+xiBcAC2bRwUz+M6+eQ@mail.gmail.com>
- <20161019163913.GA30843@infradead.org>
- <6b57d79c-dbd3-cd9b-061e-27a3d3968845@vmware.com>
- <20161019175926.GD29879@obsidianresearch.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
+Date: Wed, 19 Oct 2016 12:58:29 -0700
+Message-ID: <CAPcyv4ht=ZtQOyUp8khzzJtZhWcsaCgQi=feEuaj1AY3f9wd=g@mail.gmail.com>
+References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com> <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161019175926.GD29879-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
+Sender: owner-linux-mm@kvack.org
+To: Stephen Bates <sbates@raithlin.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, haggaie@mellanox.com, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@fb.com>, Jonathan Corbet <corbet@lwn.net>, jim.macdonald@everspin.com, sbates@raithin.com, Logan Gunthorpe <logang@deltatee.com>, David Woodhouse <dwmw2@infradead.org>, "Raj, Ashok" <ashok.raj@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 11:59:26AM -0600, Jason Gunthorpe wrote:
-> On Wed, Oct 19, 2016 at 10:28:36AM -0700, Adit Ranadive wrote:
-> 
-> > > Requiring installed super updtodate kernel headers isn't going to
-> > > help development.  It would be good to keep a copy of the kernel
-> > > headers in the rdma-core repo, similar to what most kernel tools
-> > > tied to bleeding edge ABIs do.
-> > 
-> > Thanks for the heads up. I had a few questions regarding the ABI stuff.
-> > What happens in case of providers that arent part of the kernel as yet?
-> > I would like to send out a pull request soonish for libpvrdma. I would 
-> > need to include the abi files in that request since cmake would fail.
-> 
-> Follow the pattern rxe is using:
-> 
-> CHECK_INCLUDE_FILE("rdma/rdma_user_rxe.h" HAVE_RDMA_USER_RXE)
-> RDMA_DoFixup("${HAVE_RDMA_USER_RXE}" "rdma/rdma_user_rxe.h")
-> 
-> Which uses the compat header file in
-> buildlib/fixup-include/rdma-rdma_user_rxe.h, which must be a
-> byte-for-byte copy of the kernel header.
+On Wed, Oct 19, 2016 at 11:48 AM, Stephen Bates <sbates@raithlin.com> wrote:
+> On Tue, Oct 18, 2016 at 08:51:15PM -0700, Dan Williams wrote:
+>> [ adding Ashok and David for potential iommu comments ]
+>>
+>
+> Hi Dan
+>
+> Thanks for adding Ashok and David!
+>
+>>
+>> I agree with the motivation and the need for a solution, but I have
+>> some questions about this implementation.
+>>
+>> >
+>> > Consumers
+>> > ---------
+>> >
+>> > We provide a PCIe device driver in an accompanying patch that can be
+>> > used to map any PCIe BAR into a DAX capable block device. For
+>> > non-persistent BARs this simply serves as an alternative to using
+>> > system memory bounce buffers. For persistent BARs this can serve as an
+>> > additional storage device in the system.
+>>
+>> Why block devices?  I wonder if iopmem was initially designed back
+>> when we were considering enabling DAX for raw block devices.  However,
+>> that support has since been ripped out / abandoned.  You currently
+>> need a filesystem on top of a block-device to get DAX operation.
+>> Putting xfs or ext4 on top of PCI-E memory mapped range seems awkward
+>> if all you want is a way to map the bar for another PCI-E device in
+>> the topology.
+>>
+>> If you're only using the block-device as a entry-point to create
+>> dax-mappings then a device-dax (drivers/dax/) character-device might
+>> be a better fit.
+>>
+>
+> We chose a block device because we felt it was intuitive for users to
+> carve up a memory region but putting a DAX filesystem on it and creating
+> files on that DAX aware FS. It seemed like a convenient way to
+> partition up the region and to be easily able to get the DMA address
+> for the memory backing the device.
+>
+> That said I would be very keen to get other peoples thoughts on how
+> they would like to see this done. And I know some people have had some
+> reservations about using DAX mounted FS to do this in the past.
 
-I see that rxe still has a rxe-abi header in the providers/rxe folder.
-Would that also move to the kernel as part of the conversion?
+I guess it depends on the expected size of these devices BARs, but I
+get the sense they may be smaller / more precious such that you
+wouldn't want to spend capacity on filesystem metadata? For the target
+use case is it assumed that these device BARs are always backed by
+non-volatile memory?  Otherwise this is a mkfs each boot for a
+volatile device.
 
-One of the things I'm unclear about what happends to the IBV structs
-included in the user-level ABI headers, for example, the ibv_get_context_resp
-here:
-https://github.com/linux-rdma/rdma-core/blob/master/providers/mlx4/mlx4-abi.h#L48
+>>
+>> > 2. Memory Segment Spacing. This patch has the same limitations that
+>> > ZONE_DEVICE does in that memory regions must be spaces at least
+>> > SECTION_SIZE bytes part. On x86 this is 128MB and there are cases where
+>> > BARs can be placed closer together than this. Thus ZONE_DEVICE would not
+>> > be usable on neighboring BARs. For our purposes, this is not an issue as
+>> > we'd only be looking at enabling a single BAR in a given PCIe device.
+>> > More exotic use cases may have problems with this.
+>>
+>> I'm working on patches for 4.10 to allow mixing multiple
+>> devm_memremap_pages() allocations within the same physical section.
+>> Hopefully this won't be a problem going forward.
+>>
+>
+> Thanks Dan. Your patches will help address the problem of how to
+> partition a /dev/dax device but they don't help the case then BARs
+> themselves are small, closely spaced and non-segment aligned. However
+> I think most people using iopmem will want to use reasonbly large
+> BARs so I am not sure item 2 is that big of an issue.
 
-Since these are not present in the kernel, how would the libibverbs/core
-uverbs stack handle this? Would there be forthcoming changes for that too?
+I think you might have misunderstood what I'm proposing.  The patches
+I'm working on are separate from a facility to carve up a /dev/dax
+device.  The effort is to allow devm_memremap_pages() to maintain
+several allocations within the same 128MB section.  I need this for
+persistent memory to handle platforms that mix pmem and system-ram in
+the same section.  I want to be able to map ZONE_DEVICE pages for a
+portion of a section and be able to remove portions of section that
+may collide with allocations of a different lifetime.
 
-> > Or do you want me to wait till Doug adds the PVRDMA driver to the tree?
-> 
-> FWIW, we can't take a rdma-core provider until the kernel side is
-> accepted, but you can certainly start the process now and get it to an
-> OK state. Doug will be able to take both parts simultaneously.
-> 
-
-Makes sense.
-
-Thanks,
-Adit
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
