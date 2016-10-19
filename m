@@ -1,158 +1,71 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
-Date: Tue, 18 Oct 2016 20:51:15 -0700
-Message-ID: <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: some test question//Re: [For help] configure crossbar build tool
+ in CMakelist.txt
+Date: Tue, 18 Oct 2016 22:11:02 -0600
+Message-ID: <20161019041102.GA28678@obsidianresearch.com>
+References: <5805FF8C.1060902@huawei.com>
+ <20161018155004.GA24189@obsidianresearch.com>
+ <5806E02E.7030400@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
-Sender: owner-linux-mm@kvack.org
-To: Stephen Bates <sbates@raithlin.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@fb.com>, Jonathan Corbet <corbet@lwn.net>, jim.macdonald@everspin.com, sbates@raithin.com, Logan Gunthorpe <logang@deltatee.com>, David Woodhouse <dwmw2@infradead.org>, "Raj, Ashok" <ashok.raj@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5806E02E.7030400-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-[ adding Ashok and David for potential iommu comments ]
+On Wed, Oct 19, 2016 at 10:53:34AM +0800, oulijun wrote:
 
-On Tue, Oct 18, 2016 at 2:42 PM, Stephen Bates <sbates@raithlin.com> wrote:
-> This patch follows from an RFC we did earlier this year [1]. This
-> patchset applies cleanly to v4.9-rc1.
->
-> Updates since RFC
-> -----------------
->   Rebased.
->   Included the iopmem driver in the submission.
->
-> History
-> -------
->
-> There have been several attempts to upstream patchsets that enable
-> DMAs between PCIe peers. These include Peer-Direct [2] and DMA-Buf
-> style patches [3]. None have been successful to date. Haggai Eran
-> gives a nice overview of the prior art in this space in his cover
-> letter [3].
->
-> Motivation and Use Cases
-> ------------------------
->
-> PCIe IO devices are getting faster. It is not uncommon now to find PCIe
-> network and storage devices that can generate and consume several GB/s.
-> Almost always these devices have either a high performance DMA engine, a
-> number of exposed PCIe BARs or both.
->
-> Until this patch, any high-performance transfer of information between
-> two PICe devices has required the use of a staging buffer in system
-> memory. With this patch the bandwidth to system memory is not compromised
-> when high-throughput transfers occurs between PCIe devices. This means
-> that more system memory bandwidth is available to the CPU cores for data
-> processing and manipulation. In addition, in systems where the two PCIe
-> devices reside behind a PCIe switch the datapath avoids the CPU
-> entirely.
+> when use the cmd: CC=aarch64-linux-gnu-gcc cmake -GNinja -DENABLE_RESOLVE_NEIGH=0 ..
+> 
+> the provider/hns/CMakelist.txt can be called correctly and generate
+> the library libhns-rdmav2.so(not be tested), but it will generate
+> warning with mlx5
+> 
+> the print log as follows:
+> 
+> Building C object providers/mlx5/CMakeFiles/mlx5-rdmav2.dir/cq.c.o
+> ../providers/mlx5/cq.c:414:13: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+> static void mlx5_stall_poll_cq()
 
-I agree with the motivation and the need for a solution, but I have
-some questions about this implementation.
+Thanks, you may be the first person to compile on ARM64, so I'm glad
+to hear that is your only warning, I will get it fixed.
 
->
-> Consumers
-> ---------
->
-> We provide a PCIe device driver in an accompanying patch that can be
-> used to map any PCIe BAR into a DAX capable block device. For
-> non-persistent BARs this simply serves as an alternative to using
-> system memory bounce buffers. For persistent BARs this can serve as an
-> additional storage device in the system.
+> In summary, I have two questions:
+> 
+> 1. if don't use libnl(use -DENABLE_RESOLVE_NEIGH=0), it will not
+> confluent the function of library?
 
-Why block devices?  I wonder if iopmem was initially designed back
-when we were considering enabling DAX for raw block devices.  However,
-that support has since been ripped out / abandoned.  You currently
-need a filesystem on top of a block-device to get DAX operation.
-Putting xfs or ext4 on top of PCI-E memory mapped range seems awkward
-if all you want is a way to map the bar for another PCI-E device in
-the topology.
+Correct, RoCEE will not work entirely as expected if you try and run
+the libibverbs from such a build.
 
-If you're only using the block-device as a entry-point to create
-dax-mappings then a device-dax (drivers/dax/) character-device might
-be a better fit.
+> 2. the rdma-core.git use the default build method by used build.sh,
+> and i need modify it by added the building item or modify the
+> README.md for hns, is the right approach?
 
->
-> Testing and Performance
-> -----------------------
->
-> We have done a moderate about of testing of this patch on a QEMU
-> environment and on real hardware. On real hardware we have observed
-> peer-to-peer writes of up to 4GB/s and reads of up to 1.2 GB/s. In
-> both cases these numbers are limitations of our consumer hardware. In
-> addition, we have observed that the CPU DRAM bandwidth is not impacted
-> when using IOPMEM which is not the case when a traditional path
-> through system memory is taken.
->
-> For more information on the testing and performance results see the
-> GitHub site [4].
->
-> Known Issues
-> ------------
->
-> 1. Address Translation. Suggestions have been made that in certain
-> architectures and topologies the dma_addr_t passed to the DMA master
-> in a peer-2-peer transfer will not correctly route to the IO memory
-> intended. However in our testing to date we have not seen this to be
-> an issue, even in systems with IOMMUs and PCIe switches. It is our
-> understanding that an IOMMU only maps system memory and would not
-> interfere with device memory regions. (It certainly has no opportunity
-> to do so if the transfer gets routed through a switch).
->
+No.
 
-There may still be platforms where peer-to-peer cycles are routed up
-through the root bridge and then back down to target device, but we
-can address that when / if it happens.  I wonder if we could (ab)use a
-software-defined 'pasid' as the requester id for a peer-to-peer
-mapping that needs address translation.
+If you native compile on an actual ARM64 machine you will not have
+problems, simply follow the README.md directions to install the
+required packages on the actual machine.
 
-> 2. Memory Segment Spacing. This patch has the same limitations that
-> ZONE_DEVICE does in that memory regions must be spaces at least
-> SECTION_SIZE bytes part. On x86 this is 128MB and there are cases where
-> BARs can be placed closer together than this. Thus ZONE_DEVICE would not
-> be usable on neighboring BARs. For our purposes, this is not an issue as
-> we'd only be looking at enabling a single BAR in a given PCIe device.
-> More exotic use cases may have problems with this.
+Your problem is cross compiling. Cross compiling is hard. You need to
+make libnl3 available in your cross compiler's 'sysroot'. I can't
+really give you generic good directions for that..
 
-I'm working on patches for 4.10 to allow mixing multiple
-devm_memremap_pages() allocations within the same physical section.
-Hopefully this won't be a problem going forward.
+One option is to cross compile libnl and 'cross-install' it into the
+compiler tree.
 
-> 3. Coherency Issues. When IOMEM is written from both the CPU and a PCIe
-> peer there is potential for coherency issues and for writes to occur out
-> of order. This is something that users of this feature need to be
-> cognizant of. Though really, this isn't much different than the
-> existing situation with things like RDMA: if userspace sets up an MR
-> for remote use, they need to be careful about using that memory region
-> themselves.
+Another option is to download the libnl3 ARM64 packages from Debian and
+then unpack and rename directories 'just so' to make it work.
 
-We might be able to mitigate this by indicating that the mapping is
-busy for device-to-device transfers.  But you're right we could wait
-to see how much of a problem this is in practice.
+But if you don't intend to run the build binaries (eg when you go to
+test, you will build natively on ARM64), then don't worry about it.
 
->
-> 4. Architecture. Currently this patch is applicable only to x86_64
-> architectures. The same is true for much of the code pertaining to
-> PMEM and ZONE_DEVICE. It is hoped that the work will be extended to other
-> ARCH over time.
->
-> References
-> ----------
-> [1] https://patchwork.kernel.org/patch/8583221/
-> [2] http://comments.gmane.org/gmane.linux.drivers.rdma/21849
-> [3] http://www.spinics.net/lists/linux-rdma/msg38748.html
-> [4] https://github.com/sbates130272/zone-device
->
-> Logan Gunthorpe (1):
->   memremap.c : Add support for ZONE_DEVICE IO memory with struct pages.
-
-I haven't yet grokked the motivation for this, but I'll go comment on
-that separately.
-
+Jason
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
