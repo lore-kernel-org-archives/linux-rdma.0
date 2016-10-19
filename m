@@ -1,90 +1,70 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
- infrastructure bits
-Date: Wed, 19 Oct 2016 18:38:52 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E24F0DF57@CRSMSX101.amr.corp.intel.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161014192136.11731-3-jarod@redhat.com>
- <20161014231934.GC16509@obsidianresearch.com>
- <20161017162221.GI14983@redhat.com>
- <20161017174611.GB6430@obsidianresearch.com>
- <20161017182037.GK14983@redhat.com>
- <20161017185657.GA8122@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E24F0A408@CRSMSX101.amr.corp.intel.com>
- <20161017201309.GA24291@obsidianresearch.com>
- <20161018145104.GT14983@redhat.com>
+From: Stephen Bates <sbates@raithlin.com>
+Subject: Re: [PATCH 1/3] memremap.c : Add support for ZONE_DEVICE IO memory
+ with struct pages.
+Date: Wed, 19 Oct 2016 12:40:28 -0600
+Message-ID: <20161019184028.GB16550@cgy1-donard.priv.deltatee.com>
+References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ <1476826937-20665-2-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gmiqMNb+Q88Mf-9fFb4z4uAfWbbEWrv42OBH8838SSPQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161018145104.GT14983-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-block-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gmiqMNb+Q88Mf-9fFb4z4uAfWbbEWrv42OBH8838SSPQ@mail.gmail.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, haggaie@mellanox.com, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@fb.com>, Jonathan Corbet <corbet@lwn.net>, jim.macdonald@everspin.com, sbates@raithin.com, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Ok,
-
-I have the C code ported to rdma-core but how do I do this in cmake?
-
-AS_IF([test x$rdmandd = xyes], [
-    PKG_CHECK_MODULES([UDEV], [libudev])
-    AC_CONFIG_FILES([doc/man/rdma-ndd.8 \
-                        etc/rdma-ndd.init \
-                        etc/rdma-ndd.service])
-    AC_SUBST([UDEV_CFLAGS])
-    AC_SUBST([UDEV_LIBS])
-    if test "$with_udev" = "yes"; then
-        PKG_CHECK_EXISTS(libudev >= 218, [with_dev_logging=no],
-                        [with_udev_logging=yes])
-        if test "$with_udev_logging" = "yes"; then
-                AC_DEFINE_UNQUOTED([HAVE_UDEV_LOGGING], 1,
-                                [whether libudev logging can be used])
-        fi
-    fi
-])
-
-I've found a "modules" file which looks like it has a compatible BSD license and could be added but is there a better way?
-
-http://fossies.org/linux/flightgear/CMakeModules/FindUDev.cmake
-
-I also have to convert the man page from *.rst to man in some way...  Would it be ok if I put a dependency on rst2man in the repo?
-
-Ira
-
-
-> -----Original Message-----
-> From: Jarod Wilson [mailto:jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Tuesday, October 18, 2016 7:51 AM
-> To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Cc: Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Doug
-> Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Subject: Re: [PATCH rdma-core 2/4] glue/redhat: add udev/systemd/etc
-> infrastructure bits
-> 
-> On Mon, Oct 17, 2016 at 02:13:09PM -0600, Jason Gunthorpe wrote:
-> > On Mon, Oct 17, 2016 at 07:10:46PM +0000, Weiny, Ira wrote:
+On Wed, Oct 19, 2016 at 10:50:25AM -0700, Dan Williams wrote:
+> On Tue, Oct 18, 2016 at 2:42 PM, Stephen Bates <sbates@raithlin.com> wrote:
+> > From: Logan Gunthorpe <logang@deltatee.com>
 > >
-> > > What I have been worried about is conflicts between infiniband-diags
-> > > and the new rdma-core.  RH made a separate package out of rdma-ndd
-> > > so that would be easy but I don't think other distros have.
+> > We build on recent work that adds memory regions owned by a device
+> > driver (ZONE_DEVICE) [1] and to add struct page support for these new
+> > regions of memory [2].
 > >
-> > > So how do you obsolete "part" of a package?
+> > 1. Add an extra flags argument into dev_memremap_pages to take in a
+> > MEMREMAP_XX argument. We update the existing calls to this function to
+> > reflect the change.
 > >
-> > The distros know how to do this, they just conflict with the old
-> > version of infiniband-diags.
-> 
-> Yeah, basically, you spin up a new infiniband-diags package that doesn't have
-> rdma-ndd and a new rdma-core package that includes it, along with (in
-> rpm-ese) 'Conflicts: infiniband-diags < <first version w/o rdma-ndd>', and that
-> should pretty much cover it.
-> 
-> --
-> Jarod Wilson
-> jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> > 2. For completeness, we add MEMREMAP_WT support to the memremap;
+> > however we have no actual need for this functionality.
+> >
+> > 3. We add the static functions, add_zone_device_pages and
+> > remove_zone_device pages. These are similar to arch_add_memory except
+> > they don't create the memory mapping. We don't believe these need to be
+> > made arch specific, but are open to other opinions.
+> >
+> > 4. dev_memremap_pages and devm_memremap_pages_release are updated to
+> > treat IO memory slightly differently. For IO memory we use a combination
+> > of the appropriate io_remap function and the zone_device pages functions
+> > created above. A flags variable and kaddr pointer are added to struct
+> > page_mem to facilitate this for the release function. We also set up
+> > the page attribute tables for the mapped region correctly based on the
+> > desired mapping.
+> >
+>
+> This description says "what" is being done, but not "why".
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Dan
+
+We discuss the motivation in the cover letter.
+
+>
+> In the cover letter, "[PATCH 0/3] iopmem : A block device for PCIe
+> memory",  it mentions that the lack of I/O coherency is a known issue
+> and users of this functionality need to be cognizant of the pitfalls.
+> If that is the case why do we need support for different cpu mapping
+> types than the default write-back cache setting?  It's up to the
+> application to handle cache cpu flushing similar to what we require of
+> device-dax users in the persistent memory case.
+
+Some of the iopmem hardware we have tested has certain alignment
+restrictions on BAR accesses. At the very least we require write
+combine mappings for these. We then felt it appropriate to add the
+other mappings for the sake of completeness.
+
+Cheers
+
+Stephen
