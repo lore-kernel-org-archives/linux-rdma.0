@@ -1,66 +1,66 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: iscsi_trx going into D state
-Date: Tue, 18 Oct 2016 23:25:59 -0700
-Message-ID: <1476858359.8490.97.camel@haakon3.risingtidesystems.com>
-References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
-         <880e374c-cf8b-f276-e930-57b09fe1a686@suse.com>
-         <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA@mail.gmail.com>
-         <CAANLjFoh+C8QE=qcPKqUUG3SnH2EMmS7DWZ5D4AD7yWMxoK0Zw@mail.gmail.com>
-         <4fc72e32-26fb-96bd-8a0d-814eef712b43@suse.com>
-         <CAANLjFpx1MRNiu2388pY+U0O5z9gw+OJBtpOof47Lb_DxaJSBQ@mail.gmail.com>
-         <1476774332.8490.43.camel@haakon3.risingtidesystems.com>
-         <CAANLjFqXt5r=c9F75vjeK=_zLa8zCS1priLuZo=A1ZSHKZ=1Bw@mail.gmail.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 04/10] mm: replace get_user_pages_locked() write/force
+ parameters with gup_flags
+Date: Wed, 19 Oct 2016 09:32:00 +0200
+Message-ID: <20161019073200.GK29967@quack2.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161013002020.3062-5-lstoakes@gmail.com>
+ <20161018125425.GD29967@quack2.suse.cz>
+ <20161018135609.GA30025@lucifer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFqXt5r=c9F75vjeK=_zLa8zCS1priLuZo=A1ZSHKZ=1Bw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20161018135609.GA30025@lucifer>
+Sender: owner-linux-mm@kvack.org
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2016-10-18 at 16:13 -0600, Robert LeBlanc wrote:
-> Nicholas,
+On Tue 18-10-16 14:56:09, Lorenzo Stoakes wrote:
+> On Tue, Oct 18, 2016 at 02:54:25PM +0200, Jan Kara wrote:
+> > > @@ -1282,7 +1282,7 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
+> > >  			    int write, int force, struct page **pages,
+> > >  			    struct vm_area_struct **vmas);
+> > >  long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+> > > -		    int write, int force, struct page **pages, int *locked);
+> > > +		    unsigned int gup_flags, struct page **pages, int *locked);
+> >
+> > Hum, the prototype is inconsistent with e.g. __get_user_pages_unlocked()
+> > where gup_flags come after **pages argument. Actually it makes more sense
+> > to have it before **pages so that input arguments come first and output
+> > arguments second but I don't care that much. But it definitely should be
+> > consistent...
 > 
-> We patched this in and for the first time in many reboots, we didn't
-> have iSCSI going straight into D state. We have had to work on a
-> couple of other things, so we don't know if this is just a coincidence
-> or not. We will reboot back into the old kernel and back a few times
-> and do some more testing, but so far it has given us a little bit of
-> hope that we may be narrowing down on the root cause. We will report
-> back once we have some more info.
+> It was difficult to decide quite how to arrange parameters as there was
+> inconsitency with regards to parameter ordering already - for example
+> __get_user_pages() places its flags argument before pages whereas, as you note,
+> __get_user_pages_unlocked() puts them afterwards.
 > 
-> Thank you,
-> Robert LeBlanc
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> I ended up compromising by trying to match the existing ordering of the function
+> as much as I could by replacing write, force pairs with gup_flags in the same
+> location (with the exception of get_user_pages_unlocked() which I felt should
+> match __get_user_pages_unlocked() in signature) or if there was already a
+> gup_flags parameter as in the case of __get_user_pages_unlocked() I simply
+> removed the write, force pair and left the flags as the last parameter.
 > 
+> I am happy to rearrange parameters as needed, however I am not sure if it'd be
+> worthwhile for me to do so (I am keen to try to avoid adding too much noise here
+> :)
+> 
+> If we were to rearrange parameters for consistency I'd suggest adjusting
+> __get_user_pages_unlocked() to put gup_flags before pages and do the same with
+> get_user_pages_unlocked(), let me know what you think.
 
-Hello Robert,
+Yeah, ok. If the inconsistency is already there, just leave it for now.
 
-Thanks for the update.  Btw, if the original /var/log/messages
-reproduction logs for iser-target are still handy, I'm happy to have
-a look to confirm.  Feel free to send them along here, or off-list if
-necessary.
-
-For further reference, you can also enable Linux kernel crash dump
-(LKCD) at build time using CONFIG_CRASH_DUMP=y, so it's possible to
-manually generate a vmcore dumpfile of the running system via 'echo c
-> /proc/sysrq-trigger', once the bug occurs.
-
-http://cateee.net/lkddb/web-lkddb/CRASH_DUMP.html
-
-Note in order to fully debug within this in a LKCD environment, it
-requires the vmcore dump from /var/crash/, unstripped vmlinux,
-target_core_mod, iscsi_target_mod and ib_isert modules matching the
-specific particular x86_64 build setup of the running system.
-
-Also, can you share a bit more about the details of your particular
-iser-target + backend setup..?
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
