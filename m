@@ -1,45 +1,47 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: SQ overflow seen running isert traffic
-Date: Thu, 20 Oct 2016 11:34:34 +0300
-Message-ID: <f7a4b395-1786-3c7a-7639-195e830db5ad@grimberg.me>
-References: <20160927070157.GA13140@chelsio.com>
- <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me>
- <20161017111655.GA21245@chelsio.com>
- <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com>
- <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me>
- <20161018112801.GA3117@chelsio.com>
- <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
- <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
- <20161018161313.GC24189@obsidianresearch.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: New providers in rdma-core
+Date: Thu, 20 Oct 2016 09:24:30 +0000
+Message-ID: <SN1PR07MB2207D6CF5ADA67FCFCAA3A2EF8D50@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <CALq1K=+nEP0jFOCxj30HA0+bg0L1bF5+xiBcAC2bRwUz+M6+eQ@mail.gmail.com>
+ <20161019163913.GA30843@infradead.org>
+ <6b57d79c-dbd3-cd9b-061e-27a3d3968845@vmware.com>
+ <20161019175926.GD29879@obsidianresearch.com>
+ <12243e3b-87cf-2bd4-d097-1dd0a7907f41@vmware.com>
+ <20161019200911.GA2666@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20161018161313.GC24189@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Steve Wise <swise@opengridcomputing.com>
-Cc: 'Potnuri Bharat Teja' <bharat@chelsio.com>, target-devel@vger.kernel.org, nab@linux-iscsi.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161019200911.GA2666-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Jason,
+> Perhaps aided by a macro so we get high uniformity:
+>=20
+> #define DECLARE_DRIVER_UDATA(struct_driver, struct_common)
+>   struct user # struct_driver {
+>      struct struct_common ibv_resp;
+>      struct struct_driver udata;
+>   };
+>=20
+> Where mlx4_alloc_ucontext_resp_v3 comes from the uapi header, and is not
+> inlined, so each driver gets an 'abi wrapper' header that just builds all=
+ these
+> structs.
 
->> 1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
->> overflows.  So the SQ sizing needs more investigation.
->
-> NFS had this sort of problem - in that case it was because the code
-> was assuming that a RQ completion implied SQ space - that is not
-> legal, only direct completions from SQ WCs can guide available space
-> in the SQ..
+The idea looks good to me.
+But still, I'm missing something - in order for libraries and the kernel to=
+ use the=20
+same headers they should reside in the same repository.
+Is that the long-term goal? And wouldn't that be mixing user/kernel spaces?
 
-Its not the same problem. iser-target does not tie SQ and RQ spaces.
-The origin here is the difference between IB/RoCE and iWARP and the
-chelsio HW that makes it hard to predict the SQ correct size.
+Thanks,
+Ram
 
-iWARP needs extra registration for rdma reads and the chelsio device
-seems to be limited in the number of pages per registration so this
-configuration will need a larger send queue.
-
-Another problem is that we don't have a correct retry flow.
-
-Hopefully we can address that in the RW API which is designed to hide
-these details from the ULP...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
