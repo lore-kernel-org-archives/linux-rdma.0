@@ -1,49 +1,34 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [Test fail]//Re: some test question//Re: [For help] configure
- crossbar build tool in CMakelist.txt
-Date: Thu, 20 Oct 2016 10:29:55 -0600
-Message-ID: <20161020162955.GA7375@obsidianresearch.com>
-References: <5805FF8C.1060902@huawei.com>
- <20161018155004.GA24189@obsidianresearch.com>
- <5806E02E.7030400@huawei.com>
- <20161019041102.GA28678@obsidianresearch.com>
- <5808772F.6050305@huawei.com>
+Subject: Re: New providers in rdma-core
+Date: Thu, 20 Oct 2016 10:35:13 -0600
+Message-ID: <20161020163513.GB28181@obsidianresearch.com>
+References: <CALq1K=+nEP0jFOCxj30HA0+bg0L1bF5+xiBcAC2bRwUz+M6+eQ@mail.gmail.com>
+ <20161019163913.GA30843@infradead.org>
+ <6b57d79c-dbd3-cd9b-061e-27a3d3968845@vmware.com>
+ <20161019175926.GD29879@obsidianresearch.com>
+ <12243e3b-87cf-2bd4-d097-1dd0a7907f41@vmware.com>
+ <20161019200911.GA2666@obsidianresearch.com>
+ <SN1PR07MB2207D6CF5ADA67FCFCAA3A2EF8D50@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5808772F.6050305-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207D6CF5ADA67FCFCAA3A2EF8D50-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 20, 2016 at 03:50:07PM +0800, oulijun wrote:
-> 1. when set the VERBS_PROVIDER_DIR to empty, the
-> sizeof(VERBS_PROVIDER_DIR) should be 0 and the branch should not be
-> run
+On Thu, Oct 20, 2016 at 09:24:30AM +0000, Amrani, Ram wrote:
 
-This is a mistake, sizeof('') is 1, so the if should be (> 1)' I will
-fix it.
+> The idea looks good to me.
+> But still, I'm missing something - in order for libraries and the kernel to use the 
+> same headers they should reside in the same repository.
+> Is that the long-term goal? And wouldn't that be mixing user/kernel spaces?
 
-> 2. the value of so_name should be /libhisi-rdmav2.so in @1 and
-> libhisi-rdmav2.so in @2.  in fact, the value of so_name is /libhisi
-> and libhisi
-> 
-> the test print log as follows:
-> 
-> -rdmav2.soer, 218] so_name: /libhisi
-> [load_driver, 219] so_name: -rdmav2.so
-> -rdmav2.soer, 229] so_name: libhisi
-> [load_driver, 230] so_name: -rdmav2.so
+See the discussion here:
 
-If you notice the -rdmav2.so has been placed at the start of the line,
-this suggest you have a spurious '\r' character. This would come from
-the .driver file.
-
-Since you did not use the cmake install process you must have written
-the .driver file yourself and used a DOS text editor. UNIX line
-endings are required.
+http://www.spinics.net/lists/linux-rdma/msg42067.html
 
 Jason
 --
