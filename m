@@ -1,121 +1,45 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [Test fail]//Re: some test question//Re: [For help] configure
- crossbar build tool in CMakelist.txt
-Date: Thu, 20 Oct 2016 15:50:07 +0800
-Message-ID: <5808772F.6050305@huawei.com>
-References: <5805FF8C.1060902@huawei.com>
- <20161018155004.GA24189@obsidianresearch.com> <5806E02E.7030400@huawei.com>
- <20161019041102.GA28678@obsidianresearch.com>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: SQ overflow seen running isert traffic
+Date: Thu, 20 Oct 2016 11:34:34 +0300
+Message-ID: <f7a4b395-1786-3c7a-7639-195e830db5ad@grimberg.me>
+References: <20160927070157.GA13140@chelsio.com>
+ <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me>
+ <20161017111655.GA21245@chelsio.com>
+ <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com>
+ <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me>
+ <20161018112801.GA3117@chelsio.com>
+ <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
+ <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
+ <20161018161313.GC24189@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161019041102.GA28678-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20161018161313.GC24189@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Steve Wise <swise@opengridcomputing.com>
+Cc: 'Potnuri Bharat Teja' <bharat@chelsio.com>, target-devel@vger.kernel.org, nab@linux-iscsi.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Jason
-   I am working for test the userspace code of hns in rdma-core.git with your guide.
-   I have met some quesiton for debugging in my environment.
-   after add some print lines in load_driver() in libibverbs/init.c, as follows:
+Hey Jason,
 
-   printf("[%s, %d] %s, %d\n", __func__, __LINE__, VERBS_PROVIDER_DIR, sizeof(VERBS_PROVIDER_DIR));
-        /* If configured with a provider plugin path then try that next */
-        if (sizeof(VERBS_PROVIDER_DIR) >= 1) {
-                if (asprintf(&so_name, VERBS_PROVIDER_DIR "/lib%s" DLOPEN_TRAILER, name) <
-                    0)
-                        goto out_asprintf;
-                printf("[%s, %d] so_name: %s\n", __func__, __LINE__, so_name);// @1
-                printf("[%s, %d] so_name: %s\n", __func__, __LINE__, DLOPEN_TRAILER);//
-                dlhandle = dlopen(so_name, RTLD_NOW);
-                free(so_name);
-                if (dlhandle)
-                        return;
-        }
-        /* Otherwise use the system libary search path. This is the historical
-           behavior of libibverbs */
-        if (asprintf(&so_name, "lib%s" DLOPEN_TRAILER, name) < 0)
-                goto out_asprintf;
-        printf("[%s, %d] so_name: %s\n", __func__, __LINE__, so_name);//@2
-        printf("[%s, %d] so_name: %s\n", __func__, __LINE__, DLOPEN_TRAILER);//
+>> 1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
+>> overflows.  So the SQ sizing needs more investigation.
+>
+> NFS had this sort of problem - in that case it was because the code
+> was assuming that a RQ completion implied SQ space - that is not
+> legal, only direct completions from SQ WCs can guide available space
+> in the SQ..
 
-    using the cmd:
-	CC=aarch64-linux-gnu-gcc cmake -GNinja -DENABLE_RESOLVE_NEIGH=0 -DVERBS_PROVIDER_DIR='' ..
-	ninja
+Its not the same problem. iser-target does not tie SQ and RQ spaces.
+The origin here is the difference between IB/RoCE and iWARP and the
+chelsio HW that makes it hard to predict the SQ correct size.
 
-   after obtained the libhisi-rdmav2.so and hisi.driver, i put them into the /lib and /etc/libibverbs.d/
-in my test environment.
+iWARP needs extra registration for rdma reads and the chelsio device
+seems to be limited in the number of pages per registration so this
+configuration will need a larger send queue.
 
-Now, it is test fail. some question are not understanded.
-1. when set the VERBS_PROVIDER_DIR to empty, the sizeof(VERBS_PROVIDER_DIR) should be 0 and the branch should not be run
-2. the value of so_name should be /libhisi-rdmav2.so in @1 and libhisi-rdmav2.so in @2.  in fact, the value of
-so_name is /libhisi and libhisi
+Another problem is that we don't have a correct retry flow.
 
-the test print log as follows:
-
--rdmav2.soer, 218] so_name: /libhisi
-[load_driver, 219] so_name: -rdmav2.so
--rdmav2.soer, 229] so_name: libhisi
-[load_driver, 230] so_name: -rdmav2.so
-
-在 2016/10/19 12:11, Jason Gunthorpe 写道:
-> On Wed, Oct 19, 2016 at 10:53:34AM +0800, oulijun wrote:
-> 
->> when use the cmd: CC=aarch64-linux-gnu-gcc cmake -GNinja -DENABLE_RESOLVE_NEIGH=0 ..
->>
->> the provider/hns/CMakelist.txt can be called correctly and generate
->> the library libhns-rdmav2.so(not be tested), but it will generate
->> warning with mlx5
->>
->> the print log as follows:
->>
->> Building C object providers/mlx5/CMakeFiles/mlx5-rdmav2.dir/cq.c.o
->> ../providers/mlx5/cq.c:414:13: warning: function declaration isn't a prototype [-Wstrict-prototypes]
->> static void mlx5_stall_poll_cq()
-> 
-> Thanks, you may be the first person to compile on ARM64, so I'm glad
-> to hear that is your only warning, I will get it fixed.
-> 
->> In summary, I have two questions:
->>
->> 1. if don't use libnl(use -DENABLE_RESOLVE_NEIGH=0), it will not
->> confluent the function of library?
-> 
-> Correct, RoCEE will not work entirely as expected if you try and run
-> the libibverbs from such a build.
-> 
->> 2. the rdma-core.git use the default build method by used build.sh,
->> and i need modify it by added the building item or modify the
->> README.md for hns, is the right approach?
-> 
-> No.
-> 
-> If you native compile on an actual ARM64 machine you will not have
-> problems, simply follow the README.md directions to install the
-> required packages on the actual machine.
-> 
-> Your problem is cross compiling. Cross compiling is hard. You need to
-> make libnl3 available in your cross compiler's 'sysroot'. I can't
-> really give you generic good directions for that..
-> 
-> One option is to cross compile libnl and 'cross-install' it into the
-> compiler tree.
-> 
-> Another option is to download the libnl3 ARM64 packages from Debian and
-> then unpack and rename directories 'just so' to make it work.
-> 
-> But if you don't intend to run the build binaries (eg when you go to
-> test, you will build natively on ARM64), then don't worry about it.
-> 
-> Jason
-> 
-> .
-> 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hopefully we can address that in the RW API which is designed to hide
+these details from the ULP...
