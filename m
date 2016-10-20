@@ -1,59 +1,100 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v3 0/11] Fix race conditions related to stopping block
- layer queues
-Date: Wed, 19 Oct 2016 16:51:18 -0700
-Message-ID: <25418d7a-7e66-3b99-7532-669f7ebd58a6@sandisk.com>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com>
- <20161019222454.GA1215@localhost.localdomain>
+From: Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH net-next 6/6] net: use core MTU range checking in misc
+ drivers
+Date: Wed, 19 Oct 2016 23:16:41 -0400
+Message-ID: <20161020031641.GJ18569@redhat.com>
+References: <20161019023333.15760-1-jarod@redhat.com>
+ <20161019023333.15760-7-jarod@redhat.com>
+ <20161019160546.GC11224@bistromath.localdomain>
+ <20161020003846.64f85f7e@kant>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <20161019222454.GA1215@localhost.localdomain>
-Sender: linux-block-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161020003846.64f85f7e@kant>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Sabrina Dubroca <sd@queasysnail.net>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, Cliff Whickman <cpw@sgi.com>, Robin Holt <robinmholt@gmail.com>, Jes Sorensen <jes@trained-monkey.org>, Marek Lindner <mareklindner@neomailbox.ch>, Simon Wunderlich <sw@simonwunderlich.de>, Antonio Quartulli <a@unstable.cc>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/19/2016 03:14 PM, Keith Busch wrote:
-> I'm running linux 4.9-rc1 + linux-block/for-linus, and alternating tests
-> with and without this series.
->
-> Without this, I'm not seeing any problems in a link-down test while
-> running fio after ~30 runs.
->
-> With this series, I only see the test pass infrequently. Most of the
-> time I observe one of several failures. In all cases, it looks like the
-> rq->queuelist is in an unexpected state.
->
-> I think I've almost got this tracked down, but I have to leave for the
-> day soon. Rather than having a more useful suggestion, I've put the two
-> failures below.
->
- > First failure:
- >
-> [  214.782098] kernel BUG at block/blk-mq.c:498!
+On Thu, Oct 20, 2016 at 12:38:46AM +0200, Stefan Richter wrote:
+> On Oct 19 Sabrina Dubroca wrote:
+> > 2016-10-18, 22:33:33 -0400, Jarod Wilson wrote:
+> > [...]
+> > > diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
+> > > index 309311b..b5f125c 100644
+> > > --- a/drivers/firewire/net.c
+> > > +++ b/drivers/firewire/net.c
+> > > @@ -1349,15 +1349,6 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
+> > >  	return NETDEV_TX_OK;
+> > >  }
+> > >  
+> > > -static int fwnet_change_mtu(struct net_device *net, int new_mtu)
+> > > -{
+> > > -	if (new_mtu < 68)
+> > > -		return -EINVAL;
+> > > -
+> > > -	net->mtu = new_mtu;
+> > > -	return 0;
+> > > -}
+> > > -  
+> > 
+> > This doesn't do any upper bound checking.
+> 
+> I need to check more closely, but I think the RFC 2734 encapsulation spec
+> and our implementation do not impose a particular upper limit.  Though I
+> guess it's bad to let userland set arbitrarily large values here.
 
-Hello Keith,
+In which case, that would suggest using IP_MAX_MTU (65535) here.
 
-Thank you for having taken the time to test this patch series. Since I 
-think that the second and third failures are consequences of the first, 
-I will focus on the first failure triggered by your tests.
+> > >  static const struct ethtool_ops fwnet_ethtool_ops = {
+> > >  	.get_link	= ethtool_op_get_link,
+> > >  };
+> > > @@ -1366,7 +1357,6 @@ static const struct net_device_ops fwnet_netdev_ops = {
+> > >  	.ndo_open       = fwnet_open,
+> > >  	.ndo_stop	= fwnet_stop,
+> > >  	.ndo_start_xmit = fwnet_tx,
+> > > -	.ndo_change_mtu = fwnet_change_mtu,
+> > >  };
+> > >  
+> > >  static void fwnet_init_dev(struct net_device *net)
+> > > @@ -1481,6 +1471,8 @@ static int fwnet_probe(struct fw_unit *unit,
+> > >  	max_mtu = (1 << (card->max_receive + 1))
+> > >  		  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
+> > >  	net->mtu = min(1500U, max_mtu);
+> > > +	net->min_mtu = ETH_MIN_MTU;
+> > > +	net->max_mtu = net->mtu;  
+> > 
+> > But that will now prevent increasing the MTU above the initial value?
+> 
+> Indeed, therefore NAK.
 
-I assume that line 498 in blk-mq.c corresponds to 
-BUG_ON(blk_queued_rq(rq))? Anyway, it seems to me like this is a bug in 
-the NVMe code and also that this bug is completely unrelated to my patch 
-series. In nvme_complete_rq() I see that blk_mq_requeue_request() is 
-called. I don't think this is allowed from the context of 
-nvme_cancel_request() because blk_mq_requeue_request() assumes that a 
-request has already been removed from the request list. However, neither 
-blk_mq_tagset_busy_iter() nor nvme_cancel_request() remove a request 
-from the request list before nvme_complete_rq() is called. I think this 
-is what triggers the BUG_ON() statement in blk_mq_requeue_request(). 
-Have you noticed that e.g. the scsi-mq code only calls 
-blk_mq_requeue_request() after __blk_mq_end_request() has finished? Have 
-you considered to follow the same approach in nvme_cancel_request()?
+However, there's an explicit calculation for 'max_mtu' right there that I
+glazed right over. It would seem perhaps *that* should be used for
+net->max_mtu here, no?
 
-Thanks,
+> PS:
+> If the IP packet plus encapsulation header fits into IEEE 1394 packet
+> payload, it is transported without link fragmentation.  If it does not
+> fit, link fragmentation occurs (which reduces bandwidth a bit and
+> consumes additional buffering resources at the transmitter and the
+> receiver).
+> 
+> Broadcast and multicast packets are transmitted via IEEE 1394 asynchronous
+> stream packets at a low bus speed (because our code does not attempt to
+> find the maximum speed and size that is supported by all potential
+> listeners).  This limits the payload to 512 bytes.
+> 
+> Unicast packets are transmitted via IEEE 1394 asynchronous write request
+> packets at optimum speed.  In most cases, this means that 2048 bytes
+> payload is possible, in some cases 4096 bytes.  Many CardBus FireWire
+> cards support only 1024 bytes payload of these packets though.
+> Furthermore, some low-speed long-haul cablings may cap the bus speed and
+> thereby the payload size to 1024 or 512 bytes, but this is uncommon in
+> practice.
 
-Bart.
+Thorough as always, Stefan! :)
+
+-- 
+Jarod Wilson
+jarod@redhat.com
