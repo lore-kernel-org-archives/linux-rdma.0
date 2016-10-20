@@ -1,81 +1,157 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCH v3 0/11] Fix race conditions related to stopping block
- layer queues
-Date: Thu, 20 Oct 2016 10:52:24 -0400
-Message-ID: <20161020145224.GA2771@localhost.localdomain>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com>
- <20161019222454.GA1215@localhost.localdomain>
- <25418d7a-7e66-3b99-7532-669f7ebd58a6@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-block-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <25418d7a-7e66-3b99-7532-669f7ebd58a6@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core v2 1/4] Install end user focused documentation files
+Date: Thu, 20 Oct 2016 11:33:54 -0400
+Message-ID: <20161020153357.27286-2-jarod@redhat.com>
+References: <20161014192136.11731-1-jarod@redhat.com>
+ <20161020153357.27286-1-jarod@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161020153357.27286-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 04:51:18PM -0700, Bart Van Assche wrote:
-> 
-> I assume that line 498 in blk-mq.c corresponds to BUG_ON(blk_queued_rq(rq))?
-> Anyway, it seems to me like this is a bug in the NVMe code and also that
-> this bug is completely unrelated to my patch series. In nvme_complete_rq() I
-> see that blk_mq_requeue_request() is called. I don't think this is allowed
-> from the context of nvme_cancel_request() because blk_mq_requeue_request()
-> assumes that a request has already been removed from the request list.
-> However, neither blk_mq_tagset_busy_iter() nor nvme_cancel_request() remove
-> a request from the request list before nvme_complete_rq() is called. I think
-> this is what triggers the BUG_ON() statement in blk_mq_requeue_request().
-> Have you noticed that e.g. the scsi-mq code only calls
-> blk_mq_requeue_request() after __blk_mq_end_request() has finished? Have you
-> considered to follow the same approach in nvme_cancel_request()?
+We recommend that all distros ship these.
 
-Both nvme and scsi requeue through their mp_ops 'complete' callback, so
-nvme is similarly waiting for __blk_mq_end_request before requesting to
-requeue. The problem, I think, is nvme's IO cancelling path is observing
-active requests that it's requeuing from the queue_rq path.
+v2: installing README.md and MAINTAINERS as well.
 
-Patch [11/11] kicks the requeue list unconditionally. This restarts queues
-the driver had just quiesced a moment before, restarting those requests,
-but the driver isn't ready to handle them. When the driver ultimately
-unbinds from the device, it requeues those requests a second time.
-
-Either the requeuing can't kick the requeue work when queisced, or the
-shutdown needs to quiesce even when it hasn't restarted the queues.
-Either patch below appears to fix the issue.
-
+Suggested-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index ccd9cc5..078530c 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -201,7 +201,7 @@ static struct nvme_ns *nvme_get_ns_from_disk(struct gendisk *disk)
- 
- void nvme_requeue_req(struct request *req)
- {
--	blk_mq_requeue_request(req, true);
-+	blk_mq_requeue_request(req, !blk_mq_queue_stopped(req->q));
- }
- EXPORT_SYMBOL_GPL(nvme_requeue_req);
---
+ CMakeLists.txt                   |  3 ++-
+ Documentation/CMakeLists.txt     | 10 ++++++++++
+ debian/ibacm.install             |  1 +
+ debian/ibverbs-providers.install |  1 +
+ debian/libibcm1.install          |  1 +
+ debian/libibverbs1.install       |  1 +
+ debian/librdmacm1.install        |  1 +
+ debian/srptools.install          |  1 +
+ rdma-core.spec                   |  6 +++++-
+ 9 files changed, 23 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/CMakeLists.txt
 
---- 
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 4b30fa2..a05da98 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -1681,10 +1681,9 @@ static void nvme_dev_disable(struct nvme_dev *dev, bool shutdown)
- 	del_timer_sync(&dev->watchdog_timer);
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4d291d2..8dec772 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -21,7 +21,7 @@
+ #      Use the historical search path for providers, in the standard system library.
  
- 	mutex_lock(&dev->shutdown_lock);
--	if (pci_is_enabled(to_pci_dev(dev->dev))) {
--		nvme_stop_queues(&dev->ctrl);
-+	nvme_stop_queues(&dev->ctrl);
-+	if (pci_is_enabled(to_pci_dev(dev->dev)))
- 		csts = readl(dev->bar + NVME_REG_CSTS);
--	}
+ cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
+-project(RDMA C)
++project(rdma-core C)
  
- 	queues = dev->online_queues - 1;
- 	for (i = dev->queue_count - 1; i > 0; i--)
+ # CMake likes to use -rdynamic too much, they fixed it in 3.4.
+ if(POLICY CMP0065)
+@@ -259,6 +259,7 @@ configure_file("${BUILDLIB}/config.h.in" "${BUILD_INCLUDE}/config.h" ESCAPE_QUOT
+ # Sub-directories
+ add_subdirectory(ccan)
+ add_subdirectory(util)
++add_subdirectory(Documentation)
+ # Libraries
+ add_subdirectory(libibumad)
+ add_subdirectory(libibumad/man)
+diff --git a/Documentation/CMakeLists.txt b/Documentation/CMakeLists.txt
+new file mode 100644
+index 0000000..6170b5f
+--- /dev/null
++++ b/Documentation/CMakeLists.txt
+@@ -0,0 +1,10 @@
++install(FILES
++  ibacm.md
++  ibsrpdm.md
++  libibcm.md
++  libibverbs.md
++  librdmacm.md
++  rxe.md
++  ../README.md
++  ../MAINTAINERS
++  DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+diff --git a/debian/ibacm.install b/debian/ibacm.install
+index 2bb9591..f2a6c53 100644
+--- a/debian/ibacm.install
++++ b/debian/ibacm.install
+@@ -8,3 +8,4 @@ usr/share/man/man1/ib_acme.1
+ usr/share/man/man1/ibacm.1
+ usr/share/man/man7/ibacm.7
+ usr/share/man/man7/ibacm_prov.7
++usr/share/doc/rdma-core/ibacm.md usr/share/doc/ibacm/
+diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
+index 1b41218..7458540 100644
+--- a/debian/ibverbs-providers.install
++++ b/debian/ibverbs-providers.install
+@@ -5,3 +5,4 @@ usr/lib/truescale-serdes.cmds
+ usr/share/man/man8/rxe_cfg.8
+ usr/share/man/man7/rxe.7
+ usr/bin/rxe_cfg
++usr/share/doc/rdma-core/rxe.md usr/share/doc/ibverbs-providers/
+diff --git a/debian/libibcm1.install b/debian/libibcm1.install
+index 6f270b7..a0ace6e 100644
+--- a/debian/libibcm1.install
++++ b/debian/libibcm1.install
+@@ -1 +1,2 @@
+ usr/lib/*/libibcm*.so.*
++usr/share/doc/rdma-core/libibcm.md usr/share/doc/libibcm1/
+diff --git a/debian/libibverbs1.install b/debian/libibverbs1.install
+index 78a7f76..83bdd80 100644
+--- a/debian/libibverbs1.install
++++ b/debian/libibverbs1.install
+@@ -1 +1,2 @@
+ usr/lib/*/libibverbs*.so.*
++usr/share/doc/rdma-core/libibverbs.md usr/share/doc/libibverbs1/
+diff --git a/debian/librdmacm1.install b/debian/librdmacm1.install
+index c17048e..09140ab 100644
+--- a/debian/librdmacm1.install
++++ b/debian/librdmacm1.install
+@@ -1,2 +1,3 @@
+ usr/lib/*/librdmacm*.so.*
+ usr/lib/*/rsocket/librspreload*.so*
++usr/share/doc/rdma-core/librdmacm.md usr/share/doc/librdmacm1/
+diff --git a/debian/srptools.install b/debian/srptools.install
+index 17b909d..9c07015 100644
+--- a/debian/srptools.install
++++ b/debian/srptools.install
+@@ -6,3 +6,4 @@ usr/sbin/ibsrpdm
+ usr/sbin/srp_daemon
+ usr/share/man/man1/ibsrpdm.1
+ usr/share/man/man1/srp_daemon.1
++usr/share/doc/rdma-core/ibsrpdm.md usr/share/doc/srptools/
+diff --git a/rdma-core.spec b/rdma-core.spec
+index 96c86fe..39be6a0 100644
+--- a/rdma-core.spec
++++ b/rdma-core.spec
+@@ -85,7 +85,8 @@ This is a simple example without the split sub packages to get things started.
+          -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
+ 	 -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{my_unitdir} \
+ 	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
+-	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir}
++	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
++	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version}
+ %make_jobs
+ 
+ %install
+@@ -102,6 +103,8 @@ rm -rf %{buildroot}/%{my_unitdir}/
+ 
+ %files
+ %doc %{_mandir}/man*/*
++%doc %{_docdir}/%{name}-%{version}/README.md
++%doc %{_docdir}/%{name}-%{version}/MAINTAINERS
+ %{_bindir}/*
+ %{_includedir}/*
+ %{_libdir}/lib*.so*
+@@ -110,6 +113,7 @@ rm -rf %{buildroot}/%{my_unitdir}/
+ %{_libdir}/rsocket/*
+ %{_sbindir}/*
+ %{_libexecdir}/*
++%{_docdir}/%{name}-%{version}/*
+ %if 0%{?_unitdir:1}
+ %{_unitdir}/*
+ %else
+-- 
+2.10.0
+
 --
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
