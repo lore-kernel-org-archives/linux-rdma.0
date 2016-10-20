@@ -1,43 +1,67 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v3 0/11] Fix race conditions related to stopping block
- layer queues
-Date: Thu, 20 Oct 2016 08:35:55 -0700
-Message-ID: <91d7aade-bca8-8772-f1e0-94980b18f872@sandisk.com>
-References: <b39eb0e7-1007-eb63-8e7f-9a7f08508379@sandisk.com>
- <20161019222454.GA1215@localhost.localdomain>
- <25418d7a-7e66-3b99-7532-669f7ebd58a6@sandisk.com>
- <20161020145224.GA2771@localhost.localdomain>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: systemd unit file location...
+Date: Thu, 20 Oct 2016 10:26:38 -0600
+Message-ID: <20161020162638.GA28181@obsidianresearch.com>
+References: <2807E5FD2F6FDA4886F6618EAC48510E24F0E61D@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <20161020145224.GA2771@localhost.localdomain>
-Sender: linux-block-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E24F0E61D-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/20/2016 07:52 AM, Keith Busch wrote:
-> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-> index ccd9cc5..078530c 100644
-> --- a/drivers/nvme/host/core.c
-> +++ b/drivers/nvme/host/core.c
-> @@ -201,7 +201,7 @@ static struct nvme_ns *nvme_get_ns_from_disk(struct gendisk *disk)
->
->  void nvme_requeue_req(struct request *req)
->  {
-> -	blk_mq_requeue_request(req, true);
-> +	blk_mq_requeue_request(req, !blk_mq_queue_stopped(req->q));
->  }
->  EXPORT_SYMBOL_GPL(nvme_requeue_req);
+On Thu, Oct 20, 2016 at 05:04:35AM +0000, Weiny, Ira wrote:
+> Not defined as:
+> 
+> ./build/CMakeCache.txt:CMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=/usr/local/lib/systemd/system
 
-Hello Keith,
+It is a mistake.
 
-What I had missed while I was preparing my patch series is that the NVMe 
-driver, unlike the dm driver, can call blk_mq_requeue_request() on a 
-stopped queue. So the above patch is needed to keep the current 
-semantics of the NVMe code. I will merge this patch in my patch series.
+> And you add the "system" in the Debian rules?
+> 
+> ./debian/iwpmd.install:lib/systemd/system/iwpmd.service
+> ./debian/rules:                 -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=/lib/systemd/system \
 
-Thanks,
+because systemd requires /lib/systemd when installed and
+/usr/local/lib/systemd when in 'local' mode.
 
-Bart.
+It could be wrappered in some kind of "if CMAKE_INSTALL_PREFIX ==
+/usr/", but at least RH wants this set from a RPM macro, so I decided
+to do the same with Debian.
+
+>From 33c80ab9f08814b7614c111aadaaa612cceb6234 Mon Sep 17 00:00:00 2001
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Date: Thu, 20 Oct 2016 10:10:43 -0600
+Subject: [PATCH] Fix default path for systemd unit files
+
+Missed /system
+
+Reported-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a23aa860e6d3..c4fe705b2234 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -55,7 +55,7 @@ set(BUILD_LIB ${CMAKE_BINARY_DIR}/lib)
+ set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/libibverbs.d")
+ set(CMAKE_INSTALL_INITDDIR "${CMAKE_INSTALL_SYSCONFDIR}/init.d"
+   CACHE PATH "Location for init.d files")
+-set(CMAKE_INSTALL_SYSTEMD_SERVICEDIR "${CMAKE_INSTALL_PREFIX}/lib/systemd"
++set(CMAKE_INSTALL_SYSTEMD_SERVICEDIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/system"
+   CACHE PATH "Location for systemd service files")
+ 
+ set(ACM_PROVIDER_DIR "${CMAKE_INSTALL_FULL_LIBDIR}/ibacm"
+-- 
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
