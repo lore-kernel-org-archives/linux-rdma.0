@@ -1,53 +1,35 @@
 From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: Introduction of libqedr to the Consolidated Userspace RDMA
- Library Repo
-Date: Thu, 20 Oct 2016 06:16:03 +0000
-Message-ID: <SN1PR07MB22076159E666B8836BBB3455F8D50@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161006163427.GG1224@obsidianresearch.com>
- <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90@SN1PR07MB2207.namprd07.prod.outlook.com>
- <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161013162942.GA5468@obsidianresearch.com>
- <SN1PR07MB220745646BCC093BCB5A4553F8DF0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161014164229.GB6258@obsidianresearch.com>
- <SN1PR07MB220719CE0C668A321520311DF8D20@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161019172410.GB29879@obsidianresearch.com>
+Subject: RE: [PATCH] qedr: return -EINVAL if pd is null and avoid null ptr
+ dereference
+Date: Thu, 20 Oct 2016 07:12:05 +0000
+Message-ID: <SN1PR07MB22076D4325D51DDB3C66E1E8F8D50@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <20161018183928.8539-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161019172410.GB29879-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161018183928.8539-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> You also need to make sure it builds, Travis says the 32 bit builds are n=
-o good
-> (look at the pull request and click on the red X)
-
-That's true, I haven't checked those. I will.
-
-> The github process from here is to make changes and then update your bran=
-ch
-> on your github, that will reflect in the pull request. Eg you can immedia=
-tely fix
-> the 32 bit issues and see that travis goes green.
-
-OK
-
-> I left some minor notes for you on github, the build system stuff looks f=
-ine to
-> me, and I didn't notice anything too unusual in a casual browse. Didn't c=
-heck if
-> the code was any good..
-
-OK
-
-Thanks,
-Ram
-
+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvdmVyYnMuYyB8IDQgKysrLQ0KPiAgMSBmaWxl
+IGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPiANCj4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3ZlcmJzLmMNCj4gYi9kcml2ZXJzL2luZmlu
+aWJhbmQvaHcvcWVkci92ZXJicy5jDQo+IGluZGV4IGE2MTUxNDIuLmIyYTBlYjggMTAwNjQ0DQo+
+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3ZlcmJzLmMNCj4gKysrIGIvZHJpdmVy
+cy9pbmZpbmliYW5kL2h3L3FlZHIvdmVyYnMuYw0KPiBAQCAtNTExLDggKzUxMSwxMCBAQCBpbnQg
+cWVkcl9kZWFsbG9jX3BkKHN0cnVjdCBpYl9wZCAqaWJwZCkNCj4gIAlzdHJ1Y3QgcWVkcl9kZXYg
+KmRldiA9IGdldF9xZWRyX2RldihpYnBkLT5kZXZpY2UpOw0KPiAgCXN0cnVjdCBxZWRyX3BkICpw
+ZCA9IGdldF9xZWRyX3BkKGlicGQpOw0KPiANCj4gLQlpZiAoIXBkKQ0KPiArCWlmICghcGQpIHsN
+Cj4gIAkJcHJfZXJyKCJJbnZhbGlkIFBEIHJlY2VpdmVkIGluIGRlYWxsb2NfcGRcbiIpOw0KPiAr
+CQlyZXR1cm4gLUVJTlZBTDsNCj4gKwl9DQo+IA0KPiAgCURQX0RFQlVHKGRldiwgUUVEUl9NU0df
+SU5JVCwgIkRlYWxsb2NhdGluZyBQRCAlZFxuIiwgcGQtPnBkX2lkKTsNCj4gIAlkZXYtPm9wcy0+
+cmRtYV9kZWFsbG9jX3BkKGRldi0+cmRtYV9jdHgsIHBkLT5wZF9pZCk7DQo+IC0tDQo+IDIuOS4z
+DQoNClRoYW5rcyBDb2xpbi4NCg0KQWNrZWQtYnk6IFJhbSBBbXJhbmkgPHJhbS5hbXJhbmlAY2F2
+aXVtLmNvbT4NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
