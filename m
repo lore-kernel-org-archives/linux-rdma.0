@@ -1,56 +1,42 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH net-next v2 7/9] net: use core MTU range checking in misc
- drivers
-Date: Fri, 21 Oct 2016 18:22:28 +0200
-Message-ID: <20161021162228.5lllrnsbegxgf3lu@earth>
-References: <20161019023333.15760-1-jarod@redhat.com>
- <20161020175524.6184-1-jarod@redhat.com>
- <20161020175524.6184-8-jarod@redhat.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] build: Fix build script to use correct cmake cmd
+Date: Fri, 21 Oct 2016 10:27:28 -0700
+Message-ID: <20161021172728.27367.86783.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="eeqo55dra4cvgby7"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161020175524.6184-8-jarod@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Faisal Latif <faisal.latif@intel.com>, Cliff Whickman <cpw@sgi.com>, Robin Holt <robinmholt@gmail.com>, Jes Sorensen <jes@trained-monkey.org>, Marek Lindner <mareklindner@neomailbox.ch>, Simon Wunderlich <sw@simonwunderlich.de>, Antonio Quartulli <a@unstable.cc>, Sathya Prakash <sathya.prakash@broadcom.com>, Chaitra P B <chaitra.basappa@broadcom.com>, Suganath Prabu Subramani <suganath-prabu.subramani@broadcom.com>, MPT-FusionLinux.pdl@broadcom.com, Felipe Balbi <balbi@kernel.org>, Arvid Brodin <arvid.brodin@alten.se>, Remi Denis-Courmont <courmisch@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The build script does not use the variable it sets up for cmake. Fix it
+so it does.
 
---eeqo55dra4cvgby7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ build.sh |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Hi,
+diff --git a/build.sh b/build.sh
+index 9006030..10518d8 100755
+--- a/build.sh
++++ b/build.sh
+@@ -23,9 +23,9 @@ fi
+ cd "$BUILDDIR"
+ 
+ if [ "x$NINJA" == "x" ]; then
+-    cmake ..
++    $CMAKE ..
+     make
+ else
+-    cmake -GNinja ..
++    $CMAKE -GNinja ..
+     $NINJA
+ fi
 
-On Thu, Oct 20, 2016 at 01:55:22PM -0400, Jarod Wilson wrote:
-> hsi/clients/ssi_protocol:
-> - use core MTU range checking
-> - remove now redundant ssip_pn_set_mtu
-
-Acked-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---eeqo55dra4cvgby7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABCgAGBQJYCkDBAAoJENju1/PIO/qa9mYQAJESHC4204kwddPXQrq/mw6b
-vPGsFsMUXrpfx7Sq25Aaf9GB1ubkqznDKjW6Wfo6oGzaWJ1hfvGrJzP5xHbOJPbf
-Mi3mHd3+Psj6H1uv84HJP951RDw+99EvT8HzxSshPFVi62Xzffw07zLO2qgX4LIM
-ZKTuoR1nyIDcd0AGFbh9JGKtrG6gnAeAL4xowipUyS5vM/d6vJd9L0qO2Ky6ahpp
-/NBPjVVWYIh04fU2AmWmXBIeq49jsEL4sRAvFdLFJijZtGdGyq/FL+RaG6x8hZAR
-1RZIkqPFV9FxcxMQweh7xvgXhpwQ+Y8G4T0KXqYoIIcplHD6u86FRIDvr+06HR1x
-9tjIxj2jkbC4nHlJXZVK6qZc08+qnhBzs2US8H0BB0sD2W79paLgjj7wGpP99zKX
-Dva9z4NYi/HgQQ8HiU12ImV5tIGXvqjoNGLggPiQg9FV9kKubZTXQQuaqyphbEc6
-4+EvsSFAf5bl6cGuYG/f2ibMA9Pe2WkSRFEyJN62ARU6sItK6SwP/BmRJFqa8BCl
-el8ma5tLMbQQdwhE3mUmfInRpuOjX3gueLpHrhvjeR86HnSE2gIcErnAC8lzltUw
-PJQxDOSP+dallMc5bDqFphPbHzZ7if4687U3M8yrvz3ew+NuyeaDeWWvFLrV4Hf9
-UHu/BrnSZaN7XZSqCGW7
-=ui/h
------END PGP SIGNATURE-----
-
---eeqo55dra4cvgby7--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
