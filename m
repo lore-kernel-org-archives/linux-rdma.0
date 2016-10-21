@@ -1,56 +1,109 @@
 From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Test fail]//Re: some test question//Re: [For help] configure
- crossbar build tool in CMakelist.txt
-Date: Fri, 21 Oct 2016 09:42:33 +0800
-Message-ID: <58097289.7070400@huawei.com>
-References: <5805FF8C.1060902@huawei.com>
- <20161018155004.GA24189@obsidianresearch.com> <5806E02E.7030400@huawei.com>
- <20161019041102.GA28678@obsidianresearch.com> <5808772F.6050305@huawei.com>
- <20161020162955.GA7375@obsidianresearch.com>
+Subject: Re: [PATCH] IB/hns: Move HNS RoCE user vendor structures
+Date: Fri, 21 Oct 2016 10:35:57 +0800
+Message-ID: <58097F0D.2040001@huawei.com>
+References: <1476897187-15991-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="gbk"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161020162955.GA7375-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1476897187-15991-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-åœ¨ 2016/10/21 0:29, Jason Gunthorpe å†™é“:
-> On Thu, Oct 20, 2016 at 03:50:07PM +0800, oulijun wrote:
->> 1. when set the VERBS_PROVIDER_DIR to empty, the
->> sizeof(VERBS_PROVIDER_DIR) should be 0 and the branch should not be
->> run
+ÔÚ 2016/10/20 1:13, Leon Romanovsky Ð´µÀ:
+> This patch moves HNS vendor's specific structures to
+> common UAPI folder which will be visible to all consumers.
 > 
-> This is a mistake, sizeof('') is 1, so the if should be (> 1)' I will
-> fix it.
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_cq.c                          | 2 +-
+>  drivers/infiniband/hw/hns/hns_roce_main.c                        | 2 +-
+>  drivers/infiniband/hw/hns/hns_roce_qp.c                          | 2 +-
+>  include/uapi/rdma/Kbuild                                         | 1 +
+>  .../hw/hns/hns_roce_user.h => include/uapi/rdma/hns-abi.h        | 9 +++++----
+>  5 files changed, 9 insertions(+), 7 deletions(-)
+>  rename drivers/infiniband/hw/hns/hns_roce_user.h => include/uapi/rdma/hns-abi.h (94%)
 > 
->> 2. the value of so_name should be /libhisi-rdmav2.so in @1 and
->> libhisi-rdmav2.so in @2.  in fact, the value of so_name is /libhisi
->> and libhisi
->>
->> the test print log as follows:
->>
->> -rdmav2.soer, 218] so_name: /libhisi
->> [load_driver, 219] so_name: -rdmav2.so
->> -rdmav2.soer, 229] so_name: libhisi
->> [load_driver, 230] so_name: -rdmav2.so
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+> index 0973659..d8a1764 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_cq.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+> @@ -35,7 +35,7 @@
+>  #include "hns_roce_device.h"
+>  #include "hns_roce_cmd.h"
+>  #include "hns_roce_hem.h"
+> -#include "hns_roce_user.h"
+> +#include <rdma/hns-abi.h>
+>  #include "hns_roce_common.h"
+>  
+>  static void hns_roce_ib_cq_comp(struct hns_roce_cq *hr_cq)
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+> index 764e35a..354f100 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_main.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+> @@ -37,7 +37,7 @@
+>  #include <rdma/ib_user_verbs.h>
+>  #include "hns_roce_common.h"
+>  #include "hns_roce_device.h"
+> -#include "hns_roce_user.h"
+> +#include <rdma/hns-abi.h>
+>  #include "hns_roce_hem.h"
+>  
+>  /**
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> index e86dd8d..5d13b6b 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+> @@ -37,7 +37,7 @@
+>  #include "hns_roce_common.h"
+>  #include "hns_roce_device.h"
+>  #include "hns_roce_hem.h"
+> -#include "hns_roce_user.h"
+> +#include <rdma/hns-abi.h>
+>  
+>  #define SQP_NUM				(2 * HNS_ROCE_MAX_PORTS)
+>  
+> diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+> index f14ab7f..b54f10d 100644
+> --- a/include/uapi/rdma/Kbuild
+> +++ b/include/uapi/rdma/Kbuild
+> @@ -14,3 +14,4 @@ header-y += mlx5-abi.h
+>  header-y += mthca-abi.h
+>  header-y += nes-abi.h
+>  header-y += ocrdma-abi.h
+> +header-y += hns-abi.h
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_user.h b/include/uapi/rdma/hns-abi.h
+> similarity index 94%
+> rename from drivers/infiniband/hw/hns/hns_roce_user.h
+> rename to include/uapi/rdma/hns-abi.h
+> index a28f761..5d74019 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_user.h
+> +++ b/include/uapi/rdma/hns-abi.h
+> @@ -30,8 +30,10 @@
+>   * SOFTWARE.
+>   */
+>  
+> -#ifndef _HNS_ROCE_USER_H
+> -#define _HNS_ROCE_USER_H
+> +#ifndef HNS_ABI_USER_H
+> +#define HNS_ABI_USER_H
+> +
+> +#include <linux/types.h>
+>  
+>  struct hns_roce_ib_create_cq {
+>  	__u64   buf_addr;
+> @@ -49,5 +51,4 @@ struct hns_roce_ib_create_qp {
+>  struct hns_roce_ib_alloc_ucontext_resp {
+>  	__u32	qp_tab_size;
+>  };
+> -
+> -#endif /*_HNS_ROCE_USER_H */
+> +#endif /* HNS_ABI_USER_H */
 > 
-> If you notice the -rdmav2.so has been placed at the start of the line,
-> this suggest you have a spurious '\r' character. This would come from
-> the .driver file.
-> 
-> Since you did not use the cmake install process you must have written
-> the .driver file yourself and used a DOS text editor. UNIX line
-> endings are required.
-> 
-> Jason
-> 
-Thanks, i see it.
-> .
-> 
-
+ok, thanks!
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
