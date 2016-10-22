@@ -1,52 +1,53 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH RFC v2 3/3] nvme-rdma: use rdma_reject_msg() to log connection rejects
-Date: Sat, 22 Oct 2016 11:12:11 -0500
-Message-ID: <005601d22c7f$0bd36dc0$237a4940$@opengridcomputing.com>
-References: <cover.1477003235.git.swise@opengridcomputing.com> <60243a2ce17e08cdc93600b9998698dbd7f83306.1477003235.git.swise@opengridcomputing.com> <20161021122318.GB17325@lst.de>
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Re: [PATCH net-next 6/6] net: use core MTU range checking in misc
+ drivers
+Date: Sat, 22 Oct 2016 20:51:57 +0200
+Message-ID: <20161022205157.0b89a013@kant>
+References: <20161019023333.15760-1-jarod@redhat.com>
+        <20161019023333.15760-7-jarod@redhat.com>
+        <20161019160546.GC11224@bistromath.localdomain>
+        <20161020003846.64f85f7e@kant>
+        <20161020031641.GJ18569@redhat.com>
+        <20161022113607.55832988@kant>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161021122318.GB17325-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161022113607.55832988@kant>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Sabrina Dubroca <sd@queasysnail.net>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, Cliff Whickman <cpw@sgi.com>, Robin Holt <robinmholt@gmail.com>, Jes Sorensen <jes@trained-monkey.org>, Marek Lindner <mareklindner@neomailbox.ch>, Simon Wunderlich <sw@simonwunderlich.de>, Antonio Quartulli <a@unstable.cc>
 List-Id: linux-rdma@vger.kernel.org
 
+On Oct 22 Stefan Richter wrote:
+> On Oct 19 Jarod Wilson wrote:
+> > On Thu, Oct 20, 2016 at 12:38:46AM +0200, Stefan Richter wrote:  
+> > > On Oct 19 Sabrina Dubroca wrote:  
+> > > > 2016-10-18, 22:33:33 -0400, Jarod Wilson wrote:
+[...]
+> > > > > @@ -1481,6 +1471,8 @@ static int fwnet_probe(struct fw_unit *unit,
+> > > > >  	max_mtu = (1 << (card->max_receive + 1))
+> > > > >  		  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
+> > > > >  	net->mtu = min(1500U, max_mtu);
+> > > > > +	net->min_mtu = ETH_MIN_MTU;
+> > > > > +	net->max_mtu = net->mtu;    
+> > > > 
+> > > > But that will now prevent increasing the MTU above the initial value?  
+> > > 
+> > > Indeed, therefore NAK.  
+> > 
+> > However, there's an explicit calculation for 'max_mtu' right there that I
+> > glazed right over. It would seem perhaps *that* should be used for
+> > net->max_mtu here, no?  
 > 
-> On Thu, Oct 20, 2016 at 03:40:29PM -0700, Steve Wise wrote:
-> > @@ -1237,18 +1237,22 @@ out_destroy_queue_ib:
-> >  static int nvme_rdma_conn_rejected(struct nvme_rdma_queue *queue,
-> >  		struct rdma_cm_event *ev)
-> >  {
-> > +	struct rdma_cm_id *cm_id = queue->cm_id;
-> > +	int rdma_status = ev->status;
-> > +	short nvme_status = -1;
-> > +
-> > +	if (rdma_consumer_reject(cm_id, rdma_status) &&
-> > +	    ev->param.conn.private_data_len) {
-> >  		struct nvme_rdma_cm_rej *rej =
-> >  			(struct nvme_rdma_cm_rej *)ev-
-> >param.conn.private_data;
-> 
-> Given the nasty casting issues in the current RDMA/CM API maybe we should
-> actually expand the scope of the rdma_consumer_reject helper to include
-> the above check, e.g. check that there is a private data len and then
-> return a pointer to the private data?
+> No.  This 'max_mtu' here is not the absolute maximum.  It is only an
+> initial MTU which has the property that link fragmentation is not
+> going to happen (if all other peers will at least as capable as this
+> node).
 
-An application could reject and not provide private data, so I think we need
-3 helpers (so far):
-
-rdma_reject_msg() - protocol reject reason string
-rdma_is_consumer_reject() - true if the peer consumer/ulp rejected
-rdma_consumer_reject_data() - ptr to any private data
-
-Sound good?
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Besides, card->max_receive is about what the card can receive (at the IEEE
+1394 link layer), not about what the card can send.
+-- 
+Stefan Richter
+-======----- =-=- =-==-
+http://arcgraph.de/sr/
