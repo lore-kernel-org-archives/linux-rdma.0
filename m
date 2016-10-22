@@ -1,80 +1,44 @@
-From: Stefan Richter <stefanr-MtYdepGKPcBMYopoZt5u/LNAH6kLmebB@public.gmane.org>
-Subject: Re: [PATCH net-next 6/6] net: use core MTU range checking in misc
- drivers
-Date: Sat, 22 Oct 2016 11:36:07 +0200
-Message-ID: <20161022113607.55832988@kant>
-References: <20161019023333.15760-1-jarod@redhat.com>
-        <20161019023333.15760-7-jarod@redhat.com>
-        <20161019160546.GC11224@bistromath.localdomain>
-        <20161020003846.64f85f7e@kant>
-        <20161020031641.GJ18569@redhat.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Introduction of libqedr to the Consolidated Userspace RDMA
+ Library Repo
+Date: Sat, 22 Oct 2016 13:26:51 +0000
+Message-ID: <SN1PR07MB2207E025DDE2F38643270AA0F8D70@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <SN1PR07MB22073DF8F016A275DA036F8EF8C70@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20161006163427.GG1224@obsidianresearch.com>
+ <SN1PR07MB2207B8BA2C9C9A1FC610DE9FF8D90@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20161013162942.GA5468@obsidianresearch.com>
+ <SN1PR07MB220745646BCC093BCB5A4553F8DF0@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20161014164229.GB6258@obsidianresearch.com>
+ <SN1PR07MB220719CE0C668A321520311DF8D20@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20161019172410.GB29879@obsidianresearch.com>
+ <SN1PR07MB22076159E666B8836BBB3455F8D50@SN1PR07MB2207.namprd07.prod.outlook.com>,<30ac13b7-f9e7-e08f-5f12-e6517117f2ba@redhat.com>,<SN1PR07MB2207608EF9B6869E265C85EAF8D70@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161020031641.GJ18569-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207608EF9B6869E265C85EAF8D70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sabrina Dubroca <sd-y1jBWg8GRStKuXlAQpz2QA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Cliff Whickman <cpw-sJ/iWh9BUns@public.gmane.org>, Robin Holt <robinmholt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>, Marek Lindner <mareklindner-rVWd3aGhH2z5bpWLKbzFeg@public.gmane.org>, Simon Wunderlich <sw-2YrNx6rUIHYiY0qSoAWiAoQuADTiUCJX@public.gmane.org>, Antonio Quartulli <a@unstable.cc>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Oct 19 Jarod Wilson wrote:
-> On Thu, Oct 20, 2016 at 12:38:46AM +0200, Stefan Richter wrote:
-> > On Oct 19 Sabrina Dubroca wrote:
-> > > 2016-10-18, 22:33:33 -0400, Jarod Wilson wrote:
-> > > [...]
-> > > > diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
-> > > > index 309311b..b5f125c 100644
-> > > > --- a/drivers/firewire/net.c
-> > > > +++ b/drivers/firewire/net.c
-> > > > @@ -1349,15 +1349,6 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
-> > > >  	return NETDEV_TX_OK;
-> > > >  }
-> > > >  
-> > > > -static int fwnet_change_mtu(struct net_device *net, int new_mtu)
-> > > > -{
-> > > > -	if (new_mtu < 68)
-> > > > -		return -EINVAL;
-> > > > -
-> > > > -	net->mtu = new_mtu;
-> > > > -	return 0;
-> > > > -}
-> > > > -  
-> > > 
-> > > This doesn't do any upper bound checking.
-> > 
-> > I need to check more closely, but I think the RFC 2734 encapsulation spec
-> > and our implementation do not impose a particular upper limit.  Though I
-> > guess it's bad to let userland set arbitrarily large values here.
-> 
-> In which case, that would suggest using IP_MAX_MTU (65535) here.
 
-Probably.  I (or somebody) need to check the spec and the code once more.
+>The only outstanding "real" issue I'm aware of is compilation in 32-bit
+>as reported by Travis CI. I have a patch ready for it but I cannot send it=
+=20
+>right now (it's Holiday and I'm away). I guess I will be able to pull it o=
+ff
+>tonight (in 12 hours) or tomorrow morning.
 
-[...]
-> > > > @@ -1481,6 +1471,8 @@ static int fwnet_probe(struct fw_unit *unit,
-> > > >  	max_mtu = (1 << (card->max_receive + 1))
-> > > >  		  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
-> > > >  	net->mtu = min(1500U, max_mtu);
-> > > > +	net->min_mtu = ETH_MIN_MTU;
-> > > > +	net->max_mtu = net->mtu;  
-> > > 
-> > > But that will now prevent increasing the MTU above the initial value?
-> > 
-> > Indeed, therefore NAK.
-> 
-> However, there's an explicit calculation for 'max_mtu' right there that I
-> glazed right over. It would seem perhaps *that* should be used for
-> net->max_mtu here, no?
+I just created a pull request, earlier than I expected.
+The commit was verified on a 32-bit RH6.8. Travis seems happy too.
+(Is it creating reports only on pull requests?)
 
-No.  This 'max_mtu' here is not the absolute maximum.  It is only an
-initial MTU which has the property that link fragmentation is not
-going to happen (if all other peers will at least as capable as this
-node).
--- 
-Stefan Richter
--======----- =-=- =-==-
-http://arcgraph.de/sr/
+Thanks,
+Ram
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
