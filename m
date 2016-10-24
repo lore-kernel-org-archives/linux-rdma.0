@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v3 6/6] rds_rdma: log the connection reject message
-Date: Mon, 24 Oct 2016 12:07:16 -0700
-Message-ID: <21c48d771ab8a9d37ec19ea5f7a48ed5b84c8984.1477336045.git.swise@opengridcomputing.com>
+Subject: [PATCH v3 5/6] ib_iser: log the connection reject message
+Date: Mon, 24 Oct 2016 12:07:15 -0700
+Message-ID: <11419a4af998b6d28df0040efbbf149e44cf1fe5.1477336045.git.swise@opengridcomputing.com>
 References: <cover.1477336045.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1477336045.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -12,29 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- net/rds/rdma_transport.c | 5 ++++-
+ drivers/infiniband/ulp/iser/iser_verbs.c | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-index 345f090..6bd2814 100644
---- a/net/rds/rdma_transport.c
-+++ b/net/rds/rdma_transport.c
-@@ -100,11 +100,14 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
- 		trans->cm_connect_complete(conn, event);
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 1b49453..7970757 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -906,11 +906,14 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
+ 	case RDMA_CM_EVENT_ESTABLISHED:
+ 		iser_connected_handler(cma_id, event->param.conn.private_data);
  		break;
- 
 +	case RDMA_CM_EVENT_REJECTED:
-+		rdsdebug("Connection rejected: %s\n",
-+			 rdma_reject_msg(cm_id, event->status));
++		iser_info("Connection rejected: %s\n",
++			 rdma_reject_msg(cma_id, event->status));
 +		/*FALLTHROUGH*/
  	case RDMA_CM_EVENT_ADDR_ERROR:
  	case RDMA_CM_EVENT_ROUTE_ERROR:
  	case RDMA_CM_EVENT_CONNECT_ERROR:
  	case RDMA_CM_EVENT_UNREACHABLE:
 -	case RDMA_CM_EVENT_REJECTED:
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 	case RDMA_CM_EVENT_ADDR_CHANGE:
- 		if (conn)
+ 		iser_connect_error(cma_id);
+ 		break;
+ 	case RDMA_CM_EVENT_DISCONNECTED:
 -- 
 2.7.0
 
