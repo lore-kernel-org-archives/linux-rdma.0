@@ -1,90 +1,45 @@
-From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags v3] ibportstate: Fixed switch peer port
- probing when using DR routing
-Date: Mon, 24 Oct 2016 16:37:24 +0200
-Message-ID: <580E1CA4.5040101@oracle.com>
-References: <22b5963c36776d0b03eb0f6706323b4ba4bafac9.1477315879.git-series.knut.omang@oracle.com>
- <02e18a78-ba54-d7a2-c3fe-3e4d392f5593@dev.mellanox.co.il>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH RFC v2 3/3] nvme-rdma: use rdma_reject_msg() to log connection rejects
+Date: Mon, 24 Oct 2016 09:57:50 -0500
+Message-ID: <011d01d22e06$fd606480$f8212d80$@opengridcomputing.com>
+References: <cover.1477003235.git.swise@opengridcomputing.com> <60243a2ce17e08cdc93600b9998698dbd7f83306.1477003235.git.swise@opengridcomputing.com> <20161021122318.GB17325@lst.de> <005701d22c7f$0c883ed0$2598bc70$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <02e18a78-ba54-d7a2-c3fe-3e4d392f5593-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <005701d22c7f$0c883ed0$2598bc70$@opengridcomputing.com>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+> > Given the nasty casting issues in the current RDMA/CM API maybe we
+> should
+> > actually expand the scope of the rdma_consumer_reject helper to include
+> > the above check, e.g. check that there is a private data len and then
+> > return a pointer to the private data?
+> 
+> An application could reject and not provide private data, so I think we
+> need 3 helpers (so far):
+> 
+> rdma_reject_msg() - protocol reject reason string
+> rdma_is_consumer_reject() - true if the peer consumer/ulp rejected
+> rdma_consumer_reject_data() - ptr to any private data
+> 
+> Sound good?
+
+Or these 3 could be rolled into one uber function that returns true if the
+consumer rejected, and sets 2 pointers passed in: one to the protocol reject
+string, and one to the private data, if any.   If the something like like this:
+
+bool rdma_reject_info(struct rdma_cm_id *id, int reason, char **protocol_msg,
+char **consumer_data)
+
+Kinda ugly, but only one call is needed vs 3 calls to get this info...
 
 
-On 10/24/2016 03:50 PM, Hal Rosenstock wrote:
-> On 10/24/2016 9:34 AM, Knut Omang wrote:
->> From: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>
->> ibportstate queries to a remote peer port on a switch using direct
->> routing would result in timeouts. The reason for this is that the
->> DR path was not correctly constructed.
->>
->> Signed-off-by: Dag Moxnes <dag.moxnes-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> Reviewed-by: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->>   src/ibportstate.c | 26 +++++++++++++++++---------
->>   1 file changed, 17 insertions(+), 9 deletions(-)
->>
->> diff --git a/src/ibportstate.c b/src/ibportstate.c
->> index cfb8be7..82cbcc2 100644
->> --- a/src/ibportstate.c
->> +++ b/src/ibportstate.c
->> @@ -1,6 +1,7 @@
->>   /*
->>    * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
->>    * Copyright (c) 2010,2011 Mellanox Technologies LTD.  All rights reserved.
->> + * Copyright (c) 2011,2016 Oracle and/or its affiliates. All rights reserved.
->>    *
->>    * This software is available to you under a choice of one of two
->>    * licenses.  You may choose to be licensed under the terms of the GNU
->> @@ -655,15 +656,22 @@ int main(int argc, char **argv)
->>   
->>   			/* Setup portid for peer port */
->>   			memcpy(&peerportid, &portid, sizeof(peerportid));
->> -			peerportid.drpath.cnt = 1;
->> -			peerportid.drpath.p[1] = (uint8_t) portnum;
->> -
->> -			/* Set DrSLID to local lid */
->> -			if (resolve_self(ibd_ca, ibd_ca_port, &selfportid,
->> -						&selfport, 0) < 0)
->> -				IBEXIT("could not resolve self");
->> -			peerportid.drpath.drslid = (uint16_t) selfportid.lid;
->> -			peerportid.drpath.drdlid = 0xffff;
->> +			if (portid.lid == 0) {
->> +				peerportid.drpath.cnt++;
->> +				if (peerportid.drpath.cnt == IB_SUBNET_PATH_HOPS_MAX) {
->> +					IBEXIT("Too many hops");
->> +				}
->> +			} else {
->> +				peerportid.drpath.cnt = 1;
->> +
->> +				/* Set DrSLID to local lid */
->> +				if (resolve_self(ibd_ca, ibd_ca_port, &selfportid,
->> +						         &selfport, 0) < 0)
->> +					IBEXIT("could not resolve self");
->> +				peerportid.drpath.drslid = selfportid.lid;
-> Why was casting of selfportid.lid to (uint16_t) dropped ?
-That was not intentional. Thanks for pointing it out.
-
-Regards,
--Dag
->
->> +				peerportid.drpath.drdlid = 0xffff;
->> +			}
->> +			peerportid.drpath.p[peerportid.drpath.cnt] = (uint8_t) portnum;
->>   
->>   			/* Get peer port NodeInfo to obtain peer port number */
->>   			is_peer_switch = get_node_info(&peerportid, data);
->>
->> base-commit: 17e03b4738913365a3f947719c4897fcb92df32c
->>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
