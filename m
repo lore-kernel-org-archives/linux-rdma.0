@@ -1,56 +1,44 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v3 0/6] connect reject event helpers
-Date: Mon, 24 Oct 2016 12:07:25 -0700
-Message-ID: <cover.1477336045.git.swise@opengridcomputing.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] IB/mlx5: avoid bogus -Wmaybe-uninitialized warning
+Date: Mon, 24 Oct 2016 22:46:26 +0200
+Message-ID: <4613531.FpoFIBnNDo@wuerfel>
+References: <20161024151658.2413803-1-arnd@arndb.de> <20161024170642.GL25013@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161024170642.GL25013@leon.nu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sagi Grimberg <sagig@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Noa Osherovich <noaos@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-While reviewing:
+On Monday, October 24, 2016 8:06:42 PM CEST Leon Romanovsky wrote:
+> 
+> Acked-by: Leon Romanovsky <leonro@mellanox.com>
 
-http://lists.infradead.org/pipermail/linux-nvme/2016-October/006681.html
+Thanks!
 
-I decided to propose transport-agnostic helper functions to better
-handle connection reject event information.  Included are patches
-for nvme_rdma, ib_ser, and rds_rdma to utilize the new helpers.
+> >  drivers/infiniband/hw/mlx5/mr.c | 39 +++++++++++++++++++++------------------
+> >  1 file changed, 21 insertions(+), 18 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+> > index d4ad672b905b..88d8d292677b 100644
+> > --- a/drivers/infiniband/hw/mlx5/mr.c
+> > +++ b/drivers/infiniband/hw/mlx5/mr.c
+> > @@ -815,29 +815,33 @@ static void prep_umr_unreg_wqe(struct mlx5_ib_dev *dev,
+> >       umrwr->mkey = key;
+> >  }
+> >
+> > -static struct ib_umem *mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
+> > -                                int access_flags, int *npages,
+> > -                                int *page_shift, int *ncont, int *order)
+> > +static int mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
+> > +                    int access_flags, struct ib_umem ** umem,
+> 
+> I wonder if checkpatch does differentiate between "struct ib_umem ** umem"
+> and "struct ib_umem **umem". According to coding style, the second is preferable.
 
-Changes since v2:
+It was unintended, I'll send a v2 patch in a minute.
 
-- reworked ibcm/iwcm_reject_msg() as per Christoph's recommendation
-- use ibcm_ and iwcm_ prefix instead of ib_ and iw_ for reject_msg funcs
-- change rdma_consumer_reject() to rdma_is_consumer_reject()
-- add rdma_consumer_reject_data() helper function to return private
-  data/len
-- use new helpers in nvme_rdma, ib_iser, and rdma_rds
-- in nvme_rdma, add strings for nvme_rdma_cm_status values
-
----
-
-Steve Wise (6):
-  rdma_cm: add rdma_reject_msg() helper function
-  rdma_cm: add rdma_is_consumer_reject() helper function
-  rdma_cm: add rdma_consumer_reject_data helper function
-  nvme-rdma: use rdma connection reject helper functions
-  ib_iser: log the connection reject message
-  rds_rdma: log the connection reject message
-
- drivers/infiniband/core/cm.c             | 48 ++++++++++++++++++++++++++++++++
- drivers/infiniband/core/cma.c            | 43 ++++++++++++++++++++++++++++
- drivers/infiniband/core/iwcm.c           | 21 ++++++++++++++
- drivers/infiniband/ulp/iser/iser_verbs.c |  5 +++-
- drivers/nvme/host/rdma.c                 | 46 ++++++++++++++++++++++++------
- include/rdma/ib_cm.h                     |  6 ++++
- include/rdma/iw_cm.h                     |  6 ++++
- include/rdma/rdma_cm.h                   | 25 +++++++++++++++++
- net/rds/rdma_transport.c                 |  5 +++-
- 9 files changed, 195 insertions(+), 10 deletions(-)
-
--- 
-2.7.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
