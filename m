@@ -1,40 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Introduction of libqedr to the Consolidated Userspace RDMA
- Library Repo
-Date: Sun, 23 Oct 2016 09:52:29 -0600
-Message-ID: <20161023155229.GA2883@obsidianresearch.com>
-References: <SN1PR07MB22074FE9B280DDDCE439FBA9F8DC0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161013162942.GA5468@obsidianresearch.com>
- <SN1PR07MB220745646BCC093BCB5A4553F8DF0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161014164229.GB6258@obsidianresearch.com>
- <SN1PR07MB220719CE0C668A321520311DF8D20@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161019172410.GB29879@obsidianresearch.com>
- <SN1PR07MB22076159E666B8836BBB3455F8D50@SN1PR07MB2207.namprd07.prod.outlook.com>
- <30ac13b7-f9e7-e08f-5f12-e6517117f2ba@redhat.com>
- <SN1PR07MB2207608EF9B6869E265C85EAF8D70@SN1PR07MB2207.namprd07.prod.outlook.com>
- <SN1PR07MB2207E025DDE2F38643270AA0F8D70@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: oulijun <oulijun@huawei.com>
+Subject: Re: [patch 2/2] IB/hns: Fix some error handling in
+ hns_roce_v1_query_qp()
+Date: Mon, 24 Oct 2016 20:29:36 +0800
+Message-ID: <580DFEB0.20100@huawei.com>
+References: <20161014073441.GB15238@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <SN1PR07MB2207E025DDE2F38643270AA0F8D70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20161014073441.GB15238@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 22, 2016 at 01:26:51PM +0000, Amrani, Ram wrote:
+在 2016/10/14 15:34, Dan Carpenter 写道:
+> to_ib_qp_state() returns IB_QPS_ERR (6) on error, it doesn't return -1.
+> 
+> Fixes: 9a4435375cd1 ('IB/hns: Add driver files for hns RoCE driver')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> index 58b150e..280abac 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> @@ -2544,7 +2544,7 @@ int hns_roce_v1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+>  			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_M,
+>  			       QP_CONTEXT_QPC_BYTES_144_QP_STATE_S);
+>  	tmp_qp_state = (int)to_ib_qp_state((enum hns_roce_qp_state)state);
+> -	if (tmp_qp_state == -1) {
+> +	if (tmp_qp_state == IB_QPS_ERR) {
+>  		dev_err(dev, "to_ib_qp_state error\n");
+>  		ret = -EINVAL;
+>  		goto out;
+> 
+> .
+> 
+Hi, Dan Carpenter
+  After checking your modification, I think that it maybe fix this:
+  static enum ib_qp_state to_ib_qp_state(enum hns_roce_qp_state state)
+{
+	switch (state) {
+	case HNS_ROCE_QP_STATE_RST:
+		return IB_QPS_RESET;
+	case HNS_ROCE_QP_STATE_INIT:
+		return IB_QPS_INIT;
+	case HNS_ROCE_QP_STATE_RTR:
+		return IB_QPS_RTR;
+	case HNS_ROCE_QP_STATE_RTS:
+		return IB_QPS_RTS;
+	case HNS_ROCE_QP_STATE_SQD:
+		return IB_QPS_SQD;
+	case HNS_ROCE_QP_STATE_ERR:
+		return IB_QPS_ERR;
+	default:
+		return -1;
+	}
+}
 
-> I just created a pull request, earlier than I expected.
-> The commit was verified on a 32-bit RH6.8. Travis seems happy too.
-> (Is it creating reports only on pull requests?)
+because the IB_QPS_ERR is legal state, but the tmp_qp_state should return a illegal state when
+the the to_ib_qp_state executed the default branch.
 
-travis runs on pull requests and after each merge on the TOT.
+thanks
+Lijun Ou
 
-It became horribly broken last friday and could not report anything.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
