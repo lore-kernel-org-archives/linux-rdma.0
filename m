@@ -1,36 +1,34 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v3 4/6] nvme-rdma: use rdma connection reject helper
- functions
-Date: Tue, 25 Oct 2016 20:04:50 +0300
-Message-ID: <97a0459f-6a4f-67d5-d9bc-f704f6ccf281@grimberg.me>
-References: <cover.1477336045.git.swise@opengridcomputing.com>
- <55638a1d2a9f79af8b9a19eb444c5d0a41691352.1477336045.git.swise@opengridcomputing.com>
- <7191d136-aef4-9fed-223e-f2a9c1d958e5@grimberg.me>
- <20161025170238.GE9732@lst.de>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RDMA_CM_EVENT_REJECTED
+Date: Tue, 25 Oct 2016 17:08:15 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0A2BA6@ORSMSX109.amr.corp.intel.com>
+References: <00c901d22ecd$79a9f300$6cfdd900$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161025170238.GE9732-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <00c901d22ecd$79a9f300$6cfdd900$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> While working on the reject helper functions, I notice that some of the
+> rdma_cm
+> kernel users have handlers for RDMA_CM_EVENT_REJECTED even for cm_ids
+> that are
+> spawned from listening cm_ids as the result of a
+> RDMA_CM_EVENT_CONNECT_REQUEST,
+> and that issue an rdma_accept() or rdma_reject() in response.
+> 
+> Q: is it possible for a REJECTED event to get posted to these cm_ids?
+> It is not
+> for iWARP, but I'm not sure about IB.  I'm guessing this is just due to
+> cut/paste process of adding event handlers, but I wanted to make sure.
 
-> On Tue, Oct 25, 2016 at 07:36:25PM +0300, Sagi Grimberg wrote:
->> I think it'd be better to move them to include/linux/nvme-rdma.h
->> and use them for logging on the target side too.
->
-> Hmm, that would mean they get compiled into every source file.
+If I'm following this correctly, then, yes, I believe those cm_id's can be rejected.  The active side of a connection can give up waiting for the passive side to act.  As a final gesture, the active side will send a reject message to notify the passive side that it's aborting the connection request.
 
-"every source file" is exactly two...
-
-> Also on the target side we can have free-form messages for whatever
-> the exact rejection reason was, no need to limit us to the enum.
-
-Thought it'd be nice to use the same verbosity on both ends, just a
-suggestion though...
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
