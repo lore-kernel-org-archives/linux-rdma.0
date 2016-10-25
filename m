@@ -1,38 +1,38 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 0/6] Six NVMeOF-related patches
-Date: Tue, 25 Oct 2016 11:55:48 -0500
-Message-ID: <010701d22ee0$a2dd4d90$e897e8b0$@opengridcomputing.com>
-References: <e96f7b21-9686-c24f-9c64-e6fb4b44fea0@sandisk.com> <29dcbb7a-087b-b18b-3f7c-9841242328b2@grimberg.me>
+Subject: RE: [PATCH v3 4/6] nvme-rdma: use rdma connection reject helper functions
+Date: Tue, 25 Oct 2016 11:58:34 -0500
+Message-ID: <010901d22ee1$058d6ec0$10a84c40$@opengridcomputing.com>
+References: <cover.1477336045.git.swise@opengridcomputing.com> <55638a1d2a9f79af8b9a19eb444c5d0a41691352.1477336045.git.swise@opengridcomputing.com> <7191d136-aef4-9fed-223e-f2a9c1d958e5@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <29dcbb7a-087b-b18b-3f7c-9841242328b2-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <7191d136-aef4-9fed-223e-f2a9c1d958e5-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, 'Keith Busch' <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Jens Axboe' <axboe-b10kYP2dOMg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hey Bart,
+> > +static const char *const nvme_rdma_cm_status_strs[] = {
+> > +	[NVME_RDMA_CM_INVALID_LEN]	= "invalid length",
+> > +	[NVME_RDMA_CM_INVALID_RECFMT]	= "invalid record format",
+> > +	[NVME_RDMA_CM_INVALID_QID]	= "invalid queue id",
+> > +	[NVME_RDMA_CM_INVALID_HSQSIZE]	= "invalid host sq size",
+> > +	[NVME_RDMA_CM_INVALID_HRQSIZE]	= "invalid host rq size",
+> > +	[NVME_RDMA_CM_NO_RSC]		= "resource not found",
+> > +	[NVME_RDMA_CM_INVALID_IRD]	= "invalid ird",
+> > +	[NVME_RDMA_CM_INVALID_ORD]	= "Invalid ord",
+> > +};
 > 
-> Queued patches 1-4 to nvmf-4.9-rc branch
+> I think it'd be better to move them to include/linux/nvme-rdma.h
+> and use them for logging on the target side too.
 > 
-> I'll wait for 5/6 and Steve has generalized
-> 6/6 to RDMA core so I guess it will go out
-> of Doug's tree.
-> 
-> Steve, your set is probably a 4.10 material,
-> can you please verify it applies cleanly on
-> nvmf-4.9-rc (or give Doug a heads-up if not)
-> 
-> Thanks!
 
-I will.  I will submit another, potentially final, version including review tags
-and also a few changes based on this round's comments.
+You want to put this in nvme-rdma.h as-is so the memory for this is allocated in
+each .c file that includes it? 
 
-Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
