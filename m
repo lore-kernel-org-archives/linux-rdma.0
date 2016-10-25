@@ -1,41 +1,46 @@
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 05/14] IB/mlx5: Skip handling unknown events
-Date: Tue, 25 Oct 2016 18:00:08 +0300
-Message-ID: <1477407617-20745-6-git-send-email-saeedm@mellanox.com>
-References: <1477407617-20745-1-git-send-email-saeedm@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477407617-20745-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eugenia Emantayev <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Binoy Jayan <binoy.jayan@linaro.org>
+Subject: Re: [PATCH v2 2/8] IB/core: Replace semaphore sm_sem with completion
+Date: Tue, 25 Oct 2016 20:38:21 +0530
+Message-ID: <CAHv-k_86z3MTYePPQcs5fWSqFeoGxt7UYG_b-SyZGQ7zVW-hSw@mail.gmail.com>
+References: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
+ <1477396919-27669-3-git-send-email-binoy.jayan@linaro.org> <CAD+HZHXQE=VptiyLfSdw4MsZR=bjEj_XAB19_=YdjzPY96EK_g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAD+HZHXQE=VptiyLfSdw4MsZR=bjEj_XAB19_=YdjzPY96EK_g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jack Wang <xjtuwjp@gmail.com>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux kernel mailing list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Do not dispatch unknown mlx5 core events on mlx5_ib_event.
+On 25 October 2016 at 18:13, Jack Wang <xjtuwjp@gmail.com> wrote:
+> Hi Binoy,
+>
+> snip
+>>
+>>         port->ib_dev   = device;
+>>         port->port_num = port_num;
+>> -       sema_init(&port->sm_sem, 1);
+>> +       init_completion(&port->sm_comp);
+>> +       complete(&port->sm_comp);
+>
+> Why complete here?
+>
+>>         mutex_init(&port->file_mutex);
+>>         INIT_LIST_HEAD(&port->file_list);
+>>
+>> --
+> KR,
+> Jinpu
 
-Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Eugenia Emantayev <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2217477..d02341e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2358,6 +2358,8 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 		ibev.event = IB_EVENT_CLIENT_REREGISTER;
- 		port = (u8)param;
- 		break;
-+	default:
-+		return;
- 	}
- 
- 	ibev.device	      = &ibdev->ib_dev;
--- 
-2.7.4
+Hi Jack,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ib_umad_sm_open() calls wait_for_completion_interruptible() which comes before
+ib_umad_sm_close() that calls complete(). In the initial open() there
+will not be
+anybody to signal the completion, so the complete is called to mark
+the initial state.
+I am not sure if this is the right way to do it, though.
+
+-Binoy
