@@ -1,36 +1,37 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v4 8/8] nvmet_rdma: log the connection reject message
-Date: Tue, 25 Oct 2016 12:35:02 -0700
-Message-ID: <e6b79fbb52407dd4b3b9193f4cda3016069eb571.1477426743.git.swise@opengridcomputing.com>
-References: <cover.1477426743.git.swise@opengridcomputing.com>
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Avoid possible hang on device removal
+Date: Tue, 25 Oct 2016 15:50:28 -0500
+Message-ID: <1477428628-11504-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1477426743.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/nvme/target/rdma.c | 3 +++
- 1 file changed, 3 insertions(+)
+When we get an RDMA_CM_EVENT_DEVICE_REMOVAL the cm_thread will
+exit and because flush errors are ignored the cb->sem may not get signaled.
+So just signal on device removal event.
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 1cbe6e0..8315224 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -1358,6 +1358,9 @@ static int nvmet_rdma_cm_handler(struct rdma_cm_id *cm_id,
- 		ret = nvmet_rdma_device_removal(cm_id, queue);
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ librdmacm/examples/rping.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/librdmacm/examples/rping.c b/librdmacm/examples/rping.c
+index ad38f6d..53c1525 100644
+--- a/librdmacm/examples/rping.c
++++ b/librdmacm/examples/rping.c
+@@ -224,6 +224,8 @@ static int rping_cma_event_handler(struct rdma_cm_id *cma_id,
+ 
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 		fprintf(stderr, "cma detected device removal!!!!\n");
++		cb->state = ERROR;
++		sem_post(&cb->sem);
+ 		ret = -1;
  		break;
- 	case RDMA_CM_EVENT_REJECTED:
-+		pr_debug("Connection rejected: %s\n",
-+			 rdma_reject_msg(cm_id, event->status));
-+		/* FALLTHROUGH */
- 	case RDMA_CM_EVENT_UNREACHABLE:
- 	case RDMA_CM_EVENT_CONNECT_ERROR:
- 		nvmet_rdma_queue_connect_fail(cm_id, queue);
+ 
 -- 
-2.7.0
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
