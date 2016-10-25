@@ -1,66 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v2 2/8] IB/core: Replace semaphore sm_sem with completion
-Date: Tue, 25 Oct 2016 09:48:22 -0600
-Message-ID: <20161025154822.GA27240@obsidianresearch.com>
-References: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
- <1477396919-27669-3-git-send-email-binoy.jayan@linaro.org>
- <CAD+HZHXQE=VptiyLfSdw4MsZR=bjEj_XAB19_=YdjzPY96EK_g@mail.gmail.com>
- <CAHv-k_86z3MTYePPQcs5fWSqFeoGxt7UYG_b-SyZGQ7zVW-hSw@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 6/6] rds_rdma: log the connection reject message
+Date: Tue, 25 Oct 2016 08:51:46 -0700
+Message-ID: <928b6e33-992b-8b88-e224-224f19566623@oracle.com>
+References: <cover.1477336045.git.swise@opengridcomputing.com>
+ <21c48d771ab8a9d37ec19ea5f7a48ed5b84c8984.1477336045.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHv-k_86z3MTYePPQcs5fWSqFeoGxt7UYG_b-SyZGQ7zVW-hSw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Binoy Jayan <binoy.jayan@linaro.org>
-Cc: Jack Wang <xjtuwjp@gmail.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux kernel mailing list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <21c48d771ab8a9d37ec19ea5f7a48ed5b84c8984.1477336045.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 08:38:21PM +0530, Binoy Jayan wrote:
-> On 25 October 2016 at 18:13, Jack Wang <xjtuwjp@gmail.com> wrote:
-> > Hi Binoy,
-> >
-> > snip
-> >>
-> >>         port->ib_dev   = device;
-> >>         port->port_num = port_num;
-> >> -       sema_init(&port->sm_sem, 1);
-> >> +       init_completion(&port->sm_comp);
-> >> +       complete(&port->sm_comp);
-> >
-> > Why complete here?
-> >
-> >>         mutex_init(&port->file_mutex);
-> >>         INIT_LIST_HEAD(&port->file_list);
-> >>
-> > KR,
-> > Jinpu
-> 
-> 
-> Hi Jack,
-> 
-> ib_umad_sm_open() calls wait_for_completion_interruptible() which
-> comes before ib_umad_sm_close() that calls complete(). In the
-> initial open() there will not be anybody to signal the completion,
-> so the complete is called to mark the initial state.  I am not sure
-> if this is the right way to do it, though.
+On 10/24/2016 12:07 PM, Steve Wise wrote:
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  net/rds/rdma_transport.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+> index 345f090..6bd2814 100644
+> --- a/net/rds/rdma_transport.c
+> +++ b/net/rds/rdma_transport.c
+> @@ -100,11 +100,14 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
+>  		trans->cm_connect_complete(conn, event);
+>  		break;
+>
+> +	case RDMA_CM_EVENT_REJECTED:
+> +		rdsdebug("Connection rejected: %s\n",
+> +			 rdma_reject_msg(cm_id, event->status));
+For current code above is fine but I will need the other helper
+while adding few connection cases where ARI field carries information
+for the reason for the reject.
 
-Using a completion to model exclusive ownership seems convoluted to
-me - is that a thing now? What about an atomic?
+I assume, rdma_consumer_reject_data() is meant to be used for that ?
 
-open:
-
-while (true) {
-   wait_event_interruptible(priv->queue,test_bit(CLAIMED_BIT, &priv->flags));
-   if (!test_and_set_bit(CLAIMED_BIT, &priv->flags))
-        break;
-}
-
-close():
-
-   clear_bit(CLAIMED_BIT, &priv->flags)
-   wake_up(&priv->queue);
-
-??
-
-Jason
+The patch looks fine to me.
+FWIW, Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
