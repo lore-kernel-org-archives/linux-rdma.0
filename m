@@ -1,50 +1,30 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] IB/mlx4: avoid a -Wmaybe-uninitialize warning
-Date: Tue, 25 Oct 2016 18:16:20 +0200
-Message-ID: <20161025161632.411899-1-arnd@arndb.de>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v3 5/6] ib_iser: log the connection reject message
+Date: Tue, 25 Oct 2016 19:34:56 +0300
+Message-ID: <cdc591a8-457c-a051-1bc7-00e13b28f7f7@grimberg.me>
+References: <cover.1477336045.git.swise@opengridcomputing.com>
+ <11419a4af998b6d28df0040efbbf149e44cf1fe5.1477336045.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@mellanox.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Christophe Jaillet <christophe.jaillet@wanadoo.fr>, Moni Shoua <monis@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <11419a4af998b6d28df0040efbbf149e44cf1fe5.1477336045.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is an old warning about mlx4_SW2HW_EQ_wrapper on x86:
+> +	case RDMA_CM_EVENT_REJECTED:
+> +		iser_info("Connection rejected: %s\n",
+> +			 rdma_reject_msg(cma_id, event->status));
+> +		/*FALLTHROUGH*/
 
-ethernet/mellanox/mlx4/resource_tracker.c: In function ‘mlx4_SW2HW_EQ_wrapper’:
-ethernet/mellanox/mlx4/resource_tracker.c:3071:10: error: ‘eq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
+NIT: /* FALLTHROUGH */
 
-The problem here is that gcc won't track the state of the variable
-across a spin_unlock. Moving the assignment out of the lock is
-safe here and avoids the warning.
+Otherwise:
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-index 84d7857ccc27..c548beaaf910 100644
---- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-@@ -1605,13 +1605,14 @@ static int eq_res_start_move_to(struct mlx4_dev *dev, int slave, int index,
- 			r->com.from_state = r->com.state;
- 			r->com.to_state = state;
- 			r->com.state = RES_EQ_BUSY;
--			if (eq)
--				*eq = r;
- 		}
- 	}
- 
- 	spin_unlock_irq(mlx4_tlock(dev));
- 
-+	if (!err && eq)
-+		*eq = r;
-+
- 	return err;
- }
- 
--- 
-2.9.0
+Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
