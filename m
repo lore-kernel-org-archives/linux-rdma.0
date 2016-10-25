@@ -1,58 +1,101 @@
-From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v2 0/8] infiniband: Remove semaphores
-Date: Tue, 25 Oct 2016 17:31:51 +0530
-Message-ID: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Binoy Jayan <binoy.jayan@linaro.org>
+Subject: [PATCH v2 4/8] IB/mthca: Replace semaphore poll_sem with mutex
+Date: Tue, 25 Oct 2016 17:31:55 +0530
+Message-ID: <1477396919-27669-5-git-send-email-binoy.jayan@linaro.org>
+References: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+The semaphore 'poll_sem' is a simple mutex, so it should be written as one.
+Semaphores are going away in the future. So replace the semaphore 'poll_sem'
+with a mutex. Also, remove mutex_[un]lock from mthca_cmd_use_events and
+mthca_cmd_use_polling respectively.
 
-These are a set of patches [v2] which removes semaphores from infiniband.
-These are part of a bigger effort to eliminate all semaphores from the
-linux kernel.
+Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
+---
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 10 +++-------
+ drivers/infiniband/hw/mthca/mthca_cmd.h |  1 +
+ drivers/infiniband/hw/mthca/mthca_dev.h |  2 +-
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-v1 -> v2:
-
-IB/hns   : Use wait_event instead of open coding counting semaphores
-IB/mthca : Use wait_event instead of open coding counting semaphores
-IB/mthca : Remove mutex_[un]lock from *_cmd_use_events/*_cmd_use_polling
-IB/mlx5  : Cleanup, add helper mlx5_ib_post_send_wait
-
-Thanks,
-Binoy
-
-Binoy Jayan (8):
-  IB/core: iwpm_nlmsg_request: Replace semaphore with completion
-  IB/core: Replace semaphore sm_sem with completion
-  IB/hns: Replace semaphore poll_sem with mutex
-  IB/mthca: Replace semaphore poll_sem with mutex
-  IB/isert: Replace semaphore sem with completion
-  IB/hns: Replace counting semaphore event_sem with wait_event
-  IB/mthca: Replace counting semaphore event_sem with wait_event
-  IB/mlx5: Add helper mlx5_ib_post_send_wait
-
- drivers/infiniband/core/iwpm_msg.c          |  8 +--
- drivers/infiniband/core/iwpm_util.c         |  7 +--
- drivers/infiniband/core/iwpm_util.h         |  3 +-
- drivers/infiniband/core/user_mad.c          | 14 +++--
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 48 ++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_device.h |  5 +-
- drivers/infiniband/hw/mlx5/mr.c             | 96 +++++++++--------------------
- drivers/infiniband/hw/mthca/mthca_cmd.c     | 47 +++++++++-----
- drivers/infiniband/hw/mthca/mthca_cmd.h     |  1 +
- drivers/infiniband/hw/mthca/mthca_dev.h     |  5 +-
- drivers/infiniband/ulp/isert/ib_isert.c     |  6 +-
- drivers/infiniband/ulp/isert/ib_isert.h     |  3 +-
- 12 files changed, 119 insertions(+), 124 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index c7f49bb..49c6e19 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -347,7 +347,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+ 	unsigned long end;
+ 	u8 status;
+ 
+-	down(&dev->cmd.poll_sem);
++	mutex_lock(&dev->cmd.poll_mutex);
+ 
+ 	err = mthca_cmd_post(dev, in_param,
+ 			     out_param ? *out_param : 0,
+@@ -382,7 +382,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+ 	}
+ 
+ out:
+-	up(&dev->cmd.poll_sem);
++	mutex_unlock(&dev->cmd.poll_mutex);
+ 	return err;
+ }
+ 
+@@ -520,7 +520,7 @@ static int mthca_cmd_imm(struct mthca_dev *dev,
+ int mthca_cmd_init(struct mthca_dev *dev)
+ {
+ 	mutex_init(&dev->cmd.hcr_mutex);
+-	sema_init(&dev->cmd.poll_sem, 1);
++	mutex_init(&dev->cmd.poll_mutex);
+ 	dev->cmd.flags = 0;
+ 
+ 	dev->hcr = ioremap(pci_resource_start(dev->pdev, 0) + MTHCA_HCR_BASE,
+@@ -582,8 +582,6 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
+ 
+ 	dev->cmd.flags |= MTHCA_CMD_USE_EVENTS;
+ 
+-	down(&dev->cmd.poll_sem);
+-
+ 	return 0;
+ }
+ 
+@@ -600,8 +598,6 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
+ 		down(&dev->cmd.event_sem);
+ 
+ 	kfree(dev->cmd.context);
+-
+-	up(&dev->cmd.poll_sem);
+ }
+ 
+ struct mthca_mailbox *mthca_alloc_mailbox(struct mthca_dev *dev,
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.h b/drivers/infiniband/hw/mthca/mthca_cmd.h
+index d2e5b19..a7f197e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.h
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.h
+@@ -35,6 +35,7 @@
+ #ifndef MTHCA_CMD_H
+ #define MTHCA_CMD_H
+ 
++#include <linux/mutex.h>
+ #include <rdma/ib_verbs.h>
+ 
+ #define MTHCA_MAILBOX_SIZE 4096
+diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
+index 4393a02..87ab964 100644
+--- a/drivers/infiniband/hw/mthca/mthca_dev.h
++++ b/drivers/infiniband/hw/mthca/mthca_dev.h
+@@ -120,7 +120,7 @@ enum {
+ struct mthca_cmd {
+ 	struct pci_pool          *pool;
+ 	struct mutex              hcr_mutex;
+-	struct semaphore 	  poll_sem;
++	struct mutex		  poll_mutex;
+ 	struct semaphore 	  event_sem;
+ 	int              	  max_cmds;
+ 	spinlock_t                context_lock;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
