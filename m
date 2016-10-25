@@ -1,66 +1,58 @@
-From: Stephen Bates <sbates@raithlin.com>
-Subject: Re: [PATCH 1/3] memremap.c : Add support for ZONE_DEVICE IO memory
- with struct pages.
-Date: Tue, 25 Oct 2016 05:54:09 -0600
-Message-ID: <20161025115409.GB14986@cgy1-donard.priv.deltatee.com>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
- <1476826937-20665-2-git-send-email-sbates@raithlin.com>
- <CAPcyv4gmiqMNb+Q88Mf-9fFb4z4uAfWbbEWrv42OBH8838SSPQ@mail.gmail.com>
- <20161019184028.GB16550@cgy1-donard.priv.deltatee.com>
- <CAPcyv4iTFpZ1b74Wf+qWe9=Annp+-OCy+pFMS7Fo7quUFwhM4g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4iTFpZ1b74Wf+qWe9=Annp+-OCy+pFMS7Fo7quUFwhM4g@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma@vger.kernel.org, linux-block@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, haggaie@mellanox.com, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@fb.com>, Jonathan Corbet <corbet@lwn.net>, jim.macdonald@everspin.com, sbates@raithin.com, Logan Gunthorpe <logang@deltatee.com>
+From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v2 0/8] infiniband: Remove semaphores
+Date: Tue, 25 Oct 2016 17:31:51 +0530
+Message-ID: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2016 at 01:01:06PM -0700, Dan Williams wrote:
-> >>
-> >> In the cover letter, "[PATCH 0/3] iopmem : A block device for PCIe
-> >> memory",  it mentions that the lack of I/O coherency is a known issue
-> >> and users of this functionality need to be cognizant of the pitfalls.
-> >> If that is the case why do we need support for different cpu mapping
-> >> types than the default write-back cache setting?  It's up to the
-> >> application to handle cache cpu flushing similar to what we require of
-> >> device-dax users in the persistent memory case.
-> >
-> > Some of the iopmem hardware we have tested has certain alignment
-> > restrictions on BAR accesses. At the very least we require write
-> > combine mappings for these. We then felt it appropriate to add the
-> > other mappings for the sake of completeness.
->
-> If the device can support write-combine then it can support bursts, so
-> I wonder why it couldn't support read bursts for cache fills...
+Hi,
 
-Dan
+These are a set of patches [v2] which removes semaphores from infiniband.
+These are part of a bigger effort to eliminate all semaphores from the
+linux kernel.
 
-You make a good point. We did some testing on this and for the HW we
-have access too we did see that a standard WB mapping worked.
-Interestly though the local access performance was much slower than
-for the WC mapping. We also noticed the PAT entries we not marked
-correctly in the WB case. I am trying to get access to some other HW
-for more testing.
+v1 -> v2:
 
-Grepping for the address of interest:
+IB/hns   : Use wait_event instead of open coding counting semaphores
+IB/mthca : Use wait_event instead of open coding counting semaphores
+IB/mthca : Remove mutex_[un]lock from *_cmd_use_events/*_cmd_use_polling
+IB/mlx5  : Cleanup, add helper mlx5_ib_post_send_wait
 
-In WB mode it's:
+Thanks,
+Binoy
 
-uncached-minus @ 0x381f80000000-0x381fc0000000
+Binoy Jayan (8):
+  IB/core: iwpm_nlmsg_request: Replace semaphore with completion
+  IB/core: Replace semaphore sm_sem with completion
+  IB/hns: Replace semaphore poll_sem with mutex
+  IB/mthca: Replace semaphore poll_sem with mutex
+  IB/isert: Replace semaphore sem with completion
+  IB/hns: Replace counting semaphore event_sem with wait_event
+  IB/mthca: Replace counting semaphore event_sem with wait_event
+  IB/mlx5: Add helper mlx5_ib_post_send_wait
 
-In WC mode it's:
+ drivers/infiniband/core/iwpm_msg.c          |  8 +--
+ drivers/infiniband/core/iwpm_util.c         |  7 +--
+ drivers/infiniband/core/iwpm_util.h         |  3 +-
+ drivers/infiniband/core/user_mad.c          | 14 +++--
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    | 48 ++++++++++-----
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 +-
+ drivers/infiniband/hw/mlx5/mr.c             | 96 +++++++++--------------------
+ drivers/infiniband/hw/mthca/mthca_cmd.c     | 47 +++++++++-----
+ drivers/infiniband/hw/mthca/mthca_cmd.h     |  1 +
+ drivers/infiniband/hw/mthca/mthca_dev.h     |  5 +-
+ drivers/infiniband/ulp/isert/ib_isert.c     |  6 +-
+ drivers/infiniband/ulp/isert/ib_isert.h     |  3 +-
+ 12 files changed, 119 insertions(+), 124 deletions(-)
 
-write-combining @ 0x381f80000000-0x381fc0000000
-
-Cheers
-
-Stephen
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
