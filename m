@@ -1,32 +1,41 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] Avoid possible hang on device removal
-Date: Tue, 25 Oct 2016 16:43:18 -0600
-Message-ID: <20161025224318.GA7816@obsidianresearch.com>
-References: <1477428628-11504-1-git-send-email-mustafa.ismail@intel.com>
- <01ec01d22f02$53012630$f9037290$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] Avoid possible hang on device removal
+Date: Tue, 25 Oct 2016 18:35:57 -0500
+Message-ID: <1477438557-15884-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <01ec01d22f02$53012630$f9037290$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 03:56:57PM -0500, Steve Wise wrote:
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> 
-> Also, this fixes a previous commit, so you could add this tag:
-> 
-> Fixes 612eae1f6fe3 ("rping: ignore flushed completions")
-> 
-> However that commit id is from the previous librdmacm repo...not
-> sure how useful it is?
+When we get an RDMA_CM_EVENT_DEVICE_REMOVAL the cm_thread will
+exit and because flush errors are ignored the cb->sem may not get signaled.
+So just signal on device removal event.
 
-It still exists in the new repo, I'd include the fixes line.
+v1 -> v2: Add Fixes tag 
 
-Jason
+Fixes: 612eae1f6fe3 ("rping: ignore flushed completions")
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ librdmacm/examples/rping.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/librdmacm/examples/rping.c b/librdmacm/examples/rping.c
+index ad38f6d..53c1525 100644
+--- a/librdmacm/examples/rping.c
++++ b/librdmacm/examples/rping.c
+@@ -224,6 +224,8 @@ static int rping_cma_event_handler(struct rdma_cm_id *cma_id,
+ 
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 		fprintf(stderr, "cma detected device removal!!!!\n");
++		cb->state = ERROR;
++		sem_post(&cb->sem);
+ 		ret = -1;
+ 		break;
+ 
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
