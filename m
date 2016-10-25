@@ -1,123 +1,91 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH v2] IB/mlx5: avoid bogus -Wmaybe-uninitialized warning
-Date: Mon, 24 Oct 2016 22:48:21 +0200
-Message-ID: <20161024204830.620592-1-arnd@arndb.de>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] IB/mlx5: avoid bogus -Wmaybe-uninitialized warning
+Date: Tue, 25 Oct 2016 08:40:29 +0300
+Message-ID: <20161025054029.GM25013@leon.nu>
+References: <20161024204830.620592-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Noa Osherovich <noaos@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="DRfr/2Y1Zz/5r+Kb"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161024204830.620592-1-arnd-r2nGTMty4D4@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We get a false-positive warning in linux-next for the mlx5 driver:
 
-infiniband/hw/mlx5/mr.c: In function ‘mlx5_ib_reg_user_mr’:
-infiniband/hw/mlx5/mr.c:1172:5: error: ‘order’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-infiniband/hw/mlx5/mr.c:1161:6: note: ‘order’ was declared here
-infiniband/hw/mlx5/mr.c:1173:6: error: ‘ncont’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-infiniband/hw/mlx5/mr.c:1160:6: note: ‘ncont’ was declared here
-infiniband/hw/mlx5/mr.c:1173:6: error: ‘page_shift’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-infiniband/hw/mlx5/mr.c:1158:6: note: ‘page_shift’ was declared here
-infiniband/hw/mlx5/mr.c:1143:13: error: ‘npages’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-infiniband/hw/mlx5/mr.c:1159:6: note: ‘npages’ was declared here
+--DRfr/2Y1Zz/5r+Kb
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I had a trivial workaround for gcc-5 or higher, but that didn't work
-on gcc-4.9 unfortunately.
+On Mon, Oct 24, 2016 at 10:48:21PM +0200, Arnd Bergmann wrote:
+> We get a false-positive warning in linux-next for the mlx5 driver:
+>
+> infiniband/hw/mlx5/mr.c: In function =E2=80=98mlx5_ib_reg_user_mr=E2=80=
+=99:
+> infiniband/hw/mlx5/mr.c:1172:5: error: =E2=80=98order=E2=80=99 may be use=
+d uninitialized in this function [-Werror=3Dmaybe-uninitialized]
+> infiniband/hw/mlx5/mr.c:1161:6: note: =E2=80=98order=E2=80=99 was declare=
+d here
+> infiniband/hw/mlx5/mr.c:1173:6: error: =E2=80=98ncont=E2=80=99 may be use=
+d uninitialized in this function [-Werror=3Dmaybe-uninitialized]
+> infiniband/hw/mlx5/mr.c:1160:6: note: =E2=80=98ncont=E2=80=99 was declare=
+d here
+> infiniband/hw/mlx5/mr.c:1173:6: error: =E2=80=98page_shift=E2=80=99 may b=
+e used uninitialized in this function [-Werror=3Dmaybe-uninitialized]
+> infiniband/hw/mlx5/mr.c:1158:6: note: =E2=80=98page_shift=E2=80=99 was de=
+clared here
+> infiniband/hw/mlx5/mr.c:1143:13: error: =E2=80=98npages=E2=80=99 may be u=
+sed uninitialized in this function [-Werror=3Dmaybe-uninitialized]
+> infiniband/hw/mlx5/mr.c:1159:6: note: =E2=80=98npages=E2=80=99 was declar=
+ed here
+>
+> I had a trivial workaround for gcc-5 or higher, but that didn't work
+> on gcc-4.9 unfortunately.
+>
+> The only way I found to avoid the warnings for gcc-4.9, short of
+> initializing each of the arguments first was to change the calling
+> conventions to separate the error code from the umem pointer. This
+> avoids casting the error codes from one pointer to another incompatible
+> pointer, and lets gcc figure out when that the data is actually valid
+> whenever we return successfully.
+>
+> Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/mr.c | 39 +++++++++++++++++++++--------------=
+----
+>  1 file changed, 21 insertions(+), 18 deletions(-)
+>
+> v2: fix whitespace typo
 
-The only way I found to avoid the warnings for gcc-4.9, short of
-initializing each of the arguments first was to change the calling
-conventions to separate the error code from the umem pointer. This
-avoids casting the error codes from one pointer to another incompatible
-pointer, and lets gcc figure out when that the data is actually valid
-whenever we return successfully.
+Thanks
 
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/infiniband/hw/mlx5/mr.c | 39 +++++++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+--DRfr/2Y1Zz/5r+Kb
+Content-Type: application/pgp-signature; name="signature.asc"
 
-v2: fix whitespace typo
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index d4ad672b905b..9ea74fca568a 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -815,29 +815,33 @@ static void prep_umr_unreg_wqe(struct mlx5_ib_dev *dev,
- 	umrwr->mkey = key;
- }
- 
--static struct ib_umem *mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
--				   int access_flags, int *npages,
--				   int *page_shift, int *ncont, int *order)
-+static int mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
-+		       int access_flags, struct ib_umem **umem,
-+		       int *npages, int *page_shift, int *ncont,
-+		       int *order)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	struct ib_umem *umem = ib_umem_get(pd->uobject->context, start, length,
--					   access_flags, 0);
--	if (IS_ERR(umem)) {
-+	int err;
-+
-+	*umem = ib_umem_get(pd->uobject->context, start, length,
-+			    access_flags, 0);
-+	err = PTR_ERR_OR_ZERO(*umem);
-+	if (err < 0) {
- 		mlx5_ib_err(dev, "umem get failed (%ld)\n", PTR_ERR(umem));
--		return (void *)umem;
-+		return err;
- 	}
- 
--	mlx5_ib_cont_pages(umem, start, npages, page_shift, ncont, order);
-+	mlx5_ib_cont_pages(*umem, start, npages, page_shift, ncont, order);
- 	if (!*npages) {
- 		mlx5_ib_warn(dev, "avoid zero region\n");
--		ib_umem_release(umem);
--		return ERR_PTR(-EINVAL);
-+		ib_umem_release(*umem);
-+		return -EINVAL;
- 	}
- 
- 	mlx5_ib_dbg(dev, "npages %d, ncont %d, order %d, page_shift %d\n",
- 		    *npages, *ncont, *order, *page_shift);
- 
--	return umem;
-+	return 0;
- }
- 
- static void mlx5_ib_umr_done(struct ib_cq *cq, struct ib_wc *wc)
-@@ -1163,11 +1167,11 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 
- 	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx, access_flags 0x%x\n",
- 		    start, virt_addr, length, access_flags);
--	umem = mr_umem_get(pd, start, length, access_flags, &npages,
-+	err = mr_umem_get(pd, start, length, access_flags, &umem, &npages,
- 			   &page_shift, &ncont, &order);
- 
--	if (IS_ERR(umem))
--		return (void *)umem;
-+        if (err < 0)
-+		return ERR_PTR(err);
- 
- 	if (use_umr(order)) {
- 		mr = reg_umr(pd, umem, virt_addr, length, ncont, page_shift,
-@@ -1341,10 +1345,9 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
- 		 */
- 		flags |= IB_MR_REREG_TRANS;
- 		ib_umem_release(mr->umem);
--		mr->umem = mr_umem_get(pd, addr, len, access_flags, &npages,
--				       &page_shift, &ncont, &order);
--		if (IS_ERR(mr->umem)) {
--			err = PTR_ERR(mr->umem);
-+		err = mr_umem_get(pd, addr, len, access_flags, &mr->umem,
-+				  &npages, &page_shift, &ncont, &order);
-+		if (err < 0) {
- 			mr->umem = NULL;
- 			return err;
- 		}
--- 
-2.9.0
+iQIcBAEBAgAGBQJYDvBNAAoJEORje4g2clinlv4P/RDiVJ9GodRnxi8V1wdCalo7
+s6Dd09JTYoHShZ9O+NbW5dmCjnt+rCiiFutQaGszwJ6NR7O+HJ9MjK3N2AYCqRAk
+kVDYKsSLyvOQ1kvb4XihrteRXa8oJnEAVvlPz0n6NJeyIIgOMzlTg/00tvoixumd
+7kTHts5ZsWto8kXj5HLmaGxbDwtQn4xewcqu6MMoe9RW2eabFTqj8pYlSBzIl+86
+JUMSSPFN+UxKQ++ewiv93ZH57Ob630yDGw8i/yGXOIHM3V8AfTnDUKTomc/nqdH2
+ngP+r1jSDQmLk4He1cF5fVrTJBOiSrC0osdLY1AS1+QOlUqeFiOUoM4HVD3/kqiN
+tgCQE0oveLXBCT+uAR2XNsE4rEstU/huL73gtuf6RXmJuZWjSmMFvnR24Vh+N/vo
+RimLUX+nRQ+ktd/mk+P8Mly4TiV64VDOhlqLg8Pc8UahuVdEzuhBL2ocZvMYEU5S
+kVNPcCJCxjZv0Ub7+wAtyb2KrXmmV6tgYDVJslOpC4Wo+EdF8dEdHjE2++xAp6Dp
+TuVxcbh760LMgRvtVB8XD4P6w14OGcf5tjQ9xMtqdmHPHzECFJJznlKZ9LPimjBI
+nRr2jXR2G1dEX215I+tijC2xg0aCfacQbXQBKcaLFbR70RjHdRsIpx/ddw8GG5ol
+zugW/RkWDVZREg2i+5yA
+=6Jga
+-----END PGP SIGNATURE-----
+
+--DRfr/2Y1Zz/5r+Kb--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
