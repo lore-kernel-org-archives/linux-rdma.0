@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH v2 4/8] IB/mthca: Replace semaphore poll_sem with mutex
-Date: Tue, 25 Oct 2016 17:31:55 +0530
-Message-ID: <1477396919-27669-5-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH v2 3/8] IB/hns: Replace semaphore poll_sem with mutex
+Date: Tue, 25 Oct 2016 17:31:54 +0530
+Message-ID: <1477396919-27669-4-git-send-email-binoy.jayan@linaro.org>
 References: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
@@ -17,85 +17,83 @@ mthca_cmd_use_polling respectively.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/mthca/mthca_cmd.c | 10 +++-------
- drivers/infiniband/hw/mthca/mthca_cmd.h |  1 +
- drivers/infiniband/hw/mthca/mthca_dev.h |  2 +-
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    | 11 ++++-------
+ drivers/infiniband/hw/hns/hns_roce_device.h |  3 ++-
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
-index c7f49bb..49c6e19 100644
---- a/drivers/infiniband/hw/mthca/mthca_cmd.c
-+++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
-@@ -347,7 +347,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
- 	unsigned long end;
- 	u8 status;
- 
--	down(&dev->cmd.poll_sem);
-+	mutex_lock(&dev->cmd.poll_mutex);
- 
- 	err = mthca_cmd_post(dev, in_param,
- 			     out_param ? *out_param : 0,
-@@ -382,7 +382,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
- 	}
- 
- out:
--	up(&dev->cmd.poll_sem);
-+	mutex_unlock(&dev->cmd.poll_mutex);
- 	return err;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+index 2a0b6c0..51a0675 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+@@ -119,7 +119,7 @@ static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	return ret;
  }
  
-@@ -520,7 +520,7 @@ static int mthca_cmd_imm(struct mthca_dev *dev,
- int mthca_cmd_init(struct mthca_dev *dev)
+-/* this should be called with "poll_sem" */
++/* this should be called with "poll_mutex" */
+ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u64 out_param, unsigned long in_modifier,
+ 				    u8 op_modifier, u16 op,
+@@ -167,10 +167,10 @@ static int hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
  {
- 	mutex_init(&dev->cmd.hcr_mutex);
--	sema_init(&dev->cmd.poll_sem, 1);
-+	mutex_init(&dev->cmd.poll_mutex);
- 	dev->cmd.flags = 0;
+ 	int ret;
  
- 	dev->hcr = ioremap(pci_resource_start(dev->pdev, 0) + MTHCA_HCR_BASE,
-@@ -582,8 +582,6 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
+-	down(&hr_dev->cmd.poll_sem);
++	mutex_lock(&hr_dev->cmd.poll_mutex);
+ 	ret = __hns_roce_cmd_mbox_poll(hr_dev, in_param, out_param, in_modifier,
+ 				       op_modifier, op, timeout);
+-	up(&hr_dev->cmd.poll_sem);
++	mutex_unlock(&hr_dev->cmd.poll_mutex);
  
- 	dev->cmd.flags |= MTHCA_CMD_USE_EVENTS;
+ 	return ret;
+ }
+@@ -275,7 +275,7 @@ int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
+ 	struct device *dev = &hr_dev->pdev->dev;
  
--	down(&dev->cmd.poll_sem);
+ 	mutex_init(&hr_dev->cmd.hcr_mutex);
+-	sema_init(&hr_dev->cmd.poll_sem, 1);
++	mutex_init(&hr_dev->cmd.poll_mutex);
+ 	hr_dev->cmd.use_events = 0;
+ 	hr_dev->cmd.toggle = 1;
+ 	hr_dev->cmd.max_cmds = CMD_MAX_NUM;
+@@ -319,8 +319,6 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
+ 	hr_cmd->token_mask = CMD_TOKEN_MASK;
+ 	hr_cmd->use_events = 1;
+ 
+-	down(&hr_cmd->poll_sem);
 -
  	return 0;
  }
  
-@@ -600,8 +598,6 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
- 		down(&dev->cmd.event_sem);
+@@ -335,7 +333,6 @@ void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
+ 		down(&hr_cmd->event_sem);
  
- 	kfree(dev->cmd.context);
--
--	up(&dev->cmd.poll_sem);
+ 	kfree(hr_cmd->context);
+-	up(&hr_cmd->poll_sem);
  }
  
- struct mthca_mailbox *mthca_alloc_mailbox(struct mthca_dev *dev,
-diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.h b/drivers/infiniband/hw/mthca/mthca_cmd.h
-index d2e5b19..a7f197e 100644
---- a/drivers/infiniband/hw/mthca/mthca_cmd.h
-+++ b/drivers/infiniband/hw/mthca/mthca_cmd.h
-@@ -35,6 +35,7 @@
- #ifndef MTHCA_CMD_H
- #define MTHCA_CMD_H
+ struct hns_roce_cmd_mailbox
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 3417315..2afe075 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -34,6 +34,7 @@
+ #define _HNS_ROCE_DEVICE_H
  
-+#include <linux/mutex.h>
  #include <rdma/ib_verbs.h>
++#include <linux/mutex.h>
  
- #define MTHCA_MAILBOX_SIZE 4096
-diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
-index 4393a02..87ab964 100644
---- a/drivers/infiniband/hw/mthca/mthca_dev.h
-+++ b/drivers/infiniband/hw/mthca/mthca_dev.h
-@@ -120,7 +120,7 @@ enum {
- struct mthca_cmd {
- 	struct pci_pool          *pool;
- 	struct mutex              hcr_mutex;
--	struct semaphore 	  poll_sem;
-+	struct mutex		  poll_mutex;
- 	struct semaphore 	  event_sem;
- 	int              	  max_cmds;
- 	spinlock_t                context_lock;
+ #define DRV_NAME "hns_roce"
+ 
+@@ -358,7 +359,7 @@ struct hns_roce_cmdq {
+ 	struct dma_pool		*pool;
+ 	u8 __iomem		*hcr;
+ 	struct mutex		hcr_mutex;
+-	struct semaphore	poll_sem;
++	struct mutex		poll_mutex;
+ 	/*
+ 	* Event mode: cmd register mutex protection,
+ 	* ensure to not exceed max_cmds and user use limit region
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
