@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v4 2/8] rdma_cm: add rdma_is_consumer_reject() helper function
-Date: Tue, 25 Oct 2016 11:33:07 -0700
-Message-ID: <06687af52fc7154121673bf0b0fa81d8618b43ed.1477426743.git.swise@opengridcomputing.com>
+Subject: [PATCH v4 3/8] rdma_cm: add rdma_consumer_reject_data helper function
+Date: Tue, 25 Oct 2016 12:33:58 -0700
+Message-ID: <82250f533f3a712189cf38352ae4d04a08bb637f.1477426743.git.swise@opengridcomputing.com>
 References: <cover.1477426743.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1477426743.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -10,57 +10,62 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxt
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Return true if the peer consumer application rejected the
-connection attempt.
+rdma_consumer_reject_data() will return the private data pointer
+and length if any is available.
 
 Reviewed-by: Sagi Grimberg <sagi-egDjqUIXVlxBDLzU/O5InQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 13 +++++++++++++
- include/rdma/rdma_cm.h        |  7 +++++++
- 2 files changed, 20 insertions(+)
+ drivers/infiniband/core/cma.c | 16 ++++++++++++++++
+ include/rdma/rdma_cm.h        | 10 ++++++++++
+ 2 files changed, 26 insertions(+)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 427f74e..71d2a06 100644
+index 71d2a06..8399149 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -115,6 +115,19 @@ const char *__attribute_const__ rdma_reject_msg(struct rdma_cm_id *id,
+@@ -128,6 +128,22 @@ bool rdma_is_consumer_reject(struct rdma_cm_id *id, int reason)
  }
- EXPORT_SYMBOL(rdma_reject_msg);
+ EXPORT_SYMBOL(rdma_is_consumer_reject);
  
-+bool rdma_is_consumer_reject(struct rdma_cm_id *id, int reason)
++const void *rdma_consumer_reject_data(struct rdma_cm_id *id,
++				      struct rdma_cm_event *ev, u8 *data_len)
 +{
-+	if (rdma_ib_or_roce(id->device, id->port_num))
-+		return reason == IB_CM_REJ_CONSUMER_DEFINED;
++	const void *p;
 +
-+	if (rdma_protocol_iwarp(id->device, id->port_num))
-+		return reason == -ECONNREFUSED;
-+
-+	WARN_ON_ONCE(1);
-+	return false;
++	if (rdma_is_consumer_reject(id, ev->status)) {
++		*data_len = ev->param.conn.private_data_len;
++		p = ev->param.conn.private_data;
++	} else {
++		*data_len = 0;
++		p = NULL;
++	}
++	return p;
 +}
-+EXPORT_SYMBOL(rdma_is_consumer_reject);
++EXPORT_SYMBOL(rdma_consumer_reject_data);
 +
  static void cma_add_one(struct ib_device *device);
  static void cma_remove_one(struct ib_device *device, void *client_data);
  
 diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index f11a768..62039c2 100644
+index 62039c2..d3968b5 100644
 --- a/include/rdma/rdma_cm.h
 +++ b/include/rdma/rdma_cm.h
-@@ -395,5 +395,12 @@ __be64 rdma_get_service_id(struct rdma_cm_id *id, struct sockaddr *addr);
+@@ -403,4 +403,14 @@ const char *__attribute_const__ rdma_reject_msg(struct rdma_cm_id *id,
   */
- const char *__attribute_const__ rdma_reject_msg(struct rdma_cm_id *id,
- 						int reason);
-+/**
-+ * rdma_is_consumer_reject - return true if the consumer rejected the connect
-+ *                           request.
-+ * @id: Communication identifier that received the REJECT event.
-+ * @reason: Value returned in the REJECT event status field.
-+ */
-+bool rdma_is_consumer_reject(struct rdma_cm_id *id, int reason);
+ bool rdma_is_consumer_reject(struct rdma_cm_id *id, int reason);
  
++/**
++ * rdma_consumer_reject_data - return the consumer reject private data and
++ *			       length, if any.
++ * @id: Communication identifier that received the REJECT event.
++ * @ev: RDMA CM reject event.
++ * @data_len: Pointer to the resulting length of the consumer data.
++ */
++const void *rdma_consumer_reject_data(struct rdma_cm_id *id,
++				      struct rdma_cm_event *ev, u8 *data_len);
++
  #endif /* RDMA_CM_H */
 -- 
 2.7.0
