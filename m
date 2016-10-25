@@ -1,29 +1,39 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RDMA_CM_EVENT_REJECTED
-Date: Tue, 25 Oct 2016 09:38:39 -0500
-Message-ID: <00c901d22ecd$79a9f300$6cfdd900$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH for-next 01/14] net/mlx5: Report multi packet WQE capabilities
+Date: Tue, 25 Oct 2016 18:00:04 +0300
+Message-ID: <1477407617-20745-2-git-send-email-saeedm@mellanox.com>
+References: <1477407617-20745-1-git-send-email-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1477407617-20745-1-git-send-email-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>, Matan Barak <matanb@mellanox.com>, Bodong Wang <bodong@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-While working on the reject helper functions, I notice that some of the rdma_cm
-kernel users have handlers for RDMA_CM_EVENT_REJECTED even for cm_ids that are
-spawned from listening cm_ids as the result of a RDMA_CM_EVENT_CONNECT_REQUEST,
-and that issue an rdma_accept() or rdma_reject() in response. 
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Q: is it possible for a REJECTED event to get posted to these cm_ids?  It is not
-for iWARP, but I'm not sure about IB.  I'm guessing this is just due to
-cut/paste process of adding event handlers, but I wanted to make sure.
+Multi packet WQE enables sending multiple fix sized packets
+using a single WQE. The exposed field reports such HW support.
 
-Steve.
+Signed-off-by: Bodong Wang <bodong@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+ include/linux/mlx5/mlx5_ifc.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 6045d4d..2def5b9 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -556,7 +556,7 @@ struct mlx5_ifc_per_protocol_networking_offload_caps_bits {
+ 	u8         self_lb_en_modifiable[0x1];
+ 	u8         reserved_at_9[0x2];
+ 	u8         max_lso_cap[0x5];
+-	u8         reserved_at_10[0x2];
++	u8         multi_pkt_send_wqe[0x2];
+ 	u8	   wqe_inline_mode[0x2];
+ 	u8         rss_ind_tbl_cap[0x4];
+ 	u8         reg_umr_sq[0x1];
+-- 
+2.7.4
