@@ -1,42 +1,55 @@
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] Avoid possible hang on device removal
-Date: Tue, 25 Oct 2016 18:35:57 -0500
-Message-ID: <1477438557-15884-1-git-send-email-mustafa.ismail@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH] IB/mlx4: avoid a -Wmaybe-uninitialize warning
+Date: Wed, 26 Oct 2016 09:51:04 +0300
+Message-ID: <3a7b4d28-1700-7545-c1b7-7d2d463a17d7@dev.mellanox.co.il>
+References: <20161025161632.411899-1-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161025161632.411899-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Yishai Hadas <yishaih@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Christophe Jaillet <christophe.jaillet@wanadoo.fr>, Moni Shoua <monis@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-When we get an RDMA_CM_EVENT_DEVICE_REMOVAL the cm_thread will
-exit and because flush errors are ignored the cb->sem may not get signaled.
-So just signal on device removal event.
+On 10/25/2016 7:16 PM, Arnd Bergmann wrote:
+> There is an old warning about mlx4_SW2HW_EQ_wrapper on x86:
+>
+> ethernet/mellanox/mlx4/resource_tracker.c: In function ‘mlx4_SW2HW_EQ_wrapper’:
+> ethernet/mellanox/mlx4/resource_tracker.c:3071:10: error: ‘eq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
+>
+> The problem here is that gcc won't track the state of the variable
+> across a spin_unlock. Moving the assignment out of the lock is
+> safe here and avoids the warning.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-v1 -> v2: Add Fixes tag 
+Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 
-Fixes: 612eae1f6fe3 ("rping: ignore flushed completions")
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- librdmacm/examples/rping.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/librdmacm/examples/rping.c b/librdmacm/examples/rping.c
-index ad38f6d..53c1525 100644
---- a/librdmacm/examples/rping.c
-+++ b/librdmacm/examples/rping.c
-@@ -224,6 +224,8 @@ static int rping_cma_event_handler(struct rdma_cm_id *cma_id,
- 
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 		fprintf(stderr, "cma detected device removal!!!!\n");
-+		cb->state = ERROR;
-+		sem_post(&cb->sem);
- 		ret = -1;
- 		break;
- 
--- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+> index 84d7857ccc27..c548beaaf910 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+> @@ -1605,13 +1605,14 @@ static int eq_res_start_move_to(struct mlx4_dev *dev, int slave, int index,
+>  			r->com.from_state = r->com.state;
+>  			r->com.to_state = state;
+>  			r->com.state = RES_EQ_BUSY;
+> -			if (eq)
+> -				*eq = r;
+>  		}
+>  	}
+>
+>  	spin_unlock_irq(mlx4_tlock(dev));
+>
+> +	if (!err && eq)
+> +		*eq = r;
+> +
+>  	return err;
+>  }
+>
+>
