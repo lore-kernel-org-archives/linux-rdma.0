@@ -1,40 +1,62 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [For help] rdma-roce build quesiton
-Date: Wed, 26 Oct 2016 10:09:02 -0600
-Message-ID: <20161026160902.GD24898@obsidianresearch.com>
-References: <581059FA.6070507@huawei.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v4 4/8] nvme-rdma: use rdma connection reject helper functions
+Date: Wed, 26 Oct 2016 11:17:23 -0500
+Message-ID: <06fb01d22fa4$6fb83190$4f2894b0$@opengridcomputing.com>
+References: <cover.1477426743.git.swise@opengridcomputing.com> <35db2feb4dcac92924992d5655630aa70972ad00.1477426743.git.swise@opengridcomputing.com> <62db5521-9c15-146b-9057-2a22658fa210@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <581059FA.6070507-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <62db5521-9c15-146b-9057-2a22658fa210-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 26, 2016 at 03:23:38PM +0800, oulijun wrote:
-
-> the build is fail and the print log as follows:
 > 
-> error: size of unnamed array is negative
-> attr->cap.max_recv_wr = min(context->max_qp_wr, attr->cap.max_recv_wr);
+> On 10/25/2016 12:34 PM, Steve Wise wrote:
+> > +	rej_data = (struct nvme_rdma_cm_rej *)
+> > +		   rdma_consumer_reject_data(cm_id, ev, &rej_data_len);
+> 
+> This cast casts away constness; that's ugly. If the data type of
+> rej_data would be changed into const ... * then no cast would have been
+> necessary.
+>
 
-It is telling you the types are not the same, and this is a source of bugs
-as C has some counter intuitive rules regarding type promotion.
+Ok.
+ 
+> > +	if (rej_data && rej_data_len >= sizeof(u16)) {
+> > +		u16 sts = le16_to_cpu(rej_data->sts);
+> >
+> >  		dev_err(queue->ctrl->ctrl.device,
+> > -			"Connect rejected, status %d.", le16_to_cpu(rej-
+> >sts));
+> > -		/* XXX: Think of something clever to do here... */
+> > -	} else {
+> > +		      "Connect rejected: status %d (%s) nvme status %d
+> (%s).\n",
+> > +		      status, rej_msg, sts, nvme_rdma_cm_msg(sts));
+> > +	} else
+> >  		dev_err(queue->ctrl->ctrl.device,
+> > -			"Connect rejected, no private data.\n");
+> > -	}
+> > +			"Connect rejected: status %d (%s).\n", status,
+> rej_msg);
+> 
+> Braces are not balanced for this if-then-else statement :-(
+> 
+> If you have to resend this patch series please address these comments.
+> 
 
-1) Audit max_qp_wr and max_recv_wr to see if they really should be
-   different types, if not fix context->max_qp_wr to match
+Sure, I'll spin another version with these changes.  This is destined for
+4.10 so we have time. :)
 
-2) If they are legitimately different then use
+Thanks for reviewing!
 
-  min_t(<desired type>, context->max_qp_wr, attr->cap.max_recv_wr);
 
-Think carefully about what common type is used because both arguments
-will be casted, and the goal is to avoid a loss of precision or
-signdedness in the cast.
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
