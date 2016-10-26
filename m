@@ -1,25 +1,46 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v4 0/8] connect reject event helpers
-Date: Wed, 26 Oct 2016 11:32:59 +0300
-Message-ID: <9b6484f3-7f8a-dc6f-0959-0d38044dd983@grimberg.me>
-References: <cover.1477426743.git.swise@opengridcomputing.com>
+From: Lloyds TSB Bank PLC <augusto.vasconcelos-p0LYnYtLkou5rVEbj1Y5O5HKQUlyfgRh@public.gmane.org>
+Subject: Darlehen Angebot 3%
+Date: Wed, 26 Oct 2016 06:40:43 -0200 (BRST)
+Message-ID: <575619884.10163256.1477471243330.JavaMail.zimbra__32454.4752984822$1477471419$gmane$org@terceirizado.mda.gov.br>
+Reply-To: "lloyds26tsb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <lloyds26tsb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1477426743.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-So where should this be sent from?
+Schönen Tag,
 
-We have rdma_cm/iser/isert that usually go from
-the rdma tree and nvme-rdma/nvmet-rdma that usually
-go from nvmf tree to Jens.
+ Dies ist Lloyd's TSB Bank plc Darlehen bieten.
 
-Doug are you picking this up or should I?
+   Lloyd's TSB bietet flexible und erschwingliche Darlehen für jeden Zweck, um Ihnen zu helfen, Ihre Ziele zu erreichen. Wir leihen zu einem niedrigen Zinssatz von 3%. Hier sind einige wichtige Merkmale der persönlichen Darlehen von Lloyd's TSB angeboten. Hier sind die Kredit-Faktoren arbeiten wir mit den führenden britischen Makler, die Zugang zu Top-Kreditgeber haben und sind in der Lage, die beste finanzielle Lösung zu einem erschwinglichen Preis zu finden.Bitte, wenn Sie interessiert sind kontaktieren Sie uns bitte über diese E-Mail: lloyds26tsb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+
+
+Nach der Reaktion erhalten Sie einen Antrag auf Ausleihe. Keine Sozialversicherung und keine Bonitätsprüfung, 100% garantiert.
+
+Es ist unsere Ehre, wenn Sie uns erlauben, zu Ihren Diensten zu sein.
+
+
+ERFORDERLICHE INFORMATIONEN
+
+Deine Namen:
+Adresse: ...........
+Telefon: ...........
+Benötigter Betrag: ........
+Dauer: ...............
+Beruf: ...........
+Monatliches Einkommen: ........
+Geschlecht: ...............
+Geburtsdatum: ........
+Bundesland: ..................
+Land: ..........
+Zweck: .........
+
+Die Erfüllung Ihrer finanziellen Bedürfnisse ist unser Stolz.
+
+
+Dr. John Mahama.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
