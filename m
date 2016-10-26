@@ -1,61 +1,40 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: NVMeoF Linux GIT repo
-Date: Wed, 26 Oct 2016 13:00:42 +0300
-Message-ID: <6f07770e-5b21-1c4f-9215-58f5821aae34@mellanox.com>
-References: <f5eefaea1d4b4d24945fdfb12da5a6ab@bowex36e.micron.com>
- <2aeadd6a-0f5c-5c59-cafa-10116ccc91c0@grimberg.me>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
+Date: Wed, 26 Oct 2016 06:39:05 -0700
+Message-ID: <CAPcyv4h9Ubgiv1B8FPqes-zUXMckzfEi6uqtfc4GrLc_8BeSLg@mail.gmail.com>
+References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
+ <a5418089-2615-8c04-aca8-50ceb43978f1@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2aeadd6a-0f5c-5c59-cafa-10116ccc91c0-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Robert Randall (rrandall)" <rrandall-AL4WhLSQfzjQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <a5418089-2615-8c04-aca8-50ceb43978f1-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, "Raj,
+ Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/22/2016 1:19 AM, Sagi Grimberg wrote:
-> Hey Robert,
-> 
->> Sorry Keith, I'm back to the same question again.  I've tried using
->> the released 4.8.2 kernel and I'm seeing errors in the Linux RDMA
->> layer.  Log file is attached.  My guess is this may have been fixed
->> already but since I'm not writing code on Linux it is difficult to
->> keep up with which repo and which branch I should be using.
->>
->> It reports a syndrome 5 which appears to mean "work request flush error".
->>
->> Setup is stable 4.8.2 kernel with Mellanox RoCE v2.
->>
->> So, where do I grab the latest and greatest code these days?
-> 
-> So from a quick look at the log the FLUSH errors are
-> just side effects. Once a queue-pair transitions to
-> ERROR state it flushes all the pending work requests with
-> a FLUSH syndrome, so we should look at the first error which
-> is:
-> 
-> mlx5_1:poll_soft_wc:647:(pid 3422): polled software generated completion
-> on CQ 0x14
-> 
-> This seems to come from the GSI QP completion emulation from
-> Haggai (CC'd). CQ 0x14 is not nvmet-rdma completion queue (from
-> the log it's 0x5d) so something went wrong but its does not
-> seem to be nvmet-rdma's fault.
-I'm not sure this line means anything wrong as happened. It just means
-that the software emulated CQ has received a packet (a MAD), and that
-debugging prints are on.
+On Wed, Oct 26, 2016 at 1:24 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+[..]
+>> I wonder if we could (ab)use a
+>> software-defined 'pasid' as the requester id for a peer-to-peer
+>> mapping that needs address translation.
+> Why would you need that? Isn't it enough to map the peer-to-peer
+> addresses correctly in the iommu driver?
+>
 
-We did had a bug with that code, and it was fixed in [1] (kernel 4.8) so
-you should have the fix.
+You're right, we might already have enough...
 
-> 
-> Haggai, any tips for Robert?
-
-I'll take another look at the logs and see if I think of anything.
-
-[1] https://patchwork.kernel.org/patch/9211211/
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We would just need to audit iommu drivers to undo any assumptions that
+the page being mapped is always in host memory and apply any bus
+address translations between source device and target device.
