@@ -1,55 +1,72 @@
-From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH] IB/mlx4: avoid a -Wmaybe-uninitialize warning
-Date: Wed, 26 Oct 2016 09:51:04 +0300
-Message-ID: <3a7b4d28-1700-7545-c1b7-7d2d463a17d7@dev.mellanox.co.il>
-References: <20161025161632.411899-1-arnd@arndb.de>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [For help] rdma-roce build quesiton
+Date: Wed, 26 Oct 2016 15:23:38 +0800
+Message-ID: <581059FA.6070507@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161025161632.411899-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Yishai Hadas <yishaih@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Christophe Jaillet <christophe.jaillet@wanadoo.fr>, Moni Shoua <monis@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/25/2016 7:16 PM, Arnd Bergmann wrote:
-> There is an old warning about mlx4_SW2HW_EQ_wrapper on x86:
->
-> ethernet/mellanox/mlx4/resource_tracker.c: In function ‘mlx4_SW2HW_EQ_wrapper’:
-> ethernet/mellanox/mlx4/resource_tracker.c:3071:10: error: ‘eq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
->
-> The problem here is that gcc won't track the state of the variable
-> across a spin_unlock. Moving the assignment out of the lock is
-> safe here and avoids the warning.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Hi, Jason
+I am building my userspace library code using cmake.
+after i fix some lines, it is failed.
 
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+I directly called the min() from the ccan/minmax.h, the min()
+as follows:
 
-> ---
->  drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> index 84d7857ccc27..c548beaaf910 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> @@ -1605,13 +1605,14 @@ static int eq_res_start_move_to(struct mlx4_dev *dev, int slave, int index,
->  			r->com.from_state = r->com.state;
->  			r->com.to_state = state;
->  			r->com.state = RES_EQ_BUSY;
-> -			if (eq)
-> -				*eq = r;
->  		}
->  	}
->
->  	spin_unlock_irq(mlx4_tlock(dev));
->
-> +	if (!err && eq)
-> +		*eq = r;
-> +
->  	return err;
->  }
->
->
+#if HAVE_BUILTIN_TYPES_COMPATIBLE_P
+#define MINMAX_ASSERT_COMPATIBLE(a, b) \
+BUILD_ASSERT(__builtin_types_compatible_p(a, b))
+#else
+#define MINMAX_ASSERT_COMPATIBLE(a, b) \
+do { } while (0)
+#endif
+
+#define min(a, b) \
+({ \
+typeof(a) _a = (a); \
+typeof(b) _b = (b); \
+MINMAX_ASSERT_COMPATIBLE(typeof(_a), typeof(_b)); \
+_a < _b ? _a : _b; \
+})
+
+and use #include <ccan/minmax.h> in my .c file where is used the min()
+
+according to the modification, I use the cmd as follows:
+CC=aarch64-linux-gnu-gcc cmake -GNinja -DENABLE_RESOLVE_NEIGH=0 -DHAVE_ARCH_ARM64=1 ..
+
+the build is fail and the print log as follows:
+
+error: size of unnamed array is negative
+attr->cap.max_recv_wr = min(context->max_qp_wr, attr->cap.max_recv_wr);
+
+Now, after fixed, the error is elimed. the fix as follows:
+Fix the HAVE_BUILTIN_TYPES_COMPATIBLE_P for 0 in config.h.in or use the origin definition in my .h file
+
+the origin defintion:
+#define min(a, b) \
+({ \
+typeof(a) _a = (a); \
+typeof(b) _b = (b); \
+_a < _b ? _a : _b; \
+})
+
+but I think that the above modification is not a better approach
+I try to change the Optimization Option(from -O0 to -O2) in aarch64-linux-gnu-gcc by finded some material.
+CC=aarch64-linux-gnu-gcc cmake -O2 -GNinja -DENABLE_RESOLVE_NEIGH=0 -DHAVE_ARCH_ARM64=1 ..
+
+But the error is not elimed.
+
+Can you give me some guide?
+
+thanks
+Lijun ou
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
