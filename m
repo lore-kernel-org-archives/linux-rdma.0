@@ -1,81 +1,74 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 10/12] SRP transport, scsi-mq: Wait for .queue_rq() if
- necessary
-Date: Wed, 26 Oct 2016 15:55:34 -0700
-Message-ID: <0cd77719-1f11-d5c3-3186-1c7c3cfd6886@sandisk.com>
-References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Trouble enabling iSER for ConnectX-4 Lx
+Date: Wed, 26 Oct 2016 17:13:16 -0600
+Message-ID: <CAANLjFr_we+33Nen-NYp1xQPzQ-wbR=GL4LBkEZb9azMUN-_=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ensure that if scsi-mq is enabled that scsi_wait_for_queuecommand()
-waits until ongoing shost->hostt->queuecommand() calls have finished.
+We have some ConnectX-4 Lx cards that I'm trying to test RoCE and iSER
+on. I downloaded and installed the Mellanox drivers with VMA [0]. I
+was able to run the ib_read_bw tests over the adapters after
+installing the infiniband-diags and perftest RPMs. When I went to
+configure LIO for iSER, I'm getting the message "Cannot change iser"
+on step 6 in the procedure here [1] which I've done many times with
+Infiniband without issues. I navigated to
+/sys/kernel/config/target/iscsi/{iqn}/tpgt_1/np/{portal_ip:port} and
+sure enough, I can't write '1' into iser. The kernel is not giving any
+messages and the ib_isert module is loaded. This is on 4.4.27,
+Mellanox driver 3.4-1.0.0.3 built with `./install --add-kernel-support
+--skip-repo --tmpdir /root/junk --vma`
 
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: James Bottomley <jejb@linux.vnet.ibm.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>
----
- drivers/scsi/scsi_lib.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+# mstflint -d 4:00.0 q
+Image type:          FS3
+FW Version:          14.16.1020
+FW Release Date:     20.6.2016
+Rom Info:            type=UEFI version=14.10.16
+                    type=PXE version=3.4.812 devid=4117
+Description:         UID                GuidsNumber
+Base GUID:           0cc47a000089f706        4
+Base MAC:            00000cc47a89f706        4
+Image VSD:
+Device VSD:
+PSID:                SM_2001000001034
 
-diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-index c1561e7..9b8b19e 100644
---- a/drivers/scsi/scsi_lib.c
-+++ b/drivers/scsi/scsi_lib.c
-@@ -2724,8 +2724,6 @@ EXPORT_SYMBOL_GPL(sdev_evt_send_simple);
- /**
-  * scsi_request_fn_active() - number of kernel threads inside scsi_request_fn()
-  * @shost: SCSI host for which to count the number of scsi_request_fn() callers.
-- *
-- * To do: add support for scsi-mq in this function.
-  */
- static int scsi_request_fn_active(struct Scsi_Host *shost)
- {
-@@ -2744,12 +2742,20 @@ static int scsi_request_fn_active(struct Scsi_Host *shost)
- 	return request_fn_active;
- }
- 
-+static void scsi_mq_wait_for_queuecommand(struct Scsi_Host *shost)
-+{
-+	struct scsi_device *sdev;
-+
-+	shost_for_each_device(sdev, shost)
-+		blk_mq_quiesce_queue(sdev->request_queue);
-+}
-+
- /**
-  * scsi_wait_for_queuecommand() - wait for ongoing queuecommand() calls
-  * @shost: SCSI host pointer.
-  *
-  * Wait until the ongoing shost->hostt->queuecommand() calls that are
-- * invoked from scsi_request_fn() have finished.
-+ * invoked from either scsi_request_fn() or scsi_queue_rq() have finished.
-  *
-  * To do: avoid that scsi_send_eh_cmnd() calls queuecommand() after
-  * scsi_internal_device_block() has blocked a SCSI device and remove and also
-@@ -2757,8 +2763,12 @@ static int scsi_request_fn_active(struct Scsi_Host *shost)
-  */
- void scsi_wait_for_queuecommand(struct Scsi_Host *shost)
- {
--	while (scsi_request_fn_active(shost))
--		msleep(20);
-+	if (shost->use_blk_mq) {
-+		scsi_mq_wait_for_queuecommand(shost);
-+	} else {
-+		while (scsi_request_fn_active(shost))
-+			msleep(20);
-+	}
- }
- EXPORT_SYMBOL(scsi_wait_for_queuecommand);
- 
--- 
-2.10.1
+# ibstatus
+Infiniband device 'mlx5_0' port 1 status:
+       default gid:     fe80:0000:0000:0000:0ec4:7aff:fe89:f706
+       base lid:        0x0
+       sm lid:          0x0
+       state:           4: ACTIVE
+       phys state:      5: LinkUp
+       rate:            25 Gb/sec (1X EDR)
+       link_layer:      Ethernet
 
+Infiniband device 'mlx5_1' port 1 status:
+       default gid:     fe80:0000:0000:0000:0ec4:7aff:fe89:f707
+       base lid:        0x0
+       sm lid:          0x0
+       state:           4: ACTIVE
+       phys state:      5: LinkUp
+       rate:            25 Gb/sec (1X EDR)
+       link_layer:      Ethernet
+
+Any ideas of what I'm doing wrong here? I don't have any experience
+with RoCE, so I'm sure I'm doing something wrong. And the manual has
+nothing about configuring RoCE other than enabling --vma when
+installing the drivers [2].
+
+Thanks,
+Robert LeBlanc
+
+[0] http://www.mellanox.com/page/products_dyn?product_family=27
+[1] https://community.mellanox.com/docs/DOC-1472
+[2] http://www.mellanox.com/related-docs/prod_software/Mellanox_EN_for_Linux_User_Manual_v3_40.pdf
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
