@@ -1,41 +1,50 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] Avoid possible hang on device removal
-Date: Wed, 26 Oct 2016 08:45:33 -0500
-Message-ID: <064101d22f8f$3b6e7850$b24b68f0$@opengridcomputing.com>
-References: <1477428628-11504-1-git-send-email-mustafa.ismail@intel.com> <01ec01d22f02$53012630$f9037290$@opengridcomputing.com> <20161025224318.GA7816@obsidianresearch.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v4 4/8] nvme-rdma: use rdma connection reject helper
+ functions
+Date: Wed, 26 Oct 2016 08:26:23 -0700
+Message-ID: <62db5521-9c15-146b-9057-2a22658fa210@sandisk.com>
+References: <cover.1477426743.git.swise@opengridcomputing.com>
+ <35db2feb4dcac92924992d5655630aa70972ad00.1477426743.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161025224318.GA7816-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <35db2feb4dcac92924992d5655630aa70972ad00.1477426743.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> >
-> > Also, this fixes a previous commit, so you could add this tag:
-> >
-> > Fixes 612eae1f6fe3 ("rping: ignore flushed completions")
-> >
-> > However that commit id is from the previous librdmacm repo...not
-> > sure how useful it is?
-> 
-> It still exists in the new repo, I'd include the fixes line.
-> 
-> Jason
+On 10/25/2016 12:34 PM, Steve Wise wrote:
+> +	rej_data = (struct nvme_rdma_cm_rej *)
+> +		   rdma_consumer_reject_data(cm_id, ev, &rej_data_len);
 
-Hey Jason, how do I see the history?
+This cast casts away constness; that's ugly. If the data type of 
+rej_data would be changed into const ... * then no cast would have been 
+necessary.
 
-[root@stevo1 rdma-core]# git log --pretty=oneline --abbrev-commit
-librdmacm/examples/rping.c
-9024876 rdmacm: Use correct format specifier for size_t
-400122e Be explicit about _GNU_SOURCE
-663098b Rename librdmacm
+> +	if (rej_data && rej_data_len >= sizeof(u16)) {
+> +		u16 sts = le16_to_cpu(rej_data->sts);
+>
+>  		dev_err(queue->ctrl->ctrl.device,
+> -			"Connect rejected, status %d.", le16_to_cpu(rej->sts));
+> -		/* XXX: Think of something clever to do here... */
+> -	} else {
+> +		      "Connect rejected: status %d (%s) nvme status %d (%s).\n",
+> +		      status, rej_msg, sts, nvme_rdma_cm_msg(sts));
+> +	} else
+>  		dev_err(queue->ctrl->ctrl.device,
+> -			"Connect rejected, no private data.\n");
+> -	}
+> +			"Connect rejected: status %d (%s).\n", status, rej_msg);
 
+Braces are not balanced for this if-then-else statement :-(
+
+If you have to resend this patch series please address these comments.
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
