@@ -1,71 +1,135 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v3 8/9] IB/mlx5: Add helper mlx5_ib_post_send_wait
-Date: Wed, 26 Oct 2016 10:48:26 +0200
-Message-ID: <12933685.Se3eQHi9An@wuerfel>
-References: <1477468874-16328-1-git-send-email-binoy.jayan@linaro.org> <1477468874-16328-9-git-send-email-binoy.jayan@linaro.org>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: mlx4 RoCE mode without OFED?
+Date: Wed, 26 Oct 2016 14:53:29 +0300
+Message-ID: <CAAKD3BCA=dOKxb-h5+VRp0DG=CN0e4Xj91hLgXSHtqAt=apMkQ@mail.gmail.com>
+References: <CAANLjFpM=zzNyjikzt12TjqgRcfLh7j_6cXxtdM-ow48kNfPKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477468874-16328-9-git-send-email-binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <CAANLjFpM=zzNyjikzt12TjqgRcfLh7j_6cXxtdM-ow48kNfPKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday, October 26, 2016 1:31:13 PM CEST Binoy Jayan wrote:
-> +static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
-> +                                        struct mlx5_umr_wr *umrwr)
-> +{
-> +       struct umr_common *umrc = &dev->umrc;
-> +       struct ib_send_wr *bad;
-> +       int err;
-> +       struct mlx5_ib_umr_context umr_context;
-> +
-> +       mlx5_ib_init_umr_context(&umr_context);
-> +       umrwr->wr.wr_cqe = &umr_context.cqe;
-> +
-> +       down(&umrc->sem);
-> +       err = ib_post_send(umrc->qp, &umrwr->wr, &bad);
-> +       if (err) {
-> +               mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
-> +       } else {
-> +               wait_for_completion(&umr_context.done);
-> +               if (umr_context.status != IB_WC_SUCCESS) {
-> +                       mlx5_ib_warn(dev, "reg umr failed (%u)\n",
-> +                                    umr_context.status);
-> +                       err = -EFAULT;
-> +               }
-> +       }
-> +       up(&umrc->sem);
-> +       return err;
-> +}
-> 
+On Tue, Oct 25, 2016 at 11:28 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> I've been trying to get our ConnectX-3 card to run RoCE (Ethernet mode
+> is working) [0], but I can't pass the roce_mode to the mlx4_core
+> module even with 4.8.4. Do you have to use OFED to use RoCE with
+> ConnectX-3? According to the spec sheet, the card should support RoCE
 
-Looks nice!
+roce_mode parameter is OFED only. When you use upstream, ConnectX-3 supports
+RoCE v1 automatically while ConnectX-3 pro supports both RoCE v1 and RoCE v2.
+You don't have to specify any module parameter for that.
 
-Now that this has become the only use of the semaphore (and the
-last one in infiniband I guess), I wonder if we can agree on a way
-to get rid of that one too. How about
+> [1]. We generally run 4.4.x kernel and so getting OFED to compile is
+> quite the challenge, so we are looking for an upstream solution. It
+> seems that commit 3afd8362fabd167bb04f79501f21dd67aa9cb99f added some
+> bits to add roce_mode to the module, but I don't see it in the module.
+>
 
-	/* limit number of concurrent ib_post_send() on qp */
-	wait_event(&umrc->wq, atomic_add_unless(&umrc->users, 1, MAX_UMR_WR);
-	...
-	atomic_dec(&umrc->users);
-	wake_up(&umrc->wq);
+I couldn't find this commit. Is it OFED?
 
-That would be a fairly simple conversion and document better
-what we actually do here: the down() looks like a simple mutex,
-which it isn't.
+> Linux localhost 4.8.4 #3 SMP Tue Oct 25 13:28:15 MDT 2016 x86_64
+> x86_64 x86_64 GNU/Linux
+>
+> # mstflint -d 02:00.0 q
+> Image type:      FS2
+> FW Version:      2.35.5100
+> Rom Info:        type=PXE version=3.4.648 devid=4099
+> Device ID:       4099
+> Description:     Node             Port1            Port2            Sys image
+> GUIDs:           0cc47affff4fe9fc 0cc47affff4fe9fd 0cc47affff4fe9fe
+> 0cc47affff4fe9ff
+> MACs:                                 0cc47a4fe9fd     0cc47a4fe9fe
+> VSD:             n/a
+> PSID:            SM_2221000001000
+>
+> [Tue Oct 25 13:40:21 2016] mlx4_core: unknown parameter 'roce_mode' ignored
+> [Tue Oct 25 13:40:21 2016] mlx4_core: unknown parameter 'roce_mode' ignored
+>
+> # modinfo mlx4_core
+> filename:
+> /lib/modules/4.8.4/kernel/drivers/net/ethernet/mellanox/mlx4/mlx4_core.ko
+> version:        2.2-1
+> license:        Dual BSD/GPL
+> description:    Mellanox ConnectX HCA low-level driver
+> author:         Roland Dreier
+> srcversion:     BB58E84E637E4E5EC69D04E
+> alias:          pci:v000015B3d00001010sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000100Fsv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000100Esv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000100Dsv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000100Csv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000100Bsv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000100Asv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001009sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001008sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001007sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001006sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001005sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001004sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001003sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00001002sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000676Esv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006746sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006764sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000675Asv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006372sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006750sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006368sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000673Csv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006732sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006354sv*sd*bc*sc*i*
+> alias:          pci:v000015B3d0000634Asv*sd*bc*sc*i*
+> alias:          pci:v000015B3d00006340sv*sd*bc*sc*i*
+> depends:
+> intree:         Y
+> vermagic:       4.8.4 SMP mod_unload
+> parm:           debug_level:Enable debug tracing if > 0 (int)
+> parm:           msi_x:attempt to use MSI-X if nonzero (int)
+> parm:           num_vfs:enable #num_vfs functions if num_vfs > 0
+> num_vfs=port1,port2,port1+2 (array of byte)
+> parm:           probe_vf:number of vfs to probe by pf driver (num_vfs > 0)
+> probe_vf=port1,port2,port1+2 (array of byte)
+> parm:           log_num_mgm_entry_size:log mgm size, that defines the
+> num of qp per mcg, for example: 10 gives 248.range: 7 <=
+> log_num_mgm_entry_size <= 12. To activate device managed flow steering
+> when available, set to
+> -1 (int)
+> parm:           enable_64b_cqe_eqe:Enable 64 byte CQEs/EQEs when the
+> FW supports this (default: True) (bool)
+> parm:           enable_4k_uar:Enable using 4K UAR. Should not be
+> enabled if have VFs which do not support 4K UARs (default: false)
+> (bool)
+> parm:           log_num_mac:Log2 max number of MACs per ETH port (1-7) (int)
+> parm:           log_num_vlan:Log2 max number of VLANs per ETH port (0-7) (int)
+> parm:           use_prio:Enable steering by VLAN priority on ETH ports
+> (deprecated) (bool)
+> parm:           log_mtts_per_seg:Log2 number of MTT entries per
+> segment (1-7) (int)
+> parm:           port_type_array:Array of port types: HW_DEFAULT (0) is
+> default 1 for IB, 2 for Ethernet (array of int)
+> parm:           enable_qos:Enable Enhanced QoS support (default: on) (bool)
+> parm:           internal_err_reset:Reset device on internal errors if
+> non-zero (default 1) (int)
+>
+> Thanks,
+> Robert LeBlanc
+>
 
-In terms of efficiency, the wait_event() is actually better
-here for the common case that the semaphore is not contented
-as it only needs a single atomic operation and a branch
-instead of an external function call and a spinlock in down().
-However, the wake_up() is slightly better than atomic_dec()+up()
-as it avoids the additional atomic.
+Regards,
+Matan
 
-	Arnd
+> [0] https://community.mellanox.com/docs/DOC-1444
+> [1] http://www.mellanox.com/related-docs/prod_adapter_cards/PB_ConnectX3_VPI_Card.pdf
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
