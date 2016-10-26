@@ -1,28 +1,86 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v4 4/8] nvme-rdma: use rdma connection reject helper functions
-Date: Wed, 26 Oct 2016 14:51:02 -0500
-Message-ID: <07fd01d22fc2$48178eb0$d846ac10$@opengridcomputing.com>
-References: <cover.1477426743.git.swise@opengridcomputing.com> <35db2feb4dcac92924992d5655630aa70972ad00.1477426743.git.swise@opengridcomputing.com> <62db5521-9c15-146b-9057-2a22658fa210@sandisk.com> <07d201d22fc0$9c189a10$d449ce30$@opengridcomputing.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH v4 0/12] Fix race conditions related to stopping block layer
+ queues
+Date: Wed, 26 Oct 2016 15:49:12 -0700
+Message-ID: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <07d201d22fc0$9c189a10$d449ce30$@opengridcomputing.com>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-block-owner@vger.kernel.org>
+Sender: linux-block-owner@vger.kernel.org
+To: Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hey Bart, shall I add a reviewed-by tag from you for this patch?
-> 
+Hello Jens,
 
-I went ahead and sent out v5...
+Multiple block drivers need the functionality to stop a request queue 
+and to wait until all ongoing request_fn() / queue_rq() calls have 
+finished without waiting until all outstanding requests have finished. 
+Hence this patch series that introduces the blk_mq_quiesce_queue() 
+function. The dm-mq, SRP and NVMe patches in this patch series are three 
+examples of where these functions are useful. These patches have been 
+tested on top of kernel v4.9-rc1. The following tests have been run to 
+verify this patch series:
+- Mike's mptest suite that stress-tests dm-multipath.
+- My own srp-test suite that stress-tests SRP on top of dm-multipath.
+- fio on top of the NVMeOF host driver that was connected to the NVMeOF
+   target driver on the same host.
+- Laurence verified the previous version (v3) of this patch series by
+   running it through the Red Hat SRP and NVMe test suites.
 
-Steve
+The changes compared to the third version of this patch series are:
+- Left out the dm changes from the patch that introduces
+   blk_mq_hctx_stopped() because a later patch deletes the changed code
+   from the dm core.
+- Moved the blk_mq_hctx_stopped() declaration from a public to a
+   private block layer header file.
+- Added a new patch that moves more code into
+   blk_mq_direct_issue_request(). This patch avoids that a new function
+   has to be introduced to avoid code duplication.
+- Explained the implemented algorithm in the patch that introduces
+   blk_mq_quiesce_queue() in the description of the patch that
+   introduces this function.
+- Added "select SRCU" to the patch that introduces
+   blk_mq_quiesce_queue() to avoid build failures.
+- Documented the shost argument in the scsi_wait_for_queuecommand()
+   kerneldoc header.
+- Fixed an unintended behavior change in the last patch of this series.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes between v3 and v2:
+- Changed the order of the patches in this patch series.
+- Added several new patches: a patch that avoids that .queue_rq() gets
+   invoked from the direct submission path if a queue has been stopped
+   and also a patch that introduces the helper function
+   blk_mq_hctx_stopped().
+- blk_mq_quiesce_queue() has been reworked (thanks to Ming Lin and Sagi
+   for their feedback).
+- A bool 'kick' argument has been added to blk_mq_requeue_request().
+- As proposed by Christoph, the code that waits for queuecommand() has
+   been moved from the SRP transport driver to the SCSI core.
+
+Changes between v2 and v1:
+- Dropped the non-blk-mq changes from this patch series.
+- Added support for harware queues with BLK_MQ_F_BLOCKING set.
+- Added a call stack to the description of the dm race fix patch.
+- Dropped the non-scsi-mq changes from the SRP patch.
+- Added a patch that introduces blk_mq_queue_stopped() in the dm driver.
+
+The individual patches in this series are:
+
+0001-blk-mq-Do-not-invoke-.queue_rq-for-a-stopped-queue.patch
+0002-blk-mq-Introduce-blk_mq_hctx_stopped.patch
+0003-blk-mq-Introduce-blk_mq_queue_stopped.patch
+0004-blk-mq-Move-more-code-into-blk_mq_direct_issue_reque.patch
+0005-blk-mq-Introduce-blk_mq_quiesce_queue.patch
+0006-blk-mq-Add-a-kick_requeue_list-argument-to-blk_mq_re.patch
+0007-dm-Use-BLK_MQ_S_STOPPED-instead-of-QUEUE_FLAG_STOPPE.patch
+0008-dm-Fix-a-race-condition-related-to-stopping-and-star.patch
+0009-SRP-transport-Move-queuecommand-wait-code-to-SCSI-co.patch
+0010-SRP-transport-scsi-mq-Wait-for-.queue_rq-if-necessar.patch
+0011-nvme-Use-BLK_MQ_S_STOPPED-instead-of-QUEUE_FLAG_STOP.patch
+0012-nvme-Fix-a-race-condition-related-to-stopping-queues.patch
+
+Thanks,
+
+Bart.
