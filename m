@@ -1,43 +1,41 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH 1/2] mm: add locked parameter to get_user_pages_remote()
-Date: Thu, 27 Oct 2016 12:59:04 +0200
-Message-ID: <20161027105903.GI6454@dhcp22.suse.cz>
-References: <20161027095141.2569-1-lstoakes@gmail.com>
- <20161027095141.2569-2-lstoakes@gmail.com>
- <20161027105527.GG6454@dhcp22.suse.cz>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
+Date: Thu, 27 Oct 2016 05:32:19 -0700
+Message-ID: <20161027123219.GA757@infradead.org>
+References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
+ <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
+ <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
+ <20161020232239.GQ23194@dastard>
+ <20161021095714.GA12209@infradead.org>
+ <76e957c9-8002-5a46-8111-269bb0401718@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161027105527.GG6454@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org
+In-Reply-To: <76e957c9-8002-5a46-8111-269bb0401718-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, "Raj,
+ Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 27-10-16 12:55:27, Michal Hocko wrote:
-> On Thu 27-10-16 10:51:40, Lorenzo Stoakes wrote:
-> > This patch adds a int *locked parameter to get_user_pages_remote() to allow
-> > VM_FAULT_RETRY faulting behaviour similar to get_user_pages_[un]locked().
-> > 
-> > Taking into account the previous adjustments to get_user_pages*() functions
-> > allowing for the passing of gup_flags, we are now in a position where
-> > __get_user_pages_unlocked() need only be exported for his ability to allow
-> > VM_FAULT_RETRY behaviour, this adjustment allows us to subsequently unexport
-> > __get_user_pages_unlocked() as well as allowing for future flexibility in the
-> > use of get_user_pages_remote().
+On Thu, Oct 27, 2016 at 01:22:49PM +0300, Sagi Grimberg wrote:
+> Christoph, did you manage to leap to the future and solve the
+> RDMA persistency hole? :)
 > 
-> I would also add that this shouldn't introduce any functional change.
+> e.g. what happens with O_DSYNC in this model? Or you did
+> a message exchange for commits?
 
-Forgot to mention that this also opens doors to change other g_u_p_r
-callers to allow FAULT_RETRY logic.
-
--- 
-Michal Hocko
-SUSE Labs
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Yes, pNFS calls this the layoutcommit.  That being said once we get a RDMA
+commit or flush operation we could easily make the layoutcommit optional
+for some operations.  There already is a precedence for the in the
+flexfiles layout specification.
