@@ -1,192 +1,124 @@
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: [PATCH v2 1/2] mm: add locked parameter to get_user_pages_remote()
-Date: Thu, 27 Oct 2016 21:34:02 +0100
-Message-ID: <20161027203403.31708-2-lstoakes@gmail.com>
-References: <20161027203403.31708-1-lstoakes@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161027203403.31708-1-lstoakes@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: Michal Hocko <mhocko@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org, Lorenzo Stoakes <lstoakes@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core v2 4/4] redhat/spec: build split rpm packages
+Date: Thu, 27 Oct 2016 15:10:59 -0600
+Message-ID: <20161027211059.GA7224@obsidianresearch.com>
+References: <20161014192136.11731-1-jarod@redhat.com>
+ <20161020153357.27286-1-jarod@redhat.com>
+ <20161020153357.27286-5-jarod@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161020153357.27286-5-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds an int *locked parameter to get_user_pages_remote() to allow
-VM_FAULT_RETRY faulting behaviour similar to get_user_pages_[un]locked().
+On Thu, Oct 20, 2016 at 11:33:57AM -0400, Jarod Wilson wrote:
+> @@ -7,10 +7,11 @@ Summary: RDMA core userspace libraries and daemons
+>  #  providers/ipathverbs/ Dual licensed using a BSD license with an extra patent clause
+>  #  providers/rxe/ Incorporates code from ipathverbs and contains the patent clause
+>  #  providers/hfi1verbs Uses the 3 Clause BSD license
+> -License: (GPLv2 or BSD) and (GPLv2 or PathScale-BSD)
+> +License: GPLv2 or BSD
 
-It additionally clears the way for __get_user_pages_unlocked() to be unexported
-as its sole remaining useful characteristic was to allow for VM_FAULT_RETRY
-behaviour when faulting in pages.
+Is this Ok? The Fedora guidelines I read suggested the PathScale
+license would need to be assigned a short tag, and I'd be surprised if
+'BSD' is the right tag due to the patent stuff..
 
-It should not introduce any functional changes, however it does allow for
-subsequent changes to get_user_pages_remote() callers to take advantage of
-VM_FAULT_RETRY.
+>  Url: http://openfabrics.org/
 
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
----
-v2: updated description
+I guess we should change this url to
+https://github.com/linux-rdma/rdma-core ?
 
- drivers/gpu/drm/etnaviv/etnaviv_gem.c   |  2 +-
- drivers/gpu/drm/i915/i915_gem_userptr.c |  2 +-
- drivers/infiniband/core/umem_odp.c      |  2 +-
- fs/exec.c                               |  2 +-
- include/linux/mm.h                      |  2 +-
- kernel/events/uprobes.c                 |  4 ++--
- mm/gup.c                                | 12 ++++++++----
- mm/memory.c                             |  2 +-
- security/tomoyo/domain.c                |  2 +-
- 9 files changed, 17 insertions(+), 13 deletions(-)
+>  Source: rdma-core-%{version}.tgz
+> -BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+> +# https://github.com/linux-rdma/rdma-core
+> +BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem.c b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-index 0370b84..0c69a97f 100644
---- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-+++ b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-@@ -763,7 +763,7 @@ static struct page **etnaviv_gem_userptr_do_get_pages(
- 	down_read(&mm->mmap_sem);
- 	while (pinned < npages) {
- 		ret = get_user_pages_remote(task, mm, ptr, npages - pinned,
--					    flags, pvec + pinned, NULL);
-+					    flags, pvec + pinned, NULL, NULL);
- 		if (ret < 0)
- 			break;
+I always wondered why there was so much variability in spec files
+here.. I followed the Fedora guidelines, should we copy the above into
+the other spec file?
 
-diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
-index c6f780f..836b525 100644
---- a/drivers/gpu/drm/i915/i915_gem_userptr.c
-+++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
-@@ -522,7 +522,7 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
- 					 obj->userptr.ptr + pinned * PAGE_SIZE,
- 					 npages - pinned,
- 					 flags,
--					 pvec + pinned, NULL);
-+					 pvec + pinned, NULL, NULL);
- 				if (ret < 0)
- 					break;
+> @@ -19,20 +20,15 @@ BuildRequires: pkgconfig
+>  BuildRequires: pkgconfig(libnl-3.0)
+>  BuildRequires: pkgconfig(libnl-route-3.0)
+>  BuildRequires: valgrind-devel
+> +BuildRequires: libnl3-devel
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 1f0fe32..6b079a3 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -578,7 +578,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
- 		 */
- 		npages = get_user_pages_remote(owning_process, owning_mm,
- 				user_virt, gup_num_pages,
--				flags, local_page_list, NULL);
-+				flags, local_page_list, NULL, NULL);
- 		up_read(&owning_mm->mmap_sem);
+?
 
- 		if (npages < 0)
-diff --git a/fs/exec.c b/fs/exec.c
-index 4e497b9..2cf049d 100644
---- a/fs/exec.c
-+++ b/fs/exec.c
-@@ -209,7 +209,7 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
- 	 * doing the exec and bprm->mm is the new process's mm.
- 	 */
- 	ret = get_user_pages_remote(current, bprm->mm, pos, 1, gup_flags,
--			&page, NULL);
-+			&page, NULL, NULL);
- 	if (ret <= 0)
- 		return NULL;
+Isn't pkgconfig(libnl-3.0) the same thing?
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index a92c8d7..cc15445 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1274,7 +1274,7 @@ extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
- long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 			    unsigned long start, unsigned long nr_pages,
- 			    unsigned int gup_flags, struct page **pages,
--			    struct vm_area_struct **vmas);
-+			    struct vm_area_struct **vmas, int *locked);
- long get_user_pages(unsigned long start, unsigned long nr_pages,
- 			    unsigned int gup_flags, struct page **pages,
- 			    struct vm_area_struct **vmas);
-diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
-index f9ec9ad..215871b 100644
---- a/kernel/events/uprobes.c
-+++ b/kernel/events/uprobes.c
-@@ -301,7 +301,7 @@ int uprobe_write_opcode(struct mm_struct *mm, unsigned long vaddr,
- retry:
- 	/* Read the page with vaddr into memory */
- 	ret = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &old_page,
--			&vma);
-+			&vma, NULL);
- 	if (ret <= 0)
- 		return ret;
+>%define systemd_dep systemd-units
+>%if 0%{?fedora} >= 18
+>%define systemd_dep systemd
+>%endif
 
-@@ -1712,7 +1712,7 @@ static int is_trap_at_addr(struct mm_struct *mm, unsigned long vaddr)
- 	 * essentially a kernel access to the memory.
- 	 */
- 	result = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &page,
--			NULL);
-+			NULL, NULL);
- 	if (result < 0)
- 		return result;
+The source package probably doesn't even build on FC 18.. can probably
+remove this
 
-diff --git a/mm/gup.c b/mm/gup.c
-index ec4f827..0567851 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -920,6 +920,9 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  *		only intends to ensure the pages are faulted in.
-  * @vmas:	array of pointers to vmas corresponding to each page.
-  *		Or NULL if the caller does not require them.
-+ * @locked:	pointer to lock flag indicating whether lock is held and
-+ *		subsequently whether VM_FAULT_RETRY functionality can be
-+ *		utilised. Lock must initially be held.
-  *
-  * Returns number of pages pinned. This may be fewer than the number
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-@@ -963,10 +966,10 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
- long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
--		struct vm_area_struct **vmas)
-+		struct vm_area_struct **vmas, int *locked)
- {
- 	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
--				       NULL, false,
-+				       locked, true,
- 				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
- }
- EXPORT_SYMBOL(get_user_pages_remote);
-@@ -974,8 +977,9 @@ EXPORT_SYMBOL(get_user_pages_remote);
- /*
-  * This is the same as get_user_pages_remote(), just with a
-  * less-flexible calling convention where we assume that the task
-- * and mm being operated on are the current task's.  We also
-- * obviously don't pass FOLL_REMOTE in here.
-+ * and mm being operated on are the current task's and don't allow
-+ * passing of a locked parameter.  We also obviously don't pass
-+ * FOLL_REMOTE in here.
-  */
- long get_user_pages(unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
-diff --git a/mm/memory.c b/mm/memory.c
-index e18c57b..2f3949b 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3883,7 +3883,7 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
- 		struct page *page = NULL;
+> +Summary: InfiniBand Communication Manager Assistant
+> +Requires(post): %{systemd_dep}
+> +Requires(preun): %{systemd_dep}
+> +Requires(postun): %{systemd_dep}
 
- 		ret = get_user_pages_remote(tsk, mm, addr, 1,
--				gup_flags, &page, &vma);
-+				gup_flags, &page, &vma, NULL);
- 		if (ret <= 0) {
- #ifndef CONFIG_HAVE_IOREMAP_PROT
- 			break;
-diff --git a/security/tomoyo/domain.c b/security/tomoyo/domain.c
-index 682b73a..838ffa7 100644
---- a/security/tomoyo/domain.c
-+++ b/security/tomoyo/domain.c
-@@ -881,7 +881,7 @@ bool tomoyo_dump_page(struct linux_binprm *bprm, unsigned long pos,
- 	 * the execve().
- 	 */
- 	if (get_user_pages_remote(current, bprm->mm, pos, 1,
--				FOLL_FORCE, &page, NULL) <= 0)
-+				FOLL_FORCE, &page, NULL, NULL) <= 0)
- 		return false;
- #else
- 	page = bprm->page[pos / PAGE_SIZE];
+I suppose we need these and related in the other spec file too?
+Looks like this spec file isn't going to work on C6, so you can
+probably drop the other systemd compat stuff:
+
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -202,13 +202,6 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
+ 
+ %build
+ 
+-# Detect if systemd is supported on this system
+-%if 0%{?_unitdir:1}
+-%define my_unitdir %{_unitdir}
+-%else
+-%define my_unitdir /tmp/
+-%endif
+-
+ # New RPM defines _rundir, usually as /run
+ %if 0%{?_rundir:1}
+ %else
+@@ -228,7 +221,7 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
+          -DCMAKE_INSTALL_INFODIR:PATH=%{_infodir} \
+          -DCMAKE_INSTALL_MANDIR:PATH=%{_mandir} \
+          -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
+-        -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{my_unitdir} \
++        -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{_unitdir} \
+         -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
+         -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
+         -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version}
+@@ -276,8 +269,6 @@ install -D -m0644 redhat/srp_daemon.service %{buildroot}%{_unitdir}/
+ 
+ %if 0%{?_unitdir:1}
+ rm -rf %{buildroot}/%{_initrddir}/
+-%else
+-rm -rf %{buildroot}/%{my_unitdir}/
+ %endif
+ 
+ %post -p /sbin/ldconfig
+
+> +%package -n librdmacm-utils
+> +Summary: Examples for the librdmacm library
+> +Requires: librdmacm%{?_isa} = %{version}-%{release}
+
+Why the requires? Shouldn't auto shlib dependencies take care of that?
+
+Anyhow, this all looks fine to me, I put a branch here, with one
+change to make the debian packaging work after the README.md change:
+
+https://github.com/jgunthorpe/rdma-plumbing/tree/redhat-packaging
+
+If you want to make any final adjustments let me know, otherwise I
+will send this on..
+
+Jason
 --
-2.10.1
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
