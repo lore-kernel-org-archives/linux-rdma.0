@@ -1,41 +1,81 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
-Date: Thu, 27 Oct 2016 05:32:19 -0700
-Message-ID: <20161027123219.GA757@infradead.org>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
- <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
- <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
- <20161020232239.GQ23194@dastard>
- <20161021095714.GA12209@infradead.org>
- <76e957c9-8002-5a46-8111-269bb0401718@grimberg.me>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [linux-rdma/rdma-core] libqedr various fixes (#27)
+Date: Thu, 27 Oct 2016 16:31:17 +0300
+Message-ID: <20161027133117.GF3617@leon.nu>
+References: <linux-rdma/rdma-core/pull/27@github.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="A9z/3b/E4MkkD+7G"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <76e957c9-8002-5a46-8111-269bb0401718-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, "Raj,
- Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <linux-rdma/rdma-core/pull/27-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2016 at 01:22:49PM +0300, Sagi Grimberg wrote:
-> Christoph, did you manage to leap to the future and solve the
-> RDMA persistency hole? :)
-> 
-> e.g. what happens with O_DSYNC in this model? Or you did
-> a message exchange for commits?
 
-Yes, pNFS calls this the layoutcommit.  That being said once we get a RDMA
-commit or flush operation we could easily make the layoutcommit optional
-for some operations.  There already is a precedence for the in the
-flexfiles layout specification.
+--A9z/3b/E4MkkD+7G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Oct 25, 2016 at 05:36:43AM -0700, ramranix wrote:
+> Hi Jason/Doug,
+> Following your comments I have fixed several issues.
+> Thank you for pointing them out,
+> Ram
+
+Thanks, applied.
+
+>
+> You can view, comment on, or merge this pull request online at:
+>
+>   https://github.com/linux-rdma/rdma-core/pull/27
+>
+> -- Commit Summary --
+>
+>   * libqedr: set the HCA table to static const type
+>   * libqedr: consistent verb declarations
+>   * libqedr: use PRIx64 for 32-bit compatible debug print
+>
+> -- File Changes --
+>
+>     M providers/qedr/qelr_main.c (2)
+>     M providers/qedr/qelr_verbs.c (6)
+>     M providers/qedr/qelr_verbs.h (58)
+>
+> -- Patch Links --
+>
+> https://github.com/linux-rdma/rdma-core/pull/27.patch
+> https://github.com/linux-rdma/rdma-core/pull/27.diff
+>
+> --
+> You are receiving this because you are subscribed to this thread.
+> Reply to this email directly or view it on GitHub:
+> https://github.com/linux-rdma/rdma-core/pull/27
+
+--A9z/3b/E4MkkD+7G
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYEgGlAAoJEORje4g2clinXEUQAL8jfvyi0tcZeXVHryuKcvQ+
+IRYAh+k+HQi9z8V5BJ0CrMkZ6pJI7i2+zN6MBn+jPz544ERlmgOLqjYxZRlPZX04
+NAIIQMaLMdfZ+SIP9o/zpNpB9W2YcfADJ9iIpSb24WTvvy//iw+mRidYVeFnZoSR
+oxv3KM6Ud6FRgMdF+djPGlNea4vxj2duMfaaZiJCOS3ItbCK14uN9IuupaCXJe25
+GxzrEKLC/QHlclMmRa7RIH1Q8TqCCHoFy6w7Jg64nkyshgLK8TKg+5lCm89EYqt6
+X77eP23GvMHrija3kwIBwQGyr9AZniv48J3yGtkNaNMSZAov4/UPqCvCeCeDYaqT
+NgBIOCpjGN5drD08DXwIBuMRzrKEwnf3dyUoCBusfo08Dnpr5/qxZM0fyep0C5Ps
+Kb1ZXf4N8v7I/35rMmg9ESAabqA4O5UQeFfmtQ/jfgCDbyMAxalpEr9YNVG4WHUN
+qUKSVO5z19v4GswD/+CC/ULA1wzBsCxb0cmNi35iZkowfrOylgl2hB8Hk4Op3FVY
+Fk7C1ZfGwodkvWHTVn8LeJ9Mku+L6esr3oX+6NSmS+IC3BNmJMnebvbHyTdtXzd2
+5oc/c/TrW+J2MBN6aH8gxi21197S7U4AENM0bkv1IQOaLD/X8GQ4DIyXNmK2IXSq
+l0WVrjoZFvW2SAk4FIVE
+=1g4a
+-----END PGP SIGNATURE-----
+
+--A9z/3b/E4MkkD+7G--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
