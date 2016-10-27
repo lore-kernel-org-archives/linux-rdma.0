@@ -1,75 +1,58 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs from kernel space
-Date: Thu, 27 Oct 2016 17:43:15 +0300
-Message-ID: <1477579398-6875-8-git-send-email-matanb@mellanox.com>
-References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] ibsim/Makefile: Add install rpath to linker
+Date: Thu, 27 Oct 2016 10:50:15 -0400
+Message-ID: <e8a8a194-6f12-84d0-3705-e822dd722436@dev.mellanox.co.il>
+References: <1477576531-29723-1-git-send-email-ilyan@dev.mellanox.co.il>
+ <20161027143810.GJ3617@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477579398-6875-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161027143810.GJ3617-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In order to allow compatability header, allow passing
-ib_uverbs_ioctl_hdr and ib_uverbs_attr from kernel space.
+On 10/27/2016 10:38 AM, Leon Romanovsky wrote:
+> On Thu, Oct 27, 2016 at 04:55:31PM +0300, Ilya Nelkenbaum wrote:
+>> From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  ibsim/Makefile | 2 ++
+>>  1 file changed, 2 insertions(+)
+> 
+> Against which tree did you base your code?
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_ioctl.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Upstream ibsim git repo is git://git.openfabrics.org/~halr/ibsim.git
+so I assume Ilya's patch is against this repo.
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 9d56b17..c02b6d5 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -176,10 +176,11 @@ static int uverbs_handle_action(struct ib_uverbs_attr __user *uattr_ptr,
- 	return ret;
- }
- 
--static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
--				struct ib_uverbs_file *file,
--				struct ib_uverbs_ioctl_hdr *hdr,
--				void __user *buf)
-+long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
-+			 struct ib_uverbs_file *file,
-+			 struct ib_uverbs_ioctl_hdr *hdr,
-+			 void __user *buf,
-+			 mm_segment_t oldfs)
- {
- 	const struct uverbs_type *type;
- 	const struct uverbs_action *action;
-@@ -193,6 +194,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 	} *ctx = NULL;
- 	struct uverbs_attr *curr_attr;
- 	size_t ctx_size;
-+	mm_segment_t currentfs = get_fs();
- 
- 	if (!ib_dev)
- 		return -EIO;
-@@ -240,8 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 		goto out;
- 	}
- 
-+	set_fs(oldfs);
- 	err = uverbs_handle_action(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
- 				   file, action, ctx->uverbs_attr_array);
-+	set_fs(currentfs);
- out:
- 	kfree(ctx);
- 	return err;
-@@ -296,7 +300,8 @@ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 		if (!down_read_trylock(&file->close_sem))
- 			return -EIO;
- 		err = ib_uverbs_cmd_verbs(ib_dev, file, &hdr,
--					  (__user void *)arg + sizeof(hdr));
-+					  (__user void *)arg + sizeof(hdr),
-+					  get_fs());
- 		up_read(&file->close_sem);
- 	}
- out:
--- 
-2.7.4
+-- Hal
 
+> 
+> Thanks.
+> 
+>>
+>> diff --git a/ibsim/Makefile b/ibsim/Makefile
+>> index 5d1ac62..ad94651 100644
+>> --- a/ibsim/Makefile
+>> +++ b/ibsim/Makefile
+>> @@ -1,5 +1,7 @@
+>>  progs:=ibsim
+>>
+>> +ibsim_LDFLAGS = "-Wl,-rpath,\$$ORIGIN/../lib"
+>> +
+>>  -include ../defs.mk
+>>
+>>  all: $(progs)
+>> --
+>> 1.8.3.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
