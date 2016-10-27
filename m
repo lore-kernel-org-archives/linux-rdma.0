@@ -1,49 +1,61 @@
-From: "Leon.nu Team" <forwarding-noreply-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: (#256468738) Leon.nu Forwarding Confirmation - Receive Mail from github-bot-2ukJVAZIZ/Y@public.gmane.org
-Date: Thu, 27 Oct 2016 15:43:51 +0300
-Message-ID: <CAJgov6CHdTqku5XgL9ib5brRrjetP26P8sD0a8Jep6bzhtPKug@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
+Date: Thu, 27 Oct 2016 08:51:39 -0600
+Message-ID: <20161027145139.GD6818@obsidianresearch.com>
+References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
+ <1477487048-62256-2-git-send-email-oulijun@huawei.com>
+ <20161026162053.GE24898@obsidianresearch.com>
+ <5811776F.20908@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5811776F.20908-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-github-bot-2ukJVAZIZ/Y@public.gmane.org has requested to automatically forward mail to your email
-address linux-rdma-u79uwXL29TaiAVqoAR/hOA@public.gmane.org
-Confirmation code: 256468738
+On Thu, Oct 27, 2016 at 11:41:35AM +0800, oulijun wrote:
 
-To allow github-bot-2ukJVAZIZ/Y@public.gmane.org to automatically forward mail to your address,
-please click the link below to confirm the request:
+> when startup by DT, the content of device/modalias is
+> of:NinfinibandT<NULL>Chisilicon,hns-roce-v1.  it is long and
+> complex.
 
-https://mail-settings.google.com/mail/vf-%5BANGjdJ8wgP1kuJMRC-W3Eu8W2nzBJDv__Tiirbq0DAVYdmEbyAYurF_gz_vRGbOXxMGxqUnGjAWxAIMxag3UkSMCdtK7M2muHWem9K1BaA%5D-XWkrAcNY85I4lyvBsMwmMsH9aNM
+If you want to match the hardware then properly parsing the mod alias
+is the right way to do it.
 
-If you click the link and it appears to be broken, please copy and paste it
-into a new browser window. If you aren't able to access the link, you
-can send the confirmation code
-256468738 to github-bot-J5PeXqN+njc@public.gmane.org
+> the content of device/of_node/compatible is hisilicon,hns-roce-v1
 
-Thanks for using Leon.nu!
+No, it is more complex than that, future DTs may have a list for
+instance, just a string match is not good enough
 
-Sincerely,
+> when startup by APCI, the content of device/modalias is
+> acpi:HISI00D1:
 
-The Leon.nu Team
+Also may be more complex..
 
-If you do not approve of this request, no further action is required.
-github-bot-2ukJVAZIZ/Y@public.gmane.org cannot automatically forward messages to your email address
-unless you confirm the request by clicking the link above. If you accidentally
-clicked the link, but you do not want to allow github-bot-2ukJVAZIZ/Y@public.gmane.org to
-automatically forward messages to your address, click this link to cancel this
-verification:
-https://mail-settings.google.com/mail/uf-%5BANGjdJ9rho0HNGa3P263e2oqwjd_mIXo61TjXWxl9YyTyySBZaE0opaqx3-FWI7zQTVVxQlS5lcdyRvZPnlaSpltYxQ9AN8vzgSu51BQug%5D-XWkrAcNY85I4lyvBsMwmMsH9aNM
+>   if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
+> 	...
+>   if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
+>  	...
 
-To learn more about why you might have received this message, please
-visit: http://support.google.com/mail/bin/answer.py?answer=184973.
+You can also match PCI with modalias.
 
-Please do not respond to this message. If you'd like to contact the
-Google.com Team, please log in to your account and click 'Help' at
-the top of any page. Then, click 'Contact Us' along the bottom of the
-Help Center.
+> > But I wonder if this isn't generically better to be
+> > 
+> >  last_dir(readlink("device/driver")) == "hns"
+> > 
+
+> I think it is not insteaded. because it will be find the hns in the
+> path(device/driver)
+
+I said readlink, which will return something like '../../../../bus/platform/drivers/hhns'
+
+So just detect the driver is calld hhns and let the kernel deal with
+figuring it out.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
