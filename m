@@ -1,187 +1,72 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI V5 00/10] SG-based RDMA ABI Proposal
-Date: Thu, 27 Oct 2016 17:43:08 +0300
-Message-ID: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
+Subject: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs from kernel space
+Date: Thu, 27 Oct 2016 17:43:15 +0300
+Message-ID: <1477579398-6875-8-git-send-email-matanb@mellanox.com>
+References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1477579398-6875-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following patch set comes to enrich security model as a follow up
-to commit e6bd18f57aad ('IB/security: Restrict use of the write() interface').
+In order to allow compatability header, allow passing
+ib_uverbs_ioctl_hdr and ib_uverbs_attr from kernel space.
 
-DISCLAIMER:
-These patches are far from being completed. They present working init_ucontext
-and query_device (both regular and extended version). In addition, they are
-given as a basis of discussions.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_ioctl.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-NOT ALL COMMENTS GIVEN ON PREVIOUS VERSIONS ARE HANDLED IN THIS SERIES,
-SOME OF THEM WILL BE HANDLED IN THE FUTURE.
-
-The ideas presented here are based on our previous series in addition to some
-ideas presented in OFVWG and Sean's series.
-
-This patch series add ioctl() interface to the existing write() interface and
-provide an easy route to backport this change to legacy supported systems.
-Analyzing the current uverbs role in dispatching and parsing commands, we find
-that:
-(a) uverbs validates the basic properties of the command
-(b) uverbs is responsible of doing all the IDR and uobject management and
-    locking. It's also responsible of handling completion FDs.
-(c) uverbs transforms the user<-->kernel ABI to kernel API.
-
-(a) and (b) are valid for every kABI. Although the nature of commands could
-change, they still have to be validated and transform to kernel pointers.
-In order to avoid duplications between the various drivers, we would like to
-keep (a) and (b) as shared code.
-
-In addition, this is a good time to expand the ABI to be more scalable, so we
-added a few goals:
-(1) Command's attributes shall be extensible in an easy one. Either by allowing
-    drivers to have their own extensible set of attributes or core code
-    extensible attributes. Moreover, driver's specific attributes could some
-    day become core's standard attributes. We would like to still support
-    old user-space while avoid duplicating the code in kernel.
-(2) Each driver may have specific type system (i.e QP, CQ, ....). It may
-    or may not even implement the standard type system. It could extend this
-    type system in the future. Try to avoid duplicating existing types or
-    actions.
-(3) Do not change or recompile driver libraries and don't copy their data.
-(4) Efficient dispatching.
-
-Thus, in order to allow this flexibility, we decide giving (a) and (b) as a
-common infrastructure, but use per-driver guidelines in order to do that
-parsing and uobject management. Handlers are also set by the drivers
-themselves (though they can point to either shared common code) or
-driver specific code.
-
-Since types are no longer enforced by the common infrastructure, there is no
-point of pre-allocating common IDR types in the common code. Instead, we
-provide an API for driver to add new types. We use one IDR per driver
-for all its types. The driver declared all its supported types, their
-free function and release order. After that, all uboject, exclusive access
-and types are handled automatically for the driver by the infrastructure.
-
-Scatter gather was chosen in order to allow us not to recompile user space
-drivers. By using pointers to driver specific data, we could just use it
-without introduce copying data and without changing the user-space driver at
-all.
-
-We chose to go with non blocking lock user objects. When exclusive
-(WRITE or DESTROY) access is required, we dispatch the action if and only if
-no other action needs this object as well. Otherwise, -EBUSY is returned to
-the user-space. Device removal is synced with SRCU as of today.
-If we were using locks, we would have need to sort the given user-space handles.
-Otherwise, a user-space application may result in causing a deadlock.
-Moving to a non blocking lock based behaviour, the dispatching in kernel
-becomes more efficient.
-
-We implement a compatibility layer between the old write implementation and
-the new IOCTL based implementation by:
-(a) Create IOCTL header and attributes descriptors.
-(b) The attribute descriptors are mapped straight to the user-space supplied
-    buffers. We expect that every subset of consecutive fields in the old ABI
-    could be directly mapped to an attribute in the new ABI.
-(c) We pass the DS of the headers to the IOCTL processing command.
-(d) The IOCTL processing command parses the headers. It then move to USER_DS
-    handles the data and then returns to the original DS.
-
-Further uverbs related subsystem (such as RDMA-CM) may use other fds or use
-other ioctl codes.
-
-Note, we might switch to submitting one task (i.e - change locking schema) once
-the concepts are more mature.
-
-This series is based on Doug's k.o/for-4.9-fixed branch + Leon's [0] series.
-A partially working libibverbs code, which is still based on the stand-alone
-libibverbs git could be found in [1].
-
-Regards,
-Liran, Haggai, Leon and Matan
-
-[0] RDMA/core: Unify style of IOCTL commands series
-[1] https://github.com/matanb10/libibverbs/tree/abi_poc1
-
-TODO:
-1. Check other models for implementing FDs (as suggested in OFVWG).
-2. Currently, this code only works with the new ioctl based libibverbs.
-   Make this compatible with the old version.
-
-Changes from V4:
-1. Rebased over Doug's k.o/for-4.9-fixed branch.
-2. Added create_qp and modify_qp commands.
-3. Added libibverbs POC code. Started implementing the bits required for
-   ibv_rc_pingpong.
-4. Added a patch that puts the foundations of a compatibility layer
-   between write commands and ioctl commands. This has some limitations
-   of which every subset of the old write ABI should be directly mapped
-   to an attribute of the new ABI.
-5. Implement write's get_context using this compatibility layer.
-
-Changes from V3:
-1. Add create_cq and create_comp_channel.
-2. Add FD as ib_uobject into the type system.
-
-Changes from V2:
-1. Use types declerations in order to declare release order and free function
-2. Allow the driver to extend and use existing building blocks in any level:
-        a. Add more types
-        b. Add actions to exsiting types
-        c. Add attributes to existing actions (existed in V2)
-   Such a driver will only duplicate structs which it actually changed.
-3. Fixed bugs in ucontext teardown and type allocation/locking.
-4. Add reg_mr and init_pd
-
-Changes from V1:
-1. Refined locking system
-	a. try_read_lock and write lock to sync exclusive access
-	b. SRCU to sync device removal from commands execution
-	c. Future rwsem to sync close context from commands execution
-2. Added temporary udata usage for vendor's data
-3. Add query_device and init_ucontext command with mlx5 implementation
-4. Fixed bugs in ioctl dispatching
-5. Change callbacks to get ib_uverbs_file instead of ucontext
-6. Add general types initialization and cleanups
-
-Leon Romanovsky (1):
-  RDMA/core: Refactor IDR to be per-device
-
-Matan Barak (9):
-  RDMA/core: Add support for custom types
-  RDMA/core: Add new ioctl interface
-  RDMA/core: Add initialize and cleanup of common types
-  RDMA/core: Add uverbs types, actions, handlers and attributes
-  IB/mlx5: Implement common uverb objects
-  IB/core: Support getting IOCTL header/SGEs from kernel space
-  IB/core: Implement compatibility layer for get context command
-  IB/core: Add create_qp command to the new ABI
-  IB/core: Add modify_qp command to the new ABI
-
- drivers/infiniband/core/Makefile           |    3 +-
- drivers/infiniband/core/core_priv.h        |   14 +
- drivers/infiniband/core/device.c           |   18 +
- drivers/infiniband/core/rdma_core.c        |  505 ++++++++++++
- drivers/infiniband/core/rdma_core.h        |   77 ++
- drivers/infiniband/core/uverbs.h           |   38 +-
- drivers/infiniband/core/uverbs_cmd.c       |  344 ++++----
- drivers/infiniband/core/uverbs_ioctl.c     |  311 ++++++++
- drivers/infiniband/core/uverbs_ioctl_cmd.c | 1169 ++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c      |  188 ++---
- drivers/infiniband/hw/mlx5/main.c          |    2 +
- include/rdma/ib_verbs.h                    |   33 +-
- include/rdma/uverbs_ioctl.h                |  342 ++++++++
- include/rdma/uverbs_ioctl_cmd.h            |  330 ++++++++
- include/uapi/rdma/ib_user_verbs.h          |   39 +
- include/uapi/rdma/rdma_user_ioctl.h        |   23 +
- 16 files changed, 3093 insertions(+), 343 deletions(-)
- create mode 100644 drivers/infiniband/core/rdma_core.c
- create mode 100644 drivers/infiniband/core/rdma_core.h
- create mode 100644 drivers/infiniband/core/uverbs_ioctl.c
- create mode 100644 drivers/infiniband/core/uverbs_ioctl_cmd.c
- create mode 100644 include/rdma/uverbs_ioctl.h
- create mode 100644 include/rdma/uverbs_ioctl_cmd.h
-
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 9d56b17..c02b6d5 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -176,10 +176,11 @@ static int uverbs_handle_action(struct ib_uverbs_attr __user *uattr_ptr,
+ 	return ret;
+ }
+ 
+-static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+-				struct ib_uverbs_file *file,
+-				struct ib_uverbs_ioctl_hdr *hdr,
+-				void __user *buf)
++long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
++			 struct ib_uverbs_file *file,
++			 struct ib_uverbs_ioctl_hdr *hdr,
++			 void __user *buf,
++			 mm_segment_t oldfs)
+ {
+ 	const struct uverbs_type *type;
+ 	const struct uverbs_action *action;
+@@ -193,6 +194,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 	} *ctx = NULL;
+ 	struct uverbs_attr *curr_attr;
+ 	size_t ctx_size;
++	mm_segment_t currentfs = get_fs();
+ 
+ 	if (!ib_dev)
+ 		return -EIO;
+@@ -240,8 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 		goto out;
+ 	}
+ 
++	set_fs(oldfs);
+ 	err = uverbs_handle_action(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
+ 				   file, action, ctx->uverbs_attr_array);
++	set_fs(currentfs);
+ out:
+ 	kfree(ctx);
+ 	return err;
+@@ -296,7 +300,8 @@ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!down_read_trylock(&file->close_sem))
+ 			return -EIO;
+ 		err = ib_uverbs_cmd_verbs(ib_dev, file, &hdr,
+-					  (__user void *)arg + sizeof(hdr));
++					  (__user void *)arg + sizeof(hdr),
++					  get_fs());
+ 		up_read(&file->close_sem);
+ 	}
+ out:
 -- 
 2.7.4
 
