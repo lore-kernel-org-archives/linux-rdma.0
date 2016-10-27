@@ -1,84 +1,63 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
-Date: Thu, 27 Oct 2016 11:41:35 +0800
-Message-ID: <5811776F.20908@huawei.com>
-References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
- <1477487048-62256-2-git-send-email-oulijun@huawei.com>
- <20161026162053.GE24898@obsidianresearch.com>
+From: Hannes Reinecke <hare@suse.de>
+Subject: Re: [PATCH 01/12] blk-mq: Do not invoke .queue_rq() for a stopped
+ queue
+Date: Thu, 27 Oct 2016 07:47:38 +0200
+Message-ID: <abd81fc9-fcab-4abd-0f28-0d31eee78dbc@suse.de>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <1debcf7f-c950-308b-d297-3e48a77e08d7@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161026162053.GE24898-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1debcf7f-c950-308b-d297-3e48a77e08d7@sandisk.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>, Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lin <ming.l@ssi.samsung.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2016/10/27 0:20, Jason Gunthorpe 写道:
-> On Wed, Oct 26, 2016 at 09:04:02PM +0800, Lijun Ou wrote:
->> +static struct ibv_device *hns_roce_driver_init(const char *uverbs_sys_path,
->> +					       int abi_version)
->> +{
->> +	struct hns_roce_device  *dev;
->> +	char			 value[128];
->> +	int			 i;
->> +
->> +	if (ibv_read_sysfs_file(uverbs_sys_path, "device/modalias",
->> +				value, sizeof(value)) > 0)
->> +		for (i = 0; i < sizeof(acpi_table) / sizeof(acpi_table[0]); ++i)
->> +			if (!strcmp(value, acpi_table[i].hid))
->> +				goto found;
+On 10/27/2016 12:50 AM, Bart Van Assche wrote:
+> The meaning of the BLK_MQ_S_STOPPED flag is "do not call
+> .queue_rq()". Hence modify blk_mq_make_request() such that requests
+> are queued instead of issued if a queue has been stopped.
 > 
-> You shouldn't need to do both modalias and compatible, there should be
-> an acceptable modalias for the DT version too.
+> Reported-by: Ming Lei <tom.leiming@gmail.com>
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> Reviewed-by: Ming Lei <tom.leiming@gmail.com>
+> Cc: Hannes Reinecke <hare@suse.com>
+> Cc: Sagi Grimberg <sagi@grimberg.me>
+> Cc: Johannes Thumshirn <jthumshirn@suse.de>
+> Cc: <stable@vger.kernel.org>
+> ---
+>  block/blk-mq.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-when startup by DT, the content of device/modalias is of:NinfinibandT<NULL>Chisilicon,hns-roce-v1.
-it is long and complex. the content of device/of_node/compatible is hisilicon,hns-roce-v1
-when startup by APCI, the content of device/modalias is acpi:HISI00D1:
-Hence, we decide to adopt the above approach to  distinguish the device. when adding a device of pcie
-in v2, we will add a condition branch to distinguish it, as follows:
-   if (ibv_read_sysfs_file(uverbs_sys_path, "device/modalias",
-			value, sizeof(value)) > 0)
-		for (i = 0; i < sizeof(acpi_table) / sizeof(acpi_table[0]); ++i)
-		if (!strcmp(value, acpi_table[i].hid))
-			goto found;
-
-....
-  if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
-	...
-  if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
- 	...
-
-> But I wonder if this isn't generically better to be
+> diff --git a/block/blk-mq.c b/block/blk-mq.c
+> index ddc2eed..b5dcafb 100644
+> --- a/block/blk-mq.c
+> +++ b/block/blk-mq.c
+> @@ -1332,9 +1332,9 @@ static blk_qc_t blk_mq_make_request(struct request_queue *q, struct bio *bio)
+>  		blk_mq_put_ctx(data.ctx);
+>  		if (!old_rq)
+>  			goto done;
+> -		if (!blk_mq_direct_issue_request(old_rq, &cookie))
+> -			goto done;
+> -		blk_mq_insert_request(old_rq, false, true, true);
+> +		if (test_bit(BLK_MQ_S_STOPPED, &data.hctx->state) ||
+> +		    blk_mq_direct_issue_request(old_rq, &cookie) != 0)
+> +			blk_mq_insert_request(old_rq, false, true, true);
+>  		goto done;
+>  	}
+>  
 > 
->  last_dir(readlink("device/driver")) == "hns"
-> 
-> instead?
-> Jason
-> 
-I think it is not insteaded. because it will be find the hns in the path(device/driver)
-As follows:
-when startup by DT, the content of device/driver is:
-root@(none)$ cat /sys/class/infiniband/hns_0/device/driver/
-bind module/ unbind
-c4000000.infiniband/ uevent
-root@(none)$ cat /sys/class/infiniband/hns_0/device/driver/
->
+Reviewed-by: Hannes Reinecke <hare@suse.com>
 
-when startup by ACPI, the content of device/driver is:
-root@(none)$ cat /sys/class/infiniband/hns_0/device/driver/
-HISI00D1:00/ bind module/ uevent unbind
-root@(none)$ cat /sys/class/infiniband/hns_0/device/driver/
-cat: read error: Is a directory
+Cheers,
 
-thanks
-Lijun Ou
-> .
-> 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hannes
+-- 
+Dr. Hannes Reinecke		   Teamlead Storage & Networking
+hare@suse.de			               +49 911 74053 688
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: F. Imendörffer, J. Smithard, J. Guild, D. Upmanyu, G. Norton
+HRB 21284 (AG Nürnberg)
