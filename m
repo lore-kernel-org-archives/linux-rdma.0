@@ -1,45 +1,44 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Trouble enabling iSER for ConnectX-4 Lx
-Date: Thu, 27 Oct 2016 14:15:20 -0600
-Message-ID: <CAANLjFrCsWuapKU1-coEj_ro+BcQE_bOGb7d4+VDkEKZRG5aPw@mail.gmail.com>
-References: <CAANLjFr_we+33Nen-NYp1xQPzQ-wbR=GL4LBkEZb9azMUN-_=Q@mail.gmail.com>
- <ba970fe1-52cd-9f8d-c48d-5eac76b5bfa2@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ba970fe1-52cd-9f8d-c48d-5eac76b5bfa2-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: [PATCH v2 0/2] mm: unexport __get_user_pages_unlocked()
+Date: Thu, 27 Oct 2016 21:34:01 +0100
+Message-ID: <20161027203403.31708-1-lstoakes@gmail.com>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Sender: owner-linux-security-module@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Michal Hocko <mhocko@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Installing Mellanox OFED and not just the Ethernet drivers cleared
-things up. We have a handful of patches that are required for products
-we are developing and a few patches that are trying to resolve iSER D
-state issues we are seeing (which may not even be useful while using
-iSER from Mellanox OFED).
+This patch series continues the cleanup of get_user_pages*() functions taking
+advantage of the fact we can now pass gup_flags as we please.
 
-Now I have to see if there will be issues with the Qloic FastLinq card
-with the Mellanox OFED. I don't think we will have both cards in
-production, just as we are trying to settle on hardware and protocols.
+It firstly adds an additional 'locked' parameter to get_user_pages_remote() to
+allow for its callers to utilise VM_FAULT_RETRY functionality. This is necessary
+as the invocation of __get_user_pages_unlocked() in process_vm_rw_single_vec()
+makes use of this and no other existing higher level function would allow it to
+do so.
 
-Thank you,
-Robert LeBlanc
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+Secondly existing callers of __get_user_pages_unlocked() are replaced with the
+appropriate higher-level replacement - get_user_pages_unlocked() if the current
+task and memory descriptor are referenced, or get_user_pages_remote() if other
+task/memory descriptors are referenced (having acquiring mmap_sem.)
+
+Lorenzo Stoakes (2):
+  mm: add locked parameter to get_user_pages_remote()
+  mm: unexport __get_user_pages_unlocked()
+
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c   |  2 +-
+ drivers/gpu/drm/i915/i915_gem_userptr.c |  2 +-
+ drivers/infiniband/core/umem_odp.c      |  2 +-
+ fs/exec.c                               |  2 +-
+ include/linux/mm.h                      |  5 +----
+ kernel/events/uprobes.c                 |  4 ++--
+ mm/gup.c                                | 20 ++++++++++++--------
+ mm/memory.c                             |  2 +-
+ mm/nommu.c                              |  7 +++----
+ mm/process_vm_access.c                  | 12 ++++++++----
+ security/tomoyo/domain.c                |  2 +-
+ virt/kvm/async_pf.c                     | 10 +++++++---
+ virt/kvm/kvm_main.c                     |  5 ++---
+ 13 files changed, 41 insertions(+), 34 deletions(-)
 
 
-On Thu, Oct 27, 2016 at 2:48 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> Hi Robert,
->
-> AFAIK, MLNX_OFED does includes isert only for specific distros.
->
-> This is probably a compat issue between stock isert and MLNX
-> provided RDMA stack.
->
-> Any specific reason not to use upstream (or stock 4.4.27) kernel?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
