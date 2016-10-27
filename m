@@ -1,59 +1,24 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
-Date: Thu, 27 Oct 2016 08:51:39 -0600
-Message-ID: <20161027145139.GD6818@obsidianresearch.com>
-References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
- <1477487048-62256-2-git-send-email-oulijun@huawei.com>
- <20161026162053.GE24898@obsidianresearch.com>
- <5811776F.20908@huawei.com>
+Subject: Re: [PATCH] ibsim/Makefile: Add install rpath to linker
+Date: Thu, 27 Oct 2016 09:00:51 -0600
+Message-ID: <20161027150051.GE6818@obsidianresearch.com>
+References: <1477576531-29723-1-git-send-email-ilyan@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5811776F.20908-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1477576531-29723-1-git-send-email-ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2016 at 11:41:35AM +0800, oulijun wrote:
+On Thu, Oct 27, 2016 at 04:55:31PM +0300, Ilya Nelkenbaum wrote:
+> From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> when startup by DT, the content of device/modalias is
-> of:NinfinibandT<NULL>Chisilicon,hns-roce-v1.  it is long and
-> complex.
+One should never open code rpath like this, it makes distros angry.
 
-If you want to match the hardware then properly parsing the mod alias
-is the right way to do it.
-
-> the content of device/of_node/compatible is hisilicon,hns-roce-v1
-
-No, it is more complex than that, future DTs may have a list for
-instance, just a string match is not good enough
-
-> when startup by APCI, the content of device/modalias is
-> acpi:HISI00D1:
-
-Also may be more complex..
-
->   if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
-> 	...
->   if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
->  	...
-
-You can also match PCI with modalias.
-
-> > But I wonder if this isn't generically better to be
-> > 
-> >  last_dir(readlink("device/driver")) == "hns"
-> > 
-
-> I think it is not insteaded. because it will be find the hns in the
-> path(device/driver)
-
-I said readlink, which will return something like '../../../../bus/platform/drivers/hhns'
-
-So just detect the driver is calld hhns and let the kernel deal with
-figuring it out.
+Use libtool or whatever.
 
 Jason
 --
