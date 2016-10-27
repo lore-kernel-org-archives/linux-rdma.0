@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI V5 08/10] IB/core: Implement compatibility layer for get context command
-Date: Thu, 27 Oct 2016 17:43:16 +0300
-Message-ID: <1477579398-6875-9-git-send-email-matanb@mellanox.com>
+Subject: [RFC ABI V5 10/10] IB/core: Add modify_qp command to the new ABI
+Date: Thu, 27 Oct 2016 17:43:18 +0300
+Message-ID: <1477579398-6875-11-git-send-email-matanb@mellanox.com>
 References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1477579398-6875-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,238 +10,340 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Implement write -> ioctl compatibility layer for ib_uverbs_get_context
-by translating the headers to ioctl headers and invoke the ioctl
-parser.
+Partially tested.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h     |   6 ++
- drivers/infiniband/core/uverbs_cmd.c | 169 +++++++++++++++++------------------
- 2 files changed, 87 insertions(+), 88 deletions(-)
+ drivers/infiniband/core/core_priv.h        |  14 +++
+ drivers/infiniband/core/uverbs_cmd.c       |  14 ---
+ drivers/infiniband/core/uverbs_ioctl_cmd.c | 161 +++++++++++++++++++++++++++++
+ include/rdma/uverbs_ioctl_cmd.h            |  32 ++++++
+ include/uapi/rdma/ib_user_verbs.h          |   7 ++
+ 5 files changed, 214 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index ad4af37..9f9f748 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -84,7 +84,13 @@
-  * released when the CQ is destroyed.
-  */
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 19d499d..fccc7bc 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -153,4 +153,18 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+ 			     struct netlink_callback *cb);
  
-+struct ib_uverbs_ioctl_hdr;
- long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
-+long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
-+			 struct ib_uverbs_file *file,
-+			 struct ib_uverbs_ioctl_hdr *hdr,
-+			 void __user *buf,
-+			 mm_segment_t oldfs);
- 
- struct ib_uverbs_device {
- 	atomic_t				refcount;
++/* Remove ignored fields set in the attribute mask */
++static inline int modify_qp_mask(enum ib_qp_type qp_type, int mask)
++{
++	switch (qp_type) {
++	case IB_QPT_XRC_INI:
++		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
++	case IB_QPT_XRC_TGT:
++		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
++				IB_QP_RNR_RETRY);
++	default:
++		return mask;
++	}
++}
++
+ #endif /* _CORE_PRIV_H */
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 8fc1557..b1baa67 100644
+index b1baa67..f4704bc 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -37,6 +37,8 @@
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <rdma/rdma_user_ioctl.h>
-+#include <rdma/uverbs_ioctl_cmd.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -303,6 +305,55 @@ static void put_xrcd_read(struct ib_uobject *uobj)
- {
- 	put_uobj_read(uobj);
- }
-+
-+static int get_vendor_num_attrs(size_t cmd, size_t resp, int in_len,
-+				int out_len)
-+{
-+	return !!(cmd != in_len) + !!(resp != out_len);
-+}
-+
-+static void init_ioctl_hdr(struct ib_uverbs_ioctl_hdr *hdr,
-+			   struct ib_device *ib_dev,
-+			   size_t num_attrs,
-+			   u16 object_type,
-+			   u16 action)
-+{
-+	hdr->length = sizeof(*hdr) + num_attrs * sizeof(hdr->attrs[0]);
-+	hdr->flags = 0;
-+	hdr->object_type = object_type;
-+	hdr->driver_id = ib_dev->driver_id;
-+	hdr->action = action;
-+	hdr->num_attrs = num_attrs;
-+}
-+
-+static void fill_attr_ptr(struct ib_uverbs_attr *attr, u16 attr_id, u16 len,
-+			  const void * __user source)
-+{
-+	attr->attr_id = attr_id;
-+	attr->len = len;
-+	attr->reserved = 0;
-+	attr->ptr_idr = (__u64)source;
-+}
-+
-+static void fill_hw_attrs(struct ib_uverbs_attr *hw_attrs,
-+			  const void __user *in_buf,
-+			  const void __user *out_buf,
-+			  size_t cmd_size, size_t resp_size,
-+			  int in_len, int out_len)
-+{
-+	if (in_len > cmd_size)
-+		fill_attr_ptr(&hw_attrs[UVERBS_UHW_IN],
-+			      UVERBS_UHW_IN | IB_UVERBS_VENDOR_FLAG,
-+			      in_len - cmd_size,
-+			      in_buf + cmd_size);
-+
-+	if (out_len > resp_size)
-+		fill_attr_ptr(&hw_attrs[UVERBS_UHW_OUT],
-+			      UVERBS_UHW_OUT | IB_UVERBS_VENDOR_FLAG,
-+			      out_len - resp_size,
-+			      out_buf + resp_size);
-+}
-+
- ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 			      struct ib_device *ib_dev,
- 			      const char __user *buf,
-@@ -310,104 +361,46 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- {
- 	struct ib_uverbs_get_context      cmd;
- 	struct ib_uverbs_get_context_resp resp;
--	struct ib_udata                   udata;
--	struct ib_ucontext		 *ucontext;
--	struct file			 *filp;
--	int ret;
-+	struct {
-+		struct ib_uverbs_ioctl_hdr hdr;
-+		struct ib_uverbs_attr  cmd_attrs[GET_CONTEXT_RESP + 1];
-+		struct ib_uverbs_attr  hw_attrs[UVERBS_UHW_OUT + 1];
-+	} ioctl_cmd;
-+	mm_segment_t oldfs = get_fs();
-+	long err;
- 
- 	if (out_len < sizeof resp)
- 		return -ENOSPC;
- 
--	if (copy_from_user(&cmd, buf, sizeof cmd))
-+	if (copy_from_user(&cmd, buf, sizeof(cmd)))
- 		return -EFAULT;
- 
--	mutex_lock(&file->mutex);
--
--	if (file->ucontext) {
--		ret = -EINVAL;
--		goto err;
--	}
--
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+	init_ioctl_hdr(&ioctl_cmd.hdr, ib_dev, ARRAY_SIZE(ioctl_cmd.cmd_attrs) +
-+		       get_vendor_num_attrs(sizeof(cmd), sizeof(resp), in_len,
-+					    out_len),
-+		       UVERBS_TYPE_DEVICE, UVERBS_DEVICE_ALLOC_CONTEXT);
- 
--	ucontext = ib_dev->alloc_ucontext(ib_dev, &udata);
--	if (IS_ERR(ucontext)) {
--		ret = PTR_ERR(ucontext);
-+	/*
-+	 * We have to have a direct mapping between the new format and the old
-+	 * format. It's easily achievable with new attributes.
-+	 */
-+	fill_attr_ptr(&ioctl_cmd.cmd_attrs[GET_CONTEXT_RESP],
-+		      GET_CONTEXT_RESP, sizeof(resp),
-+		      (const void * __user)cmd.response);
-+	fill_hw_attrs(ioctl_cmd.hw_attrs, buf,
-+		      (const void * __user)cmd.response, sizeof(cmd),
-+		      sizeof(resp), in_len, out_len);
-+
-+	set_fs(KERNEL_DS);
-+	err = ib_uverbs_cmd_verbs(ib_dev, file, &ioctl_cmd.hdr,
-+				  ioctl_cmd.cmd_attrs, oldfs);
-+	set_fs(oldfs);
-+
-+	if (err < 0)
- 		goto err;
--	}
--
--	ucontext->device = ib_dev;
--	INIT_LIST_HEAD(&ucontext->pd_list);
--	INIT_LIST_HEAD(&ucontext->mr_list);
--	INIT_LIST_HEAD(&ucontext->mw_list);
--	INIT_LIST_HEAD(&ucontext->cq_list);
--	INIT_LIST_HEAD(&ucontext->qp_list);
--	INIT_LIST_HEAD(&ucontext->srq_list);
--	INIT_LIST_HEAD(&ucontext->ah_list);
--	INIT_LIST_HEAD(&ucontext->wq_list);
--	INIT_LIST_HEAD(&ucontext->rwq_ind_tbl_list);
--	INIT_LIST_HEAD(&ucontext->xrcd_list);
--	INIT_LIST_HEAD(&ucontext->rule_list);
--	rcu_read_lock();
--	ucontext->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
--	rcu_read_unlock();
--	ucontext->closing = 0;
--
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
--	ucontext->umem_tree = RB_ROOT;
--	init_rwsem(&ucontext->umem_rwsem);
--	ucontext->odp_mrs_count = 0;
--	INIT_LIST_HEAD(&ucontext->no_private_counters);
--
--	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING))
--		ucontext->invalidate_range = NULL;
--
--#endif
--
--	resp.num_comp_vectors = file->device->num_comp_vectors;
--
--	ret = get_unused_fd_flags(O_CLOEXEC);
--	if (ret < 0)
--		goto err_free;
--	resp.async_fd = ret;
--
--	filp = ib_uverbs_alloc_event_file(file, ib_dev, 1);
--	if (IS_ERR(filp)) {
--		ret = PTR_ERR(filp);
--		goto err_fd;
--	}
--
--	if (copy_to_user((void __user *) (unsigned long) cmd.response,
--			 &resp, sizeof resp)) {
--		ret = -EFAULT;
--		goto err_file;
--	}
--
--	file->ucontext = ucontext;
--	ucontext->ufile = file;
--
--	fd_install(resp.async_fd, filp);
--
--	mutex_unlock(&file->mutex);
--
--	return in_len;
--
--err_file:
--	ib_uverbs_free_async_event_file(file);
--	fput(filp);
--
--err_fd:
--	put_unused_fd(resp.async_fd);
--
--err_free:
--	put_pid(ucontext->tgid);
--	ib_dev->dealloc_ucontext(ucontext);
- 
- err:
--	mutex_unlock(&file->mutex);
--	return ret;
-+	return err == 0 ? in_len : err;
+@@ -2303,20 +2303,6 @@ out:
+ 	return ret ? ret : in_len;
  }
  
- void uverbs_copy_query_dev_fields(struct ib_device *ib_dev,
+-/* Remove ignored fields set in the attribute mask */
+-static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
+-{
+-	switch (qp_type) {
+-	case IB_QPT_XRC_INI:
+-		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
+-	case IB_QPT_XRC_TGT:
+-		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
+-				IB_QP_RNR_RETRY);
+-	default:
+-		return mask;
+-	}
+-}
+-
+ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
+ 			    struct ib_device *ib_dev,
+ 			    const char __user *buf, int in_len,
+diff --git a/drivers/infiniband/core/uverbs_ioctl_cmd.c b/drivers/infiniband/core/uverbs_ioctl_cmd.c
+index e0c1af9..519b5e3 100644
+--- a/drivers/infiniband/core/uverbs_ioctl_cmd.c
++++ b/drivers/infiniband/core/uverbs_ioctl_cmd.c
+@@ -37,6 +37,7 @@
+ #include <linux/file.h>
+ #include "rdma_core.h"
+ #include "uverbs.h"
++#include "core_priv.h"
+ 
+ int ib_uverbs_std_dist(__u16 *id, void *priv)
+ {
+@@ -917,6 +918,164 @@ DECLARE_UVERBS_ACTION(uverbs_action_create_qp_xrc_tgt, uverbs_create_qp_xrc_tgt_
+ 		      NULL, &uverbs_create_qp_spec);
+ EXPORT_SYMBOL(uverbs_action_create_qp_xrc_tgt);
+ 
++DECLARE_UVERBS_ATTR_SPEC(
++	uverbs_modify_qp_spec,
++	UVERBS_ATTR_IDR(MODIFY_QP_HANDLE, UVERBS_TYPE_QP, UVERBS_IDR_ACCESS_WRITE),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_STATE, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_CUR_STATE, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_EN_SQD_ASYNC_NOTIFY, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_ACCESS_FLAGS, sizeof(__u32)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_PKEY_INDEX, sizeof(__u16)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_PORT, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_QKEY, sizeof(__u32)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_AV, sizeof(struct ib_uverbs_qp_dest)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_PATH_MTU, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_TIMEOUT, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_RETRY_CNT, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_RNR_RETRY, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_RQ_PSN, sizeof(__u32)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_MAX_RD_ATOMIC, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_ALT_PATH, sizeof(struct ib_uverbs_qp_alt_path)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_MIN_RNR_TIMER, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_SQ_PSN, sizeof(__u32)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_MAX_DEST_RD_ATOMIC, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_PATH_MIG_STATE, sizeof(__u8)),
++	UVERBS_ATTR_PTR_IN(MODIFY_QP_DEST_QPN, sizeof(__u32)));
++EXPORT_SYMBOL(uverbs_modify_qp_spec);
++
++int uverbs_modify_qp_handler(struct ib_device *ib_dev,
++			     struct ib_ucontext *ucontext,
++			     struct uverbs_attr_array *common,
++			     struct uverbs_attr_array *vendor,
++			     void *priv)
++{
++	struct ib_udata            uhw;
++	struct ib_qp              *qp;
++	struct ib_qp_attr         *attr;
++	struct ib_uverbs_qp_dest  av;
++	struct ib_uverbs_qp_alt_path alt_path;
++	__u32 attr_mask = 0;
++	int ret;
++
++	if (!common->attrs[MODIFY_QP_HANDLE].valid)
++		return -EINVAL;
++
++	qp = common->attrs[MODIFY_QP_HANDLE].obj_attr.uobject->object;
++	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
++	if (!attr)
++		return -ENOMEM;
++
++#define MODIFY_QP_CPY(_param, _fld, _attr)				\
++	({								\
++		int ret = UVERBS_COPY_FROM(_fld, common, _param);	\
++		if (!ret)						\
++			attr_mask |= _attr;				\
++		ret == -EFAULT ? ret : 0;				\
++	})
++
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_STATE, &attr->qp_state,
++				   IB_QP_STATE);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_CUR_STATE, &attr->cur_qp_state,
++				   IB_QP_CUR_STATE);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_EN_SQD_ASYNC_NOTIFY,
++				   &attr->en_sqd_async_notify,
++				   IB_QP_EN_SQD_ASYNC_NOTIFY);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_ACCESS_FLAGS,
++				   &attr->qp_access_flags, IB_QP_ACCESS_FLAGS);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_PKEY_INDEX, &attr->pkey_index,
++				   IB_QP_PKEY_INDEX);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_PORT, &attr->port_num, IB_QP_PORT);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_QKEY, &attr->qkey, IB_QP_QKEY);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_PATH_MTU, &attr->path_mtu,
++				   IB_QP_PATH_MTU);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_TIMEOUT, &attr->timeout,
++				   IB_QP_TIMEOUT);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_RETRY_CNT, &attr->retry_cnt,
++				   IB_QP_RETRY_CNT);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_RNR_RETRY, &attr->rnr_retry,
++				   IB_QP_RNR_RETRY);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_RQ_PSN, &attr->rq_psn,
++				   IB_QP_RQ_PSN);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_MAX_RD_ATOMIC,
++				   &attr->max_rd_atomic,
++				   IB_QP_MAX_QP_RD_ATOMIC);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_MIN_RNR_TIMER,
++				   &attr->min_rnr_timer, IB_QP_MIN_RNR_TIMER);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_SQ_PSN, &attr->sq_psn,
++				   IB_QP_SQ_PSN);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_MAX_DEST_RD_ATOMIC,
++				   &attr->max_dest_rd_atomic,
++				   IB_QP_MAX_DEST_RD_ATOMIC);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_PATH_MIG_STATE,
++				   &attr->path_mig_state, IB_QP_PATH_MIG_STATE);
++	ret = ret ?: MODIFY_QP_CPY(MODIFY_QP_DEST_QPN, &attr->dest_qp_num,
++				   IB_QP_DEST_QPN);
++
++	if (ret)
++		goto err;
++
++	ret = UVERBS_COPY_FROM(&av, common, MODIFY_QP_AV);
++	if (!ret) {
++		attr_mask |= IB_QP_AV;
++		attr->ah_attr.grh.flow_label        = av.flow_label;
++		attr->ah_attr.grh.sgid_index        = av.sgid_index;
++		attr->ah_attr.grh.hop_limit         = av.hop_limit;
++		attr->ah_attr.grh.traffic_class     = av.traffic_class;
++		attr->ah_attr.dlid		    = av.dlid;
++		attr->ah_attr.sl		    = av.sl;
++		attr->ah_attr.src_path_bits	    = av.src_path_bits;
++		attr->ah_attr.static_rate	    = av.static_rate;
++		attr->ah_attr.ah_flags		    = av.is_global ? IB_AH_GRH : 0;
++		attr->ah_attr.port_num		    = av.port_num;
++	} else if (ret == -EFAULT) {
++		goto err;
++	}
++
++	ret = UVERBS_COPY_FROM(&alt_path, common, MODIFY_QP_ALT_PATH);
++	if (!ret) {
++		attr_mask |= IB_QP_ALT_PATH;
++		attr->alt_ah_attr.grh.flow_label    = alt_path.dest.flow_label;
++		attr->alt_ah_attr.grh.sgid_index    = alt_path.dest.sgid_index;
++		attr->alt_ah_attr.grh.hop_limit     = alt_path.dest.hop_limit;
++		attr->alt_ah_attr.grh.traffic_class = alt_path.dest.traffic_class;
++		attr->alt_ah_attr.dlid		    = alt_path.dest.dlid;
++		attr->alt_ah_attr.sl		    = alt_path.dest.sl;
++		attr->alt_ah_attr.src_path_bits     = alt_path.dest.src_path_bits;
++		attr->alt_ah_attr.static_rate       = alt_path.dest.static_rate;
++		attr->alt_ah_attr.ah_flags	    = alt_path.dest.is_global ? IB_AH_GRH : 0;
++		attr->alt_ah_attr.port_num	    = alt_path.dest.port_num;
++		attr->alt_pkey_index		    = alt_path.pkey_index;
++		attr->alt_port_num		    = alt_path.port_num;
++		attr->alt_timeout		    = alt_path.timeout;
++	} else if (ret == -EFAULT) {
++		goto err;
++	}
++
++	create_udata(vendor, &uhw);
++
++	if (qp->real_qp == qp) {
++		ret = ib_resolve_eth_dmac(qp, attr, &attr_mask);
++		if (ret)
++			goto err;
++		ret = qp->device->modify_qp(qp, attr,
++			modify_qp_mask(qp->qp_type, attr_mask), &uhw);
++	} else {
++		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, attr_mask));
++	}
++
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	kfree(attr);
++	return ret;
++}
++EXPORT_SYMBOL(uverbs_modify_qp_handler);
++
++DECLARE_UVERBS_ACTION(uverbs_action_modify_qp, uverbs_modify_qp_handler, NULL,
++		      &uverbs_modify_qp_spec, &uverbs_uhw_compat_spec);
++
+ DECLARE_UVERBS_ACTIONS(
+ 	uverbs_actions_comp_channel,
+ 	ADD_UVERBS_ACTION_PTR(UVERBS_COMP_CHANNEL_CREATE, &uverbs_action_create_comp_channel),
+@@ -933,6 +1092,7 @@ DECLARE_UVERBS_ACTIONS(
+ 	uverbs_actions_qp,
+ 	ADD_UVERBS_ACTION_PTR(UVERBS_QP_CREATE, &uverbs_action_create_qp),
+ 	ADD_UVERBS_ACTION_PTR(UVERBS_QP_CREATE_XRC_TGT, &uverbs_action_create_qp_xrc_tgt),
++	ADD_UVERBS_ACTION_PTR(UVERBS_QP_MODIFY, &uverbs_action_modify_qp),
+ );
+ EXPORT_SYMBOL(uverbs_actions_qp);
+ 
+@@ -1000,6 +1160,7 @@ DECLARE_UVERBS_TYPES(uverbs_types,
+ 		     ADD_UVERBS_TYPE(UVERBS_TYPE_MR, uverbs_type_mr),
+ 		     ADD_UVERBS_TYPE(UVERBS_TYPE_COMP_CHANNEL, uverbs_type_comp_channel),
+ 		     ADD_UVERBS_TYPE(UVERBS_TYPE_CQ, uverbs_type_cq),
++		     ADD_UVERBS_TYPE(UVERBS_TYPE_QP, uverbs_type_qp),
+ );
+ EXPORT_SYMBOL(uverbs_types);
+ 
+diff --git a/include/rdma/uverbs_ioctl_cmd.h b/include/rdma/uverbs_ioctl_cmd.h
+index ca82138..50fdaba 100644
+--- a/include/rdma/uverbs_ioctl_cmd.h
++++ b/include/rdma/uverbs_ioctl_cmd.h
+@@ -144,6 +144,30 @@ enum uverbs_create_qp_xrc_tgt_cmd_attr {
+ 	CREATE_QP_XRC_TGT_RESP
+ };
+ 
++enum uverbs_modify_qp_cmd_attr {
++	MODIFY_QP_HANDLE,
++	MODIFY_QP_STATE,
++	MODIFY_QP_CUR_STATE,
++	MODIFY_QP_EN_SQD_ASYNC_NOTIFY,
++	MODIFY_QP_ACCESS_FLAGS,
++	MODIFY_QP_PKEY_INDEX,
++	MODIFY_QP_PORT,
++	MODIFY_QP_QKEY,
++	MODIFY_QP_AV,
++	MODIFY_QP_PATH_MTU,
++	MODIFY_QP_TIMEOUT,
++	MODIFY_QP_RETRY_CNT,
++	MODIFY_QP_RNR_RETRY,
++	MODIFY_QP_RQ_PSN,
++	MODIFY_QP_MAX_RD_ATOMIC,
++	MODIFY_QP_ALT_PATH,
++	MODIFY_QP_MIN_RNR_TIMER,
++	MODIFY_QP_SQ_PSN,
++	MODIFY_QP_MAX_DEST_RD_ATOMIC,
++	MODIFY_QP_PATH_MIG_STATE,
++	MODIFY_QP_DEST_QPN
++};
++
+ enum uverbs_create_comp_channel_cmd_attr {
+ 	CREATE_COMP_CHANNEL_FD,
+ };
+@@ -236,6 +260,12 @@ int uverbs_create_qp_xrc_tgt_handler(struct ib_device *ib_dev,
+ 				     struct uverbs_attr_array *vendor,
+ 				     void *priv);
+ 
++int uverbs_modify_qp_handler(struct ib_device *ib_dev,
++			     struct ib_ucontext *ucontext,
++			     struct uverbs_attr_array *common,
++			     struct uverbs_attr_array *vendor,
++			     void *priv);
++
+ extern const struct uverbs_action uverbs_action_get_context;
+ extern const struct uverbs_action uverbs_action_create_cq;
+ extern const struct uverbs_action uverbs_action_create_comp_channel;
+@@ -245,6 +275,7 @@ extern const struct uverbs_action uverbs_action_reg_mr;
+ extern const struct uverbs_action uverbs_action_dereg_mr;
+ extern const struct uverbs_action uverbs_action_create_qp;
+ extern const struct uverbs_action uverbs_action_create_qp_xrc_tgt;
++extern const struct uverbs_action uverbs_action_modify_qp;
+ 
+ enum uverbs_actions_mr_ops {
+ 	UVERBS_MR_REG,
+@@ -268,6 +299,7 @@ extern const struct uverbs_type_actions_group uverbs_actions_cq;
+ enum uverbs_actions_qp_ops {
+ 	UVERBS_QP_CREATE,
+ 	UVERBS_QP_CREATE_XRC_TGT,
++	UVERBS_QP_MODIFY,
+ };
+ 
+ extern const struct uverbs_type_actions_group uverbs_actions_qp;
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 14aff5f..0b06c4d 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -645,6 +645,13 @@ struct ib_uverbs_qp_dest {
+ 	__u8  port_num;
+ };
+ 
++struct ib_uverbs_qp_alt_path {
++	struct ib_uverbs_qp_dest dest;
++	__u16 pkey_index;
++	__u8  port_num;
++	__u8  timeout;
++};
++
+ struct ib_uverbs_query_qp {
+ 	__u64 response;
+ 	__u32 qp_handle;
 -- 
 2.7.4
 
