@@ -1,58 +1,32 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: (#106846819) Leon.nu Forwarding Confirmation - Receive Mail from
- github-bot-2ukJVAZIZ/Y@public.gmane.org
-Date: Thu, 27 Oct 2016 18:27:08 +0300
-Message-ID: <20161027152708.GL3617@leon.nu>
-References: <CAD77Afkr-fOU6f1CUKu5K=TrjRHN4DnK_t2=J8zaDi7LmqYYYg@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 05/12] blk-mq: Introduce blk_mq_quiesce_queue()
+Date: Thu, 27 Oct 2016 08:56:50 -0700
+Message-ID: <5227b122-8c10-5f63-4448-499fc645cfbd@sandisk.com>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <5143c240-39af-9fe2-d3e6-ed69f9c20531@sandisk.com>
+ <f1661bd2-12ca-20d1-ece2-5c7fe5987035@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="DN8g+DOX2TxGxleI"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAD77Afkr-fOU6f1CUKu5K=TrjRHN4DnK_t2=J8zaDi7LmqYYYg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <f1661bd2-12ca-20d1-ece2-5c7fe5987035-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Leon.nu Team" <forwarding-noreply-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/26/2016 10:52 PM, Hannes Reinecke wrote:
+> Hmm. Can't say I like having to have two RCU structure for the same
+> purpose, but I guess that can't be helped.
 
---DN8g+DOX2TxGxleI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hello Hannes,
 
-On Thu, Oct 27, 2016 at 06:09:12PM +0300, Leon.nu Team wrote:
-> github-bot-2ukJVAZIZ/Y@public.gmane.org has requested to automatically forward mail to your email
-> address linux-rdma-u79uwXL29TaiAVqoAR/hOA@public.gmane.org
+There are two RCU structures because of BLK_MQ_F_BLOCKING. Today only 
+the nbd driver sets that flag. If the nbd driver would be modified such 
+that it doesn't set that flag then the BLK_MQ_F_BLOCKING flag and also 
+queue_rq_srcu could be eliminated from the blk-mq core.
 
-Sorry for the spam,
-I'm connecting notifications from github.com/linux-rdma/rdma-core/ to
-the mailing list. In such way, we will see all comments and pull
-requests which will be left on github.
-
-Thanks
-
---DN8g+DOX2TxGxleI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYEhzMAAoJEORje4g2clinrvMQAJceW6ECNdMavhpS8hMSr5Zf
-X1/q4qOBgHTinZEvYZubLoQMpIlaMAgokCFmI9/Rp1DDr0sZL+ifpDP8SK04tsdS
-Hlrgd0c6VE24ts8bv4h3qYhzyfPPYqVuDJP5jKg17IQ0oEIiUO+iQjSKTAtHEBJB
-7UVVJYTyZutqpv8/BMIk8h0RZks3yOaPPQBiSYY/71dw/tT9Y8Ap1oru3oDnGK5w
-agzq0fmglisku0KC5RwJ5ImYplLOTx4cvDTV5RHPetvJ6SrdBvyzbITJkb+m9MRs
-zD5SRSTrHqAKsJBMqDtGyOOs/ClLhQu7G23MvYK5sihTH+lGeeFE3VkPFa4phk4k
-R+2a86Nz1m7A0WD1gdRnvoGE/n/gCLB09mH4W7Ox+xHVzy9v2ieDAVw/NCS4igzQ
-0VJfjaHCz4wOgCHMVXtdN1oygRtXfkEDxgufUxohUI7uyGtdjvMlGqkYaN+aB9To
-8YbC7H5eoZdK7Hci3XYC0FFY1kZpMM6odPi/uO/lLbzP+S//L7liGjGu/RzUlh9s
-gyLmZg/fGqGOPoVzdCe+I5jcWJnIBuSHl8Ob8q5vZo2xJvfXe9lpmmuJ/4UOqCsQ
-frBwtHq3ehcQKSeC9nc3amVYQ/vV1ys6dMDMWdyXg3x9xmqJqJRApiFjrEE9CG1Y
-1Q7N2oXpfphwOpJmL4hC
-=Is3v
------END PGP SIGNATURE-----
-
---DN8g+DOX2TxGxleI--
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
