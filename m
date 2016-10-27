@@ -1,108 +1,39 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 perftest] Support for Chelsio T6 devices
-Date: Thu, 27 Oct 2016 10:54:39 +0300
-Message-ID: <20161027075439.GE3617@leon.nu>
-References: <20160920141917.AFE07E0BC1@smtp.ogc.us>
- <HE1PR05MB116148CCC01568CAFC9BAAC4B5CD0@HE1PR05MB1161.eurprd05.prod.outlook.com>
- <01db01d22407$38da0930$aa8e1b90$@opengridcomputing.com>
- <00c501d22ecc$aca8dec0$05fa9c40$@opengridcomputing.com>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 03/12] blk-mq: Introduce blk_mq_queue_stopped()
+Date: Thu, 27 Oct 2016 10:16:07 +0200
+Message-ID: <20161027081607.4qwdtaxs4k5s5m4p@linux-x5ow.site>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <f68b2997-8b0d-7aea-2859-5fbda4f6bf71@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9l24NVCWtSuIVIod"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <00c501d22ecc$aca8dec0$05fa9c40$@opengridcomputing.com>
+In-Reply-To: <f68b2997-8b0d-7aea-2859-5fbda4f6bf71-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Gil Rockah' <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Zohar Ben Aharon' <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Oct 26, 2016 at 03:52:05PM -0700, Bart Van Assche wrote:
+> The function blk_queue_stopped() allows to test whether or not a
+> traditional request queue has been stopped. Introduce a helper
+> function that allows block drivers to query easily whether or not
+> one or more hardware contexts of a blk-mq queue have been stopped.
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
 
---9l24NVCWtSuIVIod
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Looks good,
+Reviewed-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
 
-On Tue, Oct 25, 2016 at 09:32:55AM -0500, Steve Wise wrote:
-> Hey guys,
->
-> Has this patch been integrated yet?  Also, where is the official upstream
-> perftest git repo now?
-
-Hi Steve,
-
-Sorry for the late response, due to the holidays our responses are
-delaying a little bit.
-
-We moved perftest repo to be under github's linux-rdma organization [1]
-and it is now [2].
-
-I'll remind to Zohar to take it.
-
-[1] https://github.com/linux-rdma/
-[2] https://github.com/linux-rdma/perftest
-
->
-> Thanks,
->
-> Steve.
->
->
-> > -----Original Message-----
-> > From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
-> > Sent: Tuesday, October 11, 2016 4:34 PM
-> > To: 'Gil Rockah'; 'Zohar Ben Aharon'
-> > Subject: RE: [PATCH v2 perftest] Support for Chelsio T6 devices
-> >
-> >
-> > > -----Original Message-----
-> > > From: Gil Rockah [mailto:gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> > > Sent: Monday, September 26, 2016 2:01 AM
-> > > To: Zohar Ben Aharon; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
-> > > Subject: FW: [PATCH v2 perftest] Support for Chelsio T6 devices
-> > >
-> > > Hi Steve,
-> > > Thanks for the patch.
-> > > Please notice that Zohar is the new owner of perftest.
-> > >
-> > > Thanks,
-> > > Gil
-> > >
-> >
-> > Hey Zohar,
-> >
-> > Where is the formal perftest git repo now?
-> >
-> > Thanks,
-> >
-> > Steve.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---9l24NVCWtSuIVIod
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYEbK/AAoJEORje4g2clinEvMP/R2VbdjFR+0zAwUuSxyCdPID
-rglXwREmFj+KsQxV/KuZ41TgOTDPPy+x8DEA6RKk+R++7F/ZcVRsTzf1XvWGcVR1
-3zm60S/Tb1Fe/hrYxmMfJoYDQkHCFtVMa015YoE/vcfvObX1/gghSN14nKsU+gNx
-OCW4MivvXEyWVJ0yctvGvY8+U/b6l1OG5TVzdlYVx4pJqyJZbr4sZ95u/u9gK9Wg
-+1cEhNrVVm3S68al484zrec0i2dKcy4HuQcj/oeHUkGHNW3QvOi4xWu7SC0jEQJG
-PAAhLR7iFtS86oMMkyxbUgiRHT6/4KjWu+L3Bkp8UYxyh2vKcmCgIQmxDuhwQHif
-puohIc7Wsqulmh8FwR7L9O9v8Or20q4ngUUIRpd2EF26aq2+53Iyh+V+xiv/rfGF
-QUmBbwBJGjkgENQ4l5pEW4jLlQrssB4QC8wFpW9tTabGxD3Qo9QNSRPwSIy82kbq
-Gappawf+tEM936I+PYfiYiniXVxtQi7MjegY0J8gHbIvbGP76+R49DkdSosfUe6B
-g0OgjTtol5UfjW4FjWO6PftVqG5ax08oM7ZY+IEGSzu+2Sd5Wa/OygnhQI51A6Do
-NoYEpEqbhIhBj0mnN58fVHgwye+Cj7GUp40ChxrLTuQB+7AhZReZEcwFjBN6NnJ+
-2/lahOIVzJPC+WOdxBbH
-=/2J2
------END PGP SIGNATURE-----
-
---9l24NVCWtSuIVIod--
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
