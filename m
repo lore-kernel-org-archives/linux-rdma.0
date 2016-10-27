@@ -1,107 +1,101 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH 02/12] blk-mq: Introduce blk_mq_hctx_stopped()
-Date: Thu, 27 Oct 2016 09:33:22 +0800
-Message-ID: <CACVXFVPMVpHF268rPQzK8b3=kJr0saVU2nL+U4opmoCKrcMZUw@mail.gmail.com>
-References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com> <0de50789-e3b7-0a07-73c1-4fb87b1f957e@sandisk.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 05/12] blk-mq: Introduce blk_mq_quiesce_queue()
+Date: Wed, 26 Oct 2016 19:04:57 -0700
+Message-ID: <7690b469-f5b7-ab04-4b6f-fa0d679e0f18@acm.org>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+        <5143c240-39af-9fe2-d3e6-ed69f9c20531@sandisk.com>
+        <CACVXFVPWL=izFmUPtpi-+RLrhNX0LFfw2m6eurgMC5GvfDWsxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <0de50789-e3b7-0a07-73c1-4fb87b1f957e@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACVXFVPWL=izFmUPtpi-+RLrhNX0LFfw2m6eurgMC5GvfDWsxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2016 at 6:51 AM, Bart Van Assche
-<bart.vanassche@sandisk.com> wrote:
-> Multiple functions test the BLK_MQ_S_STOPPED bit so introduce
-> a helper function that performs this test.
+On 10/26/16 18:30, Ming Lei wrote:
+> On Thu, Oct 27, 2016 at 6:53 AM, Bart Van Assche
+> <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+>> blk_mq_quiesce_queue() waits until ongoing .queue_rq() invocations
+>> have finished. This function does *not* wait until all outstanding
+>> requests have finished (this means invocation of request.end_io()).
+>> The algorithm used by blk_mq_quiesce_queue() is as follows:
+>> * Hold either an RCU read lock or an SRCU read lock around
+>>   .queue_rq() calls. The former is used if .queue_rq() does not
+>>   block and the latter if .queue_rq() may block.
+>> * blk_mq_quiesce_queue() calls synchronize_srcu() or
+>>   synchronize_rcu() to wait for .queue_rq() invocations that
+>>   started before blk_mq_quiesce_queue() was called.
+>> * The blk_mq_hctx_stopped() calls that control whether or not
+>>   .queue_rq() will be called are called with the (S)RCU read lock
+>>   held. This is necessary to avoid race conditions against
+>>   the "blk_mq_stop_hw_queues(q); blk_mq_quiesce_queue(q);"
+>>   sequence from another thread.
+>>
+>> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+>> Cc: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Cc: Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
+>> Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+>> ---
+>>  block/Kconfig          |  1 +
+>>  block/blk-mq.c         | 69 +++++++++++++++++++++++++++++++++++++++++++++-----
+>>  include/linux/blk-mq.h |  3 +++
+>>  include/linux/blkdev.h |  1 +
+>>  4 files changed, 67 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/block/Kconfig b/block/Kconfig
+>> index 1d4d624..0562ef9 100644
+>> --- a/block/Kconfig
+>> +++ b/block/Kconfig
+>> @@ -5,6 +5,7 @@ menuconfig BLOCK
+>>         bool "Enable the block layer" if EXPERT
+>>         default y
+>>         select SBITMAP
+>> +       select SRCU
+>>         help
+>>          Provide block layer support for the kernel.
+>>
+>> diff --git a/block/blk-mq.c b/block/blk-mq.c
+>> index 0cf21c2..4945437 100644
+>> --- a/block/blk-mq.c
+>> +++ b/block/blk-mq.c
+>> @@ -115,6 +115,31 @@ void blk_mq_unfreeze_queue(struct request_queue *q)
+>>  }
+>>  EXPORT_SYMBOL_GPL(blk_mq_unfreeze_queue);
+>>
+>> +/**
+>> + * blk_mq_quiesce_queue() - wait until all ongoing queue_rq calls have finished
+>> + * @q: request queue.
+>> + *
+>> + * Note: this function does not prevent that the struct request end_io()
+>> + * callback function is invoked. Additionally, it is not prevented that
+>> + * new queue_rq() calls occur unless the queue has been stopped first.
+>> + */
+>> +void blk_mq_quiesce_queue(struct request_queue *q)
+>> +{
+>> +       struct blk_mq_hw_ctx *hctx;
+>> +       unsigned int i;
+>> +       bool rcu = false;
 >
-> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Hannes Reinecke <hare@suse.com>
-> Cc: Sagi Grimberg <sagi@grimberg.me>
-> Cc: Johannes Thumshirn <jthumshirn@suse.de>
+> Before synchronizing SRCU/RCU, we have to set a per-hctx flag
+> or per-queue flag to block comming .queue_rq(), seems I mentioned
+> that before:
+>
+>    https://www.spinics.net/lists/linux-rdma/msg41389.html
 
-Reviewed-by: Ming Lei <tom.leiming@gmail.com>
+Hello Ming,
 
-> ---
->  block/blk-mq.c | 12 ++++++------
->  block/blk-mq.h |  5 +++++
->  2 files changed, 11 insertions(+), 6 deletions(-)
->
-> diff --git a/block/blk-mq.c b/block/blk-mq.c
-> index b5dcafb..b52b3a6 100644
-> --- a/block/blk-mq.c
-> +++ b/block/blk-mq.c
-> @@ -787,7 +787,7 @@ static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
->         struct list_head *dptr;
->         int queued;
->
-> -       if (unlikely(test_bit(BLK_MQ_S_STOPPED, &hctx->state)))
-> +       if (unlikely(blk_mq_hctx_stopped(hctx)))
->                 return;
->
->         WARN_ON(!cpumask_test_cpu(raw_smp_processor_id(), hctx->cpumask) &&
-> @@ -912,8 +912,8 @@ static int blk_mq_hctx_next_cpu(struct blk_mq_hw_ctx *hctx)
->
->  void blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx, bool async)
->  {
-> -       if (unlikely(test_bit(BLK_MQ_S_STOPPED, &hctx->state) ||
-> -           !blk_mq_hw_queue_mapped(hctx)))
-> +       if (unlikely(blk_mq_hctx_stopped(hctx) ||
-> +                    !blk_mq_hw_queue_mapped(hctx)))
->                 return;
->
->         if (!async && !(hctx->flags & BLK_MQ_F_BLOCKING)) {
-> @@ -938,7 +938,7 @@ void blk_mq_run_hw_queues(struct request_queue *q, bool async)
->         queue_for_each_hw_ctx(q, hctx, i) {
->                 if ((!blk_mq_hctx_has_pending(hctx) &&
->                     list_empty_careful(&hctx->dispatch)) ||
-> -                   test_bit(BLK_MQ_S_STOPPED, &hctx->state))
-> +                   blk_mq_hctx_stopped(hctx))
->                         continue;
->
->                 blk_mq_run_hw_queue(hctx, async);
-> @@ -988,7 +988,7 @@ void blk_mq_start_stopped_hw_queues(struct request_queue *q, bool async)
->         int i;
->
->         queue_for_each_hw_ctx(q, hctx, i) {
-> -               if (!test_bit(BLK_MQ_S_STOPPED, &hctx->state))
-> +               if (!blk_mq_hctx_stopped(hctx))
->                         continue;
->
->                 clear_bit(BLK_MQ_S_STOPPED, &hctx->state);
-> @@ -1332,7 +1332,7 @@ static blk_qc_t blk_mq_make_request(struct request_queue *q, struct bio *bio)
->                 blk_mq_put_ctx(data.ctx);
->                 if (!old_rq)
->                         goto done;
-> -               if (test_bit(BLK_MQ_S_STOPPED, &data.hctx->state) ||
-> +               if (blk_mq_hctx_stopped(data.hctx) ||
->                     blk_mq_direct_issue_request(old_rq, &cookie) != 0)
->                         blk_mq_insert_request(old_rq, false, true, true);
->                 goto done;
-> diff --git a/block/blk-mq.h b/block/blk-mq.h
-> index e5d2524..ac772da 100644
-> --- a/block/blk-mq.h
-> +++ b/block/blk-mq.h
-> @@ -100,6 +100,11 @@ static inline void blk_mq_set_alloc_data(struct blk_mq_alloc_data *data,
->         data->hctx = hctx;
->  }
->
-> +static inline bool blk_mq_hctx_stopped(struct blk_mq_hw_ctx *hctx)
-> +{
-> +       return test_bit(BLK_MQ_S_STOPPED, &hctx->state);
-> +}
-> +
->  static inline bool blk_mq_hw_queue_mapped(struct blk_mq_hw_ctx *hctx)
->  {
->         return hctx->nr_ctx && hctx->tags;
-> --
-> 2.10.1
->
+Thanks for having included an URL to an archived version of that 
+discussion. What I remember about that discussion is that I proposed to 
+use the existing flag BLK_MQ_S_STOPPED instead of introducing a
+new QUEUE_FLAG_QUIESCING flag and that you agreed with that proposal. 
+See also https://www.spinics.net/lists/linux-rdma/msg41430.html.
 
-
-
--- 
-Ming Lei
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
