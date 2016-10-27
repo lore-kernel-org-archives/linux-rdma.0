@@ -1,37 +1,63 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: A question regarding "multiple SGL"
-Date: Thu, 27 Oct 2016 09:10:09 +0200
-Message-ID: <20161027071009.GA6434@lst.de>
-References: <20161027005230.9904DC00097@webmail.sinamail.sina.com.cn> <20161027064115.GA5864@lst.de> <B78D1A958924E54594997EFF975251625BD49445@szxeml592-mbx.china.huawei.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 00/10] infiniband: Remove semaphores
+Date: Thu, 27 Oct 2016 10:13:29 +0300
+Message-ID: <20161027071329.GC3617@leon.nu>
+References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-block-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="uXxzq0nDebZQVNAZ"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <B78D1A958924E54594997EFF975251625BD49445@szxeml592-mbx.china.huawei.com>
-Sender: linux-block-owner@vger.kernel.org
-To: "Qiuxin (robert)" <qiuxin@huawei.com>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Jens Axboe <axboe@fb.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Ming Lei <tom.leiming@gmail.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Keith Busch <keith.busch@intel.com>, Doug Ledford <dledford@redhat.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Laurence Oberman <loberman@redhat.com>, Tiger zhao <tiger.zhao@huawei.com>
+In-Reply-To: <1477551554-30349-1-git-send-email-binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Robert,
 
-please explain your use cases that isn't handled.  The one and only
-reason to set MSDBD to 1 is to make the code a lot simpler given that
-there is no real use case for supporting more.
+--uXxzq0nDebZQVNAZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-RDMA uses memory registrations to register large and possibly
-discontiguous data regions for a single rkey, aka single SGL descriptor
-in NVMe terms.  There would be two reasons to support multiple SGL
-descriptors:  a) to support a larger I/O size than supported by a single
-MR, or b) to support a data region format not mappable by a single
-MR.
+On Thu, Oct 27, 2016 at 12:29:04PM +0530, Binoy Jayan wrote:
+> Hi,
+>
+> These are a set of patches [v4] which removes semaphores from infiniband.
+> These are part of a bigger effort to eliminate all semaphores from the
+> linux kernel.
+>
+> v3 -> v4:
+>
+> IB/mlx5: Added patch - Replace semaphore umr_common:sem with wait_event
+> IB/mlx5: Fixed a bug pointed out by Leon Romanovsky
 
-iSER only supports a single rkey (or stag in IETF terminology) and has
-been doing fine on a) and mostly fine on b).   There are a few possible
-data layouts not supported by the traditional IB/iWarp FR WRs, but the
-limit is in fact exactly the same as imposed by the NVMe PRPs used for
-PCIe NVMe devices, so the Linux block layer has support to not generate
-them.  Also with modern Mellanox IB/RoCE hardware we can actually
-register completely arbitrary SGLs.  iSER supports using this registration
-mode already with a trivial code addition, but for NVMe we didn't have a
-pressing need yet.
+Please keep full changelog for your next submissions/respins.
+
+Thanks
+
+--uXxzq0nDebZQVNAZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYEakZAAoJEORje4g2clinDQEP/AyhsvbH/mAQVJQbKgjzBkXV
+vMNcFeDjin2jpbLFLmdnqWiiotKcZ2+T5peclIndhV4m2H6Bu6Q9HDX9qQrZMbFW
+S/36+EbQmNbg8grsL8YzgbertCmZ5u+v1MzPsbhayJxEjti5wos0fnD/3kClqPWX
+BZ3dVQiVNVdskdfSJX1wi9YUuFUU48pRgQvS2M5jNI/uLWHI7/TJ7esM7W87mABE
+QefT/P3mrPBktIizivRKerc7UNjjsJwCz7683Id+zBQHkkR5mwYxCZ+yg41ic5tK
+6K8iHuVlau2PkFRdVD4eTWFGuiq3XggWQNL2lu+jQigMEJSKudSDGakhX0zLgail
+4QRQzYUVWTqJRwJTADC0cBMUiw7jEQBydaaePj1ftM0ZnNwWiZhow2D0DYxXTWnb
+ajnegcvGQZsaUiBE3P2cYiNMQKlauBneW0Qv9l4zuYjbpLfUZ6k0tA4EQwY8obvU
+O9E/P+CrmQdQ5rniCsvA0Q9ApJe/w+DPd602ngJfHuLejohhYL+Un+R/PYCpw3a8
+vZ2z1lRKCOFmQPYLMCcmUk1MEqeH5s8Y2OUI/Qt3naoU5TDMphCah2IXtrnxiACS
+nfauqV5mrCacvmd/764HgOOLunvrteD4zMRpWEop7BLfX9+EwPtbhvTQcFlcZ4os
+2e9fmKxq2k460+aQLuWT
+=hCdA
+-----END PGP SIGNATURE-----
+
+--uXxzq0nDebZQVNAZ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
