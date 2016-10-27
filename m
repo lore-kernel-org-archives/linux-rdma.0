@@ -1,39 +1,66 @@
-From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 09/12] SRP transport: Move queuecommand() wait code to
- SCSI core
-Date: Thu, 27 Oct 2016 10:27:59 +0200
-Message-ID: <20161027082759.4j56p3yjqu27lhhq@linux-x5ow.site>
-References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
- <e86cdaf9-6305-d2cb-6068-0a050c023d73@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc 5/6] IB/core: Save QP in ib_flow structure
+Date: Thu, 27 Oct 2016 16:36:30 +0300
+Message-ID: <1477575391-20134-6-git-send-email-leon@kernel.org>
+References: <1477575391-20134-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e86cdaf9-6305-d2cb-6068-0a050c023d73-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1477575391-20134-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 26, 2016 at 03:55:00PM -0700, Bart Van Assche wrote:
-> Additionally, rename srp_wait_for_queuecommand() into
-> scsi_wait_for_queuecommand() and add a comment about the
-> queuecommand() call from scsi_send_eh_cmnd().
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Looks good,
-Reviewed-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+When we create flow steering rule, we need to save the related QP in the
+ib_flow struct. this QP is used in destroy flow.
 
+Move the QP assignment from ib_uverbs_ex_create_flow into ib_create_flow,
+this would allow both kernel and userspace consumers to use it.
+
+This bug wasn't seen in the wild because there are no kernel consumers
+currently in the kernel.
+
+Fixes: 319a441d1361 ("IB/core: Add receive flow steering support")
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 1 -
+ drivers/infiniband/core/verbs.c      | 4 +++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index cb3f515a..2690c92 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3745,7 +3745,6 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 		err = PTR_ERR(flow_id);
+ 		goto err_free;
+ 	}
+-	flow_id->qp = qp;
+ 	flow_id->uobject = uobj;
+ 	uobj->object = flow_id;
+ 
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 8368764..b7f9f3d 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1734,8 +1734,10 @@ struct ib_flow *ib_create_flow(struct ib_qp *qp,
+ 		return ERR_PTR(-ENOSYS);
+ 
+ 	flow_id = qp->device->create_flow(qp, flow_attr, domain);
+-	if (!IS_ERR(flow_id))
++	if (!IS_ERR(flow_id)) {
+ 		atomic_inc(&qp->usecnt);
++		flow_id->qp = qp;
++	}
+ 	return flow_id;
+ }
+ EXPORT_SYMBOL(ib_create_flow);
 -- 
-Johannes Thumshirn                                          Storage
-jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
