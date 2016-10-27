@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 08/12] IB/mlx5: Wait for all async command completions to complete
-Date: Thu, 27 Oct 2016 16:36:43 +0300
-Message-ID: <1477575407-20562-9-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 09/12] IB/mlx5: Fix fatal error dispatching
+Date: Thu, 27 Oct 2016 16:36:44 +0300
+Message-ID: <1477575407-20562-10-git-send-email-leon@kernel.org>
 References: <1477575407-20562-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1477575407-20562-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,63 +12,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Wait before continuing unload till all pending mkey async creation requests
-are done.
+When an internal error condition is detected, make sure to set the
+device inactive after dispatching the event so ULPs can get a
+notification of this event.
 
 Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mohamad Haj Yahia <mohamad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 4e90124..55e2fee 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -646,6 +646,33 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
- 	return 0;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c6ea25d..88ff2e3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2312,14 +2312,14 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+ {
+ 	struct mlx5_ib_dev *ibdev = (struct mlx5_ib_dev *)context;
+ 	struct ib_event ibev;
+-
++	bool fatal = false;
+ 	u8 port = 0;
+ 
+ 	switch (event) {
+ 	case MLX5_DEV_EVENT_SYS_ERROR:
+-		ibdev->ib_active = false;
+ 		ibev.event = IB_EVENT_DEVICE_FATAL;
+ 		mlx5_ib_handle_internal_error(ibdev);
++		fatal = true;
+ 		break;
+ 
+ 	case MLX5_DEV_EVENT_PORT_UP:
+@@ -2371,6 +2371,9 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+ 
+ 	if (ibdev->ib_active)
+ 		ib_dispatch_event(&ibev);
++
++	if (fatal)
++		ibdev->ib_active = false;
  }
  
-+static void wait_for_async_commands(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_mr_cache *cache = &dev->cache;
-+	struct mlx5_cache_ent *ent;
-+	int total = 0;
-+	int i;
-+	int j;
-+
-+	for (i = 0; i < MAX_MR_CACHE_ENTRIES; i++) {
-+		ent = &cache->ent[i];
-+		for (j = 0 ; j < 1000; j++) {
-+			if (!ent->pending)
-+				break;
-+			msleep(50);
-+		}
-+	}
-+	for (i = 0; i < MAX_MR_CACHE_ENTRIES; i++) {
-+		ent = &cache->ent[i];
-+		total += ent->pending;
-+	}
-+
-+	if (total)
-+		mlx5_ib_warn(dev, "aborted while there are %d pending mr requests\n", total);
-+	else
-+		mlx5_ib_warn(dev, "done with all pending requests\n");
-+}
-+
- int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev)
- {
- 	int i;
-@@ -659,6 +686,7 @@ int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev)
- 		clean_keys(dev, i);
- 
- 	destroy_workqueue(dev->cache.wq);
-+	wait_for_async_commands(dev);
- 	del_timer_sync(&dev->delay_timer);
- 
- 	return 0;
+ static void get_ext_port_caps(struct mlx5_ib_dev *dev)
 -- 
 2.7.4
 
