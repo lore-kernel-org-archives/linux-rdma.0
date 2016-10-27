@@ -1,81 +1,37 @@
-From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v4 05/10] IB/isert: Replace semaphore sem with completion
-Date: Thu, 27 Oct 2016 12:29:09 +0530
-Message-ID: <1477551554-30349-6-git-send-email-binoy.jayan@linaro.org>
-References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477551554-30349-1-git-send-email-binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: A question regarding "multiple SGL"
+Date: Thu, 27 Oct 2016 09:10:09 +0200
+Message-ID: <20161027071009.GA6434@lst.de>
+References: <20161027005230.9904DC00097@webmail.sinamail.sina.com.cn> <20161027064115.GA5864@lst.de> <B78D1A958924E54594997EFF975251625BD49445@szxeml592-mbx.china.huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-block-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <B78D1A958924E54594997EFF975251625BD49445@szxeml592-mbx.china.huawei.com>
+Sender: linux-block-owner@vger.kernel.org
+To: "Qiuxin (robert)" <qiuxin@huawei.com>
+Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Jens Axboe <axboe@fb.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Ming Lei <tom.leiming@gmail.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Keith Busch <keith.busch@intel.com>, Doug Ledford <dledford@redhat.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Laurence Oberman <loberman@redhat.com>, Tiger zhao <tiger.zhao@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The semaphore 'sem' in isert_device is used as completion, so convert
-it to struct completion. Semaphores are going away in the future.
+Hi Robert,
 
-Signed-off-by: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 6 +++---
- drivers/infiniband/ulp/isert/ib_isert.h | 3 ++-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+please explain your use cases that isn't handled.  The one and only
+reason to set MSDBD to 1 is to make the code a lot simpler given that
+there is no real use case for supporting more.
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 6dd43f6..de80f56 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -619,7 +619,7 @@
- 	mutex_unlock(&isert_np->mutex);
- 
- 	isert_info("np %p: Allow accept_np to continue\n", isert_np);
--	up(&isert_np->sem);
-+	complete(&isert_np->comp);
- }
- 
- static void
-@@ -2311,7 +2311,7 @@ struct rdma_cm_id *
- 		isert_err("Unable to allocate struct isert_np\n");
- 		return -ENOMEM;
- 	}
--	sema_init(&isert_np->sem, 0);
-+	init_completion(&isert_np->comp);
- 	mutex_init(&isert_np->mutex);
- 	INIT_LIST_HEAD(&isert_np->accepted);
- 	INIT_LIST_HEAD(&isert_np->pending);
-@@ -2427,7 +2427,7 @@ struct rdma_cm_id *
- 	int ret;
- 
- accept_wait:
--	ret = down_interruptible(&isert_np->sem);
-+	ret = wait_for_completion_interruptible(&isert_np->comp);
- 	if (ret)
- 		return -ENODEV;
- 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index c02ada5..a1277c0 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -3,6 +3,7 @@
- #include <linux/in6.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/rdma_cm.h>
-+#include <linux/completion.h>
- #include <rdma/rw.h>
- #include <scsi/iser.h>
- 
-@@ -190,7 +191,7 @@ struct isert_device {
- 
- struct isert_np {
- 	struct iscsi_np         *np;
--	struct semaphore	sem;
-+	struct completion	comp;
- 	struct rdma_cm_id	*cm_id;
- 	struct mutex		mutex;
- 	struct list_head	accepted;
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+RDMA uses memory registrations to register large and possibly
+discontiguous data regions for a single rkey, aka single SGL descriptor
+in NVMe terms.  There would be two reasons to support multiple SGL
+descriptors:  a) to support a larger I/O size than supported by a single
+MR, or b) to support a data region format not mappable by a single
+MR.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iSER only supports a single rkey (or stag in IETF terminology) and has
+been doing fine on a) and mostly fine on b).   There are a few possible
+data layouts not supported by the traditional IB/iWarp FR WRs, but the
+limit is in fact exactly the same as imposed by the NVMe PRPs used for
+PCIe NVMe devices, so the Linux block layer has support to not generate
+them.  Also with modern Mellanox IB/RoCE hardware we can actually
+register completely arbitrary SGLs.  iSER supports using this registration
+mode already with a trivial code addition, but for NVMe we didn't have a
+pressing need yet.
