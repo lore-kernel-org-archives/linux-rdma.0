@@ -1,73 +1,74 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 3/6] IB/core: Set routable RoCE gid type for ipv4/ipv6 networks
-Date: Thu, 27 Oct 2016 16:36:28 +0300
-Message-ID: <1477575391-20134-4-git-send-email-leon@kernel.org>
-References: <1477575391-20134-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 08/12] IB/mlx5: Wait for all async command completions to complete
+Date: Thu, 27 Oct 2016 16:36:43 +0300
+Message-ID: <1477575407-20562-9-git-send-email-leon@kernel.org>
+References: <1477575407-20562-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477575391-20134-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1477575407-20562-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If the underlying netowrk type is ipv4 or ipv6 and the device supports
-routable RoCE, prefer it so the traffic could cross subnets.
+Wait before continuing unload till all pending mkey async creation requests
+are done.
 
-Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mr.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 36bf50e..9ca0da0 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2436,6 +2436,18 @@ static int iboe_tos_to_sl(struct net_device *ndev, int tos)
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 4e90124..55e2fee 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -646,6 +646,33 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
  	return 0;
  }
  
-+static enum ib_gid_type cma_route_gid_type(enum rdma_network_type network_type,
-+					   unsigned long supported_gids,
-+					   enum ib_gid_type default_gid)
++static void wait_for_async_commands(struct mlx5_ib_dev *dev)
 +{
-+	if ((network_type == RDMA_NETWORK_IPV4 ||
-+	     network_type == RDMA_NETWORK_IPV6) &&
-+	    test_bit(IB_GID_TYPE_ROCE_UDP_ENCAP, &supported_gids))
-+		return IB_GID_TYPE_ROCE_UDP_ENCAP;
++	struct mlx5_mr_cache *cache = &dev->cache;
++	struct mlx5_cache_ent *ent;
++	int total = 0;
++	int i;
++	int j;
 +
-+	return default_gid;
++	for (i = 0; i < MAX_MR_CACHE_ENTRIES; i++) {
++		ent = &cache->ent[i];
++		for (j = 0 ; j < 1000; j++) {
++			if (!ent->pending)
++				break;
++			msleep(50);
++		}
++	}
++	for (i = 0; i < MAX_MR_CACHE_ENTRIES; i++) {
++		ent = &cache->ent[i];
++		total += ent->pending;
++	}
++
++	if (total)
++		mlx5_ib_warn(dev, "aborted while there are %d pending mr requests\n", total);
++	else
++		mlx5_ib_warn(dev, "done with all pending requests\n");
 +}
 +
- static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev)
  {
- 	struct rdma_route *route = &id_priv->id.route;
-@@ -2461,6 +2473,8 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	route->num_paths = 1;
+ 	int i;
+@@ -659,6 +686,7 @@ int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev)
+ 		clean_keys(dev, i);
  
- 	if (addr->dev_addr.bound_dev_if) {
-+		unsigned long supported_gids;
-+
- 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
- 		if (!ndev) {
- 			ret = -ENODEV;
-@@ -2484,7 +2498,12 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	destroy_workqueue(dev->cache.wq);
++	wait_for_async_commands(dev);
+ 	del_timer_sync(&dev->delay_timer);
  
- 		route->path_rec->net = &init_net;
- 		route->path_rec->ifindex = ndev->ifindex;
--		route->path_rec->gid_type = id_priv->gid_type;
-+		supported_gids = roce_gid_type_mask_support(id_priv->id.device,
-+							    id_priv->id.port_num);
-+		route->path_rec->gid_type =
-+			cma_route_gid_type(addr->dev_addr.network,
-+					   supported_gids,
-+					   id_priv->gid_type);
- 	}
- 	if (!ndev) {
- 		ret = -ENODEV;
+ 	return 0;
 -- 
 2.7.4
 
