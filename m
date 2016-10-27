@@ -1,89 +1,34 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] qede: fix general protection fault may occur
- on probe
-Date: Thu, 27 Oct 2016 17:05:09 +0300
-Message-ID: <20161027140509.GH3617@leon.nu>
-References: <1477400039-16925-1-git-send-email-Ram.Amrani@cavium.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH 02/12] blk-mq: Introduce blk_mq_hctx_stopped()
+Date: Thu, 27 Oct 2016 10:15:08 +0200
+Message-ID: <20161027081508.6tip6extcglzacyw@linux-x5ow.site>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <0de50789-e3b7-0a07-73c1-4fb87b1f957e@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CEUtFxTsmBsHRLs3"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-block-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1477400039-16925-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <0de50789-e3b7-0a07-73c1-4fb87b1f957e@sandisk.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Oct 26, 2016 at 03:51:33PM -0700, Bart Van Assche wrote:
+> Multiple functions test the BLK_MQ_S_STOPPED bit so introduce
+> a helper function that performs this test.
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Cc: Christoph Hellwig <hch@lst.de>
 
---CEUtFxTsmBsHRLs3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Looks good,
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
-On Tue, Oct 25, 2016 at 03:53:59PM +0300, Ram Amrani wrote:
-> The recent introduction of qedr driver support in qede causes a
-> GPF when probing the driver in a server without a RoCE enabled
-> QLogic NIC. This fix avoids using an uninitialized pointer in such
-> a case. Caught by the kernel test robot.
->
-> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/net/ethernet/qlogic/qede/qede_roce.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-
-Ram,
-
-The rdma-core word in the subject is misleading.
-
-Thanks
-
->
-> diff --git a/drivers/net/ethernet/qlogic/qede/qede_roce.c b/drivers/net/ethernet/qlogic/qede/qede_roce.c
-> index 9867f96..4927271 100644
-> --- a/drivers/net/ethernet/qlogic/qede/qede_roce.c
-> +++ b/drivers/net/ethernet/qlogic/qede/qede_roce.c
-> @@ -191,8 +191,8 @@ int qede_roce_register_driver(struct qedr_driver *drv)
->  	}
->  	mutex_unlock(&qedr_dev_list_lock);
->
-> -	DP_INFO(edev, "qedr: discovered and registered %d RoCE funcs\n",
-> -		qedr_counter);
-> +	pr_notice("qedr: discovered and registered %d RoCE funcs\n",
-> +		  qedr_counter);
->
->  	return 0;
->  }
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---CEUtFxTsmBsHRLs3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYEgmVAAoJEORje4g2clinNUQP/2Do42s7ijbOmyeh3VOsJ0C6
-6+S5I3Hp7TDyrt+nl1E3WPSC13uOUbuRCl7U+CRITMD1caPcKGSzGPRsKTv5P3NE
-6yIU/KKmMKkj29+81g9F/wlAXvnyDr6jsp9zr+lD4P+YOKVh5+LnzyQrYzfyTLVs
-7RDEO1bq0MNXq4nPJHYdLK7I/4qu+oCrIPTnFehAJI5mbfbuW6/2Pn+ZFM0+FNdP
-SchgQjCbUXd+UlG7CA8vFRXcPPkBGeXUfO/+AQiISqq2j9/RqpgVEWfs97nciMAe
-gE0KgxhIT8ZaDJTVnRFOY4Drp4gUOLYrV4lFki+bX88xarZRi61a+YkhwUnkOPVx
-RwUP/6AbVELzhNneywP4XgkTrILFMJD7VU+A99C3DiWfhlveql9XKj4P0zF+vRPM
-e/17ttGK8EuzHNY46IezQvaZVpJSS98csR9xiZGQMYXMbtqJfUaNP/ATdob0Ahph
-pIKNYzpXRKDj1jd57sFSo4YmSYvGqILR4krZQnrtN7of9TNoC9YOXLYqxb/aGkl8
-U7+u5xlcutth9JjK39+5MRHlfBWDuMGTVDwsQ1dV2daKP7sbnDyMil5VNcmf4SEt
-xVRAW6sq+quEJOtbSpBjP45hzv4Zz6J2XL1oZrWnouMSPjdjPLZ92ntaeO9eYzJH
-sBVwS7Tn70/SKoHyxL1s
-=Uxlq
------END PGP SIGNATURE-----
-
---CEUtFxTsmBsHRLs3--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
