@@ -1,66 +1,99 @@
-From: "Qiuxin (robert)" <qiuxin@huawei.com>
-Subject: Re: A question regarding "multiple SGL"
-Date: Thu, 27 Oct 2016 06:57:56 +0000
-Message-ID: <B78D1A958924E54594997EFF975251625BD49445@szxeml592-mbx.china.huawei.com>
-References: <20161027005230.9904DC00097@webmail.sinamail.sina.com.cn>
- <20161027064115.GA5864@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20161027064115.GA5864@lst.de>
-Content-Language: zh-CN
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Jens Axboe <axboe@fb.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Ming Lei <tom.leiming@gmail.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Keith Busch <keith.busch@intel.com>, Doug Ledford <dledford@redhat.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Laurence Oberman <loberman@redhat.com>, Tiger zhao <tiger.zhao@huawei.com>
+From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v4 02/10] IB/core: Replace semaphore sm_sem with an atomic wait
+Date: Thu, 27 Oct 2016 12:29:06 +0530
+Message-ID: <1477551554-30349-3-git-send-email-binoy.jayan@linaro.org>
+References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1477551554-30349-1-git-send-email-binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgQ2hyaXN0b3BoLA0KDQpUaGFua3MgLCBnb3QgaXQuDQoNCkNvdWxkIHlvdSBwbGVhc2UgZG8g
-bWUgZmF2b3IgdG8gbGV0IG1lIGtub3cgdGhlIGJhY2tncm91bmQgd2h5IHdlIE9OTFkgc3VwcG9y
-dCAiIE1TREJEID09MSI/ICAgSSBhbSBOT1QgdHJ5aW5nIHRvIHJlc2lzdCBvciBvcHBvc2UgYW55
-dGhpbmcgLCBJIGp1c3Qgd2FudCB0byBrbm93IHRoZSByZWFzb24uICBZb3Uga25vdywgIGl0IGlz
-IGEgbGl0dGxlIHdpcmVkIGZvciBtZSwgYXMgICJNU0RCRCA9PTEiIGRvZXMgbm90IGZ1bGZpbGwg
-YWxsIHRoZSB1c2UgY2FzZXMgd2hpY2ggaXMgZGVwaWN0ZWQgaW4gdGhlIHNwZWMuDQoNCkJlc3Qs
-DQpSb2JlcnQgUWl1eGluDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-DQpSb2JlcnQgUWl1eGluDQq7qs6qvLzK9dPQz965q8u+IEh1YXdlaSBUZWNobm9sb2dpZXMgQ28u
-LCBMdGQuDQpQaG9uZTogKzg2LTc1NS0yODQyMDM1Nw0KRmF4OiANCk1vYmlsZTogKzg2IDE1OTg2
-NjM4NDI5DQpFbWFpbDogcWl1eGluQGh1YXdlaS5jb20NCrXY1rejusnu29rK0MH6uNrH+NvgzO+7
-qs6qu/m12CDTyrHgo7o1MTgxMjkNCkh1YXdlaSBUZWNobm9sb2dpZXMgQ28uLCBMdGQuDQpCYW50
-aWFuLCBMb25nZ2FuZyBEaXN0cmljdCxTaGVuemhlbiA1MTgxMjksIFAuUi5DaGluYQ0KaHR0cDov
-L3d3dy5odWF3ZWkuY29tIA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-Xw0Ksb7Tyrz+vLDG5Li9vP66rNPQu6rOqrmry761xLGjw9zQxc+io6y99s/e09q3osvNuPjJz8Pm
-tdjWt9bQwdCz9rXEuPbIy7vyyLrX6aGjvfsNCta5yM66zsbky/vIy9LUyM66ztDOyr3KudPDo6iw
-/MCotauyu8/e09rIq7K/u/Kyv7fWtdjQucK2oaK4tNbGoaK78smit6KjqbG+08q8/tbQDQq1xNDF
-z6Kho8jnufvE+rTtytXBy7G+08q8/qOsx+vE+sGivLS157uwu/LTyrz+zajWqreivP7Iy7Kiyb6z
-/bG+08q8/qOhDQpUaGlzIGUtbWFpbCBhbmQgaXRzIGF0dGFjaG1lbnRzIGNvbnRhaW4gY29uZmlk
-ZW50aWFsIGluZm9ybWF0aW9uIGZyb20gSFVBV0VJLCB3aGljaCANCmlzIGludGVuZGVkIG9ubHkg
-Zm9yIHRoZSBwZXJzb24gb3IgZW50aXR5IHdob3NlIGFkZHJlc3MgaXMgbGlzdGVkIGFib3ZlLiBB
-bnkgdXNlIG9mIHRoZSANCmluZm9ybWF0aW9uIGNvbnRhaW5lZCBoZXJlaW4gaW4gYW55IHdheSAo
-aW5jbHVkaW5nLCBidXQgbm90IGxpbWl0ZWQgdG8sIHRvdGFsIG9yIHBhcnRpYWwgDQpkaXNjbG9z
-dXJlLCByZXByb2R1Y3Rpb24sIG9yIGRpc3NlbWluYXRpb24pIGJ5IHBlcnNvbnMgb3RoZXIgdGhh
-biB0aGUgaW50ZW5kZWQgDQpyZWNpcGllbnQocykgaXMgcHJvaGliaXRlZC4gSWYgeW91IHJlY2Vp
-dmUgdGhpcyBlLW1haWwgaW4gZXJyb3IsIHBsZWFzZSBub3RpZnkgdGhlIHNlbmRlciBieSANCnBo
-b25lIG9yIGVtYWlsIGltbWVkaWF0ZWx5IGFuZCBkZWxldGUgaXQhDQotLS0tLdPKvP7Urbz+LS0t
-LS0NCreivP7IyzogQ2hyaXN0b3BoIEhlbGx3aWcgW21haWx0bzpoY2hAbHN0LmRlXSANCreiy83K
-sbzkOiAyMDE2xOoxMNTCMjfI1SAxNDo0MQ0KytW8/sjLOiD2ztS4DQqzrcvNOiBCYXJ0IFZhbiBB
-c3NjaGU7IEplbnMgQXhib2U7IGxpbnV4LWJsb2NrQHZnZXIua2VybmVsLm9yZzsgSmFtZXMgQm90
-dG9tbGV5OyBNYXJ0aW4gSy4gUGV0ZXJzZW47IE1pa2UgU25pdHplcjsgbGludXgtcmRtYUB2Z2Vy
-Lmtlcm5lbC5vcmc7IE1pbmcgTGVpOyBsaW51eC1udm1lQGxpc3RzLmluZnJhZGVhZC5vcmc7IEtl
-aXRoIEJ1c2NoOyBEb3VnIExlZGZvcmQ7IGxpbnV4LXNjc2lAdmdlci5rZXJuZWwub3JnOyBMYXVy
-ZW5jZSBPYmVybWFuOyBDaHJpc3RvcGggSGVsbHdpZzsgVGlnZXIgemhhbzsgUWl1eGluIChyb2Jl
-cnQpDQrW98ziOiBSZTogQSBxdWVzdGlvbiByZWdhcmRpbmcgIm11bHRpcGxlIFNHTCINCg0KSGkg
-Um9iZXJ0LA0KDQpUaGVyZSBpcyBubyBmZWF0dXJlIGNhbGxlZCAiTXVsdGlwbGUgU0dMIGluIG9u
-ZSBOVk1lIGNhcHN1bGUiLiAgVGhlIE5WTWUgb3ZlciBGYWJyaWNzIHNwZWNpZmljYXRpb24gYWxs
-b3dzIGEgY29udHJvbGxlciB0byBhZHZlcnRpc2UgaG93IG1hbnkgU0dMIGRlc2NyaXB0b3JzIGl0
-IHN1cHBvcnRzIHVzaW5nIHRoZSBNU0RCRCBJZGVudGlmeSBmaWVsZDoNCg0KIk1heGltdW0gU0dM
-IERhdGEgQmxvY2sgRGVzY3JpcHRvcnMgKE1TREJEKTogVGhpcyBmaWVsZCBpbmRpY2F0ZXMgdGhl
-IG1heGltdW0gbnVtYmVyIG9mIChLZXllZCkgU0dMIERhdGEgQmxvY2sgZGVzY3JpcHRvcnMgdGhh
-dCBhIGhvc3QgaXMgYWxsb3dlZCB0byBwbGFjZSBpbiBhIGNhcHN1bGUuIEEgdmFsdWUgb2YgMGgg
-aW5kaWNhdGVzIG5vIGxpbWl0LiINCg0KU2V0dGluZyB0aGlzIHZhbHVlIHRvIDEgaXMgcGVyZmVj
-dGx5IHZhbGlkLiAgU2ltaWxhcmx5IGEgaG9zdCBpcyBmcmVlIHRvIGNob3NlIGFueSBudW1iZXIg
-b2YgU0dMIGRlc2NyaXB0b3JzIGJldHdlZW4gMCAob25seSBmb3IgY29tbWFuZCB0aGF0IGRvbid0
-IHRyYW5zZmVyIGRhdGEpIHRvIHRoZSBsaW1pdCBpbXBvc2VkIGJ5IHRoZSBjb250cm9sbGVyIHVz
-aW5nIHRoZSBNU0RCRCBmaWVsZC4NCg0KVGhlcmUgYXJlIG5vIHBsYW5zIHRvIHN1cHBvcnQgYSBN
-U0RCRCB2YWx1ZSBsYXJnZXIgdGhhbiAxIGluIHRoZSBMaW51eCBOVk1lIHRhcmdldCwgYW5kIHRo
-ZXJlIGFyZSBubyBwbGFucyB0byBldmVyIHN1Ym1pdCBjb21tYW5kcyB3aXRoIG11bHRpcGxlIFNH
-THMgZnJvbSB0aGUgaG9zdCBkcml2ZXIgZWl0aGVyLg0KDQpDaGVlcnMsDQoJQ2hyaXN0b3BoDQo=
+The semaphore 'sm_sem' is used for an exclusive ownership of the device
+so model the same as an atomic variable with an associated wait_event.
+Semaphores are going away in the future.
+
+Signed-off-by: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/user_mad.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 415a318..6101c0a 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -67,6 +67,8 @@ enum {
+ 	IB_UMAD_MINOR_BASE = 0
+ };
+ 
++#define UMAD_F_CLAIM	0x01
++
+ /*
+  * Our lifetime rules for these structs are the following:
+  * device special file is opened, we take a reference on the
+@@ -87,7 +89,8 @@ struct ib_umad_port {
+ 
+ 	struct cdev           sm_cdev;
+ 	struct device	      *sm_dev;
+-	struct semaphore       sm_sem;
++	wait_queue_head_t     wq;
++	unsigned long         flags;
+ 
+ 	struct mutex	       file_mutex;
+ 	struct list_head       file_list;
+@@ -1030,12 +1033,14 @@ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+ 	port = container_of(inode->i_cdev, struct ib_umad_port, sm_cdev);
+ 
+ 	if (filp->f_flags & O_NONBLOCK) {
+-		if (down_trylock(&port->sm_sem)) {
++		if (test_and_set_bit(UMAD_F_CLAIM, &port->flags)) {
+ 			ret = -EAGAIN;
+ 			goto fail;
+ 		}
+ 	} else {
+-		if (down_interruptible(&port->sm_sem)) {
++		if (wait_event_interruptible(port->wq,
++					     !test_and_set_bit(UMAD_F_CLAIM,
++					     &port->flags))) {
+ 			ret = -ERESTARTSYS;
+ 			goto fail;
+ 		}
+@@ -1060,7 +1065,8 @@ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+ 	ib_modify_port(port->ib_dev, port->port_num, 0, &props);
+ 
+ err_up_sem:
+-	up(&port->sm_sem);
++	clear_bit(UMAD_F_CLAIM, &port->flags);
++	wake_up(&port->wq);
+ 
+ fail:
+ 	return ret;
+@@ -1079,7 +1085,8 @@ static int ib_umad_sm_close(struct inode *inode, struct file *filp)
+ 		ret = ib_modify_port(port->ib_dev, port->port_num, 0, &props);
+ 	mutex_unlock(&port->file_mutex);
+ 
+-	up(&port->sm_sem);
++	clear_bit(UMAD_F_CLAIM, &port->flags);
++	wake_up(&port->wq);
+ 
+ 	kobject_put(&port->umad_dev->kobj);
+ 
+@@ -1177,7 +1184,8 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 
+ 	port->ib_dev   = device;
+ 	port->port_num = port_num;
+-	sema_init(&port->sm_sem, 1);
++	init_waitqueue_head(&port->wq);
++	__clear_bit(UMAD_F_CLAIM, &port->flags);
+ 	mutex_init(&port->file_mutex);
+ 	INIT_LIST_HEAD(&port->file_list);
+ 
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
