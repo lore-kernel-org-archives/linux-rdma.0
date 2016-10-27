@@ -1,67 +1,195 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] Avoid possible hang on device removal
-Date: Thu, 27 Oct 2016 10:29:54 +0300
-Message-ID: <20161027072954.GD3617@leon.nu>
-References: <1477438557-15884-1-git-send-email-mustafa.ismail@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1477438557-15884-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: [PATCH 1/2] mm: add locked parameter to get_user_pages_remote()
+Date: Thu, 27 Oct 2016 10:51:40 +0100
+Message-ID: <20161027095141.2569-2-lstoakes@gmail.com>
+References: <20161027095141.2569-1-lstoakes@gmail.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20161027095141.2569-1-lstoakes@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: Michal Hocko <mhocko@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org, Lorenzo Stoakes <lstoakes@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch adds a int *locked parameter to get_user_pages_remote() to allow
+VM_FAULT_RETRY faulting behaviour similar to get_user_pages_[un]locked().
 
---OaZoDhBhXzo6bW1J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Taking into account the previous adjustments to get_user_pages*() functions
+allowing for the passing of gup_flags, we are now in a position where
+__get_user_pages_unlocked() need only be exported for his ability to allow
+VM_FAULT_RETRY behaviour, this adjustment allows us to subsequently unexport
+__get_user_pages_unlocked() as well as allowing for future flexibility in the
+use of get_user_pages_remote().
 
-On Tue, Oct 25, 2016 at 06:35:57PM -0500, Mustafa Ismail wrote:
-> When we get an RDMA_CM_EVENT_DEVICE_REMOVAL the cm_thread will
-> exit and because flush errors are ignored the cb->sem may not get signaled.
-> So just signal on device removal event.
->
-> v1 -> v2: Add Fixes tag
->
-> Fixes: 612eae1f6fe3 ("rping: ignore flushed completions")
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  librdmacm/examples/rping.c | 2 ++
->  1 file changed, 2 insertions(+)
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+---
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c   |  2 +-
+ drivers/gpu/drm/i915/i915_gem_userptr.c |  2 +-
+ drivers/infiniband/core/umem_odp.c      |  2 +-
+ fs/exec.c                               |  2 +-
+ include/linux/mm.h                      |  2 +-
+ kernel/events/uprobes.c                 |  4 ++--
+ mm/gup.c                                | 12 ++++++++----
+ mm/memory.c                             |  2 +-
+ security/tomoyo/domain.c                |  2 +-
+ 9 files changed, 17 insertions(+), 13 deletions(-)
 
-Mustafa,
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem.c b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+index 0370b84..0c69a97f 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+@@ -763,7 +763,7 @@ static struct page **etnaviv_gem_userptr_do_get_pages(
+ 	down_read(&mm->mmap_sem);
+ 	while (pinned < npages) {
+ 		ret = get_user_pages_remote(task, mm, ptr, npages - pinned,
+-					    flags, pvec + pinned, NULL);
++					    flags, pvec + pinned, NULL, NULL);
+ 		if (ret < 0)
+ 			break;
 
-For future submissions, please use rdma-core notation in [PATCH ..]
-section, so we will be able to handle them faster.
+diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
+index c6f780f..836b525 100644
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c
++++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -522,7 +522,7 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
+ 					 obj->userptr.ptr + pinned * PAGE_SIZE,
+ 					 npages - pinned,
+ 					 flags,
+-					 pvec + pinned, NULL);
++					 pvec + pinned, NULL, NULL);
+ 				if (ret < 0)
+ 					break;
 
-Thanks
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 1f0fe32..6b079a3 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -578,7 +578,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
+ 		 */
+ 		npages = get_user_pages_remote(owning_process, owning_mm,
+ 				user_virt, gup_num_pages,
+-				flags, local_page_list, NULL);
++				flags, local_page_list, NULL, NULL);
+ 		up_read(&owning_mm->mmap_sem);
 
---OaZoDhBhXzo6bW1J
-Content-Type: application/pgp-signature; name="signature.asc"
+ 		if (npages < 0)
+diff --git a/fs/exec.c b/fs/exec.c
+index 4e497b9..2cf049d 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -209,7 +209,7 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
+ 	 * doing the exec and bprm->mm is the new process's mm.
+ 	 */
+ 	ret = get_user_pages_remote(current, bprm->mm, pos, 1, gup_flags,
+-			&page, NULL);
++			&page, NULL, NULL);
+ 	if (ret <= 0)
+ 		return NULL;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index a92c8d7..cc15445 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1274,7 +1274,7 @@ extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
+ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 			    unsigned long start, unsigned long nr_pages,
+ 			    unsigned int gup_flags, struct page **pages,
+-			    struct vm_area_struct **vmas);
++			    struct vm_area_struct **vmas, int *locked);
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 			    unsigned int gup_flags, struct page **pages,
+ 			    struct vm_area_struct **vmas);
+diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
+index f9ec9ad..215871b 100644
+--- a/kernel/events/uprobes.c
++++ b/kernel/events/uprobes.c
+@@ -301,7 +301,7 @@ int uprobe_write_opcode(struct mm_struct *mm, unsigned long vaddr,
+ retry:
+ 	/* Read the page with vaddr into memory */
+ 	ret = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &old_page,
+-			&vma);
++			&vma, NULL);
+ 	if (ret <= 0)
+ 		return ret;
 
-iQIcBAEBAgAGBQJYEazyAAoJEORje4g2clinICcQAIOu+60PGix23mPpo6RzTP8e
-+WCj7kucwLP2P3xPTHBTDgxaC/bTTI5cSYLYBleTjDOihVqoFd5JCnTCjcptCg5e
-lVhuzUHv7x9sNW59LDwxwIISMDvK5gKnXL6YI8ji9NOHQQoeo98Qkfnh+MQDxuPr
-fsoU6PQ+h5r11SU3+CcTsV+7NmCk3MRjjNMro5+jPuF0JO0GPz3yYElhOSJ4Md+5
-J0Z4HOlHNDmXasjYZMYOWrJhqsk+lNR7uMBS9BvCktJiTLSBa5nFXJXphyhYj7gt
-2PZDjK+zNwXxWEPoTw7Dg3PaAzl1WX2bnLnAmrjKnoOXod4Be1soL6miitdYmbFv
-GVe+gIulsUUR7zugoCMi6ulka8jOkUW50Ab/pG9btPJ4wchdEhut0CvYzaCFXjhj
-UhS7eO/CXGLxkE/6HPjU7YEOS2Ju9ru55BfAOd9HMHfc4zjyc5eBoYJDFGkduepB
-qlNRocjNIbQJfo3OoapN9C2Z84CVXyaQEm2I1bruvaEurKqC0ydRCs4JkAQGQD6/
-+mojmvNlr2PM5VLVLnma+PovL8yZyAS+VvYakA9jNjKPO2k8SlMrumiYVJBTEKbz
-GbRD/TWmL2MO+LKtFTkvl6ms/7mRhmBFBS7LYhYREFOFdJtiWMTSdf0kbeufrzMZ
-7D7G0GJ/RM2MSP7RfKD0
-=rRbu
------END PGP SIGNATURE-----
+@@ -1712,7 +1712,7 @@ static int is_trap_at_addr(struct mm_struct *mm, unsigned long vaddr)
+ 	 * essentially a kernel access to the memory.
+ 	 */
+ 	result = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &page,
+-			NULL);
++			NULL, NULL);
+ 	if (result < 0)
+ 		return result;
 
---OaZoDhBhXzo6bW1J--
+diff --git a/mm/gup.c b/mm/gup.c
+index ec4f827..0567851 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -920,6 +920,9 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  *		only intends to ensure the pages are faulted in.
+  * @vmas:	array of pointers to vmas corresponding to each page.
+  *		Or NULL if the caller does not require them.
++ * @locked:	pointer to lock flag indicating whether lock is held and
++ *		subsequently whether VM_FAULT_RETRY functionality can be
++ *		utilised. Lock must initially be held.
+  *
+  * Returns number of pages pinned. This may be fewer than the number
+  * requested. If nr_pages is 0 or negative, returns 0. If no pages
+@@ -963,10 +966,10 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 		unsigned long start, unsigned long nr_pages,
+ 		unsigned int gup_flags, struct page **pages,
+-		struct vm_area_struct **vmas)
++		struct vm_area_struct **vmas, int *locked)
+ {
+ 	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
+-				       NULL, false,
++				       locked, true,
+ 				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
+ }
+ EXPORT_SYMBOL(get_user_pages_remote);
+@@ -974,8 +977,9 @@ EXPORT_SYMBOL(get_user_pages_remote);
+ /*
+  * This is the same as get_user_pages_remote(), just with a
+  * less-flexible calling convention where we assume that the task
+- * and mm being operated on are the current task's.  We also
+- * obviously don't pass FOLL_REMOTE in here.
++ * and mm being operated on are the current task's and don't allow
++ * passing of a locked parameter.  We also obviously don't pass
++ * FOLL_REMOTE in here.
+  */
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 		unsigned int gup_flags, struct page **pages,
+diff --git a/mm/memory.c b/mm/memory.c
+index e18c57b..2f3949b 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3883,7 +3883,7 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+ 		struct page *page = NULL;
+
+ 		ret = get_user_pages_remote(tsk, mm, addr, 1,
+-				gup_flags, &page, &vma);
++				gup_flags, &page, &vma, NULL);
+ 		if (ret <= 0) {
+ #ifndef CONFIG_HAVE_IOREMAP_PROT
+ 			break;
+diff --git a/security/tomoyo/domain.c b/security/tomoyo/domain.c
+index 682b73a..838ffa7 100644
+--- a/security/tomoyo/domain.c
++++ b/security/tomoyo/domain.c
+@@ -881,7 +881,7 @@ bool tomoyo_dump_page(struct linux_binprm *bprm, unsigned long pos,
+ 	 * the execve().
+ 	 */
+ 	if (get_user_pages_remote(current, bprm->mm, pos, 1,
+-				FOLL_FORCE, &page, NULL) <= 0)
++				FOLL_FORCE, &page, NULL, NULL) <= 0)
+ 		return false;
+ #else
+ 	page = bprm->page[pos / PAGE_SIZE];
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.10.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
