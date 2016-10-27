@@ -1,26 +1,24 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Trouble enabling iSER for ConnectX-4 Lx
-Date: Thu, 27 Oct 2016 11:48:15 +0300
-Message-ID: <ba970fe1-52cd-9f8d-c48d-5eac76b5bfa2@grimberg.me>
-References: <CAANLjFr_we+33Nen-NYp1xQPzQ-wbR=GL4LBkEZb9azMUN-_=Q@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 05/12] blk-mq: Introduce blk_mq_quiesce_queue()
+Date: Thu, 27 Oct 2016 14:42:58 +0200
+Message-ID: <20161027124258.GD13200@lst.de>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com> <5143c240-39af-9fe2-d3e6-ed69f9c20531@sandisk.com> <CACVXFVPWL=izFmUPtpi-+RLrhNX0LFfw2m6eurgMC5GvfDWsxQ@mail.gmail.com> <7690b469-f5b7-ab04-4b6f-fa0d679e0f18@acm.org> <CACVXFVNvdNXm4JXsXo2p1_pZLqDpCos0MTTR+svR98p_vw5PCA@mail.gmail.com> <16074653-5e31-27b0-90db-33d36a9df0bc@acm.org> <CACVXFVNyRnJFnsSO9TNksE5GNy7TJKL=iZnqrv38=u0XCrW7jA@mail.gmail.com> <8404f2d1-5bc3-6c84-7ca0-24e7672ff67d@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFr_we+33Nen-NYp1xQPzQ-wbR=GL4LBkEZb9azMUN-_=Q@mail.gmail.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8404f2d1-5bc3-6c84-7ca0-24e7672ff67d@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Ming Lei <tom.leiming@gmail.com>, Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Robert,
+On Wed, Oct 26, 2016 at 08:05:14PM -0700, Bart Van Assche wrote:
+> I'll leave it to Jens to decide whether I should repost the patch series 
+> with this change integrated or whether to realize this change with a 
+> follow-up patch.
 
-AFAIK, MLNX_OFED does includes isert only for specific distros.
-
-This is probably a compat issue between stock isert and MLNX
-provided RDMA stack.
-
-Any specific reason not to use upstream (or stock 4.4.27) kernel?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would prefer to get the series in now.  I think we should eventually
+the stop queues call, the quience call and even the cancellation of
+the requeues into a single function, but it's not as urgent.  I think
+this series actually is Linux 4.9 material.
