@@ -1,83 +1,73 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 02/12] IB/mlx5: Fix atomic cap in indirect UMR
-Date: Thu, 27 Oct 2016 16:36:37 +0300
-Message-ID: <1477575407-20562-3-git-send-email-leon@kernel.org>
-References: <1477575407-20562-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 3/6] IB/core: Set routable RoCE gid type for ipv4/ipv6 networks
+Date: Thu, 27 Oct 2016 16:36:28 +0300
+Message-ID: <1477575391-20134-4-git-send-email-leon@kernel.org>
+References: <1477575391-20134-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477575407-20562-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1477575391-20134-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Remove from the driver the limitation imposed by firmware check
-to not allow change of atomic permissions for indirect UMRs.
-In order to avoid failures on old firmware, we only ask for change
-of atomic permissions if atomic operations are supported.
+If the underlying netowrk type is ipv4 or ipv6 and the device supports
+routable RoCE, prefer it so the traffic could cross subnets.
 
-Fixes: 968e78dd9644 ('IB/mlx5: Enhance UMR support to allow partial page table update')
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/cma.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 00cffbf..5bdf20c 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3071,7 +3071,7 @@ static void set_linv_umr_seg(struct mlx5_wqe_umr_ctrl_seg *umr)
- 	umr->flags = MLX5_UMR_INLINE;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 36bf50e..9ca0da0 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2436,6 +2436,18 @@ static int iboe_tos_to_sl(struct net_device *ndev, int tos)
+ 	return 0;
  }
  
--static __be64 get_umr_reg_mr_mask(void)
-+static __be64 get_umr_reg_mr_mask(int atomic)
- {
- 	u64 result;
- 
-@@ -3084,9 +3084,11 @@ static __be64 get_umr_reg_mr_mask(void)
- 		 MLX5_MKEY_MASK_KEY		|
- 		 MLX5_MKEY_MASK_RR		|
- 		 MLX5_MKEY_MASK_RW		|
--		 MLX5_MKEY_MASK_A		|
- 		 MLX5_MKEY_MASK_FREE;
- 
-+	if (atomic)
-+		result |= MLX5_MKEY_MASK_A;
++static enum ib_gid_type cma_route_gid_type(enum rdma_network_type network_type,
++					   unsigned long supported_gids,
++					   enum ib_gid_type default_gid)
++{
++	if ((network_type == RDMA_NETWORK_IPV4 ||
++	     network_type == RDMA_NETWORK_IPV6) &&
++	    test_bit(IB_GID_TYPE_ROCE_UDP_ENCAP, &supported_gids))
++		return IB_GID_TYPE_ROCE_UDP_ENCAP;
 +
- 	return cpu_to_be64(result);
- }
- 
-@@ -3147,7 +3149,7 @@ static __be64 get_umr_update_pd_mask(void)
- }
- 
- static void set_reg_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
--				struct ib_send_wr *wr)
-+				struct ib_send_wr *wr, int atomic)
++	return default_gid;
++}
++
+ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
  {
- 	struct mlx5_umr_wr *umrwr = umr_wr(wr);
+ 	struct rdma_route *route = &id_priv->id.route;
+@@ -2461,6 +2473,8 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	route->num_paths = 1;
  
-@@ -3172,7 +3174,7 @@ static void set_reg_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
- 		if (wr->send_flags & MLX5_IB_SEND_UMR_UPDATE_PD)
- 			umr->mkey_mask |= get_umr_update_pd_mask();
- 		if (!umr->mkey_mask)
--			umr->mkey_mask = get_umr_reg_mr_mask();
-+			umr->mkey_mask = get_umr_reg_mr_mask(atomic);
- 	} else {
- 		umr->mkey_mask = get_umr_unreg_mr_mask();
+ 	if (addr->dev_addr.bound_dev_if) {
++		unsigned long supported_gids;
++
+ 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
+ 		if (!ndev) {
+ 			ret = -ENODEV;
+@@ -2484,7 +2498,12 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 
+ 		route->path_rec->net = &init_net;
+ 		route->path_rec->ifindex = ndev->ifindex;
+-		route->path_rec->gid_type = id_priv->gid_type;
++		supported_gids = roce_gid_type_mask_support(id_priv->id.device,
++							    id_priv->id.port_num);
++		route->path_rec->gid_type =
++			cma_route_gid_type(addr->dev_addr.network,
++					   supported_gids,
++					   id_priv->gid_type);
  	}
-@@ -4025,7 +4027,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			}
- 			qp->sq.wr_data[idx] = MLX5_IB_WR_UMR;
- 			ctrl->imm = cpu_to_be32(umr_wr(wr)->mkey);
--			set_reg_umr_segment(seg, wr);
-+			set_reg_umr_segment(seg, wr, !!(MLX5_CAP_GEN(mdev, atomic)));
- 			seg += sizeof(struct mlx5_wqe_umr_ctrl_seg);
- 			size += sizeof(struct mlx5_wqe_umr_ctrl_seg) / 16;
- 			if (unlikely((seg == qend)))
+ 	if (!ndev) {
+ 		ret = -ENODEV;
 -- 
 2.7.4
 
