@@ -1,87 +1,100 @@
-From: Hannes Reinecke <hare@suse.de>
-Subject: Re: [PATCH 07/12] dm: Use BLK_MQ_S_STOPPED instead of
- QUEUE_FLAG_STOPPED in blk-mq code
-Date: Thu, 27 Oct 2016 09:27:16 +0200
-Message-ID: <61253bf4-1478-3cfb-7954-1d29997fedd9@suse.de>
-References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
- <a0733adf-065e-2099-3850-cb1c55df1e35@sandisk.com>
+From: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Trouble enabling iSER for ConnectX-4 Lx
+Date: Thu, 27 Oct 2016 10:29:28 +0300
+Message-ID: <4930e954-50d9-f04a-d5eb-359f635c3cb4@dev.mellanox.co.il>
+References: <CAANLjFr_we+33Nen-NYp1xQPzQ-wbR=GL4LBkEZb9azMUN-_=Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <a0733adf-065e-2099-3850-cb1c55df1e35@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>, Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFr_we+33Nen-NYp1xQPzQ-wbR=GL4LBkEZb9azMUN-_=Q@mail.gmail.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/27/2016 12:54 AM, Bart Van Assche wrote:
-> Instead of manipulating both QUEUE_FLAG_STOPPED and BLK_MQ_S_STOPPED
-> in the dm start and stop queue functions, only manipulate the latter
-> flag. Change blk_queue_stopped() tests into blk_mq_queue_stopped().
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Cc: Mike Snitzer <snitzer@redhat.com>
-> ---
->  drivers/md/dm-rq.c | 18 ++----------------
->  1 file changed, 2 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/md/dm-rq.c b/drivers/md/dm-rq.c
-> index fbd37b4..d47a504 100644
-> --- a/drivers/md/dm-rq.c
-> +++ b/drivers/md/dm-rq.c
-> @@ -75,12 +75,6 @@ static void dm_old_start_queue(struct request_queue *q)
->  
->  static void dm_mq_start_queue(struct request_queue *q)
->  {
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(q->queue_lock, flags);
-> -	queue_flag_clear(QUEUE_FLAG_STOPPED, q);
-> -	spin_unlock_irqrestore(q->queue_lock, flags);
-> -
->  	blk_mq_start_stopped_hw_queues(q, true);
->  	blk_mq_kick_requeue_list(q);
->  }
-> @@ -105,16 +99,8 @@ static void dm_old_stop_queue(struct request_queue *q)
->  
->  static void dm_mq_stop_queue(struct request_queue *q)
->  {
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(q->queue_lock, flags);
-> -	if (blk_queue_stopped(q)) {
-> -		spin_unlock_irqrestore(q->queue_lock, flags);
-> +	if (blk_mq_queue_stopped(q))
->  		return;
-> -	}
-> -
-> -	queue_flag_set(QUEUE_FLAG_STOPPED, q);
-> -	spin_unlock_irqrestore(q->queue_lock, flags);
->  
->  	/* Avoid that requeuing could restart the queue. */
->  	blk_mq_cancel_requeue_work(q);
-> @@ -341,7 +327,7 @@ static void __dm_mq_kick_requeue_list(struct request_queue *q, unsigned long mse
->  	unsigned long flags;
->  
->  	spin_lock_irqsave(q->queue_lock, flags);
-> -	if (!blk_queue_stopped(q))
-> +	if (!blk_mq_queue_stopped(q))
->  		blk_mq_delay_kick_requeue_list(q, msecs);
->  	spin_unlock_irqrestore(q->queue_lock, flags);
->  }
-> 
-Ah. Right. That answers my previous question.
+Hi Robert,
 
-Reviewed-by: Hannes Reinecke <hare@suse.com>
+You've installed mlnx-en package, which does not provide iSER modules.
+Instead, you should get MLNX_OFED from:
+http://www.mellanox.com/page/products_dyn?product_family=26&mtag=linux_sw_drivers
 
-Cheers,
+Note that ib_isert in MLNX_OFED is not backported to all kernels, and it's enabled by default only for a specific kernels.
+To force building the module against your kernel, use the following command for MLNX_OFED installation:
+# MLNX_EXTRA_FLAGS=--with-isert ./mlnxofedinstall --force --add-kernel-support  --with-isert --skip-repo
 
-Hannes
--- 
-Dr. Hannes Reinecke		   Teamlead Storage & Networking
-hare@suse.de			               +49 911 74053 688
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: F. Imendörffer, J. Smithard, J. Guild, D. Upmanyu, G. Norton
-HRB 21284 (AG Nürnberg)
+As for configuring RoCE, please refer to the MLNX_OFED User Manual:
+http://www.mellanox.com/related-docs/prod_software/Mellanox_OFED_Linux_User_Manual_v3.40.pdf
+
+Regards,
+Alaa
+
+
+On 10/27/2016 02:13, Robert LeBlanc wrote:
+> We have some ConnectX-4 Lx cards that I'm trying to test RoCE and iSER
+> on. I downloaded and installed the Mellanox drivers with VMA [0]. I
+> was able to run the ib_read_bw tests over the adapters after
+> installing the infiniband-diags and perftest RPMs. When I went to
+> configure LIO for iSER, I'm getting the message "Cannot change iser"
+> on step 6 in the procedure here [1] which I've done many times with
+> Infiniband without issues. I navigated to
+> /sys/kernel/config/target/iscsi/{iqn}/tpgt_1/np/{portal_ip:port} and
+> sure enough, I can't write '1' into iser. The kernel is not giving any
+> messages and the ib_isert module is loaded. This is on 4.4.27,
+> Mellanox driver 3.4-1.0.0.3 built with `./install --add-kernel-support
+> --skip-repo --tmpdir /root/junk --vma`
+>
+> # mstflint -d 4:00.0 q
+> Image type:          FS3
+> FW Version:          14.16.1020
+> FW Release Date:     20.6.2016
+> Rom Info:            type=UEFI version=14.10.16
+>                     type=PXE version=3.4.812 devid=4117
+> Description:         UID                GuidsNumber
+> Base GUID:           0cc47a000089f706        4
+> Base MAC:            00000cc47a89f706        4
+> Image VSD:
+> Device VSD:
+> PSID:                SM_2001000001034
+>
+> # ibstatus
+> Infiniband device 'mlx5_0' port 1 status:
+>        default gid:     fe80:0000:0000:0000:0ec4:7aff:fe89:f706
+>        base lid:        0x0
+>        sm lid:          0x0
+>        state:           4: ACTIVE
+>        phys state:      5: LinkUp
+>        rate:            25 Gb/sec (1X EDR)
+>        link_layer:      Ethernet
+>
+> Infiniband device 'mlx5_1' port 1 status:
+>        default gid:     fe80:0000:0000:0000:0ec4:7aff:fe89:f707
+>        base lid:        0x0
+>        sm lid:          0x0
+>        state:           4: ACTIVE
+>        phys state:      5: LinkUp
+>        rate:            25 Gb/sec (1X EDR)
+>        link_layer:      Ethernet
+>
+> Any ideas of what I'm doing wrong here? I don't have any experience
+> with RoCE, so I'm sure I'm doing something wrong. And the manual has
+> nothing about configuring RoCE other than enabling --vma when
+> installing the drivers [2].
+>
+> Thanks,
+> Robert LeBlanc
+>
+> [0] http://www.mellanox.com/page/products_dyn?product_family=27
+> [1] https://community.mellanox.com/docs/DOC-1472
+> [2] http://www.mellanox.com/related-docs/prod_software/Mellanox_EN_for_Linux_User_Manual_v3_40.pdf
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
