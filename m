@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH v4 10/10] IB/mlx5: Simplify completion into a wait_event
-Date: Thu, 27 Oct 2016 12:29:14 +0530
-Message-ID: <1477551554-30349-11-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH v4 06/10] IB/hns: Replace counting semaphore event_sem with wait_event
+Date: Thu, 27 Oct 2016 12:29:10 +0530
+Message-ID: <1477551554-30349-7-git-send-email-binoy.jayan@linaro.org>
 References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
@@ -10,73 +10,124 @@ To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal R
 Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Convert the completion 'mlx5_ib_umr_context:done' to a wait_event as it
-just waits for the return value to be filled.
+Counting semaphores are going away in the future, so replace the semaphore
+mthca_cmd::event_sem with a conditional wait_event.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
- drivers/infiniband/hw/mlx5/mr.c      | 9 +++++----
- include/rdma/ib_verbs.h              | 1 +
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    | 46 ++++++++++++++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
+ 2 files changed, 33 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index de31b5f..cf496b5 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -524,7 +524,7 @@ struct mlx5_ib_mw {
- struct mlx5_ib_umr_context {
- 	struct ib_cqe		cqe;
- 	enum ib_wc_status	status;
--	struct completion	done;
-+	wait_queue_head_t	wq;
- };
- 
- struct umr_common {
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index dfaf6f6..49ff2af 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -846,14 +846,14 @@ static void mlx5_ib_umr_done(struct ib_cq *cq, struct ib_wc *wc)
- 		container_of(wc->wr_cqe, struct mlx5_ib_umr_context, cqe);
- 
- 	context->status = wc->status;
--	complete(&context->done);
-+	wake_up(&context->wq);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+index 51a0675..12ef3d8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+@@ -189,6 +189,34 @@ void hns_roce_cmd_event(struct hns_roce_dev *hr_dev, u16 token, u8 status,
+ 	complete(&context->done);
  }
  
- static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
++static inline struct hns_roce_cmd_context *
++hns_roce_try_get_context(struct hns_roce_cmdq *cmd)
++{
++	struct hns_roce_cmd_context *context = NULL;
++
++	spin_lock(&cmd->context_lock);
++
++	if (cmd->free_head < 0)
++		goto out;
++
++	context = &cmd->context[cmd->free_head];
++	context->token += cmd->token_mask + 1;
++	cmd->free_head = context->next;
++out:
++	spin_unlock(&cmd->context_lock);
++	return context;
++}
++
++/* wait for and acquire a free context */
++static inline struct hns_roce_cmd_context *
++hns_roce_get_free_context(struct hns_roce_cmdq *cmd)
++{
++	struct hns_roce_cmd_context *context;
++
++	wait_event(cmd->wq, (context = hns_roce_try_get_context(cmd)));
++	return context;
++}
++
+ /* this should be called with "use_events" */
+ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u64 out_param, unsigned long in_modifier,
+@@ -200,13 +228,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	struct hns_roce_cmd_context *context;
+ 	int ret = 0;
+ 
+-	spin_lock(&cmd->context_lock);
+-	WARN_ON(cmd->free_head < 0);
+-	context = &cmd->context[cmd->free_head];
+-	context->token += cmd->token_mask + 1;
+-	cmd->free_head = context->next;
+-	spin_unlock(&cmd->context_lock);
+-
++	context = hns_roce_get_free_context(cmd);
+ 	init_completion(&context->done);
+ 
+ 	ret = hns_roce_cmd_mbox_post_hw(hr_dev, in_param, out_param,
+@@ -238,6 +260,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	context->next = cmd->free_head;
+ 	cmd->free_head = context - cmd->context;
+ 	spin_unlock(&cmd->context_lock);
++	wake_up(&cmd->wq);
+ 
+ 	return ret;
+ }
+@@ -248,10 +271,8 @@ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
  {
- 	context->cqe.done = mlx5_ib_umr_done;
--	context->status = -1;
--	init_completion(&context->done);
-+	context->status = IB_WC_STATUS_NONE;
-+	init_waitqueue_head(&context->wq);
+ 	int ret = 0;
+ 
+-	down(&hr_dev->cmd.event_sem);
+ 	ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
+ 				       in_modifier, op_modifier, op, timeout);
+-	up(&hr_dev->cmd.event_sem);
+ 
+ 	return ret;
  }
+@@ -313,7 +334,7 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
+ 	hr_cmd->context[hr_cmd->max_cmds - 1].next = -1;
+ 	hr_cmd->free_head = 0;
  
- static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
-@@ -873,7 +873,8 @@ static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
- 	if (err) {
- 		mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
- 	} else {
--		wait_for_completion(&umr_context.done);
-+		wait_event(umr_context.wq,
-+			   umr_context.status != IB_WC_STATUS_NONE);
- 		if (umr_context.status != IB_WC_SUCCESS) {
- 			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
- 				     umr_context.status);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5ad43a4..8b15b6f 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -823,6 +823,7 @@ struct ib_ah_attr {
- };
+-	sema_init(&hr_cmd->event_sem, hr_cmd->max_cmds);
++	init_waitqueue_head(&hr_cmd->wq);
+ 	spin_lock_init(&hr_cmd->context_lock);
  
- enum ib_wc_status {
-+	IB_WC_STATUS_NONE = -1,
- 	IB_WC_SUCCESS,
- 	IB_WC_LOC_LEN_ERR,
- 	IB_WC_LOC_QP_OP_ERR,
+ 	hr_cmd->token_mask = CMD_TOKEN_MASK;
+@@ -325,12 +346,9 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
+ void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_cmdq *hr_cmd = &hr_dev->cmd;
+-	int i;
+ 
+ 	hr_cmd->use_events = 0;
+-
+-	for (i = 0; i < hr_cmd->max_cmds; ++i)
+-		down(&hr_cmd->event_sem);
++	hr_cmd->free_head = -1;
+ 
+ 	kfree(hr_cmd->context);
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 2afe075..ac95f52 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -364,7 +364,7 @@ struct hns_roce_cmdq {
+ 	* Event mode: cmd register mutex protection,
+ 	* ensure to not exceed max_cmds and user use limit region
+ 	*/
+-	struct semaphore	event_sem;
++	wait_queue_head_t       wq;
+ 	int			max_cmds;
+ 	spinlock_t		context_lock;
+ 	int			free_head;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
