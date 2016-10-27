@@ -1,50 +1,209 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 0/3] iopmem : A block device for PCIe memory
-Date: Thu, 27 Oct 2016 13:22:49 +0300
-Message-ID: <76e957c9-8002-5a46-8111-269bb0401718@grimberg.me>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
- <CAPcyv4gJ_c-6s2BUjsu6okR1EF53R+KNuXnOc5jv0fuwJaa3cQ@mail.gmail.com>
- <20161019184814.GC16550@cgy1-donard.priv.deltatee.com>
- <20161020232239.GQ23194@dastard> <20161021095714.GA12209@infradead.org>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH 1/2] mm: add locked parameter to get_user_pages_remote()
+Date: Thu, 27 Oct 2016 12:55:28 +0200
+Message-ID: <20161027105527.GG6454@dhcp22.suse.cz>
+References: <20161027095141.2569-1-lstoakes@gmail.com>
+ <20161027095141.2569-2-lstoakes@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20161021095714.GA12209-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Cc: haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, "Raj,
- Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20161027095141.2569-2-lstoakes@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu 27-10-16 10:51:40, Lorenzo Stoakes wrote:
+> This patch adds a int *locked parameter to get_user_pages_remote() to allow
+> VM_FAULT_RETRY faulting behaviour similar to get_user_pages_[un]locked().
+> 
+> Taking into account the previous adjustments to get_user_pages*() functions
+> allowing for the passing of gup_flags, we are now in a position where
+> __get_user_pages_unlocked() need only be exported for his ability to allow
+> VM_FAULT_RETRY behaviour, this adjustment allows us to subsequently unexport
+> __get_user_pages_unlocked() as well as allowing for future flexibility in the
+> use of get_user_pages_remote().
 
->> You do realise that local filesystems can silently change the
->> location of file data at any point in time, so there is no such
->> thing as a "stable mapping" of file data to block device addresses
->> in userspace?
->>
->> If you want remote access to the blocks owned and controlled by a
->> filesystem, then you need to use a filesystem with a remote locking
->> mechanism to allow co-ordinated, coherent access to the data in
->> those blocks. Anything else is just asking for ongoing, unfixable
->> filesystem corruption or data leakage problems (i.e.  security
->> issues).
->
-> And at least for XFS we have such a mechanism :)  E.g. I have a
-> prototype of a pNFS layout that uses XFS+DAX to allow clients to do
-> RDMA directly to XFS files, with the same locking mechanism we use
-> for the current block and scsi layout in xfs_pnfs.c.
+I would also add that this shouldn't introduce any functional change.
 
-Christoph, did you manage to leap to the future and solve the
-RDMA persistency hole? :)
+> Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 
-e.g. what happens with O_DSYNC in this model? Or you did
-a message exchange for commits?
+Acked-by: Michal Hocko <mhocko@suse.com>
+
+> ---
+>  drivers/gpu/drm/etnaviv/etnaviv_gem.c   |  2 +-
+>  drivers/gpu/drm/i915/i915_gem_userptr.c |  2 +-
+>  drivers/infiniband/core/umem_odp.c      |  2 +-
+>  fs/exec.c                               |  2 +-
+>  include/linux/mm.h                      |  2 +-
+>  kernel/events/uprobes.c                 |  4 ++--
+>  mm/gup.c                                | 12 ++++++++----
+>  mm/memory.c                             |  2 +-
+>  security/tomoyo/domain.c                |  2 +-
+>  9 files changed, 17 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem.c b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+> index 0370b84..0c69a97f 100644
+> --- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+> +++ b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+> @@ -763,7 +763,7 @@ static struct page **etnaviv_gem_userptr_do_get_pages(
+>  	down_read(&mm->mmap_sem);
+>  	while (pinned < npages) {
+>  		ret = get_user_pages_remote(task, mm, ptr, npages - pinned,
+> -					    flags, pvec + pinned, NULL);
+> +					    flags, pvec + pinned, NULL, NULL);
+>  		if (ret < 0)
+>  			break;
+> 
+> diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
+> index c6f780f..836b525 100644
+> --- a/drivers/gpu/drm/i915/i915_gem_userptr.c
+> +++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
+> @@ -522,7 +522,7 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
+>  					 obj->userptr.ptr + pinned * PAGE_SIZE,
+>  					 npages - pinned,
+>  					 flags,
+> -					 pvec + pinned, NULL);
+> +					 pvec + pinned, NULL, NULL);
+>  				if (ret < 0)
+>  					break;
+> 
+> diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+> index 1f0fe32..6b079a3 100644
+> --- a/drivers/infiniband/core/umem_odp.c
+> +++ b/drivers/infiniband/core/umem_odp.c
+> @@ -578,7 +578,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
+>  		 */
+>  		npages = get_user_pages_remote(owning_process, owning_mm,
+>  				user_virt, gup_num_pages,
+> -				flags, local_page_list, NULL);
+> +				flags, local_page_list, NULL, NULL);
+>  		up_read(&owning_mm->mmap_sem);
+> 
+>  		if (npages < 0)
+> diff --git a/fs/exec.c b/fs/exec.c
+> index 4e497b9..2cf049d 100644
+> --- a/fs/exec.c
+> +++ b/fs/exec.c
+> @@ -209,7 +209,7 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
+>  	 * doing the exec and bprm->mm is the new process's mm.
+>  	 */
+>  	ret = get_user_pages_remote(current, bprm->mm, pos, 1, gup_flags,
+> -			&page, NULL);
+> +			&page, NULL, NULL);
+>  	if (ret <= 0)
+>  		return NULL;
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index a92c8d7..cc15445 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1274,7 +1274,7 @@ extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
+>  long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+>  			    unsigned long start, unsigned long nr_pages,
+>  			    unsigned int gup_flags, struct page **pages,
+> -			    struct vm_area_struct **vmas);
+> +			    struct vm_area_struct **vmas, int *locked);
+>  long get_user_pages(unsigned long start, unsigned long nr_pages,
+>  			    unsigned int gup_flags, struct page **pages,
+>  			    struct vm_area_struct **vmas);
+> diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
+> index f9ec9ad..215871b 100644
+> --- a/kernel/events/uprobes.c
+> +++ b/kernel/events/uprobes.c
+> @@ -301,7 +301,7 @@ int uprobe_write_opcode(struct mm_struct *mm, unsigned long vaddr,
+>  retry:
+>  	/* Read the page with vaddr into memory */
+>  	ret = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &old_page,
+> -			&vma);
+> +			&vma, NULL);
+>  	if (ret <= 0)
+>  		return ret;
+> 
+> @@ -1712,7 +1712,7 @@ static int is_trap_at_addr(struct mm_struct *mm, unsigned long vaddr)
+>  	 * essentially a kernel access to the memory.
+>  	 */
+>  	result = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &page,
+> -			NULL);
+> +			NULL, NULL);
+>  	if (result < 0)
+>  		return result;
+> 
+> diff --git a/mm/gup.c b/mm/gup.c
+> index ec4f827..0567851 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -920,6 +920,9 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+>   *		only intends to ensure the pages are faulted in.
+>   * @vmas:	array of pointers to vmas corresponding to each page.
+>   *		Or NULL if the caller does not require them.
+> + * @locked:	pointer to lock flag indicating whether lock is held and
+> + *		subsequently whether VM_FAULT_RETRY functionality can be
+> + *		utilised. Lock must initially be held.
+>   *
+>   * Returns number of pages pinned. This may be fewer than the number
+>   * requested. If nr_pages is 0 or negative, returns 0. If no pages
+> @@ -963,10 +966,10 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+>  long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+>  		unsigned long start, unsigned long nr_pages,
+>  		unsigned int gup_flags, struct page **pages,
+> -		struct vm_area_struct **vmas)
+> +		struct vm_area_struct **vmas, int *locked)
+>  {
+>  	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
+> -				       NULL, false,
+> +				       locked, true,
+>  				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
+>  }
+>  EXPORT_SYMBOL(get_user_pages_remote);
+> @@ -974,8 +977,9 @@ EXPORT_SYMBOL(get_user_pages_remote);
+>  /*
+>   * This is the same as get_user_pages_remote(), just with a
+>   * less-flexible calling convention where we assume that the task
+> - * and mm being operated on are the current task's.  We also
+> - * obviously don't pass FOLL_REMOTE in here.
+> + * and mm being operated on are the current task's and don't allow
+> + * passing of a locked parameter.  We also obviously don't pass
+> + * FOLL_REMOTE in here.
+>   */
+>  long get_user_pages(unsigned long start, unsigned long nr_pages,
+>  		unsigned int gup_flags, struct page **pages,
+> diff --git a/mm/memory.c b/mm/memory.c
+> index e18c57b..2f3949b 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -3883,7 +3883,7 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+>  		struct page *page = NULL;
+> 
+>  		ret = get_user_pages_remote(tsk, mm, addr, 1,
+> -				gup_flags, &page, &vma);
+> +				gup_flags, &page, &vma, NULL);
+>  		if (ret <= 0) {
+>  #ifndef CONFIG_HAVE_IOREMAP_PROT
+>  			break;
+> diff --git a/security/tomoyo/domain.c b/security/tomoyo/domain.c
+> index 682b73a..838ffa7 100644
+> --- a/security/tomoyo/domain.c
+> +++ b/security/tomoyo/domain.c
+> @@ -881,7 +881,7 @@ bool tomoyo_dump_page(struct linux_binprm *bprm, unsigned long pos,
+>  	 * the execve().
+>  	 */
+>  	if (get_user_pages_remote(current, bprm->mm, pos, 1,
+> -				FOLL_FORCE, &page, NULL) <= 0)
+> +				FOLL_FORCE, &page, NULL, NULL) <= 0)
+>  		return false;
+>  #else
+>  	page = bprm->page[pos / PAGE_SIZE];
+> --
+> 2.10.1
+
+-- 
+Michal Hocko
+SUSE Labs
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
