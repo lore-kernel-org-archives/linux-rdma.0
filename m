@@ -1,45 +1,35 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [bug report] qedr: Add GSI support
-Date: Thu, 27 Oct 2016 07:46:52 +0000
-Message-ID: <SN1PR07MB2207892A0E7BF2E6508450E0F8AA0@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <20161026132501.GA3628@elgon.mountain>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 05/12] blk-mq: Introduce blk_mq_quiesce_queue()
+Date: Thu, 27 Oct 2016 21:16:29 +0800
+Message-ID: <CACVXFVOpc2rwydYWjSHWs18QmACr+-fSP75rwk+tBv6WWAwg2g@mail.gmail.com>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <5143c240-39af-9fe2-d3e6-ed69f9c20531@sandisk.com> <CACVXFVPWL=izFmUPtpi-+RLrhNX0LFfw2m6eurgMC5GvfDWsxQ@mail.gmail.com>
+ <7690b469-f5b7-ab04-4b6f-fa0d679e0f18@acm.org> <CACVXFVNvdNXm4JXsXo2p1_pZLqDpCos0MTTR+svR98p_vw5PCA@mail.gmail.com>
+ <16074653-5e31-27b0-90db-33d36a9df0bc@acm.org> <CACVXFVNyRnJFnsSO9TNksE5GNy7TJKL=iZnqrv38=u0XCrW7jA@mail.gmail.com>
+ <8404f2d1-5bc3-6c84-7ca0-24e7672ff67d@acm.org> <20161027124258.GD13200@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161026132501.GA3628-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20161027124258.GD13200@lst.de>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@fb.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The patch 048867793046: "qedr: Add GSI support" from Oct 10, 2016, leads =
-to
-> the following Smatch complaint:
->=20
-> drivers/infiniband/hw/qedr/qedr_cm.c:284 qedr_gsi_build_header()
-> 	 warn: variable dereferenced before check 'sgid_attr.ndev' (see line 281=
-)
->=20
-> drivers/infiniband/hw/qedr/qedr_cm.c
->    280
->    281		vlan_id =3D rdma_vlan_dev_vlan_id(sgid_attr.ndev);
->                                                 ^^^^^^^^^^^^^^ Dereferenc=
-e inside function.
->=20
->    282		if (vlan_id < VLAN_CFI_MASK)
->    283			has_vlan =3D true;
->    284		if (sgid_attr.ndev)
->                     ^^^^^^^^^^^^^^
-> Check too late.
->=20
->    285			dev_put(sgid_attr.ndev);
->    286
+On Thu, Oct 27, 2016 at 8:42 PM, Christoph Hellwig <hch@lst.de> wrote:
+> On Wed, Oct 26, 2016 at 08:05:14PM -0700, Bart Van Assche wrote:
+>> I'll leave it to Jens to decide whether I should repost the patch series
+>> with this change integrated or whether to realize this change with a
+>> follow-up patch.
+>
+> I would prefer to get the series in now.  I think we should eventually
+> the stop queues call, the quience call and even the cancellation of
+> the requeues into a single function, but it's not as urgent.  I think
+> this series actually is Linux 4.9 material.
 
-Thanks Dan. I'll fix this.
-Ram
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, that is fine to cleanup in follow-up patch.
+
+Reviewed-by: Ming Lei <tom.leiming@gmail.com>
+
+Thanks
+Ming Lei
