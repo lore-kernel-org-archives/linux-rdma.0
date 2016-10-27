@@ -1,63 +1,69 @@
-From: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 05/12] blk-mq: Introduce blk_mq_quiesce_queue()
-Date: Thu, 27 Oct 2016 07:52:41 +0200
-Message-ID: <f1661bd2-12ca-20d1-ece2-5c7fe5987035@suse.de>
-References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
- <5143c240-39af-9fe2-d3e6-ed69f9c20531@sandisk.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v2 8/8] IB/mlx5: Add helper mlx5_ib_post_send_wait
+Date: Thu, 27 Oct 2016 09:05:46 +0300
+Message-ID: <20161027060546.GA3617@leon.nu>
+References: <1477396919-27669-1-git-send-email-binoy.jayan@linaro.org>
+ <1477396919-27669-9-git-send-email-binoy.jayan@linaro.org>
+ <20161025122609.GQ25013@leon.nu>
+ <CAHv-k__yPiQOeZxDjvaSzG6A8Qs32to9MnKiPpHAvbXMxqE5EA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5143c240-39af-9fe2-d3e6-ed69f9c20531-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Bottomley <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHv-k__yPiQOeZxDjvaSzG6A8Qs32to9MnKiPpHAvbXMxqE5EA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Binoy Jayan <binoy.jayan@linaro.org>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, Linux kernel mailing list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/27/2016 12:53 AM, Bart Van Assche wrote:
-> blk_mq_quiesce_queue() waits until ongoing .queue_rq() invocations
-> have finished. This function does *not* wait until all outstanding
-> requests have finished (this means invocation of request.end_io()).
-> The algorithm used by blk_mq_quiesce_queue() is as follows:
-> * Hold either an RCU read lock or an SRCU read lock around
->   .queue_rq() calls. The former is used if .queue_rq() does not
->   block and the latter if .queue_rq() may block.
-> * blk_mq_quiesce_queue() calls synchronize_srcu() or
->   synchronize_rcu() to wait for .queue_rq() invocations that
->   started before blk_mq_quiesce_queue() was called.
-> * The blk_mq_hctx_stopped() calls that control whether or not
->   .queue_rq() will be called are called with the (S)RCU read lock
->   held. This is necessary to avoid race conditions against
->   the "blk_mq_stop_hw_queues(q); blk_mq_quiesce_queue(q);"
->   sequence from another thread.
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Cc: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
-> Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-> ---
->  block/Kconfig          |  1 +
->  block/blk-mq.c         | 69 +++++++++++++++++++++++++++++++++++++++++++++-----
->  include/linux/blk-mq.h |  3 +++
->  include/linux/blkdev.h |  1 +
->  4 files changed, 67 insertions(+), 7 deletions(-)
-> 
-Hmm. Can't say I like having to have two RCU structure for the same
-purpose, but I guess that can't be helped.
 
-Reviewed-by: Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Cheers,
+On Tue, Oct 25, 2016 at 06:46:58PM +0530, Binoy Jayan wrote:
+> On 25 October 2016 at 17:56, Leon Romanovsky <leon@kernel.org> wrote:
+> > On Tue, Oct 25, 2016 at 05:31:59PM +0530, Binoy Jayan wrote:
+>
+> > In case of success (err == 0), you will call to unmap_dma instead of
+> > normal flow.
+> >
+> > NAK,
+> > Leon Romanovsky <leonro@mellanox.com>
+>
+> Hi Loen,
+>
+> Even in the original code, the regular flow seems to reach 'unmap_dma' after
+> returning from 'wait_for_completion'().
 
-Hannes
--- 
-Dr. Hannes Reinecke		   Teamlead Storage & Networking
-hare-l3A5Bk7waGM@public.gmane.org			               +49 911 74053 688
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: F. Imendörffer, J. Smithard, J. Guild, D. Upmanyu, G. Norton
-HRB 21284 (AG Nürnberg)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In original flow, the code executed assignments to mr->mmkey. In you
+code, it is skipped.
+
+http://lxr.free-electrons.com/source/drivers/infiniband/hw/mlx5/mr.c#L900
+
+>
+> -Binoy
+
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYEZk6AAoJEORje4g2clinqigQAKsPr6ke1qKF6UGrDLtD3KuY
+3CZLNZvggd6MudpMpQVFCRpvURBCADalIBvFdhqJ+QB6s4tjecx7z2rh0vcZyYP/
+5h0C+UOaJwkzrOpLbQSHGtot6EvwqKbWTTbnpHqo8gOS/UEWbCj9rFUiset7a6ah
+qhkmJcAy8y/mqjEuy3LOhVDHsB8yeWzkecI74+6rr2Lf7sBevgVsfjepd+8BO0IB
+GVDRZjI75xjMPL+N3+Ozt3ShMU/cGQoTL+TOjYIa5eYK6VYxd9PGgirhvI9w9Tcp
+OWBewsiMX84l4Fj07GwDTsZUS0emTJRHwxClHNrYLdZAGlFyzg51PQKgrP4GKFUg
+L+tQUgWok9uT/ItZ9plS51U1hAHbWBb0I44QT3+NeXffHYv7jHe+3LLNR/f19aO7
+yoGImaxgLfZT6C5E/NzPxhxgqxtAGKKi05V/XMSUfPkpP+BaPo9SAY5V2qnLBYKl
+KH+NrQTRy7mPuTsE2W2L4ldUOC98ZeY1fV4KNnPpMSgIhIzN77sYTa90Mkxi5k2M
+Ecw7Vs4zGF4XTAQ5YWp38m/tug+/m2qUH7SUoCIbg+5mvwvl5sHi4TK54ZIavbsK
+NLSOhbe0l5vTlQ7LsHkXLrg8tMel2cFASABAxgv0JBPoz0mlk8P+02pT7Gw7L9lD
+zcXAXCNgESyAOEiNvCdw
+=Ecik
+-----END PGP SIGNATURE-----
+
+--h31gzZEtNLTqOjlF--
