@@ -1,47 +1,47 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 05/12] IB/mlx5: Validate requested RQT size
-Date: Thu, 27 Oct 2016 16:36:40 +0300
-Message-ID: <1477575407-20562-6-git-send-email-leon@kernel.org>
-References: <1477575407-20562-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 0/6] IB core fixes for 4.9
+Date: Thu, 27 Oct 2016 16:36:25 +0300
+Message-ID: <1477575391-20134-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477575407-20562-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-Validate that the requested size of RQT is supported by firmware.
+Please find below six different fixes and improvements to IB core.
 
-Fixes: c5f9092936fe ('IB/mlx5: Add Receive Work Queue Indirection table operations')
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/qp.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This patchset was generated against v4.9-rc1.
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5bdf20c..047f7e4 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -4817,6 +4817,14 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
- 				 udata->inlen))
- 		return ERR_PTR(-EOPNOTSUPP);
- 
-+	if (init_attr->log_ind_tbl_size >
-+	    MLX5_CAP_GEN(dev->mdev, log_max_rqt_size)) {
-+		mlx5_ib_dbg(dev, "log_ind_tbl_size = %d is bigger than supported = %d\n",
-+			    init_attr->log_ind_tbl_size,
-+			    MLX5_CAP_GEN(dev->mdev, log_max_rqt_size));
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	min_resp_len = offsetof(typeof(resp), reserved) + sizeof(resp.reserved);
- 	if (udata->outlen && udata->outlen < min_resp_len)
- 		return ERR_PTR(-EINVAL);
--- 
+Available in the "topic/core-fixes-4.9" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/core-fixes-4.9
+
+Thanks
+
+Mark Bloch (5):
+  IB/cm: Mark stale CM id's whenever the mad agent was unregistered
+  IB/core: Set routable RoCE gid type for ipv4/ipv6 networks
+  IB/core: Add missing check for addr_resolve callback return value
+  IB/core: Save QP in ib_flow structure
+  IB/core: Avoid unsigned int overflow in sg_alloc_table
+
+Tariq Toukan (1):
+  IB/uverbs: Fix leak of XRC target QPs
+
+ drivers/infiniband/core/addr.c        |  11 ++-
+ drivers/infiniband/core/cm.c          | 126 +++++++++++++++++++++++++++++-----
+ drivers/infiniband/core/cma.c         |  21 +++++-
+ drivers/infiniband/core/umem.c        |   2 +-
+ drivers/infiniband/core/uverbs_cmd.c  |   1 -
+ drivers/infiniband/core/uverbs_main.c |   7 +-
+ drivers/infiniband/core/verbs.c       |   4 +-
+ 7 files changed, 145 insertions(+), 27 deletions(-)
+
+--
 2.7.4
 
 --
