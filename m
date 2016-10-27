@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH v4 06/10] IB/hns: Replace counting semaphore event_sem with wait_event
-Date: Thu, 27 Oct 2016 12:29:10 +0530
-Message-ID: <1477551554-30349-7-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH v4 01/10] IB/core: iwpm_nlmsg_request: Replace semaphore with completion
+Date: Thu, 27 Oct 2016 12:29:05 +0530
+Message-ID: <1477551554-30349-2-git-send-email-binoy.jayan@linaro.org>
 References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
@@ -10,124 +10,103 @@ To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal R
 Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Counting semaphores are going away in the future, so replace the semaphore
-mthca_cmd::event_sem with a conditional wait_event.
+Semaphore sem in iwpm_nlmsg_request is used as completion, so
+convert it to a struct completion type. Semaphores are going
+away in the future.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 46 ++++++++++++++++++++---------
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
- 2 files changed, 33 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/iwpm_msg.c  | 8 ++++----
+ drivers/infiniband/core/iwpm_util.c | 7 +++----
+ drivers/infiniband/core/iwpm_util.h | 3 ++-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 51a0675..12ef3d8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -189,6 +189,34 @@ void hns_roce_cmd_event(struct hns_roce_dev *hr_dev, u16 token, u8 status,
- 	complete(&context->done);
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index 1c41b95..761358f 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -394,7 +394,7 @@ int iwpm_register_pid_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	/* always for found nlmsg_request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	up(&nlmsg_request->sem);
++	complete(&nlmsg_request->comp);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_register_pid_cb);
+@@ -463,7 +463,7 @@ int iwpm_add_mapping_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	/* always for found request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	up(&nlmsg_request->sem);
++	complete(&nlmsg_request->comp);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_add_mapping_cb);
+@@ -555,7 +555,7 @@ int iwpm_add_and_query_mapping_cb(struct sk_buff *skb,
+ 	/* always for found request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	up(&nlmsg_request->sem);
++	complete(&nlmsg_request->comp);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
+@@ -749,7 +749,7 @@ int iwpm_mapping_error_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	/* always for found request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	up(&nlmsg_request->sem);
++	complete(&nlmsg_request->comp);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_mapping_error_cb);
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index ade71e7..08ddd2e 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -323,8 +323,7 @@ struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
+ 	nlmsg_request->nl_client = nl_client;
+ 	nlmsg_request->request_done = 0;
+ 	nlmsg_request->err_code = 0;
+-	sema_init(&nlmsg_request->sem, 1);
+-	down(&nlmsg_request->sem);
++	init_completion(&nlmsg_request->comp);
+ 	return nlmsg_request;
  }
  
-+static inline struct hns_roce_cmd_context *
-+hns_roce_try_get_context(struct hns_roce_cmdq *cmd)
-+{
-+	struct hns_roce_cmd_context *context = NULL;
-+
-+	spin_lock(&cmd->context_lock);
-+
-+	if (cmd->free_head < 0)
-+		goto out;
-+
-+	context = &cmd->context[cmd->free_head];
-+	context->token += cmd->token_mask + 1;
-+	cmd->free_head = context->next;
-+out:
-+	spin_unlock(&cmd->context_lock);
-+	return context;
-+}
-+
-+/* wait for and acquire a free context */
-+static inline struct hns_roce_cmd_context *
-+hns_roce_get_free_context(struct hns_roce_cmdq *cmd)
-+{
-+	struct hns_roce_cmd_context *context;
-+
-+	wait_event(cmd->wq, (context = hns_roce_try_get_context(cmd)));
-+	return context;
-+}
-+
- /* this should be called with "use_events" */
- static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
- 				    u64 out_param, unsigned long in_modifier,
-@@ -200,13 +228,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
- 	struct hns_roce_cmd_context *context;
- 	int ret = 0;
- 
--	spin_lock(&cmd->context_lock);
--	WARN_ON(cmd->free_head < 0);
--	context = &cmd->context[cmd->free_head];
--	context->token += cmd->token_mask + 1;
--	cmd->free_head = context->next;
--	spin_unlock(&cmd->context_lock);
--
-+	context = hns_roce_get_free_context(cmd);
- 	init_completion(&context->done);
- 
- 	ret = hns_roce_cmd_mbox_post_hw(hr_dev, in_param, out_param,
-@@ -238,6 +260,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
- 	context->next = cmd->free_head;
- 	cmd->free_head = context - cmd->context;
- 	spin_unlock(&cmd->context_lock);
-+	wake_up(&cmd->wq);
- 
- 	return ret;
- }
-@@ -248,10 +271,8 @@ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+@@ -368,8 +367,8 @@ int iwpm_wait_complete_req(struct iwpm_nlmsg_request *nlmsg_request)
  {
- 	int ret = 0;
+ 	int ret;
  
--	down(&hr_dev->cmd.event_sem);
- 	ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
- 				       in_modifier, op_modifier, op, timeout);
--	up(&hr_dev->cmd.event_sem);
+-	ret = down_timeout(&nlmsg_request->sem, IWPM_NL_TIMEOUT);
+-	if (ret) {
++	ret = wait_for_completion_timeout(&nlmsg_request->comp, IWPM_NL_TIMEOUT);
++	if (!ret) {
+ 		ret = -EINVAL;
+ 		pr_info("%s: Timeout %d sec for netlink request (seq = %u)\n",
+ 			__func__, (IWPM_NL_TIMEOUT/HZ), nlmsg_request->nlmsg_seq);
+diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
+index af1fc14..ea6c299 100644
+--- a/drivers/infiniband/core/iwpm_util.h
++++ b/drivers/infiniband/core/iwpm_util.h
+@@ -43,6 +43,7 @@
+ #include <linux/delay.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
++#include <linux/completion.h>
+ #include <linux/jhash.h>
+ #include <linux/kref.h>
+ #include <net/netlink.h>
+@@ -69,7 +70,7 @@ struct iwpm_nlmsg_request {
+ 	u8	            nl_client;
+ 	u8                  request_done;
+ 	u16                 err_code;
+-	struct semaphore    sem;
++	struct completion   comp;
+ 	struct kref         kref;
+ };
  
- 	return ret;
- }
-@@ -313,7 +334,7 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
- 	hr_cmd->context[hr_cmd->max_cmds - 1].next = -1;
- 	hr_cmd->free_head = 0;
- 
--	sema_init(&hr_cmd->event_sem, hr_cmd->max_cmds);
-+	init_waitqueue_head(&hr_cmd->wq);
- 	spin_lock_init(&hr_cmd->context_lock);
- 
- 	hr_cmd->token_mask = CMD_TOKEN_MASK;
-@@ -325,12 +346,9 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
- void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_cmdq *hr_cmd = &hr_dev->cmd;
--	int i;
- 
- 	hr_cmd->use_events = 0;
--
--	for (i = 0; i < hr_cmd->max_cmds; ++i)
--		down(&hr_cmd->event_sem);
-+	hr_cmd->free_head = -1;
- 
- 	kfree(hr_cmd->context);
- }
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 2afe075..ac95f52 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -364,7 +364,7 @@ struct hns_roce_cmdq {
- 	* Event mode: cmd register mutex protection,
- 	* ensure to not exceed max_cmds and user use limit region
- 	*/
--	struct semaphore	event_sem;
-+	wait_queue_head_t       wq;
- 	int			max_cmds;
- 	spinlock_t		context_lock;
- 	int			free_head;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
