@@ -1,366 +1,63 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/6] IB/cm: Mark stale CM id's whenever the mad agent was unregistered
-Date: Thu, 27 Oct 2016 16:36:27 +0300
-Message-ID: <1477575391-20134-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 4/6] IB/core: Add missing check for addr_resolve callback return value
+Date: Thu, 27 Oct 2016 16:36:29 +0300
+Message-ID: <1477575391-20134-5-git-send-email-leon@kernel.org>
 References: <1477575391-20134-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1477575391-20134-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When there is a CM id object that has port assigned to it, it means that
-the cm-id asked for the specific port that it should go by it, but if
-that port was removed (hot-unplug event) the cm-id was not updated.
-In order to fix that the port keeps a list of all the cm-id's that are
-planning to go by it, whenever the port is removed it marks all of them
-as invalid.
+When calling rdma_resolve_ip inside rdma_addr_find_l2_eth_by_grh,
+the return status of the request was ignored in the callback function
+causing a successful return and an empty dmac.
 
-This commit fixes a kernel panic which happens when running traffic between
-guests and we force reboot a guest mid traffic, it triggers a kernel panic:
-
- Call Trace:
-  [<ffffffff815271fa>] ? panic+0xa7/0x16f
-  [<ffffffff8152b534>] ? oops_end+0xe4/0x100
-  [<ffffffff8104a00b>] ? no_context+0xfb/0x260
-  [<ffffffff81084db2>] ? del_timer_sync+0x22/0x30
-  [<ffffffff8104a295>] ? __bad_area_nosemaphore+0x125/0x1e0
-  [<ffffffff81084240>] ? process_timeout+0x0/0x10
-  [<ffffffff8104a363>] ? bad_area_nosemaphore+0x13/0x20
-  [<ffffffff8104aabf>] ? __do_page_fault+0x31f/0x480
-  [<ffffffff81065df0>] ? default_wake_function+0x0/0x20
-  [<ffffffffa0752675>] ? free_msg+0x55/0x70 [mlx5_core]
-  [<ffffffffa0753434>] ? cmd_exec+0x124/0x840 [mlx5_core]
-  [<ffffffff8105a924>] ? find_busiest_group+0x244/0x9f0
-  [<ffffffff8152d45e>] ? do_page_fault+0x3e/0xa0
-  [<ffffffff8152a815>] ? page_fault+0x25/0x30
-  [<ffffffffa024da25>] ? cm_alloc_msg+0x35/0xc0 [ib_cm]
-  [<ffffffffa024e821>] ? ib_send_cm_dreq+0xb1/0x1e0 [ib_cm]
-  [<ffffffffa024f836>] ? cm_destroy_id+0x176/0x320 [ib_cm]
-  [<ffffffffa024fb00>] ? ib_destroy_cm_id+0x10/0x20 [ib_cm]
-  [<ffffffffa034f527>] ? ipoib_cm_free_rx_reap_list+0xa7/0x110 [ib_ipoib]
-  [<ffffffffa034f590>] ? ipoib_cm_rx_reap+0x0/0x20 [ib_ipoib]
-  [<ffffffffa034f5a5>] ? ipoib_cm_rx_reap+0x15/0x20 [ib_ipoib]
-  [<ffffffff81094d20>] ? worker_thread+0x170/0x2a0
-  [<ffffffff8109b2a0>] ? autoremove_wake_function+0x0/0x40
-  [<ffffffff81094bb0>] ? worker_thread+0x0/0x2a0
-  [<ffffffff8109aef6>] ? kthread+0x96/0xa0
-  [<ffffffff8100c20a>] ? child_rip+0xa/0x20
-  [<ffffffff8109ae60>] ? kthread+0x0/0xa0
-  [<ffffffff8100c200>] ? child_rip+0x0/0x20
-
-Fixes: a977049dacde ("[PATCH] IB: Add the kernel CM implementation")
 Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 126 +++++++++++++++++++++++++++++++++++++------
- 1 file changed, 110 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/addr.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index c995255..71c7c4c 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -80,6 +80,8 @@ static struct ib_cm {
- 	__be32 random_id_operand;
- 	struct list_head timewait_list;
- 	struct workqueue_struct *wq;
-+	/* Sync on cm change port state */
-+	spinlock_t state_lock;
- } cm;
- 
- /* Counter indexes ordered by attribute ID */
-@@ -161,6 +163,8 @@ struct cm_port {
- 	struct ib_mad_agent *mad_agent;
- 	struct kobject port_obj;
- 	u8 port_num;
-+	struct list_head cm_priv_prim_list;
-+	struct list_head cm_priv_altr_list;
- 	struct cm_counter_group counter_group[CM_COUNTER_GROUPS];
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index b136d3a..0f58f46 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -699,13 +699,16 @@ EXPORT_SYMBOL(rdma_addr_cancel);
+ struct resolve_cb_context {
+ 	struct rdma_dev_addr *addr;
+ 	struct completion comp;
++	int status;
  };
  
-@@ -241,6 +245,12 @@ struct cm_id_private {
- 	u8 service_timeout;
- 	u8 target_ack_delay;
- 
-+	struct list_head prim_list;
-+	struct list_head altr_list;
-+	/* Indicates that the send port mad is registered and av is set */
-+	int prim_send_port_not_ready;
-+	int altr_send_port_not_ready;
-+
- 	struct list_head work_list;
- 	atomic_t work_count;
- };
-@@ -259,20 +269,47 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
- 	struct ib_mad_agent *mad_agent;
- 	struct ib_mad_send_buf *m;
- 	struct ib_ah *ah;
-+	struct cm_av *av;
-+	unsigned long flags, flags2;
-+	int ret = 0;
- 
-+	/* don't let the port to be released till the agent is down */
-+	spin_lock_irqsave(&cm.state_lock, flags2);
-+	spin_lock_irqsave(&cm.lock, flags);
-+	if (!cm_id_priv->prim_send_port_not_ready)
-+		av = &cm_id_priv->av;
-+	else if (!cm_id_priv->altr_send_port_not_ready &&
-+		 (cm_id_priv->alt_av.port))
-+		av = &cm_id_priv->alt_av;
-+	else {
-+		pr_info("%s: not valid CM id\n", __func__);
-+		ret = -ENODEV;
-+		spin_unlock_irqrestore(&cm.lock, flags);
-+		goto out;
-+	}
-+	spin_unlock_irqrestore(&cm.lock, flags);
-+	/* Make sure the port haven't released the mad yet */
- 	mad_agent = cm_id_priv->av.port->mad_agent;
--	ah = ib_create_ah(mad_agent->qp->pd, &cm_id_priv->av.ah_attr);
--	if (IS_ERR(ah))
--		return PTR_ERR(ah);
-+	if (!mad_agent) {
-+		pr_info("%s: not a valid MAD agent\n", __func__);
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+	ah = ib_create_ah(mad_agent->qp->pd, &av->ah_attr);
-+	if (IS_ERR(ah)) {
-+		ret = PTR_ERR(ah);
-+		goto out;
-+	}
- 
- 	m = ib_create_send_mad(mad_agent, cm_id_priv->id.remote_cm_qpn,
--			       cm_id_priv->av.pkey_index,
-+			       av->pkey_index,
- 			       0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
- 			       GFP_ATOMIC,
- 			       IB_MGMT_BASE_VERSION);
- 	if (IS_ERR(m)) {
- 		ib_destroy_ah(ah);
--		return PTR_ERR(m);
-+		ret = PTR_ERR(m);
-+		goto out;
- 	}
- 
- 	/* Timeout set by caller if response is expected. */
-@@ -282,7 +319,10 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
- 	atomic_inc(&cm_id_priv->refcount);
- 	m->context[0] = cm_id_priv;
- 	*msg = m;
--	return 0;
-+
-+out:
-+	spin_unlock_irqrestore(&cm.state_lock, flags2);
-+	return ret;
- }
- 
- static int cm_alloc_response_msg(struct cm_port *port,
-@@ -352,7 +392,8 @@ static void cm_init_av_for_response(struct cm_port *port, struct ib_wc *wc,
- 			   grh, &av->ah_attr);
- }
- 
--static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
-+static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av,
-+			      struct cm_id_private *cm_id_priv)
+ static void resolve_cb(int status, struct sockaddr *src_addr,
+ 	     struct rdma_dev_addr *addr, void *context)
  {
- 	struct cm_device *cm_dev;
- 	struct cm_port *port = NULL;
-@@ -387,7 +428,17 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
- 			     &av->ah_attr);
- 	av->timeout = path->packet_life_time + 1;
- 
--	return 0;
-+	spin_lock_irqsave(&cm.lock, flags);
-+	if (&cm_id_priv->av == av)
-+		list_add_tail(&cm_id_priv->prim_list, &port->cm_priv_prim_list);
-+	else if (&cm_id_priv->alt_av == av)
-+		list_add_tail(&cm_id_priv->altr_list, &port->cm_priv_altr_list);
-+	else
-+		ret = -EINVAL;
-+
-+	spin_unlock_irqrestore(&cm.lock, flags);
-+
-+	return ret;
+-	memcpy(((struct resolve_cb_context *)context)->addr, addr, sizeof(struct
+-				rdma_dev_addr));
++	if (!status)
++		memcpy(((struct resolve_cb_context *)context)->addr,
++		       addr, sizeof(struct rdma_dev_addr));
++	((struct resolve_cb_context *)context)->status = status;
+ 	complete(&((struct resolve_cb_context *)context)->comp);
  }
  
- static int cm_alloc_id(struct cm_id_private *cm_id_priv)
-@@ -677,6 +728,8 @@ struct ib_cm_id *ib_create_cm_id(struct ib_device *device,
- 	spin_lock_init(&cm_id_priv->lock);
- 	init_completion(&cm_id_priv->comp);
- 	INIT_LIST_HEAD(&cm_id_priv->work_list);
-+	INIT_LIST_HEAD(&cm_id_priv->prim_list);
-+	INIT_LIST_HEAD(&cm_id_priv->altr_list);
- 	atomic_set(&cm_id_priv->work_count, -1);
- 	atomic_set(&cm_id_priv->refcount, 1);
- 	return &cm_id_priv->id;
-@@ -892,6 +945,15 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 		break;
- 	}
+@@ -743,6 +746,10 @@ int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
  
-+	spin_lock_irq(&cm.lock);
-+	if (!list_empty(&cm_id_priv->altr_list) &&
-+	    (!cm_id_priv->altr_send_port_not_ready))
-+		list_del(&cm_id_priv->altr_list);
-+	if (!list_empty(&cm_id_priv->prim_list) &&
-+	    (!cm_id_priv->prim_send_port_not_ready))
-+		list_del(&cm_id_priv->prim_list);
-+	spin_unlock_irq(&cm.lock);
+ 	wait_for_completion(&ctx.comp);
+ 
++	ret = ctx.status;
++	if (ret)
++		return ret;
 +
- 	cm_free_id(cm_id->local_id);
- 	cm_deref_id(cm_id_priv);
- 	wait_for_completion(&cm_id_priv->comp);
-@@ -1192,12 +1254,13 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
- 		goto out;
- 	}
- 
--	ret = cm_init_av_by_path(param->primary_path, &cm_id_priv->av);
-+	ret = cm_init_av_by_path(param->primary_path, &cm_id_priv->av,
-+				 cm_id_priv);
- 	if (ret)
- 		goto error1;
- 	if (param->alternate_path) {
- 		ret = cm_init_av_by_path(param->alternate_path,
--					 &cm_id_priv->alt_av);
-+					 &cm_id_priv->alt_av, cm_id_priv);
- 		if (ret)
- 			goto error1;
- 	}
-@@ -1653,7 +1716,8 @@ static int cm_req_handler(struct cm_work *work)
- 			dev_put(gid_attr.ndev);
- 		}
- 		work->path[0].gid_type = gid_attr.gid_type;
--		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
-+		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av,
-+					 cm_id_priv);
- 	}
- 	if (ret) {
- 		int err = ib_get_cached_gid(work->port->cm_dev->ib_device,
-@@ -1672,7 +1736,8 @@ static int cm_req_handler(struct cm_work *work)
- 		goto rejected;
- 	}
- 	if (req_msg->alt_local_lid) {
--		ret = cm_init_av_by_path(&work->path[1], &cm_id_priv->alt_av);
-+		ret = cm_init_av_by_path(&work->path[1], &cm_id_priv->alt_av,
-+					 cm_id_priv);
- 		if (ret) {
- 			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_ALT_GID,
- 				       &work->path[0].sgid,
-@@ -2727,7 +2792,8 @@ int ib_send_cm_lap(struct ib_cm_id *cm_id,
- 		goto out;
- 	}
- 
--	ret = cm_init_av_by_path(alternate_path, &cm_id_priv->alt_av);
-+	ret = cm_init_av_by_path(alternate_path, &cm_id_priv->alt_av,
-+				 cm_id_priv);
- 	if (ret)
- 		goto out;
- 	cm_id_priv->alt_av.timeout =
-@@ -2839,7 +2905,8 @@ static int cm_lap_handler(struct cm_work *work)
- 	cm_init_av_for_response(work->port, work->mad_recv_wc->wc,
- 				work->mad_recv_wc->recv_buf.grh,
- 				&cm_id_priv->av);
--	cm_init_av_by_path(param->alternate_path, &cm_id_priv->alt_av);
-+	cm_init_av_by_path(param->alternate_path, &cm_id_priv->alt_av,
-+			   cm_id_priv);
- 	ret = atomic_inc_and_test(&cm_id_priv->work_count);
- 	if (!ret)
- 		list_add_tail(&work->list, &cm_id_priv->work_list);
-@@ -3031,7 +3098,7 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
- 		return -EINVAL;
- 
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
--	ret = cm_init_av_by_path(param->path, &cm_id_priv->av);
-+	ret = cm_init_av_by_path(param->path, &cm_id_priv->av, cm_id_priv);
- 	if (ret)
- 		goto out;
- 
-@@ -3468,7 +3535,9 @@ static int cm_establish(struct ib_cm_id *cm_id)
- static int cm_migrate(struct ib_cm_id *cm_id)
- {
- 	struct cm_id_private *cm_id_priv;
-+	struct cm_av tmp_av;
- 	unsigned long flags;
-+	int tmp_send_port_not_ready;
- 	int ret = 0;
- 
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
-@@ -3477,7 +3546,14 @@ static int cm_migrate(struct ib_cm_id *cm_id)
- 	    (cm_id->lap_state == IB_CM_LAP_UNINIT ||
- 	     cm_id->lap_state == IB_CM_LAP_IDLE)) {
- 		cm_id->lap_state = IB_CM_LAP_IDLE;
-+		/* Swap address vector */
-+		tmp_av = cm_id_priv->av;
- 		cm_id_priv->av = cm_id_priv->alt_av;
-+		cm_id_priv->alt_av = tmp_av;
-+		/* Swap port send ready state */
-+		tmp_send_port_not_ready = cm_id_priv->prim_send_port_not_ready;
-+		cm_id_priv->prim_send_port_not_ready = cm_id_priv->altr_send_port_not_ready;
-+		cm_id_priv->altr_send_port_not_ready = tmp_send_port_not_ready;
- 	} else
- 		ret = -EINVAL;
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-@@ -3888,6 +3964,9 @@ static void cm_add_one(struct ib_device *ib_device)
- 		port->cm_dev = cm_dev;
- 		port->port_num = i;
- 
-+		INIT_LIST_HEAD(&port->cm_priv_prim_list);
-+		INIT_LIST_HEAD(&port->cm_priv_altr_list);
-+
- 		ret = cm_create_port_fs(port);
- 		if (ret)
- 			goto error1;
-@@ -3945,6 +4024,8 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
- {
- 	struct cm_device *cm_dev = client_data;
- 	struct cm_port *port;
-+	struct cm_id_private *cm_id_priv;
-+	struct ib_mad_agent *cur_mad_agent;
- 	struct ib_port_modify port_modify = {
- 		.clr_port_cap_mask = IB_PORT_CM_SUP
- 	};
-@@ -3968,15 +4049,27 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
- 
- 		port = cm_dev->port[i-1];
- 		ib_modify_port(ib_device, port->port_num, 0, &port_modify);
-+		/* Mark all the cm_id's as not valid */
-+		spin_lock_irq(&cm.lock);
-+		list_for_each_entry(cm_id_priv, &port->cm_priv_altr_list, altr_list)
-+			cm_id_priv->altr_send_port_not_ready = 1;
-+		list_for_each_entry(cm_id_priv, &port->cm_priv_prim_list, prim_list)
-+			cm_id_priv->prim_send_port_not_ready = 1;
-+		spin_unlock_irq(&cm.lock);
- 		/*
- 		 * We flush the queue here after the going_down set, this
- 		 * verify that no new works will be queued in the recv handler,
- 		 * after that we can call the unregister_mad_agent
- 		 */
- 		flush_workqueue(cm.wq);
--		ib_unregister_mad_agent(port->mad_agent);
-+		spin_lock_irq(&cm.state_lock);
-+		cur_mad_agent = port->mad_agent;
-+		port->mad_agent = NULL;
-+		spin_unlock_irq(&cm.state_lock);
-+		ib_unregister_mad_agent(cur_mad_agent);
- 		cm_remove_port_fs(port);
- 	}
-+
- 	device_unregister(cm_dev->device);
- 	kfree(cm_dev);
- }
-@@ -3989,6 +4082,7 @@ static int __init ib_cm_init(void)
- 	INIT_LIST_HEAD(&cm.device_list);
- 	rwlock_init(&cm.device_lock);
- 	spin_lock_init(&cm.lock);
-+	spin_lock_init(&cm.state_lock);
- 	cm.listen_service_table = RB_ROOT;
- 	cm.listen_service_id = be64_to_cpu(IB_CM_ASSIGN_SERVICE_ID);
- 	cm.remote_id_table = RB_ROOT;
+ 	memcpy(dmac, dev_addr.dst_dev_addr, ETH_ALEN);
+ 	dev = dev_get_by_index(&init_net, dev_addr.bound_dev_if);
+ 	if (!dev)
 -- 
 2.7.4
 
