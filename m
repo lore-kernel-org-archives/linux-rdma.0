@@ -1,81 +1,112 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
-Date: Fri, 28 Oct 2016 15:59:47 +0800
-Message-ID: <58130573.4010902@huawei.com>
-References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
- <1477487048-62256-2-git-send-email-oulijun@huawei.com>
- <20161026162053.GE24898@obsidianresearch.com> <5811776F.20908@huawei.com>
- <20161027145139.GD6818@obsidianresearch.com>
+From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+Subject: [PATCH] IBcore/CM: Issue DREQ when receiving REQ/REP for stale QP
+Date: Fri, 28 Oct 2016 13:14:29 +0200
+Message-ID: <1477653269-27359-1-git-send-email-hans.westgaard.ry@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161027145139.GD6818-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Ira Weiny <ira.weiny@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Hakon Bugge <haakon.bugge@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-在 2016/10/27 22:51, Jason Gunthorpe 写道:
-> On Thu, Oct 27, 2016 at 11:41:35AM +0800, oulijun wrote:
-> 
->> when startup by DT, the content of device/modalias is
->> of:NinfinibandT<NULL>Chisilicon,hns-roce-v1.  it is long and
->> complex.
-> 
-> If you want to match the hardware then properly parsing the mod alias
-> is the right way to do it.
-> 
->> the content of device/of_node/compatible is hisilicon,hns-roce-v1
-> 
-> No, it is more complex than that, future DTs may have a list for
-> instance, just a string match is not good enough
-> 
->> when startup by APCI, the content of device/modalias is
->> acpi:HISI00D1:
-> 
-> Also may be more complex..
-> 
->>   if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
->> 	...
->>   if (ibv_read_sysfs-file(uverbs_sys_path, "device/vendor", value, sizeof(value)) > 0)
->>  	...
-> 
-> You can also match PCI with modalias.
-> 
->>> But I wonder if this isn't generically better to be
->>>
->>>  last_dir(readlink("device/driver")) == "hns"
->>>
-> 
->> I think it is not insteaded. because it will be find the hns in the
->> path(device/driver)
-> 
-> I said readlink, which will return something like '../../../../bus/platform/drivers/hhns'
-> 
-> So just detect the driver is calld hhns and let the kernel deal with
-> figuring it out.
-> 
-> Jason
-> 
-> .
-> 
-Hi, Jason
-  My understand is wrong with my reply in the previous email. it is really exit the link, as
-follows:
+from "InfiBand Architecture Specifications Volume 1":
 
-root@(none)$ cd /sys/class/infiniband/hns_0/device/
-root@(none)$ ls -l
-total 0
-lrwxrwxrwx    1 root     root             0 Oct 27 11:07 driver -> ../../../../bus/platform/drivers/hns_roce
+  A QP is said to have a stale connection when only one side has
+  connection information. A stale connection may result if the remote CM
+  had dropped the connection and sent a DREQ but the DREQ was never
+  received by the local CM. Alternatively the remote CM may have lost
+  all record of past connections because its node crashed and rebooted,
+  while the local CM did not become aware of the remote node's reboot
+  and therefore did not clean up stale connections.
 
-but I think it is the standard approach. because my device(hip06) is only platform device and the other device(hip07/hip0x0 will
-be pcie device, it will be distinguished separately.
-Hence, we adpot the origin approach.
+and:
 
-Lijun Ou
+   A local CM may receive a REQ/REP for a stale connection. It shall
+   abort the connection issuing REJ to the REQ/REP. It shall then issue
+   DREQ with "DREQ:remote QPN” set to the remote QPN from the REQ/REP.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch solves a problem with reuse of QPN. Current codebase, that
+is IPoIB, relies on a REAP-mechanism to do cleanup of the structures
+in CM. A problem with this is the timeconstants governing this
+mechanism; they are up to 768 seconds and the interface may look
+inresponsive in that period.  Issuing a DREQ (and receiving a DREP)
+does the necessary cleanup and the interface comes up.
+
+Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
+---
+ drivers/infiniband/core/cm.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index c995255..c97e4d5 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1519,6 +1519,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
+ 	struct cm_id_private *listen_cm_id_priv, *cur_cm_id_priv;
+ 	struct cm_timewait_info *timewait_info;
+ 	struct cm_req_msg *req_msg;
++	struct ib_cm_id *cm_id;
+ 
+ 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
+ 
+@@ -1540,10 +1541,18 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
+ 	timewait_info = cm_insert_remote_qpn(cm_id_priv->timewait_info);
+ 	if (timewait_info) {
+ 		cm_cleanup_timewait(cm_id_priv->timewait_info);
++		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
++					   timewait_info->work.remote_id);
++
+ 		spin_unlock_irq(&cm.lock);
+ 		cm_issue_rej(work->port, work->mad_recv_wc,
+ 			     IB_CM_REJ_STALE_CONN, CM_MSG_RESPONSE_REQ,
+ 			     NULL, 0);
++		if (cur_cm_id_priv) {
++			cm_id = &cur_cm_id_priv->id;
++			ib_send_cm_dreq(cm_id, NULL, 0);
++			cm_deref_id(cur_cm_id_priv);
++		}
+ 		return NULL;
+ 	}
+ 
+@@ -1919,6 +1928,9 @@ static int cm_rep_handler(struct cm_work *work)
+ 	struct cm_id_private *cm_id_priv;
+ 	struct cm_rep_msg *rep_msg;
+ 	int ret;
++	struct cm_id_private *cur_cm_id_priv;
++	struct ib_cm_id *cm_id;
++	struct cm_timewait_info *timewait_info;
+ 
+ 	rep_msg = (struct cm_rep_msg *)work->mad_recv_wc->recv_buf.mad;
+ 	cm_id_priv = cm_acquire_id(rep_msg->remote_comm_id, 0);
+@@ -1953,16 +1965,26 @@ static int cm_rep_handler(struct cm_work *work)
+ 		goto error;
+ 	}
+ 	/* Check for a stale connection. */
+-	if (cm_insert_remote_qpn(cm_id_priv->timewait_info)) {
++	timewait_info = cm_insert_remote_qpn(cm_id_priv->timewait_info);
++	if (timewait_info) {
+ 		rb_erase(&cm_id_priv->timewait_info->remote_id_node,
+ 			 &cm.remote_id_table);
+ 		cm_id_priv->timewait_info->inserted_remote_id = 0;
++		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
++					   timewait_info->work.remote_id);
++
+ 		spin_unlock(&cm.lock);
+ 		spin_unlock_irq(&cm_id_priv->lock);
+ 		cm_issue_rej(work->port, work->mad_recv_wc,
+ 			     IB_CM_REJ_STALE_CONN, CM_MSG_RESPONSE_REP,
+ 			     NULL, 0);
+ 		ret = -EINVAL;
++		if (cur_cm_id_priv) {
++			cm_id = &cur_cm_id_priv->id;
++			ib_send_cm_dreq(cm_id, NULL, 0);
++			cm_deref_id(cur_cm_id_priv);
++		}
++
+ 		goto error;
+ 	}
+ 	spin_unlock(&cm.lock);
+-- 
+2.7.4
