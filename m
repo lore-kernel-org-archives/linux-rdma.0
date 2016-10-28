@@ -1,159 +1,73 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core v2 4/4] redhat/spec: build split rpm packages
-Date: Fri, 28 Oct 2016 13:11:47 -0400
-Message-ID: <20161028171147.GJ42084@redhat.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161020153357.27286-1-jarod@redhat.com>
- <20161020153357.27286-5-jarod@redhat.com>
- <20161027211059.GA7224@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: RDMA developer gatherings around Kernel Summit and Linux Plumbers
+ in Santa Fe
+Date: Fri, 28 Oct 2016 12:17:19 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1610281212220.8691@east.gentwo.org>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161027211059.GA7224-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, skc-YOWKrPYUwWM@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2016 at 03:10:59PM -0600, Jason Gunthorpe wrote:
-> On Thu, Oct 20, 2016 at 11:33:57AM -0400, Jarod Wilson wrote:
-> > @@ -7,10 +7,11 @@ Summary: RDMA core userspace libraries and daemons
-> >  #  providers/ipathverbs/ Dual licensed using a BSD license with an extra patent clause
-> >  #  providers/rxe/ Incorporates code from ipathverbs and contains the patent clause
-> >  #  providers/hfi1verbs Uses the 3 Clause BSD license
-> > -License: (GPLv2 or BSD) and (GPLv2 or PathScale-BSD)
-> > +License: GPLv2 or BSD
-> 
-> Is this Ok? The Fedora guidelines I read suggested the PathScale
-> license would need to be assigned a short tag, and I'd be surprised if
-> 'BSD' is the right tag due to the patent stuff..
+We have two days dedicated to meetings about RDMA technology
 
-Our standalone libipathverbs has just "GPLv2 or BSD", and I didn't see
-anything specific about PathScale, but I may not have been looking hard
-enough or in the right place in the Fedora packaging guidelines. Where did
-you see that?
+- RDMA workshop on Tuesday, 1st of November
 
-> >  Url: http://openfabrics.org/
-> 
-> I guess we should change this url to
-> https://github.com/linux-rdma/rdma-core ?
+	Meeting in Sweeney AB from 9am till 5pm.
+	See https://www.linuxplumbersconf.org/2016/ocw/events/LPC2016/schedule
 
-Either one works for me.
+	This is part of the Kernel Summit and the Linux Plumbers
+	Conference. Only open to KS and LPC attendees with an invitation.
 
-> >  Source: rdma-core-%{version}.tgz
-> > -BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-> > +# https://github.com/linux-rdma/rdma-core
-> > +BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-> 
-> I always wondered why there was so much variability in spec files
-> here.. I followed the Fedora guidelines, should we copy the above into
-> the other spec file?
+	Sessions:
 
-I believe the current Fedora guidelines actually say "just omit
-BuildRoot", because rpm will figure out a sane default by itself. The one
-with mktemp was introduced by the security-conscious/paranoid, I just
-copied it over from another of the specs I was merging together here, not
-sure what the "best" route is here now.
+		 Implementing a new Linux RDMA provider		Knut Omang
+		 New IOCTL ABI					Matan Barak
+		 Consolidation of RDMA User-space code		Jason Gunthorpe
+		 Debuggability and Tracing			Leon Romanovsky
+		 Integration with other subsystems		Leon Romanovsky
+		 Lunch Break
+		 Containers and RDMA				Liran Liss
+		 New Fabrics					Ira Weiny
+		 Future and Roadmap for RDMA			Doug Ledford
+		 User Mode Ethernet Verbs			Tzahi Oved
+		 Dual Licensing					Susan Coulter
 
-> > @@ -19,20 +20,15 @@ BuildRequires: pkgconfig
-> >  BuildRequires: pkgconfig(libnl-3.0)
-> >  BuildRequires: pkgconfig(libnl-route-3.0)
-> >  BuildRequires: valgrind-devel
-> > +BuildRequires: libnl3-devel
-> 
-> ?
-> 
-> Isn't pkgconfig(libnl-3.0) the same thing?
+	Note that there are some speakers who have not filled out the speakers profile
+	and some abstract needs to be filled out. Those list me as a speaker until
+	the time that we can put the information about the real speaker in there.
 
-Oops, probably. Another copy-paste addition from another spec.
+- RDMA Summit on Saturday the 5th of November
 
-> >%define systemd_dep systemd-units
-> >%if 0%{?fedora} >= 18
-> >%define systemd_dep systemd
-> >%endif
-> 
-> The source package probably doesn't even build on FC 18.. can probably
-> remove this
+	This event will be held at
 
-Works for me. FC18 is 3-4 years old now, and nobody sane should be running
-it for anything useful that they want to deploy new software on.
+	Hilton Santa Fe
+	100 Sandoval St.
+	Santa Fe, NM 87501
+	Phone: (505)988-2811
 
-> > +Summary: InfiniBand Communication Manager Assistant
-> > +Requires(post): %{systemd_dep}
-> > +Requires(preun): %{systemd_dep}
-> > +Requires(postun): %{systemd_dep}
-> 
-> I suppose we need these and related in the other spec file too?
-> Looks like this spec file isn't going to work on C6, so you can
-> probably drop the other systemd compat stuff:
+	Meeting in the Canyon Ballroom 9am till 4pm.
 
-Ah, yes, probably a good idea to add these there too. I'd meant to add all
-the stuff that should go in both specs *before* the split/copy, but alas, I
-failed. :)
+	This event is sponsored by the Open Fabrics Alliance and will be
+	open to all
 
-> --- a/redhat/rdma-core.spec
-> +++ b/redhat/rdma-core.spec
-> @@ -202,13 +202,6 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
->  
->  %build
->  
-> -# Detect if systemd is supported on this system
-> -%if 0%{?_unitdir:1}
-> -%define my_unitdir %{_unitdir}
-> -%else
-> -%define my_unitdir /tmp/
-> -%endif
-> -
->  # New RPM defines _rundir, usually as /run
->  %if 0%{?_rundir:1}
->  %else
-> @@ -228,7 +221,7 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
->           -DCMAKE_INSTALL_INFODIR:PATH=%{_infodir} \
->           -DCMAKE_INSTALL_MANDIR:PATH=%{_mandir} \
->           -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
-> -        -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{my_unitdir} \
-> +        -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{_unitdir} \
->          -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
->          -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
->          -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version}
-> @@ -276,8 +269,6 @@ install -D -m0644 redhat/srp_daemon.service %{buildroot}%{_unitdir}/
->  
->  %if 0%{?_unitdir:1}
->  rm -rf %{buildroot}/%{_initrddir}/
-> -%else
-> -rm -rf %{buildroot}/%{my_unitdir}/
->  %endif
->  
->  %post -p /sbin/ldconfig
+The workshop will be focusing more on the technical topics (some
+of which could be carried over to Saturday if necessary because we have
+more time then. We will summarize what happened on Tuesday for those who
+were not able to participate earlier.
 
-Looks good to me. And yeah, we have no plans to update the el6 rdma stack
-with rdma-core and driver refreshes at this stage in it's lifecycle, so
-there's really no sense in pretending to maybe support it.
+Saturday sessions 9am till 4pm. 12-1pm Lunchtime
 
-> > +%package -n librdmacm-utils
-> > +Summary: Examples for the librdmacm library
-> > +Requires: librdmacm%{?_isa} = %{version}-%{release}
-> 
-> Why the requires? Shouldn't auto shlib dependencies take care of that?
+	9am	Refine TODO list for consolidated library - Jason Gunthorpe
+	10am	Submission process for multi subsystem drivers - Doug Ledford
+	11am	Multicast features and gaps - Christoph Lameter
 
-Probably. I think this was another legacy bit copied over from a
-stand-alone spec file.
+	1pm	Licensing carryover - Susan/Christoph
+	2pm	Standard network tools, integrating to the regular network stack - Christoph
+	3pm	Open Discussion/Reserve Session	- TBD
+	4pm	Closing Session	- TBD
 
-> Anyhow, this all looks fine to me, I put a branch here, with one
-> change to make the debian packaging work after the README.md change:
-> 
-> https://github.com/jgunthorpe/rdma-plumbing/tree/redhat-packaging
-> 
-> If you want to make any final adjustments let me know, otherwise I
-> will send this on..
-
-Nah, I think things look good, and we can always keep tweaking as needed,
-this is a solid update to work on top of.
-
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
