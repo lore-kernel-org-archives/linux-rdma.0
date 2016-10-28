@@ -1,7 +1,7 @@
 From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
-Date: Fri, 28 Oct 2016 15:28:06 +0800
-Message-ID: <5812FE06.7030406@huawei.com>
+Date: Fri, 28 Oct 2016 15:59:47 +0800
+Message-ID: <58130573.4010902@huawei.com>
 References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
  <1477487048-62256-2-git-send-email-oulijun@huawei.com>
  <20161026162053.GE24898@obsidianresearch.com> <5811776F.20908@huawei.com>
@@ -61,22 +61,19 @@ List-Id: linux-rdma@vger.kernel.org
 > .
 > 
 Hi, Jason
-  I have verified it according to your advice and learned the readlink. i think that it need to
-exist the file, as follows:
-   xx -> /xxxx/../../
+  My understand is wrong with my reply in the previous email. it is really exit the link, as
+follows:
 
-but not have it.
-rs/t@(none)$ cd /sys/class/infiniband/hns_0/device/driver/module/driver
-root@(none)$ ls
-platform:hns_roce
+root@(none)$ cd /sys/class/infiniband/hns_0/device/
+root@(none)$ ls -l
+total 0
+lrwxrwxrwx    1 root     root             0 Oct 27 11:07 driver -> ../../../../bus/platform/drivers/hns_roce
 
-I try to read the result of readlink(), but it is fail:
-readlink("/sys/class/infiniband/hns_0/device/driver/module/driver", buf, sizeof *buf)
-
-in addition that, the last() is not exit in C library.
+but I think it is the standard approach. because my device(hip06) is only platform device and the other device(hip07/hip0x0 will
+be pcie device, it will be distinguished separately.
+Hence, we adpot the origin approach.
 
 Lijun Ou
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
