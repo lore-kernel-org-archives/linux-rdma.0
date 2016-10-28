@@ -1,366 +1,263 @@
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-core 2/4] Move rdma_netlink compat into CMake
-Date: Fri, 28 Oct 2016 18:00:12 +0000
-Message-ID: <13AA599688F47243B14FCFCCC2C803BB10AA2DB4@fmsmsx104.amr.corp.intel.com>
-References: <1477609570-8087-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1477609570-8087-3-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH 11/12] nvme: Use BLK_MQ_S_STOPPED instead of
+ QUEUE_FLAG_STOPPED in blk-mq code
+Date: Fri, 28 Oct 2016 11:51:35 -0700
+Message-ID: <655c62ca-5da8-3c8f-9e56-016b7d518267@sandisk.com>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <805e1911-cd10-0563-c76b-256d76054b08@sandisk.com>
+ <20161028160145.GC5621@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477609570-8087-3-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Type: multipart/mixed;
+        boundary="------------FF0AC109AC1DF013EC67AEAD"
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <20161028160145.GC5621@localhost.localdomain>
+Sender: linux-block-owner@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Ming Lei <tom.leiming@gmail.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
+--------------FF0AC109AC1DF013EC67AEAD
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The patch looks good.
+On 10/28/2016 08:51 AM, Keith Busch wrote:
+> On Wed, Oct 26, 2016 at 03:56:04PM -0700, Bart Van Assche wrote:
+>> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+>> index 7bb73ba..b662416 100644
+>> --- a/drivers/nvme/host/core.c
+>> +++ b/drivers/nvme/host/core.c
+>> @@ -205,7 +205,7 @@ void nvme_requeue_req(struct request *req)
+>>
+>>  	blk_mq_requeue_request(req, false);
+>>  	spin_lock_irqsave(req->q->queue_lock, flags);
+>> -	if (!blk_queue_stopped(req->q))
+>> +	if (!blk_mq_queue_stopped(req->q))
+>>  		blk_mq_kick_requeue_list(req->q);
+>>  	spin_unlock_irqrestore(req->q->queue_lock, flags);
+>>  }
+>> @@ -2079,10 +2079,6 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
+>>
+>>  	mutex_lock(&ctrl->namespaces_mutex);
+>>  	list_for_each_entry(ns, &ctrl->namespaces, list) {
+>> -		spin_lock_irq(ns->queue->queue_lock);
+>> -		queue_flag_set(QUEUE_FLAG_STOPPED, ns->queue);
+>> -		spin_unlock_irq(ns->queue->queue_lock);
+>> -
+>>  		blk_mq_cancel_requeue_work(ns->queue);
+>>  		blk_mq_stop_hw_queues(ns->queue);
+>
+> There's actually a reason the queue stoppage is using a different flag
+> than blk_mq_queue_stopped: kicking the queue starts stopped queues.
+> The driver has to ensure the requeue work can't be kicked prior to
+> cancelling the current requeue work. Once we know requeue work isn't
+> running and can't restart again, then we're safe to stop the hw queues.
+>
+> It's a pretty obscure condition, requiring the controller post an
+> error completion at the same time the driver decides to reset the
+> controller. Here's the sequence with the wrong outcome:
+>
+>  CPU A                   CPU B
+>  -----                   -----
+> nvme_stop_queues         nvme_requeue_req
+>  blk_mq_stop_hw_queues    if (blk_mq_queue_stopped) <- returns false
+>   blk_mq_stop_hw_queue     blk_mq_kick_requeue_list
+>                          blk_mq_requeue_work
+>                           blk_mq_start_hw_queues
 
-I don't think that RDMA_NL_I40IW enum bellow is necessary.
+Hello Keith,
 
-+enum {
-+	RDMA_NL_RDMA_CM = 1,
-+	RDMA_NL_IWCM,
-+	RDMA_NL_RSVD,
-+	RDMA_NL_LS,	/* RDMA Local Services */
-+	RDMA_NL_I40IW,
-+	RDMA_NL_NUM_CLIENTS
-+};
+I think it is wrong that kicking the requeue list starts stopped queues 
+because this makes it impossible to stop request processing without 
+setting an additional flag next to BLK_MQ_S_STOPPED. Can you have a look 
+at the attached two patches? These patches survive my dm-multipath and 
+SCSI tests.
 
-Thank you,
-Tatyana
+Thanks,
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-Sent: Thursday, October 27, 2016 6:06 PM
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH rdma-core 2/4] Move rdma_netlink compat into CMake
+Bart.
 
-Detect if the distro's rdma_netlink.h is new enough, if not replace it with the built in copy, and eliminate the two loose copies of the header.
 
-The built in copy is from v4.8
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+--------------FF0AC109AC1DF013EC67AEAD
+Content-Type: text/x-patch;
+	name="0001-block-Avoid-that-requeueing-starts-stopped-queues.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="0001-block-Avoid-that-requeueing-starts-stopped-queues.patch"
+
+>From e93799f726485a3eeee98837c992c5c0068d7180 Mon Sep 17 00:00:00 2001
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Date: Fri, 28 Oct 2016 10:48:58 -0700
+Subject: [PATCH 1/2] block: Avoid that requeueing starts stopped queues
+
+Since blk_mq_requeue_work() starts stopped queues and since
+execution of this function can be scheduled after a queue has
+been stopped it is not possible to stop queues without using
+an additional state variable to track whether or not the queue
+has been stopped. Hence modify blk_mq_requeue_work() such that it
+does not start stopped queues. My conclusion after a review of
+the blk_mq_stop_hw_queues() and blk_mq_{delay_,}kick_requeue_list()
+callers is as follows:
+* In the dm driver starting and stopping queues should only happen
+  if __dm_suspend() or __dm_resume() is called and not if the
+  requeue list is processed.
+* In the SCSI core queue stopping and starting should only be
+  performed by the scsi_internal_device_block() and
+  scsi_internal_device_unblock() functions but not by any other
+  function.
+* In the NVMe core only the functions that call
+  blk_mq_start_stopped_hw_queues() explicitly should start stopped
+  queues.
+* A blk_mq_start_stopped_hwqueues() call must be added in the
+  xen-blkfront driver in its blkif_recover() function.
 ---
- buildlib/RDMA_LinuxHeaders.cmake           |   2 +-
- buildlib/fixup-include/rdma-rdma_netlink.h | 225 +++++++++++++++++++++++++++++
- ibacm/src/acm.c                            |   3 -
- ibacm/src/acm_netlink.h                    | 128 ----------------
- iwpmd/iwarp_pm.h                           |   2 +-
- iwpmd/iwarp_pm_common.c                    |   5 -
- iwpmd/iwarp_pm_server.c                    |   4 +-
- iwpmd/iwpm_netlink.h                       | 214 ---------------------------
- 8 files changed, 229 insertions(+), 354 deletions(-)  create mode 100644 buildlib/fixup-include/rdma-rdma_netlink.h
- delete mode 100644 ibacm/src/acm_netlink.h  delete mode 100644 iwpmd/iwpm_netlink.h
+ block/blk-mq.c               | 6 +-----
+ drivers/block/xen-blkfront.c | 1 +
+ drivers/md/dm-rq.c           | 7 +------
+ drivers/scsi/scsi_lib.c      | 1 -
+ 4 files changed, 3 insertions(+), 12 deletions(-)
 
-Steve,
-
-Can you check if the changes to iwpmd/iwarp_pm_server.c make sense?
-Should we do something to fix the kernel header?
-
-diff --git a/buildlib/RDMA_LinuxHeaders.cmake b/buildlib/RDMA_LinuxHeaders.cmake
-index bd16d8deca72..c67b0a6113d2 100644
---- a/buildlib/RDMA_LinuxHeaders.cmake
-+++ b/buildlib/RDMA_LinuxHeaders.cmake
-@@ -80,6 +80,6 @@ rdma_check_kheader("rdma/ib_user_verbs.h" "${DEFAULT_TEST}")  rdma_check_kheader("rdma/ib_user_sa.h" "${DEFAULT_TEST}")  rdma_check_kheader("rdma/ib_user_cm.h" "${DEFAULT_TEST}")  rdma_check_kheader("rdma/ib_user_mad.h" "${DEFAULT_TEST}") -rdma_check_kheader("rdma/rdma_netlink.h" "${DEFAULT_TEST}")
-+rdma_check_kheader("rdma/rdma_netlink.h" "int main(int argc,const char 
-+*argv[]) { return RDMA_NL_IWPM_REMOTE_INFO && RDMA_NL_IWCM; }")
- rdma_check_kheader("rdma/rdma_user_cm.h" "${DEFAULT_TEST}")  rdma_check_kheader("rdma/rdma_user_rxe.h" "${DEFAULT_TEST}") diff --git a/buildlib/fixup-include/rdma-rdma_netlink.h b/buildlib/fixup-include/rdma-rdma_netlink.h
-new file mode 100644
-index 000000000000..02fe8390c18f
---- /dev/null
-+++ b/buildlib/fixup-include/rdma-rdma_netlink.h
-@@ -0,0 +1,225 @@
-+#ifndef _UAPI_RDMA_NETLINK_H
-+#define _UAPI_RDMA_NETLINK_H
-+
-+#include <linux/types.h>
-+
-+enum {
-+	RDMA_NL_RDMA_CM = 1,
-+	RDMA_NL_IWCM,
-+	RDMA_NL_RSVD,
-+	RDMA_NL_LS,	/* RDMA Local Services */
-+	RDMA_NL_I40IW,
-+	RDMA_NL_NUM_CLIENTS
-+};
-+
-+enum {
-+	RDMA_NL_GROUP_CM = 1,
-+	RDMA_NL_GROUP_IWPM,
-+	RDMA_NL_GROUP_LS,
-+	RDMA_NL_NUM_GROUPS
-+};
-+
-+#define RDMA_NL_GET_CLIENT(type) ((type & (((1 << 6) - 1) << 10)) >> 
-+10) #define RDMA_NL_GET_OP(type) (type & ((1 << 10) - 1)) #define 
-+RDMA_NL_GET_TYPE(client, op) ((client << 10) + op)
-+
-+enum {
-+	RDMA_NL_RDMA_CM_ID_STATS = 0,
-+	RDMA_NL_RDMA_CM_NUM_OPS
-+};
-+
-+enum {
-+	RDMA_NL_RDMA_CM_ATTR_SRC_ADDR = 1,
-+	RDMA_NL_RDMA_CM_ATTR_DST_ADDR,
-+	RDMA_NL_RDMA_CM_NUM_ATTR,
-+};
-+
-+/* iwarp port mapper op-codes */
-+enum {
-+	RDMA_NL_IWPM_REG_PID = 0,
-+	RDMA_NL_IWPM_ADD_MAPPING,
-+	RDMA_NL_IWPM_QUERY_MAPPING,
-+	RDMA_NL_IWPM_REMOVE_MAPPING,
-+	RDMA_NL_IWPM_REMOTE_INFO,
-+	RDMA_NL_IWPM_HANDLE_ERR,
-+	RDMA_NL_IWPM_MAPINFO,
-+	RDMA_NL_IWPM_MAPINFO_NUM,
-+	RDMA_NL_IWPM_NUM_OPS
-+};
-+
-+struct rdma_cm_id_stats {
-+	__u32	qp_num;
-+	__u32	bound_dev_if;
-+	__u32	port_space;
-+	__s32	pid;
-+	__u8	cm_state;
-+	__u8	node_type;
-+	__u8	port_num;
-+	__u8	qp_type;
-+};
-+
-+enum {
-+	IWPM_NLA_REG_PID_UNSPEC = 0,
-+	IWPM_NLA_REG_PID_SEQ,
-+	IWPM_NLA_REG_IF_NAME,
-+	IWPM_NLA_REG_IBDEV_NAME,
-+	IWPM_NLA_REG_ULIB_NAME,
-+	IWPM_NLA_REG_PID_MAX
-+};
-+
-+enum {
-+	IWPM_NLA_RREG_PID_UNSPEC = 0,
-+	IWPM_NLA_RREG_PID_SEQ,
-+	IWPM_NLA_RREG_IBDEV_NAME,
-+	IWPM_NLA_RREG_ULIB_NAME,
-+	IWPM_NLA_RREG_ULIB_VER,
-+	IWPM_NLA_RREG_PID_ERR,
-+	IWPM_NLA_RREG_PID_MAX
-+
-+};
-+
-+enum {
-+	IWPM_NLA_MANAGE_MAPPING_UNSPEC = 0,
-+	IWPM_NLA_MANAGE_MAPPING_SEQ,
-+	IWPM_NLA_MANAGE_ADDR,
-+	IWPM_NLA_MANAGE_MAPPED_LOC_ADDR,
-+	IWPM_NLA_RMANAGE_MAPPING_ERR,
-+	IWPM_NLA_RMANAGE_MAPPING_MAX
-+};
-+
-+#define IWPM_NLA_MANAGE_MAPPING_MAX 3
-+#define IWPM_NLA_QUERY_MAPPING_MAX  4
-+#define IWPM_NLA_MAPINFO_SEND_MAX   3
-+
-+enum {
-+	IWPM_NLA_QUERY_MAPPING_UNSPEC = 0,
-+	IWPM_NLA_QUERY_MAPPING_SEQ,
-+	IWPM_NLA_QUERY_LOCAL_ADDR,
-+	IWPM_NLA_QUERY_REMOTE_ADDR,
-+	IWPM_NLA_RQUERY_MAPPED_LOC_ADDR,
-+	IWPM_NLA_RQUERY_MAPPED_REM_ADDR,
-+	IWPM_NLA_RQUERY_MAPPING_ERR,
-+	IWPM_NLA_RQUERY_MAPPING_MAX
-+};
-+
-+enum {
-+	IWPM_NLA_MAPINFO_REQ_UNSPEC = 0,
-+	IWPM_NLA_MAPINFO_ULIB_NAME,
-+	IWPM_NLA_MAPINFO_ULIB_VER,
-+	IWPM_NLA_MAPINFO_REQ_MAX
-+};
-+
-+enum {
-+	IWPM_NLA_MAPINFO_UNSPEC = 0,
-+	IWPM_NLA_MAPINFO_LOCAL_ADDR,
-+	IWPM_NLA_MAPINFO_MAPPED_ADDR,
-+	IWPM_NLA_MAPINFO_MAX
-+};
-+
-+enum {
-+	IWPM_NLA_MAPINFO_NUM_UNSPEC = 0,
-+	IWPM_NLA_MAPINFO_SEQ,
-+	IWPM_NLA_MAPINFO_SEND_NUM,
-+	IWPM_NLA_MAPINFO_ACK_NUM,
-+	IWPM_NLA_MAPINFO_NUM_MAX
-+};
-+
-+enum {
-+	IWPM_NLA_ERR_UNSPEC = 0,
-+	IWPM_NLA_ERR_SEQ,
-+	IWPM_NLA_ERR_CODE,
-+	IWPM_NLA_ERR_MAX
-+};
-+
-+/*
-+ * Local service operations:
-+ *   RESOLVE - The client requests the local service to resolve a path.
-+ *   SET_TIMEOUT - The local service requests the client to set the timeout.
-+ *   IP_RESOLVE - The client requests the local service to resolve an IP to GID.
-+ */
-+enum {
-+	RDMA_NL_LS_OP_RESOLVE = 0,
-+	RDMA_NL_LS_OP_SET_TIMEOUT,
-+	RDMA_NL_LS_OP_IP_RESOLVE,
-+	RDMA_NL_LS_NUM_OPS
-+};
-+
-+/* Local service netlink message flags */
-+#define RDMA_NL_LS_F_ERR	0x0100	/* Failed response */
-+
-+/*
-+ * Local service resolve operation family header.
-+ * The layout for the resolve operation:
-+ *    nlmsg header
-+ *    family header
-+ *    attributes
-+ */
-+
-+/*
-+ * Local service path use:
-+ * Specify how the path(s) will be used.
-+ *   ALL - For connected CM operation (6 pathrecords)
-+ *   UNIDIRECTIONAL - For unidirectional UD (1 pathrecord)
-+ *   GMP - For miscellaneous GMP like operation (at least 1 reversible
-+ *         pathrecord)
-+ */
-+enum {
-+	LS_RESOLVE_PATH_USE_ALL = 0,
-+	LS_RESOLVE_PATH_USE_UNIDIRECTIONAL,
-+	LS_RESOLVE_PATH_USE_GMP,
-+	LS_RESOLVE_PATH_USE_MAX
-+};
-+
-+#define LS_DEVICE_NAME_MAX 64
-+
-+struct rdma_ls_resolve_header {
-+	__u8 device_name[LS_DEVICE_NAME_MAX];
-+	__u8 port_num;
-+	__u8 path_use;
-+};
-+
-+struct rdma_ls_ip_resolve_header {
-+	__u32 ifindex;
-+};
-+
-+/* Local service attribute type */
-+#define RDMA_NLA_F_MANDATORY	(1 << 13)
-+#define RDMA_NLA_TYPE_MASK	(~(NLA_F_NESTED | NLA_F_NET_BYTEORDER | \
-+				  RDMA_NLA_F_MANDATORY))
-+
-+/*
-+ * Local service attributes:
-+ *   Attr Name       Size                       Byte order
-+ *   -----------------------------------------------------
-+ *   PATH_RECORD     struct ib_path_rec_data
-+ *   TIMEOUT         u32                        cpu
-+ *   SERVICE_ID      u64                        cpu
-+ *   DGID            u8[16]                     BE
-+ *   SGID            u8[16]                     BE
-+ *   TCLASS          u8
-+ *   PKEY            u16                        cpu
-+ *   QOS_CLASS       u16                        cpu
-+ *   IPV4            u32                        BE
-+ *   IPV6            u8[16]                     BE
-+ */
-+enum {
-+	LS_NLA_TYPE_UNSPEC = 0,
-+	LS_NLA_TYPE_PATH_RECORD,
-+	LS_NLA_TYPE_TIMEOUT,
-+	LS_NLA_TYPE_SERVICE_ID,
-+	LS_NLA_TYPE_DGID,
-+	LS_NLA_TYPE_SGID,
-+	LS_NLA_TYPE_TCLASS,
-+	LS_NLA_TYPE_PKEY,
-+	LS_NLA_TYPE_QOS_CLASS,
-+	LS_NLA_TYPE_IPV4,
-+	LS_NLA_TYPE_IPV6,
-+	LS_NLA_TYPE_MAX
-+};
-+
-+/* Local service DGID/SGID attribute: big endian */ struct 
-+rdma_nla_ls_gid {
-+	__u8		gid[16];
-+};
-+
-+#endif /* _UAPI_RDMA_NETLINK_H */
-diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c index cc7dd065f69c..5f4068f619b4 100644
---- a/ibacm/src/acm.c
-+++ b/ibacm/src/acm.c
-@@ -61,9 +61,6 @@
- #include <ccan/list.h>
- #include "acm_mad.h"
- #include "acm_util.h"
--#if !defined(RDMA_NL_LS_F_ERR)
--	#include "acm_netlink.h"
--#endif
+diff --git a/block/blk-mq.c b/block/blk-mq.c
+index a49b8af..24dfd0d 100644
+--- a/block/blk-mq.c
++++ b/block/blk-mq.c
+@@ -528,11 +528,7 @@ static void blk_mq_requeue_work(struct work_struct *work)
+ 		blk_mq_insert_request(rq, false, false, false);
+ 	}
  
- #define src_out     data[0]
- #define src_index   data[1]
-diff --git a/ibacm/src/acm_netlink.h b/ibacm/src/acm_netlink.h deleted file mode 100644 index 867ae8c838fc..000000000000 diff --git a/iwpmd/iwarp_pm.h b/iwpmd/iwarp_pm.h index b5a5a457a423..fc09e4fd752a 100644
---- a/iwpmd/iwarp_pm.h
-+++ b/iwpmd/iwarp_pm.h
-@@ -53,7 +53,7 @@
- #include <syslog.h>
- #include <netlink/msg.h>
- #include <ccan/list.h>
--#include "iwpm_netlink.h"
-+#include <rdma/rdma_netlink.h>
- 
- #define IWARP_PM_PORT          3935
- #define IWARP_PM_VER_SHIFT     6
-diff --git a/iwpmd/iwarp_pm_common.c b/iwpmd/iwarp_pm_common.c index 58b1089a1998..941e0406ade7 100644
---- a/iwpmd/iwarp_pm_common.c
-+++ b/iwpmd/iwarp_pm_common.c
-@@ -33,11 +33,6 @@
- 
- #include "iwarp_pm.h"
- 
--/* Necessary only for SLES11 */
--#if !defined (NETLINK_RDMA)
--	#define NETLINK_RDMA	        20
--#endif
--
- /* iwpm config params */
- static const char * iwpm_param_names[IWPM_PARAM_NUM] =
- 	{ "nl_sock_rbuf_size" };
-diff --git a/iwpmd/iwarp_pm_server.c b/iwpmd/iwarp_pm_server.c index ab90c6c4b077..ef541c8175ed 100644
---- a/iwpmd/iwarp_pm_server.c
-+++ b/iwpmd/iwarp_pm_server.c
-@@ -1214,8 +1214,8 @@ static int init_iwpm_clients(__u32 iwarp_clients[])  {
- 	int client_num = 2;
- 
--	iwarp_clients[0] = RDMA_NL_NES;
--	iwarp_clients[1] = RDMA_NL_C4IW;
-+	iwarp_clients[0] = RDMA_NL_IWCM;
-+	iwarp_clients[1] = RDMA_NL_IWCM+1; /* Legacy RDMA_NL_C4IW for old 
-+kernels */
- 
- 	return client_num;
+-	/*
+-	 * Use the start variant of queue running here, so that running
+-	 * the requeue work will kick stopped queues.
+-	 */
+-	blk_mq_start_hw_queues(q);
++	blk_mq_run_hw_queues(q, false);
  }
-diff --git a/iwpmd/iwpm_netlink.h b/iwpmd/iwpm_netlink.h deleted file mode 100644 index 0edcb620de99..000000000000
---
-2.1.4
+ 
+ void blk_mq_add_to_requeue_list(struct request *rq, bool at_head,
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 1ca702d..a3e1727 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -2045,6 +2045,7 @@ static int blkif_recover(struct blkfront_info *info)
+ 		BUG_ON(req->nr_phys_segments > segs);
+ 		blk_mq_requeue_request(req, false);
+ 	}
++	blk_mq_start_stopped_hwqueues(info->rq);
+ 	blk_mq_kick_requeue_list(info->rq);
+ 
+ 	while ((bio = bio_list_pop(&info->bio_list)) != NULL) {
+diff --git a/drivers/md/dm-rq.c b/drivers/md/dm-rq.c
+index 107ed19..b951ae83 100644
+--- a/drivers/md/dm-rq.c
++++ b/drivers/md/dm-rq.c
+@@ -326,12 +326,7 @@ static void dm_old_requeue_request(struct request *rq)
+ 
+ static void __dm_mq_kick_requeue_list(struct request_queue *q, unsigned long msecs)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(q->queue_lock, flags);
+-	if (!blk_mq_queue_stopped(q))
+-		blk_mq_delay_kick_requeue_list(q, msecs);
+-	spin_unlock_irqrestore(q->queue_lock, flags);
++	blk_mq_delay_kick_requeue_list(q, msecs);
+ }
+ 
+ void dm_mq_kick_requeue_list(struct mapped_device *md)
+diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+index 4cddaff..94f54ac 100644
+--- a/drivers/scsi/scsi_lib.c
++++ b/drivers/scsi/scsi_lib.c
+@@ -1939,7 +1939,6 @@ static int scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
+ out:
+ 	switch (ret) {
+ 	case BLK_MQ_RQ_QUEUE_BUSY:
+-		blk_mq_stop_hw_queue(hctx);
+ 		if (atomic_read(&sdev->device_busy) == 0 &&
+ 		    !scsi_device_blocked(sdev))
+ 			blk_mq_delay_queue(hctx, SCSI_QUEUE_DELAY);
+-- 
+2.10.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--------------FF0AC109AC1DF013EC67AEAD
+Content-Type: text/x-patch;
+	name="0002-blk-mq-Remove-blk_mq_cancel_requeue_work.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="0002-blk-mq-Remove-blk_mq_cancel_requeue_work.patch"
+
+>From 47eec3bdcf4b673e3ab606543cb3acdf7f4de593 Mon Sep 17 00:00:00 2001
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Date: Fri, 28 Oct 2016 10:50:04 -0700
+Subject: [PATCH 2/2] blk-mq: Remove blk_mq_cancel_requeue_work()
+
+Since blk_mq_requeue_work() no longer restarts stopped queues
+canceling requeue work is no longer needed to prevent that a
+stopped queue would be restarted. Hence remove this function.
+---
+ block/blk-mq.c           | 6 ------
+ drivers/md/dm-rq.c       | 2 --
+ drivers/nvme/host/core.c | 1 -
+ include/linux/blk-mq.h   | 1 -
+ 4 files changed, 10 deletions(-)
+
+diff --git a/block/blk-mq.c b/block/blk-mq.c
+index 24dfd0d..1aa79e5 100644
+--- a/block/blk-mq.c
++++ b/block/blk-mq.c
+@@ -557,12 +557,6 @@ void blk_mq_add_to_requeue_list(struct request *rq, bool at_head,
+ }
+ EXPORT_SYMBOL(blk_mq_add_to_requeue_list);
+ 
+-void blk_mq_cancel_requeue_work(struct request_queue *q)
+-{
+-	cancel_delayed_work_sync(&q->requeue_work);
+-}
+-EXPORT_SYMBOL_GPL(blk_mq_cancel_requeue_work);
+-
+ void blk_mq_kick_requeue_list(struct request_queue *q)
+ {
+ 	kblockd_schedule_delayed_work(&q->requeue_work, 0);
+diff --git a/drivers/md/dm-rq.c b/drivers/md/dm-rq.c
+index b951ae83..7f426ab 100644
+--- a/drivers/md/dm-rq.c
++++ b/drivers/md/dm-rq.c
+@@ -102,8 +102,6 @@ static void dm_mq_stop_queue(struct request_queue *q)
+ 	if (blk_mq_queue_stopped(q))
+ 		return;
+ 
+-	/* Avoid that requeuing could restart the queue. */
+-	blk_mq_cancel_requeue_work(q);
+ 	blk_mq_stop_hw_queues(q);
+ 	/* Wait until dm_mq_queue_rq() has finished. */
+ 	blk_mq_quiesce_queue(q);
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index d6ab9a0..a67e815 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -2075,7 +2075,6 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
+ 	list_for_each_entry(ns, &ctrl->namespaces, list) {
+ 		struct request_queue *q = ns->queue;
+ 
+-		blk_mq_cancel_requeue_work(q);
+ 		blk_mq_stop_hw_queues(q);
+ 		blk_mq_quiesce_queue(q);
+ 	}
+diff --git a/include/linux/blk-mq.h b/include/linux/blk-mq.h
+index 76f6319..35a0af5 100644
+--- a/include/linux/blk-mq.h
++++ b/include/linux/blk-mq.h
+@@ -221,7 +221,6 @@ void __blk_mq_end_request(struct request *rq, int error);
+ void blk_mq_requeue_request(struct request *rq, bool kick_requeue_list);
+ void blk_mq_add_to_requeue_list(struct request *rq, bool at_head,
+ 				bool kick_requeue_list);
+-void blk_mq_cancel_requeue_work(struct request_queue *q);
+ void blk_mq_kick_requeue_list(struct request_queue *q);
+ void blk_mq_delay_kick_requeue_list(struct request_queue *q, unsigned long msecs);
+ void blk_mq_abort_requeue_list(struct request_queue *q);
+-- 
+2.10.1
+
+
+--------------FF0AC109AC1DF013EC67AEAD--
