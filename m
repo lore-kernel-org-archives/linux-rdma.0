@@ -1,53 +1,44 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core v2 4/4] redhat/spec: build split rpm packages
-Date: Fri, 28 Oct 2016 17:55:25 -0400
-Message-ID: <20161028215525.GT42084@redhat.com>
-References: <20161014192136.11731-1-jarod@redhat.com>
- <20161020153357.27286-1-jarod@redhat.com>
- <20161020153357.27286-5-jarod@redhat.com>
- <20161027211059.GA7224@obsidianresearch.com>
- <20161028171147.GJ42084@redhat.com>
- <20161028172503.GA28451@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] build: Fix build script to use correct cmake cmd
+Date: Fri, 28 Oct 2016 16:09:15 -0600
+Message-ID: <20161028220915.GA20433@obsidianresearch.com>
+References: <20161021172728.27367.86783.stgit@scvm10.sc.intel.com>
+ <20161021180523.GA554@obsidianresearch.com>
+ <9745f6c7-8d09-8bed-d04c-78f610330ead@redhat.com>
+ <20161021193034.GA616@obsidianresearch.com>
+ <20161025101200.GP25013@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161028172503.GA28451-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161025101200.GP25013-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 28, 2016 at 11:25:03AM -0600, Jason Gunthorpe wrote:
-> On Fri, Oct 28, 2016 at 01:11:47PM -0400, Jarod Wilson wrote:
-> > On Thu, Oct 27, 2016 at 03:10:59PM -0600, Jason Gunthorpe wrote:
-> > > On Thu, Oct 20, 2016 at 11:33:57AM -0400, Jarod Wilson wrote:
-> > > > @@ -7,10 +7,11 @@ Summary: RDMA core userspace libraries and daemons
-> > > >  #  providers/ipathverbs/ Dual licensed using a BSD license with an extra patent clause
-> > > >  #  providers/rxe/ Incorporates code from ipathverbs and contains the patent clause
-> > > >  #  providers/hfi1verbs Uses the 3 Clause BSD license
-> > > > -License: (GPLv2 or BSD) and (GPLv2 or PathScale-BSD)
-> > > > +License: GPLv2 or BSD
-> > > 
-> > > Is this Ok? The Fedora guidelines I read suggested the PathScale
-> > > license would need to be assigned a short tag, and I'd be surprised if
-> > > 'BSD' is the right tag due to the patent stuff..
-> > 
-> > Our standalone libipathverbs has just "GPLv2 or BSD",
+On Tue, Oct 25, 2016 at 01:12:00PM +0300, Leon Romanovsky wrote:
+
+> > Maybe this is a good time to ask if anyone is interested in the docker
+> > stuff I have - eg should I make it pushable? It is easy to use, but
+> > you need to have docker installed.
 > 
-> I suspect that was a mistake, the difference in the pathscale license
-> is subtle and several other people assumed it was the cannonical 'BSD'
-> text...
+> I would be happy to get it and be more confident in my local tests.
 
-I sent something off to the Fedora legal mailing list, we'll see what they
-have to say. I didn't find anything interesting in the initial package
-review, nobody questioned the license there, but that could easily have
-been an oversight.
+Okay, let me look at it some more, I think it could be streamlined a
+bit.
 
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> > The docker script is able to run almost-travis locally, as well as do
+> > clean package builds for all distros.
+> 
+> It looks like it goes beyond rdma-core definition. Do we want to put it
+> separately or anyway integrate into main library?
 
+It is a 500 line script, I'd keep it internal. The latest version has
+learned to use different spec files depend on the distro build too, so
+there is a bunch of subtle integration.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
