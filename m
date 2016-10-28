@@ -1,77 +1,59 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs
- from kernel space
-Date: Fri, 28 Oct 2016 18:46:28 +0300
-Message-ID: <20161028154628.GP3617@leon.nu>
-References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
- <1477579398-6875-8-git-send-email-matanb@mellanox.com>
- <20161028065943.GA10418@infradead.org>
- <20161028151606.GN3617@leon.nu>
- <20161028152138.GA16421@infradead.org>
- <20161028153306.GO3617@leon.nu>
- <20161028153725.GA14166@infradead.org>
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCH 11/12] nvme: Use BLK_MQ_S_STOPPED instead of
+ QUEUE_FLAG_STOPPED in blk-mq code
+Date: Fri, 28 Oct 2016 12:01:45 -0400
+Message-ID: <20161028160145.GC5621@localhost.localdomain>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <805e1911-cd10-0563-c76b-256d76054b08@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="xXygN3QAmJYWdGtb"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161028153725.GA14166-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <805e1911-cd10-0563-c76b-256d76054b08@sandisk.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Ming Lei <tom.leiming@gmail.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Oct 26, 2016 at 03:56:04PM -0700, Bart Van Assche wrote:
+> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+> index 7bb73ba..b662416 100644
+> --- a/drivers/nvme/host/core.c
+> +++ b/drivers/nvme/host/core.c
+> @@ -205,7 +205,7 @@ void nvme_requeue_req(struct request *req)
+>  
+>  	blk_mq_requeue_request(req, false);
+>  	spin_lock_irqsave(req->q->queue_lock, flags);
+> -	if (!blk_queue_stopped(req->q))
+> +	if (!blk_mq_queue_stopped(req->q))
+>  		blk_mq_kick_requeue_list(req->q);
+>  	spin_unlock_irqrestore(req->q->queue_lock, flags);
+>  }
+> @@ -2079,10 +2079,6 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
+>  
+>  	mutex_lock(&ctrl->namespaces_mutex);
+>  	list_for_each_entry(ns, &ctrl->namespaces, list) {
+> -		spin_lock_irq(ns->queue->queue_lock);
+> -		queue_flag_set(QUEUE_FLAG_STOPPED, ns->queue);
+> -		spin_unlock_irq(ns->queue->queue_lock);
+> -
+>  		blk_mq_cancel_requeue_work(ns->queue);
+>  		blk_mq_stop_hw_queues(ns->queue);
 
---xXygN3QAmJYWdGtb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+There's actually a reason the queue stoppage is using a different flag
+than blk_mq_queue_stopped: kicking the queue starts stopped queues.
+The driver has to ensure the requeue work can't be kicked prior to
+cancelling the current requeue work. Once we know requeue work isn't
+running and can't restart again, then we're safe to stop the hw queues.
 
-On Fri, Oct 28, 2016 at 08:37:25AM -0700, Christoph Hellwig wrote:
-> On Fri, Oct 28, 2016 at 06:33:06PM +0300, Leon Romanovsky wrote:
-> > Just to summarize, to be sure that I understood you correctly.
-> >
-> > ---------    --------------------
-> > | write | -> | conversion logic | ---
-> > ---------    --------------------   |      ----------------------
-> >                                     -----> | internal interface |
-> > ---------                           |      ----------------------
-> > | ioctl | ---------------------------
-> > ---------
-> >
-> > Am I right?
->
-> Yes, as long as the write and ioctl boxes do the copy_{from,to}_user.
+It's a pretty obscure condition, requiring the controller post an
+error completion at the same time the driver decides to reset the
+controller. Here's the sequence with the wrong outcome:
 
-Thanks
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---xXygN3QAmJYWdGtb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYE3LUAAoJEORje4g2clinJb0P/3KQo9EuoDwEN14ZwxnhOTIq
-PF/yDy3x6iuPqae6ZXsKi/jnbD1mMdRvEW6PjGWr5miF0D23K3z2JsIo0CJQ2PYf
-oyG5AKkRRk1MIJ/3PLW6mr/dAfxHVQhcc0eqP3vy8LQLKbynUzkM8kEEHbHUFIh1
-35EkeDfu5dP6h/YIGXPXcwqVmrSWzC3VtfBi0z6QpPof9psCA9LrHAF9ZRPCZxPD
-BfCEO31lK6sb1nkVPrmtZF9Svv9rqAfO2mWUfToDIuDpo+bV+YR9imXvvyiShvCh
-pe0ssHUMFgiXPGq9LbBGGspduq0LUmTybrQSNJydSD0lIC9F1vizaXBzm09RZrPe
-/IT7z+SdvrppEbaNvIQz3w1V1LRbL0uZVVnQNwfrUw1BrFutHphXKQ0/3VJKdvF0
-VW6WcWBqZdiwhGBT0/5CnurND71blamZEbK9XhcYfWXRQNcLdmh5EQvEY/RTL8qe
-loP0DNiW97lWRb0LnMzezM3txkQxbimlPAbDKCZQ/1O7wNxwhUmcHTkUFoA5nBa6
-jrMRmRPiOYmLOrwMAmntClpboZf2EgkStQr7Ln//H8wAwr/u1RGx5BLU7qHNazQp
-e4qc1OeWOTbCfvY3VTP4g4zFvGiPCUx+ZqD+IITQ3NfMYgFSv4vaTXM93AnKhXi6
-m9Qly3+OeNd93Q/Lp/y0
-=953s
------END PGP SIGNATURE-----
-
---xXygN3QAmJYWdGtb--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ CPU A                   CPU B
+ -----                   -----
+nvme_stop_queues         nvme_requeue_req
+ blk_mq_stop_hw_queues    if (blk_mq_queue_stopped) <- returns false
+  blk_mq_stop_hw_queue     blk_mq_kick_requeue_list
+                         blk_mq_requeue_work
+                          blk_mq_start_hw_queues
