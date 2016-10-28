@@ -1,178 +1,199 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/3] iopmem : Add a block device driver for PCIe attached
- IO memory.
-Date: Fri, 28 Oct 2016 13:22:16 -0600
-Message-ID: <f61ba5bd-b81e-d5bf-02e5-45f6b523dd4c@deltatee.com>
-References: <1476826937-20665-1-git-send-email-sbates@raithlin.com>
- <1476826937-20665-3-git-send-email-sbates@raithlin.com>
- <20161028064556.GA3231@infradead.org>
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCH 11/12] nvme: Use BLK_MQ_S_STOPPED instead of
+ QUEUE_FLAG_STOPPED in blk-mq code
+Date: Fri, 28 Oct 2016 17:06:28 -0400
+Message-ID: <20161028210628.GE5621@localhost.localdomain>
+References: <b22edafc-725f-0419-d074-34d35d57d126@sandisk.com>
+ <805e1911-cd10-0563-c76b-256d76054b08@sandisk.com>
+ <20161028160145.GC5621@localhost.localdomain>
+ <655c62ca-5da8-3c8f-9e56-016b7d518267@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20161028064556.GA3231-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Stephen Bates <stephen.bates-dzo6w/eZyo2tG0bUXCXiUA@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, sbates-Rgftl6RXld5BDgjK7y7TUQ@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jim.macdonald-FgSLVYC75IpWk0Htik3J/w@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <655c62ca-5da8-3c8f-9e56-016b7d518267@sandisk.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Ming Lei <tom.leiming@gmail.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph,
+On Fri, Oct 28, 2016 at 11:51:35AM -0700, Bart Van Assche wrote:
+> I think it is wrong that kicking the requeue list starts stopped queues
+> because this makes it impossible to stop request processing without setting
+> an additional flag next to BLK_MQ_S_STOPPED. Can you have a look at the
+> attached two patches? These patches survive my dm-multipath and SCSI tests.
 
-Thanks so much for the detailed review of the code! Even though by the
-sounds of things we will be moving to device dax and most of this is
-moot. Still, it's great to get some feedback and learn a few things.
+Hi Bart,
 
-I've given some responses below.
-
-On 28/10/16 12:45 AM, Christoph Hellwig wrote:
->> + * This driver is heavily based on drivers/block/pmem.c.
->> + * Copyright (c) 2014, Intel Corporation.
->> + * Copyright (C) 2007 Nick Piggin
->> + * Copyright (C) 2007 Novell Inc.
-> 
-> Is there anything left of it actually?  I didn't spot anything
-> obvious.  Nevermind that we don't have a file with that name anymore :)
-
-Yes, actually there's still a lot of similarities with the current
-pmem.c. Though, yes, the path was on oversight. Some of this code is
-getting pretty old (it started from an out-of-tree version of pmem.c)
-and we've tried our best to track as many of the changes to the pmem.c
-as possible. This proved to be difficult. Note: this is now the nvdimm
-pmem and not the dax pmem (drivers/nvdimm/pmem.c)
-
->> +  /*
->> +   * We can only access the iopmem device with full 32-bit word
->> +   * accesses which cannot be gaurantee'd by the regular memcpy
->> +   */
-> 
-> Odd comment formatting. 
-
-Oops. I'm surprised check_patch didn't pick up on that.
-
-> 
->> +static void memcpy_from_iopmem(void *dst, const void *src, size_t sz)
->> +{
->> +	u64 *wdst = dst;
->> +	const u64 *wsrc = src;
->> +	u64 tmp;
->> +
->> +	while (sz >= sizeof(*wdst)) {
->> +		*wdst++ = *wsrc++;
->> +		sz -= sizeof(*wdst);
->> +	}
->> +
->> +	if (!sz)
->> +		return;
->> +
->> +	tmp = *wsrc;
->> +	memcpy(wdst, &tmp, sz);
->> +}
-> 
-> And then we dod a memcpy here anyway.  And no volatile whatsover, so
-> the compiler could do anything to it.  I defintively feel a bit uneasy
-> about having this in the driver as well.  Can we define the exact
-> semantics for this and define it by the system, possibly in an arch
-> specific way?
-
-Yeah, you're right. We should have reviewed this function a bit more.
-Anyway, I'd be interested in learning a better approach to forcing a
-copy from a mapped BAR with larger widths.
-
-
->> +static void iopmem_do_bvec(struct iopmem_device *iopmem, struct page *page,
->> +			   unsigned int len, unsigned int off, bool is_write,
->> +			   sector_t sector)
->> +{
->> +	phys_addr_t iopmem_off = sector * 512;
->> +	void *iopmem_addr = iopmem->virt_addr + iopmem_off;
->> +
->> +	if (!is_write) {
->> +		read_iopmem(page, off, iopmem_addr, len);
->> +		flush_dcache_page(page);
->> +	} else {
->> +		flush_dcache_page(page);
->> +		write_iopmem(iopmem_addr, page, off, len);
->> +	}
-> 
-> How about moving the  address and offset calculation as well as the
-> cache flushing into read_iopmem/write_iopmem and removing this function?
-
-Could do. This was copied from the existing pmem.c and once the bad_pmem
-stuff was stripped out this function became relatively simple.
-
-
-> 
->> +static blk_qc_t iopmem_make_request(struct request_queue *q, struct bio *bio)
->> +{
->> +	struct iopmem_device *iopmem = q->queuedata;
->> +	struct bio_vec bvec;
->> +	struct bvec_iter iter;
->> +
->> +	bio_for_each_segment(bvec, bio, iter) {
->> +		iopmem_do_bvec(iopmem, bvec.bv_page, bvec.bv_len,
->> +			    bvec.bv_offset, op_is_write(bio_op(bio)),
->> +			    iter.bi_sector);
-> 
-> op_is_write just checks the data direction.  I'd feel much more
-> comfortable with a switch on the op, e.g.
-
-That makes sense. This was also copied from pmem.c, so this same change
-may make sense there too.
-
-
->> +static long iopmem_direct_access(struct block_device *bdev, sector_t sector,
->> +			       void **kaddr, pfn_t *pfn, long size)
->> +{
->> +	struct iopmem_device *iopmem = bdev->bd_queue->queuedata;
->> +	resource_size_t offset = sector * 512;
->> +
->> +	if (!iopmem)
->> +		return -ENODEV;
-> 
-> I don't think this can ever happen, can it?
-
-Yes, I think now that's the case. This is probably a holdover from a
-previous version.
-
-> Just use ida_simple_get/ida_simple_remove instead to take care
-> of the locking and preloading, and get rid of these two functions.
-
-Thanks, noted. That would be much better. I never found a simple example
-of that when I was looking, though I expected there should have been.
-
-> 
->> +static int iopmem_attach_disk(struct iopmem_device *iopmem)
->> +{
->> +	struct gendisk *disk;
->> +	int nid = dev_to_node(iopmem->dev);
->> +	struct request_queue *q = iopmem->queue;
->> +
->> +	blk_queue_write_cache(q, true, true);
-> 
-> You don't handle flush commands or the fua bit in make_request, so
-> this setting seems wrong.
-
-Yup, ok. I'm afraid this is a case of copying without complete
-comprehension.
-
-> 
->> +	int err = 0;
->> +	int nid = dev_to_node(&pdev->dev);
->> +
->> +	if (pci_enable_device_mem(pdev) < 0) {
-> 
-> propagate the actual error code, please.
-
-Hmm, yup. Not sure why that was missed.
+These look good to me, and succesful on my NVMe tests.
 
 Thanks,
+Keith
 
-Logan
+
+> From e93799f726485a3eeee98837c992c5c0068d7180 Mon Sep 17 00:00:00 2001
+> From: Bart Van Assche <bart.vanassche@sandisk.com>
+> Date: Fri, 28 Oct 2016 10:48:58 -0700
+> Subject: [PATCH 1/2] block: Avoid that requeueing starts stopped queues
+> 
+> Since blk_mq_requeue_work() starts stopped queues and since
+> execution of this function can be scheduled after a queue has
+> been stopped it is not possible to stop queues without using
+> an additional state variable to track whether or not the queue
+> has been stopped. Hence modify blk_mq_requeue_work() such that it
+> does not start stopped queues. My conclusion after a review of
+> the blk_mq_stop_hw_queues() and blk_mq_{delay_,}kick_requeue_list()
+> callers is as follows:
+> * In the dm driver starting and stopping queues should only happen
+>   if __dm_suspend() or __dm_resume() is called and not if the
+>   requeue list is processed.
+> * In the SCSI core queue stopping and starting should only be
+>   performed by the scsi_internal_device_block() and
+>   scsi_internal_device_unblock() functions but not by any other
+>   function.
+> * In the NVMe core only the functions that call
+>   blk_mq_start_stopped_hw_queues() explicitly should start stopped
+>   queues.
+> * A blk_mq_start_stopped_hwqueues() call must be added in the
+>   xen-blkfront driver in its blkif_recover() function.
+> ---
+>  block/blk-mq.c               | 6 +-----
+>  drivers/block/xen-blkfront.c | 1 +
+>  drivers/md/dm-rq.c           | 7 +------
+>  drivers/scsi/scsi_lib.c      | 1 -
+>  4 files changed, 3 insertions(+), 12 deletions(-)
+> 
+> diff --git a/block/blk-mq.c b/block/blk-mq.c
+> index a49b8af..24dfd0d 100644
+> --- a/block/blk-mq.c
+> +++ b/block/blk-mq.c
+> @@ -528,11 +528,7 @@ static void blk_mq_requeue_work(struct work_struct *work)
+>  		blk_mq_insert_request(rq, false, false, false);
+>  	}
+>  
+> -	/*
+> -	 * Use the start variant of queue running here, so that running
+> -	 * the requeue work will kick stopped queues.
+> -	 */
+> -	blk_mq_start_hw_queues(q);
+> +	blk_mq_run_hw_queues(q, false);
+>  }
+>  
+>  void blk_mq_add_to_requeue_list(struct request *rq, bool at_head,
+> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+> index 1ca702d..a3e1727 100644
+> --- a/drivers/block/xen-blkfront.c
+> +++ b/drivers/block/xen-blkfront.c
+> @@ -2045,6 +2045,7 @@ static int blkif_recover(struct blkfront_info *info)
+>  		BUG_ON(req->nr_phys_segments > segs);
+>  		blk_mq_requeue_request(req, false);
+>  	}
+> +	blk_mq_start_stopped_hwqueues(info->rq);
+>  	blk_mq_kick_requeue_list(info->rq);
+>  
+>  	while ((bio = bio_list_pop(&info->bio_list)) != NULL) {
+> diff --git a/drivers/md/dm-rq.c b/drivers/md/dm-rq.c
+> index 107ed19..b951ae83 100644
+> --- a/drivers/md/dm-rq.c
+> +++ b/drivers/md/dm-rq.c
+> @@ -326,12 +326,7 @@ static void dm_old_requeue_request(struct request *rq)
+>  
+>  static void __dm_mq_kick_requeue_list(struct request_queue *q, unsigned long msecs)
+>  {
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(q->queue_lock, flags);
+> -	if (!blk_mq_queue_stopped(q))
+> -		blk_mq_delay_kick_requeue_list(q, msecs);
+> -	spin_unlock_irqrestore(q->queue_lock, flags);
+> +	blk_mq_delay_kick_requeue_list(q, msecs);
+>  }
+>  
+>  void dm_mq_kick_requeue_list(struct mapped_device *md)
+> diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+> index 4cddaff..94f54ac 100644
+> --- a/drivers/scsi/scsi_lib.c
+> +++ b/drivers/scsi/scsi_lib.c
+> @@ -1939,7 +1939,6 @@ static int scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
+>  out:
+>  	switch (ret) {
+>  	case BLK_MQ_RQ_QUEUE_BUSY:
+> -		blk_mq_stop_hw_queue(hctx);
+>  		if (atomic_read(&sdev->device_busy) == 0 &&
+>  		    !scsi_device_blocked(sdev))
+>  			blk_mq_delay_queue(hctx, SCSI_QUEUE_DELAY);
+> -- 
+> 2.10.1
+> 
+
+> From 47eec3bdcf4b673e3ab606543cb3acdf7f4de593 Mon Sep 17 00:00:00 2001
+> From: Bart Van Assche <bart.vanassche@sandisk.com>
+> Date: Fri, 28 Oct 2016 10:50:04 -0700
+> Subject: [PATCH 2/2] blk-mq: Remove blk_mq_cancel_requeue_work()
+> 
+> Since blk_mq_requeue_work() no longer restarts stopped queues
+> canceling requeue work is no longer needed to prevent that a
+> stopped queue would be restarted. Hence remove this function.
+> ---
+>  block/blk-mq.c           | 6 ------
+>  drivers/md/dm-rq.c       | 2 --
+>  drivers/nvme/host/core.c | 1 -
+>  include/linux/blk-mq.h   | 1 -
+>  4 files changed, 10 deletions(-)
+> 
+> diff --git a/block/blk-mq.c b/block/blk-mq.c
+> index 24dfd0d..1aa79e5 100644
+> --- a/block/blk-mq.c
+> +++ b/block/blk-mq.c
+> @@ -557,12 +557,6 @@ void blk_mq_add_to_requeue_list(struct request *rq, bool at_head,
+>  }
+>  EXPORT_SYMBOL(blk_mq_add_to_requeue_list);
+>  
+> -void blk_mq_cancel_requeue_work(struct request_queue *q)
+> -{
+> -	cancel_delayed_work_sync(&q->requeue_work);
+> -}
+> -EXPORT_SYMBOL_GPL(blk_mq_cancel_requeue_work);
+> -
+>  void blk_mq_kick_requeue_list(struct request_queue *q)
+>  {
+>  	kblockd_schedule_delayed_work(&q->requeue_work, 0);
+> diff --git a/drivers/md/dm-rq.c b/drivers/md/dm-rq.c
+> index b951ae83..7f426ab 100644
+> --- a/drivers/md/dm-rq.c
+> +++ b/drivers/md/dm-rq.c
+> @@ -102,8 +102,6 @@ static void dm_mq_stop_queue(struct request_queue *q)
+>  	if (blk_mq_queue_stopped(q))
+>  		return;
+>  
+> -	/* Avoid that requeuing could restart the queue. */
+> -	blk_mq_cancel_requeue_work(q);
+>  	blk_mq_stop_hw_queues(q);
+>  	/* Wait until dm_mq_queue_rq() has finished. */
+>  	blk_mq_quiesce_queue(q);
+> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+> index d6ab9a0..a67e815 100644
+> --- a/drivers/nvme/host/core.c
+> +++ b/drivers/nvme/host/core.c
+> @@ -2075,7 +2075,6 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
+>  	list_for_each_entry(ns, &ctrl->namespaces, list) {
+>  		struct request_queue *q = ns->queue;
+>  
+> -		blk_mq_cancel_requeue_work(q);
+>  		blk_mq_stop_hw_queues(q);
+>  		blk_mq_quiesce_queue(q);
+>  	}
+> diff --git a/include/linux/blk-mq.h b/include/linux/blk-mq.h
+> index 76f6319..35a0af5 100644
+> --- a/include/linux/blk-mq.h
+> +++ b/include/linux/blk-mq.h
+> @@ -221,7 +221,6 @@ void __blk_mq_end_request(struct request *rq, int error);
+>  void blk_mq_requeue_request(struct request *rq, bool kick_requeue_list);
+>  void blk_mq_add_to_requeue_list(struct request *rq, bool at_head,
+>  				bool kick_requeue_list);
+> -void blk_mq_cancel_requeue_work(struct request_queue *q);
+>  void blk_mq_kick_requeue_list(struct request_queue *q);
+>  void blk_mq_delay_kick_requeue_list(struct request_queue *q, unsigned long msecs);
+>  void blk_mq_abort_requeue_list(struct request_queue *q);
+> -- 
+> 2.10.1
