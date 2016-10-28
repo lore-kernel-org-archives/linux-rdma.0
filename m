@@ -1,39 +1,29 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
-Date: Fri, 28 Oct 2016 10:40:30 -0600
-Message-ID: <20161028164030.GA17289@obsidianresearch.com>
-References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
- <1477487048-62256-2-git-send-email-oulijun@huawei.com>
- <20161026162053.GE24898@obsidianresearch.com>
- <5811776F.20908@huawei.com>
- <20161027145139.GD6818@obsidianresearch.com>
- <58130573.4010902@huawei.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 01/12] IB/mlx5: Replace numerical constant with
+ predefined MACRO
+Date: Fri, 28 Oct 2016 19:48:44 +0300
+Message-ID: <CAJ3xEMhh6xvFgLs4w6R2nd-LTNYZKKaM66ETtrnR=LHO9Tqp_A@mail.gmail.com>
+References: <1477575407-20562-1-git-send-email-leon@kernel.org>
+ <1477575407-20562-2-git-send-email-leon@kernel.org> <CAJ3xEMiNynmpbBt0M=k5qywrvnfAq+ogZLD2PUbHBvYVJ4pLyQ@mail.gmail.com>
+ <20161028145534.GM3617@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <58130573.4010902-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161028145534.GM3617-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 28, 2016 at 03:59:47PM +0800, oulijun wrote:
+On Fri, Oct 28, 2016 at 5:55 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On Fri, Oct 28, 2016 at 03:54:25PM +0300, Or Gerlitz wrote:
 
-> total 0
-> lrwxrwxrwx    1 root     root             0 Oct 27 11:07 driver -> ../../../../bus/platform/drivers/hns_roce
-> 
-> but I think it is the standard approach. because my device(hip06) is
-> only platform device and the other device(hip07/hip0x0 will be pcie
-> device, it will be distinguished separately.  Hence, we adpot the
-> origin approach.
+>> By all means (or no means, choose), this is a fix. If you are telling
 
-You have to parse out 'hns_roce' at the end of the readlink result and
-compare against that, drop the 'bus/platform/drivers' stuff
+> Since change of numeric value to the same value defined by macro is not
+> a fix but improvement [..] I have no plans to change the patch or/and drop it.
 
-Your PCI and Platform device should both have the same driver name.
-
-Jason
+RU listening? it's a -next patch, not rc
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
