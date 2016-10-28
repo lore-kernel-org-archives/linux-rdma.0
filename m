@@ -1,112 +1,32 @@
-From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Subject: [PATCH] IBcore/CM: Issue DREQ when receiving REQ/REP for stale QP
-Date: Fri, 28 Oct 2016 13:14:29 +0200
-Message-ID: <1477653269-27359-1-git-send-email-hans.westgaard.ry@oracle.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 01/12] IB/mlx5: Replace numerical constant with
+ predefined MACRO
+Date: Fri, 28 Oct 2016 15:54:25 +0300
+Message-ID: <CAJ3xEMiNynmpbBt0M=k5qywrvnfAq+ogZLD2PUbHBvYVJ4pLyQ@mail.gmail.com>
+References: <1477575407-20562-1-git-send-email-leon@kernel.org> <1477575407-20562-2-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Ira Weiny <ira.weiny@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Hakon Bugge <haakon.bugge@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1477575407-20562-2-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-from "InfiBand Architecture Specifications Volume 1":
+On Thu, Oct 27, 2016 at 4:36 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Replace the pre-defined macro signifying inline umr instead
+> of the numerical constant.
 
-  A QP is said to have a stale connection when only one side has
-  connection information. A stale connection may result if the remote CM
-  had dropped the connection and sent a DREQ but the DREQ was never
-  received by the local CM. Alternatively the remote CM may have lost
-  all record of past connections because its node crashed and rebooted,
-  while the local CM did not become aware of the remote node's reboot
-  and therefore did not clean up stale connections.
+Leon,
 
-and:
+By all means (or no means, choose), this is a fix. If you are telling
+vmware and Broadcom people here for months how to write their code,
+let's stop for a minute and look in the mirror, drop this patch.
 
-   A local CM may receive a REQ/REP for a stale connection. It shall
-   abort the connection issuing REJ to the REQ/REP. It shall then issue
-   DREQ with "DREQ:remote QPN” set to the remote QPN from the REQ/REP.
-
-This patch solves a problem with reuse of QPN. Current codebase, that
-is IPoIB, relies on a REAP-mechanism to do cleanup of the structures
-in CM. A problem with this is the timeconstants governing this
-mechanism; they are up to 768 seconds and the interface may look
-inresponsive in that period.  Issuing a DREQ (and receiving a DREP)
-does the necessary cleanup and the interface comes up.
-
-Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
----
- drivers/infiniband/core/cm.c | 24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index c995255..c97e4d5 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1519,6 +1519,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
- 	struct cm_id_private *listen_cm_id_priv, *cur_cm_id_priv;
- 	struct cm_timewait_info *timewait_info;
- 	struct cm_req_msg *req_msg;
-+	struct ib_cm_id *cm_id;
- 
- 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
- 
-@@ -1540,10 +1541,18 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
- 	timewait_info = cm_insert_remote_qpn(cm_id_priv->timewait_info);
- 	if (timewait_info) {
- 		cm_cleanup_timewait(cm_id_priv->timewait_info);
-+		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
-+					   timewait_info->work.remote_id);
-+
- 		spin_unlock_irq(&cm.lock);
- 		cm_issue_rej(work->port, work->mad_recv_wc,
- 			     IB_CM_REJ_STALE_CONN, CM_MSG_RESPONSE_REQ,
- 			     NULL, 0);
-+		if (cur_cm_id_priv) {
-+			cm_id = &cur_cm_id_priv->id;
-+			ib_send_cm_dreq(cm_id, NULL, 0);
-+			cm_deref_id(cur_cm_id_priv);
-+		}
- 		return NULL;
- 	}
- 
-@@ -1919,6 +1928,9 @@ static int cm_rep_handler(struct cm_work *work)
- 	struct cm_id_private *cm_id_priv;
- 	struct cm_rep_msg *rep_msg;
- 	int ret;
-+	struct cm_id_private *cur_cm_id_priv;
-+	struct ib_cm_id *cm_id;
-+	struct cm_timewait_info *timewait_info;
- 
- 	rep_msg = (struct cm_rep_msg *)work->mad_recv_wc->recv_buf.mad;
- 	cm_id_priv = cm_acquire_id(rep_msg->remote_comm_id, 0);
-@@ -1953,16 +1965,26 @@ static int cm_rep_handler(struct cm_work *work)
- 		goto error;
- 	}
- 	/* Check for a stale connection. */
--	if (cm_insert_remote_qpn(cm_id_priv->timewait_info)) {
-+	timewait_info = cm_insert_remote_qpn(cm_id_priv->timewait_info);
-+	if (timewait_info) {
- 		rb_erase(&cm_id_priv->timewait_info->remote_id_node,
- 			 &cm.remote_id_table);
- 		cm_id_priv->timewait_info->inserted_remote_id = 0;
-+		cur_cm_id_priv = cm_get_id(timewait_info->work.local_id,
-+					   timewait_info->work.remote_id);
-+
- 		spin_unlock(&cm.lock);
- 		spin_unlock_irq(&cm_id_priv->lock);
- 		cm_issue_rej(work->port, work->mad_recv_wc,
- 			     IB_CM_REJ_STALE_CONN, CM_MSG_RESPONSE_REP,
- 			     NULL, 0);
- 		ret = -EINVAL;
-+		if (cur_cm_id_priv) {
-+			cm_id = &cur_cm_id_priv->id;
-+			ib_send_cm_dreq(cm_id, NULL, 0);
-+			cm_deref_id(cur_cm_id_priv);
-+		}
-+
- 		goto error;
- 	}
- 	spin_unlock(&cm.lock);
--- 
-2.7.4
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
