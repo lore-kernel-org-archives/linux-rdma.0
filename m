@@ -1,44 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] build: Fix build script to use correct cmake cmd
-Date: Fri, 28 Oct 2016 16:09:15 -0600
-Message-ID: <20161028220915.GA20433@obsidianresearch.com>
-References: <20161021172728.27367.86783.stgit@scvm10.sc.intel.com>
- <20161021180523.GA554@obsidianresearch.com>
- <9745f6c7-8d09-8bed-d04c-78f610330ead@redhat.com>
- <20161021193034.GA616@obsidianresearch.com>
- <20161025101200.GP25013@leon.nu>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC ABI V5 01/10] RDMA/core: Refactor IDR to be per-device
+Date: Fri, 28 Oct 2016 22:53:13 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0A445F@ORSMSX109.amr.corp.intel.com>
+References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
+ <1477579398-6875-2-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161025101200.GP25013-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1477579398-6875-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 01:12:00PM +0300, Leon Romanovsky wrote:
-
-> > Maybe this is a good time to ask if anyone is interested in the docker
-> > stuff I have - eg should I make it pushable? It is easy to use, but
-> > you need to have docker installed.
+> The current code creates an IDR per type. Since types are currently
+> common for all vendors and known in advance, this was good enough.
+> However, the proposed ioctl based infrastructure allows each vendor
+> to declare only some of the common types and declare its own specific
+> types.
 > 
-> I would be happy to get it and be more confident in my local tests.
+> Thus, we decided to implement IDR to be per device and refactor it to
+> use a new file.
 
-Okay, let me look at it some more, I think it could be streamlined a
-bit.
+I think this needs to be more abstract.  I would consider introducing the concept of an 'ioctl provider', with the idr per ioctl provider.  You could then make each ib_device an ioctl provider.  (Just embed the structure).  I believe this will be necessary to support the rdma_cm, ib_cm, as well as devices that export different sets of ioctls, where an ib_device isn't necessarily available.
 
-> > The docker script is able to run almost-travis locally, as well as do
-> > clean package builds for all distros.
-> 
-> It looks like it goes beyond rdma-core definition. Do we want to put it
-> separately or anyway integrate into main library?
+Essentially, I would treat plugging into the uABI independent from plugging into the kernel verbs API.  Otherwise, I think we'll end up with multiple ioctl 'frameworks'.
 
-It is a 500 line script, I'd keep it internal. The latest version has
-learned to use different spec files depend on the distro build too, so
-there is a bunch of subtle integration.
+- Sean
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
