@@ -1,46 +1,44 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/4] verbs: Replace infiniband/sa-kern-abi.h
- with the kernel's uapi/rdma/ib_user_sa.h
-Date: Fri, 28 Oct 2016 09:42:31 -0600
-Message-ID: <20161028154231.GA10441@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core 2/4] Move rdma_netlink compat into CMake
+Date: Fri, 28 Oct 2016 09:44:55 -0600
+Message-ID: <20161028154455.GB10441@obsidianresearch.com>
 References: <1477609570-8087-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1477609570-8087-4-git-send-email-jgunthorpe@obsidianresearch.com>
- <20161028065344.GA28303@infradead.org>
+ <1477609570-8087-3-git-send-email-jgunthorpe@obsidianresearch.com>
+ <002501d2312b$da377cf0$8ea676d0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161028065344.GA28303-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <002501d2312b$da377cf0$8ea676d0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Latif, Faisal'" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2016 at 11:53:44PM -0700, Christoph Hellwig wrote:
-> I can't see how this is supposed to work, there is no copy at all
-> of ib_user_sa.h in the tree.
+On Fri, Oct 28, 2016 at 09:59:16AM -0500, Steve Wise wrote:
+> +Tatyana
+> +Faisal
+> 
+> Intel, please have a look.
+> 
+> > 
+> > Steve,
+> > 
+> > Can you check if the changes to iwpmd/iwarp_pm_server.c make sense?
+> 
+> I was confused at first, but I see that the iwarp_clients array still has
+> clients 2 and 3, so it should work fine and still preserve compatibility with
+> older drivers that embedded the iwarp port mapping in iw_cxgb4 and iw_nes.  And
+> the RDMA_NL_* enum is consistent with the local header and the kernel uapi
+> header.  So it looks fine.  I should test this though to make sure...
+> 
+> >
+> > Should we do something to fix the kernel header?
+> 
+> What is wrong with the kernel header exactly?
 
-It uses the one that comes with the distro. Which is new enough on all
-supported distros..
-
-In this specific case because ib_user_sa.h is included by a public
-header we really don't have much choice, it has to work with the
-distro-version.
-
-Fortunately ib_user_sa.h has not changed in a long time, so this is
-not a problem and I didn't include an in-tree copy. Several of the
-other headers are like that too.
-
-rxe and netlink are counter examples, where we need really new headers
-and they are not used in public headers so they have in-tree copies.
-
-> E.g. by default use headers from rdma-core/kernel/headers, but
-> optionally allow the build systems to use those from a kernel tree
-> explicitly specified.
-
-I've done both of these things, with the twist that the build tests
-the distro-header first and uses it before the in-tree copy if it is
-new enough.
+RDMA_NL_RSVD, should perhaps be called RDMA_NL_IWCM_COMPAT since user
+space still need to use that value for compat with old kernels.
 
 Jason
 --
