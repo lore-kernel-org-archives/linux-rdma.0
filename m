@@ -1,68 +1,39 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] qedr: Fix possible memory leak in qedr_create_qp()
-Date: Fri, 28 Oct 2016 16:33:47 +0000
-Message-ID: <1477672427-31575-1-git-send-email-weiyj.lk@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
+Date: Fri, 28 Oct 2016 10:40:30 -0600
+Message-ID: <20161028164030.GA17289@obsidianresearch.com>
+References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
+ <1477487048-62256-2-git-send-email-oulijun@huawei.com>
+ <20161026162053.GE24898@obsidianresearch.com>
+ <5811776F.20908@huawei.com>
+ <20161027145139.GD6818@obsidianresearch.com>
+ <58130573.4010902@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <58130573.4010902-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+On Fri, Oct 28, 2016 at 03:59:47PM +0800, oulijun wrote:
 
-'qp' is malloced in qedr_create_qp() and should be freed before leaving
-from the error handling cases, otherwise it will cause memory leak.
+> total 0
+> lrwxrwxrwx    1 root     root             0 Oct 27 11:07 driver -> ../../../../bus/platform/drivers/hns_roce
+> 
+> but I think it is the standard approach. because my device(hip06) is
+> only platform device and the other device(hip07/hip0x0 will be pcie
+> device, it will be distinguished separately.  Hence, we adpot the
+> origin approach.
 
-Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qedr/verbs.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+You have to parse out 'hns_roce' at the end of the readlink result and
+compare against that, drop the 'bus/platform/drivers' stuff
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index a615142..b60f145 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1477,6 +1477,7 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
- 	struct qedr_ucontext *ctx = NULL;
- 	struct qedr_create_qp_ureq ureq;
- 	struct qedr_qp *qp;
-+	struct ib_qp *ibqp;
- 	int rc = 0;
- 
- 	DP_DEBUG(dev, QEDR_MSG_QP, "create qp: called from %s, pd=%p\n",
-@@ -1486,13 +1487,13 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
- 	if (rc)
- 		return ERR_PTR(rc);
- 
-+	if (attrs->srq)
-+		return ERR_PTR(-EINVAL);
-+
- 	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
- 	if (!qp)
- 		return ERR_PTR(-ENOMEM);
- 
--	if (attrs->srq)
--		return ERR_PTR(-EINVAL);
--
- 	DP_DEBUG(dev, QEDR_MSG_QP,
- 		 "create qp: sq_cq=%p, sq_icid=%d, rq_cq=%p, rq_icid=%d\n",
- 		 get_qedr_cq(attrs->send_cq),
-@@ -1508,7 +1509,10 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
- 			       "create qp: unexpected udata when creating GSI QP\n");
- 			goto err0;
- 		}
--		return qedr_create_gsi_qp(dev, attrs, qp);
-+		ibqp = qedr_create_gsi_qp(dev, attrs, qp);
-+		if (IS_ERR(ibqp))
-+			kfree(qp);
-+		return ibqp;
- 	}
- 
- 	memset(&in_params, 0, sizeof(in_params));
+Your PCI and Platform device should both have the same driver name.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
