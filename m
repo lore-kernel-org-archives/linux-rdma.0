@@ -1,78 +1,56 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH v5 14/14] nvme: Use BLK_MQ_S_STOPPED instead of
- QUEUE_FLAG_STOPPED in blk-mq code
-Date: Fri, 28 Oct 2016 17:23:40 -0700
-Message-ID: <fe057bf0-6ede-fc9e-9a53-9d790c9782c2@sandisk.com>
-References: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
+Date: Sat, 29 Oct 2016 09:16:25 +0800
+Message-ID: <5813F869.7010606@huawei.com>
+References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
+ <1477487048-62256-2-git-send-email-oulijun@huawei.com>
+ <20161026162053.GE24898@obsidianresearch.com> <5811776F.20908@huawei.com>
+ <20161027145139.GD6818@obsidianresearch.com> <58130573.4010902@huawei.com>
+ <20161028164030.GA17289@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161028164030.GA17289-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Make nvme_requeue_req() check BLK_MQ_S_STOPPED instead of
-QUEUE_FLAG_STOPPED. Remove the QUEUE_FLAG_STOPPED manipulations
-that became superfluous because of this change. Change
-blk_queue_stopped() tests into blk_mq_queue_stopped().
+在 2016/10/29 0:40, Jason Gunthorpe 写道:
+> On Fri, Oct 28, 2016 at 03:59:47PM +0800, oulijun wrote:
+> 
+>> total 0
+>> lrwxrwxrwx    1 root     root             0 Oct 27 11:07 driver -> ../../../../bus/platform/drivers/hns_roce
+>>
+>> but I think it is the standard approach. because my device(hip06) is
+>> only platform device and the other device(hip07/hip0x0 will be pcie
+>> device, it will be distinguished separately.  Hence, we adpot the
+>> origin approach.
+> 
+> You have to parse out 'hns_roce' at the end of the readlink result and
+> compare against that, drop the 'bus/platform/drivers' stuff
+> 
+> Your PCI and Platform device should both have the same driver name.
+> 
+> Jason
+> 
+> .
+> 
+Hi, Jason
+   I could not express clearly. We hope that the only copy of libhns will be used for the diff
+erent type chip(hip06, hip07, ...), and it can distinguish the hardware of these chip at the same time.
+Hence, i think that your plan will not attain our demand.
 
-This patch fixes a race condition: using queue_flag_clear_unlocked()
-is not safe if any other function that manipulates the queue flags
-can be called concurrently, e.g. blk_cleanup_queue().
+We hope that the only one userspace library file named libhns-rdmav2.so will be used for the different hardware version(hip06, hip07, ...),
+because there are only little change between their userspace drivers. So we need to distinguish hardware version.
 
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagi@grimberg.me>
----
- drivers/nvme/host/core.c | 16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+We can't distinguish them if only matching driver name "hns_roce".
 
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index fe15d94..45dd237 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -201,13 +201,7 @@ static struct nvme_ns *nvme_get_ns_from_disk(struct gendisk *disk)
- 
- void nvme_requeue_req(struct request *req)
- {
--	unsigned long flags;
--
--	blk_mq_requeue_request(req, false);
--	spin_lock_irqsave(req->q->queue_lock, flags);
--	if (!blk_queue_stopped(req->q))
--		blk_mq_kick_requeue_list(req->q);
--	spin_unlock_irqrestore(req->q->queue_lock, flags);
-+	blk_mq_requeue_request(req, !blk_mq_queue_stopped(req->q));
- }
- EXPORT_SYMBOL_GPL(nvme_requeue_req);
- 
-@@ -2078,13 +2072,8 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
- 	struct nvme_ns *ns;
- 
- 	mutex_lock(&ctrl->namespaces_mutex);
--	list_for_each_entry(ns, &ctrl->namespaces, list) {
--		spin_lock_irq(ns->queue->queue_lock);
--		queue_flag_set(QUEUE_FLAG_STOPPED, ns->queue);
--		spin_unlock_irq(ns->queue->queue_lock);
--
-+	list_for_each_entry(ns, &ctrl->namespaces, list)
- 		blk_mq_quiesce_queue(ns->queue);
--	}
- 	mutex_unlock(&ctrl->namespaces_mutex);
- }
- EXPORT_SYMBOL_GPL(nvme_stop_queues);
-@@ -2095,7 +2084,6 @@ void nvme_start_queues(struct nvme_ctrl *ctrl)
- 
- 	mutex_lock(&ctrl->namespaces_mutex);
- 	list_for_each_entry(ns, &ctrl->namespaces, list) {
--		queue_flag_clear_unlocked(QUEUE_FLAG_STOPPED, ns->queue);
- 		blk_mq_start_stopped_hw_queues(ns->queue, true);
- 		blk_mq_kick_requeue_list(ns->queue);
- 	}
--- 
-2.10.1
+thanks
+Lijun Ou
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
