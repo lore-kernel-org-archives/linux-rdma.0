@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 rdma-core 3/7] libhns: Add verbs of pd and mr support
-Date: Sat, 29 Oct 2016 17:03:42 +0800
-Message-ID: <1477731826-10787-4-git-send-email-oulijun@huawei.com>
+Subject: [PATCH v2 rdma-core 1/7] libhns: Add initial main frame
+Date: Sat, 29 Oct 2016 17:03:40 +0800
+Message-ID: <1477731826-10787-2-git-send-email-oulijun@huawei.com>
 References: <1477731826-10787-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,179 +12,336 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch mainly introduces the verbs with pd and mr,
-included alloc_pd, dealloc_pd, reg_mr and dereg_mr.
+This patch mainly introduces initial main frame for
+userspace library of hns.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
 v2:
-- No change over v1
+- No change over the v1
 
 v1:
 - The initial submit
 ---
- providers/hns/hns_roce_u.c       |  4 ++
- providers/hns/hns_roce_u.h       | 18 +++++++++
- providers/hns/hns_roce_u_abi.h   |  6 +++
- providers/hns/hns_roce_u_verbs.c | 79 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 107 insertions(+)
+ providers/hns/hns_roce_u.c     | 163 +++++++++++++++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u.h     |  86 ++++++++++++++++++++++
+ providers/hns/hns_roce_u_abi.h |  43 +++++++++++
+ 3 files changed, 292 insertions(+)
+ create mode 100644 providers/hns/hns_roce_u.c
+ create mode 100644 providers/hns/hns_roce_u.h
+ create mode 100644 providers/hns/hns_roce_u_abi.h
 
 diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index c0f6fe9..53e2720 100644
---- a/providers/hns/hns_roce_u.c
+new file mode 100644
+index 0000000..bda4dd8
+--- /dev/null
 +++ b/providers/hns/hns_roce_u.c
-@@ -97,6 +97,10 @@ static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 
- 	context->ibv_ctx.ops.query_device  = hns_roce_u_query_device;
- 	context->ibv_ctx.ops.query_port    = hns_roce_u_query_port;
-+	context->ibv_ctx.ops.alloc_pd	   = hns_roce_u_alloc_pd;
-+	context->ibv_ctx.ops.dealloc_pd    = hns_roce_u_free_pd;
-+	context->ibv_ctx.ops.reg_mr	   = hns_roce_u_reg_mr;
-+	context->ibv_ctx.ops.dereg_mr	   = hns_roce_u_dereg_mr;
- 
- 	if (hns_roce_u_query_device(&context->ibv_ctx, &dev_attrs))
- 		goto tptr_free;
+@@ -0,0 +1,163 @@
++/*
++ * Copyright (c) 2016 Hisilicon Limited.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <pthread.h>
++#include <sys/mman.h>
++#include <fcntl.h>
++#include <unistd.h>
++
++#include "hns_roce_u.h"
++#include "hns_roce_u_abi.h"
++
++#define HID_LEN			15
++#define DEV_MATCH_LEN		128
++
++static const struct {
++	char	 hid[HID_LEN];
++} acpi_table[] = {
++	{"acpi:HISI00D1:"},
++	{},
++};
++
++static const struct {
++	char	 compatible[DEV_MATCH_LEN];
++} dt_table[] = {
++	{"hisilicon,hns-roce-v1"},
++	{},
++};
++
++static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
++						  int cmd_fd)
++{
++	int i;
++	struct ibv_get_context cmd;
++	struct ibv_device_attr dev_attrs;
++	struct hns_roce_context *context;
++	struct hns_roce_alloc_ucontext_resp resp;
++	struct hns_roce_device *hr_dev = to_hr_dev(ibdev);
++
++	context = calloc(1, sizeof(*context));
++	if (!context)
++		return NULL;
++
++	context->ibv_ctx.cmd_fd = cmd_fd;
++	if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof(cmd),
++				&resp.ibv_resp, sizeof(resp)))
++		goto err_free;
++
++	context->num_qps = resp.qp_tab_size;
++	context->qp_table_shift = ffs(context->num_qps) - 1 -
++				  HNS_ROCE_QP_TABLE_BITS;
++	context->qp_table_mask = (1 << context->qp_table_shift) - 1;
++
++	pthread_mutex_init(&context->qp_table_mutex, NULL);
++	for (i = 0; i < HNS_ROCE_QP_TABLE_SIZE; ++i)
++		context->qp_table[i].refcnt = 0;
++
++	context->uar = mmap(NULL, to_hr_dev(ibdev)->page_size,
++			    PROT_READ | PROT_WRITE, MAP_SHARED, cmd_fd, 0);
++	if (context->uar == MAP_FAILED) {
++		fprintf(stderr, PFX "Warning: failed to mmap() uar page.\n");
++		goto err_free;
++	}
++
++	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
++
++	context->max_qp_wr = dev_attrs.max_qp_wr;
++	context->max_sge = dev_attrs.max_sge;
++	context->max_cqe = dev_attrs.max_cqe;
++
++	return &context->ibv_ctx;
++
++err_free:
++	free(context);
++	return NULL;
++}
++
++static void hns_roce_free_context(struct ibv_context *ibctx)
++{
++	struct hns_roce_context *context = to_hr_ctx(ibctx);
++
++	munmap(context->uar, to_hr_dev(ibctx->device)->page_size);
++
++	context->uar = NULL;
++
++	free(context);
++	context = NULL;
++}
++
++static struct ibv_device_ops hns_roce_dev_ops = {
++	.alloc_context = hns_roce_alloc_context,
++	.free_context	= hns_roce_free_context
++};
++
++static struct ibv_device *hns_roce_driver_init(const char *uverbs_sys_path,
++					       int abi_version)
++{
++	struct hns_roce_device  *dev;
++	char			 value[128];
++	int			 i;
++
++	if (ibv_read_sysfs_file(uverbs_sys_path, "device/modalias",
++				value, sizeof(value)) > 0)
++		for (i = 0; i < sizeof(acpi_table) / sizeof(acpi_table[0]); ++i)
++			if (!strcmp(value, acpi_table[i].hid))
++				goto found;
++
++	if (ibv_read_sysfs_file(uverbs_sys_path, "device/of_node/compatible",
++				value, sizeof(value)) > 0)
++		for (i = 0; i < sizeof(dt_table) / sizeof(dt_table[0]); ++i)
++			if (!strcmp(value, dt_table[i].compatible))
++				goto found;
++
++	return NULL;
++
++found:
++	dev = malloc(sizeof(struct hns_roce_device));
++	if (!dev) {
++		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
++			uverbs_sys_path);
++		return NULL;
++	}
++
++	dev->ibv_dev.ops = hns_roce_dev_ops;
++	dev->page_size   = sysconf(_SC_PAGESIZE);
++	return &dev->ibv_dev;
++}
++
++static __attribute__((constructor)) void hns_roce_register_driver(void)
++{
++	ibv_register_driver("hns", hns_roce_driver_init);
++}
 diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index aa58ee6..5b73794 100644
---- a/providers/hns/hns_roce_u.h
+new file mode 100644
+index 0000000..3eef171
+--- /dev/null
 +++ b/providers/hns/hns_roce_u.h
-@@ -73,6 +73,11 @@ struct hns_roce_context {
- 	int				max_cqe;
- };
- 
-+struct hns_roce_pd {
-+	struct ibv_pd			ibv_pd;
-+	unsigned int			pdn;
+@@ -0,0 +1,86 @@
++/*
++ * Copyright (c) 2016 Hisilicon Limited.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _HNS_ROCE_U_H
++#define _HNS_ROCE_U_H
++
++#include <stddef.h>
++
++#include <infiniband/driver.h>
++#include <infiniband/arch.h>
++#include <infiniband/verbs.h>
++#include <ccan/container_of.h>
++
++#define HNS_ROCE_HW_VER1		('h' << 24 | 'i' << 16 | '0' << 8 | '6')
++
++#define PFX				"hns: "
++
++enum {
++	HNS_ROCE_QP_TABLE_BITS		= 8,
++	HNS_ROCE_QP_TABLE_SIZE		= 1 << HNS_ROCE_QP_TABLE_BITS,
 +};
 +
- static inline struct hns_roce_device *to_hr_dev(struct ibv_device *ibv_dev)
- {
- 	return container_of(ibv_dev, struct hns_roce_device, ibv_dev);
-@@ -83,8 +88,21 @@ static inline struct hns_roce_context *to_hr_ctx(struct ibv_context *ibv_ctx)
- 	return container_of(ibv_ctx, struct hns_roce_context, ibv_ctx);
- }
- 
-+static inline struct hns_roce_pd *to_hr_pd(struct ibv_pd *ibv_pd)
++struct hns_roce_device {
++	struct ibv_device		ibv_dev;
++	int				page_size;
++};
++
++struct hns_roce_context {
++	struct ibv_context		ibv_ctx;
++	void				*uar;
++	pthread_spinlock_t		uar_lock;
++
++	struct {
++		int			refcnt;
++	} qp_table[HNS_ROCE_QP_TABLE_SIZE];
++
++	pthread_mutex_t			qp_table_mutex;
++
++	int				num_qps;
++	int				qp_table_shift;
++	int				qp_table_mask;
++	unsigned int			max_qp_wr;
++	unsigned int			max_sge;
++	int				max_cqe;
++};
++
++static inline struct hns_roce_device *to_hr_dev(struct ibv_device *ibv_dev)
 +{
-+	return container_of(ibv_pd, struct hns_roce_pd, ibv_pd);
++	return container_of(ibv_dev, struct hns_roce_device, ibv_dev);
 +}
 +
- int hns_roce_u_query_device(struct ibv_context *context,
- 			    struct ibv_device_attr *attr);
- int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
- 			  struct ibv_port_attr *attr);
++static inline struct hns_roce_context *to_hr_ctx(struct ibv_context *ibv_ctx)
++{
++	return container_of(ibv_ctx, struct hns_roce_context, ibv_ctx);
++}
 +
-+struct ibv_pd *hns_roce_u_alloc_pd(struct ibv_context *context);
-+int hns_roce_u_free_pd(struct ibv_pd *pd);
-+
-+struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
-+				 int access);
-+int hns_roce_u_dereg_mr(struct ibv_mr *mr);
-+
- #endif /* _HNS_ROCE_U_H */
++#endif /* _HNS_ROCE_U_H */
 diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
-index 4bfc8fa..0a0cd0c 100644
---- a/providers/hns/hns_roce_u_abi.h
+new file mode 100644
+index 0000000..4bfc8fa
+--- /dev/null
 +++ b/providers/hns/hns_roce_u_abi.h
-@@ -40,4 +40,10 @@ struct hns_roce_alloc_ucontext_resp {
- 	__u32				qp_tab_size;
- };
- 
-+struct hns_roce_alloc_pd_resp {
-+	struct ibv_alloc_pd_resp	ibv_resp;
-+	__u32				pdn;
-+	__u32				reserved;
+@@ -0,0 +1,43 @@
++/*
++ * Copyright (c) 2016 Hisilicon Limited.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _HNS_ROCE_U_ABI_H
++#define _HNS_ROCE_U_ABI_H
++
++#include <infiniband/kern-abi.h>
++
++struct hns_roce_alloc_ucontext_resp {
++	struct ibv_get_context_resp	ibv_resp;
++	__u32				qp_tab_size;
 +};
 +
- #endif /* _HNS_ROCE_U_ABI_H */
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index be55fe8..249d1aa 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -71,3 +71,82 @@ int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
- 
- 	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
- }
-+
-+struct ibv_pd *hns_roce_u_alloc_pd(struct ibv_context *context)
-+{
-+	struct ibv_alloc_pd cmd;
-+	struct hns_roce_pd *pd;
-+	struct hns_roce_alloc_pd_resp resp;
-+
-+	pd = (struct hns_roce_pd *)malloc(sizeof(*pd));
-+	if (!pd)
-+		return NULL;
-+
-+	if (ibv_cmd_alloc_pd(context, &pd->ibv_pd, &cmd, sizeof(cmd),
-+			     &resp.ibv_resp, sizeof(resp))) {
-+		free(pd);
-+		return NULL;
-+	}
-+
-+	pd->pdn = resp.pdn;
-+
-+	return &pd->ibv_pd;
-+}
-+
-+int hns_roce_u_free_pd(struct ibv_pd *pd)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_dealloc_pd(pd);
-+	if (ret)
-+		return ret;
-+
-+	free(to_hr_pd(pd));
-+
-+	return ret;
-+}
-+
-+struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
-+				 int access)
-+{
-+	int ret;
-+	struct ibv_mr *mr;
-+	struct ibv_reg_mr cmd;
-+	struct ibv_reg_mr_resp resp;
-+
-+	if (addr == NULL) {
-+		fprintf(stderr, "2nd parm addr is NULL!\n");
-+		return NULL;
-+	}
-+
-+	if (length == 0) {
-+		fprintf(stderr, "3st parm length is 0!\n");
-+		return NULL;
-+	}
-+
-+	mr = malloc(sizeof(*mr));
-+	if (mr)
-+		return NULL;
-+
-+	ret = ibv_cmd_reg_mr(pd, addr, length, (uintptr_t) addr, access, mr,
-+			     &cmd, sizeof(cmd), &resp, sizeof(resp));
-+	if (ret) {
-+		free(mr);
-+		return NULL;
-+	}
-+
-+	return mr;
-+}
-+
-+int hns_roce_u_dereg_mr(struct ibv_mr *mr)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_dereg_mr(mr);
-+	if (ret)
-+		return ret;
-+
-+	free(mr);
-+
-+	return ret;
-+}
++#endif /* _HNS_ROCE_U_ABI_H */
 -- 
 1.9.1
 
