@@ -1,32 +1,31 @@
-From: Nicholas Mc Guire <der.herr@hofr.at>
-Subject: RFC if==else in i40iw_virtchnl.
-Date: Sun, 30 Oct 2016 12:33:25 +0000
-Message-ID: <20161030123325.GA26456@osadl.at>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Post userspace patches here, or pull requests to github?
+Date: Sun, 30 Oct 2016 12:57:37 +0000
+Message-ID: <2DD5ED3D-7F86-4AAF-863B-F2ED30B9A798@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <018C8CD342346C44B2842B93568E9A4A-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Faisal !
+I posted a bug fix pull request for libibverbs yesterday (fixing a userspac=
+e/kernel space buffer size mismatch):
 
- your commit 4097351a47c5 ("i40iw: virtual channel handling files")
- adds the following lines in i40iw_vchnl_recv_pf()
+   https://github.com/linux-rdma/rdma-core/pull/31
 
-+               if (vchnl_msg->iw_op_ver != I40IW_VCHNL_OP_GET_VER_V0)
-+                       vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-+               else
-+                       vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-+               return I40IW_SUCCESS;
+Is that sufficient, or does it also need to be posted here?
 
- as the if==else here this looks buggy - if it is intended it atleast needs
- a comment/explaination but it did not seem to make much sense in this
- form (Note this is the only place where vchnl_pf_send_get_ver_resp() is 
- being called so the intent is not clear from code review and thus no patch 
- can be resonably suggested.
+--=20
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing=
+_business/legal/cri/
 
-thx!
-hofrat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
