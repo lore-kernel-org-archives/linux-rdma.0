@@ -1,53 +1,72 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs
- from kernel space
-Date: Sun, 30 Oct 2016 10:48:39 +0200
-Message-ID: <CAAKD3BB0k1UxV2qO3SqAD_t1vM2pcduOXiz8aJ5c+JXAmq_aWw@mail.gmail.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V5 01/10] RDMA/core: Refactor IDR to be per-device
+Date: Sun, 30 Oct 2016 11:13:46 +0200
+Message-ID: <20161030091346.GQ3617@leon.nu>
 References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
- <1477579398-6875-8-git-send-email-matanb@mellanox.com> <20161028065943.GA10418@infradead.org>
- <20161028151606.GN3617@leon.nu> <20161028152138.GA16421@infradead.org>
- <20161028153306.GO3617@leon.nu> <20161028153725.GA14166@infradead.org> <20161028154628.GP3617@leon.nu>
+ <1477579398-6875-2-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0A445F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Mh8CTEa8Ax54aLHp"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161028154628.GP3617-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0A445F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 28, 2016 at 5:46 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Fri, Oct 28, 2016 at 08:37:25AM -0700, Christoph Hellwig wrote:
->> On Fri, Oct 28, 2016 at 06:33:06PM +0300, Leon Romanovsky wrote:
->> > Just to summarize, to be sure that I understood you correctly.
->> >
->> > ---------    --------------------
->> > | write | -> | conversion logic | ---
->> > ---------    --------------------   |      ----------------------
->> >                                     -----> | internal interface |
->> > ---------                           |      ----------------------
->> > | ioctl | ---------------------------
->> > ---------
->> >
->> > Am I right?
->>
->> Yes, as long as the write and ioctl boxes do the copy_{from,to}_user.
->
-> Thanks
->
 
-If we accept the limitations here (i.e - all commands attributes come
-either from kernel or from user,
-but you can't mix them - that's mean the write comparability layer
-either needs to copy all attributes
-or use a direct mapping for all of them), I could just either break
-ib_uverbs_cmd_verbs to a a few functions
-or just pass a callback of boxing the descriptors copy.
+--Mh8CTEa8Ax54aLHp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Oct 28, 2016 at 10:53:13PM +0000, Hefty, Sean wrote:
+> > The current code creates an IDR per type. Since types are currently
+> > common for all vendors and known in advance, this was good enough.
+> > However, the proposed ioctl based infrastructure allows each vendor
+> > to declare only some of the common types and declare its own specific
+> > types.
+> >
+> > Thus, we decided to implement IDR to be per device and refactor it to
+> > use a new file.
+>
+> I think this needs to be more abstract.  I would consider introducing the concept of an 'ioctl provider', with the idr per ioctl provider.  You could then make each ib_device an ioctl provider.  (Just embed the structure).  I believe this will be necessary to support the rdma_cm, ib_cm, as well as devices that export different sets of ioctls, where an ib_device isn't necessarily available.
+
+IDR management is internal to kernel and it looks like an easy one to extend in the future.
+
+>
+> Essentially, I would treat plugging into the uABI independent from plugging into the kernel verbs API.  Otherwise, I think we'll end up with multiple ioctl 'frameworks'.
+>
+> - Sean
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--Mh8CTEa8Ax54aLHp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYFbnKAAoJEORje4g2clinexoP/j+f9q2lqhM5mfUY6tuoMk3M
+3Liv6CPKtzA4Sk/c41APYWPH1Z6Ov8QyJqV+X1lxB+ZYevxNLeqWTLK9JeS/YdUo
+UeRio1arhZAeZDQmNfTM2CjM14XHgWjQ+iowaTsGpd1o0Og4/1UG19lOdT1T7Ft3
+Txo0RS7z2qoU7hKikaappVpFgOarE/PJCLvV2ik5WCMsSLMmAIDqGXOnm3Fry13F
+uZ8LHSZ+XM2avYIcgTiww9GEJKUdOHJQUYM68Ydv+hJtTri54kq3qd0cFyYN0v+L
+v2waNhzgA6t4YGUr0X+lFSveXHxW8kN7eT4/9BdBAbyqTETUG4WHIOYxjCyg0K15
+MPF9Jyu1VKE42gcw4nDNCs2Y2Qiqu2liJE1gQrKjgIlBhsyOUwXUIHsUeFh+KhrM
+RPAXCt9PrY6QYWAkIUYcu9XwFvQH2ZXO8f7MolF3VLMXRY8uo800K2hlmuc+WEeW
+QzCXnzQM+tjlBQm8fSzA7Jea79sAftfIneWNaDIvo79t0lXfF2bORH+bxxkcknZc
+8EWI/i1JS05IN++5N8FUza7mdFen1r/+BUevX17WIRa7/FRh9rKnR2uUTNG6xp5m
+lEC8XZ5u/0gWZwajl1QH1/ddPnfKzNIC2S3lyfv1tPZ/AVpQJja0A7UOrS5KikTl
+NhfVYA5hj8duEHlFUdTG
+=Snnc
+-----END PGP SIGNATURE-----
+
+--Mh8CTEa8Ax54aLHp--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
