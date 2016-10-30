@@ -1,224 +1,98 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH for-next V2 07/15] net/mlx5: Introduce E-switch QoS management
-Date: Sun, 30 Oct 2016 23:22:00 +0200
-Message-ID: <1477862528-4328-8-git-send-email-saeedm@mellanox.com>
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next V2 15/15] net/mlx5e: Add tc support for FWD rule with counter
+Date: Sun, 30 Oct 2016 23:22:08 +0200
+Message-ID: <1477862528-4328-16-git-send-email-saeedm@mellanox.com>
 References: <1477862528-4328-1-git-send-email-saeedm@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1477862528-4328-1-git-send-email-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>, Matan Barak <matanb@mellanox.com>, Mohamad Haj Yahia <mohamad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1477862528-4328-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mohamad Haj Yahia <mohamad@mellanox.com>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add TSAR to the eswitch which will act as the vports rate limiter.
-Create/Destroy TSAR on Enable/Dsiable SRIOV.
-Attach/Detach vport to eswitch TSAR on Enable/Disable vport.
+When creating a FWD rule using tc create also a HW counter
+for this rule.
 
-Signed-off-by: Mohamad Haj Yahia <mohamad@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 113 +++++++++++++++++++++-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h |  12 +++
- 2 files changed, 124 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c      |  3 ++-
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c   | 20 +++++++++++---------
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index abbf2c3..2e11a94 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1351,6 +1351,106 @@ static int esw_vport_egress_config(struct mlx5_eswitch *esw,
- 	return err;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 5d9ac0d..c2e4728 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -419,7 +419,8 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 				return -EINVAL;
+ 			}
  
-+/* Vport QoS management */
-+static int esw_create_tsar(struct mlx5_eswitch *esw)
-+{
-+	u32 tsar_ctx[MLX5_ST_SZ_DW(scheduling_context)] = {0};
-+	struct mlx5_core_dev *dev = esw->dev;
-+	int err;
-+
-+	if (!MLX5_CAP_GEN(dev, qos) || !MLX5_CAP_QOS(dev, esw_scheduling))
-+		return 0;
-+
-+	if (esw->qos.enabled)
-+		return -EEXIST;
-+
-+	err = mlx5_create_scheduling_element_cmd(dev,
-+						 SCHEDULING_HIERARCHY_E_SWITCH,
-+						 &tsar_ctx,
-+						 &esw->qos.root_tsar_id);
-+	if (err) {
-+		esw_warn(esw->dev, "E-Switch create TSAR failed (%d)\n", err);
-+		return err;
-+	}
-+
-+	esw->qos.enabled = true;
-+	return 0;
-+}
-+
-+static void esw_destroy_tsar(struct mlx5_eswitch *esw)
-+{
-+	int err;
-+
-+	if (!esw->qos.enabled)
-+		return;
-+
-+	err = mlx5_destroy_scheduling_element_cmd(esw->dev,
-+						  SCHEDULING_HIERARCHY_E_SWITCH,
-+						  esw->qos.root_tsar_id);
-+	if (err)
-+		esw_warn(esw->dev, "E-Switch destroy TSAR failed (%d)\n", err);
-+
-+	esw->qos.enabled = false;
-+}
-+
-+static int esw_vport_enable_qos(struct mlx5_eswitch *esw, int vport_num,
-+				u32 initial_max_rate)
-+{
-+	u32 sched_ctx[MLX5_ST_SZ_DW(scheduling_context)] = {0};
-+	struct mlx5_vport *vport = &esw->vports[vport_num];
-+	struct mlx5_core_dev *dev = esw->dev;
-+	void *vport_elem;
-+	int err = 0;
-+
-+	if (!esw->qos.enabled || !MLX5_CAP_GEN(dev, qos) ||
-+	    !MLX5_CAP_QOS(dev, esw_scheduling))
-+		return 0;
-+
-+	if (vport->qos.enabled)
-+		return -EEXIST;
-+
-+	MLX5_SET(scheduling_context, &sched_ctx, element_type,
-+		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
-+	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
-+				  element_attributes);
-+	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
-+	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
-+		 esw->qos.root_tsar_id);
-+	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
-+		 initial_max_rate);
-+
-+	err = mlx5_create_scheduling_element_cmd(dev,
-+						 SCHEDULING_HIERARCHY_E_SWITCH,
-+						 &sched_ctx,
-+						 &vport->qos.esw_tsar_ix);
-+	if (err) {
-+		esw_warn(esw->dev, "E-Switch create TSAR vport element failed (vport=%d,err=%d)\n",
-+			 vport_num, err);
-+		return err;
-+	}
-+
-+	vport->qos.enabled = true;
-+	return 0;
-+}
-+
-+static void esw_vport_disable_qos(struct mlx5_eswitch *esw, int vport_num)
-+{
-+	struct mlx5_vport *vport = &esw->vports[vport_num];
-+	int err = 0;
-+
-+	if (!vport->qos.enabled)
-+		return;
-+
-+	err = mlx5_destroy_scheduling_element_cmd(esw->dev,
-+						  SCHEDULING_HIERARCHY_E_SWITCH,
-+						  vport->qos.esw_tsar_ix);
-+	if (err)
-+		esw_warn(esw->dev, "E-Switch destroy TSAR vport element failed (vport=%d,err=%d)\n",
-+			 vport_num, err);
-+
-+	vport->qos.enabled = false;
-+}
-+
- static void node_guid_gen_from_mac(u64 *node_guid, u8 mac[ETH_ALEN])
+-			attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++			attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST |
++					MLX5_FLOW_CONTEXT_ACTION_COUNT;
+ 			out_priv = netdev_priv(out_dev);
+ 			attr->out_rep = out_priv->ppriv;
+ 			continue;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 8b2a383..53d9d6c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -48,11 +48,12 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
+ 				struct mlx5_flow_spec *spec,
+ 				struct mlx5_esw_flow_attr *attr)
  {
- 	((u8 *)node_guid)[7] = mac[0];
-@@ -1386,6 +1486,7 @@ static void esw_apply_vport_conf(struct mlx5_eswitch *esw,
- 		esw_vport_egress_config(esw, vport);
+-	struct mlx5_flow_destination dest = { 0 };
++	struct mlx5_flow_destination dest[2] = {};
+ 	struct mlx5_fc *counter = NULL;
+ 	struct mlx5_flow_handle *rule;
+ 	void *misc;
+ 	int action;
++	int i = 0;
+ 
+ 	if (esw->mode != SRIOV_OFFLOADS)
+ 		return ERR_PTR(-EOPNOTSUPP);
+@@ -60,15 +61,17 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
+ 	action = attr->action;
+ 
+ 	if (action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST) {
+-		dest.type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
+-		dest.vport_num = attr->out_rep->vport;
+-		action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
+-	} else if (action & MLX5_FLOW_CONTEXT_ACTION_COUNT) {
++		dest[i].type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
++		dest[i].vport_num = attr->out_rep->vport;
++		i++;
++	}
++	if (action & MLX5_FLOW_CONTEXT_ACTION_COUNT) {
+ 		counter = mlx5_fc_create(esw->dev, true);
+ 		if (IS_ERR(counter))
+ 			return ERR_CAST(counter);
+-		dest.type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
+-		dest.counter = counter;
++		dest[i].type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
++		dest[i].counter = counter;
++		i++;
  	}
- }
-+
- static void esw_enable_vport(struct mlx5_eswitch *esw, int vport_num,
- 			     int enable_events)
- {
-@@ -1399,6 +1500,10 @@ static void esw_enable_vport(struct mlx5_eswitch *esw, int vport_num,
- 	/* Restore old vport configuration */
- 	esw_apply_vport_conf(esw, vport);
  
-+	/* Attach vport to the eswitch rate limiter */
-+	if (esw_vport_enable_qos(esw, vport_num, vport->info.max_rate))
-+		esw_warn(esw->dev, "Failed to attach vport %d to eswitch rate limiter", vport_num);
-+
- 	/* Sync with current vport context */
- 	vport->enabled_events = enable_events;
- 	vport->enabled = true;
-@@ -1437,7 +1542,7 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, int vport_num)
- 	 */
- 	esw_vport_change_handle_locked(vport);
- 	vport->enabled_events = 0;
+ 	misc = MLX5_ADDR_OF(fte_match_param, spec->match_value, misc_parameters);
+@@ -81,8 +84,7 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
+ 				      MLX5_MATCH_MISC_PARAMETERS;
+ 
+ 	rule = mlx5_add_flow_rules((struct mlx5_flow_table *)esw->fdb_table.fdb,
+-				   spec, action, 0, &dest, 1);
 -
-+	esw_vport_disable_qos(esw, vport_num);
- 	if (vport_num && esw->mode == SRIOV_LEGACY) {
- 		mlx5_modify_vport_admin_state(esw->dev,
- 					      MLX5_QUERY_VPORT_STATE_IN_OP_MOD_ESW_VPORT,
-@@ -1483,6 +1588,10 @@ int mlx5_eswitch_enable_sriov(struct mlx5_eswitch *esw, int nvfs, int mode)
- 	if (err)
- 		goto abort;
++				   spec, action, 0, dest, i);
+ 	if (IS_ERR(rule))
+ 		mlx5_fc_destroy(esw->dev, counter);
  
-+	err = esw_create_tsar(esw);
-+	if (err)
-+		esw_warn(esw->dev, "Failed to create eswitch TSAR");
-+
- 	enabled_events = (mode == SRIOV_LEGACY) ? SRIOV_VPORT_EVENTS : UC_ADDR_CHANGE;
- 	for (i = 0; i <= nvfs; i++)
- 		esw_enable_vport(esw, i, enabled_events);
-@@ -1519,6 +1628,8 @@ void mlx5_eswitch_disable_sriov(struct mlx5_eswitch *esw)
- 	if (mc_promisc && mc_promisc->uplink_rule)
- 		mlx5_del_flow_rule(mc_promisc->uplink_rule);
- 
-+	esw_destroy_tsar(esw);
-+
- 	if (esw->mode == SRIOV_LEGACY)
- 		esw_destroy_legacy_fdb_table(esw);
- 	else if (esw->mode == SRIOV_OFFLOADS)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index 2e2938e..fb8de34 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -115,6 +115,7 @@ struct mlx5_vport_info {
- 	u8                      qos;
- 	u64                     node_guid;
- 	int                     link_state;
-+	u32                     max_rate;
- 	bool                    spoofchk;
- 	bool                    trusted;
- };
-@@ -133,6 +134,11 @@ struct mlx5_vport {
- 
- 	struct mlx5_vport_info  info;
- 
-+	struct {
-+		bool            enabled;
-+		u32             esw_tsar_ix;
-+	} qos;
-+
- 	bool                    enabled;
- 	u16                     enabled_events;
- };
-@@ -209,6 +215,12 @@ struct mlx5_eswitch {
- 	 */
- 	struct mutex            state_lock;
- 	struct esw_mc_addr      *mc_promisc;
-+
-+	struct {
-+		bool            enabled;
-+		u32             root_tsar_id;
-+	} qos;
-+
- 	struct mlx5_esw_offload offloads;
- 	int                     mode;
- };
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
