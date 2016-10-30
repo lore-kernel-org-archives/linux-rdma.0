@@ -1,117 +1,69 @@
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
-Date: Mon, 31 Oct 2016 19:28:26 +0000
-Message-ID: <20161031192826.GA13380@lucifer>
-References: <20161031100228.17917-1-lstoakes@gmail.com>
- <20161031100228.17917-3-lstoakes@gmail.com>
- <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
- <20161031134849.GA13609@lucifer>
- <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] qede: fix general protection fault may occur
+ on probe
+Date: Sun, 30 Oct 2016 22:50:26 +0200
+Message-ID: <20161030205026.GR3617@leon.nu>
+References: <1477400039-16925-1-git-send-email-Ram.Amrani@cavium.com>
+ <20161027140509.GH3617@leon.nu>
+ <SN1PR07MB22076D8F67AB8C78A9565CB6F8AF0@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Kuk/n493crKO4rgR"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Paolo Bonzini <pbonzini@redhat.com>
-Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com, linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org, linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+In-Reply-To: <SN1PR07MB22076D8F67AB8C78A9565CB6F8AF0-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 31, 2016 at 06:55:33PM +0100, Paolo Bonzini wrote:
-> > 2. There is currently only one caller of get_user_pages_locked() in
-> >    mm/frame_vector.c which seems to suggest this function isn't widely
-> >    used/known.
->
-> Or not widely necessary. :)
 
-Well, quite :)
->
-> > 3. This change results in all slow-path get_user_pages*() functions having the
-> >    ability to use VM_FAULT_RETRY logic rather than 'defaulting' to using
-> >    get_user_pages() that doesn't let you do this even if you wanted to.
->
-> This is only true if someone does the work though.  From a quick look
-> at your series, the following files can be trivially changed to use
-> get_user_pages_unlocked:
->
-> - drivers/gpu/drm/via/via_dmablit.c
-> - drivers/platform/goldfish/goldfish_pipe.c
-> - drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
-> - drivers/rapidio/devices/rio_mport_cdev.c
-> - drivers/virt/fsl_hypervisor.c
->
+--Kuk/n493crKO4rgR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Ah indeed, I rather glossed through the callers and noticed that at least some
-held locks long enough or were called with a lock held sufficient that I wasn't
-sure it could be released.
-
-> Also, videobuf_dma_init_user could be changed to use retry by adding a
-> *locked argument to videobuf_dma_init_user_locked, prototype patch
-> after my signature.
+On Sun, Oct 30, 2016 at 09:25:09AM +0000, Amrani, Ram wrote:
+> > The rdma-core word in the subject is misleading.
 >
+> Yeah it is. The location of the code (qede) is somewhat different from the content (qedr).
+> I don't know how you would have done it, but at least you'll see in a future patch that we've
+> changed this  to be fully qedr.
 
-Very nice!
-
-> Everything else is probably best kept using get_user_pages.
->
-> > 4. It's somewhat confusing/redundant having both get_user_pages_locked() and
-> >    get_user_pages() functions which both require mmap_sem to be held (i.e. both
-> >    are 'locked' versions.)
-> >
-> >> If all callers were changed, then sure removing the _locked suffix would
-> >> be a good idea.
-> >
-> > It seems many callers cannot release mmap_sem so VM_FAULT_RETRY logic couldn't
-> > happen anyway in this cases and in these cases we couldn't change the caller.
->
-> But then get_user_pages_locked remains a less-common case, so perhaps
-> it's a good thing to give it a longer name!
-
-My (somewhat minor) concern was that there would be confusion due to the
-existence of the triumvirate of g_u_p()/g_u_p_unlocked()/g_u_p_locked(), however
-the comments do a decent enough job of explaining the situation.
+We use "rdma-core" notations for patches intended to consolidated
+library, while your patch is for the kernel.
 
 >
-> > Overall, an alternative here might be to remove get_user_pages() and update
-> > get_user_pages_locked() to add a 'vmas' parameter, however doing this renders
-> > get_user_pages_unlocked() asymmetric as it would lack an vmas parameter (adding
-> > one there would make no sense as VM_FAULT_RETRY logic invalidates VMAs) though
-> > perhaps not such a big issue as it makes sense as to why this is the case.
+> Ram
 >
-> Adding the 'vmas' parameter to get_user_pages_locked would make little
-> sense.  Since VM_FAULT_RETRY invalidates it and g_u_p_locked can and
-> does retry, it would generally not be useful.
-
-I meant only in the case where we'd remove get_user_pages() and instead be left
-with get_user_pages_[un]locked() only, meaning we'd have to add some means of
-retrieving vmas if locked was set NULL, of course in cases where locked is not
-NULL it makes no sense to add it.
-
 >
-> So I think we have the right API now:
->
-> - do not have lock?  Use get_user_pages_unlocked, get retry for free,
-> no need to handle  mmap_sem and the locked argument; cannot get back vmas.
->
-> - have and cannot drop lock?  User get_user_pages, no need to pass NULL
-> for the locked argument; can get back vmas.
->
-> - have but can drop lock (rare case)?  Use get_user_pages_locked,
-> cannot get back vams.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yeah I think this is sane as it is actually, this patch set was a lot less
-convincing of a cleanup than prior ones and overall it seems we are better off
-with the existing API.
+--Kuk/n493crKO4rgR
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I wonder whether a better patch series to come out of this would be to find
-cases where the lock could be dropped (i.e. the ones you mention above) and to
-switch to using get_user_pages_[un]locked() where it makes sense to.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-I am happy to look into these cases (though of course I must leave your
-suggested patch here to you :)
+iQIcBAEBAgAGBQJYFl0RAAoJEORje4g2clineOMQAJRljDr7yRKyIfsKlBRI1ezI
+YcWYp2YEPUF140V9s3VmD4VAlseeOPPRsMr5q1PYMQET8DUSx/fyPP7lNwlhm4+V
+Ll3yyje+0aT4ZUbx/M3e6RfqR4hG4lIWzALcPnIKmG3GA4FVcaPKyivenRDHsYzW
+nFDzq3V9AokwcxQGgQcGQeJROx7lrZe7AX5Mu1bOK/Rr4flWsCin62ZDSt43SfcF
+qTz2C9Hyx5HELDxP/w/6fTQuyl6pBdn+yFpWnnORsxYzO26XZb7myvw0EOKPlLu9
+fNwUj3Q/eo8ea5CBhl/VmKSvRGSoNEADEwo627A9FuyUFFHq6ok4V8+7FRtLLLG3
+C2K0+oY6BFajB3y+d/4bShc06MPguI+rG5GLVNzfEedHb20zO+XlbXlQSSHOq9hk
+JDcxkSLdK6qUAnoj2jm2aHrmNwzWzXfqzd38nL1CJzsQL3xl9ZsjzpuqZJ9yd6Ce
+l61mdthtQjrSpz4q5a77N3pl1RsQzenLcalyXeDXT7PYCi46YOftEZCGdV0Nmwrr
+o3t6cO+dEp8C5Ken4y/QhgFDDJDPii7WuSK1PmOwDzhNDn43CJe4glMY3ZVPoyrc
+HemtD9W/LNU0Cp/yAIAVcDIW0XOqgf1F2+GSRzjhcwmygmExAVAolidcwTLy7rOu
+Hs2D91qz5lrL17wtRMSH
+=cwDw
+-----END PGP SIGNATURE-----
 
+--Kuk/n493crKO4rgR--
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
