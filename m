@@ -1,91 +1,66 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] qedr: Fix missing unlock on error in qedr_post_send()
-Date: Mon, 31 Oct 2016 07:38:35 +0200
-Message-ID: <20161031053835.GV3617@leon.nu>
-References: <1477672406-31487-1-git-send-email-weiyj.lk@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="HzaOE8X7KzPzAQEl"
+Subject: [PATCH rdma-next 2/2] IB/mlx5: Report mlx5 multi packet WQE capabilities when querying device
+Date: Mon, 31 Oct 2016 12:15:21 +0200
+Message-ID: <1477908921-12222-2-git-send-email-leon@kernel.org>
+References: <1477908921-12222-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1477672406-31487-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1477908921-12222-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---HzaOE8X7KzPzAQEl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The capabilities whether hardware support multi packet WQE or not is
+exposed to user space through query_device by uhw.
 
-On Fri, Oct 28, 2016 at 04:33:26PM +0000, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->
-> Add the missing unlock before return from function qedr_post_send()
-> in the error handling case.
->
-> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/qedr/verbs.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-> index a615142..e7c7417 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -2983,7 +2983,8 @@ int qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->
->  	if (!wr) {
->  		DP_ERR(dev, "Got an empty post send.\n");
-> -		return -EINVAL;
-> +		rc = -EINVAL;
-> +		goto out_unlock;
->  	}
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 11 +++++++++++
+ include/uapi/rdma/mlx5-abi.h      |  2 ++
+ 2 files changed, 13 insertions(+)
 
-IMHO, this if needs to be moved to be before acquiring spinlock and
-avoid introducing new labels for this one case only.
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2217477..9245b51 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -669,6 +669,17 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rq);
+ 	}
+ 
++	if (field_avail(typeof(resp), mlx5_ib_support_multi_pkt_send_wqes,
++			uhw->outlen)) {
++		resp.mlx5_ib_support_multi_pkt_send_wqes =
++			MLX5_CAP_ETH(mdev, multi_pkt_send_wqe);
++		resp.response_length +=
++			sizeof(resp.mlx5_ib_support_multi_pkt_send_wqes);
++	}
++
++	if (field_avail(typeof(resp), reserved, uhw->outlen))
++		resp.response_length += sizeof(resp.reserved);
++
+ 	if (uhw->outlen) {
+ 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
+ 
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index f5d0f4e..93d6b9f 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -129,6 +129,8 @@ struct mlx5_ib_query_device_resp {
+ 	__u32	response_length;
+ 	struct	mlx5_ib_tso_caps tso_caps;
+ 	struct	mlx5_ib_rss_caps rss_caps;
++	__u32	mlx5_ib_support_multi_pkt_send_wqes;
++	__u32	reserved;
+ };
+ 
+ struct mlx5_ib_create_cq {
+-- 
+2.7.4
 
->
->  	while (wr) {
-> @@ -3012,6 +3013,7 @@ int qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->  	/* Make sure write sticks */
->  	mmiowb();
->
-> +out_unlock:
->  	spin_unlock_irqrestore(&qp->q_lock, flags);
->
->  	return rc;
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---HzaOE8X7KzPzAQEl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYFtjbAAoJEORje4g2clinykcQAKhB0drRFas5d8Hh7qDXdj48
-L6b4xfy5XqVm+Ej+w/bPdnEcU8zjWt1f9C3KyFC8IeknaETqVYNSg8ccBEO6r6Lj
-o9Sdm86Mv9aEflSFkg30XoGXOhpdJR7b1JBVWOg4hzdXMKhbqytY3d6HrWadea5m
-yCKZwbFcBZzkyllV3w/mOkqgKADvaJtrx7/qgRgY9X+fRbflLu5PySmLjTWU1FHC
-7/ZH91h1Gnd1pUevEJsnbUXCTpMgdQl+dffd2E83mqPQKexrD7Q5AXfNKPvHY5+F
-I234QvqECRmlolSxaloOTl/Abha0p3P7OwdQAHBZymaUOabJguhx8oS4CDsFKzyj
-xQ4JLSqJkDXSOMvdMA/e/YIlJXUzukph/GqleuqbXsexl6Obi0mQXOOO/proZNdm
-FDBK8tewer18GsswoxervE47yozSJ5QCmYm4qzMCI625xcX2jRgS5mu2oaWstQLU
-2zBsyNURvLkaA7nXwP0ac1f0pyRH0qpib2fl9XDxckX3ByzpQaIsjwus7ovxMzeV
-6uZa2jkQfhkaW6Zn8Og+kN1cDw5nNt6ZrXWHWVDitve1B7BemlyRz6hHCdHJoDxu
-gonXRO2PxkObhzn7ipLXK1m+K7YmIUKixSWWZwIgLpIfUoy6TyziXhRpLkeHGJjo
-7ro9z+GNcFIcJifUo987
-=sIXh
------END PGP SIGNATURE-----
-
---HzaOE8X7KzPzAQEl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
