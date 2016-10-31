@@ -1,39 +1,27 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: [PATCH v5 14/14] nvme: Use BLK_MQ_S_STOPPED instead of
- QUEUE_FLAG_STOPPED in blk-mq code
-Date: Mon, 31 Oct 2016 15:10:36 +0000
-Message-ID: <1477926635.2511.1.camel@sandisk.com>
-References: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com>
-         <fe057bf0-6ede-fc9e-9a53-9d790c9782c2@sandisk.com>
-         <540193784.5466628.1477921998345.JavaMail.zimbra@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMA developer gatherings around Kernel Summit and Linux Plumbers
+ in Santa Fe
+Date: Mon, 31 Oct 2016 17:11:14 +0200
+Message-ID: <CAJ3xEMh-Q_6tRV674vhNE5o4DYiECbpSEGL_au-jjTM4bUt0Lw@mail.gmail.com>
+References: <alpine.DEB.2.20.1610281212220.8691@east.gentwo.org>
+ <CAJ3xEMiy8+yQTQKpuY8f57VJwWMwXryxQ09ghyTbDr91s=3w+g@mail.gmail.com> <alpine.DEB.2.20.1610301848560.15769@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <540193784.5466628.1477921998345.JavaMail.zimbra@redhat.com>
-Content-Language: en-US
-Content-ID: <77BA6145B5B13840AAB2DC0AD60AE64A@namprd02.prod.outlook.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: "loberman@redhat.com" <loberman@redhat.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "snitzer@redhat.com" <snitzer@redhat.com>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>, "roger.pau@citrix.com" <roger.pau@citrix.com>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "jejb@linux.vnet.ibm.com" <jejb@linux.vnet.ibm.com>, "keith.busch@intel.com" <keith.busch@intel.com>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1610301848560.15769-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, skc-YOWKrPYUwWM@public.gmane.org, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE2LTEwLTMxIGF0IDA5OjUzIC0wNDAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
-Og0KPiBBcHBsaWVkIGFsbCAxNCBwYXRjaGVzLCBhbHNvIGNvcnJlY3RlZCB0aGUgcGFydCBvZiB0
-aGUgeGVuLWJsa2Zyb250LmMgDQo+IGJsa2lmX3JlY292ZXIgcGF0Y2ggaW4gcGF0Y2h2NS01LzE0
-Lg0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmxvY2sveGVuLWJsa2Zyb250LmMgYi9kcml2
-ZXJzL2Jsb2NrL3hlbi0NCj4gYmxrZnJvbnQuYw0KPiBpbmRleCA5OTA4NTk3Li42MGZmZjk5IDEw
-MDY0NA0KPiAtLS0gYS9kcml2ZXJzL2Jsb2NrL3hlbi1ibGtmcm9udC5jDQo+ICsrKyBiL2RyaXZl
-cnMvYmxvY2sveGVuLWJsa2Zyb250LmMNCj4gQEAgLTIwNDUsNiArMjA0NSw3IEBAIHN0YXRpYyBp
-bnQgYmxraWZfcmVjb3ZlcihzdHJ1Y3QgYmxrZnJvbnRfaW5mbw0KPiAqaW5mbykNCj4gwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoEJVR19PTihyZXEtPm5yX3BoeXNfc2VnbWVudHMg
-PiBzZWdzKTsNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGJsa19tcV9yZXF1
-ZXVlX3JlcXVlc3QocmVxKTsNCj4gwqDCoMKgwqDCoMKgwqDCoMKgfQ0KPiArwqDCoMKgwqDCoMKg
-wqDCoGJsa19tcV9zdGFydF9zdG9wcGVkX2h3X3F1ZXVlcyhpbmZycSwNCj4gdHJ1ZSk7wqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCoqKiBDb3JyZWN0ZWQNCj4gwqDCoMKg
-wqDCoMKgwqDCoMKgYmxrX21xX2tpY2tfcmVxdWV1ZV9saXN0KGluZnJxKTsNCj4gwqANCj4gwqDC
-oMKgwqDCoMKgwqDCoMKgd2hpbGUgKChiaW8gPSBiaW9fbGlzdF9wb3AoJmluZmJpb19saXN0KSkg
-IT0gTlVMTCkgew0KDQpIZWxsbyBMYXVyZW5jZSwNCg0KU29ycnkgZm9yIHRoZSBidWlsZCBmYWls
-dXJlLiBUaGUgd2F5IHlvdSBjaGFuZ2VkIHhlbi1ibGtmcm9udCBpcyBpbmRlZWQNCndoYXQgSSBp
-bnRlbmRlZC4gQXBwYXJlbnRseSBJIGZvcmdvdCB0byBlbmFibGUgWGVuIGluIG15IGtlcm5lbCBj
-b25maWcNCi4uLg0KDQpCYXJ0Lg==
+On Mon, Oct 31, 2016 at 1:49 AM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
+
+> If you were invited to the KS or LPC then you can attend the RDMA
+> workshop.
+
+AFAIK LPC is by registration, not by invitation, so all LPC attendees
+can come, right?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
