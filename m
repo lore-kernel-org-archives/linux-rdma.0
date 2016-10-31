@@ -1,94 +1,82 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: SQ overflow seen running isert traffic
-Date: Sun, 30 Oct 2016 20:40:08 -0700
-Message-ID: <1477885208.27946.8.camel@haakon3.risingtidesystems.com>
-References: <20160927070157.GA13140@chelsio.com>
-         <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me>
-         <20161017111655.GA21245@chelsio.com>
-         <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com>
-         <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me>
-         <20161018112801.GA3117@chelsio.com>
-         <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
-         <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
+From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IBcore/CM: Issue DREQ when receiving REQ/REP for stale QP
+Date: Sun, 30 Oct 2016 21:52:32 -0700
+Message-ID: <d75248c6-39e2-5856-c76f-1598a6d4e2ba@oracle.com>
+References: <1477653269-27359-1-git-send-email-hans.westgaard.ry@oracle.com>
+ <8df2c90e-8581-4ce8-fd18-92ac57eb6160@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
+In-Reply-To: <8df2c90e-8581-4ce8-fd18-92ac57eb6160-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hakon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Steve, Potnuri, & Co,
+On 10/30/16 2:06 PM, Sagi Grimberg wrote:
+>> from "InfiBand Architecture Specifications Volume 1":
+>>
+>>   A QP is said to have a stale connection when only one side has
+>>   connection information. A stale connection may result if the remote CM
+>>   had dropped the connection and sent a DREQ but the DREQ was never
+>>   received by the local CM. Alternatively the remote CM may have lost
+>>   all record of past connections because its node crashed and rebooted,
+>>   while the local CM did not become aware of the remote node's reboot
+>>   and therefore did not clean up stale connections.
+>>
+>> and:
+>>
+>>    A local CM may receive a REQ/REP for a stale connection. It shall
+>>    abort the connection issuing REJ to the REQ/REP. It shall then issue
+>>    DREQ with "DREQ:remote QPN” set to the remote QPN from the REQ/REP.
+>>
+>> This patch solves a problem with reuse of QPN. Current codebase, that
+>> is IPoIB, relies on a REAP-mechanism to do cleanup of the structures
+>> in CM. A problem with this is the timeconstants governing this
+>> mechanism; they are up to 768 seconds and the interface may look
+>> inresponsive in that period.  Issuing a DREQ (and receiving a DREP)
+>> does the necessary cleanup and the interface comes up.
+>
+> I like this fix, so,
+>
+Me too and hence suggested Hans to post it on rdma list when
+saw this patch in internal review.
 
-On Tue, 2016-10-18 at 09:34 -0500, Steve Wise wrote:
-> > 
-> > > I tried out this change and it works fine with iwarp. I dont see SQ
-> > > overflow. Apparently we have increased the sq too big to overflow. I am
-> going
-> > > to let it run with higher workloads for longer time, to see if it holds
-> good.
-> > 
-> > Actually on second thought, this patch is an overkill. Effectively we
-> > now set:
-> > 
-> > MAX_CMD=266
-> > and max_rdma_ctx=128 so together we take 394 which seems to too much.
-> > 
-> > If we go by the scheme of 1 rdma + 1 send for each IO we need:
-> > - 128 sends
-> > - 128 rdmas
-> > - 10 miscs
-> > 
-> > so this gives 266.
-> > 
-> > Perhaps this is due to the fact that iWARP needs to register memory for
-> > rdma reads as well? (and also rdma writes > 128k for chelsio HW right?)
-> >
-> 
-> iWARP definitely needs to register memory for the target of reads, due to
-> REMOTE_WRITE requirement for the protocol.  The source of a write doesn't need
-> to register memory, but the SGE depth can cause multiple WRITE WRs to be
-> required to service the IO.  And in theory there should be some threshold where
-> it might be better performance-wise to do a memory register + 1 WRITE vs X
-> WRITEs.    
-> 
-> As you mentioned, the RW API should account for this, but perhaps it is still
-> off some.  Bharat, have a look into the RDMA-RW API and let us see if we can
-> figure out if the additional SQ depth it adds is sufficient.
->  
-> > What is the workload you are running? with immediatedata enabled you
-> > should issue reg+rdma_read+send only for writes > 8k.
-> > 
-> > Does this happen when you run only reads for example?
-> > 
-> > I guess its time to get the sq accounting into shape...
-> 
-> So to sum up - 2 issues:
-> 
-> 1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
-> overflows.  So the SQ sizing needs more investigation.
-> 
-> 2) if the SQ is full, then the iSER/target code is supposed to resubmit.  And
-> apparently that isn't working.
-> 
+> Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>
+> But I think the CM layer still is buggy in this area.
+>
+> In vol 1 the state transition table specifically states that DREP
+> timeouts should move the cm_id to timewait state but the CM doesn't
+> seem to maintain response timeouts on disconnect requests. If the
+> DREQ happened to fail (send error completion) things are fine, but
+> if the DREQ makes it to the peer but it doesn't reply then no one
+> will take care of it (i.e. we will never see a TIMEWAIT event from
+> this cm_id)...
+>
+> I recall some debugging session with Hal on this area a ~year ago
+> with a new iser target (which didn't reply to DREQs on reboot
+> sequences). iser initiator waits for a DISCONNECTED/TIMEWAIT events
+> before destroying the cm_id (which never happened because of the
+> above). I think I ended up working around that in iser to just go
+> ahead and destroy the cm_id after issuing a DREQ (but now I realize
+> it was never included so I'll probably dig it up again soon).
 
-For #2, target-core expects -ENOMEM or -EAGAIN return from fabric driver
-callbacks to signal internal queue-full retry logic.  Otherwise, the
-extra se_cmd->cmd_kref response SCF_ACK_KREF is leaked until session
-shutdown and/or reinstatement occurs.
+There is another fundamental issue with core CM code wrt DREQ
+getting dropped. The the mad agent used to send the DREQ is
+associated with a port and if this port is down, the IB link
+layer will drop that DREQ as per SPEC. Similarly if the destination
+port is down where the DREQ is suppose to reach, then the DREQ
+gets dropped there too. These dropped CM ids are retried by MAD
+agent on same port till the port comes back alive.
 
-AFAICT, Potunri's earlier hung task with v4.8.y + ABORT_TASK is likely
-the earlier v4.1+ regression:
+Am not sure in your case the ports were going down or not
+but it was the case then IIUC, what you are doing for ISER is
+still needed (up front destroying the cm id).
 
-https://github.com/torvalds/linux/commit/527268df31e57cf2b6d417198717c6d6afdb1e3e
+Regards,
+Santosh
 
-That said, there is room for improvement in target-core queue-full error
-signaling, and iscsi-target/iser-target callback error propagation.  
-
-Sending out a series shortly to address these particular items.
-Please have a look.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
