@@ -1,96 +1,126 @@
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
-Date: Mon, 31 Oct 2016 13:48:49 +0000
-Message-ID: <20161031134849.GA13609@lucifer>
-References: <20161031100228.17917-1-lstoakes@gmail.com>
- <20161031100228.17917-3-lstoakes@gmail.com>
- <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
+From: Laurence Oberman <loberman@redhat.com>
+Subject: Re: [PATCH v5 14/14] nvme: Use BLK_MQ_S_STOPPED instead of
+ QUEUE_FLAG_STOPPED in blk-mq code
+Date: Mon, 31 Oct 2016 09:53:18 -0400 (EDT)
+Message-ID: <540193784.5466628.1477921998345.JavaMail.zimbra@redhat.com>
+References: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com> <fe057bf0-6ede-fc9e-9a53-9d790c9782c2@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Paolo Bonzini <pbonzini@redhat.com>
-Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com, linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org, linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <fe057bf0-6ede-fc9e-9a53-9d790c9782c2@sandisk.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Roger Pau =?utf-8?Q?Monn=C3=A9?= <roger.pau@citrix.com>, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 31, 2016 at 12:45:36PM +0100, Paolo Bonzini wrote:
->
->
-> On 31/10/2016 11:02, Lorenzo Stoakes wrote:
-> > - *
-> > - * get_user_pages should be phased out in favor of
-> > - * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
-> > - * should use get_user_pages because it cannot pass
-> > - * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
->
-> This comment should be preserved in some way.  In addition, removing
-
-Could you clarify what you think should be retained?
-
-The comment seems to me to be largely rendered redundant by this change -
-get_user_pages() now offers identical behaviour, and of course the latter part
-of the comment ('because it cannot pass FAULT_FLAG_ALLOW_RETRY') is rendered
-incorrect by this change.
-
-It could be replaced with a recommendation to make use of VM_FAULT_RETRY logic
-if possible. Note that the line above retains the reference to
-'get_user_pages_fast()' - 'See also get_user_pages_fast, for performance
-critical applications.'
-
-One important thing to note here is this is a comment on get_user_pages_remote()
-for which it was already incorrect syntactically (I'm guessing once
-get_user_pages_remote() was added it 'stole' get_user_pages()'s comment :)
-
-> get_user_pages_locked() makes it harder (compared to a simple "git grep
-> -w") to identify callers that lack allow-retry functionality).  So I'm
-> not sure about the benefits of these patches.
->
-
-That's a fair point, and certainly this cleanup series is less obviously helpful
-than previous ones.
-
-However, there are a few points in its favour:
-
-1. get_user_pages_remote() was the mirror of get_user_pages() prior to adding an
-   int *locked parameter to the former (necessary to allow for the unexport of
-   __get_user_pages_unlocked()), differing only in task/mm being specified and
-   FOLL_REMOTE being set. This patch series keeps these functions 'synchronised'
-   in this respect.
-
-2. There is currently only one caller of get_user_pages_locked() in
-   mm/frame_vector.c which seems to suggest this function isn't widely
-   used/known.
-
-3. This change results in all slow-path get_user_pages*() functions having the
-   ability to use VM_FAULT_RETRY logic rather than 'defaulting' to using
-   get_user_pages() that doesn't let you do this even if you wanted to.
-
-4. It's somewhat confusing/redundant having both get_user_pages_locked() and
-   get_user_pages() functions which both require mmap_sem to be held (i.e. both
-   are 'locked' versions.)
-
-> If all callers were changed, then sure removing the _locked suffix would
-> be a good idea.
-
-It seems many callers cannot release mmap_sem so VM_FAULT_RETRY logic couldn't
-happen anyway in this cases and in these cases we couldn't change the caller.
 
 
-Overall, an alternative here might be to remove get_user_pages() and update
-get_user_pages_locked() to add a 'vmas' parameter, however doing this renders
-get_user_pages_unlocked() asymmetric as it would lack an vmas parameter (adding
-one there would make no sense as VM_FAULT_RETRY logic invalidates VMAs) though
-perhaps not such a big issue as it makes sense as to why this is the case.
+----- Original Message -----
+> From: "Bart Van Assche" <bart.vanassche@sandisk.com>
+> To: "Jens Axboe" <axboe@fb.com>
+> Cc: "Christoph Hellwig" <hch@lst.de>, "James Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen"
+> <martin.petersen@oracle.com>, "Mike Snitzer" <snitzer@redhat.com>, "Doug Ledford" <dledford@redhat.com>, "Keith
+> Busch" <keith.busch@intel.com>, "Ming Lei" <tom.leiming@gmail.com>, "Konrad Rzeszutek Wilk"
+> <konrad.wilk@oracle.com>, "Roger Pau Monné" <roger.pau@citrix.com>, "Laurence Oberman" <loberman@redhat.com>,
+> linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
+> Sent: Friday, October 28, 2016 8:23:40 PM
+> Subject: [PATCH v5 14/14] nvme: Use BLK_MQ_S_STOPPED instead of QUEUE_FLAG_STOPPED in blk-mq code
+> 
+> Make nvme_requeue_req() check BLK_MQ_S_STOPPED instead of
+> QUEUE_FLAG_STOPPED. Remove the QUEUE_FLAG_STOPPED manipulations
+> that became superfluous because of this change. Change
+> blk_queue_stopped() tests into blk_mq_queue_stopped().
+> 
+> This patch fixes a race condition: using queue_flag_clear_unlocked()
+> is not safe if any other function that manipulates the queue flags
+> can be called concurrently, e.g. blk_cleanup_queue().
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Cc: Keith Busch <keith.busch@intel.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Sagi Grimberg <sagi@grimberg.me>
+> ---
+>  drivers/nvme/host/core.c | 16 ++--------------
+>  1 file changed, 2 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+> index fe15d94..45dd237 100644
+> --- a/drivers/nvme/host/core.c
+> +++ b/drivers/nvme/host/core.c
+> @@ -201,13 +201,7 @@ static struct nvme_ns *nvme_get_ns_from_disk(struct
+> gendisk *disk)
+>  
+>  void nvme_requeue_req(struct request *req)
+>  {
+> -	unsigned long flags;
+> -
+> -	blk_mq_requeue_request(req, false);
+> -	spin_lock_irqsave(req->q->queue_lock, flags);
+> -	if (!blk_queue_stopped(req->q))
+> -		blk_mq_kick_requeue_list(req->q);
+> -	spin_unlock_irqrestore(req->q->queue_lock, flags);
+> +	blk_mq_requeue_request(req, !blk_mq_queue_stopped(req->q));
+>  }
+>  EXPORT_SYMBOL_GPL(nvme_requeue_req);
+>  
+> @@ -2078,13 +2072,8 @@ void nvme_stop_queues(struct nvme_ctrl *ctrl)
+>  	struct nvme_ns *ns;
+>  
+>  	mutex_lock(&ctrl->namespaces_mutex);
+> -	list_for_each_entry(ns, &ctrl->namespaces, list) {
+> -		spin_lock_irq(ns->queue->queue_lock);
+> -		queue_flag_set(QUEUE_FLAG_STOPPED, ns->queue);
+> -		spin_unlock_irq(ns->queue->queue_lock);
+> -
+> +	list_for_each_entry(ns, &ctrl->namespaces, list)
+>  		blk_mq_quiesce_queue(ns->queue);
+> -	}
+>  	mutex_unlock(&ctrl->namespaces_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(nvme_stop_queues);
+> @@ -2095,7 +2084,6 @@ void nvme_start_queues(struct nvme_ctrl *ctrl)
+>  
+>  	mutex_lock(&ctrl->namespaces_mutex);
+>  	list_for_each_entry(ns, &ctrl->namespaces, list) {
+> -		queue_flag_clear_unlocked(QUEUE_FLAG_STOPPED, ns->queue);
+>  		blk_mq_start_stopped_hw_queues(ns->queue, true);
+>  		blk_mq_kick_requeue_list(ns->queue);
+>  	}
+> --
+> 2.10.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-get_user_pages_unlocked() definitely seems to be a useful helper and therefore
-makes sense to retain.
+Hello Bart
 
-Of course another alternative is to leave things be :)
+Thanks for all this work.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Applied all 14 patches, also corrected the part of the xen-blkfront.c blkif_recover patch in patchv5-5/14.
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 9908597..60fff99 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -2045,6 +2045,7 @@ static int blkif_recover(struct blkfront_info *info)
+                 BUG_ON(req->nr_phys_segments > segs);
+                 blk_mq_requeue_request(req);
+         }
++        blk_mq_start_stopped_hw_queues(infrq, true);                    *** Corrected
+         blk_mq_kick_requeue_list(infrq);
+ 
+         while ((bio = bio_list_pop(&infbio_list)) != NULL) {
+
+Ran multiple read/write buffered and directio tests via RDMA/SRP and mlx5 (100Gbit) with max_sectors_kb set to 1024, 2048, 4096 and 8196
+Ran multiple read/write buffered and directio tests via RDMA/SRP and mlx4 (56Gbit)  with max_sectors_kb set to 1024, 2048, 4096 and 8196
+Reset the SRP hosts multiple times with multipath set to no_path_retry queue
+Ran basic NVME read/write testing with no hot plug disconnects on multiple block sizes
+
+All tests passed.
+
+For the series:
+Tested-by: Laurence Oberman <loberman@redhat.com>
