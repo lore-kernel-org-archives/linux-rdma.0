@@ -1,307 +1,194 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: iscsi_trx going into D state
-Date: Mon, 31 Oct 2016 10:34:49 -0600
-Message-ID: <CAANLjFpkEVmO83r5YWh=hCnN=AUf9bvrrCyVJHc-=CRpc3P0vQ@mail.gmail.com>
-References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
- <880e374c-cf8b-f276-e930-57b09fe1a686@suse.com> <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA@mail.gmail.com>
- <CAANLjFoh+C8QE=qcPKqUUG3SnH2EMmS7DWZ5D4AD7yWMxoK0Zw@mail.gmail.com>
- <4fc72e32-26fb-96bd-8a0d-814eef712b43@suse.com> <CAANLjFpx1MRNiu2388pY+U0O5z9gw+OJBtpOof47Lb_DxaJSBQ@mail.gmail.com>
- <1476774332.8490.43.camel@haakon3.risingtidesystems.com> <CAANLjFqXt5r=c9F75vjeK=_zLa8zCS1priLuZo=A1ZSHKZ=1Bw@mail.gmail.com>
- <1476858359.8490.97.camel@haakon3.risingtidesystems.com> <CAANLjFoGEi29goybqsvEg6trystEkurVz52P8SwqGUSNV1jdSw@mail.gmail.com>
- <1477780190.22703.47.camel@haakon3.risingtidesystems.com>
+From: Paolo Bonzini <pbonzini@redhat.com>
+Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
+Date: Mon, 31 Oct 2016 18:55:33 +0100
+Message-ID: <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
+References: <20161031100228.17917-1-lstoakes@gmail.com>
+ <20161031100228.17917-3-lstoakes@gmail.com>
+ <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
+ <20161031134849.GA13609@lucifer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477780190.22703.47.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20161031134849.GA13609@lucifer>
+Sender: owner-linux-mm@kvack.org
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com, linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org, linux-media@vger.kernel.org, devel@driverdev.osuosl.org
 List-Id: linux-rdma@vger.kernel.org
 
-Nicholas,
-
-Thanks for following up on this. We have been chasing other bugs in
-our provisioning and as such has reduced our load on the boxes. We are
-hoping to get that all straightened out this week and do some more
-testing. So far we have not had any iSCSI in D state since the patch,
-be we haven't been able to test it well either. We will keep you
-updated.
-
-Thank you,
-Robert LeBlanc
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
 
-On Sat, Oct 29, 2016 at 4:29 PM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> Hi Robert,
->
-> On Wed, 2016-10-19 at 10:41 -0600, Robert LeBlanc wrote:
->> Nicholas,
+On 31/10/2016 14:48, Lorenzo Stoakes wrote:
+> On Mon, Oct 31, 2016 at 12:45:36PM +0100, Paolo Bonzini wrote:
 >>
->> I didn't have high hopes for the patch because we were not seeing
->> TMR_ABORT_TASK (or 'abort') in dmesg or /var/log/messages, but it
->> seemed to help regardless. Our clients finally OOMed from the hung
->> sessions, so we are having to reboot them and we will do some more
->> testing. We haven't put the updated kernel on our clients yet. Our
->> clients have iSCSI root disks so I'm not sure if we can get a vmcore
->> on those, but we will do what we can to get you a vmcore from the
->> target if it happens again.
 >>
->
-> Just checking in to see if you've observed further issues with
-> iser-target ports, and/or able to generate a crashdump with v4.4.y..?
->
->> As far as our configuration: It is a superMicro box with 6 SAMSUNG
->> MZ7LM3T8HCJM-00005 SSDs. Two are for root and four are in mdadm
->> RAID-10 for exporting via iSCSI/iSER. We have ZFS on top of the
->> RAID-10 for checksum and snapshots only and we export ZVols to the
->> clients (one or more per VM on the client). We do not persist the
->> export info (targetcli saveconfig), but regenerate it from scripts.
->> The client receives two or more of these exports and puts them in a
->> RAID-1 device. The exports are served by iSER one one port and also by
->> normal iSCSI on a different port for compatibility, but not normally
->> used. If you need more info about the config, please let me know. It
->> was kind of a vague request so I'm not sure what exactly is important
->> to you.
->
-> Thanks for the extra details of your hardware + user-space
-> configuration.
->
->> Thanks for helping us with this,
->> Robert LeBlanc
+>> On 31/10/2016 11:02, Lorenzo Stoakes wrote:
+>>> - *
+>>> - * get_user_pages should be phased out in favor of
+>>> - * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
+>>> - * should use get_user_pages because it cannot pass
+>>> - * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
 >>
->> When we have problems, we usually see this in the logs:
->> Oct 17 08:57:50 prv-0-12-sanstack kernel: iSCSI Login timeout on
->> Network Portal 0.0.0.0:3260
->> Oct 17 08:57:50 prv-0-12-sanstack kernel: Unexpected ret: -104 send data 48
->> Oct 17 08:57:50 prv-0-12-sanstack kernel: tx_data returned -32, expecting 48.
->> Oct 17 08:57:50 prv-0-12-sanstack kernel: iSCSI Login negotiation failed.
->>
->> I found some backtraces in the logs, not sure if this is helpful, this
->> is before your patch (your patch booted at Oct 18 10:36:59):
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: INFO: rcu_sched
->> self-detected stall on CPU
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: #0115-...: (41725 ticks this
->> GP) idle=b59/140000000000001/0 softirq=535/535 fqs=30992
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: #011 (t=42006 jiffies g=1550
->> c=1549 q=0)
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: Task dump for CPU 5:
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: kworker/u68:2   R  running
->> task        0 17967      2 0x00000008
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: Workqueue: isert_comp_wq
->> isert_cq_work [ib_isert]
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: ffff883f4c0dca80
->> 00000000af8ca7a4 ffff883f7fb43da8 ffffffff810ac83f
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: 0000000000000005
->> ffffffff81adb680 ffff883f7fb43dc0 ffffffff810af179
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: 0000000000000006
->> ffff883f7fb43df0 ffffffff810e1c10 ffff883f7fb57b80
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: Call Trace:
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: <IRQ>  [<ffffffff810ac83f>]
->> sched_show_task+0xaf/0x110
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810af179>]
->> dump_cpu_task+0x39/0x40
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810e1c10>]
->> rcu_dump_cpu_stacks+0x80/0xb0
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810e6040>]
->> rcu_check_callbacks+0x540/0x820
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810afd51>] ?
->> account_system_time+0x81/0x110
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810fa9a0>] ?
->> tick_sched_do_timer+0x50/0x50
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810eb4d9>]
->> update_process_times+0x39/0x60
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810fa755>]
->> tick_sched_handle.isra.17+0x25/0x60
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810fa9dd>]
->> tick_sched_timer+0x3d/0x70
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810ec0c2>]
->> __hrtimer_run_queues+0x102/0x290
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810ec5a8>]
->> hrtimer_interrupt+0xa8/0x1a0
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff81052c65>]
->> local_apic_timer_interrupt+0x35/0x60
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff8172343d>]
->> smp_apic_timer_interrupt+0x3d/0x50
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff817216f7>]
->> apic_timer_interrupt+0x87/0x90
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: <EOI>  [<ffffffff810d70fe>]
->> ? console_unlock+0x41e/0x4e0
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810d74bc>]
->> vprintk_emit+0x2fc/0x500
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff810d783f>]
->> vprintk_default+0x1f/0x30
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff81174c2a>] printk+0x5d/0x74
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff814bc351>]
->> transport_lookup_cmd_lun+0x1d1/0x200
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff814edcf0>]
->> iscsit_setup_scsi_cmd+0x230/0x540
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffffa0890bf3>]
->> isert_rx_do_work+0x3f3/0x7f0 [ib_isert]
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffffa0891174>]
->> isert_cq_work+0x184/0x770 [ib_isert]
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff8109734f>]
->> process_one_work+0x14f/0x400
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff81097bc4>]
->> worker_thread+0x114/0x470
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff8171c55a>] ?
->> __schedule+0x34a/0x7f0
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff81097ab0>] ?
->> rescuer_thread+0x310/0x310
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff8109d708>] kthread+0xd8/0xf0
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff8109d630>] ?
->> kthread_park+0x60/0x60
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff81720c8f>]
->> ret_from_fork+0x3f/0x70
->> Oct 17 15:43:12 prv-0-12-sanstack kernel: [<ffffffff8109d630>] ?
->> kthread_park+0x60/0x60
->>
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: INFO: rcu_sched
->> self-detected stall on CPU
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: #01128-...: (5999 ticks this
->> GP) idle=2f9/140000000000001/0 softirq=457/457 fqs=4830
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: #011 (t=6000 jiffies g=3546
->> c=3545 q=0)
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: Task dump for CPU 28:
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: iscsi_np        R  running
->> task        0 16597      2 0x0000000c
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: ffff887f40350000
->> 00000000b98a67bb ffff887f7f503da8 ffffffff810ac8ff
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: 000000000000001c
->> ffffffff81adb680 ffff887f7f503dc0 ffffffff810af239
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: 000000000000001d
->> ffff887f7f503df0 ffffffff810e1cd0 ffff887f7f517b80
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: Call Trace:
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: <IRQ>  [<ffffffff810ac8ff>]
->> sched_show_task+0xaf/0x110
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810af239>]
->> dump_cpu_task+0x39/0x40
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810e1cd0>]
->> rcu_dump_cpu_stacks+0x80/0xb0
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810e6100>]
->> rcu_check_callbacks+0x540/0x820
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810afe11>] ?
->> account_system_time+0x81/0x110
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810faa60>] ?
->> tick_sched_do_timer+0x50/0x50
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810eb599>]
->> update_process_times+0x39/0x60
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810fa815>]
->> tick_sched_handle.isra.17+0x25/0x60
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810faa9d>]
->> tick_sched_timer+0x3d/0x70
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810ec182>]
->> __hrtimer_run_queues+0x102/0x290
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810ec668>]
->> hrtimer_interrupt+0xa8/0x1a0
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff81052c65>]
->> local_apic_timer_interrupt+0x35/0x60
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff81723cbd>]
->> smp_apic_timer_interrupt+0x3d/0x50
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff81721f77>]
->> apic_timer_interrupt+0x87/0x90
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: <EOI>  [<ffffffff810d71be>]
->> ? console_unlock+0x41e/0x4e0
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810d757c>]
->> vprintk_emit+0x2fc/0x500
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff810d78ff>]
->> vprintk_default+0x1f/0x30
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff81174dde>] printk+0x5d/0x74
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff814e71ad>]
->> iscsi_target_locate_portal+0x62d/0x6f0
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff814e5100>]
->> iscsi_target_login_thread+0x6f0/0xfc0
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff814e4a10>] ?
->> iscsi_target_login_sess_out+0x250/0x250
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff8109d7c8>] kthread+0xd8/0xf0
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff8109d6f0>] ?
->> kthread_park+0x60/0x60
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff8172150f>]
->> ret_from_fork+0x3f/0x70
->> Oct 17 16:34:03 prv-0-12-sanstack kernel: [<ffffffff8109d6f0>] ?
->> kthread_park+0x60/0x60
->>
->> I don't think this one is related, but it happened a couple of times:
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: INFO: rcu_sched
->> self-detected stall on CPU
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: #01119-...: (5999 ticks this
->> GP) idle=727/140000000000001/0 softirq=1346/1346 fqs=4990
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: #011 (t=6000 jiffies g=4295
->> c=4294 q=0)
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: Task dump for CPU 19:
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: kworker/19:1    R  running
->> task        0   301      2 0x00000008
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: Workqueue:
->> events_power_efficient fb_flashcursor
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: ffff883f6009ca80
->> 00000000010a7cdd ffff883f7fcc3da8 ffffffff810ac8ff
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: 0000000000000013
->> ffffffff81adb680 ffff883f7fcc3dc0 ffffffff810af239
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: 0000000000000014
->> ffff883f7fcc3df0 ffffffff810e1cd0 ffff883f7fcd7b80
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: Call Trace:
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: <IRQ>  [<ffffffff810ac8ff>]
->> sched_show_task+0xaf/0x110
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810af239>]
->> dump_cpu_task+0x39/0x40
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810e1cd0>]
->> rcu_dump_cpu_stacks+0x80/0xb0
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810e6100>]
->> rcu_check_callbacks+0x540/0x820
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810afe11>] ?
->> account_system_time+0x81/0x110
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810faa60>] ?
->> tick_sched_do_timer+0x50/0x50
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810eb599>]
->> update_process_times+0x39/0x60
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810fa815>]
->> tick_sched_handle.isra.17+0x25/0x60
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810faa9d>]
->> tick_sched_timer+0x3d/0x70
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810ec182>]
->> __hrtimer_run_queues+0x102/0x290
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff810ec668>]
->> hrtimer_interrupt+0xa8/0x1a0
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff81052c65>]
->> local_apic_timer_interrupt+0x35/0x60
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff81723cbd>]
->> smp_apic_timer_interrupt+0x3d/0x50
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff81721f77>]
->> apic_timer_interrupt+0x87/0x90
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: <EOI>  [<ffffffff810d71be>]
->> ? console_unlock+0x41e/0x4e0
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff813866ad>]
->> fb_flashcursor+0x5d/0x140
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8138bc00>] ?
->> bit_clear+0x110/0x110
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8109740f>]
->> process_one_work+0x14f/0x400
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff81097c84>]
->> worker_thread+0x114/0x470
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8171cdda>] ?
->> __schedule+0x34a/0x7f0
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff81097b70>] ?
->> rescuer_thread+0x310/0x310
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8109d7c8>] kthread+0xd8/0xf0
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8109d6f0>] ?
->> kthread_park+0x60/0x60
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8172150f>]
->> ret_from_fork+0x3f/0x70
->> Oct 17 11:46:52 prv-0-12-sanstack kernel: [<ffffffff8109d6f0>] ?
->> kthread_park+0x60/0x60
->
-> RCU self-detected schedule stalls typically mean some code is
-> monopolizing execution on a specific CPU for an extended period of time
-> (eg: endless loop), preventing normal RCU grace-period callbacks from
-> running in a timely manner.
->
-> It's hard to tell without more log context and/or crashdump what was
-> going on here.
->
+>> This comment should be preserved in some way.  In addition, removing
+> 
+> Could you clarify what you think should be retained?
+> 
+> The comment seems to me to be largely rendered redundant by this change -
+> get_user_pages() now offers identical behaviour, and of course the latter part
+> of the comment ('because it cannot pass FAULT_FLAG_ALLOW_RETRY') is rendered
+> incorrect by this change.
+> 
+> It could be replaced with a recommendation to make use of VM_FAULT_RETRY logic
+> if possible.
+
+Yes, exactly.  locked == NULL should be avoided whenever mmap_sem can 
+be dropped, and the comment indirectly said so.  Now most of those cases
+actually are those where you can just call get_user_pages_unlocked.
+
+>> get_user_pages_locked() makes it harder (compared to a simple "git grep
+>> -w") to identify callers that lack allow-retry functionality).  So I'm
+>> not sure about the benefits of these patches.
+> 
+> That's a fair point, and certainly this cleanup series is less obviously helpful
+> than previous ones.
+> 
+> However, there are a few points in its favour:
+> 
+> 1. get_user_pages_remote() was the mirror of get_user_pages() prior to adding an
+>    int *locked parameter to the former (necessary to allow for the unexport of
+>    __get_user_pages_unlocked()), differing only in task/mm being specified and
+>    FOLL_REMOTE being set. This patch series keeps these functions 'synchronised'
+>    in this respect.
+> 
+> 2. There is currently only one caller of get_user_pages_locked() in
+>    mm/frame_vector.c which seems to suggest this function isn't widely
+>    used/known.
+
+Or not widely necessary. :)
+
+> 3. This change results in all slow-path get_user_pages*() functions having the
+>    ability to use VM_FAULT_RETRY logic rather than 'defaulting' to using
+>    get_user_pages() that doesn't let you do this even if you wanted to.
+
+This is only true if someone does the work though.  From a quick look 
+at your series, the following files can be trivially changed to use 
+get_user_pages_unlocked:
+
+- drivers/gpu/drm/via/via_dmablit.c
+- drivers/platform/goldfish/goldfish_pipe.c
+- drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+- drivers/rapidio/devices/rio_mport_cdev.c
+- drivers/virt/fsl_hypervisor.c
+
+Also, videobuf_dma_init_user could be changed to use retry by adding a 
+*locked argument to videobuf_dma_init_user_locked, prototype patch 
+after my signature.
+
+Everything else is probably best kept using get_user_pages.
+
+> 4. It's somewhat confusing/redundant having both get_user_pages_locked() and
+>    get_user_pages() functions which both require mmap_sem to be held (i.e. both
+>    are 'locked' versions.)
+> 
+>> If all callers were changed, then sure removing the _locked suffix would
+>> be a good idea.
+> 
+> It seems many callers cannot release mmap_sem so VM_FAULT_RETRY logic couldn't
+> happen anyway in this cases and in these cases we couldn't change the caller.
+
+But then get_user_pages_locked remains a less-common case, so perhaps 
+it's a good thing to give it a longer name!
+
+> Overall, an alternative here might be to remove get_user_pages() and update
+> get_user_pages_locked() to add a 'vmas' parameter, however doing this renders
+> get_user_pages_unlocked() asymmetric as it would lack an vmas parameter (adding
+> one there would make no sense as VM_FAULT_RETRY logic invalidates VMAs) though
+> perhaps not such a big issue as it makes sense as to why this is the case.
+
+Adding the 'vmas' parameter to get_user_pages_locked would make little 
+sense.  Since VM_FAULT_RETRY invalidates it and g_u_p_locked can and 
+does retry, it would generally not be useful.
+
+So I think we have the right API now:
+
+- do not have lock?  Use get_user_pages_unlocked, get retry for free,
+no need to handle  mmap_sem and the locked argument; cannot get back vmas.
+
+- have and cannot drop lock?  User get_user_pages, no need to pass NULL 
+for the locked argument; can get back vmas.
+
+- have but can drop lock (rare case)?  Use get_user_pages_locked, 
+cannot get back vams.
+
+Paolo
+
+> get_user_pages_unlocked() definitely seems to be a useful helper and therefore
+> makes sense to retain.
+
+> Of course another alternative is to leave things be :)
+> 
+
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 1db0af6c7f94..dae4eb8e9d5b 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -152,7 +152,8 @@ static void videobuf_dma_init(struct videobuf_dmabuf *dma)
+ }
+ 
+ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+-			int direction, unsigned long data, unsigned long size)
++			int direction, unsigned long data, unsigned long size,
++			int *locked)
+ {
+ 	unsigned long first, last;
+ 	int err, rw = 0;
+@@ -185,8 +186,17 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
+ 		data, size, dma->nr_pages);
+ 
+-	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
+-			     flags, dma->pages, NULL);
++	if (locked && !*locked) {
++		down_read(&current->mm->mmap_sem);
++		*locked = 1;
++	}
++
++	/*
++	 * If the caller cannot have mmap_sem dropped, it passes locked == NULL
++	 * so get_user_pages_locked will not release it.
++	 */
++	err = get_user_pages_locked(data & PAGE_MASK, dma->nr_pages,
++				    flags, dma->pages, locked);
+ 
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
+@@ -200,10 +210,11 @@ static int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
+ 			   unsigned long data, unsigned long size)
+ {
+ 	int ret;
++	int locked = 0;
+ 
+-	down_read(&current->mm->mmap_sem);
+-	ret = videobuf_dma_init_user_locked(dma, direction, data, size);
+-	up_read(&current->mm->mmap_sem);
++	ret = videobuf_dma_init_user_locked(dma, direction, data, size, &locked);
++	if (locked)
++		up_read(&current->mm->mmap_sem);
+ 
+ 	return ret;
+ }
+@@ -540,7 +551,7 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+ 
+ 			err = videobuf_dma_init_user_locked(&mem->dma,
+ 						      DMA_FROM_DEVICE,
+-						      vb->baddr, vb->bsize);
++						      vb->baddr, vb->bsize, NULL);
+ 			if (0 != err)
+ 				return err;
+ 		}
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
