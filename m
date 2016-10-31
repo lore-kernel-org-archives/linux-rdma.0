@@ -1,61 +1,64 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: [PATCH 0/3] target: Fix queue-full callback error signaling
-Date: Mon, 31 Oct 2016 05:25:51 +0000
-Message-ID: <1477891554-26222-1-git-send-email-nab@linux-iscsi.org>
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: target-devel <target-devel@vger.kernel.org>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>, Steve Wise <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>, Nicholas Bellinger <nab@linux-iscsi.org>
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: [PATCH 0/2] mm: remove get_user_pages_locked()
+Date: Mon, 31 Oct 2016 10:02:26 +0000
+Message-ID: <20161031100228.17917-1-lstoakes@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: linux-mm@kvack.org
+Cc: devel@driverdev.osuosl.org, linux-ia64@vger.kernel.org, Rik van Riel <riel@redhat.com>, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, linux-cris-kernel@axis.com, linux-rdma@vger.kernel.org, Mel Gorman <mgorman@techsingularity.net>, Dave Hansen <dave.hansen@linux.intel.com>, Hugh Dickins <hughd@google.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Bellinger <nab@linux-iscsi.org>
+by adding an int *locked parameter to get_user_pages() callers to this function
+can now utilise VM_FAULT_RETRY functionality.
 
-Hi folks,
+Taken in conjunction with the patch series adding the same parameter to
+get_user_pages_remote() this means all slow-path get_user_pages*() functions
+will now have the ability to utilise VM_FAULT_RETRY.
 
-This series contains target-core queue-full + iscsi-target
-callback fixes for a bug reported by Steve and Potnuri
-during recent v4.8.y iWARP/iser-target testing.
+Additionally get_user_pages() and get_user_pages_remote() previously mirrored
+one another in functionality differing only in the ability to specify task/mm,
+this patch series reinstates this relationship.
 
-The first patch fixes target-core queue-full handling response
-leaks with non -EAGAIN / -ENOMEM errors.  It uses a new state
-TRANSPORT_COMPLETE_QF_ERR to internally generate CHECK_CONDITION
-for unknown fabric callback errors, to avoid attempting retry
-of fabric data-transfer callbacks for this special case.
+This patch series should not introduce any functional changes.
 
-This means all non -EAGAIN / -ENOMEM fabric callback errors
-during target_core_fabric_ops for:
+Lorenzo Stoakes (2):
+  mm: add locked parameter to get_user_pages()
+  mm: remove get_user_pages_locked()
 
-  *) ->write_pending()
-  *) ->queue_data_in()
-  *) ->queue_status()
-
-will result in CHECK_CONDITION + LOGICAL_UNIT_COMMUNICATION_FAILURE,
-if no non-zero se_cmd->scsi_status was previously set.
-It also means target-core ->queue_status() errors retry indefinately,
-or until session shutdown explicitly stops outstanding I/O.
-
-The remaining changes are for propagating iscsit_transport
-response failure back to target-core queue-full, and updating
-iser-target to propagate isert_rdma_rw_ctx_post() errors from
-RDMA R/W API back to target-core as well.
-
-Please review.
-
---nab
-
-Nicholas Bellinger (3):
-  target: Fix unknown fabric callback queue-full errors
-  iscsi-target: Propigate queue_data_in + queue_status errors
-  iser-target: Fix queue-full response handling
-
- drivers/infiniband/ulp/isert/ib_isert.c      |  53 +++++++++-----
- drivers/target/iscsi/iscsi_target.c          |   3 +-
- drivers/target/iscsi/iscsi_target_configfs.c |  13 ++--
- drivers/target/iscsi/iscsi_target_util.c     |   5 +-
- drivers/target/iscsi/iscsi_target_util.h     |   2 +-
- drivers/target/target_core_transport.c       | 102 ++++++++++++++++++---------
- include/target/target_core_base.h            |   1 +
- 7 files changed, 114 insertions(+), 65 deletions(-)
-
--- 
-1.9.1
+ arch/cris/arch-v32/drivers/cryptocop.c             |  2 +
+ arch/ia64/kernel/err_inject.c                      |  2 +-
+ arch/x86/mm/mpx.c                                  |  2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c            |  2 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c                |  2 +-
+ drivers/gpu/drm/via/via_dmablit.c                  |  2 +-
+ drivers/infiniband/core/umem.c                     |  2 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c        |  3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c         |  2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c           |  2 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c          |  2 +-
+ drivers/misc/mic/scif/scif_rma.c                   |  1 +
+ drivers/misc/sgi-gru/grufault.c                    |  3 +-
+ drivers/platform/goldfish/goldfish_pipe.c          |  2 +-
+ drivers/rapidio/devices/rio_mport_cdev.c           |  2 +-
+ .../interface/vchiq_arm/vchiq_2835_arm.c           |  3 +-
+ .../vc04_services/interface/vchiq_arm/vchiq_arm.c  |  3 +-
+ drivers/virt/fsl_hypervisor.c                      |  2 +-
+ include/linux/mm.h                                 |  4 +-
+ mm/frame_vector.c                                  |  4 +-
+ mm/gup.c                                           | 62 ++++++++--------------
+ mm/ksm.c                                           |  3 +-
+ mm/mempolicy.c                                     |  2 +-
+ mm/nommu.c                                         | 10 +---
+ virt/kvm/kvm_main.c                                |  4 +-
+ 25 files changed, 55 insertions(+), 73 deletions(-)
