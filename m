@@ -1,82 +1,143 @@
-From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IBcore/CM: Issue DREQ when receiving REQ/REP for stale QP
-Date: Sun, 30 Oct 2016 21:52:32 -0700
-Message-ID: <d75248c6-39e2-5856-c76f-1598a6d4e2ba@oracle.com>
-References: <1477653269-27359-1-git-send-email-hans.westgaard.ry@oracle.com>
- <8df2c90e-8581-4ce8-fd18-92ac57eb6160@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: [PATCH 3/3] iser-target: Fix queue-full response handling
+Date: Mon, 31 Oct 2016 05:25:54 +0000
+Message-ID: <1477891554-26222-4-git-send-email-nab@linux-iscsi.org>
+References: <1477891554-26222-1-git-send-email-nab@linux-iscsi.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8df2c90e-8581-4ce8-fd18-92ac57eb6160-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1477891554-26222-1-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hakon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/30/16 2:06 PM, Sagi Grimberg wrote:
->> from "InfiBand Architecture Specifications Volume 1":
->>
->>   A QP is said to have a stale connection when only one side has
->>   connection information. A stale connection may result if the remote CM
->>   had dropped the connection and sent a DREQ but the DREQ was never
->>   received by the local CM. Alternatively the remote CM may have lost
->>   all record of past connections because its node crashed and rebooted,
->>   while the local CM did not become aware of the remote node's reboot
->>   and therefore did not clean up stale connections.
->>
->> and:
->>
->>    A local CM may receive a REQ/REP for a stale connection. It shall
->>    abort the connection issuing REJ to the REQ/REP. It shall then issue
->>    DREQ with "DREQ:remote QPN” set to the remote QPN from the REQ/REP.
->>
->> This patch solves a problem with reuse of QPN. Current codebase, that
->> is IPoIB, relies on a REAP-mechanism to do cleanup of the structures
->> in CM. A problem with this is the timeconstants governing this
->> mechanism; they are up to 768 seconds and the interface may look
->> inresponsive in that period.  Issuing a DREQ (and receiving a DREP)
->> does the necessary cleanup and the interface comes up.
->
-> I like this fix, so,
->
-Me too and hence suggested Hans to post it on rdma list when
-saw this patch in internal review.
+From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 
-> Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->
-> But I think the CM layer still is buggy in this area.
->
-> In vol 1 the state transition table specifically states that DREP
-> timeouts should move the cm_id to timewait state but the CM doesn't
-> seem to maintain response timeouts on disconnect requests. If the
-> DREQ happened to fail (send error completion) things are fine, but
-> if the DREQ makes it to the peer but it doesn't reply then no one
-> will take care of it (i.e. we will never see a TIMEWAIT event from
-> this cm_id)...
->
-> I recall some debugging session with Hal on this area a ~year ago
-> with a new iser target (which didn't reply to DREQs on reboot
-> sequences). iser initiator waits for a DISCONNECTED/TIMEWAIT events
-> before destroying the cm_id (which never happened because of the
-> above). I think I ended up working around that in iser to just go
-> ahead and destroy the cm_id after issuing a DREQ (but now I realize
-> it was never included so I'll probably dig it up again soon).
+This patch addresses two queue-full handling bugs in iser-target.
 
-There is another fundamental issue with core CM code wrt DREQ
-getting dropped. The the mad agent used to send the DREQ is
-associated with a port and if this port is down, the IB link
-layer will drop that DREQ as per SPEC. Similarly if the destination
-port is down where the DREQ is suppose to reach, then the DREQ
-gets dropped there too. These dropped CM ids are retried by MAD
-agent on same port till the port comes back alive.
+The first is propagating isert_rdma_rw_ctx_post() return back
+to target-core via isert_put_datain() + isert_get_dataout()
+callbacks, in order to trigger queue-full logic in target-core.
+Note target-core expects -EAGAIN or -ENOMEM error to signal
+RDMA WRITE/READ data-transfer callbacks should be retried,
+after queue-full logic been invoked.
 
-Am not sure in your case the ports were going down or not
-but it was the case then IIUC, what you are doing for ISER is
-still needed (up front destroying the cm id).
+Other types of errors propagated up from RDMA RW API will result
+in target-core generating internal CHECK_CONDITION status,
+avoiding subsequent isert_put_datain() and isert_get_dataout()
+iscsit_transport callback retry attempts.
 
-Regards,
-Santosh
+The second is to use transport_generic_request_failure()
+during T10-PI hw-offload errors in isert_rdma_write_done()
+and isert_rdma_read_done(), so CHECK_CONDITION queue-full
+is handled internally by target-core.
 
+Also add isert_put_response() T10-PI failure case fixme in
+isert_rdma_write_done(), which is currently not internally
+retried or released until session reinstatement.
+
+Reported-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Reported-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Signed-off-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c | 53 ++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 6dd43f6..e658248 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -1666,10 +1666,23 @@
+ 	ret = isert_check_pi_status(cmd, isert_cmd->rw.sig->sig_mr);
+ 	isert_rdma_rw_ctx_destroy(isert_cmd, isert_conn);
+ 
+-	if (ret)
+-		transport_send_check_condition_and_sense(cmd, cmd->pi_err, 0);
+-	else
+-		isert_put_response(isert_conn->conn, isert_cmd->iscsi_cmd);
++	if (ret) {
++		/*
++		 * transport_generic_request_failure() expects to have
++		 * plus two references to handle queue-full, so re-add
++		 * one here as target-core will have already dropped
++		 * it after the first isert_put_datain() callback.
++		 */
++		kref_get(&cmd->cmd_kref);
++		transport_generic_request_failure(cmd, cmd->pi_err);
++	} else {
++		/*
++		 * XXX: isert_put_response() failure is not retried.
++		 */
++		ret = isert_put_response(isert_conn->conn, isert_cmd->iscsi_cmd);
++		if (ret)
++			pr_warn_ratelimited("isert_put_response() ret: %d\n", ret);
++	}
+ }
+ 
+ static void
+@@ -1706,13 +1719,15 @@
+ 	cmd->i_state = ISTATE_RECEIVED_LAST_DATAOUT;
+ 	spin_unlock_bh(&cmd->istate_lock);
+ 
+-	if (ret) {
+-		target_put_sess_cmd(se_cmd);
+-		transport_send_check_condition_and_sense(se_cmd,
+-							 se_cmd->pi_err, 0);
+-	} else {
++	/*
++	 * transport_generic_request_failure() will drop the extra
++	 * se_cmd->cmd_kref reference after T10-PI error, and handle
++	 * any non-zero ->queue_status() callback error retries.
++	 */
++	if (ret)
++		transport_generic_request_failure(se_cmd, se_cmd->pi_err);
++	else
+ 		target_execute_cmd(se_cmd);
+-	}
+ }
+ 
+ static void
+@@ -2172,26 +2187,28 @@
+ 		chain_wr = &isert_cmd->tx_desc.send_wr;
+ 	}
+ 
+-	isert_rdma_rw_ctx_post(isert_cmd, isert_conn, cqe, chain_wr);
+-	isert_dbg("Cmd: %p posted RDMA_WRITE for iSER Data READ\n", isert_cmd);
+-	return 1;
++	rc = isert_rdma_rw_ctx_post(isert_cmd, isert_conn, cqe, chain_wr);
++	isert_dbg("Cmd: %p posted RDMA_WRITE for iSER Data READ rc: %d\n",
++		  isert_cmd, rc);
++	return rc;
+ }
+ 
+ static int
+ isert_get_dataout(struct iscsi_conn *conn, struct iscsi_cmd *cmd, bool recovery)
+ {
+ 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
++	int ret;
+ 
+ 	isert_dbg("Cmd: %p RDMA_READ data_length: %u write_data_done: %u\n",
+ 		 isert_cmd, cmd->se_cmd.data_length, cmd->write_data_done);
+ 
+ 	isert_cmd->tx_desc.tx_cqe.done = isert_rdma_read_done;
+-	isert_rdma_rw_ctx_post(isert_cmd, conn->context,
+-			&isert_cmd->tx_desc.tx_cqe, NULL);
++	ret = isert_rdma_rw_ctx_post(isert_cmd, conn->context,
++				     &isert_cmd->tx_desc.tx_cqe, NULL);
+ 
+-	isert_dbg("Cmd: %p posted RDMA_READ memory for ISER Data WRITE\n",
+-		 isert_cmd);
+-	return 0;
++	isert_dbg("Cmd: %p posted RDMA_READ memory for ISER Data WRITE rc: %d\n",
++		 isert_cmd, ret);
++	return ret;
+ }
+ 
+ static int
+-- 
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
