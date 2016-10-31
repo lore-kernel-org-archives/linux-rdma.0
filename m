@@ -1,204 +1,37 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 4/4] IB/mlx5: Update the rate limit according to user setting for RAW QP
-Date: Mon, 31 Oct 2016 12:21:37 +0200
-Message-ID: <1477909297-14491-5-git-send-email-leon@kernel.org>
-References: <1477909297-14491-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 1/2] net/mlx5: Report multi packet WQE capabilities
+Date: Mon, 31 Oct 2016 12:15:20 +0200
+Message-ID: <1477908921-12222-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1477909297-14491-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-- Add MODIFY_QP_EX CMD to extend modify_qp.
-- Rate limit will be updated in the following state transactions: RTR2RTS,
-  RTS2RTS. The limit will be removed when SQ is in RST and ERR state.
+Multi packet WQE enables sending multiple fix sized packets
+using a single WQE. The exposed field reports such HW support.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    |  3 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
- drivers/infiniband/hw/mlx5/qp.c      | 71 ++++++++++++++++++++++++++++++++----
- 3 files changed, 66 insertions(+), 9 deletions(-)
+ include/linux/mlx5/mlx5_ifc.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index ed9d327..fd13786 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3025,7 +3025,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.uverbs_ex_cmd_mask =
- 		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
- 		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ)	|
--		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
-+		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP)	|
-+		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_QP);
- 
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index dcdcd19..0e43254 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -387,6 +387,7 @@ struct mlx5_ib_qp {
- 	struct list_head	qps_list;
- 	struct list_head	cq_recv_list;
- 	struct list_head	cq_send_list;
-+	u32			rate_limit;
- };
- 
- struct mlx5_ib_cq_buf {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 41f4c2a..148a26f 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -78,6 +78,7 @@ struct mlx5_wqe_eth_pad {
- 
- enum raw_qp_set_mask_map {
- 	MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID		= 1UL << 0,
-+	MLX5_RAW_QP_RATE_LIMIT			= 1UL << 1,
- };
- 
- struct mlx5_modify_raw_qp_param {
-@@ -85,6 +86,7 @@ struct mlx5_modify_raw_qp_param {
- 
- 	u32 set_mask; /* raw_qp_set_mask_map */
- 	u8 rq_q_ctr_id;
-+	u32 rate_limit;
- };
- 
- static void get_cqs(enum ib_qp_type qp_type,
-@@ -2443,8 +2445,14 @@ static int modify_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
- }
- 
- static int modify_raw_packet_qp_sq(struct mlx5_core_dev *dev,
--				   struct mlx5_ib_sq *sq, int new_state)
-+				   struct mlx5_ib_sq *sq,
-+				   int new_state,
-+				   const struct mlx5_modify_raw_qp_param *raw_qp_param)
- {
-+	struct mlx5_ib_qp *ibqp = sq->base.container_mibqp;
-+	u32 old_rate = ibqp->rate_limit;
-+	u32 new_rate = old_rate;
-+	u16 rl_index = 0;
- 	void *in;
- 	void *sqc;
- 	int inlen;
-@@ -2460,10 +2468,42 @@ static int modify_raw_packet_qp_sq(struct mlx5_core_dev *dev,
- 	sqc = MLX5_ADDR_OF(modify_sq_in, in, ctx);
- 	MLX5_SET(sqc, sqc, state, new_state);
- 
-+	if (raw_qp_param->set_mask & MLX5_RAW_QP_RATE_LIMIT)
-+		new_rate = raw_qp_param->rate_limit;
-+
-+	if (old_rate != new_rate) {
-+		if (new_rate) {
-+			err = mlx5_rl_add_rate(dev, new_rate, &rl_index);
-+			if (err) {
-+				pr_err("Failed configuring rate %u: %d\n",
-+				       new_rate, err);
-+				goto out;
-+			}
-+		}
-+
-+		MLX5_SET64(modify_sq_in, in, modify_bitmask, 1);
-+		MLX5_SET(sqc, sqc, packet_pacing_rate_limit_index, rl_index);
-+	}
-+
- 	err = mlx5_core_modify_sq(dev, sq->base.mqp.qpn, in, inlen);
--	if (err)
-+	if (err) {
-+		/* Remove new rate from table if failed */
-+		if (new_rate &&
-+		    old_rate != new_rate)
-+			mlx5_rl_remove_rate(dev, new_rate);
- 		goto out;
-+	}
-+
-+	if ((new_state == MLX5_SQC_STATE_ERR) ||
-+	    (new_state == MLX5_SQC_STATE_RST))
-+		new_rate = 0;
- 
-+	/* Only remove the old rate after new rate was set */
-+	if (old_rate &&
-+	    old_rate != new_rate)
-+		mlx5_rl_remove_rate(dev, old_rate);
-+
-+	ibqp->rate_limit = new_rate;
- 	sq->state = new_state;
- 
- out:
-@@ -2478,6 +2518,8 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	struct mlx5_ib_raw_packet_qp *raw_packet_qp = &qp->raw_packet_qp;
- 	struct mlx5_ib_rq *rq = &raw_packet_qp->rq;
- 	struct mlx5_ib_sq *sq = &raw_packet_qp->sq;
-+	int modify_rq = !!qp->rq.wqe_cnt;
-+	int modify_sq = !!qp->sq.wqe_cnt;
- 	int rq_state;
- 	int sq_state;
- 	int err;
-@@ -2495,10 +2537,18 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		rq_state = MLX5_RQC_STATE_RST;
- 		sq_state = MLX5_SQC_STATE_RST;
- 		break;
--	case MLX5_CMD_OP_INIT2INIT_QP:
--	case MLX5_CMD_OP_INIT2RTR_QP:
- 	case MLX5_CMD_OP_RTR2RTS_QP:
- 	case MLX5_CMD_OP_RTS2RTS_QP:
-+		if (raw_qp_param->set_mask ==
-+		    MLX5_RAW_QP_RATE_LIMIT) {
-+			modify_rq = 0;
-+			sq_state = sq->state;
-+		} else {
-+			return raw_qp_param->set_mask ? -EINVAL : 0;
-+		}
-+		break;
-+	case MLX5_CMD_OP_INIT2INIT_QP:
-+	case MLX5_CMD_OP_INIT2RTR_QP:
- 		if (raw_qp_param->set_mask)
- 			return -EINVAL;
- 		else
-@@ -2508,13 +2558,13 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		return -EINVAL;
- 	}
- 
--	if (qp->rq.wqe_cnt) {
--		err = modify_raw_packet_qp_rq(dev, rq, rq_state, raw_qp_param);
-+	if (modify_rq) {
-+		err =  modify_raw_packet_qp_rq(dev, rq, rq_state, raw_qp_param);
- 		if (err)
- 			return err;
- 	}
- 
--	if (qp->sq.wqe_cnt) {
-+	if (modify_sq) {
- 		if (tx_affinity) {
- 			err = modify_raw_packet_tx_affinity(dev->mdev, sq,
- 							    tx_affinity);
-@@ -2522,7 +2572,7 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 				return err;
- 		}
- 
--		return modify_raw_packet_qp_sq(dev->mdev, sq, sq_state);
-+		return modify_raw_packet_qp_sq(dev->mdev, sq, sq_state, raw_qp_param);
- 	}
- 
- 	return 0;
-@@ -2777,6 +2827,11 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 			raw_qp_param.rq_q_ctr_id = mibport->q_cnt_id;
- 			raw_qp_param.set_mask |= MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID;
- 		}
-+
-+		if (attr_mask & IB_QP_RATE_LIMIT) {
-+			raw_qp_param.rate_limit = attr->rate_limit;
-+			raw_qp_param.set_mask |= MLX5_RAW_QP_RATE_LIMIT;
-+		}
- 		err = modify_raw_packet_qp(dev, qp, &raw_qp_param, tx_affinity);
- 	} else {
- 		err = mlx5_core_qp_modify(dev->mdev, op, optpar, context,
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 6045d4d..2def5b9 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -556,7 +556,7 @@ struct mlx5_ifc_per_protocol_networking_offload_caps_bits {
+ 	u8         self_lb_en_modifiable[0x1];
+ 	u8         reserved_at_9[0x2];
+ 	u8         max_lso_cap[0x5];
+-	u8         reserved_at_10[0x2];
++	u8         multi_pkt_send_wqe[0x2];
+ 	u8	   wqe_inline_mode[0x2];
+ 	u8         rss_ind_tbl_cap[0x4];
+ 	u8         reg_umr_sq[0x1];
 -- 
 2.7.4
 
