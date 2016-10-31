@@ -1,131 +1,104 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] qedr: Fix possible memory leak in qedr_create_qp()
-Date: Mon, 31 Oct 2016 07:33:18 +0200
-Message-ID: <20161031053318.GU3617@leon.nu>
-References: <1477672427-31575-1-git-send-email-weiyj.lk@gmail.com>
+Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Mon, 31 Oct 2016 08:54:41 +0200
+Message-ID: <20161031065441.GY3617@leon.nu>
+References: <20161013231413.GA32534@mtj.duckdns.org>
+ <CAG53R5UciPpa5d8BWyR-tks3LBrBwRCN2NyBbbm1e3EE-OWSYQ@mail.gmail.com>
+ <20161018215134.GB2761@htj.duckdns.org>
+ <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
+ <20161019143345.GA18532@htj.duckdns.org>
+ <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
+ <20161019192006.GB3044@htj.duckdns.org>
+ <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
+ <20161019200536.GC3044@htj.duckdns.org>
+ <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="6wUvnnXCCq76soZt"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="9Hhx61DPNOHVwUu9"
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1477672427-31575-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---6wUvnnXCCq76soZt
+--9Hhx61DPNOHVwUu9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 28, 2016 at 04:33:47PM +0000, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+On Thu, Oct 20, 2016 at 01:48:27AM +0530, Parav Pandit wrote:
+> On Thu, Oct 20, 2016 at 1:35 AM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > Hello, Parav.
+> >
+> > On Thu, Oct 20, 2016 at 01:24:42AM +0530, Parav Pandit wrote:
+> >> userland can get the max numbers using other framework which is used
+> >> by control & data plane available in C library form or in form of
+> >> system tools.
+> >> I was preferring to get and set through same interface because,
+> >> It simplifies user land software which is often not written in C so
+> >> its likely that it needs to rely on system tools and parse the
+> >> content, iterate through devices etc.
+> >> Getting these info through rdma.max just makes it simple. There will
+> >> be logic built to read/write rdma.max in userland anyway, which can be
+> >> leveraged for percentage calculation instead of doing it from two
+> >> places.
+> >
+> > Yeah, I get that this can be convenient in this case but it isn't a
+> > generic approach.  I'd much prefer keeping it in line with other
+> > resources.
+> >
+> Hmm. we don't have /proc/sys/kernel/pid_max type of simple interface
+> to get the max values for rdma resources.
+> rdma.max is close to that simplicity.
+
+Sorry for my late response (very long weekends and piles of mails after it)=
+ and
+for not clarifying our requirements better, which are very simple.
+
+1. We will have vendor specific vendors objects in the future (new ABI
+support it and designed for that).
+2. We don't want to fight for every addition of such objects to cgroup list.
+3. We don't want to teach and/or rewrite scripts for "average" user after
+addition of new objects.
+4. Cgroup configuration should be as close as possible to "standard" if
+such exists, so all infinite internet guides will work for RDMA too.
+
+=46rom my understanding of current status.
+My naive approach of introducing GLOBAL_HCA object is the way to go and the=
+ real question
+is to understand how to configure it, am I right?
+
 >
-> 'qp' is malloced in qedr_create_qp() and should be freed before leaving
-> from the error handling cases, otherwise it will cause memory leak.
 >
-> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-
-
-Hi Ram,
-
-While looking on this patch and associated code to it, I noticed the
-following code stack:
-
-qedr_create_qp
-	-->
-	dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
-		-->
-		qed_rdma_destroy_qp
-			-->
-			qed_roce_destroy_qp
-This function will check the QP state and return -INVAL and comment
-that this QP needs to be prepared before destroying it.
-
-However immediately after returning, you are calling to kfree(qp)
-without any checks.
-
-It looks like an error and it is worth to take a look on it.
-
-And did I miss the fix to memory leak posted during code review?
-
-Thanks
-
-> ---
->  drivers/infiniband/hw/qedr/verbs.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-> index a615142..b60f145 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -1477,6 +1477,7 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
->  	struct qedr_ucontext *ctx = NULL;
->  	struct qedr_create_qp_ureq ureq;
->  	struct qedr_qp *qp;
-> +	struct ib_qp *ibqp;
->  	int rc = 0;
 >
->  	DP_DEBUG(dev, QEDR_MSG_QP, "create qp: called from %s, pd=%p\n",
-> @@ -1486,13 +1487,13 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
->  	if (rc)
->  		return ERR_PTR(rc);
->
-> +	if (attrs->srq)
-> +		return ERR_PTR(-EINVAL);
-> +
->  	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
->  	if (!qp)
->  		return ERR_PTR(-ENOMEM);
->
-> -	if (attrs->srq)
-> -		return ERR_PTR(-EINVAL);
-> -
->  	DP_DEBUG(dev, QEDR_MSG_QP,
->  		 "create qp: sq_cq=%p, sq_icid=%d, rq_cq=%p, rq_icid=%d\n",
->  		 get_qedr_cq(attrs->send_cq),
-> @@ -1508,7 +1509,10 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
->  			       "create qp: unexpected udata when creating GSI QP\n");
->  			goto err0;
->  		}
-> -		return qedr_create_gsi_qp(dev, attrs, qp);
-> +		ibqp = qedr_create_gsi_qp(dev, attrs, qp);
-> +		if (IS_ERR(ibqp))
-> +			kfree(qp);
-> +		return ibqp;
->  	}
->
->  	memset(&in_params, 0, sizeof(in_params));
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Thanks.
+> >
+> > --
+> > tejun
 
---6wUvnnXCCq76soZt
+--9Hhx61DPNOHVwUu9
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYFteeAAoJEORje4g2clinZbQP/3mgPgC1VJczcEmpBgLfqAol
-QkSF60jQHeDQN/caUUaXVKZ8CcQ/rPp9GJdCmpyqVKRnnMf7ExXitziBGZzG6cMG
-GvmyhhsLnHOzDxYICg1bUGsa++o6QJuTQ3WVjcy/VX5XIolDQ8AlQDqCP7oHrVbb
-NDpz9rfHMitB7ZPTbxjb4IoqPtBXIZI3EMBRrNuEz2+JyhtFYgj6acXy6Wr6EClr
-kZcJMi2v9vSFMT2XCUaqyQFcSc2eVJ96QC2by/YNGuImnauZnOWrICvrVl76rT3c
-KFf+UFQial3AMdHKxdaOApFeY06oAwqpvpZ71NbyYgYGva+SsmKNi2X+klHIe09v
-g5pUFlQoLQlwqf263ua06U4sNyKw+uiA/CeHjvlaTH0IzDgyisfq+lJv40aF0OhQ
-aIP+mmB3afGc/ZZbyvaBYL9iG7aBOWZKO3PIKXvBi0Ex+c6Vi0doIPn+r3k8JjDx
-YDyNvlLN2SkvIsjSPQqzwVKul26KbjXJkcWkqADceOMXjzPGzlqHjwFgbowgClGJ
-78jMx80w8cYMD+kDDuituk1zCcIRKMmEXvvIvmgcjPerWWbXa0d5cKYLYHnVwIwt
-VJu1BIdNEqQkIPzcsHbc+ugxFaziaNNbJfDCXmLtYGeS7rcCxNQWMQIqOJg7U5W8
-VoHz1hFeNHLSYR8CCtAU
-=3SBf
+iQIcBAEBAgAGBQJYFuqxAAoJEORje4g2clinww4QAIg9kF8PdvmsOsYBS5Lc/lOy
+mZ416Deyc+Jnwsqp6aqfTAphd6yJQ4bBnPszanzyQ2tYvM206HhsFGPHHOAgyu5M
+FC+TePZrZhdcQJZV70l0K60PRJsGBMuZNma39Wt1P1Y5JBmBbBzb4zCfFND2gW7L
+ZCZMVb5wbakp/gwL3BSAvPZIRqIdGEJKmBIX5NeqYGwO1pA8bPWEjPntsrjvy2I+
+iywNHS/Ob49keVWUT+qfZqroETpvIzITJ63eaw+4i+CE7Inxb+z4b/6W85okWf3c
+NGbSTbh4q9Hgp/ZNK+ellsbciu+f3dBrcH4TPdbUV20MvKMvauGSri6G//Upy7qX
+FbiWfurOHBGT85jnd5BfQ34fJQcWV0ooqKEyJTFNabnTMQbA7ztGZufR0bOABn+2
+efOQTh0AA/qH3Fb3Rst13kldmjRemgv9qiv3HEuOmlhUavcvlI/yjeVNIkGXTjmS
+P+3z//ygDM4t2hwX4gdxWcL4d8zb0AB+0RnbbWMJchZCWQZgu2ywKJtT+60hjdre
+hr1M23WnsAbTMMH8aFA3DYDW7lL2uIQT7MJb2GqtLJqIdLFjrdEtg+Pa61T+Vg0i
+5m03w84qg/m8sIBqBidHZWlYeAYsMKGuzZiGLMRn2bSoy5/To7f0umLcR/nL5/U2
+vtaRtOxxxHDjNau7WH8o
+=m3fz
 -----END PGP SIGNATURE-----
 
---6wUvnnXCCq76soZt--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--9Hhx61DPNOHVwUu9--
