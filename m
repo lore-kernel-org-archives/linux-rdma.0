@@ -1,96 +1,48 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/4] IB/core: Support rate limit for packet
- pacing
-Date: Tue, 1 Nov 2016 12:06:08 +0200
-Message-ID: <20161101100607.GB3727@yuval-lap.uk.oracle.com>
-References: <1477909297-14491-1-git-send-email-leon@kernel.org>
- <1477909297-14491-3-git-send-email-leon@kernel.org>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH -next] qedr: Use list_move_tail instead of
+ list_del/list_add_tail
+Date: Tue, 1 Nov 2016 10:28:32 +0000
+Message-ID: <SN1PR07MB220793FF27CE4342A4775E2FF8A10@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1477757993-32186-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1477909297-14491-3-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1477757993-32186-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Two (extremely) minor suggestions inline.
-
-Yuval
-
-On Mon, Oct 31, 2016 at 12:21:35PM +0200, Leon Romanovsky wrote:
-> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Add new member rate_limit to ib_qp_attr, it shows the packet pacing rate
-
-Suggesting to replace with:
-Add new member rate_limit to ib_qp_attr which holds the packet pacing rate
-
-> in Kbps, 0 means unlimited.
-> 
-> IB_QP_RATE_LIMIT is added to ib_attr_mask, and it could be used by RAW
-
-Suggesting to replace with:
-IB_QP_RATE_LIMIT is added to ib_attr_mask and could be used by RAW
-
-> QPs when changing QP state from RTR to RTS, RTS to RTS.
-> 
-> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Using list_move_tail() instead of list_del() + list_add_tail().
+>=20
+> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/core/verbs.c | 2 ++
->  include/rdma/ib_verbs.h         | 2 ++
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index 8368764..3e688b3 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -1014,6 +1014,7 @@ static const struct {
->  						 IB_QP_QKEY),
->  				 [IB_QPT_GSI] = (IB_QP_CUR_STATE		|
->  						 IB_QP_QKEY),
-> +				 [IB_QPT_RAW_PACKET] = IB_QP_RATE_LIMIT,
->  			 }
->  		}
->  	},
-> @@ -1047,6 +1048,7 @@ static const struct {
->  						IB_QP_QKEY),
->  				[IB_QPT_GSI] = (IB_QP_CUR_STATE			|
->  						IB_QP_QKEY),
-> +				[IB_QPT_RAW_PACKET] = IB_QP_RATE_LIMIT,
->  			}
->  		},
->  		[IB_QPS_SQD]   = {
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 5ad43a4..a065361 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1102,6 +1102,7 @@ enum ib_qp_attr_mask {
->  	IB_QP_RESERVED2			= (1<<22),
->  	IB_QP_RESERVED3			= (1<<23),
->  	IB_QP_RESERVED4			= (1<<24),
-> +	IB_QP_RATE_LIMIT		= (1<<25),
->  };
->  
->  enum ib_qp_state {
-> @@ -1151,6 +1152,7 @@ struct ib_qp_attr {
->  	u8			rnr_retry;
->  	u8			alt_port_num;
->  	u8			alt_timeout;
-> +	u32			rate_limit;
->  };
->  
->  enum ib_wr_opcode {
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/infiniband/hw/qedr/verbs.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/qedr/verbs.c
+> b/drivers/infiniband/hw/qedr/verbs.c
+> index a615142..cdaddf9 100644
+> --- a/drivers/infiniband/hw/qedr/verbs.c
+> +++ b/drivers/infiniband/hw/qedr/verbs.c
+> @@ -2413,8 +2413,7 @@ static void handle_completed_mrs(struct qedr_dev
+> *dev, struct mr_info *info)
+>  		 */
+>  		pbl =3D list_first_entry(&info->inuse_pbl_list,
+>  				       struct qedr_pbl, list_entry);
+> -		list_del(&pbl->list_entry);
+> -		list_add_tail(&pbl->list_entry, &info->free_pbl_list);
+> +		list_move_tail(&pbl->list_entry, &info->free_pbl_list);
+>  		info->completed_handled++;
+>  	}
+>  }
+
+Thanks
+
+Acked-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
