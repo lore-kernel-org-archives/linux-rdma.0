@@ -1,80 +1,78 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] qedr: Fix possible memory leak in qedr_create_qp()
-Date: Tue, 1 Nov 2016 14:42:27 +0000
-Message-ID: <SN1PR07MB2207A02F1883380BE4B1CB06F8A10@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <1477672427-31575-1-git-send-email-weiyj.lk@gmail.com>
- <20161031053318.GU3617@leon.nu>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: nvmet_rdma crash - DISCONNECT event with NULL queue
+Date: Tue, 1 Nov 2016 10:57:44 -0500
+Message-ID: <01b401d23458$af277210$0d765630$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161031053318.GU3617-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sagig <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> While looking on this patch and associated code to it, I noticed the=20
-> following code stack:
->=20
-> qedr_create_qp
-> 	-->
-> 	dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
-> 		-->
-> 		qed_rdma_destroy_qp
-> 			-->
-> 			qed_roce_destroy_qp
-> This function will check the QP state and return -INVAL and comment=20
-> that this QP needs to be prepared before destroying it.
->=20
-> However immediately after returning, you are calling to kfree(qp)=20
-> without any checks.
->=20
-> It looks like an error and it is worth to take a look on it.
->
+Hey guys,
 
-That's a deep  level of reading... thanks.
+I just hit an nvmf target NULL pointer deref BUG after a few hours of keep-alive
+timeout testing.  It appears that nvmet_rdma_cm_handler() was called with
+cm_id->qp == NULL, so the local nvmet_rdma_queue * variable queue is left as
+NULL.  But then nvmet_rdma_queue_disconnect() is called with queue == NULL which
+causes the crash.
 
-When the QP is created its state is set in ecore_rdma_create_qp():
-	qp->cur_state =3D ECORE_ROCE_QP_STATE_RESET;
+In the log, I see that the target side keep-alive fired:
 
-When it is ecore_roce_destroy_qp() is invoked, the function *must* be in ei=
-ther RESET or two other states:
-	if ((qp->cur_state !=3D QED_ROCE_QP_STATE_RESET) &&
-	    (qp->cur_state !=3D QED_ROCE_QP_STATE_ERR) &&
-	    (qp->cur_state !=3D QED_ROCE_QP_STATE_INIT)) {
-		DP_NOTICE(p_hwfn,
-			  "QP must be in error, reset or init state before destroying it\n");
-		return -EINVAL;
-	}
-So actually, we won't return -INVAL here.
+[20676.867545] eth2: link up, 40Gbps, full-duplex, Tx/Rx PAUSE
+[20677.079669] nvmet: ctrl 1 keep-alive timer (15 seconds) expired!
+[20677.079684] nvmet: ctrl 1 keep-alive timer (15 seconds) expired!
 
-The bug I see is that I see in our upstream code is that for RESET the norm=
-al "destroy" operations continue. But they shouldn't.
-We need here something like this:
-	if (qp->cur_state =3D=3D ECORE_ROCE_QP_STATE_RESET)
-		return 0;
+Then all the queues are freed followed by the crash.
 
-Flow will return to qed_rdma_destroy_qp() that will release the qp resource=
- in the qed_roce scope (our real purpose).
-And then return to qedr_create_qp() where the qp resource will be released =
-in the qedr scope.
+[20677.080066] nvmet_rdma: freeing queue 222
+[20677.080074] nvmet_rdma: sending cmd response failed
+[20677.080351] nvmet_rdma: freeing queue 227
+[20677.080775] nvmet_rdma: freeing queue 230
+[20677.081137] nvmet_rdma: freeing queue 232
+[20677.081371] nvmet_rdma: freeing queue 234
+[20677.081604] nvmet_rdma: freeing queue 236
+[20677.081835] nvmet_rdma: freeing queue 237
+[20677.082062] nvmet_rdma: freeing queue 238
+[20677.082106] nvmet_rdma: freeing queue 239
+[20677.082366] nvmet_rdma: freeing queue 240
+[20677.082570] nvmet_rdma: freeing queue 241
+[20677.082995] nvmet_rdma: freeing queue 242
+[20677.083222] nvmet_rdma: freeing queue 243
+[20677.083475] nvmet_rdma: freeing queue 244
+[20677.083522] nvmet_rdma: freeing queue 245
+[20677.083801] nvmet_rdma: freeing queue 246
+[20677.084264] nvmet_rdma: freeing queue 247
+[20677.084307] nvmet_rdma: freeing queue 248
+[20677.084501] nvmet_rdma: freeing queue 249
+[20677.084846] nvmet_rdma: freeing queue 250
+[20677.085184] nvmet_rdma: freeing queue 252
+[20677.085500] nvmet_rdma: freeing queue 254
+[20677.085733] nvmet_rdma: freeing queue 256
+[20677.085997] nvmet_rdma: freeing queue 258
+[20677.086224] nvmet_rdma: freeing queue 260
+[20677.086517] nvmet_rdma: freeing queue 262
+[20677.086768] nvmet_rdma: freeing queue 264
+[20677.087031] nvmet_rdma: freeing queue 266
+[20677.087359] nvmet_rdma: freeing queue 268
+[20677.087567] nvmet_rdma: freeing queue 270
+[20677.087821] nvmet_rdma: freeing queue 272
+[20677.088162] nvmet_rdma: freeing queue 274
+[20677.088402] nvmet_rdma: freeing queue 276
+[20677.090981] BUG: unable to handle kernel NULL pointer dereference at
+0000000000000120
+[20677.090988] IP: [<ffffffffa084b6b4>] nvmet_rdma_queue_disconnect+0x24/0x90
+[nvmet_rdma]
 
-And as a side issue - an improvement that can be added is to return the err=
-or code of the QP create and not of the QP destroy.
 
-I'll the first later on and probably the second too.
+So maybe there is just a race in that keep-alive can free the queue and yet a
+DISCONNECTED event still received on the cm_id after the queue is freed?
 
-
-
-> And did I miss the fix to memory leak posted during code review?
->=20
-As far as I know, I have supplied patches for all memory leaks. Can you dir=
-ect me to a specific e-mail?
-
-Thanks,
-Ram
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
