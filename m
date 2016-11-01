@@ -1,71 +1,63 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] qede: fix general protection fault may occur
- on probe
-Date: Tue, 1 Nov 2016 16:01:57 +0200
-Message-ID: <20161101140157.GB3617@leon.nu>
-References: <1477400039-16925-1-git-send-email-Ram.Amrani@cavium.com>
- <20161027140509.GH3617@leon.nu>
- <SN1PR07MB22076D8F67AB8C78A9565CB6F8AF0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161030205026.GR3617@leon.nu>
- <SN1PR07MB2207881FAE3C35859A8EDED5F8A10@SN1PR07MB2207.namprd07.prod.outlook.com>
+Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Tue, 1 Nov 2016 16:07:32 +0200
+Message-ID: <20161101140732.GC3617@leon.nu>
+References: <20161018215134.GB2761@htj.duckdns.org>
+ <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
+ <20161019143345.GA18532@htj.duckdns.org>
+ <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
+ <20161019192006.GB3044@htj.duckdns.org>
+ <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
+ <20161019200536.GC3044@htj.duckdns.org>
+ <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw@mail.gmail.com>
+ <20161031065441.GY3617@leon.nu>
+ <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="F0luChD47DWseN9q"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="1GFpsN+DA+8qGtn4"
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <SN1PR07MB2207881FAE3C35859A8EDED5F8A10-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---F0luChD47DWseN9q
+--1GFpsN+DA+8qGtn4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 01, 2016 at 01:34:23PM +0000, Amrani, Ram wrote:
-> > We use "rdma-core" notations for patches intended to consolidated library,
-> > while your patch is for the kernel.
+On Tue, Nov 01, 2016 at 04:33:23PM +0530, Parav Pandit wrote:
 >
-> ACK. My bad. Shall I re-send it?
+> > 4. Cgroup configuration should be as close as possible to "standard" if
+> > such exists, so all infinite internet guides will work for RDMA too.
+> I didnt follow this comment. Can you please explain? Are you saying
+> rdma cgroup should have define all the objects of IB spec?
 
-No, there is no need.
-The information from [..] is stripped from the actual applied patch.
+It is not related to spec at all. There were comments from Tejun and you that
+other cgroups (CPU, ...) have different semantics and RDMA has something unique
+(I don't remember what was it). I want to see minimal uniqueness RDMA cgroups.
 
-Thanks
-
->
-> Ram
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---F0luChD47DWseN9q
+--1GFpsN+DA+8qGtn4
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYGKBVAAoJEORje4g2clindkAQAK8mDflRb5O9OhHJAVa9plvb
-7igscASoot8zzgOqlt7cU3zjxaEo4X/LVtyJvw9eReU0zFpstLu9m1TGLTDUjDvg
-zvddhAXhFVStPsrIbk7sw8Ur8ZAEA1mNfeGxzu3mFOpTiMy4zNexIOQWcxxYQicm
-73YZpbYTZpy9y8dkN48FTiAF3Z0Do90IdQpNx8yyfJjVw8lljuQpS8um4wXbgiQb
-QQzE1uPm1ODL6K6I0lUoydWD1IV8Yy0IyabzwzQvkAr76JEB14fQtfNzDZiL4X5E
-LBfaYnZzd4FPOE6ijwCs+iZggBcQhO0gjH6UO9AAeyyh0ywJLvpJRmDMb0uNHeYa
-FdBPkVW75W9T7Fyyx+uR8zg2GutMfEdeH/cSFI4wdFqO4Tg5pVYfaiPhCLUOLd+9
-DT0s1JfqSvIM3FLRwUkpK3uGNiC98C2BndNZj3ZGZwiOUDIkQ3xGptam80eBmPfO
-L//wZw0vQla3iINEOrh13nWPbT+/3vlZmdDXkxd/Kl6x7GXrYmh0C59MAUSyZ1xW
-NDkUHYXOB6RJ5gmLBbwgxsGC5ONL9FXK4FRb9HCsJvh1FwybonEXQyBONunx10Xh
-94N5CBlWLIoNqUpH342XkBga7yWy52PHjyICOKvz2nCQt9Tm3jTS0hwFrIIDwWOy
-Oh5bxhEMgvmp3Ukrimxy
-=XGTr
+iQIcBAEBAgAGBQJYGKGkAAoJEORje4g2clinQnMP+gIEoSfz5qFdcDENYgppOoi7
+CloBfl/4LJZyGvuAVhaInSbpzWD6HfdVxwo4kqO1OiP+pJXESa+H3Ur9m98MWHaR
+K7f/yyFlu3/S32t6jrjDK6faDdV6LFMMFeAxgWAeggmXy1dm6CkxIQJ9O1FoIgJw
+Uuic/TKOKdgWPbn1Xh3CIV/s3lUVsa6CgPgteGjsa3WVE7rHJ1/2ObcqxWyj4knb
+6iaKqnrqY7YWXvZwmwaLs68+9HdjVRflr/7Iibn0NgWz6L2gbM2007v6gtZ5rZl6
+vfLZRuzh3QreCgntRGRjii8u+DulymxNCuRmdwXAQY9DijgQ4dC5P343bRKFGo9x
+rDFfCMHYvJnGnktT5NwmRY4zYWfV4N9dcINrysOLyVOeOrYaBdBw2kq4rl8TOJbb
+T8pwmBt1jc40EeClEyOXIBIbaolLrBJhxcfMabq4yG6hIrw5WH1umTz3C6c0R6Gi
++9HxfArGpa0/RnqTcuaZSV79Ew7eYpSpyCrq/J74uVSwH7bN5aN4gEwNTcwuBg2l
++SQi1iRy9xJhRJtKdKiMvDIm+F2ucC/IVLJEdBZ/QOwZ1gNqZSjqVhmd6dCga3Ep
+/EKMCKS8c9rCpSzVMr042n3jBhyxSORBJ/g1bxlND7w5E+Ng/r59lWTgaLfM7XCW
+erfQykz8UIQmH7mQTont
+=BIGN
 -----END PGP SIGNATURE-----
 
---F0luChD47DWseN9q--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--1GFpsN+DA+8qGtn4--
