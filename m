@@ -1,31 +1,58 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH rdma-core] qede: fix general protection fault may occur on
- probe
-Date: Tue, 1 Nov 2016 13:34:23 +0000
-Message-ID: <SN1PR07MB2207881FAE3C35859A8EDED5F8A10@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <1477400039-16925-1-git-send-email-Ram.Amrani@cavium.com>
- <20161027140509.GH3617@leon.nu>
- <SN1PR07MB22076D8F67AB8C78A9565CB6F8AF0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20161030205026.GR3617@leon.nu>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc] IB/ipoib: print only once when doesn't support
+ IB_QP_CREATE_USE_GFP_NOIO
+Date: Tue, 1 Nov 2016 15:48:24 +0200
+Message-ID: <20161101134823.GA6681@yuval-lap.Home>
+References: <1478003653-16248-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161030205026.GR3617-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1478003653-16248-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> We use "rdma-core" notations for patches intended to consolidated library=
-,
-> while your patch is for the kernel.
+On Tue, Nov 01, 2016 at 02:34:13PM +0200, Leon Romanovsky wrote:
+> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Currently when the card doesn't support IB_QP_CREATE_USE_GFP_NOIO it warns
+> on every QP creation, It becomes worse when driver works in connected mode
+> we will see one print on each new connection, instead do it once.
+> 
+> Fixes: 09b93088d7 ('Add a QP creation flag to use GFP_NOIO allocations')
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_cm.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> index 4ad297d..917393b 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> @@ -1053,8 +1053,8 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
+>  
+>  	tx_qp = ib_create_qp(priv->pd, &attr);
+>  	if (PTR_ERR(tx_qp) == -EINVAL) {
+> -		ipoib_warn(priv, "can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
+> -			   priv->ca->name);
+> +		pr_warn_once("can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
+> +			     priv->ca->name);
 
-ACK. My bad. Shall I re-send it?
+But it will still re-print it for different device, right?
 
-Ram
-
+>  		attr.create_flags &= ~IB_QP_CREATE_USE_GFP_NOIO;
+>  		tx_qp = ib_create_qp(priv->pd, &attr);
+>  	}
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
