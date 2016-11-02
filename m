@@ -1,31 +1,83 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v5 0/14] Fix race conditions related to stopping block
- layer queues
-Date: Wed, 2 Nov 2016 13:35:40 -0600
-Message-ID: <cb120a20-2a40-053a-5621-2209777b5ef4@sandisk.com>
-References: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com>
- <cfd115a1-78e1-7ed5-3c19-42334a5dbe72@fb.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/4] IB/core: Support rate limit for packet
+ pacing
+Date: Wed, 2 Nov 2016 17:35:07 +0200
+Message-ID: <20161102153507.GF3617@leon.nu>
+References: <1477909297-14491-1-git-send-email-leon@kernel.org>
+ <1477909297-14491-3-git-send-email-leon@kernel.org>
+ <20161101100607.GB3727@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <cfd115a1-78e1-7ed5-3c19-42334a5dbe72@fb.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="l+RjsdkfuJDA0G6K"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161101100607.GB3727-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/02/2016 01:08 PM, Jens Axboe wrote:
-> Bart, I have applied the series, except patches 11+12. I don't mind
-> taking them through the block tree, but they can go through the SCSI
-> tree as well. Let me know what folks think.
 
-Hello Jens,
+--l+RjsdkfuJDA0G6K
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks for having applied this patch series. I will resend the SCSI 
-patches to the SCSI maintainers. Since I am not aware of any bug report 
-for which these patches are the proper fix I don't think there is any 
-urgency to apply the SCSI patches.
+On Tue, Nov 01, 2016 at 12:06:08PM +0200, Yuval Shaia wrote:
+> Two (extremely) minor suggestions inline.
+>
+> Yuval
+>
+> On Mon, Oct 31, 2016 at 12:21:35PM +0200, Leon Romanovsky wrote:
+> > From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > Add new member rate_limit to ib_qp_attr, it shows the packet pacing rate
+>
+> Suggesting to replace with:
+> Add new member rate_limit to ib_qp_attr which holds the packet pacing rate
+>
+> > in Kbps, 0 means unlimited.
+> >
+> > IB_QP_RATE_LIMIT is added to ib_attr_mask, and it could be used by RAW
+>
+> Suggesting to replace with:
+> IB_QP_RATE_LIMIT is added to ib_attr_mask and could be used by RAW
+>
+> > QPs when changing QP state from RTR to RTS, RTS to RTS.
+> >
+> > Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Bart.
+Thanks Yuval,
 
+Doug,
+What do you expect from us? respin of this patch?
+
+Thanks
+
+--l+RjsdkfuJDA0G6K
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYGgerAAoJEORje4g2clinSu0P/02Pahf+WnxlfbIQlFBa3Efy
+llmTWBFydgQmVX8W6xNXVUquj7Ei7xoTnBwM9CoKr9JjkspxYLfsm1Ih5U37nSUD
+39OOkCS1ZXvrF3gtM2+K2qbqo6zizQe55/0JLc+U6Im5Vdf1EsA8HLMjHgkgDZE5
+rYyrn4ZKDDuadI0fKqkhB1jYABNEbt1d0hrASI3FgB+dgo1S6FTacKZQ5ApLlNFC
+IJAdYWTt69CVTBt7kwoa74eYV9Ups48CShRXJQ7qGcKCDibKt709NfpESCYARPaX
+i2JVQr6IqXGoPX/UmJIh3r+ZsVBfgr4r0X0AWt2ZYDmV/cbuMno+xoIQ18LjbCyM
+/1KquQiReHmw7CCWxwcB8VhBNMORnbBA/Yqdrz+RPI5mi5+IU8hIpQ7Gg7R7VbEO
+FrYsL+2MvZDOLnVetJmpr31UuTTMqFBVRcdP3UVtf4aIqPkV/OvXYmffDpH7AL9g
+gN8cbnInCPBSrvoQPGKOE67MAJ3RGtjSsnPIjw7Yf6x6uC6zPCKqHxpYXYXqmzIm
+lBPOI3xBJcZXHUtaPd4WvxngPwAdgJjxbcFFl16ql5AE3sTut0tPDGOBtoGIKSSX
+ACgYGcPVXzlumghIiIhc1ClQMKL9Eak3XwypYR7RiY2t5QupwOujSS1ABVW/2Qsh
+wvu9gQ/p3jk1l8BRRgtt
+=UicJ
+-----END PGP SIGNATURE-----
+
+--l+RjsdkfuJDA0G6K--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
