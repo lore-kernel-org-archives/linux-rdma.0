@@ -1,21 +1,33 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v5 0/14] Fix race conditions related to stopping block
-        layer queues
-Date: Wed, 2 Nov 2016 16:17:35 +0100
-Message-ID: <20161102151735.GA14925@lst.de>
-References: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/rdmavt: Only put mmap_info ref if it exists
+Date: Wed, 2 Nov 2016 15:17:54 +0000
+Message-ID: <1478099871.17398.22.camel@intel.com>
+References: <1478033052-147252-1-git-send-email-foraker1@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7460e8b2-2cfd-c0d5-7ae7-7f662d89dad3@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Mike Snitzer <snitzer@redhat.com>, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Ming Lei <tom.leiming@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>, Laurence Oberman <loberman@redhat.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1478033052-147252-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A7CDC7725473524C89857E397DDC6580-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "foraker1-i2BcT+NCU+M@public.gmane.org" <foraker1-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
-
-this whole series looks great to me:
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+T24gVHVlLCAyMDE2LTExLTAxIGF0IDEzOjQ0IC0wNzAwLCBKaW0gRm9yYWtlciB3cm90ZToNCj4g
+cnZ0X2NyZWF0ZV9xcCgpIGNyZWF0ZXMgcXAtPmlwIG9ubHkgd2hlbiBhIHFwIGNyZWF0aW9uIHJl
+cXVlc3QgY29tZXMNCj4gZnJvbQ0KPiB1c2Vyc3BhY2UgKHVkYXRhIGlzIG5vdCBOVUxMKS7CoMKg
+SWYgd2UgZXhjZWVkIHRoZSBudW1iZXIgb2YgYXZhaWxhYmxlDQo+IHF1ZXVlIHBhaXJzIGhvd2V2
+ZXIsIHRoZSBlcnJvciBwYXRoIGFsd2F5cyBhdHRlbXB0cyB0byBwdXQgYSBrcmVmIHRvDQo+IHRo
+aXMNCj4gc3RydWN0dXJlLsKgwqBJZiB0aGUgcmVxdWVzdG9yIGlzIGluc2lkZSB0aGUga2VybmVs
+LCB0aGlzIGxlYWRzIHRvIGEgDQoNCnJlcXVlc3RvciAtPiByZXF1ZXN0ZXINCg0KPiBjcmFzaC4N
+Cj4gDQo+IFdlIGZpeCB0aGlzIGJ5IGNoZWNraW5nIHRoYXQgcXAtPmlwIGlzIG5vdCBOVUxMIGJl
+Zm9yZSBjYWxpbmcgDQoNCmNhbGluZyAtPiBjYWxsaW5nDQoNCj4ga3JlZl9wdXQoKS4NCj4gDQo+
+IFNpZ25lZC1vZmYtYnk6IEppbSBGb3Jha2VyIDxmb3Jha2VyMUBsbG5sLmdvdj4NCg0KVGhhbmtz
+IEppbSENCg0KQ2M6IFN0YWJsZSA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyA0LjcrDQpBY2tl
+ZC1ieTogRGVubmlzIERhbGVzc2FuZHJvIDxkZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29tPg0K
+DQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
