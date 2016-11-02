@@ -1,73 +1,90 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] qedr: Fix missing unlock on error in qedr_post_send()
-Date: Wed, 2 Nov 2016 17:51:37 +0200
-Message-ID: <20161102155137.GH3617@leon.nu>
-References: <1477672406-31487-1-git-send-email-weiyj.lk@gmail.com>
- <20161031053835.GV3617@leon.nu>
- <SN1PR07MB22074858C222B214F03D8ED7F8A10@SN1PR07MB2207.namprd07.prod.outlook.com>
+Subject: Re: [PATCH] IB/rdmavt: Only put mmap_info ref if it exists
+Date: Wed, 2 Nov 2016 17:40:54 +0200
+Message-ID: <20161102154054.GG3617@leon.nu>
+References: <1478033052-147252-1-git-send-email-foraker1@llnl.gov>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="omvsDzxk2EIq1H0W"
+        protocol="application/pgp-signature"; boundary="BNd1cQq+8a6XQVk/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <SN1PR07MB22074858C222B214F03D8ED7F8A10-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <1478033052-147252-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---omvsDzxk2EIq1H0W
+--BNd1cQq+8a6XQVk/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 01, 2016 at 02:09:42PM +0000, Amrani, Ram wrote:
-> > > index a615142..e7c7417 100644
-> > > --- a/drivers/infiniband/hw/qedr/verbs.c
-> > > +++ b/drivers/infiniband/hw/qedr/verbs.c
-> > > @@ -2983,7 +2983,8 @@ int qedr_post_send(struct ib_qp *ibqp, struct
-> > > ib_send_wr *wr,
-> > >
-> > >  	if (!wr) {
-> > >  		DP_ERR(dev, "Got an empty post send.\n");
-> > > -		return -EINVAL;
-> > > +		rc = -EINVAL;
-> > > +		goto out_unlock;
-> > >  	}
-> >
-> > IMHO, this if needs to be moved to be before acquiring spinlock and avoid
-> > introducing new labels for this one case only.
-> >
->
-> Thanks Wei and Leon.
->
-> Actually, perhaps we can totally remove the check itself -
-> Since this is kernel space, is it safe to presume that all ULPs are trusted to be well coded?
+On Tue, Nov 01, 2016 at 01:44:12PM -0700, Jim Foraker wrote:
+> rvt_create_qp() creates qp->ip only when a qp creation request comes from
+> userspace (udata is not NULL).  If we exceed the number of available
+> queue pairs however, the error path always attempts to put a kref to this
+> structure.  If the requestor is inside the kernel, this leads to a crash.
 
-I think so.
+It will be great to have a crash report if you have one.
 
---omvsDzxk2EIq1H0W
+>
+> We fix this by checking that qp->ip is not NULL before caling kref_put().
+>
+
+Please add Fixes line which refers to the commit you are fixing.
+It will ensure automatic pickup to various stable trees.
+
+Thanks
+
+> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rdmavt/qp.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+> index 6500c3b..0004e8b 100644
+> --- a/drivers/infiniband/sw/rdmavt/qp.c
+> +++ b/drivers/infiniband/sw/rdmavt/qp.c
+> @@ -884,7 +884,8 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+>  	return ret;
+>
+>  bail_ip:
+> -	kref_put(&qp->ip->ref, rvt_release_mmap_info);
+> +	if (qp->ip)
+> +		kref_put(&qp->ip->ref, rvt_release_mmap_info);
+>
+>  bail_qpn:
+>  	free_qpn(&rdi->qp_dev->qpn_table, qp->ibqp.qp_num);
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--BNd1cQq+8a6XQVk/
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYGguJAAoJEORje4g2clinLFQP/j7m18rF3LhY9MjWehySQslH
-ADj9IW8FJOOlxqvpvR+qHfhO/nNuNmzFQR5SwvD/cSLguoFUK2jan8tOCU6xlR6h
-8sy1xqR/C9GjLHoRhqe8ynsGokW2BUEm1GU9954LMc8UPbEqtzvCXrNW5psFsiwZ
-404Hy7SSC5YPXypqO4WcelzHRBvhEfyMxxcQP8lGVFj5OEI3/vlq24vP2X2oFGpe
-JIoW+Sdoa5x/wCs7WPAmOJxB9qhGuEvNCgMR4VimeWPHW3Dkqwc+VHUerA3WD991
-8jOW5wqTayeI94IWPsarH/3we+zWtFu1JSD85tF/pZFOOayQEY1+OgJYJU2tvDqe
-K3aXs4iIQXETcDHzzAlZkgN8NLp7DNtYW3+4jyqR6UTTpA8KQe7B4N86I9yUQqHI
-xAwJR2p3DXJpP5OTnz8s2F9GY9C+mbHoqgN21vqoN8dYmx9yNGrLILzfF6UbohMw
-d97l+BQ/INcLhsufky5Rprcls97UuP1YnkXcri+E6hWUyGD4dXqQoX9bJwHVwg49
-tSAcu3AsvoEObVtbcC96TdTNLppt0k9O8ruBqoomD7YKbF2T/fjRYzu6vhrCzLI3
-HgeNNRixLMf2U6U47Uh6kSwE5fuhRDiL2KylsJkpFdX6t4OJ5FVfSsZti2nhaRnM
-I3Bql9BkkZxVBOIg/S8V
-=SHcd
+iQIcBAEBAgAGBQJYGgkGAAoJEORje4g2clinJ0UQAMNU+gDIBlZF+FduCUaLdzp2
+mwB2wVguoxiXup0EWelU5drPVXqM9DIuQXafLXqqUTWaY71x/YpSimFourg8EE0O
+D3vjDPKvfPwmHkJzrPcnMk+p54XyP1fKYB7yStjYmnZaBqJa2NgP4JrFOS1zbmhZ
+SWnU1BnZJBENso8wAWaYWoJs/UjCS0Zml0YMQYLDoDcJVjCx0FfZE0kR1LQrPIJG
+15K3mMGTC2crzKiuhdfvcq78Rycn4303BiDdqMv5ZC8gyBbAaD9ne0xTgvysXIWT
+7qqB1mAjuSL1uArvuldxx/4uQihwpsIKpXhHAhnD6TySQsYvP1LuWTctZ6tdeXTL
+hZ0iuZN8SwbyGymL+MrKV1eodhuJ+2IBivdYo82rmUZxRO1kDrgA/x0rnW8bVThZ
+ab4e+Q/+uOGsiWx8fDld+EFZRXPFaWbLnCy/DVyYGc8OY4kECir6dlOdh1P2YTq2
+asc05ZLVInekcqpcd9qnuXuPQ8svlZXH1LBj1HbJ1TvpSajN9vBb8pYJWRip4q9U
+JQuc4CqkK2bRY+7t3rMtfLDrO+O3AMPs6vyHgdj22vyp5bW9xFGSm1J4s37eVL0o
+gPDozN7bYlzJ/sm6plFAK5R7O7mRDPamAMHFMT4XHAFYAQ9xJFTft3/40GJEvbrw
+zErExXr+BevVyytLJqM4
+=LUF2
 -----END PGP SIGNATURE-----
 
---omvsDzxk2EIq1H0W--
+--BNd1cQq+8a6XQVk/--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
