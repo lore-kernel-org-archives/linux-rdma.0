@@ -1,52 +1,44 @@
-From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: Re: [PATCH v4 10/10] IB/mlx5: Simplify completion into a wait_event
-Date: Thu, 3 Nov 2016 11:33:04 +0530
-Message-ID: <CAHv-k_97o9eYODRgkWa-NodXPWf+hJ5M9+hHrkm=rn9p6cY9Jw@mail.gmail.com>
-References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
- <1477551554-30349-11-git-send-email-binoy.jayan@linaro.org> <8ceb7dbf-d242-1427-199a-b6ec82876f23@grimberg.me>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v2] qedr: remove pointless NULL check in qedr_post_send()
+Date: Thu, 3 Nov 2016 06:24:36 +0000
+Message-ID: <SN1PR07MB220794ABAB7CCA48CAF12FB6F8A30@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1477672406-31487-1-git-send-email-weiyj.lk@gmail.com>
+ <1478092292-17225-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8ceb7dbf-d242-1427-199a-b6ec82876f23@grimberg.me>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>, Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, Linux kernel mailing list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1478092292-17225-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+> diff --git a/drivers/infiniband/hw/qedr/verbs.c
+> b/drivers/infiniband/hw/qedr/verbs.c
+> index a615142..ed7521a 100644
+> --- a/drivers/infiniband/hw/qedr/verbs.c
+> +++ b/drivers/infiniband/hw/qedr/verbs.c
+> @@ -2981,11 +2981,6 @@ int qedr_post_send(struct ib_qp *ibqp, struct
+> ib_send_wr *wr,
+>  		return -EINVAL;
+>  	}
+>=20
+> -	if (!wr) {
+> -		DP_ERR(dev, "Got an empty post send.\n");
+> -		return -EINVAL;
+> -	}
+> -
+>  	while (wr) {
+>  		rc =3D __qedr_post_send(ibqp, wr, bad_wr);
+>  		if (rc)
 
-On 31 October 2016 at 02:47, Sagi Grimberg <sagi@grimberg.me> wrote:
+Thanks Wei.
 
-> How is this simpler?
+Acked-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-It is simpler in the sense that it is a light weight primitive and that only
-one thread waits on the event here. In our case since 'umr_context.done'
-is an "on stack" variable, and has only one thread waiting on that event,
-no race conditions occur. So, we do not need completions here which
-are usually used to provide a race-free but easy-to-use solution involving
-multiple threads waiting on an event.
-
->>  enum ib_wc_status {
->> +       IB_WC_STATUS_NONE = -1,
->>         IB_WC_SUCCESS,
->>         IB_WC_LOC_LEN_ERR,
->>         IB_WC_LOC_QP_OP_ERR,
->>
->
-> Huh? Where did this bogus status came from? IMHO, this is polluting
-> the verbs interface for no good reason at all, sorry.
-
-context->status is initialized to -1 in the following code, so I just thought of
-replacing it with a name.
-
-static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
- {
-        context->cqe.done = mlx5_ib_umr_done;
--       context->status = -1;
--       init_completion(&context->done);
-+       context->status = IB_WC_STATUS_NONE;
-+       init_waitqueue_head(&context->wq);
- }
-
-Thanks,
-Binoy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
