@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 6/8] libpvrdma: Add main library file
-Date: Thu, 3 Nov 2016 16:44:35 -0700
-Message-ID: <1478216677-6150-7-git-send-email-aditr@vmware.com>
+Subject: [PATCH 4/8] libpvrdma: Add queue pair functions
+Date: Thu, 3 Nov 2016 16:44:33 -0700
+Message-ID: <1478216677-6150-5-git-send-email-aditr@vmware.com>
 References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,20 +12,20 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Registers the pvrdma library with libibverbs and allocates the user context.
+Added functions to create, destroy, post on queue pairs.
 
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- providers/pvrdma/pvrdma_main.c | 214 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 214 insertions(+)
- create mode 100644 providers/pvrdma/pvrdma_main.c
+ providers/pvrdma/qp.c | 505 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 505 insertions(+)
+ create mode 100644 providers/pvrdma/qp.c
 
-diff --git a/providers/pvrdma/pvrdma_main.c b/providers/pvrdma/pvrdma_main.c
+diff --git a/providers/pvrdma/qp.c b/providers/pvrdma/qp.c
 new file mode 100644
-index 0000000..909cf1e
+index 0000000..46a0e32
 --- /dev/null
-+++ b/providers/pvrdma/pvrdma_main.c
-@@ -0,0 +1,214 @@
++++ b/providers/pvrdma/qp.c
+@@ -0,0 +1,505 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -71,174 +71,465 @@ index 0000000..909cf1e
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
++#include <infiniband/arch.h>
++
 +#include "pvrdma.h"
 +
-+static struct ibv_context_ops pvrdma_ctx_ops = {
-+	.query_device = pvrdma_query_device,
-+	.query_port = pvrdma_query_port,
-+	.alloc_pd = pvrdma_alloc_pd,
-+	.dealloc_pd = pvrdma_free_pd,
-+
-+	.reg_mr = pvrdma_reg_mr,
-+	.dereg_mr = pvrdma_dereg_mr,
-+	.create_cq = pvrdma_create_cq,
-+	.poll_cq = pvrdma_poll_cq,
-+	.req_notify_cq = pvrdma_req_notify_cq,
-+	.destroy_cq = pvrdma_destroy_cq,
-+
-+	.create_qp = pvrdma_create_qp,
-+	.query_qp = pvrdma_query_qp,
-+	.modify_qp = pvrdma_modify_qp,
-+	.destroy_qp = pvrdma_destroy_qp,
-+
-+	.post_send = pvrdma_post_send,
-+	.post_recv = pvrdma_post_recv,
-+	.create_ah = pvrdma_create_ah,
-+	.destroy_ah = pvrdma_destroy_ah,
-+};
-+
-+int pvrdma_alloc_buf(struct pvrdma_buf *buf, size_t size, int page_size)
++int pvrdma_alloc_qp_buf(struct pvrdma_device *dev, struct ibv_qp_cap *cap,
++			enum ibv_qp_type type, struct pvrdma_qp *qp)
 +{
-+	int ret;
++	qp->sq.wrid = malloc(qp->sq.wqe_cnt * sizeof(uint64_t));
++	if (!qp->sq.wrid)
++		return -1;
 +
-+	buf->length = align(size, page_size);
-+	buf->buf = mmap(NULL, buf->length, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (buf->buf == MAP_FAILED)
-+		return errno;
-+
-+	ret = ibv_dontfork_range(buf->buf, size);
-+	if (ret)
-+		munmap(buf->buf, buf->length);
-+
-+	return ret;
-+}
-+
-+void pvrdma_free_buf(struct pvrdma_buf *buf)
-+{
-+	ibv_dofork_range(buf->buf, buf->length);
-+	munmap(buf->buf, buf->length);
-+}
-+
-+static int pvrdma_init_context_shared(struct pvrdma_context *context,
-+				      struct ibv_device *ibdev,
-+				      int cmd_fd)
-+{
-+	struct ibv_get_context cmd;
-+	struct pvrdma_alloc_ucontext_resp resp;
-+
-+	context->ibv_ctx.cmd_fd = cmd_fd;
-+	if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof(cmd),
-+				&resp.ibv_resp, sizeof(resp)))
-+		return errno;
-+
-+	context->qp_tbl = calloc(resp.qp_tab_size & 0xFFFF,
-+				 sizeof(struct pvrdma_qp *));
-+	if (!context->qp_tbl)
-+		return -ENOMEM;
-+
-+	context->uar = mmap(NULL, to_vdev(ibdev)->page_size, PROT_WRITE,
-+			    MAP_SHARED, cmd_fd, 0);
-+	if (context->uar == MAP_FAILED) {
-+		free(context->qp_tbl);
-+		return errno;
++	qp->rq.wrid = malloc(qp->rq.wqe_cnt * sizeof(uint64_t));
++	if (!qp->rq.wrid) {
++		free(qp->sq.wrid);
++		return -1;
 +	}
 +
-+	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
-+	context->ibv_ctx.ops = pvrdma_ctx_ops;
++	/* Align page size for [rq][sq] */
++	qp->rbuf.length = align(qp->rq.offset +
++				qp->rq.wqe_cnt * qp->rq.wqe_size,
++				dev->page_size);
++	qp->sbuf.length = align(qp->sq.offset +
++				qp->sq.wqe_cnt * qp->sq.wqe_size,
++				dev->page_size);
++	qp->buf_size = qp->rbuf.length + qp->sbuf.length;
++
++	if (pvrdma_alloc_buf(&qp->rbuf, qp->rbuf.length, dev->page_size)) {
++		free(qp->sq.wrid);
++		free(qp->rq.wrid);
++		return -1;
++	}
++
++	if (pvrdma_alloc_buf(&qp->sbuf, qp->sbuf.length, dev->page_size)) {
++		free(qp->sq.wrid);
++		free(qp->rq.wrid);
++		pvrdma_free_buf(&qp->rbuf);
++		return -1;
++	}
++
++	memset(qp->rbuf.buf, 0, qp->rbuf.length);
++	memset(qp->sbuf.buf, 0, qp->sbuf.length);
 +
 +	return 0;
 +}
 +
-+static void pvrdma_free_context_shared(struct pvrdma_context *context,
-+				       struct pvrdma_device *dev)
++static void pvrdma_init_qp_queue(struct pvrdma_qp *qp)
 +{
-+	munmap(context->uar, dev->page_size);
-+	free(context->qp_tbl);
++	atomic_set(&(qp->sq.ring_state->cons_head), 0);
++	atomic_set(&(qp->sq.ring_state->prod_tail), 0);
++	atomic_set(&(qp->rq.ring_state->cons_head), 0);
++	atomic_set(&(qp->rq.ring_state->prod_tail), 0);
 +}
 +
-+static struct ibv_context *pvrdma_alloc_context(struct ibv_device *ibdev,
-+						int cmd_fd)
++struct ibv_qp *pvrdma_create_qp(struct ibv_pd *pd,
++				struct ibv_qp_init_attr *attr)
 +{
-+	struct pvrdma_context *context;
++	struct pvrdma_device *dev = to_vdev(pd->context->device);
++	struct pvrdma_create_qp cmd;
++	struct ibv_create_qp_resp resp;
++	struct pvrdma_qp *qp;
++	int ret;
 +
-+	context = malloc(sizeof(*context));
-+	if (!context)
++	attr->cap.max_recv_sge =
++		align_next_power2(max(1U, attr->cap.max_recv_sge));
++	attr->cap.max_recv_wr =
++		align_next_power2(max(1U, attr->cap.max_recv_wr));
++	attr->cap.max_send_sge =
++		align_next_power2(max(1U, attr->cap.max_send_sge));
++	attr->cap.max_send_wr =
++		align_next_power2(max(1U, attr->cap.max_send_wr));
++
++	qp = calloc(1, sizeof(*qp));
++	if (!qp)
 +		return NULL;
 +
-+	memset(context, 0, sizeof(*context));
++	qp->rq.max_gs = attr->cap.max_recv_sge;
++	qp->rq.wqe_cnt = attr->cap.max_recv_wr;
++	qp->rq.offset = 0;
++	qp->rq.wqe_size = align_next_power2(sizeof(struct pvrdma_rq_wqe_hdr) +
++					    sizeof(struct ibv_sge) *
++					    qp->rq.max_gs);
 +
-+	if (pvrdma_init_context_shared(context, ibdev, cmd_fd)) {
-+		free(context);
-+		return NULL;
++	qp->sq.max_gs = attr->cap.max_send_sge;
++	qp->sq.wqe_cnt = attr->cap.max_send_wr;
++	/* Extra page for shared ring state */
++	qp->sq.offset = dev->page_size;
++	qp->sq.wqe_size = align_next_power2(sizeof(struct pvrdma_sq_wqe_hdr) +
++					    sizeof(struct ibv_sge) *
++					    qp->sq.max_gs);
++
++	/* Reset attr.cap, no srq for now */
++	if (attr->srq) {
++		attr->cap.max_recv_wr = 0;
++		qp->rq.wqe_cnt = 0;
 +	}
 +
-+	return &context->ibv_ctx;
++	/* Allocate [rq][sq] memory */
++	if (pvrdma_alloc_qp_buf(dev, &attr->cap, attr->qp_type, qp))
++		goto err;
++
++	qp->sq.ring_state = qp->sbuf.buf;
++	qp->rq.ring_state = (struct pvrdma_ring *)&qp->sq.ring_state[1];
++	pvrdma_init_qp_queue(qp);
++
++	if (pthread_spin_init(&qp->sq.lock, PTHREAD_PROCESS_PRIVATE) ||
++	    pthread_spin_init(&qp->rq.lock, PTHREAD_PROCESS_PRIVATE))
++		goto err_free;
++
++	memset(&cmd, 0, sizeof(cmd));
++	cmd.rbuf_addr = (uintptr_t)qp->rbuf.buf;
++	cmd.rbuf_size = qp->rbuf.length;
++	cmd.sbuf_addr = (uintptr_t)qp->sbuf.buf;
++	cmd.sbuf_size = qp->sbuf.length;
++	cmd.qp_addr = (uintptr_t) qp;
++
++	ret = ibv_cmd_create_qp(pd, &qp->ibv_qp, attr,
++				&cmd.ibv_cmd, sizeof(cmd),
++				&resp, sizeof(resp));
++
++	if (ret)
++		goto err_free;
++
++	to_vctx(pd->context)->qp_tbl[qp->ibv_qp.qp_num & 0xFFFF] = qp;
++
++	/* If set, each WR submitted to the SQ generate a completion entry */
++	if (attr->sq_sig_all)
++		qp->sq_signal_bits = htonl(PVRDMA_WQE_CTRL_CQ_UPDATE);
++	else
++		qp->sq_signal_bits = 0;
++
++	return &qp->ibv_qp;
++
++err_free:
++	if (qp->sq.wqe_cnt)
++		free(qp->sq.wrid);
++	if (qp->rq.wqe_cnt)
++		free(qp->rq.wrid);
++	pvrdma_free_buf(&qp->rbuf);
++	pvrdma_free_buf(&qp->sbuf);
++err:
++	free(qp);
++
++	return NULL;
 +}
 +
-+static void pvrdma_free_context(struct ibv_context *ibctx)
++int pvrdma_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
++		      int attr_mask,
++		      struct ibv_qp_init_attr *init_attr)
 +{
-+	struct pvrdma_context *context = to_vctx(ibctx);
++	struct ibv_query_qp cmd;
++	struct pvrdma_qp *qp = to_vqp(ibqp);
++	int ret;
 +
-+	pvrdma_free_context_shared(context, to_vdev(ibctx->device));
-+	free(context);
++	ret = ibv_cmd_query_qp(ibqp, attr, attr_mask, init_attr,
++			       &cmd, sizeof(cmd));
++	if (ret)
++		return ret;
++
++	/* Passing back */
++	init_attr->cap.max_send_wr     = qp->sq.wqe_cnt;
++	init_attr->cap.max_send_sge    = qp->sq.max_gs;
++	init_attr->cap.max_inline_data = qp->max_inline_data;
++
++	attr->cap = init_attr->cap;
++
++	return 0;
 +}
 +
-+static struct ibv_device_ops pvrdma_dev_ops = {
-+	.alloc_context = pvrdma_alloc_context,
-+	.free_context  = pvrdma_free_context
-+};
-+
-+static struct pvrdma_device *pvrdma_driver_init_shared(
-+						const char *uverbs_sys_path,
-+						int abi_version)
++int pvrdma_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
++		       int attr_mask)
 +{
-+	struct pvrdma_device *dev;
-+	char name[16];
++	struct ibv_modify_qp cmd;
++	int ret;
 +
-+	/* We support only a single ABI version for now. */
-+	if (abi_version != PVRDMA_UVERBS_ABI_VERSION) {
-+		fprintf(stderr, PFX "ABI version %d of %s is not "
-+			"supported (supported %d)\n",
-+			abi_version, uverbs_sys_path,
-+			PVRDMA_UVERBS_ABI_VERSION);
-+		return NULL;
++	/* Sanity check */
++	if (!attr_mask)
++		return 0;
++
++	ret = ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
++
++	if (!ret &&
++	    (attr_mask & IBV_QP_STATE) &&
++	    attr->qp_state == IBV_QPS_RESET) {
++		pvrdma_cq_clean(to_vcq(qp->recv_cq), qp->qp_num);
++		if (qp->send_cq != qp->recv_cq)
++			pvrdma_cq_clean(to_vcq(qp->send_cq), qp->qp_num);
++		pvrdma_init_qp_queue(to_vqp(qp));
 +	}
 +
-+	if (ibv_read_sysfs_file(uverbs_sys_path,
-+				"ibdev", name, sizeof(name)) < 0) {
-+		fprintf(stderr, PFX "not ib device\n");
-+		return NULL;
-+	}
-+
-+	dev = malloc(sizeof(*dev));
-+	if (!dev) {
-+		fprintf(stderr, PFX "couldn't allocate device for %s\n",
-+			uverbs_sys_path);
-+		return NULL;
-+	}
-+
-+	dev->abi_version = abi_version;
-+	dev->page_size   = sysconf(_SC_PAGESIZE);
-+	dev->ibv_dev.ops = pvrdma_dev_ops;
-+
-+	return dev;
++	return ret;
 +}
 +
-+static struct ibv_device *pvrdma_driver_init(const char *uverbs_sys_path,
-+					     int abi_version)
++static void pvrdma_lock_cqs(struct ibv_qp *qp)
 +{
-+	struct pvrdma_device *dev = pvrdma_driver_init_shared(uverbs_sys_path,
-+							      abi_version);
-+	if (!dev)
-+		return NULL;
++	struct pvrdma_cq *send_cq = to_vcq(qp->send_cq);
++	struct pvrdma_cq *recv_cq = to_vcq(qp->recv_cq);
 +
-+	return &dev->ibv_dev;
++	if (send_cq == recv_cq)
++		pthread_spin_lock(&send_cq->lock);
++	else if (send_cq->cqn < recv_cq->cqn) {
++		pthread_spin_lock(&send_cq->lock);
++		pthread_spin_lock(&recv_cq->lock);
++	} else {
++		pthread_spin_lock(&recv_cq->lock);
++		pthread_spin_lock(&send_cq->lock);
++	}
 +}
 +
-+static __attribute__((constructor)) void pvrdma_register_driver(void)
++static void pvrdma_unlock_cqs(struct ibv_qp *qp)
 +{
-+	ibv_register_driver("pvrdma", pvrdma_driver_init);
++	struct pvrdma_cq *send_cq = to_vcq(qp->send_cq);
++	struct pvrdma_cq *recv_cq = to_vcq(qp->recv_cq);
++
++	if (send_cq == recv_cq)
++		pthread_spin_unlock(&send_cq->lock);
++	else if (send_cq->cqn < recv_cq->cqn) {
++		pthread_spin_unlock(&recv_cq->lock);
++		pthread_spin_unlock(&send_cq->lock);
++	} else {
++		pthread_spin_unlock(&send_cq->lock);
++		pthread_spin_unlock(&recv_cq->lock);
++	}
++}
++
++int pvrdma_destroy_qp(struct ibv_qp *ibqp)
++{
++	struct pvrdma_context *ctx = to_vctx(ibqp->context);
++	struct pvrdma_qp *qp = to_vqp(ibqp);
++	int ret;
++
++	ret = ibv_cmd_destroy_qp(ibqp);
++	if (ret) {
++		return ret;
++	}
++
++	pvrdma_lock_cqs(ibqp);
++	/* Dump cqs */
++	__pvrdma_cq_clean(to_vcq(ibqp->recv_cq), ibqp->qp_num);
++
++	if (ibqp->send_cq != ibqp->recv_cq)
++		__pvrdma_cq_clean(to_vcq(ibqp->send_cq), ibqp->qp_num);
++	pvrdma_unlock_cqs(ibqp);
++
++	free(qp->sq.wrid);
++	free(qp->rq.wrid);
++	pvrdma_free_buf(&qp->rbuf);
++	pvrdma_free_buf(&qp->sbuf);
++	ctx->qp_tbl[ibqp->qp_num & 0xFFFF] = NULL;
++	free(qp);
++
++	return 0;
++}
++
++static void *get_rq_wqe(struct pvrdma_qp *qp, int n)
++{
++	return qp->rbuf.buf + qp->rq.offset + (n * qp->rq.wqe_size);
++}
++
++static void *get_sq_wqe(struct pvrdma_qp *qp, int n)
++{
++	return qp->sbuf.buf + qp->sq.offset + (n * qp->sq.wqe_size);
++}
++
++int pvrdma_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++		     struct ibv_send_wr **bad_wr)
++{
++	struct pvrdma_context *ctx = to_vctx(ibqp->context);
++	struct pvrdma_qp *qp = to_vqp(ibqp);
++	int ind;
++	int nreq = 0;
++	struct pvrdma_sq_wqe_hdr *wqe_hdr;
++	struct ibv_sge *sge;
++	int ret = 0;
++	int i;
++
++	/*
++	 * In states lower than RTS, we can fail immediately. In other states,
++	 * just post and let the device figure it out.
++	 */
++	if (ibqp->state < IBV_QPS_RTS) {
++		*bad_wr = wr;
++		return EINVAL;
++	}
++
++	pthread_spin_lock(&qp->sq.lock);
++	ind = pvrdma_idx(&(qp->sq.ring_state->prod_tail), qp->sq.wqe_cnt);
++	if (ind < 0) {
++		pthread_spin_unlock(&qp->sq.lock);
++		ret = EINVAL;
++		goto out;
++	}
++
++	for (nreq = 0; wr; ++nreq, wr = wr->next) {
++		unsigned int tail;
++
++		if (pvrdma_idx_ring_has_space(qp->sq.ring_state,
++					      qp->sq.wqe_cnt, &tail) <= 0) {
++			ret = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (wr->num_sge > qp->sq.max_gs) {
++			ret = EINVAL;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		wqe_hdr = (struct pvrdma_sq_wqe_hdr *)get_sq_wqe(qp, ind);
++		wqe_hdr->wr_id = wr->wr_id;
++		wqe_hdr->num_sge = wr->num_sge;
++		wqe_hdr->opcode = ibv_wr_opcode_to_pvrdma(wr->opcode);
++		wqe_hdr->send_flags = ibv_send_flags_to_pvrdma(wr->send_flags);
++		if (wr->opcode == IBV_WR_SEND_WITH_IMM ||
++		    wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM)
++			wqe_hdr->ex.imm_data = wr->imm_data;
++
++		switch (ibqp->qp_type) {
++		case IBV_QPT_UD:
++			wqe_hdr->wr.ud.remote_qpn = wr->wr.ud.remote_qpn;
++			wqe_hdr->wr.ud.remote_qkey = wr->wr.ud.remote_qkey;
++			wqe_hdr->wr.ud.av = to_vah(wr->wr.ud.ah)->av;
++			break;
++		case IBV_QPT_RC:
++			switch (wr->opcode) {
++			case IBV_WR_RDMA_READ:
++			case IBV_WR_RDMA_WRITE:
++			case IBV_WR_RDMA_WRITE_WITH_IMM:
++				wqe_hdr->wr.rdma.remote_addr =
++					wr->wr.rdma.remote_addr;
++				wqe_hdr->wr.rdma.rkey = wr->wr.rdma.rkey;
++				break;
++			case IBV_WR_ATOMIC_CMP_AND_SWP:
++			case IBV_WR_ATOMIC_FETCH_AND_ADD:
++				wqe_hdr->wr.atomic.remote_addr = wr->wr.atomic.remote_addr;
++				wqe_hdr->wr.atomic.rkey = wr->wr.atomic.rkey;
++				wqe_hdr->wr.atomic.compare_add = wr->wr.atomic.compare_add;
++				if (wr->opcode == IBV_WR_ATOMIC_CMP_AND_SWP)
++					wqe_hdr->wr.atomic.swap = wr->wr.atomic.swap;
++				break;
++			default:
++				/* No extra segments required for sends */
++				break;
++			}
++			break;
++		default:
++			fprintf(stderr, PFX "invalid post send opcode\n");
++			ret = EINVAL;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		/* Write each segment */
++		sge = (struct ibv_sge *)&wqe_hdr[1];
++		for (i = 0; i < wr->num_sge; i++) {
++			sge->addr = wr->sg_list[i].addr;
++			sge->length = wr->sg_list[i].length;
++			sge->lkey = wr->sg_list[i].lkey;
++			sge++;
++		}
++
++		pvrdma_idx_ring_inc(&(qp->sq.ring_state->prod_tail),
++				    qp->sq.wqe_cnt);
++
++		wmb();
++
++		qp->sq.wrid[ind] = wr->wr_id;
++		++ind;
++		if (ind >= qp->sq.wqe_cnt)
++			ind = 0;
++	}
++
++out:
++	if (nreq)
++		pvrdma_write_uar_qp(ctx->uar,
++				    PVRDMA_UAR_QP_SEND | ibqp->qp_num);
++
++	wmb();
++	pthread_spin_unlock(&qp->sq.lock);
++
++	return ret;
++}
++
++int pvrdma_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
++		     struct ibv_recv_wr **bad_wr)
++{
++	struct pvrdma_context *ctx = to_vctx(ibqp->context);
++	struct pvrdma_qp *qp = to_vqp(ibqp);
++	struct pvrdma_rq_wqe_hdr *wqe_hdr;
++	struct ibv_sge *sge;
++	int nreq;
++	int ind;
++	int i;
++	int ret = 0;
++
++	if (!wr || !bad_wr)
++		return EINVAL;
++
++	/*
++	 * In the RESET state, we can fail immediately. For other states,
++	 * just post and let the device figure it out.
++	 */
++	if (ibqp->state == IBV_QPS_RESET) {
++		*bad_wr = wr;
++		return EINVAL;
++	}
++
++	pthread_spin_lock(&qp->rq.lock);
++
++	ind = pvrdma_idx(&(qp->rq.ring_state->prod_tail), qp->rq.wqe_cnt);
++	if (ind < 0) {
++		pthread_spin_unlock(&qp->rq.lock);
++		*bad_wr = wr;
++		return EINVAL;
++	}
++
++	for (nreq = 0; wr; ++nreq, wr = wr->next) {
++		unsigned int tail;
++
++		if (pvrdma_idx_ring_has_space(qp->rq.ring_state,
++					      qp->rq.wqe_cnt, &tail) <= 0) {
++			ret = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (wr->num_sge > qp->rq.max_gs) {
++			ret = EINVAL;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		/* Fetch wqe */
++		wqe_hdr = (struct pvrdma_rq_wqe_hdr *)get_rq_wqe(qp, ind);
++		wqe_hdr->wr_id = wr->wr_id;
++		wqe_hdr->num_sge = wr->num_sge;
++
++		sge = (struct ibv_sge *)(wqe_hdr + 1);
++		for (i = 0; i < wr->num_sge; ++i) {
++			sge->addr = (uint64_t)wr->sg_list[i].addr;
++			sge->length = wr->sg_list[i].length;
++			sge->lkey = wr->sg_list[i].lkey;
++			sge++;
++		}
++
++		pvrdma_idx_ring_inc(&qp->rq.ring_state->prod_tail,
++				    qp->rq.wqe_cnt);
++
++		qp->rq.wrid[ind] = wr->wr_id;
++		ind = (ind + 1) & (qp->rq.wqe_cnt - 1);
++	}
++
++out:
++	if (nreq)
++		pvrdma_write_uar_qp(ctx->uar,
++				    PVRDMA_UAR_QP_RECV | ibqp->qp_num);
++
++	pthread_spin_unlock(&qp->rq.lock);
++	return ret;
 +}
 -- 
 2.7.4
