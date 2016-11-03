@@ -1,86 +1,71 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: RDMA developer gatherings around Kernel Summit and Linux Plumbers
- in Santa Fe
-Date: Thu, 3 Nov 2016 15:41:17 -0600
-Message-ID: <581BAEFD.70501@redhat.com>
-References: <alpine.DEB.2.20.1610281212220.8691@east.gentwo.org>
- <alpine.DEB.2.20.1611031544040.13528@east.gentwo.org>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH for-next V2 00/15][PULL request] Mellanox mlx5 core driver
+ updates 2016-10-25
+Date: Thu, 3 Nov 2016 16:33:59 -0600
+Message-ID: <581BBB57.9090000@redhat.com>
+References: <1477862528-4328-1-git-send-email-saeedm@mellanox.com>
+ <20161030.173522.1563055187413070239.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="HeRQ1hU0EaBo5U4jJiqmmpfe8ScSCv6Cq"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1611031544040.13528-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ boundary="fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161030.173522.1563055187413070239.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, "saeedm@mellanox.com" <saeedm@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "leonro@mellanox.com" <leonro@mellanox.com>, "talal@mellanox.com" <talal@mellanox.com>, "matanb@mellanox.com" <matanb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---HeRQ1hU0EaBo5U4jJiqmmpfe8ScSCv6Cq
-Content-Type: multipart/mixed; boundary="7rFV1k6WstFwuaPOUfuG8wbeBtXFtkHjp";
+--fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh
+Content-Type: multipart/mixed; boundary="aWuMniRXUFFMwpp8tgmAaxUfltMAiuFeK";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org"
- <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- "john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
- "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- "knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>,
- "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <581BAEFD.70501-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: RDMA developer gatherings around Kernel Summit and Linux Plumbers
- in Santa Fe
-References: <alpine.DEB.2.20.1610281212220.8691-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
- <alpine.DEB.2.20.1611031544040.13528-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1611031544040.13528-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: David Miller <davem@davemloft.net>,
+ "saeedm@mellanox.com" <saeedm@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>,
+ "leonro@mellanox.com" <leonro@mellanox.com>,
+ "talal@mellanox.com" <talal@mellanox.com>,
+ "matanb@mellanox.com" <matanb@mellanox.com>
+Message-ID: <581BBB57.9090000@redhat.com>
+Subject: Re: [PATCH for-next V2 00/15][PULL request] Mellanox mlx5 core driver
+ updates 2016-10-25
+References: <1477862528-4328-1-git-send-email-saeedm@mellanox.com>
+ <20161030.173522.1563055187413070239.davem@davemloft.net>
+In-Reply-To: <20161030.173522.1563055187413070239.davem@davemloft.net>
 
---7rFV1k6WstFwuaPOUfuG8wbeBtXFtkHjp
+--aWuMniRXUFFMwpp8tgmAaxUfltMAiuFeK
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 11/3/16 2:49 PM, Christoph Lameter wrote:
->> Saturday sessions 9am till 4pm. 12-1pm Lunchtime
->>
->> 	9am	Refine TODO list for consolidated library - Jason Gunthorpe
->> 	10am	Submission process for multi subsystem drivers - Doug Ledford
->> 	11am	Multicast features and gaps - Christoph Lameter
->>
->> 	1pm	Licensing carryover - Susan/Christoph
->> 	2pm	Standard network tools, integrating to the regular network stack =
-- Christoph
->> 	3pm	Open Discussion/Reserve Session	- TBD
->> 	4pm	Closing Session	- TBD
+On 10/30/16 3:35 PM, David Miller wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Sun, 30 Oct 2016 23:21:53 +0200
 >=20
-> Ok we have an on going conversation regarding the ioctl and I think tha=
-t
-> is of high importance. We tried to find a room for a meeting on Friday =
-on
-> this but we do not have access to a projector. I would like to have thi=
-s
-> issue dealt with first on Saturday and then we can rearrange times for =
-the
-> other presentations. I could skip some of my sessions if necessary and =
-we
-> have 2 hours that are pretty flexible at the end anyways. I hope that i=
-s
-> agreeable to everyone?
+>> This series contains some updates and fixes of mlx5 core and
+>> IB drivers with the addition of two features that demand
+>> new low level commands and infrastructure updates.
+>>  - SRIOV VF max rate limit support
+>>  - mlx5e tc support for FWD rules with counter.
+>>
+>> Needed for both net and rdma subsystems.
 >=20
+> Pulled, thanks.
 
-I'm agreeable with that.
+Thanks, done here as well.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>    GPG Key ID: 0E572FDD
+Doug Ledford <dledford@redhat.com>    GPG Key ID: 0E572FDD
   Red Hat, Inc.
   100 E. Davie St
   Raleigh, NC 27601 USA
 
 
---7rFV1k6WstFwuaPOUfuG8wbeBtXFtkHjp--
+--aWuMniRXUFFMwpp8tgmAaxUfltMAiuFeK--
 
---HeRQ1hU0EaBo5U4jJiqmmpfe8ScSCv6Cq
+--fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -89,23 +74,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Comment: GPGTools - https://gpgtools.org
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCgAGBQJYG679AAoJELgmozMOVy/dsCMQAMVCmtycoQDukdn+XfBDK4qv
-BVe8mDMJMgt9U1dm1FKxDVSGTeypJXGtZsI32LIpwriEG5BBtUZYcPAJXXlKV1eH
-R2oQ4w0FNT9dNMx32NES4ScuJJii3cjv13fM3CIStFM/hj1KbVkucpw+3ZfoxC1W
-8OXz2q9lZ0rKacyCjzsDMgdz4MkPJj5/8fm/zbZFdeLk6IVdu+TymJ3+LVxF9XIz
-CWT9rBHaXUvLD93k9ypndPpYH23B+8oO1CP2IG66Imw0BFWevoPDZYGArZx+gD5P
-Ive/utl5shPIKSa8Eg+WnUSdShNQ3XN0Ce0utlHWzPh/NUE9sGDXzRbmDDmckY7J
-VFRB7kwkyeg+PboQE8OYJJLgIzD8IivLA3BwHVS54LJY1pSJyW45UQ5arP4HYvDv
-yxiJ9KoZllHtPnBCTkhPkR5soMlVA1DehzwiCSzf73Whm1bKBUaFFQdh037OWFGQ
-KtsHAx8BzbtcgXHps0XDzVtvr2t8xTHRBUbV6topSjgyh7Flqe1JfCtgKMjRPBLc
-Ajg6qaFSDQh5JLfBnWcKyK0eCUE1EhHnRKupjC4RIJXv/oQR2V7D6Dg8eHZ1JbCp
-AfXoKMAIZ1t6mN3pdPM2h83LGIHu1bKQmTiP+DvM+rEr9C9SCziTqMUYx63u1t49
-fc3WnwDmZgbnu04hWZsH
-=I5nF
+iQIcBAEBCgAGBQJYG7tXAAoJELgmozMOVy/dAqYP/RhwYcIBM9XwjG5sS8n0JgFS
+/O6B08EL55xiURiK9NIdpXorgmIo9CVA3PIqWOBZqytXuRXZUxWvOOZ+wsYwot4T
+x5VmXV2QErdpKa8ecZgddDsJBYnJ6nbRAu0k2/gJHlD7EY0crgjiEvzSZfH3GoDM
+j6BJj6FwDcw3d1fzRhWSe7LAFItBd9NL5zKfJdAlMmk3O7ErA2lS/rUy2zMHJ2Ti
+jSKQA/QADrryT3zUa61gqZSHf8ejE1ZoTL9GvDeF43OIsrUvCn2aTf3U2em7lJm3
+4RJfb5lBJEpJFT2nM6RS/8s1aimW3bk7Tv50oVMHMGzVo3qaU7rPeb3Atu/7LehM
+WC3XAUy+mLmE4WDb92QHMuMudJg+Ci+PKTJFaDnr71hvppFhk61ROze1sUP1Xtj7
+xakxpi5CGj2NUCMmJRLDf+eoMf31Lpq2iVu1TLZLUZIiNx6B0JfAhVsgiJ38qw5B
+cLMozdIDOyiH0bTfTjjzNWXF7lcgLNHC1tag/XARMRaGRDWVQ6dtWld99UIoJyFs
+CSPH3bVk9HMNSEIHQzBDf2Nhh/w1x9LaQcZYkn2UhS57EG7NSFGd5lZVK1RLjyVU
+PZ1Ks0bZy0aqjw0vTp9ZZaEfi7SHiDqYfvP3KiEZxJzaGQcO5ERbMpkLcJ7A4pF4
+LDvjLrFxxQ2eaQhPtnj0
+=QTd3
 -----END PGP SIGNATURE-----
 
---HeRQ1hU0EaBo5U4jJiqmmpfe8ScSCv6Cq--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh--
