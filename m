@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 15/17] IB/rxe: Remove and fix debug prints after allocation failure
-Date: Thu,  3 Nov 2016 07:02:31 +0200
-Message-ID: <1478149353-12125-16-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 08/17] IB/cxgb4: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 07:02:24 +0200
+Message-ID: <1478149353-12125-9-git-send-email-leon@kernel.org>
 References: <1478149353-12125-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478149353-12125-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,20 +16,30 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_pool.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/hw/cxgb4/device.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 6bac071..d723947 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -180,7 +180,6 @@ static int rxe_pool_init_index(struct rxe_pool *pool, u32 max, u32 min)
- 	size = BITS_TO_LONGS(max - min + 1) * sizeof(long);
- 	pool->table = kmalloc(size, GFP_KERNEL);
- 	if (!pool->table) {
--		pr_warn("no memory for bit table\n");
- 		err = -ENOMEM;
- 		goto out;
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 93e3d27..11a25ec 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -841,8 +841,6 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 		if (rdev->wr_log) {
+ 			rdev->wr_log_size = 1 << c4iw_wr_log_size_order;
+ 			atomic_set(&rdev->wr_log_idx, 0);
+-		} else {
+-			pr_err(MOD "error allocating wr_log. Logging disabled\n");
+ 		}
+ 	}
+ 
+@@ -1424,8 +1422,6 @@ static void recover_queues(struct uld_ctx *ctx)
+ 
+ 	qp_list.qps = kzalloc(count * sizeof *qp_list.qps, GFP_ATOMIC);
+ 	if (!qp_list.qps) {
+-		printk(KERN_ERR MOD "%s: Fatal error - DB overflow recovery failed\n",
+-		       pci_name(ctx->lldi.pdev));
+ 		spin_unlock_irq(&ctx->dev->lock);
+ 		return;
  	}
 -- 
 2.7.4
