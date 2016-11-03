@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 04/17] IB/mlx4: Remove debug prints after allocation failure
-Date: Thu,  3 Nov 2016 07:02:20 +0200
-Message-ID: <1478149353-12125-5-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 09/17] IB/i40iw: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 07:02:25 +0200
+Message-ID: <1478149353-12125-10-git-send-email-leon@kernel.org>
 References: <1478149353-12125-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478149353-12125-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,153 +16,60 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/alias_GUID.c |  4 +---
- drivers/infiniband/hw/mlx4/cm.c         |  4 +---
- drivers/infiniband/hw/mlx4/mad.c        |  9 ++-------
- drivers/infiniband/hw/mlx4/main.c       | 16 +++-------------
- drivers/infiniband/hw/mlx4/mcg.c        |  5 +----
- 5 files changed, 8 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c    | 2 --
+ drivers/infiniband/hw/i40iw/i40iw_main.c  | 5 ++---
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 1 -
+ 3 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index 5e99390..06020c5 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -755,10 +755,8 @@ static void alias_guid_work(struct work_struct *work)
- 	struct mlx4_ib_dev *dev = container_of(ib_sriov, struct mlx4_ib_dev, sriov);
- 
- 	rec = kzalloc(sizeof *rec, GFP_KERNEL);
--	if (!rec) {
--		pr_err("alias_guid_work: No Memory\n");
-+	if (!rec)
- 		return;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 8563769..47d1bbc 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -1675,7 +1675,6 @@ static enum i40iw_status_code i40iw_add_mqh_6(struct i40iw_device *iwdev,
+ 					    "Allocating child listener %p\n",
+ 					    child_listen_node);
+ 				if (!child_listen_node) {
+-					i40iw_pr_err("listener memory allocation\n");
+ 					ret = I40IW_ERR_NO_MEMORY;
+ 					goto exit;
+ 				}
+@@ -1751,7 +1750,6 @@ static enum i40iw_status_code i40iw_add_mqh_4(
+ 					    "Allocating child listener %p\n",
+ 					    child_listen_node);
+ 				if (!child_listen_node) {
+-					i40iw_pr_err("listener memory allocation\n");
+ 					in_dev_put(idev);
+ 					ret = I40IW_ERR_NO_MEMORY;
+ 					goto exit;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index ac2f3cd..a6ad913 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1301,10 +1301,9 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
+ 	size = sizeof(struct i40iw_hmc_pble_rsrc) + sizeof(struct i40iw_hmc_info) +
+ 				(sizeof(struct i40iw_hmc_obj_info) * I40IW_HMC_IW_MAX);
+ 	iwdev->hmc_info_mem = kzalloc(size, GFP_KERNEL);
+-	if (!iwdev->hmc_info_mem) {
+-		i40iw_pr_err("memory alloc fail\n");
++	if (!iwdev->hmc_info_mem)
+ 		return I40IW_ERR_NO_MEMORY;
 -	}
- 
- 	pr_debug("starting [port: %d]...\n", sriov_alias_port->port + 1);
- 	ret = get_next_record_to_update(dev, sriov_alias_port->port, rec);
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index 39a4888..d648453 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -247,10 +247,8 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
- 
- 	ent = kmalloc(sizeof (struct id_map_entry), GFP_KERNEL);
--	if (!ent) {
--		mlx4_ib_warn(ibdev, "Couldn't allocate id cache entry - out of memory\n");
-+	if (!ent)
- 		return ERR_PTR(-ENOMEM);
--	}
- 
- 	ent->sl_cm_id = sl_cm_id;
- 	ent->slave_id = slave_id;
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 1672907..b0cd663 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1102,10 +1102,8 @@ static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
- 
- 	in_mad  = kmalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
--	if (!in_mad || !out_mad) {
--		mlx4_ib_warn(&dev->ib_dev, "failed to allocate memory for guid info mads\n");
-+	if (!in_mad || !out_mad)
- 		goto out;
--	}
- 
- 	guid_tbl_blk_num  *= 4;
- 
-@@ -1916,11 +1914,8 @@ static int alloc_pv_object(struct mlx4_ib_dev *dev, int slave, int port,
- 
- 	*ret_ctx = NULL;
- 	ctx = kzalloc(sizeof (struct mlx4_ib_demux_pv_ctx), GFP_KERNEL);
--	if (!ctx) {
--		pr_err("failed allocating pv resource context "
--		       "for port %d, slave %d\n", port, slave);
-+	if (!ctx)
- 		return -ENOMEM;
--	}
- 
- 	ctx->ib_dev = &dev->ib_dev;
- 	ctx->port = port;
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index b597e82..1b54786 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2814,11 +2814,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 			kmalloc(BITS_TO_LONGS(ibdev->steer_qpn_count) *
- 				sizeof(long),
- 				GFP_KERNEL);
--		if (!ibdev->ib_uc_qpns_bitmap) {
--			dev_err(&dev->persist->pdev->dev,
--				"bit map alloc failed\n");
-+		if (!ibdev->ib_uc_qpns_bitmap)
- 			goto err_steer_qp_release;
--		}
- 
- 		bitmap_zero(ibdev->ib_uc_qpns_bitmap, ibdev->steer_qpn_count);
- 
-@@ -3055,15 +3052,12 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
- 	first_port = find_first_bit(actv_ports.ports, dev->caps.num_ports);
- 
- 	dm = kcalloc(ports, sizeof(*dm), GFP_ATOMIC);
--	if (!dm) {
--		pr_err("failed to allocate memory for tunneling qp update\n");
-+	if (!dm)
- 		return;
--	}
- 
- 	for (i = 0; i < ports; i++) {
- 		dm[i] = kmalloc(sizeof (struct mlx4_ib_demux_work), GFP_ATOMIC);
- 		if (!dm[i]) {
--			pr_err("failed to allocate memory for tunneling qp update work struct\n");
- 			while (--i >= 0)
- 				kfree(dm[i]);
- 			goto out;
-@@ -3223,8 +3217,6 @@ void mlx4_sched_ib_sl2vl_update_work(struct mlx4_ib_dev *ibdev,
- 		ew->port = port;
- 		ew->ib_dev = ibdev;
- 		queue_work(wq, &ew->work);
--	} else {
--		pr_err("failed to allocate memory for sl2vl update work\n");
- 	}
- }
- 
-@@ -3284,10 +3276,8 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
- 
- 	case MLX4_DEV_EVENT_PORT_MGMT_CHANGE:
- 		ew = kmalloc(sizeof *ew, GFP_ATOMIC);
--		if (!ew) {
--			pr_err("failed to allocate memory for events work\n");
-+		if (!ew)
- 			break;
--		}
- 
- 		INIT_WORK(&ew->work, handle_port_mgmt_change_event);
- 		memcpy(&ew->ib_eqe, eqe, sizeof *eqe);
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index a21d37f..e010fe4 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -1142,7 +1142,6 @@ void mlx4_ib_mcg_port_cleanup(struct mlx4_ib_demux_ctx *ctx, int destroy_wq)
- 	work = kmalloc(sizeof *work, GFP_KERNEL);
- 	if (!work) {
- 		ctx->flushing = 0;
--		mcg_warn("failed allocating work for cleanup\n");
- 		return;
++
+ 	iwdev->pble_rsrc = (struct i40iw_hmc_pble_rsrc *)iwdev->hmc_info_mem;
+ 	dev->hmc_info = &iwdev->hw.hmc;
+ 	dev->hmc_info->hmc_obj = (struct i40iw_hmc_obj_info *)(iwdev->pble_rsrc + 1);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 6329c97..62e068b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -2654,7 +2654,6 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
+ 	iwibdev->ibdev.iwcm = kzalloc(sizeof(*iwibdev->ibdev.iwcm), GFP_KERNEL);
+ 	if (!iwibdev->ibdev.iwcm) {
+ 		ib_dealloc_device(&iwibdev->ibdev);
+-		i40iw_pr_err("iwcm == NULL\n");
+ 		return NULL;
  	}
  
-@@ -1202,10 +1201,8 @@ static int push_deleteing_req(struct mcast_group *group, int slave)
- 		return 0;
- 
- 	req = kzalloc(sizeof *req, GFP_KERNEL);
--	if (!req) {
--		mcg_warn_group(group, "failed allocation - may leave stall groups\n");
-+	if (!req)
- 		return -ENOMEM;
--	}
- 
- 	if (!list_empty(&group->func[slave].pending)) {
- 		pend_req = list_entry(group->func[slave].pending.prev, struct mcast_req, group_list);
 -- 
 2.7.4
 
