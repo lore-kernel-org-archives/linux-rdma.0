@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 17/17] IB/ipoib: Remove and fix debug prints after allocation failure
-Date: Thu,  3 Nov 2016 16:44:25 +0200
-Message-ID: <1478184265-9620-18-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 09/17] IB/i40iw: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 16:44:17 +0200
+Message-ID: <1478184265-9620-10-git-send-email-leon@kernel.org>
 References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,79 +16,60 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 8 +-------
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   | 5 +----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +----
- 3 files changed, 3 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c    | 2 --
+ drivers/infiniband/hw/i40iw/i40iw_main.c  | 5 ++---
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 1 -
+ 3 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 4ad297d..44f152e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -355,11 +355,8 @@ static int ipoib_cm_nonsrq_init_rx(struct net_device *dev, struct ib_cm_id *cm_i
- 	int i;
- 
- 	rx->rx_ring = vzalloc(ipoib_recvq_size * sizeof *rx->rx_ring);
--	if (!rx->rx_ring) {
--		printk(KERN_WARNING "%s: failed to allocate CM non-SRQ ring (%d entries)\n",
--		       priv->ca->name, ipoib_recvq_size);
-+	if (!rx->rx_ring)
- 		return -ENOMEM;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 8563769..47d1bbc 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -1675,7 +1675,6 @@ static enum i40iw_status_code i40iw_add_mqh_6(struct i40iw_device *iwdev,
+ 					    "Allocating child listener %p\n",
+ 					    child_listen_node);
+ 				if (!child_listen_node) {
+-					i40iw_pr_err("listener memory allocation\n");
+ 					ret = I40IW_ERR_NO_MEMORY;
+ 					goto exit;
+ 				}
+@@ -1751,7 +1750,6 @@ static enum i40iw_status_code i40iw_add_mqh_4(
+ 					    "Allocating child listener %p\n",
+ 					    child_listen_node);
+ 				if (!child_listen_node) {
+-					i40iw_pr_err("listener memory allocation\n");
+ 					in_dev_put(idev);
+ 					ret = I40IW_ERR_NO_MEMORY;
+ 					goto exit;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index ac2f3cd..a6ad913 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1301,10 +1301,9 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
+ 	size = sizeof(struct i40iw_hmc_pble_rsrc) + sizeof(struct i40iw_hmc_info) +
+ 				(sizeof(struct i40iw_hmc_obj_info) * I40IW_HMC_IW_MAX);
+ 	iwdev->hmc_info_mem = kzalloc(size, GFP_KERNEL);
+-	if (!iwdev->hmc_info_mem) {
+-		i40iw_pr_err("memory alloc fail\n");
++	if (!iwdev->hmc_info_mem)
+ 		return I40IW_ERR_NO_MEMORY;
 -	}
- 
- 	t = kmalloc(sizeof *t, GFP_KERNEL);
- 	if (!t) {
-@@ -1133,7 +1130,6 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
- 	p->tx_ring = __vmalloc(ipoib_sendq_size * sizeof *p->tx_ring,
- 			       GFP_NOIO, PAGE_KERNEL);
- 	if (!p->tx_ring) {
--		ipoib_warn(priv, "failed to allocate tx ring\n");
- 		ret = -ENOMEM;
- 		goto err_tx;
++
+ 	iwdev->pble_rsrc = (struct i40iw_hmc_pble_rsrc *)iwdev->hmc_info_mem;
+ 	dev->hmc_info = &iwdev->hw.hmc;
+ 	dev->hmc_info->hmc_obj = (struct i40iw_hmc_obj_info *)(iwdev->pble_rsrc + 1);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 6329c97..62e068b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -2654,7 +2654,6 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
+ 	iwibdev->ibdev.iwcm = kzalloc(sizeof(*iwibdev->ibdev.iwcm), GFP_KERNEL);
+ 	if (!iwibdev->ibdev.iwcm) {
+ 		ib_dealloc_device(&iwibdev->ibdev);
+-		i40iw_pr_err("iwcm == NULL\n");
+ 		return NULL;
  	}
-@@ -1549,8 +1545,6 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
  
- 	priv->cm.srq_ring = vzalloc(ipoib_recvq_size * sizeof *priv->cm.srq_ring);
- 	if (!priv->cm.srq_ring) {
--		printk(KERN_WARNING "%s: failed to allocate CM SRQ ring (%d entries)\n",
--		       priv->ca->name, ipoib_recvq_size);
- 		ib_destroy_srq(priv->cm.srq);
- 		priv->cm.srq = NULL;
- 		return;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index be11d5d..43cf8b8a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -418,11 +418,8 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 			   "(status=%d, wrid=%d vend_err %x)\n",
- 			   wc->status, wr_id, wc->vendor_err);
- 		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
--		if (!qp_work) {
--			ipoib_warn(priv, "%s Failed alloc ipoib_qp_state_validate for qp: 0x%x\n",
--				   __func__, priv->qp->qp_num);
-+		if (!qp_work)
- 			return;
--		}
- 
- 		INIT_WORK(&qp_work->work, ipoib_qp_state_validate_work);
- 		qp_work->priv = priv;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5636fc3..423b30d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1594,11 +1594,8 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
- 	/* Allocate RX/TX "rings" to hold queued skbs */
- 	priv->rx_ring =	kzalloc(ipoib_recvq_size * sizeof *priv->rx_ring,
- 				GFP_KERNEL);
--	if (!priv->rx_ring) {
--		printk(KERN_WARNING "%s: failed to allocate RX ring (%d entries)\n",
--		       ca->name, ipoib_recvq_size);
-+	if (!priv->rx_ring)
- 		goto out;
--	}
- 
- 	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
- 	if (!priv->tx_ring) {
 -- 
 2.7.4
 
