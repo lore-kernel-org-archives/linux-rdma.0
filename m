@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 03/17] IB/core: Release allocated memory in cache setup failure
-Date: Thu,  3 Nov 2016 16:44:11 +0200
-Message-ID: <1478184265-9620-4-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 08/17] IB/cxgb4: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 16:44:16 +0200
+Message-ID: <1478184265-9620-9-git-send-email-leon@kernel.org>
 References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,61 +10,37 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The failure in ib_cache_setup_one function during
-ib_register_device will leave leaked allocated memory.
+The prints after [k|v][m|z|c]alloc() functions are not needed,
+because in case of failure, allocator will print their internal
+error prints anyway.
 
-Fixes: 03db3a2d81e6 ("IB/core: Add RoCE GID table management")
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 1a2984c..ae04826 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -770,12 +770,8 @@ static int _gid_table_setup_one(struct ib_device *ib_dev)
- 	int err = 0;
- 
- 	table = kcalloc(ib_dev->phys_port_cnt, sizeof(*table), GFP_KERNEL);
--
--	if (!table) {
--		pr_warn("failed to allocate ib gid cache for %s\n",
--			ib_dev->name);
-+	if (!table)
- 		return -ENOMEM;
--	}
- 
- 	for (port = 0; port < ib_dev->phys_port_cnt; port++) {
- 		u8 rdma_port = port + rdma_start_port(ib_dev);
-@@ -1170,14 +1166,13 @@ int ib_cache_setup_one(struct ib_device *device)
- 					  GFP_KERNEL);
- 	if (!device->cache.pkey_cache ||
- 	    !device->cache.lmc_cache) {
--		pr_warn("Couldn't allocate cache for %s\n", device->name);
--		return -ENOMEM;
-+		err = -ENOMEM;
-+		goto free;
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 93e3d27..11a25ec 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -841,8 +841,6 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 		if (rdev->wr_log) {
+ 			rdev->wr_log_size = 1 << c4iw_wr_log_size_order;
+ 			atomic_set(&rdev->wr_log_idx, 0);
+-		} else {
+-			pr_err(MOD "error allocating wr_log. Logging disabled\n");
+ 		}
  	}
  
- 	err = gid_table_setup_one(device);
- 	if (err)
--		/* Allocated memory will be cleaned in the release function */
--		return err;
-+		goto free;
+@@ -1424,8 +1422,6 @@ static void recover_queues(struct uld_ctx *ctx)
  
- 	for (p = 0; p <= rdma_end_port(device) - rdma_start_port(device); ++p)
- 		ib_cache_update(device, p + rdma_start_port(device));
-@@ -1192,6 +1187,9 @@ int ib_cache_setup_one(struct ib_device *device)
- 
- err:
- 	gid_table_cleanup_one(device);
-+free:
-+	kfree(device->cache.pkey_cache);
-+	kfree(device->cache.lmc_cache);
- 	return err;
- }
- 
+ 	qp_list.qps = kzalloc(count * sizeof *qp_list.qps, GFP_ATOMIC);
+ 	if (!qp_list.qps) {
+-		printk(KERN_ERR MOD "%s: Fatal error - DB overflow recovery failed\n",
+-		       pci_name(ctx->lldi.pdev));
+ 		spin_unlock_irq(&ctx->dev->lock);
+ 		return;
+ 	}
 -- 
 2.7.4
 
