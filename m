@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 12/17] IB/mthca: Remove debug prints after allocation failure
-Date: Thu,  3 Nov 2016 16:44:20 +0200
-Message-ID: <1478184265-9620-13-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 17/17] IB/ipoib: Remove and fix debug prints after allocation failure
+Date: Thu,  3 Nov 2016 16:44:25 +0200
+Message-ID: <1478184265-9620-18-git-send-email-leon@kernel.org>
 References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,31 +16,79 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mthca/mthca_reset.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 8 +-------
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c   | 5 +----
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +----
+ 3 files changed, 3 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_reset.c b/drivers/infiniband/hw/mthca/mthca_reset.c
-index 6727af2..2a6979e 100644
---- a/drivers/infiniband/hw/mthca/mthca_reset.c
-+++ b/drivers/infiniband/hw/mthca/mthca_reset.c
-@@ -96,8 +96,6 @@ int mthca_reset(struct mthca_dev *mdev)
- 	hca_header = kmalloc(256, GFP_KERNEL);
- 	if (!hca_header) {
- 		err = -ENOMEM;
--		mthca_err(mdev, "Couldn't allocate memory to save HCA "
--			  "PCI header, aborting.\n");
- 		goto put_dev;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 4ad297d..44f152e 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -355,11 +355,8 @@ static int ipoib_cm_nonsrq_init_rx(struct net_device *dev, struct ib_cm_id *cm_i
+ 	int i;
+ 
+ 	rx->rx_ring = vzalloc(ipoib_recvq_size * sizeof *rx->rx_ring);
+-	if (!rx->rx_ring) {
+-		printk(KERN_WARNING "%s: failed to allocate CM non-SRQ ring (%d entries)\n",
+-		       priv->ca->name, ipoib_recvq_size);
++	if (!rx->rx_ring)
+ 		return -ENOMEM;
+-	}
+ 
+ 	t = kmalloc(sizeof *t, GFP_KERNEL);
+ 	if (!t) {
+@@ -1133,7 +1130,6 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
+ 	p->tx_ring = __vmalloc(ipoib_sendq_size * sizeof *p->tx_ring,
+ 			       GFP_NOIO, PAGE_KERNEL);
+ 	if (!p->tx_ring) {
+-		ipoib_warn(priv, "failed to allocate tx ring\n");
+ 		ret = -ENOMEM;
+ 		goto err_tx;
  	}
+@@ -1549,8 +1545,6 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
  
-@@ -119,8 +117,6 @@ int mthca_reset(struct mthca_dev *mdev)
- 		bridge_header = kmalloc(256, GFP_KERNEL);
- 		if (!bridge_header) {
- 			err = -ENOMEM;
--			mthca_err(mdev, "Couldn't allocate memory to save HCA "
--				  "bridge PCI header, aborting.\n");
- 			goto free_hca;
- 		}
+ 	priv->cm.srq_ring = vzalloc(ipoib_recvq_size * sizeof *priv->cm.srq_ring);
+ 	if (!priv->cm.srq_ring) {
+-		printk(KERN_WARNING "%s: failed to allocate CM SRQ ring (%d entries)\n",
+-		       priv->ca->name, ipoib_recvq_size);
+ 		ib_destroy_srq(priv->cm.srq);
+ 		priv->cm.srq = NULL;
+ 		return;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index be11d5d..43cf8b8a 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -418,11 +418,8 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 			   "(status=%d, wrid=%d vend_err %x)\n",
+ 			   wc->status, wr_id, wc->vendor_err);
+ 		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
+-		if (!qp_work) {
+-			ipoib_warn(priv, "%s Failed alloc ipoib_qp_state_validate for qp: 0x%x\n",
+-				   __func__, priv->qp->qp_num);
++		if (!qp_work)
+ 			return;
+-		}
  
+ 		INIT_WORK(&qp_work->work, ipoib_qp_state_validate_work);
+ 		qp_work->priv = priv;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5636fc3..423b30d 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1594,11 +1594,8 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	/* Allocate RX/TX "rings" to hold queued skbs */
+ 	priv->rx_ring =	kzalloc(ipoib_recvq_size * sizeof *priv->rx_ring,
+ 				GFP_KERNEL);
+-	if (!priv->rx_ring) {
+-		printk(KERN_WARNING "%s: failed to allocate RX ring (%d entries)\n",
+-		       ca->name, ipoib_recvq_size);
++	if (!priv->rx_ring)
+ 		goto out;
+-	}
+ 
+ 	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
+ 	if (!priv->tx_ring) {
 -- 
 2.7.4
 
