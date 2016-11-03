@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 01/17] IB/mad: Remove debug prints after allocation failure
-Date: Thu,  3 Nov 2016 16:44:09 +0200
-Message-ID: <1478184265-9620-2-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 04/17] IB/mlx4: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 16:44:12 +0200
+Message-ID: <1478184265-9620-5-git-send-email-leon@kernel.org>
 References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,134 +16,153 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c | 40 ++++++----------------------------------
- 1 file changed, 6 insertions(+), 34 deletions(-)
+ drivers/infiniband/hw/mlx4/alias_GUID.c |  4 +---
+ drivers/infiniband/hw/mlx4/cm.c         |  4 +---
+ drivers/infiniband/hw/mlx4/mad.c        |  9 ++-------
+ drivers/infiniband/hw/mlx4/main.c       | 16 +++-------------
+ drivers/infiniband/hw/mlx4/mcg.c        |  5 +----
+ 5 files changed, 8 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 40cbd6b..dadce12 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -816,7 +816,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	local = kmalloc(sizeof *local, GFP_ATOMIC);
- 	if (!local) {
- 		ret = -ENOMEM;
--		dev_err(&device->dev, "No memory for ib_mad_local_private\n");
- 		goto out;
- 	}
- 	local->mad_priv = NULL;
-@@ -824,7 +823,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	mad_priv = alloc_mad_private(mad_size, GFP_ATOMIC);
- 	if (!mad_priv) {
- 		ret = -ENOMEM;
--		dev_err(&device->dev, "No memory for local response MAD\n");
- 		kfree(local);
- 		goto out;
- 	}
-@@ -947,9 +945,6 @@ static int alloc_send_rmpp_list(struct ib_mad_send_wr_private *send_wr,
- 	for (left = send_buf->data_len + pad; left > 0; left -= seg_size) {
- 		seg = kmalloc(sizeof (*seg) + seg_size, gfp_mask);
- 		if (!seg) {
--			dev_err(&send_buf->mad_agent->device->dev,
--				"alloc_send_rmpp_segs: RMPP mem alloc failed for len %zd, gfp %#x\n",
--				sizeof (*seg) + seg_size, gfp_mask);
- 			free_send_rmpp_list(send_wr);
- 			return -ENOMEM;
- 		}
-@@ -1362,12 +1357,7 @@ static int allocate_method_table(struct ib_mad_mgmt_method_table **method)
- {
- 	/* Allocate management method table */
- 	*method = kzalloc(sizeof **method, GFP_ATOMIC);
--	if (!*method) {
--		pr_err("No memory for ib_mad_mgmt_method_table\n");
--		return -ENOMEM;
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 5e99390..06020c5 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -755,10 +755,8 @@ static void alias_guid_work(struct work_struct *work)
+ 	struct mlx4_ib_dev *dev = container_of(ib_sriov, struct mlx4_ib_dev, sriov);
+ 
+ 	rec = kzalloc(sizeof *rec, GFP_KERNEL);
+-	if (!rec) {
+-		pr_err("alias_guid_work: No Memory\n");
++	if (!rec)
+ 		return;
 -	}
--
--	return 0;
-+	return (*method) ? 0 : (-ENOMEM);
+ 
+ 	pr_debug("starting [port: %d]...\n", sriov_alias_port->port + 1);
+ 	ret = get_next_record_to_update(dev, sriov_alias_port->port, rec);
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index 39a4888..d648453 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -247,10 +247,8 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
+ 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
+ 
+ 	ent = kmalloc(sizeof (struct id_map_entry), GFP_KERNEL);
+-	if (!ent) {
+-		mlx4_ib_warn(ibdev, "Couldn't allocate id cache entry - out of memory\n");
++	if (!ent)
+ 		return ERR_PTR(-ENOMEM);
+-	}
+ 
+ 	ent->sl_cm_id = sl_cm_id;
+ 	ent->slave_id = slave_id;
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 1672907..b0cd663 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1102,10 +1102,8 @@ static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
+ 
+ 	in_mad  = kmalloc(sizeof *in_mad, GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+-	if (!in_mad || !out_mad) {
+-		mlx4_ib_warn(&dev->ib_dev, "failed to allocate memory for guid info mads\n");
++	if (!in_mad || !out_mad)
+ 		goto out;
+-	}
+ 
+ 	guid_tbl_blk_num  *= 4;
+ 
+@@ -1916,11 +1914,8 @@ static int alloc_pv_object(struct mlx4_ib_dev *dev, int slave, int port,
+ 
+ 	*ret_ctx = NULL;
+ 	ctx = kzalloc(sizeof (struct mlx4_ib_demux_pv_ctx), GFP_KERNEL);
+-	if (!ctx) {
+-		pr_err("failed allocating pv resource context "
+-		       "for port %d, slave %d\n", port, slave);
++	if (!ctx)
+ 		return -ENOMEM;
+-	}
+ 
+ 	ctx->ib_dev = &dev->ib_dev;
+ 	ctx->port = port;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index b597e82..1b54786 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2814,11 +2814,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			kmalloc(BITS_TO_LONGS(ibdev->steer_qpn_count) *
+ 				sizeof(long),
+ 				GFP_KERNEL);
+-		if (!ibdev->ib_uc_qpns_bitmap) {
+-			dev_err(&dev->persist->pdev->dev,
+-				"bit map alloc failed\n");
++		if (!ibdev->ib_uc_qpns_bitmap)
+ 			goto err_steer_qp_release;
+-		}
+ 
+ 		bitmap_zero(ibdev->ib_uc_qpns_bitmap, ibdev->steer_qpn_count);
+ 
+@@ -3055,15 +3052,12 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
+ 	first_port = find_first_bit(actv_ports.ports, dev->caps.num_ports);
+ 
+ 	dm = kcalloc(ports, sizeof(*dm), GFP_ATOMIC);
+-	if (!dm) {
+-		pr_err("failed to allocate memory for tunneling qp update\n");
++	if (!dm)
+ 		return;
+-	}
+ 
+ 	for (i = 0; i < ports; i++) {
+ 		dm[i] = kmalloc(sizeof (struct mlx4_ib_demux_work), GFP_ATOMIC);
+ 		if (!dm[i]) {
+-			pr_err("failed to allocate memory for tunneling qp update work struct\n");
+ 			while (--i >= 0)
+ 				kfree(dm[i]);
+ 			goto out;
+@@ -3223,8 +3217,6 @@ void mlx4_sched_ib_sl2vl_update_work(struct mlx4_ib_dev *ibdev,
+ 		ew->port = port;
+ 		ew->ib_dev = ibdev;
+ 		queue_work(wq, &ew->work);
+-	} else {
+-		pr_err("failed to allocate memory for sl2vl update work\n");
+ 	}
  }
  
- /*
-@@ -1458,8 +1448,6 @@ static int add_nonoui_reg_req(struct ib_mad_reg_req *mad_reg_req,
- 		/* Allocate management class table for "new" class version */
- 		*class = kzalloc(sizeof **class, GFP_ATOMIC);
- 		if (!*class) {
--			dev_err(&agent_priv->agent.device->dev,
--				"No memory for ib_mad_mgmt_class_table\n");
- 			ret = -ENOMEM;
- 			goto error1;
- 		}
-@@ -1524,22 +1512,16 @@ static int add_oui_reg_req(struct ib_mad_reg_req *mad_reg_req,
- 	if (!*vendor_table) {
- 		/* Allocate mgmt vendor class table for "new" class version */
- 		vendor = kzalloc(sizeof *vendor, GFP_ATOMIC);
--		if (!vendor) {
--			dev_err(&agent_priv->agent.device->dev,
--				"No memory for ib_mad_mgmt_vendor_class_table\n");
-+		if (!vendor)
- 			goto error1;
+@@ -3284,10 +3276,8 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 
+ 	case MLX4_DEV_EVENT_PORT_MGMT_CHANGE:
+ 		ew = kmalloc(sizeof *ew, GFP_ATOMIC);
+-		if (!ew) {
+-			pr_err("failed to allocate memory for events work\n");
++		if (!ew)
+ 			break;
 -		}
  
- 		*vendor_table = vendor;
+ 		INIT_WORK(&ew->work, handle_port_mgmt_change_event);
+ 		memcpy(&ew->ib_eqe, eqe, sizeof *eqe);
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index a21d37f..e010fe4 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -1142,7 +1142,6 @@ void mlx4_ib_mcg_port_cleanup(struct mlx4_ib_demux_ctx *ctx, int destroy_wq)
+ 	work = kmalloc(sizeof *work, GFP_KERNEL);
+ 	if (!work) {
+ 		ctx->flushing = 0;
+-		mcg_warn("failed allocating work for cleanup\n");
+ 		return;
  	}
- 	if (!(*vendor_table)->vendor_class[vclass]) {
- 		/* Allocate table for this management vendor class */
- 		vendor_class = kzalloc(sizeof *vendor_class, GFP_ATOMIC);
--		if (!vendor_class) {
--			dev_err(&agent_priv->agent.device->dev,
--				"No memory for ib_mad_mgmt_vendor_class\n");
-+		if (!vendor_class)
- 			goto error2;
--		}
  
- 		(*vendor_table)->vendor_class[vclass] = vendor_class;
- 	}
-@@ -2238,11 +2220,8 @@ static void ib_mad_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+@@ -1202,10 +1201,8 @@ static int push_deleteing_req(struct mcast_group *group, int slave)
+ 		return 0;
  
- 	mad_size = recv->mad_size;
- 	response = alloc_mad_private(mad_size, GFP_KERNEL);
--	if (!response) {
--		dev_err(&port_priv->device->dev,
--			"%s: no memory for response buffer\n", __func__);
-+	if (!response)
- 		goto out;
--	}
- 
- 	if (rdma_cap_ib_switch(port_priv->device))
- 		port_num = wc->port_num;
-@@ -2869,8 +2848,6 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 			mad_priv = alloc_mad_private(port_mad_size(qp_info->port_priv),
- 						     GFP_ATOMIC);
- 			if (!mad_priv) {
--				dev_err(&qp_info->port_priv->device->dev,
--					"No memory for receive buffer\n");
- 				ret = -ENOMEM;
- 				break;
- 			}
-@@ -2961,11 +2938,8 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
- 	u16 pkey_index;
- 
- 	attr = kmalloc(sizeof *attr, GFP_KERNEL);
--	if (!attr) {
--		dev_err(&port_priv->device->dev,
--			"Couldn't kmalloc ib_qp_attr\n");
-+	if (!attr)
+ 	req = kzalloc(sizeof *req, GFP_KERNEL);
+-	if (!req) {
+-		mcg_warn_group(group, "failed allocation - may leave stall groups\n");
++	if (!req)
  		return -ENOMEM;
 -	}
  
- 	ret = ib_find_pkey(port_priv->device, port_priv->port_num,
- 			   IB_DEFAULT_PKEY_FULL, &pkey_index);
-@@ -3135,10 +3109,8 @@ static int ib_mad_port_open(struct ib_device *device,
- 
- 	/* Create new device info */
- 	port_priv = kzalloc(sizeof *port_priv, GFP_KERNEL);
--	if (!port_priv) {
--		dev_err(&device->dev, "No memory for ib_mad_port_private\n");
-+	if (!port_priv)
- 		return -ENOMEM;
--	}
- 
- 	port_priv->device = device;
- 	port_priv->port_num = port_num;
+ 	if (!list_empty(&group->func[slave].pending)) {
+ 		pend_req = list_entry(group->func[slave].pending.prev, struct mcast_req, group_list);
 -- 
 2.7.4
 
