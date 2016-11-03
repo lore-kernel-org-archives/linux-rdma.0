@@ -1,108 +1,194 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 00/17] Remove debug prints after allocation failure
-Date: Thu,  3 Nov 2016 07:02:16 +0200
-Message-ID: <1478149353-12125-1-git-send-email-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH rdma-next 02/17] IB/core: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 07:02:18 +0200
+Message-ID: <1478149353-12125-3-git-send-email-leon@kernel.org>
+References: <1478149353-12125-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1478149353-12125-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro a <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug and all,
+The prints after [k|v][m|z|c]alloc() functions are not needed,
+because in case of failure, allocator will print their internal
+error prints anyway.
 
-This is semantic cleanup of infiniband stack from printks immediately
-after allocation failure. It doesn't get rid from all printks, but only from
-the ones which were found by the following grep construction.
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/agent.c         |  1 -
+ drivers/infiniband/core/device.c        |  5 +----
+ drivers/infiniband/core/fmr_pool.c      |  1 -
+ drivers/infiniband/core/iwpm_msg.c      |  1 -
+ drivers/infiniband/core/iwpm_util.c     | 12 ++++--------
+ drivers/infiniband/core/roce_gid_mgmt.c | 21 ++++++---------------
+ 6 files changed, 11 insertions(+), 30 deletions(-)
 
-➜  linux-rdma git:(topic/clean-alloc-prints) grep -rI "[k|v][m|z|c]alloc(" drivers/infiniband/* -A5 | grep "n\""
-
-The patchset consists from the 16 almost identical patches and from one fix
-which was discovered during the cleanup work.
-
-The fix is presented in the patch "IB/core: Release allocated memory in cache setup failure"
-
-Available in the "topic/clean-alloc-prints" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/clean-alloc-prints
-
-CC: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-CC: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-CC: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-CC: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-CC: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-CC: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-CC: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>a
-CC: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-
-Leon Romanovsky (17):
-  IB/mad: Remove debug prints after allocation failure
-  IB/core: Remove debug prints after allocation failure
-  IB/core: Release allocated memory in cache setup failure
-  IB/mlx4: Remove debug prints after allocation failure
-  IB/mlx5: Remove debug prints after allocation failure
-  IB/hfi1: Remove debug prints after allocation failure
-  IB/cxgb3: Remove debug prints after allocation failure
-  IB/cxgb4: Remove debug prints after allocation failure
-  IB/i40iw: Remove debug prints after allocation failure
-  IB/qib: Remove debug prints after allocation failure
-  IB/nes: Remove debug prints after allocation failure
-  IB/mthca: Remove debug prints after allocation failure
-  IB/usninc: Remove and fix debug prints after allocation failure
-  IB/ocrdma: Remove and fix debug prints after allocation failure
-  IB/rxe: Remove and fix debug prints after allocation failure
-  IB/isert: Remove and fix debug prints after allocation failure
-  IB/ipoib: Remove and fix debug prints after allocation failure
-
- drivers/infiniband/core/agent.c               |  1 -
- drivers/infiniband/core/cache.c               | 16 ++++-----
- drivers/infiniband/core/device.c              |  5 +--
- drivers/infiniband/core/fmr_pool.c            |  1 -
- drivers/infiniband/core/iwpm_msg.c            |  1 -
- drivers/infiniband/core/iwpm_util.c           | 12 +++----
- drivers/infiniband/core/mad.c                 | 40 ++++-------------------
- drivers/infiniband/core/roce_gid_mgmt.c       | 21 ++++--------
- drivers/infiniband/hw/cxgb3/cxio_dbg.c        | 20 +++++-------
- drivers/infiniband/hw/cxgb4/device.c          |  4 ---
- drivers/infiniband/hw/hfi1/pio.c              |  1 -
- drivers/infiniband/hw/i40iw/i40iw_cm.c        |  2 --
- drivers/infiniband/hw/i40iw/i40iw_main.c      |  5 ++-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c     |  1 -
- drivers/infiniband/hw/mlx4/alias_GUID.c       |  4 +--
- drivers/infiniband/hw/mlx4/cm.c               |  4 +--
- drivers/infiniband/hw/mlx4/mad.c              |  9 ++---
- drivers/infiniband/hw/mlx4/main.c             | 16 ++-------
- drivers/infiniband/hw/mlx4/mcg.c              |  5 +--
- drivers/infiniband/hw/mlx5/srq.c              |  2 --
- drivers/infiniband/hw/mthca/mthca_reset.c     |  4 ---
- drivers/infiniband/hw/nes/nes.c               |  1 -
- drivers/infiniband/hw/nes/nes_cm.c            |  4 +--
- drivers/infiniband/hw/nes/nes_hw.c            |  6 ++--
- drivers/infiniband/hw/nes/nes_mgt.c           | 10 ++----
- drivers/infiniband/hw/nes/nes_verbs.c         |  4 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c      |  5 ++-
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c   |  4 +--
- drivers/infiniband/hw/qib/qib_diag.c          |  6 +---
- drivers/infiniband/hw/qib/qib_eeprom.c        |  6 +---
- drivers/infiniband/hw/qib/qib_iba6120.c       |  8 +----
- drivers/infiniband/hw/qib/qib_iba7220.c       |  8 +----
- drivers/infiniband/hw/qib/qib_iba7322.c       | 22 +++----------
- drivers/infiniband/hw/qib/qib_init.c          | 47 +++++----------------------
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 10 +-----
- drivers/infiniband/hw/usnic/usnic_vnic.c      | 22 ++++---------
- drivers/infiniband/sw/rxe/rxe_pool.c          |  1 -
- drivers/infiniband/ulp/ipoib/ipoib_cm.c       | 12 ++-----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c       |  5 +--
- drivers/infiniband/ulp/ipoib/ipoib_main.c     |  5 +--
- drivers/infiniband/ulp/isert/ib_isert.c       | 23 ++++---------
- 41 files changed, 86 insertions(+), 297 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
+index 4fa524d..11dacd9 100644
+--- a/drivers/infiniband/core/agent.c
++++ b/drivers/infiniband/core/agent.c
+@@ -156,7 +156,6 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
+ 	/* Create new device info */
+ 	port_priv = kzalloc(sizeof *port_priv, GFP_KERNEL);
+ 	if (!port_priv) {
+-		dev_err(&device->dev, "No memory for ib_agent_port_private\n");
+ 		ret = -ENOMEM;
+ 		goto error1;
+ 	}
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 760ef60..571974c 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -254,11 +254,8 @@ static int add_client_context(struct ib_device *device, struct ib_client *client
+ 	unsigned long flags;
+ 
+ 	context = kmalloc(sizeof *context, GFP_KERNEL);
+-	if (!context) {
+-		pr_warn("Couldn't allocate client context for %s/%s\n",
+-			device->name, client->name);
++	if (!context)
+ 		return -ENOMEM;
+-	}
+ 
+ 	context->client = client;
+ 	context->data   = NULL;
+diff --git a/drivers/infiniband/core/fmr_pool.c b/drivers/infiniband/core/fmr_pool.c
+index cdbb1f1..cdfad5f 100644
+--- a/drivers/infiniband/core/fmr_pool.c
++++ b/drivers/infiniband/core/fmr_pool.c
+@@ -247,7 +247,6 @@ struct ib_fmr_pool *ib_create_fmr_pool(struct ib_pd             *pd,
+ 			kmalloc(IB_FMR_HASH_SIZE * sizeof *pool->cache_bucket,
+ 				GFP_KERNEL);
+ 		if (!pool->cache_bucket) {
+-			pr_warn(PFX "Failed to allocate cache in pool\n");
+ 			ret = -ENOMEM;
+ 			goto out_free_pool;
+ 		}
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index 1c41b95..a0e7c16 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -604,7 +604,6 @@ int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	}
+ 	rem_info = kzalloc(sizeof(struct iwpm_remote_info), GFP_ATOMIC);
+ 	if (!rem_info) {
+-		pr_err("%s: Unable to allocate a remote info\n", __func__);
+ 		ret = -ENOMEM;
+ 		return ret;
+ 	}
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index ade71e7..3ef51a9 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -62,7 +62,6 @@ int iwpm_init(u8 nl_client)
+ 					sizeof(struct hlist_head), GFP_KERNEL);
+ 		if (!iwpm_hash_bucket) {
+ 			ret = -ENOMEM;
+-			pr_err("%s Unable to create mapinfo hash table\n", __func__);
+ 			goto init_exit;
+ 		}
+ 		iwpm_reminfo_bucket = kzalloc(IWPM_REMINFO_HASH_SIZE *
+@@ -70,7 +69,6 @@ int iwpm_init(u8 nl_client)
+ 		if (!iwpm_reminfo_bucket) {
+ 			kfree(iwpm_hash_bucket);
+ 			ret = -ENOMEM;
+-			pr_err("%s Unable to create reminfo hash table\n", __func__);
+ 			goto init_exit;
+ 		}
+ 	}
+@@ -128,10 +126,9 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
+ 	if (!iwpm_valid_client(nl_client))
+ 		return ret;
+ 	map_info = kzalloc(sizeof(struct iwpm_mapping_info), GFP_KERNEL);
+-	if (!map_info) {
+-		pr_err("%s: Unable to allocate a mapping info\n", __func__);
++	if (!map_info)
+ 		return -ENOMEM;
+-	}
++
+ 	memcpy(&map_info->local_sockaddr, local_sockaddr,
+ 	       sizeof(struct sockaddr_storage));
+ 	memcpy(&map_info->mapped_sockaddr, mapped_sockaddr,
+@@ -309,10 +306,9 @@ struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
+ 	unsigned long flags;
+ 
+ 	nlmsg_request = kzalloc(sizeof(struct iwpm_nlmsg_request), gfp);
+-	if (!nlmsg_request) {
+-		pr_err("%s Unable to allocate a nlmsg_request\n", __func__);
++	if (!nlmsg_request)
+ 		return NULL;
+-	}
++
+ 	spin_lock_irqsave(&iwpm_nlmsg_req_lock, flags);
+ 	list_add_tail(&nlmsg_request->inprocess_list, &iwpm_nlmsg_req_list);
+ 	spin_unlock_irqrestore(&iwpm_nlmsg_req_lock, flags);
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 06556c3..c86ddce 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -304,10 +304,9 @@ static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
+ 	for_ifa(in_dev) {
+ 		struct sin_list *entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
+ 
+-		if (!entry) {
+-			pr_warn("roce_gid_mgmt: couldn't allocate entry for IPv4 update\n");
++		if (!entry)
+ 			continue;
+-		}
++
+ 		entry->ip.sin_family = AF_INET;
+ 		entry->ip.sin_addr.s_addr = ifa->ifa_address;
+ 		list_add_tail(&entry->list, &sin_list);
+@@ -348,10 +347,8 @@ static void enum_netdev_ipv6_ips(struct ib_device *ib_dev,
+ 	list_for_each_entry(ifp, &in6_dev->addr_list, if_list) {
+ 		struct sin6_list *entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
+ 
+-		if (!entry) {
+-			pr_warn("roce_gid_mgmt: couldn't allocate entry for IPv6 update\n");
++		if (!entry)
+ 			continue;
+-		}
+ 
+ 		entry->sin6.sin6_family = AF_INET6;
+ 		entry->sin6.sin6_addr = ifp->addr;
+@@ -459,10 +456,8 @@ static void handle_netdev_upper(struct ib_device *ib_dev, u8 port,
+ 		struct upper_list *entry = kmalloc(sizeof(*entry),
+ 						   GFP_ATOMIC);
+ 
+-		if (!entry) {
+-			pr_info("roce_gid_mgmt: couldn't allocate entry to delete ndev\n");
++		if (!entry)
+ 			continue;
+-		}
+ 
+ 		list_add_tail(&entry->list, &upper_list);
+ 		dev_hold(upper);
+@@ -555,10 +550,8 @@ static int netdevice_queue_work(struct netdev_event_work_cmd *cmds,
+ 	struct netdev_event_work *ndev_work =
+ 		kmalloc(sizeof(*ndev_work), GFP_KERNEL);
+ 
+-	if (!ndev_work) {
+-		pr_warn("roce_gid_mgmt: can't allocate work for netdevice_event\n");
++	if (!ndev_work)
+ 		return NOTIFY_DONE;
+-	}
+ 
+ 	memcpy(ndev_work->cmds, cmds, sizeof(ndev_work->cmds));
+ 	for (i = 0; i < ARRAY_SIZE(ndev_work->cmds) && ndev_work->cmds[i].cb; i++) {
+@@ -692,10 +685,8 @@ static int addr_event(struct notifier_block *this, unsigned long event,
+ 	}
+ 
+ 	work = kmalloc(sizeof(*work), GFP_ATOMIC);
+-	if (!work) {
+-		pr_warn("roce_gid_mgmt: Couldn't allocate work for addr_event\n");
++	if (!work)
+ 		return NOTIFY_DONE;
+-	}
+ 
+ 	INIT_WORK(&work->work, update_gid_event_work_handler);
+ 
+-- 
 2.7.4
 
 --
