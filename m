@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 09/17] IB/i40iw: Remove debug prints after allocation failure
-Date: Thu,  3 Nov 2016 16:44:17 +0200
-Message-ID: <1478184265-9620-10-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 16/17] IB/isert: Remove and fix debug prints after allocation failure
+Date: Thu,  3 Nov 2016 16:44:24 +0200
+Message-ID: <1478184265-9620-17-git-send-email-leon@kernel.org>
 References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,58 +16,88 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c    | 2 --
- drivers/infiniband/hw/i40iw/i40iw_main.c  | 5 ++---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 1 -
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 8563769..47d1bbc 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -1675,7 +1675,6 @@ static enum i40iw_status_code i40iw_add_mqh_6(struct i40iw_device *iwdev,
- 					    "Allocating child listener %p\n",
- 					    child_listen_node);
- 				if (!child_listen_node) {
--					i40iw_pr_err("listener memory allocation\n");
- 					ret = I40IW_ERR_NO_MEMORY;
- 					goto exit;
- 				}
-@@ -1751,7 +1750,6 @@ static enum i40iw_status_code i40iw_add_mqh_4(
- 					    "Allocating child listener %p\n",
- 					    child_listen_node);
- 				if (!child_listen_node) {
--					i40iw_pr_err("listener memory allocation\n");
- 					in_dev_put(idev);
- 					ret = I40IW_ERR_NO_MEMORY;
- 					goto exit;
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index ac2f3cd..a6ad913 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1301,10 +1301,9 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
- 	size = sizeof(struct i40iw_hmc_pble_rsrc) + sizeof(struct i40iw_hmc_info) +
- 				(sizeof(struct i40iw_hmc_obj_info) * I40IW_HMC_IW_MAX);
- 	iwdev->hmc_info_mem = kzalloc(size, GFP_KERNEL);
--	if (!iwdev->hmc_info_mem) {
--		i40iw_pr_err("memory alloc fail\n");
-+	if (!iwdev->hmc_info_mem)
- 		return I40IW_ERR_NO_MEMORY;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 6dd43f6..225cb82 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -184,7 +184,7 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
+ 	isert_conn->rx_descs = kzalloc(ISERT_QP_MAX_RECV_DTOS *
+ 				sizeof(struct iser_rx_desc), GFP_KERNEL);
+ 	if (!isert_conn->rx_descs)
+-		goto fail;
++		return -ENOMEM;
+ 
+ 	rx_desc = isert_conn->rx_descs;
+ 
+@@ -213,9 +213,7 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
+ 	}
+ 	kfree(isert_conn->rx_descs);
+ 	isert_conn->rx_descs = NULL;
+-fail:
+ 	isert_err("conn %p failed to allocate rx descriptors\n", isert_conn);
+-
+ 	return -ENOMEM;
+ }
+ 
+@@ -269,10 +267,8 @@ isert_alloc_comps(struct isert_device *device)
+ 
+ 	device->comps = kcalloc(device->comps_used, sizeof(struct isert_comp),
+ 				GFP_KERNEL);
+-	if (!device->comps) {
+-		isert_err("Unable to allocate completion contexts\n");
++	if (!device->comps)
+ 		return -ENOMEM;
+-	}
+ 
+ 	max_cqe = min(ISER_MAX_CQ_LEN, device->ib_device->attrs.max_cqe);
+ 
+@@ -432,10 +428,8 @@ isert_alloc_login_buf(struct isert_conn *isert_conn,
+ 
+ 	isert_conn->login_req_buf = kzalloc(sizeof(*isert_conn->login_req_buf),
+ 			GFP_KERNEL);
+-	if (!isert_conn->login_req_buf) {
+-		isert_err("Unable to allocate isert_conn->login_buf\n");
++	if (!isert_conn->login_req_buf)
+ 		return -ENOMEM;
+-	}
+ 
+ 	isert_conn->login_req_dma = ib_dma_map_single(ib_dev,
+ 				isert_conn->login_req_buf,
+@@ -1276,11 +1270,8 @@ isert_handle_text_cmd(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd
+ 
+ 	if (payload_length) {
+ 		text_in = kzalloc(payload_length, GFP_KERNEL);
+-		if (!text_in) {
+-			isert_err("Unable to allocate text_in of payload_length: %u\n",
+-				  payload_length);
++		if (!text_in)
+ 			return -ENOMEM;
+-		}
+ 	}
+ 	cmd->text_in_ptr = text_in;
+ 
+@@ -2307,10 +2298,9 @@ isert_setup_np(struct iscsi_np *np,
+ 	int ret;
+ 
+ 	isert_np = kzalloc(sizeof(struct isert_np), GFP_KERNEL);
+-	if (!isert_np) {
+-		isert_err("Unable to allocate struct isert_np\n");
++	if (!isert_np)
+ 		return -ENOMEM;
 -	}
 +
- 	iwdev->pble_rsrc = (struct i40iw_hmc_pble_rsrc *)iwdev->hmc_info_mem;
- 	dev->hmc_info = &iwdev->hw.hmc;
- 	dev->hmc_info->hmc_obj = (struct i40iw_hmc_obj_info *)(iwdev->pble_rsrc + 1);
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 6329c97..62e068b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2654,7 +2654,6 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
- 	iwibdev->ibdev.iwcm = kzalloc(sizeof(*iwibdev->ibdev.iwcm), GFP_KERNEL);
- 	if (!iwibdev->ibdev.iwcm) {
- 		ib_dealloc_device(&iwibdev->ibdev);
--		i40iw_pr_err("iwcm == NULL\n");
- 		return NULL;
+ 	sema_init(&isert_np->sem, 0);
+ 	mutex_init(&isert_np->mutex);
+ 	INIT_LIST_HEAD(&isert_np->accepted);
+@@ -2651,7 +2641,6 @@ static int __init isert_init(void)
+ 					WQ_UNBOUND | WQ_HIGHPRI, 0);
+ 	if (!isert_comp_wq) {
+ 		isert_err("Unable to allocate isert_comp_wq\n");
+-		ret = -ENOMEM;
+ 		return -ENOMEM;
  	}
  
 -- 
