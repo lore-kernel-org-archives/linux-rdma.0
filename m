@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 14/17] IB/ocrdma: Remove and fix debug prints after allocation failure
-Date: Thu,  3 Nov 2016 16:44:22 +0200
-Message-ID: <1478184265-9620-15-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 07/17] IB/cxgb3: Remove debug prints after allocation failure
+Date: Thu,  3 Nov 2016 16:44:15 +0200
+Message-ID: <1478184265-9620-8-git-send-email-leon@kernel.org>
 References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -16,43 +16,65 @@ error prints anyway.
 
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 5 ++---
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 4 +---
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/cxgb3/cxio_dbg.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 67fc0b6..12b27e7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1596,10 +1596,9 @@ void ocrdma_alloc_pd_pool(struct ocrdma_dev *dev)
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_dbg.c b/drivers/infiniband/hw/cxgb3/cxio_dbg.c
+index 8bca6b4..445e89e 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_dbg.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_dbg.c
+@@ -45,10 +45,9 @@ void cxio_dump_tpt(struct cxio_rdev *rdev, u32 stag)
+ 	int size = 32;
  
- 	dev->pd_mgr = kzalloc(sizeof(struct ocrdma_pd_resource_mgr),
- 			      GFP_KERNEL);
--	if (!dev->pd_mgr) {
--		pr_err("%s(%d)Memory allocation failure.\n", __func__, dev->id);
-+	if (!dev->pd_mgr)
+ 	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m) {
+-		PDBG("%s couldn't allocate memory.\n", __func__);
++	if (!m)
  		return;
 -	}
 +
- 	status = ocrdma_mbx_alloc_pd_range(dev);
- 	if (status) {
- 		pr_err("%s(%d) Unable to initialize PD pool, using default.\n",
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-index 8bef09a..f8e4b0a 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-@@ -84,10 +84,8 @@ bool ocrdma_alloc_stats_resources(struct ocrdma_dev *dev)
+ 	m->mem_id = MEM_PMRX;
+ 	m->addr = (stag>>8) * 32 + rdev->rnic_info.tpt_base;
+ 	m->len = size;
+@@ -82,10 +81,9 @@ void cxio_dump_pbl(struct cxio_rdev *rdev, u32 pbl_addr, uint len, u8 shift)
+ 	size = npages * sizeof(u64);
  
- 	/* Alloc debugfs mem */
- 	mem->debugfs_mem = kzalloc(OCRDMA_MAX_DBGFS_MEM, GFP_KERNEL);
--	if (!mem->debugfs_mem) {
--		pr_err("%s: stats debugfs mem allocation failed\n", __func__);
-+	if (!mem->debugfs_mem)
- 		return false;
+ 	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m) {
+-		PDBG("%s couldn't allocate memory.\n", __func__);
++	if (!m)
+ 		return;
 -	}
++
+ 	m->mem_id = MEM_PMRX;
+ 	m->addr = pbl_addr;
+ 	m->len = size;
+@@ -144,10 +142,9 @@ void cxio_dump_rqt(struct cxio_rdev *rdev, u32 hwtid, int nents)
+ 	int rc;
  
- 	return true;
- }
+ 	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m) {
+-		PDBG("%s couldn't allocate memory.\n", __func__);
++	if (!m)
+ 		return;
+-	}
++
+ 	m->mem_id = MEM_PMRX;
+ 	m->addr = ((hwtid)<<10) + rdev->rnic_info.rqt_base;
+ 	m->len = size;
+@@ -177,10 +174,9 @@ void cxio_dump_tcb(struct cxio_rdev *rdev, u32 hwtid)
+ 	int rc;
+ 
+ 	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m) {
+-		PDBG("%s couldn't allocate memory.\n", __func__);
++	if (!m)
+ 		return;
+-	}
++
+ 	m->mem_id = MEM_CM;
+ 	m->addr = hwtid * size;
+ 	m->len = size;
 -- 
 2.7.4
 
