@@ -1,104 +1,52 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 17/17] IB/ipoib: Remove and fix debug prints after allocation failure
-Date: Thu,  3 Nov 2016 07:02:33 +0200
-Message-ID: <1478149353-12125-18-git-send-email-leon@kernel.org>
-References: <1478149353-12125-1-git-send-email-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478149353-12125-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Binoy Jayan <binoy.jayan@linaro.org>
+Subject: Re: [PATCH v4 10/10] IB/mlx5: Simplify completion into a wait_event
+Date: Thu, 3 Nov 2016 11:33:04 +0530
+Message-ID: <CAHv-k_97o9eYODRgkWa-NodXPWf+hJ5M9+hHrkm=rn9p6cY9Jw@mail.gmail.com>
+References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
+ <1477551554-30349-11-git-send-email-binoy.jayan@linaro.org> <8ceb7dbf-d242-1427-199a-b6ec82876f23@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8ceb7dbf-d242-1427-199a-b6ec82876f23@grimberg.me>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>, Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, Linux kernel mailing list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The prints after [k|v][m|z|c]alloc() functions are not needed,
-because in case of failure, allocator will print their internal
-error prints anyway.
+Hi,
 
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 12 +++---------
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   |  5 +----
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  5 +----
- 3 files changed, 5 insertions(+), 17 deletions(-)
+On 31 October 2016 at 02:47, Sagi Grimberg <sagi@grimberg.me> wrote:
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 4ad297d..375af25 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -355,11 +355,8 @@ static int ipoib_cm_nonsrq_init_rx(struct net_device *dev, struct ib_cm_id *cm_i
- 	int i;
- 
- 	rx->rx_ring = vzalloc(ipoib_recvq_size * sizeof *rx->rx_ring);
--	if (!rx->rx_ring) {
--		printk(KERN_WARNING "%s: failed to allocate CM non-SRQ ring (%d entries)\n",
--		       priv->ca->name, ipoib_recvq_size);
-+	if (!rx->rx_ring)
- 		return -ENOMEM;
--	}
- 
- 	t = kmalloc(sizeof *t, GFP_KERNEL);
- 	if (!t) {
-@@ -1132,11 +1129,10 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
- 
- 	p->tx_ring = __vmalloc(ipoib_sendq_size * sizeof *p->tx_ring,
- 			       GFP_NOIO, PAGE_KERNEL);
--	if (!p->tx_ring) {
--		ipoib_warn(priv, "failed to allocate tx ring\n");
-+	if (!p->tx_ring)
- 		ret = -ENOMEM;
- 		goto err_tx;
--	}
-+
- 	memset(p->tx_ring, 0, ipoib_sendq_size * sizeof *p->tx_ring);
- 
- 	p->qp = ipoib_cm_create_tx_qp(p->dev, p);
-@@ -1549,8 +1545,6 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
- 
- 	priv->cm.srq_ring = vzalloc(ipoib_recvq_size * sizeof *priv->cm.srq_ring);
- 	if (!priv->cm.srq_ring) {
--		printk(KERN_WARNING "%s: failed to allocate CM SRQ ring (%d entries)\n",
--		       priv->ca->name, ipoib_recvq_size);
- 		ib_destroy_srq(priv->cm.srq);
- 		priv->cm.srq = NULL;
- 		return;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index be11d5d..43cf8b8a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -418,11 +418,8 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 			   "(status=%d, wrid=%d vend_err %x)\n",
- 			   wc->status, wr_id, wc->vendor_err);
- 		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
--		if (!qp_work) {
--			ipoib_warn(priv, "%s Failed alloc ipoib_qp_state_validate for qp: 0x%x\n",
--				   __func__, priv->qp->qp_num);
-+		if (!qp_work)
- 			return;
--		}
- 
- 		INIT_WORK(&qp_work->work, ipoib_qp_state_validate_work);
- 		qp_work->priv = priv;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5636fc3..423b30d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1594,11 +1594,8 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
- 	/* Allocate RX/TX "rings" to hold queued skbs */
- 	priv->rx_ring =	kzalloc(ipoib_recvq_size * sizeof *priv->rx_ring,
- 				GFP_KERNEL);
--	if (!priv->rx_ring) {
--		printk(KERN_WARNING "%s: failed to allocate RX ring (%d entries)\n",
--		       ca->name, ipoib_recvq_size);
-+	if (!priv->rx_ring)
- 		goto out;
--	}
- 
- 	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
- 	if (!priv->tx_ring) {
--- 
-2.7.4
+> How is this simpler?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is simpler in the sense that it is a light weight primitive and that only
+one thread waits on the event here. In our case since 'umr_context.done'
+is an "on stack" variable, and has only one thread waiting on that event,
+no race conditions occur. So, we do not need completions here which
+are usually used to provide a race-free but easy-to-use solution involving
+multiple threads waiting on an event.
+
+>>  enum ib_wc_status {
+>> +       IB_WC_STATUS_NONE = -1,
+>>         IB_WC_SUCCESS,
+>>         IB_WC_LOC_LEN_ERR,
+>>         IB_WC_LOC_QP_OP_ERR,
+>>
+>
+> Huh? Where did this bogus status came from? IMHO, this is polluting
+> the verbs interface for no good reason at all, sorry.
+
+context->status is initialized to -1 in the following code, so I just thought of
+replacing it with a name.
+
+static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
+ {
+        context->cqe.done = mlx5_ib_umr_done;
+-       context->status = -1;
+-       init_completion(&context->done);
++       context->status = IB_WC_STATUS_NONE;
++       init_waitqueue_head(&context->wq);
+ }
+
+Thanks,
+Binoy
