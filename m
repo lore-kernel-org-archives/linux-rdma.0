@@ -1,70 +1,72 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Thu, 3 Nov 2016 20:00:06 +0200
-Message-ID: <20161103180006.GL3617@leon.nu>
-References: <20161018215134.GB2761@htj.duckdns.org>
- <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
- <20161019143345.GA18532@htj.duckdns.org>
- <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
- <20161019192006.GB3044@htj.duckdns.org>
- <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
- <20161019200536.GC3044@htj.duckdns.org>
- <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw@mail.gmail.com>
- <20161031065441.GY3617@leon.nu>
- <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Xsbw7+pkldUUnFG3"
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core] rxe: Use default dual-license instead of PathScale
+Date: Thu,  3 Nov 2016 17:49:15 +0200
+Message-ID: <1478188155-24018-1-git-send-email-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Remove the patent clauses from RXE copyright notice.
 
---Xsbw7+pkldUUnFG3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ COPYING.md          | 5 -----
+ providers/rxe/rxe.c | 4 ----
+ providers/rxe/rxe.h | 4 ----
+ 3 files changed, 13 deletions(-)
 
-On Tue, Nov 01, 2016 at 04:33:23PM +0530, Parav Pandit wrote:
-> So my opinion is:
-> (a) Let cgroup define the current standard objects and new reasonable
-> set of vendor specific objects in future.
-> (b) Add new rdma.percentage parameter so that any new standard object
-> or vendor specific object can be abstracted from average end user and
-> applications which are yet to catch up.
-> I believe this takes care of your point (1), (3), (4)?
+diff --git a/COPYING.md b/COPYING.md
+index 3d55eb9..3d34648 100644
+--- a/COPYING.md
++++ b/COPYING.md
+@@ -45,11 +45,6 @@ ipathverbs
+ ocrdma
+ : Dual License: GPLv2 or OpenIB.org BSD (FreeBSD variant), See COPYING.BSD_FB
 
-We (Tejun, Christoph, Matan and me) had a face-to-face talk during
-KS/LPC and decided that the best way to move forward is to export to
-user one object (global HCA like) only and don't export anything else.
+-rxe
+-: A combination of the
+-    - Default Dual License
+-    - GPLv2 or PathScale BSD Patent license
+-
+ ## Libraries
 
-All internal calculations will be based on this percentage.
+ All library compilable source code (.c and .h files) are available under the
+diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
+index 5aa77ea..d23ef3d 100644
+--- a/providers/rxe/rxe.c
++++ b/providers/rxe/rxe.c
+@@ -31,10 +31,6 @@
+  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  * SOFTWARE.
+- *
+- * Patent licenses, if any, provided herein do not apply to
+- * combinations of this program with other software, or any other
+- * product whatsoever.
+  */
 
-Once the cgroups users will come with reasonable justification why they
-need to configure different unexposed objects, we will expose them.
+ #include <config.h>
+diff --git a/providers/rxe/rxe.h b/providers/rxe/rxe.h
+index 61383a3..0a67a81 100644
+--- a/providers/rxe/rxe.h
++++ b/providers/rxe/rxe.h
+@@ -31,10 +31,6 @@
+  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  * SOFTWARE.
+- *
+- * Patent licenses, if any, provided herein do not apply to
+- * combinations of this program with other software, or any other
+- * product whatsoever.
+  */
 
---Xsbw7+pkldUUnFG3
-Content-Type: application/pgp-signature; name="signature.asc"
+ #ifndef RXE_H
+--
+2.7.4
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYG3slAAoJEORje4g2clinsF8QAK2K6TSU8wpObeLJ0M0BSQ3d
-BGu9r7PyK3HQiQMy0qjoT2/uQRFGh28xXKsRcci8y8EkQaiI/xsEXU8Nw27Ihe32
-9yMH5t6GjG00XjxCLQOQGpGjKyS4aSQGj1lsYUmhfeMThKj69uW2h6Ihzst3a9ST
-WVqr1P+XLstQI/8BlO7PhzD+ulJoTPUN5Dl92pUgmIF9Qsmz32V/DSb1zuw1ymuq
-M9DbJ/uU7WilsvTrxFFLmvlR3/Rpzon8YrL6p1xsEVh4LsO4iIzlpS5Jmrl1UYlc
-7zeuVVmI8udUuTmYBQF4jZ5K+PZ36KC3DaI/341S0VfEYZ7/3NUyywWnz4Urv3qz
-c3h+b0l0LgEpnaH0ahg+hhjPN12WHMAp9Nddyci1rRUu+zoLbs5GIMz7rwN4H6WY
-XFIpnNSUzXIE2hJqBXAJziUKjrmwv8Rod2Ua6icEC90Ty0CSA/lI6Hw5cPmKEj23
-TmSPKFEiKlR9GnBJ0O9GTbhOoNQGUIl64yvnSB2oCE4XcQLVnjv+JZZHRkYPa6i9
-eqr90dsn7pPTKFKvC4rg1EmoXZSVA3Arp3GUlc/4YmBuAVxQSiuQL8nl5mxCTVRh
-qrtYjYE/6Yd+MVzI/S/sFkGZ2h1JjjmZnMe1DeCgU3KhNeg59Joav+bdf6P6vCX3
-2IOHk54mfPC4RC4rMXgm
-=FK5S
------END PGP SIGNATURE-----
-
---Xsbw7+pkldUUnFG3--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
