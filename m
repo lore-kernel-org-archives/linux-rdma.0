@@ -1,323 +1,70 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/8] libpvrdma: Add completion queue functions
-Date: Thu, 3 Nov 2016 16:44:32 -0700
-Message-ID: <1478216677-6150-4-git-send-email-aditr@vmware.com>
-References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Thu, 3 Nov 2016 20:00:06 +0200
+Message-ID: <20161103180006.GL3617@leon.nu>
+References: <20161018215134.GB2761@htj.duckdns.org>
+ <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
+ <20161019143345.GA18532@htj.duckdns.org>
+ <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
+ <20161019192006.GB3044@htj.duckdns.org>
+ <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
+ <20161019200536.GC3044@htj.duckdns.org>
+ <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw@mail.gmail.com>
+ <20161031065441.GY3617@leon.nu>
+ <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478216677-6150-1-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Xsbw7+pkldUUnFG3"
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support for completion queue creation, destruction, polling and
-events.
 
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
----
- providers/pvrdma/cq.c | 287 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 287 insertions(+)
- create mode 100644 providers/pvrdma/cq.c
+--Xsbw7+pkldUUnFG3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/providers/pvrdma/cq.c b/providers/pvrdma/cq.c
-new file mode 100644
-index 0000000..f99873c
---- /dev/null
-+++ b/providers/pvrdma/cq.c
-@@ -0,0 +1,287 @@
-+/*
-+ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of EITHER the GNU General Public License
-+ * version 2 as published by the Free Software Foundation or the BSD
-+ * 2-Clause License. This program is distributed in the hope that it
-+ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-+ * See the GNU General Public License version 2 for more details at
-+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program available in the file COPYING in the main
-+ * directory of this source tree.
-+ *
-+ * The BSD 2-Clause License
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#include <infiniband/arch.h>
-+
-+#include "pvrdma.h"
-+
-+enum {
-+	CQ_OK =  0,
-+	CQ_EMPTY = -1,
-+	CQ_POLL_ERR = -2,
-+};
-+
-+enum {
-+	PVRDMA_CQE_IS_SEND_MASK = 0x40,
-+	PVRDMA_CQE_OPCODE_MASK = 0x1f,
-+};
-+
-+int pvrdma_alloc_cq_buf(struct pvrdma_device *dev, struct pvrdma_cq *cq,
-+			struct pvrdma_buf *buf, int entries)
-+{
-+	if (pvrdma_alloc_buf(buf, cq->offset +
-+			     entries * (sizeof(struct pvrdma_cqe)),
-+			     dev->page_size))
-+		return -1;
-+	memset(buf->buf, 0, buf->length);
-+
-+	return 0;
-+}
-+
-+static struct pvrdma_cqe *get_cqe(struct pvrdma_cq *cq, int entry)
-+{
-+	return cq->buf.buf + cq->offset +
-+	       entry * (sizeof(struct pvrdma_cqe));
-+}
-+
-+static int pvrdma_poll_one(struct pvrdma_cq *cq,
-+			   struct pvrdma_qp **cur_qp,
-+			   struct ibv_wc *wc)
-+{
-+	struct pvrdma_context *ctx = to_vctx(cq->ibv_cq.context);
-+	int has_data;
-+	unsigned int head;
-+	int tried = 0;
-+	struct pvrdma_cqe *cqe;
-+
-+retry:
-+	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-+					    cq->cqe_cnt, &head);
-+	if (has_data == 0) {
-+		unsigned int val;
-+
-+		if (tried)
-+			return CQ_EMPTY;
-+
-+		/* Pass down POLL to give physical HCA a chance to poll. */
-+		val = cq->cqn | PVRDMA_UAR_CQ_POLL;
-+		pvrdma_write_uar_cq(ctx->uar, val);
-+
-+		tried = 1;
-+		goto retry;
-+	} else if (has_data == -1) {
-+		return CQ_POLL_ERR;
-+	}
-+
-+	cqe = get_cqe(cq, head);
-+	if (!cqe)
-+		return CQ_EMPTY;
-+
-+	rmb();
-+
-+	if (ctx->qp_tbl[cqe->qp & 0xFFFF])
-+		*cur_qp = (struct pvrdma_qp *)ctx->qp_tbl[cqe->qp & 0xFFFF];
-+	 else
-+		return CQ_POLL_ERR;
-+
-+	wc->opcode = pvrdma_wc_opcode_to_ibv(cqe->opcode);
-+	wc->status = pvrdma_wc_status_to_ibv(cqe->status);
-+	wc->wr_id = cqe->wr_id;
-+	wc->qp_num = (*cur_qp)->ibv_qp.qp_num;
-+	wc->byte_len = cqe->byte_len;
-+	wc->imm_data = cqe->imm_data;
-+	wc->src_qp = cqe->src_qp;
-+	wc->wc_flags = cqe->wc_flags;
-+	wc->pkey_index = cqe->pkey_index;
-+	wc->slid = cqe->slid;
-+	wc->sl = cqe->sl;
-+	wc->dlid_path_bits = cqe->dlid_path_bits;
-+	wc->vendor_err = 0;
-+
-+	/* Update shared ring state. */
-+	pvrdma_idx_ring_inc(&(cq->ring_state->rx.cons_head), cq->cqe_cnt);
-+
-+	return CQ_OK;
-+}
-+
-+int pvrdma_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
-+{
-+	struct pvrdma_cq *cq = to_vcq(ibcq);
-+	struct pvrdma_qp *qp;
-+	int npolled = 0;
-+
-+	if (num_entries < 1 || wc == NULL)
-+		return 0;
-+
-+	pthread_spin_lock(&cq->lock);
-+
-+	for (npolled = 0; npolled < num_entries; ++npolled) {
-+		if (pvrdma_poll_one(cq, &qp, wc + npolled) != CQ_OK)
-+			break;
-+	}
-+
-+	pthread_spin_unlock(&cq->lock);
-+
-+	return npolled;
-+}
-+
-+void __pvrdma_cq_clean(struct pvrdma_cq *cq, uint32_t qpn)
-+{
-+	/* Flush CQEs from specified QP */
-+	int has_data;
-+	unsigned int head;
-+
-+	/* Lock held */
-+	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-+					    cq->cqe_cnt, &head);
-+
-+	if (unlikely(has_data > 0)) {
-+		int items;
-+		int curr;
-+		int tail = pvrdma_idx(&cq->ring_state->rx.prod_tail,
-+				      cq->cqe_cnt);
-+		struct pvrdma_cqe *cqe;
-+		struct pvrdma_cqe *curr_cqe;
-+
-+		items = (tail > head) ? (tail - head) :
-+			(cq->cqe_cnt - head + tail);
-+		curr = --tail;
-+		while (items-- > 0) {
-+			if (curr < 0)
-+				curr = cq->cqe_cnt - 1;
-+			if (tail < 0)
-+				tail = cq->cqe_cnt - 1;
-+			curr_cqe = get_cqe(cq, curr);
-+			rmb();
-+			if ((curr_cqe->qp & 0xFFFF) != qpn) {
-+				if (curr != tail) {
-+					cqe = get_cqe(cq, tail);
-+					rmb();
-+					*cqe = *curr_cqe;
-+				}
-+				tail--;
-+			} else {
-+				pvrdma_idx_ring_inc(
-+					&cq->ring_state->rx.cons_head,
-+					cq->cqe_cnt);
-+			}
-+			curr--;
-+		}
-+	}
-+}
-+
-+void pvrdma_cq_clean(struct pvrdma_cq *cq, uint32_t qpn)
-+{
-+	pthread_spin_lock(&cq->lock);
-+	__pvrdma_cq_clean(cq, qpn);
-+	pthread_spin_unlock(&cq->lock);
-+}
-+
-+struct ibv_cq *pvrdma_create_cq(struct ibv_context *context, int cqe,
-+				struct ibv_comp_channel *channel,
-+				int comp_vector)
-+{
-+	struct pvrdma_device *dev = to_vdev(context->device);
-+	struct pvrdma_create_cq cmd;
-+	struct pvrdma_create_cq_resp resp;
-+	struct pvrdma_cq *cq;
-+	int ret;
-+
-+	if (cqe < 1)
-+		return NULL;
-+
-+	cq = malloc(sizeof(*cq));
-+	if (!cq)
-+		return NULL;
-+
-+	/* Extra page for shared ring state */
-+	cq->offset = dev->page_size;
-+
-+	if (pthread_spin_init(&cq->lock, PTHREAD_PROCESS_PRIVATE))
-+		goto err;
-+
-+	cqe = align_next_power2(cqe);
-+
-+	if (pvrdma_alloc_cq_buf(dev, cq, &cq->buf, cqe))
-+		goto err;
-+
-+	cq->ring_state = cq->buf.buf;
-+
-+	cmd.buf_addr = (uintptr_t) cq->buf.buf;
-+	cmd.buf_size = cq->buf.length;
-+	ret = ibv_cmd_create_cq(context, cqe, channel, comp_vector,
-+				&cq->ibv_cq, &cmd.ibv_cmd, sizeof(cmd),
-+				&resp.ibv_resp, sizeof(resp));
-+	if (ret)
-+		goto err_buf;
-+
-+	cq->cqn = resp.cqn;
-+	cq->cqe_cnt = cq->ibv_cq.cqe;
-+
-+	return &cq->ibv_cq;
-+
-+err_buf:
-+	pvrdma_free_buf(&cq->buf);
-+err:
-+	free(cq);
-+
-+	return NULL;
-+}
-+
-+int pvrdma_destroy_cq(struct ibv_cq *cq)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_cq(cq);
-+	if (ret)
-+		return ret;
-+
-+	pvrdma_free_buf(&to_vcq(cq)->buf);
-+	free(to_vcq(cq));
-+
-+	return 0;
-+}
-+
-+int pvrdma_req_notify_cq(struct ibv_cq *ibcq, int solicited)
-+{
-+	struct pvrdma_context *ctx = to_vctx(ibcq->context);
-+	struct pvrdma_cq *cq = to_vcq(ibcq);
-+	unsigned int val = cq->cqn;
-+
-+	val |= solicited ? PVRDMA_UAR_CQ_ARM_SOL : PVRDMA_UAR_CQ_ARM;
-+	pvrdma_write_uar_cq(ctx->uar, val);
-+
-+	return 0;
-+}
--- 
-2.7.4
+On Tue, Nov 01, 2016 at 04:33:23PM +0530, Parav Pandit wrote:
+> So my opinion is:
+> (a) Let cgroup define the current standard objects and new reasonable
+> set of vendor specific objects in future.
+> (b) Add new rdma.percentage parameter so that any new standard object
+> or vendor specific object can be abstracted from average end user and
+> applications which are yet to catch up.
+> I believe this takes care of your point (1), (3), (4)?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We (Tejun, Christoph, Matan and me) had a face-to-face talk during
+KS/LPC and decided that the best way to move forward is to export to
+user one object (global HCA like) only and don't export anything else.
+
+All internal calculations will be based on this percentage.
+
+Once the cgroups users will come with reasonable justification why they
+need to configure different unexposed objects, we will expose them.
+
+--Xsbw7+pkldUUnFG3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYG3slAAoJEORje4g2clinsF8QAK2K6TSU8wpObeLJ0M0BSQ3d
+BGu9r7PyK3HQiQMy0qjoT2/uQRFGh28xXKsRcci8y8EkQaiI/xsEXU8Nw27Ihe32
+9yMH5t6GjG00XjxCLQOQGpGjKyS4aSQGj1lsYUmhfeMThKj69uW2h6Ihzst3a9ST
+WVqr1P+XLstQI/8BlO7PhzD+ulJoTPUN5Dl92pUgmIF9Qsmz32V/DSb1zuw1ymuq
+M9DbJ/uU7WilsvTrxFFLmvlR3/Rpzon8YrL6p1xsEVh4LsO4iIzlpS5Jmrl1UYlc
+7zeuVVmI8udUuTmYBQF4jZ5K+PZ36KC3DaI/341S0VfEYZ7/3NUyywWnz4Urv3qz
+c3h+b0l0LgEpnaH0ahg+hhjPN12WHMAp9Nddyci1rRUu+zoLbs5GIMz7rwN4H6WY
+XFIpnNSUzXIE2hJqBXAJziUKjrmwv8Rod2Ua6icEC90Ty0CSA/lI6Hw5cPmKEj23
+TmSPKFEiKlR9GnBJ0O9GTbhOoNQGUIl64yvnSB2oCE4XcQLVnjv+JZZHRkYPa6i9
+eqr90dsn7pPTKFKvC4rg1EmoXZSVA3Arp3GUlc/4YmBuAVxQSiuQL8nl5mxCTVRh
+qrtYjYE/6Yd+MVzI/S/sFkGZ2h1JjjmZnMe1DeCgU3KhNeg59Joav+bdf6P6vCX3
+2IOHk54mfPC4RC4rMXgm
+=FK5S
+-----END PGP SIGNATURE-----
+
+--Xsbw7+pkldUUnFG3--
