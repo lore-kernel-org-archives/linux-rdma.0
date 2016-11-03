@@ -1,92 +1,85 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH for-next V2 00/15][PULL request] Mellanox mlx5 core driver
- updates 2016-10-25
-Date: Thu, 3 Nov 2016 16:33:59 -0600
-Message-ID: <581BBB57.9090000@redhat.com>
-References: <1477862528-4328-1-git-send-email-saeedm@mellanox.com>
- <20161030.173522.1563055187413070239.davem@davemloft.net>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 7/8] libpvrdma: Add to consolidated rdma-core
+Date: Thu, 3 Nov 2016 16:44:36 -0700
+Message-ID: <1478216677-6150-8-git-send-email-aditr@vmware.com>
+References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161030.173522.1563055187413070239.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, "saeedm@mellanox.com" <saeedm@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "leonro@mellanox.com" <leonro@mellanox.com>, "talal@mellanox.com" <talal@mellanox.com>, "matanb@mellanox.com" <matanb@mellanox.com>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1478216677-6150-1-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh
-Content-Type: multipart/mixed; boundary="aWuMniRXUFFMwpp8tgmAaxUfltMAiuFeK";
- protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: David Miller <davem@davemloft.net>,
- "saeedm@mellanox.com" <saeedm@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>,
- "leonro@mellanox.com" <leonro@mellanox.com>,
- "talal@mellanox.com" <talal@mellanox.com>,
- "matanb@mellanox.com" <matanb@mellanox.com>
-Message-ID: <581BBB57.9090000@redhat.com>
-Subject: Re: [PATCH for-next V2 00/15][PULL request] Mellanox mlx5 core driver
- updates 2016-10-25
-References: <1477862528-4328-1-git-send-email-saeedm@mellanox.com>
- <20161030.173522.1563055187413070239.davem@davemloft.net>
-In-Reply-To: <20161030.173522.1563055187413070239.davem@davemloft.net>
+Update the build scripts and infrastructure for the pvrdma user library.
 
---aWuMniRXUFFMwpp8tgmAaxUfltMAiuFeK
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+ CMakeLists.txt                  | 1 +
+ MAINTAINERS                     | 6 ++++++
+ README.md                       | 1 +
+ providers/pvrdma/CMakeLists.txt | 6 ++++++
+ 4 files changed, 14 insertions(+)
+ create mode 100644 providers/pvrdma/CMakeLists.txt
 
-On 10/30/16 3:35 PM, David Miller wrote:
-> From: Saeed Mahameed <saeedm@mellanox.com>
-> Date: Sun, 30 Oct 2016 23:21:53 +0200
->=20
->> This series contains some updates and fixes of mlx5 core and
->> IB drivers with the addition of two features that demand
->> new low level commands and infrastructure updates.
->>  - SRIOV VF max rate limit support
->>  - mlx5e tc support for FWD rules with counter.
->>
->> Needed for both net and rdma subsystems.
->=20
-> Pulled, thanks.
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b3b3ff1..2010265 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -335,6 +335,7 @@ add_subdirectory(providers/mlx5)
+ add_subdirectory(providers/mthca)
+ add_subdirectory(providers/nes)
+ add_subdirectory(providers/ocrdma)
++add_subdirectory(providers/pvrdma)
+ add_subdirectory(providers/qedr)
+ add_subdirectory(providers/rxe)
+ add_subdirectory(providers/rxe/man)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index d83de10..69ab1f9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -139,6 +139,12 @@ M:	Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+ S:	Supported
+ F:	providers/ocrdma/
+ 
++PVRDMA USERSPACE PROVIDER (for pvrdma.ko)
++M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
++L:	pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
++S:	Supported
++F:	providers/pvrdma/
++
+ QEDR USERSPACE PROVIDER (for qedr.ko)
+ M:	Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+ M:	Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+diff --git a/README.md b/README.md
+index 3a13042..fed8803 100644
+--- a/README.md
++++ b/README.md
+@@ -25,6 +25,7 @@ is included:
+  - ib_mthca.ko
+  - iw_nes.ko
+  - ocrdma.ko
++ - pvrdma.ko
+  - qedr.ko
+  - rdma_rxe.ko
+ 
+diff --git a/providers/pvrdma/CMakeLists.txt b/providers/pvrdma/CMakeLists.txt
+new file mode 100644
+index 0000000..8ba9a45
+--- /dev/null
++++ b/providers/pvrdma/CMakeLists.txt
+@@ -0,0 +1,6 @@
++rdma_provider(pvrdma
++  cq.c
++  pvrdma_main.c
++  qp.c
++  verbs.c
++)
+-- 
+2.7.4
 
-Thanks, done here as well.
-
---=20
-Doug Ledford <dledford@redhat.com>    GPG Key ID: 0E572FDD
-  Red Hat, Inc.
-  100 E. Davie St
-  Raleigh, NC 27601 USA
-
-
---aWuMniRXUFFMwpp8tgmAaxUfltMAiuFeK--
-
---fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCgAGBQJYG7tXAAoJELgmozMOVy/dAqYP/RhwYcIBM9XwjG5sS8n0JgFS
-/O6B08EL55xiURiK9NIdpXorgmIo9CVA3PIqWOBZqytXuRXZUxWvOOZ+wsYwot4T
-x5VmXV2QErdpKa8ecZgddDsJBYnJ6nbRAu0k2/gJHlD7EY0crgjiEvzSZfH3GoDM
-j6BJj6FwDcw3d1fzRhWSe7LAFItBd9NL5zKfJdAlMmk3O7ErA2lS/rUy2zMHJ2Ti
-jSKQA/QADrryT3zUa61gqZSHf8ejE1ZoTL9GvDeF43OIsrUvCn2aTf3U2em7lJm3
-4RJfb5lBJEpJFT2nM6RS/8s1aimW3bk7Tv50oVMHMGzVo3qaU7rPeb3Atu/7LehM
-WC3XAUy+mLmE4WDb92QHMuMudJg+Ci+PKTJFaDnr71hvppFhk61ROze1sUP1Xtj7
-xakxpi5CGj2NUCMmJRLDf+eoMf31Lpq2iVu1TLZLUZIiNx6B0JfAhVsgiJ38qw5B
-cLMozdIDOyiH0bTfTjjzNWXF7lcgLNHC1tag/XARMRaGRDWVQ6dtWld99UIoJyFs
-CSPH3bVk9HMNSEIHQzBDf2Nhh/w1x9LaQcZYkn2UhS57EG7NSFGd5lZVK1RLjyVU
-PZ1Ks0bZy0aqjw0vTp9ZZaEfi7SHiDqYfvP3KiEZxJzaGQcO5ERbMpkLcJ7A4pF4
-LDvjLrFxxQ2eaQhPtnj0
-=QTd3
------END PGP SIGNATURE-----
-
---fxMUFpKOfGwVeuskNj5Jbe1F32UeiepNh--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
