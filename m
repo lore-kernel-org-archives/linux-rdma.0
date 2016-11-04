@@ -1,33 +1,53 @@
-From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rdmavt: Only put mmap_info ref if it exists
-Date: Fri, 4 Nov 2016 13:33:28 -0400
-Message-ID: <b67230ae-baf0-c932-4acd-b414a33c158f@redhat.com>
-References: <1478033052-147252-1-git-send-email-foraker1@llnl.gov>
-Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/8] libpvrdma: userspace library for PVRDMA
+Date: Fri, 4 Nov 2016 14:00:37 -0700
+Message-ID: <b88ad364-9d33-dd3e-a803-bb660de3b384@vmware.com>
+References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
+ <20161104004620.GA30318@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478033052-147252-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20161104004620.GA30318-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/01/2016 04:44 PM, Jim Foraker wrote:
-> rvt_create_qp() creates qp->ip only when a qp creation request comes from
-> userspace (udata is not NULL).  If we exceed the number of available
-> queue pairs however, the error path always attempts to put a kref to this
-> structure.  If the requestor is inside the kernel, this leads to a crash.
+On Thu, Nov 03, 2016 at 5:46:20PM -0700, Jason Gunthorpe wrote:
+> On Thu, Nov 03, 2016 at 04:44:29PM -0700, Adit Ranadive wrote:
+> > 
+> > I have included the shared ABI file here based on the RDMA fix up stuff 
+> > that Jason pointed me to.
 > 
-> We fix this by checking that qp->ip is not NULL before caling kref_put().
+> I left you some trivial notes on github.
+
+Sorry, I didnt see this until now. It somehow ended up in my junk folder.
+(I blame outlook).
+
+Thanks for taking a look at the code!
+
+I commented on most of the notes and I'll post a fix to address them.
+Do I have re-issue the pull request or would it pick it automatically
+after I push it?
+ 
+> The big item is that the shared ABI file must be byte for byte
+> identical to the kernel version, and it looks to me like it was
+> changed?
 > 
+> We still do not have a general solution to the need to add the header
+> struct in user space but not in kernel space, so you will need to
+> continue to get your enums from the kernel header but still have a
+> 'copy' with the modified structs.
+> 
+> Does that make sense?
 
-Fixes: 515667f8f8b4 ("IB/rdmavt: Add create queue pair functionality")
+Not entirely. You want me to keep the ABI file from the kernel in the
+fix up folder and also keep a file with the modified structs in
+providers/pvrdma?
 
-> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-
-Acked-by: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
