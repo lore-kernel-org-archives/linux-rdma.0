@@ -1,78 +1,89 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Fri, 4 Nov 2016 11:14:23 +0530
-Message-ID: <CAG53R5WdauHpML66g-O6zj+j_DUYWJMPjmL1xDaSxwDmPPYm2A@mail.gmail.com>
-References: <20161018215134.GB2761@htj.duckdns.org> <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
- <20161019143345.GA18532@htj.duckdns.org> <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
- <20161019192006.GB3044@htj.duckdns.org> <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
- <20161019200536.GC3044@htj.duckdns.org> <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw@mail.gmail.com>
- <20161031065441.GY3617@leon.nu> <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g@mail.gmail.com>
- <20161103180006.GL3617@leon.nu> <AM4PR0501MB2802030EE9E359133E04439CB1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
- <CAG53R5Vd58wEBKgAajp9VvJmB5sO2Umii0JE4XaLYKbfrJrxyg@mail.gmail.com>
- <AM4PR0501MB2802E87F709F41DDEC20B7C9B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
- <CAG53R5UyZPh9wduPZGRg2P09n2Og8oODqb+QW=7ryAPqJDa6Vw@mail.gmail.com> <AM4PR0501MB28025BE002CBA9D04675A5A5B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Crash in mlx4 shutdown with 4.9-rc3
+Date: Fri, 4 Nov 2016 09:29:47 -0500
+Message-ID: <01e001d236a7$e4c24160$ae46c420$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR0501MB28025BE002CBA9D04675A5A5B1A20-dp/nxUn679jTOi/YP668sMDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Liran,
+Hey Yishai,  Is this by chance a known bug having a pending fix somewhere?  I'm
+seeing it frequently when shutting down.  I'm using 4.9-rc3 with memory
+debugging enabled...
 
-On Fri, Nov 4, 2016 at 10:36 AM, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> From: Parav Pandit [mailto:pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->
->>
->> On Fri, Nov 4, 2016 at 10:22 AM, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> >> From: Parav Pandit [mailto:pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->> >
->> >> >
->> >> > A global HCA metric is indeed in the right direction.
->> >> > However, rethinking this, I think that we should specify the metric
->> >> > in terms of
->> >> RDMA objects rather than percentage.
->> >> > Basically, any resource that consumes an IDR is charged.
->> >> >
->> >> If metric definition is based on RDMA objects (count) and not based
->> >> on percentage, how would user specify the metric without really
->> >> specifying object type.
->> >> Current patch defines the metric as absolute numbers and objects as well.
->> >>
->> >
->> > That is the requested change. The absolute number would account for any
->> object allocation. We won't distinguish between types.
->> > Only a single counter (per device).
->> >
->>
->> In that case ucontext deserve a additional count. Because that is handful in
->> range of 256 to 1K.
->> If we give absolute consolidated number as 2000, one container will allocate all
->> the doorbell uctx and no other container can run.
->> Percentage works for this particular case.
->>
->
-> Hmm..
-> I guess that you are right.
->
-> So we can add another count for "HCA handles",
-I prefer this. This keeps it vendor agnostic and clean if we don't go
-percentage route.
-Would indirection table also fall in this category?
+[59984.502834] mlx4_core 0000:81:00.0: mlx4_shutdown was called
+[59984.603599] mlx4_en 0000:81:00.0: removed PHC
+[59985.145590] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC
+[59985.151990] Modules linked in: uio_pci_generic uio iw_cxgb4 cxgb4 nvmet_rdma
+nvmet null_blk brd rpcrdma ib_isert iscsi_target_mod ib_iser libiscsi
+scsi_transport_iscsi ib_srpt target_core_mod ib_srp scsi_transport_srp ib_ipoib
+rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm dm_mirror dm_region_hash
+dm_log dm_mod intel_rapl iosf_mbi sb_edac edac_core x86_pkg_temp_thermal
+coretemp ext4 kvm jbd2 irqbypass crct10dif_pclmul crc32_pclmul
+ghash_clmulni_intel mbcache aesni_intel lrw gf128mul iTCO_wdt glue_helper mei_me
+iTCO_vendor_support ablk_helper cryptd mxm_wmi ipmi_si i2c_i801 lpc_ich mei sg
+nfsd mfd_core i2c_smbus ipmi_msghandler pcspkr shpchp auth_rpcgss wmi nfs_acl
+lockd grace sunrpc ip_tables xfs libcrc32c libcxgb mlx4_ib ib_core mlx4_en
+sd_mod drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm
+mlx4_core igb drm ahci libahci ptp libata crc32c_intel pps_core dca nvme
+i2c_algo_bit nvme_core i2c_core [last unloaded: cxgb4]
+[59985.239258] CPU: 30 PID: 10937 Comm: kworker/30:1 Not tainted
+4.9.0-rc3-debug+ #2
+[59985.246992] Hardware name: Supermicro X9DR3-F/X9DR3-F, BIOS 3.2a 07/09/2015
+[59985.254098] Workqueue: events linkwatch_event
+[59985.258600] task: ffff88105312c6c0 task.stack: ffffc90020204000
+[59985.264657] RIP: 0010:[<ffffffffa05ae1ba>]  [<ffffffffa05ae1ba>]
+mlx4_en_get_phys_port_id+0x1a/0x50 [mlx4_en]
+[59985.274874] RSP: 0018:ffffc90020207c30  EFLAGS: 00010286
+[59985.280312] RAX: 6b6b6b6b6b6b6b6b RBX: ffff881048c220c0 RCX: 0000000000000000
+[59985.287582] RDX: 0000000000000001 RSI: ffffc90020207cb0 RDI: ffff881037020000
+[59985.294844] RBP: ffffc90020207c30 R08: 00000000000005f0 R09: ffff88102017e752
+[59985.302100] R10: ffff88085f4090c0 R11: ffff88102017e678 R12: ffff881037020000
+[59985.309356] R13: ffff88102017e678 R14: 0000000000000000 R15: 0000000000000000
+[59985.316608] FS:  0000000000000000(0000) GS:ffff881057580000(0000)
+knlGS:0000000000000000
+[59985.324936] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[59985.330805] CR2: 00007fff8fd82ff8 CR3: 0000000001c07000 CR4: 00000000000406e0
+[59985.338072] Stack:
+[59985.340219]  ffffc90020207c40 ffffffff81587a6e ffffc90020207d00
+ffffffff815a36ce
+[59985.347950]  ffff881048c220c0 ffffc90020207cd7 0000000000000000
+0000000000000010
+[59985.355684]  02000000ffffffff 000003e820000000 00000000000005dc
+0000010000000000
+[59985.363408] Call Trace:
+[59985.365994]  [<ffffffff81587a6e>] dev_get_phys_port_id+0x1e/0x30
+[59985.372123]  [<ffffffff815a36ce>] rtnl_fill_ifinfo+0x4be/0xff0
+[59985.378076]  [<ffffffff815a53f3>] rtmsg_ifinfo_build_skb+0x73/0xe0
+[59985.384377]  [<ffffffff815a5476>] rtmsg_ifinfo.part.27+0x16/0x50
+[59985.390505]  [<ffffffff815a54c8>] rtmsg_ifinfo+0x18/0x20
+[59985.395940]  [<ffffffff8158a6c6>] netdev_state_change+0x46/0x50
+[59985.401983]  [<ffffffff815a5e78>] linkwatch_do_dev+0x38/0x50
+[59985.407764]  [<ffffffff815a6165>] __linkwatch_run_queue+0xf5/0x170
+[59985.414067]  [<ffffffff815a6205>] linkwatch_event+0x25/0x30
+[59985.419764]  [<ffffffff81099a82>] process_one_work+0x152/0x400
+[59985.425716]  [<ffffffff8109a325>] worker_thread+0x125/0x4b0
+[59985.431409]  [<ffffffff8109a200>] ? rescuer_thread+0x350/0x350
+[59985.437366]  [<ffffffff8109fc6a>] kthread+0xca/0xe0
+[59985.442367]  [<ffffffff8109fba0>] ? kthread_park+0x60/0x60
+[59985.447978]  [<ffffffff816a1285>] ret_from_fork+0x25/0x30
+[59985.453497] Code: f0 5d c3 66 66 66 66 66 2e 0f 1f 84 00 00 00 00 00 66 66 66
+66 90 55 48 8b 87 c0 08 00 00 48 63 97 9c d5 00 00 48 89 e5 48 8b 00 <48> 8b 94
+d0 58 02 00 00 48 85 d2 74 1c c6 46 20 08 31 c0 88 54
+[59985.474081] RIP  [<ffffffffa05ae1ba>] mlx4_en_get_phys_port_id+0x1a/0x50
+[mlx4_en]
+[59985.481915]  RSP <ffffc90020207c30>
+[59985.485910] ---[ end trace 317937c8890959b8 ]---
+[59990.228721] Kernel panic - not syncing: Fatal exception
+[59990.234181] Kernel Offset: disabled
+[59990.239944] ---[ end Kernel panic - not syncing: Fatal exception
 
-> or alternatively, each provider will restrict the number of handles per device to a reasonable small number (which
-> won't be treated as one of the "HCA resources").
-This would require vendor drivers to get the understanding of cgroup
-object and pid and that breaks the modular approach. I like to avoid
-this.
-
-> Typically, a process shouldn't need to open more than a single handle...
-Right. well behaved application won't do multiple handles.
-
-
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
