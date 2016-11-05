@@ -1,88 +1,92 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 5/9] IB/mlx4: Handle well-known-gid in mad_demux
- processing
-Date: Sat, 5 Nov 2016 17:03:25 -0400
-Message-ID: <d339ee5f-bf7e-dc35-3dd0-c6ff13a222b4@dev.mellanox.co.il>
-References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
- <1478375842-21513-6-git-send-email-leonro@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/8] libpvrdma: userspace library for PVRDMA
+Date: Sat, 5 Nov 2016 15:24:17 -0600
+Message-ID: <581E4E01.5020405@redhat.com>
+References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
+ <20161104004620.GA30318@obsidianresearch.com>
+ <b88ad364-9d33-dd3e-a803-bb660de3b384@vmware.com>
+ <20161105150307.GB23803@obsidianresearch.com>
+ <20161105173815.GA28539@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="3UOl0vHV6kVk2KGenOG8n21HWdAkxjcws"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478375842-21513-6-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161105173815.GA28539-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/5/2016 3:57 PM, Leon Romanovsky wrote:
-> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> 
-> If OpenSM runs over ConnectX-3, and there are ConnectIB VFs active
-> on the network, the OpenSM will receive QP1 packets containing a GRH
-> where the destination GID is the "Well-Known GID" -- which is not a GID
-> in the HCA Port's GID Table.
-> 
-> This GID must be tested-for separately -- and packets which contain
-> this destination GID should be routed to slave 0 (the PF).
-> 
-> Fixes: 37bfc7c1e83f ('IB/mlx4: SR-IOV multiplex and demultiplex MADs')
-> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx4/mad.c | 16 ++++++++++++----
->  include/rdma/ib_verbs.h          |  1 +
->  2 files changed, 13 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-> index b8e9013..f0b8272 100644
-> --- a/drivers/infiniband/hw/mlx4/mad.c
-> +++ b/drivers/infiniband/hw/mlx4/mad.c
-> @@ -729,10 +729,18 @@ static int mlx4_ib_demux_mad(struct ib_device *ibdev, u8 port,
->  
->  	/* If a grh is present, we demux according to it */
->  	if (wc->wc_flags & IB_WC_GRH) {
-> -		slave = mlx4_ib_find_real_gid(ibdev, port, grh->dgid.global.interface_id);
-> -		if (slave < 0) {
-> -			mlx4_ib_warn(ibdev, "failed matching grh\n");
-> -			return -ENOENT;
-> +		if (grh->dgid.global.interface_id ==
-> +			cpu_to_be64(IB_SA_WELL_KNOWN_GUID) &&
-> +		    grh->dgid.global.subnet_prefix ==
-> +			cpu_to_be64(IB_SA_WELL_KNOWN_GID_PREFIX)) {
-> +			slave = 0;
-> +		} else {
-> +			slave = mlx4_ib_find_real_gid(ibdev, port,
-> +						      grh->dgid.global.interface_id);
-> +			if (slave < 0) {
-> +				mlx4_ib_warn(ibdev, "failed matching grh\n");
-> +				return -ENOENT;
-> +			}
->  		}
->  	}
->  	/* Class-specific handling */
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 467a4b4..da5949f 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -100,6 +100,7 @@ enum rdma_node_type {
->  
->  enum {
->  	/* set the local administered indication */
-> +	IB_SA_WELL_KNOWN_GID_PREFIX = 0xfe80000000000000ull,
->  	IB_SA_WELL_KNOWN_GUID	= BIT_ULL(57) | 2,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--3UOl0vHV6kVk2KGenOG8n21HWdAkxjcws
+Content-Type: multipart/mixed; boundary="Gfea0iE3oExE3bGoIuQom51qKn6DQxqfn";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>,
+ Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Message-ID: <581E4E01.5020405-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/8] libpvrdma: userspace library for PVRDMA
+References: <1478216677-6150-1-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+ <20161104004620.GA30318-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <b88ad364-9d33-dd3e-a803-bb660de3b384-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+ <20161105150307.GB23803-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20161105173815.GA28539-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20161105173815.GA28539-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 
-Isn't the SA well-known GID the concatenation of the subnet prefix
-(which isn't necessarily the default link local one) and the GUID
-0x0200000000000002 ?
+--Gfea0iE3oExE3bGoIuQom51qKn6DQxqfn
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
--- Hal
+On 11/5/16 11:38 AM, Christoph Hellwig wrote:
+> On Sat, Nov 05, 2016 at 09:03:07AM -0600, Jason Gunthorpe wrote:
+>> Oh, I wanted to ask about the name - we have two 'pv' drivers now,
+>> should this be called pvrdma_vmware or something? Is there a
+>> convention for this in other parts of the kernel?
+>=20
+> Yes, it should, even if we have no exact convention.
+>=20
 
->  };
->  
-> 
+Agreed.  I hate how long the driver name will end up being, but pvrdma_
+as a prefix sounds appropriate.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>    GPG Key ID: 0E572FDD
+  Red Hat, Inc.
+  100 E. Davie St
+  Raleigh, NC 27601 USA
+
+
+--Gfea0iE3oExE3bGoIuQom51qKn6DQxqfn--
+
+--3UOl0vHV6kVk2KGenOG8n21HWdAkxjcws
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - https://gpgtools.org
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCgAGBQJYHk4BAAoJELgmozMOVy/d2SAP/i0hDccXJAXgqhHFDi8DkPco
+yZHJt+2B+m8lpK00ZZwCrctCDAJJqPyw5MH3EgBi6uor0TIMG53/GRNVNJGTtUXm
+Ga6Agv6v7y8JCdl0lwdt7wgPMDPk2l+OsJu7vI9xTP5AIyeI7TJTWlUhn146nGRY
+zy4TJVclQQqvXIvjMKMV7h/vWPl+URIHqLWq3G7RDHRosRzyKqHsYl30L/5TxNXS
+vEvJwAYLBt2JzaJQVIP3pyYtzvV/E/wMtwCrUBlrveMgYCCaCjYexLGKMTWWk9j7
+c3tNIXatJ5SOWbrXJ9g9y7d9H3zDxDYt3+gCd6hLzLh/qwIx5X6FqKZmYYiLTavk
+5Ob7ouDQgCitadz30YEgB1+AEtfLROfz84BpcviC54ES6uT3Aq3zGfgl+evugwF+
+QNUmMPGKLxz/pEdxoCgVMD62fFLGYeGKyepbcRKD8Law/yT7GCxQYfm8hLAr91zl
++oTlY78aSVpS79lufbT5i+BNe/081IIbEyJ/OTlMrqeG6vDAyx+UesHwjLs7yJhj
+q05gZUeXsC8BIOJoPA3V5LvByOHZAghMIWjbKlsyx45nwZqaA60hwIEf8GMVXRn9
+/goGk2VnahM5gmhIN4YRfvlJeNSyStcrwBrbg1jcZ4ry7dCSWuD9lBUL25BdAtox
+L2m/ya+wcuYstHc3DU/2
+=s3q+
+-----END PGP SIGNATURE-----
+
+--3UOl0vHV6kVk2KGenOG8n21HWdAkxjcws--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
