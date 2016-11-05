@@ -1,43 +1,57 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc 2/9] IB/mlx4: Check gid_index return value
-Date: Sat,  5 Nov 2016 21:57:15 +0200
-Message-ID: <1478375842-21513-3-git-send-email-leonro@mellanox.com>
+Subject: [PATCH rdma-rc 1/9] IB/mlx4: Set traffic class in ah
+Date: Sat,  5 Nov 2016 21:57:14 +0200
+Message-ID: <1478375842-21513-2-git-send-email-leonro@mellanox.com>
 References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478375842-21513-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Check the returned gid index value and return an error if it is invalid.
+Set traffic class within sl_tclass_flowlabel when create iboe ah.
+Without this the tos value will be empty when running VLAN tagged
+traffic,  because the tos value is taken from the traffic class in the
+address handle attributes.
 
-Fixes: 5070cd2239bd('IB/mlx4: Replace mechanism for RoCE GID management')
+Fixes: 9106c4106974 ('IB/mlx4: Fix SL to 802.1Q priority-bits mapping
+for IBoE')
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/ah.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/ah.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index 6be7dc3..8dfc76f 100644
+index 5fc6233..6be7dc3 100644
 --- a/drivers/infiniband/hw/mlx4/ah.c
 +++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -102,7 +102,10 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
- 	if (vlan_tag < 0x1000)
- 		vlan_tag |= (ah_attr->sl & 7) << 13;
- 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
--	ah->av.eth.gid_index = mlx4_ib_gid_index_to_real_index(ibdev, ah_attr->port_num, ah_attr->grh.sgid_index);
-+	ret = mlx4_ib_gid_index_to_real_index(ibdev, ah_attr->port_num, ah_attr->grh.sgid_index);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+	ah->av.eth.gid_index = ret;
- 	ah->av.eth.vlan = cpu_to_be16(vlan_tag);
- 	ah->av.eth.hop_limit = ah_attr->grh.hop_limit;
- 	if (ah_attr->static_rate) {
+@@ -111,7 +111,9 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ 		       !(1 << ah->av.eth.stat_rate & dev->caps.stat_rate_support))
+ 			--ah->av.eth.stat_rate;
+ 	}
+-
++	ah->av.eth.sl_tclass_flowlabel |=
++			cpu_to_be32((ah_attr->grh.traffic_class << 20) |
++				    ah_attr->grh.flow_label);
+ 	/*
+ 	 * HW requires multicast LID so we just choose one.
+ 	 */
+@@ -119,7 +121,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ 		ah->av.ib.dlid = cpu_to_be16(0xc000);
+ 
+ 	memcpy(ah->av.eth.dgid, ah_attr->grh.dgid.raw, 16);
+-	ah->av.eth.sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 29);
++	ah->av.eth.sl_tclass_flowlabel |= cpu_to_be32(ah_attr->sl << 29);
+ 
+ 	return &ah->ibah;
+ }
 -- 
 2.7.4
 
