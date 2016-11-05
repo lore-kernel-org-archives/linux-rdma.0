@@ -1,49 +1,74 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc 3/9] IB/mlx4: Fix mlx4_ib_create_cq error flow
-Date: Sat,  5 Nov 2016 21:57:16 +0200
-Message-ID: <1478375842-21513-4-git-send-email-leonro@mellanox.com>
+Subject: [PATCH rdma-rc 5/9] IB/mlx4: Handle well-known-gid in mad_demux processing
+Date: Sat,  5 Nov 2016 21:57:18 +0200
+Message-ID: <1478375842-21513-6-git-send-email-leonro@mellanox.com>
 References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478375842-21513-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Currently, if ib_copy_to_udata fails, the CQ
-won't be deleted from the radix tree and the HW (HW2SW).
+If OpenSM runs over ConnectX-3, and there are ConnectIB VFs active
+on the network, the OpenSM will receive QP1 packets containing a GRH
+where the destination GID is the "Well-Known GID" -- which is not a GID
+in the HCA Port's GID Table.
 
-Fixes: 225c7b1feef1 ('IB/mlx4: Add a driver Mellanox ConnectX InfiniBand adapters')
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This GID must be tested-for separately -- and packets which contain
+this destination GID should be routed to slave 0 (the PF).
+
+Fixes: 37bfc7c1e83f ('IB/mlx4: SR-IOV multiplex and demultiplex MADs')
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/cq.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/mad.c | 16 ++++++++++++----
+ include/rdma/ib_verbs.h          |  1 +
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 1ea686b..6a0fec3 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -253,11 +253,14 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 	if (context)
- 		if (ib_copy_to_udata(udata, &cq->mcq.cqn, sizeof (__u32))) {
- 			err = -EFAULT;
--			goto err_dbmap;
-+			goto err_cq_free;
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index b8e9013..f0b8272 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -729,10 +729,18 @@ static int mlx4_ib_demux_mad(struct ib_device *ibdev, u8 port,
+ 
+ 	/* If a grh is present, we demux according to it */
+ 	if (wc->wc_flags & IB_WC_GRH) {
+-		slave = mlx4_ib_find_real_gid(ibdev, port, grh->dgid.global.interface_id);
+-		if (slave < 0) {
+-			mlx4_ib_warn(ibdev, "failed matching grh\n");
+-			return -ENOENT;
++		if (grh->dgid.global.interface_id ==
++			cpu_to_be64(IB_SA_WELL_KNOWN_GUID) &&
++		    grh->dgid.global.subnet_prefix ==
++			cpu_to_be64(IB_SA_WELL_KNOWN_GID_PREFIX)) {
++			slave = 0;
++		} else {
++			slave = mlx4_ib_find_real_gid(ibdev, port,
++						      grh->dgid.global.interface_id);
++			if (slave < 0) {
++				mlx4_ib_warn(ibdev, "failed matching grh\n");
++				return -ENOENT;
++			}
  		}
+ 	}
+ 	/* Class-specific handling */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 467a4b4..da5949f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -100,6 +100,7 @@ enum rdma_node_type {
  
- 	return &cq->ibcq;
+ enum {
+ 	/* set the local administered indication */
++	IB_SA_WELL_KNOWN_GID_PREFIX = 0xfe80000000000000ull,
+ 	IB_SA_WELL_KNOWN_GUID	= BIT_ULL(57) | 2,
+ };
  
-+err_cq_free:
-+	mlx4_cq_free(dev->dev, &cq->mcq);
-+
- err_dbmap:
- 	if (context)
- 		mlx4_ib_db_unmap_user(to_mucontext(context), &cq->db);
 -- 
 2.7.4
 
