@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH rdma-core 0/8] libpvrdma: userspace library for PVRDMA
-Date: Sat, 5 Nov 2016 09:01:36 -0600
-Message-ID: <20161105150136.GA23803@obsidianresearch.com>
+Date: Sat, 5 Nov 2016 09:03:07 -0600
+Message-ID: <20161105150307.GB23803@obsidianresearch.com>
 References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
  <20161104004620.GA30318@obsidianresearch.com>
  <b88ad364-9d33-dd3e-a803-bb660de3b384@vmware.com>
@@ -16,31 +16,21 @@ Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0d
 List-Id: linux-rdma@vger.kernel.org
 
 On Fri, Nov 04, 2016 at 02:00:37PM -0700, Adit Ranadive wrote:
-> I commented on most of the notes and I'll post a fix to address them.
-> Do I have re-issue the pull request or would it pick it automatically
-> after I push it?
-
-No just keep pushing, Doug can squash everything into one commit when
-applying.
-
-> > The big item is that the shared ABI file must be byte for byte
-> > identical to the kernel version, and it looks to me like it was
-> > changed?
+> On Thu, Nov 03, 2016 at 5:46:20PM -0700, Jason Gunthorpe wrote:
+> > On Thu, Nov 03, 2016 at 04:44:29PM -0700, Adit Ranadive wrote:
+> > > 
+> > > I have included the shared ABI file here based on the RDMA fix up stuff 
+> > > that Jason pointed me to.
 > > 
-> > We still do not have a general solution to the need to add the header
-> > struct in user space but not in kernel space, so you will need to
-> > continue to get your enums from the kernel header but still have a
-> > 'copy' with the modified structs.
-> > 
-> > Does that make sense?
+> > I left you some trivial notes on github.
 > 
-> Not entirely. You want me to keep the ABI file from the kernel in the
-> fix up folder and also keep a file with the modified structs in
-> providers/pvrdma?
+> Thanks for taking a look at the code!
 
-Yes, and the file with the modified structs should include the kernel
-header and duplicate it minimally. This will make it simpler for us to
-eventually get rid of it.
+Oh, I wanted to ask about the name - we have two 'pv' drivers now,
+should this be called pvrdma_vmware or something? Is there a
+convention for this in other parts of the kernel?
+
+Same comment for the kernel patch set too.
 
 Jason
 --
