@@ -1,34 +1,31 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 1/9] IB/mlx4: Set traffic class in ah
-Date: Sun, 6 Nov 2016 09:26:05 +0200
-Message-ID: <20161106072604.GC3799@yuval-lap.us.oracle.com>
+Subject: Re: [PATCH rdma-rc 6/9] IB/mlx4: Put non zero value in max_ah device
+ attribute
+Date: Sun, 6 Nov 2016 09:33:03 +0200
+Message-ID: <20161106073302.GD3799@yuval-lap.us.oracle.com>
 References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
- <1478375842-21513-2-git-send-email-leonro@mellanox.com>
+ <1478375842-21513-7-git-send-email-leonro@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1478375842-21513-2-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1478375842-21513-7-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Two extremely minor comments
+FWIW
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Sat, Nov 05, 2016 at 09:57:14PM +0200, Leon Romanovsky wrote:
+On Sat, Nov 05, 2016 at 09:57:19PM +0200, Leon Romanovsky wrote:
 > From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Set traffic class within sl_tclass_flowlabel when create iboe ah.
-> Without this the tos value will be empty when running VLAN tagged
-> traffic,  because the tos value is taken from the traffic class in the
-
-Extra space
-
-> address handle attributes.
+> Use INT_MAX since this is the max value the attribute can hold, though
+> hardware capability is unlimited.
 > 
-> Fixes: 9106c4106974 ('IB/mlx4: Fix SL to 802.1Q priority-bits mapping
-> for IBoE')
+> Fixes: 225c7b1feef1 ('IB/mlx4: Add a driver Mellanox ConnectX InfiniBand
+> adapters')
 > Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -38,33 +35,21 @@ Empty line
 
 > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/mlx4/ah.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>  drivers/infiniband/hw/mlx4/main.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-> index 5fc6233..6be7dc3 100644
-> --- a/drivers/infiniband/hw/mlx4/ah.c
-> +++ b/drivers/infiniband/hw/mlx4/ah.c
-> @@ -111,7 +111,9 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
->  		       !(1 << ah->av.eth.stat_rate & dev->caps.stat_rate_support))
->  			--ah->av.eth.stat_rate;
->  	}
-> -
-> +	ah->av.eth.sl_tclass_flowlabel |=
-> +			cpu_to_be32((ah_attr->grh.traffic_class << 20) |
-> +				    ah_attr->grh.flow_label);
->  	/*
->  	 * HW requires multicast LID so we just choose one.
->  	 */
-> @@ -119,7 +121,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
->  		ah->av.ib.dlid = cpu_to_be16(0xc000);
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+> index b597e82..05ab3cb 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -547,6 +547,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+>  	props->max_map_per_fmr = dev->dev->caps.max_fmr_maps;
+>  	props->hca_core_clock = dev->dev->caps.hca_core_clock * 1000UL;
+>  	props->timestamp_mask = 0xFFFFFFFFFFFFULL;
+> +	props->max_ah = INT_MAX;
 >  
->  	memcpy(ah->av.eth.dgid, ah_attr->grh.dgid.raw, 16);
-> -	ah->av.eth.sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 29);
-> +	ah->av.eth.sl_tclass_flowlabel |= cpu_to_be32(ah_attr->sl << 29);
->  
->  	return &ah->ibah;
->  }
+>  	if (!mlx4_is_slave(dev->dev))
+>  		err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
 > -- 
 > 2.7.4
 > 
