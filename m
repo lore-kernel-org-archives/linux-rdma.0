@@ -1,62 +1,34 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 6/9] IB/mlx4: Put non zero value in max_ah device
- attribute
-Date: Sun, 6 Nov 2016 09:33:03 +0200
-Message-ID: <20161106073302.GD3799@yuval-lap.us.oracle.com>
-References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
- <1478375842-21513-7-git-send-email-leonro@mellanox.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: nvmet_rdma crash - DISCONNECT event with NULL queue
+Date: Sun, 6 Nov 2016 09:35:37 +0200
+Message-ID: <bd82c206-668a-0794-2d51-3c48058350d3@grimberg.me>
+References: <6f42d056-284d-00fc-2b98-189f54957980@grimberg.me>
+ <01cc01d2345b$d445acd0$7cd10670$@opengridcomputing.com>
+ <4cc25277-429a-4ab9-470c-b3af1428ce93@grimberg.me>
+ <01d101d2345e$2f054390$8d0fcab0$@opengridcomputing.com>
+ <dbe5f18d-7928-f065-920f-753b30fb99a2@grimberg.me>
+ <01d901d2345f$da0d2e00$8e278a00$@opengridcomputing.com>
+ <1d09c064-1cbe-7e6e-43d2-cfa6cf0c19ea@grimberg.me>
+ <024e01d23476$6668b890$333a29b0$@opengridcomputing.com>
+ <3512b8bb-4d29-b90a-49e1-ebf1085c47d7@grimberg.me>
+ <004601d2351a$d9db85b0$8d929110$@opengridcomputing.com>
+ <20161102151540.GB14825@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1478375842-21513-7-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161102151540.GB14825-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-FWIW
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Sat, Nov 05, 2016 at 09:57:19PM +0200, Leon Romanovsky wrote:
-> From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Use INT_MAX since this is the max value the attribute can hold, though
-> hardware capability is unlimited.
-> 
-> Fixes: 225c7b1feef1 ('IB/mlx4: Add a driver Mellanox ConnectX InfiniBand
-> adapters')
-> Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> 
+> Btw, I want to actually make the ctrlid global for the target instead of
+> per-subsystem to ease a few things, and debuggability is just one more
+> on the list.
 
-Empty line
-
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx4/main.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-> index b597e82..05ab3cb 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -547,6 +547,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
->  	props->max_map_per_fmr = dev->dev->caps.max_fmr_maps;
->  	props->hca_core_clock = dev->dev->caps.hca_core_clock * 1000UL;
->  	props->timestamp_mask = 0xFFFFFFFFFFFFULL;
-> +	props->max_ah = INT_MAX;
->  
->  	if (!mlx4_is_slave(dev->dev))
->  		err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sounds good
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
