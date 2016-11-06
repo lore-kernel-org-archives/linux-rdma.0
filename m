@@ -1,22 +1,46 @@
-From: =?utf-8?B?2YXYp9mK2YPYsdmI2LPZiNmB2Ko=?= <yunier-OuzCRcMv8Fvph/Ezu1j11w@public.gmane.org>
-Subject: Respected Sir/Madam
-Date: Sun, 6 Nov 2016 14:06:16 -0500 (CST)
-Message-ID: <1292617809.542959.1478459176962.JavaMail.zimbra__9888.42231822691$1478464624$gmane$org@mes.gob.cu>
-Reply-To: mox151-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 5/9] IB/mlx4: Handle well-known-gid in mad_demux processing
+Date: Sun, 6 Nov 2016 22:46:00 +0200
+Message-ID: <CAJ3xEMjLvo+LVFS0WL-K=m34-_1Tc0=pArOgELXmxqdtN871TA@mail.gmail.com>
+References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
+ <1478375842-21513-6-git-send-email-leonro@mellanox.com> <d339ee5f-bf7e-dc35-3dd0-c6ff13a222b4@dev.mellanox.co.il>
+ <20161106204107.00005742@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161106204107.00005742-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: INF-5s8wZthzITI@public.gmane.org
+To: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-2YjZgtivINi42YfYsdiqINmF2KfZitmD2LHZiNiz2YjZgdiqINii2LPZitinINio2YMg2KfZhNio
-2LHZitivINin2YTYpdmE2YPYqtix2YjZhtmKINmF2LnYsdmBINin2YTZgdin2KbYsiDZhdmGICQg
-OTAw2IwwMDDYjDAwINiv2YjZhNin2LEg2KPZhdix2YrZg9mKINin2LHYs9in2YQK2KfYs9mFOgrY
-sdmC2YUg2KfZhNmH2KfYqtmBINin2YTZhdit2YXZiNmEOgrYp9mE2KfYrdiq2YTYp9mEIDoK2LnZ
-htmI2KfZhjoK2KfZhNix2K8g2LnZhNmJINmH2LDYpyDYsdmC2YUg2KfZhNio2LHZitivINin2YTY
-pdmE2YPYqtix2YjZhtmKOiBtb3gxNTFAb3V0bG9vay5jb20=
+On Sun, Nov 6, 2016 at 8:41 PM, jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Sat, 5 Nov 2016 17:03:25 -0400
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>
+>> Isn't the SA well-known GID the concatenation of the subnet prefix
+>> (which isn't necessarily the default link local one) and the GUID
+>> 0x0200000000000002 ?
+>
+> You are correct regarding the subnet prefix (it should be the port's
+> current subnet prefix, and not the default subnet prefix).
+>
+> Regarding the SM GUID, the version of the Virtualization Annex that I
+> worked with (v17 -- Feb 16, 2015) states:
+> SM GID  A well-known GID that is associated with the SM,
+> comprising the concatenation of the Subnet prefix and the GUID 0x2. The
+> SM GID is never present in any GID Table.
+>
+> Has the SM GUID value changed (0x2 -->0x0200000000000002) in the Annex
+> since v17? (I'm not a member of the MGTWG workgroup, so I don't have
+> access to the most recent version).
+
+Jack, I see that in Linux we've picked the value Hal is mentioning,
+see Eli Cohen's commit a0c1b2a3 "IB/core: Support accessing SA in
+virtualized environment". You probably can talk to Eli to get where
+things stand.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
