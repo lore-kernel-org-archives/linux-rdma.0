@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/5] ibverbs: Introduce IBV_FLOW_SPEC_IPV4_EXT flow specification
-Date: Sun,  6 Nov 2016 16:42:46 +0200
-Message-ID: <1478443369-8208-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 5/5] ibverbs: Update ibv_create_flow man page
+Date: Sun,  6 Nov 2016 16:42:49 +0200
+Message-ID: <1478443369-8208-6-git-send-email-yishaih@mellanox.com>
 References: <1478443369-8208-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478443369-8208-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,211 +12,90 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introduce a new extended specification named IBV_FLOW_SPEC_IPV4_EXT
-which extends the IBV_FLOW_SPEC_IPV4 specification with the following fields:
-1. Type of Service
-2. Time to Live
-3. Flags
-4. Protocol
-
-The IBV_FLOW_SPEC_IPV4 specification itself can't be extended since
-current code doesn't take into account the size of the specification
-which the user provided, it uses internally the basic structure size
-and as such is not extendable.
-
-Changing the library code for IBV_FLOW_SPEC_IPV4 to use the input size
-and add the above fields to this specification might cause few issues:
-
-1) An application that would like to use the new fields and as such will be
-   compiled over the new library but run over a legacy library will have no
-   hint that the new fields were really ignored as of the usage of the fixed
-   size inside the legacy library.
-
-2) Existing applications which ignored this input size field will
-   start to fail as of the new size checking in the library for this
-   specification.
-
-To prevent the above issues this patch introduces an extended new
-IPV4 specification having the above new fields.
+1) Add ibv_flow_spec_type enumeration description.
+2) Introduce IBV_FLOW_ATTR_SNIFFER flow type.
+3) Update NOTES with some clarifications.
 
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c      | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- libibverbs/kern-abi.h | 18 +++++++++++++++
- libibverbs/verbs.h    | 18 +++++++++++++++
- 3 files changed, 98 insertions(+), 1 deletion(-)
+ libibverbs/man/ibv_create_flow.3 | 41 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 496d27b..c960f16 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -42,7 +42,7 @@
- #include <string.h>
- 
- #include "ibverbs.h"
--
-+#include <ccan/minmax.h>
- 
- int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
- 			size_t cmd_size, struct ibv_get_context_resp *resp,
-@@ -1590,9 +1590,55 @@ int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t l
- 	return 0;
- }
- 
-+static int buffer_is_zero(char *addr, ssize_t size)
-+{
-+	return addr[0] == 0 && !memcmp(addr, addr + 1, size - 1);
-+}
-+
-+static int get_filters_size(struct ibv_flow_spec *ib_spec,
-+			    struct ibv_kern_spec *kern_spec,
-+			    int *ib_filter_size, int *kern_filter_size,
-+			    enum ibv_flow_spec_type type)
-+{
-+	void *ib_spec_filter_mask;
-+	int curr_kern_filter_size;
-+	int min_filter_size;
-+
-+	*ib_filter_size = (ib_spec->hdr.size - sizeof(ib_spec->hdr)) / 2;
-+
-+	switch (type) {
-+	case IBV_FLOW_SPEC_IPV4_EXT:
-+		min_filter_size =
-+			offsetof(struct ibv_kern_ipv4_ext_filter, flags) +
-+			sizeof(kern_spec->ipv4_ext.mask.flags);
-+		curr_kern_filter_size = min_filter_size;
-+		ib_spec_filter_mask = (void *)&ib_spec->ipv4_ext.val +
-+			*ib_filter_size;
-+		break;
-+	default:
-+		return EINVAL;
-+	}
-+
-+	if (*ib_filter_size < min_filter_size)
-+		return EINVAL;
-+
-+	if (*ib_filter_size > curr_kern_filter_size &&
-+	    !buffer_is_zero(ib_spec_filter_mask + curr_kern_filter_size,
-+			    *ib_filter_size - curr_kern_filter_size))
-+		return EOPNOTSUPP;
-+
-+	*kern_filter_size = min_t(int, curr_kern_filter_size, *ib_filter_size);
-+
-+	return 0;
-+}
-+
- static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 				struct ibv_kern_spec *kern_spec)
- {
-+	int kern_filter_size;
-+	int ib_filter_size;
-+	int ret;
-+
- 	kern_spec->hdr.type = ib_spec->hdr.type;
- 
- 	switch (ib_spec->hdr.type) {
-@@ -1610,6 +1656,21 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 		memcpy(&kern_spec->ipv4.mask, &ib_spec->ipv4.mask,
- 		       sizeof(struct ibv_flow_ipv4_filter));
- 		break;
-+	case IBV_FLOW_SPEC_IPV4_EXT:
-+		ret = get_filters_size(ib_spec, kern_spec,
-+				       &ib_filter_size, &kern_filter_size,
-+				       IBV_FLOW_SPEC_IPV4_EXT);
-+		if (ret)
-+			return ret;
-+
-+		kern_spec->hdr.type = IBV_FLOW_SPEC_IPV4;
-+		kern_spec->ipv4_ext.size = sizeof(struct
-+						  ibv_kern_spec_ipv4_ext);
-+		memcpy(&kern_spec->ipv4_ext.val, &ib_spec->ipv4_ext.val,
-+		       kern_filter_size);
-+		memcpy(&kern_spec->ipv4_ext.mask, (void *)&ib_spec->ipv4_ext.val
-+		       + ib_filter_size, kern_filter_size);
-+		break;
- 	case IBV_FLOW_SPEC_TCP:
- 	case IBV_FLOW_SPEC_UDP:
- 		kern_spec->tcp_udp.size = sizeof(struct ibv_kern_spec_tcp_udp);
-diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 381fd50..3869e64 100644
---- a/libibverbs/kern-abi.h
-+++ b/libibverbs/kern-abi.h
-@@ -852,6 +852,23 @@ struct ibv_kern_spec_ipv4 {
- 	struct ibv_kern_ipv4_filter mask;
+diff --git a/libibverbs/man/ibv_create_flow.3 b/libibverbs/man/ibv_create_flow.3
+index df6ddd3..9e0377f 100644
+--- a/libibverbs/man/ibv_create_flow.3
++++ b/libibverbs/man/ibv_create_flow.3
+@@ -42,6 +42,7 @@ enum ibv_flow_attr_type {
+ IBV_FLOW_ATTR_NORMAL		= 0x0,		/* Steering according to rule specifications */
+ IBV_FLOW_ATTR_ALL_DEFAULT	= 0x1,		/* Default unicast and multicast rule - receive all Eth traffic which isn't steered to any QP */
+ IBV_FLOW_ATTR_MC_DEFAULT 	= 0x2,		/* Default multicast rule - receive all Eth multicast traffic which isn't steered to any QP */
++IBV_FLOW_ATTR_SNIFFER		= 0x3,		/* Sniffer rule - receive all port traffic */
+ .in -8
  };
- 
-+struct ibv_kern_ipv4_ext_filter {
-+	__u32 src_ip;
-+	__u32 dst_ip;
-+	__u8  proto;
-+	__u8  tos;
-+	__u8  ttl;
-+	__u8  flags;
-+};
-+
-+struct ibv_kern_spec_ipv4_ext {
-+	__u32  type;
-+	__u16  size;
-+	__u16 reserved;
-+	struct ibv_kern_ipv4_ext_filter val;
-+	struct ibv_kern_ipv4_ext_filter mask;
-+};
-+
- struct ibv_kern_tcp_udp_filter {
- 	__u16 dst_port;
- 	__u16 src_port;
-@@ -875,6 +892,7 @@ struct ibv_kern_spec {
- 		} hdr;
- 		struct ibv_kern_spec_eth eth;
- 		struct ibv_kern_spec_ipv4 ipv4;
-+		struct ibv_kern_spec_ipv4_ext ipv4_ext;
- 		struct ibv_kern_spec_tcp_udp tcp_udp;
- 	};
- 
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 67a44a7..a4e120b 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -1177,6 +1177,7 @@ enum ibv_flow_attr_type {
- enum ibv_flow_spec_type {
- 	IBV_FLOW_SPEC_ETH	= 0x20,
- 	IBV_FLOW_SPEC_IPV4	= 0x30,
-+	IBV_FLOW_SPEC_IPV4_EXT	= 0x32,
- 	IBV_FLOW_SPEC_TCP	= 0x40,
- 	IBV_FLOW_SPEC_UDP	= 0x41,
+ .sp
+@@ -53,6 +54,31 @@ IBV_FLOW_ATTR_FLAGS_DONT_TRAP       = 1 << 1,	/* Rule doesn't trap received pack
+ .in -8
  };
-@@ -1210,6 +1211,22 @@ struct ibv_flow_spec_ipv4 {
- 	struct ibv_flow_ipv4_filter mask;
- };
- 
-+struct ibv_flow_ipv4_ext_filter {
-+	uint32_t src_ip;
-+	uint32_t dst_ip;
-+	uint8_t  proto;
-+	uint8_t  tos;
-+	uint8_t  ttl;
-+	uint8_t  flags;
-+};
+ .fi
++.nf
++.br
 +
-+struct ibv_flow_spec_ipv4_ext {
-+	enum ibv_flow_spec_type  type;
-+	uint16_t  size;
-+	struct ibv_flow_ipv4_ext_filter val;
-+	struct ibv_flow_ipv4_ext_filter mask;
++enum ibv_flow_spec_type {
++.in +8
++IBV_FLOW_SPEC_ETH                       = 0x20,   /* Flow specification of L2 header */
++IBV_FLOW_SPEC_IPV4                      = 0x30,   /* Flow specification of IPv4 header */
++IBV_FLOW_SPEC_IPV6                      = 0x31,   /* Flow specification of IPv6 header */
++IBV_FLOW_SPEC_IPV4_EXT                  = 0x32,   /* Extended flow specification of IPv4 */
++IBV_FLOW_SPEC_TCP                       = 0x40,   /* Flow specification of TCP header */
++IBV_FLOW_SPEC_UDP                       = 0x41,   /* Flow specification of UDP header */
++.in -8
 +};
++.br
 +
- struct ibv_flow_tcp_udp_filter {
- 	uint16_t dst_port;
- 	uint16_t src_port;
-@@ -1231,6 +1248,7 @@ struct ibv_flow_spec {
- 		struct ibv_flow_spec_eth eth;
- 		struct ibv_flow_spec_ipv4 ipv4;
- 		struct ibv_flow_spec_tcp_udp tcp_udp;
-+		struct ibv_flow_spec_ipv4_ext ipv4_ext;
- 	};
- };
- 
++Flow specification general structure:
++.BR
++struct ibv_flow_spec_xxx {
++.in +8
++enum ibv_flow_spec_type  type;
++uint16_t  size;                  /* Flow specification size = sizeof(struct ibv_flow_spec_xxx) */
++struct ibv_flow_xxx_filter val;
++struct ibv_flow_xxx_filter mask; /* Defines which bits from the filter value are applicable when looking for a match in the incoming packet */
++.in -8
++};
+ .PP
+ Each spec struct holds the relevant network layer parameters for matching. To enforce the match, the user sets a mask for each parameter.
+ .br
+@@ -96,12 +122,21 @@ Device managed flow steering isn't currently supported
+ .SS EPERM
+ No permissions to add the flow steering rule
+ .SH "NOTES"
+-These verbs are available only for devices supporting
++1. These verbs are available only for devices supporting
+ .br
+-IBV_DEVICE_MANAGED_FLOW_STEERING and only for QPs of Transport Service Type
++   IBV_DEVICE_MANAGED_FLOW_STEERING and only for QPs of Transport Service Type
+ .BR IBV_QPT_UD
+ or
+ .BR IBV_QPT_RAW_PACKET
++.br
++2. User must memset the spec struct with zeros before using it.
++.br
++3. ether_type field in ibv_flow_eth_filter is the ethertype following the last VLAN tag of the packet.
++.br
++4. Only rule type IBV_FLOW_ATTR_NORMAL supports IBV_FLOW_ATTR_FLAGS_DONT_TRAP flag.
++.br
++5. No specifications are needed for IBV_FLOW_ATTR_SNIFFER rule type.
++.br
+ .PP
+ .SH EXAMPLE
+ .br
+@@ -172,3 +207,5 @@ Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ .TP
+ Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++.TP
++Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 -- 
 1.8.3.1
 
