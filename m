@@ -1,24 +1,158 @@
-From: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: nvmet_rdma crash - DISCONNECT event with NULL queue
-Date: Mon, 7 Nov 2016 19:51:02 +0100
-Message-ID: <20161107185102.GA4820@lst.de>
-References: <01d901d2345f$da0d2e00$8e278a00$@opengridcomputing.com> <1d09c064-1cbe-7e6e-43d2-cfa6cf0c19ea@grimberg.me> <024e01d23476$6668b890$333a29b0$@opengridcomputing.com> <3512b8bb-4d29-b90a-49e1-ebf1085c47d7@grimberg.me> <004601d2351a$d9db85b0$8d929110$@opengridcomputing.com> <20161102151540.GB14825@lst.de> <bd82c206-668a-0794-2d51-3c48058350d3@grimberg.me> <1478543378.3350.17.camel@linux.intel.com> <20161107184126.GA4400@lst.de> <1478544616.3350.29.camel@linux.intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] xprtrdma: Fix DMAR failure in frwr_op_map() after reconnect
+Date: Mon, 07 Nov 2016 16:16:24 -0500
+Message-ID: <20161107210856.3822.23500.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1478544616.3350.29.camel-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: J Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Minturn, Dave B" <dave.b.minturn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 07, 2016 at 10:50:16AM -0800, J Freyensee wrote:
-> OK, so basically the nvmet change would be to make sure unique cntlids
-> are used across all NVM subsystems within the NVMe Target then?
+When a LOCALINV WR is flushed, the frmr is marked STALE, then
+frwr_op_unmap_sync DMA-unmaps the frmr's SGL. These STALE frmrs
+are then recovered when frwr_op_map hunts for an INVALID frmr to
+use.
 
-Yes.
+All other cases that need frmr recovery leave that SGL DMA-mapped.
+The FRMR recovery path unconditionally DMA-unmaps the frmr's SGL.
+
+To avoid DMA unmapping the SGL twice for flushed LOCAL_INV WRs,
+alter the recovery logic (rather than the hot frwr_op_unmap_sync
+path) to distinguish among these cases. This solution also takes
+care of the case where multiple LOCAL_INV WRs are issued for the
+same rpcrdma_req, some complete successfully, but some are flushed.
+
+Reported-by: Vasco Steinmetz <linux-W+c8CscfqXQmp8TqCH86vg@public.gmane.org>
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Vasco Steinmetz <linux-W+c8CscfqXQmp8TqCH86vg@public.gmane.org>
+---
+
+I received a report of DMAR errors occurring on v4.8 and newer
+NFS/RDMA clients. I was able to reproduce the problem, and came up
+with this fix, against v4.9-rc. Please consider merging this into
+the next v4.9-rc bug fix series.
+
+Vasco tells me this does not apply 100% cleanly to v4.8, but was
+tested there. I'm unsure whether to include a Cc: stable.
+
+
+ net/sunrpc/xprtrdma/frwr_ops.c  |   37 ++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    3 ++-
+ 2 files changed, 24 insertions(+), 16 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 2109495..26b26be 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -44,18 +44,20 @@
+  * being done.
+  *
+  * When the underlying transport disconnects, MRs are left in one of
+- * three states:
++ * four states:
+  *
+  * INVALID:	The MR was not in use before the QP entered ERROR state.
+- *		(Or, the LOCAL_INV WR has not completed or flushed yet).
+- *
+- * STALE:	The MR was being registered or unregistered when the QP
+- *		entered ERROR state, and the pending WR was flushed.
+  *
+  * VALID:	The MR was registered before the QP entered ERROR state.
+  *
+- * When frwr_op_map encounters STALE and VALID MRs, they are recovered
+- * with ib_dereg_mr and then are re-initialized. Beause MR recovery
++ * FLUSHED_FR:	The MR was being registered when the QP entered ERROR
++ *		state, and the pending WR was flushed.
++ *
++ * FLUSHED_LI:	The MR was being invalidated when the QP entered ERROR
++ *		state, and the pending WR was flushed.
++ *
++ * When frwr_op_map encounters FLUSHED and VALID MRs, they are recovered
++ * with ib_dereg_mr and then are re-initialized. Because MR recovery
+  * allocates fresh resources, it is deferred to a workqueue, and the
+  * recovered MRs are placed back on the rb_mws list when recovery is
+  * complete. frwr_op_map allocates another MR for the current RPC while
+@@ -177,12 +179,15 @@
+ static void
+ frwr_op_recover_mr(struct rpcrdma_mw *mw)
+ {
++	enum rpcrdma_frmr_state state = mw->frmr.fr_state;
+ 	struct rpcrdma_xprt *r_xprt = mw->mw_xprt;
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 	int rc;
+ 
+ 	rc = __frwr_reset_mr(ia, mw);
+-	ib_dma_unmap_sg(ia->ri_device, mw->mw_sg, mw->mw_nents, mw->mw_dir);
++	if (state != FRMR_FLUSHED_LI)
++		ib_dma_unmap_sg(ia->ri_device,
++				mw->mw_sg, mw->mw_nents, mw->mw_dir);
+ 	if (rc)
+ 		goto out_release;
+ 
+@@ -262,10 +267,8 @@
+ }
+ 
+ static void
+-__frwr_sendcompletion_flush(struct ib_wc *wc, struct rpcrdma_frmr *frmr,
+-			    const char *wr)
++__frwr_sendcompletion_flush(struct ib_wc *wc, const char *wr)
+ {
+-	frmr->fr_state = FRMR_IS_STALE;
+ 	if (wc->status != IB_WC_WR_FLUSH_ERR)
+ 		pr_err("rpcrdma: %s: %s (%u/0x%x)\n",
+ 		       wr, ib_wc_status_msg(wc->status),
+@@ -288,7 +291,8 @@
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		cqe = wc->wr_cqe;
+ 		frmr = container_of(cqe, struct rpcrdma_frmr, fr_cqe);
+-		__frwr_sendcompletion_flush(wc, frmr, "fastreg");
++		frmr->fr_state = FRMR_FLUSHED_FR;
++		__frwr_sendcompletion_flush(wc, "fastreg");
+ 	}
+ }
+ 
+@@ -308,7 +312,8 @@
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		cqe = wc->wr_cqe;
+ 		frmr = container_of(cqe, struct rpcrdma_frmr, fr_cqe);
+-		__frwr_sendcompletion_flush(wc, frmr, "localinv");
++		frmr->fr_state = FRMR_FLUSHED_LI;
++		__frwr_sendcompletion_flush(wc, "localinv");
+ 	}
+ }
+ 
+@@ -328,8 +333,10 @@
+ 	/* WARNING: Only wr_cqe and status are reliable at this point */
+ 	cqe = wc->wr_cqe;
+ 	frmr = container_of(cqe, struct rpcrdma_frmr, fr_cqe);
+-	if (wc->status != IB_WC_SUCCESS)
+-		__frwr_sendcompletion_flush(wc, frmr, "localinv");
++	if (wc->status != IB_WC_SUCCESS) {
++		frmr->fr_state = FRMR_FLUSHED_LI;
++		__frwr_sendcompletion_flush(wc, "localinv");
++	}
+ 	complete(&frmr->fr_linv_done);
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 0d35b76..6e1bba3 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -216,7 +216,8 @@ struct rpcrdma_rep {
+ enum rpcrdma_frmr_state {
+ 	FRMR_IS_INVALID,	/* ready to be used */
+ 	FRMR_IS_VALID,		/* in use */
+-	FRMR_IS_STALE,		/* failed completion */
++	FRMR_FLUSHED_FR,	/* flushed FASTREG WR */
++	FRMR_FLUSHED_LI,	/* flushed LOCALINV WR */
+ };
+ 
+ struct rpcrdma_frmr {
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
