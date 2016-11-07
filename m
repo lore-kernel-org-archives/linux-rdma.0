@@ -1,82 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core example spec file is broken
-Date: Mon, 7 Nov 2016 09:44:15 -0700
-Message-ID: <20161107164415.GA8780@obsidianresearch.com>
-References: <0e831337-e404-8973-b7fe-e176b3d688e8@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] redhat/spec: add back strict librdmacm Requires
+Date: Mon,  7 Nov 2016 12:23:58 -0500
+Message-ID: <20161107172358.46494-1-jarod@redhat.com>
+References: <20161104004213.GA28485@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0e831337-e404-8973-b7fe-e176b3d688e8-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20161104004213.GA28485-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 06, 2016 at 02:01:20PM +0200, Alaa Hleihel wrote:
-> Hi Jason,
-> 
-> The example spec file is broken after commit ddd530be4622 ("Minor RPM spec file improvments").
-> 
-> rpmbuild fails with the following error:
-> 
-> Executing(%build): /bin/sh -e /var/tmp/rpm-tmp.7l0yoN
-> + umask 022
-> + cd /tmp/xxx/BUILD
-> + cd rdma-core-11
-> /var/tmp/rpm-tmp.7l0yoN: line 31: syntax error near unexpected token `post'
-> error: Bad exit status from /var/tmp/rpm-tmp.7l0yoN (%build)
-> 
-> The issue is that the new "Requires" macros were added after the %prep and %build sections..
+Per discussion on list with Doug and Jason, add back the strict librdmacm
+Requires so that librdmacm and librdmacm-utils are as tightly coupled as
+possible.
 
-Ah, interesting, in my test scripts the common spec file is
-superceeded by the version in redhat/ for systemd systems, which is
-why I did not notice it.
-
-Jason
-
->From f2388d9d110ab43295d50d7345d5dda289a87a41 Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date: Mon, 7 Nov 2016 09:37:38 -0700
-Subject: [PATCH] Fix common rdma-core.spec for systemd systems
-
-RPM needs the Requires lines for systemd to be earlier.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+CC: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+CC: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- rdma-core.spec | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ redhat/rdma-core.spec | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/rdma-core.spec b/rdma-core.spec
-index 35186c3271b8..bea2a2267d1d 100644
---- a/rdma-core.spec
-+++ b/rdma-core.spec
-@@ -46,6 +46,13 @@ BuildRequires: make
- %endif
- %endif
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index f65a519..c3d8189 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -170,6 +170,7 @@ librdmacm provides a userspace RDMA Communication Managment API.
  
-+# Detect if systemd is supported on this system
-+%if 0%{?_unitdir:1}
-+Requires(post): systemd-units
-+Requires(preun): systemd-units
-+Requires(postun): systemd-units
-+%endif
-+
- %description
- Temporary packaging
+ %package -n librdmacm-utils
+ Summary: Examples for the librdmacm library
++Requires: librdmacm%{?_isa} = %{version}-%{release}
  
-@@ -59,9 +66,6 @@ This is a simple example without the split sub packages to get things started.
- # Detect if systemd is supported on this system
- %if 0%{?_unitdir:1}
- %define my_unitdir %{_unitdir}
--Requires(post): systemd-units
--Requires(preun): systemd-units
--Requires(postun): systemd-units
- %else
- %define my_unitdir /tmp/
- %endif
+ %description -n librdmacm-utils
+ Example test programs for the librdmacm library.
 -- 
-2.1.4
+2.10.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
