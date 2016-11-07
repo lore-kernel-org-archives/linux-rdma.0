@@ -1,29 +1,24 @@
-From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: Re: [PATCH v4 10/10] IB/mlx5: Simplify completion into a wait_event
-Date: Mon, 7 Nov 2016 11:21:11 +0530
-Message-ID: <CAHv-k_-Pn=dV-8Dw1m4yS2+EVriA_-_+M4KSuvZAyP0H2YQ97g@mail.gmail.com>
-References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
- <1477551554-30349-11-git-send-email-binoy.jayan@linaro.org> <CA+55aFxUA8r8_-yYtZfijWK_2WB+eCxMiHS-bVDN45-98V6Hdw@mail.gmail.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [RESEND REQEUST] consult with the libhns upstreaming into rdma-core
+Date: Mon, 7 Nov 2016 14:43:18 +0800
+Message-ID: <58202286.3020303@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFxUA8r8_-yYtZfijWK_2WB+eCxMiHS-bVDN45-98V6Hdw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Hi Jason/Doug,
+   Following your comments with I have fixed several issues.
+   Thank you for pointing them out.
+   Do I need to resend the PATCH v2 for libhns?
 
-On 3 November 2016 at 21:07, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> This is wrong.
+Lijun Ou
 
-Will change it back.
-
-> Since that "umr_context" variable is on the stack, and you are waiting
-> for it to be fully done, it really should be a completion.
-
-Thank you for sharing your insight with wait_event and completion.
-
--Binoy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
