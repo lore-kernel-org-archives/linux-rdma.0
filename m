@@ -1,56 +1,36 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI V5 01/10] RDMA/core: Refactor IDR to be per-device
-Date: Mon, 7 Nov 2016 16:55:16 -0700
-Message-ID: <20161107235516.GE7002@obsidianresearch.com>
-References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
- <1477579398-6875-2-git-send-email-matanb@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0A445F@ORSMSX109.amr.corp.intel.com>
+Subject: Re: [PATCH] build: Fix build script to use correct cmake cmd
+Date: Mon, 7 Nov 2016 16:57:09 -0700
+Message-ID: <20161107235709.GF7002@obsidianresearch.com>
+References: <20161021172728.27367.86783.stgit@scvm10.sc.intel.com>
+ <20161021180523.GA554@obsidianresearch.com>
+ <9745f6c7-8d09-8bed-d04c-78f610330ead@redhat.com>
+ <20161021193034.GA616@obsidianresearch.com>
+ <20161025101200.GP25013@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0A445F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20161025101200.GP25013-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 28, 2016 at 10:53:13PM +0000, Hefty, Sean wrote:
-> > The current code creates an IDR per type. Since types are currently
-> > common for all vendors and known in advance, this was good enough.
-> > However, the proposed ioctl based infrastructure allows each vendor
-> > to declare only some of the common types and declare its own specific
-> > types.
-> > 
-> > Thus, we decided to implement IDR to be per device and refactor it to
-> > use a new file.
+On Tue, Oct 25, 2016 at 01:12:00PM +0300, Leon Romanovsky wrote:
+> > stuff I have - eg should I make it pushable? It is easy to use, but
+> > you need to have docker installed.
 > 
-> I think this needs to be more abstract.  I would consider
-> introducing the concept of an 'ioctl provider', with the idr per
-> ioctl provider.  You could then make each ib_device an ioctl
-> provider.  (Just embed the structure).  I believe this will be
-> necessary to support the rdma_cm, ib_cm, as well as devices that
-> export different sets of ioctls, where an ib_device isn't
-> necessarily available.
-> 
-> Essentially, I would treat plugging into the uABI independent from
-> plugging into the kernel verbs API.  Otherwise, I think we'll end up
-> with multiple ioctl 'frameworks'.
+> I would be happy to get it and be more confident in my local tests.
 
-Matan,
+You can test it out with this commit:
 
-I think you should change things so that all the *general* code uses
-'urdma_' as a prefix instead of uverbs_. Only use uverbs_ on things
-that truely only apply to uverbs. This will make things much
-clearer how the code sharing is expected to work with rdma_cm
+https://github.com/jgunthorpe/rdma-plumbing/commit/ef24b991c949ad4f50614bf6bf549e1cdf841358
 
-Sean is right, this shows why having the IDR be per device does not
-work, rdma-cm really does need a per-file or global IDR - both
-approaches should really be the same, and I think per-file has better
-locking characteristics, so I'd recommend that.
+It will need some tidying before it can merged, but let me know if it
+is useful as-is.
 
 Jason
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
