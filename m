@@ -1,170 +1,29 @@
-From: Anurup M <anurup.m-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 01/11] IB/hns: Add the interface for querying QP1
-Date: Mon, 7 Nov 2016 11:15:35 +0530
-Message-ID: <582014FF.3070600@huawei.com>
-References: <20161104163633.141880-1-salil.mehta@huawei.com>
- <20161104163633.141880-2-salil.mehta@huawei.com>
+From: Binoy Jayan <binoy.jayan@linaro.org>
+Subject: Re: [PATCH v4 10/10] IB/mlx5: Simplify completion into a wait_event
+Date: Mon, 7 Nov 2016 11:21:11 +0530
+Message-ID: <CAHv-k_-Pn=dV-8Dw1m4yS2+EVriA_-_+M4KSuvZAyP0H2YQ97g@mail.gmail.com>
+References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
+ <1477551554-30349-11-git-send-email-binoy.jayan@linaro.org> <CA+55aFxUA8r8_-yYtZfijWK_2WB+eCxMiHS-bVDN45-98V6Hdw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161104163633.141880-2-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFxUA8r8_-yYtZfijWK_2WB+eCxMiHS-bVDN45-98V6Hdw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Arnd Bergmann <arnd@arndb.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Linus,
 
+On 3 November 2016 at 21:07, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> This is wrong.
 
-On 11/4/2016 10:06 PM, Salil Mehta wrote:
-> From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> 
-> In old code, It only added the interface for querying non-specific
-> QP. This patch mainly adds an interface for querying QP1.
-> 
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Salil Mehta  <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   87 +++++++++++++++++++++++++++-
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.h |    6 +-
->  2 files changed, 90 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> index 71232e5..ca8b784 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> @@ -2630,8 +2630,82 @@ static int hns_roce_v1_query_qpc(struct hns_roce_dev *hr_dev,
->  	return ret;
->  }
->  
-> -int hns_roce_v1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
-> -			 int qp_attr_mask, struct ib_qp_init_attr *qp_init_attr)
-> +static int hns_roce_v1_q_sqp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
-> +			     int qp_attr_mask,
-> +			     struct ib_qp_init_attr *qp_init_attr)
-> +{
-> +	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
-> +	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-> +	struct hns_roce_sqp_context *context;
-> +	u32 addr;
-> +
-> +	context = kzalloc(sizeof(*context), GFP_KERNEL);
-> +	if (!context)
-> +		return -ENOMEM;
-> +
-Do we really need dynamic alloc here as the size is fixed and this memory scope is
-only inside this function. I think better to use a static allocation.
+Will change it back.
 
-> +	mutex_lock(&hr_qp->mutex);
-> +
-> +	if (hr_qp->state == IB_QPS_RESET) {
-I think alloc can be moved after this check (if dynamic alloc is really needed).
-> +		qp_attr->qp_state = IB_QPS_RESET;
-> +		goto done;
-> +	}
-> +
-> +	addr = ROCEE_QP1C_CFG0_0_REG + hr_qp->port * sizeof(*context);
-> +	context->qp1c_bytes_4 = roce_read(hr_dev, addr);
-> +	context->sq_rq_bt_l = roce_read(hr_dev, addr + 1);
-> +	context->qp1c_bytes_12 = roce_read(hr_dev, addr + 2);
-> +	context->qp1c_bytes_16 = roce_read(hr_dev, addr + 3);
-> +	context->qp1c_bytes_20 = roce_read(hr_dev, addr + 4);
-> +	context->cur_rq_wqe_ba_l = roce_read(hr_dev, addr + 5);
-> +	context->qp1c_bytes_28 = roce_read(hr_dev, addr + 6);
-> +	context->qp1c_bytes_32 = roce_read(hr_dev, addr + 7);
-> +	context->cur_sq_wqe_ba_l = roce_read(hr_dev, addr + 8);
-> +	context->qp1c_bytes_40 = roce_read(hr_dev, addr + 9);
-> +
-> +	hr_qp->state = roce_get_field(context->qp1c_bytes_4,
-> +				      QP1C_BYTES_4_QP_STATE_M,
-> +				      QP1C_BYTES_4_QP_STATE_S);
-> +	qp_attr->qp_state	= hr_qp->state;
-> +	qp_attr->path_mtu	= IB_MTU_256;
-> +	qp_attr->path_mig_state	= IB_MIG_ARMED;
-> +	qp_attr->qkey		= QKEY_VAL;
-> +	qp_attr->rq_psn		= 0;
-> +	qp_attr->sq_psn		= 0;
-> +	qp_attr->dest_qp_num	= 1;
-> +	qp_attr->qp_access_flags = 6;
-> +
-> +	qp_attr->pkey_index = roce_get_field(context->qp1c_bytes_20,
-> +					     QP1C_BYTES_20_PKEY_IDX_M,
-> +					     QP1C_BYTES_20_PKEY_IDX_S);
-> +	qp_attr->port_num = hr_qp->port + 1;
-> +	qp_attr->sq_draining = 0;
-> +	qp_attr->max_rd_atomic = 0;
-> +	qp_attr->max_dest_rd_atomic = 0;
-> +	qp_attr->min_rnr_timer = 0;
-> +	qp_attr->timeout = 0;
-> +	qp_attr->retry_cnt = 0;
-> +	qp_attr->rnr_retry = 0;
-> +	qp_attr->alt_timeout = 0;
-> +
-> +done:
-> +	qp_attr->cur_qp_state = qp_attr->qp_state;
-> +	qp_attr->cap.max_recv_wr = hr_qp->rq.wqe_cnt;
-> +	qp_attr->cap.max_recv_sge = hr_qp->rq.max_gs;
-> +	qp_attr->cap.max_send_wr = hr_qp->sq.wqe_cnt;
-> +	qp_attr->cap.max_send_sge = hr_qp->sq.max_gs;
-> +	qp_attr->cap.max_inline_data = 0;
-> +	qp_init_attr->cap = qp_attr->cap;
-> +	qp_init_attr->create_flags = 0;
-> +
-> +	mutex_unlock(&hr_qp->mutex);
-> +	kfree(context);
-> +
-> +	return 0;
-> +}
-> +
-> +static int hns_roce_v1_q_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
-> +			    int qp_attr_mask,
-> +			    struct ib_qp_init_attr *qp_init_attr)
->  {
->  	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
->  	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-> @@ -2767,6 +2841,15 @@ int hns_roce_v1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
->  	return ret;
->  }
->  
-> +int hns_roce_v1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
-> +			 int qp_attr_mask, struct ib_qp_init_attr *qp_init_attr)
-> +{
-> +	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-> +
-> +	return hr_qp->doorbell_qpn <= 1 ?
-> +		hns_roce_v1_q_sqp(ibqp, qp_attr, qp_attr_mask, qp_init_attr) :
-> +		hns_roce_v1_q_qp(ibqp, qp_attr, qp_attr_mask, qp_init_attr);
-> +}
->  static void hns_roce_v1_destroy_qp_common(struct hns_roce_dev *hr_dev,
->  					  struct hns_roce_qp *hr_qp,
->  					  int is_user)
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-> index 539b0a3b..2e1878b 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-> @@ -480,13 +480,17 @@ struct hns_roce_sqp_context {
->  	u32 qp1c_bytes_12;
->  	u32 qp1c_bytes_16;
->  	u32 qp1c_bytes_20;
-> -	u32 qp1c_bytes_28;
->  	u32 cur_rq_wqe_ba_l;
-> +	u32 qp1c_bytes_28;
->  	u32 qp1c_bytes_32;
->  	u32 cur_sq_wqe_ba_l;
->  	u32 qp1c_bytes_40;
->  };
->  
-> +#define QP1C_BYTES_4_QP_STATE_S 0
-> +#define QP1C_BYTES_4_QP_STATE_M   \
-> +	(((1UL << 3) - 1) << QP1C_BYTES_4_QP_STATE_S)
-> +
->  #define QP1C_BYTES_4_SQ_WQE_SHIFT_S 8
->  #define QP1C_BYTES_4_SQ_WQE_SHIFT_M   \
->  	(((1UL << 4) - 1) << QP1C_BYTES_4_SQ_WQE_SHIFT_S)
-> 
+> Since that "umr_context" variable is on the stack, and you are waiting
+> for it to be fully done, it really should be a completion.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you for sharing your insight with wait_event and completion.
+
+-Binoy
