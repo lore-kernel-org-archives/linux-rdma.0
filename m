@@ -1,102 +1,82 @@
-From: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 5/9] IB/mlx4: Handle well-known-gid in mad_demux
- processing
-Date: Mon, 7 Nov 2016 16:42:28 +0200
-Message-ID: <20161107164228.000047a5@dev.mellanox.co.il>
-References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
-        <1478375842-21513-6-git-send-email-leonro@mellanox.com>
-        <d339ee5f-bf7e-dc35-3dd0-c6ff13a222b4@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core example spec file is broken
+Date: Mon, 7 Nov 2016 09:44:15 -0700
+Message-ID: <20161107164415.GA8780@obsidianresearch.com>
+References: <0e831337-e404-8973-b7fe-e176b3d688e8@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <d339ee5f-bf7e-dc35-3dd0-c6ff13a222b4-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <0e831337-e404-8973-b7fe-e176b3d688e8-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 5 Nov 2016 17:03:25 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-
-> On 11/5/2016 3:57 PM, Leon Romanovsky wrote:
-> > From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> > 
-> > If OpenSM runs over ConnectX-3, and there are ConnectIB VFs active
-> > on the network, the OpenSM will receive QP1 packets containing a GRH
-> > where the destination GID is the "Well-Known GID" -- which is not a
-> > GID in the HCA Port's GID Table.
-> > 
-> > This GID must be tested-for separately -- and packets which contain
-> > this destination GID should be routed to slave 0 (the PF).
-> > 
-> > Fixes: 37bfc7c1e83f ('IB/mlx4: SR-IOV multiplex and demultiplex
-> > MADs') Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> > Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/mlx4/mad.c | 16 ++++++++++++----
-> >  include/rdma/ib_verbs.h          |  1 +
-> >  2 files changed, 13 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/hw/mlx4/mad.c
-> > b/drivers/infiniband/hw/mlx4/mad.c index b8e9013..f0b8272 100644
-> > --- a/drivers/infiniband/hw/mlx4/mad.c
-> > +++ b/drivers/infiniband/hw/mlx4/mad.c
-> > @@ -729,10 +729,18 @@ static int mlx4_ib_demux_mad(struct ib_device
-> > *ibdev, u8 port, 
-> >  	/* If a grh is present, we demux according to it */
-> >  	if (wc->wc_flags & IB_WC_GRH) {
-> > -		slave = mlx4_ib_find_real_gid(ibdev, port,
-> > grh->dgid.global.interface_id);
-> > -		if (slave < 0) {
-> > -			mlx4_ib_warn(ibdev, "failed matching
-> > grh\n");
-> > -			return -ENOENT;
-> > +		if (grh->dgid.global.interface_id ==
-> > +			cpu_to_be64(IB_SA_WELL_KNOWN_GUID) &&
-> > +		    grh->dgid.global.subnet_prefix ==
-> > +			cpu_to_be64(IB_SA_WELL_KNOWN_GID_PREFIX)) {
-> > +			slave = 0;
-> > +		} else {
-> > +			slave = mlx4_ib_find_real_gid(ibdev, port,
-> > +
-> > grh->dgid.global.interface_id);
-> > +			if (slave < 0) {
-> > +				mlx4_ib_warn(ibdev, "failed
-> > matching grh\n");
-> > +				return -ENOENT;
-> > +			}
-> >  		}
-> >  	}
-> >  	/* Class-specific handling */
-> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > index 467a4b4..da5949f 100644
-> > --- a/include/rdma/ib_verbs.h
-> > +++ b/include/rdma/ib_verbs.h
-> > @@ -100,6 +100,7 @@ enum rdma_node_type {
-> >  
-> >  enum {
-> >  	/* set the local administered indication */
-> > +	IB_SA_WELL_KNOWN_GID_PREFIX = 0xfe80000000000000ull,
-> >  	IB_SA_WELL_KNOWN_GUID	= BIT_ULL(57) | 2,  
+On Sun, Nov 06, 2016 at 02:01:20PM +0200, Alaa Hleihel wrote:
+> Hi Jason,
 > 
-> Isn't the SA well-known GID the concatenation of the subnet prefix
-> (which isn't necessarily the default link local one) and the GUID
-> 0x0200000000000002 ?
+> The example spec file is broken after commit ddd530be4622 ("Minor RPM spec file improvments").
 > 
-> -- Hal
-
-PLEASE DO NOT APPLY THIS PATCH. Hal is correct, and the patch needs
-to be fixed. We will submit an updated (i.e. fixed) version.
-
--Jack
-
+> rpmbuild fails with the following error:
 > 
-> >  };
-> >  
-> >   
+> Executing(%build): /bin/sh -e /var/tmp/rpm-tmp.7l0yoN
+> + umask 022
+> + cd /tmp/xxx/BUILD
+> + cd rdma-core-11
+> /var/tmp/rpm-tmp.7l0yoN: line 31: syntax error near unexpected token `post'
+> error: Bad exit status from /var/tmp/rpm-tmp.7l0yoN (%build)
+> 
+> The issue is that the new "Requires" macros were added after the %prep and %build sections..
+
+Ah, interesting, in my test scripts the common spec file is
+superceeded by the version in redhat/ for systemd systems, which is
+why I did not notice it.
+
+Jason
+
+>From f2388d9d110ab43295d50d7345d5dda289a87a41 Mon Sep 17 00:00:00 2001
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Date: Mon, 7 Nov 2016 09:37:38 -0700
+Subject: [PATCH] Fix common rdma-core.spec for systemd systems
+
+RPM needs the Requires lines for systemd to be earlier.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ rdma-core.spec | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/rdma-core.spec b/rdma-core.spec
+index 35186c3271b8..bea2a2267d1d 100644
+--- a/rdma-core.spec
++++ b/rdma-core.spec
+@@ -46,6 +46,13 @@ BuildRequires: make
+ %endif
+ %endif
+ 
++# Detect if systemd is supported on this system
++%if 0%{?_unitdir:1}
++Requires(post): systemd-units
++Requires(preun): systemd-units
++Requires(postun): systemd-units
++%endif
++
+ %description
+ Temporary packaging
+ 
+@@ -59,9 +66,6 @@ This is a simple example without the split sub packages to get things started.
+ # Detect if systemd is supported on this system
+ %if 0%{?_unitdir:1}
+ %define my_unitdir %{_unitdir}
+-Requires(post): systemd-units
+-Requires(preun): systemd-units
+-Requires(postun): systemd-units
+ %else
+ %define my_unitdir /tmp/
+ %endif
+-- 
+2.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
