@@ -1,37 +1,56 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
-Date: Mon, 7 Nov 2016 16:15:32 -0700
-Message-ID: <20161107231532.GB7002@obsidianresearch.com>
-References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
- <1477487048-62256-2-git-send-email-oulijun@huawei.com>
- <20161026162053.GE24898@obsidianresearch.com>
- <5811776F.20908@huawei.com>
- <20161027145139.GD6818@obsidianresearch.com>
- <58130573.4010902@huawei.com>
- <20161028164030.GA17289@obsidianresearch.com>
- <5813F869.7010606@huawei.com>
+Subject: Re: [RFC ABI V5 01/10] RDMA/core: Refactor IDR to be per-device
+Date: Mon, 7 Nov 2016 16:55:16 -0700
+Message-ID: <20161107235516.GE7002@obsidianresearch.com>
+References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
+ <1477579398-6875-2-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0A445F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5813F869.7010606-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0A445F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 29, 2016 at 09:16:25AM +0800, oulijun wrote:
+On Fri, Oct 28, 2016 at 10:53:13PM +0000, Hefty, Sean wrote:
+> > The current code creates an IDR per type. Since types are currently
+> > common for all vendors and known in advance, this was good enough.
+> > However, the proposed ioctl based infrastructure allows each vendor
+> > to declare only some of the common types and declare its own specific
+> > types.
+> > 
+> > Thus, we decided to implement IDR to be per device and refactor it to
+> > use a new file.
+> 
+> I think this needs to be more abstract.  I would consider
+> introducing the concept of an 'ioctl provider', with the idr per
+> ioctl provider.  You could then make each ib_device an ioctl
+> provider.  (Just embed the structure).  I believe this will be
+> necessary to support the rdma_cm, ib_cm, as well as devices that
+> export different sets of ioctls, where an ib_device isn't
+> necessarily available.
+> 
+> Essentially, I would treat plugging into the uABI independent from
+> plugging into the kernel verbs API.  Otherwise, I think we'll end up
+> with multiple ioctl 'frameworks'.
 
-> We hope that the only one userspace library file named
-> libhns-rdmav2.so will be used for the different hardware
-> version(hip06, hip07, ...), because there are only little change
-> between their userspace drivers. So we need to distinguish hardware
-> version.
+Matan,
 
-I guess that makes sense, but you still need to be able to parse dt
-compatible strings that are lists.
+I think you should change things so that all the *general* code uses
+'urdma_' as a prefix instead of uverbs_. Only use uverbs_ on things
+that truely only apply to uverbs. This will make things much
+clearer how the code sharing is expected to work with rdma_cm
+
+Sean is right, this shows why having the IDR be per device does not
+work, rdma-cm really does need a per-file or global IDR - both
+approaches should really be the same, and I think per-file has better
+locking characteristics, so I'd recommend that.
 
 Jason
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
