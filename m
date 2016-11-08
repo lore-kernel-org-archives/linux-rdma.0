@@ -1,34 +1,59 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] build: Fix build script to use correct cmake cmd
-Date: Mon, 7 Nov 2016 16:57:09 -0700
-Message-ID: <20161107235709.GF7002@obsidianresearch.com>
-References: <20161021172728.27367.86783.stgit@scvm10.sc.intel.com>
- <20161021180523.GA554@obsidianresearch.com>
- <9745f6c7-8d09-8bed-d04c-78f610330ead@redhat.com>
- <20161021193034.GA616@obsidianresearch.com>
- <20161025101200.GP25013@leon.nu>
+Subject: Re: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs
+ from kernel space
+Date: Mon, 7 Nov 2016 17:43:51 -0700
+Message-ID: <20161108004351.GA32444@obsidianresearch.com>
+References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
+ <1477579398-6875-8-git-send-email-matanb@mellanox.com>
+ <20161028065943.GA10418@infradead.org>
+ <20161028151606.GN3617@leon.nu>
+ <20161028152138.GA16421@infradead.org>
+ <20161028153306.GO3617@leon.nu>
+ <20161028153725.GA14166@infradead.org>
+ <20161028154628.GP3617@leon.nu>
+ <CAAKD3BB0k1UxV2qO3SqAD_t1vM2pcduOXiz8aJ5c+JXAmq_aWw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161025101200.GP25013-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <CAAKD3BB0k1UxV2qO3SqAD_t1vM2pcduOXiz8aJ5c+JXAmq_aWw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 01:12:00PM +0300, Leon Romanovsky wrote:
-> > stuff I have - eg should I make it pushable? It is easy to use, but
-> > you need to have docker installed.
-> 
-> I would be happy to get it and be more confident in my local tests.
+On Sun, Oct 30, 2016 at 10:48:39AM +0200, Matan Barak wrote:
+> On Fri, Oct 28, 2016 at 5:46 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> > On Fri, Oct 28, 2016 at 08:37:25AM -0700, Christoph Hellwig wrote:
+> >> On Fri, Oct 28, 2016 at 06:33:06PM +0300, Leon Romanovsky wrote:
+> >> > Just to summarize, to be sure that I understood you correctly.
+> >> >
+> >> > | write | -> | conversion logic | ---
+> >> > | ioctl | ---------------------------
+> >> >
+> >> > Am I right?
+> >>
+> >> Yes, as long as the write and ioctl boxes do the copy_{from,to}_user.
 
-You can test it out with this commit:
+> If we accept the limitations here (i.e - all commands attributes
+> come either from kernel or from user, but you can't mix them -
+> that's mean the write comparability layer either needs to copy all
+> attributes or use a direct mapping for all of them), I could just
+> either break ib_uverbs_cmd_verbs to a a few functions or just pass a
+> callback of boxing the descriptors copy.
 
-https://github.com/jgunthorpe/rdma-plumbing/commit/ef24b991c949ad4f50614bf6bf549e1cdf841358
+>From what I saw in the series, this looks easy enough to fix..
 
-It will need some tidying before it can merged, but let me know if it
-is useful as-is.
+Just lightly refactor things so that the write() compat layer can call
+into the ioctl processor with an already prepared tlv list in kernel
+memory and form such a list on the stack when doing the compat stuff.
+
+The bigger problem is the tlv list pointers themselves, they have to
+point to user memory so the compat layer can only do so much of a
+transformation.
+
+I guess another flag in the copy_from_user wrapper would do the trick
+if we need it.
 
 Jason
 --
