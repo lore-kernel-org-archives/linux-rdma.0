@@ -1,7 +1,7 @@
 From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 8/9] selinux: Add IB Port SMP access vector
-Date: Tue,  8 Nov 2016 23:06:24 +0200
-Message-ID: <1478639185-47521-9-git-send-email-danielj@mellanox.com>
+Subject: [PATCH v4 9/9] selinux: Add a cache for quicker retreival of PKey SIDs
+Date: Tue,  8 Nov 2016 23:06:25 +0200
+Message-ID: <1478639185-47521-10-git-send-email-danielj@mellanox.com>
 References: <1478639185-47521-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478639185-47521-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,217 +12,384 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add a type for Infiniband ports and an access vector for subnet
-management packets. Implement the ib_port_smp hook to check that the
-caller has permission to send and receive SMPs on the end port specified
-by the device name and port. Add interface to query the SID for a IB
-port, which walks the IB_PORT ocontexts to find an entry for the
-given name and port.
+It is likely that the SID for the same PKey will be requested many
+times. To reduce the time to modify QPs and process MADs use a cache to
+store PKey SIDs.
+
+This code is heavily based on the "netif" and "netport" concept
+originally developed by James Morris <jmorris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> and Paul Moore
+<paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org> (see security/selinux/netif.c and
+security/selinux/netport.c for more information)
 
 issue: 736423
-Change-Id: If8b365f3cf32e77a2060073f1a53e27ea846804d
+Change-Id: I176c3079d5d84d06839b4f750100ac47a6081e94
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 ---
 v2:
-- Shorted ib_end_port. Paul Moore
-- Pass void blobs to security hooks. Paul Moore
-- Log specific IB port info in audit log. Paul Moore
-- Don't create a new intial sid, use unlabeled. Stephen Smalley
-- Changed "smp" to "manage_subnet". Paul Moore
-
-v3:
-- ib_port -> ib_endport. Paul Moore
-- Don't log device name as untrusted string. Paul Moore
-- Reorder parameters of LSM hook. Paul Moore
+- Renamed the files to ibpkey. Paul Moore
+- Fixed a braket indentation mismatch in sel_pkey_find. Yuval Shaia
+- Change spin_lock_bh to spin_lock_irqsave to resolve HARDIRQ lockdep
+  warning.  Dan Jurgens
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/linux/lsm_audit.h           |  8 +++++++
- security/lsm_audit.c                |  5 +++++
- security/selinux/hooks.c            | 25 ++++++++++++++++++++++
- security/selinux/include/classmap.h |  2 ++
- security/selinux/include/security.h |  2 ++
- security/selinux/ss/services.c      | 42 +++++++++++++++++++++++++++++++++++++
- 6 files changed, 84 insertions(+)
+ security/selinux/Makefile         |   2 +-
+ security/selinux/hooks.c          |   4 +-
+ security/selinux/ibpkey.c         | 245 ++++++++++++++++++++++++++++++++++++++
+ security/selinux/include/ibpkey.h |  31 +++++
+ security/selinux/include/objsec.h |   6 +
+ 5 files changed, 286 insertions(+), 2 deletions(-)
+ create mode 100644 security/selinux/ibpkey.c
+ create mode 100644 security/selinux/include/ibpkey.h
 
-diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
-index 402b770..7047b4c 100644
---- a/include/linux/lsm_audit.h
-+++ b/include/linux/lsm_audit.h
-@@ -21,6 +21,7 @@
- #include <linux/path.h>
- #include <linux/key.h>
- #include <linux/skbuff.h>
-+#include <rdma/ib_verbs.h>
+diff --git a/security/selinux/Makefile b/security/selinux/Makefile
+index 3411c33..ff5895e 100644
+--- a/security/selinux/Makefile
++++ b/security/selinux/Makefile
+@@ -5,7 +5,7 @@
+ obj-$(CONFIG_SECURITY_SELINUX) := selinux.o
  
- struct lsm_network_audit {
- 	int netif;
-@@ -50,6 +51,11 @@ struct lsm_pkey_audit {
- 	u16	pkey;
- };
- 
-+struct lsm_ib_endport_audit {
-+	char	dev_name[IB_DEVICE_NAME_MAX];
-+	u8	port_num;
-+};
-+
- /* Auxiliary data to use in generating the audit record. */
- struct common_audit_data {
- 	char type;
-@@ -66,6 +72,7 @@ struct common_audit_data {
- #define LSM_AUDIT_DATA_IOCTL_OP	11
- #define LSM_AUDIT_DATA_FILE	12
- #define LSM_AUDIT_DATA_PKEY	13
-+#define LSM_AUDIT_DATA_IB_ENDPORT 14
- 	union 	{
- 		struct path path;
- 		struct dentry *dentry;
-@@ -84,6 +91,7 @@ struct common_audit_data {
- 		struct lsm_ioctlop_audit *op;
- 		struct file *file;
- 		struct lsm_pkey_audit *pkey;
-+		struct lsm_ib_endport_audit *ib_endport;
- 	} u;
- 	/* this union contains LSM specific data */
- 	union {
-diff --git a/security/lsm_audit.c b/security/lsm_audit.c
-index b18d277..549fe9d 100644
---- a/security/lsm_audit.c
-+++ b/security/lsm_audit.c
-@@ -423,6 +423,11 @@ static void dump_common_audit_data(struct audit_buffer *ab,
- 				 a->u.pkey->pkey, &sbn_pfx);
- 		break;
- 	}
-+	case LSM_AUDIT_DATA_IB_ENDPORT:
-+		audit_log_format(ab, " device=%s port_num=%u",
-+				 a->u.ib_endport->dev_name,
-+				 a->u.ib_endport->port_num);
-+		break;
- 	} /* switch (a->type) */
- }
+ selinux-y := avc.o hooks.o selinuxfs.o netlink.o nlmsgtab.o netif.o \
+-	     netnode.o netport.o exports.o \
++	     netnode.o netport.o ibpkey.o exports.o \
+ 	     ss/ebitmap.o ss/hashtab.o ss/symtab.o ss/sidtab.o ss/avtab.o \
+ 	     ss/policydb.o ss/services.o ss/conditional.o ss/mls.o ss/status.o
  
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 20fb292..ea3f6d0 100644
+index ea3f6d0..619d2ea 100644
 --- a/security/selinux/hooks.c
 +++ b/security/selinux/hooks.c
-@@ -6108,6 +6108,29 @@ static int selinux_ib_pkey_access(void *ib_sec, u64 subnet_prefix, u16 pkey_val)
- 			    INFINIBAND_PKEY__ACCESS, &ad);
- }
- 
-+static int selinux_ib_endport_manage_subnet(void *ib_sec, const char *dev_name,
-+					    u8 port_num)
-+{
-+	struct common_audit_data ad;
-+	int err;
-+	u32 sid = 0;
-+	struct ib_security_struct *sec = ib_sec;
-+	struct lsm_ib_endport_audit ib_endport;
-+
-+	err = security_ib_endport_sid(dev_name, port_num, &sid);
-+
-+	if (err)
-+		return err;
-+
-+	ad.type = LSM_AUDIT_DATA_IB_ENDPORT;
-+	strncpy(ib_endport.dev_name, dev_name, sizeof(ib_endport.dev_name));
-+	ib_endport.port_num = port_num;
-+	ad.u.ib_endport = &ib_endport;
-+	return avc_has_perm(sec->sid, sid,
-+			    SECCLASS_INFINIBAND_ENDPORT,
-+			    INFINIBAND_ENDPORT__MANAGE_SUBNET, &ad);
-+}
-+
- static int selinux_ib_alloc_security(void **ib_sec)
+@@ -90,6 +90,7 @@
+ #include "netif.h"
+ #include "netnode.h"
+ #include "netport.h"
++#include "ibpkey.h"
+ #include "xfrm.h"
+ #include "netlabel.h"
+ #include "audit.h"
+@@ -174,6 +175,7 @@ static int selinux_netcache_avc_callback(u32 event)
+ static int selinux_lsm_notifier_avc_callback(u32 event)
  {
- 	struct ib_security_struct *sec;
-@@ -6313,6 +6336,8 @@ static void selinux_ib_free_security(void *ib_sec)
- 	LSM_HOOK_INIT(tun_dev_open, selinux_tun_dev_open),
- #ifdef CONFIG_SECURITY_INFINIBAND
- 	LSM_HOOK_INIT(ib_pkey_access, selinux_ib_pkey_access),
-+	LSM_HOOK_INIT(ib_endport_manage_subnet,
-+		      selinux_ib_endport_manage_subnet),
- 	LSM_HOOK_INIT(ib_alloc_security, selinux_ib_alloc_security),
- 	LSM_HOOK_INIT(ib_free_security, selinux_ib_free_security),
- #endif
-diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
-index d42dd4d..f93b64b 100644
---- a/security/selinux/include/classmap.h
-+++ b/security/selinux/include/classmap.h
-@@ -167,5 +167,7 @@ struct security_class_mapping secclass_map[] = {
- 	  { COMMON_CAP2_PERMS, NULL } },
- 	{ "infiniband_pkey",
- 	  { "access", NULL } },
-+	{ "infiniband_endport",
-+	  { "manage_subnet", NULL } },
- 	{ NULL }
-   };
-diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
-index 17afb7c..8a6e5e7 100644
---- a/security/selinux/include/security.h
-+++ b/security/selinux/include/security.h
-@@ -178,6 +178,8 @@ int security_get_user_sids(u32 callsid, char *username,
+ 	if (event == AVC_CALLBACK_RESET) {
++		sel_pkey_flush();
+ 		call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
+ 	}
+ 	return 0;
+@@ -6094,7 +6096,7 @@ static int selinux_ib_pkey_access(void *ib_sec, u64 subnet_prefix, u16 pkey_val)
+ 	struct ib_security_struct *sec = ib_sec;
+ 	struct lsm_pkey_audit pkey;
  
- int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid);
+-	err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
++	err = sel_pkey_sid(subnet_prefix, pkey_val, &sid);
  
-+int security_ib_endport_sid(const char *dev_name, u8 port_num, u32 *out_sid);
-+
- int security_netif_sid(char *name, u32 *if_sid);
- 
- int security_node_sid(u16 domain, void *addr, u32 addrlen,
-diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
-index 085c54b..db40ce7 100644
---- a/security/selinux/ss/services.c
-+++ b/security/selinux/ss/services.c
-@@ -2244,6 +2244,48 @@ int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid)
- }
- 
- /**
-+ * security_ib_endport_sid - Obtain the SID for a subnet management interface.
-+ * @dev_name: device name
-+ * @port: port number
-+ * @out_sid: security identifier
+ 	if (err)
+ 		return err;
+diff --git a/security/selinux/ibpkey.c b/security/selinux/ibpkey.c
+new file mode 100644
+index 0000000..6e52c54
+--- /dev/null
++++ b/security/selinux/ibpkey.c
+@@ -0,0 +1,245 @@
++/*
++ * Pkey table
++ *
++ * SELinux must keep a mapping of Infinband PKEYs to labels/SIDs.  This
++ * mapping is maintained as part of the normal policy but a fast cache is
++ * needed to reduce the lookup overhead.
++ *
++ * This code is heavily based on the "netif" and "netport" concept originally
++ * developed by
++ * James Morris <jmorris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> and
++ * Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
++ *   (see security/selinux/netif.c and security/selinux/netport.c for more
++ *   information)
++ *
 + */
-+int security_ib_endport_sid(const char *dev_name, u8 port_num, u32 *out_sid)
++
++/*
++ * (c) Mellanox Technologies, 2016
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/types.h>
++#include <linux/rcupdate.h>
++#include <linux/list.h>
++#include <linux/spinlock.h>
++
++#include "ibpkey.h"
++#include "objsec.h"
++
++#define SEL_PKEY_HASH_SIZE       256
++#define SEL_PKEY_HASH_BKT_LIMIT   16
++
++struct sel_pkey_bkt {
++	int size;
++	struct list_head list;
++};
++
++struct sel_pkey {
++	struct pkey_security_struct psec;
++	struct list_head list;
++	struct rcu_head rcu;
++};
++
++static LIST_HEAD(sel_pkey_list);
++static DEFINE_SPINLOCK(sel_pkey_lock);
++static struct sel_pkey_bkt sel_pkey_hash[SEL_PKEY_HASH_SIZE];
++
++/**
++ * sel_pkey_hashfn - Hashing function for the pkey table
++ * @pkey: pkey number
++ *
++ * Description:
++ * This is the hashing function for the pkey table, it returns the bucket
++ * number for the given pkey.
++ *
++ */
++static unsigned int sel_pkey_hashfn(u16 pkey)
 +{
-+	struct ocontext *c;
-+	int rc = 0;
-+
-+	read_lock(&policy_rwlock);
-+
-+	c = policydb.ocontexts[OCON_IB_ENDPORT];
-+	while (c) {
-+		if (c->u.ib_endport.port_num == port_num &&
-+		    !strncmp(c->u.ib_endport.dev_name,
-+			     dev_name,
-+			     IB_DEVICE_NAME_MAX))
-+			break;
-+
-+		c = c->next;
-+	}
-+
-+	if (c) {
-+		if (!c->sid[0]) {
-+			rc = sidtab_context_to_sid(&sidtab,
-+						   &c->context[0],
-+						   &c->sid[0]);
-+			if (rc)
-+				goto out;
-+		}
-+		*out_sid = c->sid[0];
-+	} else {
-+		*out_sid = SECINITSID_UNLABELED;
-+	}
-+
-+out:
-+	read_unlock(&policy_rwlock);
-+	return rc;
++	return (pkey & (SEL_PKEY_HASH_SIZE - 1));
 +}
 +
 +/**
-  * security_netif_sid - Obtain the SID for a network interface.
-  * @name: interface name
-  * @if_sid: interface SID
++ * sel_pkey_find - Search for a pkey record
++ * @subnet_prefix: subnet_prefix
++ * @pkey_num: pkey_num
++ *
++ * Description:
++ * Search the pkey table and return the matching record.  If an entry
++ * can not be found in the table return NULL.
++ *
++ */
++static struct sel_pkey *sel_pkey_find(u64 subnet_prefix, u16 pkey_num)
++{
++	unsigned int idx;
++	struct sel_pkey *pkey;
++
++	idx = sel_pkey_hashfn(pkey_num);
++	list_for_each_entry_rcu(pkey, &sel_pkey_hash[idx].list, list) {
++		if (pkey->psec.pkey == pkey_num &&
++		    pkey->psec.subnet_prefix == subnet_prefix)
++			return pkey;
++	}
++
++	return NULL;
++}
++
++/**
++ * sel_pkey_insert - Insert a new pkey into the table
++ * @pkey: the new pkey record
++ *
++ * Description:
++ * Add a new pkey record to the hash table.
++ *
++ */
++static void sel_pkey_insert(struct sel_pkey *pkey)
++{
++	unsigned int idx;
++
++	/* we need to impose a limit on the growth of the hash table so check
++	 * this bucket to make sure it is within the specified bounds
++	 */
++	idx = sel_pkey_hashfn(pkey->psec.pkey);
++	list_add_rcu(&pkey->list, &sel_pkey_hash[idx].list);
++	if (sel_pkey_hash[idx].size == SEL_PKEY_HASH_BKT_LIMIT) {
++		struct sel_pkey *tail;
++
++		tail = list_entry(
++			rcu_dereference_protected(
++				sel_pkey_hash[idx].list.prev,
++				lockdep_is_held(&sel_pkey_lock)),
++			struct sel_pkey, list);
++		list_del_rcu(&tail->list);
++		kfree_rcu(tail, rcu);
++	} else {
++		sel_pkey_hash[idx].size++;
++	}
++}
++
++/**
++ * sel_pkey_sid_slow - Lookup the SID of a pkey using the policy
++ * @subnet_prefix: subnet prefix
++ * @pkey_num: pkey number
++ * @sid: pkey SID
++ *
++ * Description:
++ * This function determines the SID of a pkey by querying the security
++ * policy.  The result is added to the pkey table to speedup future
++ * queries.  Returns zero on success, negative values on failure.
++ *
++ */
++static int sel_pkey_sid_slow(u64 subnet_prefix, u16 pkey_num, u32 *sid)
++{
++	int ret = -ENOMEM;
++	struct sel_pkey *pkey;
++	struct sel_pkey *new = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&sel_pkey_lock, flags);
++	pkey = sel_pkey_find(subnet_prefix, pkey_num);
++	if (pkey) {
++		*sid = pkey->psec.sid;
++		spin_unlock_irqrestore(&sel_pkey_lock, flags);
++		return 0;
++	}
++
++	ret = security_pkey_sid(subnet_prefix, pkey_num, sid);
++	if (ret != 0)
++		goto out;
++
++	new = kzalloc(sizeof(*new), GFP_ATOMIC);
++	if (!new)
++		goto out;
++
++	new->psec.subnet_prefix = subnet_prefix;
++	new->psec.pkey = pkey_num;
++	new->psec.sid = *sid;
++	sel_pkey_insert(new);
++
++out:
++	spin_unlock_irqrestore(&sel_pkey_lock, flags);
++	if (unlikely(ret))
++		kfree(new);
++
++	return ret;
++}
++
++/**
++ * sel_pkey_sid - Lookup the SID of a PKEY
++ * @subnet_prefix: subnet_prefix
++ * @pkey_num: pkey number
++ * @sid: pkey SID
++ *
++ * Description:
++ * This function determines the SID of a PKEY using the fastest method
++ * possible.  First the pkey table is queried, but if an entry can't be found
++ * then the policy is queried and the result is added to the table to speedup
++ * future queries.  Returns zero on success, negative values on failure.
++ *
++ */
++int sel_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *sid)
++{
++	struct sel_pkey *pkey;
++
++	rcu_read_lock();
++	pkey = sel_pkey_find(subnet_prefix, pkey_num);
++	if (pkey) {
++		*sid = pkey->psec.sid;
++		rcu_read_unlock();
++		return 0;
++	}
++	rcu_read_unlock();
++
++	return sel_pkey_sid_slow(subnet_prefix, pkey_num, sid);
++}
++
++/**
++ * sel_pkey_flush - Flush the entire pkey table
++ *
++ * Description:
++ * Remove all entries from the pkey table
++ *
++ */
++void sel_pkey_flush(void)
++{
++	unsigned int idx;
++	struct sel_pkey *pkey, *pkey_tmp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&sel_pkey_lock, flags);
++	for (idx = 0; idx < SEL_PKEY_HASH_SIZE; idx++) {
++		list_for_each_entry_safe(pkey, pkey_tmp,
++					 &sel_pkey_hash[idx].list, list) {
++			list_del_rcu(&pkey->list);
++			kfree_rcu(pkey, rcu);
++		}
++		sel_pkey_hash[idx].size = 0;
++	}
++	spin_unlock_irqrestore(&sel_pkey_lock, flags);
++}
++
++static __init int sel_pkey_init(void)
++{
++	int iter;
++
++	if (!selinux_enabled)
++		return 0;
++
++	for (iter = 0; iter < SEL_PKEY_HASH_SIZE; iter++) {
++		INIT_LIST_HEAD(&sel_pkey_hash[iter].list);
++		sel_pkey_hash[iter].size = 0;
++	}
++
++	return 0;
++}
++
++subsys_initcall(sel_pkey_init);
+diff --git a/security/selinux/include/ibpkey.h b/security/selinux/include/ibpkey.h
+new file mode 100644
+index 0000000..387885a
+--- /dev/null
++++ b/security/selinux/include/ibpkey.h
+@@ -0,0 +1,31 @@
++/*
++ * pkey table
++ *
++ * SELinux must keep a mapping of pkeys to labels/SIDs.  This
++ * mapping is maintained as part of the normal policy but a fast cache is
++ * needed to reduce the lookup overhead.
++ *
++ */
++
++/*
++ * (c) Mellanox Technologies, 2016
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef _SELINUX_IB_PKEY_H
++#define _SELINUX_IB_PKEY_H
++
++void sel_pkey_flush(void);
++
++int sel_pkey_sid(u64 subnet_prefix, u16 pkey, u32 *sid);
++
++#endif
+diff --git a/security/selinux/include/objsec.h b/security/selinux/include/objsec.h
+index 8e7db43..4139f28 100644
+--- a/security/selinux/include/objsec.h
++++ b/security/selinux/include/objsec.h
+@@ -133,6 +133,12 @@ struct ib_security_struct {
+ 	u32 sid;        /* SID of the queue pair or MAD agent */
+ };
+ 
++struct pkey_security_struct {
++	u64	subnet_prefix; /* Port subnet prefix */
++	u16	pkey;	/* PKey number */
++	u32	sid;	/* SID of pkey */
++};
++
+ extern unsigned int selinux_checkreqprot;
+ 
+ #endif /* _SELINUX_OBJSEC_H_ */
 -- 
 1.8.3.1
 
