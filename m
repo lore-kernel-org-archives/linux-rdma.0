@@ -1,62 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs
- from kernel space
-Date: Mon, 7 Nov 2016 17:43:51 -0700
-Message-ID: <20161108004351.GA32444@obsidianresearch.com>
-References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
- <1477579398-6875-8-git-send-email-matanb@mellanox.com>
- <20161028065943.GA10418@infradead.org>
- <20161028151606.GN3617@leon.nu>
- <20161028152138.GA16421@infradead.org>
- <20161028153306.GO3617@leon.nu>
- <20161028153725.GA14166@infradead.org>
- <20161028154628.GP3617@leon.nu>
- <CAAKD3BB0k1UxV2qO3SqAD_t1vM2pcduOXiz8aJ5c+JXAmq_aWw@mail.gmail.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Tue, 8 Nov 2016 08:12:55 +0000
+Message-ID: <HE1PR0501MB2812298C05431B08B0F408EEB1A60@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+References: <20161018215134.GB2761@htj.duckdns.org>
+ <CAG53R5UEvkPBM0yFrR=fvEzyCrku2q=rLZyDVrSs9q+3hgbSmQ@mail.gmail.com>
+ <20161019143345.GA18532@htj.duckdns.org>
+ <CAG53R5WUyA7JBn=PeivUc5F5k210xf_HccPXFt3r7ZGYHOPaGA@mail.gmail.com>
+ <20161019192006.GB3044@htj.duckdns.org>
+ <CAG53R5X5dyo7J-UkeMxi_mSxgv=c54fV=anuCZtmf9kaYwDbPw@mail.gmail.com>
+ <20161019200536.GC3044@htj.duckdns.org>
+ <CAG53R5XkRKdo-SCaREZvov3AGp5MSd18RpQ+0HEu-htUzqwOOw@mail.gmail.com>
+ <20161031065441.GY3617@leon.nu>
+ <CAG53R5VKwntDHX101+5aaGoyKMKQuiKQWam575iFAxhmKxhE1g@mail.gmail.com>
+ <20161103180006.GL3617@leon.nu>
+ <AM4PR0501MB2802030EE9E359133E04439CB1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
+ <CAG53R5Vd58wEBKgAajp9VvJmB5sO2Umii0JE4XaLYKbfrJrxyg@mail.gmail.com>
+ <AM4PR0501MB2802E87F709F41DDEC20B7C9B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
+ <CAG53R5UyZPh9wduPZGRg2P09n2Og8oODqb+QW=7ryAPqJDa6Vw@mail.gmail.com>
+ <AM4PR0501MB28025BE002CBA9D04675A5A5B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
+ <CAG53R5WdauHpML66g-O6zj+j_DUYWJMPjmL1xDaSxwDmPPYm2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BB0k1UxV2qO3SqAD_t1vM2pcduOXiz8aJ5c+JXAmq_aWw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG53R5WdauHpML66g-O6zj+j_DUYWJMPjmL1xDaSxwDmPPYm2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 30, 2016 at 10:48:39AM +0200, Matan Barak wrote:
-> On Fri, Oct 28, 2016 at 5:46 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > On Fri, Oct 28, 2016 at 08:37:25AM -0700, Christoph Hellwig wrote:
-> >> On Fri, Oct 28, 2016 at 06:33:06PM +0300, Leon Romanovsky wrote:
-> >> > Just to summarize, to be sure that I understood you correctly.
-> >> >
-> >> > | write | -> | conversion logic | ---
-> >> > | ioctl | ---------------------------
-> >> >
-> >> > Am I right?
-> >>
-> >> Yes, as long as the write and ioctl boxes do the copy_{from,to}_user.
-
-> If we accept the limitations here (i.e - all commands attributes
-> come either from kernel or from user, but you can't mix them -
-> that's mean the write comparability layer either needs to copy all
-> attributes or use a direct mapping for all of them), I could just
-> either break ib_uverbs_cmd_verbs to a a few functions or just pass a
-> callback of boxing the descriptors copy.
-
->From what I saw in the series, this looks easy enough to fix..
-
-Just lightly refactor things so that the write() compat layer can call
-into the ioctl processor with an already prepared tlv list in kernel
-memory and form such a list on the stack when doing the compat stuff.
-
-The bigger problem is the tlv list pointers themselves, they have to
-point to user memory so the compat layer can only do so much of a
-transformation.
-
-I guess another flag in the copy_from_user wrapper would do the trick
-if we need it.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBGcm9tOiBQYXJhdiBQYW5kaXQgW21haWx0bzpwYW5kaXQucGFyYXZAZ21haWwuY29tXQ0KDQo+
+ID4NCj4gPiBIbW0uLg0KPiA+IEkgZ3Vlc3MgdGhhdCB5b3UgYXJlIHJpZ2h0Lg0KPiA+DQo+ID4g
+U28gd2UgY2FuIGFkZCBhbm90aGVyIGNvdW50IGZvciAiSENBIGhhbmRsZXMiLA0KPiBJIHByZWZl
+ciB0aGlzLiBUaGlzIGtlZXBzIGl0IHZlbmRvciBhZ25vc3RpYyBhbmQgY2xlYW4gaWYgd2UgZG9u
+J3QgZ28gcGVyY2VudGFnZQ0KPiByb3V0ZS4NCg0KT0s7IGxldCdzIGRvIGl0Lg0KDQo+IFdvdWxk
+IGluZGlyZWN0aW9uIHRhYmxlIGFsc28gZmFsbCBpbiB0aGlzIGNhdGVnb3J5Pw0KPiANCg0KTm8u
+IEl0J3MganVzdCBhbm90aGVyIEhDQSByZXNvdXJjZS4uLg0KDQo+ID4gb3IgYWx0ZXJuYXRpdmVs
+eSwgZWFjaCBwcm92aWRlciB3aWxsIHJlc3RyaWN0IHRoZSBudW1iZXIgb2YgaGFuZGxlcw0KPiA+
+IHBlciBkZXZpY2UgdG8gYSByZWFzb25hYmxlIHNtYWxsIG51bWJlciAod2hpY2ggd29uJ3QgYmUg
+dHJlYXRlZCBhcyBvbmUgb2YgdGhlDQo+ICJIQ0EgcmVzb3VyY2VzIikuDQo+IFRoaXMgd291bGQg
+cmVxdWlyZSB2ZW5kb3IgZHJpdmVycyB0byBnZXQgdGhlIHVuZGVyc3RhbmRpbmcgb2YgY2dyb3Vw
+IG9iamVjdA0KPiBhbmQgcGlkIGFuZCB0aGF0IGJyZWFrcyB0aGUgbW9kdWxhciBhcHByb2FjaC4g
+SSBsaWtlIHRvIGF2b2lkIHRoaXMuDQo+IA0KPiA+IFR5cGljYWxseSwgYSBwcm9jZXNzIHNob3Vs
+ZG4ndCBuZWVkIHRvIG9wZW4gbW9yZSB0aGFuIGEgc2luZ2xlIGhhbmRsZS4uLg0KPiBSaWdodC4g
+d2VsbCBiZWhhdmVkIGFwcGxpY2F0aW9uIHdvbid0IGRvIG11bHRpcGxlIGhhbmRsZXMuDQo=
