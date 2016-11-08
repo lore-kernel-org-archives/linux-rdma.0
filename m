@@ -1,101 +1,75 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: SQ overflow seen running isert traffic
-Date: Tue, 8 Nov 2016 15:36:18 +0530
-Message-ID: <20161108100617.GA2812@chelsio.com>
-References: <20160927070157.GA13140@chelsio.com>
- <672d8b05-5537-d45a-ba3f-cdd5f054a4ab@grimberg.me>
- <20161017111655.GA21245@chelsio.com>
- <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com>
- <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me>
- <20161018112801.GA3117@chelsio.com>
- <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
- <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
- <1477885208.27946.8.camel@haakon3.risingtidesystems.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
+Date: Tue, 8 Nov 2016 14:54:41 +0200
+Message-ID: <20161108125441.GB27883@leon.nu>
+References: <1477487048-62256-1-git-send-email-oulijun@huawei.com>
+ <1477487048-62256-2-git-send-email-oulijun@huawei.com>
+ <20161026162053.GE24898@obsidianresearch.com>
+ <5811776F.20908@huawei.com>
+ <20161027145139.GD6818@obsidianresearch.com>
+ <58130573.4010902@huawei.com>
+ <20161028164030.GA17289@obsidianresearch.com>
+ <5813F869.7010606@huawei.com>
+ <20161107231532.GB7002@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tjCHc7DPkfUGtrlw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1477885208.27946.8.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <20161107231532.GB7002-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Monday, October 10/31/16, 2016 at 09:10:08 +0530, Nicholas A. Bellinger wrote:
-> Hi Steve, Potnuri, & Co,
-> 
-> On Tue, 2016-10-18 at 09:34 -0500, Steve Wise wrote:
-> > > 
-> > > > I tried out this change and it works fine with iwarp. I dont see SQ
-> > > > overflow. Apparently we have increased the sq too big to overflow. I am
-> > going
-> > > > to let it run with higher workloads for longer time, to see if it holds
-> > good.
-> > > 
-> > > Actually on second thought, this patch is an overkill. Effectively we
-> > > now set:
-> > > 
-> > > MAX_CMD=266
-> > > and max_rdma_ctx=128 so together we take 394 which seems to too much.
-> > > 
-> > > If we go by the scheme of 1 rdma + 1 send for each IO we need:
-> > > - 128 sends
-> > > - 128 rdmas
-> > > - 10 miscs
-> > > 
-> > > so this gives 266.
-> > > 
-> > > Perhaps this is due to the fact that iWARP needs to register memory for
-> > > rdma reads as well? (and also rdma writes > 128k for chelsio HW right?)
-> > >
-> > 
-> > iWARP definitely needs to register memory for the target of reads, due to
-> > REMOTE_WRITE requirement for the protocol.  The source of a write doesn't need
-> > to register memory, but the SGE depth can cause multiple WRITE WRs to be
-> > required to service the IO.  And in theory there should be some threshold where
-> > it might be better performance-wise to do a memory register + 1 WRITE vs X
-> > WRITEs.    
-> > 
-> > As you mentioned, the RW API should account for this, but perhaps it is still
-> > off some.  Bharat, have a look into the RDMA-RW API and let us see if we can
-> > figure out if the additional SQ depth it adds is sufficient.
-> >  
-> > > What is the workload you are running? with immediatedata enabled you
-> > > should issue reg+rdma_read+send only for writes > 8k.
-> > > 
-> > > Does this happen when you run only reads for example?
-> > > 
-> > > I guess its time to get the sq accounting into shape...
-> > 
-> > So to sum up - 2 issues:
-> > 
-> > 1) we believe the iSER + RW API correctly sizes the SQ, yet we're seeing SQ
-> > overflows.  So the SQ sizing needs more investigation.
-> > 
-> > 2) if the SQ is full, then the iSER/target code is supposed to resubmit.  And
-> > apparently that isn't working.
-> > 
-> 
-> For #2, target-core expects -ENOMEM or -EAGAIN return from fabric driver
-> callbacks to signal internal queue-full retry logic.  Otherwise, the
-> extra se_cmd->cmd_kref response SCF_ACK_KREF is leaked until session
-> shutdown and/or reinstatement occurs.
-> 
-> AFAICT, Potunri's earlier hung task with v4.8.y + ABORT_TASK is likely
-> the earlier v4.1+ regression:
-> 
-> https://github.com/torvalds/linux/commit/527268df31e57cf2b6d417198717c6d6afdb1e3e
-> 
-> That said, there is room for improvement in target-core queue-full error
-> signaling, and iscsi-target/iser-target callback error propagation.  
-> 
-> Sending out a series shortly to address these particular items.
-> Please have a look.
+
+--tjCHc7DPkfUGtrlw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Nov 07, 2016 at 04:15:32PM -0700, Jason Gunthorpe wrote:
+> On Sat, Oct 29, 2016 at 09:16:25AM +0800, oulijun wrote:
 >
-Thanks for the changes Nicholas.
-Testing them now.
-Thanks,
-Bharat.
+> > We hope that the only one userspace library file named
+> > libhns-rdmav2.so will be used for the different hardware
+> > version(hip06, hip07, ...), because there are only little change
+> > between their userspace drivers. So we need to distinguish hardware
+> > version.
+>
+> I guess that makes sense, but you still need to be able to parse dt
+> compatible strings that are lists.
+
+IMHO, it can be easily done as follow up patches.
+
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--tjCHc7DPkfUGtrlw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYIcsRAAoJEORje4g2clinFY4QAKi4FG1TaI4KgPKtO6kaOb8u
+DhUm8xSvnzmS9PBiS9OmtZQrNM3SH5GbUDNKgmt2q0/tE2G5neKhTST/tDrgpVTO
+OL0emLfXiMnc55x0n/FhrXvL5cB+ewoZLPt1Bb9krsYHcwU2rZbB4alRTupa/hty
+ByQtjfhwWs5Rpp6XjdtyxcV1W4eyKGCfdupWOVoRliKr8zNR/WFBPaOjCZdYHMJ9
+KU29yGBCS3ZJ+tkWZff6tSqYgGY0eqAyF6QIr1HE+QquGH17kR/LrzlYLT5JFtt3
+q0e2RIfzEp04//+ovMJBM+mnZjl38zDtuUEyQjVjYBT+AwRLoM8+5APomjp7zeF0
+vhJ0BtnX5oYmOfv8375fwdk15lpJ7VlJx72XsFo/oPnvlsrAT+awJdxaLuQvtefW
+KxIzhUiVeszQ9CLm11Hi0XwcvV1ffvxN+9gXEPAgv+D8fa096JyeV/d1S4KAnw1H
+9dL9udkqlat4kGWjSERwwmtwffsWIO7OxCNC8PdaVSdZW5HnCenZt9N60ph368JB
+pgQvZPYULe/0E0nJPGF1Nwli4vIKdCHC3W+7bzapK310M8R41d2LOz2VXM/OBjAB
+lgs5bw7sA3yWLzl7+bMU+YlbIDuVSXUMD/5USqmPlksOMGp+bpUS5u+IWr/KVsYk
+Q0NyH+23AXy+UvqbFG4V
+=ixKx
+-----END PGP SIGNATURE-----
+
+--tjCHc7DPkfUGtrlw--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
