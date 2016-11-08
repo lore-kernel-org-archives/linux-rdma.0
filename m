@@ -1,54 +1,59 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 0/9] mlx4 fixes for 4.9
-Date: Tue, 8 Nov 2016 10:50:21 +0200
-Message-ID: <20161108085021.GA27883@leon.nu>
-References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: FW: [Bug 185551] New: rxe_rdma: RTNL: assertion failed at
+ net/core/ethtool.c (550)
+Date: Tue, 8 Nov 2016 11:41:58 +0200
+Message-ID: <298c5d8d-bd58-c31f-9340-ee190268f495@mellanox.com>
+References: <bug-185551-11804@https.bugzilla.kernel.org/>
+ <HE1PR05MB157874BECC0B171C75933E1BA7A40@HE1PR05MB1578.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1478375842-21513-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <HE1PR05MB157874BECC0B171C75933E1BA7A40-eBadYZ65MZ/9T9KkpKWrANqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: v.badalyan-mR0gyJWGnJgvJsYlp49lxw@public.gmane.org
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/6/2016 1:08 PM, Majd Dibbiny wrote:
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+>
+> https://bugzilla.kernel.org/show_bug.cgi?id=185551
+>
+>             Bug ID: 185551
+>            Summary: rxe_rdma: RTNL: assertion failed at net/core/ethtool.c
+>                     (550)
+>            Product: Drivers
+>            Version: 2.5
+>     Kernel Version: 4.8.5-1.el7.elrepo.x86_64
+>           Hardware: All
+>                 OS: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: high
+>           Priority: P1
+>          Component: Infiniband/RDMA
+>           Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+>           Reporter: v.badalyan-mR0gyJWGnJgvJsYlp49lxw@public.gmane.org
+>         Regression: No
+>
+> #rxe_cfg start
+> #rxe_cfg add eno1.4004
+> #rxe_cfg
+>
+> [root@intel2-i5 ~]# rxe_cfg
+>   Name       Link  Driver  Speed  NMTU  IPv4_addr  RDEV  RMTU
+>   DevNet     yes   bridge
+>   eno1       yes   e1000e
+>   eno1.4003  yes   802.1Q
+>   eno1.4004  yes   802.1Q                          rxe0  4096  (5)
+>   enp2s1     yes   r8169
+>   ovirtmgmt  yes   bridge
+>
+>
+how do i reproduce this ?
+was rxe device coupled with a bridge-interface  ?
 
-On Sat, Nov 05, 2016 at 09:57:13PM +0200, Leon Romanovsky wrote:
-> Hi Doug,
-
-Please drop this patch series, I'll respin it once I'll return to
-office.
-
-Thanks
-
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYIZHNAAoJEORje4g2clinxZEP/3nLPOuEOhF4k1Gk9/d/WLdJ
-frDobFIyY3CPbbV5KV2A9vca7gOj2qGzpp8U3QwWGCSmhbYErxu7W3bXjeLBzvIc
-+KmB6AJ75nangd61sEpAwVcJEh13cv+yKLxnOzwJGHhWIHFI27rlttlOANyaStDq
-iaGPdJt1z+Vm4gm/mV3Qenls65n/xOLKy7EjmCkYZYWdC+gcm0YtovUx753RMgsK
-boHN37io6wZt2RcxIVtsIrwk3fZHzAD/9yE4iF0bCg4Xdp3b0es5sXgMQNDtQsMa
-dEqo5RJvfkud8D4RJmqBagau4/leIe3reu2hD5lK26MvjHLtg3HlKGXyzREydtW4
-yT++x0HyZwI6UsGb6Y/pAuEzD6/DsxoS+zKH+MT9qtY0NhI8FMnpZYrB3Crhg2Xz
-cSrQMzZTD+l5gouYblAtrdaoZ1Az4tIIxdlYrYzq3IeI31AZq8UR2I92cr5KJcOc
-rbw2X2NFJJOZoIXwVxnmd7XtVEEmY+En+M409UDrzOwZso5EC7kw+gfGK8WXJ1rh
-Fe6YdRNJrVzJm0fSJWuPHKEiQNepoL1jy1xdHcLw/e5Rby4JE7QdZbT+d2Np+/vb
-FaxxyX/MFGBZuAzM61DDdUOQo/EwPDGrnYqBIbS5TKCmGLbVRWicVeI3jrdYe1zt
-dLSRvlfQcpfxBmkGilP+
-=S0a5
------END PGP SIGNATURE-----
-
---YiEDa0DAkWCtVeE4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
