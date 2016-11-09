@@ -1,81 +1,179 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V5 07/10] IB/core: Support getting IOCTL header/SGEs
- from kernel space
-Date: Wed, 9 Nov 2016 11:45:09 +0200
-Message-ID: <8dea3ebe-aa1e-092d-f7a6-34d2d96bbf77@mellanox.com>
-References: <1477579398-6875-1-git-send-email-matanb@mellanox.com>
- <1477579398-6875-8-git-send-email-matanb@mellanox.com>
- <20161028065943.GA10418@infradead.org> <20161028151606.GN3617@leon.nu>
- <20161028152138.GA16421@infradead.org> <20161028153306.GO3617@leon.nu>
- <20161028153725.GA14166@infradead.org> <20161028154628.GP3617@leon.nu>
- <CAAKD3BB0k1UxV2qO3SqAD_t1vM2pcduOXiz8aJ5c+JXAmq_aWw@mail.gmail.com>
- <20161108004351.GA32444@obsidianresearch.com>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH] net/mlx4_en: Fix bpf_prog_add ref_cnt in mlx4
+Date: Wed, 09 Nov 2016 10:57:32 +0100
+Message-ID: <5822F30C.1050900@iogearbox.net>
+References: <20161109073544.jbufjqn7y7oa6ptg@ubuntu> <5822E6DB.40204@iogearbox.net> <20161109094546.jtmzc4xwtaavzcnt@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161108004351.GA32444-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="------------080709030105050800090703"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161109094546.jtmzc4xwtaavzcnt@ubuntu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhiyi Sun <zhiyisun@gmail.com>
+Cc: bblanco@plumgrid.com, Tariq Toukan <tariqt@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, alexei.starovoitov@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/11/2016 02:43, Jason Gunthorpe wrote:
-> On Sun, Oct 30, 2016 at 10:48:39AM +0200, Matan Barak wrote:
->> On Fri, Oct 28, 2016 at 5:46 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>> On Fri, Oct 28, 2016 at 08:37:25AM -0700, Christoph Hellwig wrote:
->>>> On Fri, Oct 28, 2016 at 06:33:06PM +0300, Leon Romanovsky wrote:
->>>>> Just to summarize, to be sure that I understood you correctly.
->>>>>
->>>>> | write | -> | conversion logic | ---
->>>>> | ioctl | ---------------------------
->>>>>
->>>>> Am I right?
->>>>
->>>> Yes, as long as the write and ioctl boxes do the copy_{from,to}_user.
->
->> If we accept the limitations here (i.e - all commands attributes
->> come either from kernel or from user, but you can't mix them -
->> that's mean the write comparability layer either needs to copy all
->> attributes or use a direct mapping for all of them), I could just
->> either break ib_uverbs_cmd_verbs to a a few functions or just pass a
->> callback of boxing the descriptors copy.
->
-> From what I saw in the series, this looks easy enough to fix..
->
-> Just lightly refactor things so that the write() compat layer can call
-> into the ioctl processor with an already prepared tlv list in kernel
-> memory and form such a list on the stack when doing the compat stuff.
->
+This is a multi-part message in MIME format.
+--------------080709030105050800090703
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yeah, it's just an easy refactor of ib_uverbs_cmd_verbs and there's 
-multiple ways of doing that :)
-
-> The bigger problem is the tlv list pointers themselves, they have to
-> point to user memory so the compat layer can only do so much of a
-> transformation.
+On 11/09/2016 10:45 AM, Zhiyi Sun wrote:
+> On Wed, Nov 09, 2016 at 10:05:31AM +0100, Daniel Borkmann wrote:
+>> On 11/09/2016 08:35 AM, Zhiyi Sun wrote:
+>>> There are rx_ring_num queues. Each queue will load xdp prog. So
+>>> bpf_prog_add() should add rx_ring_num to ref_cnt.
+>>>
+>>> Signed-off-by: Zhiyi Sun <zhiyisun@gmail.com>
+>>
+>> Your analysis looks incorrect to me. Please elaborate in more detail why
+>> you think current code is buggy ...
 >
-> I guess another flag in the copy_from_user wrapper would do the trick
-> if we need it.
+> Yes, you are correct. My patch is incorrect. It is not a bug.
 >
-
-Currently we assume the payload itself is in user-space only so direct 
-mapping is mandatory.
-If we ever need to do something other than (bunch of consecutive write 
-ABI struct fields) -> (attribute in the ioctl world), we'll have to box 
-these copy macros/functions with copy_from_attr and copy_to_attr calls.
-
-> Jason
-
-Matan
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Call path is dev_change_xdp_fd(), which does bpf_prog_get_type() on the
+>> fd. This already takes a ref and only drops it in case of error. Thus
+>> in mlx4_xdp_set(), you only need priv->rx_ring_num - 1 refs for the rest
+>> of the rings, so that dropping refs from old_prog makes sure we release
+>> it again. Looks correct to me (maybe a comment would have helped there).
 >
+> I thought mlx4's code is incorrect because in mlx5's driver, function
+> mlx5e_xdp_set() calls a pair of bpf_prog_add/put, the number of add and
+> put to the refs are same. I didn't notice that one "add" has been called in its
+> calller. So, it seems that mlx5's code is incorrect, right?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yep, I think the two attached patches are needed.
+
+The other thing I noticed in mlx5e_create_rq() is that it calls
+bpf_prog_add(rq->xdp_prog, 1) without actually checking for errors.
+
+--------------080709030105050800090703
+Content-Type: text/x-patch;
+ name="0001-bpf-mlx4-fix-prog-refcount-in-mlx4_en_try_alloc_reso.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-bpf-mlx4-fix-prog-refcount-in-mlx4_en_try_alloc_reso.pa";
+ filename*1="tch"
+
+>From d2bd6b3cd8636716a06b0ea3b1e041e16f87cce0 Mon Sep 17 00:00:00 2001
+Message-Id: <d2bd6b3cd8636716a06b0ea3b1e041e16f87cce0.1478685278.git.daniel@iogearbox.net>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Date: Wed, 9 Nov 2016 10:31:19 +0100
+Subject: [PATCH net-next 1/2] bpf, mlx4: fix prog refcount in mlx4_en_try_alloc_resources error path
+
+Commit 67f8b1dcb9ee ("net/mlx4_en: Refactor the XDP forwarding rings
+scheme") added a bug in that the prog's reference count is not dropped
+in the error path when mlx4_en_try_alloc_resources() is failing.
+
+We previously took bpf_prog_add(prog, priv->rx_ring_num - 1), that we
+need to release again. Earlier in the call-path, dev_change_xdp_fd()
+itself holds a ref to the prog as well, which is then released though
+bpf_prog_put() due to the propagated error.
+
+Fixes: 67f8b1dcb9ee ("net/mlx4_en: Refactor the XDP forwarding rings scheme")
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+---
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c |  5 ++++-
+ include/linux/bpf.h                            |  1 +
+ kernel/bpf/syscall.c                           | 11 +++++++++++
+ 3 files changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+index 0f6225c..4104aec 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -2747,8 +2747,11 @@ static int mlx4_xdp_set(struct net_device *dev, struct bpf_prog *prog)
+ 	}
+ 
+ 	err = mlx4_en_try_alloc_resources(priv, tmp, &new_prof);
+-	if (err)
++	if (err) {
++		if (prog)
++			bpf_prog_add_undo(prog, priv->rx_ring_num - 1);
+ 		goto unlock_out;
++	}
+ 
+ 	if (priv->port_up) {
+ 		port_up = 1;
+diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+index edcd96d..4f6a4f1 100644
+--- a/include/linux/bpf.h
++++ b/include/linux/bpf.h
+@@ -234,6 +234,7 @@ u64 bpf_event_output(struct bpf_map *map, u64 flags, void *meta, u64 meta_size,
+ struct bpf_prog *bpf_prog_get(u32 ufd);
+ struct bpf_prog *bpf_prog_get_type(u32 ufd, enum bpf_prog_type type);
+ struct bpf_prog *bpf_prog_add(struct bpf_prog *prog, int i);
++void bpf_prog_add_undo(struct bpf_prog *prog, int i);
+ struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog);
+ void bpf_prog_put(struct bpf_prog *prog);
+ 
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index 228f962..a6e4dd8 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -680,6 +680,17 @@ struct bpf_prog *bpf_prog_add(struct bpf_prog *prog, int i)
+ }
+ EXPORT_SYMBOL_GPL(bpf_prog_add);
+ 
++void bpf_prog_add_undo(struct bpf_prog *prog, int i)
++{
++	/* Only to be used for undoing previous bpf_prog_add() in some
++	 * error path. We still know that another entity in our call
++	 * path holds a reference to the program, thus atomic_sub() can
++	 * be safely used here!
++	 */
++	atomic_sub(i, &prog->aux->refcnt);
++}
++EXPORT_SYMBOL_GPL(bpf_prog_add_undo);
++
+ struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)
+ {
+ 	return bpf_prog_add(prog, 1);
+-- 
+1.9.3
+
+
+--------------080709030105050800090703
+Content-Type: text/x-patch;
+ name="0002-bpf-mlx5-fix-prog-refcount-in-mlx5e_xdp_set.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0002-bpf-mlx5-fix-prog-refcount-in-mlx5e_xdp_set.patch"
+
+>From f0789544432bbb89c53c3b8ac6575d48fed97786 Mon Sep 17 00:00:00 2001
+Message-Id: <f0789544432bbb89c53c3b8ac6575d48fed97786.1478685278.git.daniel@iogearbox.net>
+In-Reply-To: <d2bd6b3cd8636716a06b0ea3b1e041e16f87cce0.1478685278.git.daniel@iogearbox.net>
+References: <d2bd6b3cd8636716a06b0ea3b1e041e16f87cce0.1478685278.git.daniel@iogearbox.net>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Date: Wed, 9 Nov 2016 10:51:26 +0100
+Subject: [PATCH net-next 2/2] bpf, mlx5: fix prog refcount in mlx5e_xdp_set
+
+dev_change_xdp_fd() already holds a reference, so bpf_prog_add(prog, 1)
+is not correct as it takes one reference too much and will thus leak
+the prog eventually. Also, bpf_prog_add() can fail and is not checked
+for errors here.
+
+Fixes: 86994156c736 ("net/mlx5e: XDP fast RX drop bpf programs support")
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index ba0c774..63309dd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3121,8 +3121,6 @@ static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
+ 
+ 	/* exchange programs */
+ 	old_prog = xchg(&priv->xdp_prog, prog);
+-	if (prog)
+-		bpf_prog_add(prog, 1);
+ 	if (old_prog)
+ 		bpf_prog_put(old_prog);
+ 
+-- 
+1.9.3
+
+
+--------------080709030105050800090703--
