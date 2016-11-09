@@ -1,74 +1,59 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 rdma-core 3/7] libhns: Add verbs of pd and mr support
-Date: Wed, 9 Nov 2016 16:01:44 +0800
-Message-ID: <5822D7E8.6010202@huawei.com>
-References: <1477731826-10787-1-git-send-email-oulijun@huawei.com>
- <1477731826-10787-4-git-send-email-oulijun@huawei.com>
- <20161109073426.GL27883@leon.nu>
+From: Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>
+Subject: Re: [PATCH] net/mlx4_en: Fix bpf_prog_add ref_cnt in mlx4
+Date: Wed, 09 Nov 2016 10:05:31 +0100
+Message-ID: <5822E6DB.40204@iogearbox.net>
+References: <20161109073544.jbufjqn7y7oa6ptg@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161109073426.GL27883-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20161109073544.jbufjqn7y7oa6ptg@ubuntu>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Zhiyi Sun <zhiyisun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: bblanco-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-在 2016/11/9 15:34, Leon Romanovsky 写道:
-> On Sat, Oct 29, 2016 at 05:03:42PM +0800, Lijun Ou wrote:
->> This patch mainly introduces the verbs with pd and mr,
->> included alloc_pd, dealloc_pd, reg_mr and dereg_mr.
->>
->> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> ---
->> v2:
->> - No change over v1
->>
->> v1:
->> - The initial submit
->> ---
->>  providers/hns/hns_roce_u.c       |  4 ++
->>  providers/hns/hns_roce_u.h       | 18 +++++++++
->>  providers/hns/hns_roce_u_abi.h   |  6 +++
->>  providers/hns/hns_roce_u_verbs.c | 79 ++++++++++++++++++++++++++++++++++++++++
->>  4 files changed, 107 insertions(+)
-> 
-> <....>
-> 
->> +struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
->> +				 int access)
->> +{
->> +	int ret;
->> +	struct ibv_mr *mr;
->> +	struct ibv_reg_mr cmd;
->> +	struct ibv_reg_mr_resp resp;
->> +
->> +	if (addr == NULL) {
-> 
-> It can be great if you use one style for all your code e.g. if(!addr) ....
-> 
-ok, thanks your advice and i will consider to fix it.
->> +		fprintf(stderr, "2nd parm addr is NULL!\n");
->> +		return NULL;
->> +	}
->> +
->> +	if (length == 0) {
->> +		fprintf(stderr, "3st parm length is 0!\n");
->> +		return NULL;
->> +	}
->> +
->> +	mr = malloc(sizeof(*mr));
->> +	if (mr)
->> +		return NULL;
-> 
-> It looks like bug and you wanted if(!mr) and not if(mr).
-> 
-Yes, This is my careless for generating patch. my local server's code is if(!mr)
-I will fix it.
+On 11/09/2016 08:35 AM, Zhiyi Sun wrote:
+> There are rx_ring_num queues. Each queue will load xdp prog. So
+> bpf_prog_add() should add rx_ring_num to ref_cnt.
+>
+> Signed-off-by: Zhiyi Sun <zhiyisun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Lijun Ou
+Your analysis looks incorrect to me. Please elaborate in more detail why
+you think current code is buggy ...
+
+Call path is dev_change_xdp_fd(), which does bpf_prog_get_type() on the
+fd. This already takes a ref and only drops it in case of error. Thus
+in mlx4_xdp_set(), you only need priv->rx_ring_num - 1 refs for the rest
+of the rings, so that dropping refs from old_prog makes sure we release
+it again. Looks correct to me (maybe a comment would have helped there).
+
+>   drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> index 12c99a2..d25e150 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> @@ -2650,7 +2650,7 @@ static int mlx4_xdp_set(struct net_device *dev, struct bpf_prog *prog)
+>   	 */
+>   	if (priv->xdp_ring_num == xdp_ring_num) {
+>   		if (prog) {
+> -			prog = bpf_prog_add(prog, priv->rx_ring_num - 1);
+> +			prog = bpf_prog_add(prog, priv->rx_ring_num);
+>   			if (IS_ERR(prog))
+>   				return PTR_ERR(prog);
+>   		}
+> @@ -2680,7 +2680,7 @@ static int mlx4_xdp_set(struct net_device *dev, struct bpf_prog *prog)
+>   	}
+>
+>   	if (prog) {
+> -		prog = bpf_prog_add(prog, priv->rx_ring_num - 1);
+> +		prog = bpf_prog_add(prog, priv->rx_ring_num);
+>   		if (IS_ERR(prog))
+>   			return PTR_ERR(prog);
+>   	}
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
