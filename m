@@ -1,55 +1,70 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 2/9] IB/mlx4: Check gid_index return value
-Date: Wed, 9 Nov 2016 09:26:02 +0200
-Message-ID: <20161109072602.GJ27883@leon.nu>
-References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
- <1478375842-21513-3-git-send-email-leonro@mellanox.com>
- <20161106072503.GB3799@yuval-lap.us.oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] build: Fix build script to use correct cmake cmd
+Date: Wed, 9 Nov 2016 09:27:09 +0200
+Message-ID: <20161109072709.GK27883@leon.nu>
+References: <20161021172728.27367.86783.stgit@scvm10.sc.intel.com>
+ <20161021180523.GA554@obsidianresearch.com>
+ <9745f6c7-8d09-8bed-d04c-78f610330ead@redhat.com>
+ <20161021193034.GA616@obsidianresearch.com>
+ <20161025101200.GP25013@leon.nu>
+ <20161107235709.GF7002@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+9faIjRurCDpBc7U"
+        protocol="application/pgp-signature"; boundary="u3W6riq+uV6J42Ub"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161106072503.GB3799-Hxa29pjIrETwm8eLU6eYyt+IiqhCXseY@public.gmane.org>
+In-Reply-To: <20161107235709.GF7002-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---+9faIjRurCDpBc7U
+--u3W6riq+uV6J42Ub
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Nov 06, 2016 at 09:25:04AM +0200, Yuval Shaia wrote:
-> FWIW
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Mon, Nov 07, 2016 at 04:57:09PM -0700, Jason Gunthorpe wrote:
+> On Tue, Oct 25, 2016 at 01:12:00PM +0300, Leon Romanovsky wrote:
+> > > stuff I have - eg should I make it pushable? It is easy to use, but
+> > > you need to have docker installed.
+> >
+> > I would be happy to get it and be more confident in my local tests.
+>
+> You can test it out with this commit:
+>
+> https://github.com/jgunthorpe/rdma-plumbing/commit/ef24b991c949ad4f50614bf6bf549e1cdf841358
+>
+> It will need some tidying before it can merged, but let me know if it
+> is useful as-is.
 
-Thanks Yuval,
-As I wrote earlier, we will address all your comments.
+Thanks, I'll do my best to try it next week.
 
---+9faIjRurCDpBc7U
+>
+> Jason
+
+--u3W6riq+uV6J42Ub
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYIs+KAAoJEORje4g2clinPQMQALWXav7MYaadqZIe1mFPW6Nb
-0XrEmFdG8yROtJ6YioY72Da5nMTrPwNeLRQITufSbHjz65noeAxrcirZYFIJyQIM
-rThaf3/e5xyR2GAbmzFRO+CJstTQ++kTVWgHKIH4h2g2ycL/nydMJIbXvNMT9uut
-m6J8YuKq3vbimvhy0UpPUWBesoTnJF+0YGCT/NPmYZG7iRD0kHCnS9H1JLDhWBII
-Z1oeaqbvT5W/EYAzNJn9W8rDNvIY/5hMsEfobIGKt86PJN8m4LN995Jg1TkaFlnN
-7PSU0zL8+Vd6hU4WqIKJWq1f3AZRE2/5/7s7tHIcUdqp6DZNB1oLvdkky9H1jPM1
-CIvwLvPHEtRZIU0uvoYvCvpvNnJOc5Uh122uNq/b3p1+sjJxhE74ZBGGafQ314WR
-2fWsYTGvzH3w6pXS3K1ChrnHmYhEkpwcNzeC9OzAFVrK+AzUZ2UF13uuVw0iWI+p
-2RMrdIYuM01lqKz5bCKaEO6ePLEEkZcb8rljN30rs5Cff5Jp4+t982NrWIWScY73
-naMAHIFz9GzAgmFq2vjYDOGnCxhnGOWSsqItkHARlPZ2CCIbXqlOWLSYGd5p6CmL
-D/W6eM+o/PTMhHV0OAAuxaFHHM/Ma113rpf8lxzHGp5ClF5eDOAt036CoWP6AC+T
-FDr+jsv8DXYSzmFAgtLH
-=29Vv
+iQIcBAEBAgAGBQJYIs/NAAoJEORje4g2clinLx4P/jaStCMiJ5yOsAR4hyeS5+7s
+O1yX4B0SbI5E3eWoBzlDIQrgMUsKfSfvO4Hrrp4NrZZssBMhX8bzs34W9EPpKfX8
+156qEM6HgkfxxQ/Qv65gKnIMjcCIkZVeiLWHeT94ptx3pKvBfwzWiQaczCFQIgY/
+81VE3dIFKdD+SQEV8izcFWZSn9zVOlUIWvD7Usbqz3H1E/4brq7VugHqofpak/tV
+9bpEOMsIHW48vW9mN6uXVJdZTokR0eBduMzP+CuLXHy4354TKc8sVeevUCi6mrbF
+pJ+Ph2xcWJoYtyB9VeyzZBaiTxALTOhouMHll5LFU/ohpBE1iDe+Zneclhq5Oh3r
+b6vsSh9rtPCTY6e5sqlg9Ohu5a2iHANJrxyB7QebDPGYFLVeQfHaILrjMM26+1bX
+aKFZC3ZUAikZMrrB8O08bZaifcR3yRf/R5SYOWS7ds/so7u8wEQNfBSm4DKquq6b
+SPcgaAHOd9msmg1V3fE6nRFNI7ga3LzJNXj5QdwXR9YB8dQu8GI8t3d3FdKWQCot
+fgUjtGDs18UHHBq1A9WG6cBpGMcprtSyFy0vZXV17mv7cPS9g1xDObjo+Myl3eaj
+tOhv/Pj0nNPfSmveznTLbnQx+sBfLZHkprWgZaO5DWKqxBJZpwoEXpTzNTGaMLdV
+JxX7Z0MeclVqmGPdaOEi
+=M9vs
 -----END PGP SIGNATURE-----
 
---+9faIjRurCDpBc7U--
+--u3W6riq+uV6J42Ub--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
