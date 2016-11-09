@@ -1,64 +1,84 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH v4 9/9] selinux: Add a cache for quicker retreival of
- PKey SIDs
-Date: Wed, 9 Nov 2016 09:04:55 +0200
-Message-ID: <20161109070455.GF27883@leon.nu>
-References: <1478639185-47521-1-git-send-email-danielj@mellanox.com>
- <1478639185-47521-10-git-send-email-danielj@mellanox.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of allocating
+ memory using APIs
+Date: Wed, 9 Nov 2016 09:21:30 +0200
+Message-ID: <20161109072130.GH27883@leon.nu>
+References: <20161104163633.141880-1-salil.mehta@huawei.com>
+ <20161104163633.141880-4-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3oCie2+XPXTnK5a5"
-Return-path: <linux-security-module-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="5vjQsMS/9MbKYGLq"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1478639185-47521-10-git-send-email-danielj@mellanox.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Dan Jurgens <danielj@mellanox.com>
-Cc: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, liranl@mellanox.com
+In-Reply-To: <20161104163633.141880-4-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: dledford@redhat.com, xavier.huwei@huawei.com, oulijun@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Ping Zhang <zhangping5@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---3oCie2+XPXTnK5a5
+--5vjQsMS/9MbKYGLq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 08, 2016 at 11:06:25PM +0200, Dan Jurgens wrote:
-> From: Daniel Jurgens <danielj@mellanox.com>
+On Fri, Nov 04, 2016 at 04:36:25PM +0000, Salil Mehta wrote:
+> From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
 >
-> It is likely that the SID for the same PKey will be requested many
-> times. To reduce the time to modify QPs and process MADs use a cache to
-> store PKey SIDs.
+> This patch modified the logic of allocating memory using APIs in
+> hns RoCE driver. We used kcalloc instead of kmalloc_array and
+> bitmap_zero. And When kcalloc failed, call vzalloc to alloc
+> memory.
 >
-> This code is heavily based on the "netif" and "netport" concept
-> originally developed by James Morris <jmorris@redhat.com> and Paul Moore
-> <paul@paul-moore.com> (see security/selinux/netif.c and
-> security/selinux/netport.c for more information)
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+> Signed-off-by: Ping Zhang <zhangping5@huawei.com>
+> Signed-off-by: Salil Mehta  <salil.mehta@huawei.com>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_mr.c |   15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
 >
-> issue: 736423
-> Change-Id: I176c3079d5d84d06839b4f750100ac47a6081e94
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> index fb87883..d3dfb5f 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> @@ -137,11 +137,12 @@ static int hns_roce_buddy_init(struct hns_roce_buddy *buddy, int max_order)
+>
+>  	for (i = 0; i <= buddy->max_order; ++i) {
+>  		s = BITS_TO_LONGS(1 << (buddy->max_order - i));
+> -		buddy->bits[i] = kmalloc_array(s, sizeof(long), GFP_KERNEL);
+> -		if (!buddy->bits[i])
+> -			goto err_out_free;
+> -
+> -		bitmap_zero(buddy->bits[i], 1 << (buddy->max_order - i));
+> +		buddy->bits[i] = kcalloc(s, sizeof(long), GFP_KERNEL);
+> +		if (!buddy->bits[i]) {
+> +			buddy->bits[i] = vzalloc(s * sizeof(long));
 
-It doesn't belong to commit message.
+I wonder, why don't you use directly vzalloc instead of kcalloc fallback?
 
-> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+> +			if (!buddy->bits[i])
+> +				goto err_out_free;
+> +		}
+>  	}
 
---3oCie2+XPXTnK5a5
+--5vjQsMS/9MbKYGLq
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYIsqXAAoJEORje4g2clintVwP/jLkWFgE/+kE9TMZszjjEkGX
-acV1ZHDEFIdsatLztMqsdAD9hMvnMpGTOB/0EmMmIeVePkdPSTZRKo7ts+RCfu07
-eZeN3UuCrZ1z4uvC7CREAPsv0q5XUU3Z5jbINNHQIsCte3bJN6xFjAJcdHhBhPPr
-R4od1JNyG1ZlXiYRUIYhwzXnRPePEoQeEwVivAlrMjdcgPu4U4j0T3nlR4QAJb8G
-m2+CmZD/VneCzDJTZkhePbJoDVUkvUFUFLbd3MXSNBrYRDvb0nPypfGhzgLTldLQ
-V9+R0cIelrdG/FNj1J8+YAeOphav9sS2j8p76cY+5hjlx1IzOJCKQB5UEqT5j21X
-9wq1ODXUmlYJ0KwoftLnk16yrTEJZzYK42NStZw3Y50ID8vuBRVkhDgC99Nsv6v+
-mM2LIoKKSB+yFgC33EaKPIewaieEpVuBHJP80AyfqiHtyU4IhOFUlSaVW7J1Bz5G
-v4/mISojGL56BCfJDD3WF6sOSOHRZCsaqlRSr1RCa0glvmGcm44OwRifGFsLIyhW
-sdxwCqHZhO63dfLbr06B0sEnzCRbaPGNrq89DqgxqYK6U+uuNaNI3l/OJgOx4Dn2
-FUYMLRO/QBw2jKWD5Gvog9TyAIDsjm2pMaVUkC/3QEDJVG8hxx5JhTo2osoKA3ZY
-LTnUr+G3ov2qdtNyYkXj
-=uWFs
+iQIcBAEBAgAGBQJYIs56AAoJEORje4g2clinpeAP/1Y5dEOVusc9e97LxEeAe+AN
+CoQe1btGX8WRhg4N52R2F4DkaKm1Y0XrJBZOBH+VwPz9sWv7NSIA0Sol50E/sf5j
+5OtQnQfBsONWMQtdqudvwC8/sW3NIkdlDiIiRTTcgD2YARPvgGNbQqOOBTCwcFCF
+6WAocSmecBhVjeGJ5PIZWLKL7IrsGeU9bZjE4lE0Q5tt7yuFau+9levs/SXAaNUD
+Ol1LJ/vasuubgt+JpXvpt8m0cxhqDH3QdDFv+j+0fPDI+PKjKB2CM+Ip6MnE/bt0
+fEfp8zwEhZi0KsXc6Uk6635kwz77z3m3tbgSYMTCzgPG+Ha5EzVUWevuVjZ0lbMZ
+OHcRd/Aoo2eKb3glR3cJ2Ti+V7EGqAabmtr/7lImlZIKQ32JyTh0j4KQ404RxAI6
+tw3M4E4Upds1d5p3wPHzbBA+xuv9j3byjxD6wn3a7wfApx+63F609uEaRQ9x/6Fg
+rA59ZTsPxleTApkTvkL57luciGx031TX+OnFnX0miT/AI8KEk+vN5b5mGmz3IdAI
+LhQu3SuJXUX9ZpnkunsX9T/Bz8kLJet2nTsD8vBMrYVgn2AncJMhmopAz97l82OT
+xWAnGARYW3r5hsrYkMIgQkRTun2wmQ6SAYadiGtW5ivdkDyjKnlqdz+HyfILeFN8
+7keB6ePdvdT7Qqf4NuOH
+=UmbZ
 -----END PGP SIGNATURE-----
 
---3oCie2+XPXTnK5a5--
+--5vjQsMS/9MbKYGLq--
