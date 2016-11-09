@@ -1,68 +1,64 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/4] Add packet pacing support for IB verbs
-Date: Wed, 9 Nov 2016 08:40:09 +0200
-Message-ID: <20161109064009.GE27883@leon.nu>
-References: <1477909297-14491-1-git-send-email-leon@kernel.org>
- <1828884A29C6694DAF28B7E6B8A82373AB0A7B31@ORSMSX109.amr.corp.intel.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH v4 9/9] selinux: Add a cache for quicker retreival of
+ PKey SIDs
+Date: Wed, 9 Nov 2016 09:04:55 +0200
+Message-ID: <20161109070455.GF27883@leon.nu>
+References: <1478639185-47521-1-git-send-email-danielj@mellanox.com>
+ <1478639185-47521-10-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0QFb0wBpEddLcDHQ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="3oCie2+XPXTnK5a5"
+Return-path: <linux-security-module-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0A7B31-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1478639185-47521-10-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Dan Jurgens <danielj@mellanox.com>
+Cc: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, liranl@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---0QFb0wBpEddLcDHQ
+--3oCie2+XPXTnK5a5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 08, 2016 at 05:49:26PM +0000, Hefty, Sean wrote:
-> > When sending from a 10G host to a 1G host, it is easy to overrun the
-> > receiver,
-> > leading to packet loss and traffic backing off. Similar problems occur
-> > when
-> > a 10G host sends data to a sub-10G virtual circuit, or a 40G host
-> > sending
-> > to a 10G host. Packet pacing could control packet injection rate and
-> > reduces
-> > network congestion to maximize throughput & minimize network latency.
+On Tue, Nov 08, 2016 at 11:06:25PM +0200, Dan Jurgens wrote:
+> From: Daniel Jurgens <danielj@mellanox.com>
 >
-> Why isn't the path record data and existing mechanisms sufficient to handle this?
+> It is likely that the SID for the same PKey will be requested many
+> times. To reduce the time to modify QPs and process MADs use a cache to
+> store PKey SIDs.
 >
+> This code is heavily based on the "netif" and "netport" concept
+> originally developed by James Morris <jmorris@redhat.com> and Paul Moore
+> <paul@paul-moore.com> (see security/selinux/netif.c and
+> security/selinux/netport.c for more information)
+>
+> issue: 736423
+> Change-Id: I176c3079d5d84d06839b4f750100ac47a6081e94
 
-Packet pacing allows different combinations of traffic shaping: per-CPU,
-per-flow and their combinations with better and steady QoS requirements
-without involving subnet management.
+It doesn't belong to commit message.
 
-Thanks
+> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
 
---0QFb0wBpEddLcDHQ
+--3oCie2+XPXTnK5a5
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYIsTJAAoJEORje4g2clin7BkP/3fgbrQx1CFr+fS6FPCzzYXl
-TN32jGnV2WLwKdShSF8BSO4y7vj/YlNIOH5sphmjl+NNoJmLfTVgMH4t34D34zS/
-yad8WbSOSzpFuF5FIGq1mt8TTBmkrR+9sG3i4cWkmHEuqsEfkEjM+A7k1j0c5M2v
-V4g3UBZK8F4qfI87K/muncIkD0kMGHjtoKtOrgwFsVLgBX8e1yXKL79UPS4Kg8Ge
-g4sxkc0QH+hbHomtPiChW+LIwnookLYs3QNXHcvzjvNZhaE5r2iLPuJPMUIvieSZ
-KXyJcuvrFC3/D8Z6w60RFy/OZVlnucSiWFmkkMOtycjK2uKfWRrG7UNXbk6cBGrs
-0i79mz0vQVnVUr5qhQGyYteo9/d8JehkdE30trxkF54JWqGpZx/nJQ3KTSVoYjxO
-w899BojWzyttF9LZCbZAIynjq7Ybig+VbvJYDSpXXAAQ5tVjIo3hQ9AefMn94BWT
-hdLEAa98IZgHyZi2yNI9gslMMjDFhp4WLsEpG6DZ5sRhMaZEdPQKL5bSZKNDsjGO
-xXCHpmu/O9BfCrD0QbcuC1Z4i7HF7OZC6Ytkt3kYyhkCCrsE/j2Np7kc6NO5IO53
-WoTam3MEogLybIibAJE9RvjOu+N4lo6RDewfMJp+5NLjZOQoTr3mRMEeWhTasKd3
-a/ENPd6l+U5+NRBLsp6L
-=H3Is
+iQIcBAEBAgAGBQJYIsqXAAoJEORje4g2clintVwP/jLkWFgE/+kE9TMZszjjEkGX
+acV1ZHDEFIdsatLztMqsdAD9hMvnMpGTOB/0EmMmIeVePkdPSTZRKo7ts+RCfu07
+eZeN3UuCrZ1z4uvC7CREAPsv0q5XUU3Z5jbINNHQIsCte3bJN6xFjAJcdHhBhPPr
+R4od1JNyG1ZlXiYRUIYhwzXnRPePEoQeEwVivAlrMjdcgPu4U4j0T3nlR4QAJb8G
+m2+CmZD/VneCzDJTZkhePbJoDVUkvUFUFLbd3MXSNBrYRDvb0nPypfGhzgLTldLQ
+V9+R0cIelrdG/FNj1J8+YAeOphav9sS2j8p76cY+5hjlx1IzOJCKQB5UEqT5j21X
+9wq1ODXUmlYJ0KwoftLnk16yrTEJZzYK42NStZw3Y50ID8vuBRVkhDgC99Nsv6v+
+mM2LIoKKSB+yFgC33EaKPIewaieEpVuBHJP80AyfqiHtyU4IhOFUlSaVW7J1Bz5G
+v4/mISojGL56BCfJDD3WF6sOSOHRZCsaqlRSr1RCa0glvmGcm44OwRifGFsLIyhW
+sdxwCqHZhO63dfLbr06B0sEnzCRbaPGNrq89DqgxqYK6U+uuNaNI3l/OJgOx4Dn2
+FUYMLRO/QBw2jKWD5Gvog9TyAIDsjm2pMaVUkC/3QEDJVG8hxx5JhTo2osoKA3ZY
+LTnUr+G3ov2qdtNyYkXj
+=uWFs
 -----END PGP SIGNATURE-----
 
---0QFb0wBpEddLcDHQ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--3oCie2+XPXTnK5a5--
