@@ -1,118 +1,149 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 04/14] xprtrdma: Support for SG_GAP devices
-Date: Wed, 09 Nov 2016 14:05:21 -0500
-Message-ID: <20161109190521.15007.55965.stgit@manet.1015granger.net>
+Subject: [PATCH v1 01/14] xprtrdma: Fix DMAR failure in frwr_op_map() after
+ reconnect
+Date: Wed, 09 Nov 2016 14:04:56 -0500
+Message-ID: <20161109190456.15007.87544.stgit@manet.1015granger.net>
 References: <20161109184735.15007.96507.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161109184735.15007.96507.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some devices (such as the Mellanox CX-4) can register, under a
-single R_key, a set of memory regions that are not contiguous. When
-this is done, all the segments in a Reply list, say, can then be
-invalidated in a single LocalInv Work Request (or via Remote
-Invalidation, which can invalidate exactly one R_key when completing
-a Receive).
+When a LOCALINV WR is flushed, the frmr is marked STALE, then
+frwr_op_unmap_sync DMA-unmaps the frmr's SGL. These STALE frmrs
+are then recovered when frwr_op_map hunts for an INVALID frmr to
+use.
 
-This means a single FastReg WR is used to register, and one or zero
-LocalInv WRs can invalidate, the memory involved with RDMA transfers
-on behalf of an RPC.
+All other cases that need frmr recovery leave that SGL DMA-mapped.
+The FRMR recovery path unconditionally DMA-unmaps the frmr's SGL.
+
+To avoid DMA unmapping the SGL twice for flushed LOCAL_INV WRs,
+alter the recovery logic (rather than the hot frwr_op_unmap_sync
+path) to distinguish among these cases. This solution also takes
+care of the case where multiple LOCAL_INV WRs are issued for the
+same rpcrdma_req, some complete successfully, but some are flushed.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Vasco Steinmetz <linux-W+c8CscfqXQmp8TqCH86vg@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/frwr_ops.c  |   20 +++++++++++++-------
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  |   37 ++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    3 ++-
+ 2 files changed, 24 insertions(+), 16 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index adbf52c..e99bf61 100644
+index 2109495..26b26be 100644
 --- a/net/sunrpc/xprtrdma/frwr_ops.c
 +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -101,7 +101,7 @@
- 	struct rpcrdma_frmr *f = &r->frmr;
+@@ -44,18 +44,20 @@
+  * being done.
+  *
+  * When the underlying transport disconnects, MRs are left in one of
+- * three states:
++ * four states:
+  *
+  * INVALID:	The MR was not in use before the QP entered ERROR state.
+- *		(Or, the LOCAL_INV WR has not completed or flushed yet).
+- *
+- * STALE:	The MR was being registered or unregistered when the QP
+- *		entered ERROR state, and the pending WR was flushed.
+  *
+  * VALID:	The MR was registered before the QP entered ERROR state.
+  *
+- * When frwr_op_map encounters STALE and VALID MRs, they are recovered
+- * with ib_dereg_mr and then are re-initialized. Beause MR recovery
++ * FLUSHED_FR:	The MR was being registered when the QP entered ERROR
++ *		state, and the pending WR was flushed.
++ *
++ * FLUSHED_LI:	The MR was being invalidated when the QP entered ERROR
++ *		state, and the pending WR was flushed.
++ *
++ * When frwr_op_map encounters FLUSHED and VALID MRs, they are recovered
++ * with ib_dereg_mr and then are re-initialized. Because MR recovery
+  * allocates fresh resources, it is deferred to a workqueue, and the
+  * recovered MRs are placed back on the rb_mws list when recovery is
+  * complete. frwr_op_map allocates another MR for the current RPC while
+@@ -177,12 +179,15 @@
+ static void
+ frwr_op_recover_mr(struct rpcrdma_mw *mw)
+ {
++	enum rpcrdma_frmr_state state = mw->frmr.fr_state;
+ 	struct rpcrdma_xprt *r_xprt = mw->mw_xprt;
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
  	int rc;
  
--	f->fr_mr = ib_alloc_mr(ia->ri_pd, IB_MR_TYPE_MEM_REG, depth);
-+	f->fr_mr = ib_alloc_mr(ia->ri_pd, ia->ri_mrtype, depth);
- 	if (IS_ERR(f->fr_mr))
- 		goto out_mr_err;
+ 	rc = __frwr_reset_mr(ia, mw);
+-	ib_dma_unmap_sg(ia->ri_device, mw->mw_sg, mw->mw_nents, mw->mw_dir);
++	if (state != FRMR_FLUSHED_LI)
++		ib_dma_unmap_sg(ia->ri_device,
++				mw->mw_sg, mw->mw_nents, mw->mw_dir);
+ 	if (rc)
+ 		goto out_release;
  
-@@ -157,7 +157,7 @@
- 		return rc;
- 	}
+@@ -262,10 +267,8 @@
+ }
  
--	f->fr_mr = ib_alloc_mr(ia->ri_pd, IB_MR_TYPE_MEM_REG,
-+	f->fr_mr = ib_alloc_mr(ia->ri_pd, ia->ri_mrtype,
- 			       ia->ri_max_frmr_depth);
- 	if (IS_ERR(f->fr_mr)) {
- 		pr_warn("rpcrdma: ib_alloc_mr status %ld, frwr %p orphaned\n",
-@@ -210,11 +210,16 @@
- frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
- 	     struct rpcrdma_create_data_internal *cdata)
+ static void
+-__frwr_sendcompletion_flush(struct ib_wc *wc, struct rpcrdma_frmr *frmr,
+-			    const char *wr)
++__frwr_sendcompletion_flush(struct ib_wc *wc, const char *wr)
  {
-+	struct ib_device_attr *attrs = &ia->ri_device->attrs;
- 	int depth, delta;
- 
-+	ia->ri_mrtype = IB_MR_TYPE_MEM_REG;
-+	if (attrs->device_cap_flags & IB_DEVICE_SG_GAPS_REG)
-+		ia->ri_mrtype = IB_MR_TYPE_SG_GAPS;
-+
- 	ia->ri_max_frmr_depth =
- 			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
--			      ia->ri_device->attrs.max_fast_reg_page_list_len);
-+			      attrs->max_fast_reg_page_list_len);
- 	dprintk("RPC:       %s: device's max FR page list len = %u\n",
- 		__func__, ia->ri_max_frmr_depth);
- 
-@@ -241,8 +246,8 @@
+-	frmr->fr_state = FRMR_IS_STALE;
+ 	if (wc->status != IB_WC_WR_FLUSH_ERR)
+ 		pr_err("rpcrdma: %s: %s (%u/0x%x)\n",
+ 		       wr, ib_wc_status_msg(wc->status),
+@@ -288,7 +291,8 @@
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		cqe = wc->wr_cqe;
+ 		frmr = container_of(cqe, struct rpcrdma_frmr, fr_cqe);
+-		__frwr_sendcompletion_flush(wc, frmr, "fastreg");
++		frmr->fr_state = FRMR_FLUSHED_FR;
++		__frwr_sendcompletion_flush(wc, "fastreg");
  	}
+ }
  
- 	ep->rep_attr.cap.max_send_wr *= depth;
--	if (ep->rep_attr.cap.max_send_wr > ia->ri_device->attrs.max_qp_wr) {
--		cdata->max_requests = ia->ri_device->attrs.max_qp_wr / depth;
-+	if (ep->rep_attr.cap.max_send_wr > attrs->max_qp_wr) {
-+		cdata->max_requests = attrs->max_qp_wr / depth;
- 		if (!cdata->max_requests)
- 			return -EINVAL;
- 		ep->rep_attr.cap.max_send_wr = cdata->max_requests *
-@@ -348,6 +353,7 @@
- 	    int nsegs, bool writing, struct rpcrdma_mw **out)
- {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
-+	bool holes_ok = ia->ri_mrtype == IB_MR_TYPE_SG_GAPS;
- 	struct rpcrdma_mw *mw;
- 	struct rpcrdma_frmr *frmr;
- 	struct ib_mr *mr;
-@@ -383,8 +389,8 @@
+@@ -308,7 +312,8 @@
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		cqe = wc->wr_cqe;
+ 		frmr = container_of(cqe, struct rpcrdma_frmr, fr_cqe);
+-		__frwr_sendcompletion_flush(wc, frmr, "localinv");
++		frmr->fr_state = FRMR_FLUSHED_LI;
++		__frwr_sendcompletion_flush(wc, "localinv");
+ 	}
+ }
  
- 		++seg;
- 		++i;
--
--		/* Check for holes */
-+		if (holes_ok)
-+			continue;
- 		if ((i < nsegs && offset_in_page(seg->mr_offset)) ||
- 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
- 			break;
+@@ -328,8 +333,10 @@
+ 	/* WARNING: Only wr_cqe and status are reliable at this point */
+ 	cqe = wc->wr_cqe;
+ 	frmr = container_of(cqe, struct rpcrdma_frmr, fr_cqe);
+-	if (wc->status != IB_WC_SUCCESS)
+-		__frwr_sendcompletion_flush(wc, frmr, "localinv");
++	if (wc->status != IB_WC_SUCCESS) {
++		frmr->fr_state = FRMR_FLUSHED_LI;
++		__frwr_sendcompletion_flush(wc, "localinv");
++	}
+ 	complete(&frmr->fr_linv_done);
+ }
+ 
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index f6ae1b2..b8424fa 100644
+index 0d35b76..6e1bba3 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -75,6 +75,7 @@ struct rpcrdma_ia {
- 	unsigned int		ri_max_inline_write;
- 	unsigned int		ri_max_inline_read;
- 	bool			ri_reminv_expected;
-+	enum ib_mr_type		ri_mrtype;
- 	struct ib_qp_attr	ri_qp_attr;
- 	struct ib_qp_init_attr	ri_qp_init_attr;
+@@ -216,7 +216,8 @@ struct rpcrdma_rep {
+ enum rpcrdma_frmr_state {
+ 	FRMR_IS_INVALID,	/* ready to be used */
+ 	FRMR_IS_VALID,		/* in use */
+-	FRMR_IS_STALE,		/* failed completion */
++	FRMR_FLUSHED_FR,	/* flushed FASTREG WR */
++	FRMR_FLUSHED_LI,	/* flushed LOCALINV WR */
  };
+ 
+ struct rpcrdma_frmr {
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
