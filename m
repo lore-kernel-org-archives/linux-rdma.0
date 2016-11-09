@@ -1,33 +1,41 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH TRIVIAL infiniband-diags] libibnetdisc/internal.h: Remove
- duplicated declaration of add_to_portlid_hash
-Date: Wed, 9 Nov 2016 12:48:48 -0500
-Message-ID: <6fa2c407-1e87-15d1-ff01-b53d5ad1514c@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/8] libpvrdma: userspace library for PVRDMA
+Date: Wed, 9 Nov 2016 10:51:42 -0700
+Message-ID: <20161109175142.GA13467@obsidianresearch.com>
+References: <1478216677-6150-1-git-send-email-aditr@vmware.com>
+ <20161104004620.GA30318@obsidianresearch.com>
+ <b88ad364-9d33-dd3e-a803-bb660de3b384@vmware.com>
+ <20161105150307.GB23803@obsidianresearch.com>
+ <20161105173815.GA28539@infradead.org>
+ <581E4E01.5020405@redhat.com>
+ <f67c81ff-d358-7242-dc52-e32dff252904@vmware.com>
+ <20161109011715.GA29310@infradead.org>
+ <b49161b1-75f6-6902-fced-355804b885bb@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b49161b1-75f6-6902-fced-355804b885bb-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Nov 09, 2016 at 09:39:49AM -0800, Adit Ranadive wrote:
+> On Tue, Nov 08, 2016 at 5:17:15PM -0800, Christoph Hellwig wrote:
+> > FYI, the convention used in scsi is vmw_pvscsi.c, so naming the
+> > RDMA equivalent vmw_pvrdma would make a lot of sense and still
+> > be reasonably short.
+> 
+> Thanks Christoph. We agree with that as well. Then the driver path
+> (drivers/infiniband/hw/vmw_pvrdma/...) and the module name would
+> reflect vmw_pvrdma.
+> What about the user library? libpvrdma -> libvmwpvrdma?
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
-index 5a32cd2..997f439 100644
---- a/libibnetdisc/src/internal.h
-+++ b/libibnetdisc/src/internal.h
-@@ -109,7 +109,6 @@ void smp_engine_destroy(smp_engine_t * engine);
- int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
- 
- int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
--void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
- 
- void add_to_type_list(ibnd_node_t * node, f_internal_t * fabric);
- 
+I am encouraging people to match the name of the module in the
+library.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
