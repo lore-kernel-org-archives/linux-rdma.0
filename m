@@ -1,60 +1,56 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for-next 09/11] IB/hns: Change qpn allocation to
- round-robin mode.
-Date: Wed, 9 Nov 2016 09:24:24 +0200
-Message-ID: <20161109072424.GI27883@leon.nu>
-References: <20161104163633.141880-1-salil.mehta@huawei.com>
- <20161104163633.141880-10-salil.mehta@huawei.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 2/9] IB/mlx4: Check gid_index return value
+Date: Wed, 9 Nov 2016 09:26:02 +0200
+Message-ID: <20161109072602.GJ27883@leon.nu>
+References: <1478375842-21513-1-git-send-email-leonro@mellanox.com>
+ <1478375842-21513-3-git-send-email-leonro@mellanox.com>
+ <20161106072503.GB3799@yuval-lap.us.oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kH8JNVvasRCCW1Oz"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="+9faIjRurCDpBc7U"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161104163633.141880-10-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Salil Mehta <salil.mehta@huawei.com>
-Cc: dledford@redhat.com, xavier.huwei@huawei.com, oulijun@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+In-Reply-To: <20161106072503.GB3799-Hxa29pjIrETwm8eLU6eYyt+IiqhCXseY@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---kH8JNVvasRCCW1Oz
+--+9faIjRurCDpBc7U
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Nov 04, 2016 at 04:36:31PM +0000, Salil Mehta wrote:
-> From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
->
-> When using CM to establish connections, qp number that was freed
-> just now will be rejected by ib core. To fix these problem, We
-> change qpn allocation to round-robin mode. We added the round-robin
-> mode for allocating resources using bitmap. We use round-robin mode
-> for qp number and non round-robing mode for other resources like
-> cq number, pd number etc.
->
-> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-> Signed-off-by: Salil Mehta  <salil.mehta@huawei.com>
+On Sun, Nov 06, 2016 at 09:25:04AM +0200, Yuval Shaia wrote:
+> FWIW
+> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Thanks Yuval,
+As I wrote earlier, we will address all your comments.
 
---kH8JNVvasRCCW1Oz
+--+9faIjRurCDpBc7U
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYIs8oAAoJEORje4g2clinMX0QAIp8H3SvyBOCRCy703fJxfcR
-/aZWao7glyMs0V2/jALetJIMjqiKzFcVy4xqSjFROU9qJMubgz4ZG06h4UTTT6ad
-Qb+miVJ4FiwZ0ebuifG5QT40S2A81gN09OGVbYPbYVFO2eiVceXynARHM4HbYUHq
-522PB3u+NsBiVwfBT8hDkME8hX/6KiKYKD5GtNRDUAOQmsi3aGPULyjsyABG+RJf
-pfxeAdku5sPieSIrcqRBuneC2ciPylHE7GV0b1lR8cJXfw45Ng5H2HFa0wwRipX6
-PNYYUFKmBaRcHqbCzLJ8kVWTLfSwRj7qP/ub3bl/ayHbmOt7xtVbZv6sAXu8NI4t
-J8vIYxl3G6nU2z7VinrqBaZhqTQlJWDBK0m6q2hdU7THE3nK1FVMJlyYehP5muR3
-emzaS7ahIWCEpkiGV4I3EqOZmz+r2n9VL85mLM9uwkGLs79h/alLAEiMZcOkPuZ8
-scmCnyzonm53lXuUAwIs7OX5UXQhfi/ZhgxF0RwakjH4taH1arLh/ncL1Bdq6E/H
-3liFSSZ1Zl8+cIFQ+waxR26khsVZYS6U0ewQSpaPkS1Ma9oDXpkyKmB1jgX+Ki0/
-24zot00sLTtUEH1vdCnPLW03ZcY5YBYf8eGRltS0s4l65iyW6uMnSt4lylxiJWTs
-eugCv+6UET1dUFDIOawW
-=VhTx
+iQIcBAEBAgAGBQJYIs+KAAoJEORje4g2clinPQMQALWXav7MYaadqZIe1mFPW6Nb
+0XrEmFdG8yROtJ6YioY72Da5nMTrPwNeLRQITufSbHjz65noeAxrcirZYFIJyQIM
+rThaf3/e5xyR2GAbmzFRO+CJstTQ++kTVWgHKIH4h2g2ycL/nydMJIbXvNMT9uut
+m6J8YuKq3vbimvhy0UpPUWBesoTnJF+0YGCT/NPmYZG7iRD0kHCnS9H1JLDhWBII
+Z1oeaqbvT5W/EYAzNJn9W8rDNvIY/5hMsEfobIGKt86PJN8m4LN995Jg1TkaFlnN
+7PSU0zL8+Vd6hU4WqIKJWq1f3AZRE2/5/7s7tHIcUdqp6DZNB1oLvdkky9H1jPM1
+CIvwLvPHEtRZIU0uvoYvCvpvNnJOc5Uh122uNq/b3p1+sjJxhE74ZBGGafQ314WR
+2fWsYTGvzH3w6pXS3K1ChrnHmYhEkpwcNzeC9OzAFVrK+AzUZ2UF13uuVw0iWI+p
+2RMrdIYuM01lqKz5bCKaEO6ePLEEkZcb8rljN30rs5Cff5Jp4+t982NrWIWScY73
+naMAHIFz9GzAgmFq2vjYDOGnCxhnGOWSsqItkHARlPZ2CCIbXqlOWLSYGd5p6CmL
+D/W6eM+o/PTMhHV0OAAuxaFHHM/Ma113rpf8lxzHGp5ClF5eDOAt036CoWP6AC+T
+FDr+jsv8DXYSzmFAgtLH
+=29Vv
 -----END PGP SIGNATURE-----
 
---kH8JNVvasRCCW1Oz--
+--+9faIjRurCDpBc7U--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
