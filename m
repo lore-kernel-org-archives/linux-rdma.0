@@ -1,54 +1,118 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 02/14] xprtrdma: Cap size of callback buffer resources
-Date: Wed, 09 Nov 2016 14:05:05 -0500
-Message-ID: <20161109190505.15007.42767.stgit@manet.1015granger.net>
+Subject: [PATCH v1 04/14] xprtrdma: Support for SG_GAP devices
+Date: Wed, 09 Nov 2016 14:05:21 -0500
+Message-ID: <20161109190521.15007.55965.stgit@manet.1015granger.net>
 References: <20161109184735.15007.96507.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161109184735.15007.96507.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the inline threshold size is set to large values (say, 32KB)
-any NFSv4.1 CB request from the server gets a reply with status
-NFS4ERR_RESOURCE.
+Some devices (such as the Mellanox CX-4) can register, under a
+single R_key, a set of memory regions that are not contiguous. When
+this is done, all the segments in a Reply list, say, can then be
+invalidated in a single LocalInv Work Request (or via Remote
+Invalidation, which can invalidate exactly one R_key when completing
+a Receive).
 
-Looks like there are some upper layer assumptions about the maximum
-size of a reply (for example, in process_op). Cap the size of the
-NFSv4 client's reply resources at a page.
+This means a single FastReg WR is used to register, and one or zero
+LocalInv WRs can invalidate, the memory involved with RDMA transfers
+on behalf of an RPC.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/backchannel.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  |   20 +++++++++++++-------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-index 2c472e1..24fedd4 100644
---- a/net/sunrpc/xprtrdma/backchannel.c
-+++ b/net/sunrpc/xprtrdma/backchannel.c
-@@ -55,7 +55,8 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
- 	if (IS_ERR(rb))
- 		goto out_fail;
- 	req->rl_sendbuf = rb;
--	xdr_buf_init(&rqst->rq_snd_buf, rb->rg_base, size);
-+	xdr_buf_init(&rqst->rq_snd_buf, rb->rg_base,
-+		     min_t(size_t, size, PAGE_SIZE));
- 	rpcrdma_set_xprtdata(rqst, req);
- 	return 0;
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index adbf52c..e99bf61 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -101,7 +101,7 @@
+ 	struct rpcrdma_frmr *f = &r->frmr;
+ 	int rc;
  
-@@ -191,6 +192,7 @@ size_t xprt_rdma_bc_maxpayload(struct rpc_xprt *xprt)
- 	size_t maxmsg;
+-	f->fr_mr = ib_alloc_mr(ia->ri_pd, IB_MR_TYPE_MEM_REG, depth);
++	f->fr_mr = ib_alloc_mr(ia->ri_pd, ia->ri_mrtype, depth);
+ 	if (IS_ERR(f->fr_mr))
+ 		goto out_mr_err;
  
- 	maxmsg = min_t(unsigned int, cdata->inline_rsize, cdata->inline_wsize);
-+	maxmsg = min_t(unsigned int, maxmsg, PAGE_SIZE);
- 	return maxmsg - RPCRDMA_HDRLEN_MIN;
- }
+@@ -157,7 +157,7 @@
+ 		return rc;
+ 	}
  
+-	f->fr_mr = ib_alloc_mr(ia->ri_pd, IB_MR_TYPE_MEM_REG,
++	f->fr_mr = ib_alloc_mr(ia->ri_pd, ia->ri_mrtype,
+ 			       ia->ri_max_frmr_depth);
+ 	if (IS_ERR(f->fr_mr)) {
+ 		pr_warn("rpcrdma: ib_alloc_mr status %ld, frwr %p orphaned\n",
+@@ -210,11 +210,16 @@
+ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 	     struct rpcrdma_create_data_internal *cdata)
+ {
++	struct ib_device_attr *attrs = &ia->ri_device->attrs;
+ 	int depth, delta;
+ 
++	ia->ri_mrtype = IB_MR_TYPE_MEM_REG;
++	if (attrs->device_cap_flags & IB_DEVICE_SG_GAPS_REG)
++		ia->ri_mrtype = IB_MR_TYPE_SG_GAPS;
++
+ 	ia->ri_max_frmr_depth =
+ 			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
+-			      ia->ri_device->attrs.max_fast_reg_page_list_len);
++			      attrs->max_fast_reg_page_list_len);
+ 	dprintk("RPC:       %s: device's max FR page list len = %u\n",
+ 		__func__, ia->ri_max_frmr_depth);
+ 
+@@ -241,8 +246,8 @@
+ 	}
+ 
+ 	ep->rep_attr.cap.max_send_wr *= depth;
+-	if (ep->rep_attr.cap.max_send_wr > ia->ri_device->attrs.max_qp_wr) {
+-		cdata->max_requests = ia->ri_device->attrs.max_qp_wr / depth;
++	if (ep->rep_attr.cap.max_send_wr > attrs->max_qp_wr) {
++		cdata->max_requests = attrs->max_qp_wr / depth;
+ 		if (!cdata->max_requests)
+ 			return -EINVAL;
+ 		ep->rep_attr.cap.max_send_wr = cdata->max_requests *
+@@ -348,6 +353,7 @@
+ 	    int nsegs, bool writing, struct rpcrdma_mw **out)
+ {
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
++	bool holes_ok = ia->ri_mrtype == IB_MR_TYPE_SG_GAPS;
+ 	struct rpcrdma_mw *mw;
+ 	struct rpcrdma_frmr *frmr;
+ 	struct ib_mr *mr;
+@@ -383,8 +389,8 @@
+ 
+ 		++seg;
+ 		++i;
+-
+-		/* Check for holes */
++		if (holes_ok)
++			continue;
+ 		if ((i < nsegs && offset_in_page(seg->mr_offset)) ||
+ 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
+ 			break;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index f6ae1b2..b8424fa 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -75,6 +75,7 @@ struct rpcrdma_ia {
+ 	unsigned int		ri_max_inline_write;
+ 	unsigned int		ri_max_inline_read;
+ 	bool			ri_reminv_expected;
++	enum ib_mr_type		ri_mrtype;
+ 	struct ib_qp_attr	ri_qp_attr;
+ 	struct ib_qp_init_attr	ri_qp_init_attr;
+ };
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
