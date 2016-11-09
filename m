@@ -1,106 +1,34 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 2/7] svcauth_gss: Close connection when dropping an
- incoming message
-Date: Wed, 09 Nov 2016 12:33:54 -0500
-Message-ID: <20161109173354.15735.87424.stgit@klimt.1015granger.net>
-References: <20161109165814.15735.47815.stgit@klimt.1015granger.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH TRIVIAL infiniband-diags] libibnetdisc/internal.h: Remove
+ duplicated declaration of add_to_portlid_hash
+Date: Wed, 9 Nov 2016 12:48:48 -0500
+Message-ID: <6fa2c407-1e87-15d1-ff01-b53d5ad1514c@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161109165814.15735.47815.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-S5.3.3.1 of RFC 2203 requires that an incoming GSS-wrapped message
-whose sequence number lies outside the current window is dropped.
-The rationale is:
 
-  The reason for discarding requests silently is that the server
-  is unable to determine if the duplicate or out of range request
-  was due to a sequencing problem in the client, network, or the
-  operating system, or due to some quirk in routing, or a replay
-  attack by an intruder.  Discarding the request allows the client
-  to recover after timing out, if indeed the duplication was
-  unintentional or well intended.
-
-However, clients may rely on the server dropping the connection to
-indicate that a retransmit is needed. Without a connection reset, a
-client can wait forever without retransmitting, and the workload
-just stops dead. I've reproduced this behavior by running xfstests
-generic/323 on an NFSv4.0 mount with proto=rdma and sec=krb5i.
-
-To address this issue, have the server close the connection when it
-silently discards an incoming message due to a GSS sequence number
-problem.
-
-There are a few other places where the server will never reply.
-Change those spots in a similar fashion.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/sunrpc/auth_gss/svcauth_gss.c |    2 +-
- net/sunrpc/svc.c                  |   14 +++++++++-----
- 2 files changed, 10 insertions(+), 6 deletions(-)
-
-diff --git a/net/sunrpc/auth_gss/svcauth_gss.c b/net/sunrpc/auth_gss/svcauth_gss.c
-index 45662d7..886e9d38 100644
---- a/net/sunrpc/auth_gss/svcauth_gss.c
-+++ b/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -1548,7 +1548,7 @@ static void destroy_use_gss_proxy_proc_entry(struct net *net) {}
- 	ret = SVC_COMPLETE;
- 	goto out;
- drop:
--	ret = SVC_DROP;
-+	ret = SVC_CLOSE;
- out:
- 	if (rsci)
- 		cache_put(&rsci->h, sn->rsc_cache);
-diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
-index 7c8070e..75f290b 100644
---- a/net/sunrpc/svc.c
-+++ b/net/sunrpc/svc.c
-@@ -1155,8 +1155,7 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
- 	case SVC_DENIED:
- 		goto err_bad_auth;
- 	case SVC_CLOSE:
--		if (test_bit(XPT_TEMP, &rqstp->rq_xprt->xpt_flags))
--			svc_close_xprt(rqstp->rq_xprt);
-+		goto close;
- 	case SVC_DROP:
- 		goto dropit;
- 	case SVC_COMPLETE:
-@@ -1246,7 +1245,7 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
+diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+index 5a32cd2..997f439 100644
+--- a/libibnetdisc/src/internal.h
++++ b/libibnetdisc/src/internal.h
+@@ -109,7 +109,6 @@ void smp_engine_destroy(smp_engine_t * engine);
+ int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
  
-  sendit:
- 	if (svc_authorise(rqstp))
--		goto dropit;
-+		goto close;
- 	return 1;		/* Caller can now send it */
+ int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
+-void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
  
-  dropit:
-@@ -1254,11 +1253,16 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
- 	dprintk("svc: svc_process dropit\n");
- 	return 0;
+ void add_to_type_list(ibnd_node_t * node, f_internal_t * fabric);
  
-+ close:
-+	if (test_bit(XPT_TEMP, &rqstp->rq_xprt->xpt_flags))
-+		svc_close_xprt(rqstp->rq_xprt);
-+	dprintk("svc: svc_process close\n");
-+	return 0;
-+
- err_short_len:
- 	svc_printk(rqstp, "short len %Zd, dropping request\n",
- 			argv->iov_len);
--
--	goto dropit;			/* drop request */
-+	goto close;
- 
- err_bad_rpc:
- 	serv->sv_stats->rpcbadfmt++;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
