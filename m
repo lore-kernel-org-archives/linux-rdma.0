@@ -1,41 +1,44 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 14/14] xprtrdma: Update documenting comment
-Date: Wed, 09 Nov 2016 14:06:44 -0500
-Message-ID: <20161109190644.15007.90538.stgit@manet.1015granger.net>
-References: <20161109184735.15007.96507.stgit@manet.1015granger.net>
+From: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH net 0/2] qed: Fix RoCE infrastructure
+Date: Wed, 9 Nov 2016 22:48:42 +0200
+Message-ID: <1478724524-16940-1-git-send-email-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161109184735.15007.96507.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: If reset fails, FRMRs are no longer abandoned, rather
-they are released immediately. Update the comment to reflect this.
+This series fixes 2 basic issues with RoCE support,
+one handles a missing configuration in the initial infrastructure
+support while the other is a regression introduced by one of the
+initial fix submissions.
 
-Fixes: 2ffc871a574d ('xprtrdma: Release orphaned MRs immediately')
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/frwr_ops.c |    4 ----
- 1 file changed, 4 deletions(-)
+Dave,
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 900dc40..47bed53 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -171,10 +171,6 @@
- }
- 
- /* Reset of a single FRMR. Generate a fresh rkey by replacing the MR.
-- *
-- * There's no recovery if this fails. The FRMR is abandoned, but
-- * remains in rb_all. It will be cleaned up when the transport is
-- * destroyed.
-  */
- static void
- frwr_op_recover_mr(struct rpcrdma_mw *mw)
+I've built this series against 'net'  [specifically on top of
+cdb26d3387f0 ("net: bgmac: fix reversed checks for clock control flag")],
+but I'm not entirely convinced whether that's the right place for them -
+On one-hand, they're RoCE-specific fixes, but they're also infrastructure
+fixes that are wholly contained inside qed.
+Would like to hear your [and Doug's] preference on whether we should
+target such patches to net or linux-rdma.
+
+Thanks,
+Yuval
+
+Ram Amrani (2):
+  qed: configure ll2 RoCE v1/v2 flavor correctly
+  qed: correct rdma params configuration
+
+ drivers/net/ethernet/qlogic/qed/qed_hsi.h  |  3 ---
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c  |  1 +
+ drivers/net/ethernet/qlogic/qed/qed_main.c | 17 ++++++++---------
+ 3 files changed, 9 insertions(+), 12 deletions(-)
+
+-- 
+1.9.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
