@@ -1,49 +1,49 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc V1 3/9] IB/mlx4: Fix create CQ error flow
-Date: Thu, 10 Nov 2016 11:30:55 +0200
-Message-ID: <1478770261-5775-4-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc V1 7/9] IB/mlx4: Fix port query for 56Gb Ethernet links
+Date: Thu, 10 Nov 2016 11:30:59 +0200
+Message-ID: <1478770261-5775-8-git-send-email-leon@kernel.org>
 References: <1478770261-5775-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478770261-5775-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently, if ib_copy_to_udata fails, the CQ
-won't be deleted from the radix tree and the HW (HW2SW).
+Report the correct speed in the port attributes when using a 56Gbps
+ethernet link.  Without this change the field is incorrectly set to 10.
 
-Fixes: 225c7b1feef1 ('IB/mlx4: Add a driver Mellanox ConnectX InfiniBand adapters')
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: a9c766bb75ee ('IB/mlx4: Fix info returned when querying IBoE ports')
+Fixes: 2e96691c31ec ('IB: Use central enum for speed instead of hard-coded values')
+Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/cq.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/main.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 1ea686b..6a0fec3 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -253,11 +253,14 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 	if (context)
- 		if (ib_copy_to_udata(udata, &cq->mcq.cqn, sizeof (__u32))) {
- 			err = -EFAULT;
--			goto err_dbmap;
-+			goto err_cq_free;
- 		}
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 05ab3cb..4054a1b 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -698,9 +698,11 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	if (err)
+ 		goto out;
  
- 	return &cq->ibcq;
- 
-+err_cq_free:
-+	mlx4_cq_free(dev->dev, &cq->mcq);
-+
- err_dbmap:
- 	if (context)
- 		mlx4_ib_db_unmap_user(to_mucontext(context), &cq->db);
+-	props->active_width	=  (((u8 *)mailbox->buf)[5] == 0x40) ?
+-						IB_WIDTH_4X : IB_WIDTH_1X;
+-	props->active_speed	= IB_SPEED_QDR;
++	props->active_width	=  (((u8 *)mailbox->buf)[5] == 0x40) ||
++				   (((u8 *)mailbox->buf)[5] == 0x20 /*56Gb*/) ?
++					   IB_WIDTH_4X : IB_WIDTH_1X;
++	props->active_speed	=  (((u8 *)mailbox->buf)[5] == 0x20 /*56Gb*/) ?
++					   IB_SPEED_FDR : IB_SPEED_QDR;
+ 	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
+ 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
+ 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
 -- 
 2.7.4
 
