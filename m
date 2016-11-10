@@ -1,85 +1,59 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Remove check on return from device_init_pestat()
-Date: Wed,  9 Nov 2016 21:42:26 -0600
-Message-ID: <20161110034226.21248-1-henry.orosco@intel.com>
+From: "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] i40iw: Remove variable flush_code and check to set
+ qp->sq_flush
+Date: Thu, 10 Nov 2016 04:17:29 +0000
+Message-ID: <7F6CD2AB1343D04CBA3B1EDA4144D73897368DFB@fmsmsx118.amr.corp.intel.com>
+References: <20161110034207.18016-1-henry.orosco@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161110034207.18016-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove unnecessary check for return code from
-device_init_pestat() and change func to void.
+Please disregard this one. Accidently sent this one as part of a series.
+
+-----Original Message-----
+From: Orosco, Henry 
+Sent: Wednesday, November 09, 2016 9:42 PM
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] i40iw: Remove variable flush_code and check to set qp->sq_flush
+
+The flush_code variable in i40iw_bld_terminate_hdr() is obsolete and the check to set qp->sq_flush is unreachable. Currently flush code is populated in setup_term_hdr() and both SQ and RQ are flushed always as part of the tear down flow.
 
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 10 ++--------
- drivers/infiniband/hw/i40iw/i40iw_p.h        |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_virtchnl.c |  6 +-----
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index 57a4236..9a5f4b8 100644
+index cd71444..57a4236 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -4709,10 +4709,9 @@ static void i40iw_hw_stat_refresh_all(struct i40iw_dev_pestat *devstat)
-  * i40iw_device_init_pestat - Initialize the pestat structure
-  * @dev: pestat struct
-  */
--enum i40iw_status_code i40iw_device_init_pestat(struct i40iw_dev_pestat *devstat)
-+void i40iw_device_init_pestat(struct i40iw_dev_pestat *devstat)
- {
- 	devstat->ops = iw_device_pestat_ops;
--	return 0;
- }
+@@ -4045,7 +4045,6 @@ static int i40iw_bld_terminate_hdr(struct i40iw_sc_qp *qp,
+ 	u16 ddp_seg_len;
+ 	int copy_len = 0;
+ 	u8 is_tagged = 0;
+-	enum i40iw_flush_opcode flush_code = FLUSH_INVALID;
+ 	u32 opcode;
+ 	struct i40iw_terminate_hdr *termhdr;
  
- /**
-@@ -4736,12 +4735,7 @@ enum i40iw_status_code i40iw_device_init(struct i40iw_sc_dev *dev,
+@@ -4218,9 +4217,6 @@ static int i40iw_bld_terminate_hdr(struct i40iw_sc_qp *qp,
+ 	if (copy_len)
+ 		memcpy(termhdr + 1, pkt, copy_len);
  
- 	dev->debug_mask = info->debug_mask;
+-	if (flush_code && !info->in_rdrsp_wr)
+-		qp->sq_flush = (info->sq) ? true : false;
+-
+ 	return sizeof(struct i40iw_terminate_hdr) + copy_len;  }
  
--	ret_code = i40iw_device_init_pestat(&dev->dev_pestat);
--	if (ret_code) {
--		i40iw_debug(dev, I40IW_DEBUG_DEV,
--			    "%s: i40iw_device_init_pestat failed\n", __func__);
--		return ret_code;
--	}
-+	i40iw_device_init_pestat(&dev->dev_pestat);
- 	dev->hmc_fn_id = info->hmc_fn_id;
- 	dev->qs_handle = info->qs_handle;
- 	dev->exception_lan_queue = info->exception_lan_queue;
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_p.h b/drivers/infiniband/hw/i40iw/i40iw_p.h
-index a0b8ca1..8a59c74 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_p.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_p.h
-@@ -47,7 +47,7 @@ void i40iw_debug_buf(struct i40iw_sc_dev *dev, enum i40iw_debug_flag mask,
- enum i40iw_status_code i40iw_device_init(struct i40iw_sc_dev *dev,
- 					 struct i40iw_device_init_info *info);
- 
--enum i40iw_status_code i40iw_device_init_pestat(struct i40iw_dev_pestat *);
-+void i40iw_device_init_pestat(struct i40iw_dev_pestat *devstat);
- 
- void i40iw_sc_cqp_post_sq(struct i40iw_sc_cqp *cqp);
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-index 3041003..dbd39c4 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-@@ -496,11 +496,7 @@ enum i40iw_status_code i40iw_vchnl_recv_pf(struct i40iw_sc_dev *dev,
- 				i40iw_debug(dev, I40IW_DEBUG_VIRT,
- 					    "VF%u error CQP HMC Function operation.\n",
- 					    vf_id);
--			ret_code = i40iw_device_init_pestat(&vf_dev->dev_pestat);
--			if (ret_code)
--				i40iw_debug(dev, I40IW_DEBUG_VIRT,
--					    "VF%u - i40iw_device_init_pestat failed\n",
--					    vf_id);
-+			i40iw_device_init_pestat(&vf_dev->dev_pestat);
- 			vf_dev->dev_pestat.ops.iw_hw_stat_init(&vf_dev->dev_pestat,
- 							      (u8)vf_dev->pmf_index,
- 							      dev->hw, false);
--- 
+--
 1.8.3.1
 
 --
