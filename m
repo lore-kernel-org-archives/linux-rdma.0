@@ -1,53 +1,46 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Use actual page size
-Date: Wed,  9 Nov 2016 21:33:32 -0600
-Message-ID: <20161110033332.20784-1-henry.orosco@intel.com>
+Subject: [PATCH] i40iw: Use runtime check for IS_ENABLED(CONFIG_IPV6)
+Date: Wed,  9 Nov 2016 21:34:02 -0600
+Message-ID: <20161110033402.21704-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In i40iw_post_send, use the actual page size instead of
-encoded page size. This is to be consistent with the
-rest of the file.
+To be consistent, use the runtime check instead of
+conditional compile.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 6329c97..8f138b8 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2142,7 +2142,6 @@ static int i40iw_post_send(struct ib_qp *ibqp,
- 		case IB_WR_REG_MR:
- 		{
- 			struct i40iw_mr *iwmr = to_iwmr(reg_wr(ib_wr)->mr);
--			int page_shift = ilog2(reg_wr(ib_wr)->mr->page_size);
- 			int flags = reg_wr(ib_wr)->access;
- 			struct i40iw_pble_alloc *palloc = &iwmr->iwpbl.pble_alloc;
- 			struct i40iw_sc_dev *dev = &iwqp->iwdev->sc_dev;
-@@ -2153,6 +2152,7 @@ static int i40iw_post_send(struct ib_qp *ibqp,
- 			info.access_rights |= i40iw_get_user_access(flags);
- 			info.stag_key = reg_wr(ib_wr)->key & 0xff;
- 			info.stag_idx = reg_wr(ib_wr)->key >> 8;
-+			info.page_size = reg_wr(ib_wr)->mr->page_size;
- 			info.wr_id = ib_wr->wr_id;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index c5e3d7a..aaca1d0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -1579,9 +1579,10 @@ static enum i40iw_status_code i40iw_del_multiple_qhash(
+ static struct net_device *i40iw_netdev_vlan_ipv6(u32 *addr, u16 *vlan_id, u8 *mac)
+ {
+ 	struct net_device *ip_dev = NULL;
+-#if IS_ENABLED(CONFIG_IPV6)
+ 	struct in6_addr laddr6;
  
- 			info.addr_type = I40IW_ADDR_TYPE_VA_BASED;
-@@ -2166,9 +2166,6 @@ static int i40iw_post_send(struct ib_qp *ibqp,
- 			if (iwmr->npages > I40IW_MIN_PAGES_PER_FMR)
- 				info.chunk_size = 1;
++	if (!IS_ENABLED(CONFIG_IPV6))
++		return NULL;
+ 	i40iw_copy_ip_htonl(laddr6.in6_u.u6_addr32, addr);
+ 	if (vlan_id)
+ 		*vlan_id = I40IW_NO_VLAN;
+@@ -1598,7 +1599,6 @@ static struct net_device *i40iw_netdev_vlan_ipv6(u32 *addr, u16 *vlan_id, u8 *ma
+ 		}
+ 	}
+ 	rcu_read_unlock();
+-#endif
+ 	return ip_dev;
+ }
  
--			if (page_shift == 21)
--				info.page_size = 1; /* 2M page */
--
- 			ret = dev->iw_priv_qp_ops->iw_mr_fast_register(&iwqp->sc_qp, &info, true);
- 			if (ret)
- 				err = -ENOMEM;
 -- 
 1.8.3.1
 
