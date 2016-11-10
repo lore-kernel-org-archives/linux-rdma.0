@@ -1,49 +1,55 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc V1 7/9] IB/mlx4: Fix port query for 56Gb Ethernet links
-Date: Thu, 10 Nov 2016 11:30:59 +0200
-Message-ID: <1478770261-5775-8-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc V1 1/9] IB/mlx4: Set traffic class in AH
+Date: Thu, 10 Nov 2016 11:30:53 +0200
+Message-ID: <1478770261-5775-2-git-send-email-leon@kernel.org>
 References: <1478770261-5775-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478770261-5775-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Report the correct speed in the port attributes when using a 56Gbps
-ethernet link.  Without this change the field is incorrectly set to 10.
+Set traffic class within sl_tclass_flowlabel when create iboe AH.
+Without this the TOS value will be empty when running VLAN tagged
+traffic, because the TOS value is taken from the traffic class in the
+address handle attributes.
 
-Fixes: a9c766bb75ee ('IB/mlx4: Fix info returned when querying IBoE ports')
-Fixes: 2e96691c31ec ('IB: Use central enum for speed instead of hard-coded values')
-Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 9106c4106974 ('IB/mlx4: Fix SL to 802.1Q priority-bits mapping for IBoE')
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/ah.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 05ab3cb..4054a1b 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -698,9 +698,11 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	if (err)
- 		goto out;
+diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
+index 5fc6233..6be7dc3 100644
+--- a/drivers/infiniband/hw/mlx4/ah.c
++++ b/drivers/infiniband/hw/mlx4/ah.c
+@@ -111,7 +111,9 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ 		       !(1 << ah->av.eth.stat_rate & dev->caps.stat_rate_support))
+ 			--ah->av.eth.stat_rate;
+ 	}
+-
++	ah->av.eth.sl_tclass_flowlabel |=
++			cpu_to_be32((ah_attr->grh.traffic_class << 20) |
++				    ah_attr->grh.flow_label);
+ 	/*
+ 	 * HW requires multicast LID so we just choose one.
+ 	 */
+@@ -119,7 +121,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ 		ah->av.ib.dlid = cpu_to_be16(0xc000);
  
--	props->active_width	=  (((u8 *)mailbox->buf)[5] == 0x40) ?
--						IB_WIDTH_4X : IB_WIDTH_1X;
--	props->active_speed	= IB_SPEED_QDR;
-+	props->active_width	=  (((u8 *)mailbox->buf)[5] == 0x40) ||
-+				   (((u8 *)mailbox->buf)[5] == 0x20 /*56Gb*/) ?
-+					   IB_WIDTH_4X : IB_WIDTH_1X;
-+	props->active_speed	=  (((u8 *)mailbox->buf)[5] == 0x20 /*56Gb*/) ?
-+					   IB_SPEED_FDR : IB_SPEED_QDR;
- 	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
- 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
- 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
+ 	memcpy(ah->av.eth.dgid, ah_attr->grh.dgid.raw, 16);
+-	ah->av.eth.sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 29);
++	ah->av.eth.sl_tclass_flowlabel |= cpu_to_be32(ah_attr->sl << 29);
+ 
+ 	return &ah->ibah;
+ }
 -- 
 2.7.4
 
