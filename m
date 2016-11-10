@@ -1,60 +1,65 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc V1 5/9] IB/mlx4: Handle well-known-gid in mad_demux processing
-Date: Thu, 10 Nov 2016 11:30:57 +0200
-Message-ID: <1478770261-5775-6-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc V1 8/9] IB/mlx4: Fail to allocate NET_IF QPs when DMFS for IPoIB in unavailable
+Date: Thu, 10 Nov 2016 11:31:00 +0200
+Message-ID: <1478770261-5775-9-git-send-email-leon@kernel.org>
 References: <1478770261-5775-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1478770261-5775-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If OpenSM runs over a ConnectX-3, and there are ConnectX-4 or Connect-IB
-VFs active on the network, the OpenSM will receive QP1 packets containing
-a GRH where the destination GID is the "Well-Known GID" -- which is not a
-GID in the HCA Port's GID Table.
+According to the firmware spec, FLOW_STEERING_IB_UC_QP_RANGE command is
+supported only if dmfs_ipoib bit is set.
 
-This GID must be tested-for separately -- and packets which contain
-this destination GID should be routed to slave 0 (the PF).
+If it isn't set we want to ensure allocating NET_IF QPs fail. We do so
+by filling out the allocation bitmap. By thus, the NET_IF QPs allocating
+function won't find any free QP and will fail.
 
-Fixes: 37bfc7c1e83f ('IB/mlx4: SR-IOV multiplex and demultiplex MADs')
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Fixes: c1c98501121e ('IB/mlx4: Add support for steerable IB UD QPs')
+Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index b8e9013..7bcae41 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -729,10 +729,18 @@ static int mlx4_ib_demux_mad(struct ib_device *ibdev, u8 port,
- 
- 	/* If a grh is present, we demux according to it */
- 	if (wc->wc_flags & IB_WC_GRH) {
--		slave = mlx4_ib_find_real_gid(ibdev, port, grh->dgid.global.interface_id);
--		if (slave < 0) {
--			mlx4_ib_warn(ibdev, "failed matching grh\n");
--			return -ENOENT;
-+		if (grh->dgid.global.interface_id ==
-+			cpu_to_be64(IB_SA_WELL_KNOWN_GUID) &&
-+		    grh->dgid.global.subnet_prefix == cpu_to_be64(
-+			atomic64_read(&dev->sriov.demux[port - 1].subnet_prefix))) {
-+			slave = 0;
-+		} else {
-+			slave = mlx4_ib_find_real_gid(ibdev, port,
-+						      grh->dgid.global.interface_id);
-+			if (slave < 0) {
-+				mlx4_ib_warn(ibdev, "failed matching grh\n");
-+				return -ENOENT;
-+			}
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 4054a1b..4a67ffc 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2823,14 +2823,19 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			goto err_steer_qp_release;
  		}
+ 
+-		bitmap_zero(ibdev->ib_uc_qpns_bitmap, ibdev->steer_qpn_count);
+-
+-		err = mlx4_FLOW_STEERING_IB_UC_QP_RANGE(
+-				dev, ibdev->steer_qpn_base,
+-				ibdev->steer_qpn_base +
+-				ibdev->steer_qpn_count - 1);
+-		if (err)
+-			goto err_steer_free_bitmap;
++		if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_DMFS_IPOIB) {
++			bitmap_zero(ibdev->ib_uc_qpns_bitmap,
++				    ibdev->steer_qpn_count);
++			err = mlx4_FLOW_STEERING_IB_UC_QP_RANGE(
++					dev, ibdev->steer_qpn_base,
++					ibdev->steer_qpn_base +
++					ibdev->steer_qpn_count - 1);
++			if (err)
++				goto err_steer_free_bitmap;
++		} else {
++			bitmap_fill(ibdev->ib_uc_qpns_bitmap,
++				    ibdev->steer_qpn_count);
++		}
  	}
- 	/* Class-specific handling */
+ 
+ 	for (j = 1; j <= ibdev->dev->caps.num_ports; j++)
 -- 
 2.7.4
 
