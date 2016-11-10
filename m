@@ -1,65 +1,64 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Thu, 10 Nov 2016 22:34:44 +0530
-Message-ID: <CAG53R5UGfhGHc3-jgUjH5taFzTHg3BOgXi25QjuQfUFc0U7tgw@mail.gmail.com>
-References: <20161103180006.GL3617@leon.nu> <AM4PR0501MB2802030EE9E359133E04439CB1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
- <CAG53R5Vd58wEBKgAajp9VvJmB5sO2Umii0JE4XaLYKbfrJrxyg@mail.gmail.com>
- <AM4PR0501MB2802E87F709F41DDEC20B7C9B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
- <CAG53R5UyZPh9wduPZGRg2P09n2Og8oODqb+QW=7ryAPqJDa6Vw@mail.gmail.com>
- <AM4PR0501MB28025BE002CBA9D04675A5A5B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
- <CAG53R5WdauHpML66g-O6zj+j_DUYWJMPjmL1xDaSxwDmPPYm2A@mail.gmail.com>
- <HE1PR0501MB2812298C05431B08B0F408EEB1A60@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <CAG53R5XqZwrYsdX=JQ1D4cDB0h65RDQVb=VCiaR5TXuf_uoO0Q@mail.gmail.com>
- <20161110163837.GE28957@leon.nu> <20161110164638.GC26105@htj.duckdns.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/7] libhns: Add initial main frame
+Date: Thu, 10 Nov 2016 10:30:29 -0700
+Message-ID: <20161110173029.GA29687@obsidianresearch.com>
+References: <1477487048-62256-2-git-send-email-oulijun@huawei.com>
+ <20161026162053.GE24898@obsidianresearch.com>
+ <5811776F.20908@huawei.com>
+ <20161027145139.GD6818@obsidianresearch.com>
+ <58130573.4010902@huawei.com>
+ <20161028164030.GA17289@obsidianresearch.com>
+ <5813F869.7010606@huawei.com>
+ <20161107231532.GB7002@obsidianresearch.com>
+ <20161108125441.GB27883@leon.nu>
+ <58232047.4060709@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161110164638.GC26105-piEFEHQLUPpN0TnZuCh8vA@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <58232047.4060709-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+On Wed, Nov 09, 2016 at 09:10:31PM +0800, oulijun wrote:
+> ??? 2016/11/8 20:54, Leon Romanovsky ??????:
+> > On Mon, Nov 07, 2016 at 04:15:32PM -0700, Jason Gunthorpe wrote:
+> >> On Sat, Oct 29, 2016 at 09:16:25AM +0800, oulijun wrote:
+> >>
+> >>> We hope that the only one userspace library file named
+> >>> libhns-rdmav2.so will be used for the different hardware
+> >>> version(hip06, hip07, ...), because there are only little change
+> >>> between their userspace drivers. So we need to distinguish hardware
+> >>> version.
+> >>
+> >> I guess that makes sense, but you still need to be able to parse dt
+> >> compatible strings that are lists.
+> > 
+> > IMHO, it can be easily done as follow up patches.
+> > 
+> Hi, Leon & Jason
+>    We hope that the only one userspace library file named libhns-rdmav2.so will be used for the different hardware version(hip06, hip07, ...),
+> because there are only little change between their userspace drivers. So we need to distinguish hardware version.
+> We can't distinguish them if only matching driver name "hns_roce".
 
-On Thu, Nov 10, 2016 at 10:16 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hello,
->
-> On Thu, Nov 10, 2016 at 06:38:37PM +0200, Leon Romanovsky wrote:
->> On Thu, Nov 10, 2016 at 01:11:18PM +0530, Parav Pandit wrote:
->> > Hi Leon, Tejun, Christoph, Liran,  Doug, Matan,
->> >
->> > So are you ok with below proposal?
->>
->> I'm fine with it and it looks like very clean approach
->> to solve our multi-object future.
->
-> No ojbection.  Parav, can you write up how the interface would look
-> like with examples?
+That is fine..
 
-Simplified version of v12 with no architecture change.
-I will describe below.
+> 	if (ibv_read_sysfs_file(uverbs_sys_path, "device/of_node/compatible",
+> 				value, sizeof(value)) > 0)
+> 		for (i = 0; i < sizeof(dt_table) / sizeof(dt_table[0]); ++i)
+> 			if (!strcmp(value, dt_table[i].compatible)) {
 
-user-kernel interface:
----------------------------
-(a) rdma.current - Will continue to report resource count.
-(b) rdma.max - will continue to accept hca_handles, and hca_objects as
-absolute number.
+This isn't right, compatible can be a list, if I recall it is a null
+separated list of names, you need to parse the list.
 
-Instead of mr, pd, qp, ah, srq entries of patch_v12, it will have just
-two entries for each device.
-(1) hca_handles, (2) hca_objects.
+Again, it would much better to just parse modalias directly, and
+better still to add some core libiverbs code to do that for all
+drivers.
 
-rdmacg - IB stack interface:
---------------------------------
-cgroup_rdma.h will have two enum entries.
-
-RDMACG_RESOURCE_HCA_HANDLE
-RDMACG_RESOURCE_OBJECT
-
-IB stack will charge either of the object.
-When HCA handles are allocated/freed IB core will request charge/uncharge.
-When standard verb resources such as PD, MR, CQ, QP, SRQ are
-allocated/freed IB core will request for XX_OBJECT charge/uncharge.
-
-Currently defined APIs and interfaces just remains same.
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
