@@ -1,83 +1,51 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc V1 0/9] mlx4 fixes for 4.9
-Date: Thu, 10 Nov 2016 11:30:52 +0200
-Message-ID: <1478770261-5775-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc V1 9/9] IB/mlx4: Check if GRH is available before using it in modify QP
+Date: Thu, 10 Nov 2016 11:31:01 +0200
+Message-ID: <1478770261-5775-10-git-send-email-leon@kernel.org>
+References: <1478770261-5775-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1478770261-5775-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Please find below second version of fixes for mlx4 driver.
+Before reading GRH attributes, need to make sure AH contains GRH,
+and in addition, initialize GID type.
 
-This patchset was generated against v4.9-rc3.
+Fixes: dbf727de7440 ('IB/core: Use GID table in AH creation and dmac resolution')
+Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/qp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Available in the "topic/mlx4-fixes-4.9" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/mlx4-fixes-4.9
-
-Changes v0 -> v1:
-Patch 1:
- * No change
-Patch 2:
- * Add Yuval's ROB tag
-Patch 3:
- * Remove function name from title
-Patch 4:
- * No change
-Patch 5:
- * Use the port subnet prefix instead of default
-Patch 6:
- * Add Yuval's ROB tag
-Patch 7:
- * No change
-Patch 8:
- * Remove function name from title
- * Reword commit message
-Patch 9:
- * No change
-
-Thanks,
-  Daniel and Leon.
-
-Daniel Jurgens (1):
-  IB/mlx4: Check gid_index return value
-
-Eran Ben Elisha (2):
-  IB/mlx4: Fail to allocate NET_IF QPs when DMFS for IPoIB in
-    unavailable
-  IB/mlx4: Check if GRH is available before using it in modify QP
-
-Jack Morgenstein (1):
-  IB/mlx4: Handle well-known-gid in mad_demux processing
-
-Maor Gottlieb (2):
-  IB/mlx4: Set traffic class in AH
-  IB/mlx4: Put non zero value in max_ah device attribute
-
-Matan Barak (1):
-  IB/mlx4: Fix create CQ error flow
-
-Moni Shoua (1):
-  IB/mlx4: Handle IPv4 header when demultiplexing MAD
-
-Saeed Mahameed (1):
-  IB/mlx4: Fix port query for 56Gb Ethernet links
-
- drivers/infiniband/core/verbs.c   | 16 +++++++------
- drivers/infiniband/hw/mlx4/ah.c   | 11 ++++++---
- drivers/infiniband/hw/mlx4/cq.c   |  5 +++-
- drivers/infiniband/hw/mlx4/mad.c  | 49 +++++++++++++++++++++++++++++++++------
- drivers/infiniband/hw/mlx4/main.c | 30 +++++++++++++++---------
- drivers/infiniband/hw/mlx4/qp.c   |  4 ++--
- include/rdma/ib_verbs.h           | 19 +++++++++++++++
- 7 files changed, 103 insertions(+), 31 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 570bc86..0914731 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1764,14 +1764,14 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		u8 port_num = mlx4_is_bonded(to_mdev(ibqp->device)->dev) ? 1 :
+ 			attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
+ 		union ib_gid gid;
+-		struct ib_gid_attr gid_attr;
++		struct ib_gid_attr gid_attr = {.gid_type = IB_GID_TYPE_IB};
+ 		u16 vlan = 0xffff;
+ 		u8 smac[ETH_ALEN];
+ 		int status = 0;
+ 		int is_eth = rdma_cap_eth_ah(&dev->ib_dev, port_num) &&
+ 			attr->ah_attr.ah_flags & IB_AH_GRH;
+ 
+-		if (is_eth) {
++		if (is_eth && attr->ah_attr.ah_flags & IB_AH_GRH) {
+ 			int index = attr->ah_attr.grh.sgid_index;
+ 
+ 			status = ib_get_cached_gid(ibqp->device, port_num,
+-- 
 2.7.4
 
 --
