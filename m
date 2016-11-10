@@ -1,43 +1,36 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Remove checks for more than 48 bytes inline data
-Date: Wed,  9 Nov 2016 21:32:03 -0600
-Message-ID: <20161110033203.21872-1-henry.orosco@intel.com>
+Subject: [PATCH] i40iw: Remove NULL check for cm_node->iwdev
+Date: Wed,  9 Nov 2016 21:32:25 -0600
+Message-ID: <20161110033225.18708-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove dead code, which isn't executed because we
-return error if the data size is greater than 48 bytes.
+It is not necessary to check cm_node->iwdev in
+i40iw_rem_ref_cm_node() as it can never be NULL after
+a successful call out of i40iw_make_cm_node().
 
-Inline data size greater than 48 bytes isn't supported
-and the maximum WQE size is 64 bytes.
-
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_uk.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 4d28c3c..338d164 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -1190,12 +1190,8 @@ enum i40iw_status_code i40iw_inline_data_size_to_wqesize(u32 data_size,
- 
- 	if (data_size <= 16)
- 		*wqe_size = I40IW_QP_WQE_MIN_SIZE;
--	else if (data_size <= 48)
--		*wqe_size = 64;
--	else if (data_size <= 80)
--		*wqe_size = 96;
- 	else
--		*wqe_size = 128;
-+		*wqe_size = 64;
- 
- 	return 0;
- }
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index c5e3d7a..71f2452 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -2224,7 +2224,7 @@ static void i40iw_rem_ref_cm_node(struct i40iw_cm_node *cm_node)
+ 		i40iw_dec_refcnt_listen(cm_core, cm_node->listener, 0, true);
+ 	} else {
+ 		if (!i40iw_listen_port_in_use(cm_core, cm_node->loc_port) &&
+-		    cm_node->apbvt_set && cm_node->iwdev) {
++		    cm_node->apbvt_set) {
+ 			i40iw_manage_apbvt(cm_node->iwdev,
+ 					   cm_node->loc_port,
+ 					   I40IW_MANAGE_APBVT_DEL);
 -- 
 1.8.3.1
 
