@@ -1,94 +1,103 @@
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 rdma-core 7/7] libhns: Add consolidated repo for userspace library of hns
-Date: Fri, 11 Nov 2016 12:57:30 +0800
-Message-ID: <1478840250-92558-8-git-send-email-oulijun@huawei.com>
-References: <1478840250-92558-1-git-send-email-oulijun@huawei.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 rdma-core 0/7] libhns: userspace library for hns
+Date: Fri, 11 Nov 2016 14:37:46 +0800
+Message-ID: <5825673A.1050109@huawei.com>
+References: <1478781977-116803-1-git-send-email-oulijun@huawei.com>
+ <20161110161550.GD28957@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478840250-92558-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161110161550.GD28957-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch configures the consolidated repo to build userspace
-library of hns(libhns).
+在 2016/11/11 0:15, Leon Romanovsky 写道:
+> On Thu, Nov 10, 2016 at 08:46:10PM +0800, Lijun Ou wrote:
+>> This patch series introduces userspace library for hns RoCE driver.
+>>
+>> changes v2 -> v3:
+>> 1. Fix the code style, for example, if (addr == NULL)
+>> 2. Fix the bug for hns_roce_u_reg_mr
+>>
+>> changes v1 -> v2:
+>> 1. Delete the min() definition and instead of ccan header
+>> 2. Delete the CHECK_C_SOURCE_COMPILES
+>> 3. sort the c file in rdma_provider()
+>> 4. Delete the unused code in hns_roce_u_db.h
+>>
+>> Lijun Ou (7):
+>>   libhns: Add initial main frame
+>>   libhns: Add verbs of querying device and querying port
+>>   libhns: Add verbs of pd and mr support
+>>   libhns: Add verbs of cq support
+>>   libhns: Add verbs of qp support
+>>   libhns: Add verbs of post_send and post_recv support
+>>   libhns: Add consolidated repo for userspace library of hns
+> 
+> Hi Lijun,
+> 
+> I tried to take your patch set, but it fails to pass our Travis CI
+> tests.
+> 
+> https://github.com/linux-rdma/rdma-core/pull/38
+> https://travis-ci.org/linux-rdma/rdma-core/builds/174815897
+> 
+> You need to fix it prior to our acceptance.
+> 
+> Thanks
+> 
+Hi, Leon
+  I have checked the patches and fixed it and send the patchv4. I think that
+the patchv4 will not have errors and warnings for travis CI testing, but
+I don't have the Travis CI environment for testing it.
+I have tried to install the test environment according to your test log and it
+is fail.
+In addtion that, I have tested it for  patchv1/patchv2/patch3 by use the following way and it
+is ok
+ 1. directly use the default script file build.sh
+    ./build.sh
+ 2. use CC=aarch64-linux-gnu-gcc build
+    mkdir build
+    cd build
+    CC=aarch64-linux-gnu-gcc cmake -Gninja -DENABLE_RESOLVE_NEIGH=0 ..
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
-v4/v3:
-- No change over v2
+lijun Ou
+> 
+>>
+>>  CMakeLists.txt                   |   1 +
+>>  MAINTAINERS                      |   6 +
+>>  README.md                        |   1 +
+>>  providers/hns/CMakeLists.txt     |   6 +
+>>  providers/hns/hns_roce_u.c       | 228 +++++++++++
+>>  providers/hns/hns_roce_u.h       | 255 ++++++++++++
+>>  providers/hns/hns_roce_u_abi.h   |  69 ++++
+>>  providers/hns/hns_roce_u_buf.c   |  61 +++
+>>  providers/hns/hns_roce_u_db.h    |  54 +++
+>>  providers/hns/hns_roce_u_hw_v1.c | 839 +++++++++++++++++++++++++++++++++++++++
+>>  providers/hns/hns_roce_u_hw_v1.h | 242 +++++++++++
+>>  providers/hns/hns_roce_u_verbs.c | 525 ++++++++++++++++++++++++
+>>  12 files changed, 2287 insertions(+)
+>>  create mode 100644 providers/hns/CMakeLists.txt
+>>  create mode 100644 providers/hns/hns_roce_u.c
+>>  create mode 100644 providers/hns/hns_roce_u.h
+>>  create mode 100644 providers/hns/hns_roce_u_abi.h
+>>  create mode 100644 providers/hns/hns_roce_u_buf.c
+>>  create mode 100644 providers/hns/hns_roce_u_db.h
+>>  create mode 100644 providers/hns/hns_roce_u_hw_v1.c
+>>  create mode 100644 providers/hns/hns_roce_u_hw_v1.h
+>>  create mode 100644 providers/hns/hns_roce_u_verbs.c
+>>
+>> --
+>> 1.9.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-v2:
-- Delete the CHECK_C_SOURCE_COMPILES and sort the .c file
-
-v1:
-- The initial submit
----
- CMakeLists.txt               | 1 +
- MAINTAINERS                  | 6 ++++++
- README.md                    | 1 +
- providers/hns/CMakeLists.txt | 6 ++++++
- 4 files changed, 14 insertions(+)
- create mode 100644 providers/hns/CMakeLists.txt
-
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b3b3ff1..e5d0c77 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -328,6 +328,7 @@ add_subdirectory(libibcm)
- add_subdirectory(providers/cxgb3)
- add_subdirectory(providers/cxgb4)
- add_subdirectory(providers/hfi1verbs)
-+add_subdirectory(providers/hns)
- add_subdirectory(providers/i40iw)
- add_subdirectory(providers/ipathverbs)
- add_subdirectory(providers/mlx4)
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d83de10..bc6eb50 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -57,6 +57,12 @@ S:	Supported
- L:	intel-opa-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org (moderated for non-subscribers)
- F:	providers/hfi1verbs/
- 
-+HNS USERSPACE PROVIDER (for hns-roce.ko)
-+M:	Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-+M:	Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-+S:	Supported
-+F:	providers/hns/
-+
- I40IW USERSPACE PROVIDER (for i40iw.ko)
- M:	Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- S:	Supported
-diff --git a/README.md b/README.md
-index 3a13042..e3bc33f 100644
---- a/README.md
-+++ b/README.md
-@@ -18,6 +18,7 @@ is included:
-  - iw_cxgb3.ko
-  - iw_cxgb4.ko
-  - hfi1.ko
-+ - hns-roce.ko
-  - i40iw.ko
-  - ib_qib.ko
-  - mlx4_ib.ko
-diff --git a/providers/hns/CMakeLists.txt b/providers/hns/CMakeLists.txt
-new file mode 100644
-index 0000000..19a793e
---- /dev/null
-+++ b/providers/hns/CMakeLists.txt
-@@ -0,0 +1,6 @@
-+rdma_provider(hns
-+  hns_roce_u.c
-+  hns_roce_u_buf.c
-+  hns_roce_u_hw_v1.c
-+  hns_roce_u_verbs.c
-+)
--- 
-1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
