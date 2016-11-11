@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 rdma-core 2/7] libhns: Add verbs of querying device and querying port
-Date: Fri, 11 Nov 2016 12:57:25 +0800
-Message-ID: <1478840250-92558-3-git-send-email-oulijun@huawei.com>
+Subject: [PATCH v4 rdma-core 7/7] libhns: Add consolidated repo for userspace library of hns
+Date: Fri, 11 Nov 2016 12:57:30 +0800
+Message-ID: <1478840250-92558-8-git-send-email-oulijun@huawei.com>
 References: <1478840250-92558-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,140 +12,81 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch mainly introduces query verbs for querying device
-and querying port.
+This patch configures the consolidated repo to build userspace
+library of hns(libhns).
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
-v4/v3/v2:
-- No change over the v1
+v4/v3:
+- No change over v2
+
+v2:
+- Delete the CHECK_C_SOURCE_COMPILES and sort the .c file
 
 v1:
 - The initial submit
 ---
- providers/hns/hns_roce_u.c       |  7 ++++
- providers/hns/hns_roce_u.h       |  4 +++
- providers/hns/hns_roce_u_verbs.c | 73 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 84 insertions(+)
- create mode 100644 providers/hns/hns_roce_u_verbs.c
+ CMakeLists.txt               | 1 +
+ MAINTAINERS                  | 6 ++++++
+ README.md                    | 1 +
+ providers/hns/CMakeLists.txt | 6 ++++++
+ 4 files changed, 14 insertions(+)
+ create mode 100644 providers/hns/CMakeLists.txt
 
-diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index bda4dd8..c0f6fe9 100644
---- a/providers/hns/hns_roce_u.c
-+++ b/providers/hns/hns_roce_u.c
-@@ -95,12 +95,19 @@ static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b3b3ff1..e5d0c77 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -328,6 +328,7 @@ add_subdirectory(libibcm)
+ add_subdirectory(providers/cxgb3)
+ add_subdirectory(providers/cxgb4)
+ add_subdirectory(providers/hfi1verbs)
++add_subdirectory(providers/hns)
+ add_subdirectory(providers/i40iw)
+ add_subdirectory(providers/ipathverbs)
+ add_subdirectory(providers/mlx4)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index d83de10..bc6eb50 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -57,6 +57,12 @@ S:	Supported
+ L:	intel-opa-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org (moderated for non-subscribers)
+ F:	providers/hfi1verbs/
  
- 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
- 
-+	context->ibv_ctx.ops.query_device  = hns_roce_u_query_device;
-+	context->ibv_ctx.ops.query_port    = hns_roce_u_query_port;
++HNS USERSPACE PROVIDER (for hns-roce.ko)
++M:	Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
++M:	Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
++S:	Supported
++F:	providers/hns/
 +
-+	if (hns_roce_u_query_device(&context->ibv_ctx, &dev_attrs))
-+		goto tptr_free;
-+
- 	context->max_qp_wr = dev_attrs.max_qp_wr;
- 	context->max_sge = dev_attrs.max_sge;
- 	context->max_cqe = dev_attrs.max_cqe;
- 
- 	return &context->ibv_ctx;
- 
-+tptr_free:
- err_free:
- 	free(context);
- 	return NULL;
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 3eef171..aa58ee6 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -83,4 +83,8 @@ static inline struct hns_roce_context *to_hr_ctx(struct ibv_context *ibv_ctx)
- 	return container_of(ibv_ctx, struct hns_roce_context, ibv_ctx);
- }
- 
-+int hns_roce_u_query_device(struct ibv_context *context,
-+			    struct ibv_device_attr *attr);
-+int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
-+			  struct ibv_port_attr *attr);
- #endif /* _HNS_ROCE_U_H */
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
+ I40IW USERSPACE PROVIDER (for i40iw.ko)
+ M:	Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ S:	Supported
+diff --git a/README.md b/README.md
+index 3a13042..e3bc33f 100644
+--- a/README.md
++++ b/README.md
+@@ -18,6 +18,7 @@ is included:
+  - iw_cxgb3.ko
+  - iw_cxgb4.ko
+  - hfi1.ko
++ - hns-roce.ko
+  - i40iw.ko
+  - ib_qib.ko
+  - mlx4_ib.ko
+diff --git a/providers/hns/CMakeLists.txt b/providers/hns/CMakeLists.txt
 new file mode 100644
-index 0000000..be55fe8
+index 0000000..19a793e
 --- /dev/null
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -0,0 +1,73 @@
-+/*
-+ * Copyright (c) 2016 Hisilicon Limited.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <errno.h>
-+#include <pthread.h>
-+#include <sys/mman.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+
-+#include "hns_roce_u.h"
-+
-+int hns_roce_u_query_device(struct ibv_context *context,
-+			    struct ibv_device_attr *attr)
-+{
-+	int ret;
-+	struct ibv_query_device cmd;
-+	unsigned long raw_fw_ver;
-+	unsigned int major, minor, sub_minor;
-+
-+	ret = ibv_cmd_query_device(context, attr, &raw_fw_ver, &cmd,
-+				   sizeof(cmd));
-+	if (ret)
-+		return ret;
-+
-+	major	   = (raw_fw_ver >> 32) & 0xffff;
-+	minor	   = (raw_fw_ver >> 16) & 0xffff;
-+	sub_minor = raw_fw_ver & 0xffff;
-+
-+	snprintf(attr->fw_ver, sizeof(attr->fw_ver), "%d.%d.%03d", major, minor,
-+		 sub_minor);
-+
-+	return 0;
-+}
-+
-+int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
-+			  struct ibv_port_attr *attr)
-+{
-+	struct ibv_query_port cmd;
-+
-+	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
-+}
++++ b/providers/hns/CMakeLists.txt
+@@ -0,0 +1,6 @@
++rdma_provider(hns
++  hns_roce_u.c
++  hns_roce_u_buf.c
++  hns_roce_u_hw_v1.c
++  hns_roce_u_verbs.c
++)
 -- 
 1.9.1
 
