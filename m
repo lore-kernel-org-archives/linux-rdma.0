@@ -1,41 +1,42 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Use correct src address in memcpy to rdma stats counters
-Date: Fri, 11 Nov 2016 10:55:41 -0600
-Message-ID: <1478883341-22124-1-git-send-email-shiraz.saleem@intel.com>
+From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BUG]kworker blocked for more than 120 seconds in IB_CM/RDMA_CM
+Date: Fri, 11 Nov 2016 17:59:03 +0100
+Message-ID: <CAD+HZHWsRrnOKE3QnNtLajUKq29M_96pCb_cP55PXDWmL+0j-w@mail.gmail.com>
+References: <CAD+HZHUF=tdeJo0bQUD8iCc+V40W1wrAPupFRFq3-VYrEuY7cA@mail.gmail.com>
+ <47429de9-d3ad-2a1f-744a-3a2d3ac4aecf@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <47429de9-d3ad-2a1f-744a-3a2d3ac4aecf-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hw_stats is a pointer to i40_iw_dev_stats struct in i40iw_get_hw_stats().
-Use hw_stats and not &hw_stats in the memcpy to copy the i40iw device stats
-data into rdma_hw_stats counters.
+2016-11-11 17:41 GMT+01:00 Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>:
+> On 11/11/2016 05:32 AM, Jack Wang wrote:
+>>
+>> Note: we're using 4.4.28 + MLNXOFED 3.3
+>
+>
+> Hello Jack,
+>
+> How was MOFED built? Are you using the MOFED or the upstream RDMA kernel
+> drivers? If you are using the MOFED RDMA kernel drivers you will have to
+> contact Mellanox. Otherwise I propose to try to reproduce this with lockdep
+> enabled in the kernel config. Maybe this lockup is triggered by lock
+> inversion.
+>
+> Bart.
 
-Fixes: b40f4757daa1 ("IB/core: Make device counter infrastructure dynamic")
+Thanks, Bart,
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'm enabling LOCKDEP and other debug options locally, also inject some
+delay manually to reproduce the bug.
+So far no luck.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index b71394b..02c8f9a 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2498,7 +2498,7 @@ static int i40iw_get_hw_stats(struct ib_device *ibdev,
- 			return -ENOSYS;
- 	}
- 
--	memcpy(&stats->value[0], &hw_stats, sizeof(*hw_stats));
-+	memcpy(&stats->value[0], hw_stats, sizeof(*hw_stats));
- 
- 	return stats->num_counters;
- }
--- 
-2.8.0
-
+Cheers,
+Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
