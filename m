@@ -1,54 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v3 rdma-core 0/7] libhns: userspace library for hns
-Date: Fri, 11 Nov 2016 09:02:02 -0700
-Message-ID: <20161111160202.GA22935@obsidianresearch.com>
-References: <1478781977-116803-1-git-send-email-oulijun@huawei.com>
- <20161110161550.GD28957@leon.nu>
- <5825673A.1050109@huawei.com>
- <20161111124240.GG28957@leon.nu>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [BUG]kworker blocked for more than 120 seconds in IB_CM/RDMA_CM
+Date: Fri, 11 Nov 2016 08:41:42 -0800
+Message-ID: <47429de9-d3ad-2a1f-744a-3a2d3ac4aecf@sandisk.com>
+References: <CAD+HZHUF=tdeJo0bQUD8iCc+V40W1wrAPupFRFq3-VYrEuY7cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161111124240.GG28957-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <CAD+HZHUF=tdeJo0bQUD8iCc+V40W1wrAPupFRFq3-VYrEuY7cA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 11, 2016 at 02:42:40PM +0200, Leon Romanovsky wrote:
+On 11/11/2016 05:32 AM, Jack Wang wrote:
+> Note: we're using 4.4.28 + MLNXOFED 3.3
 
-> >   I have checked the patches and fixed it and send the patchv4. I think that
-> > the patchv4 will not have errors and warnings for travis CI testing, but
-> > I don't have the Travis CI environment for testing it.
-> > I have tried to install the test environment according to your test log and it
-> > is fail.
-> > In addtion that, I have tested it for  patchv1/patchv2/patch3 by use the following way and it
-> > is ok
-> >  1. directly use the default script file build.sh
-> >     ./build.sh
-> >  2. use CC=aarch64-linux-gnu-gcc build
-> >     mkdir build
-> >     cd build
-> >     CC=aarch64-linux-gnu-gcc cmake -Gninja -DENABLE_RESOLVE_NEIGH=0 ..
+Hello Jack,
 
-For the 32 bit bugs all you need to do is run on x86 with the 32 bit
-compiler support installed:
+How was MOFED built? Are you using the MOFED or the upstream RDMA kernel 
+drivers? If you are using the MOFED RDMA kernel drivers you will have to 
+contact Mellanox. Otherwise I propose to try to reproduce this with 
+lockdep enabled in the kernel config. Maybe this lockup is triggered by 
+lock inversion.
 
-$ CFLAGS=-m32 cmake -GNinja ..
-$ ninja
-
-> 4. Send pull request to rdma-core via github interface and it will check
-> automatically.
-
-This is certainly a better option than having Leon test your patches,
-just keep force pushing to your own pull request until travis is
-happy.
-
-Make sure the 32 bit problems are fixed properly, use inttypes.h,
-uintptr, and so forth.
-
-Jason
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
