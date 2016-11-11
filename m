@@ -1,67 +1,59 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Fri, 11 Nov 2016 18:30:08 +0530
-Message-ID: <CAG53R5WWDzbdVtynHbgsbGxGC7HS+XdzU1XbOnPcvtcC7hBx0g@mail.gmail.com>
-References: <CAG53R5UyZPh9wduPZGRg2P09n2Og8oODqb+QW=7ryAPqJDa6Vw@mail.gmail.com>
- <AM4PR0501MB28025BE002CBA9D04675A5A5B1A20@AM4PR0501MB2802.eurprd05.prod.outlook.com>
- <CAG53R5WdauHpML66g-O6zj+j_DUYWJMPjmL1xDaSxwDmPPYm2A@mail.gmail.com>
- <HE1PR0501MB2812298C05431B08B0F408EEB1A60@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <CAG53R5XqZwrYsdX=JQ1D4cDB0h65RDQVb=VCiaR5TXuf_uoO0Q@mail.gmail.com>
- <20161110163837.GE28957@leon.nu> <20161110164638.GC26105@htj.duckdns.org>
- <CAG53R5UGfhGHc3-jgUjH5taFzTHg3BOgXi25QjuQfUFc0U7tgw@mail.gmail.com>
- <20161110173217.GD26105@htj.duckdns.org> <CAG53R5Wk2zbL=0_EcYCOXQ4dK-k_w=sLOFAKD98NnnbAAnu2=A@mail.gmail.com>
- <20161110192344.GA4805@htj.duckdns.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 rdma-core 0/7] libhns: userspace library for hns
+Date: Fri, 11 Nov 2016 15:03:50 +0200
+Message-ID: <20161111130350.GI28957@leon.nu>
+References: <1478840250-92558-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="JIpyCmsTxyPLrmrM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161110192344.GA4805-piEFEHQLUPpN0TnZuCh8vA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1478840250-92558-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
 
-On Fri, Nov 11, 2016 at 12:53 AM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hello, Parav.
->
-> On Thu, Nov 10, 2016 at 11:26:28PM +0530, Parav Pandit wrote:
->> > That looks great to me from cgroup side.  Do you have plans for
->> > exposing the maximum numbers available?
->>
->> If I have to expose max limits, I need new file interface as rdma.limit.
->> Because once rdma.max is set, user space cannot get back the old value.
->> It needs to cache it. user space tools might have been restarted and
->> so on, so store in other file etc.
->> So such user space solutions are just ugly.
->>
->> Getting and setting values in device agnostic way, through cgroup
->> files is desirable, however its not must. It can fallback on using
->> verb based API.
->>
->> So if there is no objection, I prefer to have rdma.limit file as
->> incremental patch once base version is merged.
->
-> How about something like RESOURCE.available field in rdma.stat file?
-> Its value can be what's maximally available at that level when max is
-> unlimited and there is no competition.  At top level cgroups, it'd be
-> the total resources available in the system.  At sub levels, it'd be
-> min of what's available to the grandparent and parent's limit on the
-> resource.
->
-> This would be in line with cgroup conventions and would behave the
-> same way nested making things easier for containers.
->
-Yes. This is what is needed. Awesome.
-I will include in follow on patch after first round of functionality.
-Patch_v13 will have base functionality similar to v12. This new file
-will be once code is merged.
+--JIpyCmsTxyPLrmrM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-
-> Thanks.
+On Fri, Nov 11, 2016 at 12:57:23PM +0800, Lijun Ou wrote:
+> This patch series introduces userspace library for hns RoCE driver.
 >
-> --
-> tejun
+> changes v3 -> v4:
+> 1. eliminate the warning by Travis CI testing
+
+It still fails.
+https://travis-ci.org/linux-rdma/rdma-core/builds/175060470
+
+Please test it locally.
+
+Thanks.
+
+--JIpyCmsTxyPLrmrM
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYJcG1AAoJEORje4g2clinyLEQALcb38Zz/TjWz4zxpUDCscpb
+55sHQu4Z3Dmuaipn6AwXGjkOnMbESfsQF91Pdn+2uk3U5CLSXwz0S65rfapdppXy
+8xneqBww4WCc4OVw+mRLOLVgGWQcw81xnv77Bsshfy1BKpFhKfT1dez5Xwn0xGdo
+WkIgRy1pcKtsvqlgtWR29WhLxL82rmv1hdQeMLbBsgnxLPvevOxkLSAm2AouY9VD
+/a1E41/D/DgDXPeDXjf6bDQmBjDsJXLgSUTEtV8HZfxV3S0CY+9QfRPAyTIiGKpX
+TRQXoNZS0beOwHhTg7fEfEiDEqsvNzypBK2icFm1GFCj4f8X7ADlrmDt79RDONEC
+L5kut8hS0nxFk2PuVgdyvBVnMpkQXIyvbhh34io1dKM5K90WkfKd2UDH56mLxL4J
+lpZg0F5oxnZkErcMXZrNIDbrIzSu1GL7XbscnIYlXvpyYANN2qSkESCs1EPTh3Xk
+ZAkCTSR9dzRyta5cL8rE7hdAj92FUArVV2ZDfl+72cmOcXqQBysQTqQow++KbrCb
+JeLeIRcK+7H+UFNEw3Q2G9MAch8ETIez8TyD4Plq5MWCuB/ov95Ev6oeuioV13YT
+vBx2HZXaK8l25G6KKeqMwLpqvzfcYoT3jHUZMWKFFIWg6l5x68llEHLVxa46Rq/N
+QXi9smpBKow726DRiVkH
+=egJg
+-----END PGP SIGNATURE-----
+
+--JIpyCmsTxyPLrmrM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
