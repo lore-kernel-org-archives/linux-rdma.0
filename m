@@ -1,38 +1,58 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 rdma-core 0/7] libhns: userspace library for hns
-Date: Sun, 13 Nov 2016 18:24:52 +0800
-Message-ID: <58283F74.5030904@huawei.com>
-References: <1478840250-92558-1-git-send-email-oulijun@huawei.com>
- <20161111130350.GI28957@leon.nu>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH rdma-core] qede: fix general protection fault may occur on
+ probe
+Date: Sun, 13 Nov 2016 16:42:14 +0000
+Message-ID: <SN1PR07MB2207D200A1EF95EBFAAEBCFFF8BD0@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1477400039-16925-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161111130350.GI28957-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1477400039-16925-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2016/11/11 21:03, Leon Romanovsky 写道:
-> On Fri, Nov 11, 2016 at 12:57:23PM +0800, Lijun Ou wrote:
->> This patch series introduces userspace library for hns RoCE driver.
->>
->> changes v3 -> v4:
->> 1. eliminate the warning by Travis CI testing
-> 
-> It still fails.
-> https://travis-ci.org/linux-rdma/rdma-core/builds/175060470
-> 
-> Please test it locally.
-> 
-> Thanks.
->
-Hi, leon
-  I have passed the Travis CI testing according to your advice [2] and
-sent the patchv5
+> The recent introduction of qedr driver support in qede causes a GPF when
+> probing the driver in a server without a RoCE enabled QLogic NIC. This fi=
+x avoids
+> using an uninitialized pointer in such a case. Caught by the kernel test =
+robot.
+>=20
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/net/ethernet/qlogic/qede/qede_roce.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/net/ethernet/qlogic/qede/qede_roce.c
+> b/drivers/net/ethernet/qlogic/qede/qede_roce.c
+> index 9867f96..4927271 100644
+> --- a/drivers/net/ethernet/qlogic/qede/qede_roce.c
+> +++ b/drivers/net/ethernet/qlogic/qede/qede_roce.c
+> @@ -191,8 +191,8 @@ int qede_roce_register_driver(struct qedr_driver *drv=
+)
+>  	}
+>  	mutex_unlock(&qedr_dev_list_lock);
+>=20
+> -	DP_INFO(edev, "qedr: discovered and registered %d RoCE funcs\n",
+> -		qedr_counter);
+> +	pr_notice("qedr: discovered and registered %d RoCE funcs\n",
+> +		  qedr_counter);
+>=20
+>  	return 0;
+>  }
+> --
+> 1.8.3.1
 
-Lijun Ou
+
+Hi Doug,
+Can you update if this patch taken and if not, when do you expect it will b=
+e?
+
+Thanks,
+Ram
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
