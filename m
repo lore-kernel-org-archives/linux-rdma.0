@@ -1,198 +1,126 @@
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v5 rdma-core 3/7] libhns: Add verbs of pd and mr support
-Date: Sun, 13 Nov 2016 18:35:56 +0800
-Message-ID: <1479033360-56035-4-git-send-email-oulijun@huawei.com>
-References: <1479033360-56035-1-git-send-email-oulijun@huawei.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 rdma-core 0/7] libhns: userspace library for hns
+Date: Sun, 13 Nov 2016 18:22:51 +0800
+Message-ID: <58283EFB.1070407@huawei.com>
+References: <1478781977-116803-1-git-send-email-oulijun@huawei.com>
+ <20161110161550.GD28957@leon.nu> <5825673A.1050109@huawei.com>
+ <20161111124240.GG28957@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479033360-56035-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161111124240.GG28957-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch mainly introduces the verbs with pd and mr,
-included alloc_pd, dealloc_pd, reg_mr and dereg_mr.
+在 2016/11/11 20:42, Leon Romanovsky 写道:
+> On Fri, Nov 11, 2016 at 02:37:46PM +0800, oulijun wrote:
+>> 在 2016/11/11 0:15, Leon Romanovsky 写道:
+>>> On Thu, Nov 10, 2016 at 08:46:10PM +0800, Lijun Ou wrote:
+>>>> This patch series introduces userspace library for hns RoCE driver.
+>>>>
+>>>> changes v2 -> v3:
+>>>> 1. Fix the code style, for example, if (addr == NULL)
+>>>> 2. Fix the bug for hns_roce_u_reg_mr
+>>>>
+>>>> changes v1 -> v2:
+>>>> 1. Delete the min() definition and instead of ccan header
+>>>> 2. Delete the CHECK_C_SOURCE_COMPILES
+>>>> 3. sort the c file in rdma_provider()
+>>>> 4. Delete the unused code in hns_roce_u_db.h
+>>>>
+>>>> Lijun Ou (7):
+>>>>   libhns: Add initial main frame
+>>>>   libhns: Add verbs of querying device and querying port
+>>>>   libhns: Add verbs of pd and mr support
+>>>>   libhns: Add verbs of cq support
+>>>>   libhns: Add verbs of qp support
+>>>>   libhns: Add verbs of post_send and post_recv support
+>>>>   libhns: Add consolidated repo for userspace library of hns
+>>>
+>>> Hi Lijun,
+>>>
+>>> I tried to take your patch set, but it fails to pass our Travis CI
+>>> tests.
+>>>
+>>> https://github.com/linux-rdma/rdma-core/pull/38
+>>> https://travis-ci.org/linux-rdma/rdma-core/builds/174815897
+>>>
+>>> You need to fix it prior to our acceptance.
+>>>
+>>> Thanks
+>>>
+>> Hi, Leon
+>>   I have checked the patches and fixed it and send the patchv4. I think that
+>> the patchv4 will not have errors and warnings for travis CI testing, but
+>> I don't have the Travis CI environment for testing it.
+>> I have tried to install the test environment according to your test log and it
+>> is fail.
+>> In addtion that, I have tested it for  patchv1/patchv2/patch3 by use the following way and it
+>> is ok
+>>  1. directly use the default script file build.sh
+>>     ./build.sh
+>>  2. use CC=aarch64-linux-gnu-gcc build
+>>     mkdir build
+>>     cd build
+>>     CC=aarch64-linux-gnu-gcc cmake -Gninja -DENABLE_RESOLVE_NEIGH=0 ..
+> 
+> Generally speaking, you have 4 possible ways to check your code prior
+> your submission:
+> 1. Use Travis CI locally [1].
+> 2. Fork rdma-core to your personal github account which can be connected
+> to Travis CI for free.
+> 3. Install all required tools and run/compile locally
+> 4. Send pull request to rdma-core via github interface and it will check
+> automatically.
+> 
+> First 3 options are the best.
+> 
+> [1]
+> https://docs.travis-ci.com/user/common-build-problems/#Troubleshooting-Locally-in-a-Docker-Image
+> 
+Thanks for your guide. I have test it according the [2] and sent patchv5
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
-v5/v4:
-- No change over v3
+Lijun Ou
+>>
+>> lijun Ou
+>>>
+>>>>
+>>>>  CMakeLists.txt                   |   1 +
+>>>>  MAINTAINERS                      |   6 +
+>>>>  README.md                        |   1 +
+>>>>  providers/hns/CMakeLists.txt     |   6 +
+>>>>  providers/hns/hns_roce_u.c       | 228 +++++++++++
+>>>>  providers/hns/hns_roce_u.h       | 255 ++++++++++++
+>>>>  providers/hns/hns_roce_u_abi.h   |  69 ++++
+>>>>  providers/hns/hns_roce_u_buf.c   |  61 +++
+>>>>  providers/hns/hns_roce_u_db.h    |  54 +++
+>>>>  providers/hns/hns_roce_u_hw_v1.c | 839 +++++++++++++++++++++++++++++++++++++++
+>>>>  providers/hns/hns_roce_u_hw_v1.h | 242 +++++++++++
+>>>>  providers/hns/hns_roce_u_verbs.c | 525 ++++++++++++++++++++++++
+>>>>  12 files changed, 2287 insertions(+)
+>>>>  create mode 100644 providers/hns/CMakeLists.txt
+>>>>  create mode 100644 providers/hns/hns_roce_u.c
+>>>>  create mode 100644 providers/hns/hns_roce_u.h
+>>>>  create mode 100644 providers/hns/hns_roce_u_abi.h
+>>>>  create mode 100644 providers/hns/hns_roce_u_buf.c
+>>>>  create mode 100644 providers/hns/hns_roce_u_db.h
+>>>>  create mode 100644 providers/hns/hns_roce_u_hw_v1.c
+>>>>  create mode 100644 providers/hns/hns_roce_u_hw_v1.h
+>>>>  create mode 100644 providers/hns/hns_roce_u_verbs.c
+>>>>
+>>>> --
+>>>> 1.9.1
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
 
-v3:
-This fixes the comments given by Leon Romanovsky on PATCHv2
-
-v2:
-- No change over v1
-
-v1:
-- The initial submit
----
- providers/hns/hns_roce_u.c       |  4 ++
- providers/hns/hns_roce_u.h       | 18 +++++++++
- providers/hns/hns_roce_u_abi.h   |  6 +++
- providers/hns/hns_roce_u_verbs.c | 79 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 107 insertions(+)
-
-diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index c0f6fe9..53e2720 100644
---- a/providers/hns/hns_roce_u.c
-+++ b/providers/hns/hns_roce_u.c
-@@ -97,6 +97,10 @@ static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 
- 	context->ibv_ctx.ops.query_device  = hns_roce_u_query_device;
- 	context->ibv_ctx.ops.query_port    = hns_roce_u_query_port;
-+	context->ibv_ctx.ops.alloc_pd	   = hns_roce_u_alloc_pd;
-+	context->ibv_ctx.ops.dealloc_pd    = hns_roce_u_free_pd;
-+	context->ibv_ctx.ops.reg_mr	   = hns_roce_u_reg_mr;
-+	context->ibv_ctx.ops.dereg_mr	   = hns_roce_u_dereg_mr;
- 
- 	if (hns_roce_u_query_device(&context->ibv_ctx, &dev_attrs))
- 		goto tptr_free;
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index aa58ee6..5b73794 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -73,6 +73,11 @@ struct hns_roce_context {
- 	int				max_cqe;
- };
- 
-+struct hns_roce_pd {
-+	struct ibv_pd			ibv_pd;
-+	unsigned int			pdn;
-+};
-+
- static inline struct hns_roce_device *to_hr_dev(struct ibv_device *ibv_dev)
- {
- 	return container_of(ibv_dev, struct hns_roce_device, ibv_dev);
-@@ -83,8 +88,21 @@ static inline struct hns_roce_context *to_hr_ctx(struct ibv_context *ibv_ctx)
- 	return container_of(ibv_ctx, struct hns_roce_context, ibv_ctx);
- }
- 
-+static inline struct hns_roce_pd *to_hr_pd(struct ibv_pd *ibv_pd)
-+{
-+	return container_of(ibv_pd, struct hns_roce_pd, ibv_pd);
-+}
-+
- int hns_roce_u_query_device(struct ibv_context *context,
- 			    struct ibv_device_attr *attr);
- int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
- 			  struct ibv_port_attr *attr);
-+
-+struct ibv_pd *hns_roce_u_alloc_pd(struct ibv_context *context);
-+int hns_roce_u_free_pd(struct ibv_pd *pd);
-+
-+struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
-+				 int access);
-+int hns_roce_u_dereg_mr(struct ibv_mr *mr);
-+
- #endif /* _HNS_ROCE_U_H */
-diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
-index 4bfc8fa..0a0cd0c 100644
---- a/providers/hns/hns_roce_u_abi.h
-+++ b/providers/hns/hns_roce_u_abi.h
-@@ -40,4 +40,10 @@ struct hns_roce_alloc_ucontext_resp {
- 	__u32				qp_tab_size;
- };
- 
-+struct hns_roce_alloc_pd_resp {
-+	struct ibv_alloc_pd_resp	ibv_resp;
-+	__u32				pdn;
-+	__u32				reserved;
-+};
-+
- #endif /* _HNS_ROCE_U_ABI_H */
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index 2d95f20..c163d3c 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -71,3 +71,82 @@ int hns_roce_u_query_port(struct ibv_context *context, uint8_t port,
- 
- 	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
- }
-+
-+struct ibv_pd *hns_roce_u_alloc_pd(struct ibv_context *context)
-+{
-+	struct ibv_alloc_pd cmd;
-+	struct hns_roce_pd *pd;
-+	struct hns_roce_alloc_pd_resp resp;
-+
-+	pd = (struct hns_roce_pd *)malloc(sizeof(*pd));
-+	if (!pd)
-+		return NULL;
-+
-+	if (ibv_cmd_alloc_pd(context, &pd->ibv_pd, &cmd, sizeof(cmd),
-+			     &resp.ibv_resp, sizeof(resp))) {
-+		free(pd);
-+		return NULL;
-+	}
-+
-+	pd->pdn = resp.pdn;
-+
-+	return &pd->ibv_pd;
-+}
-+
-+int hns_roce_u_free_pd(struct ibv_pd *pd)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_dealloc_pd(pd);
-+	if (ret)
-+		return ret;
-+
-+	free(to_hr_pd(pd));
-+
-+	return ret;
-+}
-+
-+struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
-+				 int access)
-+{
-+	int ret;
-+	struct ibv_mr *mr;
-+	struct ibv_reg_mr cmd;
-+	struct ibv_reg_mr_resp resp;
-+
-+	if (!addr) {
-+		fprintf(stderr, "2nd parm addr is NULL!\n");
-+		return NULL;
-+	}
-+
-+	if (!length) {
-+		fprintf(stderr, "3st parm length is 0!\n");
-+		return NULL;
-+	}
-+
-+	mr = malloc(sizeof(*mr));
-+	if (!mr)
-+		return NULL;
-+
-+	ret = ibv_cmd_reg_mr(pd, addr, length, (uintptr_t) addr, access, mr,
-+			     &cmd, sizeof(cmd), &resp, sizeof(resp));
-+	if (ret) {
-+		free(mr);
-+		return NULL;
-+	}
-+
-+	return mr;
-+}
-+
-+int hns_roce_u_dereg_mr(struct ibv_mr *mr)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_dereg_mr(mr);
-+	if (ret)
-+		return ret;
-+
-+	free(mr);
-+
-+	return ret;
-+}
--- 
-1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
