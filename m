@@ -1,51 +1,53 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] qedr: Add support for QP verbs
-Date: Mon, 14 Nov 2016 16:03:10 +0300
-Message-ID: <20161114130310.GA14500@mwanda>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] IB/mlx4: Rework special QP creation error path
+Date: Mon, 14 Nov 2016 08:44:11 -0800
+Message-ID: <3a41daa7-cfb8-7374-5dab-dfa3b1bf83ff@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Ram Amrani,
+The special QP creation error path relies on offset_of(struct mlx4_ib_sqp,
+qp) == 0. Remove this assumption because that makes the QP creation
+code easier to understand.
 
-The patch cecbcddf6461: "qedr: Add support for QP verbs" from Oct 10,
-2016, leads to the following static checker warning:
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/qp.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-	drivers/infiniband/hw/qedr/verbs.c:2067 qedr_destroy_qp()
-	'0x5 | 0x1' has '0x1' set on both sides
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 570bc86..b63d6be 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -644,7 +644,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 	int qpn;
+ 	int err;
+ 	struct ib_qp_cap backup_cap;
+-	struct mlx4_ib_sqp *sqp;
++	struct mlx4_ib_sqp *sqp = NULL;
+ 	struct mlx4_ib_qp *qp;
+ 	enum mlx4_ib_qp_type qp_type = (enum mlx4_ib_qp_type) init_attr->qp_type;
+ 	struct mlx4_ib_cq *mcq;
+@@ -933,7 +933,9 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 		mlx4_db_free(dev->dev, &qp->db);
+ 
+ err:
+-	if (!*caller_qp)
++	if (sqp)
++		kfree(sqp);
++	else if (!*caller_qp)
+ 		kfree(qp);
+ 	return err;
+ }
+-- 
+2.10.1
 
-drivers/infiniband/hw/qedr/verbs.c
-  2056  int qedr_destroy_qp(struct ib_qp *ibqp)
-  2057  {
-  2058          struct qedr_qp *qp = get_qedr_qp(ibqp);
-  2059          struct qedr_dev *dev = qp->dev;
-  2060          struct ib_qp_attr attr;
-  2061          int attr_mask = 0;
-  2062          int rc = 0;
-  2063  
-  2064          DP_DEBUG(dev, QEDR_MSG_QP, "destroy qp: destroying %p, qp type=%d\n",
-  2065                   qp, qp->qp_type);
-  2066  
-  2067          if (qp->state != (QED_ROCE_QP_STATE_RESET | QED_ROCE_QP_STATE_ERR |
-  2068                            QED_ROCE_QP_STATE_INIT)) {
-
-These aren't bitfields, they're just numbers.  This code is pretty
-suspect.  Not sure what was intended.
-
-  2069                  attr.qp_state = IB_QPS_ERR;
-  2070                  attr_mask |= IB_QP_STATE;
-  2071  
-  2072                  /* Change the QP state to ERROR */
-  2073                  qedr_modify_qp(ibqp, &attr, attr_mask, NULL);
-  2074          }
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
