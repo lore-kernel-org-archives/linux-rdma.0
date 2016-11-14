@@ -1,296 +1,90 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 6/6] IB/mlx5: Add support to match inner packet fields
-Date: Mon, 14 Nov 2016 19:04:52 +0200
-Message-ID: <1479143092-11723-7-git-send-email-leonro@mellanox.com>
-References: <1479143092-11723-1-git-send-email-leonro@mellanox.com>
+Subject: [PATCH rdma-next 0/6] Add support for Vxlan protocol for the steering rules
+Date: Mon, 14 Nov 2016 19:04:46 +0200
+Message-ID: <1479143092-11723-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479143092-11723-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moses Reuben <mosesr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moses Reuben <mosesr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Add support to match packet fields which are tunneled,
-i.e. support matching the header of the inner packet which is the result of
-or bit operation of the original header and the IB_FLOW_SPEC_INNER type.
+Virtual Extensible LAN - Vxlan is a proposed encapsulation protocol for
+running an overlay network on existing Layer 3 infrastructure. An
+overlay network is a virtual network that is built on top of existing
+network Layer 2 and Layer 3 technologies to support elastic COMPUTE
+architectures. Vxlan will make it easier for network engineers to scale
+out a cloud computing environment while logically isolating cloud apps
+and tenants.
 
-The combination of IB_FLOW_SPEC_INNER | IB_FLOW_SPEC_VXLAN_TUNNEL is not
-needed to be checked, because the IB core has this check already.
+This patchset introduces support Vxlan steering rules to IB/core and
+mlx5 devices implementation. The application will be able to send
+packet with Vxlan tunneling, and configure a steering rule to receive
+the stream from the rule to the QP.
 
-Signed-off-by: Moses Reuben <mosesr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 131 +++++++++++++++++++++++---------------
- 1 file changed, 78 insertions(+), 53 deletions(-)
+The rule will contain inner and outer parts for the inner and outer
+protocol header respectively. The matching is based on the rule
+specification and it includes the Vxlan header itself, so application
+will be able to send several Vxlan streams with a new vni for each stream.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index a833f45..65eb5e0 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1502,6 +1502,22 @@ static void set_proto(void *outer_c, void *outer_v, u8 mask, u8 val)
- 	MLX5_SET(fte_match_set_lyr_2_4, outer_v, ip_protocol, val);
- }
+In order to steer traffic according to a Vxlan tunnel ID, there is a need to
+use the ibv_cmd_create_flow call. At the end of the struct, the application
+should append several specs for each feature.
 
-+static void set_flow_label(void *misc_c, void *misc_v, u8 mask, u8 val,
-+			   bool inner)
-+{
-+	if (inner) {
-+		MLX5_SET(fte_match_set_misc,
-+			 misc_c, inner_ipv6_flow_label, mask);
-+		MLX5_SET(fte_match_set_misc,
-+			 misc_v, inner_ipv6_flow_label, val);
-+	} else {
-+		MLX5_SET(fte_match_set_misc,
-+			 misc_c, outer_ipv6_flow_label, mask);
-+		MLX5_SET(fte_match_set_misc,
-+			 misc_v, outer_ipv6_flow_label, val);
-+	}
-+}
-+
- static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
- {
- 	MLX5_SET(fte_match_set_lyr_2_4, outer_c, ip_ecn, mask);
-@@ -1528,155 +1544,164 @@ static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
- static int parse_flow_attr(u32 *match_c, u32 *match_v,
- 			   const union ib_flow_spec *ib_spec)
- {
--	void *outer_headers_c = MLX5_ADDR_OF(fte_match_param, match_c,
--					     outer_headers);
--	void *outer_headers_v = MLX5_ADDR_OF(fte_match_param, match_v,
--					     outer_headers);
- 	void *misc_params_c = MLX5_ADDR_OF(fte_match_param, match_c,
- 					   misc_parameters);
- 	void *misc_params_v = MLX5_ADDR_OF(fte_match_param, match_v,
- 					   misc_parameters);
-+	void *headers_c;
-+	void *headers_v;
-+
-+	if (ib_spec->type & IB_FLOW_SPEC_INNER) {
-+		headers_c = MLX5_ADDR_OF(fte_match_param, match_c,
-+					 inner_headers);
-+		headers_v = MLX5_ADDR_OF(fte_match_param, match_v,
-+					 inner_headers);
-+	} else {
-+		headers_c = MLX5_ADDR_OF(fte_match_param, match_c,
-+					 outer_headers);
-+		headers_v = MLX5_ADDR_OF(fte_match_param, match_v,
-+					 outer_headers);
-+	}
+The number of specifications to add is 4. Use the first as the Vxlan
+spec (tunnel), which is described below. The following specifications to
+add are the L2, L3, and L4 specs.
 
--	switch (ib_spec->type) {
-+	switch (ib_spec->type & ~IB_FLOW_SPEC_INNER) {
- 	case IB_FLOW_SPEC_ETH:
- 		if (FIELDS_NOT_SUPPORTED(ib_spec->eth.mask, LAST_ETH_FIELD))
- 			return -ENOTSUPP;
+There is an option to mask a range of tunnel IDs to be steered by using
+the filler mask, This following example provides the ibv_flow_tunnel_filter
+struct definition:
 
--		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
-+		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
- 					     dmac_47_16),
- 				ib_spec->eth.mask.dst_mac);
--		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
-+		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
- 					     dmac_47_16),
- 				ib_spec->eth.val.dst_mac);
+struct ibv_flow_tunnel_filter {
+        uint32_t tunnel_id;
+};
 
--		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
-+		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
- 					     smac_47_16),
- 				ib_spec->eth.mask.src_mac);
--		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
-+		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
- 					     smac_47_16),
- 				ib_spec->eth.val.src_mac);
+This following example specifies the Vxlan tunnel definition:
 
- 		if (ib_spec->eth.mask.vlan_tag) {
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 				 vlan_tag, 1);
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 				 vlan_tag, 1);
+struct ibv_flow_spec_tunnel {
+        enum ibv_flow_spec_type  type;
+        uint16_t  size;
+        struct ibv_flow_tunnel_filter val;
+        struct ibv_flow_tunnel_filter mask;
+};
 
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 				 first_vid, ntohs(ib_spec->eth.mask.vlan_tag));
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 				 first_vid, ntohs(ib_spec->eth.val.vlan_tag));
+Where:
 
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 				 first_cfi,
- 				 ntohs(ib_spec->eth.mask.vlan_tag) >> 12);
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 				 first_cfi,
- 				 ntohs(ib_spec->eth.val.vlan_tag) >> 12);
+ * type - Specifies that there is a need to use IBV_FLOW_SPEC_VXLAN_TUNNEL
+	to define the spec as an Vxlan spec.
+ * size - Identifies the size of the ibv_kern_spec_tunnel.
+ * tunnel_id: Indicates that the tunnel ID as in the Vxlan header.
 
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 				 first_prio,
- 				 ntohs(ib_spec->eth.mask.vlan_tag) >> 13);
--			MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+			MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 				 first_prio,
- 				 ntohs(ib_spec->eth.val.vlan_tag) >> 13);
- 		}
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 			 ethertype, ntohs(ib_spec->eth.mask.ether_type));
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 			 ethertype, ntohs(ib_spec->eth.val.ether_type));
- 		break;
- 	case IB_FLOW_SPEC_IPV4:
- 		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv4.mask, LAST_IPV4_FIELD))
- 			return -ENOTSUPP;
 
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 			 ethertype, 0xffff);
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 			 ethertype, ETH_P_IP);
+Thanks,
+	Mosses and Leon.
 
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
- 				    src_ipv4_src_ipv6.ipv4_layout.ipv4),
- 		       &ib_spec->ipv4.mask.src_ip,
- 		       sizeof(ib_spec->ipv4.mask.src_ip));
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
- 				    src_ipv4_src_ipv6.ipv4_layout.ipv4),
- 		       &ib_spec->ipv4.val.src_ip,
- 		       sizeof(ib_spec->ipv4.val.src_ip));
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
- 				    dst_ipv4_dst_ipv6.ipv4_layout.ipv4),
- 		       &ib_spec->ipv4.mask.dst_ip,
- 		       sizeof(ib_spec->ipv4.mask.dst_ip));
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
- 				    dst_ipv4_dst_ipv6.ipv4_layout.ipv4),
- 		       &ib_spec->ipv4.val.dst_ip,
- 		       sizeof(ib_spec->ipv4.val.dst_ip));
+Available in the "topic/vxlan" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/vxlan
 
--		set_tos(outer_headers_c, outer_headers_v,
-+		set_tos(headers_c, headers_v,
- 			ib_spec->ipv4.mask.tos, ib_spec->ipv4.val.tos);
+CC: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
--		set_proto(outer_headers_c, outer_headers_v,
-+		set_proto(headers_c, headers_v,
- 			  ib_spec->ipv4.mask.proto, ib_spec->ipv4.val.proto);
- 		break;
- 	case IB_FLOW_SPEC_IPV6:
- 		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv6.mask, LAST_IPV6_FIELD))
- 			return -ENOTSUPP;
+Moses Reuben (6):
+  IB/core: Add flow spec tunneling support
+  IB/core: Align structure ib_flow_spec_type
+  IB/uverbs: Add support for Vxlan protocol
+  IB/mlx5: Support Vxlan tunneling specification
+  IB/core: Introduce inner flow steering
+  IB/mlx5: Add support to match inner packet fields
 
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c,
- 			 ethertype, 0xffff);
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v,
- 			 ethertype, ETH_P_IPV6);
+ drivers/infiniband/core/uverbs_cmd.c |  19 ++++-
+ drivers/infiniband/hw/mlx5/main.c    | 142 ++++++++++++++++++++++-------------
+ include/rdma/ib_verbs.h              |  44 +++++++----
+ include/uapi/rdma/ib_user_verbs.h    |  17 +++++
+ 4 files changed, 155 insertions(+), 67 deletions(-)
 
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
- 				    src_ipv4_src_ipv6.ipv6_layout.ipv6),
- 		       &ib_spec->ipv6.mask.src_ip,
- 		       sizeof(ib_spec->ipv6.mask.src_ip));
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
- 				    src_ipv4_src_ipv6.ipv6_layout.ipv6),
- 		       &ib_spec->ipv6.val.src_ip,
- 		       sizeof(ib_spec->ipv6.val.src_ip));
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_c,
- 				    dst_ipv4_dst_ipv6.ipv6_layout.ipv6),
- 		       &ib_spec->ipv6.mask.dst_ip,
- 		       sizeof(ib_spec->ipv6.mask.dst_ip));
--		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_v,
-+		memcpy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, headers_v,
- 				    dst_ipv4_dst_ipv6.ipv6_layout.ipv6),
- 		       &ib_spec->ipv6.val.dst_ip,
- 		       sizeof(ib_spec->ipv6.val.dst_ip));
-
--		set_tos(outer_headers_c, outer_headers_v,
-+		set_tos(headers_c, headers_v,
- 			ib_spec->ipv6.mask.traffic_class,
- 			ib_spec->ipv6.val.traffic_class);
-
--		set_proto(outer_headers_c, outer_headers_v,
-+		set_proto(headers_c, headers_v,
- 			  ib_spec->ipv6.mask.next_hdr,
- 			  ib_spec->ipv6.val.next_hdr);
-
--		MLX5_SET(fte_match_set_misc, misc_params_c,
--			 outer_ipv6_flow_label,
--			 ntohl(ib_spec->ipv6.mask.flow_label));
--		MLX5_SET(fte_match_set_misc, misc_params_v,
--			 outer_ipv6_flow_label,
--			 ntohl(ib_spec->ipv6.val.flow_label));
-+		set_flow_label(misc_params_c, misc_params_v,
-+			       ntohl(ib_spec->ipv6.mask.flow_label),
-+			       ntohl(ib_spec->ipv6.val.flow_label),
-+			       ib_spec->type & IB_FLOW_SPEC_INNER);
-+
- 		break;
- 	case IB_FLOW_SPEC_TCP:
- 		if (FIELDS_NOT_SUPPORTED(ib_spec->tcp_udp.mask,
- 					 LAST_TCP_UDP_FIELD))
- 			return -ENOTSUPP;
-
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, ip_protocol,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c, ip_protocol,
- 			 0xff);
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v, ip_protocol,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v, ip_protocol,
- 			 IPPROTO_TCP);
-
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, tcp_sport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c, tcp_sport,
- 			 ntohs(ib_spec->tcp_udp.mask.src_port));
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v, tcp_sport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v, tcp_sport,
- 			 ntohs(ib_spec->tcp_udp.val.src_port));
-
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, tcp_dport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c, tcp_dport,
- 			 ntohs(ib_spec->tcp_udp.mask.dst_port));
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v, tcp_dport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v, tcp_dport,
- 			 ntohs(ib_spec->tcp_udp.val.dst_port));
- 		break;
- 	case IB_FLOW_SPEC_UDP:
-@@ -1684,19 +1709,19 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
- 					 LAST_TCP_UDP_FIELD))
- 			return -ENOTSUPP;
-
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, ip_protocol,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c, ip_protocol,
- 			 0xff);
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v, ip_protocol,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v, ip_protocol,
- 			 IPPROTO_UDP);
-
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, udp_sport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c, udp_sport,
- 			 ntohs(ib_spec->tcp_udp.mask.src_port));
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v, udp_sport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v, udp_sport,
- 			 ntohs(ib_spec->tcp_udp.val.src_port));
-
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, udp_dport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_c, udp_dport,
- 			 ntohs(ib_spec->tcp_udp.mask.dst_port));
--		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_v, udp_dport,
-+		MLX5_SET(fte_match_set_lyr_2_4, headers_v, udp_dport,
- 			 ntohs(ib_spec->tcp_udp.val.dst_port));
- 		break;
- 	case IB_FLOW_SPEC_VXLAN_TUNNEL:
 --
 2.7.4
 
