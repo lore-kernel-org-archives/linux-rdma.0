@@ -1,79 +1,78 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5 rdma-core 0/7] libhns: userspace library for hns
-Date: Mon, 14 Nov 2016 07:53:03 +0200
-Message-ID: <20161114055303.GA4240@leon.nu>
-References: <1479033360-56035-1-git-send-email-oulijun@huawei.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/usnic: simplify IS_ERR_OR_NULL to IS_ERR
+Date: Mon, 14 Nov 2016 08:00:23 +0200
+Message-ID: <20161114060023.GB4240@leon.nu>
+References: <1478891066-16093-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="kORqDWCi7qDJ0mEj"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1479033360-56035-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+In-Reply-To: <1478891066-16093-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Christian Benvenuti <benve@cisco.com>, kernel-janitors@vger.kernel.org, Dave Goodell <dgoodell@cisco.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 List-Id: linux-rdma@vger.kernel.org
 
 
---PNTmBPCT7hxwcZjr
+--kORqDWCi7qDJ0mEj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Nov 13, 2016 at 06:35:53PM +0800, Lijun Ou wrote:
-> This patch series introduces userspace library for hns RoCE driver.
+On Fri, Nov 11, 2016 at 08:04:26PM +0100, Julia Lawall wrote:
+> The function usnic_ib_qp_grp_get_chunk only returns an ERR_PTR value or a
+> valid pointer, never NULL.  The same is true of get_qp_res_chunk, which
+> just returns the result of calling usnic_ib_qp_grp_get_chunk.  Simplify
+> IS_ERR_OR_NULL to IS_ERR in both cases.
 >
-> changes v4 -> v5:
-> 1. elminate the warning when CFLAGS equal to -m32
+> The semantic patch that makes this change is as follows:
+> (http://coccinelle.lip6.fr/)
 >
-> changes v3 -> v4:
-> 1. eliminate the warning by Travis CI testing
+> // <smpl>
+> @@
+> expression t,e;
+> @@
 >
-> changes v2 -> v3:
-> 1. Fix the code style, for example, if (addr == NULL)
-> 2. Fix the bug for hns_roce_u_reg_mr
+> t = \(usnic_ib_qp_grp_get_chunk(...)\|get_qp_res_chunk(...)\)
+> ... when != t=e
+> - IS_ERR_OR_NULL(t)
+> + IS_ERR(t)
 >
-> changes v1 -> v2:
-> 1. Delete the min() definition and instead of ccan header
-> 2. Delete the CHECK_C_SOURCE_COMPILES
-> 3. sort the c file in rdma_provider()
-> 4. Delete the unused code in hns_roce_u_db.h
+> @@
+> expression t,e,e1;
+> @@
 >
-> Lijun Ou (7):
->   libhns: Add initial main frame
->   libhns: Add verbs of querying device and querying port
->   libhns: Add verbs of pd and mr support
->   libhns: Add verbs of cq support
->   libhns: Add verbs of qp support
->   libhns: Add verbs of post_send and post_recv support
->   libhns: Add consolidated repo for userspace library of hns
+> t = \(usnic_ib_qp_grp_get_chunk(...)\|get_qp_res_chunk(...)\)
+> ... when != t=e
+> ?- t ? PTR_ERR(t) : e1
+> + PTR_ERR(t)
+> ... when any
+> // </smpl>
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
+Thanks, Julia.
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-Thanks, applied.
-https://github.com/linux-rdma/rdma-core/pull/38
-
---PNTmBPCT7hxwcZjr
+--kORqDWCi7qDJ0mEj
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJYKVE/AAoJEORje4g2clin3eoP/RslRMom/Q8DvogvIEyZVhY5
-yoSZ7/8lIilYyMd6kJvkLQS7oSvmwWiQvSwmLdj1hj6x4hMDKl6WZAwPJTSc0IC+
-GZrIz5fhneFJFOvXVP6ZI362NYdQkffBR0Mt454dJprCneWnlmD6xJrZLXoQHcx5
-Ut5P5lTIaNX3tSsP6uxlD3xgAqYnrIwiFNaai/DSUzqmytYoWZJnqh6v2wHDpBag
-kjXJeA+ZEXrcCVMW7m3rIjBH6Tm9xEobQyQkTITBZZ/Wxt+TiZKtBkdY1AKbdtL8
-jAKzGnLTaXGupEAeO7NQstNHV2p9SXTS96OQWN989REjkBwrGqFqiFeeBaCPs+s2
-ELh909conLVZHoljlN49Pi5Sj3+HvleiJCk1+4hVfnhxtqJMr2z/yzWumIDsccE4
-yj6TKIwn9XZk/Kabthy3uNuFfvXV4cqqAeymeEQ6tqjwuDpBEO006v3mH3GUiZx5
-MU0SoTh4KURfF+uTLTSr2fZTmEQ+Ue/Pi2QgNA2AThIM23QHKkpyxa/xsowwvZ9G
-eD5YgnhHnNPnam0pWQvOqj1B96L5gA3116qHi4J8fh2EpFXmHgVPAGGtMdElJPZ7
-kC9OcuRLafzXpptFckjYhJUG0r+Z5+7ybR3E6ir7p6rxjLJwcBy1fZ37dp16uwBE
-dpzU2OUBIYnIyfvAsaDq
-=tfZY
+iQIcBAEBAgAGBQJYKVL3AAoJEORje4g2clinKTUP+wV98kdPc1hsfSjPkgnqyRPS
+P1fvUicQTLoPBZeh4Ota+wtNfTbKn60slZbs7gtqayBwRJN4sPoW8FsMp9LAknFq
++OGPaZTkENA1uut4Tbv4Eu+RU95YzUBrkcUc2KRa/eZY9tLewM6Bls9LGr4i6k9s
+1vqmdBECitXLpdRFhy7uSPDLZBn3BwV402LHQAh4x8ZM8qpIHJKycGr26hLy91NI
+a8m5lxWG/VnzOByXUb2pXBH+U5QiCUVGDgj0l+due2myiwKMHK9j9sElKE+gMYsf
+MQSuRFX4o4cbXnXe1IgQE0oCAHbuXsWL/td7YgMEVC4m30WXd1XEcwldqudblYZp
+gnxMD0tDUpCKUdmJb9hPCMYwpi4XtmQvwuFX933lD/lPAFwGyg1eZ6NDixqZDzYI
+g4CrxW9Su8ytj+1nh8as4xBRAp/Ugk87iIhD4pWK/LLI+z3bjarjA6//kmmypon0
+CA3FN1z0LP3BXlsSZkW/XdVhEF/3o0wGpbbO6TUJ7ppCH4WH9SKpfiJ4lIm5M9s8
+rs3Mru6RiTmgdVPDsIU1yPSZAlu5lKAu76MWrKJEc/hsRjuHFJB8Kj0AsGbLdC3u
+MtGljQnn6Hv8vBb4B1gIlG0xDECXSkxhhODZxZHHuqb4qoysYYd7J1p+GL8AdTjQ
+we/nOtvGq1DhMQ7p3/m/
+=CzY2
 -----END PGP SIGNATURE-----
 
---PNTmBPCT7hxwcZjr--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--kORqDWCi7qDJ0mEj--
