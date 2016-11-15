@@ -1,68 +1,62 @@
 From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [patch] qedr: Unlock on error in qedr_post_send()
-Date: Tue, 15 Nov 2016 10:28:46 +0000
-Message-ID: <DM3PR07MB220156E77D0C7992E1D88678F8BF0@DM3PR07MB2201.namprd07.prod.outlook.com>
-References: <20161115095059.GB15424@mwanda>
+Subject: RE: [bug report] qedr: Add support for QP verbs
+Date: Tue, 15 Nov 2016 10:36:25 +0000
+Message-ID: <DM3PR07MB2201E89EF3D5A27A9FE6DFB5F8BF0@DM3PR07MB2201.namprd07.prod.outlook.com>
+References: <20161114130310.GA14500@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161115095059.GB15424@mwanda>
+In-Reply-To: <20161114130310.GA14500@mwanda>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Borundia, Rajesh" <Rajesh.Borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> If "wr" is NULL then we return without unlocking.  I added an unlock
-> label and changed the direct returns to gotos.
+> Hello Ram Amrani,
 >=20
-> Fixes: afa0e13be754 ("qedr: Add support for data path")
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> The patch cecbcddf6461: "qedr: Add support for QP verbs" from Oct 10, 201=
+6,
+> leads to the following static checker warning:
 >=20
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c
-> b/drivers/infiniband/hw/qedr/verbs.c
-> index a615142..01d05b0 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -2973,17 +2973,18 @@ int qedr_post_send(struct ib_qp *ibqp, struct
-> ib_send_wr *wr,
+> 	drivers/infiniband/hw/qedr/verbs.c:2067 qedr_destroy_qp()
+> 	'0x5 | 0x1' has '0x1' set on both sides
 >=20
->  	if ((qp->state =3D=3D QED_ROCE_QP_STATE_RESET) ||
->  	    (qp->state =3D=3D QED_ROCE_QP_STATE_ERR)) {
-> -		spin_unlock_irqrestore(&qp->q_lock, flags);
->  		*bad_wr =3D wr;
->  		DP_DEBUG(dev, QEDR_MSG_CQ,
->  			 "QP in wrong state! QP icid=3D0x%x state %d\n",
->  			 qp->icid, qp->state);
-> -		return -EINVAL;
-> +		rc =3D -EINVAL;
-> +		goto unlock;
->  	}
+> drivers/infiniband/hw/qedr/verbs.c
+>   2056  int qedr_destroy_qp(struct ib_qp *ibqp)
+>   2057  {
+>   2058          struct qedr_qp *qp =3D get_qedr_qp(ibqp);
+>   2059          struct qedr_dev *dev =3D qp->dev;
+>   2060          struct ib_qp_attr attr;
+>   2061          int attr_mask =3D 0;
+>   2062          int rc =3D 0;
+>   2063
+>   2064          DP_DEBUG(dev, QEDR_MSG_QP, "destroy qp: destroying %p, qp
+> type=3D%d\n",
+>   2065                   qp, qp->qp_type);
+>   2066
+>   2067          if (qp->state !=3D (QED_ROCE_QP_STATE_RESET |
+> QED_ROCE_QP_STATE_ERR |
+>   2068                            QED_ROCE_QP_STATE_INIT)) {
 >=20
->  	if (!wr) {
->  		DP_ERR(dev, "Got an empty post send.\n");
-> -		return -EINVAL;
-> +		rc =3D -EINVAL;
-> +		goto unlock;
->  	}
+> These aren't bitfields, they're just numbers.  This code is pretty suspec=
+t.  Not
+> sure what was intended.
 >=20
->  	while (wr) {
-> @@ -3012,6 +3013,7 @@ int qedr_post_send(struct ib_qp *ibqp, struct
-> ib_send_wr *wr,
->  	/* Make sure write sticks */
->  	mmiowb();
+>   2069                  attr.qp_state =3D IB_QPS_ERR;
+>   2070                  attr_mask |=3D IB_QP_STATE;
+>   2071
+>   2072                  /* Change the QP state to ERROR */
+>   2073                  qedr_modify_qp(ibqp, &attr, attr_mask, NULL);
+>   2074          }
 >=20
-> +unlock:
->  	spin_unlock_irqrestore(&qp->q_lock, flags);
->=20
->  	return rc;
+> regards,
+> dan carpenter
 
-Thanks for catching this. However this was already taken care of by Wei Yon=
-gjun in a different manner.
-See: https://patchwork.kernel.org/patch/9409053/=20
+That's a real bug. Thanks!
+Will fix.
 
-Thanks,
 Ram
 
 --
