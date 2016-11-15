@@ -1,64 +1,71 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [bug report] qedr: Add support for QP verbs
-Date: Tue, 15 Nov 2016 10:36:25 +0000
-Message-ID: <DM3PR07MB2201E89EF3D5A27A9FE6DFB5F8BF0@DM3PR07MB2201.namprd07.prod.outlook.com>
-References: <20161114130310.GA14500@mwanda>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: suspicious rcu_dereference_protected() usage in mlx4 when tearing
+ down an interface
+Date: Tue, 15 Nov 2016 14:30:13 +0200
+Message-ID: <52285420-40b9-afdb-cb29-7e0c939ece26@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161114130310.GA14500@mwanda>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hello Ram Amrani,
->=20
-> The patch cecbcddf6461: "qedr: Add support for QP verbs" from Oct 10, 201=
-6,
-> leads to the following static checker warning:
->=20
-> 	drivers/infiniband/hw/qedr/verbs.c:2067 qedr_destroy_qp()
-> 	'0x5 | 0x1' has '0x1' set on both sides
->=20
-> drivers/infiniband/hw/qedr/verbs.c
->   2056  int qedr_destroy_qp(struct ib_qp *ibqp)
->   2057  {
->   2058          struct qedr_qp *qp =3D get_qedr_qp(ibqp);
->   2059          struct qedr_dev *dev =3D qp->dev;
->   2060          struct ib_qp_attr attr;
->   2061          int attr_mask =3D 0;
->   2062          int rc =3D 0;
->   2063
->   2064          DP_DEBUG(dev, QEDR_MSG_QP, "destroy qp: destroying %p, qp
-> type=3D%d\n",
->   2065                   qp, qp->qp_type);
->   2066
->   2067          if (qp->state !=3D (QED_ROCE_QP_STATE_RESET |
-> QED_ROCE_QP_STATE_ERR |
->   2068                            QED_ROCE_QP_STATE_INIT)) {
->=20
-> These aren't bitfields, they're just numbers.  This code is pretty suspec=
-t.  Not
-> sure what was intended.
->=20
->   2069                  attr.qp_state =3D IB_QPS_ERR;
->   2070                  attr_mask |=3D IB_QP_STATE;
->   2071
->   2072                  /* Change the QP state to ERROR */
->   2073                  qedr_modify_qp(ibqp, &attr, attr_mask, NULL);
->   2074          }
->=20
-> regards,
-> dan carpenter
+Hi Guys,
 
-That's a real bug. Thanks!
-Will fix.
+I just hit this with 4.9-rc4 on my test vm.
+Didn't find any patches on the list so maybe this
+is new?
 
-Ram
 
+[   12.392197] ===============================
+[   12.392927] [ INFO: suspicious RCU usage. ]
+[   12.393625] 4.9.0-rc4-e386eaffebc4-lb #25 Tainted: G           OE
+[   12.394633] -------------------------------
+[   12.395317] drivers/net/ethernet/mellanox/mlx4/en_rx.c:543 suspicious 
+rcu_dereference_protected() usage!
+[   12.396873]
+                other info that might help us debug this:
+
+[   12.398134]
+                rcu_scheduler_active = 1, debug_locks = 0
+[   12.399107] 1 lock held by rmmod/707:
+[   12.399665]  #0:
+[   12.399939]  (
+[   12.400230] intf_mutex
+[   12.400378] ){+.+.+.}
+[   12.400805] , at:
+[   12.401139] [<ffffffffc015e93d>] mlx4_unregister_interface+0x1d/0x70 
+[mlx4_core]
+[   12.402275]
+                stack backtrace:
+[   12.402926] CPU: 3 PID: 707 Comm: rmmod Tainted: G           OE 
+4.9.0-rc4-e386eaffebc4-lb #25
+[   12.404221] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), 
+BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[   12.405619]  ffffb5fdc0fcfda0 ffffffffb6450643 ffff951f787b22c0 
+0000000000000001
+[   12.406793]  ffffb5fdc0fcfdd0 ffffffffb60e78f7 ffff951f73966000 
+0000000000000400
+[   12.407966]  ffff951f70430ad8 ffff951f73584800 ffffb5fdc0fcfe08 
+ffffffffc020f77a
+[   12.409069] Call Trace:
+[   12.409437]  [<ffffffffb6450643>] dump_stack+0x85/0xc2
+[   12.410151]  [<ffffffffb60e78f7>] lockdep_rcu_suspicious+0xd7/0x110
+[   12.411024]  [<ffffffffc020f77a>] mlx4_en_destroy_rx_ring+0xba/0xc0 
+[mlx4_en]
+[   12.412032]  [<ffffffffc0215ec6>] mlx4_en_free_resources+0xb6/0xf0 
+[mlx4_en]
+[   12.413006]  [<ffffffffc021abe2>] mlx4_en_destroy_netdev+0xe2/0x1b0 
+[mlx4_en]
+[   12.413994]  [<ffffffffc020b105>] mlx4_en_remove+0xe5/0xf0 [mlx4_en]
+[   12.414883]  [<ffffffffc015e903>] mlx4_remove_device+0x73/0x90 
+[mlx4_core]
+[   12.415844]  [<ffffffffc015e95e>] mlx4_unregister_interface+0x3e/0x70 
+[mlx4_core]
+[   12.416880]  [<ffffffffc021dd6b>] mlx4_en_cleanup+0x10/0x2a5 [mlx4_en]
+[   12.417773]  [<ffffffffb613322a>] SyS_delete_module+0x1ba/0x220
+[   12.418545]  [<ffffffffb68e3085>] entry_SYSCALL_64_fastpath+0x23/0xc6
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
