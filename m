@@ -1,117 +1,101 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 1/5] IB/rxe: Fix kernel panic in UDP tunnel with GRO and RX checksum
-Date: Wed, 16 Nov 2016 10:39:14 +0200
-Message-ID: <1479285558-19627-2-git-send-email-leon@kernel.org>
-References: <1479285558-19627-1-git-send-email-leon@kernel.org>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core] rxe: Remove perl::switch module dependancy
+Date: Wed, 16 Nov 2016 10:46:46 +0200
+Message-ID: <1479286006-5265-1-git-send-email-yonatanc@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479285558-19627-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Remove perl::switch dependency from RXE, since it is
+not installed by default.
 
-Missing initialization of udp_tunnel_sock_cfg causes to following
-kernel panic, while kernel tries to execute gro_receive().
-
-While being there, we converted udp_port_cfg to use the same
-initialization scheme as udp_tunnel_sock_cfg.
-
-------------[ cut here ]------------
-kernel tried to execute NX-protected page - exploit attempt? (uid: 0)
-BUG: unable to handle kernel paging request at ffffffffa0588c50
-IP: [<ffffffffa0588c50>] __this_module+0x50/0xffffffffffff8400 [ib_rxe]
-PGD 1c09067 PUD 1c0a063 PMD bb394067 PTE 80000000ad5e8163
-Oops: 0011 [#1] SMP
-Modules linked in: ib_rxe ip6_udp_tunnel udp_tunnel
-CPU: 5 PID: 0 Comm: swapper/5 Not tainted 4.7.0-rc3+ #2
-Hardware name: Red Hat KVM, BIOS Bochs 01/01/2011
-task: ffff880235e4e680 ti: ffff880235e68000 task.ti: ffff880235e68000
-RIP: 0010:[<ffffffffa0588c50>]
-[<ffffffffa0588c50>] __this_module+0x50/0xffffffffffff8400 [ib_rxe]
-RSP: 0018:ffff880237343c80  EFLAGS: 00010282
-RAX: 00000000dffe482d RBX: ffff8800ae330900 RCX: 000000002001b712
-RDX: ffff8800ae330900 RSI: ffff8800ae102578 RDI: ffff880235589c00
-RBP: ffff880237343cb0 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: ffff8800ae33e262
-R13: ffff880235589c00 R14: 0000000000000014 R15: ffff8800ae102578
-FS:  0000000000000000(0000) GS:ffff880237340000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffffffa0588c50 CR3: 0000000001c06000 CR4: 00000000000006e0
-Stack:
-ffffffff8160860e ffff8800ae330900 ffff8800ae102578 0000000000000014
-000000000000004e ffff8800ae102578 ffff880237343ce0 ffffffff816088fb
-0000000000000000 ffff8800ae330900 0000000000000000 00000000ffad0000
-Call Trace:
-<IRQ>
-[<ffffffff8160860e>] ? udp_gro_receive+0xde/0x130
-[<ffffffff816088fb>] udp4_gro_receive+0x10b/0x2d0
-[<ffffffff81611373>] inet_gro_receive+0x1d3/0x270
-[<ffffffff81594e29>] dev_gro_receive+0x269/0x3b0
-[<ffffffff81595188>] napi_gro_receive+0x38/0x120
-[<ffffffffa011caee>] mlx5e_handle_rx_cqe+0x27e/0x340 [mlx5_core]
-[<ffffffffa011d076>] mlx5e_poll_rx_cq+0x66/0x6d0 [mlx5_core]
-[<ffffffffa011d7ae>] mlx5e_napi_poll+0x8e/0x400 [mlx5_core]
-[<ffffffff815949a0>] net_rx_action+0x160/0x380
-[<ffffffff816a9197>] __do_softirq+0xd7/0x2c5
-[<ffffffff81085c35>] irq_exit+0xf5/0x100
-[<ffffffff816a8f16>] do_IRQ+0x56/0xd0
-[<ffffffff816a6dcc>] common_interrupt+0x8c/0x8c
-<EOI>
-[<ffffffff81061f96>] ? native_safe_halt+0x6/0x10
-[<ffffffff81037ade>] default_idle+0x1e/0xd0
-[<ffffffff8103828f>] arch_cpu_idle+0xf/0x20
-[<ffffffff810c37dc>] default_idle_call+0x3c/0x50
-[<ffffffff810c3b13>] cpu_startup_entry+0x323/0x3c0
-[<ffffffff81050d8c>] start_secondary+0x15c/0x1a0
-RIP  [<ffffffffa0588c50>] __this_module+0x50/0xffffffffffff8400 [ib_rxe]
-RSP <ffff880237343c80>
-CR2: ffffffffa0588c50
----[ end trace 489ee31fa7614ac5 ]---
-Kernel panic - not syncing: Fatal exception in interrupt
-Kernel Offset: disabled
----[ end Kernel panic - not syncing: Fatal exception in interrupt
-------------[ cut here ]------------
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ providers/rxe/rxe_cfg | 35 +++++++++++++----------------------
+ 1 file changed, 13 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index b8258e4..ffff5a5 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -243,10 +243,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
- {
- 	int err;
- 	struct socket *sock;
--	struct udp_port_cfg udp_cfg;
--	struct udp_tunnel_sock_cfg tnl_cfg;
+diff --git a/providers/rxe/rxe_cfg b/providers/rxe/rxe_cfg
+index 6c414fb..c2dbd0e 100755
+--- a/providers/rxe/rxe_cfg
++++ b/providers/rxe/rxe_cfg
+@@ -37,7 +37,6 @@ use strict;
+ 
+ use File::Basename;
+ use Getopt::Long;
+-use Switch;
+ 
+ my $help = 0;
+ my $no_persist = 0;
+@@ -559,26 +558,21 @@ sub do_debug {
+     my $debugfile = "$parms/debug";
+     chomp($arg2);
+ 
+-    #print "debug $arg2\n";
+-    #system("echo 'debug $arg2' > $proc");
 -
--	memset(&udp_cfg, 0, sizeof(udp_cfg));
-+	struct udp_port_cfg udp_cfg = {0};
-+	struct udp_tunnel_sock_cfg tnl_cfg = {0};
+     if (!(-e "$debugfile")) {
+ 	print "Error: debug is compiled out of this rxe driver\n";
+ 	return;
+     }
  
- 	if (ipv6) {
- 		udp_cfg.family = AF_INET6;
-@@ -264,10 +262,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
- 		return ERR_PTR(err);
+-    switch ($arg2) {
+-	case "on"   { 	system("echo '31' > $debugfile"); }
+-	case "off"  { 	system("echo '0'  > $debugfile"); }
+-	case "0"    { 	system("echo '0'  > $debugfile"); }
+-	case ""     { }
++    if    ($arg2 eq "on")  { system("echo '31' > $debugfile"); }
++    elsif ($arg2 eq "off") { system("echo '0'  > $debugfile"); }
++    elsif ($arg2 eq "0")   { system("echo '0'  > $debugfile"); }
++    elsif ($arg2 eq "")    { }
+ 	elsif ($arg2 ge "0" && $arg2 le "31") {
+ 	    system("echo '$arg2' > $debugfile");
  	}
+ 	else {
+ 	    print "unrecognized debug cmd ($arg2)\n";
+ 	}
+-    }
  
--	tnl_cfg.sk_user_data = NULL;
- 	tnl_cfg.encap_type = 1;
- 	tnl_cfg.encap_rcv = rxe_udp_encap_recv;
--	tnl_cfg.encap_destroy = NULL;
+     my $current = read_file($debugfile);
+     chomp($current);
+@@ -645,11 +639,10 @@ sub main {
+     }
  
- 	/* Setup UDP tunnel */
- 	setup_udp_tunnel_sock(net, sock, &tnl_cfg);
+     # stuff that does not require modules to be loaded
+-    switch($arg1) {
+-        case "help"		{ usage(); exit; }
+-        case "start"		{ do_start(); do_status(); exit; }
+-        case "persistent"	{ system("cat $persistence_file"); exit; }
+-    }
++    if    ($arg1 eq "help")       { usage(); exit; }
++    elsif ($arg1 eq "start")      { do_start(); do_status(); exit; }
++    elsif ($arg1 eq "persistent") { system("cat $persistence_file"); exit; }
++
+ 
+     # can't do much else, bail if modules aren't loaded
+     if (check_module_status()) {
+@@ -668,13 +661,11 @@ sub main {
+     get_dev_info();
+ 
+     # Stuff that requires the rdma_rxe module to be loaded
+-    switch($arg1) {
+-        case "stop"	{ do_stop(); 			exit; }
+-        case "debug"	{ do_debug($arg2);	 	exit; }
+-        case "add"	{ rxe_add($arg2); 		exit; }
+-        case "remove"	{ rxe_remove($arg2); 		exit; }
+-        case "help"	{ usage();			exit; }
+-    }
++    if    ($arg1 eq "stop")   { do_stop(); 	   exit; }
++    elsif ($arg1 eq "debug")  { do_debug($arg2);   exit; }
++    elsif ($arg1 eq "add")    { rxe_add($arg2);    exit; }
++    elsif ($arg1 eq "remove") { rxe_remove($arg2); exit; }
++    elsif ($arg1 eq "help")   { usage();	   exit; }
+ }
+ 
+ main();
 -- 
-2.7.4
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
