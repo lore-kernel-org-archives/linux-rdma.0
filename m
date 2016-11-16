@@ -1,43 +1,44 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 0/5] RXE fixes for 4.9
-Date: Wed, 16 Nov 2016 10:39:13 +0200
-Message-ID: <1479285558-19627-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 5/5] IB/rxe: Update qp state for user query
+Date: Wed, 16 Nov 2016 10:39:18 +0200
+Message-ID: <1479285558-19627-6-git-send-email-leon@kernel.org>
+References: <1479285558-19627-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1479285558-19627-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Please find below the RXE fixes for 4.9 from Yonatan and Moni.
+The method rxe_qp_error() transitions QP to error state
+and make sure the QP is drained. It did not though update
+the QP state for user's query.
 
-This patchset was generated against v4.9-rc3.
+This patch fixes this.
 
-Available in the "topic/rxe-fixes-4.9" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_qp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/rxe-fixes-4.9
-
-Thanks
-
-Yonatan Cohen (5):
-  IB/rxe: Fix kernel panic in UDP tunnel with GRO and RX checksum
-  IB/rxe: Fix handling of erroneous WR
-  IB/rxe: Increase max number of completions to 32k
-  IB/rxe: Clear queue buffer when modifying QP to reset
-  IB/rxe: Update qp state for user query
-
- drivers/infiniband/sw/rxe/rxe_net.c   |  8 ++------
- drivers/infiniband/sw/rxe/rxe_param.h |  2 +-
- drivers/infiniband/sw/rxe/rxe_qp.c    |  2 ++
- drivers/infiniband/sw/rxe/rxe_queue.c |  9 +++++++++
- drivers/infiniband/sw/rxe/rxe_queue.h |  2 ++
- drivers/infiniband/sw/rxe/rxe_req.c   | 21 +++++++++++++--------
- 6 files changed, 29 insertions(+), 15 deletions(-)
-
---
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 95aaaa2..c3e60e4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -574,6 +574,7 @@ void rxe_qp_error(struct rxe_qp *qp)
+ {
+ 	qp->req.state = QP_STATE_ERROR;
+ 	qp->resp.state = QP_STATE_ERROR;
++	qp->attr.qp_state = IB_QPS_ERR;
+ 
+ 	/* drain work and packet queues */
+ 	rxe_run_task(&qp->resp.task, 1);
+-- 
 2.7.4
 
 --
