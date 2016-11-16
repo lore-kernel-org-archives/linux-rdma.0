@@ -1,101 +1,45 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] rxe: Remove perl::switch module dependancy
-Date: Wed, 16 Nov 2016 10:46:46 +0200
-Message-ID: <1479286006-5265-1-git-send-email-yonatanc@mellanox.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: Configuration of cq->cqe is lower than entries by 1
+Date: Wed, 16 Nov 2016 09:45:41 +0000
+Message-ID: <SN1PR07MB22072081213EA656CC611E40F8BE0@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <SN1PR07MB22076C5DE03F1939603C554CF8BC0@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20161114120153.GC4240@leon.nu>,<SN1PR07MB22071D220A9067F58E1F09DAF8BC0@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <2DF5C492-C364-4353-8FA9-51FA5EE760F0@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2DF5C492-C364-4353-8FA9-51FA5EE760F0-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove perl::switch dependency from RXE, since it is
-not installed by default.
+>> 192 =A0=A0=A0=A0=A0=A0=A0=A0entries =A0=A0=A0=A0=A0=3D roundup_pow_of_tw=
+o(entries + 1);
+>> 193 =A0=A0=A0=A0=A0=A0=A0=A0cq->ibcq.cqe =3D entries - 1;
+>>=20
+>> I thought something else might hide there.
+>> Hi Ram,
+>>=20
+> For CQs, we always reserve an extra CQE, and thus report one less CQE to =
+the
+> user.
+> This CQE is used for resize CQ operations.
+> When the CQ is resized, the HW posts a CQE to indicate that the operation=
+ was
+> completed on the original CQ buffer.
+> Hope now it's clear.
 
-Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/rxe/rxe_cfg | 35 +++++++++++++----------------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
-
-diff --git a/providers/rxe/rxe_cfg b/providers/rxe/rxe_cfg
-index 6c414fb..c2dbd0e 100755
---- a/providers/rxe/rxe_cfg
-+++ b/providers/rxe/rxe_cfg
-@@ -37,7 +37,6 @@ use strict;
- 
- use File::Basename;
- use Getopt::Long;
--use Switch;
- 
- my $help = 0;
- my $no_persist = 0;
-@@ -559,26 +558,21 @@ sub do_debug {
-     my $debugfile = "$parms/debug";
-     chomp($arg2);
- 
--    #print "debug $arg2\n";
--    #system("echo 'debug $arg2' > $proc");
--
-     if (!(-e "$debugfile")) {
- 	print "Error: debug is compiled out of this rxe driver\n";
- 	return;
-     }
- 
--    switch ($arg2) {
--	case "on"   { 	system("echo '31' > $debugfile"); }
--	case "off"  { 	system("echo '0'  > $debugfile"); }
--	case "0"    { 	system("echo '0'  > $debugfile"); }
--	case ""     { }
-+    if    ($arg2 eq "on")  { system("echo '31' > $debugfile"); }
-+    elsif ($arg2 eq "off") { system("echo '0'  > $debugfile"); }
-+    elsif ($arg2 eq "0")   { system("echo '0'  > $debugfile"); }
-+    elsif ($arg2 eq "")    { }
- 	elsif ($arg2 ge "0" && $arg2 le "31") {
- 	    system("echo '$arg2' > $debugfile");
- 	}
- 	else {
- 	    print "unrecognized debug cmd ($arg2)\n";
- 	}
--    }
- 
-     my $current = read_file($debugfile);
-     chomp($current);
-@@ -645,11 +639,10 @@ sub main {
-     }
- 
-     # stuff that does not require modules to be loaded
--    switch($arg1) {
--        case "help"		{ usage(); exit; }
--        case "start"		{ do_start(); do_status(); exit; }
--        case "persistent"	{ system("cat $persistence_file"); exit; }
--    }
-+    if    ($arg1 eq "help")       { usage(); exit; }
-+    elsif ($arg1 eq "start")      { do_start(); do_status(); exit; }
-+    elsif ($arg1 eq "persistent") { system("cat $persistence_file"); exit; }
-+
- 
-     # can't do much else, bail if modules aren't loaded
-     if (check_module_status()) {
-@@ -668,13 +661,11 @@ sub main {
-     get_dev_info();
- 
-     # Stuff that requires the rdma_rxe module to be loaded
--    switch($arg1) {
--        case "stop"	{ do_stop(); 			exit; }
--        case "debug"	{ do_debug($arg2);	 	exit; }
--        case "add"	{ rxe_add($arg2); 		exit; }
--        case "remove"	{ rxe_remove($arg2); 		exit; }
--        case "help"	{ usage();			exit; }
--    }
-+    if    ($arg1 eq "stop")   { do_stop(); 	   exit; }
-+    elsif ($arg1 eq "debug")  { do_debug($arg2);   exit; }
-+    elsif ($arg1 eq "add")    { rxe_add($arg2);    exit; }
-+    elsif ($arg1 eq "remove") { rxe_remove($arg2); exit; }
-+    elsif ($arg1 eq "help")   { usage();	   exit; }
- }
- 
- main();
--- 
-1.8.3.1
+Thanks. I had a guess this was related.=20
+Note that there might be different behavior than what you are describing. I=
+f the user requested for (2^n) -1 then it'll receive the exact number of en=
+tries it requested, without the (at least one) extra entries.
+For example, if the user requests 63 entries (n=3D6) it'll receive the same=
+ number of entries:
+192         entries      =3D roundup_pow_of_two(63+ 1);	// this gives 64
+193         cq->ibcq.cqe =3D entries - 1;			// this gives 63 again.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
