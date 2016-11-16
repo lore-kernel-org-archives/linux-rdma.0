@@ -1,424 +1,81 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core] ccan: Add likely implementation
-Date: Wed, 16 Nov 2016 19:40:11 +0200
-Message-ID: <1479318011-26878-1-git-send-email-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: mlx4 BUG_ON in probe path
+Date: Wed, 16 Nov 2016 12:25:27 -0600
+Message-ID: <20161116182527.GC26600@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Johannes Thumshirn <jthumshirn@suse.de>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add likely/unlikely macros to ccan directory.
-This change includes adjustments to various providers, who
-defined it locally (nes, mlx4, mlx5 and hns).
+Hi Yishai,
 
-The code of i40iw had such definitions too, but without actual usage and
-this patch removed this dead code.
+Johannes has been working on an mlx4 initialization problem on an
+IBM x3850 X6.  The underlying problem is a PCI core issue -- we're
+setting RCB in the Mellanox device, which means it thinks it can
+generate 128-byte Completions, even though the Root Port above it
+can't handle them.  That issue is
+https://bugzilla.kernel.org/show_bug.cgi?id=187781
 
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- ccan/CMakeLists.txt           |   2 +
- ccan/likely.c                 | 136 ++++++++++++++++++++++++++++++++++++++++++
- ccan/likely.h                 | 111 ++++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u.h    |   5 +-
- providers/i40iw/i40iw_umain.h |   7 ---
- providers/mlx4/mlx4.h         |   8 ---
- providers/mlx4/qp.c           |   1 +
- providers/mlx5/mlx5.h         |   6 +-
- providers/nes/nes_umain.h     |   8 +--
- 9 files changed, 253 insertions(+), 31 deletions(-)
- create mode 100644 ccan/likely.c
- create mode 100644 ccan/likely.h
+The machine crashed when this happened, apparently not because of any
+error reported via AER, but because mlx4 contains a BUG_ON, probably
+the one in mlx4_enter_error_state().
 
-diff --git a/ccan/CMakeLists.txt b/ccan/CMakeLists.txt
-index b5de515..153426f 100644
---- a/ccan/CMakeLists.txt
-+++ b/ccan/CMakeLists.txt
-@@ -6,11 +6,13 @@ publish_internal_headers(ccan
-   minmax.h
-   str.h
-   str_debug.h
-+  likely.h
-   )
- 
- set(C_FILES
-   list.c
-   str.c
-+  likely.c
-   )
- add_library(ccan STATIC ${C_FILES})
- add_library(ccan_pic STATIC ${C_FILES})
-diff --git a/ccan/likely.c b/ccan/likely.c
-new file mode 100644
-index 0000000..83e8d6f
---- /dev/null
-+++ b/ccan/likely.c
-@@ -0,0 +1,136 @@
-+/* CC0 (Public domain) - see LICENSE file for details. */
-+#ifdef CCAN_LIKELY_DEBUG
-+#include <ccan/likely/likely.h>
-+#include <ccan/hash/hash.h>
-+#include <ccan/htable/htable_type.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+struct trace {
-+	const char *condstr;
-+	const char *file;
-+	unsigned int line;
-+	bool expect;
-+	unsigned long count, right;
-+};
-+
-+static size_t hash_trace(const struct trace *trace)
-+{
-+	return hash(trace->condstr, strlen(trace->condstr),
-+		    hash(trace->file, strlen(trace->file),
-+			 trace->line + trace->expect));
-+}
-+
-+static bool trace_eq(const struct trace *t1, const struct trace *t2)
-+{
-+	return t1->condstr == t2->condstr
-+		&& t1->file == t2->file
-+		&& t1->line == t2->line
-+		&& t1->expect == t2->expect;
-+}
-+
-+/* struct thash */
-+HTABLE_DEFINE_TYPE(struct trace, (const struct trace *), hash_trace, trace_eq,
-+		   thash);
-+
-+static struct thash htable
-+= { HTABLE_INITIALIZER(htable.raw, thash_hash, NULL) };
-+
-+static void init_trace(struct trace *trace,
-+		       const char *condstr, const char *file, unsigned int line,
-+		       bool expect)
-+{
-+	trace->condstr = condstr;
-+	trace->file = file;
-+	trace->line = line;
-+	trace->expect = expect;
-+	trace->count = trace->right = 0;
-+}
-+
-+static struct trace *add_trace(const struct trace *t)
-+{
-+	struct trace *trace = malloc(sizeof(*trace));
-+	*trace = *t;
-+	thash_add(&htable, trace);
-+	return trace;
-+}
-+
-+long _likely_trace(bool cond, bool expect,
-+		   const char *condstr,
-+		   const char *file, unsigned int line)
-+{
-+	struct trace *p, trace;
-+
-+	init_trace(&trace, condstr, file, line, expect);
-+	p = thash_get(&htable, &trace);
-+	if (!p)
-+		p = add_trace(&trace);
-+
-+	p->count++;
-+	if (cond == expect)
-+		p->right++;
-+
-+	return cond;
-+}
-+
-+static double right_ratio(const struct trace *t)
-+{
-+	return (double)t->right / t->count;
-+}
-+
-+char *likely_stats(unsigned int min_hits, unsigned int percent)
-+{
-+	struct trace *worst;
-+	double worst_ratio;
-+	struct thash_iter i;
-+	char *ret;
-+	struct trace *t;
-+
-+	worst = NULL;
-+	worst_ratio = 2;
-+
-+	/* This is O(n), but it's not likely called that often. */
-+	for (t = thash_first(&htable, &i); t; t = thash_next(&htable, &i)) {
-+		if (t->count >= min_hits) {
-+			if (right_ratio(t) < worst_ratio) {
-+				worst = t;
-+				worst_ratio = right_ratio(t);
-+			}
-+		}
-+	}
-+
-+	if (worst_ratio * 100 > percent)
-+		return NULL;
-+
-+	ret = malloc(strlen(worst->condstr) +
-+		     strlen(worst->file) +
-+		     sizeof(long int) * 8 +
-+		     sizeof("%s:%u:%slikely(%s) correct %u%% (%lu/%lu)"));
-+	sprintf(ret, "%s:%u:%slikely(%s) correct %u%% (%lu/%lu)",
-+		worst->file, worst->line,
-+		worst->expect ? "" : "un", worst->condstr,
-+		(unsigned)(worst_ratio * 100),
-+		worst->right, worst->count);
-+
-+	thash_del(&htable, worst);
-+	free(worst);
-+
-+	return ret;
-+}
-+
-+void likely_stats_reset(void)
-+{
-+	struct thash_iter i;
-+	struct trace *t;
-+
-+	/* This is a bit better than O(n^2), but we have to loop since
-+	 * first/next during delete is unreliable. */
-+	while ((t = thash_first(&htable, &i)) != NULL) {
-+		for (; t; t = thash_next(&htable, &i)) {
-+			thash_del(&htable, t);
-+			free(t);
-+		}
-+	}
-+
-+	thash_clear(&htable);
-+}
-+#endif /*CCAN_LIKELY_DEBUG*/
-diff --git a/ccan/likely.h b/ccan/likely.h
-new file mode 100644
-index 0000000..a8f003d
---- /dev/null
-+++ b/ccan/likely.h
-@@ -0,0 +1,111 @@
-+/* CC0 (Public domain) - see LICENSE file for details */
-+#ifndef CCAN_LIKELY_H
-+#define CCAN_LIKELY_H
-+#include "config.h"
-+#include <stdbool.h>
-+
-+#ifndef CCAN_LIKELY_DEBUG
-+#if HAVE_BUILTIN_EXPECT
-+/**
-+ * likely - indicate that a condition is likely to be true.
-+ * @cond: the condition
-+ *
-+ * This uses a compiler extension where available to indicate a likely
-+ * code path and optimize appropriately; it's also useful for readers
-+ * to quickly identify exceptional paths through functions.  The
-+ * threshold for "likely" is usually considered to be between 90 and
-+ * 99%; marginal cases should not be marked either way.
-+ *
-+ * See Also:
-+ *	unlikely(), likely_stats()
-+ *
-+ * Example:
-+ *	// Returns false if we overflow.
-+ *	static inline bool inc_int(unsigned int *val)
-+ *	{
-+ *		(*val)++;
-+ *		if (likely(*val))
-+ *			return true;
-+ *		return false;
-+ *	}
-+ */
-+#define likely(cond) __builtin_expect(!!(cond), 1)
-+
-+/**
-+ * unlikely - indicate that a condition is unlikely to be true.
-+ * @cond: the condition
-+ *
-+ * This uses a compiler extension where available to indicate an unlikely
-+ * code path and optimize appropriately; see likely() above.
-+ *
-+ * See Also:
-+ *	likely(), likely_stats(), COLD (compiler.h)
-+ *
-+ * Example:
-+ *	// Prints a warning if we overflow.
-+ *	static inline void inc_int(unsigned int *val)
-+ *	{
-+ *		(*val)++;
-+ *		if (unlikely(*val == 0))
-+ *			fprintf(stderr, "Overflow!");
-+ *	}
-+ */
-+#define unlikely(cond) __builtin_expect(!!(cond), 0)
-+#else
-+#define likely(cond) (!!(cond))
-+#define unlikely(cond) (!!(cond))
-+#endif
-+#else /* CCAN_LIKELY_DEBUG versions */
-+#include <ccan/str/str.h>
-+
-+#define likely(cond) \
-+	(_likely_trace(!!(cond), 1, stringify(cond), __FILE__, __LINE__))
-+#define unlikely(cond) \
-+	(_likely_trace(!!(cond), 0, stringify(cond), __FILE__, __LINE__))
-+
-+long _likely_trace(bool cond, bool expect,
-+		   const char *condstr,
-+		   const char *file, unsigned int line);
-+/**
-+ * likely_stats - return description of abused likely()/unlikely()
-+ * @min_hits: minimum number of hits
-+ * @percent: maximum percentage correct
-+ *
-+ * When CCAN_LIKELY_DEBUG is defined, likely() and unlikely() trace their
-+ * results: this causes a significant slowdown, but allows analysis of
-+ * whether the branches are labelled correctly.
-+ *
-+ * This function returns a malloc'ed description of the least-correct
-+ * usage of likely() or unlikely().  It ignores places which have been
-+ * called less than @min_hits times, and those which were predicted
-+ * correctly more than @percent of the time.  It returns NULL when
-+ * nothing meets those criteria.
-+ *
-+ * Note that this call is destructive; the returned offender is
-+ * removed from the trace so that the next call to likely_stats() will
-+ * return the next-worst likely()/unlikely() usage.
-+ *
-+ * Example:
-+ *	// Print every place hit more than twice which was wrong > 5%.
-+ *	static void report_stats(void)
-+ *	{
-+ *	#ifdef CCAN_LIKELY_DEBUG
-+ *		const char *bad;
-+ *
-+ *		while ((bad = likely_stats(2, 95)) != NULL) {
-+ *			printf("Suspicious likely: %s", bad);
-+ *			free(bad);
-+ *		}
-+ *	#endif
-+ *	}
-+ */
-+char *likely_stats(unsigned int min_hits, unsigned int percent);
-+
-+/**
-+ * likely_stats_reset - free up memory of likely()/unlikely() branches.
-+ *
-+ * This can also plug memory leaks.
-+ */
-+void likely_stats_reset(void);
-+#endif /* CCAN_LIKELY_DEBUG */
-+#endif /* CCAN_LIKELY_H */
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 4a6ed8e..1659958 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -39,6 +39,7 @@
- #include <infiniband/arch.h>
- #include <infiniband/verbs.h>
- #include <ccan/container_of.h>
-+#include <ccan/likely.h>
- 
- #define HNS_ROCE_CQE_ENTRY_SIZE		0x20
- 
-@@ -51,10 +52,6 @@
- 
- #define PFX				"hns: "
- 
--#ifndef likely
--#define likely(x)     __builtin_expect(!!(x), 1)
--#endif
--
- #define roce_get_field(origin, mask, shift) \
- 	(((origin) & (mask)) >> (shift))
- 
-diff --git a/providers/i40iw/i40iw_umain.h b/providers/i40iw/i40iw_umain.h
-index 719aefc..6a23504 100644
---- a/providers/i40iw/i40iw_umain.h
-+++ b/providers/i40iw/i40iw_umain.h
-@@ -47,13 +47,6 @@
- #include "i40iw_status.h"
- #include "i40iw_user.h"
- 
--#ifndef likely
--#define likely(x)   __builtin_expect((x), 1)
--#endif
--#ifndef unlikely
--#define unlikely(x) __builtin_expect((x), 0)
--#endif
--
- #define PFX "libi40iw-"
- 
- #define  I40IW_BASE_PUSH_PAGE	1
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index b851e95..6467d5a 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -51,14 +51,6 @@ enum {
- 	MLX4_STAT_RATE_OFFSET		= 5
- };
- 
--#ifndef likely
--#ifdef __GNUC__
--#define likely(x)       __builtin_expect(!!(x),1)
--#else
--#define likely(x)      (x)
--#endif
--#endif
--
- enum {
- 	MLX4_QP_TABLE_BITS		= 8,
- 	MLX4_QP_TABLE_SIZE		= 1 << MLX4_QP_TABLE_BITS,
-diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
-index 268fb7d..af08874 100644
---- a/providers/mlx4/qp.c
-+++ b/providers/mlx4/qp.c
-@@ -40,6 +40,7 @@
- #include <string.h>
- #include <errno.h>
- #include <util/compiler.h>
-+#include <ccan/likely.h>
- 
- #include "mlx4.h"
- #include "doorbell.h"
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index cb65429..d5704d4 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -42,11 +42,7 @@
- #include <ccan/list.h>
- #include "bitmap.h"
- #include <ccan/minmax.h>
--
--#ifdef __GNUC__
--#define likely(x)	__builtin_expect((x), 1)
--#define unlikely(x)	__builtin_expect((x), 0)
--#endif
-+#include <ccan/likely.h>
- 
- #include <valgrind/memcheck.h>
- 
-diff --git a/providers/nes/nes_umain.h b/providers/nes/nes_umain.h
-index 093956a..5f357a2 100644
---- a/providers/nes/nes_umain.h
-+++ b/providers/nes/nes_umain.h
-@@ -40,13 +40,7 @@
- 
- #include <infiniband/driver.h>
- #include <infiniband/arch.h>
--
--#ifndef likely
--#define likely(x)   __builtin_expect((x),1)
--#endif
--#ifndef unlikely
--#define unlikely(x) __builtin_expect((x),0)
--#endif
-+#include <ccan/likely.h>
- 
- #define PFX	"libnes: "
- 
--- 
-2.7.4
+That one happens if pci_channel_offline() returns false.  Is this
+telling us about a problem in PCI error handling, or is it just a case
+where mlx4 isn't as smart as it could be?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ideally, if mlx4 can't initialize the device, it should just return an
+error from the probe function instead of crashing the whole machine.
+
+Here's the crash (the entire dmesg log is in the bugzilla above):
+
+  mlx4_core 0000:41:00.0: command 0xfff timed out (go bit not cleared)
+  mlx4_core 0000:41:00.0: device is going to be reset
+  mlx4_core 0000:41:00.0: Failed to obtain HW semaphore, aborting
+  mlx4_core 0000:41:00.0: Fail to reset HCA
+  ------------[ cut here ]------------
+  kernel BUG at drivers/net/ethernet/mellanox/mlx4/catas.c:193!
+  invalid opcode: 0000 [#1] SMP 
+  Modules linked in: sr_mod(E) cdrom(E) uas(E) usb_storage(E) mlx4_core(E+) cdc_ether(E) usbnet(E) mii(E) joydev(E) x86_pkg_temp_thermal(E) intel_powerclamp(E) coretemp(E) kvm_intel(E) kvm(E) irqbypass(E) crct10dif_pclmul(E) crc32_pclmul(E) crc32c_intel(E) drbg(E) ansi_cprng(E) aesni_intel(E) iTCO_wdt(E) aes_x86_64(E) igb(E) ipmi_devintf(E) iTCO_vendor_support(E) lrw(E) gf128mul(E) glue_helper(E) ablk_helper(E) ptp(E) cryptd(E) pps_core(E) sb_edac(E) pcspkr(E) lpc_ich(E) ipmi_ssif(E) ioatdma(E) edac_core(E) shpchp(E) mfd_core(E) dca(E) wmi(E) ipmi_si(E) ipmi_msghandler(E) fjes(E) button(E) processor(E) acpi_pad(E) hid_generic(E) usbhid(E) ext4(E) crc16(E) jbd2(E) mbcache(E) sd_mod(E) mgag200(E) i2c_algo_bit(E) drm_kms_helper(E) syscopyarea(E) xhci_pci(E) sysfillrect(E) ehci_pci(E) sysimgbl
+ t(E)
+   fb_sys_fops(E) xhci_hcd(E) ehci_hcd(E) ttm(E) usbcore(E) drm(E) usb_common(E) megaraid_sas(E) dm_mirror(E) dm_region_hash(E) dm_log(E) sg(E) dm_multipath(E) dm_mod(E) scsi_dh_rdac(E) scsi_dh_emc(E) scsi_dh_alua(E) scsi_mod(E) autofs4(E)
+  Supported: Yes
+  CPU: 27 PID: 2867 Comm: modprobe Tainted: G            E      4.4.21-default #6
+  Hardware name: IBM x3850 X6 -[3837Z7P]-/00FN772, BIOS -[A8E120CUS-1.30]- 08/22/2016
+  task: ffff881fb2ff9280 ti: ffff881fbd3c4000 task.ti: ffff881fbd3c4000
+  RIP: 0010:[<ffffffffa0446740>]  [<ffffffffa0446740>] mlx4_enter_error_state+0x240/0x320 [mlx4_core]
+  RSP: 0018:ffff881fbd3c79a0  EFLAGS: 00010246
+  RAX: ffff8820b2486e00 RBX: ffff883fbe240000 RCX: 0000000000000000
+  RDX: 0000000000000001 RSI: 0000000000000246 RDI: ffff881fbf63b000
+  RBP: ffff8820b2486e60 R08: 0000000000000029 R09: ffff88803feda50f
+  R10: 00000000000d1b50 R11: 0000000000000000 R12: 0000000000000000
+  R13: 0000000000000000 R14: ffff883fbe240460 R15: 00000000fffffffb
+  FS:  00007f7c55203700(0000) GS:ffff883fbf900000(0000) knlGS:0000000000000000
+  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  CR2: 00007f1813c88000 CR3: 0000003fbe637000 CR4: 00000000001406e0
+  Stack:
+   15b30000c0000100 ffff883fbe240000 0000000000000fff 0000000000000000
+   ffffffffa0447d54 000000000000ffff ffffffff00000000 000000000000ea60
+   0000000000000000 000000000000ea60 ffffc90031dba680 ffff883fbe240000
+  Call Trace:
+   [<ffffffffa0447d54>] __mlx4_cmd+0x594/0x8a0 [mlx4_core]
+   [<ffffffffa045191b>] mlx4_map_cmd+0x2ab/0x3c0 [mlx4_core]
+   [<ffffffffa045a855>] mlx4_load_one+0x515/0x1220 [mlx4_core]
+   [<ffffffffa045bb69>] mlx4_init_one+0x4e9/0x6a0 [mlx4_core]
+   [<ffffffff8135626f>] local_pci_probe+0x3f/0xa0
+   [<ffffffff81357694>] pci_device_probe+0xd4/0x120
+   [<ffffffff8144d0b7>] driver_probe_device+0x1f7/0x420
+   [<ffffffff8144d35b>] __driver_attach+0x7b/0x80
+   [<ffffffff8144afc8>] bus_for_each_dev+0x58/0x90
+   [<ffffffff8144c519>] bus_add_driver+0x1c9/0x280
+   [<ffffffff8144dccb>] driver_register+0x5b/0xd0
+   [<ffffffffa03f911a>] mlx4_init+0x11a/0x1000 [mlx4_core]
+   [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
+   [<ffffffff81182a08>] do_init_module+0x5a/0x1d7
+   [<ffffffff81103726>] load_module+0x1366/0x1c50
+   [<ffffffff811041c0>] SYSC_finit_module+0x70/0xa0
+   [<ffffffff815e14ae>] entry_SYSCALL_64_fastpath+0x12/0x71
