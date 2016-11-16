@@ -1,81 +1,184 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: mlx4 BUG_ON in probe path
-Date: Wed, 16 Nov 2016 12:25:27 -0600
-Message-ID: <20161116182527.GC26600@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSD generic R/W API (sendto path) performance results
+Date: Wed, 16 Nov 2016 14:45:33 -0500
+Message-ID: <BA9DC9F7-C893-428B-AFE5-EFCCD13C9F25@oracle.com>
+References: <9170C872-DEE1-4D96-B9D8-E9D2B3F91915@oracle.com> <024601d23f7f$cef62500$6ce26f00$@opengridcomputing.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Johannes Thumshirn <jthumshirn@suse.de>, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <024601d23f7f$cef62500$6ce26f00$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yishai,
 
-Johannes has been working on an mlx4 initialization problem on an
-IBM x3850 X6.  The underlying problem is a PCI core issue -- we're
-setting RCB in the Mellanox device, which means it thinks it can
-generate 128-byte Completions, even though the Root Port above it
-can't handle them.  That issue is
-https://bugzilla.kernel.org/show_bug.cgi?id=187781
+> On Nov 15, 2016, at 3:35 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> 
+>> 
+>> I've built a prototype conversion of the in-kernel NFS server's sendto
+>> path to use the new generic R/W API. This path handles NFS Replies, so
+>> it is responsible for building and sending RDMA Writes carrying NFS
+>> READ payloads, and for transmitting all NFS Replies.
+>> 
+>> I've published the prototype (against my for-4.10 server series) here:
+>> 
+>> 
+> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=shortlog;h=refs/heads/nfsd-rdma-rw
+> -api
+>> 
+>> It's the very last patch in the series.
+>> 
+>> 
+>> "iozone -i0 -i1 -s2g -r1m -I" with NFSv3, sec=sys, CX-3 on both sides,
+>> FDR fabric, share is a tmpfs. This test writes and reads a 2GB file with
+>> 1MB direct writes and reads.
+>> 
+>> The client forms NFS requests with a single 1MB RDMA segment to catch
+>> the NFS READ payload. Before the conversion, the server posts a series
+>> of single Write WRs with 30 pages each, for each RDMA segment written
+>> to the client. After the conversion, the server posts a single chain
+>> of 30-page Write WRs for each RDMA segment written to the client.
+>> 
+>> Before the API conversion: rdma_stat_post_send = 45097
+>> 
+>> After the API conversion: rdma_stat_post_send = 16411
+>> 
+>> That's what I expected to see. This shows the number of ib_post_send
+>> calls is significantly lower after the conversion.
+>> 
+>> 
+>> Unfortunately the throughput and latency numbers are worse (ignore
+>> the write/rewrite numbers for now). Output is in kBytes/sec.
+>> 
+>> Before conversion, one iozone run:
+>> 
+>>              kB  reclen    write  rewrite    read    reread
+>>         2097152    1024   772835   931267  1895922  1927848
+>> 
+>> READ:
+>>    4098 ops (49%)
+>>    avg bytes sent per op: 140    avg bytes received per op: 1048704
+>>    backlog wait: 0.006345     RTT: 0.321132     total execute time: 0.332113
+>> 
+>> After conversion:
+>> 
+>>              kB  reclen    write  rewrite    read    reread
+>>         2097152    1024   703850   913824  1561682  1441448
+>> 
+>> READ:
+>>    4098 ops (49%)
+>>    avg bytes sent per op: 140    avg bytes received per op: 1048704
+>>    backlog wait: 0.010737     RTT: 0.469497     total execute time: 0.488043
+>> 
+>> That's 140us worse RTT per READ, in this run. The gap between before and
+>> after was roughly the same for all runs.
+>> 
+>> 
+>> To partially explain this, I captured traffic on the server using ibdump
+>> during a similar iozone test. This removes fabric and client HCA latencies
+>> from the picture.
+>> 
+>> This is a QD=1 test, so it's easy to analyze individual NFS READ operations
+>> in each capture. I computed three latency numbers per READ transaction
+>> based on the timestamps in the capture file, which should be accurate to
+>> 1 microsecond:
+>> 
+>> 1. Call took: the time between when the server i/f sees the incoming RDMA
+>> Send carrying the NFS READ Call, and when the server i/f sees the outgoing
+>> RDMA Send carrying the NFS READ Reply.
+>> 
+>> 2. Call-to-first-Write: the time between when the server i/f sees the
+>> incoming RDMA Send carrying the NFS READ Call, and when the server i/f
+>> sees the first outgoing RDMA Write request. Roughly how long it takes
+>> the server to prepare and post the RDMA Writes.
+>> 
+>> 3. First-to-last-Write: the time between when the server i/f sees the
+>> first outgoing RDMA Write request, and when the server i/f sees the
+>> last outgoing RDMA Write request. Roughly how long it takes the HCA
+>> to transmit the RDMA Writes.
+>> 
+>> 
+>> Averages over 5 NFS READ calls chosen at random, before conversion:
+>> Call took 414us. Call-to-first-Write 85us. First-to-last-Write 327us
+>> 
+>> Averages over 5 NFS READ calls chosen at random, after conversion:
+>> Call took 521us. Call-to-first-Write 160us. First-to-last-Write 360us
+>> 
+>> The gap between before and after results was 100% consistent with
+>> the average results across the individual NFS READ operations.
+>> 
+>> 
+> 
+> Good work here! 
+> 
+>> There are two stories here:
+>> 
+>> 1. Call-to-first-Write takes longer. My first guess is that the server
+>> takes longer to build and DMA map a long Write WR chain than it does
+>> to build, map, and post a single Write WR. The HCA can get started
+>> transmitting Writes sooner, and the server continues working on
+>> posting Write WRs in parallel with the on-the-wire activity.
+>> 
+> 
+> So perhaps the RDMA R/W API can have a threshold where it will dump a list of
+> WRs once it exceeds the threshold, and continue chunking?  That threshold, by
+> the way, is probably device-specific.
+> 
+>> 2. First-to-last-Write takes longer. I don't have any explanation
+>> for the HCA taking 10% longer to transmit the full 1MB payload.
+>> 
+> 
+> Perhaps the single WR posts are hitting device's fast-path and lowering latency
+> vs a long chain post that must be DMAed by the device?  I'm not sure exactly how
+> the MLX devices work, but they do have a fast path that utilizes the CPU's
+> write-combining logic to send a WR over the bus as a single PCIE transaction.
+> But your WRs are probably large since they have 30 pages in the SGE.  I'm not
+> sure what the threshold is for this fastpath logic for mlx.  For cxgb, its 64B,
+> so the WR would have to fit in 64B to take advantage.
 
-The machine crashed when this happened, apparently not because of any
-error reported via AER, but because mlx4 contains a BUG_ON, probably
-the one in mlx4_enter_error_state().
+Out of curiosity, I hacked up my NFS client to limit the size of RDMA
+segments to 30 pages (the server HCA's max_sge).
 
-That one happens if pci_channel_offline() returns false.  Is this
-telling us about a problem in PCI error handling, or is it just a case
-where mlx4 isn't as smart as it could be?
+A 1MB NFS READ now takes 9 segments. That forces the after-conversion
+server to build single-Write chains and use 9 post_send calls to
+transmit the READ payload, just like the before-conversion server.
 
-Ideally, if mlx4 can't initialize the device, it should just return an
-error from the probe function instead of crashing the whole machine.
+Performance of before- and after-conversion servers is now equivalent.
 
-Here's the crash (the entire dmesg log is in the bugzilla above):
+              kB  reclen    write  rewrite    read    reread
+         2097152    1024  1061237  1141614  1961410  2000223                                                                                  
 
-  mlx4_core 0000:41:00.0: command 0xfff timed out (go bit not cleared)
-  mlx4_core 0000:41:00.0: device is going to be reset
-  mlx4_core 0000:41:00.0: Failed to obtain HW semaphore, aborting
-  mlx4_core 0000:41:00.0: Fail to reset HCA
-  ------------[ cut here ]------------
-  kernel BUG at drivers/net/ethernet/mellanox/mlx4/catas.c:193!
-  invalid opcode: 0000 [#1] SMP 
-  Modules linked in: sr_mod(E) cdrom(E) uas(E) usb_storage(E) mlx4_core(E+) cdc_ether(E) usbnet(E) mii(E) joydev(E) x86_pkg_temp_thermal(E) intel_powerclamp(E) coretemp(E) kvm_intel(E) kvm(E) irqbypass(E) crct10dif_pclmul(E) crc32_pclmul(E) crc32c_intel(E) drbg(E) ansi_cprng(E) aesni_intel(E) iTCO_wdt(E) aes_x86_64(E) igb(E) ipmi_devintf(E) iTCO_vendor_support(E) lrw(E) gf128mul(E) glue_helper(E) ablk_helper(E) ptp(E) cryptd(E) pps_core(E) sb_edac(E) pcspkr(E) lpc_ich(E) ipmi_ssif(E) ioatdma(E) edac_core(E) shpchp(E) mfd_core(E) dca(E) wmi(E) ipmi_si(E) ipmi_msghandler(E) fjes(E) button(E) processor(E) acpi_pad(E) hid_generic(E) usbhid(E) ext4(E) crc16(E) jbd2(E) mbcache(E) sd_mod(E) mgag200(E) i2c_algo_bit(E) drm_kms_helper(E) syscopyarea(E) xhci_pci(E) sysfillrect(E) ehci_pci(E) sysimgbl
- t(E)
-   fb_sys_fops(E) xhci_hcd(E) ehci_hcd(E) ttm(E) usbcore(E) drm(E) usb_common(E) megaraid_sas(E) dm_mirror(E) dm_region_hash(E) dm_log(E) sg(E) dm_multipath(E) dm_mod(E) scsi_dh_rdac(E) scsi_dh_emc(E) scsi_dh_alua(E) scsi_mod(E) autofs4(E)
-  Supported: Yes
-  CPU: 27 PID: 2867 Comm: modprobe Tainted: G            E      4.4.21-default #6
-  Hardware name: IBM x3850 X6 -[3837Z7P]-/00FN772, BIOS -[A8E120CUS-1.30]- 08/22/2016
-  task: ffff881fb2ff9280 ti: ffff881fbd3c4000 task.ti: ffff881fbd3c4000
-  RIP: 0010:[<ffffffffa0446740>]  [<ffffffffa0446740>] mlx4_enter_error_state+0x240/0x320 [mlx4_core]
-  RSP: 0018:ffff881fbd3c79a0  EFLAGS: 00010246
-  RAX: ffff8820b2486e00 RBX: ffff883fbe240000 RCX: 0000000000000000
-  RDX: 0000000000000001 RSI: 0000000000000246 RDI: ffff881fbf63b000
-  RBP: ffff8820b2486e60 R08: 0000000000000029 R09: ffff88803feda50f
-  R10: 00000000000d1b50 R11: 0000000000000000 R12: 0000000000000000
-  R13: 0000000000000000 R14: ffff883fbe240460 R15: 00000000fffffffb
-  FS:  00007f7c55203700(0000) GS:ffff883fbf900000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: 00007f1813c88000 CR3: 0000003fbe637000 CR4: 00000000001406e0
-  Stack:
-   15b30000c0000100 ffff883fbe240000 0000000000000fff 0000000000000000
-   ffffffffa0447d54 000000000000ffff ffffffff00000000 000000000000ea60
-   0000000000000000 000000000000ea60 ffffc90031dba680 ffff883fbe240000
-  Call Trace:
-   [<ffffffffa0447d54>] __mlx4_cmd+0x594/0x8a0 [mlx4_core]
-   [<ffffffffa045191b>] mlx4_map_cmd+0x2ab/0x3c0 [mlx4_core]
-   [<ffffffffa045a855>] mlx4_load_one+0x515/0x1220 [mlx4_core]
-   [<ffffffffa045bb69>] mlx4_init_one+0x4e9/0x6a0 [mlx4_core]
-   [<ffffffff8135626f>] local_pci_probe+0x3f/0xa0
-   [<ffffffff81357694>] pci_device_probe+0xd4/0x120
-   [<ffffffff8144d0b7>] driver_probe_device+0x1f7/0x420
-   [<ffffffff8144d35b>] __driver_attach+0x7b/0x80
-   [<ffffffff8144afc8>] bus_for_each_dev+0x58/0x90
-   [<ffffffff8144c519>] bus_add_driver+0x1c9/0x280
-   [<ffffffff8144dccb>] driver_register+0x5b/0xd0
-   [<ffffffffa03f911a>] mlx4_init+0x11a/0x1000 [mlx4_core]
-   [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
-   [<ffffffff81182a08>] do_init_module+0x5a/0x1d7
-   [<ffffffff81103726>] load_module+0x1366/0x1c50
-   [<ffffffff811041c0>] SYSC_finit_module+0x70/0xa0
-   [<ffffffff815e14ae>] entry_SYSCALL_64_fastpath+0x12/0x71
+READ:
+    4098 ops (49%) 
+    avg bytes sent per op: 140    avg bytes received per op: 1048704
+    backlog wait: 0.006345     RTT: 0.314300     total execute time: 0.325037
+
+At 60-page segments (2 Write WRs per chain), I see about the same
+throughput, and RT latency is a touch higher.
+
+At 61-page segments (3 Write WRs per chain), throughput drops
+significantly:
+
+              kB  reclen    write  rewrite    read    reread
+         2097152    1024   932665   976784  1627842  1627169                                                                                  
+
+READ:
+    4098 ops (49%) 
+    avg bytes sent per op: 140	avg bytes received per op: 1048704
+    backlog wait: 0.009761 	RTT: 0.383358 	total execute time: 0.398731
+
+A couple of random samples of an ibdump capture show that most of the
+latency increase is in the Call-to-first-Write gap (1. above).
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
