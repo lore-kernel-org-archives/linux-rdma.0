@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/5] IB/rxe: Fix handling of erroneous WR
-Date: Wed, 16 Nov 2016 10:39:15 +0200
-Message-ID: <1479285558-19627-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 1/5] IB/rxe: Fix kernel panic in UDP tunnel with GRO and RX checksum
+Date: Wed, 16 Nov 2016 10:39:14 +0200
+Message-ID: <1479285558-19627-2-git-send-email-leon@kernel.org>
 References: <1479285558-19627-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479285558-19627-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,95 +12,104 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-To correctly handle a erroneous WR this fix does the following
-1. Make sure the bad WQE causes a user completion event.
-2. Call rxe_completer to handle the erred WQE.
+Missing initialization of udp_tunnel_sock_cfg causes to following
+kernel panic, while kernel tries to execute gro_receive().
 
-Before the fix, when rxe_requester found a bad WQE, it changed its
-status to IB_WC_LOC_PROT_ERR and exit with 0 for non RC QPs.
+While being there, we converted udp_port_cfg to use the same
+initialization scheme as udp_tunnel_sock_cfg.
 
-If this was the 1st WQE then there would be no ACK to invoke the
-completer and this bad WQE would be stuck in the QP's send-q.
-
-On top of that the requester exiting with 0 caused rxe_do_task to
-endlessly invoke rxe_requester, resulting in a soft-lockup attached
-below.
-
-In case the WQE was not the 1st and rxe_completer did get a chance to
-handle the bad WQE, it did not cause a complete event since the WQE's
-IB_SEND_SIGNALED flag was not set.
-
-Setting WQE status to IB_SEND_SIGNALED is subject to IBA spec
-version 1.2.1, section 10.7.3.1 Signaled Completions.
-
-NMI watchdog: BUG: soft lockup - CPU#7 stuck for 22s!
-[<ffffffffa0590145>] ? rxe_pool_get_index+0x35/0xb0 [rdma_rxe]
-[<ffffffffa05952ec>] lookup_mem+0x3c/0xc0 [rdma_rxe]
-[<ffffffffa0595534>] copy_data+0x1c4/0x230 [rdma_rxe]
-[<ffffffffa058c180>] rxe_requester+0x9d0/0x1100 [rdma_rxe]
-[<ffffffff8158e98a>] ? kfree_skbmem+0x5a/0x60
-[<ffffffffa05962c9>] rxe_do_task+0x89/0xf0 [rdma_rxe]
-[<ffffffffa05963e2>] rxe_run_task+0x12/0x30 [rdma_rxe]
-[<ffffffffa059110a>] rxe_post_send+0x41a/0x550 [rdma_rxe]
-[<ffffffff811ef922>] ? __kmalloc+0x182/0x200
-[<ffffffff816ba512>] ? down_read+0x12/0x40
-[<ffffffffa054bd32>] ib_uverbs_post_send+0x532/0x540 [ib_uverbs]
-[<ffffffff815f8722>] ? tcp_sendmsg+0x402/0xb80
-[<ffffffffa05453dc>] ib_uverbs_write+0x18c/0x3f0 [ib_uverbs]
-[<ffffffff81623c2e>] ? inet_recvmsg+0x7e/0xb0
-[<ffffffff8158764d>] ? sock_recvmsg+0x3d/0x50
-[<ffffffff81215b87>] __vfs_write+0x37/0x140
-[<ffffffff81216892>] vfs_write+0xb2/0x1b0
-[<ffffffff81217ce5>] SyS_write+0x55/0xc0
-[<ffffffff816bc672>] entry_SYSCALL_64_fastpath+0x1a/0xa
+------------[ cut here ]------------
+kernel tried to execute NX-protected page - exploit attempt? (uid: 0)
+BUG: unable to handle kernel paging request at ffffffffa0588c50
+IP: [<ffffffffa0588c50>] __this_module+0x50/0xffffffffffff8400 [ib_rxe]
+PGD 1c09067 PUD 1c0a063 PMD bb394067 PTE 80000000ad5e8163
+Oops: 0011 [#1] SMP
+Modules linked in: ib_rxe ip6_udp_tunnel udp_tunnel
+CPU: 5 PID: 0 Comm: swapper/5 Not tainted 4.7.0-rc3+ #2
+Hardware name: Red Hat KVM, BIOS Bochs 01/01/2011
+task: ffff880235e4e680 ti: ffff880235e68000 task.ti: ffff880235e68000
+RIP: 0010:[<ffffffffa0588c50>]
+[<ffffffffa0588c50>] __this_module+0x50/0xffffffffffff8400 [ib_rxe]
+RSP: 0018:ffff880237343c80  EFLAGS: 00010282
+RAX: 00000000dffe482d RBX: ffff8800ae330900 RCX: 000000002001b712
+RDX: ffff8800ae330900 RSI: ffff8800ae102578 RDI: ffff880235589c00
+RBP: ffff880237343cb0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8800ae33e262
+R13: ffff880235589c00 R14: 0000000000000014 R15: ffff8800ae102578
+FS:  0000000000000000(0000) GS:ffff880237340000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffa0588c50 CR3: 0000000001c06000 CR4: 00000000000006e0
+Stack:
+ffffffff8160860e ffff8800ae330900 ffff8800ae102578 0000000000000014
+000000000000004e ffff8800ae102578 ffff880237343ce0 ffffffff816088fb
+0000000000000000 ffff8800ae330900 0000000000000000 00000000ffad0000
+Call Trace:
+<IRQ>
+[<ffffffff8160860e>] ? udp_gro_receive+0xde/0x130
+[<ffffffff816088fb>] udp4_gro_receive+0x10b/0x2d0
+[<ffffffff81611373>] inet_gro_receive+0x1d3/0x270
+[<ffffffff81594e29>] dev_gro_receive+0x269/0x3b0
+[<ffffffff81595188>] napi_gro_receive+0x38/0x120
+[<ffffffffa011caee>] mlx5e_handle_rx_cqe+0x27e/0x340 [mlx5_core]
+[<ffffffffa011d076>] mlx5e_poll_rx_cq+0x66/0x6d0 [mlx5_core]
+[<ffffffffa011d7ae>] mlx5e_napi_poll+0x8e/0x400 [mlx5_core]
+[<ffffffff815949a0>] net_rx_action+0x160/0x380
+[<ffffffff816a9197>] __do_softirq+0xd7/0x2c5
+[<ffffffff81085c35>] irq_exit+0xf5/0x100
+[<ffffffff816a8f16>] do_IRQ+0x56/0xd0
+[<ffffffff816a6dcc>] common_interrupt+0x8c/0x8c
+<EOI>
+[<ffffffff81061f96>] ? native_safe_halt+0x6/0x10
+[<ffffffff81037ade>] default_idle+0x1e/0xd0
+[<ffffffff8103828f>] arch_cpu_idle+0xf/0x20
+[<ffffffff810c37dc>] default_idle_call+0x3c/0x50
+[<ffffffff810c3b13>] cpu_startup_entry+0x323/0x3c0
+[<ffffffff81050d8c>] start_secondary+0x15c/0x1a0
+RIP  [<ffffffffa0588c50>] __this_module+0x50/0xffffffffffff8400 [ib_rxe]
+RSP <ffff880237343c80>
+CR2: ffffffffa0588c50
+---[ end trace 489ee31fa7614ac5 ]---
+Kernel panic - not syncing: Fatal exception in interrupt
+Kernel Offset: disabled
+---[ end Kernel panic - not syncing: Fatal exception in interrupt
+------------[ cut here ]------------
 
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_req.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 832846b..22bd963 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -696,7 +696,8 @@ int rxe_requester(void *arg)
- 						       qp->req.wqe_index);
- 			wqe->state = wqe_state_done;
- 			wqe->status = IB_WC_SUCCESS;
--			goto complete;
-+			__rxe_do_task(&qp->comp.task);
-+			return 0;
- 		}
- 		payload = mtu;
- 	}
-@@ -745,13 +746,17 @@ int rxe_requester(void *arg)
- 	wqe->status = IB_WC_LOC_PROT_ERR;
- 	wqe->state = wqe_state_error;
- 
--complete:
--	if (qp_type(qp) != IB_QPT_RC) {
--		while (rxe_completer(qp) == 0)
--			;
--	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index b8258e4..ffff5a5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -243,10 +243,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
+ {
+ 	int err;
+ 	struct socket *sock;
+-	struct udp_port_cfg udp_cfg;
+-	struct udp_tunnel_sock_cfg tnl_cfg;
 -
--	return 0;
-+	/*
-+	 * IBA Spec. Section 10.7.3.1 SIGNALED COMPLETIONS
-+	 * ---------8<---------8<-------------
-+	 * ...Note that if a completion error occurs, a Work Completion
-+	 * will always be generated, even if the signaling
-+	 * indicator requests an Unsignaled Completion.
-+	 * ---------8<---------8<-------------
-+	 */
-+	wqe->wr.send_flags |= IB_SEND_SIGNALED;
-+	__rxe_do_task(&qp->comp.task);
-+	return -EAGAIN;
+-	memset(&udp_cfg, 0, sizeof(udp_cfg));
++	struct udp_port_cfg udp_cfg = {0};
++	struct udp_tunnel_sock_cfg tnl_cfg = {0};
  
- exit:
- 	return -EAGAIN;
+ 	if (ipv6) {
+ 		udp_cfg.family = AF_INET6;
+@@ -264,10 +262,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
+ 		return ERR_PTR(err);
+ 	}
+ 
+-	tnl_cfg.sk_user_data = NULL;
+ 	tnl_cfg.encap_type = 1;
+ 	tnl_cfg.encap_rcv = rxe_udp_encap_recv;
+-	tnl_cfg.encap_destroy = NULL;
+ 
+ 	/* Setup UDP tunnel */
+ 	setup_udp_tunnel_sock(net, sock, &tnl_cfg);
 -- 
 2.7.4
 
