@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 3/5] IB/rxe: Increase max number of completions to 32k
-Date: Wed, 16 Nov 2016 10:39:16 +0200
-Message-ID: <1479285558-19627-4-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/5] IB/rxe: Fix handling of erroneous WR
+Date: Wed, 16 Nov 2016 10:39:15 +0200
+Message-ID: <1479285558-19627-3-git-send-email-leon@kernel.org>
 References: <1479285558-19627-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479285558-19627-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,31 +12,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Increase limit of max CQE from 8K to 32K to allow demanding
-applications to work over SoftRoCE with same configuration
-as most RoCEv2 HW vendors have.
+To correctly handle a erroneous WR this fix does the following
+1. Make sure the bad WQE causes a user completion event.
+2. Call rxe_completer to handle the erred WQE.
+
+Before the fix, when rxe_requester found a bad WQE, it changed its
+status to IB_WC_LOC_PROT_ERR and exit with 0 for non RC QPs.
+
+If this was the 1st WQE then there would be no ACK to invoke the
+completer and this bad WQE would be stuck in the QP's send-q.
+
+On top of that the requester exiting with 0 caused rxe_do_task to
+endlessly invoke rxe_requester, resulting in a soft-lockup attached
+below.
+
+In case the WQE was not the 1st and rxe_completer did get a chance to
+handle the bad WQE, it did not cause a complete event since the WQE's
+IB_SEND_SIGNALED flag was not set.
+
+Setting WQE status to IB_SEND_SIGNALED is subject to IBA spec
+version 1.2.1, section 10.7.3.1 Signaled Completions.
+
+NMI watchdog: BUG: soft lockup - CPU#7 stuck for 22s!
+[<ffffffffa0590145>] ? rxe_pool_get_index+0x35/0xb0 [rdma_rxe]
+[<ffffffffa05952ec>] lookup_mem+0x3c/0xc0 [rdma_rxe]
+[<ffffffffa0595534>] copy_data+0x1c4/0x230 [rdma_rxe]
+[<ffffffffa058c180>] rxe_requester+0x9d0/0x1100 [rdma_rxe]
+[<ffffffff8158e98a>] ? kfree_skbmem+0x5a/0x60
+[<ffffffffa05962c9>] rxe_do_task+0x89/0xf0 [rdma_rxe]
+[<ffffffffa05963e2>] rxe_run_task+0x12/0x30 [rdma_rxe]
+[<ffffffffa059110a>] rxe_post_send+0x41a/0x550 [rdma_rxe]
+[<ffffffff811ef922>] ? __kmalloc+0x182/0x200
+[<ffffffff816ba512>] ? down_read+0x12/0x40
+[<ffffffffa054bd32>] ib_uverbs_post_send+0x532/0x540 [ib_uverbs]
+[<ffffffff815f8722>] ? tcp_sendmsg+0x402/0xb80
+[<ffffffffa05453dc>] ib_uverbs_write+0x18c/0x3f0 [ib_uverbs]
+[<ffffffff81623c2e>] ? inet_recvmsg+0x7e/0xb0
+[<ffffffff8158764d>] ? sock_recvmsg+0x3d/0x50
+[<ffffffff81215b87>] __vfs_write+0x37/0x140
+[<ffffffff81216892>] vfs_write+0xb2/0x1b0
+[<ffffffff81217ce5>] SyS_write+0x55/0xc0
+[<ffffffff816bc672>] entry_SYSCALL_64_fastpath+0x1a/0xa
 
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_param.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_req.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
-index f459c43..13ed2cc 100644
---- a/drivers/infiniband/sw/rxe/rxe_param.h
-+++ b/drivers/infiniband/sw/rxe/rxe_param.h
-@@ -82,7 +82,7 @@ enum rxe_device_param {
- 	RXE_MAX_SGE			= 32,
- 	RXE_MAX_SGE_RD			= 32,
- 	RXE_MAX_CQ			= 16384,
--	RXE_MAX_LOG_CQE			= 13,
-+	RXE_MAX_LOG_CQE			= 15,
- 	RXE_MAX_MR			= 2 * 1024,
- 	RXE_MAX_PD			= 0x7ffc,
- 	RXE_MAX_QP_RD_ATOM		= 128,
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 832846b..22bd963 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -696,7 +696,8 @@ int rxe_requester(void *arg)
+ 						       qp->req.wqe_index);
+ 			wqe->state = wqe_state_done;
+ 			wqe->status = IB_WC_SUCCESS;
+-			goto complete;
++			__rxe_do_task(&qp->comp.task);
++			return 0;
+ 		}
+ 		payload = mtu;
+ 	}
+@@ -745,13 +746,17 @@ int rxe_requester(void *arg)
+ 	wqe->status = IB_WC_LOC_PROT_ERR;
+ 	wqe->state = wqe_state_error;
+ 
+-complete:
+-	if (qp_type(qp) != IB_QPT_RC) {
+-		while (rxe_completer(qp) == 0)
+-			;
+-	}
+-
+-	return 0;
++	/*
++	 * IBA Spec. Section 10.7.3.1 SIGNALED COMPLETIONS
++	 * ---------8<---------8<-------------
++	 * ...Note that if a completion error occurs, a Work Completion
++	 * will always be generated, even if the signaling
++	 * indicator requests an Unsignaled Completion.
++	 * ---------8<---------8<-------------
++	 */
++	wqe->wr.send_flags |= IB_SEND_SIGNALED;
++	__rxe_do_task(&qp->comp.task);
++	return -EAGAIN;
+ 
+ exit:
+ 	return -EAGAIN;
 -- 
 2.7.4
 
