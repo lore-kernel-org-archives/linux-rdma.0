@@ -1,46 +1,27 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/IPoIB: Remove can't use GFP_NOIO warning
-Date: Fri, 18 Nov 2016 00:30:59 +0200
-Message-ID: <CAJ3xEMgCFmSMA5F-7D89n248K2HovvwHnnMgke7-FSDbROFA4Q@mail.gmail.com>
-References: <1478765808-12517-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH rdma-rc 10/12] IB/mlx5: Fix reported max SGE calculation
+Date: Fri, 18 Nov 2016 00:36:08 +0200
+Message-ID: <CAJ3xEMh0pZAJYjJcG8swbEOg-gcbrAx2-BtQ+iXK6NEn_wQa7A@mail.gmail.com>
+References: <1477575407-20562-1-git-send-email-leon@kernel.org> <1477575407-20562-11-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478765808-12517-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1477575407-20562-11-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 10, 2016 at 10:16 AM, Leon Romanovsky wrote:
-> From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Thu, Oct 27, 2016 at 3:36 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Remove the warning print of "can't use of GFP_NOIO" to avoid prints in
-> each QP creation when devices aren't supporting IB_QP_CREATE_USE_GFP_NOIO.
+> Add the 512 bytes limit of RDMA READ and the size of remote
+> address to the max SGE calculation.
 >
-> This print become more annoying when the IPoIB interface is configured
-> to work in connected mode.
->
-> Fixes: 09b93088d750 ('IB: Add a QP creation flag to use GFP_NOIO allocations')
+> Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
 
-Hi Kamal,
-
-I don't think you're fixing a bug in this commit... you find the print
-annoying and you remove it, okay, maybe we can do that. Why not leave
-it in rate-limited manner? can you elaborate what was that deeply
-annoying with getting the warning?
-
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -1053,8 +1053,6 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
->
->         tx_qp = ib_create_qp(priv->pd, &attr);
->         if (PTR_ERR(tx_qp) == -EINVAL) {
-> -               ipoib_warn(priv, "can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
-> -                          priv->ca->name);
->                 attr.create_flags &= ~IB_QP_CREATE_USE_GFP_NOIO;
->                 tx_qp = ib_create_qp(priv->pd, &attr);
->         }
+Doug, for some reason the above line is different in the commit
+present @ your git hub tree, bug somewhere?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
