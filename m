@@ -1,106 +1,77 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFSD generic R/W API (sendto path) performance results
-Date: Thu, 17 Nov 2016 15:42:37 -0500
-Message-ID: <EB5A41EB-53AB-4BC9-A5A3-893A9828A5C9@oracle.com>
-References: <9170C872-DEE1-4D96-B9D8-E9D2B3F91915@oracle.com> <024601d23f7f$cef62500$6ce26f00$@opengridcomputing.com> <BA9DC9F7-C893-428B-AFE5-EFCCD13C9F25@oracle.com> <20161117124602.GA25821@lst.de> <84B43CFF-EBF7-4758-8751-8C97102C5BCF@oracle.com> <676323E9-2F30-4DB0-AEF8-CDE38E8A0715@oracle.com> <c6190e4c-9b8e-3937-ba38-7861eebeaaae@grimberg.me>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 18 Nov 2016 00:24:40 +0200
+Message-ID: <CAJ3xEMjXYYnhS6qUzM9F+yjtq8Aahn08MjsSU4OnLS66Cu7mgw@mail.gmail.com>
+References: <58466423-c87e-3921-101e-bffab8989fd8@redhat.com>
+ <20161117184950.GP4240@leon.nu> <582E089A.3040106@redhat.com> <20161117200203.GQ4240@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c6190e4c-9b8e-3937-ba38-7861eebeaaae-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20161117200203.GQ4240-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 17, 2016 at 9:44 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 11/17/16 1:49 PM, Leon Romanovsky wrote:
+>> On Thu, Nov 17, 2016 at 07:13:54AM -0500, Doug Ledford wrote:
+>>> Hi Linus,
+>>>
+>>> Due to various issues, I've been away and couldn't send a pull request
+>>> for about three weeks.  There were a number of -rc patches that built up
+>>> in the meantime (some where there already from the early -rc stages).
+>>> Obviously, there were way too many to send now, so I tried to pare the
+>>> list down to the more important patches for the -rc cycle.
 
-> On Nov 17, 2016, at 3:20 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> 
-> 
->>>> Also did you try to always register for > max_sge
->>>> calls?  The code can already register all segments with the
->>>> rdma_rw_force_mr module option, so it would only need a small tweak for
->>>> that behavior.
->>> 
->>> For various reasons I decided the design should build one WR chain for
->>> each RDMA segment provided by the client. Good clients expose just
->>> one RDMA segment for the whole NFS READ payload.
->>> 
->>> Does force_mr make the generic API use FRWR with RDMA Write? I had
->>> assumed it changed only the behavior with RDMA Read. I'll try that
->>> too, if RDMA Write can easily be made to use FRWR.
->> 
->> Unfortunately, some RPC replies are formed from two or three
->> discontiguous buffers. The gap test in ib_sg_to_pages returns
->> a smaller number than sg_nents in this case, and rdma_rw_init_ctx
->> fails.
->> 
->> Thus with my current prototype I'm not able to test with FRWR.
->> 
->> I could fix this in my prototype, but it would be nicer for me if
->> rdma_rw_init_ctx handled this case the same for FRWR as it does
->> for physical addressing, which doesn't seem to have any problem
->> with a discontiguous SGL.
->> 
->> 
->>> But I'd like a better explanation for this result. Could be a bug
->>> in my implementation, my design, or in the driver. Continuing to
->>> investigate.
-> 
-> Hi Chuck, sorry for the late reply (have been busy lately..)
-> 
-> I think that the Call-to-first-Write phenomenon you are seeing makes
-> perfect sense, the question is, is a QD=1 1M transfers latency that
-> interesting? Did you see a positive effect on small (say 4k) transfers?
-> both latency and iops scalability should be able to improve especially
-> when serving multiple clients.
-> 
-> If indeed you feel that this is an interesting workload to optimize, I
-> think we can come up with something.
+Hi Doug,
 
-I believe 1MB transfers are interesting: NFS is frequently used in
-back-up scenarios, for example, and believe it or not, also for
-non-linear editing and animation (4K video).
+Except for the hfi1 patches, all the rest (core, mlx5, mlx4 and rxe)
+are marked now as only 21 hours old in your 4.9-rc branch and they
+seems be made from you picking partial subsets of multiple series,
+with none of them acked by you on the list.
 
-QD=1 exposes the individual components of latency. In this case, we
-can clearly see the cost of preparing the data payload for transfer.
-It's basically a tweak so we can debug the problem.
+If you agree that I am describing things correctly - how are we
+expected to follow on your patch picking? I find it sort of impossible
+and error prone.
 
-In the "Real World" I expect to see larger transfers, where several
-1MB I/Os are dispatched in parallel. I don't reach fabric bandwidth
-until 10 or more are in flight, which I think should be improved.
+>> Are you adding the rest to your for-next branch? We would like to have
+>> enough time to check that nothing is lost.
 
-Wrt 4KB, I didn't see much change there, though I admit I didn't
-expect much change since both cases have to DMA map a page, and post
-one Write WR, so I haven't looked too closely. I'm already down
-around 32us for a 4KB NFS READ, even without the server changes,
-and 30us for 4KB NFS READ all-inline.
+> Yes, it's already there in the mlx-next branch on github.
 
-I agree, though, that there is a 3:1 reduction in ib_post_send calls
-with the generic API in my test harness, and that can only be a good
-thing.
+Re the patches there, this one
 
+IB/mlx4: Set traffic class in AH
 
-> About the First-to-last-Write, thats weird, and sound like a bug
-> somewhere. Maybe Mellanox folks can tell us if splitting 1M to multiple
-> writes works better (although I cannot comprehend why).
-> 
-> Question, are the send and receive cqs still in IB_POLL_SOFTIRQ mode?
+"Set traffic class within sl_tclass_flowlabel when create iboe AH.
+Without this the TOS value will be empty when running VLAN tagged
+traffic, because the TOS value is taken from the traffic class in the
+address handle attributes.
 
-Yes, both are still in SOFTIRQ. A while back I played with using the
-Work Queue mode, and noticed some slowdowns when the Send CQ was
-changed to use Work Queue. I didn't explore it further.
+Fixes: 9106c41 ('IB/mlx4: Fix SL to 802.1Q priority-bits mapping for IBoE')"
 
-Someday, these will need to be changed, so that the server runs
-entirely in process context (as it does for TCP, AFAICT). That gets
-rid of BH flapping, but adds heavy-weight context switching latencies.
+claims to fix my commit, I have approached Leon and Co for
+clarifications/questions over the list on the patch and nothing was
+answered.
 
+Please do not send it to Linus and wait for them to respond. I
+disagree that it fixes my commit b/c my commit was prior to when
+route-able RoCE  was introduced and on that time TOS had no relation.
 
---
-Chuck Lever
+and this one
 
+"IB/mlx4: Put non zero value in max_ah device attribute
 
+Use INT_MAX since this is the max value the attribute can hold, though
+hardware capability is unlimited.
 
+Fixes: 225c7b1 ('IB/mlx4: Add a driver Mellanox ConnectX InfiniBand adapters')"
+
+does a tiny enhancement for a 10y old commit of Roland, why you think
+we need it in 4.9-rc6 or 7??
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
