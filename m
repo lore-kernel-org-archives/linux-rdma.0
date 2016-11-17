@@ -1,61 +1,58 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Thu, 17 Nov 2016 20:49:50 +0200
-Message-ID: <20161117184950.GP4240@leon.nu>
-References: <58466423-c87e-3921-101e-bffab8989fd8@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="63aIh6YiuHX+oBFP"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSD generic R/W API (sendto path) performance results
+Date: Thu, 17 Nov 2016 14:20:14 -0500
+Message-ID: <676323E9-2F30-4DB0-AEF8-CDE38E8A0715@oracle.com>
+References: <9170C872-DEE1-4D96-B9D8-E9D2B3F91915@oracle.com> <024601d23f7f$cef62500$6ce26f00$@opengridcomputing.com> <BA9DC9F7-C893-428B-AFE5-EFCCD13C9F25@oracle.com> <20161117124602.GA25821@lst.de> <84B43CFF-EBF7-4758-8751-8C97102C5BCF@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <58466423-c87e-3921-101e-bffab8989fd8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <84B43CFF-EBF7-4758-8751-8C97102C5BCF-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---63aIh6YiuHX+oBFP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Nov 17, 2016, at 10:04 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> On Nov 17, 2016, at 7:46 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+>> Also did you try to always register for > max_sge
+>> calls?  The code can already register all segments with the
+>> rdma_rw_force_mr module option, so it would only need a small tweak for
+>> that behavior.
+> 
+> For various reasons I decided the design should build one WR chain for
+> each RDMA segment provided by the client. Good clients expose just
+> one RDMA segment for the whole NFS READ payload.
+> 
+> Does force_mr make the generic API use FRWR with RDMA Write? I had
+> assumed it changed only the behavior with RDMA Read. I'll try that
+> too, if RDMA Write can easily be made to use FRWR.
 
-On Thu, Nov 17, 2016 at 07:13:54AM -0500, Doug Ledford wrote:
-> Hi Linus,
->
-> Due to various issues, I've been away and couldn't send a pull request
-> for about three weeks.  There were a number of -rc patches that built up
-> in the meantime (some where there already from the early -rc stages).
-> Obviously, there were way too many to send now, so I tried to pare the
-> list down to the more important patches for the -rc cycle.
+Unfortunately, some RPC replies are formed from two or three
+discontiguous buffers. The gap test in ib_sg_to_pages returns
+a smaller number than sg_nents in this case, and rdma_rw_init_ctx
+fails.
 
-Hi Doug,
-Are you adding the rest to your for-next branch? We would like to have
-enough time to check that nothing is lost.
+Thus with my current prototype I'm not able to test with FRWR.
 
-Thanks
+I could fix this in my prototype, but it would be nicer for me if
+rdma_rw_init_ctx handled this case the same for FRWR as it does
+for physical addressing, which doesn't seem to have any problem
+with a discontiguous SGL.
 
---63aIh6YiuHX+oBFP
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> But I'd like a better explanation for this result. Could be a bug
+> in my implementation, my design, or in the driver. Continuing to
+> investigate.
 
-iQIcBAEBAgAGBQJYLfvNAAoJEORje4g2clin3YgQALomTdaJ6wCyq25aI2WpiExv
-YsntiZZHhCIzpsYIhdlVjb5x0gU2tz+hE6zHQcV9bFUAor5KinUnnPTJmoTOWUDn
-fHM00o6zmJbyZzTTmWtpuzdaBRnGP9S56G3vPEZ/0sVlpaGWrIYwcvDxCySqcDL3
-2wNyKMf/3wpJyASG16cFp+gEFgiHU9rky6To0t8aiCwPxajMMFXOxWJRklejTfkC
-1N0cRu6s/64iyD2M2EoyFA2TdNQINAjgqk48pg2XNhQ59i/HdHvEeEhw23QalsT/
-hKLQQl/akLM3yNgDUVQzgPHXZv5XB3pCCz9yhqdrLtZq5zbeqfkL9/vbUX4+sOyI
-hBw1JgCmsmsrZ9JvZGulq0E7tcQ5qHJye5iZk1UlNgIQk3NphkwVxFTM/ai4GKkL
-ke999Dz1QzuPXeL2BEB263xY6lJbaq9crNSZoUxMh4IKJEuBNiZNE+2QAHWRquJO
-c7R+GoC7n0jmgFIKM4ZTrWzKkJSilr/bSV3Vpvbua6ve0gPkB2XhM74c6FL1098N
-FE2UeJ7y6vVPEGAJVvIXy00nXGI4mnbnYiSkDdN7oXRZ5MyL75mH/rSsIzLpa9FN
-E7xA13KwUFPTrvhZ7n07iHHa9OZF0fb0agdsZBYH8wBDMGTWktALrP+WS5pTbF4W
-0lv+V9AjnfWYMAC16Tc1
-=T7Ec
------END PGP SIGNATURE-----
 
---63aIh6YiuHX+oBFP--
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
