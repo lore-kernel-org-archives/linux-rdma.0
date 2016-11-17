@@ -1,74 +1,36 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [patch] IB/rxe: Remove unneeded cast in rxe_srq_from_attr()
-Date: Thu, 17 Nov 2016 13:49:31 +0200
-Message-ID: <20161117114931.GL4240@leon.nu>
-References: <20161117110005.GB32143@mwanda>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: NFSD generic R/W API (sendto path) performance results
+Date: Thu, 17 Nov 2016 13:46:02 +0100
+Message-ID: <20161117124602.GA25821@lst.de>
+References: <9170C872-DEE1-4D96-B9D8-E9D2B3F91915@oracle.com> <024601d23f7f$cef62500$6ce26f00$@opengridcomputing.com> <BA9DC9F7-C893-428B-AFE5-EFCCD13C9F25@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="AQYPrgrEUc/1pSX1"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161117110005.GB32143@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Moni Shoua <monis@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <BA9DC9F7-C893-428B-AFE5-EFCCD13C9F25-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Nov 16, 2016 at 02:45:33PM -0500, Chuck Lever wrote:
+> Out of curiosity, I hacked up my NFS client to limit the size of RDMA
+> segments to 30 pages (the server HCA's max_sge).
+> 
+> A 1MB NFS READ now takes 9 segments. That forces the after-conversion
+> server to build single-Write chains and use 9 post_send calls to
+> transmit the READ payload, just like the before-conversion server.
+> 
+> Performance of before- and after-conversion servers is now equivalent.
+> 
+>               kB  reclen    write  rewrite    read    reread
+>          2097152    1024  1061237  1141614  1961410  2000223                                                                                  
 
---AQYPrgrEUc/1pSX1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Nov 17, 2016 at 02:00:05PM +0300, Dan Carpenter wrote:
-> It makes me nervous when we cast pointer parameters.  I would estimate
-> that around 50% of the time, it indicates a bug.  Here the cast is not
-> needed becaue u32 and and unsigned int are the same thing.  Removing the
-> cast makes the code more robust and future proof in case any of the
-> types change.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_srq.c b/drivers/infiniband/sw/rxe/rxe_srq.c
-> index 2a6e3cd..efc832a 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_srq.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_srq.c
-> @@ -169,7 +169,7 @@ int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
->  			}
->  		}
->
-> -		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
-> +		err = rxe_queue_resize(q, &attr->max_wr,
->  				       rcv_wqe_size(srq->rq.max_sge),
->  				       srq->rq.queue->ip ?
->  						srq->rq.queue->ip->context :
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---AQYPrgrEUc/1pSX1
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYLZlLAAoJEORje4g2clin0sYP/0N0fzoG/9pWL0mULSTdiaUy
-iJyMjiiF9Aq41KctHFjGH4YrKBxLcmt0DfBS43VCsAOfkvIQGZrmYTDRNvmHQVQ2
-MQ8Wfvtu6kgUYeNp2ofg9UjPUXONXEReuhMZv68UgCugDhfv4cN8QcO1QHrdqL79
-yfHEsuDnfJ9yibD3ZtS7Cte7rGGyF4SAuCL8DEOXYxJF5MPcCr8BPQ6M9aAysNs2
-RLFEw2ejsTnhStPTrMFQWHylE1c1AhDakjxb44MPewhvwYdwiB1kjDTHMf3IKPiJ
-+gZNpoxj2r2m4/yhxoAf/jThS/XCK9XhpiWqyzmQgOJKw1a9Eaf/GLpGduIWEm/s
-EiX21oxJqKk4xLDC6MY7iZvkVrU8z3WRcKHCmoef+jhtNRug5vD9dEcHfkRjh3PV
-FRuXdnwjQ5B9MEqIOjlbzXmI1S94WSSJ5ni2FjZnck+Jl9EaGSFW3jt7HIe7DMBH
-4QEP6r9N0Y8zk5l8dWquYgEVsCGJbquzcDdJfC+3Xuou9ku2ifPI7kHWr6sCbS/S
-KxG9dtr5NLqWYS3IZVPeA/PSr1Ob2sTSxvNODtTFwmU+Y+6LdRJtpsfGA1zbUaSi
-/JZMve9Ltkah7ZyDQg9LLfSN4TFPLWX/WoaUxAbHEoy1r+FPPF3Yo/Xyb49c842S
-Urho7DUfdPUHJfT67JIx
-=84Ka
------END PGP SIGNATURE-----
-
---AQYPrgrEUc/1pSX1--
+What HCA is this, btw?  Also did you try to always register for > max_sge
+calls?  The code can already register all segments with the
+rdma_rw_force_mr module option, so it would only need a small tweak for
+that behavior.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
