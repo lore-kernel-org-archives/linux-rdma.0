@@ -1,64 +1,61 @@
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma-core release process questions
-Date: Thu, 17 Nov 2016 18:21:19 +0000
-Message-ID: <13AA599688F47243B14FCFCCC2C803BB10AB7D2F@fmsmsx104.amr.corp.intel.com>
-References: <13AA599688F47243B14FCFCCC2C803BB10AB79D5@fmsmsx104.amr.corp.intel.com>
- <20161117102846.GJ4240@leon.nu>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 17 Nov 2016 20:49:50 +0200
+Message-ID: <20161117184950.GP4240@leon.nu>
+References: <58466423-c87e-3921-101e-bffab8989fd8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="63aIh6YiuHX+oBFP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161117102846.GJ4240-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <58466423-c87e-3921-101e-bffab8989fd8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon and Jason,
 
-Thank you for the information.
+--63aIh6YiuHX+oBFP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Tatyana
-
------Original Message-----
-From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org] 
-Sent: Thursday, November 17, 2016 4:29 AM
-To: Nikolova, Tatyana E <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>; Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: rdma-core release process questions
-
-On Thu, Nov 17, 2016 at 04:56:45AM +0000, Nikolova, Tatyana E wrote:
-> Hi,
+On Thu, Nov 17, 2016 at 07:13:54AM -0500, Doug Ledford wrote:
+> Hi Linus,
 >
-> We are submitting patches to the kernel space driver i40iw and to the user space plugin libi40iw, which is currently part of rdma-core. Some of the changes need to be coordinated so that they appear in both kernel space and user space in corresponding releases. We have some questions regarding the process about submitting patches to rdma-core which have dependencies on kernel patches.
->
-> 1) Can user space patches target a for-next rdma-core release, if the corresponding kernel patches are queued for the next kernel?
+> Due to various issues, I've been away and couldn't send a pull request
+> for about three weeks.  There were a number of -rc patches that built up
+> in the meantime (some where there already from the early -rc stages).
+> Obviously, there were way too many to send now, so I tried to pare the
+> list down to the more important patches for the -rc cycle.
 
-I don't see any problem with that, once the patches accepted for the -next by Doug, they can be accepted to the rdma-core too. Anyway these changes should be compatible with old kernel without such new feature.
+Hi Doug,
+Are you adding the rest to your for-next branch? We would like to have
+enough time to check that nothing is lost.
 
-> 2) How are ABI changes handled in rdma-core?
+Thanks
 
-Do you have specific thing in mind?
-Generally speaking, send to ML pass review and we will apply.
+--63aIh6YiuHX+oBFP
+Content-Type: application/pgp-signature; name="signature.asc"
 
->
-> 3) Could you explain the release process for rdma-core?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-The process as agreed will be something like that:
-a. Review/accept/decline patches in 1-2 weeks time frame.
-b. Once kernel released, stop accepting new features.
-c. Wait for 1-2 weeks to see no one complains. It is just to be on safe side, because the library is always ready for release and checked constantly.
-d. Create new tag and push release.
+iQIcBAEBAgAGBQJYLfvNAAoJEORje4g2clin3YgQALomTdaJ6wCyq25aI2WpiExv
+YsntiZZHhCIzpsYIhdlVjb5x0gU2tz+hE6zHQcV9bFUAor5KinUnnPTJmoTOWUDn
+fHM00o6zmJbyZzTTmWtpuzdaBRnGP9S56G3vPEZ/0sVlpaGWrIYwcvDxCySqcDL3
+2wNyKMf/3wpJyASG16cFp+gEFgiHU9rky6To0t8aiCwPxajMMFXOxWJRklejTfkC
+1N0cRu6s/64iyD2M2EoyFA2TdNQINAjgqk48pg2XNhQ59i/HdHvEeEhw23QalsT/
+hKLQQl/akLM3yNgDUVQzgPHXZv5XB3pCCz9yhqdrLtZq5zbeqfkL9/vbUX4+sOyI
+hBw1JgCmsmsrZ9JvZGulq0E7tcQ5qHJye5iZk1UlNgIQk3NphkwVxFTM/ai4GKkL
+ke999Dz1QzuPXeL2BEB263xY6lJbaq9crNSZoUxMh4IKJEuBNiZNE+2QAHWRquJO
+c7R+GoC7n0jmgFIKM4ZTrWzKkJSilr/bSV3Vpvbua6ve0gPkB2XhM74c6FL1098N
+FE2UeJ7y6vVPEGAJVvIXy00nXGI4mnbnYiSkDdN7oXRZ5MyL75mH/rSsIzLpa9FN
+E7xA13KwUFPTrvhZ7n07iHHa9OZF0fb0agdsZBYH8wBDMGTWktALrP+WS5pTbF4W
+0lv+V9AjnfWYMAC16Tc1
+=T7Ec
+-----END PGP SIGNATURE-----
 
->
-> 4) Is each rdma-core release going to correspond to a specific kernel version?
-
-As Jason wrote, It will be aligned in release time to the kernel, but library should remain backward compatible.
-
->
-> Thank you,
-> Tatyana
+--63aIh6YiuHX+oBFP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
