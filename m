@@ -1,37 +1,70 @@
-From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: Re: [PATCH v4 05/10] IB/isert: Replace semaphore sem with completion
-Date: Fri, 18 Nov 2016 14:40:13 +0530
-Message-ID: <CAHv-k__DZEB3HscjORyo48CGaZ4a-ZG+-UXNOJfayLNY8czOoQ@mail.gmail.com>
-References: <1477551554-30349-1-git-send-email-binoy.jayan@linaro.org>
- <a267cc5e-4d4f-368e-a159-3eecc2187969@grimberg.me> <CAHv-k__HHRzK7+AZ912GVw9ToxZWMw3OccPqgGt_NBf6+RXdzA@mail.gmail.com>
- <3477625.cZS9dUaHfE@wuerfel>
+From: Kamal Heib <kamalh.mellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc] IB/IPoIB: Remove can't use GFP_NOIO warning
+Date: Fri, 18 Nov 2016 12:34:50 +0200
+Message-ID: <CANvqgxBQ6BH5avp7=saQayA1AWLB-JKttM06DacXSxmiREmVOg@mail.gmail.com>
+References: <1478765808-12517-1-git-send-email-leon@kernel.org> <CAJ3xEMgCFmSMA5F-7D89n248K2HovvwHnnMgke7-FSDbROFA4Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3477625.cZS9dUaHfE@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, Linux kernel mailing list <linux-kernel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMgCFmSMA5F-7D89n248K2HovvwHnnMgke7-FSDbROFA4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Arnd,
+On Fri, Nov 18, 2016 at 12:30 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Nov 10, 2016 at 10:16 AM, Leon Romanovsky wrote:
+>> From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Remove the warning print of "can't use of GFP_NOIO" to avoid prints in
+>> each QP creation when devices aren't supporting IB_QP_CREATE_USE_GFP_NOIO.
+>>
+>> This print become more annoying when the IPoIB interface is configured
+>> to work in connected mode.
+>>
+>> Fixes: 09b93088d750 ('IB: Add a QP creation flag to use GFP_NOIO allocations')
+>
+> Hi Kamal,
 
-On 18 November 2016 at 14:28, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday, November 18, 2016 12:27:32 PM CET Binoy Jayan wrote:
->> Hi Sagi,
+Hi Or :)
 
-> I think you are right. This is behavior is actuallly documented in
-> Documentation/scheduler/completion.txt:
+>
+> I don't think you're fixing a bug in this commit... you find the print
+> annoying and you remove it, okay, maybe we can do that. Why not leave
+> it in rate-limited manner? can you elaborate what was that deeply
+> annoying with getting the warning?
+>
 
-Thanking for having a look.
+It's really annoying when you have multiple ipoib interfaces and
+pkeys, so the dmesg will look like the following:
 
-> However, this is fairly unusual behavior and I wasn't immediately aware
-> of it either when I read Sagi's reply. While your patch looks correct,
-> it's probably a good idea to point out the counting behavior of this
-> completion as explicitly as possible, in the changelog text of the patch
-> as well as in a code comment and perhaps in the naming of the completion.
+[933236.858739] mlx5_ib0: can't use GFP_NOIO for QPs on device mlx5_0,
+using GFP_KERNEL
+[933407.571911] mlx5_ib0.8002: can't use GFP_NOIO for QPs on device
+mlx5_0, using GFP_KERNEL
+[933634.121955] mlx5_ib0.8006: can't use GFP_NOIO for QPs on device
+mlx5_0, using GFP_KERNEL
+[934167.851164] mlx5_ib0.8004: can't use GFP_NOIO for QPs on device
+mlx5_0, using GFP_KERNEL
+[934936.645002] mlx5_ib0.8002: can't use GFP_NOIO for QPs on device
+mlx5_0, using GFP_KERNEL
 
-Will mention this and resend the patch series.
-
-Thanks,
-Binoy
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+>> @@ -1053,8 +1053,6 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
+>>
+>>         tx_qp = ib_create_qp(priv->pd, &attr);
+>>         if (PTR_ERR(tx_qp) == -EINVAL) {
+>> -               ipoib_warn(priv, "can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
+>> -                          priv->ca->name);
+>>                 attr.create_flags &= ~IB_QP_CREATE_USE_GFP_NOIO;
+>>                 tx_qp = ib_create_qp(priv->pd, &attr);
+>>         }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
