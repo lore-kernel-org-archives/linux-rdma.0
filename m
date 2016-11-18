@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH 7/7] IB/rxe: Fix ref leaks in duplicate_request() and rxe_create_qp()
-Date: Fri, 18 Nov 2016 09:36:49 -0500
-Message-ID: <1479479809-10798-7-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH 4/7] IB/rxe: Unblock loopback by moving skb_out increment
+Date: Fri, 18 Nov 2016 09:36:46 -0500
+Message-ID: <1479479809-10798-4-git-send-email-andrew.boyer@dell.com>
 References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479479809-10798-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
@@ -10,58 +10,42 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In duplicate_request(), a ref was added after the call to skb_clone().
-
-In rxe_create_qp(), the udata->inlen error path needs to clean up the ref
-added by rxe_alloc().
+skb_out is decremented in rxe_skb_tx_dtor(), which is not called in the
+loopback() path. Move the increment to the send() path rather than
+rxe_xmit_packet().
 
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_resp.c  | 1 +
- drivers/infiniband/sw/rxe/rxe_verbs.c | 7 ++++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_loc.h | 2 --
+ drivers/infiniband/sw/rxe/rxe_net.c | 2 ++
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index a5e9ce3..8643797 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -1145,6 +1145,7 @@ static enum resp_states duplicate_request(struct rxe_qp *qp,
- 					     pkt, skb_copy);
- 			if (rc) {
- 				pr_err("Failed resending result. This flow is not handled - skb ignored\n");
-+				rxe_drop_ref(qp);
- 				kfree_skb(skb_copy);
- 				rc = RESPST_CLEANUP;
- 				goto out;
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index de39b0a..071430c 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -564,7 +564,7 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
- 	if (udata) {
- 		if (udata->inlen) {
- 			err = -EINVAL;
--			goto err1;
-+			goto err2;
- 		}
- 		qp->is_user = 1;
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 73849a5a..efe4c6a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -266,8 +266,6 @@ static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 		return err;
  	}
-@@ -573,12 +573,13 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
  
- 	err = rxe_qp_from_init(rxe, qp, pd, init, udata, ibpd);
- 	if (err)
--		goto err2;
-+		goto err3;
+-	atomic_inc(&qp->skb_out);
+-
+ 	if ((qp_type(qp) != IB_QPT_RC) &&
+ 	    (pkt->mask & RXE_END_MASK)) {
+ 		pkt->wqe->state = wqe_state_done;
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index ffff5a5..332ce52 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -455,6 +455,8 @@ static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		return -EAGAIN;
+ 	}
  
- 	return &qp->ibqp;
++	if (pkt->qp)
++		atomic_inc(&pkt->qp->skb_out);
+ 	kfree_skb(skb);
  
--err2:
-+err3:
- 	rxe_drop_index(qp);
-+err2:
- 	rxe_drop_ref(qp);
- err1:
- 	return ERR_PTR(err);
+ 	return 0;
 -- 
 1.8.3.1
 
