@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH 6/7] IB/rxe: Avoid missed completions in the CM/MAD
-Date: Fri, 18 Nov 2016 09:36:48 -0500
-Message-ID: <1479479809-10798-6-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH 5/7] IB/rxe: Add support for zero-byte operations
+Date: Fri, 18 Nov 2016 09:36:47 -0500
+Message-ID: <1479479809-10798-5-git-send-email-andrew.boyer@dell.com>
 References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479479809-10798-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
@@ -10,58 +10,69 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The MAD code uses the IB_CQ_REPORT_MISSED_EVENTS flag to avoid a
-race between posting CQEs and arming the CQ. Without this fix, the
-last completion might be left on the CQ, hanging the kthread
-waiting on MAD to complete.
-See ib_cq_poll_work().
+The last_psn algorithm fails in the zero-byte case: it calculates
+first_psn = N, last_psn = N-1. This makes the operation unretryable since
+the res structure will fail the (first_psn <= psn <= last_psn) test in
+find_resource().
 
-The console backtraces look like this:
-
-[ 4199.911284] Call Trace:
-[ 4199.911401]  [<ffffffff9657fe95>] schedule+0x35/0x80
-[ 4199.911556]  [<ffffffff965830df>] schedule_timeout+0x22f/0x2c0
-[ 4199.911727]  [<ffffffff9657f7a8>] ? __schedule+0x368/0xa20
-[ 4199.911891]  [<ffffffff96580903>] wait_for_completion+0xb3/0x130
-[ 4199.912067]  [<ffffffff960a17e0>] ? wake_up_q+0x70/0x70
-[ 4199.912243]  [<ffffffffc074a06d>] cm_destroy_id+0x13d/0x450 [ib_cm]
-[ 4199.912422]  [<ffffffff961615d5>] ? printk+0x57/0x73
-[ 4199.912578]  [<ffffffffc074a390>] ib_destroy_cm_id+0x10/0x20 [ib_cm]
-[ 4199.912759]  [<ffffffffc076098c>] rdma_destroy_id+0xac/0x340 [rdma_cm]
-[ 4199.912941]  [<ffffffffc076f2cc>] 0xffffffffc076f2cc
-
-Peek at the CQ after arming it so that we can return a hint.
+While here, use BTH_PSN_MASK to mask the calculated last_psn.
 
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c   |  3 +++
+ drivers/infiniband/sw/rxe/rxe_resp.c | 18 +++++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 19841c8..de39b0a 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1007,11 +1007,19 @@ static int rxe_peek_cq(struct ib_cq *ibcq, int wc_cnt)
- static int rxe_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
- {
- 	struct rxe_cq *cq = to_rcq(ibcq);
-+	unsigned long irq_flags;
-+	int ret = 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 1869152..d0faca2 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -355,6 +355,9 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
+ 	size_t			offset;
+ 	u32			crc = crcp ? (*crcp) : 0;
  
-+	spin_lock_irqsave(&cq->cq_lock, irq_flags);
- 	if (cq->notify != IB_CQ_NEXT_COMP)
- 		cq->notify = flags & IB_CQ_SOLICITED_MASK;
- 
--	return 0;
-+	if ((flags & IB_CQ_REPORT_MISSED_EVENTS) && !queue_empty(cq->queue))
-+		ret = 1;
++	if (length == 0)
++		return 0;
 +
-+	spin_unlock_irqrestore(&cq->cq_lock, irq_flags);
-+
-+	return ret;
- }
+ 	if (mem->type == RXE_MEM_TYPE_DMA) {
+ 		u8 *src, *dest;
  
- static struct ib_mr *rxe_get_dma_mr(struct ib_pd *ibpd, int access)
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index cb3fd4c..a5e9ce3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -444,6 +444,13 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 		return RESPST_EXECUTE;
+ 	}
+ 
++	/* A zero-byte op is not required to set an addr or rkey. */
++	if ((pkt->mask & (RXE_READ_MASK | RXE_WRITE_OR_SEND)) &&
++	    (pkt->mask & RXE_RETH_MASK) &&
++	    reth_len(pkt) == 0) {
++		return RESPST_EXECUTE;
++	}
++
+ 	va	= qp->resp.va;
+ 	rkey	= qp->resp.rkey;
+ 	resid	= qp->resp.resid;
+@@ -680,9 +687,14 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 		res->read.va_org	= qp->resp.va;
+ 
+ 		res->first_psn		= req_pkt->psn;
+-		res->last_psn		= req_pkt->psn +
+-					  (reth_len(req_pkt) + mtu - 1) /
+-					  mtu - 1;
++
++		if (reth_len(req_pkt)) {
++			res->last_psn	= (req_pkt->psn +
++					   (reth_len(req_pkt) + mtu - 1) /
++					   mtu - 1) & BTH_PSN_MASK;
++		} else {
++			res->last_psn	= res->first_psn;
++		}
+ 		res->cur_psn		= req_pkt->psn;
+ 
+ 		res->read.resid		= qp->resp.resid;
 -- 
 1.8.3.1
 
