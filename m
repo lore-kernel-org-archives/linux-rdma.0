@@ -1,48 +1,129 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 08/10] svcrdma: Remove unused variable in rdma_copy_tail()
-Date: Fri, 18 Nov 2016 10:11:14 -0500
-Message-ID: <20161118151114.13658.22001.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 09/10] svcrdma: Break up dprintk format in
+ svc_rdma_accept()
+Date: Fri, 18 Nov 2016 10:11:22 -0500
+Message-ID: <20161118151122.13658.64802.stgit@klimt.1015granger.net>
 References: <20161118145940.13658.59105.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161118145940.13658.59105.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.
+The current code results in:
 
-linux-2.6/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c: In function
- ‘rdma_copy_tail’:
-linux-2.6/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c:376:6: warning:
- variable ‘ret’ set but not used [-Wunused-but-set-variable]
-  int ret;
-      ^
+Nov  7 14:50:19 klimt kernel: svcrdma: newxprt->sc_cm_id=ffff88085590c800,
+ newxprt->sc_pd=ffff880852a7ce00#012    cm_id->device=ffff88084dd20000,
+ sc_pd->device=ffff88084dd20000#012    cap.max_send_wr = 272#012
+ cap.max_recv_wr = 34#012    cap.max_send_sge = 32#012
+ cap.max_recv_sge = 32
+Nov  7 14:50:19 klimt kernel: svcrdma: new connection ffff880855908000
+ accepted with the following attributes:#012    local_ip        :
+ 10.0.0.5#012    local_port#011     : 20049#012    remote_ip       :
+ 10.0.0.2#012    remote_port     : 59909#012    max_sge         : 32#012
+ max_sge_rd      : 30#012    sq_depth        : 272#012    max_requests    :
+ 32#012    ord             : 16
 
-Fixes: a97c331f9aa9 ("svcrdma: Handle additional inline content")
+Split up the output over multiple dprintks and take the opportunity
+to fix the display of IPv6 addresses.
+
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 --
- 1 file changed, 2 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   55 ++++++++++--------------------
+ 1 file changed, 18 insertions(+), 37 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 428ab4ef..57d35fb 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -373,9 +373,7 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
- 	       u32 position, u32 byte_count, u32 page_offset, int page_no)
- {
- 	char *srcp, *destp;
--	int ret;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index f9d961c..bdbc248 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -41,6 +41,7 @@
+  */
  
--	ret = 0;
- 	srcp = head->arg.head[0].iov_base + position;
- 	byte_count = head->arg.head[0].iov_len - position;
- 	if (byte_count > PAGE_SIZE) {
+ #include <linux/sunrpc/svc_xprt.h>
++#include <linux/sunrpc/addr.h>
+ #include <linux/sunrpc/debug.h>
+ #include <linux/sunrpc/rpc_rdma.h>
+ #include <linux/interrupt.h>
+@@ -966,6 +967,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	struct rpcrdma_connect_private pmsg;
+ 	struct ib_qp_init_attr qp_attr;
+ 	struct ib_device *dev;
++	struct sockaddr *sap;
+ 	unsigned int i;
+ 	int ret = 0;
+ 
+@@ -1046,18 +1048,12 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	qp_attr.qp_type = IB_QPT_RC;
+ 	qp_attr.send_cq = newxprt->sc_sq_cq;
+ 	qp_attr.recv_cq = newxprt->sc_rq_cq;
+-	dprintk("svcrdma: newxprt->sc_cm_id=%p, newxprt->sc_pd=%p\n"
+-		"    cm_id->device=%p, sc_pd->device=%p\n"
+-		"    cap.max_send_wr = %d\n"
+-		"    cap.max_recv_wr = %d\n"
+-		"    cap.max_send_sge = %d\n"
+-		"    cap.max_recv_sge = %d\n",
+-		newxprt->sc_cm_id, newxprt->sc_pd,
+-		dev, newxprt->sc_pd->device,
+-		qp_attr.cap.max_send_wr,
+-		qp_attr.cap.max_recv_wr,
+-		qp_attr.cap.max_send_sge,
+-		qp_attr.cap.max_recv_sge);
++	dprintk("svcrdma: newxprt->sc_cm_id=%p, newxprt->sc_pd=%p\n",
++		newxprt->sc_cm_id, newxprt->sc_pd);
++	dprintk("    cap.max_send_wr = %d, cap.max_recv_wr = %d\n",
++		qp_attr.cap.max_send_wr, qp_attr.cap.max_recv_wr);
++	dprintk("    cap.max_send_sge = %d, cap.max_recv_sge = %d\n",
++		qp_attr.cap.max_send_sge, qp_attr.cap.max_recv_sge);
+ 
+ 	ret = rdma_create_qp(newxprt->sc_cm_id, newxprt->sc_pd, &qp_attr);
+ 	if (ret) {
+@@ -1140,31 +1136,16 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		goto errout;
+ 	}
+ 
+-	dprintk("svcrdma: new connection %p accepted with the following "
+-		"attributes:\n"
+-		"    local_ip        : %pI4\n"
+-		"    local_port	     : %d\n"
+-		"    remote_ip       : %pI4\n"
+-		"    remote_port     : %d\n"
+-		"    max_sge         : %d\n"
+-		"    max_sge_rd      : %d\n"
+-		"    sq_depth        : %d\n"
+-		"    max_requests    : %d\n"
+-		"    ord             : %d\n",
+-		newxprt,
+-		&((struct sockaddr_in *)&newxprt->sc_cm_id->
+-			 route.addr.src_addr)->sin_addr.s_addr,
+-		ntohs(((struct sockaddr_in *)&newxprt->sc_cm_id->
+-		       route.addr.src_addr)->sin_port),
+-		&((struct sockaddr_in *)&newxprt->sc_cm_id->
+-			 route.addr.dst_addr)->sin_addr.s_addr,
+-		ntohs(((struct sockaddr_in *)&newxprt->sc_cm_id->
+-		       route.addr.dst_addr)->sin_port),
+-		newxprt->sc_max_sge,
+-		newxprt->sc_max_sge_rd,
+-		newxprt->sc_sq_depth,
+-		newxprt->sc_max_requests,
+-		newxprt->sc_ord);
++	dprintk("svcrdma: new connection %p accepted:\n", newxprt);
++	sap = (struct sockaddr *)&newxprt->sc_cm_id->route.addr.src_addr;
++	dprintk("    local address   : %pIS:%u\n", sap, rpc_get_port(sap));
++	sap = (struct sockaddr *)&newxprt->sc_cm_id->route.addr.dst_addr;
++	dprintk("    remote address  : %pIS:%u\n", sap, rpc_get_port(sap));
++	dprintk("    max_sge         : %d\n", newxprt->sc_max_sge);
++	dprintk("    max_sge_rd      : %d\n", newxprt->sc_max_sge_rd);
++	dprintk("    sq_depth        : %d\n", newxprt->sc_sq_depth);
++	dprintk("    max_requests    : %d\n", newxprt->sc_max_requests);
++	dprintk("    ord             : %d\n", newxprt->sc_ord);
+ 
+ 	return &newxprt->sc_xprt;
+ 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
