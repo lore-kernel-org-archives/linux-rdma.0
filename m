@@ -1,38 +1,38 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 11/12] xprtrdma: Update dprintk in rpcrdma_count_chunks
-Date: Fri, 18 Nov 2016 10:00:25 -0500
-Message-ID: <20161118150025.10592.50789.stgit@manet.1015granger.net>
-References: <20161118145547.10592.66470.stgit@manet.1015granger.net>
+Subject: [PATCH v2 01/10] svcrdma: Clear xpt_bc_xps in xprt_setup_rdma_bc()
+ error exit arm
+Date: Fri, 18 Nov 2016 10:10:17 -0500
+Message-ID: <20161118151017.13658.19994.stgit@klimt.1015granger.net>
+References: <20161118145940.13658.59105.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161118145547.10592.66470.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20161118145940.13658.59105.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: offset and handle should be zero-filled, just like in the
-chunk encoders.
+Logic copied from xs_setup_bc_tcp().
 
+Fixes: 39a9beab5acb ('rpc: share one xps between all backchannels')
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index d987c2d..01f5cbc 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -786,7 +786,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 		ifdebug(FACILITY) {
- 			u64 off;
- 			xdr_decode_hyper((__be32 *)&seg->rs_offset, &off);
--			dprintk("RPC:       %s: chunk %d@0x%llx:0x%x\n",
-+			dprintk("RPC:       %s: chunk %d@0x%016llx:0x%08x\n",
- 				__func__,
- 				be32_to_cpu(seg->rs_length),
- 				(unsigned long long)off,
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index 20027f8..6035c5a 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -359,6 +359,7 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
+ out_fail:
+ 	xprt_rdma_free_addresses(xprt);
+ 	args->bc_xprt->xpt_bc_xprt = NULL;
++	args->bc_xprt->xpt_bc_xps = NULL;
+ 	xprt_put(xprt);
+ 	xprt_free(xprt);
+ 	return ERR_PTR(-EINVAL);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
