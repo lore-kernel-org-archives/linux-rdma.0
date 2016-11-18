@@ -1,73 +1,33 @@
-From: Lloyds TSB Bank PLC <nur.hupi-LC+5bNTER0Zzu6KWmfFNGwC/G2K4zDHf@public.gmane.org>
-Subject: lening bieden
-Date: Sat, 19 Nov 2016 00:56:26 +0700 (WIT)
-Message-ID: <67634060.313939.1479491786359.JavaMail.zimbra@kalstaronline.com>
-Reply-To: "lloyds26tsb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <lloyds26tsb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next] cxgb4: Allocate Tx queues dynamically
+Date: Fri, 18 Nov 2016 14:04:46 -0500 (EST)
+Message-ID: <20161118.140446.1811222085231950254.davem@davemloft.net>
+References: <1479467260-6509-1-git-send-email-atul.gupta@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1479467260-6509-1-git-send-email-atul.gupta-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: atul.gupta-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Atul Gupta <atul.gupta-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Fri, 18 Nov 2016 16:37:40 +0530
 
+> From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> 
+> Allocate resources dynamically for Upper layer driver's (ULD) like
+> cxgbit, iw_cxgb4, cxgb4i and chcr. The resources allocated include Tx
+> queues which are allocated when ULD register with cxgb4 driver and freed
+> while un-registering. The Tx queues which are shared by ULD shall be
+> allocated by first registering driver and un-allocated by last
+> unregistering driver.
+> 
+> Signed-off-by: Atul Gupta <atul.gupta-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 
-Goede dag,
- 
-
-Dit is Lloyd's TSB Bank plc leningen aan te bieden.
-  
-
- Lloyds TSB biedt flexibele en betaalbare leningen voor welk doel u te helpen uw doelen te bereiken. we lening tegen lage rente van 3%. Hier zijn een aantal belangrijke kenmerken van de persoonlijke lening aangeboden door Lloyd's TSB. Hier zijn de Loan Factoren we werken met de toonaangevende Britse makelaars die toegang hebben tot de top kredietverstrekkers hebben en in staat zijn om de beste financi&euml;le oplossing tegen een betaalbare price.Please vinden als u ge&iuml;nteresseerd bent vriendelijk contact met ons op via deze e-mail: lloyds26tsb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
-
-Na de reactie, zal u een aanvraag voor een lening te vullen ontvangen. Geen sociale zekerheid en geen credit check, 100% gegarandeerd.
-Het zal ons een eer zijn als u ons toelaten om u van dienst zijn.
-
-
-INFORMATIE NODIG
-
-
-Jullie namen........
-
-
-Adres: ...........
-
-
-Telefoon: ...........
-
-
-Benodigd ........
-
-
-Duur: ...............
-
-
-Bezetting: ...........
-
-
-Maandelijks Inkomen Level: ........
-
-
-Geslacht: ...............
-
-
-Geboortedatum: ........
-
-
-Staat: ..................
-
-
-Land: ..........
-
-
-Doel: .........
-
-
-Ontmoeting uw financi&euml;le behoeften is onze trots.
-
-
-Dr.John Mahama.
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
