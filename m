@@ -1,105 +1,64 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 02/10] svcauth_gss: Close connection when dropping an
- incoming message
-Date: Fri, 18 Nov 2016 10:10:25 -0500
-Message-ID: <20161118151025.13658.41895.stgit@klimt.1015granger.net>
-References: <20161118145940.13658.59105.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 00/10] Server-side NFS/RDMA patches proposed for v4.10
+Date: Fri, 18 Nov 2016 10:10:08 -0500
+Message-ID: <20161118145940.13658.59105.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161118145940.13658.59105.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-S5.3.3.1 of RFC 2203 requires that an incoming GSS-wrapped message
-whose sequence number lies outside the current window is dropped.
-The rationale is:
+Changes proposed for v4.10 include:
 
-  The reason for discarding requests silently is that the server
-  is unable to determine if the duplicate or out of range request
-  was due to a sequencing problem in the client, network, or the
-  operating system, or due to some quirk in routing, or a replay
-  attack by an intruder.  Discarding the request allows the client
-  to recover after timing out, if indeed the duplication was
-  unintentional or well intended.
+- Drop connection on GSS sequence window overflow
+- Remove unnecessary spin lock in the svc_rdma_send path
+- A number of minor clean-ups
 
-However, clients may rely on the server dropping the connection to
-indicate that a retransmit is needed. Without a connection reset, a
-client can wait forever without retransmitting, and the workload
-just stops dead. I've reproduced this behavior by running xfstests
-generic/323 on an NFSv4.0 mount with proto=rdma and sec=krb5i.
+Available in the "nfsd-rdma-for-4.10" topic branch of this git repo:
 
-To address this issue, have the server close the connection when it
-silently discards an incoming message due to a GSS sequence number
-problem.
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-There are a few other places where the server will never reply.
-Change those spots in a similar fashion.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.10
+
+Changes since v1:
+ - Rebased on v4.9-rc5
+ - Address checkpatch.pl warnings
+ - Address compiler warnings
+ - Remove a dprintk in svc_rdma_get_inv_rkey()
+ - Patches reordered so fixes come before clean-ups
+
+
 ---
- net/sunrpc/auth_gss/svcauth_gss.c |    2 +-
- net/sunrpc/svc.c                  |   14 +++++++++-----
- 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/net/sunrpc/auth_gss/svcauth_gss.c b/net/sunrpc/auth_gss/svcauth_gss.c
-index 45662d7..886e9d38 100644
---- a/net/sunrpc/auth_gss/svcauth_gss.c
-+++ b/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -1548,7 +1548,7 @@ static void destroy_use_gss_proxy_proc_entry(struct net *net) {}
- 	ret = SVC_COMPLETE;
- 	goto out;
- drop:
--	ret = SVC_DROP;
-+	ret = SVC_CLOSE;
- out:
- 	if (rsci)
- 		cache_put(&rsci->h, sn->rsc_cache);
-diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
-index 7c8070e..75f290b 100644
---- a/net/sunrpc/svc.c
-+++ b/net/sunrpc/svc.c
-@@ -1155,8 +1155,7 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
- 	case SVC_DENIED:
- 		goto err_bad_auth;
- 	case SVC_CLOSE:
--		if (test_bit(XPT_TEMP, &rqstp->rq_xprt->xpt_flags))
--			svc_close_xprt(rqstp->rq_xprt);
-+		goto close;
- 	case SVC_DROP:
- 		goto dropit;
- 	case SVC_COMPLETE:
-@@ -1246,7 +1245,7 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
- 
-  sendit:
- 	if (svc_authorise(rqstp))
--		goto dropit;
-+		goto close;
- 	return 1;		/* Caller can now send it */
- 
-  dropit:
-@@ -1254,11 +1253,16 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
- 	dprintk("svc: svc_process dropit\n");
- 	return 0;
- 
-+ close:
-+	if (test_bit(XPT_TEMP, &rqstp->rq_xprt->xpt_flags))
-+		svc_close_xprt(rqstp->rq_xprt);
-+	dprintk("svc: svc_process close\n");
-+	return 0;
-+
- err_short_len:
- 	svc_printk(rqstp, "short len %Zd, dropping request\n",
- 			argv->iov_len);
--
--	goto dropit;			/* drop request */
-+	goto close;
- 
- err_bad_rpc:
- 	serv->sv_stats->rpcbadfmt++;
+Chuck Lever (10):
+      svcrdma: Clear xpt_bc_xps in xprt_setup_rdma_bc() error exit arm
+      svcauth_gss: Close connection when dropping an incoming message
+      svcrdma: Renovate sendto chunk list parsing
+      svcrdma: Remove BH-disabled spin locking in svc_rdma_send()
+      svcrdma: Remove DMA map accounting
+      svcrdma: Remove svc_rdma_op_ctxt::wc_status
+      svcrdma: Remove unused variables in xprt_rdma_bc_allocate()
+      svcrdma: Remove unused variable in rdma_copy_tail()
+      svcrdma: Break up dprintk format in svc_rdma_accept()
+      svcrdma: Further clean-up of svc_rdma_get_inv_rkey()
 
+
+ include/linux/sunrpc/svc_rdma.h            |    7 --
+ net/sunrpc/auth_gss/svcauth_gss.c          |    2 
+ net/sunrpc/svc.c                           |   14 ++-
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    5 -
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   21 ++++-
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  116 ++++++++--------------------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |   94 +++++++----------------
+ 7 files changed, 94 insertions(+), 165 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
