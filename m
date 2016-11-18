@@ -1,82 +1,86 @@
-From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH 5/7] IB/rxe: Add support for zero-byte operations
-Date: Fri, 18 Nov 2016 09:36:47 -0500
-Message-ID: <1479479809-10798-5-git-send-email-andrew.boyer@dell.com>
-References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479479809-10798-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 00/12] client-side NFS/RDMA patches proposed for v4.10
+Date: Fri, 18 Nov 2016 09:58:55 -0500
+Message-ID: <20161118145547.10592.66470.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The last_psn algorithm fails in the zero-byte case: it calculates
-first_psn = N, last_psn = N-1. This makes the operation unretryable since
-the res structure will fail the (first_psn <= psn <= last_psn) test in
-find_resource().
+The following patch series makes these changes:
 
-While here, use BTH_PSN_MASK to mask the calculated last_psn.
+- Support for devices that support SG_GAP
+- Several bug fixes
+- A number of clean-ups and optimizations
 
-Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+SG_GAP devices allow the client transport implementation to register
+non-contiguous memory regions using one offset and handle. Scatter
+and gather from these regions are then managed entirely in hardware.
+
+Normally a Reply chunk for a READDIR or GETACL is built of multiple
+RDMA segments. Now, when our client wants to build a Reply chunk out
+of the xdr_buf's head, page list, and tail, it appears to the server
+as a single contiguous RDMA segment if the device supports SG_GAP.
+
+Instead of a separate Write WR for each of several RDMA segments,
+the server can then post a single Write WR to transmit the whole RPC
+Reply (assuming the Reply is smaller than the server RNIC's max_sge)
+and can invalidate the whole Reply chunk remotely.
+
+SG_GAP is currently supported by mlx5 devices when using the FRWR
+registration mechanism.
+
+
+Available in the "nfs-rdma-for-4.10" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.10
+
+
+Client changes since v1:
+ - Rebase on v4.9-rc5
+ - "xprtrdma: Fix DMAR failure in frwr_op_map() after reconnect" was merged
+ - "xprtrdma: Simplify synopsis of rpcrdma_ep_connect()" was postponed
+ - Clean-ups re-ordered to the end of the series
+ - Editorial changes to patch descriptions
+
+
 ---
- drivers/infiniband/sw/rxe/rxe_mr.c   |  3 +++
- drivers/infiniband/sw/rxe/rxe_resp.c | 18 +++++++++++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 1869152..d0faca2 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -355,6 +355,9 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
- 	size_t			offset;
- 	u32			crc = crcp ? (*crcp) : 0;
- 
-+	if (length == 0)
-+		return 0;
-+
- 	if (mem->type == RXE_MEM_TYPE_DMA) {
- 		u8 *src, *dest;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index cb3fd4c..a5e9ce3 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -444,6 +444,13 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
- 		return RESPST_EXECUTE;
- 	}
- 
-+	/* A zero-byte op is not required to set an addr or rkey. */
-+	if ((pkt->mask & (RXE_READ_MASK | RXE_WRITE_OR_SEND)) &&
-+	    (pkt->mask & RXE_RETH_MASK) &&
-+	    reth_len(pkt) == 0) {
-+		return RESPST_EXECUTE;
-+	}
-+
- 	va	= qp->resp.va;
- 	rkey	= qp->resp.rkey;
- 	resid	= qp->resp.resid;
-@@ -680,9 +687,14 @@ static enum resp_states read_reply(struct rxe_qp *qp,
- 		res->read.va_org	= qp->resp.va;
- 
- 		res->first_psn		= req_pkt->psn;
--		res->last_psn		= req_pkt->psn +
--					  (reth_len(req_pkt) + mtu - 1) /
--					  mtu - 1;
-+
-+		if (reth_len(req_pkt)) {
-+			res->last_psn	= (req_pkt->psn +
-+					   (reth_len(req_pkt) + mtu - 1) /
-+					   mtu - 1) & BTH_PSN_MASK;
-+		} else {
-+			res->last_psn	= res->first_psn;
-+		}
- 		res->cur_psn		= req_pkt->psn;
- 
- 		res->read.resid		= qp->resp.resid;
--- 
-1.8.3.1
+Chuck Lever (12):
+      xprtrdma: Cap size of callback buffer resources
+      xprtrdma: Make FRWR send queue entry accounting more accurate
+      xprtrdma: Support for SG_GAP devices
+      SUNRPC: Proper metric accounting when RPC is not transmitted
+      xprtrdma: Address coverity complaint about wait_for_completion()
+      xprtrdma: Avoid calls to ro_unmap_safe()
+      xprtrdma: Refactor FRMR invalidation
+      xprtrdma: Update documenting comment
+      xprtrdma: Squelch "max send, max recv" messages at connect time
+      xprtrdma: Shorten QP access error message
+      xprtrdma: Update dprintk in rpcrdma_count_chunks
+      xprtrdma: Relocate connection helper functions
+
+
+ net/sunrpc/stats.c                |   10 ++--
+ net/sunrpc/xprtrdma/backchannel.c |    4 +-
+ net/sunrpc/xprtrdma/frwr_ops.c    |   94 +++++++++++++++++--------------------
+ net/sunrpc/xprtrdma/rpc_rdma.c    |   36 --------------
+ net/sunrpc/xprtrdma/transport.c   |   34 +++++++++++++
+ net/sunrpc/xprtrdma/verbs.c       |   37 ++++++++-------
+ net/sunrpc/xprtrdma/xprt_rdma.h   |   31 +++++++++---
+ 7 files changed, 128 insertions(+), 118 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
