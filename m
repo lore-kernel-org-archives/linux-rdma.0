@@ -1,53 +1,82 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH] infiniband: remove WARN that is not kernel bug
-Date: Fri, 18 Nov 2016 21:22:42 -0500
-Message-ID: <164538.1479522162@turing-police.cc.vt.edu>
-References: <1479468277-50798-1-git-send-email-dvyukov@google.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1479522162_2854P";
-         micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1479468277-50798-1-git-send-email-dvyukov@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, leon@kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, syzkaller@googlegroups.com
+From: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband: hw: hfi1: constify mmu_notifier_ops structure
+Date: Sat, 19 Nov 2016 15:17:48 +0530
+Message-ID: <1479548868-13563-1-git-send-email-bhumirks@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: julia.lawall-L2FTfq7BK8M@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---==_Exmh_1479522162_2854P
-Content-Type: text/plain; charset=us-ascii
+Declare the structure mmu_notifier_ops as const as it is only stored in
+the ops field of a mmu_notifier structure. The ops field is of type
+const struct mmu_notifier_ops *, so mmu_notifier_ops structures having
+this property can be declared as const.
+Done using coccinelle:
+@r1 disable optional_qualifier @
+identifier i;
+position p;
+@@
+static struct mmu_notifier_ops i@p = {...};
 
-On Fri, 18 Nov 2016 12:24:37 +0100, Dmitry Vyukov said:
-> WARNINGs mean kernel bugs.
-> The one in ucma_write() points to user programming error
-> or a malicious attempt. This is not a kernel bug, remove it.
+@ok1@
+identifier r1.i;
+position p;
+struct mmu_rb_handler handler;
+@@
+handler.mn.ops=&i@p
 
-> -	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
-> +	if (!ib_safe_file_access(filp))
->  		return -EACCES;
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
 
-In that case, wouldn't this be better?
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
+static
++const
+struct mmu_notifier_ops i={...};
 
-	if (!ib_safe_file_access(filp)) {
-		printk_once("Process %d (%s) tried to do something hinky", pid, comm);
-		return _EACCESS;
-	}
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct mmu_notifier_ops i;
 
-so the sysadmin becomes aware of the malicious attempt?
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   3566	     72	     16	   3654	    e46
+drivers/infiniband/hw/hfi1/mmu_rb.o
 
---==_Exmh_1479522162_2854P
-Content-Type: application/pgp-signature
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+   3658	      0	     16	   3674	    e5a
+drivers/infiniband/hw/hfi1/mmu_rb.o
 
------BEGIN PGP SIGNATURE-----
-Comment: Exmh version 2.5 07/13/2001
+Signed-off-by: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/hfi1/mmu_rb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-iQEVAwUBWC+3co0DS38y7CIcAQK1Ygf9EA//VvRupgZgxC0fx4M1cVn1g6s2oVIH
-TlIsaGMN2mwhjiht1E8rMTYbkUjaPuZXDrkzwnSPNneRP6zDLRDhXOr26W2U8pQz
-3QaRieGbLOcMtbJghqfv1gavdo7fAWYHCIqe1Vs5yjbyhzjZ53RQF9nhu8GnixZy
-dC09WQo0+ls3hbDGf0RnUMpELIMWxdp1ri2P+blrJecp1sircZIboKeY/neKcf9r
-d3AnDUkui8e+CeMQv4zYz7epR2YnDqmZPbql6JV6kHVQ61WlrkraUYvyuEpC89L8
-s0HXKi4mD6ZuS4F8/QWfa2mP968O6l4D5SorX4qDwr9ox+mRp3rbbQ==
-=qX3r
------END PGP SIGNATURE-----
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
+index 7ad3089..ccbf52c 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.c
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
+@@ -81,7 +81,7 @@ static void do_remove(struct mmu_rb_handler *handler,
+ 		      struct list_head *del_list);
+ static void handle_remove(struct work_struct *work);
+ 
+-static struct mmu_notifier_ops mn_opts = {
++static const struct mmu_notifier_ops mn_opts = {
+ 	.invalidate_page = mmu_notifier_page,
+ 	.invalidate_range_start = mmu_notifier_range_start,
+ };
+-- 
+1.9.1
 
---==_Exmh_1479522162_2854P--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
