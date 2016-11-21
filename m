@@ -1,71 +1,166 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/mad: Fix an array index check
-Date: Mon, 21 Nov 2016 15:17:51 -0500
-Message-ID: <d5924c69-c052-84d3-06e3-b74ed8eb58d3@dev.mellanox.co.il>
-References: <94eb11fc-b558-b994-c933-da784caefc53@sandisk.com>
- <396b3fe2-6a84-efed-07de-3e6381009ad1@sandisk.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 03/11] IB/hns: Optimize the logic of allocating
+ memory using APIs
+Date: Mon, 21 Nov 2016 20:20:30 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A7ADC7A@lhreml503-mbx>
+References: <20161104163633.141880-1-salil.mehta@huawei.com>
+ <20161104163633.141880-4-salil.mehta@huawei.com>
+ <20161109072130.GH27883@leon.nu>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A7A2371@lhreml503-mbx>
+ <20161116083602.GH4240@leon.nu>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A7AD7DF@lhreml503-mbx>
+ <20161121171423.GA23083@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <396b3fe2-6a84-efed-07de-3e6381009ad1-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20161121171423.GA23083-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhangping (ZP)" <zhangping5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/21/2016 1:21 PM, Bart Van Assche wrote:
-> The array ib_mad_mgmt_class_table.method_table has MAX_MGMT_CLASS
-> (80) elements. Hence compare the array index with that value instead
-> of with IB_MGMT_MAX_METHODS (128). This patch avoids that Coverity
-> reports the following:
+> -----Original Message-----
+> From: netdev-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:netdev-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> Sent: Monday, November 21, 2016 5:14 PM
+> To: Salil Mehta
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun;
+> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm;
+> Zhangping (ZP)
+> Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of
+> allocating memory using APIs
 > 
-> Overrunning array class->method_table of 80 8-byte elements at element index 127 (byte offset 1016) using index convert_mgmt_class(mad_hdr->mgmt_class) (which evaluates to 127).
+> On Mon, Nov 21, 2016 at 04:12:38PM +0000, Salil Mehta wrote:
+> > > -----Original Message-----
+> > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > > Sent: Wednesday, November 16, 2016 8:36 AM
+> > > To: Salil Mehta
+> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun;
+> > > mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > > netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm;
+> > > Zhangping (ZP)
+> > > Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of
+> > > allocating memory using APIs
+> > >
+> > > On Tue, Nov 15, 2016 at 03:52:46PM +0000, Salil Mehta wrote:
+> > > > > -----Original Message-----
+> > > > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > > > > Sent: Wednesday, November 09, 2016 7:22 AM
+> > > > > To: Salil Mehta
+> > > > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun;
+> > > > > mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > > > > netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm;
+> > > > > Zhangping (ZP)
+> > > > > Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic
+> of
+> > > > > allocating memory using APIs
+> > > > >
+> > > > > On Fri, Nov 04, 2016 at 04:36:25PM +0000, Salil Mehta wrote:
+> > > > > > From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > > >
+> > > > > > This patch modified the logic of allocating memory using APIs
+> in
+> > > > > > hns RoCE driver. We used kcalloc instead of kmalloc_array and
+> > > > > > bitmap_zero. And When kcalloc failed, call vzalloc to alloc
+> > > > > > memory.
+> > > > > >
+> > > > > > Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > > > Signed-off-by: Ping Zhang <zhangping5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > > > Signed-off-by: Salil Mehta  <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > > > > ---
+> > > > > >  drivers/infiniband/hw/hns/hns_roce_mr.c |   15 ++++++++-----
+> --
+> > > > > >  1 file changed, 8 insertions(+), 7 deletions(-)
+> > > > > >
+> > > > > > diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > > index fb87883..d3dfb5f 100644
+> > > > > > --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > > +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > > @@ -137,11 +137,12 @@ static int hns_roce_buddy_init(struct
+> > > > > hns_roce_buddy *buddy, int max_order)
+> > > > > >
+> > > > > >  	for (i = 0; i <= buddy->max_order; ++i) {
+> > > > > >  		s = BITS_TO_LONGS(1 << (buddy->max_order - i));
+> > > > > > -		buddy->bits[i] = kmalloc_array(s, sizeof(long),
+> > > > > GFP_KERNEL);
+> > > > > > -		if (!buddy->bits[i])
+> > > > > > -			goto err_out_free;
+> > > > > > -
+> > > > > > -		bitmap_zero(buddy->bits[i], 1 << (buddy->max_order -
+> > > i));
+> > > > > > +		buddy->bits[i] = kcalloc(s, sizeof(long),
+> > > GFP_KERNEL);
+> > > > > > +		if (!buddy->bits[i]) {
+> > > > > > +			buddy->bits[i] = vzalloc(s * sizeof(long));
+> > > > >
+> > > > > I wonder, why don't you use directly vzalloc instead of kcalloc
+> > > > > fallback?
+> > > > As we know we will have physical contiguous pages if the kcalloc
+> > > > call succeeds. This will give us a chance to have better
+> performance
+> > > > over the allocations which are just virtually contiguous through
+> the
+> > > > function vzalloc(). Therefore, later has only been used as a
+> fallback
+> > > > when our memory request cannot be entertained through kcalloc.
+> > > >
+> > > > Are you suggesting that there will not be much performance
+> penalty
+> > > > if we use just vzalloc ?
+> > >
+> > > Not exactly,
+> > > I asked it, because we have similar code in our drivers and this
+> > > construction looks strange to me.
+> > >
+> > > 1. If performance is critical, we will use kmalloc.
+> > > 2. If performance is not critical, we will use vmalloc.
+> > >
+> > > But in this case, such construction shows me that we can live with
+> > > vmalloc performance and kmalloc allocation are not really needed.
+> > >
+> > > In your specific case, I'm not sure that kcalloc will ever fail.
+> > Performance is definitely critical here. Though, I agree this is bit
+> > unusual way of memory allocation. In actual, we were encountering
+> > memory alloc failures using kmalloc (if you see allocation amount
+> > is on the higher side and is exponential) so we ended up using
+> > vmalloc as fall back - It is very naïve allocation scheme.
 > 
-> Fixes: commit b7ab0b19a85f ("IB/mad: Verify mgmt class in received MADs")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> I understand it, we did the same, see our mlx5_vzalloc call.
+> BTW, we used __GFP_NOWARN flag, which you should consider to use
+> in your case too.
+Ok. Will add this flag and refloat patch V3. 
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> ---
->  drivers/infiniband/core/mad.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks
 > 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 40cbd6b..2395fe2 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -1746,7 +1746,7 @@ find_mad_agent(struct ib_mad_port_private *port_priv,
->  			if (!class)
->  				goto out;
->  			if (convert_mgmt_class(mad_hdr->mgmt_class) >=
-> -			    IB_MGMT_MAX_METHODS)
-> +			    ARRAY_SIZE(class->method_table))
->  				goto out;
->  			method = class->method_table[convert_mgmt_class(
->  							mad_hdr->mgmt_class)];
+> >
+> > Maybe we need to rethink this allocation scheme part? Also, I can
+> pull
+> > back this particular patch for now or just live with vzalloc() till
+> > we figure out proper solution to this?
 > 
+> It is up to you, I don't think that you should drop it, AFAIK, there is
+> no other proper solution.
+Ok we will live with it for now and later maybe we can see how we can optimize
+pre-allocation of physically contiguous memory. 
 
-I think there is also similar thing in missing check in ib_register_mad_agent where:
-
-        /*
-         * Make sure MAD registration (if supplied)
-         * is non overlapping with any existing ones
-         */
-        if (mad_reg_req) {
-                mgmt_class = convert_mgmt_class(mad_reg_req->mgmt_class);
-                if (!is_vendor_class(mgmt_class)) {
-                        class = port_priv->version[mad_reg_req->
-                                                   mgmt_class_version].class;
-                        if (class) {
-                                method = class->method_table[mgmt_class];
-
-so here the class' method_table is also accessed without checking mgmt_class for range violation, right ?
-
--- Hal
-
+Thanks for your suggestions!
+Salil
+> 
+> >
+> > >
+> > > Thanks
+> > >
+> > >
+> > > >
+> > > > >
+> > > > > > +			if (!buddy->bits[i])
+> > > > > > +				goto err_out_free;
+> > > > > > +		}
+> > > > > >  	}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
