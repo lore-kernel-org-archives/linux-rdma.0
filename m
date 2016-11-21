@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH v5 5/9] IB/isert: Replace semaphore sem with completion
-Date: Mon, 21 Nov 2016 11:38:12 +0530
-Message-ID: <1479708496-9828-6-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH v5 4/9] IB/mthca: Replace semaphore poll_sem with mutex
+Date: Mon, 21 Nov 2016 11:38:11 +0530
+Message-ID: <1479708496-9828-5-git-send-email-binoy.jayan@linaro.org>
 References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
@@ -10,71 +10,92 @@ To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Sagi 
 Cc: Faisal Latif <faisal.latif@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, target-devel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The semaphore 'sem' in isert_device is used as completion, but in a
-counting fashion as isert_connected_handler could be called multiple times
-during which it allows for that number of waiters (isert_accept_np) to
-continue without blocking, each consuming one node out from the list
-isert_np-pending in the same order in which they were enqueued (FIFO). So,
-convert it to struct completion. Semaphores are going away in the future.
+The semaphore 'poll_sem' is a simple mutex, so it should be written as one.
+Semaphores are going away in the future. So replace it with a mutex. Also,
+remove mutex_[un]lock from mthca_cmd_use_events and mthca_cmd_use_polling
+respectively.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 6 +++---
- drivers/infiniband/ulp/isert/ib_isert.h | 3 ++-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 10 +++-------
+ drivers/infiniband/hw/mthca/mthca_cmd.h |  1 +
+ drivers/infiniband/hw/mthca/mthca_dev.h |  2 +-
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 6dd43f6..de80f56 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -619,7 +619,7 @@
- 	mutex_unlock(&isert_np->mutex);
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index c7f49bb..49c6e19 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -347,7 +347,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+ 	unsigned long end;
+ 	u8 status;
  
- 	isert_info("np %p: Allow accept_np to continue\n", isert_np);
--	up(&isert_np->sem);
-+	complete(&isert_np->comp);
+-	down(&dev->cmd.poll_sem);
++	mutex_lock(&dev->cmd.poll_mutex);
+ 
+ 	err = mthca_cmd_post(dev, in_param,
+ 			     out_param ? *out_param : 0,
+@@ -382,7 +382,7 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+ 	}
+ 
+ out:
+-	up(&dev->cmd.poll_sem);
++	mutex_unlock(&dev->cmd.poll_mutex);
+ 	return err;
  }
  
- static void
-@@ -2311,7 +2311,7 @@ struct rdma_cm_id *
- 		isert_err("Unable to allocate struct isert_np\n");
- 		return -ENOMEM;
- 	}
--	sema_init(&isert_np->sem, 0);
-+	init_completion(&isert_np->comp);
- 	mutex_init(&isert_np->mutex);
- 	INIT_LIST_HEAD(&isert_np->accepted);
- 	INIT_LIST_HEAD(&isert_np->pending);
-@@ -2427,7 +2427,7 @@ struct rdma_cm_id *
- 	int ret;
+@@ -520,7 +520,7 @@ static int mthca_cmd_imm(struct mthca_dev *dev,
+ int mthca_cmd_init(struct mthca_dev *dev)
+ {
+ 	mutex_init(&dev->cmd.hcr_mutex);
+-	sema_init(&dev->cmd.poll_sem, 1);
++	mutex_init(&dev->cmd.poll_mutex);
+ 	dev->cmd.flags = 0;
  
- accept_wait:
--	ret = down_interruptible(&isert_np->sem);
-+	ret = wait_for_completion_interruptible(&isert_np->comp);
- 	if (ret)
- 		return -ENODEV;
+ 	dev->hcr = ioremap(pci_resource_start(dev->pdev, 0) + MTHCA_HCR_BASE,
+@@ -582,8 +582,6 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
  
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index c02ada5..a1277c0 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -3,6 +3,7 @@
- #include <linux/in6.h>
+ 	dev->cmd.flags |= MTHCA_CMD_USE_EVENTS;
+ 
+-	down(&dev->cmd.poll_sem);
+-
+ 	return 0;
+ }
+ 
+@@ -600,8 +598,6 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
+ 		down(&dev->cmd.event_sem);
+ 
+ 	kfree(dev->cmd.context);
+-
+-	up(&dev->cmd.poll_sem);
+ }
+ 
+ struct mthca_mailbox *mthca_alloc_mailbox(struct mthca_dev *dev,
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.h b/drivers/infiniband/hw/mthca/mthca_cmd.h
+index d2e5b19..a7f197e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.h
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.h
+@@ -35,6 +35,7 @@
+ #ifndef MTHCA_CMD_H
+ #define MTHCA_CMD_H
+ 
++#include <linux/mutex.h>
  #include <rdma/ib_verbs.h>
- #include <rdma/rdma_cm.h>
-+#include <linux/completion.h>
- #include <rdma/rw.h>
- #include <scsi/iser.h>
  
-@@ -190,7 +191,7 @@ struct isert_device {
- 
- struct isert_np {
- 	struct iscsi_np         *np;
--	struct semaphore	sem;
-+	struct completion	comp;
- 	struct rdma_cm_id	*cm_id;
- 	struct mutex		mutex;
- 	struct list_head	accepted;
+ #define MTHCA_MAILBOX_SIZE 4096
+diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
+index 4393a02..87ab964 100644
+--- a/drivers/infiniband/hw/mthca/mthca_dev.h
++++ b/drivers/infiniband/hw/mthca/mthca_dev.h
+@@ -120,7 +120,7 @@ enum {
+ struct mthca_cmd {
+ 	struct pci_pool          *pool;
+ 	struct mutex              hcr_mutex;
+-	struct semaphore 	  poll_sem;
++	struct mutex		  poll_mutex;
+ 	struct semaphore 	  event_sem;
+ 	int              	  max_cmds;
+ 	spinlock_t                context_lock;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
