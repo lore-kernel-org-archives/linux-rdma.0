@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/5] IB/srp: Make login failures easier to debug
-Date: Mon, 21 Nov 2016 13:57:24 -0800
-Message-ID: <fa78fa8c-7763-985b-b00f-69d6f91c412a@sandisk.com>
+Subject: [PATCH 4/5] IB/srp: Make mapping failures easier to debug
+Date: Mon, 21 Nov 2016 13:57:41 -0800
+Message-ID: <4b5302b8-26f3-91ad-ceab-3b48c5692e37@sandisk.com>
 References: <ba32b251-135f-c57d-44cc-658ae35a49ca@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,29 +13,46 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If login fails because memory region allocation failed it can be
-hard to figure out what happened. Make it easier to figure out
-why login failed by logging a message if ib_alloc_mr() fails.
+Make it easier to figure out what is going on if memory mapping
+fails because more memory regions than mr_per_cmd are needed.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index c216c6e..81cb27f 100644
+index 81cb27f..bb9d73d 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -389,6 +389,9 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
- 				 max_page_list_len);
- 		if (IS_ERR(mr)) {
- 			ret = PTR_ERR(mr);
-+			if (ret == -ENOMEM)
-+				pr_info("%s: ib_alloc_mr() failed. Try to reduce max_cmd_per_lun, max_sect or ch_count\n",
-+					dev_name(&device->dev));
- 			goto destroy_pool;
- 		}
- 		d->mr = mr;
+@@ -1274,8 +1274,12 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	struct ib_pool_fmr *fmr;
+ 	u64 io_addr = 0;
+ 
+-	if (state->fmr.next >= state->fmr.end)
++	if (state->fmr.next >= state->fmr.end) {
++		shost_printk(KERN_ERR, ch->target->scsi_host,
++			     PFX "Out of MRs (mr_per_cmd = %d)\n",
++			     ch->target->mr_per_cmd);
+ 		return -ENOMEM;
++	}
+ 
+ 	WARN_ON_ONCE(!dev->use_fmr);
+ 
+@@ -1331,8 +1335,12 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	u32 rkey;
+ 	int n, err;
+ 
+-	if (state->fr.next >= state->fr.end)
++	if (state->fr.next >= state->fr.end) {
++		shost_printk(KERN_ERR, ch->target->scsi_host,
++			     PFX "Out of MRs (mr_per_cmd = %d)\n",
++			     ch->target->mr_per_cmd);
+ 		return -ENOMEM;
++	}
+ 
+ 	WARN_ON_ONCE(!dev->use_fast_reg);
+ 
 -- 
 2.10.2
 
