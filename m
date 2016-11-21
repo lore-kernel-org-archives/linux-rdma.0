@@ -1,185 +1,73 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] infiniband: remove WARN that is not kernel bug
-Date: Mon, 21 Nov 2016 19:38:20 +0200
-Message-ID: <20161121173820.GC23083@leon.nu>
-References: <1479723531-17940-1-git-send-email-dvyukov@google.com>
- <alpine.LNX.2.00.1611211123450.22752@pobox.suse.cz>
- <CACT4Y+ZO9sTbBGwNUUMkAQ5m0N-4aT0S9xypCRbBUch1pQNw9g@mail.gmail.com>
- <20161121114417.GA4158@leon.nu>
- <CACT4Y+Y1sL-8K7HhZ5M5ABVPG0kM=dKZh+6gvuNRvzXFtiA5aQ@mail.gmail.com>
- <20161121121408.GC4158@leon.nu>
- <20161121165253.GA22237@obsidianresearch.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH v5 2/9] IB/core: Replace semaphore sm_sem with an atomic wait
+Date: Mon, 21 Nov 2016 09:57:51 -0800
+Message-ID: <CA+55aFyd7d+C39ipC5XuZg1gJjJ+HFSgcPQU7Xb26Fsh6Z1_0A@mail.gmail.com>
+References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
+ <1479708496-9828-3-git-send-email-binoy.jayan@linaro.org> <CA+55aFxGjaqduhRCyk0mVxEA7aqQ-omdG8SBreZ=x5cW2ovngQ@mail.gmail.com>
+ <4374986.OFD8bCgUa1@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="d8Lz2Tf5e5STOWUP"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161121165253.GA22237-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, syzkaller <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Valdis.Kletnieks-PjAqaU27lzQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4374986.OFD8bCgUa1@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Binoy Jayan <binoy.jayan@linaro.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mustafa Ismail <mustafa.ismail@intel.com>, Lijun Ou <oulijun@huawei.com>, Nicholas Bellinger <nab@linux-iscsi.org>, Leon Romanovsky <leonro@mellanox.com>, target-devel <target-devel@vger.kernel.org>, Tatyana E Nikolova <tatyana.e.nikolova@intel.com>, Doug Ledford <dledford@redhat.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Faisal Latif <faisal.latif@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Mark Brown <broonie@kernel.org>, Mark Bloch <markb@mellanox.com>, Steve
 List-Id: linux-rdma@vger.kernel.org
 
-
---d8Lz2Tf5e5STOWUP
-Content-Type: multipart/mixed; boundary="OROCMA9jn6tkzFBc"
-Content-Disposition: inline
-
-
---OROCMA9jn6tkzFBc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Nov 21, 2016 at 09:52:53AM -0700, Jason Gunthorpe wrote:
-> On Mon, Nov 21, 2016 at 02:14:08PM +0200, Leon Romanovsky wrote:
-> > >
-> > > In ib_ucm_write function there is a wrong prefix:
-> > >
-> > > + pr_err_once("ucm_write: process %d (%s) tried to do something hinky\n",
-> >
-> > I did it intentionally to have the same errors for all flows.
+On Mon, Nov 21, 2016 at 8:52 AM, Arnd Bergmann <arnd@arndb.de> wrote:
 >
-> Lets actually use a good message too please?
->
->  pr_err_once("ucm_write: process %d (%s) changed security contexts after opening FD, this is not allowed.\n",
->
-> Jason
+> Version of the series had replaced the semaphore with a completion
+> here, which worked correctly, but one reviewer suggested using
+> the wait_event() instead since it's confusing to have a completion
+> starting out in 'completed' state.
 
---OROCMA9jn6tkzFBc
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-IB-core-qib-Remove-WARN-that-is-not-kernel-bug.patch"
-Content-Transfer-Encoding: quoted-printable
+Quite frankly, in that case just keep it as a semaphore.
 
-=46rom 70f95b2d35aea42e5b97e7d27ab2f4e8effcbe67 Mon Sep 17 00:00:00 2001
-=46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Mon, 21 Nov 2016 13:30:59 +0200
-Subject: [PATCH rdma-next V2] IB/{core, qib}: Remove WARN that is not kerne=
-l bug
+So we have a few cases:
 
-WARNINGs mean kernel bugs, in this case, they are placed
-to mark programming errors and/or malicious attempts.
+ - completions are *slow*.
 
-BUG/WARNs that are not kernel bugs hinder automated testing efforts.
+   They are designed to be entirely synchronous, exactly so that you
+can wait for a completion to finish, and then immediately free the
+memory that the completion is in.
 
-Signed-off-by: Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ - completions used fro mutual exclusion are *confusing*.
 
----
- * Improved error prints.
----
- drivers/infiniband/core/ucm.c            | 5 ++++-
- drivers/infiniband/core/ucma.c           | 5 ++++-
- drivers/infiniband/core/uverbs_main.c    | 5 ++++-
- drivers/infiniband/hw/qib/qib_file_ops.c | 5 ++++-
- 4 files changed, 16 insertions(+), 4 deletions(-)
+   Yes, they end up working as a counting semaphore, and yes, that's
+by design, but at the same time, they are not _meant_ to be used as a
+semaphore. The name matters. They are meant to be used the way they
+are named: to be a "I'm done now" event. Don't use them for anything
+else, because you *will* be confusing everybody else.
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 7713ef0..579f9a7 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1104,8 +1104,11 @@ static ssize_t ib_ucm_write(struct file *filp, const=
- char __user *buf,
- 	struct ib_ucm_cmd_hdr hdr;
- 	ssize_t result;
+ - open-coding wait-queues are really fragile and are *not* meant for exclusion.
 
--	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
-+	if (!ib_safe_file_access(filp)) {
-+		pr_err_once("ucm_write: process %d (%s) changed security contexts after =
-opening file descriptor, this is not allowed.\n",
-+			    task_tgid_vnr(current), current->comm);
- 		return -EACCES;
-+	}
+   They don't have lockdep checking, but more importantly, people
+always invariably get the memory ordering wrong. And by "wrong" I mean
+both "doesn't work" (because of insufficient memory ordering) and
+"slow" (due to excessive memory ordering).
 
- 	if (len < sizeof(hdr))
- 		return -EINVAL;
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 9520154..e12f8fa 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1584,8 +1584,11 @@ static ssize_t ucma_write(struct file *filp, const c=
-har __user *buf,
- 	struct rdma_ucm_cmd_hdr hdr;
- 	ssize_t ret;
+ - mutexes are good for exclusion.
 
--	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
-+	if (!ib_safe_file_access(filp)) {
-+		pr_err_once("ucma_write: process %d (%s) changed security contexts after=
- opening file descriptor, this is not allowed.\n",
-+			    task_tgid_vnr(current), current->comm);
- 		return -EACCES;
-+	}
+   mutexes are both high-performance and non-confusing. Yes, they get
+lockdep warnings, but that's usually a *good* thing. If you get
+lockdep warnings from mutex use, you're almost certainly doing
+something iffy.
 
- 	if (len < sizeof(hdr))
- 		return -EINVAL;
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/cor=
-e/uverbs_main.c
-index 44b1104..38c79ad 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -746,8 +746,11 @@ static ssize_t ib_uverbs_write(struct file *filp, cons=
-t char __user *buf,
- 	int srcu_key;
- 	ssize_t ret;
+   mutexes do have a subtle downside: exactly because they are fast,
+they are not entirely synchronous. You can't use them for completion
+style notifications if you are going to release the memory they are
+allocated in.
 
--	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
-+	if (!ib_safe_file_access(filp)) {
-+		pr_err_once("uverbs_write: process %d (%s) changed security contexts aft=
-er opening file descriptor, this is not allowed.\n",
-+			    task_tgid_vnr(current), current->comm);
- 		return -EACCES;
-+	}
+   So mutexes need to be either statically allocated, or in
+reference-counted allocations. That's so that the lifetime of the
+memory is guaranteed to be cover all the users (including the wakers).
 
- 	if (count < sizeof hdr)
- 		return -EINVAL;
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/=
-hw/qib/qib_file_ops.c
-index 382466a..2d1eacf 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -2066,8 +2066,11 @@ static ssize_t qib_write(struct file *fp, const char=
- __user *data,
- 	ssize_t ret =3D 0;
- 	void *dest;
+ - semaphores are "old-fashioned mutexes". A mutex is better than a
+semaphore, but a semaphore is better than just about all the other
+alternatives. There's nothing _wrong_ with using a semaphore per se.
 
--	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
-+	if (!ib_safe_file_access(fp)) {
-+		pr_err_once("qib_write: process %d (%s) changed security contexts after =
-opening file descriptor, this is not allowed.\n",
-+			    task_tgid_vnr(current), current->comm);
- 		return -EACCES;
-+	}
+In this case, either use a semaphore or a mutex. If you are doing
+mutual exclusion, those are really the only two acceptable sleeping
+models.
 
- 	if (count < sizeof(cmd.type)) {
- 		ret =3D -EINVAL;
---
-2.7.4
-
-
---OROCMA9jn6tkzFBc--
-
---d8Lz2Tf5e5STOWUP
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYMzEMAAoJEORje4g2cliniLUP/0FKqEBgjWKbYt5tw6q2KRyD
-A2hq0U8JKEk+0hUEDWDpx61HKtExZQ9x66feyjvOZ8F7XEEaFIy55xGWxcwvXjPG
-XFoJt2zO2rmJeEDeGvk8G3JbDLXPd0ajcvepwdrzZR/DTMc9bgxGDATTHgFRMMeh
-NcTjFCDUeHqwnNxKPpij1p/c3WODbuYMk0kGe0sAsmd1sCJD75+FiA/YMkClWJWY
-jkuRpCXqQ7fsyPvnXaH02deZ/nv3dW75+8eMhBYD9jAMXKiyEHmNVMvddMwkjDKy
-VvEWhI2H+Wawd6Sin40ygOp2ahZxmATG4dmvJc1oq7K5Vlg0wEKv/kkKiM0o+jCX
-me8nFILzu8u9p5JX4/W94sYT7QElvWWeV0AH5rHOVFJxXYsox6PdNvzIk8eERL6d
-zqt1vyJ/YbveZow7tp4Kbvg2YDaPAzZwKWGEkWO9knqAcBtUqjIZ3aHP2U4G9DSS
-TIIX2LNJPd5n4PE4nSuOYf+JRNdLtAb/guunFH7iAWLPaEwtTVhHXgZBg1kcfETY
-xoTsPs46CK2rTaDy+Gw78L8U/nkp6fg1eu75rBs3M7USmT3kbBNgaX3UiS57ijPD
-colRk6fLOawIbbP85eXCZiwgKnoH6v14dyt91a9GqX3YB1fn170p44L6k6vWJ2SM
-LPHkttbjrhmtXmmISgEY
-=QCES
------END PGP SIGNATURE-----
-
---d8Lz2Tf5e5STOWUP--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+                Linus
