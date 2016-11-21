@@ -1,98 +1,94 @@
-From: Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v5 0/9] infiniband: Remove semaphores
-Date: Mon, 21 Nov 2016 11:38:07 +0530
-Message-ID: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tatyana E Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Binoy Jayan <binoy.jayan@linaro.org>
+Subject: [PATCH v5 2/9] IB/core: Replace semaphore sm_sem with an atomic wait
+Date: Mon, 21 Nov 2016 11:38:09 +0530
+Message-ID: <1479708496-9828-3-git-send-email-binoy.jayan@linaro.org>
+References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
+Sender: target-devel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Nicholas Bellinger <nab@linux-iscsi.org>, Jenny Derzhavetz <jennyf@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Steve Wise <swise@opengridcomputing.com>, Mark Bloch <markb@mellanox.com>, Tatyana E Nikolova <tatyana.e.nikolova@intel.com>, Matan Barak <matanb@mellanox.com>, Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>
+Cc: Faisal Latif <faisal.latif@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, target-devel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The semaphore 'sm_sem' is used for an exclusive ownership of the device
+so model the same as an atomic variable with an associated wait_event.
+Semaphores are going away in the future.
 
-Hi,
+Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
+---
+ drivers/infiniband/core/user_mad.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-These are a set of patches [v5] which removes semaphores from infiniband.
-These are part of a bigger effort to eliminate all semaphores from the
-linux kernel.
-
-v4 --> v5
----------
-IB/isert: Replace semaphore sem with completion
-  - Modified changelog to support use of completion
-IB/mlx5: Simplify completion into a wait_event
-  - Avoid this patch.
-    As umr_context is on the stack, and we are waiting
-    for it to be fully done, it really should be a completion.
-
-v3 -> v4:
----------
-
-IB/mlx5: Added patch - Replace semaphore umr_common:sem with wait_event
-IB/mlx5: Fixed a bug pointed out by Leon Romanovsky
-
-v2 -> v3:
----------
-
-IB/mlx5: Move '&umr_context' into helper fn
-IB/mthca: Restructure mthca_cmd.c to manage free_head
-IB/hns: Restructure hns_roce_cmd.c to manage free_head
-IB/core: Convert completion to wait_event
-IB/mlx5: Simplify completion into a wait_event
-
-v1 -> v2:
----------
-
-IB/hns   : Use wait_event instead of open coding counting semaphores
-IB/mthca : Use wait_event instead of open coding counting semaphores
-IB/mthca : Remove mutex_[un]lock from *_cmd_use_events/*_cmd_use_polling
-IB/mlx5  : Cleanup, add helper mlx5_ib_post_send_wait
-
-v1
----------
-  IB/core: iwpm_nlmsg_request: Replace semaphore with completion
-  IB/core: Replace semaphore sm_sem with completion
-  IB/hns: Replace semaphore poll_sem with mutex
-  IB/mthca: Replace semaphore poll_sem with mutex
-  IB/isert: Replace semaphore sem with completion
-  IB/hns: Replace counting semaphore event_sem with wait condition
-  IB/mthca: Replace counting semaphore event_sem with wait condition
-  IB/mlx5: Replace counting semaphore sem with wait condition
-
-Thanks,
-Binoy
-
-Binoy Jayan (9):
-  IB/core: iwpm_nlmsg_request: Replace semaphore with completion
-  IB/core: Replace semaphore sm_sem with an atomic wait
-  IB/hns: Replace semaphore poll_sem with mutex
-  IB/mthca: Replace semaphore poll_sem with mutex
-  IB/isert: Replace semaphore sem with completion
-  IB/hns: Replace counting semaphore event_sem with wait_event
-  IB/mthca: Replace counting semaphore event_sem with wait_event
-  IB/mlx5: Add helper mlx5_ib_post_send_wait
-  IB/mlx5: Replace semaphore umr_common:sem with wait_event
-
- drivers/infiniband/core/iwpm_msg.c          |   8 +-
- drivers/infiniband/core/iwpm_util.c         |   7 +-
- drivers/infiniband/core/iwpm_util.h         |   3 +-
- drivers/infiniband/core/user_mad.c          |  20 +++--
- drivers/infiniband/hw/hns/hns_roce_cmd.c    |  57 +++++++++-----
- drivers/infiniband/hw/hns/hns_roce_device.h |   5 +-
- drivers/infiniband/hw/mlx5/main.c           |   6 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h        |   7 +-
- drivers/infiniband/hw/mlx5/mr.c             | 117 ++++++++--------------------
- drivers/infiniband/hw/mthca/mthca_cmd.c     |  57 ++++++++------
- drivers/infiniband/hw/mthca/mthca_cmd.h     |   1 +
- drivers/infiniband/hw/mthca/mthca_dev.h     |   5 +-
- drivers/infiniband/ulp/isert/ib_isert.c     |   6 +-
- drivers/infiniband/ulp/isert/ib_isert.h     |   3 +-
- 14 files changed, 147 insertions(+), 155 deletions(-)
-
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 415a318..6101c0a 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -67,6 +67,8 @@ enum {
+ 	IB_UMAD_MINOR_BASE = 0
+ };
+ 
++#define UMAD_F_CLAIM	0x01
++
+ /*
+  * Our lifetime rules for these structs are the following:
+  * device special file is opened, we take a reference on the
+@@ -87,7 +89,8 @@ struct ib_umad_port {
+ 
+ 	struct cdev           sm_cdev;
+ 	struct device	      *sm_dev;
+-	struct semaphore       sm_sem;
++	wait_queue_head_t     wq;
++	unsigned long         flags;
+ 
+ 	struct mutex	       file_mutex;
+ 	struct list_head       file_list;
+@@ -1030,12 +1033,14 @@ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+ 	port = container_of(inode->i_cdev, struct ib_umad_port, sm_cdev);
+ 
+ 	if (filp->f_flags & O_NONBLOCK) {
+-		if (down_trylock(&port->sm_sem)) {
++		if (test_and_set_bit(UMAD_F_CLAIM, &port->flags)) {
+ 			ret = -EAGAIN;
+ 			goto fail;
+ 		}
+ 	} else {
+-		if (down_interruptible(&port->sm_sem)) {
++		if (wait_event_interruptible(port->wq,
++					     !test_and_set_bit(UMAD_F_CLAIM,
++					     &port->flags))) {
+ 			ret = -ERESTARTSYS;
+ 			goto fail;
+ 		}
+@@ -1060,7 +1065,8 @@ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+ 	ib_modify_port(port->ib_dev, port->port_num, 0, &props);
+ 
+ err_up_sem:
+-	up(&port->sm_sem);
++	clear_bit(UMAD_F_CLAIM, &port->flags);
++	wake_up(&port->wq);
+ 
+ fail:
+ 	return ret;
+@@ -1079,7 +1085,8 @@ static int ib_umad_sm_close(struct inode *inode, struct file *filp)
+ 		ret = ib_modify_port(port->ib_dev, port->port_num, 0, &props);
+ 	mutex_unlock(&port->file_mutex);
+ 
+-	up(&port->sm_sem);
++	clear_bit(UMAD_F_CLAIM, &port->flags);
++	wake_up(&port->wq);
+ 
+ 	kobject_put(&port->umad_dev->kobj);
+ 
+@@ -1177,7 +1184,8 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 
+ 	port->ib_dev   = device;
+ 	port->port_num = port_num;
+-	sema_init(&port->sm_sem, 1);
++	init_waitqueue_head(&port->wq);
++	__clear_bit(UMAD_F_CLAIM, &port->flags);
+ 	mutex_init(&port->file_mutex);
+ 	INIT_LIST_HEAD(&port->file_list);
+ 
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
