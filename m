@@ -1,34 +1,93 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/mad: Fix an array index check
-Date: Mon, 21 Nov 2016 16:17:52 -0500
-Message-ID: <1cbca3ac-a525-fe5c-118e-0fce5b1c6c83@dev.mellanox.co.il>
-References: <94eb11fc-b558-b994-c933-da784caefc53@sandisk.com>
- <396b3fe2-6a84-efed-07de-3e6381009ad1@sandisk.com>
- <d5924c69-c052-84d3-06e3-b74ed8eb58d3@dev.mellanox.co.il>
- <ab9e8563-160b-a9de-08b3-b09bdd52fbad@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) Bus driver
+Date: Mon, 21 Nov 2016 14:39:30 -0700
+Message-ID: <20161121213930.GA30111@obsidianresearch.com>
+References: <1479508938-63799-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <1479508938-63799-3-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161119190445.GG22775@obsidianresearch.com>
+ <20161121213017.GB67872@knc-06.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ab9e8563-160b-a9de-08b3-b09bdd52fbad-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161121213017.GB67872@knc-06.sc.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
-
-On 11/21/2016 3:52 PM, Bart Van Assche wrote:
-> Hello Hal,
+On Mon, Nov 21, 2016 at 01:30:17PM -0800, Vishwanathapura, Niranjana wrote:
+> On Sat, Nov 19, 2016 at 12:04:45PM -0700, Jason Gunthorpe wrote:
+> >On Fri, Nov 18, 2016 at 02:42:10PM -0800, Vishwanathapura, Niranjana wrote:
+> >>+HFI-VNIC DRIVER
+> >>+M:	Dennis Dalessandro <dennis.dalessandro@intel.com>
+> >>+M:	Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
+> >>+L:	linux-rdma@vger.kernel.org
+> >>+S:	Supported
+> >>+F:	drivers/infiniband/sw/intel/vnic
+> >
+> >This is either a net driver or a ULP, no idea why it should go in this
+> >directory!?
+> >
+> >It sounds like an ethernet driver, so you should probably put it
+> >there...
+> >
 > 
-> I think such a check is already present in ib_register_mad_agent():
+> The hfi_vnic is an Ethernet driver. It is similar to ULP like ipoib, but
+> instead it is Ethernet over Omni-path here.
+> The VNIC Ethernet (hfi_vnic) driver encapsulates Ethernet packets in an
+> Omni-path header.
+> The hfi_vnic Ethernet driver do not access the HW. It interfaces with HFI1
+> driver which sends/receives Omni-Path encapsulated Ethernet frames from HW.
+> Also, the VNIC control path driver (VEMA) is an IB MAD agent which should be
+> under drivers/infiniband/.. .
+> Putting the VNIC Ethernet driver and the VNIC control driver together under
+> a single module (hfi_vnic.ko) provided a simpler interface between them.
 > 
-> 		if (mad_reg_req->mgmt_class >= MAX_MGMT_CLASS) {
+> So, we have put the driver under drivers/infiniband/sw/intel for two reasons:
+> a) We have VNIC control driver (VEMA) which is an IB mad agent.
+> b) hfi_vnic Ethernet driver is dependent on HFI1 driver for sending/receving
+> Omni-path encapsulated Ethernet packets from HW.
 
-You're right.
+Sounds like this driver belongs under net/ someplace to me.
 
--- Hal
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+NAK on drivers/infiniband/sw/ at least - that dir is only for HCA
+drivers.
+
+> >>+/* hfi_vnic_bus_init - initialize the hfi vnic bus drvier */
+> >>+static int hfi_vnic_bus_init(void)
+> >>+{
+> >>+	int rc;
+> >>+
+> >>+	ida_init(&hfi_vnic_ctrl_ida);
+> >>+	idr_init(&hfi_vnic_idr);
+> >>+
+> >>+	rc = bus_register(&hfi_vnic_bus);
+> >
+> >Why on earth do we need this? Didn't I give you enough grief for the
+> >psm stuff and now you want to create an entire subystem hidden away!?
+> >
+> >Use some netlink scheme to control your vnic like the rest of the net
+> >stack..
+> >
+> 
+> The hfi_vnic_bus is only abstracting the HW independent functionality (like
+> Ethernet interface, encapsulation, IB MAD interface etc) with the HW
+> dependent functionality (sending/receiving packets on the wire).
+> Thus providing a cleaner interface between HW independent hfi_vnic Ethernet
+> and Control drivers and the HW dependent HFI1 driver.
+
+That doesn't explain anything, sound like you don't need it so get rid
+of it.
+
+> There is no other User interface here other than the standard Ethernet
+> interface through network stack.
+
+Good, then this isn't needed, because it doesn't provide a user interface.
+
+> #ls /sys/bus/hfi_vnic_bus/devices/
+>    hfi_vnic_ctrl_00         /* control device for HFI instance 0 */
+>    hfi_vnic_00.01.00        /* first VNIC port on HFI instance 0, port 1 */
+
+Jason
