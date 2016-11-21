@@ -1,45 +1,51 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH v5 5/9] IB/isert: Replace semaphore sem with completion
-Date: Mon, 21 Nov 2016 09:36:22 +0200
-Message-ID: <e1e4788d-9250-d4c3-937f-262bd9264a76@grimberg.me>
-References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
- <1479708496-9828-6-git-send-email-binoy.jayan@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1479708496-9828-6-git-send-email-binoy.jayan@linaro.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Binoy Jayan <binoy.jayan@linaro.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Nicholas Bellinger <nab@linux-iscsi.org>, Jenny Derzhavetz <jennyf@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Steve Wise <swise@opengridcomputing.com>, Mark Bloch <markb@mellanox.com>, Tatyana E Nikolova <tatyana.e.nikolova@intel.com>, Matan Barak <matanb@mellanox.com>, Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>
-Cc: Faisal Latif <faisal.latif@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, target-devel@vger.kernel.org
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: [PATCH v2] infiniband: remove WARN that is not kernel bug
+Date: Mon, 21 Nov 2016 11:18:50 +0100
+Message-ID: <1479723531-17940-1-git-send-email-dvyukov@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jgunthorpe@obsidianresearch.com, Valdis.Kletnieks@vt.edu, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, leon@kernel.org
+Cc: Dmitry Vyukov <dvyukov@google.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, syzkaller@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
+WARNINGs mean kernel bugs.
+The one in ucma_write() points to user programming error
+or a malicious attempt. This is not a kernel bug, remove it.
 
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 6dd43f6..de80f56 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -619,7 +619,7 @@
->  	mutex_unlock(&isert_np->mutex);
->
->  	isert_info("np %p: Allow accept_np to continue\n", isert_np);
-> -	up(&isert_np->sem);
-> +	complete(&isert_np->comp);
->  }
->
->  static void
-> @@ -2311,7 +2311,7 @@ struct rdma_cm_id *
->  		isert_err("Unable to allocate struct isert_np\n");
->  		return -ENOMEM;
->  	}
-> -	sema_init(&isert_np->sem, 0);
-> +	init_completion(&isert_np->comp);
+BUG/WARNs that are not kernel bugs hinder automated testing effots.
 
-This is still racy, a connect event can complete just before we
-init the completion and *will* get lost...
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: syzkaller@googlegroups.com
 
-This code started off with a waitqueue which exposes the same
-problem, see:
-531b7bf4bd79 Target/iser: Fix iscsit_accept_np and rdma_cm racy flow
+---
+Changes since v1:
+ - added printk_once
+---
+ drivers/infiniband/core/ucma.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-So, still NAK from me...
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 9520154..405d0ce 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1584,8 +1584,11 @@ static ssize_t ucma_write(struct file *filp, const char __user *buf,
+ 	struct rdma_ucm_cmd_hdr hdr;
+ 	ssize_t ret;
+ 
+-	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
++	if (!ib_safe_file_access(filp)) {
++		printk_once("ucma_write: process %d (%s) tried to do something hinky\n",
++			task_tgid_vnr(current), current->comm);
+ 		return -EACCES;
++	}
+ 
+ 	if (len < sizeof(hdr))
+ 		return -EINVAL;
+-- 
+2.8.0.rc3.226.g39d4020
