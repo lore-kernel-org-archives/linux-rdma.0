@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH v5 9/9] IB/mlx5: Replace semaphore umr_common:sem with wait_event
-Date: Mon, 21 Nov 2016 11:38:16 +0530
-Message-ID: <1479708496-9828-10-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH v5 8/9] IB/mlx5: Add helper mlx5_ib_post_send_wait
+Date: Mon, 21 Nov 2016 11:38:15 +0530
+Message-ID: <1479708496-9828-9-git-send-email-binoy.jayan@linaro.org>
 References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
@@ -10,83 +10,240 @@ To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Sagi 
 Cc: Faisal Latif <faisal.latif@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, target-devel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove semaphore umr_common:sem used to limit concurrent access to umr qp
-and introduce an atomic value 'users' to keep track of the same. Use a
-wait_event to block when the limit is reached.
+Clean up the following common code (to post a list of work requests to the
+send queue of the specified QP) at various places and add a helper function
+'mlx5_ib_post_send_wait' to implement the same.
+
+ - Initialize 'mlx5_ib_umr_context' on stack
+ - Assign "mlx5_umr_wr:wr:wr_cqe to umr_context.cqe
+ - Acquire the semaphore
+ - call ib_post_send with a single ib_send_wr
+ - wait_for_completion()
+ - Check for umr_context.status
+ - Release the semaphore
+
+As semaphores are going away in the future, moving all of these into the
+shared helper leaves only a single function using the semaphore, which
+can then be rewritten to use something else.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 6 +-----
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 7 ++++++-
- drivers/infiniband/hw/mlx5/mr.c      | 6 ++++--
- 3 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 115 +++++++++++-----------------------------
+ 1 file changed, 32 insertions(+), 83 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 63036c7..9de716c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2437,10 +2437,6 @@ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
- 	ib_dealloc_pd(dev->umrc.pd);
- }
- 
--enum {
--	MAX_UMR_WR = 128,
--};
--
- static int create_umr_res(struct mlx5_ib_dev *dev)
- {
- 	struct ib_qp_init_attr *init_attr = NULL;
-@@ -2520,7 +2516,7 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 	dev->umrc.cq = cq;
- 	dev->umrc.pd = pd;
- 
--	sema_init(&dev->umrc.sem, MAX_UMR_WR);
-+	init_waitqueue_head(&dev->umrc.wq);
- 	ret = mlx5_mr_cache_init(dev);
- 	if (ret) {
- 		mlx5_ib_warn(dev, "mr cache init failed %d\n", ret);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index dcdcd19..de31b5f 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -533,7 +533,12 @@ struct umr_common {
- 	struct ib_qp	*qp;
- 	/* control access to UMR QP
- 	 */
--	struct semaphore	sem;
-+	wait_queue_head_t	wq;
-+	atomic_t		users;
-+};
-+
-+enum {
-+	MAX_UMR_WR = 128,
- };
- 
- enum {
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 1593856..dfaf6f6 100644
+index d4ad672..1593856 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -867,7 +867,8 @@ static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
- 	mlx5_ib_init_umr_context(&umr_context);
- 	umrwr->wr.wr_cqe = &umr_context.cqe;
- 
--	down(&umrc->sem);
-+	/* limit number of concurrent ib_post_send() on qp */
-+	wait_event(umrc->wq, atomic_add_unless(&umrc->users, 1, MAX_UMR_WR));
- 	err = ib_post_send(umrc->qp, &umrwr->wr, &bad);
- 	if (err) {
- 		mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
-@@ -879,7 +880,8 @@ static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
- 			err = -EFAULT;
- 		}
- 	}
--	up(&umrc->sem);
-+	atomic_dec(&umrc->users);
-+	wake_up(&umrc->wq);
- 	return err;
+@@ -856,16 +856,40 @@ static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
+ 	init_completion(&context->done);
  }
  
++static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
++					 struct mlx5_umr_wr *umrwr)
++{
++	struct umr_common *umrc = &dev->umrc;
++	struct ib_send_wr *bad;
++	int err;
++	struct mlx5_ib_umr_context umr_context;
++
++	mlx5_ib_init_umr_context(&umr_context);
++	umrwr->wr.wr_cqe = &umr_context.cqe;
++
++	down(&umrc->sem);
++	err = ib_post_send(umrc->qp, &umrwr->wr, &bad);
++	if (err) {
++		mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
++	} else {
++		wait_for_completion(&umr_context.done);
++		if (umr_context.status != IB_WC_SUCCESS) {
++			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
++				     umr_context.status);
++			err = -EFAULT;
++		}
++	}
++	up(&umrc->sem);
++	return err;
++}
++
+ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 				  u64 virt_addr, u64 len, int npages,
+ 				  int page_shift, int order, int access_flags)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct device *ddev = dev->ib_dev.dma_device;
+-	struct umr_common *umrc = &dev->umrc;
+-	struct mlx5_ib_umr_context umr_context;
+ 	struct mlx5_umr_wr umrwr = {};
+-	struct ib_send_wr *bad;
+ 	struct mlx5_ib_mr *mr;
+ 	struct ib_sge sg;
+ 	int size;
+@@ -894,24 +918,12 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	if (err)
+ 		goto free_mr;
+ 
+-	mlx5_ib_init_umr_context(&umr_context);
+-
+-	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	prep_umr_reg_wqe(pd, &umrwr.wr, &sg, dma, npages, mr->mmkey.key,
+ 			 page_shift, virt_addr, len, access_flags);
+ 
+-	down(&umrc->sem);
+-	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+-	if (err) {
+-		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
++	err = mlx5_ib_post_send_wait(dev, &umrwr);
++	if (err && err != -EFAULT)
+ 		goto unmap_dma;
+-	} else {
+-		wait_for_completion(&umr_context.done);
+-		if (umr_context.status != IB_WC_SUCCESS) {
+-			mlx5_ib_warn(dev, "reg umr failed\n");
+-			err = -EFAULT;
+-		}
+-	}
+ 
+ 	mr->mmkey.iova = virt_addr;
+ 	mr->mmkey.size = len;
+@@ -920,7 +932,6 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	mr->live = 1;
+ 
+ unmap_dma:
+-	up(&umrc->sem);
+ 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 
+ 	kfree(mr_pas);
+@@ -940,13 +951,10 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
+ {
+ 	struct mlx5_ib_dev *dev = mr->dev;
+ 	struct device *ddev = dev->ib_dev.dma_device;
+-	struct umr_common *umrc = &dev->umrc;
+-	struct mlx5_ib_umr_context umr_context;
+ 	struct ib_umem *umem = mr->umem;
+ 	int size;
+ 	__be64 *pas;
+ 	dma_addr_t dma;
+-	struct ib_send_wr *bad;
+ 	struct mlx5_umr_wr wr;
+ 	struct ib_sge sg;
+ 	int err = 0;
+@@ -1011,10 +1019,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
+ 
+ 		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
+ 
+-		mlx5_ib_init_umr_context(&umr_context);
+-
+ 		memset(&wr, 0, sizeof(wr));
+-		wr.wr.wr_cqe = &umr_context.cqe;
+ 
+ 		sg.addr = dma;
+ 		sg.length = ALIGN(npages * sizeof(u64),
+@@ -1031,19 +1036,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
+ 		wr.mkey = mr->mmkey.key;
+ 		wr.target.offset = start_page_index;
+ 
+-		down(&umrc->sem);
+-		err = ib_post_send(umrc->qp, &wr.wr, &bad);
+-		if (err) {
+-			mlx5_ib_err(dev, "UMR post send failed, err %d\n", err);
+-		} else {
+-			wait_for_completion(&umr_context.done);
+-			if (umr_context.status != IB_WC_SUCCESS) {
+-				mlx5_ib_err(dev, "UMR completion failed, code %d\n",
+-					    umr_context.status);
+-				err = -EFAULT;
+-			}
+-		}
+-		up(&umrc->sem);
++		err = mlx5_ib_post_send_wait(dev, &wr);
+ 	}
+ 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 
+@@ -1210,39 +1203,14 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ {
+ 	struct mlx5_core_dev *mdev = dev->mdev;
+-	struct umr_common *umrc = &dev->umrc;
+-	struct mlx5_ib_umr_context umr_context;
+ 	struct mlx5_umr_wr umrwr = {};
+-	struct ib_send_wr *bad;
+-	int err;
+ 
+ 	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
+ 		return 0;
+ 
+-	mlx5_ib_init_umr_context(&umr_context);
+-
+-	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmkey.key);
+ 
+-	down(&umrc->sem);
+-	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+-	if (err) {
+-		up(&umrc->sem);
+-		mlx5_ib_dbg(dev, "err %d\n", err);
+-		goto error;
+-	} else {
+-		wait_for_completion(&umr_context.done);
+-		up(&umrc->sem);
+-	}
+-	if (umr_context.status != IB_WC_SUCCESS) {
+-		mlx5_ib_warn(dev, "unreg umr failed\n");
+-		err = -EFAULT;
+-		goto error;
+-	}
+-	return 0;
+-
+-error:
+-	return err;
++	return mlx5_ib_post_send_wait(dev, &umrwr);
+ }
+ 
+ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+@@ -1251,19 +1219,13 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct device *ddev = dev->ib_dev.dma_device;
+-	struct mlx5_ib_umr_context umr_context;
+-	struct ib_send_wr *bad;
+ 	struct mlx5_umr_wr umrwr = {};
+ 	struct ib_sge sg;
+-	struct umr_common *umrc = &dev->umrc;
+ 	dma_addr_t dma = 0;
+ 	__be64 *mr_pas = NULL;
+ 	int size;
+ 	int err;
+ 
+-	mlx5_ib_init_umr_context(&umr_context);
+-
+-	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	umrwr.wr.send_flags = MLX5_IB_SEND_UMR_FAIL_IF_FREE;
+ 
+ 	if (flags & IB_MR_REREG_TRANS) {
+@@ -1291,21 +1253,8 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+ 	}
+ 
+ 	/* post send request to UMR QP */
+-	down(&umrc->sem);
+-	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
++	err = mlx5_ib_post_send_wait(dev, &umrwr);
+ 
+-	if (err) {
+-		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
+-	} else {
+-		wait_for_completion(&umr_context.done);
+-		if (umr_context.status != IB_WC_SUCCESS) {
+-			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
+-				     umr_context.status);
+-			err = -EFAULT;
+-		}
+-	}
+-
+-	up(&umrc->sem);
+ 	if (flags & IB_MR_REREG_TRANS) {
+ 		dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 		kfree(mr_pas);
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
