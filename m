@@ -1,167 +1,64 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH for-next 03/11] IB/hns: Optimize the logic of allocating
- memory using APIs
-Date: Mon, 21 Nov 2016 20:20:30 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A7ADC7A@lhreml503-mbx>
-References: <20161104163633.141880-1-salil.mehta@huawei.com>
- <20161104163633.141880-4-salil.mehta@huawei.com>
- <20161109072130.GH27883@leon.nu>
- <F4CC6FACFEB3C54C9141D49AD221F7F91A7A2371@lhreml503-mbx>
- <20161116083602.GH4240@leon.nu>
- <F4CC6FACFEB3C54C9141D49AD221F7F91A7AD7DF@lhreml503-mbx>
- <20161121171423.GA23083@leon.nu>
+From: "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>
+Subject: Enabling peer to peer device transactions for PCIe devices
+Date: Mon, 21 Nov 2016 20:36:25 +0000
+Message-ID: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161121171423.GA23083-2ukJVAZIZ/Y@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhangping (ZP)" <zhangping5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Koenig, Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: netdev-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:netdev-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> Sent: Monday, November 21, 2016 5:14 PM
-> To: Salil Mehta
-> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun;
-> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm;
-> Zhangping (ZP)
-> Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of
-> allocating memory using APIs
-> 
-> On Mon, Nov 21, 2016 at 04:12:38PM +0000, Salil Mehta wrote:
-> > > -----Original Message-----
-> > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > > Sent: Wednesday, November 16, 2016 8:36 AM
-> > > To: Salil Mehta
-> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun;
-> > > mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > > netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm;
-> > > Zhangping (ZP)
-> > > Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of
-> > > allocating memory using APIs
-> > >
-> > > On Tue, Nov 15, 2016 at 03:52:46PM +0000, Salil Mehta wrote:
-> > > > > -----Original Message-----
-> > > > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > > > > Sent: Wednesday, November 09, 2016 7:22 AM
-> > > > > To: Salil Mehta
-> > > > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun;
-> > > > > mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > > > > netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm;
-> > > > > Zhangping (ZP)
-> > > > > Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic
-> of
-> > > > > allocating memory using APIs
-> > > > >
-> > > > > On Fri, Nov 04, 2016 at 04:36:25PM +0000, Salil Mehta wrote:
-> > > > > > From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > > > > >
-> > > > > > This patch modified the logic of allocating memory using APIs
-> in
-> > > > > > hns RoCE driver. We used kcalloc instead of kmalloc_array and
-> > > > > > bitmap_zero. And When kcalloc failed, call vzalloc to alloc
-> > > > > > memory.
-> > > > > >
-> > > > > > Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > > > > > Signed-off-by: Ping Zhang <zhangping5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > > > > > Signed-off-by: Salil Mehta  <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > > > > > ---
-> > > > > >  drivers/infiniband/hw/hns/hns_roce_mr.c |   15 ++++++++-----
-> --
-> > > > > >  1 file changed, 8 insertions(+), 7 deletions(-)
-> > > > > >
-> > > > > > diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c
-> > > > > b/drivers/infiniband/hw/hns/hns_roce_mr.c
-> > > > > > index fb87883..d3dfb5f 100644
-> > > > > > --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-> > > > > > +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-> > > > > > @@ -137,11 +137,12 @@ static int hns_roce_buddy_init(struct
-> > > > > hns_roce_buddy *buddy, int max_order)
-> > > > > >
-> > > > > >  	for (i = 0; i <= buddy->max_order; ++i) {
-> > > > > >  		s = BITS_TO_LONGS(1 << (buddy->max_order - i));
-> > > > > > -		buddy->bits[i] = kmalloc_array(s, sizeof(long),
-> > > > > GFP_KERNEL);
-> > > > > > -		if (!buddy->bits[i])
-> > > > > > -			goto err_out_free;
-> > > > > > -
-> > > > > > -		bitmap_zero(buddy->bits[i], 1 << (buddy->max_order -
-> > > i));
-> > > > > > +		buddy->bits[i] = kcalloc(s, sizeof(long),
-> > > GFP_KERNEL);
-> > > > > > +		if (!buddy->bits[i]) {
-> > > > > > +			buddy->bits[i] = vzalloc(s * sizeof(long));
-> > > > >
-> > > > > I wonder, why don't you use directly vzalloc instead of kcalloc
-> > > > > fallback?
-> > > > As we know we will have physical contiguous pages if the kcalloc
-> > > > call succeeds. This will give us a chance to have better
-> performance
-> > > > over the allocations which are just virtually contiguous through
-> the
-> > > > function vzalloc(). Therefore, later has only been used as a
-> fallback
-> > > > when our memory request cannot be entertained through kcalloc.
-> > > >
-> > > > Are you suggesting that there will not be much performance
-> penalty
-> > > > if we use just vzalloc ?
-> > >
-> > > Not exactly,
-> > > I asked it, because we have similar code in our drivers and this
-> > > construction looks strange to me.
-> > >
-> > > 1. If performance is critical, we will use kmalloc.
-> > > 2. If performance is not critical, we will use vmalloc.
-> > >
-> > > But in this case, such construction shows me that we can live with
-> > > vmalloc performance and kmalloc allocation are not really needed.
-> > >
-> > > In your specific case, I'm not sure that kcalloc will ever fail.
-> > Performance is definitely critical here. Though, I agree this is bit
-> > unusual way of memory allocation. In actual, we were encountering
-> > memory alloc failures using kmalloc (if you see allocation amount
-> > is on the higher side and is exponential) so we ended up using
-> > vmalloc as fall back - It is very naïve allocation scheme.
-> 
-> I understand it, we did the same, see our mlx5_vzalloc call.
-> BTW, we used __GFP_NOWARN flag, which you should consider to use
-> in your case too.
-Ok. Will add this flag and refloat patch V3. 
+This is certainly not the first time this has been brought up, but I'd like to try and get some consensus on the best way to move this forward.  Allowing devices to talk directly improves performance and reduces latency by avoiding the use of staging buffers in system memory.  Also in cases where both devices are behind a switch, it avoids the CPU entirely.  Most current APIs (DirectGMA, PeerDirect, CUDA, HSA) that deal with this are pointer based.  Ideally we'd be able to take a CPU virtual address and be able to get to a physical address taking into account IOMMUs, etc.  Having struct pages for the memory would allow it to work more generally and wouldn't require as much explicit support in drivers that wanted to use it.
+ 
+Some use cases:
+1. Storage devices streaming directly to GPU device memory
+2. GPU device memory to GPU device memory streaming
+3. DVB/V4L/SDI devices streaming directly to GPU device memory
+4. DVB/V4L/SDI devices streaming directly to storage devices
+ 
+Here is a relatively simple example of how this could work for testing.  This is obviously not a complete solution.
+- Device memory will be registered with Linux memory sub-system by created corresponding struct page structures for device memory
+- get_user_pages_fast() will  return corresponding struct pages when CPU address points to the device memory
+- put_page() will deal with struct pages for device memory
+ 
+Previously proposed solutions and related proposals:
+1.P2P DMA
+DMA-API/PCI map_peer_resource support for peer-to-peer (http://www.spinics.net/lists/linux-pci/msg44560.html)
+Pros: Low impact, already largely reviewed.
+Cons: requires explicit support in all drivers that want to support it, doesn't handle S/G in device memory.
+ 
+2. ZONE_DEVICE IO
+Direct I/O and DMA for persistent memory (https://lwn.net/Articles/672457/)
+Add support for ZONE_DEVICE IO memory with struct pages. (https://patchwork.kernel.org/patch/8583221/)
+Pro: Doesn't waste system memory for ZONE metadata
+Cons: CPU access to ZONE metadata slow, may be lost, corrupted on device reset.
+ 
+3. DMA-BUF
+RDMA subsystem DMA-BUF support (http://www.spinics.net/lists/linux-rdma/msg38748.html)
+Pros: uses existing dma-buf interface
+Cons: dma-buf is handle based, requires explicit dma-buf support in drivers.
 
-Thanks
-> 
-> >
-> > Maybe we need to rethink this allocation scheme part? Also, I can
-> pull
-> > back this particular patch for now or just live with vzalloc() till
-> > we figure out proper solution to this?
-> 
-> It is up to you, I don't think that you should drop it, AFAIK, there is
-> no other proper solution.
-Ok we will live with it for now and later maybe we can see how we can optimize
-pre-allocation of physically contiguous memory. 
+4. iopmem
+iopmem : A block device for PCIe memory (https://lwn.net/Articles/703895/)
+ 
+5. HMM
+Heterogeneous Memory Management (http://lkml.iu.edu/hypermail/linux/kernel/1611.2/02473.html)
 
-Thanks for your suggestions!
-Salil
-> 
-> >
-> > >
-> > > Thanks
-> > >
-> > >
-> > > >
-> > > > >
-> > > > > > +			if (!buddy->bits[i])
-> > > > > > +				goto err_out_free;
-> > > > > > +		}
-> > > > > >  	}
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+6. Some new mmap-like interface that takes a userptr and a length and returns a dma-buf and offset?
+ 
+Alex
