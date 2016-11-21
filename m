@@ -1,7 +1,7 @@
 From: Binoy Jayan <binoy.jayan@linaro.org>
-Subject: [PATCH v5 7/9] IB/mthca: Replace counting semaphore event_sem with wait_event
-Date: Mon, 21 Nov 2016 11:38:14 +0530
-Message-ID: <1479708496-9828-8-git-send-email-binoy.jayan@linaro.org>
+Subject: [PATCH v5 9/9] IB/mlx5: Replace semaphore umr_common:sem with wait_event
+Date: Mon, 21 Nov 2016 11:38:16 +0530
+Message-ID: <1479708496-9828-10-git-send-email-binoy.jayan@linaro.org>
 References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
@@ -10,125 +10,83 @@ To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Sagi 
 Cc: Faisal Latif <faisal.latif@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, target-devel@vger.kernel.org, Binoy Jayan <binoy.jayan@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Counting semaphores are going away in the future, so replace the semaphore
-mthca_cmd::event_sem with a conditional wait_event.
+Remove semaphore umr_common:sem used to limit concurrent access to umr qp
+and introduce an atomic value 'users' to keep track of the same. Use a
+wait_event to block when the limit is reached.
 
 Signed-off-by: Binoy Jayan <binoy.jayan@linaro.org>
 ---
- drivers/infiniband/hw/mthca/mthca_cmd.c | 47 ++++++++++++++++++++++-----------
- drivers/infiniband/hw/mthca/mthca_dev.h |  3 ++-
- 2 files changed, 34 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 6 +-----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 7 ++++++-
+ drivers/infiniband/hw/mlx5/mr.c      | 6 ++++--
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
-index 49c6e19..d6a048a 100644
---- a/drivers/infiniband/hw/mthca/mthca_cmd.c
-+++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
-@@ -405,6 +405,34 @@ void mthca_cmd_event(struct mthca_dev *dev,
- 	complete(&context->done);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 63036c7..9de716c 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2437,10 +2437,6 @@ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
+ 	ib_dealloc_pd(dev->umrc.pd);
  }
  
-+static inline struct mthca_cmd_context *
-+mthca_try_get_context(struct mthca_cmd *cmd)
-+{
-+	struct mthca_cmd_context *context = NULL;
-+
-+	spin_lock(&cmd->context_lock);
-+
-+	if (cmd->free_head < 0)
-+		goto out;
-+
-+	context = &cmd->context[cmd->free_head];
-+	context->token += cmd->token_mask + 1;
-+	cmd->free_head = context->next;
-+out:
-+	spin_unlock(&cmd->context_lock);
-+	return context;
-+}
-+
-+/* wait for and acquire a free context */
-+static inline struct mthca_cmd_context *
-+mthca_get_free_context(struct mthca_cmd *cmd)
-+{
-+	struct mthca_cmd_context *context;
-+
-+	wait_event(cmd->wq, (context = mthca_try_get_context(cmd)));
-+	return context;
-+}
-+
- static int mthca_cmd_wait(struct mthca_dev *dev,
- 			  u64 in_param,
- 			  u64 *out_param,
-@@ -417,15 +445,7 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
- 	int err = 0;
- 	struct mthca_cmd_context *context;
- 
--	down(&dev->cmd.event_sem);
+-enum {
+-	MAX_UMR_WR = 128,
+-};
 -
--	spin_lock(&dev->cmd.context_lock);
--	BUG_ON(dev->cmd.free_head < 0);
--	context = &dev->cmd.context[dev->cmd.free_head];
--	context->token += dev->cmd.token_mask + 1;
--	dev->cmd.free_head = context->next;
--	spin_unlock(&dev->cmd.context_lock);
--
-+	context = mthca_get_free_context(&dev->cmd);
- 	init_completion(&context->done);
+ static int create_umr_res(struct mlx5_ib_dev *dev)
+ {
+ 	struct ib_qp_init_attr *init_attr = NULL;
+@@ -2520,7 +2516,7 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 	dev->umrc.cq = cq;
+ 	dev->umrc.pd = pd;
  
- 	err = mthca_cmd_post(dev, in_param,
-@@ -458,8 +478,8 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
- 	context->next = dev->cmd.free_head;
- 	dev->cmd.free_head = context - dev->cmd.context;
- 	spin_unlock(&dev->cmd.context_lock);
-+	wake_up(&dev->cmd.wq);
+-	sema_init(&dev->umrc.sem, MAX_UMR_WR);
++	init_waitqueue_head(&dev->umrc.wq);
+ 	ret = mlx5_mr_cache_init(dev);
+ 	if (ret) {
+ 		mlx5_ib_warn(dev, "mr cache init failed %d\n", ret);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index dcdcd19..de31b5f 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -533,7 +533,12 @@ struct umr_common {
+ 	struct ib_qp	*qp;
+ 	/* control access to UMR QP
+ 	 */
+-	struct semaphore	sem;
++	wait_queue_head_t	wq;
++	atomic_t		users;
++};
++
++enum {
++	MAX_UMR_WR = 128,
+ };
  
--	up(&dev->cmd.event_sem);
+ enum {
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 1593856..dfaf6f6 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -867,7 +867,8 @@ static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
+ 	mlx5_ib_init_umr_context(&umr_context);
+ 	umrwr->wr.wr_cqe = &umr_context.cqe;
+ 
+-	down(&umrc->sem);
++	/* limit number of concurrent ib_post_send() on qp */
++	wait_event(umrc->wq, atomic_add_unless(&umrc->users, 1, MAX_UMR_WR));
+ 	err = ib_post_send(umrc->qp, &umrwr->wr, &bad);
+ 	if (err) {
+ 		mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
+@@ -879,7 +880,8 @@ static inline int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
+ 			err = -EFAULT;
+ 		}
+ 	}
+-	up(&umrc->sem);
++	atomic_dec(&umrc->users);
++	wake_up(&umrc->wq);
  	return err;
  }
  
-@@ -571,7 +591,7 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
- 	dev->cmd.context[dev->cmd.max_cmds - 1].next = -1;
- 	dev->cmd.free_head = 0;
- 
--	sema_init(&dev->cmd.event_sem, dev->cmd.max_cmds);
-+	init_waitqueue_head(&dev->cmd.wq);
- 	spin_lock_init(&dev->cmd.context_lock);
- 
- 	for (dev->cmd.token_mask = 1;
-@@ -590,12 +610,9 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
-  */
- void mthca_cmd_use_polling(struct mthca_dev *dev)
- {
--	int i;
--
- 	dev->cmd.flags &= ~MTHCA_CMD_USE_EVENTS;
- 
--	for (i = 0; i < dev->cmd.max_cmds; ++i)
--		down(&dev->cmd.event_sem);
-+	dev->cmd.free_head = -1;
- 
- 	kfree(dev->cmd.context);
- }
-diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
-index 87ab964..2fc86db 100644
---- a/drivers/infiniband/hw/mthca/mthca_dev.h
-+++ b/drivers/infiniband/hw/mthca/mthca_dev.h
-@@ -46,6 +46,7 @@
- #include <linux/list.h>
- #include <linux/semaphore.h>
- 
-+#include <rdma/ib_sa.h>
- #include "mthca_provider.h"
- #include "mthca_doorbell.h"
- 
-@@ -121,7 +122,7 @@ struct mthca_cmd {
- 	struct pci_pool          *pool;
- 	struct mutex              hcr_mutex;
- 	struct mutex		  poll_mutex;
--	struct semaphore 	  event_sem;
-+	wait_queue_head_t	  wq;
- 	int              	  max_cmds;
- 	spinlock_t                context_lock;
- 	int                       free_head;
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
