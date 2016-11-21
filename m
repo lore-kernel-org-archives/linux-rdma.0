@@ -1,33 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v2] infiniband: remove WARN that is not kernel bug
-Date: Mon, 21 Nov 2016 09:52:53 -0700
-Message-ID: <20161121165253.GA22237@obsidianresearch.com>
-References: <1479723531-17940-1-git-send-email-dvyukov@google.com>
- <alpine.LNX.2.00.1611211123450.22752@pobox.suse.cz>
- <CACT4Y+ZO9sTbBGwNUUMkAQ5m0N-4aT0S9xypCRbBUch1pQNw9g@mail.gmail.com>
- <20161121114417.GA4158@leon.nu>
- <CACT4Y+Y1sL-8K7HhZ5M5ABVPG0kM=dKZh+6gvuNRvzXFtiA5aQ@mail.gmail.com>
- <20161121121408.GC4158@leon.nu>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v5 2/9] IB/core: Replace semaphore sm_sem with an atomic wait
+Date: Mon, 21 Nov 2016 17:52:27 +0100
+Message-ID: <4374986.OFD8bCgUa1@wuerfel>
+References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org> <1479708496-9828-3-git-send-email-binoy.jayan@linaro.org> <CA+55aFxGjaqduhRCyk0mVxEA7aqQ-omdG8SBreZ=x5cW2ovngQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161121121408.GC4158@leon.nu>
+In-Reply-To: <CA+55aFxGjaqduhRCyk0mVxEA7aqQ-omdG8SBreZ=x5cW2ovngQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>, syzkaller <syzkaller@googlegroups.com>, Valdis.Kletnieks@vt.edu, dledford@redhat.com, sean.hefty@intel.com, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Binoy Jayan <binoy.jayan@linaro.org>, linux-rdma@vger.kernel.org, Mustafa Ismail <mustafa.ismail@intel.com>, Lijun Ou <oulijun@huawei.com>, Nicholas Bellinger <nab@linux-iscsi.org>, Leon Romanovsky <leonro@mellanox.com>, target-devel@vger.kernel.org, Tatyana E Nikolova <tatyana.e.nikolova@intel.com>, Doug Ledford <dledford@redhat.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Faisal Latif <faisal.latif@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-kernel@vger.kernel.org, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Mark Brown <broonie@kernel.org>, Mark Bloch <markb@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 21, 2016 at 02:14:08PM +0200, Leon Romanovsky wrote:
-> >
-> > In ib_ucm_write function there is a wrong prefix:
-> >
-> > + pr_err_once("ucm_write: process %d (%s) tried to do something hinky\n",
+On Monday, November 21, 2016 7:57:53 AM CET Linus Torvalds wrote:
+> Don't do this.
 > 
-> I did it intentionally to have the same errors for all flows.
+> Never ever do your own locking primitives. You will get the memory ordering
+> wrong. And even if you get it right, why do it?
+> 
+> If you want to get rid of semaphores, and replace them with a mutex, that's
+> OK. But don't replace them with something more complex like an open coded
+> waiting model.
 
-Lets actually use a good message too please?
+I think a mutex would't work here, since fops->open() and fops->close()
+are not called from the same context and lockdep will complain
+about that.
 
- pr_err_once("ucm_write: process %d (%s) changed security contexts after opening FD, this is not allowed.\n",
+Version of the series had replaced the semaphore with a completion
+here, which worked correctly, but one reviewer suggested using
+the wait_event() instead since it's confusing to have a completion
+starting out in 'completed' state.
 
-Jason
+	Arnd
