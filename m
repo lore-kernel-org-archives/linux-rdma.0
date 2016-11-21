@@ -1,54 +1,46 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 5/5] IB/srp: Make writing into the add_target sysfs attribute
- interruptible
-Date: Mon, 21 Nov 2016 13:58:18 -0800
-Message-ID: <bcae771a-6d3f-f93d-32a5-713198502160@sandisk.com>
-References: <ba32b251-135f-c57d-44cc-658ae35a49ca@sandisk.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v5 2/9] IB/core: Replace semaphore sm_sem with an atomic wait
+Date: Mon, 21 Nov 2016 23:51:36 +0100
+Message-ID: <2759800.6ytmLjdbJ3@wuerfel>
+References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org> <4374986.OFD8bCgUa1@wuerfel> <CA+55aFyd7d+C39ipC5XuZg1gJjJ+HFSgcPQU7Xb26Fsh6Z1_0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ba32b251-135f-c57d-44cc-658ae35a49ca-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFyd7d+C39ipC5XuZg1gJjJ+HFSgcPQU7Xb26Fsh6Z1_0A@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Binoy Jayan <binoy.jayan@linaro.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mustafa Ismail <mustafa.ismail@intel.com>, Lijun Ou <oulijun@huawei.com>, Nicholas Bellinger <nab@linux-iscsi.org>, Leon Romanovsky <leonro@mellanox.com>, target-devel <target-devel@vger.kernel.org>, Tatyana E Nikolova <tatyana.e.nikolova@intel.com>, Doug Ledford <dledford@redhat.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Faisal Latif <faisal.latif@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Mark Brown <broonie@kernel.org>, Mark Bloch <markb@mellanox.com>, Steve
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that shutdown of srp_daemon is delayed if add_target_mutex is
-held by another process.
+On Monday, November 21, 2016 9:57:51 AM CET Linus Torvalds wrote:
+> 
+>  - semaphores are "old-fashioned mutexes". A mutex is better than a
+> semaphore, but a semaphore is better than just about all the other
+> alternatives. There's nothing _wrong_ with using a semaphore per se.
+> 
+> In this case, either use a semaphore or a mutex. If you are doing
+> mutual exclusion, those are really the only two acceptable sleeping
+> models.
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The main problem with semaphores is that they are slowly spreading
+into areas that really should be mutexes or completions. A couple
+of years ago, we had only around 30 semaphores left in the kernel
+and while a lot of those have been removed in the meantime, over
+100 new ones have come in, the majority of them in the category
+that can be trivially converted to a mutex or semaphore.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index bb9d73d..8ddc071 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3299,7 +3299,9 @@ static ssize_t srp_create_target(struct device *dev,
- 	 */
- 	scsi_host_get(target->scsi_host);
- 
--	mutex_lock(&host->add_target_mutex);
-+	ret = mutex_lock_interruptible(&host->add_target_mutex);
-+	if (ret < 0)
-+		goto put;
- 
- 	ret = srp_parse_options(buf, target);
- 	if (ret)
-@@ -3455,6 +3457,7 @@ static ssize_t srp_create_target(struct device *dev,
- out:
- 	mutex_unlock(&host->add_target_mutex);
- 
-+put:
- 	scsi_host_put(target->scsi_host);
- 	if (ret < 0)
- 		scsi_host_put(target->scsi_host);
--- 
-2.10.2
+This in turn is not much of a problem, except to a certain degree
+for preempt-rt users.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I suggested to Binoy that he could look into replacing the existing
+semaphores one subsystem at a time under the assumption that we
+could find a relatively easy alternative for every one of them
+and then remove the implementation completely.
+
+Christoph's suggestion is probably more productive here: let's
+remove the ones that are obviously wrong or inferior, and only
+once they have been taken care of we can look into whether it's
+worth doing something about the rest or not.
+
+	Arnd
