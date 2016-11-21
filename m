@@ -1,41 +1,163 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v5 2/9] IB/core: Replace semaphore sm_sem with an atomic
- wait
-Date: Mon, 21 Nov 2016 08:57:52 -0800
-Message-ID: <20161121165752.GA12866@infradead.org>
-References: <1479708496-9828-1-git-send-email-binoy.jayan@linaro.org>
- <1479708496-9828-3-git-send-email-binoy.jayan@linaro.org>
- <CA+55aFxGjaqduhRCyk0mVxEA7aqQ-omdG8SBreZ=x5cW2ovngQ@mail.gmail.com>
- <4374986.OFD8bCgUa1@wuerfel>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of allocating
+ memory using APIs
+Date: Mon, 21 Nov 2016 19:14:23 +0200
+Message-ID: <20161121171423.GA23083@leon.nu>
+References: <20161104163633.141880-1-salil.mehta@huawei.com>
+ <20161104163633.141880-4-salil.mehta@huawei.com>
+ <20161109072130.GH27883@leon.nu>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A7A2371@lhreml503-mbx>
+ <20161116083602.GH4240@leon.nu>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A7AD7DF@lhreml503-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4374986.OFD8bCgUa1@wuerfel>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Binoy Jayan <binoy.jayan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tatyana E Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise@opengridc>
+In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F91A7AD7DF@lhreml503-mbx>
+Sender: netdev-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "Zhangping (ZP)" <zhangping5@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 21, 2016 at 05:52:27PM +0100, Arnd Bergmann wrote:
-> I think a mutex would't work here, since fops->open() and fops->close()
-> are not called from the same context and lockdep will complain
-> about that.
-> 
-> Version of the series had replaced the semaphore with a completion
-> here, which worked correctly, but one reviewer suggested using
-> the wait_event() instead since it's confusing to have a completion
-> starting out in 'completed' state.
 
-On the other hand the existing semaphore works perfectly fine, and
-is way easier to understand than any of the other models, which also
-don't provide any benefit at all.
+--BOKacYhQ+x31HxR3
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please stop messing with perfectly fine semaphores now - there are
-plenty that are much better replaced with mutexes or completions,
-but this (and various others are not).  Leave them alone and do
-something useful instead.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Nov 21, 2016 at 04:12:38PM +0000, Salil Mehta wrote:
+> > -----Original Message-----
+> > From: Leon Romanovsky [mailto:leon@kernel.org]
+> > Sent: Wednesday, November 16, 2016 8:36 AM
+> > To: Salil Mehta
+> > Cc: dledford@redhat.com; Huwei (Xavier); oulijun;
+> > mehta.salil.lnk@gmail.com; linux-rdma@vger.kernel.org;
+> > netdev@vger.kernel.org; linux-kernel@vger.kernel.org; Linuxarm;
+> > Zhangping (ZP)
+> > Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of
+> > allocating memory using APIs
+> >
+> > On Tue, Nov 15, 2016 at 03:52:46PM +0000, Salil Mehta wrote:
+> > > > -----Original Message-----
+> > > > From: Leon Romanovsky [mailto:leon@kernel.org]
+> > > > Sent: Wednesday, November 09, 2016 7:22 AM
+> > > > To: Salil Mehta
+> > > > Cc: dledford@redhat.com; Huwei (Xavier); oulijun;
+> > > > mehta.salil.lnk@gmail.com; linux-rdma@vger.kernel.org;
+> > > > netdev@vger.kernel.org; linux-kernel@vger.kernel.org; Linuxarm;
+> > > > Zhangping (ZP)
+> > > > Subject: Re: [PATCH for-next 03/11] IB/hns: Optimize the logic of
+> > > > allocating memory using APIs
+> > > >
+> > > > On Fri, Nov 04, 2016 at 04:36:25PM +0000, Salil Mehta wrote:
+> > > > > From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+> > > > >
+> > > > > This patch modified the logic of allocating memory using APIs in
+> > > > > hns RoCE driver. We used kcalloc instead of kmalloc_array and
+> > > > > bitmap_zero. And When kcalloc failed, call vzalloc to alloc
+> > > > > memory.
+> > > > >
+> > > > > Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+> > > > > Signed-off-by: Ping Zhang <zhangping5@huawei.com>
+> > > > > Signed-off-by: Salil Mehta  <salil.mehta@huawei.com>
+> > > > > ---
+> > > > >  drivers/infiniband/hw/hns/hns_roce_mr.c |   15 ++++++++-------
+> > > > >  1 file changed, 8 insertions(+), 7 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > index fb87883..d3dfb5f 100644
+> > > > > --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> > > > > @@ -137,11 +137,12 @@ static int hns_roce_buddy_init(struct
+> > > > hns_roce_buddy *buddy, int max_order)
+> > > > >
+> > > > >  	for (i =3D 0; i <=3D buddy->max_order; ++i) {
+> > > > >  		s =3D BITS_TO_LONGS(1 << (buddy->max_order - i));
+> > > > > -		buddy->bits[i] =3D kmalloc_array(s, sizeof(long),
+> > > > GFP_KERNEL);
+> > > > > -		if (!buddy->bits[i])
+> > > > > -			goto err_out_free;
+> > > > > -
+> > > > > -		bitmap_zero(buddy->bits[i], 1 << (buddy->max_order -
+> > i));
+> > > > > +		buddy->bits[i] =3D kcalloc(s, sizeof(long),
+> > GFP_KERNEL);
+> > > > > +		if (!buddy->bits[i]) {
+> > > > > +			buddy->bits[i] =3D vzalloc(s * sizeof(long));
+> > > >
+> > > > I wonder, why don't you use directly vzalloc instead of kcalloc
+> > > > fallback?
+> > > As we know we will have physical contiguous pages if the kcalloc
+> > > call succeeds. This will give us a chance to have better performance
+> > > over the allocations which are just virtually contiguous through the
+> > > function vzalloc(). Therefore, later has only been used as a fallback
+> > > when our memory request cannot be entertained through kcalloc.
+> > >
+> > > Are you suggesting that there will not be much performance penalty
+> > > if we use just vzalloc ?
+> >
+> > Not exactly,
+> > I asked it, because we have similar code in our drivers and this
+> > construction looks strange to me.
+> >
+> > 1. If performance is critical, we will use kmalloc.
+> > 2. If performance is not critical, we will use vmalloc.
+> >
+> > But in this case, such construction shows me that we can live with
+> > vmalloc performance and kmalloc allocation are not really needed.
+> >
+> > In your specific case, I'm not sure that kcalloc will ever fail.
+> Performance is definitely critical here. Though, I agree this is bit
+> unusual way of memory allocation. In actual, we were encountering
+> memory alloc failures using kmalloc (if you see allocation amount
+> is on the higher side and is exponential) so we ended up using
+> vmalloc as fall back - It is very na=EFve allocation scheme.
+
+I understand it, we did the same, see our mlx5_vzalloc call.
+BTW, we used __GFP_NOWARN flag, which you should consider to use
+in your case too.
+
+>
+> Maybe we need to rethink this allocation scheme part? Also, I can pull
+> back this particular patch for now or just live with vzalloc() till
+> we figure out proper solution to this?
+
+It is up to you, I don't think that you should drop it, AFAIK, there is
+no other proper solution.
+
+>
+> >
+> > Thanks
+> >
+> >
+> > >
+> > > >
+> > > > > +			if (!buddy->bits[i])
+> > > > > +				goto err_out_free;
+> > > > > +		}
+> > > > >  	}
+
+--BOKacYhQ+x31HxR3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYMytvAAoJEORje4g2clinTq0QAI1rTTgFDyZ1s2bWcAQ02dbU
+CFNb5iCoRqDR8y0C+fDRVz9fONBAP+2B7T1lY/gORIusv2JbFHL0UUWU0luXQXP3
+0z9rp+dwZmUPKqyU8JgkSaw+yG0/Z4PEC/6dO9TIw4FrBOlIBZCj2GGyJx3mTisD
+XfGjpSRkFacbJjgDO5UXIHZIGcNAzwGZfQ92U5Ng2Ulz4Il2USg5QYpGftsQVsFa
+UTvVT4nn/k2gfhRXELtPuZ6zMQsxkMCoegqgdVqk0IAkJ0SUu3BYncTMRZBNOBAm
+i2WTjI6ATFXVvIde+wUdc3kc2mtdJMpQMH+kV+47CkvasmKZsB0zP5XSd5uh3Y9Y
+D3V/jA6av+AvyS2vaM8Hwh+3+spYYOq56xHJ865bIVxPBqX0hsxX4B0L3jhbk9sv
+DCRyrOJ9++izmB8Oejyl+xDCvcJJcEeDK4GqaMSiJkddtUybDu3hCHHyk68A7+Ft
+p+ECZihOn1+9l59rPM5Wwq6hA6Eg9i5fgtor7Aq/pt9DRoqq7x3rdCyK9YJJOyoK
+gZfv52mKnDLSqTkxoegDN0OjqRgeDaUQbnfwLUDlzE6ebP2ZDLGDPv9irI1r9Ekd
+CG3muPReUA4tYAAG5d+zz5kh9aBochjfQYvy4Qk3RlWNR7rPu8FsKoaevUXhqU2z
+eZySHg9DajWx30k5cHR4
+=Xe0n
+-----END PGP SIGNATURE-----
+
+--BOKacYhQ+x31HxR3--
