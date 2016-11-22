@@ -1,63 +1,48 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 4/7] IB/rxe: Unblock loopback by moving skb_out increment
-Date: Tue, 22 Nov 2016 18:13:35 +0200
-Message-ID: <CAG9sBKNTzKRbkG=Y8a2X9E3C4JGKP9x0cpq1TFqVJERKazy4tA@mail.gmail.com>
-References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com> <1479479809-10798-4-git-send-email-andrew.boyer@dell.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/3] IB/mad: Fix an array index check
+Date: Tue, 22 Nov 2016 16:48:08 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3BE919EC@CRSMSX101.amr.corp.intel.com>
+References: <94eb11fc-b558-b994-c933-da784caefc53@sandisk.com>
+ <396b3fe2-6a84-efed-07de-3e6381009ad1@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479479809-10798-4-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
+In-Reply-To: <396b3fe2-6a84-efed-07de-3e6381009ad1-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-On Fri, Nov 18, 2016 at 4:36 PM, Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org> wrote:
-> skb_out is decremented in rxe_skb_tx_dtor(), which is not called in the
-> loopback() path. Move the increment to the send() path rather than
-> rxe_xmit_packet().
->
-> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_loc.h | 2 --
->  drivers/infiniband/sw/rxe/rxe_net.c | 2 ++
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-> index 73849a5a..efe4c6a 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-> @@ -266,8 +266,6 @@ static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
->                 return err;
->         }
->
-> -       atomic_inc(&qp->skb_out);
-> -
->         if ((qp_type(qp) != IB_QPT_RC) &&
->             (pkt->mask & RXE_END_MASK)) {
->                 pkt->wqe->state = wqe_state_done;
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> index ffff5a5..332ce52 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -455,6 +455,8 @@ static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->                 return -EAGAIN;
->         }
->
-> +       if (pkt->qp)
-> +               atomic_inc(&pkt->qp->skb_out);
->         kfree_skb(skb);
->
->         return 0;
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiANCj4gVGhlIGFycmF5IGliX21hZF9tZ210X2NsYXNzX3RhYmxlLm1ldGhvZF90YWJsZSBoYXMg
+TUFYX01HTVRfQ0xBU1MNCj4gKDgwKSBlbGVtZW50cy4gSGVuY2UgY29tcGFyZSB0aGUgYXJyYXkg
+aW5kZXggd2l0aCB0aGF0IHZhbHVlIGluc3RlYWQgb2Ygd2l0aA0KPiBJQl9NR01UX01BWF9NRVRI
+T0RTICgxMjgpLiBUaGlzIHBhdGNoIGF2b2lkcyB0aGF0IENvdmVyaXR5IHJlcG9ydHMgdGhlDQo+
+IGZvbGxvd2luZzoNCj4gDQo+IE92ZXJydW5uaW5nIGFycmF5IGNsYXNzLT5tZXRob2RfdGFibGUg
+b2YgODAgOC1ieXRlIGVsZW1lbnRzIGF0IGVsZW1lbnQgaW5kZXgNCj4gMTI3IChieXRlIG9mZnNl
+dCAxMDE2KSB1c2luZyBpbmRleCBjb252ZXJ0X21nbXRfY2xhc3MobWFkX2hkci0NCj4gPm1nbXRf
+Y2xhc3MpICh3aGljaCBldmFsdWF0ZXMgdG8gMTI3KS4NCj4gDQo+IEZpeGVzOiBjb21taXQgYjdh
+YjBiMTlhODVmICgiSUIvbWFkOiBWZXJpZnkgbWdtdCBjbGFzcyBpbiByZWNlaXZlZCBNQURzIikN
+Cj4gU2lnbmVkLW9mZi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNr
+LmNvbT4NCj4gQ2M6IFNlYW4gSGVmdHkgPHNlYW4uaGVmdHlAaW50ZWwuY29tPg0KPiBDYzogPHN0
+YWJsZUB2Z2VyLmtlcm5lbC5vcmc+DQoNClRoYW5rcyENCg0KUmV2aWV3ZWQtYnk6IElyYSBXZWlu
+eSA8aXJhLndlaW55QGludGVsLmNvbT4NCg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9j
+b3JlL21hZC5jIHwgMiArLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRl
+bGV0aW9uKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFk
+LmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYyBpbmRleA0KPiA0MGNiZDZiLi4yMzk1
+ZmUyIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPiArKysg
+Yi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPiBAQCAtMTc0Niw3ICsxNzQ2LDcgQEAg
+ZmluZF9tYWRfYWdlbnQoc3RydWN0IGliX21hZF9wb3J0X3ByaXZhdGUNCj4gKnBvcnRfcHJpdiwN
+Cj4gIAkJCWlmICghY2xhc3MpDQo+ICAJCQkJZ290byBvdXQ7DQo+ICAJCQlpZiAoY29udmVydF9t
+Z210X2NsYXNzKG1hZF9oZHItPm1nbXRfY2xhc3MpID49DQo+IC0JCQkgICAgSUJfTUdNVF9NQVhf
+TUVUSE9EUykNCj4gKwkJCSAgICBBUlJBWV9TSVpFKGNsYXNzLT5tZXRob2RfdGFibGUpKQ0KPiAg
+CQkJCWdvdG8gb3V0Ow0KPiAgCQkJbWV0aG9kID0gY2xhc3MtPm1ldGhvZF90YWJsZVtjb252ZXJ0
+X21nbXRfY2xhc3MoDQo+ICAJCQkJCQkJbWFkX2hkci0NCj4gPm1nbXRfY2xhc3MpXTsNCj4gLS0N
+Cj4gMi4xMC4yDQo+IA0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
+IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5IG9m
+IGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21v
+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
