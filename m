@@ -1,48 +1,54 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/3] IB/mad: Fix an array index check
-Date: Tue, 22 Nov 2016 16:48:08 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3BE919EC@CRSMSX101.amr.corp.intel.com>
-References: <94eb11fc-b558-b994-c933-da784caefc53@sandisk.com>
- <396b3fe2-6a84-efed-07de-3e6381009ad1@sandisk.com>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/7] IB/rxe: Advance the consumer pointer before posting
+ the CQE
+Date: Tue, 22 Nov 2016 17:24:56 +0200
+Message-ID: <50fc87a3-2dfd-c205-c596-4324eab39c20@mellanox.com>
+References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
+ <1479479809-10798-2-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <396b3fe2-6a84-efed-07de-3e6381009ad1-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1479479809-10798-2-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gVGhlIGFycmF5IGliX21hZF9tZ210X2NsYXNzX3RhYmxlLm1ldGhvZF90YWJsZSBoYXMg
-TUFYX01HTVRfQ0xBU1MNCj4gKDgwKSBlbGVtZW50cy4gSGVuY2UgY29tcGFyZSB0aGUgYXJyYXkg
-aW5kZXggd2l0aCB0aGF0IHZhbHVlIGluc3RlYWQgb2Ygd2l0aA0KPiBJQl9NR01UX01BWF9NRVRI
-T0RTICgxMjgpLiBUaGlzIHBhdGNoIGF2b2lkcyB0aGF0IENvdmVyaXR5IHJlcG9ydHMgdGhlDQo+
-IGZvbGxvd2luZzoNCj4gDQo+IE92ZXJydW5uaW5nIGFycmF5IGNsYXNzLT5tZXRob2RfdGFibGUg
-b2YgODAgOC1ieXRlIGVsZW1lbnRzIGF0IGVsZW1lbnQgaW5kZXgNCj4gMTI3IChieXRlIG9mZnNl
-dCAxMDE2KSB1c2luZyBpbmRleCBjb252ZXJ0X21nbXRfY2xhc3MobWFkX2hkci0NCj4gPm1nbXRf
-Y2xhc3MpICh3aGljaCBldmFsdWF0ZXMgdG8gMTI3KS4NCj4gDQo+IEZpeGVzOiBjb21taXQgYjdh
-YjBiMTlhODVmICgiSUIvbWFkOiBWZXJpZnkgbWdtdCBjbGFzcyBpbiByZWNlaXZlZCBNQURzIikN
-Cj4gU2lnbmVkLW9mZi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNr
-LmNvbT4NCj4gQ2M6IFNlYW4gSGVmdHkgPHNlYW4uaGVmdHlAaW50ZWwuY29tPg0KPiBDYzogPHN0
-YWJsZUB2Z2VyLmtlcm5lbC5vcmc+DQoNClRoYW5rcyENCg0KUmV2aWV3ZWQtYnk6IElyYSBXZWlu
-eSA8aXJhLndlaW55QGludGVsLmNvbT4NCg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9j
-b3JlL21hZC5jIHwgMiArLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRl
-bGV0aW9uKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFk
-LmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYyBpbmRleA0KPiA0MGNiZDZiLi4yMzk1
-ZmUyIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPiArKysg
-Yi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPiBAQCAtMTc0Niw3ICsxNzQ2LDcgQEAg
-ZmluZF9tYWRfYWdlbnQoc3RydWN0IGliX21hZF9wb3J0X3ByaXZhdGUNCj4gKnBvcnRfcHJpdiwN
-Cj4gIAkJCWlmICghY2xhc3MpDQo+ICAJCQkJZ290byBvdXQ7DQo+ICAJCQlpZiAoY29udmVydF9t
-Z210X2NsYXNzKG1hZF9oZHItPm1nbXRfY2xhc3MpID49DQo+IC0JCQkgICAgSUJfTUdNVF9NQVhf
-TUVUSE9EUykNCj4gKwkJCSAgICBBUlJBWV9TSVpFKGNsYXNzLT5tZXRob2RfdGFibGUpKQ0KPiAg
-CQkJCWdvdG8gb3V0Ow0KPiAgCQkJbWV0aG9kID0gY2xhc3MtPm1ldGhvZF90YWJsZVtjb252ZXJ0
-X21nbXRfY2xhc3MoDQo+ICAJCQkJCQkJbWFkX2hkci0NCj4gPm1nbXRfY2xhc3MpXTsNCj4gLS0N
-Cj4gMi4xMC4yDQo+IA0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5IG9m
-IGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21v
-IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+On 11/18/2016 4:36 PM, Andrew Boyer wrote:
+> A simple userspace application might poll the CQ, find a completion,
+> and then attempt to post a new WQE to the SQ. A spurious error can
+> occur if the userspace application detects a full SQ in the instant
+> before the kernel is able to advance the SQ consumer pointer.
+>
+> This is noticeable when using single-entry SQs with ibv_rc_pingpong()
+> if lots of kernel and userspace library debugging is enabled.
+>
+> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_comp.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+> index 6c5e29d..d46c49b 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+> @@ -420,11 +420,12 @@ static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+>  	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
+>  	    (qp->req.state == QP_STATE_ERROR)) {
+>  		make_send_cqe(qp, wqe, &cqe);
+> +		advance_consumer(qp->sq.queue);
+>  		rxe_cq_post(qp->scq, &cqe, 0);
+> +	} else {
+> +		advance_consumer(qp->sq.queue);
+>  	}
+>
+> -	advance_consumer(qp->sq.queue);
+> -
+>  	/*
+>  	 * we completed something so let req run again
+>  	 * if it is trying to fence
+>
+Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
