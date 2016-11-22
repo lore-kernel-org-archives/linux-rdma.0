@@ -1,41 +1,55 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] Avoid running out of local port in RDMA_CM
-Date: Tue, 22 Nov 2016 18:04:06 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0B6164@ORSMSX109.amr.corp.intel.com>
-References: <CAG9sBKMMuj5Qf7_jgL_EAwOAVAFZCp5Wf=NytqsHAezrys97pA@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0B611D@ORSMSX109.amr.corp.intel.com>
- <CAG9sBKMfGWv7-wgoSNxVqMs7TktcJ3a4J0QnL+TmPSm1kaQ28g@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Tue, 22 Nov 2016 10:11:51 -0800
+Message-ID: <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKMfGWv7-wgoSNxVqMs7TktcJ3a4J0QnL+TmPSm1kaQ28g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50-Gy0DoCVfaSW4WA4dJ5YXGAdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>
+Cc: "Sagalovitch, Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEkgYmVsaWV2ZSB0aGF0IGFueSBzb2x1dGlvbiBoZXJlIHNob3VsZCBtaW1pYyB0aGUgVENQ
-L0lQIHN0YWNrIGFzDQo+IGNsb3NlbHkgYXMgcG9zc2libGUuICBTbyBJIHdvdWxkIHJ1bGUgb3V0
-IHRoZSByZS11c2Ugb2YgYSBzaW5nbGUgcG9ydA0KPiBmb3IgYWxsIGFjdGl2ZSBjb25uZWN0aW9u
-cy4NCj4gPg0KPiA+IEkgdGhpbmsgVENQIG1hdGNoZXMgb24gdGhlIGZ1bGwgdHVwbGUgPHNyYyBw
-b3J0LCBzcmMgaXAsIGRzdCBwb3J0LA0KPiBkc3QgaXA+LiAgV2Ugc2hvdWxkIGJlIHNhZmUgdG8g
-cmUtdXNlIHBvcnQgbnVtYmVycyBhcyBsb25nIGFzIHNvbWUNCj4gb3RoZXIgcG9ydGlvbiBvZiB0
-aGUgdHVwbGUgY2hhbmdlcy4gIE1heWJlIHRoYXQgY2FuIGJlIGFkZGVkIGFzIHBhcnQgb2YNCj4g
-dGhlIHBvcnQgcmVzZXJ2YXRpb24vY2hlY2tpbmc/DQo+ID4NCj4gDQo+IEF0IGZpcnN0IHRoZSB0
-aG91Z2h0IHdhcyB0byByZXVzZSBwb3J0cyBhcyBsb25nIGFzIHRoZSBkZXN0IElQIGJldHdlZW4N
-Cj4gcmRtYV9pZCBpcyBkaWZmZXJlbnQgYnV0IGlzIHRoaXMgY29tcGxpY2F0aW9uIHJlYWxseSBu
-ZWNlc3Nhcnk/DQo+IFJETUFfQ00gbWltaWNzIHNvY2tldCBBUEkgYnV0IHdpcmUgcHJvdG9jb2wg
-aXMgZGlmZmVyZW50IGFuZCBzb3VyY2UNCj4gcG9ydCBoYXMgbm8gcm9sZSBpbiB0cmFuc3BvcnRp
-bmcgYSBwYWNrZXQgZnJvbSBRUCB0byBRUC4gRG8geW91IHNlZSBhDQo+IHJlYWwgcmlzayBpbiBy
-ZXVzaW5nIGEgcG9ydCB1bmNvbmRpdGlvbmFsbHk/DQoNClRoZSBwb3J0IG51bWJlciBpcyBjYXJy
-aWVkIGluIHRoZSBwYWNrZXQgYW5kIHByb3ZpZGVkIGFzIHRoZSBzb3VyY2UgYWRkcmVzcyB0byB0
-aGUgb3RoZXIgc2lkZS4gQnkgcmUtdXNpbmcgYSBzaW5nbGUgcG9ydCBudW1iZXIsIGEgc2VydmVy
-IHdpbGwgc2VlIG11bHRpcGxlIGNvbm5lY3Rpb25zIGFsbCByZXBvcnRpbmcgdGhlIHNhbWUgc291
-cmNlIGFkZHJlc3MgKHBvcnQgKyBzcmMgSVApLg0KDQpUaGUgcHJvcG9zYWwgd2lsbCBicmVhayBp
-V2FycC4gDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Nov 21, 2016 at 12:36 PM, Deucher, Alexander
+<Alexander.Deucher-5C7GfCeVMHo@public.gmane.org> wrote:
+> This is certainly not the first time this has been brought up, but I'd like to try and get some consensus on the best way to move this forward.  Allowing devices to talk directly improves performance and reduces latency by avoiding the use of staging buffers in system memory.  Also in cases where both devices are behind a switch, it avoids the CPU entirely.  Most current APIs (DirectGMA, PeerDirect, CUDA, HSA) that deal with this are pointer based.  Ideally we'd be able to take a CPU virtual address and be able to get to a physical address taking into account IOMMUs, etc.  Having struct pages for the memory would allow it to work more generally and wouldn't require as much explicit support in drivers that wanted to use it.
+>
+> Some use cases:
+> 1. Storage devices streaming directly to GPU device memory
+> 2. GPU device memory to GPU device memory streaming
+> 3. DVB/V4L/SDI devices streaming directly to GPU device memory
+> 4. DVB/V4L/SDI devices streaming directly to storage devices
+>
+> Here is a relatively simple example of how this could work for testing.  This is obviously not a complete solution.
+> - Device memory will be registered with Linux memory sub-system by created corresponding struct page structures for device memory
+> - get_user_pages_fast() will  return corresponding struct pages when CPU address points to the device memory
+> - put_page() will deal with struct pages for device memory
+>
+[..]
+> 4. iopmem
+> iopmem : A block device for PCIe memory (https://lwn.net/Articles/703895/)
+
+The change I suggest for this particular approach is to switch to
+"device-DAX" [1]. I.e. a character device for establishing DAX
+mappings rather than a block device plus a DAX filesystem. The pro of
+this approach is standard user pointers and struct pages rather than a
+new construct. The con is that this is done via an interface separate
+from the existing gpu and storage device. For example it would require
+a /dev/dax instance alongside a /dev/nvme interface, but I don't see
+that as a significant blocking concern.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-October/007496.html
