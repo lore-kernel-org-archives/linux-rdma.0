@@ -1,7 +1,7 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 1/7] IB/rxe: Allocate enough space for an IPv6 addr
-Date: Tue, 22 Nov 2016 17:21:15 +0200
-Message-ID: <975a89bc-033e-14ab-72f2-4244c0205e59@mellanox.com>
+Date: Tue, 22 Nov 2016 14:11:33 -0800
+Message-ID: <eaf0e3cc-bae8-8cb6-436e-2f99ea035a61@sandisk.com>
 References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
@@ -12,7 +12,7 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/18/2016 4:36 PM, Andrew Boyer wrote:
+On 11/18/2016 06:36 AM, Andrew Boyer wrote:
 > Avoid smashing the stack when an ICRC error occurs on an IPv6 network.
 >
 > Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
@@ -33,33 +33,15 @@ On 11/18/2016 4:36 PM, Andrew Boyer wrote:
 >
 >  		if (skb->protocol == htons(ETH_P_IPV6))
 >  			sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
->
-you fixed a bug here but i think the following would be better
-than hard coding 64 bytes on the stack
 
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -391,16 +391,14 @@ int rxe_rcv(struct sk_buff *skb)
-                              payload_size(pkt));
-         calc_icrc = cpu_to_be32(~calc_icrc);
-         if (unlikely(calc_icrc != pack_icrc)) {
--               char saddr[sizeof(struct in6_addr)];
+Hello Andrew,
 
-                 if (skb->protocol == htons(ETH_P_IPV6))
--                       sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
-+                       pr_warn_ratelimited("bad ICRC from %pI6\n", 
-&ipv6_hdr(skb)->saddr);
-                 else if (skb->protocol == htons(ETH_P_IP))
--                       sprintf(saddr, "%pI4", &ip_hdr(skb)->saddr);
-+                       pr_warn_ratelimited("bad ICRC from %pI4\n", 
-&ip_hdr(skb)->saddr);
-                 else
--                       sprintf(saddr, "unknown");
-+                       pr_warn_ratelimited("bad ICRC from unknown\n");
+Since you are touching this code please also switch from sprintf() to 
+snprintf().
 
--               pr_warn_ratelimited("bad ICRC from %s\n", saddr);
-                 goto drop;
-         }
+Thanks,
+
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
