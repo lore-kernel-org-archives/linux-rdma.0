@@ -1,50 +1,63 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Fix incorrect assignment of SQ head
-Date: Tue, 22 Nov 2016 09:44:20 -0600
-Message-ID: <20161122154420.32876-1-henry.orosco@intel.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 4/7] IB/rxe: Unblock loopback by moving skb_out increment
+Date: Tue, 22 Nov 2016 18:13:35 +0200
+Message-ID: <CAG9sBKNTzKRbkG=Y8a2X9E3C4JGKP9x0cpq1TFqVJERKazy4tA@mail.gmail.com>
+References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com> <1479479809-10798-4-git-send-email-andrew.boyer@dell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1479479809-10798-4-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The SQ head is incorrectly incremented when the number
-of WQEs required is greater than the number available.
-The fix is to use the I40IW_RING_MOV_HEAD_BY_COUNT
-macro. This checks for the SQ full condition first and
-only if SQ has room for the request, then we move the
-head appropriately.
+Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_uk.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 4d28c3c..3987cd8 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -175,12 +175,10 @@ u64 *i40iw_qp_get_next_send_wqe(struct i40iw_qp_uk *qp,
- 		if (!*wqe_idx)
- 			qp->swqe_polarity = !qp->swqe_polarity;
- 	}
--
--	for (i = 0; i < wqe_size / I40IW_QP_WQE_MIN_SIZE; i++) {
--		I40IW_RING_MOVE_HEAD(qp->sq_ring, ret_code);
--		if (ret_code)
--			return NULL;
--	}
-+	I40IW_RING_MOVE_HEAD_BY_COUNT(qp->sq_ring,
-+				      wqe_size / I40IW_QP_WQE_MIN_SIZE, ret_code);
-+	if (ret_code)
-+		return NULL;
- 
- 	wqe = qp->sq_base[*wqe_idx].elem;
- 
--- 
-1.8.3.1
-
+On Fri, Nov 18, 2016 at 4:36 PM, Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org> wrote:
+> skb_out is decremented in rxe_skb_tx_dtor(), which is not called in the
+> loopback() path. Move the increment to the send() path rather than
+> rxe_xmit_packet().
+>
+> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_loc.h | 2 --
+>  drivers/infiniband/sw/rxe/rxe_net.c | 2 ++
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+> index 73849a5a..efe4c6a 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
+> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+> @@ -266,8 +266,6 @@ static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
+>                 return err;
+>         }
+>
+> -       atomic_inc(&qp->skb_out);
+> -
+>         if ((qp_type(qp) != IB_QPT_RC) &&
+>             (pkt->mask & RXE_END_MASK)) {
+>                 pkt->wqe->state = wqe_state_done;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> index ffff5a5..332ce52 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> @@ -455,6 +455,8 @@ static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+>                 return -EAGAIN;
+>         }
+>
+> +       if (pkt->qp)
+> +               atomic_inc(&pkt->qp->skb_out);
+>         kfree_skb(skb);
+>
+>         return 0;
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
