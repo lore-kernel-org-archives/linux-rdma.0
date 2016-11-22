@@ -1,90 +1,69 @@
-From: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Tue, 22 Nov 2016 22:03:09 +0100
-Message-ID: <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
- <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
+From: "Chandramouli, Dasaratharaman"
+        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 02/11] IB/core: Change port_attr.sm_lid from 16 to 32
+ bits
+Date: Tue, 22 Nov 2016 13:13:26 -0800
+Message-ID: <cb14f866-0e19-1631-745d-5c9d67aabfe8@intel.com>
+References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1479843532-47496-3-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <20161122205717.GA6484@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <a99fd9ea-64d8-c5d3-0b96-f96c92369601-5C7GfCeVMHo@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161122205717.GA6484-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
-<serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org> wrote:
->
-> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
->>
->> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> wrote:
->>>
->>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
->>> <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org> wrote:
->>>>
->>>> I personally like "device-DAX" idea but my concerns are:
->>>>
->>>> -  How well it will co-exists with the  DRM infrastructure /
->>>> implementations
->>>>     in part dealing with CPU pointers?
->>>
->>> Inside the kernel a device-DAX range is "just memory" in the sense
->>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
->>> not migratable. To be honest I do not know how well that co-exists
->>> with drm infrastructure.
->>>
->>>> -  How well we will be able to handle case when we need to
->>>> "move"/"evict"
->>>>     memory/data to the new location so CPU pointer should point to the
->>>> new
->>>> physical location/address
->>>>      (and may be not in PCI device memory at all)?
->>>
->>> So, device-DAX deliberately avoids support for in-kernel migration or
->>> overcommit. Those cases are left to the core mm or drm. The device-dax
->>> interface is for cases where all that is needed is a direct-mapping to
->>> a statically-allocated physical-address range be it persistent memory
->>> or some other special reserved memory range.
->>
->> For some of the fancy use-cases (e.g. to be comparable to what HMM can
->> pull off) I think we want all the magic in core mm, i.e. migration and
->> overcommit. At least that seems to be the very strong drive in all
->> general-purpose gpu abstractions and implementations, where memory is
->> allocated with malloc, and then mapped/moved into vram/gpu address
->> space through some magic,
->
-> It is possible that there is other way around: memory is requested to be
-> allocated and should be kept in vram for  performance reason but due
-> to possible overcommit case we need at least temporally to "move" such
-> allocation to system memory.
 
-With migration I meant migrating both ways of course. And with stuff
-like numactl we can also influence where exactly the malloc'ed memory
-is allocated originally, at least if we'd expose the vram range as a
-very special numa node that happens to be far away and not hold any
-cpu cores.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+
+On 11/22/2016 12:57 PM, Jason Gunthorpe wrote:
+> On Tue, Nov 22, 2016 at 02:38:43PM -0500, Dasaratharaman Chandramouli wrote:
+>> +++ b/drivers/infiniband/core/sa_query.c
+>> @@ -958,7 +958,7 @@ static void update_sm_ah(struct work_struct *work)
+>>  		pr_err("Couldn't find index for default PKey\n");
+>>
+>>  	memset(&ah_attr, 0, sizeof ah_attr);
+>> -	ah_attr.dlid     = port_attr.sm_lid;
+>> +	ah_attr.dlid     = (u16)port_attr.sm_lid;
+>
+> Why are we dropping bits here?
+
+Patch 3 increases ah_attr.dlid to 32 bits and the typecast is dropped.
+We added it in this patch just to avoid compiler warnings, if any.
+>
+>> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+>> @@ -514,7 +514,7 @@ static int srpt_refresh_port(struct srpt_port *sport)
+>>  	if (ret)
+>>  		goto err_query_port;
+>>
+>> -	sport->sm_lid = port_attr.sm_lid;
+>> +	sport->sm_lid = (u16)port_attr.sm_lid;
+>>  	sport->lid = port_attr.lid;
+>
+> And here..
+Patch 11 increases lid and sm_lid fields in struct srpt_port and the 
+typecast is dropped.
+We added it in this patch just to avoid compiler warnings, if any.
+>
+>> +#if !defined(OPA_ADDR_H)
+>> +#define OPA_ADDR_H
+>
+> I don't think we need a header file for this.
+There are other helpers specific to OPA addresses that were required in 
+later patches which we thought can go in a separate file.
+>
+>> +#define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
+>> +				 ? 0 : x)
+>
+> static inline function please.
+Will change. Thanks.
+>
+> Jason
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
