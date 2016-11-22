@@ -1,74 +1,66 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 02/11] IB/core: Change port_attr.sm_lid from 16 to 32
- bits
-Date: Tue, 22 Nov 2016 14:24:11 -0700
-Message-ID: <20161122212411.GC6484@obsidianresearch.com>
-References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1479843532-47496-3-git-send-email-dasaratharaman.chandramouli@intel.com>
- <20161122205717.GA6484@obsidianresearch.com>
- <cb14f866-0e19-1631-745d-5c9d67aabfe8@intel.com>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/7] IB/rxe: Allocate enough space for an IPv6 addr
+Date: Tue, 22 Nov 2016 17:21:15 +0200
+Message-ID: <975a89bc-033e-14ab-72f2-4244c0205e59@mellanox.com>
+References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <cb14f866-0e19-1631-745d-5c9d67aabfe8-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1479479809-10798-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 22, 2016 at 01:13:26PM -0800, Chandramouli, Dasaratharaman wrote:
-> 
-> 
-> On 11/22/2016 12:57 PM, Jason Gunthorpe wrote:
-> >On Tue, Nov 22, 2016 at 02:38:43PM -0500, Dasaratharaman Chandramouli wrote:
-> >>+++ b/drivers/infiniband/core/sa_query.c
-> >>@@ -958,7 +958,7 @@ static void update_sm_ah(struct work_struct *work)
-> >> 		pr_err("Couldn't find index for default PKey\n");
-> >>
-> >> 	memset(&ah_attr, 0, sizeof ah_attr);
-> >>-	ah_attr.dlid     = port_attr.sm_lid;
-> >>+	ah_attr.dlid     = (u16)port_attr.sm_lid;
-> >
-> >Why are we dropping bits here?
-> 
-> Patch 3 increases ah_attr.dlid to 32 bits and the typecast is dropped.
-> We added it in this patch just to avoid compiler warnings, if any.
+On 11/18/2016 4:36 PM, Andrew Boyer wrote:
+> Avoid smashing the stack when an ICRC error occurs on an IPv6 network.
+>
+> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+> index 46f0628..b40ab8d 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+> @@ -391,7 +391,7 @@ int rxe_rcv(struct sk_buff *skb)
+>  			     payload_size(pkt));
+>  	calc_icrc = cpu_to_be32(~calc_icrc);
+>  	if (unlikely(calc_icrc != pack_icrc)) {
+> -		char saddr[sizeof(struct in6_addr)];
+> +		char saddr[64];
+>
+>  		if (skb->protocol == htons(ETH_P_IPV6))
+>  			sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
+>
+you fixed a bug here but i think the following would be better
+than hard coding 64 bytes on the stack
 
-It would be alot better to fix this series so adding typecasts and
-then dropping them didn't happen so extensively. Just reodering some
-patched would do the trick. That would make it alot less churny and
-easy to read..
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -391,16 +391,14 @@ int rxe_rcv(struct sk_buff *skb)
+                              payload_size(pkt));
+         calc_icrc = cpu_to_be32(~calc_icrc);
+         if (unlikely(calc_icrc != pack_icrc)) {
+-               char saddr[sizeof(struct in6_addr)];
 
-> >>-	sport->sm_lid = port_attr.sm_lid;
-> >>+	sport->sm_lid = (u16)port_attr.sm_lid;
-> >> 	sport->lid = port_attr.lid;
-> >
-> >And here..
+                 if (skb->protocol == htons(ETH_P_IPV6))
+-                       sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
++                       pr_warn_ratelimited("bad ICRC from %pI6\n", 
+&ipv6_hdr(skb)->saddr);
+                 else if (skb->protocol == htons(ETH_P_IP))
+-                       sprintf(saddr, "%pI4", &ip_hdr(skb)->saddr);
++                       pr_warn_ratelimited("bad ICRC from %pI4\n", 
+&ip_hdr(skb)->saddr);
+                 else
+-                       sprintf(saddr, "unknown");
++                       pr_warn_ratelimited("bad ICRC from unknown\n");
 
-> Patch 11 increases lid and sm_lid fields in struct srpt_port and the
-> typecast is dropped.  We added it in this patch just to avoid
-> compiler warnings, if any.
+-               pr_warn_ratelimited("bad ICRC from %s\n", saddr);
+                 goto drop;
+         }
 
-Eg if you do patch 11 first this hunk goes away.
-
-I also don't really care for all the added u16 casts, the compiler
-doesn't warn on implicit demotion without a higher warning level...
-
-> >
-> >>+#define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
-> >>+				 ? 0 : x)
-> >
-> >static inline function please.
-> Will change. Thanks.
-
-All of them please.
-
-And I think you should re-think how this is being used, the pattern
-around OPA_TO_IB_UCAST_LID is copied too many times for my liking, and
-isn't this UAPI compatability only?
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
