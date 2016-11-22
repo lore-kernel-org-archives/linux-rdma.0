@@ -1,96 +1,36 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Tue, 22 Nov 2016 13:21:03 -0800
-Message-ID: <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
- <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
- <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2 10/11] IB/IPoIB: Modify ipoib_get_net_dev_by_params to
+ lookup gid table
+Date: Tue, 22 Nov 2016 14:20:57 -0700
+Message-ID: <20161122212057.GB6484@obsidianresearch.com>
+References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1479843532-47496-11-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
-Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1479843532-47496-11-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 22, 2016 at 1:03 PM, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org> wrote:
-> On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
-> <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org> wrote:
->>
->> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
->>>
->>> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> wrote:
->>>>
->>>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
->>>> <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org> wrote:
->>>>>
->>>>> I personally like "device-DAX" idea but my concerns are:
->>>>>
->>>>> -  How well it will co-exists with the  DRM infrastructure /
->>>>> implementations
->>>>>     in part dealing with CPU pointers?
->>>>
->>>> Inside the kernel a device-DAX range is "just memory" in the sense
->>>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
->>>> not migratable. To be honest I do not know how well that co-exists
->>>> with drm infrastructure.
->>>>
->>>>> -  How well we will be able to handle case when we need to
->>>>> "move"/"evict"
->>>>>     memory/data to the new location so CPU pointer should point to the
->>>>> new
->>>>> physical location/address
->>>>>      (and may be not in PCI device memory at all)?
->>>>
->>>> So, device-DAX deliberately avoids support for in-kernel migration or
->>>> overcommit. Those cases are left to the core mm or drm. The device-dax
->>>> interface is for cases where all that is needed is a direct-mapping to
->>>> a statically-allocated physical-address range be it persistent memory
->>>> or some other special reserved memory range.
->>>
->>> For some of the fancy use-cases (e.g. to be comparable to what HMM can
->>> pull off) I think we want all the magic in core mm, i.e. migration and
->>> overcommit. At least that seems to be the very strong drive in all
->>> general-purpose gpu abstractions and implementations, where memory is
->>> allocated with malloc, and then mapped/moved into vram/gpu address
->>> space through some magic,
->>
->> It is possible that there is other way around: memory is requested to be
->> allocated and should be kept in vram for  performance reason but due
->> to possible overcommit case we need at least temporally to "move" such
->> allocation to system memory.
->
-> With migration I meant migrating both ways of course. And with stuff
-> like numactl we can also influence where exactly the malloc'ed memory
-> is allocated originally, at least if we'd expose the vram range as a
-> very special numa node that happens to be far away and not hold any
-> cpu cores.
+On Tue, Nov 22, 2016 at 02:38:51PM -0500, Dasaratharaman Chandramouli wrote:
+> ipoib_get_net_dev_by_params compares incoming gid with local_gid
+> which is gid at index 0 of the gid table. OPA devices using larger
+> LIDs may have a different GID format than whats setup in the local_gid
+> field. Do a search of the gid table in those cases.
 
-I don't think we should be using numa distance to reverse engineer a
-certain allocation behavior.  The latency data should be truthful, but
-you're right we'll need a mechanism to keep general purpose
-allocations out of that range by default. Btw, strict isolation is
-another design point of device-dax, but I think in this case we're
-describing something between the two extremes of full isolation and
-full compatibility with existing numactl apis.
+Sorry, NAK, the incoming GID has to exactly match what is in IPoIB
+LLADDR, you can't do this or it breaks how the virtualization stuff is
+supposed to work with gid aliases.
+
+I'm skeptical about the other ipoib patch as well since ipoib should
+be dealing natively with 32 bit lids, I think you need to fix the path
+record stuff too instead of opening coding that in ipoib.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
