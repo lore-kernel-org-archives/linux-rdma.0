@@ -1,60 +1,35 @@
-From: Dasaratharaman Chandramouli
-        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 11/11] IB/srpt: Increase lid and sm_lid to 32 bits
-Date: Tue, 22 Nov 2016 14:38:52 -0500
-Message-ID: <1479843532-47496-12-git-send-email-dasaratharaman.chandramouli@intel.com>
-References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) Bus driver
+Date: Tue, 22 Nov 2016 11:49:18 -0800
+Message-ID: <20161122194918.GA69241@knc-06.sc.intel.com>
+References: <1479508938-63799-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <1479508938-63799-3-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161119190445.GG22775@obsidianresearch.com>
+ <20161121213017.GB67872@knc-06.sc.intel.com>
+ <20161121213930.GA30111@obsidianresearch.com>
+ <20161121232629.GA67988@knc-06.sc.intel.com>
+ <20161121233118.GA31132@obsidianresearch.com>
+ <20161122015304.GB67988@knc-06.sc.intel.com>
+ <20161122170407.GE3956@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161122170407.GE3956@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-srpt contains lid and sm_lid fields which are 16 bits in
-length, increase them to 32 bits.
+Ok, I do understand Jason's point that we should probably not put this driver 
+under drivers/infiniband/sw/.., as this driver is not a HCA.
+It is an ULP similar to ipoib, built on top of Omni-path irrespective of 
+whether we register a hfi_vnic_bus or a direct custom interface with HFI1.
+This ULP will transmit and recieve Omni-path packets over the fabric, and is 
+dependent on IB MAD interface and the HFI1 driver.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
- drivers/infiniband/ulp/srpt/ib_srpt.h | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Doug,
+Will it be acceptable if we put it under 'drivers/infiniband/ulp/hfi_vnic'?
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 4dc66ba..0b1f69e 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -514,8 +514,8 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 	if (ret)
- 		goto err_query_port;
- 
--	sport->sm_lid = (u16)port_attr.sm_lid;
--	sport->lid = (u16)port_attr.lid;
-+	sport->sm_lid = port_attr.sm_lid;
-+	sport->lid = port_attr.lid;
- 
- 	ret = ib_query_gid(sport->sdev->device, sport->port, 0, &sport->gid,
- 			   NULL);
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 5818787..580bb75 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -322,8 +322,8 @@ struct srpt_port {
- 	bool			enabled;
- 	u8			port_guid[64];
- 	u8			port;
--	u16			sm_lid;
--	u16			lid;
-+	u32			sm_lid;
-+	u32			lid;
- 	union ib_gid		gid;
- 	struct work_struct	work;
- 	struct se_portal_group	port_tpg_1;
--- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Niranjana
