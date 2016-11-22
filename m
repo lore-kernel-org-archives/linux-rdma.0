@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 04/11] IB/core: Change port_attr.lid size from 16 to 32 bits
-Date: Tue, 22 Nov 2016 14:38:45 -0500
-Message-ID: <1479843532-47496-5-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v2 06/11] IB/mad: Ensure DR MADs are correctly specified when using OPA devices
+Date: Tue, 22 Nov 2016 14:38:47 -0500
+Message-ID: <1479843532-47496-7-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,122 +10,210 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-lid field in port_attr is increased to 32 bits. This enables core
-components to use the larger addresses if needed.
-The user ABI is unchanged and return 16 bit values when queried.
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Pure DR MADs do not need OPA GIDs to be specified in the GRH since
+they do not rely on LID information.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c           | 8 +++++---
- drivers/infiniband/hw/mlx4/alias_GUID.c        | 2 +-
- drivers/infiniband/hw/mlx4/mad.c               | 2 +-
- drivers/infiniband/hw/mthca/mthca_mad.c        | 2 +-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c          | 2 +-
- include/rdma/ib_verbs.h                        | 2 +-
- 7 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/mad.c | 104 +++++++++++++++++++++++++++++++++++++-----
+ include/rdma/opa_addr.h       |  17 +++++++
+ 2 files changed, 109 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 36f5bc1..e135c08 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -515,11 +515,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
- 	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
- 	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
- 	resp.pkey_tbl_len    = attr.pkey_tbl_len;
--	resp.lid 	     = attr.lid;
--	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
-+	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
- 		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
--	else
-+		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
-+	} else {
- 		resp.sm_lid  = (u16)attr.sm_lid;
-+		resp.lid     = (u16)attr.lid;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 40cbd6b..c0ee997 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -41,6 +41,7 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <rdma/ib_cache.h>
++#include <rdma/opa_addr.h>
+ 
+ #include "mad_priv.h"
+ #include "mad_rmpp.h"
+@@ -731,6 +732,80 @@ static size_t mad_priv_dma_size(const struct ib_mad_private *mp)
+ 	return sizeof(struct ib_grh) + mp->mad_size;
+ }
+ 
++static int verify_mad_ah(struct ib_mad_agent_private *mad_agent_priv,
++			 struct ib_mad_send_wr_private *mad_send_wr)
++{
++	struct ib_device *ib_dev = mad_agent_priv->qp_info->port_priv->device;
++	u8 port = mad_agent_priv->qp_info->port_priv->port_num;
++	struct ib_smp *smp = mad_send_wr->send_buf.mad;
++	struct opa_smp *opa_smp = (struct opa_smp *)smp;
++	u32 opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
++	u32 opa_drdlid = be32_to_cpu(opa_smp->route.dr.dr_dlid);
++
++	bool dr_slid_is_permissive = (OPA_LID_PERMISSIVE ==
++				      opa_smp->route.dr.dr_slid) ? true : false;
++	bool dr_dlid_is_permissive = (OPA_LID_PERMISSIVE ==
++				      opa_smp->route.dr.dr_dlid) ? true : false;
++	bool drslid_is_ib_ucast = (opa_drslid <
++				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
++					true : false;
++	bool drdlid_is_ib_ucast = (opa_drdlid <
++				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
++					true : false;
++	bool drslid_is_ext = !drslid_is_ib_ucast && !dr_slid_is_permissive;
++	bool drdlid_is_ext = !drdlid_is_ib_ucast && !dr_dlid_is_permissive;
++	bool grh_present = false;
++	struct ib_ah_attr attr;
++	union ib_gid sgid;
++	int ret = 0;
++
++	ret = ib_query_ah(mad_send_wr->send_buf.ah, &attr);
++	if (ret)
++		return ret;
++	grh_present = (attr.ah_flags & IB_AH_GRH);
++	if (grh_present) {
++		ret = ib_query_gid(ib_dev, port, attr.grh.sgid_index,
++				   &sgid, NULL);
++		if (ret)
++			return ret;
 +	}
- 	resp.lmc 	     = attr.lmc;
- 	resp.max_vl_num      = attr.max_vl_num;
- 	resp.sm_sl 	     = attr.sm_sl;
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index 5e99390..7fa64e6 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -527,7 +527,7 @@ static int set_guid_rec(struct ib_device *ibdev,
++
++	if (smp->class_version == OPA_SMP_CLASS_VERSION) {
++		/*
++		 * Conditions when GRH info should not be specified
++		 * 1. both dr_slid and dr_dlid are permissve (Pure DR)
++		 * 2. both dr_slid and dr_dlid are less than 0xc000.
++		 *
++		 * Conditions when GRH info should be specified
++		 * 1. dr_dlid is not permissive and above 0xbfff
++		 * OR
++		 * 2. dr_slid is not permissive and above 0xbfff
++		 */
++		if (grh_present) {
++			if ((dr_slid_is_permissive &&
++			     dr_dlid_is_permissive) ||
++			     (drslid_is_ib_ucast && drdlid_is_ib_ucast))
++				if (ib_is_opa_gid(&attr.grh.dgid) &&
++				    ib_is_opa_gid(&sgid))
++					return -EINVAL;
++			if (drslid_is_ext && !ib_is_opa_gid(&sgid))
++				return -EINVAL;
++			if (drdlid_is_ext &&
++			    !ib_is_opa_gid(&attr.grh.dgid))
++				return -EINVAL;
++		} else { /* There is no GRH */
++			if (drslid_is_ext || drdlid_is_ext)
++				return -EINVAL;
++		}
++	} else {
++		if (grh_present)
++			if (ib_is_opa_gid(&attr.grh.dgid) &&
++			    ib_is_opa_gid(&sgid))
++				return -EINVAL;
++	}
++	return ret;
++}
++
+ /*
+  * Return 0 if SMP is to be sent
+  * Return 1 if SMP was consumed locally (whether or not solicited)
+@@ -754,8 +829,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 	size_t mad_size = port_mad_size(mad_agent_priv->qp_info->port_priv);
+ 	u16 out_mad_pkey_index = 0;
+ 	u16 drslid;
+-	bool opa = rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
+-				    mad_agent_priv->qp_info->port_priv->port_num);
++	bool opa_mad =
++		rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
++				 mad_agent_priv->qp_info->port_priv->port_num);
++	bool opa_ah =
++		rdma_cap_opa_ah(mad_agent_priv->qp_info->port_priv->device,
++				mad_agent_priv->qp_info->port_priv->port_num);
  
- 	memset(&guid_info_rec, 0, sizeof (struct ib_sa_guidinfo_rec));
+ 	if (rdma_cap_ib_switch(device) &&
+ 	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
+@@ -763,13 +842,21 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 	else
+ 		port_num = mad_agent_priv->agent.port_num;
  
--	guid_info_rec.lid = cpu_to_be16(attr.lid);
-+	guid_info_rec.lid = cpu_to_be16((u16)attr.lid);
- 	guid_info_rec.block_num = index;
++	if (opa_mad && opa_ah) {
++		ret = verify_mad_ah(mad_agent_priv, mad_send_wr);
++		if (ret) {
++			dev_err(&device->dev,
++				"Error verifying MAD format\n");
++			goto out;
++		}
++	}
+ 	/*
+ 	 * Directed route handling starts if the initial LID routed part of
+ 	 * a request or the ending LID routed part of a response is empty.
+ 	 * If we are at the start of the LID routed part, don't update the
+ 	 * hop_ptr or hop_cnt.  See section 14.2.2, Vol 1 IB spec.
+ 	 */
+-	if (opa && smp->class_version == OPA_SMP_CLASS_VERSION) {
++	if (opa_mad && smp->class_version == OPA_SMP_CLASS_VERSION) {
+ 		u32 opa_drslid;
  
- 	memcpy(guid_info_rec.guid_info_list, rec_det->all_recs,
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 1672907..404ec4e 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -821,7 +821,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
- 	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
- 	    !ib_query_port(ibdev, port_num, &pattr))
--		prev_lid = pattr.lid;
-+		prev_lid = (u16)pattr.lid;
+ 		if ((opa_get_smp_direction(opa_smp)
+@@ -783,13 +870,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 			goto out;
+ 		}
+ 		opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
+-		if (opa_drslid != be32_to_cpu(OPA_LID_PERMISSIVE) &&
+-		    opa_drslid & 0xffff0000) {
+-			ret = -EINVAL;
+-			dev_err(&device->dev, "OPA Invalid dr_slid 0x%x\n",
+-			       opa_drslid);
+-			goto out;
+-		}
+ 		drslid = (u16)(opa_drslid & 0x0000ffff);
  
- 	err = mlx4_MAD_IFC(to_mdev(ibdev),
- 			   (mad_flags & IB_MAD_IGNORE_MKEY ? MLX4_MAD_IFC_IGNORE_MKEY : 0) |
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 9139405..b503d160 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -255,7 +255,7 @@ int mthca_process_mad(struct ib_device *ibdev,
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
- 	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
- 	    !ib_query_port(ibdev, port_num, &pattr))
--		prev_lid = pattr.lid;
-+		prev_lid = (u16)pattr.lid;
+ 		/* Check to post send on QP or process locally */
+@@ -834,7 +914,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 		     send_wr->pkey_index,
+ 		     send_wr->port_num, &mad_wc);
  
- 	err = mthca_MAD_IFC(to_mdev(ibdev),
- 			    mad_flags & IB_MAD_IGNORE_MKEY,
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index d3394b6..bff73b5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -581,7 +581,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 			  port_attr.state);
- 		return;
+-	if (opa && smp->base_version == OPA_MGMT_BASE_VERSION) {
++	if (opa_mad && smp->base_version == OPA_MGMT_BASE_VERSION) {
+ 		mad_wc.byte_len = mad_send_wr->send_buf.hdr_len
+ 					+ mad_send_wr->send_buf.data_len
+ 					+ sizeof(struct ib_grh);
+@@ -891,7 +971,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
  	}
--	priv->local_lid = port_attr.lid;
-+	priv->local_lid = (u16)port_attr.lid;
- 	netif_addr_lock_bh(dev);
  
- 	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index c6d0c47..4dc66ba 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -515,7 +515,7 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 		goto err_query_port;
+ 	local->mad_send_wr = mad_send_wr;
+-	if (opa) {
++	if (opa_mad) {
+ 		local->mad_send_wr->send_wr.pkey_index = out_mad_pkey_index;
+ 		local->return_wc_byte_len = mad_size;
+ 	}
+diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
+index 142b327..3e22937 100644
+--- a/include/rdma/opa_addr.h
++++ b/include/rdma/opa_addr.h
+@@ -33,6 +33,23 @@
+ #if !defined(OPA_ADDR_H)
+ #define OPA_ADDR_H
  
- 	sport->sm_lid = (u16)port_attr.sm_lid;
--	sport->lid = port_attr.lid;
-+	sport->lid = (u16)port_attr.lid;
- 
- 	ret = ib_query_gid(sport->sdev->device, sport->port, 0, &sport->gid,
- 			   NULL);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 294d3ed..3d80720 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -520,7 +520,7 @@ struct ib_port_attr {
- 	u32			bad_pkey_cntr;
- 	u32			qkey_viol_cntr;
- 	u16			pkey_tbl_len;
--	u16			lid;
-+	u32			lid;
- 	u32			sm_lid;
- 	u8			lmc;
- 	u8			max_vl_num;
++#include <rdma/ib_verbs.h>
++
+ #define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
+ 				 ? 0 : x)
++#define	OPA_SPECIAL_OUI		(0x00066AULL)
++
++/**
++ * ib_is_opa_gid: Returns true if the top 24 bits of the gid
++ * contains the OPA_STL_OUI identifier. This identifies that
++ * the provided gid is a special purpose GID meant to carry
++ * extended LID information.
++ *
++ * @gid: The Global identifier
++ */
++static inline bool ib_is_opa_gid(union ib_gid *gid)
++{
++	return ((be64_to_cpu(gid->global.interface_id) >> 40) ==
++		OPA_SPECIAL_OUI);
++}
+ #endif /* OPA_ADDR_H */
 -- 
 1.8.3.1
 
