@@ -1,7 +1,7 @@
-From: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Tue, 22 Nov 2016 16:13:45 -0500
-Message-ID: <15b76072-abf6-bc80-6cee-e467f3de9334@amd.com>
+Date: Tue, 22 Nov 2016 13:21:03 -0800
+Message-ID: <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
 References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
  <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
  <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
@@ -10,7 +10,7 @@ References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.
  <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
  <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 In-Reply-To: <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
@@ -24,29 +24,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
  Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
  Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Deucher,
  Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
  Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2016-11-22 04:03 PM, Daniel Vetter wrote:
+On Tue, Nov 22, 2016 at 1:03 PM, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org> wrote:
 > On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
 > <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org> wrote:
+>>
 >> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
+>>>
 >>> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >>> wrote:
+>>>>
 >>>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
 >>>> <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org> wrote:
+>>>>>
 >>>>> I personally like "device-DAX" idea but my concerns are:
 >>>>>
 >>>>> -  How well it will co-exists with the  DRM infrastructure /
 >>>>> implementations
->>>>>      in part dealing with CPU pointers?
+>>>>>     in part dealing with CPU pointers?
+>>>>
 >>>> Inside the kernel a device-DAX range is "just memory" in the sense
 >>>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
 >>>> not migratable. To be honest I do not know how well that co-exists
@@ -54,33 +58,39 @@ On 2016-11-22 04:03 PM, Daniel Vetter wrote:
 >>>>
 >>>>> -  How well we will be able to handle case when we need to
 >>>>> "move"/"evict"
->>>>>      memory/data to the new location so CPU pointer should point to the
+>>>>>     memory/data to the new location so CPU pointer should point to the
 >>>>> new
 >>>>> physical location/address
->>>>>       (and may be not in PCI device memory at all)?
+>>>>>      (and may be not in PCI device memory at all)?
+>>>>
 >>>> So, device-DAX deliberately avoids support for in-kernel migration or
 >>>> overcommit. Those cases are left to the core mm or drm. The device-dax
 >>>> interface is for cases where all that is needed is a direct-mapping to
 >>>> a statically-allocated physical-address range be it persistent memory
 >>>> or some other special reserved memory range.
+>>>
 >>> For some of the fancy use-cases (e.g. to be comparable to what HMM can
 >>> pull off) I think we want all the magic in core mm, i.e. migration and
 >>> overcommit. At least that seems to be the very strong drive in all
 >>> general-purpose gpu abstractions and implementations, where memory is
 >>> allocated with malloc, and then mapped/moved into vram/gpu address
 >>> space through some magic,
+>>
 >> It is possible that there is other way around: memory is requested to be
 >> allocated and should be kept in vram for  performance reason but due
 >> to possible overcommit case we need at least temporally to "move" such
 >> allocation to system memory.
+>
 > With migration I meant migrating both ways of course. And with stuff
 > like numactl we can also influence where exactly the malloc'ed memory
 > is allocated originally, at least if we'd expose the vram range as a
 > very special numa node that happens to be far away and not hold any
 > cpu cores.
-> -Daniel
-One additional item to consider: it is not only "plain" numa case where
-we could have different  performance for access but also possibility that
-we will not have access at all (or write only access) particular if PCIe
-devices belong to different root complex. I must admit that I do not know
-how to  detect reliably such cases in the kernel.
+
+I don't think we should be using numa distance to reverse engineer a
+certain allocation behavior.  The latency data should be truthful, but
+you're right we'll need a mechanism to keep general purpose
+allocations out of that range by default. Btw, strict isolation is
+another design point of device-dax, but I think in this case we're
+describing something between the two extremes of full isolation and
+full compatibility with existing numactl apis.
