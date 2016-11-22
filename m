@@ -1,93 +1,83 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/3] IPoIB: Avoid reading an uninitialized member variable
-Date: Tue, 22 Nov 2016 09:15:00 +0200
-Message-ID: <20161122071500.GE23083@leon.nu>
-References: <94eb11fc-b558-b994-c933-da784caefc53@sandisk.com>
- <fd4a2913-545e-bf2f-e352-a47fd50a954f@sandisk.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC] Avoid running out of local port in RDMA_CM
+Date: Tue, 22 Nov 2016 12:12:29 +0200
+Message-ID: <CAG9sBKMMuj5Qf7_jgL_EAwOAVAFZCp5Wf=NytqsHAezrys97pA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="hcut4fGOf7Kh6EdG"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <fd4a2913-545e-bf2f-e352-a47fd50a954f-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Introduction
+--------------------------------------------------------------------------------
+Like TCP/IP sockets, RDMA_CM connection identifier (rdma_id) is associated with
+local and remote addresses and local and remote ports. Values for
+these attributes
+are assigned during the life cycle of the rdma_id. In this RFC we focus on the
+value that is given to the local port of the rdma_id.
+While in TCP/IP protocol port numbers are part of the transport header, in
+InfiniBand they don't have a place. The way for an application to connect to
+a specific service is to use the communication manager and use a known Service
+ID (see CHAPTER 12:COMMUNICATION MANAGEMENT in the InfiniBandTM Architecture
+Specification Volume 1). The RDMA IP CM Service, which provides support for
+a socket-like connection model for RDMA-aware ULPs, replaces the
+Service ID with a
+16 bit port number which is used as an identifier for a service.
 
---hcut4fGOf7Kh6EdG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The problem
+--------------------------------------------------------------------------------
+RDMA_CM requires binding of a connection identifier (rdma_id) to a local port.
+The passive side, the one calling rdma_listen(), usually binds explicitly to a
+well-known port. The active side, the one calling rmda_connect(),
+binds implicitly
+to a random port that rdma_cm chooses for it. This makes sense if we
+keep in mind
+that the port number is a way to identify a service. Binding to a port
+removes it
+from the pool of available ports until the rdma_id is destroyed at
+which time the
+port is returned to the pool. The problem starts when number of
+rdma_ids is larger
+than the number of available ports. The most likely scenario for this
+to happen is a
+node with many clients trying to connect to remote services. When the
+available port
+pool is empty the call to rdma_resolve_addr() fails when a free port
+number is requested
+from the pool.
 
-On Mon, Nov 21, 2016 at 10:21:41AM -0800, Bart Van Assche wrote:
-> This patch avoids that Coverity reports the following:
->
->     Using uninitialized value port_attr.state when calling printk
->
-> Fixes: commit 94232d9ce817 ("IPoIB: Start multicast join process only on active ports")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Suggested Solution
+--------------------------------------------------------------------------------
+Extending the size of the pool is out of the question since we must to keep the
+16 bit width of the port number to avoid backward compatibility issues.
+1. Port number is a parameter to the function that generates Service ID.
+2. Port number is part of the private data of the request MAD (see Annex
+   A11: RDMA IP CM Service in the InfiniBandTM Architecture
+Specification Volume 1)
+The other alternative is to reuse port numbers. Since port numbers are
+not part of the
+InfiniBand transport header we don't need to worry about wire protocol
+issues. Also,
+since binding to a port  on the active side doesn't create a conflict in service
+identification (since no one listens to active side rdma_id), it is
+safe to reuse a
+port number there when the port pool is empty.
+The suggested solution is to reserve one port as a global port for
+reuse and assign
+it under the following conditions
+1. The request for binding is implicit and for any port (via
+cma_alloc_any_port())
+2. The pool is empty
+3. The ULP allows it
 
-Except that it doesn't print the reason why ib_query_port failed,
-it look good.
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks
-
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index 1909dd2..fddff40 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -575,8 +575,11 @@ void ipoib_mcast_join_task(struct work_struct *work)
->  	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
->  		return;
->
-> -	if (ib_query_port(priv->ca, priv->port, &port_attr) ||
-> -	    port_attr.state != IB_PORT_ACTIVE) {
-> +	if (ib_query_port(priv->ca, priv->port, &port_attr)) {
-> +		ipoib_dbg(priv, "ib_query_port() failed\n");
-> +		return;
-> +	}
-> +	if (port_attr.state != IB_PORT_ACTIVE) {
->  		ipoib_dbg(priv, "port state is not ACTIVE (state = %d) suspending join task\n",
->  			  port_attr.state);
->  		return;
-> --
-> 2.10.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---hcut4fGOf7Kh6EdG
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYM/B0AAoJEORje4g2clinm34P/AmUlm0GQxmnDwNbo2vt5qem
-F8tu2f6WWD5UAFEAM7dXNuLkD+HDmJ9nlPoY8/0DXESKzLBfGJ3Y0NOt1f6439ql
-Cubg4iG7qB/lXI0VL0eSvt7jT4mySWwKih2sXrza0AUQ/SL+E6TGy54bSbA1Oyuq
-GsVfsCSMlWixKvCFisARWI1K9GxLDI5mCSYT1fpYrJiOS8v19s5GTKjbKS+/XlOE
-+LBGdsRc9L2iAYyEgRtQGRMr2AZuyW3zKknzGJhzZA/L4xP3PleJpoVlsoglOFvq
-QlecKWngFipKP1dlDaWDC71FGIC2BxkFKBViqyUaKnerWr2/2aEZO/sZQtsGdBkk
-1zxdwiSUqnTYXZmibFx//b95h5e+QWKmY5WNK78XZLQv3HDR7QgwcdNhb8qUqJbN
-bRzOrXrZBGVUAW0oBViaTNYaf0iou/Orn5nh1C2ipiC7Qv+bB6uXVFc9AZ5j+hk5
-qLIN3/BhJUXD3RiwxV4YNIdk2XQIaRQ20husOLoCv7w761OnYeOZOvAbsdJJPkp0
-s6S2qLVvsRVoKDyP1katdXjsf4rt7l3jpuvVObhlYYZaRUQXV2kY/xfjn/TCXdX4
-ImUIWfEq3uWFU9Up7daa5i2l37iGdxHg+pKbAJtCGYX3hf66hvQ+L0TuK8BytHvQ
-gshBnhOePxefwTsnSU66
-=P5qk
------END PGP SIGNATURE-----
-
---hcut4fGOf7Kh6EdG--
+Risks
+--------------------------------------------------------------------------------
+RDMA_CM puts the local port number in the private data section of the CM request
+MAD. If this field is observed by an application or a traffic analyzer there
+might be a confusion. A way to minimize the risk is to reuse a port only if
+application allows it (say by setting an option to the rdma_id)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
