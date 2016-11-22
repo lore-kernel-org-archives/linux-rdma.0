@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 09/11] IB/IPoIB: Retrieve 32 bit LIDs from path records when running on OPA devices
-Date: Tue, 22 Nov 2016 14:38:50 -0500
-Message-ID: <1479843532-47496-10-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v2 10/11] IB/IPoIB: Modify ipoib_get_net_dev_by_params to lookup gid table
+Date: Tue, 22 Nov 2016 14:38:51 -0500
+Message-ID: <1479843532-47496-11-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,150 +10,73 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Path record responses will contain the 32 bit LID information in the
-SGID and DGID field of the responses. Modify IPoIB to use these extended
-LIDs in datagram and connected mode communication.
+ipoib_get_net_dev_by_params compares incoming gid with local_gid
+which is gid at index 0 of the gid table. OPA devices using larger
+LIDs may have a different GID format than whats setup in the local_gid
+field. Do a search of the gid table in those cases.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h           |  4 +++-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 11 +++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 26 ++++++++++++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  2 +-
- include/rdma/opa_addr.h                        | 12 ++++++++++++
- 5 files changed, 53 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 37 +++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 7b8d2d9..fad4560 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -352,7 +352,7 @@ struct ipoib_dev_priv {
- 	u32		  qkey;
- 
- 	union ib_gid local_gid;
--	u16	     local_lid;
-+	u32	     local_lid;
- 
- 	unsigned int admin_mtu;
- 	unsigned int mcast_mtu;
-@@ -421,6 +421,8 @@ struct ipoib_path {
- 	struct rb_node	      rb_node;
- 	struct list_head      list;
- 	int  		      valid;
-+	u32		      dlid;
-+	u32		      slid;
- };
- 
- struct ipoib_neigh {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 4ad297d..c27df76 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
- #include <linux/moduleparam.h>
-+#include <rdma/opa_addr.h>
- 
- #include "ipoib.h"
- 
-@@ -1356,6 +1357,16 @@ static void ipoib_cm_tx_start(struct work_struct *work)
- 		}
- 		memcpy(&pathrec, &p->path->pathrec, sizeof pathrec);
- 
-+		if (rdma_cap_opa_ah(priv->ca, priv->port)) {
-+			if (p->path->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
-+				pathrec.dgid.global.interface_id =
-+					OPA_MAKE_ID(p->path->dlid);
-+
-+			if (p->path->slid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
-+				pathrec.sgid.global.interface_id =
-+					OPA_MAKE_ID(p->path->slid);
-+		}
-+
- 		spin_unlock_irqrestore(&priv->lock, flags);
- 		netif_tx_unlock_bh(dev);
- 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5636fc3..474c3bf 100644
+index 474c3bf..3e135df 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -52,6 +52,7 @@
- #include <linux/inetdevice.h>
- #include <rdma/ib_cache.h>
- #include <linux/pci.h>
-+#include <rdma/opa_addr.h>
- 
- #define DRV_VERSION "1.0.0"
- 
-@@ -766,6 +767,31 @@ static void path_rec_completion(int status,
- 	spin_lock_irqsave(&priv->lock, flags);
- 
- 	if (!IS_ERR_OR_NULL(ah)) {
-+		/*
-+		 * Extended LIDs might get programmed into GIDs in the
-+		 * case of OPA devices. Since we have created the ah
-+		 * above which would have made use of the lids, now is
-+		 * a good time to change them back to regular GIDs after
-+		 * saving the extended LIDs.
-+		 */
-+		if (rdma_cap_opa_ah(priv->ca, priv->port) &&
-+		    ib_is_opa_gid(&pathrec->sgid)) {
-+			path->slid = opa_get_lid_from_gid(&pathrec->sgid);
-+			pathrec->sgid = path->pathrec.sgid;
-+		} else {
-+			path->slid = be16_to_cpu(pathrec->slid);
-+		}
-+
-+		if (rdma_cap_opa_ah(priv->ca, priv->port) &&
-+		    ib_is_opa_gid(&pathrec->dgid)) {
-+			path->dlid = opa_get_lid_from_gid(&pathrec->dgid);
-+			pathrec->dgid = path->pathrec.dgid;
-+		} else {
-+			path->dlid = be16_to_cpu(pathrec->dlid);
-+		}
-+		ipoib_dbg(priv, "PathRec SGID %pI6 DGID %pI6\n",
-+			  pathrec->sgid.raw, pathrec->dgid.raw);
-+
- 		path->pathrec = *pathrec;
- 
- 		old_ah   = path->ah;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index bff73b5..d3394b6 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -581,7 +581,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 			  port_attr.state);
- 		return;
- 	}
--	priv->local_lid = (u16)port_attr.lid;
-+	priv->local_lid = port_attr.lid;
- 	netif_addr_lock_bh(dev);
- 
- 	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
-diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
-index 5c713bc..d0a37d0 100644
---- a/include/rdma/opa_addr.h
-+++ b/include/rdma/opa_addr.h
-@@ -53,4 +53,16 @@ static inline bool ib_is_opa_gid(union ib_gid *gid)
- 	return ((be64_to_cpu(gid->global.interface_id) >> 40) ==
- 		OPA_SPECIAL_OUI);
+@@ -328,6 +328,40 @@ static struct net_device *ipoib_get_net_dev_match_addr(
+ 	return result;
  }
-+
-+/**
-+ * opa_get_lid_from_gid: Returns the last 32 bits of the gid.
-+ * OPA devices use one of the gids in the gid table to also
-+ * store the lid.
+ 
++/* retuns true if the incoming gid is assigned to the IPoIB
++ * netdev interface
 + *
-+ * @gid: The Global identifier
++ * OPA devices may have the incoming GID in the OPA GID
++ * format which might not necessarily be assigned to the
++ * netdev interface. This necessitates searching the GID
++ * table to match this OPA GID.
 + */
-+static inline u32 opa_get_lid_from_gid(union ib_gid *gid)
++static bool ipoib_check_gid(struct ipoib_dev_priv *priv,
++			    const union ib_gid *gid)
 +{
-+	return be64_to_cpu(gid->global.interface_id) & 0xFFFFFFFF;
++	bool is_local_gid;
++	struct ib_port_attr attr;
++	union ib_gid port_gid;
++	int i;
++
++	if (!gid)
++		return true;
++
++	is_local_gid = !memcmp(gid, &priv->local_gid, sizeof(*gid));
++
++	if (!rdma_cap_opa_ah(priv->ca, priv->port) || is_local_gid)
++		return is_local_gid;
++
++	if (ib_query_port(priv->ca, priv->port, &attr))
++		return false;
++	for (i = 1; i < attr.gid_tbl_len; i++) {
++		if (ib_query_gid(priv->ca, priv->port, i, &port_gid, NULL))
++			return false;
++		if (!memcmp(gid, &port_gid, sizeof(*gid)))
++			return true;
++	}
++	return false;
 +}
- #endif /* OPA_ADDR_H */
+ /* returns the number of IPoIB netdevs on top a given ipoib device matching a
+  * pkey_index and address, if one exists.
+  *
+@@ -344,8 +378,7 @@ static int ipoib_match_gid_pkey_addr(struct ipoib_dev_priv *priv,
+ 	struct net_device *net_dev = NULL;
+ 	int matches = 0;
+ 
+-	if (priv->pkey_index == pkey_index &&
+-	    (!gid || !memcmp(gid, &priv->local_gid, sizeof(*gid)))) {
++	if (priv->pkey_index == pkey_index && ipoib_check_gid(priv, gid)) {
+ 		if (!addr) {
+ 			net_dev = ipoib_get_master_net_dev(priv->dev);
+ 		} else {
 -- 
 1.8.3.1
 
