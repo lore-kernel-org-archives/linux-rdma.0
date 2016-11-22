@@ -1,55 +1,41 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/7] IB/rxe: Advance the consumer pointer before posting
- the CQE
-Date: Tue, 22 Nov 2016 17:24:56 +0200
-Message-ID: <50fc87a3-2dfd-c205-c596-4324eab39c20@mellanox.com>
-References: <1479479809-10798-1-git-send-email-andrew.boyer@dell.com>
- <1479479809-10798-2-git-send-email-andrew.boyer@dell.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) Bus driver
+Date: Tue, 22 Nov 2016 10:04:07 -0700
+Message-ID: <20161122170407.GE3956@obsidianresearch.com>
+References: <1479508938-63799-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <1479508938-63799-3-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161119190445.GG22775@obsidianresearch.com>
+ <20161121213017.GB67872@knc-06.sc.intel.com>
+ <20161121213930.GA30111@obsidianresearch.com>
+ <20161121232629.GA67988@knc-06.sc.intel.com>
+ <20161121233118.GA31132@obsidianresearch.com>
+ <20161122015304.GB67988@knc-06.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479479809-10798-2-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161122015304.GB67988@knc-06.sc.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/18/2016 4:36 PM, Andrew Boyer wrote:
-> A simple userspace application might poll the CQ, find a completion,
-> and then attempt to post a new WQE to the SQ. A spurious error can
-> occur if the userspace application detects a full SQ in the instant
-> before the kernel is able to advance the SQ consumer pointer.
->
-> This is noticeable when using single-entry SQs with ibv_rc_pingpong()
-> if lots of kernel and userspace library debugging is enabled.
->
-> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_comp.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-> index 6c5e29d..d46c49b 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-> @@ -420,11 +420,12 @@ static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
->  	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
->  	    (qp->req.state == QP_STATE_ERROR)) {
->  		make_send_cqe(qp, wqe, &cqe);
-> +		advance_consumer(qp->sq.queue);
->  		rxe_cq_post(qp->scq, &cqe, 0);
-> +	} else {
-> +		advance_consumer(qp->sq.queue);
->  	}
->
-> -	advance_consumer(qp->sq.queue);
-> -
->  	/*
->  	 * we completed something so let req run again
->  	 * if it is trying to fence
->
-Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Nov 21, 2016 at 05:53:04PM -0800, Vishwanathapura, Niranjana wrote:
+> There are many example drivers in kernel which are using bus_register() in
+> an initcall.
+
+There really are not, certainly not in major subsystems.
+
+> We could add a custom Interface between HFI1 driver and hfi_vnic drivers
+> without involving a bus.
+
+hfi is already registering on the infiniband class, just use that.
+
+> But using the existing bus model gave a lot of in-built flexibility in
+> decoupling devices from the drivers.
+
+If you want to have your own bus then you need your own hfi
+subsystem. drivers/infiniband is not a dumping ground..
+
+Jason
