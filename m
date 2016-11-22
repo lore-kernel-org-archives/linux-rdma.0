@@ -1,35 +1,39 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) Bus driver
-Date: Tue, 22 Nov 2016 11:49:18 -0800
-Message-ID: <20161122194918.GA69241@knc-06.sc.intel.com>
-References: <1479508938-63799-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <1479508938-63799-3-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161119190445.GG22775@obsidianresearch.com>
- <20161121213017.GB67872@knc-06.sc.intel.com>
- <20161121213930.GA30111@obsidianresearch.com>
- <20161121232629.GA67988@knc-06.sc.intel.com>
- <20161121233118.GA31132@obsidianresearch.com>
- <20161122015304.GB67988@knc-06.sc.intel.com>
- <20161122170407.GE3956@obsidianresearch.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Tue, 22 Nov 2016 12:01:17 -0800
+Message-ID: <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com> <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161122170407.GE3956@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Bridgman, John" <John.Bridgman@amd.com>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Sander, Ben" <ben.sander@amd.com>, Dave Hansen <dave.hansen@linux.intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Ok, I do understand Jason's point that we should probably not put this driver 
-under drivers/infiniband/sw/.., as this driver is not a HCA.
-It is an ULP similar to ipoib, built on top of Omni-path irrespective of 
-whether we register a hfi_vnic_bus or a direct custom interface with HFI1.
-This ULP will transmit and recieve Omni-path packets over the fabric, and is 
-dependent on IB MAD interface and the HFI1 driver.
+On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
+<serguei.sagalovitch@amd.com> wrote:
+> Dan,
+>
+> I personally like "device-DAX" idea but my concerns are:
+>
+> -  How well it will co-exists with the  DRM infrastructure / implementations
+>    in part dealing with CPU pointers?
 
-Doug,
-Will it be acceptable if we put it under 'drivers/infiniband/ulp/hfi_vnic'?
+Inside the kernel a device-DAX range is "just memory" in the sense
+that you can perform pfn_to_page() on it and issue I/O, but the vma is
+not migratable. To be honest I do not know how well that co-exists
+with drm infrastructure.
 
-Niranjana
+> -  How well we will be able to handle case when we need to "move"/"evict"
+>    memory/data to the new location so CPU pointer should point to the new
+> physical location/address
+>     (and may be not in PCI device memory at all)?
+
+So, device-DAX deliberately avoids support for in-kernel migration or
+overcommit. Those cases are left to the core mm or drm. The device-dax
+interface is for cases where all that is needed is a direct-mapping to
+a statically-allocated physical-address range be it persistent memory
+or some other special reserved memory range.
