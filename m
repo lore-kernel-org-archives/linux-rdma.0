@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 08/11] IB/SA: Program extended LID in SM Address handle
-Date: Tue, 22 Nov 2016 14:38:49 -0500
-Message-ID: <1479843532-47496-9-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v2 09/11] IB/IPoIB: Retrieve 32 bit LIDs from path records when running on OPA devices
+Date: Tue, 22 Nov 2016 14:38:50 -0500
+Message-ID: <1479843532-47496-10-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,55 +10,150 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reuse port_attr.grh_required field to let IB SA know that extended LID
-information needs to be set in the SM Address handle for OPA devices
+Path record responses will contain the 32 bit LID information in the
+SGID and DGID field of the responses. Modify IPoIB to use these extended
+LIDs in datagram and connected mode communication.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c | 8 +++++++-
- include/rdma/opa_addr.h            | 1 +
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  4 +++-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 11 +++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 26 ++++++++++++++++++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  2 +-
+ include/rdma/opa_addr.h                        | 12 ++++++++++++
+ 5 files changed, 53 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 81b742c..d59ee67 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -50,6 +50,7 @@
- #include <uapi/rdma/ib_user_sa.h>
- #include <rdma/ib_marshall.h>
- #include <rdma/ib_addr.h>
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 7b8d2d9..fad4560 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -352,7 +352,7 @@ struct ipoib_dev_priv {
+ 	u32		  qkey;
+ 
+ 	union ib_gid local_gid;
+-	u16	     local_lid;
++	u32	     local_lid;
+ 
+ 	unsigned int admin_mtu;
+ 	unsigned int mcast_mtu;
+@@ -421,6 +421,8 @@ struct ipoib_path {
+ 	struct rb_node	      rb_node;
+ 	struct list_head      list;
+ 	int  		      valid;
++	u32		      dlid;
++	u32		      slid;
+ };
+ 
+ struct ipoib_neigh {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 4ad297d..c27df76 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -38,6 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/moduleparam.h>
 +#include <rdma/opa_addr.h>
- #include "sa.h"
- #include "core_priv.h"
  
-@@ -964,7 +965,12 @@ static void update_sm_ah(struct work_struct *work)
- 	if (port_attr.grh_required) {
- 		ah_attr.ah_flags = IB_AH_GRH;
- 		ah_attr.grh.dgid.global.subnet_prefix = cpu_to_be64(port_attr.subnet_prefix);
--		ah_attr.grh.dgid.global.interface_id = cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
-+		if (rdma_cap_opa_ah(port->agent->device, port->port_num))
-+			ah_attr.grh.dgid.global.interface_id =
-+				OPA_MAKE_ID(ah_attr.dlid);
-+		else
-+			ah_attr.grh.dgid.global.interface_id =
-+				cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
+ #include "ipoib.h"
+ 
+@@ -1356,6 +1357,16 @@ static void ipoib_cm_tx_start(struct work_struct *work)
+ 		}
+ 		memcpy(&pathrec, &p->path->pathrec, sizeof pathrec);
+ 
++		if (rdma_cap_opa_ah(priv->ca, priv->port)) {
++			if (p->path->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
++				pathrec.dgid.global.interface_id =
++					OPA_MAKE_ID(p->path->dlid);
++
++			if (p->path->slid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
++				pathrec.sgid.global.interface_id =
++					OPA_MAKE_ID(p->path->slid);
++		}
++
+ 		spin_unlock_irqrestore(&priv->lock, flags);
+ 		netif_tx_unlock_bh(dev);
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5636fc3..474c3bf 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -52,6 +52,7 @@
+ #include <linux/inetdevice.h>
+ #include <rdma/ib_cache.h>
+ #include <linux/pci.h>
++#include <rdma/opa_addr.h>
+ 
+ #define DRV_VERSION "1.0.0"
+ 
+@@ -766,6 +767,31 @@ static void path_rec_completion(int status,
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 
+ 	if (!IS_ERR_OR_NULL(ah)) {
++		/*
++		 * Extended LIDs might get programmed into GIDs in the
++		 * case of OPA devices. Since we have created the ah
++		 * above which would have made use of the lids, now is
++		 * a good time to change them back to regular GIDs after
++		 * saving the extended LIDs.
++		 */
++		if (rdma_cap_opa_ah(priv->ca, priv->port) &&
++		    ib_is_opa_gid(&pathrec->sgid)) {
++			path->slid = opa_get_lid_from_gid(&pathrec->sgid);
++			pathrec->sgid = path->pathrec.sgid;
++		} else {
++			path->slid = be16_to_cpu(pathrec->slid);
++		}
++
++		if (rdma_cap_opa_ah(priv->ca, priv->port) &&
++		    ib_is_opa_gid(&pathrec->dgid)) {
++			path->dlid = opa_get_lid_from_gid(&pathrec->dgid);
++			pathrec->dgid = path->pathrec.dgid;
++		} else {
++			path->dlid = be16_to_cpu(pathrec->dlid);
++		}
++		ipoib_dbg(priv, "PathRec SGID %pI6 DGID %pI6\n",
++			  pathrec->sgid.raw, pathrec->dgid.raw);
++
+ 		path->pathrec = *pathrec;
+ 
+ 		old_ah   = path->ah;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index bff73b5..d3394b6 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -581,7 +581,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 			  port_attr.state);
+ 		return;
  	}
+-	priv->local_lid = (u16)port_attr.lid;
++	priv->local_lid = port_attr.lid;
+ 	netif_addr_lock_bh(dev);
  
- 	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
+ 	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
 diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
-index 3e22937..5c713bc 100644
+index 5c713bc..d0a37d0 100644
 --- a/include/rdma/opa_addr.h
 +++ b/include/rdma/opa_addr.h
-@@ -38,6 +38,7 @@
- #define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
- 				 ? 0 : x)
- #define	OPA_SPECIAL_OUI		(0x00066AULL)
-+#define OPA_MAKE_ID(x)          (cpu_to_be64(OPA_SPECIAL_OUI << 40 | (x)))
- 
- /**
-  * ib_is_opa_gid: Returns true if the top 24 bits of the gid
+@@ -53,4 +53,16 @@ static inline bool ib_is_opa_gid(union ib_gid *gid)
+ 	return ((be64_to_cpu(gid->global.interface_id) >> 40) ==
+ 		OPA_SPECIAL_OUI);
+ }
++
++/**
++ * opa_get_lid_from_gid: Returns the last 32 bits of the gid.
++ * OPA devices use one of the gids in the gid table to also
++ * store the lid.
++ *
++ * @gid: The Global identifier
++ */
++static inline u32 opa_get_lid_from_gid(union ib_gid *gid)
++{
++	return be64_to_cpu(gid->global.interface_id) & 0xFFFFFFFF;
++}
+ #endif /* OPA_ADDR_H */
 -- 
 1.8.3.1
 
