@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 2/8] IB/rxe: Advance the consumer pointer before posting the CQE
-Date: Wed, 23 Nov 2016 12:39:18 -0500
-Message-ID: <1479922764-13091-3-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 5/8] IB/rxe: Add support for zero-byte operations
+Date: Wed, 23 Nov 2016 12:39:21 -0500
+Message-ID: <1479922764-13091-6-git-send-email-andrew.boyer@dell.com>
 References: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479922764-13091-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
@@ -10,39 +10,70 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A simple userspace application might poll the CQ, find a completion,
-and then attempt to post a new WQE to the SQ. A spurious error can
-occur if the userspace application detects a full SQ in the instant
-before the kernel is able to advance the SQ consumer pointer.
+The last_psn algorithm fails in the zero-byte case: it calculates
+first_psn = N, last_psn = N-1. This makes the operation unretryable since
+the res structure will fail the (first_psn <= psn <= last_psn) test in
+find_resource().
 
-This is noticeable when using single-entry SQs with ibv_rc_pingpong
-if lots of kernel and userspace library debugging is enabled.
+While here, use BTH_PSN_MASK to mask the calculated last_psn.
 
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c   |  3 +++
+ drivers/infiniband/sw/rxe/rxe_resp.c | 18 +++++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 6c5e29d..d46c49b 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -420,11 +420,12 @@ static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
- 	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
- 	    (qp->req.state == QP_STATE_ERROR)) {
- 		make_send_cqe(qp, wqe, &cqe);
-+		advance_consumer(qp->sq.queue);
- 		rxe_cq_post(qp->scq, &cqe, 0);
-+	} else {
-+		advance_consumer(qp->sq.queue);
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 1869152..d0faca2 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -355,6 +355,9 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
+ 	size_t			offset;
+ 	u32			crc = crcp ? (*crcp) : 0;
+ 
++	if (length == 0)
++		return 0;
++
+ 	if (mem->type == RXE_MEM_TYPE_DMA) {
+ 		u8 *src, *dest;
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index cb3fd4c..a5e9ce3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -444,6 +444,13 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 		return RESPST_EXECUTE;
  	}
  
--	advance_consumer(qp->sq.queue);
--
- 	/*
- 	 * we completed something so let req run again
- 	 * if it is trying to fence
++	/* A zero-byte op is not required to set an addr or rkey. */
++	if ((pkt->mask & (RXE_READ_MASK | RXE_WRITE_OR_SEND)) &&
++	    (pkt->mask & RXE_RETH_MASK) &&
++	    reth_len(pkt) == 0) {
++		return RESPST_EXECUTE;
++	}
++
+ 	va	= qp->resp.va;
+ 	rkey	= qp->resp.rkey;
+ 	resid	= qp->resp.resid;
+@@ -680,9 +687,14 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 		res->read.va_org	= qp->resp.va;
+ 
+ 		res->first_psn		= req_pkt->psn;
+-		res->last_psn		= req_pkt->psn +
+-					  (reth_len(req_pkt) + mtu - 1) /
+-					  mtu - 1;
++
++		if (reth_len(req_pkt)) {
++			res->last_psn	= (req_pkt->psn +
++					   (reth_len(req_pkt) + mtu - 1) /
++					   mtu - 1) & BTH_PSN_MASK;
++		} else {
++			res->last_psn	= res->first_psn;
++		}
+ 		res->cur_psn		= req_pkt->psn;
+ 
+ 		res->read.resid		= qp->resp.resid;
 -- 
 1.8.3.1
 
