@@ -1,81 +1,133 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] qedr: Add support for QP verbs
-Date: Wed, 23 Nov 2016 13:58:31 +0300
-Message-ID: <20161123105831.GA11837@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v6 1/9] IB/core: IB cache enhancements to support Infiniband security
+Date: Wed, 23 Nov 2016 16:17:23 +0200
+Message-ID: <1479910651-43246-2-git-send-email-danielj@mellanox.com>
+References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1479910651-43246-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Ram Amrani,
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The patch cecbcddf6461: "qedr: Add support for QP verbs" from Oct 10,
-2016, leads to the following static checker warning:
+Cache the subnet prefix and add a function to access it. Enforcing
+security requires frequent queries of the subnet prefix and the pkeys in
+the pkey table.
 
-	drivers/infiniband/hw/qedr/verbs.c:1494 qedr_create_qp()
-	warn: possible memory leak of 'qp'
+Also removed an unneded pr_warn about memory allocation failure.
 
-drivers/infiniband/hw/qedr/verbs.c
-  1484  
-  1485          rc = qedr_check_qp_attrs(ibpd, dev, attrs);
-  1486          if (rc)
-  1487                  return ERR_PTR(rc);
-  1488  
-  1489          qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-  1490          if (!qp)
-  1491                  return ERR_PTR(-ENOMEM);
-  1492  
-  1493          if (attrs->srq)
-  1494                  return ERR_PTR(-EINVAL);
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-You should move this in front of the allocation to avoid the memory
-leak.
+---
+v2:
+- In ib_get_cached_subnet_prefix wait to initialize p until after
+  validation.  Yuval Shaia
+---
+ drivers/infiniband/core/cache.c     | 36 ++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/core/core_priv.h |  3 +++
+ include/rdma/ib_verbs.h             |  1 +
+ 3 files changed, 38 insertions(+), 2 deletions(-)
 
-  1495  
-  1496          DP_DEBUG(dev, QEDR_MSG_QP,
-  1497                   "create qp: sq_cq=%p, sq_icid=%d, rq_cq=%p, rq_icid=%d\n",
-  1498                   get_qedr_cq(attrs->send_cq),
-  1499                   get_qedr_cq(attrs->send_cq)->icid,
-  1500                   get_qedr_cq(attrs->recv_cq),
-  1501                   get_qedr_cq(attrs->recv_cq)->icid);
-  1502  
-  1503          qedr_set_qp_init_params(dev, qp, pd, attrs);
-  1504  
-  1505          if (attrs->qp_type == IB_QPT_GSI) {
-  1506                  if (udata) {
-  1507                          DP_ERR(dev,
-  1508                                 "create qp: unexpected udata when creating GSI QP\n");
-  1509                          goto err0;
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 1a2984c..affc8ef 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -934,6 +934,26 @@ int ib_get_cached_pkey(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_get_cached_pkey);
+ 
++int ib_get_cached_subnet_prefix(struct ib_device *device,
++				u8                port_num,
++				u64              *sn_pfx)
++{
++	unsigned long flags;
++	int p;
++
++	if (port_num < rdma_start_port(device) ||
++	    port_num > rdma_end_port(device))
++		return -EINVAL;
++
++	p = port_num - rdma_start_port(device);
++	read_lock_irqsave(&device->cache.lock, flags);
++	*sn_pfx = device->cache.subnet_prefix_cache[p];
++	read_unlock_irqrestore(&device->cache.lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL(ib_get_cached_subnet_prefix);
++
+ int ib_find_cached_pkey(struct ib_device *device,
+ 			u8                port_num,
+ 			u16               pkey,
+@@ -1110,6 +1130,8 @@ static void ib_cache_update(struct ib_device *device,
+ 
+ 	device->cache.lmc_cache[port - rdma_start_port(device)] = tprops->lmc;
+ 
++	device->cache.subnet_prefix_cache[port - rdma_start_port(device)] =
++							tprops->subnet_prefix;
+ 	write_unlock_irq(&device->cache.lock);
+ 
+ 	kfree(gid_cache);
+@@ -1168,9 +1190,18 @@ int ib_cache_setup_one(struct ib_device *device)
+ 					  (rdma_end_port(device) -
+ 					   rdma_start_port(device) + 1),
+ 					  GFP_KERNEL);
++
++	device->cache.subnet_prefix_cache =
++		kcalloc((rdma_end_port(device) - rdma_start_port(device) + 1),
++			sizeof(*device->cache.subnet_prefix_cache),
++			GFP_KERNEL);
++
+ 	if (!device->cache.pkey_cache ||
+-	    !device->cache.lmc_cache) {
+-		pr_warn("Couldn't allocate cache for %s\n", device->name);
++	    !device->cache.lmc_cache ||
++	    !device->cache.subnet_prefix_cache) {
++		kfree(device->cache.pkey_cache);
++		kfree(device->cache.lmc_cache);
++		kfree(device->cache.subnet_prefix_cache);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -1213,6 +1244,7 @@ void ib_cache_release_one(struct ib_device *device)
+ 	gid_table_release_one(device);
+ 	kfree(device->cache.pkey_cache);
+ 	kfree(device->cache.lmc_cache);
++	kfree(device->cache.subnet_prefix_cache);
+ }
+ 
+ void ib_cache_cleanup_one(struct ib_device *device)
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 19d499d..ce826e4 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -153,4 +153,7 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+ 			     struct netlink_callback *cb);
+ 
++int ib_get_cached_subnet_prefix(struct ib_device *device,
++				u8                port_num,
++				u64              *sn_pfx);
+ #endif /* _CORE_PRIV_H */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5ad43a4..db178fd 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1761,6 +1761,7 @@ struct ib_cache {
+ 	struct ib_pkey_cache  **pkey_cache;
+ 	struct ib_gid_table   **gid_cache;
+ 	u8                     *lmc_cache;
++	u64                    *subnet_prefix_cache;
+ };
+ 
+ struct ib_dma_mapping_ops {
+-- 
+2.7.4
 
-Ugh...  GW-BASIC style numbered labels...  What does goto err0 do???
-Imagine if instead of function names we should use numbers like:
-
-	one();
-	two();
-	five();
-
-Use a meaningful label names like "goto free_qp;"
-
-  1510                  }
-  1511                  return qedr_create_gsi_qp(dev, attrs, qp);
-
-We should free qp if qedr_create_gsi_qp() fails as well.
-
-  1512          }
-  1513  
-  1514          memset(&in_params, 0, sizeof(in_params));
-  1515  
-  1516          if (udata) {
-  1517                  if (!(udata && ibpd->uobject && ibpd->uobject->context))
-  1518                          goto err0;
-  1519  
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
