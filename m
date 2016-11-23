@@ -1,240 +1,46 @@
-From: "Chandramouli, Dasaratharaman"
-        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 06/11] IB/mad: Ensure DR MADs are correctly specified
- when using OPA devices
-Date: Wed, 23 Nov 2016 10:29:06 -0800
-Message-ID: <8f6d6201-d5ef-41e0-de0a-66ad1f510c52@intel.com>
-References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1479843532-47496-7-git-send-email-dasaratharaman.chandramouli@intel.com>
- <4a729fdc-9386-c0b0-a29e-11cbddf66058@dev.mellanox.co.il>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Wed, 23 Nov 2016 10:40:47 -0800
+Message-ID: <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4a729fdc-9386-c0b0-a29e-11cbddf66058-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>, Serguei Sagalovitch <serguei.sagalovitch@amd.com>, "Deucher, Alexander" <Alexander.Deucher@amd.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Bridgman, John" <John.Bridgman@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 11/23/2016 6:21 AM, Hal Rosenstock wrote:
-> On 11/22/2016 2:38 PM, Dasaratharaman Chandramouli wrote:
->> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Nov 23, 2016 at 9:27 AM, Bart Van Assche
+<bart.vanassche@sandisk.com> wrote:
+> On 11/23/2016 09:13 AM, Logan Gunthorpe wrote:
 >>
->> Pure DR MADs do not need OPA GIDs to be specified in the GRH since
->> they do not rely on LID information.
->>
->> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/infiniband/core/mad.c | 104 +++++++++++++++++++++++++++++++++++++-----
->>  include/rdma/opa_addr.h       |  17 +++++++
->>  2 files changed, 109 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
->> index 40cbd6b..c0ee997 100644
->> --- a/drivers/infiniband/core/mad.c
->> +++ b/drivers/infiniband/core/mad.c
->> @@ -41,6 +41,7 @@
->>  #include <linux/slab.h>
->>  #include <linux/module.h>
->>  #include <rdma/ib_cache.h>
->> +#include <rdma/opa_addr.h>
->>
->>  #include "mad_priv.h"
->>  #include "mad_rmpp.h"
->> @@ -731,6 +732,80 @@ static size_t mad_priv_dma_size(const struct ib_mad_private *mp)
->>  	return sizeof(struct ib_grh) + mp->mad_size;
->>  }
->>
->> +static int verify_mad_ah(struct ib_mad_agent_private *mad_agent_priv,
+>> IMO any memory that has been registered for a P2P transaction should be
+>> locked from being evicted. So if there's a get_user_pages call it needs
+>> to be pinned until the put_page. The main issue being with the RDMA
+>> case: handling an eviction when a chunk of memory has been registered as
+>> an MR would be very tricky. The MR may be relied upon by another host
+>> and the kernel would have to inform user-space the MR was invalid then
+>> user-space would have to tell the remote application.
 >
-> I think it would be better if this were named opa_verify_mad_ah to make
-> it clearer that this is an OPA only routine.
 >
-> -- Hal
-Thanks. Will rename this to opa_verify_mad_ah
+> Hello Logan,
+>
+> Are you aware that the Linux kernel already supports ODP (On Demand Paging)?
+> See also the output of git grep -nHi on.demand.paging. See also
+> https://www.openfabrics.org/images/eventpresos/workshops2014/DevWorkshop/presos/Tuesday/pdf/04_ODP_update.pdf.
+>
 
--Dasa
->
->> +			 struct ib_mad_send_wr_private *mad_send_wr)
->> +{
->> +	struct ib_device *ib_dev = mad_agent_priv->qp_info->port_priv->device;
->> +	u8 port = mad_agent_priv->qp_info->port_priv->port_num;
->> +	struct ib_smp *smp = mad_send_wr->send_buf.mad;
->> +	struct opa_smp *opa_smp = (struct opa_smp *)smp;
->> +	u32 opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
->> +	u32 opa_drdlid = be32_to_cpu(opa_smp->route.dr.dr_dlid);
->> +
->> +	bool dr_slid_is_permissive = (OPA_LID_PERMISSIVE ==
->> +				      opa_smp->route.dr.dr_slid) ? true : false;
->> +	bool dr_dlid_is_permissive = (OPA_LID_PERMISSIVE ==
->> +				      opa_smp->route.dr.dr_dlid) ? true : false;
->> +	bool drslid_is_ib_ucast = (opa_drslid <
->> +				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
->> +					true : false;
->> +	bool drdlid_is_ib_ucast = (opa_drdlid <
->> +				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
->> +					true : false;
->> +	bool drslid_is_ext = !drslid_is_ib_ucast && !dr_slid_is_permissive;
->> +	bool drdlid_is_ext = !drdlid_is_ib_ucast && !dr_dlid_is_permissive;
->> +	bool grh_present = false;
->> +	struct ib_ah_attr attr;
->> +	union ib_gid sgid;
->> +	int ret = 0;
->> +
->> +	ret = ib_query_ah(mad_send_wr->send_buf.ah, &attr);
->> +	if (ret)
->> +		return ret;
->> +	grh_present = (attr.ah_flags & IB_AH_GRH);
->> +	if (grh_present) {
->> +		ret = ib_query_gid(ib_dev, port, attr.grh.sgid_index,
->> +				   &sgid, NULL);
->> +		if (ret)
->> +			return ret;
->> +	}
->> +
->> +	if (smp->class_version == OPA_SMP_CLASS_VERSION) {
->> +		/*
->> +		 * Conditions when GRH info should not be specified
->> +		 * 1. both dr_slid and dr_dlid are permissve (Pure DR)
->> +		 * 2. both dr_slid and dr_dlid are less than 0xc000.
->> +		 *
->> +		 * Conditions when GRH info should be specified
->> +		 * 1. dr_dlid is not permissive and above 0xbfff
->> +		 * OR
->> +		 * 2. dr_slid is not permissive and above 0xbfff
->> +		 */
->> +		if (grh_present) {
->> +			if ((dr_slid_is_permissive &&
->> +			     dr_dlid_is_permissive) ||
->> +			     (drslid_is_ib_ucast && drdlid_is_ib_ucast))
->> +				if (ib_is_opa_gid(&attr.grh.dgid) &&
->> +				    ib_is_opa_gid(&sgid))
->> +					return -EINVAL;
->> +			if (drslid_is_ext && !ib_is_opa_gid(&sgid))
->> +				return -EINVAL;
->> +			if (drdlid_is_ext &&
->> +			    !ib_is_opa_gid(&attr.grh.dgid))
->> +				return -EINVAL;
->> +		} else { /* There is no GRH */
->> +			if (drslid_is_ext || drdlid_is_ext)
->> +				return -EINVAL;
->> +		}
->> +	} else {
->> +		if (grh_present)
->> +			if (ib_is_opa_gid(&attr.grh.dgid) &&
->> +			    ib_is_opa_gid(&sgid))
->> +				return -EINVAL;
->> +	}
->> +	return ret;
->> +}
->> +
->>  /*
->>   * Return 0 if SMP is to be sent
->>   * Return 1 if SMP was consumed locally (whether or not solicited)
->> @@ -754,8 +829,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->>  	size_t mad_size = port_mad_size(mad_agent_priv->qp_info->port_priv);
->>  	u16 out_mad_pkey_index = 0;
->>  	u16 drslid;
->> -	bool opa = rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
->> -				    mad_agent_priv->qp_info->port_priv->port_num);
->> +	bool opa_mad =
->> +		rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
->> +				 mad_agent_priv->qp_info->port_priv->port_num);
->> +	bool opa_ah =
->> +		rdma_cap_opa_ah(mad_agent_priv->qp_info->port_priv->device,
->> +				mad_agent_priv->qp_info->port_priv->port_num);
->>
->>  	if (rdma_cap_ib_switch(device) &&
->>  	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
->> @@ -763,13 +842,21 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->>  	else
->>  		port_num = mad_agent_priv->agent.port_num;
->>
->> +	if (opa_mad && opa_ah) {
->> +		ret = verify_mad_ah(mad_agent_priv, mad_send_wr);
->> +		if (ret) {
->> +			dev_err(&device->dev,
->> +				"Error verifying MAD format\n");
->> +			goto out;
->> +		}
->> +	}
->>  	/*
->>  	 * Directed route handling starts if the initial LID routed part of
->>  	 * a request or the ending LID routed part of a response is empty.
->>  	 * If we are at the start of the LID routed part, don't update the
->>  	 * hop_ptr or hop_cnt.  See section 14.2.2, Vol 1 IB spec.
->>  	 */
->> -	if (opa && smp->class_version == OPA_SMP_CLASS_VERSION) {
->> +	if (opa_mad && smp->class_version == OPA_SMP_CLASS_VERSION) {
->>  		u32 opa_drslid;
->>
->>  		if ((opa_get_smp_direction(opa_smp)
->> @@ -783,13 +870,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->>  			goto out;
->>  		}
->>  		opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
->> -		if (opa_drslid != be32_to_cpu(OPA_LID_PERMISSIVE) &&
->> -		    opa_drslid & 0xffff0000) {
->> -			ret = -EINVAL;
->> -			dev_err(&device->dev, "OPA Invalid dr_slid 0x%x\n",
->> -			       opa_drslid);
->> -			goto out;
->> -		}
->>  		drslid = (u16)(opa_drslid & 0x0000ffff);
->>
->>  		/* Check to post send on QP or process locally */
->> @@ -834,7 +914,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->>  		     send_wr->pkey_index,
->>  		     send_wr->port_num, &mad_wc);
->>
->> -	if (opa && smp->base_version == OPA_MGMT_BASE_VERSION) {
->> +	if (opa_mad && smp->base_version == OPA_MGMT_BASE_VERSION) {
->>  		mad_wc.byte_len = mad_send_wr->send_buf.hdr_len
->>  					+ mad_send_wr->send_buf.data_len
->>  					+ sizeof(struct ib_grh);
->> @@ -891,7 +971,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->>  	}
->>
->>  	local->mad_send_wr = mad_send_wr;
->> -	if (opa) {
->> +	if (opa_mad) {
->>  		local->mad_send_wr->send_wr.pkey_index = out_mad_pkey_index;
->>  		local->return_wc_byte_len = mad_size;
->>  	}
->> diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
->> index 142b327..3e22937 100644
->> --- a/include/rdma/opa_addr.h
->> +++ b/include/rdma/opa_addr.h
->> @@ -33,6 +33,23 @@
->>  #if !defined(OPA_ADDR_H)
->>  #define OPA_ADDR_H
->>
->> +#include <rdma/ib_verbs.h>
->> +
->>  #define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
->>  				 ? 0 : x)
->> +#define	OPA_SPECIAL_OUI		(0x00066AULL)
->> +
->> +/**
->> + * ib_is_opa_gid: Returns true if the top 24 bits of the gid
->> + * contains the OPA_STL_OUI identifier. This identifies that
->> + * the provided gid is a special purpose GID meant to carry
->> + * extended LID information.
->> + *
->> + * @gid: The Global identifier
->> + */
->> +static inline bool ib_is_opa_gid(union ib_gid *gid)
->> +{
->> +	return ((be64_to_cpu(gid->global.interface_id) >> 40) ==
->> +		OPA_SPECIAL_OUI);
->> +}
->>  #endif /* OPA_ADDR_H */
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't think that was designed for the case where the backing memory
+is a special/static physical address range rather than anonymous
+"System RAM", right?
+
+I think we should handle the graphics P2P concerns separately from the
+general P2P-DMA case since the latter does not require the higher
+order memory management facilities. Using ZONE_DEVICE/DAX mappings to
+avoid changes to every driver that wants to support P2P-DMA separately
+from typical DMA still seems the path of least resistance.
