@@ -1,232 +1,398 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 06/11] IB/mad: Ensure DR MADs are correctly specified
- when using OPA devices
-Date: Wed, 23 Nov 2016 09:21:01 -0500
-Message-ID: <4a729fdc-9386-c0b0-a29e-11cbddf66058@dev.mellanox.co.il>
-References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1479843532-47496-7-git-send-email-dasaratharaman.chandramouli@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479843532-47496-7-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Dan Jurgens <danielj@mellanox.com>
+Subject: [PATCH v6 9/9] selinux: Add a cache for quicker retreival of PKey SIDs
+Date: Wed, 23 Nov 2016 16:17:31 +0200
+Message-ID: <1479910651-43246-10-git-send-email-danielj@mellanox.com>
+References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/22/2016 2:38 PM, Dasaratharaman Chandramouli wrote:
-> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Pure DR MADs do not need OPA GIDs to be specified in the GRH since
-> they do not rely on LID information.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/mad.c | 104 +++++++++++++++++++++++++++++++++++++-----
->  include/rdma/opa_addr.h       |  17 +++++++
->  2 files changed, 109 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 40cbd6b..c0ee997 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -41,6 +41,7 @@
->  #include <linux/slab.h>
->  #include <linux/module.h>
->  #include <rdma/ib_cache.h>
-> +#include <rdma/opa_addr.h>
->  
->  #include "mad_priv.h"
->  #include "mad_rmpp.h"
-> @@ -731,6 +732,80 @@ static size_t mad_priv_dma_size(const struct ib_mad_private *mp)
->  	return sizeof(struct ib_grh) + mp->mad_size;
->  }
->  
-> +static int verify_mad_ah(struct ib_mad_agent_private *mad_agent_priv,
+From: Daniel Jurgens <danielj@mellanox.com>
 
-I think it would be better if this were named opa_verify_mad_ah to make
-it clearer that this is an OPA only routine.
+It is likely that the SID for the same PKey will be requested many
+times. To reduce the time to modify QPs and process MADs use a cache to
+store PKey SIDs.
 
--- Hal
+This code is heavily based on the "netif" and "netport" concept
+originally developed by James Morris <jmorris@redhat.com> and Paul Moore
+<paul@paul-moore.com> (see security/selinux/netif.c and
+security/selinux/netport.c for more information)
 
-> +			 struct ib_mad_send_wr_private *mad_send_wr)
-> +{
-> +	struct ib_device *ib_dev = mad_agent_priv->qp_info->port_priv->device;
-> +	u8 port = mad_agent_priv->qp_info->port_priv->port_num;
-> +	struct ib_smp *smp = mad_send_wr->send_buf.mad;
-> +	struct opa_smp *opa_smp = (struct opa_smp *)smp;
-> +	u32 opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
-> +	u32 opa_drdlid = be32_to_cpu(opa_smp->route.dr.dr_dlid);
-> +
-> +	bool dr_slid_is_permissive = (OPA_LID_PERMISSIVE ==
-> +				      opa_smp->route.dr.dr_slid) ? true : false;
-> +	bool dr_dlid_is_permissive = (OPA_LID_PERMISSIVE ==
-> +				      opa_smp->route.dr.dr_dlid) ? true : false;
-> +	bool drslid_is_ib_ucast = (opa_drslid <
-> +				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
-> +					true : false;
-> +	bool drdlid_is_ib_ucast = (opa_drdlid <
-> +				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
-> +					true : false;
-> +	bool drslid_is_ext = !drslid_is_ib_ucast && !dr_slid_is_permissive;
-> +	bool drdlid_is_ext = !drdlid_is_ib_ucast && !dr_dlid_is_permissive;
-> +	bool grh_present = false;
-> +	struct ib_ah_attr attr;
-> +	union ib_gid sgid;
-> +	int ret = 0;
-> +
-> +	ret = ib_query_ah(mad_send_wr->send_buf.ah, &attr);
-> +	if (ret)
-> +		return ret;
-> +	grh_present = (attr.ah_flags & IB_AH_GRH);
-> +	if (grh_present) {
-> +		ret = ib_query_gid(ib_dev, port, attr.grh.sgid_index,
-> +				   &sgid, NULL);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	if (smp->class_version == OPA_SMP_CLASS_VERSION) {
-> +		/*
-> +		 * Conditions when GRH info should not be specified
-> +		 * 1. both dr_slid and dr_dlid are permissve (Pure DR)
-> +		 * 2. both dr_slid and dr_dlid are less than 0xc000.
-> +		 *
-> +		 * Conditions when GRH info should be specified
-> +		 * 1. dr_dlid is not permissive and above 0xbfff
-> +		 * OR
-> +		 * 2. dr_slid is not permissive and above 0xbfff
-> +		 */
-> +		if (grh_present) {
-> +			if ((dr_slid_is_permissive &&
-> +			     dr_dlid_is_permissive) ||
-> +			     (drslid_is_ib_ucast && drdlid_is_ib_ucast))
-> +				if (ib_is_opa_gid(&attr.grh.dgid) &&
-> +				    ib_is_opa_gid(&sgid))
-> +					return -EINVAL;
-> +			if (drslid_is_ext && !ib_is_opa_gid(&sgid))
-> +				return -EINVAL;
-> +			if (drdlid_is_ext &&
-> +			    !ib_is_opa_gid(&attr.grh.dgid))
-> +				return -EINVAL;
-> +		} else { /* There is no GRH */
-> +			if (drslid_is_ext || drdlid_is_ext)
-> +				return -EINVAL;
-> +		}
-> +	} else {
-> +		if (grh_present)
-> +			if (ib_is_opa_gid(&attr.grh.dgid) &&
-> +			    ib_is_opa_gid(&sgid))
-> +				return -EINVAL;
-> +	}
-> +	return ret;
-> +}
-> +
->  /*
->   * Return 0 if SMP is to be sent
->   * Return 1 if SMP was consumed locally (whether or not solicited)
-> @@ -754,8 +829,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->  	size_t mad_size = port_mad_size(mad_agent_priv->qp_info->port_priv);
->  	u16 out_mad_pkey_index = 0;
->  	u16 drslid;
-> -	bool opa = rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
-> -				    mad_agent_priv->qp_info->port_priv->port_num);
-> +	bool opa_mad =
-> +		rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
-> +				 mad_agent_priv->qp_info->port_priv->port_num);
-> +	bool opa_ah =
-> +		rdma_cap_opa_ah(mad_agent_priv->qp_info->port_priv->device,
-> +				mad_agent_priv->qp_info->port_priv->port_num);
->  
->  	if (rdma_cap_ib_switch(device) &&
->  	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
-> @@ -763,13 +842,21 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->  	else
->  		port_num = mad_agent_priv->agent.port_num;
->  
-> +	if (opa_mad && opa_ah) {
-> +		ret = verify_mad_ah(mad_agent_priv, mad_send_wr);
-> +		if (ret) {
-> +			dev_err(&device->dev,
-> +				"Error verifying MAD format\n");
-> +			goto out;
-> +		}
-> +	}
->  	/*
->  	 * Directed route handling starts if the initial LID routed part of
->  	 * a request or the ending LID routed part of a response is empty.
->  	 * If we are at the start of the LID routed part, don't update the
->  	 * hop_ptr or hop_cnt.  See section 14.2.2, Vol 1 IB spec.
->  	 */
-> -	if (opa && smp->class_version == OPA_SMP_CLASS_VERSION) {
-> +	if (opa_mad && smp->class_version == OPA_SMP_CLASS_VERSION) {
->  		u32 opa_drslid;
->  
->  		if ((opa_get_smp_direction(opa_smp)
-> @@ -783,13 +870,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->  			goto out;
->  		}
->  		opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
-> -		if (opa_drslid != be32_to_cpu(OPA_LID_PERMISSIVE) &&
-> -		    opa_drslid & 0xffff0000) {
-> -			ret = -EINVAL;
-> -			dev_err(&device->dev, "OPA Invalid dr_slid 0x%x\n",
-> -			       opa_drslid);
-> -			goto out;
-> -		}
->  		drslid = (u16)(opa_drslid & 0x0000ffff);
->  
->  		/* Check to post send on QP or process locally */
-> @@ -834,7 +914,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->  		     send_wr->pkey_index,
->  		     send_wr->port_num, &mad_wc);
->  
-> -	if (opa && smp->base_version == OPA_MGMT_BASE_VERSION) {
-> +	if (opa_mad && smp->base_version == OPA_MGMT_BASE_VERSION) {
->  		mad_wc.byte_len = mad_send_wr->send_buf.hdr_len
->  					+ mad_send_wr->send_buf.data_len
->  					+ sizeof(struct ib_grh);
-> @@ -891,7 +971,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
->  	}
->  
->  	local->mad_send_wr = mad_send_wr;
-> -	if (opa) {
-> +	if (opa_mad) {
->  		local->mad_send_wr->send_wr.pkey_index = out_mad_pkey_index;
->  		local->return_wc_byte_len = mad_size;
->  	}
-> diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
-> index 142b327..3e22937 100644
-> --- a/include/rdma/opa_addr.h
-> +++ b/include/rdma/opa_addr.h
-> @@ -33,6 +33,23 @@
->  #if !defined(OPA_ADDR_H)
->  #define OPA_ADDR_H
->  
-> +#include <rdma/ib_verbs.h>
-> +
->  #define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
->  				 ? 0 : x)
-> +#define	OPA_SPECIAL_OUI		(0x00066AULL)
-> +
-> +/**
-> + * ib_is_opa_gid: Returns true if the top 24 bits of the gid
-> + * contains the OPA_STL_OUI identifier. This identifies that
-> + * the provided gid is a special purpose GID meant to carry
-> + * extended LID information.
-> + *
-> + * @gid: The Global identifier
-> + */
-> +static inline bool ib_is_opa_gid(union ib_gid *gid)
-> +{
-> +	return ((be64_to_cpu(gid->global.interface_id) >> 40) ==
-> +		OPA_SPECIAL_OUI);
-> +}
->  #endif /* OPA_ADDR_H */
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+
+---
+v2:
+- Renamed the files to ibpkey. Paul Moore
+- Fixed a bracket indentation mismatch in sel_pkey_find. Yuval Shaia
+- Change spin_lock_bh to spin_lock_irqsave to resolve HARDIRQ lockdep
+  warning.  Dan Jurgens
+
+v6:
+- Fixed sel_pkey_sid_slow error handling. James Morris
+---
+ security/selinux/Makefile         |   2 +-
+ security/selinux/hooks.c          |   7 +-
+ security/selinux/ibpkey.c         | 245 ++++++++++++++++++++++++++++++++++++++
+ security/selinux/include/ibpkey.h |  31 +++++
+ security/selinux/include/objsec.h |   6 +
+ 5 files changed, 288 insertions(+), 3 deletions(-)
+ create mode 100644 security/selinux/ibpkey.c
+ create mode 100644 security/selinux/include/ibpkey.h
+
+diff --git a/security/selinux/Makefile b/security/selinux/Makefile
+index 3411c33..ff5895e 100644
+--- a/security/selinux/Makefile
++++ b/security/selinux/Makefile
+@@ -5,7 +5,7 @@
+ obj-$(CONFIG_SECURITY_SELINUX) := selinux.o
+ 
+ selinux-y := avc.o hooks.o selinuxfs.o netlink.o nlmsgtab.o netif.o \
+-	     netnode.o netport.o exports.o \
++	     netnode.o netport.o ibpkey.o exports.o \
+ 	     ss/ebitmap.o ss/hashtab.o ss/symtab.o ss/sidtab.o ss/avtab.o \
+ 	     ss/policydb.o ss/services.o ss/conditional.o ss/mls.o ss/status.o
+ 
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 55b18b3..7ee9854 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -90,6 +90,7 @@
+ #include "netif.h"
+ #include "netnode.h"
+ #include "netport.h"
++#include "ibpkey.h"
+ #include "xfrm.h"
+ #include "netlabel.h"
+ #include "audit.h"
+@@ -173,8 +174,10 @@ static int selinux_netcache_avc_callback(u32 event)
+ 
+ static int selinux_lsm_notifier_avc_callback(u32 event)
+ {
+-	if (event == AVC_CALLBACK_RESET)
++	if (event == AVC_CALLBACK_RESET) {
++		sel_pkey_flush();
+ 		call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
++	}
+ 
+ 	return 0;
+ }
+@@ -6094,7 +6097,7 @@ static int selinux_ib_pkey_access(void *ib_sec, u64 subnet_prefix, u16 pkey_val)
+ 	struct ib_security_struct *sec = ib_sec;
+ 	struct lsm_pkey_audit pkey;
+ 
+-	err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
++	err = sel_pkey_sid(subnet_prefix, pkey_val, &sid);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/security/selinux/ibpkey.c b/security/selinux/ibpkey.c
+new file mode 100644
+index 0000000..2ce12bb
+--- /dev/null
++++ b/security/selinux/ibpkey.c
+@@ -0,0 +1,245 @@
++/*
++ * Pkey table
++ *
++ * SELinux must keep a mapping of Infinband PKEYs to labels/SIDs.  This
++ * mapping is maintained as part of the normal policy but a fast cache is
++ * needed to reduce the lookup overhead.
++ *
++ * This code is heavily based on the "netif" and "netport" concept originally
++ * developed by
++ * James Morris <jmorris@redhat.com> and
++ * Paul Moore <paul@paul-moore.com>
++ *   (see security/selinux/netif.c and security/selinux/netport.c for more
++ *   information)
++ *
++ */
++
++/*
++ * (c) Mellanox Technologies, 2016
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/types.h>
++#include <linux/rcupdate.h>
++#include <linux/list.h>
++#include <linux/spinlock.h>
++
++#include "ibpkey.h"
++#include "objsec.h"
++
++#define SEL_PKEY_HASH_SIZE       256
++#define SEL_PKEY_HASH_BKT_LIMIT   16
++
++struct sel_pkey_bkt {
++	int size;
++	struct list_head list;
++};
++
++struct sel_pkey {
++	struct pkey_security_struct psec;
++	struct list_head list;
++	struct rcu_head rcu;
++};
++
++static LIST_HEAD(sel_pkey_list);
++static DEFINE_SPINLOCK(sel_pkey_lock);
++static struct sel_pkey_bkt sel_pkey_hash[SEL_PKEY_HASH_SIZE];
++
++/**
++ * sel_pkey_hashfn - Hashing function for the pkey table
++ * @pkey: pkey number
++ *
++ * Description:
++ * This is the hashing function for the pkey table, it returns the bucket
++ * number for the given pkey.
++ *
++ */
++static unsigned int sel_pkey_hashfn(u16 pkey)
++{
++	return (pkey & (SEL_PKEY_HASH_SIZE - 1));
++}
++
++/**
++ * sel_pkey_find - Search for a pkey record
++ * @subnet_prefix: subnet_prefix
++ * @pkey_num: pkey_num
++ *
++ * Description:
++ * Search the pkey table and return the matching record.  If an entry
++ * can not be found in the table return NULL.
++ *
++ */
++static struct sel_pkey *sel_pkey_find(u64 subnet_prefix, u16 pkey_num)
++{
++	unsigned int idx;
++	struct sel_pkey *pkey;
++
++	idx = sel_pkey_hashfn(pkey_num);
++	list_for_each_entry_rcu(pkey, &sel_pkey_hash[idx].list, list) {
++		if (pkey->psec.pkey == pkey_num &&
++		    pkey->psec.subnet_prefix == subnet_prefix)
++			return pkey;
++	}
++
++	return NULL;
++}
++
++/**
++ * sel_pkey_insert - Insert a new pkey into the table
++ * @pkey: the new pkey record
++ *
++ * Description:
++ * Add a new pkey record to the hash table.
++ *
++ */
++static void sel_pkey_insert(struct sel_pkey *pkey)
++{
++	unsigned int idx;
++
++	/* we need to impose a limit on the growth of the hash table so check
++	 * this bucket to make sure it is within the specified bounds
++	 */
++	idx = sel_pkey_hashfn(pkey->psec.pkey);
++	list_add_rcu(&pkey->list, &sel_pkey_hash[idx].list);
++	if (sel_pkey_hash[idx].size == SEL_PKEY_HASH_BKT_LIMIT) {
++		struct sel_pkey *tail;
++
++		tail = list_entry(
++			rcu_dereference_protected(
++				sel_pkey_hash[idx].list.prev,
++				lockdep_is_held(&sel_pkey_lock)),
++			struct sel_pkey, list);
++		list_del_rcu(&tail->list);
++		kfree_rcu(tail, rcu);
++	} else {
++		sel_pkey_hash[idx].size++;
++	}
++}
++
++/**
++ * sel_pkey_sid_slow - Lookup the SID of a pkey using the policy
++ * @subnet_prefix: subnet prefix
++ * @pkey_num: pkey number
++ * @sid: pkey SID
++ *
++ * Description:
++ * This function determines the SID of a pkey by querying the security
++ * policy.  The result is added to the pkey table to speedup future
++ * queries.  Returns zero on success, negative values on failure.
++ *
++ */
++static int sel_pkey_sid_slow(u64 subnet_prefix, u16 pkey_num, u32 *sid)
++{
++	int ret;
++	struct sel_pkey *pkey;
++	struct sel_pkey *new = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&sel_pkey_lock, flags);
++	pkey = sel_pkey_find(subnet_prefix, pkey_num);
++	if (pkey) {
++		*sid = pkey->psec.sid;
++		spin_unlock_irqrestore(&sel_pkey_lock, flags);
++		return 0;
++	}
++
++	ret = security_pkey_sid(subnet_prefix, pkey_num, sid);
++	if (ret)
++		goto out;
++
++	/* If this memory allocation fails still return 0. The SID
++	 * is valid, it just won't be added to the cache.
++	 */
++	new = kzalloc(sizeof(*new), GFP_ATOMIC);
++	if (!new)
++		goto out;
++
++	new->psec.subnet_prefix = subnet_prefix;
++	new->psec.pkey = pkey_num;
++	new->psec.sid = *sid;
++	sel_pkey_insert(new);
++
++out:
++	spin_unlock_irqrestore(&sel_pkey_lock, flags);
++	return ret;
++}
++
++/**
++ * sel_pkey_sid - Lookup the SID of a PKEY
++ * @subnet_prefix: subnet_prefix
++ * @pkey_num: pkey number
++ * @sid: pkey SID
++ *
++ * Description:
++ * This function determines the SID of a PKEY using the fastest method
++ * possible.  First the pkey table is queried, but if an entry can't be found
++ * then the policy is queried and the result is added to the table to speedup
++ * future queries.  Returns zero on success, negative values on failure.
++ *
++ */
++int sel_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *sid)
++{
++	struct sel_pkey *pkey;
++
++	rcu_read_lock();
++	pkey = sel_pkey_find(subnet_prefix, pkey_num);
++	if (pkey) {
++		*sid = pkey->psec.sid;
++		rcu_read_unlock();
++		return 0;
++	}
++	rcu_read_unlock();
++
++	return sel_pkey_sid_slow(subnet_prefix, pkey_num, sid);
++}
++
++/**
++ * sel_pkey_flush - Flush the entire pkey table
++ *
++ * Description:
++ * Remove all entries from the pkey table
++ *
++ */
++void sel_pkey_flush(void)
++{
++	unsigned int idx;
++	struct sel_pkey *pkey, *pkey_tmp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&sel_pkey_lock, flags);
++	for (idx = 0; idx < SEL_PKEY_HASH_SIZE; idx++) {
++		list_for_each_entry_safe(pkey, pkey_tmp,
++					 &sel_pkey_hash[idx].list, list) {
++			list_del_rcu(&pkey->list);
++			kfree_rcu(pkey, rcu);
++		}
++		sel_pkey_hash[idx].size = 0;
++	}
++	spin_unlock_irqrestore(&sel_pkey_lock, flags);
++}
++
++static __init int sel_pkey_init(void)
++{
++	int iter;
++
++	if (!selinux_enabled)
++		return 0;
++
++	for (iter = 0; iter < SEL_PKEY_HASH_SIZE; iter++) {
++		INIT_LIST_HEAD(&sel_pkey_hash[iter].list);
++		sel_pkey_hash[iter].size = 0;
++	}
++
++	return 0;
++}
++
++subsys_initcall(sel_pkey_init);
+diff --git a/security/selinux/include/ibpkey.h b/security/selinux/include/ibpkey.h
+new file mode 100644
+index 0000000..387885a
+--- /dev/null
++++ b/security/selinux/include/ibpkey.h
+@@ -0,0 +1,31 @@
++/*
++ * pkey table
++ *
++ * SELinux must keep a mapping of pkeys to labels/SIDs.  This
++ * mapping is maintained as part of the normal policy but a fast cache is
++ * needed to reduce the lookup overhead.
++ *
++ */
++
++/*
++ * (c) Mellanox Technologies, 2016
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef _SELINUX_IB_PKEY_H
++#define _SELINUX_IB_PKEY_H
++
++void sel_pkey_flush(void);
++
++int sel_pkey_sid(u64 subnet_prefix, u16 pkey, u32 *sid);
++
++#endif
+diff --git a/security/selinux/include/objsec.h b/security/selinux/include/objsec.h
+index 8e7db43..4139f28 100644
+--- a/security/selinux/include/objsec.h
++++ b/security/selinux/include/objsec.h
+@@ -133,6 +133,12 @@ struct ib_security_struct {
+ 	u32 sid;        /* SID of the queue pair or MAD agent */
+ };
+ 
++struct pkey_security_struct {
++	u64	subnet_prefix; /* Port subnet prefix */
++	u16	pkey;	/* PKey number */
++	u32	sid;	/* SID of pkey */
++};
++
+ extern unsigned int selinux_checkreqprot;
+ 
+ #endif /* _SELINUX_OBJSEC_H_ */
+-- 
+2.7.4
+
