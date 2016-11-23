@@ -1,88 +1,83 @@
-From: "Chandramouli, Dasaratharaman"
-        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 02/11] IB/core: Change port_attr.sm_lid from 16 to 32
- bits
-Date: Tue, 22 Nov 2016 21:43:40 -0800
-Message-ID: <06bcc750-5c45-cfc4-bb86-434d4543e8f6@intel.com>
-References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1479843532-47496-3-git-send-email-dasaratharaman.chandramouli@intel.com>
- <20161122205717.GA6484@obsidianresearch.com>
- <cb14f866-0e19-1631-745d-5c9d67aabfe8@intel.com>
- <20161122212411.GC6484@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 0/5] Optimize RoCE address handle creation for userspace
+Date: Wed, 23 Nov 2016 08:23:21 +0200
+Message-ID: <1479882206-31212-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161122212411.GC6484-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,
 
+Please find below the patchset from Moni.
 
-On 11/22/2016 1:24 PM, Jason Gunthorpe wrote:
-> On Tue, Nov 22, 2016 at 01:13:26PM -0800, Chandramouli, Dasaratharaman wrote:
->>
->>
->> On 11/22/2016 12:57 PM, Jason Gunthorpe wrote:
->>> On Tue, Nov 22, 2016 at 02:38:43PM -0500, Dasaratharaman Chandramouli wrote:
->>>> +++ b/drivers/infiniband/core/sa_query.c
->>>> @@ -958,7 +958,7 @@ static void update_sm_ah(struct work_struct *work)
->>>> 		pr_err("Couldn't find index for default PKey\n");
->>>>
->>>> 	memset(&ah_attr, 0, sizeof ah_attr);
->>>> -	ah_attr.dlid     = port_attr.sm_lid;
->>>> +	ah_attr.dlid     = (u16)port_attr.sm_lid;
->>>
->>> Why are we dropping bits here?
->>
->> Patch 3 increases ah_attr.dlid to 32 bits and the typecast is dropped.
->> We added it in this patch just to avoid compiler warnings, if any.
->
-> It would be alot better to fix this series so adding typecasts and
-> then dropping them didn't happen so extensively. Just reodering some
-> patched would do the trick. That would make it alot less churny and
-> easy to read..
-Yes, will re-order them. Thanks
->
->>>> -	sport->sm_lid = port_attr.sm_lid;
->>>> +	sport->sm_lid = (u16)port_attr.sm_lid;
->>>> 	sport->lid = port_attr.lid;
->>>
->>> And here..
->
->> Patch 11 increases lid and sm_lid fields in struct srpt_port and the
->> typecast is dropped.  We added it in this patch just to avoid
->> compiler warnings, if any.
->
-> Eg if you do patch 11 first this hunk goes away.
->
-> I also don't really care for all the added u16 casts, the compiler
-> doesn't warn on implicit demotion without a higher warning level...
->
-It's that higher warning level that we were a little concerned about.
-If you feel very strongly about not having these casts, they can be 
-removed but i would prefer leaving them there to silence certain odd 
-ball compiler configurations.
->>>
->>>> +#define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
->>>> +				 ? 0 : x)
->>>
->>> static inline function please.
->> Will change. Thanks.
->
-> All of them please.
-Will change.
->
-> And I think you should re-think how this is being used, the pattern
-> around OPA_TO_IB_UCAST_LID is copied too many times for my liking, and
-> isn't this UAPI compatability only?
-They are only used when there is a user-space query into the kernel for 
-lid and sm_lid.
->
-> Jason
->
+--------------------------------------------------------------------------
+Creating a UD address handler (user or kernel) when link layer is Ethernet
+requires resolving the remote L3 address (GID) to a L2 address (MAC/VLAN).
+
+Doing it in kernel is easy with an interface in that the module ib_addr
+provides. In userspace such an interface does not exist and kernel help
+is required.
+
+Until now the way to resolve GID (which is the remote IP or a function
+of it) to a MAC was with an interface supplied by libnl. The implementation
+of this interface is heavy and fails on large load of requests to create an
+address handle.
+
+This series of patches is an infrastructure for user drivers that care
+for it to optimize the resolution of L3 to L2 addresses with uverbs
+interface.
+------------------------------------------------------------------------
+
+The patch #3 was originally posted by Knut Omang and Moni extended it to
+support all available drivers along with enhanced commit message. We are
+sending the same patch as it exists in our review system, but feel free to
+change authorship to Knut if it is matter.
+
+Thanks
+
+Available in the "topic/create_ah" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/create_ah
+
+Moni Shoua (5):
+  IB/core: Enhance ib_resolve_eth_dmac to be usable for creating AH
+  IB/mlx5: Report that device supports user data response in create_ah
+  IB/core: Let the verb create_ah return extended response to user
+  IB/mlx5: Use kernel driver to help userspace create address handle
+  IB/mlx5: Make create/destroy address handle available to userspace
+
+ drivers/infiniband/core/core_priv.h          |  3 -
+ drivers/infiniband/core/uverbs_cmd.c         | 19 ++++--
+ drivers/infiniband/core/verbs.c              | 86 ++++++++++++++--------------
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |  3 +-
+ drivers/infiniband/hw/cxgb4/provider.c       |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_ah.c      |  3 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h  |  3 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  4 +-
+ drivers/infiniband/hw/mlx4/ah.c              |  4 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |  3 +-
+ drivers/infiniband/hw/mlx5/ah.c              | 25 +++++++-
+ drivers/infiniband/hw/mlx5/main.c            |  5 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |  3 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |  4 +-
+ drivers/infiniband/hw/nes/nes_verbs.c        |  3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c     |  3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h     |  4 +-
+ drivers/infiniband/hw/qedr/verbs.c           |  3 +-
+ drivers/infiniband/hw/qedr/verbs.h           |  3 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  4 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  4 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c        |  4 +-
+ include/rdma/ib_verbs.h                      |  6 +-
+ include/uapi/rdma/mlx5-abi.h                 |  7 +++
+ 24 files changed, 140 insertions(+), 70 deletions(-)
+
+--
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
