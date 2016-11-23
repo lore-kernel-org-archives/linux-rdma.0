@@ -1,62 +1,89 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) Bus driver
-Date: Tue, 22 Nov 2016 16:53:18 -0800
-Message-ID: <20161123005318.GA69897@knc-06.sc.intel.com>
-References: <1479508938-63799-3-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161119190445.GG22775@obsidianresearch.com>
- <20161121213017.GB67872@knc-06.sc.intel.com>
- <20161121213930.GA30111@obsidianresearch.com>
- <20161121232629.GA67988@knc-06.sc.intel.com>
- <20161121233118.GA31132@obsidianresearch.com>
- <20161122015304.GB67988@knc-06.sc.intel.com>
- <20161122170407.GE3956@obsidianresearch.com>
- <20161122194918.GA69241@knc-06.sc.intel.com>
- <alpine.DEB.2.20.1611221656390.8214@east.gentwo.org>
+From: "Chandramouli, Dasaratharaman"
+        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 02/11] IB/core: Change port_attr.sm_lid from 16 to 32
+ bits
+Date: Tue, 22 Nov 2016 21:43:40 -0800
+Message-ID: <06bcc750-5c45-cfc4-bb86-434d4543e8f6@intel.com>
+References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1479843532-47496-3-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <20161122205717.GA6484@obsidianresearch.com>
+ <cb14f866-0e19-1631-745d-5c9d67aabfe8@intel.com>
+ <20161122212411.GC6484@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1611221656390.8214@east.gentwo.org>
-Sender: netdev-owner@vger.kernel.org
-To: Christoph Lameter <cl@linux.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161122212411.GC6484-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 22, 2016 at 05:04:37PM -0600, Christoph Lameter wrote:
->On Tue, 22 Nov 2016, Vishwanathapura, Niranjana wrote:
->
->> Ok, I do understand Jason's point that we should probably not put this driver
->> under drivers/infiniband/sw/.., as this driver is not a HCA.
->> It is an ULP similar to ipoib, built on top of Omni-path irrespective of
->> whether we register a hfi_vnic_bus or a direct custom interface with HFI1.
->> This ULP will transmit and recieve Omni-path packets over the fabric, and is
->> dependent on IB MAD interface and the HFI1 driver.
->
->This is something that encapsulates IP (v4 right?) in something else.
->Would belong into
->
->	linux/net/ipv4
->
->You already have similar implementations there
->
->See f.e. ipip.c, ip_tunnel.c and lots more (try
->	ls linux/net/ipv4/*tunnel*
->
->)
->
->If this is more like a device then it would belong into
->
->linux/drivers/net/hfi or so (see also linux/drivers/net/ppp, plip,
->loopback, etc etc)
->
 
-It is Ethernet packet encapsulated in Omni-path header by hfi_vnic driver.
-The packets are sent and received over the wire by the HFI1 device driven by 
-HFI1 driver. The encapsulation information is obtained via IB MAD control 
-interface.
 
-Niranjana
-
+On 11/22/2016 1:24 PM, Jason Gunthorpe wrote:
+> On Tue, Nov 22, 2016 at 01:13:26PM -0800, Chandramouli, Dasaratharaman wrote:
+>>
+>>
+>> On 11/22/2016 12:57 PM, Jason Gunthorpe wrote:
+>>> On Tue, Nov 22, 2016 at 02:38:43PM -0500, Dasaratharaman Chandramouli wrote:
+>>>> +++ b/drivers/infiniband/core/sa_query.c
+>>>> @@ -958,7 +958,7 @@ static void update_sm_ah(struct work_struct *work)
+>>>> 		pr_err("Couldn't find index for default PKey\n");
+>>>>
+>>>> 	memset(&ah_attr, 0, sizeof ah_attr);
+>>>> -	ah_attr.dlid     = port_attr.sm_lid;
+>>>> +	ah_attr.dlid     = (u16)port_attr.sm_lid;
+>>>
+>>> Why are we dropping bits here?
+>>
+>> Patch 3 increases ah_attr.dlid to 32 bits and the typecast is dropped.
+>> We added it in this patch just to avoid compiler warnings, if any.
 >
+> It would be alot better to fix this series so adding typecasts and
+> then dropping them didn't happen so extensively. Just reodering some
+> patched would do the trick. That would make it alot less churny and
+> easy to read..
+Yes, will re-order them. Thanks
 >
+>>>> -	sport->sm_lid = port_attr.sm_lid;
+>>>> +	sport->sm_lid = (u16)port_attr.sm_lid;
+>>>> 	sport->lid = port_attr.lid;
+>>>
+>>> And here..
+>
+>> Patch 11 increases lid and sm_lid fields in struct srpt_port and the
+>> typecast is dropped.  We added it in this patch just to avoid
+>> compiler warnings, if any.
+>
+> Eg if you do patch 11 first this hunk goes away.
+>
+> I also don't really care for all the added u16 casts, the compiler
+> doesn't warn on implicit demotion without a higher warning level...
+>
+It's that higher warning level that we were a little concerned about.
+If you feel very strongly about not having these casts, they can be 
+removed but i would prefer leaving them there to silence certain odd 
+ball compiler configurations.
+>>>
+>>>> +#define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
+>>>> +				 ? 0 : x)
+>>>
+>>> static inline function please.
+>> Will change. Thanks.
+>
+> All of them please.
+Will change.
+>
+> And I think you should re-think how this is being used, the pattern
+> around OPA_TO_IB_UCAST_LID is copied too many times for my liking, and
+> isn't this UAPI compatability only?
+They are only used when there is a user-space query into the kernel for 
+lid and sm_lid.
+>
+> Jason
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
