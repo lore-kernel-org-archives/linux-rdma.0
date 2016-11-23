@@ -1,41 +1,44 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 0/8] RXE improvements
-Date: Wed, 23 Nov 2016 12:39:16 -0500
-Message-ID: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 3/8] IB/rxe: Don't update the response PSN unless it's going forwards
+Date: Wed, 23 Nov 2016 12:39:19 -0500
+Message-ID: <1479922764-13091-4-git-send-email-andrew.boyer@dell.com>
+References: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1479922764-13091-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-These patches provide a series of small improvements to the
-RXE driver related to loopback, retries, error handling, and
-zero-byte operations.
+A client might post a read followed by a send. The partner receives
+and acknowledges both transactions, posting an RCQ entry for the
+send, but something goes wrong with the read ACK. When the client
+retries the read, the partner's responder processes the duplicate
+read but incorrectly resets the PSN to the value preceding the
+original send. When the duplicate send arrives, the responder cannot
+tell that it is a duplicate, so the responder generates a duplicate
+RCQ entry, confusing the client.
 
-Changes since v1:
-  - Edit commit messages as suggested
-  - Remove saddr buffer from stack as suggested
-  - Split reference leak patch into two as suggested
+Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_resp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Andrew Boyer (8):
-  IB/rxe: Remove buffer used for printing IP address
-  IB/rxe: Advance the consumer pointer before posting the CQE
-  IB/rxe: Don't update the response PSN unless it's going forwards
-  IB/rxe: Unblock loopback by moving skb_out increment
-  IB/rxe: Add support for zero-byte operations
-  IB/rxe: Add support for IB_CQ_REPORT_MISSED_EVENTS
-  IB/rxe: Fix ref leak in rxe_create_qp()
-  IB/rxe: Fix ref leak in duplicate_request()
-
- drivers/infiniband/sw/rxe/rxe_comp.c  |  5 +++--
- drivers/infiniband/sw/rxe/rxe_loc.h   |  2 --
- drivers/infiniband/sw/rxe/rxe_mr.c    |  3 +++
- drivers/infiniband/sw/rxe/rxe_net.c   |  2 ++
- drivers/infiniband/sw/rxe/rxe_recv.c  | 11 +++++------
- drivers/infiniband/sw/rxe/rxe_resp.c  | 22 ++++++++++++++++++----
- drivers/infiniband/sw/rxe/rxe_verbs.c | 17 +++++++++++++----
- 7 files changed, 44 insertions(+), 18 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index dd3d88a..cb3fd4c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -742,7 +742,8 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 	} else {
+ 		qp->resp.res = NULL;
+ 		qp->resp.opcode = -1;
+-		qp->resp.psn = res->cur_psn;
++		if (psn_compare(res->cur_psn, qp->resp.psn) >= 0)
++			qp->resp.psn = res->cur_psn;
+ 		state = RESPST_CLEANUP;
+ 	}
+ 
 -- 
 1.8.3.1
 
