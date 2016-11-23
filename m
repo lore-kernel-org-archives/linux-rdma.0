@@ -1,46 +1,104 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Wed, 23 Nov 2016 10:40:47 -0800
-Message-ID: <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibsendtrap.c: Add support for security traps
+Date: Wed, 23 Nov 2016 13:56:36 -0500
+Message-ID: <f4eccf68-b9a6-ac29-1b88-5e040a774a77@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Serguei Sagalovitch <serguei.sagalovitch@amd.com>, "Deucher, Alexander" <Alexander.Deucher@amd.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Bridgman, John" <John.Bridgman@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Eitan Zahavi <eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 23, 2016 at 9:27 AM, Bart Van Assche
-<bart.vanassche@sandisk.com> wrote:
-> On 11/23/2016 09:13 AM, Logan Gunthorpe wrote:
->>
->> IMO any memory that has been registered for a P2P transaction should be
->> locked from being evicted. So if there's a get_user_pages call it needs
->> to be pinned until the put_page. The main issue being with the RDMA
->> case: handling an eviction when a chunk of memory has been registered as
->> an MR would be very tricky. The MR may be relied upon by another host
->> and the kernel would have to inform user-space the MR was invalid then
->> user-space would have to tell the remote application.
->
->
-> Hello Logan,
->
-> Are you aware that the Linux kernel already supports ODP (On Demand Paging)?
-> See also the output of git grep -nHi on.demand.paging. See also
-> https://www.openfabrics.org/images/eventpresos/workshops2014/DevWorkshop/presos/Tuesday/pdf/04_ODP_update.pdf.
->
+From: Eitan Zahavi <eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I don't think that was designed for the case where the backing memory
-is a special/static physical address range rather than anonymous
-"System RAM", right?
+Add support for trap numbers 256, 257, and 258
 
-I think we should handle the graphics P2P concerns separately from the
-general P2P-DMA case since the latter does not require the higher
-order memory management facilities. Using ZONE_DEVICE/DAX mappings to
-avoid changes to every driver that wants to support P2P-DMA separately
-from typical DMA still seems the path of least resistance.
+Signed-off-by: Eitan Zahavi <eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/ibsendtrap.c b/src/ibsendtrap.c
+index 659f2d2..7044deb 100644
+--- a/src/ibsendtrap.c
++++ b/src/ibsendtrap.c
+@@ -121,6 +121,64 @@ static void build_trap129(ib_mad_notice_attr_t * n, ib_portid_t * port)
+ 	n->data_details.ntc_129_131.port_num = (uint8_t) error_port;
+ }
+ 
++static void build_trap256_local(ib_mad_notice_attr_t * n, ib_portid_t * port)
++{
++	n->generic_type = 0x80 | IB_NOTICE_TYPE_SECURITY;
++	n->g_or_v.generic.prod_type_lsb = cl_hton16(get_node_type(port));
++	n->g_or_v.generic.trap_num = cl_hton16(256);
++	n->issuer_lid = cl_hton16((uint16_t) port->lid);
++	n->data_details.ntc_256.lid = n->issuer_lid;
++	n->data_details.ntc_256.dr_slid = 0xffff;
++	n->data_details.ntc_256.method = 1;
++	n->data_details.ntc_256.attr_id = cl_ntoh16(0x15);
++	n->data_details.ntc_256.attr_mod = cl_ntoh32(0x12);
++	n->data_details.ntc_256.mkey = cl_ntoh64(0x1234567812345678);
++}
++
++static void build_trap256_lid(ib_mad_notice_attr_t * n, ib_portid_t * port)
++{
++	build_trap256_local(n, port);
++	n->data_details.ntc_256.dr_trunc_hop = 0;
++}
++
++static void build_trap256_dr(ib_mad_notice_attr_t * n, ib_portid_t * port)
++{
++	build_trap256_local(n, port);
++	n->data_details.ntc_256.dr_trunc_hop = 0x80 | 0x4;
++	n->data_details.ntc_256.dr_rtn_path[0] = 5;
++	n->data_details.ntc_256.dr_rtn_path[1] = 6;
++	n->data_details.ntc_256.dr_rtn_path[2] = 7;
++	n->data_details.ntc_256.dr_rtn_path[3] = 8;
++}
++
++static void build_trap257_258(ib_mad_notice_attr_t * n, ib_portid_t * port,
++			      uint16_t trap_num)
++{
++	n->generic_type = 0x80 | IB_NOTICE_TYPE_SECURITY;
++	n->g_or_v.generic.prod_type_lsb = cl_hton16(get_node_type(port));
++	n->g_or_v.generic.trap_num = cl_hton16(trap_num);
++	n->issuer_lid = cl_hton16((uint16_t) port->lid);
++	n->data_details.ntc_257_258.lid1 = cl_hton16(1);
++	n->data_details.ntc_257_258.lid2 = cl_hton16(2);
++	n->data_details.ntc_257_258.key = cl_hton32(0x12345678);
++	n->data_details.ntc_257_258.qp1 = cl_hton32(0x010101);
++	n->data_details.ntc_257_258.qp2 = cl_hton32(0x020202);
++	n->data_details.ntc_257_258.gid1.unicast.prefix = cl_ntoh64(0xf8c0000000000001);
++	n->data_details.ntc_257_258.gid1.unicast.interface_id = cl_ntoh64(0x1111222233334444);
++	n->data_details.ntc_257_258.gid2.unicast.prefix = cl_ntoh64(0xf8c0000000000001);
++	n->data_details.ntc_257_258.gid2.unicast.interface_id = cl_ntoh64(0x5678567812341234);
++}
++
++static void build_trap257(ib_mad_notice_attr_t * n, ib_portid_t * port)
++{
++	build_trap257_258(n, port, 257);
++}
++
++static void build_trap258(ib_mad_notice_attr_t * n, ib_portid_t * port)
++{
++	build_trap257_258(n, port, 258);
++}
++
+ static int send_trap(void (*build) (ib_mad_notice_attr_t *, ib_portid_t *))
+ {
+ 	ib_portid_t sm_port;
+@@ -159,6 +217,10 @@ static const trap_def_t traps[] = {
+ 	{"link_speed_enabled_change", build_trap144_linkspeed},
+ 	{"local_link_integrity", build_trap129},
+ 	{"sys_image_guid_change", build_trap145},
++	{"mkey_lid", build_trap256_lid},
++	{"mkey_dr", build_trap256_dr},
++	{"pkey", build_trap257},
++	{"qkey", build_trap258},
+ 	{NULL, NULL}
+ };
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
