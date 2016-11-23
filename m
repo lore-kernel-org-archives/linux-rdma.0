@@ -1,78 +1,97 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V3 for-next 04/11] IB/hns: add self loopback for CM
-Date: Wed, 23 Nov 2016 19:41:02 +0000
-Message-ID: <20161123194109.420760-5-salil.mehta@huawei.com>
-References: <20161123194109.420760-1-salil.mehta@huawei.com>
+From: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Wed, 23 Nov 2016 14:58:38 -0500
+Message-ID: <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161123194109.420760-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, xushaobo2@huawei.com, mehta.salil.lnk@gmail.com, lijun_nudt@163.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Peter Chen <luck.chen@huawei.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20161123193228.GC12146-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
+ John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
 
-This patch mainly adds self loopback support for CM.
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Peter Chen <luck.chen@huawei.com>
-Reviewed-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-Signed-off-by: Salil Mehta  <salil.mehta@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   11 +++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h |    2 ++
- 2 files changed, 13 insertions(+)
+On 2016-11-23 02:32 PM, Jason Gunthorpe wrote:
+> On Wed, Nov 23, 2016 at 02:14:40PM -0500, Serguei Sagalovitch wrote:
+>> On 2016-11-23 02:05 PM, Jason Gunthorpe wrote:
+>>> As Bart says, it would be best to be combined with something like
+>>> Mellanox's ODP MRs, which allows a page to be evicted and then trigger
+>>> a CPU interrupt if a DMA is attempted so it can be brought back.
+>> Please note that in the general case (including  MR one) we could have
+>> "page fault" from the different PCIe device. So all  PCIe device must
+>> be synchronized.
+> Standard RDMA MRs require pinned pages, the DMA address cannot change
+> while the MR exists (there is no hardware support for this at all), so
+> page faulting from any other device is out of the question while they
+> exist. This is the same requirement as typical simple driver DMA which
+> requires pages pinned until the simple device completes DMA.
+>
+> ODP RDMA MRs do not require that, they just page fault like the CPU or
+> really anything and the kernel has to make sense of concurrant page
+> faults from multiple sources.
+>
+> The upshot is that GPU scenarios that rely on highly dynamic
+> virtual->physical translation cannot sanely be combined with standard
+> long-life RDMA MRs.
+We do not want to have "highly" dynamic translation due to performance 
+cost.
+We need to support "overcommit" but would like to minimize impact.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 959d5ca..e080dd6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -32,6 +32,7 @@
- 
- #include <linux/platform_device.h>
- #include <linux/acpi.h>
-+#include <linux/etherdevice.h>
- #include <rdma/ib_umem.h>
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
-@@ -72,6 +73,8 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	int nreq = 0;
- 	u32 ind = 0;
- 	int ret = 0;
-+	u8 *smac;
-+	int loopback;
- 
- 	if (unlikely(ibqp->qp_type != IB_QPT_GSI &&
- 		ibqp->qp_type != IB_QPT_RC)) {
-@@ -129,6 +132,14 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 				       UD_SEND_WQE_U32_8_DMAC_5_M,
- 				       UD_SEND_WQE_U32_8_DMAC_5_S,
- 				       ah->av.mac[5]);
-+
-+			smac = (u8 *)hr_dev->dev_addr[qp->port];
-+			loopback = ether_addr_equal_unaligned(ah->av.mac,
-+							      smac) ? 1 : 0;
-+			roce_set_bit(ud_sq_wqe->u32_8,
-+				     UD_SEND_WQE_U32_8_LOOPBACK_INDICATOR_S,
-+				     loopback);
-+
- 			roce_set_field(ud_sq_wqe->u32_8,
- 				       UD_SEND_WQE_U32_8_OPERATION_TYPE_M,
- 				       UD_SEND_WQE_U32_8_OPERATION_TYPE_S,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-index 6004c7f..cf28f1b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-@@ -440,6 +440,8 @@ struct hns_roce_ud_send_wqe {
- #define UD_SEND_WQE_U32_8_DMAC_5_M   \
- 	(((1UL << 8) - 1) << UD_SEND_WQE_U32_8_DMAC_5_S)
- 
-+#define UD_SEND_WQE_U32_8_LOOPBACK_INDICATOR_S 22
-+
- #define UD_SEND_WQE_U32_8_OPERATION_TYPE_S 16
- #define UD_SEND_WQE_U32_8_OPERATION_TYPE_M   \
- 	(((1UL << 4) - 1) << UD_SEND_WQE_U32_8_OPERATION_TYPE_S)
--- 
-1.7.9.5
+To support RDMA MRs for GPU/VRAM/PCIe device memory (which is must)
+we need either globally force  pinning for the scope of
+"get_user_pages() / "put_pages" or have special handling for RDMA MRs and
+similar cases.  Generally it could be difficult to correctly handle "DMA 
+in progress"
+  due to the  facts that (a) DMA could originate  from numerous PCIe devices
+simultaneously including requests to receive network data. (b) in HSA 
+case DMA could
+  originated from user space without kernel driver knowledge.
+So without corresponding h/w support everywhere I do not see how it could
+be solved effectively.
+> Certainly, any solution for GPUs must follow the typical page pinning
+> semantics, changing the DMA address of a page must be blocked while
+> any DMA is in progress.
+>>> Does HMM solve the peer-peer problem? Does it do it generically or
+>>> only for drivers that are mirroring translation tables?
+>> In current form HMM doesn't solve peer-peer problem. Currently it allow
+>> "mirroring" of  "malloc" memory on GPU which is not always what needed.
+>> Additionally  there is need to have opportunity to share VRAM allocations
+>> between  different processes.
+> Humm, so it can be removed from Alexander's list then :\
+HMM is very useful for some type of scenarios as well as it could 
+significantly
+simplify (for performance) implementations of some features e.g. OpenCL 
+2.0 SVM.
+>
+> As Dan suggested, maybe we need to do both. Some kind of fix for
+> get_user_pages() for smaller mappings (eg ZONE_DEVICE) and a mandatory
+> API conversion to get_user_dma_sg() for other cases?
+>
+> Jason
+
+Sincerely yours,
+Serguei Sagalovitch
