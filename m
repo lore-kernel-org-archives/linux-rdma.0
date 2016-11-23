@@ -1,97 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Wed, 23 Nov 2016 16:25:03 -0700
-Message-ID: <20161123232503.GA13965@obsidianresearch.com>
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] Avoid running out of local port in RDMA_CM
+Date: Wed, 23 Nov 2016 23:29:46 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0B8B08@ORSMSX109.amr.corp.intel.com>
+References: <CAG9sBKMMuj5Qf7_jgL_EAwOAVAFZCp5Wf=NytqsHAezrys97pA@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0B611D@ORSMSX109.amr.corp.intel.com>
+ <CAG9sBKMfGWv7-wgoSNxVqMs7TktcJ3a4J0QnL+TmPSm1kaQ28g@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0B6164@ORSMSX109.amr.corp.intel.com>
+ <CAG9sBKO7YVjKgGMOMBUxrtz3iU5GtkqPFu6j52g=RqR=d_0HHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
- John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG9sBKO7YVjKgGMOMBUxrtz3iU5GtkqPFu6j52g=RqR=d_0HHA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 23, 2016 at 02:42:12PM -0800, Dan Williams wrote:
-> > The crucial part for this discussion is the ability to fence and block
-> > DMA for a specific range. This is the hardware capability that lets
-> > page migration happen: fence&block DMA, migrate page, update page
-> > table in HCA, unblock DMA.
-> 
-> Wait, ODP requires migratable pages, ZONE_DEVICE pages are not
-> migratable.
-
-Does it? I didn't think so.. Does ZONE_DEVICE break MMU notifiers/etc
-or something? There is certainly nothing about the hardware that cares
-about ZONE_DEVICE vs System memory.
-
-I used 'migration' in the broader sense of doing any transformation to
-the page such that the DMA address changes - not the specific kernel
-MM process...
-
-> You can't replace a PCIe mapping with just any other System RAM
-> physical address, right?
-
-I thought that was exactly what HMM was trying to do? Migrate pages
-between CPU and GPU memory as needed. As Serguei has said this process
-needs to be driven by the GPU driver.
-
-The peer-peer issue is how do you do that while RDMA is possible on
-those pages, because when the page migrates to GPU memory you want the
-RDMA to follow it seamlessly.
-
-This is why page table mirroring is the best solution - use the
-existing mm machinery to link the DMA driver and whatever is
-controlling the VMA.
-
-> At least not without a filesystem recording where things went, but
-> at point we're no longer talking about the base P2P-DMA mapping
-
-In the filesystem/DAX case, it would be the filesystem that initiates
-any change in the page physical address.
-
-ODP *follows* changes in the VMA it does not cause any change in
-address mapping. That has to be done by whoever is in charge of the
-VMA.
-
-> something like pnfs-rdma to a DAX filesystem.
-
-Something in the kernel (ie nfs-rdma) would be entirely different. We
-generally don't do long lived mappings in the kernel for RDMA
-(certainly not for NFS), so it is much more like your basic every day
-DMA operation: map, execute, unmap. We probably don't need to use page
-table mirroring for this.
-
-ODP comes in when userpsace mmaps a DAX file and then tries to use it
-for RDMA. Page table mirroring lets the DAX filesystem decide to move
-the backing pages at any time. When it wants to do that it interacts
-with the MM in the usual way which links to ODP and makes sure the
-migration is seamless.
-
-Jason
+PiBUaGUgZG9jdW1lbnRhdGlvbiBmb3Igc3RydWN0IGluZXRfYmluZF9idWNrZXQgIHNheXM6DQo+
+IC8qIFRoZXJlIGFyZSBhIGZldyBzaW1wbGUgcnVsZXMsIHdoaWNoIGFsbG93IGZvciBsb2NhbCBw
+b3J0IHJldXNlIGJ5DQo+ICAqIGFuIGFwcGxpY2F0aW9uLiAgSW4gZXNzZW5jZToNCj4gICoNCj4g
+ICogICAgICAxKSBTb2NrZXRzIGJvdW5kIHRvIGRpZmZlcmVudCBpbnRlcmZhY2VzIG1heSBzaGFy
+ZSBhIGxvY2FsDQo+IHBvcnQuDQo+ICAqICAgICAgICAgRmFpbGluZyB0aGF0LCBnb3RvIHRlc3Qg
+Mi4NCj4gICogICAgICAyKSBJZiBhbGwgc29ja2V0cyBoYXZlIHNrLT5za19yZXVzZSBzZXQsIGFu
+ZCBub25lIG9mIHRoZW0gYXJlDQo+IGluDQo+ICAqICAgICAgICAgVENQX0xJU1RFTiBzdGF0ZSwg
+dGhlIHBvcnQgbWF5IGJlIHNoYXJlZC4NCj4gICogICAgICAgICBGYWlsaW5nIHRoYXQsIGdvdG8g
+dGVzdCAzLg0KPiAgKiAgICAgIDMpIElmIGFsbCBzb2NrZXRzIGFyZSBib3VuZCB0byBhIHNwZWNp
+ZmljIGluZXRfc2soc2spLQ0KPiA+cmN2X3NhZGRyIGxvY2FsDQo+ICAqICAgICAgICAgYWRkcmVz
+cywgYW5kIG5vbmUgb2YgdGhlbSBhcmUgdGhlIHNhbWUsIHRoZSBwb3J0IG1heSBiZQ0KPiAgKiAg
+ICAgICAgIHNoYXJlZC4NCj4gICogICAgICAgICBGYWlsaW5nIHRoaXMsIHRoZSBwb3J0IGNhbm5v
+dCBiZSBzaGFyZWQuDQo+IC4uDQo+IA0KPiBJZiBJIHVuZGVyc3RhbmQgdGhpcyBjb3JyZWN0bHkg
+dGhlIHN1Z2dlc3Rpb24gaW4gdGhlIFJGQyBmb2xsb3dzIHRoaXMNCj4gc2NoZW1lIHNvIHRoZSBy
+ZXF1ZXN0IHRvIG1pbWljIFRDUC9JUCBzdGFjayBzZWVtcyB0byBiZSBmdWxmaWxsZWQuDQoNCkkg
+ZG9uJ3Qgc2VlIGhvdyB0aGUgcHJvcG9zYWwgZnVsZmlsbHMgdGhlIGFib3ZlIHJlcXVpcmVtZW50
+cyAoMyBtYXkgYmUgdGhlIGtleSBvbmUgaGVyZSkuICBJZiBJIHVuZGVyc3RhbmQgdGhlIHByb3Bv
+c2FsIGNvcnJlY3RseSwgeW91J3JlIHdhbnRpbmcgdG8gcmUtdXNlIHRoZSBzYW1lIHBvcnQgbnVt
+YmVyIGZvciBhbGwgY29ubmVjdGlvbnMgKG9uY2UgdGhlIHBvcnQgbnVtYmVycyBydW4gb3V0KSB3
+aXRob3V0IGNoZWNraW5nIHRoYXQgdGhlIGxvY2FsIG9yIHJlbW90ZSBhZGRyZXNzZXMgZGlmZmVy
+Lg0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
