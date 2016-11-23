@@ -1,226 +1,232 @@
-From: Dan Jurgens <danielj@mellanox.com>
-Subject: [PATCH v6 8/9] selinux: Add IB Port SMP access vector
-Date: Wed, 23 Nov 2016 16:17:30 +0200
-Message-ID: <1479910651-43246-9-git-send-email-danielj@mellanox.com>
-References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2 06/11] IB/mad: Ensure DR MADs are correctly specified
+ when using OPA devices
+Date: Wed, 23 Nov 2016 09:21:01 -0500
+Message-ID: <4a729fdc-9386-c0b0-a29e-11cbddf66058@dev.mellanox.co.il>
+References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1479843532-47496-7-git-send-email-dasaratharaman.chandramouli@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1479843532-47496-7-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
+On 11/22/2016 2:38 PM, Dasaratharaman Chandramouli wrote:
+> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> Pure DR MADs do not need OPA GIDs to be specified in the GRH since
+> they do not rely on LID information.
+> 
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/mad.c | 104 +++++++++++++++++++++++++++++++++++++-----
+>  include/rdma/opa_addr.h       |  17 +++++++
+>  2 files changed, 109 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 40cbd6b..c0ee997 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -41,6 +41,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+>  #include <rdma/ib_cache.h>
+> +#include <rdma/opa_addr.h>
+>  
+>  #include "mad_priv.h"
+>  #include "mad_rmpp.h"
+> @@ -731,6 +732,80 @@ static size_t mad_priv_dma_size(const struct ib_mad_private *mp)
+>  	return sizeof(struct ib_grh) + mp->mad_size;
+>  }
+>  
+> +static int verify_mad_ah(struct ib_mad_agent_private *mad_agent_priv,
 
-Add a type for Infiniband ports and an access vector for subnet
-management packets. Implement the ib_port_smp hook to check that the
-caller has permission to send and receive SMPs on the end port specified
-by the device name and port. Add interface to query the SID for a IB
-port, which walks the IB_PORT ocontexts to find an entry for the
-given name and port.
+I think it would be better if this were named opa_verify_mad_ah to make
+it clearer that this is an OPA only routine.
 
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+-- Hal
 
----
-v2:
-- Shorted ib_end_port. Paul Moore
-- Pass void blobs to security hooks. Paul Moore
-- Log specific IB port info in audit log. Paul Moore
-- Don't create a new intial sid, use unlabeled. Stephen Smalley
-- Changed "smp" to "manage_subnet". Paul Moore
-
-v3:
-- ib_port -> ib_endport. Paul Moore
-- Don't log device name as untrusted string. Paul Moore
-- Reorder parameters of LSM hook. Paul Moore
-
-v6:
-- Remove brakets around single statement else. James Morris
----
- include/linux/lsm_audit.h           |  8 ++++++++
- security/lsm_audit.c                |  5 +++++
- security/selinux/hooks.c            | 25 ++++++++++++++++++++++
- security/selinux/include/classmap.h |  2 ++
- security/selinux/include/security.h |  2 ++
- security/selinux/ss/services.c      | 41 +++++++++++++++++++++++++++++++++++++
- 6 files changed, 83 insertions(+)
-
-diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
-index 402b770..7047b4c 100644
---- a/include/linux/lsm_audit.h
-+++ b/include/linux/lsm_audit.h
-@@ -21,6 +21,7 @@
- #include <linux/path.h>
- #include <linux/key.h>
- #include <linux/skbuff.h>
-+#include <rdma/ib_verbs.h>
- 
- struct lsm_network_audit {
- 	int netif;
-@@ -50,6 +51,11 @@ struct lsm_pkey_audit {
- 	u16	pkey;
- };
- 
-+struct lsm_ib_endport_audit {
-+	char	dev_name[IB_DEVICE_NAME_MAX];
-+	u8	port_num;
-+};
-+
- /* Auxiliary data to use in generating the audit record. */
- struct common_audit_data {
- 	char type;
-@@ -66,6 +72,7 @@ struct common_audit_data {
- #define LSM_AUDIT_DATA_IOCTL_OP	11
- #define LSM_AUDIT_DATA_FILE	12
- #define LSM_AUDIT_DATA_PKEY	13
-+#define LSM_AUDIT_DATA_IB_ENDPORT 14
- 	union 	{
- 		struct path path;
- 		struct dentry *dentry;
-@@ -84,6 +91,7 @@ struct common_audit_data {
- 		struct lsm_ioctlop_audit *op;
- 		struct file *file;
- 		struct lsm_pkey_audit *pkey;
-+		struct lsm_ib_endport_audit *ib_endport;
- 	} u;
- 	/* this union contains LSM specific data */
- 	union {
-diff --git a/security/lsm_audit.c b/security/lsm_audit.c
-index 8911360..d8d58ec 100644
---- a/security/lsm_audit.c
-+++ b/security/lsm_audit.c
-@@ -421,6 +421,11 @@ static void dump_common_audit_data(struct audit_buffer *ab,
- 				 a->u.pkey->pkey, &sbn_pfx);
- 		break;
- 	}
-+	case LSM_AUDIT_DATA_IB_ENDPORT:
-+		audit_log_format(ab, " device=%s port_num=%u",
-+				 a->u.ib_endport->dev_name,
-+				 a->u.ib_endport->port_num);
-+		break;
- 	} /* switch (a->type) */
- }
- 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 94eef1b..55b18b3 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -6107,6 +6107,29 @@ static int selinux_ib_pkey_access(void *ib_sec, u64 subnet_prefix, u16 pkey_val)
- 			    INFINIBAND_PKEY__ACCESS, &ad);
- }
- 
-+static int selinux_ib_endport_manage_subnet(void *ib_sec, const char *dev_name,
-+					    u8 port_num)
-+{
-+	struct common_audit_data ad;
-+	int err;
-+	u32 sid = 0;
-+	struct ib_security_struct *sec = ib_sec;
-+	struct lsm_ib_endport_audit ib_endport;
-+
-+	err = security_ib_endport_sid(dev_name, port_num, &sid);
-+
-+	if (err)
-+		return err;
-+
-+	ad.type = LSM_AUDIT_DATA_IB_ENDPORT;
-+	strncpy(ib_endport.dev_name, dev_name, sizeof(ib_endport.dev_name));
-+	ib_endport.port_num = port_num;
-+	ad.u.ib_endport = &ib_endport;
-+	return avc_has_perm(sec->sid, sid,
-+			    SECCLASS_INFINIBAND_ENDPORT,
-+			    INFINIBAND_ENDPORT__MANAGE_SUBNET, &ad);
-+}
-+
- static int selinux_ib_alloc_security(void **ib_sec)
- {
- 	struct ib_security_struct *sec;
-@@ -6312,6 +6335,8 @@ static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(tun_dev_open, selinux_tun_dev_open),
- #ifdef CONFIG_SECURITY_INFINIBAND
- 	LSM_HOOK_INIT(ib_pkey_access, selinux_ib_pkey_access),
-+	LSM_HOOK_INIT(ib_endport_manage_subnet,
-+		      selinux_ib_endport_manage_subnet),
- 	LSM_HOOK_INIT(ib_alloc_security, selinux_ib_alloc_security),
- 	LSM_HOOK_INIT(ib_free_security, selinux_ib_free_security),
- #endif
-diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
-index d42dd4d..f93b64b 100644
---- a/security/selinux/include/classmap.h
-+++ b/security/selinux/include/classmap.h
-@@ -167,5 +167,7 @@ struct security_class_mapping secclass_map[] = {
- 	  { COMMON_CAP2_PERMS, NULL } },
- 	{ "infiniband_pkey",
- 	  { "access", NULL } },
-+	{ "infiniband_endport",
-+	  { "manage_subnet", NULL } },
- 	{ NULL }
-   };
-diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
-index 17afb7c..8a6e5e7 100644
---- a/security/selinux/include/security.h
-+++ b/security/selinux/include/security.h
-@@ -178,6 +178,8 @@ int security_port_sid(u8 protocol, u16 port, u32 *out_sid);
- 
- int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid);
- 
-+int security_ib_endport_sid(const char *dev_name, u8 port_num, u32 *out_sid);
-+
- int security_netif_sid(char *name, u32 *if_sid);
- 
- int security_node_sid(u16 domain, void *addr, u32 addrlen,
-diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
-index 9215cf6..2e54285 100644
---- a/security/selinux/ss/services.c
-+++ b/security/selinux/ss/services.c
-@@ -2243,6 +2243,47 @@ int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid)
- }
- 
- /**
-+ * security_ib_endport_sid - Obtain the SID for a subnet management interface.
-+ * @dev_name: device name
-+ * @port: port number
-+ * @out_sid: security identifier
-+ */
-+int security_ib_endport_sid(const char *dev_name, u8 port_num, u32 *out_sid)
-+{
-+	struct ocontext *c;
-+	int rc = 0;
-+
-+	read_lock(&policy_rwlock);
-+
-+	c = policydb.ocontexts[OCON_IB_ENDPORT];
-+	while (c) {
-+		if (c->u.ib_endport.port_num == port_num &&
-+		    !strncmp(c->u.ib_endport.dev_name,
-+			     dev_name,
-+			     IB_DEVICE_NAME_MAX))
-+			break;
-+
-+		c = c->next;
-+	}
-+
-+	if (c) {
-+		if (!c->sid[0]) {
-+			rc = sidtab_context_to_sid(&sidtab,
-+						   &c->context[0],
-+						   &c->sid[0]);
-+			if (rc)
-+				goto out;
-+		}
-+		*out_sid = c->sid[0];
-+	} else
-+		*out_sid = SECINITSID_UNLABELED;
-+
-+out:
-+	read_unlock(&policy_rwlock);
-+	return rc;
-+}
-+
-+/**
-  * security_netif_sid - Obtain the SID for a network interface.
-  * @name: interface name
-  * @if_sid: interface SID
--- 
-2.7.4
-
+> +			 struct ib_mad_send_wr_private *mad_send_wr)
+> +{
+> +	struct ib_device *ib_dev = mad_agent_priv->qp_info->port_priv->device;
+> +	u8 port = mad_agent_priv->qp_info->port_priv->port_num;
+> +	struct ib_smp *smp = mad_send_wr->send_buf.mad;
+> +	struct opa_smp *opa_smp = (struct opa_smp *)smp;
+> +	u32 opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
+> +	u32 opa_drdlid = be32_to_cpu(opa_smp->route.dr.dr_dlid);
+> +
+> +	bool dr_slid_is_permissive = (OPA_LID_PERMISSIVE ==
+> +				      opa_smp->route.dr.dr_slid) ? true : false;
+> +	bool dr_dlid_is_permissive = (OPA_LID_PERMISSIVE ==
+> +				      opa_smp->route.dr.dr_dlid) ? true : false;
+> +	bool drslid_is_ib_ucast = (opa_drslid <
+> +				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
+> +					true : false;
+> +	bool drdlid_is_ib_ucast = (opa_drdlid <
+> +				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
+> +					true : false;
+> +	bool drslid_is_ext = !drslid_is_ib_ucast && !dr_slid_is_permissive;
+> +	bool drdlid_is_ext = !drdlid_is_ib_ucast && !dr_dlid_is_permissive;
+> +	bool grh_present = false;
+> +	struct ib_ah_attr attr;
+> +	union ib_gid sgid;
+> +	int ret = 0;
+> +
+> +	ret = ib_query_ah(mad_send_wr->send_buf.ah, &attr);
+> +	if (ret)
+> +		return ret;
+> +	grh_present = (attr.ah_flags & IB_AH_GRH);
+> +	if (grh_present) {
+> +		ret = ib_query_gid(ib_dev, port, attr.grh.sgid_index,
+> +				   &sgid, NULL);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	if (smp->class_version == OPA_SMP_CLASS_VERSION) {
+> +		/*
+> +		 * Conditions when GRH info should not be specified
+> +		 * 1. both dr_slid and dr_dlid are permissve (Pure DR)
+> +		 * 2. both dr_slid and dr_dlid are less than 0xc000.
+> +		 *
+> +		 * Conditions when GRH info should be specified
+> +		 * 1. dr_dlid is not permissive and above 0xbfff
+> +		 * OR
+> +		 * 2. dr_slid is not permissive and above 0xbfff
+> +		 */
+> +		if (grh_present) {
+> +			if ((dr_slid_is_permissive &&
+> +			     dr_dlid_is_permissive) ||
+> +			     (drslid_is_ib_ucast && drdlid_is_ib_ucast))
+> +				if (ib_is_opa_gid(&attr.grh.dgid) &&
+> +				    ib_is_opa_gid(&sgid))
+> +					return -EINVAL;
+> +			if (drslid_is_ext && !ib_is_opa_gid(&sgid))
+> +				return -EINVAL;
+> +			if (drdlid_is_ext &&
+> +			    !ib_is_opa_gid(&attr.grh.dgid))
+> +				return -EINVAL;
+> +		} else { /* There is no GRH */
+> +			if (drslid_is_ext || drdlid_is_ext)
+> +				return -EINVAL;
+> +		}
+> +	} else {
+> +		if (grh_present)
+> +			if (ib_is_opa_gid(&attr.grh.dgid) &&
+> +			    ib_is_opa_gid(&sgid))
+> +				return -EINVAL;
+> +	}
+> +	return ret;
+> +}
+> +
+>  /*
+>   * Return 0 if SMP is to be sent
+>   * Return 1 if SMP was consumed locally (whether or not solicited)
+> @@ -754,8 +829,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>  	size_t mad_size = port_mad_size(mad_agent_priv->qp_info->port_priv);
+>  	u16 out_mad_pkey_index = 0;
+>  	u16 drslid;
+> -	bool opa = rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
+> -				    mad_agent_priv->qp_info->port_priv->port_num);
+> +	bool opa_mad =
+> +		rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
+> +				 mad_agent_priv->qp_info->port_priv->port_num);
+> +	bool opa_ah =
+> +		rdma_cap_opa_ah(mad_agent_priv->qp_info->port_priv->device,
+> +				mad_agent_priv->qp_info->port_priv->port_num);
+>  
+>  	if (rdma_cap_ib_switch(device) &&
+>  	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
+> @@ -763,13 +842,21 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>  	else
+>  		port_num = mad_agent_priv->agent.port_num;
+>  
+> +	if (opa_mad && opa_ah) {
+> +		ret = verify_mad_ah(mad_agent_priv, mad_send_wr);
+> +		if (ret) {
+> +			dev_err(&device->dev,
+> +				"Error verifying MAD format\n");
+> +			goto out;
+> +		}
+> +	}
+>  	/*
+>  	 * Directed route handling starts if the initial LID routed part of
+>  	 * a request or the ending LID routed part of a response is empty.
+>  	 * If we are at the start of the LID routed part, don't update the
+>  	 * hop_ptr or hop_cnt.  See section 14.2.2, Vol 1 IB spec.
+>  	 */
+> -	if (opa && smp->class_version == OPA_SMP_CLASS_VERSION) {
+> +	if (opa_mad && smp->class_version == OPA_SMP_CLASS_VERSION) {
+>  		u32 opa_drslid;
+>  
+>  		if ((opa_get_smp_direction(opa_smp)
+> @@ -783,13 +870,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>  			goto out;
+>  		}
+>  		opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
+> -		if (opa_drslid != be32_to_cpu(OPA_LID_PERMISSIVE) &&
+> -		    opa_drslid & 0xffff0000) {
+> -			ret = -EINVAL;
+> -			dev_err(&device->dev, "OPA Invalid dr_slid 0x%x\n",
+> -			       opa_drslid);
+> -			goto out;
+> -		}
+>  		drslid = (u16)(opa_drslid & 0x0000ffff);
+>  
+>  		/* Check to post send on QP or process locally */
+> @@ -834,7 +914,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>  		     send_wr->pkey_index,
+>  		     send_wr->port_num, &mad_wc);
+>  
+> -	if (opa && smp->base_version == OPA_MGMT_BASE_VERSION) {
+> +	if (opa_mad && smp->base_version == OPA_MGMT_BASE_VERSION) {
+>  		mad_wc.byte_len = mad_send_wr->send_buf.hdr_len
+>  					+ mad_send_wr->send_buf.data_len
+>  					+ sizeof(struct ib_grh);
+> @@ -891,7 +971,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+>  	}
+>  
+>  	local->mad_send_wr = mad_send_wr;
+> -	if (opa) {
+> +	if (opa_mad) {
+>  		local->mad_send_wr->send_wr.pkey_index = out_mad_pkey_index;
+>  		local->return_wc_byte_len = mad_size;
+>  	}
+> diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
+> index 142b327..3e22937 100644
+> --- a/include/rdma/opa_addr.h
+> +++ b/include/rdma/opa_addr.h
+> @@ -33,6 +33,23 @@
+>  #if !defined(OPA_ADDR_H)
+>  #define OPA_ADDR_H
+>  
+> +#include <rdma/ib_verbs.h>
+> +
+>  #define OPA_TO_IB_UCAST_LID(x)	(((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
+>  				 ? 0 : x)
+> +#define	OPA_SPECIAL_OUI		(0x00066AULL)
+> +
+> +/**
+> + * ib_is_opa_gid: Returns true if the top 24 bits of the gid
+> + * contains the OPA_STL_OUI identifier. This identifies that
+> + * the provided gid is a special purpose GID meant to carry
+> + * extended LID information.
+> + *
+> + * @gid: The Global identifier
+> + */
+> +static inline bool ib_is_opa_gid(union ib_gid *gid)
+> +{
+> +	return ((be64_to_cpu(gid->global.interface_id) >> 40) ==
+> +		OPA_SPECIAL_OUI);
+> +}
+>  #endif /* OPA_ADDR_H */
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
