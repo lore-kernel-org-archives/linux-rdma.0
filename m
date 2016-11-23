@@ -1,44 +1,50 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] Avoid running out of local port in RDMA_CM
-Date: Wed, 23 Nov 2016 23:29:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0B8B08@ORSMSX109.amr.corp.intel.com>
-References: <CAG9sBKMMuj5Qf7_jgL_EAwOAVAFZCp5Wf=NytqsHAezrys97pA@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0B611D@ORSMSX109.amr.corp.intel.com>
- <CAG9sBKMfGWv7-wgoSNxVqMs7TktcJ3a4J0QnL+TmPSm1kaQ28g@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0B6164@ORSMSX109.amr.corp.intel.com>
- <CAG9sBKO7YVjKgGMOMBUxrtz3iU5GtkqPFu6j52g=RqR=d_0HHA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 2/6] Fix spelling of CMAKE_INSTALL_UDEV_RULESDIR
+Date: Wed, 23 Nov 2016 16:35:00 -0700
+Message-ID: <1479944104-19949-3-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1479944104-19949-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKO7YVjKgGMOMBUxrtz3iU5GtkqPFu6j52g=RqR=d_0HHA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1479944104-19949-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBUaGUgZG9jdW1lbnRhdGlvbiBmb3Igc3RydWN0IGluZXRfYmluZF9idWNrZXQgIHNheXM6DQo+
-IC8qIFRoZXJlIGFyZSBhIGZldyBzaW1wbGUgcnVsZXMsIHdoaWNoIGFsbG93IGZvciBsb2NhbCBw
-b3J0IHJldXNlIGJ5DQo+ICAqIGFuIGFwcGxpY2F0aW9uLiAgSW4gZXNzZW5jZToNCj4gICoNCj4g
-ICogICAgICAxKSBTb2NrZXRzIGJvdW5kIHRvIGRpZmZlcmVudCBpbnRlcmZhY2VzIG1heSBzaGFy
-ZSBhIGxvY2FsDQo+IHBvcnQuDQo+ICAqICAgICAgICAgRmFpbGluZyB0aGF0LCBnb3RvIHRlc3Qg
-Mi4NCj4gICogICAgICAyKSBJZiBhbGwgc29ja2V0cyBoYXZlIHNrLT5za19yZXVzZSBzZXQsIGFu
-ZCBub25lIG9mIHRoZW0gYXJlDQo+IGluDQo+ICAqICAgICAgICAgVENQX0xJU1RFTiBzdGF0ZSwg
-dGhlIHBvcnQgbWF5IGJlIHNoYXJlZC4NCj4gICogICAgICAgICBGYWlsaW5nIHRoYXQsIGdvdG8g
-dGVzdCAzLg0KPiAgKiAgICAgIDMpIElmIGFsbCBzb2NrZXRzIGFyZSBib3VuZCB0byBhIHNwZWNp
-ZmljIGluZXRfc2soc2spLQ0KPiA+cmN2X3NhZGRyIGxvY2FsDQo+ICAqICAgICAgICAgYWRkcmVz
-cywgYW5kIG5vbmUgb2YgdGhlbSBhcmUgdGhlIHNhbWUsIHRoZSBwb3J0IG1heSBiZQ0KPiAgKiAg
-ICAgICAgIHNoYXJlZC4NCj4gICogICAgICAgICBGYWlsaW5nIHRoaXMsIHRoZSBwb3J0IGNhbm5v
-dCBiZSBzaGFyZWQuDQo+IC4uDQo+IA0KPiBJZiBJIHVuZGVyc3RhbmQgdGhpcyBjb3JyZWN0bHkg
-dGhlIHN1Z2dlc3Rpb24gaW4gdGhlIFJGQyBmb2xsb3dzIHRoaXMNCj4gc2NoZW1lIHNvIHRoZSBy
-ZXF1ZXN0IHRvIG1pbWljIFRDUC9JUCBzdGFjayBzZWVtcyB0byBiZSBmdWxmaWxsZWQuDQoNCkkg
-ZG9uJ3Qgc2VlIGhvdyB0aGUgcHJvcG9zYWwgZnVsZmlsbHMgdGhlIGFib3ZlIHJlcXVpcmVtZW50
-cyAoMyBtYXkgYmUgdGhlIGtleSBvbmUgaGVyZSkuICBJZiBJIHVuZGVyc3RhbmQgdGhlIHByb3Bv
-c2FsIGNvcnJlY3RseSwgeW91J3JlIHdhbnRpbmcgdG8gcmUtdXNlIHRoZSBzYW1lIHBvcnQgbnVt
-YmVyIGZvciBhbGwgY29ubmVjdGlvbnMgKG9uY2UgdGhlIHBvcnQgbnVtYmVycyBydW4gb3V0KSB3
-aXRob3V0IGNoZWNraW5nIHRoYXQgdGhlIGxvY2FsIG9yIHJlbW90ZSBhZGRyZXNzZXMgZGlmZmVy
-Lg0K
+Fixes: 1b9b57df9924 ("Add a dependency on libudev")
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ rdma-core.spec        | 2 +-
+ redhat/rdma-core.spec | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/rdma-core.spec b/rdma-core.spec
+index 5e36c37745c5fb..41ec47e9f86425 100644
+--- a/rdma-core.spec
++++ b/rdma-core.spec
+@@ -94,7 +94,7 @@ This is a simple example without the split sub packages to get things started.
+ 	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
+ 	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
+ 	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
+-	 -DCMAKE_INSTALL_UDEV_RULESDR:PATH=%{_udevrulesdir}
++	 -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
+ %make_jobs
+ 
+ %install
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 0d1275ad1bfb49..39267be2033abc 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -218,7 +218,7 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
+ 	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
+ 	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
+ 	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
+-	 -DCMAKE_INSTALL_UDEV_RULESDR:PATH=%{_udevrulesdir}
++	 -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
+ %make_jobs
+ 
+ %install
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
