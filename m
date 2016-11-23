@@ -1,7 +1,7 @@
-From: Logan Gunthorpe <logang@deltatee.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Wed, 23 Nov 2016 14:11:29 -0700
-Message-ID: <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+Date: Wed, 23 Nov 2016 14:55:10 -0700
+Message-ID: <20161123215510.GA16311@obsidianresearch.com>
 References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
  <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
  <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
@@ -11,54 +11,90 @@ References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.
  <20161123193228.GC12146@obsidianresearch.com>
  <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
  <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161123203332.GA15062@obsidianresearch.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, "Deucher, Alexander" <Alexander.Deucher@amd.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Bridgman, John" <John.Bridgman@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
+ John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 23/11/16 01:33 PM, Jason Gunthorpe wrote:
-> On Wed, Nov 23, 2016 at 02:58:38PM -0500, Serguei Sagalovitch wrote:
+On Wed, Nov 23, 2016 at 02:11:29PM -0700, Logan Gunthorpe wrote:
+> > As I said, there is no possible special handling. Standard IB hardware
+> > does not support changing the DMA address once a MR is created. Forget
+> > about doing that.
 > 
->>    We do not want to have "highly" dynamic translation due to
->>    performance cost.  We need to support "overcommit" but would
->>    like to minimize impact.  To support RDMA MRs for GPU/VRAM/PCIe
->>    device memory (which is must) we need either globally force
->>    pinning for the scope of "get_user_pages() / "put_pages" or have
->>    special handling for RDMA MRs and similar cases.
+> Yeah, that's essentially the point I was trying to make. Not to mention
+> all the other unrelated hardware that can't DMA to an address that might
+> disappear mid-transfer.
+
+Right, it is impossible to ask for generic page migration with ongoing
+DMA. That is simply not supported by any of the hardware at all.
+
+> > Only ODP hardware allows changing the DMA address on the fly, and it
+> > works at the page table level. We do not need special handling for
+> > RDMA.
 > 
-> As I said, there is no possible special handling. Standard IB hardware
-> does not support changing the DMA address once a MR is created. Forget
-> about doing that.
+> I am aware of ODP but, noted by others, it doesn't provide a general
+> solution to the points above.
 
-Yeah, that's essentially the point I was trying to make. Not to mention
-all the other unrelated hardware that can't DMA to an address that might
-disappear mid-transfer.
+How do you mean?
 
-> Only ODP hardware allows changing the DMA address on the fly, and it
-> works at the page table level. We do not need special handling for
-> RDMA.
+Perhaps I am not following what Serguei is asking for, but I
+understood the desire was for a complex GPU allocator that could
+migrate pages between GPU and CPU memory under control of the GPU
+driver, among other things. The desire is for DMA to continue to work
+even after these migrations happen.
 
-I am aware of ODP but, noted by others, it doesn't provide a general
-solution to the points above.
+Page table mirroring *is* the general solution for this problem. The
+GPU driver controls the VMA and the DMA driver mirrors that VMA.
 
-> Like I said, this is the direction the industry seems to be moving in,
-> so any solution here should focus on VMAs/page tables as the way to link
-> the peer-peer devices.
+Do you know of another option that doesn't just degenerate to page
+table mirroring??
 
-Yes, this was the appeal to us of using ZONE_DEVICE.
+Remember, there are two facets to the RDMA ODP implementation, I feel
+there is some confusion here..
 
-> To me this means at least items #1 and #3 should be removed from
-> Alexander's list.
+The crucial part for this discussion is the ability to fence and block
+DMA for a specific range. This is the hardware capability that lets
+page migration happen: fence&block DMA, migrate page, update page
+table in HCA, unblock DMA.
 
-It's also worth noting that #4 makes use of ZONE_DEVICE (#2) so they are
-really the same option. iopmem is really just one way to get BAR
-addresses to user-space while inside the kernel it's ZONE_DEVICE.
+Without that hardware support the DMA address must be unchanging, and
+there is nothing we can do about it. This is why standard IB hardware
+must have fixed MRs - it lacks the fence&block capability.
 
-Logan
+The other part is the page faulting implementation, but that is not
+required, and to Serguei's point, is not desired for GPU anyhow.
+
+> > To me this means at least items #1 and #3 should be removed from
+> > Alexander's list.
+> 
+> It's also worth noting that #4 makes use of ZONE_DEVICE (#2) so they are
+> really the same option. iopmem is really just one way to get BAR
+> addresses to user-space while inside the kernel it's ZONE_DEVICE.
+
+Seems fine for RDMA?
+
+Didn't we just strike off everything on the list except #2? :\
+
+Jason
