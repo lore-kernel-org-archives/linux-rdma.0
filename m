@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 7/8] IB/rxe: Fix ref leak in rxe_create_qp()
-Date: Wed, 23 Nov 2016 12:39:23 -0500
-Message-ID: <1479922764-13091-8-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 2/8] IB/rxe: Advance the consumer pointer before posting the CQE
+Date: Wed, 23 Nov 2016 12:39:18 -0500
+Message-ID: <1479922764-13091-3-git-send-email-andrew.boyer@dell.com>
 References: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479922764-13091-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
@@ -10,43 +10,39 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The udata->inlen error path needs to clean up the ref
-added by rxe_alloc().
+A simple userspace application might poll the CQ, find a completion,
+and then attempt to post a new WQE to the SQ. A spurious error can
+occur if the userspace application detects a full SQ in the instant
+before the kernel is able to advance the SQ consumer pointer.
+
+This is noticeable when using single-entry SQs with ibv_rc_pingpong
+if lots of kernel and userspace library debugging is enabled.
 
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index de39b0a..071430c 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -564,7 +564,7 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
- 	if (udata) {
- 		if (udata->inlen) {
- 			err = -EINVAL;
--			goto err1;
-+			goto err2;
- 		}
- 		qp->is_user = 1;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 6c5e29d..d46c49b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -420,11 +420,12 @@ static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ 	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
+ 	    (qp->req.state == QP_STATE_ERROR)) {
+ 		make_send_cqe(qp, wqe, &cqe);
++		advance_consumer(qp->sq.queue);
+ 		rxe_cq_post(qp->scq, &cqe, 0);
++	} else {
++		advance_consumer(qp->sq.queue);
  	}
-@@ -573,12 +573,13 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
  
- 	err = rxe_qp_from_init(rxe, qp, pd, init, udata, ibpd);
- 	if (err)
--		goto err2;
-+		goto err3;
- 
- 	return &qp->ibqp;
- 
--err2:
-+err3:
- 	rxe_drop_index(qp);
-+err2:
- 	rxe_drop_ref(qp);
- err1:
- 	return ERR_PTR(err);
+-	advance_consumer(qp->sq.queue);
+-
+ 	/*
+ 	 * we completed something so let req run again
+ 	 * if it is trying to fence
 -- 
 1.8.3.1
 
