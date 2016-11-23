@@ -1,45 +1,44 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 1/8] IB/rxe: Remove buffer used for printing IP address
-Date: Wed, 23 Nov 2016 19:48:41 +0200
-Message-ID: <CAG9sBKOmLwY7mMmVKGbtCU3_G+mmic2+rANcoDtcRK1EwCagWA@mail.gmail.com>
-References: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com> <1479922764-13091-2-git-send-email-andrew.boyer@dell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Subject: [PATCH v2 0/8] RXE improvements
+Date: Wed, 23 Nov 2016 12:39:16 -0500
+Message-ID: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479922764-13091-2-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Cc: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-> index 46f0628..252b4d6 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-> @@ -391,16 +391,15 @@ int rxe_rcv(struct sk_buff *skb)
->                              payload_size(pkt));
->         calc_icrc = cpu_to_be32(~calc_icrc);
->         if (unlikely(calc_icrc != pack_icrc)) {
-> -               char saddr[sizeof(struct in6_addr)];
-> -
->                 if (skb->protocol == htons(ETH_P_IPV6))
-> -                       sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
-> +                       pr_warn_ratelimited("bad ICRC from %pI6c\n",
-> +                                           &ipv6_hdr(skb)->saddr);
->                 else if (skb->protocol == htons(ETH_P_IP))
-> -                       sprintf(saddr, "%pI4", &ip_hdr(skb)->saddr);
-> +                       pr_warn_ratelimited("bad ICRC from %pI4\n",
-> +                                           &ip_hdr(skb)->saddr);
->                 else
-> -                       sprintf(saddr, "unknown");
-> +                       pr_warn_ratelimited("bad ICRC from unknown\n");
->
-> -               pr_warn_ratelimited("bad ICRC from %s\n", saddr);
->                 goto drop;
->         }
+These patches provide a series of small improvements to the
+RXE driver related to loopback, retries, error handling, and
+zero-byte operations.
 
-Have you considered Bart's suggestion to use  %pIS instead of %pI4 and %pI6
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=1067964305df
+Changes since v1:
+  - Edit commit messages as suggested
+  - Remove saddr buffer from stack as suggested
+  - Split reference leak patch into two as suggested
+
+Andrew Boyer (8):
+  IB/rxe: Remove buffer used for printing IP address
+  IB/rxe: Advance the consumer pointer before posting the CQE
+  IB/rxe: Don't update the response PSN unless it's going forwards
+  IB/rxe: Unblock loopback by moving skb_out increment
+  IB/rxe: Add support for zero-byte operations
+  IB/rxe: Add support for IB_CQ_REPORT_MISSED_EVENTS
+  IB/rxe: Fix ref leak in rxe_create_qp()
+  IB/rxe: Fix ref leak in duplicate_request()
+
+ drivers/infiniband/sw/rxe/rxe_comp.c  |  5 +++--
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  2 --
+ drivers/infiniband/sw/rxe/rxe_mr.c    |  3 +++
+ drivers/infiniband/sw/rxe/rxe_net.c   |  2 ++
+ drivers/infiniband/sw/rxe/rxe_recv.c  | 11 +++++------
+ drivers/infiniband/sw/rxe/rxe_resp.c  | 22 ++++++++++++++++++----
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 17 +++++++++++++----
+ 7 files changed, 44 insertions(+), 18 deletions(-)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
