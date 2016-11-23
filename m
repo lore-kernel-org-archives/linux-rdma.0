@@ -1,34 +1,111 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] qede: fix general protection fault may occur on probe
-Date: Wed, 23 Nov 2016 08:05:53 +0000
-Message-ID: <SN1PR07MB220712E1CC2918ADE0C66ADEF8B70@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Wed, 23 Nov 2016 09:51:14 +0100
+Message-ID: <2a8a6582-f3de-5cda-0c6e-1c93774147e0@amd.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+ <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
+ <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
+ <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
+ <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
+ <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Dan Williams <dan.j.williams@intel.com>, Serguei Sagalovitch <serguei.sagalovitch@amd.com>, Dave Hansen <dave.hansen@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Deucher,
+ Alexander" <Alexander.Deucher@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The recent introduction of qedr driver support in qede causes a GPF when
-> probing the driver in a server without a RoCE enabled QLogic NIC. This fi=
-x avoids
-> using an uninitialized pointer in such a case. Caught by the kernel test =
-robot.
->=20
-> ...
-
-Hi Doug,
-Note that I've previously sent this patch wrongfully as [PATCH rdma-core].
-I guess this made you miss it.
-It's an important bug fix that I hope will make it into 4.9.
-
-Thanks,
-Ram
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+QW0gMjMuMTEuMjAxNiB1bSAwODo0OSBzY2hyaWViIERhbmllbCBWZXR0ZXI6Cj4gT24gVHVlLCBO
+b3YgMjIsIDIwMTYgYXQgMDE6MjE6MDNQTSAtMDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+PiBP
+biBUdWUsIE5vdiAyMiwgMjAxNiBhdCAxOjAzIFBNLCBEYW5pZWwgVmV0dGVyIDxkYW5pZWxAZmZ3
+bGwuY2g+IHdyb3RlOgo+Pj4gT24gVHVlLCBOb3YgMjIsIDIwMTYgYXQgOTozNSBQTSwgU2VyZ3Vl
+aSBTYWdhbG92aXRjaAo+Pj4gPHNlcmd1ZWkuc2FnYWxvdml0Y2hAYW1kLmNvbT4gd3JvdGU6Cj4+
+Pj4gT24gMjAxNi0xMS0yMiAwMzoxMCBQTSwgRGFuaWVsIFZldHRlciB3cm90ZToKPj4+Pj4gT24g
+VHVlLCBOb3YgMjIsIDIwMTYgYXQgOTowMSBQTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
+c0BpbnRlbC5jb20+Cj4+Pj4+IHdyb3RlOgo+Pj4+Pj4gT24gVHVlLCBOb3YgMjIsIDIwMTYgYXQg
+MTA6NTkgQU0sIFNlcmd1ZWkgU2FnYWxvdml0Y2gKPj4+Pj4+IDxzZXJndWVpLnNhZ2Fsb3ZpdGNo
+QGFtZC5jb20+IHdyb3RlOgo+Pj4+Pj4+IEkgcGVyc29uYWxseSBsaWtlICJkZXZpY2UtREFYIiBp
+ZGVhIGJ1dCBteSBjb25jZXJucyBhcmU6Cj4+Pj4+Pj4KPj4+Pj4+PiAtICBIb3cgd2VsbCBpdCB3
+aWxsIGNvLWV4aXN0cyB3aXRoIHRoZSAgRFJNIGluZnJhc3RydWN0dXJlIC8KPj4+Pj4+PiBpbXBs
+ZW1lbnRhdGlvbnMKPj4+Pj4+PiAgICAgIGluIHBhcnQgZGVhbGluZyB3aXRoIENQVSBwb2ludGVy
+cz8KPj4+Pj4+IEluc2lkZSB0aGUga2VybmVsIGEgZGV2aWNlLURBWCByYW5nZSBpcyAianVzdCBt
+ZW1vcnkiIGluIHRoZSBzZW5zZQo+Pj4+Pj4gdGhhdCB5b3UgY2FuIHBlcmZvcm0gcGZuX3RvX3Bh
+Z2UoKSBvbiBpdCBhbmQgaXNzdWUgSS9PLCBidXQgdGhlIHZtYSBpcwo+Pj4+Pj4gbm90IG1pZ3Jh
+dGFibGUuIFRvIGJlIGhvbmVzdCBJIGRvIG5vdCBrbm93IGhvdyB3ZWxsIHRoYXQgY28tZXhpc3Rz
+Cj4+Pj4+PiB3aXRoIGRybSBpbmZyYXN0cnVjdHVyZS4KPj4+Pj4+Cj4+Pj4+Pj4gLSAgSG93IHdl
+bGwgd2Ugd2lsbCBiZSBhYmxlIHRvIGhhbmRsZSBjYXNlIHdoZW4gd2UgbmVlZCB0bwo+Pj4+Pj4+
+ICJtb3ZlIi8iZXZpY3QiCj4+Pj4+Pj4gICAgICBtZW1vcnkvZGF0YSB0byB0aGUgbmV3IGxvY2F0
+aW9uIHNvIENQVSBwb2ludGVyIHNob3VsZCBwb2ludCB0byB0aGUKPj4+Pj4+PiBuZXcKPj4+Pj4+
+PiBwaHlzaWNhbCBsb2NhdGlvbi9hZGRyZXNzCj4+Pj4+Pj4gICAgICAgKGFuZCBtYXkgYmUgbm90
+IGluIFBDSSBkZXZpY2UgbWVtb3J5IGF0IGFsbCk/Cj4+Pj4+PiBTbywgZGV2aWNlLURBWCBkZWxp
+YmVyYXRlbHkgYXZvaWRzIHN1cHBvcnQgZm9yIGluLWtlcm5lbCBtaWdyYXRpb24gb3IKPj4+Pj4+
+IG92ZXJjb21taXQuIFRob3NlIGNhc2VzIGFyZSBsZWZ0IHRvIHRoZSBjb3JlIG1tIG9yIGRybS4g
+VGhlIGRldmljZS1kYXgKPj4+Pj4+IGludGVyZmFjZSBpcyBmb3IgY2FzZXMgd2hlcmUgYWxsIHRo
+YXQgaXMgbmVlZGVkIGlzIGEgZGlyZWN0LW1hcHBpbmcgdG8KPj4+Pj4+IGEgc3RhdGljYWxseS1h
+bGxvY2F0ZWQgcGh5c2ljYWwtYWRkcmVzcyByYW5nZSBiZSBpdCBwZXJzaXN0ZW50IG1lbW9yeQo+
+Pj4+Pj4gb3Igc29tZSBvdGhlciBzcGVjaWFsIHJlc2VydmVkIG1lbW9yeSByYW5nZS4KPj4+Pj4g
+Rm9yIHNvbWUgb2YgdGhlIGZhbmN5IHVzZS1jYXNlcyAoZS5nLiB0byBiZSBjb21wYXJhYmxlIHRv
+IHdoYXQgSE1NIGNhbgo+Pj4+PiBwdWxsIG9mZikgSSB0aGluayB3ZSB3YW50IGFsbCB0aGUgbWFn
+aWMgaW4gY29yZSBtbSwgaS5lLiBtaWdyYXRpb24gYW5kCj4+Pj4+IG92ZXJjb21taXQuIEF0IGxl
+YXN0IHRoYXQgc2VlbXMgdG8gYmUgdGhlIHZlcnkgc3Ryb25nIGRyaXZlIGluIGFsbAo+Pj4+PiBn
+ZW5lcmFsLXB1cnBvc2UgZ3B1IGFic3RyYWN0aW9ucyBhbmQgaW1wbGVtZW50YXRpb25zLCB3aGVy
+ZSBtZW1vcnkgaXMKPj4+Pj4gYWxsb2NhdGVkIHdpdGggbWFsbG9jLCBhbmQgdGhlbiBtYXBwZWQv
+bW92ZWQgaW50byB2cmFtL2dwdSBhZGRyZXNzCj4+Pj4+IHNwYWNlIHRocm91Z2ggc29tZSBtYWdp
+YywKPj4+PiBJdCBpcyBwb3NzaWJsZSB0aGF0IHRoZXJlIGlzIG90aGVyIHdheSBhcm91bmQ6IG1l
+bW9yeSBpcyByZXF1ZXN0ZWQgdG8gYmUKPj4+PiBhbGxvY2F0ZWQgYW5kIHNob3VsZCBiZSBrZXB0
+IGluIHZyYW0gZm9yICBwZXJmb3JtYW5jZSByZWFzb24gYnV0IGR1ZQo+Pj4+IHRvIHBvc3NpYmxl
+IG92ZXJjb21taXQgY2FzZSB3ZSBuZWVkIGF0IGxlYXN0IHRlbXBvcmFsbHkgdG8gIm1vdmUiIHN1
+Y2gKPj4+PiBhbGxvY2F0aW9uIHRvIHN5c3RlbSBtZW1vcnkuCj4+PiBXaXRoIG1pZ3JhdGlvbiBJ
+IG1lYW50IG1pZ3JhdGluZyBib3RoIHdheXMgb2YgY291cnNlLiBBbmQgd2l0aCBzdHVmZgo+Pj4g
+bGlrZSBudW1hY3RsIHdlIGNhbiBhbHNvIGluZmx1ZW5jZSB3aGVyZSBleGFjdGx5IHRoZSBtYWxs
+b2MnZWQgbWVtb3J5Cj4+PiBpcyBhbGxvY2F0ZWQgb3JpZ2luYWxseSwgYXQgbGVhc3QgaWYgd2Un
+ZCBleHBvc2UgdGhlIHZyYW0gcmFuZ2UgYXMgYQo+Pj4gdmVyeSBzcGVjaWFsIG51bWEgbm9kZSB0
+aGF0IGhhcHBlbnMgdG8gYmUgZmFyIGF3YXkgYW5kIG5vdCBob2xkIGFueQo+Pj4gY3B1IGNvcmVz
+Lgo+PiBJIGRvbid0IHRoaW5rIHdlIHNob3VsZCBiZSB1c2luZyBudW1hIGRpc3RhbmNlIHRvIHJl
+dmVyc2UgZW5naW5lZXIgYQo+PiBjZXJ0YWluIGFsbG9jYXRpb24gYmVoYXZpb3IuICBUaGUgbGF0
+ZW5jeSBkYXRhIHNob3VsZCBiZSB0cnV0aGZ1bCwgYnV0Cj4+IHlvdSdyZSByaWdodCB3ZSdsbCBu
+ZWVkIGEgbWVjaGFuaXNtIHRvIGtlZXAgZ2VuZXJhbCBwdXJwb3NlCj4+IGFsbG9jYXRpb25zIG91
+dCBvZiB0aGF0IHJhbmdlIGJ5IGRlZmF1bHQuIEJ0dywgc3RyaWN0IGlzb2xhdGlvbiBpcwo+PiBh
+bm90aGVyIGRlc2lnbiBwb2ludCBvZiBkZXZpY2UtZGF4LCBidXQgSSB0aGluayBpbiB0aGlzIGNh
+c2Ugd2UncmUKPj4gZGVzY3JpYmluZyBzb21ldGhpbmcgYmV0d2VlbiB0aGUgdHdvIGV4dHJlbWVz
+IG9mIGZ1bGwgaXNvbGF0aW9uIGFuZAo+PiBmdWxsIGNvbXBhdGliaWxpdHkgd2l0aCBleGlzdGlu
+ZyBudW1hY3RsIGFwaXMuCj4gWWVzLCBhZ3JlZWQuIE15IGlkZWEgd2l0aCBleHBvc2luZyB2cmFt
+IHNlY3Rpb25zIHVzaW5nIG51bWEgbm9kZXMgd2Fzbid0Cj4gdG8gcmV1c2UgYWxsIHRoZSBleGlz
+dGluZyBhbGxvY2F0aW9uIHBvbGljaWVzIGRpcmVjdGx5LCB0aG9zZSB3b24ndCB3b3JrLgo+IFNv
+IGF0IGJvb3QtdXAgeW91ciBkZWZhdWx0IG51bWEgcG9saWN5IHdvdWxkIGV4Y2x1ZGUgYW55IHZy
+YW0gbm9kZXMuCj4KPiBCdXQgSSB0aGluayAoYXMgYW4gLW1tIGxheW1hbikgdGhhdCBudW1hIGdp
+dmVzIHVzIGEgbG90IG9mIHRoZSB0b29scyBhbmQKPiBwb2xpY3kgaW50ZXJmYWNlIHRoYXQgd2Ug
+bmVlZCB0byBpbXBsZW1lbnQgd2hhdCB3ZSB3YW50IGZvciBncHVzLgoKQWdyZWUgY29tcGxldGVs
+eS4gRnJvbSBhIHRlbiBtaWxlIGhpZ2ggdmlldyBvdXIgR1BVcyBhcmUganVzdCBjb21tYW5kIApw
+cm9jZXNzb3JzIHdpdGggbG9jYWwgbWVtb3J5IGFzIHdlbGwgLgoKQmFzaWNhbGx5IHRoaXMgaXMg
+YWxzbyB0aGUgd2hvbGUgaWRlYSBvZiB3aGF0IEFNRCBpcyBwdXNoaW5nIHdpdGggSFNBIApmb3Ig
+YSB3aGlsZS4KCkl0J3MganVzdCB0aGF0IGEgbG90IG9mIHByb2JsZW1zIHN0YXJ0IHRvIHBvcCB1
+cCB3aGVuIHlvdSBsb29rIGF0IGFsbCAKdGhlIG5hc3R5IGRldGFpbHMuIEZvciBleGFtcGxlIG9u
+bHkgcGFydCBvZiB0aGUgR1BVIG1lbW9yeSBpcyB1c3VhbGx5IAphY2Nlc3NpYmxlIGJ5IHRoZSBD
+UFUuCgpTbyBldmVuIHdoZW4gbnVtYSBub2RlcyBleHBvc2UgYSBnb29kIGZvdW5kYXRpb24gZm9y
+IHRoaXMgSSB0aGluayB0aGVyZSAKaXMgc3RpbGwgYSBsb3Qgb2YgY29kZSB0byB3cml0ZS4KCkJU
+VzogSSBzaG91bGQgcHJvYmFibHkgc3RhcnQgdG8gcmVhZCBpbnRvIHRoZSBudW1hIGNvZGUgb2Yg
+dGhlIGtlcm5lbC4gCkFueSBnb29kIHBvaW50ZXJzIGZvciB0aGF0PwoKUmVnYXJkcywKQ2hyaXN0
+aWFuLgoKPiBXcnQgaXNvbGF0aW9uOiBUaGVyZSdzIGEgc2xpZGluZyBzY2FsZSBvZiB3aGF0IGRp
+ZmZlcmVudCB1c2VycyBleHBlY3QsCj4gZnJvbSBmdWxsIGF1dG8gZXZlcnl0aGluZywgaW5jbHVk
+aW5nIG1pZ3JhdGluZyBwYWdlcyBhcm91bmQgaWYgbmVlZGVkIHRvCj4gZnVsbCBpc29sYXRpb24g
+YWxsIHNlZW1zIHRvIGJlIG9uIHRoZSB0YWJsZS4gQXMgbG9uZyBhcyB3ZSBrZWVwIHZyYW0gbm9k
+ZXMKPiBvdXQgb2YgYW55IGRlZmF1bHQgYWxsb2NhdGlvbiBudW1hc2V0cywgZnVsbCBpc29sYXRp
+b24gc2hvdWxkIGJlIHBvc3NpYmxlLgo+IC1EYW5pZWwKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
