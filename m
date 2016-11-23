@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 2/6] Fix spelling of CMAKE_INSTALL_UDEV_RULESDIR
-Date: Wed, 23 Nov 2016 16:35:00 -0700
-Message-ID: <1479944104-19949-3-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 1/6] Update C7 build instructions to use ninja from EPEL
+Date: Wed, 23 Nov 2016 16:34:59 -0700
+Message-ID: <1479944104-19949-2-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1479944104-19949-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1479944104-19949-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,39 +9,49 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 1b9b57df9924 ("Add a dependency on libudev")
+This made it into EPEL recently, refer people to that build.
+
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- rdma-core.spec        | 2 +-
- redhat/rdma-core.spec | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ README.md | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/rdma-core.spec b/rdma-core.spec
-index 5e36c37745c5fb..41ec47e9f86425 100644
---- a/rdma-core.spec
-+++ b/rdma-core.spec
-@@ -94,7 +94,7 @@ This is a simple example without the split sub packages to get things started.
- 	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
- 	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
- 	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
--	 -DCMAKE_INSTALL_UDEV_RULESDR:PATH=%{_udevrulesdir}
-+	 -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
- %make_jobs
+diff --git a/README.md b/README.md
+index 1f6e20170e5ade..9c69bb545c0596 100644
+--- a/README.md
++++ b/README.md
+@@ -59,7 +59,7 @@ $ apt-get install build-essential cmake gcc libudev-dev libnl-3-dev libnl-route-
+ $ dnf install cmake gcc libnl3-devel libudev-devel pkgconfig valgrind-devel ninja-build
+ ```
  
- %install
-diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index 0d1275ad1bfb49..39267be2033abc 100644
---- a/redhat/rdma-core.spec
-+++ b/redhat/rdma-core.spec
-@@ -218,7 +218,7 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
- 	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
- 	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
- 	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
--	 -DCMAKE_INSTALL_UDEV_RULESDR:PATH=%{_udevrulesdir}
-+	 -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
- %make_jobs
+-NOTE: Fedora Core uses the name 'ninja-build' for the ninja command.
++NOTE: Fedora Core uses the name 'ninja-build' for the 'ninja' command.
  
- %install
+ ### OpenSuSE
+ 
+@@ -75,16 +75,17 @@ Install required packages:
+ $ yum install cmake gcc libnl3-devel libudev-devel make pkgconfig valgrind-devel
+ ```
+ 
+-Developers are suggested to install more modern tooling for the best experience.
++Developers on CentOS 7 are suggested to install more modern tooling for the
++best experience.
+ 
+ ```sh
+ $ yum install epel-release
+-$ yum install cmake3 unzip
+-$ curl -OL https://github.com/ninja-build/ninja/releases/download/v1.7.1/ninja-linux.zip
+-$ unzip ninja-linux.zip
+-$ install -m755 ninja /usr/local/bin/ninja
++$ yum install cmake3 unzip ninja-build
+ ```
+ 
++NOTE: EPEL uses the name 'ninja-build' for the 'ninja' command, and 'cmake3'
++for the 'cmake' command.
++
+ # Reporting bugs
+ 
+ Bugs should be reported to the <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> mailing list
 -- 
 2.1.4
 
