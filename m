@@ -1,40 +1,36 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 4/6] Fix package building on CentOS6
-Date: Wed, 23 Nov 2016 16:35:02 -0700
-Message-ID: <1479944104-19949-5-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1479944104-19949-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 0/6] Container build script
+Date: Wed, 23 Nov 2016 16:34:58 -0700
+Message-ID: <1479944104-19949-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479944104-19949-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The old rpmbuild does not define _udevrulesdir.
+This is a revised version of the script I have been using to test builds
+across all the distros using docker containers.
 
-Fixes: 4910f1eb752e ("rdma-ndd: add rdma-ndd from infiniband-diags")
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- rdma-core.spec | 7 +++++++
- 1 file changed, 7 insertions(+)
+It should be very easy to setup, installing docker is fairly trivial these
+days on a recent distro.
 
-diff --git a/rdma-core.spec b/rdma-core.spec
-index 2c595a1da07d02..8c0b50da7645ee 100644
---- a/rdma-core.spec
-+++ b/rdma-core.spec
-@@ -77,6 +77,13 @@ This is a simple example without the split sub packages to get things started.
- %define _rundir /var/run
- %endif
- 
-+# New RPM defines _udevrulesdir, usually as /usr/lib/udev/rules.d
-+%if 0%{?_udevrulesdir:1}
-+%else
-+# This is the old path (eg for C6)
-+%define _udevrulesdir /lib/udev/rules.d
-+%endif
-+
- # Pass all of the rpm paths directly to GNUInstallDirs and our other defines.
- %cmake %{CMAKE_FLAGS} \
-          -DCMAKE_BUILD_TYPE=Release \
+I found a few mistakes while running through the test matrix, those are
+included here as well.
+
+Jason Gunthorpe (6):
+  Update C7 build instructions to use ninja from EPEL
+  Fix spelling of CMAKE_INSTALL_UDEV_RULESDIR
+  Fix RPM building on FC24
+  Fix package building on CentOS6
+  Avoid rpmbuild warning
+  Add a script to run builds in docker containers
+
+ README.md             |  24 +-
+ buildlib/cbuild       | 740 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ rdma-core.spec        |  15 +-
+ redhat/rdma-core.spec |   4 +-
+ 4 files changed, 770 insertions(+), 13 deletions(-)
+ create mode 100755 buildlib/cbuild
+
 -- 
 2.1.4
 
