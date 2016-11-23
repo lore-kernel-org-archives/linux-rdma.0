@@ -1,398 +1,132 @@
-From: Dan Jurgens <danielj@mellanox.com>
-Subject: [PATCH v6 9/9] selinux: Add a cache for quicker retreival of PKey SIDs
-Date: Wed, 23 Nov 2016 16:17:31 +0200
-Message-ID: <1479910651-43246-10-git-send-email-danielj@mellanox.com>
-References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSD generic R/W API (sendto path) performance results
+Date: Wed, 23 Nov 2016 10:01:13 -0500
+Message-ID: <67A5C703-9CD1-4139-8D17-6BE2F81070F9@oracle.com>
+References: <9170C872-DEE1-4D96-B9D8-E9D2B3F91915@oracle.com> <024601d23f7f$cef62500$6ce26f00$@opengridcomputing.com> <BA9DC9F7-C893-428B-AFE5-EFCCD13C9F25@oracle.com> <20161117124602.GA25821@lst.de> <84B43CFF-EBF7-4758-8751-8C97102C5BCF@oracle.com> <676323E9-2F30-4DB0-AEF8-CDE38E8A0715@oracle.com> <c6190e4c-9b8e-3937-ba38-7861eebeaaae@grimberg.me> <EB5A41EB-53AB-4BC9-A5A3-893A9828A5C9@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EB5A41EB-53AB-4BC9-A5A3-893A9828A5C9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
 
-It is likely that the SID for the same PKey will be requested many
-times. To reduce the time to modify QPs and process MADs use a cache to
-store PKey SIDs.
+> On Nov 17, 2016, at 3:42 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> 
+>> On Nov 17, 2016, at 3:20 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>> 
+>> 
+>>>>> Also did you try to always register for > max_sge
+>>>>> calls?  The code can already register all segments with the
+>>>>> rdma_rw_force_mr module option, so it would only need a small tweak for
+>>>>> that behavior.
+>>>> 
+>>>> For various reasons I decided the design should build one WR chain for
+>>>> each RDMA segment provided by the client. Good clients expose just
+>>>> one RDMA segment for the whole NFS READ payload.
+>>>> 
+>>>> Does force_mr make the generic API use FRWR with RDMA Write? I had
+>>>> assumed it changed only the behavior with RDMA Read. I'll try that
+>>>> too, if RDMA Write can easily be made to use FRWR.
+>>> 
+>>> Unfortunately, some RPC replies are formed from two or three
+>>> discontiguous buffers. The gap test in ib_sg_to_pages returns
+>>> a smaller number than sg_nents in this case, and rdma_rw_init_ctx
+>>> fails.
+>>> 
+>>> Thus with my current prototype I'm not able to test with FRWR.
+>>> 
+>>> I could fix this in my prototype, but it would be nicer for me if
+>>> rdma_rw_init_ctx handled this case the same for FRWR as it does
+>>> for physical addressing, which doesn't seem to have any problem
+>>> with a discontiguous SGL.
+>>> 
+>>> 
+>>>> But I'd like a better explanation for this result. Could be a bug
+>>>> in my implementation, my design, or in the driver. Continuing to
+>>>> investigate.
+>> 
+>> Hi Chuck, sorry for the late reply (have been busy lately..)
+>> 
+>> I think that the Call-to-first-Write phenomenon you are seeing makes
+>> perfect sense, the question is, is a QD=1 1M transfers latency that
+>> interesting? Did you see a positive effect on small (say 4k) transfers?
+>> both latency and iops scalability should be able to improve especially
+>> when serving multiple clients.
+>> 
+>> If indeed you feel that this is an interesting workload to optimize, I
+>> think we can come up with something.
+> 
+> I believe 1MB transfers are interesting: NFS is frequently used in
+> back-up scenarios, for example, and believe it or not, also for
+> non-linear editing and animation (4K video).
+> 
+> QD=1 exposes the individual components of latency. In this case, we
+> can clearly see the cost of preparing the data payload for transfer.
+> It's basically a tweak so we can debug the problem.
+> 
+> In the "Real World" I expect to see larger transfers, where several
+> 1MB I/Os are dispatched in parallel. I don't reach fabric bandwidth
+> until 10 or more are in flight, which I think should be improved.
 
-This code is heavily based on the "netif" and "netport" concept
-originally developed by James Morris <jmorris@redhat.com> and Paul Moore
-<paul@paul-moore.com> (see security/selinux/netif.c and
-security/selinux/netport.c for more information)
+I've found what looks like the problem.
 
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+After disabling DMA API and IOMMU debugging, the post-conversion
+server shows 1MB NFS READ latency averaging about 403us, measured
+via ibdump captured on the server. Pre-conversion, latency averages
+about 397us in my set-up.
 
----
-v2:
-- Renamed the files to ibpkey. Paul Moore
-- Fixed a bracket indentation mismatch in sel_pkey_find. Yuval Shaia
-- Change spin_lock_bh to spin_lock_irqsave to resolve HARDIRQ lockdep
-  warning.  Dan Jurgens
+Post-conversion, it takes a little longer for the first RDMA Write
+request after the NFS READ Call arrives (longer Call-to-first-Write),
+but the RDMA Writes are transmitted on average a little faster with
+the generic API (shorter First-to-last-Write).
 
-v6:
-- Fixed sel_pkey_sid_slow error handling. James Morris
----
- security/selinux/Makefile         |   2 +-
- security/selinux/hooks.c          |   7 +-
- security/selinux/ibpkey.c         | 245 ++++++++++++++++++++++++++++++++++++++
- security/selinux/include/ibpkey.h |  31 +++++
- security/selinux/include/objsec.h |   6 +
- 5 files changed, 288 insertions(+), 3 deletions(-)
- create mode 100644 security/selinux/ibpkey.c
- create mode 100644 security/selinux/include/ibpkey.h
+But the "can't reach fabric bandwidth" issue appears to be a client
+issue, not a server issue.
 
-diff --git a/security/selinux/Makefile b/security/selinux/Makefile
-index 3411c33..ff5895e 100644
---- a/security/selinux/Makefile
-+++ b/security/selinux/Makefile
-@@ -5,7 +5,7 @@
- obj-$(CONFIG_SECURITY_SELINUX) := selinux.o
- 
- selinux-y := avc.o hooks.o selinuxfs.o netlink.o nlmsgtab.o netif.o \
--	     netnode.o netport.o exports.o \
-+	     netnode.o netport.o ibpkey.o exports.o \
- 	     ss/ebitmap.o ss/hashtab.o ss/symtab.o ss/sidtab.o ss/avtab.o \
- 	     ss/policydb.o ss/services.o ss/conditional.o ss/mls.o ss/status.o
- 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 55b18b3..7ee9854 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -90,6 +90,7 @@
- #include "netif.h"
- #include "netnode.h"
- #include "netport.h"
-+#include "ibpkey.h"
- #include "xfrm.h"
- #include "netlabel.h"
- #include "audit.h"
-@@ -173,8 +174,10 @@ static int selinux_netcache_avc_callback(u32 event)
- 
- static int selinux_lsm_notifier_avc_callback(u32 event)
- {
--	if (event == AVC_CALLBACK_RESET)
-+	if (event == AVC_CALLBACK_RESET) {
-+		sel_pkey_flush();
- 		call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
-+	}
- 
- 	return 0;
- }
-@@ -6094,7 +6097,7 @@ static int selinux_ib_pkey_access(void *ib_sec, u64 subnet_prefix, u16 pkey_val)
- 	struct ib_security_struct *sec = ib_sec;
- 	struct lsm_pkey_audit pkey;
- 
--	err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
-+	err = sel_pkey_sid(subnet_prefix, pkey_val, &sid);
- 	if (err)
- 		return err;
- 
-diff --git a/security/selinux/ibpkey.c b/security/selinux/ibpkey.c
-new file mode 100644
-index 0000000..2ce12bb
---- /dev/null
-+++ b/security/selinux/ibpkey.c
-@@ -0,0 +1,245 @@
-+/*
-+ * Pkey table
-+ *
-+ * SELinux must keep a mapping of Infinband PKEYs to labels/SIDs.  This
-+ * mapping is maintained as part of the normal policy but a fast cache is
-+ * needed to reduce the lookup overhead.
-+ *
-+ * This code is heavily based on the "netif" and "netport" concept originally
-+ * developed by
-+ * James Morris <jmorris@redhat.com> and
-+ * Paul Moore <paul@paul-moore.com>
-+ *   (see security/selinux/netif.c and security/selinux/netport.c for more
-+ *   information)
-+ *
-+ */
-+
-+/*
-+ * (c) Mellanox Technologies, 2016
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/rcupdate.h>
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
-+
-+#include "ibpkey.h"
-+#include "objsec.h"
-+
-+#define SEL_PKEY_HASH_SIZE       256
-+#define SEL_PKEY_HASH_BKT_LIMIT   16
-+
-+struct sel_pkey_bkt {
-+	int size;
-+	struct list_head list;
-+};
-+
-+struct sel_pkey {
-+	struct pkey_security_struct psec;
-+	struct list_head list;
-+	struct rcu_head rcu;
-+};
-+
-+static LIST_HEAD(sel_pkey_list);
-+static DEFINE_SPINLOCK(sel_pkey_lock);
-+static struct sel_pkey_bkt sel_pkey_hash[SEL_PKEY_HASH_SIZE];
-+
-+/**
-+ * sel_pkey_hashfn - Hashing function for the pkey table
-+ * @pkey: pkey number
-+ *
-+ * Description:
-+ * This is the hashing function for the pkey table, it returns the bucket
-+ * number for the given pkey.
-+ *
-+ */
-+static unsigned int sel_pkey_hashfn(u16 pkey)
-+{
-+	return (pkey & (SEL_PKEY_HASH_SIZE - 1));
-+}
-+
-+/**
-+ * sel_pkey_find - Search for a pkey record
-+ * @subnet_prefix: subnet_prefix
-+ * @pkey_num: pkey_num
-+ *
-+ * Description:
-+ * Search the pkey table and return the matching record.  If an entry
-+ * can not be found in the table return NULL.
-+ *
-+ */
-+static struct sel_pkey *sel_pkey_find(u64 subnet_prefix, u16 pkey_num)
-+{
-+	unsigned int idx;
-+	struct sel_pkey *pkey;
-+
-+	idx = sel_pkey_hashfn(pkey_num);
-+	list_for_each_entry_rcu(pkey, &sel_pkey_hash[idx].list, list) {
-+		if (pkey->psec.pkey == pkey_num &&
-+		    pkey->psec.subnet_prefix == subnet_prefix)
-+			return pkey;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * sel_pkey_insert - Insert a new pkey into the table
-+ * @pkey: the new pkey record
-+ *
-+ * Description:
-+ * Add a new pkey record to the hash table.
-+ *
-+ */
-+static void sel_pkey_insert(struct sel_pkey *pkey)
-+{
-+	unsigned int idx;
-+
-+	/* we need to impose a limit on the growth of the hash table so check
-+	 * this bucket to make sure it is within the specified bounds
-+	 */
-+	idx = sel_pkey_hashfn(pkey->psec.pkey);
-+	list_add_rcu(&pkey->list, &sel_pkey_hash[idx].list);
-+	if (sel_pkey_hash[idx].size == SEL_PKEY_HASH_BKT_LIMIT) {
-+		struct sel_pkey *tail;
-+
-+		tail = list_entry(
-+			rcu_dereference_protected(
-+				sel_pkey_hash[idx].list.prev,
-+				lockdep_is_held(&sel_pkey_lock)),
-+			struct sel_pkey, list);
-+		list_del_rcu(&tail->list);
-+		kfree_rcu(tail, rcu);
-+	} else {
-+		sel_pkey_hash[idx].size++;
-+	}
-+}
-+
-+/**
-+ * sel_pkey_sid_slow - Lookup the SID of a pkey using the policy
-+ * @subnet_prefix: subnet prefix
-+ * @pkey_num: pkey number
-+ * @sid: pkey SID
-+ *
-+ * Description:
-+ * This function determines the SID of a pkey by querying the security
-+ * policy.  The result is added to the pkey table to speedup future
-+ * queries.  Returns zero on success, negative values on failure.
-+ *
-+ */
-+static int sel_pkey_sid_slow(u64 subnet_prefix, u16 pkey_num, u32 *sid)
-+{
-+	int ret;
-+	struct sel_pkey *pkey;
-+	struct sel_pkey *new = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&sel_pkey_lock, flags);
-+	pkey = sel_pkey_find(subnet_prefix, pkey_num);
-+	if (pkey) {
-+		*sid = pkey->psec.sid;
-+		spin_unlock_irqrestore(&sel_pkey_lock, flags);
-+		return 0;
-+	}
-+
-+	ret = security_pkey_sid(subnet_prefix, pkey_num, sid);
-+	if (ret)
-+		goto out;
-+
-+	/* If this memory allocation fails still return 0. The SID
-+	 * is valid, it just won't be added to the cache.
-+	 */
-+	new = kzalloc(sizeof(*new), GFP_ATOMIC);
-+	if (!new)
-+		goto out;
-+
-+	new->psec.subnet_prefix = subnet_prefix;
-+	new->psec.pkey = pkey_num;
-+	new->psec.sid = *sid;
-+	sel_pkey_insert(new);
-+
-+out:
-+	spin_unlock_irqrestore(&sel_pkey_lock, flags);
-+	return ret;
-+}
-+
-+/**
-+ * sel_pkey_sid - Lookup the SID of a PKEY
-+ * @subnet_prefix: subnet_prefix
-+ * @pkey_num: pkey number
-+ * @sid: pkey SID
-+ *
-+ * Description:
-+ * This function determines the SID of a PKEY using the fastest method
-+ * possible.  First the pkey table is queried, but if an entry can't be found
-+ * then the policy is queried and the result is added to the table to speedup
-+ * future queries.  Returns zero on success, negative values on failure.
-+ *
-+ */
-+int sel_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *sid)
-+{
-+	struct sel_pkey *pkey;
-+
-+	rcu_read_lock();
-+	pkey = sel_pkey_find(subnet_prefix, pkey_num);
-+	if (pkey) {
-+		*sid = pkey->psec.sid;
-+		rcu_read_unlock();
-+		return 0;
-+	}
-+	rcu_read_unlock();
-+
-+	return sel_pkey_sid_slow(subnet_prefix, pkey_num, sid);
-+}
-+
-+/**
-+ * sel_pkey_flush - Flush the entire pkey table
-+ *
-+ * Description:
-+ * Remove all entries from the pkey table
-+ *
-+ */
-+void sel_pkey_flush(void)
-+{
-+	unsigned int idx;
-+	struct sel_pkey *pkey, *pkey_tmp;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&sel_pkey_lock, flags);
-+	for (idx = 0; idx < SEL_PKEY_HASH_SIZE; idx++) {
-+		list_for_each_entry_safe(pkey, pkey_tmp,
-+					 &sel_pkey_hash[idx].list, list) {
-+			list_del_rcu(&pkey->list);
-+			kfree_rcu(pkey, rcu);
-+		}
-+		sel_pkey_hash[idx].size = 0;
-+	}
-+	spin_unlock_irqrestore(&sel_pkey_lock, flags);
-+}
-+
-+static __init int sel_pkey_init(void)
-+{
-+	int iter;
-+
-+	if (!selinux_enabled)
-+		return 0;
-+
-+	for (iter = 0; iter < SEL_PKEY_HASH_SIZE; iter++) {
-+		INIT_LIST_HEAD(&sel_pkey_hash[iter].list);
-+		sel_pkey_hash[iter].size = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+subsys_initcall(sel_pkey_init);
-diff --git a/security/selinux/include/ibpkey.h b/security/selinux/include/ibpkey.h
-new file mode 100644
-index 0000000..387885a
---- /dev/null
-+++ b/security/selinux/include/ibpkey.h
-@@ -0,0 +1,31 @@
-+/*
-+ * pkey table
-+ *
-+ * SELinux must keep a mapping of pkeys to labels/SIDs.  This
-+ * mapping is maintained as part of the normal policy but a fast cache is
-+ * needed to reduce the lookup overhead.
-+ *
-+ */
-+
-+/*
-+ * (c) Mellanox Technologies, 2016
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef _SELINUX_IB_PKEY_H
-+#define _SELINUX_IB_PKEY_H
-+
-+void sel_pkey_flush(void);
-+
-+int sel_pkey_sid(u64 subnet_prefix, u16 pkey, u32 *sid);
-+
-+#endif
-diff --git a/security/selinux/include/objsec.h b/security/selinux/include/objsec.h
-index 8e7db43..4139f28 100644
---- a/security/selinux/include/objsec.h
-+++ b/security/selinux/include/objsec.h
-@@ -133,6 +133,12 @@ struct ib_security_struct {
- 	u32 sid;        /* SID of the queue pair or MAD agent */
- };
- 
-+struct pkey_security_struct {
-+	u64	subnet_prefix; /* Port subnet prefix */
-+	u16	pkey;	/* PKey number */
-+	u32	sid;	/* SID of pkey */
-+};
-+
- extern unsigned int selinux_checkreqprot;
- 
- #endif /* _SELINUX_OBJSEC_H_ */
--- 
-2.7.4
+I compared a client-side and server-side ibdump capture taken during
+the same benchmark run. The server emits an RDMA Write every
+microsecond or two, like clockwork. The client, though, shows
+occasional RDMA Write Middles arriving after a several hundred
+microsecond pause. That's enough to slow down the time between NFS
+READ Reply and the next NFS READ Call, and that impacts benchmarked
+throughput.
 
+ibqueryerrors shows the client's HCA and switch port are congested
+(PortXmitWait). That counter goes up whenever the NFS workload
+involves a significant number of RDMA Writes.
+
+During benchmarking, I have used the default NFS rsize of 1MB.
+
+If I mount with a smaller rsize, the ratio of RDMA Writes streamed
+per NFS READ request goes down. At rsize=262144, iozone can reach
+very close to fabric bandwidth (5.2GB/s) with 2MB and 4MB I/O, which
+is about the best I can hope for.
+
+This congestion issue also makes the iozone 1MB QD=1 benchmark
+results highly variable.
+
+With ConnectX-4 on the client, the congestion problem seems worse.
+The good rsize=256KB result happens only when the client is using its
+CX-3 Pro HCA.
+
+Somehow I need to determine why the client's HCA gets hosed up during
+heavy RDMA Write workloads. Could be the HCAs need to be in different
+slots? Maybe it's NUMA effects? Perhaps the workload's ratio between
+RDMA Write and RDMA Send?
+
+Any advice is appreciated! ;-)
+
+
+--
+Chuck Lever
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
