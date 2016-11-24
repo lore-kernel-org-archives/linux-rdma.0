@@ -1,21 +1,21 @@
 From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH] net/mlx5: drop duplicate header delay.h
-Date: Thu, 24 Nov 2016 17:25:41 +0200
-Message-ID: <CALzJLG-eaLCO=3bMtjt=HriPeHG8CBYbcFup6XXE_dM-_uBmkw@mail.gmail.com>
-References: <15299de49216a2360976ca37ff774cae9d27d88b.1479991297.git.geliangtang@gmail.com>
- <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang@gmail.com>
+Subject: Re: [patch] net/mlx5: remove a duplicate condition
+Date: Thu, 24 Nov 2016 17:30:00 +0200
+Message-ID: <CALzJLG97UUXQi6qYOqm_EePkv-k5JxyVxN_he1QZrJx2Yui2Tg@mail.gmail.com>
+References: <20161124110345.GC17225@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geliang Tang <geliangtang@gmail.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161124110345.GC17225@mwanda>
+Sender: netdev-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 24, 2016 at 3:58 PM, Geliang Tang <geliangtang@gmail.com> wrote:
-> Drop duplicate header delay.h from mlx5/core/main.c.
+On Thu, Nov 24, 2016 at 1:03 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> We verified that MLX5_FLOW_CONTEXT_ACTION_COUNT was set on the first
+> line of the function so we don't need to check again here.
 >
-> Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 Acked-by: Saeed Mahameed <saeedm@mellanox.com>
