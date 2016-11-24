@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 24 Nov 2016 10:55:39 -0700
-Message-ID: <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
+Date: Thu, 24 Nov 2016 11:11:34 -0700
+Message-ID: <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
 References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
  <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
  <20161123190515.GA12146@obsidianresearch.com>
@@ -11,14 +11,13 @@ References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
  <20161123203332.GA15062@obsidianresearch.com>
  <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
  <20161123215510.GA16311@obsidianresearch.com>
- <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
- <20161123232503.GA13965@obsidianresearch.com>
- <a33ec1cd-051f-8a24-0587-68707459c25c@amd.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <a33ec1cd-051f-8a24-0587-68707459c25c-5C7GfCeVMHo@public.gmane.org>
+In-Reply-To: <20161124164249.GD20818-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,32 +27,77 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
  John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
  Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey,
 
-On 24/11/16 02:45 AM, Christian K=F6nig wrote:
-> E.g. it can happen that PCI device A exports it's BAR using ZONE_DEVICE.
-> Not PCI device B (a SATA device) can directly read/write to it because
-> it is on the same bus segment, but PCI device C (a network card for
-> example) can't because it is on a different bus segment and the bridge
-> can't handle P2P transactions.
 
-Yeah, that could be an issue but in our experience we have yet to see
-it. We've tested with two separate PCI buses on different CPUs connected
-through QPI links and it works fine. (It is rather slow but I understand
-Intel has improved the bottleneck in newer CPUs than the ones we tested.)
+On 24/11/16 09:42 AM, Jason Gunthorpe wrote:
+> There are three cases to worry about:
+>  - Coherent long lived page table mirroring (RDMA ODP MR)
+>  - Non-coherent long lived page table mirroring (RDMA MR)
+>  - Short lived DMA mapping (everything else)
+> 
+> Like you say below we have to handle short lived in the usual way, and
+> that covers basically every device except IB MRs, including the
+> command queue on a NVMe drive.
 
-It may just be older hardware that has this issue. I expect that as long
-as a failed transfer can be handled gracefully by the initiator I don't
-see a need to predetermine whether a device can see another devices memory.
+Yes, this makes sense to me. Though I thought regular IB MRs with
+regular memory currently pinned the pages (despite being long lived)
+that's why we can run up against the "max locked memory" limit. It
+doesn't seem so terrible if GPU memory had a similar restriction until
+ODP like solutions get implemented.
 
+>> Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
+>> memory working for some time. I'd say it's a good fit. The main question
+>> we've had is how to expose PCIe bars to userspace to be used as MRs and
+>> such.
+
+> Is there any progress on that?
+
+Well, I guess there's some consensus building to do. The existing
+options are:
+
+* Device DAX: which could work but the problem I see with it is that it
+only allows one application to do these transfers. Or there would have
+to be some user-space coordination to figure which application gets what
+memeroy.
+
+* Regular DAX in the FS doesn't work at this time because the FS can
+move the file you think your transfer to out from under you. Though I
+understand there's been some work with XFS to solve that issue.
+
+Though, we've been considering that the backed memory would be
+non-volatile which adds some of this complexity. If the memory were
+volatile the kernel would just need to do some relatively straight
+forward allocation to user-space when asked. For example, with NVMe, the
+kernel could give chunks of the CMB buffer to userspace via an mmap call
+to /dev/nvmeX. Though I think there's been some push back against things
+like that as well.
+
+> I still don't quite get what iopmem was about.. I thought the
+> objection to uncachable ZONE_DEVICE & DAX made sense, so running DAX
+> over iopmem and still ending up with uncacheable mmaps still seems
+> like a non-starter to me...
+
+The latest incarnation of iopmem simply created a block device backed by
+ZONE_DEVICE memory on a PCIe BAR. We then put a DAX FS on it and
+user-space could mmap the files and send them to other devices to do P2P
+transfers.
+
+I don't think there was a hard objection to uncachable ZONE_DEVICE and
+DAX. We did try our experimental hardware with cached ZONE_DEVICE and it
+did work but the performance was beyond unusable (which may be a
+hardware issue). In the end I feel the driver would have to decide the
+most appropriate caching for the hardware and I don't understand why WC
+or UC wouldn't work with ZONE_DEVICE.
 
 Logan
