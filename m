@@ -1,38 +1,33 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch] net/mlx5: remove a duplicate condition
-Date: Thu, 24 Nov 2016 14:03:45 +0300
-Message-ID: <20161124110345.GC17225@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: [PATCH] net/mlx5: drop duplicate header delay.h
+Date: Thu, 24 Nov 2016 21:58:33 +0800
+Message-ID: <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang@gmail.com>
+References: <15299de49216a2360976ca37ff774cae9d27d88b.1479991297.git.geliangtang@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <15299de49216a2360976ca37ff774cae9d27d88b.1479991297.git.geliangtang@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: Geliang Tang <geliangtang@gmail.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-We verified that MLX5_FLOW_CONTEXT_ACTION_COUNT was set on the first
-line of the function so we don't need to check again here.
+Drop duplicate header delay.h from mlx5/core/main.c.
 
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
 ---
-Not a bugfix so it would go into -next
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 68ec4ea..a263d89 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1307,8 +1307,7 @@ static bool counter_is_valid(struct mlx5_fc *counter, u32 action)
- 		return false;
- 
- 	return (action & (MLX5_FLOW_CONTEXT_ACTION_DROP |
--			  MLX5_FLOW_CONTEXT_ACTION_FWD_DEST)) &&
--		(action & MLX5_FLOW_CONTEXT_ACTION_COUNT);
-+			  MLX5_FLOW_CONTEXT_ACTION_FWD_DEST));
- }
- 
- static bool dest_is_valid(struct mlx5_flow_destination *dest,
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index f28df33..d7a55eb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -46,7 +46,6 @@
+ #include <linux/mlx5/srq.h>
+ #include <linux/debugfs.h>
+ #include <linux/kmod.h>
+-#include <linux/delay.h>
+ #include <linux/mlx5/mlx5_ifc.h>
+ #ifdef CONFIG_RFS_ACCEL
+ #include <linux/cpu_rmap.h>
+-- 
+2.9.3
