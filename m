@@ -1,97 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 24 Nov 2016 09:42:49 -0700
-Message-ID: <20161124164249.GD20818@obsidianresearch.com>
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] net/mlx5: drop duplicate header delay.h
+Date: Thu, 24 Nov 2016 16:12:55 +0200
+Message-ID: <b26fd9fb-ce8d-b0a4-a1b4-3b875e13a313@mellanox.com>
+References: <15299de49216a2360976ca37ff774cae9d27d88b.1479991297.git.geliangtang@gmail.com>
+ <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <91d28749-bc64-622f-56a1-26c00e6b462a-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
- John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 23, 2016 at 06:25:21PM -0700, Logan Gunthorpe wrote:
-> 
-> 
-> On 23/11/16 02:55 PM, Jason Gunthorpe wrote:
-> >>> Only ODP hardware allows changing the DMA address on the fly, and it
-> >>> works at the page table level. We do not need special handling for
-> >>> RDMA.
-> >>
-> >> I am aware of ODP but, noted by others, it doesn't provide a general
-> >> solution to the points above.
-> > 
-> > How do you mean?
-> 
-> I was only saying it wasn't general in that it wouldn't work for IB
-> hardware that doesn't support ODP or other hardware  that doesn't do
-> similar things (like an NVMe drive).
+On 24/11/2016 15:58, Geliang Tang wrote:
+> Drop duplicate header delay.h from mlx5/core/main.c.
+>
+> Signed-off-by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/main.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> index f28df33..d7a55eb 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> @@ -46,7 +46,6 @@
+>  #include <linux/mlx5/srq.h>
+>  #include <linux/debugfs.h>
+>  #include <linux/kmod.h>
+> -#include <linux/delay.h>
+>  #include <linux/mlx5/mlx5_ifc.h>
+>  #ifdef CONFIG_RFS_ACCEL
+>  #include <linux/cpu_rmap.h>
+>
 
-There are three cases to worry about:
- - Coherent long lived page table mirroring (RDMA ODP MR)
- - Non-coherent long lived page table mirroring (RDMA MR)
- - Short lived DMA mapping (everything else)
-
-Like you say below we have to handle short lived in the usual way, and
-that covers basically every device except IB MRs, including the
-command queue on a NVMe drive.
-
-> any complex allocators (GPU or otherwise) should respect that. And that
-> seems like it should be the default way most of this works -- and I
-> think it wouldn't actually take too much effort to make it all work now
-> as is. (Our iopmem work is actually quite small and simple.)
-
-Yes, absolutely, some kind of page pinning like locking is a hard
-requirement.
-
-> Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
-> memory working for some time. I'd say it's a good fit. The main question
-> we've had is how to expose PCIe bars to userspace to be used as MRs and
-> such.
-
-Is there any progress on that?
-
-I still don't quite get what iopmem was about.. I thought the
-objection to uncachable ZONE_DEVICE & DAX made sense, so running DAX
-over iopmem and still ending up with uncacheable mmaps still seems
-like a non-starter to me...
-
-Serguei, what is your plan in GPU land for migration? Ie if I have a
-CPU mapped page and the GPU moves it to VRAM, it becomes non-cachable
-- do you still allow the CPU to access it? Or do you swap it back to
-cachable memory if the CPU touches it?
-
-One approach might be to mmap the uncachable ZONE_DEVICE memory and
-mark it inaccessible to the CPU - DMA could still translate. If the
-CPU needs it then the kernel migrates it to system memory so it
-becomes cachable. ??
-
-Jason
+Thanks.
+Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
