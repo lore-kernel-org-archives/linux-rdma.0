@@ -1,68 +1,106 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) Bus driver
-Date: Wed, 23 Nov 2016 16:08:25 -0800
-Message-ID: <20161124000825.GA73280@knc-06.sc.intel.com>
-References: <1479508938-63799-3-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161119190445.GG22775@obsidianresearch.com>
- <20161121213017.GB67872@knc-06.sc.intel.com>
- <20161121213930.GA30111@obsidianresearch.com>
- <20161121232629.GA67988@knc-06.sc.intel.com>
- <20161121233118.GA31132@obsidianresearch.com>
- <20161122015304.GB67988@knc-06.sc.intel.com>
- <20161122170407.GE3956@obsidianresearch.com>
- <20161123000502.GA27968@phlsvsds.ph.intel.com>
- <20161123004932.GA13598@obsidianresearch.com>
+From: "Sagalovitch, Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 24 Nov 2016 00:40:37 +0000
+Message-ID: <SN1PR12MB0703CE07F4878243164299C4FEB70@SN1PR12MB0703.namprd12.prod.outlook.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>,
+ <20161123215510.GA16311@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161123004932.GA13598-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20161123215510.GA16311-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-CA
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
+ John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 22, 2016 at 05:49:32PM -0700, Jason Gunthorpe wrote:
->> > > We could add a custom Interface between HFI1 driver and hfi_vnic drivers
->> > > without involving a bus.
->> >
->> > hfi is already registering on the infiniband class, just use that.
->>
->> I don't understand what you mean here?
->
->Get the struct ib_device for the hfi and then do something to get hfi
->specific function calls.
->
->Or work it backwards with a _register function..
->
+On Wed, Nov 23, 2016 at 02:11:29PM -0700, Logan Gunthorpe wrote:
 
-OK, thanks for your feedback.
-We can make the hfi_vnic module as an ib client (which it is) like other ULPs, 
-and do not have an in-built or custom bus for binding.
-Then the hfi_vnic ULP by some mechanism will identify the device as hfi1 device 
-and will only serve that device.
+> Perhaps I am not following what Serguei is asking for, but I
+> understood the desire was for a complex GPU allocator that could
+> migrate pages between GPU and CPU memory under control of the GPU
+> driver, among other things. The desire is for DMA to continue to work
+> even after these migrations happen.
 
-In order to pass the hfi function pointers to the hfi_vnic ULP, I can,
-a) Have hfi_vnic ULP define an interface API for hfi1 driver to call to 
-register its callback (as you pointed). Unfortunately there will be a module 
-dependency here.
-Or,
-b) Add a new member ‘struct vnic_ops’ either to the ib_device structure or 
-ib_port_immutable structure. As it is hfi1 specific, only hfi1 driver will set 
-it. No module dependency here.
+The main issue is to  how to solve use cases when p2p is 
+requested/initiated via CPU pointers where such pointers could 
+point to non-system memory location e.g.  VRAM.  
 
-And will move the hfi_vnic module under ‘drivers/infiniband/ulp/hfi_vnic’.
-All these will remove undue complexity and fit the driver in current design 
-framework as per your suggestion.
-Let me know your comments.
+It will allow to provide consistent working model for user to deal only
+with pointers (HSA, CUDA, OpenCL 2.0 SVM) as well as provide 
+performance optimization avoiding double-buffering and extra special code 
+when dealing with PCIe device memory.
 
-Niranjana
+ Examples are:
 
->
->Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ - RDMA Network operations.  RDMA MRs where registered memory 
+could be e.g. VRAM.  Currently it is solved using so called PeerDirect  
+interface which  is currently out-of-tree and  provided as part of OFED.
+- File operations (fread/fwrite) when user wants to transfer file data directly 
+to/from e.g. VRAM
+
+
+Challenges are:
+- Because graphics sub-system must support overcomit (at least each 
+application/process should independently see all resources) ideally 
+such memory should be movable without changing CPU pointer value
+as well as "paged-out" supporting "page fault" at least on access from 
+CPU.
+ - We must co-exist with existing DRM infrastructure, as well as 
+support sharing VRAM memory between different processes
+- We should be able to deal with large allocations: tens, hundreds of 
+MBs or may be GBs.
+- We may have PCIe devices where p2p may not work
+- Potentially any GPU memory should be supported including 
+memory carved out from system RAM (e.g. allocated via
+get_free_pages()).
+
+
+Note:
+-  In the case of RDMA MRs life-span of "pinning" 
+(get_user_pages"/put_page) may be defined/controlled by 
+application not kernel which  may be should 
+treated differently as special case. 
+  
+
+Original proposal was to create "struct pages" for VRAM memory 
+to allow "get_user_pages"  to work transparently similar 
+how it is/was done for "DAX Device" case. Unfortunately 
+based on my understanding "DAX Device" implementation 
+deal only with permanently  "locked" memory  (fixed location) 
+unrelated to "get_user_pages"/"put_page" scope  
+which doesn't satisfy requirements  for "eviction" / "moving" of 
+memory keeping CPU address intact.  
+
+> The desire is for DMA to continue to work
+> even after these migrations happen
+At least some kind of mm notifier callback to inform about changing 
+in location (pre- and post-) similar how it is done for system pages. 
+My understanding is that It will not solve RDMA MR issue where "lock" 
+could be during the whole  application life but  (a) it will not make 
+RDMA MR case worse  (b) should be enough for all other cases for 
+"get_user_pages"/"put_page" controlled by  kernel.
