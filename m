@@ -1,8 +1,8 @@
 From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 188591] New: Function ioat_dma_self_test() does not set error
- code when the call to dma_mapping_error() fails
-Date: Fri, 25 Nov 2016 10:39:16 +0000
-Message-ID: <bug-188591-11804@https.bugzilla.kernel.org/>
+Subject: [Bug 188821] New: Function c4iw_rdev_open() does not set error code
+ when the call to __get_free_page() fails.
+Date: Fri, 25 Nov 2016 11:01:16 +0000
+Message-ID: <bug-188821-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -11,11 +11,11 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=188591
+https://bugzilla.kernel.org/show_bug.cgi?id=188821
 
-            Bug ID: 188591
-           Summary: Function ioat_dma_self_test() does not set error code
-                    when the call to dma_mapping_error() fails
+            Bug ID: 188821
+           Summary: Function c4iw_rdev_open() does not set error code when
+                    the call to __get_free_page() fails.
            Product: Drivers
            Version: 2.5
     Kernel Version: linux-4.9-rc6
@@ -30,52 +30,44 @@ https://bugzilla.kernel.org/show_bug.cgi?id=188591
           Reporter: bianpan2010-AvrBmmDjM4YnDS1+zs4M5A@public.gmane.org
         Regression: No
 
-Function dma_mapping_error() returns a NULL pointer on failure. In function
-ioat_dma_self_test() defined in file drivers/dma/ioat/init.c, variable err
-takes the error code. However, the value of err is 0 (indicates success) even
-when the calls to dma_mapping_error() fail at line 341 or 346. Though this
-error may occur rarely, it is better to assgin "-ENOMEM" to err before the jump
-instructions at lines 343 and 348. Codes related to these two bugs are
+Function __get_free_page() returns a NULL pointer if there is no enough memory.
+In function c4iw_rdev_open defined in file
+drivers/infiniband/hw/cxgb4/device.c, __get_free_page() is called and its
+return value is checked against NULL (at line 831). When the return value is
+NULL, the control flow jumps to label "destroy_ocqp_pool", and returns the
+value of variable err. However, after the check of variable err at line 825,
+the value of err must be 0. As a result, 0 (indicates success) may be returned
+even when the memory allocation fails. Maybe it is better to assign "-ENOMEM"
+to err before the jump instruction at line 832. Codes related to this bug are
 summarised as follows.
 
-ioat_dma_self_test @@ drivers/dma/ioat/init.c
- 302 static int ioat_dma_self_test(struct ioatdma_device *ioat_dma)
- 303 {
+c4iw_rdev_open @@ drivers/infiniband/hw/cxgb4/device.c
+ 752 static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 753 {
+ 754     int err;
          ...
- 313     int err = 0;
+ 824     err = c4iw_ocqp_pool_create(rdev);
+ 825     if (err) {
+ 826         printk(KERN_ERR MOD "error %d initializing ocqp pool\n", err);
+ 827         goto destroy_rqtpool;
+ 828     }
+ 829     rdev->status_page = (struct t4_dev_status_page *)
+ 830                 __get_free_page(GFP_KERNEL);
+ 831     if (!rdev->status_page)
+ 832         goto destroy_ocqp_pool;  // insert "err = -ENOMEM" before this
+line?
          ...
- 332     dma_chan = container_of(dma->channels.next, struct dma_chan,
- 333                 device_node);
- 334     if (dma->device_alloc_chan_resources(dma_chan) < 1) {
- 335         dev_err(dev, "selftest cannot allocate chan resource\n");
- 336         err = -ENODEV;
- 337         goto out;
- 338     }
- 339 
- 340     dma_src = dma_map_single(dev, src, IOAT_TEST_SIZE, DMA_TO_DEVICE);
- 341     if (dma_mapping_error(dev, dma_src)) {
- 342         dev_err(dev, "mapping src buffer failed\n");
- 343         goto free_resources;      // insert "err = -ENOMEM" before this
-jump instruction?
- 344     }
- 345     dma_dest = dma_map_single(dev, dest, IOAT_TEST_SIZE, DMA_FROM_DEVICE);
- 346     if (dma_mapping_error(dev, dma_dest)) {
- 347         dev_err(dev, "mapping dest buffer failed\n");
- 348         goto unmap_src;   // insert "err = -ENOMEM" before this jump
-instruction?
- 349     }
-         ...
- 387 unmap_dma:
- 388     dma_unmap_single(dev, dma_dest, IOAT_TEST_SIZE, DMA_FROM_DEVICE);
- 389 unmap_src:
- 390     dma_unmap_single(dev, dma_src, IOAT_TEST_SIZE, DMA_TO_DEVICE);
- 391 free_resources:
- 392     dma->device_free_chan_resources(dma_chan);
- 393 out:
- 394     kfree(src);
- 395     kfree(dest);
- 396     return err;
- 397 }
+ 851     return 0;
+ 852 destroy_ocqp_pool:
+ 853     c4iw_ocqp_pool_destroy(rdev);
+ 854 destroy_rqtpool:
+ 855     c4iw_rqtpool_destroy(rdev);
+ 856 destroy_pblpool:
+ 857     c4iw_pblpool_destroy(rdev);
+ 858 destroy_resource:
+ 859     c4iw_destroy_resource(&rdev->resource);
+ 860     return err;
+ 861 }
 
 Thanks very much!
 
