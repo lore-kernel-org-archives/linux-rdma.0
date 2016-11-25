@@ -1,103 +1,56 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 24 Nov 2016 11:11:34 -0700
-Message-ID: <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) Bus driver
+Date: Thu, 24 Nov 2016 18:13:50 -0800
+Message-ID: <20161125021350.GA74946@knc-06.sc.intel.com>
+References: <20161121213017.GB67872@knc-06.sc.intel.com>
+ <20161121213930.GA30111@obsidianresearch.com>
+ <20161121232629.GA67988@knc-06.sc.intel.com>
+ <20161121233118.GA31132@obsidianresearch.com>
+ <20161122015304.GB67988@knc-06.sc.intel.com>
+ <20161122170407.GE3956@obsidianresearch.com>
+ <20161123000502.GA27968@phlsvsds.ph.intel.com>
+ <20161123004932.GA13598@obsidianresearch.com>
+ <20161124000825.GA73280@knc-06.sc.intel.com>
+ <20161124161545.GA20818@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20161124164249.GD20818-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161124161545.GA20818-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
- John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 24, 2016 at 09:15:45AM -0700, Jason Gunthorpe wrote:
+>On Wed, Nov 23, 2016 at 04:08:25PM -0800, Vishwanathapura, Niranjana wrote:
+>
+>> In order to pass the hfi function pointers to the hfi_vnic ULP, I can,
+>> a) Have hfi_vnic ULP define an interface API for hfi1 driver to call to
+>> register its callback (as you pointed). Unfortunately there will be a module
+>> dependency here.
+>> Or,
+>
+>That is probably backwards
+>
+>> b) Add a new member ‘struct vnic_ops’ either to the ib_device structure or
+>> ib_port_immutable structure. As it is hfi1 specific, only hfi1 driver will
+>> set it. No module dependency here.
+>
+>You can add a hfi1_get_vnic_ops(struct ib_device *) and implement it
+>in your module..
+>
 
+In order to be truely device independent the hfi_vnic ULP should not depend on 
+a device exported symbol. Instead device should register its functions with the 
+ULP. Hence the approaches a) and b).
 
-On 24/11/16 09:42 AM, Jason Gunthorpe wrote:
-> There are three cases to worry about:
->  - Coherent long lived page table mirroring (RDMA ODP MR)
->  - Non-coherent long lived page table mirroring (RDMA MR)
->  - Short lived DMA mapping (everything else)
-> 
-> Like you say below we have to handle short lived in the usual way, and
-> that covers basically every device except IB MRs, including the
-> command queue on a NVMe drive.
+Niranjana
 
-Yes, this makes sense to me. Though I thought regular IB MRs with
-regular memory currently pinned the pages (despite being long lived)
-that's why we can run up against the "max locked memory" limit. It
-doesn't seem so terrible if GPU memory had a similar restriction until
-ODP like solutions get implemented.
-
->> Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
->> memory working for some time. I'd say it's a good fit. The main question
->> we've had is how to expose PCIe bars to userspace to be used as MRs and
->> such.
-
-> Is there any progress on that?
-
-Well, I guess there's some consensus building to do. The existing
-options are:
-
-* Device DAX: which could work but the problem I see with it is that it
-only allows one application to do these transfers. Or there would have
-to be some user-space coordination to figure which application gets what
-memeroy.
-
-* Regular DAX in the FS doesn't work at this time because the FS can
-move the file you think your transfer to out from under you. Though I
-understand there's been some work with XFS to solve that issue.
-
-Though, we've been considering that the backed memory would be
-non-volatile which adds some of this complexity. If the memory were
-volatile the kernel would just need to do some relatively straight
-forward allocation to user-space when asked. For example, with NVMe, the
-kernel could give chunks of the CMB buffer to userspace via an mmap call
-to /dev/nvmeX. Though I think there's been some push back against things
-like that as well.
-
-> I still don't quite get what iopmem was about.. I thought the
-> objection to uncachable ZONE_DEVICE & DAX made sense, so running DAX
-> over iopmem and still ending up with uncacheable mmaps still seems
-> like a non-starter to me...
-
-The latest incarnation of iopmem simply created a block device backed by
-ZONE_DEVICE memory on a PCIe BAR. We then put a DAX FS on it and
-user-space could mmap the files and send them to other devices to do P2P
-transfers.
-
-I don't think there was a hard objection to uncachable ZONE_DEVICE and
-DAX. We did try our experimental hardware with cached ZONE_DEVICE and it
-did work but the performance was beyond unusable (which may be a
-hardware issue). In the end I feel the driver would have to decide the
-most appropriate caching for the hardware and I don't understand why WC
-or UC wouldn't work with ZONE_DEVICE.
-
-Logan
+>Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
