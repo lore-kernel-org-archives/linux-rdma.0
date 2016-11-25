@@ -1,91 +1,92 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 189031] New: Function mlx4_ib_query_device() does not set error
- codes on some failures
-Date: Fri, 25 Nov 2016 11:18:36 +0000
-Message-ID: <bug-189031-11804@https.bugzilla.kernel.org/>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Fri, 25 Nov 2016 14:06:21 +0100
+Message-ID: <c60815a1-aaac-52eb-1714-66abb28bdc01@amd.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+ <20161123232503.GA13965@obsidianresearch.com>
+ <a33ec1cd-051f-8a24-0587-68707459c25c@amd.com>
+ <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <5e1de9ee-34f5-136d-a07e-f949d492864f-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bridgman,
+ John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=189031
+Am 24.11.2016 um 18:55 schrieb Logan Gunthorpe:
+> Hey,
+>
+> On 24/11/16 02:45 AM, Christian K=F6nig wrote:
+>> E.g. it can happen that PCI device A exports it's BAR using ZONE_DEVICE.
+>> Not PCI device B (a SATA device) can directly read/write to it because
+>> it is on the same bus segment, but PCI device C (a network card for
+>> example) can't because it is on a different bus segment and the bridge
+>> can't handle P2P transactions.
+> Yeah, that could be an issue but in our experience we have yet to see
+> it. We've tested with two separate PCI buses on different CPUs connected
+> through QPI links and it works fine. (It is rather slow but I understand
+> Intel has improved the bottleneck in newer CPUs than the ones we tested.)
 
-            Bug ID: 189031
-           Summary: Function mlx4_ib_query_device() does not set error
-                    codes on some failures
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: linux-4.9-rc6
-          Hardware: All
-                OS: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-          Reporter: bianpan2010-AvrBmmDjM4YnDS1+zs4M5A@public.gmane.org
-        Regression: No
+Well Serguei send me a couple of documents about QPI when we started to =
 
-Functions kzalloc() and kmalloc() return NULL pointers if there is no enough
-memory. They are called in the function mlx4_ib_query_device() defined in file
-drivers/infiniband/hw/mlx4/main.c. If they return NULL pointers (see line 458),
-function mlx4_ib_query_device() returns variable err. Because variable err is
-checked at line 444, the value of err may be 0 when kzalloc() and kmalloc() are
-called. As a result, 0 (indicates success) may be returned even on failures.
-Though these errors may occur rarely, I think it is better to set correct error
-code (e.g. -ENOMEM) when kzalloc() and kmalloc() returns NULL pointers. Codes
-related to this bug are summarised as follows.
+discuss this internally as well and that's exactly one of the cases I =
 
-mlx4_ib_query_device @@ drivers/infiniband/hw/mlx4/main.c
- 426 static int mlx4_ib_query_device(struct ib_device *ibdev,
- 427                 struct ib_device_attr *props,
- 428                 struct ib_udata *uhw)
- 429 {
- 430     struct mlx4_ib_dev *dev = to_mdev(ibdev);
- 431     struct ib_smp *in_mad  = NULL;
- 432     struct ib_smp *out_mad = NULL;
- 433     int err = -ENOMEM;
-         ...
- 439     if (uhw->inlen) {
- 440         if (uhw->inlen < sizeof(cmd))
- 441             return -EINVAL;
- 442 
- 443         err = ib_copy_from_udata(&cmd, uhw, sizeof(cmd));
- 444         if (err)
- 445             return err;
- 446 
- 447         if (cmd.comp_mask)
- 448             return -EINVAL;
- 449 
- 450         if (cmd.reserved)
- 451             return -EINVAL;
- 452     }
- 453 
- 454     resp.response_length = offsetof(typeof(resp), response_length) +
- 455         sizeof(resp.response_length);
- 456     in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 457     out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
- 458     if (!in_mad || !out_mad)
-             // The value of err may be 0. Insert "err = -ENOMEM;" ?
- 459         goto out;
-         ...
- 567 out:
- 568     kfree(in_mad);
- 569     kfree(out_mad);
- 570 
- 571     return err;
- 572 }
+had in mind when writing this.
 
-Thanks very much!
+If I understood it correctly for such systems P2P is technical possible, =
 
--- 
-You are receiving this mail because:
-You are watching the assignee of the bug.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+but not necessary a good idea. Usually it is faster to just use a =
+
+bouncing buffer when the peers are a bit "father" apart.
+
+That this problem is solved on newer hardware is good, but doesn't helps =
+
+us at all if we at want to support at least systems from the last five =
+
+years or so.
+
+> It may just be older hardware that has this issue. I expect that as long
+> as a failed transfer can be handled gracefully by the initiator I don't
+> see a need to predetermine whether a device can see another devices memor=
+y.
+
+I don't want to predetermine whether a device can see another devices =
+
+memory at get_user_pages() time.
+
+My thinking was more going into the direction of a whitelist to figure =
+
+out during dma_map_single()/dma_map_sg() time if we should use a =
+
+bouncing buffer or not.
+
+Christian.
+
+>
+>
+> Logan
