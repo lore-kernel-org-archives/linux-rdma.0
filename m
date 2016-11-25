@@ -1,8 +1,8 @@
 From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 188831] New: Function ocrdma_mbx_create_ah_tbl() does not set
- error code when the call to dma_alloc_coherent() fails
-Date: Fri, 25 Nov 2016 11:01:59 +0000
-Message-ID: <bug-188831-11804@https.bugzilla.kernel.org/>
+Subject: [Bug 189031] New: Function mlx4_ib_query_device() does not set error
+ codes on some failures
+Date: Fri, 25 Nov 2016 11:18:36 +0000
+Message-ID: <bug-189031-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -11,11 +11,11 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=188831
+https://bugzilla.kernel.org/show_bug.cgi?id=189031
 
-            Bug ID: 188831
-           Summary: Function ocrdma_mbx_create_ah_tbl() does not set error
-                    code when the call to dma_alloc_coherent() fails
+            Bug ID: 189031
+           Summary: Function mlx4_ib_query_device() does not set error
+                    codes on some failures
            Product: Drivers
            Version: 2.5
     Kernel Version: linux-4.9-rc6
@@ -30,55 +30,55 @@ https://bugzilla.kernel.org/show_bug.cgi?id=188831
           Reporter: bianpan2010-AvrBmmDjM4YnDS1+zs4M5A@public.gmane.org
         Regression: No
 
-Function dma_alloc_coherent() returns a NULL pointer if there is no enough
-memory. Function ocrdma_mbx_create_ah_tbl() defined in file
-drivers/infiniband/hw/ocrdma/ocrdma_hw.c will return 0 on success or negative
-error codes on failures. It calls function dma_alloc_coherent() twice and
-checks the return values against NULL (at lines 1681 and 1686). The control
-flow jumps to label "mem_err_ah" and returns the value of variable status. The
-value of status is 0 (see the check of variable status at line 1645). As a
-result, the caller of ocrdma_mbx_create_ah_tbl() will be misled to believe all
-goes well even the memory allocation fails. Maybe it is better to assign
-"-ENOMEM" to variable status before the jump instructions at lines 1682 and
-1687, or simply initialize status with "-ENOMEM" rather than "0" at line 1645.
-Codes related to this bug are summarised as follows.
+Functions kzalloc() and kmalloc() return NULL pointers if there is no enough
+memory. They are called in the function mlx4_ib_query_device() defined in file
+drivers/infiniband/hw/mlx4/main.c. If they return NULL pointers (see line 458),
+function mlx4_ib_query_device() returns variable err. Because variable err is
+checked at line 444, the value of err may be 0 when kzalloc() and kmalloc() are
+called. As a result, 0 (indicates success) may be returned even on failures.
+Though these errors may occur rarely, I think it is better to set correct error
+code (e.g. -ENOMEM) when kzalloc() and kmalloc() returns NULL pointers. Codes
+related to this bug are summarised as follows.
 
-ocrdma_mbx_create_ah_tbl @@ drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-1642 static int ocrdma_mbx_create_ah_tbl(struct ocrdma_dev *dev)
-1643 {
-1644     int i;
-1645     int status = 0;  // use "int status = -ENOMEM;" ?
+mlx4_ib_query_device @@ drivers/infiniband/hw/mlx4/main.c
+ 426 static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 427                 struct ib_device_attr *props,
+ 428                 struct ib_udata *uhw)
+ 429 {
+ 430     struct mlx4_ib_dev *dev = to_mdev(ibdev);
+ 431     struct ib_smp *in_mad  = NULL;
+ 432     struct ib_smp *out_mad = NULL;
+ 433     int err = -ENOMEM;
          ...
-1653     cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_CREATE_AH_TBL, sizeof(*cmd));
-1654     if (!cmd)
-1655         return status;
+ 439     if (uhw->inlen) {
+ 440         if (uhw->inlen < sizeof(cmd))
+ 441             return -EINVAL;
+ 442 
+ 443         err = ib_copy_from_udata(&cmd, uhw, sizeof(cmd));
+ 444         if (err)
+ 445             return err;
+ 446 
+ 447         if (cmd.comp_mask)
+ 448             return -EINVAL;
+ 449 
+ 450         if (cmd.reserved)
+ 451             return -EINVAL;
+ 452     }
+ 453 
+ 454     resp.response_length = offsetof(typeof(resp), response_length) +
+ 455         sizeof(resp.response_length);
+ 456     in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+ 457     out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+ 458     if (!in_mad || !out_mad)
+             // The value of err may be 0. Insert "err = -ENOMEM;" ?
+ 459         goto out;
          ...
-1678     dev->av_tbl.pbl.va = dma_alloc_coherent(&pdev->dev, PAGE_SIZE,
-1679                         &dev->av_tbl.pbl.pa,
-1680                         GFP_KERNEL);
-1681     if (dev->av_tbl.pbl.va == NULL)
-1682         goto mem_err;
-1683 
-1684     dev->av_tbl.va = dma_alloc_coherent(&pdev->dev, dev->av_tbl.size,
-1685                         &pa, GFP_KERNEL);
-1686     if (dev->av_tbl.va == NULL)
-1687         goto mem_err_ah;
-         ...
-1706     return 0;
-1707 
-1708 mbx_err:
-1709     dma_free_coherent(&pdev->dev, dev->av_tbl.size, dev->av_tbl.va,
-1710               dev->av_tbl.pa);
-1711     dev->av_tbl.va = NULL;
-1712 mem_err_ah:
-1713     dma_free_coherent(&pdev->dev, PAGE_SIZE, dev->av_tbl.pbl.va,
-1714               dev->av_tbl.pbl.pa);
-1715     dev->av_tbl.pbl.va = NULL;
-1716     dev->av_tbl.size = 0;
-1717 mem_err:
-1718     kfree(cmd);
-1719     return status;
-1720 }
+ 567 out:
+ 568     kfree(in_mad);
+ 569     kfree(out_mad);
+ 570 
+ 571     return err;
+ 572 }
 
 Thanks very much!
 
