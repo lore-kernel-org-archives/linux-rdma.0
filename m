@@ -1,28 +1,24 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [patch] net/mlx5: remove a duplicate condition
-Date: Fri, 25 Nov 2016 20:30:17 -0500 (EST)
-Message-ID: <20161125.203017.430757314871566294.davem@davemloft.net>
-References: <20161124110345.GC17225@mwanda>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net/mlx5: drop duplicate header delay.h
+Date: Fri, 25 Nov 2016 20:33:29 -0500 (EST)
+Message-ID: <20161125.203329.2121430718570497042.davem@davemloft.net>
+References: <15299de49216a2360976ca37ff774cae9d27d88b.1479991297.git.geliangtang@gmail.com>
+        <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang@gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161124110345.GC17225@mwanda>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <03d5a2a0f03458cdb4f2b139cfabc11b5c334f95.1479990943.git.geliangtang@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: geliangtang@gmail.com
+Cc: saeedm@mellanox.com, matanb@mellanox.com, leonro@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Thu, 24 Nov 2016 14:03:45 +0300
+From: Geliang Tang <geliangtang@gmail.com>
+Date: Thu, 24 Nov 2016 21:58:33 +0800
 
-> We verified that MLX5_FLOW_CONTEXT_ACTION_COUNT was set on the first
-> line of the function so we don't need to check again here.
+> Drop duplicate header delay.h from mlx5/core/main.c.
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Geliang Tang <geliangtang@gmail.com>
 
 Applied.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
