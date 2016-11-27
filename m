@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 06/10] IB/core: Enable to query QP types supported by IB device on a port
-Date: Sun, 27 Nov 2016 16:51:32 +0200
-Message-ID: <1480258296-27032-7-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 07/10] IB/uverbs: Propagate supported QP types to user-space
+Date: Sun, 27 Nov 2016 16:51:33 +0200
+Message-ID: <1480258296-27032-8-git-send-email-leon@kernel.org>
 References: <1480258296-27032-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480258296-27032-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,111 +12,49 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add qp_type_cap port attribute which is a bit field representation
-of the ib_qp_type enum. This will allow applications to query what QP
-types are supported by an IB device instance on a specific port.
+Propagate supported qp types to user-space when they issue a query
+port call. From user-space point of view, zero means that the query
+is not supported, under the reasoning that it doesn't make sense
+to have user-space devices that don't support any qp type. Note that
+this will only happen when they run over older kernels.
 
-The qp_type_cap port attribute is set by the core according to the
-protocol supported for the device port. This holds for all the
-providers with the exception of two RoCE drivers that don't implement
-UD and UC. To handle that, they (hns and qedr) are patched to remove
-these QPs from what's the core has set for them as supported.
+Make sure to filter out qp types which are not supported for
+user-space (SMI, GSI, etc).
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/device.c          | 28 ++++++++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_main.c |  3 +++
- drivers/infiniband/hw/qedr/verbs.c        |  2 ++
- include/rdma/ib_verbs.h                   |  1 +
- 4 files changed, 34 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c | 2 ++
+ include/uapi/rdma/ib_user_verbs.h    | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 760ef60..f7abde2 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -646,6 +646,31 @@ void ib_dispatch_event(struct ib_event *event)
- }
- EXPORT_SYMBOL(ib_dispatch_event);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index cb3f515a..1c386bc 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -526,6 +526,8 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
+ 	resp.phys_state      = attr.phys_state;
+ 	resp.link_layer      = rdma_port_get_link_layer(ib_dev,
+ 							cmd.port_num);
++	/* don't expose to user-space QPTs they don't know */
++	resp.qp_type_cap = attr.qp_type_cap & ~(BIT(IB_QPT_SMI) | BIT(IB_QPT_GSI));
  
-+static void get_port_qp_types(const struct ib_device *device, u8 port_num,
-+			      struct ib_port_attr *port_attr)
-+{
-+	if (rdma_cap_ib_smi(device, port_num))
-+		port_attr->qp_type_cap |= BIT(IB_QPT_SMI);
-+
-+	if (rdma_cap_ib_cm(device, port_num))
-+		port_attr->qp_type_cap |= BIT(IB_QPT_GSI);
-+
-+	if (rdma_ib_or_roce(device, port_num)) {
-+		port_attr->qp_type_cap |= (BIT(IB_QPT_RC) | BIT(IB_QPT_UD) | BIT(IB_QPT_UC));
-+		if (device->attrs.device_cap_flags & IB_DEVICE_XRC)
-+			port_attr->qp_type_cap |= (BIT(IB_QPT_XRC_INI) | BIT(IB_QPT_XRC_TGT));
-+	}
-+
-+	if (rdma_protocol_iwarp(device, port_num))
-+		port_attr->qp_type_cap |= BIT(IB_QPT_RC);
-+
-+	if (rdma_protocol_raw_packet(device, port_num))
-+		port_attr->qp_type_cap |= BIT(IB_QPT_RAW_PACKET);
-+
-+	if (rdma_protocol_usnic(device, port_num))
-+		port_attr->qp_type_cap |= BIT(IB_QPT_UD);
-+}
-+
- /**
-  * ib_query_port - Query IB port attributes
-  * @device:Device to query
-@@ -666,6 +691,9 @@ int ib_query_port(struct ib_device *device,
- 		return -EINVAL;
- 
- 	memset(port_attr, 0, sizeof(*port_attr));
-+
-+	get_port_qp_types(device, port_num, port_attr);
-+
- 	err = device->query_port(device, port_num, port_attr);
- 	if (err || port_attr->subnet_prefix)
- 		return err;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index c6b5779..22de534 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -430,6 +430,9 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u8 port_num,
- 			IB_PORT_ACTIVE : IB_PORT_DOWN;
- 	props->phys_state = (props->state == IB_PORT_ACTIVE) ? 5 : 3;
- 
-+	/* mark that UD and UC aren't supported */
-+	props->qp_type_cap &= ~(BIT(IB_QPT_UD) | BIT(IB_QPT_UC));
-+
- 	spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
- 
- 	return 0;
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 53207ff..33d0219 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -263,6 +263,8 @@ int qedr_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr *attr)
- 	attr->max_msg_sz = rdma_port->max_msg_size;
- 	attr->max_vl_num = 4;
- 
-+	/* mark that UD and UC aren't supported */
-+	attr->qp_type_cap &= ~(BIT(IB_QPT_UD) | BIT(IB_QPT_UC));
- 	return 0;
- }
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 485b725..0b839e4 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -536,6 +536,7 @@ struct ib_port_attr {
- 	u8			active_speed;
- 	u8                      phys_state;
- 	bool			grh_required;
-+	u16			qp_type_cap;
+ 	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+ 			 &resp, sizeof resp))
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 25225eb..a50604f 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -276,7 +276,7 @@ struct ib_uverbs_query_port_resp {
+ 	__u8  active_speed;
+ 	__u8  phys_state;
+ 	__u8  link_layer;
+-	__u8  reserved[2];
++	__u16 qp_type_cap;
  };
  
- enum ib_device_modify_flags {
+ struct ib_uverbs_alloc_pd {
 -- 
 2.7.4
 
