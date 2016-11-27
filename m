@@ -1,72 +1,101 @@
-From: Max Gurtovoy <maxg@mellanox.com>
-Subject: Re: [PATCH 1/2] SRP transport: Move queuecommand() wait code to SCSI
- core
-Date: Sat, 26 Nov 2016 01:21:53 +0200
-Message-ID: <0187d160-5985-32c4-95c0-466c4f09bdf9@mellanox.com>
-References: <39d8cb23-0406-e8c3-6e3a-a467ebe41470@sandisk.com>
- <649cb037-3196-df4d-0d31-47f040ce44a2@sandisk.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Sun, 27 Nov 2016 10:16:19 +0200
+Message-ID: <383d4a9c-b8ce-bb00-74c5-fdcf231513ff@mellanox.com>
+References: <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <649cb037-3196-df4d-0d31-47f040ce44a2@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20161125193252.GC16504-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/25/2016 9:32 PM, Jason Gunthorpe wrote:
+> On Fri, Nov 25, 2016 at 02:22:17PM +0100, Christian K=F6nig wrote:
+> =
 
+>>> Like you say below we have to handle short lived in the usual way, and
+>>> that covers basically every device except IB MRs, including the
+>>> command queue on a NVMe drive.
+>>
+>> Well a problem which wasn't mentioned so far is that while GPUs do have a
+>> page table to mirror the CPU page table, they usually can't recover from
+>> page faults.
+> =
 
-On 11/23/2016 2:17 AM, Bart Van Assche wrote:
-> Additionally, rename srp_wait_for_queuecommand() into
-> scsi_wait_for_queuecommand() and add a comment about the
-> queuecommand() call from scsi_send_eh_cmnd().
->
-> Note: this patch changes scsi_internal_device_block from a function
-> that did not sleep into a function that may sleep. This is fine for
-> all callers of this function:
-> * scsi_internal_device_block() is called from the mpt3sas device while
->   that driver holds the ioc->dm_cmds.mutex. This means that the mpt3sas
->   driver calls this function from thread context.
-> * scsi_target_block() is called by __iscsi_block_session() from
->   kernel thread context and with IRQs enabled.
-> * The SRP transport code also calls scsi_target_block() from kernel
->   thread context while sleeping is allowed.
-> * The snic driver also calls scsi_target_block() from a context from
->   which sleeping is allowed. The scsi_target_block() call namely occurs
->   immediately after a scsi_flush_work() call.
->
-> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-> Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
-> Cc: James Bottomley <jejb@linux.vnet.ibm.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Doug Ledford <dledford@redhat.com>
-> ---
->  drivers/scsi/scsi_lib.c           | 41 +++++++++++++++++++++++++++++++++++++--
->  drivers/scsi/scsi_transport_srp.c | 41 ++++++---------------------------------
->  2 files changed, 45 insertions(+), 37 deletions(-)
->
+>> So what we do is making sure that all memory accessed by the GPU Jobs st=
+ays
+>> in place while those jobs run (pretty much the same pinning you do for t=
+he
+>> DMA).
+> =
 
+> Yes, it is DMA, so this is a valid approach.
+> =
 
-> +
-> +/**
-> + * scsi_wait_for_queuecommand() - wait for ongoing queuecommand() calls
-> + * @shost: SCSI host pointer.
+> But, you don't need page faults from the GPU to do proper coherent
+> page table mirroring. Basically when the driver submits the work to
+> the GPU it 'faults' the pages into the CPU and mirror translation
+> table (instead of pinning).
+> =
 
-the arg is sdev.
+> Like in ODP, MMU notifiers/HMM are used to monitor for translation
+> changes. If a change comes in the GPU driver checks if an executing
+> command is touching those pages and blocks the MMU notifier until the
+> command flushes, then unfaults the page (blocking future commands) and
+> unblocks the mmu notifier.
+I think blocking mmu notifiers against something that is basically
+controlled by user-space can be problematic. This can block things like
+memory reclaim. If you have user-space access to the device's queues,
+user-space can block the mmu notifier forever.
 
-> + *
-> + * Wait until the ongoing shost->hostt->queuecommand() calls that are
-> + * invoked from scsi_request_fn() have finished.
-> + */
-> +static void scsi_wait_for_queuecommand(struct scsi_device *sdev)
-> +{
-> +	WARN_ON_ONCE(sdev->host->use_blk_mq);
-> +
-> +	while (scsi_request_fn_active(sdev))
-> +		msleep(20);
-> +}
-> +
-> +/**
->   *	scsi_device_quiesce - Block user issued commands.
+On PeerDirect, we have some kind of a middle-ground solution for pinning
+GPU memory. We create a non-ODP MR pointing to VRAM but rely on
+user-space and the GPU not to migrate it. If they do, the MR gets
+destroyed immediately. This should work on legacy devices without ODP
+support, and allows the system to safely terminate a process that
+misbehaves. The downside of course is that it cannot transparently
+migrate memory but I think for user-space RDMA doing that transparently
+requires hardware support for paging, via something like HMM.
+
+...
+
+> I'm hearing most people say ZONE_DEVICE is the way to handle this,
+> which means the missing remaing piece for RDMA is some kind of DMA
+> core support for p2p address translation..
+
+Yes, this is definitely something we need. I think Will Davis's patches
+are a good start.
+
+Another thing I think is that while HMM is good for user-space
+applications, for kernel p2p use there is no need for that. Using
+ZONE_DEVICE with or without something like DMA-BUF to pin and unpin
+pages for the short duration as you wrote above could work fine for
+kernel uses in which we can guarantee they are short.
+
+Haggai
