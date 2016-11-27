@@ -1,80 +1,117 @@
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Sun, 27 Nov 2016 15:07:22 +0100
-Message-ID: <0087fba9-7bcb-8bb3-c26e-4ef3e4970c34@amd.com>
-References: <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; Format="flowed"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <d9e064a0-9c47-3e41-3154-cece8c70a119-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 00/10] Support RAW Ethernet when RoCE is disabled
+Date: Sun, 27 Nov 2016 16:51:26 +0200
+Message-ID: <1480258296-27032-1-git-send-email-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Am 27.11.2016 um 15:02 schrieb Haggai Eran:
-> On 11/25/2016 9:32 PM, Jason Gunthorpe wrote:
->> On Fri, Nov 25, 2016 at 02:22:17PM +0100, Christian K=F6nig wrote:
->>
->>>> Like you say below we have to handle short lived in the usual way, and
->>>> that covers basically every device except IB MRs, including the
->>>> command queue on a NVMe drive.
->>> Well a problem which wasn't mentioned so far is that while GPUs do have=
- a
->>> page table to mirror the CPU page table, they usually can't recover from
->>> page faults.
->>> So what we do is making sure that all memory accessed by the GPU Jobs s=
-tays
->>> in place while those jobs run (pretty much the same pinning you do for =
-the
->>> DMA).
->> Yes, it is DMA, so this is a valid approach.
->>
->> But, you don't need page faults from the GPU to do proper coherent
->> page table mirroring. Basically when the driver submits the work to
->> the GPU it 'faults' the pages into the CPU and mirror translation
->> table (instead of pinning).
->>
->> Like in ODP, MMU notifiers/HMM are used to monitor for translation
->> changes. If a change comes in the GPU driver checks if an executing
->> command is touching those pages and blocks the MMU notifier until the
->> command flushes, then unfaults the page (blocking future commands) and
->> unblocks the mmu notifier.
-> I think blocking mmu notifiers against something that is basically
-> controlled by user-space can be problematic. This can block things like
-> memory reclaim. If you have user-space access to the device's queues,
-> user-space can block the mmu notifier forever.
-Really good point.
+Hi Doug,
 
-I think this means the bare minimum if we don't have recoverable page =
+Please find below the patch set from Or. I didn't add version notation to this
+patch set, because it was enriched extensively over initial version [1], from
+one mlx5-only patch to native IB core support.
 
-faults is to have preemption support like Felix described in his answer =
+It is tested against v4.9-rc6.
 
-as well.
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Going to keep that in mind,
-Christian.
+On some environments, such as certain SRIOV VF configurations, RoCE is
+not supported for mlx5 Ethernet ports. Currently, the driver will not
+open IB device on that port.
+
+This is problematic, since we do want user-space RAW Ethernet (RAW_PACKET QPs)
+functionality to remain in place. For that end, we change the relevant driver
+flows such that an IB device instance is created in that case as well.
+
+Following the previous post [1], Doug wanted us to enable a way for
+applications to query what QP types are actually supported on a device.
+This series adds that functionality on device/port granularity, since
+some drivers (mlx4) could support different protocols per port and
+hence different QP types per port.
+
+QP types are basically derived from the protocol/s supported on the port. We
+added two protocols (raw packet and usnic) to have a protocol set which is
+consistent with what is currently upstream.
+
+Patches 1-7 deal with the new query and patches 8-10 with the mlx5 specific
+changes.
+
+To make it clear, the upstream kernel IB core is fully functional without the
+new port attribute, in the sense that no errors are seen from components that
+e.g use SMI and GSI services. The query is mostly targeted to user-space.
+
+Thanks, Or.
+
+[1] https://patchwork.kernel.org/patch/9096351/
+
+---------------------------------------------------------------------------------------
+Available in the "topic/raw-ibdev" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/raw-ibdev
+---------------------------------------------------------------------------------------
+
+CC: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+CC: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+CC: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+CC: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+CC: "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+CC: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+CC: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+CC: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+CC: Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+CC: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+CC: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+CC: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Or Gerlitz (10):
+  IB/core: Add raw packet protocol
+  IB/mlx5: Support raw packet protocol
+  IB/mlx4: Support raw packet protocol
+  IB: Add protocol for USNIC
+  IB: Query port through the core instead of directly calling the driver
+    handler
+  IB/core: Enable to query QP types supported by IB device on a port
+  IB/uverbs: Propagate supported QP types to user-space
+  IB/mlx5: Refactor registration to netdev notifier
+  IB/mlx5: Rename RoCE related helpers to reflect being Eth ones
+  IB/mlx5: Support RAW Ethernet when RoCE is disabled
+
+ drivers/infiniband/core/device.c             | 28 +++++++++
+ drivers/infiniband/core/uverbs_cmd.c         |  2 +
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |  7 ++-
+ drivers/infiniband/hw/cxgb4/provider.c       |  8 +--
+ drivers/infiniband/hw/hfi1/verbs.c           |  1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c    | 10 ++-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  8 +--
+ drivers/infiniband/hw/mlx4/alias_GUID.c      |  1 +
+ drivers/infiniband/hw/mlx4/main.c            | 23 ++++---
+ drivers/infiniband/hw/mlx4/sysfs.c           |  1 +
+ drivers/infiniband/hw/mlx5/mad.c             |  2 +-
+ drivers/infiniband/hw/mlx5/main.c            | 91 +++++++++++++++++-----------
+ drivers/infiniband/hw/mthca/mthca_provider.c |  9 +--
+ drivers/infiniband/hw/nes/nes_verbs.c        |  5 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |  9 +--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  1 +
+ drivers/infiniband/hw/qedr/verbs.c           | 11 ++--
+ drivers/infiniband/hw/qib/qib_verbs.c        |  1 +
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  |  4 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  2 +-
+ drivers/infiniband/sw/rdmavt/vt.c            |  7 ++-
+ drivers/infiniband/sw/rxe/rxe_verbs.c        |  6 +-
+ include/rdma/ib_verbs.h                      | 17 ++++++
+ include/uapi/rdma/ib_user_verbs.h            |  2 +-
+ 24 files changed, 173 insertions(+), 83 deletions(-)
+
+--
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
