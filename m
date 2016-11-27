@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 09/10] IB/mlx5: Rename RoCE related helpers to reflect being Eth ones
-Date: Sun, 27 Nov 2016 16:51:35 +0200
-Message-ID: <1480258296-27032-10-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 05/10] IB: Query port through the core instead of directly calling the driver handler
+Date: Sun, 27 Nov 2016 16:51:31 +0200
+Message-ID: <1480258296-27032-6-git-send-email-leon@kernel.org>
 References: <1480258296-27032-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480258296-27032-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,110 +12,570 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is a pre-step towards having mlx5 IB device also over Eth ports where
-RoCE is not supported. We change the roce enable/disable and roce_lag
-init/fini function names to have _eth instead of _roce.
+Change the drivers to call ib_query_port in their get port
+immutable handler instead of their own query port handler.
 
-This patch doesn't change any functionality.
+Doing this required to set the core cap flags of this device
+before the ib_query_port call is made, since the IB core might
+need these caps to serve the port query.
+
+Drivers are ensured by the IB core that the port attributes passed
+to the port query verb implementation are zero, and hence we
+removed the zeroing from the drivers.
+
+A pre-step for allowing drivers to modify some port attributes (in
+their query port handler) which are set by the IB core before
+calling them.
+
+This patch doesn't add any new functionality.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |  7 ++++---
+ drivers/infiniband/hw/cxgb4/provider.c       |  8 ++++----
+ drivers/infiniband/hw/hfi1/verbs.c           |  1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c    |  7 ++++---
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  8 ++++----
+ drivers/infiniband/hw/mlx4/alias_GUID.c      |  1 +
+ drivers/infiniband/hw/mlx4/main.c            | 18 +++++++++---------
+ drivers/infiniband/hw/mlx4/sysfs.c           |  1 +
+ drivers/infiniband/hw/mlx5/mad.c             |  2 +-
+ drivers/infiniband/hw/mlx5/main.c            | 12 +++++++-----
+ drivers/infiniband/hw/mthca/mthca_provider.c |  9 +++++----
+ drivers/infiniband/hw/nes/nes_verbs.c        |  5 +++--
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |  9 +++++----
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  1 +
+ drivers/infiniband/hw/qedr/verbs.c           |  9 +++++----
+ drivers/infiniband/hw/qib/qib_verbs.c        |  1 +
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  |  5 +++--
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  2 +-
+ drivers/infiniband/sw/rdmavt/vt.c            |  7 ++++---
+ drivers/infiniband/sw/rxe/rxe_verbs.c        |  6 ++++--
+ 20 files changed, 68 insertions(+), 51 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 91921f1..b811c70 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2748,7 +2748,7 @@ static void get_dev_fw_str(struct ib_device *ibdev, char *str,
- 		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index cba57bb..fcaca76 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1132,7 +1132,7 @@ static int iwch_query_port(struct ib_device *ibdev,
+ 	dev = to_iwch_dev(ibdev);
+ 	netdev = dev->rdev.port_info.lldevs[port-1];
+
+-	memset(props, 0, sizeof(struct ib_port_attr));
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->max_mtu = IB_MTU_4096;
+ 	if (netdev->mtu >= 4096)
+ 		props->active_mtu = IB_MTU_4096;
+@@ -1337,13 +1337,14 @@ static int iwch_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = iwch_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+
+ 	return 0;
  }
- 
--static int mlx5_roce_lag_init(struct mlx5_ib_dev *dev)
-+static int mlx5_eth_lag_init(struct mlx5_ib_dev *dev)
- {
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct mlx5_flow_namespace *ns = mlx5_get_flow_namespace(mdev,
-@@ -2777,7 +2777,7 @@ err_destroy_vport_lag:
- 	return err;
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index 645e606..84f0885 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -356,8 +356,7 @@ static int c4iw_query_port(struct ib_device *ibdev, u8 port,
+
+ 	dev = to_c4iw_dev(ibdev);
+ 	netdev = dev->rdev.lldi.ports[port-1];
+-
+-	memset(props, 0, sizeof(struct ib_port_attr));
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->max_mtu = IB_MTU_4096;
+ 	if (netdev->mtu >= 4096)
+ 		props->active_mtu = IB_MTU_4096;
+@@ -503,13 +502,14 @@ static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = c4iw_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+
+ 	return 0;
  }
- 
--static void mlx5_roce_lag_cleanup(struct mlx5_ib_dev *dev)
-+static void mlx5_eth_lag_cleanup(struct mlx5_ib_dev *dev)
- {
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 
-@@ -2811,7 +2811,7 @@ static void mlx5_remove_netdev_notifier(struct mlx5_ib_dev *dev)
- 	}
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 4b7a16c..699ee54 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1399,6 +1399,7 @@ static int query_port(struct rvt_dev_info *rdi, u8 port_num,
+ 	struct hfi1_pportdata *ppd = &dd->pport[port_num - 1];
+ 	u16 lid = ppd->lid;
+
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->lid = lid ? lid : 0;
+ 	props->lmc = ppd->lmc;
+ 	/* OPA logical states match IB logical states */
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 764e35a..c6b5779 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -403,7 +403,7 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u8 port_num,
+ 	assert(port_num > 0);
+ 	port = port_num - 1;
+
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	props->max_mtu = hr_dev->caps.max_mtu;
+ 	props->gid_tbl_len = hr_dev->caps.gid_table_len[port];
+@@ -572,14 +572,15 @@ static int hns_roce_port_immutable(struct ib_device *ib_dev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int ret;
+
+-	ret = hns_roce_query_port(ib_dev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
++
++	ret = ib_query_port(ib_dev, port_num, &attr);
+ 	if (ret)
+ 		return ret;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+
+ 	return 0;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 6329c97..84ae990 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -96,8 +96,7 @@ static int i40iw_query_port(struct ib_device *ibdev,
+ 	struct i40iw_device *iwdev = to_iwdev(ibdev);
+ 	struct net_device *netdev = iwdev->netdev;
+
+-	memset(props, 0, sizeof(*props));
+-
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->max_mtu = IB_MTU_4096;
+ 	if (netdev->mtu >= 4096)
+ 		props->active_mtu = IB_MTU_4096;
+@@ -2359,14 +2358,15 @@ static int i40iw_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = i40iw_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+
+ 	return 0;
  }
- 
--static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
-+static int mlx5_enable_eth(struct mlx5_ib_dev *dev)
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 5e99390..0678da5 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -499,6 +499,7 @@ static int set_guid_rec(struct ib_device *ibdev,
+ 	struct list_head *head =
+ 		&dev->sriov.alias_guid.ports_guid[port - 1].cb_list;
+
++	memset(&attr, 0, sizeof(struct ib_port_attr));
+ 	err = __mlx4_ib_query_port(ibdev, port, &attr, 1);
+ 	if (err) {
+ 		pr_debug("mlx4_ib_query_port failed (err: %d), port: %d\n",
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 3902832..c0b8789f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -737,7 +737,7 @@ int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
  {
  	int err;
- 
-@@ -2823,7 +2823,7 @@ static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
+
+-	memset(props, 0, sizeof *props);
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	err = mlx4_ib_port_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND ?
+ 		ib_link_query_port(ibdev, port, props, netw_view) :
+@@ -1010,7 +1010,7 @@ static int mlx4_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
+
+ 	mutex_lock(&mdev->cap_mask_mutex);
+
+-	err = mlx4_ib_query_port(ibdev, port, &attr);
++	err = ib_query_port(ibdev, port, &attr);
  	if (err)
- 		goto err_unregister_netdevice_notifier;
- 
--	err = mlx5_roce_lag_init(dev);
-+	err = mlx5_eth_lag_init(dev);
- 	if (err)
- 		goto err_disable_roce;
- 
-@@ -2837,9 +2837,9 @@ err_unregister_netdevice_notifier:
- 	return err;
- }
- 
--static void mlx5_disable_roce(struct mlx5_ib_dev *dev)
-+static void mlx5_disable_eth(struct mlx5_ib_dev *dev)
- {
--	mlx5_roce_lag_cleanup(dev);
-+	mlx5_eth_lag_cleanup(dev);
- 	mlx5_nic_vport_disable_roce(dev->mdev);
- }
- 
-@@ -3143,14 +3143,14 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	spin_lock_init(&dev->reset_flow_resource_lock);
- 
- 	if (ll == IB_LINK_LAYER_ETHERNET) {
--		err = mlx5_enable_roce(dev);
-+		err = mlx5_enable_eth(dev);
- 		if (err)
- 			goto err_free_port;
+ 		goto out;
+
+@@ -2523,13 +2523,6 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
+ 	int err;
+
+-	err = mlx4_ib_query_port(ibdev, port_num, &attr);
+-	if (err)
+-		return err;
+-
+-	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+-	immutable->gid_tbl_len = attr.gid_tbl_len;
+-
+ 	if (mlx4_ib_port_link_layer(ibdev, port_num) == IB_LINK_LAYER_INFINIBAND) {
+ 		immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+ 		immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+@@ -2545,6 +2538,13 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			immutable->max_mad_size = IB_MGMT_MAD_SIZE;
  	}
- 
- 	err = create_dev_resources(&dev->devr);
- 	if (err)
--		goto err_disable_roce;
-+		goto err_disable_eth;
- 
- 	err = mlx5_ib_odp_init_one(dev);
- 	if (err)
-@@ -3194,9 +3194,9 @@ err_odp:
- err_rsrc:
- 	destroy_dev_resources(&dev->devr);
- 
--err_disable_roce:
-+err_disable_eth:
- 	if (ll == IB_LINK_LAYER_ETHERNET) {
--		mlx5_disable_roce(dev);
-+		mlx5_disable_eth(dev);
- 		mlx5_remove_netdev_notifier(dev);
- 	}
- 
-@@ -3221,7 +3221,7 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
- 	mlx5_ib_odp_remove_one(dev);
- 	destroy_dev_resources(&dev->devr);
- 	if (ll == IB_LINK_LAYER_ETHERNET)
--		mlx5_disable_roce(dev);
-+		mlx5_disable_eth(dev);
- 	kfree(dev->port);
- 	ib_dealloc_device(&dev->ib_dev);
+
++	err = ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
+ 	return 0;
  }
--- 
+
+diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
+index 69fb5ba..5835165 100644
+--- a/drivers/infiniband/hw/mlx4/sysfs.c
++++ b/drivers/infiniband/hw/mlx4/sysfs.c
+@@ -226,6 +226,7 @@ static int add_port_entries(struct mlx4_ib_dev *device, int port_num)
+ 	int ret = 0 ;
+ 	struct ib_port_attr attr;
+
++	memset(&attr, 0, sizeof(struct ib_port_attr));
+ 	/* get the physical gid and pkey table sizes.*/
+ 	ret = __mlx4_ib_query_port(&device->ib_dev, port_num, &attr, 1);
+ 	if (ret)
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index 39e5848..4e58b8f 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -515,7 +515,7 @@ int mlx5_query_mad_ifc_port(struct ib_device *ibdev, u8 port,
+ 	if (!in_mad || !out_mad)
+ 		goto out;
+
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	init_query_mad(in_mad);
+ 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 019a7a4..a137254 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -174,7 +174,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	enum ib_mtu ndev_ib_mtu;
+ 	u16 qkey_viol_cntr;
+
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	props->port_cap_flags  |= IB_PORT_CM_SUP;
+ 	props->port_cap_flags  |= IB_PORT_IP_BASED_GIDS;
+@@ -793,7 +793,7 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
+ 		goto out;
+ 	}
+
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	err = mlx5_query_hca_vport_context(mdev, 0, port, 0, rep);
+ 	if (err)
+@@ -941,7 +941,7 @@ static int mlx5_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
+
+ 	mutex_lock(&dev->cap_mask_mutex);
+
+-	err = mlx5_ib_query_port(ibdev, port, &attr);
++	err = ib_query_port(ibdev, port, &attr);
+ 	if (err)
+ 		goto out;
+
+@@ -2408,6 +2408,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
+ 	}
+
+ 	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++) {
++		memset(pprops, 0, sizeof(struct ib_port_attr));
+ 		err = mlx5_ib_query_port(&dev->ib_dev, port, pprops);
+ 		if (err) {
+ 			mlx5_ib_warn(dev, "query_port %d failed %d\n",
+@@ -2725,13 +2726,14 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = mlx5_ib_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = get_core_cap_flags(ibdev);
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = get_core_cap_flags(ibdev);
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+
+ 	return 0;
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 358930a4..2b464fb 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -146,7 +146,7 @@ static int mthca_query_port(struct ib_device *ibdev,
+ 	if (!in_mad || !out_mad)
+ 		goto out;
+
+-	memset(props, 0, sizeof *props);
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	init_query_mad(in_mad);
+ 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
+@@ -212,7 +212,7 @@ static int mthca_modify_port(struct ib_device *ibdev,
+ 	if (mutex_lock_interruptible(&to_mdev(ibdev)->cap_mask_mutex))
+ 		return -ERESTARTSYS;
+
+-	err = mthca_query_port(ibdev, port, &attr);
++	err = ib_query_port(ibdev, port, &attr);
+ 	if (err)
+ 		goto out;
+
+@@ -1164,13 +1164,14 @@ static int mthca_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = mthca_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+
+ 	return 0;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index bd69125..5256b07 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -475,7 +475,7 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
+ 	struct nes_vnic *nesvnic = to_nesvnic(ibdev);
+ 	struct net_device *netdev = nesvnic->netdev;
+
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	props->max_mtu = IB_MTU_4096;
+
+@@ -3673,13 +3673,14 @@ static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
++	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
++
+ 	err = nes_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 8960715..3e43bdc 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -93,15 +93,16 @@ static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	int err;
+
+ 	dev = get_ocrdma_dev(ibdev);
+-	err = ocrdma_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
++	if (ocrdma_is_udp_encap_supported(dev))
++		immutable->core_cap_flags |= RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
+-	if (ocrdma_is_udp_encap_supported(dev))
+-		immutable->core_cap_flags |= RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+
+ 	return 0;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 6af44f8..013d15c 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -210,6 +210,7 @@ int ocrdma_query_port(struct ib_device *ibdev,
+ 	struct ocrdma_dev *dev;
+ 	struct net_device *netdev;
+
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	dev = get_ocrdma_dev(ibdev);
+ 	if (port > 1) {
+ 		pr_err("%s(%d) invalid_port=0x%x\n", __func__,
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index a615142..53207ff 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -238,8 +238,8 @@ int qedr_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr *attr)
+ 	}
+
+ 	rdma_port = dev->ops->rdma_query_port(dev->rdma_ctx);
+-	memset(attr, 0, sizeof(*attr));
+
++	/* *attr being zeroed by the caller, avoid zeroing it here */
+ 	if (rdma_port->port_state == QED_RDMA_PORT_UP) {
+ 		attr->state = IB_PORT_ACTIVE;
+ 		attr->phys_state = 5;
+@@ -3533,14 +3533,15 @@ int qedr_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = qedr_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE |
++				    RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE |
+-				    RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+
+ 	return 0;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 954f150..2204578 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1320,6 +1320,7 @@ static int qib_query_port(struct rvt_dev_info *rdi, u8 port_num,
+ 	enum ib_mtu mtu;
+ 	u16 lid = ppd->lid;
+
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->lid = lid ? lid : be16_to_cpu(IB_LID_PERMISSIVE);
+ 	props->lmc = ppd->lmc;
+ 	props->state = dd->f_iblink_state(ppd->lastibcstat);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index dde0b23..4f5a45d 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -321,11 +321,12 @@ static int usnic_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct ib_port_attr attr;
+ 	int err;
+
+-	err = usnic_ib_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_USNIC;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+-	immutable->core_cap_flags = RDMA_CORE_PORT_USNIC;
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index a5bfbba..797bfe4 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -330,7 +330,7 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+
+ 	mutex_lock(&us_ibdev->usdev_lock);
+ 	__ethtool_get_link_ksettings(us_ibdev->netdev, &cmd);
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+
+ 	props->lid = 0;
+ 	props->lmc = 1;
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index d430c2f..1165639 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -165,7 +165,7 @@ static int rvt_query_port(struct ib_device *ibdev, u8 port_num,
+ 		return -EINVAL;
+
+ 	rvp = rdi->ports[port_index];
+-	memset(props, 0, sizeof(*props));
++	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->sm_lid = rvp->sm_lid;
+ 	props->sm_sl = rvp->sm_sl;
+ 	props->port_cap_flags = rvp->port_cap_flags;
+@@ -326,13 +326,14 @@ static int rvt_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	if (port_index < 0)
+ 		return -EINVAL;
+
+-	err = rvt_query_port(ibdev, port_num, &attr);
++	immutable->core_cap_flags = rdi->dparms.core_cap_flags;
++
++	err = ib_query_port(ibdev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = rdi->dparms.core_cap_flags;
+ 	immutable->max_mad_size = rdi->dparms.max_mad_size;
+
+ 	return 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 19841c8..e0f4a53 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -86,6 +86,7 @@ static int rxe_query_port(struct ib_device *dev,
+
+ 	port = &rxe->port;
+
++	/* *attr being zeroed by the caller, avoid zeroing it here */
+ 	*attr = port->attr;
+
+ 	mutex_lock(&rxe->usdev_lock);
+@@ -261,13 +262,14 @@ static int rxe_port_immutable(struct ib_device *dev, u8 port_num,
+ 	int err;
+ 	struct ib_port_attr attr;
+
+-	err = rxe_query_port(dev, port_num, &attr);
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++
++	err = ib_query_port(dev, port_num, &attr);
+ 	if (err)
+ 		return err;
+
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+
+ 	return 0;
+--
 2.7.4
 
 --
