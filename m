@@ -1,51 +1,165 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 28 Nov 2016 14:36:49 -0700
-Message-ID: <c8c25265-9f59-f3d6-6249-07500e73930e@deltatee.com>
-References: <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
- <20161128165751.GB28381@obsidianresearch.com>
- <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
- <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610@amd.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] scripts: Add mkey support into ibhosts,
+ ibswitches, and ibrouters
+Date: Mon, 28 Nov 2016 16:47:52 -0500
+Message-ID: <a4a95aaf-f7ff-2ab8-feec-8a206c070044@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610-5C7GfCeVMHo@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On 28/11/16 12:35 PM, Serguei Sagalovitch wrote:
-> As soon as PeerDirect mapping is called then GPU must not "move" the
-> such memory.  It is by PeerDirect design. It is similar how it is works
-> with system memory and RDMA MR: when "get_user_pages" is called then the
-> memory is pinned.
-
-We haven't touch this in a long time and perhaps it changed, but there
-definitely was a call back in the PeerDirect API to allow the GPU to
-invalidate the mapping. That's what we don't want.
-
-Logan
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/scripts/ibhosts.in b/scripts/ibhosts.in
+index fda0541..c37260c 100644
+--- a/scripts/ibhosts.in
++++ b/scripts/ibhosts.in
+@@ -3,19 +3,32 @@
+ IBPATH=${IBPATH:-@IBSCRIPTPATH@}
+ 
+ usage() {
+-	echo Usage: `basename $0` "[-h] [<topology-file> | -C ca_name" \
+-	    "-P ca_port -t timeout_ms]"
++	echo Usage: `basename $0` "[-h] [<topology-file> | -y mkey" \
++	    "-C ca_name -P ca_port -t timeout_ms]"
+ 	exit -1
+ }
+ 
+ topofile=""
+ ca_info=""
++mkey="0"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+ 	-h | --help)
+ 		usage
+ 		;;
++	-y | --m_key)
++		case $2 in
++		-*)
++			usage
++			;;
++		esac
++		if [ x$2 = x ] ; then
++			usage
++		fi
++		shift
++		mkey="$1"
++		;;
+ 	-P | --Port | -C | --Ca | -t | --timeout)
+ 		case $2 in
+ 		-*)
+@@ -44,7 +57,7 @@ done
+ if [ "$topofile" ]; then
+ 	netcmd="cat $topofile"
+ else
+-	netcmd="$IBPATH/ibnetdiscover $ca_info"
++	netcmd="$IBPATH/ibnetdiscover -y $mkey $ca_info"
+ fi
+ 
+ text="`eval $netcmd`"
+diff --git a/scripts/ibrouters.in b/scripts/ibrouters.in
+index ae66ca4..b3e5a1d 100644
+--- a/scripts/ibrouters.in
++++ b/scripts/ibrouters.in
+@@ -3,19 +3,32 @@
+ IBPATH=${IBPATH:-@IBSCRIPTPATH@}
+ 
+ usage() {
+-	echo Usage: `basename $0` "[-h] [<topology-file> | -C ca_name" \
+-	    "-P ca_port -t timeout_ms]"
++	echo Usage: `basename $0` "[-h] [<topology-file> | -y mkey" \
++	    "-C ca_name -P ca_port -t timeout_ms]"
+ 	exit -1
+ }
+ 
+ topofile=""
+ ca_info=""
++mkey="0"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+ 	-h | --help)
+ 		usage
+ 		;;
++	-y | --m_key)
++		case $2 in
++		-*)
++			usage
++			;;
++		esac
++		if [ x$2 = x ] ; then
++			usage
++		fi
++		shift
++		mkey="$1"
++		;;
+ 	-P | --Port | -C | --Ca | -t | --timeout)
+ 		case $2 in
+ 		-*)
+@@ -44,7 +57,7 @@ done
+ if [ "$topofile" ]; then
+ 	netcmd="cat $topofile"
+ else
+-	netcmd="$IBPATH/ibnetdiscover $ca_info"
++	netcmd="$IBPATH/ibnetdiscover -y $mkey $ca_info"
+ fi
+ 
+ text="`eval $netcmd`"
+diff --git a/scripts/ibswitches.in b/scripts/ibswitches.in
+index 0f3aa91..743f1db 100644
+--- a/scripts/ibswitches.in
++++ b/scripts/ibswitches.in
+@@ -3,19 +3,32 @@
+ IBPATH=${IBPATH:-@IBSCRIPTPATH@}
+ 
+ usage() {
+-	echo Usage: `basename $0` "[-h] [<topology-file> | -C ca_name" \
+-	    "-P ca_port -t timeout_ms]"
++	echo Usage: `basename $0` "[-h] [<topology-file> | -y mkey" \
++	    "-C ca_name -P ca_port -t timeout_ms]"
+ 	exit -1
+ }
+ 
+ topofile=""
+ ca_info=""
++mkey="0"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+ 	-h | --help)
+ 		usage
+ 		;;
++	-y | --m_key)
++		case $2 in
++		-*)
++			usage
++			;;
++		esac
++		if [ x$2 = x ] ; then
++			usage
++		fi
++		shift
++		mkey="$1"
++		;;
+ 	-P | --Port | -C | --Ca | -t | --timeout)
+ 		case $2 in
+ 		-*)
+@@ -44,7 +57,7 @@ done
+ if [ "$topofile" ]; then
+ 	netcmd="cat $topofile"
+ else
+-	netcmd="$IBPATH/ibnetdiscover $ca_info"
++	netcmd="$IBPATH/ibnetdiscover -y $mkey $ca_info"
+ fi
+ 
+ text="`eval $netcmd`"
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
