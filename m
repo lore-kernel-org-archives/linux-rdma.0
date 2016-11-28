@@ -1,97 +1,45 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 28 Nov 2016 18:36:07 +0000
-Message-ID: <1480358165.19407.26.camel@mellanox.com>
-References: <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
- <314e9ef7-f60e-bf6b-d488-c585f1ea60e8@amd.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibtracert.c: Enable m_key option
+Date: Mon, 28 Nov 2016 13:47:53 -0500
+Message-ID: <88bd7b9b-c7db-a27a-16a3-68fd5ce37af7@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <314e9ef7-f60e-bf6b-d488-c585f1ea60e8-5C7GfCeVMHo@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B71F61EC93277048B844210572EA850F-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
-Cc: "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE2LTExLTI4IGF0IDA5OjQ4IC0wNTAwLCBTZXJndWVpIFNhZ2Fsb3ZpdGNoIHdy
-b3RlOgo+IE9uIDIwMTYtMTEtMjcgMDk6MDIgQU0sIEhhZ2dhaSBFcmFuIHdyb3RlCj4gPiAKPiA+
-IE9uIFBlZXJEaXJlY3QsIHdlIGhhdmUgc29tZSBraW5kIG9mIGEgbWlkZGxlLWdyb3VuZCBzb2x1
-dGlvbiBmb3IKPiA+IHBpbm5pbmcKPiA+IEdQVSBtZW1vcnkuIFdlIGNyZWF0ZSBhIG5vbi1PRFAg
-TVIgcG9pbnRpbmcgdG8gVlJBTSBidXQgcmVseSBvbgo+ID4gdXNlci1zcGFjZSBhbmQgdGhlIEdQ
-VSBub3QgdG8gbWlncmF0ZSBpdC4gSWYgdGhleSBkbywgdGhlIE1SIGdldHMKPiA+IGRlc3Ryb3ll
-ZCBpbW1lZGlhdGVseS4gVGhpcyBzaG91bGQgd29yayBvbiBsZWdhY3kgZGV2aWNlcyB3aXRob3V0
-Cj4gPiBPRFAKPiA+IHN1cHBvcnQsIGFuZCBhbGxvd3MgdGhlIHN5c3RlbSB0byBzYWZlbHkgdGVy
-bWluYXRlIGEgcHJvY2VzcyB0aGF0Cj4gPiBtaXNiZWhhdmVzLiBUaGUgZG93bnNpZGUgb2YgY291
-cnNlIGlzIHRoYXQgaXQgY2Fubm90IHRyYW5zcGFyZW50bHkKPiA+IG1pZ3JhdGUgbWVtb3J5IGJ1
-dCBJIHRoaW5rIGZvciB1c2VyLXNwYWNlIFJETUEgZG9pbmcgdGhhdAo+ID4gdHJhbnNwYXJlbnRs
-eQo+ID4gcmVxdWlyZXMgaGFyZHdhcmUgc3VwcG9ydCBmb3IgcGFnaW5nLCB2aWEgc29tZXRoaW5n
-IGxpa2UgSE1NLgo+ID4gCj4gPiAuLi4KPiBNYXkgYmUgSSBhbSB3cm9uZyBidXQgbXkgdW5kZXJz
-dGFuZGluZyBpcyB0aGF0IFBlZXJEaXJlY3QgbG9naWMKPiBiYXNpY2FsbHkKPiBmb2xsb3crQUtB
-QW9BIlJETUEgcmVnaXN0ZXIgTVIiIGxvZ2ljIApZZXMuIFRoZSBvbmx5IGRpZmZlcmVuY2UgZnJv
-bSByZWd1bGFyIE1ScyBpcyB0aGUgaW52YWxpZGF0aW9uIHByb2Nlc3MgSQptZW50aW9uZWQsIGFu
-ZCB0aGUgZmFjdCB0aGF0IHdlIGdldCB0aGUgYWRkcmVzc2VzIG5vdCBmcm9tCmdldF91c2VyX3Bh
-Z2VzIGJ1dCBmcm9tIGEgcGVlciBkcml2ZXIuCgo+IHNvIGJhc2ljYWxseSBub3RoaW5nIHByZXZl
-bnQgdG8gInRlcm1pbmF0ZSIKPiBwcm9jZXNzIGZvciAiTU1VIG5vdGlmaWVyIiBjYXNlIHdoZW4g
-d2UgYXJlIHZlcnkgbG93IG9uIG1lbW9yeQo+IG5vdCBtYWtpbmcgaXQgc2ltaWxhciAobm90IHdv
-cnNlKSB0aGVuIFBlZXJEaXJlY3QgY2FzZS4KSSdtIG5vdCBzdXJlIEkgdW5kZXJzdGFuZC4gSSBk
-b24ndCB0aGluayBhbnkgc29sdXRpb24gcHJldmVudHMKdGVybWluYXRpbmcgYW4gYXBwbGljYXRp
-b24uIFRoZSBwYXJhZ3JhcGggYWJvdmUgaXMganVzdCB0cnlpbmcgdG8KZXhwbGFpbiBob3cgYSBu
-b24tT0RQIGRldmljZS9NUiBjYW4gaGFuZGxlIGFuIGludmFsaWRhdGlvbi4KCj4gPiA+IEknbSBo
-ZWFyaW5nIG1vc3QgcGVvcGxlIHNheSBaT05FX0RFVklDRSBpcyB0aGUgd2F5IHRvIGhhbmRsZSB0
-aGlzLAo+ID4gPiB3aGljaCBtZWFucyB0aGUgbWlzc2luZyByZW1haW5nIHBpZWNlIGZvciBSRE1B
-IGlzIHNvbWUga2luZCBvZiBETUEKPiA+ID4gY29yZSBzdXBwb3J0IGZvciBwMnAgYWRkcmVzcyB0
-cmFuc2xhdGlvbi4uCj4gPiBZZXMsIHRoaXMgaXMgZGVmaW5pdGVseSBzb21ldGhpbmcgd2UgbmVl
-ZC4gSSB0aGluayBXaWxsIERhdmlzJ3MKPiA+IHBhdGNoZXMKPiA+IGFyZSBhIGdvb2Qgc3RhcnQu
-Cj4gPiAKPiA+IEFub3RoZXIgdGhpbmcgSSB0aGluayBpcyB0aGF0IHdoaWxlIEhNTSBpcyBnb29k
-IGZvciB1c2VyLXNwYWNlCj4gPiBhcHBsaWNhdGlvbnMsIGZvciBrZXJuZWwgcDJwIHVzZSB0aGVy
-ZSBpcyBubyBuZWVkIGZvciB0aGF0Lgo+IEFib3V0IEhNTTogSSBkbyBub3QgdGhpbmsgdGhhdCBp
-biB0aGUgY3VycmVudCBmb3JtIEhNTSB3b3VsZCtBS0FBb0EtZml0IGluCj4gcmVxdWlyZW1lbnQg
-Zm9yIGdlbmVyaWMgUDJQIHRyYW5zZmVyIGNhc2UuIE15IHVuZGVyc3RhbmRpbmcgaXMgdGhhdCBh
-dAo+IHRoZSBjdXJyZW50IHN0YWdlIEhNTSBpcyBnb29kIGZvciAiY2FjaGluZyIgc3lzdGVtIG1l
-bW9yeQo+IGluIGRldmljZSBtZW1vcnkgZm9yIGZhc3QgR1BVIGFjY2VzcyBidXQgaW4gUkRNQSBN
-UiBub24tT0RQIGNhc2UKPiBpdCB3aWxsIG5vdCB3b3JrIGJlY2F1c2UrQUtBQW9BLXRoZSBsb2Nh
-dGlvbiBvZiBtZW1vcnkgc2hvdWxkIG5vdCBiZQo+IGNoYW5nZWQgc28gbWVtb3J5IHNob3VsZCBi
-ZSBhbGxvY2F0ZWQgZGlyZWN0bHkgaW4gUENJZSBtZW1vcnkuClRoZSB3YXkgSSBzZWUgaXQgdGhl
-cmUgYXJlIHR3byB3YXlzIHRvIGhhbmRsZSBub24tT0RQIE1Scy4gRWl0aGVyIHlvdQpwcmV2ZW50
-IHRoZSBHUFUgZnJvbSBtaWdyYXRpbmcgLyByZXVzaW5nIHRoZSBNUidzIFZSQU0gcGFnZXMgZm9y
-IGFzIGxvbmcKYXMgdGhlIE1SIGlzIGFsaXZlIChpZiBJIHVuZGVyc3RhbmQgY29ycmVjdGx5IHlv
-dSBkaWRuJ3QgbGlrZSB0aGlzCnNvbHV0aW9uKSwgb3IgeW91IGFsbG93IHRoZSBHUFUgdG8gc29t
-ZWhvdyBub3RpZnkgdGhlIEhDQSB0byBpbnZhbGlkYXRlCnRoZSBNUi4gSWYgeW91IGRvIHRoYXQs
-IHlvdSBjYW4gdXNlIG1tdSBub3RpZmllcnMgb3IgSE1NIG9yIHNvbWV0aGluZwplbHNlLCBidXQg
-SE1NIHByb3ZpZGVzIGEgbmljZSBmcmFtZXdvcmsgdG8gZmFjaWxpdGF0ZSB0aGF0IG5vdGlmaWNh
-dGlvbi4KCj4gPiAKPiA+IFVzaW5nIFpPTkVfREVWSUNFIHdpdGggb3Igd2l0aG91dCBzb21ldGhp
-bmcgbGlrZSBETUEtQlVGIHRvIHBpbiBhbmQKPiA+IHVucGluCj4gPiBwYWdlcyBmb3IgdGhlIHNo
-b3J0IGR1cmF0aW9uIGFzIHlvdSB3cm90ZSBhYm92ZSBjb3VsZCB3b3JrIGZpbmUgZm9yCj4gPiBr
-ZXJuZWwgdXNlcyBpbiB3aGljaCB3ZSBjYW4gZ3VhcmFudGVlIHRoZXkgYXJlIHNob3J0Lgo+IFBv
-dGVudGlhbGx5IHRoZXJlIGlzIGFub3RoZXIgaXNzdWUgcmVsYXRlZCB0byBwaW4vdW5waW4uIElm
-IG1lbW9yeQo+IGNvdWxkCj4gYmUgdXNlZCBhIGxvdCBvZiB0aW1lIHRoZW4gdGhlcmUgaXMgbm8g
-c2Vuc2UgdG8gcmVidWlsZCBhbmQgcHJvZ3JhbQo+IHMvZyB0YWJsZXMgZWFjaCB0aW1lIGlmIGxv
-Y2F0aW9uIG9mIG1lbW9yeSB3YXMgbm90IGNoYW5nZWQuCklzIHRoaXMgYWJvdXQgdGhlIGtlcm5l
-bCB1c2Ugb3IgdXNlci1zcGFjZT8gSW4gdXNlci1zcGFjZSBJIHRoaW5rIHRoZSBNUgpjb25jZXB0
-IGNhcHR1cmVzIGEgbG9uZy1saXZlZCBzL2cgdGFibGUgc28geW91IGRvbid0IG5lZWQgdG8gcmVi
-dWlsZCBpdAoodW5sZXNzIHRoZSBtYXBwaW5nIGNoYW5nZXMpLgoKSGFnZ2FpCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+
+m_key option was mistakenly excluded in commit
+ced1cd4758638468329392099ee82c6f2650ea0c:
+
+Author: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Date:   Thu May 31 12:11:33 2012 -0700
+
+    infiniband-diags: Allow specification of an mkey to use on the command line
+    
+    Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+    Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+
+Signed-off-by: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/ibtracert.c b/src/ibtracert.c
+index d99d0e1..1da3d62 100644
+--- a/src/ibtracert.c
++++ b/src/ibtracert.c
+@@ -804,7 +804,7 @@ int main(int argc, char **argv)
+ 		NULL,
+ 	};
+ 
+-	ibdiag_process_opts(argc, argv, NULL, "DKy", opts, process_opt,
++	ibdiag_process_opts(argc, argv, NULL, "DK", opts, process_opt,
+ 			    usage_args, usage_examples);
+ 
+ 	f = stdout;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
