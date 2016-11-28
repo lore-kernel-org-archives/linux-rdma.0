@@ -1,40 +1,51 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Mon, 28 Nov 2016 22:57:00 +0200
-Message-ID: <CAJ3xEMiv6HCu-9fi12XtafxYWu-+gNPMbnfb-A4-+FrgR6KZNA@mail.gmail.com>
-References: <1480258296-27032-1-git-send-email-leon@kernel.org>
- <1480258296-27032-2-git-send-email-leon@kernel.org> <20161128170056.GC28381@obsidianresearch.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Mon, 28 Nov 2016 14:36:49 -0700
+Message-ID: <c8c25265-9f59-f3d6-6249-07500e73930e@deltatee.com>
+References: <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+ <20161128165751.GB28381@obsidianresearch.com>
+ <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
+ <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161128170056.GC28381-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610-5C7GfCeVMHo@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 7:00 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Sun, Nov 27, 2016 at 04:51:27PM +0200, Leon Romanovsky wrote:
->
->> +static inline bool rdma_protocol_raw_packet(const struct ib_device *device, u8 port_num)
->> +{
->> +     return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_RAW_PACKET;
->> +}
->
-> Does the mlx drivers really register ports with different capabilities
-> as the same ib_device? I'm not sure that should be allowed.
 
-mlx4 yeah (practically for the last ~10 years) for instance Eth ports
-don't support SMI -- this goes back to the fact that mlx4 devices are
-single PCI function with potentially two ports and each port can be
-set to different link layer. But this no more holds for mlx5, these
-devices are function-per-port and hence IB device per port. I guess we
-have to swallow that pill and move on as newer devices don't have this
-behavior, okay?
+On 28/11/16 12:35 PM, Serguei Sagalovitch wrote:
+> As soon as PeerDirect mapping is called then GPU must not "move" the
+> such memory.  It is by PeerDirect design. It is similar how it is works
+> with system memory and RDMA MR: when "get_user_pages" is called then the
+> memory is pinned.
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We haven't touch this in a long time and perhaps it changed, but there
+definitely was a call back in the PeerDirect API to allow the GPU to
+invalidate the mapping. That's what we don't want.
+
+Logan
