@@ -1,35 +1,93 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: [PATCH 1/2] SRP transport: Move queuecommand() wait code to SCSI
- core
-Date: Tue, 29 Nov 2016 14:59:37 +0000
-Message-ID: <BLUPR02MB16836EF63187DE03E7F1DD77818D0@BLUPR02MB1683.namprd02.prod.outlook.com>
-References: <39d8cb23-0406-e8c3-6e3a-a467ebe41470@sandisk.com>
- <649cb037-3196-df4d-0d31-47f040ce44a2@sandisk.com>
- <0187d160-5985-32c4-95c0-466c4f09bdf9@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/12] client-side NFS/RDMA patches proposed for v4.10
+Date: Tue, 29 Nov 2016 10:51:59 -0500
+Message-ID: <20161129154845.23061.29385.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-scsi-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/25/16 15:21, Max Gurtovoy wrote:=0A=
-> On 11/23/2016 2:17 AM, Bart Van Assche wrote:=0A=
->> +=0A=
->> +/**=0A=
->> + * scsi_wait_for_queuecommand() - wait for ongoing queuecommand() calls=
-=0A=
->> + * @shost: SCSI host pointer.=0A=
->=0A=
-> the arg is sdev.=0A=
-=0A=
-Good catch.=0A=
-=0A=
-Martin, do you want me to repost this patch or do you want me to post a =0A=
-fix-up patch?=0A=
-=0A=
-Bart.=0A=
-=0A=
+Hi Anna-
+
+These are ready for you to consider for v4.10. This patch series makes
+the following changes:
+
+- Support for devices that support SG_GAP
+- Several bug fixes
+- A number of clean-ups and optimizations
+
+SG_GAP devices allow the client transport implementation to register
+non-contiguous memory regions using one offset and handle. Scatter
+and gather from these regions are then managed entirely in hardware.
+
+Normally a Reply chunk for a READDIR or GETACL is built of multiple
+RDMA segments. Now, when our client wants to build a Reply chunk out
+of the xdr_buf's head, page list, and tail, it appears to the server
+as a single contiguous RDMA segment if the device supports SG_GAP.
+
+Instead of a separate Write WR for each of several RDMA segments,
+the server can then post a single Write WR to transmit the whole RPC
+Reply (assuming the Reply is smaller than the server RNIC's max_sge)
+and can invalidate the whole Reply chunk remotely.
+
+SG_GAP is currently supported by mlx5 devices when using the FRWR
+registration mechanism.
+
+
+Available in the "nfs-rdma-for-4.10" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.10
+
+
+Changes since v2:
+- Rebased on v4.9-rc7
+
+
+Changes since v1:
+- Rebased on v4.9-rc5
+- "xprtrdma: Fix DMAR failure in frwr_op_map() after reconnect" was merged
+- "xprtrdma: Simplify synopsis of rpcrdma_ep_connect()" was postponed
+- Clean-ups re-ordered to the end of the series
+- Editorial changes to patch descriptions
+
+---
+
+Chuck Lever (12):
+      xprtrdma: Cap size of callback buffer resources
+      xprtrdma: Make FRWR send queue entry accounting more accurate
+      xprtrdma: Support for SG_GAP devices
+      SUNRPC: Proper metric accounting when RPC is not transmitted
+      xprtrdma: Address coverity complaint about wait_for_completion()
+      xprtrdma: Avoid calls to ro_unmap_safe()
+      xprtrdma: Refactor FRMR invalidation
+      xprtrdma: Update documenting comment
+      xprtrdma: Squelch "max send, max recv" messages at connect time
+      xprtrdma: Shorten QP access error message
+      xprtrdma: Update dprintk in rpcrdma_count_chunks
+      xprtrdma: Relocate connection helper functions
+
+
+ net/sunrpc/stats.c                |   10 ++--
+ net/sunrpc/xprtrdma/backchannel.c |    4 +-
+ net/sunrpc/xprtrdma/frwr_ops.c    |   94 +++++++++++++++++--------------------
+ net/sunrpc/xprtrdma/rpc_rdma.c    |   36 --------------
+ net/sunrpc/xprtrdma/transport.c   |   34 +++++++++++++
+ net/sunrpc/xprtrdma/verbs.c       |   37 ++++++++-------
+ net/sunrpc/xprtrdma/xprt_rdma.h   |   31 +++++++++---
+ 7 files changed, 128 insertions(+), 118 deletions(-)
+
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
