@@ -1,53 +1,46 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Tue, 29 Nov 2016 09:19:00 -0700
-Message-ID: <20161129161900.GA742@obsidianresearch.com>
-References: <1480258296-27032-1-git-send-email-leon@kernel.org>
- <1480258296-27032-2-git-send-email-leon@kernel.org>
- <20161128170056.GC28381@obsidianresearch.com>
- <CAJ3xEMiv6HCu-9fi12XtafxYWu-+gNPMbnfb-A4-+FrgR6KZNA@mail.gmail.com>
- <20161128222559.GB744@obsidianresearch.com>
- <CAJ3xEMiC3UDujgSL5fwP7ee1=OjhorZ2aeB1k+ptGb9GWaUVkg@mail.gmail.com>
+Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) Bus driver
+Date: Tue, 29 Nov 2016 09:19:50 -0700
+Message-ID: <20161129161950.GB742@obsidianresearch.com>
+References: <20161121233118.GA31132@obsidianresearch.com>
+ <20161122015304.GB67988@knc-06.sc.intel.com>
+ <20161122170407.GE3956@obsidianresearch.com>
+ <20161123000502.GA27968@phlsvsds.ph.intel.com>
+ <20161123004932.GA13598@obsidianresearch.com>
+ <20161124000825.GA73280@knc-06.sc.intel.com>
+ <20161124161545.GA20818@obsidianresearch.com>
+ <20161125021350.GA74946@knc-06.sc.intel.com>
+ <20161125190509.GB16504@obsidianresearch.com>
+ <20161129063106.GB84990@knc-06.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiC3UDujgSL5fwP7ee1=OjhorZ2aeB1k+ptGb9GWaUVkg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20161129063106.GB84990-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 08:35:52AM +0200, Or Gerlitz wrote:
-> > or at least it should or things are already broken.
+On Mon, Nov 28, 2016 at 10:31:06PM -0800, Vishwanathapura, Niranjana wrote:
+> On Fri, Nov 25, 2016 at 12:05:09PM -0700, Jason Gunthorpe wrote:
+> >On Thu, Nov 24, 2016 at 06:13:50PM -0800, Vishwanathapura, Niranjana wrote:
+> >
+> >>In order to be truely device independent the hfi_vnic ULP should not depend
+> >>on a device exported symbol. Instead device should register its functions
+> >>with the ULP. Hence the approaches a) and b).
+> >
+> >It is not device independent, it is hard linked to hfi1, just like our
+> >other multi-component drivers.. So don't worry about that.
+> >
 > 
-> Can you elaborate what it broken with mlx4? I suspect we
-> even have down there some functionality which depends on that,
-> but again, I 1st would like to hear if/what is broken - I copied the maintainer.
+> We would like to keep the design clean and avoid any tight coupling here
+> (our original design in this series tackled these).
+> Any strong reason not to go with a) or b) ?
 
-The semantic we require is that everything under a struct ib_device is
-compatible, you can use an AH on any PD with any QP on any port. As an
-example wee absolutely do not allow iwarp and ib on the same
-ib_device, (rdma_cm will break horribly, at least).
-
-The fact rocee and ib sort of work together as-is represents a fluke
-not a design goal :(
-
-> Jason, patches 8-10 which carry the functional change I want to introduce
-> (allow mlx5 IB devices to be created when RoCE is not supported) stand
-> for themselves.
-
-I asked for the port_num to be removed, and the uapi for it to be
-device not port specific. Don't see why that is such a big deal..
-
-> a re-write of the 10y old IB device-ing of things done by mlx4 just
-> to be able and introduce this reduced functionally (raw packet qp
-> only) of mlx5 devices.
-
-Seems totally fair to me for patches adding a new uapi. Why do you
-guys keep thinking uapis should be easy?
-
-Who else is going to fix this?
+You are not making a subsystem. Don't overcomplicate things. A
+multi-part device device can just directly link.
 
 Jason
 --
