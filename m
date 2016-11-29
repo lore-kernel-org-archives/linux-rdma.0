@@ -1,58 +1,54 @@
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: Re: [PATCH] ethernet :mellanox :mlx4: Replace pci_pool_alloc by pci_pool_zalloc
-Date: Tue, 29 Nov 2016 12:19:46 +0530
-Message-ID: <CAFqt6zbkyquX73bPgm0dTmq-_8cAC0O8yKS0r4+s0PR1AGZ57w@mail.gmail.com>
-References: <20161128132819.GA500@gnr743-HP-ZBook-15> <a1b6f877-c40b-656d-2278-d32af1a93bc7@cogentembedded.com>
+From: Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] ethernet :mellanox :mlx4: Replace pci_pool_alloc by
+ pci_pool_zalloc
+Date: Tue, 29 Nov 2016 12:29:31 +0530
+Message-ID: <20161129065931.GA3245@gnr743-HP-ZBook-15>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <a1b6f877-c40b-656d-2278-d32af1a93bc7@cogentembedded.com>
-Sender: netdev-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: yishaih@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Rameshwar Sahu <sahu.rameshwar73@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sahu.rameshwar73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 12:36 AM, Sergei Shtylyov
-<sergei.shtylyov@cogentembedded.com> wrote:
-> Hello.
->
-> On 11/28/2016 04:28 PM, Souptick Joarder wrote:
->
->> In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
->> replaced by pci_pool_zalloc()
->>
->> Signed-off-by: Souptick joarder <jrdr.linux@gmail.com>
->> ---
->>  drivers/net/ethernet/mellanox/mlx4/cmd.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> b/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> index e36bebc..ee3bd76 100644
->> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> @@ -2679,14 +2679,13 @@ struct mlx4_cmd_mailbox
->> *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
->>         if (!mailbox)
->>                 return ERR_PTR(-ENOMEM);
->>
->> -       mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool,
->> GFP_KERNEL,
->> +       mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool,
->> GFP_KERNEL,
->>                                       &mailbox->dma);
->
->
->    You need to realign he continuation line now, the way it was aligned in
-> the original code.
->
+In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
+replaced by pci_pool_zalloc().
 
-Ok, I will do that.
+Signed-off-by: Souptick joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+v2:
+  - Address comment from sergei
+    Alignment was not proper
 
+ drivers/net/ethernet/mellanox/mlx4/cmd.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index e36bebc..96cdf9a 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -2679,14 +2679,13 @@ struct mlx4_cmd_mailbox *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
+ 	if (!mailbox)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
+-				      &mailbox->dma);
++	mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
++				       &mailbox->dma);
+ 	if (!mailbox->buf) {
+ 		kfree(mailbox);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	memset(mailbox->buf, 0, MLX4_MAILBOX_SIZE);
+ 
+ 	return mailbox;
+ }
+-- 
+1.9.1
 
-
-
->
-> MBR, Sergei
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
