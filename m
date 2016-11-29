@@ -1,81 +1,87 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 04/12] SUNRPC: Proper metric accounting when RPC is not
- transmitted
-Date: Tue, 29 Nov 2016 10:52:32 -0500
-Message-ID: <20161129155232.23061.9794.stgit@manet.1015granger.net>
+Subject: [PATCH v3 05/12] xprtrdma: Address coverity complaint about
+ wait_for_completion()
+Date: Tue, 29 Nov 2016 10:52:40 -0500
+Message-ID: <20161129155240.23061.52832.stgit@manet.1015granger.net>
 References: <20161129154845.23061.29385.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161129154845.23061.29385.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I noticed recently that during an xfstests on a krb5i mount, the
-retransmit count for certain operations had gone negative, and the
-backlog value became unreasonably large. I recall that Andy has
-pointed this out to me in the past.
+> ** CID 114101:  Error handling issues  (CHECKED_RETURN)
+> /net/sunrpc/xprtrdma/verbs.c: 355 in rpcrdma_create_id()
 
-When call_refresh fails to find a valid credential for an RPC, the
-RPC exits immediately without sending anything on the wire. This
-leaves rq_ntrans, rq_xtime, and rq_rtt set to zero.
+Commit 5675add36e76 ("RPC/RDMA: harden connection logic against
+missing/late rdma_cm upcalls.") replaced wait_for_completion() calls
+with these two call sites.
 
-The solution for om_queue is to not add the to RPC's running backlog
-queue total whenever rq_xtime is zero.
+The original wait_for_completion() calls were added in the initial
+commit of verbs.c, which was commit c56c65fb67d6 ("RPCRDMA: rpc rdma
+verbs interface implementation"), but these returned void.
 
-For om_ntrans, it's a bit more difficult. A zero rq_ntrans causes
-om_ops to become larger than om_ntrans. The design of the RPC
-metrics API assumes that ntrans will always be equal to or larger
-than the ops count. The result is that when an RPC fails to find
-credentials, the RPC operation's reported retransmit count, which is
-computed in user space as the difference between ops and ntrans,
-goes negative.
+rpcrdma_create_id() is called by the RDMA connect worker, which
+probably won't ever be interrupted. It is also called by
+rpcrdma_ia_open which is in the synchronous mount path, and ^C is
+possible there.
 
-Ideally the kernel API should report a separate retransmit and
-"exited before initial transmission" metric, so that user space can
-sort out the difference properly.
-
-To avoid kernel API changes and changes to the way rq_ntrans is used
-when performing transport locking, account for untransmitted RPCs
-so that om_ntrans keeps up with om_ops: always add one or more to
-om_ntrans.
+Add a bit of logic at those two call sites to return if the waits
+return ERESTARTSYS.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/stats.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/net/sunrpc/stats.c b/net/sunrpc/stats.c
-index 2ecb994..caeb01a 100644
---- a/net/sunrpc/stats.c
-+++ b/net/sunrpc/stats.c
-@@ -157,15 +157,17 @@ void rpc_count_iostats_metrics(const struct rpc_task *task,
- 	spin_lock(&op_metrics->om_lock);
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 451f5f2..cbb1885 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -331,6 +331,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 			struct rpcrdma_ia *ia, struct sockaddr *addr)
+ {
++	unsigned long wtimeout = msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1;
+ 	struct rdma_cm_id *id;
+ 	int rc;
  
- 	op_metrics->om_ops++;
--	op_metrics->om_ntrans += req->rq_ntrans;
-+	/* kernel API: om_ops must never become larger than om_ntrans */
-+	op_metrics->om_ntrans += max(req->rq_ntrans, 1);
- 	op_metrics->om_timeouts += task->tk_timeouts;
- 
- 	op_metrics->om_bytes_sent += req->rq_xmit_bytes_sent;
- 	op_metrics->om_bytes_recv += req->rq_reply_bytes_recvd;
- 
--	delta = ktime_sub(req->rq_xtime, task->tk_start);
--	op_metrics->om_queue = ktime_add(op_metrics->om_queue, delta);
--
-+	if (ktime_to_ns(req->rq_xtime)) {
-+		delta = ktime_sub(req->rq_xtime, task->tk_start);
-+		op_metrics->om_queue = ktime_add(op_metrics->om_queue, delta);
+@@ -352,8 +353,12 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ 			__func__, rc);
+ 		goto out;
+ 	}
+-	wait_for_completion_interruptible_timeout(&ia->ri_done,
+-				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
++	rc = wait_for_completion_interruptible_timeout(&ia->ri_done, wtimeout);
++	if (rc < 0) {
++		dprintk("RPC:       %s: wait() exited: %i\n",
++			__func__, rc);
++		goto out;
 +	}
- 	op_metrics->om_rtt = ktime_add(op_metrics->om_rtt, req->rq_rtt);
  
- 	delta = ktime_sub(now, task->tk_start);
+ 	/* FIXME:
+ 	 * Until xprtrdma supports DEVICE_REMOVAL, the provider must
+@@ -376,8 +381,12 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ 			__func__, rc);
+ 		goto put;
+ 	}
+-	wait_for_completion_interruptible_timeout(&ia->ri_done,
+-				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
++	rc = wait_for_completion_interruptible_timeout(&ia->ri_done, wtimeout);
++	if (rc < 0) {
++		dprintk("RPC:       %s: wait() exited: %i\n",
++			__func__, rc);
++		goto put;
++	}
+ 	rc = ia->ri_async_rc;
+ 	if (rc)
+ 		goto put;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
