@@ -1,54 +1,49 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 07/10] svcrdma: Remove unused variables in
- xprt_rdma_bc_allocate()
-Date: Tue, 29 Nov 2016 11:05:15 -0500
-Message-ID: <20161129160515.4477.20367.stgit@klimt.1015granger.net>
+Subject: [PATCH v3 08/10] svcrdma: Remove unused variable in rdma_copy_tail()
+Date: Tue, 29 Nov 2016 11:05:23 -0500
+Message-ID: <20161129160523.4477.15121.stgit@klimt.1015granger.net>
 References: <20161129155521.4477.53561.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161129155521.4477.53561.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Clean up.
 
-/linux-2.6/net/sunrpc/xprtrdma/svc_rdma_backchannel.c: In function
- ‘xprt_rdma_bc_allocate’:
-linux-2.6/net/sunrpc/xprtrdma/svc_rdma_backchannel.c:169:23: warning:
- variable ‘rdma’ set but not used [-Wunused-but-set-variable]
-  struct svcxprt_rdma *rdma;
-                       ^
+linux-2.6/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c: In function
+ ‘rdma_copy_tail’:
+linux-2.6/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c:376:6: warning:
+ variable ‘ret’ set but not used [-Wunused-but-set-variable]
+  int ret;
+      ^
 
-Fixes: 5d252f90a800 ("svcrdma: Add class for RDMA backwards ...")
+Fixes: a97c331f9aa9 ("svcrdma: Handle additional inline content")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    4 ----
- 1 file changed, 4 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-index 6035c5a..288e35c 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-@@ -164,13 +164,9 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
- xprt_rdma_bc_allocate(struct rpc_task *task)
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 428ab4ef..57d35fb 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -373,9 +373,7 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+ 	       u32 position, u32 byte_count, u32 page_offset, int page_no)
  {
- 	struct rpc_rqst *rqst = task->tk_rqstp;
--	struct svc_xprt *sxprt = rqst->rq_xprt->bc_xprt;
- 	size_t size = rqst->rq_callsize;
--	struct svcxprt_rdma *rdma;
- 	struct page *page;
+ 	char *srcp, *destp;
+-	int ret;
  
--	rdma = container_of(sxprt, struct svcxprt_rdma, sc_xprt);
--
- 	if (size > PAGE_SIZE) {
- 		WARN_ONCE(1, "svcrdma: large bc buffer request (size %zu)\n",
- 			  size);
+-	ret = 0;
+ 	srcp = head->arg.head[0].iov_base + position;
+ 	byte_count = head->arg.head[0].iov_len - position;
+ 	if (byte_count > PAGE_SIZE) {
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
