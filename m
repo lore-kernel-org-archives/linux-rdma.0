@@ -1,41 +1,43 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] net/mlx5: E-Switch, Add control for inline mode
-Date: Wed, 30 Nov 2016 00:25:54 +0300
-Message-ID: <20161129212554.GF28558@mwanda>
-References: <20161129105258.GA31063@mwanda>
- <fa981369-2032-eb9e-6307-f3055297e7e6@mellanox.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 0/6] IB/hns: Bug Fixes for HNS RoCE Driver
+Date: Tue, 29 Nov 2016 23:10:24 +0000
+Message-ID: <20161129231030.1105600-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <fa981369-2032-eb9e-6307-f3055297e7e6-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 05:06:55PM +0200, Roi Dayan wrote:
-> I really didn't see this. sparse and smatch didn't catch this. I use
-> FC24 and gcc 6.2.1 for compilation and it doesn't give me any
-> warning.
-> Did another check with an old rhel machine with gcc 4.4.6 and I got
-> a warning about it there.
-> Can you tell me which tool you used?
+This patch-set contains bug fixes for the HNS RoCE driver.
 
-Some new unreleased Smatch stuff I'm working on.
+Lijun Ou (1):
+  IB/hns: Fix the IB device name
 
-> 
-> This is a false positive because of the first check if vport > 1, we
-> actually check prev_mlx5_mode from the second for-loop
-> iteration and on the first loop iteration we set a value (in line 952).
-> It is used to check if all vports are set with the same inline mode.
+Shaobo Xu (2):
+  IB/hns: Fix the bug when free mr
+  IB/hns: Fix the bug when free cq
 
-Oh crap...  Smatch takes a short cut handling loops (I really need to
-fix this but I wrote the orginal code a decade ago).  I misread how the
-loops works as well.  Sorry for the noise.
+Wei Hu (Xavier) (3):
+  IB/hns: Fix the bug when destroy qp
+  IB/hns: Fix the bug of setting port mtu
+  IB/hns: Delete the redundant memset operation
 
-regards,
-dan carpenter
+ drivers/infiniband/hw/hns/hns_roce_cmd.h    |    5 -
+ drivers/infiniband/hw/hns/hns_roce_common.h |   42 ++
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |   27 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |   18 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  967 ++++++++++++++++++++++++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   57 ++
+ drivers/infiniband/hw/hns/hns_roce_main.c   |   26 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |   21 +-
+ 8 files changed, 1026 insertions(+), 137 deletions(-)
+
+-- 
+1.7.9.5
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
