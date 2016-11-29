@@ -1,59 +1,107 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] net/mlx5: E-Switch, Add control for inline mode
-Date: Tue, 29 Nov 2016 13:52:58 +0300
-Message-ID: <20161129105258.GA31063@mwanda>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/rxe: Wait for tasklets to finish before tearing
+ down QP
+Date: Tue, 29 Nov 2016 14:49:14 +0200
+Message-ID: <20161129124913.GA5745@yuval-lap.uk.oracle.com>
+References: <1480343844-8381-1-git-send-email-andrew.boyer@dell.com>
+ <1480343844-8381-2-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1480343844-8381-2-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Roi Dayan,
+On Mon, Nov 28, 2016 at 09:37:23AM -0500, Andrew Boyer wrote:
+> The system may crash when a malformed request is received and
+> the error is detected by the responder.
+> 
+> NodeA: $ ibv_rc_pingpong -g 0 -d rxe0 -i 1 -n 1 -s 50000
+> NodeB: $ ibv_rc_pingpong -g 0 -d rxe0 -i 1 -n 1 -s 1024 <NodeA_ip>
+> 
+> The responder generates a receive error on node B since the incoming
+> SEND is oversized. If the client tears down the QP before the responder
+> or the completer finish running, a page fault may occur.
+> 
+> The fix makes the destroy operation spin until the tasks complete, which
+> appears to be original intent of the design.
+> 
+> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_task.c | 19 +++++++++++++++++++
+>  drivers/infiniband/sw/rxe/rxe_task.h |  1 +
+>  2 files changed, 20 insertions(+)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
+> index 1e19bf8..1e9a28f 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_task.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_task.c
+> @@ -121,6 +121,7 @@ int rxe_init_task(void *obj, struct rxe_task *task,
+>  	task->arg	= arg;
+>  	task->func	= func;
+>  	snprintf(task->name, sizeof(task->name), "%s", name);
+> +	task->destroyed	= false;
+>  
+>  	tasklet_init(&task->tasklet, rxe_do_task, (unsigned long)task);
+>  
+> @@ -132,11 +133,29 @@ int rxe_init_task(void *obj, struct rxe_task *task,
+>  
+>  void rxe_cleanup_task(struct rxe_task *task)
+>  {
+> +	unsigned long flags;
+> +	bool idle = false;
 
-The patch bffaa916588e: "net/mlx5: E-Switch, Add control for inline
-mode" from Nov 22, 2016, leads to the following static checker
-warning:
+The above initialization is not needed
 
-	drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:950 mlx5_eswitch_inline_mode_get()
-	error: uninitialized symbol 'prev_mlx5_mode'.
+Besides that:
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-   932  int mlx5_eswitch_inline_mode_get(struct mlx5_eswitch *esw, int nvfs, u8 *mode)
-   933  {
-   934          struct mlx5_core_dev *dev = esw->dev;
-   935          int vport;
-   936          u8 prev_mlx5_mode, mlx5_mode = MLX5_INLINE_MODE_L2;
-                   ^^^^^^^^^^^^^^
-   937  
-   938          if (!MLX5_CAP_GEN(dev, vport_group_manager))
-   939                  return -EOPNOTSUPP;
-   940  
-   941          if (esw->mode == SRIOV_NONE)
-   942                  return -EOPNOTSUPP;
-   943  
-   944          if (MLX5_CAP_ETH(dev, wqe_inline_mode) !=
-   945              MLX5_CAP_INLINE_MODE_VPORT_CONTEXT)
-   946                  return -EOPNOTSUPP;
-   947  
-   948          for (vport = 1; vport <= nvfs; vport++) {
-   949                  mlx5_query_nic_vport_min_inline(dev, vport, &mlx5_mode);
-   950                  if (vport > 1 && prev_mlx5_mode != mlx5_mode)
-                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-No idea what prev_mlx5_mode is supposed to be for.
-
-   951                          return -EINVAL;
-   952                  prev_mlx5_mode = mlx5_mode;
-   953          }
-   954  
-   955          *mode = mlx5_mode;
-   956          return 0;
-   957  }
-
-regards,
-dan carpenter
+> +
+> +	/*
+> +	 * Mark the task, then wait for it to finish. It might be
+> +	 * running in a non-tasklet (direct call) context.
+> +	 */
+> +	task->destroyed = true;
+> +
+> +	do {
+> +		spin_lock_irqsave(&task->state_lock, flags);
+> +		idle = (task->state == TASK_STATE_START);
+> +		spin_unlock_irqrestore(&task->state_lock, flags);
+> +	} while (!idle);
+> +
+>  	tasklet_kill(&task->tasklet);
+>  }
+>  
+>  void rxe_run_task(struct rxe_task *task, int sched)
+>  {
+> +	if (task->destroyed)
+> +		return;
+> +
+>  	if (sched)
+>  		tasklet_schedule(&task->tasklet);
+>  	else
+> diff --git a/drivers/infiniband/sw/rxe/rxe_task.h b/drivers/infiniband/sw/rxe/rxe_task.h
+> index d14aa6d..08ff42d 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_task.h
+> +++ b/drivers/infiniband/sw/rxe/rxe_task.h
+> @@ -54,6 +54,7 @@ struct rxe_task {
+>  	int			(*func)(void *arg);
+>  	int			ret;
+>  	char			name[16];
+> +	bool			destroyed;
+>  };
+>  
+>  /*
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
