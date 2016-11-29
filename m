@@ -1,103 +1,64 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: extended CDB support
-Date: Tue, 29 Nov 2016 09:43:12 +0200
-Message-ID: <04534a11-df1c-eff7-14c5-65c1050f3393@mellanox.com>
-References: <1479891139-15604-1-git-send-email-vladimirn@mellanox.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v2] ethernet :mellanox :mlx4: Replace pci_pool_alloc by
+ pci_pool_zalloc
+Date: Tue, 29 Nov 2016 12:28:56 +0300
+Message-ID: <09fcb40b-cbca-b119-239d-215fcf8ae580@cogentembedded.com>
+References: <20161129065931.GA3245@gnr743-HP-ZBook-15>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479891139-15604-1-git-send-email-vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161129065931.GA3245@gnr743-HP-ZBook-15>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sahu.rameshwar73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sagi/Christopth,
+Hello.
 
-any thoughts on this onw ?
+On 11/29/2016 9:59 AM, Souptick Joarder wrote:
 
-On 11/23/2016 10:52 AM, Vladimir Neyelov wrote:
-> Support of vendor specific CDBs in iser. SCSI supports max command size
-> SCSI_MAX_VARLEN_CDB_SIZE (260 bytes). ISER currently supports max scsi
-> command 16 bytes. This commit changes max scsi command for ISER
-> (to align with iscsi/tcp) to SCSI_MAX_VARLEN_CDB_SIZE.
->
-> Signed-off-by: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
+> replaced by pci_pool_zalloc().
+
+    One more nit since you're going to send it again...
+
+> Signed-off-by: Souptick joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/iser/iscsi_iser.c | 17 +++++++++++++----
->  drivers/infiniband/ulp/iser/iscsi_iser.h |  1 +
->  2 files changed, 14 insertions(+), 4 deletions(-)
+> v2:
+>   - Address comment from sergei
+>     Alignment was not proper
 >
-> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> index 64b3d11..865ce48 100644
-> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> @@ -163,7 +163,8 @@ iscsi_iser_pdu_alloc(struct iscsi_task *task, uint8_t opcode)
->  	struct iscsi_iser_task *iser_task = task->dd_data;
+>  drivers/net/ethernet/mellanox/mlx4/cmd.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 >
->  	task->hdr = (struct iscsi_hdr *)&iser_task->desc.iscsi_header;
-> -	task->hdr_max = sizeof(iser_task->desc.iscsi_header);
-> +	task->hdr_max = sizeof(iser_task->desc.iscsi_header) +
-> +			sizeof(iser_task->desc.iscsi_ecdb_header);
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> index e36bebc..96cdf9a 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> @@ -2679,14 +2679,13 @@ struct mlx4_cmd_mailbox *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
+>  	if (!mailbox)
+>  		return ERR_PTR(-ENOMEM);
 >
->  	return 0;
->  }
-> @@ -189,6 +190,14 @@ iser_initialize_task_headers(struct iscsi_task *task,
->  	u64 dma_addr;
->  	const bool mgmt_task = !task->sc && !in_interrupt();
->  	int ret = 0;
-> +	int headers_len = ISER_HEADERS_LEN;
-> +	struct scsi_cmnd *sc = task->sc;
-> +
-> +	if(sc) {
-> +		if(sc->cmd_len > ISCSI_CDB_SIZE)
-> +			headers_len += offsetof(struct iscsi_ecdb_ahdr, ecdb) +
-> +					(sc->cmd_len - ISCSI_CDB_SIZE);
-> +	}
->
->  	if (unlikely(mgmt_task))
->  		mutex_lock(&iser_conn->state_mutex);
-> @@ -199,7 +208,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
+> -	mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
+> -				      &mailbox->dma);
+> +	mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
+> +				       &mailbox->dma);
+>  	if (!mailbox->buf) {
+>  		kfree(mailbox);
+>  		return ERR_PTR(-ENOMEM);
 >  	}
 >
->  	dma_addr = ib_dma_map_single(device->ib_device, (void *)tx_desc,
-> -				ISER_HEADERS_LEN, DMA_TO_DEVICE);
-> +				headers_len, DMA_TO_DEVICE );
->  	if (ib_dma_mapping_error(device->ib_device, dma_addr)) {
->  		ret = -ENOMEM;
->  		goto out;
-> @@ -209,7 +218,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
->  	tx_desc->mapped = true;
->  	tx_desc->dma_addr = dma_addr;
->  	tx_desc->tx_sg[0].addr   = tx_desc->dma_addr;
-> -	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
-> +	tx_desc->tx_sg[0].length = headers_len;
->  	tx_desc->tx_sg[0].lkey   = device->pd->local_dma_lkey;
+> -	memset(mailbox->buf, 0, MLX4_MAILBOX_SIZE);
 >
->  	iser_task->iser_conn = iser_conn;
-> @@ -623,7 +632,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
->  	shost->max_lun = iscsi_max_lun;
->  	shost->max_id = 0;
->  	shost->max_channel = 0;
-> -	shost->max_cmd_len = 16;
-> +	shost->max_cmd_len = SCSI_MAX_VARLEN_CDB_SIZE;
->
->  	/*
->  	 * older userspace tools (before 2.0-870) did not pass us
-> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-> index 0be6a7c..e1ae9b8 100644
-> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-> @@ -254,6 +254,7 @@ enum iser_desc_type {
->  struct iser_tx_desc {
->  	struct iser_ctrl             iser_header;
->  	struct iscsi_hdr             iscsi_header;
-> +	struct iscsi_ecdb_ahdr       iscsi_ecdb_header;
->  	enum   iser_desc_type        type;
->  	u64		             dma_addr;
->  	struct ib_sge		     tx_sg[2];
->
+
+    Remove empty line here -- one is enough.
+
+>  	return mailbox;
+>  }
+
+MBR, Sergei
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
