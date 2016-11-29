@@ -1,48 +1,51 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Mon, 28 Nov 2016 15:25:59 -0700
-Message-ID: <20161128222559.GB744@obsidianresearch.com>
-References: <1480258296-27032-1-git-send-email-leon@kernel.org>
- <1480258296-27032-2-git-send-email-leon@kernel.org>
- <20161128170056.GC28381@obsidianresearch.com>
- <CAJ3xEMiv6HCu-9fi12XtafxYWu-+gNPMbnfb-A4-+FrgR6KZNA@mail.gmail.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) Bus driver
+Date: Mon, 28 Nov 2016 22:29:38 -0800
+Message-ID: <20161129062938.GA84990@knc-06.sc.intel.com>
+References: <20161121213017.GB67872@knc-06.sc.intel.com>
+ <20161121213930.GA30111@obsidianresearch.com>
+ <20161121232629.GA67988@knc-06.sc.intel.com>
+ <20161121233118.GA31132@obsidianresearch.com>
+ <20161122015304.GB67988@knc-06.sc.intel.com>
+ <20161122170407.GE3956@obsidianresearch.com>
+ <20161123000502.GA27968@phlsvsds.ph.intel.com>
+ <20161123004932.GA13598@obsidianresearch.com>
+ <20161124000825.GA73280@knc-06.sc.intel.com>
+ <20161124161545.GA20818@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiv6HCu-9fi12XtafxYWu-+gNPMbnfb-A4-+FrgR6KZNA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20161124161545.GA20818-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 10:57:00PM +0200, Or Gerlitz wrote:
-> On Mon, Nov 28, 2016 at 7:00 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Sun, Nov 27, 2016 at 04:51:27PM +0200, Leon Romanovsky wrote:
-> >
-> >> +static inline bool rdma_protocol_raw_packet(const struct ib_device *device, u8 port_num)
-> >> +{
-> >> +     return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_RAW_PACKET;
-> >> +}
-> >
-> > Does the mlx drivers really register ports with different capabilities
-> > as the same ib_device? I'm not sure that should be allowed.
-> 
-> mlx4 yeah (practically for the last ~10 years) for instance Eth ports
-> don't support SMI -- this goes back to the fact that mlx4 devices are
-> single PCI function with potentially two ports and each port can be
+On Thu, Nov 24, 2016 at 09:15:45AM -0700, Jason Gunthorpe wrote:
+>> And will move the hfi_vnic module under
+>> ‘drivers/infiniband/ulp/hfi_vnic’.
+>
+>I would prefer drivers/net/ethernet
+>
+>This is clearly not a ULP since it doesn't use verbs.
+>
 
-struct ib_device is not linked to a PCI device. AFAIK mlx4 created one
-ib_device for rocee ports and one for IB, or at least it should or
-things are already broken.
+I understand it is not using verbs, but the control path (ib_device client) is 
+using verbs (IB MAD).
+Our prefernce is to keep it somewhere under drivers/infiniband. Summarizing 
+reasons again here,
 
-> set to different link layer. But this no more holds for mlx5, these
-> devices are function-per-port and hence IB device per port.
+- VNIC control driver (ib_device client) is an IB MAD agent.
+- It is purly a software construct, encapsualtes ethernet packets in Omni-path 
+packet and depends on hfi1 driver here for HW access.
 
-Since it has nothing to do with pci devices, please do this properly.
+Doug,
+Any comments?
 
-Jason
+>Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
