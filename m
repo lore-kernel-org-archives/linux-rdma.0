@@ -1,37 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [RFC 02/10] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) Bus driver
-Date: Tue, 29 Nov 2016 09:50:09 -0700
-Message-ID: <20161129165009.GA3167@obsidianresearch.com>
-References: <20161122170407.GE3956@obsidianresearch.com>
- <20161123000502.GA27968@phlsvsds.ph.intel.com>
- <20161123004932.GA13598@obsidianresearch.com>
- <20161124000825.GA73280@knc-06.sc.intel.com>
- <20161124161545.GA20818@obsidianresearch.com>
- <20161125021350.GA74946@knc-06.sc.intel.com>
- <20161125190509.GB16504@obsidianresearch.com>
- <20161129063106.GB84990@knc-06.sc.intel.com>
- <20161129161950.GB742@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0B9B46@ORSMSX109.amr.corp.intel.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v5 0/8] connect reject event helpers
+Date: Tue, 29 Nov 2016 11:05:08 -0600
+Message-ID: <017401d24a62$bcedd7c0$36c98740$@opengridcomputing.com>
+References: <cover.1477510827.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0B9B46@ORSMSX109.amr.corp.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Hefty, Sean" <sean.hefty@intel.com>
-Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1477510827.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 04:44:37PM +0000, Hefty, Sean wrote:
-> > You are not making a subsystem. Don't overcomplicate things. A
-> > multi-part device device can just directly link.
-> 
-> The VNIC may be usable over multiple generations of HFIs, but I
-> don't know if that is the intent.
+Hey Doug, 
 
-If Intel wants to build a HFI subystem within RDMA with multiple
-drivers then sure, but they are not there yet, and we don't even know
-what that could look like. So it is better to leave it simple for now.
+Are you planning to merge this series for 4.10?  They're still marked 'new' on
+patchworks.
 
-Jason
+Thanks,
+
+Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
