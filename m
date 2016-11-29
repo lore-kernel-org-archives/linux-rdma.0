@@ -1,70 +1,58 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Tue, 29 Nov 2016 08:35:52 +0200
-Message-ID: <CAJ3xEMiC3UDujgSL5fwP7ee1=OjhorZ2aeB1k+ptGb9GWaUVkg@mail.gmail.com>
-References: <1480258296-27032-1-git-send-email-leon@kernel.org>
- <1480258296-27032-2-git-send-email-leon@kernel.org> <20161128170056.GC28381@obsidianresearch.com>
- <CAJ3xEMiv6HCu-9fi12XtafxYWu-+gNPMbnfb-A4-+FrgR6KZNA@mail.gmail.com> <20161128222559.GB744@obsidianresearch.com>
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Subject: Re: [PATCH] ethernet :mellanox :mlx4: Replace pci_pool_alloc by pci_pool_zalloc
+Date: Tue, 29 Nov 2016 12:19:46 +0530
+Message-ID: <CAFqt6zbkyquX73bPgm0dTmq-_8cAC0O8yKS0r4+s0PR1AGZ57w@mail.gmail.com>
+References: <20161128132819.GA500@gnr743-HP-ZBook-15> <a1b6f877-c40b-656d-2278-d32af1a93bc7@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161128222559.GB744-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <a1b6f877-c40b-656d-2278-d32af1a93bc7@cogentembedded.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: yishaih@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Rameshwar Sahu <sahu.rameshwar73@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 12:25 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Nov 28, 2016 at 10:57:00PM +0200, Or Gerlitz wrote:
->> On Mon, Nov 28, 2016 at 7:00 PM, Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Tue, Nov 29, 2016 at 12:36 AM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+> Hello.
+>
+> On 11/28/2016 04:28 PM, Souptick Joarder wrote:
+>
+>> In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
+>> replaced by pci_pool_zalloc()
+>>
+>> Signed-off-by: Souptick joarder <jrdr.linux@gmail.com>
+>> ---
+>>  drivers/net/ethernet/mellanox/mlx4/cmd.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> index e36bebc..ee3bd76 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> @@ -2679,14 +2679,13 @@ struct mlx4_cmd_mailbox
+>> *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
+>>         if (!mailbox)
+>>                 return ERR_PTR(-ENOMEM);
+>>
+>> -       mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool,
+>> GFP_KERNEL,
+>> +       mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool,
+>> GFP_KERNEL,
+>>                                       &mailbox->dma);
+>
+>
+>    You need to realign he continuation line now, the way it was aligned in
+> the original code.
+>
 
->> > Does the mlx drivers really register ports with different capabilities
->> > as the same ib_device? I'm not sure that should be allowed.
+Ok, I will do that.
 
->> mlx4 yeah (practically for the last ~10 years) for instance Eth ports
->> don't support SMI -- this goes back to the fact that mlx4 devices are
->> single PCI function with potentially two ports and each port can be
 
-> struct ib_device is not linked to a PCI device. AFAIK mlx4 created one
-> ib_device for rocee ports and one for IB,
 
-no, it doesn't
 
-> or at least it should or things are already broken.
 
-Can you elaborate what it broken with mlx4? I suspect we
-even have down there some functionality which depends on that,
-but again, I 1st would like to hear if/what is broken - I copied the maintainer.
-
->> set to different link layer. But this no more holds for mlx5, these
->> devices are function-per-port and hence IB device per port.
-
-> Since it has nothing to do with pci devices, please do this properly.
-
-again, mlx5 does this already.
-
-Jason, patches 8-10 which carry the functional change I want to introduce
-(allow mlx5 IB devices to be created when RoCE is not supported) stand
-for themselves.
-
-As I wrote, the stack is fully functional  (i.e no error in the IB
-core etc) when
-only these patches are put. E.g things behave in a similar manner to all
-the upstream iWARP drivers that refuse to create any QP which is not RC.
-
-I am okay to put aside patches 1-7 which I added per Doug request for
-user-space
-applications to be able and query what QPs are supports on a device,
-or to get in
-patches 1-7, whatever works better for Doug and ppl. I don't think
-it's fair to ask
-a re-write of the 10y old IB device-ing of things done by mlx4 just to be able
-and introduce this reduced functionally (raw packet qp only) of mlx5 devices.
-
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> MBR, Sergei
+>
