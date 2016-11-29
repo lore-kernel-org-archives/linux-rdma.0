@@ -1,104 +1,103 @@
-From: Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] ethernet :mellanox :mlx4: Replace pci_pool_alloc by pci_pool_zalloc
-Date: Tue, 29 Nov 2016 13:55:52 +0530
-Message-ID: <CAFqt6za4QG30cArRE+F2DNS5VnpLbkP7jMGeauBRjTqMJwna2A@mail.gmail.com>
-References: <20161129065931.GA3245@gnr743-HP-ZBook-15> <CAFqt6zYzUyZ__7iVH3LwhGzeU7RN59-md4rcmwngRZW_ahDeAQ@mail.gmail.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/iser: extended CDB support
+Date: Tue, 29 Nov 2016 09:43:12 +0200
+Message-ID: <04534a11-df1c-eff7-14c5-65c1050f3393@mellanox.com>
+References: <1479891139-15604-1-git-send-email-vladimirn@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a114abc8032362505426c562b
+Content-Type: text/plain; charset="windows-1255"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAFqt6zYzUyZ__7iVH3LwhGzeU7RN59-md4rcmwngRZW_ahDeAQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1479891139-15604-1-git-send-email-vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rameshwar Sahu <sahu.rameshwar73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---001a114abc8032362505426c562b
-Content-Type: text/plain; charset=UTF-8
+Sagi/Christopth,
 
-While sending the patch using "mutt" , alignment is getting changed.
-In original patch file alignment is proper and
-I have tested the patch with "checkpatch.pl". Attach is the original patch file.
+any thoughts on this onw ?
 
-I am using mutt -H < patch-file>
-
-Any suggestion will be helpful?
-
-On Tue, Nov 29, 2016 at 12:55 PM, Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Please ignore this v2 patch.
+On 11/23/2016 10:52 AM, Vladimir Neyelov wrote:
+> Support of vendor specific CDBs in iser. SCSI supports max command size
+> SCSI_MAX_VARLEN_CDB_SIZE (260 bytes). ISER currently supports max scsi
+> command 16 bytes. This commit changes max scsi command for ISER
+> (to align with iscsi/tcp) to SCSI_MAX_VARLEN_CDB_SIZE.
 >
-> On Tue, Nov 29, 2016 at 12:29 PM, Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
->> replaced by pci_pool_zalloc().
->>
->> Signed-off-by: Souptick joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->> v2:
->>   - Address comment from sergei
->>     Alignment was not proper
->>
->>  drivers/net/ethernet/mellanox/mlx4/cmd.c | 5 ++---
->>  1 file changed, 2 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> index e36bebc..96cdf9a 100644
->> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> @@ -2679,14 +2679,13 @@ struct mlx4_cmd_mailbox *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
->>         if (!mailbox)
->>                 return ERR_PTR(-ENOMEM);
->>
->> -       mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
->> -                                     &mailbox->dma);
->> +       mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
->> +                                      &mailbox->dma);
->>         if (!mailbox->buf) {
->>                 kfree(mailbox);
->>                 return ERR_PTR(-ENOMEM);
->>         }
->>
->> -       memset(mailbox->buf, 0, MLX4_MAILBOX_SIZE);
->>
->>         return mailbox;
->>  }
->> --
->> 1.9.1
->>
-
-Regards
-Souptick
-
---001a114abc8032362505426c562b
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-ethernet-mellanox-mlx4-Replace-pci_pool_alloc-by-pci.patch"
-Content-Disposition: attachment;
-	filename="0001-ethernet-mellanox-mlx4-Replace-pci_pool_alloc-by-pci.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_iw38l49j0
-
-RnJvbSAzNjIxZWFjOTJkMjcxMzMyZWNjOTViNmYwOWNlMjViN2M2ODQ2MTM3IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTb3VwdGljayBKb2FyZGVyIDxqcmRyLmxpbnV4QGdtYWlsLmNv
-bT4KRGF0ZTogVHVlLCAyOSBOb3YgMjAxNiAxMjoxNTozOSArMDUzMApTdWJqZWN0OiBbUEFUQ0gg
-djJdIGV0aGVybmV0IDptZWxsYW5veCA6bWx4NDogUmVwbGFjZSBwY2lfcG9vbF9hbGxvYyBieQog
-cGNpX3Bvb2xfemFsbG9jCgpJbiBtbHg0X2FsbG9jX2NtZF9tYWlsYm94KCksIHBjaV9wb29sX2Fs
-bG9jKCkgZm9sbG93ZWQgYnkgbWVtc2V0IHdpbGwgYmUKcmVwbGFjZWQgYnkgcGNpX3Bvb2xfemFs
-bG9jKCkuCgpTaWduZWQtb2ZmLWJ5OiBTb3VwdGljayBqb2FyZGVyIDxqcmRyLmxpbnV4QGdtYWls
-LmNvbT4KLS0tCnYyOgogIC0gQWRkcmVzcyBjb21tZW50IGZyb20gc2VyZ2VpCiAgICBBbGlnbm1l
-bnQgd2FzIG5vdCBwcm9wZXIKCiBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2Nt
-ZC5jIHwgNSArKy0tLQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlv
-bnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2Nt
-ZC5jIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9jbWQuYwppbmRleCBlMzZi
-ZWJjLi45NmNkZjlhIDEwMDY0NAotLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9t
-bHg0L2NtZC5jCisrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvY21kLmMK
-QEAgLTI2NzksMTQgKzI2NzksMTMgQEAgc3RydWN0IG1seDRfY21kX21haWxib3ggKm1seDRfYWxs
-b2NfY21kX21haWxib3goc3RydWN0IG1seDRfZGV2ICpkZXYpCiAJaWYgKCFtYWlsYm94KQogCQly
-ZXR1cm4gRVJSX1BUUigtRU5PTUVNKTsKIAotCW1haWxib3gtPmJ1ZiA9IHBjaV9wb29sX2FsbG9j
-KG1seDRfcHJpdihkZXYpLT5jbWQucG9vbCwgR0ZQX0tFUk5FTCwKLQkJCQkgICAgICAmbWFpbGJv
-eC0+ZG1hKTsKKwltYWlsYm94LT5idWYgPSBwY2lfcG9vbF96YWxsb2MobWx4NF9wcml2KGRldikt
-PmNtZC5wb29sLCBHRlBfS0VSTkVMLAorCQkJCSAgICAgICAmbWFpbGJveC0+ZG1hKTsKIAlpZiAo
-IW1haWxib3gtPmJ1ZikgewogCQlrZnJlZShtYWlsYm94KTsKIAkJcmV0dXJuIEVSUl9QVFIoLUVO
-T01FTSk7CiAJfQogCi0JbWVtc2V0KG1haWxib3gtPmJ1ZiwgMCwgTUxYNF9NQUlMQk9YX1NJWkUp
-OwogCiAJcmV0dXJuIG1haWxib3g7CiB9Ci0tIAoxLjkuMQoK
---001a114abc8032362505426c562b--
+> Signed-off-by: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/iser/iscsi_iser.c | 17 +++++++++++++----
+>  drivers/infiniband/ulp/iser/iscsi_iser.h |  1 +
+>  2 files changed, 14 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> index 64b3d11..865ce48 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> @@ -163,7 +163,8 @@ iscsi_iser_pdu_alloc(struct iscsi_task *task, uint8_t opcode)
+>  	struct iscsi_iser_task *iser_task = task->dd_data;
+>
+>  	task->hdr = (struct iscsi_hdr *)&iser_task->desc.iscsi_header;
+> -	task->hdr_max = sizeof(iser_task->desc.iscsi_header);
+> +	task->hdr_max = sizeof(iser_task->desc.iscsi_header) +
+> +			sizeof(iser_task->desc.iscsi_ecdb_header);
+>
+>  	return 0;
+>  }
+> @@ -189,6 +190,14 @@ iser_initialize_task_headers(struct iscsi_task *task,
+>  	u64 dma_addr;
+>  	const bool mgmt_task = !task->sc && !in_interrupt();
+>  	int ret = 0;
+> +	int headers_len = ISER_HEADERS_LEN;
+> +	struct scsi_cmnd *sc = task->sc;
+> +
+> +	if(sc) {
+> +		if(sc->cmd_len > ISCSI_CDB_SIZE)
+> +			headers_len += offsetof(struct iscsi_ecdb_ahdr, ecdb) +
+> +					(sc->cmd_len - ISCSI_CDB_SIZE);
+> +	}
+>
+>  	if (unlikely(mgmt_task))
+>  		mutex_lock(&iser_conn->state_mutex);
+> @@ -199,7 +208,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
+>  	}
+>
+>  	dma_addr = ib_dma_map_single(device->ib_device, (void *)tx_desc,
+> -				ISER_HEADERS_LEN, DMA_TO_DEVICE);
+> +				headers_len, DMA_TO_DEVICE );
+>  	if (ib_dma_mapping_error(device->ib_device, dma_addr)) {
+>  		ret = -ENOMEM;
+>  		goto out;
+> @@ -209,7 +218,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
+>  	tx_desc->mapped = true;
+>  	tx_desc->dma_addr = dma_addr;
+>  	tx_desc->tx_sg[0].addr   = tx_desc->dma_addr;
+> -	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
+> +	tx_desc->tx_sg[0].length = headers_len;
+>  	tx_desc->tx_sg[0].lkey   = device->pd->local_dma_lkey;
+>
+>  	iser_task->iser_conn = iser_conn;
+> @@ -623,7 +632,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+>  	shost->max_lun = iscsi_max_lun;
+>  	shost->max_id = 0;
+>  	shost->max_channel = 0;
+> -	shost->max_cmd_len = 16;
+> +	shost->max_cmd_len = SCSI_MAX_VARLEN_CDB_SIZE;
+>
+>  	/*
+>  	 * older userspace tools (before 2.0-870) did not pass us
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+> index 0be6a7c..e1ae9b8 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+> @@ -254,6 +254,7 @@ enum iser_desc_type {
+>  struct iser_tx_desc {
+>  	struct iser_ctrl             iser_header;
+>  	struct iscsi_hdr             iscsi_header;
+> +	struct iscsi_ecdb_ahdr       iscsi_ecdb_header;
+>  	enum   iser_desc_type        type;
+>  	u64		             dma_addr;
+>  	struct ib_sge		     tx_sg[2];
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
