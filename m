@@ -1,64 +1,59 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2] ethernet :mellanox :mlx4: Replace pci_pool_alloc by
- pci_pool_zalloc
-Date: Tue, 29 Nov 2016 12:28:56 +0300
-Message-ID: <09fcb40b-cbca-b119-239d-215fcf8ae580@cogentembedded.com>
-References: <20161129065931.GA3245@gnr743-HP-ZBook-15>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] net/mlx5: E-Switch, Add control for inline mode
+Date: Tue, 29 Nov 2016 13:52:58 +0300
+Message-ID: <20161129105258.GA31063@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161129065931.GA3245@gnr743-HP-ZBook-15>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sahu.rameshwar73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello.
+Hello Roi Dayan,
 
-On 11/29/2016 9:59 AM, Souptick Joarder wrote:
+The patch bffaa916588e: "net/mlx5: E-Switch, Add control for inline
+mode" from Nov 22, 2016, leads to the following static checker
+warning:
 
-> In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
-> replaced by pci_pool_zalloc().
+	drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:950 mlx5_eswitch_inline_mode_get()
+	error: uninitialized symbol 'prev_mlx5_mode'.
 
-    One more nit since you're going to send it again...
+drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+   932  int mlx5_eswitch_inline_mode_get(struct mlx5_eswitch *esw, int nvfs, u8 *mode)
+   933  {
+   934          struct mlx5_core_dev *dev = esw->dev;
+   935          int vport;
+   936          u8 prev_mlx5_mode, mlx5_mode = MLX5_INLINE_MODE_L2;
+                   ^^^^^^^^^^^^^^
+   937  
+   938          if (!MLX5_CAP_GEN(dev, vport_group_manager))
+   939                  return -EOPNOTSUPP;
+   940  
+   941          if (esw->mode == SRIOV_NONE)
+   942                  return -EOPNOTSUPP;
+   943  
+   944          if (MLX5_CAP_ETH(dev, wqe_inline_mode) !=
+   945              MLX5_CAP_INLINE_MODE_VPORT_CONTEXT)
+   946                  return -EOPNOTSUPP;
+   947  
+   948          for (vport = 1; vport <= nvfs; vport++) {
+   949                  mlx5_query_nic_vport_min_inline(dev, vport, &mlx5_mode);
+   950                  if (vport > 1 && prev_mlx5_mode != mlx5_mode)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+No idea what prev_mlx5_mode is supposed to be for.
 
-> Signed-off-by: Souptick joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> v2:
->   - Address comment from sergei
->     Alignment was not proper
->
->  drivers/net/ethernet/mellanox/mlx4/cmd.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-> index e36bebc..96cdf9a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-> @@ -2679,14 +2679,13 @@ struct mlx4_cmd_mailbox *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
->  	if (!mailbox)
->  		return ERR_PTR(-ENOMEM);
->
-> -	mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
-> -				      &mailbox->dma);
-> +	mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
-> +				       &mailbox->dma);
->  	if (!mailbox->buf) {
->  		kfree(mailbox);
->  		return ERR_PTR(-ENOMEM);
->  	}
->
-> -	memset(mailbox->buf, 0, MLX4_MAILBOX_SIZE);
->
+   951                          return -EINVAL;
+   952                  prev_mlx5_mode = mlx5_mode;
+   953          }
+   954  
+   955          *mode = mlx5_mode;
+   956          return 0;
+   957  }
 
-    Remove empty line here -- one is enough.
-
->  	return mailbox;
->  }
-
-MBR, Sergei
-
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
