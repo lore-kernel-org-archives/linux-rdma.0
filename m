@@ -1,52 +1,35 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: extended CDB support
-Date: Tue, 29 Nov 2016 15:16:33 +0200
-Message-ID: <d1dce2ed-d10b-a435-5d5c-d7baa4c571ba@mellanox.com>
-References: <1479891139-15604-1-git-send-email-vladimirn@mellanox.com>
- <04534a11-df1c-eff7-14c5-65c1050f3393@mellanox.com>
- <20161129080232.GA11368@infradead.org>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: [PATCH 1/2] SRP transport: Move queuecommand() wait code to SCSI
+ core
+Date: Tue, 29 Nov 2016 14:59:37 +0000
+Message-ID: <BLUPR02MB16836EF63187DE03E7F1DD77818D0@BLUPR02MB1683.namprd02.prod.outlook.com>
+References: <39d8cb23-0406-e8c3-6e3a-a467ebe41470@sandisk.com>
+ <649cb037-3196-df4d-0d31-47f040ce44a2@sandisk.com>
+ <0187d160-5985-32c4-95c0-466c4f09bdf9@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161129080232.GA11368-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-scsi-owner@vger.kernel.org
+To: Max Gurtovoy <maxg@mellanox.com>, James Bottomley <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 11/29/2016 10:02 AM, Christoph Hellwig wrote:
-> On Tue, Nov 29, 2016 at 09:43:12AM +0200, Max Gurtovoy wrote:
->> Sagi/Christopth,
->>
->> any thoughts on this onw ?
->>
->> On 11/23/2016 10:52 AM, Vladimir Neyelov wrote:
->>> Support of vendor specific CDBs in iser.
->
-> This command surely is wrong.
->
-> Except for that: what's the use case?  The only use case for gigantic
-> CDBs in iSCSI was the T10 OSD code, which hopefully is on it's way out.
->
-> Or do you just need 32 byte CDBs, in whіch case things could probably
-> be done much simpler.
->
-
-we needed to support 22 byte CDB (in the case we encountered the 
-problem) but we wanted to be aligned with the tcp implementation that 
-support SCSI_MAX_VARLEN_CDB_SIZE.
-notice that on the wire we send only the actual CDB size and not all the 
-SCSI_MAX_VARLEN_CDB_SIZE.
-I guess you're concern about allocating extra 244B for each task, right ?
-AFAIK we didn't see difference in perf with this patch but it worth to 
-re-check it and share numbers with the community.
-
-regarding the simplicity, I guess the support for 32B CDB will be pretty 
-much similar to this commit, unless you see some simpler solution.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 11/25/16 15:21, Max Gurtovoy wrote:=0A=
+> On 11/23/2016 2:17 AM, Bart Van Assche wrote:=0A=
+>> +=0A=
+>> +/**=0A=
+>> + * scsi_wait_for_queuecommand() - wait for ongoing queuecommand() calls=
+=0A=
+>> + * @shost: SCSI host pointer.=0A=
+>=0A=
+> the arg is sdev.=0A=
+=0A=
+Good catch.=0A=
+=0A=
+Martin, do you want me to repost this patch or do you want me to post a =0A=
+fix-up patch?=0A=
+=0A=
+Bart.=0A=
+=0A=
