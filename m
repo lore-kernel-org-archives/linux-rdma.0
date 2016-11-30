@@ -1,65 +1,76 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Add request for reset on CQP timeout
-Date: Wed, 30 Nov 2016 15:14:15 -0600
-Message-ID: <20161130211415.15948-1-henry.orosco@intel.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v3 00/10] Server-side NFS/RDMA patches proposed for v4.10
+Date: Wed, 30 Nov 2016 17:30:06 -0500
+Message-ID: <20161130223006.GA21591@fieldses.org>
+References: <20161129155521.4477.53561.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161129155521.4477.53561.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When CQP times out, send a request to LAN driver for reset.
+On Tue, Nov 29, 2016 at 11:04:16AM -0500, Chuck Lever wrote:
+> These patches are ready for you to consider for v4.10. Changes proposed
+> for v4.10 include:
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw.h       |  1 +
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 10 +++++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+They look fine to me, thanks; applying for 4.10.--b.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index c795c61..ef188e6 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -304,6 +304,7 @@ struct i40iw_device {
- 	u32 mpa_version;
- 	bool dcb;
- 	bool closing;
-+	bool reset;
- 	u32 used_pds;
- 	u32 used_cqs;
- 	u32 used_mrs;
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 641f00f..4a08ffb 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -396,7 +396,10 @@ static int i40iw_wait_event(struct i40iw_device *iwdev,
- 		i40iw_pr_err("error cqp command 0x%x timed out ret = %d\n",
- 			     info->cqp_cmd, timeout_ret);
- 		err_code = -ETIME;
--		i40iw_request_reset(iwdev);
-+		if (!iwdev->reset) {
-+			iwdev->reset = true;
-+			i40iw_request_reset(iwdev);
-+		}
- 		goto done;
- 	}
- 	cqp_error = cqp_request->compl_info.error;
-@@ -426,6 +429,11 @@ enum i40iw_status_code i40iw_handle_cqp_op(struct i40iw_device *iwdev,
- 	struct cqp_commands_info *info = &cqp_request->info;
- 	int err_code = 0;
- 
-+	if (iwdev->reset) {
-+		i40iw_free_cqp_request(&iwdev->cqp, cqp_request);
-+		return I40IW_ERR_CQP_COMPL_ERROR;
-+	}
-+
- 	status = i40iw_process_cqp_cmd(dev, info);
- 	if (status) {
- 		i40iw_pr_err("error cqp command 0x%x failed\n", info->cqp_cmd);
--- 
-2.8.3
-
+> 
+> - Drop connection on GSS sequence window overflow
+> - Remove unnecessary spin lock in the svc_rdma_send path
+> - A number of minor clean-ups
+> 
+> Available in the "nfsd-rdma-for-4.10" topic branch of this git repo:
+> 
+> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+> 
+> 
+> Or for browsing:
+> 
+> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.10
+> 
+> 
+> Changes since v2:
+> - Rebased on v4.9-rc7
+> 
+> 
+> Changes since v1:
+> - Rebased on v4.9-rc5
+> - Address checkpatch.pl warnings
+> - Address compiler warnings
+> - Remove a dprintk in svc_rdma_get_inv_rkey()
+> - Patches reordered so fixes come before clean-ups
+> 
+> ---
+> 
+> Chuck Lever (10):
+>       svcrdma: Clear xpt_bc_xps in xprt_setup_rdma_bc() error exit arm
+>       svcauth_gss: Close connection when dropping an incoming message
+>       svcrdma: Renovate sendto chunk list parsing
+>       svcrdma: Remove BH-disabled spin locking in svc_rdma_send()
+>       svcrdma: Remove DMA map accounting
+>       svcrdma: Remove svc_rdma_op_ctxt::wc_status
+>       svcrdma: Remove unused variables in xprt_rdma_bc_allocate()
+>       svcrdma: Remove unused variable in rdma_copy_tail()
+>       svcrdma: Break up dprintk format in svc_rdma_accept()
+>       svcrdma: Further clean-up of svc_rdma_get_inv_rkey()
+> 
+> 
+>  include/linux/sunrpc/svc_rdma.h            |    7 --
+>  net/sunrpc/auth_gss/svcauth_gss.c          |    2 
+>  net/sunrpc/svc.c                           |   14 ++-
+>  net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    5 -
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   21 ++++-
+>  net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  116 ++++++++--------------------
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c   |   94 +++++++----------------
+>  7 files changed, 94 insertions(+), 165 deletions(-)
+> 
+> --
+> Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
