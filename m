@@ -1,300 +1,76 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Add missing cleanup on device close
-Date: Wed, 30 Nov 2016 14:59:26 -0600
-Message-ID: <20161130205926.14472-1-henry.orosco@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH net-next] net/mlx5e: skip loopback selftest with !CONFIG_INET
+Date: Wed, 30 Nov 2016 22:05:39 +0100
+Message-ID: <20161130210552.1756085-1-arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Kamal Heib <kamalh@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+When CONFIG_INET is disabled, the new selftest results in a link
+error:
 
-On i40iw device close, disconnect all connected QPs by moving
-them to error state; and block further QPs, PDs and CQs from
-being created. Additionally, make sure all resources have been
-freed before deallocating the ibdev as part of the device close.
+drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.o: In function `mlx5e_test_loopback':
+en_selftest.c:(.text.mlx5e_test_loopback+0x2ec): undefined reference to `ip_send_check'
+en_selftest.c:(.text.mlx5e_test_loopback+0x34c): undefined reference to `udp4_hwcsum'
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This hides the specific test in that configuration.
+
+Fixes: 0952da791c97 ("net/mlx5e: Add support for loopback selftest")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/infiniband/hw/i40iw/i40iw.h       |  5 +++++
- drivers/infiniband/hw/i40iw/i40iw_cm.c    | 31 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/i40iw/i40iw_cm.h    |  2 ++
- drivers/infiniband/hw/i40iw/i40iw_d.h     |  2 ++
- drivers/infiniband/hw/i40iw/i40iw_main.c  |  4 ++++
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 21 +++++++++++++++++++++
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 25 +++++++++++++++++++++++++
- 7 files changed, 90 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index dac9a6b..c795c61 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -303,10 +303,13 @@ struct i40iw_device {
- 	u32 mr_stagmask;
- 	u32 mpa_version;
- 	bool dcb;
-+	bool closing;
- 	u32 used_pds;
- 	u32 used_cqs;
- 	u32 used_mrs;
- 	u32 used_qps;
-+	wait_queue_head_t close_wq;
-+	atomic64_t use_count;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
+index c32af7daf3ff..65442c36a6e1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
+@@ -39,7 +39,9 @@ enum {
+ 	MLX5E_ST_LINK_STATE,
+ 	MLX5E_ST_LINK_SPEED,
+ 	MLX5E_ST_HEALTH_INFO,
++#ifdef CONFIG_INET
+ 	MLX5E_ST_LOOPBACK,
++#endif
+ 	MLX5E_ST_NUM,
  };
  
- struct i40iw_ib_device {
-@@ -521,6 +524,8 @@ int i40iw_modify_qp(struct ib_qp *, struct ib_qp_attr *, int, struct ib_udata *)
+@@ -47,7 +49,9 @@ const char mlx5e_self_tests[MLX5E_ST_NUM][ETH_GSTRING_LEN] = {
+ 	"Link Test",
+ 	"Speed Test",
+ 	"Health Test",
++#ifdef CONFIG_INET
+ 	"Loopback Test",
++#endif
+ };
  
- void i40iw_rem_pdusecount(struct i40iw_pd *iwpd, struct i40iw_device *iwdev);
- void i40iw_add_pdusecount(struct i40iw_pd *iwpd);
-+void i40iw_rem_devusecount(struct i40iw_device *iwdev);
-+void i40iw_add_devusecount(struct i40iw_device *iwdev);
- void i40iw_hw_modify_qp(struct i40iw_device *iwdev, struct i40iw_qp *iwqp,
- 			struct i40iw_modify_qp_info *info, bool wait);
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index b60e346..11ef0b0 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -4128,3 +4128,34 @@ static void i40iw_cm_post_event(struct i40iw_cm_event *event)
- 
- 	queue_work(event->cm_node->cm_core->event_wq, &event->event_work);
- }
-+
-+/**
-+ * i40iw_cm_disconnect_all - disconnect all connected qp's
-+ * @iwdev: device pointer
-+ */
-+void i40iw_cm_disconnect_all(struct i40iw_device *iwdev)
-+{
-+	struct i40iw_cm_core *cm_core = &iwdev->cm_core;
-+	struct list_head *list_core_temp;
-+	struct list_head *list_node;
-+	struct i40iw_cm_node *cm_node;
-+	unsigned long flags;
-+	struct list_head connected_list;
-+	struct ib_qp_attr attr;
-+
-+	INIT_LIST_HEAD(&connected_list);
-+	spin_lock_irqsave(&cm_core->ht_lock, flags);
-+	list_for_each_safe(list_node, list_core_temp, &cm_core->connected_nodes) {
-+		cm_node = container_of(list_node, struct i40iw_cm_node, list);
-+		atomic_inc(&cm_node->ref_count);
-+		list_add(&cm_node->connected_entry, &connected_list);
-+	}
-+	spin_unlock_irqrestore(&cm_core->ht_lock, flags);
-+
-+	list_for_each_safe(list_node, list_core_temp, &connected_list) {
-+		cm_node = container_of(list_node, struct i40iw_cm_node, connected_entry);
-+		attr.qp_state = IB_QPS_ERR;
-+		i40iw_modify_qp(&cm_node->iwqp->ibqp, &attr, IB_QP_STATE, NULL);
-+		i40iw_rem_ref_cm_node(cm_node);
-+	}
-+}
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-index 24615c2..0381b7f 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-@@ -339,6 +339,7 @@ struct i40iw_cm_node {
- 	int accept_pend;
- 	struct list_head timer_entry;
- 	struct list_head reset_entry;
-+	struct list_head connected_entry;
- 	atomic_t passive_state;
- 	bool qhash_set;
- 	u8 user_pri;
-@@ -443,4 +444,5 @@ int i40iw_arp_table(struct i40iw_device *iwdev,
- 		    u8 *mac_addr,
- 		    u32 action);
- 
-+void i40iw_cm_disconnect_all(struct i40iw_device *iwdev);
- #endif /* I40IW_CM_H */
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
-index e184c0e..1bd4bad 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_d.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
-@@ -35,6 +35,8 @@
- #ifndef I40IW_D_H
- #define I40IW_D_H
- 
-+#define I40IW_FIRST_USER_QP_ID  2
-+
- #define I40IW_DB_ADDR_OFFSET    (4 * 1024 * 1024 - 64 * 1024)
- #define I40IW_VF_DB_ADDR_OFFSET (64 * 1024)
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 9d3b9ee..d86bb6e 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1546,6 +1546,7 @@ static enum i40iw_status_code i40iw_setup_init_state(struct i40iw_handler *hdl,
- 
- 	init_waitqueue_head(&iwdev->vchnl_waitq);
- 	init_waitqueue_head(&dev->vf_reqs);
-+	init_waitqueue_head(&iwdev->close_wq);
- 
- 	status = i40iw_initialize_dev(iwdev, ldev);
- exit:
-@@ -1748,6 +1749,9 @@ static void i40iw_close(struct i40e_info *ldev, struct i40e_client *client, bool
- 		return;
- 
- 	iwdev = &hdl->device;
-+	iwdev->closing = true;
-+
-+	i40iw_cm_disconnect_all(iwdev);
- 	destroy_workqueue(iwdev->virtchnl_wq);
- 	i40iw_deinit_device(iwdev, reset);
- }
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 4e880e8..5815128 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -392,6 +392,7 @@ static void i40iw_free_qp(struct i40iw_cqp_request *cqp_request, u32 num)
- 
- 	i40iw_rem_pdusecount(iwqp->iwpd, iwdev);
- 	i40iw_free_qp_resources(iwdev, iwqp, qp_num);
-+	i40iw_rem_devusecount(iwdev);
+ int mlx5e_self_test_num(struct mlx5e_priv *priv)
+@@ -93,6 +97,7 @@ static int mlx5e_test_link_speed(struct mlx5e_priv *priv)
+ 	return 1;
  }
  
- /**
-@@ -459,6 +460,26 @@ enum i40iw_status_code i40iw_handle_cqp_op(struct i40iw_device *iwdev,
++#ifdef CONFIG_INET
+ /* loopback test */
+ #define MLX5E_TEST_PKT_SIZE (MLX5_MPWRQ_SMALL_PACKET_THRESHOLD - NET_IP_ALIGN)
+ static const char mlx5e_test_text[ETH_GSTRING_LEN] = "MLX5E SELF TEST";
+@@ -304,12 +309,15 @@ static int mlx5e_test_loopback(struct mlx5e_priv *priv)
+ 	kfree(lbtp);
+ 	return err;
  }
++#endif
  
- /**
-+ * i40iw_add_devusecount - add dev refcount
-+ * @iwdev: dev for refcount
-+ */
-+void i40iw_add_devusecount(struct i40iw_device *iwdev)
-+{
-+	atomic64_inc(&iwdev->use_count);
-+}
-+
-+/**
-+ * i40iw_rem_devusecount - decrement refcount for dev
-+ * @iwdev: device
-+ */
-+void i40iw_rem_devusecount(struct i40iw_device *iwdev)
-+{
-+	if (!atomic64_dec_and_test(&iwdev->use_count))
-+		return;
-+	wake_up(&iwdev->close_wq);
-+}
-+
-+/**
-  * i40iw_add_pdusecount - add pd refcount
-  * @iwpd: pd for refcount
-  */
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 6ed4f07..206d72b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -336,6 +336,9 @@ static struct ib_pd *i40iw_alloc_pd(struct ib_device *ibdev,
- 	u32 pd_id = 0;
- 	int err;
+ static int (*mlx5e_st_func[MLX5E_ST_NUM])(struct mlx5e_priv *) = {
+ 	mlx5e_test_link_state,
+ 	mlx5e_test_link_speed,
+ 	mlx5e_test_health_info,
+-	mlx5e_test_loopback
++#ifdef CONFIG_INET
++	mlx5e_test_loopback,
++#endif
+ };
  
-+	if (iwdev->closing)
-+		return ERR_PTR(-ENODEV);
-+
- 	err = i40iw_alloc_resource(iwdev, iwdev->allocated_pds,
- 				   iwdev->max_pd, &pd_id, &iwdev->next_pd);
- 	if (err) {
-@@ -601,6 +604,9 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
- 	struct i40iwarp_offload_info *iwarp_info;
- 	unsigned long flags;
- 
-+	if (iwdev->closing)
-+		return ERR_PTR(-ENODEV);
-+
- 	if (init_attr->create_flags)
- 		return ERR_PTR(-EINVAL);
- 	if (init_attr->cap.max_inline_data > I40IW_MAX_INLINE_DATA_SIZE)
-@@ -776,6 +782,7 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
- 	iwqp->sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR) ? 1 : 0;
- 	iwdev->qp_table[qp_num] = iwqp;
- 	i40iw_add_pdusecount(iwqp->iwpd);
-+	i40iw_add_devusecount(iwdev);
- 	if (ibpd->uobject && udata) {
- 		memset(&uresp, 0, sizeof(uresp));
- 		uresp.actual_sq_size = sq_size;
-@@ -887,6 +894,11 @@ int i40iw_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	spin_lock_irqsave(&iwqp->lock, flags);
- 
- 	if (attr_mask & IB_QP_STATE) {
-+		if (iwdev->closing && attr->qp_state != IB_QPS_ERR) {
-+			err = -EINVAL;
-+			goto exit;
-+		}
-+
- 		switch (attr->qp_state) {
- 		case IB_QPS_INIT:
- 		case IB_QPS_RTR:
-@@ -1086,6 +1098,7 @@ static int i40iw_destroy_cq(struct ib_cq *ib_cq)
- 	cq_wq_destroy(iwdev, cq);
- 	cq_free_resources(iwdev, iwcq);
- 	kfree(iwcq);
-+	i40iw_rem_devusecount(iwdev);
- 	return 0;
- }
- 
-@@ -1116,6 +1129,9 @@ static struct ib_cq *i40iw_create_cq(struct ib_device *ibdev,
- 	int err_code;
- 	int entries = attr->cqe;
- 
-+	if (iwdev->closing)
-+		return ERR_PTR(-ENODEV);
-+
- 	if (entries > iwdev->max_cqe)
- 		return ERR_PTR(-EINVAL);
- 
-@@ -1233,6 +1249,7 @@ static struct ib_cq *i40iw_create_cq(struct ib_device *ibdev,
- 		}
- 	}
- 
-+	i40iw_add_devusecount(iwdev);
- 	return (struct ib_cq *)iwcq;
- 
- cq_destroy:
-@@ -1270,6 +1287,7 @@ static void i40iw_free_stag(struct i40iw_device *iwdev, u32 stag)
- 
- 	stag_idx = (stag & iwdev->mr_stagmask) >> I40IW_CQPSQ_STAG_IDX_SHIFT;
- 	i40iw_free_resource(iwdev, iwdev->allocated_mrs, stag_idx);
-+	i40iw_rem_devusecount(iwdev);
- }
- 
- /**
-@@ -1300,6 +1318,7 @@ static u32 i40iw_create_stag(struct i40iw_device *iwdev)
- 		stag = stag_index << I40IW_CQPSQ_STAG_IDX_SHIFT;
- 		stag |= driver_key;
- 		stag += (u32)consumer_key;
-+		i40iw_add_devusecount(iwdev);
- 	}
- 	return stag;
- }
-@@ -1809,6 +1828,9 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
- 	int ret;
- 	int pg_shift;
- 
-+	if (iwdev->closing)
-+		return ERR_PTR(-ENODEV);
-+
- 	if (length > I40IW_MAX_MR_SIZE)
- 		return ERR_PTR(-EINVAL);
- 	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-@@ -2842,6 +2864,9 @@ void i40iw_destroy_rdma_device(struct i40iw_ib_device *iwibdev)
- 	i40iw_unregister_rdma_device(iwibdev);
- 	kfree(iwibdev->ibdev.iwcm);
- 	iwibdev->ibdev.iwcm = NULL;
-+	wait_event_timeout(iwibdev->iwdev->close_wq,
-+			   !atomic64_read(&iwibdev->iwdev->use_count),
-+			   I40IW_EVENT_TIMEOUT);
- 	ib_dealloc_device(&iwibdev->ibdev);
- }
- 
+ void mlx5e_self_test(struct net_device *ndev, struct ethtool_test *etest,
 -- 
-2.8.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.9.0
