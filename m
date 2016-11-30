@@ -1,143 +1,37 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Set TOS field in IP header
-Date: Wed, 30 Nov 2016 15:09:34 -0600
-Message-ID: <20161130210934.18088-1-henry.orosco@intel.com>
+Subject: [PATCH] i40iw: Code cleanup, remove check of PBLE pages
+Date: Wed, 30 Nov 2016 15:13:47 -0600
+Message-ID: <20161130211347.18276-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Set the TOS field in IP header with the value passed in
-from application. If there is mismatch between the remote
-client's TOS and listener, set the listener Tos to the higher
-of the two values.
+Remove check for zero 'pages' of unallocated pbles calculated in
+add_pble_pool(); as it can never be true.
 
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 25 +++++++++++++++++++------
- drivers/infiniband/hw/i40iw/i40iw_cm.h |  3 +++
- 2 files changed, 22 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_pble.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 13b6dee..0c92037 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -445,7 +445,7 @@ static struct i40iw_puda_buf *i40iw_form_cm_frame(struct i40iw_cm_node *cm_node,
- 
- 		iph->version = IPVERSION;
- 		iph->ihl = 5;	/* 5 * 4Byte words, IP headr len */
--		iph->tos = 0;
-+		iph->tos = cm_node->tos;
- 		iph->tot_len = htons(packetsize);
- 		iph->id = htons(++cm_node->tcp_cntxt.loc_id);
- 
-@@ -472,7 +472,8 @@ static struct i40iw_puda_buf *i40iw_form_cm_frame(struct i40iw_cm_node *cm_node,
- 			ethh->h_proto = htons(ETH_P_IPV6);
- 		}
- 		ip6h->version = 6;
--		ip6h->flow_lbl[0] = 0;
-+		ip6h->priority = cm_node->tos >> 4;
-+		ip6h->flow_lbl[0] = cm_node->tos << 4;
- 		ip6h->flow_lbl[1] = 0;
- 		ip6h->flow_lbl[2] = 0;
- 		ip6h->payload_len = htons(packetsize - sizeof(*ip6h));
-@@ -2141,9 +2142,18 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
- 	cm_node->vlan_id = cm_info->vlan_id;
- 	if ((cm_node->vlan_id == I40IW_NO_VLAN) && iwdev->dcb)
- 		cm_node->vlan_id = 0;
-+	cm_node->tos = cm_info->tos;
- 	cm_node->user_pri = cm_info->user_pri;
--	if (listener)
--		cm_node->user_pri = listener->user_pri;
-+	if (listener) {
-+		if (listener->tos != cm_info->tos)
-+			i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_DCB,
-+				    "application TOS[%d] and remote client TOS[%d] mismatch\n",
-+				     listener->tos, cm_info->tos);
-+		cm_node->tos = max(listener->tos, cm_info->tos);
-+		cm_node->user_pri = rt_tos2priority(cm_node->tos);
-+		i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_DCB, "listener: TOS:[%d] UP:[%d]\n",
-+			    cm_node->tos, cm_node->user_pri);
-+	}
- 	memcpy(cm_node->loc_addr, cm_info->loc_addr, sizeof(cm_node->loc_addr));
- 	memcpy(cm_node->rem_addr, cm_info->rem_addr, sizeof(cm_node->rem_addr));
- 	cm_node->loc_port = cm_info->loc_port;
-@@ -3092,6 +3102,7 @@ void i40iw_receive_ilq(struct i40iw_sc_dev *dev, struct i40iw_puda_buf *rbuf)
- 		cm_info.loc_addr[0] = ntohl(iph->daddr);
- 		cm_info.rem_addr[0] = ntohl(iph->saddr);
- 		cm_info.ipv4 = true;
-+		cm_info.tos = iph->tos;
- 	} else {
- 		ip6h = (struct ipv6hdr *)rbuf->iph;
- 		i40iw_copy_ip_ntohl(cm_info.loc_addr,
-@@ -3099,6 +3110,7 @@ void i40iw_receive_ilq(struct i40iw_sc_dev *dev, struct i40iw_puda_buf *rbuf)
- 		i40iw_copy_ip_ntohl(cm_info.rem_addr,
- 				    ip6h->saddr.in6_u.u6_addr32);
- 		cm_info.ipv4 = false;
-+		cm_info.tos = (ip6h->priority << 4) | (ip6h->flow_lbl[0] >> 4);
- 	}
- 	cm_info.loc_port = ntohs(tcph->dest);
- 	cm_info.rem_port = ntohs(tcph->source);
-@@ -3331,6 +3343,7 @@ static void i40iw_cm_init_tsa_conn(struct i40iw_qp *iwqp,
- 	cm_node->state = I40IW_CM_STATE_OFFLOADED;
- 	tcp_info.tcp_state = I40IW_TCP_STATE_ESTABLISHED;
- 	tcp_info.src_mac_addr_idx = iwdev->mac_ip_table_idx;
-+	tcp_info.tos = cm_node->tos;
- 
- 	dev->iw_priv_qp_ops->qp_setctx(&iwqp->sc_qp, (u64 *)(iwqp->host_ctx.va), ctx_info);
- 
-@@ -3763,6 +3776,7 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		i40iw_netdev_vlan_ipv6(cm_info.loc_addr, &cm_info.vlan_id, NULL);
- 	}
- 	cm_info.cm_id = cm_id;
-+	cm_info.tos = cm_id->tos;
- 	cm_info.user_pri = rt_tos2priority(cm_id->tos);
- 	i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_DCB, "%s TOS:[%d] UP:[%d]\n",
- 		    __func__, cm_id->tos, cm_info.user_pri);
-@@ -3911,10 +3925,9 @@ int i40iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 
- 	cm_id->provider_data = cm_listen_node;
- 
-+	cm_listen_node->tos = cm_id->tos;
- 	cm_listen_node->user_pri = rt_tos2priority(cm_id->tos);
- 	cm_info.user_pri = cm_listen_node->user_pri;
--	i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_DCB, "%s TOS:[%d] UP:[%d]\n",
--		    __func__, cm_id->tos, cm_listen_node->user_pri);
- 
- 	if (!cm_listen_node->reused_node) {
- 		if (wildcard) {
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-index 49ed7a5..2e52e38 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-@@ -297,6 +297,7 @@ struct i40iw_cm_listener {
- 	enum i40iw_cm_listener_state listener_state;
- 	u32 reused_node;
- 	u8 user_pri;
-+	u8 tos;
- 	u16 vlan_id;
- 	bool qhash_set;
- 	bool ipv4;
-@@ -343,6 +344,7 @@ struct i40iw_cm_node {
- 	atomic_t passive_state;
- 	bool qhash_set;
- 	u8 user_pri;
-+	u8 tos;
- 	bool ipv4;
- 	bool snd_mark_en;
- 	u16 lsmm_size;
-@@ -368,6 +370,7 @@ struct i40iw_cm_info {
- 	u16 vlan_id;
- 	int backlog;
- 	u8 user_pri;
-+	u8 tos;
- 	bool ipv4;
- };
- 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_pble.c b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+index 85993dc..c87ba16 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_pble.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+@@ -353,10 +353,6 @@ static enum i40iw_status_code add_pble_pool(struct i40iw_sc_dev *dev,
+ 	pages = (idx->rel_pd_idx) ? (I40IW_HMC_PD_CNT_IN_SD -
+ 			idx->rel_pd_idx) : I40IW_HMC_PD_CNT_IN_SD;
+ 	pages = min(pages, pble_rsrc->unallocated_pble >> PBLE_512_SHIFT);
+-	if (!pages) {
+-		ret_code = I40IW_ERR_NO_PBLCHUNKS_AVAILABLE;
+-		goto error;
+-	}
+ 	info.chunk = chunk;
+ 	info.hmc_info = hmc_info;
+ 	info.pages = pages;
 -- 
 2.8.3
 
