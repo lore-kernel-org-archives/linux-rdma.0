@@ -1,64 +1,70 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Tue, 29 Nov 2016 21:33:47 -0500
-Message-ID: <5927e04b-42ec-52c1-88a3-456cc4409334@talpey.com>
-References: <1480258296-27032-1-git-send-email-leon@kernel.org>
- <1480258296-27032-2-git-send-email-leon@kernel.org>
- <20161128170056.GC28381@obsidianresearch.com>
- <05bd01d2499a$1c75f750$5561e5f0$@opengridcomputing.com>
- <cfdf28c6-4715-28d4-7da6-453fb6794c29@redhat.com>
+From: Tariq Toukan <ttoukan.linux@gmail.com>
+Subject: Re: [PATCH v3] ethernet :mellanox :mlx4: Replace pci_pool_alloc by
+ pci_pool_zalloc
+Date: Wed, 30 Nov 2016 10:44:20 +0200
+Message-ID: <1aa0ef57-02ac-3e2f-9f23-0e16a9d1597b@gmail.com>
+References: <20161129194611.GA4088@jordon-HP-15-Notebook-PC>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cfdf28c6-4715-28d4-7da6-453fb6794c29-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Dennis Dalessandro' <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "'Wei Hu(Xavier)'" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Selvin Xavier' <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Devesh Sharma' <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Mitesh Ahuja' <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Christian Benvenuti' <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Dave Goodell' <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161129194611.GA4088@jordon-HP-15-Notebook-PC>
+Sender: netdev-owner@vger.kernel.org
+To: Souptick Joarder <jrdr.linux@gmail.com>, sergei.shtylyov@cogentembedded.com, yishaih@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, sahu.rameshwar73@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/29/2016 9:07 PM, Doug Ledford wrote:
-> On 11/28/2016 12:08 PM, Steve Wise wrote:
->>>
->>> On Sun, Nov 27, 2016 at 04:51:27PM +0200, Leon Romanovsky wrote:
->>>
->>>> +static inline bool rdma_protocol_raw_packet(const struct ib_device *device,
->> u8
->>> port_num)
->>>> +{
->>>> +	return device->port_immutable[port_num].core_cap_flags &
->>> RDMA_CORE_CAP_PROT_RAW_PACKET;
->>>> +}
->>>
->>> Does the mlx drivers really register ports with different capabilities
->>> as the same ib_device? I'm not sure that should be allowed.
->>>
->>> I keep talking about how we need to get rid of the port_num in these
->>> sorts of places because it makes no sense...
->>>
->>
->> I agree.   Requiring the port number has implications that ripple up into the
->> rdma-rw api as well...
->>
->>
+Hi Souptic,
+
+Thanks for your patch.
+
+On 29/11/2016 9:46 PM, Souptick Joarder wrote:
+> In mlx4_alloc_cmd_mailbox(), pci_pool_alloc() followed by memset will be
+> replaced by pci_pool_zalloc()
 >
-> In all fairness, there is no requirement that any two ports on the same
-> device be the same link layer, or if the link layer is Ethernet, there
-> is no requirement that they can't support both iWARP and RoCE.  The idea
-> that the parent device defined the supported protocols for all ports of
-> a device became wrong with the first mlx4 device that could do both IB
-> and Ethernet.  And I think I've heard rumblings of a combined RoCE/iWARP
-> device possibly in the future from someone else.
+> Signed-off-by: Souptick joarder <jrdr.linux@gmail.com>
+> ---
+> v3:
+>    - Fixed alignment issues
+As mentioned already, you mean 'Remove empty line'.
+>
+> v2:
+>    - Address comment from sergei
+>      Alignment was not proper
+>
+>   drivers/net/ethernet/mellanox/mlx4/cmd.c | 6 ++----
+>   1 file changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> index e36bebc..a49072b4 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> @@ -2679,15 +2679,13 @@ struct mlx4_cmd_mailbox *mlx4_alloc_cmd_mailbox(struct mlx4_dev *dev)
+>   	if (!mailbox)
+>   		return ERR_PTR(-ENOMEM);
+>
+> -	mailbox->buf = pci_pool_alloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
+> -				      &mailbox->dma);
+> +	mailbox->buf = pci_pool_zalloc(mlx4_priv(dev)->cmd.pool, GFP_KERNEL,
+> +				       &mailbox->dma);
+>   	if (!mailbox->buf) {
+>   		kfree(mailbox);
+>   		return ERR_PTR(-ENOMEM);
+>   	}
+>
+> -	memset(mailbox->buf, 0, MLX4_MAILBOX_SIZE);
+> -
+>   	return mailbox;
+>   }
+>   EXPORT_SYMBOL_GPL(mlx4_alloc_cmd_mailbox);
+> --
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 
-This one for instance?
-
-http://www.qlogic.com/Resources/Documents/DataSheets/Adapters/DataSheet_QLE45211HL_QLE45212HL.pdf
-
-I'd love to see any such device support protocol choice per
-connection, not just per port. That of course would have
-implications on the rdma commection manager api.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Tariq
