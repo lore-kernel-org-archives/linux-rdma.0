@@ -1,228 +1,296 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Utilize physically mapped memory regions
-Date: Wed, 30 Nov 2016 14:56:14 -0600
-Message-ID: <20161130205614.11224-1-henry.orosco@intel.com>
+Subject: [PATCH] i40iw: Add missing cleanup on device close
+Date: Wed, 30 Nov 2016 14:59:26 -0600
+Message-ID: <20161130205926.14472-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support to use physically mapped WQ's and MR's if determined
-that the OS registered user-memory for the region is physically
-contiguous. This feature will eliminate the need for unnecessarily
-setting up and using PBL's when not required.
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+On i40iw device close, disconnect all connected QPs by moving
+them to error state; and block further QPs, PDs and CQs from
+being created. Additionally, make sure all resources have been
+freed before deallocating the ibdev as part of the device close.
+
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 102 +++++++++++++++++++++++++++---
- 1 file changed, 93 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw.h       |  5 +++++
+ drivers/infiniband/hw/i40iw/i40iw_cm.c    | 31 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_cm.h    |  2 ++
+ drivers/infiniband/hw/i40iw/i40iw_d.h     |  2 ++
+ drivers/infiniband/hw/i40iw/i40iw_main.c  |  4 ++++
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 21 +++++++++++++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 25 +++++++++++++++++++++++++
+ 7 files changed, 90 insertions(+)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 462f5a7..59f613b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -1358,10 +1358,62 @@ static void i40iw_copy_user_pgaddrs(struct i40iw_mr *iwmr,
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index dac9a6b..c795c61 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -303,10 +303,13 @@ struct i40iw_device {
+ 	u32 mr_stagmask;
+ 	u32 mpa_version;
+ 	bool dcb;
++	bool closing;
+ 	u32 used_pds;
+ 	u32 used_cqs;
+ 	u32 used_mrs;
+ 	u32 used_qps;
++	wait_queue_head_t close_wq;
++	atomic64_t use_count;
+ };
+ 
+ struct i40iw_ib_device {
+@@ -521,6 +524,8 @@ int i40iw_modify_qp(struct ib_qp *, struct ib_qp_attr *, int, struct ib_udata *)
+ 
+ void i40iw_rem_pdusecount(struct i40iw_pd *iwpd, struct i40iw_device *iwdev);
+ void i40iw_add_pdusecount(struct i40iw_pd *iwpd);
++void i40iw_rem_devusecount(struct i40iw_device *iwdev);
++void i40iw_add_devusecount(struct i40iw_device *iwdev);
+ void i40iw_hw_modify_qp(struct i40iw_device *iwdev, struct i40iw_qp *iwqp,
+ 			struct i40iw_modify_qp_info *info, bool wait);
+ 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index b60e346..11ef0b0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -4128,3 +4128,34 @@ static void i40iw_cm_post_event(struct i40iw_cm_event *event)
+ 
+ 	queue_work(event->cm_node->cm_core->event_wq, &event->event_work);
+ }
++
++/**
++ * i40iw_cm_disconnect_all - disconnect all connected qp's
++ * @iwdev: device pointer
++ */
++void i40iw_cm_disconnect_all(struct i40iw_device *iwdev)
++{
++	struct i40iw_cm_core *cm_core = &iwdev->cm_core;
++	struct list_head *list_core_temp;
++	struct list_head *list_node;
++	struct i40iw_cm_node *cm_node;
++	unsigned long flags;
++	struct list_head connected_list;
++	struct ib_qp_attr attr;
++
++	INIT_LIST_HEAD(&connected_list);
++	spin_lock_irqsave(&cm_core->ht_lock, flags);
++	list_for_each_safe(list_node, list_core_temp, &cm_core->connected_nodes) {
++		cm_node = container_of(list_node, struct i40iw_cm_node, list);
++		atomic_inc(&cm_node->ref_count);
++		list_add(&cm_node->connected_entry, &connected_list);
++	}
++	spin_unlock_irqrestore(&cm_core->ht_lock, flags);
++
++	list_for_each_safe(list_node, list_core_temp, &connected_list) {
++		cm_node = container_of(list_node, struct i40iw_cm_node, connected_entry);
++		attr.qp_state = IB_QPS_ERR;
++		i40iw_modify_qp(&cm_node->iwqp->ibqp, &attr, IB_QP_STATE, NULL);
++		i40iw_rem_ref_cm_node(cm_node);
++	}
++}
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+index 24615c2..0381b7f 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+@@ -339,6 +339,7 @@ struct i40iw_cm_node {
+ 	int accept_pend;
+ 	struct list_head timer_entry;
+ 	struct list_head reset_entry;
++	struct list_head connected_entry;
+ 	atomic_t passive_state;
+ 	bool qhash_set;
+ 	u8 user_pri;
+@@ -443,4 +444,5 @@ int i40iw_arp_table(struct i40iw_device *iwdev,
+ 		    u8 *mac_addr,
+ 		    u32 action);
+ 
++void i40iw_cm_disconnect_all(struct i40iw_device *iwdev);
+ #endif /* I40IW_CM_H */
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
+index e184c0e..1bd4bad 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_d.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
+@@ -35,6 +35,8 @@
+ #ifndef I40IW_D_H
+ #define I40IW_D_H
+ 
++#define I40IW_FIRST_USER_QP_ID  2
++
+ #define I40IW_DB_ADDR_OFFSET    (4 * 1024 * 1024 - 64 * 1024)
+ #define I40IW_VF_DB_ADDR_OFFSET (64 * 1024)
+ 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index 9d3b9ee..d86bb6e 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1546,6 +1546,7 @@ static enum i40iw_status_code i40iw_setup_init_state(struct i40iw_handler *hdl,
+ 
+ 	init_waitqueue_head(&iwdev->vchnl_waitq);
+ 	init_waitqueue_head(&dev->vf_reqs);
++	init_waitqueue_head(&iwdev->close_wq);
+ 
+ 	status = i40iw_initialize_dev(iwdev, ldev);
+ exit:
+@@ -1748,6 +1749,9 @@ static void i40iw_close(struct i40e_info *ldev, struct i40e_client *client, bool
+ 		return;
+ 
+ 	iwdev = &hdl->device;
++	iwdev->closing = true;
++
++	i40iw_cm_disconnect_all(iwdev);
+ 	destroy_workqueue(iwdev->virtchnl_wq);
+ 	i40iw_deinit_device(iwdev, reset);
+ }
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 4e880e8..5815128 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -392,6 +392,7 @@ static void i40iw_free_qp(struct i40iw_cqp_request *cqp_request, u32 num)
+ 
+ 	i40iw_rem_pdusecount(iwqp->iwpd, iwdev);
+ 	i40iw_free_qp_resources(iwdev, iwqp, qp_num);
++	i40iw_rem_devusecount(iwdev);
  }
  
  /**
-+ * i40iw_check_mem_contiguous - check if pbls stored in arr are contiguous
-+ * @arr: lvl1 pbl array
-+ * @npages: page count
-+ * pg_size: page size
-+ *
+@@ -459,6 +460,26 @@ enum i40iw_status_code i40iw_handle_cqp_op(struct i40iw_device *iwdev,
+ }
+ 
+ /**
++ * i40iw_add_devusecount - add dev refcount
++ * @iwdev: dev for refcount
 + */
-+static bool i40iw_check_mem_contiguous(u64 *arr, u32 npages, u32 pg_size)
++void i40iw_add_devusecount(struct i40iw_device *iwdev)
 +{
-+	u32 pg_idx;
-+
-+	for (pg_idx = 0; pg_idx < npages; pg_idx++) {
-+		if ((*arr + (pg_size * pg_idx)) != arr[pg_idx])
-+			return false;
-+	}
-+	return true;
++	atomic64_inc(&iwdev->use_count);
 +}
 +
 +/**
-+ * i40iw_check_mr_contiguous - check if MR is physically contiguous
-+ * @palloc: pbl allocation struct
-+ * pg_size: page size
++ * i40iw_rem_devusecount - decrement refcount for dev
++ * @iwdev: device
 + */
-+static bool i40iw_check_mr_contiguous(struct i40iw_pble_alloc *palloc, u32 pg_size)
++void i40iw_rem_devusecount(struct i40iw_device *iwdev)
 +{
-+	struct i40iw_pble_level2 *lvl2 = &palloc->level2;
-+	struct i40iw_pble_info *leaf = lvl2->leaf;
-+	u64 *arr = NULL;
-+	u64 *start_addr = NULL;
-+	int i;
-+	bool ret;
-+
-+	if (palloc->level == I40IW_LEVEL_1) {
-+		arr = (u64 *)palloc->level1.addr;
-+		ret = i40iw_check_mem_contiguous(arr, palloc->total_cnt, pg_size);
-+		return ret;
-+	}
-+
-+	start_addr = (u64 *)leaf->addr;
-+
-+	for (i = 0; i < lvl2->leaf_cnt; i++, leaf++) {
-+		arr = (u64 *)leaf->addr;
-+		if ((*start_addr + (i * pg_size * PBLE_PER_PAGE)) != *arr)
-+			return false;
-+		ret = i40iw_check_mem_contiguous(arr, leaf->cnt, pg_size);
-+		if (!ret)
-+			return false;
-+	}
-+
-+	return true;
++	if (!atomic64_dec_and_test(&iwdev->use_count))
++		return;
++	wake_up(&iwdev->close_wq);
 +}
 +
 +/**
-  * i40iw_setup_pbles - copy user pg address to pble's
-  * @iwdev: iwarp device
-  * @iwmr: mr pointer for this memory registration
-- * @use_pbles: flag if to use pble's or memory (level 0)
-+ * @use_pbles: flag if to use pble's
+  * i40iw_add_pdusecount - add pd refcount
+  * @iwpd: pd for refcount
   */
- static int i40iw_setup_pbles(struct i40iw_device *iwdev,
- 			     struct i40iw_mr *iwmr,
-@@ -1374,9 +1426,6 @@ static int i40iw_setup_pbles(struct i40iw_device *iwdev,
- 	enum i40iw_status_code status;
- 	enum i40iw_pble_level level = I40IW_LEVEL_1;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 6ed4f07..206d72b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -336,6 +336,9 @@ static struct ib_pd *i40iw_alloc_pd(struct ib_device *ibdev,
+ 	u32 pd_id = 0;
+ 	int err;
  
--	if (!use_pbles && (iwmr->page_cnt > MAX_SAVE_PAGE_ADDRS))
--		return -ENOMEM;
--
- 	if (use_pbles) {
- 		mutex_lock(&iwdev->pbl_mutex);
- 		status = i40iw_get_pble(&iwdev->sc_dev, iwdev->pble_rsrc, palloc, iwmr->page_cnt);
-@@ -1393,6 +1442,10 @@ static int i40iw_setup_pbles(struct i40iw_device *iwdev,
- 	}
++	if (iwdev->closing)
++		return ERR_PTR(-ENODEV);
++
+ 	err = i40iw_alloc_resource(iwdev, iwdev->allocated_pds,
+ 				   iwdev->max_pd, &pd_id, &iwdev->next_pd);
+ 	if (err) {
+@@ -601,6 +604,9 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
+ 	struct i40iwarp_offload_info *iwarp_info;
+ 	unsigned long flags;
  
- 	i40iw_copy_user_pgaddrs(iwmr, pbl, level);
++	if (iwdev->closing)
++		return ERR_PTR(-ENODEV);
 +
-+	if (use_pbles)
-+		iwmr->pgaddrmem[0] = *pbl;
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
+ 	if (init_attr->cap.max_inline_data > I40IW_MAX_INLINE_DATA_SIZE)
+@@ -776,6 +782,7 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
+ 	iwqp->sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR) ? 1 : 0;
+ 	iwdev->qp_table[qp_num] = iwqp;
+ 	i40iw_add_pdusecount(iwqp->iwpd);
++	i40iw_add_devusecount(iwdev);
+ 	if (ibpd->uobject && udata) {
+ 		memset(&uresp, 0, sizeof(uresp));
+ 		uresp.actual_sq_size = sq_size;
+@@ -887,6 +894,11 @@ int i40iw_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	spin_lock_irqsave(&iwqp->lock, flags);
+ 
+ 	if (attr_mask & IB_QP_STATE) {
++		if (iwdev->closing && attr->qp_state != IB_QPS_ERR) {
++			err = -EINVAL;
++			goto exit;
++		}
 +
+ 		switch (attr->qp_state) {
+ 		case IB_QPS_INIT:
+ 		case IB_QPS_RTR:
+@@ -1086,6 +1098,7 @@ static int i40iw_destroy_cq(struct ib_cq *ib_cq)
+ 	cq_wq_destroy(iwdev, cq);
+ 	cq_free_resources(iwdev, iwcq);
+ 	kfree(iwcq);
++	i40iw_rem_devusecount(iwdev);
  	return 0;
  }
  
-@@ -1414,14 +1467,18 @@ static int i40iw_handle_q_mem(struct i40iw_device *iwdev,
- 	struct i40iw_cq_mr *cqmr = &iwpbl->cq_mr;
- 	struct i40iw_hmc_pble *hmc_p;
- 	u64 *arr = iwmr->pgaddrmem;
-+	u32 pg_size;
- 	int err;
- 	int total;
-+	bool ret = true;
+@@ -1116,6 +1129,9 @@ static struct ib_cq *i40iw_create_cq(struct ib_device *ibdev,
+ 	int err_code;
+ 	int entries = attr->cqe;
  
- 	total = req->sq_pages + req->rq_pages + req->cq_pages;
-+	pg_size = iwmr->region->page_size;
++	if (iwdev->closing)
++		return ERR_PTR(-ENODEV);
++
+ 	if (entries > iwdev->max_cqe)
+ 		return ERR_PTR(-EINVAL);
  
- 	err = i40iw_setup_pbles(iwdev, iwmr, use_pbles);
- 	if (err)
- 		return err;
-+
- 	if (use_pbles && (palloc->level != I40IW_LEVEL_1)) {
- 		i40iw_free_pble(iwdev->pble_rsrc, palloc);
- 		iwpbl->pbl_allocated = false;
-@@ -1430,26 +1487,44 @@ static int i40iw_handle_q_mem(struct i40iw_device *iwdev,
- 
- 	if (use_pbles)
- 		arr = (u64 *)palloc->level1.addr;
--	if (req->reg_type == IW_MEMREG_TYPE_QP) {
-+
-+	if (iwmr->type == IW_MEMREG_TYPE_QP) {
- 		hmc_p = &qpmr->sq_pbl;
- 		qpmr->shadow = (dma_addr_t)arr[total];
-+
- 		if (use_pbles) {
-+			ret = i40iw_check_mem_contiguous(arr, req->sq_pages, pg_size);
-+			if (ret)
-+				ret = i40iw_check_mem_contiguous(&arr[req->sq_pages], req->rq_pages, pg_size);
-+		}
-+
-+		if (!ret) {
- 			hmc_p->idx = palloc->level1.idx;
- 			hmc_p = &qpmr->rq_pbl;
- 			hmc_p->idx = palloc->level1.idx + req->sq_pages;
- 		} else {
- 			hmc_p->addr = arr[0];
- 			hmc_p = &qpmr->rq_pbl;
--			hmc_p->addr = arr[1];
-+			hmc_p->addr = arr[req->sq_pages];
+@@ -1233,6 +1249,7 @@ static struct ib_cq *i40iw_create_cq(struct ib_device *ibdev,
  		}
- 	} else {		/* CQ */
- 		hmc_p = &cqmr->cq_pbl;
- 		cqmr->shadow = (dma_addr_t)arr[total];
-+
- 		if (use_pbles)
-+			ret = i40iw_check_mem_contiguous(arr, req->cq_pages, pg_size);
-+
-+		if (!ret)
- 			hmc_p->idx = palloc->level1.idx;
- 		else
- 			hmc_p->addr = arr[0];
  	}
-+
-+	if (use_pbles && ret) {
-+		i40iw_free_pble(iwdev->pble_rsrc, palloc);
-+		iwpbl->pbl_allocated = false;
-+	}
-+
- 	return err;
+ 
++	i40iw_add_devusecount(iwdev);
+ 	return (struct ib_cq *)iwcq;
+ 
+ cq_destroy:
+@@ -1270,6 +1287,7 @@ static void i40iw_free_stag(struct i40iw_device *iwdev, u32 stag)
+ 
+ 	stag_idx = (stag & iwdev->mr_stagmask) >> I40IW_CQPSQ_STAG_IDX_SHIFT;
+ 	i40iw_free_resource(iwdev, iwdev->allocated_mrs, stag_idx);
++	i40iw_rem_devusecount(iwdev);
  }
  
-@@ -1648,7 +1723,7 @@ static int i40iw_hwreg_mr(struct i40iw_device *iwdev,
- 	stag_info->pd_id = iwpd->sc_pd.pd_id;
- 	stag_info->addr_type = I40IW_ADDR_TYPE_VA_BASED;
+ /**
+@@ -1300,6 +1318,7 @@ static u32 i40iw_create_stag(struct i40iw_device *iwdev)
+ 		stag = stag_index << I40IW_CQPSQ_STAG_IDX_SHIFT;
+ 		stag |= driver_key;
+ 		stag += (u32)consumer_key;
++		i40iw_add_devusecount(iwdev);
+ 	}
+ 	return stag;
+ }
+@@ -1809,6 +1828,9 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+ 	int ret;
+ 	int pg_shift;
  
--	if (iwmr->page_cnt > 1) {
-+	if (iwpbl->pbl_allocated) {
- 		if (palloc->level == I40IW_LEVEL_1) {
- 			stag_info->first_pm_pbl_index = palloc->level1.idx;
- 			stag_info->chunk_size = 1;
-@@ -1704,6 +1779,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
- 	bool use_pbles = false;
- 	unsigned long flags;
- 	int err = -ENOSYS;
-+	int ret;
- 
++	if (iwdev->closing)
++		return ERR_PTR(-ENODEV);
++
  	if (length > I40IW_MAX_MR_SIZE)
  		return ERR_PTR(-EINVAL);
-@@ -1760,13 +1836,21 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
- 		spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
- 		break;
- 	case IW_MEMREG_TYPE_MEM:
-+		use_pbles = (iwmr->page_cnt != 1);
- 		access = I40IW_ACCESS_FLAGS_LOCALREAD;
+ 	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
+@@ -2842,6 +2864,9 @@ void i40iw_destroy_rdma_device(struct i40iw_ib_device *iwibdev)
+ 	i40iw_unregister_rdma_device(iwibdev);
+ 	kfree(iwibdev->ibdev.iwcm);
+ 	iwibdev->ibdev.iwcm = NULL;
++	wait_event_timeout(iwibdev->iwdev->close_wq,
++			   !atomic64_read(&iwibdev->iwdev->use_count),
++			   I40IW_EVENT_TIMEOUT);
+ 	ib_dealloc_device(&iwibdev->ibdev);
+ }
  
--		use_pbles = (iwmr->page_cnt != 1);
- 		err = i40iw_setup_pbles(iwdev, iwmr, use_pbles);
- 		if (err)
- 			goto error;
- 
-+		if (use_pbles) {
-+			ret = i40iw_check_mr_contiguous(palloc, region->page_size);
-+			if (ret) {
-+				i40iw_free_pble(iwdev->pble_rsrc, palloc);
-+				iwpbl->pbl_allocated = false;
-+			}
-+		}
-+
- 		access |= i40iw_get_user_access(acc);
- 		stag = i40iw_create_stag(iwdev);
- 		if (!stag) {
-@@ -1794,7 +1878,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
- 	return &iwmr->ibmr;
- 
- error:
--	if (palloc->level != I40IW_LEVEL_0)
-+	if (palloc->level != I40IW_LEVEL_0 && iwpbl->pbl_allocated)
- 		i40iw_free_pble(iwdev->pble_rsrc, palloc);
- 	ib_umem_release(region);
- 	kfree(iwmr);
 -- 
 2.8.3
 
