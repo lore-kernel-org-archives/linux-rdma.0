@@ -1,50 +1,118 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 0/2] Optimize RoCE address handle creation for userspace
-Date: Thu,  1 Dec 2016 16:25:51 +0200
-Message-ID: <1480602353-8600-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 2/2] mlx5: Create and destroy address handle with kernel assistance
+Date: Thu,  1 Dec 2016 16:25:53 +0200
+Message-ID: <1480602353-8600-3-git-send-email-yishaih@mellanox.com>
+References: <1480602353-8600-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1480602353-8600-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set from Moni is the supplementary part of the kernel series that
-was lastly sent upstream.
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Creating a UD address handler when link layer is Ethernet requires resolving
-the remote L3 address (GID) to a L2 address (MAC/VLAN).
+Depending on kernel support and when link layer is Ethernet, call kernel
+when asked to create an address handle. Kernel will return destination
+mac which is required to create the address handle. The alternative,
+when kernel support is missing, is to use netlink which is less
+efficient.  Destroying an address handle also needs kernel assistance to
+clean resources that were allocated during address handle creation.
 
-Until now the way to resolve GID (which is the remote IP or a function of it)
-to a MAC was with an interface supplied by libnl. The implementation of this
-interface is heavy and fails on large load of requests to create an address
-handle.
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx5/mlx5-abi.h |  7 +++++++
+ providers/mlx5/mlx5.h     |  2 ++
+ providers/mlx5/verbs.c    | 28 +++++++++++++++++++++++-----
+ 3 files changed, 32 insertions(+), 5 deletions(-)
 
-This series of patches enables user drivers that care for it to optimize the
-resolution of L3 to L2 addresses with uverbs interface.
-
-The series was tested successfully with CX4 in both kernel which doesn't have
-this support and with a kernel which includes the above support.
-
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/42
-
-Yishai
-
-Moni Shoua (2):
-  ibverbs: Allow vendor data response in create_ah command
-  mlx5: Create and destroy address handle with kernel assistance
-
- libibverbs/cmd.c                | 11 ++++++-----
- libibverbs/driver.h             |  4 +++-
- providers/hfi1verbs/verbs.c     |  4 +++-
- providers/ipathverbs/verbs.c    |  4 +++-
- providers/mlx5/mlx5-abi.h       |  7 +++++++
- providers/mlx5/mlx5.h           |  2 ++
- providers/mlx5/verbs.c          | 28 +++++++++++++++++++++++-----
- providers/ocrdma/ocrdma_verbs.c |  4 +++-
- providers/rxe/rxe.c             |  4 +++-
- 9 files changed, 53 insertions(+), 15 deletions(-)
-
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index 4b5b577..800915d 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -91,6 +91,13 @@ struct mlx5_alloc_ucontext_resp {
+ 	__u64				hca_core_clock_offset;
+ };
+ 
++struct mlx5_create_ah_resp {
++	struct ibv_create_ah_resp	ibv_resp;
++	__u32				response_length;
++	__u8				dmac[ETHERNET_LL_SIZE];
++	__u8				reserved[6];
++};
++
+ struct mlx5_alloc_pd_resp {
+ 	struct ibv_alloc_pd_resp	ibv_resp;
+ 	__u32				pdn;
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index cb65429..cf314fc 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -217,6 +217,7 @@ enum mlx5_rsc_type {
+ 
+ enum {
+ 	MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE = 1 << 0,
++	MLX5_USER_CMDS_SUPP_UHW_CREATE_AH    = 1 << 1,
+ };
+ 
+ struct mlx5_resource {
+@@ -470,6 +471,7 @@ struct mlx5_av {
+ struct mlx5_ah {
+ 	struct ibv_ah			ibv_ah;
+ 	struct mlx5_av			av;
++	bool				kern_ah;
+ };
+ 
+ struct mlx5_rwq {
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index e288ebf..7107a5b 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1636,11 +1636,21 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	}
+ 
+ 	if (is_eth) {
+-		uint16_t vid;
++		if (ctx->cmds_supp_uhw & MLX5_USER_CMDS_SUPP_UHW_CREATE_AH) {
++			struct mlx5_create_ah_resp resp = {};
+ 
+-		if (ibv_resolve_eth_l2_from_gid(pd->context, attr, ah->av.rmac,
+-						&vid))
+-			goto err;
++			if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp.ibv_resp, sizeof(resp)))
++				goto err;
++
++			ah->kern_ah = true;
++			memcpy(ah->av.rmac, resp.dmac, ETHERNET_LL_SIZE);
++		} else {
++			uint16_t vid;
++
++			if (ibv_resolve_eth_l2_from_gid(pd->context, attr,
++							ah->av.rmac, &vid))
++				goto err;
++		}
+ 	}
+ 
+ 	return &ah->ibv_ah;
+@@ -1651,8 +1661,16 @@ err:
+ 
+ int mlx5_destroy_ah(struct ibv_ah *ah)
+ {
+-	free(to_mah(ah));
++	struct mlx5_ah *mah = to_mah(ah);
++	int err;
++
++	if (mah->kern_ah) {
++		err = ibv_cmd_destroy_ah(ah);
++		if (err)
++			return err;
++	}
+ 
++	free(mah);
+ 	return 0;
+ }
+ 
 -- 
 1.8.3.1
 
