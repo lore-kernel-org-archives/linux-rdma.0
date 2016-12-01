@@ -1,48 +1,52 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/4] IB/mlx4: Fix out-of-range array index in
- destroy qp flow
-Date: Thu, 1 Dec 2016 05:35:42 +0000
-Message-ID: <BLUPR02MB16836D6466A901D088E1FE65818F0@BLUPR02MB1683.namprd02.prod.outlook.com>
-References: <1480252702-8005-1-git-send-email-leon@kernel.org>
- <1480252702-8005-2-git-send-email-leon@kernel.org>
- <BLUPR02MB1683B2E832867815771A4B2C818B0@BLUPR02MB1683.namprd02.prod.outlook.com>
- <20161128083107.GB6380@leon.nu>
- <bdd9788e-d393-b23e-876c-ae84774fdccd@sandisk.com>
- <20161201053105.GA4497@leon.nu>
+From: Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] infiniband: mthca: Replace pci_pool_alloc by pci_pool_zalloc
+Date: Thu, 1 Dec 2016 11:36:24 +0530
+Message-ID: <CAFqt6zYAM8CUsBmTxU9KGw3Xum9oWzJTs3azizuvvhGkPJ1kTQ@mail.gmail.com>
+References: <20161128125126.GA32365@gnr743-HP-ZBook-15>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20161128125126.GA32365@gnr743-HP-ZBook-15>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rameshwar Sahu <sahu.rameshwar73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/30/16 21:31, Leon Romanovsky wrote:=0A=
-> On Mon, Nov 28, 2016 at 08:29:55AM -0800, Bart Van Assche wrote:=0A=
->> On 11/28/2016 12:31 AM, Leon Romanovsky wrote:=0A=
->>> I'm extra cautions with stable tags and prefer to finalize my stable=0A=
->>> checker in my submissions scripts first, before adding it manually and=
-=0A=
->>> I have plans to use it next kernel release.=0A=
->>=0A=
->> Thanks for explaining your workflow. However, the question remains wheth=
-er=0A=
->> or not stable tags should be added to the patches in this series?=0A=
->=0A=
-> It can be added but I don't see any real advantage of it. Do you know=0A=
-> about real users who run RDMA stack from stable trees and don't rely on=
-=0A=
-> distro kernel and/or OFED?=0A=
-=0A=
-Hello Leon,=0A=
-=0A=
-Many users who build an iSER or SRP storage target themselves use a =0A=
-recent stable kernel without OFED.=0A=
-=0A=
-Bart.=0A=
-=0A=
+On Mon, Nov 28, 2016 at 6:21 PM, Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> In mthca_create_ah(), pci_pool_alloc() followed by memset will be
+> replaced by pci_pool_zalloc()
+>
+> Signed-off-by: Souptick joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mthca/mthca_av.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/mthca/mthca_av.c b/drivers/infiniband/hw/mthca/mthca_av.c
+> index bcac294..c202c89 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_av.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_av.c
+> @@ -186,7 +186,7 @@ int mthca_create_ah(struct mthca_dev *dev,
+>
+>  on_hca_fail:
+>         if (ah->type == MTHCA_AH_PCI_POOL) {
+> -               ah->av = pci_pool_alloc(dev->av_table.pool,
+> +               ah->av = pci_pool_zalloc(dev->av_table.pool,
+>                                         GFP_ATOMIC, &ah->avdma);
+>                 if (!ah->av)
+>                         return -ENOMEM;
+> @@ -196,7 +196,6 @@ int mthca_create_ah(struct mthca_dev *dev,
+>
+>         ah->key = pd->ntmr.ibmr.lkey;
+>
+> -       memset(av, 0, MTHCA_AV_SIZE);
+>
+>         av->port_pd = cpu_to_be32(pd->pd_num | (ah_attr->port_num << 24));
+>         av->g_slid  = ah_attr->src_path_bits;
+> --
+> 1.9.1
+>
+
+Any comment on this patch?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
