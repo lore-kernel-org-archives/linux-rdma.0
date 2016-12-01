@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/2] mlx5: Create and destroy address handle with kernel assistance
-Date: Thu,  1 Dec 2016 16:25:53 +0200
-Message-ID: <1480602353-8600-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 1/2] ibverbs: Allow vendor data response in create_ah command
+Date: Thu,  1 Dec 2016 16:25:52 +0200
+Message-ID: <1480602353-8600-2-git-send-email-yishaih@mellanox.com>
 References: <1480602353-8600-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480602353-8600-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,107 +12,152 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Depending on kernel support and when link layer is Ethernet, call kernel
-when asked to create an address handle. Kernel will return destination
-mac which is required to create the address handle. The alternative,
-when kernel support is missing, is to use netlink which is less
-efficient.  Destroying an address handle also needs kernel assistance to
-clean resources that were allocated during address handle creation.
+Let caller pass response buffer and response size to ibv_cmd_create_ah
+to enable kernel driver to return some private vendor data.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5-abi.h |  7 +++++++
- providers/mlx5/mlx5.h     |  2 ++
- providers/mlx5/verbs.c    | 28 +++++++++++++++++++++++-----
- 3 files changed, 32 insertions(+), 5 deletions(-)
+ libibverbs/cmd.c                | 11 ++++++-----
+ libibverbs/driver.h             |  4 +++-
+ providers/hfi1verbs/verbs.c     |  4 +++-
+ providers/ipathverbs/verbs.c    |  4 +++-
+ providers/ocrdma/ocrdma_verbs.c |  4 +++-
+ providers/rxe/rxe.c             |  4 +++-
+ 6 files changed, 21 insertions(+), 10 deletions(-)
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index 4b5b577..800915d 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -91,6 +91,13 @@ struct mlx5_alloc_ucontext_resp {
- 	__u64				hca_core_clock_offset;
- };
- 
-+struct mlx5_create_ah_resp {
-+	struct ibv_create_ah_resp	ibv_resp;
-+	__u32				response_length;
-+	__u8				dmac[ETHERNET_LL_SIZE];
-+	__u8				reserved[6];
-+};
-+
- struct mlx5_alloc_pd_resp {
- 	struct ibv_alloc_pd_resp	ibv_resp;
- 	__u32				pdn;
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index cb65429..cf314fc 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -217,6 +217,7 @@ enum mlx5_rsc_type {
- 
- enum {
- 	MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE = 1 << 0,
-+	MLX5_USER_CMDS_SUPP_UHW_CREATE_AH    = 1 << 1,
- };
- 
- struct mlx5_resource {
-@@ -470,6 +471,7 @@ struct mlx5_av {
- struct mlx5_ah {
- 	struct ibv_ah			ibv_ah;
- 	struct mlx5_av			av;
-+	bool				kern_ah;
- };
- 
- struct mlx5_rwq {
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index e288ebf..7107a5b 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1636,11 +1636,21 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 	}
- 
- 	if (is_eth) {
--		uint16_t vid;
-+		if (ctx->cmds_supp_uhw & MLX5_USER_CMDS_SUPP_UHW_CREATE_AH) {
-+			struct mlx5_create_ah_resp resp = {};
- 
--		if (ibv_resolve_eth_l2_from_gid(pd->context, attr, ah->av.rmac,
--						&vid))
--			goto err;
-+			if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp.ibv_resp, sizeof(resp)))
-+				goto err;
-+
-+			ah->kern_ah = true;
-+			memcpy(ah->av.rmac, resp.dmac, ETHERNET_LL_SIZE);
-+		} else {
-+			uint16_t vid;
-+
-+			if (ibv_resolve_eth_l2_from_gid(pd->context, attr,
-+							ah->av.rmac, &vid))
-+				goto err;
-+		}
- 	}
- 
- 	return &ah->ibv_ah;
-@@ -1651,8 +1661,16 @@ err:
- 
- int mlx5_destroy_ah(struct ibv_ah *ah)
- {
--	free(to_mah(ah));
-+	struct mlx5_ah *mah = to_mah(ah);
-+	int err;
-+
-+	if (mah->kern_ah) {
-+		err = ibv_cmd_destroy_ah(ah);
-+		if (err)
-+			return err;
-+	}
- 
-+	free(mah);
- 	return 0;
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 06a017b..eaf7164 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1492,12 +1492,13 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
  }
  
+ int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+-		      struct ibv_ah_attr *attr)
++		      struct ibv_ah_attr *attr,
++		      struct ibv_create_ah_resp *resp,
++		      size_t resp_size)
+ {
+ 	struct ibv_create_ah      cmd;
+-	struct ibv_create_ah_resp resp;
+ 
+-	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
++	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, resp, resp_size);
+ 	cmd.user_handle            = (uintptr_t) ah;
+ 	cmd.pd_handle              = pd->handle;
+ 	cmd.attr.dlid              = attr->dlid;
+@@ -1515,9 +1516,9 @@ int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+ 	if (write(pd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+ 		return errno;
+ 
+-	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
++	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+ 
+-	ah->handle  = resp.handle;
++	ah->handle  = resp->handle;
+ 	ah->context = pd->context;
+ 
+ 	return 0;
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index ea3dade..c170169 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -233,7 +233,9 @@ int ibv_cmd_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
+ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+ 			  struct ibv_recv_wr **bad_wr);
+ int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+-		      struct ibv_ah_attr *attr);
++		      struct ibv_ah_attr *attr,
++		      struct ibv_create_ah_resp *resp,
++		      size_t resp_size);
+ int ibv_cmd_destroy_ah(struct ibv_ah *ah);
+ int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+ int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+diff --git a/providers/hfi1verbs/verbs.c b/providers/hfi1verbs/verbs.c
+index 06ddbb7..d39a4d0 100644
+--- a/providers/hfi1verbs/verbs.c
++++ b/providers/hfi1verbs/verbs.c
+@@ -678,12 +678,14 @@ int hfi1_post_srq_recv(struct ibv_srq *ibsrq, struct ibv_recv_wr *wr,
+ struct ibv_ah *hfi1_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ {
+ 	struct ibv_ah *ah;
++	struct ibv_create_ah_resp resp;
+ 
+ 	ah = malloc(sizeof *ah);
+ 	if (ah == NULL)
+ 		return NULL;
+ 
+-	if (ibv_cmd_create_ah(pd, ah, attr)) {
++	memset(&resp, 0, sizeof(resp));
++	if (ibv_cmd_create_ah(pd, ah, attr, &resp, sizeof(resp))) {
+ 		free(ah);
+ 		return NULL;
+ 	}
+diff --git a/providers/ipathverbs/verbs.c b/providers/ipathverbs/verbs.c
+index 35b2162..2145b15 100644
+--- a/providers/ipathverbs/verbs.c
++++ b/providers/ipathverbs/verbs.c
+@@ -653,12 +653,14 @@ int ipath_post_srq_recv(struct ibv_srq *ibsrq, struct ibv_recv_wr *wr,
+ struct ibv_ah *ipath_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ {
+ 	struct ibv_ah *ah;
++	struct ibv_create_ah_resp resp;
+ 
+ 	ah = malloc(sizeof *ah);
+ 	if (ah == NULL)
+ 		return NULL;
+ 
+-	if (ibv_cmd_create_ah(pd, ah, attr)) {
++	memset(&resp, 0, sizeof(resp));
++	if (ibv_cmd_create_ah(pd, ah, attr, &resp, sizeof(resp))) {
+ 		free(ah);
+ 		return NULL;
+ 	}
+diff --git a/providers/ocrdma/ocrdma_verbs.c b/providers/ocrdma/ocrdma_verbs.c
+index 7e066dc..dce833b 100644
+--- a/providers/ocrdma/ocrdma_verbs.c
++++ b/providers/ocrdma/ocrdma_verbs.c
+@@ -2099,6 +2099,7 @@ struct ibv_ah *ocrdma_create_ah(struct ibv_pd *ibpd, struct ibv_ah_attr *attr)
+ 	int ahtbl_idx;
+ 	struct ocrdma_pd *pd;
+ 	struct ocrdma_ah *ah;
++	struct ibv_create_ah_resp resp;
+ 
+ 	pd = get_ocrdma_pd(ibpd);
+ 	ah = malloc(sizeof *ah);
+@@ -2111,7 +2112,8 @@ struct ibv_ah *ocrdma_create_ah(struct ibv_pd *ibpd, struct ibv_ah_attr *attr)
+ 	if (ahtbl_idx < 0)
+ 		goto tbl_err;
+ 	attr->dlid = ahtbl_idx;
+-	status = ibv_cmd_create_ah(ibpd, &ah->ibv_ah, attr);
++	memset(&resp, 0, sizeof(resp));
++	status = ibv_cmd_create_ah(ibpd, &ah->ibv_ah, attr, &resp, sizeof(resp));
+ 	if (status)
+ 		goto cmd_err;
+ 
+diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
+index d23ef3d..1dd30ea 100644
+--- a/providers/rxe/rxe.c
++++ b/providers/rxe/rxe.c
+@@ -781,6 +781,7 @@ static struct ibv_ah *rxe_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	struct rxe_ah *ah;
+ 	struct rxe_av *av;
+ 	union ibv_gid sgid;
++	struct ibv_create_ah_resp resp;
+ 
+ 	err = ibv_query_gid(pd->context, attr->port_num, attr->grh.sgid_index,
+ 			    &sgid);
+@@ -803,7 +804,8 @@ static struct ibv_ah *rxe_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	rdma_gid2ip(&av->sgid_addr._sockaddr, &sgid);
+ 	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
+ 
+-	if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr)) {
++	memset(&resp, 0, sizeof(resp));
++	if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp, sizeof(resp))) {
+ 		free(ah);
+ 		return NULL;
+ 	}
 -- 
 1.8.3.1
 
