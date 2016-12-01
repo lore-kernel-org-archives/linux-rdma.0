@@ -1,129 +1,91 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Versions of packages included in rdma-core
-Date: Thu, 1 Dec 2016 13:24:13 +0200
-Message-ID: <20161201112413.GE4497@leon.nu>
-References: <20161201080430.jrcketnrljckdbix@paradies.suse.de>
- <20161201081826.GD4497@leon.nu>
- <20161201100308.7zg4x557as7ruwge@paradies.suse.de>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="SWTRyWv/ijrBap1m"
+Subject: [PATCH rdma-next V1 1/4] IB/mlx5: Report mlx5 packet pacing capabilities when querying device
+Date: Thu,  1 Dec 2016 13:43:13 +0200
+Message-ID: <1480592596-20126-2-git-send-email-leon@kernel.org>
+References: <1480592596-20126-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161201100308.7zg4x557as7ruwge-TXhXIaCUHZEYitT5tn2FcQ@public.gmane.org>
+In-Reply-To: <1480592596-20126-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Philipp Thomas <pth-l3A5Bk7waGM@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stefan Fent <sf-l3A5Bk7waGM@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---SWTRyWv/ijrBap1m
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Enable mlx5 based hardware to report packet pacing capabilities
+from kernel to user space. Packet pacing allows to limit the rate to any
+number between the maximum and minimum, based on user settings.
 
-On Thu, Dec 01, 2016 at 11:03:08AM +0100, Philipp Thomas wrote:
-> Hi Leon,
->
-> * Leon Romanovsky (leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org) [20161201 09:18]:
->
-> > We imported everything published in their respective git repositories.
-> But as it looks there isn't a log entry that marks the import. This makes=
- it
-> hard to compare what we have in SLES to rdma-core to determine whether we=
- do
-> the switch for the next service pack or wait for the next major SLES
-> version.
->
-> > Did you try to use git log --follow relevant_file?
->
-> I didn't know that. But that would mean I would have to compare the git l=
-ogs
-> of all imported packages to see where they star t to differ :( I had hoped
-> for an easier way, oh well...
+The capabilities are exposed to user space through query_device by uhw.
+The following capabilities are reported:
 
-Yes, there is an easy path :)
+1. The maximum and minimum rate limit in kbps supported by packet pacing.
+2. Bitmap showing which QP types are supported by packet pacing operation.
 
-=E2=9E=9C  rdma-core git:(master) git show 2172d3c6d73e
-commit 2172d3c6d73e336743d6a08ca4e9c618595c2bc5
-Merge: 0083ff6 27d8654 e8c50a2 6d6ace8 560afd8 94aaf19 0de1a98 9c4dc56
-f8cc421 f7340fc ef7827c f2d901b dfa0d02 cfd7546 364b7da 663098b 2f00a5b
-83d9ee5
-Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date:   Tue Sep 20 11:42:56 2016 -0600
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 13 +++++++++++++
+ include/uapi/rdma/mlx5-abi.h      | 13 +++++++++++++
+ 2 files changed, 26 insertions(+)
 
-    Initial commit
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 1e47999..fba8cab 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -669,6 +669,19 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rq);
+ 	}
+ 
++	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)) {
++		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
++		    MLX5_CAP_GEN(mdev, qos)) {
++			resp.packet_pacing_caps.qp_rate_limit_max =
++				MLX5_CAP_QOS(mdev, packet_pacing_max_rate);
++			resp.packet_pacing_caps.qp_rate_limit_min =
++				MLX5_CAP_QOS(mdev, packet_pacing_min_rate);
++			resp.packet_pacing_caps.supported_qpts |=
++				1 << IB_QPT_RAW_PACKET;
++		}
++		resp.response_length += sizeof(resp.packet_pacing_caps);
++	}
++
+ 	if (uhw->outlen) {
+ 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
+ 
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index f5d0f4e..4e9338d 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -124,11 +124,24 @@ struct mlx5_ib_rss_caps {
+ 	__u8 reserved[7];
+ };
+ 
++struct mlx5_packet_pacing_caps {
++	__u32 qp_rate_limit_min;
++	__u32 qp_rate_limit_max; /* In kpbs */
++
++	/* Corresponding bit will be set if qp type from
++	 * 'enum ib_qp_type' is supported, e.g.
++	 * supported_qpts |= 1 << IB_QPT_RAW_PACKET
++	 */
++	__u32 supported_qpts;
++	__u32 reserved;
++};
++
+ struct mlx5_ib_query_device_resp {
+ 	__u32	comp_mask;
+ 	__u32	response_length;
+ 	struct	mlx5_ib_tso_caps tso_caps;
+ 	struct	mlx5_ib_rss_caps rss_caps;
++	struct	mlx5_packet_pacing_caps packet_pacing_caps;
+ };
+ 
+ struct mlx5_ib_create_cq {
+-- 
+2.7.4
 
-    This was built from the original upstream repositories:
-    ibacm https://github.com/ofiwg/ibacm.git  6b3303c6d88b40d11e86953e773e1=
-4bc9e6d79c7
-    iwpmd git://git.openfabrics.org/~tnikolova/libiwpm a42bdc977a832071404e=
-af307b81e0e31f8a4e64
-    libcxgb3 git://git.openfabrics.org/~swise/libcxgb3.git 12b68e5d8e2e0b89=
-a73f90af6e8a06bb7a748271
-    libcxgb4 git://git.openfabrics.org/~swise/libcxgb4.git fab9b66438ef19d6=
-92d6ce6d7dd346043454696c
-    libhfi1verbs https://github.com/01org/opa-libhfi1verbs.git c8df83205622=
-a21d7062ac68cc8c4238953bba7d
-    libi40iw git://git.openfabrics.org/~tnikolova/libi40iw/.git 9d35609f79d=
-6a235e23182e9ceadf3605b2682da
-    libibcm git://git.openfabrics.org/~shefty/libibcm.git b04920e8bfe0689a2=
-fe67815321dcf646fd48a7e
-    libibumad git://git.openfabrics.org/~halr/libibumad.git 0765c870a6ddc16=
-a57b68d981a2ff108c178dc93
-    libibverbs git://git.kernel.org/pub/scm/libs/infiniband/libibverbs.git =
-3b3973377f0dbccb11323b86e267308052cc4458
-    libipathverbs https://github.com/01org/libipathverbs.git 8291d485f3a554=
-4b43974e7be88f3646f35ae07c
-    libmlx4 git://git.openfabrics.org/~yishaih/libmlx4.git 8aee6a7d2104395f=
-b967fb52564adbb2dc2b83c4
-    libmlx5 git://git.openfabrics.org/~yishaih/libmlx5.git 0f2c49cfdb86b01a=
-f5387f34ee20960b258998f8
-    libmthca git://git.kernel.org/pub/scm/libs/infiniband/libmthca.git 6f4d=
-d7451ddef120247e13fa6cb8e1df69c3ddf9
-    libnes git://git.openfabrics.org/~tnikolova/libnes/.git 51f4aa8ced48a24=
-1cfccb6e318cc58e44ab260bc
-    libocrdma git://git.openfabrics.org/~emulex/libocrdma.git 41f6bbb3fe812=
-9678c233da439d872b3fe9f75dc
-    librdmacm https://github.com/ofiwg/librdmacm.git 37ae092e626d9cc58a888e=
-edca44f21ccdd7632a
-    librxe https://github.com/SoftRoCE/librxe-dev.git 227e3c49b6e423c066e1e=
-1887fe30c8261f63cbd
-    srp_daemon git://git.openfabrics.org/~bvanassche/srptools.git 4ce3074a1=
-f94f93c9b629437e89312d919d323fc
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-
-
->
-> Philipp
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---SWTRyWv/ijrBap1m
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJYQAhdAAoJEORje4g2clinMD0P/1GxW1bUXe4Gvb55Kvw+SkdW
-jqufPvDi3fDEYitEVI4EI9vYyFLSt206ihTLmzZ0RzU5rUdr/e35N+dzesPr1vx7
-xktxeOaHAvhEghWNDtgJtSSvqiW+OIIp38Txg1l5ynj9i6KmYqmOZDG9S99it90d
-BrsqJx4WhQpVupFt6bStHcvImxUjpnSF3Il7iKY/wgol5soM8H6q38/l78yjh3WC
-wonApmLmxBmI1zJoRP0vqC4qYAxB/Dsz3943LVvBjO4pLTailRmnGBth37NIFBVt
-LcjxPpmrRyaQOcb12M5Vbm7tjZh/cvdXGQ6IewJQ3TrCcypiJU5HMHywlJb1vTDY
-tXG8bmXSG6warWRrMhMNg4+F8QuExU39Tz7eIZTA7rldnj0GonAlUMTln1q7cg9k
-ZhhlHr5hK4f3YhyT+tU2Cut4jv8X7Km12GFDWHaX/MuSV7OgmOPENrk5CCgGRlss
-8SFU5n6FGW0frpQ1smz5fbkWwlvj0aPcCg54Tmtj9iBuswooINbVMBpGMOtPoRTX
-E7NBHnOq1ObPkZufC/xwm4dXEkUKCfkfTuBdsATaoWEGixFh2HVS4IzCPZ13DPS/
-PPaqSc1P+sGBgkUybH3aq9M9l3x8mQnXqgIFaQrtukaR60VrjBrehG1a5lA9Q8U1
-OvVVPFVmRDPLk6MQK6Y5
-=qehr
------END PGP SIGNATURE-----
-
---SWTRyWv/ijrBap1m--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
