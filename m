@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 3/4] IB/uverbs: Extend modify_qp and support packet pacing
-Date: Thu,  1 Dec 2016 13:43:15 +0200
-Message-ID: <1480592596-20126-4-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 4/4] IB/mlx5: Update the rate limit according to user setting for RAW QP
+Date: Thu,  1 Dec 2016 13:43:16 +0200
+Message-ID: <1480592596-20126-5-git-send-email-leon@kernel.org>
 References: <1480592596-20126-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480592596-20126-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,337 +12,195 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-An new uverbs command ib_uverbs_ex_modify_qp is added to support more QP
-attributes. User driver should choose to call the legacy/extended API
-based on input mask.
-
-IB_USER_LAST_QP_ATTR_MASK is added to indicated the maximum bit position
-which supports legacy ib_uverbs_modify_qp.
-IB_USER_LEGACY_LAST_QP_ATTR_MASK indicates the maximum bit position
-which supports ib_uverbs_ex_modify_qp, the value of this mask should be
-updated if new mask is added later.
-
-Along with this change, rate_limit is supported by the extended command,
-user driver could use it to control packet packing.
+- Add MODIFY_QP_EX CMD to extend modify_qp.
+- Rate limit will be updated in the following state transactions: RTR2RTS,
+  RTS2RTS. The limit will be removed when SQ is in RST and ERR state.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |   1 +
- drivers/infiniband/core/uverbs_cmd.c  | 192 ++++++++++++++++++++++------------
- drivers/infiniband/core/uverbs_main.c |   1 +
- include/uapi/rdma/ib_user_verbs.h     |  21 ++++
- 4 files changed, 146 insertions(+), 69 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ drivers/infiniband/hw/mlx5/qp.c      | 74 ++++++++++++++++++++++++++++++++----
+ 3 files changed, 69 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index df26a74..455034a 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -289,5 +289,6 @@ IB_UVERBS_DECLARE_EX_CMD(modify_wq);
- IB_UVERBS_DECLARE_EX_CMD(destroy_wq);
- IB_UVERBS_DECLARE_EX_CMD(create_rwq_ind_table);
- IB_UVERBS_DECLARE_EX_CMD(destroy_rwq_ind_table);
-+IB_UVERBS_DECLARE_EX_CMD(modify_qp);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index fba8cab..4d22cce 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3030,7 +3030,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.uverbs_ex_cmd_mask =
+ 		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
+ 		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ)	|
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
++		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP)	|
++		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_QP);
  
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index cb3f515a..b8fff8b 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2328,94 +2328,86 @@ static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
- 	}
+ 	dev->ib_dev.query_device	= mlx5_ib_query_device;
+ 	dev->ib_dev.query_port		= mlx5_ib_query_port;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 854748b..907d749 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -387,6 +387,7 @@ struct mlx5_ib_qp {
+ 	struct list_head	qps_list;
+ 	struct list_head	cq_recv_list;
+ 	struct list_head	cq_send_list;
++	u32			rate_limit;
+ };
+ 
+ struct mlx5_ib_cq_buf {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index d1e9218..5e89fb25 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -77,12 +77,14 @@ struct mlx5_wqe_eth_pad {
+ 
+ enum raw_qp_set_mask_map {
+ 	MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID		= 1UL << 0,
++	MLX5_RAW_QP_RATE_LIMIT			= 1UL << 1,
+ };
+ 
+ struct mlx5_modify_raw_qp_param {
+ 	u16 operation;
+ 
+ 	u32 set_mask; /* raw_qp_set_mask_map */
++	u32 rate_limit;
+ 	u8 rq_q_ctr_id;
+ };
+ 
+@@ -2442,8 +2444,14 @@ static int modify_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
  }
  
--ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
--			    struct ib_device *ib_dev,
--			    const char __user *buf, int in_len,
--			    int out_len)
-+static int modify_qp(struct ib_uverbs_file *file,
-+		     struct ib_uverbs_ex_modify_qp *cmd, struct ib_udata *udata)
+ static int modify_raw_packet_qp_sq(struct mlx5_core_dev *dev,
+-				   struct mlx5_ib_sq *sq, int new_state)
++				   struct mlx5_ib_sq *sq,
++				   int new_state,
++				   const struct mlx5_modify_raw_qp_param *raw_qp_param)
  {
--	struct ib_uverbs_modify_qp cmd;
--	struct ib_udata            udata;
--	struct ib_qp              *qp;
--	struct ib_qp_attr         *attr;
--	int                        ret;
--
--	if (copy_from_user(&cmd, buf, sizeof cmd))
--		return -EFAULT;
--
--	INIT_UDATA(&udata, buf + sizeof cmd, NULL, in_len - sizeof cmd,
--		   out_len);
-+	struct ib_qp_attr *attr;
-+	struct ib_qp *qp;
-+	int ret;
++	struct mlx5_ib_qp *ibqp = sq->base.container_mibqp;
++	u32 old_rate = ibqp->rate_limit;
++	u32 new_rate = old_rate;
++	u16 rl_index = 0;
+ 	void *in;
+ 	void *sqc;
+ 	int inlen;
+@@ -2459,10 +2467,44 @@ static int modify_raw_packet_qp_sq(struct mlx5_core_dev *dev,
+ 	sqc = MLX5_ADDR_OF(modify_sq_in, in, ctx);
+ 	MLX5_SET(sqc, sqc, state, new_state);
  
- 	attr = kmalloc(sizeof *attr, GFP_KERNEL);
- 	if (!attr)
- 		return -ENOMEM;
- 
--	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
-+	qp = idr_read_qp(cmd->base.qp_handle, file->ucontext);
- 	if (!qp) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
--	attr->qp_state 		  = cmd.qp_state;
--	attr->cur_qp_state 	  = cmd.cur_qp_state;
--	attr->path_mtu 		  = cmd.path_mtu;
--	attr->path_mig_state 	  = cmd.path_mig_state;
--	attr->qkey 		  = cmd.qkey;
--	attr->rq_psn 		  = cmd.rq_psn;
--	attr->sq_psn 		  = cmd.sq_psn;
--	attr->dest_qp_num 	  = cmd.dest_qp_num;
--	attr->qp_access_flags 	  = cmd.qp_access_flags;
--	attr->pkey_index 	  = cmd.pkey_index;
--	attr->alt_pkey_index 	  = cmd.alt_pkey_index;
--	attr->en_sqd_async_notify = cmd.en_sqd_async_notify;
--	attr->max_rd_atomic 	  = cmd.max_rd_atomic;
--	attr->max_dest_rd_atomic  = cmd.max_dest_rd_atomic;
--	attr->min_rnr_timer 	  = cmd.min_rnr_timer;
--	attr->port_num 		  = cmd.port_num;
--	attr->timeout 		  = cmd.timeout;
--	attr->retry_cnt 	  = cmd.retry_cnt;
--	attr->rnr_retry 	  = cmd.rnr_retry;
--	attr->alt_port_num 	  = cmd.alt_port_num;
--	attr->alt_timeout 	  = cmd.alt_timeout;
--
--	memcpy(attr->ah_attr.grh.dgid.raw, cmd.dest.dgid, 16);
--	attr->ah_attr.grh.flow_label        = cmd.dest.flow_label;
--	attr->ah_attr.grh.sgid_index        = cmd.dest.sgid_index;
--	attr->ah_attr.grh.hop_limit         = cmd.dest.hop_limit;
--	attr->ah_attr.grh.traffic_class     = cmd.dest.traffic_class;
--	attr->ah_attr.dlid 	    	    = cmd.dest.dlid;
--	attr->ah_attr.sl   	    	    = cmd.dest.sl;
--	attr->ah_attr.src_path_bits 	    = cmd.dest.src_path_bits;
--	attr->ah_attr.static_rate   	    = cmd.dest.static_rate;
--	attr->ah_attr.ah_flags 	    	    = cmd.dest.is_global ? IB_AH_GRH : 0;
--	attr->ah_attr.port_num 	    	    = cmd.dest.port_num;
--
--	memcpy(attr->alt_ah_attr.grh.dgid.raw, cmd.alt_dest.dgid, 16);
--	attr->alt_ah_attr.grh.flow_label    = cmd.alt_dest.flow_label;
--	attr->alt_ah_attr.grh.sgid_index    = cmd.alt_dest.sgid_index;
--	attr->alt_ah_attr.grh.hop_limit     = cmd.alt_dest.hop_limit;
--	attr->alt_ah_attr.grh.traffic_class = cmd.alt_dest.traffic_class;
--	attr->alt_ah_attr.dlid 	    	    = cmd.alt_dest.dlid;
--	attr->alt_ah_attr.sl   	    	    = cmd.alt_dest.sl;
--	attr->alt_ah_attr.src_path_bits     = cmd.alt_dest.src_path_bits;
--	attr->alt_ah_attr.static_rate       = cmd.alt_dest.static_rate;
--	attr->alt_ah_attr.ah_flags 	    = cmd.alt_dest.is_global ? IB_AH_GRH : 0;
--	attr->alt_ah_attr.port_num 	    = cmd.alt_dest.port_num;
-+	attr->qp_state		  = cmd->base.qp_state;
-+	attr->cur_qp_state	  = cmd->base.cur_qp_state;
-+	attr->path_mtu		  = cmd->base.path_mtu;
-+	attr->path_mig_state	  = cmd->base.path_mig_state;
-+	attr->qkey		  = cmd->base.qkey;
-+	attr->rq_psn		  = cmd->base.rq_psn;
-+	attr->sq_psn		  = cmd->base.sq_psn;
-+	attr->dest_qp_num	  = cmd->base.dest_qp_num;
-+	attr->qp_access_flags	  = cmd->base.qp_access_flags;
-+	attr->pkey_index	  = cmd->base.pkey_index;
-+	attr->alt_pkey_index	  = cmd->base.alt_pkey_index;
-+	attr->en_sqd_async_notify = cmd->base.en_sqd_async_notify;
-+	attr->max_rd_atomic	  = cmd->base.max_rd_atomic;
-+	attr->max_dest_rd_atomic  = cmd->base.max_dest_rd_atomic;
-+	attr->min_rnr_timer	  = cmd->base.min_rnr_timer;
-+	attr->port_num		  = cmd->base.port_num;
-+	attr->timeout		  = cmd->base.timeout;
-+	attr->retry_cnt		  = cmd->base.retry_cnt;
-+	attr->rnr_retry		  = cmd->base.rnr_retry;
-+	attr->alt_port_num	  = cmd->base.alt_port_num;
-+	attr->alt_timeout	  = cmd->base.alt_timeout;
-+	attr->rate_limit	  = cmd->rate_limit;
-+
-+	memcpy(attr->ah_attr.grh.dgid.raw, cmd->base.dest.dgid, 16);
-+	attr->ah_attr.grh.flow_label	= cmd->base.dest.flow_label;
-+	attr->ah_attr.grh.sgid_index	= cmd->base.dest.sgid_index;
-+	attr->ah_attr.grh.hop_limit	= cmd->base.dest.hop_limit;
-+	attr->ah_attr.grh.traffic_class	= cmd->base.dest.traffic_class;
-+	attr->ah_attr.dlid		= cmd->base.dest.dlid;
-+	attr->ah_attr.sl		= cmd->base.dest.sl;
-+	attr->ah_attr.src_path_bits	= cmd->base.dest.src_path_bits;
-+	attr->ah_attr.static_rate	= cmd->base.dest.static_rate;
-+	attr->ah_attr.ah_flags		= cmd->base.dest.is_global ?
-+					  IB_AH_GRH : 0;
-+	attr->ah_attr.port_num		= cmd->base.dest.port_num;
-+
-+	memcpy(attr->alt_ah_attr.grh.dgid.raw, cmd->base.alt_dest.dgid, 16);
-+	attr->alt_ah_attr.grh.flow_label    = cmd->base.alt_dest.flow_label;
-+	attr->alt_ah_attr.grh.sgid_index    = cmd->base.alt_dest.sgid_index;
-+	attr->alt_ah_attr.grh.hop_limit     = cmd->base.alt_dest.hop_limit;
-+	attr->alt_ah_attr.grh.traffic_class = cmd->base.alt_dest.traffic_class;
-+	attr->alt_ah_attr.dlid		    = cmd->base.alt_dest.dlid;
-+	attr->alt_ah_attr.sl		    = cmd->base.alt_dest.sl;
-+	attr->alt_ah_attr.src_path_bits	    = cmd->base.alt_dest.src_path_bits;
-+	attr->alt_ah_attr.static_rate	    = cmd->base.alt_dest.static_rate;
-+	attr->alt_ah_attr.ah_flags	    = cmd->base.alt_dest.is_global ?
-+					      IB_AH_GRH : 0;
-+	attr->alt_ah_attr.port_num	    = cmd->base.alt_dest.port_num;
- 
- 	if (qp->real_qp == qp) {
--		ret = ib_resolve_eth_dmac(qp, attr, &cmd.attr_mask);
-+		ret = ib_resolve_eth_dmac(qp, attr, &cmd->base.attr_mask);
- 		if (ret)
- 			goto release_qp;
- 		ret = qp->device->modify_qp(qp, attr,
--			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
-+					    modify_qp_mask(qp->qp_type,
-+							   cmd->base.attr_mask),
-+					    udata);
- 	} else {
--		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, cmd.attr_mask));
-+		ret = ib_modify_qp(qp, attr,
-+				   modify_qp_mask(qp->qp_type,
-+						  cmd->base.attr_mask));
- 	}
- 
--	if (ret)
--		goto release_qp;
--
--	ret = in_len;
--
- release_qp:
- 	put_qp_read(qp);
- 
-@@ -2425,6 +2417,68 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 	return ret;
- }
- 
-+ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
-+			    struct ib_device *ib_dev,
-+			    const char __user *buf, int in_len,
-+			    int out_len)
-+{
-+	struct ib_uverbs_ex_modify_qp cmd = {};
-+	struct ib_udata udata;
-+	int ret;
-+
-+	if (copy_from_user(&cmd.base, buf, sizeof(cmd.base)))
-+		return -EFAULT;
-+
-+	if (cmd.base.attr_mask &
-+	    ~((IB_USER_LEGACY_LAST_QP_ATTR_MASK << 1) - 1))
-+		return -EOPNOTSUPP;
-+
-+	INIT_UDATA(&udata, buf + sizeof(cmd.base), NULL,
-+		   in_len - sizeof(cmd.base), out_len);
-+
-+	ret = modify_qp(file, &cmd, &udata);
-+	if (ret)
-+		return ret;
-+
-+	return in_len;
-+}
-+
-+int ib_uverbs_ex_modify_qp(struct ib_uverbs_file *file,
-+			   struct ib_device *ib_dev,
-+			   struct ib_udata *ucore,
-+			   struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_modify_qp cmd = {};
-+	int ret;
-+
-+	/*
-+	 * Last bit is reserved for extending the attr_mask by
-+	 * using another field.
-+	 */
-+	BUILD_BUG_ON(IB_USER_LAST_QP_ATTR_MASK == (1 << 31));
-+
-+	if (ucore->inlen < sizeof(cmd.base))
-+		return -EINVAL;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.base.attr_mask &
-+	    ~((IB_USER_LAST_QP_ATTR_MASK << 1) - 1))
-+		return -EOPNOTSUPP;
-+
-+	if (ucore->inlen > sizeof(cmd)) {
-+		if (ib_is_udata_cleared(ucore, sizeof(cmd),
-+					ucore->inlen - sizeof(cmd)))
-+			return -EOPNOTSUPP;
++	if (raw_qp_param->set_mask & MLX5_RAW_QP_RATE_LIMIT) {
++		if (new_state != MLX5_SQC_STATE_RDY)
++			pr_warn("%s: Rate limit can only be changed when SQ is moving to RDY\n",
++				__func__);
++		else
++			new_rate = raw_qp_param->rate_limit;
 +	}
 +
-+	ret = modify_qp(file, &cmd, uhw);
++	if (old_rate != new_rate) {
++		if (new_rate) {
++			err = mlx5_rl_add_rate(dev, new_rate, &rl_index);
++			if (err) {
++				pr_err("Failed configuring rate %u: %d\n",
++				       new_rate, err);
++				goto out;
++			}
++		}
 +
-+	return ret;
-+}
++		MLX5_SET64(modify_sq_in, in, modify_bitmask, 1);
++		MLX5_SET(sqc, sqc, packet_pacing_rate_limit_index, rl_index);
++	}
 +
- ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
- 			     struct ib_device *ib_dev,
- 			     const char __user *buf, int in_len,
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 44b1104..cde7a56 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -137,6 +137,7 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_DESTROY_WQ]       = ib_uverbs_ex_destroy_wq,
- 	[IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL] = ib_uverbs_ex_create_rwq_ind_table,
- 	[IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL] = ib_uverbs_ex_destroy_rwq_ind_table,
-+	[IB_USER_VERBS_EX_CMD_MODIFY_QP]        = ib_uverbs_ex_modify_qp,
- };
+ 	err = mlx5_core_modify_sq(dev, sq->base.mqp.qpn, in, inlen);
+-	if (err)
++	if (err) {
++		/* Remove new rate from table if failed */
++		if (new_rate &&
++		    old_rate != new_rate)
++			mlx5_rl_remove_rate(dev, new_rate);
+ 		goto out;
++	}
  
- static void ib_uverbs_add_one(struct ib_device *device);
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 25225eb..ea59bd5 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -37,6 +37,7 @@
- #define IB_USER_VERBS_H
- 
- #include <linux/types.h>
-+#include <rdma/ib_verbs.h>
- 
- /*
-  * Increment this value if any changes that break userspace ABI
-@@ -93,6 +94,7 @@ enum {
- 	IB_USER_VERBS_EX_CMD_QUERY_DEVICE = IB_USER_VERBS_CMD_QUERY_DEVICE,
- 	IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ,
- 	IB_USER_VERBS_EX_CMD_CREATE_QP = IB_USER_VERBS_CMD_CREATE_QP,
-+	IB_USER_VERBS_EX_CMD_MODIFY_QP = IB_USER_VERBS_CMD_MODIFY_QP,
- 	IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
- 	IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
- 	IB_USER_VERBS_EX_CMD_CREATE_WQ,
-@@ -545,6 +547,14 @@ enum {
- 	IB_UVERBS_CREATE_QP_SUP_COMP_MASK = IB_UVERBS_CREATE_QP_MASK_IND_TABLE,
- };
- 
-+enum {
-+	IB_USER_LEGACY_LAST_QP_ATTR_MASK = IB_QP_DEST_QPN
-+};
++	/* Only remove the old rate after new rate was set */
++	if ((old_rate &&
++	    (old_rate != new_rate)) ||
++	    (new_state != MLX5_SQC_STATE_RDY))
++		mlx5_rl_remove_rate(dev, old_rate);
 +
-+enum {
-+	IB_USER_LAST_QP_ATTR_MASK = IB_QP_RATE_LIMIT
-+};
-+
- struct ib_uverbs_ex_create_qp {
- 	__u64 user_handle;
- 	__u32 pd_handle;
-@@ -684,9 +694,20 @@ struct ib_uverbs_modify_qp {
- 	__u64 driver_data[0];
- };
++	ibqp->rate_limit = new_rate;
+ 	sq->state = new_state;
  
-+struct ib_uverbs_ex_modify_qp {
-+	struct ib_uverbs_modify_qp base;
-+	__u32	rate_limit;
-+	__u32	reserved;
-+};
-+
- struct ib_uverbs_modify_qp_resp {
- };
+ out:
+@@ -2477,6 +2519,8 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	struct mlx5_ib_raw_packet_qp *raw_packet_qp = &qp->raw_packet_qp;
+ 	struct mlx5_ib_rq *rq = &raw_packet_qp->rq;
+ 	struct mlx5_ib_sq *sq = &raw_packet_qp->sq;
++	int modify_rq = !!qp->rq.wqe_cnt;
++	int modify_sq = !!qp->sq.wqe_cnt;
+ 	int rq_state;
+ 	int sq_state;
+ 	int err;
+@@ -2494,10 +2538,18 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		rq_state = MLX5_RQC_STATE_RST;
+ 		sq_state = MLX5_SQC_STATE_RST;
+ 		break;
+-	case MLX5_CMD_OP_INIT2INIT_QP:
+-	case MLX5_CMD_OP_INIT2RTR_QP:
+ 	case MLX5_CMD_OP_RTR2RTS_QP:
+ 	case MLX5_CMD_OP_RTS2RTS_QP:
++		if (raw_qp_param->set_mask ==
++		    MLX5_RAW_QP_RATE_LIMIT) {
++			modify_rq = 0;
++			sq_state = sq->state;
++		} else {
++			return raw_qp_param->set_mask ? -EINVAL : 0;
++		}
++		break;
++	case MLX5_CMD_OP_INIT2INIT_QP:
++	case MLX5_CMD_OP_INIT2RTR_QP:
+ 		if (raw_qp_param->set_mask)
+ 			return -EINVAL;
+ 		else
+@@ -2507,13 +2559,13 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		return -EINVAL;
+ 	}
  
-+struct ib_uverbs_ex_modify_qp_resp {
-+	__u32  comp_mask;
-+	__u32  response_length;
-+};
+-	if (qp->rq.wqe_cnt) {
+-		err = modify_raw_packet_qp_rq(dev, rq, rq_state, raw_qp_param);
++	if (modify_rq) {
++		err =  modify_raw_packet_qp_rq(dev, rq, rq_state, raw_qp_param);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+-	if (qp->sq.wqe_cnt) {
++	if (modify_sq) {
+ 		if (tx_affinity) {
+ 			err = modify_raw_packet_tx_affinity(dev->mdev, sq,
+ 							    tx_affinity);
+@@ -2521,7 +2573,7 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 				return err;
+ 		}
+ 
+-		return modify_raw_packet_qp_sq(dev->mdev, sq, sq_state);
++		return modify_raw_packet_qp_sq(dev->mdev, sq, sq_state, raw_qp_param);
+ 	}
+ 
+ 	return 0;
+@@ -2776,6 +2828,12 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 			raw_qp_param.rq_q_ctr_id = mibport->q_cnt_id;
+ 			raw_qp_param.set_mask |= MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID;
+ 		}
 +
- struct ib_uverbs_destroy_qp {
- 	__u64 response;
- 	__u32 qp_handle;
++		if (attr_mask & IB_QP_RATE_LIMIT) {
++			raw_qp_param.rate_limit = attr->rate_limit;
++			raw_qp_param.set_mask |= MLX5_RAW_QP_RATE_LIMIT;
++		}
++
+ 		err = modify_raw_packet_qp(dev, qp, &raw_qp_param, tx_affinity);
+ 	} else {
+ 		err = mlx5_core_qp_modify(dev->mdev, op, optpar, context,
 -- 
 2.7.4
 
