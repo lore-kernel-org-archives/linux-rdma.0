@@ -1,103 +1,71 @@
-From: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] IB/core: fix unmap_sg argument
-Date: Fri, 2 Dec 2016 14:45:26 +0100 (CET)
-Message-ID: <alpine.LFD.2.20.1612021439450.3570@schleppi>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 2/4] IB/core: Support rate limit for packet
+ pacing
+Date: Fri, 2 Dec 2016 16:39:57 +0200
+Message-ID: <20161202143957.GF4497@leon.nu>
+References: <1480592596-20126-1-git-send-email-leon@kernel.org>
+ <1480592596-20126-3-git-send-email-leon@kernel.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA789@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VuQYccsttdhdIfIP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0BA789-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
 
-using dapltest on s390 I ran into the following warning:
+--VuQYccsttdhdIfIP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[   20.781709] mlx4_core 0000:00:00.0: DMA-API: device driver frees DMA sg list with different entry count [map count=2] [unmap count=1]
-[   20.781760] ------------[ cut here ]------------
-[   20.781767] WARNING: CPU: 4 PID: 1063 at lib/dma-debug.c:1141 check_unmap+0x658/0xa08
-[   20.781769] Modules linked in: rdma_ucm ib_ucm ib_uverbs rdma_cm configfs ib_cm iw_cm [...]
-[   20.781797] CPU: 4 PID: 1063 Comm: dapltest Tainted: G        W       4.9.0-rc7-00039-g43c4f67 #65
-[   20.781799] Hardware name: IBM              2964 N96              704              (LPAR)
-[   20.781801] task: 00000000dd8e4008 task.stack: 00000000f1448000
-[   20.781803] Krnl PSW : 0404c00180000000 000000000060af08 (check_unmap+0x658/0xa08)
-[   20.781806]            R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:3 CC:0 PM:0 RI:0 EA:3
-[   20.781809] Krnl GPRS: 0000000000000002 00000000dd8e4008 0000000000000079 0000000000a1d4f0
-[   20.781811]            000000000060af04 0000000000000000 0000000000000001 0000000000000001
-[   20.781813]            00000000f8e8e880 07000000008f2210 0000000001e47700 00000000f7a11298
-[   20.781814]            00000000f144ba68 00000000008f21f8 000000000060af04 00000000f144b960
-[   20.781822] Krnl Code: 000000000060aef8: c0200022fcc0	larl	%r2,a6a878
-                          000000000060aefe: c0e5ffe474dd	brasl	%r14,2998b8
-                         #000000000060af04: a7f40001		brc	15,60af06
-                         >000000000060af08: c0200022f976	larl	%r2,a6a1f4
-                          000000000060af0e: c0e5ffe474d5	brasl	%r14,2998b8
-                          000000000060af14: 4120b050		la	%r2,80(%r11)
-                          000000000060af18: a7390000		lghi	%r3,0
-                          000000000060af1c: c0e5ffde780a	brasl	%r14,1d9f30
-[   20.781847] Call Trace:
-[   20.781848] ([<000000000060af04>] check_unmap+0x654/0xa08)
-[   20.781851]  [<000000000060b6bc>] debug_dma_unmap_sg+0xf4/0x160 
-[   20.781873]  [<000003ff82245738>] __ib_umem_release+0x98/0x1a8 [ib_core] 
-[   20.781881]  [<000003ff82245f3e>] ib_umem_release+0x5e/0x1d0 [ib_core] 
-[   20.781891]  [<000003ff80139976>] mlx4_ib_destroy_qp+0x47e/0x550 [mlx4_ib] 
-[   20.781898]  [<000003ff8222ad2e>] ib_destroy_qp+0x116/0x188 [ib_core] 
-[   20.781902]  [<000003ff80052fba>] ib_uverbs_destroy_qp+0xb2/0x1a0 [ib_uverbs] 
-[   20.781905]  [<000003ff8004cada>] ib_uverbs_write+0x20a/0x488 [ib_uverbs] 
-[   20.781910]  [<0000000000352756>] __vfs_write+0x36/0x138 
-[   20.781912]  [<000000000035348c>] vfs_write+0xbc/0x1a0 
-[   20.781914]  [<0000000000354a96>] SyS_write+0x66/0xc0 
-[   20.781918]  [<000000000087d796>] system_call+0xd6/0x270 
-[   20.781919] INFO: lockdep is turned off.
-[   20.781921] Last Breaking-Event-Address:
-[   20.781922]  [<000000000060af04>] check_unmap+0x654/0xa08
-[   20.781924] ---[ end trace bd581c43b9bebeea ]---
-[   20.781925] Mapped at:
-[   20.781929] [<000000000060b4a6>] debug_dma_map_sg+0x5e/0x180
-[   20.781938] [<000003ff82245d12>] ib_umem_get+0x4ca/0x610 [ib_core]
-[   20.781943] [<000003ff80136df2>] create_qp_common.isra.15+0x572/0x1010 [mlx4_ib]
-[   20.781949] [<000003ff8013929e>] mlx4_ib_create_qp+0x1de/0x438 [mlx4_ib]
-[   20.781953] [<000003ff8004f52c>] create_qp.isra.11+0x44c/0x7f0 [ib_uverbs]
+On Thu, Dec 01, 2016 at 07:40:44PM +0000, Hefty, Sean wrote:
+> >  enum ib_qp_state {
+> > @@ -1151,6 +1152,7 @@ struct ib_qp_attr {
+> >  	u8			rnr_retry;
+> >  	u8			alt_port_num;
+> >  	u8			alt_timeout;
+> > +	u32			rate_limit;
+> >  };
+>
+> And I still disagree with this approach, as there is already an existing field in the API that limits rate.
 
-The following patch fixes this:
+Hi Sean,
 
----->8
->From ec91646d8c14e2a8dd2b62187084dab32ef8a56b Mon Sep 17 00:00:00 2001
-From: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Date: Fri, 2 Dec 2016 11:15:05 +0100
-Subject: [PATCH] IB/core: fix unmap_sg argument
+We would like to elaborate more on the subject, and we need your help
+here. Our cover letter [1] has description why the existing field is
+not enough. Can you write a little bit more why you didn't like
+the proposed approach to an existing and real problem?
 
-__ib_umem_release calls dma_unmap_sg with a different number of
-sg_entries than ib_umem_get uses for dma_map_sg. This might cause
-trouble for implementations that merge sglist entries and results
-in the following dma debug complaint:
+Thanks
 
-DMA-API: device driver frees DMA sg list with different entry
-         count [map count=2] [unmap count=1]
+[1] https://www.spinics.net/lists/linux-rdma/msg43585.html
 
-Fix it by using the correct value.
+--VuQYccsttdhdIfIP
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Signed-off-by: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
----
- drivers/infiniband/core/umem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 84b4eff..1e62a5f 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -51,7 +51,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 
- 	if (umem->nmap > 0)
- 		ib_dma_unmap_sg(dev, umem->sg_head.sgl,
--				umem->nmap,
-+				umem->npages,
- 				DMA_BIDIRECTIONAL);
- 
- 	for_each_sg(umem->sg_head.sgl, sg, umem->npages, i) {
--- 
-2.7.4
+iQIcBAEBAgAGBQJYQYe9AAoJEORje4g2clinELYP/jH8150k3sokEWPQOI0Ra6kK
+kD+EfYvRkkxXjsrh9IBNy4NgNbSBUwyVZjmESp3s1FvY8CfrOgZQe45S0/pcIWEw
+aSVV/w8CW3Y5a2Fa+WaT/Uo4ZokMZ633KNrgWuL5pZ5WeupVqOX1E66QithidfCW
+cjRQ/qPrpXeW3rlExUQfz1kTQoKNJz4jmQh1mAqPN+R1+xqEjU09MR/KEVTWs+1R
+apQ6rH5x2Lil5TMXuDnuN6ycw/PoCynAmz5M7DPhwBTk6lT767NfOZBWEnz1T6LY
+IZIUT+ByM61oIqzpO5bErWJlsfyyE3aEySSP79Qviqf5i85Fr7pHnr+mUoVKgkfP
+nz9ax1qH/HmUdU0osHLHqnqSrysaolJtaTb9dbQjNsZK7rpjZxDm3sdS8gOkNcNE
+vCsD6KnrvaRMH5ik0Borwnd1+UwMGyFk2ln41omHULSiX8LnOUwHJTIlx9nl/Vcj
+Amm9gX0qrxX5Jz9ywHi/ephXby+LQahXzl/p4mw70tv2Ih4Si4lKSuEsvNaKaCgG
+D6csXMe1g3JoMy7jIJhD04QqNLQXcjoU55GjMOyEjZTQP60yS0ua9bOw0J1WwOQv
+T64XRQt8MOizjclkqNWx1F4nq2EVoCi8X403XpWY/yB3o/R3Lvd1OSvXs77a9tGE
+Hw2/f3mr7uNC1h6tjf3n
+=JxwP
+-----END PGP SIGNATURE-----
 
+--VuQYccsttdhdIfIP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
