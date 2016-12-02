@@ -1,35 +1,31 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Set TOS field in IP header
-Date: Fri, 2 Dec 2016 08:54:48 -0600
-Message-ID: <20161202145448.GA22876@horosco-MOBL2.amr.corp.intel.com>
-References: <20161130210934.18088-1-henry.orosco@intel.com>
- <CAJ3xEMicWkkBcz8OHqXH=ZUJZLVpJNY0qLFMBDXL-8iCm0aZWA@mail.gmail.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v6 12/16] IB/pvrdma: Add Queue Pair support
+Date: Fri, 2 Dec 2016 20:48:51 +0530
+Message-ID: <dafabbe5-db7a-be94-3845-e4da838acf63@vmware.com>
+References: <cover.1475458407.git.aditr@vmware.com>
+ <6a643e92376856394d45638d80a90619d3abac37.1475458407.git.aditr@vmware.com>
+ <20161121155141.GA11371@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMicWkkBcz8OHqXH=ZUJZLVpJNY0qLFMBDXL-8iCm0aZWA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20161121155141.GA11371@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 30, 2016 at 10:17:22PM -0800, Or Gerlitz wrote:
-> On Wed, Nov 30, 2016 at 11:09 PM, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On Mon, Nov 21, 2016 at 5:51:42PM +0200, Yuval Shaia wrote:
+> On Sun, Oct 02, 2016 at 07:10:32PM -0700, Adit Ranadive wrote:
+> > +
+> > +	spin_lock_irqsave(&qp->sq.lock, flags);
+> > +
+> > +	index = pvrdma_idx(&qp->sq.ring->prod_tail, qp->sq.wqe_cnt);
+> > +	for (nreq = 0; wr; nreq++, wr = wr->next) {
 > 
-> [...]
-> > Set the TOS field in IP header with the value passed in from application.
-> 
-> How is TOS propagated from applications? is that through the verbs
-> API, which function/param?
+> nreq is not in used so better remove it.
 
-Using RDMA CM_API, rdma_set_option. With level = RDMA_OPTION_ID;
-optname = RDMA_OPTION_ID_TOS; optval = tos value.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
