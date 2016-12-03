@@ -1,68 +1,40 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
-Date: Sat, 03 Dec 2016 15:49:46 -0500
-Message-ID: <1480798186.15032.71.camel@redhat.com>
-References: <20161005143054.4844-1-henry.orosco@intel.com>
-         <20161005153530.GA11148@flatif-MOBL1> <20161006071023.GN9282@leon.nu>
-         <20161006192544.GA14272@flatif-MOBL1>
+Subject: Re: [PATCH V3] i40iw: Add Quality of Service support
+Date: Sat, 03 Dec 2016 15:51:57 -0500
+Message-ID: <1480798317.15032.72.camel@redhat.com>
+References: <20161011021210.21776-1-henry.orosco@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-xwkJFsH06i3RAtMDpp7/"
+        protocol="application/pgp-signature"; boundary="=-TD4JEuIQwYvxlkU4l1JR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161006192544.GA14272@flatif-MOBL1>
+In-Reply-To: <20161011021210.21776-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-xwkJFsH06i3RAtMDpp7/
+--=-TD4JEuIQwYvxlkU4l1JR
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2016-10-06 at 14:25 -0500, Faisal Latif wrote:
-> On Thu, Oct 06, 2016 at 10:10:23AM +0300, Leon Romanovsky wrote:
-> >=20
-> > On Wed, Oct 05, 2016 at 10:35:30AM -0500, Faisal Latif wrote:
-> > >=20
-> > > On Wed, Oct 05, 2016 at 07:30:54AM -0700, Henry Orosco wrote:
-> > > Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > >=20
-> > > > ---
-> > > > =C2=A0MAINTAINERS | 1 +
-> > > > =C2=A01 file changed, 1 insertion(+)
-> > > >=20
-> > > > --
-> > > > 2.8.3
-> > >=20
-> > > Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >=20
-> > Faisal,
-> >=20
-> > Do you really expect to see 9 people in TO and CC field for every
-> > patch in i40iw area?
-> > 3 comes from drivers/infiniband/
-> > 6 comes from drivers/infiniband/hw/i40iw/
-> >=20
-> > IMHO, it is worth to shrink the list and limit it to the active
-> > developers.
-> >=20
-> > Thanks
+On Mon, 2016-10-10 at 21:12 -0500, Henry Orosco wrote:
+> Add support for QoS on QPs. Upon device initialization,
+> a map is created from user priority to queue set
+> handles. On QP creation, use ToS to look up the queue
+> set handle for use with the QP.
 >=20
-> Doug,=C2=A0
->=20
-> Please drop this patch and we are going over the sugestion made by
-> Leon to reduce
-> the list. We will have another patch to reduce the list in the
-> Maintainer's file.
+> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Dropped as requested.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-xwkJFsH06i3RAtMDpp7/
+--=-TD4JEuIQwYvxlkU4l1JR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -70,22 +42,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYQy/qAAoJELgmozMOVy/d20AQAJiVdOtQcNtpluKZlfwYTa6a
-iEElkW+dZ/gMLuoUu9veHzAASXYJPi8D8AMQ6siX3H3+PxfxOiQm0dwUEyvutf8q
-OuuVenAycD7mjSJGyP8GzGY3eXCUaov5cNqEwOTNj4tGjd1RYRF2b+u0sBEs5DWf
-b0FZ7r6GEIAyX409RTDYj/wbn6kXWu3raYGRdol2rPC0AnUvoiGIvvAxuAxvF+GQ
-BPmAdFrXjckahCd0S9vNt0Gb0MMs2PhqDv6XtpIf+JCv9s66zKilZWSXAEtKzFQ7
-nuciNbgGEB5qI+1Yl5fDrJhzTDp2cE2swHxnaVfGF2iOV+DVLFPwPln5452QTIRs
-34I4Er4QnSpZ8YzW1D6d7mtpij+CFFx+WWbb7YPW5dyohZeI+gCsf+yOejJ24RXh
-XjElQvlSWDsvqpQxak7gFFJPBwt9FLsydT1hphhRg1jrUt29c2TPTxh71bvrGQxH
-cIJYgwme+wTWQpKjr0WlYkG/JQiwOAGg/mGtGvWYJaI7f+GXGD4L7WD1X63jI5Me
-o8IsXbqpAo+8nqa0i5+Fn1ca8rQZYzsQ11DEFqCwsHZFgw3UrcE8oV1Zab+OlZd7
-+5hvqHbm/yRupkMGEVFqGDkMvAG0JnRpMGcnx9uvY+C45b3/KYCPpx7twPu3Na0L
-M6eUncGaBu6Vulr7RK56
-=zaGH
+iQIcBAABCAAGBQJYQzBtAAoJELgmozMOVy/dUZQP/iuQE9ANz1okoFSxkTaktJSU
+1RaxxbL5kIHdCoQtY0Zn0cPmcs6bTf0vznFjCpuH13Q+HpKsvEZufxvIP/2CjS0J
+8GwOg+nYhRr8MBOYFVH7gMW4fDHWakwCb/QW44Hwp3M50f6lTgNYGlYJp58b39N5
+0id2xHjnjJk8B/RC2FDSbAhn8yVLqAjcuq65YXn6dM5uWqGllCX6G0seKstyKDQu
+VQbqcdPqM9sX1R5om3voxcK53+nRelCAnqIpovyAX0S1cN0olfmlBJ1IUWmpo4fQ
+1h5yLHT8X7MnR/xkuelqN/rr3tqofgqOTXE9Kt8oKjMiamaJts+sh5xrfIAFUOCZ
+dT/2yt+jPAojoHy13GTxXgpVeGfohz8y04PFEGCZ7pc1H189o6P+96fjKhd20DZP
+5WFSLXg3jyMhd2+D6ZbK0IIdwpc0pSSq+XqJhanyfIfygjSYBpmI2nxf1EsboICL
+YvCGLpInGWBlO43RyOCVIBY9NLFhqdRJZrgLWSKV3Jl6wGZIaV7x7K5OV8059OD+
+g6olQ3GjlpbPkFbfngx7cp/YLq8sb0RT/T+nAnNOSmC47ppgKauq89PdX1sldxhu
+GgXrH35aY58MV0xg9av/ROfwCIPa2Z8CAV7zDszAkfExzSXOnlhYCTlwV63YQEYv
+W/ZE+nShBVqgvxCA3NRt
+=QsmC
 -----END PGP SIGNATURE-----
 
---=-xwkJFsH06i3RAtMDpp7/--
+--=-TD4JEuIQwYvxlkU4l1JR--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
