@@ -1,147 +1,68 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hns: Move HNS RoCE user vendor structures
-Date: Sat, 03 Dec 2016 14:24:35 -0500
-Message-ID: <1480793075.15032.68.camel@redhat.com>
-References: <1476897187-15991-1-git-send-email-leon@kernel.org>
-         <58097F0D.2040001@huawei.com>
+Subject: Re: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
+Date: Sat, 03 Dec 2016 15:49:46 -0500
+Message-ID: <1480798186.15032.71.camel@redhat.com>
+References: <20161005143054.4844-1-henry.orosco@intel.com>
+         <20161005153530.GA11148@flatif-MOBL1> <20161006071023.GN9282@leon.nu>
+         <20161006192544.GA14272@flatif-MOBL1>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-C3zePri4qL2YsXcpKsgT"
+        protocol="application/pgp-signature"; boundary="=-xwkJFsH06i3RAtMDpp7/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <58097F0D.2040001-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161006192544.GA14272@flatif-MOBL1>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-C3zePri4qL2YsXcpKsgT
+--=-xwkJFsH06i3RAtMDpp7/
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2016-10-21 at 10:35 +0800, oulijun wrote:
-> =E5=9C=A8 2016/10/20 1:13, Leon Romanovsky =E5=86=99=E9=81=93:
+On Thu, 2016-10-06 at 14:25 -0500, Faisal Latif wrote:
+> On Thu, Oct 06, 2016 at 10:10:23AM +0300, Leon Romanovsky wrote:
 > >=20
-> > This patch moves HNS vendor's specific structures to
-> > common UAPI folder which will be visible to all consumers.
+> > On Wed, Oct 05, 2016 at 10:35:30AM -0500, Faisal Latif wrote:
+> > >=20
+> > > On Wed, Oct 05, 2016 at 07:30:54AM -0700, Henry Orosco wrote:
+> > > Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > >=20
+> > > > ---
+> > > > =C2=A0MAINTAINERS | 1 +
+> > > > =C2=A01 file changed, 1 insertion(+)
+> > > >=20
+> > > > --
+> > > > 2.8.3
+> > >=20
+> > > Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > >=20
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> > =C2=A0drivers/infiniband/hw/hns/hns_roce_cq.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|
-> > 2 +-
-> > =C2=A0drivers/infiniband/hw/hns/hns_roce_main.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|
-> > 2 +-
-> > =C2=A0drivers/infiniband/hw/hns/hns_roce_qp.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|
-> > 2 +-
-> > =C2=A0include/uapi/rdma/Kbuild=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|
-> > 1 +
-> > =C2=A0.../hw/hns/hns_roce_user.h =3D> include/uapi/rdma/hns-abi.h=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=20
-> > 9 +++++----
-> > =C2=A05 files changed, 9 insertions(+), 7 deletions(-)
-> > =C2=A0rename drivers/infiniband/hw/hns/hns_roce_user.h =3D>
-> > include/uapi/rdma/hns-abi.h (94%)
+> > Faisal,
 > >=20
-> > diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c
-> > b/drivers/infiniband/hw/hns/hns_roce_cq.c
-> > index 0973659..d8a1764 100644
-> > --- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-> > +++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-> > @@ -35,7 +35,7 @@
-> > =C2=A0#include "hns_roce_device.h"
-> > =C2=A0#include "hns_roce_cmd.h"
-> > =C2=A0#include "hns_roce_hem.h"
-> > -#include "hns_roce_user.h"
-> > +#include <rdma/hns-abi.h>
-> > =C2=A0#include "hns_roce_common.h"
-> > =C2=A0
-> > =C2=A0static void hns_roce_ib_cq_comp(struct hns_roce_cq *hr_cq)
-> > diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c
-> > b/drivers/infiniband/hw/hns/hns_roce_main.c
-> > index 764e35a..354f100 100644
-> > --- a/drivers/infiniband/hw/hns/hns_roce_main.c
-> > +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-> > @@ -37,7 +37,7 @@
-> > =C2=A0#include <rdma/ib_user_verbs.h>
-> > =C2=A0#include "hns_roce_common.h"
-> > =C2=A0#include "hns_roce_device.h"
-> > -#include "hns_roce_user.h"
-> > +#include <rdma/hns-abi.h>
-> > =C2=A0#include "hns_roce_hem.h"
-> > =C2=A0
-> > =C2=A0/**
-> > diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c
-> > b/drivers/infiniband/hw/hns/hns_roce_qp.c
-> > index e86dd8d..5d13b6b 100644
-> > --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-> > +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-> > @@ -37,7 +37,7 @@
-> > =C2=A0#include "hns_roce_common.h"
-> > =C2=A0#include "hns_roce_device.h"
-> > =C2=A0#include "hns_roce_hem.h"
-> > -#include "hns_roce_user.h"
-> > +#include <rdma/hns-abi.h>
-> > =C2=A0
-> > =C2=A0#define SQP_NUM				(2 *
-> > HNS_ROCE_MAX_PORTS)
-> > =C2=A0
-> > diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-> > index f14ab7f..b54f10d 100644
-> > --- a/include/uapi/rdma/Kbuild
-> > +++ b/include/uapi/rdma/Kbuild
-> > @@ -14,3 +14,4 @@ header-y +=3D mlx5-abi.h
-> > =C2=A0header-y +=3D mthca-abi.h
-> > =C2=A0header-y +=3D nes-abi.h
-> > =C2=A0header-y +=3D ocrdma-abi.h
-> > +header-y +=3D hns-abi.h
-> > diff --git a/drivers/infiniband/hw/hns/hns_roce_user.h
-> > b/include/uapi/rdma/hns-abi.h
-> > similarity index 94%
-> > rename from drivers/infiniband/hw/hns/hns_roce_user.h
-> > rename to include/uapi/rdma/hns-abi.h
-> > index a28f761..5d74019 100644
-> > --- a/drivers/infiniband/hw/hns/hns_roce_user.h
-> > +++ b/include/uapi/rdma/hns-abi.h
-> > @@ -30,8 +30,10 @@
-> > =C2=A0 * SOFTWARE.
-> > =C2=A0 */
-> > =C2=A0
-> > -#ifndef _HNS_ROCE_USER_H
-> > -#define _HNS_ROCE_USER_H
-> > +#ifndef HNS_ABI_USER_H
-> > +#define HNS_ABI_USER_H
-> > +
-> > +#include <linux/types.h>
-> > =C2=A0
-> > =C2=A0struct hns_roce_ib_create_cq {
-> > =C2=A0	__u64=C2=A0=C2=A0=C2=A0buf_addr;
-> > @@ -49,5 +51,4 @@ struct hns_roce_ib_create_qp {
-> > =C2=A0struct hns_roce_ib_alloc_ucontext_resp {
-> > =C2=A0	__u32	qp_tab_size;
-> > =C2=A0};
-> > -
-> > -#endif /*_HNS_ROCE_USER_H */
-> > +#endif /* HNS_ABI_USER_H */
+> > Do you really expect to see 9 people in TO and CC field for every
+> > patch in i40iw area?
+> > 3 comes from drivers/infiniband/
+> > 6 comes from drivers/infiniband/hw/i40iw/
 > >=20
-> ok, thanks!
+> > IMHO, it is worth to shrink the list and limit it to the active
+> > developers.
+> >=20
+> > Thanks
 >=20
+> Doug,=C2=A0
+>=20
+> Please drop this patch and we are going over the sugestion made by
+> Leon to reduce
+> the list. We will have another patch to reduce the list in the
+> Maintainer's file.
 
-Thanks, applied.
+Dropped as requested.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-C3zePri4qL2YsXcpKsgT
+--=-xwkJFsH06i3RAtMDpp7/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -149,22 +70,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYQxvzAAoJELgmozMOVy/dHsMQALAVVeua3E5Vnl/3Ay92sIQ0
-wFKih83DG+edYXII87T86OxxpAnNwk3Gza7ErjScdT4oo42W7rucv52Moo+1ES9E
-iu0lyYSAyFL8QDphHdoE1V/CYrDPB360r/p+7k2l+ZX2Ovnt0QZ9tJ3GjHooe9sn
-P2bs8v7H/HOKwNevS3ifVW8erfux7Y8VHozwq6r0cwYXAZWcL/XjOAVgOu113kKG
-buH+5TRPs+HXXoqWNrW1DVmSsiIQN3amW8HrkPOXaxn9AreM1huNNvLiSB9Oo5nC
-hk1an9uwpo59CeJgM7H9pJolHOrDFYWln/asE9ZBQf43DHGCsUGr6hBeiLx0IOQP
-XuTLL9Kz1lgRy8wHugfJTotDogk845nDblWvGX9k66ZrPQhQDBfW04249axQrnxW
-VgO+5kcwtd+2R7IYzhg30T8QjE2SypZJbV+0k5Yn8l7qWikm9ViQ7Lhp8/gT54jW
-AB+noZUSctMkAY+ROcrrqbcElvYzRwCS8Tp6bjBF60zM4uJUyQH6JtmG10eAdZh+
-hKZSyiY5krTXWdHYY886jDUXRGoFwW3gJwFaKGv5S2byNXgX2AFesNnPJYlXZ9/d
-5uoxdKGuqd5lW/PDheJN65DyA9qicQ1lyFq9uSOJSN99Vjk5kHcRMeMZEfhwr65P
-R3+haQHS6Lge47r+PNvY
-=I45J
+iQIcBAABCAAGBQJYQy/qAAoJELgmozMOVy/d20AQAJiVdOtQcNtpluKZlfwYTa6a
+iEElkW+dZ/gMLuoUu9veHzAASXYJPi8D8AMQ6siX3H3+PxfxOiQm0dwUEyvutf8q
+OuuVenAycD7mjSJGyP8GzGY3eXCUaov5cNqEwOTNj4tGjd1RYRF2b+u0sBEs5DWf
+b0FZ7r6GEIAyX409RTDYj/wbn6kXWu3raYGRdol2rPC0AnUvoiGIvvAxuAxvF+GQ
+BPmAdFrXjckahCd0S9vNt0Gb0MMs2PhqDv6XtpIf+JCv9s66zKilZWSXAEtKzFQ7
+nuciNbgGEB5qI+1Yl5fDrJhzTDp2cE2swHxnaVfGF2iOV+DVLFPwPln5452QTIRs
+34I4Er4QnSpZ8YzW1D6d7mtpij+CFFx+WWbb7YPW5dyohZeI+gCsf+yOejJ24RXh
+XjElQvlSWDsvqpQxak7gFFJPBwt9FLsydT1hphhRg1jrUt29c2TPTxh71bvrGQxH
+cIJYgwme+wTWQpKjr0WlYkG/JQiwOAGg/mGtGvWYJaI7f+GXGD4L7WD1X63jI5Me
+o8IsXbqpAo+8nqa0i5+Fn1ca8rQZYzsQ11DEFqCwsHZFgw3UrcE8oV1Zab+OlZd7
++5hvqHbm/yRupkMGEVFqGDkMvAG0JnRpMGcnx9uvY+C45b3/KYCPpx7twPu3Na0L
+M6eUncGaBu6Vulr7RK56
+=zaGH
 -----END PGP SIGNATURE-----
 
---=-C3zePri4qL2YsXcpKsgT--
+--=-xwkJFsH06i3RAtMDpp7/--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
