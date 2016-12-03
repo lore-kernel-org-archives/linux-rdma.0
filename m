@@ -1,25 +1,25 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/17] Remove debug prints after allocation
+Subject: Re: [PATCH rdma-next V1 00/17] Remove debug prints after allocation
  failure
-Date: Sat, 03 Dec 2016 13:21:32 -0500
-Message-ID: <1480789292.15032.64.camel@redhat.com>
-References: <1478149353-12125-1-git-send-email-leon@kernel.org>
+Date: Sat, 03 Dec 2016 13:30:49 -0500
+Message-ID: <1480789849.15032.65.camel@redhat.com>
+References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-jpG5zRoJm1O4NdF6bfa1"
+        protocol="application/pgp-signature"; boundary="=-0fo132aXek6ta1smDPhZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1478149353-12125-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro a <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-jpG5zRoJm1O4NdF6bfa1
+--=-0fo132aXek6ta1smDPhZ
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2016-11-03 at 07:02 +0200, Leon Romanovsky wrote:
+On Thu, 2016-11-03 at 16:44 +0200, Leon Romanovsky wrote:
 > Hi Doug and all,
 >=20
 > This is semantic cleanup of infiniband stack from printks immediately
@@ -55,33 +55,17 @@ On Thu, 2016-11-03 at 07:02 +0200, Leon Romanovsky wrote:
 > CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>a
 > CC: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 >=20
-> Leon Romanovsky (17):
-> =C2=A0 IB/mad: Remove debug prints after allocation failure
-> =C2=A0 IB/core: Remove debug prints after allocation failure
-> =C2=A0 IB/core: Release allocated memory in cache setup failure
-> =C2=A0 IB/mlx4: Remove debug prints after allocation failure
-> =C2=A0 IB/mlx5: Remove debug prints after allocation failure
-> =C2=A0 IB/hfi1: Remove debug prints after allocation failure
-> =C2=A0 IB/cxgb3: Remove debug prints after allocation failure
-> =C2=A0 IB/cxgb4: Remove debug prints after allocation failure
-> =C2=A0 IB/i40iw: Remove debug prints after allocation failure
-> =C2=A0 IB/qib: Remove debug prints after allocation failure
-> =C2=A0 IB/nes: Remove debug prints after allocation failure
-> =C2=A0 IB/mthca: Remove debug prints after allocation failure
-> =C2=A0 IB/usninc: Remove and fix debug prints after allocation failure
-> =C2=A0 IB/ocrdma: Remove and fix debug prints after allocation failure
-> =C2=A0 IB/rxe: Remove and fix debug prints after allocation failure
-> =C2=A0 IB/isert: Remove and fix debug prints after allocation failure
-> =C2=A0 IB/ipoib: Remove and fix debug prints after allocation failure
->=C2=A0
+> Changes v0 -> v1:
+> =C2=A0* Patch 17: Return brackets removed by mistake.
 
-Thanks, series applied.
+Sorry, I replied to the v0 thread when in fact I applied the v1
+patchset.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-jpG5zRoJm1O4NdF6bfa1
+--=-0fo132aXek6ta1smDPhZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -89,22 +73,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYQw0sAAoJELgmozMOVy/dvYsP/2THAHAxQmHRD+paAMfpSlzQ
-EhWR+CkXyesBsNVW7aw4S+qPojmABNU07I9CBmOpNmdWmI820+9xH8ALSFkMFGx5
-DrdHpyTypJd2T4y0iXW+ojGXlac9aWKabtT83xQruIN65wT+Yoq7IIIuugkVaPKw
-nHyuKA8mqGYaMNxrdvoeVU+/my996idimJiOr8wDg00exZh25VkDZUz8XCUg1nAt
-DDJdFspJIDsBOjY0w9KFbrFM9zqAyVNI7bZXjRcFUFANDDvwQC4CrTTlRe7cPvj1
-HJeNy+hKer6E1t5bEuYk1l9NvK0s2vYEM/sU9rhK+UirQIDeQVIeqDA61AQp5gQy
-m6OtUZyIEsi6JNmZNBnXaaQp+A2pSBTZ3eZQAU9hWF1t6gXcgTF8NSfwFlernal7
-uyPPcqZrejPqlOvaNBM2OPAnrb6CM/0c3YVbCWMZ8tlu1BK7uNpomDPJ1RZQqfOK
-W5bW/eXJj7TALm/JNwg97gPXO6MHvSofU1Gj12z+60aU/YuHvDlL7Uh9ZzXdhB9I
-sAdpCu/pImD/tqiJ9PHS4iVyAM24Amf267/qvvSeQ8dcmqmlcvUsg64b4HlMpILr
-ge2NL8j2KiW14QDq1Ks0SgOslbk58SwQuKnCDncHpLsvUnYCRshblSQ90KhS02GR
-BH0VeL5AQy6zEdp4zkOb
-=MIiI
+iQIcBAABCAAGBQJYQw9ZAAoJELgmozMOVy/dYxUP/0EsCLrmyFhEV8ehjDrL19TX
+ABD2xrUYz6RbAWi1zyeGRnfbhGvg8NuogJuXsgPgq9/NjAodHEcIemN/l9Kp3pI6
+riuAB++uKxRWOWvhWLXWbIO+9RzQ3vb2i6KqLNCKFKO1i39RKpXAxqPKm5hDpDSr
+jEt6+keZBzEzPB64V2XHXTmlQKHRoxXA4lKfidmuuPAH4gGKDzn+K97xzIf+qU4q
+piocceyegc6l6cq9CZTiZ5xURaHCMELH3vMzUyp4MrbDkXD4ouwrWIB7j/lImHjJ
+ky8+kVeg03vZwLAyJ9uiN0dUqs0c7H7nZChGLAvgQUOWp6QiredtYcqXoJcRiy2i
+shcMUIyx9/2ckC5ix5fxCgIIIqKvTEREcoU3bcSvOgrlKrAdEHbUNP35ZR0FnO0+
+2g+QUSTW4p5kqIK9sPFoVNETLegwop0TyZJ9o9Vedb6BEMz1A2ImtGAEpXDzO50b
+4DFsiEbed8hQG4Cft1XLZMLKHOe0CSsA/BWz3Bcu9ijOfam1B+RXp+XvCfZ0pqK5
+MtT0924VYGdvxhgG36qSB6Eh/Ee2OAsbNi9jP/90itSQyM371su3CLNz5xpSrBku
+AD6T8EckKt16fl5mCU835KQeXySzjbpV6BPYiok+Bh/j0eKB3sibIlE8XmWE/bJf
+jYRD08p6SrrPe4r6LX52
+=ce9/
 -----END PGP SIGNATURE-----
 
---=-jpG5zRoJm1O4NdF6bfa1--
+--=-0fo132aXek6ta1smDPhZ--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
