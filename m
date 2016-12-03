@@ -1,116 +1,49 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v3 02/10] svcauth_gss: Close connection when dropping an
- incoming message
-Date: Fri, 2 Dec 2016 22:17:32 -0500
-Message-ID: <20161203031732.GA21785@fieldses.org>
-References: <20161129155521.4477.53561.stgit@klimt.1015granger.net>
- <20161129160434.4477.76542.stgit@klimt.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161129160434.4477.76542.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Pan Bian <bianpan201602-9Onoh4P/yGk@public.gmane.org>
+Subject: [PATCH 1/1] infiniband: hw: cxgb4: set errno on failure
+Date: Sat,  3 Dec 2016 21:04:35 +0800
+Message-ID: <1480770275-6155-1-git-send-email-bianpan201602@163.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-By the way, pynfs test GSS1 now fails with a complaint about the dropped
-connection.
+From: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
 
-I'll fix it up to require the dropped connection, since we now think
-it's actually a bug to do otherwise.
+In function c4iw_rdev_open(), the value of return variable err should be
+negative on errors. However, when the call to __get_free_page() returns
+a NULL pointer, its value is not set to "-ENOMEM" and keeps 0. 0 means
+no error. And thus, the behavior of its caller may be misled. This patch
+fixes the bug.
 
---b.
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=188821
 
-On Tue, Nov 29, 2016 at 11:04:34AM -0500, Chuck Lever wrote:
-> S5.3.3.1 of RFC 2203 requires that an incoming GSS-wrapped message
-> whose sequence number lies outside the current window is dropped.
-> The rationale is:
-> 
->   The reason for discarding requests silently is that the server
->   is unable to determine if the duplicate or out of range request
->   was due to a sequencing problem in the client, network, or the
->   operating system, or due to some quirk in routing, or a replay
->   attack by an intruder.  Discarding the request allows the client
->   to recover after timing out, if indeed the duplication was
->   unintentional or well intended.
-> 
-> However, clients may rely on the server dropping the connection to
-> indicate that a retransmit is needed. Without a connection reset, a
-> client can wait forever without retransmitting, and the workload
-> just stops dead. I've reproduced this behavior by running xfstests
-> generic/323 on an NFSv4.0 mount with proto=rdma and sec=krb5i.
-> 
-> To address this issue, have the server close the connection when it
-> silently discards an incoming message due to a GSS sequence number
-> problem.
-> 
-> There are a few other places where the server will never reply.
-> Change those spots in a similar fashion.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  net/sunrpc/auth_gss/svcauth_gss.c |    2 +-
->  net/sunrpc/svc.c                  |   14 +++++++++-----
->  2 files changed, 10 insertions(+), 6 deletions(-)
-> 
-> diff --git a/net/sunrpc/auth_gss/svcauth_gss.c b/net/sunrpc/auth_gss/svcauth_gss.c
-> index 45662d7..886e9d38 100644
-> --- a/net/sunrpc/auth_gss/svcauth_gss.c
-> +++ b/net/sunrpc/auth_gss/svcauth_gss.c
-> @@ -1548,7 +1548,7 @@ static void destroy_use_gss_proxy_proc_entry(struct net *net) {}
->  	ret = SVC_COMPLETE;
->  	goto out;
->  drop:
-> -	ret = SVC_DROP;
-> +	ret = SVC_CLOSE;
->  out:
->  	if (rsci)
->  		cache_put(&rsci->h, sn->rsc_cache);
-> diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
-> index 7c8070e..75f290b 100644
-> --- a/net/sunrpc/svc.c
-> +++ b/net/sunrpc/svc.c
-> @@ -1155,8 +1155,7 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
->  	case SVC_DENIED:
->  		goto err_bad_auth;
->  	case SVC_CLOSE:
-> -		if (test_bit(XPT_TEMP, &rqstp->rq_xprt->xpt_flags))
-> -			svc_close_xprt(rqstp->rq_xprt);
-> +		goto close;
->  	case SVC_DROP:
->  		goto dropit;
->  	case SVC_COMPLETE:
-> @@ -1246,7 +1245,7 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
->  
->   sendit:
->  	if (svc_authorise(rqstp))
-> -		goto dropit;
-> +		goto close;
->  	return 1;		/* Caller can now send it */
->  
->   dropit:
-> @@ -1254,11 +1253,16 @@ static __printf(2,3) void svc_printk(struct svc_rqst *rqstp, const char *fmt, ..
->  	dprintk("svc: svc_process dropit\n");
->  	return 0;
->  
-> + close:
-> +	if (test_bit(XPT_TEMP, &rqstp->rq_xprt->xpt_flags))
-> +		svc_close_xprt(rqstp->rq_xprt);
-> +	dprintk("svc: svc_process close\n");
-> +	return 0;
-> +
->  err_short_len:
->  	svc_printk(rqstp, "short len %Zd, dropping request\n",
->  			argv->iov_len);
-> -
-> -	goto dropit;			/* drop request */
-> +	goto close;
->  
->  err_bad_rpc:
->  	serv->sv_stats->rpcbadfmt++;
+Signed-off-by: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/device.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 93e3d27..b99dc9e 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -828,8 +828,10 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	}
+ 	rdev->status_page = (struct t4_dev_status_page *)
+ 			    __get_free_page(GFP_KERNEL);
+-	if (!rdev->status_page)
++	if (!rdev->status_page) {
++		err = -ENOMEM;
+ 		goto destroy_ocqp_pool;
++	}
+ 	rdev->status_page->qp_start = rdev->lldi.vr->qp.start;
+ 	rdev->status_page->qp_size = rdev->lldi.vr->qp.size;
+ 	rdev->status_page->cq_start = rdev->lldi.vr->cq.start;
+-- 
+1.9.1
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
