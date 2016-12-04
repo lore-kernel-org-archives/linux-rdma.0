@@ -1,79 +1,71 @@
-From: "Stephen Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Sun, 4 Dec 2016 07:23:00 -0600
-Message-ID: <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
-References: <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
- <20161128165751.GB28381@obsidianresearch.com>
- <1480357179.19407.13.camel@mellanox.com>
- <20161128190244.GA21975@obsidianresearch.com>
- <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
- <20161130162353.GA24639@obsidianresearch.com>
- <5f5b7989-84f5-737e-47c8-831f752d6280@deltatee.com>
- <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next V1 2/4] IB/core: Support rate limit for packet
+ pacing
+Date: Sun, 4 Dec 2016 11:53:12 +0000
+Message-ID: <HE1PR0501MB28122735F9F3DFD700B43BFBB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+References: <1480592596-20126-1-git-send-email-leon@kernel.org>
+ <1480592596-20126-3-git-send-email-leon@kernel.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA789@ORSMSX109.amr.corp.intel.com>
+ <20161202143957.GF4497@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <c1ead8a0-6850-fc84-2793-b986f5c1f726-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <john.bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161202143957.GF4497-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
 
-This has been a great thread (thanks to Alex for kicking it off) and I
-wanted to jump in and maybe try and put some summary around the
-discussion. I also wanted to propose we include this as a topic for LFS/MM
-because I think we need more discussion on the best way to add this
-functionality to the kernel.
+>=20
+> On Thu, Dec 01, 2016 at 07:40:44PM +0000, Hefty, Sean wrote:
+> > >  enum ib_qp_state {
+> > > @@ -1151,6 +1152,7 @@ struct ib_qp_attr {
+> > >  	u8			rnr_retry;
+> > >  	u8			alt_port_num;
+> > >  	u8			alt_timeout;
+> > > +	u32			rate_limit;
+> > >  };
+> >
+> > And I still disagree with this approach, as there is already an existin=
+g field in the
+> API that limits rate.
+>=20
+> Hi Sean,
+>=20
+> We would like to elaborate more on the subject, and we need your help her=
+e.
+> Our cover letter [1] has description why the existing field is not enough=
+. Can you
+> write a little bit more why you didn't like the proposed approach to an e=
+xisting
+> and real problem?
+>=20
 
-As far as I can tell the people looking for P2P support in the kernel fall
-into two main camps:
+Clearly, we need a new field that is greater than 8 bits that uses differen=
+t encoding (actual rate rather than a predefined enumeration of values).
 
-1. Those who simply want to expose static BARs on PCIe devices that can be
-used as the source/destination for DMAs from another PCIe device. This
-group has no need for memory invalidation and are happy to use
-physical/bus addresses and not virtual addresses.
+However, this is not only a new field - this rate is also conceptually diff=
+erent than AH static rate:
+1) It is not related to the fabric path.
+2) It is determined by the application rather than the fabric.
+3) It needs to apply to QPs that don't use AH (raw Ethernet QPs)
 
-2. Those who want to support devices that suffer from occasional memory
-pressure and need to invalidate memory regions from time to time. This
-camp also would like to use virtual addresses rather than physical ones to
-allow for things like migration.
+Of course, we might require raw Ethernet QPs to use an AH just for the sake=
+ of rate-limiting.
+But 1) + 2) indicate that this should be a concept orthogonal to network pa=
+ths. In fact, it could apply to RC and UD QPs as well.
+In addition, if we implement full connection establishment in the kernel (i=
+.e., the static_rate field is filled in the kernel), we would still like to=
+ allow applications to further restrict their rate using a different compon=
+ent mask.
+--Liran
 
-I am wondering if people agree with this assessment?
-
-I think something like the iopmem patches Logan and I submitted recently
-come close to addressing use case 1. There are some issues around
-routability but based on feedback to date that does not seem to be a
-show-stopper for an initial inclusion.
-
-For use-case 2 it looks like there are several options and some of them
-(like HMM) have been around for quite some time without gaining
-acceptance. I think there needs to be more discussion on this usecase and
-it could be some time before we get something upstreamable.
-
-I for one, would really like to see use case 1 get addressed soon because
-we have consumers for it coming soon in the form of CMBs for NVMe devices.
-
-Long term I think Jason summed it up really well. CPU vendors will put
-high-speed, open, switchable, coherent buses on their processors and all
-these problems will vanish. But I ain't holding my breathe for that to
-happen ;-).
-
-Cheers
-
-Stephen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
