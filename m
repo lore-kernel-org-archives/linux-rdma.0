@@ -1,69 +1,120 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next V1 2/4] IB/core: Support rate limit for packet
- pacing
-Date: Sun, 4 Dec 2016 11:53:12 +0000
-Message-ID: <HE1PR0501MB28122735F9F3DFD700B43BFBB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
-References: <1480592596-20126-1-git-send-email-leon@kernel.org>
- <1480592596-20126-3-git-send-email-leon@kernel.org>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA789@ORSMSX109.amr.corp.intel.com>
- <20161202143957.GF4497@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 rdma-core 2/2] mlx5: Create and destroy address handle with kernel assistance
+Date: Sun,  4 Dec 2016 17:53:26 +0200
+Message-ID: <1480866806-5052-3-git-send-email-yishaih@mellanox.com>
+References: <1480866806-5052-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161202143957.GF4497-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1480866806-5052-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->=20
-> On Thu, Dec 01, 2016 at 07:40:44PM +0000, Hefty, Sean wrote:
-> > >  enum ib_qp_state {
-> > > @@ -1151,6 +1152,7 @@ struct ib_qp_attr {
-> > >  	u8			rnr_retry;
-> > >  	u8			alt_port_num;
-> > >  	u8			alt_timeout;
-> > > +	u32			rate_limit;
-> > >  };
-> >
-> > And I still disagree with this approach, as there is already an existin=
-g field in the
-> API that limits rate.
->=20
-> Hi Sean,
->=20
-> We would like to elaborate more on the subject, and we need your help her=
-e.
-> Our cover letter [1] has description why the existing field is not enough=
-. Can you
-> write a little bit more why you didn't like the proposed approach to an e=
-xisting
-> and real problem?
->=20
+Depending on kernel support and when link layer is Ethernet, call kernel
+when asked to create an address handle. Kernel will return destination
+mac which is required to create the address handle. The alternative,
+when kernel support is missing, is to use netlink which is less
+efficient.  Destroying an address handle also needs kernel assistance to
+clean resources that were allocated during address handle creation.
 
-Clearly, we need a new field that is greater than 8 bits that uses differen=
-t encoding (actual rate rather than a predefined enumeration of values).
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx5/mlx5-abi.h |  7 +++++++
+ providers/mlx5/mlx5.h     |  2 ++
+ providers/mlx5/verbs.c    | 28 +++++++++++++++++++++++-----
+ 3 files changed, 32 insertions(+), 5 deletions(-)
 
-However, this is not only a new field - this rate is also conceptually diff=
-erent than AH static rate:
-1) It is not related to the fabric path.
-2) It is determined by the application rather than the fabric.
-3) It needs to apply to QPs that don't use AH (raw Ethernet QPs)
-
-Of course, we might require raw Ethernet QPs to use an AH just for the sake=
- of rate-limiting.
-But 1) + 2) indicate that this should be a concept orthogonal to network pa=
-ths. In fact, it could apply to RC and UD QPs as well.
-In addition, if we implement full connection establishment in the kernel (i=
-.e., the static_rate field is filled in the kernel), we would still like to=
- allow applications to further restrict their rate using a different compon=
-ent mask.
---Liran
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index 4b5b577..800915d 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -91,6 +91,13 @@ struct mlx5_alloc_ucontext_resp {
+ 	__u64				hca_core_clock_offset;
+ };
+ 
++struct mlx5_create_ah_resp {
++	struct ibv_create_ah_resp	ibv_resp;
++	__u32				response_length;
++	__u8				dmac[ETHERNET_LL_SIZE];
++	__u8				reserved[6];
++};
++
+ struct mlx5_alloc_pd_resp {
+ 	struct ibv_alloc_pd_resp	ibv_resp;
+ 	__u32				pdn;
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index cb65429..cf314fc 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -217,6 +217,7 @@ enum mlx5_rsc_type {
+ 
+ enum {
+ 	MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE = 1 << 0,
++	MLX5_USER_CMDS_SUPP_UHW_CREATE_AH    = 1 << 1,
+ };
+ 
+ struct mlx5_resource {
+@@ -470,6 +471,7 @@ struct mlx5_av {
+ struct mlx5_ah {
+ 	struct ibv_ah			ibv_ah;
+ 	struct mlx5_av			av;
++	bool				kern_ah;
+ };
+ 
+ struct mlx5_rwq {
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index e288ebf..7107a5b 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1636,11 +1636,21 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	}
+ 
+ 	if (is_eth) {
+-		uint16_t vid;
++		if (ctx->cmds_supp_uhw & MLX5_USER_CMDS_SUPP_UHW_CREATE_AH) {
++			struct mlx5_create_ah_resp resp = {};
+ 
+-		if (ibv_resolve_eth_l2_from_gid(pd->context, attr, ah->av.rmac,
+-						&vid))
+-			goto err;
++			if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp.ibv_resp, sizeof(resp)))
++				goto err;
++
++			ah->kern_ah = true;
++			memcpy(ah->av.rmac, resp.dmac, ETHERNET_LL_SIZE);
++		} else {
++			uint16_t vid;
++
++			if (ibv_resolve_eth_l2_from_gid(pd->context, attr,
++							ah->av.rmac, &vid))
++				goto err;
++		}
+ 	}
+ 
+ 	return &ah->ibv_ah;
+@@ -1651,8 +1661,16 @@ err:
+ 
+ int mlx5_destroy_ah(struct ibv_ah *ah)
+ {
+-	free(to_mah(ah));
++	struct mlx5_ah *mah = to_mah(ah);
++	int err;
++
++	if (mah->kern_ah) {
++		err = ibv_cmd_destroy_ah(ah);
++		if (err)
++			return err;
++	}
+ 
++	free(mah);
+ 	return 0;
+ }
+ 
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
