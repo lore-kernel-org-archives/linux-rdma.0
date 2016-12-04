@@ -1,58 +1,62 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: Remove Mitesh Ahuja from emulex maintainers
-Date: Sun,  4 Dec 2016 08:47:46 +0200
-Message-ID: <1480834066-8459-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH 1/1] infiniband: hw: mlx4: fix improper return value
+Date: Sun, 4 Dec 2016 09:17:34 +0200
+Message-ID: <20161204071734.GI4497@leon.nu>
+References: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="CNK/L7dwKXQ4Ub8J"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1480833938-6284-1-git-send-email-bianpan201603-9Onoh4P/yGk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pan Bian <bianpan201603-9Onoh4P/yGk@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> from
-maintainers file. This email address seems not active
-and causes to mail bounces during submissions.
 
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
-                  The mail system
+--CNK/L7dwKXQ4Ub8J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-<mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>: host aspmx.l.google.com[74.125.199.27] said:
-    550-5.1.1 The email account that you tried to reach does not exist. Please
-    try 550-5.1.1 double-checking the recipient's email address for typos or
-    550-5.1.1 unnecessary spaces. Learn more at 550 5.1.1
-    https://support.google.com/mail/?p=NoSuchUser f14si10627738plm.266 - gsmtp
-    (in reply to RCPT TO command)
+On Sun, Dec 04, 2016 at 02:45:38PM +0800, Pan Bian wrote:
+> From: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+>
+> If uhw->inlen is non-zero, the value of variable err is 0 if the copy
+> succeeds. Then, if kzalloc() or kmalloc() returns a NULL pointer, it
+> will return 0 to the callers. As a result, the callers cannot detect the
+> errors. This patch fixes the bug, assign "-ENOMEM" to err before the
+> NULL pointer checks, and remove the initialization of err at the
+> beginning.
+>
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=189031
+> Signed-off-by: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
 
-Final-Recipient: rfc822; mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org
-Original-Recipient: rfc822;mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org
-Action: failed
-Status: 5.1.1
-Remote-MTA: dns; aspmx.l.google.com
-Diagnostic-Code: smtp; 550-5.1.1 The email account that you tried to
-reach does
-    not exist. Please try 550-5.1.1 double-checking the recipient's email
-    address for typos or 550-5.1.1 unnecessary spaces. Learn more at 550 5.1.1
-    https://support.google.com/mail/?p=NoSuchUser f14si10627738plm.266 - gsmtp
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
----
- MAINTAINERS | 1 -
- 1 file changed, 1 deletion(-)
+--CNK/L7dwKXQ4Ub8J
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8d414840..37121a3 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10919,7 +10919,6 @@ F:	drivers/net/ethernet/emulex/benet/
- EMULEX ONECONNECT ROCE DRIVER
- M:	Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
- M:	Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
--M:	Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
- L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- W:	http://www.emulex.com
- S:	Supported
---
-2.7.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iQIcBAEBAgAGBQJYQ8MOAAoJEORje4g2clin5mIP/RDrMMH84Lu744Uusiok1k4i
+XeOqvfvhsg8Q4IEqRZOlfV6+Ol2CwGwtxI5Ke6f+7g6qPbyGPnw1pxgGTFFrDNLh
+oAFAzNy+2Db7dLesEs9O/jZyplh5yor2jPU3r5YQCICa5KH9oE6wY1lx4dOi3ZyK
+D3esyteAYxULN8LqibE4hN0bKm4YX8Y6iLPuZ6wq+uycT6Pv/Dp2zI0zuKOENu79
+rU2VhENQmgGx4uDTga93wXM1/XKQhU1lDrSQylUgrCohuysh/E9KnAbEC2Xpseaj
+Mg6588vohhulJC24/yOiUSDpEMDn0ws42EEaMGTQVd3ReuXIaWFTmmsUuOAojKaE
+hRnfN3Iw0vOpSfLr6NMYtRJSuo3Obfw2JD5CZqbNgbBwa4v6Rrp4OnPHC/7fgMof
+Np6oFqytdJWxxWxKAUJGX+uEb4BLxKVzUOkDVmnpLoYfTpJ65g0wzbJOfHsm9ONA
+/vjV9Q74bkuUm1DuOQx0m05yXCQl9LnhVcCzGlLdyANc3ysv0e+gRl6mdPpuIiUF
+zn06Tlo4bKSXaBsLACmDDVGMy/ecE3Sc3DeU6gdncfPml9s4z1fkllC5LgLR+lwp
+blb2XToUuboyErTCBqIq6ef4HmKgsJLhdmKxcNHIBOAYOdXSJLaNFfNSUE9jTurf
+kAGPvNw9IjsRH+LjukJU
+=f1Wo
+-----END PGP SIGNATURE-----
+
+--CNK/L7dwKXQ4Ub8J--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
