@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 10/28] bnxt_re: register with the NIC driver
-Date: Sun,  4 Dec 2016 22:38:14 -0800
-Message-ID: <1480919912-1079-11-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH 12/28] bnxt_re: Adding Notification Queue support
+Date: Sun,  4 Dec 2016 22:38:16 -0800
+Message-ID: <1480919912-1079-13-git-send-email-selvin.xavier@broadcom.com>
 References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,18 +10,8 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch handles the registration with bnxt_en driver. The driver registers
-with netdev notifier chain. Upon receiving NETDEV_REGISTER event, the driver
-in turn registers with bnxt_en driver.
-	1. bnxt_en's ulp_probe function returns a structure that contains information
-	   about the device and additional entry points.
-	2. bnxt_en driver returns 'struct bnxt_eth_dev' that contains set of operation
-	   vectors that RocE driver invokes later.
-	3. bnxt_request_msix() allows the RoCE driver to specify the number of MSI-X
-	   vectors that are needed.
-	4. bnxt_send_fw_msg () can be used to send messages to the FW
-	5. bnxt_register_async_events() can be used to register for async event
-	   callbacks.
+Completion Notifcations are handled by Notification Queue (NQ). This
+patch configures the NQs. Also, configures the Door bell page mapping
 
 Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -29,568 +19,379 @@ Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.
 Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxtre/Makefile       |   1 +
- drivers/infiniband/hw/bnxtre/bnxt_re.h      |  48 +++
- drivers/infiniband/hw/bnxtre/bnxt_re_main.c | 460 ++++++++++++++++++++++++++++
- 3 files changed, 509 insertions(+)
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c  | 160 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h  |  60 ++++++++++
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h |   6 +
+ drivers/infiniband/hw/bnxtre/bnxt_re.h        |   8 ++
+ drivers/infiniband/hw/bnxtre/bnxt_re_main.c   |  52 ++++++++-
+ 5 files changed, 285 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/bnxtre/Makefile b/drivers/infiniband/hw/bnxtre/Makefile
-index 0521489..71aa5a1 100644
---- a/drivers/infiniband/hw/bnxtre/Makefile
-+++ b/drivers/infiniband/hw/bnxtre/Makefile
-@@ -1,4 +1,5 @@
- 
-+ccflags-y := -Idrivers/net/ethernet/broadcom/bnxt
- obj-$(CONFIG_INFINIBAND_BNXTRE) += bnxt_re.o
- bnxt_re-y := bnxt_re_main.o bnxt_re_ib_verbs.o \
- 	     bnxt_qplib_res.o bnxt_qplib_rcfw.o	\
-diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re.h b/drivers/infiniband/hw/bnxtre/bnxt_re.h
-index 649c58e..d2e2183 100644
---- a/drivers/infiniband/hw/bnxtre/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxtre/bnxt_re.h
-@@ -13,5 +13,53 @@
- #define ROCE_DRV_MODULE_NAME		"bnxt_re"
- #define ROCE_DRV_MODULE_VERSION		"1.0.0"
- 
-+#define BNXT_RE_REF_WAIT_COUNT		10
- #define BNXT_RE_DESC	"Broadcom NetXtreme-C/E RoCE Driver"
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c b/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c
+index 34873f4..2a0b5b1 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c
+@@ -10,3 +10,163 @@
+ /*
+  * Description: Fast Path Operators
+  */
 +
-+struct bnxt_re_work {
-+	struct work_struct	work;
-+	unsigned long		event;
-+	struct bnxt_re_dev      *rdev;
-+	struct net_device	*vlan_dev;
-+};
-+
-+#define BNXT_RE_MIN_MSIX		2
-+#define BNXT_RE_MAX_MSIX		16
-+struct bnxt_re_dev {
-+	struct ib_device		ibdev;
-+	struct list_head		list;
-+	atomic_t			ref_count;
-+	unsigned long			flags;
-+#define BNXT_RE_FLAG_NETDEV_REGISTERED	0
-+#define BNXT_RE_FLAG_IBDEV_REGISTERED	1
-+#define BNXT_RE_FLAG_GOT_MSIX		2
-+#define BNXT_RE_FLAG_RCFW_CHANNEL_EN	8
-+#define BNXT_RE_FLAG_QOS_WORK_REG	16
-+	struct net_device		*netdev;
-+	unsigned int			version, major, minor;
-+	struct bnxt_en_dev		*en_dev;
-+	struct bnxt_msix_entry		msix_entries[BNXT_RE_MAX_MSIX];
-+	int				num_msix;
-+
-+	int				id;
-+
-+	atomic_t			qp_count;
-+	struct mutex			qp_lock;	/* protect qp list */
-+	struct list_head		qp_list;
-+
-+	atomic_t			cq_count;
-+	atomic_t			srq_count;
-+	atomic_t			mr_count;
-+	atomic_t			mw_count;
-+	/* Max of 2 lossless traffic class supported per port */
-+	u16				cosq[2];
-+};
-+
-+#define to_bnxt_re(ptr, type, member)	\
-+	container_of(ptr, type, member)
-+
-+#define to_bnxt_re_dev(ptr, member)	\
-+	container_of((ptr), struct bnxt_re_dev, member)
-+#define	rdev_to_dev(rdev)	((rdev) ? (&(rdev)->ibdev.dev) : NULL)
-+
- #endif
-diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-index 4c377dc..1c8171c 100644
---- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-+++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-@@ -13,10 +13,24 @@
- 
- #include <linux/module.h>
- #include <linux/netdevice.h>
-+#include <linux/ethtool.h>
- #include <linux/mutex.h>
- #include <linux/list.h>
- #include <linux/rculist.h>
++#include <linux/interrupt.h>
 +#include <linux/spinlock.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
 +#include <linux/pci.h>
-+#include <net/ipv6.h>
-+#include <net/addrconf.h>
 +
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_addr.h>
-+
-+#include "bnxt_ulp.h"
 +#include "bnxt_re_hsi.h"
- #include "bnxt_re.h"
-+#include "bnxt.h"
- static char version[] =
- 		BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
- 
-@@ -30,6 +44,396 @@ MODULE_VERSION(ROCE_DRV_MODULE_VERSION);
- struct list_head bnxt_re_dev_list = LIST_HEAD_INIT(bnxt_re_dev_list);
- DEFINE_MUTEX(bnxt_re_dev_lock);
- static struct workqueue_struct *bnxt_re_wq;
 +
-+const char *bnxt_re_event2str[] = {"NONE", "UP", "DOWN", "REBOOT",
-+				   "CHANGE", "REGISTER", "UNREGISTER",
-+				   "CHANGEMTU", "CHANGEADDR", "GOING_DOWN",
-+				   "CHANGENAME", "FEAT_CHANGE",
-+				   "BONDING_FAILOVER", "PRE_UP",
-+				   "PRE_TYPE_CHANGE", "POST_TYPE_CHANGE",
-+				   "POST_INIT", "UNREGISTER_FINAL", "RELEASE",
-+				   "NOTIFY_PEERS", "JOIN", "CHANGEUPPER",
-+				   "RESEND_IGMP", "PRECHANGEMTU",
-+				   "CHANGEINFODATA", "BONDING_INFO",
-+				   "UNKNOWN"};
++#include "bnxt_qplib_res.h"
++#include "bnxt_qplib_rcfw.h"
++#include "bnxt_qplib_sp.h"
++#include "bnxt_qplib_fp.h"
 +
-+#define NETDEV_UNKNOWN	25
-+
-+void bnxt_re_stop(void *p)
++static void bnxt_qplib_service_nq(unsigned long data)
 +{
-+}
++	struct bnxt_qplib_nq *nq = (struct bnxt_qplib_nq *)data;
++	struct bnxt_qplib_hwq *hwq = &nq->hwq;
++	struct nq_base *nqe, **nq_ptr;
++	u32 sw_cons, raw_cons;
++	u32 type;
++	int budget = nq->budget;
 +
-+void bnxt_re_start(void *p)
-+{
-+}
++	/* Service the NQ until empty */
++	raw_cons = hwq->cons;
++	while (budget--) {
++		sw_cons = HWQ_CMP(raw_cons, hwq);
++		nq_ptr = (struct nq_base **)hwq->pbl_ptr;
++		nqe = &nq_ptr[NQE_PG(sw_cons)][NQE_IDX(sw_cons)];
++		if (!NQE_CMP_VALID(nqe, raw_cons, hwq->max_elements))
++			break;
 +
-+void bnxt_re_sriov_config(void *p, int num_vfs)
-+{
-+}
-+
-+struct bnxt_ulp_ops bnxt_re_ulp_ops = {
-+	.ulp_async_notifier = NULL,
-+	.ulp_stop = bnxt_re_stop,
-+	.ulp_start = bnxt_re_start,
-+	.ulp_sriov_config = bnxt_re_sriov_config
-+};
-+
-+static inline const char *bnxt_re_netevent(unsigned long event)
-+{
-+	if (event >= ARRAY_SIZE(bnxt_re_event2str))
-+		event = NETDEV_UNKNOWN;
-+	return bnxt_re_event2str[(event)];
-+}
-+
-+/* The rdev ref_count is to protect immature removal of the device */
-+static inline void bnxt_re_hold(struct bnxt_re_dev *rdev)
-+{
-+	atomic_inc(&rdev->ref_count);
-+}
-+
-+static inline void bnxt_re_put(struct bnxt_re_dev *rdev)
-+{
-+	atomic_dec(&rdev->ref_count);
-+}
-+
-+/* RoCE -> Net driver */
-+
-+/* Driver registration routines used to let the networking driver (bnxt_en)
-+ * to know that the RoCE driver is now installed
-+ */
-+static int bnxt_re_unregister_netdev(struct bnxt_re_dev *rdev, bool lock_wait)
-+{
-+	struct bnxt_en_dev *en_dev = rdev->en_dev;
-+	bool do_unlock = false;
-+	int rc;
-+
-+	if (!rdev)
-+		return -EINVAL;
-+	if (!rtnl_is_locked() || lock_wait) {
-+		rtnl_lock();
-+		do_unlock = true;
-+	}
-+
-+	rc = en_dev->en_ops->bnxt_unregister_device(rdev->en_dev,
-+						    BNXT_ROCE_ULP);
-+	if (do_unlock)
-+		rtnl_unlock();
-+	return rc;
-+}
-+
-+static int bnxt_re_register_netdev(struct bnxt_re_dev *rdev)
-+{
-+	struct bnxt_en_dev *en_dev = rdev->en_dev;
-+	int rc = 0;
-+
-+	if (!rdev)
-+		return -EINVAL;
-+
-+	rtnl_lock();
-+	rc = en_dev->en_ops->bnxt_register_device(en_dev, BNXT_ROCE_ULP,
-+						  &bnxt_re_ulp_ops, rdev);
-+	rtnl_unlock();
-+	return rc;
-+}
-+
-+static int bnxt_re_free_msix(struct bnxt_re_dev *rdev, bool lock_wait)
-+{
-+	struct bnxt_en_dev *en_dev = rdev->en_dev;
-+	bool do_unlock = false;
-+	int rc;
-+
-+	if (!rdev)
-+		return -EINVAL;
-+
-+	if (!rtnl_is_locked() || lock_wait) {
-+		rtnl_lock();
-+		do_unlock = true;
-+	}
-+
-+	rc = en_dev->en_ops->bnxt_free_msix(rdev->en_dev, BNXT_ROCE_ULP);
-+
-+	if (do_unlock)
-+		rtnl_unlock();
-+	return rc;
-+}
-+
-+static int bnxt_re_request_msix(struct bnxt_re_dev *rdev)
-+{
-+	int rc = 0, num_msix_want = BNXT_RE_MIN_MSIX, num_msix_got;
-+	struct bnxt_en_dev *en_dev = rdev->en_dev;
-+
-+	if (!rdev)
-+		return -EINVAL;
-+
-+	rtnl_lock();
-+	num_msix_got = en_dev->en_ops->bnxt_request_msix(en_dev, BNXT_ROCE_ULP,
-+							 rdev->msix_entries,
-+							 num_msix_want);
-+	if (num_msix_got < BNXT_RE_MIN_MSIX) {
-+		rc = -EINVAL;
-+		goto done;
-+	}
-+	if (num_msix_got != num_msix_want) {
-+		dev_warn(rdev_to_dev(rdev),
-+			 "Requested %d MSI-X vectors, got %d\n",
-+			 num_msix_want, num_msix_got);
-+	}
-+	rdev->num_msix = num_msix_got;
-+done:
-+	rtnl_unlock();
-+	return rc;
-+}
-+
-+/* Device */
-+
-+static bool is_bnxt_re_dev(struct net_device *netdev)
-+{
-+	struct ethtool_drvinfo drvinfo;
-+
-+	if (netdev->ethtool_ops && netdev->ethtool_ops->get_drvinfo) {
-+		memset(&drvinfo, 0, sizeof(drvinfo));
-+		netdev->ethtool_ops->get_drvinfo(netdev, &drvinfo);
-+
-+		if (strcmp(drvinfo.driver, "bnxt_en"))
-+			return false;
-+		return true;
-+	}
-+	return false;
-+}
-+
-+static struct bnxt_re_dev *bnxt_re_from_netdev(struct net_device *netdev)
-+{
-+	struct bnxt_re_dev *rdev;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(rdev, &bnxt_re_dev_list, list) {
-+		if (rdev->netdev == netdev) {
-+			rcu_read_unlock();
-+			return rdev;
++		type = le16_to_cpu(nqe->info10_type & NQ_BASE_TYPE_MASK);
++		switch (type) {
++		case NQ_BASE_TYPE_CQ_NOTIFICATION:
++			break;
++		case NQ_BASE_TYPE_DBQ_EVENT:
++			break;
++		default:
++			dev_warn(&nq->pdev->dev,
++				 "QPLIB: nqe with type = 0x%x not handled",
++				 type);
++			break;
 +		}
++		raw_cons++;
 +	}
-+	rcu_read_unlock();
-+	return NULL;
-+}
-+
-+static void bnxt_re_dev_unprobe(struct net_device *netdev,
-+				struct bnxt_en_dev *en_dev)
-+{
-+	dev_put(netdev);
-+	module_put(en_dev->pdev->driver->driver.owner);
-+}
-+
-+struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
-+{
-+	struct bnxt *bp = netdev_priv(netdev);
-+	struct bnxt_en_dev *en_dev;
-+	struct pci_dev *pdev;
-+
-+	/* Call bnxt_en's RoCE probe via indirect API */
-+	if (!bp->ulp_probe)
-+		return ERR_PTR(-EINVAL);
-+
-+	en_dev = bp->ulp_probe(netdev);
-+	if (IS_ERR(en_dev))
-+		return en_dev;
-+
-+	pdev = en_dev->pdev;
-+	if (!pdev)
-+		return ERR_PTR(-EINVAL);
-+	/* Bump net device reference count */
-+	try_module_get(pdev->driver->driver.owner);
-+	dev_hold(netdev);
-+
-+	return en_dev;
-+}
-+
-+static void bnxt_re_dev_remove(struct bnxt_re_dev *rdev)
-+{
-+	int i = BNXT_RE_REF_WAIT_COUNT;
-+
-+	/* Wait for rdev refcount to come down */
-+	while ((atomic_read(&rdev->ref_count) > 1) && i--)
-+		msleep(100);
-+
-+	if (atomic_read(&rdev->ref_count) > 1)
-+		dev_err(rdev_to_dev(rdev),
-+			"Failed waiting for ref count to deplete %d",
-+			atomic_read(&rdev->ref_count));
-+
-+	atomic_set(&rdev->ref_count, 0);
-+	dev_put(rdev->netdev);
-+	rdev->netdev = NULL;
-+
-+	mutex_lock(&bnxt_re_dev_lock);
-+	list_del_rcu(&rdev->list);
-+	mutex_unlock(&bnxt_re_dev_lock);
-+
-+	synchronize_rcu();
-+	flush_workqueue(bnxt_re_wq);
-+
-+	ib_dealloc_device(&rdev->ibdev);
-+	/* rdev is gone */
-+}
-+
-+static struct bnxt_re_dev *bnxt_re_dev_add(struct net_device *netdev,
-+					   struct bnxt_en_dev *en_dev)
-+{
-+	struct bnxt_re_dev *rdev;
-+
-+	/* Allocate bnxt_re_dev instance here */
-+	rdev = (struct bnxt_re_dev *)ib_alloc_device(sizeof(*rdev));
-+	if (!rdev) {
-+		dev_err(NULL, "%s: bnxt_re_dev allocation failure!",
-+			ROCE_DRV_MODULE_NAME);
-+		return NULL;
++	if (hwq->cons != raw_cons) {
++		hwq->cons = raw_cons;
++		NQ_DB_REARM(nq->bar_reg_iomem, hwq->cons, hwq->max_elements);
 +	}
-+	/* Default values */
-+	atomic_set(&rdev->ref_count, 0);
-+	rdev->netdev = netdev;
-+	dev_hold(rdev->netdev);
-+	rdev->en_dev = en_dev;
-+	rdev->id = rdev->en_dev->pdev->devfn;
-+	INIT_LIST_HEAD(&rdev->qp_list);
-+	mutex_init(&rdev->qp_lock);
-+	atomic_set(&rdev->qp_count, 0);
-+	atomic_set(&rdev->cq_count, 0);
-+	atomic_set(&rdev->srq_count, 0);
-+	atomic_set(&rdev->mr_count, 0);
-+	atomic_set(&rdev->mw_count, 0);
-+	rdev->cosq[0] = 0xFFFF;
-+	rdev->cosq[1] = 0xFFFF;
-+
-+	mutex_lock(&bnxt_re_dev_lock);
-+	list_add_tail_rcu(&rdev->list, &bnxt_re_dev_list);
-+	mutex_unlock(&bnxt_re_dev_lock);
-+	return rdev;
 +}
 +
-+static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait)
++static irqreturn_t bnxt_qplib_nq_irq(int irq, void *dev_instance)
 +{
++	struct bnxt_qplib_nq *nq = dev_instance;
++	struct bnxt_qplib_hwq *hwq = &nq->hwq;
++	struct nq_base **nq_ptr;
++	u32 sw_cons;
++
++	/* Prefetch the NQ element */
++	sw_cons = HWQ_CMP(hwq->cons, hwq);
++	nq_ptr = (struct nq_base **)nq->hwq.pbl_ptr;
++	prefetch(&nq_ptr[NQE_PG(sw_cons)][NQE_IDX(sw_cons)]);
++
++	/* Fan out to CPU affinitized kthreads? */
++	tasklet_schedule(&nq->worker);
++
++	return IRQ_HANDLED;
++}
++
++void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq)
++{
++	/* Make sure the HW is stopped! */
++	synchronize_irq(nq->vector);
++	tasklet_disable(&nq->worker);
++	tasklet_kill(&nq->worker);
++
++	if (nq->requested) {
++		free_irq(nq->vector, nq);
++		nq->requested = false;
++	}
++	if (nq->bar_reg_iomem)
++		iounmap(nq->bar_reg_iomem);
++	nq->bar_reg_iomem = NULL;
++
++	nq->cqn_handler = NULL;
++	nq->srqn_handler = NULL;
++	nq->vector = 0;
++}
++
++int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
++			 int msix_vector, int bar_reg_offset,
++			 int (*cqn_handler)(struct bnxt_qplib_nq *nq,
++					    void *),
++			 int (*srqn_handler)(struct bnxt_qplib_nq *nq,
++					     void *, u8 event))
++{
++	resource_size_t nq_base;
 +	int rc;
 +
-+	if (test_and_clear_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags)) {
-+		rc = bnxt_re_free_msix(rdev, lock_wait);
-+		if (rc)
-+			dev_warn(rdev_to_dev(rdev),
-+				 "Failed to free MSI-X vectors: %#x", rc);
-+	}
-+	if (test_and_clear_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags)) {
-+		rc = bnxt_re_unregister_netdev(rdev, lock_wait);
-+		if (rc)
-+			dev_warn(rdev_to_dev(rdev),
-+				 "Failed to unregister with netdev: %#x", rc);
-+	}
-+}
++	nq->pdev = pdev;
++	nq->vector = msix_vector;
 +
-+static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
-+{
-+	int i, j, rc;
++	nq->cqn_handler = cqn_handler;
 +
-+	/* Registered a new RoCE device instance to netdev */
-+	rc = bnxt_re_register_netdev(rdev);
++	nq->srqn_handler = srqn_handler;
++
++	tasklet_init(&nq->worker, bnxt_qplib_service_nq, (unsigned long)nq);
++
++	nq->requested = false;
++	rc = request_irq(nq->vector, bnxt_qplib_nq_irq, 0, "bnxt_qplib_nq", nq);
 +	if (rc) {
-+		pr_err("Failed to register with netedev: %#x\n", rc);
-+		return -EINVAL;
-+	}
-+	set_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
-+
-+	rc = bnxt_re_request_msix(rdev);
-+	if (rc) {
-+		pr_err("Failed to get MSI-X vectors: %#x\n", rc);
-+		rc = -EINVAL;
++		dev_err(&nq->pdev->dev,
++			"Failed to request IRQ for NQ: %#x", rc);
++		bnxt_qplib_disable_nq(nq);
 +		goto fail;
 +	}
-+	set_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags);
-+
-+fail:
-+	bnxt_re_ib_unreg(rdev, true);
-+	return rc;
-+}
-+
-+static void bnxt_re_dev_unreg(struct bnxt_re_dev *rdev)
-+{
-+	struct bnxt_en_dev *en_dev = rdev->en_dev;
-+	struct net_device *netdev = rdev->netdev;
-+
-+	bnxt_re_dev_remove(rdev);
-+
-+	if (netdev)
-+		bnxt_re_dev_unprobe(netdev, en_dev);
-+}
-+
-+static int bnxt_re_dev_reg(struct bnxt_re_dev **rdev, struct net_device *netdev)
-+{
-+	struct bnxt_en_dev *en_dev;
-+	int rc = 0;
-+
-+	if (!is_bnxt_re_dev(netdev))
-+		return -ENODEV;
-+
-+	en_dev = bnxt_re_dev_probe(netdev);
-+	if (IS_ERR(en_dev)) {
-+		pr_err("%s: Failed to probe\n", ROCE_DRV_MODULE_NAME);
-+		goto exit;
-+	}
-+	*rdev = bnxt_re_dev_add(netdev, en_dev);
-+	if (!*rdev) {
++	nq->requested = true;
++	nq->bar_reg = NQ_CONS_PCI_BAR_REGION;
++	nq->bar_reg_off = bar_reg_offset;
++	nq_base = pci_resource_start(pdev, nq->bar_reg);
++	if (!nq_base) {
 +		rc = -ENOMEM;
-+		bnxt_re_dev_unprobe(netdev, en_dev);
-+		goto exit;
++		goto fail;
 +	}
-+	bnxt_re_hold(*rdev);
-+exit:
++	nq->bar_reg_iomem = ioremap_nocache(nq_base + nq->bar_reg_off, 4);
++	if (!nq->bar_reg_iomem) {
++		rc = -ENOMEM;
++		goto fail;
++	}
++	NQ_DB_REARM(nq->bar_reg_iomem, nq->hwq.cons, nq->hwq.max_elements);
++
++	return 0;
++fail:
++	bnxt_qplib_disable_nq(nq);
 +	return rc;
 +}
 +
-+static void bnxt_re_remove_one(struct bnxt_re_dev *rdev)
++void bnxt_qplib_free_nq(struct bnxt_qplib_nq *nq)
 +{
-+	pci_dev_put(rdev->en_dev->pdev);
++	if (nq->hwq.max_elements)
++		bnxt_qplib_free_hwq(nq->pdev, &nq->hwq);
 +}
 +
-+/* Handle all deferred netevents tasks */
-+static void bnxt_re_task(struct work_struct *work)
++int bnxt_qplib_alloc_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq)
 +{
-+	struct bnxt_re_work *re_work;
-+	struct bnxt_re_dev *rdev;
-+	int rc = 0;
++	nq->pdev = pdev;
++	if (!nq->hwq.max_elements ||
++	    nq->hwq.max_elements > BNXT_QPLIB_NQE_MAX_CNT)
++		nq->hwq.max_elements = BNXT_QPLIB_NQE_MAX_CNT;
 +
-+	re_work = container_of(work, struct bnxt_re_work, work);
-+	rdev = re_work->rdev;
++	if (bnxt_qplib_alloc_init_hwq(nq->pdev, &nq->hwq, NULL, 0,
++				      &nq->hwq.max_elements,
++				      BNXT_QPLIB_MAX_NQE_ENTRY_SIZE, 0,
++				      PAGE_SIZE, HWQ_TYPE_L2_CMPL))
++		return -ENOMEM;
 +
-+	if (re_work->event != NETDEV_REGISTER &&
-+	    !test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-+		return;
-+
-+	switch (re_work->event) {
-+	case NETDEV_REGISTER:
-+		rc = bnxt_re_ib_reg(rdev);
-+		if (rc)
-+			dev_err(rdev_to_dev(rdev),
-+				"Failed to register with IB: %#x", rc);
-+			break;
-+	case NETDEV_UP:
-+
-+		break;
-+	case NETDEV_DOWN:
-+
-+		break;
-+
-+	case NETDEV_CHANGE:
-+
-+		break;
-+	default:
-+		break;
-+	}
-+	kfree(re_work);
++	nq->budget = 8;
++	return 0;
 +}
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h b/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h
+index 7278999..05731dd 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h
+@@ -14,4 +14,64 @@
+ #ifndef __BNXT_QPLIB_FP_H__
+ #define __BNXT_QPLIB_FP_H__
+ 
++#define BNXT_QPLIB_MAX_NQE_ENTRY_SIZE	sizeof(struct nq_base)
 +
-+static void bnxt_re_init_one(struct bnxt_re_dev *rdev)
-+{
-+	pci_dev_get(rdev->en_dev->pdev);
-+}
++#define NQE_CNT_PER_PG		(PAGE_SIZE / BNXT_QPLIB_MAX_NQE_ENTRY_SIZE)
++#define NQE_MAX_IDX_PER_PG	(NQE_CNT_PER_PG - 1)
++#define NQE_PG(x)		(((x) & ~NQE_MAX_IDX_PER_PG) / NQE_CNT_PER_PG)
++#define NQE_IDX(x)		((x) & NQE_MAX_IDX_PER_PG)
 +
- /*
-  * "Notifier chain callback can be invoked for the same chain from
-  * different CPUs at the same time".
-@@ -47,6 +451,62 @@ static struct workqueue_struct *bnxt_re_wq;
- static int bnxt_re_netdev_event(struct notifier_block *notifier,
- 				unsigned long event, void *ptr)
++#define NQE_CMP_VALID(hdr, raw_cons, cp_bit)			\
++	(!!((hdr)->info63_v[0] & NQ_BASE_V) ==			\
++	   !((raw_cons) & (cp_bit)))
++
++#define BNXT_QPLIB_NQE_MAX_CNT		(128 * 1024)
++
++#define NQ_CONS_PCI_BAR_REGION		2
++#define NQ_DB_KEY_CP			(0x2 << CMPL_DOORBELL_KEY_SFT)
++#define NQ_DB_IDX_VALID			CMPL_DOORBELL_IDX_VALID
++#define NQ_DB_IRQ_DIS			CMPL_DOORBELL_MASK
++#define NQ_DB_CP_FLAGS_REARM		(NQ_DB_KEY_CP |		\
++					 NQ_DB_IDX_VALID)
++#define NQ_DB_CP_FLAGS			(NQ_DB_KEY_CP    |	\
++					 NQ_DB_IDX_VALID |	\
++					 NQ_DB_IRQ_DIS)
++#define NQ_DB_REARM(db, raw_cons, cp_bit)			\
++	writel(NQ_DB_CP_FLAGS_REARM | ((raw_cons) & ((cp_bit) - 1)), db)
++#define NQ_DB(db, raw_cons, cp_bit)				\
++	writel(NQ_DB_CP_FLAGS | ((raw_cons) & ((cp_bit) - 1)), db)
++
++struct bnxt_qplib_nq {
++	struct pci_dev			*pdev;
++
++	int				vector;
++	int				budget;
++	bool				requested;
++	struct tasklet_struct		worker;
++	struct bnxt_qplib_hwq		hwq;
++
++	u16				bar_reg;
++	u16				bar_reg_off;
++	u16				ring_id;
++	void __iomem			*bar_reg_iomem;
++
++	int				(*cqn_handler)
++						(struct bnxt_qplib_nq *nq,
++						 void *cq);
++	int				(*srqn_handler)
++						(struct bnxt_qplib_nq *nq,
++						 void *srq,
++						 u8 event);
++};
++
++void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq);
++int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
++			 int msix_vector, int bar_reg_offset,
++			 int (*cqn_handler)(struct bnxt_qplib_nq *nq,
++					    void *cq),
++			 int (*srqn_handler)(struct bnxt_qplib_nq *nq,
++					     void *srq,
++					     u8 event));
++void bnxt_qplib_free_nq(struct bnxt_qplib_nq *nq);
++int bnxt_qplib_alloc_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq);
+ #endif /* __BNXT_QPLIB_FP_H__ */
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h b/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
+index 0abc6d7..192df9c 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
+@@ -167,6 +167,12 @@ int bnxt_qplib_alloc_init_hwq(struct pci_dev *pdev, struct bnxt_qplib_hwq *hwq,
+ 			      struct scatterlist *sl, int nmap, u32 *elements,
+ 			      u32 elements_per_page, u32 aux, u32 pg_size,
+ 			      enum bnxt_qplib_hwq_type hwq_type);
++int bnxt_qplib_alloc_dpi(struct bnxt_qplib_dpi_tbl *dpit,
++			 struct bnxt_qplib_dpi     *dpi,
++			 void                      *app);
++int bnxt_qplib_dealloc_dpi(struct bnxt_qplib_res *res,
++			   struct bnxt_qplib_dpi_tbl *dpi_tbl,
++			   struct bnxt_qplib_dpi *dpi);
+ void bnxt_qplib_cleanup_res(struct bnxt_qplib_res *res);
+ int bnxt_qplib_init_res(struct bnxt_qplib_res *res);
+ void bnxt_qplib_free_res(struct bnxt_qplib_res *res);
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re.h b/drivers/infiniband/hw/bnxtre/bnxt_re.h
+index a3f86df..a540510 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re.h
+@@ -31,6 +31,8 @@ struct bnxt_re_work {
+ #define BNXT_RE_MIN_MSIX		2
+ #define BNXT_RE_MAX_MSIX		16
+ #define BNXT_RE_AEQ_IDX			0
++#define BNXT_RE_NQ_IDX			1
++
+ struct bnxt_re_dev {
+ 	struct ib_device		ibdev;
+ 	struct list_head		list;
+@@ -49,9 +51,15 @@ struct bnxt_re_dev {
+ 
+ 	int				id;
+ 
++	/* FP Notification Queue (CQ & SRQ) */
++	struct tasklet_struct		nq_task;
++
+ 	/* RCFW Channel */
+ 	struct bnxt_qplib_rcfw		rcfw;
+ 
++	/* NQ */
++	struct bnxt_qplib_nq		nq;
++
+ 	/* Device Resources */
+ 	struct bnxt_qplib_dev_attr	dev_attr;
+ 	struct bnxt_qplib_ctx		qplib_ctx;
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+index 8029237..bf480d5 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+@@ -553,6 +553,9 @@ static int bnxt_re_aeq_handler(struct bnxt_qplib_rcfw *rcfw,
+ 
+ static void bnxt_re_cleanup_res(struct bnxt_re_dev *rdev)
  {
-+	struct net_device *real_dev, *netdev = netdev_notifier_info_to_dev(ptr);
-+	struct bnxt_re_work *re_work;
-+	struct bnxt_re_dev *rdev;
-+	int rc = 0;
++	if (rdev->nq.hwq.max_elements)
++		bnxt_qplib_disable_nq(&rdev->nq);
 +
-+	real_dev = rdma_vlan_dev_real_dev(netdev);
-+	if (!real_dev)
-+		real_dev = netdev;
-+
-+	rdev = bnxt_re_from_netdev(real_dev);
-+	if (!rdev && event != NETDEV_REGISTER)
-+		goto exit;
-+	if (real_dev != netdev)
-+		goto exit;
-+
-+	if (rdev)
-+		bnxt_re_hold(rdev);
-+
-+	switch (event) {
-+	case NETDEV_REGISTER:
-+		if (rdev)
-+			break;
-+		rc = bnxt_re_dev_reg(&rdev, real_dev);
-+		if (rc == -ENODEV)
-+			break;
-+		if (rc) {
-+			pr_err("Failed to register with the device %s: %#x\n",
-+			       real_dev->name, rc);
-+			break;
-+		}
-+		bnxt_re_init_one(rdev);
-+		goto sch_work;
-+
-+	case NETDEV_UNREGISTER:
-+		bnxt_re_ib_unreg(rdev, false);
-+		bnxt_re_remove_one(rdev);
-+		bnxt_re_dev_unreg(rdev);
-+		break;
-+
-+	default:
-+sch_work:
-+		/* Allocate for the deferred task */
-+		re_work = kzalloc(sizeof(*re_work), GFP_ATOMIC);
-+		if (!re_work)
-+			break;
-+
-+		re_work->rdev = rdev;
-+		re_work->event = event;
-+		re_work->vlan_dev = (real_dev == netdev ? NULL : netdev);
-+		INIT_WORK(&re_work->work, bnxt_re_task);
-+		queue_work(bnxt_re_wq, &re_work->work);
-+		break;
-+	}
-+	if (rdev)
-+		bnxt_re_put(rdev);
-+exit:
- 	return NOTIFY_DONE;
+ 	if (rdev->qplib_res.rcfw)
+ 		bnxt_qplib_cleanup_res(&rdev->qplib_res);
  }
- static struct notifier_block bnxt_re_netdev_notifier = {
+@@ -563,11 +566,32 @@ static int bnxt_re_init_res(struct bnxt_re_dev *rdev)
+ 
+ 	bnxt_qplib_init_res(&rdev->qplib_res);
+ 
++	if (rdev->msix_entries[BNXT_RE_NQ_IDX].vector <= 0)
++		return -EINVAL;
++
++	rc = bnxt_qplib_enable_nq(rdev->en_dev->pdev, &rdev->nq,
++				  rdev->msix_entries[BNXT_RE_NQ_IDX].vector,
++				  rdev->msix_entries[BNXT_RE_NQ_IDX].db_offset,
++				  NULL,
++				  NULL);
++
++	if (rc)
++		dev_err(rdev_to_dev(rdev), "Failed to enable NQ: %#x", rc);
++
+ 	return rc;
+ }
+ 
+ static void bnxt_re_free_res(struct bnxt_re_dev *rdev, bool lock_wait)
+ {
++	if (rdev->nq.hwq.max_elements) {
++		bnxt_re_net_ring_free(rdev, rdev->nq.ring_id, lock_wait);
++		bnxt_qplib_free_nq(&rdev->nq);
++	}
++	if (rdev->qplib_res.dpi_tbl.max) {
++		bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
++				       &rdev->qplib_res.dpi_tbl,
++				       &rdev->dpi_privileged);
++	}
+ 	if (rdev->qplib_res.rcfw) {
+ 		bnxt_qplib_free_res(&rdev->qplib_res);
+ 		rdev->qplib_res.rcfw = NULL;
+@@ -589,8 +613,34 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ 	if (rc)
+ 		goto fail;
+ 
+-	return 0;
++	rc = bnxt_qplib_alloc_dpi(&rdev->qplib_res.dpi_tbl,
++				  &rdev->dpi_privileged,
++				  rdev);
++	if (rc)
++		goto fail;
+ 
++	rdev->nq.hwq.max_elements = BNXT_RE_MAX_CQ_COUNT +
++				    BNXT_RE_MAX_SRQC_COUNT + 2;
++	rc = bnxt_qplib_alloc_nq(rdev->en_dev->pdev, &rdev->nq);
++	if (rc) {
++		dev_err(rdev_to_dev(rdev),
++			"Failed to allocate NQ memory: %#x", rc);
++		goto fail;
++	}
++	rc = bnxt_re_net_ring_alloc
++			(rdev, rdev->nq.hwq.pbl[PBL_LVL_0].pg_map_arr,
++			 rdev->nq.hwq.pbl[rdev->nq.hwq.level].pg_count,
++			 HWRM_RING_ALLOC_CMPL, BNXT_QPLIB_NQE_MAX_CNT - 1,
++			 rdev->msix_entries[BNXT_RE_NQ_IDX].ring_idx,
++			 &rdev->nq.ring_id);
++	if (rc) {
++		dev_err(rdev_to_dev(rdev),
++			"Failed to allocate NQ ring: %#x", rc);
++		goto free_nq;
++	}
++	return 0;
++free_nq:
++	bnxt_qplib_free_nq(&rdev->nq);
+ fail:
+ 	rdev->qplib_res.rcfw = NULL;
+ 	return rc;
 -- 
 2.5.5
 
