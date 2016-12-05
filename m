@@ -1,154 +1,98 @@
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH 05/28] bnxt_en: Reserve RDMA resources by default.
-Date: Sun,  4 Dec 2016 22:38:09 -0800
-Message-ID: <1480919912-1079-6-git-send-email-selvin.xavier@broadcom.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 28/28] bnxt_re: Add QP event handling
+Date: Sun,  4 Dec 2016 22:38:32 -0800
+Message-ID: <1480919912-1079-29-git-send-email-selvin.xavier@broadcom.com>
 References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Michael Chan <michael.chan@broadcom.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, Selvin Xavier <selvin.xavier@broadcom.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael Chan <michael.chan@broadcom.com>
+Implements callback handler for processing affiliated Async events of a QP.
+This patch also implements the control path command completion handling.
 
-If the device supports RDMA, we'll setup network default rings so that
-there are enough minimum resources for RDMA, if possible.  However, the
-user can still increase network rings to the max if he wants.  The actual
-RDMA resources won't be reserved until the RDMA driver registers.
-
-Cc: David Miller <davem@davemloft.net>
-Cc: <netdev@vger.kernel.org>
-Signed-off-by: Michael Chan <michael.chan@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c | 58 ++++++++++++++++++++++++++++++-
- drivers/net/ethernet/broadcom/bnxt/bnxt.h |  9 +++++
- 2 files changed, 66 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c | 49 ++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 1f6be83..7218d65 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -4166,6 +4166,11 @@ static int bnxt_hwrm_func_qcaps(struct bnxt *bp)
- 	if (rc)
- 		goto hwrm_func_qcaps_exit;
- 
-+	if (resp->flags & cpu_to_le32(FUNC_QCAPS_RESP_FLAGS_ROCE_V1_SUPPORTED))
-+		bp->flags |= BNXT_FLAG_ROCEV1_CAP;
-+	if (resp->flags & cpu_to_le32(FUNC_QCAPS_RESP_FLAGS_ROCE_V2_SUPPORTED))
-+		bp->flags |= BNXT_FLAG_ROCEV2_CAP;
-+
- 	bp->tx_push_thresh = 0;
- 	if (resp->flags &
- 	    cpu_to_le32(FUNC_QCAPS_RESP_FLAGS_PUSH_MODE_SUPPORTED))
-@@ -4808,6 +4813,24 @@ static int bnxt_setup_int_mode(struct bnxt *bp)
- 	return rc;
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c b/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
+index 64077ae..6cbe472 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
+@@ -221,6 +221,46 @@ static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
+ 	return 0;
  }
  
-+unsigned int bnxt_get_max_func_stat_ctxs(struct bnxt *bp)
++static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
++				       struct creq_qp_event *qp_event)
 +{
-+	if (BNXT_PF(bp))
-+		return bp->pf.max_stat_ctxs;
-+#if defined(CONFIG_BNXT_SRIOV)
-+	return bp->vf.max_stat_ctxs;
-+#endif
-+}
++	struct bnxt_qplib_crsq *crsq = &rcfw->crsq;
++	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
++	struct bnxt_qplib_crsqe *crsqe;
++	u16 cbit, cookie, blocked = 0;
++	unsigned long flags;
++	u32 sw_cons;
 +
-+unsigned int bnxt_get_max_func_cp_rings(struct bnxt *bp)
-+{
-+	if (BNXT_PF(bp))
-+		return bp->pf.max_cp_rings;
-+#if defined(CONFIG_BNXT_SRIOV)
-+	return bp->vf.max_cp_rings;
-+#endif
-+}
++	switch (qp_event->event) {
++	case CREQ_QP_EVENT_EVENT_QP_ERROR_NOTIFICATION:
++		break;
++	default:
++	{
++		/* Command Response */
++		spin_lock_irqsave(&cmdq->lock, flags);
++		sw_cons = HWQ_CMP(crsq->cons, crsq);
++		crsqe = &crsq->crsq[sw_cons];
++		crsq->cons++;
++		memcpy(&crsqe->qp_event, qp_event, sizeof(crsqe->qp_event));
 +
- static unsigned int bnxt_get_max_func_irqs(struct bnxt *bp)
- {
- 	if (BNXT_PF(bp))
-@@ -6832,6 +6855,39 @@ int bnxt_get_max_rings(struct bnxt *bp, int *max_rx, int *max_tx, bool shared)
- 	return bnxt_trim_rings(bp, max_rx, max_tx, cp, shared);
- }
- 
-+static int bnxt_get_dflt_rings(struct bnxt *bp, int *max_rx, int *max_tx,
-+			       bool shared)
-+{
-+	int rc;
++		cookie = le16_to_cpu(crsqe->qp_event.cookie);
++		blocked = cookie & RCFW_CMD_IS_BLOCKING;
++		cookie &= RCFW_MAX_COOKIE_VALUE;
++		cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
++		if (!test_and_clear_bit(cbit, rcfw->cmdq_bitmap))
++			dev_warn(&rcfw->pdev->dev,
++				 "QPLIB: CMD bit %d was not requested", cbit);
 +
-+	rc = bnxt_get_max_rings(bp, max_rx, max_tx, shared);
-+	if (rc)
-+		return rc;
-+
-+	if (bp->flags & BNXT_FLAG_ROCE_CAP) {
-+		int max_cp, max_stat, max_irq;
-+
-+		/* Reserve minimum resources for RoCE */
-+		max_cp = bnxt_get_max_func_cp_rings(bp);
-+		max_stat = bnxt_get_max_func_stat_ctxs(bp);
-+		max_irq = bnxt_get_max_func_irqs(bp);
-+		if (max_cp <= BNXT_MIN_ROCE_CP_RINGS ||
-+		    max_irq <= BNXT_MIN_ROCE_CP_RINGS ||
-+		    max_stat <= BNXT_MIN_ROCE_STAT_CTXS)
-+			return 0;
-+
-+		max_cp -= BNXT_MIN_ROCE_CP_RINGS;
-+		max_irq -= BNXT_MIN_ROCE_CP_RINGS;
-+		max_stat -= BNXT_MIN_ROCE_STAT_CTXS;
-+		max_cp = min_t(int, max_cp, max_irq);
-+		max_cp = min_t(int, max_cp, max_stat);
-+		rc = bnxt_trim_rings(bp, max_rx, max_tx, max_cp, shared);
-+		if (rc)
-+			rc = 0;
++		cmdq->cons += crsqe->req_size;
++		spin_unlock_irqrestore(&cmdq->lock, flags);
++		if (!blocked)
++			wake_up(&rcfw->waitq);
++		break;
 +	}
-+	return rc;
++	}
++	return 0;
 +}
 +
- static int bnxt_set_dflt_rings(struct bnxt *bp)
+ /* SP - CREQ Completion handlers */
+ static void bnxt_qplib_service_creq(unsigned long data)
  {
- 	int dflt_rings, max_rx_rings, max_tx_rings, rc;
-@@ -6840,7 +6896,7 @@ static int bnxt_set_dflt_rings(struct bnxt *bp)
- 	if (sh)
- 		bp->flags |= BNXT_FLAG_SHARED_RINGS;
- 	dflt_rings = netif_get_num_default_rss_queues();
--	rc = bnxt_get_max_rings(bp, &max_rx_rings, &max_tx_rings, sh);
-+	rc = bnxt_get_dflt_rings(bp, &max_rx_rings, &max_tx_rings, sh);
- 	if (rc)
- 		return rc;
- 	bp->rx_nr_rings = min_t(int, dflt_rings, max_rx_rings);
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index 43a4b17..d796836 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -387,6 +387,9 @@ struct rx_tpa_end_cmp_ext {
- #define DB_KEY_TX_PUSH						(0x4 << 28)
- #define DB_LONG_TX_PUSH						(0x2 << 24)
- 
-+#define BNXT_MIN_ROCE_CP_RINGS	2
-+#define BNXT_MIN_ROCE_STAT_CTXS	1
-+
- #define INVALID_HW_RING_ID	((u16)-1)
- 
- /* The hardware supports certain page sizes.  Use the supported page sizes
-@@ -953,6 +956,10 @@ struct bnxt {
- 	#define BNXT_FLAG_PORT_STATS	0x400
- 	#define BNXT_FLAG_UDP_RSS_CAP	0x800
- 	#define BNXT_FLAG_EEE_CAP	0x1000
-+	#define BNXT_FLAG_ROCEV1_CAP	0x8000
-+	#define BNXT_FLAG_ROCEV2_CAP	0x10000
-+	#define BNXT_FLAG_ROCE_CAP	(BNXT_FLAG_ROCEV1_CAP |	\
-+					 BNXT_FLAG_ROCEV2_CAP)
- 	#define BNXT_FLAG_CHIP_NITRO_A0	0x1000000
- 
- 	#define BNXT_FLAG_ALL_CONFIG_FEATS (BNXT_FLAG_TPA |		\
-@@ -1234,6 +1241,8 @@ int _hwrm_send_message(struct bnxt *, void *, u32, int);
- int hwrm_send_message(struct bnxt *, void *, u32, int);
- int hwrm_send_message_silent(struct bnxt *, void *, u32, int);
- int bnxt_hwrm_set_coal(struct bnxt *);
-+unsigned int bnxt_get_max_func_stat_ctxs(struct bnxt *bp);
-+unsigned int bnxt_get_max_func_cp_rings(struct bnxt *bp);
- void bnxt_set_max_func_irqs(struct bnxt *bp, unsigned int max);
- void bnxt_tx_disable(struct bnxt *bp);
- void bnxt_tx_enable(struct bnxt *bp);
+@@ -244,6 +284,15 @@ static void bnxt_qplib_service_creq(unsigned long data)
+ 		type = creqe->type & CREQ_BASE_TYPE_MASK;
+ 		switch (type) {
+ 		case CREQ_BASE_TYPE_QP_EVENT:
++			if (!bnxt_qplib_process_qp_event
++			    (rcfw, (struct creq_qp_event *)creqe))
++				rcfw->creq_qp_event_processed++;
++			else {
++				dev_warn(&rcfw->pdev->dev, "QPLIB: crsqe with");
++				dev_warn(&rcfw->pdev->dev,
++					 "QPLIB: type = 0x%x not handled",
++					 type);
++			}
+ 			break;
+ 		case CREQ_BASE_TYPE_FUNC_EVENT:
+ 			if (!bnxt_qplib_process_func_event
 -- 
 2.5.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
