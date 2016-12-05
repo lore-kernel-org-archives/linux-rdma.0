@@ -1,47 +1,40 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 5 Dec 2016 12:06:32 -0800
-Message-ID: <20161205200632.GA24497@infradead.org>
-References: <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
- <20161205171830.GB27784@obsidianresearch.com>
- <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
- <20161205180231.GA28133@obsidianresearch.com>
- <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
- <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
- <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
- <20161205191438.GA20464@obsidianresearch.com>
- <10356964-c454-47fb-7fb3-8bf2a418b11b@deltatee.com>
- <20161205194614.GA21132@obsidianresearch.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v6 12/16] IB/pvrdma: Add Queue Pair support
+Date: Mon, 5 Dec 2016 13:21:07 -0800
+Message-ID: <76188e1e-9b9b-07d6-febd-41827a049837@vmware.com>
+References: <cover.1475458407.git.aditr@vmware.com>
+ <6a643e92376856394d45638d80a90619d3abac37.1475458407.git.aditr@vmware.com>
+ <20161202130726.GB3663@yuval-lap> <20161205172533.GA14581@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161205194614.GA21132-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <john.bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media@>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161205172533.GA14581@yuval-lap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 05, 2016 at 12:46:14PM -0700, Jason Gunthorpe wrote:
-> In any event the allocator still needs to track which regions are in
-> use and be able to hook 'free' from userspace. That does suggest it
-> should be integrated into the nvme driver and not a bolt on driver..
+On Mon, Dec 05, 2016 at 7:25:34PM +0200, Yuval Shaia wrote:
+> > > +
+> > > +			/* Skip header page. */
+> > > +			qp->sq.offset = PAGE_SIZE;
+> > > +
+> > > +			/* Recv queue pages are after send pages. */
+> > > +			qp->rq.offset = qp->npages_send * PAGE_SIZE;
+> > 
+> > Unless i'm missing something here, per comment it should be:
+> > qp->rq.offset = qp->sq.offset + qp->npages_send * PAGE_SIZE;
+> 
+> Hi,
+> Any comments about this question?
 
-Two totally different use cases:
+My comment [1] for the npages_send applies here as well. Since
+we account for the extra page within the npages_send attribute, the
+rq.offset calculated here is correct.
 
- - a card that exposes directly byte addressable storage as a PCI-e
-   bar.  Thin of it as a nvdimm on a PCI-e card.  That's the iopmem
-   case.
- - the NVMe CMB which exposes a byte addressable indirection buffer for
-   I/O, but does not actually provide byte addressable persistent
-   storage.  This is something that needs to be added to the NVMe driver
-   (and the block layer for the abstraction probably).
+[1] http://marc.info/?l=linux-rdma&m=148069497625433&w=2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
