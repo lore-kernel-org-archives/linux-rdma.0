@@ -1,111 +1,198 @@
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH 04/28] bnxt_en: Improve completion ring allocation for VFs.
-Date: Sun,  4 Dec 2016 22:38:08 -0800
-Message-ID: <1480919912-1079-5-git-send-email-selvin.xavier@broadcom.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 15/28] bnxt_re: Adding support for port related verbs
+Date: Sun,  4 Dec 2016 22:38:19 -0800
+Message-ID: <1480919912-1079-16-git-send-email-selvin.xavier@broadcom.com>
 References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Michael Chan <michael.chan@broadcom.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, Selvin Xavier <selvin.xavier@broadcom.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael Chan <michael.chan@broadcom.com>
+Implentation of query_port, modify_port, port_immutable verbs
 
-All available remaining completion rings not used by the PF should be
-made available for the VFs so that there are enough rings in the VF to
-support RDMA.  The earlier workaround code of capping the rings by the
-statistics context is removed.
-
-When SRIOV is disabled, call a new function bnxt_restore_pf_fw_resources()
-to restore FW resources.  Later on we need to add some logic to account
-for RDMA resources.
-
-Cc: David Miller <davem@davemloft.net>
-Cc: <netdev@vger.kernel.org>
-Signed-off-by: Michael Chan <michael.chan@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c       |  8 +++++++-
- drivers/net/ethernet/broadcom/bnxt/bnxt.h       |  2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c | 14 ++++----------
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c | 122 ++++++++++++++++++++++++
+ drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h |   7 ++
+ drivers/infiniband/hw/bnxtre/bnxt_re_main.c     |   4 +
+ 3 files changed, 133 insertions(+)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 8b00ef4..1f6be83 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -4152,7 +4152,7 @@ static int bnxt_hwrm_func_qcfg(struct bnxt *bp)
- 	return rc;
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
+index 3c089b8..8ec86c3 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
+@@ -125,6 +125,128 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+ 	return 0;
  }
  
--int bnxt_hwrm_func_qcaps(struct bnxt *bp)
-+static int bnxt_hwrm_func_qcaps(struct bnxt *bp)
- {
- 	int rc = 0;
- 	struct hwrm_func_qcaps_input req = {0};
-@@ -6856,6 +6856,12 @@ static int bnxt_set_dflt_rings(struct bnxt *bp)
- 	return rc;
- }
- 
-+void bnxt_restore_pf_fw_resources(struct bnxt *bp)
++static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
 +{
-+	ASSERT_RTNL();
-+	bnxt_hwrm_func_qcaps(bp);
++	struct ethtool_link_ksettings lksettings;
++	u32 espeed;
++
++	if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
++		memset(&lksettings, 0, sizeof(lksettings));
++		rtnl_lock();
++		netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
++		rtnl_unlock();
++		espeed = lksettings.base.speed;
++	} else {
++		espeed = SPEED_UNKNOWN;
++	}
++	switch (espeed) {
++	case SPEED_1000:
++		*speed = IB_SPEED_SDR;
++		*width = IB_WIDTH_1X;
++		break;
++	case SPEED_10000:
++		*speed = IB_SPEED_QDR;
++		*width = IB_WIDTH_1X;
++		break;
++	case SPEED_20000:
++		*speed = IB_SPEED_DDR;
++		*width = IB_WIDTH_4X;
++		break;
++	case SPEED_25000:
++		*speed = IB_SPEED_EDR;
++		*width = IB_WIDTH_1X;
++		break;
++	case SPEED_40000:
++		*speed = IB_SPEED_QDR;
++		*width = IB_WIDTH_4X;
++		break;
++	case SPEED_50000:
++		break;
++	default:
++		*speed = IB_SPEED_SDR;
++		*width = IB_WIDTH_1X;
++		break;
++	}
 +}
 +
- static void bnxt_parse_log_pcie_link(struct bnxt *bp)
++/* Port */
++int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
++		       struct ib_port_attr *port_attr)
++{
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++	struct bnxt_qplib_dev_attr *dev_attr = &rdev->dev_attr;
++
++	memset(port_attr, 0, sizeof(*port_attr));
++
++	if (netif_running(rdev->netdev) && netif_carrier_ok(rdev->netdev)) {
++		port_attr->state = IB_PORT_ACTIVE;
++		port_attr->phys_state = 5;
++	} else {
++		port_attr->state = IB_PORT_DOWN;
++		port_attr->phys_state = 3;
++	}
++	port_attr->max_mtu = IB_MTU_4096;
++	port_attr->active_mtu = iboe_get_mtu(rdev->netdev->mtu);
++	port_attr->gid_tbl_len = dev_attr->max_sgid;
++	port_attr->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_REINIT_SUP |
++				    IB_PORT_DEVICE_MGMT_SUP |
++				    IB_PORT_VENDOR_CLASS_SUP |
++				    IB_PORT_IP_BASED_GIDS;
++
++	/* Max MSG size set to 2G for now */
++	port_attr->max_msg_sz = 0x80000000;
++	port_attr->bad_pkey_cntr = 0;
++	port_attr->qkey_viol_cntr = 0;
++	port_attr->pkey_tbl_len = dev_attr->max_pkey;
++	port_attr->lid = 0;
++	port_attr->sm_lid = 0;
++	port_attr->lmc = 0;
++	port_attr->max_vl_num = 4;
++	port_attr->sm_sl = 0;
++	port_attr->subnet_timeout = 0;
++	port_attr->init_type_reply = 0;
++	/* call the underlying netdev's ethtool hooks to query speed settings
++	 * for which we acquire rtnl_lock _only_ if it's registered with
++	 * IB stack to avoid race in the NETDEV_UNREG path
++	 */
++	if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
++		__to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
++				    &port_attr->active_width);
++	return 0;
++}
++
++int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
++			int port_modify_mask,
++			struct ib_port_modify *port_modify)
++{
++	switch (port_modify_mask) {
++	case IB_PORT_SHUTDOWN:
++		break;
++	case IB_PORT_INIT_TYPE:
++		break;
++	case IB_PORT_RESET_QKEY_CNTR:
++		break;
++	default:
++		break;
++	}
++	return 0;
++}
++
++int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr port_attr;
++
++	if (bnxt_re_query_port(ibdev, port_num, &port_attr))
++		return -EINVAL;
++
++	immutable->pkey_tbl_len = port_attr.pkey_tbl_len;
++	immutable->gid_tbl_len = port_attr.gid_tbl_len;
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
++	immutable->core_cap_flags |= RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
++	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
++	return 0;
++}
+ /* Protection Domains */
+ int bnxt_re_dealloc_pd(struct ib_pd *ib_pd)
  {
- 	enum pcie_link_width width = PCIE_LNK_WIDTH_UNKNOWN;
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index 0ee2cc4..43a4b17 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -1234,7 +1234,6 @@ int _hwrm_send_message(struct bnxt *, void *, u32, int);
- int hwrm_send_message(struct bnxt *, void *, u32, int);
- int hwrm_send_message_silent(struct bnxt *, void *, u32, int);
- int bnxt_hwrm_set_coal(struct bnxt *);
--int bnxt_hwrm_func_qcaps(struct bnxt *);
- void bnxt_set_max_func_irqs(struct bnxt *bp, unsigned int max);
- void bnxt_tx_disable(struct bnxt *bp);
- void bnxt_tx_enable(struct bnxt *bp);
-@@ -1245,4 +1244,5 @@ int bnxt_open_nic(struct bnxt *, bool, bool);
- int bnxt_close_nic(struct bnxt *, bool, bool);
- int bnxt_setup_mq_tc(struct net_device *dev, u8 tc);
- int bnxt_get_max_rings(struct bnxt *, int *, int *, bool);
-+void bnxt_restore_pf_fw_resources(struct bnxt *bp);
- #endif
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-index bff626a..c696025 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-@@ -420,15 +420,7 @@ static int bnxt_hwrm_func_cfg(struct bnxt *bp, int num_vfs)
- 	bnxt_hwrm_cmd_hdr_init(bp, &req, HWRM_FUNC_CFG, -1, -1);
- 
- 	/* Remaining rings are distributed equally amongs VF's for now */
--	/* TODO: the following workaroud is needed to restrict total number
--	 * of vf_cp_rings not exceed number of HW ring groups. This WA should
--	 * be removed once new HWRM provides HW ring groups capability in
--	 * hwrm_func_qcap.
--	 */
--	vf_cp_rings = min_t(u16, pf->max_cp_rings, pf->max_stat_ctxs);
--	vf_cp_rings = (vf_cp_rings - bp->cp_nr_rings) / num_vfs;
--	/* TODO: restore this logic below once the WA above is removed */
--	/* vf_cp_rings = (pf->max_cp_rings - bp->cp_nr_rings) / num_vfs; */
-+	vf_cp_rings = (pf->max_cp_rings - bp->cp_nr_rings) / num_vfs;
- 	vf_stat_ctx = (pf->max_stat_ctxs - bp->num_stat_ctxs) / num_vfs;
- 	if (bp->flags & BNXT_FLAG_AGG_RINGS)
- 		vf_rx_rings = (pf->max_rx_rings - bp->rx_nr_rings * 2) /
-@@ -590,7 +582,9 @@ void bnxt_sriov_disable(struct bnxt *bp)
- 
- 	bp->pf.active_vfs = 0;
- 	/* Reclaim all resources for the PF. */
--	bnxt_hwrm_func_qcaps(bp);
-+	rtnl_lock();
-+	bnxt_restore_pf_fw_resources(bp);
-+	rtnl_unlock();
- }
- 
- int bnxt_sriov_configure(struct pci_dev *pdev, int num_vfs)
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
+index 346437b..716608d 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
+@@ -35,6 +35,13 @@ int bnxt_re_query_device(struct ib_device *ibdev,
+ int bnxt_re_modify_device(struct ib_device *ibdev,
+ 			  int device_modify_mask,
+ 			  struct ib_device_modify *device_modify);
++int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
++		       struct ib_port_attr *port_attr);
++int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
++			int port_modify_mask,
++			struct ib_port_modify *port_modify);
++int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable);
+ struct ib_pd *bnxt_re_alloc_pd(struct ib_device *ibdev,
+ 			       struct ib_ucontext *context,
+ 			       struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+index 7baa9c0..a0acc6a 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+@@ -421,6 +421,10 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
+ 	ibdev->dma_device = &rdev->en_dev->pdev->dev;
+ 	ibdev->query_device		= bnxt_re_query_device;
+ 	ibdev->modify_device		= bnxt_re_modify_device;
++
++	ibdev->query_port		= bnxt_re_query_port;
++	ibdev->modify_port		= bnxt_re_modify_port;
++	ibdev->get_port_immutable	= bnxt_re_get_port_immutable;
+ 	ibdev->alloc_pd			= bnxt_re_alloc_pd;
+ 	ibdev->dealloc_pd		= bnxt_re_dealloc_pd;
+ 	ibdev->alloc_ucontext		= bnxt_re_alloc_ucontext;
 -- 
 2.5.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
