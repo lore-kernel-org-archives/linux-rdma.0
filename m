@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 28/28] bnxt_re: Add QP event handling
-Date: Sun,  4 Dec 2016 22:38:32 -0800
-Message-ID: <1480919912-1079-29-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH 24/28] bnxt_re: Handling dispatching of events to IB stack and cleanup during unload
+Date: Sun,  4 Dec 2016 22:38:28 -0800
+Message-ID: <1480919912-1079-25-git-send-email-selvin.xavier@broadcom.com>
 References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,8 +10,9 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Implements callback handler for processing affiliated Async events of a QP.
-This patch also implements the control path command completion handling.
+This patch implements handling dispatch of appropriate event to the IB stack
+based on NETDEV events received.
+Also implements cleanup of the resources during driver unload.
 
 Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -19,76 +20,129 @@ Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.
 Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c | 49 ++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ drivers/infiniband/hw/bnxtre/bnxt_re_main.c | 77 +++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c b/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
-index 64077ae..6cbe472 100644
---- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
-+++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
-@@ -221,6 +221,46 @@ static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
- 	return 0;
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+index a138741..3f55548 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+@@ -714,6 +714,60 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ 	return rc;
  }
  
-+static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
-+				       struct creq_qp_event *qp_event)
++static void bnxt_re_dispatch_event(struct ib_device *ibdev, struct ib_qp *qp,
++				   u8 port_num, enum ib_event_type event)
 +{
-+	struct bnxt_qplib_crsq *crsq = &rcfw->crsq;
-+	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
-+	struct bnxt_qplib_crsqe *crsqe;
-+	u16 cbit, cookie, blocked = 0;
-+	unsigned long flags;
-+	u32 sw_cons;
++	struct ib_event ib_event;
 +
-+	switch (qp_event->event) {
-+	case CREQ_QP_EVENT_EVENT_QP_ERROR_NOTIFICATION:
-+		break;
-+	default:
-+	{
-+		/* Command Response */
-+		spin_lock_irqsave(&cmdq->lock, flags);
-+		sw_cons = HWQ_CMP(crsq->cons, crsq);
-+		crsqe = &crsq->crsq[sw_cons];
-+		crsq->cons++;
-+		memcpy(&crsqe->qp_event, qp_event, sizeof(crsqe->qp_event));
-+
-+		cookie = le16_to_cpu(crsqe->qp_event.cookie);
-+		blocked = cookie & RCFW_CMD_IS_BLOCKING;
-+		cookie &= RCFW_MAX_COOKIE_VALUE;
-+		cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
-+		if (!test_and_clear_bit(cbit, rcfw->cmdq_bitmap))
-+			dev_warn(&rcfw->pdev->dev,
-+				 "QPLIB: CMD bit %d was not requested", cbit);
-+
-+		cmdq->cons += crsqe->req_size;
-+		spin_unlock_irqrestore(&cmdq->lock, flags);
-+		if (!blocked)
-+			wake_up(&rcfw->waitq);
-+		break;
-+	}
-+	}
-+	return 0;
++	ib_event.device = ibdev;
++	if (qp)
++		ib_event.element.qp = qp;
++	else
++		ib_event.element.port_num = port_num;
++	ib_event.event = event;
++	ib_dispatch_event(&ib_event);
 +}
 +
- /* SP - CREQ Completion handlers */
- static void bnxt_qplib_service_creq(unsigned long data)
- {
-@@ -244,6 +284,15 @@ static void bnxt_qplib_service_creq(unsigned long data)
- 		type = creqe->type & CREQ_BASE_TYPE_MASK;
- 		switch (type) {
- 		case CREQ_BASE_TYPE_QP_EVENT:
-+			if (!bnxt_qplib_process_qp_event
-+			    (rcfw, (struct creq_qp_event *)creqe))
-+				rcfw->creq_qp_event_processed++;
-+			else {
-+				dev_warn(&rcfw->pdev->dev, "QPLIB: crsqe with");
-+				dev_warn(&rcfw->pdev->dev,
-+					 "QPLIB: type = 0x%x not handled",
-+					 type);
++static bool bnxt_re_is_qp1_or_shadow_qp(struct bnxt_re_dev *rdev,
++					struct bnxt_re_qp *qp)
++{
++	return (qp->ib_qp.qp_type == IB_QPT_GSI) || (qp == rdev->qp1_sqp);
++}
++
++static void bnxt_re_dev_stop(struct bnxt_re_dev *rdev, bool qp_wait)
++{
++	int mask = IB_QP_STATE, qp_count, count = 1;
++	struct ib_qp_attr qp_attr;
++	struct bnxt_re_qp *qp;
++
++	qp_attr.qp_state = IB_QPS_ERR;
++	mutex_lock(&rdev->qp_lock);
++	list_for_each_entry(qp, &rdev->qp_list, list) {
++		/* Modify the state of all QPs except QP1/Shadow QP */
++		if (qp && !bnxt_re_is_qp1_or_shadow_qp(rdev, qp)) {
++			if (qp->qplib_qp.state !=
++			    CMDQ_MODIFY_QP_NEW_STATE_RESET ||
++			    qp->qplib_qp.state !=
++			    CMDQ_MODIFY_QP_NEW_STATE_ERR) {
++				bnxt_re_dispatch_event(&rdev->ibdev, &qp->ib_qp,
++						       1, IB_EVENT_QP_FATAL);
++				bnxt_re_modify_qp(&qp->ib_qp, &qp_attr, mask,
++						  NULL);
 +			}
++		}
++	}
++
++	mutex_unlock(&rdev->qp_lock);
++	if (qp_wait) {
++		/* Give the application some time to clean up */
++		do {
++			qp_count = atomic_read(&rdev->qp_count);
++			msleep(100);
++		} while ((qp_count != atomic_read(&rdev->qp_count)) &&
++			  count--);
++	}
++}
++
+ static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait)
+ {
+ 	int i, rc;
+@@ -872,6 +926,8 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+ 		}
+ 	}
+ 	set_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags);
++	bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1, IB_EVENT_PORT_ACTIVE);
++	bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1, IB_EVENT_GID_CHANGE);
+ 
+ 	return 0;
+ free_sctx:
+@@ -950,10 +1006,18 @@ static void bnxt_re_task(struct work_struct *work)
+ 				"Failed to register with IB: %#x", rc);
  			break;
- 		case CREQ_BASE_TYPE_FUNC_EVENT:
- 			if (!bnxt_qplib_process_func_event
+ 	case NETDEV_UP:
++		bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1,
++				       IB_EVENT_PORT_ACTIVE);
+ 		break;
+ 	case NETDEV_DOWN:
++		bnxt_re_dev_stop(rdev, false);
+ 		break;
+ 	case NETDEV_CHANGE:
++		if (!netif_carrier_ok(rdev->netdev))
++			bnxt_re_dev_stop(rdev, false);
++		else if (netif_carrier_ok(rdev->netdev))
++			bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1,
++					       IB_EVENT_PORT_ACTIVE);
+ 		break;
+ 	default:
+ 		break;
+@@ -1071,6 +1135,7 @@ static int __init bnxt_re_mod_init(void)
+ }
+ static void __exit bnxt_re_mod_exit(void)
+ {
++	struct bnxt_re_dev *rdev, *next;
+ 	LIST_HEAD(to_be_deleted);
+ 
+ 	/* Free all adapter allocated resources */
+@@ -1079,6 +1144,18 @@ static void __exit bnxt_re_mod_exit(void)
+ 		list_splice_init_rcu(&bnxt_re_dev_list, &to_be_deleted,
+ 				     synchronize_rcu);
+ 	mutex_unlock(&bnxt_re_dev_lock);
++
++	/* Can use the new list without protection */
++	/* Cleanup the devices in reverse order so that the VF device
++	 * cleanup is done before PF cleanup
++	 */
++	list_for_each_entry_safe_reverse(rdev, next, &to_be_deleted, list) {
++		bnxt_re_dev_stop(rdev, true);
++		bnxt_re_ib_unreg(rdev, true);
++		bnxt_re_remove_one(rdev);
++		bnxt_re_dev_unreg(rdev);
++	}
++
+ 	unregister_netdevice_notifier(&bnxt_re_netdev_notifier);
+ 	if (bnxt_re_wq)
+ 		destroy_workqueue(bnxt_re_wq);
 -- 
 2.5.5
 
