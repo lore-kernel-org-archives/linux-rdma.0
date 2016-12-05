@@ -1,62 +1,38 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v6 12/16] IB/pvrdma: Add Queue Pair support
-Date: Mon, 5 Dec 2016 19:25:34 +0200
-Message-ID: <20161205172533.GA14581@yuval-lap>
-References: <cover.1475458407.git.aditr@vmware.com>
- <6a643e92376856394d45638d80a90619d3abac37.1475458407.git.aditr@vmware.com>
- <20161202130726.GB3663@yuval-lap>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] MAINTAINERS: Update Intel RDMA RNIC driver maintainers
+Date: Mon,  5 Dec 2016 11:28:32 -0600
+Message-ID: <1480958912-3096-1-git-send-email-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161202130726.GB3663@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 02, 2016 at 03:07:27PM +0200, Yuval Shaia wrote:
-> On Sun, Oct 02, 2016 at 07:10:32PM -0700, Adit Ranadive wrote:
-> > +		} else {
-> > +			qp->is_kernel = true;
-> > +
-> > +			ret = pvrdma_set_sq_size(to_vdev(pd->device),
-> > +						 &init_attr->cap,
-> > +						 init_attr->qp_type, qp);
-> > +			if (ret)
-> > +				goto err_qp;
-> > +
-> > +			ret = pvrdma_set_rq_size(to_vdev(pd->device),
-> > +						 &init_attr->cap, qp);
-> > +			if (ret)
-> > +				goto err_qp;
-> > +
-> > +			qp->npages = qp->npages_send + qp->npages_recv;
-> 
-> Per next comment shouldn't it be:
-> qp->npages = qp->npages_send + qp->npages_recv + PAGE_SIZE;
-> 
-> Otherwise there will be only npages_send - 1 pages for send ring.
-> 
-> > +
-> > +			/* Skip header page. */
-> > +			qp->sq.offset = PAGE_SIZE;
-> > +
-> > +			/* Recv queue pages are after send pages. */
-> > +			qp->rq.offset = qp->npages_send * PAGE_SIZE;
-> 
-> Unless i'm missing something here, per comment it should be:
-> qp->rq.offset = qp->sq.offset + qp->npages_send * PAGE_SIZE;
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ MAINTAINERS | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Hi,
-Any comments about this question?
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e1b090f..df9ef6c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6009,10 +6009,7 @@ F:	drivers/net/ethernet/intel/*/
+ 
+ INTEL RDMA RNIC DRIVER
+ M:     Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+-R:     Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+-R:     Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+-R:     Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+-R:     Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++M:     Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ L:     linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ S:     Supported
+ F:     drivers/infiniband/hw/i40iw/
+-- 
+2.8.0
 
-> 
-> > +		}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
