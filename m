@@ -1,32 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core 0/2] Optimize RoCE address handle creation
- for userspace
-Date: Mon, 5 Dec 2016 10:07:02 -0700
-Message-ID: <20161205170702.GA27306@obsidianresearch.com>
-References: <1480866806-5052-1-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
+Date: Mon, 5 Dec 2016 10:10:13 -0700
+Message-ID: <20161205171013.GA27784@obsidianresearch.com>
+References: <HE1PR0501MB28124286F8D902C49596EF85B18C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <20161130163949.GC24639@obsidianresearch.com>
+ <HE1PR0501MB28128CDB112558C5980CB638B18C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <20161130170830.GA17512@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA190@ORSMSX109.amr.corp.intel.com>
+ <01e501d24b2e$ff2a3260$fd7e9720$@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA1B7@ORSMSX109.amr.corp.intel.com>
+ <d4bab4a9-aa32-282f-b501-ecfc00b0be0f@talpey.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA68E@ORSMSX109.amr.corp.intel.com>
+ <HE1PR0501MB2812393A0A690DEC1E03DE3FB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1480866806-5052-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <HE1PR0501MB2812393A0A690DEC1E03DE3FB1800-692Kmc8YnlIVrnpjwTCbp8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "'Wei Hu(Xavier)'" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Selvin Xavier' <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Devesh Sharma' <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Mitesh Ahuja' <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Christian Benvenuti' <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Dave Goodell' <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 04, 2016 at 05:53:24PM +0200, Yishai Hadas wrote:
+On Sun, Dec 04, 2016 at 08:38:14PM +0000, Liran Liss wrote:
 
-> Test results:
-> Upon testing the above use case the provider couldn't be loaded as expected,
-> "libibverbs: Warning: couldn't load driver 'libmlx5-rdmav2.so':
-> libmlx5-rdmav2.so: cannot open shared object file: No such file or directory"
+> Anyway, returning to the initial matter at hand: I would like to
+> start with each port reporting a bit mask of the supported protocols
+> on that link (RoCE v1/v2, Raw Ethernet, iWARP, etc.)  It will be
+> used for reporting device capabilities in general for tools, as well
+> as by applications that don't use rdmacm.
 
-The dynmic linker didn't print something too? That is surprising..
-
-I'm not sure where we are in the release cycle right now.. Doug - if
-we didn't make a release with the 1.3 symbol tag (this was created
-just before rdma-core) then this should go into 1.3 when it gets
-merged..
+Why don't we start by defining how it is supposed to even work and how
+to fix the RDMA CM before adding even more random capability bits?
 
 Jason
 --
