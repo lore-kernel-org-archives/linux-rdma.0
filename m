@@ -1,87 +1,106 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 1/2] IB/rxe: Wait for tasklets to finish before tearing down QP
-Date: Mon,  5 Dec 2016 08:43:20 -0500
-Message-ID: <1480945401-3025-2-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 2/2] IB/rxe: Hold refs when running tasklets
+Date: Mon,  5 Dec 2016 08:43:21 -0500
+Message-ID: <1480945401-3025-3-git-send-email-andrew.boyer@dell.com>
+References: <1480945401-3025-2-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1480945401-3025-2-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The system may crash when a malformed request is received and
-the error is detected by the responder.
+It might be possible for all of a QP's references to be dropped
+while one of that QP's tasklets is running.
 
-NodeA: $ ibv_rc_pingpong -g 0 -d rxe0 -i 1 -n 1 -s 50000
-NodeB: $ ibv_rc_pingpong -g 0 -d rxe0 -i 1 -n 1 -s 1024 <NodeA_ip>
+For example, the completer might run during QP destroy.
+If qp->valid is false, it will drop all of the packets on
+the resp_pkts list, potentially removing the last reference.
+Then it tries to advance the SQ consumer pointer. If the
+SQ's buffer has already been destroyed, the system will
+panic.
 
-The responder generates a receive error on node B since the incoming
-SEND is oversized. If the client tears down the QP before the responder
-or the completer finish running, a page fault may occur.
-
-The fix makes the destroy operation spin until the tasks complete, which
-appears to be original intent of the design.
+To be safe, hold a reference on the QP for the duration
+of each tasklet.
 
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_task.c | 19 +++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_task.h |  1 +
- 2 files changed, 20 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 4 ++++
+ drivers/infiniband/sw/rxe/rxe_req.c  | 4 ++++
+ drivers/infiniband/sw/rxe/rxe_resp.c | 3 +++
+ 3 files changed, 11 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
-index 1e19bf8..d2a14a1 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.c
-+++ b/drivers/infiniband/sw/rxe/rxe_task.c
-@@ -121,6 +121,7 @@ int rxe_init_task(void *obj, struct rxe_task *task,
- 	task->arg	= arg;
- 	task->func	= func;
- 	snprintf(task->name, sizeof(task->name), "%s", name);
-+	task->destroyed	= false;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 6c5e29d..3687fcd 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -510,6 +510,8 @@ int rxe_completer(void *arg)
+ 	struct rxe_pkt_info *pkt = NULL;
+ 	enum comp_state state;
  
- 	tasklet_init(&task->tasklet, rxe_do_task, (unsigned long)task);
++	rxe_add_ref(qp);
++
+ 	if (!qp->valid) {
+ 		while ((skb = skb_dequeue(&qp->resp_pkts))) {
+ 			rxe_drop_ref(qp);
+@@ -739,11 +741,13 @@ int rxe_completer(void *arg)
+ 	/* we come here if we are done with processing and want the task to
+ 	 * exit from the loop calling us
+ 	 */
++	rxe_drop_ref(qp);
+ 	return -EAGAIN;
  
-@@ -132,11 +133,29 @@ int rxe_init_task(void *obj, struct rxe_task *task,
- 
- void rxe_cleanup_task(struct rxe_task *task)
- {
-+	unsigned long flags;
-+	bool idle;
-+
-+	/*
-+	 * Mark the task, then wait for it to finish. It might be
-+	 * running in a non-tasklet (direct call) context.
-+	 */
-+	task->destroyed = true;
-+
-+	do {
-+		spin_lock_irqsave(&task->state_lock, flags);
-+		idle = (task->state == TASK_STATE_START);
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+	} while (!idle);
-+
- 	tasklet_kill(&task->tasklet);
+ done:
+ 	/* we come here if we have processed a packet we want the task to call
+ 	 * us again to see if there is anything else to do
+ 	 */
++	rxe_drop_ref(qp);
+ 	return 0;
  }
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 22bd963..035cb90 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -596,6 +596,8 @@ int rxe_requester(void *arg)
+ 	struct rxe_qp rollback_qp;
+ 	struct rxe_send_wqe rollback_wqe;
  
- void rxe_run_task(struct rxe_task *task, int sched)
- {
-+	if (task->destroyed)
-+		return;
++	rxe_add_ref(qp);
 +
- 	if (sched)
- 		tasklet_schedule(&task->tasklet);
- 	else
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.h b/drivers/infiniband/sw/rxe/rxe_task.h
-index d14aa6d..08ff42d 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.h
-+++ b/drivers/infiniband/sw/rxe/rxe_task.h
-@@ -54,6 +54,7 @@ struct rxe_task {
- 	int			(*func)(void *arg);
- 	int			ret;
- 	char			name[16];
-+	bool			destroyed;
- };
+ next_wqe:
+ 	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
+ 		goto exit;
+@@ -756,8 +758,10 @@ int rxe_requester(void *arg)
+ 	 */
+ 	wqe->wr.send_flags |= IB_SEND_SIGNALED;
+ 	__rxe_do_task(&qp->comp.task);
++	rxe_drop_ref(qp);
+ 	return -EAGAIN;
  
- /*
+ exit:
++	rxe_drop_ref(qp);
+ 	return -EAGAIN;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index dd3d88a..337a1cb 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1198,6 +1198,8 @@ int rxe_responder(void *arg)
+ 	struct rxe_pkt_info *pkt = NULL;
+ 	int ret = 0;
+ 
++	rxe_add_ref(qp);
++
+ 	qp->resp.aeth_syndrome = AETH_ACK_UNLIMITED;
+ 
+ 	if (!qp->valid) {
+@@ -1386,5 +1388,6 @@ int rxe_responder(void *arg)
+ exit:
+ 	ret = -EAGAIN;
+ done:
++	rxe_drop_ref(qp);
+ 	return ret;
+ }
 -- 
 1.8.3.1
 
