@@ -1,120 +1,522 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 06/28] bnxt_en: Refactor the driver registration function with firmware.
-Date: Sun,  4 Dec 2016 22:38:10 -0800
-Message-ID: <1480919912-1079-7-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH 16/28] bnxt_re: Support for GID related verbs
+Date: Sun,  4 Dec 2016 22:38:20 -0800
+Message-ID: <1480919912-1079-17-git-send-email-selvin.xavier@broadcom.com>
 References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael Chan <michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael Chan <michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+This patch implements add/del GID, get_netdev and pkey related verbs.
 
-The driver register function with firmware consists of passing version
-information and registering for async events.  To support the RDMA driver,
-the async events that we need to register may change.  Separate the
-driver register function into 2 parts so that we can just update the
-async events for the RDMA driver.
-
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Signed-off-by: Michael Chan <michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c | 34 ++++++++++++++++++++++++++-----
- drivers/net/ethernet/broadcom/bnxt/bnxt.h |  2 ++
- 2 files changed, 31 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c   |   5 +
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h   |   3 +
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c    | 218 ++++++++++++++++++++++++
+ drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h    |  11 ++
+ drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c | 123 +++++++++++++
+ drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h |  18 ++
+ drivers/infiniband/hw/bnxtre/bnxt_re_main.c     |   7 +
+ 7 files changed, 385 insertions(+)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 7218d65..c26735ea 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -3117,27 +3117,46 @@ int hwrm_send_message_silent(struct bnxt *bp, void *msg, u32 msg_len,
- 	return rc;
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c b/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c
+index e3724d1..1707061 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c
+@@ -484,6 +484,11 @@ static void bnxt_qplib_cleanup_sgid_tbl(struct bnxt_qplib_res *res,
+ {
+ 	int i;
+ 
++	for (i = 0; i < sgid_tbl->max; i++) {
++		if (memcmp(&sgid_tbl->tbl[i], &bnxt_qplib_gid_zero,
++			   sizeof(bnxt_qplib_gid_zero)))
++			bnxt_qplib_del_sgid(sgid_tbl, &sgid_tbl->tbl[i], true);
++	}
+ 	memset(sgid_tbl->tbl, 0, sizeof(struct bnxt_qplib_gid) * sgid_tbl->max);
+ 	memset(sgid_tbl->hw_id, -1, sizeof(u16) * sgid_tbl->max);
+ 	sgid_tbl->active = 0;
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h b/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
+index d9a2078..cc0bb09 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
+@@ -160,6 +160,9 @@ struct bnxt_qplib_res {
+ 	struct bnxt_qplib_dpi_tbl	dpi_tbl;
+ };
+ 
++#define to_bnxt_qplib(ptr, type, member)	\
++	container_of(ptr, type, member)
++
+ struct bnxt_qplib_pd;
+ struct bnxt_qplib_dev_attr;
+ 
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c b/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c
+index 471cec7..e70219c 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c
+@@ -21,6 +21,10 @@
+ #include "bnxt_qplib_res.h"
+ #include "bnxt_qplib_rcfw.h"
+ #include "bnxt_qplib_sp.h"
++
++const struct bnxt_qplib_gid bnxt_qplib_gid_zero = {{ 0, 0, 0, 0, 0, 0, 0, 0,
++						     0, 0, 0, 0, 0, 0, 0, 0 } };
++
+ /* Device */
+ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 			    struct bnxt_qplib_dev_attr *attr)
+@@ -104,6 +108,220 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 	return 0;
  }
  
--static int bnxt_hwrm_func_drv_rgtr(struct bnxt *bp)
-+int bnxt_hwrm_func_rgtr_async_events(struct bnxt *bp, unsigned long *bmap,
-+				     int bmap_size)
- {
- 	struct hwrm_func_drv_rgtr_input req = {0};
--	int i;
- 	DECLARE_BITMAP(async_events_bmap, 256);
- 	u32 *events = (u32 *)async_events_bmap;
-+	int i;
- 
- 	bnxt_hwrm_cmd_hdr_init(bp, &req, HWRM_FUNC_DRV_RGTR, -1, -1);
- 
- 	req.enables =
--		cpu_to_le32(FUNC_DRV_RGTR_REQ_ENABLES_OS_TYPE |
--			    FUNC_DRV_RGTR_REQ_ENABLES_VER |
--			    FUNC_DRV_RGTR_REQ_ENABLES_ASYNC_EVENT_FWD);
-+		cpu_to_le32(FUNC_DRV_RGTR_REQ_ENABLES_ASYNC_EVENT_FWD);
- 
- 	memset(async_events_bmap, 0, sizeof(async_events_bmap));
- 	for (i = 0; i < ARRAY_SIZE(bnxt_async_events_arr); i++)
- 		__set_bit(bnxt_async_events_arr[i], async_events_bmap);
- 
-+	if (bmap && bmap_size) {
-+		for (i = 0; i < bmap_size; i++) {
-+			if (test_bit(i, bmap))
-+				__set_bit(i, async_events_bmap);
-+		}
++/* SGID */
++int bnxt_qplib_get_sgid(struct bnxt_qplib_res *res,
++			struct bnxt_qplib_sgid_tbl *sgid_tbl, int index,
++			struct bnxt_qplib_gid *gid)
++{
++	if (index > sgid_tbl->max) {
++		dev_err(&res->pdev->dev,
++			"QPLIB: Index %d exceeded SGID table max (%d)",
++			index, sgid_tbl->max);
++		return -EINVAL;
 +	}
-+
- 	for (i = 0; i < 8; i++)
- 		req.async_event_fwd[i] |= cpu_to_le32(events[i]);
- 
-+	return hwrm_send_message(bp, &req, sizeof(req), HWRM_CMD_TIMEOUT);
++	memcpy(gid, &sgid_tbl->tbl[index], sizeof(*gid));
++	return 0;
 +}
 +
-+static int bnxt_hwrm_func_drv_rgtr(struct bnxt *bp)
++int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
++			struct bnxt_qplib_gid *gid, bool update)
 +{
-+	struct hwrm_func_drv_rgtr_input req = {0};
++	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
++						   struct bnxt_qplib_res,
++						   sgid_tbl);
++	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
++	int index;
 +
-+	bnxt_hwrm_cmd_hdr_init(bp, &req, HWRM_FUNC_DRV_RGTR, -1, -1);
++	if (!sgid_tbl) {
++		dev_err(&res->pdev->dev, "QPLIB: SGID table not allocated");
++		return -EINVAL;
++	}
++	/* Do we need a sgid_lock here? */
++	if (!sgid_tbl->active) {
++		dev_err(&res->pdev->dev,
++			"QPLIB: SGID table has no active entries");
++		return -ENOMEM;
++	}
++	for (index = 0; index < sgid_tbl->max; index++) {
++		if (!memcmp(&sgid_tbl->tbl[index], gid, sizeof(*gid)))
++			break;
++	}
++	if (index == sgid_tbl->max) {
++		dev_warn(&res->pdev->dev, "GID not found in the SGID table");
++		return 0;
++	}
++	/* Remove GID from the SGID table */
++	if (update) {
++		struct cmdq_delete_gid req;
++		struct creq_delete_gid_resp *resp;
++		u16 cmd_flags = 0;
 +
-+	req.enables =
-+		cpu_to_le32(FUNC_DRV_RGTR_REQ_ENABLES_OS_TYPE |
-+			    FUNC_DRV_RGTR_REQ_ENABLES_VER);
++		RCFW_CMD_PREP(req, DELETE_GID, cmd_flags);
++		if (sgid_tbl->hw_id[index] == -1) {
++			dev_err(&res->pdev->dev,
++				"QPLIB: GID entry contains an invalid HW id");
++			return -EINVAL;
++		}
++		req.gid_index = cpu_to_le16(sgid_tbl->hw_id[index]);
++		resp = (struct creq_delete_gid_resp *)
++			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, NULL,
++						     0);
++		if (!resp) {
++			dev_err(&res->pdev->dev,
++				"QPLIB: SP: DELETE_GID send failed");
++			return -EINVAL;
++		}
++		if (!bnxt_qplib_rcfw_wait_for_resp(rcfw,
++						   le16_to_cpu(req.cookie))) {
++			/* Cmd timed out */
++			dev_err(&res->pdev->dev,
++				"QPLIB: SP: DELETE_GID timed out");
++			return -ETIMEDOUT;
++		}
++		if (RCFW_RESP_STATUS(resp) ||
++		    RCFW_RESP_COOKIE(resp) != RCFW_CMDQ_COOKIE(req)) {
++			dev_err(&res->pdev->dev,
++				"QPLIB: SP: DELETE_GID failed ");
++			dev_err(&res->pdev->dev,
++				"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
++				RCFW_RESP_STATUS(resp), RCFW_CMDQ_COOKIE(req),
++				RCFW_RESP_COOKIE(resp));
++			return -EINVAL;
++		}
++	}
++	memcpy(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
++	       sizeof(bnxt_qplib_gid_zero));
++	sgid_tbl->active--;
++	dev_dbg(&res->pdev->dev,
++		"QPLIB: SGID deleted hw_id[0x%x] = 0x%x active = 0x%x",
++		 index, sgid_tbl->hw_id[index], sgid_tbl->active);
++	sgid_tbl->hw_id[index] = (u16)-1;
 +
- 	req.os_type = cpu_to_le16(FUNC_DRV_RGTR_REQ_OS_TYPE_LINUX);
- 	req.ver_maj = DRV_VER_MAJ;
- 	req.ver_min = DRV_VER_MIN;
-@@ -3146,6 +3165,7 @@ static int bnxt_hwrm_func_drv_rgtr(struct bnxt *bp)
- 	if (BNXT_PF(bp)) {
- 		DECLARE_BITMAP(vf_req_snif_bmap, 256);
- 		u32 *data = (u32 *)vf_req_snif_bmap;
-+		int i;
++	/* unlock */
++	return 0;
++}
++
++int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
++			struct bnxt_qplib_gid *gid, u8 *smac, u16 vlan_id,
++			bool update, u32 *index)
++{
++	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
++						   struct bnxt_qplib_res,
++						   sgid_tbl);
++	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
++	int i, free_idx, rc = 0;
++
++	if (!sgid_tbl) {
++		dev_err(&res->pdev->dev, "QPLIB: SGID table not allocated");
++		return -EINVAL;
++	}
++	/* Do we need a sgid_lock here? */
++	if (sgid_tbl->active == sgid_tbl->max) {
++		dev_err(&res->pdev->dev, "QPLIB: SGID table is full");
++		return -ENOMEM;
++	}
++	free_idx = sgid_tbl->max;
++	for (i = 0; i < sgid_tbl->max; i++) {
++		if (!memcmp(&sgid_tbl->tbl[i], gid, sizeof(*gid))) {
++			dev_dbg(&res->pdev->dev,
++				"QPLIB: SGID entry already exist in entry %d!",
++				i);
++			*index = i;
++			return -EALREADY;
++		} else if (!memcmp(&sgid_tbl->tbl[i], &bnxt_qplib_gid_zero,
++				   sizeof(bnxt_qplib_gid_zero)) &&
++			   free_idx == sgid_tbl->max) {
++			free_idx = i;
++		}
++	}
++	if (free_idx == sgid_tbl->max) {
++		dev_err(&res->pdev->dev,
++			"QPLIB: SGID table is FULL but count is not MAX??");
++		return -ENOMEM;
++	}
++	if (update) {
++		struct cmdq_add_gid req;
++		struct creq_add_gid_resp *resp;
++		u16 cmd_flags = 0;
++		u32 temp32[4];
++		u16 temp16[3];
++
++		RCFW_CMD_PREP(req, ADD_GID, cmd_flags);
++
++		memcpy(temp32, gid->data, sizeof(struct bnxt_qplib_gid));
++		req.gid[0] = cpu_to_be32(temp32[3]);
++		req.gid[1] = cpu_to_be32(temp32[2]);
++		req.gid[2] = cpu_to_be32(temp32[1]);
++		req.gid[3] = cpu_to_be32(temp32[0]);
++		if (vlan_id != 0xFFFF)
++			req.vlan = cpu_to_le32((vlan_id &
++					CMDQ_ADD_GID_VLAN_VLAN_ID_MASK) |
++					CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
++					CMDQ_ADD_GID_VLAN_VLAN_EN);
++
++		/* MAC in network format */
++		memcpy(temp16, smac, 6);
++		req.src_mac[0] = cpu_to_be16(temp16[0]);
++		req.src_mac[1] = cpu_to_be16(temp16[1]);
++		req.src_mac[2] = cpu_to_be16(temp16[2]);
++
++		resp = (struct creq_add_gid_resp *)
++			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
++						     NULL, 0);
++		if (!resp) {
++			dev_err(&res->pdev->dev,
++				"QPLIB: SP: ADD_GID send failed");
++			return -EINVAL;
++		}
++		if (!bnxt_qplib_rcfw_wait_for_resp(rcfw,
++						   le16_to_cpu(req.cookie))) {
++			/* Cmd timed out */
++			dev_err(&res->pdev->dev,
++				"QPIB: SP: ADD_GID timed out");
++			return -ETIMEDOUT;
++		}
++		if (RCFW_RESP_STATUS(resp) ||
++		    RCFW_RESP_COOKIE(resp) != RCFW_CMDQ_COOKIE(req)) {
++			dev_err(&res->pdev->dev, "QPLIB: SP: ADD_GID failed ");
++			dev_err(&res->pdev->dev,
++				"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
++				RCFW_RESP_STATUS(resp), RCFW_CMDQ_COOKIE(req),
++				RCFW_RESP_COOKIE(resp));
++			return -EINVAL;
++		}
++		sgid_tbl->hw_id[free_idx] = le32_to_cpu(resp->xid);
++	}
++	/* Add GID to the sgid_tbl */
++	memcpy(&sgid_tbl->tbl[free_idx], gid, sizeof(*gid));
++	sgid_tbl->active++;
++	dev_dbg(&res->pdev->dev,
++		"QPLIB: SGID added hw_id[0x%x] = 0x%x active = 0x%x",
++		 free_idx, sgid_tbl->hw_id[free_idx], sgid_tbl->active);
++
++	*index = free_idx;
++	/* unlock */
++	return rc;
++}
++
++/* pkeys */
++int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
++			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
++			u16 *pkey)
++{
++	if (index == 0xFFFF) {
++		*pkey = 0xFFFF;
++		return 0;
++	}
++	if (index > pkey_tbl->max) {
++		dev_err(&res->pdev->dev,
++			"QPLIB: Index %d exceeded PKEY table max (%d)",
++			index, pkey_tbl->max);
++		return -EINVAL;
++	}
++	memcpy(pkey, &pkey_tbl->tbl[index], sizeof(*pkey));
++	return 0;
++}
++
+ int bnxt_qplib_del_pkey(struct bnxt_qplib_res *res,
+ 			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 *pkey,
+ 			bool update)
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h b/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h
+index 2f8daba..392b419 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h
+@@ -52,6 +52,17 @@ struct bnxt_qplib_gid {
+ 	u8				data[16];
+ };
  
- 		memset(vf_req_snif_bmap, 0, sizeof(vf_req_snif_bmap));
- 		for (i = 0; i < ARRAY_SIZE(bnxt_vf_req_snif); i++)
-@@ -7023,6 +7043,10 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	if (rc)
- 		goto init_err;
++int bnxt_qplib_get_sgid(struct bnxt_qplib_res *res,
++			struct bnxt_qplib_sgid_tbl *sgid_tbl, int index,
++			struct bnxt_qplib_gid *gid);
++int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
++			struct bnxt_qplib_gid *gid, bool update);
++int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
++			struct bnxt_qplib_gid *gid, u8 *mac, u16 vlan_id,
++			bool update, u32 *index);
++int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
++			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
++			u16 *pkey);
+ int bnxt_qplib_del_pkey(struct bnxt_qplib_res *res,
+ 			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 *pkey,
+ 			bool update);
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
+index 8ec86c3..7cbbcb8 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
+@@ -35,6 +35,22 @@
+ #include "bnxt_re_ib_verbs.h"
+ #include "bnxt_re_uverbs_abi.h"
  
-+	rc = bnxt_hwrm_func_rgtr_async_events(bp, NULL, 0);
-+	if (rc)
-+		goto init_err;
++/* Device */
++struct net_device *bnxt_re_get_netdev(struct ib_device *ibdev, u8 port_num)
++{
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++	struct net_device *netdev = NULL;
 +
- 	/* Get the MAX capabilities for this function */
- 	rc = bnxt_hwrm_func_qcaps(bp);
- 	if (rc) {
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index d796836..eec2415 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -1240,6 +1240,8 @@ void bnxt_hwrm_cmd_hdr_init(struct bnxt *, void *, u16, u16, u16);
- int _hwrm_send_message(struct bnxt *, void *, u32, int);
- int hwrm_send_message(struct bnxt *, void *, u32, int);
- int hwrm_send_message_silent(struct bnxt *, void *, u32, int);
-+int bnxt_hwrm_func_rgtr_async_events(struct bnxt *bp, unsigned long *bmap,
-+				     int bmap_size);
- int bnxt_hwrm_set_coal(struct bnxt *);
- unsigned int bnxt_get_max_func_stat_ctxs(struct bnxt *bp);
- unsigned int bnxt_get_max_func_cp_rings(struct bnxt *bp);
++	rcu_read_lock();
++	if (rdev)
++		netdev = rdev->netdev;
++	if (netdev)
++		dev_hold(netdev);
++
++	rcu_read_unlock();
++	return netdev;
++}
++
+ int bnxt_re_query_device(struct ib_device *ibdev,
+ 			 struct ib_device_attr *ib_attr,
+ 			 struct ib_udata *udata)
+@@ -247,6 +263,113 @@ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+ 	return 0;
+ }
++
++int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
++		       u16 index, u16 *pkey)
++{
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++
++	/* Ignore port_num */
++
++	memset(pkey, 0, sizeof(*pkey));
++	return bnxt_qplib_get_pkey(&rdev->qplib_res,
++				   &rdev->qplib_res.pkey_tbl, index, pkey);
++}
++
++int bnxt_re_query_gid(struct ib_device *ibdev, u8 port_num,
++		      int index, union ib_gid *gid)
++{
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++	int rc = 0;
++
++	/* Ignore port_num */
++	memset(gid, 0, sizeof(*gid));
++	rc = bnxt_qplib_get_sgid(&rdev->qplib_res,
++				 &rdev->qplib_res.sgid_tbl, index,
++				 (struct bnxt_qplib_gid *)gid);
++	return rc;
++}
++
++int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
++		    unsigned int index, void **context)
++{
++	int rc = 0;
++	struct bnxt_re_gid_ctx *ctx, **ctx_tbl;
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++	struct bnxt_qplib_sgid_tbl *sgid_tbl = &rdev->qplib_res.sgid_tbl;
++
++	/* Delete the entry from the hardware */
++	ctx = *context;
++	if (!ctx)
++		return -EINVAL;
++
++	if (sgid_tbl && sgid_tbl->active) {
++		if (ctx->idx >= sgid_tbl->max)
++			return -EINVAL;
++		ctx->refcnt--;
++		if (!ctx->refcnt) {
++			rc = bnxt_qplib_del_sgid
++					(sgid_tbl,
++					 &sgid_tbl->tbl[ctx->idx], true);
++			if (rc)
++				dev_err(rdev_to_dev(rdev),
++					"Failed to remove GID: %#x", rc);
++			ctx_tbl = sgid_tbl->ctx;
++			ctx_tbl[ctx->idx] = NULL;
++			kfree(ctx);
++		}
++	} else {
++		return -EINVAL;
++	}
++	return rc;
++}
++
++int bnxt_re_add_gid(struct ib_device *ibdev, u8 port_num,
++		    unsigned int index, const union ib_gid *gid,
++		    const struct ib_gid_attr *attr, void **context)
++{
++	int rc;
++	u32 tbl_idx = 0;
++	u16 vlan_id = 0xFFFF;
++	struct bnxt_re_gid_ctx *ctx, **ctx_tbl;
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++	struct bnxt_qplib_sgid_tbl *sgid_tbl = &rdev->qplib_res.sgid_tbl;
++
++	if ((attr->ndev) && is_vlan_dev(attr->ndev))
++		vlan_id = vlan_dev_vlan_id(attr->ndev);
++
++	rc = bnxt_qplib_add_sgid(sgid_tbl, (struct bnxt_qplib_gid *)gid,
++				 rdev->qplib_res.netdev->dev_addr,
++				 vlan_id, true, &tbl_idx);
++	if (rc == -EALREADY) {
++		ctx_tbl = sgid_tbl->ctx;
++		ctx_tbl[tbl_idx]->refcnt++;
++		*context = ctx_tbl[tbl_idx];
++		return 0;
++	}
++
++	if (rc < 0) {
++		dev_err(rdev_to_dev(rdev), "Failed to add GID: %#x", rc);
++		return rc;
++	}
++
++	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++	ctx_tbl = sgid_tbl->ctx;
++	ctx->idx = tbl_idx;
++	ctx->refcnt = 1;
++	ctx_tbl[tbl_idx] = ctx;
++
++	return rc;
++}
++
++enum rdma_link_layer bnxt_re_get_link_layer(struct ib_device *ibdev,
++					    u8 port_num)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
+ /* Protection Domains */
+ int bnxt_re_dealloc_pd(struct ib_pd *ib_pd)
+ {
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
+index 716608d..beb9611 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
+@@ -14,6 +14,11 @@
+ #ifndef __BNXT_RE_IB_VERBS_H__
+ #define __BNXT_RE_IB_VERBS_H__
+ 
++struct bnxt_re_gid_ctx {
++	u32			idx;
++	u32			refcnt;
++};
++
+ struct bnxt_re_pd {
+ 	struct bnxt_re_dev	*rdev;
+ 	struct ib_pd		ib_pd;
+@@ -29,6 +34,8 @@ struct bnxt_re_ucontext {
+ 	spinlock_t		sh_lock;	/* protect shpg */
+ };
+ 
++struct net_device *bnxt_re_get_netdev(struct ib_device *ibdev, u8 port_num);
++
+ int bnxt_re_query_device(struct ib_device *ibdev,
+ 			 struct ib_device_attr *ib_attr,
+ 			 struct ib_udata *udata);
+@@ -42,6 +49,17 @@ int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
+ 			struct ib_port_modify *port_modify);
+ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable);
++int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
++		       u16 index, u16 *pkey);
++int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
++		    unsigned int index, void **context);
++int bnxt_re_add_gid(struct ib_device *ibdev, u8 port_num,
++		    unsigned int index, const union ib_gid *gid,
++		    const struct ib_gid_attr *attr, void **context);
++int bnxt_re_query_gid(struct ib_device *ibdev, u8 port_num,
++		      int index, union ib_gid *gid);
++enum rdma_link_layer bnxt_re_get_link_layer(struct ib_device *ibdev,
++					    u8 port_num);
+ struct ib_pd *bnxt_re_alloc_pd(struct ib_device *ibdev,
+ 			       struct ib_ucontext *context,
+ 			       struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+index a0acc6a..eaaf285 100644
+--- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
++++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+@@ -425,6 +425,13 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
+ 	ibdev->query_port		= bnxt_re_query_port;
+ 	ibdev->modify_port		= bnxt_re_modify_port;
+ 	ibdev->get_port_immutable	= bnxt_re_get_port_immutable;
++	ibdev->query_pkey		= bnxt_re_query_pkey;
++	ibdev->query_gid		= bnxt_re_query_gid;
++	ibdev->get_netdev		= bnxt_re_get_netdev;
++	ibdev->add_gid			= bnxt_re_add_gid;
++	ibdev->del_gid			= bnxt_re_del_gid;
++	ibdev->get_link_layer		= bnxt_re_get_link_layer;
++
+ 	ibdev->alloc_pd			= bnxt_re_alloc_pd;
+ 	ibdev->dealloc_pd		= bnxt_re_dealloc_pd;
+ 	ibdev->alloc_ucontext		= bnxt_re_alloc_ucontext;
 -- 
 2.5.5
 
