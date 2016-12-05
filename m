@@ -1,40 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Mon, 5 Dec 2016 10:10:13 -0700
-Message-ID: <20161205171013.GA27784@obsidianresearch.com>
-References: <HE1PR0501MB28124286F8D902C49596EF85B18C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <20161130163949.GC24639@obsidianresearch.com>
- <HE1PR0501MB28128CDB112558C5980CB638B18C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <20161130170830.GA17512@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA190@ORSMSX109.amr.corp.intel.com>
- <01e501d24b2e$ff2a3260$fd7e9720$@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA1B7@ORSMSX109.amr.corp.intel.com>
- <d4bab4a9-aa32-282f-b501-ecfc00b0be0f@talpey.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA68E@ORSMSX109.amr.corp.intel.com>
- <HE1PR0501MB2812393A0A690DEC1E03DE3FB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+From: Michael Chan <michael.chan@broadcom.com>
+Subject: Re: [PATCH 01/28] bnxt_en: Add bnxt_set_max_func_irqs().
+Date: Mon, 5 Dec 2016 09:10:40 -0800
+Message-ID: <CACKFLi=i31Mgbry6zgqWYGNBgEsDRZthRGyoSLyHKJkhNN2KAg@mail.gmail.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <1480919912-1079-2-git-send-email-selvin.xavier@broadcom.com> <20161205.114704.1700305660817315475.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <HE1PR0501MB2812393A0A690DEC1E03DE3FB1800-692Kmc8YnlIVrnpjwTCbp8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "'Wei Hu(Xavier)'" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Selvin Xavier' <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Devesh Sharma' <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Mitesh Ahuja' <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Christian Benvenuti' <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Dave Goodell' <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161205.114704.1700305660817315475.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 04, 2016 at 08:38:14PM +0000, Liran Liss wrote:
+On Mon, Dec 5, 2016 at 8:47 AM, David Miller <davem@davemloft.net> wrote:
+>
+> It really doesn't make any sense to only send 7 out of 28 of these
+> patches to the networking list.
+>
+> In fact I would say that you need to split this series into two
+> components.
 
-> Anyway, returning to the initial matter at hand: I would like to
-> start with each port reporting a bit mask of the supported protocols
-> on that link (RoCE v1/v2, Raw Ethernet, iWARP, etc.)  It will be
-> used for reporting device capabilities in general for tools, as well
-> as by applications that don't use rdmacm.
+OK.  I will resend those bnxt_en patches later today as a separate series.
 
-Why don't we start by defining how it is supposed to even work and how
-to fix the RDMA CM before adding even more random capability bits?
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> One that goes into the networking tree, and once that's accepted you
+> can submit the IB parts to that subsystem's maintainer.
