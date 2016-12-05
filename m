@@ -1,58 +1,51 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core 0/2] Optimize RoCE address handle creation
- for userspace
-Date: Tue, 6 Dec 2016 00:01:13 +0200
-Message-ID: <7b8e90ac-c653-6a54-846d-75adeeb8059f@dev.mellanox.co.il>
-References: <1480866806-5052-1-git-send-email-yishaih@mellanox.com>
- <20161205170702.GA27306@obsidianresearch.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
+Date: Mon, 5 Dec 2016 20:14:07 +0000
+Message-ID: <HE1PR0501MB2812A66403A8C19AF83742EDB1830@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+References: <HE1PR0501MB28124286F8D902C49596EF85B18C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <20161130163949.GC24639@obsidianresearch.com>
+ <HE1PR0501MB28128CDB112558C5980CB638B18C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <20161130170830.GA17512@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA190@ORSMSX109.amr.corp.intel.com>
+ <01e501d24b2e$ff2a3260$fd7e9720$@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA1B7@ORSMSX109.amr.corp.intel.com>
+ <d4bab4a9-aa32-282f-b501-ecfc00b0be0f@talpey.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BA68E@ORSMSX109.amr.corp.intel.com>
+ <HE1PR0501MB2812393A0A690DEC1E03DE3FB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <20161205171013.GA27784@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161205170702.GA27306-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161205171013.GA27784-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "'Wei Hu(Xavier)'" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Selvin Xavier' <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Devesh Sharma' <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Mitesh Ahuja' <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, 'Christian Benvenuti' <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Dave Goodell' <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/5/2016 7:07 PM, Jason Gunthorpe wrote:
-> On Sun, Dec 04, 2016 at 05:53:24PM +0200, Yishai Hadas wrote:
->
->> Test results:
->> Upon testing the above use case the provider couldn't be loaded as expected,
->> "libibverbs: Warning: couldn't load driver 'libmlx5-rdmav2.so':
->> libmlx5-rdmav2.so: cannot open shared object file: No such file or directory"
->
-> The dynmic linker didn't print something too? That is surprising..
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
 
-No more output, I was surprised as well about the error message, that's 
-why I used strace to follow the system calls. Looking at the man page of 
-dlopen can see that upon an error the most recent error is returned 
-which was in that case ENOENT as the linker continued searching in other 
-locations.
+>=20
+> > Anyway, returning to the initial matter at hand: I would like to start
+> > with each port reporting a bit mask of the supported protocols on that
+> > link (RoCE v1/v2, Raw Ethernet, iWARP, etc.)  It will be used for
+> > reporting device capabilities in general for tools, as well as by
+> > applications that don't use rdmacm.
+>=20
+> Why don't we start by defining how it is supposed to even work and how to=
+ fix
+> the RDMA CM before adding even more random capability bits?
+>=20
+> Jason
 
-Just run with LD_LIBRARY_PATH=/usr/lib64/libibverbs which based on man 
-page will cause the linker to look only in that location, I get below 
-error as we expect it.
+Extensions to RDMA CM is an important topic, which we can continue to discu=
+ss as devices that require it are introduced.
 
-libibverbs: Warning: couldn't load driver 'libmlx5-rdmav2.so': 
-/usr/lib64/libibverbs/libmlx5-rdmav2.so: symbol ibv_cmd_create_ah, 
-version IBVERBS_1.0 not defined in file libibverbs.so.1 with link time 
-reference
-
-> I'm not sure where we are in the release cycle right now.. Doug - if
-> we didn't make a release with the 1.3 symbol tag (this was created
-> just before rdma-core) then this should go into 1.3 when it gets
-> merged..
-
-Jason,
-You pointed to use 1.4, the series followed that.
-
-Doug,
-Can you please comment here ? we should have a clear definition what 
-defined to be a "release" which requires a new number.
-In case we want to use 1.3 please let me know if I need to re-spin or 
-you will change as part of the merge.
+Protocol capabilities are needed for information purposes as well as for ap=
+plications that do not use RDMA CM.
+They are not "random", but depict what a device can do.
+--Liran
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
