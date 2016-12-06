@@ -1,55 +1,52 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 5/5] mlx5, calc_sq_size(): Make a debug message more
- informative
-Date: Tue, 6 Dec 2016 16:31:59 +0200
-Message-ID: <20161206143159.GB3437@mtr-leonro.local>
-References: <9ff07804-492c-c67a-e729-b31e0f863027@sandisk.com>
- <4387aa0f-5097-d456-eee2-b480dfa5af87@sandisk.com>
+From: Iago Abal <iago.abal-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Potential double-lock BUG in drivers/infiniband/core/umem_odp.c
+ (Linux 4.9-rc7)
+Date: Tue, 6 Dec 2016 16:59:54 +0100
+Message-ID: <CAGbDTvpM5tWrUfLCtZByJ3Jp036a8QbieP5Wpj88zAXpmtu+_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4387aa0f-5097-d456-eee2-b480dfa5af87-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jesper Dangaard Brouer <brouer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 05, 2016 at 05:19:52PM -0800, Bart Van Assche wrote:
-> Make it clear that qp->sq.wqe_cnt is not the number of WQEs.
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi,
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+With the help of a static bug finder (EBA -
+http://www.iagoabal.eu/eba) I have found a potential double-lock in
+drivers/infiniband/core/umem_odp.c: there seems to be a recursive lock
+on `umem->odp_data->umem_mutex' in function
+`ib_umem_odp_map_dma_pages'.
 
-> ---
->  drivers/infiniband/hw/mlx5/qp.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index b2c6c13d44ac..735b8aadb84c 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -381,7 +381,8 @@ static int calc_sq_size(struct mlx5_ib_dev *dev, struct ib_qp_init_attr *attr,
->  	wq_size = roundup_pow_of_two(attr->cap.max_send_wr * wqe_size);
->  	qp->sq.wqe_cnt = wq_size / MLX5_SEND_WQE_BB;
->  	if (qp->sq.wqe_cnt > (1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz))) {
-> -		mlx5_ib_dbg(dev, "wqe count(%d) exceeds limits(%d)\n",
-> +		mlx5_ib_dbg(dev, "send queue size (%d * %d / %d -> %d) exceeds limits(%d)\n",
-> +			    attr->cap.max_send_wr, wqe_size, MLX5_SEND_WQE_BB,
->  			    qp->sq.wqe_cnt,
->  			    1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz));
->  		return -ENOMEM;
-> -- 
-> 2.11.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This problem may have been introduced by commit c1d383b5785b
+("IB/core: dma map/unmap locking optimizations").
+
+If this is indeed a bug, I could try to help with a patch... although
+it doesn't look trivial to fix at first sight.
+
+The trace is as follows:
+
+1. Function `ib_umem_odp_map_dma_pages' takes the lock for the first
+time in line 589:
+
+    // see https://github.com/torvalds/linux/blob/v4.9-rc7/drivers/infiniband/core/umem_odp.c#L589
+    mutex_lock(&umem->odp_data->umem_mutex);
+
+2. Call to function `ib_umem_odp_map_dma_single_page' in line 591;
+
+3. Call to function `invalidate_page_trampoline' in line 486;
+
+4. Call to function `ib_umem_notifier_start_account' in line 160;
+
+5. Lock is taken for the second time in line 46:
+
+    // see https://github.com/torvalds/linux/blob/v4.9-rc7/drivers/infiniband/core/umem_odp.c#L46
+    mutex_lock(&item->odp_data->umem_mutex);
+
+Hope it helps!
+
+-- iago
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
