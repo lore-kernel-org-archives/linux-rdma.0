@@ -1,51 +1,58 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Use correct src address in memcpy to rdma stats
- counters
-Date: Tue, 6 Dec 2016 11:39:17 -0600
-Message-ID: <20161206173917.GB15668@ssaleem-MOBL4.amr.corp.intel.com>
-References: <1478883341-22124-1-git-send-email-shiraz.saleem@intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] Add Bull device ID support to device white
+ lists
+Date: Tue, 6 Dec 2016 14:22:52 -0500
+Message-ID: <e5ad4256-53fe-9ecc-f880-89347134ec42@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1478883341-22124-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug - Can you please pick this up for 4.9? It was a bug introduced in 4.7. 
 
-
-On Fri, Nov 11, 2016 at 09:55:41AM -0700, Saleem, Shiraz wrote:
-> hw_stats is a pointer to i40_iw_dev_stats struct in i40iw_get_hw_stats().
-> Use hw_stats and not &hw_stats in the memcpy to copy the i40iw device stats
-> data into rdma_hw_stats counters.
-> 
-> Fixes: b40f4757daa1 ("IB/core: Make device counter infrastructure dynamic")
-> 
-> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> index b71394b..02c8f9a 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> @@ -2498,7 +2498,7 @@ static int i40iw_get_hw_stats(struct ib_device *ibdev,
->  			return -ENOSYS;
->  	}
->  
-> -	memcpy(&stats->value[0], &hw_stats, sizeof(*hw_stats));
-> +	memcpy(&stats->value[0], hw_stats, sizeof(*hw_stats));
->  
->  	return stats->num_counters;
->  }
-> -- 
-> 2.8.0
-> 
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 6ef7805..223e097 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -197,7 +197,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+ {
+ 	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
+ 
+-	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
++	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
+ 		return 1;
+ 	if (devid >= 0x1003 && devid <= 0x1016)
+ 		return 1;
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 2a1e971..6809a1e 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -530,7 +530,7 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
+ int is_mlnx_ext_port_info_supported(uint32_t devid)
+ {
+ 	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
+-		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
++		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
+ 			return 1;
+ 		if (devid >= 0x1003 && devid <= 0x1016)
+ 			return 1;
+diff --git a/src/vendstat.c b/src/vendstat.c
+index fb42a78..284ef93 100644
+--- a/src/vendstat.c
++++ b/src/vendstat.c
+@@ -149,6 +149,7 @@ static uint16_t ext_fw_info_device[][2] = {
+ 	{0xcf08, 0xcf08},	/* Switch-IB2 */
+ 	{0x01b3, 0x01b3},	/* IS-4 */
+ 	{0x1003, 0x1016},	/* Connect-X */
++	{0x1b02, 0x1b02},	/* Bull */
+ 	{0x0000, 0x0000}};
+ 
+ static int is_ext_fw_info_supported(uint16_t device_id) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
