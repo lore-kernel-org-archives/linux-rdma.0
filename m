@@ -1,52 +1,46 @@
-From: Iago Abal <iago.abal-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Potential double-lock BUG in drivers/infiniband/core/umem_odp.c
- (Linux 4.9-rc7)
-Date: Tue, 6 Dec 2016 16:59:54 +0100
-Message-ID: <CAGbDTvpM5tWrUfLCtZByJ3Jp036a8QbieP5Wpj88zAXpmtu+_A@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/5] mlx5: Use NULL instead of 0 to represent a pointer
+Date: Tue, 6 Dec 2016 09:28:52 -0700
+Message-ID: <20161206162852.GA28066@obsidianresearch.com>
+References: <9ff07804-492c-c67a-e729-b31e0f863027@sandisk.com>
+ <16dc2a07-86f7-ce47-7b0c-1da03e58d99f@sandisk.com>
+ <20161206135917.GC2437@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161206135917.GC2437-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jesper Dangaard Brouer <brouer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Tue, Dec 06, 2016 at 03:59:17PM +0200, Leon Romanovsky wrote:
+> On Mon, Dec 05, 2016 at 05:18:08PM -0800, Bart Van Assche wrote:
+> > Detected by sparse.
+> > 
+> > Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >  drivers/infiniband/hw/mlx5/main.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> > index 32b09f059c84..abd200e3e299 100644
+> > +++ b/drivers/infiniband/hw/mlx5/main.c
+> > @@ -127,7 +127,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
+> >  
+> >  		if ((upper == ndev || (!upper && ndev == ibdev->roce.netdev))
+> >  		    && ibdev->ib_active) {
+> > -			struct ib_event ibev = {0};
+> > +			struct ib_event ibev = { NULL };
+> 
+> I afraid that it is sparse anomality and because NULL==0, the ibev.event
+> will be initialized to zero, but it is a matter of time when the sparse
+> will complain about wrong initialization again.
 
-With the help of a static bug finder (EBA -
-http://www.iagoabal.eu/eba) I have found a potential double-lock in
-drivers/infiniband/core/umem_odp.c: there seems to be a recursive lock
-on `umem->odp_data->umem_mutex' in function
-`ib_umem_odp_map_dma_pages'.
+Use '= {}' for zeroing structs.
 
-This problem may have been introduced by commit c1d383b5785b
-("IB/core: dma map/unmap locking optimizations").
-
-If this is indeed a bug, I could try to help with a patch... although
-it doesn't look trivial to fix at first sight.
-
-The trace is as follows:
-
-1. Function `ib_umem_odp_map_dma_pages' takes the lock for the first
-time in line 589:
-
-    // see https://github.com/torvalds/linux/blob/v4.9-rc7/drivers/infiniband/core/umem_odp.c#L589
-    mutex_lock(&umem->odp_data->umem_mutex);
-
-2. Call to function `ib_umem_odp_map_dma_single_page' in line 591;
-
-3. Call to function `invalidate_page_trampoline' in line 486;
-
-4. Call to function `ib_umem_notifier_start_account' in line 160;
-
-5. Lock is taken for the second time in line 46:
-
-    // see https://github.com/torvalds/linux/blob/v4.9-rc7/drivers/infiniband/core/umem_odp.c#L46
-    mutex_lock(&item->odp_data->umem_mutex);
-
-Hope it helps!
-
--- iago
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
