@@ -1,142 +1,57 @@
-From: Zhouyi Zhou <zhouzhouyi@gmail.com>
-Subject: [PATCH] net: return value of skb_linearize should be handled in Linux kernel
-Date: Tue,  6 Dec 2016 15:10:33 +0800
-Message-ID: <1481008233-16777-1-git-send-email-zhouzhouyi@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: faisal.latif@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, jeffrey.t.kirsher@intel.com, QLogic-Storage-Upstream@qlogic.com, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, jth@kernel.org, jon.maloy@ericsson.com, ying.xue@windriver.com, davem@davemloft.net, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, tipc-discussion@lists.sourceforge.net
-Cc: Zhouyi Zhou <zhouzhouyi@gmail.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v6 12/16] IB/pvrdma: Add Queue Pair support
+Date: Tue, 6 Dec 2016 10:00:59 +0200
+Message-ID: <20161206080057.GA4894@yuval-lap>
+References: <cover.1475458407.git.aditr@vmware.com>
+ <6a643e92376856394d45638d80a90619d3abac37.1475458407.git.aditr@vmware.com>
+ <20161202130726.GB3663@yuval-lap>
+ <20161205172533.GA14581@yuval-lap>
+ <76188e1e-9b9b-07d6-febd-41827a049837@vmware.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <76188e1e-9b9b-07d6-febd-41827a049837-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-kmalloc_reserve may fail to allocate memory inside skb_linearize, 
-which means skb_linearize's return value should not be ignored. 
-Following patch correct the uses of skb_linearize.
+On Mon, Dec 05, 2016 at 01:21:07PM -0800, Adit Ranadive wrote:
+> On Mon, Dec 05, 2016 at 7:25:34PM +0200, Yuval Shaia wrote:
+> > > > +
+> > > > +			/* Skip header page. */
+> > > > +			qp->sq.offset = PAGE_SIZE;
+> > > > +
+> > > > +			/* Recv queue pages are after send pages. */
+> > > > +			qp->rq.offset = qp->npages_send * PAGE_SIZE;
+> > > 
+> > > Unless i'm missing something here, per comment it should be:
+> > > qp->rq.offset = qp->sq.offset + qp->npages_send * PAGE_SIZE;
+> > 
+> > Hi,
+> > Any comments about this question?
+> 
+> My comment [1] for the npages_send applies here as well. Since
+> we account for the extra page within the npages_send attribute, the
+> rq.offset calculated here is correct.
 
-Compiled in x86_64
+Ok, i see that now.
+It is kind of confusing that this logic of one extra page for header is
+implemented in two places, i.e. in pvrdma_set_sq_size and in
+pvrdma_set_sq_size's caller.
+Still suggesting to move this logic to one place for better modularization.
+(Just imagine one day that you will need to expand this header to two
+pages).
+If you accept it then caller is my vote to place it :)
 
-Signed-off-by: Zhouyi Zhou <zhouzhouyi@gmail.com>
----
- drivers/infiniband/hw/nes/nes_nic.c           | 5 +++--
- drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c | 6 +++++-
- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c | 3 +--
- drivers/scsi/bnx2fc/bnx2fc_fcoe.c             | 7 +++++--
- drivers/scsi/fcoe/fcoe.c                      | 5 ++++-
- net/tipc/link.c                               | 3 ++-
- net/tipc/name_distr.c                         | 5 ++++-
- 7 files changed, 24 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
-index 2b27d13..69372ea 100644
---- a/drivers/infiniband/hw/nes/nes_nic.c
-+++ b/drivers/infiniband/hw/nes/nes_nic.c
-@@ -662,10 +662,11 @@ static int nes_netdev_start_xmit(struct sk_buff *skb, struct net_device *netdev)
- 				nesnic->sq_head &= nesnic->sq_size-1;
- 			}
- 		} else {
--			nesvnic->linearized_skbs++;
- 			hoffset = skb_transport_header(skb) - skb->data;
- 			nhoffset = skb_network_header(skb) - skb->data;
--			skb_linearize(skb);
-+			if (skb_linearize(skb))
-+				return NETDEV_TX_BUSY;
-+			nesvnic->linearized_skbs++;
- 			skb_set_transport_header(skb, hoffset);
- 			skb_set_network_header(skb, nhoffset);
- 			if (!nes_nic_send(skb, netdev))
-diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
-index 2a653ec..ab787cb 100644
---- a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
-+++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
-@@ -490,7 +490,11 @@ int ixgbe_fcoe_ddp(struct ixgbe_adapter *adapter,
- 	 */
- 	if ((fh->fh_r_ctl == FC_RCTL_DD_SOL_DATA) &&
- 	    (fctl & FC_FC_END_SEQ)) {
--		skb_linearize(skb);
-+		int err = 0;
-+
-+		err = skb_linearize(skb);
-+		if (err)
-+			return err;
- 		crc = (struct fcoe_crc_eof *)skb_put(skb, sizeof(*crc));
- 		crc->fcoe_eof = FC_EOF_T;
- 	}
-diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-index fee1f29..4926d48 100644
---- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-+++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-@@ -2173,8 +2173,7 @@ static int ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
- 				total_rx_bytes += ddp_bytes;
- 				total_rx_packets += DIV_ROUND_UP(ddp_bytes,
- 								 mss);
--			}
--			if (!ddp_bytes) {
-+			} else {
- 				dev_kfree_skb_any(skb);
- 				continue;
- 			}
-diff --git a/drivers/scsi/bnx2fc/bnx2fc_fcoe.c b/drivers/scsi/bnx2fc/bnx2fc_fcoe.c
-index f9ddb61..197d02e 100644
---- a/drivers/scsi/bnx2fc/bnx2fc_fcoe.c
-+++ b/drivers/scsi/bnx2fc/bnx2fc_fcoe.c
-@@ -542,8 +542,11 @@ static void bnx2fc_recv_frame(struct sk_buff *skb)
- 		return;
- 	}
- 
--	if (skb_is_nonlinear(skb))
--		skb_linearize(skb);
-+	if (skb_linearize(skb)) {
-+		kfree_skb(skb);
-+		return;
-+	}
-+
- 	mac = eth_hdr(skb)->h_source;
- 	dest_mac = eth_hdr(skb)->h_dest;
- 
-diff --git a/drivers/scsi/fcoe/fcoe.c b/drivers/scsi/fcoe/fcoe.c
-index 9bd41a3..f691b97 100644
---- a/drivers/scsi/fcoe/fcoe.c
-+++ b/drivers/scsi/fcoe/fcoe.c
-@@ -1685,7 +1685,10 @@ static void fcoe_recv_frame(struct sk_buff *skb)
- 			skb->dev ? skb->dev->name : "<NULL>");
- 
- 	port = lport_priv(lport);
--	skb_linearize(skb); /* check for skb_is_nonlinear is within skb_linearize */
-+	if (skb_linearize(skb)) {
-+		kfree_skb(skb);
-+		return;
-+	}
- 
- 	/*
- 	 * Frame length checks and setting up the header pointers
-diff --git a/net/tipc/link.c b/net/tipc/link.c
-index bda89bf..077c570 100644
---- a/net/tipc/link.c
-+++ b/net/tipc/link.c
-@@ -1446,7 +1446,8 @@ static int tipc_link_proto_rcv(struct tipc_link *l, struct sk_buff *skb,
- 	if (tipc_own_addr(l->net) > msg_prevnode(hdr))
- 		l->net_plane = msg_net_plane(hdr);
- 
--	skb_linearize(skb);
-+	if (skb_linearize(skb))
-+		goto exit;
- 	hdr = buf_msg(skb);
- 	data = msg_data(hdr);
- 
-diff --git a/net/tipc/name_distr.c b/net/tipc/name_distr.c
-index c1cfd92..4e05d2a 100644
---- a/net/tipc/name_distr.c
-+++ b/net/tipc/name_distr.c
-@@ -356,7 +356,10 @@ void tipc_named_rcv(struct net *net, struct sk_buff_head *inputq)
- 
- 	spin_lock_bh(&tn->nametbl_lock);
- 	for (skb = skb_dequeue(inputq); skb; skb = skb_dequeue(inputq)) {
--		skb_linearize(skb);
-+		if (skb_linearize(skb)) {
-+			kfree_skb(skb);
-+			continue;
-+		}
- 		msg = buf_msg(skb);
- 		mtype = msg_type(msg);
- 		item = (struct distr_item *)msg_data(msg);
--- 
-1.9.1
+> 
+> [1] http://marc.info/?l=linux-rdma&m=148069497625433&w=2
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
