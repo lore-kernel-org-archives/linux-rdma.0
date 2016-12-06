@@ -1,43 +1,26 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/5] mlx5: Fix mlx5_srq_attr.pas endianness annotation
-Date: Mon, 5 Dec 2016 17:19:29 -0800
-Message-ID: <3d4f5ffa-e9bf-cd28-d200-74c5dd3d68ce@sandisk.com>
-References: <9ff07804-492c-c67a-e729-b31e0f863027@sandisk.com>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv13 0/3] rdmacg: IB/core: rdma controller support
+Date: Tue, 6 Dec 2016 07:35:49 +0530
+Message-ID: <CAG53R5UokWTZ+YutTY7_nLJ3ad5VLqT02--BtARQ8BHBBpVOdg@mail.gmail.com>
+References: <1480705637-2986-1-git-send-email-pandit.parav@gmail.com> <20161205193528.GC30331@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9ff07804-492c-c67a-e729-b31e0f863027-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <20161205193528.GC30331@mtj.duckdns.org>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Detected by sparse.
+ok. Thanks Tejun.
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/linux/mlx5/srq.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Parav
 
-diff --git a/include/linux/mlx5/srq.h b/include/linux/mlx5/srq.h
-index 33c97dc900f8..1cde0fd53f90 100644
---- a/include/linux/mlx5/srq.h
-+++ b/include/linux/mlx5/srq.h
-@@ -55,7 +55,7 @@ struct mlx5_srq_attr {
- 	u32 lwm;
- 	u32 user_index;
- 	u64 db_record;
--	u64 *pas;
-+	__be64 *pas;
- };
- 
- struct mlx5_core_dev;
--- 
-2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Dec 6, 2016 at 1:05 AM, Tejun Heo <tj@kernel.org> wrote:
+> Parav, it's a bit too late for this cycle.  Let's target v4.11.  I'll
+> review the patches after the merge window.  Please ping me if I don't.
+>
+> Thanks.
+>
+> --
+> tejun
