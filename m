@@ -1,58 +1,90 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] Add Bull device ID support to device white
- lists
-Date: Tue, 6 Dec 2016 14:22:52 -0500
-Message-ID: <e5ad4256-53fe-9ecc-f880-89347134ec42@dev.mellanox.co.il>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: buildlib/cbuild missing yaml on SLE12SP2
+Date: Tue, 6 Dec 2016 14:01:04 -0600
+Message-ID: <02cc01d24ffb$79ad93d0$6d08bb70$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hey Jason, 
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 6ef7805..223e097 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -197,7 +197,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
- {
- 	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
- 
--	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
-+	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
- 		return 1;
- 	if (devid >= 0x1003 && devid <= 0x1016)
- 		return 1;
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 2a1e971..6809a1e 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -530,7 +530,7 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
- int is_mlnx_ext_port_info_supported(uint32_t devid)
- {
- 	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
--		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
-+		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
- 			return 1;
- 		if (devid >= 0x1003 && devid <= 0x1016)
- 			return 1;
-diff --git a/src/vendstat.c b/src/vendstat.c
-index fb42a78..284ef93 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -149,6 +149,7 @@ static uint16_t ext_fw_info_device[][2] = {
- 	{0xcf08, 0xcf08},	/* Switch-IB2 */
- 	{0x01b3, 0x01b3},	/* IS-4 */
- 	{0x1003, 0x1016},	/* Connect-X */
-+	{0x1b02, 0x1b02},	/* Bull */
- 	{0x0000, 0x0000}};
- 
- static int is_ext_fw_info_supported(uint16_t device_id) {
+I'm trying to run buildlib/cbuild build-images travis on rdma-core, and I'm
+missing yaml.  But I think I have it installed.  At least I have perl_YAML
+installed.  This is with SLE12 SP2 RC1.
+
+stevo4-asicdesigners-com:/usr/local/src/rdma-core # zypper search yaml
+Loading repository data...
+Reading installed packages...
+
+S | Name                 | Summary                                    | Type
+--+----------------------+--------------------------------------------+---------
+--
+  | libyaml              | A YAML 1.1 parser and emitter written in C |
+srcpackage
+i | libyaml-0-2          | Shared library from libyaml                | package
+i | libyaml-devel        | Development files for libyaml              | package
+  | perl-Bootloader-YAML | YAML interface for perl-Bootloader         | package
+i | perl-YAML            | YAML Ain't Markup Language (tm)            | package
+  | perl-YAML            | YAML Ain't Markup Language (tm)            |
+srcpackage
+i | perl-YAML-LibYAML    | YAML::LibYAML Perl module                  | package
+  | perl-YAML-LibYAML    | YAML::LibYAML Perl module                  |
+srcpackage
+  | perl-YAML-Syck       | Fast, lightweight YAML loader and dumper   | package
+  | perl-YAML-Syck       | Fast, lightweight YAML loader and dumper   |
+srcpackage
+
+stevo4-asicdesigners-com:/usr/local/src/rdma-core # rpm -ql perl-YAML
+/usr/lib/perl5/vendor_perl/5.18.2/Test
+/usr/lib/perl5/vendor_perl/5.18.2/Test/YAML.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML
+/usr/lib/perl5/vendor_perl/5.18.2/YAML.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Any.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Dumper
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Dumper.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Dumper/Base.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Error.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Loader
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Loader.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Loader/Base.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Marshall.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Mo.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Node.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Tag.pm
+/usr/lib/perl5/vendor_perl/5.18.2/YAML/Types.pm
+/usr/lib/perl5/vendor_perl/5.18.2/x86_64-linux-thread-multi
+/usr/share/doc/packages/perl-YAML
+/usr/share/doc/packages/perl-YAML/Changes
+/usr/share/doc/packages/perl-YAML/LICENSE
+/usr/share/doc/packages/perl-YAML/README
+/usr/share/man/man3/Test::YAML.3pm.gz
+/usr/share/man/man3/YAML.3pm.gz
+/usr/share/man/man3/YAML::Any.3pm.gz
+/usr/share/man/man3/YAML::Dumper.3pm.gz
+/usr/share/man/man3/YAML::Dumper::Base.3pm.gz
+/usr/share/man/man3/YAML::Error.3pm.gz
+/usr/share/man/man3/YAML::Loader.3pm.gz
+/usr/share/man/man3/YAML::Loader::Base.3pm.gz
+/usr/share/man/man3/YAML::Marshall.3pm.gz
+/usr/share/man/man3/YAML::Node.3pm.gz
+/usr/share/man/man3/YAML::Tag.3pm.gz
+/usr/share/man/man3/YAML::Types.3pm.gz
+
+
+Any ideas?
+
+
+Thanks,
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
