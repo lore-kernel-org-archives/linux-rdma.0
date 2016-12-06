@@ -1,54 +1,38 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/5] mlx5: Use NULL instead of 0 to represent a pointer
-Date: Tue, 6 Dec 2016 08:29:56 -0800
-Message-ID: <a8d3dbb7-aafa-c5af-5d06-78d1f4914c5d@sandisk.com>
-References: <9ff07804-492c-c67a-e729-b31e0f863027@sandisk.com>
- <16dc2a07-86f7-ce47-7b0c-1da03e58d99f@sandisk.com>
- <20161206135917.GC2437@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 00/28] Broadcom RoCE Driver (bnxt_re)
+Date: Tue, 6 Dec 2016 09:34:56 -0700
+Message-ID: <20161206163456.GB28066@obsidianresearch.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <20161205165144.GB24852@obsidianresearch.com>
+ <CA+sbYW1sUrv8CBHScMjU7ozBm709-tiVWaynDQK_Dq3AqAfggA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161206135917.GC2437-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CA+sbYW1sUrv8CBHScMjU7ozBm709-tiVWaynDQK_Dq3AqAfggA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/06/2016 05:59 AM, Leon Romanovsky wrote:
-> On Mon, Dec 05, 2016 at 05:18:08PM -0800, Bart Van Assche wrote:
->> Detected by sparse.
->>
->> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
->> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/mlx5/main.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->> index 32b09f059c84..abd200e3e299 100644
->> --- a/drivers/infiniband/hw/mlx5/main.c
->> +++ b/drivers/infiniband/hw/mlx5/main.c
->> @@ -127,7 +127,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
->>
->>  		if ((upper == ndev || (!upper && ndev == ibdev->roce.netdev))
->>  		    && ibdev->ib_active) {
->> -			struct ib_event ibev = {0};
->> +			struct ib_event ibev = { NULL };
->
-> I afraid that it is sparse anomality and because NULL==0, the ibev.event
-> will be initialized to zero, but it is a matter of time when the sparse
-> will complain about wrong initialization again.
+On Tue, Dec 06, 2016 at 11:31:14AM +0530, Selvin Xavier wrote:
+> > Do you have a git tree someplace for this?
 
-Hello Leon,
+> I assume you are referring to our uverbs library.
 
-The first member of struct ib_event is a pointer so I think the sparse 
-complaint is correct. Anyway, how about one of the following two 
-alternatives:
-* Change {0} into { }.
-* Use memset() instead of an initializer.
+No, I mean this series for linux. It is very hard to read these
+patches when they touch the same file again and again and have
+dependencies on net trees and things. I encourage people to include a
+git tree for such large works..
 
-Bart.
+> > Do you have the user space component ready for rdma-core as well?
+> >
+> This is not ready yet. Currently working on it.
+
+I'm also encouraging people to have their user space ready so the
+kernel driver can be properly reviewed.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
