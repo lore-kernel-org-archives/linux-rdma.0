@@ -1,98 +1,46 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/6] i40iw: Fix QP flush to not hang on empty queues or failure
-Date: Tue,  6 Dec 2016 15:49:31 -0600
-Message-ID: <20161206214935.41584-3-henry.orosco@intel.com>
-References: <20161206214935.41584-1-henry.orosco@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161206214935.41584-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Tue, 6 Dec 2016 14:02:19 -0800
+Message-ID: <CAPcyv4gw0rsMNvG=xMRFV0=4MkGuXis5L17Jm3fU69EZAVAS4A@mail.gmail.com>
+References: <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
+ <20161205171830.GB27784@obsidianresearch.com>
+ <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
+ <20161205180231.GA28133@obsidianresearch.com>
+ <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
+ <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
+ <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
+ <ac07a73f2601f6ca35cecc83c553feb0.squirrel@webmail.raithlin.com>
+ <20161206163850.GC28066@obsidianresearch.com>
+ <ec136c34-417d-8a55-c176-2c1d759a5fb8@deltatee.com>
+ <20161206172838.GB19318@obsidianresearch.com>
+ <bedaa7a2-e42d-da83-5c2b-9d639b0397c5@deltatee.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <bedaa7a2-e42d-da83-5c2b-9d639b0397c5-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "John.Bridgman-5C7GfCeVMHo@public.gmane.org" <john.bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, "serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org" <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Paul.Blinzer-5C7GfCeVMHo@public.gmane.org" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "ben.sander-5C7GfCeVMHo@public.gmane.org" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Alexander.Deucher-5C7GfCeVMHo@public.gmane.org" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig@a>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tue, Dec 6, 2016 at 1:47 PM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
+> Hey,
+>
+>> Okay, so clearly this needs a kernel side NVMe specific allocator
+>> and locking so users don't step on each other..
+>
+> Yup, ideally. That's why device dax isn't ideal for this application: it
+> doesn't provide any way to prevent users from stepping on each other.
 
-When flush QP and there are no pending work requests, signal completion
-to unblock i40iw_drain_sq and i40iw_drain_rq which are waiting on
-completion for iwqp->sq_drained and iwqp->sq_drained respectively.
-Also, signal completion if flush QP fails to prevent the drain SQ or RQ
-from being blocked indefintely.
-
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw.h    |  9 ++++++---
- drivers/infiniband/hw/i40iw/i40iw_hw.c | 26 ++++++++++++++++++++++++--
- 2 files changed, 30 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index 51b8280..2aab85b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -112,9 +112,12 @@
- #define I40IW_DRV_OPT_MCAST_LOGPORT_MAP    0x00000800
- 
- #define IW_HMC_OBJ_TYPE_NUM ARRAY_SIZE(iw_hmc_obj_types)
--#define IW_CFG_FPM_QP_COUNT		32768
--#define I40IW_MAX_PAGES_PER_FMR		512
--#define I40IW_MIN_PAGES_PER_FMR		1
-+#define IW_CFG_FPM_QP_COUNT               32768
-+#define I40IW_MAX_PAGES_PER_FMR           512
-+#define I40IW_MIN_PAGES_PER_FMR           1
-+#define I40IW_CQP_COMPL_RQ_WQE_FLUSHED    2
-+#define I40IW_CQP_COMPL_SQ_WQE_FLUSHED    3
-+#define I40IW_CQP_COMPL_RQ_SQ_WQE_FLUSHED 4
- 
- #define I40IW_MTU_TO_MSS		40
- #define I40IW_DEFAULT_MSS		1460
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-index b2854b1..4394a67 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_hw.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-@@ -622,6 +622,7 @@ enum i40iw_status_code i40iw_hw_flush_wqes(struct i40iw_device *iwdev,
- 	struct i40iw_qp_flush_info *hw_info;
- 	struct i40iw_cqp_request *cqp_request;
- 	struct cqp_commands_info *cqp_info;
-+	struct i40iw_qp *iwqp = (struct i40iw_qp *)qp->back_qp;
- 
- 	cqp_request = i40iw_get_cqp_request(&iwdev->cqp, wait);
- 	if (!cqp_request)
-@@ -636,9 +637,30 @@ enum i40iw_status_code i40iw_hw_flush_wqes(struct i40iw_device *iwdev,
- 	cqp_info->in.u.qp_flush_wqes.qp = qp;
- 	cqp_info->in.u.qp_flush_wqes.scratch = (uintptr_t)cqp_request;
- 	status = i40iw_handle_cqp_op(iwdev, cqp_request);
--	if (status)
-+	if (status) {
- 		i40iw_pr_err("CQP-OP Flush WQE's fail");
--	return status;
-+		complete(&iwqp->sq_drained);
-+		complete(&iwqp->rq_drained);
-+		return status;
-+	}
-+	if (!cqp_request->compl_info.maj_err_code) {
-+		switch (cqp_request->compl_info.min_err_code) {
-+		case I40IW_CQP_COMPL_RQ_WQE_FLUSHED:
-+			complete(&iwqp->sq_drained);
-+			break;
-+		case I40IW_CQP_COMPL_SQ_WQE_FLUSHED:
-+			complete(&iwqp->rq_drained);
-+			break;
-+		case I40IW_CQP_COMPL_RQ_SQ_WQE_FLUSHED:
-+			break;
-+		default:
-+			complete(&iwqp->sq_drained);
-+			complete(&iwqp->rq_drained);
-+			break;
-+		}
-+	}
-+
-+	return 0;
- }
- 
- /**
--- 
-2.8.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On this particular point I'm in the process of posting patches that
+allow device-dax sub-division, so you could carve up a bar into
+multiple devices of various sizes.
