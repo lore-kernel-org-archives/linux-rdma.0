@@ -1,81 +1,98 @@
-From: <Tomita.Haruo-IGagC74glE2s6Rmoc/2Z03gSJqDPrsil@public.gmane.org>
-Subject: RE: I/O error on dd commands
-Date: Tue, 6 Dec 2016 05:55:54 +0000
-Message-ID: <0980d1e6e7d34e098900ee293aa0e487@TGXML382.toshiba.local>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 08/28] bnxt_re: Add bnxt_re RoCE driver files
+Date: Tue, 6 Dec 2016 11:26:36 +0530
+Message-ID: <CA+sbYW0MyF4ESEL7U7+TXOUR4cciuuoTB+RJS1N0b_0CURHD+g@mail.gmail.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <1480919912-1079-9-git-send-email-selvin.xavier@broadcom.com> <09068db2-1a14-9fbb-074b-4cf000fbddfb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: ja-JP
+In-Reply-To: <09068db2-1a14-9fbb-074b-4cf000fbddfb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tomita.Haruo-IGagC74glE2s6Rmoc/2Z03gSJqDPrsil@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Max,
+Hi Doug,
 
-Thank you for your reply.
-This issue reproduced vanilla 4.9-rc8.
+ Please find my response inline.
 
-> can you try to repro it with iSER ?
+On Mon, Dec 5, 2016 at 8:46 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 12/5/2016 1:38 AM, Selvin Xavier wrote:
+>
+...
+>> +++ b/drivers/infiniband/hw/bnxtre/Makefile
+>> @@ -0,0 +1,5 @@
+>> +
+>> +obj-$(CONFIG_INFINIBAND_BNXTRE) += bnxt_re.o
+>> +bnxt_re-y := bnxt_re_main.o bnxt_re_ib_verbs.o \
+>> +          bnxt_qplib_res.o bnxt_qplib_rcfw.o \
+>> +          bnxt_qplib_sp.o bnxt_qplib_fp.o
+>
+> A lot of times I prefer these files to be the final patch in the series.
+>  It's completely not possible to break bisectability if these are last.
+> Then again, if I squash this down to one commit it doesn't really matter....
+>
+[Selvin Xavier] While splitting the patch series, we made sure that
+the compilation works after applying each patch.
+But i am ok to push these changes to last patch. This can be included
+in v2 patch set.
+....
+>
+> This copyright, repeated many times in the various skeleton files...
+>
+>> diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+>> new file mode 100644
+>> index 0000000..4c377dc
+>> --- /dev/null
+>> +++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+>> @@ -0,0 +1,96 @@
+>> +/* Broadcom NetXtreme-C/E RoCE driver.
+>> + *
+>> + * Copyright (c) 2016 Broadcom Corporation
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation.
+>> + */
+>> +
+>> +/*
+>> + * Description: Main component of the bnxt_re driver
+>> + */
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/netdevice.h>
+>> +#include <linux/mutex.h>
+>> +#include <linux/list.h>
+>> +#include <linux/rculist.h>
+>> +#include "bnxt_re.h"
+>> +static char version[] =
+>> +             BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
+>> +
+>> +
+>> +MODULE_AUTHOR("Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>");
+>> +MODULE_DESCRIPTION(BNXT_RE_DESC " Driver");
+>> +MODULE_LICENSE("Dual BSD/GPL");
+>
+> and this module license description do not agree.  Please make
+> everything consistent.  I don't care if it's GPLv2 or Dual licensed, it
+> simply needs to be consistent.
+>
 
-I'm sorry. I can't try iSER.
+[Selvin Xavier] i will post v2 with this change. We need Dual license.
+Will edit the license text
+accordingly.
 
-> what is your backing store device ?
+>
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: 0E572FDD
+>
 
-I do now using TOSHIBA Enterprise SSD PX04PMB160.
-https://toshiba.semicon-storage.com/ap-en/product/storage-products/enterprise-ssd.html
-
-> is this happens in 1k bs only or in different bs as well ?
-
-This issue is confirming the reproduction in 512k/1024k/2048k/4096k/8192k bs.
-It occurs by more than one machine, so it isn't a failed of a NIC. 
-LAN is a connection directly (It isn't a failed of a hub.)
-
-> rxe_req.c |    9 +++++----
-> 1 file changed, 5 insertions(+), 4 deletions(-)
-> --- linux-4.9-rc7/drivers/infiniband/sw/rxe/rxe_req.c.orig      2016-12-05 10:11:38.000000000 +0900
-> +++ linux-4.9-rc7/drivers/infiniband/sw/rxe/rxe_req.c   2016-12-05 10:15:43.000000000 +0900
-> @@ -705,12 +705,12 @@ next_wqe:
->         skb = init_req_packet(qp, wqe, opcode, payload, &pkt);
->         if (unlikely(!skb)) {
->                 pr_err("qp#%d Failed allocating skb\n", qp_num(qp));
-> -               goto err;
-> +               goto err1;
->         }
-> 
->         if (fill_packet(qp, wqe, &pkt, skb, payload)) {
->                 pr_debug("qp#%d Error during fill packet\n", qp_num(qp));
-> -               goto err;
-> +               goto err2;
->         }
-> 
->         /*
-> @@ -734,15 +734,16 @@ next_wqe:
->                         goto exit;
->                 }
-> 
-> -               goto err;
-> +               goto err1;
->         }
-> 
->         update_state(qp, wqe, &pkt, payload);
-> 
->         goto next_wqe;
-> 
-> -err:
-> +err2:
->         kfree_skb(skb);
-> +err1:
->         wqe->status = IB_WC_LOC_PROT_ERR;
->         wqe->state = wqe_state_error;
-> 
-
-It's unrelated to this issue, please apply this patch.
-
-thanks,
-Haruo.
-
+Thanks,
+Selvin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
