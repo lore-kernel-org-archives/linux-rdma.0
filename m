@@ -1,28 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: buildlib/cbuild missing yaml on SLE12SP2
-Date: Tue, 6 Dec 2016 13:15:08 -0700
-Message-ID: <20161206201507.GA29370@obsidianresearch.com>
-References: <02cc01d24ffb$79ad93d0$6d08bb70$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] libcxgb4: set *bad_wr in post_send/recv error paths
+Date: Tue, 6 Dec 2016 11:49:32 -0800
+Message-ID: <20161206210403.71E59E08C5@smtp.ogc.us>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <02cc01d24ffb$79ad93d0$6d08bb70$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 06, 2016 at 02:01:04PM -0600, Steve Wise wrote:
-> Hey Jason, 
-> 
-> I'm trying to run buildlib/cbuild build-images travis on rdma-core, and I'm
-> missing yaml.  But I think I have it installed.  At least I have perl_YAML
-> installed.  This is with SLE12 SP2 RC1.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ providers/cxgb4/qp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-You need python-yaml
+diff --git a/providers/cxgb4/qp.c b/providers/cxgb4/qp.c
+index 376a00a..3b448dd 100644
+--- a/providers/cxgb4/qp.c
++++ b/providers/cxgb4/qp.c
+@@ -303,11 +303,13 @@ int c4iw_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	pthread_spin_lock(&qhp->lock);
+ 	if (t4_wq_in_error(&qhp->wq)) {
+ 		pthread_spin_unlock(&qhp->lock);
++		*bad_wr = wr;
+ 		return -EINVAL;
+ 	}
+ 	num_wrs = t4_sq_avail(&qhp->wq);
+ 	if (num_wrs == 0) {
+ 		pthread_spin_unlock(&qhp->lock);
++		*bad_wr = wr;
+ 		return -ENOMEM;
+ 	}
+ 	while (wr) {
+@@ -403,12 +405,14 @@ int c4iw_post_receive(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
+ 	pthread_spin_lock(&qhp->lock);
+ 	if (t4_wq_in_error(&qhp->wq)) {
+ 		pthread_spin_unlock(&qhp->lock);
++		*bad_wr = wr;
+ 		return -EINVAL;
+ 	}
+ 	INC_STAT(recv);
+ 	num_wrs = t4_rq_avail(&qhp->wq);
+ 	if (num_wrs == 0) {
+ 		pthread_spin_unlock(&qhp->lock);
++		*bad_wr = wr;
+ 		return -ENOMEM;
+ 	}
+ 	while (wr) {
+-- 
+1.8.3.1
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
