@@ -1,64 +1,40 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Add Bull device ID support to device white lists
-Date: Wed, 7 Dec 2016 09:53:39 -0500
-Message-ID: <20161207145338.GD24724@phlsvsds.ph.intel.com>
-References: <e5ad4256-53fe-9ecc-f880-89347134ec42@dev.mellanox.co.il>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next v2 0/7] bnxt_en: Add interface to support RDMA
+ driver.
+Date: Wed, 07 Dec 2016 10:59:42 -0500 (EST)
+Message-ID: <20161207.105942.1110054643013714151.davem@davemloft.net>
+References: <1481088381-30411-1-git-send-email-michael.chan@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e5ad4256-53fe-9ecc-f880-89347134ec42-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1481088381-30411-1-git-send-email-michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 06, 2016 at 02:22:52PM -0500, Hal Rosenstock wrote:
+From: Michael Chan <michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Date: Wed,  7 Dec 2016 00:26:14 -0500
+
+> This series adds an interface to support a brand new RDMA driver bnxt_re.
+> The first step is to re-arrange some code so that pci_enable_msix() can
+> be called during pci probe.  The purpose is to allow the RDMA driver to
+> initialize and stay initialized whether the netdev is up or down.
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Then we make some changes to VF resource allocation so that there is
+> enough resources to support RDMA.
+> 
+> Finally the last patch adds a simple interface to allow the RDMA driver to
+> probe and register itself with any bnxt_en devices that support RDMA.
+> Once registered, the RDMA driver can request MSIX, send fw messages, and
+> receive some notifications.
+> 
+> v2: Fixed kbuild test robot warnings.
+> 
+> David, please consider this series for net-next.  Thanks.
 
-Thanks applied,
-Ira
-
-> ---
-> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-> index 6ef7805..223e097 100644
-> --- a/libibnetdisc/src/ibnetdisc.c
-> +++ b/libibnetdisc/src/ibnetdisc.c
-> @@ -197,7 +197,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
->  {
->  	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
->  
-> -	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
-> +	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
->  		return 1;
->  	if (devid >= 0x1003 && devid <= 0x1016)
->  		return 1;
-> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-> index 2a1e971..6809a1e 100644
-> --- a/src/ibdiag_common.c
-> +++ b/src/ibdiag_common.c
-> @@ -530,7 +530,7 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
->  int is_mlnx_ext_port_info_supported(uint32_t devid)
->  {
->  	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
-> -		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
-> +		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
->  			return 1;
->  		if (devid >= 0x1003 && devid <= 0x1016)
->  			return 1;
-> diff --git a/src/vendstat.c b/src/vendstat.c
-> index fb42a78..284ef93 100644
-> --- a/src/vendstat.c
-> +++ b/src/vendstat.c
-> @@ -149,6 +149,7 @@ static uint16_t ext_fw_info_device[][2] = {
->  	{0xcf08, 0xcf08},	/* Switch-IB2 */
->  	{0x01b3, 0x01b3},	/* IS-4 */
->  	{0x1003, 0x1016},	/* Connect-X */
-> +	{0x1b02, 0x1b02},	/* Bull */
->  	{0x0000, 0x0000}};
->  
->  static int is_ext_fw_info_supported(uint16_t device_id) {
+Series applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
