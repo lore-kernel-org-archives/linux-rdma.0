@@ -1,60 +1,107 @@
-From: Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] net: return value of skb_linearize should be handled in
- Linux kernel
-Date: Tue, 6 Dec 2016 21:02:02 -0800
-Message-ID: <CAM_iQpX0nA10tCzfZr_q5i6V2hWqfMUkvXdfo+Ro1TWHOEVi_A@mail.gmail.com>
-References: <1481008233-16777-1-git-send-email-zhouzhouyi@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1481008233-16777-1-git-send-email-zhouzhouyi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhouyi Zhou <zhouzhouyi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, jth-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jon.maloy-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, ying.xue-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, intel-wired-lan <intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fcoe-devel-s9riP+hp16TNLxjTenLetw@public.gmane.org, tipc-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: Michael Chan <michael.chan@broadcom.com>
+Subject: [PATCH net-next v2 4/7] bnxt_en: Improve completion ring allocation for VFs.
+Date: Wed,  7 Dec 2016 00:26:18 -0500
+Message-ID: <1481088381-30411-5-git-send-email-michael.chan@broadcom.com>
+References: <1481088381-30411-1-git-send-email-michael.chan@broadcom.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1481088381-30411-1-git-send-email-michael.chan@broadcom.com>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, selvin.xavier@broadcom.com, somnath.kotur@broadcom.com, dledford@redhat.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 5, 2016 at 11:10 PM, Zhouyi Zhou <zhouzhouyi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
-> index 2a653ec..ab787cb 100644
-> --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
-> +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
-> @@ -490,7 +490,11 @@ int ixgbe_fcoe_ddp(struct ixgbe_adapter *adapter,
->          */
->         if ((fh->fh_r_ctl == FC_RCTL_DD_SOL_DATA) &&
->             (fctl & FC_FC_END_SEQ)) {
-> -               skb_linearize(skb);
-> +               int err = 0;
-> +
-> +               err = skb_linearize(skb);
-> +               if (err)
-> +                       return err;
+All available remaining completion rings not used by the PF should be
+made available for the VFs so that there are enough rings in the VF to
+support RDMA.  The earlier workaround code of capping the rings by the
+statistics context is removed.
 
+When SRIOV is disabled, call a new function bnxt_restore_pf_fw_resources()
+to restore FW resources.  Later on we need to add some logic to account
+for RDMA resources.
 
-You can reuse 'rc' instead of adding 'err'.
+Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
+Signed-off-by: Michael Chan <michael.chan@broadcom.com>
+---
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c       |  8 +++++++-
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h       |  2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c | 14 ++++----------
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-
-
->                 crc = (struct fcoe_crc_eof *)skb_put(skb, sizeof(*crc));
->                 crc->fcoe_eof = FC_EOF_T;
->         }
-> diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-> index fee1f29..4926d48 100644
-> --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-> +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-> @@ -2173,8 +2173,7 @@ static int ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
->                                 total_rx_bytes += ddp_bytes;
->                                 total_rx_packets += DIV_ROUND_UP(ddp_bytes,
->                                                                  mss);
-> -                       }
-> -                       if (!ddp_bytes) {
-> +                       } else {
->                                 dev_kfree_skb_any(skb);
->                                 continue;
->                         }
-
-
-This piece doesn't seem to be related.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index 30b482b..52b8ad4 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -4152,7 +4152,7 @@ static int bnxt_hwrm_func_qcfg(struct bnxt *bp)
+ 	return rc;
+ }
+ 
+-int bnxt_hwrm_func_qcaps(struct bnxt *bp)
++static int bnxt_hwrm_func_qcaps(struct bnxt *bp)
+ {
+ 	int rc = 0;
+ 	struct hwrm_func_qcaps_input req = {0};
+@@ -6856,6 +6856,12 @@ static int bnxt_set_dflt_rings(struct bnxt *bp)
+ 	return rc;
+ }
+ 
++void bnxt_restore_pf_fw_resources(struct bnxt *bp)
++{
++	ASSERT_RTNL();
++	bnxt_hwrm_func_qcaps(bp);
++}
++
+ static void bnxt_parse_log_pcie_link(struct bnxt *bp)
+ {
+ 	enum pcie_link_width width = PCIE_LNK_WIDTH_UNKNOWN;
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+index 0ee2cc4..43a4b17 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
+@@ -1234,7 +1234,6 @@ static inline void bnxt_disable_poll(struct bnxt_napi *bnapi)
+ int hwrm_send_message(struct bnxt *, void *, u32, int);
+ int hwrm_send_message_silent(struct bnxt *, void *, u32, int);
+ int bnxt_hwrm_set_coal(struct bnxt *);
+-int bnxt_hwrm_func_qcaps(struct bnxt *);
+ void bnxt_set_max_func_irqs(struct bnxt *bp, unsigned int max);
+ void bnxt_tx_disable(struct bnxt *bp);
+ void bnxt_tx_enable(struct bnxt *bp);
+@@ -1245,4 +1244,5 @@ static inline void bnxt_disable_poll(struct bnxt_napi *bnapi)
+ int bnxt_close_nic(struct bnxt *, bool, bool);
+ int bnxt_setup_mq_tc(struct net_device *dev, u8 tc);
+ int bnxt_get_max_rings(struct bnxt *, int *, int *, bool);
++void bnxt_restore_pf_fw_resources(struct bnxt *bp);
+ #endif
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
+index bff626a..c696025 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
+@@ -420,15 +420,7 @@ static int bnxt_hwrm_func_cfg(struct bnxt *bp, int num_vfs)
+ 	bnxt_hwrm_cmd_hdr_init(bp, &req, HWRM_FUNC_CFG, -1, -1);
+ 
+ 	/* Remaining rings are distributed equally amongs VF's for now */
+-	/* TODO: the following workaroud is needed to restrict total number
+-	 * of vf_cp_rings not exceed number of HW ring groups. This WA should
+-	 * be removed once new HWRM provides HW ring groups capability in
+-	 * hwrm_func_qcap.
+-	 */
+-	vf_cp_rings = min_t(u16, pf->max_cp_rings, pf->max_stat_ctxs);
+-	vf_cp_rings = (vf_cp_rings - bp->cp_nr_rings) / num_vfs;
+-	/* TODO: restore this logic below once the WA above is removed */
+-	/* vf_cp_rings = (pf->max_cp_rings - bp->cp_nr_rings) / num_vfs; */
++	vf_cp_rings = (pf->max_cp_rings - bp->cp_nr_rings) / num_vfs;
+ 	vf_stat_ctx = (pf->max_stat_ctxs - bp->num_stat_ctxs) / num_vfs;
+ 	if (bp->flags & BNXT_FLAG_AGG_RINGS)
+ 		vf_rx_rings = (pf->max_rx_rings - bp->rx_nr_rings * 2) /
+@@ -590,7 +582,9 @@ void bnxt_sriov_disable(struct bnxt *bp)
+ 
+ 	bp->pf.active_vfs = 0;
+ 	/* Reclaim all resources for the PF. */
+-	bnxt_hwrm_func_qcaps(bp);
++	rtnl_lock();
++	bnxt_restore_pf_fw_resources(bp);
++	rtnl_unlock();
+ }
+ 
+ int bnxt_sriov_configure(struct pci_dev *pdev, int num_vfs)
+-- 
+1.8.3.1
