@@ -1,114 +1,213 @@
 From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 10/28] bnxt_re: register with the NIC driver
-Date: Wed, 7 Dec 2016 18:21:48 -0500
-Message-ID: <ad3d577c-760f-c003-394a-d80efe96400c@redhat.com>
+Subject: Re: [PATCH 00/28] Broadcom RoCE Driver (bnxt_re)
+Date: Wed, 7 Dec 2016 18:33:50 -0500
+Message-ID: <a909ae78-ed49-407a-29c7-b86729f356b8@redhat.com>
 References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
- <1480919912-1079-11-git-send-email-selvin.xavier@broadcom.com>
 Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1480919912-1079-11-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 12/05/2016 01:38 AM, Selvin Xavier wrote:
-> This patch handles the registration with bnxt_en driver. The driver registers
-> with netdev notifier chain. Upon receiving NETDEV_REGISTER event, the driver
-> in turn registers with bnxt_en driver.
-> 	1. bnxt_en's ulp_probe function returns a structure that contains information
-> 	   about the device and additional entry points.
-> 	2. bnxt_en driver returns 'struct bnxt_eth_dev' that contains set of operation
-> 	   vectors that RocE driver invokes later.
-> 	3. bnxt_request_msix() allows the RoCE driver to specify the number of MSI-X
-> 	   vectors that are needed.
-> 	4. bnxt_send_fw_msg () can be used to send messages to the FW
-> 	5. bnxt_register_async_events() can be used to register for async event
-> 	   callbacks.
+> Hi Doug,
 > 
-> Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/bnxtre/Makefile       |   1 +
->  drivers/infiniband/hw/bnxtre/bnxt_re.h      |  48 +++
->  drivers/infiniband/hw/bnxtre/bnxt_re_main.c | 460 ++++++++++++++++++++++++++++
->  3 files changed, 509 insertions(+)
+> This series introduces the RoCE driver for the Broadcom
+> NetXtreme-C/E 10/25/40/50 gigabit RoCE HCAs. This driver
+> is dependent on the bnxt_en NIC driver.
 > 
+> This patch series is based on the "bnxt_re" branch on Doug's
+> repository + four pending bnxt_en NIC driver patches that are
+> yet to be pulled into net-next tree.
+> 
+> Please review and consider applying this to linux-rdma repository.
+> 
+> Thanks,
+> Selvin Xavier
 
-[...]
+Compiling this series seems to have problems...
 
-> diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-> index 4c377dc..1c8171c 100644
-> --- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-> +++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-> @@ -13,10 +13,24 @@
->  
->  #include <linux/module.h>
->  #include <linux/netdevice.h>
-> +#include <linux/ethtool.h>
->  #include <linux/mutex.h>
->  #include <linux/list.h>
->  #include <linux/rculist.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/pci.h>
-> +#include <net/ipv6.h>
-> +#include <net/addrconf.h>
-> +
-> +#include <rdma/ib_verbs.h>
-> +#include <rdma/ib_user_verbs.h>
-> +#include <rdma/ib_umem.h>
-> +#include <rdma/ib_addr.h>
-> +
-> +#include "bnxt_ulp.h"
-> +#include "bnxt_re_hsi.h"
->  #include "bnxt_re.h"
-> +#include "bnxt.h"
->  static char version[] =
->  		BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
->  
-> @@ -30,6 +44,396 @@ MODULE_VERSION(ROCE_DRV_MODULE_VERSION);
->  struct list_head bnxt_re_dev_list = LIST_HEAD_INIT(bnxt_re_dev_list);
->  DEFINE_MUTEX(bnxt_re_dev_lock);
->  static struct workqueue_struct *bnxt_re_wq;
-> +
-> +const char *bnxt_re_event2str[] = {"NONE", "UP", "DOWN", "REBOOT",
-> +				   "CHANGE", "REGISTER", "UNREGISTER",
-> +				   "CHANGEMTU", "CHANGEADDR", "GOING_DOWN",
-> +				   "CHANGENAME", "FEAT_CHANGE",
-> +				   "BONDING_FAILOVER", "PRE_UP",
-> +				   "PRE_TYPE_CHANGE", "POST_TYPE_CHANGE",
-> +				   "POST_INIT", "UNREGISTER_FINAL", "RELEASE",
-> +				   "NOTIFY_PEERS", "JOIN", "CHANGEUPPER",
-> +				   "RESEND_IGMP", "PRECHANGEMTU",
-> +				   "CHANGEINFODATA", "BONDING_INFO",
-> +				   "UNKNOWN"};
-> +
-> +#define NETDEV_UNKNOWN	25
-> +
+The fix appears to be:
 
-[...]
+===
+$ git diff
+diff --git i/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+w/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+index 9f3960037931..1bd67887a23c 100644
+--- i/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
++++ w/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+@@ -19,6 +19,7 @@
+ #include <linux/rculist.h>
+ #include <linux/spinlock.h>
+ #include <linux/pci.h>
++#include <net/dcbnl.h>
+ #include <net/ipv6.h>
+ #include <net/addrconf.h>
+ ===
 
-> +
-> +static inline const char *bnxt_re_netevent(unsigned long event)
-> +{
-> +	if (event >= ARRAY_SIZE(bnxt_re_event2str))
-> +		event = NETDEV_UNKNOWN;
-> +	return bnxt_re_event2str[(event)];
-> +}
+jtoppins@jtoppins:~/projects/linux-rhel7$ git log -1 --oneline
+net-next/master
+25e3e84b183a dummy: expend mtu range for dummy device
+jtoppins@jtoppins:~/projects/linux-rhel7$ git merge-base net-next/master
+HEAD
+25e3e84b183a2c25b1e8303f815a6aa5bf78358a
 
-Where is this function ever used in the series?
+jtoppins@jtoppins:~/projects/linux-rhel7$ make defconfig
+*** Default configuration is based on 'x86_64_defconfig'
+#
+# configuration written to .config
+#
+jtoppins@jtoppins:~/projects/linux-rhel7$ make menuconfig
+  HOSTCC  scripts/kconfig/mconf.o
+  HOSTCC  scripts/kconfig/lxdialog/checklist.o
+  HOSTCC  scripts/kconfig/lxdialog/util.o
+  HOSTCC  scripts/kconfig/lxdialog/inputbox.o
+  HOSTCC  scripts/kconfig/lxdialog/textbox.o
+  HOSTCC  scripts/kconfig/lxdialog/yesno.o
+  HOSTCC  scripts/kconfig/lxdialog/menubox.o
+  HOSTLD  scripts/kconfig/mconf
+scripts/kconfig/mconf  Kconfig
+configuration written to .config
 
-$ git log -1 --oneline
-8b8b72dd6226 bnxt_re: Add QP event handling
-$ git grep "bnxt_re_netevent"
-drivers/infiniband/hw/bnxtre/bnxt_re_main.c:static inline const char
-*bnxt_re_netevent(unsigned long event)
+*** End of the configuration.
+*** Execute 'make' to start the build or try 'make help'.
+
+jtoppins@jtoppins:~/projects/linux-rhel7$ grep "BNXTRE" .config
+CONFIG_INFINIBAND_BNXTRE=m
+jtoppins@jtoppins:~/projects/linux-rhel7$ make
+drivers/infiniband/hw/bnxtre/bnxt_re.ko
+  SYSTBL  arch/x86/entry/syscalls/../../include/generated/asm/syscalls_32.h
+  SYSHDR
+arch/x86/entry/syscalls/../../include/generated/asm/unistd_32_ia32.h
+  SYSHDR
+arch/x86/entry/syscalls/../../include/generated/asm/unistd_64_x32.h
+  SYSTBL  arch/x86/entry/syscalls/../../include/generated/asm/syscalls_64.h
+  SYSHDR
+arch/x86/entry/syscalls/../../include/generated/uapi/asm/unistd_32.h
+  SYSHDR
+arch/x86/entry/syscalls/../../include/generated/uapi/asm/unistd_64.h
+  SYSHDR
+arch/x86/entry/syscalls/../../include/generated/uapi/asm/unistd_x32.h
+  HOSTCC  arch/x86/tools/relocs_32.o
+  HOSTCC  arch/x86/tools/relocs_64.o
+  HOSTCC  arch/x86/tools/relocs_common.o
+  HOSTLD  arch/x86/tools/relocs
+  CHK     include/config/kernel.release
+  UPD     include/config/kernel.release
+  WRAP    arch/x86/include/generated/asm/clkdev.h
+  WRAP    arch/x86/include/generated/asm/cputime.h
+  WRAP    arch/x86/include/generated/asm/dma-contiguous.h
+  WRAP    arch/x86/include/generated/asm/early_ioremap.h
+  WRAP    arch/x86/include/generated/asm/mcs_spinlock.h
+  WRAP    arch/x86/include/generated/asm/mm-arch-hooks.h
+  CHK     include/generated/uapi/linux/version.h
+  UPD     include/generated/uapi/linux/version.h
+  CHK     include/generated/utsrelease.h
+  UPD     include/generated/utsrelease.h
+  CC      kernel/bounds.s
+  CHK     include/generated/bounds.h
+  UPD     include/generated/bounds.h
+  CHK     include/generated/timeconst.h
+  UPD     include/generated/timeconst.h
+  CC      arch/x86/kernel/asm-offsets.s
+  CHK     include/generated/asm-offsets.h
+  UPD     include/generated/asm-offsets.h
+  CALL    scripts/checksyscalls.sh
+  CC      scripts/mod/empty.o
+  HOSTCC  scripts/mod/mk_elfconfig
+  MKELF   scripts/mod/elfconfig.h
+  HOSTCC  scripts/mod/modpost.o
+  CC      scripts/mod/devicetable-offsets.s
+  GEN     scripts/mod/devicetable-offsets.h
+  HOSTCC  scripts/mod/file2alias.o
+  HOSTCC  scripts/mod/sumversion.o
+  HOSTLD  scripts/mod/modpost
+  HOSTCC  scripts/selinux/genheaders/genheaders
+  HOSTCC  scripts/selinux/mdp/mdp
+  HOSTCC  scripts/kallsyms
+  HOSTCC  scripts/pnmtologo
+  HOSTCC  scripts/conmakehash
+  HOSTCC  scripts/sortextable
+  CC [M]  drivers/infiniband/hw/bnxtre/bnxt_re_main.o
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c: In function
+‘bnxt_re_get_priority_mask’:
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:850:17: error: storage size
+of ‘app’ isn’t known
+  struct dcb_app app;
+                 ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:855:17: error:
+‘IEEE_8021QAZ_APP_SEL_ETHERTYPE’ undeclared (first use in this function)
+  app.selector = IEEE_8021QAZ_APP_SEL_ETHERTYPE;
+                 ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:855:17: note: each
+undeclared identifier is reported only once for each function it appears in
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:857:2: error: implicit
+declaration of function ‘dcb_ieee_getapp_mask’
+[-Werror=implicit-function-declaration]
+  tmp_map = dcb_ieee_getapp_mask(netdev, &app);
+  ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:860:17: error:
+‘IEEE_8021QAZ_APP_SEL_DGRAM’ undeclared (first use in this function)
+  app.selector = IEEE_8021QAZ_APP_SEL_DGRAM;
+                 ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:850:17: warning: unused
+variable ‘app’ [-Wunused-variable]
+  struct dcb_app app;
+                 ^
+cc1: some warnings being treated as errors
+make[1]: *** [drivers/infiniband/hw/bnxtre/bnxt_re_main.o] Error 1
+make: *** [drivers/infiniband/hw/bnxtre/bnxt_re.ko] Error 2
+jtoppins@jtoppins:~/projects/linux-rhel7$
+
+
+It seems this is the patch that has the problem:
+Author: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Date:   Sun Dec 4 22:38:29 2016 -0800
+
+    bnxt_re: Support for DCB
+
+    This patch queries the configured RoCE APP Priority on the host
+    using the dcbnl API and programs the RoCE FW with the corresponding
+    Traffic Class(es) for the priority.
+
+Running this also fails:
+$ make M=drivers/infiniband/hw/bnxtre bnxt_re.ko
+  CC [M]  drivers/infiniband/hw/bnxtre/bnxt_re_main.o
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c: In function
+‘bnxt_re_get_priority_mask’:
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:850:17: error: storage size
+of ‘app’ isn’t known
+  struct dcb_app app;
+                 ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:855:17: error:
+‘IEEE_8021QAZ_APP_SEL_ETHERTYPE’ undeclared (first use in this function)
+  app.selector = IEEE_8021QAZ_APP_SEL_ETHERTYPE;
+                 ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:855:17: note: each
+undeclared identifier is reported only once for each function it appears in
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:857:2: error: implicit
+declaration of function ‘dcb_ieee_getapp_mask’
+[-Werror=implicit-function-declaration]
+  tmp_map = dcb_ieee_getapp_mask(netdev, &app);
+  ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:860:17: error:
+‘IEEE_8021QAZ_APP_SEL_DGRAM’ undeclared (first use in this function)
+  app.selector = IEEE_8021QAZ_APP_SEL_DGRAM;
+                 ^
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:850:17: warning: unused
+variable ‘app’ [-Wunused-variable]
+  struct dcb_app app;
+                 ^
+cc1: some warnings being treated as errors
+make[1]: *** [drivers/infiniband/hw/bnxtre/bnxt_re_main.o] Error 1
+make: *** [bnxt_re.ko] Error 2
+
+v2?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
