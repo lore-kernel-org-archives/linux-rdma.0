@@ -1,28 +1,45 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH net-next v2 0/7] bnxt_en: Add interface to support RDMA
- driver.
-Date: Tue, 6 Dec 2016 23:29:07 -0800
-Message-ID: <20161207072907.GA20253@infradead.org>
-References: <1481088381-30411-1-git-send-email-michael.chan@broadcom.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1481088381-30411-1-git-send-email-michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Chan <michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Subject: [PATCH 1/1] infiniband: nes: return value of skb_linearize should be handled
+Date: Wed,  7 Dec 2016 15:30:05 +0800
+Message-ID: <1481095805-25010-1-git-send-email-zhouzhouyi@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: faisal.latif@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Zhouyi Zhou <zhouzhouyi@gmail.com>, Zhouyi Zhou <yizhouzhou@ict.ac.cn>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 07, 2016 at 12:26:14AM -0500, Michael Chan wrote:
-> This series adds an interface to support a brand new RDMA driver bnxt_re.
-> The first step is to re-arrange some code so that pci_enable_msix() can
-> be called during pci probe.  The purpose is to allow the RDMA driver to
-> initialize and stay initialized whether the netdev is up or down.
+Return value of skb_linearize should be handled in function 
+nes_netdev_start_xmit.
 
-Please switch form pci_enable_msix to pci_alloc_irq_vectors for any
-changes to MSI-X code, thanks!
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Compiled in x86_64
+Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com> 
+Reviewed-by: Eric Dumazet <eric.dumazet@gmail.com>
+
+---
+ drivers/infiniband/hw/nes/nes_nic.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
+index 2b27d13..dfd1f57 100644
+--- a/drivers/infiniband/hw/nes/nes_nic.c
++++ b/drivers/infiniband/hw/nes/nes_nic.c
+@@ -662,10 +662,14 @@ static int nes_netdev_start_xmit(struct sk_buff *skb, struct net_device *netdev)
+ 				nesnic->sq_head &= nesnic->sq_size-1;
+ 			}
+ 		} else {
+-			nesvnic->linearized_skbs++;
+ 			hoffset = skb_transport_header(skb) - skb->data;
+ 			nhoffset = skb_network_header(skb) - skb->data;
+-			skb_linearize(skb);
++			if (skb_linearize(skb)) {
++				nesvnic->tx_sw_dropped++;
++				kfree_skb(skb);
++				return NETDEV_TX_OK;
++			}
++			nesvnic->linearized_skbs++;
+ 			skb_set_transport_header(skb, hoffset);
+ 			skb_set_network_header(skb, nhoffset);
+ 			if (!nes_nic_send(skb, netdev))
+-- 
+1.9.1
