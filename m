@@ -1,72 +1,69 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH] net: return value of skb_linearize should be handled in
- Linux kernel
-Date: Wed, 7 Dec 2016 09:57:45 -0800
-Message-ID: <CAM_iQpWPkUnMhNykQtg3fSh6-SnB893p0j6-m0E0fZUgTUBw0g@mail.gmail.com>
-References: <1481008233-16777-1-git-send-email-zhouzhouyi@gmail.com>
- <CAM_iQpX0nA10tCzfZr_q5i6V2hWqfMUkvXdfo+Ro1TWHOEVi_A@mail.gmail.com> <CAABZP2w_YsXgzZ0tH=r3mnLUbVfpY8Xn3vk9XoS_Hq1r8aeNUQ@mail.gmail.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] libcxgb4: set *bad_wr in post_send/recv error paths
+Date: Wed, 7 Dec 2016 20:15:41 +0200
+Message-ID: <20161207181541.GA3709@yuval-lap>
+References: <20161206210403.71E59E08C5@smtp.ogc.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAABZP2w_YsXgzZ0tH=r3mnLUbVfpY8Xn3vk9XoS_Hq1r8aeNUQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhouyi Zhou <zhouzhouyi@gmail.com>
-Cc: faisal.latif@intel.com, dledford@redhat.com, sean.hefty@intel.com, Hal Rosenstock <hal.rosenstock@gmail.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, QLogic-Storage-Upstream@qlogic.com, jejb@linux.vnet.ibm.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Johannes Thumshirn <jth@kernel.org>, jon.maloy@ericsson.com, ying.xue@windriver.com, David Miller <davem@davemloft.net>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, intel-wired-lan <intel-wired-lan@lists.osuosl.org>, Linux Kernel Network Developers <netdev@vger.kernel.org>, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, tipc-discussion@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161206210403.71E59E08C5-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 6, 2016 at 10:27 PM, Zhouyi Zhou <zhouzhouyi@gmail.com> wrote:
-> On Wed, Dec 7, 2016 at 1:02 PM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
->> On Mon, Dec 5, 2016 at 11:10 PM, Zhouyi Zhou <zhouzhouyi@gmail.com> wrote:
->>> diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
->>> index 2a653ec..ab787cb 100644
->>> --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
->>> +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
->>> @@ -490,7 +490,11 @@ int ixgbe_fcoe_ddp(struct ixgbe_adapter *adapter,
->>>          */
->>>         if ((fh->fh_r_ctl == FC_RCTL_DD_SOL_DATA) &&
->>>             (fctl & FC_FC_END_SEQ)) {
->>> -               skb_linearize(skb);
->>> +               int err = 0;
->>> +
->>> +               err = skb_linearize(skb);
->>> +               if (err)
->>> +                       return err;
->>
->>
->> You can reuse 'rc' instead of adding 'err'.
-> rc here is meaningful for the length of data being ddped. If using rc
-> here, a successful
-> skb_linearize will assign rc to 0.
+Looks like same fix should be applied to cxgb4 driver, right?
 
-Right, I thought it returns 0 on success.
+Yuval
 
-
->>
->>
->>
->>>                 crc = (struct fcoe_crc_eof *)skb_put(skb, sizeof(*crc));
->>>                 crc->fcoe_eof = FC_EOF_T;
->>>         }
->>> diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
->>> index fee1f29..4926d48 100644
->>> --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
->>> +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
->>> @@ -2173,8 +2173,7 @@ static int ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
->>>                                 total_rx_bytes += ddp_bytes;
->>>                                 total_rx_packets += DIV_ROUND_UP(ddp_bytes,
->>>                                                                  mss);
->>> -                       }
->>> -                       if (!ddp_bytes) {
->>> +                       } else {
->>>                                 dev_kfree_skb_any(skb);
->>>                                 continue;
->>>                         }
->>
->>
->> This piece doesn't seem to be related.
-> if ddp_bytes is negative there will be some error, I think the skb
-> should not pass to upper layer.
-
-You misunderstand my point, this return value is for ixgbe_fcoe_ddp()
-not skb_linearize(), you need to make it a separate patch because this
-patch, as in $subject, only fixes skb_linearize().
+On Tue, Dec 06, 2016 at 11:49:32AM -0800, Steve Wise wrote:
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  providers/cxgb4/qp.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/providers/cxgb4/qp.c b/providers/cxgb4/qp.c
+> index 376a00a..3b448dd 100644
+> --- a/providers/cxgb4/qp.c
+> +++ b/providers/cxgb4/qp.c
+> @@ -303,11 +303,13 @@ int c4iw_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+>  	pthread_spin_lock(&qhp->lock);
+>  	if (t4_wq_in_error(&qhp->wq)) {
+>  		pthread_spin_unlock(&qhp->lock);
+> +		*bad_wr = wr;
+>  		return -EINVAL;
+>  	}
+>  	num_wrs = t4_sq_avail(&qhp->wq);
+>  	if (num_wrs == 0) {
+>  		pthread_spin_unlock(&qhp->lock);
+> +		*bad_wr = wr;
+>  		return -ENOMEM;
+>  	}
+>  	while (wr) {
+> @@ -403,12 +405,14 @@ int c4iw_post_receive(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
+>  	pthread_spin_lock(&qhp->lock);
+>  	if (t4_wq_in_error(&qhp->wq)) {
+>  		pthread_spin_unlock(&qhp->lock);
+> +		*bad_wr = wr;
+>  		return -EINVAL;
+>  	}
+>  	INC_STAT(recv);
+>  	num_wrs = t4_rq_avail(&qhp->wq);
+>  	if (num_wrs == 0) {
+>  		pthread_spin_unlock(&qhp->lock);
+> +		*bad_wr = wr;
+>  		return -ENOMEM;
+>  	}
+>  	while (wr) {
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
