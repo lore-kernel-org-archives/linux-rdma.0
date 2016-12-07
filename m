@@ -1,48 +1,114 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 01/10] IB/core: Add raw packet protocol
-Date: Wed, 7 Dec 2016 15:40:44 -0700
-Message-ID: <20161207224044.GA23093@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB0BA1B7@ORSMSX109.amr.corp.intel.com>
- <d4bab4a9-aa32-282f-b501-ecfc00b0be0f@talpey.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA68E@ORSMSX109.amr.corp.intel.com>
- <HE1PR0501MB2812393A0A690DEC1E03DE3FB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <20161205171013.GA27784@obsidianresearch.com>
- <HE1PR0501MB2812A66403A8C19AF83742EDB1830@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <CAJ3xEMhYs0jtXYDqAXEw17Fk4padG903J3enL+uNPg_fNk-9Uw@mail.gmail.com>
- <20161206213938.GC647@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0BBEC7@ORSMSX109.amr.corp.intel.com>
- <d7bca935-32cb-51ee-beea-724e1a5b748a@redhat.com>
+From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 10/28] bnxt_re: register with the NIC driver
+Date: Wed, 7 Dec 2016 18:21:48 -0500
+Message-ID: <ad3d577c-760f-c003-394a-d80efe96400c@redhat.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <1480919912-1079-11-git-send-email-selvin.xavier@broadcom.com>
+Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <d7bca935-32cb-51ee-beea-724e1a5b748a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1480919912-1079-11-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 07, 2016 at 05:06:24PM -0500, Doug Ledford wrote:
-> On 12/6/2016 5:13 PM, Hefty, Sean wrote:
-> >> I've already proposed disallowing multiprotocol struct ib_devices.
-> > 
-> > My preference is to discontinue attempts at associating a protocol with the device.  A device could implement a dozen protocols in software.  Transports belong to QPs or cm ids, not devices.  Each rdma_cm_id should be associated with a specific cm/transport directly, rather than indirectly selecting one based on the bound <device, port>.
-> > 
-> > If an app wants a specific transport type for a QP, why doesn't it just try to open one and see if the call fails?
+On 12/05/2016 01:38 AM, Selvin Xavier wrote:
+> This patch handles the registration with bnxt_en driver. The driver registers
+> with netdev notifier chain. Upon receiving NETDEV_REGISTER event, the driver
+> in turn registers with bnxt_en driver.
+> 	1. bnxt_en's ulp_probe function returns a structure that contains information
+> 	   about the device and additional entry points.
+> 	2. bnxt_en driver returns 'struct bnxt_eth_dev' that contains set of operation
+> 	   vectors that RocE driver invokes later.
+> 	3. bnxt_request_msix() allows the RoCE driver to specify the number of MSI-X
+> 	   vectors that are needed.
+> 	4. bnxt_send_fw_msg () can be used to send messages to the FW
+> 	5. bnxt_register_async_events() can be used to register for async event
+> 	   callbacks.
 > 
-> I tend to agree with Sean on this.  And to answer Or's question from a
-> couple emails back, I'm inclined to just take the last three patches for
-> now while we work out a better idea of how everything here should be
-> done on the first seven patches.
+> Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/bnxtre/Makefile       |   1 +
+>  drivers/infiniband/hw/bnxtre/bnxt_re.h      |  48 +++
+>  drivers/infiniband/hw/bnxtre/bnxt_re_main.c | 460 ++++++++++++++++++++++++++++
+>  3 files changed, 509 insertions(+)
+> 
 
-Well in that case, we should work toward getting rid of 'struct
-ib_device' - it is the cause of so much of this trouble. A
-port-focused model like the netstack uses is overall saner..
+[...]
 
-We can figure out some other way to model what ports can be shared
-within a PD, ideally something that works better for rxe..
+> diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+> index 4c377dc..1c8171c 100644
+> --- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+> +++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
+> @@ -13,10 +13,24 @@
+>  
+>  #include <linux/module.h>
+>  #include <linux/netdevice.h>
+> +#include <linux/ethtool.h>
+>  #include <linux/mutex.h>
+>  #include <linux/list.h>
+>  #include <linux/rculist.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/pci.h>
+> +#include <net/ipv6.h>
+> +#include <net/addrconf.h>
+> +
+> +#include <rdma/ib_verbs.h>
+> +#include <rdma/ib_user_verbs.h>
+> +#include <rdma/ib_umem.h>
+> +#include <rdma/ib_addr.h>
+> +
+> +#include "bnxt_ulp.h"
+> +#include "bnxt_re_hsi.h"
+>  #include "bnxt_re.h"
+> +#include "bnxt.h"
+>  static char version[] =
+>  		BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
+>  
+> @@ -30,6 +44,396 @@ MODULE_VERSION(ROCE_DRV_MODULE_VERSION);
+>  struct list_head bnxt_re_dev_list = LIST_HEAD_INIT(bnxt_re_dev_list);
+>  DEFINE_MUTEX(bnxt_re_dev_lock);
+>  static struct workqueue_struct *bnxt_re_wq;
+> +
+> +const char *bnxt_re_event2str[] = {"NONE", "UP", "DOWN", "REBOOT",
+> +				   "CHANGE", "REGISTER", "UNREGISTER",
+> +				   "CHANGEMTU", "CHANGEADDR", "GOING_DOWN",
+> +				   "CHANGENAME", "FEAT_CHANGE",
+> +				   "BONDING_FAILOVER", "PRE_UP",
+> +				   "PRE_TYPE_CHANGE", "POST_TYPE_CHANGE",
+> +				   "POST_INIT", "UNREGISTER_FINAL", "RELEASE",
+> +				   "NOTIFY_PEERS", "JOIN", "CHANGEUPPER",
+> +				   "RESEND_IGMP", "PRECHANGEMTU",
+> +				   "CHANGEINFODATA", "BONDING_INFO",
+> +				   "UNKNOWN"};
+> +
+> +#define NETDEV_UNKNOWN	25
+> +
 
-Jason
+[...]
+
+> +
+> +static inline const char *bnxt_re_netevent(unsigned long event)
+> +{
+> +	if (event >= ARRAY_SIZE(bnxt_re_event2str))
+> +		event = NETDEV_UNKNOWN;
+> +	return bnxt_re_event2str[(event)];
+> +}
+
+Where is this function ever used in the series?
+
+$ git log -1 --oneline
+8b8b72dd6226 bnxt_re: Add QP event handling
+$ git grep "bnxt_re_netevent"
+drivers/infiniband/hw/bnxtre/bnxt_re_main.c:static inline const char
+*bnxt_re_netevent(unsigned long event)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
