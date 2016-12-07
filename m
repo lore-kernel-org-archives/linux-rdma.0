@@ -1,329 +1,62 @@
-From: Michael Chan <michael.chan@broadcom.com>
-Subject: [PATCH net-next v2 2/7] bnxt_en: Enable MSIX early in bnxt_init_one().
-Date: Wed,  7 Dec 2016 00:26:16 -0500
-Message-ID: <1481088381-30411-3-git-send-email-michael.chan@broadcom.com>
-References: <1481088381-30411-1-git-send-email-michael.chan@broadcom.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1481088381-30411-1-git-send-email-michael.chan@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, selvin.xavier@broadcom.com, somnath.kotur@broadcom.com, dledford@redhat.com, linux-rdma@vger.kernel.org
+From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Subject: Re: [PATCH] net: return value of skb_linearize should be handled in
+ Linux kernel
+Date: Wed, 7 Dec 2016 14:27:00 +0800
+Message-ID: <CAABZP2w_YsXgzZ0tH=r3mnLUbVfpY8Xn3vk9XoS_Hq1r8aeNUQ@mail.gmail.com>
+References: <1481008233-16777-1-git-send-email-zhouzhouyi@gmail.com> <CAM_iQpX0nA10tCzfZr_q5i6V2hWqfMUkvXdfo+Ro1TWHOEVi_A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAM_iQpX0nA10tCzfZr_q5i6V2hWqfMUkvXdfo+Ro1TWHOEVi_A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: faisal.latif@intel.com, dledford@redhat.com, sean.hefty@intel.com, Hal Rosenstock <hal.rosenstock@gmail.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, QLogic-Storage-Upstream@qlogic.com, jejb@linux.vnet.ibm.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Johannes Thumshirn <jth@kernel.org>, jon.maloy@ericsson.com, ying.xue@windriver.com, David Miller <davem@davemloft.net>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, intel-wired-lan <intel-wired-lan@lists.osuosl.org>, Linux Kernel Network Developers <netdev@vger.kernel.org>, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org, tipc-discussion@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-To better support the new RDMA driver, we need to move pci_enable_msix()
-from bnxt_open() to bnxt_init_one().  This way, MSIX vectors are available
-to the RDMA driver whether the network device is up or down.
-
-Part of the existing bnxt_setup_int_mode() function is now refactored into
-a new bnxt_init_int_mode().  bnxt_init_int_mode() is called during
-bnxt_init_one() to enable MSIX.  The remaining logic in
-bnxt_setup_int_mode() to map the IRQs to the completion rings is called
-during bnxt_open().
-
-v2: Fixed compile warning when CONFIG_BNXT_SRIOV is not set.
-
-Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
-Signed-off-by: Michael Chan <michael.chan@broadcom.com>
----
- drivers/net/ethernet/broadcom/bnxt/bnxt.c | 183 +++++++++++++++++++-----------
- drivers/net/ethernet/broadcom/bnxt/bnxt.h |   1 +
- 2 files changed, 115 insertions(+), 69 deletions(-)
-
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 269e757..da302eb 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -4743,6 +4743,80 @@ static int bnxt_trim_rings(struct bnxt *bp, int *rx, int *tx, int max,
- 	return 0;
- }
- 
-+static void bnxt_setup_msix(struct bnxt *bp)
-+{
-+	const int len = sizeof(bp->irq_tbl[0].name);
-+	struct net_device *dev = bp->dev;
-+	int tcs, i;
-+
-+	tcs = netdev_get_num_tc(dev);
-+	if (tcs > 1) {
-+		bp->tx_nr_rings_per_tc = bp->tx_nr_rings / tcs;
-+		if (bp->tx_nr_rings_per_tc == 0) {
-+			netdev_reset_tc(dev);
-+			bp->tx_nr_rings_per_tc = bp->tx_nr_rings;
-+		} else {
-+			int i, off, count;
-+
-+			bp->tx_nr_rings = bp->tx_nr_rings_per_tc * tcs;
-+			for (i = 0; i < tcs; i++) {
-+				count = bp->tx_nr_rings_per_tc;
-+				off = i * count;
-+				netdev_set_tc_queue(dev, i, count, off);
-+			}
-+		}
-+	}
-+
-+	for (i = 0; i < bp->cp_nr_rings; i++) {
-+		char *attr;
-+
-+		if (bp->flags & BNXT_FLAG_SHARED_RINGS)
-+			attr = "TxRx";
-+		else if (i < bp->rx_nr_rings)
-+			attr = "rx";
-+		else
-+			attr = "tx";
-+
-+		snprintf(bp->irq_tbl[i].name, len, "%s-%s-%d", dev->name, attr,
-+			 i);
-+		bp->irq_tbl[i].handler = bnxt_msix;
-+	}
-+}
-+
-+static void bnxt_setup_inta(struct bnxt *bp)
-+{
-+	const int len = sizeof(bp->irq_tbl[0].name);
-+
-+	if (netdev_get_num_tc(bp->dev))
-+		netdev_reset_tc(bp->dev);
-+
-+	snprintf(bp->irq_tbl[0].name, len, "%s-%s-%d", bp->dev->name, "TxRx",
-+		 0);
-+	bp->irq_tbl[0].handler = bnxt_inta;
-+}
-+
-+static int bnxt_setup_int_mode(struct bnxt *bp)
-+{
-+	int rc;
-+
-+	if (bp->flags & BNXT_FLAG_USING_MSIX)
-+		bnxt_setup_msix(bp);
-+	else
-+		bnxt_setup_inta(bp);
-+
-+	rc = bnxt_set_real_num_queues(bp);
-+	return rc;
-+}
-+
-+static unsigned int bnxt_get_max_func_irqs(struct bnxt *bp)
-+{
-+#if defined(CONFIG_BNXT_SRIOV)
-+	if (BNXT_VF(bp))
-+		return bp->vf.max_irqs;
-+#endif
-+	return bp->pf.max_irqs;
-+}
-+
- void bnxt_set_max_func_irqs(struct bnxt *bp, unsigned int max_irqs)
- {
- #if defined(CONFIG_BNXT_SRIOV)
-@@ -4753,16 +4827,12 @@ void bnxt_set_max_func_irqs(struct bnxt *bp, unsigned int max_irqs)
- 		bp->pf.max_irqs = max_irqs;
- }
- 
--static int bnxt_setup_msix(struct bnxt *bp)
-+static int bnxt_init_msix(struct bnxt *bp)
- {
--	struct msix_entry *msix_ent;
--	struct net_device *dev = bp->dev;
- 	int i, total_vecs, rc = 0, min = 1;
--	const int len = sizeof(bp->irq_tbl[0].name);
--
--	bp->flags &= ~BNXT_FLAG_USING_MSIX;
--	total_vecs = bp->cp_nr_rings;
-+	struct msix_entry *msix_ent;
- 
-+	total_vecs = bnxt_get_max_func_irqs(bp);
- 	msix_ent = kcalloc(total_vecs, sizeof(struct msix_entry), GFP_KERNEL);
- 	if (!msix_ent)
- 		return -ENOMEM;
-@@ -4783,8 +4853,10 @@ static int bnxt_setup_msix(struct bnxt *bp)
- 
- 	bp->irq_tbl = kcalloc(total_vecs, sizeof(struct bnxt_irq), GFP_KERNEL);
- 	if (bp->irq_tbl) {
--		int tcs;
-+		for (i = 0; i < total_vecs; i++)
-+			bp->irq_tbl[i].vector = msix_ent[i].vector;
- 
-+		bp->total_irqs = total_vecs;
- 		/* Trim rings based upon num of vectors allocated */
- 		rc = bnxt_trim_rings(bp, &bp->rx_nr_rings, &bp->tx_nr_rings,
- 				     total_vecs, min == 1);
-@@ -4792,43 +4864,10 @@ static int bnxt_setup_msix(struct bnxt *bp)
- 			goto msix_setup_exit;
- 
- 		bp->tx_nr_rings_per_tc = bp->tx_nr_rings;
--		tcs = netdev_get_num_tc(dev);
--		if (tcs > 1) {
--			bp->tx_nr_rings_per_tc = bp->tx_nr_rings / tcs;
--			if (bp->tx_nr_rings_per_tc == 0) {
--				netdev_reset_tc(dev);
--				bp->tx_nr_rings_per_tc = bp->tx_nr_rings;
--			} else {
--				int i, off, count;
-+		bp->cp_nr_rings = (min == 1) ?
-+				  max_t(int, bp->tx_nr_rings, bp->rx_nr_rings) :
-+				  bp->tx_nr_rings + bp->rx_nr_rings;
- 
--				bp->tx_nr_rings = bp->tx_nr_rings_per_tc * tcs;
--				for (i = 0; i < tcs; i++) {
--					count = bp->tx_nr_rings_per_tc;
--					off = i * count;
--					netdev_set_tc_queue(dev, i, count, off);
--				}
--			}
--		}
--		bp->cp_nr_rings = total_vecs;
--
--		for (i = 0; i < bp->cp_nr_rings; i++) {
--			char *attr;
--
--			bp->irq_tbl[i].vector = msix_ent[i].vector;
--			if (bp->flags & BNXT_FLAG_SHARED_RINGS)
--				attr = "TxRx";
--			else if (i < bp->rx_nr_rings)
--				attr = "rx";
--			else
--				attr = "tx";
--
--			snprintf(bp->irq_tbl[i].name, len,
--				 "%s-%s-%d", dev->name, attr, i);
--			bp->irq_tbl[i].handler = bnxt_msix;
--		}
--		rc = bnxt_set_real_num_queues(bp);
--		if (rc)
--			goto msix_setup_exit;
- 	} else {
- 		rc = -ENOMEM;
- 		goto msix_setup_exit;
-@@ -4838,52 +4877,54 @@ static int bnxt_setup_msix(struct bnxt *bp)
- 	return 0;
- 
- msix_setup_exit:
--	netdev_err(bp->dev, "bnxt_setup_msix err: %x\n", rc);
-+	netdev_err(bp->dev, "bnxt_init_msix err: %x\n", rc);
-+	kfree(bp->irq_tbl);
-+	bp->irq_tbl = NULL;
- 	pci_disable_msix(bp->pdev);
- 	kfree(msix_ent);
- 	return rc;
- }
- 
--static int bnxt_setup_inta(struct bnxt *bp)
-+static int bnxt_init_inta(struct bnxt *bp)
- {
--	int rc;
--	const int len = sizeof(bp->irq_tbl[0].name);
--
--	if (netdev_get_num_tc(bp->dev))
--		netdev_reset_tc(bp->dev);
--
- 	bp->irq_tbl = kcalloc(1, sizeof(struct bnxt_irq), GFP_KERNEL);
--	if (!bp->irq_tbl) {
--		rc = -ENOMEM;
--		return rc;
--	}
-+	if (!bp->irq_tbl)
-+		return -ENOMEM;
-+
-+	bp->total_irqs = 1;
- 	bp->rx_nr_rings = 1;
- 	bp->tx_nr_rings = 1;
- 	bp->cp_nr_rings = 1;
- 	bp->tx_nr_rings_per_tc = bp->tx_nr_rings;
- 	bp->flags |= BNXT_FLAG_SHARED_RINGS;
- 	bp->irq_tbl[0].vector = bp->pdev->irq;
--	snprintf(bp->irq_tbl[0].name, len,
--		 "%s-%s-%d", bp->dev->name, "TxRx", 0);
--	bp->irq_tbl[0].handler = bnxt_inta;
--	rc = bnxt_set_real_num_queues(bp);
--	return rc;
-+	return 0;
- }
- 
--static int bnxt_setup_int_mode(struct bnxt *bp)
-+static int bnxt_init_int_mode(struct bnxt *bp)
- {
- 	int rc = 0;
- 
- 	if (bp->flags & BNXT_FLAG_MSIX_CAP)
--		rc = bnxt_setup_msix(bp);
-+		rc = bnxt_init_msix(bp);
- 
- 	if (!(bp->flags & BNXT_FLAG_USING_MSIX) && BNXT_PF(bp)) {
- 		/* fallback to INTA */
--		rc = bnxt_setup_inta(bp);
-+		rc = bnxt_init_inta(bp);
- 	}
- 	return rc;
- }
- 
-+static void bnxt_clear_int_mode(struct bnxt *bp)
-+{
-+	if (bp->flags & BNXT_FLAG_USING_MSIX)
-+		pci_disable_msix(bp->pdev);
-+
-+	kfree(bp->irq_tbl);
-+	bp->irq_tbl = NULL;
-+	bp->flags &= ~BNXT_FLAG_USING_MSIX;
-+}
-+
- static void bnxt_free_irq(struct bnxt *bp)
- {
- 	struct bnxt_irq *irq;
-@@ -4902,10 +4943,6 @@ static void bnxt_free_irq(struct bnxt *bp)
- 			free_irq(irq->vector, bp->bnapi[i]);
- 		irq->requested = 0;
- 	}
--	if (bp->flags & BNXT_FLAG_USING_MSIX)
--		pci_disable_msix(bp->pdev);
--	kfree(bp->irq_tbl);
--	bp->irq_tbl = NULL;
- }
- 
- static int bnxt_request_irq(struct bnxt *bp)
-@@ -6695,6 +6732,7 @@ static void bnxt_remove_one(struct pci_dev *pdev)
- 	cancel_work_sync(&bp->sp_task);
- 	bp->sp_event = 0;
- 
-+	bnxt_clear_int_mode(bp);
- 	bnxt_hwrm_func_drv_unrgtr(bp);
- 	bnxt_free_hwrm_resources(bp);
- 	bnxt_dcb_free(bp);
-@@ -6990,10 +7028,14 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	if (rc)
- 		goto init_err;
- 
--	rc = register_netdev(dev);
-+	rc = bnxt_init_int_mode(bp);
- 	if (rc)
- 		goto init_err;
- 
-+	rc = register_netdev(dev);
-+	if (rc)
-+		goto init_err_clr_int;
-+
- 	netdev_info(dev, "%s found at mem %lx, node addr %pM\n",
- 		    board_info[ent->driver_data].name,
- 		    (long)pci_resource_start(pdev, 0), dev->dev_addr);
-@@ -7002,6 +7044,9 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	return 0;
- 
-+init_err_clr_int:
-+	bnxt_clear_int_mode(bp);
-+
- init_err:
- 	pci_iounmap(pdev, bp->bar0);
- 	pci_release_regions(pdev);
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index 8327d0d..1461355 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -1024,6 +1024,7 @@ struct bnxt {
- #define BNXT_STATE_FN_RST_DONE	2
- 
- 	struct bnxt_irq	*irq_tbl;
-+	int			total_irqs;
- 	u8			mac_addr[ETH_ALEN];
- 
- #ifdef CONFIG_BNXT_DCB
--- 
-1.8.3.1
+On Wed, Dec 7, 2016 at 1:02 PM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> On Mon, Dec 5, 2016 at 11:10 PM, Zhouyi Zhou <zhouzhouyi@gmail.com> wrote:
+>> diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
+>> index 2a653ec..ab787cb 100644
+>> --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
+>> +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
+>> @@ -490,7 +490,11 @@ int ixgbe_fcoe_ddp(struct ixgbe_adapter *adapter,
+>>          */
+>>         if ((fh->fh_r_ctl == FC_RCTL_DD_SOL_DATA) &&
+>>             (fctl & FC_FC_END_SEQ)) {
+>> -               skb_linearize(skb);
+>> +               int err = 0;
+>> +
+>> +               err = skb_linearize(skb);
+>> +               if (err)
+>> +                       return err;
+>
+>
+> You can reuse 'rc' instead of adding 'err'.
+rc here is meaningful for the length of data being ddped. If using rc
+here, a successful
+skb_linearize will assign rc to 0.
+>
+>
+>
+>>                 crc = (struct fcoe_crc_eof *)skb_put(skb, sizeof(*crc));
+>>                 crc->fcoe_eof = FC_EOF_T;
+>>         }
+>> diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+>> index fee1f29..4926d48 100644
+>> --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+>> +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+>> @@ -2173,8 +2173,7 @@ static int ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
+>>                                 total_rx_bytes += ddp_bytes;
+>>                                 total_rx_packets += DIV_ROUND_UP(ddp_bytes,
+>>                                                                  mss);
+>> -                       }
+>> -                       if (!ddp_bytes) {
+>> +                       } else {
+>>                                 dev_kfree_skb_any(skb);
+>>                                 continue;
+>>                         }
+>
+>
+> This piece doesn't seem to be related.
+if ddp_bytes is negative there will be some error, I think the skb
+should not pass to upper layer.
