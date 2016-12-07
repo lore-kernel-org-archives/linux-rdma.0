@@ -1,39 +1,53 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH TRIVIAL infiniband-diags] libibnetdisc/internal.h: Remove duplicated declaration of add_to_portlid_hash
-Date: Wed, 7 Dec 2016 09:04:23 -0500
-Message-ID: <20161207140421.GB24724@phlsvsds.ph.intel.com>
-References: <6fa2c407-1e87-15d1-ff01-b53d5ad1514c@dev.mellanox.co.il>
+Subject: Re: [PATCH infiniband-diags] ibtracert.c: Enable m_key option
+Date: Wed, 7 Dec 2016 09:42:14 -0500
+Message-ID: <20161207144213.GC24724@phlsvsds.ph.intel.com>
+References: <88bd7b9b-c7db-a27a-16a3-68fd5ce37af7@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6fa2c407-1e87-15d1-ff01-b53d5ad1514c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <88bd7b9b-c7db-a27a-16a3-68fd5ce37af7-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 09, 2016 at 12:48:48PM -0500, Hal Rosenstock wrote:
+On Mon, Nov 28, 2016 at 01:47:53PM -0500, Hal Rosenstock wrote:
 > 
+> m_key option was mistakenly excluded in commit
+> ced1cd4758638468329392099ee82c6f2650ea0c:
+> 
+> Author: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+> Date:   Thu May 31 12:11:33 2012 -0700
+> 
+>     infiniband-diags: Allow specification of an mkey to use on the command line
+>     
+>     Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+>     Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> 
+> Signed-off-by: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
 
 Thanks applied,
 Ira
 
+
 > ---
-> diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
-> index 5a32cd2..997f439 100644
-> --- a/libibnetdisc/src/internal.h
-> +++ b/libibnetdisc/src/internal.h
-> @@ -109,7 +109,6 @@ void smp_engine_destroy(smp_engine_t * engine);
->  int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
+> diff --git a/src/ibtracert.c b/src/ibtracert.c
+> index d99d0e1..1da3d62 100644
+> --- a/src/ibtracert.c
+> +++ b/src/ibtracert.c
+> @@ -804,7 +804,7 @@ int main(int argc, char **argv)
+>  		NULL,
+>  	};
 >  
->  int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
-> -void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
+> -	ibdiag_process_opts(argc, argv, NULL, "DKy", opts, process_opt,
+> +	ibdiag_process_opts(argc, argv, NULL, "DK", opts, process_opt,
+>  			    usage_args, usage_examples);
 >  
->  void add_to_type_list(ibnd_node_t * node, f_internal_t * fabric);
->  
-> 
+>  	f = stdout;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
