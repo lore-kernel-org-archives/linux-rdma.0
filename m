@@ -1,58 +1,28 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: I/O error on dd commands
-Date: Thu, 8 Dec 2016 11:25:38 +0200
-Message-ID: <50499552-0842-a9f0-e46b-30b427b29ca9@mellanox.com>
-References: <45c451dc71cc42b5bb24e385a160249a@TGXML382.toshiba.local>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 10/28] bnxt_re: register with the NIC driver
+Date: Thu, 8 Dec 2016 15:12:34 +0530
+Message-ID: <CA+sbYW1H6D5G02+8SDEzz+vCg1VS8wmxPYKdSO9ShvdDCoWKuQ@mail.gmail.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <1480919912-1079-11-git-send-email-selvin.xavier@broadcom.com> <ad3d577c-760f-c003-394a-d80efe96400c@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <45c451dc71cc42b5bb24e385a160249a-DqNMWkYM789gYsFYm0uEO7jjLBE8jN/0@public.gmane.org>
+In-Reply-To: <ad3d577c-760f-c003-394a-d80efe96400c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomita.Haruo-IGagC74glE2s6Rmoc/2Z03gSJqDPrsil@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 12/8/2016 2:45 AM, Tomita.Haruo-IGagC74glE2s6Rmoc/2Z03gSJqDPrsil@public.gmane.org wrote:
-> Hi Max,
+On Thu, Dec 8, 2016 at 4:51 AM, Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Where is this function ever used in the series?
 >
->> Any interesting logs in dmesg ?
->
-> Dynamic debug was used and there was following log in dmesg of target.
->
-> [  584.274459] rdma_rxe: qp#17 state = GET_REQ
-> [  584.274461] rdma_rxe: qp#17 state = CHK_PSN
-> [  584.274462] rdma_rxe: qp#17 state = CHK_OP_SEQ
-> [  584.274464] rdma_rxe: qp#17 state = CHK_OP_VALID
-> [  584.274465] rdma_rxe: qp#17 state = CHK_RESOURCE
-> [  584.274467] rdma_rxe: qp#17 state = CHK_LENGTH
-> [  584.274468] rdma_rxe: qp#17 state = CHK_RKEY
-> [  584.274470] rdma_rxe: qp#17 state = EXECUTE
-> [  584.274473] rdma_rxe: qp#17 state = COMPLETE
-> [  584.274475] rdma_rxe: qp#17 state = ACKNOWLEDGE
-> [  584.274496] rdma_rxe: qp#17 state = CLEANUP
-> [  584.274498] rdma_rxe: qp#17 state = DONE
-> [  584.274499] rdma_rxe: qp#17 state = GET_REQ
-> [  584.274500] rdma_rxe: qp#17 state = EXIT
-> [  584.275561] nvmet_rdma: IB send queue full (needed 1): queue 0 cntlid 1
->
-> thanks,
-> Haruo.
->
+> $ git log -1 --oneline
+> 8b8b72dd6226 bnxt_re: Add QP event handling
+> $ git grep "bnxt_re_netevent"
+> drivers/infiniband/hw/bnxtre/bnxt_re_main.c:static inline const char
+> *bnxt_re_netevent(unsigned long event)
 
-Very wierd. can you pring "queue->host_qid" also in nvmet_rdma  
-nvmet_rdma_execute_command (IB send queue full (needed 1): queue_idx 0  
-cntlid 1 queue_qid ????).
-
-seems like it's the admin queue but i'm not sure.
-
-Moni,
-can you advise regarding rdma_rxe logs ?
-
-thanks,
-Max.
+this function is not used. Removing it in V2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
