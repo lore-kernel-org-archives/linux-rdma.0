@@ -1,68 +1,39 @@
-From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Subject: [GIT PULL] Please pull NFSoRDMA client side changes for 4.10
-Date: Fri, 9 Dec 2016 16:01:50 -0500
-Message-ID: <3ab13b73-d1ca-5b7e-b8e4-ec1385c2e612@Netapp.com>
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH net-next 1/3] net/mlx5e: use %pad format string for
+ dma_addr_t
+Date: Fri, 9 Dec 2016 01:16:22 +0200
+Message-ID: <5a451128-7d3a-1204-c2e2-2a928b8638e9@mellanox.com>
+References: <20161208215727.44841-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161208215727.44841-1-arnd-r2nGTMty4D4@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Trond,
 
-The following changes since commit e5517c2a5a49ed5e99047008629f1cd60246ea0e:
 
-  Linux 4.9-rc7 (2016-11-27 13:08:04 -0800)
+On 12/08/2016 11:57 PM, Arnd Bergmann wrote:
+> On 32-bit ARM with 64-bit dma_addr_t I get this warning about an
+> incorrect format string:
+> 
+> In file included from /git/arm-soc/drivers/net/ethernet/mellanox/mlx5/core/alloc.c:42:0:
+> drivers/net/ethernet/mellanox/mlx5/core/alloc.c: In function ‘mlx5_frag_buf_alloc_node’:
+> drivers/net/ethernet/mellanox/mlx5/core/alloc.c:134:12: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> 
+> We have the special %pad format for printing dma_addr_t, so use that
+> to print the correct address and avoid the warning.
+> 
+> Fixes: 1c1b522808a1 ("net/mlx5e: Implement Fragmented Work Queue (WQ)")
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-are available in the git repository at:
+Thank you Arnd !!
 
-  git://git.linux-nfs.org/projects/anna/nfs-rdma.git tags/nfs-rdma-4.10-1
-
-for you to fetch changes up to 3a72dc771cc38e4d6e441a86256a3d7788a84c01:
-
-  xprtrdma: Relocate connection helper functions (2016-11-29 16:45:44 -0500)
-
-----------------------------------------------------------------
-New Features:
-- Support for SG_GAP devices
-
-Bugfixes and cleanups:
-- Cap size of callback buffer resources
-- Improve send queue and RPC metric accounting
-- Fix coverity warning
-- Avoid calls to ro_unmap_safe()
-- Refactor FRMR invalidation
-- Error message improvements
-
-Thanks,
-Anna
-----------------------------------------------------------------
-Chuck Lever (12):
-      xprtrdma: Cap size of callback buffer resources
-      xprtrdma: Make FRWR send queue entry accounting more accurate
-      xprtrdma: Support for SG_GAP devices
-      SUNRPC: Proper metric accounting when RPC is not transmitted
-      xprtrdma: Address coverity complaint about wait_for_completion()
-      xprtrdma: Avoid calls to ro_unmap_safe()
-      xprtrdma: Refactor FRMR invalidation
-      xprtrdma: Update documenting comment
-      xprtrdma: Squelch "max send, max recv" messages at connect time
-      xprtrdma: Shorten QP access error message
-      xprtrdma: Update dprintk in rpcrdma_count_chunks
-      xprtrdma: Relocate connection helper functions
-
- net/sunrpc/stats.c                | 10 ++++++----
- net/sunrpc/xprtrdma/backchannel.c |  4 +++-
- net/sunrpc/xprtrdma/frwr_ops.c    | 94 ++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------
- net/sunrpc/xprtrdma/rpc_rdma.c    | 36 +-----------------------------------
- net/sunrpc/xprtrdma/transport.c   | 34 ++++++++++++++++++++++++++++++++--
- net/sunrpc/xprtrdma/verbs.c       | 37 ++++++++++++++++++++-----------------
- net/sunrpc/xprtrdma/xprt_rdma.h   | 31 ++++++++++++++++++++++---------
- 7 files changed, 128 insertions(+), 118 deletions(-)
+Acked-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
