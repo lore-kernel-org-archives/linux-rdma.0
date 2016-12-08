@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/23] IB/hfi1: Disable header suppression for short packets
-Date: Wed, 07 Dec 2016 19:32:41 -0800
-Message-ID: <20161208033239.21135.14349.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 06/23] IB/rdmavt: Fix trace hierarchy
+Date: Wed, 07 Dec 2016 19:32:47 -0800
+Message-ID: <20161208033246.21135.28386.stgit@scvm10.sc.intel.com>
 References: <20161208032312.21135.66056.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,174 +10,503 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161208032312.21135.66056.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Split rdmavt traces into separate files to preserve the original
+hierarchy since only one trace sub system may now be defined per header
+file.
 
-For the received packets with payload less or equal 8DWS
-RxDmaDataFifoRdUncErr is not reported. There is set RHF.EccErr
-if the header is not suppressed. When such packet is detected
-on the send side the header suppression mechanism is disabled
-by clearing SH bit in the packet header.
-
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c |   60 +++++++++++++++++++++++---------
- include/uapi/rdma/hfi/hfi1_user.h      |    2 +
- 2 files changed, 44 insertions(+), 18 deletions(-)
+ drivers/infiniband/sw/rdmavt/trace.h     |  140 +-----------------------------
+ drivers/infiniband/sw/rdmavt/trace_qp.h  |   96 +++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/trace_rvt.h |   81 +++++++++++++++++
+ drivers/infiniband/sw/rdmavt/trace_tx.h  |  132 ++++++++++++++++++++++++++++
+ 4 files changed, 312 insertions(+), 137 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/trace_qp.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/trace_rvt.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/trace_tx.h
 
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 77697d6..7d22f8e 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -115,6 +115,7 @@
- #define KDETH_HCRC_LOWER_MASK     0xff
- 
- #define AHG_KDETH_INTR_SHIFT 12
-+#define AHG_KDETH_SH_SHIFT   13
- 
- #define PBC2LRH(x) ((((x) & 0xfff) << 2) - 4)
- #define LRH2PBC(x) ((((x) >> 2) + 1) & 0xfff)
-@@ -144,8 +145,9 @@
- #define KDETH_OM_LARGE     64
- #define KDETH_OM_MAX_SIZE  (1 << ((KDETH_OM_LARGE / KDETH_OM_SMALL) + 1))
- 
--/* Last packet in the request */
--#define TXREQ_FLAGS_REQ_LAST_PKT BIT(0)
-+/* Tx request flag bits */
-+#define TXREQ_FLAGS_REQ_ACK   BIT(0)      /* Set the ACK bit in the header */
-+#define TXREQ_FLAGS_REQ_DISABLE_SH BIT(1) /* Disable header suppression */
- 
- /* SDMA request flag bits */
- #define SDMA_REQ_FOR_THREAD 1
-@@ -943,8 +945,13 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 		tx->busycount = 0;
- 		INIT_LIST_HEAD(&tx->list);
- 
-+		/*
-+		 * For the last packet set the ACK request
-+		 * and disable header suppression.
-+		 */
- 		if (req->seqnum == req->info.npkts - 1)
--			tx->flags |= TXREQ_FLAGS_REQ_LAST_PKT;
-+			tx->flags |= (TXREQ_FLAGS_REQ_ACK |
-+				      TXREQ_FLAGS_REQ_DISABLE_SH);
- 
- 		/*
- 		 * Calculate the payload size - this is min of the fragment
-@@ -963,11 +970,22 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 			}
- 
- 			datalen = compute_data_length(req, tx);
-+
-+			/*
-+			 * Disable header suppression for the payload <= 8DWS.
-+			 * If there is an uncorrectable error in the receive
-+			 * data FIFO when the received payload size is less than
-+			 * or equal to 8DWS then the RxDmaDataFifoRdUncErr is
-+			 * not reported.There is set RHF.EccErr if the header
-+			 * is not suppressed.
-+			 */
- 			if (!datalen) {
- 				SDMA_DBG(req,
- 					 "Request has data but pkt len is 0");
- 				ret = -EFAULT;
- 				goto free_tx;
-+			} else if (datalen <= 32) {
-+				tx->flags |= TXREQ_FLAGS_REQ_DISABLE_SH;
- 			}
- 		}
- 
-@@ -990,6 +1008,10 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 						LRH2PBC(lrhlen);
- 					tx->hdr.pbc[0] = cpu_to_le16(pbclen);
- 				}
-+				ret = check_header_template(req, &tx->hdr,
-+							    lrhlen, datalen);
-+				if (ret)
-+					goto free_tx;
- 				ret = sdma_txinit_ahg(&tx->txreq,
- 						      SDMA_TXREQ_F_AHG_COPY,
- 						      sizeof(tx->hdr) + datalen,
-@@ -1351,7 +1373,7 @@ static int set_txreq_header(struct user_sdma_request *req,
- 				req->seqnum));
- 
- 	/* Set ACK request on last packet */
--	if (unlikely(tx->flags & TXREQ_FLAGS_REQ_LAST_PKT))
-+	if (unlikely(tx->flags & TXREQ_FLAGS_REQ_ACK))
- 		hdr->bth[2] |= cpu_to_be32(1UL << 31);
- 
- 	/* Set the new offset */
-@@ -1384,8 +1406,8 @@ static int set_txreq_header(struct user_sdma_request *req,
- 		/* Set KDETH.TID based on value for this TID */
- 		KDETH_SET(hdr->kdeth.ver_tid_offset, TID,
- 			  EXP_TID_GET(tidval, IDX));
--		/* Clear KDETH.SH only on the last packet */
--		if (unlikely(tx->flags & TXREQ_FLAGS_REQ_LAST_PKT))
-+		/* Clear KDETH.SH when DISABLE_SH flag is set */
-+		if (unlikely(tx->flags & TXREQ_FLAGS_REQ_DISABLE_SH))
- 			KDETH_SET(hdr->kdeth.ver_tid_offset, SH, 0);
- 		/*
- 		 * Set the KDETH.OFFSET and KDETH.OM based on size of
-@@ -1429,7 +1451,7 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
- 	/* BTH.PSN and BTH.A */
- 	val32 = (be32_to_cpu(hdr->bth[2]) + req->seqnum) &
- 		(HFI1_CAP_IS_KSET(EXTENDED_PSN) ? 0x7fffffff : 0xffffff);
--	if (unlikely(tx->flags & TXREQ_FLAGS_REQ_LAST_PKT))
-+	if (unlikely(tx->flags & TXREQ_FLAGS_REQ_ACK))
- 		val32 |= 1UL << 31;
- 	AHG_HEADER_SET(req->ahg, diff, 6, 0, 16, cpu_to_be16(val32 >> 16));
- 	AHG_HEADER_SET(req->ahg, diff, 6, 16, 16, cpu_to_be16(val32 & 0xffff));
-@@ -1468,19 +1490,23 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
- 		AHG_HEADER_SET(req->ahg, diff, 7, 0, 16,
- 			       ((!!(req->omfactor - KDETH_OM_SMALL)) << 15 |
- 				((req->tidoffset / req->omfactor) & 0x7fff)));
--		/* KDETH.TIDCtrl, KDETH.TID */
-+		/* KDETH.TIDCtrl, KDETH.TID, KDETH.Intr, KDETH.SH */
- 		val = cpu_to_le16(((EXP_TID_GET(tidval, CTRL) & 0x3) << 10) |
--					(EXP_TID_GET(tidval, IDX) & 0x3ff));
--		/* Clear KDETH.SH on last packet */
--		if (unlikely(tx->flags & TXREQ_FLAGS_REQ_LAST_PKT)) {
--			val |= cpu_to_le16(KDETH_GET(hdr->kdeth.ver_tid_offset,
--						     INTR) <<
--					   AHG_KDETH_INTR_SHIFT);
--			val &= cpu_to_le16(~(1U << 13));
--			AHG_HEADER_SET(req->ahg, diff, 7, 16, 14, val);
-+				   (EXP_TID_GET(tidval, IDX) & 0x3ff));
-+
-+		if (unlikely(tx->flags & TXREQ_FLAGS_REQ_DISABLE_SH)) {
-+			val |= cpu_to_le16((KDETH_GET(hdr->kdeth.ver_tid_offset,
-+						      INTR) <<
-+					    AHG_KDETH_INTR_SHIFT));
- 		} else {
--			AHG_HEADER_SET(req->ahg, diff, 7, 16, 12, val);
-+			val |= KDETH_GET(hdr->kdeth.ver_tid_offset, SH) ?
-+			       cpu_to_le16(0x1 << AHG_KDETH_SH_SHIFT) :
-+			       cpu_to_le16((KDETH_GET(hdr->kdeth.ver_tid_offset,
-+						      INTR) <<
-+					     AHG_KDETH_INTR_SHIFT));
- 		}
-+
-+		AHG_HEADER_SET(req->ahg, diff, 7, 16, 14, val);
- 	}
- 
- 	trace_hfi1_sdma_user_header_ahg(pq->dd, pq->ctxt, pq->subctxt,
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index d15e728..587b736 100644
---- a/include/uapi/rdma/hfi/hfi1_user.h
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -75,7 +75,7 @@
-  * may not be implemented; the user code must deal with this if it
-  * cares, or it must abort after initialization reports the difference.
+diff --git a/drivers/infiniband/sw/rdmavt/trace.h b/drivers/infiniband/sw/rdmavt/trace.h
+index 6c0457d..11a2afb 100644
+--- a/drivers/infiniband/sw/rdmavt/trace.h
++++ b/drivers/infiniband/sw/rdmavt/trace.h
+@@ -45,143 +45,9 @@
+  *
   */
--#define HFI1_USER_SWMINOR 2
-+#define HFI1_USER_SWMINOR 3
  
- /*
-  * We will encode the major/minor inside a single 32bit version number.
+-#undef TRACE_SYSTEM_VAR
+-#define TRACE_SYSTEM_VAR rdmavt
+-
+-#if !defined(__RDMAVT_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
+-#define __RDMAVT_TRACE_H
+-
+-#include <linux/tracepoint.h>
+-#include <linux/trace_seq.h>
+-
+-#include <rdma/ib_verbs.h>
+-#include <rdma/rdma_vt.h>
+-
+ #define RDI_DEV_ENTRY(rdi)   __string(dev, rdi->driver_f.get_card_name(rdi))
+ #define RDI_DEV_ASSIGN(rdi)  __assign_str(dev, rdi->driver_f.get_card_name(rdi))
+ 
+-#undef TRACE_SYSTEM
+-#define TRACE_SYSTEM rdmavt
+-
+-TRACE_EVENT(rvt_dbg,
+-	TP_PROTO(struct rvt_dev_info *rdi,
+-		 const char *msg),
+-	TP_ARGS(rdi, msg),
+-	TP_STRUCT__entry(
+-		RDI_DEV_ENTRY(rdi)
+-		__string(msg, msg)
+-	),
+-	TP_fast_assign(
+-		RDI_DEV_ASSIGN(rdi);
+-		__assign_str(msg, msg);
+-	),
+-	TP_printk("[%s]: %s", __get_str(dev), __get_str(msg))
+-);
+-
+-#undef TRACE_SYSTEM
+-#define TRACE_SYSTEM rvt_qphash
+-DECLARE_EVENT_CLASS(rvt_qphash_template,
+-	TP_PROTO(struct rvt_qp *qp, u32 bucket),
+-	TP_ARGS(qp, bucket),
+-	TP_STRUCT__entry(
+-		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
+-		__field(u32, qpn)
+-		__field(u32, bucket)
+-	),
+-	TP_fast_assign(
+-		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
+-		__entry->qpn = qp->ibqp.qp_num;
+-		__entry->bucket = bucket;
+-	),
+-	TP_printk(
+-		"[%s] qpn 0x%x bucket %u",
+-		__get_str(dev),
+-		__entry->qpn,
+-		__entry->bucket
+-	)
+-);
+-
+-DEFINE_EVENT(rvt_qphash_template, rvt_qpinsert,
+-	TP_PROTO(struct rvt_qp *qp, u32 bucket),
+-	TP_ARGS(qp, bucket));
+-
+-DEFINE_EVENT(rvt_qphash_template, rvt_qpremove,
+-	TP_PROTO(struct rvt_qp *qp, u32 bucket),
+-	TP_ARGS(qp, bucket));
+-
+-#undef TRACE_SYSTEM
+-#define TRACE_SYSTEM rvt_tx
+-
+-#define wr_opcode_name(opcode) { IB_WR_##opcode, #opcode  }
+-#define show_wr_opcode(opcode)                             \
+-__print_symbolic(opcode,                                   \
+-	wr_opcode_name(RDMA_WRITE),                        \
+-	wr_opcode_name(RDMA_WRITE_WITH_IMM),               \
+-	wr_opcode_name(SEND),                              \
+-	wr_opcode_name(SEND_WITH_IMM),                     \
+-	wr_opcode_name(RDMA_READ),                         \
+-	wr_opcode_name(ATOMIC_CMP_AND_SWP),                \
+-	wr_opcode_name(ATOMIC_FETCH_AND_ADD),              \
+-	wr_opcode_name(LSO),                               \
+-	wr_opcode_name(SEND_WITH_INV),                     \
+-	wr_opcode_name(RDMA_READ_WITH_INV),                \
+-	wr_opcode_name(LOCAL_INV),                         \
+-	wr_opcode_name(MASKED_ATOMIC_CMP_AND_SWP),         \
+-	wr_opcode_name(MASKED_ATOMIC_FETCH_AND_ADD))
+-
+-#define POS_PRN \
+-"[%s] wr_id %llx qpn %x psn 0x%x lpsn 0x%x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u"
+-
+-TRACE_EVENT(
+-	rvt_post_one_wr,
+-	TP_PROTO(struct rvt_qp *qp, struct rvt_swqe *wqe),
+-	TP_ARGS(qp, wqe),
+-	TP_STRUCT__entry(
+-		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
+-		__field(u64, wr_id)
+-		__field(u32, qpn)
+-		__field(u32, psn)
+-		__field(u32, lpsn)
+-		__field(u32, length)
+-		__field(u32, opcode)
+-		__field(u32, size)
+-		__field(u32, avail)
+-		__field(u32, head)
+-		__field(u32, last)
+-	),
+-	TP_fast_assign(
+-		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
+-		__entry->wr_id = wqe->wr.wr_id;
+-		__entry->qpn = qp->ibqp.qp_num;
+-		__entry->psn = wqe->psn;
+-		__entry->lpsn = wqe->lpsn;
+-		__entry->length = wqe->length;
+-		__entry->opcode = wqe->wr.opcode;
+-		__entry->size = qp->s_size;
+-		__entry->avail = qp->s_avail;
+-		__entry->head = qp->s_head;
+-		__entry->last = qp->s_last;
+-	),
+-	TP_printk(
+-		POS_PRN,
+-		__get_str(dev),
+-		__entry->wr_id,
+-		__entry->qpn,
+-		__entry->psn,
+-		__entry->lpsn,
+-		__entry->length,
+-		__entry->opcode, show_wr_opcode(__entry->opcode),
+-		__entry->size,
+-		__entry->avail,
+-		__entry->head,
+-		__entry->last
+-	)
+-);
+-
+-#endif /* __RDMAVT_TRACE_H */
+-
+-#undef TRACE_INCLUDE_PATH
+-#undef TRACE_INCLUDE_FILE
+-#define TRACE_INCLUDE_PATH .
+-#define TRACE_INCLUDE_FILE trace
+-#include <trace/define_trace.h>
++#include "trace_rvt.h"
++#include "trace_qp.h"
++#include "trace_tx.h"
+diff --git a/drivers/infiniband/sw/rdmavt/trace_qp.h b/drivers/infiniband/sw/rdmavt/trace_qp.h
+new file mode 100644
+index 0000000..4c77a31
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/trace_qp.h
+@@ -0,0 +1,96 @@
++/*
++ * Copyright(c) 2016 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#if !defined(__RVT_TRACE_QP_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RVT_TRACE_QP_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include <rdma/ib_verbs.h>
++#include <rdma/rdma_vt.h>
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rvt_qp
++
++DECLARE_EVENT_CLASS(rvt_qphash_template,
++	TP_PROTO(struct rvt_qp *qp, u32 bucket),
++	TP_ARGS(qp, bucket),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, bucket)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->bucket = bucket;
++	),
++	TP_printk(
++		"[%s] qpn 0x%x bucket %u",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->bucket
++	)
++);
++
++DEFINE_EVENT(rvt_qphash_template, rvt_qpinsert,
++	TP_PROTO(struct rvt_qp *qp, u32 bucket),
++	TP_ARGS(qp, bucket));
++
++DEFINE_EVENT(rvt_qphash_template, rvt_qpremove,
++	TP_PROTO(struct rvt_qp *qp, u32 bucket),
++	TP_ARGS(qp, bucket));
++
++
++#endif /* __RVT_TRACE_QP_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_qp
++#include <trace/define_trace.h>
++
+diff --git a/drivers/infiniband/sw/rdmavt/trace_rvt.h b/drivers/infiniband/sw/rdmavt/trace_rvt.h
+new file mode 100644
+index 0000000..746f334
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/trace_rvt.h
+@@ -0,0 +1,81 @@
++/*
++ * Copyright(c) 2016 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#if !defined(__RVT_TRACE_RVT_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RVT_TRACE_RVT_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include <rdma/ib_verbs.h>
++#include <rdma/rdma_vt.h>
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rvt
++
++TRACE_EVENT(rvt_dbg,
++	TP_PROTO(struct rvt_dev_info *rdi,
++		 const char *msg),
++	TP_ARGS(rdi, msg),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(rdi)
++		__string(msg, msg)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(rdi);
++		__assign_str(msg, msg);
++	),
++	TP_printk("[%s]: %s", __get_str(dev), __get_str(msg))
++);
++
++#endif /* __RVT_TRACE_MISC_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_rvt
++#include <trace/define_trace.h>
++
+diff --git a/drivers/infiniband/sw/rdmavt/trace_tx.h b/drivers/infiniband/sw/rdmavt/trace_tx.h
+new file mode 100644
+index 0000000..0e03173
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/trace_tx.h
+@@ -0,0 +1,132 @@
++/*
++ * Copyright(c) 2016 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#if !defined(__RVT_TRACE_TX_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RVT_TRACE_TX_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include <rdma/ib_verbs.h>
++#include <rdma/rdma_vt.h>
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rvt_tx
++
++#define wr_opcode_name(opcode) { IB_WR_##opcode, #opcode  }
++#define show_wr_opcode(opcode)                             \
++__print_symbolic(opcode,                                   \
++	wr_opcode_name(RDMA_WRITE),                        \
++	wr_opcode_name(RDMA_WRITE_WITH_IMM),               \
++	wr_opcode_name(SEND),                              \
++	wr_opcode_name(SEND_WITH_IMM),                     \
++	wr_opcode_name(RDMA_READ),                         \
++	wr_opcode_name(ATOMIC_CMP_AND_SWP),                \
++	wr_opcode_name(ATOMIC_FETCH_AND_ADD),              \
++	wr_opcode_name(LSO),                               \
++	wr_opcode_name(SEND_WITH_INV),                     \
++	wr_opcode_name(RDMA_READ_WITH_INV),                \
++	wr_opcode_name(LOCAL_INV),                         \
++	wr_opcode_name(MASKED_ATOMIC_CMP_AND_SWP),         \
++	wr_opcode_name(MASKED_ATOMIC_FETCH_AND_ADD))
++
++#define POS_PRN \
++"[%s] wr_id %llx qpn %x psn 0x%x lpsn 0x%x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u"
++
++TRACE_EVENT(
++	rvt_post_one_wr,
++	TP_PROTO(struct rvt_qp *qp, struct rvt_swqe *wqe),
++	TP_ARGS(qp, wqe),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
++		__field(u64, wr_id)
++		__field(u32, qpn)
++		__field(u32, psn)
++		__field(u32, lpsn)
++		__field(u32, length)
++		__field(u32, opcode)
++		__field(u32, size)
++		__field(u32, avail)
++		__field(u32, head)
++		__field(u32, last)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
++		__entry->wr_id = wqe->wr.wr_id;
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->psn = wqe->psn;
++		__entry->lpsn = wqe->lpsn;
++		__entry->length = wqe->length;
++		__entry->opcode = wqe->wr.opcode;
++		__entry->size = qp->s_size;
++		__entry->avail = qp->s_avail;
++		__entry->head = qp->s_head;
++		__entry->last = qp->s_last;
++	),
++	TP_printk(
++		POS_PRN,
++		__get_str(dev),
++		__entry->wr_id,
++		__entry->qpn,
++		__entry->psn,
++		__entry->lpsn,
++		__entry->length,
++		__entry->opcode, show_wr_opcode(__entry->opcode),
++		__entry->size,
++		__entry->avail,
++		__entry->head,
++		__entry->last
++	)
++);
++
++#endif /* __RVT_TRACE_TX_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_tx
++#include <trace/define_trace.h>
++
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
