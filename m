@@ -1,7 +1,8 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/5] Move dma_ops from archdata into struct device
-Date: Wed, 7 Dec 2016 17:11:28 -0800
-Message-ID: <58a325aa-8df7-6a2e-fadb-5d9031d8a1a0@sandisk.com>
+Subject: [PATCH 4/5] IB: Switch from struct ib_dma_mapping_ops to struct
+ dma_mapping_ops
+Date: Wed, 7 Dec 2016 17:11:49 -0800
+Message-ID: <25d066c2-59d7-2be7-dd56-e29e99b43620@sandisk.com>
 References: <07c07529-4636-fafb-2598-7358d8a1460d@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,1002 +14,1179 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph H
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Additionally, introduce set_dma_ops(). A later patch will introduce a
-call to that function in the RDMA drivers that will be modified to use
-dma_noop_ops.
----
- arch/alpha/include/asm/dma-mapping.h      |  2 +-
- arch/arc/include/asm/dma-mapping.h        |  2 +-
- arch/arm/include/asm/device.h             |  1 -
- arch/arm/include/asm/dma-mapping.h        | 17 ++++-------------
- arch/arm64/include/asm/device.h           |  1 -
- arch/arm64/include/asm/dma-mapping.h      | 10 +++++-----
- arch/arm64/mm/dma-mapping.c               |  8 ++++----
- arch/avr32/include/asm/dma-mapping.h      |  2 +-
- arch/blackfin/include/asm/dma-mapping.h   |  2 +-
- arch/c6x/include/asm/dma-mapping.h        |  2 +-
- arch/cris/include/asm/dma-mapping.h       |  4 ++--
- arch/frv/include/asm/dma-mapping.h        |  2 +-
- arch/h8300/include/asm/dma-mapping.h      |  2 +-
- arch/hexagon/include/asm/dma-mapping.h    |  5 +----
- arch/ia64/include/asm/dma-mapping.h       |  5 ++++-
- arch/m68k/include/asm/dma-mapping.h       |  2 +-
- arch/metag/include/asm/dma-mapping.h      |  2 +-
- arch/microblaze/include/asm/dma-mapping.h |  2 +-
- arch/mips/include/asm/device.h            |  5 -----
- arch/mips/include/asm/dma-mapping.h       |  7 ++-----
- arch/mips/pci/pci-octeon.c                |  2 +-
- arch/mn10300/include/asm/dma-mapping.h    |  2 +-
- arch/nios2/include/asm/dma-mapping.h      |  2 +-
- arch/openrisc/include/asm/dma-mapping.h   |  2 +-
- arch/parisc/include/asm/dma-mapping.h     |  2 +-
- arch/powerpc/include/asm/device.h         |  4 ----
- arch/powerpc/include/asm/dma-mapping.h    | 17 ++---------------
- arch/powerpc/include/asm/ps3.h            |  2 +-
- arch/powerpc/kernel/dma.c                 |  2 +-
- arch/powerpc/kernel/ibmebus.c             |  2 +-
- arch/powerpc/platforms/cell/iommu.c       |  2 +-
- arch/powerpc/platforms/pasemi/iommu.c     |  2 +-
- arch/powerpc/platforms/pasemi/setup.c     |  2 +-
- arch/powerpc/platforms/ps3/system-bus.c   |  4 ++--
- arch/s390/include/asm/device.h            |  1 -
- arch/s390/include/asm/dma-mapping.h       |  4 +---
- arch/s390/pci/pci.c                       |  2 +-
- arch/sh/include/asm/dma-mapping.h         |  2 +-
- arch/sparc/include/asm/dma-mapping.h      |  4 ++--
- arch/tile/include/asm/device.h            |  3 ---
- arch/tile/include/asm/dma-mapping.h       | 12 ++----------
- arch/x86/include/asm/device.h             |  3 ---
- arch/x86/include/asm/dma-mapping.h        |  9 +--------
- arch/x86/kernel/pci-calgary_64.c          |  4 ++--
- arch/x86/pci/common.c                     |  2 +-
- arch/x86/pci/sta2x11-fixup.c              |  8 ++++----
- arch/xtensa/include/asm/device.h          |  4 ----
- arch/xtensa/include/asm/dma-mapping.h     |  7 ++-----
- drivers/infiniband/ulp/srpt/ib_srpt.c     |  2 +-
- drivers/iommu/amd_iommu.c                 |  6 +++---
- drivers/misc/mic/bus/mic_bus.c            |  2 +-
- drivers/misc/mic/bus/scif_bus.c           |  2 +-
- drivers/misc/mic/bus/vop_bus.c            |  2 +-
- include/linux/device.h                    |  2 ++
- include/linux/dma-mapping.h               | 12 ++++++++++++
- 55 files changed, 85 insertions(+), 138 deletions(-)
+Additionally, use dma_noop_ops instead of duplicating it.
 
-diff --git a/arch/alpha/include/asm/dma-mapping.h b/arch/alpha/include/asm/dma-mapping.h
-index d3480562411d..5d53666935e6 100644
---- a/arch/alpha/include/asm/dma-mapping.h
-+++ b/arch/alpha/include/asm/dma-mapping.h
-@@ -3,7 +3,7 @@
- 
- extern const struct dma_map_ops *dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return dma_ops;
- }
-diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
-index fdff3aa60052..94285031c4fb 100644
---- a/arch/arc/include/asm/dma-mapping.h
-+++ b/arch/arc/include/asm/dma-mapping.h
-@@ -20,7 +20,7 @@
- 
- extern const struct dma_map_ops arc_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &arc_dma_ops;
- }
-diff --git a/arch/arm/include/asm/device.h b/arch/arm/include/asm/device.h
-index d8a572f9c187..220ba207be91 100644
---- a/arch/arm/include/asm/device.h
-+++ b/arch/arm/include/asm/device.h
-@@ -7,7 +7,6 @@
- #define ASMARM_DEVICE_H
- 
- struct dev_archdata {
--	const struct dma_map_ops	*dma_ops;
- #ifdef CONFIG_DMABOUNCE
- 	struct dmabounce_device_info *dmabounce;
- #endif
-diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-index 1aabd781306f..7c6d995fb935 100644
---- a/arch/arm/include/asm/dma-mapping.h
-+++ b/arch/arm/include/asm/dma-mapping.h
-@@ -18,23 +18,14 @@ extern const struct dma_map_ops arm_coherent_dma_ops;
- 
- static inline const struct dma_map_ops *__generic_dma_ops(struct device *dev)
- {
--	if (dev && dev->archdata.dma_ops)
--		return dev->archdata.dma_ops;
-+	if (dev && dev->dma_ops)
-+		return dev->dma_ops;
- 	return &arm_dma_ops;
- }
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--	if (xen_initial_domain())
--		return xen_dma_ops;
--	else
--		return __generic_dma_ops(dev);
+This patch eliminates one branch from every ib_dma_map_*() call.
+---
+ drivers/infiniband/hw/hfi1/dma.c      | 183 -------------------------------
+ drivers/infiniband/hw/qib/qib_dma.c   | 169 -----------------------------
+ drivers/infiniband/hw/qib/qib_keys.c  |   2 +-
+ drivers/infiniband/sw/rdmavt/Makefile |   2 +-
+ drivers/infiniband/sw/rdmavt/dma.c    | 198 ----------------------------------
+ drivers/infiniband/sw/rdmavt/dma.h    |  53 ---------
+ drivers/infiniband/sw/rdmavt/mr.c     |   4 +-
+ drivers/infiniband/sw/rdmavt/vt.c     |   4 +-
+ drivers/infiniband/sw/rdmavt/vt.h     |   1 -
+ drivers/infiniband/sw/rxe/Makefile    |   1 -
+ drivers/infiniband/sw/rxe/rxe_dma.c   | 183 -------------------------------
+ drivers/infiniband/sw/rxe/rxe_loc.h   |   2 -
+ drivers/infiniband/sw/rxe/rxe_verbs.c |   2 +-
+ include/rdma/ib_verbs.h               | 117 +++-----------------
+ 14 files changed, 22 insertions(+), 899 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/hfi1/dma.c
+ delete mode 100644 drivers/infiniband/hw/qib/qib_dma.c
+ delete mode 100644 drivers/infiniband/sw/rdmavt/dma.c
+ delete mode 100644 drivers/infiniband/sw/rdmavt/dma.h
+ delete mode 100644 drivers/infiniband/sw/rxe/rxe_dma.c
+
+diff --git a/drivers/infiniband/hw/hfi1/dma.c b/drivers/infiniband/hw/hfi1/dma.c
+deleted file mode 100644
+index 7e8dab892848..000000000000
+--- a/drivers/infiniband/hw/hfi1/dma.c
++++ /dev/null
+@@ -1,183 +0,0 @@
+-/*
+- * Copyright(c) 2015, 2016 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-#include <linux/types.h>
+-#include <linux/scatterlist.h>
+-
+-#include "verbs.h"
+-
+-#define BAD_DMA_ADDRESS ((u64)0)
+-
+-/*
+- * The following functions implement driver specific replacements
+- * for the ib_dma_*() functions.
+- *
+- * These functions return kernel virtual addresses instead of
+- * device bus addresses since the driver uses the CPU to copy
+- * data instead of using hardware DMA.
+- */
+-
+-static int hfi1_mapping_error(struct ib_device *dev, u64 dma_addr)
+-{
+-	return dma_addr == BAD_DMA_ADDRESS;
 -}
 -
--static inline void set_dma_ops(struct device *dev, const struct dma_map_ops *ops)
+-static u64 hfi1_dma_map_single(struct ib_device *dev, void *cpu_addr,
+-			       size_t size, enum dma_data_direction direction)
 -{
--	BUG_ON(!dev);
--	dev->archdata.dma_ops = ops;
-+	return xen_initial_domain() ? xen_dma_ops : &arm_dma_ops;
- }
- 
- #define HAVE_ARCH_DMA_SUPPORTED 1
-diff --git a/arch/arm64/include/asm/device.h b/arch/arm64/include/asm/device.h
-index 00c678cc31e1..73d5bab015eb 100644
---- a/arch/arm64/include/asm/device.h
-+++ b/arch/arm64/include/asm/device.h
-@@ -17,7 +17,6 @@
- #define __ASM_DEVICE_H
- 
- struct dev_archdata {
--	const struct dma_map_ops *dma_ops;
- #ifdef CONFIG_IOMMU_API
- 	void *iommu;			/* private IOMMU data */
- #endif
-diff --git a/arch/arm64/include/asm/dma-mapping.h b/arch/arm64/include/asm/dma-mapping.h
-index 1fedb43be712..47c99cbeb084 100644
---- a/arch/arm64/include/asm/dma-mapping.h
-+++ b/arch/arm64/include/asm/dma-mapping.h
-@@ -29,8 +29,8 @@ extern const struct dma_map_ops dummy_dma_ops;
- 
- static inline const struct dma_map_ops *__generic_dma_ops(struct device *dev)
- {
--	if (dev && dev->archdata.dma_ops)
--		return dev->archdata.dma_ops;
-+       if (dev && dev->dma_ops)
-+               return dev->dma_ops;
- 
- 	/*
- 	 * We expect no ISA devices, and all other DMA masters are expected to
-@@ -39,12 +39,12 @@ static inline const struct dma_map_ops *__generic_dma_ops(struct device *dev)
- 	return &dummy_dma_ops;
- }
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	if (xen_initial_domain())
- 		return xen_dma_ops;
--	else
--		return __generic_dma_ops(dev);
-+
-+	return __generic_dma_ops(NULL);
- }
- 
- void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
-diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
-index de6ec4e14074..7623c51e0287 100644
---- a/arch/arm64/mm/dma-mapping.c
-+++ b/arch/arm64/mm/dma-mapping.c
-@@ -834,7 +834,7 @@ static bool do_iommu_attach(struct device *dev, const struct iommu_ops *ops,
- 		return false;
- 	}
- 
--	dev->archdata.dma_ops = &iommu_dma_ops;
-+	set_dma_ops(dev, &iommu_dma_ops);
- 	return true;
- }
- 
-@@ -943,7 +943,7 @@ void arch_teardown_dma_ops(struct device *dev)
- 	if (WARN_ON(domain))
- 		iommu_detach_device(domain, dev);
- 
--	dev->archdata.dma_ops = NULL;
-+	set_dma_ops(dev, NULL);
- }
- 
- #else
-@@ -957,8 +957,8 @@ static void __iommu_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
- void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
- 			const struct iommu_ops *iommu, bool coherent)
- {
--	if (!dev->archdata.dma_ops)
--		dev->archdata.dma_ops = &swiotlb_dma_ops;
-+	if (!dev->dma_ops)
-+		set_dma_ops(dev, &swiotlb_dma_ops);
- 
- 	dev->archdata.dma_coherent = coherent;
- 	__iommu_setup_dma_ops(dev, dma_base, size, iommu);
-diff --git a/arch/avr32/include/asm/dma-mapping.h b/arch/avr32/include/asm/dma-mapping.h
-index b2b43c0e0774..7388451f9905 100644
---- a/arch/avr32/include/asm/dma-mapping.h
-+++ b/arch/avr32/include/asm/dma-mapping.h
-@@ -6,7 +6,7 @@ extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 
- extern const struct dma_map_ops avr32_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &avr32_dma_ops;
- }
-diff --git a/arch/blackfin/include/asm/dma-mapping.h b/arch/blackfin/include/asm/dma-mapping.h
-index 320fb50fbd41..04254ac36bed 100644
---- a/arch/blackfin/include/asm/dma-mapping.h
-+++ b/arch/blackfin/include/asm/dma-mapping.h
-@@ -38,7 +38,7 @@ _dma_sync(dma_addr_t addr, size_t size, enum dma_data_direction dir)
- 
- extern const struct dma_map_ops bfin_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &bfin_dma_ops;
- }
-diff --git a/arch/c6x/include/asm/dma-mapping.h b/arch/c6x/include/asm/dma-mapping.h
-index 88258b9ebc8e..aca9f755e4f8 100644
---- a/arch/c6x/include/asm/dma-mapping.h
-+++ b/arch/c6x/include/asm/dma-mapping.h
-@@ -19,7 +19,7 @@
- 
- extern const struct dma_map_ops c6x_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &c6x_dma_ops;
- }
-diff --git a/arch/cris/include/asm/dma-mapping.h b/arch/cris/include/asm/dma-mapping.h
-index aae4fbc0a656..256169de3743 100644
---- a/arch/cris/include/asm/dma-mapping.h
-+++ b/arch/cris/include/asm/dma-mapping.h
-@@ -4,12 +4,12 @@
- #ifdef CONFIG_PCI
- extern const struct dma_map_ops v32_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &v32_dma_ops;
- }
- #else
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	BUG();
- 	return NULL;
-diff --git a/arch/frv/include/asm/dma-mapping.h b/arch/frv/include/asm/dma-mapping.h
-index 150cc00544a8..354900917585 100644
---- a/arch/frv/include/asm/dma-mapping.h
-+++ b/arch/frv/include/asm/dma-mapping.h
-@@ -9,7 +9,7 @@ extern unsigned long __nongprelbss dma_coherent_mem_end;
- 
- extern const struct dma_map_ops frv_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &frv_dma_ops;
- }
-diff --git a/arch/h8300/include/asm/dma-mapping.h b/arch/h8300/include/asm/dma-mapping.h
-index f804bca4c13f..847c7562e046 100644
---- a/arch/h8300/include/asm/dma-mapping.h
-+++ b/arch/h8300/include/asm/dma-mapping.h
-@@ -3,7 +3,7 @@
- 
- extern const struct dma_map_ops h8300_dma_map_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &h8300_dma_map_ops;
- }
-diff --git a/arch/hexagon/include/asm/dma-mapping.h b/arch/hexagon/include/asm/dma-mapping.h
-index b812e917cd95..d3a87bd9b686 100644
---- a/arch/hexagon/include/asm/dma-mapping.h
-+++ b/arch/hexagon/include/asm/dma-mapping.h
-@@ -34,11 +34,8 @@ extern int bad_dma_address;
- 
- extern const struct dma_map_ops *dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--	if (unlikely(dev == NULL))
--		return NULL;
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
 -
- 	return dma_ops;
- }
- 
-diff --git a/arch/ia64/include/asm/dma-mapping.h b/arch/ia64/include/asm/dma-mapping.h
-index 05e467d56d86..73ec3c6f4cfe 100644
---- a/arch/ia64/include/asm/dma-mapping.h
-+++ b/arch/ia64/include/asm/dma-mapping.h
-@@ -23,7 +23,10 @@ extern void machvec_dma_sync_single(struct device *, dma_addr_t, size_t,
- extern void machvec_dma_sync_sg(struct device *, struct scatterlist *, int,
- 				enum dma_data_direction);
- 
--#define get_dma_ops(dev) platform_dma_get_ops(dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
-+{
-+	return platform_dma_get_ops(NULL);
-+}
- 
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
- {
-diff --git a/arch/m68k/include/asm/dma-mapping.h b/arch/m68k/include/asm/dma-mapping.h
-index 863509939d5a..9210e470771b 100644
---- a/arch/m68k/include/asm/dma-mapping.h
-+++ b/arch/m68k/include/asm/dma-mapping.h
-@@ -3,7 +3,7 @@
- 
- extern const struct dma_map_ops m68k_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
-         return &m68k_dma_ops;
- }
-diff --git a/arch/metag/include/asm/dma-mapping.h b/arch/metag/include/asm/dma-mapping.h
-index c156a7ac732f..fad3dc3cb210 100644
---- a/arch/metag/include/asm/dma-mapping.h
-+++ b/arch/metag/include/asm/dma-mapping.h
-@@ -3,7 +3,7 @@
- 
- extern const struct dma_map_ops metag_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &metag_dma_ops;
- }
-diff --git a/arch/microblaze/include/asm/dma-mapping.h b/arch/microblaze/include/asm/dma-mapping.h
-index c7faf2fb51d6..3fad5e722a66 100644
---- a/arch/microblaze/include/asm/dma-mapping.h
-+++ b/arch/microblaze/include/asm/dma-mapping.h
-@@ -38,7 +38,7 @@
-  */
- extern const struct dma_map_ops dma_direct_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &dma_direct_ops;
- }
-diff --git a/arch/mips/include/asm/device.h b/arch/mips/include/asm/device.h
-index ebc5c1265473..6aa796f1081a 100644
---- a/arch/mips/include/asm/device.h
-+++ b/arch/mips/include/asm/device.h
-@@ -6,12 +6,7 @@
- #ifndef _ASM_MIPS_DEVICE_H
- #define _ASM_MIPS_DEVICE_H
- 
--struct dma_map_ops;
--
- struct dev_archdata {
--	/* DMA operations on that device */
--	const struct dma_map_ops *dma_ops;
--
- #ifdef CONFIG_DMA_PERDEV_COHERENT
- 	/* Non-zero if DMA is coherent with CPU caches */
- 	bool dma_coherent;
-diff --git a/arch/mips/include/asm/dma-mapping.h b/arch/mips/include/asm/dma-mapping.h
-index b59b084a7569..aba71385f9d1 100644
---- a/arch/mips/include/asm/dma-mapping.h
-+++ b/arch/mips/include/asm/dma-mapping.h
-@@ -11,12 +11,9 @@
- 
- extern const struct dma_map_ops *mips_dma_map_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--	if (dev && dev->archdata.dma_ops)
--		return dev->archdata.dma_ops;
--	else
--		return mips_dma_map_ops;
-+	return mips_dma_map_ops;
- }
- 
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
-diff --git a/arch/mips/pci/pci-octeon.c b/arch/mips/pci/pci-octeon.c
-index 308d051fc45c..7da99a908229 100644
---- a/arch/mips/pci/pci-octeon.c
-+++ b/arch/mips/pci/pci-octeon.c
-@@ -167,7 +167,7 @@ int pcibios_plat_dev_init(struct pci_dev *dev)
- 		pci_write_config_dword(dev, pos + PCI_ERR_ROOT_STATUS, dconfig);
- 	}
- 
--	dev->dev.archdata.dma_ops = octeon_pci_dma_map_ops;
-+	set_dma_ops(&dev->dev, octeon_pci_dma_map_ops);
- 
- 	return 0;
- }
-diff --git a/arch/mn10300/include/asm/dma-mapping.h b/arch/mn10300/include/asm/dma-mapping.h
-index 564e3927e005..737ef574b3ea 100644
---- a/arch/mn10300/include/asm/dma-mapping.h
-+++ b/arch/mn10300/include/asm/dma-mapping.h
-@@ -16,7 +16,7 @@
- 
- extern const struct dma_map_ops mn10300_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &mn10300_dma_ops;
- }
-diff --git a/arch/nios2/include/asm/dma-mapping.h b/arch/nios2/include/asm/dma-mapping.h
-index aa00d839a64b..7b3c6f280293 100644
---- a/arch/nios2/include/asm/dma-mapping.h
-+++ b/arch/nios2/include/asm/dma-mapping.h
-@@ -12,7 +12,7 @@
- 
- extern const struct dma_map_ops nios2_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &nios2_dma_ops;
- }
-diff --git a/arch/openrisc/include/asm/dma-mapping.h b/arch/openrisc/include/asm/dma-mapping.h
-index 88acbedb4947..0c0075f17145 100644
---- a/arch/openrisc/include/asm/dma-mapping.h
-+++ b/arch/openrisc/include/asm/dma-mapping.h
-@@ -30,7 +30,7 @@
- 
- extern const struct dma_map_ops or1k_dma_map_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return &or1k_dma_map_ops;
- }
-diff --git a/arch/parisc/include/asm/dma-mapping.h b/arch/parisc/include/asm/dma-mapping.h
-index 1749073e44fc..5404c6a726b2 100644
---- a/arch/parisc/include/asm/dma-mapping.h
-+++ b/arch/parisc/include/asm/dma-mapping.h
-@@ -27,7 +27,7 @@ extern const struct dma_map_ops pcx_dma_ops;
- 
- extern const struct dma_map_ops *hppa_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return hppa_dma_ops;
- }
-diff --git a/arch/powerpc/include/asm/device.h b/arch/powerpc/include/asm/device.h
-index 49cbb0fca233..0245bfcaac32 100644
---- a/arch/powerpc/include/asm/device.h
-+++ b/arch/powerpc/include/asm/device.h
-@@ -6,7 +6,6 @@
- #ifndef _ASM_POWERPC_DEVICE_H
- #define _ASM_POWERPC_DEVICE_H
- 
--struct dma_map_ops;
- struct device_node;
- #ifdef CONFIG_PPC64
- struct pci_dn;
-@@ -20,9 +19,6 @@ struct iommu_table;
-  * drivers/macintosh/macio_asic.c
-  */
- struct dev_archdata {
--	/* DMA operations on that device */
--	const struct dma_map_ops	*dma_ops;
--
- 	/*
- 	 * These two used to be a union. However, with the hybrid ops we need
- 	 * both so here we store both a DMA offset for direct mappings and
-diff --git a/arch/powerpc/include/asm/dma-mapping.h b/arch/powerpc/include/asm/dma-mapping.h
-index 2ec3eadf336f..efdcf87c4c2f 100644
---- a/arch/powerpc/include/asm/dma-mapping.h
-+++ b/arch/powerpc/include/asm/dma-mapping.h
-@@ -78,22 +78,9 @@ extern struct dma_map_ops dma_iommu_ops;
- #endif
- extern const struct dma_map_ops dma_direct_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--	/* We don't handle the NULL dev case for ISA for now. We could
--	 * do it via an out of line call but it is not needed for now. The
--	 * only ISA DMA device we support is the floppy and we have a hack
--	 * in the floppy driver directly to get a device for us.
--	 */
--	if (unlikely(dev == NULL))
--		return NULL;
--
--	return dev->archdata.dma_ops;
+-	return (u64)cpu_addr;
 -}
 -
--static inline void set_dma_ops(struct device *dev, const struct dma_map_ops *ops)
+-static void hfi1_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
+-				  enum dma_data_direction direction)
 -{
--	dev->archdata.dma_ops = ops;
-+	return NULL;
- }
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static u64 hfi1_dma_map_page(struct ib_device *dev, struct page *page,
+-			     unsigned long offset, size_t size,
+-			    enum dma_data_direction direction)
+-{
+-	u64 addr;
+-
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
+-
+-	if (offset + size > PAGE_SIZE)
+-		return BAD_DMA_ADDRESS;
+-
+-	addr = (u64)page_address(page);
+-	if (addr)
+-		addr += offset;
+-
+-	return addr;
+-}
+-
+-static void hfi1_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
+-				enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static int hfi1_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+-		       int nents, enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	u64 addr;
+-	int i;
+-	int ret = nents;
+-
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		addr = (u64)page_address(sg_page(sg));
+-		if (!addr) {
+-			ret = 0;
+-			break;
+-		}
+-		sg->dma_address = addr + sg->offset;
+-#ifdef CONFIG_NEED_SG_DMA_LENGTH
+-		sg->dma_length = sg->length;
+-#endif
+-	}
+-	return ret;
+-}
+-
+-static void hfi1_unmap_sg(struct ib_device *dev,
+-			  struct scatterlist *sg, int nents,
+-			 enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static void hfi1_sync_single_for_cpu(struct ib_device *dev, u64 addr,
+-				     size_t size, enum dma_data_direction dir)
+-{
+-}
+-
+-static void hfi1_sync_single_for_device(struct ib_device *dev, u64 addr,
+-					size_t size,
+-					enum dma_data_direction dir)
+-{
+-}
+-
+-static void *hfi1_dma_alloc_coherent(struct ib_device *dev, size_t size,
+-				     u64 *dma_handle, gfp_t flag)
+-{
+-	struct page *p;
+-	void *addr = NULL;
+-
+-	p = alloc_pages(flag, get_order(size));
+-	if (p)
+-		addr = page_address(p);
+-	if (dma_handle)
+-		*dma_handle = (u64)addr;
+-	return addr;
+-}
+-
+-static void hfi1_dma_free_coherent(struct ib_device *dev, size_t size,
+-				   void *cpu_addr, u64 dma_handle)
+-{
+-	free_pages((unsigned long)cpu_addr, get_order(size));
+-}
+-
+-struct ib_dma_mapping_ops hfi1_dma_mapping_ops = {
+-	.mapping_error = hfi1_mapping_error,
+-	.map_single = hfi1_dma_map_single,
+-	.unmap_single = hfi1_dma_unmap_single,
+-	.map_page = hfi1_dma_map_page,
+-	.unmap_page = hfi1_dma_unmap_page,
+-	.map_sg = hfi1_map_sg,
+-	.unmap_sg = hfi1_unmap_sg,
+-	.sync_single_for_cpu = hfi1_sync_single_for_cpu,
+-	.sync_single_for_device = hfi1_sync_single_for_device,
+-	.alloc_coherent = hfi1_dma_alloc_coherent,
+-	.free_coherent = hfi1_dma_free_coherent
+-};
+diff --git a/drivers/infiniband/hw/qib/qib_dma.c b/drivers/infiniband/hw/qib/qib_dma.c
+deleted file mode 100644
+index 59fe092b4b0f..000000000000
+--- a/drivers/infiniband/hw/qib/qib_dma.c
++++ /dev/null
+@@ -1,169 +0,0 @@
+-/*
+- * Copyright (c) 2006, 2009, 2010 QLogic, Corporation. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-#include <linux/types.h>
+-#include <linux/scatterlist.h>
+-
+-#include "qib_verbs.h"
+-
+-#define BAD_DMA_ADDRESS ((u64) 0)
+-
+-/*
+- * The following functions implement driver specific replacements
+- * for the ib_dma_*() functions.
+- *
+- * These functions return kernel virtual addresses instead of
+- * device bus addresses since the driver uses the CPU to copy
+- * data instead of using hardware DMA.
+- */
+-
+-static int qib_mapping_error(struct ib_device *dev, u64 dma_addr)
+-{
+-	return dma_addr == BAD_DMA_ADDRESS;
+-}
+-
+-static u64 qib_dma_map_single(struct ib_device *dev, void *cpu_addr,
+-			      size_t size, enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-	return (u64) cpu_addr;
+-}
+-
+-static void qib_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
+-				 enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-}
+-
+-static u64 qib_dma_map_page(struct ib_device *dev, struct page *page,
+-			    unsigned long offset, size_t size,
+-			    enum dma_data_direction direction)
+-{
+-	u64 addr;
+-
+-	BUG_ON(!valid_dma_direction(direction));
+-
+-	if (offset + size > PAGE_SIZE) {
+-		addr = BAD_DMA_ADDRESS;
+-		goto done;
+-	}
+-
+-	addr = (u64) page_address(page);
+-	if (addr)
+-		addr += offset;
+-	/* TODO: handle highmem pages */
+-
+-done:
+-	return addr;
+-}
+-
+-static void qib_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
+-			       enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-}
+-
+-static int qib_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+-		      int nents, enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	u64 addr;
+-	int i;
+-	int ret = nents;
+-
+-	BUG_ON(!valid_dma_direction(direction));
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		addr = (u64) page_address(sg_page(sg));
+-		/* TODO: handle highmem pages */
+-		if (!addr) {
+-			ret = 0;
+-			break;
+-		}
+-		sg->dma_address = addr + sg->offset;
+-#ifdef CONFIG_NEED_SG_DMA_LENGTH
+-		sg->dma_length = sg->length;
+-#endif
+-	}
+-	return ret;
+-}
+-
+-static void qib_unmap_sg(struct ib_device *dev,
+-			 struct scatterlist *sg, int nents,
+-			 enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-}
+-
+-static void qib_sync_single_for_cpu(struct ib_device *dev, u64 addr,
+-				    size_t size, enum dma_data_direction dir)
+-{
+-}
+-
+-static void qib_sync_single_for_device(struct ib_device *dev, u64 addr,
+-				       size_t size,
+-				       enum dma_data_direction dir)
+-{
+-}
+-
+-static void *qib_dma_alloc_coherent(struct ib_device *dev, size_t size,
+-				    u64 *dma_handle, gfp_t flag)
+-{
+-	struct page *p;
+-	void *addr = NULL;
+-
+-	p = alloc_pages(flag, get_order(size));
+-	if (p)
+-		addr = page_address(p);
+-	if (dma_handle)
+-		*dma_handle = (u64) addr;
+-	return addr;
+-}
+-
+-static void qib_dma_free_coherent(struct ib_device *dev, size_t size,
+-				  void *cpu_addr, u64 dma_handle)
+-{
+-	free_pages((unsigned long) cpu_addr, get_order(size));
+-}
+-
+-struct ib_dma_mapping_ops qib_dma_mapping_ops = {
+-	.mapping_error = qib_mapping_error,
+-	.map_single = qib_dma_map_single,
+-	.unmap_single = qib_dma_unmap_single,
+-	.map_page = qib_dma_map_page,
+-	.unmap_page = qib_dma_unmap_page,
+-	.map_sg = qib_map_sg,
+-	.unmap_sg = qib_unmap_sg,
+-	.sync_single_for_cpu = qib_sync_single_for_cpu,
+-	.sync_single_for_device = qib_sync_single_for_device,
+-	.alloc_coherent = qib_dma_alloc_coherent,
+-	.free_coherent = qib_dma_free_coherent
+-};
+diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
+index 2c3c93572c17..d2f64a03733e 100644
+--- a/drivers/infiniband/hw/qib/qib_keys.c
++++ b/drivers/infiniband/hw/qib/qib_keys.c
+@@ -160,7 +160,7 @@ int qib_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
  
- /*
-diff --git a/arch/powerpc/include/asm/ps3.h b/arch/powerpc/include/asm/ps3.h
-index a19f831a4cc9..17ee719e799f 100644
---- a/arch/powerpc/include/asm/ps3.h
-+++ b/arch/powerpc/include/asm/ps3.h
-@@ -435,7 +435,7 @@ static inline void *ps3_system_bus_get_drvdata(
- 	return dev_get_drvdata(&dev->core);
- }
- 
--/* These two need global scope for get_dma_ops(). */
-+/* These two need global scope for get_arch_dma_ops(). */
- 
- extern struct bus_type ps3_system_bus_type;
- 
-diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
-index beb18d7a1999..6f4e06b63a80 100644
---- a/arch/powerpc/kernel/dma.c
-+++ b/arch/powerpc/kernel/dma.c
-@@ -33,7 +33,7 @@ static u64 __maybe_unused get_pfn_limit(struct device *dev)
- 	struct dev_archdata __maybe_unused *sd = &dev->archdata;
- 
- #ifdef CONFIG_SWIOTLB
--	if (sd->max_direct_dma_addr && sd->dma_ops == &swiotlb_dma_ops)
-+	if (sd->max_direct_dma_addr && dev->dma_ops == &swiotlb_dma_ops)
- 		pfn = min_t(u64, pfn, sd->max_direct_dma_addr >> PAGE_SHIFT);
- #endif
- 
-diff --git a/arch/powerpc/kernel/ibmebus.c b/arch/powerpc/kernel/ibmebus.c
-index ca2e1f89544e..e2f09f0d1152 100644
---- a/arch/powerpc/kernel/ibmebus.c
-+++ b/arch/powerpc/kernel/ibmebus.c
-@@ -169,7 +169,7 @@ static int ibmebus_create_device(struct device_node *dn)
- 		return -ENOMEM;
- 
- 	dev->dev.bus = &ibmebus_bus_type;
--	dev->dev.archdata.dma_ops = &ibmebus_dma_ops;
-+	set_dma_ops(&dev->dev, &ibmebus_dma_ops);
- 
- 	ret = of_device_add(dev);
- 	if (ret)
-diff --git a/arch/powerpc/platforms/cell/iommu.c b/arch/powerpc/platforms/cell/iommu.c
-index e1413e69e5fe..592a2a0f4860 100644
---- a/arch/powerpc/platforms/cell/iommu.c
-+++ b/arch/powerpc/platforms/cell/iommu.c
-@@ -692,7 +692,7 @@ static int cell_of_bus_notify(struct notifier_block *nb, unsigned long action,
- 		return 0;
- 
- 	/* We use the PCI DMA ops */
--	dev->archdata.dma_ops = get_pci_dma_ops();
-+	set_dma_ops(dev, get_pci_dma_ops());
- 
- 	cell_dma_dev_setup(dev);
- 
-diff --git a/arch/powerpc/platforms/pasemi/iommu.c b/arch/powerpc/platforms/pasemi/iommu.c
-index e74adc4e7fd8..66bf56788260 100644
---- a/arch/powerpc/platforms/pasemi/iommu.c
-+++ b/arch/powerpc/platforms/pasemi/iommu.c
-@@ -186,7 +186,7 @@ static void pci_dma_dev_setup_pasemi(struct pci_dev *dev)
+ 	/*
+ 	 * We use RKEY == zero for kernel virtual addresses
+-	 * (see qib_get_dma_mr and qib_dma.c).
++	 * (see qib_get_dma_mr).
  	 */
- 	if (dev->vendor == 0x1959 && dev->device == 0xa007 &&
- 	    !firmware_has_feature(FW_FEATURE_LPAR)) {
--		dev->dev.archdata.dma_ops = &dma_direct_ops;
-+		set_dma_ops(&dev->dev, &dma_direct_ops);
- 		/*
- 		 * Set the coherent DMA mask to prevent the iommu
- 		 * being used unnecessarily
-diff --git a/arch/powerpc/platforms/pasemi/setup.c b/arch/powerpc/platforms/pasemi/setup.c
-index 3182400cf48f..a00412d369f8 100644
---- a/arch/powerpc/platforms/pasemi/setup.c
-+++ b/arch/powerpc/platforms/pasemi/setup.c
-@@ -363,7 +363,7 @@ static int pcmcia_notify(struct notifier_block *nb, unsigned long action,
- 		return 0;
+ 	rcu_read_lock();
+ 	if (rkey == 0) {
+diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
+index ccaa7992ac97..2a821d2fb569 100644
+--- a/drivers/infiniband/sw/rdmavt/Makefile
++++ b/drivers/infiniband/sw/rdmavt/Makefile
+@@ -7,7 +7,7 @@
+ #
+ obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
  
- 	/* We use the direct ops for localbus */
--	dev->archdata.dma_ops = &dma_direct_ops;
-+	set_dma_ops(dev, &dma_direct_ops);
+-rdmavt-y := vt.o ah.o cq.o dma.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o \
++rdmavt-y := vt.o ah.o cq.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o \
+ 	trace.o
  
- 	return 0;
- }
-diff --git a/arch/powerpc/platforms/ps3/system-bus.c b/arch/powerpc/platforms/ps3/system-bus.c
-index c81450d98794..b78041049146 100644
---- a/arch/powerpc/platforms/ps3/system-bus.c
-+++ b/arch/powerpc/platforms/ps3/system-bus.c
-@@ -756,11 +756,11 @@ int ps3_system_bus_device_register(struct ps3_system_bus_device *dev)
- 
- 	switch (dev->dev_type) {
- 	case PS3_DEVICE_TYPE_IOC0:
--		dev->core.archdata.dma_ops = &ps3_ioc0_dma_ops;
-+		set_dma_ops(&dev->core, &ps3_ioc0_dma_ops);
- 		dev_set_name(&dev->core, "ioc0_%02x", ++dev_ioc0_count);
- 		break;
- 	case PS3_DEVICE_TYPE_SB:
--		dev->core.archdata.dma_ops = &ps3_sb_dma_ops;
-+		set_dma_ops(&dev->core, &ps3_sb_dma_ops);
- 		dev_set_name(&dev->core, "sb_%02x", ++dev_sb_count);
- 
- 		break;
-diff --git a/arch/s390/include/asm/device.h b/arch/s390/include/asm/device.h
-index 7955a9799466..5203fc87f080 100644
---- a/arch/s390/include/asm/device.h
-+++ b/arch/s390/include/asm/device.h
-@@ -4,7 +4,6 @@
-  * This file is released under the GPLv2
-  */
- struct dev_archdata {
--	const struct dma_map_ops *dma_ops;
- };
- 
- struct pdev_archdata {
-diff --git a/arch/s390/include/asm/dma-mapping.h b/arch/s390/include/asm/dma-mapping.h
-index 2776d205b1ff..3108b8dbe266 100644
---- a/arch/s390/include/asm/dma-mapping.h
-+++ b/arch/s390/include/asm/dma-mapping.h
-@@ -12,10 +12,8 @@
- 
- extern const struct dma_map_ops s390_pci_dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--	if (dev && dev->archdata.dma_ops)
--		return dev->archdata.dma_ops;
- 	return &dma_noop_ops;
- }
- 
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 15ffc19c8c0c..1f6b279678c0 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -641,7 +641,7 @@ int pcibios_add_device(struct pci_dev *pdev)
- 	int i;
- 
- 	pdev->dev.groups = zpci_attr_groups;
--	pdev->dev.archdata.dma_ops = &s390_pci_dma_ops;
-+	set_dma_ops(&pdev->dev, &s390_pci_dma_ops);
- 	zpci_map_resources(pdev);
- 
- 	for (i = 0; i < PCI_BAR_COUNT; i++) {
-diff --git a/arch/sh/include/asm/dma-mapping.h b/arch/sh/include/asm/dma-mapping.h
-index a7382c34c241..d99008af5f73 100644
---- a/arch/sh/include/asm/dma-mapping.h
-+++ b/arch/sh/include/asm/dma-mapping.h
-@@ -4,7 +4,7 @@
- extern const struct dma_map_ops *dma_ops;
- extern void no_iommu_init(void);
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- 	return dma_ops;
- }
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index 3d2babc0c4c6..69cc627779f2 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -24,14 +24,14 @@ extern const struct dma_map_ops pci32_dma_ops;
- 
- extern struct bus_type pci_bus_type;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- #ifdef CONFIG_SPARC_LEON
- 	if (sparc_cpu_model == sparc_leon)
- 		return leon_dma_ops;
- #endif
- #if defined(CONFIG_SPARC32) && defined(CONFIG_PCI)
--	if (dev->bus == &pci_bus_type)
-+	if (bus == &pci_bus_type)
- 		return &pci32_dma_ops;
- #endif
- 	return dma_ops;
-diff --git a/arch/tile/include/asm/device.h b/arch/tile/include/asm/device.h
-index 25f23ac7d361..1cf45422a0df 100644
---- a/arch/tile/include/asm/device.h
-+++ b/arch/tile/include/asm/device.h
-@@ -17,9 +17,6 @@
- #define _ASM_TILE_DEVICE_H
- 
- struct dev_archdata {
--	/* DMA operations on that device */
--        const struct dma_map_ops	*dma_ops;
+ CFLAGS_trace.o = -I$(src)
+diff --git a/drivers/infiniband/sw/rdmavt/dma.c b/drivers/infiniband/sw/rdmavt/dma.c
+deleted file mode 100644
+index f2cefb0d9180..000000000000
+--- a/drivers/infiniband/sw/rdmavt/dma.c
++++ /dev/null
+@@ -1,198 +0,0 @@
+-/*
+- * Copyright(c) 2016 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-#include <linux/types.h>
+-#include <linux/scatterlist.h>
+-#include <rdma/ib_verbs.h>
 -
- 	/* Offset of the DMA address from the PA. */
- 	dma_addr_t		dma_offset;
- 
-diff --git a/arch/tile/include/asm/dma-mapping.h b/arch/tile/include/asm/dma-mapping.h
-index 4a06cc75b856..bbc71a29b2c6 100644
---- a/arch/tile/include/asm/dma-mapping.h
-+++ b/arch/tile/include/asm/dma-mapping.h
-@@ -29,12 +29,9 @@ extern const struct dma_map_ops *gx_pci_dma_map_ops;
- extern const struct dma_map_ops *gx_legacy_pci_dma_map_ops;
- extern const struct dma_map_ops *gx_hybrid_pci_dma_map_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--	if (dev && dev->archdata.dma_ops)
--		return dev->archdata.dma_ops;
--	else
--		return tile_dma_map_ops;
-+	return tile_dma_map_ops;
- }
- 
- static inline dma_addr_t get_dma_offset(struct device *dev)
-@@ -59,11 +56,6 @@ static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
- 
- static inline void dma_mark_clean(void *addr, size_t size) {}
- 
--static inline void set_dma_ops(struct device *dev, const struct dma_map_ops *ops)
+-#include "dma.h"
+-
+-#define BAD_DMA_ADDRESS ((u64)0)
+-
+-/*
+- * The following functions implement driver specific replacements
+- * for the ib_dma_*() functions.
+- *
+- * These functions return kernel virtual addresses instead of
+- * device bus addresses since the driver uses the CPU to copy
+- * data instead of using hardware DMA.
+- */
+-
+-static int rvt_mapping_error(struct ib_device *dev, u64 dma_addr)
 -{
--	dev->archdata.dma_ops = ops;
+-	return dma_addr == BAD_DMA_ADDRESS;
 -}
 -
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
- {
- 	if (!dev->dma_mask)
-diff --git a/arch/x86/include/asm/device.h b/arch/x86/include/asm/device.h
-index b2d0b4ced7e3..1b3ef26e77df 100644
---- a/arch/x86/include/asm/device.h
-+++ b/arch/x86/include/asm/device.h
-@@ -2,9 +2,6 @@
- #define _ASM_X86_DEVICE_H
- 
- struct dev_archdata {
--#ifdef CONFIG_X86_DEV_DMA_OPS
--	const struct dma_map_ops *dma_ops;
--#endif
- #if defined(CONFIG_INTEL_IOMMU) || defined(CONFIG_AMD_IOMMU)
- 	void *iommu; /* hook for IOMMU specific extension */
- #endif
-diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
-index 5e4772886a1e..08a0838b83fb 100644
---- a/arch/x86/include/asm/dma-mapping.h
-+++ b/arch/x86/include/asm/dma-mapping.h
-@@ -27,16 +27,9 @@ extern int panic_on_overflow;
- 
- extern const struct dma_map_ops *dma_ops;
- 
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
--#ifndef CONFIG_X86_DEV_DMA_OPS
- 	return dma_ops;
--#else
--	if (unlikely(!dev) || !dev->archdata.dma_ops)
--		return dma_ops;
--	else
--		return dev->archdata.dma_ops;
--#endif
- }
- 
- bool arch_dma_alloc_attrs(struct device **dev, gfp_t *gfp);
-diff --git a/arch/x86/kernel/pci-calgary_64.c b/arch/x86/kernel/pci-calgary_64.c
-index 17f180148c80..87f9a1ff7cf6 100644
---- a/arch/x86/kernel/pci-calgary_64.c
-+++ b/arch/x86/kernel/pci-calgary_64.c
-@@ -1177,7 +1177,7 @@ static int __init calgary_init(void)
- 		tbl = find_iommu_table(&dev->dev);
- 
- 		if (translation_enabled(tbl))
--			dev->dev.archdata.dma_ops = &calgary_dma_ops;
-+			set_dma_ops(&dev->dev, &calgary_dma_ops);
- 	}
- 
- 	return ret;
-@@ -1201,7 +1201,7 @@ static int __init calgary_init(void)
- 		calgary_disable_translation(dev);
- 		calgary_free_bus(dev);
- 		pci_dev_put(dev); /* Undo calgary_init_one()'s pci_dev_get() */
--		dev->dev.archdata.dma_ops = NULL;
-+		set_dma_ops(&dev->dev, NULL);
- 	} while (1);
- 
- 	return ret;
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index a4fdfa7dcc1b..944e13c1a1e4 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -667,7 +667,7 @@ static void set_dma_domain_ops(struct pci_dev *pdev)
- 	spin_lock(&dma_domain_list_lock);
- 	list_for_each_entry(domain, &dma_domain_list, node) {
- 		if (pci_domain_nr(pdev->bus) == domain->domain_nr) {
--			pdev->dev.archdata.dma_ops = domain->dma_ops;
-+			set_dma_ops(&pdev->dev, domain->dma_ops);
- 			break;
- 		}
- 	}
-diff --git a/arch/x86/pci/sta2x11-fixup.c b/arch/x86/pci/sta2x11-fixup.c
-index aa3828823170..21008548f225 100644
---- a/arch/x86/pci/sta2x11-fixup.c
-+++ b/arch/x86/pci/sta2x11-fixup.c
-@@ -203,7 +203,7 @@ static void sta2x11_setup_pdev(struct pci_dev *pdev)
- 		return;
- 	pci_set_consistent_dma_mask(pdev, STA2X11_AMBA_SIZE - 1);
- 	pci_set_dma_mask(pdev, STA2X11_AMBA_SIZE - 1);
--	pdev->dev.archdata.dma_ops = &sta2x11_dma_ops;
-+	set_dma_ops(&pdev->dev, &sta2x11_dma_ops);
- 
- 	/* We must enable all devices as master, for audio DMA to work */
- 	pci_set_master(pdev);
-@@ -223,7 +223,7 @@ bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
- {
- 	struct sta2x11_mapping *map;
- 
--	if (dev->archdata.dma_ops != &sta2x11_dma_ops) {
-+	if (dev->dma_ops != &sta2x11_dma_ops) {
- 		if (!dev->dma_mask)
- 			return false;
- 		return addr + size - 1 <= *dev->dma_mask;
-@@ -247,7 +247,7 @@ bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
-  */
- dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
- {
--	if (dev->archdata.dma_ops != &sta2x11_dma_ops)
-+	if (dev->dma_ops != &sta2x11_dma_ops)
- 		return paddr;
- 	return p2a(paddr, to_pci_dev(dev));
- }
-@@ -259,7 +259,7 @@ dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
-  */
- phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
- {
--	if (dev->archdata.dma_ops != &sta2x11_dma_ops)
-+	if (dev->dma_ops != &sta2x11_dma_ops)
- 		return daddr;
- 	return a2p(daddr, to_pci_dev(dev));
- }
-diff --git a/arch/xtensa/include/asm/device.h b/arch/xtensa/include/asm/device.h
-index a77d45d39f35..1deeb8ebbb1b 100644
---- a/arch/xtensa/include/asm/device.h
-+++ b/arch/xtensa/include/asm/device.h
-@@ -6,11 +6,7 @@
- #ifndef _ASM_XTENSA_DEVICE_H
- #define _ASM_XTENSA_DEVICE_H
- 
--struct dma_map_ops;
+-static u64 rvt_dma_map_single(struct ib_device *dev, void *cpu_addr,
+-			      size_t size, enum dma_data_direction direction)
+-{
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
 -
- struct dev_archdata {
--	/* DMA operations on that device */
--	const struct dma_map_ops *dma_ops;
+-	return (u64)cpu_addr;
+-}
+-
+-static void rvt_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
+-				 enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static u64 rvt_dma_map_page(struct ib_device *dev, struct page *page,
+-			    unsigned long offset, size_t size,
+-			    enum dma_data_direction direction)
+-{
+-	u64 addr;
+-
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
+-
+-	addr = (u64)page_address(page);
+-	if (addr)
+-		addr += offset;
+-
+-	return addr;
+-}
+-
+-static void rvt_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
+-			       enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static int rvt_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+-		      int nents, enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	u64 addr;
+-	int i;
+-	int ret = nents;
+-
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return 0;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		addr = (u64)page_address(sg_page(sg));
+-		if (!addr) {
+-			ret = 0;
+-			break;
+-		}
+-		sg->dma_address = addr + sg->offset;
+-#ifdef CONFIG_NEED_SG_DMA_LENGTH
+-		sg->dma_length = sg->length;
+-#endif
+-	}
+-	return ret;
+-}
+-
+-static void rvt_unmap_sg(struct ib_device *dev,
+-			 struct scatterlist *sg, int nents,
+-			 enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static int rvt_map_sg_attrs(struct ib_device *dev, struct scatterlist *sgl,
+-			    int nents, enum dma_data_direction direction,
+-			    unsigned long attrs)
+-{
+-	return rvt_map_sg(dev, sgl, nents, direction);
+-}
+-
+-static void rvt_unmap_sg_attrs(struct ib_device *dev,
+-			       struct scatterlist *sg, int nents,
+-			       enum dma_data_direction direction,
+-			       unsigned long attrs)
+-{
+-	return rvt_unmap_sg(dev, sg, nents, direction);
+-}
+-
+-static void rvt_sync_single_for_cpu(struct ib_device *dev, u64 addr,
+-				    size_t size, enum dma_data_direction dir)
+-{
+-}
+-
+-static void rvt_sync_single_for_device(struct ib_device *dev, u64 addr,
+-				       size_t size,
+-				       enum dma_data_direction dir)
+-{
+-}
+-
+-static void *rvt_dma_alloc_coherent(struct ib_device *dev, size_t size,
+-				    u64 *dma_handle, gfp_t flag)
+-{
+-	struct page *p;
+-	void *addr = NULL;
+-
+-	p = alloc_pages(flag, get_order(size));
+-	if (p)
+-		addr = page_address(p);
+-	if (dma_handle)
+-		*dma_handle = (u64)addr;
+-	return addr;
+-}
+-
+-static void rvt_dma_free_coherent(struct ib_device *dev, size_t size,
+-				  void *cpu_addr, u64 dma_handle)
+-{
+-	free_pages((unsigned long)cpu_addr, get_order(size));
+-}
+-
+-struct ib_dma_mapping_ops rvt_default_dma_mapping_ops = {
+-	.mapping_error = rvt_mapping_error,
+-	.map_single = rvt_dma_map_single,
+-	.unmap_single = rvt_dma_unmap_single,
+-	.map_page = rvt_dma_map_page,
+-	.unmap_page = rvt_dma_unmap_page,
+-	.map_sg = rvt_map_sg,
+-	.unmap_sg = rvt_unmap_sg,
+-	.map_sg_attrs = rvt_map_sg_attrs,
+-	.unmap_sg_attrs = rvt_unmap_sg_attrs,
+-	.sync_single_for_cpu = rvt_sync_single_for_cpu,
+-	.sync_single_for_device = rvt_sync_single_for_device,
+-	.alloc_coherent = rvt_dma_alloc_coherent,
+-	.free_coherent = rvt_dma_free_coherent
+-};
+diff --git a/drivers/infiniband/sw/rdmavt/dma.h b/drivers/infiniband/sw/rdmavt/dma.h
+deleted file mode 100644
+index 979f07e09195..000000000000
+--- a/drivers/infiniband/sw/rdmavt/dma.h
++++ /dev/null
+@@ -1,53 +0,0 @@
+-#ifndef DEF_RDMAVTDMA_H
+-#define DEF_RDMAVTDMA_H
+-
+-/*
+- * Copyright(c) 2016 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-extern struct ib_dma_mapping_ops rvt_default_dma_mapping_ops;
+-
+-#endif          /* DEF_RDMAVTDMA_H */
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 46b64970058e..e12f1345bbab 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -303,8 +303,8 @@ static void __rvt_free_mr(struct rvt_mr *mr)
+  * @acc: access flags
+  *
+  * Return: the memory region on success, otherwise returns an errno.
+- * Note that all DMA addresses should be created via the
+- * struct ib_dma_mapping_ops functions (see dma.c).
++ * Note that all DMA addresses should be created via the functions in
++ * struct dma_noop_ops.
+  */
+ struct ib_mr *rvt_get_dma_mr(struct ib_pd *pd, int acc)
+ {
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index d430c2f7cec4..1014a813a942 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -777,8 +777,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	}
+ 
+ 	/* DMA Operations */
+-	rdi->ibdev.dma_ops =
+-		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
++	if (rdi->ibdev.dma_device->dma_ops == NULL)
++		set_dma_ops(rdi->ibdev.dma_device, &dma_noop_ops);
+ 
+ 	/* Protection Domain */
+ 	spin_lock_init(&rdi->n_pds_lock);
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index 6b01eaa4461b..f363505312be 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -50,7 +50,6 @@
+ 
+ #include <rdma/rdma_vt.h>
+ #include <linux/pci.h>
+-#include "dma.h"
+ #include "pd.h"
+ #include "qp.h"
+ #include "ah.h"
+diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
+index 3b3fb9d1c470..ec35ff022a42 100644
+--- a/drivers/infiniband/sw/rxe/Makefile
++++ b/drivers/infiniband/sw/rxe/Makefile
+@@ -14,7 +14,6 @@ rdma_rxe-y := \
+ 	rxe_qp.o \
+ 	rxe_cq.o \
+ 	rxe_mr.o \
+-	rxe_dma.o \
+ 	rxe_opcode.o \
+ 	rxe_mmap.o \
+ 	rxe_icrc.o \
+diff --git a/drivers/infiniband/sw/rxe/rxe_dma.c b/drivers/infiniband/sw/rxe/rxe_dma.c
+deleted file mode 100644
+index a0f8af5851ae..000000000000
+--- a/drivers/infiniband/sw/rxe/rxe_dma.c
++++ /dev/null
+@@ -1,183 +0,0 @@
+-/*
+- * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
+- * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *	- Redistributions of source code must retain the above
+- *	  copyright notice, this list of conditions and the following
+- *	  disclaimer.
+- *
+- *	- Redistributions in binary form must reproduce the above
+- *	  copyright notice, this list of conditions and the following
+- *	  disclaimer in the documentation and/or other materials
+- *	  provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#include "rxe.h"
+-#include "rxe_loc.h"
+-
+-#define DMA_BAD_ADDER ((u64)0)
+-
+-static int rxe_mapping_error(struct ib_device *dev, u64 dma_addr)
+-{
+-	return dma_addr == DMA_BAD_ADDER;
+-}
+-
+-static u64 rxe_dma_map_single(struct ib_device *dev,
+-			      void *cpu_addr, size_t size,
+-			      enum dma_data_direction direction)
+-{
+-	WARN_ON(!valid_dma_direction(direction));
+-	return (uintptr_t)cpu_addr;
+-}
+-
+-static void rxe_dma_unmap_single(struct ib_device *dev,
+-				 u64 addr, size_t size,
+-				 enum dma_data_direction direction)
+-{
+-	WARN_ON(!valid_dma_direction(direction));
+-}
+-
+-static u64 rxe_dma_map_page(struct ib_device *dev,
+-			    struct page *page,
+-			    unsigned long offset,
+-			    size_t size, enum dma_data_direction direction)
+-{
+-	u64 addr;
+-
+-	WARN_ON(!valid_dma_direction(direction));
+-
+-	if (offset + size > PAGE_SIZE) {
+-		addr = DMA_BAD_ADDER;
+-		goto done;
+-	}
+-
+-	addr = (uintptr_t)page_address(page);
+-	if (addr)
+-		addr += offset;
+-
+-done:
+-	return addr;
+-}
+-
+-static void rxe_dma_unmap_page(struct ib_device *dev,
+-			       u64 addr, size_t size,
+-			       enum dma_data_direction direction)
+-{
+-	WARN_ON(!valid_dma_direction(direction));
+-}
+-
+-static int rxe_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+-		      int nents, enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	u64 addr;
+-	int i;
+-	int ret = nents;
+-
+-	WARN_ON(!valid_dma_direction(direction));
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		addr = (uintptr_t)page_address(sg_page(sg));
+-		if (!addr) {
+-			ret = 0;
+-			break;
+-		}
+-		sg->dma_address = addr + sg->offset;
+-#ifdef CONFIG_NEED_SG_DMA_LENGTH
+-		sg->dma_length = sg->length;
+-#endif
+-	}
+-
+-	return ret;
+-}
+-
+-static void rxe_unmap_sg(struct ib_device *dev,
+-			 struct scatterlist *sg, int nents,
+-			 enum dma_data_direction direction)
+-{
+-	WARN_ON(!valid_dma_direction(direction));
+-}
+-
+-static int rxe_map_sg_attrs(struct ib_device *dev, struct scatterlist *sgl,
+-			    int nents, enum dma_data_direction direction,
+-			    unsigned long attrs)
+-{
+-	return rxe_map_sg(dev, sgl, nents, direction);
+-}
+-
+-static void rxe_unmap_sg_attrs(struct ib_device *dev,
+-			       struct scatterlist *sg, int nents,
+-			       enum dma_data_direction direction,
+-			       unsigned long attrs)
+-{
+-	rxe_unmap_sg(dev, sg, nents, direction);
+-}
+-
+-static void rxe_sync_single_for_cpu(struct ib_device *dev,
+-				    u64 addr,
+-				    size_t size, enum dma_data_direction dir)
+-{
+-}
+-
+-static void rxe_sync_single_for_device(struct ib_device *dev,
+-				       u64 addr,
+-				       size_t size, enum dma_data_direction dir)
+-{
+-}
+-
+-static void *rxe_dma_alloc_coherent(struct ib_device *dev, size_t size,
+-				    u64 *dma_handle, gfp_t flag)
+-{
+-	struct page *p;
+-	void *addr = NULL;
+-
+-	p = alloc_pages(flag, get_order(size));
+-	if (p)
+-		addr = page_address(p);
+-
+-	if (dma_handle)
+-		*dma_handle = (uintptr_t)addr;
+-
+-	return addr;
+-}
+-
+-static void rxe_dma_free_coherent(struct ib_device *dev, size_t size,
+-				  void *cpu_addr, u64 dma_handle)
+-{
+-	free_pages((unsigned long)cpu_addr, get_order(size));
+-}
+-
+-struct ib_dma_mapping_ops rxe_dma_mapping_ops = {
+-	.mapping_error		= rxe_mapping_error,
+-	.map_single		= rxe_dma_map_single,
+-	.unmap_single		= rxe_dma_unmap_single,
+-	.map_page		= rxe_dma_map_page,
+-	.unmap_page		= rxe_dma_unmap_page,
+-	.map_sg			= rxe_map_sg,
+-	.unmap_sg		= rxe_unmap_sg,
+-	.map_sg_attrs		= rxe_map_sg_attrs,
+-	.unmap_sg_attrs		= rxe_unmap_sg_attrs,
+-	.sync_single_for_cpu	= rxe_sync_single_for_cpu,
+-	.sync_single_for_device	= rxe_sync_single_for_device,
+-	.alloc_coherent		= rxe_dma_alloc_coherent,
+-	.free_coherent		= rxe_dma_free_coherent
+-};
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 73849a5a91b3..a075023332dc 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -221,8 +221,6 @@ int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
+ 		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
+ 		      struct ib_udata *udata);
+ 
+-extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
+-
+ void rxe_release(struct kref *kref);
+ 
+ int rxe_completer(void *arg);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 19841c863daf..c4a5154928b7 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1226,7 +1226,7 @@ int rxe_register_device(struct rxe_dev *rxe)
+ 	dev->dma_device = rxe->ifc_ops->dma_device(rxe);
+ 	dev->local_dma_lkey = 0;
+ 	dev->node_guid = rxe->ifc_ops->node_guid(rxe);
+-	dev->dma_ops = &rxe_dma_mapping_ops;
++	set_dma_ops(dev->dma_device, &dma_noop_ops);
+ 
+ 	dev->uverbs_abi_ver = RXE_UVERBS_ABI_VERSION;
+ 	dev->uverbs_cmd_mask = BIT_ULL(IB_USER_VERBS_CMD_GET_CONTEXT)
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5ad43a487745..663a28f37570 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1763,53 +1763,6 @@ struct ib_cache {
+ 	u8                     *lmc_cache;
  };
  
- struct pdev_archdata {
-diff --git a/arch/xtensa/include/asm/dma-mapping.h b/arch/xtensa/include/asm/dma-mapping.h
-index 50d23106cce0..c6140fa8c0be 100644
---- a/arch/xtensa/include/asm/dma-mapping.h
-+++ b/arch/xtensa/include/asm/dma-mapping.h
-@@ -20,12 +20,9 @@
+-struct ib_dma_mapping_ops {
+-	int		(*mapping_error)(struct ib_device *dev,
+-					 u64 dma_addr);
+-	u64		(*map_single)(struct ib_device *dev,
+-				      void *ptr, size_t size,
+-				      enum dma_data_direction direction);
+-	void		(*unmap_single)(struct ib_device *dev,
+-					u64 addr, size_t size,
+-					enum dma_data_direction direction);
+-	u64		(*map_page)(struct ib_device *dev,
+-				    struct page *page, unsigned long offset,
+-				    size_t size,
+-				    enum dma_data_direction direction);
+-	void		(*unmap_page)(struct ib_device *dev,
+-				      u64 addr, size_t size,
+-				      enum dma_data_direction direction);
+-	int		(*map_sg)(struct ib_device *dev,
+-				  struct scatterlist *sg, int nents,
+-				  enum dma_data_direction direction);
+-	void		(*unmap_sg)(struct ib_device *dev,
+-				    struct scatterlist *sg, int nents,
+-				    enum dma_data_direction direction);
+-	int		(*map_sg_attrs)(struct ib_device *dev,
+-					struct scatterlist *sg, int nents,
+-					enum dma_data_direction direction,
+-					unsigned long attrs);
+-	void		(*unmap_sg_attrs)(struct ib_device *dev,
+-					  struct scatterlist *sg, int nents,
+-					  enum dma_data_direction direction,
+-					  unsigned long attrs);
+-	void		(*sync_single_for_cpu)(struct ib_device *dev,
+-					       u64 dma_handle,
+-					       size_t size,
+-					       enum dma_data_direction dir);
+-	void		(*sync_single_for_device)(struct ib_device *dev,
+-						  u64 dma_handle,
+-						  size_t size,
+-						  enum dma_data_direction dir);
+-	void		*(*alloc_coherent)(struct ib_device *dev,
+-					   size_t size,
+-					   u64 *dma_handle,
+-					   gfp_t flag);
+-	void		(*free_coherent)(struct ib_device *dev,
+-					 size_t size, void *cpu_addr,
+-					 u64 dma_handle);
+-};
+-
+ struct iw_cm_verbs;
  
- extern const struct dma_map_ops xtensa_dma_map_ops;
+ struct ib_port_immutable {
+@@ -2070,7 +2023,6 @@ struct ib_device {
+ 							   struct ib_rwq_ind_table_init_attr *init_attr,
+ 							   struct ib_udata *udata);
+ 	int                        (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
+-	struct ib_dma_mapping_ops   *dma_ops;
  
--static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ 	struct module               *owner;
+ 	struct device                dev;
+@@ -2927,8 +2879,6 @@ static inline int ib_req_ncomp_notif(struct ib_cq *cq, int wc_cnt)
+  */
+ static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
  {
--	if (dev && dev->archdata.dma_ops)
--		return dev->archdata.dma_ops;
--	else
--		return &xtensa_dma_map_ops;
-+	return &xtensa_dma_map_ops;
+-	if (dev->dma_ops)
+-		return dev->dma_ops->mapping_error(dev, dma_addr);
+ 	return dma_mapping_error(dev->dma_device, dma_addr);
  }
  
- void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 0951e4fe02c2..6004bcdfc12b 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2467,7 +2467,7 @@ static void srpt_add_one(struct ib_device *device)
- 	int i;
+@@ -2943,8 +2893,6 @@ static inline u64 ib_dma_map_single(struct ib_device *dev,
+ 				    void *cpu_addr, size_t size,
+ 				    enum dma_data_direction direction)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->map_single(dev, cpu_addr, size, direction);
+ 	return dma_map_single(dev->dma_device, cpu_addr, size, direction);
+ }
  
- 	pr_debug("device = %p, device->dma_ops = %p\n", device,
--		 device->dma_ops);
-+		 get_dma_ops(device->dma_device));
+@@ -2959,10 +2907,7 @@ static inline void ib_dma_unmap_single(struct ib_device *dev,
+ 				       u64 addr, size_t size,
+ 				       enum dma_data_direction direction)
+ {
+-	if (dev->dma_ops)
+-		dev->dma_ops->unmap_single(dev, addr, size, direction);
+-	else
+-		dma_unmap_single(dev->dma_device, addr, size, direction);
++	dma_unmap_single(dev->dma_device, addr, size, direction);
+ }
  
- 	sdev = kzalloc(sizeof(*sdev), GFP_KERNEL);
- 	if (!sdev)
-diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
-index 03fca30fa39a..4d7287c51752 100644
---- a/drivers/iommu/amd_iommu.c
-+++ b/drivers/iommu/amd_iommu.c
-@@ -513,7 +513,7 @@ static void iommu_uninit_device(struct device *dev)
- 	iommu_group_remove_device(dev);
+ static inline u64 ib_dma_map_single_attrs(struct ib_device *dev,
+@@ -2997,8 +2942,6 @@ static inline u64 ib_dma_map_page(struct ib_device *dev,
+ 				  size_t size,
+ 					 enum dma_data_direction direction)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->map_page(dev, page, offset, size, direction);
+ 	return dma_map_page(dev->dma_device, page, offset, size, direction);
+ }
  
- 	/* Remove dma-ops */
--	dev->archdata.dma_ops = NULL;
-+	set_dma_ops(dev, NULL);
+@@ -3013,10 +2956,7 @@ static inline void ib_dma_unmap_page(struct ib_device *dev,
+ 				     u64 addr, size_t size,
+ 				     enum dma_data_direction direction)
+ {
+-	if (dev->dma_ops)
+-		dev->dma_ops->unmap_page(dev, addr, size, direction);
+-	else
+-		dma_unmap_page(dev->dma_device, addr, size, direction);
++	dma_unmap_page(dev->dma_device, addr, size, direction);
+ }
  
- 	/*
- 	 * We keep dev_data around for unplugged devices and reuse it when the
-@@ -2162,7 +2162,7 @@ static int amd_iommu_add_device(struct device *dev)
- 				dev_name(dev));
+ /**
+@@ -3030,8 +2970,6 @@ static inline int ib_dma_map_sg(struct ib_device *dev,
+ 				struct scatterlist *sg, int nents,
+ 				enum dma_data_direction direction)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->map_sg(dev, sg, nents, direction);
+ 	return dma_map_sg(dev->dma_device, sg, nents, direction);
+ }
  
- 		iommu_ignore_device(dev);
--		dev->archdata.dma_ops = &nommu_dma_ops;
-+		set_dma_ops(dev, &nommu_dma_ops);
- 		goto out;
- 	}
- 	init_iommu_group(dev);
-@@ -2179,7 +2179,7 @@ static int amd_iommu_add_device(struct device *dev)
- 	if (domain->type == IOMMU_DOMAIN_IDENTITY)
- 		dev_data->passthrough = true;
- 	else
--		dev->archdata.dma_ops = &amd_iommu_dma_ops;
-+		set_dma_ops(dev, &amd_iommu_dma_ops);
+@@ -3046,10 +2984,7 @@ static inline void ib_dma_unmap_sg(struct ib_device *dev,
+ 				   struct scatterlist *sg, int nents,
+ 				   enum dma_data_direction direction)
+ {
+-	if (dev->dma_ops)
+-		dev->dma_ops->unmap_sg(dev, sg, nents, direction);
+-	else
+-		dma_unmap_sg(dev->dma_device, sg, nents, direction);
++	dma_unmap_sg(dev->dma_device, sg, nents, direction);
+ }
  
- out:
- 	iommu_completion_wait(iommu);
-diff --git a/drivers/misc/mic/bus/mic_bus.c b/drivers/misc/mic/bus/mic_bus.c
-index c4b27a25662a..ee6e4ef370ea 100644
---- a/drivers/misc/mic/bus/mic_bus.c
-+++ b/drivers/misc/mic/bus/mic_bus.c
-@@ -158,7 +158,7 @@ mbus_register_device(struct device *pdev, int id, const struct dma_map_ops *dma_
- 	mbdev->dev.parent = pdev;
- 	mbdev->id.device = id;
- 	mbdev->id.vendor = MBUS_DEV_ANY_ID;
--	mbdev->dev.archdata.dma_ops = dma_ops;
-+	set_dma_ops(&mbdev->dev, dma_ops);
- 	mbdev->dev.dma_mask = &mbdev->dev.coherent_dma_mask;
- 	dma_set_mask(&mbdev->dev, DMA_BIT_MASK(64));
- 	mbdev->dev.release = mbus_release_dev;
-diff --git a/drivers/misc/mic/bus/scif_bus.c b/drivers/misc/mic/bus/scif_bus.c
-index e5d377e97c86..d4d559cad6a1 100644
---- a/drivers/misc/mic/bus/scif_bus.c
-+++ b/drivers/misc/mic/bus/scif_bus.c
-@@ -154,7 +154,7 @@ scif_register_device(struct device *pdev, int id, const struct dma_map_ops *dma_
- 	sdev->dev.parent = pdev;
- 	sdev->id.device = id;
- 	sdev->id.vendor = SCIF_DEV_ANY_ID;
--	sdev->dev.archdata.dma_ops = dma_ops;
-+	set_dma_ops(&sdev->dev, dma_ops);
- 	sdev->dev.release = scif_release_dev;
- 	sdev->hw_ops = hw_ops;
- 	sdev->dnode = dnode;
-diff --git a/drivers/misc/mic/bus/vop_bus.c b/drivers/misc/mic/bus/vop_bus.c
-index e3caa6c53922..c96a05f811f2 100644
---- a/drivers/misc/mic/bus/vop_bus.c
-+++ b/drivers/misc/mic/bus/vop_bus.c
-@@ -154,7 +154,7 @@ vop_register_device(struct device *pdev, int id,
- 	vdev->dev.parent = pdev;
- 	vdev->id.device = id;
- 	vdev->id.vendor = VOP_DEV_ANY_ID;
--	vdev->dev.archdata.dma_ops = dma_ops;
-+	set_dma_ops(&vdev->dev, dma_ops);
- 	vdev->dev.dma_mask = &vdev->dev.coherent_dma_mask;
- 	dma_set_mask(&vdev->dev, DMA_BIT_MASK(64));
- 	vdev->dev.release = vop_release_dev;
-diff --git a/include/linux/device.h b/include/linux/device.h
-index bc41e87a969b..e887b22a37e5 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -780,6 +780,8 @@ struct device_dma_parameters {
-  * a higher-level representation of the device.
-  */
- struct device {
-+	const struct dma_map_ops *dma_ops; /* See also get_dma_ops() */
+ static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
+@@ -3057,12 +2992,8 @@ static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
+ 				      enum dma_data_direction direction,
+ 				      unsigned long dma_attrs)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->map_sg_attrs(dev, sg, nents, direction,
+-						  dma_attrs);
+-	else
+-		return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
+-					dma_attrs);
++	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
++				dma_attrs);
+ }
+ 
+ static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
+@@ -3070,12 +3001,7 @@ static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
+ 					 enum dma_data_direction direction,
+ 					 unsigned long dma_attrs)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->unmap_sg_attrs(dev, sg, nents, direction,
+-						  dma_attrs);
+-	else
+-		dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction,
+-				   dma_attrs);
++	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction, dma_attrs);
+ }
+ /**
+  * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
+@@ -3117,10 +3043,7 @@ static inline void ib_dma_sync_single_for_cpu(struct ib_device *dev,
+ 					      size_t size,
+ 					      enum dma_data_direction dir)
+ {
+-	if (dev->dma_ops)
+-		dev->dma_ops->sync_single_for_cpu(dev, addr, size, dir);
+-	else
+-		dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
++	dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
+ }
+ 
+ /**
+@@ -3135,10 +3058,7 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+ 						 size_t size,
+ 						 enum dma_data_direction dir)
+ {
+-	if (dev->dma_ops)
+-		dev->dma_ops->sync_single_for_device(dev, addr, size, dir);
+-	else
+-		dma_sync_single_for_device(dev->dma_device, addr, size, dir);
++	dma_sync_single_for_device(dev->dma_device, addr, size, dir);
+ }
+ 
+ /**
+@@ -3153,16 +3073,12 @@ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+ 					   u64 *dma_handle,
+ 					   gfp_t flag)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->alloc_coherent(dev, size, dma_handle, flag);
+-	else {
+-		dma_addr_t handle;
+-		void *ret;
+-
+-		ret = dma_alloc_coherent(dev->dma_device, size, &handle, flag);
+-		*dma_handle = handle;
+-		return ret;
+-	}
++	dma_addr_t handle;
++	void *ret;
 +
- 	struct device		*parent;
++	ret = dma_alloc_coherent(dev->dma_device, size, &handle, flag);
++	*dma_handle = handle;
++	return ret;
+ }
  
- 	struct device_private	*p;
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index c4e4b80d3843..50d059e08720 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -164,6 +164,18 @@ int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
+ /**
+@@ -3176,10 +3092,7 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
+ 					size_t size, void *cpu_addr,
+ 					u64 dma_handle)
+ {
+-	if (dev->dma_ops)
+-		dev->dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
+-	else
+-		dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
++	dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
+ }
  
- #ifdef CONFIG_HAS_DMA
- #include <asm/dma-mapping.h>
-+static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
-+{
-+	if (dev && dev->dma_ops)
-+		return dev->dma_ops;
-+	return get_arch_dma_ops(dev ? dev->bus : NULL);
-+}
-+
-+static inline void set_dma_ops(struct device *dev,
-+			       const struct dma_map_ops *dma_ops)
-+{
-+	dev->dma_ops = dma_ops;
-+}
- #else
- /*
-  * Define the dma api to allow compilation but not linking of
+ /**
 -- 
 2.11.0
 
