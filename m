@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 16/23] IB/hfi1: Use reference count wrapper for MRs
-Date: Wed, 07 Dec 2016 19:33:53 -0800
-Message-ID: <20161208033351.21135.25392.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 17/23] IB/qib: Use standard refcount wrapper for QPs
+Date: Wed, 07 Dec 2016 19:34:00 -0800
+Message-ID: <20161208033358.21135.49455.stgit@scvm10.sc.intel.com>
 References: <20161208032312.21135.66056.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,57 +15,112 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Some parts of the code don't use the standard driver
-wrapper for memory region reference counters. Use the
-standard driver wrapper throughout the code.
+Use the standard driver wrapper for QP reference counters.
+This makes the code more maintainable.
 
+Fixes: Commit 4d6f85c3fa55 ("IB/rdmavt, IB/qib, IB/hfi1: Use new QP put get routines")
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mr.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qib/qib_driver.c |    3 +--
+ drivers/infiniband/hw/qib/qib_verbs.c  |   20 ++++++++------------
+ 2 files changed, 9 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 562cf78..52fd152 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -793,7 +793,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 		mr = rcu_dereference(dev->dma_mr);
- 		if (!mr)
- 			goto bail;
--		atomic_inc(&mr->refcount);
-+		rvt_get_mr(mr);
- 		rcu_read_unlock();
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 728e0a0..2b5982f 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -420,8 +420,7 @@ static u32 qib_rcv_hdrerr(struct qib_ctxtdata *rcd, struct qib_pportdata *ppd,
+ 						if (list_empty(&qp->rspwait)) {
+ 							qp->r_flags |=
+ 								RVT_R_RSP_NAK;
+-							atomic_inc(
+-								&qp->refcount);
++							rvt_get_qp(qp);
+ 							list_add_tail(
+ 							 &qp->rspwait,
+ 							 &rcd->qp_wait_list);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 954f150..2044824 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -464,7 +464,7 @@ static void mem_timer(unsigned long data)
+ 		priv = list_entry(list->next, struct qib_qp_priv, iowait);
+ 		qp = priv->owner;
+ 		list_del_init(&priv->iowait);
+-		atomic_inc(&qp->refcount);
++		rvt_get_qp(qp);
+ 		if (!list_empty(list))
+ 			mod_timer(&dev->mem_timer, jiffies + 1);
+ 	}
+@@ -477,8 +477,7 @@ static void mem_timer(unsigned long data)
+ 			qib_schedule_send(qp);
+ 		}
+ 		spin_unlock_irqrestore(&qp->s_lock, flags);
+-		if (atomic_dec_and_test(&qp->refcount))
+-			wake_up(&qp->wait);
++		rvt_put_qp(qp);
+ 	}
+ }
  
- 		isge->mr = mr;
-@@ -814,7 +814,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 		     off + sge->length > mr->length ||
- 		     (mr->access_flags & acc) != acc))
- 		goto bail;
--	atomic_inc(&mr->refcount);
-+	rvt_get_mr(mr);
- 	rcu_read_unlock();
+@@ -762,7 +761,7 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
+ 				  iowait);
+ 		qp = priv->owner;
+ 		list_del_init(&priv->iowait);
+-		atomic_inc(&qp->refcount);
++		rvt_get_qp(qp);
+ 		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
  
- 	off += mr->offset;
-@@ -892,7 +892,7 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 		mr = rcu_dereference(rdi->dma_mr);
- 		if (!mr)
- 			goto bail;
--		atomic_inc(&mr->refcount);
-+		rvt_get_mr(mr);
- 		rcu_read_unlock();
+ 		spin_lock_irqsave(&qp->s_lock, flags);
+@@ -772,8 +771,7 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
+ 		}
+ 		spin_unlock_irqrestore(&qp->s_lock, flags);
  
- 		sge->mr = mr;
-@@ -913,7 +913,7 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 	if (unlikely(vaddr < mr->iova || off + len > mr->length ||
- 		     (mr->access_flags & acc) == 0))
- 		goto bail;
--	atomic_inc(&mr->refcount);
-+	rvt_get_mr(mr);
- 	rcu_read_unlock();
+-		if (atomic_dec_and_test(&qp->refcount))
+-			wake_up(&qp->wait);
++		rvt_put_qp(qp);
+ 	} else
+ 		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
+ }
+@@ -808,7 +806,7 @@ void qib_verbs_sdma_desc_avail(struct qib_pportdata *ppd, unsigned avail)
+ 			break;
+ 		avail -= qpp->s_tx->txreq.sg_count;
+ 		list_del_init(&qpp->iowait);
+-		atomic_inc(&qp->refcount);
++		rvt_get_qp(qp);
+ 		qps[n++] = qp;
+ 	}
  
- 	off += mr->offset;
+@@ -822,8 +820,7 @@ void qib_verbs_sdma_desc_avail(struct qib_pportdata *ppd, unsigned avail)
+ 			qib_schedule_send(qp);
+ 		}
+ 		spin_unlock(&qp->s_lock);
+-		if (atomic_dec_and_test(&qp->refcount))
+-			wake_up(&qp->wait);
++		rvt_put_qp(qp);
+ 	}
+ }
+ 
+@@ -1288,7 +1285,7 @@ void qib_ib_piobufavail(struct qib_devdata *dd)
+ 		priv = list_entry(list->next, struct qib_qp_priv, iowait);
+ 		qp = priv->owner;
+ 		list_del_init(&priv->iowait);
+-		atomic_inc(&qp->refcount);
++		rvt_get_qp(qp);
+ 		qps[n++] = qp;
+ 	}
+ 	dd->f_wantpiobuf_intr(dd, 0);
+@@ -1306,8 +1303,7 @@ void qib_ib_piobufavail(struct qib_devdata *dd)
+ 		spin_unlock_irqrestore(&qp->s_lock, flags);
+ 
+ 		/* Notify qib_destroy_qp() if it is waiting. */
+-		if (atomic_dec_and_test(&qp->refcount))
+-			wake_up(&qp->wait);
++		rvt_put_qp(qp);
+ 	}
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
