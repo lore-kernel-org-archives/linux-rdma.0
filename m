@@ -1,63 +1,48 @@
 From: "Chandramouli, Dasaratharaman"
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 03/11] IB/core: Change ah_attr.dlid from 16 to 32 bits
-Date: Thu, 8 Dec 2016 14:02:06 -0800
-Message-ID: <780da5d7-8567-e1c6-9253-c67c8742ef8f@intel.com>
+Subject: Re: [PATCH v2 10/11] IB/IPoIB: Modify ipoib_get_net_dev_by_params to
+ lookup gid table
+Date: Thu, 8 Dec 2016 15:11:04 -0800
+Message-ID: <46992104-1235-6764-b440-1b986141cf86@intel.com>
 References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1479843532-47496-4-git-send-email-dasaratharaman.chandramouli@intel.com>
- <20161208151356.GE9722@mtr-leonro.local>
+ <1479843532-47496-11-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <20161122212057.GB6484@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161208151356.GE9722-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20161122212057.GB6484-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 12/8/2016 7:13 AM, Leon Romanovsky wrote:
-> On Tue, Nov 22, 2016 at 02:38:44PM -0500, Dasaratharaman Chandramouli wrote:
->> dlid field in ah_attr is increased to 32 bits. This
->> enables core components to use the larger addresses if needed.
->> The user ABI is unchanged and userspace applications can use
->> 16 bit lids when creating and modifying address handles.
->>
->> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
+On 11/22/2016 1:20 PM, Jason Gunthorpe wrote:
+> On Tue, Nov 22, 2016 at 02:38:51PM -0500, Dasaratharaman Chandramouli wrote:
+>> ipoib_get_net_dev_by_params compares incoming gid with local_gid
+>> which is gid at index 0 of the gid table. OPA devices using larger
+>> LIDs may have a different GID format than whats setup in the local_gid
+>> field. Do a search of the gid table in those cases.
 >
-> <...>
+> Sorry, NAK, the incoming GID has to exactly match what is in IPoIB
+> LLADDR, you can't do this or it breaks how the virtualization stuff is
+> supposed to work with gid aliases.
 >
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 52216f6..294d3ed 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -814,7 +814,7 @@ struct ib_mr_status {
->>
->>  struct ib_ah_attr {
->>  	struct ib_global_route	grh;
->> -	u16			dlid;
->> +	u32			dlid;
->>  	u8			sl;
->>  	u8			src_path_bits;
->>  	u8			static_rate;
+> I'm skeptical about the other ipoib patch as well since ipoib should
+> be dealing natively with 32 bit lids, I think you need to fix the path
+> record stuff too instead of opening coding that in ipoib.
+
+Thanks for the clarification. Will attempt to keep the incoming GID 
+consistent with the GID assigned to the IPoIB interface.
+Regarding your comments on path records, we are looking into supporting 
+32 bit LIDs in the path record response.
+Will post the revised patches.
+
 >
-> It looks like this structure can be reshuffled. Can you run pahole on it, please?
-Will run before posting the next revision. Thanks.
+> Jason
 >
-> Thanks
->
->> --
->> 1.8.3.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
