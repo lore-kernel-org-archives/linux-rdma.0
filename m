@@ -1,72 +1,93 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core 08/10] i40iw: Control debug error prints using
- env variable
-Date: Thu, 8 Dec 2016 20:48:13 +0200
-Message-ID: <20161208184813.GG9722@mtr-leonro.local>
-References: <1481221001-1044-1-git-send-email-tatyana.e.nikolova@intel.com>
- <1481221001-1044-9-git-send-email-tatyana.e.nikolova@intel.com>
- <20161208182225.GA32232@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/28] Broadcom RoCE Driver (bnxt_re)
+Date: Thu, 8 Dec 2016 16:08:05 -0500
+Message-ID: <cd667d80-cc1b-c8df-07d1-a5e7b9f94c68@redhat.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <a909ae78-ed49-407a-29c7-b86729f356b8@redhat.com>
+ <CA+sbYW1P4MqsBF14d9ZK_VjV4edU2bh=sLNTVnGs9F3ojF6vWQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="BQPnanjtCNWHyqYD"
+ protocol="application/pgp-signature";
+ boundary="pn7dCiFpOqaOMwRSX4Mk5gHqmTpsj5HPj"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161208182225.GA32232-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CA+sbYW1P4MqsBF14d9ZK_VjV4edU2bh=sLNTVnGs9F3ojF6vWQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---BQPnanjtCNWHyqYD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--pn7dCiFpOqaOMwRSX4Mk5gHqmTpsj5HPj
+Content-Type: multipart/mixed; boundary="JfIt5IBJPvMttkffwtcD0kOLl2IMuwNsN";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <cd667d80-cc1b-c8df-07d1-a5e7b9f94c68-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/28] Broadcom RoCE Driver (bnxt_re)
+References: <1480919912-1079-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+ <a909ae78-ed49-407a-29c7-b86729f356b8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <CA+sbYW1P4MqsBF14d9ZK_VjV4edU2bh=sLNTVnGs9F3ojF6vWQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CA+sbYW1P4MqsBF14d9ZK_VjV4edU2bh=sLNTVnGs9F3ojF6vWQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+
+--JfIt5IBJPvMttkffwtcD0kOLl2IMuwNsN
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 08, 2016 at 11:22:25AM -0700, Jason Gunthorpe wrote:
-> On Thu, Dec 08, 2016 at 12:16:39PM -0600, Tatyana Nikolova wrote:
+On 12/8/2016 4:38 AM, Selvin Xavier wrote:
+> On Thu, Dec 8, 2016 at 5:03 AM, Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> =
+wrote:
+>> +#include <net/dcbnl.h>
 >=20
-> > +extern unsigned int i40iw_dbg;
-> > +#define i40iw_debug(fmt, args...) \
-> > +	if (i40iw_dbg) \
-> > +		fprintf(stderr, PFX "%s: " fmt, __FUNCTION__, ##args)
-> > +
+> in the kernel which i used for compilation and testing,
+> linux/netdevice.h is including net/dcbnl.h. bnxt_re_main.c is
+> including netdevice.h.  Anyway, i will add this explicitly in
+> bnxt_re_main.c in V2.
 >=20
-> No, this is an unsafe way to use defines, wrap it in do / while (0)
+> Doug,
+>  Since David Miller applied the bnxt_en changes to his net-next tree
+> (both pending patches and bnxt_re related changes), can you please
+> pull those changes to your bnxt_re branch?
 >=20
-> I would also welcome providing general infrastructure for this  -
-> every drvier seems to have this same basic approach.
+> Thanks,
+> Selvin
+>=20
 
-+1,
-The amount of copypasta in rdma-core drives me crazy.
+I had already pulled the changes, I just hadn't pushed them.  Now pushed.=
 
->=20
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---BQPnanjtCNWHyqYD
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--JfIt5IBJPvMttkffwtcD0kOLl2IMuwNsN--
+
+--pn7dCiFpOqaOMwRSX4Mk5gHqmTpsj5HPj
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhJqtAACgkQ5GN7iDZy
-WKeRoA/+Nan7MULL2REUAAqB/r3AZ/wFeMnDJ95p2a6OxS724kBY45sMIQ8HF0g2
-xNvKUfQAeuem5kJdpGLmgYCHImYch00xZTUi8g7WhILUL6v6B++3zAodxbRgCyF7
-O1076rJAm5djevUfBeaXdMekEE8YRsgxqyeznrQc/jb4XxOpVFR2ErnXWEcgRiKs
-dcPU8Im/K3+RzvCesNnGHPSNIED0POvwUFA6QMaKspNXZwb8B1bOsWfXBAB9hHav
-KWRmSG/e/VTdBn9eoKmoL4nc0SEzk3oNtwb5FlLdStg5TpfXkhPwj/2Y+NQd6vp6
-jZbF63AU/nu4NL+zIFNoumuMDWAnFIfxV0PKMRvjBVl7j6rTnVdNhxXEZA2xMv8s
-8Ch3NGyHadAVzeKmLF5D4cG5ysN2NzF8biUZwL9ESkdYFjFl03IX32d4xvOZIdhA
-wN8qKn0RznpIItwE0Gk+c5XVyHpwTpZQXTBSNPMBuUCUofn/hmA4nRJaiPr8lWLb
-cSBYLsV8qpHKxXCh9OCxPcqYW7S5l5q6pETt8JxluD+DoLoosiXa4Mpu/NBp92sz
-kgJ5EK8t0673iyO1m7QBTQ9+NSD9yFrDIffAkm+HJ9HuMqwpwOv7RuLEwSNV/sUt
-m4Kmd1uzuMZXD/GzOAn1030srDH8nRhkMTCp7ukMM5ONhzznAVQ=
-=jYXU
+iQIcBAEBCAAGBQJYScu2AAoJELgmozMOVy/dyhsP/1njywWhLlw6DnwVAnyrkUk5
+Uy9sfToF+YisVKhU5RM2pMjy7uLt0DNV89sck5RReAzZp/vHrwogbVWrpsUqOyX9
+Dfx8P2hGrrgF+f1uarXsOccHEypnsadilKQCBcjbN9h0gnCHKwrbIFxxFHCe5CnS
+koLZHB53Wmb6921xdTNKP7YsB7g5R+/zuulwyWwuLYd0W5kQFuSZWghi0fRXR6Tr
+NBMbwK+KF3hYondMSMjlHBY8ZV3DD6P6L2ErkXY/dMWa4pGHEflyCe25HX5PGG8D
+BZ5ZP6P8hHVeQjlA9JXby1odhPyv/kaW1Hx+FIdUgS7JK7NC78RNQMkkyqzZtKfl
+fiA4XmcAWrn+LG/s8hzrJPOlZtsh6kY3rx7j5G1AcVg1Zt+HWKoRIjHafzJF1o8C
+G4bbEBU68n/QZD/n8P4frHM0oJEuTKbUK/OSCoStV4RpjtWn3Poo9W6JSLkWDqbq
+XtFWSAe7qaReq6jw8vRWrXjWI61+sQqL2BW4NMq96h7ocheQWgqR2dfoF6JMMbrc
+M5kCpr4cyPxoxETZILfDX/O18ixX9+O4pKOcnW8A5RwgSYUJflwXwSX7zKQMhA/p
+U+KDosf5T5W1IS/9GGG6dqWUMa9jJOWCtQZG26puJ8Y6NUuvc5T4X0qKCeEbBjUS
+gaPO+ODScKJuo2I4hlhn
+=FlTU
 -----END PGP SIGNATURE-----
 
---BQPnanjtCNWHyqYD--
+--pn7dCiFpOqaOMwRSX4Mk5gHqmTpsj5HPj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
