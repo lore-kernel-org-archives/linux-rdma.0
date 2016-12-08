@@ -1,50 +1,38 @@
 From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core 03/10] i40iw: Fix incorrect assignment of SQ head
-Date: Thu,  8 Dec 2016 12:16:34 -0600
-Message-ID: <1481221001-1044-4-git-send-email-tatyana.e.nikolova@intel.com>
-References: <1481221001-1044-1-git-send-email-tatyana.e.nikolova@intel.com>
+Subject: [PATCH rdma-core 00/10] i40iw: Fixes and optimizations
+Date: Thu,  8 Dec 2016 12:16:31 -0600
+Message-ID: <1481221001-1044-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1481221001-1044-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The patch series includes fixes, optimizations and
+clean up to the user space i40iw.
 
-The SQ head is incorrectly incremented when the number
-of WQEs required is greater than the number available.
-The fix is to use the I40IW_RING_MOV_HEAD_BY_COUNT
-macro. This checks for the SQ full condition first and
-only if SQ has room for the request, then we move the
-head appropriately.
+Mustafa Ismail (4):
+  i40iw: Optimize setting fragments
+  i40iw: Remove unnecessary parameter
+  i40iw: Optimize inline data copy
+  i40iw: Remove unnecessary check for moving CQ head
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- providers/i40iw/i40iw_uk.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Shiraz Saleem (6):
+  i40iw: Fix incorrect assignment of SQ head
+  i40iw: Return correct error codes for destroy QP and CQ
+  i40iw: Do not destroy QP/CQ if lock is held
+  i40iw: Control debug error prints using env variable
+  i40iw: Use 2M huge pages for CQ/QP memory if available
+  i40iw: Remove SQ size constraint
 
-diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
-index 341772e..9b1a618 100644
---- a/providers/i40iw/i40iw_uk.c
-+++ b/providers/i40iw/i40iw_uk.c
-@@ -175,11 +175,10 @@ u64 *i40iw_qp_get_next_send_wqe(struct i40iw_qp_uk *qp,
- 			qp->swqe_polarity = !qp->swqe_polarity;
- 	}
- 
--	for (i = 0; i < wqe_size / I40IW_QP_WQE_MIN_SIZE; i++) {
--		I40IW_RING_MOVE_HEAD(qp->sq_ring, ret_code);
--		if (ret_code)
--			return NULL;
--	}
-+	I40IW_RING_MOVE_HEAD_BY_COUNT(qp->sq_ring,
-+				      (wqe_size / I40IW_QP_WQE_MIN_SIZE), ret_code);
-+	if (ret_code)
-+		return NULL;
- 
- 	wqe = qp->sq_base[*wqe_idx].elem;
- 
+ providers/i40iw/i40iw_d.h      |   6 +-
+ providers/i40iw/i40iw_uk.c     |  62 ++++++++------------
+ providers/i40iw/i40iw_umain.c  |  21 ++++++-
+ providers/i40iw/i40iw_umain.h  |   9 +++
+ providers/i40iw/i40iw_user.h   |   2 +-
+ providers/i40iw/i40iw_uverbs.c | 128 ++++++++++++++++++++++++++++++-----------
+ 6 files changed, 151 insertions(+), 77 deletions(-)
+
 -- 
 1.8.5.2
 
