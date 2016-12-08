@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 15/23] IB/hfi1: Replace qp->refcount release code with
- standard driver wrapper
-Date: Wed, 07 Dec 2016 19:33:46 -0800
-Message-ID: <20161208033345.21135.5524.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 16/23] IB/hfi1: Use reference count wrapper for MRs
+Date: Wed, 07 Dec 2016 19:33:53 -0800
+Message-ID: <20161208033351.21135.25392.stgit@scvm10.sc.intel.com>
 References: <20161208032312.21135.66056.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,57 +15,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Some parts of the code don't use the standard release
-wrapper rvt_put_qp() for decrementing and testing
-the refcount to then try to use a resource.
-Replace this code with the standard driver wrapper.
+Some parts of the code don't use the standard driver
+wrapper for memory region reference counters. Use the
+standard driver wrapper throughout the code.
 
-Fixes: Commit 4d6f85c3fa55 ("IB/rdmavt, IB/qib, IB/hfi1: Use new QP put get routines")
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/driver.c  |    3 +--
- drivers/infiniband/sw/rdmavt/mcast.c |    5 ++---
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/rdmavt/mr.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index c5efff2..4fbaee6 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -795,8 +795,7 @@ static inline void process_rcv_qp_work(struct hfi1_packet *packet)
- 				hfi1_schedule_send(qp);
- 			spin_unlock_irqrestore(&qp->s_lock, flags);
- 		}
--		if (atomic_dec_and_test(&qp->refcount))
--			wake_up(&qp->wait);
-+		rvt_put_qp(qp);
- 	}
- }
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 562cf78..52fd152 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -793,7 +793,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+ 		mr = rcu_dereference(dev->dma_mr);
+ 		if (!mr)
+ 			goto bail;
+-		atomic_inc(&mr->refcount);
++		rvt_get_mr(mr);
+ 		rcu_read_unlock();
  
-diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
-index 983d319..05c8c2a 100644
---- a/drivers/infiniband/sw/rdmavt/mcast.c
-+++ b/drivers/infiniband/sw/rdmavt/mcast.c
-@@ -81,7 +81,7 @@ void rvt_driver_mcast_init(struct rvt_dev_info *rdi)
+ 		isge->mr = mr;
+@@ -814,7 +814,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+ 		     off + sge->length > mr->length ||
+ 		     (mr->access_flags & acc) != acc))
  		goto bail;
+-	atomic_inc(&mr->refcount);
++	rvt_get_mr(mr);
+ 	rcu_read_unlock();
  
- 	mqp->qp = qp;
--	atomic_inc(&qp->refcount);
-+	rvt_get_qp(qp);
+ 	off += mr->offset;
+@@ -892,7 +892,7 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
+ 		mr = rcu_dereference(rdi->dma_mr);
+ 		if (!mr)
+ 			goto bail;
+-		atomic_inc(&mr->refcount);
++		rvt_get_mr(mr);
+ 		rcu_read_unlock();
  
- bail:
- 	return mqp;
-@@ -92,8 +92,7 @@ static void rvt_mcast_qp_free(struct rvt_mcast_qp *mqp)
- 	struct rvt_qp *qp = mqp->qp;
+ 		sge->mr = mr;
+@@ -913,7 +913,7 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
+ 	if (unlikely(vaddr < mr->iova || off + len > mr->length ||
+ 		     (mr->access_flags & acc) == 0))
+ 		goto bail;
+-	atomic_inc(&mr->refcount);
++	rvt_get_mr(mr);
+ 	rcu_read_unlock();
  
- 	/* Notify hfi1_destroy_qp() if it is waiting. */
--	if (atomic_dec_and_test(&qp->refcount))
--		wake_up(&qp->wait);
-+	rvt_put_qp(qp);
- 
- 	kfree(mqp);
- }
+ 	off += mr->offset;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
