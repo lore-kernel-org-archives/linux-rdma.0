@@ -1,42 +1,39 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] cma: resolve to first active IB port
-Date: Thu, 8 Dec 2016 17:47:34 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0BC8BE@ORSMSX109.amr.corp.intel.com>
-References: <CAMGffE=mSpm+zuG9wo-GV0HT4-ewg34uvOKCUrPRC61ATjxyVg@mail.gmail.com>
- <CAMGffEnBfUnvKFHOKDuzXopa6m63RBOmHRhpeZun-UddXGjzvg@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 3/5] mlx5: Avoid that sparse complains about dubious !x &
+ y expressions
+Date: Thu, 8 Dec 2016 09:52:20 -0800
+Message-ID: <eb8fd218-eefb-d836-ac61-e394fd113240@sandisk.com>
+References: <9ff07804-492c-c67a-e729-b31e0f863027@sandisk.com>
+ <572c702f-589f-2d5a-9e13-45223191db85@sandisk.com>
+ <CAJ3xEMjPZYgLhDi_6Jxkx_dg_RaehD=3SchMt_noLzQEChPrxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMGffEnBfUnvKFHOKDuzXopa6m63RBOmHRhpeZun-UddXGjzvg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAJ3xEMjPZYgLhDi_6Jxkx_dg_RaehD=3SchMt_noLzQEChPrxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbWEuYw0KPiBiL2RyaXZl
-cnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jDQo+ID4gaW5kZXggMmE2ZmM0Ny4uOWU0NmI0MiAxMDA2
-NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbWEuYw0KPiA+ICsrKyBiL2Ry
-aXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jDQo+ID4gQEAgLTY4NCw2ICs2ODQsOCBAQCBzdGF0
-aWMgaW50IGNtYV9yZXNvbHZlX2liX2RldihzdHJ1Y3QNCj4gPiByZG1hX2lkX3ByaXZhdGUgKmlk
-X3ByaXYpDQo+ID4gICAgICAgICAgICAgIGZvciAoaSA9IDA7ICFpYl9nZXRfY2FjaGVkX2dpZChj
-dXJfZGV2LT5kZXZpY2UsIHAsIGksDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAmZ2lkLCBOVUxMKTsNCj4gPiAgICAgICAgICAgICAgICAgICBpKyspIHsNCj4gPiArICAgICAg
-ICAgICAgICAgIHN0cnVjdCBpYl9wb3J0X2F0dHIgYXR0cjsNCj4gPiArDQo+ID4gICAgICAgICAg
-ICAgICAgICBpZiAoIW1lbWNtcCgmZ2lkLCBkZ2lkLCBzaXplb2YoZ2lkKSkpIHsNCj4gPiAgICAg
-ICAgICAgICAgICAgICAgICBjbWFfZGV2ID0gY3VyX2RldjsNCj4gPiAgICAgICAgICAgICAgICAg
-ICAgICBzZ2lkID0gZ2lkOw0KPiA+IEBAIC02OTIsNyArNjk0LDkgQEAgc3RhdGljIGludCBjbWFf
-cmVzb2x2ZV9pYl9kZXYoc3RydWN0DQo+ID4gcmRtYV9pZF9wcml2YXRlICppZF9wcml2KQ0KPiA+
-ICAgICAgICAgICAgICAgICAgfQ0KPiA+DQo+ID4gICAgICAgICAgICAgICAgICBpZiAoIWNtYV9k
-ZXYgJiYgKGdpZC5nbG9iYWwuc3VibmV0X3ByZWZpeCA9PQ0KPiA+IC0gICAgICAgICAgICAgICAg
-ICAgICAgICAgZGdpZC0+Z2xvYmFsLnN1Ym5ldF9wcmVmaXgpKSB7DQo+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgZGdpZC0+Z2xvYmFsLnN1Ym5ldF9wcmVmaXgpICYmDQo+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgKCFpYl9xdWVyeV9wb3J0KGN1cl9kZXYtPmRldmljZSwgcCwgJmF0dHIpICYmDQo+
-ID4gKyAgICAgICAgICAgICAgICAgICAgYXR0ci5zdGF0ZSA9PSBJQl9QT1JUX0FDVElWRSkpIHsN
-Cg0KSSBkbyBoYXZlIGEgY29uY2VybiBhYm91dCBhY2Nlc3Npbmcgbm9uLWNhY2hlZCBwb3J0IGRh
-dGEgYXMgcGFydCBvZiB0aGlzIGNhbGwuICBDYW4gd2UgY2FjaGUgdGhlIHBvcnQgc3RhdGUgYW5k
-IHVzZSB0aGF0IGluc3RlYWQ/DQo=
+On 12/08/2016 01:26 AM, Or Gerlitz wrote:
+> Matan came up with a fix (below) which solves all these sparse
+> complaints in both drivers (mlx5 IB and core)
+> while basically not touching the code, we will be going with that fix
+> to 4.11, thanks, I will add reported
+> by pointing to you.
+
+Hello Or,
+
+Please consider to keep the following change:
+
+-	MLX5_SET(mkc, mkc, en_rinval, !!((type == IB_MW_TYPE_2)));
++	MLX5_SET(mkc, mkc, en_rinval, type == IB_MW_TYPE_2);
+
+I don't think that specifying two boolean not (!) operators in front of 
+a boolean expression is useful :-)
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
