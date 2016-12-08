@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 11/23] IB/rdmavt: Add trace of MR segs
-Date: Wed, 07 Dec 2016 19:33:20 -0800
-Message-ID: <20161208033318.21135.79304.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 12/23] IB/hfi1: Remove usage of qp->s_cur_sge
+Date: Wed, 07 Dec 2016 19:33:27 -0800
+Message-ID: <20161208033325.21135.52785.stgit@scvm10.sc.intel.com>
 References: <20161208032312.21135.66056.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,186 +10,178 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161208032312.21135.66056.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add tracing of MR segment information.
+The s_cur_sge field in the qp structure holds a pointer to the
+SGE of the currently processed WQE. It assumes the protection
+of the RVT_S_BUSY flag to prevent the changing of this field
+while the send engine is using it. This scheme works as long
+as there is only one instance of the send engine running at a
+time.
 
+Scaling of the send engine to multiple cores would break this
+assumption as there could be multiple instances of the send engine
+running on different CPUs. This opens a window where the QP's
+RVT_S_BUSY flag is not set but the send engine is still running.
+
+To prevent accidental changing of the s_cur_sge pointer, the QP's
+dependence on it is removed. The SGE pointer is now stored in the
+verbs_txreq, which is a per-packet data structure. This ensures
+that each individual packet has it's own pointer, which is setup
+while the RVT_S_BUSY flag is set.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mr.c       |    4 +
- drivers/infiniband/sw/rdmavt/trace.h    |    1 
- drivers/infiniband/sw/rdmavt/trace_mr.h |  112 +++++++++++++++++++++++++++++++
- 3 files changed, 117 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/trace_mr.h
+ drivers/infiniband/hw/hfi1/rc.c    |   10 +++++-----
+ drivers/infiniband/hw/hfi1/uc.c    |    2 +-
+ drivers/infiniband/hw/hfi1/ud.c    |    2 +-
+ drivers/infiniband/hw/hfi1/verbs.c |   14 ++++++--------
+ 4 files changed, 13 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 4acf179..562cf78 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -51,6 +51,7 @@
- #include <rdma/rdma_vt.h>
- #include "vt.h"
- #include "mr.h"
-+#include "trace.h"
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 1fe996c..3a31ed7 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -276,7 +276,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+ 				rvt_get_mr(ps->s_txreq->mr);
+ 			qp->s_ack_rdma_sge.sge = e->rdma_sge;
+ 			qp->s_ack_rdma_sge.num_sge = 1;
+-			qp->s_cur_sge = &qp->s_ack_rdma_sge;
++			ps->s_txreq->ss = &qp->s_ack_rdma_sge;
+ 			if (len > pmtu) {
+ 				len = pmtu;
+ 				qp->s_ack_state = OP(RDMA_READ_RESPONSE_FIRST);
+@@ -290,7 +290,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+ 			bth2 = mask_psn(qp->s_ack_rdma_psn++);
+ 		} else {
+ 			/* COMPARE_SWAP or FETCH_ADD */
+-			qp->s_cur_sge = NULL;
++			ps->s_txreq->ss = NULL;
+ 			len = 0;
+ 			qp->s_ack_state = OP(ATOMIC_ACKNOWLEDGE);
+ 			ohdr->u.at.aeth = hfi1_compute_aeth(qp);
+@@ -306,7 +306,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+ 		qp->s_ack_state = OP(RDMA_READ_RESPONSE_MIDDLE);
+ 		/* FALLTHROUGH */
+ 	case OP(RDMA_READ_RESPONSE_MIDDLE):
+-		qp->s_cur_sge = &qp->s_ack_rdma_sge;
++		ps->s_txreq->ss = &qp->s_ack_rdma_sge;
+ 		ps->s_txreq->mr = qp->s_ack_rdma_sge.sge.mr;
+ 		if (ps->s_txreq->mr)
+ 			rvt_get_mr(ps->s_txreq->mr);
+@@ -335,7 +335,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+ 		 */
+ 		qp->s_ack_state = OP(SEND_ONLY);
+ 		qp->s_flags &= ~RVT_S_ACK_PENDING;
+-		qp->s_cur_sge = NULL;
++		ps->s_txreq->ss = NULL;
+ 		if (qp->s_nak_state)
+ 			ohdr->u.aeth =
+ 				cpu_to_be32((qp->r_msn & HFI1_MSN_MASK) |
+@@ -801,7 +801,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	qp->s_len -= len;
+ 	qp->s_hdrwords = hwords;
+ 	ps->s_txreq->sde = priv->s_sde;
+-	qp->s_cur_sge = ss;
++	ps->s_txreq->ss = ss;
+ 	ps->s_txreq->s_cur_size = len;
+ 	hfi1_make_ruc_header(
+ 		qp,
+diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
+index d062c35..b141a78 100644
+--- a/drivers/infiniband/hw/hfi1/uc.c
++++ b/drivers/infiniband/hw/hfi1/uc.c
+@@ -258,7 +258,7 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	qp->s_len -= len;
+ 	qp->s_hdrwords = hwords;
+ 	ps->s_txreq->sde = priv->s_sde;
+-	qp->s_cur_sge = &qp->s_sge;
++	ps->s_txreq->ss = &qp->s_sge;
+ 	ps->s_txreq->s_cur_size = len;
+ 	hfi1_make_ruc_header(qp, ohdr, bth0 | (qp->s_state << 24),
+ 			     mask_psn(qp->s_psn++), middle, ps);
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index d742ac1..c071955 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -355,7 +355,7 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	/* header size in 32-bit words LRH+BTH+DETH = (8+12+8)/4. */
+ 	qp->s_hdrwords = 7;
+ 	ps->s_txreq->s_cur_size = wqe->length;
+-	qp->s_cur_sge = &qp->s_sge;
++	ps->s_txreq->ss = &qp->s_sge;
+ 	qp->s_srate = ah_attr->static_rate;
+ 	qp->srate_mbps = ib_rate_to_mbps(qp->s_srate);
+ 	qp->s_wqe = wqe;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 65f2f1d..3b7bfd8 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -790,10 +790,10 @@ static int wait_kmem(struct hfi1_ibdev *dev,
+  */
+ static noinline int build_verbs_ulp_payload(
+ 	struct sdma_engine *sde,
+-	struct rvt_sge_state *ss,
+ 	u32 length,
+ 	struct verbs_txreq *tx)
+ {
++	struct rvt_sge_state *ss = tx->ss;
+ 	struct rvt_sge *sg_list = ss->sg_list;
+ 	struct rvt_sge sge = ss->sge;
+ 	u8 num_sge = ss->num_sge;
+@@ -837,7 +837,6 @@ static noinline int build_verbs_ulp_payload(
+ /* New API */
+ static int build_verbs_tx_desc(
+ 	struct sdma_engine *sde,
+-	struct rvt_sge_state *ss,
+ 	u32 length,
+ 	struct verbs_txreq *tx,
+ 	struct hfi1_ahg_info *ahg_info,
+@@ -881,9 +880,9 @@ static int build_verbs_tx_desc(
+ 			goto bail_txadd;
+ 	}
  
- /**
-  * rvt_driver_mr_init - Init MR resources per driver
-@@ -403,6 +404,7 @@ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+-	/* add the ulp payload - if any.  ss can be NULL for acks */
+-	if (ss)
+-		ret = build_verbs_ulp_payload(sde, ss, length, tx);
++	/* add the ulp payload - if any. tx->ss can be NULL for acks */
++	if (tx->ss)
++		ret = build_verbs_ulp_payload(sde, length, tx);
+ bail_txadd:
+ 	return ret;
+ }
+@@ -894,7 +893,6 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	struct hfi1_ahg_info *ahg_info = priv->s_ahg;
+ 	u32 hdrwords = qp->s_hdrwords;
+-	struct rvt_sge_state *ss = qp->s_cur_sge;
+ 	u32 len = ps->s_txreq->s_cur_size;
+ 	u32 plen = hdrwords + ((len + 3) >> 2) + 2; /* includes pbc */
+ 	struct hfi1_ibdev *dev = ps->dev;
+@@ -920,7 +918,7 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 					 plen);
  		}
- 		mr->mr.map[m]->segs[n].vaddr = vaddr;
- 		mr->mr.map[m]->segs[n].length = umem->page_size;
-+		trace_rvt_mr_user_seg(&mr->mr, m, n, vaddr, umem->page_size);
- 		n++;
- 		if (n == RVT_SEGSZ) {
- 			m++;
-@@ -507,6 +509,7 @@ static int rvt_set_page(struct ib_mr *ibmr, u64 addr)
- 	n = mapped_segs % RVT_SEGSZ;
- 	mr->mr.map[m]->segs[n].vaddr = (void *)addr;
- 	mr->mr.map[m]->segs[n].length = ps;
-+	trace_rvt_mr_page_seg(&mr->mr, m, n, (void *)addr, ps);
- 	mr->mr.length += ps;
- 
- 	return 0;
-@@ -693,6 +696,7 @@ int rvt_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
- 	for (i = 0; i < list_len; i++) {
- 		fmr->mr.map[m]->segs[n].vaddr = (void *)page_list[i];
- 		fmr->mr.map[m]->segs[n].length = ps;
-+		trace_rvt_mr_fmr_seg(&fmr->mr, m, n, (void *)page_list[i], ps);
- 		if (++n == RVT_SEGSZ) {
- 			m++;
- 			n = 0;
-diff --git a/drivers/infiniband/sw/rdmavt/trace.h b/drivers/infiniband/sw/rdmavt/trace.h
-index 11a2afb..e2d23ac 100644
---- a/drivers/infiniband/sw/rdmavt/trace.h
-+++ b/drivers/infiniband/sw/rdmavt/trace.h
-@@ -51,3 +51,4 @@
- #include "trace_rvt.h"
- #include "trace_qp.h"
- #include "trace_tx.h"
-+#include "trace_mr.h"
-diff --git a/drivers/infiniband/sw/rdmavt/trace_mr.h b/drivers/infiniband/sw/rdmavt/trace_mr.h
-new file mode 100644
-index 0000000..3318a6c
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/trace_mr.h
-@@ -0,0 +1,112 @@
-+/*
-+ * Copyright(c) 2016 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+#if !defined(__RVT_TRACE_MR_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __RVT_TRACE_MR_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/trace_seq.h>
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/rdma_vt.h>
-+#include <rdma/rdmavt_mr.h>
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM rvt_mr
-+DECLARE_EVENT_CLASS(
-+	rvt_mr_template,
-+	TP_PROTO(struct rvt_mregion *mr, u16 m, u16 n, void *v, size_t len),
-+	TP_ARGS(mr, m, n, v, len),
-+	TP_STRUCT__entry(
-+		RDI_DEV_ENTRY(ib_to_rvt(mr->pd->device))
-+		__field(void *, vaddr)
-+		__field(struct page *, page)
-+		__field(size_t, len)
-+		__field(u32, lkey)
-+		__field(u16, m)
-+		__field(u16, n)
-+	),
-+	TP_fast_assign(
-+		RDI_DEV_ASSIGN(ib_to_rvt(mr->pd->device));
-+		__entry->vaddr = v;
-+		__entry->page = virt_to_page(v);
-+		__entry->m = m;
-+		__entry->n = n;
-+		__entry->len = len;
-+	),
-+	TP_printk(
-+		"[%s] vaddr %p page %p m %u n %u len %ld",
-+		__get_str(dev),
-+		__entry->vaddr,
-+		__entry->page,
-+		__entry->m,
-+		__entry->n,
-+		__entry->len
-+	)
-+);
-+
-+DEFINE_EVENT(
-+	rvt_mr_template, rvt_mr_page_seg,
-+	TP_PROTO(struct rvt_mregion *mr, u16 m, u16 n, void *v, size_t len),
-+	TP_ARGS(mr, m, n, v, len));
-+
-+DEFINE_EVENT(
-+	rvt_mr_template, rvt_mr_fmr_seg,
-+	TP_PROTO(struct rvt_mregion *mr, u16 m, u16 n, void *v, size_t len),
-+	TP_ARGS(mr, m, n, v, len));
-+
-+DEFINE_EVENT(
-+	rvt_mr_template, rvt_mr_user_seg,
-+	TP_PROTO(struct rvt_mregion *mr, u16 m, u16 n, void *v, size_t len),
-+	TP_ARGS(mr, m, n, v, len));
-+
-+#endif /* __RVT_TRACE_MR_H */
-+
-+#undef TRACE_INCLUDE_PATH
-+#undef TRACE_INCLUDE_FILE
-+#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace_mr
-+#include <trace/define_trace.h>
+ 		tx->wqe = qp->s_wqe;
+-		ret = build_verbs_tx_desc(tx->sde, ss, len, tx, ahg_info, pbc);
++		ret = build_verbs_tx_desc(tx->sde, len, tx, ahg_info, pbc);
+ 		if (unlikely(ret))
+ 			goto bail_build;
+ 	}
+@@ -1011,7 +1009,7 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ {
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	u32 hdrwords = qp->s_hdrwords;
+-	struct rvt_sge_state *ss = qp->s_cur_sge;
++	struct rvt_sge_state *ss = ps->s_txreq->ss;
+ 	u32 len = ps->s_txreq->s_cur_size;
+ 	u32 dwords = (len + 3) >> 2;
+ 	u32 plen = hdrwords + dwords + 2; /* includes pbc */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
