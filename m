@@ -1,88 +1,64 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 03/11] IB/core: Change ah_attr.dlid from 16 to 32 bits
-Date: Thu, 8 Dec 2016 17:13:56 +0200
-Message-ID: <20161208151356.GE9722@mtr-leonro.local>
-References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1479843532-47496-4-git-send-email-dasaratharaman.chandramouli@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] ibdiag_common.c: Disambiguate link speed when QDR and could be FDR10
+Date: Thu, 8 Dec 2016 11:10:24 -0500
+Message-ID: <20161208161024.GE24724@phlsvsds.ph.intel.com>
+References: <99b0d971-af69-1ad3-454f-6b6e4f47c892@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zCKi3GIZzVBPywwA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1479843532-47496-4-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <99b0d971-af69-1ad3-454f-6b6e4f47c892-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Nov 23, 2016 at 11:47:59AM -0500, Hal Rosenstock wrote:
+> Rather than printing "Could be FDR10", print
+> "Found link at QDR but expected speed is FDR10" for this case.
+> 
+> Confusion is with words "Could be" since both
+> QDR and FDR10 are both 10.0 Gbps.
 
---zCKi3GIZzVBPywwA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm not sure that I like this change.  I understand that the "speed" may be the
+same but generally FDR10 was supposed to be "better".  For all the other speed
+checks the string is "Could be" and I know I have used that to grep for any
+links which are not at "maximum" (Or "best supported") speed.
 
-On Tue, Nov 22, 2016 at 02:38:44PM -0500, Dasaratharaman Chandramouli wrote:
-> dlid field in ah_attr is increased to 32 bits. This
-> enables core components to use the larger addresses if needed.
-> The user ABI is unchanged and userspace applications can use
-> 16 bit lids when creating and modifying address handles.
->=20
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli@i=
-ntel.com>
-> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+For this reason, I don't think it is going to generally be good for customers.
+
+Was there a particular reason you needed to change this?
+
+Ira
+
+
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
-
-<...>
-
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 52216f6..294d3ed 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -814,7 +814,7 @@ struct ib_mr_status {
-> =20
->  struct ib_ah_attr {
->  	struct ib_global_route	grh;
-> -	u16			dlid;
-> +	u32			dlid;
->  	u8			sl;
->  	u8			src_path_bits;
->  	u8			static_rate;
-
-It looks like this structure can be reshuffled. Can you run pahole on it, p=
-lease?
-
-Thanks
-
-> --=20
-> 1.8.3.1
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---zCKi3GIZzVBPywwA
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhJeK0ACgkQ5GN7iDZy
-WKeaehAAujnKuK9+2fRNxNlRQI2CbdWKdmH0FvZlcztmtJokKkvgdOfJZ8SEmnwF
-QSwJmVnY9t3HW2Znuyu9j0p8Ec4e94Z9mJYDeTT67XuOWkdHmnWfHEs/OPSLyejg
-Gk0XdY9Ux9Om9jCrhOhGEPCgQLWxp9MJTRE9LqbRS3I1qly4/wutvuiCo4KFQzab
-QdFKsmt6g7dsgBt2jUU6QB1OKIYmgWOMW2fdzTMQPu/Z9qFuVVMCwRRQd1/BudcJ
-eLTxvpGYivPLFx3RxX6rRGePcWXgLgfRq62jRRtVsbUaRlCXcCU61pKLppxCYgS8
-tF2Dddi/pNTAlPHpbTFvdMKptG8vksbp4HZAA4BRkF4bPIy5wJLuG7POpiSKK5nP
-BMkjqduHT8qK/JbtyFk83wji7s5LplvG53apGmSu9wtw9O85Tdmy5ujimFXOBHfA
-9WvqKmhwWvKDWpbOwun+r2DkIwmBmHHGTaYMWmpwJ5/QT+7W99xiDhTw6AW6s63W
-8Sxy6oR3bQ0an8T5XNLrX5Rg+lM9cBM3tledpq4cdACPbphaQAfKkxPdFdEWDx+0
-ArMkLLUL9JG/IXsNvD6LrZ9KvXOugZkctcLzWaRsBLAKX7q4U/TJ7wBE1RVRGN/b
-dvW97TEwB0uhVnDPYsmMSCTIA4aInbgU+ejp1D4SpvC9T4o7tfA=
-=DrpV
------END PGP SIGNATURE-----
-
---zCKi3GIZzVBPywwA--
+>  src/ibdiag_common.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+> index 2a1e971..fa9a294 100644
+> --- a/src/ibdiag_common.c
+> +++ b/src/ibdiag_common.c
+> @@ -814,8 +814,14 @@ check_ext_speed:
+>  
+>  check_fdr10_active:
+>  	if ((mad_get_field(port->ext_info, 0,
+> -			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0)
+> -		snprintf(speed_msg, msg_size, "Could be FDR10");
+> +			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0) {
+> +		/* Special case QDR to try to avoid confusion with FDR10 */
+> +		if (mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F) == 4)
+> +			snprintf(speed_msg, msg_size,
+> +				 "Found link at QDR but expected speed is FDR10");
+> +		else
+> +			snprintf(speed_msg, msg_size, "Could be FDR10");
+> +	}
+>  }
+>  
+>  int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
