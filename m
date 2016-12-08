@@ -1,54 +1,89 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/5] mlx5: Avoid that sparse complains about dubious !x &
- y expressions
-Date: Thu, 8 Dec 2016 10:53:22 -0700
-Message-ID: <20161208175322.GB11025@obsidianresearch.com>
-References: <9ff07804-492c-c67a-e729-b31e0f863027@sandisk.com>
- <572c702f-589f-2d5a-9e13-45223191db85@sandisk.com>
- <CAJ3xEMjPZYgLhDi_6Jxkx_dg_RaehD=3SchMt_noLzQEChPrxQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH rdma-core 04/10] i40iw: Optimize inline data copy
+Date: Thu,  8 Dec 2016 12:16:35 -0600
+Message-ID: <1481221001-1044-5-git-send-email-tatyana.e.nikolova@intel.com>
+References: <1481221001-1044-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjPZYgLhDi_6Jxkx_dg_RaehD=3SchMt_noLzQEChPrxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1481221001-1044-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 08, 2016 at 11:26:32AM +0200, Or Gerlitz wrote:
->  /* insert a value to a struct */
->  #define MLX5_SET(typ, p, fld, v) do { \
-> +       typeof( v ) _v = v; \
->         BUILD_BUG_ON(__mlx5_st_sz_bits(typ) % 32);             \
->         *((__be32 *)(p) + __mlx5_dw_off(typ, fld)) = \
->         cpu_to_be32((be32_to_cpu(*((__be32 *)(p) + __mlx5_dw_off(typ, fld))) & \
-> -                    (~__mlx5_dw_mask(typ, fld))) | (((v) &
-> __mlx5_mask(typ, fld)) \
-> +                    (~__mlx5_dw_mask(typ, fld))) | (((_v) &
-> __mlx5_mask(typ, fld)) \
->                      << __mlx5_dw_bit_off(typ, fld))); \
->  } while (0)
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Ugh, that is ugly.
+Use memcpy for inline data copy in sends
+and writes instead of byte by byte copy.
 
-This is better, it has proper type safety :|
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ providers/i40iw/i40iw_uk.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-static inline _mlx5_set(__be32 *p, u32 dw_mask,
-                        u32 mask, u32 dw_off,
-			unsigned int bit_off, u32 val)
-{
-	*(p + dw_off) = cpu_to_b32((be32_to_cpu_p(p + dw_off) &
-	             ~dw_mask) | ((val & mask) << bit_off));
-}
+diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
+index 9b1a618..bf194f3 100644
+--- a/providers/i40iw/i40iw_uk.c
++++ b/providers/i40iw/i40iw_uk.c
+@@ -432,7 +432,7 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
+ 	struct i40iw_inline_rdma_write *op_info;
+ 	u64 *push;
+ 	u64 header = 0;
+-	u32 i, wqe_idx;
++	u32 wqe_idx;
+ 	enum i40iw_status_code ret_code;
+ 	bool read_fence = false;
+ 	u8 wqe_size;
+@@ -468,14 +468,12 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
+ 	src = (u8 *)(op_info->data);
+ 
+ 	if (op_info->len <= I40IW_BYTE_16) {
+-		for (i = 0; i < op_info->len; i++, src++, dest++)
+-			*dest = *src;
++		memcpy(dest, src, op_info->len);
+ 	} else {
+-		for (i = 0; i < I40IW_BYTE_16; i++, src++, dest++)
+-			*dest = *src;
++		memcpy(dest, src, I40IW_BYTE_16);
++		src += I40IW_BYTE_16;
+ 		dest = (u8 *)wqe + I40IW_BYTE_32;
+-		for (; i < op_info->len; i++, src++, dest++)
+-			*dest = *src;
++		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
+ 	}
+ 
+ 	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
+@@ -510,7 +508,7 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
+ 	u8 *dest, *src;
+ 	struct i40iw_post_inline_send *op_info;
+ 	u64 header;
+-	u32 wqe_idx, i;
++	u32 wqe_idx;
+ 	enum i40iw_status_code ret_code;
+ 	bool read_fence = false;
+ 	u8 wqe_size;
+@@ -544,14 +542,12 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
+ 	src = (u8 *)(op_info->data);
+ 
+ 	if (op_info->len <= I40IW_BYTE_16) {
+-		for (i = 0; i < op_info->len; i++, src++, dest++)
+-			*dest = *src;
++		memcpy(dest, src, op_info->len);
+ 	} else {
+-		for (i = 0; i < I40IW_BYTE_16; i++, src++, dest++)
+-			*dest = *src;
++		memcpy(dest, src, I40IW_BYTE_16);
++		src += I40IW_BYTE_16;
+ 		dest = (u8 *)wqe + I40IW_BYTE_32;
+-		for (; i < op_info->len; i++, src++, dest++)
+-			*dest = *src;
++		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
+ 	}
+ 
+ 	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
+-- 
+1.8.5.2
 
-#define MLX5_SET(typ, p, fld, v) \
-	_mlx5_set(p, __mlx5_dw_mask(typ, fld),
-	           __mlx5_mask(typ, fld),
-	           __mlx5_dw_off(typ, fld),
-		   __mlx5_dw_bit_off(typ, fld), v)
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
