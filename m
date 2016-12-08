@@ -1,86 +1,34 @@
-From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core 06/10] i40iw: Return correct error codes for destroy QP and CQ
-Date: Thu,  8 Dec 2016 12:16:37 -0600
-Message-ID: <1481221001-1044-7-git-send-email-tatyana.e.nikolova@intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 08/10] i40iw: Control debug error prints using
+ env variable
+Date: Thu, 8 Dec 2016 11:22:25 -0700
+Message-ID: <20161208182225.GA32232@obsidianresearch.com>
 References: <1481221001-1044-1-git-send-email-tatyana.e.nikolova@intel.com>
+ <1481221001-1044-9-git-send-email-tatyana.e.nikolova@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1481221001-1044-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1481221001-1044-9-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Thu, Dec 08, 2016 at 12:16:39PM -0600, Tatyana Nikolova wrote:
 
-Return correct error codes to application if destroy QP or
-CQ fails. Make sure to deregister memory only if the
-destroy is successful.
+> +extern unsigned int i40iw_dbg;
+> +#define i40iw_debug(fmt, args...) \
+> +	if (i40iw_dbg) \
+> +		fprintf(stderr, PFX "%s: " fmt, __FUNCTION__, ##args)
+> +
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- providers/i40iw/i40iw_uverbs.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+No, this is an unsafe way to use defines, wrap it in do / while (0)
 
-diff --git a/providers/i40iw/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
-index 651a91d..ef381ed 100644
---- a/providers/i40iw/i40iw_uverbs.c
-+++ b/providers/i40iw/i40iw_uverbs.c
-@@ -305,9 +305,11 @@ int i40iw_udestroy_cq(struct ibv_cq *cq)
- 	struct i40iw_ucq *iwucq = to_i40iw_ucq(cq);
- 	int ret;
- 
-+	ret = ibv_cmd_destroy_cq(cq);
-+	if (ret)
-+		return ret;
-+
- 	ibv_cmd_dereg_mr(&iwucq->mr);
--	if (ibv_cmd_destroy_cq(cq))
--		fprintf(stderr, PFX "%s: failed to destroy CQ\n", __func__);
- 
- 	free(iwucq->cq.cq_base);
- 	ret = pthread_spin_destroy(&iwucq->lock);
-@@ -460,16 +462,24 @@ void i40iw_cq_event(struct ibv_cq *cq)
- 	pthread_spin_unlock(&iwucq->lock);
- }
- 
--static void i40iw_destroy_vmapped_qp(struct i40iw_uqp *iwuqp,
-+static int i40iw_destroy_vmapped_qp(struct i40iw_uqp *iwuqp,
- 					struct i40iw_qp_quanta *sq_base)
- {
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_qp(&iwuqp->ibv_qp);
-+	if (ret)
-+		return ret;
-+
- 	if (iwuqp->push_db)
- 		munmap(iwuqp->push_db, I40IW_HW_PAGE_SIZE);
- 	if (iwuqp->push_wqe)
- 		munmap(iwuqp->push_wqe, I40IW_HW_PAGE_SIZE);
--	ibv_cmd_destroy_qp(&iwuqp->ibv_qp);
-+
- 	ibv_cmd_dereg_mr(&iwuqp->mr);
- 	free((void *)sq_base);
-+
-+	return 0;
- }
- 
- /**
-@@ -759,7 +769,9 @@ int i40iw_udestroy_qp(struct ibv_qp *qp)
- 	struct i40iw_uqp *iwuqp = to_i40iw_uqp(qp);
- 	int ret;
- 
--	i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
-+	ret = i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
-+	if (ret)
-+		return ret;
- 
- 	if (iwuqp->qp.sq_wrtrk_array)
- 		free(iwuqp->qp.sq_wrtrk_array);
--- 
-1.8.5.2
+I would also welcome providing general infrastructure for this  -
+every drvier seems to have this same basic approach.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
