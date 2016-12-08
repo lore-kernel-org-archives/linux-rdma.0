@@ -1,7 +1,7 @@
 From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core 04/10] i40iw: Optimize inline data copy
-Date: Thu,  8 Dec 2016 12:16:35 -0600
-Message-ID: <1481221001-1044-5-git-send-email-tatyana.e.nikolova@intel.com>
+Subject: [PATCH rdma-core 01/10] i40iw: Optimize setting fragments
+Date: Thu,  8 Dec 2016 12:16:32 -0600
+Message-ID: <1481221001-1044-2-git-send-email-tatyana.e.nikolova@intel.com>
 References: <1481221001-1044-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1481221001-1044-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,72 +12,51 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use memcpy for inline data copy in sends
-and writes instead of byte by byte copy.
+Small optimizations replace subtract and multiply with add.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- providers/i40iw/i40iw_uk.c | 24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ providers/i40iw/i40iw_uk.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
-index 9b1a618..bf194f3 100644
+index aff3de6..4d353b5 100644
 --- a/providers/i40iw/i40iw_uk.c
 +++ b/providers/i40iw/i40iw_uk.c
-@@ -432,7 +432,7 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
- 	struct i40iw_inline_rdma_write *op_info;
- 	u64 *push;
- 	u64 header = 0;
--	u32 i, wqe_idx;
-+	u32 wqe_idx;
- 	enum i40iw_status_code ret_code;
- 	bool read_fence = false;
- 	u8 wqe_size;
-@@ -468,14 +468,12 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
- 	src = (u8 *)(op_info->data);
+@@ -291,9 +291,9 @@ static enum i40iw_status_code i40iw_rdma_write(struct i40iw_qp_uk *qp,
  
- 	if (op_info->len <= I40IW_BYTE_16) {
--		for (i = 0; i < op_info->len; i++, src++, dest++)
--			*dest = *src;
-+		memcpy(dest, src, op_info->len);
- 	} else {
--		for (i = 0; i < I40IW_BYTE_16; i++, src++, dest++)
--			*dest = *src;
-+		memcpy(dest, src, I40IW_BYTE_16);
-+		src += I40IW_BYTE_16;
- 		dest = (u8 *)wqe + I40IW_BYTE_32;
--		for (; i < op_info->len; i++, src++, dest++)
--			*dest = *src;
-+		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
+ 	i40iw_set_fragment(wqe, I40IW_BYTE_0, op_info->lo_sg_list);
+ 
+-	for (i = 1; i < op_info->num_lo_sges; i++) {
+-		byte_off = I40IW_BYTE_32 + (i - 1) * 16;
++	for (i = 1, byte_off = I40IW_BYTE_32; i < op_info->num_lo_sges; i++) {
+ 		i40iw_set_fragment(wqe, byte_off, &op_info->lo_sg_list[i]);
++		byte_off += 16;
  	}
  
  	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-@@ -510,7 +508,7 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
- 	u8 *dest, *src;
- 	struct i40iw_post_inline_send *op_info;
- 	u64 header;
--	u32 wqe_idx, i;
-+	u32 wqe_idx;
- 	enum i40iw_status_code ret_code;
- 	bool read_fence = false;
- 	u8 wqe_size;
-@@ -544,14 +542,12 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
- 	src = (u8 *)(op_info->data);
+@@ -404,9 +404,9 @@ static enum i40iw_status_code i40iw_send(struct i40iw_qp_uk *qp,
  
- 	if (op_info->len <= I40IW_BYTE_16) {
--		for (i = 0; i < op_info->len; i++, src++, dest++)
--			*dest = *src;
-+		memcpy(dest, src, op_info->len);
- 	} else {
--		for (i = 0; i < I40IW_BYTE_16; i++, src++, dest++)
--			*dest = *src;
-+		memcpy(dest, src, I40IW_BYTE_16);
-+		src += I40IW_BYTE_16;
- 		dest = (u8 *)wqe + I40IW_BYTE_32;
--		for (; i < op_info->len; i++, src++, dest++)
--			*dest = *src;
-+		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
+ 	i40iw_set_fragment(wqe, I40IW_BYTE_0, op_info->sg_list);
+ 
+-	for (i = 1; i < op_info->num_sges; i++) {
+-		byte_off = I40IW_BYTE_32 + (i - 1) * 16;
++	for (i = 1, byte_off = I40IW_BYTE_32; i < op_info->num_sges; i++) {
+ 		i40iw_set_fragment(wqe, byte_off, &op_info->sg_list[i]);
++		byte_off += 16;
+ 	}
+ 
+ 	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
+@@ -692,9 +692,9 @@ static enum i40iw_status_code i40iw_post_receive(struct i40iw_qp_uk *qp,
+ 
+ 	i40iw_set_fragment(wqe, I40IW_BYTE_0, info->sg_list);
+ 
+-	for (i = 1; i < info->num_sges; i++) {
+-		byte_off = I40IW_BYTE_32 + (i - 1) * 16;
++	for (i = 1, byte_off = I40IW_BYTE_32; i < info->num_sges; i++) {
+ 		i40iw_set_fragment(wqe, byte_off, &info->sg_list[i]);
++		byte_off += 16;
  	}
  
  	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
