@@ -1,46 +1,60 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH net-next 1/3] net/mlx5e: use %pad format string for dma_addr_t
-Date: Thu,  8 Dec 2016 22:57:03 +0100
-Message-ID: <20161208215727.44841-1-arnd@arndb.de>
+From: "Chandramouli, Dasaratharaman"
+        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 03/11] IB/core: Change ah_attr.dlid from 16 to 32 bits
+Date: Thu, 8 Dec 2016 14:01:15 -0800
+Message-ID: <9400a611-e37a-3e1f-2233-5650b4856831@intel.com>
+References: <1479843532-47496-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1479843532-47496-4-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0BCAD7@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Daniel Jurgens <danielj@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0BCAD7-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hiatt, Don" <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 32-bit ARM with 64-bit dma_addr_t I get this warning about an
-incorrect format string:
 
-In file included from /git/arm-soc/drivers/net/ethernet/mellanox/mlx5/core/alloc.c:42:0:
-drivers/net/ethernet/mellanox/mlx5/core/alloc.c: In function ‘mlx5_frag_buf_alloc_node’:
-drivers/net/ethernet/mellanox/mlx5/core/alloc.c:134:12: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
 
-We have the special %pad format for printing dma_addr_t, so use that
-to print the correct address and avoid the warning.
+On 12/8/2016 1:12 PM, Hefty, Sean wrote:
+> Example:
+>
+>> -		if (rmpp_recv->slid == ah_attr.dlid) {
+>> +		if (rmpp_recv->slid == (u16)ah_attr.dlid) {
+>
+>>  struct ib_ah_attr {
+>>  	struct ib_global_route	grh;
+>> -	u16			dlid;
+>> +	u32			dlid;
+>
+> There are a bunch of places where the lid is simply cast back to a u16.  How is the code supposed to determine if a u16 cast is a safe operation or not?
 
-Fixes: 1c1b522808a1 ("net/mlx5e: Implement Fragmented Work Queue (WQ)")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/mellanox/mlx5/core/alloc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The idea is that all underlying drivers which use the dlid field from 
+the address handle will use then after casting to u16. That way there is 
+no change in the driver behavior.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-index 44791de5afe6..66bd213f35ce 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-@@ -130,8 +130,8 @@ int mlx5_frag_buf_alloc_node(struct mlx5_core_dev *dev, int size,
- 		if (frag->map & ((1 << buf->page_shift) - 1)) {
- 			dma_free_coherent(&dev->pdev->dev, frag_sz,
- 					  buf->frags[i].buf, buf->frags[i].map);
--			mlx5_core_warn(dev, "unexpected map alignment: 0x%p, page_shift=%d\n",
--				       (void *)frag->map, buf->page_shift);
-+			mlx5_core_warn(dev, "unexpected map alignment: %pad, page_shift=%d\n",
-+				       &frag->map, buf->page_shift);
- 			goto err_free_buf;
- 		}
- 		size -= frag_sz;
--- 
-2.9.0
+The only exception is the hfi1 driver which will use the full 32 bit 
+lid. Patches specific to hfi1 driver are in the works and will be posted 
+once this patch series is accepted.
+
+ULPs, and other core data structures like the ones in rpmm_recv have 
+been modified to be 32 bits. The u16 cast you see in this patch was 
+added to avoid compiler warnings. Patch 07/11 removes the cast when 
+rmpp_recv->slid is increased to 32 bits. Like Jason pointed out before, 
+i will re-order these patches which will avoid some of these temporary 
+casts.
+>
+> I don�t like the overloading of the term 'lid' to sometimes mean a 16-bit value and other times a 32-bit value, with no way of distinguishing which one we have.  Maybe we need to call out a version (lidv2 = 32-bits) or carry the size.  I don't have a strong idea here.  But when looking at this patch, lid is re-defined to u32, then nearly everywhere cast back to u16, which looks questionable.
+The intention was to not cause too many changes to the underlying 
+drivers when the lid field was increased. Casting was a simpler approach.
+
+In summary, once all these patches are through, the cast to u16 only be 
+in the drivers and not in the core data structures.
+>
+> - Sean
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
