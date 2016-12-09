@@ -1,144 +1,64 @@
-From: Vincent Ficet <jean-vincent.ficet-BUmcmmAb0Fc@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Add Bull device ID support to device
- white lists
-Date: Fri, 9 Dec 2016 11:32:03 +0100
-Message-ID: <584A8823.4070506@atos.net>
-References: <e5ad4256-53fe-9ecc-f880-89347134ec42@dev.mellanox.co.il>
- <20161207145338.GD24724@phlsvsds.ph.intel.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 11/28] bnxt_re: Enabling RoCE control path
+Date: Fri, 9 Dec 2016 16:20:04 +0530
+Message-ID: <CA+sbYW27WyB5q0CXom3ahf0kB1s4GXYX0m+dsfwV6YgdjaksvA@mail.gmail.com>
+References: <1480919912-1079-1-git-send-email-selvin.xavier@broadcom.com>
+ <1480919912-1079-12-git-send-email-selvin.xavier@broadcom.com> <973d0642-1d06-72d4-bbbd-d360663d287b@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070607070607040402070204"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161207145338.GD24724-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <973d0642-1d06-72d4-bbbd-d360663d287b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070607070607040402070204
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Hi Jonathan,
+ Thanks for your review.
 
-Hello,
-
-The patch proposed by Hal Rosenstock does not list all Bull device IDs.
-
-Please apply the attached patch which contains an up to date list of such IDs.
-
-Best Regards,
-
-Vincent
-
-
-On 12/07/2016 03:53 PM, ira.weiny wrote:
-> On Tue, Dec 06, 2016 at 02:22:52PM -0500, Hal Rosenstock wrote:
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Thanks applied,
-> Ira
+On Thu, Dec 8, 2016 at 10:24 PM, Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> This retry logic looks like a complicated infinite loop, I am not seeing
+> where there is a counter or some other mechanism to break out of this
+> retry cycle if for some reason the HW stops or some other issue occurs.
+> Can you help me understand this section?
 >
->> ---
->> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
->> index 6ef7805..223e097 100644
->> --- a/libibnetdisc/src/ibnetdisc.c
->> +++ b/libibnetdisc/src/ibnetdisc.c
->> @@ -197,7 +197,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
->>  {
->>  	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
->>  
->> -	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
->> +	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
->>  		return 1;
->>  	if (devid >= 0x1003 && devid <= 0x1016)
->>  		return 1;
->> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
->> index 2a1e971..6809a1e 100644
->> --- a/src/ibdiag_common.c
->> +++ b/src/ibdiag_common.c
->> @@ -530,7 +530,7 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
->>  int is_mlnx_ext_port_info_supported(uint32_t devid)
->>  {
->>  	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
->> -		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08)
->> +		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
->>  			return 1;
->>  		if (devid >= 0x1003 && devid <= 0x1016)
->>  			return 1;
->> diff --git a/src/vendstat.c b/src/vendstat.c
->> index fb42a78..284ef93 100644
->> --- a/src/vendstat.c
->> +++ b/src/vendstat.c
->> @@ -149,6 +149,7 @@ static uint16_t ext_fw_info_device[][2] = {
->>  	{0xcf08, 0xcf08},	/* Switch-IB2 */
->>  	{0x01b3, 0x01b3},	/* IS-4 */
->>  	{0x1003, 0x1016},	/* Connect-X */
->> +	{0x1b02, 0x1b02},	/* Bull */
->>  	{0x0000, 0x0000}};
->>  
->>  static int is_ext_fw_info_supported(uint16_t device_id) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+You are right. This is a bug which could cause a system hang.
+cmdq_bitmap is set while sending the commands to FW and this will be cleared
+when completion interrupts are received (handled by function
+bnxt_qplib_process_qp_event which is a part
+ "bnxt_re: Add QP event handling" patch in this series).
 
+I missed your mail before sending out v2 patch set. I will include
+this change as a bug fix patch
+or will fix it while incorporating other review comments in v3 patch set.
 
---------------070607070607040402070204
-Content-Type: text/x-patch;
- name="infiniband-diags_fix_bull_device_IDs.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="infiniband-diags_fix_bull_device_IDs.patch"
+Thanks
 
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 7ba5c91..758d3cd 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -196,10 +196,23 @@ static void debug_port(ib_portid_t * portid, ibnd_port_t * port)
- static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
- {
- 	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
--
--	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
-+	uint32_t vendorid = (uint32_t) mad_get_field(port->node->info, 0, IB_NODE_VENDORID_F);
-+
-+	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 ||
-+	    ((vendorid == 0x119f) &&
-+	     /* Bull SwitchX */
-+	     (devid == 0x1b02 || devid == 0x1b50 ||
-+	      /* Bull SwitchIB */
-+	      (devid >= 0x1bd0 && devid <= 0x1bd2) ||
-+	      /* Bull SwitchIB2 */
-+	      (devid >= 0x1bd3 && devid <= 0x1bd5))))
- 		return 1;
--	if (devid >= 0x1003 && devid <= 0x1016)
-+	if ((devid >= 0x1003 && devid <= 0x1016) ||
-+	    ((vendorid == 0x119f) &&
-+	     /* Bull ConnectIB */
-+	     (devid == 0x1b83 || devid == 0x1b93 || devid == 0x1b94 ||
-+	      /* Bull ConnectX4 */
-+	      devid == 0x1bb4 || devid == 0x1bb5 || devid == 0x1bc4)))
- 		return 1;
- 	return 0;
- }
-diff --git a/src/vendstat.c b/src/vendstat.c
-index 284ef93..ac456f4 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -149,7 +149,10 @@ static uint16_t ext_fw_info_device[][2] = {
- 	{0xcf08, 0xcf08},	/* Switch-IB2 */
- 	{0x01b3, 0x01b3},	/* IS-4 */
- 	{0x1003, 0x1016},	/* Connect-X */
--	{0x1b02, 0x1b02},	/* Bull */
-+	{0x1b02, 0x1b02},	/* Bull SwitchX */
-+	{0x1b50, 0x1b50},	/* Bull SwitchX */
-+	{0x1bd0, 0x1bd2},	/* Bull SwitchIB */
-+	{0x1bd3, 0x1bd5},	/* Bull SwitchIB2 */
- 	{0x0000, 0x0000}};
- 
- static int is_ext_fw_info_supported(uint16_t device_id) {
-
---------------070607070607040402070204--
+>> +
+>> +     /* Cmdq are in 16-byte units, each request can consume 1 or more
+>> +      * cmdqe
+>> +      */
+>> +     spin_lock_irqsave(&cmdq->lock, flags);
+>> +     if (req->cmd_size > cmdq->max_elements -
+>> +         ((HWQ_CMP(cmdq->prod, cmdq) - HWQ_CMP(cmdq->cons, cmdq)) &
+>> +          (cmdq->max_elements - 1))) {
+>> +             dev_err(&rcfw->pdev->dev, "QPLIB: RCFW: CMDQ is full!");
+>> +             spin_unlock_irqrestore(&cmdq->lock, flags);
+>> +             goto retry;
+>> +     }
+>> +
+>> +     cookie = atomic_inc_return(&rcfw->seq_num) & RCFW_MAX_COOKIE_VALUE;
+>> +     cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
+>> +     if (is_block)
+>> +             cookie |= RCFW_CMD_IS_BLOCKING;
+>> +     req->cookie = cpu_to_le16(cookie);
+>> +     if (test_and_set_bit(cbit, rcfw->cmdq_bitmap)) {
+>> +             dev_err(&rcfw->pdev->dev,
+>> +                     "QPLIB: RCFW MAX outstanding cmd reached!");
+>> +             atomic_dec(&rcfw->seq_num);
+>> +             spin_unlock_irqrestore(&cmdq->lock, flags);
+>> +             goto retry;
+>> +     }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
