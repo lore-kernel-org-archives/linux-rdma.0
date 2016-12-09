@@ -1,33 +1,74 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH V2 00/22] Broadcom RoCE Driver (bnxt_re)
-Date: Fri, 09 Dec 2016 10:26:02 -0500 (EST)
-Message-ID: <20161209.102602.181161966975624956.davem@davemloft.net>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH V2  00/22] Broadcom RoCE Driver (bnxt_re)
+Date: Fri, 9 Dec 2016 18:27:15 +0200
+Message-ID: <20161209162715.GA2521@mtr-leonro.local>
 References: <1481266096-23331-1-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1481266096-23331-1-git-send-email-selvin.xavier@broadcom.com>
 Sender: netdev-owner@vger.kernel.org
-To: selvin.xavier@broadcom.com
+To: Selvin Xavier <selvin.xavier@broadcom.com>
 Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Date: Thu,  8 Dec 2016 22:47:54 -0800
 
-> This series introduces the RoCE driver for the Broadcom
-> NetXtreme-E 10/25/40/50 gigabit RoCE HCAs. 
-> This driver is dependent on the bnxt_en NIC driver and is 
-> based on the bnxt_re branch in Doug's repository. bnxt_en changes
-> required for this patch series is already available in this branch.
-> 
-> I am preparing a git repository with these changes as per Jason's
-> comment and will share the details later today.
+--ew6BAiZeqk4r7MaW
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If this is targetted at the net-next tree, it is too late as I've
-closed the net-next tree two nights ago.
+On Thu, Dec 08, 2016 at 10:47:54PM -0800, Selvin Xavier wrote:
+>=20
 
-Please resubmit this after the upcoming merge window closes.
+=2E..
 
-Thanks.
+>  create mode 100644 include/uapi/rdma/bnxt_re_uverbs_abi.h
+
+Please use already established naming format for this file.
+It will simplify our future integration with rdma-core library.
+
+Thanks
+
+=E2=9E=9C  linux-rdma git:(master) ls -l include/uapi/rdma/*-abi.h=20
+-rw-r--r-- 1 leonro leonro 2291 Dec  7 13:07 include/uapi/rdma/cxgb3-abi.h
+-rw-r--r-- 1 leonro leonro 2488 Dec  7 13:07 include/uapi/rdma/cxgb4-abi.h
+-rw-r--r-- 1 leonro leonro 2864 Dec  7 13:07 include/uapi/rdma/mlx4-abi.h
+-rw-r--r-- 1 leonro leonro 6103 Dec  8 12:52 include/uapi/rdma/mlx5-abi.h
+-rw-r--r-- 1 leonro leonro 2932 Dec  7 13:07 include/uapi/rdma/mthca-abi.h
+-rw-r--r-- 1 leonro leonro 3380 Dec  7 13:07 include/uapi/rdma/nes-abi.h
+-rw-r--r-- 1 leonro leonro 3918 Dec  7 13:07 include/uapi/rdma/ocrdma-abi.h
+-rw-r--r-- 1 leonro leonro 2559 Dec  7 13:07 include/uapi/rdma/qedr-abi.h
+
+>=20
+> --=20
+> 2.5.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--ew6BAiZeqk4r7MaW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhK2zcACgkQ5GN7iDZy
+WKfUQBAAn8lggI2VCszVMjbMuqofZyteQNpeg8Cq7iUqmIk7QVNwqBwzCCaYYdcO
+2ZOISRyV2l8aB9oCKZoJbWbjuHVpoZplHKijQc48OhNb0bFtpi3k7sk88lIHkeVG
+LzdL+jPnCe57BLMR2EbQyS7OR+LOOAC0roHnaLLUYXS0kpHDrDbCXCLem2brEFee
+SEom9MN/EHypp9WPFr9XzQrpf84Bdax41sbqklOuVlxmSpCHaBiyLlblEeOTwEKD
+wpiUi3Y6fJJ+gEZLmM8Vz1zBBwTM2HsaXEx//mKMY3grYcJWzVQJhsjqERKpbsXC
+TwNmgZN4PYc7y60PEt5rsofRxbge9fN/oAL+sbeZiaBGEMm66frfbx6GnB0hvq1V
+aT4nk8/Dt2YABl4fqdp78fCn2QNVDYCFxaWz3Mgte+I4zQyXPatsR9rGuz+hkqW3
+dWv6wsONsqwQaNdAlDzECqdU17vXtkv38tWHP+j0AZXesz8QlPtlt1E9ztcSsC1m
+TU7bJXvJJjZnTnyJ9DiYQLY9WbUgQ2tKXf2rjRcH9VUusUMbJAgqLoSn3pdepaI+
+RxOvwNA023RJczClk2xuYT6YcAibwSY/KrMszZS0zZkIXZQLfT4X5R/JWzf3Hk3w
+aYp7mucVdzy64ZSKWX7pzzB4XNuT/A7Qv2u+6z3SFFg20jYApe0=
+=nSN5
+-----END PGP SIGNATURE-----
+
+--ew6BAiZeqk4r7MaW--
