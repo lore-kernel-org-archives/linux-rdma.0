@@ -1,36 +1,46 @@
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: Re: [PATCH V2 00/22] Broadcom RoCE Driver (bnxt_re)
-Date: Fri, 9 Dec 2016 23:22:00 +0530
-Message-ID: <CA+sbYW1Kum=rU4CMq++=D-DjmepF_wrOA8kTH7ptQgwyP=QaRQ@mail.gmail.com>
-References: <1481266096-23331-1-git-send-email-selvin.xavier@broadcom.com> <20161209.102602.181161966975624956.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161209.102602.181161966975624956.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V2 00/10] i40iw: Fixes and optimizations
+Date: Fri,  9 Dec 2016 11:54:54 -0600
+Message-ID: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 9, 2016 at 8:56 PM, David Miller <davem@davemloft.net> wrote:
-> From: Selvin Xavier <selvin.xavier@broadcom.com>
-> Date: Thu,  8 Dec 2016 22:47:54 -0800
->
->> This series introduces the RoCE driver for the Broadcom
->> NetXtreme-E 10/25/40/50 gigabit RoCE HCAs.
->> This driver is dependent on the bnxt_en NIC driver and is
->> based on the bnxt_re branch in Doug's repository. bnxt_en changes
->> required for this patch series is already available in this branch.
->>
->> I am preparing a git repository with these changes as per Jason's
->> comment and will share the details later today.
->
-> If this is targetted at the net-next tree, it is too late as I've
-> closed the net-next tree two nights ago.
->
+The patch series includes fixes, optimizations and
+clean up to the user space i40iw.
 
-This patch series is targeting linux-rdma tree. netdev is copied since
-this series is dependent on  bnxt_en.
+V2 Changes:
 
-Thanks
-Selvin
+Use do/while(0) in i40iw_debug macro.
+
+Mustafa Ismail (4):
+  i40iw: Optimize setting fragments
+  i40iw: Remove unnecessary parameter
+  i40iw: Optimize inline data copy
+  i40iw: Remove unnecessary check for moving CQ head
+
+Shiraz Saleem (6):
+  i40iw: Fix incorrect assignment of SQ head
+  i40iw: Return correct error codes for destroy QP and CQ
+  i40iw: Do not destroy QP/CQ if lock is held
+  i40iw: Control debug error prints using env variable
+  i40iw: Use 2M huge pages for CQ/QP memory if available
+  i40iw: Remove SQ size constraint
+
+ providers/i40iw/i40iw_d.h      |   6 +-
+ providers/i40iw/i40iw_uk.c     |  62 ++++++++------------
+ providers/i40iw/i40iw_umain.c  |  21 ++++++-
+ providers/i40iw/i40iw_umain.h  |  11 ++++
+ providers/i40iw/i40iw_user.h   |   2 +-
+ providers/i40iw/i40iw_uverbs.c | 128 ++++++++++++++++++++++++++++++-----------
+ 6 files changed, 153 insertions(+), 77 deletions(-)
+
+-- 
+1.8.5.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
