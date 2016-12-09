@@ -1,7 +1,7 @@
 From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 06/10] i40iw: Return correct error codes for destroy QP and CQ
-Date: Fri,  9 Dec 2016 11:55:00 -0600
-Message-ID: <1481306104-19352-7-git-send-email-tatyana.e.nikolova@intel.com>
+Subject: [PATCH V2 02/10] i40iw: Remove unnecessary parameter
+Date: Fri,  9 Dec 2016 11:54:56 -0600
+Message-ID: <1481306104-19352-3-git-send-email-tatyana.e.nikolova@intel.com>
 References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1481306104-19352-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,74 +10,73 @@ To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXa
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Return correct error codes to application if destroy QP or
-CQ fails. Make sure to deregister memory only if the
-destroy is successful.
+Remove unnecessary parameter which is always true.
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- providers/i40iw/i40iw_uverbs.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ providers/i40iw/i40iw_uk.c     | 11 ++++-------
+ providers/i40iw/i40iw_user.h   |  2 +-
+ providers/i40iw/i40iw_uverbs.c |  2 +-
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
+diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
+index 4d353b5..341772e 100644
+--- a/providers/i40iw/i40iw_uk.c
++++ b/providers/i40iw/i40iw_uk.c
+@@ -760,8 +760,7 @@ static enum i40iw_status_code i40iw_cq_post_entries(struct i40iw_cq_uk *cq,
+  * @post_cq: update cq tail
+  */
+ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
+-						       struct i40iw_cq_poll_info *info,
+-						       bool post_cq)
++						       struct i40iw_cq_poll_info *info)
+ {
+ 	u64 comp_ctx, qword0, qword2, qword3, wqe_qword;
+ 	u64 *cqe, *sw_wqe;
+@@ -885,11 +884,9 @@ exit:
+ 		if (I40IW_RING_GETCURRENT_HEAD(cq->cq_ring) == 0)
+ 			cq->polarity ^= 1;
+ 
+-		if (post_cq) {
+-			I40IW_RING_MOVE_TAIL(cq->cq_ring);
+-			set_64bit_val(cq->shadow_area, I40IW_BYTE_0,
+-				      I40IW_RING_GETCURRENT_HEAD(cq->cq_ring));
+-		}
++		I40IW_RING_MOVE_TAIL(cq->cq_ring);
++		set_64bit_val(cq->shadow_area, I40IW_BYTE_0,
++			      I40IW_RING_GETCURRENT_HEAD(cq->cq_ring));
+ 	} else {
+ 		if (info->is_srq)
+ 			return ret_code;
+diff --git a/providers/i40iw/i40iw_user.h b/providers/i40iw/i40iw_user.h
+index ab96ed3..8d345b3 100644
+--- a/providers/i40iw/i40iw_user.h
++++ b/providers/i40iw/i40iw_user.h
+@@ -327,7 +327,7 @@ struct i40iw_cq_ops {
+ 	void (*iw_cq_request_notification)(struct i40iw_cq_uk *,
+ 					   enum i40iw_completion_notify);
+ 	enum i40iw_status_code (*iw_cq_poll_completion)(struct i40iw_cq_uk *,
+-							struct i40iw_cq_poll_info *, bool);
++							struct i40iw_cq_poll_info *);
+ 	enum i40iw_status_code (*iw_cq_post_entries)(struct i40iw_cq_uk *, u8 count);
+ 	void (*iw_cq_clean)(void *, struct i40iw_cq_uk *);
+ };
 diff --git a/providers/i40iw/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
-index 651a91d..ef381ed 100644
+index a117b53..651a91d 100644
 --- a/providers/i40iw/i40iw_uverbs.c
 +++ b/providers/i40iw/i40iw_uverbs.c
-@@ -305,9 +305,11 @@ int i40iw_udestroy_cq(struct ibv_cq *cq)
- 	struct i40iw_ucq *iwucq = to_i40iw_ucq(cq);
- 	int ret;
- 
-+	ret = ibv_cmd_destroy_cq(cq);
-+	if (ret)
-+		return ret;
-+
- 	ibv_cmd_dereg_mr(&iwucq->mr);
--	if (ibv_cmd_destroy_cq(cq))
--		fprintf(stderr, PFX "%s: failed to destroy CQ\n", __func__);
- 
- 	free(iwucq->cq.cq_base);
- 	ret = pthread_spin_destroy(&iwucq->lock);
-@@ -460,16 +462,24 @@ void i40iw_cq_event(struct ibv_cq *cq)
- 	pthread_spin_unlock(&iwucq->lock);
- }
- 
--static void i40iw_destroy_vmapped_qp(struct i40iw_uqp *iwuqp,
-+static int i40iw_destroy_vmapped_qp(struct i40iw_uqp *iwuqp,
- 					struct i40iw_qp_quanta *sq_base)
- {
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_qp(&iwuqp->ibv_qp);
-+	if (ret)
-+		return ret;
-+
- 	if (iwuqp->push_db)
- 		munmap(iwuqp->push_db, I40IW_HW_PAGE_SIZE);
- 	if (iwuqp->push_wqe)
- 		munmap(iwuqp->push_wqe, I40IW_HW_PAGE_SIZE);
--	ibv_cmd_destroy_qp(&iwuqp->ibv_qp);
-+
- 	ibv_cmd_dereg_mr(&iwuqp->mr);
- 	free((void *)sq_base);
-+
-+	return 0;
- }
- 
- /**
-@@ -759,7 +769,9 @@ int i40iw_udestroy_qp(struct ibv_qp *qp)
- 	struct i40iw_uqp *iwuqp = to_i40iw_uqp(qp);
- 	int ret;
- 
--	i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
-+	ret = i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
-+	if (ret)
-+		return ret;
- 
- 	if (iwuqp->qp.sq_wrtrk_array)
- 		free(iwuqp->qp.sq_wrtrk_array);
+@@ -337,7 +337,7 @@ int i40iw_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 	if (ret)
+ 		return ret;
+ 	while (cqe_count < num_entries) {
+-		ret = iwucq->cq.ops.iw_cq_poll_completion(&iwucq->cq, &cq_poll_info, true);
++		ret = iwucq->cq.ops.iw_cq_poll_completion(&iwucq->cq, &cq_poll_info);
+ 		if (ret == I40IW_ERR_QUEUE_EMPTY) {
+ 			break;
+ 		} else if (ret) {
 -- 
 1.8.5.2
 
