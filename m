@@ -1,7 +1,7 @@
 From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 05/10] i40iw: Remove unnecessary check for moving CQ head
-Date: Fri,  9 Dec 2016 11:54:59 -0600
-Message-ID: <1481306104-19352-6-git-send-email-tatyana.e.nikolova@intel.com>
+Subject: [PATCH V2 07/10] i40iw: Do not destroy QP/CQ if lock is held
+Date: Fri,  9 Dec 2016 11:55:01 -0600
+Message-ID: <1481306104-19352-8-git-send-email-tatyana.e.nikolova@intel.com>
 References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1481306104-19352-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,57 +10,64 @@ To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXa
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In i40iw_cq_poll_completion(), we always move the tail.
-So there is no reason to check for overflow everytime
-we move the head.
+Destroy the QP/CQ if their lock can be destroyed first.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- providers/i40iw/i40iw_d.h  | 3 +++
- providers/i40iw/i40iw_uk.c | 6 +-----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ providers/i40iw/i40iw_uverbs.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/providers/i40iw/i40iw_d.h b/providers/i40iw/i40iw_d.h
-index 7b58199..1906cbf 100644
---- a/providers/i40iw/i40iw_d.h
-+++ b/providers/i40iw/i40iw_d.h
-@@ -1586,6 +1586,9 @@ enum i40iw_alignment {
- #define I40IW_RING_MOVE_TAIL(_ring) \
- 	(_ring).tail = ((_ring).tail + 1) % (_ring).size
+diff --git a/providers/i40iw/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
+index ef381ed..f6d9196 100644
+--- a/providers/i40iw/i40iw_uverbs.c
++++ b/providers/i40iw/i40iw_uverbs.c
+@@ -305,6 +305,10 @@ int i40iw_udestroy_cq(struct ibv_cq *cq)
+ 	struct i40iw_ucq *iwucq = to_i40iw_ucq(cq);
+ 	int ret;
  
-+#define I40IW_RING_MOVE_HEAD_NOCHECK(_ring) \
-+	(_ring).head = ((_ring).head + 1) % (_ring).size
++	ret = pthread_spin_destroy(&iwucq->lock);
++	if (ret)
++		return ret;
 +
- #define I40IW_RING_MOVE_TAIL_BY_COUNT(_ring, _count) \
- 	(_ring).tail = ((_ring).tail + (_count)) % (_ring).size
+ 	ret = ibv_cmd_destroy_cq(cq);
+ 	if (ret)
+ 		return ret;
+@@ -312,9 +316,6 @@ int i40iw_udestroy_cq(struct ibv_cq *cq)
+ 	ibv_cmd_dereg_mr(&iwucq->mr);
  
-diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
-index bf194f3..392e858 100644
---- a/providers/i40iw/i40iw_uk.c
-+++ b/providers/i40iw/i40iw_uk.c
-@@ -763,7 +763,6 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
- 	struct i40iw_ring *pring = NULL;
- 	u32 wqe_idx, q_type, array_idx = 0;
- 	enum i40iw_status_code ret_code = 0;
--	enum i40iw_status_code ret_code2 = 0;
- 	bool move_cq_head = true;
- 	u8 polarity;
- 	u8 addl_wqes = 0;
-@@ -871,10 +870,7 @@ exit:
- 			move_cq_head = false;
+ 	free(iwucq->cq.cq_base);
+-	ret = pthread_spin_destroy(&iwucq->lock);
+-	if (ret)
+-		return ret;
+ 	free(iwucq);
  
- 	if (move_cq_head) {
--		I40IW_RING_MOVE_HEAD(cq->cq_ring, ret_code2);
--
--		if (ret_code2 && !ret_code)
--			ret_code = ret_code2;
-+		I40IW_RING_MOVE_HEAD_NOCHECK(cq->cq_ring);
+ 	return 0;
+@@ -769,6 +770,10 @@ int i40iw_udestroy_qp(struct ibv_qp *qp)
+ 	struct i40iw_uqp *iwuqp = to_i40iw_uqp(qp);
+ 	int ret;
  
- 		if (I40IW_RING_GETCURRENT_HEAD(cq->cq_ring) == 0)
- 			cq->polarity ^= 1;
++	ret = pthread_spin_destroy(&iwuqp->lock);
++	if (ret)
++		return ret;
++
+ 	ret = i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
+ 	if (ret)
+ 		return ret;
+@@ -784,10 +789,9 @@ int i40iw_udestroy_qp(struct ibv_qp *qp)
+ 	if ((iwuqp->recv_cq) && (iwuqp->recv_cq != iwuqp->send_cq))
+ 		i40iw_clean_cq((void *)&iwuqp->qp, &iwuqp->recv_cq->cq);
+ 
+-	ret = pthread_spin_destroy(&iwuqp->lock);
+ 	free(iwuqp);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ /**
 -- 
 1.8.5.2
 
