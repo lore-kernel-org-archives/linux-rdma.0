@@ -1,7 +1,7 @@
 From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 01/10] i40iw: Optimize setting fragments
-Date: Fri,  9 Dec 2016 11:54:55 -0600
-Message-ID: <1481306104-19352-2-git-send-email-tatyana.e.nikolova@intel.com>
+Subject: [PATCH V2 06/10] i40iw: Return correct error codes for destroy QP and CQ
+Date: Fri,  9 Dec 2016 11:55:00 -0600
+Message-ID: <1481306104-19352-7-git-send-email-tatyana.e.nikolova@intel.com>
 References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1481306104-19352-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,56 +10,74 @@ To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXa
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Small optimizations replace subtract and multiply with add.
+Return correct error codes to application if destroy QP or
+CQ fails. Make sure to deregister memory only if the
+destroy is successful.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- providers/i40iw/i40iw_uk.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ providers/i40iw/i40iw_uverbs.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
-index aff3de6..4d353b5 100644
---- a/providers/i40iw/i40iw_uk.c
-+++ b/providers/i40iw/i40iw_uk.c
-@@ -291,9 +291,9 @@ static enum i40iw_status_code i40iw_rdma_write(struct i40iw_qp_uk *qp,
+diff --git a/providers/i40iw/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
+index 651a91d..ef381ed 100644
+--- a/providers/i40iw/i40iw_uverbs.c
++++ b/providers/i40iw/i40iw_uverbs.c
+@@ -305,9 +305,11 @@ int i40iw_udestroy_cq(struct ibv_cq *cq)
+ 	struct i40iw_ucq *iwucq = to_i40iw_ucq(cq);
+ 	int ret;
  
- 	i40iw_set_fragment(wqe, I40IW_BYTE_0, op_info->lo_sg_list);
++	ret = ibv_cmd_destroy_cq(cq);
++	if (ret)
++		return ret;
++
+ 	ibv_cmd_dereg_mr(&iwucq->mr);
+-	if (ibv_cmd_destroy_cq(cq))
+-		fprintf(stderr, PFX "%s: failed to destroy CQ\n", __func__);
  
--	for (i = 1; i < op_info->num_lo_sges; i++) {
--		byte_off = I40IW_BYTE_32 + (i - 1) * 16;
-+	for (i = 1, byte_off = I40IW_BYTE_32; i < op_info->num_lo_sges; i++) {
- 		i40iw_set_fragment(wqe, byte_off, &op_info->lo_sg_list[i]);
-+		byte_off += 16;
- 	}
+ 	free(iwucq->cq.cq_base);
+ 	ret = pthread_spin_destroy(&iwucq->lock);
+@@ -460,16 +462,24 @@ void i40iw_cq_event(struct ibv_cq *cq)
+ 	pthread_spin_unlock(&iwucq->lock);
+ }
  
- 	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-@@ -404,9 +404,9 @@ static enum i40iw_status_code i40iw_send(struct i40iw_qp_uk *qp,
+-static void i40iw_destroy_vmapped_qp(struct i40iw_uqp *iwuqp,
++static int i40iw_destroy_vmapped_qp(struct i40iw_uqp *iwuqp,
+ 					struct i40iw_qp_quanta *sq_base)
+ {
++	int ret;
++
++	ret = ibv_cmd_destroy_qp(&iwuqp->ibv_qp);
++	if (ret)
++		return ret;
++
+ 	if (iwuqp->push_db)
+ 		munmap(iwuqp->push_db, I40IW_HW_PAGE_SIZE);
+ 	if (iwuqp->push_wqe)
+ 		munmap(iwuqp->push_wqe, I40IW_HW_PAGE_SIZE);
+-	ibv_cmd_destroy_qp(&iwuqp->ibv_qp);
++
+ 	ibv_cmd_dereg_mr(&iwuqp->mr);
+ 	free((void *)sq_base);
++
++	return 0;
+ }
  
- 	i40iw_set_fragment(wqe, I40IW_BYTE_0, op_info->sg_list);
+ /**
+@@ -759,7 +769,9 @@ int i40iw_udestroy_qp(struct ibv_qp *qp)
+ 	struct i40iw_uqp *iwuqp = to_i40iw_uqp(qp);
+ 	int ret;
  
--	for (i = 1; i < op_info->num_sges; i++) {
--		byte_off = I40IW_BYTE_32 + (i - 1) * 16;
-+	for (i = 1, byte_off = I40IW_BYTE_32; i < op_info->num_sges; i++) {
- 		i40iw_set_fragment(wqe, byte_off, &op_info->sg_list[i]);
-+		byte_off += 16;
- 	}
+-	i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
++	ret = i40iw_destroy_vmapped_qp(iwuqp, iwuqp->qp.sq_base);
++	if (ret)
++		return ret;
  
- 	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-@@ -692,9 +692,9 @@ static enum i40iw_status_code i40iw_post_receive(struct i40iw_qp_uk *qp,
- 
- 	i40iw_set_fragment(wqe, I40IW_BYTE_0, info->sg_list);
- 
--	for (i = 1; i < info->num_sges; i++) {
--		byte_off = I40IW_BYTE_32 + (i - 1) * 16;
-+	for (i = 1, byte_off = I40IW_BYTE_32; i < info->num_sges; i++) {
- 		i40iw_set_fragment(wqe, byte_off, &info->sg_list[i]);
-+		byte_off += 16;
- 	}
- 
- 	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
+ 	if (iwuqp->qp.sq_wrtrk_array)
+ 		free(iwuqp->qp.sq_wrtrk_array);
 -- 
 1.8.5.2
 
