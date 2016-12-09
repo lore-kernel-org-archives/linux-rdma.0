@@ -1,32 +1,75 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 00/10] i40iw: Fixes and optimizations
-Date: Fri, 9 Dec 2016 11:36:50 -0700
-Message-ID: <20161209183650.GB10830@obsidianresearch.com>
-References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
- <13AA599688F47243B14FCFCCC2C803BB10AC5AA2@fmsmsx104.amr.corp.intel.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 3/4] IB: Update to build vmw_pvrdma
+Date: Fri, 9 Dec 2016 09:10:05 -0800
+Message-ID: <4b7131beefa5f5a519ea755db8ac27ec095adb91.1481303342.git.aditr@vmware.com>
+References: <cover.1481303342.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <13AA599688F47243B14FCFCCC2C803BB10AC5AA2-96pTJSsuoYQ64kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <cover.1481303342.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 09, 2016 at 06:33:30PM +0000, Nikolova, Tatyana E wrote:
+Update Makefile and Kconfig to build vmw_pvrdma target.
 
-> I am sorry I missed to specify rdma-core in the patch description
-> for the V2 series.  All ten patches in the series are rdma-core V2
-> patches.
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+ MAINTAINERS                               | 2 +-
+ drivers/infiniband/hw/Makefile            | 2 +-
+ drivers/infiniband/hw/vmw_pvrdma/Kconfig  | 2 +-
+ drivers/infiniband/hw/vmw_pvrdma/Makefile | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-Indeed, you may also wish to consider doing a github PR for this big
-series. I'm generally encouraging the providers maintainers to do this
-as it reduces the workload on Leon :)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 23cd1ad..75a68f0 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12933,7 +12933,7 @@ M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+ M:	VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ S:	Maintained
+-F:	drivers/infiniband/hw/pvrdma/
++F:	drivers/infiniband/hw/vmw_pvrdma/
+ 
+ VOLTAGE AND CURRENT REGULATOR FRAMEWORK
+ M:	Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+index a89a24c..ed553de 100644
+--- a/drivers/infiniband/hw/Makefile
++++ b/drivers/infiniband/hw/Makefile
+@@ -7,7 +7,7 @@ obj-$(CONFIG_MLX4_INFINIBAND)		+= mlx4/
+ obj-$(CONFIG_MLX5_INFINIBAND)		+= mlx5/
+ obj-$(CONFIG_INFINIBAND_NES)		+= nes/
+ obj-$(CONFIG_INFINIBAND_OCRDMA)		+= ocrdma/
+-obj-$(CONFIG_INFINIBAND_PVRDMA)		+= vmw_pvrdma/
++obj-$(CONFIG_INFINIBAND_VMWARE_PVRDMA)	+= vmw_pvrdma/
+ obj-$(CONFIG_INFINIBAND_USNIC)		+= usnic/
+ obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
+ obj-$(CONFIG_INFINIBAND_HNS)		+= hns/
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/Kconfig b/drivers/infiniband/hw/vmw_pvrdma/Kconfig
+index b345679..5a9790a 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/Kconfig
++++ b/drivers/infiniband/hw/vmw_pvrdma/Kconfig
+@@ -1,4 +1,4 @@
+-config INFINIBAND_PVRDMA
++config INFINIBAND_VMWARE_PVRDMA
+ 	tristate "VMware Paravirtualized RDMA Driver"
+ 	depends on NETDEVICES && ETHERNET && PCI && INET && VMXNET3
+ 	---help---
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/Makefile b/drivers/infiniband/hw/vmw_pvrdma/Makefile
+index 6ef4b98..0194ed1 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/Makefile
++++ b/drivers/infiniband/hw/vmw_pvrdma/Makefile
+@@ -1,3 +1,3 @@
+-obj-$(CONFIG_INFINIBAND_PVRDMA) += vmw_pvrdma.o
++obj-$(CONFIG_INFINIBAND_VMWARE_PVRDMA) += vmw_pvrdma.o
+ 
+ vmw_pvrdma-y := pvrdma_cmd.o pvrdma_cq.o pvrdma_doorbell.o pvrdma_main.o pvrdma_misc.o pvrdma_mr.o pvrdma_qp.o pvrdma_verbs.o
+-- 
+2.7.4
 
-I have no other comments on the series..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
