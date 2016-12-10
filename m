@@ -1,29 +1,28 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net: mlx5: Fix Kconfig help text
-Date: Fri, 09 Dec 2016 23:09:07 -0500 (EST)
-Message-ID: <20161209.230907.2090202510909638105.davem@davemloft.net>
-References: <20161209215306.721-1-cov@codeaurora.org>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 00/22] Broadcom RoCE Driver (bnxt_re)
+Date: Sat, 10 Dec 2016 11:06:58 +0530
+Message-ID: <CA+sbYW1ZEa5fndGkvN8OXr-orcUx4jaL73Di8zBJQX_uCdK=Ww@mail.gmail.com>
+References: <1481266096-23331-1-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161209215306.721-1-cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+In-Reply-To: <1481266096-23331-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Date: Fri,  9 Dec 2016 16:53:05 -0500
+On Fri, Dec 9, 2016 at 12:17 PM, Selvin Xavier
+<selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+> I am preparing a git repository with these changes as per Jason's
+> comment and will share the details later today.
 
-> Since the following commit, Infiniband and Ethernet have not been
-> mutually exclusive.
-> 
-> Fixes: 4aa17b28 mlx5: Enable mutual support for IB and Ethernet
-> 
-> Signed-off-by: Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Please use bnxt_re branch in this git repository.
 
-Applied.
+https://github.com/Broadcom/linux-rdma-nxt.git
+
+Thanks,
+Selvin Xavier
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
