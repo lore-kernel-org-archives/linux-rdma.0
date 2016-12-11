@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core 2/4] libqedr: clear the flags field in the WC
-Date: Sun, 11 Dec 2016 16:18:09 +0200
-Message-ID: <1481465891-14789-3-git-send-email-Ram.Amrani@Cavium.com>
+Subject: [PATCH rdma-core 3/4] libqedr: fix EDPM configuration
+Date: Sun, 11 Dec 2016 16:18:10 +0200
+Message-ID: <1481465891-14789-4-git-send-email-Ram.Amrani@Cavium.com>
 References: <1481465891-14789-1-git-send-email-Ram.Amrani@Cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,30 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since the responder's WC is not zeroed we clear the flags field to avoid
-random flags.
+The DMA length should be configured to the Enhanced Direct Packet Mode
+extension header only in write and write with immediate commands.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- providers/qedr/qelr_verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+ providers/qedr/qelr_verbs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
-index fae823c..80e4263 100644
+index 80e4263..bdcf132 100644
 --- a/providers/qedr/qelr_verbs.c
 +++ b/providers/qedr/qelr_verbs.c
-@@ -1676,6 +1676,7 @@ static void __process_resp_one(struct qelr_qp *qp, struct qelr_cq *cq,
- 	uint8_t flags;
+@@ -989,7 +989,10 @@ static uint32_t qelr_prepare_sq_inline_data(struct qelr_qp *qp,
  
- 	wc->opcode = IBV_WC_RECV;
-+	wc->wc_flags = 0;
+ 	if (qp->edpm.is_edpm) {
+ 		qp->edpm.dpm_payload_size += data_size;
+-		qp->edpm.rdma_ext->dma_length = htonl(data_size);
++
++		if (wr->opcode == IBV_WR_RDMA_WRITE ||
++		    wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM)
++			qp->edpm.rdma_ext->dma_length = htonl(data_size);
+ 	}
  
- 	FP_DP_VERBOSE(cxt->dbg_fp, QELR_MSG_CQ, "\n");
- 
+ 	return data_size;
 -- 
 1.8.3.1
 
