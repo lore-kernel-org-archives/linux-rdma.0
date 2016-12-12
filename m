@@ -1,56 +1,40 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH] cma: resolve to first active IB port
-Date: Mon, 12 Dec 2016 09:43:43 +0100
-Message-ID: <CAMGffEkgHTKZmVOb2q6jPfC32ofuh=-WNAkE2=VqTN6W0UjV9Q@mail.gmail.com>
-References: <CAMGffE=mSpm+zuG9wo-GV0HT4-ewg34uvOKCUrPRC61ATjxyVg@mail.gmail.com>
- <CAMGffEnBfUnvKFHOKDuzXopa6m63RBOmHRhpeZun-UddXGjzvg@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0BC8BE@ORSMSX109.amr.corp.intel.com>
- <CAMGffEkGcxdYutV0cZYAzeu_kZOgTmuqTbMNfnPuFbHj+oT+2g@mail.gmail.com>
- <20161209163803.GA31304@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB0BCED3@ORSMSX109.amr.corp.intel.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [bug report] IB/mlx5: Support IB_WR_REG_SIG_MR
+Date: Mon, 12 Dec 2016 12:33:55 +0300
+Message-ID: <20161212090910.GS8244@mwanda>
+References: <20161209092044.GA4640@elgon.mountain>
+ <20161211092326.GA4479@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0BCED3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161211092326.GA4479-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 9, 2016 at 6:17 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> > Sure, I updated the v2 patch as attached, is this what you want?
->> >
->> > Note: in cma_resolve_loopback, it does the same, I leave it like that
->> > for now, I can also update this part if you like.
->>
->> I feel like we already have a cache for subnet prefix, or maybe
->> another patch series added one? Can't remember, sorry.
->
-> Yep - see core/cache.c.
->
-> Jinpu, port state caching should go here as well.  If you can update the =
-loopback call as well, that would be great.
+On Sun, Dec 11, 2016 at 11:23:26AM +0200, Leon Romanovsky wrote:
+> >   3624          case IB_SIG_TYPE_T10_DIF:
+> >   3625                  psv_seg->transient_sig = cpu_to_be32(domain->sig.dif.bg << 16 |
+> >   3626                                                       domain->sig.dif.app_tag);
+> >   3627                  psv_seg->ref_tag = cpu_to_be32(domain->sig.dif.ref_tag);
+> >   3628                  break;
+> >   3629          default:
+> >   3630                  pr_err("Bad signature type given.\n");
+> >   3631                  return 1;
+> >
+> > Why do we return 1 here instead of a negative error code?
+> 
+> Yes, probably better to return something like EINVAL, instead of 1.
+> do you want us to handle it?
+> 
 
-Thanks Jason and Hefty, good idea!
-I will send a patchset to cache port state in cache module, will also
-update loopback call as well.
+Yes, please.
 
---=20
-Jinpu Wang
-Linux Kernel Developer
+regards,
+dan carpenter
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Tel:       +49 30 577 008  042
-Fax:      +49 30 577 008 299
-Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:      https://www.profitbricks.de
-
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
