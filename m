@@ -1,57 +1,48 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/23] IB/hfi1,qib,rdmavt: Patches for 4.10
-Date: Mon, 12 Dec 2016 15:18:42 -0500
-Message-ID: <420f9335-8177-aa70-154d-7a56425be890@redhat.com>
-References: <20161208032312.21135.66056.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH] IB/hfi1: Define platform_config_table_limits once
+Date: Mon, 12 Dec 2016 15:19:57 -0500
+Message-ID: <7c293f94-0b9f-847b-00a9-3d0f7ec7fe8e@redhat.com>
+References: <870f083a-df8e-8a22-52c2-e4d2dde46b9d@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="oKhJXBOsoipNQJUn6ReGE44CW3cp8QruO"
+ boundary="47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161208032312.21135.66056.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <870f083a-df8e-8a22-52c2-e4d2dde46b9d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---oKhJXBOsoipNQJUn6ReGE44CW3cp8QruO
-Content-Type: multipart/mixed; boundary="Mtfd2RMiWXRf6p1td2EV1Qq50qSbNuL4V";
+--47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub
+Content-Type: multipart/mixed; boundary="e1vxowfQp9cQgG0wceO8FCfodSoib3nEL";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov
- <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt
- <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Message-ID: <420f9335-8177-aa70-154d-7a56425be890-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/23] IB/hfi1,qib,rdmavt: Patches for 4.10
-References: <20161208032312.21135.66056.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-In-Reply-To: <20161208032312.21135.66056.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <7c293f94-0b9f-847b-00a9-3d0f7ec7fe8e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/hfi1: Define platform_config_table_limits once
+References: <870f083a-df8e-8a22-52c2-e4d2dde46b9d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <870f083a-df8e-8a22-52c2-e4d2dde46b9d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 
---Mtfd2RMiWXRf6p1td2EV1Qq50qSbNuL4V
+--e1vxowfQp9cQgG0wceO8FCfodSoib3nEL
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/7/2016 10:32 PM, Dennis Dalessandro wrote:
-> Doug,
+On 12/5/2016 7:48 PM, Bart Van Assche wrote:
+> Defining static data structures in a header file is wrong because
+> this causes the data structure to be instantiated once in every .c
+> file it is included in. Hence move the definition of a static
+> array from a header file into the only .c file in which it is used.
 >=20
-> Here is a set of patches for our drivers for 4.10. This is a
-> collection of bug fixes, perf improvements, and clean ups.
-> The patches apply on top of the last series I submitted. However
-> if things do not apply cleanly let me know I can rebase.
->=20
-> Can also be found in GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.10
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hi Dennis, I pulled all of these in plus a couple others from other peopl=
-e.
+Applied, thanks.
 
 
 --=20
@@ -59,9 +50,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---Mtfd2RMiWXRf6p1td2EV1Qq50qSbNuL4V--
+--e1vxowfQp9cQgG0wceO8FCfodSoib3nEL--
 
---oKhJXBOsoipNQJUn6ReGE44CW3cp8QruO
+--47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,22 +61,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTwYiAAoJELgmozMOVy/d7dcP/iVpsORuZUH41pVjCp2GQu7g
-afa3GfzleDHn6WPxqno7RoKq2gsW64nfCvR9bYG581w2IXtuSpvAvr7WamjNyBSt
-7lspSmcTh+LyOfwvVTMg5jDy8a9HRSsA8no4NLyOCkE7RSUxIjGHGq/TPGLTVtcj
-BkhcbV4by8OVbCMzkfPuTTLPM7Ru8qGsMv9NyglFZqiLpk7jTVLzoeRZOXFvl8Va
-hPNYLEUZ6iqvWqWYIr5v4pINxGyZaPBeZcTnGRuwxUmPB2y3MAlem9FwgoVlcfx/
-9D+uErkuQcHfoin2OyTg25XaNNjCHh4HfxECnoh62quKfBOlY8P2Kg8LE9evYCx2
-+/XYlPY6UjVGfaih8gcQWGNvgOQzR5f8trwJiV1e6kpO9HFKp4tqK8Z2oDc+lv/n
-EZBrT4MFCjKUWaZy8mgGgj07w6xf50CFgKl5rBVyrJ7i1ljcpDkaenbANxX6uI9m
-S/JnWaMwazGQb0A51NdagFOreiRK+Y8+OxFWzrzYhcvK825vR8mG9lsZ0Cm+CxSA
-LB1jZkV5kU4e37SR2822KfEL7HE07zEvZ9X5xDLPP3lBZtBhuyj2aGqY1x9Fd4XA
-OedB7Z28ecyRwJVFgVXzxLa6Csd/oFrV5+0CssFnZKbXmkXh+g/b8Rn37Gn3qmfz
-JaHs8WkibEja52R2vi4D
-=GmRf
+iQIcBAEBCAAGBQJYTwZtAAoJELgmozMOVy/dh5YP/RwWEmP+/RFLWVKCn5C0fhTm
+MEejWpSZnNGRlyW/bSAfsQPuRljSIlNERf4sD5saMGUWhqyqqHUYRJAwXJp0p4V7
+RFY8U0iu8FbDOI1gw5botmBPQFvzEacM85X8lmb09JujL3NcSMfycvf7mLMjCCQQ
+NzZ1pBLSdNZ2RaA1HQ+FLFAHJp5RDYSy9enUsDluqHWK9rTQV//o/xLr64xiK7Xe
+FTqWMOMKLY9uxtojl0tPZXOu7CG0sYl/+qm5oSRipSggnQKxkyB3Wejnz+Vg+QTB
+xMdhnz+T8ZDhTjKGQMRogUYhSUEoLxSoGvZxmN/enbhG2AnAy2UCKnzLwXp7T+a2
+5YDUyMtY9hpRh/AcUndd/ftd3oli5Fdc8d2xm39MqMAK+A4H2hitF1QyqsXhtst0
+J/Vxh0Va90Ba0tw+GYGVO7cpaLhmgzBppxJfR0PLxKxn9isaqCrT9OWeUSJfUFk1
+uDtM92ROupNCmwEfGaE805rsMLvBkqrSAh3fS1AolwTPEf+rBkAQyCzzgpbvd3TD
+lq3DiZQGCi0A9dEb1fHxf2SrQe7v+yPJqbGbaCWpxJrQMNbPq3lHtZS314KRoBZ9
+fs//xPQio44qeyLywOaFdUYkcPa+4ZutduAS6Wrwroqym8xFLlNHkAbQcl7N+OnF
+bkq4Z0bwM94lNVGEQ9im
+=L6Hf
 -----END PGP SIGNATURE-----
 
---oKhJXBOsoipNQJUn6ReGE44CW3cp8QruO--
+--47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
