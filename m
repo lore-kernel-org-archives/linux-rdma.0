@@ -1,86 +1,70 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/8] RXE improvements
-Date: Mon, 12 Dec 2016 16:40:30 -0500
-Message-ID: <a6237f62-b434-f6bc-1236-910c5dccb7dc@redhat.com>
-References: <1479922764-13091-1-git-send-email-andrew.boyer@dell.com>
- <CAG9sBKMkoCbeCO6SgPZrW-x0rBNTQUaar+wAqeVDTLeoT8HfHw@mail.gmail.com>
- <D46ADB9D.7D50%Andrew.Boyer@emc.com>
+Subject: Re: [PATCH v2 0/2] IB/rxe: Fix kernel panics when tearing down QPs
+Date: Mon, 12 Dec 2016 16:42:37 -0500
+Message-ID: <2ce6448e-430e-91c1-fa10-86fbdbb1714f@redhat.com>
+References: <1480945335-2577-1-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="6WtMTMijew5AiFVFRrVFuRbPg3VLlVcoh"
+ boundary="ivMxelPkSqBbIUNMspBj3gKu6EVmpqmgi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <D46ADB9D.7D50%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
+In-Reply-To: <1480945335-2577-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---6WtMTMijew5AiFVFRrVFuRbPg3VLlVcoh
-Content-Type: multipart/mixed; boundary="FL6vp8w83r4KwDa5Xl3JPRR0hJ1EC7PDP";
+--ivMxelPkSqBbIUNMspBj3gKu6EVmpqmgi
+Content-Type: multipart/mixed; boundary="aQfl3A2WxboG3g0B2TQWtDwtkUOu7UqVR";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Message-ID: <a6237f62-b434-f6bc-1236-910c5dccb7dc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/8] RXE improvements
-References: <1479922764-13091-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
- <CAG9sBKMkoCbeCO6SgPZrW-x0rBNTQUaar+wAqeVDTLeoT8HfHw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
- <D46ADB9D.7D50%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
-In-Reply-To: <D46ADB9D.7D50%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
+ yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <2ce6448e-430e-91c1-fa10-86fbdbb1714f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/2] IB/rxe: Fix kernel panics when tearing down QPs
+References: <1480945335-2577-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
+In-Reply-To: <1480945335-2577-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 
---FL6vp8w83r4KwDa5Xl3JPRR0hJ1EC7PDP
+--aQfl3A2WxboG3g0B2TQWtDwtkUOu7UqVR
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/5/2016 8:58 AM, Boyer, Andrew wrote:
-> On 11/23/16, 12:59 PM, "monisonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org on behalf of Moni Shoua"=
-
-> <monisonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org on behalf of monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+On 12/5/2016 8:42 AM, Andrew Boyer wrote:
+> This is a set of two patches that prevent kernel panics seen when teari=
+ng
+> down QPs. The second patch (holding refs in tasklets) might or might no=
+t be
+> needed once the first patch (waiting for tasklets to finish) is applied=
+=2E
+> Feedback welcomed.
 >=20
->>> Andrew Boyer (8):
->>>   IB/rxe: Remove buffer used for printing IP address
->>>   IB/rxe: Advance the consumer pointer before posting the CQE
->>>   IB/rxe: Don't update the response PSN unless it's going forwards
->>>   IB/rxe: Unblock loopback by moving skb_out increment
->>>   IB/rxe: Add support for zero-byte operations
->>>   IB/rxe: Add support for IB_CQ_REPORT_MISSED_EVENTS
->>>   IB/rxe: Fix ref leak in rxe_create_qp()
->>>   IB/rxe: Fix ref leak in duplicate_request()
->>
->> Thanks for the series.
->>
->> Please see comment in response for the first patch but except that
->>
->> Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> for everything else
+> Update for v2:
+>  - Remove default initialization of idle in rxe_cleanup_task() per revi=
+ew
 >=20
-> Hello Moni,
-> I saw the comment from Bart in response to the first patch, but I prefe=
-r
-> it this way because of how much other code is required to take advantag=
-e
-> of %pIS. If you want it changed to %pIS, we can do that, though. What
-> would you prefer?
+> Andrew Boyer (2):
+>   IB/rxe: Wait for tasklets to finish before tearing down QP
+>   IB/rxe: Hold refs when running tasklets
+>=20
+>  drivers/infiniband/sw/rxe/rxe_comp.c |  4 ++++
+>  drivers/infiniband/sw/rxe/rxe_req.c  |  4 ++++
+>  drivers/infiniband/sw/rxe/rxe_resp.c |  3 +++
+>  drivers/infiniband/sw/rxe/rxe_task.c | 19 +++++++++++++++++++
+>  drivers/infiniband/sw/rxe/rxe_task.h |  1 +
+>  5 files changed, 31 insertions(+)
+>=20
 
-Hi Andrew,
-
-I took these as they are.  If someone wants to update the code to use
-%pIS, it will need to be as an incremental patch.  Thanks.
-
+Hi Andrew, I took these patches as well.  I had to fix up the second
+one, so you might want to double check it.  Thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---FL6vp8w83r4KwDa5Xl3JPRR0hJ1EC7PDP--
+--aQfl3A2WxboG3g0B2TQWtDwtkUOu7UqVR--
 
---6WtMTMijew5AiFVFRrVFuRbPg3VLlVcoh
+--ivMxelPkSqBbIUNMspBj3gKu6EVmpqmgi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -89,22 +73,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTxlOAAoJELgmozMOVy/dO38P/2Wt8cWCjA/DnGMN1j6c+qVR
-GJdioDLbUjICqDTIY2ZVv7zK41/PJSDM4Cy3n1PyoCc0F2BzQAa+9ksk7KGTFta0
-pCp07sIwd8gA1gj3NC2m7PXEKzFv4yna1dOJTyrVnIRQKEDFHav8O3obSF3U+pSp
-MAKxWSm0pnQld+h9+YpgPbmUB4ohATcU80As2GTzBzD4aagjEUPdNXmADPywAL4M
-BGyD3SDYYXnvD2sR7NG57EJHHtjbHkW+q6kE1NJdsJ60LFs7Ss1ggCK5Giz4kmYk
-tOn0mO9ufsZebkDVr+r2vNyTwp/lKqgpp9Qq27mgZ4dPB4EVO+mXovns5GA+FQB0
-zYRCkZcLVYHww8XPCSccdZ6nYXCWt2Me8OpcuCdOybSvEPXLaxKANfQKHVuEGn5V
-2YLIYPIHu6ZffKYQAj6VE6w6T+TlOoeRnMjIZvD1JzyAgzY/N9hvlTLNYx5bJCRu
-VGsd0jefY84p1ngvM7RJNv8I+OaC6rNE2SCWxWTGaZFchaKbx5AbP4WztdecHFPR
-XXI495ScgQSCjh+uZi0xq+vkdCWBvSyRTDiFzFcxyZXvjpXuAQ09sG6HaF4s5/A1
-YdfWciM5sUoRwGapH72NCpTX3YXgQ1qhByEeMaSFLlF8XFtIIH5aIukI1BGYD8Dj
-12BmuP4a1eBbvHfhpFqR
-=YS8B
+iQIcBAEBCAAGBQJYTxnNAAoJELgmozMOVy/dYrkQAJFarzcC8UdRxFleh31T37/4
+2XSoJxJAHmEb1YrQXtonLGdhtDSJOCHU+F2BL+HeAyDPjZZhbGhY9L5tSYMiDq3I
+bskCTQ059AUnV85kVdwJD9s769F+4h+y1WM+SVwvmFmB/WOjVatq534XO43d4X7J
+ElNfA1hZNwCRE8kcnO4fzVfOMMkkvoXEoTPz4VgGA13OFWBa00h9bJV+VefvkKkZ
+CZ2dnXyxC+HLPYKjQGuHtczrgNpcABN9MOBKWa8wYELKS9JaGUtQWX4rf5XxtO/T
+UJvMfKDpHB71agB9Ki+/2D8wWI7xVsFMZqohdgmb8eOucseJMdpEaAgJ+/4YdpOb
+FvZv2eP3ORCSFia7fl06d8x9S7/4YLgHMJmuDRruDv2QhB0XE/vvExEmMLuPbUe2
+uTkTfVbTQB91+ulrK3fGe1hQwSlOikH3xK6R7kzK6sFyHaPZbBiulkxC0OtLq5EB
+khrF9gZLV4VlMdoJHUJQQHIMYQNnII3YmQ561p5BsQXD6IS6QKrlwooWNTA4flna
+qEYTPPjoAqOHQiMmD8TnSXlnHBRrqnZHcL76bgVN9vYT+adDLB1yFGQIDBNqWcYH
+UsbWV8RKqv2fRmOB9RdaN308W3Ku/DV3LG3pwIKxOIaTtjqmTfCa+nkOLlaouqMQ
+Nqcb6MU2tdNwXxwndDD1
+=FBLT
 -----END PGP SIGNATURE-----
 
---6WtMTMijew5AiFVFRrVFuRbPg3VLlVcoh--
+--ivMxelPkSqBbIUNMspBj3gKu6EVmpqmgi--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
