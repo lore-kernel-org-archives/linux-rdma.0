@@ -1,62 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: avoid putting a large struct rxe_qp on stack
-Date: Mon, 12 Dec 2016 16:30:27 -0500
-Message-ID: <90b06f14-b2d4-77fa-2d01-36335bb68395@redhat.com>
-References: <20160919115826.553858-1-arnd@arndb.de>
- <20160919132811.GI3273@leon.nu>
+Subject: Re: [PATCH -next] IB/rxe: Use DEFINE_SPINLOCK() for spinlock
+Date: Mon, 12 Dec 2016 16:36:13 -0500
+Message-ID: <7fdbbaaa-5b82-b22a-47ec-43b1b763cc0a@redhat.com>
+References: <1477757973-32052-1-git-send-email-weiyj.lk@gmail.com>
+ <CAG9sBKPfW9uBAKN8r4tRHyzP9NSoEnhpwSwH9QBiVbq2k+a6gg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="EC4LoR6OnhtsUSEGvbRX26j3aCpwQ24dP"
+ boundary="0lBgE8edPvdfV6AVDbJ0eEvsGmCJMtgEL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160919132811.GI3273-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <CAG9sBKPfW9uBAKN8r4tRHyzP9NSoEnhpwSwH9QBiVbq2k+a6gg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---EC4LoR6OnhtsUSEGvbRX26j3aCpwQ24dP
-Content-Type: multipart/mixed; boundary="G1wmDi7aRiXGamp8hvOqEBl7TTu6KiWWu";
+--0lBgE8edPvdfV6AVDbJ0eEvsGmCJMtgEL
+Content-Type: multipart/mixed; boundary="QG8eR1t0deku0HaPQCnP0pRIkFjD4g2ie";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <90b06f14-b2d4-77fa-2d01-36335bb68395-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: avoid putting a large struct rxe_qp on stack
-References: <20160919115826.553858-1-arnd-r2nGTMty4D4@public.gmane.org>
- <20160919132811.GI3273-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20160919132811.GI3273-2ukJVAZIZ/Y@public.gmane.org>
+ Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+ Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <7fdbbaaa-5b82-b22a-47ec-43b1b763cc0a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH -next] IB/rxe: Use DEFINE_SPINLOCK() for spinlock
+References: <1477757973-32052-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+ <CAG9sBKPfW9uBAKN8r4tRHyzP9NSoEnhpwSwH9QBiVbq2k+a6gg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAG9sBKPfW9uBAKN8r4tRHyzP9NSoEnhpwSwH9QBiVbq2k+a6gg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
---G1wmDi7aRiXGamp8hvOqEBl7TTu6KiWWu
-Content-Type: text/plain; charset=windows-1252
+--QG8eR1t0deku0HaPQCnP0pRIkFjD4g2ie
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 9/19/2016 9:28 AM, Leon Romanovsky wrote:
-> On Mon, Sep 19, 2016 at 01:57:26PM +0200, Arnd Bergmann wrote:
->> A race condition fix added an rxe_qp structure to the stack in order
->> to be able to perform rollback in rxe_requester(), but the structure
->> is large enough to trigger the warning for possible stack overflow:
->>
->> drivers/infiniband/sw/rxe/rxe_req.c: In function 'rxe_requester':
->> drivers/infiniband/sw/rxe/rxe_req.c:757:1: error: the frame size of 20=
-64 bytes is larger than 1024 bytes [-Werror=3Dframe-larger-than=3D]
->>
->> This changes the rollback function to only save the psn inside
->> the qp, which is the only field we access in the rollback_qp
->> anyway.
->>
->> Fixes: 3050b9985024 ("IB/rxe: Fix race condition between requester and=
- completer")
->> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+On 11/6/2016 5:05 AM, Moni Shoua wrote:
+> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 >=20
-> Thanks Arnd,
-> It is much cleaner approach.
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> spinlock can be initialized automatically with DEFINE_SPINLOCK()
+> rather than explicitly calling spin_lock_init().
 >=20
+> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
 Thanks, applied.
 
@@ -65,9 +49,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---G1wmDi7aRiXGamp8hvOqEBl7TTu6KiWWu--
+--QG8eR1t0deku0HaPQCnP0pRIkFjD4g2ie--
 
---EC4LoR6OnhtsUSEGvbRX26j3aCpwQ24dP
+--0lBgE8edPvdfV6AVDbJ0eEvsGmCJMtgEL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -76,22 +60,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTxbzAAoJELgmozMOVy/dOIUQAKKfck83+Lo+XzGk1l7R5b3t
-adBerQnbxoXiW0h+qt9iExQ0RJgl8A8KwVQVc2ZiPXf1og3PEOlkihthNu5N19ZP
-JgRbDdetqFW9Hu7ymltObBQESqwXqaR92ACtWPLf79k/ZnaUHHo+QS5DH6lBwj2F
-UAumY8WexUORzKvEMjD05EMe3uc9Z4WYcQHRKP1DsiEPudzYElwO/4anzmZgZEBE
-V8JzkzVXG/rT7wKuYU1mIvzexZ0yPJOh2KnGDh2h55+Z38QQ9BKa200acP2fG73+
-3EfSLFvfJsV4Ru/LDWqYmkkVDh1Q+3V6WTB1WokO+TblJdBETLpPv4FEYRTTsctv
-1rkAxuleoIotsWOc+HsCHuWcM9XC183yhD73yjR5jHZ5VGk3G6XmE/spQKkU9woo
-IaS4VjP3Nhby3wx6nT0Q1O7kJG1MP5qHKXUk6JfPQ5D2R4YeQx3Y9n8N7oL07ljH
-2gYkhVY4IaWz6dgtaWmd5CtKW6qSLqOTCL+RznycrIfKGnWo/pBC6zha65mkpomW
-VzxAv0BNYYXLquRPty3ks2GG8ydvOCj+g9WrFNi5J9jf8QByhg0KW36L6bOZmFfg
-Q6iJUi8utR9ORvH24bqr2lJUOxEKNrjG7fDY4pPW8+xmzeFCW1Lkkk8VGLsFTW++
-bAW7I8/fO+GVziRr980d
-=szkA
+iQIcBAEBCAAGBQJYTxhNAAoJELgmozMOVy/dWKcP/0IbgknPvdWbhoicWhfSjFTd
+T6jsrNOBCEvzuIWab1D8nH6yl0Kr2e51/kdj3hhpvInwh55m0gib6ScKsvTsXcqV
+IA01yxBSRwb3jcStl8tn6rE7XFObzcIbPG0ljUQeuEku0js+oaoXnW1q1S1NpbQG
+sI+/50IcAw2gGOdIHtYjJqniicPFf26aCj4zcX4z2XuDKfsAi3X77jKpcYJa98uK
+GOrk7jg9MnvA1Z5q/4l0IEscX9LbdCkh6L3cMhbE6hA8Tj9hRWjdkJE/HRB7CbNJ
+uDRF9CCUpIhSnxGzdBbj91sENyiT68yEOEochLFHfv6aK6Zk8d2S8AJ27z+79o9j
+hWB/XGDxF+RIgB5cJQnwJ8wPFDzCNuHZwc12/aWUD/IWiQ+pP598L9UFHme8vrEn
+oB4BlzL1PbsUCX53SHp/8hVlY4WCvfMIJjk6vQZ1oS549C5cGHtTPt1SJpMD9SCb
++auibaF0Gm2r9UYoNiFEgih6P2r5DrCTiH5S8tF/Fq4AXnI10lMU0bNKJlC+aWrf
+OI40ATsJ1gabjtJ9hESPbtE0t2JJgsGlf9OTYb7TSRk3B6szS2SzmI9xRRBeyeXn
+XBjs0T69V9g8L6sUgFHqg6+WR2e35f1KZXCEwyEFhlQMI7Sorvvea0jSuGqT7kol
+ilzfCJz9m5Qu6RuxJOaD
+=+rL4
 -----END PGP SIGNATURE-----
 
---EC4LoR6OnhtsUSEGvbRX26j3aCpwQ24dP--
+--0lBgE8edPvdfV6AVDbJ0eEvsGmCJMtgEL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
