@@ -1,58 +1,53 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Define platform_config_table_limits once
-Date: Mon, 12 Dec 2016 15:19:57 -0500
-Message-ID: <7c293f94-0b9f-847b-00a9-3d0f7ec7fe8e@redhat.com>
-References: <870f083a-df8e-8a22-52c2-e4d2dde46b9d@sandisk.com>
+Subject: Re: [PATCH] infiniband: hw: hfi1: constify mmu_notifier_ops structure
+Date: Mon, 12 Dec 2016 15:21:06 -0500
+Message-ID: <82309d76-7597-bb08-fd38-6b7771f82129@redhat.com>
+References: <1479548868-13563-1-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub"
+ boundary="QhJfIp08i5owhQo52Ffa8S2vvtbswIEXF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <870f083a-df8e-8a22-52c2-e4d2dde46b9d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1479548868-13563-1-git-send-email-bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, julia.lawall-L2FTfq7BK8M@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub
-Content-Type: multipart/mixed; boundary="e1vxowfQp9cQgG0wceO8FCfodSoib3nEL";
+--QhJfIp08i5owhQo52Ffa8S2vvtbswIEXF
+Content-Type: multipart/mixed; boundary="KJ30HCC9axDmqrRiQwhSeRrkCMUC6roIM";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <7c293f94-0b9f-847b-00a9-3d0f7ec7fe8e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Define platform_config_table_limits once
-References: <870f083a-df8e-8a22-52c2-e4d2dde46b9d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-In-Reply-To: <870f083a-df8e-8a22-52c2-e4d2dde46b9d-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, julia.lawall-L2FTfq7BK8M@public.gmane.org,
+ mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
+ sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <82309d76-7597-bb08-fd38-6b7771f82129-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] infiniband: hw: hfi1: constify mmu_notifier_ops structure
+References: <1479548868-13563-1-git-send-email-bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1479548868-13563-1-git-send-email-bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
---e1vxowfQp9cQgG0wceO8FCfodSoib3nEL
-Content-Type: text/plain; charset=utf-8
+--KJ30HCC9axDmqrRiQwhSeRrkCMUC6roIM
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/5/2016 7:48 PM, Bart Van Assche wrote:
-> Defining static data structures in a header file is wrong because
-> this causes the data structure to be instantiated once in every .c
-> file it is included in. Hence move the definition of a static
-> array from a header file into the only .c file in which it is used.
->=20
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 11/19/2016 4:47 AM, Bhumika Goyal wrote:
+> Declare the structure mmu_notifier_ops as const as it is only stored in=
 
-Applied, thanks.
+> the ops field of a mmu_notifier structure. The ops field is of type
+> const struct mmu_notifier_ops *, so mmu_notifier_ops structures having
+> this property can be declared as const.
 
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---e1vxowfQp9cQgG0wceO8FCfodSoib3nEL--
+--KJ30HCC9axDmqrRiQwhSeRrkCMUC6roIM--
 
---47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub
+--QhJfIp08i5owhQo52Ffa8S2vvtbswIEXF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -61,22 +56,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTwZtAAoJELgmozMOVy/dh5YP/RwWEmP+/RFLWVKCn5C0fhTm
-MEejWpSZnNGRlyW/bSAfsQPuRljSIlNERf4sD5saMGUWhqyqqHUYRJAwXJp0p4V7
-RFY8U0iu8FbDOI1gw5botmBPQFvzEacM85X8lmb09JujL3NcSMfycvf7mLMjCCQQ
-NzZ1pBLSdNZ2RaA1HQ+FLFAHJp5RDYSy9enUsDluqHWK9rTQV//o/xLr64xiK7Xe
-FTqWMOMKLY9uxtojl0tPZXOu7CG0sYl/+qm5oSRipSggnQKxkyB3Wejnz+Vg+QTB
-xMdhnz+T8ZDhTjKGQMRogUYhSUEoLxSoGvZxmN/enbhG2AnAy2UCKnzLwXp7T+a2
-5YDUyMtY9hpRh/AcUndd/ftd3oli5Fdc8d2xm39MqMAK+A4H2hitF1QyqsXhtst0
-J/Vxh0Va90Ba0tw+GYGVO7cpaLhmgzBppxJfR0PLxKxn9isaqCrT9OWeUSJfUFk1
-uDtM92ROupNCmwEfGaE805rsMLvBkqrSAh3fS1AolwTPEf+rBkAQyCzzgpbvd3TD
-lq3DiZQGCi0A9dEb1fHxf2SrQe7v+yPJqbGbaCWpxJrQMNbPq3lHtZS314KRoBZ9
-fs//xPQio44qeyLywOaFdUYkcPa+4ZutduAS6Wrwroqym8xFLlNHkAbQcl7N+OnF
-bkq4Z0bwM94lNVGEQ9im
-=L6Hf
+iQIcBAEBCAAGBQJYTwayAAoJELgmozMOVy/dvbwP/R42lcsCzjYLZdzn2cjhuHiz
+E9Uxry0NfmjX+9fju8hSWyMgF+RIY+2NKq/8wB7BE5gUquMc3eaaerrHOaq2A5k/
+9nO7JE0gjHgT5fGsnF3d+iPQtDUpORu3GqHjnGLuLfhcFBcVIouLvg8v/pi6iRs6
+fwjenlMk9xlfmGzhJFbc62OcUGWQ+4zbLZuBZqt8uOjtsTUwiiwiBBnQ1zS5a2Bz
+FJKjDHWsXGLihbe2EbIMM6feWzbXYZHOOQq+Xmi/sB36LqUYhx4cDhsuBGck9c8r
+2O4FsaTJpGc48ySPupHy99CpE5zzO6tlnD8aECME+QozTlHOWQ7K4tjRDGfdUSeJ
+1/4FoIP802WlTaMIqe39jn3E4cYhri86gR/vv6EPa8uyW3gIhXC3dfDczoOCzX3M
+Espr3k/3zK3bDJBtGwE/icxiJEgq3jXfCa1Cp1pF3n9K16c8B9ZTE1rYJY9GN+3h
+YrJJHoukcieTqiVZOfGtlZxOxE/bvPMOd4mlTb4W6oM0ete598IBEAbK2smcnKL3
+oeNyNBxZfHQqt+DvnLVbQrSNiym5vJSF6C4HpfCvTBUNHFEk9MlUeMWo+LiHUpHR
+T3/jRG9lLLhZzVyuKKtoIiBjh+GBSeI0Lhm7PrQlzgoDvfW3iZjxrZn1wV9f2urt
+BBZHUbgnQkfwa11mzjqJ
+=nLfl
 -----END PGP SIGNATURE-----
 
---47fd5KRMLH8Uwl8V7ELGjni1Hdgp032Ub--
+--QhJfIp08i5owhQo52Ffa8S2vvtbswIEXF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
