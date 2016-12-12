@@ -1,74 +1,69 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH for-next 0/6] IB/hns: Bug Fixes for HNS RoCE Driver
-Date: Mon, 12 Dec 2016 17:09:47 -0500
-Message-ID: <f3d27be6-1a4b-8218-2449-35c9ac0c0e3c@redhat.com>
-References: <20161129231030.1105600-1-salil.mehta@huawei.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/6] i40iw: Fixes for i40iw
+Date: Mon, 12 Dec 2016 17:14:45 -0500
+Message-ID: <7c31435b-a11d-fb66-700a-3243c2a97f1e@redhat.com>
+References: <20161206214935.41584-1-henry.orosco@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="IS80GlpGFL96gCgSelFB9aPI8ahLMvekX"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161129231030.1105600-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Salil Mehta <salil.mehta@huawei.com>
-Cc: xavier.huwei@huawei.com, oulijun@huawei.com, xushaobo2@huawei.com, mehta.salil.lnk@gmail.com, lijun_nudt@163.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+ boundary="dDf0erCtOPiddNNTdaa1XHAbTPImxBSIm"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161206214935.41584-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---IS80GlpGFL96gCgSelFB9aPI8ahLMvekX
-Content-Type: multipart/mixed; boundary="6SeOr5TW2vfmP5jORpO73qB0k0m0S4Ij7";
+--dDf0erCtOPiddNNTdaa1XHAbTPImxBSIm
+Content-Type: multipart/mixed; boundary="wmE8J2OadQFebJVsqVj5NHfqXV0CABobD";
  protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Salil Mehta <salil.mehta@huawei.com>
-Cc: xavier.huwei@huawei.com, oulijun@huawei.com, xushaobo2@huawei.com,
- mehta.salil.lnk@gmail.com, lijun_nudt@163.com, linux-rdma@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
-Message-ID: <f3d27be6-1a4b-8218-2449-35c9ac0c0e3c@redhat.com>
-Subject: Re: [PATCH for-next 0/6] IB/hns: Bug Fixes for HNS RoCE Driver
-References: <20161129231030.1105600-1-salil.mehta@huawei.com>
-In-Reply-To: <20161129231030.1105600-1-salil.mehta@huawei.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <7c31435b-a11d-fb66-700a-3243c2a97f1e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/6] i40iw: Fixes for i40iw
+References: <20161206214935.41584-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20161206214935.41584-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---6SeOr5TW2vfmP5jORpO73qB0k0m0S4Ij7
+--wmE8J2OadQFebJVsqVj5NHfqXV0CABobD
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 11/29/2016 6:10 PM, Salil Mehta wrote:
-> This patch-set contains bug fixes for the HNS RoCE driver.
+On 12/6/2016 4:49 PM, Henry Orosco wrote:
+> The following patch series has fixes for the i40iw driver.
 >=20
-> Lijun Ou (1):
->   IB/hns: Fix the IB device name
+> Mustafa Ismail (4):
+>   i40iw: Fix double free of QP
+>   i40iw: Fix memory leak in CQP destroy when in reset
+>   i40iw: Assign MSS only when it is a new MTU
+>   i40iw: Fix incorrect check for error
 >=20
-> Shaobo Xu (2):
->   IB/hns: Fix the bug when free mr
->   IB/hns: Fix the bug when free cq
+> Shiraz Saleem (2):
+>   i40iw: Fix QP flush to not hang on empty queues or failure
+>   i40iw: Fix race condition in terminate timer's handler
 >=20
-> Wei Hu (Xavier) (3):
->   IB/hns: Fix the bug when destroy qp
->   IB/hns: Fix the bug of setting port mtu
->   IB/hns: Delete the redundant memset operation
->=20
->  drivers/infiniband/hw/hns/hns_roce_cmd.h    |    5 -
->  drivers/infiniband/hw/hns/hns_roce_common.h |   42 ++
->  drivers/infiniband/hw/hns/hns_roce_cq.c     |   27 +-
->  drivers/infiniband/hw/hns/hns_roce_device.h |   18 +
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  967 +++++++++++++++++++=
-+++++---
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   57 ++
->  drivers/infiniband/hw/hns/hns_roce_main.c   |   26 +-
->  drivers/infiniband/hw/hns/hns_roce_mr.c     |   21 +-
->  8 files changed, 1026 insertions(+), 137 deletions(-)
+>  drivers/infiniband/hw/i40iw/i40iw.h       | 11 +++++++----
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c    | 22 +++++++++++++++++-----
+>  drivers/infiniband/hw/i40iw/i40iw_hw.c    | 30 +++++++++++++++++++++++=
+++++---
+>  drivers/infiniband/hw/i40iw/i40iw_main.c  | 11 +++++------
+>  drivers/infiniband/hw/i40iw/i40iw_puda.c  |  2 +-
+>  drivers/infiniband/hw/i40iw/i40iw_utils.c |  5 ++++-
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c |  2 +-
+>  7 files changed, 62 insertions(+), 21 deletions(-)
 >=20
 
 Series applied, thanks.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---6SeOr5TW2vfmP5jORpO73qB0k0m0S4Ij7--
+--wmE8J2OadQFebJVsqVj5NHfqXV0CABobD--
 
---IS80GlpGFL96gCgSelFB9aPI8ahLMvekX
+--dDf0erCtOPiddNNTdaa1XHAbTPImxBSIm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,19 +72,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTyArAAoJELgmozMOVy/dekQP/1KO5zXXaDMi/X72qhc4rqok
-/awQXP5VpG0J6asTFMVblHYpzN+Mgqy+dEnf8Qg26TH8UYOAy3Lfmay2OCK79i/L
-gQZOPbiFed8mHBtGw0NoP608KlsZWbbRq87UBcNXsIw5iGwOgd0MTLhyJtMHxJ6p
-4GhEbTdWXBiOEblyOQfvXnSa7w8Vn3gPCTGSzIxiloalTn58lpvrs1sePNgsU8+1
-XrMk/SLbUPRvjFaT3nAor1rUeGXO9Bvw9XQK1FVGyavZSlhJFlKMsJlzpq1gaJC+
-c0d6y98VOdcEVmFXagE9NpmAmlQOOPCjf/DxSYXb3TgyTX8ylhFOtoSOlivxgNld
-uGuVBO3HnbgULSD4LPUIWy7dumatgA/1pQYRpNeljBjy4ShG6SfT3nbEyCsrr+7q
-jnHhE8Uu6IeDBBuQT9F1LjAUj8vHE9+YCZfJ6hHey1RLjZrXcx9P5WHbFcmKk2ld
-S5E6XW3Pu89tCzSNqoVbZtx0ytiOnz8wZbA5pacIGjFN4Segq1e0Uy6mMJrBqhph
-xu4c2GM2RzhLps0xHHk7/U8F97fzWeKHLV11iePBxvqHltWm3l+mBbpyn00zIvN2
-EtyJJKhVrxtkWRr4kzzSFwVSLFob54Dtd5pkHSE0YmUQnFJFdgo1PQC3DveM/ZKX
-PxJ4takObOj6K175C1gV
-=kJc1
+iQIcBAEBCAAGBQJYTyFVAAoJELgmozMOVy/d6A4P/2sOt/VEKxjfaBzDdaBBG+8f
+WXLYNT0FM2qSP7MpSq/dcLjnUHfTuEQXkegyst/wcVLCBpRF/fnohAa9IR9xgro7
+mNeG17TZUpyDS3dNOycz96E+d4nmfNTCtXSgqzB5moeU5CIk4QdEkYcwkdCKBZTx
+yYyxQN3of8aBt2zPFotgDtlkYrv83D1IlS/+8LAnS2DJmDZHbfOMwtEaZqcvJVC9
+DPvN2tG7s14OTdqbs0cXA2wKsT4sJAkmE+FZxuXJ6L8F6NSjlgV4/BuDa9mIioNv
+wHyWnbXLKIiIyS+stilYGgXgNOJQZmqmy5Bi2WuniGGSg122LTjem0Q9mpw/nQ3L
+S8Yr0ROeSdTm9sWdIl+FZBtQ9OCAISHdVFYBx7ZoW3SDdPvsTX+c/gZIW56Bc8CX
+PmfHo1fK0Iv34mSLtTqgMH+/xYZkh63jeI35GqwAlIeDqt69HTL3aI3j2tFcB6hn
+QzTFI0kXaIDeRsV3f6unCYR3ovm/TCZxO2daNoYiQGDmrtQTyyGWo4LyfAEI4Vsx
+v7vHOygT9CKeckarI88532UHgUez+ac+AMnvx6+3vPojz+ZlDjUHxVfk90pu6HlT
+UavdVottp6Zb1GtZ+hMLlK1+rjZ4ch8UMa/i2S4cM7gBUQwXzuWTOeCcsLMbDwxB
+nLX/SaOeY6p3eT7P/PmV
+=FWtD
 -----END PGP SIGNATURE-----
 
---IS80GlpGFL96gCgSelFB9aPI8ahLMvekX--
+--dDf0erCtOPiddNNTdaa1XHAbTPImxBSIm--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
