@@ -1,79 +1,65 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/4] IB/core: export ib_get_cached_port_state
-Date: Mon, 12 Dec 2016 14:19:05 +0200
-Message-ID: <b5fbdcba-dffe-241f-5c4f-184b93c1cd73@mellanox.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/vmw_pvrdma: Update the driver name to vmw_pvrdma
+Date: Mon, 12 Dec 2016 11:52:42 -0800
+Message-ID: <1481572362-19727-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi Doug,
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 025db27..1b064cf 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1025,6 +1025,24 @@ int ib_get_cached_lmc(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_get_cached_lmc);
+This patch got left out of the pvrdma->vmw_pvrdma series I sent out
+before. Sorry about that.
 
-+int ib_get_cached_port_state(struct ib_device   *device,
-+                 u8                  port_num,
-+                 enum ib_port_state *port_state)
-Can you please fix the style (indentation)
+Thanks,
+Adit
+---
 
-+{
-+    unsigned long flags;
-+    int ret = 0;
-+
-+    if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
-+        return -EINVAL;
-+
-+    read_lock_irqsave(&device->cache.lock, flags);
-+    *port_state = device->cache.port_state_cache[port_num -
-rdma_start_port(device)];
-+    read_unlock_irqrestore(&device->cache.lock, flags);
-+
-+    return ret;
-Why do you need ret? just return 0.
+Show the right driver name with the renamed module.
 
-+}
-+EXPORT_SYMBOL(ib_get_cached_port_state);
-+
- static void ib_cache_update(struct ib_device *device,
-                 u8                port)
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index 5510c86..231a1ce 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -55,7 +55,7 @@
+ 
+ #include "pvrdma.h"
+ 
+-#define DRV_NAME	"pvrdma"
++#define DRV_NAME	"vmw_pvrdma"
+ #define DRV_VERSION	"1.0.0.0-k"
+ 
+ static DEFINE_MUTEX(pvrdma_device_list_lock);
+@@ -77,7 +77,7 @@ static int pvrdma_del_gid(struct ib_device *ibdev,
+ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 			char *buf)
  {
-diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
-index e30f19b..385ec88 100644
---- a/include/rdma/ib_cache.h
-+++ b/include/rdma/ib_cache.h
-@@ -165,4 +165,17 @@ int ib_get_cached_lmc(struct ib_device *device,
-               u8                port_num,
-               u8                *lmc);
-
-+/**
-+ * ib_get_cached_port_state - Returns a cached port state table entry
-+ * @device: The device to query.
-+ * @port_num: The port number of the device to query.
-+ * @port_state: port_state for the specified port for that device.
-+ *
-+ * ib_get_cached_port_state() fetches the specified port_state table
-entry stored in
-+ * the local software cache.
-+ */
-+int ib_get_cached_port_state(struct ib_device *device,
-+                  u8                port_num,
-+                  enum ib_port_state *port_active);
-+
- #endif /* _IB_CACHE_H */
+-	return sprintf(buf, "PVRDMA-%s\n", DRV_VERSION);
++	return sprintf(buf, "VMW_PVRDMA-%s\n", DRV_VERSION);
+ }
+ 
+ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
+@@ -166,7 +166,7 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+ 	int ret = -1;
+ 	int i = 0;
+ 
+-	strlcpy(dev->ib_dev.name, "pvrdma%d", IB_DEVICE_NAME_MAX);
++	strlcpy(dev->ib_dev.name, "vmw_pvrdma%d", IB_DEVICE_NAME_MAX);
+ 	dev->ib_dev.node_guid = dev->dsr->caps.node_guid;
+ 	dev->sys_image_guid = dev->dsr->caps.sys_image_guid;
+ 	dev->flags = 0;
 -- 
 2.7.4
 
-
-Mark.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
