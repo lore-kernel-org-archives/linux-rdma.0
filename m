@@ -1,40 +1,47 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] IB/mlx5: Support IB_WR_REG_SIG_MR
-Date: Mon, 12 Dec 2016 12:33:55 +0300
-Message-ID: <20161212090910.GS8244@mwanda>
-References: <20161209092044.GA4640@elgon.mountain>
- <20161211092326.GA4479@mtr-leonro.local>
+From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH 0/4] IB cache port state, use it when resolve address
+Date: Mon, 12 Dec 2016 12:40:59 +0100
+Message-ID: <CAMGffEkWzfMWY1UyCP6MvcWoB1UzxV4zXvnPvxEo2YmW1u-EAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161211092326.GA4479-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 11, 2016 at 11:23:26AM +0200, Leon Romanovsky wrote:
-> >   3624          case IB_SIG_TYPE_T10_DIF:
-> >   3625                  psv_seg->transient_sig = cpu_to_be32(domain->sig.dif.bg << 16 |
-> >   3626                                                       domain->sig.dif.app_tag);
-> >   3627                  psv_seg->ref_tag = cpu_to_be32(domain->sig.dif.ref_tag);
-> >   3628                  break;
-> >   3629          default:
-> >   3630                  pr_err("Bad signature type given.\n");
-> >   3631                  return 1;
-> >
-> > Why do we return 1 here instead of a negative error code?
-> 
-> Yes, probably better to return something like EINVAL, instead of 1.
-> do you want us to handle it?
-> 
+Hi Folks,
 
-Yes, please.
+This is my third attempt to fix rdma_revolve_addr may resolve to first
+port even it's down[1].
 
-regards,
-dan carpenter
+As Jason and Hefty suggested, I now cache port_state in ib_core, and
+update cma_resolve_ib_dev and cma_bind_loopback to use it.
 
+0001-IB-core-add-port-state-cache.patch
+0002-IB-core-export-ib_get_cached_port_state.patch
+0003-cma-resolve-to-first-active-ib-port.patch
+0004-cma-use-cached-port-state-when-bind-loopback.patch
+
+[1]http://marc.info/?l=3Dlinux-rdma&m=3D148102306632521&w=3D2
+
+--=20
+Jinpu Wang
+Linux Kernel Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Tel:       +49 30 577 008  042
+Fax:      +49 30 577 008 299
+Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:      https://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
