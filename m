@@ -1,7 +1,7 @@
 From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 1/4] IB/core: add port state cache
-Date: Mon, 12 Dec 2016 12:43:27 +0100
-Message-ID: <CAMGffE=gytHRs+SVOmNPCkWX6tZ9hkeFznqeQQs-TFJMMJi97g@mail.gmail.com>
+Subject: [PATCH 2/4] IB/core: export ib_get_cached_port_state
+Date: Mon, 12 Dec 2016 12:45:26 +0100
+Message-ID: <CAMGffEnCU-8sodNH_i-KKPAhe3ekkt+Yd34wiUVqvXJ+ujSRwQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
@@ -10,69 +10,75 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From fc80c1730d94a38934c5c60f9b9561745723dfd9 Mon Sep 17 00:00:00 2001
+>From 1cf770be635e987e31feed2f7c82b9f4f3bd316a Mon Sep 17 00:00:00 2001
 From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Date: Mon, 12 Dec 2016 09:52:42 +0100
-Subject: [PATCH 1/4] IB/core: add port state cache
+Date: Mon, 12 Dec 2016 10:12:39 +0100
+Subject: [PATCH 2/4] IB/core: export ib_get_cached_port_state
 
-We need a port state cache in ib_core, later we will use in rdma_cm.
+Export function for rdma_cm, patch will follow.
 
 Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c | 9 ++++++++-
- include/rdma/ib_verbs.h         | 1 +
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cache.c | 18 ++++++++++++++++++
+ include/rdma/ib_cache.h         | 13 +++++++++++++
+ 2 files changed, 31 insertions(+)
 
 diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cach=
 e.c
-index 1a2984c..025db27 100644
+index 025db27..1b064cf 100644
 --- a/drivers/infiniband/core/cache.c
 +++ b/drivers/infiniband/core/cache.c
-@@ -1109,6 +1109,8 @@ static void ib_cache_update(struct ib_device *device,
-     }
-
-     device->cache.lmc_cache[port - rdma_start_port(device)] =3D tprops->lm=
-c;
-+    device->cache.port_state_cache[port - rdma_start_port(device)] =3D
-+        tprops->state;
-
-     write_unlock_irq(&device->cache.lock);
-
-@@ -1168,7 +1170,11 @@ int ib_cache_setup_one(struct ib_device *device)
-                       (rdma_end_port(device) -
-                        rdma_start_port(device) + 1),
-                       GFP_KERNEL);
--    if (!device->cache.pkey_cache ||
-+    device->cache.port_state_cache =3D kmalloc(sizeof
-*device->cache.port_state_cache *
-+                      (rdma_end_port(device) -
-+                       rdma_start_port(device) + 1),
-+                      GFP_KERNEL);
-+    if (!device->cache.pkey_cache || !device->cache.port_state_cache ||
-         !device->cache.lmc_cache) {
-         pr_warn("Couldn't allocate cache for %s\n", device->name);
-         return -ENOMEM;
-@@ -1213,6 +1219,7 @@ void ib_cache_release_one(struct ib_device *device)
-     gid_table_release_one(device);
-     kfree(device->cache.pkey_cache);
-     kfree(device->cache.lmc_cache);
-+    kfree(device->cache.port_state_cache);
+@@ -1025,6 +1025,24 @@ int ib_get_cached_lmc(struct ib_device *device,
  }
+ EXPORT_SYMBOL(ib_get_cached_lmc);
 
- void ib_cache_cleanup_one(struct ib_device *device)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5ad43a4..a167ae0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1761,6 +1761,7 @@ struct ib_cache {
-     struct ib_pkey_cache  **pkey_cache;
-     struct ib_gid_table   **gid_cache;
-     u8                     *lmc_cache;
-+    enum ib_port_state     *port_state_cache;
- };
++int ib_get_cached_port_state(struct ib_device   *device,
++                 u8                  port_num,
++                 enum ib_port_state *port_state)
++{
++    unsigned long flags;
++    int ret =3D 0;
++
++    if (port_num < rdma_start_port(device) || port_num > rdma_end_port(dev=
+ice))
++        return -EINVAL;
++
++    read_lock_irqsave(&device->cache.lock, flags);
++    *port_state =3D device->cache.port_state_cache[port_num -
+rdma_start_port(device)];
++    read_unlock_irqrestore(&device->cache.lock, flags);
++
++    return ret;
++}
++EXPORT_SYMBOL(ib_get_cached_port_state);
++
+ static void ib_cache_update(struct ib_device *device,
+                 u8                port)
+ {
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index e30f19b..385ec88 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -165,4 +165,17 @@ int ib_get_cached_lmc(struct ib_device *device,
+               u8                port_num,
+               u8                *lmc);
 
- struct ib_dma_mapping_ops {
++/**
++ * ib_get_cached_port_state - Returns a cached port state table entry
++ * @device: The device to query.
++ * @port_num: The port number of the device to query.
++ * @port_state: port_state for the specified port for that device.
++ *
++ * ib_get_cached_port_state() fetches the specified port_state table
+entry stored in
++ * the local software cache.
++ */
++int ib_get_cached_port_state(struct ib_device *device,
++                  u8                port_num,
++                  enum ib_port_state *port_active);
++
+ #endif /* _IB_CACHE_H */
 --=20
 2.7.4
 
