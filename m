@@ -1,56 +1,75 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Reorganize structures to align with HW
- capabilities
-Date: Mon, 12 Dec 2016 17:15:14 -0500
-Message-ID: <47f91af9-f1f8-e888-d680-81d6ceac0efe@redhat.com>
-References: <20161206221620.36524-1-henry.orosco@intel.com>
+Subject: Re: [PATCH] i40iw: Remove macros I40IW_STAG_KEY_FROM_STAG and
+ I40IW_STAG_INDEX_FROM_STAG
+Date: Mon, 12 Dec 2016 17:15:45 -0500
+Message-ID: <c1069145-b171-b595-c4ff-c5b13df50077@redhat.com>
+References: <1475668538-12914-1-git-send-email-thuth@redhat.com>
+ <20161005125711.GG9282@leon.nu> <20161006200220.GB14272@flatif-MOBL1>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="gwQmiaiMLFlRvAW1BSawVKcHf9eqXI3xN"
+ boundary="gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161206221620.36524-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20161006200220.GB14272@flatif-MOBL1>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Thomas Huth <thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gwQmiaiMLFlRvAW1BSawVKcHf9eqXI3xN
-Content-Type: multipart/mixed; boundary="Q7vW7nFvJNAMmONo6KgM0L9oekh4EChxe";
+--gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au
+Content-Type: multipart/mixed; boundary="mT4CI28wxCJfbuIuPmXUt1nchrXrEwXnl";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <47f91af9-f1f8-e888-d680-81d6ceac0efe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Reorganize structures to align with HW
- capabilities
-References: <20161206221620.36524-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-In-Reply-To: <20161206221620.36524-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Thomas Huth <thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Message-ID: <c1069145-b171-b595-c4ff-c5b13df50077-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Remove macros I40IW_STAG_KEY_FROM_STAG and
+ I40IW_STAG_INDEX_FROM_STAG
+References: <1475668538-12914-1-git-send-email-thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161005125711.GG9282-2ukJVAZIZ/Y@public.gmane.org> <20161006200220.GB14272@flatif-MOBL1>
+In-Reply-To: <20161006200220.GB14272@flatif-MOBL1>
 
---Q7vW7nFvJNAMmONo6KgM0L9oekh4EChxe
+--mT4CI28wxCJfbuIuPmXUt1nchrXrEwXnl
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/6/2016 5:16 PM, Henry Orosco wrote:
-> Some resources are incorrectly organized and at odds with
-> HW capabilities. Specifically, ILQ, IEQ, QPs, MSS, QOS
-> and statistics belong in a VSI.
+On 10/6/2016 4:02 PM, Faisal Latif wrote:
+> On Wed, Oct 05, 2016 at 03:57:11PM +0300, Leon Romanovsky wrote:
+>> On Wed, Oct 05, 2016 at 01:55:38PM +0200, Thomas Huth wrote:
+>>> The macros I40IW_STAG_KEY_FROM_STAG and I40IW_STAG_INDEX_FROM_STAG ar=
+e
+>>> apparently bad - they are using the logical "&&" operation which
+>>> does not make sense here. It should have been a bitwise "&" instead.
+>>> Since the macros seem to be completely unused, let's simply remove
+>>> them so that nobody accidentially uses them in the future. And while
+>>> we're at it, also remove the unused macro I40IW_CREATE_STAG.
+>>>
+>>> Signed-off-by: Thomas Huth <thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>
+>> Thanks,
+>> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Thanks
+> Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>=20
+>=20
 
-Big churn patch applied, thanks ;-)
+Applied, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---Q7vW7nFvJNAMmONo6KgM0L9oekh4EChxe--
+--mT4CI28wxCJfbuIuPmXUt1nchrXrEwXnl--
 
---gwQmiaiMLFlRvAW1BSawVKcHf9eqXI3xN
+--gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,22 +78,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTyFyAAoJELgmozMOVy/dvBwP/21Oz64ZPP05du4BhsfCS6QF
-qBlJ5LNEzViTtT2IVv4/llgJ5jqYAD+xCRun/gm2BEKkHtP35GqzrWQw7jf0Se+G
-JVcO7RFHkX75Kj5btX9pG3UrFBxFmd3EgX6iVw21P8IjLXunuGDRT6bnzdzbnYMs
-Q/jrHn44qmGX+Qx+oyrah7LZmpxnCa7WlfNXsqDytcBXz3U5eXYMSCIgXaKv2I80
-4rOjVcVfyZXCOfzlrbc9e1qjke4ALMMjS/xFqtstHMqpq6ouGoZOUz67prDlpnv1
-2KUNNLaniPOIt2/y5ff8rXltSwtXFBd27MXhxUMN8RZNZwKR+8aB/wTTj9KZWHat
-GiinmpInzUPtwLo/D9q3C4zvDqST1dFyyUK3FLkipL9ha30vE7Md2JkgGQ2fRXLL
-tuxJhREg/HwSWZuRtRygbKABKAOS5mSN46kpi/FR7z64YYZldQAYIkQ6A4hvW0tV
-5ocROIzH94FVhINuozSuWHa84KAGnUkChhAtmGo9NXDx4uxI3dYO30O2I4LfsUgf
-WT8kT+Jv2IdQdDhwz9bHMu6kuSHpUJViqLwBj4jQz6ad4mK1BNcGWVXOhxyLZlyr
-QoEWWr5aJPTqcOOBGTevGFASBrCUtm6sVDoUbdregudKUaJaX0e+PiZj9tfwnOeb
-IqCmJ2nDYVQJcAOPogiR
-=UfAU
+iQIcBAEBCAAGBQJYTyGRAAoJELgmozMOVy/dD54QAKtNAc5oXOhVbQtLkEiF1LQh
+ybQpRNtqoYZZ4xfMHSPaMsb9qzpSQDHSm0hJiuHwXExc3oLkFUq40GIg3jSRrFe9
+a+JTJNbjVPLT+ByXLNv3bSV8oR3vSbMmR9O0dyHQHrx2mHESYXBtRIa34hnSfv5h
+gZFutT+XSYyJpuznHsFnWRbwKCfjbe8g2qRb13tFu7/aU4YZCnt/W9RDAbXWqhHU
+XWR4vBYP8rCEG8bre6vDA2Apfox3k//PakQ1c/0fZC/xhJeluykm2DKj/TO55YXW
++QVQ+bzHXzyY/Bz5NeUmYqmCPxkeVhIvD5wkoa2jsRNjma3Mf0s7qNodZt+ANlZa
+UGKkw/htD0p9SpZe5Dq26JyWLrHU/00idTyXexaFfph2a/Akiu3mIHcFlMaGuRVd
+feYrC3YLms40buZEysh3uXCRFAlXIXeoCP04eO3zmyO87YnYGN6e2FDa5zX2ywYF
+iAoTXOxoI6G5cD49j+ioW7++Blzo03gApi+yKonor9ewcGjcawjd6VPjeWNNs+As
+SWGqO7EexwntJ36GUzAjD1Gw8mPPtIUdcaDb92NcyAsODOUILt74KuqAXDnwC7AZ
+JHAkKQ5ZSFo86TsF1hqcER4H1YFsLsrSgQ/NU+AN06jI3OOieViBFik3Ifey0Pdl
+IZoK6nQG3bjXPzEbKn8m
+=MXoG
 -----END PGP SIGNATURE-----
 
---gwQmiaiMLFlRvAW1BSawVKcHf9eqXI3xN--
+--gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
