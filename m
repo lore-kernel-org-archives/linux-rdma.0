@@ -1,75 +1,91 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Remove macros I40IW_STAG_KEY_FROM_STAG and
- I40IW_STAG_INDEX_FROM_STAG
-Date: Mon, 12 Dec 2016 17:15:45 -0500
-Message-ID: <c1069145-b171-b595-c4ff-c5b13df50077@redhat.com>
-References: <1475668538-12914-1-git-send-email-thuth@redhat.com>
- <20161005125711.GG9282@leon.nu> <20161006200220.GB14272@flatif-MOBL1>
+Subject: Re: [PATCH] i40iw: Use correct src address in memcpy to rdma stats
+ counters
+Date: Mon, 12 Dec 2016 17:20:53 -0500
+Message-ID: <ed065665-8aa9-46f0-f57e-6cd1dcb7480e@redhat.com>
+References: <1478883341-22124-1-git-send-email-shiraz.saleem@intel.com>
+ <20161206173917.GB15668@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au"
+ boundary="WuhOiAtFqWqR2a2KLxaGCE38j3HFXvPRM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161006200220.GB14272@flatif-MOBL1>
+In-Reply-To: <20161206173917.GB15668-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Thomas Huth <thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au
-Content-Type: multipart/mixed; boundary="mT4CI28wxCJfbuIuPmXUt1nchrXrEwXnl";
+--WuhOiAtFqWqR2a2KLxaGCE38j3HFXvPRM
+Content-Type: multipart/mixed; boundary="jcoL4cpuAsCufFKUJMvXjvuolr1SI0lCx";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Thomas Huth <thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Message-ID: <c1069145-b171-b595-c4ff-c5b13df50077-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Remove macros I40IW_STAG_KEY_FROM_STAG and
- I40IW_STAG_INDEX_FROM_STAG
-References: <1475668538-12914-1-git-send-email-thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161005125711.GG9282-2ukJVAZIZ/Y@public.gmane.org> <20161006200220.GB14272@flatif-MOBL1>
-In-Reply-To: <20161006200220.GB14272@flatif-MOBL1>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>,
+ "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Message-ID: <ed065665-8aa9-46f0-f57e-6cd1dcb7480e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Use correct src address in memcpy to rdma stats
+ counters
+References: <1478883341-22124-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ <20161206173917.GB15668-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20161206173917.GB15668-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 
---mT4CI28wxCJfbuIuPmXUt1nchrXrEwXnl
+--jcoL4cpuAsCufFKUJMvXjvuolr1SI0lCx
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/6/2016 4:02 PM, Faisal Latif wrote:
-> On Wed, Oct 05, 2016 at 03:57:11PM +0300, Leon Romanovsky wrote:
->> On Wed, Oct 05, 2016 at 01:55:38PM +0200, Thomas Huth wrote:
->>> The macros I40IW_STAG_KEY_FROM_STAG and I40IW_STAG_INDEX_FROM_STAG ar=
-e
->>> apparently bad - they are using the logical "&&" operation which
->>> does not make sense here. It should have been a bitwise "&" instead.
->>> Since the macros seem to be completely unused, let's simply remove
->>> them so that nobody accidentially uses them in the future. And while
->>> we're at it, also remove the unused macro I40IW_CREATE_STAG.
->>>
->>> Signed-off-by: Thomas Huth <thuth-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On 12/6/2016 12:39 PM, Shiraz Saleem wrote:
+> Doug - Can you please pick this up for 4.9? It was a bug introduced in =
+4.7.=20
+>=20
+>=20
+> On Fri, Nov 11, 2016 at 09:55:41AM -0700, Saleem, Shiraz wrote:
+>> hw_stats is a pointer to i40_iw_dev_stats struct in i40iw_get_hw_stats=
+().
+>> Use hw_stats and not &hw_stats in the memcpy to copy the i40iw device =
+stats
+>> data into rdma_hw_stats counters.
 >>
->> Thanks,
->> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Thanks
-> Acked-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
->=20
+>> Fixes: b40f4757daa1 ("IB/core: Make device counter infrastructure dyna=
+mic")
+>>
+>> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infin=
+iband/hw/i40iw/i40iw_verbs.c
+>> index b71394b..02c8f9a 100644
+>> --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+>> +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+>> @@ -2498,7 +2498,7 @@ static int i40iw_get_hw_stats(struct ib_device *=
+ibdev,
+>>  			return -ENOSYS;
+>>  	}
+>> =20
+>> -	memcpy(&stats->value[0], &hw_stats, sizeof(*hw_stats));
+>> +	memcpy(&stats->value[0], hw_stats, sizeof(*hw_stats));
+>> =20
+>>  	return stats->num_counters;
+>>  }
+>> --=20
+>> 2.8.0
+>>
 
-Applied, thanks.
+Picked up for the current kernel and stable tag added.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---mT4CI28wxCJfbuIuPmXUt1nchrXrEwXnl--
+--jcoL4cpuAsCufFKUJMvXjvuolr1SI0lCx--
 
---gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au
+--WuhOiAtFqWqR2a2KLxaGCE38j3HFXvPRM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -78,22 +94,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYTyGRAAoJELgmozMOVy/dD54QAKtNAc5oXOhVbQtLkEiF1LQh
-ybQpRNtqoYZZ4xfMHSPaMsb9qzpSQDHSm0hJiuHwXExc3oLkFUq40GIg3jSRrFe9
-a+JTJNbjVPLT+ByXLNv3bSV8oR3vSbMmR9O0dyHQHrx2mHESYXBtRIa34hnSfv5h
-gZFutT+XSYyJpuznHsFnWRbwKCfjbe8g2qRb13tFu7/aU4YZCnt/W9RDAbXWqhHU
-XWR4vBYP8rCEG8bre6vDA2Apfox3k//PakQ1c/0fZC/xhJeluykm2DKj/TO55YXW
-+QVQ+bzHXzyY/Bz5NeUmYqmCPxkeVhIvD5wkoa2jsRNjma3Mf0s7qNodZt+ANlZa
-UGKkw/htD0p9SpZe5Dq26JyWLrHU/00idTyXexaFfph2a/Akiu3mIHcFlMaGuRVd
-feYrC3YLms40buZEysh3uXCRFAlXIXeoCP04eO3zmyO87YnYGN6e2FDa5zX2ywYF
-iAoTXOxoI6G5cD49j+ioW7++Blzo03gApi+yKonor9ewcGjcawjd6VPjeWNNs+As
-SWGqO7EexwntJ36GUzAjD1Gw8mPPtIUdcaDb92NcyAsODOUILt74KuqAXDnwC7AZ
-JHAkKQ5ZSFo86TsF1hqcER4H1YFsLsrSgQ/NU+AN06jI3OOieViBFik3Ifey0Pdl
-IZoK6nQG3bjXPzEbKn8m
-=MXoG
+iQIcBAEBCAAGBQJYTyLFAAoJELgmozMOVy/d8HkQAK3UHqndviBrkZLfrDTyfmWS
+OIzHVQckgoukbcPxrncM6LyDrlRruId658AMXZu6YM8h8WI2vWLGASMY28WJhzOf
+F3qB6UowW1Kt8peto/oJriQdlHQOjPp/eUBZ+hzJuKFc1kSseiWuUiFXrLeKRh7y
+vkDWK1hpoy0R7FcHDKK7z6cm10W2haJsdhXotvYg/ByBuJC9duveWckH1w2QNUP4
+JNlhiZxse6izBfCN0p4Y9dQbsKH4Vit+B5WJ2TapwsRkcs0eQ7JW3s1lqYfp9Gpz
+46TdOFfyjfhVHrSRKMI4FfAUbifgYeH4FHJCf+aDEaZsBVkED3MrcpZwLHx67Yas
+K7B0R4uZUtMLVbz694UxQuZdw6Lp8a4IJdxJyk2Dj+eSZz4HyDvwcnCwfCMcykge
+mCRo8Lw9OMFFFjFtvPsKKzFWS5ac0aEueKSgP5TQdRrO1sjcBPelEKS9FQ+0LEVB
+nT5Z6TuYN2rEbXvrARWKgQJVYGMv94rCTGf4Ceh05t5gnd9ocSfr6MyT48jMAXwW
+syNNt7wzwYUg1ISxS9e/rKoQwABIrtoF037lFDvLE5PPRpRAgE0vVTOB7Yqx9Nse
+yDQo/El8OrKoYTVjHffb4oR9abAKn/Pp7Ee8sf/xDQgNVHzMHx/I/38mcJruBICG
+g4Ej8OYPsxm7bMOvon9L
+=48iQ
 -----END PGP SIGNATURE-----
 
---gMnrascsrjjVBF8HuFcqeKxNs4amwW0Au--
+--WuhOiAtFqWqR2a2KLxaGCE38j3HFXvPRM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
