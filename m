@@ -1,48 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 00/22] Broadcom RoCE Driver (bnxt_re)
-Date: Mon, 12 Dec 2016 10:07:01 -0700
-Message-ID: <20161212170701.GA28387@obsidianresearch.com>
-References: <1481266096-23331-1-git-send-email-selvin.xavier@broadcom.com>
- <CA+sbYW1ZEa5fndGkvN8OXr-orcUx4jaL73Di8zBJQX_uCdK=Ww@mail.gmail.com>
+From: "Stephen Bates" <sbates@raithlin.com>
+Subject: [LSF/MM TOPIC][LSF/MM ATTEND] Enabling Peer-to-Peer DMAs between
+ PCIe devices
+Date: Mon, 12 Dec 2016 11:51:54 -0600
+Message-ID: <055180bb41167c3a6b9f1f20ae4d4f3f.squirrel@webmail.raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CA+sbYW1ZEa5fndGkvN8OXr-orcUx4jaL73Di8zBJQX_uCdK=Ww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: lsf-pc@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Dec 10, 2016 at 11:06:58AM +0530, Selvin Xavier wrote:
-> On Fri, Dec 9, 2016 at 12:17 PM, Selvin Xavier
-> <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
-> > I am preparing a git repository with these changes as per Jason's
-> > comment and will share the details later today.
-> 
-> Please use bnxt_re branch in this git repository.
-> 
-> https://github.com/Broadcom/linux-rdma-nxt.git
+Hi
 
-Why are you using __packed in bnxt_re_uverbs_abi.h ? that doesn't seem
-necessary. It is a good idea to make sure all those structures are a
-multiple of 64 bits (add explicit reserved fields), and make sure you
-test 32 bit verbs as well.
+I'd like to discuss the topic of how best to enable DMAs between PCIe
+devices in the Linux kernel.
 
-Why are you using debugfs just to export counters? Isn't the core code
-counter framework good enough?
+There have been many attempts to add to the kernel the ability to DMA
+between two PCIe devices. However, to date, none of these have been
+accepted. However as PCIe devices like NICs, NVMe SSDs and GPGPUs continue
+to get faster the desire to move data directly between these devices (as
+opposed to having to using a temporary buffer in system memory) is
+increasing. Out of tree solutions like GPU-Direct are one illustration of
+the popularity of this functionality. A recent discussion on this topic
+provides a good summary of where things stand [1].
 
-Please try and avoid writing functions as defines (eg rdev_to_dev,
-to_bnxt_re, SQE_PG, RCFW_CMDQ_COOKIE, PTR_PG etc)
+I would like to propose a session at LFS/MM to discuss some of the
+different use cases for these P2P DMAs and also to discuss the pros and
+cons of these approaches. The desire would be to try and form a consensus
+on how best to move forward to an upstreamable solution to this problem.
 
-There is something wrong with the tabs and spaces (see
-https://github.com/Broadcom/linux-rdma-nxt/blob/03e23b087f7e86ea28656273994e065827210ce5/drivers/infiniband/hw/bnxtre/bnxt_re_hsi.h)
+In addition I would also be interested in participating in the following
+topics:
 
-FWIW, I really dislike the column alignment style, it is so hard to
-maintain..
+ * Anything related to PMEM and DAX.
 
-Jason
+ * Integrating the block-layer polling capability into file-systems.
+
+ * New feature integration into the NVMe driver (e.g. fabrics, CMBs, IO
+tags etc.)
+
+Cheers
+
+Stephen
+
+[1] http://marc.info/?l=linux-pci&m=147976059431355&w=2 (and subsequent
+thread).
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
