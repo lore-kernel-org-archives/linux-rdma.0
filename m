@@ -1,234 +1,70 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v6 12/16] IB/pvrdma: Add Queue Pair support
-Date: Sun, 11 Dec 2016 23:13:25 +0200
-Message-ID: <20161211211324.GA32096@yuval-lap>
-References: <cover.1475458407.git.aditr@vmware.com>
- <6a643e92376856394d45638d80a90619d3abac37.1475458407.git.aditr@vmware.com>
+From: Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] infiniband: mthca: Replace pci_pool_alloc by pci_pool_zalloc
+Date: Mon, 12 Dec 2016 10:15:40 +0530
+Message-ID: <CAFqt6zZVGSGK4REB-7wSEbA9QANPQ74ot5DujfyyJ+6_=qNy0w@mail.gmail.com>
+References: <20161201184159.GA2949@jordon-HP-15-Notebook-PC>
+ <20161201191308.GA3822@yuval-lap> <CAFqt6zarZHK3+7QH3tfuHXr2YtV_bL8WavKuPt97+YaqQoB=1w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6a643e92376856394d45638d80a90619d3abac37.1475458407.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAFqt6zarZHK3+7QH3tfuHXr2YtV_bL8WavKuPt97+YaqQoB=1w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rameshwar Sahu <sahu.rameshwar73-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-+
-> +/**
-> + * pvrdma_post_send - post send work request entries on a QP
-> + * @ibqp: the QP
-> + * @wr: work request list to post
-> + * @bad_wr: the first bad WR returned
-> + *
-> + * @return: 0 on success, otherwise errno returned.
-> + */
-> +int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
-> +		     struct ib_send_wr **bad_wr)
-> +{
-> +	struct pvrdma_qp *qp = to_vqp(ibqp);
-> +	struct pvrdma_dev *dev = to_vdev(ibqp->device);
-> +	unsigned long flags;
-> +	struct pvrdma_sq_wqe_hdr *wqe_hdr;
-> +	struct pvrdma_sge *sge;
-> +	int i, index;
-> +	int nreq;
-> +	int ret;
-> +
-> +	/*
-> +	 * In states lower than RTS, we can fail immediately. In other states,
-> +	 * just post and let the device figure it out.
-> +	 */
-> +	if (qp->state < IB_QPS_RTS) {
-> +		*bad_wr = wr;
-> +		return -EINVAL;
-> +	}
-> +
-> +	spin_lock_irqsave(&qp->sq.lock, flags);
-> +
-> +	index = pvrdma_idx(&qp->sq.ring->prod_tail, qp->sq.wqe_cnt);
-> +	for (nreq = 0; wr; nreq++, wr = wr->next) {
-> +		unsigned int tail;
-> +
-> +		if (unlikely(!pvrdma_idx_ring_has_space(
-> +				qp->sq.ring, qp->sq.wqe_cnt, &tail))) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "send queue is full\n");
-> +			*bad_wr = wr;
-> +			ret = -ENOMEM;
-> +			goto out;
-> +		}
+On Mon, Dec 5, 2016 at 11:54 AM, Souptick Joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Any further comment on this patch?
+>
+> On Fri, Dec 2, 2016 at 12:43 AM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>
+>> On Fri, Dec 02, 2016 at 12:11:59AM +0530, Souptick Joarder wrote:
+>>> In mthca_create_ah(), pci_pool_alloc() followed by memset will be
+>>> replaced by pci_pool_zalloc()
+>>>
+>>> Signed-off-by: Souptick joarder <jrdr.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>> ---
+>>> v2:
+>>>   - Alignment changes
+>>>   - Remove empty lines
+>>>
+>>>  drivers/infiniband/hw/mthca/mthca_av.c | 6 ++----
+>>>  1 file changed, 2 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/hw/mthca/mthca_av.c b/drivers/infiniband/hw/mthca/mthca_av.c
+>>> index bcac294..c9f0f36 100644
+>>> --- a/drivers/infiniband/hw/mthca/mthca_av.c
+>>> +++ b/drivers/infiniband/hw/mthca/mthca_av.c
+>>> @@ -186,8 +186,8 @@ int mthca_create_ah(struct mthca_dev *dev,
+>>>
+>>>  on_hca_fail:
+>>>       if (ah->type == MTHCA_AH_PCI_POOL) {
+>>> -             ah->av = pci_pool_alloc(dev->av_table.pool,
+>>> -                                     GFP_ATOMIC, &ah->avdma);
+>>> +             ah->av = pci_pool_zalloc(dev->av_table.pool,
+>>> +                                      GFP_ATOMIC, &ah->avdma);
+>>>               if (!ah->av)
+>>>                       return -ENOMEM;
+>>>
+>>> @@ -196,8 +196,6 @@ int mthca_create_ah(struct mthca_dev *dev,
+>>>
+>>>       ah->key = pd->ntmr.ibmr.lkey;
+>>>
+>>> -     memset(av, 0, MTHCA_AV_SIZE);
+>>> -
+>>>       av->port_pd = cpu_to_be32(pd->pd_num | (ah_attr->port_num << 24));
+>>>       av->g_slid  = ah_attr->src_path_bits;
+>>>       av->dlid    = cpu_to_be16(ah_attr->dlid);
+>>> --
+>>> 1.9.1
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Correct me if i'm wrong but at this point index == tail, right?
-If yes then "index" is redundant.
-
-> +
-> +		if (unlikely(wr->num_sge > qp->sq.max_sg || wr->num_sge < 0)) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "send SGE overflow\n");
-> +			*bad_wr = wr;
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +
-> +		if (unlikely(wr->opcode < 0)) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "invalid send opcode\n");
-> +			*bad_wr = wr;
-> +			ret = -EINVAL;
-> +			goto out;
-> +		}
-> +
-> +		/*
-> +		 * Only support UD, RC.
-> +		 * Need to check opcode table for thorough checking.
-> +		 * opcode		_UD	_UC	_RC
-> +		 * _SEND		x	x	x
-> +		 * _SEND_WITH_IMM	x	x	x
-> +		 * _RDMA_WRITE			x	x
-> +		 * _RDMA_WRITE_WITH_IMM		x	x
-> +		 * _LOCAL_INV			x	x
-> +		 * _SEND_WITH_INV		x	x
-> +		 * _RDMA_READ				x
-> +		 * _ATOMIC_CMP_AND_SWP			x
-> +		 * _ATOMIC_FETCH_AND_ADD		x
-> +		 * _MASK_ATOMIC_CMP_AND_SWP		x
-> +		 * _MASK_ATOMIC_FETCH_AND_ADD		x
-> +		 * _REG_MR				x
-> +		 *
-> +		 */
-> +		if (qp->ibqp.qp_type != IB_QPT_UD &&
-> +		    qp->ibqp.qp_type != IB_QPT_RC &&
-> +			wr->opcode != IB_WR_SEND) {
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "unsupported queuepair type\n");
-> +			*bad_wr = wr;
-> +			ret = -EINVAL;
-> +			goto out;
-> +		} else if (qp->ibqp.qp_type == IB_QPT_UD ||
-> +			   qp->ibqp.qp_type == IB_QPT_GSI) {
-> +			if (wr->opcode != IB_WR_SEND &&
-> +			    wr->opcode != IB_WR_SEND_WITH_IMM) {
-> +				dev_warn_ratelimited(&dev->pdev->dev,
-> +						     "invalid send opcode\n");
-> +				*bad_wr = wr;
-> +				ret = -EINVAL;
-> +				goto out;
-> +			}
-> +		}
-> +
-> +		wqe_hdr = (struct pvrdma_sq_wqe_hdr *)get_sq_wqe(qp, index);
-> +		memset(wqe_hdr, 0, sizeof(*wqe_hdr));
-> +		wqe_hdr->wr_id = wr->wr_id;
-> +		wqe_hdr->num_sge = wr->num_sge;
-> +		wqe_hdr->opcode = ib_wr_opcode_to_pvrdma(wr->opcode);
-> +		wqe_hdr->send_flags = ib_send_flags_to_pvrdma(wr->send_flags);
-> +		if (wr->opcode == IB_WR_SEND_WITH_IMM ||
-> +		    wr->opcode == IB_WR_RDMA_WRITE_WITH_IMM)
-> +			wqe_hdr->ex.imm_data = wr->ex.imm_data;
-> +
-> +		switch (qp->ibqp.qp_type) {
-> +		case IB_QPT_GSI:
-> +		case IB_QPT_UD:
-> +			if (unlikely(!ud_wr(wr)->ah)) {
-> +				dev_warn_ratelimited(&dev->pdev->dev,
-> +						     "invalid address handle\n");
-> +				*bad_wr = wr;
-> +				ret = -EINVAL;
-> +				goto out;
-> +			}
-> +
-> +			/*
-> +			 * Use qkey from qp context if high order bit set,
-> +			 * otherwise from work request.
-> +			 */
-> +			wqe_hdr->wr.ud.remote_qpn = ud_wr(wr)->remote_qpn;
-> +			wqe_hdr->wr.ud.remote_qkey =
-> +				ud_wr(wr)->remote_qkey & 0x80000000 ?
-> +				qp->qkey : ud_wr(wr)->remote_qkey;
-> +			wqe_hdr->wr.ud.av = to_vah(ud_wr(wr)->ah)->av;
-> +
-> +			break;
-> +		case IB_QPT_RC:
-> +			switch (wr->opcode) {
-> +			case IB_WR_RDMA_READ:
-> +			case IB_WR_RDMA_WRITE:
-> +			case IB_WR_RDMA_WRITE_WITH_IMM:
-> +				wqe_hdr->wr.rdma.remote_addr =
-> +					rdma_wr(wr)->remote_addr;
-> +				wqe_hdr->wr.rdma.rkey = rdma_wr(wr)->rkey;
-> +				break;
-> +			case IB_WR_LOCAL_INV:
-> +			case IB_WR_SEND_WITH_INV:
-> +				wqe_hdr->ex.invalidate_rkey =
-> +					wr->ex.invalidate_rkey;
-> +				break;
-> +			case IB_WR_ATOMIC_CMP_AND_SWP:
-> +			case IB_WR_ATOMIC_FETCH_AND_ADD:
-> +				wqe_hdr->wr.atomic.remote_addr =
-> +					atomic_wr(wr)->remote_addr;
-> +				wqe_hdr->wr.atomic.rkey = atomic_wr(wr)->rkey;
-> +				wqe_hdr->wr.atomic.compare_add =
-> +					atomic_wr(wr)->compare_add;
-> +				if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP)
-> +					wqe_hdr->wr.atomic.swap =
-> +						atomic_wr(wr)->swap;
-> +				break;
-> +			case IB_WR_REG_MR:
-> +				ret = set_reg_seg(wqe_hdr, reg_wr(wr));
-> +				if (ret < 0) {
-> +					dev_warn_ratelimited(&dev->pdev->dev,
-> +							     "Failed to set fast register work request\n");
-> +					*bad_wr = wr;
-> +					goto out;
-> +				}
-> +				break;
-> +			default:
-> +				break;
-> +			}
-> +
-> +			break;
-> +		default:
-> +			dev_warn_ratelimited(&dev->pdev->dev,
-> +					     "invalid queuepair type\n");
-> +			ret = -EINVAL;
-> +			*bad_wr = wr;
-> +			goto out;
-> +		}
-> +
-> +		sge = (struct pvrdma_sge *)(wqe_hdr + 1);
-> +		for (i = 0; i < wr->num_sge; i++) {
-> +			/* Need to check wqe_size 0 or max size */
-> +			sge->addr = wr->sg_list[i].addr;
-> +			sge->length = wr->sg_list[i].length;
-> +			sge->lkey = wr->sg_list[i].lkey;
-> +			sge++;
-> +		}
-> +
-> +		/* Make sure wqe is written before index update */
-> +		smp_wmb();
-> +
-> +		index++;
-> +		if (unlikely(index >= qp->sq.wqe_cnt))
-> +			index = 0;
-
-If my assumption above is correct then the above 3 lines are not needed.
-
-> +		/* Update shared sq ring */
-> +		pvrdma_idx_ring_inc(&qp->sq.ring->prod_tail,
-> +				    qp->sq.wqe_cnt);
-> +	}
-> +
-> +	ret = 0;
-> +
-> +out:
-> +	spin_unlock_irqrestore(&qp->sq.lock, flags);
-> +
-> +	if (!ret)
-> +		pvrdma_write_uar_qp(dev, PVRDMA_UAR_QP_SEND | qp->qp_handle);
-> +
-> +	return ret;
-> +}
+Any comment on this patch?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
