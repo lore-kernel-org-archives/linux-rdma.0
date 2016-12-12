@@ -1,7 +1,7 @@
 From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 3/4] cma: resolve to first active ib port
-Date: Mon, 12 Dec 2016 12:48:07 +0100
-Message-ID: <CAMGffEm408nbzSqo-uSQGekenZfOX+HOeheRg1tvVGT8Y1=2XQ@mail.gmail.com>
+Subject: [PATCH 4/4] cma: use cached port state when bind loopback
+Date: Mon, 12 Dec 2016 12:49:24 +0100
+Message-ID: <CAMGffEkCsD1_jAEjrCSuBSnGRZksup=Mjv_A=Nte=wcDKVJT0Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
@@ -10,59 +10,44 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From 77323a633072966e358c8f684e5ff4b665a27881 Mon Sep 17 00:00:00 2001
+>From f2083c81f7738841cc696feda5f0ff5a96beeb01 Mon Sep 17 00:00:00 2001
 From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Date: Mon, 12 Dec 2016 10:23:55 +0100
-Subject: [PATCH 3/4] cma: resolve to first active ib port
-
-When resolve addr if we don't give src addr, cma core will try to resolve t=
-o
-ib device on itself, current logic is only check if it has same
-subnet_prefix, which is not enough if we use default well known gid,
-we should also check if port is active.
-
-v3: use cached port_active state in ib_core.
+Date: Mon, 12 Dec 2016 10:29:00 +0100
+Subject: [PATCH 4/4] cma: use cached port state when bind loopback
 
 Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 2a6fc47..3413aec 100644
+index 3413aec..f57d017 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -666,6 +666,7 @@ static int cma_resolve_ib_dev(struct
-rdma_id_private *id_priv)
-     union ib_gid gid, sgid, *dgid;
-     u16 pkey, index;
-     u8 p;
+@@ -2613,8 +2613,8 @@ static void cma_set_loopback(struct sockaddr *addr)
+ static int cma_bind_loopback(struct rdma_id_private *id_priv)
+ {
+     struct cma_device *cma_dev, *cur_dev;
+-    struct ib_port_attr port_attr;
+     union ib_gid gid;
 +    enum ib_port_state port_state;
-     int i;
-
-     cma_dev =3D NULL;
-@@ -681,6 +682,8 @@ static int cma_resolve_ib_dev(struct
+     u16 pkey;
+     int ret;
+     u8 p;
+@@ -2630,8 +2630,8 @@ static int cma_bind_loopback(struct
 rdma_id_private *id_priv)
-             if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
-                 continue;
+             cma_dev =3D cur_dev;
 
-+            if (ib_get_cached_port_state(cur_dev->device, p, &port_state))
-+                continue;
-             for (i =3D 0; !ib_get_cached_gid(cur_dev->device, p, i,
-                                &gid, NULL);
-                  i++) {
-@@ -692,7 +695,8 @@ static int cma_resolve_ib_dev(struct
-rdma_id_private *id_priv)
-                 }
-
-                 if (!cma_dev && (gid.global.subnet_prefix =3D=3D
--                         dgid->global.subnet_prefix)) {
-+                    dgid->global.subnet_prefix) &&
-+                    port_state =3D=3D IB_PORT_ACTIVE) {
-                     cma_dev =3D cur_dev;
-                     sgid =3D gid;
-                     id_priv->id.port_num =3D p;
+         for (p =3D 1; p <=3D cur_dev->device->phys_port_cnt; ++p) {
+-            if (!ib_query_port(cur_dev->device, p, &port_attr) &&
+-                port_attr.state =3D=3D IB_PORT_ACTIVE) {
++            if (!ib_get_cached_port_state(cur_dev->device, p, &port_state)=
+ &&
++                port_state =3D=3D IB_PORT_ACTIVE) {
+                 cma_dev =3D cur_dev;
+                 goto port_found;
+             }
 --=20
 2.7.4
 
