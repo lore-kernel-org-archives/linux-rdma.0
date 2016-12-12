@@ -1,80 +1,47 @@
-From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH V2 00/22] Broadcom RoCE Driver (bnxt_re)
-Date: Mon, 12 Dec 2016 11:54:30 -0500
-Message-ID: <9cf03e2b-a16d-19ec-a8ce-14f24272bf6a@redhat.com>
+Date: Mon, 12 Dec 2016 10:07:01 -0700
+Message-ID: <20161212170701.GA28387@obsidianresearch.com>
 References: <1481266096-23331-1-git-send-email-selvin.xavier@broadcom.com>
-Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+ <CA+sbYW1ZEa5fndGkvN8OXr-orcUx4jaL73Di8zBJQX_uCdK=Ww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1481266096-23331-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CA+sbYW1ZEa5fndGkvN8OXr-orcUx4jaL73Di8zBJQX_uCdK=Ww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/09/2016 01:47 AM, Selvin Xavier wrote:
-> This series introduces the RoCE driver for the Broadcom
-> NetXtreme-E 10/25/40/50 gigabit RoCE HCAs. 
-> This driver is dependent on the bnxt_en NIC driver and is 
-> based on the bnxt_re branch in Doug's repository. bnxt_en changes
-> required for this patch series is already available in this branch.
+On Sat, Dec 10, 2016 at 11:06:58AM +0530, Selvin Xavier wrote:
+> On Fri, Dec 9, 2016 at 12:17 PM, Selvin Xavier
+> <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+> > I am preparing a git repository with these changes as per Jason's
+> > comment and will share the details later today.
 > 
-> I am preparing a git repository with these changes as per Jason's
-> comment and will share the details later today.
+> Please use bnxt_re branch in this git repository.
 > 
-> v1-> v2:
->   * The license text in each file updated to reflect Dual license.
->   * Makefile and Kconfig changes are pushed to the last patch
->   * Moved bnxt_re_uverbs_abi.h to include/uapi/rdma folder
->   * Remove duplicate structure definitions from bnxt_re_hsi.h as
->     it is available in the corresponding bnxt_en header file (bnxt_hsi.h)
->   * Removed some unused code reported during code review.
->   * Fixed few sparse warnings
-> 
+> https://github.com/Broadcom/linux-rdma-nxt.git
 
-I get the following sparse errors (filtered for only bnxt_re ones),
-please let me know if they are false positives:
+Why are you using __packed in bnxt_re_uverbs_abi.h ? that doesn't seem
+necessary. It is a good idea to make sure all those structures are a
+multiple of 64 bits (add explicit reserved fields), and make sure you
+test 32 bit verbs as well.
 
-$ make C=2  drivers/net/ethernet/broadcom/bnxt/bnxt_en.ko
-drivers/infiniband/hw/bnxtre/bnxt_re.ko
-  CHK     include/config/kernel.release
-  CHK     include/generated/uapi/linux/version.h
-  CHK     include/generated/utsrelease.h
-  CHECK   arch/x86/purgatory/purgatory.c
-[...]
-  CHECK   arch/x86/purgatory/sha256.c
-  CHECK   arch/x86/purgatory/string.c
-[...]
-  CHK     include/generated/bounds.h
-  CHK     include/generated/timeconst.h
-  CHK     include/generated/asm-offsets.h
-  CALL    scripts/checksyscalls.sh
-  CHECK   scripts/mod/empty.c
-  CHECK   drivers/net/ethernet/broadcom/bnxt/bnxt.c
-  CHECK   drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-  CHECK   drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-  CHECK   drivers/net/ethernet/broadcom/bnxt/bnxt_dcb.c
-  CHECK   drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-  MODPOST 2 modules
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
-[...]
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_re_debugfs.c
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c
-drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c:729:6: warning: symbol
-'bnxt_qplib_cleanup_pkey_tbl' was not declared. Should it be static?
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c
-  CHECK   drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c
-drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c:1015:22: warning: context
-imbalance in 'bnxt_qplib_lock_cqs' - wrong count at exit
-drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c:1030:28: warning: context
-imbalance in 'bnxt_qplib_unlock_cqs' - unexpected unlock
-  MODPOST 2 modules
+Why are you using debugfs just to export counters? Isn't the core code
+counter framework good enough?
 
--Jon
+Please try and avoid writing functions as defines (eg rdev_to_dev,
+to_bnxt_re, SQE_PG, RCFW_CMDQ_COOKIE, PTR_PG etc)
+
+There is something wrong with the tabs and spaces (see
+https://github.com/Broadcom/linux-rdma-nxt/blob/03e23b087f7e86ea28656273994e065827210ce5/drivers/infiniband/hw/bnxtre/bnxt_re_hsi.h)
+
+FWIW, I really dislike the column alignment style, it is so hard to
+maintain..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
