@@ -1,101 +1,195 @@
-From: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Subject: [PATCH resend] IB/core: fix unmap_sg argument
-Date: Tue, 13 Dec 2016 16:10:55 +0100 (CET)
-Message-ID: <alpine.LFD.2.20.1612131609260.4914@schleppi>
-References: <alpine.LFD.2.20.1612021439450.3570@schleppi>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v6 0/9] SELinux support for Infiniband RDMA
+Date: Tue, 13 Dec 2016 16:25:44 +0000
+Message-ID: <DB6PR0501MB2422DCC01A577CDA280C2C82C49B0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
+References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
+ <a56c4be8-f908-4774-dd1c-c6bbab5c1b03@tycho.nsa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.20.1612021439450.3570@schleppi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Content-Language: en-US
+List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
+Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+To: Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org" <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org" <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 12/13/2016 9:01 AM, Stephen Smalley wrote:
+> On 11/23/2016 09:17 AM, Dan Jurgens wrote:
+>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Infiniband applications access HW from user-space -- traffic is generated
+>> directly by HW, bypassing the kernel. Consequently, Infiniband Partitions,
+>> which are associated directly with HW transport endpoints, are a natural
+>> choice for enforcing granular mandatory access control for Infiniband. QPs may
+>> only send or receives packets tagged with the corresponding partition key
+>> (PKey). The PKey is not a cryptographic key; it's a 16 bit number identifying
+>> the partition.
+>>
+>> Every Infiniband fabric is controlled by a central Subnet Manager (SM). The SM
+>> provisions the partitions by assigning each port with the partitions it can
+>> access. In addition, the SM tags each port with a subnet prefix, which
+>> identifies the subnet. Determining which users are allowed to access which
+>> partition keys on a given subnet forms an effective policy for isolating users
+>> on the fabric. Any application that attempts to send traffic on a given subnet
+>> is automatically subject to the policy, regardless of which device and port it
+>> uses. SM software configures the subnet through a privileged Subnet Management
+>> Interface (SMI), which is presented by each Infiniband port. Thus, the SMI must
+>> also be controlled to prevent unauthorized changes to fabric configuration and
+>> partitioning. 
+>>
+>> To support access control for IB partitions and subnet management, security
+>> contexts must be provided for two new types of objects - PKeys and IB ports.
+>>
+>> A PKey label consists of a subnet prefix and a range of PKey values and is
+>> similar to the labeling mechanism for netports. Each Infiniband port can reside
+>> on a different subnet. So labeling the PKey values for specific subnet prefixes
+>> provides the user maximum flexibility, as PKey values may be determined
+>> independently for different subnets. There is a single access vector for PKeys
+>> called "access".
+>>
+>> An Infiniband port is labeled by device name and port number. There is a single
+>> access vector for IB ports called "manage_subnet".
+>>
+>> Because RDMA allows kernel bypass, enforcement must be done during connection
+>> setup. Communication over RDMA requires a send and receive queue, collectively
+>> known as a Queue Pair (QP). A QP must be initialized by privileged system calls
+>> before it can be used to send or receive data. During initialization the user
+>> must provide the PKey and port the QP will use; at this time access control can
+>> be enforced.
+>>
+>> Because there is a possibility that the enforcement settings or security
+>> policy can change, a means of notifying the ib_core module of such changes
+>> is required. To facilitate this a generic notification callback mechanism
+>> is added to the LSM. One callback is registered for checking the QP PKey
+>> associations when the policy changes. Mad agents also register a callback,
+>> they cache the permission to send and receive SMPs to avoid another per
+>> packet call to the LSM.
+>>
+>> Because frequent accesses to the same PKey's SID is expected a cache is
+>> implemented which is very similar to the netport cache.
+>>
+>> In order to properly enforce security when changes to the PKey table or
+>> security policy or enforcement occur ib_core must track which QPs are
+>> using which port, pkey index, and alternate path for every IB device.
+>> This makes operations that used to be atomic transactional.
+>>
+>> When modifying a QP, ib_core must associate it with the PKey index, port,
+>> and alternate path specified. If the QP was already associated with
+>> different settings, the QP is added to the new list prior to the
+>> modification. If the modify succeeds then the old listing is removed. If
+>> the modify fails the new listing is removed and the old listing remains
+>> unchanged.
+>>
+>> When destroying a QP the ib_qp structure is freed by the decive specific
+>> driver (i.e. mlx4_ib) if the 'destroy' is successful. This requires storing
+>> security related information in a separate structure. When a 'destroy'
+>> request is in process the ib_qp structure is in an undefined state so if
+>> there are changes to the security policy or PKey table, the security checks
+>> cannot reset the QP if it doesn't have permission for the new setting. If
+>> the 'destroy' fails, security for that QP must be enforced again and its
+>> status in the list is restored. If the 'destroy' succeeds the security info
+>> can be cleaned up and freed.
+>>
+>> There are a number of locks required to protect the QP security structure
+>> and the QP to device/port/pkey index lists. If multiple locks are required,
+>> the safe locking order is: QP security structure mutex first, followed by
+>> any list locks needed, which are sorted first by port followed by pkey
+>> index.
+>>
+>> ---
+>> v2:
+>> - Use void* blobs in the LSM hooks. Paul Moore
+>> - Make the policy change callback generic. Yuval Shaia, Paul Moore
+>> - Squash LSM changes into the patches where the calls are added. Paul Moore
+>> - Don't add new initial SIDs. Stephen Smalley
+>> - Squash MAD agent PKey and SMI patches and move logic to IB security. Dan Jurgens
+>> - Changed ib_end_port to ib_port. Paul Moore
+>> - Changed ib_port access vector from smp to manage_subnet. Paul Moore
+>> - Added pkey and ib_port details to the audit log. Paul Moore
+>> - See individual patches for more detail.
+>>
+>> v3:
+>> - ib_port -> ib_endport. Paul Moore
+>> - use notifier chains for LSM notifications. Paul Moore
+>> - reorder parameters in hooks to put security blob first. Paul Moore
+>> - Don't treat device name as untrusted string in audit log. Paul Moore
+>>
+>> v4:
+>> - Added separate AVC callback for LSM notifier. Paul Moore
+>> - Removed unneeded braces in ocontext_read. Paul Moore
+>>
+>> v5:
+>> - Fix link error when CONFIG_SECURITY is not set. Build Robot
+>> - Strip issue and Gerrit-Id: Leon Romanovsky
+>>
+>> v6:
+>> - Whitespace and bracket cleanup. James Morris
+>> - Cleanup error flow in sel_pkey_sid_slow. James Morris
+>>
+>> Daniel Jurgens (9):
+>>   IB/core: IB cache enhancements to support Infiniband security
+>>   IB/core: Enforce PKey security on QPs
+>>   selinux lsm IB/core: Implement LSM notification system
+>>   IB/core: Enforce security on management datagrams
+>>   selinux: Create policydb version for Infiniband support
+>>   selinux: Allocate and free infiniband security hooks
+>>   selinux: Implement Infiniband PKey "Access" access vector
+>>   selinux: Add IB Port SMP access vector
+>>   selinux: Add a cache for quicker retreival of PKey SIDs
+>>
+>>  drivers/infiniband/core/Makefile     |   3 +-
+>>  drivers/infiniband/core/cache.c      |  57 ++-
+>>  drivers/infiniband/core/core_priv.h  | 115 ++++++
+>>  drivers/infiniband/core/device.c     |  86 +++++
+>>  drivers/infiniband/core/mad.c        |  52 ++-
+>>  drivers/infiniband/core/security.c   | 709 +++++++++++++++++++++++++++++++++++
+>>  drivers/infiniband/core/uverbs_cmd.c |  20 +-
+>>  drivers/infiniband/core/verbs.c      |  27 +-
+>>  include/linux/lsm_audit.h            |  15 +
+>>  include/linux/lsm_hooks.h            |  35 ++
+>>  include/linux/security.h             |  50 +++
+>>  include/rdma/ib_mad.h                |   4 +
+>>  include/rdma/ib_verbs.h              |  49 +++
+>>  security/Kconfig                     |   9 +
+>>  security/lsm_audit.c                 |  16 +
+>>  security/security.c                  |  59 +++
+>>  security/selinux/Makefile            |   2 +-
+>>  security/selinux/hooks.c             |  86 ++++-
+>>  security/selinux/ibpkey.c            | 245 ++++++++++++
+>>  security/selinux/include/classmap.h  |   4 +
+>>  security/selinux/include/ibpkey.h    |  31 ++
+>>  security/selinux/include/objsec.h    |  11 +
+>>  security/selinux/include/security.h  |   7 +-
+>>  security/selinux/selinuxfs.c         |   2 +
+>>  security/selinux/ss/policydb.c       | 129 ++++++-
+>>  security/selinux/ss/policydb.h       |  27 +-
+>>  security/selinux/ss/services.c       |  81 ++++
+>>  27 files changed, 1886 insertions(+), 45 deletions(-)
+>>  create mode 100644 drivers/infiniband/core/security.c
+>>  create mode 100644 security/selinux/ibpkey.c
+>>  create mode 100644 security/selinux/include/ibpkey.h
+> For the LSM/SELinux bits,
+> Acked-by: Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+>
+> Note that there will be a merge conflict on classmap.h due to commits in
+> the selinux next branch, but that should be easy to resolve.
+>
+> We'll need the patches for the selinux userspace and refpolicy.
+Thanks Stephen, I need to rebase the user space and do some patch breakup.  I'll start on that soon.
 
-using dapltest on s390 I ran into the following warning:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-security-module" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-[   20.781709] mlx4_core 0000:00:00.0: DMA-API: device driver frees DMA sg list with different entry count [map count=2] [unmap count=1]
-[   20.781760] ------------[ cut here ]------------
-[   20.781767] WARNING: CPU: 4 PID: 1063 at lib/dma-debug.c:1141 check_unmap+0x658/0xa08
-[   20.781769] Modules linked in: rdma_ucm ib_ucm ib_uverbs rdma_cm configfs ib_cm iw_cm [...]
-[   20.781797] CPU: 4 PID: 1063 Comm: dapltest Tainted: G        W       4.9.0-rc7-00039-g43c4f67 #65
-[   20.781799] Hardware name: IBM              2964 N96              704              (LPAR)
-[   20.781801] task: 00000000dd8e4008 task.stack: 00000000f1448000
-[   20.781803] Krnl PSW : 0404c00180000000 000000000060af08 (check_unmap+0x658/0xa08)
-[   20.781806]            R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:3 CC:0 PM:0 RI:0 EA:3
-[   20.781809] Krnl GPRS: 0000000000000002 00000000dd8e4008 0000000000000079 0000000000a1d4f0
-[   20.781811]            000000000060af04 0000000000000000 0000000000000001 0000000000000001
-[   20.781813]            00000000f8e8e880 07000000008f2210 0000000001e47700 00000000f7a11298
-[   20.781814]            00000000f144ba68 00000000008f21f8 000000000060af04 00000000f144b960
-[   20.781822] Krnl Code: 000000000060aef8: c0200022fcc0	larl	%r2,a6a878
-                          000000000060aefe: c0e5ffe474dd	brasl	%r14,2998b8
-                         #000000000060af04: a7f40001		brc	15,60af06
-                         >000000000060af08: c0200022f976	larl	%r2,a6a1f4
-                          000000000060af0e: c0e5ffe474d5	brasl	%r14,2998b8
-                          000000000060af14: 4120b050		la	%r2,80(%r11)
-                          000000000060af18: a7390000		lghi	%r3,0
-                          000000000060af1c: c0e5ffde780a	brasl	%r14,1d9f30
-[   20.781847] Call Trace:
-[   20.781848] ([<000000000060af04>] check_unmap+0x654/0xa08)
-[   20.781851]  [<000000000060b6bc>] debug_dma_unmap_sg+0xf4/0x160 
-[   20.781873]  [<000003ff82245738>] __ib_umem_release+0x98/0x1a8 [ib_core] 
-[   20.781881]  [<000003ff82245f3e>] ib_umem_release+0x5e/0x1d0 [ib_core] 
-[   20.781891]  [<000003ff80139976>] mlx4_ib_destroy_qp+0x47e/0x550 [mlx4_ib] 
-[   20.781898]  [<000003ff8222ad2e>] ib_destroy_qp+0x116/0x188 [ib_core] 
-[   20.781902]  [<000003ff80052fba>] ib_uverbs_destroy_qp+0xb2/0x1a0 [ib_uverbs] 
-[   20.781905]  [<000003ff8004cada>] ib_uverbs_write+0x20a/0x488 [ib_uverbs] 
-[   20.781910]  [<0000000000352756>] __vfs_write+0x36/0x138 
-[   20.781912]  [<000000000035348c>] vfs_write+0xbc/0x1a0 
-[   20.781914]  [<0000000000354a96>] SyS_write+0x66/0xc0 
-[   20.781918]  [<000000000087d796>] system_call+0xd6/0x270 
-[   20.781919] INFO: lockdep is turned off.
-[   20.781921] Last Breaking-Event-Address:
-[   20.781922]  [<000000000060af04>] check_unmap+0x654/0xa08
-[   20.781924] ---[ end trace bd581c43b9bebeea ]---
-[   20.781925] Mapped at:
-[   20.781929] [<000000000060b4a6>] debug_dma_map_sg+0x5e/0x180
-[   20.781938] [<000003ff82245d12>] ib_umem_get+0x4ca/0x610 [ib_core]
-[   20.781943] [<000003ff80136df2>] create_qp_common.isra.15+0x572/0x1010 [mlx4_ib]
-[   20.781949] [<000003ff8013929e>] mlx4_ib_create_qp+0x1de/0x438 [mlx4_ib]
-[   20.781953] [<000003ff8004f52c>] create_qp.isra.11+0x44c/0x7f0 [ib_uverbs]
 
-The following patch fixes this:
-
----->8
->From ec91646d8c14e2a8dd2b62187084dab32ef8a56b Mon Sep 17 00:00:00 2001
-From: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Date: Fri, 2 Dec 2016 11:15:05 +0100
-Subject: [PATCH] IB/core: fix unmap_sg argument
-
-__ib_umem_release calls dma_unmap_sg with a different number of
-sg_entries than ib_umem_get uses for dma_map_sg. This might cause
-trouble for implementations that merge sglist entries and results
-in the following dma debug complaint:
-
-DMA-API: device driver frees DMA sg list with different entry
-         count [map count=2] [unmap count=1]
-
-Fix it by using the correct value.
-
-Signed-off-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
----
- drivers/infiniband/core/umem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 84b4eff..1e62a5f 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -51,7 +51,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 
- 	if (umem->nmap > 0)
- 		ib_dma_unmap_sg(dev, umem->sg_head.sgl,
--				umem->nmap,
-+				umem->npages,
- 				DMA_BIDIRECTIONAL);
- 
- 	for_each_sg(umem->sg_head.sgl, sg, umem->npages, i) {
--- 
-2.7.4
+_______________________________________________
+Selinux mailing list
+Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
