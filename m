@@ -1,15 +1,15 @@
 From: Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-Subject: Re: [PATCH v6 5/9] selinux: Create policydb version for Infiniband
- support
-Date: Tue, 13 Dec 2016 09:38:18 -0500
-Message-ID: <edb7cebd-cf0a-f115-741e-6d4e96edb0bd@tycho.nsa.gov>
+Subject: Re: [PATCH v6 3/9] selinux lsm IB/core: Implement LSM notification
+ system
+Date: Tue, 13 Dec 2016 09:29:18 -0500
+Message-ID: <8165ef76-d620-5904-e38e-90d258a30683@tycho.nsa.gov>
 References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
- <1479910651-43246-6-git-send-email-danielj@mellanox.com>
+ <1479910651-43246-4-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479910651-43246-6-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1479910651-43246-4-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
@@ -18,317 +18,272 @@ List-Id: linux-rdma@vger.kernel.org
 On 11/23/2016 09:17 AM, Dan Jurgens wrote:
 > From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Support for Infiniband requires the addition of two new object contexts,
-> one for infiniband PKeys and another IB Ports. Added handlers to read
-> and write the new ocontext types when reading or writing a binary policy
-> representation.
+> Add a generic notificaiton mechanism in the LSM. Interested consumers
+> can register a callback with the LSM and security modules can produce
+> events.
+> 
+> Because access to Infiniband QPs are enforced in the setup phase of a
+> connection security should be enforced again if the policy changes.
+> Register infiniband devices for policy change notification and check all
+> QPs on that device when the notification is received.
+> 
+> Add a call to the notification mechanism from SELinux when the AVC
+> cache changes or setenforce is cleared.
 > 
 > Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-I assume you have libsepol/checkpolicy patches for this as well?
-
 > 
 > ---
 > v2:
-> - Shorten ib_end_port to ib_port. Paul Moore
-> - Added bounds checking to port number. Paul Moore
-> - Eliminated {} in OCON_PKEY case statement.  Yuval Shaia
+> - new patch that has the generic notification, replaces selinux and
+>   IB/core patches related to the ib_flush callback. Yuval Shaia and Paul
+>   Moore
 > 
 > v3:
-> - ib_port -> ib_endport. Paul Moore
+> - use notifier chains. Paul Moore
 > 
 > v4:
-> - removed unneeded brackets in ocontext_read. Paul Moore
-> ---
->  security/selinux/include/security.h |   3 +-
->  security/selinux/ss/policydb.c      | 129 +++++++++++++++++++++++++++++++-----
->  security/selinux/ss/policydb.h      |  27 +++++---
->  3 files changed, 135 insertions(+), 24 deletions(-)
+> - Seperate avc callback for LSM notifier. Paul Moore
 > 
-> diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
-> index 308a286..6bb9b0a 100644
-> --- a/security/selinux/include/security.h
-> +++ b/security/selinux/include/security.h
-> @@ -36,10 +36,11 @@
->  #define POLICYDB_VERSION_DEFAULT_TYPE	28
->  #define POLICYDB_VERSION_CONSTRAINT_NAMES	29
->  #define POLICYDB_VERSION_XPERMS_IOCTL	30
-> +#define POLICYDB_VERSION_INFINIBAND		31
+> v5:
+> - Fix link error when CONFIG_SECURITY is not set. Build Robot
+> ---
+>  drivers/infiniband/core/device.c | 53 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/security.h         | 23 +++++++++++++++++
+>  security/security.c              | 20 +++++++++++++++
+>  security/selinux/hooks.c         | 11 +++++++++
+>  security/selinux/selinuxfs.c     |  2 ++
+>  5 files changed, 109 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index 5b42e83..7b6fd06 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -39,6 +39,8 @@
+>  #include <linux/init.h>
+>  #include <linux/mutex.h>
+>  #include <linux/netdevice.h>
+> +#include <linux/security.h>
+> +#include <linux/notifier.h>
+>  #include <rdma/rdma_netlink.h>
+>  #include <rdma/ib_addr.h>
+>  #include <rdma/ib_cache.h>
+> @@ -82,6 +84,14 @@ static LIST_HEAD(client_list);
+>  static DEFINE_MUTEX(device_mutex);
+>  static DECLARE_RWSEM(lists_rwsem);
 >  
->  /* Range of policy versions we understand*/
->  #define POLICYDB_VERSION_MIN   POLICYDB_VERSION_BASE
-> -#define POLICYDB_VERSION_MAX	POLICYDB_VERSION_XPERMS_IOCTL
-> +#define POLICYDB_VERSION_MAX   POLICYDB_VERSION_INFINIBAND
+> +static int ib_security_change(struct notifier_block *nb, unsigned long event,
+> +			      void *lsm_data);
+> +static void ib_policy_change_task(struct work_struct *work);
+> +static DECLARE_WORK(ib_policy_change_work, ib_policy_change_task);
+> +
+> +static struct notifier_block ibdev_lsm_nb = {
+> +	.notifier_call = ib_security_change,
+> +};
 >  
->  /* Mask for just the mount related flags */
->  #define SE_MNTMASK	0x0f
-> diff --git a/security/selinux/ss/policydb.c b/security/selinux/ss/policydb.c
-> index d719db4..24e16da 100644
-> --- a/security/selinux/ss/policydb.c
-> +++ b/security/selinux/ss/policydb.c
-> @@ -17,6 +17,11 @@
->   *
->   *      Added support for the policy capability bitmap
->   *
-> + * Update: Mellanox Techonologies
-> + *
-> + *	Added Infiniband support
-> + *
-> + * Copyright (C) 2016 Mellanox Techonologies
->   * Copyright (C) 2007 Hewlett-Packard Development Company, L.P.
->   * Copyright (C) 2004-2005 Trusted Computer Solutions, Inc.
->   * Copyright (C) 2003 - 2004 Tresys Technology, LLC
-> @@ -76,81 +81,86 @@ static struct policydb_compat_info policydb_compat[] = {
->  	{
->  		.version	= POLICYDB_VERSION_BASE,
->  		.sym_num	= SYM_NUM - 3,
-> -		.ocon_num	= OCON_NUM - 1,
-> +		.ocon_num	= OCON_NUM - 3,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_BOOL,
->  		.sym_num	= SYM_NUM - 2,
-> -		.ocon_num	= OCON_NUM - 1,
-> +		.ocon_num	= OCON_NUM - 3,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_IPV6,
->  		.sym_num	= SYM_NUM - 2,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_NLCLASS,
->  		.sym_num	= SYM_NUM - 2,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_MLS,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_AVTAB,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_RANGETRANS,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_POLCAP,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_PERMISSIVE,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_BOUNDARY,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_FILENAME_TRANS,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_ROLETRANS,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_NEW_OBJECT_DEFAULTS,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_DEFAULT_TYPE,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_CONSTRAINT_NAMES,
->  		.sym_num	= SYM_NUM,
-> -		.ocon_num	= OCON_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
->  	},
->  	{
->  		.version	= POLICYDB_VERSION_XPERMS_IOCTL,
->  		.sym_num	= SYM_NUM,
-> +		.ocon_num	= OCON_NUM - 2,
-> +	},
-> +	{
-> +		.version	= POLICYDB_VERSION_INFINIBAND,
-> +		.sym_num	= SYM_NUM,
->  		.ocon_num	= OCON_NUM,
->  	},
+>  static int ib_device_check_mandatory(struct ib_device *device)
+>  {
+> @@ -344,6 +354,40 @@ static int setup_port_pkey_list(struct ib_device *device)
+>  	return 0;
+>  }
+>  
+> +static void ib_policy_change_task(struct work_struct *work)
+> +{
+> +	struct ib_device *dev;
+> +
+> +	down_read(&lists_rwsem);
+> +	list_for_each_entry(dev, &device_list, core_list) {
+> +		int i;
+> +
+> +		for (i = rdma_start_port(dev); i <= rdma_end_port(dev); i++) {
+> +			u64 sp;
+> +			int ret = ib_get_cached_subnet_prefix(dev,
+> +							      i,
+> +							      &sp);
+> +
+> +			WARN_ONCE(ret,
+> +				  "ib_get_cached_subnet_prefix err: %d, this should never happen here\n",
+> +				  ret);
+> +			ib_security_cache_change(dev, i, sp);
+> +		}
+> +	}
+> +	up_read(&lists_rwsem);
+> +}
+> +
+> +static int ib_security_change(struct notifier_block *nb, unsigned long event,
+> +			      void *lsm_data)
+> +{
+> +	if (event != LSM_POLICY_CHANGE)
+> +		return NOTIFY_DONE;
+> +
+> +	schedule_work(&ib_policy_change_work);
+> +
+> +	return NOTIFY_OK;
+> +}
+> +
+>  /**
+>   * ib_register_device - Register an IB device with IB core
+>   * @device:Device to register
+> @@ -1075,10 +1119,18 @@ static int __init ib_core_init(void)
+>  		goto err_sa;
+>  	}
+>  
+> +	ret = register_lsm_notifier(&ibdev_lsm_nb);
+> +	if (ret) {
+> +		pr_warn("Couldn't register LSM notifier. ret %d\n", ret);
+> +		goto err_ibnl_clients;
+> +	}
+> +
+>  	ib_cache_setup();
+>  
+>  	return 0;
+>  
+> +err_ibnl_clients:
+> +	ib_remove_ibnl_clients();
+>  err_sa:
+>  	ib_sa_cleanup();
+>  err_mad:
+> @@ -1098,6 +1150,7 @@ static int __init ib_core_init(void)
+>  
+>  static void __exit ib_core_cleanup(void)
+>  {
+> +	unregister_lsm_notifier(&ibdev_lsm_nb);
+>  	ib_cache_cleanup();
+>  	ib_remove_ibnl_clients();
+>  	ib_sa_cleanup();
+> diff --git a/include/linux/security.h b/include/linux/security.h
+> index 342ca4c..0a5de0c 100644
+> --- a/include/linux/security.h
+> +++ b/include/linux/security.h
+> @@ -69,6 +69,10 @@ struct audit_krule;
+>  struct user_namespace;
+>  struct timezone;
+>  
+> +enum lsm_event {
+> +	LSM_POLICY_CHANGE,
+> +};
+> +
+>  /* These functions are in security/commoncap.c */
+>  extern int cap_capable(const struct cred *cred, struct user_namespace *ns,
+>  		       int cap, int audit);
+> @@ -161,6 +165,10 @@ struct security_mnt_opts {
+>  	int num_mnt_opts;
 >  };
-> @@ -2222,6 +2232,60 @@ static int ocontext_read(struct policydb *p, struct policydb_compat_info *info,
->  					goto out;
->  				break;
->  			}
-> +			case OCON_PKEY:
-> +				rc = next_entry(nodebuf, fp, sizeof(u32) * 6);
-> +				if (rc)
-> +					goto out;
-> +
-> +				c->u.pkey.subnet_prefix = be64_to_cpu(*((__be64 *)nodebuf));
-> +				/* The subnet prefix is stored as an IPv6
-> +				 * address in the policy.
-> +				 *
-> +				 * Check that the lower 2 DWORDS are 0.
-> +				 */
-> +				if (nodebuf[2] || nodebuf[3]) {
-> +					rc = -EINVAL;
-> +					goto out;
-> +				}
-> +
-> +				if (nodebuf[4] > 0xffff ||
-> +				    nodebuf[5] > 0xffff) {
-> +					rc = -EINVAL;
-> +					goto out;
-> +				}
-> +
-> +				c->u.pkey.low_pkey = le32_to_cpu(nodebuf[4]);
-> +				c->u.pkey.high_pkey = le32_to_cpu(nodebuf[5]);
-> +
-> +				rc = context_read_and_validate(&c->context[0],
-> +							       p,
-> +							       fp);
-> +				if (rc)
-> +					goto out;
-> +				break;
-> +			case OCON_IB_ENDPORT:
-> +				rc = next_entry(buf, fp, sizeof(u32) * 2);
-> +				if (rc)
-> +					goto out;
-> +				len = le32_to_cpu(buf[0]);
-> +
-> +				rc = str_read(&c->u.ib_endport.dev_name, GFP_KERNEL, fp, len);
-> +				if (rc)
-> +					goto out;
-> +
-> +				if (buf[1] > 0xff || buf[1] == 0) {
-> +					rc = -EINVAL;
-> +					goto out;
-> +				}
-> +
-> +				c->u.ib_endport.port_num = le32_to_cpu(buf[1]);
-> +
-> +				rc = context_read_and_validate(&c->context[0],
-> +							       p,
-> +							       fp);
-> +				if (rc)
-> +					goto out;
-> +				break;
->  			}
->  		}
->  	}
-> @@ -3151,6 +3215,41 @@ static int ocontext_write(struct policydb *p, struct policydb_compat_info *info,
->  				if (rc)
->  					return rc;
->  				break;
-> +			case OCON_PKEY:
-> +				*((__be64 *)nodebuf) = cpu_to_be64(c->u.pkey.subnet_prefix);
-> +
-> +				/*
-> +				 * The low order 2 bits were confirmed to be 0
-> +				 * when the policy was loaded. Write them out
-> +				 * as zero
-> +				 */
-> +				nodebuf[2] = 0;
-> +				nodebuf[3] = 0;
-> +
-> +				nodebuf[4] = cpu_to_le32(c->u.pkey.low_pkey);
-> +				nodebuf[5] = cpu_to_le32(c->u.pkey.high_pkey);
-> +
-> +				rc = put_entry(nodebuf, sizeof(u32), 6, fp);
-> +				if (rc)
-> +					return rc;
-> +				rc = context_write(p, &c->context[0], fp);
-> +				if (rc)
-> +					return rc;
-> +				break;
-> +			case OCON_IB_ENDPORT:
-> +				len = strlen(c->u.ib_endport.dev_name);
-> +				buf[0] = cpu_to_le32(len);
-> +				buf[1] = cpu_to_le32(c->u.ib_endport.port_num);
-> +				rc = put_entry(buf, sizeof(u32), 2, fp);
-> +				if (rc)
-> +					return rc;
-> +				rc = put_entry(c->u.ib_endport.dev_name, 1, len, fp);
-> +				if (rc)
-> +					return rc;
-> +				rc = context_write(p, &c->context[0], fp);
-> +				if (rc)
-> +					return rc;
-> +				break;
->  			}
->  		}
->  	}
-> diff --git a/security/selinux/ss/policydb.h b/security/selinux/ss/policydb.h
-> index 725d594..edb329d 100644
-> --- a/security/selinux/ss/policydb.h
-> +++ b/security/selinux/ss/policydb.h
-> @@ -187,6 +187,15 @@ struct ocontext {
->  			u32 addr[4];
->  			u32 mask[4];
->  		} node6;        /* IPv6 node information */
-> +		struct {
-> +			u64 subnet_prefix;
-> +			u16 low_pkey;
-> +			u16 high_pkey;
-> +		} pkey;
-> +		struct {
-> +			char *dev_name;
-> +			u8 port_num;
-> +		} ib_endport;
->  	} u;
->  	union {
->  		u32 sclass;  /* security class for genfs */
-> @@ -215,14 +224,16 @@ struct genfs {
->  #define SYM_NUM     8
 >  
->  /* object context array indices */
-> -#define OCON_ISID  0	/* initial SIDs */
-> -#define OCON_FS    1	/* unlabeled file systems */
-> -#define OCON_PORT  2	/* TCP and UDP port numbers */
-> -#define OCON_NETIF 3	/* network interfaces */
-> -#define OCON_NODE  4	/* nodes */
-> -#define OCON_FSUSE 5	/* fs_use */
-> -#define OCON_NODE6 6	/* IPv6 nodes */
-> -#define OCON_NUM   7
-> +#define OCON_ISID	0 /* initial SIDs */
-> +#define OCON_FS		1 /* unlabeled file systems */
-> +#define OCON_PORT	2 /* TCP and UDP port numbers */
-> +#define OCON_NETIF	3 /* network interfaces */
-> +#define OCON_NODE	4 /* nodes */
-> +#define OCON_FSUSE	5 /* fs_use */
-> +#define OCON_NODE6	6 /* IPv6 nodes */
-> +#define OCON_PKEY	7 /* Infiniband PKeys */
-> +#define OCON_IB_ENDPORT	8 /* Infiniband end ports */
-> +#define OCON_NUM	9
+> +int call_lsm_notifier(enum lsm_event event, void *data);
+> +int register_lsm_notifier(struct notifier_block *nb);
+> +int unregister_lsm_notifier(struct notifier_block *nb);
+> +
+>  static inline void security_init_mnt_opts(struct security_mnt_opts *opts)
+>  {
+>  	opts->mnt_opts = NULL;
+> @@ -377,6 +385,21 @@ int security_inode_getsecctx(struct inode *inode, void **ctx, u32 *ctxlen);
+>  struct security_mnt_opts {
+>  };
 >  
->  /* The policy database */
->  struct policydb {
+> +static inline int call_lsm_notifier(enum lsm_event event, void *data)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline int register_lsm_notifier(struct notifier_block *nb)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline  int unregister_lsm_notifier(struct notifier_block *nb)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline void security_init_mnt_opts(struct security_mnt_opts *opts)
+>  {
+>  }
+> diff --git a/security/security.c b/security/security.c
+> index 7d3bf2f..40326d4 100644
+> --- a/security/security.c
+> +++ b/security/security.c
+> @@ -33,6 +33,8 @@
+>  /* Maximum number of letters for an LSM name string */
+>  #define SECURITY_NAME_MAX	10
+>  
+> +static ATOMIC_NOTIFIER_HEAD(lsm_notifier_chain);
+> +
+>  /* Boot-time LSM user choice */
+>  static __initdata char chosen_lsm[SECURITY_NAME_MAX + 1] =
+>  	CONFIG_DEFAULT_SECURITY;
+> @@ -98,6 +100,24 @@ int __init security_module_enable(const char *module)
+>  	return !strcmp(module, chosen_lsm);
+>  }
+>  
+> +int call_lsm_notifier(enum lsm_event event, void *data)
+> +{
+> +	return atomic_notifier_call_chain(&lsm_notifier_chain, event, data);
+> +}
+> +EXPORT_SYMBOL(call_lsm_notifier);
+> +
+> +int register_lsm_notifier(struct notifier_block *nb)
+> +{
+> +	return atomic_notifier_chain_register(&lsm_notifier_chain, nb);
+> +}
+> +EXPORT_SYMBOL(register_lsm_notifier);
+> +
+> +int unregister_lsm_notifier(struct notifier_block *nb)
+> +{
+> +	return atomic_notifier_chain_unregister(&lsm_notifier_chain, nb);
+> +}
+> +EXPORT_SYMBOL(unregister_lsm_notifier);
+> +
+>  /*
+>   * Hook list operation macros.
+>   *
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index 09fd610..2d7a7c1 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -170,6 +170,14 @@ static int selinux_netcache_avc_callback(u32 event)
+>  	return 0;
+>  }
+>  
+> +static int selinux_lsm_notifier_avc_callback(u32 event)
+> +{
+> +	if (event == AVC_CALLBACK_RESET)
+> +		call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   * initialise the security for the init task
+>   */
+> @@ -6325,6 +6333,9 @@ static __init int selinux_init(void)
+>  	if (avc_add_callback(selinux_netcache_avc_callback, AVC_CALLBACK_RESET))
+>  		panic("SELinux: Unable to register AVC netcache callback\n");
+>  
+> +	if (avc_add_callback(selinux_lsm_notifier_avc_callback, AVC_CALLBACK_RESET))
+> +		panic("SELinux: Unable to register AVC LSM notifier callback\n");
+> +
+>  	if (selinux_enforcing)
+>  		printk(KERN_DEBUG "SELinux:  Starting in enforcing mode\n");
+>  	else
+> diff --git a/security/selinux/selinuxfs.c b/security/selinux/selinuxfs.c
+> index 72c145d..d3f9192 100644
+> --- a/security/selinux/selinuxfs.c
+> +++ b/security/selinux/selinuxfs.c
+> @@ -177,6 +177,8 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
+>  			avc_ss_reset(0);
+>  		selnl_notify_setenforce(selinux_enforcing);
+>  		selinux_status_update_setenforce(selinux_enforcing);
+> +		if (!selinux_enforcing)
+> +			call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
+
+Why do you need this notification?  When switching from permissive to
+enforcing, you need (and already get) a notification since you may need
+to revoke previously granted permissions.  But what action do you need
+to take on switching to permissive?
+
+>  	}
+>  	length = count;
+>  out:
 > 
 
 --
