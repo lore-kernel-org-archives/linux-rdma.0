@@ -1,65 +1,35 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: SR-IOV with mlx4 on ConnectX-2 fails with DMAR errors
-Date: Wed, 14 Dec 2016 15:38:23 -0700
-Message-ID: <20161214223823.GA9986@obsidianresearch.com>
-References: <CAN27Ff4RYh3y_45PUxxXhGuDvrrrjm8qe38fj5JPq7oV2QmdYA@mail.gmail.com>
- <CAN27Ff74Ov8bgsZP1QJJOwvWc5_KOW_U=PsP+=Z87AJz+VSAOw@mail.gmail.com>
- <20161213165441.GB11099@obsidianresearch.com>
- <CAN27Ff7hEr4u5nyELjwRXb3W_t0TNefuuT4AzdjAoWWGRHqTFw@mail.gmail.com>
- <20161213190102.GA15119@obsidianresearch.com>
- <CAN27Ff4P_11FQ-VuiPcL4S67uVh4xSJpqyZ0Q4AbPfd64fmO9g@mail.gmail.com>
+Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
+ variable
+Date: Wed, 14 Dec 2016 15:41:22 -0700
+Message-ID: <20161214224122.GB9986@obsidianresearch.com>
+References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
+ <1481306104-19352-9-git-send-email-tatyana.e.nikolova@intel.com>
+ <20161210143421.GC2521@mtr-leonro.local>
+ <13AA599688F47243B14FCFCCC2C803BB10AC7081@fmsmsx104.amr.corp.intel.com>
+ <20161214171111.GA4521@mtr-leonro.local>
+ <20161214212103.GA6947@obsidianresearch.com>
+ <57fa42c9-5ef0-c6f5-f7fd-88ec5948d387@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAN27Ff4P_11FQ-VuiPcL4S67uVh4xSJpqyZ0Q4AbPfd64fmO9g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <57fa42c9-5ef0-c6f5-f7fd-88ec5948d387-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joshua McBeth <joshua.mcbeth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 14, 2016 at 10:06:13AM -0500, Joshua McBeth wrote:
+On Wed, Dec 14, 2016 at 05:36:26PM -0500, Doug Ledford wrote:
 
-> > Does this make your 4.8 kernel work? If yes, then I suspect mlx4 has
-> > broken IB_DEVICE_LOCAL_DMA_LKEY with SRIOV.. Leon? mlx5 has this
-> > broken, doesn't it?
+> > I'm not sure I agree at all with what mlx5 is doing with tuning
+> > parameters via env vars :\
+> 
+> Options (not necessarily tuning though) have long been enabled via
+> env
 
-> With 4.8.1 and the below applied to the SR-IOV host and guest kernels,
-> SR-IOV functions in both the SR-IOV host and guests and there are no
-> DMAR errors emitted.
-
-So strange.
-
-Looking at your original report you see these errors:
-
-[  107.137484] DMAR: [DMA Read] Request device [05:06.1] fault addr
-
-But I don't see where 05:06.01 is a PCI device. That seems like a big
-problem.
-
-Based on that this looks like a Mellanox bug where
-IB_DEVICE_LOCAL_DMA_LKEY is causing the wrong PCI BDF to be provided
-as the requestor. Mellanox will have to help you futher, you are
-running the latest firmware, right?
-
-> The NFS/RDMA client in the guest does not work on the SR-IOV virtual
-> function with the NFS/RDMA server of the host on the SR-IOV physical
-> function, but this may be something else I need to troubleshoot
-> further, as both IPoIB and synthetic RDMA traffic passes between the
-> guest, host, and remote node just fine.  The remote node's NFS/RDMA
-> client is additionally able to function with the host's NFS/RDMA
-> server on the SR-IOV physical function.
-
-Try removing IB_DEVICE_LOCAL_DMA_LKEY from the mlx4 driver entirely..
-
-> > It would also be very helpful to try and determine what memory the NIC is
-> > trying to read.. If it is the ipoib packet or some mlx4 internal
-> > thing.
-
-> How can I determine this?
-
-Print out the dma address of the skb when the SEND is submitted in
-ipoib and see if it is similar to the DMAR region..
+Sure, I was more concerned about using env vars for tuning. Setting
+log level/etc seems OK
 
 Jason
 --
