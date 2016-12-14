@@ -1,61 +1,54 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 1/1] infiniband: hw: mlx4: fix improper return value
-Date: Wed, 14 Dec 2016 14:35:44 -0500
-Message-ID: <93e36d99-86b5-03b0-3226-2993c428e155@redhat.com>
-References: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Remove Mitesh Ahuja from emulex maintainers
+Date: Wed, 14 Dec 2016 14:36:05 -0500
+Message-ID: <27c1f0ac-8bf9-d554-2bc2-8ed06a90addb@redhat.com>
+References: <1480834066-8459-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pan Bian <bianpan201603@163.com>, Leon Romanovsky <leon@kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
+ boundary="KVgi2jXmqDIaKHWHSd2NurBVc5bKnFjBW"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1480834066-8459-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3
-Content-Type: multipart/mixed; boundary="0I4sFi7Lo6LNn4gSWm4Rg1Fd4Gv5OJHnj";
+--KVgi2jXmqDIaKHWHSd2NurBVc5bKnFjBW
+Content-Type: multipart/mixed; boundary="u5TjRGAcp0f22lhUxxtwvaDnUEPiPsXI3";
  protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Pan Bian <bianpan201603@163.com>, Leon Romanovsky <leon@kernel.org>,
- Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>,
- Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
-Message-ID: <93e36d99-86b5-03b0-3226-2993c428e155@redhat.com>
-Subject: Re: [PATCH 1/1] infiniband: hw: mlx4: fix improper return value
-References: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
-In-Reply-To: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org,
+ devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <27c1f0ac-8bf9-d554-2bc2-8ed06a90addb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Remove Mitesh Ahuja from emulex maintainers
+References: <1480834066-8459-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1480834066-8459-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---0I4sFi7Lo6LNn4gSWm4Rg1Fd4Gv5OJHnj
+--u5TjRGAcp0f22lhUxxtwvaDnUEPiPsXI3
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/4/2016 1:45 AM, Pan Bian wrote:
-> From: Pan Bian <bianpan2016@163.com>
+On 12/4/2016 1:47 AM, Leon Romanovsky wrote:
+> Remove Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> from
+> maintainers file. This email address seems not active
+> and causes to mail bounces during submissions.
 >=20
-> If uhw->inlen is non-zero, the value of variable err is 0 if the copy
-> succeeds. Then, if kzalloc() or kmalloc() returns a NULL pointer, it
-> will return 0 to the callers. As a result, the callers cannot detect th=
-e
-> errors. This patch fixes the bug, assign "-ENOMEM" to err before the
-> NULL pointer checks, and remove the initialization of err at the
-> beginning.
->=20
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=3D189031
-> Signed-off-by: Pan Bian <bianpan2016@163.com>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 Thanks, applied.
 
+
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---0I4sFi7Lo6LNn4gSWm4Rg1Fd4Gv5OJHnj--
+--u5TjRGAcp0f22lhUxxtwvaDnUEPiPsXI3--
 
---m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3
+--KVgi2jXmqDIaKHWHSd2NurBVc5bKnFjBW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -64,19 +57,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUZ8QAAoJELgmozMOVy/dlT0QAJFWxNLZ/m/+u7ltfxyRUQXV
-COhg94To0jqinqD66LUiUE593wd/x1f9RYRph1BrrFeO5Ux6YD13carcfbG4AhZd
-9J0bFgj9iUedIgoQCqDCDx4fucLN1g11584ueMi+8zOjX6UcShnmNd9APfdFY+JI
-4wRVNj8c1y3fVNUprbMBEf2BM/YGW58mS1/9gr0dV9GxNu0G50cPrca9LLT2ZsVx
-91+Dx69kyM2dCRIDnnRrhuehrn7ghXrW30Hh5NTFLXY6HOzB2UBiU9D0M0HZ4h3p
-HKFwimAzhBj9SsJlauWiEKGE+W+iXO5vAFXVO5HqGH4fGGscfcPuoGlymJ5vyR0K
-2JA/gtimT5qwGEWHpeB4Qwajx+eYlxqpCmdua7nXz1XqWDaCt1aHpxzi09D1yItL
-EHVdcVVV2XSfwbJeD1qzu5INiDLiaI9iMVusxu8Z3vdsIBmj/MSg1ECJ6N3xM2rB
-YiOHik/jCDU8J84uDZvQuj3oiWChtmKkwdwIfRV0sHS2YCSpo3iVhfbHtNioOzfw
-33v4zMcmV8G9MPBefodfy8EhHi6ampGiAHuxJMXF6V8hsmhrmx5D+vDiNsMMQbet
-oRoxNlRfsgq1TVriqlfhE5aKJW82s5iqsmEVgZeonSZMm3kay+NioLjGKobaVuly
-daewPcNTD8zbpxDqMlNG
-=oG58
+iQIcBAEBCAAGBQJYUZ8lAAoJELgmozMOVy/diKcQALM9HOxlI5wW0QL00/jL2R8t
+QB6OBBvk++t4rYTkzGSHsqgVO8WZ5GEDCl6Fa0LtOOyKejDHaUVrWGlipnA4/O+7
+C5W5oJ4ifmqkpfYmBPpdpGOkgwnkIjQv/ycyvJCds9d89yVfhhmj3TslFPVhKOy6
+m0Z55r6PXsoRktTvZIsdtE3Xd2SHgloG2fNuseIitrPZzALO33llfqQt0ecH27hB
+YvFGRzrlAcf9eGo38ASHtdiUUW1IMpdROUCIjeBMkR+H8BGBwDtKKLT7IXJ0HQg5
+djxirsnD7TSSV8baYBZhjWETJRfm1jC7wSF+TL5ipGo9xIWjEWFyJtQm0Faf3Rvr
+2IyaQ+64tLCHnQj/jUUqNZagZMAoha79BuNqoGgQRAbgJoXFpuYBVtOggWq53Xll
+Ge6y3C1bxm9NRBOArE+x1Iegc+7ncxopqDjM+All9M7X85B9vFWkPIzhmgN0XUjM
+phJnsY5/6atBS41sxwh8qKhqEzcqTG9JprJ8IENuq7b49flcXFtFqLwYWQMqloJB
+znQZ1TD2QR6+Tcq3DgxuvNsZncDfspbIzuwqvVhokh/UVOl4TRhzn4RhbLtvFhve
+snOKB1jLKSfz8GD6yX6rbN7P28JKASWdwYxUKW/N3Nu7xH1rJ/Lwo7K9uJ9EbkWf
+QpNI+hQBRuwmsPQcRGf2
+=cN8D
 -----END PGP SIGNATURE-----
 
---m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3--
+--KVgi2jXmqDIaKHWHSd2NurBVc5bKnFjBW--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
