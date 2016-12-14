@@ -1,84 +1,80 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] qede: fix general protection fault may occur on probe
-Date: Wed, 14 Dec 2016 14:17:38 -0500
-Message-ID: <50c75e84-ff6b-a06f-a4c3-4d004d1b56b2@redhat.com>
-References: <SN1PR07MB220763908ED050AAFE840CEAF8B70@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/core: fix unmap_sg argument
+Date: Wed, 14 Dec 2016 14:21:55 -0500
+Message-ID: <eef9a03e-33c1-814c-e005-e135c17b7d78@redhat.com>
+References: <alpine.LFD.2.20.1612021439450.3570@schleppi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <SN1PR07MB220763908ED050AAFE840CEAF8B70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+ boundary="R5r8N6bLcccHEaUBA5KTDV1t63SbMthSF"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.20.1612021439450.3570@schleppi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Ott <sebott@linux.vnet.ibm.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ
-Content-Type: multipart/mixed; boundary="VkXaXLWCX7Vs70I3fANkalT6eP7l45kFr";
+--R5r8N6bLcccHEaUBA5KTDV1t63SbMthSF
+Content-Type: multipart/mixed; boundary="wWf1SrCctQ0pDCaCE8IIswGEji7eNTMff";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <50c75e84-ff6b-a06f-a4c3-4d004d1b56b2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] qede: fix general protection fault may occur on probe
-References: <SN1PR07MB220763908ED050AAFE840CEAF8B70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-In-Reply-To: <SN1PR07MB220763908ED050AAFE840CEAF8B70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: Sebastian Ott <sebott@linux.vnet.ibm.com>,
+ Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <eef9a03e-33c1-814c-e005-e135c17b7d78@redhat.com>
+Subject: Re: [PATCH] IB/core: fix unmap_sg argument
+References: <alpine.LFD.2.20.1612021439450.3570@schleppi>
+In-Reply-To: <alpine.LFD.2.20.1612021439450.3570@schleppi>
 
---VkXaXLWCX7Vs70I3fANkalT6eP7l45kFr
+--wWf1SrCctQ0pDCaCE8IIswGEji7eNTMff
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 11/23/2016 3:03 AM, Amrani, Ram wrote:
-> The recent introduction of qedr driver support in qede causes a GPF whe=
-n probing the driver in a server without a RoCE enabled QLogic NIC. This =
-fix avoids using an uninitialized pointer in such a case. Caught by the k=
-ernel test robot.
+On 12/2/2016 8:45 AM, Sebastian Ott wrote:
+
+> __ib_umem_release calls dma_unmap_sg with a different number of
+> sg_entries than ib_umem_get uses for dma_map_sg. This might cause
+> trouble for implementations that merge sglist entries and results
+> in the following dma debug complaint:
 >=20
-> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> DMA-API: device driver frees DMA sg list with different entry
+>          count [map count=3D2] [unmap count=3D1]
+>=20
+> Fix it by using the correct value.
+>=20
+> Signed-off-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
 > ---
-> drivers/net/ethernet/qlogic/qede/qede_roce.c | 4 ++--
-> 1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/infiniband/core/umem.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/net/ethernet/qlogic/qede/qede_roce.c b/drivers/net=
-/ethernet/qlogic/qede/qede_roce.c
-> index 9867f96..4927271 100644
-> --- a/drivers/net/ethernet/qlogic/qede/qede_roce.c
-> +++ b/drivers/net/ethernet/qlogic/qede/qede_roce.c
-> @@ -191,8 +191,8 @@ int qede_roce_register_driver(struct qedr_driver *d=
-rv)
->               }
->               mutex_unlock(&qedr_dev_list_lock);
->=20
-> -              DP_INFO(edev, "qedr: discovered and registered %d RoCE f=
-uncs\n",
-> -                             qedr_counter);
-> +             pr_notice("qedr: discovered and registered %d RoCE funcs\=
-n",
-> +                              qedr_counter);
->=20
->                return 0;
-> }
-> --
-> 1.8.3.1
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/u=
+mem.c
+> index 84b4eff..1e62a5f 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -51,7 +51,7 @@ static void __ib_umem_release(struct ib_device *dev, =
+struct ib_umem *umem, int d
+> =20
+>  	if (umem->nmap > 0)
+>  		ib_dma_unmap_sg(dev, umem->sg_head.sgl,
+> -				umem->nmap,
+> +				umem->npages,
+>  				DMA_BIDIRECTIONAL);
+> =20
+>  	for_each_sg(umem->sg_head.sgl, sg, umem->npages, i) {
 >=20
 
-This patch was seriously malformed (spaces instead of tabs, no space
-beginning the line that ends the patch, etc).  I redid it by hand, it's
-now applied.
+Thanks, applied.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---VkXaXLWCX7Vs70I3fANkalT6eP7l45kFr--
+--wWf1SrCctQ0pDCaCE8IIswGEji7eNTMff--
 
---QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ
+--R5r8N6bLcccHEaUBA5KTDV1t63SbMthSF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -87,23 +83,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUZrSAAoJELgmozMOVy/dHmcP/AvNAXFuVpjjmWNCh9D/iYNs
-kvIVV3O5ZrS5H3QLO+hw6o1kpliaaCk/DudRcTUwQA+a3owjPRRNmOblawbVqlD8
-G4TeSCfk7uSy5tJS4+3/sr9Dmwvz6HnYvWbMdHqFuSjipsEZacR6WOPFuS1F/nyR
-/0nEIQhCDB8CgzDSpccCNWa0SPoTw/Xtsd6JLPSU9FgZybvgZuXi4+DI+MNpqXI1
-wPmndj9AEUxU0c1ACeQvXVycHOo/GORBYC4fi5vYRkpKI43e1ZT4dIdlw/TM4gjb
-Gt3CX/GBcayLxvKzAb48FyFxgenbShGFAexD8uShNKJZCKvwd/vId1q7DsxQGp8m
-Z3VoayRslDdenB4WGWilb4h3+R/ySts7gUj+WXWpd0iIQzQh8PB27Q1S6Hab2dVK
-U3zpYDEmPnOHTazqUcRetUERviFBFt7yLN7zFfuwcjKtc9FVIKnUulO51wXUzDVC
-aezy5+C9QN1nT29rQpxBIgBon5a0u8czNueP0iV7ZqTTHDUouHCAwB6upHZfbNPb
-TbniTNha0S50miOue1uRF/zqg0C7iWBh3sFSShh3FARj5c4zqngiuhwrTSeV+jNo
-GtEyuvtEh7j1YnxOWaaT3SRKAG3mPPWCaaY5moePzUWiPETEMJCTB1oV9vs56DSI
-oHc7xcTVI6RizLKOAdNa
-=z9sP
+iQIcBAEBCAAGBQJYUZvTAAoJELgmozMOVy/dbEYQALOZpdiUucpo9tL7DMLfwewH
+TPWGZN71vQpZW46K3TF1LwJfDn1/tzvHnVR9z6fJJwofdscJOlTsBfncNkhQJKcm
+w07gxu5NRVbZSpUjIVD6DDKbsvoXZQEtAO4FtHgB1ZqZ2H5QMTqFRCH83nY7u6hP
+d962f/Vf1xUztI59iggvfqHKzhZOwKzffAa/igzMEDesM1zsPfWwO028vIy8YHwZ
+4COUqDVqWKMIENL4A9oGPktgNd/bUyYawvSBFJhWVvz1cg8nr8qVfVONfvBepSTc
+Dq7MviCDTwSGZzQsYXajdJTPVid2ZZpvpyrTc1d5Px3kahH7idKgPu/HbNr9WxQV
+ryn4UDmxoI3r4DoxjSuGGsAq3n7h85hys6e3EysizcNv+G/73PnDGMCOSHe3UJGO
+4tTUSVrr2raG/b8HEuRky9ggcmtBnByqqSkypzISSIzKXqqZjCPzX7FjNHZen4hi
+30iXsZJhEBbFyHVcQZVKMo3sfxwHshGuuzLdarVKBxZkpvannvypwQ56vm1axRwi
+/VQwQZUpOsd4QTFAeuKr+1XBYUI2iyEfGKP/TaPFxU2dNB9cPNJpOf57HX0BRh3q
+D+yten1cqjG9nxr6ysGINc5oCPyOEdjERUn0Z8cHtqwC+34iwPKctx5xwrjynjh2
+lTfiIILY3bqO3HxIX+Os
+=R0IC
 -----END PGP SIGNATURE-----
 
---QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--R5r8N6bLcccHEaUBA5KTDV1t63SbMthSF--
