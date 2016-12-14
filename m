@@ -1,132 +1,84 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/5] Optimize RoCE address handle creation for
- userspace
-Date: Wed, 14 Dec 2016 14:08:03 -0500
-Message-ID: <030212a5-7a1c-273e-9573-a0f9976034c0@redhat.com>
-References: <1479882206-31212-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH] qede: fix general protection fault may occur on probe
+Date: Wed, 14 Dec 2016 14:17:38 -0500
+Message-ID: <50c75e84-ff6b-a06f-a4c3-4d004d1b56b2@redhat.com>
+References: <SN1PR07MB220763908ED050AAFE840CEAF8B70@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="G0hcSfMpnQ03tOxpIUqerEkHKgqtSEeE0"
+ boundary="QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479882206-31212-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <SN1PR07MB220763908ED050AAFE840CEAF8B70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---G0hcSfMpnQ03tOxpIUqerEkHKgqtSEeE0
-Content-Type: multipart/mixed; boundary="G8U8ko5JEJkkbUJCmda5OhkV4UO4NutNS";
+--QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ
+Content-Type: multipart/mixed; boundary="VkXaXLWCX7Vs70I3fANkalT6eP7l45kFr";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <030212a5-7a1c-273e-9573-a0f9976034c0-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/5] Optimize RoCE address handle creation for
- userspace
-References: <1479882206-31212-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <1479882206-31212-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
+ "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
+ "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <50c75e84-ff6b-a06f-a4c3-4d004d1b56b2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] qede: fix general protection fault may occur on probe
+References: <SN1PR07MB220763908ED050AAFE840CEAF8B70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <SN1PR07MB220763908ED050AAFE840CEAF8B70-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 
---G8U8ko5JEJkkbUJCmda5OhkV4UO4NutNS
+--VkXaXLWCX7Vs70I3fANkalT6eP7l45kFr
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 11/23/2016 1:23 AM, Leon Romanovsky wrote:
-> Hi Doug,
+On 11/23/2016 3:03 AM, Amrani, Ram wrote:
+> The recent introduction of qedr driver support in qede causes a GPF whe=
+n probing the driver in a server without a RoCE enabled QLogic NIC. This =
+fix avoids using an uninitialized pointer in such a case. Caught by the k=
+ernel test robot.
 >=20
-> Please find below the patchset from Moni.
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+> drivers/net/ethernet/qlogic/qede/qede_roce.c | 4 ++--
+> 1 file changed, 2 insertions(+), 2 deletions(-)
 >=20
-> -----------------------------------------------------------------------=
----
-> Creating a UD address handler (user or kernel) when link layer is Ether=
-net
-> requires resolving the remote L3 address (GID) to a L2 address (MAC/VLA=
-N).
+> diff --git a/drivers/net/ethernet/qlogic/qede/qede_roce.c b/drivers/net=
+/ethernet/qlogic/qede/qede_roce.c
+> index 9867f96..4927271 100644
+> --- a/drivers/net/ethernet/qlogic/qede/qede_roce.c
+> +++ b/drivers/net/ethernet/qlogic/qede/qede_roce.c
+> @@ -191,8 +191,8 @@ int qede_roce_register_driver(struct qedr_driver *d=
+rv)
+>               }
+>               mutex_unlock(&qedr_dev_list_lock);
 >=20
-> Doing it in kernel is easy with an interface in that the module ib_addr=
-
-> provides. In userspace such an interface does not exist and kernel help=
-
-> is required.
+> -              DP_INFO(edev, "qedr: discovered and registered %d RoCE f=
+uncs\n",
+> -                             qedr_counter);
+> +             pr_notice("qedr: discovered and registered %d RoCE funcs\=
+n",
+> +                              qedr_counter);
 >=20
-> Until now the way to resolve GID (which is the remote IP or a function
-> of it) to a MAC was with an interface supplied by libnl. The implementa=
-tion
-> of this interface is heavy and fails on large load of requests to creat=
-e an
-> address handle.
->=20
-> This series of patches is an infrastructure for user drivers that care
-> for it to optimize the resolution of L3 to L2 addresses with uverbs
-> interface.
-> -----------------------------------------------------------------------=
--
->=20
-> The patch #3 was originally posted by Knut Omang and Moni extended it t=
-o
-> support all available drivers along with enhanced commit message. We ar=
-e
-> sending the same patch as it exists in our review system, but feel free=
- to
-> change authorship to Knut if it is matter.
->=20
-> Thanks
->=20
-> Available in the "topic/create_ah" topic branch of this git repo:
-> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> Or for browsing:
-> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=
-=3Dtopic/create_ah
->=20
-> Moni Shoua (5):
->   IB/core: Enhance ib_resolve_eth_dmac to be usable for creating AH
->   IB/mlx5: Report that device supports user data response in create_ah
->   IB/core: Let the verb create_ah return extended response to user
->   IB/mlx5: Use kernel driver to help userspace create address handle
->   IB/mlx5: Make create/destroy address handle available to userspace
->=20
->  drivers/infiniband/core/core_priv.h          |  3 -
->  drivers/infiniband/core/uverbs_cmd.c         | 19 ++++--
->  drivers/infiniband/core/verbs.c              | 86 ++++++++++++++------=
---------
->  drivers/infiniband/hw/cxgb3/iwch_provider.c  |  3 +-
->  drivers/infiniband/hw/cxgb4/provider.c       |  4 +-
->  drivers/infiniband/hw/hns/hns_roce_ah.c      |  3 +-
->  drivers/infiniband/hw/hns/hns_roce_device.h  |  3 +-
->  drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  4 +-
->  drivers/infiniband/hw/mlx4/ah.c              |  4 +-
->  drivers/infiniband/hw/mlx4/mlx4_ib.h         |  3 +-
->  drivers/infiniband/hw/mlx5/ah.c              | 25 +++++++-
->  drivers/infiniband/hw/mlx5/main.c            |  5 +-
->  drivers/infiniband/hw/mlx5/mlx5_ib.h         |  3 +-
->  drivers/infiniband/hw/mthca/mthca_provider.c |  4 +-
->  drivers/infiniband/hw/nes/nes_verbs.c        |  3 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c     |  3 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.h     |  4 +-
->  drivers/infiniband/hw/qedr/verbs.c           |  3 +-
->  drivers/infiniband/hw/qedr/verbs.h           |  3 +-
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  4 +-
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  4 +-
->  drivers/infiniband/sw/rxe/rxe_verbs.c        |  4 +-
->  include/rdma/ib_verbs.h                      |  6 +-
->  include/uapi/rdma/mlx5-abi.h                 |  7 +++
->  24 files changed, 140 insertions(+), 70 deletions(-)
->=20
+>                return 0;
+> }
 > --
-> 2.7.4
+> 1.8.3.1
 >=20
 
-Series applied, thanks.
+This patch was seriously malformed (spaces instead of tabs, no space
+beginning the line that ends the patch, etc).  I redid it by hand, it's
+now applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---G8U8ko5JEJkkbUJCmda5OhkV4UO4NutNS--
+--VkXaXLWCX7Vs70I3fANkalT6eP7l45kFr--
 
---G0hcSfMpnQ03tOxpIUqerEkHKgqtSEeE0
+--QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -135,22 +87,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUZiTAAoJELgmozMOVy/dPj8QAIYiJBOsf8Ou0Sk3aXvzxHhG
-rXk7/5gCp5rcoV8r0ZHVTslG0hk69tGdiqSpFN1q10BPJ65IIxt6Z3BHEM3tJh8t
-75CaKyXAQNWtAF23SCMoX+EMtjRLCzulM43zn4tOZRewu9HDefs1kujeQQDxTeQr
-RTHtA4qstnJUOWo7A3CgvZ7/12GJs99gF4QoFrxmo0+2qmzkeB9PAYJn7o4usthI
-59glsRpF8PfVqNYmKh1TDuawXVSsXiDdCkSsObRVKAvxDD3f35mqEDxJBxJNmEKq
-XNP8/+U1YiZMvTbXLsQxGGikMrZeZTIOdnSGq4EG30JFvMplDigO/G7s5/2kA+oo
-+AfDgt+IP0rWvaYjoGa11hUYciK8Jip5onfmObuaFTqtQLhP/gjcMZrkIhQzccF4
-2hMpZg75P7QhZepUudcBmH+6C6hbavJrZVpmqXsHDpyaJjvScR0JqHeFQh6UWvQO
-yuKPFe0CY58eJPr/pSNNFFyB6RAdMw6quq2o2QDDSHGbflB8DRzUSs+PeMY1hcza
-owCS6ZrA6DKN4/uIk3MJyZPuCkWYdPzt8n8+oMpOWMBZHwSeViR0DT2zLOoaLlq7
-hRaD00uhEQvVQsRfkWP4HKjVEPP5OqzVK8xBHWIM5rxJVmZo+wL5UPxjn8Zmdcg7
-x0XEx/4fAl6MtlHkWvtk
-=3pGC
+iQIcBAEBCAAGBQJYUZrSAAoJELgmozMOVy/dHmcP/AvNAXFuVpjjmWNCh9D/iYNs
+kvIVV3O5ZrS5H3QLO+hw6o1kpliaaCk/DudRcTUwQA+a3owjPRRNmOblawbVqlD8
+G4TeSCfk7uSy5tJS4+3/sr9Dmwvz6HnYvWbMdHqFuSjipsEZacR6WOPFuS1F/nyR
+/0nEIQhCDB8CgzDSpccCNWa0SPoTw/Xtsd6JLPSU9FgZybvgZuXi4+DI+MNpqXI1
+wPmndj9AEUxU0c1ACeQvXVycHOo/GORBYC4fi5vYRkpKI43e1ZT4dIdlw/TM4gjb
+Gt3CX/GBcayLxvKzAb48FyFxgenbShGFAexD8uShNKJZCKvwd/vId1q7DsxQGp8m
+Z3VoayRslDdenB4WGWilb4h3+R/ySts7gUj+WXWpd0iIQzQh8PB27Q1S6Hab2dVK
+U3zpYDEmPnOHTazqUcRetUERviFBFt7yLN7zFfuwcjKtc9FVIKnUulO51wXUzDVC
+aezy5+C9QN1nT29rQpxBIgBon5a0u8czNueP0iV7ZqTTHDUouHCAwB6upHZfbNPb
+TbniTNha0S50miOue1uRF/zqg0C7iWBh3sFSShh3FARj5c4zqngiuhwrTSeV+jNo
+GtEyuvtEh7j1YnxOWaaT3SRKAG3mPPWCaaY5moePzUWiPETEMJCTB1oV9vs56DSI
+oHc7xcTVI6RizLKOAdNa
+=z9sP
 -----END PGP SIGNATURE-----
 
---G0hcSfMpnQ03tOxpIUqerEkHKgqtSEeE0--
+--QOmkhvIu3C2nrb9ooRxN14Rj4wWlGT2fQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
