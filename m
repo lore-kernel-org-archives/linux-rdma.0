@@ -1,70 +1,61 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] infiniband: hw: ocrdma: fix bad initialization
-Date: Wed, 14 Dec 2016 14:34:34 -0500
-Message-ID: <b08b4a1e-f976-c4b6-4241-65cf398ec3cb@redhat.com>
-References: <1480770621-6249-1-git-send-email-bianpan201602@163.com>
- <20161204062037.GH4497@leon.nu>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 1/1] infiniband: hw: mlx4: fix improper return value
+Date: Wed, 14 Dec 2016 14:35:44 -0500
+Message-ID: <93e36d99-86b5-03b0-3226-2993c428e155@redhat.com>
+References: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="fpdwiXncBGUV3nS2V6TnKgAxdBj5wxAGx"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161204062037.GH4497-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pan Bian <bianpan201602-9Onoh4P/yGk@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+ boundary="m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pan Bian <bianpan201603@163.com>, Leon Romanovsky <leon@kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fpdwiXncBGUV3nS2V6TnKgAxdBj5wxAGx
-Content-Type: multipart/mixed; boundary="6sMSVbSTwLX6tPBOlLLc4D8gfbKo9OcT6";
+--m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3
+Content-Type: multipart/mixed; boundary="0I4sFi7Lo6LNn4gSWm4Rg1Fd4Gv5OJHnj";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pan Bian <bianpan201602-9Onoh4P/yGk@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>,
- Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>,
- Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty
- <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
- linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
-Message-ID: <b08b4a1e-f976-c4b6-4241-65cf398ec3cb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] infiniband: hw: ocrdma: fix bad initialization
-References: <1480770621-6249-1-git-send-email-bianpan201602-9Onoh4P/yGk@public.gmane.org>
- <20161204062037.GH4497-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20161204062037.GH4497-2ukJVAZIZ/Y@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: Pan Bian <bianpan201603@163.com>, Leon Romanovsky <leon@kernel.org>,
+ Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>,
+ Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
+Message-ID: <93e36d99-86b5-03b0-3226-2993c428e155@redhat.com>
+Subject: Re: [PATCH 1/1] infiniband: hw: mlx4: fix improper return value
+References: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
+In-Reply-To: <1480833938-6284-1-git-send-email-bianpan201603@163.com>
 
---6sMSVbSTwLX6tPBOlLLc4D8gfbKo9OcT6
+--0I4sFi7Lo6LNn4gSWm4Rg1Fd4Gv5OJHnj
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/4/2016 1:20 AM, Leon Romanovsky wrote:
-> On Sat, Dec 03, 2016 at 09:10:21PM +0800, Pan Bian wrote:
->> From: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
->>
->> In function ocrdma_mbx_create_ah_tbl(), returns the value of status on=
-
->> errors. However, because status is initialized with 0, 0 will be
->> returned even if on error paths. This patch initialize status with
->> "-ENOMEM".
->>
->> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=3D188831
->>
->> Signed-off-by: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+On 12/4/2016 1:45 AM, Pan Bian wrote:
+> From: Pan Bian <bianpan2016@163.com>
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> If uhw->inlen is non-zero, the value of variable err is 0 if the copy
+> succeeds. Then, if kzalloc() or kmalloc() returns a NULL pointer, it
+> will return 0 to the callers. As a result, the callers cannot detect th=
+e
+> errors. This patch fixes the bug, assign "-ENOMEM" to err before the
+> NULL pointer checks, and remove the initialization of err at the
+> beginning.
 >=20
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=3D189031
+> Signed-off-by: Pan Bian <bianpan2016@163.com>
 
 Thanks, applied.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---6sMSVbSTwLX6tPBOlLLc4D8gfbKo9OcT6--
+--0I4sFi7Lo6LNn4gSWm4Rg1Fd4Gv5OJHnj--
 
---fpdwiXncBGUV3nS2V6TnKgAxdBj5wxAGx
+--m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,23 +64,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUZ7KAAoJELgmozMOVy/dWQMP/3crw2PXepoJPDD6Wz48BdFz
-2e+6v01f3Ct/nDnnjspT9edZXhLxQr3VkDci5VQqdaY+dFudwooY6CIhYBSWGWQA
-ba2Koc/HOgYHdlmTL3KLW7GkFM2FVhhVJ2H4iIus4VFknyNqgnC5oHXIIeouY+PN
-8o/Mu4GuHqdBWiQgofCCURqh/udbqQV2xdP8iN/hOJqFXPSXsduu6EbAX/fjYpig
-K9GMQrB70ACLb7pGmPDclxBRgd6ZVSOJVN77wsuf7h2B8w7mMx8su6F3Yxjm2TZc
-OJ4mYx6bJ6DJzJ3tm+6yzfVFM8Aa3grjdSG6GHwZLQB58Gg0Whi/6Zn0EFX0kH//
-uyyvwF76785VzLr0OJwxOKOODUpBUwdDW6kY6y/L5DFWtYoZP+AzuWQbeNhNofPW
-cH74FlaahaxtYYbvra6TKZavoYI6oMxLVMeGDUCKHkaymnrE57MK4Xb7KWXEo8Zd
-hozxUc76RKnWtOPnbWD+KWpVzVFWOobrsw0lz4lOv1ppohN00R5CwWPM2JoLSS4V
-bC8j66CJGfOvnTUYcDdVoJAa/jhJNOQtjQoNpXTMFdzJGOtvMOuVoZ/kxy4BKd+Z
-HwtbD4rs35FzL81IlhKy7Xz6BMWiLAdf6KWu+9WXoIxieBbwe4+aUCWdJepn9prq
-ypDXz2Juamj9TeG2fYXf
-=eZ0W
+iQIcBAEBCAAGBQJYUZ8QAAoJELgmozMOVy/dlT0QAJFWxNLZ/m/+u7ltfxyRUQXV
+COhg94To0jqinqD66LUiUE593wd/x1f9RYRph1BrrFeO5Ux6YD13carcfbG4AhZd
+9J0bFgj9iUedIgoQCqDCDx4fucLN1g11584ueMi+8zOjX6UcShnmNd9APfdFY+JI
+4wRVNj8c1y3fVNUprbMBEf2BM/YGW58mS1/9gr0dV9GxNu0G50cPrca9LLT2ZsVx
+91+Dx69kyM2dCRIDnnRrhuehrn7ghXrW30Hh5NTFLXY6HOzB2UBiU9D0M0HZ4h3p
+HKFwimAzhBj9SsJlauWiEKGE+W+iXO5vAFXVO5HqGH4fGGscfcPuoGlymJ5vyR0K
+2JA/gtimT5qwGEWHpeB4Qwajx+eYlxqpCmdua7nXz1XqWDaCt1aHpxzi09D1yItL
+EHVdcVVV2XSfwbJeD1qzu5INiDLiaI9iMVusxu8Z3vdsIBmj/MSg1ECJ6N3xM2rB
+YiOHik/jCDU8J84uDZvQuj3oiWChtmKkwdwIfRV0sHS2YCSpo3iVhfbHtNioOzfw
+33v4zMcmV8G9MPBefodfy8EhHi6ampGiAHuxJMXF6V8hsmhrmx5D+vDiNsMMQbet
+oRoxNlRfsgq1TVriqlfhE5aKJW82s5iqsmEVgZeonSZMm3kay+NioLjGKobaVuly
+daewPcNTD8zbpxDqMlNG
+=oG58
 -----END PGP SIGNATURE-----
 
---fpdwiXncBGUV3nS2V6TnKgAxdBj5wxAGx--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--m1Oui1a7Tix9JXTr6v5mJ9jX8rxFWhls3--
