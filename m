@@ -1,56 +1,59 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mad: Eliminate redundant SM class version defines for
- OPA
-Date: Wed, 14 Dec 2016 11:02:32 -0500
-Message-ID: <ca6434c8-d3de-f3a9-c571-4d3aa73bc7b2@redhat.com>
-References: <3995ed79-d933-1c93-1fa6-3f03b7e51d44@dev.mellanox.co.il>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] qedr: return -EINVAL if pd is null and avoid null ptr
+ dereference
+Date: Wed, 14 Dec 2016 11:25:06 -0500
+Message-ID: <0fe01691-a030-de34-e984-31546c012cb2@redhat.com>
+References: <20161018183928.8539-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="fg8ErVklE7hSklpm69NC68Ua7u9wfOWW2"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3995ed79-d933-1c93-1fa6-3f03b7e51d44-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ boundary="8twR3epAig4VVwtbllgwQxM1E7vv8X72x"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161018183928.8539-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Rajesh Borundia <rajesh.borundia@cavium.com>, Ram Amrani <Ram.Amrani@cavium.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fg8ErVklE7hSklpm69NC68Ua7u9wfOWW2
-Content-Type: multipart/mixed; boundary="SCTQlvCeXmlhc3AR569Xfl0nj2aUwamJe";
+--8twR3epAig4VVwtbllgwQxM1E7vv8X72x
+Content-Type: multipart/mixed; boundary="hjmlgQFAtC63iQEGfUJqNFEewlx4nmNUB";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Message-ID: <ca6434c8-d3de-f3a9-c571-4d3aa73bc7b2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mad: Eliminate redundant SM class version defines for
- OPA
-References: <3995ed79-d933-1c93-1fa6-3f03b7e51d44-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-In-Reply-To: <3995ed79-d933-1c93-1fa6-3f03b7e51d44-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: Colin King <colin.king@canonical.com>, Sean Hefty <sean.hefty@intel.com>,
+ Hal Rosenstock <hal.rosenstock@gmail.com>,
+ Rajesh Borundia <rajesh.borundia@cavium.com>,
+ Ram Amrani <Ram.Amrani@cavium.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Message-ID: <0fe01691-a030-de34-e984-31546c012cb2@redhat.com>
+Subject: Re: [PATCH] qedr: return -EINVAL if pd is null and avoid null ptr
+ dereference
+References: <20161018183928.8539-1-colin.king@canonical.com>
+In-Reply-To: <20161018183928.8539-1-colin.king@canonical.com>
 
---SCTQlvCeXmlhc3AR569Xfl0nj2aUwamJe
+--hjmlgQFAtC63iQEGfUJqNFEewlx4nmNUB
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 10/18/2016 1:20 PM, Hal Rosenstock wrote:
+On 10/18/2016 2:39 PM, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 >=20
-> and rename class version define to indicate SM rather than SMP or SMI
+> Currently, if pd is null then we hit a null pointer derference
+> on accessing pd->pd_id.  Instead of just printing an error message
+> we should also return -EINVAL immediately.
 >=20
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Thanks, applied.
-
+Applied, thanks.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---SCTQlvCeXmlhc3AR569Xfl0nj2aUwamJe--
+--hjmlgQFAtC63iQEGfUJqNFEewlx4nmNUB--
 
---fg8ErVklE7hSklpm69NC68Ua7u9wfOWW2
+--8twR3epAig4VVwtbllgwQxM1E7vv8X72x
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,23 +62,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUW0YAAoJELgmozMOVy/d0KwQAL1x7LdrZLHDrAWsGi38g8/c
-rQhftYi5g7Wkkz5/5IAWsQyAmY/Eci23i8TavVtAIkhGiK9G+NiPQvdiBoBNlJDg
-LseDk4gsPGFlvsD/al08TI3c4YEaTv/0AwQEt+dpcbvprDhPmG7IXyAVD5N+fxmT
-D9d1aUpYQNbfh4ox0CQvSPqLEJz2idhNsH3kHtTVMHOgz6LQMvpuawGwFInWZKMF
-7qWcgLOmIqsvneGZ9n2H2nRj6ZC9Fp5wEwSjnMBgancxkIQYi/TOyBwq0u4kbKbJ
-xRET63+ylVPa9tU//lLgwiiYwIyN6JkdWkB6Jxq0LkUzud7JBPFtFBdJVqCX1AdJ
-4D0XG9gbY7rL7LhdhBKU7wYMBAYsSeN9xrH9EJdyUOD9r9vEXWk7Ng+A3jM38VaT
-E4ClZg1dyI7Q25+/yoBfk4xIrAD4tLS9u9Wn8UopTNKph5nZcbAcf5eKnUjcaDxH
-3k1bFYgLcLrebPm6S+eRWM6ajv9Kg8qw4FhhDULFYx0/y8ruH/hq40dKeTpGoHZt
-3i5mZxCl7dakl7DH5QUMLMSCeVuAtaJlSP8e3+xXXc7kcMdLzqaJvIgbyRpLbUDu
-gV87bD5BzILBId8up+R01hOr5IFSztMz/XK2ihvPChZLVY4r/vU+UnMUDxwEIs5Z
-m74780AQt81EFdlVVP8e
-=SC0/
+iQIcBAEBCAAGBQJYUXJiAAoJELgmozMOVy/dl80QAI3saphpYf7ESf/ks0zia+ou
+28Yuirm+EAQel6N77dDd/skAvavGRcSnW+pPi5dNNr4oASET7EU2hoxMxviDmBTf
+NT7IdDudRKLumqQxST+10jldKAYXf81HG2vstLUkzAWz31Td9dfS4mQg/eIuc/YE
+3FJBLNc9ZG1aln2It5zMCpNdQopExg4AtM80NAQi9t2hl+R+m6CXQ5h/N1mQJ0hN
+lpXTHlrjnlwkGqRGF1XP5br6aFw7B/iCCwTNYBkJ6bMRUcUNhP98WscTv6LdlYs8
+awdfmLYNVH8nQJ1xUFkDCO4UnzlmNxx40VYbi1uhLMp3+FVJCVHsyuQB5CXA3bPU
+QcKyjUnap39AdmJSDHOFbiWegw2LqXjdnClJuSbfpLgEB+wfCD/xQ3ZXl6DLZVHX
+xjXyoQ7kXY+ANVOmXeXMGbRDZaheW7GiKF1w70aVOY1NL+Oa3vLeD6vVKfW+cadu
+gWuj1pW6LGZlD5hlGBUV9ZEZq/9aJape5PQ4oFEHmRA7AneeTYAGePuTeU/PNtSU
+Qky0HhjNP557PqqfDjZuXcKmjRzX/v9AoI5isVNd0LqtLcygI+LCht3Q3ttEUvus
++0A+K6U06FrViiaIwlbpL2jB9UIc633jC3UBv7RiQ0ADb9c2ZdIxob1qwbIEbUq+
+gFx7+YiWsCVT2WyK6B2F
+=Hz1z
 -----END PGP SIGNATURE-----
 
---fg8ErVklE7hSklpm69NC68Ua7u9wfOWW2--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--8twR3epAig4VVwtbllgwQxM1E7vv8X72x--
