@@ -1,42 +1,85 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH v6 0/9] SELinux support for Infiniband RDMA
-Date: Tue, 13 Dec 2016 17:17:49 -0500
-Message-ID: <CAHC9VhTdntem1hK0arEo4p1MWPH5sjzDN0yG_=1S7ui=C4i8Yg@mail.gmail.com>
-References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
- <a56c4be8-f908-4774-dd1c-c6bbab5c1b03@tycho.nsa.gov> <DB6PR0501MB2422DCC01A577CDA280C2C82C49B0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
+From: Joshua McBeth <joshua.mcbeth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: (unknown)
+Date: Wed, 14 Dec 2016 09:58:03 -0500
+Message-ID: <CAN27Ff6bGKNru702DTyzL6KE0AS6-V1-DNL5LDa7oVYUJFuzBw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <DB6PR0501MB2422DCC01A577CDA280C2C82C49B0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, "eparis@parisplace.org" <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Subject: 
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 13, 2016 at 11:25 AM, Daniel Jurgens <danielj@mellanox.com> wrote:
-> On 12/13/2016 9:01 AM, Stephen Smalley wrote:
->> For the LSM/SELinux bits,
->> Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
->>
->> Note that there will be a merge conflict on classmap.h due to commits in
->> the selinux next branch, but that should be easy to resolve.
->>
->> We'll need the patches for the selinux userspace and refpolicy.
+On Tue, Dec 13, 2016 at 2:01 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 >
-> Thanks Stephen, I need to rebase the user space and do some patch breakup.  I'll start on that soon.
+> On Tue, Dec 13, 2016 at 01:36:42PM -0500, Joshua McBeth wrote:
+> > I bisected the kernel between v4.1 and v4.3.1 by booting each build on
+> > the SR-IOV host and attempting to "ping x.x.x.x" with x.x.x.x being
+> > the IP address assigned to the Infiniband interface of a remote host
+> >
+> > At 4be90bc's parent the SR-IOV host is able to ping the remote host,
+> > but at 4be90bc the SR-IOV host is not able to ping the remote host
+> > (destination host unreachable)
+>
+> Okay, that makes sense
+>
+> > The DMAR errors occur in both the kernel built at 4be90bc (not passing
+> > ping test) and its parent (passing ping test)
+>
+> Continuing to bisect until you find the commit that introduces the
+> DMAR errors would also be helpful, I think.
 
-Sorry, I haven't had a chance to look at v6, but considering all our
-discussions on the previous versions I don't expect any issues from
-me.  I was hoping for some more generic hooks/controls, but that
-doesn't look to be possible given the nature of RDMA.  I also want to
-mention again the need for tests; we've talked about this in the past
-and while it isn't possible to run the tests without IB hardware, I
-would like to see us merge tests into the selinux-testsuite so that
-those who do have the required h/w available could run the tests.
 
-Assuming we can sort out the SELinux userspace and and tests by the
-end of January, I see no reason why this couldn't go in for v4.11.
+I will do this when I find some time and report back with the results.
+>
+>
+>
+> > Reverting only the commit 4be90bc from a later kernel (4.8.x) does not
+> > enable the SR-IOV host to ping the remote host, which to me suggests
+> > that another commit after 4be90bc is also causing my test to fail.
+>
+> Okay, that does not seem too surprising.
+>
+> Does this make your 4.8 kernel work? If yes, then I suspect mlx4 has
+> broken IB_DEVICE_LOCAL_DMA_LKEY with SRIOV.. Leon? mlx5 has this
+> broken, doesn't it?
+>
 
--- 
-paul moore
-www.paul-moore.com
+With 4.8.1 and the below applied to the SR-IOV host and guest kernels,
+SR-IOV functions in both the SR-IOV host and guests and there are no
+DMAR errors emitted.  The NFS/RDMA client in the guest does not work
+on the SR-IOV virtual function with the NFS/RDMA server of the host on
+the SR-IOV physical function, but this may be something else I need to
+troubleshoot further, as both IPoIB and synthetic RDMA traffic passes
+between the guest, host, and remote node just fine.  The remote node's
+NFS/RDMA client is additionally able to function with the host's
+NFS/RDMA server on the SR-IOV physical function.
+
+>
+> It would also be very helpful to try and determine what memory the NIC is
+> trying to read.. If it is the ipoib packet or some mlx4 internal
+> thing.
+
+
+How can I determine this?
+
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 2be4ea0cda9c19..1346924d27691f 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -243,6 +243,8 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+>         atomic_set(&pd->usecnt, 0);
+>         pd->flags = flags;
+>
+> +       device->attrs.device_cap_flags = 0;
+> +
+>         if (device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+>                 pd->local_dma_lkey = device->local_dma_lkey;
+>         else
+>
+> Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
