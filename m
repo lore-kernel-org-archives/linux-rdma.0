@@ -1,66 +1,78 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: avoid a -Wmaybe-uninitialize warning
-Date: Wed, 14 Dec 2016 12:13:43 -0500
-Message-ID: <8fd869a2-9e7b-bba7-5cf0-af1d078016b6@redhat.com>
-References: <20161025161632.411899-1-arnd@arndb.de>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 0/2] IB/rdmavt: cq ktrhead worker fix and API update
+Date: Wed, 14 Dec 2016 12:17:26 -0500
+Message-ID: <8f55e78f-0c3b-c2ff-14f7-844d68a5d212@redhat.com>
+References: <1476878840-14548-1-git-send-email-pmladek@suse.com>
+ <1476968182.23693.14.camel@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="SSHcWMGwuWvVLst1UNIIORW2Xfrc2udHX"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161025161632.411899-1-arnd-r2nGTMty4D4@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Shemesh <moshe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christophe Jaillet <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ boundary="hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1476968182.23693.14.camel@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "pmladek@suse.com" <pmladek@suse.com>, "Hefty, Sean" <sean.hefty@intel.com>
+Cc: "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "tj@kernel.org" <tj@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---SSHcWMGwuWvVLst1UNIIORW2Xfrc2udHX
-Content-Type: multipart/mixed; boundary="NOme76SgKCRES5Eh7VA70OS1RG2iAVt9k";
+--hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco
+Content-Type: multipart/mixed; boundary="CUCLBb0OCKqOP5c3esQOvcm4lthXGUBvr";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,
- Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
- Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Moshe Shemesh <moshe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Christophe Jaillet <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>,
- Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <8fd869a2-9e7b-bba7-5cf0-af1d078016b6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: avoid a -Wmaybe-uninitialize warning
-References: <20161025161632.411899-1-arnd-r2nGTMty4D4@public.gmane.org>
-In-Reply-To: <20161025161632.411899-1-arnd-r2nGTMty4D4@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>,
+ "pmladek@suse.com" <pmladek@suse.com>, "Hefty, Sean" <sean.hefty@intel.com>
+Cc: "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>,
+ "tj@kernel.org" <tj@kernel.org>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Message-ID: <8f55e78f-0c3b-c2ff-14f7-844d68a5d212@redhat.com>
+Subject: Re: [PATCH 0/2] IB/rdmavt: cq ktrhead worker fix and API update
+References: <1476878840-14548-1-git-send-email-pmladek@suse.com>
+ <1476968182.23693.14.camel@intel.com>
+In-Reply-To: <1476968182.23693.14.camel@intel.com>
 
---NOme76SgKCRES5Eh7VA70OS1RG2iAVt9k
+--CUCLBb0OCKqOP5c3esQOvcm4lthXGUBvr
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 10/25/2016 12:16 PM, Arnd Bergmann wrote:
-> There is an old warning about mlx4_SW2HW_EQ_wrapper on x86:
+On 10/20/2016 8:56 AM, Dalessandro, Dennis wrote:
+> On Wed, 2016-10-19 at 14:07 +0200, Petr Mladek wrote:
+>> The kthread worker API has been improved in 4.9-rc1. The 2nd
+>> patch uses the new functions and simplifies the kthread worker
+>> creation and destroying.
+>>
+>> I have found a possible race when working on the API conversion.
+>> A proposed fix is in the 1st patch.
+>>
+>> Both changes are compile tested only. I did not find an easy way
+>> how to test them at runtime.
+>>
+>> Petr Mladek (2):
+>>   IB/rdmavt: Avoid queuing work into a destroyed cq kthread worker
+>>   IB/rdmavt: Handle the kthread worker using the new API
+>>
+>>  drivers/infiniband/sw/rdmavt/cq.c | 64 +++++++++++++++++----------
+>> ------------
+>>  1 file changed, 27 insertions(+), 37 deletions(-)
 >=20
-> ethernet/mellanox/mlx4/resource_tracker.c: In function =E2=80=98mlx4_SW=
-2HW_EQ_wrapper=E2=80=99:
-> ethernet/mellanox/mlx4/resource_tracker.c:3071:10: error: =E2=80=98eq=E2=
-=80=99 may be used uninitialized in this function [-Werror=3Dmaybe-uninit=
-ialized]
+> Thanks for the patches. I'm going to take a closer look, I just now
+> seen these.
 >=20
-> The problem here is that gcc won't track the state of the variable
-> across a spin_unlock. Moving the assignment out of the lock is
-> safe here and avoids the warning.
+> -Denny
 >=20
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-Thanks, applied.
+These looked good to me, and you haven't objected, so I'm taking this
+series.  Thanks.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---NOme76SgKCRES5Eh7VA70OS1RG2iAVt9k--
+--CUCLBb0OCKqOP5c3esQOvcm4lthXGUBvr--
 
---SSHcWMGwuWvVLst1UNIIORW2Xfrc2udHX
+--hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -69,23 +81,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUX3HAAoJELgmozMOVy/devoQAMKv9d90uOxo+DtGGsMvAlGo
-uJ7WNVEBd15szUlZTP8tu0JQn1/mPmvheWZhoRhtQUWMwUcBK1BZr4O3ZWNthqM8
-8LqT6wXWsqkKwdh2QUJBHxVsxyL7WWCQSmzZMvaydAV8s5irOzjIyYpuv2gOtBgr
-PS8AZ7+GS9jmKPsoZq+rvWKlDaTngmNZuGgSX32LL1AyEgbfRjH7xlUtPttnBsIe
-n0FIphWNykmGCbYuXGJQ4qg/1QKAUsIMUz8AhtT56HAF+wdjnqilDPmgEe2yY0aY
-NwpBtMMV34CDdBejbuDvBj+RmV2pbuehRJphWpvO8qCySPnw2oJQ7kQbk55sRtKE
-cPd9xD1OIGJX3o7fzRtFebSr1W8QYIypafL58Y767XGvpF0PzUWSoBSZ2zw1m9Ys
-qVmsdzZFlhWRDc2BldcjjEReCuhqJm3oXgRMPYfbQz3/JqJ1OExqiqPFbdyIs03i
-QL9rbeEizTH+Pq2+CKmsmkAd0CW6PRlOaDg+HMVM7Eqq73p+OTdGK6Z5Vgj55Gvh
-BkXW4o9/KKRYjkASHrYUBqgIxKmP1rBlPzRU7daXktuJSkQmUtP+3gVCF4APQRU8
-hF7v1TT3VFiK6e2FAEPtLzsG6I0tS4BvR1VYTmGM3tss/safk1f5WO4tBHjs4WcH
-aETraS0tQdJ/Wq41TaOf
-=WGaN
+iQIcBAEBCAAGBQJYUX6mAAoJELgmozMOVy/dSQAQALEwNGD/PbZDlMVyFwcvyBci
+XBuMXRpGp0CFjHYrwP/mEwdmmFQ97hpt/ukdEhgTiFNqk/9Bw6/bDJO/KJ8/mN2c
+9kNVhpX8ApcIifFdstz33vDK068KyWSvk+c30BfLOvfOyhL5QpQVlxoIsLqrXdP3
+BWS0smTr2yiKUuj8W5rUpY+Q9aK7ehQMiFghFzaX/B8kNjZA3eVK/HSazO2nPJEG
+Oe157w5Y65C6Zt8QOelIJFiMSK+hd+teRedxDZkqibCdAAYkaNe0QbiUPb83u/jn
+JQy50PE/rnjeztjXRQaxh6aX3U5U74XY9Nlpv8jLyvu2t3CC42JKjVpB9mLykRGY
+/+ptKSWn1DfcMq5/TvBd22HSjwQm5w5hfjVwMrvfU7iYhw+huQsyMlunSMvZ8gq2
+5RKBe49xtdOfEVOIGPF5XrQe5w+UyVDOjd8njxIc95BQjY1sTybkq7kl9Dn9J1Yp
+9lX/sf5NcjeMarkDileI4bZo1wEdRMuotDJXuYfaehYK1HGCvUqwYi8N4rAMzoN5
+XIkHqrH+zB+Xi1gisug5a3vB/401xKxM3NMLKX7heGhgXuLtOQL93kBpBjaPSPPZ
+X7qieRWKqF3yKIujTnh1kHtgrOz/Ilc3a0gYmanREC5dOlqWWLGZShSmH4Xvf/sp
+ZCwabVXLFzCcfRz9TxQA
+=X+/4
 -----END PGP SIGNATURE-----
 
---SSHcWMGwuWvVLst1UNIIORW2Xfrc2udHX--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco--
