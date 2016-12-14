@@ -1,57 +1,55 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/isert: do not ignore errors in dma_map_single()
-Date: Wed, 14 Dec 2016 12:51:40 -0500
-Message-ID: <76723a14-43dd-b25a-c863-7f95cfc129e6@redhat.com>
-References: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] infiniband: nes: nes_nic: use new api
+ ethtool_{get|set}_link_ksettings
+Date: Wed, 14 Dec 2016 12:52:57 -0500
+Message-ID: <24d35dfc-ca92-89fb-1814-db1127e64f12@redhat.com>
+References: <1477409387-25056-1-git-send-email-tremyfr@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
-Sender: target-devel-owner@vger.kernel.org
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>, Sagi Grimberg <sagi@grimberg.me>
-Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+ boundary="K3Xe2W6ws9fCUl5TirCTFoUWljKQ6EINN"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1477409387-25056-1-git-send-email-tremyfr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Philippe Reynes <tremyfr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2
-Content-Type: multipart/mixed; boundary="HvDqPFBI4q8e25RimPaR8qUeK804GsUNm";
+--K3Xe2W6ws9fCUl5TirCTFoUWljKQ6EINN
+Content-Type: multipart/mixed; boundary="vrdVQbgiL93pgjrw0MWPMq6uN6ffMXbfQ";
  protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>,
- Sagi Grimberg <sagi@grimberg.me>
-Cc: Sean Hefty <sean.hefty@intel.com>,
- Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
- target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
- ldv-project@linuxtesting.org
-Message-ID: <76723a14-43dd-b25a-c863-7f95cfc129e6@redhat.com>
-Subject: Re: [PATCH] IB/isert: do not ignore errors in dma_map_single()
-References: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
-In-Reply-To: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Philippe Reynes <tremyfr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
+ sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <24d35dfc-ca92-89fb-1814-db1127e64f12-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] infiniband: nes: nes_nic: use new api
+ ethtool_{get|set}_link_ksettings
+References: <1477409387-25056-1-git-send-email-tremyfr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1477409387-25056-1-git-send-email-tremyfr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
---HvDqPFBI4q8e25RimPaR8qUeK804GsUNm
+--vrdVQbgiL93pgjrw0MWPMq6uN6ffMXbfQ
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/21/2016 6:01 PM, Alexey Khoroshilov wrote:
-> There are several places, where errors in dma_map_single() are
-> ignored. The patch fixes them.
+On 10/25/2016 11:29 AM, Philippe Reynes wrote:
+> The ethtool api {get|set}_settings is deprecated.
+> We move this driver to new api {get|set}_link_ksettings.
 >=20
-> Found by Linux Driver Verification project (linuxtesting.org).
->=20
-> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> Signed-off-by: Philippe Reynes <tremyfr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Thanks, applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---HvDqPFBI4q8e25RimPaR8qUeK804GsUNm--
+--vrdVQbgiL93pgjrw0MWPMq6uN6ffMXbfQ--
 
---LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2
+--K3Xe2W6ws9fCUl5TirCTFoUWljKQ6EINN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -60,19 +58,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUYasAAoJELgmozMOVy/dHDgP/09O0UKlpKYApql8vW2lBwU7
-cTXc20QFSfcTBheEN8AIAWleKPl0dIkAfSt9u9lMUJXW69iZpHB+pmDaI9K8xirD
-B13LKkf23jPWp7AL9Jpqjr9KHeymIt9VszF/bJURi3ctq12Qt5Q1mtJjKkJoCN7r
-PxMG1KLXAlMoZFmC/S3BZTCjKmFZYggpYH8XXZOw6tMGinHwIhz6OlI6ZGNQIUN8
-14tVG7NXV9ySWl5+Gq+kbqHTHjmM+W4fpEMcv+440COfHU28lIzUZn9rIVY9mH28
-VPH3rtIey+x7YJQitQy+apKze6uvdelxYP1BKeVPE958kGz2uUEXa8/HWDp6SH0i
-BEBu8WxSxTeQKGA9QyIVNmj/Z77Rr/cnBT2RjVjz9T0AA78i0cR13aqRtK+1ftEY
-FGvzwBSmjI6UBOnDUM2vi3V+EiWB+ckn2D7AAox//rYd302sSbnIJPk2SjnZsLPc
-Kcx5ZQBGQ8vl+8EeLnmvfQ760FDMMMKDo3jnoiMBrtRf1MYIbKB0Qqbw63b94LrO
-KWuuzNZpOlTPOD3PWbIm21B4yhWzhmIlr8MUiCT7GNOeFGTmUNcISSVLEpAOyIJ7
-xlAnda3uNfzuUH7a7XHi9veDy8SkqOnWfcRJ8Pcl6tgnjuqpuQg3hjPKDqylSjoP
-gs27dxn2SVmkGpDuW9M7
-=eMyj
+iQIcBAEBCAAGBQJYUYb6AAoJELgmozMOVy/d2zwQAKMXEJ/vskmhi+LMXYJuKyAR
+aIfznOsEeuxz9SbA11DSOWUYkW6axO7ac+28T08Tp3juk3cCeeRDIeWVEjpS8ySf
+voyO7C5Ofg0cxzMamVkyW1X9sr6/avZ7zju2E+1fSx7Ep5LqPtLZfT0/yqz3lCkm
+DZjzhqXCXNzYPXLMvVznNl/2Ii07WZkBWnaHlYoI3eWbQDHYiaSosHaUCPIespHK
+XbbXE2hCCjz5sMtw+2EGKTyxBcYIKaJVRYnSZ+zY+kXNkGTSdfcTJMAuN58ZDeDq
+/nNeeUMcO6r4md3kBYx1E9oZGtQQueyiCbAUiA0GnEE+daBPCjTzm4Gy4w7fp2FP
+4xgNFsW5iCaa52HUIj+rxsfOflTkPUWQQl3qw0YNwVm7PUdyaxGqbNIpeoxbq7H/
+X00BXKlA1cdWA9Au39uxe7erB989pUFf/9Eh4HgBaPACZTbOxQWZeo0h0s2+7Wde
+SNNCGVYKCL1ddji5zbgb5f5s/ZvbHpNme8EEO/dFmH75/i+Io3Pu0CYlR1AOQmIO
+f2oo02rJr/QqyIPS8Mj5BuInTSurD8crvM4rfoy8U2nDhu29Q5VD7aNOLACY/WBH
+NZcRJKJ9grwGT/iZWz/w9A/w7/OuSD0hqf2FguqwjIJcXI8G443vRI+JmouMtrbc
+qyortO+NSVgL8UySrpTL
+=TFUE
 -----END PGP SIGNATURE-----
 
---LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2--
+--K3Xe2W6ws9fCUl5TirCTFoUWljKQ6EINN--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
