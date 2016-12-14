@@ -1,78 +1,57 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 0/2] IB/rdmavt: cq ktrhead worker fix and API update
-Date: Wed, 14 Dec 2016 12:17:26 -0500
-Message-ID: <8f55e78f-0c3b-c2ff-14f7-844d68a5d212@redhat.com>
-References: <1476878840-14548-1-git-send-email-pmladek@suse.com>
- <1476968182.23693.14.camel@intel.com>
+Subject: Re: [PATCH] IB/isert: do not ignore errors in dma_map_single()
+Date: Wed, 14 Dec 2016 12:51:40 -0500
+Message-ID: <76723a14-43dd-b25a-c863-7f95cfc129e6@redhat.com>
+References: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1476968182.23693.14.camel@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "pmladek@suse.com" <pmladek@suse.com>, "Hefty, Sean" <sean.hefty@intel.com>
-Cc: "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "tj@kernel.org" <tj@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+ boundary="LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2"
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
+Sender: target-devel-owner@vger.kernel.org
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>, Sagi Grimberg <sagi@grimberg.me>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco
-Content-Type: multipart/mixed; boundary="CUCLBb0OCKqOP5c3esQOvcm4lthXGUBvr";
+--LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2
+Content-Type: multipart/mixed; boundary="HvDqPFBI4q8e25RimPaR8qUeK804GsUNm";
  protected-headers="v1"
 From: Doug Ledford <dledford@redhat.com>
-To: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>,
- "pmladek@suse.com" <pmladek@suse.com>, "Hefty, Sean" <sean.hefty@intel.com>
-Cc: "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>,
- "tj@kernel.org" <tj@kernel.org>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Message-ID: <8f55e78f-0c3b-c2ff-14f7-844d68a5d212@redhat.com>
-Subject: Re: [PATCH 0/2] IB/rdmavt: cq ktrhead worker fix and API update
-References: <1476878840-14548-1-git-send-email-pmladek@suse.com>
- <1476968182.23693.14.camel@intel.com>
-In-Reply-To: <1476968182.23693.14.camel@intel.com>
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+ Sagi Grimberg <sagi@grimberg.me>
+Cc: Sean Hefty <sean.hefty@intel.com>,
+ Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
+ target-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+ ldv-project@linuxtesting.org
+Message-ID: <76723a14-43dd-b25a-c863-7f95cfc129e6@redhat.com>
+Subject: Re: [PATCH] IB/isert: do not ignore errors in dma_map_single()
+References: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <1477087281-26275-1-git-send-email-khoroshilov@ispras.ru>
 
---CUCLBb0OCKqOP5c3esQOvcm4lthXGUBvr
-Content-Type: text/plain; charset=utf-8
+--HvDqPFBI4q8e25RimPaR8qUeK804GsUNm
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/20/2016 8:56 AM, Dalessandro, Dennis wrote:
-> On Wed, 2016-10-19 at 14:07 +0200, Petr Mladek wrote:
->> The kthread worker API has been improved in 4.9-rc1. The 2nd
->> patch uses the new functions and simplifies the kthread worker
->> creation and destroying.
->>
->> I have found a possible race when working on the API conversion.
->> A proposed fix is in the 1st patch.
->>
->> Both changes are compile tested only. I did not find an easy way
->> how to test them at runtime.
->>
->> Petr Mladek (2):
->>   IB/rdmavt: Avoid queuing work into a destroyed cq kthread worker
->>   IB/rdmavt: Handle the kthread worker using the new API
->>
->>  drivers/infiniband/sw/rdmavt/cq.c | 64 +++++++++++++++++----------
->> ------------
->>  1 file changed, 27 insertions(+), 37 deletions(-)
+On 10/21/2016 6:01 PM, Alexey Khoroshilov wrote:
+> There are several places, where errors in dma_map_single() are
+> ignored. The patch fixes them.
 >=20
-> Thanks for the patches. I'm going to take a closer look, I just now
-> seen these.
+> Found by Linux Driver Verification project (linuxtesting.org).
 >=20
-> -Denny
->=20
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 
-These looked good to me, and you haven't objected, so I'm taking this
-series.  Thanks.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---CUCLBb0OCKqOP5c3esQOvcm4lthXGUBvr--
+--HvDqPFBI4q8e25RimPaR8qUeK804GsUNm--
 
---hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco
+--LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -81,19 +60,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUX6mAAoJELgmozMOVy/dSQAQALEwNGD/PbZDlMVyFwcvyBci
-XBuMXRpGp0CFjHYrwP/mEwdmmFQ97hpt/ukdEhgTiFNqk/9Bw6/bDJO/KJ8/mN2c
-9kNVhpX8ApcIifFdstz33vDK068KyWSvk+c30BfLOvfOyhL5QpQVlxoIsLqrXdP3
-BWS0smTr2yiKUuj8W5rUpY+Q9aK7ehQMiFghFzaX/B8kNjZA3eVK/HSazO2nPJEG
-Oe157w5Y65C6Zt8QOelIJFiMSK+hd+teRedxDZkqibCdAAYkaNe0QbiUPb83u/jn
-JQy50PE/rnjeztjXRQaxh6aX3U5U74XY9Nlpv8jLyvu2t3CC42JKjVpB9mLykRGY
-/+ptKSWn1DfcMq5/TvBd22HSjwQm5w5hfjVwMrvfU7iYhw+huQsyMlunSMvZ8gq2
-5RKBe49xtdOfEVOIGPF5XrQe5w+UyVDOjd8njxIc95BQjY1sTybkq7kl9Dn9J1Yp
-9lX/sf5NcjeMarkDileI4bZo1wEdRMuotDJXuYfaehYK1HGCvUqwYi8N4rAMzoN5
-XIkHqrH+zB+Xi1gisug5a3vB/401xKxM3NMLKX7heGhgXuLtOQL93kBpBjaPSPPZ
-X7qieRWKqF3yKIujTnh1kHtgrOz/Ilc3a0gYmanREC5dOlqWWLGZShSmH4Xvf/sp
-ZCwabVXLFzCcfRz9TxQA
-=X+/4
+iQIcBAEBCAAGBQJYUYasAAoJELgmozMOVy/dHDgP/09O0UKlpKYApql8vW2lBwU7
+cTXc20QFSfcTBheEN8AIAWleKPl0dIkAfSt9u9lMUJXW69iZpHB+pmDaI9K8xirD
+B13LKkf23jPWp7AL9Jpqjr9KHeymIt9VszF/bJURi3ctq12Qt5Q1mtJjKkJoCN7r
+PxMG1KLXAlMoZFmC/S3BZTCjKmFZYggpYH8XXZOw6tMGinHwIhz6OlI6ZGNQIUN8
+14tVG7NXV9ySWl5+Gq+kbqHTHjmM+W4fpEMcv+440COfHU28lIzUZn9rIVY9mH28
+VPH3rtIey+x7YJQitQy+apKze6uvdelxYP1BKeVPE958kGz2uUEXa8/HWDp6SH0i
+BEBu8WxSxTeQKGA9QyIVNmj/Z77Rr/cnBT2RjVjz9T0AA78i0cR13aqRtK+1ftEY
+FGvzwBSmjI6UBOnDUM2vi3V+EiWB+ckn2D7AAox//rYd302sSbnIJPk2SjnZsLPc
+Kcx5ZQBGQ8vl+8EeLnmvfQ760FDMMMKDo3jnoiMBrtRf1MYIbKB0Qqbw63b94LrO
+KWuuzNZpOlTPOD3PWbIm21B4yhWzhmIlr8MUiCT7GNOeFGTmUNcISSVLEpAOyIJ7
+xlAnda3uNfzuUH7a7XHi9veDy8SkqOnWfcRJ8Pcl6tgnjuqpuQg3hjPKDqylSjoP
+gs27dxn2SVmkGpDuW9M7
+=eMyj
 -----END PGP SIGNATURE-----
 
---hnj1IrEO6rVBfqwDhF3DmMFBSIDiw4fco--
+--LJiQlCBamA5pTUNRvMSIibKmQMkBfTfT2--
