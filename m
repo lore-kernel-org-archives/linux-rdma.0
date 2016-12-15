@@ -1,107 +1,88 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Thu, 15 Dec 2016 13:19:18 -0500
-Message-ID: <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20161215170713.GD3264@obsidianresearch.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
+ variable
+Date: Thu, 15 Dec 2016 20:35:37 +0200
+Message-ID: <20161215183537.GH811@mtr-leonro.local>
+References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
+ <1481306104-19352-9-git-send-email-tatyana.e.nikolova@intel.com>
+ <20161210143421.GC2521@mtr-leonro.local>
+ <13AA599688F47243B14FCFCCC2C803BB10AC7081@fmsmsx104.amr.corp.intel.com>
+ <20161214171111.GA4521@mtr-leonro.local>
+ <20161214212103.GA6947@obsidianresearch.com>
+ <20161215064807.GB811@mtr-leonro.local>
+ <20161215165420.GA3264@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="xAMPl5jDJBWlK3FQp4N5f5QscxMK1Smh4"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161215170713.GD3264@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Leon Romanovsky <leon@kernel.org>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, "David S. Miller" <davem@davemloft.net>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com
+        protocol="application/pgp-signature"; boundary="HuscSE0D68UGttcd"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161215165420.GA3264-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---xAMPl5jDJBWlK3FQp4N5f5QscxMK1Smh4
-Content-Type: multipart/mixed; boundary="7f3fhwpxcNLGMW5MXnvUbHmtRsV4f0tt0";
- protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Leon Romanovsky <leon@kernel.org>,
- Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
- "David S. Miller" <davem@davemloft.net>,
- "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>,
- linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
- dennis.dalessandro@intel.com
-Message-ID: <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20161215170713.GD3264@obsidianresearch.com>
-In-Reply-To: <20161215170713.GD3264@obsidianresearch.com>
+--HuscSE0D68UGttcd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---7f3fhwpxcNLGMW5MXnvUbHmtRsV4f0tt0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 15, 2016 at 09:54:20AM -0700, Jason Gunthorpe wrote:
+> On Thu, Dec 15, 2016 at 08:48:07AM +0200, Leon Romanovsky wrote:
+>
+> > > I was thinking more like a standard:
+> > >
+> > >   VERBS_PROVIDER_DEBUG=qp,ah,blah
+> > >
+> > > parser since other than mlx5 that is what providers use env vars for.
+> >
+> > It is not providers only, but many other libraries in rdma-core are
+> > using env variables for tuning (libibverbs/librdmacm/rdma-ndd).
+>
+> Other things have different requirements, eg all the *daemons* should
+> be using the system log and use a command line arg to enable debug,
+> rdma-ndd is doing it OK for instance.
 
-On 12/15/2016 12:07 PM, Jason Gunthorpe wrote:
-> On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
->=20
->> 1) Since your intent is to make this work with multiple versions of th=
-e
->> hfi drivers, I disagree with Jason that just because there is only one=
+I had in mind much simplier infrastucture, just add pr_debug(..) call
+and allow every provider to place in any place in their code.
 
->> driver today that we should keep it simple.  Design it right from the
->> beginning of multi driver is your intent is, IMO, a better way to go.
->> You'll work out the bugs in the initial implementation and when it com=
-es
->> time to add the second driver, things will go much more smoothly.
->=20
-> If that is your position then this should be a straight up IB ULP that
-> works with any IB hardware.
+My main point is that I want to see all ENV variables in one place.
 
-Yes, see my comments in point #3 of my previous email...
+>
+> I think it is reasonable to focus on small tasks, considering how much
+> there is to do. In this case hoisting only the provider debug
+> mechanism to util seems like enough and fixes the ugly problem with
+> i40iw where it unconditionally prints debug information to stderr..
 
-> There is nothing HFI specific about it except for the
-> micro-optimization of pushing packets via SDMA instead of post_send,
-> and that same micro optimization probably applies to ipoib.
->=20
-> In other words, lets see the first version as a straight ULP with no
-> special HFI hooks, then we can discuss how best to micro optimize it
-> for HFI SDMA.
->=20
+
+>
 > Jason
->=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG Key ID: 0E572FDD
-
-
---7f3fhwpxcNLGMW5MXnvUbHmtRsV4f0tt0--
-
---xAMPl5jDJBWlK3FQp4N5f5QscxMK1Smh4
+--HuscSE0D68UGttcd
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYUt6mAAoJELgmozMOVy/dDYEP/3GykcLCvyjCy4f0bmNQAkpe
-Ld4ncBEdvCNHozf+LTmU/FJ55Vas7lxONdN7TaystgxUiB/9E7uY9to0x9iVH+SM
-93kbmi4OmRUVqEsAJqtihtCHJ+IsuzTGBQROEEwZrxP8bnXWblbGEBaI1Th9hw7K
-mqYVgZgDLAtoNUhHEru0fbO/SN3k3+NHfh0N7xPuqhWZnx2+jhdmYLnO4sGbRijn
-P5HVU+cdVkdey9AzJFxcIPHz8Wy4JFkOBJgYd3OauEvEv7XAVLxNUiNpvnYYz2hw
-BfjL0kWU7QCFqVkVJb57A8C9LrXtCNHqG7lPbO1HzuazJX7CpCs9njxfICc8+htV
-TXonQcM9stqn4HeBrf4nZPDOBU8b73N5IlginCMSUoRgELX2fWgLKzooefA7JEGr
-rxe1AgGBnUP1E08fralDc7D7VhxyjJj4s70Vs95ve4PQ0q/a7X4K7d/lIzy+ajmf
-kGzLIP6yGn/JX+HMCg57T7z3eu4c567ZDuVWze7f94eugwA8YokRk/a3ozl3xV8d
-ZPmVcVTjn4AIL3HzJCswazwv8rY75ZPKb+L4PRnBIfEprWtizoBL9EndIeYsGkmw
-zVEMhH+224oSaj8o+JdHIMBEpTpVV4R8gECZ3OlyQbjjEQXQoDOhonFsL/U26Egn
-UoyGyU2mHN5eHh+j5tKH
-=EcLi
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhS4ngACgkQ5GN7iDZy
+WKc94RAAxZz4IuV1xKrbg/E/GKkmEkS3mLga3H8moN3fLx5ES3anVlBwkn7UiS0I
+rSYcgrrNtrWlpE43gyUNFpgViqp2/AJxx4FxT2dY+NHjjJK5dxJtdOZta3FVsFKp
+eVOotdnhIWWWokFJp+8q4K76W5OvILZO/VDMPV9QnJyJ7h2oxnt+E8/af+leXhmf
+kTguZe031jloRp37JoUdLTxRA89cCuODtH5VMOa25NPiOE3zhVNtDeTgb619HC14
+aR7S+68QOS/XMnXZV41YP11VzsHC9y5N3lnG9MmGaH8dKgiyUNGhP8+t5/afi4ga
+bNcv0VUKV5tbmbKFxX9z0RXymajN4WdCtlVep7++A4nlBtCMRPtNitkz7mPsjymU
+I2kIYgnjYnlRAp2fm0UdfsmEzvigLkvxCVFClZnvR8xz4ZRn2+eRg1grEpCKc0ws
+zmPl0nu6kaOW6s5CXbdcD+D8D/Svs/76UkY1Wbjn0O7TQwO5vOYd1uOO886cNy1w
+bwIR6GYOdCNCVCyy3fSzArQpGoAWopedQJvqkLdEXGx7MCKHjv81vxZDl1kmd4sn
+KB7XXoWHnJX6A0SmrR2yCYMA/a8FPdV7I7BSwiabcOqVs7+DNfcvuIklyuQ+i67h
+oN6Dl/gK4ePGKMIahBb0Ot1IuLrMVtIRg72aZKFQtaOU88hYr3A=
+=uy+B
 -----END PGP SIGNATURE-----
 
---xAMPl5jDJBWlK3FQp4N5f5QscxMK1Smh4--
+--HuscSE0D68UGttcd--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
