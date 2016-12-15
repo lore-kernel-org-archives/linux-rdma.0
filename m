@@ -1,43 +1,22 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Thu, 15 Dec 2016 10:07:13 -0700
-Message-ID: <20161215170713.GD3264@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [RFC v2 03/10] IB/hfi-vnic: Virtual Network Interface
+ Controller (VNIC) netdev
+Date: Thu, 15 Dec 2016 17:21:05 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0C9556@ORSMSX109.amr.corp.intel.com>
 References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
+ <1481788782-89964-4-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161215170109.GC3264@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <380b05bf-a18e-1f20-7e8e-10b61f77dec7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161215170109.GC3264@obsidianresearch.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, "Warrier, Sadanand" <sadanand.warrier@intel.com>, "Dutt, Sudeep" <sudeep.dutt@intel.com>, "Jajodia, Tanya K" <tanya.k.jajodia@intel.com>, "Kacprowski, Andrzej" <Andrzej.Kacprowski@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
+> This goes on the network too? Also looks like it has endian problems.
 
-> 1) Since your intent is to make this work with multiple versions of the
-> hfi drivers, I disagree with Jason that just because there is only one
-> driver today that we should keep it simple.  Design it right from the
-> beginning of multi driver is your intent is, IMO, a better way to go.
-> You'll work out the bugs in the initial implementation and when it comes
-> time to add the second driver, things will go much more smoothly.
-
-If that is your position then this should be a straight up IB ULP that
-works with any IB hardware.
-
-There is nothing HFI specific about it except for the
-micro-optimization of pushing packets via SDMA instead of post_send,
-and that same micro optimization probably applies to ipoib.
-
-In other words, lets see the first version as a straight ULP with no
-special HFI hooks, then we can discuss how best to micro optimize it
-for HFI SDMA.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't think OPA supports BE systems, and I think it uses LE on the wire for at least some portions of its protocol.
