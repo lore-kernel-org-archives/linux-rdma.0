@@ -1,81 +1,134 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 2/4] IB/core: Support rate limit for packet pacing
-Date: Thu, 15 Dec 2016 21:48:35 -0500
-Message-ID: <20161216024834.GA27188@phlsvsds.ph.intel.com>
-References: <1480592596-20126-1-git-send-email-leon@kernel.org> <1480592596-20126-3-git-send-email-leon@kernel.org> <1828884A29C6694DAF28B7E6B8A82373AB0BA789@ORSMSX109.amr.corp.intel.com> <20161202143957.GF4497@leon.nu> <HE1PR0501MB28122735F9F3DFD700B43BFBB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com> <67d4e948-0ada-bd75-8855-79eed2ae9a7b@redhat.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
+ variable
+Date: Thu, 15 Dec 2016 22:19:17 +0200
+Message-ID: <20161215201917.GL811@mtr-leonro.local>
+References: <20161210143421.GC2521@mtr-leonro.local>
+ <13AA599688F47243B14FCFCCC2C803BB10AC7081@fmsmsx104.amr.corp.intel.com>
+ <20161214171111.GA4521@mtr-leonro.local>
+ <20161214212103.GA6947@obsidianresearch.com>
+ <20161215064807.GB811@mtr-leonro.local>
+ <20161215165420.GA3264@obsidianresearch.com>
+ <20161215183537.GH811@mtr-leonro.local>
+ <20161215185034.GB16552@obsidianresearch.com>
+ <20161215191751.GJ811@mtr-leonro.local>
+ <13AA599688F47243B14FCFCCC2C803BB10AC7E53@fmsmsx104.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="I4VOKWutKNZEOIPu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <67d4e948-0ada-bd75-8855-79eed2ae9a7b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <13AA599688F47243B14FCFCCC2C803BB10AC7E53-96pTJSsuoYQ64kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 14, 2016 at 02:03:14PM -0500, Doug Ledford wrote:
-> On 12/4/2016 6:53 AM, Liran Liss wrote:
-> >> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> >> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> > 
-> >>
-> >> On Thu, Dec 01, 2016 at 07:40:44PM +0000, Hefty, Sean wrote:
-> >>>>  enum ib_qp_state {
-> >>>> @@ -1151,6 +1152,7 @@ struct ib_qp_attr {
-> >>>>  	u8			rnr_retry;
-> >>>>  	u8			alt_port_num;
-> >>>>  	u8			alt_timeout;
-> >>>> +	u32			rate_limit;
-> >>>>  };
-> >>>
-> >>> And I still disagree with this approach, as there is already an existing field in the
-> >> API that limits rate.
-> >>
-> >> Hi Sean,
-> >>
-> >> We would like to elaborate more on the subject, and we need your help here.
-> >> Our cover letter [1] has description why the existing field is not enough. Can you
-> >> write a little bit more why you didn't like the proposed approach to an existing
-> >> and real problem?
-> >>
-> > 
-> > Clearly, we need a new field that is greater than 8 bits that uses different encoding (actual rate rather than a predefined enumeration of values).
-> > 
-> > However, this is not only a new field - this rate is also conceptually different than AH static rate:
-> > 1) It is not related to the fabric path.
-> > 2) It is determined by the application rather than the fabric.
-> > 3) It needs to apply to QPs that don't use AH (raw Ethernet QPs)
-> > 
-> > Of course, we might require raw Ethernet QPs to use an AH just for the sake of rate-limiting.
-> > But 1) + 2) indicate that this should be a concept orthogonal to network paths. In fact, it could apply to RC and UD QPs as well.
-> > In addition, if we implement full connection establishment in the kernel (i.e., the static_rate field is filled in the kernel), we would still like to allow applications to further restrict their rate using a different component mask.
-> > --Liran
-> > 
-> 
-> I applied this series.  I agree with Liran that the need for something
-> other than an enum to denote rates is needed.  We will have to work out
-> exactly how to present this to user space (keep both, replace
-> static_rate and bumb the verbs API number, other options?)
+--I4VOKWutKNZEOIPu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I think in the new ioctl interface values like this should be more generic.
-MTU is another example.
+On Thu, Dec 15, 2016 at 07:55:18PM +0000, Nikolova, Tatyana E wrote:
+> Hi Leon,
+>
+> Please see inline.
+>
+> > -----Original Message-----
+> > From: Leon Romanovsky [mailto:leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> > Sent: Thursday, December 15, 2016 1:18 PM
+> > To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > Cc: Nikolova, Tatyana E <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>;
+> > dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-
+> > rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
+> > variable
+> >
+> > On Thu, Dec 15, 2016 at 11:50:34AM -0700, Jason Gunthorpe wrote:
+> > > On Thu, Dec 15, 2016 at 08:35:37PM +0200, Leon Romanovsky wrote:
+> > >
+> > > > I had in mind much simplier infrastucture, just add pr_debug(..)
+> > > > call and allow every provider to place in any place in their code.
+> > >
+> > > I think the bitmask thing has to be hoisted too.
+> > >
+> > > > My main point is that I want to see all ENV variables in one place.
+> > >
+> > > Why?
+> >
+> > There are two reasons:
+> > 1. Easy to document and for curious users to spot all possible variables.
+>
+> [Tatyana Nikolova] Thank you for providing an example for the environment variables. IMO the malloc implementation brings unnecessary overhead in terms of memory and code.
 
-FWIW I agree with Sean that static rate should have been changed to accommodate
-this expanded meaning.
+It is in init phase and it will take the same amount of space as other
+global varibles now. i40w will have one ENV entry now -> it will have
+one field in that struct -> malloc will be the same.
 
-With this new structure definition which rate is in effect?  Are devices
-supposed to take the min of the 2?
+>
+> A text file containing all environment variables and updated every time a new environment variable is added sounds like a good idea to keep them in one place.
 
-Ira
+If it will be one place and won't requre from us to remind and remember
+to update the same information in multiple places, I'm ok.
 
-> 
-> -- 
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: 0E572FDD
-> 
+>
+> > 2. It helps to potential authors to reuse variables instead of inventing their
+> > own.
+>
+> [Tatyana Nikolova]
+>
+> Jason gave an example with " VERBS_PROVIDER_DEBUG=qp,ah,blah". Should all of the environment variables, enabling other features in rdma-core use a similar approach?
 
+I think that Jason is over designing it, but it is better to ask him
+about it.
 
+>
+> Current environment variables are provider specific. How are they going to be reused without renaming? Renaming may create issues with applications and scripts already using the existing ones.
 
+#define NEW_VARIABLE OLD_VARIABLE
+
+>
+> > >
+> > > I really don't want to see util/ files include provider headers, for
+> > > instance, so I don't like your SET() macro idea..
+> > >
+> > > At this point I'd settle for having all ENV vars *documented* in one
+> > > place :(
+> >
+> > See, reason #1 :)
+> >
+> > >
+> > > Jason
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> > > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+> > majordomo
+> > > info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--I4VOKWutKNZEOIPu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhS+sUACgkQ5GN7iDZy
+WKcqgRAArtPlkcKyPsXG5pTeJcJNWi8O62xL5RxUIk8FveGeGLi9oGnwz7yhnJLC
++GkXqQydQBM8cq13xXBB/3MS/9Cbj94pA+R48GVFQ5raeQDS+NM/YIvx9lZpJvnx
+BkBkJpfP+MYB+KoWeldqTpwx/a+0INHqAjJhWoIAcpxpn0fNpAXLVbFP/m/S1B8K
+63TTWnrKTi+zzO7R2YnLnIwT6IJaTlovbYRpGTB+CeYwhBBJloTapvS2sZAKsvWw
+88Vm4PCEj4NV5z89yufqYT4jMaaLfIC1A4wOl/gV92w2mvcfZm+OhZAtfjh8eDXK
+fCVDXv5emjVK8UrUMris/KzDrq6yhbte2FwQCnIGTIqDQ2Js7C0DXwfiDExE1gMz
+oHA6+8b+voCrPFvNEhtwskoskBPj5OOQ/cbStPPVRjxV8rIQjlCFmirUFk0MHiKP
+EsUtFa5mfqbdzQujNFiL1wAhcQ/xQeZ5P0UOpym20x4YKcc4bD2+fq48XpftK+ih
+2Dutjlb7xzvlghOuJjsYwFG+hhzutPpvtnFRo3wQmcPS1G8PRiK+TkKfLjKkprKi
+rgACaVpkJs6ObfSbQZZHMXQNuWDkFujt801THqPfmgcKzuoQ3uq0hRuywKp7IyfF
+BeOGSSMftqn9uScJDXBUlBLJzHhN8inKebVN0mzy5SFz/p//Npw=
+=5baJ
+-----END PGP SIGNATURE-----
+
+--I4VOKWutKNZEOIPu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
