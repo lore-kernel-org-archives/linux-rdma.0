@@ -1,87 +1,60 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
- variable
-Date: Thu, 15 Dec 2016 20:35:37 +0200
-Message-ID: <20161215183537.GH811@mtr-leonro.local>
-References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
- <1481306104-19352-9-git-send-email-tatyana.e.nikolova@intel.com>
- <20161210143421.GC2521@mtr-leonro.local>
- <13AA599688F47243B14FCFCCC2C803BB10AC7081@fmsmsx104.amr.corp.intel.com>
- <20161214171111.GA4521@mtr-leonro.local>
- <20161214212103.GA6947@obsidianresearch.com>
- <20161215064807.GB811@mtr-leonro.local>
- <20161215165420.GA3264@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] libqedr: fix queue wrapping logic
+Date: Thu, 15 Dec 2016 20:38:16 +0200
+Message-ID: <20161215183816.GI811@mtr-leonro.local>
+References: <1481794020-28167-1-git-send-email-Ram.Amrani@Cavium.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="HuscSE0D68UGttcd"
+        protocol="application/pgp-signature"; boundary="Rmm1Stw9KgbdL9/H"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161215165420.GA3264-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1481794020-28167-1-git-send-email-Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---HuscSE0D68UGttcd
+
+--Rmm1Stw9KgbdL9/H
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Dec 15, 2016 at 09:54:20AM -0700, Jason Gunthorpe wrote:
-> On Thu, Dec 15, 2016 at 08:48:07AM +0200, Leon Romanovsky wrote:
+On Thu, Dec 15, 2016 at 11:27:00AM +0200, Ram Amrani wrote:
+> The pointer to a CQ, SQ or RQ may wrap before reaching the end of the
+> queue for certain queue depths. This is fixed by using a wrapping logic
+> based on a pointer rather than an index.
 >
-> > > I was thinking more like a standard:
-> > >
-> > >   VERBS_PROVIDER_DEBUG=qp,ah,blah
-> > >
-> > > parser since other than mlx5 that is what providers use env vars for.
-> >
-> > It is not providers only, but many other libraries in rdma-core are
-> > using env variables for tuning (libibverbs/librdmacm/rdma-ndd).
->
-> Other things have different requirements, eg all the *daemons* should
-> be using the system log and use a command line arg to enable debug,
-> rdma-ndd is doing it OK for instance.
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Elior, Ariel <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  providers/qedr/qelr_chain.c | 24 +++++++++++++-----------
+>  providers/qedr/qelr_chain.h | 22 ++++++++++++----------
+>  providers/qedr/qelr_verbs.c | 10 +++++-----
+>  3 files changed, 30 insertions(+), 26 deletions(-)
 
-I had in mind much simplier infrastucture, just add pr_debug(..) call
-and allow every provider to place in any place in their code.
+Thanks, applied.
 
-My main point is that I want to see all ENV variables in one place.
-
->
-> I think it is reasonable to focus on small tasks, considering how much
-> there is to do. In this case hoisting only the provider debug
-> mechanism to util seems like enough and fixes the ugly problem with
-> i40iw where it unconditionally prints debug information to stderr..
-
-
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---HuscSE0D68UGttcd
+--Rmm1Stw9KgbdL9/H
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhS4ngACgkQ5GN7iDZy
-WKc94RAAxZz4IuV1xKrbg/E/GKkmEkS3mLga3H8moN3fLx5ES3anVlBwkn7UiS0I
-rSYcgrrNtrWlpE43gyUNFpgViqp2/AJxx4FxT2dY+NHjjJK5dxJtdOZta3FVsFKp
-eVOotdnhIWWWokFJp+8q4K76W5OvILZO/VDMPV9QnJyJ7h2oxnt+E8/af+leXhmf
-kTguZe031jloRp37JoUdLTxRA89cCuODtH5VMOa25NPiOE3zhVNtDeTgb619HC14
-aR7S+68QOS/XMnXZV41YP11VzsHC9y5N3lnG9MmGaH8dKgiyUNGhP8+t5/afi4ga
-bNcv0VUKV5tbmbKFxX9z0RXymajN4WdCtlVep7++A4nlBtCMRPtNitkz7mPsjymU
-I2kIYgnjYnlRAp2fm0UdfsmEzvigLkvxCVFClZnvR8xz4ZRn2+eRg1grEpCKc0ws
-zmPl0nu6kaOW6s5CXbdcD+D8D/Svs/76UkY1Wbjn0O7TQwO5vOYd1uOO886cNy1w
-bwIR6GYOdCNCVCyy3fSzArQpGoAWopedQJvqkLdEXGx7MCKHjv81vxZDl1kmd4sn
-KB7XXoWHnJX6A0SmrR2yCYMA/a8FPdV7I7BSwiabcOqVs7+DNfcvuIklyuQ+i67h
-oN6Dl/gK4ePGKMIahBb0Ot1IuLrMVtIRg72aZKFQtaOU88hYr3A=
-=uy+B
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhS4xgACgkQ5GN7iDZy
+WKfDOhAAi1UZPprdyt1hI7FxE8yhbEvwutCLsL5IS47A28Cng9hnJRwqkiWM4W5Y
+H3pm12Xg/KYQNOsepbM7/eHGBLgbEw4aiMIwyrkztw/mwZEAjbAOpEK9wfFkmEcV
+Wsr2wVlVVo2WspA+I4ZKxf6VEd9pMvFa5/l56VNq1E7Sywyg4Wdto9rpKGTpJPnG
+JimX30+biV+V5j4E26wRtHYuAxLvTE/afQnDEJWZQ0wFStvu0Y+i5S3mFTjRCaCz
+AqE0RoJDX4SDnTLkVZjgy4Sp82XMUUEiFuDo82duZs3MpKuhtSgB0otKkLXlwu7K
+ztjoDfKpiQ95pDuLYE6SwZUHbNZh+kXZRIUi41U4+Sr8XusulKazJ9g5FwBTCeMa
+epjp0py7WEvgrPywnRQm5W1M4dzKyWO6HfESa6Xh+mSy8E0z2lwsTxSeLumD+wRu
+JRURcWH5PQ0rcDMSPedwZvypyr7LPw8UZppljd0woNOu91zKRJ8S5LvKPabhttRO
+6yJtcLtBT8z1MsVVO8Y24TJxbckGd7ccmMSS+Gr2AhC0CcFSSyIHUiupK22+4O5u
+jHDeQD3LzEgLdlCC/49GI9oLiUlwR1pLZBkuH6hoSQgVObjj1xa3F+HO86neuo4F
+EQLWJSrJQC6N9kH2S95B1QxKbI/6BaYfz2niQDx2wwz6E58SiJU=
+=40lZ
 -----END PGP SIGNATURE-----
 
---HuscSE0D68UGttcd--
+--Rmm1Stw9KgbdL9/H--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
