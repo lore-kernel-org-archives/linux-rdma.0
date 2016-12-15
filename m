@@ -1,24 +1,37 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC v2 03/10] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) netdev
-Date: Thu, 15 Dec 2016 09:26:47 -0800
-Message-ID: <20161215172647.GA18991@infradead.org>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [RFC v2 02/10] IB/hfi-vnic: Virtual Network Interface
+ Controller (VNIC) interface
+Date: Thu, 15 Dec 2016 09:36:57 -0800
+Message-ID: <20161215093657.00925c10@xeon-e3>
 References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <1481788782-89964-4-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215170109.GC3264@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0C9556@ORSMSX109.amr.corp.intel.com>
- <20161215172437.GA11387@obsidianresearch.com>
+        <1481788782-89964-3-git-send-email-niranjana.vishwanathapura@intel.com>
+        <20161215085349.GA90068@knc-06.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161215172437.GA11387@obsidianresearch.com>
+In-Reply-To: <20161215085349.GA90068@knc-06.sc.intel.com>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: "Hefty, Sean" <sean.hefty@intel.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, "Warrier, Sadanand" <sadanand.warrier@intel.com>, "Dutt, Sudeep" <sudeep.dutt@intel.com>, "Jajodia, Tanya K" <tanya.k.jajodia@intel.com>, "Kacprowski, Andrzej" <Andrzej.Kacprowski@intel.com>
+To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 15, 2016 at 10:24:37AM -0700, Jason Gunthorpe wrote:
-> Do not use bitfields without providing a BE version of the bitfield.
+On Thu, 15 Dec 2016 00:53:49 -0800
+"Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com> wrote:
 
-Do not use bitfields ever for protocol defintions, period.
+> On Wed, Dec 14, 2016 at 11:59:34PM -0800, Vishwanathapura, Niranjana wrote:
+> >+
+> >+static inline bool is_hfi_ibdev(struct ib_device *ibdev)
+> >+{
+> >+	return !memcmp(ibdev->name, "hfi", 3);
+> >+}  
+> 
+> I am thinking of adding a device capability flag to indicate HFI VNIC capabilty 
+> instead of relying on the device name as above to identify a hfi ib deice.
+> Any comments? Probably it can be addressed by a separate patch later.
+> 
+> Niranjana
+> 
+> >  
+
+Agreed. device name can change at anytime.
