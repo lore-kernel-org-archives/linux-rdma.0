@@ -1,53 +1,43 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Thu, 15 Dec 2016 11:48:37 -0700
-Message-ID: <20161215184837.GA16552@obsidianresearch.com>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20161215170713.GD3264@obsidianresearch.com>
- <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com>
+Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
+ variable
+Date: Thu, 15 Dec 2016 11:50:34 -0700
+Message-ID: <20161215185034.GB16552@obsidianresearch.com>
+References: <1481306104-19352-1-git-send-email-tatyana.e.nikolova@intel.com>
+ <1481306104-19352-9-git-send-email-tatyana.e.nikolova@intel.com>
+ <20161210143421.GC2521@mtr-leonro.local>
+ <13AA599688F47243B14FCFCCC2C803BB10AC7081@fmsmsx104.amr.corp.intel.com>
+ <20161214171111.GA4521@mtr-leonro.local>
+ <20161214212103.GA6947@obsidianresearch.com>
+ <20161215064807.GB811@mtr-leonro.local>
+ <20161215165420.GA3264@obsidianresearch.com>
+ <20161215183537.GH811@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4e22bf29-2260-0768-ab17-9a8df6306f37-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161215183537.GH811-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 15, 2016 at 01:19:18PM -0500, Doug Ledford wrote:
-> On 12/15/2016 12:07 PM, Jason Gunthorpe wrote:
-> > On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
-> > 
-> >> 1) Since your intent is to make this work with multiple versions of the
-> >> hfi drivers, I disagree with Jason that just because there is only one
-> >> driver today that we should keep it simple.  Design it right from the
-> >> beginning of multi driver is your intent is, IMO, a better way to go.
-> >> You'll work out the bugs in the initial implementation and when it comes
-> >> time to add the second driver, things will go much more smoothly.
-> > 
-> > If that is your position then this should be a straight up IB ULP that
-> > works with any IB hardware.
-> 
-> Yes, see my comments in point #3 of my previous email...
+On Thu, Dec 15, 2016 at 08:35:37PM +0200, Leon Romanovsky wrote:
 
-Well, I'm not opposed to the vnic idea - Mellanox had (has?) a similar
-IB driver. There are lots of good reasons to strictly maintain the
-ethernet presentation.
+> I had in mind much simplier infrastucture, just add pr_debug(..) call
+> and allow every provider to place in any place in their code.
 
-There is much more going on here than just changing the LLADDR,
-essentially everything MAD focused is different compared to ipoib, and
-it looks like the required datastructures are different too. This is
-more of a map a mac to a OPA_LRH approach with SA mediated discovery,
-by my eye.
+I think the bitmask thing has to be hoisted too.
 
-The main share is the 'skb send' part, we've talked about hoisting
-that out of ipoib in the past anyhow. A generic verb along those lines
-would probably allow the sdma optimization for hfi for both this new
-ulp and ipoib without creating such an ugly HFI1 specific interface.
+> My main point is that I want to see all ENV variables in one place.
+
+Why?
+
+I really don't want to see util/ files include provider headers, for
+instance, so I don't like your SET() macro idea..
+
+At this point I'd settle for having all ENV vars *documented* in one
+place :(
 
 Jason
 --
