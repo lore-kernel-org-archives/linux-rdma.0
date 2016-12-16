@@ -1,55 +1,53 @@
-From: Bart Van Assche <bart.vanassche@gmail.com>
-Subject: Re: [PATCH 2/2] SRP transport, scsi-mq: Wait for .queue_rq() if
- necessary
-Date: Fri, 16 Dec 2016 13:39:52 +0100
-Message-ID: <6c4aa0b2-20ec-3ad8-065d-7288cf78fc23@sandisk.com>
-References: <39d8cb23-0406-e8c3-6e3a-a467ebe41470@sandisk.com>
- <7c9a22c1-9940-7a8d-a479-c8cc5d274c60@sandisk.com>
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
+Date: Fri, 16 Dec 2016 14:39:12 +0100
+Message-ID: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <7c9a22c1-9940-7a8d-a479-c8cc5d274c60@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: "Martin K. Petersen" <martin.petersen@oracle.com>, James Bottomley <jejb@linux.vnet.ibm.com>
-Cc: Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/23/2016 01:17 AM, Bart Van Assche wrote:
-> Ensure that if scsi-mq is enabled that scsi_internal_device_block()
-> waits until ongoing shost->hostt->queuecommand() calls have finished.
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-> Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
-> Cc: James Bottomley <jejb@linux.vnet.ibm.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Doug Ledford <dledford@redhat.com>
-> ---
->  drivers/scsi/scsi_lib.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-> index 84c9e61..11d082d 100644
-> --- a/drivers/scsi/scsi_lib.c
-> +++ b/drivers/scsi/scsi_lib.c
-> @@ -2872,7 +2872,7 @@ scsi_internal_device_block(struct scsi_device *sdev)
->  	 * request queue. 
->  	 */
->  	if (q->mq_ops) {
-> -		blk_mq_stop_hw_queues(q);
-> +		blk_mq_quiesce_queue(q);
->  	} else {
->  		spin_lock_irqsave(q->queue_lock, flags);
->  		blk_stop_queue(q);
-> 
+Hello Moni,
 
-Hello Martin,
-
-It seems like patch 1/2 of this series is already present in Linus' tree
-but patch 2/2 not yet? Can you queue this patch for the next pull
-request that will be sent to Linus?
+Commit 7b85627b9f02 ("IB/cma: IBoE (RoCE) IP-based GID addressing") introduced code that
+dereferences an RCU pointer without using rcu_read_lock(). Can you check whether the patch
+below is the correct way to fix this?
 
 Thanks,
 
 Bart.
+
+---
+ include/rdma/ib_addr.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index 931a47ba4571..1beab5532035 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -205,10 +205,12 @@ static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+ 
+ 	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
+ 	if (dev) {
+-		ip4 = (struct in_device *)dev->ip_ptr;
+-		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
++		ip4 = in_dev_get(dev);
++		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address) {
+ 			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
+ 					       (struct in6_addr *)gid);
++			in_dev_put(ip4);
++		}
+ 		dev_put(dev);
+ 	}
+ }
+-- 
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
