@@ -1,127 +1,78 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] IB/core: add port state cache
-Date: Thu, 15 Dec 2016 18:17:24 -0500
-Message-ID: <20161215231723.GA3785@phlsvsds.ph.intel.com>
-References: <CAMGffE=gytHRs+SVOmNPCkWX6tZ9hkeFznqeQQs-TFJMMJi97g@mail.gmail.com> <6b60d6b1-96ce-3710-7716-0df4b1895c44@mellanox.com> <CAMGffEnjVjEEFM8+vFKZMvyFwgaUjp03Opo42V+OsQHN8Fz5BA@mail.gmail.com>
+Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
+Date: Thu, 15 Dec 2016 20:24:05 -0500
+Message-ID: <20161216012404.GD3785@phlsvsds.ph.intel.com>
+References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com> <20161215091226.GC811@mtr-leonro.local> <20161215145212.GA29116@phlsvsds.ph.intel.com> <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com> <20161215170713.GD3264@obsidianresearch.com> <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com> <20161215184837.GA16552@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAMGffEnjVjEEFM8+vFKZMvyFwgaUjp03Opo42V+OsQHN8Fz5BA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20161215184837.GA16552-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 12, 2016 at 01:31:11PM +0100, Jinpu Wang wrote:
-> On Mon, Dec 12, 2016 at 1:11 PM, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > Hi,
-> >
-> > On 12/12/2016 1:43 PM, Jinpu Wang wrote:
-> >> From fc80c1730d94a38934c5c60f9b9561745723dfd9 Mon Sep 17 00:00:00 2001
-> >> From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> >> Date: Mon, 12 Dec 2016 09:52:42 +0100
-> >> Subject: [PATCH 1/4] IB/core: add port state cache
-> >>
-> >> We need a port state cache in ib_core, later we will use in rdma_cm.
-> >>
-> >> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> >> Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> >> ---
-> >>  drivers/infiniband/core/cache.c | 9 ++++++++-
-> >>  include/rdma/ib_verbs.h         | 1 +
-> >>  2 files changed, 9 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-> >> index 1a2984c..025db27 100644
-> >> --- a/drivers/infiniband/core/cache.c
-> >> +++ b/drivers/infiniband/core/cache.c
-> >> @@ -1109,6 +1109,8 @@ static void ib_cache_update(struct ib_device *device,
-> >>      }
-> >>
-> >>      device->cache.lmc_cache[port - rdma_start_port(device)] = tprops->lmc;
-> >> +    device->cache.port_state_cache[port - rdma_start_port(device)] =
-> >> +        tprops->state;
-> >>
-> >>      write_unlock_irq(&device->cache.lock);
-> >>
-> >> @@ -1168,7 +1170,11 @@ int ib_cache_setup_one(struct ib_device *device)
-> >>                        (rdma_end_port(device) -
-> >>                         rdma_start_port(device) + 1),
-> >>                        GFP_KERNEL);
-> >> -    if (!device->cache.pkey_cache ||
-> >> +    device->cache.port_state_cache = kmalloc(sizeof
-> >> *device->cache.port_state_cache *
-> >> +                      (rdma_end_port(device) -
-> >> +                       rdma_start_port(device) + 1),
-> >> +                      GFP_KERNEL);
-> >> +    if (!device->cache.pkey_cache || !device->cache.port_state_cache ||
-> > Looking at the code, I see we can leak memory here.
-> > if pkey_cache is allocated but lms_cache is not, we will return without freeing pkey_cache (or the other way around)
-> > your code adds port_state_cache to the mix but with the same issue.
-> > I guess that should be fixed.
-> >
-> Hi Mark,
+On Thu, Dec 15, 2016 at 11:48:37AM -0700, Jason Gunthorpe wrote:
+> On Thu, Dec 15, 2016 at 01:19:18PM -0500, Doug Ledford wrote:
+> > On 12/15/2016 12:07 PM, Jason Gunthorpe wrote:
+> > > On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
+> > > 
+> > >> 1) Since your intent is to make this work with multiple versions of the
+> > >> hfi drivers, I disagree with Jason that just because there is only one
+> > >> driver today that we should keep it simple.  Design it right from the
+> > >> beginning of multi driver is your intent is, IMO, a better way to go.
+> > >> You'll work out the bugs in the initial implementation and when it comes
+> > >> time to add the second driver, things will go much more smoothly.
+> > > 
+> > > If that is your position then this should be a straight up IB ULP that
+> > > works with any IB hardware.
+> > 
+> > Yes, see my comments in point #3 of my previous email...
 > 
-> Not really. The release was done by ib_dealloc_device() when put the
-> last ref of kobj,
-> dev_release -> ib_device_release -> ib_cache_release_one, driver was supposed
-> to use it to destroy the device when register failed.
+> Well, I'm not opposed to the vnic idea - Mellanox had (has?) a similar
+> IB driver. There are lots of good reasons to strictly maintain the
+> ethernet presentation.
 
-This is really odd though.
+Agreed.  I'm pretty worried about the idea of putting VNIC into IPoIB.  It
+seems like a force fit at best.
+
+> 
+> There is much more going on here than just changing the LLADDR,
+> essentially everything MAD focused is different compared to ipoib, and
+> it looks like the required datastructures are different too. This is
+> more of a map a mac to a OPA_LRH approach with SA mediated discovery,
+> by my eye.
+> 
+> The main share is the 'skb send' part, we've talked about hoisting
+> that out of ipoib in the past anyhow. A generic verb along those lines
+> would probably allow the sdma optimization for hfi for both this new
+> ulp and ipoib without creating such an ugly HFI1 specific interface.
+
+I'm not sure what you mean about "skb send" being used by ipoib.  Right now
+IPoIB already supplies a "generic skb send" for _Verbs_ in ipoib_send.
+
+I don't know what other devices would do to implement ipoib_send?  To me, it
+seems like the abstraction for IPoIB is at the proper layer now.
+
+For OPA, the hfi driver supports both IPoIB and VNIC.  So expecting IPoIB and
+VNIC to use a generic "skb send" in ib_device is going to make hfi1 do a lot of
+work to determine which ULP is calling it or make the interface kind of ugly.
+Either way I don't see how this is better than a separate set of functions.
+
+IMO the cleanest way to "clean up the ugly HFI1 interface" is to just  put the
+VNIC operations into ib_device similar to the iWarp specific structure
+"iw_cm_verbs" which is there today.
+
+If a device supports the VNIC operations then it can set the pointer and if not
+it will be NULL.  VNIC will look for that pointer for the support it needs.  If
+in the future other devices need modifications to that interface we can modify
+it then.
 
 Ira
 
 > 
-> Cheers,
-> Jinpu
-> 
-> >>          !device->cache.lmc_cache) {
-> >>          pr_warn("Couldn't allocate cache for %s\n", device->name);
-> >>          return -ENOMEM;
-> >> @@ -1213,6 +1219,7 @@ void ib_cache_release_one(struct ib_device *device)
-> >>      gid_table_release_one(device);
-> >>      kfree(device->cache.pkey_cache);
-> >>      kfree(device->cache.lmc_cache);
-> >> +    kfree(device->cache.port_state_cache);
-> >>  }
-> >>
-> >>  void ib_cache_cleanup_one(struct ib_device *device)
-> >> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> >> index 5ad43a4..a167ae0 100644
-> >> --- a/include/rdma/ib_verbs.h
-> >> +++ b/include/rdma/ib_verbs.h
-> >> @@ -1761,6 +1761,7 @@ struct ib_cache {
-> >>      struct ib_pkey_cache  **pkey_cache;
-> >>      struct ib_gid_table   **gid_cache;
-> >>      u8                     *lmc_cache;
-> >> +    enum ib_port_state     *port_state_cache;
-> >>  };
-> >>
-> >>  struct ib_dma_mapping_ops {
-> >>
-> >
-> > Mark.
-> 
-> 
-> 
-> -- 
-> Jinpu Wang
-> Linux Kernel Developer
-> 
-> ProfitBricks GmbH
-> Greifswalder Str. 207
-> D - 10405 Berlin
-> 
-> Tel:       +49 30 577 008  042
-> Fax:      +49 30 577 008 299
-> Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> URL:      https://www.profitbricks.de
-> 
-> Sitz der Gesellschaft: Berlin
-> Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-> Geschäftsführer: Achim Weiss
+> Jason
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
