@@ -1,173 +1,123 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 2/4] IB/core: Support rate limit for packet
- pacing
-Date: Thu, 15 Dec 2016 22:53:51 -0500
-Message-ID: <2fb4958f-ea10-f326-0002-6bd9ebbf4ef7@redhat.com>
-References: <1480592596-20126-1-git-send-email-leon@kernel.org>
- <1480592596-20126-3-git-send-email-leon@kernel.org>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA789@ORSMSX109.amr.corp.intel.com>
- <20161202143957.GF4497@leon.nu>
- <HE1PR0501MB28122735F9F3DFD700B43BFBB1800@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <67d4e948-0ada-bd75-8855-79eed2ae9a7b@redhat.com>
- <20161216024834.GA27188@phlsvsds.ph.intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 00/17] Remove debug prints after allocation failure
+Date: Thu, 15 Dec 2016 23:04:13 -0500
+Message-ID: <20161216040413.GC12582@phlsvsds.ph.intel.com>
+References: <1478184265-9620-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="1e0jPpwQw5x9f8Ke2RFKBC6LCdwcPbA8J"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161216024834.GA27188-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1478184265-9620-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro a <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1e0jPpwQw5x9f8Ke2RFKBC6LCdwcPbA8J
-Content-Type: multipart/mixed; boundary="HbjH4lqF5OMm7kSONWu7UuRE4JTtOhUOs";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
- "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <2fb4958f-ea10-f326-0002-6bd9ebbf4ef7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 2/4] IB/core: Support rate limit for packet
- pacing
-References: <1480592596-20126-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1480592596-20126-3-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1828884A29C6694DAF28B7E6B8A82373AB0BA789-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
- <20161202143957.GF4497-2ukJVAZIZ/Y@public.gmane.org>
- <HE1PR0501MB28122735F9F3DFD700B43BFBB1800-692Kmc8YnlIVrnpjwTCbp8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
- <67d4e948-0ada-bd75-8855-79eed2ae9a7b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161216024834.GA27188-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-In-Reply-To: <20161216024834.GA27188-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+On Thu, Nov 03, 2016 at 04:44:08PM +0200, Leon Romanovsky wrote:
+> Hi Doug and all,
+> 
+> This is semantic cleanup of infiniband stack from printks immediately
+> after allocation failure. It doesn't get rid from all printks, but only from
+> the ones which were found by the following grep construction.
+> 
+> ➜  linux-rdma git:(topic/clean-alloc-prints) grep -rI "[k|v][m|z|c]alloc(" drivers/infiniband/* -A5 | grep "n\""
+> 
+> The patchset consists from the 16 almost identical patches and from one fix
+> which was discovered during the cleanup work.
+> 
+> The fix is presented in the patch "IB/core: Release allocated memory in cache setup failure"
+> 
 
---HbjH4lqF5OMm7kSONWu7UuRE4JTtOhUOs
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+With the exception of other comments the series seems reasonable.
 
-On 12/15/2016 9:48 PM, ira.weiny wrote:
-> On Wed, Dec 14, 2016 at 02:03:14PM -0500, Doug Ledford wrote:
->> On 12/4/2016 6:53 AM, Liran Liss wrote:
->>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
->>>
->>>>
->>>> On Thu, Dec 01, 2016 at 07:40:44PM +0000, Hefty, Sean wrote:
->>>>>>  enum ib_qp_state {
->>>>>> @@ -1151,6 +1152,7 @@ struct ib_qp_attr {
->>>>>>  	u8			rnr_retry;
->>>>>>  	u8			alt_port_num;
->>>>>>  	u8			alt_timeout;
->>>>>> +	u32			rate_limit;
->>>>>>  };
->>>>>
->>>>> And I still disagree with this approach, as there is already an exi=
-sting field in the
->>>> API that limits rate.
->>>>
->>>> Hi Sean,
->>>>
->>>> We would like to elaborate more on the subject, and we need your hel=
-p here.
->>>> Our cover letter [1] has description why the existing field is not e=
-nough. Can you
->>>> write a little bit more why you didn't like the proposed approach to=
- an existing
->>>> and real problem?
->>>>
->>>
->>> Clearly, we need a new field that is greater than 8 bits that uses di=
-fferent encoding (actual rate rather than a predefined enumeration of val=
-ues).
->>>
->>> However, this is not only a new field - this rate is also conceptuall=
-y different than AH static rate:
->>> 1) It is not related to the fabric path.
->>> 2) It is determined by the application rather than the fabric.
->>> 3) It needs to apply to QPs that don't use AH (raw Ethernet QPs)
->>>
->>> Of course, we might require raw Ethernet QPs to use an AH just for th=
-e sake of rate-limiting.
->>> But 1) + 2) indicate that this should be a concept orthogonal to netw=
-ork paths. In fact, it could apply to RC and UD QPs as well.
->>> In addition, if we implement full connection establishment in the ker=
-nel (i.e., the static_rate field is filled in the kernel), we would still=
- like to allow applications to further restrict their rate using a differ=
-ent component mask.
->>> --Liran
->>>
->>
->> I applied this series.  I agree with Liran that the need for something=
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
->> other than an enum to denote rates is needed.  We will have to work ou=
-t
->> exactly how to present this to user space (keep both, replace
->> static_rate and bumb the verbs API number, other options?)
->=20
-> I think in the new ioctl interface values like this should be more gene=
-ric.
-> MTU is another example.
-
-Agreed.
-
-> FWIW I agree with Sean that static rate should have been changed to acc=
-ommodate
-> this expanded meaning.
-
-Changing static rate only matters at the user application level.  At the
-driver to kernel level, it's easy to say this is driver specific and the
-user space driver can communicate with the kernel driver any way it
-chooses.  It's a non issue at this level.  It's later that we have to
-figure things out, which was the point of my comments and why I took this=
-=2E
-
-> With this new structure definition which rate is in effect?  Are device=
-s
-> supposed to take the min of the 2?
-
-How did you write your kernel driver and how did you write your user
-space library?  Because until the rdma-core to application API gets some
-modification, your user space driver will only ever get static_rate with
-its existing meaning from the user app and what your driver does with it
-internally is moot.  What's more, it doesn't matter if mlx5 and hfi1 do
-the same thing, only that what they do is consistent with themselves.
-It's when we add that user bit that we have to make things right and set
-them in concrete.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
-
-
---HbjH4lqF5OMm7kSONWu7UuRE4JTtOhUOs--
-
---1e0jPpwQw5x9f8Ke2RFKBC6LCdwcPbA8J
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYU2VPAAoJELgmozMOVy/dDvYP/iYI4pDeBzWxrZnK254UhlWV
-JQ4CYflYPVVQVi8FqsBqVYfkjjOY84cbuZW1uOSfFmthTBVsFhmWscfuHOmhbCUX
-bdZ0joqH3+flwrrtFBNLmCLeBlyzQiJTLdd6cf5OfykEIBns7hjyHfe5LVKeEN5P
-Sjc6U2OVHAGlSblUf1Z9cFZaX7dTJ6NRrSjw9QIF/yokquZNm0RmGU/F8CMt9i+d
-5JhzczBE1Avgj2jEXFus5m6ZE8eNI8R9gl5dVbKH0vuhM4HU6dfu4BdAE7H0XlRB
-Cz+z4RVMAOAuUWT881Mc3QRvLpC8iSg41P9teYdqoDizfpMXGwoVTB11kt06vzws
-ysMgKvmOc+0AsX6wYTNaJX8qbU5LEloHBOz6d9w+lRwpfWSWLZVuJTWwQ8Qsarmx
-imHP1dFpE/asPfiIdePnsAcQb0MO+nTid5siXfCFitLEc8HkD90dw7ZNbjVxeDSP
-kBRxZNvpNEIwfPDeQtusxvLugZiZPFbSVmM7g9BZ11dP4MpJGdx4krmmiG7Q2hoL
-JPC5VmGsdNK/wjBPa2Vl51busATDtmizSwM485XJ2hwmCEUgiMAkw7s+IGfBrHn0
-gwtxyS0aLcWYPoGDR3ZwWeMwmcRr1ThaAN9z7TDvtiNrcuH3aH86Ez4vX3Xikebw
-cJ7YEFKSI/8OoUOi9W5l
-=i43p
------END PGP SIGNATURE-----
-
---1e0jPpwQw5x9f8Ke2RFKBC6LCdwcPbA8J--
+> 
+> Available in the "topic/clean-alloc-prints" topic branch of this git repo:
+> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> Or for browsing:
+> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/clean-alloc-prints
+> 
+> CC: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> CC: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> CC: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> CC: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> CC: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> CC: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>a
+> CC: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> 
+> Changes v0 -> v1:
+>  * Patch 17: Return brackets removed by mistake.
+> 
+> Leon Romanovsky (17):
+>   IB/mad: Remove debug prints after allocation failure
+>   IB/core: Remove debug prints after allocation failure
+>   IB/core: Release allocated memory in cache setup failure
+>   IB/mlx4: Remove debug prints after allocation failure
+>   IB/mlx5: Remove debug prints after allocation failure
+>   IB/hfi1: Remove debug prints after allocation failure
+>   IB/cxgb3: Remove debug prints after allocation failure
+>   IB/cxgb4: Remove debug prints after allocation failure
+>   IB/i40iw: Remove debug prints after allocation failure
+>   IB/qib: Remove debug prints after allocation failure
+>   IB/nes: Remove debug prints after allocation failure
+>   IB/mthca: Remove debug prints after allocation failure
+>   IB/usninc: Remove and fix debug prints after allocation failure
+>   IB/ocrdma: Remove and fix debug prints after allocation failure
+>   IB/rxe: Remove and fix debug prints after allocation failure
+>   IB/isert: Remove and fix debug prints after allocation failure
+>   IB/ipoib: Remove and fix debug prints after allocation failure
+> 
+>  drivers/infiniband/core/agent.c               |  1 -
+>  drivers/infiniband/core/cache.c               | 16 ++++-----
+>  drivers/infiniband/core/device.c              |  5 +--
+>  drivers/infiniband/core/fmr_pool.c            |  1 -
+>  drivers/infiniband/core/iwpm_msg.c            |  1 -
+>  drivers/infiniband/core/iwpm_util.c           | 12 +++----
+>  drivers/infiniband/core/mad.c                 | 40 ++++-------------------
+>  drivers/infiniband/core/roce_gid_mgmt.c       | 21 ++++--------
+>  drivers/infiniband/hw/cxgb3/cxio_dbg.c        | 20 +++++-------
+>  drivers/infiniband/hw/cxgb4/device.c          |  4 ---
+>  drivers/infiniband/hw/hfi1/pio.c              |  1 -
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c        |  2 --
+>  drivers/infiniband/hw/i40iw/i40iw_main.c      |  5 ++-
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c     |  1 -
+>  drivers/infiniband/hw/mlx4/alias_GUID.c       |  4 +--
+>  drivers/infiniband/hw/mlx4/cm.c               |  4 +--
+>  drivers/infiniband/hw/mlx4/mad.c              |  9 ++---
+>  drivers/infiniband/hw/mlx4/main.c             | 16 ++-------
+>  drivers/infiniband/hw/mlx4/mcg.c              |  5 +--
+>  drivers/infiniband/hw/mlx5/srq.c              |  2 --
+>  drivers/infiniband/hw/mthca/mthca_reset.c     |  4 ---
+>  drivers/infiniband/hw/nes/nes.c               |  1 -
+>  drivers/infiniband/hw/nes/nes_cm.c            |  4 +--
+>  drivers/infiniband/hw/nes/nes_hw.c            |  6 ++--
+>  drivers/infiniband/hw/nes/nes_mgt.c           | 10 ++----
+>  drivers/infiniband/hw/nes/nes_verbs.c         |  4 ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c      |  5 ++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_stats.c   |  4 +--
+>  drivers/infiniband/hw/qib/qib_diag.c          |  6 +---
+>  drivers/infiniband/hw/qib/qib_eeprom.c        |  6 +---
+>  drivers/infiniband/hw/qib/qib_iba6120.c       |  8 +----
+>  drivers/infiniband/hw/qib/qib_iba7220.c       |  8 +----
+>  drivers/infiniband/hw/qib/qib_iba7322.c       | 22 +++----------
+>  drivers/infiniband/hw/qib/qib_init.c          | 47 +++++----------------------
+>  drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 10 +-----
+>  drivers/infiniband/hw/usnic/usnic_vnic.c      | 22 ++++---------
+>  drivers/infiniband/sw/rxe/rxe_pool.c          |  1 -
+>  drivers/infiniband/ulp/ipoib/ipoib_cm.c       |  8 +----
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c       |  5 +--
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c     |  5 +--
+>  drivers/infiniband/ulp/isert/ib_isert.c       | 23 ++++---------
+>  41 files changed, 84 insertions(+), 295 deletions(-)
+> 
+> --
+> 2.7.4
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
