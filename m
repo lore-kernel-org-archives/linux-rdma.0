@@ -1,42 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 03/17] IB/core: Release allocated memory in
- cache setup failure
-Date: Thu, 15 Dec 2016 21:27:43 -0700
-Message-ID: <20161216042743.GD3797@obsidianresearch.com>
-References: <1478184265-9620-1-git-send-email-leon@kernel.org>
- <1478184265-9620-4-git-send-email-leon@kernel.org>
- <20161216034218.GA12582@phlsvsds.ph.intel.com>
+From: Bart Van Assche <bart.vanassche@gmail.com>
+Subject: Re: [PATCH 2/2] SRP transport, scsi-mq: Wait for .queue_rq() if
+ necessary
+Date: Fri, 16 Dec 2016 13:39:52 +0100
+Message-ID: <6c4aa0b2-20ec-3ad8-065d-7288cf78fc23@sandisk.com>
+References: <39d8cb23-0406-e8c3-6e3a-a467ebe41470@sandisk.com>
+ <7c9a22c1-9940-7a8d-a479-c8cc5d274c60@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161216034218.GA12582-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <7c9a22c1-9940-7a8d-a479-c8cc5d274c60@sandisk.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "Martin K. Petersen" <martin.petersen@oracle.com>, James Bottomley <jejb@linux.vnet.ibm.com>
+Cc: Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 15, 2016 at 10:42:19PM -0500, ira.weiny wrote:
-> >  err:
-> >  	gid_table_cleanup_one(device);
-> > +free:
-> > +	kfree(device->cache.pkey_cache);
-> > +	kfree(device->cache.lmc_cache);
+On 11/23/2016 01:17 AM, Bart Van Assche wrote:
+> Ensure that if scsi-mq is enabled that scsi_internal_device_block()
+> waits until ongoing shost->hostt->queuecommand() calls have finished.
 > 
-> Despite the fact that another thread said this is supposed to be ok because
-> ib_cache_release_one free's these I much prefer what you have done here.
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+> Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
+> Cc: James Bottomley <jejb@linux.vnet.ibm.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Doug Ledford <dledford@redhat.com>
+> ---
+>  drivers/scsi/scsi_lib.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> However, don't you need to NULL these out so that ib_cache_release_one can
-> safely call kfree again?
+> diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+> index 84c9e61..11d082d 100644
+> --- a/drivers/scsi/scsi_lib.c
+> +++ b/drivers/scsi/scsi_lib.c
+> @@ -2872,7 +2872,7 @@ scsi_internal_device_block(struct scsi_device *sdev)
+>  	 * request queue. 
+>  	 */
+>  	if (q->mq_ops) {
+> -		blk_mq_stop_hw_queues(q);
+> +		blk_mq_quiesce_queue(q);
+>  	} else {
+>  		spin_lock_irqsave(q->queue_lock, flags);
+>  		blk_stop_queue(q);
+> 
 
-Yes.
+Hello Martin,
 
-I feel deja vue here, like I've pointed this out before and the
-resolution was to just rely on the release function so we don't have
-bugs like this.
+It seems like patch 1/2 of this series is already present in Linus' tree
+but patch 2/2 not yet? Can you queue this patch for the next pull
+request that will be sent to Linus?
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Bart.
