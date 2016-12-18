@@ -1,250 +1,34 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] RDMA/i40iw: use designated initializers
-Date: Fri, 16 Dec 2016 17:05:42 -0800
-Message-ID: <20161217010542.GA140742@beast>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
+Date: Sun, 18 Dec 2016 09:10:59 +0200
+Message-ID: <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q@mail.gmail.com>
+References: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Prepare to mark sensitive kernel structures for randomization by making
-sure they're using designated initializers. These were identified during
-allyesconfig builds of x86, arm, and arm64, with most initializer fixes
-extracted from grsecurity.
+On Fri, Dec 16, 2016 at 3:39 PM, Bart Van Assche
+<bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Hello Moni,
+>
+> Commit 7b85627b9f02 ("IB/cma: IBoE (RoCE) IP-based GID addressing") introduced code that
+> dereferences an RCU pointer without using rcu_read_lock(). Can you check whether the patch
+> below is the correct way to fix this?
+>
+> Thanks,
+>
+> Bart.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 128 +++++++++++++++----------------
- drivers/infiniband/hw/i40iw/i40iw_uk.c   |  34 ++++----
- 2 files changed, 80 insertions(+), 82 deletions(-)
+Hi Bart
+Fix looks good. Thanks
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index 392f78384a60..797f745a9a5b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -4836,46 +4836,46 @@ void i40iw_vsi_stats_free(struct i40iw_sc_vsi *vsi)
- }
- 
- static struct i40iw_cqp_ops iw_cqp_ops = {
--	i40iw_sc_cqp_init,
--	i40iw_sc_cqp_create,
--	i40iw_sc_cqp_post_sq,
--	i40iw_sc_cqp_get_next_send_wqe,
--	i40iw_sc_cqp_destroy,
--	i40iw_sc_poll_for_cqp_op_done
-+	.cqp_init = i40iw_sc_cqp_init,
-+	.cqp_create = i40iw_sc_cqp_create,
-+	.cqp_post_sq = i40iw_sc_cqp_post_sq,
-+	.cqp_get_next_send_wqe = i40iw_sc_cqp_get_next_send_wqe,
-+	.cqp_destroy = i40iw_sc_cqp_destroy,
-+	.poll_for_cqp_op_done = i40iw_sc_poll_for_cqp_op_done
- };
- 
- static struct i40iw_ccq_ops iw_ccq_ops = {
--	i40iw_sc_ccq_init,
--	i40iw_sc_ccq_create,
--	i40iw_sc_ccq_destroy,
--	i40iw_sc_ccq_create_done,
--	i40iw_sc_ccq_get_cqe_info,
--	i40iw_sc_ccq_arm
-+	.ccq_init = i40iw_sc_ccq_init,
-+	.ccq_create = i40iw_sc_ccq_create,
-+	.ccq_destroy = i40iw_sc_ccq_destroy,
-+	.ccq_create_done = i40iw_sc_ccq_create_done,
-+	.ccq_get_cqe_info = i40iw_sc_ccq_get_cqe_info,
-+	.ccq_arm = i40iw_sc_ccq_arm
- };
- 
- static struct i40iw_ceq_ops iw_ceq_ops = {
--	i40iw_sc_ceq_init,
--	i40iw_sc_ceq_create,
--	i40iw_sc_cceq_create_done,
--	i40iw_sc_cceq_destroy_done,
--	i40iw_sc_cceq_create,
--	i40iw_sc_ceq_destroy,
--	i40iw_sc_process_ceq
-+	.ceq_init = i40iw_sc_ceq_init,
-+	.ceq_create = i40iw_sc_ceq_create,
-+	.cceq_create_done = i40iw_sc_cceq_create_done,
-+	.cceq_destroy_done = i40iw_sc_cceq_destroy_done,
-+	.cceq_create = i40iw_sc_cceq_create,
-+	.ceq_destroy = i40iw_sc_ceq_destroy,
-+	.process_ceq = i40iw_sc_process_ceq
- };
- 
- static struct i40iw_aeq_ops iw_aeq_ops = {
--	i40iw_sc_aeq_init,
--	i40iw_sc_aeq_create,
--	i40iw_sc_aeq_destroy,
--	i40iw_sc_get_next_aeqe,
--	i40iw_sc_repost_aeq_entries,
--	i40iw_sc_aeq_create_done,
--	i40iw_sc_aeq_destroy_done
-+	.aeq_init = i40iw_sc_aeq_init,
-+	.aeq_create = i40iw_sc_aeq_create,
-+	.aeq_destroy = i40iw_sc_aeq_destroy,
-+	.get_next_aeqe = i40iw_sc_get_next_aeqe,
-+	.repost_aeq_entries = i40iw_sc_repost_aeq_entries,
-+	.aeq_create_done = i40iw_sc_aeq_create_done,
-+	.aeq_destroy_done = i40iw_sc_aeq_destroy_done
- };
- 
- /* iwarp pd ops */
- static struct i40iw_pd_ops iw_pd_ops = {
--	i40iw_sc_pd_init,
-+	.pd_init = i40iw_sc_pd_init,
- };
- 
- static struct i40iw_priv_qp_ops iw_priv_qp_ops = {
-@@ -4894,53 +4894,51 @@ static struct i40iw_priv_qp_ops iw_priv_qp_ops = {
- };
- 
- static struct i40iw_priv_cq_ops iw_priv_cq_ops = {
--	i40iw_sc_cq_init,
--	i40iw_sc_cq_create,
--	i40iw_sc_cq_destroy,
--	i40iw_sc_cq_modify,
-+	.cq_init = i40iw_sc_cq_init,
-+	.cq_create = i40iw_sc_cq_create,
-+	.cq_destroy = i40iw_sc_cq_destroy,
-+	.cq_modify = i40iw_sc_cq_modify,
- };
- 
- static struct i40iw_mr_ops iw_mr_ops = {
--	i40iw_sc_alloc_stag,
--	i40iw_sc_mr_reg_non_shared,
--	i40iw_sc_mr_reg_shared,
--	i40iw_sc_dealloc_stag,
--	i40iw_sc_query_stag,
--	i40iw_sc_mw_alloc
-+	.alloc_stag = i40iw_sc_alloc_stag,
-+	.mr_reg_non_shared = i40iw_sc_mr_reg_non_shared,
-+	.mr_reg_shared = i40iw_sc_mr_reg_shared,
-+	.dealloc_stag = i40iw_sc_dealloc_stag,
-+	.query_stag = i40iw_sc_query_stag,
-+	.mw_alloc = i40iw_sc_mw_alloc
- };
- 
- static struct i40iw_cqp_misc_ops iw_cqp_misc_ops = {
--	i40iw_sc_manage_push_page,
--	i40iw_sc_manage_hmc_pm_func_table,
--	i40iw_sc_set_hmc_resource_profile,
--	i40iw_sc_commit_fpm_values,
--	i40iw_sc_query_fpm_values,
--	i40iw_sc_static_hmc_pages_allocated,
--	i40iw_sc_add_arp_cache_entry,
--	i40iw_sc_del_arp_cache_entry,
--	i40iw_sc_query_arp_cache_entry,
--	i40iw_sc_manage_apbvt_entry,
--	i40iw_sc_manage_qhash_table_entry,
--	i40iw_sc_alloc_local_mac_ipaddr_entry,
--	i40iw_sc_add_local_mac_ipaddr_entry,
--	i40iw_sc_del_local_mac_ipaddr_entry,
--	i40iw_sc_cqp_nop,
--	i40iw_sc_commit_fpm_values_done,
--	i40iw_sc_query_fpm_values_done,
--	i40iw_sc_manage_hmc_pm_func_table_done,
--	i40iw_sc_suspend_qp,
--	i40iw_sc_resume_qp
-+	.manage_push_page = i40iw_sc_manage_push_page,
-+	.manage_hmc_pm_func_table = i40iw_sc_manage_hmc_pm_func_table,
-+	.set_hmc_resource_profile = i40iw_sc_set_hmc_resource_profile,
-+	.commit_fpm_values = i40iw_sc_commit_fpm_values,
-+	.query_fpm_values = i40iw_sc_query_fpm_values,
-+	.static_hmc_pages_allocated = i40iw_sc_static_hmc_pages_allocated,
-+	.add_arp_cache_entry = i40iw_sc_add_arp_cache_entry,
-+	.del_arp_cache_entry = i40iw_sc_del_arp_cache_entry,
-+	.query_arp_cache_entry = i40iw_sc_query_arp_cache_entry,
-+	.manage_apbvt_entry = i40iw_sc_manage_apbvt_entry,
-+	.manage_qhash_table_entry = i40iw_sc_manage_qhash_table_entry,
-+	.alloc_local_mac_ipaddr_table_entry = i40iw_sc_alloc_local_mac_ipaddr_entry,
-+	.add_local_mac_ipaddr_entry = i40iw_sc_add_local_mac_ipaddr_entry,
-+	.del_local_mac_ipaddr_entry = i40iw_sc_del_local_mac_ipaddr_entry,
-+	.cqp_nop = i40iw_sc_cqp_nop,
-+	.commit_fpm_values_done = i40iw_sc_commit_fpm_values_done,
-+	.query_fpm_values_done = i40iw_sc_query_fpm_values_done,
-+	.manage_hmc_pm_func_table_done = i40iw_sc_manage_hmc_pm_func_table_done,
-+	.update_suspend_qp = i40iw_sc_suspend_qp,
-+	.update_resume_qp = i40iw_sc_resume_qp
- };
- 
- static struct i40iw_hmc_ops iw_hmc_ops = {
--	i40iw_sc_init_iw_hmc,
--	i40iw_sc_parse_fpm_query_buf,
--	i40iw_sc_configure_iw_fpm,
--	i40iw_sc_parse_fpm_commit_buf,
--	i40iw_sc_create_hmc_obj,
--	i40iw_sc_del_hmc_obj,
--	NULL,
--	NULL
-+	.init_iw_hmc = i40iw_sc_init_iw_hmc,
-+	.parse_fpm_query_buf = i40iw_sc_parse_fpm_query_buf,
-+	.configure_iw_fpm = i40iw_sc_configure_iw_fpm,
-+	.parse_fpm_commit_buf = i40iw_sc_parse_fpm_commit_buf,
-+	.create_hmc_object = i40iw_sc_create_hmc_obj,
-+	.del_hmc_object = i40iw_sc_del_hmc_obj
- };
- 
- /**
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 4376cd628774..aa86627bb817 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -913,29 +913,29 @@ enum i40iw_status_code i40iw_get_wqe_shift(u32 wqdepth, u32 sge, u32 inline_data
- }
- 
- static struct i40iw_qp_uk_ops iw_qp_uk_ops = {
--	i40iw_qp_post_wr,
--	i40iw_qp_ring_push_db,
--	i40iw_rdma_write,
--	i40iw_rdma_read,
--	i40iw_send,
--	i40iw_inline_rdma_write,
--	i40iw_inline_send,
--	i40iw_stag_local_invalidate,
--	i40iw_mw_bind,
--	i40iw_post_receive,
--	i40iw_nop
-+	.iw_qp_post_wr = i40iw_qp_post_wr,
-+	.iw_qp_ring_push_db = i40iw_qp_ring_push_db,
-+	.iw_rdma_write = i40iw_rdma_write,
-+	.iw_rdma_read = i40iw_rdma_read,
-+	.iw_send = i40iw_send,
-+	.iw_inline_rdma_write = i40iw_inline_rdma_write,
-+	.iw_inline_send = i40iw_inline_send,
-+	.iw_stag_local_invalidate = i40iw_stag_local_invalidate,
-+	.iw_mw_bind = i40iw_mw_bind,
-+	.iw_post_receive = i40iw_post_receive,
-+	.iw_post_nop = i40iw_nop
- };
- 
- static struct i40iw_cq_ops iw_cq_ops = {
--	i40iw_cq_request_notification,
--	i40iw_cq_poll_completion,
--	i40iw_cq_post_entries,
--	i40iw_clean_cq
-+	.iw_cq_request_notification = i40iw_cq_request_notification,
-+	.iw_cq_poll_completion = i40iw_cq_poll_completion,
-+	.iw_cq_post_entries = i40iw_cq_post_entries,
-+	.iw_cq_clean = i40iw_clean_cq
- };
- 
- static struct i40iw_device_uk_ops iw_device_uk_ops = {
--	i40iw_cq_uk_init,
--	i40iw_qp_uk_init,
-+	.iwarp_cq_uk_init = i40iw_cq_uk_init,
-+	.iwarp_qp_uk_init = i40iw_qp_uk_init,
- };
- 
- /**
--- 
-2.7.4
-
-
--- 
-Kees Cook
-Nexus Security
+Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
