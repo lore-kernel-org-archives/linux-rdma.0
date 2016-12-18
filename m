@@ -1,96 +1,78 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
-Date: Sun, 18 Dec 2016 13:39:57 -0500
-Message-ID: <6efbf7d3-234f-fe63-3ff0-942ce9571029@redhat.com>
-References: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7@acm.org>
- <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 06/10] IB/core: Enable to query QP types
+ supported by IB device on a port
+Date: Sun, 18 Dec 2016 23:07:47 +0200
+Message-ID: <CAJ3xEMgRbJ4fJMgBmPTWuj7mjoJxs4Pr9yrNOagWR-SUL890wQ@mail.gmail.com>
+References: <1480258296-27032-1-git-send-email-leon@kernel.org>
+ <1480258296-27032-7-git-send-email-leon@kernel.org> <20161216201158.GE12582@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20161216201158.GE12582-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF
-Content-Type: multipart/mixed; boundary="7ENbNSJRCC6fBnB4v6VwLV82ukEubJmpS";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <6efbf7d3-234f-fe63-3ff0-942ce9571029-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
-References: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7-HInyCGIudOg@public.gmane.org>
- <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-In-Reply-To: <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+On Fri, Dec 16, 2016 at 10:11 PM, ira.weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+> On Sun, Nov 27, 2016 at 04:51:32PM +0200, Leon Romanovsky wrote:
+> > From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > Add qp_type_cap port attribute which is a bit field representation
+> > of the ib_qp_type enum. This will allow applications to query what QP
+> > types are supported by an IB device instance on a specific port.
+> >
+> > The qp_type_cap port attribute is set by the core according to the
+> > protocol supported for the device port. This holds for all the
+> > providers with the exception of two RoCE drivers that don't implement
+> > UD and UC. To handle that, they (hns and qedr) are patched to remove
+> > these QPs from what's the core has set for them as supported.
+> >
+> > Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/infiniband/core/device.c          | 28 ++++++++++++++++++++++++++++
+> >  drivers/infiniband/hw/hns/hns_roce_main.c |  3 +++
+> >  drivers/infiniband/hw/qedr/verbs.c        |  2 ++
+> >  include/rdma/ib_verbs.h                   |  1 +
+> >  4 files changed, 34 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> > index 760ef60..f7abde2 100644
+> > --- a/drivers/infiniband/core/device.c
+> > +++ b/drivers/infiniband/core/device.c
+> > @@ -646,6 +646,31 @@ void ib_dispatch_event(struct ib_event *event)
+> >  }
+> >  EXPORT_SYMBOL(ib_dispatch_event);
+> >
+> > +static void get_port_qp_types(const struct ib_device *device, u8 port_num,
+> > +                           struct ib_port_attr *port_attr)
+> > +{
+> > +     if (rdma_cap_ib_smi(device, port_num))
+> > +             port_attr->qp_type_cap |= BIT(IB_QPT_SMI);
+> > +
+> > +     if (rdma_cap_ib_cm(device, port_num))
+> > +             port_attr->qp_type_cap |= BIT(IB_QPT_GSI);
+>
+> This is not accurate.  The IB CM is not the same as having QP1 supported.
+>
 
---7ENbNSJRCC6fBnB4v6VwLV82ukEubJmpS
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Ira,
 
-On 12/18/2016 2:10 AM, Moni Shoua wrote:
-> On Fri, Dec 16, 2016 at 3:39 PM, Bart Van Assche
-> <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Hello Moni,
->>
->> Commit 7b85627b9f02 ("IB/cma: IBoE (RoCE) IP-based GID addressing") in=
-troduced code that
->> dereferences an RCU pointer without using rcu_read_lock(). Can you che=
-ck whether the patch
->> below is the correct way to fix this?
->>
->> Thanks,
->>
->> Bart.
->=20
-> Hi Bart
-> Fix looks good. Thanks
->=20
-> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Looking on the kernel mad module code, I see they (your code..) 1st
+check that rdma_cap_ib_mad(device, port) is true, and next just
+blindly attempt to open GSI QP (call create_mad_qp([...], IB_QPT_GSI)
+on the device/port.
 
-Bart, can you please resend this patch with a proper commit message and
-a SOB tag?
+I guess this is correct by elimination only if the smi cap is false...
+b/c if the mad cap is set and the smi cap is true, it's possible that
+GSI isn't supported for the port under some proprietary protocol. So
+what is per your design a clear robust way to determine if GSI is
+supported on the device/port?
 
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---7ENbNSJRCC6fBnB4v6VwLV82ukEubJmpS--
-
---Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYVtf9AAoJELgmozMOVy/d4eoQALICMphJ5vJEeqo77n5cJn/Y
-6b6xkE+lQm5Iwzz1e5/D99w419weAFelc7rappIEKaAM6YrBqT5C7oY102xaxYP9
-cLBN2BEyV4DrJC9gmO6o/brmDuLdBvRcFVWzhUjgNStDsWXeycodMxBn9jMWVbQy
-+TiIEPqFBub8dYv6GAxBLtvpu3SpFsY7Rj19vrCAyC7w4v4EpmqCwbscjXwCHWS2
-l7iiEENLZLyEiWO8wTNTowW/BaGVNXfgi4t8AWo2eptKH5BBQ0nqcMCSryFq2co7
-DJqUpF34yvrYY2hvS529Z6NZ944h0B1ESiz0MXM4kh4gn7ZX4Hk3Lg3OgA0o9Q/R
-q242xSQZS2oc0nrtarFb6w0xPcTDEB95LpAxSJlwoF/C/Z7b03oLX/dLkH0S62fc
-C3jStJ+1vgCXC3HAVaUti87Hv50bPLx8OeFvT6vNHwTc7P/NVaGJKYDNiWSmRISx
-/0f4w9Enf+ACBfUrf93nnjf/mkcdw/KYwm2o79viQnw3Bt8VMLEYCrdrqPBhULbU
-6vudPrXy0Ur/u3cYsE3EyQhqOQvsY6vxtG25hvrJA6ChbsvSRJQwc5XlzU3CYzPC
-F5J6RE1KFpQX+tDrEnEAMgvc3uOIgYIe11b+vlLPlqx+HJJO4K+8YoiW7qn1Ri4N
-EJ8Gui7uIiTy+nD8jR+B
-=2Enw
------END PGP SIGNATURE-----
-
---Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF--
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
