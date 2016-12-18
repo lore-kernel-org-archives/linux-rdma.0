@@ -1,52 +1,44 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Fix a memory leak in rxe_qp_cleanup()
-Date: Sun, 18 Dec 2016 13:36:11 -0500
-Message-ID: <70f0e3ac-214a-c076-c264-e5951edf3864@redhat.com>
-References: <f38a99cc-5643-f4dc-adfa-b81c67cae4e7@acm.org>
+Subject: Re: [PATCH] iw_cxgb4: set correct FetchBurstMax for QPs
+Date: Sun, 18 Dec 2016 13:36:41 -0500
+Message-ID: <043916ec-00fb-838f-7e9d-e292704c4892@redhat.com>
+References: <20161215210330.81B67E08C3@smtp.ogc.us>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="81dp20ah2HQEf3L73BpmU7CnbtWI367Am"
+ boundary="GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f38a99cc-5643-f4dc-adfa-b81c67cae4e7-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <20161215210330.81B67E08C3-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---81dp20ah2HQEf3L73BpmU7CnbtWI367Am
-Content-Type: multipart/mixed; boundary="7CIvupOifW3ugS3XFvtpLUlrIELD6fBtc";
+--GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe
+Content-Type: multipart/mixed; boundary="6j8J9DkwJaMnaWms4RGlGal80JWDF0LRg";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Message-ID: <70f0e3ac-214a-c076-c264-e5951edf3864-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Fix a memory leak in rxe_qp_cleanup()
-References: <f38a99cc-5643-f4dc-adfa-b81c67cae4e7-HInyCGIudOg@public.gmane.org>
-In-Reply-To: <f38a99cc-5643-f4dc-adfa-b81c67cae4e7-HInyCGIudOg@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <043916ec-00fb-838f-7e9d-e292704c4892-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: set correct FetchBurstMax for QPs
+References: <20161215210330.81B67E08C3-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
+In-Reply-To: <20161215210330.81B67E08C3-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
 
---7CIvupOifW3ugS3XFvtpLUlrIELD6fBtc
-Content-Type: text/plain; charset=utf-8
+--6j8J9DkwJaMnaWms4RGlGal80JWDF0LRg
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/15/2016 11:15 AM, Bart Van Assche wrote:
-> From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+On 12/15/2016 11:09 AM, Steve Wise wrote:
+> The current QP FetchBurstMax value is 256B, which
+> is incorrect since a WR can exceed that value.  The
+> result being a partial WR fetched by hardware, and
+> a fatal "bad WR" error posted by the SGE.
 >=20
-> A socket is associated with every QP by the rxe driver but sock_release=
-()
-> is never called. Add a call to sock_release() in rxe_qp_cleanup().
+> So bump the FetchBurstMax to 512B.
 >=20
-> Fixes: commit 8700e3e7c48A5 ("Add Soft RoCE driver")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
 Thanks, queued for -rc.
 
@@ -57,9 +49,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---7CIvupOifW3ugS3XFvtpLUlrIELD6fBtc--
+--6j8J9DkwJaMnaWms4RGlGal80JWDF0LRg--
 
---81dp20ah2HQEf3L73BpmU7CnbtWI367Am
+--GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,22 +60,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYVtcmAAoJELgmozMOVy/dlpYP/3gYSXBR5PqGqgqt2q7QTCkw
-W+Pfc0CZ7Xdyk+z7CNWOAaO1F22ryJ8tGtgGxcZDBKjT0qvTyhOkOsPJdelrtr4l
-kInEM+HP4Qy85NswnqWyIcObtRZ3RcvycELOVxZ7jcS+mzZlUyIxUP0G2w0MLRtp
-H08CZ9Jzj3LdSY5D2lURlNFPDiAMf9TgX22bv6vD5KOAmpGMfO6+XwlIFxcRKtgn
-Zer9lxpxea2IudO9dk2y/kkrfdOQKSZJPqtS7UojLfERq7HMm2nhrBdSmD5YXvHE
-Sw8AMSddK0zgb/R1tqvwV89Gw0/56e2X/UuN9Jdtvk+jIs9COfJSSLtHIpXrmC7l
-MKZj/GsZJ3z6mwmCWw/PGELHoA5nAUcJ4es5mCriUNKLY0Z/smrWw3Hb7jGWyQBq
-DuwF2l2FdmL+W4WmTF7HP/NsueEDzxATIhhg/dyVMT5SlypCROyKK9I8PM7w4OBA
-yYPkb802r/OPTgWmYKmIs1hyv4778MoKNOt4/WFK4MSJ2oWDcsMpAzAJYF9CYIEc
-S95FFZgfXLp5QaWk38iJ0sCGgxkpOSVVtOHcY3BAtbGdMju5EC4JSPZ+AETV089N
-exUsPZCRHqmyzmJGppLV7D13Rb+XjpI1KSfr3oB6ADl/RjcN6xP3nvY1C6qJBvl9
-Rln74FX36UlpFnE/awUI
-=8Enw
+iQIcBAEBCAAGBQJYVtc5AAoJELgmozMOVy/dD1IQAIzAVVgKMSOyG1HerQ3aPDdB
+lc1+seerhKvsF6CX64BHes+EgKCWSqbHqR1TjC8VNEGlQ2dpgAlD8HjLCRjI6ARF
+gsJW4jScwMT4og6+KcrbPXGERR3/2xErinyENbSPW9pD0F3KM83hxOjvGvT1LGlG
+sOgnmpUhCYIGppQX1t+RwjUiEE/gb4FKeh65z7hoHRkMZEKSxmqdzFSQAjBUW0Fz
+44d/fzEblh9loe15t+ODGB8K/uw3sMI7mZb2zqwYF6HY2IuwpBhqVdk8NFx0WSEx
+WNl1MTtliVERk++D+HWmdwbjbM+YRg2oFkINW5ywnFOrLrYqEFBBe2tNdlOXZ5WO
+abzOQJY7K0mwOieIOBpq0ZeRvMyD85l9u17/U9V3vwgA2h/theQklxXubdPhfELJ
+zopuoA8GvQSF6g6CBjoxncuDTQALwe7zcYJ8T3Luc5GoGWIgTot/Gublf7/j/PU3
+1Bd/sCmbximgOm+erN6psLAA6V2s8WDeUmXTZn3KQW/tg+5pZ5Dp4WTjADvz+Ulw
++pl7RX1GkMWI7pJWENdfBrl64SboMkEJBPTi/gRrFF8uraK3R4XDMjBOyAar5C+T
+49V73lAoNy7FW1XitUNQrPR6zLEPHMO3IIVU1IWeADucr13xe2y9Fcj9ClkA1Q24
+4m3Wwq8sBZkTijmgOcDf
+=ywwb
 -----END PGP SIGNATURE-----
 
---81dp20ah2HQEf3L73BpmU7CnbtWI367Am--
+--GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
