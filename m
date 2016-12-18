@@ -1,46 +1,61 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: set correct FetchBurstMax for QPs
-Date: Sun, 18 Dec 2016 13:36:41 -0500
-Message-ID: <043916ec-00fb-838f-7e9d-e292704c4892@redhat.com>
-References: <20161215210330.81B67E08C3@smtp.ogc.us>
+Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
+Date: Sun, 18 Dec 2016 13:39:57 -0500
+Message-ID: <6efbf7d3-234f-fe63-3ff0-942ce9571029@redhat.com>
+References: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7@acm.org>
+ <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe"
+ boundary="Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161215210330.81B67E08C3-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
+In-Reply-To: <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe
-Content-Type: multipart/mixed; boundary="6j8J9DkwJaMnaWms4RGlGal80JWDF0LRg";
+--Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF
+Content-Type: multipart/mixed; boundary="7ENbNSJRCC6fBnB4v6VwLV82ukEubJmpS";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <043916ec-00fb-838f-7e9d-e292704c4892-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: set correct FetchBurstMax for QPs
-References: <20161215210330.81B67E08C3-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
-In-Reply-To: <20161215210330.81B67E08C3-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <6efbf7d3-234f-fe63-3ff0-942ce9571029-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
+References: <811914f1-3bcc-a0a4-e20a-86e8b5853ac7-HInyCGIudOg@public.gmane.org>
+ <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAG9sBKPu=R7ZeRnFD+-8jpiyVDok_MogzSF3H7mpgVZGZ9jX0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
---6j8J9DkwJaMnaWms4RGlGal80JWDF0LRg
-Content-Type: text/plain; charset=windows-1252
+--7ENbNSJRCC6fBnB4v6VwLV82ukEubJmpS
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/15/2016 11:09 AM, Steve Wise wrote:
-> The current QP FetchBurstMax value is 256B, which
-> is incorrect since a WR can exceed that value.  The
-> result being a partial WR fetched by hardware, and
-> a fatal "bad WR" error posted by the SGE.
+On 12/18/2016 2:10 AM, Moni Shoua wrote:
+> On Fri, Dec 16, 2016 at 3:39 PM, Bart Van Assche
+> <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Hello Moni,
+>>
+>> Commit 7b85627b9f02 ("IB/cma: IBoE (RoCE) IP-based GID addressing") in=
+troduced code that
+>> dereferences an RCU pointer without using rcu_read_lock(). Can you che=
+ck whether the patch
+>> below is the correct way to fix this?
+>>
+>> Thanks,
+>>
+>> Bart.
 >=20
-> So bump the FetchBurstMax to 512B.
+> Hi Bart
+> Fix looks good. Thanks
 >=20
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks, queued for -rc.
+Bart, can you please resend this patch with a proper commit message and
+a SOB tag?
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -49,9 +64,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---6j8J9DkwJaMnaWms4RGlGal80JWDF0LRg--
+--7ENbNSJRCC6fBnB4v6VwLV82ukEubJmpS--
 
---GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe
+--Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -60,22 +75,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYVtc5AAoJELgmozMOVy/dD1IQAIzAVVgKMSOyG1HerQ3aPDdB
-lc1+seerhKvsF6CX64BHes+EgKCWSqbHqR1TjC8VNEGlQ2dpgAlD8HjLCRjI6ARF
-gsJW4jScwMT4og6+KcrbPXGERR3/2xErinyENbSPW9pD0F3KM83hxOjvGvT1LGlG
-sOgnmpUhCYIGppQX1t+RwjUiEE/gb4FKeh65z7hoHRkMZEKSxmqdzFSQAjBUW0Fz
-44d/fzEblh9loe15t+ODGB8K/uw3sMI7mZb2zqwYF6HY2IuwpBhqVdk8NFx0WSEx
-WNl1MTtliVERk++D+HWmdwbjbM+YRg2oFkINW5ywnFOrLrYqEFBBe2tNdlOXZ5WO
-abzOQJY7K0mwOieIOBpq0ZeRvMyD85l9u17/U9V3vwgA2h/theQklxXubdPhfELJ
-zopuoA8GvQSF6g6CBjoxncuDTQALwe7zcYJ8T3Luc5GoGWIgTot/Gublf7/j/PU3
-1Bd/sCmbximgOm+erN6psLAA6V2s8WDeUmXTZn3KQW/tg+5pZ5Dp4WTjADvz+Ulw
-+pl7RX1GkMWI7pJWENdfBrl64SboMkEJBPTi/gRrFF8uraK3R4XDMjBOyAar5C+T
-49V73lAoNy7FW1XitUNQrPR6zLEPHMO3IIVU1IWeADucr13xe2y9Fcj9ClkA1Q24
-4m3Wwq8sBZkTijmgOcDf
-=ywwb
+iQIcBAEBCAAGBQJYVtf9AAoJELgmozMOVy/d4eoQALICMphJ5vJEeqo77n5cJn/Y
+6b6xkE+lQm5Iwzz1e5/D99w419weAFelc7rappIEKaAM6YrBqT5C7oY102xaxYP9
+cLBN2BEyV4DrJC9gmO6o/brmDuLdBvRcFVWzhUjgNStDsWXeycodMxBn9jMWVbQy
++TiIEPqFBub8dYv6GAxBLtvpu3SpFsY7Rj19vrCAyC7w4v4EpmqCwbscjXwCHWS2
+l7iiEENLZLyEiWO8wTNTowW/BaGVNXfgi4t8AWo2eptKH5BBQ0nqcMCSryFq2co7
+DJqUpF34yvrYY2hvS529Z6NZ944h0B1ESiz0MXM4kh4gn7ZX4Hk3Lg3OgA0o9Q/R
+q242xSQZS2oc0nrtarFb6w0xPcTDEB95LpAxSJlwoF/C/Z7b03oLX/dLkH0S62fc
+C3jStJ+1vgCXC3HAVaUti87Hv50bPLx8OeFvT6vNHwTc7P/NVaGJKYDNiWSmRISx
+/0f4w9Enf+ACBfUrf93nnjf/mkcdw/KYwm2o79viQnw3Bt8VMLEYCrdrqPBhULbU
+6vudPrXy0Ur/u3cYsE3EyQhqOQvsY6vxtG25hvrJA6ChbsvSRJQwc5XlzU3CYzPC
+F5J6RE1KFpQX+tDrEnEAMgvc3uOIgYIe11b+vlLPlqx+HJJO4K+8YoiW7qn1Ri4N
+EJ8Gui7uIiTy+nD8jR+B
+=2Enw
 -----END PGP SIGNATURE-----
 
---GXa5OxpXMDwWh7od13cRbpDfQ0BwHsvVe--
+--Srd1xIsgiOp0f1jLBvF2SxGaiUE3T3bIF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
