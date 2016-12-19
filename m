@@ -1,56 +1,29 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V6 00/14] SG-based RDMA ABI Proposal
-Date: Mon, 19 Dec 2016 10:12:28 +0200
-Message-ID: <4a42e1a4-e848-8beb-1d8e-655a616990fc@mellanox.com>
-References: <1481461088-56355-1-git-send-email-matanb@mellanox.com>
- <20161219004854.GA12723@phlsvsds.ph.intel.com>
- <20161219055037.GO1074@mtr-leonro.local>
- <2807E5FD2F6FDA4886F6618EAC48510E3C611539@CRSMSX101.amr.corp.intel.com>
- <20161219062841.GP1074@mtr-leonro.local>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH] infiniband/hfil: drop pci_link_reset()
+Date: Mon, 19 Dec 2016 10:54:59 -0500
+Message-ID: <e6f22b2d-faf7-390a-ca4d-564c6d0841b8@intel.com>
+References: <1482129996-19255-1-git-send-email-caoj.fnst@cn.fujitsu.com>
+ <1482129996-19255-2-git-send-email-caoj.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161219062841.GP1074-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1482129996-19255-2-git-send-email-caoj.fnst@cn.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Cao jin <caoj.fnst@cn.fujitsu.com>, linux-rdma@vger.kernel.org
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-pci@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 19/12/2016 08:28, Leon Romanovsky wrote:
-> On Mon, Dec 19, 2016 at 06:07:55AM +0000, Weiny, Ira wrote:
->>>> These don't apply to any Doug branches I have tried.  (I don't see a
->>>> for-4.9-fixed branch at:)
->>>>
->>>> https://git.kernel.org/cgit/linux/kernel/git/dledford/rdma.git/refs/he
->>>> ads
->>>>
->>>> Doug, have you accepted Leon's IOCTL series?
->>>
->>> Yes, Doug accepted it.
->>>
->>
->> Do you know what branch they are on?
+On 12/19/2016 01:46 AM, Cao jin wrote:
+> In AER recovery, pci_error_handlers.link_reset() is never called,
+> drop it now.
 >
-> It puzzled me too, but since the code is available in Matan's repo [1],
-> I didn't bother myself.
->
+> Signed-off-by: Cao jin <caoj.fnst@cn.fujitsu.com>
 
-Actually, I couldn't find Leon's patches on any official branch, so I've 
-just applied them myself. Anyway, I also manage a tag named abi-devel in 
-my github (which represents the on-going development).
+Is this part of a larger patch series? If the function is never called 
+it should be removed from struct pci_error_handlers should it not? Then 
+in the same series be removed from all the drivers.
 
-> [1] https://github.com/matanb10/linux abi_rfc_pre_v6
->
->>
->> Ira
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Probably should check with the folks on linux-pci about this though.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Denny
