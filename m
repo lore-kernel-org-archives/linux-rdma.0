@@ -1,58 +1,69 @@
-From: Cao jin <caoj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH] infiniband/hfil: drop pci_link_reset()
-Date: Mon, 19 Dec 2016 14:46:36 +0800
-Message-ID: <1482129996-19255-2-git-send-email-caoj.fnst@cn.fujitsu.com>
-References: <1482129996-19255-1-git-send-email-caoj.fnst@cn.fujitsu.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v2 03/10] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) netdev
+Date: Sun, 18 Dec 2016 22:43:03 -0800
+Message-ID: <20161219064303.GA94834@knc-06.sc.intel.com>
+References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <1481788782-89964-4-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161215170109.GC3264@obsidianresearch.com>
+ <20161216025947.GC90951@knc-06.sc.intel.com>
+ <20161216042420.GB3797@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482129996-19255-1-git-send-email-caoj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161216042420.GB3797-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tanya K Jajodia <tanya.k.jajodia-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In AER recovery, pci_error_handlers.link_reset() is never called,
-drop it now.
+On Thu, Dec 15, 2016 at 09:24:20PM -0700, Jason Gunthorpe wrote:
+>> >>+struct __hfi_vesw_info {
+>> >>+	u16  fabric_id;
+>> >>+	u16  vesw_id;
+>> >>+
+>> >>+	u8   rsvd0[6];
+>> >>+	u16  def_port_mask;
+>> >>+
+>> >>+	u8   rsvd1[2];
+>> >>+	u16  pkey;
+>> >>+
+>> >>+	u8   rsvd2[4];
+>> >>+	u32  u_mcast_dlid;
+>> >>+	u32  u_ucast_dlid[HFI_VESW_MAX_NUM_DEF_PORT];
+>> >>+
+>> >>+	u8   rsvd3[44];
+>> >>+	u16  eth_mtu[HFI_VNIC_MAX_NUM_PCP];
+>> >>+	u16  eth_mtu_non_vlan;
+>> >>+	u8   rsvd4[2];
+>> >>+} __packed;
+>> >
+>> >This goes on the network too? Also looks like it has endian problems.
+>> >
+>> >Ditto for all the __packed structures.
+>> >
+>>
+>> This is in CPU format. There is a separate big endian version of
+>> this
+>
+>Why are CPU handled structures packed and full of reserved fields?
+>Don't pack them if they are not pushed out to the network..
+>
+>There were lots of __packed structures, any that go on the network
+>need be/le annoations.
+>
 
-Signed-off-by: Cao jin <caoj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/pcie.c | 10 ----------
- 1 file changed, 10 deletions(-)
+Well, driver treats the reserved fields to be sticky. ie., information
+block returned (upon GET) to EM is not changed (from SET) except few fields 
+which driver is expected to modify.
+Structures that go on wire are big endian __packed structures in 
+hfi_vnic_encap.h. Ok, I will remove the __packed attribute from CPU handled 
+structures here.
 
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 89c68da1c273..8aed2a8a378b 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -599,15 +599,6 @@ pci_slot_reset(struct pci_dev *pdev)
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t
--pci_link_reset(struct pci_dev *pdev)
--{
--	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
--
--	dd_dev_info(dd, "HFI1 link_reset function called, ignored\n");
--	return PCI_ERS_RESULT_CAN_RECOVER;
--}
--
- static void
- pci_resume(struct pci_dev *pdev)
- {
-@@ -626,7 +617,6 @@ pci_resume(struct pci_dev *pdev)
- const struct pci_error_handlers hfi1_pci_err_handler = {
- 	.error_detected = pci_error_detected,
- 	.mmio_enabled = pci_mmio_enabled,
--	.link_reset = pci_link_reset,
- 	.slot_reset = pci_slot_reset,
- 	.resume = pci_resume,
- };
--- 
-2.1.0
+Niranjana
 
-
-
+>Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
