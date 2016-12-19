@@ -1,242 +1,115 @@
-From: Vincent Ficet <jean-vincent.ficet-BUmcmmAb0Fc@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Add Bull device ID support to device
- white lists
-Date: Mon, 19 Dec 2016 09:44:45 +0100
-Message-ID: <58579DFD.2040206@atos.net>
-References: <e5ad4256-53fe-9ecc-f880-89347134ec42@dev.mellanox.co.il>
- <20161207145338.GD24724@phlsvsds.ph.intel.com> <584A8823.4070506@atos.net>
- <703b953b-7165-72d1-3c1e-c3b1f8c54f28@dev.mellanox.co.il>
- <584ABFE6.4070902@atos.net>
- <46fac349-4687-961a-4d63-697064f391da@dev.mellanox.co.il>
- <2807E5FD2F6FDA4886F6618EAC48510E3C611A58@CRSMSX101.amr.corp.intel.com>
+From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 1/4] IB/core: add port state cache
+Date: Mon, 19 Dec 2016 10:00:57 +0100
+Message-ID: <CAMGffEmrVqX0rnFXUwZ2gMQPgT_c5D5RN8CyiWYEZq3e=gWXKg@mail.gmail.com>
+References: <CAMGffE=gytHRs+SVOmNPCkWX6tZ9hkeFznqeQQs-TFJMMJi97g@mail.gmail.com>
+ <6b60d6b1-96ce-3710-7716-0df4b1895c44@mellanox.com> <CAMGffEnjVjEEFM8+vFKZMvyFwgaUjp03Opo42V+OsQHN8Fz5BA@mail.gmail.com>
+ <20161215231723.GA3785@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070602050103070308050300"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E3C611A58-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20161215231723.GA3785-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070602050103070308050300
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-
-Hello,
-
-On 12/19/2016 08:10 AM, Weiny, Ira wrote:
->> On 12/9/2016 9:29 AM, Vincent Ficet wrote:
->>>> Would it be better to combine Bull Switch-IB and Switch-IB2 ranges
->>>> into one check rather than keeping them separate as the device IDs
->>>> are contiguous ?
->>> I just wanted to separate SwitchIB and SwitchIB2 for clarity, but we can gather
->> them if you wish to do so.
->>> Which option do you prefer, together or split ?
->> I prefer together.
-> Together is fine by me.
+On Fri, Dec 16, 2016 at 12:17 AM, ira.weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Mon, Dec 12, 2016 at 01:31:11PM +0100, Jinpu Wang wrote:
+>> On Mon, Dec 12, 2016 at 1:11 PM, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> > Hi,
+>> >
+>> > On 12/12/2016 1:43 PM, Jinpu Wang wrote:
+>> >> From fc80c1730d94a38934c5c60f9b9561745723dfd9 Mon Sep 17 00:00:00 200=
+1
+>> >> From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+>> >> Date: Mon, 12 Dec 2016 09:52:42 +0100
+>> >> Subject: [PATCH 1/4] IB/core: add port state cache
+>> >>
+>> >> We need a port state cache in ib_core, later we will use in rdma_cm.
+>> >>
+>> >> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+>> >> Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+>> >> ---
+>> >>  drivers/infiniband/core/cache.c | 9 ++++++++-
+>> >>  include/rdma/ib_verbs.h         | 1 +
+>> >>  2 files changed, 9 insertions(+), 1 deletion(-)
+>> >>
+>> >> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/cor=
+e/cache.c
+>> >> index 1a2984c..025db27 100644
+>> >> --- a/drivers/infiniband/core/cache.c
+>> >> +++ b/drivers/infiniband/core/cache.c
+>> >> @@ -1109,6 +1109,8 @@ static void ib_cache_update(struct ib_device *d=
+evice,
+>> >>      }
+>> >>
+>> >>      device->cache.lmc_cache[port - rdma_start_port(device)] =3D tpro=
+ps->lmc;
+>> >> +    device->cache.port_state_cache[port - rdma_start_port(device)] =
+=3D
+>> >> +        tprops->state;
+>> >>
+>> >>      write_unlock_irq(&device->cache.lock);
+>> >>
+>> >> @@ -1168,7 +1170,11 @@ int ib_cache_setup_one(struct ib_device *devic=
+e)
+>> >>                        (rdma_end_port(device) -
+>> >>                         rdma_start_port(device) + 1),
+>> >>                        GFP_KERNEL);
+>> >> -    if (!device->cache.pkey_cache ||
+>> >> +    device->cache.port_state_cache =3D kmalloc(sizeof
+>> >> *device->cache.port_state_cache *
+>> >> +                      (rdma_end_port(device) -
+>> >> +                       rdma_start_port(device) + 1),
+>> >> +                      GFP_KERNEL);
+>> >> +    if (!device->cache.pkey_cache || !device->cache.port_state_cache=
+ ||
+>> > Looking at the code, I see we can leak memory here.
+>> > if pkey_cache is allocated but lms_cache is not, we will return withou=
+t freeing pkey_cache (or the other way around)
+>> > your code adds port_state_cache to the mix but with the same issue.
+>> > I guess that should be fixed.
+>> >
+>> Hi Mark,
+>>
+>> Not really. The release was done by ib_dealloc_device() when put the
+>> last ref of kobj,
+>> dev_release -> ib_device_release -> ib_cache_release_one, driver was sup=
+posed
+>> to use it to destroy the device when register failed.
 >
-> I was expecting a v2 of this patch.  Was that your intention?
-I attached the v3 of this patch to this mail following Hal's remarks and suggestions.
-
-The new code has been fully tested on our cluster and no regression was found.
-
-Please let me know whether the changes I made are acceptable.
-
-
-Best Regards,
-
-Vincent
-
-
+> This is really odd though.
 >
 > Ira
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+
+Hi Ira,
+
+I agree it's not straight forward indeed.
+But this is common in a lot code path if use kobj->release function.
+
+On the other side, this is clear not a blocker for this bugfix patchset,
+could anyone of you give a feedback to let it move forward?
 
 
---------------070602050103070308050300
-Content-Type: text/x-patch;
- name="infiniband-diags_fix_bull_device_IDs_v3.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="infiniband-diags_fix_bull_device_IDs_v3.patch"
+Thanks
+--=20
+Jinpu Wang
+Linux Kernel Developer
 
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index 21b0522..587dcfe 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -133,7 +133,7 @@ extern void ibexit(const char *fn, char *msg, ...);
-  */
- extern char *conv_cnt_human_readable(uint64_t val64, float *val, int data);
- 
--int is_mlnx_ext_port_info_supported(uint32_t devid);
-+int is_mlnx_ext_port_info_supported(uint32_t vendorid, uint16_t devid);
- 
- int is_port_info_extended_supported(ib_portid_t * dest, int port,
- 				    struct ibmad_port *srcport);
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 7ba5c91..3b8a65a 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -196,10 +196,28 @@ static void debug_port(ib_portid_t * portid, ibnd_port_t * port)
- static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
- {
- 	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
--
--	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
-+	uint32_t vendorid = (uint32_t) mad_get_field(port->node->info, 0, IB_NODE_VENDORID_F);
-+
-+	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 ||
-+	    ((vendorid == 0x119f) &&
-+	     /* Bull SwitchX */
-+	     (devid == 0x1b02 || devid == 0x1b50 ||
-+	      /* Bull SwitchIB and SwitchIB2 */
-+	      devid == 0x1ba0 ||
-+	      (devid >= 0x1bd0 && devid <= 0x1bd5))))
- 		return 1;
--	if (devid >= 0x1003 && devid <= 0x1016)
-+	if ((devid >= 0x1003 && devid <= 0x1016) ||
-+	    ((vendorid == 0x119f) &&
-+	     /* Bull ConnectX3 */
-+	     (devid == 0x1b33 || devid == 0x1b73 ||
-+	      devid == 0x1b40 || devid == 0x1b41 ||
-+	      devid == 0x1b60 || devid == 0x1b61 ||
-+	     /* Bull ConnectIB */
-+	      devid == 0x1b83 ||
-+	      devid == 0x1b93 || devid == 0x1b94 ||
-+	      /* Bull ConnectX4 */
-+	      devid == 0x1bb4 || devid == 0x1bb5 ||
-+	      devid == 0x1bc4)))
- 		return 1;
- 	return 0;
- }
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index f74eed4..82d30e1 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -527,14 +527,34 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
- 	return 1;
- }
- 
--int is_mlnx_ext_port_info_supported(uint32_t devid)
-+int is_mlnx_ext_port_info_supported(uint32_t vendorid,
-+				    uint16_t devid)
- {
- 	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
--		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
-+
-+		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 ||
-+		    ((vendorid == 0x119f) &&
-+		     /* Bull SwitchX */
-+		     (devid == 0x1b02 || devid == 0x1b50 ||
-+		      /* Bull SwitchIB and SwitchIB2 */
-+		      devid == 0x1ba0 ||
-+		      (devid >= 0x1bd0 && devid <= 0x1bd5))))
- 			return 1;
--		if (devid >= 0x1003 && devid <= 0x1016)
-+		if ((devid >= 0x1003 && devid <= 0x1016) ||
-+		    ((vendorid == 0x119f) &&
-+		     /* Bull ConnectX3 */
-+		     (devid == 0x1b33 || devid == 0x1b73 ||
-+		      devid == 0x1b40 || devid == 0x1b41 ||
-+		      devid == 0x1b60 || devid == 0x1b61 ||
-+		      /* Bull ConnectIB */
-+		      devid == 0x1b83 ||
-+		      devid == 0x1b93 || devid == 0x1b94 ||
-+		      /* Bull ConnectX4 */
-+		      devid == 0x1bb4 || devid == 0x1bb5 ||
-+		      devid == 0x1bc4)))
- 			return 1;
- 	}
-+
- 	return 0;
- }
- 
-diff --git a/src/ibportstate.c b/src/ibportstate.c
-index df50469..fe8be25 100644
---- a/src/ibportstate.c
-+++ b/src/ibportstate.c
-@@ -385,6 +385,7 @@ int main(int argc, char **argv)
- 	int selfport = 0;
- 	int changed = 0;
- 	int i;
-+	uint32_t vendorid, rem_vendorid;
- 	uint16_t devid, rem_devid;
- 	uint64_t val;
- 	char *endp;
-@@ -516,6 +517,7 @@ int main(int argc, char **argv)
- 		port_op = QUERY;
- 
- 	is_switch = get_node_info(&portid, data);
-+	vendorid = (uint32_t) mad_get_field(data, 0, IB_NODE_VENDORID_F);
- 	devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
- 
- 	if ((port_args[MKEY].set || port_args[MKEYLEASE].set ||
-@@ -528,7 +530,7 @@ int main(int argc, char **argv)
- 		printf("%s PortInfo:\n", is_switch ? "Switch" : "CA/RT");
- 	espeed_cap = get_port_info(&portid, data, portnum, is_switch);
- 	show_port_info(&portid, data, portnum, espeed_cap, is_switch);
--	if (is_mlnx_ext_port_info_supported(devid)) {
-+	if (is_mlnx_ext_port_info_supported(vendorid, devid)) {
- 		get_mlnx_ext_port_info(&portid, data2, portnum);
- 		show_mlnx_ext_port_info(&portid, data2, portnum);
- 	}
-@@ -675,6 +677,7 @@ int main(int argc, char **argv)
- 
- 			/* Get peer port NodeInfo to obtain peer port number */
- 			is_peer_switch = get_node_info(&peerportid, data);
-+			rem_vendorid = (uint32_t) mad_get_field(data, 0, IB_NODE_VENDORID_F);
- 			rem_devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
- 
- 			mad_decode_field(data, IB_NODE_LOCAL_PORT_F,
-@@ -685,12 +688,12 @@ int main(int argc, char **argv)
- 			peer_espeed_cap = get_port_info(&peerportid, data,
- 							peerlocalportnum,
- 							is_peer_switch);
--			if (is_mlnx_ext_port_info_supported(rem_devid))
-+			if (is_mlnx_ext_port_info_supported(rem_vendorid, rem_devid))
- 				get_mlnx_ext_port_info(&peerportid, data2,
- 						       peerlocalportnum);
- 			show_port_info(&peerportid, data, peerlocalportnum,
- 				       peer_espeed_cap, is_peer_switch);
--			if (is_mlnx_ext_port_info_supported(rem_devid))
-+			if (is_mlnx_ext_port_info_supported(rem_vendorid, rem_devid))
- 				show_mlnx_ext_port_info(&peerportid, data2,
- 							peerlocalportnum);
- 
-diff --git a/src/vendstat.c b/src/vendstat.c
-index 284ef93..4646b56 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -149,7 +149,18 @@ static uint16_t ext_fw_info_device[][2] = {
- 	{0xcf08, 0xcf08},	/* Switch-IB2 */
- 	{0x01b3, 0x01b3},	/* IS-4 */
- 	{0x1003, 0x1016},	/* Connect-X */
--	{0x1b02, 0x1b02},	/* Bull */
-+	{0x1b02, 0x1b02},	/* Bull SwitchX */
-+	{0x1b50, 0x1b50},	/* Bull SwitchX */
-+	{0x1ba0, 0x1ba0},	/* Bull SwitchIB */
-+	{0x1bd0, 0x1bd5},	/* Bull SwitchIB and SwitchIB2 */
-+	{0x1b33, 0x1b33},	/* Bull ConnectX3 */
-+	{0x1b73, 0x1b73},	/* Bull ConnectX3 */
-+	{0x1b40, 0x1b41},	/* Bull ConnectX3 */
-+	{0x1b60, 0x1b61},	/* Bull ConnectX3 */
-+	{0x1b83, 0x1b83},	/* Bull ConnectIB */
-+	{0x1b93, 0x1b94},	/* Bull ConnectIB */
-+	{0x1bb4, 0x1bb5},	/* Bull ConnectX4 */
-+	{0x1bc4, 0x1bc4},	/* Bull ConnectX4 */
- 	{0x0000, 0x0000}};
- 
- static int is_ext_fw_info_supported(uint16_t device_id) {
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
 
---------------070602050103070308050300--
+Tel:       +49 30 577 008  042
+Fax:      +49 30 577 008 299
+Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:      https://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
