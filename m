@@ -1,69 +1,74 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v2 03/10] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) netdev
-Date: Sun, 18 Dec 2016 22:43:03 -0800
-Message-ID: <20161219064303.GA94834@knc-06.sc.intel.com>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <1481788782-89964-4-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215170109.GC3264@obsidianresearch.com>
- <20161216025947.GC90951@knc-06.sc.intel.com>
- <20161216042420.GB3797@obsidianresearch.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V6 00/14] SG-based RDMA ABI Proposal
+Date: Mon, 19 Dec 2016 08:28:41 +0200
+Message-ID: <20161219062841.GP1074@mtr-leonro.local>
+References: <1481461088-56355-1-git-send-email-matanb@mellanox.com>
+ <20161219004854.GA12723@phlsvsds.ph.intel.com>
+ <20161219055037.GO1074@mtr-leonro.local>
+ <2807E5FD2F6FDA4886F6618EAC48510E3C611539@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="o41d8xLWOaLD8vYh"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161216042420.GB3797-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E3C611539-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tanya K Jajodia <tanya.k.jajodia-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 15, 2016 at 09:24:20PM -0700, Jason Gunthorpe wrote:
->> >>+struct __hfi_vesw_info {
->> >>+	u16  fabric_id;
->> >>+	u16  vesw_id;
->> >>+
->> >>+	u8   rsvd0[6];
->> >>+	u16  def_port_mask;
->> >>+
->> >>+	u8   rsvd1[2];
->> >>+	u16  pkey;
->> >>+
->> >>+	u8   rsvd2[4];
->> >>+	u32  u_mcast_dlid;
->> >>+	u32  u_ucast_dlid[HFI_VESW_MAX_NUM_DEF_PORT];
->> >>+
->> >>+	u8   rsvd3[44];
->> >>+	u16  eth_mtu[HFI_VNIC_MAX_NUM_PCP];
->> >>+	u16  eth_mtu_non_vlan;
->> >>+	u8   rsvd4[2];
->> >>+} __packed;
->> >
->> >This goes on the network too? Also looks like it has endian problems.
->> >
->> >Ditto for all the __packed structures.
->> >
->>
->> This is in CPU format. There is a separate big endian version of
->> this
->
->Why are CPU handled structures packed and full of reserved fields?
->Don't pack them if they are not pushed out to the network..
->
->There were lots of __packed structures, any that go on the network
->need be/le annoations.
->
+--o41d8xLWOaLD8vYh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Well, driver treats the reserved fields to be sticky. ie., information
-block returned (upon GET) to EM is not changed (from SET) except few fields 
-which driver is expected to modify.
-Structures that go on wire are big endian __packed structures in 
-hfi_vnic_encap.h. Ok, I will remove the __packed attribute from CPU handled 
-structures here.
+On Mon, Dec 19, 2016 at 06:07:55AM +0000, Weiny, Ira wrote:
+> > > These don't apply to any Doug branches I have tried.  (I don't see a
+> > > for-4.9-fixed branch at:)
+> > >
+> > > https://git.kernel.org/cgit/linux/kernel/git/dledford/rdma.git/refs/he
+> > > ads
+> > >
+> > > Doug, have you accepted Leon's IOCTL series?
+> >
+> > Yes, Doug accepted it.
+> >
+>
+> Do you know what branch they are on?
 
-Niranjana
+It puzzled me too, but since the code is available in Matan's repo [1],
+I didn't bother myself.
 
->Jason
+[1] https://github.com/matanb10/linux abi_rfc_pre_v6
+
+>
+> Ira
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--o41d8xLWOaLD8vYh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhXfhgACgkQ5GN7iDZy
+WKfMCg/8DuOCOwA7KBWocD1kPZtspgUjFHQnUur0N9aVF6RXfTUUAeNrpzeiMQ9P
+o6xGPgimsLlxEQgHaMn14dZBhIAP4nW9Gsx+CgQZ4DD0yvnFlx/pVzKWGikM0PLT
+ODGBpqXZIp0I/0Jr5GOQd8RxjUL8WJzHdAKNsygjk3nTWq6mYX3bIlbvuTxvkcLK
+C5A1/M5KpuelLZHDJumuiKmh+vr08FgbglvIdsYGinM2mNisYZTJ+7sMsja7nI8g
+rx7lwQsANo15GTrGifjePC1owIVmVKi+GYyTS3v6W7b2fQZ0E5pAgJ516OM9qV0e
+nsHstCN6BrNSBaLIT08PVI1DgOs4R/wNNcHvkimCVXqXRQewBvec9Q0oB++bk96K
+ZueVH8MQxAv+m671peDovq+FtN+YfMlzB40G7fEwmndxGyQal9peHg7iDF43KYF7
+tUGvcUxr/gVWuZiFR+6YBHjMLTo7kkGL4/JUD1iPrEoehifkQplhgeVsP1spumTN
+3VXnNpCb/u+yTkf2tINTYmnEsTBZCjvGYQBq08+Idk9nc/QpiosRg1JKBvvmHkMK
+w55MB/oG+R45fbb0UO1cbDGoVCMsT5sjq8FaHOPp4IXON4GzRTHD8YnYb/F1wZLw
+DxtAtTQkJ+vXIvIN8Sqor+2Jhzfs4uEA0g7ORH2SLPNwo3Zkiww=
+=OXtV
+-----END PGP SIGNATURE-----
+
+--o41d8xLWOaLD8vYh--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
