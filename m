@@ -1,61 +1,163 @@
-From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core] i40iw: Set 128B as the only supported RQ WQE size
-Date: Mon, 19 Dec 2016 14:31:17 -0600
-Message-ID: <1482179477-100780-1-git-send-email-tatyana.e.nikolova@intel.com>
+From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+Date: Mon, 19 Dec 2016 14:32:27 -0600
+Message-ID: <20161219203227.86392-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RQ WQE size other than 128B is not supported.
-Correct RQ size calculation to use 128B only.
+From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Since this breaks ABI, add code to provide
-compatibility with V4 kernel driver, i40iw.
+RQ WQE size other than 128B is not supported.  Correct
+RQ size calculation to use 128B only.
 
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Since this breaks AIB, add additional code to
+provide compatibility with v4 user provider, libi40iw.
+
+Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- providers/i40iw/i40iw-abi.h    |  3 +--
- providers/i40iw/i40iw_uk.c     | 18 +++++++++++++-----
- providers/i40iw/i40iw_umain.c  | 15 +++++++++++----
- providers/i40iw/i40iw_umain.h  |  1 +
- providers/i40iw/i40iw_user.h   |  4 +++-
- providers/i40iw/i40iw_uverbs.c | 20 +++++++++++++++-----
- 6 files changed, 44 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 25 ++++++++++++++++++++-----
+ drivers/infiniband/hw/i40iw/i40iw_puda.c     |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_type.h     |  4 +++-
+ drivers/infiniband/hw/i40iw/i40iw_ucontext.h |  4 ++--
+ drivers/infiniband/hw/i40iw/i40iw_uk.c       | 17 ++++++++++++-----
+ drivers/infiniband/hw/i40iw/i40iw_user.h     |  4 +++-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 21 +++++++++++----------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h    |  1 +
+ 8 files changed, 53 insertions(+), 25 deletions(-)
 
-diff --git a/providers/i40iw/i40iw-abi.h b/providers/i40iw/i40iw-abi.h
-index 88c8c72..df2df07 100644
---- a/providers/i40iw/i40iw-abi.h
-+++ b/providers/i40iw/i40iw-abi.h
-@@ -37,8 +37,7 @@
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index 392f783..98923a8 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -358,13 +358,16 @@ void i40iw_qp_add_qos(struct i40iw_sc_qp *qp)
+  * @dev: sc device struct
+  * @pd: sc pd ptr
+  * @pd_id: pd_id for allocated pd
++ * @abi_ver: ABI version from user context, -1 if not valid
+  */
+ static void i40iw_sc_pd_init(struct i40iw_sc_dev *dev,
+ 			     struct i40iw_sc_pd *pd,
+-			     u16 pd_id)
++			     u16 pd_id,
++			     int abi_ver)
+ {
+ 	pd->size = sizeof(*pd);
+ 	pd->pd_id = pd_id;
++	pd->abi_ver = abi_ver;
+ 	pd->dev = dev;
+ }
  
- #include <infiniband/kern-abi.h>
+@@ -2252,6 +2255,7 @@ static enum i40iw_status_code i40iw_sc_qp_init(struct i40iw_sc_qp *qp,
+ 					      offset);
  
--#define I40IW_ABI_USERSPACE_VER 4
--#define I40IW_ABI_KERNEL_VER 4
-+#define I40IW_ABI_VER 5
- 
- struct i40iw_get_context {
- 	struct ibv_get_context cmd;
-diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
-index 392e858..ea3255f 100644
---- a/providers/i40iw/i40iw_uk.c
-+++ b/providers/i40iw/i40iw_uk.c
-@@ -970,11 +970,8 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
- 
- 	if (info->max_rq_frag_cnt > I40IW_MAX_WQ_FRAGMENT_COUNT)
- 		return I40IW_ERR_INVALID_FRAG_COUNT;
--	ret_code = i40iw_get_wqe_shift(info->sq_size, info->max_sq_frag_cnt, info->max_inline_data, &sqshift);
+ 	info->qp_uk_init_info.wqe_alloc_reg = wqe_alloc_reg;
++	info->qp_uk_init_info.abi_ver = qp->pd->abi_ver;
+ 	ret_code = i40iw_qp_uk_init(&qp->qp_uk, &info->qp_uk_init_info);
+ 	if (ret_code)
+ 		return ret_code;
+@@ -2270,10 +2274,21 @@ static enum i40iw_status_code i40iw_sc_qp_init(struct i40iw_sc_qp *qp,
+ 						    false);
+ 	i40iw_debug(qp->dev, I40IW_DEBUG_WQE, "%s: hw_sq_size[%04d] sq_ring.size[%04d]\n",
+ 		    __func__, qp->hw_sq_size, qp->qp_uk.sq_ring.size);
+-	ret_code = i40iw_fragcnt_to_wqesize_rq(qp->qp_uk.max_rq_frag_cnt,
+-					       &wqe_size);
 -	if (ret_code)
 -		return ret_code;
++
++	switch (qp->pd->abi_ver) {
++	case 4:
++		ret_code = i40iw_fragcnt_to_wqesize_rq(qp->qp_uk.max_rq_frag_cnt,
++						       &wqe_size);
++		if (ret_code)
++			return ret_code;
++		break;
++	case 5: /* fallthrough until next ABI version */
++	default:
++		if (qp->qp_uk.max_rq_frag_cnt > I40IW_MAX_WQ_FRAGMENT_COUNT)
++			return I40IW_ERR_INVALID_FRAG_COUNT;
++		wqe_size = I40IW_MAX_WQE_SIZE_RQ;
++		break;
++	}
+ 	qp->hw_rq_size = i40iw_get_encoded_wqe_size(qp->qp_uk.rq_size *
+ 				(wqe_size / I40IW_QP_WQE_MIN_SIZE), false);
+ 	i40iw_debug(qp->dev, I40IW_DEBUG_WQE,
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index 3b286cd..a368b7d 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -930,7 +930,7 @@ enum i40iw_status_code i40iw_puda_create_rsrc(struct i40iw_sc_vsi *vsi,
+ 	INIT_LIST_HEAD(&rsrc->txpend);
  
--	ret_code = i40iw_get_wqe_shift(info->rq_size, info->max_rq_frag_cnt, 0, &rqshift);
-+	ret_code = i40iw_get_wqe_shift(info->sq_size, info->max_sq_frag_cnt, info->max_inline_data, &sqshift);
+ 	rsrc->tx_wqe_avail_cnt = info->sq_size - 1;
+-	dev->iw_pd_ops->pd_init(dev, &rsrc->sc_pd, info->pd_id);
++	dev->iw_pd_ops->pd_init(dev, &rsrc->sc_pd, info->pd_id, -1);
+ 	rsrc->qp_id = info->qp_id;
+ 	rsrc->cq_id = info->cq_id;
+ 	rsrc->sq_size = info->sq_size;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index 68502ba..d7a629a 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -280,6 +280,7 @@ struct i40iw_sc_pd {
+ 	u32 size;
+ 	struct i40iw_sc_dev *dev;
+ 	u16 pd_id;
++	int abi_ver;
+ };
+ 
+ struct i40iw_cqp_quanta {
+@@ -852,6 +853,7 @@ struct i40iw_qp_init_info {
+ 	u64 host_ctx_pa;
+ 	u64 q2_pa;
+ 	u64 shadow_area_pa;
++	int abi_ver;
+ 	u8 sq_tph_val;
+ 	u8 rq_tph_val;
+ 	u8 type;
+@@ -1051,7 +1053,7 @@ struct i40iw_aeq_ops {
+ };
+ 
+ struct i40iw_pd_ops {
+-	void (*pd_init)(struct i40iw_sc_dev *, struct i40iw_sc_pd *, u16);
++	void (*pd_init)(struct i40iw_sc_dev *, struct i40iw_sc_pd *, u16, int);
+ };
+ 
+ struct i40iw_priv_qp_ops {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+index 12acd68..57d3f1d 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+@@ -39,8 +39,8 @@
+ 
+ #include <linux/types.h>
+ 
+-#define I40IW_ABI_USERSPACE_VER 4
+-#define I40IW_ABI_KERNEL_VER    4
++#define I40IW_ABI_VER 5
++
+ struct i40iw_alloc_ucontext_req {
+ 	__u32 reserved32;
+ 	__u8 userspace_ver;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+index a614ad2..2c6c442 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+@@ -967,10 +967,6 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
  	if (ret_code)
  		return ret_code;
  
-@@ -1006,8 +1003,19 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
+-	ret_code = i40iw_get_wqe_shift(info->rq_size, info->max_rq_frag_cnt, 0, &rqshift);
+-	if (ret_code)
+-		return ret_code;
+-
+ 	qp->sq_base = info->sq;
+ 	qp->rq_base = info->rq;
+ 	qp->shadow_area = info->shadow_area;
+@@ -999,8 +995,19 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
  	if (!qp->use_srq) {
  		qp->rq_size = info->rq_size;
  		qp->max_rq_frag_cnt = info->max_rq_frag_cnt;
@@ -76,73 +178,23 @@ index 392e858..ea3255f 100644
  		qp->rq_wqe_size_multiplier = 4 << rqshift;
  	}
  	qp->ops = iw_qp_uk_ops;
-diff --git a/providers/i40iw/i40iw_umain.c b/providers/i40iw/i40iw_umain.c
-index 8d7b655..a1e98ac 100644
---- a/providers/i40iw/i40iw_umain.c
-+++ b/providers/i40iw/i40iw_umain.c
-@@ -154,15 +154,21 @@ static struct ibv_context *i40iw_ualloc_context(struct ibv_device *ibdev, int cm
- 
- 	memset(iwvctx, 0, sizeof(*iwvctx));
- 	iwvctx->ibv_ctx.cmd_fd = cmd_fd;
--	cmd.userspace_ver = I40IW_ABI_USERSPACE_VER;
-+	cmd.userspace_ver = I40IW_ABI_VER;
- 	memset(&resp, 0, sizeof(resp));
- 	if (ibv_cmd_get_context(&iwvctx->ibv_ctx, (struct ibv_get_context *)&cmd,
-+				sizeof(cmd), &resp.ibv_resp, sizeof(resp))) {
-+
-+		cmd.userspace_ver = 4;
-+		if (ibv_cmd_get_context(&iwvctx->ibv_ctx, (struct ibv_get_context *)&cmd,
- 				sizeof(cmd), &resp.ibv_resp, sizeof(resp)))
--		goto err_free;
-+			goto err_free;
-+
-+	}
- 
--	if (resp.kernel_ver != I40IW_ABI_KERNEL_VER) {
-+	if (resp.kernel_ver > I40IW_ABI_VER) {
- 		fprintf(stderr, PFX "%s: incompatible kernel driver version: %d.  Need version %d\n",
--			__func__, resp.kernel_ver, I40IW_ABI_KERNEL_VER);
-+			__func__, resp.kernel_ver, I40IW_ABI_VER);
- 		goto err_free;
- 	}
- 
-@@ -171,6 +177,7 @@ static struct ibv_context *i40iw_ualloc_context(struct ibv_device *ibdev, int cm
- 	iwvctx->max_pds = resp.max_pds;
- 	iwvctx->max_qps = resp.max_qps;
- 	iwvctx->wq_size = resp.wq_size;
-+	iwvctx->abi_ver = resp.kernel_ver;
- 
- 	i40iw_device_init_uk(&iwvctx->dev);
- 	ibv_pd = i40iw_ualloc_pd(&iwvctx->ibv_ctx);
-diff --git a/providers/i40iw/i40iw_umain.h b/providers/i40iw/i40iw_umain.h
-index 719aefc..06d38a2 100644
---- a/providers/i40iw/i40iw_umain.h
-+++ b/providers/i40iw/i40iw_umain.h
-@@ -95,6 +95,7 @@ struct i40iw_uvcontext {
- 	uint32_t max_qps;	/* maximum qps allowed for this user process */
- 	uint32_t wq_size;	/* size of the WQs (sq+rq) + shadow allocated to the mmaped area */
- 	struct i40iw_dev_uk dev;
-+	int abi_ver;
- };
- 
- struct i40iw_uqp;
-diff --git a/providers/i40iw/i40iw_user.h b/providers/i40iw/i40iw_user.h
-index 8d345b3..1e95c23 100644
---- a/providers/i40iw/i40iw_user.h
-+++ b/providers/i40iw/i40iw_user.h
-@@ -77,6 +77,7 @@ enum i40iw_device_capabilities_const {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
+index 66263fc..ab2f7c1 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_user.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
+@@ -76,6 +76,7 @@ enum i40iw_device_capabilities_const {
+ 	I40IW_MAX_ORD_SIZE =			127,
  	I40IW_MAX_WQ_ENTRIES =			2048,
- 	I40IW_MAX_ORD_SIZE =			32,
  	I40IW_Q2_BUFFER_SIZE =			(248 + 100),
 +	I40IW_MAX_WQE_SIZE_RQ =			128,
- 	I40IW_QP_CTX_SIZE =			248
+ 	I40IW_QP_CTX_SIZE =			248,
+ 	I40IW_MAX_PDS = 			32768
  };
- 
 @@ -103,6 +104,7 @@ enum i40iw_device_capabilities_const {
  #define I40IW_STAG_INDEX_FROM_STAG(stag)    (((stag) && 0xFFFFFF00) >> 8)
  
  #define	I40IW_MAX_MR_SIZE	0x10000000000L
-+#define I40IW_MAX_RQ_WQE_SHIFT	2
++#define	I40IW_MAX_RQ_WQE_SHIFT	2
  
  struct i40iw_qp_uk;
  struct i40iw_cq_uk;
@@ -155,47 +207,105 @@ index 8d345b3..1e95c23 100644
  };
  
  struct i40iw_cq_uk_init_info {
-diff --git a/providers/i40iw/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
-index 4a868ea..a946fcc 100644
---- a/providers/i40iw/i40iw_uverbs.c
-+++ b/providers/i40iw/i40iw_uverbs.c
-@@ -661,12 +661,21 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
- 		return NULL;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 855e499..7d1ebf0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -145,9 +145,8 @@ static struct ib_ucontext *i40iw_alloc_ucontext(struct ib_device *ibdev,
+ 	if (ib_copy_from_udata(&req, udata, sizeof(req)))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	if (req.userspace_ver != I40IW_ABI_USERSPACE_VER) {
+-		i40iw_pr_err("Invalid userspace driver version detected. Detected version %d, should be %d\n",
+-			     req.userspace_ver, I40IW_ABI_USERSPACE_VER);
++	if (req.userspace_ver < 4 || req.userspace_ver > I40IW_ABI_VER) {
++		i40iw_pr_err("Unsupported provider library version %u.\n", req.userspace_ver);
+ 		return ERR_PTR(-EINVAL);
  	}
  
--	rqdepth = i40iw_qp_get_qdepth(rq_attr, attr->cap.max_recv_sge, 0);
--	if (!rqdepth) {
--		fprintf(stderr, PFX "%s: invalid RQ attributes, max_recv_wr=%d max_recv_sge=%d\n",
--			__func__, attr->cap.max_recv_wr, attr->cap.max_recv_sge);
--		return NULL;
-+	switch (iwvctx->abi_ver) {
-+	case 4:
-+		rqdepth = i40iw_qp_get_qdepth(rq_attr, attr->cap.max_recv_sge, 0);
-+		if (!rqdepth) {
-+			fprintf(stderr, PFX "%s: invalid RQ attributes, max_recv_wr=%d max_recv_sge=%d\n",
-+				__func__, attr->cap.max_recv_wr, attr->cap.max_recv_sge);
-+			return NULL;
-+		}
-+		break;
-+	case 5: /* fallthrough until next ABI version */
-+	default:
-+		rqdepth = rq_attr << I40IW_MAX_RQ_WQE_SHIFT;
-+		break;
+@@ -155,13 +154,14 @@ static struct ib_ucontext *i40iw_alloc_ucontext(struct ib_device *ibdev,
+ 	uresp.max_qps = iwdev->max_qp;
+ 	uresp.max_pds = iwdev->max_pd;
+ 	uresp.wq_size = iwdev->max_qp_wr * 2;
+-	uresp.kernel_ver = I40IW_ABI_KERNEL_VER;
++	uresp.kernel_ver = req.userspace_ver;
+ 
+ 	ucontext = kzalloc(sizeof(*ucontext), GFP_KERNEL);
+ 	if (!ucontext)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	ucontext->iwdev = iwdev;
++	ucontext->abi_ver = req.userspace_ver;
+ 
+ 	if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
+ 		kfree(ucontext);
+@@ -333,6 +333,7 @@ static struct ib_pd *i40iw_alloc_pd(struct ib_device *ibdev,
+ 	struct i40iw_sc_dev *dev = &iwdev->sc_dev;
+ 	struct i40iw_alloc_pd_resp uresp;
+ 	struct i40iw_sc_pd *sc_pd;
++	struct i40iw_ucontext *ucontext;
+ 	u32 pd_id = 0;
+ 	int err;
+ 
+@@ -353,15 +354,18 @@ static struct ib_pd *i40iw_alloc_pd(struct ib_device *ibdev,
  	}
-+
- 	iwuqp = memalign(1024, sizeof(*iwuqp));
- 	if (!iwuqp)
- 		return NULL;
-@@ -687,6 +696,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
  
- 	info.wqe_alloc_reg = (u32 *)iwvctx->iwupd->db;
- 	info.sq_wrtrk_array = calloc(sqdepth, sizeof(*info.sq_wrtrk_array));
-+	info.abi_ver = iwvctx->abi_ver;
+ 	sc_pd = &iwpd->sc_pd;
+-	dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id);
  
- 	if (!info.sq_wrtrk_array) {
- 		fprintf(stderr, PFX "%s: failed to allocate memory for SQ work array\n", __func__);
+ 	if (context) {
++		ucontext = to_ucontext(context);
++		dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id, ucontext->abi_ver);
+ 		memset(&uresp, 0, sizeof(uresp));
+ 		uresp.pd_id = pd_id;
+ 		if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
+ 			err = -EFAULT;
+ 			goto error;
+ 		}
++	} else {
++		dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id, -1);
+ 	}
+ 
+ 	i40iw_add_pdusecount(iwpd);
+@@ -518,7 +522,7 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
+ 	struct i40iw_dma_mem *mem = &iwqp->kqp.dma_mem;
+ 	u32 sqdepth, rqdepth;
+ 	u32 sq_size, rq_size;
+-	u8 sqshift, rqshift;
++	u8 sqshift;
+ 	u32 size;
+ 	enum i40iw_status_code status;
+ 	struct i40iw_qp_uk_init_info *ukinfo = &info->qp_uk_init_info;
+@@ -527,14 +531,11 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
+ 	rq_size = i40iw_qp_roundup(ukinfo->rq_size + 1);
+ 
+ 	status = i40iw_get_wqe_shift(sq_size, ukinfo->max_sq_frag_cnt, ukinfo->max_inline_data, &sqshift);
+-	if (!status)
+-		status = i40iw_get_wqe_shift(rq_size, ukinfo->max_rq_frag_cnt, 0, &rqshift);
+-
+ 	if (status)
+ 		return -ENOMEM;
+ 
+ 	sqdepth = sq_size << sqshift;
+-	rqdepth = rq_size << rqshift;
++	rqdepth = rq_size << I40IW_MAX_RQ_WQE_SHIFT;
+ 
+ 	size = sqdepth * sizeof(struct i40iw_sq_uk_wr_trk_info) + (rqdepth << 3);
+ 	iwqp->kqp.wrid_mem = kzalloc(size, GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.h b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+index 6549c93..07c3fec 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+@@ -42,6 +42,7 @@ struct i40iw_ucontext {
+ 	spinlock_t cq_reg_mem_list_lock; /* memory list for cq's */
+ 	struct list_head qp_reg_mem_list;
+ 	spinlock_t qp_reg_mem_list_lock; /* memory list for qp's */
++	int abi_ver;
+ };
+ 
+ struct i40iw_pd {
 -- 
-2.7.4
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
