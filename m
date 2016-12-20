@@ -1,73 +1,83 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] RDS: use rb_entry()
-Date: Tue, 20 Dec 2016 16:20:33 +0200
-Message-ID: <20161220142033.GY1074@mtr-leonro.local>
+Subject: Re: [PATCH] IB/qib: use rb_entry()
+Date: Tue, 20 Dec 2016 16:21:27 +0200
+Message-ID: <20161220142127.GZ1074@mtr-leonro.local>
 References: <ddabc96c798df194791134d8e070d728e2a7b59f.1482203698.git.geliangtang@gmail.com>
- <2cd84448fe04ffb7023be892c5ed04bbfc759c87.1482204342.git.geliangtang@gmail.com>
+ <b3d122a5a5a74579c4854cde74974e2cbc140be0.1482203536.git.geliangtang@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YZa61AII3s1sGKYx"
+        protocol="application/pgp-signature"; boundary="9Wosya/OiUJZ+2ov"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2cd84448fe04ffb7023be892c5ed04bbfc759c87.1482204342.git.geliangtang@gmail.com>
+In-Reply-To: <b3d122a5a5a74579c4854cde74974e2cbc140be0.1482203536.git.geliangtang@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Geliang Tang <geliangtang@gmail.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Cc: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---YZa61AII3s1sGKYx
+--9Wosya/OiUJZ+2ov
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Dec 20, 2016 at 10:02:18PM +0800, Geliang Tang wrote:
+On Tue, Dec 20, 2016 at 10:02:12PM +0800, Geliang Tang wrote:
 > To make the code clearer, use rb_entry() instead of container_of() to
 > deal with rbtree.
 >
 > Signed-off-by: Geliang Tang <geliangtang@gmail.com>
 > ---
->  net/rds/rdma.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/infiniband/hw/qib/qib_user_sdma.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
+> diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> index 3e0677c..926f3c8 100644
+> --- a/drivers/infiniband/hw/qib/qib_user_sdma.c
+> +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> @@ -144,8 +144,8 @@ qib_user_sdma_rb_search(struct rb_root *root, pid_t pid)
+>  	struct rb_node *node = root->rb_node;
 >
-> diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-> index 4c93bad..ea96114 100644
-> --- a/net/rds/rdma.c
-> +++ b/net/rds/rdma.c
-> @@ -135,7 +135,7 @@ void rds_rdma_drop_keys(struct rds_sock *rs)
->  	/* Release any MRs associated with this socket */
->  	spin_lock_irqsave(&rs->rs_rdma_lock, flags);
->  	while ((node = rb_first(&rs->rs_rdma_keys))) {
-> -		mr = container_of(node, struct rds_mr, r_rb_node);
-> +		mr = rb_entry(node, struct rds_mr, r_rb_node);
->  		if (mr->r_trans == rs->rs_transport)
->  			mr->r_invalidate = 0;
->  		rb_erase(&mr->r_rb_node, &rs->rs_rdma_keys);
+>  	while (node) {
+> -		sdma_rb_node = container_of(node,
+> -			struct qib_user_sdma_rb_node, node);
+> +		sdma_rb_node = rb_entry(node, struct qib_user_sdma_rb_node,
+> +					node);
+>  		if (pid < sdma_rb_node->pid)
+>  			node = node->rb_left;
+>  		else if (pid > sdma_rb_node->pid)
+> @@ -164,7 +164,7 @@ qib_user_sdma_rb_insert(struct rb_root *root, struct qib_user_sdma_rb_node *new)
+>  	struct qib_user_sdma_rb_node *got;
+>
+>  	while (*node) {
+> -		got = container_of(*node, struct qib_user_sdma_rb_node, node);
+> +		got = rb_entry(*node, struct qib_user_sdma_rb_node, node);
+>  		parent = *node;
+>  		if (new->pid < got->pid)
+>  			node = &((*node)->rb_left);
 > --
 > 2.9.3
 >
 
---YZa61AII3s1sGKYx
+--9Wosya/OiUJZ+2ov
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhZPjEACgkQ5GN7iDZy
-WKenhxAAwM9W5FEYsSEq07R/eQrw1VY7jJye6FvJtdpTslMGdamFNal40mFBk87P
-JkyqzbtlrrEakVEObt8a3UgmWvLlW9V+xv9kDAfClqtmgTFVfnCws0mDlVqOc6K5
-l7UiR4Z6SQYy7VmVPL2VLZ2jR+e1wzc9+XWRihTw/cclqqZCivKHaMjLPbm8QOZe
-MUQ+P9RdSbweFtniWgWA8KHIOLMKF6UUwRS4Jsu+P/Wa3YMMv6EUYfw8vRzaIPnO
-4xLsrrwNAOWuZwRYomTeM/NEFRUWFafsHJtPhaPxOlaYvXgVt2LVq74AI/VibEuD
-ITWLPFRy3rkLM9uFT/B06EZORz5GiC+QGw+NfmctEjxzd65mJCGMSXq0xfzh0Caj
-IDVoKilDZYeW/kbri5VDF6Ziomm2P97wQBI8B3/y0s55+HSfZ/+leOEcAmWBtIoj
-ypYN4aS9FRiJTBHwqRl4467rbGrMxe0h6jHZdy8STTGxVFtc4+g/4GOANum9v7fm
-lJ+SqoeUlLjlssRczDf88LdzalwMD12wdd0SL1SycOBKo0pyEHKBOOoL9fHcTVkq
-ZvpZuDDlkKRFRYp+rwt/hQsUBEakR1262oJrmaqFlvq+HBdjwAefo3LXJl6F01r2
-iLhFfCyCmByU/ZFnUbA91OntT7NTBx6ESpdNf5tp2lTy6DAjRAU=
-=lpu8
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhZPmcACgkQ5GN7iDZy
+WKfNPg/9GPsobAQ7sPc2zGcCFO+GRo64pFRas81AQoq53GD5p9esgERio/DX/Keb
+phAvTunxyYEC3IsciQ9VxRydIpwEmNj6yMUcNJeVJhUtB5D7/gymGK/8uS+oB2/2
+ThIJGcFTgP0cExPnbUEfv/yIVF1ABaoFCAeBIXtNp5ItAV/JGTs1dU2Bon54oNWS
+k31whW9vBE3e/Hos/nUEoNE9n6I+7TbgAJMOjYdceuXjSevC01t7mSyewu2S0+xj
+iZI7uiR88+Jl0O50iiDfFBAFUoktVNiZUclEJngiU1p7rQEgib6treiQdz1fa4V1
+GKuNMVo/AYCZXrDlVQMd/Hcn3TB8sr5E8orb64FdyqvG8sYjbnVF6Edl4FtPHSAl
+Q26Gxo6LDiy0YjG6zlg8wHaojTEANaqMn7MaBRjmxSr+w1Zj6kRg8LN0ZjHJ+F17
+zrwieEVEI3EinjCcPNJHrvGFu0bEMJgb1XAu4smENOXrZARc+6t2kWxdQG0x163i
+l2a80Wd0n+P2pYCT9ARa3IsvI4tkaFya+KkMOre6VPoom9rshwy2yiZx9kAkqwnl
+muk7ZuXM8HJEIBGe+Mj+9bBw3IjIEzSSBoSepXUboEdkPafaTVL9MuGqaBXvmUAV
+c6WUxGaPl82jQcHKUiPjj7axIvbKWknF+pvkrGTMPME7N6dTBmU=
+=xA8k
 -----END PGP SIGNATURE-----
 
---YZa61AII3s1sGKYx--
+--9Wosya/OiUJZ+2ov--
