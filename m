@@ -1,55 +1,56 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v2 infiniband-diags] ibdiag_common.c: Disambiguate link speed
- when QDR and could be FDR10
-Date: Mon, 19 Dec 2016 17:25:11 -0500
-Message-ID: <094d3fd9-a478-ce30-b2de-8983c783c411@dev.mellanox.co.il>
+From: Cao jin <caoj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [PATCH] infiniband/hfil: drop pci_link_reset()
+Date: Tue, 20 Dec 2016 11:17:05 +0800
+Message-ID: <5858A2B1.1020701@cn.fujitsu.com>
+References: <1482129996-19255-1-git-send-email-caoj.fnst@cn.fujitsu.com>
+ <1482129996-19255-2-git-send-email-caoj.fnst@cn.fujitsu.com>
+ <e6f22b2d-faf7-390a-ca4d-564c6d0841b8@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <e6f22b2d-faf7-390a-ca4d-564c6d0841b8-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Rather than printing "Could be FDR10", print
-"Could be FDR10 (Found link at QDR but expected speed is FDR10)"
-for this case.
 
-Confusion is with words "Could be" and fact that both
-QDR and FDR10 are both 10.0 Gbps.
+On 12/19/2016 11:54 PM, Dennis Dalessandro wrote:
+> On 12/19/2016 01:46 AM, Cao jin wrote:
+>> In AER recovery, pci_error_handlers.link_reset() is never called,
+>> drop it now.
+>>
+>> Signed-off-by: Cao jin <caoj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
+> 
+> Is this part of a larger patch series?
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v1:
-Preserved original "Could be FDR10" so can grep for "Could be"
-along with adding new language.
+Not now.
 
- src/ibdiag_common.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+> If the function is never called
+> it should be removed from struct pci_error_handlers should it not? Then
+> in the same series be removed from all the drivers.
 
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index f74eed4..ad8551f 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -814,8 +814,14 @@ check_ext_speed:
- 
- check_fdr10_active:
- 	if ((mad_get_field(port->ext_info, 0,
--			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0)
--		snprintf(speed_msg, msg_size, "Could be FDR10");
-+			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0) {
-+		/* Special case QDR to try to avoid confusion with FDR10 */
-+		if (mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F) == 4)
-+			snprintf(speed_msg, msg_size,
-+				 "Could be FDR10 (Found link at QDR but expected speed is FDR10)");
-+		else
-+			snprintf(speed_msg, msg_size, "Could be FDR10");
-+	}
- }
- 
- int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
+Maybe we can remove the unnecessary implementation in each device first,
+if finally pci guys confirmed that .link_reset could be removed, then we
+could removed it in the future, not quite necessary to place them into
+the same series. But it is also good hear their voice first.
+
+-- 
+Sincerely,
+Cao jin
+
+> 
+> Probably should check with the folks on linux-pci about this though.
+> 
+> -Denny
+> 
+> 
+> 
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
