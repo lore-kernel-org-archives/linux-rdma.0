@@ -1,289 +1,67 @@
-From: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH] RDMA/i40iw: use designated initializers
-Date: Tue, 20 Dec 2016 12:04:52 -0800
-Message-ID: <CAGXu5j+Jj_yuNotEwLb-DjW3Pg--4EeZkthnd47PR-=KycxC_A@mail.gmail.com>
-References: <20161217010542.GA140742@beast> <9DD61F30A802C4429A01CA4200E302A7301B89C9@fmsmsx116.amr.corp.intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 infiniband-diags] ibdiag_common.c: Disambiguate link
+ speed when QDR and could be FDR10
+Date: Tue, 20 Dec 2016 22:55:06 +0200
+Message-ID: <20161220205506.GA4850@yuval-lap>
+References: <b3114ca9-18da-f640-7ab1-f05cc364bc27@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7301B89C9-5FK+k9557ZBZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b3114ca9-18da-f640-7ab1-f05cc364bc27-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 19, 2016 at 12:40 PM, Saleem, Shiraz
-<shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> I see how this patch improves readability but not sure why it throws a compiler error/warning?
+Reviewed-By: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-This doesn't cause a compiler warning without the gcc plugin
-"randstruct" (which is coming soon). Under randstruct, structure
-layouts can be randomized, so "ordered" initializers (as they are
-currently) cannot be used. Instead, "designated" initializers are
-needed, which is what this patch adds. There is no actual difference
-in the resulting output; it just allows for the randstruct plugin to
-operate correctly.
-
--Kees
-
->
-> Shiraz
->
->> Subject: RE: [PATCH] RDMA/i40iw: use designated initializers
->>
->> Hi Kees - Can you send the associated compiler warning?
->>
->> Shiraz
->>
->>
->> > Subject: [PATCH] RDMA/i40iw: use designated initializers
->> >
->> > Prepare to mark sensitive kernel structures for randomization by
->> > making sure they're using designated initializers. These were
->> > identified during allyesconfig builds of x86, arm, and arm64, with most initializer
->> fixes extracted from grsecurity.
->> >
->> > Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
->> > ---
->> >  drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 128 +++++++++++++++----------------
->> >  drivers/infiniband/hw/i40iw/i40iw_uk.c   |  34 ++++----
->> >  2 files changed, 80 insertions(+), 82 deletions(-)
->> >
->> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
->> > b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
->> > index 392f78384a60..797f745a9a5b 100644
->> > --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
->> > +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
->> > @@ -4836,46 +4836,46 @@ void i40iw_vsi_stats_free(struct i40iw_sc_vsi
->> > *vsi)  }
->> >
->> >  static struct i40iw_cqp_ops iw_cqp_ops = {
->> > -   i40iw_sc_cqp_init,
->> > -   i40iw_sc_cqp_create,
->> > -   i40iw_sc_cqp_post_sq,
->> > -   i40iw_sc_cqp_get_next_send_wqe,
->> > -   i40iw_sc_cqp_destroy,
->> > -   i40iw_sc_poll_for_cqp_op_done
->> > +   .cqp_init = i40iw_sc_cqp_init,
->> > +   .cqp_create = i40iw_sc_cqp_create,
->> > +   .cqp_post_sq = i40iw_sc_cqp_post_sq,
->> > +   .cqp_get_next_send_wqe = i40iw_sc_cqp_get_next_send_wqe,
->> > +   .cqp_destroy = i40iw_sc_cqp_destroy,
->> > +   .poll_for_cqp_op_done = i40iw_sc_poll_for_cqp_op_done
->> >  };
->> >
->> >  static struct i40iw_ccq_ops iw_ccq_ops = {
->> > -   i40iw_sc_ccq_init,
->> > -   i40iw_sc_ccq_create,
->> > -   i40iw_sc_ccq_destroy,
->> > -   i40iw_sc_ccq_create_done,
->> > -   i40iw_sc_ccq_get_cqe_info,
->> > -   i40iw_sc_ccq_arm
->> > +   .ccq_init = i40iw_sc_ccq_init,
->> > +   .ccq_create = i40iw_sc_ccq_create,
->> > +   .ccq_destroy = i40iw_sc_ccq_destroy,
->> > +   .ccq_create_done = i40iw_sc_ccq_create_done,
->> > +   .ccq_get_cqe_info = i40iw_sc_ccq_get_cqe_info,
->> > +   .ccq_arm = i40iw_sc_ccq_arm
->> >  };
->> >
->> >  static struct i40iw_ceq_ops iw_ceq_ops = {
->> > -   i40iw_sc_ceq_init,
->> > -   i40iw_sc_ceq_create,
->> > -   i40iw_sc_cceq_create_done,
->> > -   i40iw_sc_cceq_destroy_done,
->> > -   i40iw_sc_cceq_create,
->> > -   i40iw_sc_ceq_destroy,
->> > -   i40iw_sc_process_ceq
->> > +   .ceq_init = i40iw_sc_ceq_init,
->> > +   .ceq_create = i40iw_sc_ceq_create,
->> > +   .cceq_create_done = i40iw_sc_cceq_create_done,
->> > +   .cceq_destroy_done = i40iw_sc_cceq_destroy_done,
->> > +   .cceq_create = i40iw_sc_cceq_create,
->> > +   .ceq_destroy = i40iw_sc_ceq_destroy,
->> > +   .process_ceq = i40iw_sc_process_ceq
->> >  };
->> >
->> >  static struct i40iw_aeq_ops iw_aeq_ops = {
->> > -   i40iw_sc_aeq_init,
->> > -   i40iw_sc_aeq_create,
->> > -   i40iw_sc_aeq_destroy,
->> > -   i40iw_sc_get_next_aeqe,
->> > -   i40iw_sc_repost_aeq_entries,
->> > -   i40iw_sc_aeq_create_done,
->> > -   i40iw_sc_aeq_destroy_done
->> > +   .aeq_init = i40iw_sc_aeq_init,
->> > +   .aeq_create = i40iw_sc_aeq_create,
->> > +   .aeq_destroy = i40iw_sc_aeq_destroy,
->> > +   .get_next_aeqe = i40iw_sc_get_next_aeqe,
->> > +   .repost_aeq_entries = i40iw_sc_repost_aeq_entries,
->> > +   .aeq_create_done = i40iw_sc_aeq_create_done,
->> > +   .aeq_destroy_done = i40iw_sc_aeq_destroy_done
->> >  };
->> >
->> >  /* iwarp pd ops */
->> >  static struct i40iw_pd_ops iw_pd_ops = {
->> > -   i40iw_sc_pd_init,
->> > +   .pd_init = i40iw_sc_pd_init,
->> >  };
->> >
->> >  static struct i40iw_priv_qp_ops iw_priv_qp_ops = { @@ -4894,53
->> > +4894,51 @@ static struct i40iw_priv_qp_ops iw_priv_qp_ops = {  };
->> >
->> >  static struct i40iw_priv_cq_ops iw_priv_cq_ops = {
->> > -   i40iw_sc_cq_init,
->> > -   i40iw_sc_cq_create,
->> > -   i40iw_sc_cq_destroy,
->> > -   i40iw_sc_cq_modify,
->> > +   .cq_init = i40iw_sc_cq_init,
->> > +   .cq_create = i40iw_sc_cq_create,
->> > +   .cq_destroy = i40iw_sc_cq_destroy,
->> > +   .cq_modify = i40iw_sc_cq_modify,
->> >  };
->> >
->> >  static struct i40iw_mr_ops iw_mr_ops = {
->> > -   i40iw_sc_alloc_stag,
->> > -   i40iw_sc_mr_reg_non_shared,
->> > -   i40iw_sc_mr_reg_shared,
->> > -   i40iw_sc_dealloc_stag,
->> > -   i40iw_sc_query_stag,
->> > -   i40iw_sc_mw_alloc
->> > +   .alloc_stag = i40iw_sc_alloc_stag,
->> > +   .mr_reg_non_shared = i40iw_sc_mr_reg_non_shared,
->> > +   .mr_reg_shared = i40iw_sc_mr_reg_shared,
->> > +   .dealloc_stag = i40iw_sc_dealloc_stag,
->> > +   .query_stag = i40iw_sc_query_stag,
->> > +   .mw_alloc = i40iw_sc_mw_alloc
->> >  };
->> >
->> >  static struct i40iw_cqp_misc_ops iw_cqp_misc_ops = {
->> > -   i40iw_sc_manage_push_page,
->> > -   i40iw_sc_manage_hmc_pm_func_table,
->> > -   i40iw_sc_set_hmc_resource_profile,
->> > -   i40iw_sc_commit_fpm_values,
->> > -   i40iw_sc_query_fpm_values,
->> > -   i40iw_sc_static_hmc_pages_allocated,
->> > -   i40iw_sc_add_arp_cache_entry,
->> > -   i40iw_sc_del_arp_cache_entry,
->> > -   i40iw_sc_query_arp_cache_entry,
->> > -   i40iw_sc_manage_apbvt_entry,
->> > -   i40iw_sc_manage_qhash_table_entry,
->> > -   i40iw_sc_alloc_local_mac_ipaddr_entry,
->> > -   i40iw_sc_add_local_mac_ipaddr_entry,
->> > -   i40iw_sc_del_local_mac_ipaddr_entry,
->> > -   i40iw_sc_cqp_nop,
->> > -   i40iw_sc_commit_fpm_values_done,
->> > -   i40iw_sc_query_fpm_values_done,
->> > -   i40iw_sc_manage_hmc_pm_func_table_done,
->> > -   i40iw_sc_suspend_qp,
->> > -   i40iw_sc_resume_qp
->> > +   .manage_push_page = i40iw_sc_manage_push_page,
->> > +   .manage_hmc_pm_func_table = i40iw_sc_manage_hmc_pm_func_table,
->> > +   .set_hmc_resource_profile = i40iw_sc_set_hmc_resource_profile,
->> > +   .commit_fpm_values = i40iw_sc_commit_fpm_values,
->> > +   .query_fpm_values = i40iw_sc_query_fpm_values,
->> > +   .static_hmc_pages_allocated = i40iw_sc_static_hmc_pages_allocated,
->> > +   .add_arp_cache_entry = i40iw_sc_add_arp_cache_entry,
->> > +   .del_arp_cache_entry = i40iw_sc_del_arp_cache_entry,
->> > +   .query_arp_cache_entry = i40iw_sc_query_arp_cache_entry,
->> > +   .manage_apbvt_entry = i40iw_sc_manage_apbvt_entry,
->> > +   .manage_qhash_table_entry = i40iw_sc_manage_qhash_table_entry,
->> > +   .alloc_local_mac_ipaddr_table_entry =
->> > i40iw_sc_alloc_local_mac_ipaddr_entry,
->> > +   .add_local_mac_ipaddr_entry = i40iw_sc_add_local_mac_ipaddr_entry,
->> > +   .del_local_mac_ipaddr_entry = i40iw_sc_del_local_mac_ipaddr_entry,
->> > +   .cqp_nop = i40iw_sc_cqp_nop,
->> > +   .commit_fpm_values_done = i40iw_sc_commit_fpm_values_done,
->> > +   .query_fpm_values_done = i40iw_sc_query_fpm_values_done,
->> > +   .manage_hmc_pm_func_table_done =
->> > i40iw_sc_manage_hmc_pm_func_table_done,
->> > +   .update_suspend_qp = i40iw_sc_suspend_qp,
->> > +   .update_resume_qp = i40iw_sc_resume_qp
->> >  };
->> >
->> >  static struct i40iw_hmc_ops iw_hmc_ops = {
->> > -   i40iw_sc_init_iw_hmc,
->> > -   i40iw_sc_parse_fpm_query_buf,
->> > -   i40iw_sc_configure_iw_fpm,
->> > -   i40iw_sc_parse_fpm_commit_buf,
->> > -   i40iw_sc_create_hmc_obj,
->> > -   i40iw_sc_del_hmc_obj,
->> > -   NULL,
->> > -   NULL
->> > +   .init_iw_hmc = i40iw_sc_init_iw_hmc,
->> > +   .parse_fpm_query_buf = i40iw_sc_parse_fpm_query_buf,
->> > +   .configure_iw_fpm = i40iw_sc_configure_iw_fpm,
->> > +   .parse_fpm_commit_buf = i40iw_sc_parse_fpm_commit_buf,
->> > +   .create_hmc_object = i40iw_sc_create_hmc_obj,
->> > +   .del_hmc_object = i40iw_sc_del_hmc_obj
->> >  };
->> >
->> >  /**
->> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c
->> > b/drivers/infiniband/hw/i40iw/i40iw_uk.c
->> > index 4376cd628774..aa86627bb817 100644
->> > --- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
->> > +++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
->> > @@ -913,29 +913,29 @@ enum i40iw_status_code i40iw_get_wqe_shift(u32
->> > wqdepth, u32 sge, u32 inline_data  }
->> >
->> >  static struct i40iw_qp_uk_ops iw_qp_uk_ops = {
->> > -   i40iw_qp_post_wr,
->> > -   i40iw_qp_ring_push_db,
->> > -   i40iw_rdma_write,
->> > -   i40iw_rdma_read,
->> > -   i40iw_send,
->> > -   i40iw_inline_rdma_write,
->> > -   i40iw_inline_send,
->> > -   i40iw_stag_local_invalidate,
->> > -   i40iw_mw_bind,
->> > -   i40iw_post_receive,
->> > -   i40iw_nop
->> > +   .iw_qp_post_wr = i40iw_qp_post_wr,
->> > +   .iw_qp_ring_push_db = i40iw_qp_ring_push_db,
->> > +   .iw_rdma_write = i40iw_rdma_write,
->> > +   .iw_rdma_read = i40iw_rdma_read,
->> > +   .iw_send = i40iw_send,
->> > +   .iw_inline_rdma_write = i40iw_inline_rdma_write,
->> > +   .iw_inline_send = i40iw_inline_send,
->> > +   .iw_stag_local_invalidate = i40iw_stag_local_invalidate,
->> > +   .iw_mw_bind = i40iw_mw_bind,
->> > +   .iw_post_receive = i40iw_post_receive,
->> > +   .iw_post_nop = i40iw_nop
->> >  };
->> >
->> >  static struct i40iw_cq_ops iw_cq_ops = {
->> > -   i40iw_cq_request_notification,
->> > -   i40iw_cq_poll_completion,
->> > -   i40iw_cq_post_entries,
->> > -   i40iw_clean_cq
->> > +   .iw_cq_request_notification = i40iw_cq_request_notification,
->> > +   .iw_cq_poll_completion = i40iw_cq_poll_completion,
->> > +   .iw_cq_post_entries = i40iw_cq_post_entries,
->> > +   .iw_cq_clean = i40iw_clean_cq
->> >  };
->> >
->> >  static struct i40iw_device_uk_ops iw_device_uk_ops = {
->> > -   i40iw_cq_uk_init,
->> > -   i40iw_qp_uk_init,
->> > +   .iwarp_cq_uk_init = i40iw_cq_uk_init,
->> > +   .iwarp_qp_uk_init = i40iw_qp_uk_init,
->> >  };
->> >
->> >  /**
->> > --
->> > 2.7.4
->> >
->> >
->> > --
->> > Kees Cook
->> > Nexus Security
-
-
-
--- 
-Kees Cook
-Nexus Security
+On Tue, Dec 20, 2016 at 11:28:38AM -0500, Hal Rosenstock wrote:
+> 
+> Rather than printing "Could be FDR10", print
+> "Could be FDR10 (Found link at QDR but expected speed is FDR10)"
+> for this case.
+> 
+> Confusion is with words "Could be" and fact that both
+> QDR and FDR10 are both 10.0 Gbps.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> Change since v2:
+> Added Active comment to clarify value of 4 for PortInfo:LinkSpeedActive
+> 
+> Change since v1:
+> Preserved original "Could be FDR10" so can grep for "Could be"
+> along with adding new language.
+> 
+>  src/ibdiag_common.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+> index f74eed4..8cad03a 100644
+> --- a/src/ibdiag_common.c
+> +++ b/src/ibdiag_common.c
+> @@ -814,8 +814,14 @@ check_ext_speed:
+>  
+>  check_fdr10_active:
+>  	if ((mad_get_field(port->ext_info, 0,
+> -			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0)
+> -		snprintf(speed_msg, msg_size, "Could be FDR10");
+> +			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0) {
+> +		/* Special case QDR to try to avoid confusion with FDR10 */
+> +		if (mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F) == 4)	/* QDR (10.0 Gbps) */
+> +			snprintf(speed_msg, msg_size,
+> +				 "Could be FDR10 (Found link at QDR but expected speed is FDR10)");
+> +		else
+> +			snprintf(speed_msg, msg_size, "Could be FDR10");
+> +	}
+>  }
+>  
+>  int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
