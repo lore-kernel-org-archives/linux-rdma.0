@@ -1,79 +1,64 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Add Connect-X5 device ID to device white lists
-Date: Tue, 20 Dec 2016 11:57:28 -0500
-Message-ID: <20161220165728.GC29564@phlsvsds.ph.intel.com>
-References: <cb54fa49-84fb-3d2f-6431-e6b513b6fb46@dev.mellanox.co.il>
+Subject: Re: [PATCH v3 infiniband-diags] ibdiag_common.c: Disambiguate link speed when QDR and could be FDR10
+Date: Tue, 20 Dec 2016 12:02:15 -0500
+Message-ID: <20161220170215.GD29564@phlsvsds.ph.intel.com>
+References: <b3114ca9-18da-f640-7ab1-f05cc364bc27@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cb54fa49-84fb-3d2f-6431-e6b513b6fb46-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <b3114ca9-18da-f640-7ab1-f05cc364bc27-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 19, 2016 at 04:24:34PM -0500, Hal Rosenstock wrote:
+On Tue, Dec 20, 2016 at 11:28:38AM -0500, Hal Rosenstock wrote:
 > 
-> Connect-X5 is device ID 0x1017
+> Rather than printing "Could be FDR10", print
+> "Could be FDR10 (Found link at QDR but expected speed is FDR10)"
+> for this case.
+> 
+> Confusion is with words "Could be" and fact that both
+> QDR and FDR10 are both 10.0 Gbps.
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-After the patch from Vincent I had to apply this by hand.
-
-So basically applied.
-
-But after I push all this could you double check that this is ok?
-
-Thanks,
+Thanks applied,
 Ira
 
-
 > ---
->  libibnetdisc/src/ibnetdisc.c | 2 +-
->  src/ibdiag_common.c          | 2 +-
->  src/vendstat.c               | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
+> Change since v2:
+> Added Active comment to clarify value of 4 for PortInfo:LinkSpeedActive
 > 
-> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-> index 7ba5c91..57fc33e 100644
-> --- a/libibnetdisc/src/ibnetdisc.c
-> +++ b/libibnetdisc/src/ibnetdisc.c
-> @@ -199,7 +199,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
->  
->  	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
->  		return 1;
-> -	if (devid >= 0x1003 && devid <= 0x1016)
-> +	if (devid >= 0x1003 && devid <= 0x1017)
->  		return 1;
->  	return 0;
->  }
+> Change since v1:
+> Preserved original "Could be FDR10" so can grep for "Could be"
+> along with adding new language.
+> 
+>  src/ibdiag_common.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
 > diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-> index f74eed4..981f82d 100644
+> index f74eed4..8cad03a 100644
 > --- a/src/ibdiag_common.c
 > +++ b/src/ibdiag_common.c
-> @@ -532,7 +532,7 @@ int is_mlnx_ext_port_info_supported(uint32_t devid)
->  	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
->  		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
->  			return 1;
-> -		if (devid >= 0x1003 && devid <= 0x1016)
-> +		if (devid >= 0x1003 && devid <= 0x1017)
->  			return 1;
->  	}
->  	return 0;
-> diff --git a/src/vendstat.c b/src/vendstat.c
-> index 284ef93..7f88bf3 100644
-> --- a/src/vendstat.c
-> +++ b/src/vendstat.c
-> @@ -148,7 +148,7 @@ static uint16_t ext_fw_info_device[][2] = {
->  	{0xcb20, 0xcb20},	/* Switch-IB */
->  	{0xcf08, 0xcf08},	/* Switch-IB2 */
->  	{0x01b3, 0x01b3},	/* IS-4 */
-> -	{0x1003, 0x1016},	/* Connect-X */
-> +	{0x1003, 0x1017},	/* Connect-X */
->  	{0x1b02, 0x1b02},	/* Bull */
->  	{0x0000, 0x0000}};
+> @@ -814,8 +814,14 @@ check_ext_speed:
 >  
+>  check_fdr10_active:
+>  	if ((mad_get_field(port->ext_info, 0,
+> -			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0)
+> -		snprintf(speed_msg, msg_size, "Could be FDR10");
+> +			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0) {
+> +		/* Special case QDR to try to avoid confusion with FDR10 */
+> +		if (mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F) == 4)	/* QDR (10.0 Gbps) */
+> +			snprintf(speed_msg, msg_size,
+> +				 "Could be FDR10 (Found link at QDR but expected speed is FDR10)");
+> +		else
+> +			snprintf(speed_msg, msg_size, "Could be FDR10");
+> +	}
+>  }
+>  
+>  int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
