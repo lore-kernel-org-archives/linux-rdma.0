@@ -1,10 +1,11 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
-Date: Tue, 20 Dec 2016 12:47:21 +0200
-Message-ID: <20161220104720.GD7351@yuval-lap.uk.oracle.com>
+Date: Tue, 20 Dec 2016 13:24:17 +0200
+Message-ID: <20161220112417.GV1074@mtr-leonro.local>
 References: <20161219203227.86392-1-henry.orosco@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="JMKEfAmnQy+WzDHS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 In-Reply-To: <20161219203227.86392-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -13,18 +14,20 @@ To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+
+--JMKEfAmnQy+WzDHS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
 On Mon, Dec 19, 2016 at 02:32:27PM -0600, Henry Orosco wrote:
 > From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
+>
 > RQ WQE size other than 128B is not supported.  Correct
 > RQ size calculation to use 128B only.
-> 
+>
 > Since this breaks AIB, add additional code to
-
-s/AIB/ABI
-
 > provide compatibility with v4 user provider, libi40iw.
-> 
+>
 > Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
@@ -37,7 +40,7 @@ s/AIB/ABI
 >  drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 21 +++++++++++----------
 >  drivers/infiniband/hw/i40iw/i40iw_verbs.h    |  1 +
 >  8 files changed, 53 insertions(+), 25 deletions(-)
-> 
+>
 > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
 > index 392f783..98923a8 100644
 > --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
@@ -53,19 +56,16 @@ s/AIB/ABI
 > -			     u16 pd_id)
 > +			     u16 pd_id,
 > +			     int abi_ver)
-
-No need for new line here
-
 >  {
 >  	pd->size = sizeof(*pd);
 >  	pd->pd_id = pd_id;
 > +	pd->abi_ver = abi_ver;
 >  	pd->dev = dev;
 >  }
->  
+>
 > @@ -2252,6 +2255,7 @@ static enum i40iw_status_code i40iw_sc_qp_init(struct i40iw_sc_qp *qp,
 >  					      offset);
->  
+>
 >  	info->qp_uk_init_info.wqe_alloc_reg = wqe_alloc_reg;
 > +	info->qp_uk_init_info.abi_ver = qp->pd->abi_ver;
 >  	ret_code = i40iw_qp_uk_init(&qp->qp_uk, &info->qp_uk_init_info);
@@ -103,7 +103,7 @@ No need for new line here
 > +++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
 > @@ -930,7 +930,7 @@ enum i40iw_status_code i40iw_puda_create_rsrc(struct i40iw_sc_vsi *vsi,
 >  	INIT_LIST_HEAD(&rsrc->txpend);
->  
+>
 >  	rsrc->tx_wqe_avail_cnt = info->sq_size - 1;
 > -	dev->iw_pd_ops->pd_init(dev, &rsrc->sc_pd, info->pd_id);
 > +	dev->iw_pd_ops->pd_init(dev, &rsrc->sc_pd, info->pd_id, -1);
@@ -120,7 +120,7 @@ No need for new line here
 >  	u16 pd_id;
 > +	int abi_ver;
 >  };
->  
+>
 >  struct i40iw_cqp_quanta {
 > @@ -852,6 +853,7 @@ struct i40iw_qp_init_info {
 >  	u64 host_ctx_pa;
@@ -132,25 +132,28 @@ No need for new line here
 >  	u8 type;
 > @@ -1051,7 +1053,7 @@ struct i40iw_aeq_ops {
 >  };
->  
+>
 >  struct i40iw_pd_ops {
 > -	void (*pd_init)(struct i40iw_sc_dev *, struct i40iw_sc_pd *, u16);
 > +	void (*pd_init)(struct i40iw_sc_dev *, struct i40iw_sc_pd *, u16, int);
 >  };
->  
+>
 >  struct i40iw_priv_qp_ops {
 > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
 > index 12acd68..57d3f1d 100644
 > --- a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
 > +++ b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
 > @@ -39,8 +39,8 @@
->  
+>
 >  #include <linux/types.h>
->  
+>
 > -#define I40IW_ABI_USERSPACE_VER 4
 > -#define I40IW_ABI_KERNEL_VER    4
 > +#define I40IW_ABI_VER 5
 > +
+
+Why did you remove defines and move to use constants "4" and "5" instead?
+
 >  struct i40iw_alloc_ucontext_req {
 >  	__u32 reserved32;
 >  	__u8 userspace_ver;
@@ -161,7 +164,7 @@ No need for new line here
 > @@ -967,10 +967,6 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
 >  	if (ret_code)
 >  		return ret_code;
->  
+>
 > -	ret_code = i40iw_get_wqe_shift(info->rq_size, info->max_rq_frag_cnt, 0, &rqshift);
 > -	if (ret_code)
 > -		return ret_code;
@@ -204,10 +207,10 @@ No need for new line here
 >  };
 > @@ -103,6 +104,7 @@ enum i40iw_device_capabilities_const {
 >  #define I40IW_STAG_INDEX_FROM_STAG(stag)    (((stag) && 0xFFFFFF00) >> 8)
->  
+>
 >  #define	I40IW_MAX_MR_SIZE	0x10000000000L
 > +#define	I40IW_MAX_RQ_WQE_SHIFT	2
->  
+>
 >  struct i40iw_qp_uk;
 >  struct i40iw_cq_uk;
 > @@ -411,7 +413,7 @@ struct i40iw_qp_uk_init_info {
@@ -217,7 +220,7 @@ No need for new line here
 > -
 > +	int abi_ver;
 >  };
->  
+>
 >  struct i40iw_cq_uk_init_info {
 > diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
 > index 855e499..7d1ebf0 100644
@@ -226,7 +229,7 @@ No need for new line here
 > @@ -145,9 +145,8 @@ static struct ib_ucontext *i40iw_alloc_ucontext(struct ib_device *ibdev,
 >  	if (ib_copy_from_udata(&req, udata, sizeof(req)))
 >  		return ERR_PTR(-EINVAL);
->  
+>
 > -	if (req.userspace_ver != I40IW_ABI_USERSPACE_VER) {
 > -		i40iw_pr_err("Invalid userspace driver version detected. Detected version %d, should be %d\n",
 > -			     req.userspace_ver, I40IW_ABI_USERSPACE_VER);
@@ -234,21 +237,21 @@ No need for new line here
 > +		i40iw_pr_err("Unsupported provider library version %u.\n", req.userspace_ver);
 >  		return ERR_PTR(-EINVAL);
 >  	}
->  
+>
 > @@ -155,13 +154,14 @@ static struct ib_ucontext *i40iw_alloc_ucontext(struct ib_device *ibdev,
 >  	uresp.max_qps = iwdev->max_qp;
 >  	uresp.max_pds = iwdev->max_pd;
 >  	uresp.wq_size = iwdev->max_qp_wr * 2;
 > -	uresp.kernel_ver = I40IW_ABI_KERNEL_VER;
 > +	uresp.kernel_ver = req.userspace_ver;
->  
+>
 >  	ucontext = kzalloc(sizeof(*ucontext), GFP_KERNEL);
 >  	if (!ucontext)
 >  		return ERR_PTR(-ENOMEM);
->  
+>
 >  	ucontext->iwdev = iwdev;
 > +	ucontext->abi_ver = req.userspace_ver;
->  
+>
 >  	if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
 >  		kfree(ucontext);
 > @@ -333,6 +333,7 @@ static struct ib_pd *i40iw_alloc_pd(struct ib_device *ibdev,
@@ -258,13 +261,13 @@ No need for new line here
 > +	struct i40iw_ucontext *ucontext;
 >  	u32 pd_id = 0;
 >  	int err;
->  
+>
 > @@ -353,15 +354,18 @@ static struct ib_pd *i40iw_alloc_pd(struct ib_device *ibdev,
 >  	}
->  
+>
 >  	sc_pd = &iwpd->sc_pd;
 > -	dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id);
->  
+>
 >  	if (context) {
 > +		ucontext = to_ucontext(context);
 > +		dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id, ucontext->abi_ver);
@@ -277,7 +280,7 @@ No need for new line here
 > +	} else {
 > +		dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id, -1);
 >  	}
->  
+>
 >  	i40iw_add_pdusecount(iwpd);
 > @@ -518,7 +522,7 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
 >  	struct i40iw_dma_mem *mem = &iwqp->kqp.dma_mem;
@@ -290,18 +293,18 @@ No need for new line here
 >  	struct i40iw_qp_uk_init_info *ukinfo = &info->qp_uk_init_info;
 > @@ -527,14 +531,11 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
 >  	rq_size = i40iw_qp_roundup(ukinfo->rq_size + 1);
->  
+>
 >  	status = i40iw_get_wqe_shift(sq_size, ukinfo->max_sq_frag_cnt, ukinfo->max_inline_data, &sqshift);
 > -	if (!status)
 > -		status = i40iw_get_wqe_shift(rq_size, ukinfo->max_rq_frag_cnt, 0, &rqshift);
 > -
 >  	if (status)
 >  		return -ENOMEM;
->  
+>
 >  	sqdepth = sq_size << sqshift;
 > -	rqdepth = rq_size << rqshift;
 > +	rqdepth = rq_size << I40IW_MAX_RQ_WQE_SHIFT;
->  
+>
 >  	size = sqdepth * sizeof(struct i40iw_sq_uk_wr_trk_info) + (rqdepth << 3);
 >  	iwqp->kqp.wrid_mem = kzalloc(size, GFP_KERNEL);
 > diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.h b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
@@ -314,15 +317,37 @@ No need for new line here
 >  	spinlock_t qp_reg_mem_list_lock; /* memory list for qp's */
 > +	int abi_ver;
 >  };
->  
+>
 >  struct i40iw_pd {
-> -- 
+> --
 > 1.8.3.1
-> 
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--JMKEfAmnQy+WzDHS
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhZFOEACgkQ5GN7iDZy
+WKd/sg/+LxmBxsHzK2zqiwWv5YrQFzfukZnwvrIQkEPDNCDs7hjDFpABS7DsyBos
+9fasyPZIWjrjZ6oLABtsPk7Ta/N8B8mfPHp8pMAcfLGxAOv3bSyIxiYN93NuP7cn
+PAFUFat/ktwvH2y9f+PfD+eWZWRQXIrUDoj2Vcdy03Gou7k5QrCHgSCYYqltjm+e
+wq38I8YxgYL1iP6RB3F+05EyhhBXgH4k/2+kzoE6uuRwdDTwm14ux7b4cyPC4PFq
+L5K5hs+bm8Pha8Rh4mmTqCAaO0yqbBfo5kt9AUE10HPipngqN05FVKL6JJoNLk10
+ZlU+6GLLWFiS4HzHbhNo/Z2Onc9sqckNdf7BAF7pfn7i5W0tKqcKp+K12Y4ZhFS0
+vIduxoeXIQ0J45k4PuzTJsE39zEy59Lgzs+7XSu3NKEQUZqiGmn9sDBgf+RgKudo
+P/Cxuzj0pdJEWryJZ9eYgQO2eao8I+pLZv+68J4vttzG9+1ivlXlcn+VIQxr5RVV
+Sp+23PNrykphgeALsxR3zrnqaJ+atVsPHSr95SlR9MoLr22sIGgjsBt3l0DLAuEa
+kGBpgxJaffikLlfPJk5FhpXC+ATz/5ZnYQBI6L5WsrgowjglLLGxs2WR/2ZElVGP
+tlh0hgVkudLQauwMq+fDJQe7r1uzJUT08fuk4o6Md4vMRNbrODE=
+=DwrW
+-----END PGP SIGNATURE-----
+
+--JMKEfAmnQy+WzDHS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
