@@ -1,200 +1,62 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for bnxt_re V3 00/21] Broadcom RoCE Driver (bnxt_re)
-Date: Tue, 20 Dec 2016 09:28:43 -0500
-Message-ID: <de4ea9d2-e33e-b493-5f93-9d50e9c209fb@redhat.com>
-References: <1482225211-22423-1-git-send-email-selvin.xavier@broadcom.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 infiniband-diags] ibdiag_common.c: Disambiguate link
+ speed when QDR and could be FDR10
+Date: Tue, 20 Dec 2016 16:42:48 +0200
+Message-ID: <20161220144247.GA16038@yuval-lap>
+References: <094d3fd9-a478-ce30-b2de-8983c783c411@dev.mellanox.co.il>
+ <20161220104149.GC7351@yuval-lap.uk.oracle.com>
+ <b29d8763-94c5-2a7a-2e5f-31f707507152@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="DNqjnGjWs9TcJRd70cRmeo7OJW9VTjN3W"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482225211-22423-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b29d8763-94c5-2a7a-2e5f-31f707507152-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---DNqjnGjWs9TcJRd70cRmeo7OJW9VTjN3W
-Content-Type: multipart/mixed; boundary="gKaxkFjBgsWblnQnW1mCSqAFNjqg1EmW7";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
-Message-ID: <de4ea9d2-e33e-b493-5f93-9d50e9c209fb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for bnxt_re V3 00/21] Broadcom RoCE Driver (bnxt_re)
-References: <1482225211-22423-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1482225211-22423-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+On Tue, Dec 20, 2016 at 07:31:59AM -0500, Hal Rosenstock wrote:
+> On 12/20/2016 5:41 AM, Yuval Shaia wrote:
+> > On Mon, Dec 19, 2016 at 05:25:11PM -0500, Hal Rosenstock wrote:
+> >>
+> >> Rather than printing "Could be FDR10", print
+> >> "Could be FDR10 (Found link at QDR but expected speed is FDR10)"
+> >> for this case.
+> >>
+> >> Confusion is with words "Could be" and fact that both
+> >> QDR and FDR10 are both 10.0 Gbps.
+> >>
+> >> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >> ---
+> >> Change since v1:
+> >> Preserved original "Could be FDR10" so can grep for "Could be"
+> >> along with adding new language.
+> >>
+> >>  src/ibdiag_common.c | 10 ++++++++--
+> >>  1 file changed, 8 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+> >> index f74eed4..ad8551f 100644
+> >> --- a/src/ibdiag_common.c
+> >> +++ b/src/ibdiag_common.c
+> >> @@ -814,8 +814,14 @@ check_ext_speed:
+> >>  
+> >>  check_fdr10_active:
+> >>  	if ((mad_get_field(port->ext_info, 0,
+> >> -			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0)
+> >> -		snprintf(speed_msg, msg_size, "Could be FDR10");
+> >> +			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0) {
+> >> +		/* Special case QDR to try to avoid confusion with FDR10 */
+> >> +		if (mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F) == 4)
 
---gKaxkFjBgsWblnQnW1mCSqAFNjqg1EmW7
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Should this "4" be #define?
 
-On 12/20/2016 4:13 AM, Selvin Xavier wrote:
-> This series introduces the RoCE driver for the Broadcom
-> NetXtreme-E 10/25/40/50G RoCE HCAs.
-> This driver is dependent on the bnxt_en NIC driver and is
-> based on the bnxt_re branch in linux-rdma repository.
-> bnxt_en changes required for this patch series are already
-> available afore mentioned branch.
->=20
-> These changes are available for your reference in
-> the bnxt_re_v3 branch of following repository.
-> https://github.com/Broadcom/linux-rdma-nxt/
->=20
-> Doug,
-> Please review and consider applying this to linux-rdma repository
-> for 4.11 merge cycle.
-
-I certainly won't get it done before the holiday break coming up (Red
-Hat, and by extension, myself, have a 1 week shutdown over the holiday
-season, so I'll be offline starting this Friday).
-
-However, even though you changed the api filename, there is still a lot
-of inconsistency in the naming of your files.  The module itself is
-bnxt_re, not bnxtre or any other variant.  Please make all uses of
-bnxtre or other variants match bnxt_re.  This includes the api file that
-you just moved.  I also want the directory in drivers/infiniband/hw to
-be bnxt_re not bnxtre.  Also, putting bnxt_re as part of the file name
-for files already in the bnxt_re directory is redundant (all except for
-bnxt_re.h, where it is appropriate).  Just name the files things like
-main.c and ib_verbs.c.  And for the qplib files, drop the bnxt_ prefix
-and just use qplib_*.
-
-I'll make other comments as I sort through the files, but those are
-things I would like to see changed so I wanted to get that feedback to
-you sooner rather than later.
-
-> Thanks,
-> Selvin Xavier
->=20
-> v2->v3:
->   * Fix 0day build breakage
->   * Fix cocci, kbuild robot, sparse, smatch and checkpatch warnings
->   * Changed the filename bnxt_re_uverbs_abi.h  to bnxtre-abi.h
->   * Removed the __packed qualifier from the uverbs structure and adjust=
-ed
->     the structure alignment to 64bits.
->   * Added retry count to bail out in case of delayed or no response
->     to FW commands
->   * Removed the debugfs support from this patch series
->   * Changed some of the defines as inline functions based on Jason's co=
-mment
->   * Split two functions to get rid of switch within switch construct
->   * Removed bnxt_re_copy_to_udata as it is just a wrapper for ib_copy_t=
-o_udata
->   * Added maintainers information to MAINTAINERS file
->=20
-> v1-> v2:
->   * The license text in each file updated to reflect Dual license.
->   * Makefile and Kconfig changes are pushed to the last patch
->   * Moved bnxt_re_uverbs_abi.h to include/uapi/rdma folder
->   * Remove duplicate structure definitions from bnxt_re_hsi.h as
->     it is available in the corresponding bnxt_en header file (bnxt_hsi.=
-h)
->   * Removed some unused code reported during code review.
->   * Fixed few sparse warnings
->=20
->=20
-> Selvin Xavier (21):
->   bnxt_re: Add bnxt_re RoCE driver files
->   bnxt_re: Introducing autogenerated Host Software Interface(hsi) file
->   bnxt_re: register with the NIC driver
->   bnxt_re: Enabling RoCE control path
->   bnxt_re: Adding Notification Queue support
->   bnxt_re: Support for PD, ucontext and mmap verbs
->   bnxt_re: Support for query and modify device verbs
->   bnxt_re: Adding support for port related verbs
->   bnxt_re: Support for GID related verbs
->   bnxt_re: Support for CQ verbs
->   bnxt_re: Support for AH verbs
->   bnxt_re: Support memory registration verbs
->   bnxt_re: Support QP verbs
->   bnxt_re: Support post_send verb
->   bnxt_re: Support post_recv
->   bnxt_re: Support poll_cq verb
->   bnxt_re: Handling dispatching of events to IB stack
->   bnxt_re: Support for DCB
->   bnxt_re: Set uverbs command mask
->   bnxt_re: Add QP event handling
->   bnxt_re: Add bnxt_re driver build support
->=20
->  MAINTAINERS                                     |   11 +
->  drivers/infiniband/Kconfig                      |    2 +
->  drivers/infiniband/hw/Makefile                  |    1 +
->  drivers/infiniband/hw/bnxtre/Kconfig            |    9 +
->  drivers/infiniband/hw/bnxtre/Makefile           |    6 +
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c    | 2167 +++++++++++++++=
-
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h    |  441 ++++
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c  |  692 +++++
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.h  |  231 ++
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c   |  825 ++++++
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h   |  223 ++
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c    |  838 ++++++
->  drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h    |  160 ++
->  drivers/infiniband/hw/bnxtre/bnxt_re.h          |  150 ++
->  drivers/infiniband/hw/bnxtre/bnxt_re_hsi.h      | 2821 +++++++++++++++=
-+++++
->  drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c | 3206 +++++++++++++++=
-++++++++
->  drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h |  196 ++
->  drivers/infiniband/hw/bnxtre/bnxt_re_main.c     | 1340 ++++++++++
->  include/uapi/rdma/bnxtre-abi.h                  |   89 +
->  19 files changed, 13408 insertions(+)
->  create mode 100644 drivers/infiniband/hw/bnxtre/Kconfig
->  create mode 100644 drivers/infiniband/hw/bnxtre/Makefile
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.c
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_fp.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.c
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_rcfw.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_res.c
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_res.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.c
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_qplib_sp.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_re.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_re_hsi.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.c
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_re_ib_verbs.h
->  create mode 100644 drivers/infiniband/hw/bnxtre/bnxt_re_main.c
->  create mode 100644 include/uapi/rdma/bnxtre-abi.h
->=20
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---gKaxkFjBgsWblnQnW1mCSqAFNjqg1EmW7--
-
---DNqjnGjWs9TcJRd70cRmeo7OJW9VTjN3W
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYWUAbAAoJELgmozMOVy/dIbAP/jEFZK7PEH6ZLQBHR8/2H00x
-HqLGs1WPGJyD2TwClebhGgGZiOagbpyawArnarQgJ0J2DjtjTt0pMbQCNR7EOQTs
-ik6FvXPRM/5HcxdUgctFAek6J90mZmfpr//B0qmJH4EyQHE8HAMRBFMkOJFkVhLi
-92W87dBBdzbpR+/0VeV+RbhYfX2MNAMlfF2SONNt/veG2Oec4o6fOHTlBRatDBbQ
-Pzi9mz1ug5dtfvlffe86k7cJXblBMXCTS/+JF2mQ95nyhHQlmXgI74A0LDsF16sm
-MlCyt69nDwdX36DQRG/3kn0oJveG9wYWQ20dwsJPKclMuMq0q3pehuP1/dyEK+0A
-t2hSiNUxFa+xQ8gMrTCCjl2m09JXjgh8trhEk8ZH0bn5z8ZBMwuID7pwiN1FgJDi
-Hs/DxpkfrQXl8L3AeO7psCZlUCEF3DR5kpcz3WAdjJN1txa+SSGJMG1gathTaSQJ
-IlFE8xkghbGgAhcp7TG9fTmIj8QS80Xaj25zJMxRq4ht2SDOwr2bZgzLWIKrDekn
-pob4HRyCRVpLlnwRvpGwvc8byA2WJNmtUBYnUctI5gzpoQUmG2M+KE+W7PpTne11
-xFRpD7twHjTNCo+XaDsLrAebpov6h1TAodJgrgCT9TpHkCrUQEuVOuC4Z+xLWy1p
-98Z5xphfu4PbdzLgo5Ny
-=TTXa
------END PGP SIGNATURE-----
-
---DNqjnGjWs9TcJRd70cRmeo7OJW9VTjN3W--
+> >> +			snprintf(speed_msg, msg_size,
+> >> +				 "Could be FDR10 (Found link at QDR but expected speed is FDR10)");
+> >> +		else
+> >> +			snprintf(speed_msg, msg_size, "Could be FDR10");
+> >> +	}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
