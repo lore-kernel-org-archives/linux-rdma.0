@@ -1,62 +1,83 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 infiniband-diags] ibdiag_common.c: Disambiguate link
- speed when QDR and could be FDR10
-Date: Tue, 20 Dec 2016 16:42:48 +0200
-Message-ID: <20161220144247.GA16038@yuval-lap>
-References: <094d3fd9-a478-ce30-b2de-8983c783c411@dev.mellanox.co.il>
- <20161220104149.GC7351@yuval-lap.uk.oracle.com>
- <b29d8763-94c5-2a7a-2e5f-31f707507152@dev.mellanox.co.il>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+Date: Tue, 20 Dec 2016 14:46:30 +0000
+Message-ID: <748B799B6A00724488C603FD7E5E7EB94CBAFBBC@FMSMSX114.amr.corp.intel.com>
+References: <20161219203227.86392-1-henry.orosco@intel.com>
+ <20161220112417.GV1074@mtr-leonro.local>
+ <748B799B6A00724488C603FD7E5E7EB94CBAEEA0@FMSMSX114.amr.corp.intel.com>
+ <20161220134203.GW1074@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <b29d8763-94c5-2a7a-2e5f-31f707507152-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20161220134203.GW1074-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 20, 2016 at 07:31:59AM -0500, Hal Rosenstock wrote:
-> On 12/20/2016 5:41 AM, Yuval Shaia wrote:
-> > On Mon, Dec 19, 2016 at 05:25:11PM -0500, Hal Rosenstock wrote:
-> >>
-> >> Rather than printing "Could be FDR10", print
-> >> "Could be FDR10 (Found link at QDR but expected speed is FDR10)"
-> >> for this case.
-> >>
-> >> Confusion is with words "Could be" and fact that both
-> >> QDR and FDR10 are both 10.0 Gbps.
-> >>
-> >> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> ---
-> >> Change since v1:
-> >> Preserved original "Could be FDR10" so can grep for "Could be"
-> >> along with adding new language.
-> >>
-> >>  src/ibdiag_common.c | 10 ++++++++--
-> >>  1 file changed, 8 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-> >> index f74eed4..ad8551f 100644
-> >> --- a/src/ibdiag_common.c
-> >> +++ b/src/ibdiag_common.c
-> >> @@ -814,8 +814,14 @@ check_ext_speed:
-> >>  
-> >>  check_fdr10_active:
-> >>  	if ((mad_get_field(port->ext_info, 0,
-> >> -			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0)
-> >> -		snprintf(speed_msg, msg_size, "Could be FDR10");
-> >> +			   IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F) & FDR10) == 0) {
-> >> +		/* Special case QDR to try to avoid confusion with FDR10 */
-> >> +		if (mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F) == 4)
 
-Should this "4" be #define?
 
-> >> +			snprintf(speed_msg, msg_size,
-> >> +				 "Could be FDR10 (Found link at QDR but expected speed is FDR10)");
-> >> +		else
-> >> +			snprintf(speed_msg, msg_size, "Could be FDR10");
-> >> +	}
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> Sent: Tuesday, December 20, 2016 7:42 AM
+> To: Tung, Chien Tin <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; 
+> linux- rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+> 
+> On Tue, Dec 20, 2016 at 12:44:04PM +0000, Tung, Chien Tin wrote:
+> >
+> >
+> > > -----Original Message-----
+> > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma- 
+> > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> > > Sent: Tuesday, December 20, 2016 5:24 AM
+> > > To: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000- 
+> > > rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Tung, Chien Tin 
+> > > <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE 
+> > > size
+> > >
+> > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > index 12acd68..57d3f1d 100644
+> > > > --- a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > +++ b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > @@ -39,8 +39,8 @@
+> > > >
+> > > >  #include <linux/types.h>
+> > > >
+> > > > -#define I40IW_ABI_USERSPACE_VER 4
+> > > > -#define I40IW_ABI_KERNEL_VER    4
+> > > > +#define I40IW_ABI_VER 5
+> > > > +
+> > >
+> > > Why did you remove defines and move to use constants "4" and "5"
+> instead?
+> > [Chien Tin Tung] This is the ABI version change, did you read the 
+> > commit
+> message?  Two defines were not necessary.
+> >
+> 
+> Thank you Chian Tin Tung for your informative answer and yes, I read 
+> commit message.
+> 
+> If you think that these defines are not needed, so can you please 
+> remove the code which uses hardcoded "case 4" and "case 5"?
+[Chien Tin Tung]  Those are explicit checks against a particular ABI
+version and it is clearer to use the numbers rather than some define.
+
+> 
+> Or maybe they still needed and should be renamed?
+[Chien Tin Tung] They are not needed.  Before we were checking against
+one version and one version only.  Now we are making the provider library
+and driver backward compatible.  All we need is one define to specify current
+ABI version.
+
+Chien
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
