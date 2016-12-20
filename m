@@ -1,120 +1,120 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Testing latest linux-next 4.9 ib_srp and ib_srpt
-Date: Tue, 20 Dec 2016 14:43:48 -0500 (EST)
-Message-ID: <2052479881.8196880.1482263028727.JavaMail.zimbra@redhat.com>
-References: <07c07529-4636-fafb-2598-7358d8a1460d@sandisk.com> <25d066c2-59d7-2be7-dd56-e29e99b43620@sandisk.com> <20161209182429.GF16622@lst.de> <52e8398f-a146-721c-3b92-0892b4abbff8@intel.com> <1482166487.25336.10.camel@sandisk.com> <1918919536.8196250.1482262406057.JavaMail.zimbra@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+Date: Tue, 20 Dec 2016 22:02:39 +0200
+Message-ID: <20161220200239.GA1074@mtr-leonro.local>
+References: <20161219203227.86392-1-henry.orosco@intel.com>
+ <20161220112417.GV1074@mtr-leonro.local>
+ <748B799B6A00724488C603FD7E5E7EB94CBAEEA0@FMSMSX114.amr.corp.intel.com>
+ <20161220134203.GW1074@mtr-leonro.local>
+ <748B799B6A00724488C603FD7E5E7EB94CBAFBBC@FMSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="MHoG8na4IvP3G3ze"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1918919536.8196250.1482262406057.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <748B799B6A00724488C603FD7E5E7EB94CBAFBBC-XfjTATA9Em864kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+--MHoG8na4IvP3G3ze
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
------ Original Message -----
-> From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> To: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Sent: Tuesday, December 20, 2016 2:33:26 PM
-> Subject: Re: Testing latest linux-next 4.9 ib_srp and ib_srpt
-> 
-> Hello Bart
-> 
-> I pulled the latest linux-next and built kernels for both server and client
-> to rerun all my EDR tests for srp.
-> 
-> For some reason the I/O size is being capped again to 1MB in my testing.
-> Using my same testbed.
-> Remember we spent a lot of time making sure we could do 4MB I/O :)
-> 
-> Its working fine in the RHEL 7.3 kernel so before I start going back testing
-> upstream kernels decided to ask.
-> 
-> Have you tested large I/O with latest linux-next
-> 
-> Server Configuration
-> ---------------------
-> Linux fedstorage.bos.redhat.com 4.9.0+
-> 
-> [root@fedstorage modprobe.d]# cat ib_srp.conf
-> options ib_srp cmd_sg_entries=64 indirect_sg_entries=2048
-> 
-> [root@fedstorage modprobe.d]# cat ib_srpt.conf
-> options ib_srpt srp_max_req_size=8296
-> 
-> Also Using
-> 
-> # Set the srp_sq_size
-> for i in /sys/kernel/config/target/srpt/0xfe800000000000007cfe900300726e4e
-> /sys/kernel/config/target/srpt/0xfe800000000000007cfe900300726e4f
-> do
-> 	echo 16384 > $i/tpgt_1/attrib/srp_sq_size
-> done
-> 
-> Client Configuration
-> --------------------
-> Linux ibclient 4.9.0+
-> 
-> [root@ibclient modprobe.d]# cat ib_srp.conf
-> options ib_srp cmd_sg_entries=255 indirect_sg_entries=2048
-> 
-> dd if=/dev/sdw bs=4096k of=/dev/null iflag=direct
-> 
-> ### RECORD    4 >>> ibclient <<< (1482261733.001) (Tue Dec 20 14:22:13 2016)
-> ###
-> # DISK STATISTICS (/sec)
-> #
-> <---------reads---------------><---------writes--------------><--------averages-------->
-> Pct
-> #Time     Name       KBytes Merged  IOs Size  Wait  KBytes Merged  IOs Size
-> Wait  RWSize  QLen  Wait SvcTim Util
-> 14:22:13 sdw         1373184      0 1341 1024     2       0      0    0    0
-> 0    1024     3     2      0   97
-> 
-> 
-> If I reboot into my 7.3 kernel its back to what I expect
-> 
->  dd if=/dev/sdw bs=4096k of=/dev/null iflag=direct
-> 
-> 
-> ### RECORD    3 >>> ibclient <<< (1482262254.001) (Tue Dec 20 14:30:54 2016)
-> ###
-> # DISK STATISTICS (/sec)
-> #
-> <---------reads---------------><---------writes--------------><--------averages-------->
-> Pct
-> #Time     Name       KBytes Merged  IOs Size  Wait  KBytes Merged  IOs Size
-> Wait  RWSize  QLen  Wait SvcTim Util
-> 14:30:54 sdw         172032    129   42 4096     3       0      0    0    0
-> 0    4096     1     3      3   130
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+On Tue, Dec 20, 2016 at 02:46:30PM +0000, Tung, Chien Tin wrote:
+>
+>
+> > -----Original Message-----
+> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > Sent: Tuesday, December 20, 2016 7:42 AM
+> > To: Tung, Chien Tin <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Cc: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> > linux- rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+> >
+> > On Tue, Dec 20, 2016 at 12:44:04PM +0000, Tung, Chien Tin wrote:
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> > > > Sent: Tuesday, December 20, 2016 5:24 AM
+> > > > To: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-
+> > > > rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Tung, Chien Tin
+> > > > <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE
+> > > > size
+> > > >
+> > > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > index 12acd68..57d3f1d 100644
+> > > > > --- a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > +++ b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > @@ -39,8 +39,8 @@
+> > > > >
+> > > > >  #include <linux/types.h>
+> > > > >
+> > > > > -#define I40IW_ABI_USERSPACE_VER 4
+> > > > > -#define I40IW_ABI_KERNEL_VER    4
+> > > > > +#define I40IW_ABI_VER 5
+> > > > > +
+> > > >
+> > > > Why did you remove defines and move to use constants "4" and "5"
+> > instead?
+> > > [Chien Tin Tung] This is the ABI version change, did you read the
+> > > commit
+> > message?  Two defines were not necessary.
+> > >
+> >
+> > Thank you Chian Tin Tung for your informative answer and yes, I read
+> > commit message.
+> >
+> > If you think that these defines are not needed, so can you please
+> > remove the code which uses hardcoded "case 4" and "case 5"?
+> [Chien Tin Tung]  Those are explicit checks against a particular ABI
+> version and it is clearer to use the numbers rather than some define.
 
-Hi Bart,
+Can you please stop to add [..] in front of your response? This Outlook
+style is annoying and not needed.
 
-Just FYI
+Regarding you response, you added the same check in two places and from
+grep/ctags/cscope/lxr perspective it is easier to spot them with a
+define.
 
-That dd snap was just as I had stopped the dd.
+>
+> >
+> > Or maybe they still needed and should be renamed?
+> [Chien Tin Tung] They are not needed.  Before we were checking against
+> one version and one version only.  Now we are making the provider library
+> and driver backward compatible.  All we need is one define to specify current
+> ABI version.
+>
+> Chien
 
-Here is a stable dd snap with the RHEL kernel, I just noticed the merging, need to reboot back into upstream to compare again.
-No merging seen in upstream.
+--MHoG8na4IvP3G3ze
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Thanks
-Laurence
+-----BEGIN PGP SIGNATURE-----
 
-### RECORD    6 >>> ibclient <<< (1482262723.001) (Tue Dec 20 14:38:43 2016) ###
-# DISK STATISTICS (/sec)
-#                   <---------reads---------------><---------writes--------------><--------averages--------> Pct
-#Time     Name       KBytes Merged  IOs Size  Wait  KBytes Merged  IOs Size  Wait  RWSize  QLen  Wait SvcTim Util
-14:38:43 sdw         1200128    879  293 4096     3       0      0    0    0     0    4096     1     3      3   95
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhZjl8ACgkQ5GN7iDZy
+WKfilhAAyI/OP4zD3sQE4jv/2+QqGtAPDjLW2Ta+u2j9omFsrcvYbZl5NHcQolm3
+7x0i1ViYsf1M+0Z+ko0zC9y+oPau3YpnBU7nK/zeotlTh6KyAzayrTyUisv0JkeO
+iO4akaT5Rck2cgtd9CAq2f8QeXfWuwaSMrFcVy+2k+GiON5Z5VIKVymEBz9IE0x5
+6MdvrVByeeHJI0rAV3UOv59n2IxVtFcGQXsWlOtBCmj9knOLnO7SlnSYqVhn2LhO
+SoLj3uXFRSxKhv3PcOo9CiOu0f4mmaLVnhxwlJGOoBsQDhGUnj6SxnUIwErn7Oyz
+o5pa++uvwooEdWN98fogCJ1TftkbicBjtWu0MUuUZerLJoAdY+KcK998htRlTw3b
+FpN0jt/lnRAmeEuyT1Ot7kNnbM0vQAqOMBP2PaNmYFf/FXpNaexY5EAOIbBJIb3/
+iVFr7KH/2CxESmUZknsMUu0eOPXpt6VDmkwtp2nld58KTGJUzmzbjtAPbc46KtvS
+9KZx5s9umCFl4roa2oewlhAC/Fp9lxcIyddYQ1P5fET4oj8ozJqTNXmYyFlsf4/7
+o1XHEpktiCWjK3PEvyvZ1i0oAUAKguaEqDBl3lE1q4of1xZo7IHDcm4iGk/YaKwC
+YqRl9AnvR3VecIfa1HgMMoAUrtLaVXLzeHP1Vew/apgskV648cY=
+=tbcb
+-----END PGP SIGNATURE-----
+
+--MHoG8na4IvP3G3ze--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
