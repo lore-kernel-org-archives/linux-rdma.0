@@ -1,59 +1,89 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
-Date: Tue, 20 Dec 2016 11:55:42 -0600
-Message-ID: <20161220175542.GB91636@horosco-MOBL2.amr.corp.intel.com>
-References: <20161219203227.86392-1-henry.orosco@intel.com>
- <20161220104720.GD7351@yuval-lap.uk.oracle.com>
- <20161220164118.GA91636@horosco-MOBL2.amr.corp.intel.com>
- <20161220173044.GA3677@yuval-lap>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] Add Connect-X5 device ID to device white
+ lists
+Date: Tue, 20 Dec 2016 13:05:33 -0500
+Message-ID: <4d929998-946a-4d01-3fff-8a051cf23b7e@dev.mellanox.co.il>
+References: <cb54fa49-84fb-3d2f-6431-e6b513b6fb46@dev.mellanox.co.il>
+ <20161220165728.GC29564@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161220173044.GA3677@yuval-lap>
+In-Reply-To: <20161220165728.GC29564-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 20, 2016 at 07:30:45PM +0200, Yuval Shaia wrote:
-> On Tue, Dec 20, 2016 at 10:41:18AM -0600, Henry Orosco wrote:
-> > > > 
-> > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> > > > index 392f783..98923a8 100644
-> > > > --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> > > > +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> > > > @@ -358,13 +358,16 @@ void i40iw_qp_add_qos(struct i40iw_sc_qp *qp)
-> > > >   * @dev: sc device struct
-> > > >   * @pd: sc pd ptr
-> > > >   * @pd_id: pd_id for allocated pd
-> > > > + * @abi_ver: ABI version from user context, -1 if not valid
-> > > >   */
-> > > >  static void i40iw_sc_pd_init(struct i40iw_sc_dev *dev,
-> > > >  			     struct i40iw_sc_pd *pd,
-> > > > -			     u16 pd_id)
-> > > > +			     u16 pd_id,
-> > > > +			     int abi_ver)
-> > > 
-> > > No need for new line here
-> > > 
-> > 
-> > Not sure what you mean here.
+On 12/20/2016 11:57 AM, ira.weiny wrote:
+> On Mon, Dec 19, 2016 at 04:24:34PM -0500, Hal Rosenstock wrote:
+>>
+>> Connect-X5 is device ID 0x1017
+>>
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> From code-style perspective "u16 pd_id," and "int abi_ver" can be on one line.
-
-We will opt to keep it as originally sent (one parameter per line) as this is
-consistent with the rest of the file.
-
+> After the patch from Vincent I had to apply this by hand.
 > 
-> > 
-> > > >  {
-> > > >  	pd->size = sizeof(*pd);
-> > > >  	pd->pd_id = pd_id;
-> > > > +	pd->abi_ver = abi_ver;
-> > > >  	pd->dev = dev;
-> > > >  }
-> > > >  
+> So basically applied.
+> 
+> But after I push all this could you double check that this is ok?
+
+It looks fine to me.
+
+Thanks!
+
+-- Hal
+
+> Thanks,
+> Ira
+> 
+> 
+>> ---
+>>  libibnetdisc/src/ibnetdisc.c | 2 +-
+>>  src/ibdiag_common.c          | 2 +-
+>>  src/vendstat.c               | 2 +-
+>>  3 files changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+>> index 7ba5c91..57fc33e 100644
+>> --- a/libibnetdisc/src/ibnetdisc.c
+>> +++ b/libibnetdisc/src/ibnetdisc.c
+>> @@ -199,7 +199,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+>>  
+>>  	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
+>>  		return 1;
+>> -	if (devid >= 0x1003 && devid <= 0x1016)
+>> +	if (devid >= 0x1003 && devid <= 0x1017)
+>>  		return 1;
+>>  	return 0;
+>>  }
+>> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+>> index f74eed4..981f82d 100644
+>> --- a/src/ibdiag_common.c
+>> +++ b/src/ibdiag_common.c
+>> @@ -532,7 +532,7 @@ int is_mlnx_ext_port_info_supported(uint32_t devid)
+>>  	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
+>>  		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
+>>  			return 1;
+>> -		if (devid >= 0x1003 && devid <= 0x1016)
+>> +		if (devid >= 0x1003 && devid <= 0x1017)
+>>  			return 1;
+>>  	}
+>>  	return 0;
+>> diff --git a/src/vendstat.c b/src/vendstat.c
+>> index 284ef93..7f88bf3 100644
+>> --- a/src/vendstat.c
+>> +++ b/src/vendstat.c
+>> @@ -148,7 +148,7 @@ static uint16_t ext_fw_info_device[][2] = {
+>>  	{0xcb20, 0xcb20},	/* Switch-IB */
+>>  	{0xcf08, 0xcf08},	/* Switch-IB2 */
+>>  	{0x01b3, 0x01b3},	/* IS-4 */
+>> -	{0x1003, 0x1016},	/* Connect-X */
+>> +	{0x1003, 0x1017},	/* Connect-X */
+>>  	{0x1b02, 0x1b02},	/* Bull */
+>>  	{0x0000, 0x0000}};
+>>  
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
