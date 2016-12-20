@@ -1,74 +1,79 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Add Bull device ID support to device white lists
-Date: Tue, 20 Dec 2016 11:56:18 -0500
-Message-ID: <20161220165617.GB29564@phlsvsds.ph.intel.com>
-References: <e5ad4256-53fe-9ecc-f880-89347134ec42@dev.mellanox.co.il> <20161207145338.GD24724@phlsvsds.ph.intel.com> <584A8823.4070506@atos.net> <703b953b-7165-72d1-3c1e-c3b1f8c54f28@dev.mellanox.co.il> <584ABFE6.4070902@atos.net> <46fac349-4687-961a-4d63-697064f391da@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E3C611A58@CRSMSX101.amr.corp.intel.com> <58579DFD.2040206@atos.net>
+Subject: Re: [PATCH infiniband-diags] Add Connect-X5 device ID to device white lists
+Date: Tue, 20 Dec 2016 11:57:28 -0500
+Message-ID: <20161220165728.GC29564@phlsvsds.ph.intel.com>
+References: <cb54fa49-84fb-3d2f-6431-e6b513b6fb46@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <58579DFD.2040206-BUmcmmAb0Fc@public.gmane.org>
+In-Reply-To: <cb54fa49-84fb-3d2f-6431-e6b513b6fb46-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vincent Ficet <jean-vincent.ficet-BUmcmmAb0Fc@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 19, 2016 at 09:44:45AM +0100, Vincent Ficet wrote:
-> Hello,
+On Mon, Dec 19, 2016 at 04:24:34PM -0500, Hal Rosenstock wrote:
 > 
-> On 12/19/2016 08:10 AM, Weiny, Ira wrote:
-> >> On 12/9/2016 9:29 AM, Vincent Ficet wrote:
-> >>>> Would it be better to combine Bull Switch-IB and Switch-IB2 ranges
-> >>>> into one check rather than keeping them separate as the device IDs
-> >>>> are contiguous ?
-> >>> I just wanted to separate SwitchIB and SwitchIB2 for clarity, but we can gather
-> >> them if you wish to do so.
-> >>> Which option do you prefer, together or split ?
-> >> I prefer together.
-> > Together is fine by me.
-> >
-> > I was expecting a v2 of this patch.  Was that your intention?
-> I attached the v3 of this patch to this mail following Hal's remarks and suggestions.
+> Connect-X5 is device ID 0x1017
 > 
-> The new code has been fully tested on our cluster and no regression was found.
-> 
-> Please let me know whether the changes I made are acceptable.
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This was not a valid patch format.  The patch applied with git am just fine
-but...
+After the patch from Vincent I had to apply this by hand.
 
-I did not have a signed off by from you nor was there a good commit message.
+So basically applied.
 
-I went ahead and fixed both of those issues.  So consider this applied.
-
-However, in the future could you please:
-
-1) send the patch inline
-2) use a proper signed off by line
-3) have a proper commit message.
+But after I push all this could you double check that this is ok?
 
 Thanks,
 Ira
 
-> 
-> 
-> Best Regards,
-> 
-> Vincent
-> 
-> 
-> >
-> > Ira
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
 
-
+> ---
+>  libibnetdisc/src/ibnetdisc.c | 2 +-
+>  src/ibdiag_common.c          | 2 +-
+>  src/vendstat.c               | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+> index 7ba5c91..57fc33e 100644
+> --- a/libibnetdisc/src/ibnetdisc.c
+> +++ b/libibnetdisc/src/ibnetdisc.c
+> @@ -199,7 +199,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+>  
+>  	if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
+>  		return 1;
+> -	if (devid >= 0x1003 && devid <= 0x1016)
+> +	if (devid >= 0x1003 && devid <= 0x1017)
+>  		return 1;
+>  	return 0;
+>  }
+> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+> index f74eed4..981f82d 100644
+> --- a/src/ibdiag_common.c
+> +++ b/src/ibdiag_common.c
+> @@ -532,7 +532,7 @@ int is_mlnx_ext_port_info_supported(uint32_t devid)
+>  	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
+>  		if ((devid >= 0xc738 && devid <= 0xc73b) || devid == 0xcb20 || devid == 0xcf08 || devid == 0x1b02)
+>  			return 1;
+> -		if (devid >= 0x1003 && devid <= 0x1016)
+> +		if (devid >= 0x1003 && devid <= 0x1017)
+>  			return 1;
+>  	}
+>  	return 0;
+> diff --git a/src/vendstat.c b/src/vendstat.c
+> index 284ef93..7f88bf3 100644
+> --- a/src/vendstat.c
+> +++ b/src/vendstat.c
+> @@ -148,7 +148,7 @@ static uint16_t ext_fw_info_device[][2] = {
+>  	{0xcb20, 0xcb20},	/* Switch-IB */
+>  	{0xcf08, 0xcf08},	/* Switch-IB2 */
+>  	{0x01b3, 0x01b3},	/* IS-4 */
+> -	{0x1003, 0x1016},	/* Connect-X */
+> +	{0x1003, 0x1017},	/* Connect-X */
+>  	{0x1b02, 0x1b02},	/* Bull */
+>  	{0x0000, 0x0000}};
+>  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
