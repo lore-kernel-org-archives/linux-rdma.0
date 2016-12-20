@@ -1,120 +1,289 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
-Date: Tue, 20 Dec 2016 22:02:39 +0200
-Message-ID: <20161220200239.GA1074@mtr-leonro.local>
-References: <20161219203227.86392-1-henry.orosco@intel.com>
- <20161220112417.GV1074@mtr-leonro.local>
- <748B799B6A00724488C603FD7E5E7EB94CBAEEA0@FMSMSX114.amr.corp.intel.com>
- <20161220134203.GW1074@mtr-leonro.local>
- <748B799B6A00724488C603FD7E5E7EB94CBAFBBC@FMSMSX114.amr.corp.intel.com>
+From: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] RDMA/i40iw: use designated initializers
+Date: Tue, 20 Dec 2016 12:04:52 -0800
+Message-ID: <CAGXu5j+Jj_yuNotEwLb-DjW3Pg--4EeZkthnd47PR-=KycxC_A@mail.gmail.com>
+References: <20161217010542.GA140742@beast> <9DD61F30A802C4429A01CA4200E302A7301B89C9@fmsmsx116.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="MHoG8na4IvP3G3ze"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <748B799B6A00724488C603FD7E5E7EB94CBAFBBC-XfjTATA9Em864kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7301B89C9-5FK+k9557ZBZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Dec 19, 2016 at 12:40 PM, Saleem, Shiraz
+<shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> I see how this patch improves readability but not sure why it throws a compiler error/warning?
 
---MHoG8na4IvP3G3ze
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This doesn't cause a compiler warning without the gcc plugin
+"randstruct" (which is coming soon). Under randstruct, structure
+layouts can be randomized, so "ordered" initializers (as they are
+currently) cannot be used. Instead, "designated" initializers are
+needed, which is what this patch adds. There is no actual difference
+in the resulting output; it just allows for the randstruct plugin to
+operate correctly.
 
-On Tue, Dec 20, 2016 at 02:46:30PM +0000, Tung, Chien Tin wrote:
->
->
-> > -----Original Message-----
-> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > Sent: Tuesday, December 20, 2016 7:42 AM
-> > To: Tung, Chien Tin <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
-> > linux- rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
-> >
-> > On Tue, Dec 20, 2016 at 12:44:04PM +0000, Tung, Chien Tin wrote:
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> > > > Sent: Tuesday, December 20, 2016 5:24 AM
-> > > > To: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-
-> > > > rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Tung, Chien Tin
-> > > > <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE
-> > > > size
-> > > >
-> > > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
-> > > > > b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
-> > > > > index 12acd68..57d3f1d 100644
-> > > > > --- a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
-> > > > > +++ b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
-> > > > > @@ -39,8 +39,8 @@
-> > > > >
-> > > > >  #include <linux/types.h>
-> > > > >
-> > > > > -#define I40IW_ABI_USERSPACE_VER 4
-> > > > > -#define I40IW_ABI_KERNEL_VER    4
-> > > > > +#define I40IW_ABI_VER 5
-> > > > > +
-> > > >
-> > > > Why did you remove defines and move to use constants "4" and "5"
-> > instead?
-> > > [Chien Tin Tung] This is the ABI version change, did you read the
-> > > commit
-> > message?  Two defines were not necessary.
-> > >
-> >
-> > Thank you Chian Tin Tung for your informative answer and yes, I read
-> > commit message.
-> >
-> > If you think that these defines are not needed, so can you please
-> > remove the code which uses hardcoded "case 4" and "case 5"?
-> [Chien Tin Tung]  Those are explicit checks against a particular ABI
-> version and it is clearer to use the numbers rather than some define.
-
-Can you please stop to add [..] in front of your response? This Outlook
-style is annoying and not needed.
-
-Regarding you response, you added the same check in two places and from
-grep/ctags/cscope/lxr perspective it is easier to spot them with a
-define.
+-Kees
 
 >
-> >
-> > Or maybe they still needed and should be renamed?
-> [Chien Tin Tung] They are not needed.  Before we were checking against
-> one version and one version only.  Now we are making the provider library
-> and driver backward compatible.  All we need is one define to specify current
-> ABI version.
+> Shiraz
 >
-> Chien
+>> Subject: RE: [PATCH] RDMA/i40iw: use designated initializers
+>>
+>> Hi Kees - Can you send the associated compiler warning?
+>>
+>> Shiraz
+>>
+>>
+>> > Subject: [PATCH] RDMA/i40iw: use designated initializers
+>> >
+>> > Prepare to mark sensitive kernel structures for randomization by
+>> > making sure they're using designated initializers. These were
+>> > identified during allyesconfig builds of x86, arm, and arm64, with most initializer
+>> fixes extracted from grsecurity.
+>> >
+>> > Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+>> > ---
+>> >  drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 128 +++++++++++++++----------------
+>> >  drivers/infiniband/hw/i40iw/i40iw_uk.c   |  34 ++++----
+>> >  2 files changed, 80 insertions(+), 82 deletions(-)
+>> >
+>> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+>> > b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+>> > index 392f78384a60..797f745a9a5b 100644
+>> > --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+>> > +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+>> > @@ -4836,46 +4836,46 @@ void i40iw_vsi_stats_free(struct i40iw_sc_vsi
+>> > *vsi)  }
+>> >
+>> >  static struct i40iw_cqp_ops iw_cqp_ops = {
+>> > -   i40iw_sc_cqp_init,
+>> > -   i40iw_sc_cqp_create,
+>> > -   i40iw_sc_cqp_post_sq,
+>> > -   i40iw_sc_cqp_get_next_send_wqe,
+>> > -   i40iw_sc_cqp_destroy,
+>> > -   i40iw_sc_poll_for_cqp_op_done
+>> > +   .cqp_init = i40iw_sc_cqp_init,
+>> > +   .cqp_create = i40iw_sc_cqp_create,
+>> > +   .cqp_post_sq = i40iw_sc_cqp_post_sq,
+>> > +   .cqp_get_next_send_wqe = i40iw_sc_cqp_get_next_send_wqe,
+>> > +   .cqp_destroy = i40iw_sc_cqp_destroy,
+>> > +   .poll_for_cqp_op_done = i40iw_sc_poll_for_cqp_op_done
+>> >  };
+>> >
+>> >  static struct i40iw_ccq_ops iw_ccq_ops = {
+>> > -   i40iw_sc_ccq_init,
+>> > -   i40iw_sc_ccq_create,
+>> > -   i40iw_sc_ccq_destroy,
+>> > -   i40iw_sc_ccq_create_done,
+>> > -   i40iw_sc_ccq_get_cqe_info,
+>> > -   i40iw_sc_ccq_arm
+>> > +   .ccq_init = i40iw_sc_ccq_init,
+>> > +   .ccq_create = i40iw_sc_ccq_create,
+>> > +   .ccq_destroy = i40iw_sc_ccq_destroy,
+>> > +   .ccq_create_done = i40iw_sc_ccq_create_done,
+>> > +   .ccq_get_cqe_info = i40iw_sc_ccq_get_cqe_info,
+>> > +   .ccq_arm = i40iw_sc_ccq_arm
+>> >  };
+>> >
+>> >  static struct i40iw_ceq_ops iw_ceq_ops = {
+>> > -   i40iw_sc_ceq_init,
+>> > -   i40iw_sc_ceq_create,
+>> > -   i40iw_sc_cceq_create_done,
+>> > -   i40iw_sc_cceq_destroy_done,
+>> > -   i40iw_sc_cceq_create,
+>> > -   i40iw_sc_ceq_destroy,
+>> > -   i40iw_sc_process_ceq
+>> > +   .ceq_init = i40iw_sc_ceq_init,
+>> > +   .ceq_create = i40iw_sc_ceq_create,
+>> > +   .cceq_create_done = i40iw_sc_cceq_create_done,
+>> > +   .cceq_destroy_done = i40iw_sc_cceq_destroy_done,
+>> > +   .cceq_create = i40iw_sc_cceq_create,
+>> > +   .ceq_destroy = i40iw_sc_ceq_destroy,
+>> > +   .process_ceq = i40iw_sc_process_ceq
+>> >  };
+>> >
+>> >  static struct i40iw_aeq_ops iw_aeq_ops = {
+>> > -   i40iw_sc_aeq_init,
+>> > -   i40iw_sc_aeq_create,
+>> > -   i40iw_sc_aeq_destroy,
+>> > -   i40iw_sc_get_next_aeqe,
+>> > -   i40iw_sc_repost_aeq_entries,
+>> > -   i40iw_sc_aeq_create_done,
+>> > -   i40iw_sc_aeq_destroy_done
+>> > +   .aeq_init = i40iw_sc_aeq_init,
+>> > +   .aeq_create = i40iw_sc_aeq_create,
+>> > +   .aeq_destroy = i40iw_sc_aeq_destroy,
+>> > +   .get_next_aeqe = i40iw_sc_get_next_aeqe,
+>> > +   .repost_aeq_entries = i40iw_sc_repost_aeq_entries,
+>> > +   .aeq_create_done = i40iw_sc_aeq_create_done,
+>> > +   .aeq_destroy_done = i40iw_sc_aeq_destroy_done
+>> >  };
+>> >
+>> >  /* iwarp pd ops */
+>> >  static struct i40iw_pd_ops iw_pd_ops = {
+>> > -   i40iw_sc_pd_init,
+>> > +   .pd_init = i40iw_sc_pd_init,
+>> >  };
+>> >
+>> >  static struct i40iw_priv_qp_ops iw_priv_qp_ops = { @@ -4894,53
+>> > +4894,51 @@ static struct i40iw_priv_qp_ops iw_priv_qp_ops = {  };
+>> >
+>> >  static struct i40iw_priv_cq_ops iw_priv_cq_ops = {
+>> > -   i40iw_sc_cq_init,
+>> > -   i40iw_sc_cq_create,
+>> > -   i40iw_sc_cq_destroy,
+>> > -   i40iw_sc_cq_modify,
+>> > +   .cq_init = i40iw_sc_cq_init,
+>> > +   .cq_create = i40iw_sc_cq_create,
+>> > +   .cq_destroy = i40iw_sc_cq_destroy,
+>> > +   .cq_modify = i40iw_sc_cq_modify,
+>> >  };
+>> >
+>> >  static struct i40iw_mr_ops iw_mr_ops = {
+>> > -   i40iw_sc_alloc_stag,
+>> > -   i40iw_sc_mr_reg_non_shared,
+>> > -   i40iw_sc_mr_reg_shared,
+>> > -   i40iw_sc_dealloc_stag,
+>> > -   i40iw_sc_query_stag,
+>> > -   i40iw_sc_mw_alloc
+>> > +   .alloc_stag = i40iw_sc_alloc_stag,
+>> > +   .mr_reg_non_shared = i40iw_sc_mr_reg_non_shared,
+>> > +   .mr_reg_shared = i40iw_sc_mr_reg_shared,
+>> > +   .dealloc_stag = i40iw_sc_dealloc_stag,
+>> > +   .query_stag = i40iw_sc_query_stag,
+>> > +   .mw_alloc = i40iw_sc_mw_alloc
+>> >  };
+>> >
+>> >  static struct i40iw_cqp_misc_ops iw_cqp_misc_ops = {
+>> > -   i40iw_sc_manage_push_page,
+>> > -   i40iw_sc_manage_hmc_pm_func_table,
+>> > -   i40iw_sc_set_hmc_resource_profile,
+>> > -   i40iw_sc_commit_fpm_values,
+>> > -   i40iw_sc_query_fpm_values,
+>> > -   i40iw_sc_static_hmc_pages_allocated,
+>> > -   i40iw_sc_add_arp_cache_entry,
+>> > -   i40iw_sc_del_arp_cache_entry,
+>> > -   i40iw_sc_query_arp_cache_entry,
+>> > -   i40iw_sc_manage_apbvt_entry,
+>> > -   i40iw_sc_manage_qhash_table_entry,
+>> > -   i40iw_sc_alloc_local_mac_ipaddr_entry,
+>> > -   i40iw_sc_add_local_mac_ipaddr_entry,
+>> > -   i40iw_sc_del_local_mac_ipaddr_entry,
+>> > -   i40iw_sc_cqp_nop,
+>> > -   i40iw_sc_commit_fpm_values_done,
+>> > -   i40iw_sc_query_fpm_values_done,
+>> > -   i40iw_sc_manage_hmc_pm_func_table_done,
+>> > -   i40iw_sc_suspend_qp,
+>> > -   i40iw_sc_resume_qp
+>> > +   .manage_push_page = i40iw_sc_manage_push_page,
+>> > +   .manage_hmc_pm_func_table = i40iw_sc_manage_hmc_pm_func_table,
+>> > +   .set_hmc_resource_profile = i40iw_sc_set_hmc_resource_profile,
+>> > +   .commit_fpm_values = i40iw_sc_commit_fpm_values,
+>> > +   .query_fpm_values = i40iw_sc_query_fpm_values,
+>> > +   .static_hmc_pages_allocated = i40iw_sc_static_hmc_pages_allocated,
+>> > +   .add_arp_cache_entry = i40iw_sc_add_arp_cache_entry,
+>> > +   .del_arp_cache_entry = i40iw_sc_del_arp_cache_entry,
+>> > +   .query_arp_cache_entry = i40iw_sc_query_arp_cache_entry,
+>> > +   .manage_apbvt_entry = i40iw_sc_manage_apbvt_entry,
+>> > +   .manage_qhash_table_entry = i40iw_sc_manage_qhash_table_entry,
+>> > +   .alloc_local_mac_ipaddr_table_entry =
+>> > i40iw_sc_alloc_local_mac_ipaddr_entry,
+>> > +   .add_local_mac_ipaddr_entry = i40iw_sc_add_local_mac_ipaddr_entry,
+>> > +   .del_local_mac_ipaddr_entry = i40iw_sc_del_local_mac_ipaddr_entry,
+>> > +   .cqp_nop = i40iw_sc_cqp_nop,
+>> > +   .commit_fpm_values_done = i40iw_sc_commit_fpm_values_done,
+>> > +   .query_fpm_values_done = i40iw_sc_query_fpm_values_done,
+>> > +   .manage_hmc_pm_func_table_done =
+>> > i40iw_sc_manage_hmc_pm_func_table_done,
+>> > +   .update_suspend_qp = i40iw_sc_suspend_qp,
+>> > +   .update_resume_qp = i40iw_sc_resume_qp
+>> >  };
+>> >
+>> >  static struct i40iw_hmc_ops iw_hmc_ops = {
+>> > -   i40iw_sc_init_iw_hmc,
+>> > -   i40iw_sc_parse_fpm_query_buf,
+>> > -   i40iw_sc_configure_iw_fpm,
+>> > -   i40iw_sc_parse_fpm_commit_buf,
+>> > -   i40iw_sc_create_hmc_obj,
+>> > -   i40iw_sc_del_hmc_obj,
+>> > -   NULL,
+>> > -   NULL
+>> > +   .init_iw_hmc = i40iw_sc_init_iw_hmc,
+>> > +   .parse_fpm_query_buf = i40iw_sc_parse_fpm_query_buf,
+>> > +   .configure_iw_fpm = i40iw_sc_configure_iw_fpm,
+>> > +   .parse_fpm_commit_buf = i40iw_sc_parse_fpm_commit_buf,
+>> > +   .create_hmc_object = i40iw_sc_create_hmc_obj,
+>> > +   .del_hmc_object = i40iw_sc_del_hmc_obj
+>> >  };
+>> >
+>> >  /**
+>> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c
+>> > b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+>> > index 4376cd628774..aa86627bb817 100644
+>> > --- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
+>> > +++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+>> > @@ -913,29 +913,29 @@ enum i40iw_status_code i40iw_get_wqe_shift(u32
+>> > wqdepth, u32 sge, u32 inline_data  }
+>> >
+>> >  static struct i40iw_qp_uk_ops iw_qp_uk_ops = {
+>> > -   i40iw_qp_post_wr,
+>> > -   i40iw_qp_ring_push_db,
+>> > -   i40iw_rdma_write,
+>> > -   i40iw_rdma_read,
+>> > -   i40iw_send,
+>> > -   i40iw_inline_rdma_write,
+>> > -   i40iw_inline_send,
+>> > -   i40iw_stag_local_invalidate,
+>> > -   i40iw_mw_bind,
+>> > -   i40iw_post_receive,
+>> > -   i40iw_nop
+>> > +   .iw_qp_post_wr = i40iw_qp_post_wr,
+>> > +   .iw_qp_ring_push_db = i40iw_qp_ring_push_db,
+>> > +   .iw_rdma_write = i40iw_rdma_write,
+>> > +   .iw_rdma_read = i40iw_rdma_read,
+>> > +   .iw_send = i40iw_send,
+>> > +   .iw_inline_rdma_write = i40iw_inline_rdma_write,
+>> > +   .iw_inline_send = i40iw_inline_send,
+>> > +   .iw_stag_local_invalidate = i40iw_stag_local_invalidate,
+>> > +   .iw_mw_bind = i40iw_mw_bind,
+>> > +   .iw_post_receive = i40iw_post_receive,
+>> > +   .iw_post_nop = i40iw_nop
+>> >  };
+>> >
+>> >  static struct i40iw_cq_ops iw_cq_ops = {
+>> > -   i40iw_cq_request_notification,
+>> > -   i40iw_cq_poll_completion,
+>> > -   i40iw_cq_post_entries,
+>> > -   i40iw_clean_cq
+>> > +   .iw_cq_request_notification = i40iw_cq_request_notification,
+>> > +   .iw_cq_poll_completion = i40iw_cq_poll_completion,
+>> > +   .iw_cq_post_entries = i40iw_cq_post_entries,
+>> > +   .iw_cq_clean = i40iw_clean_cq
+>> >  };
+>> >
+>> >  static struct i40iw_device_uk_ops iw_device_uk_ops = {
+>> > -   i40iw_cq_uk_init,
+>> > -   i40iw_qp_uk_init,
+>> > +   .iwarp_cq_uk_init = i40iw_cq_uk_init,
+>> > +   .iwarp_qp_uk_init = i40iw_qp_uk_init,
+>> >  };
+>> >
+>> >  /**
+>> > --
+>> > 2.7.4
+>> >
+>> >
+>> > --
+>> > Kees Cook
+>> > Nexus Security
 
---MHoG8na4IvP3G3ze
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhZjl8ACgkQ5GN7iDZy
-WKfilhAAyI/OP4zD3sQE4jv/2+QqGtAPDjLW2Ta+u2j9omFsrcvYbZl5NHcQolm3
-7x0i1ViYsf1M+0Z+ko0zC9y+oPau3YpnBU7nK/zeotlTh6KyAzayrTyUisv0JkeO
-iO4akaT5Rck2cgtd9CAq2f8QeXfWuwaSMrFcVy+2k+GiON5Z5VIKVymEBz9IE0x5
-6MdvrVByeeHJI0rAV3UOv59n2IxVtFcGQXsWlOtBCmj9knOLnO7SlnSYqVhn2LhO
-SoLj3uXFRSxKhv3PcOo9CiOu0f4mmaLVnhxwlJGOoBsQDhGUnj6SxnUIwErn7Oyz
-o5pa++uvwooEdWN98fogCJ1TftkbicBjtWu0MUuUZerLJoAdY+KcK998htRlTw3b
-FpN0jt/lnRAmeEuyT1Ot7kNnbM0vQAqOMBP2PaNmYFf/FXpNaexY5EAOIbBJIb3/
-iVFr7KH/2CxESmUZknsMUu0eOPXpt6VDmkwtp2nld58KTGJUzmzbjtAPbc46KtvS
-9KZx5s9umCFl4roa2oewlhAC/Fp9lxcIyddYQ1P5fET4oj8ozJqTNXmYyFlsf4/7
-o1XHEpktiCWjK3PEvyvZ1i0oAUAKguaEqDBl3lE1q4of1xZo7IHDcm4iGk/YaKwC
-YqRl9AnvR3VecIfa1HgMMoAUrtLaVXLzeHP1Vew/apgskV648cY=
-=tbcb
------END PGP SIGNATURE-----
-
---MHoG8na4IvP3G3ze--
+-- 
+Kees Cook
+Nexus Security
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
