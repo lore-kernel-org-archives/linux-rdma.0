@@ -1,106 +1,152 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for bnxt_re V4 21/21] RDMA/bnxt_re: Add bnxt_re driver build support
-Date: Wed, 21 Dec 2016 03:42:10 -0800
-Message-ID: <1482320530-5344-22-git-send-email-selvin.xavier@broadcom.com>
-References: <1482320530-5344-1-git-send-email-selvin.xavier@broadcom.com>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+Date: Wed, 21 Dec 2016 14:07:15 +0000
+Message-ID: <748B799B6A00724488C603FD7E5E7EB94CBB1BA8@FMSMSX114.amr.corp.intel.com>
+References: <20161219203227.86392-1-henry.orosco@intel.com>
+ <20161220112417.GV1074@mtr-leonro.local>
+ <748B799B6A00724488C603FD7E5E7EB94CBAEEA0@FMSMSX114.amr.corp.intel.com>
+ <20161220134203.GW1074@mtr-leonro.local>
+ <748B799B6A00724488C603FD7E5E7EB94CBAFBBC@FMSMSX114.amr.corp.intel.com>
+ <20161220200239.GA1074@mtr-leonro.local>
+ <748B799B6A00724488C603FD7E5E7EB94CBB12AF@FMSMSX114.amr.corp.intel.com>
+ <20161221054805.GB1074@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482320530-5344-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161221054805.GB1074-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Makefile and Kconfig changes for enabling bnxt_re compilation
 
-v3: Adds list of MAINTAINERS of bnxt_re driver. Removes bnxt_re_debugfs.c from
-    Makefile as this file is no longer present
 
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- MAINTAINERS                            | 11 +++++++++++
- drivers/infiniband/Kconfig             |  2 ++
- drivers/infiniband/hw/Makefile         |  1 +
- drivers/infiniband/hw/bnxt_re/Kconfig  |  9 +++++++++
- drivers/infiniband/hw/bnxt_re/Makefile |  6 ++++++
- 5 files changed, 29 insertions(+)
- create mode 100644 drivers/infiniband/hw/bnxt_re/Kconfig
- create mode 100644 drivers/infiniband/hw/bnxt_re/Makefile
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> Sent: Tuesday, December 20, 2016 11:48 PM
+> To: Tung, Chien Tin <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE size
+> 
+> On Wed, Dec 21, 2016 at 12:04:55AM +0000, Tung, Chien Tin wrote:
+> >
+> >
+> > > -----Original Message-----
+> > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > > Sent: Tuesday, December 20, 2016 2:03 PM
+> > > To: Tung, Chien Tin <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Cc: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> > > linux- rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ WQE
+> > > size
+> > >
+> > > On Tue, Dec 20, 2016 at 02:46:30PM +0000, Tung, Chien Tin wrote:
+> > > >
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > > > > Sent: Tuesday, December 20, 2016 7:42 AM
+> > > > > To: Tung, Chien Tin <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > Cc: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> > > > > linux- rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > > > > Subject: Re: [PATCH] i40iw: Set 128B as the only supported RQ
+> > > > > WQE size
+> > > > >
+> > > > > On Tue, Dec 20, 2016 at 12:44:04PM +0000, Tung, Chien Tin wrote:
+> > > > > >
+> > > > > >
+> > > > > > > -----Original Message-----
+> > > > > > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > > > > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> > > > > > > Sent: Tuesday, December 20, 2016 5:24 AM
+> > > > > > > To: Orosco, Henry <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-
+> > > > > > > rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Tung, Chien Tin
+> > > > > > > <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > > > Subject: Re: [PATCH] i40iw: Set 128B as the only supported
+> > > > > > > RQ WQE size
+> > > > > > >
+> > > > > > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > > > > b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > > > > index 12acd68..57d3f1d 100644
+> > > > > > > > --- a/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > > > > +++ b/drivers/infiniband/hw/i40iw/i40iw_ucontext.h
+> > > > > > > > @@ -39,8 +39,8 @@
+> > > > > > > >
+> > > > > > > >  #include <linux/types.h>
+> > > > > > > >
+> > > > > > > > -#define I40IW_ABI_USERSPACE_VER 4
+> > > > > > > > -#define I40IW_ABI_KERNEL_VER    4
+> > > > > > > > +#define I40IW_ABI_VER 5
+> > > > > > > > +
+> > > > > > >
+> > > > > > > Why did you remove defines and move to use constants "4" and "5"
+> > > > > instead?
+> > > > > > [Chien Tin Tung] This is the ABI version change, did you read
+> > > > > > the commit
+> > > > > message?  Two defines were not necessary.
+> > > > > >
+> > > > >
+> > > > > Thank you Chian Tin Tung for your informative answer and yes, I
+> > > > > read commit message.
+> > > > >
+> > > > > If you think that these defines are not needed, so can you
+> > > > > please remove the code which uses hardcoded "case 4" and "case 5"?
+> > > > [Chien Tin Tung]  Those are explicit checks against a particular
+> > > > ABI version and it is clearer to use the numbers rather than some define.
+> > >
+> > > Can you please stop to add [..] in front of your response? This
+> > > Outlook style is annoying and not needed.
+> > >
+> > > Regarding you response, you added the same check in two places and
+> > > from grep/ctags/cscope/lxr perspective it is easier to spot them with a
+> define.
+> >
+> > You have yet to provide a good argument for changing the 4 and 5 to
+> > defines, so I don't know why you are telling me how to find them. Very
+> puzzling.
+> 
+> I'm not telling to you, but asking from you to provide maintainable code which
+> will be read more than once. Right now, you blindly copy-pasted hardcoded
+> values in three different places (2 kernel and 1 rdma-core).
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 331f6af..a4e7b13 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2776,6 +2776,17 @@ L:	linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm64/boot/dts/broadcom/vulcan*
- 
-+BROADCOM NETXTREME-E ROCE DRIVER
-+M:	Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-+M:	Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-+M:	Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-+M:	Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+W:	http://www.broadcom.com
-+S:	Supported
-+F:	drivers/infiniband/hw/bnxt_re/
-+F:	include/uapi/rdma/bnxt_re-abi.h
-+
- BROCADE BFA FC SCSI DRIVER
- M:	Anil Gurumurthy <anil.gurumurthy-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
- M:	Sudarsana Kalluru <sudarsana.kalluru-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index fb3fb89..257172c 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -91,4 +91,6 @@ source "drivers/infiniband/hw/hfi1/Kconfig"
- 
- source "drivers/infiniband/hw/qedr/Kconfig"
- 
-+source "drivers/infiniband/hw/bnxt_re/Kconfig"
-+
- endif # INFINIBAND
-diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
-index e7a5ed9..b8b7545 100644
---- a/drivers/infiniband/hw/Makefile
-+++ b/drivers/infiniband/hw/Makefile
-@@ -11,3 +11,4 @@ obj-$(CONFIG_INFINIBAND_USNIC)		+= usnic/
- obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
- obj-$(CONFIG_INFINIBAND_HNS)		+= hns/
- obj-$(CONFIG_INFINIBAND_QEDR)		+= qedr/
-+obj-$(CONFIG_INFINIBAND_BNXT_RE)	+= bnxt_re/
-diff --git a/drivers/infiniband/hw/bnxt_re/Kconfig b/drivers/infiniband/hw/bnxt_re/Kconfig
-new file mode 100644
-index 0000000..cd0175e
---- /dev/null
-+++ b/drivers/infiniband/hw/bnxt_re/Kconfig
-@@ -0,0 +1,9 @@
-+config INFINIBAND_BNXT_RE
-+    tristate "Broadcom Netxtreme HCA support"
-+    depends on ETHERNET && NETDEVICES && PCI && INET
-+    select NET_VENDOR_BROADCOM
-+    select BNXT
-+    ---help---
-+	  This driver supports Broadcom NetXtreme-E 10/25/40/50 gigabit
-+	  RoCE HCAs.  To compile this driver as a module, choose M here:
-+	  the module will be called bnxt_re.
-diff --git a/drivers/infiniband/hw/bnxt_re/Makefile b/drivers/infiniband/hw/bnxt_re/Makefile
-new file mode 100644
-index 0000000..036f84e
---- /dev/null
-+++ b/drivers/infiniband/hw/bnxt_re/Makefile
-@@ -0,0 +1,6 @@
-+
-+ccflags-y := -Idrivers/net/ethernet/broadcom/bnxt
-+obj-$(CONFIG_INFINIBAND_BNXT_RE) += bnxt_re.o
-+bnxt_re-y := main.o ib_verbs.o \
-+	     qplib_res.o qplib_rcfw.o	\
-+	     qplib_sp.o qplib_fp.o
--- 
-2.5.5
+Please make your case by coming up with a define that's better than 4 or 5,
+making the code more readable and understandable, then I will consider using it.
+Until you can do that, you have no case for your comment.  Blindly using a define
+is something you tell junior programmers, sometimes, a number is just a number,
+nothing wrong with using it as is.
 
+> 
+> Feel free to ask your colleagues (Faisal L. and Shiraz S.) if they interested in
+> maintainable driver code or they prefer your prone to errors copy-paste
+> technique.
+
+Why don't you go back and read the comment made against I40IW_SUCCESS?
+Maybe you will learn something from that?
+
+> 
+> > I already made my case on this.  Enough said.
+> >
+> > Chien
+> >
+> > >
+> > [Chien]
+> > > >
+> > > > >
+> > > > > Or maybe they still needed and should be renamed?
+> > > > [Chien Tin Tung] They are not needed.  Before we were checking
+> > > > against one version and one version only.  Now we are making the
+> > > > provider library and driver backward compatible.  All we need is
+> > > > one define to specify current ABI version.
+> > > >
+> > > > Chien
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
