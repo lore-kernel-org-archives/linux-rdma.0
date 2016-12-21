@@ -1,7 +1,7 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core 4/6] redhat/spec: fix up %post scriptlets
-Date: Wed, 21 Dec 2016 17:08:38 -0500
-Message-ID: <20161221220840.36268-5-jarod@redhat.com>
+Subject: [PATCH rdma-core 5/6] redhat/spec: clean up rsocket packaging
+Date: Wed, 21 Dec 2016 17:08:39 -0500
+Message-ID: <20161221220840.36268-6-jarod@redhat.com>
 References: <20161221220840.36268-1-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161221220840.36268-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -10,72 +10,44 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The split packaging spec is missing systemd restart bits for ibacm and
-iwpmd, and has incorrect ldconfig calls. The base package has no libs in
-it, that should have been on the libibverbs sub-package, and the other
-lib sub-packages need one as well.
+Nothing owned libdir/rsocket, and librdmacm was laying down dangling
+symlinks to librspreload.so, so just put it all in librdmacm.
 
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- redhat/rdma-core.spec | 37 +++++++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+ redhat/rdma-core.spec | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index 42d624b..1f51720 100644
+index 1f51720..96a67a4 100644
 --- a/redhat/rdma-core.spec
 +++ b/redhat/rdma-core.spec
-@@ -267,20 +267,45 @@ install -D -m0644 redhat/srp_daemon.service %{buildroot}%{_unitdir}/
- # Delete the package's init.d scripts
- rm -rf %{buildroot}/%{_initrddir}/
+@@ -336,13 +336,11 @@ rm -rf %{buildroot}/%{_initrddir}/
+ %doc %{_docdir}/%{name}-%{version}/MAINTAINERS
+ %{_includedir}/*
+ %{_libdir}/lib*.so
+-%{_libdir}/rsocket/*.so
+ %{_mandir}/man3/ibv_*
+ %{_mandir}/man3/rdma*
+ %{_mandir}/man3/umad*
+ %{_mandir}/man3/*_to_ibv_rate.*
+ %{_mandir}/man7/rdma_cm.*
+-%{_mandir}/man7/rsocket.*
  
--%post -p /sbin/ldconfig
--%postun -p /sbin/ldconfig
-+# libibverbs
-+%post -n libibverbs -p /sbin/ldconfig
-+%postun -n libibverbs -p /sbin/ldconfig
+ %files -n libibverbs
+ %dir %{_sysconfdir}/libibverbs.d
+@@ -389,8 +387,10 @@ rm -rf %{buildroot}/%{_initrddir}/
  
-+# libibcm
-+%post -n libibcm -p /sbin/ldconfig
-+%postun -n libibcm -p /sbin/ldconfig
-+
-+# libibumad
-+%post -n libibumad -p /sbin/ldconfig
-+%postun -n libibumad -p /sbin/ldconfig
-+
-+# librdmacm
-+%post -n librdmacm -p /sbin/ldconfig
-+%postun -n librdmacm -p /sbin/ldconfig
-+
-+# ibacm
- %post -n ibacm
- %systemd_post ibacm.service
--
- %preun -n ibacm
- %systemd_preun ibacm.service
--
- %postun -n ibacm
- %systemd_postun_with_restart ibacm.service
+ %files -n librdmacm
+ %{_libdir}/librdmacm*.so.*
+-%{_libdir}/rsocket/*.so.*
++%dir %{_libdir}/rsocket
++%{_libdir}/rsocket/*.so
+ %doc %{_docdir}/%{name}-%{version}/librdmacm.md
++%{_mandir}/man7/rsocket.*
  
--%post -n libibcm -p /sbin/ldconfig
--%postun -n libibcm -p /sbin/ldconfig
-+# srp_daemon
-+%post -n srp_daemon
-+%systemd_post srp_daemon.service
-+%preun -n srp_daemon
-+%systemd_preun srp_daemon.service
-+%postun -n srp_daemon
-+%systemd_postun_with_restart srp_daemon.service
-+
-+# iwpmd
-+%post -n iwpmd
-+%systemd_post iwpmd.service
-+%preun -n iwpmd
-+%systemd_preun iwpmd.service
-+%postun -n iwpmd
-+%systemd_postun_with_restart iwpmd.service
- 
- %files
- %dir %{_sysconfdir}/rdma
+ %files -n librdmacm-utils
+ %{_bindir}/cmtime
 -- 
 2.10.0
 
