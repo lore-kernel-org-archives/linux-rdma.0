@@ -1,58 +1,84 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] IB/rxe: Unblock loopback by moving skb_out increment
-Date: Thu, 22 Dec 2016 15:54:43 +0300
-Message-ID: <20161222125443.GA17758@elgon.mountain>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Testing latest linux-next 4.9 ib_srp and ib_srpt sees I/O
+ capped at 1MB and no merging
+Date: Thu, 22 Dec 2016 08:17:58 -0500 (EST)
+Message-ID: <1661819060.8462293.1482412678092.JavaMail.zimbra@redhat.com>
+References: <07c07529-4636-fafb-2598-7358d8a1460d@sandisk.com> <1918919536.8196250.1482262406057.JavaMail.zimbra@redhat.com> <2052479881.8196880.1482263028727.JavaMail.zimbra@redhat.com> <1668746735.8200653.1482266682585.JavaMail.zimbra@redhat.com> <120559766.8215321.1482291094018.JavaMail.zimbra@redhat.com> <1928955380.8220327.1482302041315.JavaMail.zimbra@redhat.com> <1337539588.8422488.1482372617094.JavaMail.zimbra@redhat.com> <20161222062321.GA30326@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20161222062321.GA30326-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: andrew.boyer-8PEkshWhKlo@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Andrew Boyer,
 
-This is a semi-automatic email about new static checker warnings.
+Hello Christoph, apologies, here is a clear summary of the issue.
 
-The patch d38eb801aa14: "IB/rxe: Unblock loopback by moving skb_out 
-increment" from Nov 23, 2016, leads to the following Smatch complaint:
+During testing of the latest linux-next with rc-10 block layer changes I noticed that I/O was being capped at 1MB size and no merging was seen.
 
-drivers/infiniband/sw/rxe/rxe_net.c:458 send()
-	 warn: variable dereferenced before check 'pkt->qp' (see line 441)
+The issue was not apparent on 4.8.0-rc8 or earlier.
 
-drivers/infiniband/sw/rxe/rxe_net.c
-   440		nskb->destructor = rxe_skb_tx_dtor;
-   441		nskb->sk = pkt->qp->sk->sk;
-                           ^^^^^^^^^
-Dereference.
+dd if=/dev/sdw bs=4096k of=/dev/null iflag=direct
 
-   442	
-   443		if (av->network_type == RDMA_NETWORK_IPV4) {
-   444			err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
-   445		} else if (av->network_type == RDMA_NETWORK_IPV6) {
-   446			err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
-   447		} else {
-   448			pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
-   449			kfree_skb(nskb);
-   450			return -EINVAL;
-   451		}
-   452	
-   453		if (unlikely(net_xmit_eval(err))) {
-   454			pr_debug("error sending packet: %d\n", err);
-   455			return -EAGAIN;
-   456		}
-   457	
-   458		if (pkt->qp)
-                    ^^^^^^^
+### RECORD    6 >>> ibclient <<< (1482266543.001) (Tue Dec 20 15:42:23 2016) ###
+# DISK STATISTICS (/sec)
+#                   <---------reads---------------><---------writes--------------><--------averages--------> Pct
+#Time     Name       KBytes Merged  IOs Size  Wait  KBytes Merged  IOs Size  Wait  RWSize  QLen  Wait SvcTim Util
+15:42:23 sdw         278528    201   68 4096     2       0      0    0    0     0    4096     1     2      2   206
 
-New check.
+Then git checkout master and build final test kernel
+4.9.0+
 
-   459			atomic_inc(&pkt->qp->skb_out);
-   460		kfree_skb(skb);
+This one clearly shows the I.O at 1MB and no merging.
 
-regards,
-dan carpenter
+# DISK STATISTICS (/sec)
+#                   <---------reads---------------><---------writes--------------><--------averages--------> Pct
+#Time     Name       KBytes Merged  IOs Size  Wait  KBytes Merged  IOs Size  Wait  RWSize  QLen  Wait SvcTim Util
+22:12:48 sdw         1413120      0 1380 1024     2       0      0    0    0     0    1024     3     2      0   99
+22:12:49 sdw         1409024      0 1376 1024     2       0      0    0    0     0    1024     3     2      0   98
+22:12:50 sdw         1445888      0 1412 1024     2       0      0    0    0     0    1024     3     2      0   98
+22:12:51 sdw         1429504      0 1396 1024     2       0      0    0    0     0    1024     3     2      0   98
+22:12:52 sdw         1426432      0 1393 1024     2       0      0    0    0     0    1024     3     2      0   98
+22:12:53 sdw         1408000      0 1375 1024     2       0      0    0    0     0    1024     3     2      0   98
+                                ***      ****                                         ****
+
+After multiple bisects (6000 revisions, 13 cycles), I got to this one.
+Of course there are a huge amount of block layer changes as we know in rc10.
+
+[loberman@ibclient linux-next.orig]$ git bisect bad
+Bisecting: 0 revisions left to test after this (roughly 0 steps)
+[542ff7bf18c63cf403e36a4a1c71d86dc120d924] block: new direct I/O implementation
+
+This commit is the one that seems to have changed the behavior.
+Max I/O size restricted 1MB, even when 4MB I/O is requested, no merging seen.
+
+This is not going to only affect SRP targets.
+
+I will be happy to test any patches and the test bed is always in place.
+
+
+commit 542ff7bf18c63cf403e36a4a1c71d86dc120d924
+Author: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Date:   Wed Nov 16 23:14:22 2016 -0700
+
+    block: new direct I/O implementation
+    
+    Similar to the simple fast path, but we now need a dio structure to
+    track multiple-bio completions.  It's basically a cut-down version
+    of the new iomap-based direct I/O code for filesystems, but without
+    all the logic to call into the filesystem for extent lookup or
+    allocation, and without the complex I/O completion workqueue handler
+    for AIO - instead we just use the FUA bit on the bios to ensure
+    data is flushed to stable storage.
+    
+    Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+    Signed-off-by: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
+
+Many Thanks
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
