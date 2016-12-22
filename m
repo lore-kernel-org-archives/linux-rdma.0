@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 7/8] qedr: clear the vendor error field in the work completion
-Date: Thu, 22 Dec 2016 14:40:39 +0200
-Message-ID: <1482410440-2297-8-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 1/8] qedr: configure the number of CQEs on CQ creation
+Date: Thu, 22 Dec 2016 14:40:33 +0200
+Message-ID: <1482410440-2297-2-git-send-email-Ram.Amrani@cavium.com>
 References: <1482410440-2297-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,8 +12,7 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We clear the vendor error field in the work completion so that if
-a work completion is erroneous  the field won't confuse the caller.
+Configure ibcq->cqe when a CQ is created.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
@@ -22,33 +21,26 @@ Reviewed-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gman
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 18341ed..2c4496f 100644
+index a615142..3762ba1 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -3185,6 +3185,7 @@ static int process_req(struct qedr_dev *dev, struct qedr_qp *qp,
+@@ -888,6 +888,8 @@ struct ib_cq *qedr_create_cq(struct ib_device *ibdev,
  
- 		/* fill WC */
- 		wc->status = status;
-+		wc->vendor_err = 0;
- 		wc->wc_flags = 0;
- 		wc->src_qp = qp->id;
- 		wc->qp = &qp->ibqp;
-@@ -3374,6 +3375,7 @@ static void __process_resp_one(struct qedr_dev *dev, struct qedr_qp *qp,
+ 		pbl_ptr = cq->q.pbl_tbl->pa;
+ 		page_cnt = cq->q.pbl_info.num_pbes;
++
++		cq->ibcq.cqe = chain_entries;
+ 	} else {
+ 		cq->cq_type = QEDR_CQ_TYPE_KERNEL;
  
- 	/* fill WC */
- 	wc->status = wc_status;
-+	wc->vendor_err = 0;
- 	wc->src_qp = qp->id;
- 	wc->qp = &qp->ibqp;
- 	wc->wr_id = wr_id;
-@@ -3402,6 +3404,7 @@ static int process_resp_flush(struct qedr_qp *qp, struct qedr_cq *cq,
- 	while (num_entries && qp->rq.wqe_cons != hw_cons) {
- 		/* fill WC */
- 		wc->status = IB_WC_WR_FLUSH_ERR;
-+		wc->vendor_err = 0;
- 		wc->wc_flags = 0;
- 		wc->src_qp = qp->id;
- 		wc->byte_len = 0;
+@@ -903,6 +905,7 @@ struct ib_cq *qedr_create_cq(struct ib_device *ibdev,
+ 
+ 		page_cnt = qed_chain_get_page_cnt(&cq->pbl);
+ 		pbl_ptr = qed_chain_get_pbl_phys(&cq->pbl);
++		cq->ibcq.cqe = cq->pbl.capacity;
+ 	}
+ 
+ 	qedr_init_cq_params(cq, ctx, dev, vector, chain_entries, page_cnt,
 -- 
 1.8.3.1
 
