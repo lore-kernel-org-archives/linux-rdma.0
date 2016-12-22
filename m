@@ -1,233 +1,157 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core] verbs: Do not copy uninitialized data in
- ibv_cmd_modify_qp
-Date: Thu, 22 Dec 2016 15:13:34 -0700
-Message-ID: <20161222221334.GA15907@obsidianresearch.com>
+Subject: [PATCH rdma-core] Add -DIN_PLACE=1 to cmake
+Date: Thu, 22 Dec 2016 15:15:59 -0700
+Message-ID: <20161222221559.GA15947@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Valgrind reports:
+This configures the paths to run the software from the local build
+directory. Much of this is done automatically by how cmake uses rpath,
+but the two cases where we dlopen things have to be handled by us.
 
-==1196== Syscall param write(buf) points to uninitialised byte(s)
-==1196==    at 0x506250D: ??? (syscall-template.S:84)
-==1196==    by 0x527756F: ibv_cmd_modify_qp (cmd.c:1291)
-==1196==    by 0x8008D74: mlx4_modify_qp (verbs.c:820)
-==1196==    by 0x527E4F4: ibv_modify_qp@@IBVERBS_1.1 (verbs.c:561)
-==1196==    by 0x4E3FAB3: ucma_modify_qp_err.isra.6 (cma.c:1115)
-==1196==    by 0x4E41D56: rdma_get_cm_event.part.15 (cma.c:2180)
-==1196==    by 0x402CF0: cm_thread (rping.c:576)
-==1196==    by 0x5059709: start_thread (pthread_create.c:333)
-==1196==    by 0x558A82C: clone (clone.S:109)
-==1196==  Address 0x9847980 is on thread 2's stack
-==1196==  in frame #2, created by mlx4_modify_qp (verbs.c:775)
+The simple solution is to hard wire the build directory path into the
+binaries.
 
-This is because of code like this:
-
-        struct ibv_qp_attr qp_attr;
-        qp_attr.qp_state = IBV_QPS_ERR;
-        return rdma_seterrno(ibv_modify_qp(id->qp, &qp_attr, IBV_QP_STATE));
-
-Always pass 0 into the kernel for for attributes that are not requested
-to be modified.
+'etc' is also relocated to build/etc/ as that is part of how the verbs
+providers are located.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libibverbs/cmd.c | 170 +++++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 121 insertions(+), 49 deletions(-)
+ CMakeLists.txt                | 23 +++++++++++++++++++++--
+ README.md                     |  3 ++-
+ build.sh                      |  4 ++--
+ buildlib/rdma_functions.cmake |  4 ++--
+ ibacm/CMakeLists.txt          |  5 +++++
+ 5 files changed, 32 insertions(+), 7 deletions(-)
 
-Shown with rping
+Steve, this is a refined version of what I sent you ealier, does it
+work for you?
 
-Please double check my if's.. I followed the man page
+I haven't tested ibacm, not very familiar with it.
 
-I think there will be other cases where we do this wrong as well :\
-
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 38061892da0de0..a702d67b05f2a3 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -1221,55 +1221,127 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- {
- 	IBV_INIT_CMD(cmd, cmd_size, MODIFY_QP);
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d40c03ce68181e..3d546f22790d98 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,6 +5,9 @@
+ #  ninja
+ #
+ # Common options passed to cmake are:
++#  -DIN_PLACE=1
++#      Configure the build to be run from the build directory, this results in something
++#      that is not installable.
+ #  -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+ #      Write a compile_commands.json file for clang tooling
+ #  -DCMAKE_BUILD_TYPE=RelWithDebInfo
+@@ -45,6 +48,13 @@ set(PACKAGE_VERSION "12")
  
--	cmd->qp_handle 		 = qp->handle;
--	cmd->attr_mask 		 = attr_mask;
--	cmd->qkey 		 = attr->qkey;
--	cmd->rq_psn 		 = attr->rq_psn;
--	cmd->sq_psn 		 = attr->sq_psn;
--	cmd->dest_qp_num 	 = attr->dest_qp_num;
--	cmd->qp_access_flags 	 = attr->qp_access_flags;
--	cmd->pkey_index		 = attr->pkey_index;
--	cmd->alt_pkey_index 	 = attr->alt_pkey_index;
--	cmd->qp_state 		 = attr->qp_state;
--	cmd->cur_qp_state 	 = attr->cur_qp_state;
--	cmd->path_mtu 		 = attr->path_mtu;
--	cmd->path_mig_state 	 = attr->path_mig_state;
--	cmd->en_sqd_async_notify = attr->en_sqd_async_notify;
--	cmd->max_rd_atomic 	 = attr->max_rd_atomic;
--	cmd->max_dest_rd_atomic  = attr->max_dest_rd_atomic;
--	cmd->min_rnr_timer 	 = attr->min_rnr_timer;
--	cmd->port_num 		 = attr->port_num;
--	cmd->timeout 		 = attr->timeout;
--	cmd->retry_cnt 		 = attr->retry_cnt;
--	cmd->rnr_retry 		 = attr->rnr_retry;
--	cmd->alt_port_num 	 = attr->alt_port_num;
--	cmd->alt_timeout 	 = attr->alt_timeout;
--
--	memcpy(cmd->dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
--	cmd->dest.flow_label 	    = attr->ah_attr.grh.flow_label;
--	cmd->dest.dlid 		    = attr->ah_attr.dlid;
--	cmd->dest.reserved	    = 0;
--	cmd->dest.sgid_index 	    = attr->ah_attr.grh.sgid_index;
--	cmd->dest.hop_limit 	    = attr->ah_attr.grh.hop_limit;
--	cmd->dest.traffic_class     = attr->ah_attr.grh.traffic_class;
--	cmd->dest.sl 		    = attr->ah_attr.sl;
--	cmd->dest.src_path_bits     = attr->ah_attr.src_path_bits;
--	cmd->dest.static_rate 	    = attr->ah_attr.static_rate;
--	cmd->dest.is_global 	    = attr->ah_attr.is_global;
--	cmd->dest.port_num 	    = attr->ah_attr.port_num;
--
--	memcpy(cmd->alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
--	cmd->alt_dest.flow_label    = attr->alt_ah_attr.grh.flow_label;
--	cmd->alt_dest.dlid 	    = attr->alt_ah_attr.dlid;
--	cmd->alt_dest.reserved	    = 0;
--	cmd->alt_dest.sgid_index    = attr->alt_ah_attr.grh.sgid_index;
--	cmd->alt_dest.hop_limit     = attr->alt_ah_attr.grh.hop_limit;
--	cmd->alt_dest.traffic_class = attr->alt_ah_attr.grh.traffic_class;
--	cmd->alt_dest.sl 	    = attr->alt_ah_attr.sl;
--	cmd->alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
--	cmd->alt_dest.static_rate   = attr->alt_ah_attr.static_rate;
--	cmd->alt_dest.is_global     = attr->alt_ah_attr.is_global;
--	cmd->alt_dest.port_num 	    = attr->alt_ah_attr.port_num;
-+	cmd->qp_handle = qp->handle;
-+	cmd->attr_mask = attr_mask;
+ #-------------------------
+ # Basic standard paths
 +
-+	if (attr_mask & IBV_QP_STATE)
-+		cmd->qp_state = attr->qp_state;
-+	else
-+		cmd->qp_state = 0;
++# Override the CMAKE_INSTALL_ dirs to be under the build/ directory
++if (IN_PLACE)
++  set(CMAKE_INSTALL_SYSCONFDIR "${CMAKE_BINARY_DIR}/etc")
++  set(CMAKE_INSTALL_BINDIR "${CMAKE_BINARY_DIR}/bin")
++endif()
 +
-+	if (attr_mask & IBV_QP_CUR_STATE)
-+		cmd->cur_qp_state = attr->cur_qp_state;
-+	else
-+		cmd->cur_qp_state = 0;
-+
-+	if (attr_mask & IBV_QP_EN_SQD_ASYNC_NOTIFY)
-+		cmd->en_sqd_async_notify = attr->en_sqd_async_notify;
-+	else
-+		cmd->en_sqd_async_notify = 0;
-+
-+	if (attr_mask & IBV_QP_ACCESS_FLAGS)
-+		cmd->qp_access_flags = attr->qp_access_flags;
-+	else
-+		cmd->qp_access_flags = 0;
-+	if (attr_mask & IBV_QP_PKEY_INDEX)
-+		cmd->pkey_index = attr->pkey_index;
-+	else
-+		cmd->pkey_index = 0;
-+	if (attr_mask & IBV_QP_PORT)
-+		cmd->port_num = attr->port_num;
-+	else
-+		cmd->port_num = 0;
-+	if (attr_mask & IBV_QP_QKEY)
-+		cmd->qkey = attr->qkey;
-+	else
-+		cmd->qkey = 0;
-+
-+	if (attr_mask & IBV_QP_AV) {
-+		memcpy(cmd->dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
-+		cmd->dest.flow_label = attr->ah_attr.grh.flow_label;
-+		cmd->dest.dlid = attr->ah_attr.dlid;
-+		cmd->dest.reserved = 0;
-+		cmd->dest.sgid_index = attr->ah_attr.grh.sgid_index;
-+		cmd->dest.hop_limit = attr->ah_attr.grh.hop_limit;
-+		cmd->dest.traffic_class = attr->ah_attr.grh.traffic_class;
-+		cmd->dest.sl = attr->ah_attr.sl;
-+		cmd->dest.src_path_bits = attr->ah_attr.src_path_bits;
-+		cmd->dest.static_rate = attr->ah_attr.static_rate;
-+		cmd->dest.is_global = attr->ah_attr.is_global;
-+		cmd->dest.port_num = attr->ah_attr.port_num;
-+	} else
-+		memset(&cmd->dest, 0, sizeof(cmd->dest));
-+
-+	if (attr_mask & IBV_QP_PATH_MTU)
-+		cmd->path_mtu = attr->path_mtu;
-+	else
-+		cmd->path_mtu = 0;
-+	if (attr_mask & IBV_QP_TIMEOUT)
-+		cmd->timeout = attr->timeout;
-+	else
-+		cmd->timeout = 0;
-+	if (attr_mask & IBV_QP_RETRY_CNT)
-+		cmd->retry_cnt = attr->retry_cnt;
-+	else
-+		cmd->retry_cnt = 0;
-+	if (attr_mask & IBV_QP_RNR_RETRY)
-+		cmd->rnr_retry = attr->rnr_retry;
-+	else
-+		cmd->rnr_retry = 0;
-+	if (attr_mask & IBV_QP_RQ_PSN)
-+		cmd->rq_psn = attr->rq_psn;
-+	else
-+		cmd->rq_psn = 0;
-+	if (attr_mask & IBV_QP_MAX_QP_RD_ATOMIC)
-+		cmd->max_rd_atomic = attr->max_rd_atomic;
-+	else
-+		cmd->max_rd_atomic = 0;
-+
-+	if (attr_mask & IBV_QP_ALT_PATH) {
-+		cmd->alt_pkey_index = attr->alt_pkey_index;
-+		cmd->alt_port_num = attr->alt_port_num;
-+		cmd->alt_timeout = attr->alt_timeout;
-+
-+		memcpy(cmd->alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
-+		cmd->alt_dest.flow_label = attr->alt_ah_attr.grh.flow_label;
-+		cmd->alt_dest.dlid = attr->alt_ah_attr.dlid;
-+		cmd->alt_dest.reserved = 0;
-+		cmd->alt_dest.sgid_index = attr->alt_ah_attr.grh.sgid_index;
-+		cmd->alt_dest.hop_limit = attr->alt_ah_attr.grh.hop_limit;
-+		cmd->alt_dest.traffic_class =
-+		    attr->alt_ah_attr.grh.traffic_class;
-+		cmd->alt_dest.sl = attr->alt_ah_attr.sl;
-+		cmd->alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
-+		cmd->alt_dest.static_rate = attr->alt_ah_attr.static_rate;
-+		cmd->alt_dest.is_global = attr->alt_ah_attr.is_global;
-+		cmd->alt_dest.port_num = attr->alt_ah_attr.port_num;
-+	} else {
-+		cmd->alt_pkey_index = 0;
-+		cmd->alt_port_num = 0;
-+		cmd->alt_timeout = 0;
-+		memset(&cmd->alt_dest, 0, sizeof(cmd->alt_dest));
-+	}
-+
-+	if (attr_mask & IBV_QP_MIN_RNR_TIMER)
-+		cmd->min_rnr_timer = attr->min_rnr_timer;
-+	else
-+		cmd->min_rnr_timer = 0;
-+	if (attr_mask & IBV_QP_SQ_PSN)
-+		cmd->sq_psn = attr->sq_psn;
-+	else
-+		cmd->sq_psn = 0;
-+	if (attr_mask & IBV_QP_MAX_DEST_RD_ATOMIC)
-+		cmd->max_dest_rd_atomic = attr->max_dest_rd_atomic;
-+	else
-+		cmd->max_dest_rd_atomic = 0;
-+	if (attr_mask & IBV_QP_PATH_MIG_STATE)
-+		cmd->path_mig_state = attr->path_mig_state;
-+	else
-+		cmd->path_mig_state = 0;
-+	if (attr_mask & IBV_QP_DEST_QPN)
-+		cmd->dest_qp_num = attr->dest_qp_num;
-+	else
-+		cmd->dest_qp_num = 0;
+ include(GNUInstallDirs)
+ # C include root
+ set(BUILD_INCLUDE ${CMAKE_BINARY_DIR}/include)
+@@ -52,9 +62,9 @@ set(BUILD_INCLUDE ${CMAKE_BINARY_DIR}/include)
+ set(BUILD_BIN ${CMAKE_BINARY_DIR}/bin)
+ # Libraries
+ set(BUILD_LIB ${CMAKE_BINARY_DIR}/lib)
++# Used for IN_PLACE configuration
++set(BUILD_ETC ${CMAKE_BINARY_DIR}/etc)
  
- 	cmd->reserved[0] = cmd->reserved[1] = 0;
+-# Location to place provider .driver files
+-set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/libibverbs.d")
+ set(CMAKE_INSTALL_INITDDIR "${CMAKE_INSTALL_SYSCONFDIR}/init.d"
+   CACHE PATH "Location for init.d files")
+ set(CMAKE_INSTALL_SYSTEMD_SERVICEDIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/system"
+@@ -87,6 +97,15 @@ else()
+   set(CMAKE_INSTALL_FULL_UDEV_RULESDIR "${CMAKE_INSTALL_UDEV_RULESDIR}")
+ endif()
  
++# Location to place provider .driver files
++if (IN_PLACE)
++  set(CONFIG_DIR "${BUILD_ETC}/libibverbs.d")
++  set(VERBS_PROVIDER_DIR "${BUILD_LIB}")
++  set(ACM_PROVIDER_DIR "${BUILD_LIB}/ibacm")
++else()
++  set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/libibverbs.d")
++endif()
++
+ set(DISTRO_FLAVOUR "None" CACHE
+   STRING "Flavour of distribution to install for. This primarily impacts the init.d scripts installed.")
+ 
+diff --git a/README.md b/README.md
+index b77256ef44aba3..4c1450eb249a11 100644
+--- a/README.md
++++ b/README.md
+@@ -42,7 +42,8 @@ $ bash build.sh
+ ```
+ 
+ *build/bin* will contain the sample programs and *build/lib* will contain the
+-shared libraries.
++shared libraries. The build is configured to run all the programs 'in-place'
++and cannot be installed.
+ 
+ NOTE: It is not currently easy to run from the build directory, the plugins
+ only load from the system path.
+diff --git a/build.sh b/build.sh
+index 10518d85bfd86f..17dc4408f73a5a 100755
+--- a/build.sh
++++ b/build.sh
+@@ -23,9 +23,9 @@ fi
+ cd "$BUILDDIR"
+ 
+ if [ "x$NINJA" == "x" ]; then
+-    $CMAKE ..
++    $CMAKE -DIN_PLACE=1 ..
+     make
+ else
+-    $CMAKE -GNinja ..
++    $CMAKE -DIN_PLACE=1 -GNinja ..
+     $NINJA
+ fi
+diff --git a/buildlib/rdma_functions.cmake b/buildlib/rdma_functions.cmake
+index fcd47a35bda26f..5256ad997f05bb 100644
+--- a/buildlib/rdma_functions.cmake
++++ b/buildlib/rdma_functions.cmake
+@@ -79,8 +79,8 @@ function(rdma_provider DEST)
+   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" DESTINATION "${CONFIG_DIR}")
+ 
+   # Uninstalled driver file
+-  file(MAKE_DIRECTORY "${BUILD_LIB}/libibverbs.d/")
+-  file(WRITE "${BUILD_LIB}/libibverbs.d/${DEST}.driver" "driver ${BUILD_LIB}/${DEST}\n")
++  file(MAKE_DIRECTORY "${BUILD_ETC}/libibverbs.d/")
++  file(WRITE "${BUILD_ETC}/libibverbs.d/${DEST}.driver" "driver ${BUILD_LIB}/lib${DEST}\n")
+ 
+   # Create a static provider library
+   # FIXME: This is probably pointless, the provider library has no symbols so
+diff --git a/ibacm/CMakeLists.txt b/ibacm/CMakeLists.txt
+index 505fba30a11c1f..feb1de41b994b9 100644
+--- a/ibacm/CMakeLists.txt
++++ b/ibacm/CMakeLists.txt
+@@ -36,6 +36,11 @@ target_link_libraries(ibacmp LINK_PRIVATE
+ set_target_properties(ibacmp PROPERTIES
+   LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
+ install(TARGETS ibacmp DESTINATION "${ACM_PROVIDER_DIR}")
++# ACM providers are linked into a subdir so that IN_PLACE can work.
++file(MAKE_DIRECTORY "${BUILD_LIB}/ibacm/")
++execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
++    "../libibacmp.so"
++    "${BUILD_LIB}/ibacm/libibacmp.so")
+ 
+ rdma_executable(ib_acme
+   src/acme.c
 -- 
 2.7.4
 --
