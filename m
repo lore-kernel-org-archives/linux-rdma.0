@@ -1,58 +1,58 @@
-From: Mark Bloch <markb@mellanox.com>
-Subject: Re: [PATCH] ib umem: bug: put pid back before return from error path
-Date: Thu, 22 Dec 2016 10:00:57 +0200
-Message-ID: <e470fbab-a330-b9c4-f2b3-65fb45f24e0a@mellanox.com>
-References: <1482390692-147946-1-git-send-email-liguozhu@hisilicon.com>
+From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 7/8] qedr: clear the vendor error field in the work completion
+Date: Thu, 22 Dec 2016 14:40:39 +0200
+Message-ID: <1482410440-2297-8-git-send-email-Ram.Amrani@cavium.com>
+References: <1482410440-2297-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1482390692-147946-1-git-send-email-liguozhu@hisilicon.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kenneth Lee <liguozhu@hisilicon.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1482410440-2297-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+We clear the vendor error field in the work completion so that if
+a work completion is erroneous  the field won't confuse the caller.
 
-You have two bugs here:
-1) When using ODP, ib_umem_release() checks for umem->odp_data != NULL 
-   calls ib_umem_odp_release() and returns immediately without calling put_pid().
-   This one isn't in the error path so the title doesn't fit.
+Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qedr/verbs.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-2) In case the allocation failed, we return in -ENOMEM without calling put_pid().
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 18341ed..2c4496f 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -3185,6 +3185,7 @@ static int process_req(struct qedr_dev *dev, struct qedr_qp *qp,
+ 
+ 		/* fill WC */
+ 		wc->status = status;
++		wc->vendor_err = 0;
+ 		wc->wc_flags = 0;
+ 		wc->src_qp = qp->id;
+ 		wc->qp = &qp->ibqp;
+@@ -3374,6 +3375,7 @@ static void __process_resp_one(struct qedr_dev *dev, struct qedr_qp *qp,
+ 
+ 	/* fill WC */
+ 	wc->status = wc_status;
++	wc->vendor_err = 0;
+ 	wc->src_qp = qp->id;
+ 	wc->qp = &qp->ibqp;
+ 	wc->wr_id = wr_id;
+@@ -3402,6 +3404,7 @@ static int process_resp_flush(struct qedr_qp *qp, struct qedr_cq *cq,
+ 	while (num_entries && qp->rq.wqe_cons != hw_cons) {
+ 		/* fill WC */
+ 		wc->status = IB_WC_WR_FLUSH_ERR;
++		wc->vendor_err = 0;
+ 		wc->wc_flags = 0;
+ 		wc->src_qp = qp->id;
+ 		wc->byte_len = 0;
+-- 
+1.8.3.1
 
-Can you please resend this with proper fixes line and a better description of what is going on.
-
-On 22/12/2016 09:11, Kenneth Lee wrote:
-> I catched this bug when reading the code. I'm sorry I have no hardware to test
-> it. But it is abviously a bug.
-> 
-> Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
-> ---
->  drivers/infiniband/core/umem.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> index 1e62a5f..4609b92 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->  		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
->  
->  	if (access & IB_ACCESS_ON_DEMAND) {
-> +		put_pid(umem->pid);
->  		ret = ib_umem_odp_get(context, umem);
->  		if (ret) {
->  			kfree(umem);
-> @@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->  
->  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
->  	if (!page_list) {
-> +		put_pid(umem->pid);
->  		kfree(umem);
->  		return ERR_PTR(-ENOMEM);
->  	}
-> 
-
-Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
