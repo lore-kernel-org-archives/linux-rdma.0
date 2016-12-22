@@ -1,313 +1,263 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/3] iw_cxgb4: refactor sq/rq drain logic
-Date: Thu, 22 Dec 2016 07:04:59 -0800
-Message-ID: <68eb584a0cf57442ca6b2be97f915ab03c9b4293.1482442436.git.swise@opengridcomputing.com>
+Subject: [PATCH 2/3] iw_cxgb4: free EQ queue memory on last deref
+Date: Thu, 22 Dec 2016 07:40:36 -0800
+Message-ID: <f13303a9aea2c649c2951e405976c05857533037.1482442436.git.swise@opengridcomputing.com>
+References: <68eb584a0cf57442ca6b2be97f915ab03c9b4293.1482442436.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <68eb584a0cf57442ca6b2be97f915ab03c9b4293.1482442436.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-With the addition of the IB/Core drain API, iw_cxgb4 supported drain
-by watching the CQs when the QP was out of RTS and signalling "drain
-complete" when the last CQE is polled.  This, however, doesn't fully
-support the drain semantics. Namely, the drain logic is supposed to signal
-"drain complete" only when the application has _processed_ the last CQE,
-not just removed them from the CQ.  Thus a small timing hole exists that
-can cause touch after free type bugs in applications using the drain API
-(nvmf, iSER, for example).  So iw_cxgb4 needs a better solution.
+Commit ad61a4c7a9b7 ("iw_cxgb4: don't block in destroy_qp awaiting
+the last deref") introduced a bug where the RDMA QP EQ queue memory
+(and QIDs) are possibly freed before the underlying connection has been
+fully shutdown.  The result being a possible DMA read issued by HW after
+the queue memory has been unmapped and freed.  This results in possible
+WR corruption in the worst case, system bus errors if an IOMMU is in use,
+and SGE "bad WR" errors reported in the very least.  The fix is to defer
+unmap/free of queue memory and QID resources until the QP struct has
+been fully dereferenced.  To do this, the c4iw_ucontext must also be kept
+around until the last QP that references it is fully freed.  In addition,
+since the last QP deref can happen in an IRQ disabled context, we need
+a new workqueue thread to do the final unmap/free of the EQ queue memory.
 
-The iWARP Verbs spec mandates that "_at some point_ after the QP is
-moved to ERROR", the iWARP driver MUST synchronously fail post_send and
-post_recv calls.  iw_cxgb4 was currently not allowing any posts once the
-QP is in ERROR.  This was in part due to the fact that the HW queues for
-the QP in ERROR state are disabled at this point, so there wasn't much
-else to do but fail the post operation synchronously.  This restriction
-is what drove the first drain implementation in iw_cxgb4 that has the
-above mentioned flaw.
-
-This patch changes iw_cxgb4 to allow post_send and post_recv WRs after
-the QP is moved to ERROR state for kernel mode users, thus still adhering
-to the Verbs spec for user mode users, but allowing flush WRs for kernel
-users.  Since the HW queues are disabled, we just synthesize a CQE for
-this post, queue it to the SW CQ, and then call the CQ event handler.
-This enables proper drain operations for the various storage applications.
-
+Fixes: ad61a4c7a9b7 ("iw_cxgb4: don't block in destroy_qp awaiting the last deref")
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cq.c       |  21 ++++---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   6 +-
- drivers/infiniband/hw/cxgb4/provider.c |   2 -
- drivers/infiniband/hw/cxgb4/qp.c       | 112 ++++++++++++++++++++-------------
- drivers/infiniband/hw/cxgb4/t4.h       |   2 +
- 5 files changed, 85 insertions(+), 58 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c   |  9 +++++++++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 18 +++++++++++++++++
+ drivers/infiniband/hw/cxgb4/provider.c | 20 +++++++++++++++----
+ drivers/infiniband/hw/cxgb4/qp.c       | 35 +++++++++++++++++++++++++---------
+ 4 files changed, 69 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 19c6477..bec82a6 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -505,6 +505,15 @@ static int poll_cq(struct t4_wq *wq, struct t4_cq *cq, struct t4_cqe *cqe,
- 	}
- 
- 	/*
-+	 * Special cqe for drain WR completions...
-+	 */
-+	if (CQE_OPCODE(hw_cqe) == C4IW_DRAIN_OPCODE) {
-+		*cookie = CQE_DRAIN_COOKIE(hw_cqe);
-+		*cqe = *hw_cqe;
-+		goto skip_cqe;
-+	}
-+
-+	/*
- 	 * Gotta tweak READ completions:
- 	 *	1) the cqe doesn't contain the sq_wptr from the wr.
- 	 *	2) opcode not reflected from the wr.
-@@ -753,6 +762,9 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
- 				c4iw_invalidate_mr(qhp->rhp,
- 						   CQE_WRID_FR_STAG(&cqe));
- 			break;
-+		case C4IW_DRAIN_OPCODE:
-+			wc->opcode = IB_WC_SEND;
-+			break;
- 		default:
- 			printk(KERN_ERR MOD "Unexpected opcode %d "
- 			       "in the CQE received for QPID=0x%0x\n",
-@@ -817,15 +829,8 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 93e3d27..4f9fd1a 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -846,9 +846,17 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
  		}
  	}
- out:
--	if (wq) {
--		if (unlikely(qhp->attr.state != C4IW_QP_STATE_RTS)) {
--			if (t4_sq_empty(wq))
--				complete(&qhp->sq_drained);
--			if (t4_rq_empty(wq))
--				complete(&qhp->rq_drained);
--		}
-+	if (wq)
- 		spin_unlock(&qhp->lock);
--	}
- 	return ret;
- }
  
++	rdev->free_workq = create_singlethread_workqueue("iw_cxgb4_free");
++	if (!rdev->free_workq) {
++		err = -ENOMEM;
++		goto err_free_status_page;
++	}
++
+ 	rdev->status_page->db_off = 0;
+ 
+ 	return 0;
++err_free_status_page:
++	free_page((unsigned long)rdev->status_page);
+ destroy_ocqp_pool:
+ 	c4iw_ocqp_pool_destroy(rdev);
+ destroy_rqtpool:
+@@ -862,6 +870,7 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 
+ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
+ {
++	destroy_workqueue(rdev->free_workq);
+ 	kfree(rdev->wr_log);
+ 	free_page((unsigned long)rdev->status_page);
+ 	c4iw_pblpool_destroy(rdev);
 diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 4788e1a..7b1e465 100644
+index 7b1e465..8cd4d05 100644
 --- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
 +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -480,8 +480,6 @@ struct c4iw_qp {
+@@ -45,6 +45,7 @@
+ #include <linux/kref.h>
+ #include <linux/timer.h>
+ #include <linux/io.h>
++#include <linux/workqueue.h>
+ 
+ #include <asm/byteorder.h>
+ 
+@@ -107,6 +108,7 @@ struct c4iw_dev_ucontext {
+ 	struct list_head qpids;
+ 	struct list_head cqids;
+ 	struct mutex lock;
++	struct kref kref;
+ };
+ 
+ enum c4iw_rdev_flags {
+@@ -183,6 +185,7 @@ struct c4iw_rdev {
+ 	atomic_t wr_log_idx;
+ 	struct wr_log_entry *wr_log;
+ 	int wr_log_size;
++	struct workqueue_struct *free_workq;
+ };
+ 
+ static inline int c4iw_fatal_error(struct c4iw_rdev *rdev)
+@@ -480,6 +483,8 @@ struct c4iw_qp {
  	wait_queue_head_t wait;
  	struct timer_list timer;
  	int sq_sig_all;
--	struct completion rq_drained;
--	struct completion sq_drained;
++	struct work_struct free_work;
++	struct c4iw_ucontext *ucontext;
  };
  
  static inline struct c4iw_qp *to_c4iw_qp(struct ib_qp *ibqp)
-@@ -615,6 +613,8 @@ static inline int to_ib_qp_state(int c4iw_qp_state)
- 	return IB_QPS_ERR;
+@@ -493,6 +498,7 @@ struct c4iw_ucontext {
+ 	u32 key;
+ 	spinlock_t mmap_lock;
+ 	struct list_head mmaps;
++	struct kref kref;
+ };
+ 
+ static inline struct c4iw_ucontext *to_c4iw_ucontext(struct ib_ucontext *c)
+@@ -500,6 +506,18 @@ static inline struct c4iw_ucontext *to_c4iw_ucontext(struct ib_ucontext *c)
+ 	return container_of(c, struct c4iw_ucontext, ibucontext);
  }
  
-+#define C4IW_DRAIN_OPCODE FW_RI_SGE_EC_CR_RETURN
++void _c4iw_free_ucontext(struct kref *kref);
 +
- static inline u32 c4iw_ib_to_tpt_access(int a)
- {
- 	return (a & IB_ACCESS_REMOTE_WRITE ? FW_RI_MEM_ACCESS_REM_WRITE : 0) |
-@@ -997,8 +997,6 @@ extern int c4iw_wr_log;
- extern int db_fc_threshold;
- extern int db_coalescing_threshold;
- extern int use_dsgl;
--void c4iw_drain_rq(struct ib_qp *qp);
--void c4iw_drain_sq(struct ib_qp *qp);
- void c4iw_invalidate_mr(struct c4iw_dev *rhp, u32 rkey);
- 
- #endif
++static inline void c4iw_put_ucontext(struct c4iw_ucontext *ucontext)
++{
++	kref_put(&ucontext->kref, _c4iw_free_ucontext);
++}
++
++static inline void c4iw_get_ucontext(struct c4iw_ucontext *ucontext)
++{
++	kref_get(&ucontext->kref);
++}
++
+ struct c4iw_mm_entry {
+ 	struct list_head entry;
+ 	u64 addr;
 diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 645e606..7b24845 100644
+index 7b24845..f785883 100644
 --- a/drivers/infiniband/hw/cxgb4/provider.c
 +++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -605,8 +605,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.uverbs_abi_ver = C4IW_UVERBS_ABI_VERSION;
- 	dev->ibdev.get_port_immutable = c4iw_port_immutable;
- 	dev->ibdev.get_dev_fw_str = get_dev_fw_str;
--	dev->ibdev.drain_sq = c4iw_drain_sq;
--	dev->ibdev.drain_rq = c4iw_drain_rq;
+@@ -91,17 +91,28 @@ static int c4iw_process_mad(struct ib_device *ibdev, int mad_flags,
+ 	return -ENOSYS;
+ }
  
- 	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
- 	if (!dev->ibdev.iwcm)
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index cda5542..31ab451 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -776,6 +776,64 @@ static int ring_kernel_rq_db(struct c4iw_qp *qhp, u16 inc)
+-static int c4iw_dealloc_ucontext(struct ib_ucontext *context)
++void _c4iw_free_ucontext(struct kref *kref)
+ {
+-	struct c4iw_dev *rhp = to_c4iw_dev(context->device);
+-	struct c4iw_ucontext *ucontext = to_c4iw_ucontext(context);
++	struct c4iw_ucontext *ucontext;
++	struct c4iw_dev *rhp;
+ 	struct c4iw_mm_entry *mm, *tmp;
+ 
+-	PDBG("%s context %p\n", __func__, context);
++	ucontext = container_of(kref, struct c4iw_ucontext, kref);
++	rhp = to_c4iw_dev(ucontext->ibucontext.device);
++
++	PDBG("%s ucontext %p\n", __func__, ucontext);
+ 	list_for_each_entry_safe(mm, tmp, &ucontext->mmaps, entry)
+ 		kfree(mm);
+ 	c4iw_release_dev_ucontext(&rhp->rdev, &ucontext->uctx);
+ 	kfree(ucontext);
++}
++
++static int c4iw_dealloc_ucontext(struct ib_ucontext *context)
++{
++	struct c4iw_ucontext *ucontext = to_c4iw_ucontext(context);
++
++	PDBG("%s context %p\n", __func__, context);
++	c4iw_put_ucontext(ucontext);
  	return 0;
  }
  
-+static void complete_sq_drain_wr(struct c4iw_qp *qhp, struct ib_send_wr *wr)
+@@ -125,6 +136,7 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
+ 	c4iw_init_dev_ucontext(&rhp->rdev, &context->uctx);
+ 	INIT_LIST_HEAD(&context->mmaps);
+ 	spin_lock_init(&context->mmap_lock);
++	kref_init(&context->kref);
+ 
+ 	if (udata->outlen < sizeof(uresp) - sizeof(uresp.reserved)) {
+ 		if (!warned++)
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 31ab451..04c1c38 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -715,13 +715,32 @@ static int build_inv_stag(union t4_wr *wqe, struct ib_send_wr *wr, u8 *len16)
+ 	return 0;
+ }
+ 
+-static void _free_qp(struct kref *kref)
++static void free_qp_work(struct work_struct *work)
 +{
-+	struct t4_cqe cqe = {};
-+	struct c4iw_cq *schp;
-+	unsigned long flag;
-+	struct t4_cq *cq;
++	struct c4iw_ucontext *ucontext;
++	struct c4iw_qp *qhp;
++	struct c4iw_dev *rhp;
 +
-+	schp = to_c4iw_cq(qhp->ibqp.send_cq);
-+	cq = &schp->cq;
++	qhp = container_of(work, struct c4iw_qp, free_work);
++	ucontext = qhp->ucontext;
++	rhp = qhp->rhp;
 +
-+	cqe.u.drain_cookie = wr->wr_id;
-+	cqe.header = cpu_to_be32(CQE_STATUS_V(T4_ERR_SWFLUSH) |
-+				 CQE_OPCODE_V(C4IW_DRAIN_OPCODE) |
-+				 CQE_TYPE_V(1) |
-+				 CQE_SWCQE_V(1) |
-+				 CQE_QPID_V(qhp->wq.sq.qid));
++	PDBG("%s qhp %p ucontext %p\n", __func__, qhp, ucontext);
++	destroy_qp(&rhp->rdev, &qhp->wq,
++		   ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
 +
-+	spin_lock_irqsave(&schp->lock, flag);
-+	cqe.bits_type_ts = cpu_to_be64(CQE_GENBIT_V((u64)cq->gen));
-+	cq->sw_queue[cq->sw_pidx] = cqe;
-+	t4_swcq_produce(cq);
-+	spin_unlock_irqrestore(&schp->lock, flag);
-+
-+	spin_lock_irqsave(&schp->comp_handler_lock, flag);
-+	(*schp->ibcq.comp_handler)(&schp->ibcq,
-+				   schp->ibcq.cq_context);
-+	spin_unlock_irqrestore(&schp->comp_handler_lock, flag);
++	if (ucontext)
++		c4iw_put_ucontext(ucontext);
++	kfree(qhp);
 +}
 +
-+static void complete_rq_drain_wr(struct c4iw_qp *qhp, struct ib_recv_wr *wr)
-+{
-+	struct t4_cqe cqe = {};
-+	struct c4iw_cq *rchp;
-+	unsigned long flag;
-+	struct t4_cq *cq;
-+
-+	rchp = to_c4iw_cq(qhp->ibqp.recv_cq);
-+	cq = &rchp->cq;
-+
-+	cqe.u.drain_cookie = wr->wr_id;
-+	cqe.header = cpu_to_be32(CQE_STATUS_V(T4_ERR_SWFLUSH) |
-+				 CQE_OPCODE_V(C4IW_DRAIN_OPCODE) |
-+				 CQE_TYPE_V(0) |
-+				 CQE_SWCQE_V(1) |
-+				 CQE_QPID_V(qhp->wq.sq.qid));
-+
-+	spin_lock_irqsave(&rchp->lock, flag);
-+	cqe.bits_type_ts = cpu_to_be64(CQE_GENBIT_V((u64)cq->gen));
-+	cq->sw_queue[cq->sw_pidx] = cqe;
-+	t4_swcq_produce(cq);
-+	spin_unlock_irqrestore(&rchp->lock, flag);
-+
-+	spin_lock_irqsave(&rchp->comp_handler_lock, flag);
-+	(*rchp->ibcq.comp_handler)(&rchp->ibcq,
-+				   rchp->ibcq.cq_context);
-+	spin_unlock_irqrestore(&rchp->comp_handler_lock, flag);
-+}
-+
- int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		   struct ib_send_wr **bad_wr)
++static void queue_qp_free(struct kref *kref)
  {
-@@ -794,8 +852,8 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	spin_lock_irqsave(&qhp->lock, flag);
- 	if (t4_wq_in_error(&qhp->wq)) {
- 		spin_unlock_irqrestore(&qhp->lock, flag);
--		*bad_wr = wr;
--		return -EINVAL;
-+		complete_sq_drain_wr(qhp, wr);
-+		return err;
- 	}
- 	num_wrs = t4_sq_avail(&qhp->wq);
- 	if (num_wrs == 0) {
-@@ -937,8 +995,8 @@ int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	spin_lock_irqsave(&qhp->lock, flag);
- 	if (t4_wq_in_error(&qhp->wq)) {
- 		spin_unlock_irqrestore(&qhp->lock, flag);
--		*bad_wr = wr;
--		return -EINVAL;
-+		complete_rq_drain_wr(qhp, wr);
-+		return err;
- 	}
- 	num_wrs = t4_rq_avail(&qhp->wq);
- 	if (num_wrs == 0) {
-@@ -1550,7 +1608,12 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 		}
- 		break;
- 	case C4IW_QP_STATE_CLOSING:
--		if (!internal) {
-+
-+		/*
-+		 * Allow kernel users to move to ERROR for qp draining.
-+		 */
-+		if (!internal && (qhp->ibqp.uobject || attrs->next_state !=
-+				  C4IW_QP_STATE_ERROR)) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
-@@ -1763,8 +1826,6 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	qhp->attr.max_ird = 0;
- 	qhp->sq_sig_all = attrs->sq_sig_type == IB_SIGNAL_ALL_WR;
- 	spin_lock_init(&qhp->lock);
--	init_completion(&qhp->sq_drained);
--	init_completion(&qhp->rq_drained);
+ 	struct c4iw_qp *qhp;
+ 
+ 	qhp = container_of(kref, struct c4iw_qp, kref);
+ 	PDBG("%s qhp %p\n", __func__, qhp);
+-	kfree(qhp);
++	queue_work(qhp->rhp->rdev.free_workq, &qhp->free_work);
+ }
+ 
+ void c4iw_qp_add_ref(struct ib_qp *qp)
+@@ -733,7 +752,7 @@ void c4iw_qp_add_ref(struct ib_qp *qp)
+ void c4iw_qp_rem_ref(struct ib_qp *qp)
+ {
+ 	PDBG("%s ib_qp %p\n", __func__, qp);
+-	kref_put(&to_c4iw_qp(qp)->kref, _free_qp);
++	kref_put(&to_c4iw_qp(qp)->kref, queue_qp_free);
+ }
+ 
+ static void add_to_fc_list(struct list_head *head, struct list_head *entry)
+@@ -1706,7 +1725,6 @@ int c4iw_destroy_qp(struct ib_qp *ib_qp)
+ 	struct c4iw_dev *rhp;
+ 	struct c4iw_qp *qhp;
+ 	struct c4iw_qp_attributes attrs;
+-	struct c4iw_ucontext *ucontext;
+ 
+ 	qhp = to_c4iw_qp(ib_qp);
+ 	rhp = qhp->rhp;
+@@ -1726,11 +1744,6 @@ int c4iw_destroy_qp(struct ib_qp *ib_qp)
+ 	spin_unlock_irq(&rhp->lock);
+ 	free_ird(rhp, qhp->attr.max_ird);
+ 
+-	ucontext = ib_qp->uobject ?
+-		   to_c4iw_ucontext(ib_qp->uobject->context) : NULL;
+-	destroy_qp(&rhp->rdev, &qhp->wq,
+-		   ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
+-
+ 	c4iw_qp_rem_ref(ib_qp);
+ 
+ 	PDBG("%s ib_qp %p qpid 0x%0x\n", __func__, ib_qp, qhp->wq.sq.qid);
+@@ -1829,6 +1842,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
  	mutex_init(&qhp->mutex);
  	init_waitqueue_head(&qhp->wait);
  	kref_init(&qhp->kref);
-@@ -1958,40 +2019,3 @@ int c4iw_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	init_attr->sq_sig_type = qhp->sq_sig_all ? IB_SIGNAL_ALL_WR : 0;
- 	return 0;
- }
--
--static void move_qp_to_err(struct c4iw_qp *qp)
--{
--	struct c4iw_qp_attributes attrs = { .next_state = C4IW_QP_STATE_ERROR };
--
--	(void)c4iw_modify_qp(qp->rhp, qp, C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
--}
--
--void c4iw_drain_sq(struct ib_qp *ibqp)
--{
--	struct c4iw_qp *qp = to_c4iw_qp(ibqp);
--	unsigned long flag;
--	bool need_to_wait;
--
--	move_qp_to_err(qp);
--	spin_lock_irqsave(&qp->lock, flag);
--	need_to_wait = !t4_sq_empty(&qp->wq);
--	spin_unlock_irqrestore(&qp->lock, flag);
--
--	if (need_to_wait)
--		wait_for_completion(&qp->sq_drained);
--}
--
--void c4iw_drain_rq(struct ib_qp *ibqp)
--{
--	struct c4iw_qp *qp = to_c4iw_qp(ibqp);
--	unsigned long flag;
--	bool need_to_wait;
--
--	move_qp_to_err(qp);
--	spin_lock_irqsave(&qp->lock, flag);
--	need_to_wait = !t4_rq_empty(&qp->wq);
--	spin_unlock_irqrestore(&qp->lock, flag);
--
--	if (need_to_wait)
--		wait_for_completion(&qp->rq_drained);
--}
-diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
-index 862381a..640d221 100644
---- a/drivers/infiniband/hw/cxgb4/t4.h
-+++ b/drivers/infiniband/hw/cxgb4/t4.h
-@@ -179,6 +179,7 @@ struct t4_cqe {
- 			__be32 wrid_hi;
- 			__be32 wrid_low;
- 		} gen;
-+		u64 drain_cookie;
- 	} u;
- 	__be64 reserved;
- 	__be64 bits_type_ts;
-@@ -238,6 +239,7 @@ struct t4_cqe {
- /* generic accessor macros */
- #define CQE_WRID_HI(x)		(be32_to_cpu((x)->u.gen.wrid_hi))
- #define CQE_WRID_LOW(x)		(be32_to_cpu((x)->u.gen.wrid_low))
-+#define CQE_DRAIN_COOKIE(x)	((x)->u.drain_cookie)
++	INIT_WORK(&qhp->free_work, free_qp_work);
  
- /* macros for flit 3 of the cqe */
- #define CQE_GENBIT_S	63
+ 	ret = insert_handle(rhp, &rhp->qpidr, qhp, qhp->wq.sq.qid);
+ 	if (ret)
+@@ -1915,6 +1929,9 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 			ma_sync_key_mm->len = PAGE_SIZE;
+ 			insert_mmap(ucontext, ma_sync_key_mm);
+ 		}
++
++		c4iw_get_ucontext(ucontext);
++		qhp->ucontext = ucontext;
+ 	}
+ 	qhp->ibqp.qp_num = qhp->wq.sq.qid;
+ 	init_timer(&(qhp->timer));
 -- 
 2.7.0
 
