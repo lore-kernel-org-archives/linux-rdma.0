@@ -1,90 +1,279 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] redhat/spec: further cleanups to depdendencies,
- descriptions, formatting
-Date: Thu, 22 Dec 2016 14:14:49 -0500
-Message-ID: <8f7c255b-1916-e1ec-f277-94b117117270@redhat.com>
-References: <20161222180220.49558-1-jarod@redhat.com>
- <20161222181323.GA5053@obsidianresearch.com>
- <bf346322-4ef4-032d-9ea2-5a63ae7737e5@redhat.com>
- <20161222183536.GB5660@obsidianresearch.com>
- <f5f043f3-a396-ee44-6f7f-ef3b14daae15@redhat.com>
- <20161222190057.GC5660@obsidianresearch.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: iscsi_trx going into D state
+Date: Thu, 22 Dec 2016 14:15:43 -0500
+Message-ID: <6beeb461-0391-cb29-8cf7-74f4c8feda34@redhat.com>
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+ <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA@mail.gmail.com>
+ <CAANLjFoh+C8QE=qcPKqUUG3SnH2EMmS7DWZ5D4AD7yWMxoK0Zw@mail.gmail.com>
+ <4fc72e32-26fb-96bd-8a0d-814eef712b43@suse.com>
+ <CAANLjFpx1MRNiu2388pY+U0O5z9gw+OJBtpOof47Lb_DxaJSBQ@mail.gmail.com>
+ <1476774332.8490.43.camel@haakon3.risingtidesystems.com>
+ <CAANLjFqXt5r=c9F75vjeK=_zLa8zCS1priLuZo=A1ZSHKZ=1Bw@mail.gmail.com>
+ <1476858359.8490.97.camel@haakon3.risingtidesystems.com>
+ <CAANLjFoGEi29goybqsvEg6trystEkurVz52P8SwqGUSNV1jdSw@mail.gmail.com>
+ <1477780190.22703.47.camel@haakon3.risingtidesystems.com>
+ <CAANLjFpkEVmO83r5YWh=hCnN=AUf9bvrrCyVJHc-=CRpc3P0vQ@mail.gmail.com>
+ <CAANLjFqoHuSq2SsNZ4J2uvAQGPg0F1tpxeJuAQT1oM1hXQ0wew@mail.gmail.com>
+ <CAANLjFpYT62G86w-r00+shJUyrPd68BS64y8f9OZemz_5kojzg@mail.gmail.com>
+ <CAANLjFon+re7eMriFjnFfR-4SnzxR4LLSb2qcwhfkb7ODbuTwg@mail.gmail.com>
+ <CAANLjFpoWruzYEDohQrAKCxp9NSGhZM3mv=x+9+L7x1+fwYN6w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="aTtiFRdFgwv7OfKKE7N9qnIdtbXXvnLEE"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161222190057.GC5660-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ boundary="JNuHaxVoiQrA0fRPfcBC01PFUMi1MLFsc"
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAANLjFpoWruzYEDohQrAKCxp9NSGhZM3mv=x+9+L7x1+fwYN6w@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Robert LeBlanc <robert@leblancnet.us>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Zhu Lingshan <lszhu@suse.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---aTtiFRdFgwv7OfKKE7N9qnIdtbXXvnLEE
-Content-Type: multipart/mixed; boundary="H7FohQHCf7jdPWBSG8jRnPgltW7AdBj3M";
+--JNuHaxVoiQrA0fRPfcBC01PFUMi1MLFsc
+Content-Type: multipart/mixed; boundary="o4HN48kGU9qe9oohQsJ8r0C0mErVr6tjf";
  protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <8f7c255b-1916-e1ec-f277-94b117117270-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] redhat/spec: further cleanups to depdendencies,
- descriptions, formatting
-References: <20161222180220.49558-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161222181323.GA5053-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <bf346322-4ef4-032d-9ea2-5a63ae7737e5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161222183536.GB5660-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <f5f043f3-a396-ee44-6f7f-ef3b14daae15-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161222190057.GC5660-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20161222190057.GC5660-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+To: Robert LeBlanc <robert@leblancnet.us>,
+ "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Zhu Lingshan <lszhu@suse.com>, linux-rdma <linux-rdma@vger.kernel.org>,
+ linux-scsi@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>,
+ Christoph Hellwig <hch@lst.de>
+Message-ID: <6beeb461-0391-cb29-8cf7-74f4c8feda34@redhat.com>
+Subject: Re: iscsi_trx going into D state
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+ <880e374c-cf8b-f276-e930-57b09fe1a686@suse.com>
+ <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA@mail.gmail.com>
+ <CAANLjFoh+C8QE=qcPKqUUG3SnH2EMmS7DWZ5D4AD7yWMxoK0Zw@mail.gmail.com>
+ <4fc72e32-26fb-96bd-8a0d-814eef712b43@suse.com>
+ <CAANLjFpx1MRNiu2388pY+U0O5z9gw+OJBtpOof47Lb_DxaJSBQ@mail.gmail.com>
+ <1476774332.8490.43.camel@haakon3.risingtidesystems.com>
+ <CAANLjFqXt5r=c9F75vjeK=_zLa8zCS1priLuZo=A1ZSHKZ=1Bw@mail.gmail.com>
+ <1476858359.8490.97.camel@haakon3.risingtidesystems.com>
+ <CAANLjFoGEi29goybqsvEg6trystEkurVz52P8SwqGUSNV1jdSw@mail.gmail.com>
+ <1477780190.22703.47.camel@haakon3.risingtidesystems.com>
+ <CAANLjFpkEVmO83r5YWh=hCnN=AUf9bvrrCyVJHc-=CRpc3P0vQ@mail.gmail.com>
+ <CAANLjFqoHuSq2SsNZ4J2uvAQGPg0F1tpxeJuAQT1oM1hXQ0wew@mail.gmail.com>
+ <CAANLjFpYT62G86w-r00+shJUyrPd68BS64y8f9OZemz_5kojzg@mail.gmail.com>
+ <CAANLjFon+re7eMriFjnFfR-4SnzxR4LLSb2qcwhfkb7ODbuTwg@mail.gmail.com>
+ <CAANLjFpoWruzYEDohQrAKCxp9NSGhZM3mv=x+9+L7x1+fwYN6w@mail.gmail.com>
+In-Reply-To: <CAANLjFpoWruzYEDohQrAKCxp9NSGhZM3mv=x+9+L7x1+fwYN6w@mail.gmail.com>
 
---H7FohQHCf7jdPWBSG8jRnPgltW7AdBj3M
-Content-Type: text/plain; charset=windows-1252
+--o4HN48kGU9qe9oohQsJ8r0C0mErVr6tjf
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/22/2016 2:00 PM, Jason Gunthorpe wrote:
-> On Thu, Dec 22, 2016 at 01:41:59PM -0500, Doug Ledford wrote:
->> On 12/22/2016 1:35 PM, Jason Gunthorpe wrote:
->>> On Thu, Dec 22, 2016 at 01:17:00PM -0500, Jarod Wilson wrote:
->>>
->>>>>> - Add explicit dependencies on kmod, initscripts and systemd, as t=
-here
->>>>>>  are container and vm cases where there might not be a kernel
->>>>>>  installed
->>>>>
->>>>> Do we need initscripts?
->>>>
->>>> Not really sure, the Fedora package reviewer insists we do.
->>>
->>> Hm, no idea what for. We don't provide any LSB init scripts any more,=
+On 12/21/2016 6:39 PM, Robert LeBlanc wrote:
+> I hit a new backtrace today, hopefully it adds something.
+>=20
+> # cat /proc/19659/stack
+> [<ffffffff815304d1>] iscsit_stop_session+0x1b1/0x1c0
+> [<ffffffff81521c62>] iscsi_check_for_session_reinstatement+0x1e2/0x270
+> [<ffffffff81524660>] iscsi_target_check_for_existing_instances+0x30/0x4=
+0
+> [<ffffffff815247a8>] iscsi_target_do_login+0x138/0x630
+> [<ffffffff815259be>] iscsi_target_start_negotiation+0x4e/0xa0
+> [<ffffffff8152355e>] __iscsi_target_login_thread+0x83e/0xf20
+> [<ffffffff81523c64>] iscsi_target_login_thread+0x24/0x30
+> [<ffffffff810a3059>] kthread+0xd9/0xf0
+> [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+> [<ffffffffffffffff>] 0xffffffffffffffff
+>=20
+> # cat /proc/21342/stack
+> [<ffffffffa0292b10>] __ib_drain_sq+0x190/0x1c0 [ib_core]
+> [<ffffffffa0292b65>] ib_drain_sq+0x25/0x30 [ib_core]
+> [<ffffffffa0292d72>] ib_drain_qp+0x12/0x30 [ib_core]
+> [<ffffffffa062c5ff>] isert_wait_conn+0x5f/0x2d0 [ib_isert]
+> [<ffffffff815309b7>] iscsit_close_connection+0x157/0x860
+> [<ffffffff8151f10b>] iscsit_take_action_for_connection_exit+0x7b/0xf0
+> [<ffffffff81530265>] iscsi_target_rx_thread+0x95/0xa0
+> [<ffffffff810a3059>] kthread+0xd9/0xf0
+> [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+> [<ffffffffffffffff>] 0xffffffffffffffff
+>=20
+> # ps aux | grep iscsi | grep D
+> root     19659  0.0  0.0      0     0 ?        D    16:12   0:00 [iscsi=
+_np]
+> root     21342  0.0  0.0      0     0 ?        D    16:29   0:00 [iscsi=
+_trx]
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
->>> right?
+That looks suspiciously like the __ib_drain_sq is stuck forever waiting
+on a completion that never comes.
+
+>=20
+> On Thu, Dec 15, 2016 at 1:38 PM, Robert LeBlanc <robert@leblancnet.us> =
+wrote:
+>> Nicholas,
 >>
->> I think this is a distro specific thing.  Last I knew, there might sti=
-ll
->> be one or two things that haven't been migrated from initscripts to
->> systemd, or maybe they want the functions that the initscripts package=
+>> I've found that the kernels I used were not able to be inspected using=
 
->> provides?
->=20
-> No idea, but it is a big dependency (12 pacakges, 5M)
->=20
-> If the reviewer wants it, lets have them propose a comment about what
-> it is needed for since none of us seem to know :)
+>> crash and I could not build the debug info for them. So I built a new
+>> 4.9 kernel and verified that I could inspect the crash. It is located
+>> at [1].
+>>
+>> [1] http://mirrors.betterservers.com/trace/crash2.tar.xz
+>> ----------------
+>> Robert LeBlanc
+>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>
+>>
+>> On Mon, Dec 12, 2016 at 4:57 PM, Robert LeBlanc <robert@leblancnet.us>=
+ wrote:
+>>> Nicholas,
+>>>
+>>> After lots of set backs and having to give up trying to get kernel
+>>> dumps on our "production" systems, I've been able to work out the
+>>> issues we had with kdump and replicate the issue on my dev boxes. I
+>>> have dumps from 4.4.30 and 4.9-rc8 (makedumpfile would not dump, so i=
+t
+>>> is a straight copy of /proc/vmcore from the crash kernel). In each
+>>> crash directory, I put a details.txt file that has the process IDs
+>>> that were having problems and a brief description of the set-up at th=
+e
+>>> time. This was mostly replicated by starting fio and pulling the
+>>> Infiniband cable until fio gave up. This hardware also has Mellanox
+>>> ConnectX4-LX cards and I also replicated the issue over RoCE using 4.=
+9
+>>> since it has the drivers in-box. Please let me know if you need more
+>>> info, I can test much faster now. The cores/kernels/modules are
+>>> located at [1].
+>>>
+>>> [1] http://mirrors.betterservers.com/trace/crash.tar.xz
+>>>
+>>> Thanks,
+>>> Robert
+>>> ----------------
+>>> Robert LeBlanc
+>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>
+>>>
+>>> On Fri, Nov 4, 2016 at 3:57 PM, Robert LeBlanc <robert@leblancnet.us>=
+ wrote:
+>>>> We hit this yesterday, this time it was on the tx thread (the other
+>>>> ones before seem to be on the rx thread). We weren't able to get a
+>>>> kernel dump on this. We'll try to get one next time.
+>>>>
+>>>> # ps axuw | grep "D.*iscs[i]"
+>>>> root     12383  0.0  0.0      0     0 ?        D    Nov03   0:04 [is=
+csi_np]
+>>>> root     23016  0.0  0.0      0     0 ?        D    Nov03   0:00 [is=
+csi_ttx]
+>>>> root     23018  0.0  0.0      0     0 ?        D    Nov03   0:00 [is=
+csi_ttx]
+>>>> # cat /proc/12383/stack
+>>>> [<ffffffff814f24af>] iscsit_stop_session+0x19f/0x1d0
+>>>> [<ffffffff814e3c66>] iscsi_check_for_session_reinstatement+0x1e6/0x2=
+70
+>>>> [<ffffffff814e6620>] iscsi_target_check_for_existing_instances+0x30/=
+0x40
+>>>> [<ffffffff814e6770>] iscsi_target_do_login+0x140/0x640
+>>>> [<ffffffff814e7b0c>] iscsi_target_start_negotiation+0x1c/0xb0
+>>>> [<ffffffff814e585b>] iscsi_target_login_thread+0xa9b/0xfc0
+>>>> [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>> [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>> # cat /proc/23016/stack
+>>>> [<ffffffff814ce0d9>] target_wait_for_sess_cmds+0x49/0x1a0
+>>>> [<ffffffffa058b92b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
+>>>> [<ffffffff814f2642>] iscsit_close_connection+0x162/0x870
+>>>> [<ffffffff814e110f>] iscsit_take_action_for_connection_exit+0x7f/0x1=
+00
+>>>> [<ffffffff814f122a>] iscsi_target_tx_thread+0x1aa/0x1d0
+>>>> [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>> [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>> # cat /proc/23018/stack
+>>>> [<ffffffff814ce0d9>] target_wait_for_sess_cmds+0x49/0x1a0
+>>>> [<ffffffffa058b92b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
+>>>> [<ffffffff814f2642>] iscsit_close_connection+0x162/0x870
+>>>> [<ffffffff814e110f>] iscsit_take_action_for_connection_exit+0x7f/0x1=
+00
+>>>> [<ffffffff814f122a>] iscsi_target_tx_thread+0x1aa/0x1d0
+>>>> [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>> [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>>
+>>>> From dmesg:
+>>>> [  394.476332] INFO: rcu_sched self-detected stall on CPU
+>>>> [  394.476334]  20-...: (23976 ticks this GP)
+>>>> idle=3Dedd/140000000000001/0 softirq=3D292/292 fqs=3D18788
+>>>> [  394.476336]   (t=3D24003 jiffies g=3D3146 c=3D3145 q=3D0)
+>>>> [  394.476337] Task dump for CPU 20:
+>>>> [  394.476338] kworker/u68:2   R  running task        0 12906      2=
+ 0x00000008
+>>>> [  394.476345] Workqueue: isert_comp_wq isert_cq_work [ib_isert]
+>>>> [  394.476346]  ffff883f2fe38000 00000000f805705e ffff883f7fd03da8
+>>>> ffffffff810ac8ff
+>>>> [  394.476347]  0000000000000014 ffffffff81adb680 ffff883f7fd03dc0
+>>>> ffffffff810af239
+>>>> [  394.476348]  0000000000000015 ffff883f7fd03df0 ffffffff810e1cd0
+>>>> ffff883f7fd17b80
+>>>> [  394.476348] Call Trace:
+>>>> [  394.476354]  <IRQ>  [<ffffffff810ac8ff>] sched_show_task+0xaf/0x1=
+10
+>>>> [  394.476355]  [<ffffffff810af239>] dump_cpu_task+0x39/0x40
+>>>> [  394.476357]  [<ffffffff810e1cd0>] rcu_dump_cpu_stacks+0x80/0xb0
+>>>> [  394.476359]  [<ffffffff810e6100>] rcu_check_callbacks+0x540/0x820=
 
-Fair enough ;-)
+>>>> [  394.476360]  [<ffffffff810afe11>] ? account_system_time+0x81/0x11=
+0
+>>>> [  394.476363]  [<ffffffff810faa60>] ? tick_sched_do_timer+0x50/0x50=
 
+>>>> [  394.476364]  [<ffffffff810eb599>] update_process_times+0x39/0x60
+>>>> [  394.476365]  [<ffffffff810fa815>] tick_sched_handle.isra.17+0x25/=
+0x60
+>>>> [  394.476366]  [<ffffffff810faa9d>] tick_sched_timer+0x3d/0x70
+>>>> [  394.476368]  [<ffffffff810ec182>] __hrtimer_run_queues+0x102/0x29=
+0
+>>>> [  394.476369]  [<ffffffff810ec668>] hrtimer_interrupt+0xa8/0x1a0
+>>>> [  394.476372]  [<ffffffff81052c65>] local_apic_timer_interrupt+0x35=
+/0x60
+>>>> [  394.476374]  [<ffffffff8172423d>] smp_apic_timer_interrupt+0x3d/0=
+x50
+>>>> [  394.476376]  [<ffffffff817224f7>] apic_timer_interrupt+0x87/0x90
+>>>> [  394.476379]  <EOI>  [<ffffffff810d71be>] ? console_unlock+0x41e/0=
+x4e0
+>>>> [  394.476380]  [<ffffffff810d757c>] vprintk_emit+0x2fc/0x500
+>>>> [  394.476382]  [<ffffffff810d78ff>] vprintk_default+0x1f/0x30
+>>>> [  394.476384]  [<ffffffff81174dde>] printk+0x5d/0x74
+>>>> [  394.476388]  [<ffffffff814bce21>] transport_lookup_cmd_lun+0x1d1/=
+0x200
+>>>> [  394.476390]  [<ffffffff814ee8c0>] iscsit_setup_scsi_cmd+0x230/0x5=
+40
+>>>> [  394.476392]  [<ffffffffa058dbf3>] isert_rx_do_work+0x3f3/0x7f0 [i=
+b_isert]
+>>>> [  394.476394]  [<ffffffffa058e174>] isert_cq_work+0x184/0x770 [ib_i=
+sert]
+>>>> [  394.476396]  [<ffffffff8109740f>] process_one_work+0x14f/0x400
+>>>> [  394.476397]  [<ffffffff81097c84>] worker_thread+0x114/0x470
+>>>> [  394.476398]  [<ffffffff8171d32a>] ? __schedule+0x34a/0x7f0
+>>>> [  394.476399]  [<ffffffff81097b70>] ? rescuer_thread+0x310/0x310
+>>>> [  394.476400]  [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>> [  394.476402]  [<ffffffff8109d6f0>] ? kthread_park+0x60/0x60
+>>>> [  394.476403]  [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>> [  394.476404]  [<ffffffff8109d6f0>] ? kthread_park+0x60/0x60
+>>>> [  405.716632] Unexpected ret: -104 send data 360
+>>>> [  405.721711] tx_data returned -32, expecting 360.
+>>>> ----------------
+>>>> Robert LeBlanc
+>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+
+When you combine this trace with the newest one, it really makes me
+thing there is something of a bad interaction between the new drain cq
+API and the iser/isert implementation to use said API.  Sagi, Christoph?
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
 D
 
 
---H7FohQHCf7jdPWBSG8jRnPgltW7AdBj3M--
+--o4HN48kGU9qe9oohQsJ8r0C0mErVr6tjf--
 
---aTtiFRdFgwv7OfKKE7N9qnIdtbXXvnLEE
+--JNuHaxVoiQrA0fRPfcBC01PFUMi1MLFsc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -93,23 +282,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYXCYpAAoJELgmozMOVy/dxMEP+wW7HQOSoGCu0Df/D7GdJEh/
-TeFXahf4pCKj9xfFdsUoS6eVd1kiL46fnlMdYe1rJjPkIN+HO3Sj1hY0nrzc2H3b
-PFPCIPENKLYNZguoZk5HUi5eyajIpezTgncFCRAm40tFYoXpBTy0anJNoJuwPMIv
-LGfUHCqto1DFI8IthPbKX3IX5HB/La8/015f3MysTkE6mWOEfOQu2CS0ldUggy+O
-4KPo0o6HwP5oNsaMJ6mbUZC4349Nup7zUu1uAxlIBALiVLnyYnYP63o3FZcaMJIa
-K7qYI+G3tkTH6Yhobp13/y8Ae+g1kaC8l2Gx3/3ViYhDGOqoiLoSXWGhaCwZWNVZ
-fLd2A724ycBANbFiT1Yt8jk/Ys/UsgIoWFM7gkKrhC9sNpeRAnHkZG28/YzGYgJa
-bUjCs7WD4+pfDFziHkVIH/CipPrSzHVcJiyp6jrfNa0KxaqRkbnopdT9jg6108O6
-dDbbEXtU7hKZMQoPgBmFMjPVRBFrSKOmcAsYh5CHU1VQE0sarftITybruL0geEBO
-NZrVpnMUEIHrcdagI9PaB0i6LoF5k+PLxLV3O4/ZviP4wD6QMJ/3LYvI3W+srnTE
-X97ZlSrsJojAq0MdN6nmf/ZvwJKwXIPslE7OfVmXzLce6XsN8AmkSEZs8Tgh2RFQ
-sDQwkSg7RL6wYG6tZG9P
-=fH6a
+iQIcBAEBCAAGBQJYXCZfAAoJELgmozMOVy/d81EQAJlzw6IHrw81sccWvY00JjEr
+o8zD6zRhtnUsvMU6eS655DxKiFnSRylogqJa+7W5w85Tsh00nEtgMAJePNxDIE5i
+OB9WXyAKfUKyDae+/7RIznmpqpxazGnk50pzhq+i8BJIBuIZubEPMCQdMFht8qTO
+3OEDTdoPqYI4JmAIxdc0FupwMGMcxDfauJKS/pFlQdQTiN3tmrV5WXf6gospsFUH
+35dY+BUSass9+X6l0/yl47w1Nq71FU0T28H6fBXXr4J2kAbJC44DRSAF4AWX9YC6
+1a2bay+1IqAmCTvMqw713wh4AiRfsPuzuAuqsL87qQrNIRyZIvQcc3aFdoBvwtun
+S5VWoCcOPCqv4DtY8kr96+oPVUK7EKNZxNwYSrbUswgqFKTy6Ky/vT5xw3IYHFXe
+cvc5VbGW4gTQ3vbg/wTK2OkvwfIN7OH1VtlvAoInsnDCoq/4qFBwINm8gP72cVmh
+7OKw8o6KrHQvrSNOCtOY2LNAVRCTpQZGALmm+So/BPFwl3nF8qM7ts1dC/KwOYLh
+GzbCmWwCilNySoCAxGUGzJcIbOQe98UOIuAV6IqBKlg1/aew4lvcAO5FNGNya4i5
+pztKbL9bz30sEH3/K8Na5QYCnsOne1UftIOYQXSsx3N9mGvcsxcsfQfJnLb3p8n1
+XKQDnEk/91ohfVtwC22t
+=4BwZ
 -----END PGP SIGNATURE-----
 
---aTtiFRdFgwv7OfKKE7N9qnIdtbXXvnLEE--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--JNuHaxVoiQrA0fRPfcBC01PFUMi1MLFsc--
