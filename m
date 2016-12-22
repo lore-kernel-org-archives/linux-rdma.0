@@ -1,266 +1,110 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/3] iw_cxgb4: free EQ queue memory on last deref
-Date: Thu, 22 Dec 2016 07:40:36 -0800
-Message-ID: <f13303a9aea2c649c2951e405976c05857533037.1482442436.git.swise@opengridcomputing.com>
-References: <68eb584a0cf57442ca6b2be97f915ab03c9b4293.1482442436.git.swise@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/6] redhat/spec: various fixes and cleanups
+Date: Thu, 22 Dec 2016 16:38:32 -0500
+Message-ID: <088eee62-e6e0-c54d-af34-636b4383f716@redhat.com>
+References: <20161221220840.36268-1-jarod@redhat.com>
+ <20161221234014.GA13538@obsidianresearch.com>
+ <0d77c962-607b-1e05-4fbf-41195446128d@redhat.com>
+ <20161222173807.GA15461@obsidianresearch.com>
+ <e300b2ab-c963-d755-895d-29c8a6dbdc94@redhat.com>
+ <20161222202832.GA10732@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="Plq0OWSBqdg219bt8Qo0MMM4JPf5s9v1I"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <68eb584a0cf57442ca6b2be97f915ab03c9b4293.1482442436.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20161222202832.GA10732-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit ad61a4c7a9b7 ("iw_cxgb4: don't block in destroy_qp awaiting
-the last deref") introduced a bug where the RDMA QP EQ queue memory
-(and QIDs) are possibly freed before the underlying connection has been
-fully shutdown.  The result being a possible DMA read issued by HW after
-the queue memory has been unmapped and freed.  This results in possible
-WR corruption in the worst case, system bus errors if an IOMMU is in use,
-and SGE "bad WR" errors reported in the very least.  The fix is to defer
-unmap/free of queue memory and QID resources until the QP struct has
-been fully dereferenced.  To do this, the c4iw_ucontext must also be kept
-around until the last QP that references it is fully freed.  In addition,
-since the last QP deref can happen in an IRQ disabled context, we need
-a new workqueue thread to do the final unmap/free of the EQ queue memory.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Plq0OWSBqdg219bt8Qo0MMM4JPf5s9v1I
+Content-Type: multipart/mixed; boundary="UBsONv3AM2atamfLHdrss7MVdEbkc5B9K";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <088eee62-e6e0-c54d-af34-636b4383f716-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/6] redhat/spec: various fixes and cleanups
+References: <20161221220840.36268-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161221234014.GA13538-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <0d77c962-607b-1e05-4fbf-41195446128d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161222173807.GA15461-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <e300b2ab-c963-d755-895d-29c8a6dbdc94-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20161222202832.GA10732-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161222202832.GA10732-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Fixes: ad61a4c7a9b7 ("iw_cxgb4: don't block in destroy_qp awaiting the last deref")
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/device.c   |  9 +++++++++
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 18 +++++++++++++++++
- drivers/infiniband/hw/cxgb4/provider.c | 20 +++++++++++++++----
- drivers/infiniband/hw/cxgb4/qp.c       | 35 +++++++++++++++++++++++++---------
- 4 files changed, 69 insertions(+), 13 deletions(-)
+--UBsONv3AM2atamfLHdrss7MVdEbkc5B9K
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 93e3d27..4f9fd1a 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -846,9 +846,17 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
- 		}
- 	}
- 
-+	rdev->free_workq = create_singlethread_workqueue("iw_cxgb4_free");
-+	if (!rdev->free_workq) {
-+		err = -ENOMEM;
-+		goto err_free_status_page;
-+	}
-+
- 	rdev->status_page->db_off = 0;
- 
- 	return 0;
-+err_free_status_page:
-+	free_page((unsigned long)rdev->status_page);
- destroy_ocqp_pool:
- 	c4iw_ocqp_pool_destroy(rdev);
- destroy_rqtpool:
-@@ -862,6 +870,7 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
- 
- static void c4iw_rdev_close(struct c4iw_rdev *rdev)
- {
-+	destroy_workqueue(rdev->free_workq);
- 	kfree(rdev->wr_log);
- 	free_page((unsigned long)rdev->status_page);
- 	c4iw_pblpool_destroy(rdev);
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 7b1e465..8cd4d05 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -45,6 +45,7 @@
- #include <linux/kref.h>
- #include <linux/timer.h>
- #include <linux/io.h>
-+#include <linux/workqueue.h>
- 
- #include <asm/byteorder.h>
- 
-@@ -107,6 +108,7 @@ struct c4iw_dev_ucontext {
- 	struct list_head qpids;
- 	struct list_head cqids;
- 	struct mutex lock;
-+	struct kref kref;
- };
- 
- enum c4iw_rdev_flags {
-@@ -183,6 +185,7 @@ struct c4iw_rdev {
- 	atomic_t wr_log_idx;
- 	struct wr_log_entry *wr_log;
- 	int wr_log_size;
-+	struct workqueue_struct *free_workq;
- };
- 
- static inline int c4iw_fatal_error(struct c4iw_rdev *rdev)
-@@ -480,6 +483,8 @@ struct c4iw_qp {
- 	wait_queue_head_t wait;
- 	struct timer_list timer;
- 	int sq_sig_all;
-+	struct work_struct free_work;
-+	struct c4iw_ucontext *ucontext;
- };
- 
- static inline struct c4iw_qp *to_c4iw_qp(struct ib_qp *ibqp)
-@@ -493,6 +498,7 @@ struct c4iw_ucontext {
- 	u32 key;
- 	spinlock_t mmap_lock;
- 	struct list_head mmaps;
-+	struct kref kref;
- };
- 
- static inline struct c4iw_ucontext *to_c4iw_ucontext(struct ib_ucontext *c)
-@@ -500,6 +506,18 @@ static inline struct c4iw_ucontext *to_c4iw_ucontext(struct ib_ucontext *c)
- 	return container_of(c, struct c4iw_ucontext, ibucontext);
- }
- 
-+void _c4iw_free_ucontext(struct kref *kref);
-+
-+static inline void c4iw_put_ucontext(struct c4iw_ucontext *ucontext)
-+{
-+	kref_put(&ucontext->kref, _c4iw_free_ucontext);
-+}
-+
-+static inline void c4iw_get_ucontext(struct c4iw_ucontext *ucontext)
-+{
-+	kref_get(&ucontext->kref);
-+}
-+
- struct c4iw_mm_entry {
- 	struct list_head entry;
- 	u64 addr;
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 7b24845..f785883 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -91,17 +91,28 @@ static int c4iw_process_mad(struct ib_device *ibdev, int mad_flags,
- 	return -ENOSYS;
- }
- 
--static int c4iw_dealloc_ucontext(struct ib_ucontext *context)
-+void _c4iw_free_ucontext(struct kref *kref)
- {
--	struct c4iw_dev *rhp = to_c4iw_dev(context->device);
--	struct c4iw_ucontext *ucontext = to_c4iw_ucontext(context);
-+	struct c4iw_ucontext *ucontext;
-+	struct c4iw_dev *rhp;
- 	struct c4iw_mm_entry *mm, *tmp;
- 
--	PDBG("%s context %p\n", __func__, context);
-+	ucontext = container_of(kref, struct c4iw_ucontext, kref);
-+	rhp = to_c4iw_dev(ucontext->ibucontext.device);
-+
-+	PDBG("%s ucontext %p\n", __func__, ucontext);
- 	list_for_each_entry_safe(mm, tmp, &ucontext->mmaps, entry)
- 		kfree(mm);
- 	c4iw_release_dev_ucontext(&rhp->rdev, &ucontext->uctx);
- 	kfree(ucontext);
-+}
-+
-+static int c4iw_dealloc_ucontext(struct ib_ucontext *context)
-+{
-+	struct c4iw_ucontext *ucontext = to_c4iw_ucontext(context);
-+
-+	PDBG("%s context %p\n", __func__, context);
-+	c4iw_put_ucontext(ucontext);
- 	return 0;
- }
- 
-@@ -125,6 +136,7 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
- 	c4iw_init_dev_ucontext(&rhp->rdev, &context->uctx);
- 	INIT_LIST_HEAD(&context->mmaps);
- 	spin_lock_init(&context->mmap_lock);
-+	kref_init(&context->kref);
- 
- 	if (udata->outlen < sizeof(uresp) - sizeof(uresp.reserved)) {
- 		if (!warned++)
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 31ab451..04c1c38 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -715,13 +715,32 @@ static int build_inv_stag(union t4_wr *wqe, struct ib_send_wr *wr, u8 *len16)
- 	return 0;
- }
- 
--static void _free_qp(struct kref *kref)
-+static void free_qp_work(struct work_struct *work)
-+{
-+	struct c4iw_ucontext *ucontext;
-+	struct c4iw_qp *qhp;
-+	struct c4iw_dev *rhp;
-+
-+	qhp = container_of(work, struct c4iw_qp, free_work);
-+	ucontext = qhp->ucontext;
-+	rhp = qhp->rhp;
-+
-+	PDBG("%s qhp %p ucontext %p\n", __func__, qhp, ucontext);
-+	destroy_qp(&rhp->rdev, &qhp->wq,
-+		   ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
-+
-+	if (ucontext)
-+		c4iw_put_ucontext(ucontext);
-+	kfree(qhp);
-+}
-+
-+static void queue_qp_free(struct kref *kref)
- {
- 	struct c4iw_qp *qhp;
- 
- 	qhp = container_of(kref, struct c4iw_qp, kref);
- 	PDBG("%s qhp %p\n", __func__, qhp);
--	kfree(qhp);
-+	queue_work(qhp->rhp->rdev.free_workq, &qhp->free_work);
- }
- 
- void c4iw_qp_add_ref(struct ib_qp *qp)
-@@ -733,7 +752,7 @@ void c4iw_qp_add_ref(struct ib_qp *qp)
- void c4iw_qp_rem_ref(struct ib_qp *qp)
- {
- 	PDBG("%s ib_qp %p\n", __func__, qp);
--	kref_put(&to_c4iw_qp(qp)->kref, _free_qp);
-+	kref_put(&to_c4iw_qp(qp)->kref, queue_qp_free);
- }
- 
- static void add_to_fc_list(struct list_head *head, struct list_head *entry)
-@@ -1706,7 +1725,6 @@ int c4iw_destroy_qp(struct ib_qp *ib_qp)
- 	struct c4iw_dev *rhp;
- 	struct c4iw_qp *qhp;
- 	struct c4iw_qp_attributes attrs;
--	struct c4iw_ucontext *ucontext;
- 
- 	qhp = to_c4iw_qp(ib_qp);
- 	rhp = qhp->rhp;
-@@ -1726,11 +1744,6 @@ int c4iw_destroy_qp(struct ib_qp *ib_qp)
- 	spin_unlock_irq(&rhp->lock);
- 	free_ird(rhp, qhp->attr.max_ird);
- 
--	ucontext = ib_qp->uobject ?
--		   to_c4iw_ucontext(ib_qp->uobject->context) : NULL;
--	destroy_qp(&rhp->rdev, &qhp->wq,
--		   ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
--
- 	c4iw_qp_rem_ref(ib_qp);
- 
- 	PDBG("%s ib_qp %p qpid 0x%0x\n", __func__, ib_qp, qhp->wq.sq.qid);
-@@ -1829,6 +1842,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	mutex_init(&qhp->mutex);
- 	init_waitqueue_head(&qhp->wait);
- 	kref_init(&qhp->kref);
-+	INIT_WORK(&qhp->free_work, free_qp_work);
- 
- 	ret = insert_handle(rhp, &rhp->qpidr, qhp, qhp->wq.sq.qid);
- 	if (ret)
-@@ -1915,6 +1929,9 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 			ma_sync_key_mm->len = PAGE_SIZE;
- 			insert_mmap(ucontext, ma_sync_key_mm);
- 		}
-+
-+		c4iw_get_ucontext(ucontext);
-+		qhp->ucontext = ucontext;
- 	}
- 	qhp->ibqp.qp_num = qhp->wq.sq.qid;
- 	init_timer(&(qhp->timer));
--- 
-2.7.0
+On 12/22/2016 3:28 PM, Jason Gunthorpe wrote:
+> On Thu, Dec 22, 2016 at 01:17:52PM -0500, Doug Ledford wrote:
+>> On 12/22/2016 12:38 PM, Jason Gunthorpe wrote:
+>>> On Thu, Dec 22, 2016 at 02:32:07AM -0500, Jarod Wilson wrote:
+>>
+>>> Yes.. Somehow libfabric is doing this:
+>>>
+>>> https://github.com/ofiwg/libfabric/releases
+>>>
+>>> It looks like they produced the .tar.gz by hand and then uploaded it
+>>> again as an attached release file?
+>>>
+>>> Should we do this too, Doug?
+>>
+>> I was going to try changing the tag format on the next tag to get the
+>> desired result.  So, instead of v12-rc4 or v12, rdma-core-12-rc4 or ju=
+st
+>> rdma-core-12.
+>=20
+> I don't know enough about github to comment..
+>=20
+> The advantage of the libfabric approach is that the tar.gz is produced
+> once and never changed so we can provide the SHA2, while I'm not
+> certain the github .tar.gz link is bit-for-bit content-stable?
 
+Yeah, but the SHA hash of the git repo is, for all intents and purposes,
+just as valid as a SHA for the tarball.  It's just verified in a
+different way.  I can certainly see the benefit of the libfabric
+approach for keeping the status quo happy though.
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--UBsONv3AM2atamfLHdrss7MVdEbkc5B9K--
+
+--Plq0OWSBqdg219bt8Qo0MMM4JPf5s9v1I
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJYXEfYAAoJELgmozMOVy/d+6kQAIQWENssEoCg7MBsnRKY2Xu9
+kMBdE1feJ/bZ0o5DjHoE97i72LAZUOaRDHk4REu9xyETJH7uYwshL2Pz9AZioHah
+QGCxj4fOAsr5+0RZF84j6JkHau35bzvl+DI5jktFPqIxsfv8717/erlA5IaRQYpI
+73hm+QwUZ3BUa+Dq4et8GkHm+P5ja14m3F/dsf5giwmK7Hq9m5tasVrXI79+130w
+3/yG5XMI0KpPLjI4MU2EsIamoGNbpozd63+4fnLAzvgBLJ/WlXfQJ9RTcGdQmhJz
+RJ5RxQ0SrQCjM+j70Dj0Te6fFval64HN4QWf4LY2ee85r0Zir2c4NnGyepG10pgz
+DsSgy/Ol4Mv4O1g/kHNeKL6rFnHymzd76+NF0mmDe1ZLpr2F1NnTopZfbNLRA9s/
+mIKgUZR+vo72lnEsReiH1ID1VIx9dnfA/O6X29A8XtnmQjfDr4Tl5zJ5d1xuUC3X
+4Ve0yydz9dAqxvUEzcdL7051fPI0GIBIgdDNBc0awEKj1YQFhie0iivzeoxqf1s+
+GYJcMD4/IdOX8bw6JM0WtwYHjBaFBEhhjUEgOBaZx1Ya28LedIyZvdDaFs6undqu
+QmCpsfjOVGtB0qYHFm0H6Fj8J95TBYV+4m9b+7sMzMRZWD3vKqywIR0Y4s5r3bGp
+NuFokNQJCdi9bepwe79y
+=NioP
+-----END PGP SIGNATURE-----
+
+--Plq0OWSBqdg219bt8Qo0MMM4JPf5s9v1I--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
