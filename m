@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 6/8] qedr: post_send/recv according to QP state
-Date: Thu, 22 Dec 2016 14:40:38 +0200
-Message-ID: <1482410440-2297-7-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 2/8] qedr: return error if destroy CQ failed
+Date: Thu, 22 Dec 2016 14:40:34 +0200
+Message-ID: <1482410440-2297-3-git-send-email-Ram.Amrani@cavium.com>
 References: <1482410440-2297-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,41 +12,31 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enable posting to SQ only in RTS, ERR and SQD QP state.
-Enable posting to RQ in ERR QP state.
-
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qedr/verbs.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 16bbdfe..18341ed 100644
+index 3762ba1..068dfa6 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -2983,8 +2983,9 @@ int qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+@@ -983,8 +983,13 @@ int qedr_destroy_cq(struct ib_cq *ibcq)
  
- 	spin_lock_irqsave(&qp->q_lock, flags);
+ 	/* GSIs CQs are handled by driver, so they don't exist in the FW */
+ 	if (cq->cq_type != QEDR_CQ_TYPE_GSI) {
++		int rc;
++
+ 		iparams.icid = cq->icid;
+-		dev->ops->rdma_destroy_cq(dev->rdma_ctx, &iparams, &oparams);
++		rc = dev->ops->rdma_destroy_cq(dev->rdma_ctx, &iparams,
++					       &oparams);
++		if (rc)
++			return rc;
+ 		dev->ops->common->chain_free(dev->cdev, &cq->pbl);
+ 	}
  
--	if ((qp->state == QED_ROCE_QP_STATE_RESET) ||
--	    (qp->state == QED_ROCE_QP_STATE_ERR)) {
-+	if ((qp->state != QED_ROCE_QP_STATE_RTS) &&
-+	    (qp->state != QED_ROCE_QP_STATE_ERR) &&
-+	    (qp->state != QED_ROCE_QP_STATE_SQD)) {
- 		spin_unlock_irqrestore(&qp->q_lock, flags);
- 		*bad_wr = wr;
- 		DP_DEBUG(dev, QEDR_MSG_CQ,
-@@ -3042,8 +3043,7 @@ int qedr_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 
- 	spin_lock_irqsave(&qp->q_lock, flags);
- 
--	if ((qp->state == QED_ROCE_QP_STATE_RESET) ||
--	    (qp->state == QED_ROCE_QP_STATE_ERR)) {
-+	if (qp->state == QED_ROCE_QP_STATE_RESET) {
- 		spin_unlock_irqrestore(&qp->q_lock, flags);
- 		*bad_wr = wr;
- 		return -EINVAL;
 -- 
 1.8.3.1
 
