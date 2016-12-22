@@ -1,96 +1,105 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] IB/rxe: Three small fixes
-Date: Thu, 22 Dec 2016 16:39:52 -0500
-Message-ID: <e67c2087-6e92-9618-a1ca-225f49176577@redhat.com>
-References: <1482414878-6892-1-git-send-email-andrew.boyer@dell.com>
- <9f5e0225-c53e-43e7-13b5-ae715f74b198@redhat.com>
- <20161222171833.GD18935@mtr-leonro.local>
- <c8463d5a-f2ac-7474-93dd-42a2e263834d@redhat.com>
- <20161222190555.GE18935@mtr-leonro.local>
- <2a4a2187-1ac8-e341-4ed9-257384ff2199@redhat.com>
- <20161222202316.GA14178@mtr-leonro.local>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 22 Dec 2016 16:40:22 -0500
+Message-ID: <19b0b1bd-8760-2c71-6932-b2834db9687b@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="4NNqEp7HTvSEQBjhXBuX4QcW8APxU46VT"
+ boundary="IoF7jlfi8UvxOtoNFKfBaX8ogF0uCWjj1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161222202316.GA14178-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4NNqEp7HTvSEQBjhXBuX4QcW8APxU46VT
-Content-Type: multipart/mixed; boundary="9CpO48S707o0jSPHhAH3IbGieusdppLjB";
+--IoF7jlfi8UvxOtoNFKfBaX8ogF0uCWjj1
+Content-Type: multipart/mixed; boundary="K85kiDm9P6d9pRBUkFGb34fRe1kvBflKx";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
- yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <e67c2087-6e92-9618-a1ca-225f49176577-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] IB/rxe: Three small fixes
-References: <1482414878-6892-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
- <9f5e0225-c53e-43e7-13b5-ae715f74b198-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161222171833.GD18935-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <c8463d5a-f2ac-7474-93dd-42a2e263834d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161222190555.GE18935-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <2a4a2187-1ac8-e341-4ed9-257384ff2199-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20161222202316.GA14178-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-In-Reply-To: <20161222202316.GA14178-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
+ linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <19b0b1bd-8760-2c71-6932-b2834db9687b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
 
---9CpO48S707o0jSPHhAH3IbGieusdppLjB
-Content-Type: text/plain; charset=windows-1252
+--K85kiDm9P6d9pRBUkFGb34fRe1kvBflKx
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/22/2016 3:23 PM, Leon Romanovsky wrote:
-> On Thu, Dec 22, 2016 at 02:19:50PM -0500, Doug Ledford wrote:
->> On 12/22/2016 2:05 PM, Leon Romanovsky wrote:
->>> On Thu, Dec 22, 2016 at 01:33:43PM -0500, Doug Ledford wrote:
->>>> On 12/22/2016 12:18 PM, Leon Romanovsky wrote:
->>>>> On Thu, Dec 22, 2016 at 11:41:24AM -0500, Doug Ledford wrote:
->>>>>> On 12/22/2016 8:54 AM, Andrew Boyer wrote:
->>>>>>> This patch series addresses two issues found during heavy traffic=
+Hi Linus,
 
->>>>>>> testing as well as a recently-reported Smatch issue.
->>>>>>>
->>>>>>> Andrew Boyer (3):
->>>>>>>   IB/rxe: Use BTH_PSN_MASK when ACKing duplicate sends
->>>>>>>   IB/rxe: Drop future atomic/read packets rather than retrying
->>>>>>>   IB/rxe: Don't check for null ptr in send()
->>>>>>>
->>>>>>>  drivers/infiniband/sw/rxe/rxe_comp.c | 2 +-
->>>>>>>  drivers/infiniband/sw/rxe/rxe_net.c  | 3 +--
->>>>>>>  drivers/infiniband/sw/rxe/rxe_resp.c | 3 ++-
->>>>>>>  3 files changed, 4 insertions(+), 4 deletions(-)
->>>>>>>
->>>>>>
->>>>>> Thanks, series applied.
->>>>>
->>>>> Hi Doug,
->>>>>
->>>>> Thank you for such fast response, but can you please give enough ti=
-me to
->>>>> other reviewers/relevant maintainers to take a look on them before
->>>>> applying?
->>>>
->>>> If the patches look like they need review, I wait for review.  These=
- did
->>>> not meet that criteria IMO.
->>>
->>> Two of three are trivial, and another one is worth to take an extra t=
-ime
->>> to review.
->>
->> Which one did you think was not trivial?
->=20
-> Personaly for me, it was second patch from the series.
+This is the first 4.10 rc cycle pull request.  There are a smattering of
+fixes I have queued up so far.  This can be pulled now or wait until
+after the New Year, I just wanted to get this off my plate so I could
+enjoy my down time next week ;-)
 
-That patch was found by experience.  Even if it isn't totally correct,
-it improved the specific situation.  I'm fine taking that patch and if
-the maintainer of rxe thinks there is a better way, I'm open to follow
-on patches.
+Here's the boilerplate:
 
+The following changes since commit 6f94ba20799b98c8badf047b184fb4cd7bc45e=
+44:
+
+  Merge branch 'vmw_pvrdma' into merge-test (2016-12-14 14:56:21 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
+
+for you to fetch changes up to 5cc8fabc5e4c588c75a5ec21423e7c3425f69f48:
+
+  IB/rxe: Don't check for null ptr in send() (2016-12-22 11:36:12 -0500)
+
+----------------------------------------------------------------
+First round of -rc fixes for 4.10 kernel
+
+- Series of qedr fixes
+- Series of rxe fixes
+- One isolated i40iw fix
+- One isolated cma fix
+- One isolated cxgb4 fix
+
+----------------------------------------------------------------
+Amrani, Ram (8):
+      qedr: configure the number of CQEs on CQ creation
+      qedr: return error if destroy CQ failed
+      qedr: return correct value on modify qp
+      qedr: modify QP state to error when destroying it
+      qedr: ignore inline flag in read verbs
+      qedr: post_send/recv according to QP state
+      qedr: clear the vendor error field in the work completion
+      qedr: Always notify the verb consumer of flushed CQEs
+
+Andrew Boyer (3):
+      IB/rxe: Use BTH_PSN_MASK when ACKing duplicate sends
+      IB/rxe: Drop future atomic/read packets rather than retrying
+      IB/rxe: Don't check for null ptr in send()
+
+Bart Van Assche (2):
+      IB/rxe: Fix a memory leak in rxe_qp_cleanup()
+      IB/cma: Fix a race condition in iboe_addr_get_sgid()
+
+Chien Tin Tung (1):
+      i40iw: Set 128B as the only supported RQ WQE size
+
+Steve Wise (1):
+      iw_cxgb4: set correct FetchBurstMax for QPs
+
+ drivers/infiniband/hw/cxgb4/qp.c             |  5 ++--
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 25 ++++++++++++++++----
+ drivers/infiniband/hw/i40iw/i40iw_puda.c     |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_type.h     |  4 +++-
+ drivers/infiniband/hw/i40iw/i40iw_ucontext.h |  4 ++--
+ drivers/infiniband/hw/i40iw/i40iw_uk.c       | 17 ++++++++++----
+ drivers/infiniband/hw/i40iw/i40iw_user.h     |  4 +++-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 21 +++++++++--------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h    |  1 +
+ drivers/infiniband/hw/qedr/verbs.c           | 35
+++++++++++++++++++++--------
+ drivers/infiniband/sw/rxe/rxe_comp.c         |  2 +-
+ drivers/infiniband/sw/rxe/rxe_net.c          |  3 +--
+ drivers/infiniband/sw/rxe/rxe_qp.c           |  1 +
+ drivers/infiniband/sw/rxe/rxe_resp.c         |  3 ++-
+ include/rdma/ib_addr.h                       |  6 +++--
+ 15 files changed, 90 insertions(+), 43 deletions(-)
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -99,9 +108,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---9CpO48S707o0jSPHhAH3IbGieusdppLjB--
+--K85kiDm9P6d9pRBUkFGb34fRe1kvBflKx--
 
---4NNqEp7HTvSEQBjhXBuX4QcW8APxU46VT
+--IoF7jlfi8UvxOtoNFKfBaX8ogF0uCWjj1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -110,22 +119,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYXEgoAAoJELgmozMOVy/d4xoQAKN4p3Ep8ZYNd/z5fQLTsnl8
-7t592MM+PkCvf+EQSe5Ast9xbZ5cSe94VFFYZzAT5aC8LemZ6eaQdXMIRVtUDuHi
-WiKInO8lvv5CVwSuPO2CiKxkEkXQl5QUPmX1QVE1nL1lXbiIX7mElxWWbXHSLOxw
-8j/xyxfQ2ifWqwF3XqXaHta2L9yUNeWVVLQMWkBxOwiITuApWR2MHO8KQ82ICLwG
-zTdsXjcIaEpifle8SJ/42MmDUJxOW4IYfbw8+/vGGPHpsBVe7M/1TVQjposOA6wF
-nnbV+d2dfEB19mL1Z9DJzF6bgqwQfJpzAAOhvAxhaNKVdnSIOi2p5kT7cn7G/Ay3
-YFG3UJqKGMH14hJgkceGRqW8+OjLrtoc2ExGRLFl8K38FHw5kTrzB5JVljOLvmbj
-dTQbbMFWmPyt1MOEQXUH440n7BRwP6xuQmky/Y88szgy4l5hWKC769hNhfthEI9k
-dWnNiWTkY727SYkC6198OO0CLa1UxVq2PfdPZ9IqVNoejoCzMep6OfbH8VMde4Kq
-aytb/r894cqL0aLF1knrK0kQHmeh09itEjTQU1HPxMzR/GVctpksLI3pqW4W2xhO
-qxhj/Tsp8JtdPsQtW5gdkPtFG0uorp9JP5FazjERABGZiJrWUR/il/f3WXhUHGT3
-yN88iJ5HZwwyV0WFKq0j
-=UbfI
+iQIcBAEBCAAGBQJYXEhGAAoJELgmozMOVy/dxxQP/16cT+e594bDTBKE8xyWuxnt
+cIoz2o5mbTpGgKE8ZXWduwTfs0p3ZJdjMOjo3zdAsXEueld2HRbBGYBAL9YfGtcl
+C0d9Lak3cPGqSDcCnfmZ7YTPXFipc5U7XFEPJV7b38X3fxICVYlzJw99gPdYyYa3
+JKsdG30urInDYKlKY8FOPYMzzLpOofQgZ47ETwpB6khhMA46rXFJuaEWZqmPw/lX
+1KvX+Unq9UB5x79cFjU6vCQB/at1y3q4AvI9xGcVLZzae2AT6HWEO9NsjlHdXAz8
+TExYcLbc6DZQQRXaMFXAGzC88KT7A/nLLevXRIMO1XttGu+CgLSFEc3QtgZ0nFGE
+gesz/WNuFehXHgvRjm3InoWhjxJGTwrlLlLr/+M/Fia0oqbwLUd1S34eq7d8m3es
+j2oRgJUXFA5U3gPg4OraNbry4uGwjBP7aIAYQi0vfxxYY5sGV38aAwlZNhvcQv4b
+3ZR97RblTKPu1JYut75hHsp+iSelWR5UNEk+3ib266IZV8OuETjeG2ByWC00pBsY
+PhjTWbwc/iYci/N3w6M81Z7TVUBzjGNiB+KRHU+DzIHX754HunUgFooY8XohBN8I
+nkT34uTrM2F+C2/BKw2f0vHugS/pjYS6HdqbzOyTH7N0sQWTdzVtGKSHxZ/EMprf
+tq93bEn7PmCOFe7pjOSH
+=qJ5T
 -----END PGP SIGNATURE-----
 
---4NNqEp7HTvSEQBjhXBuX4QcW8APxU46VT--
+--IoF7jlfi8UvxOtoNFKfBaX8ogF0uCWjj1--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
