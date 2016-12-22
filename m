@@ -1,55 +1,49 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
-Date: Thu, 22 Dec 2016 11:40:08 -0500
-Message-ID: <803b4ba0-09af-24d9-790c-7e496b1a65c9@redhat.com>
-References: <75d773f7-d8f2-a77d-6c7a-4991d71f0c9f@acm.org>
+Subject: Re: [PATCH V2] i40iw: Set 128B as the only supported RQ WQE size
+Date: Thu, 22 Dec 2016 11:40:38 -0500
+Message-ID: <0737c69e-df80-5375-885a-726a788058eb@redhat.com>
+References: <20161221145346.11116-1-henry.orosco@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="8blmUfxW17ILxrNG5caietH3cSwwSOK2U"
+ boundary="GN56xKWix6U1mrtODOvaa5Q3cm25ORhlc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <75d773f7-d8f2-a77d-6c7a-4991d71f0c9f-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <20161221145346.11116-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---8blmUfxW17ILxrNG5caietH3cSwwSOK2U
-Content-Type: multipart/mixed; boundary="TarxWjUAFRItdIm974MnsQp7Egspqll32";
+--GN56xKWix6U1mrtODOvaa5Q3cm25ORhlc
+Content-Type: multipart/mixed; boundary="eAijWsR5gnMSjkfiGMbvbi4kRsoFHrHLh";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
- Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <803b4ba0-09af-24d9-790c-7e496b1a65c9-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix a race condition in iboe_addr_get_sgid()
-References: <75d773f7-d8f2-a77d-6c7a-4991d71f0c9f-HInyCGIudOg@public.gmane.org>
-In-Reply-To: <75d773f7-d8f2-a77d-6c7a-4991d71f0c9f-HInyCGIudOg@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+ Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <0737c69e-df80-5375-885a-726a788058eb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2] i40iw: Set 128B as the only supported RQ WQE size
+References: <20161221145346.11116-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20161221145346.11116-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---TarxWjUAFRItdIm974MnsQp7Egspqll32
-Content-Type: text/plain; charset=utf-8
+--eAijWsR5gnMSjkfiGMbvbi4kRsoFHrHLh
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/19/2016 12:00 PM, Bart Van Assche wrote:
-> From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+On 12/21/2016 9:53 AM, Henry Orosco wrote:
+> From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> Code that dereferences the struct net_device ip_ptr member must be
-> protected with an in_dev_get() / in_dev_put() pair. Hence insert
-> calls to these functions.
+> RQ WQE size other than 128B is not supported.  Correct
+> RQ size calculation to use 128B only.
 >=20
-> Fixes: commit 7b85627b9f02 ("IB/cma: IBoE (RoCE) IP-based GID addressin=
-g")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Since this breaks ABI, add additional code to
+> provide compatibility with v4 user provider, libi40iw.
+>=20
+> Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Thanks, applied.
-
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -58,9 +52,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---TarxWjUAFRItdIm974MnsQp7Egspqll32--
+--eAijWsR5gnMSjkfiGMbvbi4kRsoFHrHLh--
 
---8blmUfxW17ILxrNG5caietH3cSwwSOK2U
+--GN56xKWix6U1mrtODOvaa5Q3cm25ORhlc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -69,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYXAHoAAoJELgmozMOVy/dtzMP/1ZUMhNX33lJN7DwV+7ZPklj
-7325xxzjl0Rf/eRPTH0FXM5TBWvHINanZEmSCNGqcNeQKbMxsp88bsDvVmLck31Z
-BAqbFUizV2XF9ceUbJKjQofwxqZEGd5jOkcINsWODYK6aRHUACjTenNWa//tISTU
-SulAEOpkQLBquzPiKbDQQu4ZF5qlSyG/FHK3AqymlEz3QF7OwQcwnwIEdaDKzU1c
-E+eBR6pJACsIT499zZu0NhBm84+AmBngB67HVkFaXDfBmeTMZC1CXYrbqaBVNyWE
-j64gAhccFPa9TqGx33y/KgV8NVf2ITNo9zqyrxCR/I+9ft+G6bMUFRteg/1dnfl2
-5kmyXgggMaXNUqY6bPIRpP0MW8jXC6/JzYUg511/NGAAzHTbQgcMAbe22sXxfBAl
-i3cWysuqbFZfyGwQ4KHrWvHEBouJ/pBRnfcNHADcHARdqMLAPl1X0cCCoOxiZCjN
-iyc1/dDPfc1GW0VsmjI4MWAL4Amq/kzbyoYGJZ6zQR/r8r+gr8QvS9g8dJOZFes0
-jaDni/XFC9nl+SuS1I46Mnwx9oafMXGnyv4M0zCGVzqX+l0FBqKgcTXsNt1c4f+3
-Aa17/0mBi0XLD27zSaDlvzGvMPiAca9eEiEf7HYvgNh15ACywbP0LgXp4prdGUxe
-Z1Y7a/Hr6m3vTDOI/fVh
-=ji5j
+iQIcBAEBCAAGBQJYXAIGAAoJELgmozMOVy/d0DYP/1EmQB3j2cJzobWgfZ/2+htm
+mLKlFKA+BH/7I0eBfGoV9Ex1EmuF2s9G1/1f8MmAu42LMXTTRaAe+HAyk/pSnCmT
+KYHAaXJ7A3DFecGGwU9C/3FytckGb2JkBOLPMojwFZkAPoA5F/rPqetzGVtB1L1G
+QZzOyS0X6nl3+dXi/I9aQx5I1lKh/du2zJEr7t/Dvwl3ViSBCSE4K2UOsO4fkDPx
+e0CCkUN6Pm3FiONMqRr1MjmUscEbMTgm7fCsSoauwwheDcNpKw0NbJgrX1zuj24t
+a8Zxlw5wuW6Si1J+aXS2o2i+BC/ykNavfcu1s8pwopr5SZLMtAj5IOrREwZiaPkO
+w5KZ/BHSEY0XBmF8KuQv7vr+Fp/X8Eh1alAMK6UCse4Ww4RpS385gbEEJS9zAwHE
+VPfm5yZZHihxRLphlraMONSZkFRXirz7vPk5HA7oFgFup4zEb0wfAZVLFrBsmB08
+OGDHWSLRatW63iOznN4yCW3LEIXcC+B9TUPATddQDQiOMBrZ5nP6kZHuCFW9gqcn
+DFVhoYC8uIPxyex26geI6z0wPoE1NhJbmurQmuCAJxGpXD52XlRdUus4WmpP8yJ0
+PmllmNOVkFZ2D4sQzJ+BbFb2th2imRBt0EBzRx8oeVokHwAniVc8H3R/mJtexvj3
+mi3+Zx7CRA6KtgP2KtBd
+=qbbi
 -----END PGP SIGNATURE-----
 
---8blmUfxW17ILxrNG5caietH3cSwwSOK2U--
+--GN56xKWix6U1mrtODOvaa5Q3cm25ORhlc--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
