@@ -1,134 +1,59 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core v2] redhat/spec: further cleanups to depdendencies, descriptions, formatting
-Date: Thu, 22 Dec 2016 13:14:04 -0500
-Message-ID: <20161222181404.57469-1-jarod@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] redhat/spec: further cleanups to
+ depdendencies, descriptions, formatting
+Date: Thu, 22 Dec 2016 11:13:23 -0700
+Message-ID: <20161222181323.GA5053@obsidianresearch.com>
 References: <20161222180220.49558-1-jarod@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20161222180220.49558-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-These are numerous additional little fixups for the Fedora/Red Hat spec
-file, stemming from Fedora package review.
+On Thu, Dec 22, 2016 at 01:02:20PM -0500, Jarod Wilson wrote:
+> These are numerous additional little fixups for the Fedora/Red Hat spec
+> file, stemming from Fedora package review.
+> 
+> - Per https://fedoraproject.org/wiki/Packaging:Systemd it seems we need to
+>   have systemd as a BuildRequires for %{_unitdir} to evaluate properly.
+> 
+> - Add explicit dependencies on kmod, initscripts and systemd, as there
+>   are container and vm cases where there might not be a kernel
+>   installed
 
-- Per https://fedoraproject.org/wiki/Packaging:Systemd it seems we need to
-  have systemd as a BuildRequires for %{_unitdir} to evaluate properly.
+Do we need initscripts?
 
-- Add explicit dependencies on kmod, initscripts and systemd, as there
-  are container and vm cases where there might not be a kernel installed
+> - Make sure srp_daemon.sh is executable
 
-- Add missing Requires to rdma-core-devel on each sub-package it provides
-  devel headers and libs for
+Oops, lets fix that commonly please, can you roll this in and drop the chmod:
 
-- Update summary of libibverbs to mention RoCE too
-
-- Add requirement on logrotate to srp_daemon
-
-- Make -DCMAKE_* spaces/tabs indentation consistent
-
-- Make sure srp_daemon.sh is executable
-
-- Fix librdmacm files list so librspreload.so.* is included as well
-
-Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
-v2: librspreload, not librsocket
-
- redhat/rdma-core.spec | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
-
-diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index 3bb16ed..360382c 100644
---- a/redhat/rdma-core.spec
-+++ b/redhat/rdma-core.spec
-@@ -19,8 +19,9 @@ BuildRequires: pkgconfig
- BuildRequires: pkgconfig(libnl-3.0)
- BuildRequires: pkgconfig(libnl-route-3.0)
- BuildRequires: valgrind-devel
-+BuildRequires: systemd
+diff --git a/srp_daemon/CMakeLists.txt b/srp_daemon/CMakeLists.txt
+index f2752a8e6e1580..acb851bcb8a438 100644
+--- a/srp_daemon/CMakeLists.txt
++++ b/srp_daemon/CMakeLists.txt
+@@ -22,7 +22,8 @@ rdma_install_symlink(srp_daemon "${CMAKE_INSTALL_SBINDIR}/ibsrpdm")
+ rdma_install_symlink(srp_daemon "${CMAKE_INSTALL_SBINDIR}/run_srp_daemon")
+ rdma_subst_install(FILES "srp_daemon.sh.in"
+   DESTINATION "${CMAKE_INSTALL_SBINDIR}"
+-  RENAME "srp_daemon.sh")
++  RENAME "srp_daemon.sh"
++  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
  
--Requires: dracut
-+Requires: dracut, kmod, initscripts, systemd
- # Red Hat/Fedora previously shipped redhat/ as a stand-alone
- # package called 'rdma', which we're supplanting here.
- Provides: rdma = %{version}-%{release}
-@@ -48,14 +49,20 @@ dracut rules, and the rdma-ndd utility.
- 
- %package devel
- Summary: RDMA core development libraries and headers
-+Requires: %{name}%{?_isa} = %{version}-%{release}
-+Requires: libibverbs = %{version}-%{release}
- Provides: libibverbs-devel = %{version}-%{release}
- Obsoletes: libibverbs-devel < %{version}-%{release}
-+Requires: libibcm = %{version}-%{release}
- Provides: libibcm-devel = %{version}-%{release}
- Obsoletes: libibcm-devel < %{version}-%{release}
-+Requires: libibumad = %{version}-%{release}
- Provides: libibumad-devel = %{version}-%{release}
- Obsoletes: libibumad-devel < %{version}-%{release}
-+Requires: librdmacm = %{version}-%{release}
- Provides: librdmacm-devel = %{version}-%{release}
- Obsoletes: librdmacm-devel < %{version}-%{release}
-+Requires: ibacm = %{version}-%{release}
- Provides: ibacm-devel = %{version}-%{release}
- Obsoletes: ibacm-devel < %{version}-%{release}
- 
-@@ -63,7 +70,7 @@ Obsoletes: ibacm-devel < %{version}-%{release}
- RDMA core development libraries and headers.
- 
- %package -n libibverbs
--Summary: A library and drivers for direct userspace use of RDMA (InfiniBand/iWARP) hardware
-+Summary: A library and drivers for direct userspace use of RDMA (InfiniBand/iWARP/RoCE) hardware
- Requires(post): /sbin/ldconfig
- Requires(postun): /sbin/ldconfig
- Requires: %{name}%{?_isa} = %{version}-%{release}
-@@ -188,6 +195,7 @@ Requires(post): systemd-units
- Requires(preun): systemd-units
- Requires(postun): systemd-units
- Requires: %{name}%{?_isa} = %{version}-%{release}
-+Requires: logrotate
- 
- %description -n srp_daemon
- In conjunction with the kernel ib_srp driver, srp_daemon allows you to
-@@ -217,11 +225,11 @@ discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
-          -DCMAKE_INSTALL_INFODIR:PATH=%{_infodir} \
-          -DCMAKE_INSTALL_MANDIR:PATH=%{_mandir} \
-          -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
--	 -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{_unitdir} \
--	 -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
--	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
--	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
--	 -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
-+         -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{_unitdir} \
-+         -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
-+         -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
-+         -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
-+         -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
- %make_jobs
- 
- %install
-@@ -263,6 +271,7 @@ install -D -m0644 redhat/ibacm.service %{buildroot}%{_unitdir}/
- 
- # srp_daemon
- install -D -m0644 redhat/srp_daemon.service %{buildroot}%{_unitdir}/
-+chmod a+x %{buildroot}%{_sbindir}/srp_daemon.sh
- 
- # Delete the package's init.d scripts
- rm -rf %{buildroot}/%{_initrddir}/
-@@ -389,7 +398,7 @@ rm -rf %{buildroot}/%{_initrddir}/
- %files -n librdmacm
- %{_libdir}/librdmacm*.so.*
- %dir %{_libdir}/rsocket
--%{_libdir}/rsocket/*.so
-+%{_libdir}/rsocket/librspreload.so*
- %doc %{_docdir}/%{name}-%{version}/librdmacm.md
- %{_mandir}/man7/rsocket.*
- 
--- 
-2.10.0
+ install(FILES logrotate-srp_daemon DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/logrotate.d" RENAME "srp_daemon")
+ install(FILES rsyslog-srp_daemon.conf DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/rsyslog.d" RENAME "srp_daemon.conf")
 
+>  Requires: %{name}%{?_isa} = %{version}-%{release}
+> +Requires: logrotate
+
+I don't think we use logrotate for anything unless the srp rsyslog
+examples are being used? Maybe it would be better to move the logrotate
+and rsyslog stuff to doc/examples or something?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
