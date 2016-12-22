@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/8] qedr: configure the number of CQEs on CQ creation
-Date: Thu, 22 Dec 2016 14:40:33 +0200
-Message-ID: <1482410440-2297-2-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 8/8] qedr: Always notify the verb consumer of flushed CQEs
+Date: Thu, 22 Dec 2016 14:40:40 +0200
+Message-ID: <1482410440-2297-9-git-send-email-Ram.Amrani@cavium.com>
 References: <1482410440-2297-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,25 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Configure ibcq->cqe when a CQ is created.
-
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/qedr/verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index a615142..3762ba1 100644
+index 2c4496f..db2e875 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -888,6 +888,8 @@ struct ib_cq *qedr_create_cq(struct ib_device *ibdev,
- 
- 		pbl_ptr = cq->q.pbl_tbl->pa;
- 		page_cnt = cq->q.pbl_info.num_pbes;
-+
-+		cq->ibcq.cqe = chain_entries;
- 	} else {
- 		cq->cq_type = QEDR_CQ_TYPE_KERNEL;
- 
-@@ -903,6 +905,7 @@ struct ib_cq *qedr_create_cq(struct ib_device *ibdev,
- 
- 		page_cnt = qed_chain_get_page_cnt(&cq->pbl);
- 		pbl_ptr = qed_chain_get_pbl_phys(&cq->pbl);
-+		cq->ibcq.cqe = cq->pbl.capacity;
- 	}
- 
- 	qedr_init_cq_params(cq, ctx, dev, vector, chain_entries, page_cnt,
+@@ -3237,7 +3237,7 @@ static int qedr_poll_cq_req(struct qedr_dev *dev,
+ 		       "Error: POLL CQ with RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR. CQ icid=0x%x, QP icid=0x%x\n",
+ 		       cq->icid, qp->icid);
+ 		cnt = process_req(dev, qp, cq, num_entries, wc, req->sq_cons,
+-				  IB_WC_WR_FLUSH_ERR, 0);
++				  IB_WC_WR_FLUSH_ERR, 1);
+ 		break;
+ 	default:
+ 		/* process all WQE before the cosumer */
 -- 
 1.8.3.1
 
