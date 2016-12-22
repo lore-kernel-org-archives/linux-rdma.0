@@ -1,28 +1,67 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Testing latest linux-next 4.9 ib_srp and ib_srpt
-Date: Wed, 21 Dec 2016 22:23:21 -0800
-Message-ID: <20161222062321.GA30326@infradead.org>
-References: <07c07529-4636-fafb-2598-7358d8a1460d@sandisk.com>
- <52e8398f-a146-721c-3b92-0892b4abbff8@intel.com>
- <1482166487.25336.10.camel@sandisk.com>
- <1918919536.8196250.1482262406057.JavaMail.zimbra@redhat.com>
- <2052479881.8196880.1482263028727.JavaMail.zimbra@redhat.com>
- <1668746735.8200653.1482266682585.JavaMail.zimbra@redhat.com>
- <120559766.8215321.1482291094018.JavaMail.zimbra@redhat.com>
- <1928955380.8220327.1482302041315.JavaMail.zimbra@redhat.com>
- <1337539588.8422488.1482372617094.JavaMail.zimbra@redhat.com>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 5/6] redhat/spec: clean up rsocket packaging
+Date: Thu, 22 Dec 2016 02:17:52 -0500
+Message-ID: <140dc3aa-6088-c4cf-5a8a-1a0426f55cd3@redhat.com>
+References: <20161221220840.36268-1-jarod@redhat.com>
+ <20161221220840.36268-6-jarod@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1337539588.8422488.1482372617094.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161221220840.36268-6-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I just got CC'ed to a massive chain of full quotes.  If you want an
-answer from me please write a readable mail, thanks.
+On 2016-12-21 5:08 PM, Jarod Wilson wrote:
+> Nothing owned libdir/rsocket, and librdmacm was laying down dangling
+> symlinks to librspreload.so, so just put it all in librdmacm.
+>
+> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  redhat/rdma-core.spec | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+> index 1f51720..96a67a4 100644
+> --- a/redhat/rdma-core.spec
+> +++ b/redhat/rdma-core.spec
+> @@ -336,13 +336,11 @@ rm -rf %{buildroot}/%{_initrddir}/
+>  %doc %{_docdir}/%{name}-%{version}/MAINTAINERS
+>  %{_includedir}/*
+>  %{_libdir}/lib*.so
+> -%{_libdir}/rsocket/*.so
+>  %{_mandir}/man3/ibv_*
+>  %{_mandir}/man3/rdma*
+>  %{_mandir}/man3/umad*
+>  %{_mandir}/man3/*_to_ibv_rate.*
+>  %{_mandir}/man7/rdma_cm.*
+> -%{_mandir}/man7/rsocket.*
+>
+>  %files -n libibverbs
+>  %dir %{_sysconfdir}/libibverbs.d
+> @@ -389,8 +387,10 @@ rm -rf %{buildroot}/%{_initrddir}/
+>
+>  %files -n librdmacm
+>  %{_libdir}/librdmacm*.so.*
+> -%{_libdir}/rsocket/*.so.*
+> +%dir %{_libdir}/rsocket
+> +%{_libdir}/rsocket/*.so
+
+Minor error here, should be rsocket/*.so* to pick up the symlinks too, 
+at least until they get neutered.
+
+>  %doc %{_docdir}/%{name}-%{version}/librdmacm.md
+> +%{_mandir}/man7/rsocket.*
+>
+>  %files -n librdmacm-utils
+>  %{_bindir}/cmtime
+>
+
+
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
