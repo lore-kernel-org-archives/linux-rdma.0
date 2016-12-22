@@ -1,59 +1,60 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] MAINTAINERS: fix cut-n-paste typo
-Date: Thu, 22 Dec 2016 11:50:44 -0500
-Message-ID: <1b0ef504-7dc6-2ee8-b8f9-072df7806eb0@redhat.com>
-References: <20161221220553.36122-1-jarod@redhat.com>
+Subject: Re: [PATCH rdma-core 0/6] redhat/spec: various fixes and cleanups
+Date: Thu, 22 Dec 2016 11:53:02 -0500
+Message-ID: <fe84ce7a-dd7f-1b63-ac84-5a0ed5f3bcea@redhat.com>
+References: <20161221220840.36268-1-jarod@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="4UkRDkr1HlFXSJKfcR3kpcotS62TmM3qc"
+ boundary="sBpc7KNMcbUcokMJRv7XkJwJogkQ4te2Q"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161221220553.36122-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161221220840.36268-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4UkRDkr1HlFXSJKfcR3kpcotS62TmM3qc
-Content-Type: multipart/mixed; boundary="eSCbtJuRs5968ODoajwBUSKRiqC5BNHUd";
+--sBpc7KNMcbUcokMJRv7XkJwJogkQ4te2Q
+Content-Type: multipart/mixed; boundary="rOw6prd0i3iV6Aj3G3dsclRdwAEwRfCn1";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1b0ef504-7dc6-2ee8-b8f9-072df7806eb0-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] MAINTAINERS: fix cut-n-paste typo
-References: <20161221220553.36122-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <20161221220553.36122-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Message-ID: <fe84ce7a-dd7f-1b63-ac84-5a0ed5f3bcea-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/6] redhat/spec: various fixes and cleanups
+References: <20161221220840.36268-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20161221220840.36268-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
---eSCbtJuRs5968ODoajwBUSKRiqC5BNHUd
+--rOw6prd0i3iV6Aj3G3dsclRdwAEwRfCn1
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/21/2016 5:05 PM, Jarod Wilson wrote:
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  MAINTAINERS | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On 12/21/2016 5:08 PM, Jarod Wilson wrote:
+> This is a set of patches to fix up a few things in the Red Hat (Fedora)=
+
+> rdma-core spec file that came up as part of the Fedora new package revi=
+ew
+> process, where we're working on getting rdma-core into Fedora in place =
+of
+> the old split packages.
 >=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index bc6eb50..04b6834 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8,7 +8,7 @@ Descriptions of section entries:
->          F: Files and directories with wildcard patterns.
->             A trailing slash includes all files and subdirectory files.=
-
->             F:   providers/mlx4/ all files in and below providers/mlx4/=
-
-> -           F:   providers/*     all files in drivers/net, but not belo=
-w
-> +           F:   providers/*     all files in providers, but not below
->             F:   */net/*         all files in "any top level directory"=
-/net
->             One pattern per line.  Multiple F: lines acceptable.
->          H: Historical authors
+> Fedora package review bug:
+>   https://bugzilla.redhat.com/show_bug.cgi?id=3D1404043
+>=20
+> Jarod Wilson (6):
+>   redhat/spec: call it srp_daemon in desc, not srptools
+>   redhat/spec: improve base package description
+>   redhat/spec: use fully versioned Requires on base package
+>   redhat/spec: fix up %post scriptlets
+>   redhat/spec: clean up rsocket packaging
+>   redhat/spec: make sure docdir is owned
+>=20
+>  redhat/rdma-core.spec | 65 +++++++++++++++++++++++++++++++++++++------=
+--------
+>  1 file changed, 47 insertions(+), 18 deletions(-)
 >=20
 
-Thanks, applied.
+Thanks, series applied and -rc3 generated, so future fixes will need to
+be incremental.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -62,9 +63,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---eSCbtJuRs5968ODoajwBUSKRiqC5BNHUd--
+--rOw6prd0i3iV6Aj3G3dsclRdwAEwRfCn1--
 
---4UkRDkr1HlFXSJKfcR3kpcotS62TmM3qc
+--sBpc7KNMcbUcokMJRv7XkJwJogkQ4te2Q
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,22 +74,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJYXARkAAoJELgmozMOVy/dLvMQAI6L6iydXNuSMWtXJvIufRaa
-Q9jXzPbcnVOBc2vmsNWztWRQ3pmcrjKOpyrpCK1GStwo26WHvzURdWDN/ofx8hOk
-3YRD/P6feaU87J9Ec9OnSLxOmmIaASPcHlxQkkTJ3CkiFETSrCYc/RoiQEVeVSaK
-A2ymMqUV0NXqFdk0YNU/aHSaIjEdnnSLhbXPvfgUaEXbefdsdNfACj3gvlvMRP5A
-kxEm4PUanMcxsFATb9F8qSlBP+Id3HrICn2Y2cELSCZesHUNO2DGvuAHJv/AG/P3
-FOuIKQ9gIoCYNPmAwWHv+pU9fWyMo774XzP3w5RHbJuykbwaM2c01UKcO97VX5Vf
-yk4X7UYAQwWaYfVcougGkZmOqCBGfSKE4ywV3cOKXBCrzldGMeUlyidMANS3cDYU
-c5OyNWCCRbk9VREc8xREGJJT2kbz+sJi19F5l314k7GXDIA9vPO81sh+42ybOahY
-BDy06ns1CzlmFjgRwtv8dV+bZBqLT7hH44lAlNcEqcwawJl3Qs3i+7Tvs1fgUJl/
-Gm0sAXLsHyQFTwIOOvPCMH01XgbarKCQj88XthMmuYEy0leRNYqB8w8IZ5Q2ZKBu
-tD1+57VbTyzlxxmON4nF0SM/jCoiluTflK1gWdA4+5ErIH+2/hnSy8xKRd8nthni
-jdoexqP5Iosabj3cJxlQ
-=SK1Z
+iQIcBAEBCAAGBQJYXATvAAoJELgmozMOVy/dpYEP/3CWbrjyxT50XcmQtpcREbwY
+TdAyIRuIC8DsCWbBxmyMeua5W5Z/z/2P8hIZfKmzv85ajgud1FWb67dtIvs5ep65
+8rrhvkKatUrchwVAQHHNY7Pvldb5StSNWIifx9ex4eVsMfvHLf9MsohrlJspN2Ru
+ai468B0JSmLfl3N7VWarP3xIPS+mhN9PXkdgSUODe34rDU+O8j432jTbb3PXJrU3
+J9UwQA/TeLMM8Okg4XfVrPES1HFyB3ZxuYqtUUYaFuaKjCTIsHXeKufdYAXY16Yi
+Elz7HoWzb0Swy6f7GXeYaMES8BJDdVRI34tEA/nG/1xzd7ygIrrYTHA0qn3hnT7S
+7vuaufXOLQQtZa/0UK1tZtVpv59sdow/TjVdFMIpZFRbtRDGpIM3berZji8T3A4w
+vC53Kl8e4BY2E12Lj/Q/X7B2X+3xJi/QfB9AxWTQDQrGbO2by0OlyM5a1SU0eDBJ
+r8KJxnjkTFQ7dwjlBVCVKr1oKLocjomC2TDIJ/DgCtzfR7Xsdnm+SzDrd3bc+toS
+iWf72/75bQQhEEcCKYPm+SJtiybaw3k+92Wr/0QbhlHo9E2RgAENKAVZoLg/bhOh
+BJj3IpCUiebMT/p8oQkm+FHUKsktOAvf1+lwIdtMQRtwsB+IGH1IAlDdlSCzMBik
+WG/N6YMzNRfAlLcXTYht
+=rYZ9
 -----END PGP SIGNATURE-----
 
---4UkRDkr1HlFXSJKfcR3kpcotS62TmM3qc--
+--sBpc7KNMcbUcokMJRv7XkJwJogkQ4te2Q--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
