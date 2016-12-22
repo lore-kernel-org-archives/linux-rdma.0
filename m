@@ -1,196 +1,235 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core] Remove atexit and destructors
-Date: Thu, 22 Dec 2016 15:10:47 -0700
-Message-ID: <20161222221047.GA15780@obsidianresearch.com>
+Subject: [PATCH rdma-core] verbs: Do not copy uninitialized data in
+ ibv_cmd_modify_qp
+Date: Thu, 22 Dec 2016 15:13:34 -0700
+Message-ID: <20161222221334.GA15907@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is no guarantee how a process will be exiting, specifically there
-is no guarantee that there is only 1 thread. This means what atexit
-handlers can safely do is very limited.
+Valgrind reports:
 
-In particular freeing resources that would otherwise be freed by the OS
-is absolutely wrong in a multi-threaded environment.
+==1196== Syscall param write(buf) points to uninitialised byte(s)
+==1196==    at 0x506250D: ??? (syscall-template.S:84)
+==1196==    by 0x527756F: ibv_cmd_modify_qp (cmd.c:1291)
+==1196==    by 0x8008D74: mlx4_modify_qp (verbs.c:820)
+==1196==    by 0x527E4F4: ibv_modify_qp@@IBVERBS_1.1 (verbs.c:561)
+==1196==    by 0x4E3FAB3: ucma_modify_qp_err.isra.6 (cma.c:1115)
+==1196==    by 0x4E41D56: rdma_get_cm_event.part.15 (cma.c:2180)
+==1196==    by 0x402CF0: cm_thread (rping.c:576)
+==1196==    by 0x5059709: start_thread (pthread_create.c:333)
+==1196==    by 0x558A82C: clone (clone.S:109)
+==1196==  Address 0x9847980 is on thread 2's stack
+==1196==  in frame #2, created by mlx4_modify_qp (verbs.c:775)
 
-- neigh.c: This deletes the netlink socket
-- ocrdma_main.c: These delete locks and free devices
-- cma.c: This frees pds and other objects
-- amp.c: We don't need to wait for a thread to exit if we are
-  exiting.
+This is because of code like this:
 
-This fixes a crash on-exit observed with at least rping where a
-thread calls exit() while the main thread is still running.
-This creates a race where rdma_destroy_id() runs concurrently
-with ucma_cleanup() and one of them will randomly crash with a jump
-to NULL.
+        struct ibv_qp_attr qp_attr;
+        qp_attr.qp_state = IBV_QPS_ERR;
+        return rdma_seterrno(ibv_modify_qp(id->qp, &qp_attr, IBV_QP_STATE));
 
-This will create some leaked memory complaints from valgrind
-mem checkers. These need to be solved with sensible resource
-tracking to free the objects once all possible users are gone
-and not relying on atexit.
+Always pass 0 into the kernel for for attributes that are not requested
+to be modified.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- ibacm/prov/acmp/src/acmp.c     | 19 -------------------
- libibverbs/ibverbs.h           |  1 -
- libibverbs/neigh.c             |  7 -------
- librdmacm/cma.c                | 27 ---------------------------
- providers/ocrdma/ocrdma_main.c | 21 ---------------------
- 5 files changed, 75 deletions(-)
+ libibverbs/cmd.c | 170 +++++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 121 insertions(+), 49 deletions(-)
 
-This seems to be a longstanding bug, but I'm hitting it nearly every
-time on my Xenial systems with rdma-core's build.
+Shown with rping
 
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index 27f41b8db2289d..56567ef8bf379c 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -2923,25 +2923,6 @@ static void __attribute__((constructor)) acmp_init(void)
- 	acmp_initialized = 1;
- }
- 
--static void __attribute__((destructor)) acmp_exit(void)
--{
--	acm_log(1, "Unloading...\n");
--	if (retry_thread_started) {
--		if (pthread_cancel(retry_thread_id)) {
--			acm_log(0, "Error: failed to cancel the retry thread\n");
--			return;
--		}
--		if (pthread_join(retry_thread_id, NULL)) {
--			acm_log(0, "Error: failed to join the retry thread\n");
--			return;
--		}
--		retry_thread_started = 0;
--	}
--
--	umad_done();
--	acmp_initialized = 0;
--}
--
- int provider_query(struct acm_provider **provider, uint32_t *version)
+Please double check my if's.. I followed the man page
+
+I think there will be other cases where we do this wrong as well :\
+
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 38061892da0de0..a702d67b05f2a3 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1221,55 +1221,127 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
  {
- 	acm_log(1, "\n");
-diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
-index dd2dacf4534d65..1ec43e6cf7d896 100644
---- a/libibverbs/ibverbs.h
-+++ b/libibverbs/ibverbs.h
-@@ -41,7 +41,6 @@
- #include <valgrind/memcheck.h>
+ 	IBV_INIT_CMD(cmd, cmd_size, MODIFY_QP);
  
- #define INIT		__attribute__((constructor))
--#define FINI		__attribute__((destructor))
+-	cmd->qp_handle 		 = qp->handle;
+-	cmd->attr_mask 		 = attr_mask;
+-	cmd->qkey 		 = attr->qkey;
+-	cmd->rq_psn 		 = attr->rq_psn;
+-	cmd->sq_psn 		 = attr->sq_psn;
+-	cmd->dest_qp_num 	 = attr->dest_qp_num;
+-	cmd->qp_access_flags 	 = attr->qp_access_flags;
+-	cmd->pkey_index		 = attr->pkey_index;
+-	cmd->alt_pkey_index 	 = attr->alt_pkey_index;
+-	cmd->qp_state 		 = attr->qp_state;
+-	cmd->cur_qp_state 	 = attr->cur_qp_state;
+-	cmd->path_mtu 		 = attr->path_mtu;
+-	cmd->path_mig_state 	 = attr->path_mig_state;
+-	cmd->en_sqd_async_notify = attr->en_sqd_async_notify;
+-	cmd->max_rd_atomic 	 = attr->max_rd_atomic;
+-	cmd->max_dest_rd_atomic  = attr->max_dest_rd_atomic;
+-	cmd->min_rnr_timer 	 = attr->min_rnr_timer;
+-	cmd->port_num 		 = attr->port_num;
+-	cmd->timeout 		 = attr->timeout;
+-	cmd->retry_cnt 		 = attr->retry_cnt;
+-	cmd->rnr_retry 		 = attr->rnr_retry;
+-	cmd->alt_port_num 	 = attr->alt_port_num;
+-	cmd->alt_timeout 	 = attr->alt_timeout;
+-
+-	memcpy(cmd->dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
+-	cmd->dest.flow_label 	    = attr->ah_attr.grh.flow_label;
+-	cmd->dest.dlid 		    = attr->ah_attr.dlid;
+-	cmd->dest.reserved	    = 0;
+-	cmd->dest.sgid_index 	    = attr->ah_attr.grh.sgid_index;
+-	cmd->dest.hop_limit 	    = attr->ah_attr.grh.hop_limit;
+-	cmd->dest.traffic_class     = attr->ah_attr.grh.traffic_class;
+-	cmd->dest.sl 		    = attr->ah_attr.sl;
+-	cmd->dest.src_path_bits     = attr->ah_attr.src_path_bits;
+-	cmd->dest.static_rate 	    = attr->ah_attr.static_rate;
+-	cmd->dest.is_global 	    = attr->ah_attr.is_global;
+-	cmd->dest.port_num 	    = attr->ah_attr.port_num;
+-
+-	memcpy(cmd->alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
+-	cmd->alt_dest.flow_label    = attr->alt_ah_attr.grh.flow_label;
+-	cmd->alt_dest.dlid 	    = attr->alt_ah_attr.dlid;
+-	cmd->alt_dest.reserved	    = 0;
+-	cmd->alt_dest.sgid_index    = attr->alt_ah_attr.grh.sgid_index;
+-	cmd->alt_dest.hop_limit     = attr->alt_ah_attr.grh.hop_limit;
+-	cmd->alt_dest.traffic_class = attr->alt_ah_attr.grh.traffic_class;
+-	cmd->alt_dest.sl 	    = attr->alt_ah_attr.sl;
+-	cmd->alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
+-	cmd->alt_dest.static_rate   = attr->alt_ah_attr.static_rate;
+-	cmd->alt_dest.is_global     = attr->alt_ah_attr.is_global;
+-	cmd->alt_dest.port_num 	    = attr->alt_ah_attr.port_num;
++	cmd->qp_handle = qp->handle;
++	cmd->attr_mask = attr_mask;
++
++	if (attr_mask & IBV_QP_STATE)
++		cmd->qp_state = attr->qp_state;
++	else
++		cmd->qp_state = 0;
++
++	if (attr_mask & IBV_QP_CUR_STATE)
++		cmd->cur_qp_state = attr->cur_qp_state;
++	else
++		cmd->cur_qp_state = 0;
++
++	if (attr_mask & IBV_QP_EN_SQD_ASYNC_NOTIFY)
++		cmd->en_sqd_async_notify = attr->en_sqd_async_notify;
++	else
++		cmd->en_sqd_async_notify = 0;
++
++	if (attr_mask & IBV_QP_ACCESS_FLAGS)
++		cmd->qp_access_flags = attr->qp_access_flags;
++	else
++		cmd->qp_access_flags = 0;
++	if (attr_mask & IBV_QP_PKEY_INDEX)
++		cmd->pkey_index = attr->pkey_index;
++	else
++		cmd->pkey_index = 0;
++	if (attr_mask & IBV_QP_PORT)
++		cmd->port_num = attr->port_num;
++	else
++		cmd->port_num = 0;
++	if (attr_mask & IBV_QP_QKEY)
++		cmd->qkey = attr->qkey;
++	else
++		cmd->qkey = 0;
++
++	if (attr_mask & IBV_QP_AV) {
++		memcpy(cmd->dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
++		cmd->dest.flow_label = attr->ah_attr.grh.flow_label;
++		cmd->dest.dlid = attr->ah_attr.dlid;
++		cmd->dest.reserved = 0;
++		cmd->dest.sgid_index = attr->ah_attr.grh.sgid_index;
++		cmd->dest.hop_limit = attr->ah_attr.grh.hop_limit;
++		cmd->dest.traffic_class = attr->ah_attr.grh.traffic_class;
++		cmd->dest.sl = attr->ah_attr.sl;
++		cmd->dest.src_path_bits = attr->ah_attr.src_path_bits;
++		cmd->dest.static_rate = attr->ah_attr.static_rate;
++		cmd->dest.is_global = attr->ah_attr.is_global;
++		cmd->dest.port_num = attr->ah_attr.port_num;
++	} else
++		memset(&cmd->dest, 0, sizeof(cmd->dest));
++
++	if (attr_mask & IBV_QP_PATH_MTU)
++		cmd->path_mtu = attr->path_mtu;
++	else
++		cmd->path_mtu = 0;
++	if (attr_mask & IBV_QP_TIMEOUT)
++		cmd->timeout = attr->timeout;
++	else
++		cmd->timeout = 0;
++	if (attr_mask & IBV_QP_RETRY_CNT)
++		cmd->retry_cnt = attr->retry_cnt;
++	else
++		cmd->retry_cnt = 0;
++	if (attr_mask & IBV_QP_RNR_RETRY)
++		cmd->rnr_retry = attr->rnr_retry;
++	else
++		cmd->rnr_retry = 0;
++	if (attr_mask & IBV_QP_RQ_PSN)
++		cmd->rq_psn = attr->rq_psn;
++	else
++		cmd->rq_psn = 0;
++	if (attr_mask & IBV_QP_MAX_QP_RD_ATOMIC)
++		cmd->max_rd_atomic = attr->max_rd_atomic;
++	else
++		cmd->max_rd_atomic = 0;
++
++	if (attr_mask & IBV_QP_ALT_PATH) {
++		cmd->alt_pkey_index = attr->alt_pkey_index;
++		cmd->alt_port_num = attr->alt_port_num;
++		cmd->alt_timeout = attr->alt_timeout;
++
++		memcpy(cmd->alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
++		cmd->alt_dest.flow_label = attr->alt_ah_attr.grh.flow_label;
++		cmd->alt_dest.dlid = attr->alt_ah_attr.dlid;
++		cmd->alt_dest.reserved = 0;
++		cmd->alt_dest.sgid_index = attr->alt_ah_attr.grh.sgid_index;
++		cmd->alt_dest.hop_limit = attr->alt_ah_attr.grh.hop_limit;
++		cmd->alt_dest.traffic_class =
++		    attr->alt_ah_attr.grh.traffic_class;
++		cmd->alt_dest.sl = attr->alt_ah_attr.sl;
++		cmd->alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
++		cmd->alt_dest.static_rate = attr->alt_ah_attr.static_rate;
++		cmd->alt_dest.is_global = attr->alt_ah_attr.is_global;
++		cmd->alt_dest.port_num = attr->alt_ah_attr.port_num;
++	} else {
++		cmd->alt_pkey_index = 0;
++		cmd->alt_port_num = 0;
++		cmd->alt_timeout = 0;
++		memset(&cmd->alt_dest, 0, sizeof(cmd->alt_dest));
++	}
++
++	if (attr_mask & IBV_QP_MIN_RNR_TIMER)
++		cmd->min_rnr_timer = attr->min_rnr_timer;
++	else
++		cmd->min_rnr_timer = 0;
++	if (attr_mask & IBV_QP_SQ_PSN)
++		cmd->sq_psn = attr->sq_psn;
++	else
++		cmd->sq_psn = 0;
++	if (attr_mask & IBV_QP_MAX_DEST_RD_ATOMIC)
++		cmd->max_dest_rd_atomic = attr->max_dest_rd_atomic;
++	else
++		cmd->max_dest_rd_atomic = 0;
++	if (attr_mask & IBV_QP_PATH_MIG_STATE)
++		cmd->path_mig_state = attr->path_mig_state;
++	else
++		cmd->path_mig_state = 0;
++	if (attr_mask & IBV_QP_DEST_QPN)
++		cmd->dest_qp_num = attr->dest_qp_num;
++	else
++		cmd->dest_qp_num = 0;
  
- #define DEFAULT_ABI	"IBVERBS_1.1"
+ 	cmd->reserved[0] = cmd->reserved[1] = 0;
  
-diff --git a/libibverbs/neigh.c b/libibverbs/neigh.c
-index 12e58cd4b63c2c..053a0c2972a27f 100644
---- a/libibverbs/neigh.c
-+++ b/libibverbs/neigh.c
-@@ -628,16 +628,9 @@ free:
- 	return oif;
- }
- 
--static void destroy_zero_based_socket(void)
--{
--	if (zero_socket != NULL)
--		nl_socket_free(zero_socket);
--}
--
- static void alloc_zero_based_socket(void)
- {
- 	zero_socket = nl_socket_alloc();
--	atexit(&destroy_zero_based_socket);
- }
- 
- int neigh_init_resources(struct get_neigh_handler *neigh_handler, int timeout)
-diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-index 77f6fea38c6ba9..7f79ee942186bb 100644
---- a/librdmacm/cma.c
-+++ b/librdmacm/cma.c
-@@ -134,28 +134,6 @@ int af_ib_support;
- static struct index_map ucma_idm;
- static fastlock_t idm_lock;
- 
--static void ucma_cleanup(void)
--{
--	ucma_ib_cleanup();
--
--	if (cma_dev_cnt) {
--		while (cma_dev_cnt--) {
--			if (!cma_dev_array[cma_dev_cnt].verbs)
--				continue;
--
--			if (cma_dev_array[cma_dev_cnt].refcnt)
--				ibv_dealloc_pd(cma_dev_array[cma_dev_cnt].pd);
--			ibv_close_device(cma_dev_array[cma_dev_cnt].verbs);
--			free(cma_dev_array[cma_dev_cnt].port);
--			cma_init_cnt--;
--		}
--
--		fastlock_destroy(&idm_lock);
--		free(cma_dev_array);
--		cma_dev_cnt = 0;
--	}
--}
--
- static int check_abi_version(void)
- {
- 	char value[8];
-@@ -378,11 +356,6 @@ void rdma_free_devices(struct ibv_context **list)
- 	free(list);
- }
- 
--static void __attribute__((destructor)) rdma_cma_fini(void)
--{
--	ucma_cleanup();
--}
--
- struct rdma_event_channel *rdma_create_event_channel(void)
- {
- 	struct rdma_event_channel *channel;
-diff --git a/providers/ocrdma/ocrdma_main.c b/providers/ocrdma/ocrdma_main.c
-index 39da8f0a1228b0..dfd3172841255b 100644
---- a/providers/ocrdma/ocrdma_main.c
-+++ b/providers/ocrdma/ocrdma_main.c
-@@ -239,24 +239,3 @@ void ocrdma_register_driver(void)
- {
- 	ibv_register_driver("ocrdma", ocrdma_driver_init);
- }
--
--static __attribute__ ((destructor))
--void ocrdma_unregister_driver(void)
--{
--	struct ocrdma_device *dev;
--	struct ocrdma_device *dev_tmp;
--	pthread_mutex_lock(&ocrdma_dev_list_lock);
--	list_for_each_safe(&ocrdma_dev_list, dev, dev_tmp, entry) {
--		pthread_mutex_destroy(&dev->dev_lock);
--		pthread_spin_destroy(&dev->flush_q_lock);
--		list_del(&dev->entry);
--		/*
--		 * Avoid freeing the dev here since MPI get SIGSEGV
--		 * in few error cases because of reference to ib_dev
--		 * after free.
--		 * TODO Bug 135437 fix it properly to avoid mem leak
--		 */
--		/* free(dev); */
--	}
--	pthread_mutex_unlock(&ocrdma_dev_list_lock);
--}
 -- 
 2.7.4
-
-
--- 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>        (780)4406067x832
-Chief Technology Officer, Obsidian Research Corp         Edmonton, Canada
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
