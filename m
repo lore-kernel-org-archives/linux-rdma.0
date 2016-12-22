@@ -1,46 +1,60 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/6] redhat/spec: various fixes and cleanups
-Date: Thu, 22 Dec 2016 13:28:32 -0700
-Message-ID: <20161222202832.GA10732@obsidianresearch.com>
-References: <20161221220840.36268-1-jarod@redhat.com>
- <20161221234014.GA13538@obsidianresearch.com>
- <0d77c962-607b-1e05-4fbf-41195446128d@redhat.com>
- <20161222173807.GA15461@obsidianresearch.com>
- <e300b2ab-c963-d755-895d-29c8a6dbdc94@redhat.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.1.10-1 release
+Date: Thu, 22 Dec 2016 21:02:10 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F980E47284@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e300b2ab-c963-d755-895d-29c8a6dbdc94-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 22, 2016 at 01:17:52PM -0500, Doug Ledford wrote:
-> On 12/22/2016 12:38 PM, Jason Gunthorpe wrote:
-> > On Thu, Dec 22, 2016 at 02:32:07AM -0500, Jarod Wilson wrote:
-> 
-> > Yes.. Somehow libfabric is doing this:
-> > 
-> > https://github.com/ofiwg/libfabric/releases
-> > 
-> > It looks like they produced the .tar.gz by hand and then uploaded it
-> > again as an attached release file?
-> > 
-> > Should we do this too, Doug?
-> 
-> I was going to try changing the tag format on the next tag to get the
-> desired result.  So, instead of v12-rc4 or v12, rdma-core-12-rc4 or just
-> rdma-core-12.
+New release for uDAPL (2.1.10) is available at http://downloads.openfabrics.org/dapl/dapl-2.1.10.tar.gz
 
-I don't know enough about github to comment..
+Vlad, please pull into OFED 4.8
 
-The advantage of the libfabric approach is that the tar.gz is produced
-once and never changed so we can provide the SHA2, while I'm not
-certain the github .tar.gz link is bit-for-bit content-stable?
+md5sum: 50df18f8011a37da88f4886514b9dd96 dapl-2.1.10.tar.gz
 
-Jason
+For v2.1 package install RPM packages as follow:
+dapl-2.1.10-1
+dapl-utils-2.1.10-1
+dapl-devel-2.1.10-1
+dapl-debuginfo-2.1.10-1
+
+Summary of changes:
+
+Release 2.1.10-1
+dtest_suite: add option to pause the test.
+dtestcm: add client retry, give server time to queue up all listens
+dtest: Add new man pages. (dtestx dtestcm dtestsrq)
+cma: fix open_query mode, initialize attributes
+ucm: up level CM timer logging, increase drep time at scale
+dtest: fix return value check on do_rdma_write_with_msg
+dtestx: check device capabilities and do atomic tests only if supported by HW
+common: set atomic attributes based on provider/device capabilities
+build: dtest_suite.sh was moved to test/scripts
+mpxyd: let TX thread sleep if no open devices are referenced
+mcm: when mmap req from MIC return with fail stat print WARN.
+dtest_suite: remove duplicate dtest_suite.sh
+dtest: enable -D option (data check) to work with scif provider
+dtest_suite: fix typo in user_string var
+mcm: remove logs from post send speed path
+mcm proxy: push WR from MIC to host with scif mmap memory instead of scif_send.
+dtest: the default size in pingpong test is set to 1 byte regardless to user input. 
+dtest: cleanup 4 printfs from the middle of performance test, may reduce performance.
+
+Release commit:  
+http://git.openfabrics.org/?p=~ardavis/dapl.git;a=commit;h=b2975b615f58e618a12b9e079568f987b8dc689d
+
+Release Notes:
+http://downloads.openfabrics.org/dapl/documentation/uDAPL_release_notes.txt
+
+Regards,
+
+Arlin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
