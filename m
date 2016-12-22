@@ -1,42 +1,29 @@
-From: Kenneth Lee <liguozhu@hisilicon.com>
-Subject: [PATCH] ib umem: bug: put pid back before return from error path
-Date: Thu, 22 Dec 2016 15:11:32 +0800
-Message-ID: <1482390692-147946-1-git-send-email-liguozhu@hisilicon.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: Testing latest linux-next 4.9 ib_srp and ib_srpt
+Date: Wed, 21 Dec 2016 22:23:21 -0800
+Message-ID: <20161222062321.GA30326@infradead.org>
+References: <07c07529-4636-fafb-2598-7358d8a1460d@sandisk.com>
+ <52e8398f-a146-721c-3b92-0892b4abbff8@intel.com>
+ <1482166487.25336.10.camel@sandisk.com>
+ <1918919536.8196250.1482262406057.JavaMail.zimbra@redhat.com>
+ <2052479881.8196880.1482263028727.JavaMail.zimbra@redhat.com>
+ <1668746735.8200653.1482266682585.JavaMail.zimbra@redhat.com>
+ <120559766.8215321.1482291094018.JavaMail.zimbra@redhat.com>
+ <1928955380.8220327.1482302041315.JavaMail.zimbra@redhat.com>
+ <1337539588.8422488.1482372617094.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, liguozhu@hisilicon.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, markb@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1337539588.8422488.1482372617094.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I catched this bug when reading the code. I'm sorry I have no hardware to test
-it. But it is abviously a bug.
-
-Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
----
- drivers/infiniband/core/umem.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 1e62a5f..4609b92 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
- 
- 	if (access & IB_ACCESS_ON_DEMAND) {
-+		put_pid(umem->pid);
- 		ret = ib_umem_odp_get(context, umem);
- 		if (ret) {
- 			kfree(umem);
-@@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 
- 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
- 	if (!page_list) {
-+		put_pid(umem->pid);
- 		kfree(umem);
- 		return ERR_PTR(-ENOMEM);
- 	}
--- 
-1.9.1
+I just got CC'ed to a massive chain of full quotes.  If you want an
+answer from me please write a readable mail, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
