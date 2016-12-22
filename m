@@ -1,48 +1,50 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core] i40iw: Set 128B as the only supported RQ WQE
- size
-Date: Thu, 22 Dec 2016 19:13:23 +0200
-Message-ID: <20161222171323.GC18935@mtr-leonro.local>
-References: <1482179477-100780-1-git-send-email-tatyana.e.nikolova@intel.com>
- <1a61e971-4944-b8db-0fd5-b73118b578db@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/3] IB/rxe: Three small fixes
+Date: Thu, 22 Dec 2016 19:18:33 +0200
+Message-ID: <20161222171833.GD18935@mtr-leonro.local>
+References: <1482414878-6892-1-git-send-email-andrew.boyer@dell.com>
+ <9f5e0225-c53e-43e7-13b5-ae715f74b198@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mxv5cy4qt+RJ9ypb"
+        protocol="application/pgp-signature"; boundary="+xNpyl7Qekk2NvDX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1a61e971-4944-b8db-0fd5-b73118b578db-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <9f5e0225-c53e-43e7-13b5-ae715f74b198-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---mxv5cy4qt+RJ9ypb
+
+--+xNpyl7Qekk2NvDX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Dec 22, 2016 at 11:53:20AM -0500, Doug Ledford wrote:
-> On 12/19/2016 3:31 PM, Tatyana Nikolova wrote:
-> > RQ WQE size other than 128B is not supported.
-> > Correct RQ size calculation to use 128B only.
+On Thu, Dec 22, 2016 at 11:41:24AM -0500, Doug Ledford wrote:
+> On 12/22/2016 8:54 AM, Andrew Boyer wrote:
+> > This patch series addresses two issues found during heavy traffic
+> > testing as well as a recently-reported Smatch issue.
 > >
-> > Since this breaks ABI, add code to provide
-> > compatibility with V4 kernel driver, i40iw.
+> > Andrew Boyer (3):
+> >   IB/rxe: Use BTH_PSN_MASK when ACKing duplicate sends
+> >   IB/rxe: Drop future atomic/read packets rather than retrying
+> >   IB/rxe: Don't check for null ptr in send()
 > >
-> > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  drivers/infiniband/sw/rxe/rxe_comp.c | 2 +-
+> >  drivers/infiniband/sw/rxe/rxe_net.c  | 3 +--
+> >  drivers/infiniband/sw/rxe/rxe_resp.c | 3 ++-
+> >  3 files changed, 4 insertions(+), 4 deletions(-)
+> >
 >
-> Thanks, applied.
+> Thanks, series applied.
 
 Hi Doug,
 
-Please can you clarify a process here?
+Thank you for such fast response, but can you please give enough time to
+other reviewers/relevant maintainers to take a look on them before
+applying?
 
-In previous discussions, you mentioned that the reason of not accepting
-some code to rdma-core was because it is part of next kernel and we
-patiently waited for release. This code is definitely not relevant for
-current kernel, but you are already took it before we ever released first
-version of rdma-core.
-
-So why are we waiting with libpvrdma and RoCE address handle?
+Thanks
 
 >
 > --
@@ -54,27 +56,27 @@ So why are we waiting with libpvrdma and RoCE address handle?
 
 
 
---mxv5cy4qt+RJ9ypb
+--+xNpyl7Qekk2NvDX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhcCbMACgkQ5GN7iDZy
-WKdWTw//SjGVrJ5ExlmXybPnV2nIkkLNHDos98AZk77FC6N6FKaC8DrCTOdyjghw
-xkaZcdmVvs7sySOBGW8JRFw7WUdEG+DoHO4ADguDyF25v+DJf8mwW64nOkhRQzaY
-SdZzu2LlQkQef4leWs14kJtXDudxsDVHUPo3gyKXd/6VcvoMYxlD4AjK5vYkjtR7
-nGw1Qis3IkNwzAiMoAGcrzwc62ty1CbMsaBqZZbfHOf0s3cyBw/Zk8FoHLOJAQs5
-B7Q2ABF/ZmPmxmNfCJ97ovgIuJSb3/y/hZ9jEw3H2o9HmadXIaV6KI85sRLzyYHT
-S/ZZZdz+nQQTLn5FLcrtQf+djFFpHogIgvrWwUd8+Yhd/YhkLKu6KHaKovPVNymz
-mNV+gg63kd4c2QHdmQIH06ZoxHQV88VmyNBQkz2/E3Gce17RglAOtKbbIGFJyehp
-BMyir9hzN9aCnXuOJJdM9Og25Y9fd9ednTosVWk/KtEODuWyStey/mpFFbz3V5Va
-SHXTa4LZd7TTWKCfOoWiloa5GguNIBaY5CoLykK6jo1saqsWsmb4WUJj5W0NQW/8
-adQ999vRRguyIxhGdAAdo6SF6nyv3HkvChFxiYB+7NyrN0fJpFACTaPIEtE21cJb
-weHdIm8QYpDVHEu7PjWIAIjRQOlY0ep9u/5U8f6w7l7ygc9qh0E=
-=1Cx5
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhcCukACgkQ5GN7iDZy
+WKd7sRAAnmkA9S/tQ+ZJ7TbGNuj54bxU+3biM76qqI4dwNw193FXlPYJ+UuF03iR
+mVJvqep2wSqT7ONaxEXfOaS+a/+bow4DQVXCm8e/Mv2PdPksHF/9AsKjcCWy2Fe+
+0FlJT6N308kM3aEMRCCLGEK4gDsZYcerItzyYpgv9hDVfb9dsobCB3AcjoppCt2o
+So2qT3wRT8zfEKXnqM3+6FCXB7N7X3eSFdJ7CV77g9c5a00lTm5PXycgN4IWXmXY
+lgzv8WdTNCgsKMLhIhAbc7h2PcdQwmVi5WeaX+HJc1wRbG+8BUCQmJsLh2BA9GsL
+4axcnJ0P221jKSc8+nc+7riVQI143ValkAaoEh2mxrgoq7ucJtCcwL2rT3xhcHJe
+EcThBq3F2DXraDiI/gIVLqowB2swoEz3r9klcebi5ty+dj/tZuiMVzMEy17D9WDf
+cbspw/FmZ49N8ovmBPwhJuf684xicAZ/MY+Fn1voelqemnH+sr1++jma5TLDi0ZS
+q8yYxiEKinnAqfQvFqZiGD+czlJelif+OtakgU/xI4JDA+CSTuQGD4YNJxh7k5zf
+c/yMrIa1xzY6QuscfjehlOR7qIBL6ocXq5331JHgsJ7c0Jmj+zWhmgO5bRzmoKqf
+hXcHQ63Kndhr2KoyR7DuLDQEVNRdj5UYlBfCGKj28EcmipmhCIs=
+=w/Op
 -----END PGP SIGNATURE-----
 
---mxv5cy4qt+RJ9ypb--
+--+xNpyl7Qekk2NvDX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
