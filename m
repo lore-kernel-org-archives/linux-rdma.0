@@ -1,149 +1,103 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 190951] New: SoftRoCE Performance Puzzle
-Date: Fri, 23 Dec 2016 03:59:25 +0000
-Message-ID: <bug-190951-11804@https.bugzilla.kernel.org/>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Remove atexit and destructors
+Date: Fri, 23 Dec 2016 07:09:29 -0500
+Message-ID: <bdea7a08-49e9-6ee3-02e1-d9be573e789e@redhat.com>
+References: <20161222221047.GA15780@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="Fk1uwuewM1tjJmVib2hPi5KlRumi3dLxT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161222221047.GA15780-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=190951
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Fk1uwuewM1tjJmVib2hPi5KlRumi3dLxT
+Content-Type: multipart/mixed; boundary="78jBXfj8u9gh9BjjbS14SkNnCDfewO865";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>,
+ Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <bdea7a08-49e9-6ee3-02e1-d9be573e789e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Remove atexit and destructors
+References: <20161222221047.GA15780-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20161222221047.GA15780-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-            Bug ID: 190951
-           Summary: SoftRoCE Performance Puzzle
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 4.9
-          Hardware: All
-                OS: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-          Reporter: songweijia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-        Regression: No
+--78jBXfj8u9gh9BjjbS14SkNnCDfewO865
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Created attachment 248401
-  --> https://bugzilla.kernel.org/attachment.cgi?id=248401&action=edit
-SoftRoCE Performance with 10G ethernet
+On 12/22/2016 5:10 PM, Jason Gunthorpe wrote:
+> There is no guarantee how a process will be exiting, specifically there=
 
-I found the SoftRoCE throughput is much lower than TCP or UDP. I used two
-high-end servers with Myricomm 10G dual port NIC. I ran a CentOS-7 virtual
-machine in each of them. I upgraded the virtual machine kernel to the lastest
-4.9(2016-12-11) version:
---------------------------------------------------------------------------
-[weijia@srvm1 ~]$ uname -a
-Linux srvm1 4.9.0 #1 SMP Fri Dec 16 16:35:46 EST 2016 x86_64 x86_64 x86_64
-GNU/Linux
---------------------------------------------------------------------------
-The two virtual machines use virtio nic driver so the network I/O over head is
-very low. The iperf tool show ~9Gbps peak throughput with both TCP/UDP:
---------------------------------------------------------------------------
-[weijia@srvm1 ~]$ iperf3 -c 192.168.30.10
-Connecting to host 192.168.30.10, port 5201
-[  4] local 192.168.29.10 port 59986 connected to 192.168.30.10 port 5201
-[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
-[  4]   0.00-1.00   sec  1.06 GBytes  9.12 Gbits/sec    3   1.28 MBytes
-[  4]   1.00-2.00   sec  1.09 GBytes  9.39 Gbits/sec    1   1.81 MBytes
-[  4]   2.00-3.00   sec  1.06 GBytes  9.14 Gbits/sec    0   2.21 MBytes
-[  4]   3.00-4.00   sec  1.09 GBytes  9.36 Gbits/sec    0   2.56 MBytes
-[  4]   4.00-5.00   sec  1.07 GBytes  9.15 Gbits/sec    0   2.85 MBytes
-[  4]   5.00-6.00   sec  1.09 GBytes  9.39 Gbits/sec    0   3.00 MBytes
-[  4]   6.00-7.00   sec  1.07 GBytes  9.21 Gbits/sec    0   3.00 MBytes
-[  4]   7.00-8.00   sec  1.09 GBytes  9.39 Gbits/sec    0   3.00 MBytes
-[  4]   8.00-9.00   sec  1.09 GBytes  9.39 Gbits/sec    0   3.00 MBytes
-[  4]   9.00-10.00  sec  1.09 GBytes  9.38 Gbits/sec    0   3.00 MBytes
-- - - - - - - - - - - - - - - - - - - - - - - - -
-[ ID] Interval           Transfer     Bandwidth       Retr
-[  4]   0.00-10.00  sec  10.8 GBytes  9.29 Gbits/sec    4             sender
-[  4]   0.00-10.00  sec  10.8 GBytes  9.29 Gbits/sec                  receiver
+> is no guarantee that there is only 1 thread. This means what atexit
+> handlers can safely do is very limited.
+>=20
+> In particular freeing resources that would otherwise be freed by the OS=
 
-iperf Done.
+> is absolutely wrong in a multi-threaded environment.
+>=20
+> - neigh.c: This deletes the netlink socket
+> - ocrdma_main.c: These delete locks and free devices
+> - cma.c: This frees pds and other objects
+> - amp.c: We don't need to wait for a thread to exit if we are
+>   exiting.
+>=20
+> This fixes a crash on-exit observed with at least rping where a
+> thread calls exit() while the main thread is still running.
+> This creates a race where rdma_destroy_id() runs concurrently
+> with ucma_cleanup() and one of them will randomly crash with a jump
+> to NULL.
+>=20
+> This will create some leaked memory complaints from valgrind
+> mem checkers. These need to be solved with sensible resource
+> tracking to free the objects once all possible users are gone
+> and not relying on atexit.
+>=20
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-[weijia@srvm1 ~]$ iperf3 -c 192.168.30.10 -u -b 15000m
-Connecting to host 192.168.30.10, port 5201
-[  4] local 192.168.29.10 port 50826 connected to 192.168.30.10 port 5201
-[ ID] Interval           Transfer     Bandwidth       Total Datagrams
-[  4]   0.00-1.00   sec   976 MBytes  8.19 Gbits/sec  124931
-[  4]   1.00-2.00   sec  1.00 GBytes  8.63 Gbits/sec  131657
-[  4]   2.00-3.00   sec  1.02 GBytes  8.75 Gbits/sec  133452
-[  4]   3.00-4.00   sec  1.05 GBytes  9.02 Gbits/sec  137581
-[  4]   4.00-5.00   sec  1.05 GBytes  9.02 Gbits/sec  137567
-[  4]   5.00-6.00   sec  1.02 GBytes  8.72 Gbits/sec  133102
-[  4]   6.00-7.00   sec  1.00 GBytes  8.61 Gbits/sec  131386
-[  4]   7.00-8.00   sec   994 MBytes  8.34 Gbits/sec  127229
-[  4]   8.00-9.00   sec  1.04 GBytes  8.94 Gbits/sec  136484
-[  4]   9.00-10.00  sec   839 MBytes  7.04 Gbits/sec  107376
-- - - - - - - - - - - - - - - - - - - - - - - - -
-[ ID] Interval           Transfer     Bandwidth       Jitter    Lost/Total
-Datagrams
-[  4]   0.00-10.00  sec  9.92 GBytes  8.52 Gbits/sec  0.005 ms  323914/1300764
-(25%)
-[  4] Sent 1300764 datagrams
+This all looks sane, thanks, applied.
 
-iperf Done.
---------------------------------------------------------------------------
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
-Then I used ibv_rc_pingpong to test the bandwith between the two virtual
-machines. The result is extremely low:
---------------------------------------------------------------------------
-[weijia@srvm1 ~]$ ibv_rc_pingpong -s 4096 -g 1 -n 1000000 192.168.30.10
-  local address:  LID 0x0000, QPN 0x000011, PSN 0x3072e0, GID
-::ffff:192.168.29.10
-  remote address: LID 0x0000, QPN 0x000011, PSN 0xa54a62, GID
-::ffff:192.168.30.10
-8192000000 bytes in 220.23 seconds = 297.58 Mbit/sec
-1000000 iters in 220.23 seconds = 220.23 usec/iter
-[weijia@srvm1 ~]$ ibv_uc_pingpong -s 4096 -g 1 -n 10000 192.168.30.10
-  local address:  LID 0x0000, QPN 0x000011, PSN 0x7daab0, GID
-::ffff:192.168.29.10
-  remote address: LID 0x0000, QPN 0x000011, PSN 0xdd96cf, GID
-::ffff:192.168.30.10
-81920000 bytes in 67.86 seconds = 9.66 Mbit/sec
-10000 iters in 67.86 seconds = 6786.20 usec/iter
 
---------------------------------------------------------------------------
+--78jBXfj8u9gh9BjjbS14SkNnCDfewO865--
 
-Then I repeated the ibv_rc_pingpong experiments with different message sizes,
-and tried both polling/event mode. And I also measured the CPU utilization of
-the ibv_rc_pingpong process. The result is shown in the attached figure. 'poll'
-means polling mode, where ibv_rc_pingpong is issued without '-e' option; while
-'int' (interrupt mode) represents the event mode with '-e' enabled. It seems
-the CPU is saturated when SoftRoCE throughput goes up to ~2Gbit/s. This does
-not make sense since udp and tcp can do much better. Could there be some
-optimization for SoftRoCE implementation?
+--Fk1uwuewM1tjJmVib2hPi5KlRumi3dLxT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-ibv_devinfo information:
---------------------------------------------------------------------------
-[weijia@srvm1 ~]$ ibv_devinfo
-hca_id: rxe0
-        transport:                      InfiniBand (0)
-        fw_ver:                         0.0.0
-        node_guid:                      5054:00ff:fe4b:d859
-        sys_image_guid:                 0000:0000:0000:0000
-        vendor_id:                      0x0000
-        vendor_part_id:                 0
-        hw_ver:                         0x0
-        phys_port_cnt:                  1
-                port:   1
-                        state:                  PORT_ACTIVE (4)
-                        max_mtu:                4096 (5)
-                        active_mtu:             1024 (3)
-                        sm_lid:                 0
-                        port_lid:               0
-                        port_lmc:               0x00
-                        link_layer:             Ethernet
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
---------------------------------------------------------------------------
+iQIcBAEBCAAGBQJYXRP5AAoJELgmozMOVy/dQCYP/isiea9WVrcUokXC5aAdJiKs
+DklQdBI6+qA8ybKkJkUBeaNgkj85Zba48PhMgmwjtTJb1j5HwHCpUBpmojcGGKCX
+nBkvPQ427UwWvc0ZpHHTnzn4JPU3hQAvPq0GRMeuCHAZI+MhhRSjP6UV9ttZW+ja
+8/r3OOE7RsPpPjwoiXU4hDVI9Yhsaf0p1/KlMIhDUHNDPa3KEWF4ct4Wjlt8s2Bu
+3pwqfCvou5NSoiLXHo9f/uQpVyzFa2RQi61l2+C3VIIk/8YlnoH7hBD6FUbMygtz
+HOOsXu5o49i7DAi113SMpB7hN9czIQjpMmAb4SgPxnXttPD4olrT8s1aEv5ToDLJ
+Bz+JVGgHC1l1oQn4EtaB0vmPV/Xfm6TFKwLBOiKhB9x1wkvf3YtZiUdkPXgBtnwv
+jFCwMTv3vMMCAqqIx4dzKbuDNWaTqvZOAF0oFALqrBN4srzRQj9a0YN8ncCZp5Vq
+Tw4TYLiakqKkoIfWpqaJIaP31lUSYFKHTINpG5eIYULmIMKExol/yCKTMtyL7FSO
+A5p90X3AECcN8jGZEu4Dtrow3/nBsS6eQvOXBgXQ2cja/hL8O7tn9INMY/NZ+YY0
+7e7BK79MAT8TPCUQ5+k1ih/0Ij/P9THCiKrlI1bGvaDQTCI/Kdsy2OW/jhCAU+0x
+mlEZ6lP+E+yM5+RDvQSs
+=xp9z
+-----END PGP SIGNATURE-----
 
--- 
-You are receiving this mail because:
-You are watching the assignee of the bug.
+--Fk1uwuewM1tjJmVib2hPi5KlRumi3dLxT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
