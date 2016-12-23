@@ -1,107 +1,149 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core] i40iw: Set 128B as the only supported RQ WQE
- size
-Date: Thu, 22 Dec 2016 21:17:59 +0200
-Message-ID: <20161222191759.GF18935@mtr-leonro.local>
-References: <1482179477-100780-1-git-send-email-tatyana.e.nikolova@intel.com>
- <1a61e971-4944-b8db-0fd5-b73118b578db@redhat.com>
- <20161222171323.GC18935@mtr-leonro.local>
- <ed8ea5d4-9cb2-465d-88a8-bdca848efcfd@redhat.com>
+From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
+Subject: [Bug 190951] New: SoftRoCE Performance Puzzle
+Date: Fri, 23 Dec 2016 03:59:25 +0000
+Message-ID: <bug-190951-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="M/SuVGWktc5uNpra"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ed8ea5d4-9cb2-465d-88a8-bdca848efcfd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---M/SuVGWktc5uNpra
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+https://bugzilla.kernel.org/show_bug.cgi?id=190951
 
-On Thu, Dec 22, 2016 at 01:19:35PM -0500, Doug Ledford wrote:
-> On 12/22/2016 12:13 PM, Leon Romanovsky wrote:
-> > On Thu, Dec 22, 2016 at 11:53:20AM -0500, Doug Ledford wrote:
-> >> On 12/19/2016 3:31 PM, Tatyana Nikolova wrote:
-> >>> RQ WQE size other than 128B is not supported.
-> >>> Correct RQ size calculation to use 128B only.
-> >>>
-> >>> Since this breaks ABI, add code to provide
-> >>> compatibility with V4 kernel driver, i40iw.
-> >>>
-> >>> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >>
-> >> Thanks, applied.
-> >
-> > Hi Doug,
-> >
-> > Please can you clarify a process here?
-> >
-> > In previous discussions, you mentioned that the reason of not accepting
-> > some code to rdma-core was because it is part of next kernel and we
-> > patiently waited for release. This code is definitely not relevant for
-> > current kernel, but you are already took it before we ever released first
-> > version of rdma-core.
-> >
-> > So why are we waiting with libpvrdma and RoCE address handle?
->
-> You're right, that was a mistake on my part.  I'll probably have to
-> revert this patch, then reapply it for the next version since the 4.10
-> kernel is the first one to provide the abi field to the user space library.
+            Bug ID: 190951
+           Summary: SoftRoCE Performance Puzzle
+           Product: Drivers
+           Version: 2.5
+    Kernel Version: 4.9
+          Hardware: All
+                OS: Linux
+              Tree: Mainline
+            Status: NEW
+          Severity: normal
+          Priority: P1
+         Component: Infiniband/RDMA
+          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+          Reporter: songweijia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+        Regression: No
 
-I assume that you are waiting for RHEL spec fixes to do actual release, but
-maybe we should release it anyway now (replace rc3 with actual release)?
+Created attachment 248401
+  --> https://bugzilla.kernel.org/attachment.cgi?id=248401&action=edit
+SoftRoCE Performance with 10G ethernet
 
-We are preparing fixes for Debian package which is not in perfect shape too,
-and I don't want to let people wait till all these packages are finalized.
+I found the SoftRoCE throughput is much lower than TCP or UDP. I used two
+high-end servers with Myricomm 10G dual port NIC. I ran a CentOS-7 virtual
+machine in each of them. I upgraded the virtual machine kernel to the lastest
+4.9(2016-12-11) version:
+--------------------------------------------------------------------------
+[weijia@srvm1 ~]$ uname -a
+Linux srvm1 4.9.0 #1 SMP Fri Dec 16 16:35:46 EST 2016 x86_64 x86_64 x86_64
+GNU/Linux
+--------------------------------------------------------------------------
+The two virtual machines use virtio nic driver so the network I/O over head is
+very low. The iperf tool show ~9Gbps peak throughput with both TCP/UDP:
+--------------------------------------------------------------------------
+[weijia@srvm1 ~]$ iperf3 -c 192.168.30.10
+Connecting to host 192.168.30.10, port 5201
+[  4] local 192.168.29.10 port 59986 connected to 192.168.30.10 port 5201
+[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+[  4]   0.00-1.00   sec  1.06 GBytes  9.12 Gbits/sec    3   1.28 MBytes
+[  4]   1.00-2.00   sec  1.09 GBytes  9.39 Gbits/sec    1   1.81 MBytes
+[  4]   2.00-3.00   sec  1.06 GBytes  9.14 Gbits/sec    0   2.21 MBytes
+[  4]   3.00-4.00   sec  1.09 GBytes  9.36 Gbits/sec    0   2.56 MBytes
+[  4]   4.00-5.00   sec  1.07 GBytes  9.15 Gbits/sec    0   2.85 MBytes
+[  4]   5.00-6.00   sec  1.09 GBytes  9.39 Gbits/sec    0   3.00 MBytes
+[  4]   6.00-7.00   sec  1.07 GBytes  9.21 Gbits/sec    0   3.00 MBytes
+[  4]   7.00-8.00   sec  1.09 GBytes  9.39 Gbits/sec    0   3.00 MBytes
+[  4]   8.00-9.00   sec  1.09 GBytes  9.39 Gbits/sec    0   3.00 MBytes
+[  4]   9.00-10.00  sec  1.09 GBytes  9.38 Gbits/sec    0   3.00 MBytes
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  4]   0.00-10.00  sec  10.8 GBytes  9.29 Gbits/sec    4             sender
+[  4]   0.00-10.00  sec  10.8 GBytes  9.29 Gbits/sec                  receiver
 
-What do you think?
+iperf Done.
 
->
-> >>
-> >> --
-> >> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>     GPG Key ID: B826A3330E572FDD
-> >>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-> >>
-> >
-> >
-> >
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+[weijia@srvm1 ~]$ iperf3 -c 192.168.30.10 -u -b 15000m
+Connecting to host 192.168.30.10, port 5201
+[  4] local 192.168.29.10 port 50826 connected to 192.168.30.10 port 5201
+[ ID] Interval           Transfer     Bandwidth       Total Datagrams
+[  4]   0.00-1.00   sec   976 MBytes  8.19 Gbits/sec  124931
+[  4]   1.00-2.00   sec  1.00 GBytes  8.63 Gbits/sec  131657
+[  4]   2.00-3.00   sec  1.02 GBytes  8.75 Gbits/sec  133452
+[  4]   3.00-4.00   sec  1.05 GBytes  9.02 Gbits/sec  137581
+[  4]   4.00-5.00   sec  1.05 GBytes  9.02 Gbits/sec  137567
+[  4]   5.00-6.00   sec  1.02 GBytes  8.72 Gbits/sec  133102
+[  4]   6.00-7.00   sec  1.00 GBytes  8.61 Gbits/sec  131386
+[  4]   7.00-8.00   sec   994 MBytes  8.34 Gbits/sec  127229
+[  4]   8.00-9.00   sec  1.04 GBytes  8.94 Gbits/sec  136484
+[  4]   9.00-10.00  sec   839 MBytes  7.04 Gbits/sec  107376
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Jitter    Lost/Total
+Datagrams
+[  4]   0.00-10.00  sec  9.92 GBytes  8.52 Gbits/sec  0.005 ms  323914/1300764
+(25%)
+[  4] Sent 1300764 datagrams
 
+iperf Done.
+--------------------------------------------------------------------------
 
+Then I used ibv_rc_pingpong to test the bandwith between the two virtual
+machines. The result is extremely low:
+--------------------------------------------------------------------------
+[weijia@srvm1 ~]$ ibv_rc_pingpong -s 4096 -g 1 -n 1000000 192.168.30.10
+  local address:  LID 0x0000, QPN 0x000011, PSN 0x3072e0, GID
+::ffff:192.168.29.10
+  remote address: LID 0x0000, QPN 0x000011, PSN 0xa54a62, GID
+::ffff:192.168.30.10
+8192000000 bytes in 220.23 seconds = 297.58 Mbit/sec
+1000000 iters in 220.23 seconds = 220.23 usec/iter
+[weijia@srvm1 ~]$ ibv_uc_pingpong -s 4096 -g 1 -n 10000 192.168.30.10
+  local address:  LID 0x0000, QPN 0x000011, PSN 0x7daab0, GID
+::ffff:192.168.29.10
+  remote address: LID 0x0000, QPN 0x000011, PSN 0xdd96cf, GID
+::ffff:192.168.30.10
+81920000 bytes in 67.86 seconds = 9.66 Mbit/sec
+10000 iters in 67.86 seconds = 6786.20 usec/iter
 
+--------------------------------------------------------------------------
 
---M/SuVGWktc5uNpra
-Content-Type: application/pgp-signature; name="signature.asc"
+Then I repeated the ibv_rc_pingpong experiments with different message sizes,
+and tried both polling/event mode. And I also measured the CPU utilization of
+the ibv_rc_pingpong process. The result is shown in the attached figure. 'poll'
+means polling mode, where ibv_rc_pingpong is issued without '-e' option; while
+'int' (interrupt mode) represents the event mode with '-e' enabled. It seems
+the CPU is saturated when SoftRoCE throughput goes up to ~2Gbit/s. This does
+not make sense since udp and tcp can do much better. Could there be some
+optimization for SoftRoCE implementation?
 
------BEGIN PGP SIGNATURE-----
+ibv_devinfo information:
+--------------------------------------------------------------------------
+[weijia@srvm1 ~]$ ibv_devinfo
+hca_id: rxe0
+        transport:                      InfiniBand (0)
+        fw_ver:                         0.0.0
+        node_guid:                      5054:00ff:fe4b:d859
+        sys_image_guid:                 0000:0000:0000:0000
+        vendor_id:                      0x0000
+        vendor_part_id:                 0
+        hw_ver:                         0x0
+        phys_port_cnt:                  1
+                port:   1
+                        state:                  PORT_ACTIVE (4)
+                        max_mtu:                4096 (5)
+                        active_mtu:             1024 (3)
+                        sm_lid:                 0
+                        port_lid:               0
+                        port_lmc:               0x00
+                        link_layer:             Ethernet
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhcJuYACgkQ5GN7iDZy
-WKf/OA/+OJxqMLbFzZAWn009cZEYthHq3PEZvLqlZqMQIZZ0HQcqHs5mADIv+/ZE
-ukenx0VOZL7AbRNCmWnvGIt8GVBy+eK/wujSDl88A5hYn7iw0cpZODcD5Sgrs4P+
-ltv7eeg3iNiJtjAQ3RawU/gntgoRkRMzi67IlGqjqMIlQ3fZVITIhn+Hm67PDiuM
-fBwBxR5+4op16ZKedxoWEH3R/mzZB8qE8YIjXdBiSIkFiTXRmPSSDbk8YN2KWayg
-wq2Ms1yDbiTAaYCSEJWF5H/3Ip8tQTRpFnmd3N6QTMjPENmhoeBY146eekd9PovJ
-VDTAhFwvjPkxc/3ctaC/rvI524n7Iro/lLjLnDnEIs38PRM+t1DrJUJ5q5pRt0R0
-/xVm9OX2fC38qXzk74jN54Mn1L87bjcn12eTWR7qUFWcbq/ux8ida7ao6r+dpf8W
-EARSFGFW+6lHMkkDKKjKWl1igFk20qX3pAfdyqaqeoYPwaGgcKxcBiAYOhnc1H3X
-mphnlpa9F0rHbzSnxivLusTq2e2XvFn1aqi+SRCWtaCOah4silOQQS8kI8AcVKPM
-RY2e+mGXN48g1EXCL/51w6H+3uWqtNY8ndQDNW2K0SxFLAd4MEQ+puSnSTXKB/Fd
-eR3GyprceevdcsWJZgETXRTf7NFi33TR766tfHVkKJhJwGIdNJ0=
-=pRox
------END PGP SIGNATURE-----
+--------------------------------------------------------------------------
 
---M/SuVGWktc5uNpra--
+-- 
+You are receiving this mail because:
+You are watching the assignee of the bug.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
