@@ -1,49 +1,147 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V2 08/10] i40iw: Control debug error prints using env
- variable
-Date: Sun, 25 Dec 2016 18:16:33 +0200
-Message-ID: <5dddda29-735a-1721-4bda-e2af6bbb9d32@dev.mellanox.co.il>
-References: <20161214171111.GA4521@mtr-leonro.local>
- <20161214212103.GA6947@obsidianresearch.com>
- <20161215064807.GB811@mtr-leonro.local>
- <20161215165420.GA3264@obsidianresearch.com>
- <20161215183537.GH811@mtr-leonro.local>
- <20161215185034.GB16552@obsidianresearch.com>
- <20161215191751.GJ811@mtr-leonro.local>
- <13AA599688F47243B14FCFCCC2C803BB10AC7E53@fmsmsx104.amr.corp.intel.com>
- <20161215201917.GL811@mtr-leonro.local>
- <20161216042632.GC3797@obsidianresearch.com>
- <20161218081915.GC1074@mtr-leonro.local>
+From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/2] IB/core: add the function ib_mtu_int_to_enum
+Date: Mon, 26 Dec 2016 08:40:57 +0200
+Message-ID: <1482734458-32131-2-git-send-email-Ram.Amrani@cavium.com>
+References: <1482734458-32131-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161218081915.GC1074-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1482734458-32131-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/18/2016 10:19 AM, Leon Romanovsky wrote:
-> On Thu, Dec 15, 2016 at 09:26:32PM -0700, Jason Gunthorpe wrote:
->> On Thu, Dec 15, 2016 at 10:19:17PM +0200, Leon Romanovsky wrote:
->>
->>>> Jason gave an example with "
->>>> VERBS_PROVIDER_DEBUG=qp,ah,blah". Should all of the environment
->>>> variables, enabling other features in rdma-core use a similar
->>>> approach?
->>>
->>> I think that Jason is over designing it, but it is better to ask him
->>> about it.
->>
->> Well, this is what mlx5 does for debugging and I want to see it move
->> to the common API. Are you saying we can get rid of the classifications??
->
-> This is my personal opinion and Yishai can provide official opinion.
->
+As the functionality to convert the MTU from a number to enum_ib_mtu
+is ubiquitous, define a dedicated function and remove the duplicated
+code.
 
-Useful debug mode should have classification and granularity, let's 
-preserve this ability.
+Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb3/iwch_provider.c | 11 +----------
+ drivers/infiniband/hw/cxgb4/provider.c      | 11 +----------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c   | 11 +----------
+ drivers/infiniband/hw/nes/nes_verbs.c       | 12 +-----------
+ include/rdma/ib_verbs.h                     | 14 ++++++++++++++
+ 5 files changed, 18 insertions(+), 41 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index cba57bb..ebb74a2 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1134,16 +1134,7 @@ static int iwch_query_port(struct ib_device *ibdev,
+ 
+ 	memset(props, 0, sizeof(struct ib_port_attr));
+ 	props->max_mtu = IB_MTU_4096;
+-	if (netdev->mtu >= 4096)
+-		props->active_mtu = IB_MTU_4096;
+-	else if (netdev->mtu >= 2048)
+-		props->active_mtu = IB_MTU_2048;
+-	else if (netdev->mtu >= 1024)
+-		props->active_mtu = IB_MTU_1024;
+-	else if (netdev->mtu >= 512)
+-		props->active_mtu = IB_MTU_512;
+-	else
+-		props->active_mtu = IB_MTU_256;
++	props->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
+ 
+ 	if (!netif_carrier_ok(netdev))
+ 		props->state = IB_PORT_DOWN;
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index 645e606..8456fe3 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -359,16 +359,7 @@ static int c4iw_query_port(struct ib_device *ibdev, u8 port,
+ 
+ 	memset(props, 0, sizeof(struct ib_port_attr));
+ 	props->max_mtu = IB_MTU_4096;
+-	if (netdev->mtu >= 4096)
+-		props->active_mtu = IB_MTU_4096;
+-	else if (netdev->mtu >= 2048)
+-		props->active_mtu = IB_MTU_2048;
+-	else if (netdev->mtu >= 1024)
+-		props->active_mtu = IB_MTU_1024;
+-	else if (netdev->mtu >= 512)
+-		props->active_mtu = IB_MTU_512;
+-	else
+-		props->active_mtu = IB_MTU_256;
++	props->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
+ 
+ 	if (!netif_carrier_ok(netdev))
+ 		props->state = IB_PORT_DOWN;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 6329c97..0f7c5bf 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -99,16 +99,7 @@ static int i40iw_query_port(struct ib_device *ibdev,
+ 	memset(props, 0, sizeof(*props));
+ 
+ 	props->max_mtu = IB_MTU_4096;
+-	if (netdev->mtu >= 4096)
+-		props->active_mtu = IB_MTU_4096;
+-	else if (netdev->mtu >= 2048)
+-		props->active_mtu = IB_MTU_2048;
+-	else if (netdev->mtu >= 1024)
+-		props->active_mtu = IB_MTU_1024;
+-	else if (netdev->mtu >= 512)
+-		props->active_mtu = IB_MTU_512;
+-	else
+-		props->active_mtu = IB_MTU_256;
++	props->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
+ 
+ 	props->lid = 1;
+ 	if (netif_carrier_ok(iwdev->netdev))
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index bd69125..0e23660 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -478,17 +478,7 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
+ 	memset(props, 0, sizeof(*props));
+ 
+ 	props->max_mtu = IB_MTU_4096;
+-
+-	if (netdev->mtu  >= 4096)
+-		props->active_mtu = IB_MTU_4096;
+-	else if (netdev->mtu  >= 2048)
+-		props->active_mtu = IB_MTU_2048;
+-	else if (netdev->mtu  >= 1024)
+-		props->active_mtu = IB_MTU_1024;
+-	else if (netdev->mtu  >= 512)
+-		props->active_mtu = IB_MTU_512;
+-	else
+-		props->active_mtu = IB_MTU_256;
++	props->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
+ 
+ 	props->lid = 1;
+ 	props->lmc = 0;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5ad43a4..e0551a1 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -352,6 +352,20 @@ static inline int ib_mtu_enum_to_int(enum ib_mtu mtu)
+ 	}
+ }
+ 
++static inline enum ib_mtu ib_mtu_int_to_enum(int mtu)
++{
++	if (mtu >= 4096)
++		return IB_MTU_4096;
++	else if (mtu >= 2048)
++		return IB_MTU_2048;
++	else if (mtu >= 1024)
++		return IB_MTU_1024;
++	else if (mtu >= 512)
++		return IB_MTU_512;
++	else
++		return IB_MTU_256;
++}
++
+ enum ib_port_state {
+ 	IB_PORT_NOP		= 0,
+ 	IB_PORT_DOWN		= 1,
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
