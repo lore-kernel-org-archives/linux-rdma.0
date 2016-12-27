@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 9/9] IB/ipoib: Change list_del to list_del_init in the tx object
-Date: Tue, 27 Dec 2016 15:39:11 +0200
-Message-ID: <20161227133911.14340-10-leon@kernel.org>
+Subject: [PATCH rdma-next 8/9] IB/ipoib: Replace list_del of the neigh->list with list_del_init
+Date: Tue, 27 Dec 2016 15:39:10 +0200
+Message-ID: <20161227133911.14340-9-leon@kernel.org>
 References: <20161227133911.14340-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161227133911.14340-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,35 +12,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since ipoib_cm_tx_start function and ipoib_cm_tx_reap function
-belong to different work queues, they can run in parallel.
-In this case if ipoib_cm_tx_reap calls list_del and release the
-lock, ipoib_cm_tx_start may acquire it and call list_del_init
-on the already deleted object.
-Changing list_del to list_del_init in ipoib_cm_tx_reap fixes the problem.
+In order to resolve a situation where a few process delete
+the same list element in sequence and cause panic, list_del
+is replaced with list_del_init. In this case if the first
+process that calls list_del releases the lock before acquiring
+it again, other processes who can acquire the lock will call
+list_del_init.
 
-Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
+Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup")
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index b6444b2..cc08379 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1392,7 +1392,7 @@ static void ipoib_cm_tx_reap(struct work_struct *work)
- 
- 	while (!list_empty(&priv->cm.reap_list)) {
- 		p = list_entry(priv->cm.reap_list.next, typeof(*p), list);
--		list_del(&p->list);
-+		list_del_init(&p->list);
- 		spin_unlock_irqrestore(&priv->lock, flags);
- 		netif_tx_unlock_bh(dev);
- 		ipoib_cm_tx_destroy(p);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index b5e1e4d..d8af197 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1298,7 +1298,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
+ 						   rcu_dereference_protected(neigh->hnext,
+ 									     lockdep_is_held(&priv->lock)));
+ 				/* remove from path/mc list */
+-				list_del(&neigh->list);
++				list_del_init(&neigh->list);
+ 				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			} else {
+ 				np = &neigh->hnext;
+@@ -1462,7 +1462,7 @@ void ipoib_neigh_free(struct ipoib_neigh *neigh)
+ 					   rcu_dereference_protected(neigh->hnext,
+ 								     lockdep_is_held(&priv->lock)));
+ 			/* remove from parent list */
+-			list_del(&neigh->list);
++			list_del_init(&neigh->list);
+ 			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			return;
+ 		} else {
+@@ -1547,7 +1547,7 @@ void ipoib_del_neighs_by_gid(struct net_device *dev, u8 *gid)
+ 						   rcu_dereference_protected(neigh->hnext,
+ 									     lockdep_is_held(&priv->lock)));
+ 				/* remove from parent list */
+-				list_del(&neigh->list);
++				list_del_init(&neigh->list);
+ 				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			} else {
+ 				np = &neigh->hnext;
+@@ -1589,7 +1589,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 					   rcu_dereference_protected(neigh->hnext,
+ 								     lockdep_is_held(&priv->lock)));
+ 			/* remove from path/mc list */
+-			list_del(&neigh->list);
++			list_del_init(&neigh->list);
+ 			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 		}
+ 	}
 -- 
 2.10.2
 
