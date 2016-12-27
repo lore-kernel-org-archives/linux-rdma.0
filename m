@@ -1,8 +1,10 @@
 From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/1] ib_srp mr allocation failure
-Date: Tue, 27 Dec 2016 20:49:11 +0200
-Message-ID: <1482864552-27605-1-git-send-email-maxg@mellanox.com>
+Subject: [PATCH 1/1] IB/srp: fix mr allocation when the device supports sg gaps
+Date: Tue, 27 Dec 2016 20:49:12 +0200
+Message-ID: <1482864552-27605-2-git-send-email-maxg@mellanox.com>
+References: <1482864552-27605-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1482864552-27605-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,25 +12,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi,
+If the device support arbitrary sg list mapping (device cap
+IB_DEVICE_SG_GAPS_REG set) we allocate the memory regions with
+IB_MR_TYPE_SG_GAPS.
 
-While running traffic with multiple jobs I had those errors:
-scsi host8: ib_srp: Failed to map data (-12)
-scsi host8: ib_srp: Failed to map data (-12)
-...
-
-The reason for the map failurs are SG gaps.
-This bug happens to me only with CX4 because it supports SG gaps registration.
-I fixed this issue by allocating the mr with IB_MR_TYPE_SG_GAPS.
-
-Should it be pushed also to stable kernel code ?
-
-Israel Rukshin (1):
-  IB/srp: fix mr allocation when the device supports sg gaps
-
+Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
  drivers/infiniband/ulp/srp/ib_srp.c | 9 +++++++--
  1 file changed, 7 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 8ddc071..0f67cf9 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -371,6 +371,7 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+ 	struct srp_fr_desc *d;
+ 	struct ib_mr *mr;
+ 	int i, ret = -EINVAL;
++	enum ib_mr_type mr_type;
+ 
+ 	if (pool_size <= 0)
+ 		goto err;
+@@ -384,9 +385,13 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+ 	spin_lock_init(&pool->lock);
+ 	INIT_LIST_HEAD(&pool->free_list);
+ 
++	if (device->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
++		mr_type = IB_MR_TYPE_SG_GAPS;
++	else
++		mr_type = IB_MR_TYPE_MEM_REG;
++
+ 	for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
+-		mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
+-				 max_page_list_len);
++		mr = ib_alloc_mr(pd, mr_type, max_page_list_len);
+ 		if (IS_ERR(mr)) {
+ 			ret = PTR_ERR(mr);
+ 			if (ret == -ENOMEM)
 -- 
 1.8.4.3
 
