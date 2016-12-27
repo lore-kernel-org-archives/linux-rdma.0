@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 7/9] IB/ipoib: Use debug prints instead of warnings in RNR WC status
-Date: Tue, 27 Dec 2016 15:39:09 +0200
-Message-ID: <20161227133911.14340-8-leon@kernel.org>
+Subject: [PATCH rdma-next 9/9] IB/ipoib: Change list_del to list_del_init in the tx object
+Date: Tue, 27 Dec 2016 15:39:11 +0200
+Message-ID: <20161227133911.14340-10-leon@kernel.org>
 References: <20161227133911.14340-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161227133911.14340-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,39 +12,35 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If a receive request has not been posted to the work queue, the incoming
-message is rejected and the peer will receive a receiver-not-ready (RNR)
-error. In IPoIB, IB_WC_RNR_RETRY_EXC_ERR error is part of the life cycle
-therefore ipoib_cm_handle_tx_wc function will print to debug instead
-of warnings.
+Since ipoib_cm_tx_start function and ipoib_cm_tx_reap function
+belong to different work queues, they can run in parallel.
+In this case if ipoib_cm_tx_reap calls list_del and release the
+lock, ipoib_cm_tx_start may acquire it and call list_del_init
+on the already deleted object.
+Changing list_del to list_del_init in ipoib_cm_tx_reap fixes the problem.
 
+Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index a720d2d..b6444b2 100644
+index b6444b2..cc08379 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -820,9 +820,12 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	    wc->status != IB_WC_WR_FLUSH_ERR) {
- 		struct ipoib_neigh *neigh;
+@@ -1392,7 +1392,7 @@ static void ipoib_cm_tx_reap(struct work_struct *work)
  
--		ipoib_dbg(priv, "failed cm send event "
--			   "(status=%d, wrid=%d vend_err %x)\n",
--			   wc->status, wr_id, wc->vendor_err);
-+		if (wc->status != IB_WC_RNR_RETRY_EXC_ERR)
-+			ipoib_warn(priv, "%s: failed cm send event (status=%d, wrid=%d vend_err %x)\n",
-+				   __func__, wc->status, wr_id, wc->vendor_err);
-+		else
-+			ipoib_dbg(priv, "%s: failed cm send event (status=%d, wrid=%d vend_err %x)\n",
-+				  __func__, wc->status, wr_id, wc->vendor_err);
- 
- 		spin_lock_irqsave(&priv->lock, flags);
- 		neigh = tx->neigh;
+ 	while (!list_empty(&priv->cm.reap_list)) {
+ 		p = list_entry(priv->cm.reap_list.next, typeof(*p), list);
+-		list_del(&p->list);
++		list_del_init(&p->list);
+ 		spin_unlock_irqrestore(&priv->lock, flags);
+ 		netif_tx_unlock_bh(dev);
+ 		ipoib_cm_tx_destroy(p);
 -- 
 2.10.2
 
