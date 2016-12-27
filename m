@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 6/9] IB/ipoib: Add detailed error message to dev_queue_xmit call
-Date: Tue, 27 Dec 2016 15:39:08 +0200
-Message-ID: <20161227133911.14340-7-leon@kernel.org>
+Subject: [PATCH rdma-next 7/9] IB/ipoib: Use debug prints instead of warnings in RNR WC status
+Date: Tue, 27 Dec 2016 15:39:09 +0200
+Message-ID: <20161227133911.14340-8-leon@kernel.org>
 References: <20161227133911.14340-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161227133911.14340-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,74 +12,39 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add a detailed return code to dev_queue_xmit function when
-calling to requeue packet via __skb_dequeue.
+If a receive request has not been posted to the work queue, the incoming
+message is rejected and the peer will receive a receiver-not-ready (RNR)
+error. In IPoIB, IB_WC_RNR_RETRY_EXC_ERR error is part of the life cycle
+therefore ipoib_cm_handle_tx_wc function will print to debug instead
+of warnings.
 
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 7 ++++---
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 8 +++++---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 6 ++++--
- 3 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 1c7a9a1..a720d2d 100644
+index a720d2d..b6444b2 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1015,9 +1015,10 @@ static int ipoib_cm_rep_handler(struct ib_cm_id *cm_id, struct ib_cm_event *even
+@@ -820,9 +820,12 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	    wc->status != IB_WC_WR_FLUSH_ERR) {
+ 		struct ipoib_neigh *neigh;
  
- 	while ((skb = __skb_dequeue(&skqueue))) {
- 		skb->dev = p->dev;
--		if (dev_queue_xmit(skb))
--			ipoib_warn(priv, "dev_queue_xmit failed "
--				   "to requeue packet\n");
-+		ret = dev_queue_xmit(skb);
-+		if (ret)
-+			ipoib_warn(priv, "%s:dev_queue_xmit failed to re-queue packet, ret:%d\n",
-+				   __func__, ret);
- 	}
+-		ipoib_dbg(priv, "failed cm send event "
+-			   "(status=%d, wrid=%d vend_err %x)\n",
+-			   wc->status, wr_id, wc->vendor_err);
++		if (wc->status != IB_WC_RNR_RETRY_EXC_ERR)
++			ipoib_warn(priv, "%s: failed cm send event (status=%d, wrid=%d vend_err %x)\n",
++				   __func__, wc->status, wr_id, wc->vendor_err);
++		else
++			ipoib_dbg(priv, "%s: failed cm send event (status=%d, wrid=%d vend_err %x)\n",
++				  __func__, wc->status, wr_id, wc->vendor_err);
  
- 	ret = ib_send_cm_rtu(cm_id, NULL, 0);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 1090fe2..b5e1e4d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -844,10 +844,12 @@ static void path_rec_completion(int status,
- 		ipoib_put_ah(old_ah);
- 
- 	while ((skb = __skb_dequeue(&skqueue))) {
-+		int ret;
- 		skb->dev = dev;
--		if (dev_queue_xmit(skb))
--			ipoib_warn(priv, "dev_queue_xmit failed "
--				   "to requeue packet\n");
-+		ret = dev_queue_xmit(skb);
-+		if (ret)
-+			ipoib_warn(priv, "%s: dev_queue_xmit failed to re-queue packet, ret:%d\n",
-+				   __func__, ret);
- 	}
- }
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index fddff40..7c6c67b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -314,9 +314,11 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
- 		netif_tx_unlock_bh(dev);
- 
- 		skb->dev = dev;
--		if (dev_queue_xmit(skb))
--			ipoib_warn(priv, "dev_queue_xmit failed to requeue packet\n");
- 
-+		ret = dev_queue_xmit(skb);
-+		if (ret)
-+			ipoib_warn(priv, "%s:dev_queue_xmit failed to re-queue packet, ret:%d\n",
-+				   __func__, ret);
- 		netif_tx_lock_bh(dev);
- 	}
- 	netif_tx_unlock_bh(dev);
+ 		spin_lock_irqsave(&priv->lock, flags);
+ 		neigh = tx->neigh;
 -- 
 2.10.2
 
