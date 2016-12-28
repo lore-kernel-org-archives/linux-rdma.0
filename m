@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 7/9] IB/ipoib: Use debug prints instead of warnings in RNR WC status
-Date: Wed, 28 Dec 2016 14:47:26 +0200
-Message-ID: <20161228124728.26619-8-leon@kernel.org>
+Subject: [PATCH rdma-next V1 8/9] IB/ipoib: Replace list_del of the neigh->list with list_del_init
+Date: Wed, 28 Dec 2016 14:47:27 +0200
+Message-ID: <20161228124728.26619-9-leon@kernel.org>
 References: <20161228124728.26619-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161228124728.26619-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,39 +12,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If a receive request has not been posted to the work queue, the incoming
-message is rejected and the peer will receive a receiver-not-ready (RNR)
-error. In IPoIB, IB_WC_RNR_RETRY_EXC_ERR error is part of the life cycle
-therefore ipoib_cm_handle_tx_wc function will print to debug instead
-of warnings.
+In order to resolve a situation where a few process delete
+the same list element in sequence and cause panic, list_del
+is replaced with list_del_init. In this case if the first
+process that calls list_del releases the lock before acquiring
+it again, other processes who can acquire the lock will call
+list_del_init.
 
+Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup")
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index a720d2d..c433e72 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -820,9 +820,12 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	    wc->status != IB_WC_WR_FLUSH_ERR) {
- 		struct ipoib_neigh *neigh;
- 
--		ipoib_dbg(priv, "failed cm send event "
--			   "(status=%d, wrid=%d vend_err %x)\n",
--			   wc->status, wr_id, wc->vendor_err);
-+		if (wc->status != IB_WC_RNR_RETRY_EXC_ERR)
-+			ipoib_warn(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
-+				   wc->status, wr_id, wc->vendor_err);
-+		else
-+			ipoib_dbg(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
-+				  wc->status, wr_id, wc->vendor_err);
- 
- 		spin_lock_irqsave(&priv->lock, flags);
- 		neigh = tx->neigh;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index b5e1e4d..d8af197 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1298,7 +1298,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
+ 						   rcu_dereference_protected(neigh->hnext,
+ 									     lockdep_is_held(&priv->lock)));
+ 				/* remove from path/mc list */
+-				list_del(&neigh->list);
++				list_del_init(&neigh->list);
+ 				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			} else {
+ 				np = &neigh->hnext;
+@@ -1462,7 +1462,7 @@ void ipoib_neigh_free(struct ipoib_neigh *neigh)
+ 					   rcu_dereference_protected(neigh->hnext,
+ 								     lockdep_is_held(&priv->lock)));
+ 			/* remove from parent list */
+-			list_del(&neigh->list);
++			list_del_init(&neigh->list);
+ 			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			return;
+ 		} else {
+@@ -1547,7 +1547,7 @@ void ipoib_del_neighs_by_gid(struct net_device *dev, u8 *gid)
+ 						   rcu_dereference_protected(neigh->hnext,
+ 									     lockdep_is_held(&priv->lock)));
+ 				/* remove from parent list */
+-				list_del(&neigh->list);
++				list_del_init(&neigh->list);
+ 				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			} else {
+ 				np = &neigh->hnext;
+@@ -1589,7 +1589,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 					   rcu_dereference_protected(neigh->hnext,
+ 								     lockdep_is_held(&priv->lock)));
+ 			/* remove from path/mc list */
+-			list_del(&neigh->list);
++			list_del_init(&neigh->list);
+ 			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 		}
+ 	}
 -- 
 2.10.2
 
