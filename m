@@ -1,48 +1,53 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when changing the MTU in UD over the max range
-Date: Wed, 28 Dec 2016 14:47:20 +0200
-Message-ID: <20161228124728.26619-2-leon@kernel.org>
-References: <20161228124728.26619-1-leon@kernel.org>
+Subject: [PATCH rdma-next V1 0/9] IPoIB fixes for 4.11
+Date: Wed, 28 Dec 2016 14:47:19 +0200
+Message-ID: <20161228124728.26619-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161228124728.26619-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-In datagram mode, the IB UD (Unreliable Datagram) transport is used
-so the MTU of the interface is equal to the IB L2 MTU minus the
-IPoIB encapsulation header. Any request to change the MTU value
-above the maximum range will change the MTU to the max allowed, but
-will not show any warning message. An ipoib_warn is issued in such
-cases, letting the user know that even though the value is legal,
-it can't be currently applied.
+This is secnd version of 8 patches from Feras for IPoIB.
 
-Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++++
- 1 file changed, 4 insertions(+)
+The patchset was generated against v4.10-rc1 and targeted for 4.11.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 3ce0765..a550cc6 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -229,6 +229,10 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
- 
- 	priv->admin_mtu = new_mtu;
- 
-+	if (priv->mcast_mtu < priv->admin_mtu)
-+		ipoib_warn(priv, "MTU must be smaller than mcast_mtu (%u)\n",
-+			   priv->mcast_mtu);
-+
- 	dev->mtu = min(priv->mcast_mtu, priv->admin_mtu);
- 
- 	return 0;
--- 
+The patch "IB/ipoib: Fix deadlock between rmmod and set_mode" which fix kernel panic
+is marked as candidate for stable tree inclusion.
+
+Available in the "topic/ipoib-fixes-4.11" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/ipoib-fixes-4.11
+
+Thanks
+
+Changelog v0 -> v1:
+ * Patch 2,5,6 - add Yuval Shaia's ROB tags
+ * Patch 7 - remove __func__ prints
+
+Feras Daoud (9):
+  IB/ipoib: Add warning message when changing the MTU in UD over the max
+    range
+  IB/ipoib: Set device connection mode only when needed
+  IB/ipoib: Fix deadlock over vlan_mutex
+  IB/ipoib: Fix deadlock between rmmod and set_mode
+  IB/ipoib: rtnl_unlock can not come after free_netdev
+  IB/ipoib: Add detailed error message to dev_queue_xmit call
+  IB/ipoib: Use debug prints instead of warnings in RNR WC status
+  IB/ipoib: Replace list_del of the neigh->list with list_del_init
+  IB/ipoib: Change list_del to list_del_init in the tx object
+
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 30 ++++++++++++++---------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 34 +++++++++++++++++---------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  6 +++--
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c      | 10 +++++---
+ 4 files changed, 52 insertions(+), 28 deletions(-)
+
+--
 2.10.2
 
 --
