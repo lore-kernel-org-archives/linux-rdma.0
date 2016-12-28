@@ -1,52 +1,51 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 0/9] IPoIB fixes for 4.11
-Date: Wed, 28 Dec 2016 14:47:19 +0200
-Message-ID: <20161228124728.26619-1-leon@kernel.org>
+Subject: [PATCH rdma-next V1 2/9] IB/ipoib: Set device connection mode only when needed
+Date: Wed, 28 Dec 2016 14:47:21 +0200
+Message-ID: <20161228124728.26619-3-leon@kernel.org>
+References: <20161228124728.26619-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161228124728.26619-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is secnd version of 8 patches from Feras for IPoIB.
+When changing the connection mode, the ipoib_set_mode function
+did not check if the previous connection mode equals to the
+new one. This commit adds the required check and return 0 if the new
+mode equals to the previous one.
 
-The patchset was generated against v4.10-rc1 and targeted for 4.11.
+Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
+Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-The patch "IB/ipoib: Fix deadlock between rmmod and set_mode" which fix kernel panic
-is marked as candidate for stable tree inclusion.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index a550cc6..1787f6b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -474,6 +474,14 @@ int ipoib_set_mode(struct net_device *dev, const char *buf)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 
-Available in the "topic/ipoib-fixes-4.11" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/ipoib-fixes-4.11
-
-Thanks
-
-Changelog v0 -> v1:
- * Patch 2,5,6 - add Yuval Shaia's ROB tags
- * Patch 7 - remove __func__ prints
-
-Feras Daoud (9):
-  IB/ipoib: Add warning message when changing the MTU in UD over the max
-    range
-  IB/ipoib: Set device connection mode only when needed
-  IB/ipoib: Fix deadlock over vlan_mutex
-  IB/ipoib: Fix deadlock between rmmod and set_mode
-  IB/ipoib: rtnl_unlock can not come after free_netdev
-  IB/ipoib: Add detailed error message to dev_queue_xmit call
-  IB/ipoib: Use debug prints instead of warnings in RNR WC status
-  IB/ipoib: Replace list_del of the neigh->list with list_del_init
-  IB/ipoib: Change list_del to list_del_init in the tx object
-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        | 30 ++++++++++++++---------
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 34 +++++++++++++++++---------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  6 +++--
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c      | 10 +++++---
- 4 files changed, 52 insertions(+), 28 deletions(-)
-
++	if ((test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags) &&
++	     !strcmp(buf, "connected\n")) ||
++	     (!test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags) &&
++	     !strcmp(buf, "datagram\n"))) {
++		ipoib_dbg(priv, "already in that mode, goes out.\n");
++		return 0;
++	}
++
+ 	/* flush paths if we switch modes so that connections are restarted */
+ 	if (IPOIB_CM_SUPPORTED(dev->dev_addr) && !strcmp(buf, "connected\n")) {
+ 		set_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
 --
 2.10.2
 
