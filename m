@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 2/9] IB/ipoib: Set device connection mode only when needed
-Date: Wed, 28 Dec 2016 14:47:21 +0200
-Message-ID: <20161228124728.26619-3-leon@kernel.org>
+Subject: [PATCH rdma-next V1 3/9] IB/ipoib: Fix deadlock over vlan_mutex
+Date: Wed, 28 Dec 2016 14:47:22 +0200
+Message-ID: <20161228124728.26619-4-leon@kernel.org>
 References: <20161228124728.26619-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161228124728.26619-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,41 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When changing the connection mode, the ipoib_set_mode function
-did not check if the previous connection mode equals to the
-new one. This commit adds the required check and return 0 if the new
-mode equals to the previous one.
+This patch fixes Deadlock while executing ipoib_vlan_delete.
 
-Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
+The function takes the vlan_rwsem semaphore and calls
+unregister_netdevice. The later function calls
+ipoib_mcast_stop_thread that cause workqueue flush.
+
+When the queue has one of the ipoib_ib_dev_flush_xxx events,
+a deadlock occur because these events also tries to catch the
+same vlan_rwsem semaphore.
+
+To fix, unregister_netdevice should be called after releasing
+the semaphore.
+
+Fixes: cbbe1efa4972 ("IPoIB: Fix deadlock between ipoib_open() and child interface create")
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index a550cc6..1787f6b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -474,6 +474,14 @@ int ipoib_set_mode(struct net_device *dev, const char *buf)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-
-+	if ((test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags) &&
-+	     !strcmp(buf, "connected\n")) ||
-+	     (!test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags) &&
-+	     !strcmp(buf, "datagram\n"))) {
-+		ipoib_dbg(priv, "already in that mode, goes out.\n");
-+		return 0;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+index fd81111..9682183 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+@@ -196,7 +196,6 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
+ 	list_for_each_entry_safe(priv, tpriv, &ppriv->child_intfs, list) {
+ 		if (priv->pkey == pkey &&
+ 		    priv->child_type == IPOIB_LEGACY_CHILD) {
+-			unregister_netdevice(priv->dev);
+ 			list_del(&priv->list);
+ 			dev = priv->dev;
+ 			break;
+@@ -204,6 +203,11 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
+ 	}
+ 	up_write(&ppriv->vlan_rwsem);
+ 
++	if (dev) {
++		ipoib_dbg(ppriv, "delete child vlan %s\n", dev->name);
++		unregister_netdevice(dev);
 +	}
 +
- 	/* flush paths if we switch modes so that connections are restarted */
- 	if (IPOIB_CM_SUPPORTED(dev->dev_addr) && !strcmp(buf, "connected\n")) {
- 		set_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
---
+ 	rtnl_unlock();
+ 
+ 	if (dev) {
+-- 
 2.10.2
 
 --
