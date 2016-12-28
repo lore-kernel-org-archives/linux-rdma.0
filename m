@@ -1,29 +1,67 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/srpt: fix compilation warning
-Date: Wed, 28 Dec 2016 11:41:21 +0000
-Message-ID: <1482925264.6713.5.camel@sandisk.com>
-References: <1482922813-8392-1-git-send-email-maxg@mellanox.com>
-         <1482922813-8392-4-git-send-email-maxg@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 5/9] IB/ipoib: rtnl_unlock can not come after
+ free_netdev
+Date: Wed, 28 Dec 2016 14:05:12 +0200
+Message-ID: <20161228120511.GB6237@yuval-lap>
+References: <20161227133911.14340-1-leon@kernel.org>
+ <20161227133911.14340-6-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482922813-8392-4-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <4FB321D296639E42BC21C55FBEC903BC-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20161227133911.14340-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE2LTEyLTI4IGF0IDEzOjAwICswMjAwLCBNYXggR3VydG92b3kgd3JvdGU6DQo+
-IHdhcm5pbmc6ICdwcmV2X25lbnRzJyBtYXkgYmUgdXNlZCB1bmluaXRpYWxpemVkIGluIHRoaXMg
-ZnVuY3Rpb24NCg0KV2hhdCBjb21waWxlciBhbmQgd2hpY2ggdmVyc2lvbiBvZiB0aGF0IGNvbXBp
-bGVyIHJlcG9ydGVkIHRoYXQgJ3ByZXZfbmVudHMnDQptYXkgYmUgdXNlZCB1bmluaXRpYWxpemVk
-PyBUaGF0IHdhcm5pbmcgaW5kaWNhdGVzIGEgY29tcGlsZXIgYnVnLiBSZWNlbnQNCnZlcnNpb25z
-IG9mIGdjYyBkbyBub3QgcmVwb3J0IHRoYXQgd2FybmluZy4gUGF0Y2hlcyB0aGF0IHN1cHByZXNz
-IHdhcm5pbmdzDQp0aGF0IGFyZSByZXBvcnRlZCBieSBidWdzIGluIG9sZCBjb21waWxlciB2ZXJz
-aW9ucyBzaG91bGQgbm90IGJlIHNlbnQgdXBzdHJlYW0uDQoNCkJhcnQu
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+On Tue, Dec 27, 2016 at 03:39:07PM +0200, Leon Romanovsky wrote:
+> From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> The ipoib_vlan_add function calls rtnl_unlock after free_netdev,
+> rtnl_unlock not only releases the lock, but also calls netdev_run_todo.
+> The latter function browses the net_todo_list array and completes the
+> unregistration of all its net_device instances. If we call free_netdev
+> before rtnl_unlock, then netdev_run_todo call over the freed device causes
+> panic.
+> To fix, move rtnl_unlock call before free_netdev call.
+> 
+> Fixes: 9baa0b036410 ("IB/ipoib: Add rtnl_link_ops support")
+> Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+> index 9682183..d9dab4a 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+> @@ -168,11 +168,11 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+>  out:
+>  	up_write(&ppriv->vlan_rwsem);
+>  
+> +	rtnl_unlock();
+> +
+>  	if (result)
+>  		free_netdev(priv->dev);
+>  
+> -	rtnl_unlock();
+> -
+>  	return result;
+>  }
+>  
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
