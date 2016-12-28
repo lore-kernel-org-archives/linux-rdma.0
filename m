@@ -1,85 +1,40 @@
-From: Kenneth Lee <liguozhu@hisilicon.com>
-Subject: Re: [PATCH] ib umem: bug: put pid back before return from error path
-Date: Thu, 29 Dec 2016 10:28:34 +0800
-Message-ID: <20161229022834.GH46690@Turing-Arch-b>
-References: <1482390692-147946-1-git-send-email-liguozhu@hisilicon.com>
- <e470fbab-a330-b9c4-f2b3-65fb45f24e0a@mellanox.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 3/3] IB/srpt: fix compilation warning
+Date: Wed, 28 Dec 2016 13:44:42 +0200
+Message-ID: <7a85fe72-04b3-92d5-95ec-0e586edbd9fd@mellanox.com>
+References: <1482922813-8392-1-git-send-email-maxg@mellanox.com>
+ <1482922813-8392-4-git-send-email-maxg@mellanox.com>
+ <1482925264.6713.5.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <e470fbab-a330-b9c4-f2b3-65fb45f24e0a@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Bloch <markb@mellanox.com>
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1482925264.6713.5.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, 
 
-Sorry for the delay (I'd got some problem in my procmailrc file, and miss this 
-mail).
 
-The new patch, with title "[PATCH] ib umem: bugfix: mixed put_pid()s in
-ib_umem_get()", has been sent.
+On 12/28/2016 1:41 PM, Bart Van Assche wrote:
+> On Wed, 2016-12-28 at 13:00 +0200, Max Gurtovoy wrote:
+>> warning: 'prev_nents' may be used uninitialized in this function
+>
+> What compiler and which version of that compiler reported that 'prev_nents'
+> may be used uninitialized? That warning indicates a compiler bug. Recent
+> versions of gcc do not report that warning. Patches that suppress warnings
+> that are reported by bugs in old compiler versions should not be sent upstream.
+>
+> Bart.
+>
 
-On Thu, Dec 22, 2016 at 10:00:57AM +0200, Mark Bloch wrote:
-> Date: Thu, 22 Dec 2016 10:00:57 +0200
-> From: Mark Bloch <markb@mellanox.com>
-> To: Kenneth Lee <liguozhu@hisilicon.com>, dledford@redhat.com,
->  sean.hefty@intel.com, hal.rosenstock@gmail.com
-> CC: robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no,
->  vgupta@synopsys.com, dave.hansen@linux.intel.com, lstoakes@gmail.com,
->  krzk@kernel.org, sebott@linux.vnet.ibm.com, linux-rdma@vger.kernel.org,
->  linux-kernel@vger.kernel.org
-> Subject: Re: [PATCH] ib umem: bug: put pid back before return from error
->  path
-> User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:45.0) Gecko/20100101
->  Thunderbird/45.5.1
-> Message-ID: <e470fbab-a330-b9c4-f2b3-65fb45f24e0a@mellanox.com>
-> 
-> Hi,
-> 
-> You have two bugs here:
-> 1) When using ODP, ib_umem_release() checks for umem->odp_data != NULL 
->    calls ib_umem_odp_release() and returns immediately without calling put_pid().
->    This one isn't in the error path so the title doesn't fit.
-> 
-> 2) In case the allocation failed, we return in -ENOMEM without calling put_pid().
-> 
-> Can you please resend this with proper fixes line and a better description of what is going on.
-> 
-> On 22/12/2016 09:11, Kenneth Lee wrote:
-> > I catched this bug when reading the code. I'm sorry I have no hardware to test
-> > it. But it is abviously a bug.
-> > 
-> > Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
-> > ---
-> >  drivers/infiniband/core/umem.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> > index 1e62a5f..4609b92 100644
-> > --- a/drivers/infiniband/core/umem.c
-> > +++ b/drivers/infiniband/core/umem.c
-> > @@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >  		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
-> >  
-> >  	if (access & IB_ACCESS_ON_DEMAND) {
-> > +		put_pid(umem->pid);
-> >  		ret = ib_umem_odp_get(context, umem);
-> >  		if (ret) {
-> >  			kfree(umem);
-> > @@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >  
-> >  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
-> >  	if (!page_list) {
-> > +		put_pid(umem->pid);
-> >  		kfree(umem);
-> >  		return ERR_PTR(-ENOMEM);
-> >  	}
-> > 
-> 
-> Mark.
+gcc version 4.4.7 20120313 (Red Hat 4.4.7-3) (GCC)
+I'll remove this patch in V2.
 
--- 
-			-Kenneth(Hisilicon)
+Thanks,
+Max.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
