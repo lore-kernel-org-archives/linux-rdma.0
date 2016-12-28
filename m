@@ -1,71 +1,143 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/3] IB/srpt: allocate ib_qp_attr on the stack
-Date: Wed, 28 Dec 2016 13:06:14 +0200
-Message-ID: <20161228110613.GA4735@yuval-lap>
+Subject: Re: [PATCH 1/3] IB/srp: allocate ib_qp_attr on the stack
+Date: Wed, 28 Dec 2016 13:14:50 +0200
+Message-ID: <20161228111450.GB4735@yuval-lap>
 References: <1482922813-8392-1-git-send-email-maxg@mellanox.com>
- <1482922813-8392-3-git-send-email-maxg@mellanox.com>
+ <1482922813-8392-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1482922813-8392-3-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1482922813-8392-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: bvanassche-HInyCGIudOg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-One minor comment in line but w/ or w/o it:
-
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-On Wed, Dec 28, 2016 at 01:00:12PM +0200, Max Gurtovoy wrote:
+On Wed, Dec 28, 2016 at 01:00:11PM +0200, Max Gurtovoy wrote:
 > No reason to allocate it dynamically.
 > 
+> Tested-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c |   18 +++++++-----------
->  1 files changed, 7 insertions(+), 11 deletions(-)
+>  drivers/infiniband/ulp/srp/ib_srp.c |   51 +++++++++++++----------------------
+>  1 files changed, 19 insertions(+), 32 deletions(-)
 > 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 0b1f69e..aa18d74 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -984,24 +984,20 @@ static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
->   */
->  static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index d980fb4..8a003eb 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -263,33 +263,28 @@ static void srp_qp_event(struct ib_event *event, void *context)
+>  static int srp_init_qp(struct srp_target_port *target,
+>  		       struct ib_qp *qp)
 >  {
 > -	struct ib_qp_attr *attr;
 > +	struct ib_qp_attr attr;
 >  	int ret;
 >  
-> -	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
+> -	attr = kmalloc(sizeof *attr, GFP_KERNEL);
 > -	if (!attr)
 > -		return -ENOMEM;
 > -
-> -	attr->qp_state = IB_QPS_INIT;
-> -	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
-> +	memset(&attr, 0, sizeof(attr));
-> +	attr.qp_state = IB_QPS_INIT;
-> +	attr.qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
->  	    IB_ACCESS_REMOTE_WRITE;
-> -	attr->port_num = ch->sport->port;
-> -	attr->pkey_index = 0;
-> +	attr.port_num = ch->sport->port;
-> +	attr.pkey_index = 0;
+>  	ret = ib_find_cached_pkey(target->srp_host->srp_dev->dev,
+>  				  target->srp_host->port,
+>  				  be16_to_cpu(target->pkey),
+> -				  &attr->pkey_index);
+> +				  &attr.pkey_index);
+>  	if (ret)
+>  		goto out;
+>  
+> -	attr->qp_state        = IB_QPS_INIT;
+> -	attr->qp_access_flags = (IB_ACCESS_REMOTE_READ |
+> +	attr.qp_state        = IB_QPS_INIT;
 
-Correct me if i'm wrong but this looks like redundant since we zeroed the
-entire attr object few lines ago.
+Since kzmalloc was not used this patch do the job it intend to do.
+Do you think, while-we-are-there that it will be safer to use memset before
+using the object?
 
+> +	attr.qp_access_flags = (IB_ACCESS_REMOTE_READ |
+>  				    IB_ACCESS_REMOTE_WRITE);
+> -	attr->port_num        = target->srp_host->port;
+> +	attr.port_num        = target->srp_host->port;
 >  
 > -	ret = ib_modify_qp(qp, attr,
 > +	ret = ib_modify_qp(qp, &attr,
->  			   IB_QP_STATE | IB_QP_ACCESS_FLAGS | IB_QP_PORT |
->  			   IB_QP_PKEY_INDEX);
+>  			   IB_QP_STATE		|
+>  			   IB_QP_PKEY_INDEX	|
+>  			   IB_QP_ACCESS_FLAGS	|
+>  			   IB_QP_PORT);
 >  
+>  out:
 > -	kfree(attr);
 >  	return ret;
 >  }
 >  
+> @@ -2280,7 +2275,7 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+>  			       struct srp_rdma_ch *ch)
+>  {
+>  	struct srp_target_port *target = ch->target;
+> -	struct ib_qp_attr *qp_attr = NULL;
+> +	struct ib_qp_attr qp_attr;
+>  	int attr_mask = 0;
+>  	int ret;
+>  	int i;
+> @@ -2312,44 +2307,36 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+>  			goto error;
+>  	}
+>  
+> -	ret = -ENOMEM;
+> -	qp_attr = kmalloc(sizeof *qp_attr, GFP_KERNEL);
+> -	if (!qp_attr)
+> -		goto error;
+> -
+> -	qp_attr->qp_state = IB_QPS_RTR;
+> -	ret = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
+> +	qp_attr.qp_state = IB_QPS_RTR;
+> +	ret = ib_cm_init_qp_attr(cm_id, &qp_attr, &attr_mask);
+>  	if (ret)
+> -		goto error_free;
+> +		goto error;
+>  
+> -	ret = ib_modify_qp(ch->qp, qp_attr, attr_mask);
+> +	ret = ib_modify_qp(ch->qp, &qp_attr, attr_mask);
+>  	if (ret)
+> -		goto error_free;
+> +		goto error;
+>  
+>  	for (i = 0; i < target->queue_size; i++) {
+>  		struct srp_iu *iu = ch->rx_ring[i];
+>  
+>  		ret = srp_post_recv(ch, iu);
+>  		if (ret)
+> -			goto error_free;
+> +			goto error;
+>  	}
+>  
+> -	qp_attr->qp_state = IB_QPS_RTS;
+> -	ret = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
+> +	qp_attr.qp_state = IB_QPS_RTS;
+> +	ret = ib_cm_init_qp_attr(cm_id, &qp_attr, &attr_mask);
+>  	if (ret)
+> -		goto error_free;
+> +		goto error;
+>  
+> -	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
+> +	target->rq_tmo_jiffies = srp_compute_rq_tmo(&qp_attr, attr_mask);
+>  
+> -	ret = ib_modify_qp(ch->qp, qp_attr, attr_mask);
+> +	ret = ib_modify_qp(ch->qp, &qp_attr, attr_mask);
+>  	if (ret)
+> -		goto error_free;
+> +		goto error;
+>  
+>  	ret = ib_send_cm_rtu(cm_id, NULL, 0);
+>  
+> -error_free:
+> -	kfree(qp_attr);
+> -
+>  error:
+>  	ch->status = ret;
+>  }
 > -- 
 > 1.7.1
 > 
