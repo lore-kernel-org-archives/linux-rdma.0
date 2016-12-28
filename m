@@ -1,89 +1,56 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 8/9] IB/ipoib: Replace list_del of the
- neigh->list with list_del_init
-Date: Wed, 28 Dec 2016 15:01:27 +0200
-Message-ID: <20161228130126.GF6237@yuval-lap>
+Subject: Re: [PATCH rdma-next 9/9] IB/ipoib: Change list_del to list_del_init
+ in the tx object
+Date: Wed, 28 Dec 2016 15:06:26 +0200
+Message-ID: <20161228130625.GG6237@yuval-lap>
 References: <20161227133911.14340-1-leon@kernel.org>
- <20161227133911.14340-9-leon@kernel.org>
+ <20161227133911.14340-10-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161227133911.14340-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20161227133911.14340-10-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 27, 2016 at 03:39:10PM +0200, Leon Romanovsky wrote:
+On Tue, Dec 27, 2016 at 03:39:11PM +0200, Leon Romanovsky wrote:
 > From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> In order to resolve a situation where a few process delete
-> the same list element in sequence and cause panic, list_del
-
-s/"the same list element"/"the same neigh element"
-
-Assuming this applies to handling neigh list and not a general rule we shall
-stick to. In this case suggesting a minor rephrasing of the commit message.
-
-Besides that:
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> is replaced with list_del_init. In this case if the first
-> process that calls list_del releases the lock before acquiring
-> it again, other processes who can acquire the lock will call
-> list_del_init.
+> Since ipoib_cm_tx_start function and ipoib_cm_tx_reap function
+> belong to different work queues, they can run in parallel.
+> In this case if ipoib_cm_tx_reap calls list_del and release the
+> lock, ipoib_cm_tx_start may acquire it and call list_del_init
+> on the already deleted object.
+> Changing list_del to list_del_init in ipoib_cm_tx_reap fixes the problem.
 > 
-> Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup")
+> Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
 > Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+>  drivers/infiniband/ulp/ipoib/ipoib_cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index b5e1e4d..d8af197 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1298,7 +1298,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
->  						   rcu_dereference_protected(neigh->hnext,
->  									     lockdep_is_held(&priv->lock)));
->  				/* remove from path/mc list */
-> -				list_del(&neigh->list);
-> +				list_del_init(&neigh->list);
->  				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
->  			} else {
->  				np = &neigh->hnext;
-> @@ -1462,7 +1462,7 @@ void ipoib_neigh_free(struct ipoib_neigh *neigh)
->  					   rcu_dereference_protected(neigh->hnext,
->  								     lockdep_is_held(&priv->lock)));
->  			/* remove from parent list */
-> -			list_del(&neigh->list);
-> +			list_del_init(&neigh->list);
->  			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
->  			return;
->  		} else {
-> @@ -1547,7 +1547,7 @@ void ipoib_del_neighs_by_gid(struct net_device *dev, u8 *gid)
->  						   rcu_dereference_protected(neigh->hnext,
->  									     lockdep_is_held(&priv->lock)));
->  				/* remove from parent list */
-> -				list_del(&neigh->list);
-> +				list_del_init(&neigh->list);
->  				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
->  			} else {
->  				np = &neigh->hnext;
-> @@ -1589,7 +1589,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
->  					   rcu_dereference_protected(neigh->hnext,
->  								     lockdep_is_held(&priv->lock)));
->  			/* remove from path/mc list */
-> -			list_del(&neigh->list);
-> +			list_del_init(&neigh->list);
->  			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
->  		}
->  	}
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> index b6444b2..cc08379 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> @@ -1392,7 +1392,7 @@ static void ipoib_cm_tx_reap(struct work_struct *work)
+>  
+>  	while (!list_empty(&priv->cm.reap_list)) {
+>  		p = list_entry(priv->cm.reap_list.next, typeof(*p), list);
+> -		list_del(&p->list);
+> +		list_del_init(&p->list);
+>  		spin_unlock_irqrestore(&priv->lock, flags);
+>  		netif_tx_unlock_bh(dev);
+>  		ipoib_cm_tx_destroy(p);
 > -- 
+
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
 > 2.10.2
 > 
 > --
