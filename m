@@ -1,54 +1,51 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 5/9] IB/ipoib: rtnl_unlock can not come after free_netdev
-Date: Wed, 28 Dec 2016 14:47:24 +0200
-Message-ID: <20161228124728.26619-6-leon@kernel.org>
+Subject: [PATCH rdma-next V1 7/9] IB/ipoib: Use debug prints instead of warnings in RNR WC status
+Date: Wed, 28 Dec 2016 14:47:26 +0200
+Message-ID: <20161228124728.26619-8-leon@kernel.org>
 References: <20161228124728.26619-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161228124728.26619-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The ipoib_vlan_add function calls rtnl_unlock after free_netdev,
-rtnl_unlock not only releases the lock, but also calls netdev_run_todo.
-The latter function browses the net_todo_list array and completes the
-unregistration of all its net_device instances. If we call free_netdev
-before rtnl_unlock, then netdev_run_todo call over the freed device causes
-panic.
-To fix, move rtnl_unlock call before free_netdev call.
+If a receive request has not been posted to the work queue, the incoming
+message is rejected and the peer will receive a receiver-not-ready (RNR)
+error. In IPoIB, IB_WC_RNR_RETRY_EXC_ERR error is part of the life cycle
+therefore ipoib_cm_handle_tx_wc function will print to debug instead
+of warnings.
 
-Fixes: 9baa0b036410 ("IB/ipoib: Add rtnl_link_ops support")
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index 9682183..d9dab4a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -168,11 +168,11 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- out:
- 	up_write(&ppriv->vlan_rwsem);
-
-+	rtnl_unlock();
-+
- 	if (result)
- 		free_netdev(priv->dev);
-
--	rtnl_unlock();
--
- 	return result;
- }
-
---
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index a720d2d..c433e72 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -820,9 +820,12 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	    wc->status != IB_WC_WR_FLUSH_ERR) {
+ 		struct ipoib_neigh *neigh;
+ 
+-		ipoib_dbg(priv, "failed cm send event "
+-			   "(status=%d, wrid=%d vend_err %x)\n",
+-			   wc->status, wr_id, wc->vendor_err);
++		if (wc->status != IB_WC_RNR_RETRY_EXC_ERR)
++			ipoib_warn(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
++				   wc->status, wr_id, wc->vendor_err);
++		else
++			ipoib_dbg(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
++				  wc->status, wr_id, wc->vendor_err);
+ 
+ 		spin_lock_irqsave(&priv->lock, flags);
+ 		neigh = tx->neigh;
+-- 
 2.10.2
 
 --
