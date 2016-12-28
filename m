@@ -1,27 +1,23 @@
 From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/1 v2] ib_srp mr allocation failure
-Date: Wed, 28 Dec 2016 12:48:27 +0200
-Message-ID: <1482922108-3243-1-git-send-email-maxg@mellanox.com>
+Subject: [PATCH 0/3] srp/srpt - some useful patches
+Date: Wed, 28 Dec 2016 13:00:10 +0200
+Message-ID: <1482922813-8392-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: bvanassche-HInyCGIudOg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+No bug fixes, but few improvements that might help.
 
-Changes from v1:
-	- added "Fixes:"
-	- Cc'ed stable kernel 4.7+
+Max Gurtovoy (3):
+  IB/srp: allocate ib_qp_attr on the stack
+  IB/srpt: allocate ib_qp_attr on the stack
+  IB/srpt: fix compilation warning
 
-Israel Rukshin (1):
-  IB/srp: fix mr allocation when the device supports sg gaps
-
- drivers/infiniband/ulp/srp/ib_srp.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
--- 
-1.8.4.3
+ drivers/infiniband/ulp/srp/ib_srp.c   |   51 ++++++++++++--------------------
+ drivers/infiniband/ulp/srpt/ib_srpt.c |   20 +++++--------
+ 2 files changed, 27 insertions(+), 44 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
