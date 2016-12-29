@@ -1,64 +1,88 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2] ib umem: bugfix: mixed put_pid()s in ib_umem_get()
-Date: Thu, 29 Dec 2016 10:17:56 +0200
-Message-ID: <20161229081756.GI26885@mtr-leonro.local>
-References: <1483000048-183875-1-git-send-email-liguozhu@hisilicon.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ZOudaV4lSIjFTlHv"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1483000048-183875-1-git-send-email-liguozhu@hisilicon.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kenneth Lee <liguozhu@hisilicon.com>
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, markb@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-core 0/4] Debian fixes
+Date: Thu, 29 Dec 2016 15:49:04 +0200
+Message-ID: <20161229134908.13185-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---ZOudaV4lSIjFTlHv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is a set of patches to fix up errors and warnings in the debian
+files that reported by lintian [1]. It includes debian/copyright file
+according to debian's format [2].
 
-On Thu, Dec 29, 2016 at 04:27:28PM +0800, Kenneth Lee wrote:
-> There are two bugfixes in this patch:
->
-> 1. When the execution go to the ib_umem_odp_get() path, pid should be put
->    back.
-> 2. When the memory allocation fail, the pid also should be put back before
->    exit.
->
-> Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
-> Reviewed-by: Haggai Eran <haggaie@mellanox.com>
-> ---
-> Change from v1 to v2:
->   Correcting the patch title and description
+The pull request can be found at [3].
 
-I don't see any changes except version in the title.
-What about anything like this?
-[PATCH v3] IB/umem: Release pid in error and ODP flows
+[1]
+E: rdma-core changes: bad-distribution-in-changes-file unstable
+W: rdma-core source: native-package-with-dash-version
+E: rdma-core source: build-depends-on-build-essential build-depends
+W: rdma-core source: no-debian-copyright
+W: ibverbs-providers: new-package-should-close-itp-bug
+E: ibverbs-providers: no-copyright-file
+W: libibcm1-dbg: new-package-should-close-itp-bug
+E: libibcm1-dbg: no-copyright-file
+W: librdmacm1: new-package-should-close-itp-bug
+E: librdmacm1: no-copyright-file
+W: libibumad3-dbg: new-package-should-close-itp-bug
+E: libibumad3-dbg: no-copyright-file
+W: rdma-core: new-package-should-close-itp-bug
+E: rdma-core: no-copyright-file
+W: ibacm: new-package-should-close-itp-bug
+E: ibacm: no-copyright-file
+W: libibverbs1-dbg: new-package-should-close-itp-bug
+E: libibverbs1-dbg: no-copyright-file
+W: librdmacm-dev: new-package-should-close-itp-bug
+E: librdmacm-dev: no-copyright-file
+W: srptools: new-package-should-close-itp-bug
+E: srptools: no-copyright-file
+W: libibverbs1: new-package-should-close-itp-bug
+E: libibverbs1: no-copyright-file
+W: rdmacm-utils: new-package-should-close-itp-bug
+E: rdmacm-utils: no-copyright-file
+W: libibverbs-dev: new-package-should-close-itp-bug
+E: libibverbs-dev: no-copyright-file
+W: libibcm-dev: new-package-should-close-itp-bug
+E: libibcm-dev: no-copyright-file
+W: iwpmd: new-package-should-close-itp-bug
+E: iwpmd: no-copyright-file
+W: libibumad3: new-package-should-close-itp-bug
+E: libibumad3: no-copyright-file
+W: libibcm1: new-package-should-close-itp-bug
+E: libibcm1: no-copyright-file
+W: ibverbs-utils: new-package-should-close-itp-bug
+E: ibverbs-utils: no-copyright-file
+W: libibumad-dev: new-package-should-close-itp-bug
+E: libibumad-dev: no-copyright-file
+W: librdmacm1-dbg: new-package-should-close-itp-bug
+E: librdmacm1-dbg: no-copyright-file
 
-And Fixes line please, it will help to forward it to stable trees.
+[2]
+https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
-Thanks
+[3]
+https://github.com/linux-rdma/rdma-core/pull/50
 
---ZOudaV4lSIjFTlHv
-Content-Type: application/pgp-signature; name="signature.asc"
+Talat Batheesh (4):
+  debian/control: Remove build-essential from Build-Depends
+  debian/iwpmd.install: Remove ibacm from iwpmd install
+  debian/copyright: Add copyright information
+  debian/changelog: Update changes
 
------BEGIN PGP SIGNATURE-----
+ debian/changelog     |  11 +
+ debian/control       |   3 +-
+ debian/copyright     | 569 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ debian/iwpmd.install |   1 -
+ 4 files changed, 581 insertions(+), 3 deletions(-)
+ create mode 100644 debian/copyright
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhkxrQACgkQ5GN7iDZy
-WKevrA/7B6kg0taTjvtuLfwUG0CuQFrRESY4Rwh9XwSsbOtXkRG7nacHwyiNAAJY
-5gejfWAS0bUIqnnCuU0/sz3KbmeDocAOephzYvXxFlYpqciRA63lGh8roNeiyZGT
-bc6sO2l2zT21y0oHgfwU5Y/E8wwVsPyidZ2OJYexvGkl57msP0yHcuxAayl73vQ3
-l9aMpiLnwzpmK3YZNrV5imfsmZPYXk0OpucB/vPs3AdCn2eXf7XtrlvUBqDwb67i
-MbM/wZiqTy9BG2EftZkG+rDLsd1et1dbOcCJF+l7M7kyLSeqxdcWjpnLRiN75MA+
-WZKDxAYR0fM/5ZFi/YuQtafXu8FcoWsgWcrJ45VeBiH9lO5iQq/qWbOgm2H2HC3r
-KH4sRiDt4V7UffodDoOJI1hr62cIZliNXlta8IHjEm/jvPJkIn3EGtO0dgf5f4AQ
-mIjtq3wOny9z9sCSN610a0Pr+WdVQze6upKqdOLBKtGkSnylli08UNPh6mCF+/F6
-hpoZiM5cbBHvyhKOOa+j7Y5IwWZcMRguYnvbsBGTJVffeYsegZB5t6ITH6Vs0++p
-FfanV96ix6ZvXZxxnC5yg308KikSxXC1UIWbTLrsleBED549uS5RRIhgMxSps/nv
-Tx5YKwp7Y8QXeKITAMHGOxDLeWk7zU10zd7Yg/OayORUsapOj50=
-=FIaU
------END PGP SIGNATURE-----
+--
+2.10.2
 
---ZOudaV4lSIjFTlHv--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
