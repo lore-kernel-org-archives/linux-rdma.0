@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 1/4] debian/control: Remove build-essential from Build-Depends
-Date: Thu, 29 Dec 2016 15:49:05 +0200
-Message-ID: <20161229134908.13185-2-leon@kernel.org>
+Subject: [PATCH rdma-core 2/4] debian/iwpmd.install: Remove ibacm from iwpmd install
+Date: Thu, 29 Dec 2016 15:49:06 +0200
+Message-ID: <20161229134908.13185-3-leon@kernel.org>
 References: <20161229134908.13185-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161229134908.13185-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,32 +12,23 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Fix lintian error [1] build-depends-on-build-essential build-depends.
-The package build is done with "debuild -uc -us -d" comamnd.
-
-[1]
-E: rdma-core source: build-depends-on-build-essential build-depends
+In debian/iwpmd.install file, there was reference to etc/init.d/ibacm.
 
 Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- debian/control | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ debian/iwpmd.install | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/debian/control b/debian/control
-index 3b04ac9..9e73c2b 100644
---- a/debian/control
-+++ b/debian/control
-@@ -2,8 +2,7 @@ Source: rdma-core
- Maintainer: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
- Section: net
- Priority: extra
--Build-Depends: build-essential,
--	       cmake (>= 2.8.11),
-+Build-Depends: cmake (>= 2.8.11),
- 	       debhelper (>= 9),
- 	       dh-systemd,
- 	       dpkg-dev (>= 1.17),
+diff --git a/debian/iwpmd.install b/debian/iwpmd.install
+index c80b1c9..bff17f1 100644
+--- a/debian/iwpmd.install
++++ b/debian/iwpmd.install
+@@ -1,4 +1,3 @@
+-etc/init.d/ibacm
+ etc/init.d/iwpmd
+ etc/iwpmd.conf
+ lib/systemd/system/iwpmd.service
 -- 
 2.10.2
 
