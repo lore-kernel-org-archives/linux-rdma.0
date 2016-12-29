@@ -1,55 +1,64 @@
-From: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Subject: [PATCH v2] ib umem: bugfix: mixed put_pid()s in ib_umem_get()
-Date: Thu, 29 Dec 2016 16:27:28 +0800
-Message-ID: <1483000048-183875-1-git-send-email-liguozhu@hisilicon.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v2] ib umem: bugfix: mixed put_pid()s in ib_umem_get()
+Date: Thu, 29 Dec 2016 10:17:56 +0200
+Message-ID: <20161229081756.GI26885@mtr-leonro.local>
+References: <1483000048-183875-1-git-send-email-liguozhu@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ZOudaV4lSIjFTlHv"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1483000048-183875-1-git-send-email-liguozhu@hisilicon.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kenneth Lee <liguozhu@hisilicon.com>
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, markb@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-There are two bugfixes in this patch:
 
-1. When the execution go to the ib_umem_odp_get() path, pid should be put
-   back.
-2. When the memory allocation fail, the pid also should be put back before
-   exit.
+--ZOudaV4lSIjFTlHv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change from v1 to v2:
-  Correcting the patch title and description
+On Thu, Dec 29, 2016 at 04:27:28PM +0800, Kenneth Lee wrote:
+> There are two bugfixes in this patch:
+>
+> 1. When the execution go to the ib_umem_odp_get() path, pid should be put
+>    back.
+> 2. When the memory allocation fail, the pid also should be put back before
+>    exit.
+>
+> Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
+> Reviewed-by: Haggai Eran <haggaie@mellanox.com>
+> ---
+> Change from v1 to v2:
+>   Correcting the patch title and description
 
- drivers/infiniband/core/umem.c | 2 ++
- 1 file changed, 2 insertions(+)
+I don't see any changes except version in the title.
+What about anything like this?
+[PATCH v3] IB/umem: Release pid in error and ODP flows
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 1e62a5f..4609b92 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
- 
- 	if (access & IB_ACCESS_ON_DEMAND) {
-+		put_pid(umem->pid);
- 		ret = ib_umem_odp_get(context, umem);
- 		if (ret) {
- 			kfree(umem);
-@@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 
- 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
- 	if (!page_list) {
-+		put_pid(umem->pid);
- 		kfree(umem);
- 		return ERR_PTR(-ENOMEM);
- 	}
--- 
-1.9.1
+And Fixes line please, it will help to forward it to stable trees.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+
+--ZOudaV4lSIjFTlHv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhkxrQACgkQ5GN7iDZy
+WKevrA/7B6kg0taTjvtuLfwUG0CuQFrRESY4Rwh9XwSsbOtXkRG7nacHwyiNAAJY
+5gejfWAS0bUIqnnCuU0/sz3KbmeDocAOephzYvXxFlYpqciRA63lGh8roNeiyZGT
+bc6sO2l2zT21y0oHgfwU5Y/E8wwVsPyidZ2OJYexvGkl57msP0yHcuxAayl73vQ3
+l9aMpiLnwzpmK3YZNrV5imfsmZPYXk0OpucB/vPs3AdCn2eXf7XtrlvUBqDwb67i
+MbM/wZiqTy9BG2EftZkG+rDLsd1et1dbOcCJF+l7M7kyLSeqxdcWjpnLRiN75MA+
+WZKDxAYR0fM/5ZFi/YuQtafXu8FcoWsgWcrJ45VeBiH9lO5iQq/qWbOgm2H2HC3r
+KH4sRiDt4V7UffodDoOJI1hr62cIZliNXlta8IHjEm/jvPJkIn3EGtO0dgf5f4AQ
+mIjtq3wOny9z9sCSN610a0Pr+WdVQze6upKqdOLBKtGkSnylli08UNPh6mCF+/F6
+hpoZiM5cbBHvyhKOOa+j7Y5IwWZcMRguYnvbsBGTJVffeYsegZB5t6ITH6Vs0++p
+FfanV96ix6ZvXZxxnC5yg308KikSxXC1UIWbTLrsleBED549uS5RRIhgMxSps/nv
+Tx5YKwp7Y8QXeKITAMHGOxDLeWk7zU10zd7Yg/OayORUsapOj50=
+=FIaU
+-----END PGP SIGNATURE-----
+
+--ZOudaV4lSIjFTlHv--
