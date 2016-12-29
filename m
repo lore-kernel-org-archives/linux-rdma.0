@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 2/4] debian/iwpmd.install: Remove ibacm from iwpmd install
-Date: Thu, 29 Dec 2016 15:49:06 +0200
-Message-ID: <20161229134908.13185-3-leon@kernel.org>
+Subject: [PATCH rdma-core 4/4] debian/changelog: Update changes
+Date: Thu, 29 Dec 2016 15:49:08 +0200
+Message-ID: <20161229134908.13185-5-leon@kernel.org>
 References: <20161229134908.13185-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161229134908.13185-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,23 +12,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In debian/iwpmd.install file, there was reference to etc/init.d/ibacm.
+Document the recent changes into debian/changelog.
 
 Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- debian/iwpmd.install | 1 -
- 1 file changed, 1 deletion(-)
+ debian/changelog | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/debian/iwpmd.install b/debian/iwpmd.install
-index c80b1c9..bff17f1 100644
---- a/debian/iwpmd.install
-+++ b/debian/iwpmd.install
-@@ -1,4 +1,3 @@
--etc/init.d/ibacm
- etc/init.d/iwpmd
- etc/iwpmd.conf
- lib/systemd/system/iwpmd.service
+diff --git a/debian/changelog b/debian/changelog
+index 7b9c634..3fb247d 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,3 +1,14 @@
++rdma-core (12-1.1) UNRELEASED; urgency=medium
++
++    * New version.
++    * Adding debian/copyright.
++    * Fix debian/iwpmd.
++    * Fix debian/control.
++    * Initial Release.
++    * close ITP (Closes: #848971).
++
++ -- Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>  Mon, 26 Dec 2016 13:22:50 +0200
++
+ rdma-core (12-1) unstable; urgency=low
+ 
+   * New version
 -- 
 2.10.2
 
