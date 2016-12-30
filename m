@@ -1,55 +1,37 @@
-From: Kenneth Lee <liguozhu@hisilicon.com>
-Subject: [PATCH v3] IB/umem: Release pid in error and ODP flow
-Date: Fri, 30 Dec 2016 18:18:29 +0800
-Message-ID: <1483093109-188428-1-git-send-email-liguozhu@hisilicon.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] IB/isert: fix spelling mistake: "teminating" -> "terminating"
+Date: Fri, 30 Dec 2016 14:38:05 +0000
+Message-ID: <20161230143805.13549-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, liguozhu@hisilicon.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, markb@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-There are two bugfixes in this patch:
+From: Colin Ian King <colin.king@canonical.com>
 
-Fixes: 87773dd56d54 ("IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get")
-	This patch introduce the get_task_pid but not put it back on all error
-	path
+Trivial fix to spelling mistake in isert_warn message
 
-Fixes: 8ada2c1c0c1d ("IB/core: Add support for on demand paging regions")
-	This patch introduce a ODP flow without release pid before enter it
-
-
-Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
-Reviewed-by: Haggai Eran <haggaie@mellanox.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
-Change from v1 to v2:
-  Correcting the patch title and description
-Change from v2 to v3:
-  Update the title and add "Fixes" fields in the description
+ drivers/infiniband/ulp/isert/ib_isert.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/core/umem.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 1e62a5f..4609b92 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
- 
- 	if (access & IB_ACCESS_ON_DEMAND) {
-+		put_pid(umem->pid);
- 		ret = ib_umem_odp_get(context, umem);
- 		if (ret) {
- 			kfree(umem);
-@@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 
- 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
- 	if (!page_list) {
-+		put_pid(umem->pid);
- 		kfree(umem);
- 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 314e955..91cbe86 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -728,7 +728,7 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
+ 		iscsit_cause_connection_reinstatement(isert_conn->conn, 0);
+ 		break;
+ 	default:
+-		isert_warn("conn %p teminating in state %d\n",
++		isert_warn("conn %p terminating in state %d\n",
+ 			   isert_conn, isert_conn->state);
  	}
+ 	mutex_unlock(&isert_conn->mutex);
 -- 
-1.9.1
+2.10.2
