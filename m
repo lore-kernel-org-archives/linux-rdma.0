@@ -1,65 +1,62 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/4] debian/changelog: Update changes
-Date: Sun, 1 Jan 2017 09:56:10 +0200
-Message-ID: <20170101075610.GS26885@mtr-leonro.local>
-References: <20161229134908.13185-1-leon@kernel.org>
- <20161229134908.13185-5-leon@kernel.org>
- <20161229151132.GA30742@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="/U0GMd1Pus0mbMSS"
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 2/2 v2] IB/srpt: allocate ib_qp_attr on the stack
+Date: Sun,  1 Jan 2017 16:17:12 +0200
+Message-ID: <1483280232-13826-3-git-send-email-maxg@mellanox.com>
+References: <1483280232-13826-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161229151132.GA30742-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1483280232-13826-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: bvanassche-HInyCGIudOg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+No reason to use kzalloc that may increase memory
+fragmentation. This also simplifies the code in means of
+memory alloc/free in initialization flow.
 
---/U0GMd1Pus0mbMSS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c |   17 ++++++-----------
+ 1 files changed, 6 insertions(+), 11 deletions(-)
 
-On Thu, Dec 29, 2016 at 08:11:32AM -0700, Jason Gunthorpe wrote:
-> On Thu, Dec 29, 2016 at 03:49:08PM +0200, Leon Romanovsky wrote:
-> > From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > Document the recent changes into debian/changelog.
->
-> I think it would be best to maintain the changelog in the Debian
-> .diff, not upstream? Same comment for RPM.
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index d21ba9d..9117ca6 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -984,24 +984,19 @@ static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
+  */
+ static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
+ {
+-	struct ib_qp_attr *attr;
++	struct ib_qp_attr attr = { 0 };
+ 	int ret;
+ 
+-	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
+-	if (!attr)
+-		return -ENOMEM;
+-
+-	attr->qp_state = IB_QPS_INIT;
+-	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
++	attr.qp_state = IB_QPS_INIT;
++	attr.qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
+ 	    IB_ACCESS_REMOTE_WRITE;
+-	attr->port_num = ch->sport->port;
+-	attr->pkey_index = 0;
++	attr.port_num = ch->sport->port;
++	attr.pkey_index = 0;
+ 
+-	ret = ib_modify_qp(qp, attr,
++	ret = ib_modify_qp(qp, &attr,
+ 			   IB_QP_STATE | IB_QP_ACCESS_FLAGS | IB_QP_PORT |
+ 			   IB_QP_PKEY_INDEX);
+ 
+-	kfree(attr);
+ 	return ret;
+ }
+ 
+-- 
+1.7.1
 
-My plan is to maintain proper package in upstream till it will be part
-of Debian, after that they can maintain it as they want :)
-
->
-> Just put a single stanza with the 'closes ITP' to silence Litian and
-> replace the whole file when packaging.
->
-> Jason
-
---/U0GMd1Pus0mbMSS
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhothoACgkQ5GN7iDZy
-WKe/OxAAnfvlfQ27O19917zCQjcqESWsLokO9ZmxBmUy8+YclHJeGPpAngsobcGZ
-L/KstyFGf41GlhFaWUXUITFyVPJ8TpWVOd7dSMknq7MRi8xeNuqX5pZ7HWi9TI41
-agNBnHOHhNebRnWtIUXe3ml/DLl9UcLEM3Qf9WO6JpLBU+mAZTbt2rLwfy1TGk6N
-orZNUSDErpYXoeFKqlsFcuK6hPXP/9JAysz05oc5QkR2f3mj78XseCDgxxQjznGm
-zqb9Jb5zKjCHimb5kW9T37IGifPMncIO6K0FP9VYVjbGb8rUzqh6FZgZy8J7qhMX
-MfTysB9brRqUc053xxrQPkyp6sR8q66XwBFaQO+dYcbNpy2LJBwCvrpc/Ew07ag0
-MkeOU1mhb7hBMmuialUiSKQ89cs6ZLjsY7Ch9KMtcN/hDTS7mjVRO2h++f75Tkom
-3h1ZnLUAU/EMuUWHZZ4qyCcNK0JnXkXERv1fUwJN1JdDnr/iSQJ2guATrRoLDaIV
-8xvZrUPvv8oLuLkkghXySmw4Bj1gcuiLxoi1C96Lee69xWuQga8rfR0qXM1j2Zrp
-KA/oIXMmDdgsBjxizXr31CD86f/atcXXO/rHUv4eGb8kUIbv7bvMfS/EPHtnxyND
-9CXPFnYGZHhTVQqbNU20T4/2D1TobAIXNccwjQcsMug/Pq7bQo4=
-=s6Q6
------END PGP SIGNATURE-----
-
---/U0GMd1Pus0mbMSS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
