@@ -1,139 +1,67 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/2 v2] IB/srp: allocate ib_qp_attr on the stack
-Date: Sun,  1 Jan 2017 16:17:11 +0200
-Message-ID: <1483280232-13826-2-git-send-email-maxg@mellanox.com>
-References: <1483280232-13826-1-git-send-email-maxg@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483280232-13826-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bvanassche-HInyCGIudOg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH for-next 01/11] net/mlx5: Fix offset naming for reserved fields in hca_cap_bits
+Date: Sun,  1 Jan 2017 23:10:17 +0200
+Message-ID: <1483305027-2573-2-git-send-email-saeedm@mellanox.com>
+References: <1483305027-2573-1-git-send-email-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1483305027-2573-1-git-send-email-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Ilya Lesokhin <ilyal@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-No reason to use kmalloc that may increase memory
-fragmentation. This also simplifies the code in means of
-memory alloc/free in initialization flow.
+From: Max Gurtovoy <maxg@mellanox.com>
 
-Tested-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fix offset for reserved fields.
+
+Fixes: 7486216b3a0b ("{net,IB}/mlx5: mlx5_ifc updates")
+Fixes: b4ff3a36d3e4 ("net/mlx5: Use offset based reserved field names in the IFC header file")
+Fixes: 7d5e14237a55 ("net/mlx5: Update mlx5_ifc hardware features")
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   51 +++++++++++++----------------------
- 1 files changed, 19 insertions(+), 32 deletions(-)
+ include/linux/mlx5/mlx5_ifc.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 8ddc071..c7f3e1e 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -268,33 +268,28 @@ static void srp_qp_event(struct ib_event *event, void *context)
- static int srp_init_qp(struct srp_target_port *target,
- 		       struct ib_qp *qp)
- {
--	struct ib_qp_attr *attr;
-+	struct ib_qp_attr attr = { 0 };
- 	int ret;
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 57bec54..4792c85 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -826,9 +826,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         reserved_at_1a9[0x2];
+ 	u8         local_ca_ack_delay[0x5];
+ 	u8         port_module_event[0x1];
+-	u8         reserved_at_1b0[0x1];
++	u8         reserved_at_1b1[0x1];
+ 	u8         ports_check[0x1];
+-	u8         reserved_at_1b2[0x1];
++	u8         reserved_at_1b3[0x1];
+ 	u8         disable_link_up[0x1];
+ 	u8         beacon_led[0x1];
+ 	u8         port_type[0x2];
+@@ -858,7 +858,7 @@ struct mlx5_ifc_cmd_hca_cap_bits {
  
--	attr = kmalloc(sizeof *attr, GFP_KERNEL);
--	if (!attr)
--		return -ENOMEM;
--
- 	ret = ib_find_cached_pkey(target->srp_host->srp_dev->dev,
- 				  target->srp_host->port,
- 				  be16_to_cpu(target->pkey),
--				  &attr->pkey_index);
-+				  &attr.pkey_index);
- 	if (ret)
- 		goto out;
+ 	u8         compact_address_vector[0x1];
+ 	u8         striding_rq[0x1];
+-	u8         reserved_at_201[0x2];
++	u8         reserved_at_202[0x2];
+ 	u8         ipoib_basic_offloads[0x1];
+ 	u8         reserved_at_205[0xa];
+ 	u8         drain_sigerr[0x1];
+@@ -1009,10 +1009,10 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         rndv_offload_rc[0x1];
+ 	u8         rndv_offload_dc[0x1];
+ 	u8         log_tag_matching_list_sz[0x5];
+-	u8         reserved_at_5e8[0x3];
++	u8         reserved_at_5f8[0x3];
+ 	u8         log_max_xrq[0x5];
  
--	attr->qp_state        = IB_QPS_INIT;
--	attr->qp_access_flags = (IB_ACCESS_REMOTE_READ |
-+	attr.qp_state        = IB_QPS_INIT;
-+	attr.qp_access_flags = (IB_ACCESS_REMOTE_READ |
- 				    IB_ACCESS_REMOTE_WRITE);
--	attr->port_num        = target->srp_host->port;
-+	attr.port_num        = target->srp_host->port;
+-	u8         reserved_at_5f0[0x200];
++	u8         reserved_at_600[0x200];
+ };
  
--	ret = ib_modify_qp(qp, attr,
-+	ret = ib_modify_qp(qp, &attr,
- 			   IB_QP_STATE		|
- 			   IB_QP_PKEY_INDEX	|
- 			   IB_QP_ACCESS_FLAGS	|
- 			   IB_QP_PORT);
- 
- out:
--	kfree(attr);
- 	return ret;
- }
- 
-@@ -2292,7 +2287,7 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 			       struct srp_rdma_ch *ch)
- {
- 	struct srp_target_port *target = ch->target;
--	struct ib_qp_attr *qp_attr = NULL;
-+	struct ib_qp_attr qp_attr = { 0 };
- 	int attr_mask = 0;
- 	int ret;
- 	int i;
-@@ -2324,44 +2319,36 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 			goto error;
- 	}
- 
--	ret = -ENOMEM;
--	qp_attr = kmalloc(sizeof *qp_attr, GFP_KERNEL);
--	if (!qp_attr)
--		goto error;
--
--	qp_attr->qp_state = IB_QPS_RTR;
--	ret = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
-+	qp_attr.qp_state = IB_QPS_RTR;
-+	ret = ib_cm_init_qp_attr(cm_id, &qp_attr, &attr_mask);
- 	if (ret)
--		goto error_free;
-+		goto error;
- 
--	ret = ib_modify_qp(ch->qp, qp_attr, attr_mask);
-+	ret = ib_modify_qp(ch->qp, &qp_attr, attr_mask);
- 	if (ret)
--		goto error_free;
-+		goto error;
- 
- 	for (i = 0; i < target->queue_size; i++) {
- 		struct srp_iu *iu = ch->rx_ring[i];
- 
- 		ret = srp_post_recv(ch, iu);
- 		if (ret)
--			goto error_free;
-+			goto error;
- 	}
- 
--	qp_attr->qp_state = IB_QPS_RTS;
--	ret = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
-+	qp_attr.qp_state = IB_QPS_RTS;
-+	ret = ib_cm_init_qp_attr(cm_id, &qp_attr, &attr_mask);
- 	if (ret)
--		goto error_free;
-+		goto error;
- 
--	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
-+	target->rq_tmo_jiffies = srp_compute_rq_tmo(&qp_attr, attr_mask);
- 
--	ret = ib_modify_qp(ch->qp, qp_attr, attr_mask);
-+	ret = ib_modify_qp(ch->qp, &qp_attr, attr_mask);
- 	if (ret)
--		goto error_free;
-+		goto error;
- 
- 	ret = ib_send_cm_rtu(cm_id, NULL, 0);
- 
--error_free:
--	kfree(qp_attr);
--
- error:
- 	ch->status = ret;
- }
+ enum mlx5_flow_destination_type {
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
