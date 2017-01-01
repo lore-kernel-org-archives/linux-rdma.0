@@ -1,61 +1,26 @@
 From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2 v2] IB/srpt: allocate ib_qp_attr on the stack
-Date: Sun,  1 Jan 2017 16:17:12 +0200
-Message-ID: <1483280232-13826-3-git-send-email-maxg@mellanox.com>
-References: <1483280232-13826-1-git-send-email-maxg@mellanox.com>
+Subject: [PATCH 0/2 v2] srp/srpt - some useful patches
+Date: Sun,  1 Jan 2017 16:17:10 +0200
+Message-ID: <1483280232-13826-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483280232-13826-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: bvanassche-HInyCGIudOg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-No reason to use kzalloc that may increase memory
-fragmentation. This also simplifies the code in means of
-memory alloc/free in initialization flow.
+No bug fixes, but few improvements that might help.
 
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c |   17 ++++++-----------
- 1 files changed, 6 insertions(+), 11 deletions(-)
+changes from v1:
+ - update commit messages
+ - initialize struct ib_qp_attr to zero in the beginning of function
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index d21ba9d..9117ca6 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -984,24 +984,19 @@ static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
-  */
- static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
- {
--	struct ib_qp_attr *attr;
-+	struct ib_qp_attr attr = { 0 };
- 	int ret;
- 
--	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
--	if (!attr)
--		return -ENOMEM;
--
--	attr->qp_state = IB_QPS_INIT;
--	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
-+	attr.qp_state = IB_QPS_INIT;
-+	attr.qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
- 	    IB_ACCESS_REMOTE_WRITE;
--	attr->port_num = ch->sport->port;
--	attr->pkey_index = 0;
-+	attr.port_num = ch->sport->port;
-+	attr.pkey_index = 0;
- 
--	ret = ib_modify_qp(qp, attr,
-+	ret = ib_modify_qp(qp, &attr,
- 			   IB_QP_STATE | IB_QP_ACCESS_FLAGS | IB_QP_PORT |
- 			   IB_QP_PKEY_INDEX);
- 
--	kfree(attr);
- 	return ret;
- }
- 
--- 
-1.7.1
+Max Gurtovoy (2):
+  IB/srp: allocate ib_qp_attr on the stack
+  IB/srpt: allocate ib_qp_attr on the stack
+
+ drivers/infiniband/ulp/srp/ib_srp.c   |   51 ++++++++++++--------------------
+ drivers/infiniband/ulp/srpt/ib_srpt.c |   17 ++++-------
+ 2 files changed, 25 insertions(+), 43 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
