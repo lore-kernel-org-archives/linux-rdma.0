@@ -1,32 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH for-next 05/11] IB/mlx5: Refactor UMR post send format
-Date: Sun, 01 Jan 2017 21:11:51 -0500 (EST)
-Message-ID: <20170101.211151.1554932382154746164.davem@davemloft.net>
-References: <1483305027-2573-1-git-send-email-saeedm@mellanox.com>
-        <1483305027-2573-6-git-send-email-saeedm@mellanox.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH rdma-core] verbs: Do not copy uninitialized data in
+ ibv_cmd_modify_qp
+Date: Mon, 2 Jan 2017 08:02:02 +0000
+Message-ID: <1483344105.3592.1.camel@sandisk.com>
+References: <20161222221334.GA15907@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1483305027-2573-6-git-send-email-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com
-Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, ilyal@mellanox.com, artemyko@mellanox.com, leon@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161222221334.GA15907-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <C0CCDAB8B2D6CC48B76448D607927507-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
-Date: Sun,  1 Jan 2017 23:10:21 +0200
-
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index a1b3125..6d5f5d4 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -3080,9 +3080,10 @@ static void set_data_ptr_seg(struct mlx5_wqe_data_seg *dseg, struct ib_sge *sg)
->  	dseg->addr       = cpu_to_be64(sg->addr);
->  }
->  
-> -static __be16 get_klm_octo(int npages)
-> +static inline u64 get_xlt_octo(u64 bytes)
->  {
-
-Again, please don't use 'inline' in foo.c files.
+T24gVGh1LCAyMDE2LTEyLTIyIGF0IDE1OjEzIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IFZhbGdyaW5kIHJlcG9ydHM6DQo+IA0KPiA9PTExOTY9PSBTeXNjYWxsIHBhcmFtIHdyaXRl
+KGJ1ZikgcG9pbnRzIHRvIHVuaW5pdGlhbGlzZWQgYnl0ZShzKQ0KPiA9PTExOTY9PSAgICBhdCAw
+eDUwNjI1MEQ6ID8/PyAoc3lzY2FsbC10ZW1wbGF0ZS5TOjg0KQ0KPiA9PTExOTY9PSAgICBieSAw
+eDUyNzc1NkY6IGlidl9jbWRfbW9kaWZ5X3FwIChjbWQuYzoxMjkxKQ0KPiA9PTExOTY9PSAgICBi
+eSAweDgwMDhENzQ6IG1seDRfbW9kaWZ5X3FwICh2ZXJicy5jOjgyMCkNCj4gPT0xMTk2PT0gICAg
+YnkgMHg1MjdFNEY0OiBpYnZfbW9kaWZ5X3FwQEBJQlZFUkJTXzEuMSAodmVyYnMuYzo1NjEpDQo+
+ID09MTE5Nj09ICAgIGJ5IDB4NEUzRkFCMzogdWNtYV9tb2RpZnlfcXBfZXJyLmlzcmEuNiAoY21h
+LmM6MTExNSkNCj4gPT0xMTk2PT0gICAgYnkgMHg0RTQxRDU2OiByZG1hX2dldF9jbV9ldmVudC5w
+YXJ0LjE1IChjbWEuYzoyMTgwKQ0KPiA9PTExOTY9PSAgICBieSAweDQwMkNGMDogY21fdGhyZWFk
+IChycGluZy5jOjU3NikNCj4gPT0xMTk2PT0gICAgYnkgMHg1MDU5NzA5OiBzdGFydF90aHJlYWQg
+KHB0aHJlYWRfY3JlYXRlLmM6MzMzKQ0KPiA9PTExOTY9PSAgICBieSAweDU1OEE4MkM6IGNsb25l
+IChjbG9uZS5TOjEwOSkNCj4gPT0xMTk2PT0gIEFkZHJlc3MgMHg5ODQ3OTgwIGlzIG9uIHRocmVh
+ZCAyJ3Mgc3RhY2sNCj4gPT0xMTk2PT0gIGluIGZyYW1lICMyLCBjcmVhdGVkIGJ5IG1seDRfbW9k
+aWZ5X3FwICh2ZXJicy5jOjc3NSkNCj4gDQo+IFRoaXMgaXMgYmVjYXVzZSBvZiBjb2RlIGxpa2Ug
+dGhpczoNCj4gDQo+ICAgICAgICAgc3RydWN0IGlidl9xcF9hdHRyIHFwX2F0dHI7DQo+ICAgICAg
+ICAgcXBfYXR0ci5xcF9zdGF0ZSA9IElCVl9RUFNfRVJSOw0KPiAgICAgICAgIHJldHVybiByZG1h
+X3NldGVycm5vKGlidl9tb2RpZnlfcXAoaWQtPnFwLCAmcXBfYXR0ciwgSUJWX1FQX1NUQVRFKSk7
+DQo+IA0KPiBBbHdheXMgcGFzcyAwIGludG8gdGhlIGtlcm5lbCBmb3IgZm9yIGF0dHJpYnV0ZXMg
+dGhhdCBhcmUgbm90IHJlcXVlc3RlZA0KPiB0byBiZSBtb2RpZmllZC4NCg0KSGVsbG8gSmFzb24s
+DQoNCkhhdmUgeW91IGNvbnNpZGVyZWQgdG8gbW9kaWZ5IFZhbGdyaW5kPyBJdCBpcyBwb3NzaWJs
+ZSB0byBtb2RpZnkgVmFsZ3JpbmQNCnN1Y2ggdGhhdCBpdCBkb2Vzbid0IHJlcG9ydCBmYWxzZSBw
+b3NpdGl2ZXMgbGlrZSB0aGUgYWJvdmUgcmVwb3J0IHdpdGhvdXQNCmNoYW5naW5nIHRoZSByZG1h
+LWNvcmUgY29kZS4gU2VlIGFsc28gUFJFKHN5c19pb2N0bCkgaW4gc291cmNlIGZpbGUNCmNvcmVn
+cmluZC9tX3N5c3dyYXAvc3lzd3JhcC1saW51eC5jLg0KDQpCYXJ0Lg0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
