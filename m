@@ -1,66 +1,53 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 15/15] IB/rxe: Fix an skb leak
-Date: Mon, 2 Jan 2017 10:44:15 +0000
-Message-ID: <1483353777.3592.42.camel@sandisk.com>
-References: <1483353316.3592.14.camel@sandisk.com>
+From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCHv2 0/4] IB cache port state, use it when resolve address
+Date: Mon, 2 Jan 2017 13:15:03 +0100
+Message-ID: <CAMGffE=-dN6jpJUHyNEHra1P=SLYiO47pMbMoKSNf6Njy=znKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483353316.3592.14.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <E3CB3BD018B82C4599C06BC114F203C7-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-QWRkaXRpb25hbGx5LCBtYWtlIGl0IGVhc2llciB0byBkZXRlY3Qgc2tiIGxlYWtzIGJ5IGlzc3Vp
-bmcgYSB3YXJuaW5nDQppZiBhIGxlYWsgb2NjdXJzLg0KDQpTaWduZWQtb2ZmLWJ5OiBCYXJ0IFZh
-biBBc3NjaGUgPGJhcnQudmFuYXNzY2hlQHNhbmRpc2suY29tPg0KQ2M6IE1vbmkgU2hvdWEgPG1v
-bmlzQG1lbGxhbm94LmNvbT4NCkNjOiBBbmRyZXcgQm95ZXIgPGFuZHJldy5ib3llckBkZWxsLmNv
-bT4NCi0tLQ0KwqBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9jb21wLmMgfCAxNSArKysr
-KysrKysrKysrKy0NCsKgMSBmaWxlIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKyksIDEgZGVsZXRp
-b24oLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2NvbXAu
-YyBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2NvbXAuYw0KaW5kZXggZDFjMzQxMWM1
-NDc4Li5iYmM3Y2QzOWY5NzggMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhl
-L3J4ZV9jb21wLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2NvbXAuYw0K
-QEAgLTYyMiw2ICs2MjIsNyBAQCBpbnQgcnhlX2NvbXBsZXRlcih2b2lkICphcmcpDQrCoAkJCWlm
-IChwa3QpIHsNCsKgCQkJCXJ4ZV9kcm9wX3JlZihwa3QtPnFwKTsNCsKgCQkJCWtmcmVlX3NrYihz
-a2IpOw0KKwkJCQlza2IgPSBOVUxMOw0KwqAJCQl9DQrCoAkJCWdvdG8gZG9uZTsNCsKgDQpAQCAt
-NjQ1LDYgKzY0Niw3IEBAIGludCByeGVfY29tcGxldGVyKHZvaWQgKmFyZykNCsKgCQkJwqDCoMKg
-wqBxcC0+cXBfdGltZW91dF9qaWZmaWVzKQ0KwqAJCQkJbW9kX3RpbWVyKCZxcC0+cmV0cmFuc190
-aW1lciwNCsKgCQkJCQnCoMKgamlmZmllcyArIHFwLT5xcF90aW1lb3V0X2ppZmZpZXMpOw0KKwkJ
-CVdBUk5fT05fT05DRShza2IpOw0KwqAJCQlnb3RvIGV4aXQ7DQrCoA0KwqAJCWNhc2UgQ09NUFNU
-X0VSUk9SX1JFVFJZOg0KQEAgLTY1Nyw4ICs2NTksMTAgQEAgaW50IHJ4ZV9jb21wbGV0ZXIodm9p
-ZCAqYXJnKQ0KwqAJCQnCoCovDQrCoA0KwqAJCQkvKiB0aGVyZSBpcyBub3RoaW5nIHRvIHJldHJ5
-IGluIHRoaXMgY2FzZSAqLw0KLQkJCWlmICghd3FlIHx8ICh3cWUtPnN0YXRlID09IHdxZV9zdGF0
-ZV9wb3N0ZWQpKQ0KKwkJCWlmICghd3FlIHx8ICh3cWUtPnN0YXRlID09IHdxZV9zdGF0ZV9wb3N0
-ZWQpKSB7DQorCQkJCVdBUk5fT05fT05DRShza2IpOw0KwqAJCQkJZ290byBleGl0Ow0KKwkJCX0N
-CsKgDQrCoAkJCWlmIChxcC0+Y29tcC5yZXRyeV9jbnQgPiAwKSB7DQrCoAkJCQlpZiAocXAtPmNv
-bXAucmV0cnlfY250ICE9IDcpDQpAQCAtNjgwLDggKzY4NCwxMCBAQCBpbnQgcnhlX2NvbXBsZXRl
-cih2b2lkICphcmcpDQrCoAkJCQlpZiAocGt0KSB7DQrCoAkJCQkJcnhlX2Ryb3BfcmVmKHBrdC0+
-cXApOw0KwqAJCQkJCWtmcmVlX3NrYihza2IpOw0KKwkJCQkJc2tiID0gTlVMTDsNCsKgCQkJCX0N
-CsKgDQorCQkJCVdBUk5fT05fT05DRShza2IpOw0KwqAJCQkJZ290byBleGl0Ow0KwqANCsKgCQkJ
-fSBlbHNlIHsNCkBAIC03MDEsNiArNzA3LDkgQEAgaW50IHJ4ZV9jb21wbGV0ZXIodm9pZCAqYXJn
-KQ0KwqAJCQkJbW9kX3RpbWVyKCZxcC0+cm5yX25ha190aW1lciwNCsKgCQkJCQnCoMKgamlmZmll
-cyArIHJucm5ha19qaWZmaWVzKGFldGhfc3luKHBrdCkNCsKgCQkJCQkJJiB+QUVUSF9UWVBFX01B
-U0spKTsNCisJCQkJcnhlX2Ryb3BfcmVmKHBrdC0+cXApOw0KKwkJCQlrZnJlZV9za2Ioc2tiKTsN
-CisJCQkJc2tiID0gTlVMTDsNCsKgCQkJCWdvdG8gZXhpdDsNCsKgCQkJfSBlbHNlIHsNCsKgCQkJ
-CXdxZS0+c3RhdHVzID0gSUJfV0NfUk5SX1JFVFJZX0VYQ19FUlI7DQpAQCAtNzE2LDggKzcyNSwx
-MCBAQCBpbnQgcnhlX2NvbXBsZXRlcih2b2lkICphcmcpDQrCoAkJCWlmIChwa3QpIHsNCsKgCQkJ
-CXJ4ZV9kcm9wX3JlZihwa3QtPnFwKTsNCsKgCQkJCWtmcmVlX3NrYihza2IpOw0KKwkJCQlza2Ig
-PSBOVUxMOw0KwqAJCQl9DQrCoA0KKwkJCVdBUk5fT05fT05DRShza2IpOw0KwqAJCQlnb3RvIGV4
-aXQ7DQrCoAkJfQ0KwqAJfQ0KQEAgLTcyNiw2ICs3MzcsNyBAQCBpbnQgcnhlX2NvbXBsZXRlcih2
-b2lkICphcmcpDQrCoAkvKiB3ZSBjb21lIGhlcmUgaWYgd2UgYXJlIGRvbmUgd2l0aCBwcm9jZXNz
-aW5nIGFuZCB3YW50IHRoZSB0YXNrIHRvDQrCoAnCoCogZXhpdCBmcm9tIHRoZSBsb29wIGNhbGxp
-bmcgdXMNCsKgCcKgKi8NCisJV0FSTl9PTl9PTkNFKHNrYik7DQrCoAlyeGVfZHJvcF9yZWYocXAp
-Ow0KwqAJcmV0dXJuIC1FQUdBSU47DQrCoA0KQEAgLTczMyw2ICs3NDUsNyBAQCBpbnQgcnhlX2Nv
-bXBsZXRlcih2b2lkICphcmcpDQrCoAkvKiB3ZSBjb21lIGhlcmUgaWYgd2UgaGF2ZSBwcm9jZXNz
-ZWQgYSBwYWNrZXQgd2Ugd2FudCB0aGUgdGFzayB0byBjYWxsDQrCoAnCoCogdXMgYWdhaW4gdG8g
-c2VlIGlmIHRoZXJlIGlzIGFueXRoaW5nIGVsc2UgdG8gZG8NCsKgCcKgKi8NCisJV0FSTl9PTl9P
-TkNFKHNrYik7DQrCoAlyeGVfZHJvcF9yZWYocXApOw0KwqAJcmV0dXJuIDA7DQrCoH0NCi0twqAN
-CjIuMTEuMA0K
+Hi Folks,
+
+This is my forth attempt to fix rdma_revolve_addr may resolve to first
+port even it's down[1].
+
+As Jason and Hefty suggested, I now cache port_state in ib_core, and
+update cma_resolve_ib_dev and cma_bind_loopback to use it.
+
+0001-IB-core-add-port-state-cache.patch
+0002-IB-core-export-ib_get_cached_port_state.patch
+0003-cma-resolve-to-first-active-ib-port.patch
+0004-cma-use-cached-port-state-when-bind-loopback.patch
+
+[1]http://marc.info/?l=3Dlinux-rdma&m=3D148102306632521&w=3D2
+
+Changes from v1:
+- Add Hefty's Acked-by.
+- rebase on Doug's rdma/k.o/for-4.10 (commit
+5cc8fabc5e4c588c75a5ec21423e7c3425f69f48)
+- fix a mem leak in ib_cache_setup_one in error case in first patch.
+
+--=20
+Jinpu Wang
+Linux Kernel Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Tel:       +49 30 577 008  042
+Fax:      +49 30 577 008 299
+Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:      https://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
