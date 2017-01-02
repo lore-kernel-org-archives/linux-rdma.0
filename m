@@ -1,46 +1,27 @@
 From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Do not copy uninitialized data in
- ibv_cmd_modify_qp
-Date: Mon, 2 Jan 2017 08:02:02 +0000
-Message-ID: <1483344105.3592.1.camel@sandisk.com>
-References: <20161222221334.GA15907@obsidianresearch.com>
+Subject: Re: [PATCH 1/1 v2] IB/srp: fix mr allocation when the device
+ supports sg gaps
+Date: Mon, 2 Jan 2017 08:40:27 +0000
+Message-ID: <1483346411.3592.7.camel@sandisk.com>
+References: <1482922108-3243-1-git-send-email-maxg@mellanox.com>
+         <1482922108-3243-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161222221334.GA15907-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1482922108-3243-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
-Content-ID: <C0CCDAB8B2D6CC48B76448D607927507-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-ID: <1DE31847FD00F74D884B06009C6B075A-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE2LTEyLTIyIGF0IDE1OjEzIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IFZhbGdyaW5kIHJlcG9ydHM6DQo+IA0KPiA9PTExOTY9PSBTeXNjYWxsIHBhcmFtIHdyaXRl
-KGJ1ZikgcG9pbnRzIHRvIHVuaW5pdGlhbGlzZWQgYnl0ZShzKQ0KPiA9PTExOTY9PSAgICBhdCAw
-eDUwNjI1MEQ6ID8/PyAoc3lzY2FsbC10ZW1wbGF0ZS5TOjg0KQ0KPiA9PTExOTY9PSAgICBieSAw
-eDUyNzc1NkY6IGlidl9jbWRfbW9kaWZ5X3FwIChjbWQuYzoxMjkxKQ0KPiA9PTExOTY9PSAgICBi
-eSAweDgwMDhENzQ6IG1seDRfbW9kaWZ5X3FwICh2ZXJicy5jOjgyMCkNCj4gPT0xMTk2PT0gICAg
-YnkgMHg1MjdFNEY0OiBpYnZfbW9kaWZ5X3FwQEBJQlZFUkJTXzEuMSAodmVyYnMuYzo1NjEpDQo+
-ID09MTE5Nj09ICAgIGJ5IDB4NEUzRkFCMzogdWNtYV9tb2RpZnlfcXBfZXJyLmlzcmEuNiAoY21h
-LmM6MTExNSkNCj4gPT0xMTk2PT0gICAgYnkgMHg0RTQxRDU2OiByZG1hX2dldF9jbV9ldmVudC5w
-YXJ0LjE1IChjbWEuYzoyMTgwKQ0KPiA9PTExOTY9PSAgICBieSAweDQwMkNGMDogY21fdGhyZWFk
-IChycGluZy5jOjU3NikNCj4gPT0xMTk2PT0gICAgYnkgMHg1MDU5NzA5OiBzdGFydF90aHJlYWQg
-KHB0aHJlYWRfY3JlYXRlLmM6MzMzKQ0KPiA9PTExOTY9PSAgICBieSAweDU1OEE4MkM6IGNsb25l
-IChjbG9uZS5TOjEwOSkNCj4gPT0xMTk2PT0gIEFkZHJlc3MgMHg5ODQ3OTgwIGlzIG9uIHRocmVh
-ZCAyJ3Mgc3RhY2sNCj4gPT0xMTk2PT0gIGluIGZyYW1lICMyLCBjcmVhdGVkIGJ5IG1seDRfbW9k
-aWZ5X3FwICh2ZXJicy5jOjc3NSkNCj4gDQo+IFRoaXMgaXMgYmVjYXVzZSBvZiBjb2RlIGxpa2Ug
-dGhpczoNCj4gDQo+ICAgICAgICAgc3RydWN0IGlidl9xcF9hdHRyIHFwX2F0dHI7DQo+ICAgICAg
-ICAgcXBfYXR0ci5xcF9zdGF0ZSA9IElCVl9RUFNfRVJSOw0KPiAgICAgICAgIHJldHVybiByZG1h
-X3NldGVycm5vKGlidl9tb2RpZnlfcXAoaWQtPnFwLCAmcXBfYXR0ciwgSUJWX1FQX1NUQVRFKSk7
-DQo+IA0KPiBBbHdheXMgcGFzcyAwIGludG8gdGhlIGtlcm5lbCBmb3IgZm9yIGF0dHJpYnV0ZXMg
-dGhhdCBhcmUgbm90IHJlcXVlc3RlZA0KPiB0byBiZSBtb2RpZmllZC4NCg0KSGVsbG8gSmFzb24s
-DQoNCkhhdmUgeW91IGNvbnNpZGVyZWQgdG8gbW9kaWZ5IFZhbGdyaW5kPyBJdCBpcyBwb3NzaWJs
-ZSB0byBtb2RpZnkgVmFsZ3JpbmQNCnN1Y2ggdGhhdCBpdCBkb2Vzbid0IHJlcG9ydCBmYWxzZSBw
-b3NpdGl2ZXMgbGlrZSB0aGUgYWJvdmUgcmVwb3J0IHdpdGhvdXQNCmNoYW5naW5nIHRoZSByZG1h
-LWNvcmUgY29kZS4gU2VlIGFsc28gUFJFKHN5c19pb2N0bCkgaW4gc291cmNlIGZpbGUNCmNvcmVn
-cmluZC9tX3N5c3dyYXAvc3lzd3JhcC1saW51eC5jLg0KDQpCYXJ0Lg0K
+T24gV2VkLCAyMDE2LTEyLTI4IGF0IDEyOjQ4ICswMjAwLCBNYXggR3VydG92b3kgd3JvdGU6DQo+
+IElmIHRoZSBkZXZpY2Ugc3VwcG9ydCBhcmJpdHJhcnkgc2cgbGlzdCBtYXBwaW5nIChkZXZpY2Ug
+Y2FwDQo+IElCX0RFVklDRV9TR19HQVBTX1JFRyBzZXQpIHdlIGFsbG9jYXRlIHRoZSBtZW1vcnkg
+cmVnaW9ucyB3aXRoDQo+IElCX01SX1RZUEVfU0dfR0FQUy4NCg0KUmV2aWV3ZWQtYnk6IEJhcnQg
+VmFuIEFzc2NoZSA8YmFydC52YW5hc3NjaGVAc2FuZGlzay5jb20+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
