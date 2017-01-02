@@ -1,7 +1,7 @@
 From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 02/15] IB/rxe: Constify the pool name
-Date: Mon, 2 Jan 2017 10:39:22 +0000
-Message-ID: <1483353445.3592.17.camel@sandisk.com>
+Subject: [PATCH 03/15] IB/rxe: Remove an unused function
+Date: Mon, 2 Jan 2017 10:39:39 +0000
+Message-ID: <1483353474.3592.18.camel@sandisk.com>
 References: <1483353316.3592.14.camel@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,7 +9,7 @@ Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1483353316.3592.14.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Content-ID: <D1838F20E92B0D4FB17E8EE7183CB889-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-ID: <9CFA83D21291704DB52D2880A2017901-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -18,25 +18,17 @@ List-Id: linux-rdma@vger.kernel.org
 U2lnbmVkLW9mZi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNrLmNv
 bT4NCkNjOiBNb25pIFNob3VhIDxtb25pc0BtZWxsYW5veC5jb20+DQpDYzogQW5kcmV3IEJveWVy
 IDxhbmRyZXcuYm95ZXJAZGVsbC5jb20+DQotLS0NCsKgZHJpdmVycy9pbmZpbmliYW5kL3N3Lw0K
-cnhlL3J4ZV9wb29sLmMgfCAyICstDQrCoGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3Bv
-b2wuaCB8IDIgKy0NCsKgMiBmaWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRp
-b25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29s
-LmMgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmMNCmluZGV4IGQ3MjM5NDdh
-ODU0Mi4uMjM4YTZiZTAwZDQ2IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4
-ZS9yeGVfcG9vbC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmMN
-CkBAIC0xMDIsNyArMTAyLDcgQEAgc3RydWN0IHJ4ZV90eXBlX2luZm8gcnhlX3R5cGVfaW5mb1tS
-WEVfTlVNX1RZUEVTXSA9IHsNCsKgCX0sDQrCoH07DQrCoA0KLXN0YXRpYyBpbmxpbmUgY2hhciAq
-cG9vbF9uYW1lKHN0cnVjdCByeGVfcG9vbCAqcG9vbCkNCitzdGF0aWMgaW5saW5lIGNvbnN0IGNo
-YXIgKnBvb2xfbmFtZShzdHJ1Y3QgcnhlX3Bvb2wgKnBvb2wpDQrCoHsNCsKgCXJldHVybiByeGVf
-dHlwZV9pbmZvW3Bvb2wtPnR5cGVdLm5hbWU7DQrCoH0NCmRpZmYgLS1naXQgYS9kcml2ZXJzL2lu
-ZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmggYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4
-ZV9wb29sLmgNCmluZGV4IDRkMDQ4MzBhZGNhZS4uNzg0NmNjYzU4YjI1IDEwMDY0NA0KLS0tIGEv
-ZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfcG9vbC5oDQorKysgYi9kcml2ZXJzL2luZmlu
-aWJhbmQvc3cvcnhlL3J4ZV9wb29sLmgNCkBAIC01OCw3ICs1OCw3IEBAIGVudW0gcnhlX2VsZW1f
-dHlwZSB7DQrCoH07DQrCoA0KwqBzdHJ1Y3QgcnhlX3R5cGVfaW5mbyB7DQotCWNoYXIJCQkqbmFt
-ZTsNCisJY29uc3QgY2hhcgkJKm5hbWU7DQrCoAlzaXplX3QJCQlzaXplOw0KwqAJdm9pZAkJCSgq
-Y2xlYW51cCkodm9pZCAqb2JqKTsNCsKgCWVudW0gcnhlX3Bvb2xfZmxhZ3MJZmxhZ3M7DQotLcKg
-DQoyLjExLjANCg==
+cnhlL3J4ZV9wb29sLmMgfCA3IC0tLS0tLS0NCsKgMSBmaWxlIGNoYW5nZWQsIDcgZGVsZXRpb25z
+KC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmMg
+Yi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmMNCmluZGV4IDIzOGE2YmUwMGQ0
+Ni4uNGZlMTExNDhiMzA0IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9y
+eGVfcG9vbC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmMNCkBA
+IC0xMTIsMTMgKzExMiw2IEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IGttZW1fY2FjaGUgKnBvb2xf
+Y2FjaGUoc3RydWN0IHJ4ZV9wb29sICpwb29sKQ0KwqAJcmV0dXJuIHJ4ZV90eXBlX2luZm9bcG9v
+bC0+dHlwZV0uY2FjaGU7DQrCoH0NCsKgDQotc3RhdGljIGlubGluZSBlbnVtIHJ4ZV9lbGVtX3R5
+cGUgcnhlX3R5cGUodm9pZCAqYXJnKQ0KLXsNCi0Jc3RydWN0IHJ4ZV9wb29sX2VudHJ5ICplbGVt
+ID0gYXJnOw0KLQ0KLQlyZXR1cm4gZWxlbS0+cG9vbC0+dHlwZTsNCi19DQotDQrCoGludCByeGVf
+Y2FjaGVfaW5pdCh2b2lkKQ0KwqB7DQrCoAlpbnQgZXJyOw0KLS3CoA0KMi4xMS4wDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
