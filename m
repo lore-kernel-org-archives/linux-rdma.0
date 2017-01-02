@@ -1,74 +1,54 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH for-next V2 02/11] IB/mlx5: Reorder code in query device command
-Date: Mon,  2 Jan 2017 11:37:39 +0200
-Message-ID: <1483349868-11716-3-git-send-email-saeedm@mellanox.com>
-References: <1483349868-11716-1-git-send-email-saeedm@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1483349868-11716-1-git-send-email-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Ilya Lesokhin <ilyal@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 00/15] IB/rxe patches for kernel v4.11
+Date: Mon, 2 Jan 2017 10:35:32 +0000
+Message-ID: <1483353316.3592.14.camel@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <EA059D05CB24CF4189270E8DACF7D2F7-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leon@kernel.org>
-
-The order of features exposed by private mlx5-abi.h
-file is CQE zipping, packet pacing and multi-packet WQE.
-
-The internal order implemented in mlx5_ib_query_device() is
-multi-packet WQE, CQE zipping and packet pacing.
-
-Such difference hurts code readability, so let's sync,
-while mlx5-abi.h (exposed to userspace) is the primary
-order.
-
-This commit doesn't change any functionality.
-
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
----
- drivers/infiniband/hw/mlx5/main.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d566f67..2ab4e32 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -672,17 +672,6 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rq);
- 	}
- 
--	if (field_avail(typeof(resp), mlx5_ib_support_multi_pkt_send_wqes,
--			uhw->outlen)) {
--		resp.mlx5_ib_support_multi_pkt_send_wqes =
--			MLX5_CAP_ETH(mdev, multi_pkt_send_wqe);
--		resp.response_length +=
--			sizeof(resp.mlx5_ib_support_multi_pkt_send_wqes);
--	}
--
--	if (field_avail(typeof(resp), reserved, uhw->outlen))
--		resp.response_length += sizeof(resp.reserved);
--
- 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
- 		resp.cqe_comp_caps.max_num =
- 			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
-@@ -706,6 +695,17 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		resp.response_length += sizeof(resp.packet_pacing_caps);
- 	}
- 
-+	if (field_avail(typeof(resp), mlx5_ib_support_multi_pkt_send_wqes,
-+			uhw->outlen)) {
-+		resp.mlx5_ib_support_multi_pkt_send_wqes =
-+			MLX5_CAP_ETH(mdev, multi_pkt_send_wqe);
-+		resp.response_length +=
-+			sizeof(resp.mlx5_ib_support_multi_pkt_send_wqes);
-+	}
-+
-+	if (field_avail(typeof(resp), reserved, uhw->outlen))
-+		resp.response_length += sizeof(resp.reserved);
-+
- 	if (uhw->outlen) {
- 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
- 
--- 
-2.7.4
+SGVsbG8gRG91ZywNCg0KVGhlIHBhdGNoZXMgaW4gdGhpcyBzZXJpZXMgYXJlIHdoYXQgSSBjYW1l
+IHVwIHdpdGggYnkgcmV2aWV3aW5nIGFuZCB0ZXN0aW5nDQp0aGUgcmRtYV9yeGUgZHJpdmVyLiBQ
+bGVhc2UgY29uc2lkZXIgdGhlc2UgcGF0Y2hlcyBmb3Iga2VybmVsIHY0LjExLg0KDQpUaGFua3Ms
+DQoNCkJhcnQuDQoNCi0tDQoNCkJhcnQgVmFuIEFzc2NoZSAoMTUpOg0KwqAgSUIvcnhlOiBTdXBw
+cmVzcyBzcGFyc2Ugd2FybmluZ3MNCsKgIElCL3J4ZTogQ29uc3RpZnkgdGhlIHBvb2wgbmFtZQ0K
+wqAgSUIvcnhlOiBSZW1vdmUgYW4gdW51c2VkIGZ1bmN0aW9uDQrCoCBJQi9yeGU6IFJlbW92ZSBh
+biB1bnVzZWQgdmFyaWFibGUNCsKgIElCL3J4ZTogUmVtb3ZlIHN1cGVyZmx1b3VzIGNhc3RzDQrC
+oCBJQi9yeGU6IEVuYWJsZSB0eXBlIGNoZWNraW5nIG9uIFNLQl9UT19QS1QoKSBhbmQgUEtUX1RP
+X1NLQigpwqBhcmd1bWVudHMNCsKgIElCL3J4ZTogTGV0IHRoZSBjb21waWxlciBjaGVjayB0aGUg
+dHlwZSBvZiB0aGUgY2xlYW51cCBmdW5jdGlvbnMNCsKgIElCL3J4ZTogSXNzdWUgd2FybmluZ3Mg
+b25jZQ0KwqAgSUIvcnhlOiBBZGQgYSBydW50aW1lIGNoZWNrIGluIGFsbG9jX2luZGV4KCkNCsKg
+IElCL3J4ZTogSW50cm9kdWNlIGZ1bmN0aW9ucyBmb3IgcXVldWUgZHJhaW5pbmcNCsKgIElCL3J4
+ZTogR2VuZXJhdGUgYSBjb21wbGV0aW9uIGZvciBhbGwgZmFpbGVkIHdvcmsgcmVxdWVzdHMNCsKg
+IElCL3J4ZTogRml4IGEgTVIgcmVmZXJlbmNlIGxlYWsgaW4gY2hlY2tfcmtleSgpDQrCoCBJQi9y
+eGU6IEZpeCByZWZlcmVuY2UgbGVha3MgaW4gbWVtb3J5IGtleSBpbnZhbGlkYXRpb24gY29kZQ0K
+wqAgSUIvcnhlOiBSZW1vdmUgYSBwb2ludGxlc3MgaW5kaXJlY3Rpb24gbGF5ZXINCsKgIElCL3J4
+ZTogRml4IGFuIHNrYiBsZWFrDQoNCsKgZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGUuY8Kg
+wqDCoMKgwqDCoMKgfMKgwqAyICstDQrCoGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2Nv
+bXAuY8KgwqB8IDgzICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tDQrCoGRyaXZl
+cnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2NxLmPCoMKgwqDCoHzCoMKgNCArLQ0KwqBkcml2ZXJz
+L2luZmluaWJhbmQvc3cvcnhlL3J4ZV9oZHIuaMKgwqDCoHwgMTIgKysrKy0NCsKgZHJpdmVycy9p
+bmZpbmliYW5kL3N3L3J4ZS9yeGVfbG9jLmjCoMKgwqB8IDI5ICsrKysrKysrKy0tLQ0KwqBkcml2
+ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9tY2FzdC5jIHzCoMKgOCArKy0tDQrCoGRyaXZlcnMv
+aW5maW5pYmFuZC9zdy9yeGUvcnhlX21yLmPCoMKgwqDCoHwgMTAgKystLS0NCsKgZHJpdmVycy9p
+bmZpbmliYW5kL3N3L3J4ZS9yeGVfbmV0LmPCoMKgwqB8IDUxICsrKysrKystLS0tLS0tLS0tLS0t
+LQ0KwqBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9wb29sLmPCoMKgfCAxNCArKy0tLS0N
+CsKgZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfcG9vbC5owqDCoHzCoMKgOCArKy0tDQrC
+oGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3FwLmPCoMKgwqDCoHzCoMKgNCArLQ0KwqBk
+cml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9yZWN2LmPCoMKgfMKgwqAyICstDQrCoGRyaXZl
+cnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3JlcS5jwqDCoMKgfCAzMCArKysrKy0tLS0tLS0tDQrC
+oGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3Jlc3AuY8KgwqB8IDY0ICsrKysrKysrKysr
+KysrLS0tLS0tLS0tLS0tLQ0KwqBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV92ZXJicy5j
+IHwgMTAgKystLS0NCsKgZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfdmVyYnMuaCB8IDI0
+ICstLS0tLS0tLS0NCsKgMTYgZmlsZXMgY2hhbmdlZCwgMTY0IGluc2VydGlvbnMoKyksIDE5MSBk
+ZWxldGlvbnMoLSkNCg0KLS3CoA0KMi4xMS4wDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
