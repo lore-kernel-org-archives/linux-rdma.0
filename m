@@ -1,7 +1,7 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH 1/1] ipoib: remove unnecessary returned value check
-Date: Tue, 3 Jan 2017 08:46:56 +0200
-Message-ID: <20170103064655.GA6001@yuval-lap.uk.oracle.com>
+Date: Tue, 3 Jan 2017 08:51:53 +0200
+Message-ID: <20170103065152.GB6001@yuval-lap.uk.oracle.com>
 References: <1482151756-8802-1-git-send-email-yanjun.zhu@oracle.com>
  <586B0DB8.3060301@oracle.com>
 Mime-Version: 1.0
@@ -17,7 +17,10 @@ List-Id: linux-rdma@vger.kernel.org
 On Tue, Jan 03, 2017 at 10:34:32AM +0800, Yanjun Zhu wrote:
 > Any comment ?
 
-You will have to make change also to __ipoib_vlan_add
+In addition to my previous mail, suggesting to change the commit header to
+be more consistent.
+
+IB/ipoib: Remove unnecessary returned value check
 
 > 
 > 
@@ -26,9 +29,6 @@ You will have to make change also to __ipoib_vlan_add
 > >As such, it is not necessary to check the returned value.
 > >This is not a bug. When I read the source code, I think it is not
 > >necessary to check it.
-
-Please rephrase - omit the words "I think".
-
 > >
 > >Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > >---
