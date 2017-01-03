@@ -1,43 +1,92 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] uapi: use wildcards to list files
-Date: Tue, 03 Jan 2017 22:37:04 +0100
-Message-ID: <2108827.WpE3IvfEdH@wuerfel>
-References: <20161203.192346.1198940437155108508.davem@davemloft.net>
- <1483454144-10519-1-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1483454144-10519-1-git-send-email-nicolas.dichtel@6wind.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: linux-arch@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-nfs@vger.kernel.org, alsa-devel@alsa-project.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-spi@vger.kernel.org, linux-raid@vger.kernel.org, netfilter-devel@vger.kernel.org, linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org, fcoe-devel@open-fcoe.org, linux-mtd@lists.infradead.org, davem@davemloft.net, linux-media@vger.kernel.org
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [for-next 04/10] IB/mlx5: Fix retrieval of index to first hi class bfreg
+Date: Tue,  3 Jan 2017 23:55:22 +0200
+Message-ID: <1483480528-22622-5-git-send-email-saeedm@mellanox.com>
+References: <1483480528-22622-1-git-send-email-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1483480528-22622-1-git-send-email-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Eli Cohen <eli@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlc2RheSwgSmFudWFyeSAzLCAyMDE3IDM6MzU6NDQgUE0gQ0VUIE5pY29sYXMgRGljaHRl
-bCB3cm90ZToKPiBSZWd1bGFybHksIHdoZW4gYSBuZXcgaGVhZGVyIGlzIGNyZWF0ZWQgaW4gaW5j
-bHVkZS91YXBpLywgdGhlIGRldmVsb3Blcgo+IGZvcmdldHMgdG8gYWRkIGl0IGluIHRoZSBjb3Jy
-ZXNwb25kaW5nIEtidWlsZCBmaWxlLiBUaGlzIGVycm9yIGlzIHVzdWFsbHkKPiBkZXRlY3RlZCBh
-ZnRlciB0aGUgcmVsZWFzZSBpcyBvdXQuCj4gCj4gSW4gZmFjdCwgYWxsIGhlYWRlcnMgdW5kZXIg
-aW5jbHVkZS91YXBpLyBzaG91bGQgYmUgZXhwb3J0ZWQsIHNvIGxldCdzCj4gdXNlIHdpbGRjYXJk
-cy4KCkkgdGhpbmsgdGhlIGlkZWEgbWFrZXMgYSBsb3Qgb2Ygc2Vuc2U6IGlmIGEgaGVhZGVyIGlz
-IGluIHVhcGksIHdlIHNob3VsZApyZWFsbHkgZXhwb3J0IGl0LiBIb3dldmVyLCB1c2luZyBhIHdp
-bGRjYXJkIGV4cHJlc3Npb24gc2VlbXMgYSBiaXQKYmFja3dhcmRzIGhlcmUsIEkgdGhpbmsgd2Ug
-c2hvdWxkIG1ha2UgdGhpcyBpbXBsaWNpdCBhbmQgbm90IGhhdmUgdGhlCktidWlsZCBmaWxlIGF0
-IGFsbC4KClRoZSAiaGVhZGVyLXkiIHN5bnRheCB3YXMgb3JpZ2luYWxseSBhZGRlZCBiYWNrIHdo
-ZW4gdGhlIHVhcGkgaGVhZGVycwp3ZXJlIG1peGVkIHdpdGggdGhlIGludGVybmFsIGhlYWRlcnMg
-aW4gdGhlIHNhbWUgZGlyZWN0b3J5LiBBZnRlcgpEYXZpZCBIb3dlbGxzIGludHJvZHVjZWQgdGhl
-IHNlcGFyYXRlIGRpcmVjdG9yeSBmb3IgdWFwaSwgaXQgaGFzCmJlY29tZSBhIGJpdCByZWR1bmRh
-bnQuCgpDYW4geW91IHRyeSB0byBtb2RpZnkgc2NyaXB0cy9NYWtlZmlsZS5oZWFkZXJzaW5zdCBp
-bnN0ZWFkIHNvIHdlCmNhbiBzaW1wbHkgcmVtb3ZlIHRoZSBLYnVpbGQgZmlsZXMgZW50aXJlbHk/
-CgoJQXJuZApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
-cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
-cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+From: Eli Cohen <eli@mellanox.com>
+
+First the function retrieving the index of the first hi latency class
+blue flame register. High latency class bfregs are located right above
+medium latency class bfregs.
+
+Fixes: c1be5232d21d ('IB/mlx5: Fix micro UAR allocator')
+Signed-off-by: Eli Cohen <eli@mellanox.com>
+Reviewed-by: Matan Barak <matanb@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index fbea9bd..240fbb0 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -490,12 +490,21 @@ static int next_bfreg(int n)
+ 	return n;
+ }
+ 
++enum {
++	/* this is the first blue flame register in the array of bfregs assigned
++	 * to a processes. Since we do not use it for blue flame but rather
++	 * regular 64 bit doorbells, we do not need a lock for maintaiing
++	 * "odd/even" order
++	 */
++	NUM_NON_BLUE_FLAME_BFREGS = 1,
++};
++
+ static int num_med_bfreg(struct mlx5_bfreg_info *bfregi)
+ {
+ 	int n;
+ 
+ 	n = bfregi->num_uars * MLX5_NON_FP_BFREGS_PER_UAR -
+-		bfregi->num_low_latency_bfregs - 1;
++		bfregi->num_low_latency_bfregs - NUM_NON_BLUE_FLAME_BFREGS;
+ 
+ 	return n >= 0 ? n : 0;
+ }
+@@ -508,17 +517,9 @@ static int max_bfregi(struct mlx5_bfreg_info *bfregi)
+ static int first_hi_bfreg(struct mlx5_bfreg_info *bfregi)
+ {
+ 	int med;
+-	int i;
+-	int t;
+ 
+ 	med = num_med_bfreg(bfregi);
+-	for (t = 0, i = first_med_bfreg();; i = next_bfreg(i)) {
+-		t++;
+-		if (t == med)
+-			return next_bfreg(i);
+-	}
+-
+-	return 0;
++	return next_bfreg(med);
+ }
+ 
+ static int alloc_high_class_bfreg(struct mlx5_bfreg_info *bfregi)
+@@ -544,6 +545,8 @@ static int alloc_med_class_bfreg(struct mlx5_bfreg_info *bfregi)
+ 	for (i = first_med_bfreg(); i < first_hi_bfreg(bfregi); i = next_bfreg(i)) {
+ 		if (bfregi->count[i] < bfregi->count[minidx])
+ 			minidx = i;
++		if (!bfregi->count[minidx])
++			break;
+ 	}
+ 
+ 	bfregi->count[minidx]++;
+@@ -558,6 +561,7 @@ static int alloc_bfreg(struct mlx5_bfreg_info *bfregi,
+ 	mutex_lock(&bfregi->lock);
+ 	switch (lat) {
+ 	case MLX5_IB_LATENCY_CLASS_LOW:
++		BUILD_BUG_ON(NUM_NON_BLUE_FLAME_BFREGS != 1);
+ 		bfregn = 0;
+ 		bfregi->count[bfregn]++;
+ 		break;
+-- 
+2.7.4
