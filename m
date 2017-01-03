@@ -1,91 +1,51 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv1 1/1] IB/srp: fix invalid indirect_sg_entries parameter
- value
-Date: Tue, 3 Jan 2017 14:05:45 -0500 (EST)
-Message-ID: <1556941108.12182872.1483470345023.JavaMail.zimbra@redhat.com>
-References: <1483451474-8096-1-git-send-email-maxg@mellanox.com> <1483466372.16249.1.camel@sandisk.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB: Fix incorrect structure packing for booleans
+Date: Tue, 3 Jan 2017 14:16:42 -0500
+Message-ID: <02392b22-10dc-be83-d4de-c9c2db416cc1@dev.mellanox.co.il>
+References: <20161223010752.GA20676@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483466372.16249.1.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20161223010752.GA20676-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/22/2016 8:07 PM, Jason Gunthorpe wrote:
+> Crucially this means the kernel has never, set reversible
+> correctly in the path record request. It has always asked for
+> irreversible paths even if the ULP requests otherwise.
 
+Issuing path record query with reversible bit set to 0 means that any
+path (reversible or not) can be returned by SA. It is not requesting an
+irreversible path. In the response, the reversible bit indicates whether
+the path is reversible or not.
 
------ Original Message -----
-> From: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> To: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Sent: Tuesday, January 3, 2017 12:59:49 PM
-> Subject: Re: [PATCHv1 1/1] IB/srp: fix invalid indirect_sg_entries parameter value
+> When the kernel is used with a SM that supports this feature, it
+> completely breaks communication management if reversible paths are
+> not properly requested.
 > 
-> On Tue, 2017-01-03 at 15:51 +0200, Max Gurtovoy wrote:
-> > From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > 
-> > After setting indirect_sg_entries module_param to huge value (e.g 500,000),
-> > srp_alloc_req_data() fails to allocate indirect descriptors for the request
-> > ring (kmalloc fails). This commit enforces the maximum value of
-> > indirect_sg_entries
-> > to be SG_MAX_SEGMENTS as signified in module param description.
-> > 
-> > Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/ulp/srp/ib_srp.c | 7 +++++++
-> >  1 file changed, 7 insertions(+)
-> > 
-> > diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-> > b/drivers/infiniband/ulp/srp/ib_srp.c
-> > index 0f67cf9..ccdd2c2 100644
-> > --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> > +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> > @@ -3676,6 +3676,7 @@ static struct srp_function_template
-> > ib_srp_transport_functions = {
-> >  static int __init srp_init_module(void)
-> >  {
-> >  	int ret;
-> > +	unsigned int max_indirect_sg_entries = SG_MAX_SEGMENTS;
-> >  
-> >  	if (srp_sg_tablesize) {
-> >  		pr_warn("srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
-> > @@ -3699,6 +3700,12 @@ static int __init srp_init_module(void)
-> >  		indirect_sg_entries = cmd_sg_entries;
-> >  	}
-> >  
-> > +	if (indirect_sg_entries > max_indirect_sg_entries) {
-> > +		pr_warn("Clamping indirect_sg_entries to %u\n",
-> > +			max_indirect_sg_entries);
-> > +		indirect_sg_entries = max_indirect_sg_entries;
-> > +	}
-> > +
-> >  	srp_remove_wq = create_workqueue("srp_remove");
-> >  	if (!srp_remove_wq) {
-> >  		ret = -ENOMEM;
-> 
-> Hello Max,
-> 
-> That's a good catch, but why has the max_indirect_sg_entries variable been
-> introduced? Can it be left out?
-> 
-> Thanks,
-> 
-> Bart.N�����r��y���b�X��ǧv�^�)޺{.n�+����{��ٚ�{ay�ʇڙ�,j��f���h���z��w������j:+v���w�j�m��������zZ+��ݢj"��
+> The only reason this ever worked is because opensm ignores the
+> reversible bit.
 
-I have never had to set mine that high even when I was testing against the DDN arrays.
-I run my tests with the module parameters set this way.
+OpenSM supports reversible PR queries. I tested all 3 cases (comp mask
+bit not set, comp mask bit set and reversible set to 1, and comp mask
+bit set and reversible set to 0) in a single subnet.
 
-options ib_srp cmd_sg_entries=255 indirect_sg_entries=2048 
+If you are referring to multiple (IB routed) subnet case, OpenSM only
+has rudimentary support for this and path queries is just one area where
+shortcuts were done to demo primitive IB routers a long time ago so I
+would not be surprised if reversible was ignored in that scenario.
+Is that what you are referring to ? If so, it would be more accurate to
+add that into your description rather than a blanket statement that
+OpenSM ignores the reversible bit in path queries.
 
-I thought 2048 was the max.
+Otherwise, please elaborate/provide more details on the issue you are
+seeing with OpenSM.
 
-parm:           indirect_sg_entries:Default max number of gather/scatter entries (default is 12, max is 2048) (uint)
-
-Thanks
-Laurence
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
