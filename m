@@ -1,85 +1,81 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] ipoib: remove unnecessary returned value check
-Date: Tue, 3 Jan 2017 08:51:53 +0200
-Message-ID: <20170103065152.GB6001@yuval-lap.uk.oracle.com>
-References: <1482151756-8802-1-git-send-email-yanjun.zhu@oracle.com>
- <586B0DB8.3060301@oracle.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for-next V2 00/11] Mellanox mlx5 core and ODP updates
+ 2017-01-01
+Date: Tue, 3 Jan 2017 09:23:44 +0200
+Message-ID: <20170103072344.GF12077@mtr-leonro.local>
+References: <1483349868-11716-1-git-send-email-saeedm@mellanox.com>
+ <20170102.155341.1496970446718890403.davem@davemloft.net>
+ <CALzJLG9ZBRMOVqFsTypCLV6Rrek8a9g43z0spvVKeku6WdWCTA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="C+ts3FVlLX8+P6JN"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <586B0DB8.3060301-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, emilbart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <CALzJLG9ZBRMOVqFsTypCLV6Rrek8a9g43z0spvVKeku6WdWCTA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Cc: David Miller <davem@davemloft.net>, Saeed Mahameed <saeedm@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, ilyal@mellanox.com, artemyko@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 03, 2017 at 10:34:32AM +0800, Yanjun Zhu wrote:
-> Any comment ?
 
-In addition to my previous mail, suggesting to change the commit header to
-be more consistent.
+--C+ts3FVlLX8+P6JN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-IB/ipoib: Remove unnecessary returned value check
-
-> 
-> 
-> On 2016/12/19 20:49, Zhu Yanjun wrote:
-> >In the function ipoib_set_dev_features, the returned value is always 0.
-> >As such, it is not necessary to check the returned value.
-> >This is not a bug. When I read the source code, I think it is not
-> >necessary to check it.
+On Tue, Jan 03, 2017 at 01:30:16AM +0200, Saeed Mahameed wrote:
+> On Mon, Jan 2, 2017 at 10:53 PM, David Miller <davem@davemloft.net> wrote:
+> > From: Saeed Mahameed <saeedm@mellanox.com>
+> > Date: Mon,  2 Jan 2017 11:37:37 +0200
 > >
-> >Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >---
-> >  drivers/infiniband/ulp/ipoib/ipoib.h      | 2 +-
-> >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++------
-> >  2 files changed, 3 insertions(+), 7 deletions(-)
+> >> The following eleven patches mainly come from Artemy Kovalyov
+> >> who expanded mlx5 on-demand-paging (ODP) support. In addition
+> >> there are three cleanup patches which don't change any functionality,
+> >> but are needed to align codebase prior accepting other patches.
 > >
-> >diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> >index da12717..f568064 100644
-> >--- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> >+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> >@@ -593,7 +593,7 @@ void ipoib_pkey_open(struct ipoib_dev_priv *priv);
-> >  void ipoib_drain_cq(struct net_device *dev);
-> >  void ipoib_set_ethtool_ops(struct net_device *dev);
-> >-int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
-> >+void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
-> >  #define IPOIB_FLAGS_RC		0x80
-> >  #define IPOIB_FLAGS_UC		0x40
-> >diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >index 3ce0765..4e8e11e 100644
-> >--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >@@ -1984,7 +1984,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
-> >  	return device_create_file(&dev->dev, &dev_attr_pkey);
-> >  }
-> >-int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> >+void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> >  {
-> >  	priv->hca_caps = hca->attrs.device_cap_flags;
-> >@@ -1996,8 +1996,6 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> >  		priv->dev->features |= priv->dev->hw_features;
-> >  	}
-> >-
-> >-	return 0;
-> >  }
-> >  static struct net_device *ipoib_add_port(const char *format,
-> >@@ -2037,9 +2035,7 @@ static struct net_device *ipoib_add_port(const char *format,
-> >  		goto device_init_failed;
-> >  	}
-> >-	result = ipoib_set_dev_features(priv, hca);
-> >-	if (result)
-> >-		goto device_init_failed;
-> >+	ipoib_set_dev_features(priv, hca);
-> >  	/*
-> >  	 * Set the full membership bit, so that we join the right
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Series applied to net-next, thanks.
+>
+> Whoops,
+>
+> This series was meant as a pull request, you can blame it on me I
+> kinda messed up the V2 title.
+> Doug will have to pull same patches later, will this produce a
+> conflict on merge window ?
+
+Yes, but it can be easily avoided.
+
+Doug,
+
+We have another pull request to send and we will base its code on the
+Dave's tree instead of Linus's rc tag. In such way, you will have the
+same commits as Dave and won't have merge failures.
+
+Please don't apply manually this specific patchset.
+
+Sorry for the inconvenience.
+
+Thanks.
+
+>
+> Sorry for the confusion.
+
+--C+ts3FVlLX8+P6JN
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhrUYAACgkQ5GN7iDZy
+WKfT3Q/9Hjg3mFd20GFop0r4UxSRny9c00sOYh5e54M7mOimGFP5p1OIFaO9S9dw
+KxJSI7+1ChD5McQddKcWk/iR2QZNXpBoDj0OmVFV+xSLa5RFfXLn6LTfcIA+0kwe
+WVIMmpY3d0oZyHSbrLUqU0Tnl21/RTZJD/I6RuoafSQk5vmk6g3+yskfPk76CVUX
+5EfZ+l7GcE8erZSx9jbsH37eGIvBag9bsiDxaAo92NbZUCEUon85vFxVQzDo3ikh
+ydTJuGuv8s1IoXd6kcDlbyc/bnWZOxCGeXBm7dnZ+ZT8kOUSi+CmR8hVqYB4cUhF
+dv6RyrOwe0pTh2JREfRlXriRYZPAYQoDRt98012pQmjvZZ1tY/V0Rxt24JnV0RoK
+Ki2rN6MncaMsOUYxmgHuCSlmS98Z9g65WlN2YV6yaFQE0otq/MCsRuQmNTPEfLlK
+j4p46RdGKOmoCb+7ar2BAQ9btmHimq03nAwwti8+EMw6M9FDhoDoG9l9Uy+ca4fi
+IDbHeQso0KGwkmgleQmI+tujNcMPheCtRy7OmycbiTiqooh3lwGBY8Jkk4kuCRWs
+xuw6wSedEu7DwfRj1vD27p2S/zdhX1vTjzc5D3EV1FnlcUIXcJEQ1EWoQlU5jFZB
+dbkei2vtVoQlKePoBpO7kXWu5JIIwD/XeyGQMQKOwOTivoCGsF4=
+=PDGL
+-----END PGP SIGNATURE-----
+
+--C+ts3FVlLX8+P6JN--
