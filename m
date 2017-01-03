@@ -1,141 +1,56 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
-Date: Tue, 3 Jan 2017 12:12:24 +0200
-Message-ID: <20170103101224.GH12077@mtr-leonro.local>
-References: <1483093109-188428-1-git-send-email-liguozhu@hisilicon.com>
- <20170101064712.GQ26885@mtr-leonro.local>
- <20170103023250.GA228559@Turing-Arch-b>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="0hHDr/TIsw4o3iPK"
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCHv1 1/1] IB/srp: fix invalid indirect_sg_entries parameter value
+Date: Tue,  3 Jan 2017 15:45:33 +0200
+Message-ID: <1483451133-6308-2-git-send-email-maxg@mellanox.com>
+References: <1483451133-6308-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170103023250.GA228559@Turing-Arch-b>
+In-Reply-To: <1483451133-6308-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bvanassche-HInyCGIudOg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---0hHDr/TIsw4o3iPK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+After setting indirect_sg_entries module_param to huge value (e.g 500,000),
+srp_alloc_req_data() fails to allocate indirect descriptors for the request
+ring (kmalloc fails). This commit enforces the maximum value of indirect_sg_entries
+to be SG_MAX_SEGMENTS as signified in module param description.
 
-On Tue, Jan 03, 2017 at 10:32:50AM +0800, Kenneth Lee wrote:
-> On Sun, Jan 01, 2017 at 08:47:12AM +0200, Leon Romanovsky wrote:
-> > Date: Sun, 1 Jan 2017 08:47:12 +0200
-> > From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > To: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> > CC: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
-> >  robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org,
-> >  vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
-> >  krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
-> >  linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
-> > User-Agent: Mutt/1.7.2 (2016-11-26)
-> > Message-ID: <20170101064712.GQ26885-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-> >
-> > On Fri, Dec 30, 2016 at 06:18:29PM +0800, Kenneth Lee wrote:
-> > > There are two bugfixes in this patch:
-> > >
-> > > Fixes: 87773dd56d54 ("IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get")
-> > > 	This patch introduce the get_task_pid but not put it back on all error
-> > > 	path
-> > >
-> > > Fixes: 8ada2c1c0c1d ("IB/core: Add support for on demand paging regions")
-> > > 	This patch introduce a ODP flow without release pid before enter it
-> > >
-> > >
-> > > Signed-off-by: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> > > Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > ---
-> > > Change from v1 to v2:
-> > >   Correcting the patch title and description
-> > > Change from v2 to v3:
-> > >   Update the title and add "Fixes" fields in the description
-> >
-> > OK,
-> >
-> > I see that you still didn't read Documentation/SubmittingPatches. You
-> > must read that document before you are sending patches.
-> >
-> > But I'll stop here, the code is correct (it fixes bugs) and commit message
-> > more usefull than before.
-> >
-> >
-> > >
-> > >  drivers/infiniband/core/umem.c | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > >
-> > > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> > > index 1e62a5f..4609b92 100644
-> > > --- a/drivers/infiniband/core/umem.c
-> > > +++ b/drivers/infiniband/core/umem.c
-> > > @@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> > >  		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
-> > >
-> > >  	if (access & IB_ACCESS_ON_DEMAND) {
-> > > +		put_pid(umem->pid);
-> > >  		ret = ib_umem_odp_get(context, umem);
-> > >  		if (ret) {
-> > >  			kfree(umem);
-> > > @@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> > >
-> > >  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
-> > >  	if (!page_list) {
-> > > +		put_pid(umem->pid);
-> > >  		kfree(umem);
-> > >  		return ERR_PTR(-ENOMEM);
-> > >  	}
-> > > --
-> > > 1.9.1
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> Thanks,
->
-> I did read the doc, but maybe I mis-understant some points. Could you please
-> point it out?
+Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Fixes line should be placed above bottom signatures.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 0f67cf9..ccdd2c2 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3676,6 +3676,7 @@ static struct srp_function_template ib_srp_transport_functions = {
+ static int __init srp_init_module(void)
+ {
+ 	int ret;
++	unsigned int max_indirect_sg_entries = SG_MAX_SEGMENTS;
+ 
+ 	if (srp_sg_tablesize) {
+ 		pr_warn("srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
+@@ -3699,6 +3700,12 @@ static int __init srp_init_module(void)
+ 		indirect_sg_entries = cmd_sg_entries;
+ 	}
+ 
++	if (indirect_sg_entries > max_indirect_sg_entries) {
++		pr_warn("Clamping indirect_sg_entries to %u\n",
++			max_indirect_sg_entries);
++		indirect_sg_entries = max_indirect_sg_entries;
++	}
++
+ 	srp_remove_wq = create_workqueue("srp_remove");
+ 	if (!srp_remove_wq) {
+ 		ret = -ENOMEM;
+-- 
+2.4.3
 
-As an example of properly written patch, you can take a look on the
-following patch [1] from Steve.
-
-[1] http://marc.info/?l=linux-rdma&m=148244272205411&w=2
-
->
-> And sorry. please ignore the last message. I forget to use a bottom-post style.
->
->
->
-> --
-> 			-Kenneth(Hisilicon)
-
---0hHDr/TIsw4o3iPK
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhreQgACgkQ5GN7iDZy
-WKdr7A//WSwECvCWfJkZOaIi1r7SuORI66PHyaLA3RMP5U44zIOH2LLgfpG9KYc7
-S9dF1op3qmzmi+8xwEDrhQ0TlwF+C2c0kSqJZxkVGy+F8eMLTtFdTgs+tiv1F54N
-9Wim3tNGDFFvspJEQ6vnG4WBK6nOqSP2mOkAl0bzGZchojAAOe9yvbLrxFDy4M0Q
-sRLIYNyNqmjFkpPo5WbytPSX2o9wdUxNujS73LBXa1OhpCum2yRx0MiiD/fIbVfr
-5jjtptRXHYOhbP231GOiHIZIeN+0332kVBm31qk99+8dRAMZkhaDl6l93zLpIylf
-Y69CGpbhy96uo+T5bglP4jagJOv7m5CZa/ReSXRgpSNc6r1j3ZBmVvcBmWshcLl6
-bcw/EhfQS/ji0rwBdso8oSNstysYJ+Dq98p/NuwcMRhyXM1erDufpoN4N29kGYP9
-L8FXcCKKAOmLDMz2X93N5YhRF8N8366Nb+2mfSUvuCs3TLs56CcCaVSrJTgF8R+y
-rvAMbx/mnoX2DKC/kTOXWzPP4D3owQeaSaaaYKOa3D+nGqeYK1V3HGEMiZxo7/ZH
-Kyef2QRDH/ZGXAHu4hPBP7SfYMt3qP0QSjtiWmfKoqaGwR8lLtKQOlcQzQpFa0gC
-PI3QvQoB9jRs503GnM52RyWxdgAtrExcqoAl/zYDuUqu/GLQjgk=
-=sgsm
------END PGP SIGNATURE-----
-
---0hHDr/TIsw4o3iPK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
