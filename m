@@ -1,25 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] IB/core: add the function ib_mtu_int_to_enum
-Date: Tue, 3 Jan 2017 16:24:09 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0CE4E4@ORSMSX109.amr.corp.intel.com>
-References: <1482734458-32131-1-git-send-email-Ram.Amrani@cavium.com>
- <1482734458-32131-2-git-send-email-Ram.Amrani@cavium.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv1 1/1] IB/srp: fix invalid indirect_sg_entries parameter
+ value
+Date: Tue, 3 Jan 2017 17:59:49 +0000
+Message-ID: <1483466372.16249.1.camel@sandisk.com>
+References: <1483451474-8096-1-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482734458-32131-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1483451474-8096-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
+Content-ID: <B5E992F9E5A32C4290E0D62726063885-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> As the functionality to convert the MTU from a number to enum_ib_mtu
-> is ubiquitous, define a dedicated function and remove the duplicated
-> code.
-
-Why keep mtu as an enum in the kernel?  Just make it an int like it should be.
+T24gVHVlLCAyMDE3LTAxLTAzIGF0IDE1OjUxICswMjAwLCBNYXggR3VydG92b3kgd3JvdGU6DQo+
+IEZyb206IElzcmFlbCBSdWtzaGluIDxpc3JhZWxyQG1lbGxhbm94LmNvbT4NCj4gDQo+IEFmdGVy
+IHNldHRpbmcgaW5kaXJlY3Rfc2dfZW50cmllcyBtb2R1bGVfcGFyYW0gdG8gaHVnZSB2YWx1ZSAo
+ZS5nIDUwMCwwMDApLA0KPiBzcnBfYWxsb2NfcmVxX2RhdGEoKSBmYWlscyB0byBhbGxvY2F0ZSBp
+bmRpcmVjdCBkZXNjcmlwdG9ycyBmb3IgdGhlIHJlcXVlc3QNCj4gcmluZyAoa21hbGxvYyBmYWls
+cykuIFRoaXMgY29tbWl0IGVuZm9yY2VzIHRoZSBtYXhpbXVtIHZhbHVlIG9mIGluZGlyZWN0X3Nn
+X2VudHJpZXMNCj4gdG8gYmUgU0dfTUFYX1NFR01FTlRTIGFzIHNpZ25pZmllZCBpbiBtb2R1bGUg
+cGFyYW0gZGVzY3JpcHRpb24uDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBJc3JhZWwgUnVrc2hpbiA8
+aXNyYWVsckBtZWxsYW5veC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IE1heCBHdXJ0b3ZveSA8bWF4
+Z0BtZWxsYW5veC5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnAvaWJf
+c3JwLmMgfCA3ICsrKysrKysNCj4gIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKykNCj4g
+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycC9pYl9zcnAuYyBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC91bHAvc3JwL2liX3NycC5jDQo+IGluZGV4IDBmNjdjZjkuLmNjZGQy
+YzIgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwL2liX3NycC5jDQo+
+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwL2liX3NycC5jDQo+IEBAIC0zNjc2LDYg
+KzM2NzYsNyBAQCBzdGF0aWMgc3RydWN0IHNycF9mdW5jdGlvbl90ZW1wbGF0ZSBpYl9zcnBfdHJh
+bnNwb3J0X2Z1bmN0aW9ucyA9IHsNCj4gIHN0YXRpYyBpbnQgX19pbml0IHNycF9pbml0X21vZHVs
+ZSh2b2lkKQ0KPiAgew0KPiAgCWludCByZXQ7DQo+ICsJdW5zaWduZWQgaW50IG1heF9pbmRpcmVj
+dF9zZ19lbnRyaWVzID0gU0dfTUFYX1NFR01FTlRTOw0KPiAgDQo+ICAJaWYgKHNycF9zZ190YWJs
+ZXNpemUpIHsNCj4gIAkJcHJfd2Fybigic3JwX3NnX3RhYmxlc2l6ZSBpcyBkZXByZWNhdGVkLCBw
+bGVhc2UgdXNlIGNtZF9zZ19lbnRyaWVzXG4iKTsNCj4gQEAgLTM2OTksNiArMzcwMCwxMiBAQCBz
+dGF0aWMgaW50IF9faW5pdCBzcnBfaW5pdF9tb2R1bGUodm9pZCkNCj4gIAkJaW5kaXJlY3Rfc2df
+ZW50cmllcyA9IGNtZF9zZ19lbnRyaWVzOw0KPiAgCX0NCj4gIA0KPiArCWlmIChpbmRpcmVjdF9z
+Z19lbnRyaWVzID4gbWF4X2luZGlyZWN0X3NnX2VudHJpZXMpIHsNCj4gKwkJcHJfd2FybigiQ2xh
+bXBpbmcgaW5kaXJlY3Rfc2dfZW50cmllcyB0byAldVxuIiwNCj4gKwkJCW1heF9pbmRpcmVjdF9z
+Z19lbnRyaWVzKTsNCj4gKwkJaW5kaXJlY3Rfc2dfZW50cmllcyA9IG1heF9pbmRpcmVjdF9zZ19l
+bnRyaWVzOw0KPiArCX0NCj4gKw0KPiAgCXNycF9yZW1vdmVfd3EgPSBjcmVhdGVfd29ya3F1ZXVl
+KCJzcnBfcmVtb3ZlIik7DQo+ICAJaWYgKCFzcnBfcmVtb3ZlX3dxKSB7DQo+ICAJCXJldCA9IC1F
+Tk9NRU07DQoNCkhlbGxvIE1heCwNCg0KVGhhdCdzIGEgZ29vZCBjYXRjaCwgYnV0IHdoeSBoYXMg
+dGhlIG1heF9pbmRpcmVjdF9zZ19lbnRyaWVzIHZhcmlhYmxlIGJlZW4NCmludHJvZHVjZWQ/IENh
+biBpdCBiZSBsZWZ0IG91dD8NCg0KVGhhbmtzLA0KDQpCYXJ0Lg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
