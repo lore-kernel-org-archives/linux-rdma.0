@@ -1,7 +1,7 @@
 From: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
 Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
-Date: Tue, 3 Jan 2017 10:11:57 +0800
-Message-ID: <20170103021157.GA194204@Turing-Arch-b>
+Date: Tue, 3 Jan 2017 10:32:50 +0800
+Message-ID: <20170103023250.GA228559@Turing-Arch-b>
 References: <1483093109-188428-1-git-send-email-liguozhu@hisilicon.com>
  <20170101064712.GQ26885@mtr-leonro.local>
 Mime-Version: 1.0
@@ -13,11 +13,6 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
-
-Thanks,
-
-I did read the doc, but maybe I mis-understant some points. Could you please
-point it out?
 
 On Sun, Jan 01, 2017 at 08:47:12AM +0200, Leon Romanovsky wrote:
 > Date: Sun, 1 Jan 2017 08:47:12 +0200
@@ -91,6 +86,13 @@ On Sun, Jan 01, 2017 at 08:47:12AM +0200, Leon Romanovsky wrote:
 > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thanks,
+
+I did read the doc, but maybe I mis-understant some points. Could you please
+point it out?
+
+And sorry. please ignore the last message. I forget to use a bottom-post style.
 
 
 
