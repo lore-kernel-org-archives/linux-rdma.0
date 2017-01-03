@@ -1,38 +1,141 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Do not copy uninitialized data in
- ibv_cmd_modify_qp
-Date: Tue, 3 Jan 2017 08:36:00 +0000
-Message-ID: <1483432540.2911.3.camel@sandisk.com>
-References: <20161222221334.GA15907@obsidianresearch.com>
-         <1483344105.3592.1.camel@sandisk.com>
-         <20170102211430.GC5544@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
+Date: Tue, 3 Jan 2017 12:12:24 +0200
+Message-ID: <20170103101224.GH12077@mtr-leonro.local>
+References: <1483093109-188428-1-git-send-email-liguozhu@hisilicon.com>
+ <20170101064712.GQ26885@mtr-leonro.local>
+ <20170103023250.GA228559@Turing-Arch-b>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="0hHDr/TIsw4o3iPK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170102211430.GC5544-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <AD3A05E5918C344DA432B5C379AB952A-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170103023250.GA228559@Turing-Arch-b>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE3LTAxLTAyIGF0IDE0OjE0IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IEkgZmVsdCB0aGF0IHBhc3NpbmcgdW5pbml0aWFsaXplZCBtZW1vcnkgaW50byB0aGUga2Vy
-bmVsIHdhcyBqdXN0DQo+IGluIGdlbmVyYWwgYSBiYWQgaWRlYSwgYW5kIGFkZGluZyB0aGUgYnJh
-bmNocyB0byBjb3B5IHplcm8gaW5zdGVhZCBvZg0KPiB1bi1pbml0IGlzIHByb2JhYmx5IHBlcmZv
-cm1hbmNlIG5ldXRyYWwuDQo+IA0KPiBFdmVuIHNvLCBJIGRvbid0IHRoaW5rIHdlIGNhbiBmaXgg
-dmFsZ3JpbmQsIGlvY3RsIGlzIGEgZGlmZmVyZW50IGNhc2UNCj4gYXMgaW9jdGxzIGFyZSBtdWNo
-IG1vcmUgd2VsbCBkZWZpbmVkLCB0aGlzIGlzIHdyaXRlKCkgYW5kIHZhbGdyaW5kDQo+IHdvdWxk
-IGhhdmUgdG8gZmlyc3Qga25vdyB3ZSBhcmUgd3JpdGluZyB0byBhIHV2ZXJicyBGRCB3aGljaCBz
-ZWVtcw0KPiBjaGFsbGVuZ2luZyB0byBkZXRlcm1pbmUsIGNhbiB2YWxncmluZCBhbHJlYWR5IGRv
-IHRoaXM/DQoNCkhlbGxvIEphc29uLA0KDQpBcyBmYXIgYXMgSSBrbm93IHRoZXJlIGlzIG5vdCB5
-ZXQgYW55IGNvZGUgaW4gVmFsZ3JpbmQgdG8gaW50ZXJwcmV0IHRoZQ0KZGF0YSBzZW50IGZyb20g
-dXNlciBzcGFjZSB0byBrZXJuZWwgdGhyb3VnaCB0aGUgd3JpdGUoKSBzeXN0ZW0gY2FsbC4gU2lu
-Y2UNCkkgZG8gbm90IGtub3cgYW55IGFwcGxpY2F0aW9uIGZvciB3aGljaCBpYnZfbW9kaWZ5X3Fw
-KCkgaXMgaW4gdGhlIGhvdCBwYXRoDQpJIHRoaW5rIG1vZGlmeWluZyB0aGUgaWJ2X21vZGlmeV9x
-cCgpIGltcGxlbWVudGF0aW9uIGlzIGZpbmUuDQoNCkJhcnQu
+
+--0hHDr/TIsw4o3iPK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jan 03, 2017 at 10:32:50AM +0800, Kenneth Lee wrote:
+> On Sun, Jan 01, 2017 at 08:47:12AM +0200, Leon Romanovsky wrote:
+> > Date: Sun, 1 Jan 2017 08:47:12 +0200
+> > From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > To: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+> > CC: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+> >  robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org,
+> >  vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+> >  krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
+> >  linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
+> > User-Agent: Mutt/1.7.2 (2016-11-26)
+> > Message-ID: <20170101064712.GQ26885-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+> >
+> > On Fri, Dec 30, 2016 at 06:18:29PM +0800, Kenneth Lee wrote:
+> > > There are two bugfixes in this patch:
+> > >
+> > > Fixes: 87773dd56d54 ("IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get")
+> > > 	This patch introduce the get_task_pid but not put it back on all error
+> > > 	path
+> > >
+> > > Fixes: 8ada2c1c0c1d ("IB/core: Add support for on demand paging regions")
+> > > 	This patch introduce a ODP flow without release pid before enter it
+> > >
+> > >
+> > > Signed-off-by: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+> > > Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > ---
+> > > Change from v1 to v2:
+> > >   Correcting the patch title and description
+> > > Change from v2 to v3:
+> > >   Update the title and add "Fixes" fields in the description
+> >
+> > OK,
+> >
+> > I see that you still didn't read Documentation/SubmittingPatches. You
+> > must read that document before you are sending patches.
+> >
+> > But I'll stop here, the code is correct (it fixes bugs) and commit message
+> > more usefull than before.
+> >
+> >
+> > >
+> > >  drivers/infiniband/core/umem.c | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > >
+> > > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> > > index 1e62a5f..4609b92 100644
+> > > --- a/drivers/infiniband/core/umem.c
+> > > +++ b/drivers/infiniband/core/umem.c
+> > > @@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> > >  		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
+> > >
+> > >  	if (access & IB_ACCESS_ON_DEMAND) {
+> > > +		put_pid(umem->pid);
+> > >  		ret = ib_umem_odp_get(context, umem);
+> > >  		if (ret) {
+> > >  			kfree(umem);
+> > > @@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> > >
+> > >  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+> > >  	if (!page_list) {
+> > > +		put_pid(umem->pid);
+> > >  		kfree(umem);
+> > >  		return ERR_PTR(-ENOMEM);
+> > >  	}
+> > > --
+> > > 1.9.1
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Thanks,
+>
+> I did read the doc, but maybe I mis-understant some points. Could you please
+> point it out?
+
+Fixes line should be placed above bottom signatures.
+
+As an example of properly written patch, you can take a look on the
+following patch [1] from Steve.
+
+[1] http://marc.info/?l=linux-rdma&m=148244272205411&w=2
+
+>
+> And sorry. please ignore the last message. I forget to use a bottom-post style.
+>
+>
+>
+> --
+> 			-Kenneth(Hisilicon)
+
+--0hHDr/TIsw4o3iPK
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhreQgACgkQ5GN7iDZy
+WKdr7A//WSwECvCWfJkZOaIi1r7SuORI66PHyaLA3RMP5U44zIOH2LLgfpG9KYc7
+S9dF1op3qmzmi+8xwEDrhQ0TlwF+C2c0kSqJZxkVGy+F8eMLTtFdTgs+tiv1F54N
+9Wim3tNGDFFvspJEQ6vnG4WBK6nOqSP2mOkAl0bzGZchojAAOe9yvbLrxFDy4M0Q
+sRLIYNyNqmjFkpPo5WbytPSX2o9wdUxNujS73LBXa1OhpCum2yRx0MiiD/fIbVfr
+5jjtptRXHYOhbP231GOiHIZIeN+0332kVBm31qk99+8dRAMZkhaDl6l93zLpIylf
+Y69CGpbhy96uo+T5bglP4jagJOv7m5CZa/ReSXRgpSNc6r1j3ZBmVvcBmWshcLl6
+bcw/EhfQS/ji0rwBdso8oSNstysYJ+Dq98p/NuwcMRhyXM1erDufpoN4N29kGYP9
+L8FXcCKKAOmLDMz2X93N5YhRF8N8366Nb+2mfSUvuCs3TLs56CcCaVSrJTgF8R+y
+rvAMbx/mnoX2DKC/kTOXWzPP4D3owQeaSaaaYKOa3D+nGqeYK1V3HGEMiZxo7/ZH
+Kyef2QRDH/ZGXAHu4hPBP7SfYMt3qP0QSjtiWmfKoqaGwR8lLtKQOlcQzQpFa0gC
+PI3QvQoB9jRs503GnM52RyWxdgAtrExcqoAl/zYDuUqu/GLQjgk=
+=sgsm
+-----END PGP SIGNATURE-----
+
+--0hHDr/TIsw4o3iPK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
