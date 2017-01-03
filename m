@@ -1,103 +1,79 @@
-From: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
-Date: Tue, 3 Jan 2017 10:32:50 +0800
-Message-ID: <20170103023250.GA228559@Turing-Arch-b>
-References: <1483093109-188428-1-git-send-email-liguozhu@hisilicon.com>
- <20170101064712.GQ26885@mtr-leonro.local>
+From: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] ipoib: remove unnecessary returned value check
+Date: Tue, 3 Jan 2017 10:34:32 +0800
+Message-ID: <586B0DB8.3060301@oracle.com>
+References: <1482151756-8802-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170101064712.GQ26885-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1482151756-8802-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, emilbart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 01, 2017 at 08:47:12AM +0200, Leon Romanovsky wrote:
-> Date: Sun, 1 Jan 2017 08:47:12 +0200
-> From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> To: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> CC: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
->  robin.murphy-5wv7dgnIgG8@public.gmane.org, jroedel-l3A5Bk7waGM@public.gmane.org, egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org,
->  vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lstoakes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
->  krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
->  linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v3] IB/umem: Release pid in error and ODP flow
-> User-Agent: Mutt/1.7.2 (2016-11-26)
-> Message-ID: <20170101064712.GQ26885-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-> 
-> On Fri, Dec 30, 2016 at 06:18:29PM +0800, Kenneth Lee wrote:
-> > There are two bugfixes in this patch:
-> >
-> > Fixes: 87773dd56d54 ("IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get")
-> > 	This patch introduce the get_task_pid but not put it back on all error
-> > 	path
-> >
-> > Fixes: 8ada2c1c0c1d ("IB/core: Add support for on demand paging regions")
-> > 	This patch introduce a ODP flow without release pid before enter it
-> >
-> >
-> > Signed-off-by: Kenneth Lee <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> > Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> > Change from v1 to v2:
-> >   Correcting the patch title and description
-> > Change from v2 to v3:
-> >   Update the title and add "Fixes" fields in the description
-> 
-> OK,
-> 
-> I see that you still didn't read Documentation/SubmittingPatches. You
-> must read that document before you are sending patches.
-> 
-> But I'll stop here, the code is correct (it fixes bugs) and commit message
-> more usefull than before.
-> 
-> 
-> >
-> >  drivers/infiniband/core/umem.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> > index 1e62a5f..4609b92 100644
-> > --- a/drivers/infiniband/core/umem.c
-> > +++ b/drivers/infiniband/core/umem.c
-> > @@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >  		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
-> >
-> >  	if (access & IB_ACCESS_ON_DEMAND) {
-> > +		put_pid(umem->pid);
-> >  		ret = ib_umem_odp_get(context, umem);
-> >  		if (ret) {
-> >  			kfree(umem);
-> > @@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >
-> >  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
-> >  	if (!page_list) {
-> > +		put_pid(umem->pid);
-> >  		kfree(umem);
-> >  		return ERR_PTR(-ENOMEM);
-> >  	}
-> > --
-> > 1.9.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Thanks,
-
-I did read the doc, but maybe I mis-understant some points. Could you please
-point it out?
-
-And sorry. please ignore the last message. I forget to use a bottom-post style.
+Any comment ?
 
 
+On 2016/12/19 20:49, Zhu Yanjun wrote:
+> In the function ipoib_set_dev_features, the returned value is always 0.
+> As such, it is not necessary to check the returned value.
+> This is not a bug. When I read the source code, I think it is not
+> necessary to check it.
+>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/ipoib/ipoib.h      | 2 +-
+>   drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++------
+>   2 files changed, 3 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+> index da12717..f568064 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> @@ -593,7 +593,7 @@ void ipoib_pkey_open(struct ipoib_dev_priv *priv);
+>   void ipoib_drain_cq(struct net_device *dev);
+>   
+>   void ipoib_set_ethtool_ops(struct net_device *dev);
+> -int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
+> +void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
+>   
+>   #define IPOIB_FLAGS_RC		0x80
+>   #define IPOIB_FLAGS_UC		0x40
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> index 3ce0765..4e8e11e 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -1984,7 +1984,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+>   	return device_create_file(&dev->dev, &dev_attr_pkey);
+>   }
+>   
+> -int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+> +void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+>   {
+>   	priv->hca_caps = hca->attrs.device_cap_flags;
+>   
+> @@ -1996,8 +1996,6 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+>   
+>   		priv->dev->features |= priv->dev->hw_features;
+>   	}
+> -
+> -	return 0;
+>   }
+>   
+>   static struct net_device *ipoib_add_port(const char *format,
+> @@ -2037,9 +2035,7 @@ static struct net_device *ipoib_add_port(const char *format,
+>   		goto device_init_failed;
+>   	}
+>   
+> -	result = ipoib_set_dev_features(priv, hca);
+> -	if (result)
+> -		goto device_init_failed;
+> +	ipoib_set_dev_features(priv, hca);
+>   
+>   	/*
+>   	 * Set the full membership bit, so that we join the right
 
--- 
-			-Kenneth(Hisilicon)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
