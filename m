@@ -1,61 +1,81 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/srp: fix invalid indirect_sg_entries parameter
- value
-Date: Wed, 4 Jan 2017 15:09:38 +0000
-Message-ID: <1483542561.3048.13.camel@sandisk.com>
-References: <1483538377-19379-1-git-send-email-maxg@mellanox.com>
-         <1483538377-19379-2-git-send-email-maxg@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 09/15] IB/rxe: Add a runtime check in alloc_index()
+Date: Wed, 4 Jan 2017 19:27:04 +0200
+Message-ID: <20170104172704.GU12077@mtr-leonro.local>
+References: <1483353316.3592.14.camel@sandisk.com>
+ <1483353638.3592.30.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="GeONROBiaq1zPAtT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483538377-19379-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <8491466410B8634A9FD4205CC0C0A2B4-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1483353638.3592.30.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-01-04 at 15:59 +0200, Max Gurtovoy wrote:
-> From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> After setting indirect_sg_entries module_param to huge value (e.g 500,000=
-),
-> srp_alloc_req_data() fails to allocate indirect descriptors for the reque=
-st
-> ring (kmalloc fails). This commit enforces the maximum value of indirect_=
-sg_entries
-> to be SG_MAX_SEGMENTS as signified in module param description.
->=20
-> Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--GeONROBiaq1zPAtT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jan 02, 2017 at 10:41:58AM +0000, Bart Van Assche wrote:
+> Since index values equal to or above 'range' can trigger memory
+> corruption, complain if index >=3D range.
+
+It looks like severe bug and the proper error folding is needed, if it
+is a real situation.
+
+>
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/srp/ib_srp.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->=20
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp=
-/srp/ib_srp.c
-> index 0f67cf9..79bf484 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -3699,6 +3699,12 @@ static int __init srp_init_module(void)
->  		indirect_sg_entries =3D cmd_sg_entries;
->  	}
-> =20
-> +	if (indirect_sg_entries > SG_MAX_SEGMENTS) {
-> +		pr_warn("Clamping indirect_sg_entries to %u\n",
-> +			SG_MAX_SEGMENTS);
-> +		indirect_sg_entries =3D SG_MAX_SEGMENTS;
-> +	}
-> +
->  	srp_remove_wq =3D create_workqueue("srp_remove");
->  	if (!srp_remove_wq) {
->  		ret =3D -ENOMEM;
+> =C2=A0drivers/infiniband/sw/rxe/rxe_pool.c | 1 +
+> =C2=A01 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw=
+/rxe/rxe_pool.c
+> index 7d1e2862b928..75d11ee635ec 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_pool.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+> @@ -266,6 +266,7 @@ static u32 alloc_index(struct rxe_pool *pool)
+> =C2=A0	if (index >=3D range)
+> =C2=A0		index =3D find_first_zero_bit(pool->table, range);
+> =C2=A0
+> +	WARN_ON_ONCE(index >=3D range);
+> =C2=A0	set_bit(index, pool->table);
+> =C2=A0	pool->last =3D index;
+> =C2=A0	return index + pool->min_index;
+> --=C2=A0
+> 2.11.0
+> N?????r??y????b?X??=C7=A7v?^?)=DE=BA{.n?+????{??=D9=9A?{ay?=1D=CA=87=DA=
+=99?,j=07??f???h???z?=1E?w???=0C???j:+v???w?j?m????=07????zZ+?????=DD=A2j"?=
+?!
 
-Thanks!
+--GeONROBiaq1zPAtT
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>=
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhtMGgACgkQ5GN7iDZy
+WKd8ew/+O02k5MEgow4d7N7FXn7+NDAI3wPFsGCuWIvjYQrpA0J7E7fMraVfGaZa
+76l8khsl/6d0Zh2TlgeCvexBjdiAahkttKU/jokh7rRRt7tZ+y0Utai2+7oqXE7D
+gef/+ydCkc5V5cK11the1BhQ9+e5x6AcRtjSdepVE/xMgfDEzBmlcSMcUyXSF+Jv
+fbKny0FhBdEhlzjKL8iXTDqxyrWZDIbwE19Z/jYseX7Z/xjbZgyhIpx2Ui+VJUkO
+r9/LcBvnldxIVzM3KtmgasecdjXMYMbLOv03rNN2nkVX8U0hz0WopgW8MGhw86TJ
+62TtTbYFVa0hZYjmAmSnFpyWxke7C32WNLqcIs24Lz7VJAjLM25237M+VAJxFrxu
+TVIlXh5ziuhogTtk9RatXwJK9ybeHCiD25FPy/eRG+D5iEyIOLWBWFf0ykAg7NaV
+IyjVgDaeGQ3mgCjxjvvV79UfQws5Xm+otFZgdbZt/c+DSeyEAHe6uJXy4ZCk+Zld
+D5rXDdBPupCGXhTIXCRV+ebI/nLPuLuE3jb2z+11M9ytCTEAIMQmn85Ek6KeAMrQ
+62drJU5co5817wtUtZoMljkbAYhXca+4AzYZu29d/dPUdmTNihYgk5Jc7GgcSngv
+YYqXZJJa8Kxg9cYRucU0vwV07Wjqw6Xiemwycw+CNjQHdBf+/0M=
+=UJ1c
+-----END PGP SIGNATURE-----
+
+--GeONROBiaq1zPAtT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
