@@ -1,769 +1,772 @@
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [for-next 08/10] IB/mlx5: Allow future extension of libmlx5 input data
-Date: Tue,  3 Jan 2017 23:55:26 +0200
-Message-ID: <1483480528-22622-9-git-send-email-saeedm@mellanox.com>
-References: <1483480528-22622-1-git-send-email-saeedm@mellanox.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: iscsi_trx going into D state
+Date: Tue, 3 Jan 2017 17:11:40 -0700
+Message-ID: <CAANLjForEkO6RXw7KJYrTJD=f0S8FE73vvwNQcL_ARFdFoDQqg@mail.gmail.com>
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+ <CAANLjFobXiBO2tXxTBB-8BQjM8FC0wmxdxQvEd6Rp=1LZkrvpA@mail.gmail.com>
+ <CAANLjFoh+C8QE=qcPKqUUG3SnH2EMmS7DWZ5D4AD7yWMxoK0Zw@mail.gmail.com>
+ <4fc72e32-26fb-96bd-8a0d-814eef712b43@suse.com> <CAANLjFpx1MRNiu2388pY+U0O5z9gw+OJBtpOof47Lb_DxaJSBQ@mail.gmail.com>
+ <1476774332.8490.43.camel@haakon3.risingtidesystems.com> <CAANLjFqXt5r=c9F75vjeK=_zLa8zCS1priLuZo=A1ZSHKZ=1Bw@mail.gmail.com>
+ <1476858359.8490.97.camel@haakon3.risingtidesystems.com> <CAANLjFoGEi29goybqsvEg6trystEkurVz52P8SwqGUSNV1jdSw@mail.gmail.com>
+ <1477780190.22703.47.camel@haakon3.risingtidesystems.com> <CAANLjFpkEVmO83r5YWh=hCnN=AUf9bvrrCyVJHc-=CRpc3P0vQ@mail.gmail.com>
+ <CAANLjFqoHuSq2SsNZ4J2uvAQGPg0F1tpxeJuAQT1oM1hXQ0wew@mail.gmail.com>
+ <CAANLjFpYT62G86w-r00+shJUyrPd68BS64y8f9OZemz_5kojzg@mail.gmail.com>
+ <CAANLjFon+re7eMriFjnFfR-4SnzxR4LLSb2qcwhfkb7ODbuTwg@mail.gmail.com>
+ <CAANLjFpoWruzYEDohQrAKCxp9NSGhZM3mv=x+9+L7x1+fwYN6w@mail.gmail.com>
+ <6beeb461-0391-cb29-8cf7-74f4c8feda34@redhat.com> <CAANLjFq2ib0H+W3RFVAdqvWF8_qDOkM5mvmAhVh0x4Usha2dOg@mail.gmail.com>
+ <CAANLjFqRskoM7dn_zj_-V=uUb5KYq0OLLdLLuC4Uuba4+mq5Vw@mail.gmail.com>
+ <CAANLjFqvtqFu85Aivg6K8XB0rMub03KbBSCq8Kj=Cg+ybxu3pw@mail.gmail.com>
+ <CAANLjFpbE9-B8qWtU5nDfg4+t+kD8TSVy0JOfN+zuFYsZ05_Dg@mail.gmail.com>
+ <CAANLjFpEpJ4647u9R-7phf68fw--pOfThbp5Sntd4c7DdRSwwQ@mail.gmail.com>
+ <CAANLjFooGrt51a9rOy8TKMyXyxBYmGEPm=h1YJm81Nj6YS=5yg@mail.gmail.com>
+ <CAANLjFrZrTPUuzP_NjkgG5h_YwwYKEWT-KzVjTvuXZ1d04z6Fg@mail.gmail.com> <CAANLjFpSnQ7ApOK5HDRHXQQeQNGWLUv4e+2N=_e-zBeziYm5tw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483480528-22622-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAANLjFpSnQ7ApOK5HDRHXQQeQNGWLUv4e+2N=_e-zBeziYm5tw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+With the last patch it is getting hung up on wait_for_completion in
+target_wait_for_sess_cmds. I don't know what t_state or fabric state
+mean. To me it looks like a queue is not being emptied, but it would
+help if someone confirmed this and has some pointers on how to
+properly flush them when the communication is interrupted.
 
-Current check requests that new fields in struct
-mlx5_ib_alloc_ucontext_req_v2 that are not known to the driver be zero.
-This was introduced so new libraries passing additional information to
-the kernel through struct mlx5_ib_alloc_ucontext_req_v2 will be notified
-by old kernels that do not support their request by failing the
-operation. This schecme is problematic since it requires libmlx5 to issue
-the requests with descending input size for struct
-mlx5_ib_alloc_ucontext_req_v2.
+[  222.989134] Starting iscsit_close_connection.
+[  222.993555] Calling flush_workqueue.
+[  222.997703] Returned from flush_workqueue.
+[  223.005802] isert_wait_conn calling ib_close_qp/ib_drain_qp.
+[  223.011892] isert_wait_conn finished ib_close_qp/ib_drain_qp.
+[  223.018063] isert_wait_conn calling isert_put_unsol_pending_cmds.
+[  223.024574] isert_wait_conn returned from
+isert_put_unsol_pending_cmds.
+[  223.031582] isert_wait_conn calling isert_wait4cmds.
+[  223.036942] isert_wait4cmds calling
+target_sess_cmd_list_set_waiting.
+[  223.043789] isert_wait4cmds returned from
+target_sess_cmd_list_set_waiting.
+[  223.051135] isert_wait4cmds calling target_wait_for_sess_cmds.
+[  223.057362] Waiting for se_cmd: ffff887ebf88bd00 t_state: 6, fabric
+state: 29
+[  223.064893] target_wait_for_sess_cmds calling
+spin_unlock_irqrestore.
+[  223.071748] target_wait_for_sess_cmds calling wait_for_completion.
+[  224.997636] Calling wait_for_common.
+[  225.001936] Starting __wait_for_common.
+[  225.006226] Calling do_wait_for_common.
 
-To avoid this, we require that new features that will obey the following
-rules:
-If the feature requires one or more fields in the response and the at
-least one of the fields can be encoded such that a zero value means the
-kernel ignored the request then this field will provide the indication
-to the library. If no response is required or if zero is a valid
-response, a new field should be added that indicates to the library
-whether its request was processed.
+Thanks
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
-Fixes: b368d7cb8ceb ('IB/mlx5: Add hca_core_clock_offset to udata in init_ucontext')
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/cq.c      |   2 +-
- drivers/infiniband/hw/mlx5/main.c    | 201 ++++++++++++++++++++++-------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  15 ++-
- drivers/infiniband/hw/mlx5/qp.c      | 133 ++++++++++-------------
- include/linux/mlx5/device.h          |  12 ++-
- include/linux/mlx5/driver.h          |  12 +--
- 6 files changed, 209 insertions(+), 166 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index a28ec33..31803b3 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -788,7 +788,7 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 	MLX5_SET(cqc, cqc, log_page_size,
- 		 page_shift - MLX5_ADAPTER_PAGE_SHIFT);
- 
--	*index = to_mucontext(context)->bfregi.uars[0].index;
-+	*index = to_mucontext(context)->bfregi.sys_pages[0];
- 
- 	if (ucmd.cqe_comp_en == 1) {
- 		if (unlikely((*cqe_size != 64) ||
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index e9f0830..6640672 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -992,6 +992,80 @@ static int mlx5_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
- 	return err;
- }
- 
-+static int calc_total_bfregs(struct mlx5_ib_dev *dev, bool lib_uar_4k,
-+			     struct mlx5_ib_alloc_ucontext_req_v2 *req,
-+			     u32 *num_sys_pages)
-+{
-+	int uars_per_sys_page;
-+	int bfregs_per_sys_page;
-+	int ref_bfregs = req->total_num_bfregs;
-+
-+	if (req->total_num_bfregs == 0)
-+		return -EINVAL;
-+
-+	BUILD_BUG_ON(MLX5_MAX_BFREGS % MLX5_NON_FP_BFREGS_IN_PAGE);
-+	BUILD_BUG_ON(MLX5_MAX_BFREGS < MLX5_NON_FP_BFREGS_IN_PAGE);
-+
-+	if (req->total_num_bfregs > MLX5_MAX_BFREGS)
-+		return -ENOMEM;
-+
-+	uars_per_sys_page = get_uars_per_sys_page(dev, lib_uar_4k);
-+	bfregs_per_sys_page = uars_per_sys_page * MLX5_NON_FP_BFREGS_PER_UAR;
-+	req->total_num_bfregs = ALIGN(req->total_num_bfregs, bfregs_per_sys_page);
-+	*num_sys_pages = req->total_num_bfregs / bfregs_per_sys_page;
-+
-+	if (req->num_low_latency_bfregs > req->total_num_bfregs - 1)
-+		return -EINVAL;
-+
-+	mlx5_ib_dbg(dev, "uar_4k: fw support %s, lib support %s, user requested %d bfregs, alloated %d, using %d sys pages\n",
-+		    MLX5_CAP_GEN(dev->mdev, uar_4k) ? "yes" : "no",
-+		    lib_uar_4k ? "yes" : "no", ref_bfregs,
-+		    req->total_num_bfregs, *num_sys_pages);
-+
-+	return 0;
-+}
-+
-+static int allocate_uars(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *context)
-+{
-+	struct mlx5_bfreg_info *bfregi;
-+	int err;
-+	int i;
-+
-+	bfregi = &context->bfregi;
-+	for (i = 0; i < bfregi->num_sys_pages; i++) {
-+		err = mlx5_cmd_alloc_uar(dev->mdev, &bfregi->sys_pages[i]);
-+		if (err)
-+			goto error;
-+
-+		mlx5_ib_dbg(dev, "allocated uar %d\n", bfregi->sys_pages[i]);
-+	}
-+	return 0;
-+
-+error:
-+	for (--i; i >= 0; i--)
-+		if (mlx5_cmd_free_uar(dev->mdev, bfregi->sys_pages[i]))
-+			mlx5_ib_warn(dev, "failed to free uar %d\n", i);
-+
-+	return err;
-+}
-+
-+static int deallocate_uars(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *context)
-+{
-+	struct mlx5_bfreg_info *bfregi;
-+	int err;
-+	int i;
-+
-+	bfregi = &context->bfregi;
-+	for (i = 0; i < bfregi->num_sys_pages; i++) {
-+		err = mlx5_cmd_free_uar(dev->mdev, bfregi->sys_pages[i]);
-+		if (err) {
-+			mlx5_ib_warn(dev, "failed to free uar %d\n", i);
-+			return err;
-+		}
-+	}
-+	return 0;
-+}
-+
- static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 						  struct ib_udata *udata)
- {
-@@ -1000,16 +1074,12 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	struct mlx5_ib_alloc_ucontext_resp resp = {};
- 	struct mlx5_ib_ucontext *context;
- 	struct mlx5_bfreg_info *bfregi;
--	struct mlx5_uar *uars;
--	int gross_bfregs;
--	int num_uars;
- 	int ver;
--	int bfregn;
- 	int err;
--	int i;
- 	size_t reqlen;
- 	size_t min_req_v2 = offsetof(struct mlx5_ib_alloc_ucontext_req_v2,
- 				     max_cqe_version);
-+	bool lib_uar_4k;
- 
- 	if (!dev->ib_active)
- 		return ERR_PTR(-EAGAIN);
-@@ -1032,27 +1102,14 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	if (req.flags)
- 		return ERR_PTR(-EINVAL);
- 
--	if (req.total_num_bfregs > MLX5_MAX_BFREGS)
--		return ERR_PTR(-ENOMEM);
--
--	if (req.total_num_bfregs == 0)
--		return ERR_PTR(-EINVAL);
--
- 	if (req.comp_mask || req.reserved0 || req.reserved1 || req.reserved2)
- 		return ERR_PTR(-EOPNOTSUPP);
- 
--	if (reqlen > sizeof(req) &&
--	    !ib_is_udata_cleared(udata, sizeof(req),
--				 reqlen - sizeof(req)))
--		return ERR_PTR(-EOPNOTSUPP);
--
- 	req.total_num_bfregs = ALIGN(req.total_num_bfregs,
- 				    MLX5_NON_FP_BFREGS_PER_UAR);
- 	if (req.num_low_latency_bfregs > req.total_num_bfregs - 1)
- 		return ERR_PTR(-EINVAL);
- 
--	num_uars = req.total_num_bfregs / MLX5_NON_FP_BFREGS_PER_UAR;
--	gross_bfregs = num_uars * MLX5_BFREGS_PER_UAR;
- 	resp.qp_tab_size = 1 << MLX5_CAP_GEN(dev->mdev, log_max_qp);
- 	if (mlx5_core_is_pf(dev->mdev) && MLX5_CAP_GEN(dev->mdev, bf))
- 		resp.bf_reg_size = 1 << MLX5_CAP_GEN(dev->mdev, log_bf_reg_size);
-@@ -1072,42 +1129,34 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	if (!context)
- 		return ERR_PTR(-ENOMEM);
- 
-+	lib_uar_4k = false;
- 	bfregi = &context->bfregi;
--	mutex_init(&bfregi->lock);
--	uars = kcalloc(num_uars, sizeof(*uars), GFP_KERNEL);
--	if (!uars) {
--		err = -ENOMEM;
-+
-+	/* updates req->total_num_bfregs */
-+	err = calc_total_bfregs(dev, lib_uar_4k, &req, &bfregi->num_sys_pages);
-+	if (err)
- 		goto out_ctx;
--	}
- 
--	bfregi->bitmap = kcalloc(BITS_TO_LONGS(gross_bfregs),
--				sizeof(*bfregi->bitmap),
-+	mutex_init(&bfregi->lock);
-+	bfregi->lib_uar_4k = lib_uar_4k;
-+	bfregi->count = kcalloc(req.total_num_bfregs, sizeof(*bfregi->count),
- 				GFP_KERNEL);
--	if (!bfregi->bitmap) {
-+	if (!bfregi->count) {
- 		err = -ENOMEM;
--		goto out_uar_ctx;
--	}
--	/*
--	 * clear all fast path bfregs
--	 */
--	for (i = 0; i < gross_bfregs; i++) {
--		bfregn = i & 3;
--		if (bfregn == 2 || bfregn == 3)
--			set_bit(i, bfregi->bitmap);
-+		goto out_ctx;
- 	}
- 
--	bfregi->count = kcalloc(gross_bfregs,
--				sizeof(*bfregi->count), GFP_KERNEL);
--	if (!bfregi->count) {
-+	bfregi->sys_pages = kcalloc(bfregi->num_sys_pages,
-+				    sizeof(*bfregi->sys_pages),
-+				    GFP_KERNEL);
-+	if (!bfregi->sys_pages) {
- 		err = -ENOMEM;
--		goto out_bitmap;
-+		goto out_count;
- 	}
- 
--	for (i = 0; i < num_uars; i++) {
--		err = mlx5_cmd_alloc_uar(dev->mdev, &uars[i].index);
--		if (err)
--			goto out_count;
--	}
-+	err = allocate_uars(dev, context);
-+	if (err)
-+		goto out_sys_pages;
- 
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	context->ibucontext.invalidate_range = &mlx5_ib_invalidate_range;
-@@ -1166,9 +1215,8 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 
- 	bfregi->ver = ver;
- 	bfregi->num_low_latency_bfregs = req.num_low_latency_bfregs;
--	bfregi->uars = uars;
--	bfregi->num_uars = num_uars;
- 	context->cqe_version = resp.cqe_version;
-+	context->lib_caps = false;
- 
- 	return &context->ibucontext;
- 
-@@ -1180,19 +1228,17 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	free_page(context->upd_xlt_page);
- 
- out_uars:
--	for (i--; i >= 0; i--)
--		mlx5_cmd_free_uar(dev->mdev, uars[i].index);
--out_count:
--	kfree(bfregi->count);
-+	deallocate_uars(dev, context);
- 
--out_bitmap:
--	kfree(bfregi->bitmap);
-+out_sys_pages:
-+	kfree(bfregi->sys_pages);
- 
--out_uar_ctx:
--	kfree(uars);
-+out_count:
-+	kfree(bfregi->count);
- 
- out_ctx:
- 	kfree(context);
-+
- 	return ERR_PTR(err);
- }
- 
-@@ -1200,31 +1246,31 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
- {
- 	struct mlx5_ib_ucontext *context = to_mucontext(ibcontext);
- 	struct mlx5_ib_dev *dev = to_mdev(ibcontext->device);
--	struct mlx5_bfreg_info *bfregi = &context->bfregi;
--	int i;
-+	struct mlx5_bfreg_info *bfregi;
- 
-+	bfregi = &context->bfregi;
- 	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
- 		mlx5_core_dealloc_transport_domain(dev->mdev, context->tdn);
- 
- 	free_page(context->upd_xlt_page);
--
--	for (i = 0; i < bfregi->num_uars; i++) {
--		if (mlx5_cmd_free_uar(dev->mdev, bfregi->uars[i].index))
--			mlx5_ib_warn(dev, "Failed to free UAR 0x%x\n",
--				     bfregi->uars[i].index);
--	}
--
-+	deallocate_uars(dev, context);
-+	kfree(bfregi->sys_pages);
- 	kfree(bfregi->count);
--	kfree(bfregi->bitmap);
--	kfree(bfregi->uars);
- 	kfree(context);
- 
- 	return 0;
- }
- 
--static phys_addr_t uar_index2pfn(struct mlx5_ib_dev *dev, int index)
-+static phys_addr_t uar_index2pfn(struct mlx5_ib_dev *dev,
-+				 struct mlx5_bfreg_info *bfregi,
-+				 int idx)
- {
--	return (pci_resource_start(dev->mdev->pdev, 0) >> PAGE_SHIFT) + index;
-+	int fw_uars_per_page;
-+
-+	fw_uars_per_page = MLX5_CAP_GEN(dev->mdev, uar_4k) ? MLX5_UARS_IN_PAGE : 1;
-+
-+	return (pci_resource_start(dev->mdev->pdev, 0) >> PAGE_SHIFT) +
-+			bfregi->sys_pages[idx] / fw_uars_per_page;
- }
- 
- static int get_command(unsigned long offset)
-@@ -1384,6 +1430,18 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 	unsigned long idx;
- 	phys_addr_t pfn, pa;
- 	pgprot_t prot;
-+	int uars_per_page;
-+
-+	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
-+		return -EINVAL;
-+
-+	uars_per_page = get_uars_per_sys_page(dev, bfregi->lib_uar_4k);
-+	idx = get_index(vma->vm_pgoff);
-+	if (idx % uars_per_page ||
-+	    idx * uars_per_page >= bfregi->num_sys_pages) {
-+		mlx5_ib_warn(dev, "invalid uar index %lu\n", idx);
-+		return -EINVAL;
-+	}
- 
- 	switch (cmd) {
- 	case MLX5_IB_MMAP_WC_PAGE:
-@@ -1406,14 +1464,7 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 		return -EINVAL;
- 	}
- 
--	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
--		return -EINVAL;
--
--	idx = get_index(vma->vm_pgoff);
--	if (idx >= bfregi->num_uars)
--		return -EINVAL;
--
--	pfn = uar_index2pfn(dev, bfregi->uars[idx].index);
-+	pfn = uar_index2pfn(dev, bfregi, idx);
- 	mlx5_ib_dbg(dev, "uar idx 0x%lx, pfn %pa\n", idx, &pfn);
- 
- 	vma->vm_page_prot = prot;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index ae3bc4a..e1a4b93d 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -90,7 +90,6 @@ enum mlx5_ib_latency_class {
- 	MLX5_IB_LATENCY_CLASS_LOW,
- 	MLX5_IB_LATENCY_CLASS_MEDIUM,
- 	MLX5_IB_LATENCY_CLASS_HIGH,
--	MLX5_IB_LATENCY_CLASS_FAST_PATH
- };
- 
- enum mlx5_ib_mad_ifc_flags {
-@@ -129,6 +128,7 @@ struct mlx5_ib_ucontext {
- 	unsigned long		upd_xlt_page;
- 	/* protect ODP/KSM */
- 	struct mutex		upd_xlt_page_mutex;
-+	u64			lib_caps;
- };
- 
- static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibucontext)
-@@ -975,4 +975,17 @@ static inline int get_srq_user_index(struct mlx5_ib_ucontext *ucontext,
- 
- 	return verify_assign_uidx(cqe_version, ucmd->uidx, user_index);
- }
-+
-+static inline int get_uars_per_sys_page(struct mlx5_ib_dev *dev, bool lib_support)
-+{
-+	return lib_support && MLX5_CAP_GEN(dev->mdev, uar_4k) ?
-+				MLX5_UARS_IN_PAGE : 1;
-+}
-+
-+static inline int get_num_uars(struct mlx5_ib_dev *dev,
-+			       struct mlx5_bfreg_info *bfregi)
-+{
-+	return get_uars_per_sys_page(dev, bfregi->lib_uar_4k) * bfregi->num_sys_pages;
-+}
-+
- #endif /* MLX5_IB_H */
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index b38240e..ecef3c0 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -480,16 +480,6 @@ static int first_med_bfreg(void)
- 	return 1;
- }
- 
--static int next_bfreg(int n)
--{
--	n++;
--
--	while (((n % 4) & 2))
--		n++;
--
--	return n;
--}
--
- enum {
- 	/* this is the first blue flame register in the array of bfregs assigned
- 	 * to a processes. Since we do not use it for blue flame but rather
-@@ -499,36 +489,38 @@ enum {
- 	NUM_NON_BLUE_FLAME_BFREGS = 1,
- };
- 
--static int num_med_bfreg(struct mlx5_bfreg_info *bfregi)
-+static int max_bfregs(struct mlx5_ib_dev *dev, struct mlx5_bfreg_info *bfregi)
-+{
-+	return get_num_uars(dev, bfregi) * MLX5_NON_FP_BFREGS_PER_UAR;
-+}
-+
-+static int num_med_bfreg(struct mlx5_ib_dev *dev,
-+			 struct mlx5_bfreg_info *bfregi)
- {
- 	int n;
- 
--	n = bfregi->num_uars * MLX5_NON_FP_BFREGS_PER_UAR -
--		bfregi->num_low_latency_bfregs - NUM_NON_BLUE_FLAME_BFREGS;
-+	n = max_bfregs(dev, bfregi) - bfregi->num_low_latency_bfregs -
-+	    NUM_NON_BLUE_FLAME_BFREGS;
- 
- 	return n >= 0 ? n : 0;
- }
- 
--static int max_bfregi(struct mlx5_bfreg_info *bfregi)
--{
--	return bfregi->num_uars * 4;
--}
--
--static int first_hi_bfreg(struct mlx5_bfreg_info *bfregi)
-+static int first_hi_bfreg(struct mlx5_ib_dev *dev,
-+			  struct mlx5_bfreg_info *bfregi)
- {
- 	int med;
- 
--	med = num_med_bfreg(bfregi);
--	return next_bfreg(med);
-+	med = num_med_bfreg(dev, bfregi);
-+	return ++med;
- }
- 
--static int alloc_high_class_bfreg(struct mlx5_bfreg_info *bfregi)
-+static int alloc_high_class_bfreg(struct mlx5_ib_dev *dev,
-+				  struct mlx5_bfreg_info *bfregi)
- {
- 	int i;
- 
--	for (i = first_hi_bfreg(bfregi); i < max_bfregi(bfregi); i = next_bfreg(i)) {
--		if (!test_bit(i, bfregi->bitmap)) {
--			set_bit(i, bfregi->bitmap);
-+	for (i = first_hi_bfreg(dev, bfregi); i < max_bfregs(dev, bfregi); i++) {
-+		if (!bfregi->count[i]) {
- 			bfregi->count[i]++;
- 			return i;
- 		}
-@@ -537,12 +529,13 @@ static int alloc_high_class_bfreg(struct mlx5_bfreg_info *bfregi)
- 	return -ENOMEM;
- }
- 
--static int alloc_med_class_bfreg(struct mlx5_bfreg_info *bfregi)
-+static int alloc_med_class_bfreg(struct mlx5_ib_dev *dev,
-+				 struct mlx5_bfreg_info *bfregi)
- {
- 	int minidx = first_med_bfreg();
- 	int i;
- 
--	for (i = first_med_bfreg(); i < first_hi_bfreg(bfregi); i = next_bfreg(i)) {
-+	for (i = first_med_bfreg(); i < first_hi_bfreg(dev, bfregi); i++) {
- 		if (bfregi->count[i] < bfregi->count[minidx])
- 			minidx = i;
- 		if (!bfregi->count[minidx])
-@@ -553,7 +546,8 @@ static int alloc_med_class_bfreg(struct mlx5_bfreg_info *bfregi)
- 	return minidx;
- }
- 
--static int alloc_bfreg(struct mlx5_bfreg_info *bfregi,
-+static int alloc_bfreg(struct mlx5_ib_dev *dev,
-+		       struct mlx5_bfreg_info *bfregi,
- 		       enum mlx5_ib_latency_class lat)
- {
- 	int bfregn = -EINVAL;
-@@ -570,18 +564,14 @@ static int alloc_bfreg(struct mlx5_bfreg_info *bfregi,
- 		if (bfregi->ver < 2)
- 			bfregn = -ENOMEM;
- 		else
--			bfregn = alloc_med_class_bfreg(bfregi);
-+			bfregn = alloc_med_class_bfreg(dev, bfregi);
- 		break;
- 
- 	case MLX5_IB_LATENCY_CLASS_HIGH:
- 		if (bfregi->ver < 2)
- 			bfregn = -ENOMEM;
- 		else
--			bfregn = alloc_high_class_bfreg(bfregi);
--		break;
--
--	case MLX5_IB_LATENCY_CLASS_FAST_PATH:
--		bfregn = 2;
-+			bfregn = alloc_high_class_bfreg(dev, bfregi);
- 		break;
- 	}
- 	mutex_unlock(&bfregi->lock);
-@@ -589,37 +579,10 @@ static int alloc_bfreg(struct mlx5_bfreg_info *bfregi,
- 	return bfregn;
- }
- 
--static void free_med_class_bfreg(struct mlx5_bfreg_info *bfregi, int bfregn)
-+static void free_bfreg(struct mlx5_ib_dev *dev, struct mlx5_bfreg_info *bfregi, int bfregn)
- {
--	clear_bit(bfregn, bfregi->bitmap);
--	--bfregi->count[bfregn];
--}
--
--static void free_high_class_bfreg(struct mlx5_bfreg_info *bfregi, int bfregn)
--{
--	clear_bit(bfregn, bfregi->bitmap);
--	--bfregi->count[bfregn];
--}
--
--static void free_bfreg(struct mlx5_bfreg_info *bfregi, int bfregn)
--{
--	int nbfregs = bfregi->num_uars * MLX5_BFREGS_PER_UAR;
--	int high_bfreg = nbfregs - bfregi->num_low_latency_bfregs;
--
- 	mutex_lock(&bfregi->lock);
--	if (bfregn == 0) {
--		--bfregi->count[bfregn];
--		goto out;
--	}
--
--	if (bfregn < high_bfreg) {
--		free_med_class_bfreg(bfregi, bfregn);
--		goto out;
--	}
--
--	free_high_class_bfreg(bfregi, bfregn);
--
--out:
-+	bfregi->count[bfregn]--;
- 	mutex_unlock(&bfregi->lock);
- }
- 
-@@ -661,9 +624,20 @@ static void mlx5_ib_lock_cqs(struct mlx5_ib_cq *send_cq,
- static void mlx5_ib_unlock_cqs(struct mlx5_ib_cq *send_cq,
- 			       struct mlx5_ib_cq *recv_cq);
- 
--static int bfregn_to_uar_index(struct mlx5_bfreg_info *bfregi, int bfregn)
-+static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
-+			       struct mlx5_bfreg_info *bfregi, int bfregn)
- {
--	return bfregi->uars[bfregn / MLX5_BFREGS_PER_UAR].index;
-+	int bfregs_per_sys_page;
-+	int index_of_sys_page;
-+	int offset;
-+
-+	bfregs_per_sys_page = get_uars_per_sys_page(dev, bfregi->lib_uar_4k) *
-+				MLX5_NON_FP_BFREGS_PER_UAR;
-+	index_of_sys_page = bfregn / bfregs_per_sys_page;
-+
-+	offset = bfregn % bfregs_per_sys_page / MLX5_NON_FP_BFREGS_PER_UAR;
-+
-+	return bfregi->sys_pages[index_of_sys_page] + offset;
- }
- 
- static int mlx5_ib_umem_get(struct mlx5_ib_dev *dev,
-@@ -766,6 +740,13 @@ static int create_user_rq(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	return err;
- }
- 
-+static int adjust_bfregn(struct mlx5_ib_dev *dev,
-+			 struct mlx5_bfreg_info *bfregi, int bfregn)
-+{
-+	return bfregn / MLX5_NON_FP_BFREGS_PER_UAR * MLX5_BFREGS_PER_UAR +
-+				bfregn % MLX5_NON_FP_BFREGS_PER_UAR;
-+}
-+
- static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			  struct mlx5_ib_qp *qp, struct ib_udata *udata,
- 			  struct ib_qp_init_attr *attr,
-@@ -800,15 +781,15 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		/* In CROSS_CHANNEL CQ and QP must use the same UAR */
- 		bfregn = MLX5_CROSS_CHANNEL_BFREG;
- 	else {
--		bfregn = alloc_bfreg(&context->bfregi, MLX5_IB_LATENCY_CLASS_HIGH);
-+		bfregn = alloc_bfreg(dev, &context->bfregi, MLX5_IB_LATENCY_CLASS_HIGH);
- 		if (bfregn < 0) {
- 			mlx5_ib_dbg(dev, "failed to allocate low latency BFREG\n");
- 			mlx5_ib_dbg(dev, "reverting to medium latency\n");
--			bfregn = alloc_bfreg(&context->bfregi, MLX5_IB_LATENCY_CLASS_MEDIUM);
-+			bfregn = alloc_bfreg(dev, &context->bfregi, MLX5_IB_LATENCY_CLASS_MEDIUM);
- 			if (bfregn < 0) {
- 				mlx5_ib_dbg(dev, "failed to allocate medium latency BFREG\n");
- 				mlx5_ib_dbg(dev, "reverting to high latency\n");
--				bfregn = alloc_bfreg(&context->bfregi, MLX5_IB_LATENCY_CLASS_LOW);
-+				bfregn = alloc_bfreg(dev, &context->bfregi, MLX5_IB_LATENCY_CLASS_LOW);
- 				if (bfregn < 0) {
- 					mlx5_ib_warn(dev, "bfreg allocation failed\n");
- 					return bfregn;
-@@ -817,7 +798,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		}
- 	}
- 
--	uar_index = bfregn_to_uar_index(&context->bfregi, bfregn);
-+	uar_index = bfregn_to_uar_index(dev, &context->bfregi, bfregn);
- 	mlx5_ib_dbg(dev, "bfregn 0x%x, uar_index 0x%x\n", bfregn, uar_index);
- 
- 	qp->rq.offset = 0;
-@@ -858,7 +839,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	MLX5_SET(qpc, qpc, page_offset, offset);
- 
- 	MLX5_SET(qpc, qpc, uar_page, uar_index);
--	resp->bfreg_index = bfregn;
-+	resp->bfreg_index = adjust_bfregn(dev, &context->bfregi, bfregn);
- 	qp->bfregn = bfregn;
- 
- 	err = mlx5_ib_db_map_user(context, ucmd.db_addr, &qp->db);
-@@ -887,12 +868,12 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		ib_umem_release(ubuffer->umem);
- 
- err_bfreg:
--	free_bfreg(&context->bfregi, bfregn);
-+	free_bfreg(dev, &context->bfregi, bfregn);
- 	return err;
- }
- 
--static void destroy_qp_user(struct ib_pd *pd, struct mlx5_ib_qp *qp,
--			    struct mlx5_ib_qp_base *base)
-+static void destroy_qp_user(struct mlx5_ib_dev *dev, struct ib_pd *pd,
-+			    struct mlx5_ib_qp *qp, struct mlx5_ib_qp_base *base)
- {
- 	struct mlx5_ib_ucontext *context;
- 
-@@ -900,7 +881,7 @@ static void destroy_qp_user(struct ib_pd *pd, struct mlx5_ib_qp *qp,
- 	mlx5_ib_db_unmap_user(context, &qp->db);
- 	if (base->ubuffer.umem)
- 		ib_umem_release(base->ubuffer.umem);
--	free_bfreg(&context->bfregi, qp->bfregn);
-+	free_bfreg(dev, &context->bfregi, qp->bfregn);
- }
- 
- static int create_kernel_qp(struct mlx5_ib_dev *dev,
-@@ -1784,7 +1765,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 
- err_create:
- 	if (qp->create_type == MLX5_QP_USER)
--		destroy_qp_user(pd, qp, base);
-+		destroy_qp_user(dev, pd, qp, base);
- 	else if (qp->create_type == MLX5_QP_KERNEL)
- 		destroy_qp_kernel(dev, qp);
- 
-@@ -1962,7 +1943,7 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
- 	if (qp->create_type == MLX5_QP_KERNEL)
- 		destroy_qp_kernel(dev, qp);
- 	else if (qp->create_type == MLX5_QP_USER)
--		destroy_qp_user(&get_pd(qp)->ibpd, qp, base);
-+		destroy_qp_user(dev, &get_pd(qp)->ibpd, qp, base);
- }
- 
- static const char *ib_qp_type_str(enum ib_qp_type type)
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index db1b928..dd345e8 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -212,6 +212,11 @@ enum {
- };
- 
- enum {
-+	MLX5_ADAPTER_PAGE_SHIFT		= 12,
-+	MLX5_ADAPTER_PAGE_SIZE		= 1 << MLX5_ADAPTER_PAGE_SHIFT,
-+};
-+
-+enum {
- 	MLX5_BFREGS_PER_UAR		= 4,
- 	MLX5_MAX_UARS			= 1 << 8,
- 	MLX5_NON_FP_BFREGS_PER_UAR	= 2,
-@@ -219,6 +224,8 @@ enum {
- 					  MLX5_NON_FP_BFREGS_PER_UAR,
- 	MLX5_MAX_BFREGS			= MLX5_MAX_UARS *
- 					  MLX5_NON_FP_BFREGS_PER_UAR,
-+	MLX5_UARS_IN_PAGE		= PAGE_SIZE / MLX5_ADAPTER_PAGE_SIZE,
-+	MLX5_NON_FP_BFREGS_IN_PAGE	= MLX5_NON_FP_BFREGS_PER_UAR * MLX5_UARS_IN_PAGE,
- };
- 
- enum {
-@@ -392,11 +399,6 @@ enum {
- };
- 
- enum {
--	MLX5_ADAPTER_PAGE_SHIFT		= 12,
--	MLX5_ADAPTER_PAGE_SIZE		= 1 << MLX5_ADAPTER_PAGE_SHIFT,
--};
--
--enum {
- 	MLX5_CAP_OFF_CMDIF_CSUM		= 46,
- };
- 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index bb362f5..7e7394f 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -189,18 +189,17 @@ enum mlx5_eq_type {
- };
- 
- struct mlx5_bfreg_info {
--	struct mlx5_uar	       *uars;
--	int			num_uars;
-+	u32		       *sys_pages;
- 	int			num_low_latency_bfregs;
--	unsigned long	       *bitmap;
- 	unsigned int	       *count;
--	struct mlx5_bf	       *bfs;
- 
- 	/*
- 	 * protect bfreg allocation data structs
- 	 */
- 	struct mutex		lock;
- 	u32			ver;
-+	bool			lib_uar_4k;
-+	u32			num_sys_pages;
- };
- 
- struct mlx5_cmd_first {
-@@ -470,13 +469,10 @@ struct mlx5_sq_bfreg {
- 
- struct mlx5_uar {
- 	u32			index;
--	struct list_head	bf_list;
--	unsigned		free_bf_bmap;
--	void __iomem	       *bf_map;
- 	void __iomem	       *map;
-+	void __iomem	       *bf_map;
- };
- 
--
- struct mlx5_core_health {
- 	struct health_buffer __iomem   *health;
- 	__be32 __iomem		       *health_counter;
--- 
-2.7.4
-
+On Tue, Jan 3, 2017 at 1:07 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> With this patch I'm not seeing the __ib_drain_sq backtraces, but I'm
+> still seeing the previous backtraces.
+>
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c
+> b/drivers/infiniband/ulp/isert/ib_isert.c
+> index 6dd43f6..1e53502 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> @@ -2595,7 +2595,7 @@ static void isert_wait_conn(struct iscsi_conn *conn)
+>        isert_conn_terminate(isert_conn);
+>        mutex_unlock(&isert_conn->mutex);
+>
+> -       ib_drain_qp(isert_conn->qp);
+> +       ib_close_qp(isert_conn->qp);
+>        isert_put_unsol_pending_cmds(conn);
+>        isert_wait4cmds(conn);
+>        isert_wait4logout(isert_conn);
+>
+> I was thinking that if the connection was brought down uncleanly then
+> there may be messages(??) it the send queue that would never be
+> consumed by the application, so it would never drain and would have to
+> be forcibly emptied. Maybe there is something stuck in the command
+> queue as well?
+>
+> [(support-1.0) root@prv-0-13-roberttest ~]# ps aux | grep " D "
+> root     15426  0.0  0.0      0     0 ?        D    12:48   0:00 [iscsi_np]
+> root     15429  0.0  0.0      0     0 ?        D    12:48   0:00 [iscsi_ttx]
+> root     16077  0.0  0.0 112656  2216 pts/0    S+   12:55   0:00 grep
+> --color=auto  D
+> [(support-1.0) root@prv-0-13-roberttest ~]# cat /proc/15426/stack
+> [<ffffffff815304d1>] iscsit_stop_session+0x1b1/0x1c0
+> [<ffffffff81521c62>] iscsi_check_for_session_reinstatement+0x1e2/0x270
+> [<ffffffff81524660>] iscsi_target_check_for_existing_instances+0x30/0x40
+> [<ffffffff815247a8>] iscsi_target_do_login+0x138/0x630
+> [<ffffffff815259be>] iscsi_target_start_negotiation+0x4e/0xa0
+> [<ffffffff8152355e>] __iscsi_target_login_thread+0x83e/0xf20
+> [<ffffffff81523c64>] iscsi_target_login_thread+0x24/0x30
+> [<ffffffff810a3059>] kthread+0xd9/0xf0
+> [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+> [<ffffffffffffffff>] 0xffffffffffffffff
+> [(support-1.0) root@prv-0-13-roberttest ~]# cat /proc/15429/stack
+> [<ffffffff8150c689>] target_wait_for_sess_cmds+0x49/0x190
+> [<ffffffffa0705744>] isert_wait_conn+0x1a4/0x2d0 [ib_isert]
+> [<ffffffff815309b7>] iscsit_close_connection+0x157/0x860
+> [<ffffffff8151f10b>] iscsit_take_action_for_connection_exit+0x7b/0xf0
+> [<ffffffff81530150>] iscsi_target_tx_thread+0x150/0x1d0
+> [<ffffffff810a3059>] kthread+0xd9/0xf0
+> [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+> [<ffffffffffffffff>] 0xffffffffffffffff
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>
+>
+> On Fri, Dec 30, 2016 at 4:07 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>> I decided to try something completely different... Running the stock
+>> CentOS 3.10 kernel and OFED 3.4 on both hosts, I'm not seeing the hung
+>> processes and the tests complete successfully. The same seems to be
+>> true for the target on 4.9 and the initiator on 3.10.
+>>
+>> However, with the target on 3.10 and the initiator on 4.9, I get this
+>> on the target:
+>>
+>> [(support-1.0) root@prv-0-13-roberttest ~]# ps aux | grep " D "
+>> root     14791  0.0  0.0      0     0 ?        D    15:08   0:00 [iscsi_np]
+>> root     14795  0.0  0.0      0     0 ?        D    15:08   0:00 [iscsi_trx]
+>> root     14852  0.0  0.0 112648   976 pts/0    S+   15:11   0:00 grep
+>> --color=auto  D
+>> [(support-1.0) root@prv-0-13-roberttest ~]# uname -a
+>> Linux prv-0-13-roberttest.betterservers.com 3.10.0-327.36.3.el7.x86_64
+>> #1 SMP Mon Oct 24 16:09:20 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+>> [(support-1.0) root@prv-0-13-roberttest ~]# cat /proc/14791/stack
+>> [<ffffffffa09dde48>] iscsit_stop_session+0x1c8/0x1e0 [iscsi_target_mod]
+>> [<ffffffffa09ceefa>] iscsi_check_for_session_reinstatement+0x1ea/0x280
+>> [iscsi_target_mod]
+>> [<ffffffffa09d19f5>]
+>> iscsi_target_check_for_existing_instances+0x35/0x40 [iscsi_target_mod]
+>> [<ffffffffa09d1b41>] iscsi_target_do_login+0x141/0x670 [iscsi_target_mod]
+>> [<ffffffffa09d2f4c>] iscsi_target_start_negotiation+0x1c/0xb0 [iscsi_target_mod]
+>> [<ffffffffa09d0c6f>] iscsi_target_login_thread+0xadf/0x1050 [iscsi_target_mod]
+>> [<ffffffff810a5b8f>] kthread+0xcf/0xe0
+>> [<ffffffff81646a98>] ret_from_fork+0x58/0x90
+>> [<ffffffffffffffff>] 0xffffffffffffffff
+>> [(support-1.0) root@prv-0-13-roberttest ~]# cat /proc/14795/stack
+>> [<ffffffffa0801469>] isert_wait4flush+0x79/0xc0 [ib_isert]
+>> [<ffffffffa080150b>] isert_wait_conn+0x5b/0x2d0 [ib_isert]
+>> [<ffffffffa09ddfbd>] iscsit_close_connection+0x15d/0x820 [iscsi_target_mod]
+>> [<ffffffffa09cc183>] iscsit_take_action_for_connection_exit+0x83/0x110
+>> [iscsi_target_mod]
+>> [<ffffffffa09dccb7>] iscsi_target_rx_thread+0x1e7/0xf80 [iscsi_target_mod]
+>> [<ffffffff810a5b8f>] kthread+0xcf/0xe0
+>> [<ffffffff81646a98>] ret_from_fork+0x58/0x90
+>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>
+>> [  345.970157] iSCSI Login timeout on Network Portal 0.0.0.0:3260
+>> [  483.850714] INFO: task iscsi_np:14791 blocked for more than 120 seconds.
+>> [  483.857467] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+>> disables this message.
+>> [  483.865326] iscsi_np        D 0000000000000000     0 14791      2 0x00000004
+>> [  483.872460]  ffff886e3b117be0 0000000000000046 ffff887ede579700
+>> ffff886e3b117fd8
+>> [  483.879983]  ffff886e3b117fd8 ffff886e3b117fd8 ffff887ede579700
+>> ffff883ef7898160
+>> [  483.887500]  ffff883ef7898168 7fffffffffffffff ffff887ede579700
+>> 0000000000000000
+>> [  483.895025] Call Trace:
+>> [  483.897505]  [<ffffffff8163bb39>] schedule+0x29/0x70
+>> [  483.902496]  [<ffffffff81639829>] schedule_timeout+0x209/0x2d0
+>> [  483.908355]  [<ffffffff812fc60b>] ? simple_strtoull+0x3b/0x70
+>> [  483.914128]  [<ffffffff8163bf06>] wait_for_completion+0x116/0x170
+>> [  483.920253]  [<ffffffff810b8940>] ? wake_up_state+0x20/0x20
+>> [  483.925847]  [<ffffffffa09dde48>] iscsit_stop_session+0x1c8/0x1e0
+>> [iscsi_target_mod]
+>> [  483.933612]  [<ffffffffa09ceefa>]
+>> iscsi_check_for_session_reinstatement+0x1ea/0x280 [iscsi_target_mod]
+>> [  483.942944]  [<ffffffffa09d19f5>]
+>> iscsi_target_check_for_existing_instances+0x35/0x40 [iscsi_target_mod]
+>> [  483.953304]  [<ffffffffa09d1b41>] iscsi_target_do_login+0x141/0x670
+>> [iscsi_target_mod]
+>> [  483.961988]  [<ffffffffa09d2f4c>]
+>> iscsi_target_start_negotiation+0x1c/0xb0 [iscsi_target_mod]
+>> [  483.971278]  [<ffffffffa09d0c6f>]
+>> iscsi_target_login_thread+0xadf/0x1050 [iscsi_target_mod]
+>> [  483.980346]  [<ffffffff8163b401>] ? __schedule+0x1f1/0x900
+>> [  483.986525]  [<ffffffffa09d0190>] ?
+>> iscsi_target_login_sess_out+0x250/0x250 [iscsi_target_mod]
+>> [  483.995816]  [<ffffffff810a5b8f>] kthread+0xcf/0xe0
+>> [  484.001403]  [<ffffffff810a5ac0>] ? kthread_create_on_node+0x140/0x140
+>> [  484.008608]  [<ffffffff81646a98>] ret_from_fork+0x58/0x90
+>> [  484.014672]  [<ffffffff810a5ac0>] ? kthread_create_on_node+0x140/0x140
+>> [  484.021896] INFO: task iscsi_trx:14795 blocked for more than 120 seconds.
+>> [  484.029349] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+>> disables this message.
+>> [  484.037849] iscsi_trx       D ffff887ee64f8000     0 14795      2 0x00000004
+>> [  484.045598]  ffff886e391bfbe0 0000000000000046 ffff887ed715c500
+>> ffff886e391bffd8
+>> [  484.053753]  ffff886e391bffd8 ffff886e391bffd8 ffff887ed715c500
+>> ffff887ee64f91d0
+>> [  484.061891]  ffff887ee64f91d8 7fffffffffffffff ffff887ed715c500
+>> ffff887ee64f8000
+>> [  484.070049] Call Trace:
+>> [  484.073174]  [<ffffffff8163bb39>] schedule+0x29/0x70
+>> [  484.078797]  [<ffffffff81639829>] schedule_timeout+0x209/0x2d0
+>> [  484.085290]  [<ffffffffa0672125>] ? cm_alloc_msg+0x115/0x180 [ib_cm]
+>> [  484.092252]  [<ffffffff8163bf06>] wait_for_completion+0x116/0x170
+>> [  484.098960]  [<ffffffff810b8940>] ? wake_up_state+0x20/0x20
+>> [  484.105132]  [<ffffffffa0801469>] isert_wait4flush+0x79/0xc0 [ib_isert]
+>> [  484.112369]  [<ffffffffa080150b>] isert_wait_conn+0x5b/0x2d0 [ib_isert]
+>> [  484.119566]  [<ffffffffa09ddfbd>]
+>> iscsit_close_connection+0x15d/0x820 [iscsi_target_mod]
+>> [  484.128239]  [<ffffffff8163ca67>] ?
+>> wait_for_completion_interruptible+0x167/0x1d0
+>> [  484.136341]  [<ffffffffa09dcad0>] ?
+>> iscsi_target_tx_thread+0x200/0x200 [iscsi_target_mod]
+>> [  484.145135]  [<ffffffffa09cc183>]
+>> iscsit_take_action_for_connection_exit+0x83/0x110 [iscsi_target_mod]
+>> [  484.155067]  [<ffffffffa09dccb7>]
+>> iscsi_target_rx_thread+0x1e7/0xf80 [iscsi_target_mod]
+>> [  484.163700]  [<ffffffff81013588>] ? __switch_to+0xf8/0x4b0
+>> [  484.169774]  [<ffffffffa09dcad0>] ?
+>> iscsi_target_tx_thread+0x200/0x200 [iscsi_target_mod]
+>> [  484.178530]  [<ffffffff810a5b8f>] kthread+0xcf/0xe0
+>> [  484.183991]  [<ffffffff810a5ac0>] ? kthread_create_on_node+0x140/0x140
+>> [  484.191106]  [<ffffffff81646a98>] ret_from_fork+0x58/0x90
+>> [  484.197096]  [<ffffffff810a5ac0>] ? kthread_create_on_node+0x140/0x140
+>>
+>> I think there are two bugs here. Something in 4.9 iser (initiator) is
+>> causing a shutdown of the session when limited to 10 Gb. This second
+>> is in isert (target) where when a session isn't cleanly closed, it
+>> gets hung on cleaning up the session. It seems that bug #1 triggers
+>> bug #2 much easier than on Infiniband.
+>>
+>> I hope this is useful.
+>>
+>> ----------------
+>> Robert LeBlanc
+>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>
+>>
+>> On Thu, Dec 29, 2016 at 4:57 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>> OK, I've drilled down a little more and
+>>>
+>>> timeout = action(timeout);
+>>>
+>>> in do_wait_for_common() in kernel/sched/completion.c is not returning.
+>>> I'll have to see if I can make more progress tomorrow.
+>>> ----------------
+>>> Robert LeBlanc
+>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>
+>>>
+>>> On Thu, Dec 29, 2016 at 2:23 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>> I know most people are ignoring this thread by now, but I hope someone
+>>>> is still reading and can offer some ideas.
+>>>>
+>>>> It looks like ib_drain_qp_done() is not being called the first time
+>>>> that __ib_drain_sq() is called from iscsit_close_connection(). I tried
+>>>> to debug wait_for_completion() and friends, but they are called by too
+>>>> many things and I don't know how to filter out what I'm looking for.
+>>>> My next idea is to copy the completion functions here so that I can
+>>>> add debug to only that path. I feel like I'm inching closer to the
+>>>> problem, stumbling around in the dark.
+>>>>
+>>>> [Thu Dec 29 14:02:03 2016] Starting iscsit_close_connection.
+>>>> [Thu Dec 29 14:02:03 2016] isert_wait_conn calling ib_drain_qp.
+>>>> [Thu Dec 29 14:02:03 2016] ib_drain_qp calling ib_drain_sq.
+>>>> [Thu Dec 29 14:02:03 2016] ib_drain_sq calling __ib_drain_sq.
+>>>> [Thu Dec 29 14:02:03 2016] Setting up drain callback.
+>>>> [Thu Dec 29 14:02:03 2016] Starting init_completion.
+>>>> [Thu Dec 29 14:02:03 2016] Calling ib_modify_qp.
+>>>> [Thu Dec 29 14:02:03 2016] Calling ib_post_send.
+>>>> [Thu Dec 29 14:02:03 2016] Calling wait_for_completion.
+>>>> [Thu Dec 29 14:02:03 2016] &sdrain.done->done = 0.
+>>>>
+>>>> Gets "stuck" here...
+>>>>
+>>>> [Thu Dec 29 14:02:20 2016] iSCSI Login timeout on Network Portal 0.0.0.0:3260
+>>>> [Thu Dec 29 14:02:37 2016] ib_drain_qp calling ib_drain_sq.
+>>>> [Thu Dec 29 14:02:37 2016] ib_drain_sq calling __ib_drain_sq.
+>>>> [Thu Dec 29 14:02:37 2016] Setting up drain callback.
+>>>> [Thu Dec 29 14:02:37 2016] Starting init_completion.
+>>>> [Thu Dec 29 14:02:37 2016] Calling ib_modify_qp.
+>>>> [Thu Dec 29 14:02:37 2016] Calling ib_post_send.
+>>>> [Thu Dec 29 14:02:37 2016] Calling wait_for_completion.
+>>>> [Thu Dec 29 14:02:37 2016] ib_drain_qp_done going to call complete.
+>>>> [Thu Dec 29 14:02:38 2016] &sdrain.done->done = 1.
+>>>> [Thu Dec 29 14:02:38 2016] Returned from wait_for_completion.
+>>>> [Thu Dec 29 14:02:38 2016] ib_drain_qp_done going to call complete.
+>>>>
+>>>> Next time ib_drain_qp is called, ib_drain_qp_done gets called...
+>>>>
+>>>> [Thu Dec 29 14:02:55 2016] ib_drain_qp calling ib_drain_sq.
+>>>> [Thu Dec 29 14:02:55 2016] ib_drain_sq calling __ib_drain_sq.
+>>>> [Thu Dec 29 14:02:55 2016] Setting up drain callback.
+>>>> [Thu Dec 29 14:02:55 2016] Starting init_completion.
+>>>> [Thu Dec 29 14:02:55 2016] Calling ib_modify_qp.
+>>>> [Thu Dec 29 14:02:55 2016] Calling ib_post_send.
+>>>> [Thu Dec 29 14:02:55 2016] Calling wait_for_completion.
+>>>> [Thu Dec 29 14:02:55 2016] ib_drain_qp_done going to call complete.
+>>>> [Thu Dec 29 14:02:55 2016] &sdrain.done->done = 1.
+>>>> [Thu Dec 29 14:02:55 2016] Returned from wait_for_completion.
+>>>> [Thu Dec 29 14:02:55 2016] ib_drain_qp_done going to call complete.
+>>>> ----------------
+>>>> Robert LeBlanc
+>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>
+>>>>
+>>>> On Wed, Dec 28, 2016 at 1:58 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>> Good news! I found a 10 Gb switch laying around and put it in place of
+>>>>> the Linux router. I'm getting the same failure with the switch, so it
+>>>>> is not something funky with the Linux router and easier to replicate.
+>>>>> ----------------
+>>>>> Robert LeBlanc
+>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>
+>>>>>
+>>>>> On Wed, Dec 28, 2016 at 1:39 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>>> OK, here is some more info. This is a diagram of my current set up.
+>>>>>>
+>>>>>>                 +----------------+
+>>>>>>                 |  Linux Router  |
+>>>>>>                 |   ConnectX-3   |
+>>>>>>                 | port 1  port 2 |
+>>>>>>                 +----------------+
+>>>>>>                      /      \
+>>>>>> +---------------+   /        \   +---------------+
+>>>>>> |    Host 1     |  / A      A \  |    Host 2     |
+>>>>>> | ConnectX-4-LX | /            \ | ConnectX-4-LX |
+>>>>>> |        Port 1 |-              -| Port 1        |
+>>>>>> |        Port 2 |----------------| Port 2        |
+>>>>>> +---------------+        B       +---------------+
+>>>>>>
+>>>>>> The Linux router has the ConnectX-3 (not PRO) card in Ethernet mode
+>>>>>> and is using a breakout cable (port 1 only) to connect to the
+>>>>>> ConnectX-4-LX cards at 10 Gb as path 'A'. The second port of the
+>>>>>> ConnectX-4-LX cards are connected directly at 25 Gb as path 'B'.
+>>>>>>
+>>>>>> Running Iser and RoCE on path 'B' seems to run just fine.
+>>>>>>
+>>>>>> Running Iser and RoCE on path 'A' has issues when the Linux router is
+>>>>>> operating as a bridge or a router. Some small operations like mkfs
+>>>>>> seem to work just fine, but fio causes iser to want to log out and we
+>>>>>> get D state. I can run ib_send_bw 'all' tests through path 'A' and
+>>>>>> don't see a problem. It does seem to be load related, though. I have
+>>>>>> been trying to run
+>>>>>>
+>>>>>> echo "3" > /proc/sys/vm/drop_caches; fio --rw=read --bs=4K --size=1G
+>>>>>> --numjobs=40 --name=worker.matt --group_reporting
+>>>>>>
+>>>>>> If I reduce the number of jobs to 10 or less, it seems to work
+>>>>>> although I may see some of the debug messages I added in, it doesn't
+>>>>>> seem to completely hang and cause the logout lockup.
+>>>>>>
+>>>>>> Steps to reproduce:
+>>>>>> 1. 4.9 kernel
+>>>>>> 2. Bridge ports 1 & 2 on the Linux router
+>>>>>> 3. Configure port 1 on Host 1 & 2 on the same subnet
+>>>>>> 4. Create large ramdisk in targetcli and export from Host 1
+>>>>>> 5. Login from Host 2
+>>>>>> 6. Create EXT4 file system on imported disk
+>>>>>> 7. Mount and cd into mount
+>>>>>> 8. Run fio: echo "3" > /proc/sys/vm/drop_caches; fio --rw=read --bs=4K
+>>>>>> --size=1G --numjobs=40 --name=worker.matt --group_reporting
+>>>>>> 9. After some time, the fio process will report the file system is
+>>>>>> read only and the iscsi processes will be in D state on Host 1
+>>>>>>
+>>>>>> It does seem the problem is in iser and not specific to the generic RDMA stack.
+>>>>>>
+>>>>>> I'll keep digging and reporting back.
+>>>>>> ----------------
+>>>>>> Robert LeBlanc
+>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>
+>>>>>>
+>>>>>> On Tue, Dec 27, 2016 at 1:58 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>>>> I realized that I did not set the default RoCE mode to v2 and the
+>>>>>>> client is on a different subnet, probably why I'm seeing the -110
+>>>>>>> error. Iser should not go into D state because of this and should
+>>>>>>> handle this gracefully, but may provide an easy way to replicate the
+>>>>>>> issue.
+>>>>>>> ----------------
+>>>>>>> Robert LeBlanc
+>>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>>
+>>>>>>>
+>>>>>>> On Tue, Dec 27, 2016 at 1:22 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>>>>> I looked at this code and it is quiet above my ability. I created this
+>>>>>>>> patch, but I don't know how to interrogate the queue to see how many
+>>>>>>>> items there are. If you can give me some more direction on what to
+>>>>>>>> try, I can keep fumbling around with this until someone smarter than
+>>>>>>>> me can figure it out. This is now a blocker for me so I'm going to
+>>>>>>>> beat my head on this until it is fixed.
+>>>>>>>>
+>>>>>>>> Thanks for being patient with me.
+>>>>>>>>
+>>>>>>>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+>>>>>>>> index 8368764..9e5bd4b 100644
+>>>>>>>> --- a/drivers/infiniband/core/verbs.c
+>>>>>>>> +++ b/drivers/infiniband/core/verbs.c
+>>>>>>>> @@ -1954,22 +1954,27 @@ static void __ib_drain_sq(struct ib_qp *qp)
+>>>>>>>>                 return;
+>>>>>>>>         }
+>>>>>>>>
+>>>>>>>> +       printk("Setting up drain callback.");
+>>>>>>>>         swr.wr_cqe = &sdrain.cqe;
+>>>>>>>>         sdrain.cqe.done = ib_drain_qp_done;
+>>>>>>>> +       printk("Starting init_completion.");
+>>>>>>>>         init_completion(&sdrain.done);
+>>>>>>>>
+>>>>>>>> +       printk("Calling ib_modify_qp.");
+>>>>>>>>         ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
+>>>>>>>>         if (ret) {
+>>>>>>>>                 WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
+>>>>>>>>                 return;
+>>>>>>>>         }
+>>>>>>>>
+>>>>>>>> +       printk("Calling ib_post_send.");
+>>>>>>>>         ret = ib_post_send(qp, &swr, &bad_swr);
+>>>>>>>>         if (ret) {
+>>>>>>>>                 WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
+>>>>>>>>                 return;
+>>>>>>>>         }
+>>>>>>>>
+>>>>>>>> +       printk("Starting wait_for_completion.");
+>>>>>>>>         wait_for_completion(&sdrain.done);
+>>>>>>>>  }
+>>>>>>>>
+>>>>>>>> I get the same processes in D state (and same backtrace) and this is
+>>>>>>>> what shows up in dmesg:
+>>>>>>>>
+>>>>>>>> [  920.317401] isert: isert_rdma_accept: rdma_accept() failed with: -110
+>>>>>>>> [  920.325554] ------------[ cut here ]------------
+>>>>>>>> [  920.330188] WARNING: CPU: 11 PID: 705 at
+>>>>>>>> drivers/infiniband/core/verbs.c:303 ib_dealloc_pd+0x58/0xa0 [ib_core]
+>>>>>>>> [  920.340210] Modules linked in: target_core_user target_core_pscsi
+>>>>>>>> target_core_file target_core_iblock 8021q garp mrp rpcrdma sunrpc
+>>>>>>>> ib_isert ib_iser ib_srpt ib_srp scsi_transport_srp ib_ipoib
+>>>>>>>> iptable_filter rdma_ucm i
+>>>>>>>> b_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm sb_edac edac_core
+>>>>>>>> x86_pkg_temp_thermal intel_powerclamp coretemp kvm_intel kvm ext4
+>>>>>>>> ipmi_devintf irqbypass crct10dif_pclmul crc32_pclmul
+>>>>>>>> ghash_clmulni_intel aesni_intel jbd2 lr
+>>>>>>>> w gf128mul glue_helper mbcache iTCO_wdt ablk_helper mei_me
+>>>>>>>> iTCO_vendor_support cryptd joydev sg mei i2c_i801 lpc_ich pcspkr
+>>>>>>>> mfd_core ioatdma shpchp i2c_smbus ipmi_si wmi ipmi_msghandler
+>>>>>>>> acpi_power_meter acpi_pad ip_table
+>>>>>>>> s xfs libcrc32c raid1 mlx4_en mlx4_ib mlx5_ib sd_mod ib_core ast
+>>>>>>>> drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm
+>>>>>>>> mlx5_core igb mlx4_core
+>>>>>>>> [  920.412347]  ahci ptp drm libahci pps_core libata dca i2c_algo_bit
+>>>>>>>> be2iscsi bnx2i cnic uio qla4xxx iscsi_boot_sysfs
+>>>>>>>> [  920.421744] CPU: 11 PID: 705 Comm: kworker/11:2 Not tainted 4.9.0+ #3
+>>>>>>>> [  920.428199] Hardware name: Supermicro SYS-6028TP-HTFR/X10DRT-PIBF,
+>>>>>>>> BIOS 1.1 08/03/2015
+>>>>>>>> [  920.436126] Workqueue: ib_cm cm_work_handler [ib_cm]
+>>>>>>>> [  920.441113]  ffffc90032a03a40 ffffffff8134d45f 0000000000000000
+>>>>>>>> 0000000000000000
+>>>>>>>> [  920.448583]  ffffc90032a03a80 ffffffff81083371 0000012fa04a1c4a
+>>>>>>>> ffff883f5e886e80
+>>>>>>>> [  920.456073]  ffff887f1eaa4400 ffff887f1eaa5800 ffffc90032a03b08
+>>>>>>>> 00000000ffffff92
+>>>>>>>> [  920.463535] Call Trace:
+>>>>>>>> [  920.465993]  [<ffffffff8134d45f>] dump_stack+0x63/0x84
+>>>>>>>> [  920.471144]  [<ffffffff81083371>] __warn+0xd1/0xf0
+>>>>>>>> [  920.475941]  [<ffffffff810834ad>] warn_slowpath_null+0x1d/0x20
+>>>>>>>> [  920.481790]  [<ffffffffa026cf58>] ib_dealloc_pd+0x58/0xa0 [ib_core]
+>>>>>>>> [  920.488072]  [<ffffffffa0695000>] isert_device_put+0x50/0xc0 [ib_isert]
+>>>>>>>> [  920.494693]  [<ffffffffa069838e>] isert_connect_request+0x68e/0xd40
+>>>>>>>> [ib_isert]
+>>>>>>>> [  920.501924]  [<ffffffffa0699683>] isert_cma_handler+0xe3/0x3b0 [ib_isert]
+>>>>>>>> [  920.508725]  [<ffffffffa042c5d6>] ? cma_new_conn_id+0x276/0x4b0 [rdma_cm]
+>>>>>>>> [  920.515521]  [<ffffffffa0427050>] cma_listen_handler+0x20/0x30 [rdma_cm]
+>>>>>>>> [  920.522227]  [<ffffffffa042ca05>] cma_req_handler+0x1f5/0x4c0 [rdma_cm]
+>>>>>>>> [  920.528851]  [<ffffffffa03fb0f5>] cm_process_work+0x25/0xf0 [ib_cm]
+>>>>>>>> [  920.535125]  [<ffffffffa03fba94>] cm_req_handler+0x8d4/0xc70 [ib_cm]
+>>>>>>>> [  920.541485]  [<ffffffffa03fc1ce>] cm_work_handler+0x1ce/0x1648 [ib_cm]
+>>>>>>>> [  920.548021]  [<ffffffff8109cc02>] process_one_work+0x152/0x400
+>>>>>>>> [  920.553861]  [<ffffffff8109d4f5>] worker_thread+0x125/0x4b0
+>>>>>>>> [  920.559443]  [<ffffffff8109d3d0>] ? rescuer_thread+0x380/0x380
+>>>>>>>> [  920.565284]  [<ffffffff810a3059>] kthread+0xd9/0xf0
+>>>>>>>> [  920.570178]  [<ffffffff810a2f80>] ? kthread_park+0x60/0x60
+>>>>>>>> [  920.576389]  [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+>>>>>>>> [  920.582473] ---[ end trace 1f5a1831f9d2d964 ]---
+>>>>>>>> [  920.587907] ------------[ cut here ]------------
+>>>>>>>> [  920.593213] WARNING: CPU: 11 PID: 705 at
+>>>>>>>> drivers/infiniband/core/cq.c:189 ib_free_cq+0x97/0xc0 [ib_core]
+>>>>>>>> [  920.603383] Modules linked in: target_core_user target_core_pscsi
+>>>>>>>> target_core_file target_core_iblock 8021q garp mrp rpcrdma sunrpc
+>>>>>>>> ib_isert ib_iser ib_srpt ib_srp scsi_transport_srp ib_ipoib
+>>>>>>>> iptable_filter rdma_ucm i
+>>>>>>>> b_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm sb_edac edac_core
+>>>>>>>> x86_pkg_temp_thermal intel_powerclamp coretemp kvm_intel kvm ext4
+>>>>>>>> ipmi_devintf irqbypass crct10dif_pclmul crc32_pclmul
+>>>>>>>> ghash_clmulni_intel aesni_intel jbd2 lr
+>>>>>>>> w gf128mul glue_helper mbcache iTCO_wdt ablk_helper mei_me
+>>>>>>>> iTCO_vendor_support cryptd joydev sg mei i2c_i801 lpc_ich pcspkr
+>>>>>>>> mfd_core ioatdma shpchp i2c_smbus ipmi_si wmi ipmi_msghandler
+>>>>>>>> acpi_power_meter acpi_pad ip_table
+>>>>>>>> s xfs libcrc32c raid1 mlx4_en mlx4_ib mlx5_ib sd_mod ib_core ast
+>>>>>>>> drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm
+>>>>>>>> mlx5_core igb mlx4_core
+>>>>>>>> [  920.679694]  ahci ptp drm libahci pps_core libata dca i2c_algo_bit
+>>>>>>>> be2iscsi bnx2i cnic uio qla4xxx iscsi_boot_sysfs
+>>>>>>>> [  920.690579] CPU: 11 PID: 705 Comm: kworker/11:2 Tainted: G        W
+>>>>>>>>       4.9.0+ #3
+>>>>>>>> [  920.699008] Hardware name: Supermicro SYS-6028TP-HTFR/X10DRT-PIBF,
+>>>>>>>> BIOS 1.1 08/03/2015
+>>>>>>>> [  920.707701] Workqueue: ib_cm cm_work_handler [ib_cm]
+>>>>>>>> [  920.713438]  ffffc90032a03a18 ffffffff8134d45f 0000000000000000
+>>>>>>>> 0000000000000000
+>>>>>>>> [  920.721648]  ffffc90032a03a58 ffffffff81083371 000000bd5e886e80
+>>>>>>>> ffff887f1eaa6800
+>>>>>>>> [  920.729850]  ffff883f5e886e20 ffff883f5e886e18 ffffc90032a03b08
+>>>>>>>> 00000000ffffff92
+>>>>>>>> [  920.738026] Call Trace:
+>>>>>>>> [  920.741188]  [<ffffffff8134d45f>] dump_stack+0x63/0x84
+>>>>>>>> [  920.747027]  [<ffffffff81083371>] __warn+0xd1/0xf0
+>>>>>>>> [  920.752488]  [<ffffffff810834ad>] warn_slowpath_null+0x1d/0x20
+>>>>>>>> [  920.758989]  [<ffffffffa026e037>] ib_free_cq+0x97/0xc0 [ib_core]
+>>>>>>>> [  920.765649]  [<ffffffffa0694f88>]
+>>>>>>>> isert_free_comps.isra.26+0x38/0x60 [ib_isert]
+>>>>>>>> [  920.773609]  [<ffffffffa069500d>] isert_device_put+0x5d/0xc0 [ib_isert]
+>>>>>>>> [  920.780868]  [<ffffffffa069838e>] isert_connect_request+0x68e/0xd40
+>>>>>>>> [ib_isert]
+>>>>>>>> [  920.788734]  [<ffffffffa0699683>] isert_cma_handler+0xe3/0x3b0 [ib_isert]
+>>>>>>>> [  920.796157]  [<ffffffffa042c5d6>] ? cma_new_conn_id+0x276/0x4b0 [rdma_cm]
+>>>>>>>> [  920.803586]  [<ffffffffa0427050>] cma_listen_handler+0x20/0x30 [rdma_cm]
+>>>>>>>> [  920.810916]  [<ffffffffa042ca05>] cma_req_handler+0x1f5/0x4c0 [rdma_cm]
+>>>>>>>> [  920.818167]  [<ffffffffa03fb0f5>] cm_process_work+0x25/0xf0 [ib_cm]
+>>>>>>>> [  920.825063]  [<ffffffffa03fba94>] cm_req_handler+0x8d4/0xc70 [ib_cm]
+>>>>>>>> [  920.832051]  [<ffffffffa03fc1ce>] cm_work_handler+0x1ce/0x1648 [ib_cm]
+>>>>>>>> [  920.839208]  [<ffffffff8109cc02>] process_one_work+0x152/0x400
+>>>>>>>> [  920.845669]  [<ffffffff8109d4f5>] worker_thread+0x125/0x4b0
+>>>>>>>> [  920.851880]  [<ffffffff8109d3d0>] ? rescuer_thread+0x380/0x380
+>>>>>>>> [  920.858352]  [<ffffffff810a3059>] kthread+0xd9/0xf0
+>>>>>>>> [  920.863857]  [<ffffffff810a2f80>] ? kthread_park+0x60/0x60
+>>>>>>>> [  920.869975]  [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+>>>>>>>> [  920.876006] ---[ end trace 1f5a1831f9d2d965 ]---
+>>>>>>>> [  920.884335] isert: isert_cma_handler: failed handle connect request -110
+>>>>>>>> [ 1639.592451] Setting up drain callback.
+>>>>>>>> [ 1639.596073] Starting init_completion.
+>>>>>>>> [ 1639.600683] Calling ib_modify_qp.
+>>>>>>>> [ 1639.602616] Calling ib_post_send.
+>>>>>>>> [ 1639.606550] Starting wait_for_completion.
+>>>>>>>> [ 1656.976015] iSCSI Login timeout on Network Portal 0.0.0.0:3260
+>>>>>>>> [ 1674.254027] Setting up drain callback.
+>>>>>>>> [ 1674.257634] Starting init_completion.
+>>>>>>>> [ 1674.262107] Calling ib_modify_qp.
+>>>>>>>> [ 1674.264011] Calling ib_post_send.
+>>>>>>>> [ 1674.267969] Starting wait_for_completion.
+>>>>>>>> [ 1691.583888] Setting up drain callback.
+>>>>>>>> [ 1691.588490] Starting init_completion.
+>>>>>>>> [ 1691.590677] Calling ib_modify_qp.
+>>>>>>>> [ 1691.594766] Calling ib_post_send.
+>>>>>>>> [ 1691.596607] Starting wait_for_completion.
+>>>>>>>> [ 1708.913356] Setting up drain callback.
+>>>>>>>> [ 1708.915658] Starting init_completion.
+>>>>>>>> [ 1708.920152] Calling ib_modify_qp.
+>>>>>>>> [ 1708.922041] Calling ib_post_send.
+>>>>>>>> [ 1708.926048] Starting wait_for_completion.
+>>>>>>>> [ 1726.244365] Setting up drain callback.
+>>>>>>>> [ 1726.248973] Starting init_completion.
+>>>>>>>> [ 1726.251165] Calling ib_modify_qp.
+>>>>>>>> [ 1726.255189] Calling ib_post_send.
+>>>>>>>> [ 1726.257031] Starting wait_for_completion.
+>>>>>>>> [ 1743.574751] Setting up drain callback.
+>>>>>>>> [ 1743.577044] Starting init_completion.
+>>>>>>>> [ 1743.581496] Calling ib_modify_qp.
+>>>>>>>> [ 1743.583404] Calling ib_post_send.
+>>>>>>>> [ 1743.587346] Starting wait_for_completion.
+>>>>>>>> [ 1760.904470] Setting up drain callback.
+>>>>>>>> [ 1760.908991] Starting init_completion.
+>>>>>>>> [ 1760.911206] Calling ib_modify_qp.
+>>>>>>>> [ 1760.915214] Calling ib_post_send.
+>>>>>>>> [ 1760.917062] Starting wait_for_completion.
+>>>>>>>> [ 1778.230821] Setting up drain callback.
+>>>>>>>> [ 1778.233116] Starting init_completion.
+>>>>>>>> [ 1778.237510] Calling ib_modify_qp.
+>>>>>>>> [ 1778.239413] Calling ib_post_send.
+>>>>>>>> .... [keeps repeating]
+>>>>>>>> ----------------
+>>>>>>>> Robert LeBlanc
+>>>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On Thu, Dec 22, 2016 at 12:15 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>>>>>>>>> On 12/21/2016 6:39 PM, Robert LeBlanc wrote:
+>>>>>>>>>> I hit a new backtrace today, hopefully it adds something.
+>>>>>>>>>>
+>>>>>>>>>> # cat /proc/19659/stack
+>>>>>>>>>> [<ffffffff815304d1>] iscsit_stop_session+0x1b1/0x1c0
+>>>>>>>>>> [<ffffffff81521c62>] iscsi_check_for_session_reinstatement+0x1e2/0x270
+>>>>>>>>>> [<ffffffff81524660>] iscsi_target_check_for_existing_instances+0x30/0x40
+>>>>>>>>>> [<ffffffff815247a8>] iscsi_target_do_login+0x138/0x630
+>>>>>>>>>> [<ffffffff815259be>] iscsi_target_start_negotiation+0x4e/0xa0
+>>>>>>>>>> [<ffffffff8152355e>] __iscsi_target_login_thread+0x83e/0xf20
+>>>>>>>>>> [<ffffffff81523c64>] iscsi_target_login_thread+0x24/0x30
+>>>>>>>>>> [<ffffffff810a3059>] kthread+0xd9/0xf0
+>>>>>>>>>> [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+>>>>>>>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>>>>>>>>
+>>>>>>>>>> # cat /proc/21342/stack
+>>>>>>>>>> [<ffffffffa0292b10>] __ib_drain_sq+0x190/0x1c0 [ib_core]
+>>>>>>>>>> [<ffffffffa0292b65>] ib_drain_sq+0x25/0x30 [ib_core]
+>>>>>>>>>> [<ffffffffa0292d72>] ib_drain_qp+0x12/0x30 [ib_core]
+>>>>>>>>>> [<ffffffffa062c5ff>] isert_wait_conn+0x5f/0x2d0 [ib_isert]
+>>>>>>>>>> [<ffffffff815309b7>] iscsit_close_connection+0x157/0x860
+>>>>>>>>>> [<ffffffff8151f10b>] iscsit_take_action_for_connection_exit+0x7b/0xf0
+>>>>>>>>>> [<ffffffff81530265>] iscsi_target_rx_thread+0x95/0xa0
+>>>>>>>>>> [<ffffffff810a3059>] kthread+0xd9/0xf0
+>>>>>>>>>> [<ffffffff817732d5>] ret_from_fork+0x25/0x30
+>>>>>>>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>>>>>>>>
+>>>>>>>>>> # ps aux | grep iscsi | grep D
+>>>>>>>>>> root     19659  0.0  0.0      0     0 ?        D    16:12   0:00 [iscsi_np]
+>>>>>>>>>> root     21342  0.0  0.0      0     0 ?        D    16:29   0:00 [iscsi_trx]
+>>>>>>>>>> ----------------
+>>>>>>>>>> Robert LeBlanc
+>>>>>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>>>>
+>>>>>>>>> That looks suspiciously like the __ib_drain_sq is stuck forever waiting
+>>>>>>>>> on a completion that never comes.
+>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> On Thu, Dec 15, 2016 at 1:38 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>>>>>>>> Nicholas,
+>>>>>>>>>>>
+>>>>>>>>>>> I've found that the kernels I used were not able to be inspected using
+>>>>>>>>>>> crash and I could not build the debug info for them. So I built a new
+>>>>>>>>>>> 4.9 kernel and verified that I could inspect the crash. It is located
+>>>>>>>>>>> at [1].
+>>>>>>>>>>>
+>>>>>>>>>>> [1] http://mirrors.betterservers.com/trace/crash2.tar.xz
+>>>>>>>>>>> ----------------
+>>>>>>>>>>> Robert LeBlanc
+>>>>>>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> On Mon, Dec 12, 2016 at 4:57 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>>>>>>>>> Nicholas,
+>>>>>>>>>>>>
+>>>>>>>>>>>> After lots of set backs and having to give up trying to get kernel
+>>>>>>>>>>>> dumps on our "production" systems, I've been able to work out the
+>>>>>>>>>>>> issues we had with kdump and replicate the issue on my dev boxes. I
+>>>>>>>>>>>> have dumps from 4.4.30 and 4.9-rc8 (makedumpfile would not dump, so it
+>>>>>>>>>>>> is a straight copy of /proc/vmcore from the crash kernel). In each
+>>>>>>>>>>>> crash directory, I put a details.txt file that has the process IDs
+>>>>>>>>>>>> that were having problems and a brief description of the set-up at the
+>>>>>>>>>>>> time. This was mostly replicated by starting fio and pulling the
+>>>>>>>>>>>> Infiniband cable until fio gave up. This hardware also has Mellanox
+>>>>>>>>>>>> ConnectX4-LX cards and I also replicated the issue over RoCE using 4.9
+>>>>>>>>>>>> since it has the drivers in-box. Please let me know if you need more
+>>>>>>>>>>>> info, I can test much faster now. The cores/kernels/modules are
+>>>>>>>>>>>> located at [1].
+>>>>>>>>>>>>
+>>>>>>>>>>>> [1] http://mirrors.betterservers.com/trace/crash.tar.xz
+>>>>>>>>>>>>
+>>>>>>>>>>>> Thanks,
+>>>>>>>>>>>> Robert
+>>>>>>>>>>>> ----------------
+>>>>>>>>>>>> Robert LeBlanc
+>>>>>>>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>> On Fri, Nov 4, 2016 at 3:57 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>>>>>>>>>>>> We hit this yesterday, this time it was on the tx thread (the other
+>>>>>>>>>>>>> ones before seem to be on the rx thread). We weren't able to get a
+>>>>>>>>>>>>> kernel dump on this. We'll try to get one next time.
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> # ps axuw | grep "D.*iscs[i]"
+>>>>>>>>>>>>> root     12383  0.0  0.0      0     0 ?        D    Nov03   0:04 [iscsi_np]
+>>>>>>>>>>>>> root     23016  0.0  0.0      0     0 ?        D    Nov03   0:00 [iscsi_ttx]
+>>>>>>>>>>>>> root     23018  0.0  0.0      0     0 ?        D    Nov03   0:00 [iscsi_ttx]
+>>>>>>>>>>>>> # cat /proc/12383/stack
+>>>>>>>>>>>>> [<ffffffff814f24af>] iscsit_stop_session+0x19f/0x1d0
+>>>>>>>>>>>>> [<ffffffff814e3c66>] iscsi_check_for_session_reinstatement+0x1e6/0x270
+>>>>>>>>>>>>> [<ffffffff814e6620>] iscsi_target_check_for_existing_instances+0x30/0x40
+>>>>>>>>>>>>> [<ffffffff814e6770>] iscsi_target_do_login+0x140/0x640
+>>>>>>>>>>>>> [<ffffffff814e7b0c>] iscsi_target_start_negotiation+0x1c/0xb0
+>>>>>>>>>>>>> [<ffffffff814e585b>] iscsi_target_login_thread+0xa9b/0xfc0
+>>>>>>>>>>>>> [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>>>>>>>>>>> [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>>>>>>>>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>>>>>>>>>>> # cat /proc/23016/stack
+>>>>>>>>>>>>> [<ffffffff814ce0d9>] target_wait_for_sess_cmds+0x49/0x1a0
+>>>>>>>>>>>>> [<ffffffffa058b92b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
+>>>>>>>>>>>>> [<ffffffff814f2642>] iscsit_close_connection+0x162/0x870
+>>>>>>>>>>>>> [<ffffffff814e110f>] iscsit_take_action_for_connection_exit+0x7f/0x100
+>>>>>>>>>>>>> [<ffffffff814f122a>] iscsi_target_tx_thread+0x1aa/0x1d0
+>>>>>>>>>>>>> [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>>>>>>>>>>> [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>>>>>>>>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>>>>>>>>>>> # cat /proc/23018/stack
+>>>>>>>>>>>>> [<ffffffff814ce0d9>] target_wait_for_sess_cmds+0x49/0x1a0
+>>>>>>>>>>>>> [<ffffffffa058b92b>] isert_wait_conn+0x1ab/0x2f0 [ib_isert]
+>>>>>>>>>>>>> [<ffffffff814f2642>] iscsit_close_connection+0x162/0x870
+>>>>>>>>>>>>> [<ffffffff814e110f>] iscsit_take_action_for_connection_exit+0x7f/0x100
+>>>>>>>>>>>>> [<ffffffff814f122a>] iscsi_target_tx_thread+0x1aa/0x1d0
+>>>>>>>>>>>>> [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>>>>>>>>>>> [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>>>>>>>>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> From dmesg:
+>>>>>>>>>>>>> [  394.476332] INFO: rcu_sched self-detected stall on CPU
+>>>>>>>>>>>>> [  394.476334]  20-...: (23976 ticks this GP)
+>>>>>>>>>>>>> idle=edd/140000000000001/0 softirq=292/292 fqs=18788
+>>>>>>>>>>>>> [  394.476336]   (t=24003 jiffies g=3146 c=3145 q=0)
+>>>>>>>>>>>>> [  394.476337] Task dump for CPU 20:
+>>>>>>>>>>>>> [  394.476338] kworker/u68:2   R  running task        0 12906      2 0x00000008
+>>>>>>>>>>>>> [  394.476345] Workqueue: isert_comp_wq isert_cq_work [ib_isert]
+>>>>>>>>>>>>> [  394.476346]  ffff883f2fe38000 00000000f805705e ffff883f7fd03da8
+>>>>>>>>>>>>> ffffffff810ac8ff
+>>>>>>>>>>>>> [  394.476347]  0000000000000014 ffffffff81adb680 ffff883f7fd03dc0
+>>>>>>>>>>>>> ffffffff810af239
+>>>>>>>>>>>>> [  394.476348]  0000000000000015 ffff883f7fd03df0 ffffffff810e1cd0
+>>>>>>>>>>>>> ffff883f7fd17b80
+>>>>>>>>>>>>> [  394.476348] Call Trace:
+>>>>>>>>>>>>> [  394.476354]  <IRQ>  [<ffffffff810ac8ff>] sched_show_task+0xaf/0x110
+>>>>>>>>>>>>> [  394.476355]  [<ffffffff810af239>] dump_cpu_task+0x39/0x40
+>>>>>>>>>>>>> [  394.476357]  [<ffffffff810e1cd0>] rcu_dump_cpu_stacks+0x80/0xb0
+>>>>>>>>>>>>> [  394.476359]  [<ffffffff810e6100>] rcu_check_callbacks+0x540/0x820
+>>>>>>>>>>>>> [  394.476360]  [<ffffffff810afe11>] ? account_system_time+0x81/0x110
+>>>>>>>>>>>>> [  394.476363]  [<ffffffff810faa60>] ? tick_sched_do_timer+0x50/0x50
+>>>>>>>>>>>>> [  394.476364]  [<ffffffff810eb599>] update_process_times+0x39/0x60
+>>>>>>>>>>>>> [  394.476365]  [<ffffffff810fa815>] tick_sched_handle.isra.17+0x25/0x60
+>>>>>>>>>>>>> [  394.476366]  [<ffffffff810faa9d>] tick_sched_timer+0x3d/0x70
+>>>>>>>>>>>>> [  394.476368]  [<ffffffff810ec182>] __hrtimer_run_queues+0x102/0x290
+>>>>>>>>>>>>> [  394.476369]  [<ffffffff810ec668>] hrtimer_interrupt+0xa8/0x1a0
+>>>>>>>>>>>>> [  394.476372]  [<ffffffff81052c65>] local_apic_timer_interrupt+0x35/0x60
+>>>>>>>>>>>>> [  394.476374]  [<ffffffff8172423d>] smp_apic_timer_interrupt+0x3d/0x50
+>>>>>>>>>>>>> [  394.476376]  [<ffffffff817224f7>] apic_timer_interrupt+0x87/0x90
+>>>>>>>>>>>>> [  394.476379]  <EOI>  [<ffffffff810d71be>] ? console_unlock+0x41e/0x4e0
+>>>>>>>>>>>>> [  394.476380]  [<ffffffff810d757c>] vprintk_emit+0x2fc/0x500
+>>>>>>>>>>>>> [  394.476382]  [<ffffffff810d78ff>] vprintk_default+0x1f/0x30
+>>>>>>>>>>>>> [  394.476384]  [<ffffffff81174dde>] printk+0x5d/0x74
+>>>>>>>>>>>>> [  394.476388]  [<ffffffff814bce21>] transport_lookup_cmd_lun+0x1d1/0x200
+>>>>>>>>>>>>> [  394.476390]  [<ffffffff814ee8c0>] iscsit_setup_scsi_cmd+0x230/0x540
+>>>>>>>>>>>>> [  394.476392]  [<ffffffffa058dbf3>] isert_rx_do_work+0x3f3/0x7f0 [ib_isert]
+>>>>>>>>>>>>> [  394.476394]  [<ffffffffa058e174>] isert_cq_work+0x184/0x770 [ib_isert]
+>>>>>>>>>>>>> [  394.476396]  [<ffffffff8109740f>] process_one_work+0x14f/0x400
+>>>>>>>>>>>>> [  394.476397]  [<ffffffff81097c84>] worker_thread+0x114/0x470
+>>>>>>>>>>>>> [  394.476398]  [<ffffffff8171d32a>] ? __schedule+0x34a/0x7f0
+>>>>>>>>>>>>> [  394.476399]  [<ffffffff81097b70>] ? rescuer_thread+0x310/0x310
+>>>>>>>>>>>>> [  394.476400]  [<ffffffff8109d7c8>] kthread+0xd8/0xf0
+>>>>>>>>>>>>> [  394.476402]  [<ffffffff8109d6f0>] ? kthread_park+0x60/0x60
+>>>>>>>>>>>>> [  394.476403]  [<ffffffff81721a8f>] ret_from_fork+0x3f/0x70
+>>>>>>>>>>>>> [  394.476404]  [<ffffffff8109d6f0>] ? kthread_park+0x60/0x60
+>>>>>>>>>>>>> [  405.716632] Unexpected ret: -104 send data 360
+>>>>>>>>>>>>> [  405.721711] tx_data returned -32, expecting 360.
+>>>>>>>>>>>>> ----------------
+>>>>>>>>>>>>> Robert LeBlanc
+>>>>>>>>>>>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>>>>>>>>
+>>>>>>>>> When you combine this trace with the newest one, it really makes me
+>>>>>>>>> thing there is something of a bad interaction between the new drain cq
+>>>>>>>>> API and the iser/isert implementation to use said API.  Sagi, Christoph?
+>>>>>>>>>
+>>>>>>>>> --
+>>>>>>>>> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>>>>>>>>     GPG Key ID: B826A3330E572FDD
+>>>>>>>>>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>>>>>>>>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
