@@ -1,46 +1,27 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] IB: vmw_pvrdma: info leak in pvrdma_alloc_ucontext()
-Date: Wed, 4 Jan 2017 09:40:59 -0800
-Message-ID: <ba4d19a7-a5c0-8cf6-30d3-23df3cdb002d@vmware.com>
-References: <20170104064110.GA8957@elgon.mountain>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] IB/core: add the function ib_mtu_int_to_enum
+Date: Wed, 4 Jan 2017 17:40:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0CE998@ORSMSX109.amr.corp.intel.com>
+References: <1482734458-32131-1-git-send-email-Ram.Amrani@cavium.com>
+ <1482734458-32131-2-git-send-email-Ram.Amrani@cavium.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0CE4E4@ORSMSX109.amr.corp.intel.com>
+ <SN1PR07MB2207C1F332D441FECD65C3F8F8610@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170104064110.GA8957-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207C1F332D441FECD65C3F8F8610-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 04, 2017 at 09:41:11AM +0300, Dan Carpenter wrote:
-> We need to clear out the ->reserved member so we don't disclose
-> uninitialized stack information.
-> 
-> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> There are a bunch of ways to fix this...  I just the most mindless one
-> because I can never guess what IB prefers.  Feel free to fix it however
-> you feel is appropriate and give me a Reported-by tag.
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> index 54891370d18a..c00c27f48f46 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> @@ -339,6 +339,7 @@ struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
->  	context->ctx_handle = resp->ctx_handle;
->  
->  	/* copy back to user */
-> +	memset(&uresp, 0, sizeof(uresp));
->  	uresp.qp_tab_size = vdev->dsr->caps.max_qp;
->  	ret = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
->  	if (ret) {
-> 
+> You'll still be required to convert it to/from enum when
+> building/parsing CM messages, for example.
+> Also, why should it be an int if only specific values are allowed?
 
-Thanks Dan! I'll add this to the other fixes to be sent out.
-
-- Adit
+The enum values are IB specification specific, and are incomplete (note the lack of Ethernet mtu sizes).  Let the IB centric code deal with the conversion, and let the rest of the API be reasonable.  The IB CM uses the mtu value in the path record, which is fine.  Then maybe someday userspace can get access to the real mtu sizes as well...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
