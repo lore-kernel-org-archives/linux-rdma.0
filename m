@@ -1,70 +1,65 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCHv2 1/4] IB/core: add port state cache
-Date: Wed, 4 Jan 2017 12:58:17 +0100
-Message-ID: <CAMGffE=kYTioNBqScgz0kaz4O3XKXkp=FGm=+Kg2fjxMo0xdQA@mail.gmail.com>
-References: <CAMGffEmYeYeRVk84GY1CWekNHF7_V4Lo4PDxoGb5wAd8-Tnn7Q@mail.gmail.com>
- <20170103191850.GD26706@obsidianresearch.com> <CAMGffE=FWBZWKCo7X7EA70Hx+jpvMt_E0_WZo-TsHFemCzcaeQ@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 04/15] IB/rxe: Remove an unused variable
+Date: Wed, 4 Jan 2017 14:29:18 +0200
+Message-ID: <20170104122918.GO12077@mtr-leonro.local>
+References: <1483353316.3592.14.camel@sandisk.com>
+ <1483353498.3592.20.camel@sandisk.com>
+ <CAG53R5WnJy1cLdEZOpzk03aAE2L6v86n_-qEBpoaG+arymCxPw@mail.gmail.com>
+ <1483526210.3048.6.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hABqaeELJqnDDeDE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMGffE=FWBZWKCo7X7EA70Hx+jpvMt_E0_WZo-TsHFemCzcaeQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1483526210.3048.6.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 4, 2017 at 9:50 AM, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wr=
-ote:
-> On Tue, Jan 3, 2017 at 8:18 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> On Mon, Jan 02, 2017 at 01:17:36PM +0100, Jinpu Wang wrote:
->>> +++ b/include/rdma/ib_verbs.h
->>> @@ -1781,6 +1781,7 @@ struct ib_cache {
->>>      struct ib_pkey_cache  **pkey_cache;
->>>      struct ib_gid_table   **gid_cache;
->>>      u8                     *lmc_cache;
->>> +    enum ib_port_state     *port_state_cache;
->>>  };
->>
->> I think at this point the these per-port arrays should be moved into a
->> struct..
->>
->> Jason
+
+--hABqaeELJqnDDeDE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Jan 04, 2017 at 10:37:07AM +0000, Bart Van Assche wrote:
+> On Tue, 2017-01-03 at 12:39 -0600, Parav Pandit wrote:
+> > Additionally, since struct rxe_send_wqe is not used in get_mtu() function,
+> > Can you please update signature to just have rxe_qp* as input argument?
 >
-> Ok, I will create a struct ib_port_cache, which contains lmc_cache and
-> port_state_cache.
+> Thanks for the feedback Leon and Parav. BTW, feedback for the other patches
+> of this series would also be welcome.
+
+I will try to do my best.
+Thanks
+
 >
-> Will submit later today.
->
-> Thanks, Jason
->
-Hi Jason,
+> Bart.--
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I looked a bit deeper, looks all these four elements are per port
-cache, it will take some time,
-and I have other more urgent task to do, can we do it later, after
-this bug fix patchset merged,
-I will put the cleanup task on my TODO list, will address it later.
+--hABqaeELJqnDDeDE
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Thanks,
+-----BEGIN PGP SIGNATURE-----
 
---=20
-Jinpu Wang
-Linux Kernel Developer
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhs6p4ACgkQ5GN7iDZy
+WKeLfhAAwN6I8KsrjzEdWc0ad4Z80oNMMp86L1KBneYZyDBWUCA3k/A7Hmc+YwD2
+1BK9EVoiEvYd+iOcXshUgORW9F11OOeft4ZckhPWrm1eKC0SVC0Q9UlpPNiicKh1
+mG807ArBOh3fAiaHHYI4CRNCsb5YtYQnKSTC5CC1Hc8WEmF/Ywqb9S9q3NAPKpC8
+s/wy8i6TgpebfV/lj7cwsjF40MC3RULIOxCFjQf5a/PtVvwH3Dvg4Gom3hd/lXoh
+AK+lRGsHyWxmFswX6H5zVa1k9H5gimIIMEcbo59X3bskn3/BrySRCTwYDDmNKL5L
+F0Hci0hFC81XepP3DfpLc9wrbg+XAz80e5OluZ42OphiMxgMv9OuWneEb9uifK0c
+zt0IMKWiwP+YFCXlmN3UfZzaij++s8kieewQDf/phqUHc5YJklABoIkz/QuaS3hT
+aSReF1mYtzgSuVfgvY0DiHsKaHsDjGpeKSppzaA79gT4XrPxnmW5mFTcnMQ1qMc+
+SdhbT12nh1mbrlICbKAXU1u6gWFZeImnZFDx4jLkdLCCl6uoGuuiwDNI+nw9S7wk
+EDrQeW2hseGL4f9DILjtm5lqnopzoZgpKZtdatvHdn20lFJGrhbv5XK7ZnVhRvJ7
+9Uw97SJ33URuBSM6odtSwarVGZ+HcUoYKV4Q7hHhX9s5HmOGkZA=
+=yn8s
+-----END PGP SIGNATURE-----
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Tel:       +49 30 577 008  042
-Fax:      +49 30 577 008 299
-Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:      https://www.profitbricks.de
-
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
+--hABqaeELJqnDDeDE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
