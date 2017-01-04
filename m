@@ -1,36 +1,50 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 09/15] IB/rxe: Add a runtime check in alloc_index()
-Date: Wed, 4 Jan 2017 18:38:45 +0000
-Message-ID: <1483555108.3101.1.camel@sandisk.com>
-References: <1483353316.3592.14.camel@sandisk.com>
-         <1483353638.3592.30.camel@sandisk.com>
-         <20170104172704.GU12077@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/core: create struct ib_port_cache
+Date: Wed, 4 Jan 2017 11:36:41 -0700
+Message-ID: <20170104183641.GD783@obsidianresearch.com>
+References: <CAMGffEn7QsNVhDcV10Qwc-U7em3L47eOgc0CS1oRxXSFAfLGkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170104172704.GU12077-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <AE033F371F827344917D317F230A6C84-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAMGffEn7QsNVhDcV10Qwc-U7em3L47eOgc0CS1oRxXSFAfLGkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-01-04 at 19:27 +0200, Leon Romanovsky wrote:
-> On Mon, Jan 02, 2017 at 10:41:58AM +0000, Bart Van Assche wrote:
-> > Since index values equal to or above 'range' can trigger memory
-> > corruption, complain if index >=3D range.
->=20
-> It looks like severe bug and the proper error folding is needed, if it
-> is a real situation.
+On Wed, Jan 04, 2017 at 03:01:38PM +0100, Jinpu Wang wrote:
 
-Code in other functions guarantees that this condition won't be hit. The wa=
-rning
-I added is intended to catch bugs if that other code would ever be modified=
-.
+> -struct ib_cache {
+> -	rwlock_t                lock;
+> -	struct ib_event_handler event_handler;
+> +struct ib_port_cache {
+>  	struct ib_pkey_cache  **pkey_cache;
+>  	struct ib_gid_table   **gid_cache;
+>  	u8                     *lmc_cache;
+>  	enum ib_port_state     *port_state_cache;
+>  };
+>  
+> +struct ib_cache {
+> +	rwlock_t                lock;
+> +	struct ib_event_handler event_handler;
+> +	struct ib_port_cache    port_cache;
+> +};
 
-Bart.=
+That isn't really what I ment..
+
+struct ib_port_cache {
+   enum ib_port_state port_state;
+   struct ib_pkey_cache *pkey;
+   struct ib_gid_table *gid;
+   u8 lmc;
+};
+
+struct ib_cache {
+   struct ib_port_cache *ports;
+};
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
