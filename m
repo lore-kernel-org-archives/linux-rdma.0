@@ -1,47 +1,31 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH] uapi: use wildcards to list files
-Date: Wed, 4 Jan 2017 10:03:50 +0100
-Message-ID: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
-References: <20161203.192346.1198940437155108508.davem@davemloft.net>
- <1483454144-10519-1-git-send-email-nicolas.dichtel@6wind.com>
- <2108827.WpE3IvfEdH@wuerfel>
-Reply-To: nicolas.dichtel@6wind.com
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 1/2] IB/core: add the function ib_mtu_int_to_enum
+Date: Wed, 4 Jan 2017 09:17:59 +0000
+Message-ID: <SN1PR07MB2207C1F332D441FECD65C3F8F8610@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1482734458-32131-1-git-send-email-Ram.Amrani@cavium.com>
+ <1482734458-32131-2-git-send-email-Ram.Amrani@cavium.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0CE4E4@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <2108827.WpE3IvfEdH@wuerfel>
-Sender: netdev-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org, davem@davemloft.net, airlied@linux.ie, David Howells <dhowells@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0CE4E4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le 03/01/2017 à 22:37, Arnd Bergmann a écrit :
-> On Tuesday, January 3, 2017 3:35:44 PM CET Nicolas Dichtel wrote:
->> Regularly, when a new header is created in include/uapi/, the developer
->> forgets to add it in the corresponding Kbuild file. This error is usually
->> detected after the release is out.
->>
->> In fact, all headers under include/uapi/ should be exported, so let's
->> use wildcards.
-> 
-> I think the idea makes a lot of sense: if a header is in uapi, we should
-> really export it. However, using a wildcard expression seems a bit
-> backwards here, I think we should make this implicit and not have the
-> Kbuild file at all.
-> 
-> The "header-y" syntax was originally added back when the uapi headers
-> were mixed with the internal headers in the same directory. After
-> David Howells introduced the separate directory for uapi, it has
-> become a bit redundant.
-Ok, thank you for the explanation, I was wondering why those Kbuild files were
-needed.
+> Why keep mtu as an enum in the kernel?  Just make it an int like it shoul=
+d
+> be.
 
-> 
-> Can you try to modify scripts/Makefile.headersinst instead so we
-> can simply remove the Kbuild files entirely?
-I will try something.
+You'll still be required to convert it to/from enum when building/parsing C=
+M messages, for example.
+Also, why should it be an int if only specific values are allowed?
 
-
-Regards,
-Nicolas
+Ram
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
