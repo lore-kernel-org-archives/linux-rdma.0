@@ -1,68 +1,58 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/4] debian/copyright: Add copyright information
-Date: Wed, 4 Jan 2017 09:55:16 +0200
-Message-ID: <20170104075516.GJ12077@mtr-leonro.local>
-References: <20161229134908.13185-1-leon@kernel.org>
- <20161229134908.13185-4-leon@kernel.org>
- <20161229152537.GB30742@obsidianresearch.com>
- <20170101075433.GR26885@mtr-leonro.local>
- <20170102221123.GA10226@obsidianresearch.com>
+From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCHv2 1/4] IB/core: add port state cache
+Date: Wed, 4 Jan 2017 09:50:21 +0100
+Message-ID: <CAMGffE=FWBZWKCo7X7EA70Hx+jpvMt_E0_WZo-TsHFemCzcaeQ@mail.gmail.com>
+References: <CAMGffEmYeYeRVk84GY1CWekNHF7_V4Lo4PDxoGb5wAd8-Tnn7Q@mail.gmail.com>
+ <20170103191850.GD26706@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="2oox5VnwalALFvA7"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170102221123.GA10226-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170103191850.GD26706-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---2oox5VnwalALFvA7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Jan 02, 2017 at 03:11:23PM -0700, Jason Gunthorpe wrote:
-> On Sun, Jan 01, 2017 at 09:54:33AM +0200, Leon Romanovsky wrote:
+On Tue, Jan 3, 2017 at 8:18 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Jan 02, 2017 at 01:17:36PM +0100, Jinpu Wang wrote:
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -1781,6 +1781,7 @@ struct ib_cache {
+>>      struct ib_pkey_cache  **pkey_cache;
+>>      struct ib_gid_table   **gid_cache;
+>>      u8                     *lmc_cache;
+>> +    enum ib_port_state     *port_state_cache;
+>>  };
 >
-> > > > +License: GPL-2+ or BSD
-> > >
-> > > I think this should just be 'BSD', same with all the 'or' stanzas.
-> >
-> > I'm not a lawyer and in the rdma-core.spec it is "or".
->
-> The or is fine in other places, but this exact place is before the
-> license text itself. The license text stanzas should not have 'or'
-
-Pushed again, together with general cleanup of that license file.
-
-Thanks
-
+> I think at this point the these per-port arrays should be moved into a
+> struct..
 >
 > Jason
 
---2oox5VnwalALFvA7
-Content-Type: application/pgp-signature; name="signature.asc"
+Ok, I will create a struct ib_port_cache, which contains lmc_cache and
+port_state_cache.
 
------BEGIN PGP SIGNATURE-----
+Will submit later today.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhsqmQACgkQ5GN7iDZy
-WKe1PA//XrIg3aZFMsV6QcwZjcsd3uTMRaMkrlzmgL06QqNqZE+JTR5bjO9ZjQZ9
-WS65l6QUqr7YVbUk3F2huvl61ljt2eZaz62eLnuxLjcN5iOCeGc80jYNUcCIQCeK
-K9tReReAFV4AuT93aawE7Jiyy2MaTvIm2X/uiJHikBuKGhk+EfX/Q4vrBIdA5v/8
-3ccAZubaL9Lg2m6Ke/Z606RAz9SYWYzbKAo9L877/3v6tKFvMZ8N/hzFiFC0ULqp
-GxHVC54ooCrZsLsA0f7Weu3B1ArVfq60HflB2JrlT5ixJYztcXJ6awd0j5j5mkiS
-rQcI/ZtQQE0/fntbOhVT2iEYg61Hk2XsXCxJUCVu9je1xK7r0mnEO2VNJ0CCx4oD
-By2tUXo97xkRmpKaEEeG1VlMJEsKX3UCenHiiySIn8bDGCARiBDmXQsdmaJlPWjO
-a7aJ0armILOmzvMgO+xxZXfs12PAeRENdIASp99kjE7PtmlRnS6UIpo1V0PvfuKP
-cbXA6kYFDP1rtyw7pbiBqTzSK2+rHLc1DMYRDucAQtxC9FBPy0l4NoUe7+Y/MhBx
-dCvaFWLCu35Ja1w9c2KpvlikP8aVSeSVB1LRW1WU/XKGG+YWumhl8XzGBzkN3wIR
-XDTQpnRHteXMQGu8asXobkmhA36ufjj9ReO/szpY1rcUkg7d1EY=
-=tH1h
------END PGP SIGNATURE-----
+Thanks, Jason
 
---2oox5VnwalALFvA7--
+--=20
+Jinpu Wang
+Linux Kernel Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Tel:       +49 30 577 008  042
+Fax:      +49 30 577 008 299
+Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:      https://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
