@@ -1,136 +1,79 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/ipoib: Remove unnecessary returned value check
-Date: Thu, 5 Jan 2017 08:12:36 +0200
-Message-ID: <20170105061236.GV12077@mtr-leonro.local>
-References: <1483522018-4669-1-git-send-email-yanjun.zhu@oracle.com>
- <586DB06C.5020600@oracle.com>
+Subject: Re: [PATCH rdma-core 3/4] debian/copyright: Add copyright information
+Date: Thu, 5 Jan 2017 08:14:36 +0200
+Message-ID: <20170105061436.GW12077@mtr-leonro.local>
+References: <20161229134908.13185-1-leon@kernel.org>
+ <20161229134908.13185-4-leon@kernel.org>
+ <20161229152537.GB30742@obsidianresearch.com>
+ <20170101075433.GR26885@mtr-leonro.local>
+ <20170102221123.GA10226@obsidianresearch.com>
+ <20170104075516.GJ12077@mtr-leonro.local>
+ <20170104224227.GA15569@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="e8/wErwm0bqugfcz"
+        protocol="application/pgp-signature"; boundary="mvuFargmsA+C2jC8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <586DB06C.5020600-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170104224227.GA15569-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---e8/wErwm0bqugfcz
+--mvuFargmsA+C2jC8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jan 05, 2017 at 10:33:16AM +0800, Yanjun Zhu wrote:
-> Hi, Yuval Shaia && Leon Romanovsky && Maintainers
->
-> Follow your advice, a new patch is made. Please check it.
-
-How are you sending it? I missed this patch and first version too.
-Are you sending it with git send-email?
-
-Was your patch catched in patchworks [1]? and linux-rdma mailing list?
-
-Please post it properly, so we will be able to review it and Doug will
-be able to apply it.
-
-[1] https://patchwork.kernel.org/project/linux-rdma/list/
-
-Thanks
-
->
-> Thanks a lot.
-> Zhu Yanjun
->
-> On 2017/1/4 17:26, Zhu Yanjun wrote:
-> > In the function ipoib_set_dev_features, the returned value is always 0.
-> > As such, it is not necessary to check the returned value.
-> > This is not a bug. It is a trivial problem.
+On Wed, Jan 04, 2017 at 03:42:27PM -0700, Jason Gunthorpe wrote:
+> On Wed, Jan 04, 2017 at 09:55:16AM +0200, Leon Romanovsky wrote:
+> > On Mon, Jan 02, 2017 at 03:11:23PM -0700, Jason Gunthorpe wrote:
+> > > On Sun, Jan 01, 2017 at 09:54:33AM +0200, Leon Romanovsky wrote:
+> > >
+> > > > > > +License: GPL-2+ or BSD
+> > > > >
+> > > > > I think this should just be 'BSD', same with all the 'or' stanzas.
+> > > >
+> > > > I'm not a lawyer and in the rdma-core.spec it is "or".
+> > >
+> > > The or is fine in other places, but this exact place is before the
+> > > license text itself. The license text stanzas should not have 'or'
 > >
-> > Reviewed-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > Change from v1 to v2:
-> >   make change to __ipoib_vlan_add.
-> >   change the commit header.
-> >
-> >   drivers/infiniband/ulp/ipoib/ipoib.h      | 2 +-
-> >   drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++------
-> >   drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 4 +---
-> >   3 files changed, 4 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > index da12717..f568064 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > @@ -593,7 +593,7 @@ void ipoib_pkey_open(struct ipoib_dev_priv *priv);
-> >   void ipoib_drain_cq(struct net_device *dev);
-> >   void ipoib_set_ethtool_ops(struct net_device *dev);
-> > -int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
-> > +void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
-> >   #define IPOIB_FLAGS_RC		0x80
-> >   #define IPOIB_FLAGS_UC		0x40
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > index 3ce0765..4e8e11e 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -1984,7 +1984,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
-> >   	return device_create_file(&dev->dev, &dev_attr_pkey);
-> >   }
-> > -int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> > +void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> >   {
-> >   	priv->hca_caps = hca->attrs.device_cap_flags;
-> > @@ -1996,8 +1996,6 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> >   		priv->dev->features |= priv->dev->hw_features;
-> >   	}
-> > -
-> > -	return 0;
-> >   }
-> >   static struct net_device *ipoib_add_port(const char *format,
-> > @@ -2037,9 +2035,7 @@ static struct net_device *ipoib_add_port(const char *format,
-> >   		goto device_init_failed;
-> >   	}
-> > -	result = ipoib_set_dev_features(priv, hca);
-> > -	if (result)
-> > -		goto device_init_failed;
-> > +	ipoib_set_dev_features(priv, hca);
-> >   	/*
-> >   	 * Set the full membership bit, so that we join the right
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> > index a2f9f29..0c2988d 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> > @@ -61,9 +61,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
-> >   	priv->parent = ppriv->dev;
-> >   	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
-> > -	result = ipoib_set_dev_features(priv, ppriv->ca);
-> > -	if (result)
-> > -		goto err;
-> > +	ipoib_set_dev_features(priv, ppriv->ca);
-> >   	priv->pkey = pkey;
+> > Pushed again, together with general cleanup of that license file.
 >
+> I added a few notes on mistakes on github - this seems too haphazard
+> to me, I'd rather see a script produce it by inspecting the source
+> files. :\
 
---e8/wErwm0bqugfcz
+First version was produced by such script and following changes were
+my manual cleanup of mess from it.
+
+>
+> This format of Debian's is truly painful to produce correctly.
+>
+> Jason
+
+--mvuFargmsA+C2jC8
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlht49QACgkQ5GN7iDZy
-WKdtiQ//TdJMt8ujhU1EVfAmYS6RYYkFFm2HDwGlinVTV1JFkvCqFL62AMGlQSHI
-xghgojqYV3/dWXLkGTnULNak5dhB479S8TAKRTgl7KOpFHCqCLxcNg6W0MwMDbNg
-XPaFPkddGs9l2534W2JZ8pKfn9IRtHrrjn2b7/6Dd94SarbNlPn69NS4zRSxKhpD
-jWlvvJKoV83EcKDAUKy2J7nC423IOY+wnr8wCCDmOS8J2vdC9uXxZgHZZOjbxbMW
-quchgRlHJ0ihL4K+EYKAl4TFuI9ruhpL4BnMLxk368KIJGmH9tNrn0TIpwwFMOkX
-KjJKJgTPG+nAlBTQZ41iFgBe8lB+g0pB+qjCllfIICya9Fx7FE2sQcFSNRYkvpcM
-BKWCq/H9YgyorjMXf6FCcKkdVgXSD4O2V+2s7mq3SKBMOi67A+Op1U5RG3yfG+aE
-C4dwpcoU3Lyxgbbj+robHySEzNIU8Sfs723IcpnknoTcaNgCCADa7uIl4KalaDQM
-W3+zSGnMj2SmmskJCQR4jSnu8FDo/cjPUMQ6I1Ltq8hBQVOr/Y/GhNK252muoRtr
-wHecaG5+71SF4zL5e9G6k4tALRfB9m5i9Q5ZpVTTsAlIYIlax9n6mdUDIbeBd+YU
-2BJQKrTYYAaGwXEP3QsTmq8B2EMazhwohf/sq8/LyQU+xPU3hF4=
-=mTIL
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlht5EsACgkQ5GN7iDZy
+WKfZsg//VQEM8j463vMRVs4iT3ITGO+Nk1sChxk0oQG5qB6NjHFdVYU+FS4rj53v
+8/bc+FTF4/DmOJGve+SAl2JENyg8Oi9+lXPauYROlVMyAG/hxHe2tr01R/bVWvyP
+ygf23Nw6LmRf5I9709zWStndHiP3CCXVzdjTOX1Q1HUM8ifwA+M2tKJpCX4FtCTZ
+Q2lmCnSLhU7wzzPK0VoCjTGCHXlAkhX2ym8jrKSqq2qLHpitJl8riZ7tQS+2A7UZ
+n7q4Pd5QifG0wlqAeKdYf0ZrE/QarkGYTUrFiCMhjeHEHPrXE+Yn1xW/Qz1b8zf3
+6p+dyzAAZz6LytOtkDODTVY8hx1j8juTCdRE6ddfyefqzwF66LsDjfayYzd0hxYT
+kW0dAYvmaKp6ateAND5kOQ/FyRETbPCyCr6cxHEZeD3j2h9IcTG4jR3L+k3uYF+K
+6kFmbjNXsbWsogH/Xfp955njSmVrd2BUaXjBqKedr7jslLHUIM+qKlIkfX6QZtaF
+rq+7WoSGXe+eKAGmXGDgSZl0dK4V9AZZIMBcPMQQHJ7ox7vNmiTuFfGz3MTVLX+k
+tvy5Nk7hMy7+a65UleWfzgdvruzb0nnIu90C1oYN40G/rSFl/yJa7X2raEkkCMRH
+YREd3zbNvq/wod0rgXo6D1GZ7urgt/5sHEykTPIoX6pC7tZu/24=
+=36M+
 -----END PGP SIGNATURE-----
 
---e8/wErwm0bqugfcz--
+--mvuFargmsA+C2jC8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
