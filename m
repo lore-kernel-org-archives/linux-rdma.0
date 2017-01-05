@@ -1,58 +1,62 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/ipoib: Remove unnecessary returned value check
-Date: Thu, 5 Jan 2017 14:50:22 +0200
-Message-ID: <20170105125022.GA15685@mtr-leonro.local>
-References: <20170105061236.GV12077@mtr-leonro.local>
- <1483606568-17232-1-git-send-email-yanjun.zhu@oracle.com>
+Subject: Re: [PATCH 01/15] IB/rxe: Suppress sparse warnings
+Date: Thu, 5 Jan 2017 14:59:55 +0200
+Message-ID: <20170105125955.GB15685@mtr-leonro.local>
+References: <1483353316.3592.14.camel@sandisk.com>
+ <1483353409.3592.15.camel@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+        protocol="application/pgp-signature"; boundary="KFztAG8eRSV9hGtP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1483606568-17232-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1483353409.3592.15.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---UlVJffcvxoiEqYs2
+--KFztAG8eRSV9hGtP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jan 05, 2017 at 03:56:08AM -0500, Zhu Yanjun wrote:
-> In the function ipoib_set_dev_features, the returned value is always 0.
-> As such, it is not necessary to check the returned value.
-> This is not a bug. It is a trivial problem.
+On Mon, Jan 02, 2017 at 10:39:05AM +0000, Bart Van Assche wrote:
+> Avoid that sparse complains about using 0 as a pointer. Avoid that
+> sparse complains about missing function declarations. Avoid that
+> sparse complains about
+> endianness.
 >
-> Reviewed-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 > ---
+
+Something wrong with commit message.
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---UlVJffcvxoiEqYs2
+--KFztAG8eRSV9hGtP
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhuQQ4ACgkQ5GN7iDZy
-WKf/4RAAvSmY9+UCiLdXg07aUNzkNIT2+b3dwE7vJLxuuz15nBtfHn4GbLqwbJTA
-hZTyiSmPj8fEcMXGagvnnn/IlExjqqXasBKxNmHsvfFjNvdi8J/ft5TIcrj1i9qH
-SYJYqdfy/dcLTLbzs8WwghWZIgLdOeSq+KSkGdQi+IMYflEmywng4N+lsFXIYFds
-8Xib9JyodPGgUfEwRKM0RHqWM4fotfqeLTMafF+gFrUNBIUKQVolP/D6ZeTKlZHS
-b278MYUV4oUjM6rz2kNNa3ZRLRi1DV3C5m1STVEbrSghFuWMPZQlZtpWx2RhhWRg
-9CoX20o04DjFb2HLUUyXKxrF23lSG0UjIzDA1iCJZuyiSWnmFNuJV4ICEcYlB2jy
-xzgD4Zln8m8dzopHLOH55/6qyqTU7QC08WxyuzryWusMj6ruFf+2GbEq07/w0IoB
-WhCh7E9ZcDdj3vi1fRJXprqmoyosFKphLk2+BWxIhsf0nwb8+lo82U2YXKii0wq/
-gveSMajwLrZ+4AeG1AmlqzbvEhu/Ru/5CjSlBBAJuvXpR/BX1AV9tBjIvOGcGg4J
-4WoXYzMevobuCNc+BVQxD4ERxUyTjXN9KgVcJWHdmVVrhT0gFFMropG6KXOvTw+C
-SOdehL8ohcdO+5oEaMdMaLCkdGLF7jcSs2oZmdmSC1o5xuAuyk8=
-=qpmQ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhuQ0sACgkQ5GN7iDZy
+WKdBwBAAhsSX08UOnTAKKc5XnJTNUD8EJL9bCDz2S4icFe6N+jPZd0Qq90A+HgR8
+XA4xJaN5UOXNs2ffR3AptLSe7PYCRTviFi2WLOEy53cLLvvg9QLO2xK6laPb2mwC
+5CcqmrbM8u1MVteWsRVLqqxl/DBP+FjLR3JhHvOxK0aC8/lJ6upgh+GX6VLqyEMc
+rYpK0OZRGcSBp4QtEcuEEwITKdSTBbfmXam9lBiua4dOIQ/L6Krt803LtnQTvmsL
+naes74jwQntdrhws4f5iGneewp34LmX0SlzwOCp1BBwbQz1fU6wk2v4th416QUoK
+Aira3sGvQtVUjJakLfeGvJp/DffHQN+IXKMCw5nkTfDeUO5UUG+QSWb0sPV8rgPy
+TN3LyXEqmrjE8+/dleBdxm+HI9jw3twOao/Sot5TgFPu5Jfu1Pp7daBzXhdUvGTK
+jypZiIy46nS0IjT4xpPnoKa1qLJXKulsvNLhGkZus+2Kmj/FASXFhKw8YlvWh3dn
+z87mOIUBJhK/migXenaxZ3tW2nZJfYF/liPNcYQ9JG0rPoITOk9/BnBvJrmvhpxd
+Rx8TZ+P+8sibJ/55oRX5FdT101x1Fo7QHSR27W79DL9AcO7jBr+8GCB7hAMSfTDf
+oLiWvH+MtlF3pqV/Z6cU3bcutB2yTwf2oR4WQRtT1DvvDJdsVBQ=
+=CPuF
 -----END PGP SIGNATURE-----
 
---UlVJffcvxoiEqYs2--
+--KFztAG8eRSV9hGtP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
