@@ -1,62 +1,55 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 01/15] IB/rxe: Suppress sparse warnings
-Date: Thu, 5 Jan 2017 14:59:55 +0200
-Message-ID: <20170105125955.GB15685@mtr-leonro.local>
-References: <1483353316.3592.14.camel@sandisk.com>
- <1483353409.3592.15.camel@sandisk.com>
+Subject: Re: [PATCH] IB/core: Fix typo in comment
+Date: Thu, 5 Jan 2017 15:00:25 +0200
+Message-ID: <20170105130025.GC15685@mtr-leonro.local>
+References: <1483561034-28299-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KFztAG8eRSV9hGtP"
+        protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1483353409.3592.15.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1483561034-28299-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---KFztAG8eRSV9hGtP
+--iFRdW5/EC4oqxDHL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jan 02, 2017 at 10:39:05AM +0000, Bart Van Assche wrote:
-> Avoid that sparse complains about using 0 as a pointer. Avoid that
-> sparse complains about missing function declarations. Avoid that
-> sparse complains about
-> endianness.
->
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+On Wed, Jan 04, 2017 at 10:17:14PM +0200, Yuval Shaia wrote:
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
-
-Something wrong with commit message.
+>  drivers/infiniband/core/cq.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---KFztAG8eRSV9hGtP
+--iFRdW5/EC4oqxDHL
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhuQ0sACgkQ5GN7iDZy
-WKdBwBAAhsSX08UOnTAKKc5XnJTNUD8EJL9bCDz2S4icFe6N+jPZd0Qq90A+HgR8
-XA4xJaN5UOXNs2ffR3AptLSe7PYCRTviFi2WLOEy53cLLvvg9QLO2xK6laPb2mwC
-5CcqmrbM8u1MVteWsRVLqqxl/DBP+FjLR3JhHvOxK0aC8/lJ6upgh+GX6VLqyEMc
-rYpK0OZRGcSBp4QtEcuEEwITKdSTBbfmXam9lBiua4dOIQ/L6Krt803LtnQTvmsL
-naes74jwQntdrhws4f5iGneewp34LmX0SlzwOCp1BBwbQz1fU6wk2v4th416QUoK
-Aira3sGvQtVUjJakLfeGvJp/DffHQN+IXKMCw5nkTfDeUO5UUG+QSWb0sPV8rgPy
-TN3LyXEqmrjE8+/dleBdxm+HI9jw3twOao/Sot5TgFPu5Jfu1Pp7daBzXhdUvGTK
-jypZiIy46nS0IjT4xpPnoKa1qLJXKulsvNLhGkZus+2Kmj/FASXFhKw8YlvWh3dn
-z87mOIUBJhK/migXenaxZ3tW2nZJfYF/liPNcYQ9JG0rPoITOk9/BnBvJrmvhpxd
-Rx8TZ+P+8sibJ/55oRX5FdT101x1Fo7QHSR27W79DL9AcO7jBr+8GCB7hAMSfTDf
-oLiWvH+MtlF3pqV/Z6cU3bcutB2yTwf2oR4WQRtT1DvvDJdsVBQ=
-=CPuF
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhuQ2kACgkQ5GN7iDZy
+WKfEvw//RfEmpR7YALK+BoxRogcMM/SnjZFhGb8qIVyXnKoyDG6Hc28mAtp0an3e
+YKAIYY6zD/9EFv1lFb1WdZlJ5Nle5BqL/iuUNMAP0uBh3kY9T38mdCXyFl/fXBIk
+x28UOv6RCjVRQMbh6HmlyAx+jYgwgT4cfeY3bKg0rdwUccm4E1BU5GsAdUfuEf3h
+Vz0NapmicFQu6e3ihDNR+Rth5mccHLcm5CQb6Bbj2PKyT2zcbYJuCyaGSEcF9xh1
+8Ix2Pau+L9vPP7OGfohiWvnuonu+hNVuC2OEWWmBBw8WNfK99LB3iky92uHYVJf/
+hGjEOBvJLsa+44OPt12YBxL4PSpUkkyMcRE/R20tV85nnzzi1B6XjSv36tcUbHf1
+n516QCfkpG4vKQu4g/GA2x9l9X24kP8wECqMseNoWrYYc1Ug6W3xANH/h+gOylky
+L6CWTcnH/hsYbRVyYhRlIHnrT/1o3m67noLcbhrkNKOSJfFWTgQSlFn+zBQbtlxu
+W/BVKkdEK8FpFKJtFbcm6kZnhhX8yD+ZitzPjCe8Vdz8KnaRHdDEKEf5PSNBM0RD
+PhwpCh4+4lCbcMhZFIHLuBgjAlxIAI5WyIY314TktN1dboy7jgMjY80HNdRZBIVc
+cXEGLNQO9UwKa56LsOtprHDjv2hnEsa9U4rKm7wJOMJrDQq64RY=
+=7UPq
 -----END PGP SIGNATURE-----
 
---KFztAG8eRSV9hGtP--
+--iFRdW5/EC4oqxDHL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
