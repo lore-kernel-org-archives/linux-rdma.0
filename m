@@ -1,42 +1,78 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
- mlx5_ib
-Date: Thu, 05 Jan 2017 14:51:57 -0500 (EST)
-Message-ID: <20170105.145157.1792441048386916850.davem@davemloft.net>
-References: <1483480528-22622-1-git-send-email-saeedm@mellanox.com>
-        <1483480528-22622-8-git-send-email-saeedm@mellanox.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 5 Jan 2017 14:54:24 -0500
+Message-ID: <20170105195424.GB2166@redhat.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483480528-22622-8-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20170105190113.GA12587@obsidianresearch.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: qiang.yu@amd.com, "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>, "Kuehling,
+ Felix" <Felix.Kuehling@amd.com>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch@amd.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>, "Koenig,
+ Christian" <Christian.Koenig@amd.com>, hch@infradead.org, "Deucher,
+ Alexander" <Alexander.Deucher@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "Blinzer,
+ Paul" <Paul.Blinzer@amd.com>, "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Tue,  3 Jan 2017 23:55:25 +0200
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-> index ddb4ca4..39505ac 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-> @@ -5,7 +5,7 @@
->  config MLX5_CORE
->  	tristate "Mellanox Technologies ConnectX-4 and Connect-IB core driver"
->  	depends on MAY_USE_DEVLINK
-> -	depends on PCI
-> +	depends on PCI && 64BIT
->  	default n
->  	---help---
->  	  Core driver for low level functionality of the ConnectX-4 and
-
-This is a regression, I'm not applying this.
-
-I don't care how hard it is, you have to keep the driver building properly
-in non-64bit builds.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMTI6MDE6MTNQTSAtMDcwMCwgSmFzb24gR3VudGhvcnBl
+IHdyb3RlOgo+IE9uIFRodSwgSmFuIDA1LCAyMDE3IGF0IDAxOjM5OjI5UE0gLTA1MDAsIEplcm9t
+ZSBHbGlzc2Ugd3JvdGU6Cj4gCj4gPiAgIDEpIHBlZXItdG8tcGVlciBiZWNhdXNlIG9mIHVzZXJz
+cGFjZSBzcGVjaWZpYyBBUEkgbGlrZSBOVmlkaWEgR1BVCj4gPiAgICAgZGlyZWN0IChBTUQgaXMg
+cHVzaGluZyBpdHMgb3duIHNpbWlsYXIgQVBJIGkganVzdCBjYW4ndCByZW1lbWJlcgo+ID4gICAg
+IG1hcmtldGluZyBuYW1lKS4gVGhpcyBkb2VzIG5vdCBoYXBwZW4gdGhyb3VnaCBhIHZtYSwgdGhp
+cyBoYXBwZW5zCj4gPiAgICAgdGhyb3VnaCBzcGVjaWZpYyBkZXZpY2UgZHJpdmVyIGNhbGwgZ29p
+bmcgdGhyb3VnaCBkZXZpY2Ugc3BlY2lmaWMKPiA+ICAgICBpb2N0bCBvbiBib3RoIHNpZGUgKEdQ
+VSBhbmQgUkRNQSkuIFNvIGJvdGgga2VybmVsIGRyaXZlciBhcmUgYXdhcmUKPiA+ICAgICBvZiBl
+YWNoIG90aGVycy4KPiAKPiBUb2RheSB5b3UgY2FuIG9ubHkgZG8gdXNlci1pbml0aWF0ZWQgUkRN
+QSBvcGVyYXRpb25zIGluIGNvbmplY3Rpb24KPiB3aXRoIGEgVk1BLgo+IAo+IFdlJ2QgbmVlZCBh
+IHJlYWxseSBiaWcgYW5kIHN0cm9uZyByZWFzb24gdG8gY3JlYXRlIGFuIGVudGlyZWx5IG5ldwo+
+IG5vbi1WTUEgYmFzZWQgbWVtb3J5IGhhbmRsZSBzY2hlbWUgZm9yIFJETUEuCj4gCj4gU28gbXkg
+aW5jbGluYXRpb24gaXMgdG8ganVzdCBjb21wbGV0ZWx5IHB1c2ggYmFjayBvbiB0aGlzIGlkZWEu
+IFlvdQo+IG5lZWQgYSBWTUEgdG8gZG8gUk1BLgo+IAo+IEdQVXMgbmVlZCB0byBjcmVhdGUgVk1B
+cyBmb3IgdGhlIG1lbW9yeSB0aGV5IHdhbnQgdG8gUkRNQSBmcm9tLCBldmVuCj4gaWYgdGhlIFZN
+QSBoYW5kbGUganVzdCBjYXVzZXMgU0lHQlVTIGZvciBhbnkgQ1BVIGFjY2Vzcy4KCk1lbGxhbm94
+IGFuZCBOVmlkaWEgc3VwcG9ydCBwZWVyIHRvIHBlZXIgd2l0aCB3aGF0IHRoZXkgbWFya2V0IGEK
+R1BVRGlyZWN0LiBJdCBvbmx5IHdvcmtzIHdpdGhvdXQgSU9NTVUuIEl0IGlzIHByb2JhYmx5IG5v
+dCB1cHN0cmVhbSA6CgpodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LXJkbWFAdmdl
+ci5rZXJuZWwub3JnL21zZzIxNDAyLmh0bWwKCkkgdGhvdWdodCBpdCB3YXMgYnV0IGl0IHNlZW1z
+IGl0IHJlcXVpcmUgYW4gb3V0IG9mIHRyZWUgZHJpdmVyIHRvIHdvcmsuCgpXZXRoZXIgdGhlcmUg
+aXMgYSB2bWEgb3Igbm90IGlzbid0IGltcG9ydGFudCB0byB0aGUgaXNzdWUgYW55d2F5LiBJZgp5
+b3Ugd2FudCB0byBlbmZvcmNlIFZNQSBydWxlIGZvciBSRE1BIGl0IGlzIGFuIFJETUEgc3BlY2lm
+aWMgZGlzY3Vzc2lvbgppbiB3aGljaCBpIGRvbid0IHdhbnQgdG8gYmUgaW52b2x2ZSwgaXQgaXMg
+bm90IG15IHR1cmYgOikKCldoYXQgbWF0dGVyIGlzIHRoZSBiYWNrIGNoYW5uZWwgQVBJIGJldHdl
+ZW4gcGVlci10by1wZWVyIGRldmljZS4gTGlrZQp0aGUgYWJvdmUgcGF0Y2hzZXQgcG9pbnRzIG91
+dCBmb3IgR1BVIHdlIG5lZWQgdG8gYmUgYWJsZSB0byBpbnZhbGlkYXRlCmEgbWFwcGluZyBhdCBh
+bnkgcG9pbnQgaW4gdGltZS4gUGluaW5nIGlzIG5vdCBzb21ldGhpbmcgd2Ugd2FudCB0bwpsaXZl
+IHdpdGguCgpTbyB0aGUgVk1BIGNvbnNpZGVyYXRpb24gZG9lcyBub3QgY2hhbmdlIHdoYXQgaSB3
+YXMgc2F5aW5nIHRoZXJlIGlzCjIgY2FzZXM6CiAgMSkgZGV2aWNlIHZtYSAobWlnaHQgYmUgcmVz
+dHJpY3RlZCB0byBzcGVjaWZpYyB1c2Vyc3BhY2UgQVBJKQogIDIpIHJlZ3VsYXIgdm1hICghVk1f
+TUlYRUQgYW5kIG5vIHNwZWNpYWwgcHRlIGVudHJ5KQoKRm9yIDEpIHlvdSBuZWVkIGJhY2sgY2hh
+bm5lbCBpdCBjYW4gYmUgcGVyIGRldmljZSBkcml2ZXIgb3Igd2UgY2FuIGFncmVlCnRvIHNvbWUg
+Y29tbW9uIEFQSSB0aGF0IGNhbiBhZGQgdG8gdm1fb3BlcmF0aW9uc19zdHJ1Y3QuCgpGb3IgMikg
+ZXhwZWN0YXRpb24gaXMgdGhhdCB5b3Ugd2lsbCBoYXZlIHZhbGlkIHN0cnVjdCBwYWdlIGJ1dCB5
+b3Ugc3RpbGwKbmVlZCBzcGVjaWFsIGhhbmRsaW5nIGF0IHRoZSBkbWEgQVBJIGxldmVsLgoKSW4g
+MSkgdGhlIHBlZXItdG8tcGVlciBtYXBwaW5nIGlzIHRyYWNrIGF0IHZtYSBsZXZlbCBhbmQgbWVk
+aWF0ZWQgdGhlcmUuCkZvciAyKSBpdCBpcyBwZXIgcGFnZSBhbmQgaXQgaXMgbWVkaWF0ZWQgYXQg
+dGhhdCBsZXZlbC4KCkluIGJvdGggY2FzZSBvbiB5b3UgaGF2ZSBzZXR1cCBtYXBwaW5nIHlvdSBu
+ZWVkIHRvIGhhbmRsZSB0aGUgSU9NTVUgYW5kCnRoZSBQQ0kgYnJpZGdlIHJlc3RyaWN0aW9uIHRo
+YXQgbWlnaHQgYXBwbHkgYW5kIGkgYmVsaWV2ZSB0aGF0IHRoZSBETUEKQVBJIGlzIHRoZSBwbGFj
+ZSB3aGVyZSB3ZSB3YW50IHRvIHNvbHZlIHRoYXQgc2Vjb25kIHNpZGUgb2YgdGhlIHByb2JsZW0u
+CgpDaGVlcnMsCkrDqXLDtG1lCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
+aS1kZXZlbAo=
