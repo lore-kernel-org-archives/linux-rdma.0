@@ -1,41 +1,137 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next] net: make ndo_get_stats64 a void
-	function
-Date: Thu, 05 Jan 2017 13:18:45 -0500 (EST)
-Message-ID: <20170105.131845.1605952043383659916.davem@davemloft.net>
-References: <20170105173136.2817-1-sthemmin@microsoft.com>
+From: Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 5 Jan 2017 13:39:29 -0500
+Message-ID: <20170105183927.GA5324@gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-7"
-Content-Transfer-Encoding: base64
-Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <20170105173136.2817-1-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
-	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
-List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
-	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-To: stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, oss-drivers-wFxRvT7yatFl57MIdRCFDg@public.gmane.org, linux-ppp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50-Gy0DoCVfaSW4WA4dJ5YXGAdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>
+Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, david1.zhou-5C7GfCeVMHo@public.gmane.org, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogU3RlcGhlbiBIZW1taW5nZXIgPHN0ZXBoZW5AbmV0d29ya3BsdW1iZXIub3JnPg0KRGF0
-ZTogVGh1LCAgNSBKYW4gMjAxNyAwOTozMTozNiAtMDgwMA0KDQo+IFRoZSBuZXR3b3JrIGRldmlj
-ZSBvcGVyYXRpb24gZm9yIHJlYWRpbmcgc3RhdGlzdGljcyBpcyBvbmx5IGNhbGxlZA0KPiBpbiBv
-bmUgcGxhY2UsIGFuZCBpdCBpZ25vcmVzIHRoZSByZXR1cm4gdmFsdWUuIEhhdmluZyBhIHN0cnVj
-dHVyZQ0KPiByZXR1cm4gdmFsdWUgaXMgcG90ZW50aWFsbHkgY29uZnVzaW5nIGJlY2F1c2Ugc29t
-ZSBmdXR1cmUgZHJpdmVyIGNvdWxkDQo+IGluY29ycmVjdGx5IGFzc3VtZSB0aGF0IHRoZSByZXR1
-cm4gdmFsdWUgd2FzIHVzZWQuDQo+IA0KPiBGaXggYWxsIGRyaXZlcnMgd2l0aCBuZG9fZ2V0X3N0
-YXRzNjQgdG8gaGF2ZSBhIHZvaWQgZnVuY3Rpb24uDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBTdGVw
-aGVuIEhlbW1pbmdlciA8c3RoZW1taW5AbWljcm9zb2Z0LmNvbT4NCg0KWW91IG1pc3NlZCBhdCBs
-ZWFzdCBvbmUgbmV3IHdhcm5pbmcsIHBsZWFzZSBkbyBhIGZyZXNoIGFsbG1vZGNvbmZpZyBidWls
-ZA0KYW5kIHdhdGNoIHRoZSBsb2dzLg0KDQpkcml2ZXJzL25ldC9ldGhlcm5ldC9icm9hZGNvbS9i
-bngyLmM6IEluIGZ1bmN0aW9uIKFibngyX2dldF9zdGF0czY0ojoNCmRyaXZlcnMvbmV0L2V0aGVy
-bmV0L2Jyb2FkY29tL2JueDIuYzo2ODMwOjEwOiB3YXJuaW5nOiChcmV0dXJuoiB3aXRoIGEgdmFs
-dWUsIGluIGZ1bmN0aW9uIHJldHVybmluZyB2b2lkDQoNClRoYW5rcy4NCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QKZGV2QG9w
-ZW52c3dpdGNoLm9yZwpodHRwczovL21haWwub3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGlu
-Zm8vb3ZzLWRldgo=
+Sorry to revive this thread but it fells through my filters and i
+miss it. I have been going through it and i think the discussion
+has been hinder by the fact that distinct problems were merge while
+they should be address separately.
+
+First for peer-to-peer we need to be clear on how this happens. Two
+cases here :
+  1) peer-to-peer because of userspace specific API like NVidia GPU
+    direct (AMD is pushing its own similar API i just can't remember
+    marketing name). This does not happen through a vma, this happens
+    through specific device driver call going through device specific
+    ioctl on both side (GPU and RDMA). So both kernel driver are aware
+    of each others.
+  2) peer-to-peer because RDMA/device is trying to access a regular
+    vma (ie non special either private anonymous or share memory or
+    mmap of a regular file not a device file).
+
+For 1) there is no need to over complicate thing. Device driver must
+have a back-channel between them and must be able to invalidate their
+respective mapping (ie GPU must be able to ask RDMA device to kill/
+stop its MR).
+
+So remaining issue for 1) is how to enable effective peer-to-peer
+mapping given that it might not work reliably on all platform. Here
+Alex was listing existing proposal:
+  A P2P DMA DMA-API/PCI map_peer_resource support for peer-to-peer
+    http://www.spinics.net/lists/linux-pci/msg44560.html
+  B ZONE_DEVICE IO irect I/O and DMA for persistent memory
+    https://lwn.net/Articles/672457/
+  C DMA-BUF RDMA subsystem DMA-BUF support
+    http://www.spinics.net/lists/linux-rdma/msg38748.html
+  D iopmem iopmem : A block device for PCIe memory
+    https://lwn.net/Articles/703895/
+  E HMM (not interesting for case 1)
+  F Something new
+
+Of the above D is ill suited for for GPU as we do not want to pin
+GPU memory and D is design with long live object that do not move.
+Also i do not think that exposing device PCIe bar through a new
+/dev/somefilename is a good idea for GPU. So i think this should
+be discarded.
+
+HMM should be discard in respect of case 1 too. It is useful for
+case 2. I don't think dma-buf is the right path either.
+
+So we i think there is only A and B that make sense. Now for use
+case 1 i think A is the best solution. No need to have struct page
+and it require explicit knowlegde for device driver that it is
+mapping another device memory which is a given in usecase 1.
+
+
+If we look at case 2 the situation is bit more complex. Here RDMA
+is just trying to access a regular VMA but it might happens that
+some memory inside that VMA reside inside a device memory. When
+that happens we would like to avoid to move that memory back to
+system memory assuming that a peer mapping is doable.
+
+Usecase 2 assume that the GPU is either on platform with CAPI or
+CCTX (or something similar) in which case it is easy as device
+memory will have struct page and is always accessible by CPU and
+transparent from device to device access (AFAICT).
+
+So we left with platform that do not have proper support for
+device memory (ie CPU can not access it the same as DDR or as
+limited access). Which apply to x86 for the foreseeable future.
+
+This is the problem HMM address, allowing to transparently use
+device memory inside a process even if direct CPU access are not
+permited. I have plan to support peer-to-peer with HMM because
+it is an important usecase. The idea is to have the device driver
+fault against ZONE_DEVICE page and communicate through common API
+to establish mapping. HMM will only handle keeping track of device
+to device mapping and allowing to invalidate such mapping at any
+time to allow memory to be migrated.
+
+I do not intend to solve the IOMMU side of the problem or even
+the PCI hierarchy issue where you can't peer-to-peer between device
+accross some PCI bridge. I believe this is an orthogonal problem
+and that it is best solve inside the DMA API ie with solution A.
+
+
+I do not think we should try to solve all the problems with a
+common solutions. They are too disparate from capabilities (what
+the hardware can and can't do).
+
+>From my point of view there is few take aways:
+  - device should only access regular vma
+  - device should never try to access vma that point to another
+    device (mmap of any file in /dev)
+  - peer to peer access through dedicated userspace API must
+    involve dedicated API between kernel driver taking part into
+    the peer to peer access
+  - peer to peer of regular vma must involve a common API for
+    drivers to interact so no driver can block the other
+
+
+So i think the DMA-API proposal is the one to pursue and others
+problem relating to handling GPU memory and how to use it is a
+different kind of problem. One with either an hardware solution
+(CAPI, CCTX, ...) or a software solution (HMM so far).
+
+I don't think we should conflict the 2 problems into one. Anyway
+i think this should be something worth discussing face to face
+with interested party to flesh out a solution (can be at LSF/MM
+or in another forum).
+
+Cheers,
+J=E9r=F4me
