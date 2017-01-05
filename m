@@ -1,28 +1,84 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
- mlx5_ib
-Date: Thu, 05 Jan 2017 15:07:31 -0500 (EST)
-Message-ID: <20170105.150731.2097384465565543422.davem@davemloft.net>
-References: <1483480528-22622-8-git-send-email-saeedm@mellanox.com>
-        <20170105.145157.1792441048386916850.davem@davemloft.net>
-        <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA@mail.gmail.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 5 Jan 2017 15:19:36 -0500
+Message-ID: <20170105201935.GC2166@redhat.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20170105200719.GB31047@obsidianresearch.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: qiang.yu@amd.com, "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>, "Kuehling,
+ Felix" <Felix.Kuehling@amd.com>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch@amd.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>, "Koenig,
+ Christian" <Christian.Koenig@amd.com>, hch@infradead.org, "Deucher,
+ Alexander" <Alexander.Deucher@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "Blinzer,
+ Paul" <Paul.Blinzer@amd.com>, "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Date: Thu, 5 Jan 2017 14:03:18 -0600
-
-> If necessary I can make sure it builds on 32 bits as well.
-
-Please do.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMDE6MDc6MTlQTSAtMDcwMCwgSmFzb24gR3VudGhvcnBl
+IHdyb3RlOgo+IE9uIFRodSwgSmFuIDA1LCAyMDE3IGF0IDAyOjU0OjI0UE0gLTA1MDAsIEplcm9t
+ZSBHbGlzc2Ugd3JvdGU6Cj4gCj4gPiBNZWxsYW5veCBhbmQgTlZpZGlhIHN1cHBvcnQgcGVlciB0
+byBwZWVyIHdpdGggd2hhdCB0aGV5IG1hcmtldCBhCj4gPiBHUFVEaXJlY3QuIEl0IG9ubHkgd29y
+a3Mgd2l0aG91dCBJT01NVS4gSXQgaXMgcHJvYmFibHkgbm90IHVwc3RyZWFtIDoKPiA+IAo+ID4g
+aHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1yZG1hQHZnZXIua2VybmVsLm9yZy9t
+c2cyMTQwMi5odG1sCj4gPiAKPiA+IEkgdGhvdWdodCBpdCB3YXMgYnV0IGl0IHNlZW1zIGl0IHJl
+cXVpcmUgYW4gb3V0IG9mIHRyZWUgZHJpdmVyIHRvIHdvcmsuCj4gCj4gUmlnaHQsIGl0IGlzIG91
+dCBvZiB0cmVlIGFuZCBub3QgdW5kZXIgY29uc2lkZXJhdGlvbiBmb3IgbWFpbmxpbmUuCj4gCj4g
+PiBXZXRoZXIgdGhlcmUgaXMgYSB2bWEgb3Igbm90IGlzbid0IGltcG9ydGFudCB0byB0aGUgaXNz
+dWUgYW55d2F5LiBJZgo+ID4geW91IHdhbnQgdG8gZW5mb3JjZSBWTUEgcnVsZSBmb3IgUkRNQSBp
+dCBpcyBhbiBSRE1BIHNwZWNpZmljIGRpc2N1c3Npb24KPiA+IGluIHdoaWNoIGkgZG9uJ3Qgd2Fu
+dCB0byBiZSBpbnZvbHZlLCBpdCBpcyBub3QgbXkgdHVyZiA6KQo+IAo+IEFsd2F5cyBoYXZpbmcg
+YSBWTUEgY2hhbmdlcyB0aGUgZGlzY3Vzc2lvbiAtIHRoZSBxdWVzdGlvbiBpcyBob3cgdG8KPiBj
+cmVhdGUgYSBWTUEgdGhhdCByZXByZW5zZW50cyBJTyBkZXZpY2UgbWVtb3J5LCBhbmQgaG93IGRv
+IERNQQo+IGNvbnN1bWVycyBleHRyYWN0IHRoZSBjb3JyZWN0IGluZm9ybWF0aW9uIGZyb20gdGhh
+dCBWTUEgdG8gcGFzcyB0byB0aGUKPiBrZXJuZWwgRE1BIEFQSSBzbyBpdCBjYW4gc2V0dXAgcGVl
+ci1wZWVyIERNQS4KCldlbGwgbXkgcG9pbnQgaXMgdGhhdCBpdCBjYW4ndCBiZS4gSW4gSE1NIGNh
+c2UgaW5zaWRlIGEgc2luZ2xlIFZNQSB5b3UKY2FuIGhhdmUgb25lIHBhZ2UgaW5zaWRlIEdQVSBt
+ZW1vcnkgYXQgYWRkcmVzcyBBIGJ1dCBuZXh0IHBhZ2UgaW5zaWRlCnJlZ3VsYXIgbWVtb3J5IGF0
+IEErNGsuIFNvIGhhbmRsaW5nIHRoaXMgYXQgdGhlIFZNQSBsZXZlbCBkb2VzIG5vdCBtYWtlCnNl
+bnNlLiBTbyBpbiB0aGlzIGNhc2UgeW91IHdvdWxkIGdldCB0aGUgZGV2aWNlIGZyb20gdGhlIHN0
+cnVjdCBwYWdlCmFuZCB5b3Ugd291bGQgcXVlcnkgdGhyb3VnaCBjb21tb24gQVBJIHRvIGRldGVy
+bWluZSBpZiB5b3UgY2FuIGRvIHBlZXIKdG8gcGVlci4gSWYgbm90IGl0IHdvdWxkIHRyaWdnZXIg
+bWlncmF0aW9uIGJhY2sgdG8gcmVndWxhciBtZW1vcnkuCklmIHllcyB0aGVuIHlvdSBzdGlsbCBo
+YXZlIHRvIHNvbHZlIHRoZSBJT01NVSBpc3N1ZSBhbmQgaGVuY2UgdGhlIERNQQpBUEkgY2hhbmdl
+cyB0aGF0IHdlcmUgcHJvcG9zZS4KCkluIHRoZSBHUFVEaXJlY3QgY2FzZSB0aGUgaWRlYSBpcyB0
+aGF0IHlvdSBoYXZlIGEgc3BlY2lmaWMgZGV2aWNlIHZtYQp0aGF0IHlvdSBtYXAgZm9yIHBlZXIg
+dG8gcGVlci4gSGVyZSB0aGluZyBjYW4gYmUgYXQgdm1hIGxldmVsIGFuZCBub3QgYXQKYSBwYWdl
+IGxldmVsLiBFeHBlY3RhdGlvbiBoZXJlIGlzIHRoYXQgdGhlIEdQVSB1c2Vyc3BhY2UgZXhwb3Nl
+IGEgc3BlY2lhbApBUEkgdG8gYWxsb3cgUkRNQSB0byBkaXJlY3RseSBoYXBwZW4gb24gR1BVIG9i
+amVjdCBhbGxvY2F0ZWQgdGhyb3VnaApHUFUgc3BlY2lmaWMgQVBJIChpZSBpdCBpcyBub3QgcmVn
+dWxhciBtZW1vcnkgYW5kIGl0IGlzIG5vdCBhY2Nlc3NpYmxlCmJ5IENQVSkuCgoKQm90aCBjYXNl
+IGFyZSBkaXNqb2ludC4gQm90aCBjYXNlIG5lZWQgdG8gc29sdmUgdGhlIElPTU1VIGlzc3VlIHdo
+aWNoCnNlZW1zIHRvIGJlIGJlc3Qgc29sdmUgYXQgdGhlIERNQSBBUEkgbGV2ZWwuCgoKPiA+IFdo
+YXQgbWF0dGVyIGlzIHRoZSBiYWNrIGNoYW5uZWwgQVBJIGJldHdlZW4gcGVlci10by1wZWVyIGRl
+dmljZS4gTGlrZQo+ID4gdGhlIGFib3ZlIHBhdGNoc2V0IHBvaW50cyBvdXQgZm9yIEdQVSB3ZSBu
+ZWVkIHRvIGJlIGFibGUgdG8gaW52YWxpZGF0ZQo+ID4gYSBtYXBwaW5nIGF0IGFueSBwb2ludCBp
+biB0aW1lLiBQaW5pbmcgaXMgbm90IHNvbWV0aGluZyB3ZSB3YW50IHRvCj4gPiBsaXZlIHdpdGgu
+Cj4gCj4gV2UgaGF2ZSBNTVUgbm90aWZpZXJzIHRvIGhhbmRsZSB0aGlzIHRvZGF5IGluIFJETUEu
+IEFzeW5jIFJETUEgTVIKPiBJbnZhbGlkYXRlIGxpa2UgeW91IHNlZSBpbiB0aGUgYWJvdmUgb3V0
+IG9mIHRyZWUgcGF0Y2hlcyBpcyB0b3RhbGx5Cj4gY3JhenkgYW5kIHNob3VsZG4ndCBiZSBpbiBt
+YWlubGluZS4gVXNlIE9EUCBjYXBhYmxlIFJETUEgaGFyZHdhcmUuCgpXZWxsIHRoZXJlIGlzIHN0
+aWxsIGEgbGFyZ2UgYmFzZSBvZiBoYXJkd2FyZSB0aGF0IGRvIG5vdCBoYXZlIHN1Y2gKZmVhdHVy
+ZSBhbmQgc29tZSBwZW9wbGUgd291bGQgbGlrZSB0byBiZSBhYmxlIHRvIGtlZXAgdXNpbmcgdGhv
+c2UuCkkgYmVsaWV2ZSBhbGxvd2luZyBkaXJlY3QgYWNjZXNzIHRvIEdQVSBvYmplY3QgdGhhdCBh
+cmUgb3RoZXJ3aXNlCmhpZGRlbiBmcm9tIHJlZ3VsYXIga2VybmVsIG1lbW9yeSBtYW5hZ2VtZW50
+IGlzIHN0aWxsIG1lYW5pbmdmdWxsLgoKQ2hlZXJzLApKw6lyw7RtZQoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
+cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
