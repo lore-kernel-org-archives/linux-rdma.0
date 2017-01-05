@@ -1,60 +1,120 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/isert: fix spelling mistake: "teminating" ->
- "terminating"
-Date: Thu, 5 Jan 2017 15:15:54 +0200
-Message-ID: <20170105131554.GE15685@mtr-leonro.local>
-References: <20161230143805.13549-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="wTWi5aaYRw9ix9vO"
+Subject: [PATCH rdma-next] IB/cma: Add debug messages to error flows
+Date: Thu,  5 Jan 2017 16:16:35 +0200
+Message-ID: <20170105141636.23284-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20161230143805.13549-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---wTWi5aaYRw9ix9vO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Print debug messages to the kernel log to add more
+information about RDMA_CM events that indicate an error.
 
-On Fri, Dec 30, 2016 at 02:38:05PM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
->
-> Trivial fix to spelling mistake in isert_warn message
->
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/isert/ib_isert.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/cm.c  |  2 ++
+ drivers/infiniband/core/cma.c | 25 +++++++++++++++++++++++--
+ 2 files changed, 25 insertions(+), 2 deletions(-)
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index cf1edfa..6535f09 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -3409,6 +3409,8 @@ static void cm_process_send_error(struct ib_mad_send_buf *msg,
+ 	if (msg != cm_id_priv->msg || state != cm_id_priv->id.state)
+ 		goto discard;
 
---wTWi5aaYRw9ix9vO
-Content-Type: application/pgp-signature; name="signature.asc"
++	pr_debug_ratelimited("CM: failed sending MAD in state %d. (%s)\n",
++			     state, ib_wc_status_msg(wc_status));
+ 	switch (state) {
+ 	case IB_CM_REQ_SENT:
+ 	case IB_CM_MRA_REQ_RCVD:
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index e7dcfac..847c5ad 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1689,6 +1689,7 @@ static int cma_rep_recv(struct rdma_id_private *id_priv)
 
------BEGIN PGP SIGNATURE-----
+ 	return 0;
+ reject:
++	pr_debug_ratelimited("RDMA CM: CONNECT_ERROR: failed to handle reply. status %d\n", ret);
+ 	cma_modify_qp_err(id_priv);
+ 	ib_send_cm_rej(id_priv->cm_id.ib, IB_CM_REJ_CONSUMER_DEFINED,
+ 		       NULL, 0, NULL, 0);
+@@ -1760,6 +1761,8 @@ static int cma_ib_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+ 		/* ignore event */
+ 		goto out;
+ 	case IB_CM_REJ_RECEIVED:
++		pr_debug_ratelimited("RDMA CM: REJECTED: %s\n", rdma_reject_msg(&id_priv->id,
++										ib_event->param.rej_rcvd.reason));
+ 		cma_modify_qp_err(id_priv);
+ 		event.status = ib_event->param.rej_rcvd.reason;
+ 		event.event = RDMA_CM_EVENT_REJECTED;
+@@ -2285,6 +2288,8 @@ static void cma_query_handler(int status, struct ib_sa_path_rec *path_rec,
+ 		work->new_state = RDMA_CM_ADDR_RESOLVED;
+ 		work->event.event = RDMA_CM_EVENT_ROUTE_ERROR;
+ 		work->event.status = status;
++		pr_debug_ratelimited("RDMA CM: ROUTE_ERROR: failed to query path. status %d\n",
++				     status);
+ 	}
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhuRwoACgkQ5GN7iDZy
-WKfRghAA0twEarzlqkYuasDEHVEMvFuEKsTQfMYE1cZYBz9y1hXH+0Yc0Mva7SXM
-VJGyzgaw4dJ7LNapMasV70lWOyt8souxddudch5FSd6Tpg5uSuxCwMi0jB+WpxRy
-YZBdxyUfoYcllcaWuK/hr57v5r3PTbDlZXOGDGrFPCghkB8ymtjG9etdVcID+mzc
-fJzSy8AMJZpt/06rVlM8gnub/fLwsfXB5trQ0DEBotgaJ0g0sQV8DYs5E6Nu+7o3
-AkEW5F2xAwdolcsB3CCissdlB/2IzteF0QCfyUYmVSc4K7xFrFfVZgGvw4lz6VNH
-E1M8/LFdLzV49IJHHXgvTrJdO7X6NE4QVOqbm4jIwCRRp6fx6VvBQdsbHtY+ogmE
-md6ClzRK/dNCgCs6AM9aB2cNVp8M+aTP+lKSEmr6qUYtqWrCpOAGVHSN4ILgyYDy
-MRk77Ka/FC8RuzvOPtnOuyJ02ENUg3YgJ1OdabFoO3UWTP3MDjq1tU1jBpUIbLuu
-+fg9JfkqGyRGlWALavrZp77Gfv7A6ZyQjDt8ZIu0WS3m7YeWpJxN63OmMhZCKb+g
-TmRgdYurTMohP6uXmvL1tqNEKZ6qsj0x4jtONsnfJx94RXKxBy80UZxHlQvHdxux
-+mdjhXobuB2uATmILZJKXTkLyt1e8uNR9UX/oqv0SMre9yYp+H4=
-=RIFQ
------END PGP SIGNATURE-----
+ 	queue_work(cma_wq, &work->work);
+@@ -2720,8 +2725,14 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 		goto out;
 
---wTWi5aaYRw9ix9vO--
+ 	memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
+-	if (!status && !id_priv->cma_dev)
++	if (!status && !id_priv->cma_dev) {
+ 		status = cma_acquire_dev(id_priv, NULL);
++		if (status)
++			pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to acquire device. status %d\n",
++					     status);
++	} else {
++		pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to resolve IP. status %d\n", status);
++	}
+
+ 	if (status) {
+ 		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
+@@ -3307,10 +3318,13 @@ static int cma_sidr_rep_handler(struct ib_cm_id *cm_id,
+ 		if (rep->status != IB_SIDR_SUCCESS) {
+ 			event.event = RDMA_CM_EVENT_UNREACHABLE;
+ 			event.status = ib_event->param.sidr_rep_rcvd.status;
++			pr_debug_ratelimited("RDMA CM: UNREACHABLE: bad SIDR reply. status %d\n",
++					     event.status);
+ 			break;
+ 		}
+ 		ret = cma_set_qkey(id_priv, rep->qkey);
+ 		if (ret) {
++			pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to set qkey. status %d\n", ret);
+ 			event.event = RDMA_CM_EVENT_ADDR_ERROR;
+ 			event.status = ret;
+ 			break;
+@@ -3759,10 +3773,17 @@ static int cma_ib_mc_handler(int status, struct ib_sa_multicast *multicast)
+
+ 	if (!status)
+ 		status = cma_set_qkey(id_priv, be32_to_cpu(multicast->rec.qkey));
++	else
++		pr_debug_ratelimited("RDMA CM: MULTICAST_ERROR: failed to join multicast. status %d\n",
++				     status);
+ 	mutex_lock(&id_priv->qp_mutex);
+-	if (!status && id_priv->id.qp)
++	if (!status && id_priv->id.qp) {
+ 		status = ib_attach_mcast(id_priv->id.qp, &multicast->rec.mgid,
+ 					 be16_to_cpu(multicast->rec.mlid));
++		if (!status)
++			pr_debug_ratelimited("RDMA CM: MULTICAST_ERROR: failed to attach QP. status %d\n",
++					     status);
++	}
+ 	mutex_unlock(&id_priv->qp_mutex);
+
+ 	memset(&event, 0, sizeof event);
+--
+2.10.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
