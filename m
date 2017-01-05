@@ -1,19 +1,20 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 5 Jan 2017 15:42:15 -0700
-Message-ID: <20170105224215.GA3855@obsidianresearch.com>
+Date: Thu, 5 Jan 2017 18:23:52 -0500
+Message-ID: <20170105232352.GB6426@redhat.com>
 References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
  <20170105183927.GA5324@gmail.com>
  <20170105190113.GA12587@obsidianresearch.com>
  <20170105195424.GB2166@redhat.com>
  <20170105200719.GB31047@obsidianresearch.com>
  <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170105201935.GC2166-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170105224215.GA3855-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,7 +24,7 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
  Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
  Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
@@ -31,56 +32,102 @@ Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.
  Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 05, 2017 at 03:19:36PM -0500, Jerome Glisse wrote:
+On Thu, Jan 05, 2017 at 03:42:15PM -0700, Jason Gunthorpe wrote:
+> On Thu, Jan 05, 2017 at 03:19:36PM -0500, Jerome Glisse wrote:
+> =
 
-> > Always having a VMA changes the discussion - the question is how to
-> > create a VMA that reprensents IO device memory, and how do DMA
-> > consumers extract the correct information from that VMA to pass to the
-> > kernel DMA API so it can setup peer-peer DMA.
-> 
-> Well my point is that it can't be. In HMM case inside a single VMA
-> you
-[..]
+> > > Always having a VMA changes the discussion - the question is how to
+> > > create a VMA that reprensents IO device memory, and how do DMA
+> > > consumers extract the correct information from that VMA to pass to the
+> > > kernel DMA API so it can setup peer-peer DMA.
+> > =
 
-> In the GPUDirect case the idea is that you have a specific device vma
-> that you map for peer to peer.
+> > Well my point is that it can't be. In HMM case inside a single VMA
+> > you
+> [..]
+> =
 
-[..]
+> > In the GPUDirect case the idea is that you have a specific device vma
+> > that you map for peer to peer.
+> =
 
-I still don't understand what you driving at - you've said in both
-cases a user VMA exists.
+> [..]
+> =
 
->From my perspective in RDMA, all I want is a core kernel flow to
-convert a '__user *' into a scatter list of DMA addresses, that works no
-matter what is backing that VMA, be it HMM, a 'hidden' GPU object, or
-struct page memory.
+> I still don't understand what you driving at - you've said in both
+> cases a user VMA exists.
 
-A '__user *' pointer is the only way to setup a RDMA MR, and I see no
-reason to have another API at this time.
+In the former case no, there is no VMA directly but if you want one than
+a device can provide one. But such VMA is useless as CPU access is not
+expected.
 
-The details of how to translate to a scatter list are a MM subject,
-and the MM folks need to get 
+> =
 
-I just don't care if that routine works at a page level, or a whole
-VMA level, or some combination of both, that is up to the MM team to
-figure out :)
+> From my perspective in RDMA, all I want is a core kernel flow to
+> convert a '__user *' into a scatter list of DMA addresses, that works no
+> matter what is backing that VMA, be it HMM, a 'hidden' GPU object, or
+> struct page memory.
+> =
 
-> a page level. Expectation here is that the GPU userspace expose a special
-> API to allow RDMA to directly happen on GPU object allocated through
-> GPU specific API (ie it is not regular memory and it is not accessible
-> by CPU).
+> A '__user *' pointer is the only way to setup a RDMA MR, and I see no
+> reason to have another API at this time.
+> =
 
-So, how do you identify these GPU objects? How do you expect RDMA
-convert them to scatter lists? How will ODP work?
+> The details of how to translate to a scatter list are a MM subject,
+> and the MM folks need to get =
 
-> > We have MMU notifiers to handle this today in RDMA. Async RDMA MR
-> > Invalidate like you see in the above out of tree patches is totally
-> > crazy and shouldn't be in mainline. Use ODP capable RDMA hardware.
-> 
-> Well there is still a large base of hardware that do not have such
-> feature and some people would like to be able to keep using those.
+> =
 
-Hopefully someone will figure out how to do that without the crazy
-async MR invalidation.
+> I just don't care if that routine works at a page level, or a whole
+> VMA level, or some combination of both, that is up to the MM team to
+> figure out :)
 
-Jason
+And that's what i am trying to get accross. There is 2 cases here.
+What exist on today hardware. Thing like GPU direct, that works on
+VMA level. Versus where some new hardware is going were want to do
+thing on page level. Both require different API at different level.
+
+What i was trying to get accross is that no matter what level you
+consider in the end you still need something at the DMA API level.
+And that the 2 different use case (device vma or regular vma) means
+2 differents API for the device driver.
+
+> =
+
+> > a page level. Expectation here is that the GPU userspace expose a speci=
+al
+> > API to allow RDMA to directly happen on GPU object allocated through
+> > GPU specific API (ie it is not regular memory and it is not accessible
+> > by CPU).
+> =
+
+> So, how do you identify these GPU objects? How do you expect RDMA
+> convert them to scatter lists? How will ODP work?
+
+No ODP on those. If you want vma, the GPU device driver can provide
+one. GPU object are disjoint from regular memory (coming from some
+form of mmap). They are created through ioctl and in many case are
+never expose to the CPU. They only exist inside the GPU driver realm.
+
+None the less there is usecase where exchanging those object accross
+computer over a network make sense. I am not an end user here :)
+
+
+> > > We have MMU notifiers to handle this today in RDMA. Async RDMA MR
+> > > Invalidate like you see in the above out of tree patches is totally
+> > > crazy and shouldn't be in mainline. Use ODP capable RDMA hardware.
+> > =
+
+> > Well there is still a large base of hardware that do not have such
+> > feature and some people would like to be able to keep using those.
+> =
+
+> Hopefully someone will figure out how to do that without the crazy
+> async MR invalidation.
+
+Personnaly i don't care too much about this old hardware and thus i am
+fine without supporting them. The open source userspace is playing
+catchup and doing feature for old hardware probably does not make sense.
+
+Cheers,
+J=E9r=F4me
