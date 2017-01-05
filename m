@@ -1,107 +1,58 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCHv2 1/1] IB/ipoib: Remove unnecessary returned value check
-Date: Thu, 5 Jan 2017 11:08:08 +0200
-Message-ID: <20170105090807.GA5904@yuval-lap>
+Date: Thu, 5 Jan 2017 14:50:22 +0200
+Message-ID: <20170105125022.GA15685@mtr-leonro.local>
 References: <20170105061236.GV12077@mtr-leonro.local>
  <1483606568-17232-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 In-Reply-To: <1483606568-17232-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+
+--UlVJffcvxoiEqYs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 On Thu, Jan 05, 2017 at 03:56:08AM -0500, Zhu Yanjun wrote:
 > In the function ipoib_set_dev_features, the returned value is always 0.
 > As such, it is not necessary to check the returned value.
 > This is not a bug. It is a trivial problem.
-> 
+>
 > Reviewed-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
-> Change from v1 to v2:
->  make change to __ipoib_vlan_add.
->  change the commit header. 
-> 
->  drivers/infiniband/ulp/ipoib/ipoib.h      | 2 +-
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++------
->  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 4 +---
->  3 files changed, 4 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> index da12717..f568064 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> @@ -593,7 +593,7 @@ void ipoib_pkey_open(struct ipoib_dev_priv *priv);
->  void ipoib_drain_cq(struct net_device *dev);
->  
->  void ipoib_set_ethtool_ops(struct net_device *dev);
-> -int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
-> +void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
->  
->  #define IPOIB_FLAGS_RC		0x80
->  #define IPOIB_FLAGS_UC		0x40
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 3ce0765..4e8e11e 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1984,7 +1984,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
->  	return device_create_file(&dev->dev, &dev_attr_pkey);
->  }
->  
-> -int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> +void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
->  {
->  	priv->hca_caps = hca->attrs.device_cap_flags;
->  
-> @@ -1996,8 +1996,6 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
->  
->  		priv->dev->features |= priv->dev->hw_features;
->  	}
-> -
-> -	return 0;
->  }
->  
->  static struct net_device *ipoib_add_port(const char *format,
-> @@ -2037,9 +2035,7 @@ static struct net_device *ipoib_add_port(const char *format,
->  		goto device_init_failed;
->  	}
->  
-> -	result = ipoib_set_dev_features(priv, hca);
-> -	if (result)
-> -		goto device_init_failed;
-> +	ipoib_set_dev_features(priv, hca);
->  
->  	/*
->  	 * Set the full membership bit, so that we join the right
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> index a2f9f29..0c2988d 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> @@ -61,9 +61,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
->  	priv->parent = ppriv->dev;
->  	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
->  
-> -	result = ipoib_set_dev_features(priv, ppriv->ca);
-> -	if (result)
-> -		goto err;
-> +	ipoib_set_dev_features(priv, ppriv->ca);
->  
->  	priv->pkey = pkey;
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->  
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--UlVJffcvxoiEqYs2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhuQQ4ACgkQ5GN7iDZy
+WKf/4RAAvSmY9+UCiLdXg07aUNzkNIT2+b3dwE7vJLxuuz15nBtfHn4GbLqwbJTA
+hZTyiSmPj8fEcMXGagvnnn/IlExjqqXasBKxNmHsvfFjNvdi8J/ft5TIcrj1i9qH
+SYJYqdfy/dcLTLbzs8WwghWZIgLdOeSq+KSkGdQi+IMYflEmywng4N+lsFXIYFds
+8Xib9JyodPGgUfEwRKM0RHqWM4fotfqeLTMafF+gFrUNBIUKQVolP/D6ZeTKlZHS
+b278MYUV4oUjM6rz2kNNa3ZRLRi1DV3C5m1STVEbrSghFuWMPZQlZtpWx2RhhWRg
+9CoX20o04DjFb2HLUUyXKxrF23lSG0UjIzDA1iCJZuyiSWnmFNuJV4ICEcYlB2jy
+xzgD4Zln8m8dzopHLOH55/6qyqTU7QC08WxyuzryWusMj6ruFf+2GbEq07/w0IoB
+WhCh7E9ZcDdj3vi1fRJXprqmoyosFKphLk2+BWxIhsf0nwb8+lo82U2YXKii0wq/
+gveSMajwLrZ+4AeG1AmlqzbvEhu/Ru/5CjSlBBAJuvXpR/BX1AV9tBjIvOGcGg4J
+4WoXYzMevobuCNc+BVQxD4ERxUyTjXN9KgVcJWHdmVVrhT0gFFMropG6KXOvTw+C
+SOdehL8ohcdO+5oEaMdMaLCkdGLF7jcSs2oZmdmSC1o5xuAuyk8=
+=qpmQ
+-----END PGP SIGNATURE-----
+
+--UlVJffcvxoiEqYs2--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
