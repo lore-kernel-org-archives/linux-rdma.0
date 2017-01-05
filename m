@@ -1,52 +1,70 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 5 Jan 2017 12:01:13 -0700
-Message-ID: <20170105190113.GA12587@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: rdma-core package version schema
+Date: Thu, 05 Jan 2017 20:01:07 +0100
+Message-ID: <1483642867.5227.18.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170105183927.GA5324-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
- Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 05, 2017 at 01:39:29PM -0500, Jerome Glisse wrote:
+Hi,
 
->   1) peer-to-peer because of userspace specific API like NVidia GPU
->     direct (AMD is pushing its own similar API i just can't remember
->     marketing name). This does not happen through a vma, this happens
->     through specific device driver call going through device specific
->     ioctl on both side (GPU and RDMA). So both kernel driver are aware
->     of each others.
+I looked at the Debian packaging of rdma-core and stumbled over the
+versioning. You change the version of the binary library packages
+(libibcm1, libibumad3, etc.) from the Debian package version (currently
+12-1) to their shared library versions. This change is uncommon and
+confusing besides other issues. [1] It is common that the package
+version differ from the library (soname) version. As potential Debian
+sponsor I would reject this package version change.
 
-Today you can only do user-initiated RDMA operations in conjection
-with a VMA.
+The second problematic thing is that each library has its own major and
+minor number, but use the package version as patch level. This
+restricts the package version to one number which will increase fast.
 
-We'd need a really big and strong reason to create an entirely new
-non-VMA based memory handle scheme for RDMA.
+>From my Debian maintainer perspective, I recommend following change:
+Maintain two different versions, the package version and the library
+versions.
 
-So my inclination is to just completely push back on this idea. You
-need a VMA to do RMA.
+The package version could follow the semantic versioning [2], the
+version schema from the kernel [3], or by date [4]. Make that version
+number be useful in itself. I suggest to start with version 2.0 (since
+1.3.10 is the highest version that I found in one of its libraries when
+they were maintained separately).
 
-GPUs need to create VMAs for the memory they want to RDMA from, even
-if the VMA handle just causes SIGBUS for any CPU access.
+For the library version numbers, you could either maintain them
+separately (increase only if you touch that library between two
+releases) or maintain a common patch level (like you do now).
 
-Jason
+PS: I am thinking about offering becoming a co-maintainer for the rdma-
+core Debian package.
+
+[1] Andrey Rahmatullin wrote in https://bugs.debian.org/850145 :
+"Please make sure you fully understand the consequences of using binary
+package versions different from the source one."
+[2] http://semver.org/
+[3] major.minor.patch were major is increased when minor becomes too
+big.
+[4] year.${number of release of the year}.patch (e.g. 2017.1)
+
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:  http://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Andreas Gauger, Achim Weiss.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
