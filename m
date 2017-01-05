@@ -1,84 +1,86 @@
-From: Jerome Glisse <jglisse@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 5 Jan 2017 15:19:36 -0500
-Message-ID: <20170105201935.GC2166@redhat.com>
+Date: Thu, 5 Jan 2017 15:42:15 -0700
+Message-ID: <20170105224215.GA3855@obsidianresearch.com>
 References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
  <20170105183927.GA5324@gmail.com>
  <20170105190113.GA12587@obsidianresearch.com>
  <20170105195424.GB2166@redhat.com>
  <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170105200719.GB31047@obsidianresearch.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: qiang.yu@amd.com, "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>, "Kuehling,
- Felix" <Felix.Kuehling@amd.com>, "Sagalovitch,
- Serguei" <Serguei.Sagalovitch@amd.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>, "Koenig,
- Christian" <Christian.Koenig@amd.com>, hch@infradead.org, "Deucher,
- Alexander" <Alexander.Deucher@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "Blinzer,
- Paul" <Paul.Blinzer@amd.com>, "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>
+In-Reply-To: <20170105201935.GC2166-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMDE6MDc6MTlQTSAtMDcwMCwgSmFzb24gR3VudGhvcnBl
-IHdyb3RlOgo+IE9uIFRodSwgSmFuIDA1LCAyMDE3IGF0IDAyOjU0OjI0UE0gLTA1MDAsIEplcm9t
-ZSBHbGlzc2Ugd3JvdGU6Cj4gCj4gPiBNZWxsYW5veCBhbmQgTlZpZGlhIHN1cHBvcnQgcGVlciB0
-byBwZWVyIHdpdGggd2hhdCB0aGV5IG1hcmtldCBhCj4gPiBHUFVEaXJlY3QuIEl0IG9ubHkgd29y
-a3Mgd2l0aG91dCBJT01NVS4gSXQgaXMgcHJvYmFibHkgbm90IHVwc3RyZWFtIDoKPiA+IAo+ID4g
-aHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1yZG1hQHZnZXIua2VybmVsLm9yZy9t
-c2cyMTQwMi5odG1sCj4gPiAKPiA+IEkgdGhvdWdodCBpdCB3YXMgYnV0IGl0IHNlZW1zIGl0IHJl
-cXVpcmUgYW4gb3V0IG9mIHRyZWUgZHJpdmVyIHRvIHdvcmsuCj4gCj4gUmlnaHQsIGl0IGlzIG91
-dCBvZiB0cmVlIGFuZCBub3QgdW5kZXIgY29uc2lkZXJhdGlvbiBmb3IgbWFpbmxpbmUuCj4gCj4g
-PiBXZXRoZXIgdGhlcmUgaXMgYSB2bWEgb3Igbm90IGlzbid0IGltcG9ydGFudCB0byB0aGUgaXNz
-dWUgYW55d2F5LiBJZgo+ID4geW91IHdhbnQgdG8gZW5mb3JjZSBWTUEgcnVsZSBmb3IgUkRNQSBp
-dCBpcyBhbiBSRE1BIHNwZWNpZmljIGRpc2N1c3Npb24KPiA+IGluIHdoaWNoIGkgZG9uJ3Qgd2Fu
-dCB0byBiZSBpbnZvbHZlLCBpdCBpcyBub3QgbXkgdHVyZiA6KQo+IAo+IEFsd2F5cyBoYXZpbmcg
-YSBWTUEgY2hhbmdlcyB0aGUgZGlzY3Vzc2lvbiAtIHRoZSBxdWVzdGlvbiBpcyBob3cgdG8KPiBj
-cmVhdGUgYSBWTUEgdGhhdCByZXByZW5zZW50cyBJTyBkZXZpY2UgbWVtb3J5LCBhbmQgaG93IGRv
-IERNQQo+IGNvbnN1bWVycyBleHRyYWN0IHRoZSBjb3JyZWN0IGluZm9ybWF0aW9uIGZyb20gdGhh
-dCBWTUEgdG8gcGFzcyB0byB0aGUKPiBrZXJuZWwgRE1BIEFQSSBzbyBpdCBjYW4gc2V0dXAgcGVl
-ci1wZWVyIERNQS4KCldlbGwgbXkgcG9pbnQgaXMgdGhhdCBpdCBjYW4ndCBiZS4gSW4gSE1NIGNh
-c2UgaW5zaWRlIGEgc2luZ2xlIFZNQSB5b3UKY2FuIGhhdmUgb25lIHBhZ2UgaW5zaWRlIEdQVSBt
-ZW1vcnkgYXQgYWRkcmVzcyBBIGJ1dCBuZXh0IHBhZ2UgaW5zaWRlCnJlZ3VsYXIgbWVtb3J5IGF0
-IEErNGsuIFNvIGhhbmRsaW5nIHRoaXMgYXQgdGhlIFZNQSBsZXZlbCBkb2VzIG5vdCBtYWtlCnNl
-bnNlLiBTbyBpbiB0aGlzIGNhc2UgeW91IHdvdWxkIGdldCB0aGUgZGV2aWNlIGZyb20gdGhlIHN0
-cnVjdCBwYWdlCmFuZCB5b3Ugd291bGQgcXVlcnkgdGhyb3VnaCBjb21tb24gQVBJIHRvIGRldGVy
-bWluZSBpZiB5b3UgY2FuIGRvIHBlZXIKdG8gcGVlci4gSWYgbm90IGl0IHdvdWxkIHRyaWdnZXIg
-bWlncmF0aW9uIGJhY2sgdG8gcmVndWxhciBtZW1vcnkuCklmIHllcyB0aGVuIHlvdSBzdGlsbCBo
-YXZlIHRvIHNvbHZlIHRoZSBJT01NVSBpc3N1ZSBhbmQgaGVuY2UgdGhlIERNQQpBUEkgY2hhbmdl
-cyB0aGF0IHdlcmUgcHJvcG9zZS4KCkluIHRoZSBHUFVEaXJlY3QgY2FzZSB0aGUgaWRlYSBpcyB0
-aGF0IHlvdSBoYXZlIGEgc3BlY2lmaWMgZGV2aWNlIHZtYQp0aGF0IHlvdSBtYXAgZm9yIHBlZXIg
-dG8gcGVlci4gSGVyZSB0aGluZyBjYW4gYmUgYXQgdm1hIGxldmVsIGFuZCBub3QgYXQKYSBwYWdl
-IGxldmVsLiBFeHBlY3RhdGlvbiBoZXJlIGlzIHRoYXQgdGhlIEdQVSB1c2Vyc3BhY2UgZXhwb3Nl
-IGEgc3BlY2lhbApBUEkgdG8gYWxsb3cgUkRNQSB0byBkaXJlY3RseSBoYXBwZW4gb24gR1BVIG9i
-amVjdCBhbGxvY2F0ZWQgdGhyb3VnaApHUFUgc3BlY2lmaWMgQVBJIChpZSBpdCBpcyBub3QgcmVn
-dWxhciBtZW1vcnkgYW5kIGl0IGlzIG5vdCBhY2Nlc3NpYmxlCmJ5IENQVSkuCgoKQm90aCBjYXNl
-IGFyZSBkaXNqb2ludC4gQm90aCBjYXNlIG5lZWQgdG8gc29sdmUgdGhlIElPTU1VIGlzc3VlIHdo
-aWNoCnNlZW1zIHRvIGJlIGJlc3Qgc29sdmUgYXQgdGhlIERNQSBBUEkgbGV2ZWwuCgoKPiA+IFdo
-YXQgbWF0dGVyIGlzIHRoZSBiYWNrIGNoYW5uZWwgQVBJIGJldHdlZW4gcGVlci10by1wZWVyIGRl
-dmljZS4gTGlrZQo+ID4gdGhlIGFib3ZlIHBhdGNoc2V0IHBvaW50cyBvdXQgZm9yIEdQVSB3ZSBu
-ZWVkIHRvIGJlIGFibGUgdG8gaW52YWxpZGF0ZQo+ID4gYSBtYXBwaW5nIGF0IGFueSBwb2ludCBp
-biB0aW1lLiBQaW5pbmcgaXMgbm90IHNvbWV0aGluZyB3ZSB3YW50IHRvCj4gPiBsaXZlIHdpdGgu
-Cj4gCj4gV2UgaGF2ZSBNTVUgbm90aWZpZXJzIHRvIGhhbmRsZSB0aGlzIHRvZGF5IGluIFJETUEu
-IEFzeW5jIFJETUEgTVIKPiBJbnZhbGlkYXRlIGxpa2UgeW91IHNlZSBpbiB0aGUgYWJvdmUgb3V0
-IG9mIHRyZWUgcGF0Y2hlcyBpcyB0b3RhbGx5Cj4gY3JhenkgYW5kIHNob3VsZG4ndCBiZSBpbiBt
-YWlubGluZS4gVXNlIE9EUCBjYXBhYmxlIFJETUEgaGFyZHdhcmUuCgpXZWxsIHRoZXJlIGlzIHN0
-aWxsIGEgbGFyZ2UgYmFzZSBvZiBoYXJkd2FyZSB0aGF0IGRvIG5vdCBoYXZlIHN1Y2gKZmVhdHVy
-ZSBhbmQgc29tZSBwZW9wbGUgd291bGQgbGlrZSB0byBiZSBhYmxlIHRvIGtlZXAgdXNpbmcgdGhv
-c2UuCkkgYmVsaWV2ZSBhbGxvd2luZyBkaXJlY3QgYWNjZXNzIHRvIEdQVSBvYmplY3QgdGhhdCBh
-cmUgb3RoZXJ3aXNlCmhpZGRlbiBmcm9tIHJlZ3VsYXIga2VybmVsIG1lbW9yeSBtYW5hZ2VtZW50
-IGlzIHN0aWxsIG1lYW5pbmdmdWxsLgoKQ2hlZXJzLApKw6lyw7RtZQoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
-cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Thu, Jan 05, 2017 at 03:19:36PM -0500, Jerome Glisse wrote:
+
+> > Always having a VMA changes the discussion - the question is how to
+> > create a VMA that reprensents IO device memory, and how do DMA
+> > consumers extract the correct information from that VMA to pass to the
+> > kernel DMA API so it can setup peer-peer DMA.
+> 
+> Well my point is that it can't be. In HMM case inside a single VMA
+> you
+[..]
+
+> In the GPUDirect case the idea is that you have a specific device vma
+> that you map for peer to peer.
+
+[..]
+
+I still don't understand what you driving at - you've said in both
+cases a user VMA exists.
+
+>From my perspective in RDMA, all I want is a core kernel flow to
+convert a '__user *' into a scatter list of DMA addresses, that works no
+matter what is backing that VMA, be it HMM, a 'hidden' GPU object, or
+struct page memory.
+
+A '__user *' pointer is the only way to setup a RDMA MR, and I see no
+reason to have another API at this time.
+
+The details of how to translate to a scatter list are a MM subject,
+and the MM folks need to get 
+
+I just don't care if that routine works at a page level, or a whole
+VMA level, or some combination of both, that is up to the MM team to
+figure out :)
+
+> a page level. Expectation here is that the GPU userspace expose a special
+> API to allow RDMA to directly happen on GPU object allocated through
+> GPU specific API (ie it is not regular memory and it is not accessible
+> by CPU).
+
+So, how do you identify these GPU objects? How do you expect RDMA
+convert them to scatter lists? How will ODP work?
+
+> > We have MMU notifiers to handle this today in RDMA. Async RDMA MR
+> > Invalidate like you see in the above out of tree patches is totally
+> > crazy and shouldn't be in mainline. Use ODP capable RDMA hardware.
+> 
+> Well there is still a large base of hardware that do not have such
+> feature and some people would like to be able to keep using those.
+
+Hopefully someone will figure out how to do that without the crazy
+async MR invalidation.
+
+Jason
