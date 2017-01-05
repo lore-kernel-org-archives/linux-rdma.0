@@ -1,80 +1,52 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/4] debian/copyright: Add copyright information
-Date: Thu, 5 Jan 2017 08:14:36 +0200
-Message-ID: <20170105061436.GW12077@mtr-leonro.local>
-References: <20161229134908.13185-1-leon@kernel.org>
- <20161229134908.13185-4-leon@kernel.org>
- <20161229152537.GB30742@obsidianresearch.com>
- <20170101075433.GR26885@mtr-leonro.local>
- <20170102221123.GA10226@obsidianresearch.com>
- <20170104075516.GJ12077@mtr-leonro.local>
- <20170104224227.GA15569@obsidianresearch.com>
+From: Kenneth Lee <liguozhu@hisilicon.com>
+Subject: [PATCH v4] IB/umem: Release pid in error and ODP flow
+Date: Thu, 5 Jan 2017 15:00:05 +0800
+Message-ID: <1483599605-24456-1-git-send-email-liguozhu@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mvuFargmsA+C2jC8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170104224227.GA15569-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, vgupta@synopsys.com, liguozhu@hisilicon.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, krzk@kernel.org, sebott@linux.vnet.ibm.com, markb@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+1. Release pid before enter odp flow
+2. Release pid when fail to allocate memory
 
---mvuFargmsA+C2jC8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Fixes: 87773dd56d54 ("IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get")
+Fixes: 8ada2c1c0c1d ("IB/core: Add support for on demand paging regions")
+Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
+Reviewed-by: Haggai Eran <haggaie@mellanox.com>
+---
+Change from v1 to v2:
+  Correcting the patch title and description  
+Change from v2 to v3:
+  Update the title and add "Fixes" fields in the description  
+Change from v3 to v4:
+  Keep the Fixes tag at the end of the description
 
-On Wed, Jan 04, 2017 at 03:42:27PM -0700, Jason Gunthorpe wrote:
-> On Wed, Jan 04, 2017 at 09:55:16AM +0200, Leon Romanovsky wrote:
-> > On Mon, Jan 02, 2017 at 03:11:23PM -0700, Jason Gunthorpe wrote:
-> > > On Sun, Jan 01, 2017 at 09:54:33AM +0200, Leon Romanovsky wrote:
-> > >
-> > > > > > +License: GPL-2+ or BSD
-> > > > >
-> > > > > I think this should just be 'BSD', same with all the 'or' stanzas.
-> > > >
-> > > > I'm not a lawyer and in the rdma-core.spec it is "or".
-> > >
-> > > The or is fine in other places, but this exact place is before the
-> > > license text itself. The license text stanzas should not have 'or'
-> >
-> > Pushed again, together with general cleanup of that license file.
->
-> I added a few notes on mistakes on github - this seems too haphazard
-> to me, I'd rather see a script produce it by inspecting the source
-> files. :\
+ drivers/infiniband/core/umem.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-First version was produced by such script and following changes were
-my manual cleanup of mess from it.
-
->
-> This format of Debian's is truly painful to produce correctly.
->
-> Jason
-
---mvuFargmsA+C2jC8
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlht5EsACgkQ5GN7iDZy
-WKfZsg//VQEM8j463vMRVs4iT3ITGO+Nk1sChxk0oQG5qB6NjHFdVYU+FS4rj53v
-8/bc+FTF4/DmOJGve+SAl2JENyg8Oi9+lXPauYROlVMyAG/hxHe2tr01R/bVWvyP
-ygf23Nw6LmRf5I9709zWStndHiP3CCXVzdjTOX1Q1HUM8ifwA+M2tKJpCX4FtCTZ
-Q2lmCnSLhU7wzzPK0VoCjTGCHXlAkhX2ym8jrKSqq2qLHpitJl8riZ7tQS+2A7UZ
-n7q4Pd5QifG0wlqAeKdYf0ZrE/QarkGYTUrFiCMhjeHEHPrXE+Yn1xW/Qz1b8zf3
-6p+dyzAAZz6LytOtkDODTVY8hx1j8juTCdRE6ddfyefqzwF66LsDjfayYzd0hxYT
-kW0dAYvmaKp6ateAND5kOQ/FyRETbPCyCr6cxHEZeD3j2h9IcTG4jR3L+k3uYF+K
-6kFmbjNXsbWsogH/Xfp955njSmVrd2BUaXjBqKedr7jslLHUIM+qKlIkfX6QZtaF
-rq+7WoSGXe+eKAGmXGDgSZl0dK4V9AZZIMBcPMQQHJ7ox7vNmiTuFfGz3MTVLX+k
-tvy5Nk7hMy7+a65UleWfzgdvruzb0nnIu90C1oYN40G/rSFl/yJa7X2raEkkCMRH
-YREd3zbNvq/wod0rgXo6D1GZ7urgt/5sHEykTPIoX6pC7tZu/24=
-=36M+
------END PGP SIGNATURE-----
-
---mvuFargmsA+C2jC8--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 1e62a5f0cb28..4609b921f899 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -134,6 +134,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
+ 
+ 	if (access & IB_ACCESS_ON_DEMAND) {
++		put_pid(umem->pid);
+ 		ret = ib_umem_odp_get(context, umem);
+ 		if (ret) {
+ 			kfree(umem);
+@@ -149,6 +150,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 
+ 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+ 	if (!page_list) {
++		put_pid(umem->pid);
+ 		kfree(umem);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-- 
+1.9.1
