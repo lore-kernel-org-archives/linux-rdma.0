@@ -1,69 +1,67 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: rdma-core package version schema
-Date: Thu, 05 Jan 2017 20:01:07 +0100
-Message-ID: <1483642867.5227.18.camel@profitbricks.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/cma: Allow port reuse for rdma_id
+Date: Thu, 5 Jan 2017 21:33:02 +0200
+Message-ID: <20170105193302.GF15685@mtr-leonro.local>
+References: <20170105141636.23284-1-leon@kernel.org>
+ <20170105141636.23284-2-leon@kernel.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB0D7F68@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ULyIDA2m8JTe+TiX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0D7F68-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
 
-I looked at the Debian packaging of rdma-core and stumbled over the
-versioning. You change the version of the binary library packages
-(libibcm1, libibumad3, etc.) from the Debian package version (currently
-12-1) to their shared library versions. This change is uncommon and
-confusing besides other issues. [1] It is common that the package
-version differ from the library (soname) version. As potential Debian
-sponsor I would reject this package version change.
+--ULyIDA2m8JTe+TiX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The second problematic thing is that each library has its own major and
-minor number, but use the package version as patch level. This
-restricts the package version to one number which will increase fast.
+On Thu, Jan 05, 2017 at 06:40:04PM +0000, Hefty, Sean wrote:
+> > From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > When allocating a port number for binding to a rdma_id, assuming the
+> > allocation is not for a specific port, the rule is to allow only ports
+> > that were not in use before by any other rdma_id.
+> >
+> > This condition is too strong to achieve the goal of a unique 5 tuple
+> > rdma_id. Instead, we can compare current rdma_id with other rdma_id for
+> > difference in one of destination port, source address and destination
+> > address to allow port reuse.
+> >
+> > Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>
+> Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
->From my Debian maintainer perspective, I recommend following change:
-Maintain two different versions, the package version and the library
-versions.
+Thanks Sean for your prompt response.
+I truly appreciate it.
 
-The package version could follow the semantic versioning [2], the
-version schema from the kernel [3], or by date [4]. Make that version
-number be useful in itself. I suggest to start with version 2.0 (since
-1.3.10 is the highest version that I found in one of its libraries when
-they were maintained separately).
+--ULyIDA2m8JTe+TiX
+Content-Type: application/pgp-signature; name="signature.asc"
 
-For the library version numbers, you could either maintain them
-separately (increase only if you touch that library between two
-releases) or maintain a common patch level (like you do now).
+-----BEGIN PGP SIGNATURE-----
 
-PS: I am thinking about offering becoming a co-maintainer for the rdma-
-core Debian package.
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhun20ACgkQ5GN7iDZy
+WKcTnw/9E/p+A96N0HQa7W9ne5FBoVO3r+i1gc7+yAJxeYAXACuRVHxs+oUqBVAq
+mW/akuKBsglUXg/uoq/v70iriOsPZqcRv3GYpobmuhtq/oqvwJVMlYz2OKVeFXsB
+L4lu05Tr+K3l8du43HwWLF5P56H5VQob7c/kTXb3tT3Veeo6W6NkdDbBs5wOCAfz
+d6oDISAlEQHj5M+9CcHoRpec+bqIoHqoAintCqXQPQxPYRexr8J5DjgCsUbvpkiS
+NmhJSBqDYWl8Fr7GvK2aYdv98ECwR8Wx8BlaXQmC828U7Dxjn3iA+z8082Z5OPWu
+hk1eIs9EUVcM9HV0BceZvczxgjBKc+vDqRTuXARjkiZTU60l7Ci3BMFSol/MtJLj
+r1nn1jnjYl76WtQDnS0FuV5J9InSWUvj5zPZ+nkYqUxkn/DX93GvdOr2YBhF9kXY
+EbdLpu2FrS1IcQL/mW26HtVVx3XTlnK2y4gGGh7DZxcVXPRVjJGICz70NDloKmWu
+9jckuqj07HqCd1JTQjiRAcEQN4aypmLvb2C0FQv0kwHyrUk4Ytj78Ou1mrSWc4Te
++a2Q5DXmkt/ZN+oQZqv9nF2F5xItXOzkYi8IQ/NcamQhadyJY9f+tAEM+XvWRwZr
+lBw48f2h4vLtoedeHvNrzmHm9komi7iSbZ0Rii55PnS+V4EZwnA=
+=DZX2
+-----END PGP SIGNATURE-----
 
-[1] Andrey Rahmatullin wrote in https://bugs.debian.org/850145 :
-"Please make sure you fully understand the consequences of using binary
-package versions different from the source one."
-[2] http://semver.org/
-[3] major.minor.patch were major is increased when minor becomes too
-big.
-[4] year.${number of release of the year}.patch (e.g. 2017.1)
-
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:  http://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Andreas Gauger, Achim Weiss.
+--ULyIDA2m8JTe+TiX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
