@@ -1,88 +1,90 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 6 Jan 2017 11:26:25 -0700
-Message-ID: <20170106182625.GB5724@obsidianresearch.com>
-References: <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
+Subject: Re: rdma-core package version schema
+Date: Fri, 6 Jan 2017 11:47:17 -0700
+Message-ID: <20170106184717.GC5724@obsidianresearch.com>
+References: <1483642867.5227.18.camel@profitbricks.com>
+ <20170105230928.GA4262@obsidianresearch.com>
+ <1483723704.5227.23.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170106173722.GB3804-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1483723704.5227.23.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 06, 2017 at 12:37:22PM -0500, Jerome Glisse wrote:
-> On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
-> > On 2017-01-05 08:58 PM, Jerome Glisse wrote:
-> > > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
-> > > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
-> > > > 
-> > > > > > I still don't understand what you driving at - you've said in both
-> > > > > > cases a user VMA exists.
-> > > > > In the former case no, there is no VMA directly but if you want one than
-> > > > > a device can provide one. But such VMA is useless as CPU access is not
-> > > > > expected.
-> > > > I disagree it is useless, the VMA is going to be necessary to support
-> > > > upcoming things like CAPI, you need it to support O_DIRECT from the
-> > > > filesystem, DPDK, etc. This is why I am opposed to any model that is
-> > > > not VMA based for setting up RDMA - that is shorted sighted and does
-> > > > not seem to reflect where the industry is going.
-> > > > 
-> > > > So focus on having VMA backed by actual physical memory that covers
-> > > > your GPU objects and ask how do we wire up the '__user *' to the DMA
-> > > > API in the best way so the DMA API still has enough information to
-> > > > setup IOMMUs and whatnot.
-> > > I am talking about 2 different thing. Existing hardware and API where you
-> > > _do not_ have a vma and you do not need one. This is just
-> > > > existing stuff.
+On Fri, Jan 06, 2017 at 06:28:24PM +0100, Benjamin Drung wrote:
+> Good to hear. It looked more like being near of a release (and thus
+> being the first step). Expect more comments from my side. ;)
 
-> > I do not understand why you assume that existing API doesn't  need one.
-> > I would say that a lot of __existing__ user level API and their support in
-> > kernel (especially outside of graphics domain) assumes that we have vma and
-> > deal with __user * pointers.
+Great
 
-+1
+> > > The package version could follow the semantic versioning [2], the
+> > > version schema from the kernel [3],
+> > 
+> > We discussed these options on the mailing list and they were not
+> > popular.
+> 
+> Can you point me to these mails?
 
-> Well i am thinking to GPUDirect here. Some of GPUDirect use case do not have
-> vma (struct vm_area_struct) associated with them they directly apply to GPU
-> object that aren't expose to CPU. Yes some use case have vma for share buffer.
+They were on the linux-rdma mailing list..
 
-Lets stop talkind about GPU direct. Today we can't even make VMA
-pointing at a PCI bar work properly in the kernel - lets start there
-please. People can argue over other options once that is done.
+I think there were a couple threads, but here is one:
 
-> For HMM plan is to restrict to ODP and either to replace ODP with HMM or change
-> ODP to not use get_user_pages_remote() but directly fetch informations from
-> CPU page table. Everything else stay as it is. I posted patchset to replace
-> ODP with HMM in the past.
+http://www.spinics.net/lists/linux-rdma/msg40407.html
 
-Make a generic API for all of this and you'd have my vote..
+> > We don't have any of the legacy compat reasons to have a two level
+> > release number scheme like the kernel.
+> 
+> I like the two level release numbers, because they prevent the major
+> number to rise high too early. IMO 42.1 is not simpler than 2.5.1.
 
-IMHO, you must support basic pinning semantics - that is necessary to
-support generic short lived DMA (eg filesystem, etc). That hardware
-can clearly do that if it can support ODP.
+The down side is that 2.5.1 looks like a semantic version '42' does
+not.
+
+Systemd is up to 278 and coreos is up to 1284, doesn't seem to bother
+anyone?
+
+> Using the date for the version number has benefits outside of time
+> based releases. For example you can tell from the version number
+> whether the release is recent or old (2017.1 is fresh, but 2012.5 is
+> old legacy stuff).
+
+Maybe, I don't think anyone was advocating for it..
+
+> > I hope that
+> > significant parts of the the debian/ dir can be maintained upstream
+> > like Redhat is going to do for their packaging.
+> 
+> That is doable as long as the future Debian maintainers will have
+> commit access. Otherwise the debian directory will get out of sync
+> soon.
+
+We will have to see how things work with this approach.
+
+My hope is to keep things up to date on an ongoing basis, eg this
+patch would be an example
+
+https://github.com/linux-rdma/rdma-core/commit/4910f1eb752e1303b796ede7d45fcd2f618f220a
+
+Which includes .spec and debian/ updates for the new installed files added.
+
+I suspect the packaging changelogs will have to be maintained
+downstream however.
+
+> PS: How will you create the release tarballs?
+
+via github so far:
+
+https://github.com/linux-rdma/rdma-core/releases
+https://github.com/linux-rdma/rdma-core/archive/rdma-core-12-rc4.tar.gz
+
+I think Doug is still experimenting with this.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
