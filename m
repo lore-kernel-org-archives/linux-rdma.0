@@ -1,143 +1,171 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: rdma-core package version schema
-Date: Fri, 06 Jan 2017 18:28:24 +0100
-Message-ID: <1483723704.5227.23.camel@profitbricks.com>
-References: <1483642867.5227.18.camel@profitbricks.com>
-         <20170105230928.GA4262@obsidianresearch.com>
+From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Fri, 6 Jan 2017 12:37:22 -0500
+Message-ID: <20170106173722.GB3804@redhat.com>
+References: <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170105230928.GA4262-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f07700d5-211f-d091-2b0b-fbaf03c4a959-5C7GfCeVMHo@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
+Cc: hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, david1.zhou-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, qiang.yu-5C7GfCeVMHo@public.gmane.org, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Am Donnerstag, den 05.01.2017, 16:09 -0700 schrieb Jason Gunthorpe:
-> On Thu, Jan 05, 2017 at 08:01:07PM +0100, Benjamin Drung wrote:
-> > I looked at the Debian packaging of rdma-core and stumbled over the
-> > versioning. You change the version of the binary library packages
-> > (libibcm1, libibumad3, etc.) from the Debian package version
-> > (currently
-> > 12-1) to their shared library versions. This change is uncommon and
-> > confusing besides other issues. [1] It is common that the package
-> > version differ from the library (soname) version. As potential
-> > Debian
-> > sponsor I would reject this package version change.
-> 
-> Just to be clear, the packaging as it is today was only a suggested
-> starting point for discussion. I have no objection at all to changing
-> this or other things.
+On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
+> On 2017-01-05 08:58 PM, Jerome Glisse wrote:
+> > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
+> > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
+> > > =
 
-Good to hear. It looked more like being near of a release (and thus
-being the first step). Expect more comments from my side. ;)
+> > > > > I still don't understand what you driving at - you've said in both
+> > > > > cases a user VMA exists.
+> > > > In the former case no, there is no VMA directly but if you want one=
+ than
+> > > > a device can provide one. But such VMA is useless as CPU access is =
+not
+> > > > expected.
+> > > I disagree it is useless, the VMA is going to be necessary to support
+> > > upcoming things like CAPI, you need it to support O_DIRECT from the
+> > > filesystem, DPDK, etc. This is why I am opposed to any model that is
+> > > not VMA based for setting up RDMA - that is shorted sighted and does
+> > > not seem to reflect where the industry is going.
+> > > =
 
-> This was only done for two reasons:
-> 
->  1) A clear migration from the pre-existing binary packages,
->     using similar versioning (eg upgrading from librdmacm1 1.2 to 12
->     seems pretty wonky)
+> > > So focus on having VMA backed by actual physical memory that covers
+> > > your GPU objects and ask how do we wire up the '__user *' to the DMA
+> > > API in the best way so the DMA API still has enough information to
+> > > setup IOMMUs and whatnot.
+> > I am talking about 2 different thing. Existing hardware and API where y=
+ou
+> > _do not_ have a vma and you do not need one. This is just existing stuf=
+f.
+> I do not understand why you assume that existing API doesn't  need one.
+> I would say that a lot of __existing__ user level API and their support in
+> kernel (especially outside of graphics domain) assumes that we have vma a=
+nd
+> deal with __user * pointers.
 
-The version should be a little above max(pre-existing packages). That's
-why I suggested to start with 2.0 (which is > 1.3.10) and doesn't look
-scary to upgrade to.
+Well i am thinking to GPUDirect here. Some of GPUDirect use case do not have
+vma (struct vm_area_struct) associated with them they directly apply to GPU
+object that aren't expose to CPU. Yes some use case have vma for share buff=
+er.
 
->  2) A possibility in future to make use of the library minor version.
->     Eg librdmacm1 1.2 might introduce new APIs and build-depends
->     could sanely use librdmacm1-dev (>= 1.2). RH has said they
->     don't want to do this, and if Debian goes the same way then
->     we won't bother manipulating the shlib minor version.
->     Build depends will have to be based on the overall release
->     number instead.
+In the open source driver it is true that we have vma most often than not.
 
-I concur with RH. The overall release numbers are fine and useful for
-specifying release numbers.
+> > Some close driver provide a functionality on top of this design. Questi=
+on
+> > is do we want to do the same ? If yes and you insist on having a vma we
+> > could provide one but this is does not apply and is useless for where we
+> > are going with new hardware.
+> > =
 
-> > The second problematic thing is that each library has its own major
-> > and
-> > minor number, but use the package version as patch level. This
-> > restricts the package version to one number which will increase
-> > fast.
-> 
-> We are not using libtool so there is no concept of a 'patch
-> level'. The file name of the shared library is not a semantic version
-> string either. The main package version can be any string and
-> everything will work out correctly.
-> 
-> If Debian does not use the library version as part of the binary
-> package then there is no reason at all to be concerned about its
-> construction as nothing will really see it.
+> > With new hardware you just use malloc or mmap to allocate memory and th=
+en
+> > you use it directly with the device. Device driver can migrate any part=
+ of
+> > the process address space to device memory. In this scheme you have your
+> > usual VMAs but there is nothing special about them.
+>
+> Assuming that the whole device memory is CPU accessible and it looks
+> like the direction where we are going:
+> - You forgot about use case when we want or need to allocate memory
+> directly on device (why we need to migrate anything if not needed?).
+> - We may want to use CPU to access such memory on device to avoid
+> any unnecessary migration back.
+> - We may have more device memory than the system one.
+> E.g. if you have 12 GPUs w/64GB each it will already give us ~0.7 TB
+> not mentioning NVDIMM cards which could also be used as memory
+> storage for other device access.
+> - We also may want/need to share GPU memory between different
+> processes.
 
-Okay.
+Here i am talking about platform where GPU memory is not accessible at
+all by the CPU (because of PCIe restriction, think CPU atomic operation
+on IO memory).
 
-> > The package version could follow the semantic versioning [2], the
-> > version schema from the kernel [3],
-> 
-> We discussed these options on the mailing list and they were not
-> popular.
+So i really distinguish between CAPI/CCIX and PCIe. Some platform will
+have CAPI/CCIX other wont. HMM apply mostly to the latter. Some of HMM
+functionalities are still usefull with CAPI/CCIX.
 
-Can you point me to these mails?
+Note that HMM do support allocation on GPU first. In current design this
+can happen when GPU is the first to access an unpopulated virtual address.
 
-> To be clear the full form of the package version is 
-> <release>.<patchlevel> similar to other projects. Eg a backport or
-> bugfix could be called '12.1', a vendor fork could be called
-> '12.vnd1'
-> and so on.
-> 
-> We don't have any of the legacy compat reasons to have a two level
-> release number scheme like the kernel.
 
-I like the two level release numbers, because they prevent the major
-number to rise high too early. IMO 42.1 is not simpler than 2.5.1.
+For platform where GPU memory is accessible plan is either something
+like CDM (Coherent Device Memory) or rely on ZONE_DEVICE. So all GPU
+memory have struct page and those are like ordinary pages. CDM still
+wants some restrictions like avoiding CPU allocation to happen on GPU
+when there is memory pressure ... For all intent and purposes this
+will work transparently in respect to RDMA because we assume on those
+system that the RDMA is CAPI/CCIX and that it can peer to other device.
 
-> > or by date [4].
-> 
-> I don't recall if date was discussed. It doesn't seem significantly
-> better than a release serial number.. I think that makes more sense
-> for a project that is doing timed releases, which we are not planning
-> to do.
 
-Using the date for the version number has benefits outside of time
-based releases. For example you can tell from the version number
-whether the release is recent or old (2017.1 is fresh, but 2012.5 is
-old legacy stuff).
+> > Now when you try to do get_user_page() on any page that is inside the
+> > device it will fails because we do not allow any device memory to be pi=
+n.
+> > There is various reasons for that and they are not going away in any hw
+> > in the planing (so for next few years).
+> > =
 
-> > PS: I am thinking about offering becoming a co-maintainer for the
-> > rdma-
-> > core Debian package.
-> 
-> This is very exciting news! Please feel free to send any patches or
-> pull requests to improve the packaging, or otherwise!
+> > Still we do want to support peer to peer mapping. Plan is to only do so
+> > with ODP capable hardware. Still we need to solve the IOMMU issue and
+> > it needs special handling inside the RDMA device. The way it works is
+> > that RDMA ask for a GPU page, GPU check if it has place inside its PCI
+> > bar to map this page for the device, this can fail. If it succeed then
+> > you need the IOMMU to let the RDMA device access the GPU PCI bar.
+> > =
 
-Expect patches from me. Before starting a bigger review, I will wait
-for the pull request https://github.com/linux-rdma/rdma-core/pull/50
+> > So here we have 2 orthogonal problem. First one is how to make 2 drivers
+> > talks to each other to setup mapping to allow peer to peer But I would =
+assume  and second is
+> > about IOMMU.
+> > =
 
-> I hope that
-> significant parts of the the debian/ dir can be maintained upstream
-> like Redhat is going to do for their packaging.
+> I think that there is the third problem:  A lot of existing user level API
+> (MPI, IB Verbs, file i/o, etc.) deal with pointers to the buffers.
+> Potentially it would be ideally to support use cases when those buffers a=
+re
+> located in device memory avoiding any unnecessary migration /
+> double-buffering.
+> Currently a lot of infrastructure in kernel assumes that this is the user
+> pointer and call "get_user_pages"  to get s/g.   What is your opinion
+> how it should be changed to deal with cases when "buffer" is in
+> device memory?
 
-That is doable as long as the future Debian maintainers will have
-commit access. Otherwise the debian directory will get out of sync
-soon.
+For HMM plan is to restrict to ODP and either to replace ODP with HMM or ch=
+ange
+ODP to not use get_user_pages_remote() but directly fetch informations from
+CPU page table. Everything else stay as it is. I posted patchset to replace
+ODP with HMM in the past.
 
-PS: How will you create the release tarballs?
+For the older kind of API (GPUDirect on yesterday hardware) it uses special
+userspace API. If we don't care about supporting those i don't mind much but
+some people see benefit in not having to deal with vma (struct vm_area_stru=
+ct).
 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:  http://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Andreas Gauger, Achim Weiss.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+J=E9r=F4me
