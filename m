@@ -1,46 +1,109 @@
-From: David Miller <davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
- mlx5_ib
-Date: Fri, 06 Jan 2017 11:11:31 -0500 (EST)
-Message-ID: <20170106.111131.1775665484264248231.davem@redhat.com>
-References: <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA@mail.gmail.com>
-        <20170105.150731.2097384465565543422.davem@davemloft.net>
-        <20170106060608.GG15685@mtr-leonro.local>
+From: Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Fri, 6 Jan 2017 11:56:30 -0500
+Message-ID: <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170106060608.GG15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170106015831.GA2226-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Fri, 6 Jan 2017 08:06:09 +0200
-
-> On Thu, Jan 05, 2017 at 03:07:31PM -0500, David Miller wrote:
->> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> Date: Thu, 5 Jan 2017 14:03:18 -0600
+On 2017-01-05 08:58 PM, Jerome Glisse wrote:
+> On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
+>> On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
 >>
->> > If necessary I can make sure it builds on 32 bits as well.
+>>>> I still don't understand what you driving at - you've said in both
+>>>> cases a user VMA exists.
+>>> In the former case no, there is no VMA directly but if you want one than
+>>> a device can provide one. But such VMA is useless as CPU access is not
+>>> expected.
+>> I disagree it is useless, the VMA is going to be necessary to support
+>> upcoming things like CAPI, you need it to support O_DIRECT from the
+>> filesystem, DPDK, etc. This is why I am opposed to any model that is
+>> not VMA based for setting up RDMA - that is shorted sighted and does
+>> not seem to reflect where the industry is going.
 >>
->> Please do.
-> 
-> Dave,
-> 
-> I'm failing to understand the benefits of building mlx5 on 32 bits, and
-> see only disadvantages:
->  * It is actual dead code without test coverage.
->  * It misleads reviewers/customers by seeing code for 32 bits.
->  * It adds compilation time for 32 bits platforms and "punishes" them
->    for not relevant for them driver.
-> 
-> Why do you call removing all that as a "regression"?
-
-We have this thing called "CONFIG_COMPILE_TEST", it has tons of value,
-perhaps you've seen it before?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> So focus on having VMA backed by actual physical memory that covers
+>> your GPU objects and ask how do we wire up the '__user *' to the DMA
+>> API in the best way so the DMA API still has enough information to
+>> setup IOMMUs and whatnot.
+> I am talking about 2 different thing. Existing hardware and API where you
+> _do not_ have a vma and you do not need one. This is just existing stuff.
+I do not understand why you assume that existing API doesn't  need one.
+I would say that a lot of __existing__ user level API and their support 
+in kernel
+(especially outside of graphics domain) assumes that we have vma and
+deal with __user * pointers.
+> Some close driver provide a functionality on top of this design. Question
+> is do we want to do the same ? If yes and you insist on having a vma we
+> could provide one but this is does not apply and is useless for where we
+> are going with new hardware.
+>
+> With new hardware you just use malloc or mmap to allocate memory and then
+> you use it directly with the device. Device driver can migrate any part of
+> the process address space to device memory. In this scheme you have your
+> usual VMAs but there is nothing special about them.
+Assuming that the whole device memory is CPU accessible and it looks
+like the direction where we are going:
+- You forgot about use case when we want or need to allocate memory
+directly on device (why we need to migrate anything if not needed?).
+- We may want to use CPU to access such memory on device to avoid
+any unnecessary migration back.
+- We may have more device memory than the system one.
+E.g. if you have 12 GPUs w/64GB each it will already give us ~0.7 TB
+not mentioning NVDIMM cards which could also be used as memory
+storage for other device access.
+- We also may want/need to share GPU memory between different
+processes.
+> Now when you try to do get_user_page() on any page that is inside the
+> device it will fails because we do not allow any device memory to be pin.
+> There is various reasons for that and they are not going away in any hw
+> in the planing (so for next few years).
+>
+> Still we do want to support peer to peer mapping. Plan is to only do so
+> with ODP capable hardware. Still we need to solve the IOMMU issue and
+> it needs special handling inside the RDMA device. The way it works is
+> that RDMA ask for a GPU page, GPU check if it has place inside its PCI
+> bar to map this page for the device, this can fail. If it succeed then
+> you need the IOMMU to let the RDMA device access the GPU PCI bar.
+>
+> So here we have 2 orthogonal problem. First one is how to make 2 drivers
+> talks to each other to setup mapping to allow peer to peer But I would assume  and second is
+> about IOMMU.
+>
+I think that there is the third problem:  A lot of existing user level API
+(MPI, IB Verbs, file i/o, etc.) deal with pointers to the buffers.
+Potentially it would be ideally to support use cases when those buffers are
+located in device memory avoiding any unnecessary migration / 
+double-buffering.
+Currently a lot of infrastructure in kernel assumes that this is the user
+pointer and call "get_user_pages"  to get s/g.   What is your opinion
+how it should be changed to deal with cases when "buffer" is in
+device memory?
