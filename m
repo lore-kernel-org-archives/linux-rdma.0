@@ -1,119 +1,179 @@
-From: "Deucher, Alexander" <Alexander.Deucher@amd.com>
-Subject: RE: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 6 Jan 2017 19:12:32 +0000
-Message-ID: <BN6PR12MB1652CC50C4FB1CC17E14BD7DF7630@BN6PR12MB1652.namprd12.prod.outlook.com>
-References: <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
- <20170106182625.GB5724@obsidianresearch.com>
+From: Robert LeBlanc <robert@leblancnet.us>
+Subject: Re: iscsi_trx going into D state
+Date: Fri, 6 Jan 2017 12:12:58 -0700
+Message-ID: <CAANLjFocE2fbO_oWRiEVCt0=mfmgrLy9qWqqg=TH_jZS3PXn0g@mail.gmail.com>
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+ <CAANLjFqvtqFu85Aivg6K8XB0rMub03KbBSCq8Kj=Cg+ybxu3pw@mail.gmail.com>
+ <CAANLjFpbE9-B8qWtU5nDfg4+t+kD8TSVy0JOfN+zuFYsZ05_Dg@mail.gmail.com>
+ <CAANLjFpEpJ4647u9R-7phf68fw--pOfThbp5Sntd4c7DdRSwwQ@mail.gmail.com>
+ <CAANLjFooGrt51a9rOy8TKMyXyxBYmGEPm=h1YJm81Nj6YS=5yg@mail.gmail.com>
+ <CAANLjFrZrTPUuzP_NjkgG5h_YwwYKEWT-KzVjTvuXZ1d04z6Fg@mail.gmail.com>
+ <CAANLjFpSnQ7ApOK5HDRHXQQeQNGWLUv4e+2N=_e-zBeziYm5tw@mail.gmail.com>
+ <CAANLjForEkO6RXw7KJYrTJD=f0S8FE73vvwNQcL_ARFdFoDQqg@mail.gmail.com> <1030906614.13148012.1483722413675.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170106182625.GB5724@obsidianresearch.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>, Jerome Glisse <jglisse@redhat.com>
-Cc: "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>, Jerome Glisse <j.glisse@gmail.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>, "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>, "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "hch@infradead.org" <hch@infradead.org>, "Zhou, David(ChunMing)" <David1.Zhou@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1030906614.13148012.1483722413675.JavaMail.zimbra@redhat.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Laurence Oberman <loberman@redhat.com>
+Cc: Doug Ledford <dledford@redhat.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Zhu Lingshan <lszhu@suse.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe@obsidianresearch.com]
-> Sent: Friday, January 06, 2017 1:26 PM
-> To: Jerome Glisse
-> Cc: Sagalovitch, Serguei; Jerome Glisse; Deucher, Alexander; 'linux-
-> kernel@vger.kernel.org'; 'linux-rdma@vger.kernel.org'; 'linux-
-> nvdimm@lists.01.org'; 'Linux-media@vger.kernel.org'; 'dri-
-> devel@lists.freedesktop.org'; 'linux-pci@vger.kernel.org'; Kuehling, Feli=
-x;
-> Blinzer, Paul; Koenig, Christian; Suthikulpanit, Suravee; Sander, Ben;
-> hch@infradead.org; Zhou, David(ChunMing); Yu, Qiang
-> Subject: Re: Enabling peer to peer device transactions for PCIe devices
->=20
-> On Fri, Jan 06, 2017 at 12:37:22PM -0500, Jerome Glisse wrote:
-> > On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
-> > > On 2017-01-05 08:58 PM, Jerome Glisse wrote:
-> > > > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
-> > > > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
-> > > > >
-> > > > > > > I still don't understand what you driving at - you've said in=
- both
-> > > > > > > cases a user VMA exists.
-> > > > > > In the former case no, there is no VMA directly but if you want=
- one
-> than
-> > > > > > a device can provide one. But such VMA is useless as CPU access=
- is
-> not
-> > > > > > expected.
-> > > > > I disagree it is useless, the VMA is going to be necessary to sup=
-port
-> > > > > upcoming things like CAPI, you need it to support O_DIRECT from t=
-he
-> > > > > filesystem, DPDK, etc. This is why I am opposed to any model that=
- is
-> > > > > not VMA based for setting up RDMA - that is shorted sighted and
-> does
-> > > > > not seem to reflect where the industry is going.
-> > > > >
-> > > > > So focus on having VMA backed by actual physical memory that
-> covers
-> > > > > your GPU objects and ask how do we wire up the '__user *' to the
-> DMA
-> > > > > API in the best way so the DMA API still has enough information t=
-o
-> > > > > setup IOMMUs and whatnot.
-> > > > I am talking about 2 different thing. Existing hardware and API whe=
-re
-> you
-> > > > _do not_ have a vma and you do not need one. This is just
-> > > > > existing stuff.
->=20
-> > > I do not understand why you assume that existing API doesn't  need on=
-e.
-> > > I would say that a lot of __existing__ user level API and their suppo=
-rt in
-> > > kernel (especially outside of graphics domain) assumes that we have v=
-ma
-> and
-> > > deal with __user * pointers.
->=20
-> +1
->=20
-> > Well i am thinking to GPUDirect here. Some of GPUDirect use case do not
-> have
-> > vma (struct vm_area_struct) associated with them they directly apply to
-> GPU
-> > object that aren't expose to CPU. Yes some use case have vma for share
-> buffer.
->=20
-> Lets stop talkind about GPU direct. Today we can't even make VMA
-> pointing at a PCI bar work properly in the kernel - lets start there
-> please. People can argue over other options once that is done.
->=20
-> > For HMM plan is to restrict to ODP and either to replace ODP with HMM o=
-r
-> change
-> > ODP to not use get_user_pages_remote() but directly fetch informations
-> from
-> > CPU page table. Everything else stay as it is. I posted patchset to rep=
-lace
-> > ODP with HMM in the past.
->=20
-> Make a generic API for all of this and you'd have my vote..
->=20
-> IMHO, you must support basic pinning semantics - that is necessary to
-> support generic short lived DMA (eg filesystem, etc). That hardware
-> can clearly do that if it can support ODP.
+Laurence,
 
-We would definitely like to have support for hardware that can't handle pag=
-e faults gracefully.
+Since the summary may be helpful to others, I'm just going to send it
+to the list.
 
-Alex
+I've been able to reproduce the D state problem on both Infiniband and
+RoCE, but it is much easier to reproduce on RoCE due to another bug
+and doesn't require being at the server to yank the cable (remote
+power control of a switch may work as well). The bug seems to be
+triggered by an abrupt and unexpected break in communications
+
+Common config between both Infiniband and RoCE:
+====
+* Linux kernel 4.9 (using only inbox drivers, no OFED)
+* Target and initiator both configured on the same subnet
+* 100 GB ram disk exported by iser [1]
+* Iser volume imported on client and the whole block device formatted ext4.
+* FIO run on iser volume on the client [2]
+* Anything not mentioned in this document should be default (it is a
+pretty simple config)
+
+Infiniband specific config:
+====
+* Any IB cards should work (my config has ConnectX-3, but has also
+been seen on Connect-IB in our environment)
+* Back to back (my config) or connected to a switch
+* OpenSM running on the target (my config), or on a separate host (not
+sure how cutting power to the switch may impact triggering the bug, I
+believe it will still trigger ok)
+* While running the fio job, pull the cable on the initiator side.
+After about 120 seconds the fio job will fail and the iscsi processes
+should be in D state on the target.
+
+RoCE specific config:
+====
+* Only tested with ConnectX-4-LX cards (I don't know if others will
+trigger the problem, pulling the cable like in the Infiniband section,
+may also trigger the bug if it doesn't trigger automatically)
+* Hosts must be connected by a switch or a Linux bridge that doesn't
+have RoCE offload. I was able to trigger the bugs with a back to back
+connection if the target clamps the speed to 10 Gb [3].
+* Running the fio job should be enough to trigger the RoCE card to
+unexpectedly drop the RDMA connection and that should then cause the
+target iscsci processes to go into D state.
+
+For either the Infiniband or RoCE setup, the bug can be triggered with
+only two hosts connected back to back. If something is still not
+clear, please let me know.
+
+[1] /etc/saveconfig.json
+```json
+{
+  "fabric_modules": [],
+  "storage_objects": [
+    {
+      "attributes": {
+        "block_size": 512,
+        "emulate_3pc": 1,
+        "emulate_caw": 1,
+        "emulate_dpo": 0,
+        "emulate_fua_read": 0,
+        "emulate_fua_write": 1,
+        "emulate_model_alias": 1,
+        "emulate_rest_reord": 0,
+        "emulate_tas": 1,
+        "emulate_tpu": 0,
+        "emulate_tpws": 0,
+        "emulate_ua_intlck_ctrl": 0,
+        "emulate_write_cache": 0,
+        "enforce_pr_isids": 1,
+        "force_pr_aptpl": 0,
+        "is_nonrot": 1,
+        "max_unmap_block_desc_count": 0,
+        "max_unmap_lba_count": 0,
+        "max_write_same_len": 0,
+        "optimal_sectors": 4294967288,
+        "pi_prot_format": 0,
+        "pi_prot_type": 0,
+        "queue_depth": 128,
+        "unmap_granularity": 0,
+        "unmap_granularity_alignment": 0
+      },
+      "name": "test1",
+      "plugin": "ramdisk",
+      "size": 107374182400,
+      "wwn": "7486ed41-585e-400f-8799-ac605485b221"
+    }
+  ],
+  "targets": [
+    {
+      "fabric": "iscsi",
+      "tpgs": [
+        {
+          "attributes": {
+            "authentication": 0,
+            "cache_dynamic_acls": 1,
+            "default_cmdsn_depth": 64,
+            "default_erl": 0,
+            "demo_mode_discovery": 1,
+            "demo_mode_write_protect": 0,
+            "generate_node_acls": 1,
+            "login_timeout": 15,
+            "netif_timeout": 2,
+            "prod_mode_write_protect": 0,
+            "t10_pi": 0
+          },
+          "enable": true,
+          "luns": [
+            {
+              "index": 0,
+              "storage_object": "/backstores/ramdisk/test1"
+            }
+          ],
+          "node_acls": [],
+          "parameters": {
+            "AuthMethod": "CHAP,None",
+            "DataDigest": "CRC32C,None",
+            "DataPDUInOrder": "Yes",
+            "DataSequenceInOrder": "Yes",
+            "DefaultTime2Retain": "20",
+            "DefaultTime2Wait": "2",
+            "ErrorRecoveryLevel": "0",
+            "FirstBurstLength": "65536",
+            "HeaderDigest": "CRC32C,None",
+            "IFMarkInt": "Reject",
+            "IFMarker": "No",
+            "ImmediateData": "Yes",
+            "InitialR2T": "Yes",
+            "MaxBurstLength": "262144",
+            "MaxConnections": "1",
+            "MaxOutstandingR2T": "1",
+            "MaxRecvDataSegmentLength": "8192",
+            "MaxXmitDataSegmentLength": "262144",
+            "OFMarkInt": "Reject",
+            "OFMarker": "No",
+            "TargetAlias": "LIO Target"
+          },
+          "portals": [
+            {
+              "ip_address": "0.0.0.0",
+              "iser": true,
+              "port": 3260
+            }
+          ],
+          "tag": 1
+        }
+      ],
+      "wwn": "iqn.2016-12.com.betterservers"
+    }
+  ]
+}
+```
+[2] echo "3" > /proc/sys/vm/drop_caches; fio --rw=read --bs=4K
+--size=1G --numjobs=40 --name=worker.matt --group_reporting
+[3] ethtool -s eth3 speed 10000 advertise 0x80000
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
