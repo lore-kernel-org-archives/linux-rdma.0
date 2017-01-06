@@ -1,90 +1,95 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core package version schema
-Date: Thu, 5 Jan 2017 16:09:29 -0700
-Message-ID: <20170105230928.GA4262@obsidianresearch.com>
-References: <1483642867.5227.18.camel@profitbricks.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 5 Jan 2017 17:30:34 -0700
+Message-ID: <20170106003034.GB4670@obsidianresearch.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1483642867.5227.18.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170105232352.GB6426-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "Deucher,
+ Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 05, 2017 at 08:01:07PM +0100, Benjamin Drung wrote:
-> I looked at the Debian packaging of rdma-core and stumbled over the
-> versioning. You change the version of the binary library packages
-> (libibcm1, libibumad3, etc.) from the Debian package version (currently
-> 12-1) to their shared library versions. This change is uncommon and
-> confusing besides other issues. [1] It is common that the package
-> version differ from the library (soname) version. As potential Debian
-> sponsor I would reject this package version change.
+On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
 
-Just to be clear, the packaging as it is today was only a suggested
-starting point for discussion. I have no objection at all to changing
-this or other things.
+> > I still don't understand what you driving at - you've said in both
+> > cases a user VMA exists.
+> 
+> In the former case no, there is no VMA directly but if you want one than
+> a device can provide one. But such VMA is useless as CPU access is not
+> expected.
 
-This was only done for two reasons:
+I disagree it is useless, the VMA is going to be necessary to support
+upcoming things like CAPI, you need it to support O_DIRECT from the
+filesystem, DPDK, etc. This is why I am opposed to any model that is
+not VMA based for setting up RDMA - that is shorted sighted and does
+not seem to reflect where the industry is going.
 
- 1) A clear migration from the pre-existing binary packages,
-    using similar versioning (eg upgrading from librdmacm1 1.2 to 12
-    seems pretty wonky)
- 2) A possibility in future to make use of the library minor version.
-    Eg librdmacm1 1.2 might introduce new APIs and build-depends
-    could sanely use librdmacm1-dev (>= 1.2). RH has said they
-    don't want to do this, and if Debian goes the same way then
-    we won't bother manipulating the shlib minor version.
-    Build depends will have to be based on the overall release
-    number instead.
+So focus on having VMA backed by actual physical memory that covers
+your GPU objects and ask how do we wire up the '__user *' to the DMA
+API in the best way so the DMA API still has enough information to
+setup IOMMUs and whatnot.
 
-> The second problematic thing is that each library has its own major and
-> minor number, but use the package version as patch level. This
-> restricts the package version to one number which will increase fast.
+> What i was trying to get accross is that no matter what level you
+> consider in the end you still need something at the DMA API level.
+> And that the 2 different use case (device vma or regular vma) means
+> 2 differents API for the device driver.
 
-We are not using libtool so there is no concept of a 'patch
-level'. The file name of the shared library is not a semantic version
-string either. The main package version can be any string and
-everything will work out correctly.
+I agree we need new stuff at the DMA API level, but I am opposed to
+the idea we need two API paths that the *driver* has to figure out.
+That is fundamentally not what I want as a driver developer.
 
-If Debian does not use the library version as part of the binary
-package then there is no reason at all to be concerned about its
-construction as nothing will really see it.
+Give me a common API to convert '__user *' to a scatter list and pin
+the pages. This needs to figure out your two cases. And Huge
+Pages. And ZONE_DIRECT.. (a better get_user_pages)
 
-Each of the libraries uses strong ABI compatability with symbol
-versioning.
+Give me an API to take the scatter list and DMA map it, handling all
+the stuff associated with peer-peer. (a better dma_map_sg)
 
-> The package version could follow the semantic versioning [2], the
-> version schema from the kernel [3],
+Give me a notifier scheme to rework my scatter list when physical
+pages need to change (mmu notifiers)
 
-We discussed these options on the mailing list and they were not popular.
+Use the scatter list memory to convey needed information from the
+first step to the second.
 
-To be clear the full form of the package version is 
-<release>.<patchlevel> similar to other projects. Eg a backport or
-bugfix could be called '12.1', a vendor fork could be called '12.vnd1'
-and so on.
+Do not bother the driver with distinctions on what kind of memory is
+behind that VMA. Don't ask me to use get_user_pages or
+gpu_get_user_pages, do not ask me to use dma_map_sg or
+dma_map_sg_peer_direct. The Driver Doesn't Need To Know.
 
-We don't have any of the legacy compat reasons to have a two level
-release number scheme like the kernel.
+IMHO this is why GPU direct is not mergable - it creates a crazy
+parallel mini-mm subsystem inside RDMA and uses that to connect to a
+GPU driver, everything is expected to have parallel paths for GPU
+direct and normal MM. No good at all.
 
-> or by date [4].
+> > So, how do you identify these GPU objects? How do you expect RDMA
+> > convert them to scatter lists? How will ODP work?
+> 
+> No ODP on those. If you want vma, the GPU device driver can provide
 
-I don't recall if date was discussed. It doesn't seem significantly
-better than a release serial number.. I think that makes more sense
-for a project that is doing timed releases, which we are not planning
-to do.
-
-> PS: I am thinking about offering becoming a co-maintainer for the rdma-
-> core Debian package.
-
-This is very exciting news! Please feel free to send any patches or
-pull requests to improve the packaging, or otherwise! I hope that
-significant parts of the the debian/ dir can be maintained upstream
-like Redhat is going to do for their packaging.
+You said you needed invalidate, that has to be done via ODP.
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
