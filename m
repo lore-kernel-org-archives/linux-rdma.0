@@ -1,71 +1,46 @@
-From: Henrique Almeida <hdante.lnls-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 6 Jan 2017 12:08:22 -0300
-Message-ID: <CAP_Z8cn=O5-6A=udgOj6Rd_9_phR1K+aJ0ELXG7pZ5QEyhS3TQ@mail.gmail.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
- <20170105190113.GA12587@obsidianresearch.com>
+From: David Miller <davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
+ mlx5_ib
+Date: Fri, 06 Jan 2017 11:11:31 -0500 (EST)
+Message-ID: <20170106.111131.1775665484264248231.davem@redhat.com>
+References: <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA@mail.gmail.com>
+        <20170105.150731.2097384465565543422.davem@davemloft.net>
+        <20170106060608.GG15685@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170105190113.GA12587-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
- Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170106060608.GG15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- Hello, I've been watching this thread not as a kernel developer, but
-as an user interested in doing peer-to-peer access between network
-card and GPU. I believe that merging raw direct access with vma
-overcomplicates things for our use case. We'll have a very large
-camera streaming data at high throughput (up to 100 Gbps) to the GPU,
-which will operate in soft real time mode and write back the results
-to a RDMA enabled network storage. The CPU will only arrange the
-connection between GPU and network card. Having things like paging or
-memory overcommit is possible, but they are not required and they
-might consistently decrease the quality of the data acquisition.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Fri, 6 Jan 2017 08:06:09 +0200
 
- I see my use case something likely to exist for others and a strong
-reason to split the implementation in two.
+> On Thu, Jan 05, 2017 at 03:07:31PM -0500, David Miller wrote:
+>> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>> Date: Thu, 5 Jan 2017 14:03:18 -0600
+>>
+>> > If necessary I can make sure it builds on 32 bits as well.
+>>
+>> Please do.
+> 
+> Dave,
+> 
+> I'm failing to understand the benefits of building mlx5 on 32 bits, and
+> see only disadvantages:
+>  * It is actual dead code without test coverage.
+>  * It misleads reviewers/customers by seeing code for 32 bits.
+>  * It adds compilation time for 32 bits platforms and "punishes" them
+>    for not relevant for them driver.
+> 
+> Why do you call removing all that as a "regression"?
 
-
-2017-01-05 16:01 GMT-03:00 Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>:
-> On Thu, Jan 05, 2017 at 01:39:29PM -0500, Jerome Glisse wrote:
->
->>   1) peer-to-peer because of userspace specific API like NVidia GPU
->>     direct (AMD is pushing its own similar API i just can't remember
->>     marketing name). This does not happen through a vma, this happens
->>     through specific device driver call going through device specific
->>     ioctl on both side (GPU and RDMA). So both kernel driver are aware
->>     of each others.
->
-> Today you can only do user-initiated RDMA operations in conjection
-> with a VMA.
->
-> We'd need a really big and strong reason to create an entirely new
-> non-VMA based memory handle scheme for RDMA.
->
-> So my inclination is to just completely push back on this idea. You
-> need a VMA to do RMA.
->
-> GPUs need to create VMAs for the memory they want to RDMA from, even
-> if the VMA handle just causes SIGBUS for any CPU access.
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We have this thing called "CONFIG_COMPILE_TEST", it has tons of value,
+perhaps you've seen it before?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
