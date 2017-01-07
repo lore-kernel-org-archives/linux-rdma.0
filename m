@@ -1,51 +1,112 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] i40iw: fix some indenting in i40iw_sc_vsi_init()
-Date: Sat, 7 Jan 2017 19:34:27 +0200
-Message-ID: <20170107173426.GA3425@yuval-lap>
-References: <20170107063042.GD26959@elgon.mountain>
+From: Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Subject: Re: [PATCH v1 15/22] svcrdma: Clean up RPC-over-RDMA backchannel
+ reply processing
+Date: Sat, 7 Jan 2017 17:36:41 +0000
+Message-ID: <6566A5B5-DEB2-426F-BA6A-6D8FD32A48D3@primarydata.com>
+References: <20170107170258.14126.8503.stgit@klimt.1015granger.net>
+ <20170107171719.14126.10512.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170107063042.GD26959-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+In-Reply-To: <20170107171719.14126.10512.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-US
+Content-ID: <E53B59FF45E88945A6E0B5B157BC7644-Hry67jCOGbCcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 07, 2017 at 09:30:42AM +0300, Dan Carpenter wrote:
-> The debug printk was indented more than it should have been and we
-> can remove an unnecessary line break.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> 
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> index 98923a8cf86d..b9dc2c540946 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> @@ -4498,9 +4498,9 @@ void i40iw_sc_vsi_init(struct i40iw_sc_vsi *vsi, struct i40iw_vsi_init_info *inf
->  	i40iw_fill_qos_list(info->params->qs_handle_list);
->  
->  	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
-> -		vsi->qos[i].qs_handle =
-> -			info->params->qs_handle_list[i];
-> -			i40iw_debug(vsi->dev, I40IW_DEBUG_DCB, "qset[%d]: %d\n", i, vsi->qos[i].qs_handle);
-> +		vsi->qos[i].qs_handle =	info->params->qs_handle_list[i];
-> +		i40iw_debug(vsi->dev, I40IW_DEBUG_DCB, "qset[%d]: %d\n", i,
-> +			    vsi->qos[i].qs_handle);
+DQo+IE9uIEphbiA3LCAyMDE3LCBhdCAxMjoxNywgQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9y
+YWNsZS5jb20+IHdyb3RlOg0KPiANCj4gUmVwbGFjZSBDIHN0cnVjdHVyZS1iYXNlZCBYRFIgZGVj
+b2Rpbmcgd2l0aCBwb2ludGVyIGFyaXRobWV0aWMuDQo+IFBvaW50ZXIgYXJpdGhtZXRpYyBpcyBj
+b25zaWRlcmVkIG1vcmUgcG9ydGFibGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBDaHVjayBMZXZl
+ciA8Y2h1Y2subGV2ZXJAb3JhY2xlLmNvbT4NCj4gLS0tDQo+IGluY2x1ZGUvbGludXgvc3VucnBj
+L3N2Y19yZG1hLmggICAgICAgICAgICB8ICAgIDIgKy0NCj4gbmV0L3N1bnJwYy94cHJ0cmRtYS9z
+dmNfcmRtYV9iYWNrY2hhbm5lbC5jIHwgICAxNyArKysrKysrKysrKysrLS0tLQ0KPiBuZXQvc3Vu
+cnBjL3hwcnRyZG1hL3N2Y19yZG1hX3JlY3Zmcm9tLmMgICAgfCAgIDI3ICsrKysrKysrKysrKysr
+Ky0tLS0tLS0tLS0tLQ0KPiAzIGZpbGVzIGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKyksIDE3IGRl
+bGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvc3VucnBjL3N2Y19y
+ZG1hLmggYi9pbmNsdWRlL2xpbnV4L3N1bnJwYy9zdmNfcmRtYS5oDQo+IGluZGV4IDUzMTk4MGIu
+Ljk4NjZlOTQgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvbGludXgvc3VucnBjL3N2Y19yZG1hLmgN
+Cj4gKysrIGIvaW5jbHVkZS9saW51eC9zdW5ycGMvc3ZjX3JkbWEuaA0KPiBAQCAtMTg0LDcgKzE4
+NCw3IEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBzdmNfcmRtYV9jb3VudF9tYXBwaW5ncyhzdHJ1Y3Qg
+c3ZjeHBydF9yZG1hICpyZG1hLA0KPiANCj4gLyogc3ZjX3JkbWFfYmFja2NoYW5uZWwuYyAqLw0K
+PiBleHRlcm4gaW50IHN2Y19yZG1hX2hhbmRsZV9iY19yZXBseShzdHJ1Y3QgcnBjX3hwcnQgKnhw
+cnQsDQo+IC0JCQkJICAgIHN0cnVjdCBycGNyZG1hX21zZyAqcm1zZ3AsDQo+ICsJCQkJICAgIF9f
+YmUzMiAqcmRtYV9yZXNwLA0KPiAJCQkJICAgIHN0cnVjdCB4ZHJfYnVmICpyY3ZidWYpOw0KPiAN
+Cj4gLyogc3ZjX3JkbWFfbWFyc2hhbC5jICovDQo+IGRpZmYgLS1naXQgYS9uZXQvc3VucnBjL3hw
+cnRyZG1hL3N2Y19yZG1hX2JhY2tjaGFubmVsLmMgYi9uZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19y
+ZG1hX2JhY2tjaGFubmVsLmMNCj4gaW5kZXggN2Q0OTU0NS4uNmIzYmJiNiAxMDA2NDQNCj4gLS0t
+IGEvbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9iYWNrY2hhbm5lbC5jDQo+ICsrKyBiL25l
+dC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfYmFja2NoYW5uZWwuYw0KPiBAQCAtMTEsNyArMTEs
+MTYgQEANCj4gDQo+ICN1bmRlZiBTVkNSRE1BX0JBQ0tDSEFOTkVMX0RFQlVHDQo+IA0KPiAtaW50
+IHN2Y19yZG1hX2hhbmRsZV9iY19yZXBseShzdHJ1Y3QgcnBjX3hwcnQgKnhwcnQsIHN0cnVjdCBy
+cGNyZG1hX21zZyAqcm1zZ3AsDQo+ICsvKioNCj4gKyAqIHN2Y19yZG1hX2hhbmRsZV9iY19yZXBs
+eSAtIFByb2Nlc3MgaW5jb21pbmcgYmFja2NoYW5uZWwgcmVwbHkNCj4gKyAqIEB4cHJ0OiBjb250
+cm9sbGluZyBiYWNrY2hhbm5lbCB0cmFuc3BvcnQNCj4gKyAqIEByZG1hX3Jlc3A6IHBvaW50ZXIg
+dG8gaW5jb21pbmcgdHJhbnNwb3J0IGhlYWRlcg0KPiArICogQHJjdmJ1ZjogWERSIGJ1ZmZlciBp
+bnRvIHdoaWNoIHRvIGRlY29kZSB0aGUgcmVwbHkNCj4gKyAqDQo+ICsgKiBSZXR1cm5zIHplcm8g
+YW5kIGZpbGxzIEByY3ZidWYgaWYgc3VjY2Vzc2Z1bC4gT3RoZXJ3aXNlIGENCj4gKyAqIG5lZ2F0
+aXZlIGVycm5vIGlzIHJldHVybmVkLg0KPiArICovDQo+ICtpbnQgc3ZjX3JkbWFfaGFuZGxlX2Jj
+X3JlcGx5KHN0cnVjdCBycGNfeHBydCAqeHBydCwgX19iZTMyICpyZG1hX3Jlc3AsDQo+IAkJCSAg
+ICAgc3RydWN0IHhkcl9idWYgKnJjdmJ1ZikNCj4gew0KPiAJc3RydWN0IHJwY3JkbWFfeHBydCAq
+cl94cHJ0ID0gcnBjeF90b19yZG1heCh4cHJ0KTsNCj4gQEAgLTI2LDEzICszNSwxMyBAQCBpbnQg
+c3ZjX3JkbWFfaGFuZGxlX2JjX3JlcGx5KHN0cnVjdCBycGNfeHBydCAqeHBydCwgc3RydWN0IHJw
+Y3JkbWFfbXNnICpybXNncCwNCj4gDQo+IAlwID0gKF9fYmUzMiAqKXNyYy0+aW92X2Jhc2U7DQo+
+IAlsZW4gPSBzcmMtPmlvdl9sZW47DQo+IC0JeGlkID0gcm1zZ3AtPnJtX3hpZDsNCj4gKwl4aWQg
+PSAqcmRtYV9yZXNwOw0KPiANCj4gI2lmZGVmIFNWQ1JETUFfQkFDS0NIQU5ORUxfREVCVUcNCj4g
+CXByX2luZm8oIiVzOiB4aWQ9JTA4eCwgbGVuZ3RoPSV6dVxuIiwNCj4gCQlfX2Z1bmNfXywgYmUz
+Ml90b19jcHUoeGlkKSwgbGVuKTsNCj4gCXByX2luZm8oIiVzOiBSUEMvUkRNQTogJSpwaFxuIiwN
+Cj4gLQkJX19mdW5jX18sIChpbnQpUlBDUkRNQV9IRFJMRU5fTUlOLCBybXNncCk7DQo+ICsJCV9f
+ZnVuY19fLCAoaW50KVJQQ1JETUFfSERSTEVOX01JTiwgcmRtYV9yZXNwKTsNCj4gCXByX2luZm8o
+IiVzOiAgICAgIFJQQzogJSpwaFxuIiwNCj4gCQlfX2Z1bmNfXywgKGludClsZW4sIHApOw0KPiAj
+ZW5kaWYNCj4gQEAgLTUyLDcgKzYxLDcgQEAgaW50IHN2Y19yZG1hX2hhbmRsZV9iY19yZXBseShz
+dHJ1Y3QgcnBjX3hwcnQgKnhwcnQsIHN0cnVjdCBycGNyZG1hX21zZyAqcm1zZ3AsDQo+IAkJZ290
+byBvdXRfdW5sb2NrOw0KPiAJbWVtY3B5KGRzdC0+aW92X2Jhc2UsIHAsIGxlbik7DQo+IA0KPiAt
+CWNyZWRpdHMgPSBiZTMyX3RvX2NwdShybXNncC0+cm1fY3JlZGl0KTsNCj4gKwljcmVkaXRzID0g
+YmUzMl90b19jcHVwKHJkbWFfcmVzcCArIDIpOw0KPiAJaWYgKGNyZWRpdHMgPT0gMCkNCj4gCQlj
+cmVkaXRzID0gMTsJLyogZG9uJ3QgZGVhZGxvY2sgKi8NCj4gCWVsc2UgaWYgKGNyZWRpdHMgPiBy
+X3hwcnQtPnJ4X2J1Zi5yYl9iY19tYXhfcmVxdWVzdHMpDQo+IGRpZmYgLS1naXQgYS9uZXQvc3Vu
+cnBjL3hwcnRyZG1hL3N2Y19yZG1hX3JlY3Zmcm9tLmMgYi9uZXQvc3VucnBjL3hwcnRyZG1hL3N2
+Y19yZG1hX3JlY3Zmcm9tLmMNCj4gaW5kZXggZjFiNWJiZi4uYzllYTJlOSAxMDA2NDQNCj4gLS0t
+IGEvbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9yZWN2ZnJvbS5jDQo+ICsrKyBiL25ldC9z
+dW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfcmVjdmZyb20uYw0KPiBAQCAtNTY1LDI4ICs1NjUsMzAg
+QEAgc3RhdGljIHZvaWQgcmRtYV9yZWFkX2NvbXBsZXRlKHN0cnVjdCBzdmNfcnFzdCAqcnFzdHAs
+DQo+ICAqIHRoZSBSUEMvUkRNQSBoZWFkZXIgc21hbGwgYW5kIGZpeGVkIGluIHNpemUsIHNvIGl0
+IGlzDQo+ICAqIHN0cmFpZ2h0Zm9yd2FyZCB0byBjaGVjayB0aGUgUlBDIGhlYWRlcidzIGRpcmVj
+dGlvbiBmaWVsZC4NCj4gICovDQo+IC1zdGF0aWMgYm9vbA0KPiAtc3ZjX3JkbWFfaXNfYmFja2No
+YW5uZWxfcmVwbHkoc3RydWN0IHN2Y194cHJ0ICp4cHJ0LCBzdHJ1Y3QgcnBjcmRtYV9tc2cgKnJt
+c2dwKQ0KPiArc3RhdGljIGJvb2wgc3ZjX3JkbWFfaXNfYmFja2NoYW5uZWxfcmVwbHkoc3RydWN0
+IHN2Y194cHJ0ICp4cHJ0LA0KPiArCQkJCQkgIF9fYmUzMiAqcmRtYV9yZXNwKQ0KPiB7DQo+IC0J
+X19iZTMyICpwID0gKF9fYmUzMiAqKXJtc2dwOw0KPiArCV9fYmUzMiAqcDsNCj4gDQo+IAlpZiAo
+IXhwcnQtPnhwdF9iY194cHJ0KQ0KPiAJCXJldHVybiBmYWxzZTsNCj4gDQo+IC0JaWYgKHJtc2dw
+LT5ybV90eXBlICE9IHJkbWFfbXNnKQ0KPiArCXAgPSByZG1hX3Jlc3AgKyAzOw0KPiArCWlmICgq
+cCsrICE9IHJkbWFfbXNnKQ0KPiAJCXJldHVybiBmYWxzZTsNCj4gLQlpZiAocm1zZ3AtPnJtX2Jv
+ZHkucm1fY2h1bmtzWzBdICE9IHhkcl96ZXJvKQ0KPiArDQo+ICsJaWYgKCpwKysgIT0geGRyX3pl
+cm8pDQo+IAkJcmV0dXJuIGZhbHNlOw0KPiAtCWlmIChybXNncC0+cm1fYm9keS5ybV9jaHVua3Nb
+MV0gIT0geGRyX3plcm8pDQo+ICsJaWYgKCpwKysgIT0geGRyX3plcm8pDQo+IAkJcmV0dXJuIGZh
+bHNlOw0KPiAtCWlmIChybXNncC0+cm1fYm9keS5ybV9jaHVua3NbMl0gIT0geGRyX3plcm8pDQo+
+ICsJaWYgKCpwKysgIT0geGRyX3plcm8pDQo+IAkJcmV0dXJuIGZhbHNlOw0KPiANCj4gLQkvKiBz
+YW5pdHkgKi8NCj4gLQlpZiAocFs3XSAhPSBybXNncC0+cm1feGlkKQ0KPiArCS8qIFhJRCBzYW5p
+dHkgKi8NCj4gKwlpZiAoKnArKyAhPSAqcmRtYV9yZXNwKQ0KPiAJCXJldHVybiBmYWxzZTsNCj4g
+CS8qIGNhbGwgZGlyZWN0aW9uICovDQo+IC0JaWYgKHBbOF0gPT0gY3B1X3RvX2JlMzIoUlBDX0NB
+TEwpKQ0KPiArCWlmICgqcCA9PSBjcHVfdG9fYmUzMihSUENfQ0FMTCkpDQo+IAkJcmV0dXJuIGZh
+bHNlOw0KPiANCj4gCXJldHVybiB0cnVlOw0KPiBAQCAtNjUyLDggKzY1NCw5IEBAIGludCBzdmNf
+cmRtYV9yZWN2ZnJvbShzdHJ1Y3Qgc3ZjX3Jxc3QgKnJxc3RwKQ0KPiAJCWdvdG8gb3V0X2Ryb3A7
+DQo+IAlycXN0cC0+cnFfeHBydF9obGVuID0gcmV0Ow0KPiANCj4gLQlpZiAoc3ZjX3JkbWFfaXNf
+YmFja2NoYW5uZWxfcmVwbHkoeHBydCwgcm1zZ3ApKSB7DQo+IC0JCXJldCA9IHN2Y19yZG1hX2hh
+bmRsZV9iY19yZXBseSh4cHJ0LT54cHRfYmNfeHBydCwgcm1zZ3AsDQo+ICsJaWYgKHN2Y19yZG1h
+X2lzX2JhY2tjaGFubmVsX3JlcGx5KHhwcnQsIChfX2JlMzIgKilybXNncCkpIHsNCj4gKwkJcmV0
+ID0gc3ZjX3JkbWFfaGFuZGxlX2JjX3JlcGx5KHhwcnQtPnhwdF9iY194cHJ0LA0KPiArCQkJCQkg
+ICAgICAgKF9fYmUzMiAqKXJtc2dwLA0KDQpTaG91bGRu4oCZdCB0aGF0IGJlICZybXNncC0+cm1f
+eGlkIGluIG9yZGVyIHRvIGJlIHN0cmljdGx5IGVxdWl2YWxlbnQ/DQoNCj4gCQkJCQkgICAgICAg
+JnJxc3RwLT5ycV9hcmcpOw0KPiAJCXN2Y19yZG1hX3B1dF9jb250ZXh0KGN0eHQsIDApOw0KPiAJ
+CWlmIChyZXQpDQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2Vu
+ZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbmZzIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1l
+c3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZv
+IGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gDQoNCg==
 
-Nice catch :)
-
-FWIW:
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
->  		spin_lock_init(&vsi->qos[i].lock);
->  		INIT_LIST_HEAD(&vsi->qos[i].qplist);
->  	}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
