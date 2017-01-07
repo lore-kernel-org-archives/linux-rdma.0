@@ -1,47 +1,52 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 22/22] svcrdma: Re-order fields in svc_rdma_op_ctxt
-Date: Sat, 07 Jan 2017 12:18:15 -0500
-Message-ID: <20170107171815.14126.40856.stgit@klimt.1015granger.net>
-References: <20170107170258.14126.8503.stgit@klimt.1015granger.net>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [patch] i40iw: fix some indenting in i40iw_sc_vsi_init()
+Date: Sat, 7 Jan 2017 19:34:27 +0200
+Message-ID: <20170107173426.GA3425@yuval-lap>
+References: <20170107063042.GD26959@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170107170258.14126.8503.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170107063042.GD26959-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Attempt to group fields accessed during completion handling into one
-cacheline.
+On Sat, Jan 07, 2017 at 09:30:42AM +0300, Dan Carpenter wrote:
+> The debug printk was indented more than it should have been and we
+> can remove an unnecessary line break.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> index 98923a8cf86d..b9dc2c540946 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> @@ -4498,9 +4498,9 @@ void i40iw_sc_vsi_init(struct i40iw_sc_vsi *vsi, struct i40iw_vsi_init_info *inf
+>  	i40iw_fill_qos_list(info->params->qs_handle_list);
+>  
+>  	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
+> -		vsi->qos[i].qs_handle =
+> -			info->params->qs_handle_list[i];
+> -			i40iw_debug(vsi->dev, I40IW_DEBUG_DCB, "qset[%d]: %d\n", i, vsi->qos[i].qs_handle);
+> +		vsi->qos[i].qs_handle =	info->params->qs_handle_list[i];
+> +		i40iw_debug(vsi->dev, I40IW_DEBUG_DCB, "qset[%d]: %d\n", i,
+> +			    vsi->qos[i].qs_handle);
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- include/linux/sunrpc/svc_rdma.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Nice catch :)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 30c3ae9..6994039 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -77,7 +77,6 @@ enum {
-  */
- struct svc_rdma_op_ctxt {
- 	struct list_head list;
--	struct xdr_buf arg;
- 	struct ib_cqe cqe;
- 	u32 byte_len;
- 	u32 position;
-@@ -86,6 +85,7 @@ struct svc_rdma_op_ctxt {
- 	int count;
- 	unsigned int mapped_sges;
- 	int hdr_count;
-+	struct xdr_buf arg;
- 	struct ib_send_wr send_wr;
- 	struct ib_sge sge[1 + RPCRDMA_MAX_REQ_SIZE / PAGE_SIZE];
- 	struct page *pages[RPCSVC_MAXPAGES];
+FWIW:
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
+>  		spin_lock_init(&vsi->qos[i].lock);
+>  		INIT_LIST_HEAD(&vsi->qos[i].qplist);
+>  	}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
