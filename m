@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 02/22] svcrdma: Replace RPCRDMA_SQ_DEPTH_MULT
-Date: Sat, 07 Jan 2017 12:15:33 -0500
-Message-ID: <20170107171533.14126.86910.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 03/22] svcrdma: Remove unused sc_dto_q field
+Date: Sat, 07 Jan 2017 12:15:41 -0500
+Message-ID: <20170107171541.14126.17757.stgit@klimt.1015granger.net>
 References: <20170107170258.14126.8503.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,112 +12,41 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The SQ depth is currently computed using a fixed multipler. For
-some configurations this underestimates the needed number of SQEs
-and CQEs. Usually that means the server has to pause on occasion
-for SQEs to become available before it can send RDMA Reads or RPC
-Replies.
+Clean up. Commit be99bb11400c ('svcrdma: Use new CQ API for
+RPC-over-RDMA server send CQs') removed code that used the sc_dto_q
+field, but neglected to remove sc_dto_q at the same time.
 
-There might be some cases where the new estimator generates a SQ
-depth that is larger than the local HCA can support. If that is a
-frequent problem, then a mechanism can be introduced that
-automatically reduces the number of RPC-over-RDMA credits per
-connection.
-
+Fixes: be99bb11400c ('svcrdma: Use new CQ API for RPC-over- ...')
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
  include/linux/sunrpc/svc_rdma.h          |    1 -
- net/sunrpc/xprtrdma/svc_rdma.c           |    2 -
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   44 +++++++++++++++++++++++++++++-
- 3 files changed, 43 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    1 -
+ 2 files changed, 2 deletions(-)
 
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 551c518..cb3d87a 100644
+index cb3d87a..8dc13d5 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -182,7 +182,6 @@ struct svcxprt_rdma {
- /* The default ORD value is based on two outstanding full-size writes with a
-  * page size of 4k, or 32k * 2 ops / 4k = 16 outstanding RDMA_READ.  */
- #define RPCRDMA_ORD             (64/4)
--#define RPCRDMA_SQ_DEPTH_MULT   8
- #define RPCRDMA_MAX_REQUESTS    32
- #define RPCRDMA_MAX_REQ_SIZE    4096
+@@ -171,7 +171,6 @@ struct svcxprt_rdma {
  
-diff --git a/net/sunrpc/xprtrdma/svc_rdma.c b/net/sunrpc/xprtrdma/svc_rdma.c
-index c846ca9..9124441 100644
---- a/net/sunrpc/xprtrdma/svc_rdma.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma.c
-@@ -247,8 +247,6 @@ int svc_rdma_init(void)
- 	dprintk("SVCRDMA Module Init, register RPC RDMA transport\n");
- 	dprintk("\tsvcrdma_ord      : %d\n", svcrdma_ord);
- 	dprintk("\tmax_requests     : %u\n", svcrdma_max_requests);
--	dprintk("\tsq_depth         : %u\n",
--		svcrdma_max_requests * RPCRDMA_SQ_DEPTH_MULT);
- 	dprintk("\tmax_bc_requests  : %u\n", svcrdma_max_bc_requests);
- 	dprintk("\tmax_inline       : %d\n", svcrdma_max_req_size);
- 
+ 	wait_queue_head_t    sc_send_wait;	/* SQ exhaustion waitlist */
+ 	unsigned long	     sc_flags;
+-	struct list_head     sc_dto_q;		/* DTO tasklet I/O pending Q */
+ 	struct list_head     sc_read_complete_q;
+ 	struct work_struct   sc_work;
+ };
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index ca2799a..f246197 100644
+index f246197..44bb337 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -950,6 +950,48 @@ void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
- 	}
- }
- 
-+static unsigned int svc_rdma_read_sqes_per_credit(struct svcxprt_rdma *newxprt)
-+{
-+	struct ib_device_attr *attrs = &newxprt->sc_cm_id->device->attrs;
-+
-+	if (!(attrs->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS))
-+		return DIV_ROUND_UP(RPCSVC_MAXPAGES, newxprt->sc_max_sge_rd);
-+
-+	/* FRWR: reg, read, inv */
-+	return DIV_ROUND_UP(RPCSVC_MAXPAGES,
-+			    attrs->max_fast_reg_page_list_len) * 3;
-+}
-+
-+static unsigned int svc_rdma_write_sqes_per_credit(struct svcxprt_rdma *newxprt)
-+{
-+	return DIV_ROUND_UP(RPCSVC_MAXPAGES, newxprt->sc_max_sge);
-+}
-+
-+static unsigned int svc_rdma_sq_depth(struct svcxprt_rdma *newxprt)
-+{
-+	unsigned int sqes_per_credit;
-+
-+	/* Estimate SQEs per credit assuming a full Read chunk payload
-+	 * and a full Write chunk payload (possible with krb5i/p). Each
-+	 * credit will consume Read WRs then Write WRs, serially, so
-+	 * we need just the larger of the two, not the sum.
-+	 *
-+	 * This is not an upper bound. Clients can break chunks into
-+	 * arbitrarily many segments. However, if more SQEs are needed
-+	 * then are available, the server has Send Queue accounting to
-+	 * wait until enough SQEs are ready. But we want that waiting
-+	 * to be very rare.
-+	 */
-+	sqes_per_credit = max_t(unsigned int,
-+				svc_rdma_read_sqes_per_credit(newxprt),
-+				svc_rdma_write_sqes_per_credit(newxprt));
-+
-+	/* RDMA Sends per credit */
-+	sqes_per_credit += 1;
-+
-+	return sqes_per_credit * newxprt->sc_rq_depth;
-+}
-+
- /*
-  * This is the xpo_recvfrom function for listening endpoints. Its
-  * purpose is to accept incoming connections. The CMA callback handler
-@@ -1006,7 +1048,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 					    svcrdma_max_bc_requests);
- 	newxprt->sc_rq_depth = newxprt->sc_max_requests +
- 			       newxprt->sc_max_bc_requests;
--	newxprt->sc_sq_depth = RPCRDMA_SQ_DEPTH_MULT * newxprt->sc_rq_depth;
-+	newxprt->sc_sq_depth = svc_rdma_sq_depth(newxprt);
- 	atomic_set(&newxprt->sc_sq_avail, newxprt->sc_sq_depth);
- 
- 	if (!svc_rdma_prealloc_ctxts(newxprt))
+@@ -557,7 +557,6 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
+ 		return NULL;
+ 	svc_xprt_init(&init_net, &svc_rdma_class, &cma_xprt->sc_xprt, serv);
+ 	INIT_LIST_HEAD(&cma_xprt->sc_accept_q);
+-	INIT_LIST_HEAD(&cma_xprt->sc_dto_q);
+ 	INIT_LIST_HEAD(&cma_xprt->sc_rq_dto_q);
+ 	INIT_LIST_HEAD(&cma_xprt->sc_read_complete_q);
+ 	INIT_LIST_HEAD(&cma_xprt->sc_frmr_q);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
