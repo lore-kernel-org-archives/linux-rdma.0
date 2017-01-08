@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/3] ibverbs: Report packet pacing capabilities when querying device
-Date: Sun,  8 Jan 2017 18:32:26 +0200
-Message-ID: <1483893148-8211-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 3/3] mlx5: Add packet pacing support
+Date: Sun,  8 Jan 2017 18:32:28 +0200
+Message-ID: <1483893148-8211-4-git-send-email-yishaih@mellanox.com>
 References: <1483893148-8211-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1483893148-8211-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,108 +12,79 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The capabilities include two parts:
-1. The minimum (qp_rate_limit_min) and maximum(qp_rate_limit_max)
-   rate limit in kbps.
-2. QP types supported by the device (supported_qpts).
+Add packet pacing support, it includes:
+- Using the extended command to pass rate limit
+  to the kernel. (i.e. ibv_cmd_modify_qp_ex).
+- Reporting device capabilities.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/examples/devinfo.c        | 21 +++++++++++++++++++++
- libibverbs/man/ibv_query_device_ex.3 |  7 +++++++
- libibverbs/verbs.h                   |  7 +++++++
- 3 files changed, 35 insertions(+)
+ providers/mlx5/mlx5-abi.h |  2 ++
+ providers/mlx5/verbs.c    | 20 ++++++++++++++++++--
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
-index 78e92b9..54976bb 100644
---- a/libibverbs/examples/devinfo.c
-+++ b/libibverbs/examples/devinfo.c
-@@ -384,6 +384,26 @@ static void print_rss_caps(const struct ibv_rss_caps *caps)
- 	}
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index 4b5b577..38220ec 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -253,6 +253,8 @@ struct mlx5_query_device_ex_resp {
+ 	__u32				response_length;
+ 	struct ibv_tso_caps		tso_caps;
+ 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
++	__u64				reserved_cqe_comp;
++	struct ibv_packet_pacing_caps	packet_pacing_caps;
+ };
+ 
+ #endif /* MLX5_ABI_H */
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index e288ebf..b4bc228 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1498,10 +1498,16 @@ int mlx5_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+ 	return 0;
  }
  
-+static void print_packet_pacing_caps(const struct ibv_packet_pacing_caps *caps)
-+{
-+	uint32_t unknown_general_caps = ~(1 << IBV_QPT_RAW_PACKET |
-+					  1 << IBV_QPT_UD);
-+	printf("\tpacket_pacing_caps:\n");
-+	printf("\t\tqp_rate_limit_min:\t%ukbps\n", caps->qp_rate_limit_min);
-+	printf("\t\tqp_rate_limit_max:\t%ukbps\n", caps->qp_rate_limit_max);
++enum {
++	MLX5_MODIFY_QP_EX_ATTR_MASK = IBV_QP_RATE_LIMIT,
++};
 +
-+	if (caps->qp_rate_limit_max) {
-+		printf("\t\tsupported_qp:\n");
-+		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_RAW_PACKET))
-+			printf("\t\t\t\t\tSUPPORT_RAW_PACKET\n");
-+		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_UD))
-+			printf("\t\t\t\t\tSUPPORT_UD\n");
-+		if (caps->supported_qpts & unknown_general_caps)
-+			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
-+			       caps->supported_qpts & unknown_general_caps);
-+	}
-+}
-+
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		   int attr_mask)
  {
- 	struct ibv_context *ctx;
-@@ -487,6 +507,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		print_tso_caps(&device_attr.tso_caps);
- 		print_rss_caps(&device_attr.rss_caps);
- 		printf("\tmax_wq_type_rq:\t\t\t%u\n", device_attr.max_wq_type_rq);
-+		print_packet_pacing_caps(&device_attr.packet_pacing_caps);
+-	struct ibv_modify_qp cmd;
++	struct ibv_modify_qp_ex cmd_ex = {};
++	struct ibv_modify_qp_resp_ex resp = {};
++	struct ibv_modify_qp cmd = {};
+ 	struct mlx5_qp *mqp = to_mqp(qp);
+ 	struct mlx5_context *context = to_mctx(qp->context);
+ 	int ret;
+@@ -1533,7 +1539,15 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		}
  	}
  
- 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
-diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
-index 4da63a0..c291017 100644
---- a/libibverbs/man/ibv_query_device_ex.3
-+++ b/libibverbs/man/ibv_query_device_ex.3
-@@ -31,6 +31,7 @@ uint64_t               device_cap_flags_ex;        /* Extended device capability
- struct ibv_tso_caps    tso_caps;                   /* TCP segmentation offload capabilities */
- struct ibv_rss_caps    rss_caps;                   /* RSS capabilities */
- uint32_t               max_wq_type_rq;             /* Max Work Queue from type RQ */
-+struct ibv_packet_pacing_caps packet_pacing_caps; /* Packet pacing capabilities */
- .in -8
- };
+-	ret = ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
++	if (attr_mask & MLX5_MODIFY_QP_EX_ATTR_MASK)
++		ret = ibv_cmd_modify_qp_ex(qp, attr, attr_mask,
++					   &cmd_ex,
++					   sizeof(cmd_ex), sizeof(cmd_ex),
++					   &resp,
++					   sizeof(resp), sizeof(resp));
++	else
++		ret = ibv_cmd_modify_qp(qp, attr, attr_mask,
++					&cmd, sizeof(cmd));
  
-@@ -68,6 +69,12 @@ struct ibv_rss_caps {
-         uint8_t  rx_hash_function;                 /* Mask with enum ibv_rx_hash_function_flags to know which hash functions are supported */
- };
- 
-+struct ibv_packet_pacing_caps {
-+       uint32_t qp_rate_limit_min; /* Minimum rate limit in kbps */
-+       uint32_t qp_rate_limit_max; /* Maximum rate limit in kbps */
-+       uint32_t supported_qpts;    /* Bitmap showing which QP types are supported. */
-+};
+ 	if (!ret		       &&
+ 	    (attr_mask & IBV_QP_STATE) &&
+@@ -1887,6 +1901,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
+ 	attr->tso_caps = resp.tso_caps;
+ 	attr->rss_caps.rx_hash_fields_mask = resp.rss_caps.rx_hash_fields_mask;
+ 	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
++	attr->packet_pacing_caps = resp.packet_pacing_caps;
 +
- .fi
- .SH "RETURN VALUE"
- .B ibv_query_device_ex()
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 29f287b..6606196 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -246,6 +246,12 @@ struct ibv_rss_caps {
- 	uint8_t  rx_hash_function; /* enum ibv_rx_hash_function_flags */
- };
- 
-+struct ibv_packet_pacing_caps {
-+	uint32_t qp_rate_limit_min;
-+	uint32_t qp_rate_limit_max; /* In kbps */
-+	uint32_t supported_qpts;
-+};
-+
- struct ibv_device_attr_ex {
- 	struct ibv_device_attr	orig_attr;
- 	uint32_t		comp_mask;
-@@ -256,6 +262,7 @@ struct ibv_device_attr_ex {
- 	struct ibv_tso_caps	tso_caps;
- 	struct ibv_rss_caps     rss_caps;
- 	uint32_t		max_wq_type_rq;
-+	struct ibv_packet_pacing_caps packet_pacing_caps;
- };
- 
- enum ibv_mtu {
+ 	major     = (raw_fw_ver >> 32) & 0xffff;
+ 	minor     = (raw_fw_ver >> 16) & 0xffff;
+ 	sub_minor = raw_fw_ver & 0xffff;
 -- 
 1.8.3.1
 
