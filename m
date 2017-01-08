@@ -1,39 +1,58 @@
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1] net/mlx4_core: VF probe fail when HW support 64-bit
- coherent DMA
-Date: Sun, 8 Jan 2017 17:08:39 +0200
-Message-ID: <20170108150838.GA2106@shamir-linux.uk.oracle.com>
-References: <1483866889-10700-1-git-send-email-shamir.rabinovitch@oracle.com>
- <20170108143032.GA22478@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [for-next V2 01/10] IB/mlx5: Fix kernel to user leak prevention logic
+Date: Sun,  8 Jan 2017 17:54:42 +0200
+Message-ID: <1483890891-8767-2-git-send-email-saeedm@mellanox.com>
+References: <1483890891-8767-1-git-send-email-saeedm@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170108143032.GA22478-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1483890891-8767-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 08, 2017 at 06:30:32AM -0800, Christoph Hellwig wrote:
-> On Sun, Jan 08, 2017 at 04:14:49AM -0500, Shamir Rabinovitch wrote:
-> > CX3 firmware is unable to work with 64-bit coherent DMA. If IOMMU
-> > support 64-bit coherent DMA mlx4_core driver will try to use it
-> > and VF probe will fail due to firmware error.
-> > 
-> > Force all mlx4_core coherent DMA to 32-bit only!
-> 
-> If this is only an issue with VFs it should be limited to VF PCI IDs.
-> If not the changelog should be updated a bit.
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Agree. Thanks for the comment.
+The logic was broken as it failed to update the response length for
+architectures with PAGE_SIZE larger than 4kB. As a result further
+extension of the ucontext response struct would fail.
 
-I will do that once Mellanox review the patch and say how wide is
-this issue. Is this issue limited to specific Mellanox firmware ? Is 
-this issue limited to specific HW ? I have asked Mellanox all those 
-question via our support channel and still have not got any answers.
+Fixes: d69e3bcf7976 ('IB/mlx5: Mmap the HCA's core clock register to user-space')
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-BR, Shamir
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 86c61e7..852b5b7 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1148,13 +1148,13 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	 * pretend we don't support reading the HCA's core clock. This is also
+ 	 * forced by mmap function.
+ 	 */
+-	if (PAGE_SIZE <= 4096 &&
+-	    field_avail(typeof(resp), hca_core_clock_offset, udata->outlen)) {
+-		resp.comp_mask |=
+-			MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET;
+-		resp.hca_core_clock_offset =
+-			offsetof(struct mlx5_init_seg, internal_timer_h) %
+-			PAGE_SIZE;
++	if (field_avail(typeof(resp), hca_core_clock_offset, udata->outlen)) {
++		if (PAGE_SIZE <= 4096) {
++			resp.comp_mask |=
++				MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET;
++			resp.hca_core_clock_offset =
++				offsetof(struct mlx5_init_seg, internal_timer_h) % PAGE_SIZE;
++		}
+ 		resp.response_length += sizeof(resp.hca_core_clock_offset) +
+ 					sizeof(resp.reserved2);
+ 	}
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
