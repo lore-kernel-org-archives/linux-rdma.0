@@ -1,31 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [for-next V3 00/10][pull request] Mellanox 100G mlx5 4K UAR
- support
-Date: Mon, 09 Jan 2017 17:16:36 -0500 (EST)
-Message-ID: <20170109.171636.1347842948110740752.davem@davemloft.net>
-References: <1483988453-28551-1-git-send-email-saeedm@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] redhat/spec: can't build ibumad on 32-bit arm
+Date: Mon, 9 Jan 2017 15:31:08 -0700
+Message-ID: <20170109223108.GA10850@obsidianresearch.com>
+References: <20170109213944.31970-1-jarod@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1483988453-28551-1-git-send-email-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com
-Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, eli@mellanox.com, matanb@mellanox.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170109213944.31970-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
-Date: Mon,  9 Jan 2017 21:00:43 +0200
+On Mon, Jan 09, 2017 at 04:39:44PM -0500, Jarod Wilson wrote:
+> Building for 32-bit arm, things fall down, due to lack of arch-specific
+> memory barriers.
 
-> Following the mlx5-odp submission, you can find here the 2nd mlx5
-> submission for 4.11 as a pull-request including mlx5 4K UAR support from
-> Eli Cohen (details below).  For you Doug, this pull request will provide
-> you with both mlx5 odp and mlx5 4k UAR since it is based on Dave's
-> net-next mlx5-odp merge commit.
-> 
-> v1->v2:
->   - Removed 64BIT arch dependency.
-> v2->v3:
->   - Removed extra space.
+Since we now have rxe that should work on ARM I think we need to fix
+this upstream..
 
-Pulled into net-next, thanks.
+Do you have time to test some patches on ARM?
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
