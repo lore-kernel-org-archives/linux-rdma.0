@@ -1,45 +1,30 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
-Date: Mon, 9 Jan 2017 04:56:38 -0800
-Message-ID: <20170109125638.GA15506@infradead.org>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
- <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHv13 1/3] rdmacg: Added rdma cgroup controller
+Date: Mon, 9 Jan 2017 07:58:58 -0500
+Message-ID: <20170109125858.GB10904@mtj.duckdns.org>
+References: <1480705637-2986-1-git-send-email-pandit.parav@gmail.com>
+ <1480705637-2986-2-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
-List-Post: <mailto:linux-snps-arc@lists.infradead.org>
-List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
-Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, coreteam@netfilter.org, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, arnd@arndb.de, linux-kbuild@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-metag@vger.kernel.org, linux-arm
+In-Reply-To: <1480705637-2986-2-git-send-email-pandit.parav@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, hch@lst.de, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
-> Regularly, when a new header is created in include/uapi/, the developer
-> forgets to add it in the corresponding Kbuild file. This error is usually
-> detected after the release is out.
-> 
-> In fact, all headers under uapi directories should be exported, thus it's
-> useless to have an exhaustive list.
-> 
-> After this patch, the following files, which were not exported, are now
-> exported (with make headers_install_all):
+Hello, Parav.
 
-... snip ...
+Looks good to me.  Just one minor nit below.
 
-> linux/genwqe/.install
-> linux/genwqe/..install.cmd
-> linux/cifs/.install
-> linux/cifs/..install.cmd
+> +static void rdmacg_uncharge_hirerchy(struct rdma_cgroup *cg,
 
-I'm pretty sure these should not be exported!
+ hierarchy
+
+Other than that, looks good to me.
+
+Thanks.
+
+-- 
+tejun
