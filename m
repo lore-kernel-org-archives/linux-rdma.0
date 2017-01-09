@@ -1,34 +1,52 @@
-From: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
-Subject: Abstracts due for OFA RDMA Conference 2017
-Date: Mon, 9 Jan 2017 20:39:58 +0000
-Message-ID: <DBB98684-4557-47F4-B8BE-705BF54E58D1@ccn-mail.lanl.gov>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [patch v2] i40iw: fix some indenting in i40iw_sc_vsi_init()
+Date: Mon, 9 Jan 2017 22:40:26 +0200
+Message-ID: <20170109204025.GA6731@yuval-lap>
+References: <20170109194127.GA42156@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170109201216.GA3055@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <2D9B49650CDEAE4D957A167F0527024B-r1tBtT6b1V2fRvmTrFJqzg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170109201216.GA3055@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQrigKYganVzdCBhIHJlbWluZGVyIGFmdGVyIHRoZSBob2xpZGF5cyDigKYNCg0KDQpUaGUgYW5u
-dWFsIGNvbmZlcmVuY2UgdGhlIE9GQSBob2xkcyB0byBkaXNjdXNzIHRoZSBzdGF0ZSBvZiBSRE1B
-LWJhc2VkIHRlY2hub2xvZ3kgd2lsbCBiZSBoZWxkOg0KDQpNYXJjaCAyNy0zMSANCkh5YXR0IFJl
-Z2VuY3kgQXVzdGluDQpBdXN0aW4sIFRYDQpodHRwczovL29wZW5mYWJyaWNzLm9yZy9pbmRleC5w
-aHAvYWJvdXQtdGhlLTIwMTctb2ZhLXdvcmtzaG9wLmh0bWwNCg0KU2Vzc2lvbnMgRmx5ZXIgRG93
-bmxvYWQ6DQpodHRwczovL3d3dy5vcGVuZmFicmljcy5vcmcvaW5kZXgucGhwP3N1YmlkPTQ1ODEm
-b3B0aW9uPWNvbV9hY3ltYWlsaW5nJmN0cmw9dXJsJnVybGlkPTMwJm1haWxpZD00OQ0KDQpTdWJt
-aXQgeW91ciBzZXNzaW9uIHByb3Bvc2FsIHRvIEVhc3kgQ2hhaXI6DQpodHRwOi8vYml0Lmx5L09G
-QTIwMTdDRlMNCg0KSWYgeW91IGhhdmUgZXhwZXJpZW5jZSBvciBkZXZlbG9wbWVudCBuZXdzIHBl
-cnRpbmVudCB0byBSRE1BLWJhc2VkIGhpZ2ggc3BlZWQgbmV0d29ya3MsIHBsZWFzZSBjb25zaWRl
-ciBzdWJtaXR0aW5nIHlvdXIgcHJvcG9zYWwgdG8gdGhpcyBjb25mZXJlbmNlLg0KDQpUaGFueA0K
-DQoNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQpT
-dXNhbiBDb3VsdGVyIC8gSFBDLURFUw0KTmV0d29yayBDYXBhYmlsaXR5IExlYWQNCig1MDUpIDY2
-Ny04NDI1DQrigJxPbmNlIGluIGEgd2hpbGUgeW91IGdldCBzaG93biB0aGUgbGlnaHQNCiAgICBJ
-biB0aGUgc3RyYW5nZXN0IG9mIHBsYWNlcyBpZiB5b3UgbG9vayBhdCBpdCByaWdodOKAnSAgUm9i
-ZXJ0IEh1bnRlcg0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT0NCg0KDQoNCg0KDQoNCg0K
+On Mon, Jan 09, 2017 at 11:12:16PM +0300, Dan Carpenter wrote:
+> The debug printk was indented more than it should have been and we
+> can remove an unnecessary line break.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v2: I accidentally had a tab instead of a space.
+
+Also for this one:
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+> 
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> index 98923a8cf86d..b9dc2c540946 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> @@ -4498,9 +4498,9 @@ void i40iw_sc_vsi_init(struct i40iw_sc_vsi *vsi, struct i40iw_vsi_init_info *inf
+>  	i40iw_fill_qos_list(info->params->qs_handle_list);
+>  
+>  	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
+> -		vsi->qos[i].qs_handle =
+> -			info->params->qs_handle_list[i];
+> -			i40iw_debug(vsi->dev, I40IW_DEBUG_DCB, "qset[%d]: %d\n", i, vsi->qos[i].qs_handle);
+> +		vsi->qos[i].qs_handle = info->params->qs_handle_list[i];
+> +		i40iw_debug(vsi->dev, I40IW_DEBUG_DCB, "qset[%d]: %d\n", i,
+> +			    vsi->qos[i].qs_handle);
+>  		spin_lock_init(&vsi->qos[i].lock);
+>  		INIT_LIST_HEAD(&vsi->qos[i].qplist);
+>  	}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
