@@ -1,44 +1,28 @@
-From: Parav Pandit <pandit.parav@gmail.com>
+From: Tejun Heo <tj@kernel.org>
 Subject: Re: [PATCHv13 0/3] rdmacg: IB/core: rdma controller support
-Date: Mon, 9 Jan 2017 14:01:26 -0600
-Message-ID: <CAG53R5U0F6J5zAU8oWXDSS0YgnvaRxnD=++v=LLFfNRxvz_5jg@mail.gmail.com>
-References: <1480705637-2986-1-git-send-email-pandit.parav@gmail.com> <20170109130221.GD10904@mtj.duckdns.org>
+Date: Mon, 9 Jan 2017 15:06:40 -0500
+Message-ID: <20170109200640.GK12827@mtj.duckdns.org>
+References: <1480705637-2986-1-git-send-email-pandit.parav@gmail.com>
+ <20170109130221.GD10904@mtj.duckdns.org>
+ <CAG53R5U0F6J5zAU8oWXDSS0YgnvaRxnD=++v=LLFfNRxvz_5jg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20170109130221.GD10904@mtj.duckdns.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5U0F6J5zAU8oWXDSS0YgnvaRxnD=++v=LLFfNRxvz_5jg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
 Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+On Mon, Jan 09, 2017 at 02:01:26PM -0600, Parav Pandit wrote:
+> I will generate new patch in sometime this week with for-4.11 to
+> address comments and rebase.
+> I will be renaming cgroup_rdma.c to kernel/cgroup/rdma.c (similar to pids.c)
+> 
+> I will keep the header file name include/linux/cgroup_rdma.h as it is.
 
-On Mon, Jan 9, 2017 at 7:02 AM, Tejun Heo <tj@kernel.org> wrote:
-> On Fri, Dec 02, 2016 at 07:07:14PM +0000, Parav Pandit wrote:
->> Patch is generated and tested against below Doug's linux-rdma
->> git tree.
->> URL: git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
->> Branch: master
->>
->> Patchset is also compiled and tested against below Tejun's cgroup tree
->> using cgroup v2 mode.
->> URL: git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git
->> Branch: master
->
-> Except for the minor nits, all look good to me.  Can you please
-> refresh on top of cgroup/for-4.11 and the rdma devel branch?  Please
-> note that cgroup/for-4.11 moved the cgroup source files under
-> kernel/cgroup/.
->
-Thanks for the review.
-I will generate new patch in sometime this week with for-4.11 to
-address comments and rebase.
-I will be renaming cgroup_rdma.c to kernel/cgroup/rdma.c (similar to pids.c)
+Sounds good.  Thanks and happy new year!
 
-I will keep the header file name include/linux/cgroup_rdma.h as it is.
-
-> Thanks!
->
-> --
-> tejun
+-- 
+tejun
