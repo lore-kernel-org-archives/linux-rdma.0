@@ -1,63 +1,68 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Mon, 9 Jan 2017 09:51:04 +0200
-Message-ID: <20170109075104.GV15685@mtr-leonro.local>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for rdma-next] RDMA: Adding ethertype ETH_P_IBOE
+Date: Mon, 9 Jan 2017 09:52:50 +0200
+Message-ID: <20170109075250.GW15685@mtr-leonro.local>
+References: <1482175726-27366-1-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="GPT5DIEyVHz5yXBV"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="+OVWeTxrbAwQuiek"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, "ira.weiny" <ira.weiny@intel.com>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>, "David S. Miller" <davem@davemloft.net>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com
+In-Reply-To: <1482175726-27366-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---GPT5DIEyVHz5yXBV
+--+OVWeTxrbAwQuiek
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
-> On 12/15/2016 9:52 AM, ira.weiny wrote:
+On Mon, Dec 19, 2016 at 11:28:46AM -0800, Selvin Xavier wrote:
+> Update the if_ether.h with the  ethertype for Infiniband over
+> Ethernet packets. Also, removing the occurances of 0x8915
+> from infiniband vendor drivers.
 >
-> 2) With more than 60% of the code being MAD related, and another
-> significant chunk being hfi related, and only a minor bit (20% maybe?)
-> being net related,
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx4/qp.c                    | 6 +-----
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c           | 4 ++--
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c           | 3 ++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h          | 5 -----
+>  drivers/infiniband/hw/qedr/qedr_cm.c               | 2 +-
+>  drivers/infiniband/hw/qedr/qedr_cm.h               | 1 -
+>  drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h | 1 -
+>  drivers/infiniband/hw/usnic/usnic_fwd.h            | 3 ++-
+>  include/uapi/linux/if_ether.h                      | 1 +
+>  9 files changed, 9 insertions(+), 17 deletions(-)
+>
 
-Hi Doug and Ira,
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I may admit that I didn't read the code very deep, but from brief
-overview, I didn't find support for the claim the "60% code is MAD related".
-It looks like the opposite thing will be more accurate.
-
-Can you help me to understand this claim? How did you come to this
-conclusion?
-
-Thanks
-
---GPT5DIEyVHz5yXBV
+--+OVWeTxrbAwQuiek
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhzQOgACgkQ5GN7iDZy
-WKdYwQ//QMRH+k9PhmFeH98e/De69+UbulxhMg6J6JmvJc9UNK8dPxtrYdpPh2Ba
-n/RmVZNcoK7rPknCe6VKmMrlcKrSZPZrifqjpP0fCiF+jNvJ5KoMPBYOVagN9/xa
-Hm3oaH7p5b24l+pk6KdzNErB6BS+f5O+4pLxxH1yIfh/7n2GTdm6rauJx+Udao6A
-QKhqX6QIRhdGgimDdsDLRYg9xS7tJwacVT7jzbhR7FuA8MLcMSjGxPAfnYGFX/YH
-85cGJXNUh+k0xzdRvHmnx4jl37+Y+mh6n9yd7f+4tp8PS3+R4d8Oh4njA5ZmEcTE
-dyenyUV2PZG41ZfDskShjmVrTNPmXLH+pjQY/LxIP08+AHbepXGUwEPQMf7h8/cC
-vMbTPnUiHPR+hgSRE+vtmL795jYBdRz1539i97T5k49oVsaFZZgl76nQ5nd4yf3Q
-ALRTihPNGsSbQuBjBEzW1aMuh1evsqIvzSrpz/i5w7vbammyhnwP4cc3L9jGBugp
-kc5H+gsdhmQD4ut6lNq9FsXRZP+dob1BCD2PsV7l6S1PPaAO8cRrud2qjzijc2js
-olFxPoH/tMfZ/2As9FKPFJN0D8+BczpjkB9euRc+iqDcLi2vph8PsU8mxev+DqXU
-RsF4cdBmjePhRTZ1JF8/5H/O+yl7i8xyiCdHrVuy0uTJs1/lIXg=
-=SlX4
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlhzQVIACgkQ5GN7iDZy
+WKc6vQ/8Cr6sNvCIlG4WAyZr5es907kWKSj1RwDNSwweZadhdBYvCtTJ32sSq7D0
+Oj4UleATQtDichKChX5RXx4Rrl9p/K9jM0wDJnsvej00OHNjgHfMhCEhz3rB5L8s
+BThqa87B+db0I7IffgTuqs3XPWfZGTlLc/vafvJ1sJsyHKdJe41PjwVUGB7ox49q
+lB9RVJWV+Dhhbb5YlQCeiEhFD65A+jJitwvJYKWubkKMT4rE23qpbwxLEqduYkP0
+Ufmh3Hv6a9ZFmBCMvTYQIUpKklQ3+ln3l2YKekA2aucVvqIC+a4EL4AGy6RUV7f6
+GxzP3l3N0Zw2QsQ8JJe0UFh83ovjRCjvw+VDcojbBIslsQ2+RrPWMNM6HSB8SFDV
+WkZLiUI3W6CCtRPvlYdqdmksdRdT7lfVZQRZOtUNZnNncgPvLdxJdiqsPzCACYX5
+kNdEYdadauxQM4OAeDXbiObO5Fvk4iTkSPuOi/lSJHI4QIPG3qTIb460NxM4xfTH
+KW/JLgFbOvspKt0WNWWonft+uuitD4ANM0i4TGTVdy82/imxbSk9Pm8O0rL61/kB
++OSekdySwB9BRoG4VY0+zXS8XA9c9QhLc/fe6RCg+MIMhkuSMyCf8pi0tx3fwnCc
+UDmTc/r4kZnZf8EUlEUPX9GHDawIiGGE0JNLVwqNxo+bKu6fQTs=
+=TKeX
 -----END PGP SIGNATURE-----
 
---GPT5DIEyVHz5yXBV--
+--+OVWeTxrbAwQuiek--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
