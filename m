@@ -1,35 +1,45 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 01/15] IB/rxe: Suppress sparse warnings
-Date: Mon, 9 Jan 2017 12:42:00 +0000
-Message-ID: <1483965701.2923.0.camel@sandisk.com>
-References: <1483353316.3592.14.camel@sandisk.com>
-         <1483353409.3592.15.camel@sandisk.com>
-         <20170105125955.GB15685@mtr-leonro.local>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
+Date: Mon, 9 Jan 2017 04:56:38 -0800
+Message-ID: <20170109125638.GA15506@infradead.org>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170105125955.GB15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <2FF6D6E64331BD469F8BF14DCDAE2BD5-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "andrew.boyer-8PEkshWhKlo@public.gmane.org" <andrew.boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
+List-Post: <mailto:linux-snps-arc@lists.infradead.org>
+List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
+Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, coreteam@netfilter.org, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, arnd@arndb.de, linux-kbuild@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-metag@vger.kernel.org, linux-arm
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE3LTAxLTA1IGF0IDE0OjU5ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIE1vbiwgSmFuIDAyLCAyMDE3IGF0IDEwOjM5OjA1QU0gKzAwMDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBBdm9pZCB0aGF0IHNwYXJzZSBjb21wbGFpbnMgYWJvdXQgdXNpbmcg
-MCBhcyBhIHBvaW50ZXIuIEF2b2lkIHRoYXQNCj4gPiBzcGFyc2UgY29tcGxhaW5zIGFib3V0IG1p
-c3NpbmcgZnVuY3Rpb24gZGVjbGFyYXRpb25zLiBBdm9pZCB0aGF0DQo+ID4gc3BhcnNlIGNvbXBs
-YWlucyBhYm91dA0KPiA+IGVuZGlhbm5lc3MuDQo+ID4gDQo+ID4gU2lnbmVkLW9mZi1ieTogQmFy
-dCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNrLmNvbT4NCj4gPiBDYzogTW9uaSBT
-aG91YSA8bW9uaXNAbWVsbGFub3guY29tPg0KPiA+IENjOiBBbmRyZXcgQm95ZXIgPGFuZHJldy5i
-b3llckBkZWxsLmNvbT4NCj4gPiAtLS0NCj4gDQo+IFNvbWV0aGluZyB3cm9uZyB3aXRoIGNvbW1p
-dCBtZXNzYWdlLg0KDQpIZWxsbyBMZW9uLA0KDQpBcmUgeW91IHJlZmVycmluZyB0byB0aGUgZm9y
-bWF0dGluZyBvciB0byB0aGUgY29udGVudHMgb2YgdGhlIGNvbW1pdA0KbWVzc2FnZT8NCg0KQmFy
-dC4=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
+> Regularly, when a new header is created in include/uapi/, the developer
+> forgets to add it in the corresponding Kbuild file. This error is usually
+> detected after the release is out.
+> 
+> In fact, all headers under uapi directories should be exported, thus it's
+> useless to have an exhaustive list.
+> 
+> After this patch, the following files, which were not exported, are now
+> exported (with make headers_install_all):
+
+... snip ...
+
+> linux/genwqe/.install
+> linux/genwqe/..install.cmd
+> linux/cifs/.install
+> linux/cifs/..install.cmd
+
+I'm pretty sure these should not be exported!
