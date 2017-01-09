@@ -1,223 +1,124 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: [PATCHv3 net-next 3/7] sctp: add dst_pending_confirm flag
-Date: Tue, 31 Jan 2017 23:57:03 +0200
-Message-ID: <1485899827-5212-4-git-send-email-ja@ssi.bg>
-References: <1485899827-5212-1-git-send-email-ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1485899827-5212-1-git-send-email-ja@ssi.bg>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-sctp@vger.kernel.org, Neil Horman <nhorman@tuxdriver.com>, Steffen Klassert <steffen.klassert@secunet.com>, linux-rdma@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+From: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
+Subject: Re: [PATCH 15/15] IB/rxe: Fix an skb leak
+Date: Mon, 9 Jan 2017 14:59:47 +0000
+Message-ID: <D4990F1B.9071%Andrew.Boyer@emc.com>
+References: <1483353316.3592.14.camel@sandisk.com>
+ <1483353777.3592.42.camel@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1483353777.3592.42.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <293B224FD76A1C4E8ABC1E8014864926-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add new transport flag to allow sockets to confirm neighbour.
-When same struct dst_entry can be used for many different
-neighbours we can not use it for pending confirmations.
-The flag is propagated from transport to every packet.
-It is reset when cached dst is reset.
+On 1/2/17, 5:44 AM, "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
 
-Reported-by: YueHaibing <yuehaibing@huawei.com>
-Fixes: 5110effee8fd ("net: Do delayed neigh confirmation.")
-Fixes: f2bb4bedf35d ("ipv4: Cache output routes in fib_info nexthops.")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Eric Dumazet <edumazet@google.com>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
----
- include/net/sctp/sctp.h    |  6 ++----
- include/net/sctp/structs.h |  4 ++++
- net/sctp/associola.c       |  3 +--
- net/sctp/output.c          | 10 +++++++++-
- net/sctp/outqueue.c        |  2 +-
- net/sctp/sm_make_chunk.c   |  6 ++----
- net/sctp/sm_sideeffect.c   |  2 +-
- net/sctp/socket.c          |  4 ++--
- net/sctp/transport.c       | 17 ++++++++++++++++-
- 9 files changed, 38 insertions(+), 16 deletions(-)
+>Additionally, make it easier to detect skb leaks by issuing a warning
+>if a leak occurs.
+>
+>Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+>Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+>---
+> drivers/infiniband/sw/rxe/rxe_comp.c | 15 ++++++++++++++-
+> 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/sctp/sctp.h b/include/net/sctp/sctp.h
-index 3cfd365b..480b65a 100644
---- a/include/net/sctp/sctp.h
-+++ b/include/net/sctp/sctp.h
-@@ -593,10 +593,8 @@ static inline void sctp_v4_map_v6(union sctp_addr *addr)
-  */
- static inline struct dst_entry *sctp_transport_dst_check(struct sctp_transport *t)
- {
--	if (t->dst && !dst_check(t->dst, t->dst_cookie)) {
--		dst_release(t->dst);
--		t->dst = NULL;
--	}
-+	if (t->dst && !dst_check(t->dst, t->dst_cookie))
-+		sctp_transport_dst_release(t);
- 
- 	return t->dst;
- }
-diff --git a/include/net/sctp/structs.h b/include/net/sctp/structs.h
-index 231fa9ac..6a68504 100644
---- a/include/net/sctp/structs.h
-+++ b/include/net/sctp/structs.h
-@@ -804,6 +804,8 @@ struct sctp_transport {
- 
- 	__u32 burst_limited;	/* Holds old cwnd when max.burst is applied */
- 
-+	__u32 dst_pending_confirm;	/* need to confirm neighbour */
-+
- 	/* Destination */
- 	struct dst_entry *dst;
- 	/* Source address. */
-@@ -950,6 +952,8 @@ void sctp_transport_route(struct sctp_transport *, union sctp_addr *,
- void sctp_transport_reset(struct sctp_transport *);
- void sctp_transport_update_pmtu(struct sock *, struct sctp_transport *, u32);
- void sctp_transport_immediate_rtx(struct sctp_transport *);
-+void sctp_transport_dst_release(struct sctp_transport *t);
-+void sctp_transport_dst_confirm(struct sctp_transport *t);
- 
- 
- /* This is the structure we use to queue packets as they come into
-diff --git a/net/sctp/associola.c b/net/sctp/associola.c
-index e50dc6d..2a6835b 100644
---- a/net/sctp/associola.c
-+++ b/net/sctp/associola.c
-@@ -832,8 +832,7 @@ void sctp_assoc_control_transport(struct sctp_association *asoc,
- 		if (transport->state != SCTP_UNCONFIRMED)
- 			transport->state = SCTP_INACTIVE;
- 		else {
--			dst_release(transport->dst);
--			transport->dst = NULL;
-+			sctp_transport_dst_release(transport);
- 			ulp_notify = false;
- 		}
- 
-diff --git a/net/sctp/output.c b/net/sctp/output.c
-index 07ab506..814eac0 100644
---- a/net/sctp/output.c
-+++ b/net/sctp/output.c
-@@ -546,6 +546,7 @@ int sctp_packet_transmit(struct sctp_packet *packet, gfp_t gfp)
- 	struct sctp_association *asoc = tp->asoc;
- 	struct sctp_chunk *chunk, *tmp;
- 	int pkt_count, gso = 0;
-+	int confirm;
- 	struct dst_entry *dst;
- 	struct sk_buff *head;
- 	struct sctphdr *sh;
-@@ -624,7 +625,14 @@ int sctp_packet_transmit(struct sctp_packet *packet, gfp_t gfp)
- 			asoc->peer.last_sent_to = tp;
- 	}
- 	head->ignore_df = packet->ipfragok;
--	tp->af_specific->sctp_xmit(head, tp);
-+	confirm = tp->dst_pending_confirm;
-+	if (confirm)
-+		skb_set_dst_pending_confirm(head, 1);
-+	/* neighbour should be confirmed on successful transmission or
-+	 * positive error
-+	 */
-+	if (tp->af_specific->sctp_xmit(head, tp) >= 0 && confirm)
-+		tp->dst_pending_confirm = 0;
- 
- out:
- 	list_for_each_entry_safe(chunk, tmp, &packet->chunk_list, list) {
-diff --git a/net/sctp/outqueue.c b/net/sctp/outqueue.c
-index 65abe22..db352e5 100644
---- a/net/sctp/outqueue.c
-+++ b/net/sctp/outqueue.c
-@@ -1654,7 +1654,7 @@ static void sctp_check_transmitted(struct sctp_outq *q,
- 
- 		if (forward_progress) {
- 			if (transport->dst)
--				dst_confirm(transport->dst);
-+				sctp_transport_dst_confirm(transport);
- 		}
- 	}
- 
-diff --git a/net/sctp/sm_make_chunk.c b/net/sctp/sm_make_chunk.c
-index ad3445b..c7d3249 100644
---- a/net/sctp/sm_make_chunk.c
-+++ b/net/sctp/sm_make_chunk.c
-@@ -3333,8 +3333,7 @@ static void sctp_asconf_param_success(struct sctp_association *asoc,
- 		local_bh_enable();
- 		list_for_each_entry(transport, &asoc->peer.transport_addr_list,
- 				transports) {
--			dst_release(transport->dst);
--			transport->dst = NULL;
-+			sctp_transport_dst_release(transport);
- 		}
- 		break;
- 	case SCTP_PARAM_DEL_IP:
-@@ -3348,8 +3347,7 @@ static void sctp_asconf_param_success(struct sctp_association *asoc,
- 		local_bh_enable();
- 		list_for_each_entry(transport, &asoc->peer.transport_addr_list,
- 				transports) {
--			dst_release(transport->dst);
--			transport->dst = NULL;
-+			sctp_transport_dst_release(transport);
- 		}
- 		break;
- 	default:
-diff --git a/net/sctp/sm_sideeffect.c b/net/sctp/sm_sideeffect.c
-index a455271..51abcc9 100644
---- a/net/sctp/sm_sideeffect.c
-+++ b/net/sctp/sm_sideeffect.c
-@@ -755,7 +755,7 @@ static void sctp_cmd_transport_on(sctp_cmd_seq_t *cmds,
- 	 * forward progress.
- 	 */
- 	if (t->dst)
--		dst_confirm(t->dst);
-+		sctp_transport_dst_confirm(t);
- 
- 	/* The receiver of the HEARTBEAT ACK should also perform an
- 	 * RTT measurement for that destination transport address
-diff --git a/net/sctp/socket.c b/net/sctp/socket.c
-index d699d2c..9e98c87 100644
---- a/net/sctp/socket.c
-+++ b/net/sctp/socket.c
-@@ -588,7 +588,7 @@ static int sctp_send_asconf_add_ip(struct sock		*sk,
- 			list_for_each_entry(trans,
- 			    &asoc->peer.transport_addr_list, transports) {
- 				/* Clear the source and route cache */
--				dst_release(trans->dst);
-+				sctp_transport_dst_release(trans);
- 				trans->cwnd = min(4*asoc->pathmtu, max_t(__u32,
- 				    2*asoc->pathmtu, 4380));
- 				trans->ssthresh = asoc->peer.i.a_rwnd;
-@@ -839,7 +839,7 @@ static int sctp_send_asconf_del_ip(struct sock		*sk,
- 		 */
- 		list_for_each_entry(transport, &asoc->peer.transport_addr_list,
- 					transports) {
--			dst_release(transport->dst);
-+			sctp_transport_dst_release(transport);
- 			sctp_transport_route(transport, NULL,
- 					     sctp_sk(asoc->base.sk));
- 		}
-diff --git a/net/sctp/transport.c b/net/sctp/transport.c
-index baa1ac0..df274ff 100644
---- a/net/sctp/transport.c
-+++ b/net/sctp/transport.c
-@@ -240,7 +240,7 @@ void sctp_transport_pmtu(struct sctp_transport *transport, struct sock *sk)
- {
- 	/* If we don't have a fresh route, look one up */
- 	if (!transport->dst || transport->dst->obsolete) {
--		dst_release(transport->dst);
-+		sctp_transport_dst_release(transport);
- 		transport->af_specific->get_dst(transport, &transport->saddr,
- 						&transport->fl, sk);
- 	}
-@@ -672,3 +672,18 @@ void sctp_transport_immediate_rtx(struct sctp_transport *t)
- 			sctp_transport_hold(t);
- 	}
- }
-+
-+/* Drop dst */
-+void sctp_transport_dst_release(struct sctp_transport *t)
-+{
-+	dst_release(t->dst);
-+	t->dst = NULL;
-+	t->dst_pending_confirm = 0;
-+}
-+
-+/* Schedule neighbour confirm */
-+void sctp_transport_dst_confirm(struct sctp_transport *t)
-+{
-+	t->dst_pending_confirm = 1;
-+}
-+
--- 
-1.9.3
+I liked this better when it was doing the rxe_drop_ref() and kfree_skb()
+after exit: and done:, if pkt was set.
+Maybe that was just in our private patchset, I don=B9t remember, but it
+would be fewer lines and fewer chances to miss something.
+
+>
+>diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c
+>b/drivers/infiniband/sw/rxe/rxe_comp.c
+>index d1c3411c5478..bbc7cd39f978 100644
+>--- a/drivers/infiniband/sw/rxe/rxe_comp.c
+>+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+>@@ -622,6 +622,7 @@ int rxe_completer(void *arg)
+> 			if (pkt) {
+> 				rxe_drop_ref(pkt->qp);
+> 				kfree_skb(skb);
+>+				skb =3D NULL;
+> 			}
+> 			goto done;
+>=20
+>@@ -645,6 +646,7 @@ int rxe_completer(void *arg)
+> 			    qp->qp_timeout_jiffies)
+> 				mod_timer(&qp->retrans_timer,
+> 					  jiffies + qp->qp_timeout_jiffies);
+>+			WARN_ON_ONCE(skb);
+> 			goto exit;
+>=20
+> 		case COMPST_ERROR_RETRY:
+>@@ -657,8 +659,10 @@ int rxe_completer(void *arg)
+> 			 */
+>=20
+> 			/* there is nothing to retry in this case */
+>-			if (!wqe || (wqe->state =3D=3D wqe_state_posted))
+>+			if (!wqe || (wqe->state =3D=3D wqe_state_posted)) {
+>+				WARN_ON_ONCE(skb);
+> 				goto exit;
+>+			}
+>=20
+> 			if (qp->comp.retry_cnt > 0) {
+> 				if (qp->comp.retry_cnt !=3D 7)
+>@@ -680,8 +684,10 @@ int rxe_completer(void *arg)
+> 				if (pkt) {
+> 					rxe_drop_ref(pkt->qp);
+> 					kfree_skb(skb);
+>+					skb =3D NULL;
+> 				}
+>=20
+>+				WARN_ON_ONCE(skb);
+> 				goto exit;
+>=20
+> 			} else {
+>@@ -701,6 +707,9 @@ int rxe_completer(void *arg)
+> 				mod_timer(&qp->rnr_nak_timer,
+> 					  jiffies + rnrnak_jiffies(aeth_syn(pkt)
+> 						& ~AETH_TYPE_MASK));
+>+				rxe_drop_ref(pkt->qp);
+>+				kfree_skb(skb);
+>+				skb =3D NULL;
+> 				goto exit;
+> 			} else {
+> 				wqe->status =3D IB_WC_RNR_RETRY_EXC_ERR;
+>@@ -716,8 +725,10 @@ int rxe_completer(void *arg)
+> 			if (pkt) {
+> 				rxe_drop_ref(pkt->qp);
+> 				kfree_skb(skb);
+>+				skb =3D NULL;
+> 			}
+>=20
+>+			WARN_ON_ONCE(skb);
+> 			goto exit;
+> 		}
+> 	}
+>@@ -726,6 +737,7 @@ int rxe_completer(void *arg)
+> 	/* we come here if we are done with processing and want the task to
+> 	 * exit from the loop calling us
+> 	 */
+>+	WARN_ON_ONCE(skb);
+> 	rxe_drop_ref(qp);
+> 	return -EAGAIN;
+>=20
+>@@ -733,6 +745,7 @@ int rxe_completer(void *arg)
+> 	/* we come here if we have processed a packet we want the task to call
+> 	 * us again to see if there is anything else to do
+> 	 */
+>+	WARN_ON_ONCE(skb);
+> 	rxe_drop_ref(qp);
+> 	return 0;
+> }
+>--=20
+>2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
