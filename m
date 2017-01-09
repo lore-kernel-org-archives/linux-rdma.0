@@ -1,37 +1,31 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] redhat: Remove non-existed infiniband modules
-Date: Mon, 9 Jan 2017 08:43:02 -0700
-Message-ID: <20170109154302.GC29687@obsidianresearch.com>
-References: <20170109085429.32598-1-leonro@mellanox.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [for-next V2 06/10] net/mlx5: Add interface to get reference
+ to a UAR
+Date: Mon, 09 Jan 2017 10:47:22 -0500 (EST)
+Message-ID: <20170109.104722.2246652236667186272.davem@davemloft.net>
+References: <1483890891-8767-7-git-send-email-saeedm@mellanox.com>
+        <20170108170539.GA6323@yuval-lap.uk.oracle.com>
+        <CALzJLG-yiZfa6J0WciFPowfF2LWrXAqCKc4ETu4x=ZJdn+CfDA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170109085429.32598-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CALzJLG-yiZfa6J0WciFPowfF2LWrXAqCKc4ETu4x=ZJdn+CfDA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 09, 2017 at 10:54:29AM +0200, Leon Romanovsky wrote:
-> The modules ib_addr.ko, ib_mad.ko and ib_sa.ko were integrated
-> into ib_core.ko in following kernel commits:
->  * c2e49c92326f ("IB/SA: Integrate ib_sa module into ib_core module")
->  * 4c2cb4220431 ("IB/MAD: Integrate ib_mad module into ib_core module")
->  * e3f20f02864f ("IB/core: Integrate IB address resolution module into core")
-> 
-> Fixes: 39fa824dd80e ("redhat: add udev/systemd/etc infrastructure bits")
-> Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->  redhat/rdma.kernel-init | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Date: Mon, 9 Jan 2017 10:31:36 +0200
 
-Make sense to me, but if we are saying the redhat scripts only work
-with a certain newish kernel then it would be great to also purge all
-that crufty compat stuff (mttrs, pci tuning, etc) so we can better
-understand what is still actually needed..
+> We will submit an incremental patch for this, as checkpatch doesn't
+> complain about such minor things.
 
-Jason
+Please fix this and resubmit the series.
+
+Checkpatch not complaining is not an argument for fixing up coding
+style issues reported to you in feedback.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
