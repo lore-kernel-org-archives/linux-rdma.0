@@ -1,67 +1,35 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/3] ibverbs: Add support for packet pacing
-Date: Mon, 9 Jan 2017 08:38:56 -0700
-Message-ID: <20170109153856.GA29687@obsidianresearch.com>
-References: <1483893148-8211-1-git-send-email-yishaih@mellanox.com>
- <1483893148-8211-3-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-core] redhat: Remove non-existed infiniband modules
+Date: Mon, 9 Jan 2017 08:43:02 -0700
+Message-ID: <20170109154302.GC29687@obsidianresearch.com>
+References: <20170109085429.32598-1-leonro@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1483893148-8211-3-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170109085429.32598-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 08, 2017 at 06:32:27PM +0200, Yishai Hadas wrote:
-> +int ibv_cmd_modify_qp_ex(struct ibv_qp *qp, struct ibv_qp_attr *attr,
-> +			 int attr_mask, struct ibv_modify_qp_ex *cmd,
-> +			 size_t cmd_core_size, size_t cmd_size,
-> +			 struct ibv_modify_qp_resp_ex *resp,
-> +			 size_t resp_core_size, size_t resp_size)
-> +{
-> +	if (resp_core_size < offsetof(struct ibv_modify_qp_resp_ex,
-> +			     response_length) + sizeof(resp->response_length))
-> +		return EINVAL;
-> +
-> +	IBV_INIT_CMD_RESP_EX_V(cmd, cmd_core_size, cmd_size, MODIFY_QP_EX,
-> +			       resp, resp_core_size, resp_size);
-> +
-> +	copy_modify_qp_fields(qp, attr, attr_mask, &cmd->base);
-> +
-> +	if (attr_mask & IBV_QP_RATE_LIMIT) {
-> +		if (cmd_size >= offsetof(struct ibv_modify_qp_ex, rate_limit) +
-> +		    sizeof(cmd->rate_limit))
-> +			cmd->rate_limit = attr->rate_limit;
-> +		else
-> +			return EINVAL;
-> +	}
+On Mon, Jan 09, 2017 at 10:54:29AM +0200, Leon Romanovsky wrote:
+> The modules ib_addr.ko, ib_mad.ko and ib_sa.ko were integrated
+> into ib_core.ko in following kernel commits:
+>  * c2e49c92326f ("IB/SA: Integrate ib_sa module into ib_core module")
+>  * 4c2cb4220431 ("IB/MAD: Integrate ib_mad module into ib_core module")
+>  * e3f20f02864f ("IB/core: Integrate IB address resolution module into core")
+> 
+> Fixes: 39fa824dd80e ("redhat: add udev/systemd/etc infrastructure bits")
+> Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  redhat/rdma.kernel-init | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-cmd->rate_limit is not being 0'd if it isn't set
-
-> @@ -829,7 +829,8 @@ enum ibv_qp_attr_mask {
->  	IBV_QP_MAX_DEST_RD_ATOMIC	= 1 << 17,
->  	IBV_QP_PATH_MIG_STATE		= 1 << 18,
->  	IBV_QP_CAP			= 1 << 19,
-> -	IBV_QP_DEST_QPN			= 1 << 20
-> +	IBV_QP_DEST_QPN			= 1 << 20,
-> +	IBV_QP_RATE_LIMIT		= 1 << 25,
->  };
-
-Why 25? 21 I think.
-
->  enum ibv_qp_state {
-> @@ -875,6 +876,7 @@ struct ibv_qp_attr {
->  	uint8_t			rnr_retry;
->  	uint8_t			alt_port_num;
->  	uint8_t			alt_timeout;
-> +	uint32_t		rate_limit;
->  };
-
-Nope, this is returned by query_qp so you cannot just extend it.
-
-You are supporting query_qp, right?
+Make sense to me, but if we are saying the redhat scripts only work
+with a certain newish kernel then it would be great to also purge all
+that crufty compat stuff (mttrs, pci tuning, etc) so we can better
+understand what is still actually needed..
 
 Jason
 --
