@@ -1,119 +1,65 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 rdma-core 1/3] ibverbs: Report packet pacing capabilities when querying device
-Date: Tue, 10 Jan 2017 19:49:02 +0200
-Message-ID: <1484070544-26501-2-git-send-email-yishaih@mellanox.com>
-References: <1484070544-26501-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 rdma-core 0/3] Add packet pacing support
+Date: Tue, 10 Jan 2017 19:49:01 +0200
+Message-ID: <1484070544-26501-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484070544-26501-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+V2 is just a rebase series, details below.
 
-The capabilities include two parts:
-1. The minimum (qp_rate_limit_min) and maximum(qp_rate_limit_max)
-   rate limit in kbps.
-2. QP types supported by the device (supported_qpts).
+This patch set from Bodong is the supplementary part of the kernel series that
+was accepted upstream into 4.10.
 
-Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibverbs/examples/devinfo.c        | 21 +++++++++++++++++++++
- libibverbs/man/ibv_query_device_ex.3 |  7 +++++++
- libibverbs/verbs.h                   |  7 +++++++
- 3 files changed, 35 insertions(+)
+Packet pacing is a feature to control packet injection rate in arbitrary rates.
+One typical use case is for streaming vendors to control the bandwidth of
+different customers based on service coverage.
 
-diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
-index 78e92b9..54976bb 100644
---- a/libibverbs/examples/devinfo.c
-+++ b/libibverbs/examples/devinfo.c
-@@ -384,6 +384,26 @@ static void print_rss_caps(const struct ibv_rss_caps *caps)
- 	}
- }
- 
-+static void print_packet_pacing_caps(const struct ibv_packet_pacing_caps *caps)
-+{
-+	uint32_t unknown_general_caps = ~(1 << IBV_QPT_RAW_PACKET |
-+					  1 << IBV_QPT_UD);
-+	printf("\tpacket_pacing_caps:\n");
-+	printf("\t\tqp_rate_limit_min:\t%ukbps\n", caps->qp_rate_limit_min);
-+	printf("\t\tqp_rate_limit_max:\t%ukbps\n", caps->qp_rate_limit_max);
-+
-+	if (caps->qp_rate_limit_max) {
-+		printf("\t\tsupported_qp:\n");
-+		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_RAW_PACKET))
-+			printf("\t\t\t\t\tSUPPORT_RAW_PACKET\n");
-+		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_UD))
-+			printf("\t\t\t\t\tSUPPORT_UD\n");
-+		if (caps->supported_qpts & unknown_general_caps)
-+			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
-+			       caps->supported_qpts & unknown_general_caps);
-+	}
-+}
-+
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- {
- 	struct ibv_context *ctx;
-@@ -487,6 +507,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		print_tso_caps(&device_attr.tso_caps);
- 		print_rss_caps(&device_attr.rss_caps);
- 		printf("\tmax_wq_type_rq:\t\t\t%u\n", device_attr.max_wq_type_rq);
-+		print_packet_pacing_caps(&device_attr.packet_pacing_caps);
- 	}
- 
- 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
-diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
-index 4da63a0..c291017 100644
---- a/libibverbs/man/ibv_query_device_ex.3
-+++ b/libibverbs/man/ibv_query_device_ex.3
-@@ -31,6 +31,7 @@ uint64_t               device_cap_flags_ex;        /* Extended device capability
- struct ibv_tso_caps    tso_caps;                   /* TCP segmentation offload capabilities */
- struct ibv_rss_caps    rss_caps;                   /* RSS capabilities */
- uint32_t               max_wq_type_rq;             /* Max Work Queue from type RQ */
-+struct ibv_packet_pacing_caps packet_pacing_caps; /* Packet pacing capabilities */
- .in -8
- };
- 
-@@ -68,6 +69,12 @@ struct ibv_rss_caps {
-         uint8_t  rx_hash_function;                 /* Mask with enum ibv_rx_hash_function_flags to know which hash functions are supported */
- };
- 
-+struct ibv_packet_pacing_caps {
-+       uint32_t qp_rate_limit_min; /* Minimum rate limit in kbps */
-+       uint32_t qp_rate_limit_max; /* Maximum rate limit in kbps */
-+       uint32_t supported_qpts;    /* Bitmap showing which QP types are supported. */
-+};
-+
- .fi
- .SH "RETURN VALUE"
- .B ibv_query_device_ex()
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 29f287b..6606196 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -246,6 +246,12 @@ struct ibv_rss_caps {
- 	uint8_t  rx_hash_function; /* enum ibv_rx_hash_function_flags */
- };
- 
-+struct ibv_packet_pacing_caps {
-+	uint32_t qp_rate_limit_min;
-+	uint32_t qp_rate_limit_max; /* In kbps */
-+	uint32_t supported_qpts;
-+};
-+
- struct ibv_device_attr_ex {
- 	struct ibv_device_attr	orig_attr;
- 	uint32_t		comp_mask;
-@@ -256,6 +262,7 @@ struct ibv_device_attr_ex {
- 	struct ibv_tso_caps	tso_caps;
- 	struct ibv_rss_caps     rss_caps;
- 	uint32_t		max_wq_type_rq;
-+	struct ibv_packet_pacing_caps packet_pacing_caps;
- };
- 
- enum ibv_mtu {
+Packet pacing is a rate limiting and shaping for a QP (SQ for RAW QP), set and
+change the rate is done by modifying QP.
+
+This series made the following high level changes:
+1. Report rate limit capabilities, it includes:
+   - The maximum and minimum rate limit in kbps supported
+     by packet pacing.
+   - Bitmap showing which QP types are supported by packet pacing operation.
+2. Use the extended uverbs command for modify QP to add rate limit support.
+3. Add support in mlx5 provider.
+
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/51
+
+Yishai
+
+Changes from V1:
+- Rebase over V1 of below cleanup patch.
+
+Changes from V0:
+- The series is sent on top of an extra cleanup patch named:
+  "rdma: Handle uninitialized data for ibv_cmd_modify_qp".
+  The above patch was sent upstream separately based on Leon's request so that it can
+  be taken by itself regardless this series.
+- Patch #2: Add an extra check as part of ibv_cmd_query_qp to return an error
+            in case a mask that is not supported by that command was asked.
+Bodong Wang (3):
+  ibverbs: Report packet pacing capabilities when querying device
+  ibverbs: Add support for packet pacing
+  mlx5: Add packet pacing support
+
+ libibverbs/cmd.c                     | 62 +++++++++++++++++++++++++++++++++---
+ libibverbs/driver.h                  |  5 +++
+ libibverbs/examples/devinfo.c        | 21 ++++++++++++
+ libibverbs/kern-abi.h                | 27 +++++++++++++---
+ libibverbs/libibverbs.map            |  5 +++
+ libibverbs/man/ibv_modify_qp.3       |  2 ++
+ libibverbs/man/ibv_query_device_ex.3 |  7 ++++
+ libibverbs/verbs.h                   | 11 ++++++-
+ providers/mlx5/mlx5-abi.h            |  2 ++
+ providers/mlx5/verbs.c               | 18 ++++++++++-
+ 10 files changed, 149 insertions(+), 11 deletions(-)
+
 -- 
 1.8.3.1
 
