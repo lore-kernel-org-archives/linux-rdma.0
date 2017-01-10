@@ -1,125 +1,71 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Tue, 10 Jan 2017 10:14:02 +0200
-Message-ID: <20170110081402.GH7218@mtr-leonro.local>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20170109075104.GV15685@mtr-leonro.local>
- <20170110033954.GA53664@knc-06.sc.intel.com>
+Subject: Re: [PATCH rdma-core 2/3] ibverbs: Add support for packet pacing
+Date: Tue, 10 Jan 2017 10:18:22 +0200
+Message-ID: <20170110081822.GI7218@mtr-leonro.local>
+References: <1483893148-8211-1-git-send-email-yishaih@mellanox.com>
+ <1483893148-8211-3-git-send-email-yishaih@mellanox.com>
+ <20170109153856.GA29687@obsidianresearch.com>
+ <b9cca64f-0d67-6174-74e5-291f93b48c1c@dev.mellanox.co.il>
+ <20170109170200.GB13960@obsidianresearch.com>
+ <c50008b5-f0f2-a1a4-94e7-2354ea2b0123@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="MAH+hnPXVZWQ5cD/"
+        protocol="application/pgp-signature"; boundary="7LkOrbQMr4cezO2T"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170110033954.GA53664-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <c50008b5-f0f2-a1a4-94e7-2354ea2b0123-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---MAH+hnPXVZWQ5cD/
-Content-Type: text/plain; charset=utf-8
+--7LkOrbQMr4cezO2T
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 09, 2017 at 07:39:54PM -0800, Vishwanathapura, Niranjana wrote:
-> On Mon, Jan 09, 2017 at 09:51:04AM +0200, Leon Romanovsky wrote:
-> > On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
-> > > On 12/15/2016 9:52 AM, ira.weiny wrote:
-> > >
-> > > 2) With more than 60% of the code being MAD related, and another
-> > > significant chunk being hfi related, and only a minor bit (20% maybe?)
-> > > being net related,
+On Mon, Jan 09, 2017 at 11:44:55PM +0200, Yishai Hadas wrote:
+> On 1/9/2017 7:02 PM, Jason Gunthorpe wrote:
+> > On Mon, Jan 09, 2017 at 06:46:33PM +0200, Yishai Hadas wrote:
 > >
-> > Hi Doug and Ira,
+> > > In case we want to do it in this layer I would vote on using memset at the
+> > > beginning of that function to prevent repeating this for any new field. Your
+> > > last patch in that area could do it as well.
 > >
-> > I may admit that I didn't read the code very deep, but from brief
-> > overview, I didn't find support for the claim the "60% code is MAD rela=
-ted".
-> > It looks like the opposite thing will be more accurate.
-> >
-> > Can you help me to understand this claim? How did you come to this
-> > conclusion?
-> >
-> > Thanks
+> > Sounds like you should clean this all up and use = {} consistently in
+> > the providers and drop the explicit = 0.
 >
-> Hi Leon,
->
-> Here is the breakdown of patches based on functionality.
+> We can add some pre-patch to the series to make the
+> ibv_cmd_modify/ibv_cmd_modify_ex behaves similarly by cleaning up the
+> explicit = 0 and use = {} in all the providers.
 
-Hi Niranjana,
-Thank you for breakdown, it helped a lot.
-
-> In this series, patches #3..#8 compose hfi_vnic driver. In that, patches =
-#4,
-> #7 and #8 are MAD focused (interfacing with MAD agent and handling MAD
-> packets).
-
-Patch #3 is net device with all goodies from net stack.
-https://patchwork.kernel.org/patch/9475639/
-Patch #4 has one IB MAD related struct, all other things are specific to
-OFA and HFI declarations.
-https://patchwork.kernel.org/patch/9475653/
-Patch #7 continues to implement agnostic to IB MAD net device.
-https://patchwork.kernel.org/patch/9475641/
-Patch #8 is without doubts, MAD related.
-https://patchwork.kernel.org/patch/9475651/
-
-Let's put aside patch #8, in such case, the proposed code won't need IB/cor=
-e at
-all and will look exactly like many other net drivers which encapsulate/dec=
-apsulate
-packets.
-
-
-> Patch #6 and half of #3 (_encap.c/h) are OPA encapsulation related. Patch=
- #5
-> is netdev statistic related (which includes statistics MAD definitions).
-> So, only part of patch #3 (_netdev.c and _ethtool.c) deals with interfaci=
-ng
-> with netstack.
-> Those percentage numbers are based on actual lines of code in these patch=
-es
-> (files).
->
-> We are also looking into Jason=E2=80=99s suggestion to make hfi_vnic inte=
-rface to
-> the bottom driver a generic interface. This will include moving some of t=
-he
-> netstack interfacing to the bottom hfi1 driver.
-
-Great, do you have rough estimation when will it be posted on the ML?
+Yes, please do it and send that patch as standalone cleanup before
+series, so we will be able to apply it without waiting till packet
+pacing is accepted.
 
 Thanks
 
->
-> Niranjana
->
-
---MAH+hnPXVZWQ5cD/
+--7LkOrbQMr4cezO2T
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh0l8oACgkQ5GN7iDZy
-WKdRJBAAnUAj+2E8UZ9adfL9PQkOPC4OPXaRAUQmtKSjKfDm8v8KFUvPSsfO0SMB
-CVzi9hqTDGx/QU6yNOpcFvixy4L+wQqySSyEhpwCooF7FqQ37hNVb2aaO9SH0cDW
-gByMmeU1Dg0kqAgQP8avZZAKhP573oEgd/IiOIWmYmDRmSIZ5z2nIpiWOl0wmSzK
-PzywwA2Ndi2yO1QqcScHW4H+OMDPmowFS4CNw3CkzIp6CIZgjXQ9oFpU/v4LkF+S
-039IgC24FUexEpLBxL0hFdLr7SfHHdrVuWLeU2tQk8JOXBSJ+344xlm9kSWRbqWn
-GMWWTqZZqJTDPdM5/+OJsh/01lsWrFgzjzxS000xL42zdGfyl6zRSPZYt6EpSaAX
-6O4ZtTUizy+gPBYPzqG6sxGfc2RhQmVTwdAaqRGCNqHdTnvwKjRY1hUW6N+0yFOR
-eF7lK3jEP13qEU+pg/z+BlikA+kJjTlMwZBUW+6ogEnei0H0KGUtcypMNlSqJ5jK
-MNwXkM/ZlwqG1lvkw5UUfmhv+xLn7uHuHEnri8yOwt0BvNRk6ft3ftxxmkflzyOj
-mDNTCahlqaw0Og+6nROyyU+Skey4EevYK5wr9WWlqG9M1lW/u8N21uifEXKqCC4J
-WBzIUZ73SXXLTdxFsGozUYj1EVoJDzO/MPHIfbjOiaZeaSAJDTU=
-=/bB4
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh0mM4ACgkQ5GN7iDZy
+WKd9dA/9FxQanJllidxQXoH21/e1JoxTRd1kDrdxCFZ38U7eSwLi8R00WpBcsT3S
+GtVbZHlYnzEfvmK6ddp8KgObLOA39GKAxf+RTK6M+o2k8ea1zHMFjttMICWpPNuZ
+aFTKK2i4g7K/8XK/rC1EaL6JAA1nzkxfBnpFJYEx3wYtUsDtQVCGjiKgEN8yOpYS
+bRf2/dgLdVNzC6NUL3x3NxHGJNodnRcABE6UETdNYOVPNNLhIz8mhsBo4TUX5zc/
+Y4COkYyZkE301XwHSYBBNHGAKGU0myGwMOOIdQyEVkh3n+SNQDLEpt1X0jYop65v
+Vo9qHRat7e1S2b9r9LfOcyye+iRJhqoC9yKWLWB/H+mioqyXaUbXTm0wIFTnIfW+
+7SfKkou8uislUElqWgZTeECD+IZIxJfm6Mxt/snIC61bOWMW/yZUzb+T7YGwrBDF
+txKwCGHdeA4wLyb2z/zndDSZvTGJ5EmWv1xj0Ya5+JBsNdsJIMbFd2SvIrvSXpoH
+5IBwwILDpHubJrAHoBpMdGhBXTLnZ9gHsQPxhim0841cRjMwdlRTAQNExz/5rCgh
+AOa96dgiLKV9f2JrA1yG7BzDMkx0M+BW82EDZ/RhLa4BibR/vp7b1DI8LFST6gyo
+fNEs3MBnxfcq5/EG2bDeL3PQSWlIR/6wwqLn/XAA5hKfXqnLA/A=
+=6q2y
 -----END PGP SIGNATURE-----
 
---MAH+hnPXVZWQ5cD/--
+--7LkOrbQMr4cezO2T--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
