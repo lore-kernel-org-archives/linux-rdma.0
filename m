@@ -1,82 +1,97 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core] rdma: Handle uninitialized data for
- ibv_cmd_modify_qp
-Date: Tue, 10 Jan 2017 21:15:27 +0200
-Message-ID: <20170110191527.GU7218@mtr-leonro.local>
-References: <1484069070-17174-1-git-send-email-yishaih@mellanox.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 3/3] IB/vmw_pvrdma: Dont hardcode QP header page
+Date: Tue, 10 Jan 2017 11:15:41 -0800
+Message-ID: <2035e9eca59810687d9b53d7d6e603b765729b1f.1484075557.git.aditr@vmware.com>
+References: <cover.1484075557.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="o+ZCuNqY+dEAKBWl"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1484069070-17174-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <cover.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Moved the header page count to a macro [1]. In a future patch we will
+separate out the allocation for the header page. Thanks Yuval.
+Also, clear out the alloc_ucontext user response [2]. Thanks Dan.
 
---o+ZCuNqY+dEAKBWl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[1] - http://marc.info/?l=linux-rdma&m=148101146228847&w=2
+[2] - http://marc.info/?l=linux-rdma&m=148351229926333&w=2
 
-On Tue, Jan 10, 2017 at 07:24:30PM +0200, Yishai Hadas wrote:
-> Instead of checking per field whether wasn't set then use explicit = 0,
-> go over the providers and initialize their input command by using = {}.
->
-> This comes as a pre-patch before introducing the ibv_cmd_modify_qp_ex
-> which will do the same.
->
-> The above drops the need to add an extra 'zeroing' code each time
-> when a new field is introduced.
->
-> This improves commit 77fbb25e4c2a1f99d812752f85a28978ece32fe0 as pointed
-> above.
->
-> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  libibverbs/cmd.c                 | 47 +---------------------------------------
->  providers/cxgb3/verbs.c          |  2 +-
->  providers/cxgb4/qp.c             |  2 +-
->  providers/cxgb4/verbs.c          |  2 +-
->  providers/hfi1verbs/verbs.c      |  2 +-
->  providers/hns/hns_roce_u_hw_v1.c |  2 +-
->  providers/i40iw/i40iw_uverbs.c   |  2 +-
->  providers/ipathverbs/verbs.c     |  2 +-
->  providers/mlx4/verbs.c           |  2 +-
->  providers/mlx5/verbs.c           |  2 +-
->  providers/mthca/verbs.c          |  2 +-
->  providers/nes/nes_uverbs.c       |  2 +-
->  providers/ocrdma/ocrdma_verbs.c  |  2 +-
->  providers/qedr/qelr_verbs.c      |  2 +-
->  providers/rxe/rxe.c              |  2 +-
->  15 files changed, 15 insertions(+), 60 deletions(-)
->
+Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h       | 1 +
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c    | 9 +++++----
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-Thanks,
-Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+index ee6a941..5dada5a 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+@@ -70,6 +70,7 @@
+ #define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
+ 
+ #define PVRDMA_NUM_RING_PAGES		4
++#define PVRDMA_QP_NUM_HEADER_PAGES	1
+ 
+ struct pvrdma_dev;
+ 
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+index 765bd32..3e23425 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+@@ -170,8 +170,9 @@ static int pvrdma_set_sq_size(struct pvrdma_dev *dev, struct ib_qp_cap *req_cap,
+ 					     sizeof(struct pvrdma_sge) *
+ 					     qp->sq.max_sg);
+ 	/* Note: one extra page for the header. */
+-	qp->npages_send = 1 + (qp->sq.wqe_cnt * qp->sq.wqe_size +
+-			       PAGE_SIZE - 1) / PAGE_SIZE;
++	qp->npages_send = PVRDMA_QP_NUM_HEADER_PAGES +
++			  (qp->sq.wqe_cnt * qp->sq.wqe_size + PAGE_SIZE - 1) /
++								PAGE_SIZE;
+ 
+ 	return 0;
+ }
+@@ -289,7 +290,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 			qp->npages = qp->npages_send + qp->npages_recv;
+ 
+ 			/* Skip header page. */
+-			qp->sq.offset = PAGE_SIZE;
++			qp->sq.offset = PVRDMA_QP_NUM_HEADER_PAGES * PAGE_SIZE;
+ 
+ 			/* Recv queue pages are after send pages. */
+ 			qp->rq.offset = qp->npages_send * PAGE_SIZE;
+@@ -342,7 +343,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
+ 	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
+ 	cmd->total_chunks = qp->npages;
+-	cmd->send_chunks = qp->npages_send - 1;
++	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
+ 	cmd->pdir_dma = qp->pdir.dir_dma;
+ 
+ 	dev_dbg(&dev->pdev->dev, "create queuepair with %d, %d, %d, %d\n",
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+index 5489137..c2aa526 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+@@ -306,7 +306,7 @@ struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
+ 	union pvrdma_cmd_resp rsp;
+ 	struct pvrdma_cmd_create_uc *cmd = &req.create_uc;
+ 	struct pvrdma_cmd_create_uc_resp *resp = &rsp.create_uc_resp;
+-	struct pvrdma_alloc_ucontext_resp uresp;
++	struct pvrdma_alloc_ucontext_resp uresp = {0};
+ 	int ret;
+ 	void *ptr;
+ 
+-- 
+2.7.4
 
---o+ZCuNqY+dEAKBWl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh1Ms8ACgkQ5GN7iDZy
-WKeolA//ZEtjmwrA14bU6doLjCNnkKXMdZ/VFuHpb6QTqhoZL67q/4AxkQ0i5cCB
-p+P7uoPR5x84eUtqaJWUBKQeAXafPlTL5E8b3fk8Ay1n06fw9RGDalIktH1yZ6Sc
-93lknEd9q6xhhIHaL1Dfvc9iTq5VaY5/937j2rNHcXiHWd3WtoCMFiHZ8Lztuz5f
-2ARNuHZWCv68zXOfKkjSH/RXucJ14hmkQp0Jqnh0CNymBsmxDG9OORHWZNmeydLT
-z7IxwpwXBb/FLPSaDaJcdyjFTV6CNYikN8l8gQrjvFBt/oWM14FP7wFG3DOuGWVb
-gkLH6fo4t4tiJcqfHIXEqtKqEeyQe6lMWpcQktHaNczekAUa3GsLh2Q537fwL+8h
-DOo2Qunxi4fUWOkutlhn80Oi1XQapzzaHZWIwP4EdvgiecWziT+IP/1dA/DoA1/O
-5trAXvbvs1H/WP6k9jL9+CoKFa52ub0EYSria+wgRM/UpZC0yw9IVZxYW3nV0/II
-8r5DITO3Px6O1lEX/2UXSqbLYEIlISk2Bj3HLWQd/OFgacDSDNxoFcVNG2GhTTNj
-kVyJSskkdaOui36nt2u6G+GhP93ymrH8GEVw4H9ByEqMqYyu3S7nqhoysKzRB6XU
-8lURt11ddfl8NpmI52Jz9D0T1/4OiXK2Bqx0g/aCEcBltiwQUbM=
-=uJId
------END PGP SIGNATURE-----
-
---o+ZCuNqY+dEAKBWl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
