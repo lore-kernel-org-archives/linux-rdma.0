@@ -1,112 +1,121 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] redhat/spec: can't build ibumad on 32-bit arm
-Date: Tue, 10 Jan 2017 12:36:04 -0500
-Message-ID: <1484069764.2149.18.camel@redhat.com>
-References: <20170109213944.31970-1-jarod@redhat.com>
-         <20170109223108.GA10850@obsidianresearch.com>
-         <a1b3f6cc-2de0-8a19-18dd-182f2cb7d3e1@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-onPhYRNlDpoJwQIb8SAy"
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 rdma-core 1/3] ibverbs: Report packet pacing capabilities when querying device
+Date: Tue, 10 Jan 2017 19:49:02 +0200
+Message-ID: <1484070544-26501-2-git-send-email-yishaih@mellanox.com>
+References: <1484070544-26501-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a1b3f6cc-2de0-8a19-18dd-182f2cb7d3e1-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1484070544-26501-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---=-onPhYRNlDpoJwQIb8SAy
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The capabilities include two parts:
+1. The minimum (qp_rate_limit_min) and maximum(qp_rate_limit_max)
+   rate limit in kbps.
+2. QP types supported by the device (supported_qpts).
 
-On Tue, 2017-01-10 at 11:30 -0500, Hal Rosenstock wrote:
-> On 1/9/2017 5:31 PM, Jason Gunthorpe wrote:
-> >=20
-> > On Mon, Jan 09, 2017 at 04:39:44PM -0500, Jarod Wilson wrote:
-> > >=20
-> > > Building for 32-bit arm, things fall down, due to lack of arch-
-> > > specific
-> > > memory barriers.
-> >=20
-> > Since we now have rxe that should work on ARM I think we need to
-> > fix
-> > this upstream..
-> >=20
-> > Do you have time to test some patches on ARM?
->=20
-> Looks to me that issue was introduced by:
->=20
-> commit 1df0888f6a736e1612ce8b054d6c17651ebd003f
-> Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Date:=C2=A0=C2=A0=C2=A0Fri Sep 2 12:57:57 2016 -0600
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0Remove most checks of __BYTE_ORDER
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0For a long time now endian.h has defined sane fix=
-ed with
-> conversion
-> =C2=A0=C2=A0=C2=A0=C2=A0macros, so lets just use them instead of rolling =
-our own.
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0Also, htonll is defined in this source tree under
-> infiniband/arch.h,
-> =C2=A0=C2=A0=C2=A0=C2=A0so all users of that macro can just use the heade=
-r.
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0Someday we should also get rid of all the endless=
- wrappers..
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidi=
-anresearch.com>
->=20
-> where byte order macros are from libibverbs arch.h which also
-> includes
-> the memory barrier stuff.
->=20
-> So can't arch.h be separated out into 2 headers and have the various
-> parts of rdma-core include one or both of these headers as needed ?
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/examples/devinfo.c        | 21 +++++++++++++++++++++
+ libibverbs/man/ibv_query_device_ex.3 |  7 +++++++
+ libibverbs/verbs.h                   |  7 +++++++
+ 3 files changed, 35 insertions(+)
 
-No, that won't help. =C2=A0At most it would shift where the compile breaks.
-=C2=A0When Steve Wise did the patch to add the arm64 memory barriers, we
-discussed on list the fact that not having a proper memory barrier
-define for an arch should be a fatal error, so we also made it such
-that without an arch specific memory barrier define, we fail the build.
-=C2=A0If you split the headers, then somewhere you are going to come to a
-file that needs the memory barriers defined in the headers, and when
-you include the header, the compile error returns. =C2=A0The proper fix is
-just to get 32bit arm defines in place.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-onPhYRNlDpoJwQIb8SAy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYdRuEAAoJELgmozMOVy/d2NUP/iQBAa8xN1JDXZt/lJdHgmNc
-blA468KCNwVyWV7zfG2L/XyZjnMTgVCL9ctY09qfLPyRMki6mCFPrxkg5CFRcFCP
-q8jAga4/XByYetb3jBkARC1yd0cr03qxKpkRz/+Exi/iNrxGSpoJs5vwvf9oPxsp
-98sAAJB4bveHHu8imz75gVU2jTYnfmyiFEM0alyCp+H4AvV93S7QeofWnxUrwbFd
-mFw30vE6PKRBUv/ybVsxNl0a3Cy9XK1Dw+8n0pEXYRjwqsKhdeza+6e8Y2pVuNrT
-gtJePY9XRcO6OEjFRBE5U3SrJmv6GR+f5E/X09roqu5qGen8LAZ4XxLlT79+gcCW
-xC7wtRWSOmC1XcsUgNArD43qp2CebRfjhWyyQ1Erxmpym+p9sAGKDuR+CUacztuK
-WaQfIWqj0dIeSgeK0NbK87XhRse9lcnIupWM5ddB+6oaaliWB9PVYz0IC1u8ACR8
-kfUWNaVGkRszu/LuHjDaNAMhFSsvYwvAeSq4uIvL11+Yfw3V/CVdymBf75WZzAPF
-OCfsd1ewbCBcSD+hQbe8bHqIw1BKUWqe9e/WC+3l6mWbXcxCWOGAIfKa0mrYJl+o
-TDavnNpmgNZRniHyey9rgwmCJrEWzIZYYgoTod2OioRweXJXwJaoAcjz7vg6myCG
-Uz/gSBbKO47sdqo0Qq6/
-=OSir
------END PGP SIGNATURE-----
-
---=-onPhYRNlDpoJwQIb8SAy--
+diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
+index 78e92b9..54976bb 100644
+--- a/libibverbs/examples/devinfo.c
++++ b/libibverbs/examples/devinfo.c
+@@ -384,6 +384,26 @@ static void print_rss_caps(const struct ibv_rss_caps *caps)
+ 	}
+ }
+ 
++static void print_packet_pacing_caps(const struct ibv_packet_pacing_caps *caps)
++{
++	uint32_t unknown_general_caps = ~(1 << IBV_QPT_RAW_PACKET |
++					  1 << IBV_QPT_UD);
++	printf("\tpacket_pacing_caps:\n");
++	printf("\t\tqp_rate_limit_min:\t%ukbps\n", caps->qp_rate_limit_min);
++	printf("\t\tqp_rate_limit_max:\t%ukbps\n", caps->qp_rate_limit_max);
++
++	if (caps->qp_rate_limit_max) {
++		printf("\t\tsupported_qp:\n");
++		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_RAW_PACKET))
++			printf("\t\t\t\t\tSUPPORT_RAW_PACKET\n");
++		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_UD))
++			printf("\t\t\t\t\tSUPPORT_UD\n");
++		if (caps->supported_qpts & unknown_general_caps)
++			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
++			       caps->supported_qpts & unknown_general_caps);
++	}
++}
++
+ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ {
+ 	struct ibv_context *ctx;
+@@ -487,6 +507,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		print_tso_caps(&device_attr.tso_caps);
+ 		print_rss_caps(&device_attr.rss_caps);
+ 		printf("\tmax_wq_type_rq:\t\t\t%u\n", device_attr.max_wq_type_rq);
++		print_packet_pacing_caps(&device_attr.packet_pacing_caps);
+ 	}
+ 
+ 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
+diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
+index 4da63a0..c291017 100644
+--- a/libibverbs/man/ibv_query_device_ex.3
++++ b/libibverbs/man/ibv_query_device_ex.3
+@@ -31,6 +31,7 @@ uint64_t               device_cap_flags_ex;        /* Extended device capability
+ struct ibv_tso_caps    tso_caps;                   /* TCP segmentation offload capabilities */
+ struct ibv_rss_caps    rss_caps;                   /* RSS capabilities */
+ uint32_t               max_wq_type_rq;             /* Max Work Queue from type RQ */
++struct ibv_packet_pacing_caps packet_pacing_caps; /* Packet pacing capabilities */
+ .in -8
+ };
+ 
+@@ -68,6 +69,12 @@ struct ibv_rss_caps {
+         uint8_t  rx_hash_function;                 /* Mask with enum ibv_rx_hash_function_flags to know which hash functions are supported */
+ };
+ 
++struct ibv_packet_pacing_caps {
++       uint32_t qp_rate_limit_min; /* Minimum rate limit in kbps */
++       uint32_t qp_rate_limit_max; /* Maximum rate limit in kbps */
++       uint32_t supported_qpts;    /* Bitmap showing which QP types are supported. */
++};
++
+ .fi
+ .SH "RETURN VALUE"
+ .B ibv_query_device_ex()
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 29f287b..6606196 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -246,6 +246,12 @@ struct ibv_rss_caps {
+ 	uint8_t  rx_hash_function; /* enum ibv_rx_hash_function_flags */
+ };
+ 
++struct ibv_packet_pacing_caps {
++	uint32_t qp_rate_limit_min;
++	uint32_t qp_rate_limit_max; /* In kbps */
++	uint32_t supported_qpts;
++};
++
+ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+@@ -256,6 +262,7 @@ struct ibv_device_attr_ex {
+ 	struct ibv_tso_caps	tso_caps;
+ 	struct ibv_rss_caps     rss_caps;
+ 	uint32_t		max_wq_type_rq;
++	struct ibv_packet_pacing_caps packet_pacing_caps;
+ };
+ 
+ enum ibv_mtu {
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
