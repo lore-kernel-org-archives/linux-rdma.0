@@ -1,28 +1,40 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] rdma: Handle uninitialized data for
- ibv_cmd_modify_qp
-Date: Tue, 10 Jan 2017 09:09:12 -0700
-Message-ID: <20170110160912.GA15493@obsidianresearch.com>
-References: <1484060645-27997-1-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-core] redhat/spec: can't build ibumad on 32-bit arm
+Date: Tue, 10 Jan 2017 09:10:31 -0700
+Message-ID: <20170110161031.GB15493@obsidianresearch.com>
+References: <20170109213944.31970-1-jarod@redhat.com>
+ <20170109223108.GA10850@obsidianresearch.com>
+ <0e01bfc8-333d-99dd-f7d1-024422923021@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1484060645-27997-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <0e01bfc8-333d-99dd-f7d1-024422923021-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 10, 2017 at 05:04:05PM +0200, Yishai Hadas wrote:
-> Instead of checking per field whether wasn't set then use explicit = 0,
-> go over the providers and initialize their input command by using = {}.
+On Mon, Jan 09, 2017 at 10:27:52PM -0500, Jarod Wilson wrote:
+> On 2017-01-09 5:31 PM, Jason Gunthorpe wrote:
+> >On Mon, Jan 09, 2017 at 04:39:44PM -0500, Jarod Wilson wrote:
+> >>Building for 32-bit arm, things fall down, due to lack of arch-specific
+> >>memory barriers.
+> >
+> >Since we now have rxe that should work on ARM I think we need to fix
+> >this upstream..
+> >
+> >Do you have time to test some patches on ARM?
+> 
+> Afraid I don't have hardware. To the best of my knowledge, the only ARM
+> systems my group has (and/or are getting soon) with RDMA hardware is all
+> ARM64.
 
-NAK, you have to retain the compares that was the entire point. The
-issue is that the *user* input is uninitialized.
+RDMA hardware doesn't work in ARM so that is OK. Cross compiling is
+fine, ideal would be to test RXE on an arbitary ARM system, but I
+wouldn't call that critical.
 
-All you can drop is the set to zero path because the caller inited the
-kernel struct.
+I just don't want to setup a cross compiler for this :\
 
 Jason
 --
