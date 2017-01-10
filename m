@@ -1,52 +1,38 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 13/15] IB/rxe: Fix reference leaks in memory key invalidation code
-Date: Tue, 10 Jan 2017 11:15:52 -0800
-Message-ID: <20170110191554.17359-14-bart.vanassche@sandisk.com>
-References: <20170110191554.17359-1-bart.vanassche@sandisk.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/3] IB/vmw_pvrdma patches for 4.10
+Date: Tue, 10 Jan 2017 11:15:38 -0800
+Message-ID: <cover.1484075557.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170110191554.17359-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_req.c  | 1 +
- drivers/infiniband/sw/rxe/rxe_resp.c | 1 +
- 2 files changed, 2 insertions(+)
+Hi Doug,
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index d62be4828899..512e74326b16 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -635,6 +635,7 @@ int rxe_requester(void *arg)
- 				goto exit;
- 			}
- 			rmr->state = RXE_MEM_STATE_FREE;
-+			rxe_drop_ref(rmr);
- 			wqe->state = wqe_state_done;
- 			wqe->status = IB_WC_SUCCESS;
- 		} else if (wqe->wr.opcode == IB_WR_REG_MR) {
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 60d78f45aa04..05f374986cea 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -907,6 +907,7 @@ static enum resp_states do_complete(struct rxe_qp *qp,
- 					return RESPST_ERROR;
- 				}
- 				rmr->state = RXE_MEM_STATE_FREE;
-+				rxe_drop_ref(rmr);
- 			}
- 
- 			wc->qp			= &qp->ibqp;
+These are a small set of patches for the VMware paravirtual rdma driver.
+I hope these can be added to the set of fixes for 4.10. I based these on
+Linus' tree but they apply cleanly on your k.o/for-4.10-topics/vmw_pvrdma
+branch too.
+
+Thanks,
+Adit
+
+Adit Ranadive (3):
+  IB/vmw_pvrdma: Defer activating device until vmxnet3 link is up
+  IB/vmw_pvrdma: Cleanup unused variables
+  IB/vmw_pvrdma: Dont hardcode QP header page
+
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h       |   4 +
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c  | 103 +++++++++++++++---------
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c    |  42 +++++-----
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c |   2 +-
+ 4 files changed, 89 insertions(+), 62 deletions(-)
+
 -- 
-2.11.0
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
