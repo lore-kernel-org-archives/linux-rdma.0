@@ -1,68 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] rdma: Handle uninitialized data for
- ibv_cmd_modify_qp
-Date: Tue, 10 Jan 2017 20:54:26 +0200
-Message-ID: <20170110185426.GQ7218@mtr-leonro.local>
-References: <1484060645-27997-1-git-send-email-yishaih@mellanox.com>
- <20170110160912.GA15493@obsidianresearch.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCHv14 0/3] rdmacg: IB/core: rdma controller support
+Date: Tue, 10 Jan 2017 20:51:24 +0200
+Message-ID: <20170110185124.GP7218@mtr-leonro.local>
+References: <1484006535-4245-1-git-send-email-pandit.parav@gmail.com>
+ <20170110161505.GF6666@htj.duckdns.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1y1tiN5hVw5cPBDe"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="F4+N/OgRSdC8YnqX"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170110160912.GA15493-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+In-Reply-To: <20170110161505.GF6666@htj.duckdns.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Parav Pandit <pandit.parav@gmail.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, hch@lst.de, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---1y1tiN5hVw5cPBDe
+--F4+N/OgRSdC8YnqX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Jan 10, 2017 at 09:09:12AM -0700, Jason Gunthorpe wrote:
-> On Tue, Jan 10, 2017 at 05:04:05PM +0200, Yishai Hadas wrote:
-> > Instead of checking per field whether wasn't set then use explicit = 0,
-> > go over the providers and initialize their input command by using = {}.
+On Tue, Jan 10, 2017 at 11:15:05AM -0500, Tejun Heo wrote:
+> On Tue, Jan 10, 2017 at 12:02:12AM +0000, Parav Pandit wrote:
+> > Patchset is compiled and tested against below Tejun's cgroup tree
+> > using cgroup v1 and v2 mode.
+> > URL: git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git
+> > Branch: for-4.11
 >
-> NAK, you have to retain the compares that was the entire point. The
-> issue is that the *user* input is uninitialized.
->
-> All you can drop is the set to zero path because the caller inited the
-> kernel struct.
+> Applied 1-3 to cgroup/for-4.11-rdmacg.
 
-I wondered why you didn't do it at the beginning.
+Thanks Tejun and Parav.
 
 >
-> Jason
+> Thanks.
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> tejun
 
---1y1tiN5hVw5cPBDe
+--F4+N/OgRSdC8YnqX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh1LeIACgkQ5GN7iDZy
-WKcRlg//Qxn3Io+nJ0hUg/vY84PQJxUwT42wmWvXKP/T6d3yTAFK3hhFlvoxHuB6
-XQUCHRURvpzi6iw4FetkZDUG2lYr2rna0BIZBwKU864oXm7xpaHIeO2ss/wUBFbP
-w1LQj1yr8CMxblYWkSKT5fU0sYnJGBPXGEUYuBEhNnquzRxuyouIl1d879qu9G3A
-ulqUZ1Q+NT/HAKg+lxB12CaCFVFS9qPQRQzTCzRXemdKm/x1Xa1c37ioCyJe6fJy
-vU671sEtLavWU/Cfla3oXcPnlK+2x1tS+CcF8ndwcWcmvNOCMPJE6Q+k38oDcPcT
-/zgvEfI3SY0lqtQSI4jHHp7GZ4eJ8I3cPSqFgDYazhg6ClJjIQcNUQaqmV91luso
-czzkPv8J0W0f4pWR7cs3cnox6DPK7OnOHgEGAV75wGEgqLU4EtJbdbHxtb1sgfhz
-oDmIawgUqeMnCR7/+GFLtUfH3AAdPaM3qVFbgWbdwWzcsAhth807qPmsa7WQcbU9
-9EcSTzsA1k98LASyOQ835VjhQktMY+PayEzA9QuVIQeIVQaWB5cDAqmOXSWUQ3Na
-wh7Sv8l8AcFVCrzc/I8Thacd3bhg7shBKoyKeU5wXo8n0mjs7nyUhO7fkNKwVL0S
-NKa0djb1bzXjElf3QtCU/No5iJu/bK0dPHj0PRUJlrsvf6ghKP8=
-=V6be
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh1LSwACgkQ5GN7iDZy
+WKdyRA//ei1YVVCXzf9+DfV9N4W/YgLtqRlKQRTIyu2dujpEgYVvfPOIklFTzm7S
+WHJZ/v/T3xMwkIrE/ERe8yA15tJ04JXp5uywQ1QdCDG+hiYbBuOcF6WUhuR7Lq+h
+NW6muX8X5+FC8hR++0s1bGjGj+Y5sXZkNMIu35C6fINJBanrRmD1BmPmTROTHOdK
+jPXFlQwHUSHZn5yaY26Xz7+dr1zv7aROPbQSubrf4v+3UwP7u1ZpGCRpRJcGLagO
+CRvWCBfaOAI6I0ApR4qk7p6bmXVjimK260e55P6otH55qwIhx1flA7E8IC8QT03v
+VRah/9wNoVF0HyziUszR5DJB0ClufvGo+REzDeaaVt3G2rHel+pUeUhuC5Wf/9Fs
+qkVwo67NIa7dpEszpvIAAX4wiGiZfgNyf5g87+V9NyIHLPQc9w7BIyKDUfTKGkex
+0NO6hOgFrg2xlHAUSDz1U2o81ZeZRJkaTNVCWz0W1KmKASvIm10xWTQRBQE3ybea
+WLmO/xWR5ge04/OWkAaCiWjGAZdqCkULA6I1pdDw13gEFvOCfUBXyuy4WFHRwbpP
+zt0RUNbz1Gs/yrSO2bwB4ptZmBgdbZ7I+y9CkqCNhjQd5bjOWZ1Bplr4PO8tyJM4
+uTRVVDtRIchhsC6eDYcP+1i3bwjX5cEKga3xE9fKnWKoer30p1o=
+=wU90
 -----END PGP SIGNATURE-----
 
---1y1tiN5hVw5cPBDe--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--F4+N/OgRSdC8YnqX--
