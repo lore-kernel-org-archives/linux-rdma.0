@@ -1,127 +1,169 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [for-next V3 00/10][pull request] Mellanox 100G mlx5 4K UAR
  support
-Date: Mon, 09 Jan 2017 23:53:26 -0500
-Message-ID: <1484024006.2149.11.camel@redhat.com>
+Date: Tue, 10 Jan 2017 08:50:08 +0200
+Message-ID: <20170110065008.GG7218@mtr-leonro.local>
 References: <1483988453-28551-1-git-send-email-saeedm@mellanox.com>
+ <1484024006.2149.11.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-9gVnIAHYtR+Y4ZuRldxl"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483988453-28551-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1484024006.2149.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+--s9fJI615cBHmzTOP
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---=-9gVnIAHYtR+Y4ZuRldxl
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+On Mon, Jan 09, 2017 at 11:53:26PM -0500, Doug Ledford wrote:
+> On Mon, 2017-01-09 at 21:00 +0200, Saeed Mahameed wrote:
+> > Hi Dave and Doug,
+> >
+> > Following the mlx5-odp submission, you can find here the 2nd mlx5
+> > submission for 4.11 as a pull-request including mlx5 4K UAR support
+> > from
+> > Eli Cohen (details below).=A0=A0For you Doug, this pull request will
+> > provide
+> > you with both mlx5 odp and mlx5 4k UAR since it is based on Dave's
+> > net-next mlx5-odp merge commit.
+> >
+> > v1->v2:
+> > =A0 - Removed 64BIT arch dependency.
+> > v2->v3:
+> > =A0 - Removed extra space.
+> >
+> > Thank you,
+> > Saeed.
+> >
+> > The following changes since commit
+> > 525dfa2cdce4f5ab76251b5e57ebabf4f2dfc40c:
+> >
+> > =A0 Merge branch 'mlx5-odp' (2017-01-02 15:51:21 -0500)
+>
+> This base commit looks harmless enough, but since it's likely just a
+> commit in your tree, it isn't really a clear indicator of how you set
+> this tree up....
+>
+> > are available in the git repository at:
+> >
+> > =A0 git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git
+> > tags/mlx5-4kuar-for-4.11
+> >
+> > for you to fetch changes up to
+> > f502d834950a28e02651bb7e2cc7111ddd352644:
+> >
+> > =A0 net/mlx5: Activate support for 4K UARs (2017-01-09 20:25:10 +0200)
+>
+> But once I pulled this, it became clear you guys based your tree on a
+> net-next starting point. =A0You need to make that clear in the beginning.
+> =A0And unless you can't avoid it, don't do it. =A0I don't like having to
+> pull in Dave's net-next before I pull your code because it means I
+> can't submit my pull request to Linus during the merge window as a
+> single pull request, I have to split it up to be the stuff that is
+> based on net-next and the stuff based on my own next area.
+>
+> >=A0
+> > ----------------------------------------------------------------
+> > Eli Cohen (10):
+> > =A0=A0=A0=A0=A0=A0IB/mlx5: Fix kernel to user leak prevention logic
+> > =A0=A0=A0=A0=A0=A0IB/mlx5: Fix error handling order in create_kernel_qp
+> > =A0=A0=A0=A0=A0=A0mlx5: Fix naming convention with respect to UARs
+> > =A0=A0=A0=A0=A0=A0IB/mlx5: Fix retrieval of index to first hi class bfr=
+eg
+> > =A0=A0=A0=A0=A0=A0net/mlx5: Introduce blue flame register allocator
+> > =A0=A0=A0=A0=A0=A0net/mlx5: Add interface to get reference to a UAR
+> > =A0=A0=A0=A0=A0=A0IB/mlx5: Use blue flame register allocator in mlx5_ib
+> > =A0=A0=A0=A0=A0=A0IB/mlx5: Allow future extension of libmlx5 input data
+> > =A0=A0=A0=A0=A0=A0IB/mlx5: Support 4k UAR for libmlx5
+> > =A0=A0=A0=A0=A0=A0net/mlx5: Activate support for 4K UARs
+> >
+> > =A0drivers/infiniband/hw/mlx5/cq.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A010 +-
+> > =A0drivers/infiniband/hw/mlx5/main.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0| 278 ++++++++++-
+> > -----
+> > =A0drivers/infiniband/hw/mlx5/mlx5_ib.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0|=A0=A032 +-
+> > =A0drivers/infiniband/hw/mlx5/qp.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0| 290 +++++++--
+> > --------
+> > =A0drivers/net/ethernet/mellanox/mlx5/core/cq.c=A0=A0=A0=A0=A0=A0=A0|=
+=A0=A0=A02 +
+> > =A0drivers/net/ethernet/mellanox/mlx5/core/en.h=A0=A0=A0=A0=A0=A0=A0|=
+=A0=A011 +-
+> > =A0.../net/ethernet/mellanox/mlx5/core/en_common.c=A0=A0=A0=A0|=A0=A012=
+ +-
+> > =A0drivers/net/ethernet/mellanox/mlx5/core/en_main.c=A0=A0|=A0=A021 +-
+> > =A0drivers/net/ethernet/mellanox/mlx5/core/eq.c=A0=A0=A0=A0=A0=A0=A0|=
+=A0=A014 +-
+> > =A0drivers/net/ethernet/mellanox/mlx5/core/main.c=A0=A0=A0=A0=A0|=A0=A0=
+26 +-
+> > =A0drivers/net/ethernet/mellanox/mlx5/core/uar.c=A0=A0=A0=A0=A0=A0| 351
+> > +++++++++++++--------
+> > =A0include/linux/mlx5/cq.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A0=A05 +-
+> > =A0include/linux/mlx5/device.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A023 +-
+> > =A0include/linux/mlx5/doorbell.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A0=A06 +-
+> > =A0include/linux/mlx5/driver.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A081 ++---
+> > =A0include/linux/mlx5/mlx5_ifc.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A0=A07 +-
+> > =A0include/uapi/rdma/mlx5-abi.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=A019 +-
+> > =A017 files changed, 672 insertions(+), 516 deletions(-)
+>
+> Without going into excruciating detail, this is what I got when I
+> pulled your branch:
+>
+> =A0273 files changed, 8891 insertions(+), 6637 deletions(-)
+> =A0create mode 100644 drivers/net/ethernet/qlogic/qede/qede_filter.c
+> =A0create mode 100644 drivers/net/ethernet/qlogic/qede/qede_fp.c
+>
+> Please don't do this unless you absolutely have to.
 
-T24gTW9uLCAyMDE3LTAxLTA5IGF0IDIxOjAwICswMjAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToK
-PiBIaSBEYXZlIGFuZCBEb3VnLAo+IAo+IEZvbGxvd2luZyB0aGUgbWx4NS1vZHAgc3VibWlzc2lv
-biwgeW91IGNhbiBmaW5kIGhlcmUgdGhlIDJuZCBtbHg1Cj4gc3VibWlzc2lvbiBmb3IgNC4xMSBh
-cyBhIHB1bGwtcmVxdWVzdCBpbmNsdWRpbmcgbWx4NSA0SyBVQVIgc3VwcG9ydAo+IGZyb20KPiBF
-bGkgQ29oZW4gKGRldGFpbHMgYmVsb3cpLsKgwqBGb3IgeW91IERvdWcsIHRoaXMgcHVsbCByZXF1
-ZXN0IHdpbGwKPiBwcm92aWRlCj4geW91IHdpdGggYm90aCBtbHg1IG9kcCBhbmQgbWx4NSA0ayBV
-QVIgc2luY2UgaXQgaXMgYmFzZWQgb24gRGF2ZSdzCj4gbmV0LW5leHQgbWx4NS1vZHAgbWVyZ2Ug
-Y29tbWl0Lgo+IAo+IHYxLT52MjoKPiDCoCAtIFJlbW92ZWQgNjRCSVQgYXJjaCBkZXBlbmRlbmN5
-Lgo+IHYyLT52MzoKPiDCoCAtIFJlbW92ZWQgZXh0cmEgc3BhY2UuCj4gCj4gVGhhbmsgeW91LAo+
-IFNhZWVkLgo+IAo+IFRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQKPiA1MjVkZmEy
-Y2RjZTRmNWFiNzYyNTFiNWU1N2ViYWJmNGYyZGZjNDBjOgo+IAo+IMKgIE1lcmdlIGJyYW5jaCAn
-bWx4NS1vZHAnICgyMDE3LTAxLTAyIDE1OjUxOjIxIC0wNTAwKQoKVGhpcyBiYXNlIGNvbW1pdCBs
-b29rcyBoYXJtbGVzcyBlbm91Z2gsIGJ1dCBzaW5jZSBpdCdzIGxpa2VseSBqdXN0IGEKY29tbWl0
-IGluIHlvdXIgdHJlZSwgaXQgaXNuJ3QgcmVhbGx5IGEgY2xlYXIgaW5kaWNhdG9yIG9mIGhvdyB5
-b3Ugc2V0CnRoaXMgdHJlZSB1cC4uLi4KCj4gYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9z
-aXRvcnkgYXQ6Cj4gCj4gwqAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJu
-ZWwvZ2l0L21lbGxhbm94L2xpbnV4LmdpdAo+IHRhZ3MvbWx4NS00a3Vhci1mb3ItNC4xMQo+IAo+
-IGZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0bwo+IGY1MDJkODM0OTUwYTI4ZTAyNjUxYmI3
-ZTJjYzcxMTFkZGQzNTI2NDQ6Cj4gCj4gwqAgbmV0L21seDU6IEFjdGl2YXRlIHN1cHBvcnQgZm9y
-IDRLIFVBUnMgKDIwMTctMDEtMDkgMjA6MjU6MTAgKzAyMDApCgpCdXQgb25jZSBJIHB1bGxlZCB0
-aGlzLCBpdCBiZWNhbWUgY2xlYXIgeW91IGd1eXMgYmFzZWQgeW91ciB0cmVlIG9uIGEKbmV0LW5l
-eHQgc3RhcnRpbmcgcG9pbnQuIMKgWW91IG5lZWQgdG8gbWFrZSB0aGF0IGNsZWFyIGluIHRoZSBi
-ZWdpbm5pbmcuCsKgQW5kIHVubGVzcyB5b3UgY2FuJ3QgYXZvaWQgaXQsIGRvbid0IGRvIGl0LiDC
-oEkgZG9uJ3QgbGlrZSBoYXZpbmcgdG8KcHVsbCBpbiBEYXZlJ3MgbmV0LW5leHQgYmVmb3JlIEkg
-cHVsbCB5b3VyIGNvZGUgYmVjYXVzZSBpdCBtZWFucyBJCmNhbid0IHN1Ym1pdCBteSBwdWxsIHJl
-cXVlc3QgdG8gTGludXMgZHVyaW5nIHRoZSBtZXJnZSB3aW5kb3cgYXMgYQpzaW5nbGUgcHVsbCBy
-ZXF1ZXN0LCBJIGhhdmUgdG8gc3BsaXQgaXQgdXAgdG8gYmUgdGhlIHN0dWZmIHRoYXQgaXMKYmFz
-ZWQgb24gbmV0LW5leHQgYW5kIHRoZSBzdHVmZiBiYXNlZCBvbiBteSBvd24gbmV4dCBhcmVhLgoK
-PsKgCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQo+IEVsaSBDb2hlbiAoMTApOgo+IMKgwqDCoMKgwqDCoElCL21seDU6IEZp
-eCBrZXJuZWwgdG8gdXNlciBsZWFrIHByZXZlbnRpb24gbG9naWMKPiDCoMKgwqDCoMKgwqBJQi9t
-bHg1OiBGaXggZXJyb3IgaGFuZGxpbmcgb3JkZXIgaW4gY3JlYXRlX2tlcm5lbF9xcAo+IMKgwqDC
-oMKgwqDCoG1seDU6IEZpeCBuYW1pbmcgY29udmVudGlvbiB3aXRoIHJlc3BlY3QgdG8gVUFScwo+
-IMKgwqDCoMKgwqDCoElCL21seDU6IEZpeCByZXRyaWV2YWwgb2YgaW5kZXggdG8gZmlyc3QgaGkg
-Y2xhc3MgYmZyZWcKPiDCoMKgwqDCoMKgwqBuZXQvbWx4NTogSW50cm9kdWNlIGJsdWUgZmxhbWUg
-cmVnaXN0ZXIgYWxsb2NhdG9yCj4gwqDCoMKgwqDCoMKgbmV0L21seDU6IEFkZCBpbnRlcmZhY2Ug
-dG8gZ2V0IHJlZmVyZW5jZSB0byBhIFVBUgo+IMKgwqDCoMKgwqDCoElCL21seDU6IFVzZSBibHVl
-IGZsYW1lIHJlZ2lzdGVyIGFsbG9jYXRvciBpbiBtbHg1X2liCj4gwqDCoMKgwqDCoMKgSUIvbWx4
-NTogQWxsb3cgZnV0dXJlIGV4dGVuc2lvbiBvZiBsaWJtbHg1IGlucHV0IGRhdGEKPiDCoMKgwqDC
-oMKgwqBJQi9tbHg1OiBTdXBwb3J0IDRrIFVBUiBmb3IgbGlibWx4NQo+IMKgwqDCoMKgwqDCoG5l
-dC9tbHg1OiBBY3RpdmF0ZSBzdXBwb3J0IGZvciA0SyBVQVJzCj4gCj4gwqBkcml2ZXJzL2luZmlu
-aWJhbmQvaHcvbWx4NS9jcS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oHzCoMKgMTAgKy0KPiDCoGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21haW4uY8KgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHwgMjc4ICsrKysrKysrKystCj4gLS0tLS0KPiDC
-oGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21seDVfaWIuaMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoHzCoMKgMzIgKy0KPiDCoGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L3FwLmPC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfCAyOTAgKysrKysrKy0tCj4g
-LS0tLS0tLS0KPiDCoGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9jcS5j
-wqDCoMKgwqDCoMKgwqB8wqDCoMKgMiArCj4gwqBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg1L2NvcmUvZW4uaMKgwqDCoMKgwqDCoMKgfMKgwqAxMSArLQo+IMKgLi4uL25ldC9ldGhl
-cm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fY29tbW9uLmPCoMKgwqDCoHzCoMKgMTIgKy0KPiDC
-oGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl9tYWluLmPCoMKgfMKg
-wqAyMSArLQo+IMKgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2VxLmPC
-oMKgwqDCoMKgwqDCoHzCoMKgMTQgKy0KPiDCoGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94
-L21seDUvY29yZS9tYWluLmPCoMKgwqDCoMKgfMKgwqAyNiArLQo+IMKgZHJpdmVycy9uZXQvZXRo
-ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Vhci5jwqDCoMKgwqDCoMKgfCAzNTEKPiArKysrKysr
-KysrKysrLS0tLS0tLS0KPiDCoGluY2x1ZGUvbGludXgvbWx4NS9jcS5owqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgNSArLQo+IMKg
-aW5jbHVkZS9saW51eC9tbHg1L2RldmljZS5owqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgfMKgwqAyMyArLQo+IMKgaW5jbHVkZS9saW51eC9tbHg1L2Rvb3Ji
-ZWxsLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA2
-ICstCj4gwqBpbmNsdWRlL2xpbnV4L21seDUvZHJpdmVyLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDgxICsrLS0tCj4gwqBpbmNsdWRlL2xpbnV4
-L21seDUvbWx4NV9pZmMuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgfMKgwqDCoDcgKy0KPiDCoGluY2x1ZGUvdWFwaS9yZG1hL21seDUtYWJpLmjCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqAxOSArLQo+IMKgMTcgZmls
-ZXMgY2hhbmdlZCwgNjcyIGluc2VydGlvbnMoKyksIDUxNiBkZWxldGlvbnMoLSkKCldpdGhvdXQg
-Z29pbmcgaW50byBleGNydWNpYXRpbmcgZGV0YWlsLCB0aGlzIGlzIHdoYXQgSSBnb3Qgd2hlbiBJ
-CnB1bGxlZCB5b3VyIGJyYW5jaDoKCsKgMjczIGZpbGVzIGNoYW5nZWQsIDg4OTEgaW5zZXJ0aW9u
-cygrKSwgNjYzNyBkZWxldGlvbnMoLSkKwqBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9uZXQv
-ZXRoZXJuZXQvcWxvZ2ljL3FlZGUvcWVkZV9maWx0ZXIuYwrCoGNyZWF0ZSBtb2RlIDEwMDY0NCBk
-cml2ZXJzL25ldC9ldGhlcm5ldC9xbG9naWMvcWVkZS9xZWRlX2ZwLmMKClBsZWFzZSBkb24ndCBk
-byB0aGlzIHVubGVzcyB5b3UgYWJzb2x1dGVseSBoYXZlIHRvLgoKLS0gCkRvdWcgTGVkZm9yZCA8
-ZGxlZGZvcmRAcmVkaGF0LmNvbT4KwqAgwqAgR1BHIEtleUlEOiBCODI2QTMzMzBFNTcyRkRECsKg
-IMKgCktleSBmaW5nZXJwcmludCA9IEFFNkIgMUJEQSAxMjJCIDIzQjQgMjY1QiDCoDEyNzQgQjgy
-NiBBMzMzIDBFNTcgMkZERAo=
+We will do our best to avoid such situations in the future.
+
+This specific pull request was after our mistake with first pull
+request, which was sent as a patch set, instead of pull request.
+
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> =A0 =A0 GPG KeyID: B826A3330E572FDD
+> =A0 =A0
+> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
 
 
---=-9gVnIAHYtR+Y4ZuRldxl
+
+--s9fJI615cBHmzTOP
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
 
-iQIcBAABCAAGBQJYdGjGAAoJELgmozMOVy/d0j4P+wYZMRVJWyAwYNf3plvxy1Rv
-Rl5C8bQi2Hc/RQh/DcImFQNSzkUzcq0+231+3B+6VdggAJSkIVSAy18PqhYny1VR
-X40K0632qWuuXqDe8qzEQU6ttyDVkq/BgT05DJO1HRrB9I9mu+B5P3dP5ZWdn3E/
-L7FTzdMh7Zu/ONgUNq7kMo7vaqKg6f4XZdj8p3a5gyXH0va1/liPm3Osq1bmJnu2
-JUa+aet4euF5rMdoLUFF+qRkb7GKAp55p0XrirBlF9juBFBqRdU39qSnwyFaEtXx
-nL97/m00nv5RwD5+yhKRIX7+npkcKT9oHlUk1kQwg/c62YPpQoHHp/bsPxQSwQsC
-RNd/oSEHJa0WBH9WEaWj+AuNYIFYSObMLrQBZbE4T/M0Eir9pD9ZeK2drnD+CzCH
-dvmyifm3ZZhzaQK3KUJQvI62RFy0eV33gPcoUEV5Qzi+5rgndT5SYWAdb5uLNboM
-bfaaS0X+16KcXfKaENW89luLOVFoBUZSG96Qf5mWUPnq6CqUgXem8METbIqTXRNG
-CS842nk98O3QF0JzEJaV1lAFxyg1KOnpSfgPsjfu/BaarnH0NjPbLzHKXa8golYj
-wy/mVFP+7MQusurIDmJFBcTurIY9p+najo72RtRlLTf+GsylXw/Kgu/fK7NzKiIA
-QhupHEeKrX3Vmdx2l7Mf
-=vObn
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh0hCAACgkQ5GN7iDZy
+WKfndg//SeMWjN9ll4usE8gJm7WJr4yQ9mQKF5dXyYc6bpm525UxXrzMwxy2mha1
+Mh9MoA7/quGzLCvoXJMt0Ns2Glt5wTIRvpRzTS/Kag8c52KaO5o5E4jp+VbfvaTG
+WFGJtStIsE+anLjZj59tc8zYQ/je27OINf+Vv/hrSb4FPKnuQtrzZfA8bM8URSHN
+KqXOiFO3RY5XiYcJ089G869xD75kbegJPO9rA6GJjA9RhWjnlqeSWFoDBoLyeLyh
+OhEa8jg8uvWZM1hUyW3ufVHxgaioenTwz0gJS/8ZxiX7H1A6VMFKbvcwcAQc9tY1
+DIv/FoMkQX9JTWwsu0Y2NlI/1qiDjbh9Eooe+QRTjLaqSx2+cHdZRzDGoaXue1n0
+Wfdpc8W9ARFdYdcxtaSbqdMQlvRuoxZREmmahXDXcMTks2zFU6RIts9Y2FaTuINO
+sDwNKwvUVoG3o0w2iXzENsFk0JYMiYqbGvnuulHNoQIhn6hqNKrcopqcVNVQhYfP
+jl9dZGF55E+SIdaklULwAzz7THkXSYkf4FS301ztwpRTpLKckfRl8+A/ym5qMl5v
+KmF7ryfKWUHg+LwluHcH109JxrFdY+k+J8H1Xs9jSFxJFGYBExwM1okaRq53YxAS
+2MrIT/rDB23NExIyM+tZ96d4ogF8Vj/BBxmFm9GKou4xbwA+Qd8=
+=dmJF
 -----END PGP SIGNATURE-----
 
---=-9gVnIAHYtR+Y4ZuRldxl--
-
+--s9fJI615cBHmzTOP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
