@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 rdma-core 3/3] mlx5: Add packet pacing support
-Date: Tue, 10 Jan 2017 19:49:04 +0200
-Message-ID: <1484070544-26501-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 rdma-core 2/3] ibverbs: Add support for packet pacing
+Date: Tue, 10 Jan 2017 19:49:03 +0200
+Message-ID: <1484070544-26501-3-git-send-email-yishaih@mellanox.com>
 References: <1484070544-26501-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1484070544-26501-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,78 +12,250 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add packet pacing support, it includes:
-- Using the extended command to pass rate limit
-  to the kernel. (i.e. ibv_cmd_modify_qp_ex).
-- Reporting device capabilities.
+New command ibv_cmd_modify_qp_ex is added to support more QP attributes
+such as packet pacing rate limit. Drivers which support packet pacing
+should use this command to call the kernel.
+
+Querying the QP for its rate limit requires some extended kernel
+command, using ibv_cmd_query_qp for such an option is not supported and
+will end up by an error.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5-abi.h |  2 ++
- providers/mlx5/verbs.c    | 18 +++++++++++++++++-
- 2 files changed, 19 insertions(+), 1 deletion(-)
+ libibverbs/cmd.c               | 62 ++++++++++++++++++++++++++++++++++++++----
+ libibverbs/driver.h            |  5 ++++
+ libibverbs/kern-abi.h          | 27 +++++++++++++++---
+ libibverbs/libibverbs.map      |  5 ++++
+ libibverbs/man/ibv_modify_qp.3 |  2 ++
+ libibverbs/verbs.h             |  4 ++-
+ 6 files changed, 95 insertions(+), 10 deletions(-)
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index 4b5b577..38220ec 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -253,6 +253,8 @@ struct mlx5_query_device_ex_resp {
- 	__u32				response_length;
- 	struct ibv_tso_caps		tso_caps;
- 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
-+	__u64				reserved_cqe_comp;
-+	struct ibv_packet_pacing_caps	packet_pacing_caps;
- };
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 36faf59..fdd5498 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1140,6 +1140,13 @@ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ {
+ 	struct ibv_query_qp_resp resp;
  
- #endif /* MLX5_ABI_H */
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index ae68c84..43f6a57 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1498,10 +1498,16 @@ int mlx5_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
++	/*
++	 * Masks over IBV_QP_DEST_QPN are not supported by
++	 * that not extended command.
++	 */
++	if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
++		return EOPNOTSUPP;
++
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, QUERY_QP, &resp, sizeof resp);
+ 	cmd->qp_handle = qp->handle;
+ 	cmd->attr_mask = attr_mask;
+@@ -1215,12 +1222,10 @@ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
  	return 0;
  }
  
-+enum {
-+	MLX5_MODIFY_QP_EX_ATTR_MASK = IBV_QP_RATE_LIMIT,
+-int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+-		      int attr_mask,
+-		      struct ibv_modify_qp *cmd, size_t cmd_size)
++static void copy_modify_qp_fields(struct ibv_qp *qp, struct ibv_qp_attr *attr,
++				  int attr_mask,
++				  struct ibv_modify_qp_common *cmd)
+ {
+-	IBV_INIT_CMD(cmd, cmd_size, MODIFY_QP);
+-
+ 	cmd->qp_handle = qp->handle;
+ 	cmd->attr_mask = attr_mask;
+ 
+@@ -1299,10 +1304,57 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		cmd->dest_qp_num = attr->dest_qp_num;
+ 
+ 	cmd->reserved[0] = cmd->reserved[1] = 0;
++}
++
++int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
++		      int attr_mask,
++		      struct ibv_modify_qp *cmd, size_t cmd_size)
++{
++	/*
++	 * Masks over IBV_QP_DEST_QPN are only supported by
++	 * ibv_cmd_modify_qp_ex.
++	 */
++	if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
++		return EOPNOTSUPP;
++
++	IBV_INIT_CMD(cmd, cmd_size, MODIFY_QP);
++
++	copy_modify_qp_fields(qp, attr, attr_mask, &cmd->base);
++
++	if (write(qp->context->cmd_fd, cmd, cmd_size) != cmd_size)
++		return errno;
++
++	return 0;
++}
++
++int ibv_cmd_modify_qp_ex(struct ibv_qp *qp, struct ibv_qp_attr *attr,
++			 int attr_mask, struct ibv_modify_qp_ex *cmd,
++			 size_t cmd_core_size, size_t cmd_size,
++			 struct ibv_modify_qp_resp_ex *resp,
++			 size_t resp_core_size, size_t resp_size)
++{
++	if (resp_core_size < offsetof(struct ibv_modify_qp_resp_ex,
++			     response_length) + sizeof(resp->response_length))
++		return EINVAL;
++
++	IBV_INIT_CMD_RESP_EX_V(cmd, cmd_core_size, cmd_size, MODIFY_QP_EX,
++			       resp, resp_core_size, resp_size);
++
++	copy_modify_qp_fields(qp, attr, attr_mask, &cmd->base);
++
++	if (attr_mask & IBV_QP_RATE_LIMIT) {
++		if (cmd_size >= offsetof(struct ibv_modify_qp_ex, rate_limit) +
++		    sizeof(cmd->rate_limit))
++			cmd->rate_limit = attr->rate_limit;
++		else
++			return EINVAL;
++	}
+ 
+ 	if (write(qp->context->cmd_fd, cmd, cmd_size) != cmd_size)
+ 		return errno;
+ 
++	(void)VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
++
+ 	return 0;
+ }
+ 
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index ea3dade..53e4409 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -225,6 +225,11 @@ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *qp_attr,
+ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		      int attr_mask,
+ 		      struct ibv_modify_qp *cmd, size_t cmd_size);
++int ibv_cmd_modify_qp_ex(struct ibv_qp *qp, struct ibv_qp_attr *attr,
++			 int attr_mask, struct ibv_modify_qp_ex *cmd,
++			 size_t cmd_core_size, size_t cmd_size,
++			 struct ibv_modify_qp_resp_ex *resp,
++			 size_t resp_core_size, size_t resp_size);
+ int ibv_cmd_destroy_qp(struct ibv_qp *qp);
+ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		      struct ibv_send_wr **bad_wr);
+diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
+index bb57495..210dd3e 100644
+--- a/libibverbs/kern-abi.h
++++ b/libibverbs/kern-abi.h
+@@ -114,6 +114,8 @@ enum {
+ 					 IB_USER_VERBS_CMD_CREATE_QP,
+ 	IB_USER_VERBS_CMD_CREATE_CQ_EX = IB_USER_VERBS_CMD_EXTENDED_MASK |
+ 						IB_USER_VERBS_CMD_CREATE_CQ,
++	IB_USER_VERBS_CMD_MODIFY_QP_EX = IB_USER_VERBS_CMD_EXTENDED_MASK |
++						IB_USER_VERBS_CMD_MODIFY_QP,
+ 	IB_USER_VERBS_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_EXTENDED_MASK +
+ 					IB_USER_VERBS_CMD_THRESHOLD,
+ 	IB_USER_VERBS_CMD_DESTROY_FLOW,
+@@ -745,10 +747,7 @@ struct ibv_query_qp_resp {
+ 	__u64 driver_data[0];
+ };
+ 
+-struct ibv_modify_qp {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
++struct ibv_modify_qp_common {
+ 	struct ibv_qp_dest dest;
+ 	struct ibv_qp_dest alt_dest;
+ 	__u32 qp_handle;
+@@ -775,9 +774,28 @@ struct ibv_modify_qp {
+ 	__u8  alt_port_num;
+ 	__u8  alt_timeout;
+ 	__u8  reserved[2];
 +};
 +
- int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		   int attr_mask)
- {
- 	struct ibv_modify_qp cmd = {};
-+	struct ibv_modify_qp_ex cmd_ex = {};
-+	struct ibv_modify_qp_resp_ex resp = {};
- 	struct mlx5_qp *mqp = to_mqp(qp);
- 	struct mlx5_context *context = to_mctx(qp->context);
- 	int ret;
-@@ -1533,7 +1539,15 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		}
- 	}
++struct ibv_modify_qp {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	struct ibv_modify_qp_common base;
+ 	__u64 driver_data[0];
+ };
  
--	ret = ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
-+	if (attr_mask & MLX5_MODIFY_QP_EX_ATTR_MASK)
-+		ret = ibv_cmd_modify_qp_ex(qp, attr, attr_mask,
-+					   &cmd_ex,
-+					   sizeof(cmd_ex), sizeof(cmd_ex),
-+					   &resp,
-+					   sizeof(resp), sizeof(resp));
-+	else
-+		ret = ibv_cmd_modify_qp(qp, attr, attr_mask,
-+					&cmd, sizeof(cmd));
- 
- 	if (!ret		       &&
- 	    (attr_mask & IBV_QP_STATE) &&
-@@ -1887,6 +1901,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
- 	attr->tso_caps = resp.tso_caps;
- 	attr->rss_caps.rx_hash_fields_mask = resp.rss_caps.rx_hash_fields_mask;
- 	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
-+	attr->packet_pacing_caps = resp.packet_pacing_caps;
++struct ibv_modify_qp_ex {
++	struct ex_hdr		    hdr;
++	struct ibv_modify_qp_common base;
++	__u32  rate_limit;
++	__u32  reserved;
++};
 +
- 	major     = (raw_fw_ver >> 32) & 0xffff;
- 	minor     = (raw_fw_ver >> 16) & 0xffff;
- 	sub_minor = raw_fw_ver & 0xffff;
++struct ibv_modify_qp_resp_ex {
++	__u32  comp_mask;
++	__u32  response_length;
++};
++
+ struct ibv_destroy_qp {
+ 	__u32 command;
+ 	__u16 in_words;
+@@ -1187,6 +1205,7 @@ enum {
+ 	IB_USER_VERBS_CMD_DESTROY_WQ_V2 = -1,
+ 	IB_USER_VERBS_CMD_CREATE_RWQ_IND_TBL_V2 = -1,
+ 	IB_USER_VERBS_CMD_DESTROY_RWQ_IND_TBL_V2 = -1,
++	IB_USER_VERBS_CMD_MODIFY_QP_EX_V2 = -1,
+ };
+ 
+ struct ibv_modify_srq_v3 {
+diff --git a/libibverbs/libibverbs.map b/libibverbs/libibverbs.map
+index 33cd6b6..f697b69 100644
+--- a/libibverbs/libibverbs.map
++++ b/libibverbs/libibverbs.map
+@@ -131,3 +131,8 @@ IBVERBS_1.3 {
+ 		ibv_cmd_destroy_rwq_ind_table;
+ 		ibv_query_gid_type;
+ } IBVERBS_1.1;
++
++IBVERBS_1.4 {
++	global:
++		ibv_cmd_modify_qp_ex;
++} IBVERBS_1.3;
+diff --git a/libibverbs/man/ibv_modify_qp.3 b/libibverbs/man/ibv_modify_qp.3
+index 66a4974..487aa94 100644
+--- a/libibverbs/man/ibv_modify_qp.3
++++ b/libibverbs/man/ibv_modify_qp.3
+@@ -49,6 +49,7 @@ uint8_t                 retry_cnt;              /* Retry count (valid only for R
+ uint8_t                 rnr_retry;              /* RNR retry (valid only for RC QPs) */
+ uint8_t                 alt_port_num;           /* Alternate port number */
+ uint8_t                 alt_timeout;            /* Local ack timeout for alternate path (valid only for RC QPs) */
++uint32_t                rate_limit;             /* Rate limit in kbps for packet pacing */
+ .in -8
+ };
+ .fi
+@@ -105,6 +106,7 @@ The argument is either 0 or the bitwise OR of one or more of the following flags
+ .B IBV_QP_CAP \fR Set cap
+ .TP
+ .B IBV_QP_DEST_QPN \fR Set dest_qp_num
++.B IBV_QP_RATE_LIMIT \fR Set rate_limit
+ .SH "RETURN VALUE"
+ .B ibv_modify_qp()
+ returns 0 on success, or the value of errno on failure (which indicates the failure reason).
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 6606196..27726b5 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -829,7 +829,8 @@ enum ibv_qp_attr_mask {
+ 	IBV_QP_MAX_DEST_RD_ATOMIC	= 1 << 17,
+ 	IBV_QP_PATH_MIG_STATE		= 1 << 18,
+ 	IBV_QP_CAP			= 1 << 19,
+-	IBV_QP_DEST_QPN			= 1 << 20
++	IBV_QP_DEST_QPN			= 1 << 20,
++	IBV_QP_RATE_LIMIT		= 1 << 25,
+ };
+ 
+ enum ibv_qp_state {
+@@ -875,6 +876,7 @@ struct ibv_qp_attr {
+ 	uint8_t			rnr_retry;
+ 	uint8_t			alt_port_num;
+ 	uint8_t			alt_timeout;
++	uint32_t		rate_limit;
+ };
+ 
+ enum ibv_wr_opcode {
 -- 
 1.8.3.1
 
