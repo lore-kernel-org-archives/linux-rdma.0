@@ -1,337 +1,112 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core] rdma: Handle uninitialized data for ibv_cmd_modify_qp
-Date: Tue, 10 Jan 2017 19:24:30 +0200
-Message-ID: <1484069070-17174-1-git-send-email-yishaih@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] redhat/spec: can't build ibumad on 32-bit arm
+Date: Tue, 10 Jan 2017 12:36:04 -0500
+Message-ID: <1484069764.2149.18.camel@redhat.com>
+References: <20170109213944.31970-1-jarod@redhat.com>
+         <20170109223108.GA10850@obsidianresearch.com>
+         <a1b3f6cc-2de0-8a19-18dd-182f2cb7d3e1@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-onPhYRNlDpoJwQIb8SAy"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <a1b3f6cc-2de0-8a19-18dd-182f2cb7d3e1-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of checking per field whether wasn't set then use explicit = 0,
-go over the providers and initialize their input command by using = {}.
 
-This comes as a pre-patch before introducing the ibv_cmd_modify_qp_ex
-which will do the same.
+--=-onPhYRNlDpoJwQIb8SAy
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The above drops the need to add an extra 'zeroing' code each time
-when a new field is introduced.
+On Tue, 2017-01-10 at 11:30 -0500, Hal Rosenstock wrote:
+> On 1/9/2017 5:31 PM, Jason Gunthorpe wrote:
+> >=20
+> > On Mon, Jan 09, 2017 at 04:39:44PM -0500, Jarod Wilson wrote:
+> > >=20
+> > > Building for 32-bit arm, things fall down, due to lack of arch-
+> > > specific
+> > > memory barriers.
+> >=20
+> > Since we now have rxe that should work on ARM I think we need to
+> > fix
+> > this upstream..
+> >=20
+> > Do you have time to test some patches on ARM?
+>=20
+> Looks to me that issue was introduced by:
+>=20
+> commit 1df0888f6a736e1612ce8b054d6c17651ebd003f
+> Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Date:=C2=A0=C2=A0=C2=A0Fri Sep 2 12:57:57 2016 -0600
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0Remove most checks of __BYTE_ORDER
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0For a long time now endian.h has defined sane fix=
+ed with
+> conversion
+> =C2=A0=C2=A0=C2=A0=C2=A0macros, so lets just use them instead of rolling =
+our own.
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0Also, htonll is defined in this source tree under
+> infiniband/arch.h,
+> =C2=A0=C2=A0=C2=A0=C2=A0so all users of that macro can just use the heade=
+r.
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0Someday we should also get rid of all the endless=
+ wrappers..
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidi=
+anresearch.com>
+>=20
+> where byte order macros are from libibverbs arch.h which also
+> includes
+> the memory barrier stuff.
+>=20
+> So can't arch.h be separated out into 2 headers and have the various
+> parts of rdma-core include one or both of these headers as needed ?
 
-This improves commit 77fbb25e4c2a1f99d812752f85a28978ece32fe0 as pointed
-above.
+No, that won't help. =C2=A0At most it would shift where the compile breaks.
+=C2=A0When Steve Wise did the patch to add the arm64 memory barriers, we
+discussed on list the fact that not having a proper memory barrier
+define for an arch should be a fatal error, so we also made it such
+that without an arch specific memory barrier define, we fail the build.
+=C2=A0If you split the headers, then somewhere you are going to come to a
+file that needs the memory barriers defined in the headers, and when
+you include the header, the compile error returns. =C2=A0The proper fix is
+just to get 32bit arm defines in place.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibverbs/cmd.c                 | 47 +---------------------------------------
- providers/cxgb3/verbs.c          |  2 +-
- providers/cxgb4/qp.c             |  2 +-
- providers/cxgb4/verbs.c          |  2 +-
- providers/hfi1verbs/verbs.c      |  2 +-
- providers/hns/hns_roce_u_hw_v1.c |  2 +-
- providers/i40iw/i40iw_uverbs.c   |  2 +-
- providers/ipathverbs/verbs.c     |  2 +-
- providers/mlx4/verbs.c           |  2 +-
- providers/mlx5/verbs.c           |  2 +-
- providers/mthca/verbs.c          |  2 +-
- providers/nes/nes_uverbs.c       |  2 +-
- providers/ocrdma/ocrdma_verbs.c  |  2 +-
- providers/qedr/qelr_verbs.c      |  2 +-
- providers/rxe/rxe.c              |  2 +-
- 15 files changed, 15 insertions(+), 60 deletions(-)
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index a702d67..36faf59 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -1226,35 +1226,18 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 
- 	if (attr_mask & IBV_QP_STATE)
- 		cmd->qp_state = attr->qp_state;
--	else
--		cmd->qp_state = 0;
--
- 	if (attr_mask & IBV_QP_CUR_STATE)
- 		cmd->cur_qp_state = attr->cur_qp_state;
--	else
--		cmd->cur_qp_state = 0;
--
- 	if (attr_mask & IBV_QP_EN_SQD_ASYNC_NOTIFY)
- 		cmd->en_sqd_async_notify = attr->en_sqd_async_notify;
--	else
--		cmd->en_sqd_async_notify = 0;
--
- 	if (attr_mask & IBV_QP_ACCESS_FLAGS)
- 		cmd->qp_access_flags = attr->qp_access_flags;
--	else
--		cmd->qp_access_flags = 0;
- 	if (attr_mask & IBV_QP_PKEY_INDEX)
- 		cmd->pkey_index = attr->pkey_index;
--	else
--		cmd->pkey_index = 0;
- 	if (attr_mask & IBV_QP_PORT)
- 		cmd->port_num = attr->port_num;
--	else
--		cmd->port_num = 0;
- 	if (attr_mask & IBV_QP_QKEY)
- 		cmd->qkey = attr->qkey;
--	else
--		cmd->qkey = 0;
- 
- 	if (attr_mask & IBV_QP_AV) {
- 		memcpy(cmd->dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
-@@ -1269,33 +1252,20 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		cmd->dest.static_rate = attr->ah_attr.static_rate;
- 		cmd->dest.is_global = attr->ah_attr.is_global;
- 		cmd->dest.port_num = attr->ah_attr.port_num;
--	} else
--		memset(&cmd->dest, 0, sizeof(cmd->dest));
-+	}
- 
- 	if (attr_mask & IBV_QP_PATH_MTU)
- 		cmd->path_mtu = attr->path_mtu;
--	else
--		cmd->path_mtu = 0;
- 	if (attr_mask & IBV_QP_TIMEOUT)
- 		cmd->timeout = attr->timeout;
--	else
--		cmd->timeout = 0;
- 	if (attr_mask & IBV_QP_RETRY_CNT)
- 		cmd->retry_cnt = attr->retry_cnt;
--	else
--		cmd->retry_cnt = 0;
- 	if (attr_mask & IBV_QP_RNR_RETRY)
- 		cmd->rnr_retry = attr->rnr_retry;
--	else
--		cmd->rnr_retry = 0;
- 	if (attr_mask & IBV_QP_RQ_PSN)
- 		cmd->rq_psn = attr->rq_psn;
--	else
--		cmd->rq_psn = 0;
- 	if (attr_mask & IBV_QP_MAX_QP_RD_ATOMIC)
- 		cmd->max_rd_atomic = attr->max_rd_atomic;
--	else
--		cmd->max_rd_atomic = 0;
- 
- 	if (attr_mask & IBV_QP_ALT_PATH) {
- 		cmd->alt_pkey_index = attr->alt_pkey_index;
-@@ -1315,33 +1285,18 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		cmd->alt_dest.static_rate = attr->alt_ah_attr.static_rate;
- 		cmd->alt_dest.is_global = attr->alt_ah_attr.is_global;
- 		cmd->alt_dest.port_num = attr->alt_ah_attr.port_num;
--	} else {
--		cmd->alt_pkey_index = 0;
--		cmd->alt_port_num = 0;
--		cmd->alt_timeout = 0;
--		memset(&cmd->alt_dest, 0, sizeof(cmd->alt_dest));
- 	}
- 
- 	if (attr_mask & IBV_QP_MIN_RNR_TIMER)
- 		cmd->min_rnr_timer = attr->min_rnr_timer;
--	else
--		cmd->min_rnr_timer = 0;
- 	if (attr_mask & IBV_QP_SQ_PSN)
- 		cmd->sq_psn = attr->sq_psn;
--	else
--		cmd->sq_psn = 0;
- 	if (attr_mask & IBV_QP_MAX_DEST_RD_ATOMIC)
- 		cmd->max_dest_rd_atomic = attr->max_dest_rd_atomic;
--	else
--		cmd->max_dest_rd_atomic = 0;
- 	if (attr_mask & IBV_QP_PATH_MIG_STATE)
- 		cmd->path_mig_state = attr->path_mig_state;
--	else
--		cmd->path_mig_state = 0;
- 	if (attr_mask & IBV_QP_DEST_QPN)
- 		cmd->dest_qp_num = attr->dest_qp_num;
--	else
--		cmd->dest_qp_num = 0;
- 
- 	cmd->reserved[0] = cmd->reserved[1] = 0;
- 
-diff --git a/providers/cxgb3/verbs.c b/providers/cxgb3/verbs.c
-index 0cb78d7..79112a5 100644
---- a/providers/cxgb3/verbs.c
-+++ b/providers/cxgb3/verbs.c
-@@ -376,7 +376,7 @@ static void reset_qp(struct iwch_qp *qhp)
- int iwch_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 		   int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct iwch_qp *qhp = to_iwch_qp(ibqp);
- 	int ret;
- 
-diff --git a/providers/cxgb4/qp.c b/providers/cxgb4/qp.c
-index 3b448dd..700fe02 100644
---- a/providers/cxgb4/qp.c
-+++ b/providers/cxgb4/qp.c
-@@ -269,7 +269,7 @@ static int build_rdma_recv(struct c4iw_qp *qhp, union t4_recv_wr *wqe,
- 
- static void ring_kernel_db(struct c4iw_qp *qhp, u32 qid, u16 idx)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct ibv_qp_attr attr;
- 	int mask;
- 	int __attribute__((unused)) ret;
-diff --git a/providers/cxgb4/verbs.c b/providers/cxgb4/verbs.c
-index 70d250f..32ed44c 100644
---- a/providers/cxgb4/verbs.c
-+++ b/providers/cxgb4/verbs.c
-@@ -579,7 +579,7 @@ static void reset_qp(struct c4iw_qp *qhp)
- int c4iw_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 		   int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct c4iw_qp *qhp = to_c4iw_qp(ibqp);
- 	int ret;
- 
-diff --git a/providers/hfi1verbs/verbs.c b/providers/hfi1verbs/verbs.c
-index 06ddbb7..6590951 100644
---- a/providers/hfi1verbs/verbs.c
-+++ b/providers/hfi1verbs/verbs.c
-@@ -396,7 +396,7 @@ int hfi1_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- int hfi1_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		    int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 
- 	return ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof cmd);
- }
-diff --git a/providers/hns/hns_roce_u_hw_v1.c b/providers/hns/hns_roce_u_hw_v1.c
-index e5cfe48..ff39593 100644
---- a/providers/hns/hns_roce_u_hw_v1.c
-+++ b/providers/hns/hns_roce_u_hw_v1.c
-@@ -642,7 +642,7 @@ static int hns_roce_u_v1_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 				   int attr_mask)
- {
- 	int ret;
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct hns_roce_qp *hr_qp = to_hr_qp(qp);
- 
- 	ret = ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
-diff --git a/providers/i40iw/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
-index 4a868ea..b132112 100644
---- a/providers/i40iw/i40iw_uverbs.c
-+++ b/providers/i40iw/i40iw_uverbs.c
-@@ -754,7 +754,7 @@ int i40iw_uquery_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask,
-  */
- int i40iw_umodify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 
- 	return ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
- }
-diff --git a/providers/ipathverbs/verbs.c b/providers/ipathverbs/verbs.c
-index 35b2162..6388560 100644
---- a/providers/ipathverbs/verbs.c
-+++ b/providers/ipathverbs/verbs.c
-@@ -372,7 +372,7 @@ int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- int ipath_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		    int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 
- 	return ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof cmd);
- }
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 50a4434..21ec1d1 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -773,7 +773,7 @@ int mlx4_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		    int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct ibv_port_attr port_attr;
- 	struct mlx4_qp *mqp = to_mqp(qp);
- 	struct ibv_device_attr device_attr;
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index e288ebf..ae68c84 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1501,7 +1501,7 @@ int mlx5_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		   int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct mlx5_qp *mqp = to_mqp(qp);
- 	struct mlx5_context *context = to_mctx(qp->context);
- 	int ret;
-diff --git a/providers/mthca/verbs.c b/providers/mthca/verbs.c
-index 60dd440..044d6b7 100644
---- a/providers/mthca/verbs.c
-+++ b/providers/mthca/verbs.c
-@@ -613,7 +613,7 @@ int mthca_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- int mthca_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		    int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	int ret;
- 
- 	ret = ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof cmd);
-diff --git a/providers/nes/nes_uverbs.c b/providers/nes/nes_uverbs.c
-index 7e7bb90..867c39e 100644
---- a/providers/nes/nes_uverbs.c
-+++ b/providers/nes/nes_uverbs.c
-@@ -1106,7 +1106,7 @@ int nes_uquery_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
-  */
- int nes_umodify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	return ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof cmd);
- }
- 
-diff --git a/providers/ocrdma/ocrdma_verbs.c b/providers/ocrdma/ocrdma_verbs.c
-index 7e066dc..37e9d18 100644
---- a/providers/ocrdma/ocrdma_verbs.c
-+++ b/providers/ocrdma/ocrdma_verbs.c
-@@ -831,7 +831,7 @@ static int ocrdma_qp_state_machine(struct ocrdma_qp *qp,
- int ocrdma_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 		     int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct ocrdma_qp *qp = get_ocrdma_qp(ibqp);
- 	int status;
- 
-diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
-index 793b1f4..a7c4503 100644
---- a/providers/qedr/qelr_verbs.c
-+++ b/providers/qedr/qelr_verbs.c
-@@ -763,7 +763,7 @@ static int qelr_update_qp_state(struct qelr_qp *qp,
- int qelr_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 		     int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 	struct qelr_qp *qp = get_qelr_qp(ibqp);
- 	struct qelr_devctx *cxt = get_qelr_ctx(ibqp->context);
- 	int rc;
-diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
-index d23ef3d..f9bbb72 100644
---- a/providers/rxe/rxe.c
-+++ b/providers/rxe/rxe.c
-@@ -506,7 +506,7 @@ static int rxe_modify_qp(struct ibv_qp *ibvqp,
- 			 struct ibv_qp_attr *attr,
- 			 int attr_mask)
- {
--	struct ibv_modify_qp cmd;
-+	struct ibv_modify_qp cmd = {};
- 
- 	return ibv_cmd_modify_qp(ibvqp, attr, attr_mask, &cmd, sizeof cmd);
- }
--- 
-1.8.3.1
+--=-onPhYRNlDpoJwQIb8SAy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYdRuEAAoJELgmozMOVy/d2NUP/iQBAa8xN1JDXZt/lJdHgmNc
+blA468KCNwVyWV7zfG2L/XyZjnMTgVCL9ctY09qfLPyRMki6mCFPrxkg5CFRcFCP
+q8jAga4/XByYetb3jBkARC1yd0cr03qxKpkRz/+Exi/iNrxGSpoJs5vwvf9oPxsp
+98sAAJB4bveHHu8imz75gVU2jTYnfmyiFEM0alyCp+H4AvV93S7QeofWnxUrwbFd
+mFw30vE6PKRBUv/ybVsxNl0a3Cy9XK1Dw+8n0pEXYRjwqsKhdeza+6e8Y2pVuNrT
+gtJePY9XRcO6OEjFRBE5U3SrJmv6GR+f5E/X09roqu5qGen8LAZ4XxLlT79+gcCW
+xC7wtRWSOmC1XcsUgNArD43qp2CebRfjhWyyQ1Erxmpym+p9sAGKDuR+CUacztuK
+WaQfIWqj0dIeSgeK0NbK87XhRse9lcnIupWM5ddB+6oaaliWB9PVYz0IC1u8ACR8
+kfUWNaVGkRszu/LuHjDaNAMhFSsvYwvAeSq4uIvL11+Yfw3V/CVdymBf75WZzAPF
+OCfsd1ewbCBcSD+hQbe8bHqIw1BKUWqe9e/WC+3l6mWbXcxCWOGAIfKa0mrYJl+o
+TDavnNpmgNZRniHyey9rgwmCJrEWzIZYYgoTod2OioRweXJXwJaoAcjz7vg6myCG
+Uz/gSBbKO47sdqo0Qq6/
+=OSir
+-----END PGP SIGNATURE-----
+
+--=-onPhYRNlDpoJwQIb8SAy--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
