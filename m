@@ -1,48 +1,54 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next V2 08/10] IB/mlx5: Allow future extension of libmlx5
- input data
-Date: Mon, 09 Jan 2017 23:24:37 -0500
-Message-ID: <1484022277.2149.4.camel@redhat.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [for-next V2 00/10][pull request] Mellanox 100G mlx5 4K UAR
+ support
+Date: Mon, 09 Jan 2017 23:29:22 -0500
+Message-ID: <1484022562.2149.5.camel@redhat.com>
 References: <1483890891-8767-1-git-send-email-saeedm@mellanox.com>
-         <1483890891-8767-9-git-send-email-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-8tHI/gS+mTj/g/byMq8Z"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1483890891-8767-9-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="=-Vb/tK7rHbdqO4vFW/FVg"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1483890891-8767-1-git-send-email-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Eli Cohen <eli@mellanox.com>, Matan Barak <matanb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-8tHI/gS+mTj/g/byMq8Z
+--=-Vb/tK7rHbdqO4vFW/FVg
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Sun, 2017-01-08 at 17:54 +0200, Saeed Mahameed wrote:
-> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Hi Dave and Doug,
 >=20
-> Current check requests that new fields in struct
-> mlx5_ib_alloc_ucontext_req_v2 that are not known to the driver be
-> zero.
-> This was introduced so new libraries passing additional information
-> to
-> the kernel through struct mlx5_ib_alloc_ucontext_req_v2 will be
-> notified
-> by old kernels that do not support their request by failing the
-> operation. This schecme is problematic since it requires libmlx5 to=20
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ^ Typo
+> Following the mlx5-odp submission, you can find here the 2nd mlx5
+> submission for 4.11 as a pull-request including mlx5 4K UAR support
+> from
+> Eli Cohen (details below).=C2=A0=C2=A0For you Doug, this pull request wil=
+l
+> provide=C2=A0
+> you with both mlx5 odp and mlx5 4k UAR since it is based on Dave's
+> net-next mlx5-odp merge commit.
+>=20
+> v1->v2:
+> =C2=A0 - Removed 64BIT arch dependency.
+>=20
+> Thank you,
+> Saeed.
+>=C2=A0
 
-
+I know you have a couple issues to fix on respin (minor things as
+pointed out). =C2=A0Otherwise, I've reviewed of the IB portion of the code
+and have no objections.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
 =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-8tHI/gS+mTj/g/byMq8Z
+--=-Vb/tK7rHbdqO4vFW/FVg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -50,24 +56,19 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYdGIFAAoJELgmozMOVy/dkDIP/0jyrB1QPac9+kwvEOxjwMy2
-CtEx5K8HeURar83cM8SaJiM8rprX/c8Wbk//Dtbx0JOC7ze30ZmCcersFoIDp8yJ
-zPzYgFD63SfEBmgwVDeakjBsPzBKBsZedKoJr6ivJkw9MJefzr094voXWvIDUxJk
-cDcKivyUsdx5Re9YFqNAr5kZg19c+83+du6o/aeSf/vL2KtQIwz9jAwjqKHDqCYU
-P7qxzxFdKw2Qi4n/xm6a4d++Y8P6oyF3uwC354dSQir7y943h6rmLvp8rQtamq5a
-y5NTdHBbSTuichTVSV6aao0L7svMipuqxklps3uTTdq22Gi9PqNG44gYUv/jgeWO
-Jvc6Sg8KytATgGoonPWatQSnphqTY4emcaQgOQlBZnYptmnuhraOiVlW4b0ysCEF
-15FSI/L9fHWdAeZyFFH5XqBZOBPiv6zfq4Ioo8koTzGMeYZHqebhsmhw0dEE6D2y
-C4Nqxxu0Tfh45ytKw9h06eep583cH+cLRdIUtS9GEtFZ2OdnZ4mjzW++9h0tYgcD
-4ov5qStEqB/oHFdIlBkqORjunXT1v57WwKot9/rW/qwvK4lHQgGNoxWuaRTGu6V8
-BRNSbUzqNa0VMhD8xhNJuDTTRnvJ71co/RIT/I+oAolxmsuZu4L/DMGT+ZyrEIMP
-d/EROv2X1peqs2H2pph+
-=sj2t
+iQIcBAABCAAGBQJYdGMiAAoJELgmozMOVy/d9doP+wWhPO3DoU69rbUqVqRwj/qq
+VSna6IxHdla5nrKGAnvF20HgWXxQ4D8JRk7RUtDKzHcmyTQf24S/kiBbDbF1AVNi
+q1WD7eeiJ1EK1ytacVgaqgHJ8H2Sse4Qo3NYWiRizI/64CgWJsnAWnoa06qAFOMd
+/w9VHObD3CwFBsiXQs6JgHZUoAfSVKPdUlJdvWqRwhaZpLHUC6SL0Wqji2JJqx1Z
++NEmp74FLdDmms8e0npbzNOJXfRs8n4ysXVQaeJK4N5W+nq/ZYXJyInhkunpLrbz
+Z5FJv7PmmFs6uERJbgrKniGONGXv1jBfsM3LGaDYY2h93QXxc7Mp9m9LANLK1WwT
+lAgCxhN+tJRwVZgxR0XDju60l/3EX5dxrxyGZl3tiKtalGbwG+FEkdC5PYC8POEk
+qjFLwvyLHHmP1YNn6ayqeDwZ4+XEtw7/DzM3mfdOy0IXvdRZwSfljkcUKPN8egFK
+0X1Qn5le923dYPMTD+YhlC7EFZO6Ump95Ua0Rj4o01Ozd0MMFlflyLjXzPnWNEZi
+dVJqkkLYHgdO0r5HxdVWkT1t2F+fWJO9bTjJ5adH+p95KqqwD6+ZPwjmnWv21i1y
+7lUjEfUFbuFBBCgH8wFlkG7EevyLEIqPNf4wdSOYCrWBe6UTGcEXfPJh079e2UQ3
+P9BIaMrob1sfBAReAag/
+=HgS+
 -----END PGP SIGNATURE-----
 
---=-8tHI/gS+mTj/g/byMq8Z--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-Vb/tK7rHbdqO4vFW/FVg--
