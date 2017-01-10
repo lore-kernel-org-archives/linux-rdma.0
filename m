@@ -1,54 +1,55 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core v3] redhat/spec: further cleanups to
- depdendencies, descriptions, formatting
-Date: Mon, 9 Jan 2017 22:20:18 -0500
-Message-ID: <05b2421e-083d-319e-7146-45982d31a2bf@redhat.com>
-References: <20161222181404.57469-1-jarod@redhat.com>
- <20170109213910.31871-1-jarod@redhat.com>
- <20170109223631.GB10850@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core] redhat: Remove non-existed infiniband modules
+Date: Mon, 9 Jan 2017 22:22:19 -0500
+Message-ID: <ce40642e-5309-3c79-890b-e0c73998a6be@redhat.com>
+References: <20170109085429.32598-1-leonro@mellanox.com>
+ <20170109154302.GC29687@obsidianresearch.com>
+ <20170109174025.GB7218@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170109223631.GB10850-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170109174025.GB7218-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2017-01-09 5:36 PM, Jason Gunthorpe wrote:
-> On Mon, Jan 09, 2017 at 04:39:10PM -0500, Jarod Wilson wrote:
->> These are numerous additional little fixups for the Fedora/Red Hat spec
->> file, stemming from Fedora package review.
+On 2017-01-09 12:40 PM, Leon Romanovsky wrote:
+> On Mon, Jan 09, 2017 at 08:43:02AM -0700, Jason Gunthorpe wrote:
+>> On Mon, Jan 09, 2017 at 10:54:29AM +0200, Leon Romanovsky wrote:
+>>> The modules ib_addr.ko, ib_mad.ko and ib_sa.ko were integrated
+>>> into ib_core.ko in following kernel commits:
+>>>  * c2e49c92326f ("IB/SA: Integrate ib_sa module into ib_core module")
+>>>  * 4c2cb4220431 ("IB/MAD: Integrate ib_mad module into ib_core module")
+>>>  * e3f20f02864f ("IB/core: Integrate IB address resolution module into core")
+>>>
+>>> Fixes: 39fa824dd80e ("redhat: add udev/systemd/etc infrastructure bits")
+>>> Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>  redhat/rdma.kernel-init | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
 >>
->> - Per https://fedoraproject.org/wiki/Packaging:Systemd it seems we need to
->>   have systemd as a BuildRequires for %{_unitdir} to evaluate properly.
->>
->> - Add explicit dependencies on kmod, and systemd, because in the world of
->>   containers and some virt guests, these aren't automatically pulled in,
->>   due to not having a kernel installed in the container or guest.
->>
->> - Add missing Requires to rdma-core-devel on each sub-package it provides
->>   devel headers and libs for
->>
->> - Update summary of libibverbs to mention RoCE too
->>
->> - Add requirement on logrotate to srp_daemon
+>> Make sense to me, but if we are saying the redhat scripts only work
+>> with a certain newish kernel then it would be great to also purge all
+>> that crufty compat stuff (mttrs, pci tuning, etc) so we can better
+>> understand what is still actually needed..
 >
-> I thought we agreed to just dump the rsyslog stuff?
+> Other stuff doesn't crash our verification runs of upstream rdma-core
+> vs. upstream kernel :)
 >
-> From 304bbeadf79efe01e8db8230e21d812e1fec152f Mon Sep 17 00:00:00 2001
-> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Date: Mon, 9 Jan 2017 15:34:44 -0700
-> Subject: [PATCH] srp: Do no include example log rsyslog configuration
+> In our previous discussions, we agreed to have master branch to be in
+> sync with Linus's tree and proposed to distributions to manage special
+> (backported) branches for specific releases.
 >
-> Distros are now using systemd so 'journalctl -u srp_daemon' does
-> the same thing.
+> And I agree with you and  would like to see compat stuff removed.
 >
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Doug, Jarod
+> What do you think? Can you do it?
 
-Ah, yes. Whoops. I blame vacation, I forgot about that when trying to 
-get back up to speed on this today. :)
+I think this should be fine, I don't think rdma-core is going to make 
+it's way (at least not directly) back to distros with sufficiently old 
+enough rdma kernel stacks that this would cause any issues.
 
 -- 
 Jarod Wilson
