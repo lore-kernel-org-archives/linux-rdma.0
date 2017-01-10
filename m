@@ -1,14 +1,12 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: [PATCH v2 03/15] IB/rxe: Remove an unused function
-Date: Tue, 10 Jan 2017 11:08:10 -0800
-Message-ID: <20170110190822.16953-4-bart.vanassche@sandisk.com>
-References: <20170110190822.16953-1-bart.vanassche@sandisk.com>
- <20170110190822.16953-2-bart.vanassche@sandisk.com>
- <20170110190822.16953-3-bart.vanassche@sandisk.com>
+Date: Tue, 10 Jan 2017 11:15:42 -0800
+Message-ID: <20170110191554.17359-4-bart.vanassche@sandisk.com>
+References: <20170110191554.17359-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170110190822.16953-3-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170110191554.17359-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
