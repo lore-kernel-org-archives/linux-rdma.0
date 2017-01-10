@@ -1,59 +1,71 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Mon, 9 Jan 2017 19:39:54 -0800
-Message-ID: <20170110033954.GA53664@knc-06.sc.intel.com>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20170109075104.GV15685@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [for-next V2 08/10] IB/mlx5: Allow future extension of libmlx5
+ input data
+Date: Mon, 09 Jan 2017 23:24:37 -0500
+Message-ID: <1484022277.2149.4.camel@redhat.com>
+References: <1483890891-8767-1-git-send-email-saeedm@mellanox.com>
+         <1483890891-8767-9-git-send-email-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-8tHI/gS+mTj/g/byMq8Z"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170109075104.GV15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1483890891-8767-9-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 09, 2017 at 09:51:04AM +0200, Leon Romanovsky wrote:
->On Thu, Dec 15, 2016 at 11:28:06AM -0500, Doug Ledford wrote:
->> On 12/15/2016 9:52 AM, ira.weiny wrote:
->>
->> 2) With more than 60% of the code being MAD related, and another
->> significant chunk being hfi related, and only a minor bit (20% maybe?)
->> being net related,
->
->Hi Doug and Ira,
->
->I may admit that I didn't read the code very deep, but from brief
->overview, I didn't find support for the claim the "60% code is MAD related".
->It looks like the opposite thing will be more accurate.
->
->Can you help me to understand this claim? How did you come to this
->conclusion?
->
->Thanks
 
-Hi Leon,
+--=-8tHI/gS+mTj/g/byMq8Z
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Here is the breakdown of patches based on functionality.
-In this series, patches #3..#8 compose hfi_vnic driver. In that, patches #4, #7 
-and #8 are MAD focused (interfacing with MAD agent and handling MAD packets).
-Patch #6 and half of #3 (_encap.c/h) are OPA encapsulation related. Patch #5 is 
-netdev statistic related (which includes statistics MAD definitions).
-So, only part of patch #3 (_netdev.c and _ethtool.c) deals with interfacing 
-with netstack.
-Those percentage numbers are based on actual lines of code in these patches 
-(files).
+On Sun, 2017-01-08 at 17:54 +0200, Saeed Mahameed wrote:
+> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Current check requests that new fields in struct
+> mlx5_ib_alloc_ucontext_req_v2 that are not known to the driver be
+> zero.
+> This was introduced so new libraries passing additional information
+> to
+> the kernel through struct mlx5_ib_alloc_ucontext_req_v2 will be
+> notified
+> by old kernels that do not support their request by failing the
+> operation. This schecme is problematic since it requires libmlx5 to=20
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ^ Typo
 
-We are also looking into Jason’s suggestion to make hfi_vnic interface to the 
-bottom driver a generic interface. This will include moving some of the 
-netstack interfacing to the bottom hfi1 driver.
 
-Niranjana
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+
+--=-8tHI/gS+mTj/g/byMq8Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYdGIFAAoJELgmozMOVy/dkDIP/0jyrB1QPac9+kwvEOxjwMy2
+CtEx5K8HeURar83cM8SaJiM8rprX/c8Wbk//Dtbx0JOC7ze30ZmCcersFoIDp8yJ
+zPzYgFD63SfEBmgwVDeakjBsPzBKBsZedKoJr6ivJkw9MJefzr094voXWvIDUxJk
+cDcKivyUsdx5Re9YFqNAr5kZg19c+83+du6o/aeSf/vL2KtQIwz9jAwjqKHDqCYU
+P7qxzxFdKw2Qi4n/xm6a4d++Y8P6oyF3uwC354dSQir7y943h6rmLvp8rQtamq5a
+y5NTdHBbSTuichTVSV6aao0L7svMipuqxklps3uTTdq22Gi9PqNG44gYUv/jgeWO
+Jvc6Sg8KytATgGoonPWatQSnphqTY4emcaQgOQlBZnYptmnuhraOiVlW4b0ysCEF
+15FSI/L9fHWdAeZyFFH5XqBZOBPiv6zfq4Ioo8koTzGMeYZHqebhsmhw0dEE6D2y
+C4Nqxxu0Tfh45ytKw9h06eep583cH+cLRdIUtS9GEtFZ2OdnZ4mjzW++9h0tYgcD
+4ov5qStEqB/oHFdIlBkqORjunXT1v57WwKot9/rW/qwvK4lHQgGNoxWuaRTGu6V8
+BRNSbUzqNa0VMhD8xhNJuDTTRnvJ71co/RIT/I+oAolxmsuZu4L/DMGT+ZyrEIMP
+d/EROv2X1peqs2H2pph+
+=sj2t
+-----END PGP SIGNATURE-----
+
+--=-8tHI/gS+mTj/g/byMq8Z--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
