@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 10/15] IB/rxe: Introduce functions for queue draining
-Date: Tue, 10 Jan 2017 11:15:49 -0800
-Message-ID: <20170110191554.17359-11-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 06/15] IB/rxe: Enable type checking on SKB_TO_PKT() and PKT_TO_SKB() arguments
+Date: Tue, 10 Jan 2017 11:15:45 -0800
+Message-ID: <20170110191554.17359-7-bart.vanassche@sandisk.com>
 References: <20170110191554.17359-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,150 +12,40 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This change makes the code easier to read and avoids that code is
-duplicated.
+Let the compiler check the type of the arguments passed to SKB_TO_PKT()
+and PKT_TO_SKB().
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c | 63 +++++++++++++-----------------------
- drivers/infiniband/sw/rxe/rxe_resp.c | 28 ++++++++--------
- 2 files changed, 38 insertions(+), 53 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_hdr.h | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index e912e5396e8c..6769a075501e 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -503,57 +503,40 @@ static inline enum comp_state complete_wqe(struct rxe_qp *qp,
- 	return COMPST_GET_WQE;
- }
+diff --git a/drivers/infiniband/sw/rxe/rxe_hdr.h b/drivers/infiniband/sw/rxe/rxe_hdr.h
+index d57b5e956ceb..6cb18406f5b8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_hdr.h
++++ b/drivers/infiniband/sw/rxe/rxe_hdr.h
+@@ -53,8 +53,16 @@ struct rxe_pkt_info {
+ };
  
--int rxe_completer(void *arg)
-+static void rxe_drain_resp_pkts(struct rxe_qp *qp, bool notify)
- {
--	struct rxe_qp *qp = (struct rxe_qp *)arg;
--	struct rxe_send_wqe *wqe = wqe;
--	struct sk_buff *skb = NULL;
--	struct rxe_pkt_info *pkt = NULL;
--	enum comp_state state;
--
--	rxe_add_ref(qp);
--
--	if (!qp->valid) {
--		while ((skb = skb_dequeue(&qp->resp_pkts))) {
--			rxe_drop_ref(qp);
--			kfree_skb(skb);
--		}
--		skb = NULL;
--		pkt = NULL;
--
--		while (queue_head(qp->sq.queue))
--			advance_consumer(qp->sq.queue);
-+	struct sk_buff *skb;
-+	struct rxe_send_wqe *wqe;
- 
--		goto exit;
-+	while ((skb = skb_dequeue(&qp->resp_pkts))) {
-+		rxe_drop_ref(qp);
-+		kfree_skb(skb);
- 	}
- 
--	if (qp->req.state == QP_STATE_ERROR) {
--		while ((skb = skb_dequeue(&qp->resp_pkts))) {
--			rxe_drop_ref(qp);
--			kfree_skb(skb);
--		}
--		skb = NULL;
--		pkt = NULL;
--
--		while ((wqe = queue_head(qp->sq.queue))) {
-+	while ((wqe = queue_head(qp->sq.queue))) {
-+		if (notify) {
- 			wqe->status = IB_WC_WR_FLUSH_ERR;
- 			do_complete(qp, wqe);
-+		} else {
-+			advance_consumer(qp->sq.queue);
- 		}
--
--		goto exit;
- 	}
-+}
- 
--	if (qp->req.state == QP_STATE_RESET) {
--		while ((skb = skb_dequeue(&qp->resp_pkts))) {
--			rxe_drop_ref(qp);
--			kfree_skb(skb);
--		}
--		skb = NULL;
--		pkt = NULL;
-+int rxe_completer(void *arg)
+ /* Macros should be used only for received skb */
+-#define SKB_TO_PKT(skb) ((struct rxe_pkt_info *)(skb)->cb)
+-#define PKT_TO_SKB(pkt) container_of((void *)(pkt), struct sk_buff, cb)
++static inline struct rxe_pkt_info *SKB_TO_PKT(struct sk_buff *skb)
 +{
-+	struct rxe_qp *qp = (struct rxe_qp *)arg;
-+	struct rxe_send_wqe *wqe = wqe;
-+	struct sk_buff *skb = NULL;
-+	struct rxe_pkt_info *pkt = NULL;
-+	enum comp_state state;
- 
--		while (queue_head(qp->sq.queue))
--			advance_consumer(qp->sq.queue);
-+	rxe_add_ref(qp);
- 
-+	if (!qp->valid || qp->req.state == QP_STATE_ERROR ||
-+	    qp->req.state == QP_STATE_RESET) {
-+		rxe_drain_resp_pkts(qp, qp->valid &&
-+				    qp->req.state == QP_STATE_ERROR);
- 		goto exit;
- 	}
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 6dbd069689fc..51c134dbc6c8 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -1207,6 +1207,19 @@ static enum resp_states do_class_d1e_error(struct rxe_qp *qp)
- 	}
- }
- 
-+static void rxe_drain_req_pkts(struct rxe_qp *qp)
-+{
-+	struct sk_buff *skb;
-+
-+	while ((skb = skb_dequeue(&qp->req_pkts))) {
-+		rxe_drop_ref(qp);
-+		kfree_skb(skb);
-+	}
-+
-+	while (!qp->srq && qp->rq.queue && queue_head(qp->rq.queue))
-+		advance_consumer(qp->rq.queue);
++	BUILD_BUG_ON(sizeof(struct rxe_pkt_info) > sizeof(skb->cb));
++	return (void *)skb->cb;
 +}
 +
- int rxe_responder(void *arg)
- {
- 	struct rxe_qp *qp = (struct rxe_qp *)arg;
-@@ -1374,21 +1387,10 @@ int rxe_responder(void *arg)
++static inline struct sk_buff *PKT_TO_SKB(struct rxe_pkt_info *pkt)
++{
++	return container_of((void *)pkt, struct sk_buff, cb);
++}
  
- 			goto exit;
- 
--		case RESPST_RESET: {
--			struct sk_buff *skb;
--
--			while ((skb = skb_dequeue(&qp->req_pkts))) {
--				rxe_drop_ref(qp);
--				kfree_skb(skb);
--			}
--
--			while (!qp->srq && qp->rq.queue &&
--			       queue_head(qp->rq.queue))
--				advance_consumer(qp->rq.queue);
--
-+		case RESPST_RESET:
-+			rxe_drain_req_pkts(qp);
- 			qp->resp.wqe = NULL;
- 			goto exit;
--		}
- 
- 		case RESPST_ERROR:
- 			qp->resp.goto_error = 0;
+ /*
+  * IBA header types and methods
 -- 
 2.11.0
 
