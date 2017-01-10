@@ -1,63 +1,128 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for rdma-next] RDMA: Adding ethertype ETH_P_IBOE
-Date: Tue, 10 Jan 2017 14:05:33 -0500
-Message-ID: <1484075133.2149.26.camel@redhat.com>
-References: <1482175726-27366-1-git-send-email-selvin.xavier@broadcom.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Missing Patches in Linux Kernel RDMA
+Date: Tue, 10 Jan 2017 21:06:07 +0200
+Message-ID: <20170110190607.GS7218@mtr-leonro.local>
+References: <20170110143018.GM7218@mtr-leonro.local>
+ <1484067238.2149.15.camel@redhat.com>
+ <20170110182815.GN7218@mtr-leonro.local>
+ <1484074377.2149.23.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-rZwGR7Ax1OJE/tyvq49j"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Bzq2cJcN05fcPrs+"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482175726-27366-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1484074377.2149.23.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-rZwGR7Ax1OJE/tyvq49j
-Content-Type: text/plain; charset="UTF-8"
+--Bzq2cJcN05fcPrs+
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2016-12-19 at 11:28 -0800, Selvin Xavier wrote:
-> Update the if_ether.h with the=C2=A0 ethertype for Infiniband over
-> Ethernet packets. Also, removing the occurances of 0x8915
-> from infiniband vendor drivers.
->=20
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+On Tue, Jan 10, 2017 at 01:52:57PM -0500, Doug Ledford wrote:
+> On Tue, 2017-01-10 at 20:28 +0200, Leon Romanovsky wrote:
+> > On Tue, Jan 10, 2017 at 11:53:58AM -0500, Doug Ledford wrote:
+> > >
+> > > On Tue, 2017-01-10 at 16:30 +0200, Leon Romanovsky wrote:
+> > > >
+> > > > Hi Doug,
+> > > >
+> > > > While reviewing patches on mailing list, I was amazed to see
+> > > > patches accepted before, marked such in patchworks but don't
+> > > > exist in the Linus's tree.
+> > > >
+> > > > The first patch which brought my attention was Christoph's change
+> > > > "IB: merge struct ib_device_attr into struct ib_device" [1]. The
+> > > > other
+> > > > missed patches were from our pre-ABI series "Refactor RDMA IOCTL
+> > > > declarations" [2, 3].
+> > >
+> > > I obviously had these in my tree at one point, the last message I
+> > > wrote
+> > > in response to the 6th patch makes that very clear. =A0But, the patch
+> > > series is indeed missing. =A0I must have failed to merge it some
+> > > time,
+> > > but thought I did merge it and moved it to my post-merge area which
+> > > then eventually gets removed. =A0I'll have to re-grab them.
+> >
+> > Thanks,
+> > Can you please publish official branch with them?
+>
+> They are in my k.o/for-4.11 branch.
 
-Thanks, applied.
+Thanks Doug.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+>
+> > Matan is going to send ABI patches very soon (they passed our
+> > verification) and he needs to be based on them.
+> >
+> > >
+> > >
+> > > >
+> > > > I'm adding to CC major contributors to this subsystem, since I
+> > > > don't
+> > > > know
+> > > > if any other patches are missing too and don't know how to check
+> > > > it
+> > > > without
+> > > > doing full compare of Linus's tree with linux-rdma patchworks.
+> > > >
+> > > > However for these 7 patches, can you please grab them from
+> > > > patchworks
+> > > > again
+> > > > and resubmit?
+> > > >
+> > > > Thanks
+> > > >
+> > > > [1] https://patchwork.kernel.org/patch/7372541/
+> > > > [2] https://www.spinics.net/lists/linux-rdma/msg39954.html
+> > > > [3] https://patchwork.kernel.org/patch/9312603/
+> > > > =A0=A0=A0=A0https://patchwork.kernel.org/patch/9312593/
+> > > > =A0=A0=A0=A0https://patchwork.kernel.org/patch/9312597/
+> > > > =A0=A0=A0=A0https://patchwork.kernel.org/patch/9312601/
+> > > > =A0=A0=A0=A0https://patchwork.kernel.org/patch/9312595/
+> > > > =A0=A0=A0=A0https://patchwork.kernel.org/patch/9312599/
+> > > --
+> > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > > =A0 =A0 GPG KeyID: B826A3330E572FDD
+> > > =A0 =A0
+> > > Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57
+> > > 2FDD
+> >
+> >
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> =A0 =A0 GPG KeyID: B826A3330E572FDD
+> =A0 =A0
+> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
 
---=-rZwGR7Ax1OJE/tyvq49j
+
+
+--Bzq2cJcN05fcPrs+
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
 
-iQIcBAABCAAGBQJYdTB9AAoJELgmozMOVy/dluIQAI+51AVK0iwiGB21oSI5XOhf
-leGoIjRp9XxrbJRvNx03YmaBXaEcnZZ1MSsSyy6pNF2lRy8ZIC8yvR6+VpwW/FE6
-Njnl9eNqjxSYeIbUGAb5Imybm/KQ4Klb91ofCbB/5PTqFMRck2pnJtxKqdcskK7P
-ouxYoLehHtWgxmKIulJagRQf+j6+ZHVuKPg0vw7E2iwZwABYYUHVq4H7l0eoMS/m
-avXsntEcKM9ztgfUWCj+Hpts+ouNNr2XNp+h5Z6DXgUgpM8eYtaX80fpfRI4urbj
-yZA8y8sRC9ZNzw7r2uPuJs2Vk1Q522NG6RXGkEoyN0b1K/4v+Uyf968repkLCm/9
-GS1tCoB9byD+5kOTNaQZq1xfF/gA2FwZe8l++eR+aTbbAuUh2OvXNDfV0c5vFT2/
-o2rvXjVo+fDzOxXUQ/pD7QoO7Kv2u5CXfz1abJTT8GqVYyu/VlFdcdSSS8ohW4pv
-ObfAXpNRfLt05KfHqTS4wzccMdZUgsPr5IhNHWqMC5qso9tiBD+N5UVoYoM99L9W
-72/R8Nrr/24UsJFFtOGzxXVhojtzXJf7pSSMbHThS6UrNbuK3a5zxszrfxlL+XvA
-nZ0NZgg3QkKGFJBRmwMgmI8t2b4tgBpERG6whfamU4Wf0ikrrfcgv+FW04CaTBRT
-akeF8A93pelYUf87bHx/
-=MTJC
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh1MJ8ACgkQ5GN7iDZy
+WKeL4w/+O79fvUJSJkoGllaOOkqRe8Y9FsN0bPBikMw2S0Mli/2jQken7dAv6I7+
+6Z83Z6scHQMtU8YR0xs6e9CrfCRS1QDuzD0FT7k2BPqLeuQrmuJ4OfJCWpGtvv3l
+Ddj9QBQZo2PYd+7fBBe00I+u0lAbMnOkZtlKxY4W4yq17Dg9Ww3LYg09PFkKYVfQ
+R/pt1M8C6ZVm4sFt64OBeZIbISdxNqddNYwFu/jsPtXo3+3F/eki4W5VqISV5Lih
+UTEzDhvDd2yl1OZvPy0Chmd6aKcBS3KoAoOLrdoWyxLs71eS4oSgifKEF5vYBu4P
+f5EkoTmtBsW6QbomvL8SjqnCOMvbRdJKwxnK7PoksMM4uq+YA630QL73ryFqDEty
+ridPuSwrT2ZlNBZQS7jsQQdp0ABqUHX34KTe3672h+MMhRRFM0txAnCdWXNp10xY
+Nhe2b3pr+4dNa40K8UDVaA/K037pUBoMAngdAGY0WgAIXwu7CZX5mEj3Bu5A3aNk
+TicRNxZOyB6lxgAZcTufiQfNT+WUVIVL3S3T/hMVHmIpvS+yBNdalv79OaXMTEu0
+VywTU/N/+8E4fxVonT/phrifZoon5PF9g/E474ZdroBqLr3Ntk1PIk2mYf+tGsz2
+SfLQrwaFiyfRhe3sZbPxaAVNGzpyJBsWAmcRS++WwgRDdzTmp7U=
+=WVIA
 -----END PGP SIGNATURE-----
 
---=-rZwGR7Ax1OJE/tyvq49j--
-
+--Bzq2cJcN05fcPrs+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
