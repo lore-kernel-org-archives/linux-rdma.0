@@ -1,45 +1,35 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/4] Minimize the places where infiniband/arch.h
- is included
-Date: Tue, 10 Jan 2017 14:49:14 -0500
-Message-ID: <f4051fa1-29ba-cfc5-1deb-680dfdfbc53a@dev.mellanox.co.il>
-References: <1484074931-3847-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1484074931-3847-2-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/4] debian/copyright: Add copyright information
+Date: Tue, 10 Jan 2017 14:55:22 -0700
+Message-ID: <20170110215522.GA27092@obsidianresearch.com>
+References: <20161229134908.13185-1-leon@kernel.org>
+ <20161229134908.13185-4-leon@kernel.org>
+ <20161229152537.GB30742@obsidianresearch.com>
+ <20170101075433.GR26885@mtr-leonro.local>
+ <20170102221123.GA10226@obsidianresearch.com>
+ <20170104075516.GJ12077@mtr-leonro.local>
+ <20170104224227.GA15569@obsidianresearch.com>
+ <20170105061436.GW12077@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484074931-3847-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170105061436.GW12077-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/10/2017 2:02 PM, Jason Gunthorpe wrote:
-> We never want to use it for htonll as this header can only be
-> compiled on architectures that define the PCI memory barriers.
-> Instead use byteswap.h directly.
-> 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  ibacm/linux/osd.h                 | 1 -
->  ibacm/src/libacm.c                | 6 +++---
->  libibumad/sysfs.c                 | 3 +--
->  libibverbs/device.c               | 4 +---
->  libibverbs/examples/device_list.c | 3 +--
->  libibverbs/examples/devinfo.c     | 3 +--
->  librdmacm/addrinfo.c              | 6 +++---
->  librdmacm/cma.c                   | 6 +++---
->  librdmacm/cma.h                   | 1 -
->  librdmacm/examples/rping.c        | 7 +++----
->  librdmacm/rsocket.c               | 8 ++++----
->  srp_daemon/srp_daemon.h           | 1 -
->  12 files changed, 20 insertions(+), 29 deletions(-)
+On Thu, Jan 05, 2017 at 08:14:36AM +0200, Leon Romanovsky wrote:
 
->From the libibumad piece
+> First version was produced by such script and following changes were
+> my manual cleanup of mess from it.
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+I would be happy to see a permanent script in buildlib/ that produced
+this file. Changes to the source files themselves to make that
+possible would be entirely reasonable IMHO...
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
