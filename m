@@ -1,61 +1,67 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core] redhat/spec: can't build ibumad on 32-bit arm
-Date: Tue, 10 Jan 2017 11:30:51 -0500
-Message-ID: <a1b3f6cc-2de0-8a19-18dd-182f2cb7d3e1@dev.mellanox.co.il>
-References: <20170109213944.31970-1-jarod@redhat.com>
- <20170109223108.GA10850@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Missing Patches in Linux Kernel RDMA
+Date: Tue, 10 Jan 2017 11:51:35 -0500
+Message-ID: <1484067095.2149.12.camel@redhat.com>
+References: <20170110143018.GM7218@mtr-leonro.local>
+         <20170110143658.GA26753@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-nEaw+o2091TSJSoByIpW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170109223108.GA10850-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170110143658.GA26753-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/9/2017 5:31 PM, Jason Gunthorpe wrote:
-> On Mon, Jan 09, 2017 at 04:39:44PM -0500, Jarod Wilson wrote:
->> Building for 32-bit arm, things fall down, due to lack of arch-specific
->> memory barriers.
-> 
-> Since we now have rxe that should work on ARM I think we need to fix
-> this upstream..
-> 
-> Do you have time to test some patches on ARM?
 
-Looks to me that issue was introduced by:
+--=-nEaw+o2091TSJSoByIpW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-commit 1df0888f6a736e1612ce8b054d6c17651ebd003f
-Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date:   Fri Sep 2 12:57:57 2016 -0600
+On Tue, 2017-01-10 at 15:36 +0100, Christoph Hellwig wrote:
+> On Tue, Jan 10, 2017 at 04:30:18PM +0200, Leon Romanovsky wrote:
+> >=20
+> > The first patch which brought my attention was Christoph's change
+> > "IB: merge struct ib_device_attr into struct ib_device" [1].
+>=20
+> Doug decided to not kill off ib_device_attr entirely and just
+> embedded
+> it into the ib_device structure.
 
-    Remove most checks of __BYTE_ORDER
+Correct, I believe it was Or's patch that did that.
 
-    For a long time now endian.h has defined sane fixed with conversion
-    macros, so lets just use them instead of rolling our own.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
-    Also, htonll is defined in this source tree under infiniband/arch.h,
-    so all users of that macro can just use the header.
+--=-nEaw+o2091TSJSoByIpW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-    Someday we should also get rid of all the endless wrappers..
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-    Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+iQIcBAABCAAGBQJYdREXAAoJELgmozMOVy/dvJ4P+wTCDoo08KRq09AVToyZp8B8
+EUW51bWJIVmBPHTpqFOhY4n3izPt3J6wyNT6n3uOUxyuPEEobPvpFqZ4RZWJkCEA
+i0N8MN3JzUVGFLlmSJWMJjzU2Q9/7YYQHuBpCqgA4rb/oqIMEGZkIB+SbpV3yfvQ
+PirebsZggtZugajmlPoe0XLjdEzTpr6+yw6r9DkZc5Fm1jH/zVshKSE6SP/UMhtx
+0SuDy358aM5vXJRHoSF7ItT4rmOKj4K9TiC1ZHSB3UxyoLZiVImMB4Hx+CwBPHDP
+sZBZkmeQ62tMonExuVX3JHvGQCDfdrVJFm4ss3v4ve+maMuuCQ09QWgjrXI3+aTB
+YFnt9CrE/GzQsv9kj+22TQN5BCLaTht20Ikj3a5juuHYeTGZ+tKkLXHNW/Uy5hVd
+DqbZnCh2E1x5Frh/oe6PBjzS0VF/sS/iqZTRWkKzAjVkwWvJZdT5K12vn+GcKD5l
+Bvg8Yac+b7rimW5Jyj7Uk2vCtfCYpwCsdzAduuSrZOZoAES0Wzs8zLdPms6ZEXCF
+NdozHo1lBaGPoSKn4cfMjguzG/un4sQN2MschPG/3yeb9JjVupR+2vjoLfJd/AVb
+pgs8+cQHeBY+hz57Au7ZLz7sAY1WJiEUcdMrxN/89NWHqSjwfdVVsKDIA2IBX4YT
+A+fXjyhumSb5ezplSezt
+=xbE3
+-----END PGP SIGNATURE-----
 
-where byte order macros are from libibverbs arch.h which also includes
-the memory barrier stuff.
+--=-nEaw+o2091TSJSoByIpW--
 
-So can't arch.h be separated out into 2 headers and have the various
-parts of rdma-core include one or both of these headers as needed ?
-
--- Hal
-
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
