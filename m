@@ -1,96 +1,78 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/3] IB/vmw_pvrdma: Dont hardcode QP header page
-Date: Tue, 10 Jan 2017 11:15:41 -0800
-Message-ID: <2035e9eca59810687d9b53d7d6e603b765729b1f.1484075557.git.aditr@vmware.com>
-References: <cover.1484075557.git.aditr@vmware.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH v2 01/15] IB/rxe: Suppress sparse warnings
+Date: Tue, 10 Jan 2017 11:15:40 -0800
+Message-ID: <20170110191554.17359-2-bart.vanassche@sandisk.com>
+References: <20170110191554.17359-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170110191554.17359-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Moved the header page count to a macro [1]. In a future patch we will
-separate out the allocation for the header page. Thanks Yuval.
-Also, clear out the alloc_ucontext user response [2]. Thanks Dan.
+Avoid that sparse complains about using 0 as a pointer, about
+missing function declarations and also avoid that sparse complains
+about endianness.
 
-[1] - http://marc.info/?l=linux-rdma&m=148101146228847&w=2
-[2] - http://marc.info/?l=linux-rdma&m=148351229926333&w=2
-
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h       | 1 +
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c    | 9 +++++----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_net.c  | 8 ++++----
+ drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-index ee6a941..5dada5a 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-@@ -70,6 +70,7 @@
- #define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 342e78163613..151f639abebf 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -243,8 +243,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
+ {
+ 	int err;
+ 	struct socket *sock;
+-	struct udp_port_cfg udp_cfg = {0};
+-	struct udp_tunnel_sock_cfg tnl_cfg = {0};
++	struct udp_port_cfg udp_cfg = { };
++	struct udp_tunnel_sock_cfg tnl_cfg = { };
  
- #define PVRDMA_NUM_RING_PAGES		4
-+#define PVRDMA_QP_NUM_HEADER_PAGES	1
+ 	if (ipv6) {
+ 		udp_cfg.family = AF_INET6;
+@@ -658,7 +658,7 @@ struct notifier_block rxe_net_notifier = {
+ 	.notifier_call = rxe_notify,
+ };
  
- struct pvrdma_dev;
- 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-index 765bd32..3e23425 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-@@ -170,8 +170,9 @@ static int pvrdma_set_sq_size(struct pvrdma_dev *dev, struct ib_qp_cap *req_cap,
- 					     sizeof(struct pvrdma_sge) *
- 					     qp->sq.max_sg);
- 	/* Note: one extra page for the header. */
--	qp->npages_send = 1 + (qp->sq.wqe_cnt * qp->sq.wqe_size +
--			       PAGE_SIZE - 1) / PAGE_SIZE;
-+	qp->npages_send = PVRDMA_QP_NUM_HEADER_PAGES +
-+			  (qp->sq.wqe_cnt * qp->sq.wqe_size + PAGE_SIZE - 1) /
-+								PAGE_SIZE;
- 
+-int rxe_net_ipv4_init(void)
++static int rxe_net_ipv4_init(void)
+ {
+ 	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
+ 				htons(ROCE_V2_UDP_DPORT), false);
+@@ -671,7 +671,7 @@ int rxe_net_ipv4_init(void)
  	return 0;
  }
-@@ -289,7 +290,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
- 			qp->npages = qp->npages_send + qp->npages_recv;
  
- 			/* Skip header page. */
--			qp->sq.offset = PAGE_SIZE;
-+			qp->sq.offset = PVRDMA_QP_NUM_HEADER_PAGES * PAGE_SIZE;
+-int rxe_net_ipv6_init(void)
++static int rxe_net_ipv6_init(void)
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
  
- 			/* Recv queue pages are after send pages. */
- 			qp->rq.offset = qp->npages_send * PAGE_SIZE;
-@@ -342,7 +343,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
- 	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
- 	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
- 	cmd->total_chunks = qp->npages;
--	cmd->send_chunks = qp->npages_send - 1;
-+	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
- 	cmd->pdir_dma = qp->pdir.dir_dma;
- 
- 	dev_dbg(&dev->pdev->dev, "create queuepair with %d, %d, %d, %d\n",
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-index 5489137..c2aa526 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-@@ -306,7 +306,7 @@ struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
- 	union pvrdma_cmd_resp rsp;
- 	struct pvrdma_cmd_create_uc *cmd = &req.create_uc;
- 	struct pvrdma_cmd_create_uc_resp *resp = &rsp.create_uc_resp;
--	struct pvrdma_alloc_ucontext_resp uresp;
-+	struct pvrdma_alloc_ucontext_resp uresp = {0};
- 	int ret;
- 	void *ptr;
- 
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index 252b4d637d45..50886031096f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -389,7 +389,7 @@ int rxe_rcv(struct sk_buff *skb)
+ 	calc_icrc = rxe_icrc_hdr(pkt, skb);
+ 	calc_icrc = crc32_le(calc_icrc, (u8 *)payload_addr(pkt),
+ 			     payload_size(pkt));
+-	calc_icrc = cpu_to_be32(~calc_icrc);
++	calc_icrc = (__force u32)cpu_to_be32(~calc_icrc);
+ 	if (unlikely(calc_icrc != pack_icrc)) {
+ 		if (skb->protocol == htons(ETH_P_IPV6))
+ 			pr_warn_ratelimited("bad ICRC from %pI6c\n",
 -- 
-2.7.4
+2.11.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
