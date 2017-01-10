@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 06/15] IB/rxe: Enable type checking on SKB_TO_PKT() and PKT_TO_SKB() arguments
-Date: Tue, 10 Jan 2017 11:15:45 -0800
-Message-ID: <20170110191554.17359-7-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 13/15] IB/rxe: Fix reference leaks in memory key invalidation code
+Date: Tue, 10 Jan 2017 11:15:52 -0800
+Message-ID: <20170110191554.17359-14-bart.vanassche@sandisk.com>
 References: <20170110191554.17359-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,40 +12,39 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Let the compiler check the type of the arguments passed to SKB_TO_PKT()
-and PKT_TO_SKB().
-
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_hdr.h | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_req.c  | 1 +
+ drivers/infiniband/sw/rxe/rxe_resp.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_hdr.h b/drivers/infiniband/sw/rxe/rxe_hdr.h
-index d57b5e956ceb..6cb18406f5b8 100644
---- a/drivers/infiniband/sw/rxe/rxe_hdr.h
-+++ b/drivers/infiniband/sw/rxe/rxe_hdr.h
-@@ -53,8 +53,16 @@ struct rxe_pkt_info {
- };
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index d62be4828899..512e74326b16 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -635,6 +635,7 @@ int rxe_requester(void *arg)
+ 				goto exit;
+ 			}
+ 			rmr->state = RXE_MEM_STATE_FREE;
++			rxe_drop_ref(rmr);
+ 			wqe->state = wqe_state_done;
+ 			wqe->status = IB_WC_SUCCESS;
+ 		} else if (wqe->wr.opcode == IB_WR_REG_MR) {
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 60d78f45aa04..05f374986cea 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -907,6 +907,7 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 					return RESPST_ERROR;
+ 				}
+ 				rmr->state = RXE_MEM_STATE_FREE;
++				rxe_drop_ref(rmr);
+ 			}
  
- /* Macros should be used only for received skb */
--#define SKB_TO_PKT(skb) ((struct rxe_pkt_info *)(skb)->cb)
--#define PKT_TO_SKB(pkt) container_of((void *)(pkt), struct sk_buff, cb)
-+static inline struct rxe_pkt_info *SKB_TO_PKT(struct sk_buff *skb)
-+{
-+	BUILD_BUG_ON(sizeof(struct rxe_pkt_info) > sizeof(skb->cb));
-+	return (void *)skb->cb;
-+}
-+
-+static inline struct sk_buff *PKT_TO_SKB(struct rxe_pkt_info *pkt)
-+{
-+	return container_of((void *)pkt, struct sk_buff, cb);
-+}
- 
- /*
-  * IBA header types and methods
+ 			wc->qp			= &qp->ibqp;
 -- 
 2.11.0
 
