@@ -1,76 +1,149 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 01/15] IB/rxe: Suppress sparse warnings
-Date: Tue, 10 Jan 2017 11:08:08 -0800
-Message-ID: <20170110190822.16953-2-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 11/15] IB/rxe: Generate a completion for all failed work requests
+Date: Tue, 10 Jan 2017 11:08:18 -0800
+Message-ID: <20170110190822.16953-12-bart.vanassche@sandisk.com>
 References: <20170110190822.16953-1-bart.vanassche@sandisk.com>
+ <20170110190822.16953-2-bart.vanassche@sandisk.com>
+ <20170110190822.16953-3-bart.vanassche@sandisk.com>
+ <20170110190822.16953-4-bart.vanassche@sandisk.com>
+ <20170110190822.16953-5-bart.vanassche@sandisk.com>
+ <20170110190822.16953-6-bart.vanassche@sandisk.com>
+ <20170110190822.16953-7-bart.vanassche@sandisk.com>
+ <20170110190822.16953-8-bart.vanassche@sandisk.com>
+ <20170110190822.16953-9-bart.vanassche@sandisk.com>
+ <20170110190822.16953-10-bart.vanassche@sandisk.com>
+ <20170110190822.16953-11-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170110190822.16953-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170110190822.16953-11-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that sparse complains about using 0 as a pointer, about
-missing function declarations and also avoid that sparse complains
-about endianness.
+Change do_complete() such that an error completion is not only
+generated if a QP is in the error state but also if a work request
+failed.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c  | 8 ++++----
- drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 11 ++++++++++-
+ drivers/infiniband/sw/rxe/rxe_loc.h  |  1 +
+ drivers/infiniband/sw/rxe/rxe_req.c  | 18 +++++++-----------
+ drivers/infiniband/sw/rxe/rxe_resp.c |  4 ++--
+ 4 files changed, 20 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 342e78163613..151f639abebf 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -243,8 +243,8 @@ static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
- {
- 	int err;
- 	struct socket *sock;
--	struct udp_port_cfg udp_cfg = {0};
--	struct udp_tunnel_sock_cfg tnl_cfg = {0};
-+	struct udp_port_cfg udp_cfg = { };
-+	struct udp_tunnel_sock_cfg tnl_cfg = { };
- 
- 	if (ipv6) {
- 		udp_cfg.family = AF_INET6;
-@@ -658,7 +658,7 @@ struct notifier_block rxe_net_notifier = {
- 	.notifier_call = rxe_notify,
- };
- 
--int rxe_net_ipv4_init(void)
-+static int rxe_net_ipv4_init(void)
- {
- 	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
- 				htons(ROCE_V2_UDP_DPORT), false);
-@@ -671,7 +671,7 @@ int rxe_net_ipv4_init(void)
- 	return 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 6769a075501e..91317c159b9a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -412,13 +412,21 @@ static void make_send_cqe(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 	}
  }
  
--int rxe_net_ipv6_init(void)
-+static int rxe_net_ipv6_init(void)
++/*
++ * IBA Spec. Section 10.7.3.1 SIGNALED COMPLETIONS
++ * ---------8<---------8<-------------
++ * ...Note that if a completion error occurs, a Work Completion
++ * will always be generated, even if the signaling
++ * indicator requests an Unsignaled Completion.
++ * ---------8<---------8<-------------
++ */
+ static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
  {
- #if IS_ENABLED(CONFIG_IPV6)
+ 	struct rxe_cqe cqe;
  
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 252b4d637d45..50886031096f 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -389,7 +389,7 @@ int rxe_rcv(struct sk_buff *skb)
- 	calc_icrc = rxe_icrc_hdr(pkt, skb);
- 	calc_icrc = crc32_le(calc_icrc, (u8 *)payload_addr(pkt),
- 			     payload_size(pkt));
--	calc_icrc = cpu_to_be32(~calc_icrc);
-+	calc_icrc = (__force u32)cpu_to_be32(~calc_icrc);
- 	if (unlikely(calc_icrc != pack_icrc)) {
- 		if (skb->protocol == htons(ETH_P_IPV6))
- 			pr_warn_ratelimited("bad ICRC from %pI6c\n",
+ 	if ((qp->sq_sig_type == IB_SIGNAL_ALL_WR) ||
+ 	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
+-	    (qp->req.state == QP_STATE_ERROR)) {
++	    wqe->status != IB_WC_SUCCESS) {
+ 		make_send_cqe(qp, wqe, &cqe);
+ 		advance_consumer(qp->sq.queue);
+ 		rxe_cq_post(qp->scq, &cqe, 0);
+@@ -709,6 +717,7 @@ int rxe_completer(void *arg)
+ 			break;
+ 
+ 		case COMPST_ERROR:
++			WARN_ON_ONCE(wqe->status == IB_WC_SUCCESS);
+ 			do_complete(qp, wqe);
+ 			rxe_qp_error(qp);
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index da191d7acb6f..bdec460f1fce 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -225,6 +225,7 @@ extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
+ 
+ void rxe_release(struct kref *kref);
+ 
++void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify);
+ int rxe_completer(void *arg);
+ int rxe_requester(void *arg);
+ int rxe_responder(void *arg);
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 310cd3350578..d62be4828899 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -594,9 +594,14 @@ int rxe_requester(void *arg)
+ 	rxe_add_ref(qp);
+ 
+ next_wqe:
+-	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
++	if (unlikely(!qp->valid))
+ 		goto exit;
+ 
++	if (unlikely(qp->req.state == QP_STATE_ERROR)) {
++		rxe_drain_req_pkts(qp, true);
++		goto exit;
++	}
++
+ 	if (unlikely(qp->req.state == QP_STATE_RESET)) {
+ 		qp->req.wqe_index = consumer_index(qp->sq.queue);
+ 		qp->req.opcode = -1;
+@@ -743,17 +748,8 @@ int rxe_requester(void *arg)
+ 	kfree_skb(skb);
+ 	wqe->status = IB_WC_LOC_PROT_ERR;
+ 	wqe->state = wqe_state_error;
+-
+-	/*
+-	 * IBA Spec. Section 10.7.3.1 SIGNALED COMPLETIONS
+-	 * ---------8<---------8<-------------
+-	 * ...Note that if a completion error occurs, a Work Completion
+-	 * will always be generated, even if the signaling
+-	 * indicator requests an Unsignaled Completion.
+-	 * ---------8<---------8<-------------
+-	 */
+-	wqe->wr.send_flags |= IB_SEND_SIGNALED;
+ 	__rxe_do_task(&qp->comp.task);
++
+ exit:
+ 	rxe_drop_ref(qp);
+ 	return -EAGAIN;
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 51c134dbc6c8..33defaddc000 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1207,7 +1207,7 @@ static enum resp_states do_class_d1e_error(struct rxe_qp *qp)
+ 	}
+ }
+ 
+-static void rxe_drain_req_pkts(struct rxe_qp *qp)
++void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify)
+ {
+ 	struct sk_buff *skb;
+ 
+@@ -1388,7 +1388,7 @@ int rxe_responder(void *arg)
+ 			goto exit;
+ 
+ 		case RESPST_RESET:
+-			rxe_drain_req_pkts(qp);
++			rxe_drain_req_pkts(qp, false);
+ 			qp->resp.wqe = NULL;
+ 			goto exit;
+ 
 -- 
 2.11.0
 
