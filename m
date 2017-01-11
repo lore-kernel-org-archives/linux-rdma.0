@@ -1,82 +1,190 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
- device
-Date: Wed, 11 Jan 2017 09:12:52 +0200
-Message-ID: <20170111071252.GV7218@mtr-leonro.local>
-References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/3] IB/vmw_pvrdma: Cleanup unused variables
+Date: Wed, 11 Jan 2017 09:29:44 +0200
+Message-ID: <20170111072943.GA8404@yuval-lap.uk.oracle.com>
+References: <cover.1484075557.git.aditr@vmware.com>
+ <8631bae587fe5c6b63f8c1f486d79f564041ddae.1484075557.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="wxIXENaY2CYUgF8u"
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
+In-Reply-To: <8631bae587fe5c6b63f8c1f486d79f564041ddae.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jan 10, 2017 at 11:15:40AM -0800, Adit Ranadive wrote:
+> Removed the unused nreq and redundant index variables.
+> Moved hardcoded async and cq ring pages number to macro.
+> 
+> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+> Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  2 ++
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  4 ++--
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   | 33 ++++++++++----------------
+>  3 files changed, 17 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> index 540a54b..ee6a941 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> @@ -69,6 +69,8 @@
+>   */
+>  #define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
+>  
+> +#define PVRDMA_NUM_RING_PAGES		4
+> +
+>  struct pvrdma_dev;
+>  
+>  struct pvrdma_page_dir {
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> index b57132f..8e21a86 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> @@ -1001,7 +1001,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	dev->dsr->resp_slot_dma = (u64)slot_dma;
+>  
+>  	/* Async event ring */
+> -	dev->dsr->async_ring_pages.num_pages = 4;
+> +	dev->dsr->async_ring_pages.num_pages = PVRDMA_NUM_RING_PAGES;
+>  	ret = pvrdma_page_dir_init(dev, &dev->async_pdir,
+>  				   dev->dsr->async_ring_pages.num_pages, true);
+>  	if (ret)
+> @@ -1010,7 +1010,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	dev->dsr->async_ring_pages.pdir_dma = dev->async_pdir.dir_dma;
+>  
+>  	/* CQ notification ring */
+> -	dev->dsr->cq_ring_pages.num_pages = 4;
+> +	dev->dsr->cq_ring_pages.num_pages = PVRDMA_NUM_RING_PAGES;
+>  	ret = pvrdma_page_dir_init(dev, &dev->cq_pdir,
+>  				   dev->dsr->cq_ring_pages.num_pages, true);
+>  	if (ret)
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> index c8c01e5..765bd32 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> @@ -555,13 +555,13 @@ int pvrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+>  	return ret;
+>  }
+>  
+> -static inline void *get_sq_wqe(struct pvrdma_qp *qp, int n)
+> +static inline void *get_sq_wqe(struct pvrdma_qp *qp, unsigned int n)
+>  {
+>  	return pvrdma_page_dir_get_ptr(&qp->pdir,
+>  				       qp->sq.offset + n * qp->sq.wqe_size);
+>  }
+>  
+> -static inline void *get_rq_wqe(struct pvrdma_qp *qp, int n)
+> +static inline void *get_rq_wqe(struct pvrdma_qp *qp, unsigned int n)
+>  {
+>  	return pvrdma_page_dir_get_ptr(&qp->pdir,
+>  				       qp->rq.offset + n * qp->rq.wqe_size);
+> @@ -599,9 +599,7 @@ int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  	unsigned long flags;
+>  	struct pvrdma_sq_wqe_hdr *wqe_hdr;
+>  	struct pvrdma_sge *sge;
+> -	int i, index;
+> -	int nreq;
+> -	int ret;
+> +	int i, ret;
+>  
+>  	/*
+>  	 * In states lower than RTS, we can fail immediately. In other states,
+> @@ -614,9 +612,8 @@ int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  
+>  	spin_lock_irqsave(&qp->sq.lock, flags);
+>  
+> -	index = pvrdma_idx(&qp->sq.ring->prod_tail, qp->sq.wqe_cnt);
+> -	for (nreq = 0; wr; nreq++, wr = wr->next) {
+> -		unsigned int tail;
+> +	while (wr) {
+> +		unsigned int tail = 0;
+>  
+>  		if (unlikely(!pvrdma_idx_ring_has_space(
+>  				qp->sq.ring, qp->sq.wqe_cnt, &tail))) {
+> @@ -681,7 +678,7 @@ int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  			}
+>  		}
+>  
+> -		wqe_hdr = (struct pvrdma_sq_wqe_hdr *)get_sq_wqe(qp, index);
+> +		wqe_hdr = (struct pvrdma_sq_wqe_hdr *)get_sq_wqe(qp, tail);
+>  		memset(wqe_hdr, 0, sizeof(*wqe_hdr));
+>  		wqe_hdr->wr_id = wr->wr_id;
+>  		wqe_hdr->num_sge = wr->num_sge;
+> @@ -772,12 +769,11 @@ int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  		/* Make sure wqe is written before index update */
+>  		smp_wmb();
+>  
+> -		index++;
+> -		if (unlikely(index >= qp->sq.wqe_cnt))
+> -			index = 0;
+>  		/* Update shared sq ring */
+>  		pvrdma_idx_ring_inc(&qp->sq.ring->prod_tail,
+>  				    qp->sq.wqe_cnt);
+> +
+> +		wr = wr->next;
+>  	}
+>  
+>  	ret = 0;
+> @@ -807,7 +803,6 @@ int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+>  	struct pvrdma_qp *qp = to_vqp(ibqp);
+>  	struct pvrdma_rq_wqe_hdr *wqe_hdr;
+>  	struct pvrdma_sge *sge;
+> -	int index, nreq;
+>  	int ret = 0;
+>  	int i;
+>  
+> @@ -822,9 +817,8 @@ int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+>  
+>  	spin_lock_irqsave(&qp->rq.lock, flags);
+>  
+> -	index = pvrdma_idx(&qp->rq.ring->prod_tail, qp->rq.wqe_cnt);
+> -	for (nreq = 0; wr; nreq++, wr = wr->next) {
+> -		unsigned int tail;
+> +	while (wr) {
+> +		unsigned int tail = 0;
+>  
+>  		if (unlikely(wr->num_sge > qp->rq.max_sg ||
+>  			     wr->num_sge < 0)) {
+> @@ -844,7 +838,7 @@ int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+>  			goto out;
+>  		}
+>  
+> -		wqe_hdr = (struct pvrdma_rq_wqe_hdr *)get_rq_wqe(qp, index);
+> +		wqe_hdr = (struct pvrdma_rq_wqe_hdr *)get_rq_wqe(qp, tail);
+>  		wqe_hdr->wr_id = wr->wr_id;
+>  		wqe_hdr->num_sge = wr->num_sge;
+>  		wqe_hdr->total_len = 0;
+> @@ -860,12 +854,11 @@ int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+>  		/* Make sure wqe is written before index update */
+>  		smp_wmb();
+>  
+> -		index++;
+> -		if (unlikely(index >= qp->rq.wqe_cnt))
+> -			index = 0;
+>  		/* Update shared rq ring */
+>  		pvrdma_idx_ring_inc(&qp->rq.ring->prod_tail,
+>  				    qp->rq.wqe_cnt);
+> +
+> +		wr = wr->next;
+>  	}
 
---wxIXENaY2CYUgF8u
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Tue, Jan 10, 2017 at 03:57:52PM -0800, Tadeusz Struk wrote:
-> Some hardware have multiple HFIs within the same ASIC. In some devices the
-> numbers labeled on the faceplate of the device don't match the PCI bus
-> order, and the result is that the devices (ports) are probed in the opposite
-> order of their port numbers. The result is IB device unit numbers are in
-> reverse order from the faceplate numbering. This leads to confusion, and
-> errors.
-
-Can't you recognize such device at the initialization phase?
-This is definitely specific HW implementation bug/issue/limitation.
-
-> We can fix this by enforcing the correct port order at module load time.
-> To reorder the ports to match the numbering labels on the back of the
-> device we need to delay registering devices with the ib_core until we
-> receive a probe for the affected devices, reorder them and start
-> initialization in the correct order later. We use a timer with 1 second
-> timeout. On hfi1 probes devices are ordered and stored in a list.
-> Each hfi1 probe updates the timer. When the timer timeouts all devices are
-> initialized and registered with ib_core in the right order.
-> When there will more than one second time gap between hfi1 probes,
-> the timer will be update in each call so there is no danger that a device
-> will be "missed".
->
-> A new module param called port_reorder is introduced to cover users, who
-> already prewired their clusters in the 'invalid' order. The default
-> behavior does not change and results in devices ordered in the PCI bus
-> order. Port_reorder=1 is used to apply special reordering to these devices.
-
-I always had an impression that module parameters are rarely beneficial
-in upstream kernel for driver modules and adding them for new driver
-code should be explicitly prohibited in CodingStyle guide.
-
-You are adding new module parameter which will be with us forever to fix
-special HW bug/implementation in some legacy installations. It will be
-insane to add such thing to upstream kernel, errata and out-of-tree
-implementations are best places for such things.
-
-Thanks
-
---wxIXENaY2CYUgF8u
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh12vMACgkQ5GN7iDZy
-WKfakA//e66PTutXEHUMznuovRZCXZUp/wklPWHguGB9XbrBV7t8Z9xM2jVlo/yn
-6o2loiGZmMMAN8zxrcTghJcfIs7fCkpsXbOF1DPdxEjFnj8O68D86psVrDc3JhdJ
-rLQ3QW5CfxeCE6UK69QhAG8kz5fN8HYBUDKhc2qhyn8xLpcBtDOvZLBVEiFpqlQp
-ykGIlcm3ovHd1FU/SV2IyOh74LDOn3u1l9vFZk9T96uvLjvYIfQrdT1B8GwZ+gy1
-xQOvCzFtwQMJvlx3FrH9GygmTwsufEJLMEWFIq8gaRu7O0ZKUhjVnfGp8c6yD9/E
-OIlegZvcxyO/k3KUFHhjnX1ETsGfpeaajTEnnVxQxrSDBcaql9FSTP3Y008rwp5A
-ON1VJpZdcrGY/RDK6lIs+zIu0wxE+TGye2wzeXRuYTAzzr/uTcqSkOhT6/MoPRaD
-4eniS///igPEqdImrunTRPew8qwJNwA7O3+ZQpBsNLntase3ZUXItj/dFxLVHpfr
-dqV75zt/9FDWDiWIAhRR4JfyGUtDmkCF6znpOxJbSzbRvl03YZDyJuTdr0X2PIxi
-ra0ac5y1D9RlLetRyc+2yUZtAd6pZwrey+SbGx+nCD0l3V6kkv82A2FLecQwRV4j
-Ddthc3gDvZBhW1xQ8kfa6kWmxJG2aulY2Poh0Wl3E4frFmVtg/E=
-=blXo
------END PGP SIGNATURE-----
-
---wxIXENaY2CYUgF8u--
+>  
+>  	spin_unlock_irqrestore(&qp->rq.lock, flags);
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
