@@ -1,44 +1,115 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 2/9] Move dma_ops from archdata into struct device
-Date: Wed, 11 Jan 2017 07:48:03 +0100
-Message-ID: <20170111064803.GB26893@kroah.com>
-References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
-	<20170111005648.14988-3-bart.vanassche@sandisk.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/3] IB/vmw_pvrdma: Dont hardcode QP header page
+Date: Wed, 11 Jan 2017 09:09:53 +0200
+Message-ID: <20170111070952.GB5620@yuval-lap.uk.oracle.com>
+References: <cover.1484075557.git.aditr@vmware.com>
+ <2035e9eca59810687d9b53d7d6e603b765729b1f.1484075557.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170111005648.14988-3-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, Rich Felker <dalias-8zAoT0mYgF4@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aurelien Jacquiot <a-jacquiot-l0cyMroinI0@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Muli Ben-Yehuda <mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H . Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Hans-Christian Egtvedt <egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org>, Jonas Bonn <jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org>, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, Yoshinori Sato <ysato-Rn4VEauK+AKRv+LV9MX5uooqe+aC9MnS@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Helge Deller <deller-Mmb7MZpHnFY@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "James E . J . Bottomley" <jejb-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>, Doug Ledford <dledford@r>
+In-Reply-To: <2035e9eca59810687d9b53d7d6e603b765729b1f.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 10, 2017 at 04:56:41PM -0800, Bart Van Assche wrote:
-> Several RDMA drivers, e.g. drivers/infiniband/hw/qib, use the CPU to
-> transfer data between memory and PCIe adapter. Because of performance
-> reasons it is important that the CPU cache is not flushed when such
-> drivers transfer data. Make this possible by allowing these drivers to
-> override the dma_map_ops pointer. Additionally, introduce the function
-> set_dma_ops() that will be used by a later patch in this series.
+On Tue, Jan 10, 2017 at 11:15:41AM -0800, Adit Ranadive wrote:
+> Moved the header page count to a macro [1]. In a future patch we will
+> separate out the allocation for the header page. Thanks Yuval.
+> Also, clear out the alloc_ucontext user response [2]. Thanks Dan.
 
-When you say things like "additionally", that's a huge flag that this
-needs to be split up into multiple patches.  No need to add
-set_dma_ops() here in this patch.
+Though i appreciate the above acknowledgment i'm not sure it can be part of
+the commit message.
 
-And I'd argue that it should be dma_ops_set(), and dma_ops_get(), just
-to keep the namespace sane, but that's probably a different set of
-patches...
+> 
+> [1] - http://marc.info/?l=linux-rdma&m=148101146228847&w=2
+> [2] - http://marc.info/?l=linux-rdma&m=148351229926333&w=2
 
-thanks,
+Same here.
 
-greg k-h
+> 
+> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+> Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h       | 1 +
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c    | 9 +++++----
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
+>  3 files changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> index ee6a941..5dada5a 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> @@ -70,6 +70,7 @@
+>  #define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
+>  
+>  #define PVRDMA_NUM_RING_PAGES		4
+> +#define PVRDMA_QP_NUM_HEADER_PAGES	1
+>  
+>  struct pvrdma_dev;
+>  
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> index 765bd32..3e23425 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> @@ -170,8 +170,9 @@ static int pvrdma_set_sq_size(struct pvrdma_dev *dev, struct ib_qp_cap *req_cap,
+>  					     sizeof(struct pvrdma_sge) *
+>  					     qp->sq.max_sg);
+>  	/* Note: one extra page for the header. */
+> -	qp->npages_send = 1 + (qp->sq.wqe_cnt * qp->sq.wqe_size +
+> -			       PAGE_SIZE - 1) / PAGE_SIZE;
+> +	qp->npages_send = PVRDMA_QP_NUM_HEADER_PAGES +
+> +			  (qp->sq.wqe_cnt * qp->sq.wqe_size + PAGE_SIZE - 1) /
+> +								PAGE_SIZE;
+>  
+>  	return 0;
+>  }
+> @@ -289,7 +290,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  			qp->npages = qp->npages_send + qp->npages_recv;
+>  
+>  			/* Skip header page. */
+> -			qp->sq.offset = PAGE_SIZE;
+> +			qp->sq.offset = PVRDMA_QP_NUM_HEADER_PAGES * PAGE_SIZE;
+>  
+>  			/* Recv queue pages are after send pages. */
+>  			qp->rq.offset = qp->npages_send * PAGE_SIZE;
+> @@ -342,7 +343,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
+>  	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
+>  	cmd->total_chunks = qp->npages;
+> -	cmd->send_chunks = qp->npages_send - 1;
+> +	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
+>  	cmd->pdir_dma = qp->pdir.dir_dma;
+>  
+>  	dev_dbg(&dev->pdev->dev, "create queuepair with %d, %d, %d, %d\n",
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+> index 5489137..c2aa526 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+> @@ -306,7 +306,7 @@ struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
+>  	union pvrdma_cmd_resp rsp;
+>  	struct pvrdma_cmd_create_uc *cmd = &req.create_uc;
+>  	struct pvrdma_cmd_create_uc_resp *resp = &rsp.create_uc_resp;
+> -	struct pvrdma_alloc_ucontext_resp uresp;
+> +	struct pvrdma_alloc_ucontext_resp uresp = {0};
+>  	int ret;
+>  	void *ptr;
+
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+>  
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
