@@ -1,149 +1,223 @@
 From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 3/9] dma: Add dma_virt_ops
-Date: Tue, 10 Jan 2017 16:56:42 -0800
-Message-ID: <20170111005648.14988-4-bart.vanassche@sandisk.com>
-References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
+Subject: [PATCH 0/9] IB: Optimize DMA mapping
+Date: Tue, 10 Jan 2017 16:56:39 -0800
+Message-ID: <20170111005648.14988-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170111005648.14988-1-bart.vanassche@sandisk.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>, Joerg Roedel <jroedel@suse.de>, Andy Lutomirski <luto@kernel.org>, "Michael S . Tsirkin" <mst@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Several RDMA drivers need to provide a DMA mapping API but use the
-CPU to transfer data. Provide DMA mapping operations that are
-suitable for these drivers.
+Hello Doug,
 
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Joerg Roedel <jroedel@suse.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Michael S. Tsirkin <mst@redhat.com>
----
- include/linux/dma-mapping.h |  1 +
- lib/Makefile                |  1 +
- lib/dma-noop.c              |  2 +-
- lib/dma-virt.c              | 73 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 76 insertions(+), 1 deletion(-)
+As you know there are two sets of DMA mapping operations in the Linux
+kernel:
+- One set of DMA mapping operations that is used by most drivers.
+- Another set of DMA mapping operations that is only used by the RDMA
+  drivers.
+Having two sets of DMA mapping operations is not only a source of
+confusion but also a source of unnecessary overhead. The DMA mapping
+operations are in the hot path so it is important that the overhead
+of these operations is as low as possible. Hence this patch series
+that converts the RDMA code to the standard DMA mapping API and
+thereby eliminates the if (dev->dma_ops) test from the hot path. An
+additional benefit is that the size of HW and SW drivers that do not
+use DMA is reduced by switching to dma_virt_ops.
+
+Bart Van Assche (9):
+  treewide: Constify most dma_map_ops structures
+  Move dma_ops from archdata into struct device
+  dma: Add dma_virt_ops
+  IB/hf1: Remove DMA mapping code
+  IB/qib: Remove DMA mapping code
+  IB: Use dma_virt_ops instead of duplicating it
+  RDS: IB: Remove an unused structure member
+  IB: Convert ib_dma_*_coherent() argument type from u64 into dma_addr_t
+  treewide: Inline ib_dma_map_*() functions
+
+ arch/alpha/include/asm/dma-mapping.h               |   4 +-
+ arch/alpha/kernel/pci-noop.c                       |   4 +-
+ arch/alpha/kernel/pci_iommu.c                      |   4 +-
+ arch/arc/include/asm/dma-mapping.h                 |   4 +-
+ arch/arc/mm/dma.c                                  |   2 +-
+ arch/arm/common/dmabounce.c                        |   2 +-
+ arch/arm/include/asm/device.h                      |   1 -
+ arch/arm/include/asm/dma-mapping.h                 |  23 +-
+ arch/arm/mm/dma-mapping.c                          |  22 +-
+ arch/arm/xen/mm.c                                  |   4 +-
+ arch/arm64/include/asm/device.h                    |   1 -
+ arch/arm64/include/asm/dma-mapping.h               |  12 +-
+ arch/arm64/mm/dma-mapping.c                        |  14 +-
+ arch/avr32/include/asm/dma-mapping.h               |   4 +-
+ arch/avr32/mm/dma-coherent.c                       |   2 +-
+ arch/blackfin/include/asm/dma-mapping.h            |   4 +-
+ arch/blackfin/kernel/dma-mapping.c                 |   2 +-
+ arch/c6x/include/asm/dma-mapping.h                 |   4 +-
+ arch/c6x/kernel/dma.c                              |   2 +-
+ arch/cris/arch-v32/drivers/pci/dma.c               |   2 +-
+ arch/cris/include/asm/dma-mapping.h                |   6 +-
+ arch/frv/include/asm/dma-mapping.h                 |   4 +-
+ arch/frv/mb93090-mb00/pci-dma-nommu.c              |   2 +-
+ arch/frv/mb93090-mb00/pci-dma.c                    |   2 +-
+ arch/h8300/include/asm/dma-mapping.h               |   4 +-
+ arch/h8300/kernel/dma.c                            |   2 +-
+ arch/hexagon/include/asm/dma-mapping.h             |   7 +-
+ arch/hexagon/kernel/dma.c                          |   4 +-
+ arch/ia64/hp/common/hwsw_iommu.c                   |   4 +-
+ arch/ia64/hp/common/sba_iommu.c                    |   4 +-
+ arch/ia64/include/asm/dma-mapping.h                |   7 +-
+ arch/ia64/include/asm/machvec.h                    |   4 +-
+ arch/ia64/kernel/dma-mapping.c                     |   4 +-
+ arch/ia64/kernel/pci-dma.c                         |  10 +-
+ arch/ia64/kernel/pci-swiotlb.c                     |   2 +-
+ arch/m32r/include/asm/device.h                     |   2 +-
+ arch/m32r/include/asm/dma-mapping.h                |   4 +-
+ arch/m68k/include/asm/dma-mapping.h                |   4 +-
+ arch/m68k/kernel/dma.c                             |   2 +-
+ arch/metag/include/asm/dma-mapping.h               |   4 +-
+ arch/metag/kernel/dma.c                            |   2 +-
+ arch/microblaze/include/asm/dma-mapping.h          |   4 +-
+ arch/microblaze/kernel/dma.c                       |   2 +-
+ arch/mips/cavium-octeon/dma-octeon.c               |   4 +-
+ arch/mips/include/asm/device.h                     |   5 -
+ arch/mips/include/asm/dma-mapping.h                |   9 +-
+ .../include/asm/mach-cavium-octeon/dma-coherence.h |   2 +-
+ arch/mips/include/asm/netlogic/common.h            |   2 +-
+ arch/mips/loongson64/common/dma-swiotlb.c          |   2 +-
+ arch/mips/mm/dma-default.c                         |   4 +-
+ arch/mips/netlogic/common/nlm-dma.c                |   2 +-
+ arch/mips/pci/pci-octeon.c                         |   2 +-
+ arch/mn10300/include/asm/dma-mapping.h             |   4 +-
+ arch/mn10300/mm/dma-alloc.c                        |   2 +-
+ arch/nios2/include/asm/dma-mapping.h               |   4 +-
+ arch/nios2/mm/dma-mapping.c                        |   2 +-
+ arch/openrisc/include/asm/dma-mapping.h            |   4 +-
+ arch/openrisc/kernel/dma.c                         |   2 +-
+ arch/parisc/include/asm/dma-mapping.h              |   8 +-
+ arch/parisc/kernel/drivers.c                       |   2 +-
+ arch/parisc/kernel/pci-dma.c                       |   4 +-
+ arch/powerpc/include/asm/device.h                  |   4 -
+ arch/powerpc/include/asm/dma-mapping.h             |  19 +-
+ arch/powerpc/include/asm/pci.h                     |   4 +-
+ arch/powerpc/include/asm/ps3.h                     |   2 +-
+ arch/powerpc/include/asm/swiotlb.h                 |   2 +-
+ arch/powerpc/kernel/dma-swiotlb.c                  |   2 +-
+ arch/powerpc/kernel/dma.c                          |   8 +-
+ arch/powerpc/kernel/pci-common.c                   |   6 +-
+ arch/powerpc/platforms/cell/iommu.c                |   6 +-
+ arch/powerpc/platforms/pasemi/iommu.c              |   2 +-
+ arch/powerpc/platforms/pasemi/setup.c              |   2 +-
+ arch/powerpc/platforms/powernv/npu-dma.c           |   2 +-
+ arch/powerpc/platforms/ps3/system-bus.c            |   8 +-
+ arch/powerpc/platforms/pseries/ibmebus.c           |   4 +-
+ arch/powerpc/platforms/pseries/vio.c               |   2 +-
+ arch/s390/include/asm/device.h                     |   1 -
+ arch/s390/include/asm/dma-mapping.h                |   6 +-
+ arch/s390/pci/pci.c                                |   2 +-
+ arch/s390/pci/pci_dma.c                            |   2 +-
+ arch/sh/include/asm/dma-mapping.h                  |   4 +-
+ arch/sh/kernel/dma-nommu.c                         |   2 +-
+ arch/sh/mm/consistent.c                            |   2 +-
+ arch/sparc/include/asm/dma-mapping.h               |  10 +-
+ arch/sparc/kernel/iommu.c                          |   4 +-
+ arch/sparc/kernel/ioport.c                         |   8 +-
+ arch/sparc/kernel/pci_sun4v.c                      |   2 +-
+ arch/tile/include/asm/device.h                     |   3 -
+ arch/tile/include/asm/dma-mapping.h                |  20 +-
+ arch/tile/kernel/pci-dma.c                         |  24 +-
+ arch/unicore32/include/asm/dma-mapping.h           |   4 +-
+ arch/unicore32/mm/dma-swiotlb.c                    |   2 +-
+ arch/x86/include/asm/device.h                      |   5 +-
+ arch/x86/include/asm/dma-mapping.h                 |  11 +-
+ arch/x86/include/asm/iommu.h                       |   2 +-
+ arch/x86/kernel/amd_gart_64.c                      |   2 +-
+ arch/x86/kernel/pci-calgary_64.c                   |   6 +-
+ arch/x86/kernel/pci-dma.c                          |   4 +-
+ arch/x86/kernel/pci-nommu.c                        |   2 +-
+ arch/x86/kernel/pci-swiotlb.c                      |   2 +-
+ arch/x86/pci/common.c                              |   2 +-
+ arch/x86/pci/sta2x11-fixup.c                       |  10 +-
+ arch/x86/xen/pci-swiotlb-xen.c                     |   2 +-
+ arch/xtensa/include/asm/device.h                   |   4 -
+ arch/xtensa/include/asm/dma-mapping.h              |   9 +-
+ arch/xtensa/kernel/pci-dma.c                       |   2 +-
+ drivers/infiniband/core/mad.c                      |  28 +-
+ drivers/infiniband/core/rw.c                       |  30 +-
+ drivers/infiniband/core/umem.c                     |   4 +-
+ drivers/infiniband/core/umem_odp.c                 |   6 +-
+ drivers/infiniband/hw/hfi1/dma.c                   | 183 ------------
+ drivers/infiniband/hw/mlx4/cq.c                    |   2 +-
+ drivers/infiniband/hw/mlx4/mad.c                   |  28 +-
+ drivers/infiniband/hw/mlx4/mr.c                    |   4 +-
+ drivers/infiniband/hw/mlx4/qp.c                    |  10 +-
+ drivers/infiniband/hw/mlx5/mr.c                    |   4 +-
+ drivers/infiniband/hw/qib/qib_dma.c                | 169 -----------
+ drivers/infiniband/hw/qib/qib_keys.c               |   5 +-
+ drivers/infiniband/sw/rdmavt/Makefile              |   2 +-
+ drivers/infiniband/sw/rdmavt/dma.c                 | 198 -------------
+ drivers/infiniband/sw/rdmavt/dma.h                 |  53 ----
+ drivers/infiniband/sw/rdmavt/mr.c                  |   8 +-
+ drivers/infiniband/sw/rdmavt/vt.c                  |   5 +-
+ drivers/infiniband/sw/rdmavt/vt.h                  |   1 -
+ drivers/infiniband/sw/rxe/Makefile                 |   1 -
+ drivers/infiniband/sw/rxe/rxe_dma.c                | 183 ------------
+ drivers/infiniband/sw/rxe/rxe_loc.h                |   2 -
+ drivers/infiniband/sw/rxe/rxe_verbs.c              |   3 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c            |  20 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c            |  22 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.c           |   6 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c       |  38 +--
+ drivers/infiniband/ulp/iser/iser_memory.c          |  12 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c           |   2 +-
+ drivers/infiniband/ulp/isert/ib_isert.c            |  60 ++--
+ drivers/infiniband/ulp/srp/ib_srp.c                |  50 ++--
+ drivers/infiniband/ulp/srpt/ib_srpt.c              |  12 +-
+ drivers/iommu/amd_iommu.c                          |  10 +-
+ drivers/misc/mic/bus/mic_bus.c                     |   4 +-
+ drivers/misc/mic/bus/scif_bus.c                    |   4 +-
+ drivers/misc/mic/bus/scif_bus.h                    |   2 +-
+ drivers/misc/mic/bus/vop_bus.c                     |   2 +-
+ drivers/misc/mic/host/mic_boot.c                   |   4 +-
+ drivers/nvme/host/rdma.c                           |  22 +-
+ drivers/nvme/target/rdma.c                         |  20 +-
+ drivers/parisc/ccio-dma.c                          |   2 +-
+ drivers/parisc/sba_iommu.c                         |   2 +-
+ drivers/pci/host/vmd.c                             |   2 +-
+ .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h    |  14 +-
+ include/linux/device.h                             |   2 +
+ include/linux/dma-mapping.h                        |  55 ++--
+ include/linux/mic_bus.h                            |   2 +-
+ include/rdma/ib_verbs.h                            | 310 ---------------------
+ include/xen/arm/hypervisor.h                       |   2 +-
+ lib/Makefile                                       |   1 +
+ lib/dma-noop.c                                     |   4 +-
+ lib/dma-virt.c                                     |  73 +++++
+ net/9p/trans_rdma.c                                |  12 +-
+ net/rds/ib.h                                       |  45 +--
+ net/rds/ib_cm.c                                    |  18 +-
+ net/rds/ib_fmr.c                                   |  10 +-
+ net/rds/ib_frmr.c                                  |   8 +-
+ net/rds/ib_mr.h                                    |   1 -
+ net/rds/ib_rdma.c                                  |   6 +-
+ net/rds/ib_recv.c                                  |  14 +-
+ net/rds/ib_send.c                                  |  28 +-
+ net/sunrpc/xprtrdma/fmr_ops.c                      |   6 +-
+ net/sunrpc/xprtrdma/frwr_ops.c                     |   6 +-
+ net/sunrpc/xprtrdma/rpc_rdma.c                     |  14 +-
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c         |   4 +-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c            |   8 +-
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c              |  14 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c           |   8 +-
+ net/sunrpc/xprtrdma/verbs.c                        |   8 +-
+ 174 files changed, 637 insertions(+), 1764 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/hfi1/dma.c
+ delete mode 100644 drivers/infiniband/hw/qib/qib_dma.c
+ delete mode 100644 drivers/infiniband/sw/rdmavt/dma.c
+ delete mode 100644 drivers/infiniband/sw/rdmavt/dma.h
+ delete mode 100644 drivers/infiniband/sw/rxe/rxe_dma.c
  create mode 100644 lib/dma-virt.c
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index ab8710888ddf..426c43d4fdbf 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -128,6 +128,7 @@ struct dma_map_ops {
- };
- 
- extern const struct dma_map_ops dma_noop_ops;
-+extern const struct dma_map_ops dma_virt_ops;
- 
- #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
- 
-diff --git a/lib/Makefile b/lib/Makefile
-index bc4073a8cd08..2d6c3fcd432c 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -27,6 +27,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
- lib-$(CONFIG_HAS_DMA) += dma-noop.o
-+lib-$(CONFIG_HAS_DMA) += dma-virt.o
- 
- lib-y	+= kobject.o klist.o
- obj-y	+= lockref.o
-diff --git a/lib/dma-noop.c b/lib/dma-noop.c
-index 65e49dd35b7b..de26c8b68f34 100644
---- a/lib/dma-noop.c
-+++ b/lib/dma-noop.c
-@@ -1,7 +1,7 @@
- /*
-  *	lib/dma-noop.c
-  *
-- * Simple DMA noop-ops that map 1:1 with memory
-+ * DMA operations that map to physical addresses without flushing memory.
-  */
- #include <linux/export.h>
- #include <linux/mm.h>
-diff --git a/lib/dma-virt.c b/lib/dma-virt.c
-new file mode 100644
-index 000000000000..b3573b6ad5b1
---- /dev/null
-+++ b/lib/dma-virt.c
-@@ -0,0 +1,73 @@
-+/*
-+ *	lib/dma-virt.c
-+ *
-+ * DMA operations that map to virtual addresses without flushing memory.
-+ */
-+#include <linux/export.h>
-+#include <linux/mm.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/scatterlist.h>
-+
-+static void *dma_virt_alloc(struct device *dev, size_t size,
-+			    dma_addr_t *dma_handle, gfp_t gfp,
-+			    unsigned long attrs)
-+{
-+	void *ret;
-+
-+	ret = (void *)__get_free_pages(gfp, get_order(size));
-+	if (ret)
-+		*dma_handle = (uintptr_t)ret;
-+	return ret;
-+}
-+
-+static void dma_virt_free(struct device *dev, size_t size,
-+			  void *cpu_addr, dma_addr_t dma_addr,
-+			  unsigned long attrs)
-+{
-+	free_pages((unsigned long)cpu_addr, get_order(size));
-+}
-+
-+static dma_addr_t dma_virt_map_page(struct device *dev, struct page *page,
-+				      unsigned long offset, size_t size,
-+				      enum dma_data_direction dir,
-+				      unsigned long attrs)
-+{
-+	return (uintptr_t)(page_address(page) + offset);
-+}
-+
-+static int dma_virt_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
-+			     enum dma_data_direction dir,
-+			     unsigned long attrs)
-+{
-+	int i;
-+	struct scatterlist *sg;
-+
-+	for_each_sg(sgl, sg, nents, i) {
-+		BUG_ON(!sg_page(sg));
-+		sg_dma_address(sg) = (uintptr_t)sg_virt(sg);
-+		sg_dma_len(sg) = sg->length;
-+	}
-+
-+	return nents;
-+}
-+
-+static int dma_virt_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	return false;
-+}
-+
-+static int dma_virt_supported(struct device *dev, u64 mask)
-+{
-+	return true;
-+}
-+
-+const struct dma_map_ops dma_virt_ops = {
-+	.alloc			= dma_virt_alloc,
-+	.free			= dma_virt_free,
-+	.map_page		= dma_virt_map_page,
-+	.map_sg			= dma_virt_map_sg,
-+	.mapping_error		= dma_virt_mapping_error,
-+	.dma_supported		= dma_virt_supported,
-+};
-+
-+EXPORT_SYMBOL(dma_virt_ops);
 -- 
 2.11.0
