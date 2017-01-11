@@ -1,65 +1,153 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/9] Move dma_ops from archdata into struct device
-Date: Wed, 11 Jan 2017 18:17:03 +0000
-Message-ID: <1484158589.2619.14.camel@sandisk.com>
-References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
-	<20170111005648.14988-3-bart.vanassche@sandisk.com>
-	<20170111064803.GB26893@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170111064803.GB26893-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <BC3FC4DDD21E1E498D9A2E0C11F30769-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: "linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org" <linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, "dalias-8zAoT0mYgF4@public.gmane.org" <dalias-8zAoT0mYgF4@public.gmane.org>, "linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "a-jacquiot-l0cyMroinI0@public.gmane.org" <a-jacquiot-l0cyMroinI0@public.gmane.org>, "catalin.marinas-5wv7dgnIgG8@public.gmane.org" <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org" <mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org>, "dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org" <egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org>, "jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org" <jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jesper.nilsson-VrBV9hrLPhE@public.gmane.org" <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, "linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>"linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <l>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSoRDMA Fails for max_sge Less Than 18
+Date: Wed, 11 Jan 2017 14:40:37 -0500
+Message-ID: <28B0D906-7BDB-4B87-94E9-6BE263BFBFF7@oracle.com>
+References: <SN1PR07MB2207F28F05DC6E22B03CC516F8660@SN1PR07MB2207.namprd07.prod.outlook.com> <FE817A76-28A7-4AEC-AF1E-01DE15790E43@oracle.com> <027101d26c2c$c94467f0$5bcd37d0$@opengridcomputing.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <027101d26c2c$c94467f0$5bcd37d0$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-01-11 at 07:48 +0100, Greg Kroah-Hartman wrote:
-> On Tue, Jan 10, 2017 at 04:56:41PM -0800, Bart Van Assche wrote:
-> > Several RDMA drivers, e.g. drivers/infiniband/hw/qib, use the CPU to
-> > transfer data between memory and PCIe adapter. Because of performance
-> > reasons it is important that the CPU cache is not flushed when such
-> > drivers transfer data. Make this possible by allowing these drivers to
-> > override the dma_map_ops pointer. Additionally, introduce the function
-> > set_dma_ops() that will be used by a later patch in this series.
-> =
+Hi Steve-
 
-> When you say things like "additionally", that's a huge flag that this
-> needs to be split up into multiple patches.=A0=A0No need to add
-> set_dma_ops() here in this patch.
 
-Hello Greg,
+> On Jan 11, 2017, at 12:04 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> 
+> Hey Chuck,
+> 
+>>> 
+>>> Browsing the code of other drivers it can be seen that this ability is
+> either
+>> hardcoded or is
+>>> learnt by the driver from the device.
+>> 
+>> In the latter case, there's no way for me to know what that
+>> capability is by looking at kernel code. There's also no way
+>> for me to know about out-of-tree drivers or pre-release devices.
+> 
+> But shouldn't NFS always limit its sge depths based on ib_device_attr->max_sge?
+> I don't think it is reasonable to assume any minimum value supported by all
+> devices...
 
-Some architectures already define a=A0set_dma_ops() function. So what this
-patch does is to move both the dma_ops pointer and the set_dma_ops()
-function from architecture-specific to architecture independent code. I
-don't think that it is possible to separate these two changes. But I
-understand that how I formulated the patch description caused confusion. I
-will rewrite the patch description to make it more clear before I repost
-this patch series.
+The previous "minimum" requirement assumed 2 SGEs. RPC-over-RDMA just
+doesn't work with fewer than that.
 
-> And I'd argue that it should be dma_ops_set(), and dma_ops_get(), just
-> to keep the namespace sane, but that's probably a different set of
-> patches...
+So you would rather have RPC-over-RDMA automatically reduce the inline
+threshold setting for each connection if the current system setting
+cannot be supported by the device? I'll consider that.
 
-Every time I rebase and retest this patch series on top of a new kernel
-version I have to modify some of the patches to compensate for changes in
-the architecture code. So I expect that once Linus merges these patches that
-he will have to resolve one or more merge conflicts. Including a rename of
-the functions that query and set the dma_ops pointer in this patch series
-would increase the number of merge conflicts triggered by this patch series
-and would make Linus' job harder. So I hope that you will allow me to
-postpone that rename until a later time ...
+Keeping logic in the ULPs to handle devices with tiny capabilities
+duplicates a lot of complexity and impedes the introduction of new
+features like larger inline thresholds.
 
-Bart.
+The one abstract feature ULPs might really want is the ability to
+send medium-sized data payloads in place. More than a handful of
+SGEs is needed for that capability (in the kernel, where such payloads
+are typically in the page cache).
+
+It might be cool to have an API similar to rdma_rw that allows ULPs
+to use a scatterlist for Send and Receive operations. It could hide
+the driver and device maximum SGE values.
+
+
+>> It's not feasible for me to stock my lab with more than a
+>> couple of devices anyway.
+>> 
+>> For all these reasons, I rely on HCA vendors for smoke testing
+>> NFS/RDMA with their devices.
+>> 
+>> [1] was posted for review on public mailing lists for weeks. I
+>> received no review comments or reports of testing successes or
+>> failures from any vendor, until Broadcom's report in late
+>> December, three months after [1] appeared in a kernel release
+>> candidate.
+>> 
+>> This may sound like sour grapes, but this is a review and
+>> testing gap, and I think the community should have the ability
+>> to address it.
+>> 
+>> HCA vendors, especially, have to focus on kernel release
+>> candidate testing if functional ULPs are a critical release
+>> criterion for them.
+>> 
+> 
+> You're absolutely right.  I'm querying Chelsio to see how this might have
+> slipped through the cracks.  Did this initial change land in linux-4.9?
+
+I believe so.
+
+
+> I have one nit though, your patch series are always very long and thus, to me,
+> tedious to review.  It would be nice to see 5-8 patches submitted for review vs
+> 15+.
+
+I cap my patch series around 20 for just this reason. That
+seemed to be the average number being posted for other ULPs.
+
+The flip side is that sometimes it takes several quarters to
+get a full set of changes upstream. Splitting features across
+kernel releases means the feature can't be reviewed together,
+and is sometimes more difficult for distribution backports.
+
+Could also go with more smaller patches, where each patch is
+easier to review, or capping at 8 patches but each patch
+is more complex.
+
+It's also OK to suggest series reorganization whenever you
+feel the ennui. ;-)
+
+
+>>> If I'm not mistaken, this issue affects nes and
+>>> cxgb3/4 drivers, and perhaps others.
+>> 
+>> ocrdma and Oracle's HCA.
+>> 
+>> 
+>>> E.g., for cxgb4:
+>>> 
+>>>       #define T4_MAX_RECV_SGE 4
+>> 
+>> Yet, without hard-coded max_sge values in kernel drivers, it's
+>> difficult to say whether 4 is truly the lower bound.
+>> 
+>> 
+>>>       static int c4iw_query_device(struct ib_device *ibdev, struct
+> ib_device_attr
+>> *props,
+>>>                                    struct ib_udata *uhw)
+>>>       {
+>>>               ...
+>>>               props->max_sge = T4_MAX_RECV_SGE;
+>>> 
+>>> ***
+> 
+> FYI:  cxgb4 supports 4 max for recv wrs, and 17 max for send wrs.  Perhaps 17
+> avoided any problems for cxgb4 with the original code?
+
+The original code needed only two SGEs for sending, and one for
+receiving.
+
+IIRC the RPC-over-RDMA receive path still needs just one SGE.
+
+
+> Note: the ib_device_attr only has a max_sge that pertains to both send and recv,
+> so cxgb4 sets it to the min value.  We should probably add a max_recv_sge and
+> max_send_sge to ib_device_attr...
+
+I could go for that too.
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
