@@ -1,101 +1,45 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: NFSoRDMA Fails for max_sge Less Than 18
-Date: Wed, 11 Jan 2017 11:04:35 -0600
-Message-ID: <027101d26c2c$c94467f0$5bcd37d0$@opengridcomputing.com>
-References: <SN1PR07MB2207F28F05DC6E22B03CC516F8660@SN1PR07MB2207.namprd07.prod.outlook.com> <FE817A76-28A7-4AEC-AF1E-01DE15790E43@oracle.com>
+From: Tadeusz Struk <tadeusz.struk@intel.com>
+Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
+ device
+Date: Wed, 11 Jan 2017 09:20:54 -0800
+Message-ID: <dda30e58-41fd-b778-3b6c-6e59d08c41c7@intel.com>
+References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
+ <20170111071252.GV7218@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <FE817A76-28A7-4AEC-AF1E-01DE15790E43-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "'Amrani, Ram'" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "'Elior, Ariel'" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Kalderon, Michal'" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Hariprasad S' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170111071252.GV7218@mtr-leonro.local>
+Sender: linux-pci-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Chuck,
+Hi Leon,
+On 01/10/2017 11:12 PM, Leon Romanovsky wrote:
+> Can't you recognize such device at the initialization phase?
 
-> >
-> > Browsing the code of other drivers it can be seen that this ability is
-either
-> hardcoded or is
-> > learnt by the driver from the device.
-> 
-> In the latter case, there's no way for me to know what that
-> capability is by looking at kernel code. There's also no way
-> for me to know about out-of-tree drivers or pre-release devices.
+Yes, this is exactly what it does. It checks the device GUID
+and reorders the ports during insmod.
 
-But shouldn't NFS always limit its sge depths based on ib_device_attr->max_sge?
-I don't think it is reasonable to assume any minimum value supported by all
-devices...
+> This is definitely specific HW implementation bug/issue/limitation.
+
+Correct. As the commit message says this is to fix a HW issue.
 
 > 
-> It's not feasible for me to stock my lab with more than a
-> couple of devices anyway.
+> I always had an impression that module parameters are rarely beneficial
+> in upstream kernel for driver modules and adding them for new driver
+> code should be explicitly prohibited in CodingStyle guide.
 > 
-> For all these reasons, I rely on HCA vendors for smoke testing
-> NFS/RDMA with their devices.
-> 
-> [1] was posted for review on public mailing lists for weeks. I
-> received no review comments or reports of testing successes or
-> failures from any vendor, until Broadcom's report in late
-> December, three months after [1] appeared in a kernel release
-> candidate.
-> 
-> This may sound like sour grapes, but this is a review and
-> testing gap, and I think the community should have the ability
-> to address it.
-> 
-> HCA vendors, especially, have to focus on kernel release
-> candidate testing if functional ULPs are a critical release
-> criterion for them.
->
+> You are adding new module parameter which will be with us forever to fix
+> special HW bug/implementation in some legacy installations. It will be
+> insane to add such thing to upstream kernel, errata and out-of-tree
+> implementations are best places for such things.
 
-You're absolutely right.  I'm querying Chelsio to see how this might have
-slipped through the cracks.  Did this initial change land in linux-4.9?  
-
-I have one nit though, your patch series are always very long and thus, to me,
-tedious to review.  It would be nice to see 5-8 patches submitted for review vs
-15+.
-
-> 
-> > If I'm not mistaken, this issue affects nes and
-> > cxgb3/4 drivers, and perhaps others.
-> 
-> ocrdma and Oracle's HCA.
-> 
-> 
-> > E.g., for cxgb4:
-> >
-> >        #define T4_MAX_RECV_SGE 4
-> 
-> Yet, without hard-coded max_sge values in kernel drivers, it's
-> difficult to say whether 4 is truly the lower bound.
-> 
-> 
-> >        static int c4iw_query_device(struct ib_device *ibdev, struct
-ib_device_attr
-> *props,
-> >                                     struct ib_udata *uhw)
-> >        {
-> >                ...
-> >                props->max_sge = T4_MAX_RECV_SGE;
-> >
-> > ***
-
-FYI:  cxgb4 supports 4 max for recv wrs, and 17 max for send wrs.  Perhaps 17
-avoided any problems for cxgb4 with the original code?
-
-Note: the ib_device_attr only has a max_sge that pertains to both send and recv,
-so cxgb4 sets it to the min value.  We should probably add a max_recv_sge and
-max_send_sge to ib_device_attr...
-
-Steve.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Agree, but the reality is that there are 5505 $(git grep module_param drivers/ | wc -l)
+module parameters in the kernel already, and even mlx4 and mlx5 drivers use them.
+I really considered every other possible solution, but module parameter is the
+only possible way to do such things during insmod.
+Thanks,
+-- 
+Tadeusz
