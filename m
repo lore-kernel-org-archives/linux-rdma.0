@@ -1,45 +1,54 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Wed, 11 Jan 2017 01:05:39 -0800
-Message-ID: <20170111090539.GA78804@knc-06.sc.intel.com>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20170109075104.GV15685@mtr-leonro.local>
- <20170110033954.GA53664@knc-06.sc.intel.com>
- <20170110081402.GH7218@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: mlx4_fmr_unmap() crasher
+Date: Wed, 11 Jan 2017 11:15:45 +0200
+Message-ID: <20170111091545.GY7218@mtr-leonro.local>
+References: <153857A5-46D1-49AA-BE5D-757B09E96E76@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="KHqYxKoy+XnO4RVf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170110081402.GH7218-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <153857A5-46D1-49AA-BE5D-757B09E96E76-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 10, 2017 at 10:14:02AM +0200, Leon Romanovsky wrote:
->On Mon, Jan 09, 2017 at 07:39:54PM -0800, Vishwanathapura, Niranjana wrote:
->> We are also looking into Jason’s suggestion to make hfi_vnic interface to
->> the bottom driver a generic interface. This will include moving some of the
->> netstack interfacing to the bottom hfi1 driver.
->
->Great, do you have rough estimation when will it be posted on the ML?
->
->Thanks
->
 
-Hi Leon,
+--KHqYxKoy+XnO4RVf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I am currently doing some prototype on this. I will respond with the interface 
-definition first once I have it solidified. RFC v3 with implemetion will be 
-later.
+On Mon, Jan 09, 2017 at 05:01:08PM -0500, Chuck Lever wrote:
+> I found a remote trigger for a device reset. I've reported the issue
+> to Mellanox.
 
-Niranjana
+Can you please help us to speedup the process? In which channel and to
+whom had you reported it?
 
+Thanks
 
+--KHqYxKoy+XnO4RVf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh198EACgkQ5GN7iDZy
+WKeAtg//TlBlYF7lkmEyd4obKYXS0AXnqst/PAYu+dQ6mRSn+vFtkG+XNoCmtCv2
+s5COYY3+pqfuUwUZYJhTU1Evd/nrS9AhPxdyIRHk4srIZJArMiYMIyjgRC47k1kE
+nt18q0T81cJ769LJKDONU8gW3f055vxx10AlZis1zgtGZmOd+RPFHjHIu02Lx+R9
+AkYcBfTE8VzzW9gCMwgnj0Z0VwfUsF5fYQpxEmIAS2Z9K8bdIOqSXwbYLf5mCzLE
+mI7PSKMmdtpfEVxXWuYzn4Sm30yeyUjgor8Lu9xVfL2exxMmd6kG4HGpxnBN6xqn
+n4JY22GFPxvOpP/9t9hglg/UpXPz3vnPwuWD8wldi6pELwWaaDKVxW//KgF2eU6f
+okzOXpbPh7Kei2/MAntOcYIBgKx5MVB2uvDDHYuxRt34rsu1GMk+ShEvY6D9sl7s
+J/qTp3iyB/9dzEVCWnxq0tx/5SrieBdIWfhg8mJTx2XMxgojmbaL81JKg15RpNUs
+5YW0kcQsdaaOWW9Bk99gmXSLR6w9Ol5pViSZOKyo5qS4SqNmeLl28vCgUJ48BI6+
+4BY/ZEFAm7Y8sa6hEsbMggG7sKKO2HIUuYSgj+vEfniRGgz/JXIAiafSfGcF/CRz
+IQ54VgWFwe9wIgLeaAa17cpBBtPk/uyLseIE2Uz0qTTqT5+jJUc=
+=AwQ+
+-----END PGP SIGNATURE-----
+
+--KHqYxKoy+XnO4RVf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
