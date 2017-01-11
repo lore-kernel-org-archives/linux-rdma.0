@@ -1,89 +1,72 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
- device
-Date: Wed, 11 Jan 2017 19:59:51 +0200
-Message-ID: <20170111175951.GD20392@mtr-leonro.local>
-References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
- <20170111071252.GV7218@mtr-leonro.local>
- <dda30e58-41fd-b778-3b6c-6e59d08c41c7@intel.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/9] Move dma_ops from archdata into struct device
+Date: Wed, 11 Jan 2017 18:03:15 +0000
+Message-ID: <1484157772.2619.12.camel@sandisk.com>
+References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
+	<20170111005648.14988-3-bart.vanassche@sandisk.com>
+	<20170111064624.GA26893@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aT9PWwzfKXlsBJM1"
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <dda30e58-41fd-b778-3b6c-6e59d08c41c7@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170111064624.GA26893-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <2D8D123C7F88F844A85318B500FF63FE-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org" <linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, "dalias-8zAoT0mYgF4@public.gmane.org" <dalias-8zAoT0mYgF4@public.gmane.org>, "linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "a-jacquiot-l0cyMroinI0@public.gmane.org" <a-jacquiot-l0cyMroinI0@public.gmane.org>, "catalin.marinas-5wv7dgnIgG8@public.gmane.org" <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org" <mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org>, "dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org" <egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org>, "jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org" <jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jesper.nilsson-VrBV9hrLPhE@public.gmane.org" <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, "linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>"linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <l>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, 2017-01-11 at 07:46 +0100, Greg Kroah-Hartman wrote:
+> On Tue, Jan 10, 2017 at 04:56:41PM -0800, Bart Van Assche wrote:
+> > Several RDMA drivers, e.g. drivers/infiniband/hw/qib, use the CPU to
+> > transfer data between memory and PCIe adapter. Because of performance
+> > reasons it is important that the CPU cache is not flushed when such
+> > drivers transfer data. Make this possible by allowing these drivers to
+> > override the dma_map_ops pointer. Additionally, introduce the function
+> > set_dma_ops() that will be used by a later patch in this series.
+> > =
 
---aT9PWwzfKXlsBJM1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> > Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > Cc: [ ... ]
+> =
 
-On Wed, Jan 11, 2017 at 09:20:54AM -0800, Tadeusz Struk wrote:
-> Hi Leon,
-> On 01/10/2017 11:12 PM, Leon Romanovsky wrote:
-> > Can't you recognize such device at the initialization phase?
->
-> Yes, this is exactly what it does. It checks the device GUID
-> and reorders the ports during insmod.
+> That's a crazy cc: list, you should break this up into smaller pieces,
+> otherwise it's going to bounce...
 
-Why don't your firmware report the need to revert the ports?
+That's a subset of what scripts/get_maintainer.pl came up with. Suggestions
+for a more appropriate cc-list for a patch like this that touches all
+architectures would be welcome.
 
->
-> > This is definitely specific HW implementation bug/issue/limitation.
->
-> Correct. As the commit message says this is to fix a HW issue.
->
-> >
-> > I always had an impression that module parameters are rarely beneficial
-> > in upstream kernel for driver modules and adding them for new driver
-> > code should be explicitly prohibited in CodingStyle guide.
-> >
-> > You are adding new module parameter which will be with us forever to fix
-> > special HW bug/implementation in some legacy installations. It will be
-> > insane to add such thing to upstream kernel, errata and out-of-tree
-> > implementations are best places for such things.
->
-> Agree, but the reality is that there are 5505 $(git grep module_param drivers/ | wc -l)
-> module parameters in the kernel already, and even mlx4 and mlx5 drivers use them.
+> > diff --git a/include/linux/device.h b/include/linux/device.h
+> > index 491b4c0ca633..c7cb225d36b0 100644
+> > --- a/include/linux/device.h
+> > +++ b/include/linux/device.h
+> > @@ -885,6 +885,8 @@ struct dev_links_info {
+> > =A0 * a higher-level representation of the device.
+> > =A0 */
+> > =A0struct device {
+> > +	const struct dma_map_ops *dma_ops; /* See also get_dma_ops() */
+> > +
+> > =A0	struct device		*parent;
+> > =A0
+> > =A0	struct device_private	*p;
+> =
 
-Regarding mlx4/mlx5, I'm not proud of that code and if it was dependent
-on me, I would remove it without thinking twice.
+> Why not put this new pointer down with the other dma fields in this
+> structure?=A0=A0Any specific reason it needs to be first?
 
-Previous copy-paste can not be an excuse to add another module parameter.
+Are there CPU architectures for which access to the first member of a
+structure can be encoded and/or executed more efficiently than access to
+other members of a structure? If not, I'm fine with moving the new pointer
+further down.
 
-> I really considered every other possible solution, but module parameter is the
-> only possible way to do such things during insmod.
-
-This is another problem with the module parameters - assumption that
-everyone is running modules, but this is simply incorrect, most of my
-smoke tests are performed with monolithic kernel.
-
-> Thanks,
-> --
-> Tadeusz
-
---aT9PWwzfKXlsBJM1
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh2cpcACgkQ5GN7iDZy
-WKd0Bg/9HdHNWx21SQZ9nC1jXT5rD8U498TqPcpAKEE8xyTMNm5w3Ffh2aShlbAO
-oW2LQQjmtL677DH7E8n86SH96kHBoNF+WWng0KKf/OsEPTv+YsI/9mzbAfORv4RS
-FhOxKuz8NUeMKZq6EV4KNIXjEjITgLJ8lYgMSxWfDd0a8KIt6Wnx02sOaeAFYJuA
-cvyxmG69Dr1oMLhK54jeCvoeHos9hLD/DZsgl6eNO/YqR1vSUNjEFtBVWufyMnWG
-F6mJZJtTyiRDp5kQxrlumIDbUZsx7bQZPKXELKYOeukjYbbwAsxPu/dTcW4Vf3Un
-bnaZK6/c8Mk7+M72zCjIDWYO/bpHmZrsqpA5llG2FqXRI9mRtg2UajPyX4SpBM9E
-zlvLeJhy8Qkc+msPmYBm7pW9iB/ps61c2vXcjLA10sUaCT/7JapLIuTDy2ozdkMS
-wizo4sSJ/OxCrquij/W3Q51BQ367WhheJQctCmNVU57XN2wxV9kkTcu2+AqoNeSE
-KEDmEZGdtK19PK24jc9vDf9k9Bl4ThyMrAP9d+e2q2ru6IOkNzF+xD0zY+r6AQcX
-EfmsceQZuwyFQZ1lGfRLtQl4/2aE7MSNtBUq3KOFz6EGQ6gkIKRQJ6qf4nQgZ7yc
-4GbyApsLUaKSdrPZTgmJuRL6UzcpWAFZ6P0V8dCbO+2EOBFR614=
-=pof/
------END PGP SIGNATURE-----
-
---aT9PWwzfKXlsBJM1--
+Bart.
