@@ -1,67 +1,56 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: NFSoRDMA Fails for max_sge Less Than 18
-Date: Wed, 11 Jan 2017 15:48:19 -0600
-Message-ID: <043d01d26c54$6c2fcb90$448f62b0$@opengridcomputing.com>
-References: <SN1PR07MB2207F28F05DC6E22B03CC516F8660@SN1PR07MB2207.namprd07.prod.outlook.com> <FE817A76-28A7-4AEC-AF1E-01DE15790E43@oracle.com> <027101d26c2c$c94467f0$5bcd37d0$@opengridcomputing.com> <28B0D906-7BDB-4B87-94E9-6BE263BFBFF7@oracle.com> <20170111211123.GD28917@obsidianresearch.com> <042601d26c4f$c7190e90$554b2bb0$@opengridcomputing.com> <20170111213416.GA30681@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core package version schema
+Date: Wed, 11 Jan 2017 15:10:04 -0700
+Message-ID: <20170111221004.GA31081@obsidianresearch.com>
+References: <1483642867.5227.18.camel@profitbricks.com>
+ <20170105230928.GA4262@obsidianresearch.com>
+ <1483723704.5227.23.camel@profitbricks.com>
+ <20170108084759.GJ15685@mtr-leonro.local>
+ <1484139556.2191.48.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170111213416.GA30681-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <1484139556.2191.48.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "'Amrani, Ram'" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Elior, Ariel'" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Kalderon, Michal'" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Hariprasad S' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Wed, Jan 11, 2017 at 03:15:04PM -0600, Steve Wise wrote:
-> 
-> > > That would be good, it could bounce buffer, build temporary MRs,
-> > > or repeat RDMA WRITE/READ as appropriate..
-> >
-> > We're talking SEND opcodes where the ULP transfers data in the SEND that
-> > includes the command request or reply instead of having the target/server
-side
-> > issue RDMA opcodes.
-> 
-> Yes, I know, handling READ/WRITE also would be the 'full generality'
-> of a core API in this area.
-> 
-> > > The ULP really is not the right place to put this trade off logic
-> > > since it will be very device specific..
-> >
-> > A temporary REG_MR would do the trick...assuming it can contain the SGE
-depth
-> as
-> > well.  But issuing multiple SEND operations involves ULP protocol headers so
-> > that couldn't be done by a core service...
-> 
-> Right, for SEND the core API would need to pack the given SG list into
-> whatever the device limit is, using bounce buffers if necessary.
->
-> For NFS, since the data is coming out of the page cache, a MR should
-> be always be buildable for the data? That means 1 send sge for the
-> header and 1 for the MR?
->
+On Wed, Jan 11, 2017 at 01:59:16PM +0100, Knut Omang wrote:
 
-Yes, but the REG_MR has limits on how many pages can be registered, so it could
-be 1 for the header and n MRs.  And if n causes the send_wr max_sge to be
-exceeded something else would have to be done.   Maybe bounce buffers could be
-used?  I'm not sure how though.  And maybe the API just fails in this case and
-the ULP will have to _not_ send this as inline?
- 
-> Basically the core API would be a packing API - input a SG list and a
-> MR pool and you get back another SG list that fits within the device
-> limits and can be used in a WR.
-> 
-> The core figures out how to optimally compute the packed SG list.
->
+> It seems that interface is only available for those with write
+> access to the github repo which does not cover the (for me at least)
+> common use case that I want to built my own slightly modified test
+> .rpm of something. Then users will end up creating tarballs
+> manually, or outside the build logic, with potentials for mistakes,
+> not to mention the??  documentation need to tell users this.
 
-Are you volunteering? :)  Or should we sign up Christoph? :):)
+Any user can run git archive and it will always create the correct
+result.
+
+$ git archive --prefix rdma-core/ --output rdma-core-12.tgz HEAD
+
+No other steps are required.
 
 
+> Isn't a dist target a well established standard the rdma_core packages should??
+> support for simplicity and uniformity?
 
+'make dist' is kinda a GNUism where packages that use auto* require
+building pre-build auto* stuff into their tar files. We do not require
+that and our dist tar file is identical to what git archive produces.
+
+For developers we have the buildlib/cbuild script. Install docker and
+it will automate building packages for you:
+
+$ buildlib/cbuild build-images centos7  # One time
+$ buildlib/cbuild pkg centos7
+
+It takes care of all the details and guarantees the build is done with
+the correct set of build time packages.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
