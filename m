@@ -1,28 +1,46 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 3/9] dma: Add dma_virt_ops
-Date: Wed, 11 Jan 2017 00:56:25 -0800
-Message-ID: <20170111085625.GA15575@infradead.org>
-References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
- <20170111005648.14988-4-bart.vanassche@sandisk.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
+Date: Wed, 11 Jan 2017 01:05:39 -0800
+Message-ID: <20170111090539.GA78804@knc-06.sc.intel.com>
+References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161215091226.GC811@mtr-leonro.local>
+ <20161215145212.GA29116@phlsvsds.ph.intel.com>
+ <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
+ <20170109075104.GV15685@mtr-leonro.local>
+ <20170110033954.GA53664@knc-06.sc.intel.com>
+ <20170110081402.GH7218@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170111005648.14988-4-bart.vanassche@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>, Joerg Roedel <jroedel@suse.de>, Andy Lutomirski <luto@kernel.org>, "Michael S . Tsirkin" <mst@redhat.com>
+In-Reply-To: <20170110081402.GH7218-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> +lib-$(CONFIG_HAS_DMA) += dma-virt.o
+On Tue, Jan 10, 2017 at 10:14:02AM +0200, Leon Romanovsky wrote:
+>On Mon, Jan 09, 2017 at 07:39:54PM -0800, Vishwanathapura, Niranjana wrote:
+>> We are also looking into Jason’s suggestion to make hfi_vnic interface to
+>> the bottom driver a generic interface. This will include moving some of the
+>> netstack interfacing to the bottom hfi1 driver.
+>
+>Great, do you have rough estimation when will it be posted on the ML?
+>
+>Thanks
+>
 
-There probably should be a config option for it for two reasons:
+Hi Leon,
 
- - do not bloat kernels that don't need it.
- - the feature can only work for 32-bit architectures or for
-   64-bit architectures that set ARCH_DMA_ADDR_T_64BIT…
-   Altenatiely this option would have to force
-   ARCH_DMA_ADDR_T_64BIT when not yet set for 64-bit architectures.
+I am currently doing some prototype on this. I will respond with the interface 
+definition first once I have it solidified. RFC v3 with implemetion will be 
+later.
 
-And yes, this is currently broken already for, but we'd better fix it.
+Niranjana
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
