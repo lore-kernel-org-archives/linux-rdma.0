@@ -1,115 +1,82 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/vmw_pvrdma: Dont hardcode QP header page
-Date: Wed, 11 Jan 2017 09:09:53 +0200
-Message-ID: <20170111070952.GB5620@yuval-lap.uk.oracle.com>
-References: <cover.1484075557.git.aditr@vmware.com>
- <2035e9eca59810687d9b53d7d6e603b765729b1f.1484075557.git.aditr@vmware.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
+ device
+Date: Wed, 11 Jan 2017 09:12:52 +0200
+Message-ID: <20170111071252.GV7218@mtr-leonro.local>
+References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="wxIXENaY2CYUgF8u"
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2035e9eca59810687d9b53d7d6e603b765729b1f.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+In-Reply-To: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tadeusz Struk <tadeusz.struk@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 10, 2017 at 11:15:41AM -0800, Adit Ranadive wrote:
-> Moved the header page count to a macro [1]. In a future patch we will
-> separate out the allocation for the header page. Thanks Yuval.
-> Also, clear out the alloc_ucontext user response [2]. Thanks Dan.
 
-Though i appreciate the above acknowledgment i'm not sure it can be part of
-the commit message.
+--wxIXENaY2CYUgF8u
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> [1] - http://marc.info/?l=linux-rdma&m=148101146228847&w=2
-> [2] - http://marc.info/?l=linux-rdma&m=148351229926333&w=2
+On Tue, Jan 10, 2017 at 03:57:52PM -0800, Tadeusz Struk wrote:
+> Some hardware have multiple HFIs within the same ASIC. In some devices the
+> numbers labeled on the faceplate of the device don't match the PCI bus
+> order, and the result is that the devices (ports) are probed in the opposite
+> order of their port numbers. The result is IB device unit numbers are in
+> reverse order from the faceplate numbering. This leads to confusion, and
+> errors.
 
-Same here.
+Can't you recognize such device at the initialization phase?
+This is definitely specific HW implementation bug/issue/limitation.
 
-> 
-> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-> Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h       | 1 +
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c    | 9 +++++----
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
->  3 files changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> index ee6a941..5dada5a 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> @@ -70,6 +70,7 @@
->  #define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
->  
->  #define PVRDMA_NUM_RING_PAGES		4
-> +#define PVRDMA_QP_NUM_HEADER_PAGES	1
->  
->  struct pvrdma_dev;
->  
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> index 765bd32..3e23425 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> @@ -170,8 +170,9 @@ static int pvrdma_set_sq_size(struct pvrdma_dev *dev, struct ib_qp_cap *req_cap,
->  					     sizeof(struct pvrdma_sge) *
->  					     qp->sq.max_sg);
->  	/* Note: one extra page for the header. */
-> -	qp->npages_send = 1 + (qp->sq.wqe_cnt * qp->sq.wqe_size +
-> -			       PAGE_SIZE - 1) / PAGE_SIZE;
-> +	qp->npages_send = PVRDMA_QP_NUM_HEADER_PAGES +
-> +			  (qp->sq.wqe_cnt * qp->sq.wqe_size + PAGE_SIZE - 1) /
-> +								PAGE_SIZE;
->  
->  	return 0;
->  }
-> @@ -289,7 +290,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  			qp->npages = qp->npages_send + qp->npages_recv;
->  
->  			/* Skip header page. */
-> -			qp->sq.offset = PAGE_SIZE;
-> +			qp->sq.offset = PVRDMA_QP_NUM_HEADER_PAGES * PAGE_SIZE;
->  
->  			/* Recv queue pages are after send pages. */
->  			qp->rq.offset = qp->npages_send * PAGE_SIZE;
-> @@ -342,7 +343,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
->  	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
->  	cmd->total_chunks = qp->npages;
-> -	cmd->send_chunks = qp->npages_send - 1;
-> +	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
->  	cmd->pdir_dma = qp->pdir.dir_dma;
->  
->  	dev_dbg(&dev->pdev->dev, "create queuepair with %d, %d, %d, %d\n",
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> index 5489137..c2aa526 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> @@ -306,7 +306,7 @@ struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
->  	union pvrdma_cmd_resp rsp;
->  	struct pvrdma_cmd_create_uc *cmd = &req.create_uc;
->  	struct pvrdma_cmd_create_uc_resp *resp = &rsp.create_uc_resp;
-> -	struct pvrdma_alloc_ucontext_resp uresp;
-> +	struct pvrdma_alloc_ucontext_resp uresp = {0};
->  	int ret;
->  	void *ptr;
+> We can fix this by enforcing the correct port order at module load time.
+> To reorder the ports to match the numbering labels on the back of the
+> device we need to delay registering devices with the ib_core until we
+> receive a probe for the affected devices, reorder them and start
+> initialization in the correct order later. We use a timer with 1 second
+> timeout. On hfi1 probes devices are ordered and stored in a list.
+> Each hfi1 probe updates the timer. When the timer timeouts all devices are
+> initialized and registered with ib_core in the right order.
+> When there will more than one second time gap between hfi1 probes,
+> the timer will be update in each call so there is no danger that a device
+> will be "missed".
+>
+> A new module param called port_reorder is introduced to cover users, who
+> already prewired their clusters in the 'invalid' order. The default
+> behavior does not change and results in devices ordered in the PCI bus
+> order. Port_reorder=1 is used to apply special reordering to these devices.
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+I always had an impression that module parameters are rarely beneficial
+in upstream kernel for driver modules and adding them for new driver
+code should be explicitly prohibited in CodingStyle guide.
 
->  
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You are adding new module parameter which will be with us forever to fix
+special HW bug/implementation in some legacy installations. It will be
+insane to add such thing to upstream kernel, errata and out-of-tree
+implementations are best places for such things.
+
+Thanks
+
+--wxIXENaY2CYUgF8u
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh12vMACgkQ5GN7iDZy
+WKfakA//e66PTutXEHUMznuovRZCXZUp/wklPWHguGB9XbrBV7t8Z9xM2jVlo/yn
+6o2loiGZmMMAN8zxrcTghJcfIs7fCkpsXbOF1DPdxEjFnj8O68D86psVrDc3JhdJ
+rLQ3QW5CfxeCE6UK69QhAG8kz5fN8HYBUDKhc2qhyn8xLpcBtDOvZLBVEiFpqlQp
+ykGIlcm3ovHd1FU/SV2IyOh74LDOn3u1l9vFZk9T96uvLjvYIfQrdT1B8GwZ+gy1
+xQOvCzFtwQMJvlx3FrH9GygmTwsufEJLMEWFIq8gaRu7O0ZKUhjVnfGp8c6yD9/E
+OIlegZvcxyO/k3KUFHhjnX1ETsGfpeaajTEnnVxQxrSDBcaql9FSTP3Y008rwp5A
+ON1VJpZdcrGY/RDK6lIs+zIu0wxE+TGye2wzeXRuYTAzzr/uTcqSkOhT6/MoPRaD
+4eniS///igPEqdImrunTRPew8qwJNwA7O3+ZQpBsNLntase3ZUXItj/dFxLVHpfr
+dqV75zt/9FDWDiWIAhRR4JfyGUtDmkCF6znpOxJbSzbRvl03YZDyJuTdr0X2PIxi
+ra0ac5y1D9RlLetRyc+2yUZtAd6pZwrey+SbGx+nCD0l3V6kkv82A2FLecQwRV4j
+Ddthc3gDvZBhW1xQ8kfa6kWmxJG2aulY2Poh0Wl3E4frFmVtg/E=
+=blXo
+-----END PGP SIGNATURE-----
+
+--wxIXENaY2CYUgF8u--
