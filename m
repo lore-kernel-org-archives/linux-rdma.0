@@ -1,136 +1,132 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma-core package version schema
-Date: Wed, 11 Jan 2017 16:47:34 +0200
-Message-ID: <20170111144734.GC7218@mtr-leonro.local>
-References: <1483642867.5227.18.camel@profitbricks.com>
- <20170105230928.GA4262@obsidianresearch.com>
- <1483723704.5227.23.camel@profitbricks.com>
- <20170108084759.GJ15685@mtr-leonro.local>
- <1484139556.2191.48.camel@oracle.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4WCFFtl4AQpQKunj"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSoRDMA Fails for max_sge Less Than 18
+Date: Wed, 11 Jan 2017 11:38:45 -0500
+Message-ID: <FE817A76-28A7-4AEC-AF1E-01DE15790E43@oracle.com>
+References: <SN1PR07MB2207F28F05DC6E22B03CC516F8660@SN1PR07MB2207.namprd07.prod.outlook.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1484139556.2191.48.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207F28F05DC6E22B03CC516F8660-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---4WCFFtl4AQpQKunj
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Jan 11, 2017, at 2:41 AM, Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> Hi Chuck,
+> We discovered that your recent work (see[1]) on NFSoRDMA broke that functionality on our device.
+> This seems to stem from a new requirement of minimum 18 SGES for NFSoRDMA to work.
 
-On Wed, Jan 11, 2017 at 01:59:16PM +0100, Knut Omang wrote:
-> On Sun, 2017-01-08 at 10:47 +0200, Leon Romanovsky wrote:
-> > On Fri, Jan 06, 2017 at 06:28:24PM +0100, Benjamin Drung wrote:
-> > >
-> > > Am Donnerstag, den 05.01.2017, 16:09 -0700 schrieb Jason Gunthorpe:
-> > > >
-> > > > On Thu, Jan 05, 2017 at 08:01:07PM +0100, Benjamin Drung wrote:
-> > > >
-> > > > This is very exciting news! Please feel free to send any patches or
-> > > > pull requests to improve the packaging, or otherwise!
-> > >
-> > > Expect patches from me. Before starting a bigger review, I will wait
-> > > for the pull request https://github.com/linux-rdma/rdma-core/pull/50
-> >
-> > Thanks, Talat is working to address your's and Jason's feedback.
-> >
-> > >
-> > >
-> > > >
-> > > > I hope that
-> > > > significant parts of the the debian/ dir can be maintained upstream
-> > > > like Redhat is going to do for their packaging.
-> > >
-> > > That is doable as long as the future Debian maintainers will have
-> > > commit access. Otherwise the debian directory will get out of sync
-> > > soon.
-> >
-> > I don't think so, we are pretty fast to accept pull requests, and
-> > especially distro related ones from verified committers. However if it
-> > stops future Debian maintainer to manage this package upstream, we will
-> > give write access without doubts.
-> >
-> > >
-> > >
-> > > PS: How will you create the release tarballs?
-> >
-> > Via github interface.
-> > https://help.github.com/articles/creating-releases/
->
-> It seems that interface is only available for those with write access to =
-the github repo
-> which does not cover the (for me at least) common use case that I want to=
- built my own
-> slightly modified test .rpm of something. Then users will end up creating=
- tarballs manually,
-> or outside the build logic, with potentials for mistakes, not to mention =
-the=A0
-> documentation need to tell users this.
->
-> Isn't a dist target a well established standard the rdma_core packages sh=
-ould=A0
-> support for simplicity and uniformity?
+This issue was reported weeks ago by Broadcom, and I have a fix
+pending for v4.11.
 
-I have a long standing task for myself to connect rdma-core to SuSe's
-open build facilities [1]. It will give us RPM and DEB packages.
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=commit;h=a300d316ac76ad000e14c4d309afdcdb6c0bd9ac
 
-[1] https://build.opensuse.org
+The above fix reduces the minimum requirement to 5 SGEs, so it
+probably won't address the issue for your device (though
+Broadcom reported that the fix worked for them).
 
->
-> Thanks,
-> Knut
->
-> >
-> > >
-> > >
-> > > --
-> > > Benjamin Drung
-> > > System Developer
-> > > Debian & Ubuntu Developer
-> > >
-> > > ProfitBricks GmbH
-> > > Greifswalder Str. 207
-> > > D - 10405 Berlin
-> > >
-> > > Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> > > URL:=A0=A0http://www.profitbricks.com
-> > >
-> > > Sitz der Gesellschaft: Berlin.
-> > > Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-> > > Gesch=E4ftsf=FChrer: Andreas Gauger, Achim Weiss.
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at=A0=A0http://vger.kernel.org/majordomo-info.html
 
---4WCFFtl4AQpQKunj
-Content-Type: application/pgp-signature; name="signature.asc"
+> Our device supports only 4 SGEs, and it seems other devices also have limitations in that
+> regard which would prevent the NFSoRDMA from working on them.
 
------BEGIN PGP SIGNATURE-----
+Of course NFS/RDMA should work for all in-tree drivers.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh2RYYACgkQ5GN7iDZy
-WKeiig/+JFNaxH5pJBWg+b4QJKwZ/2v/Cf1j03xZPYuoTxA5x7+YvJETXDxqCN1R
-S5ZSylEZkbnkmQvfdCOpxF1iWnSBm6DcZtGDufKl49Y80Bg0AnXL5p9uzl3hluq2
-4EmIRls1g/zWhT/N1OorKR57M6JGzXAqRsHc9rEtQkujmvS/ZXMbXfYqNN7116Q9
-Onh55PikzH4zxTjigjJRoLASriPb+FaGQMxPfzkWIJPB8pbS8BJN687atId2WnJ0
-rD+kZxklYMmpMLs7c707BavFQ5IvziQJ5AlhOTsXXVb236LOStRYDWhXqpd2OXyK
-oETMokVb+xmtielvTDOq2xUr81V9BPUE5xIe4jfrU6erPtN0x9oRo/IuL/ERvFeN
-tLOUGxY8uZZhga5Q+Mu0Zm5/K+jxgwf4zi+bXJVMEXk/9zAHf5BQzctca55uNDxT
-YqRmmA7wPC5H0bRdZW1Mx1f8PJPu9LmQi+f1kLtnKyIiwK/o1exdcM5Ico7/+OsV
-TnXL1HGPFPmuLx7OsmOI6oK5yUNzOaMm/YAnlqWCB+armECibuHS0JOFgYZ6+kzS
-Jed8byR7Z9P+gn1TzjJavZPwn9ByRNf+BDn3eX2XcP8Ms6ZARz92G5Nq++V4cOJX
-YKm+Lg/BwWOLHVDAfqTs2eNNh91naUBW2IIjxnZPwX1Q/qKUcdw=
-=z0IR
------END PGP SIGNATURE-----
+I will revisit [1] and see if there's any way to manage with 4
+SGEs. I think reducing the minimum to a single partial or whole
+page should be enough.
 
---4WCFFtl4AQpQKunj--
+If not, I will send a revert for [1] for v4.10-rc.
+
+
+> Mounting NFS over RDMA fails with the message: "Cannot allocate memory".
+> After enabling RPC debug information we've found this is due to this piece of code
+> from net/sunrpc/xprtrdma/verbs.c:
+> 
+>        if (ia->ri_device->attrs.max_sge < RPCRDMA_MAX_SEND_SGES) {
+>                dprintk("RPC:       %s: insufficient sge's available\n",
+>                        __func__);
+>                return -ENOMEM;
+>        }
+> 
+> Our device supports 4 sges while the minimum is now 18 sges, for PAGE_SIZE of 4KB:
+> 
+>        #define RPCRDMA_MAX_INLINE  (65536)     /* max inline thresh */
+> 
+>        RPCRDMA_MAX_SEND_PAGES = PAGE_SIZE + RPCRDMA_MAX_INLINE - 1,
+>        RPCRDMA_MAX_PAGE_SGES = (RPCRDMA_MAX_SEND_PAGES >> PAGE_SHIFT) + 1,
+>        RPCRDMA_MAX_SEND_SGES = 1 + 1 + RPCRDMA_MAX_PAGE_SGES + 1,
+> 
+> On kernel 4.8 and before, NFSoRDMA worked well with our device as only 2 SGEs were required.
+> The code looked like this:
+>        #define RPCRDMA_MAX_IOVS        (2)
+> 
+>        if (ia->ri_device->attrs.max_sge < RPCRDMA_MAX_IOVS) {
+>                dprintk("RPC:       %s: insufficient sge's available\n",
+>                        __func__);
+>                return -ENOMEM;
+>        }
+> 
+> Browsing the code of other drivers it can be seen that this ability is either hardcoded or is
+> learnt by the driver from the device.
+
+In the latter case, there's no way for me to know what that
+capability is by looking at kernel code. There's also no way
+for me to know about out-of-tree drivers or pre-release devices.
+
+It's not feasible for me to stock my lab with more than a
+couple of devices anyway.
+
+For all these reasons, I rely on HCA vendors for smoke testing
+NFS/RDMA with their devices.
+
+[1] was posted for review on public mailing lists for weeks. I
+received no review comments or reports of testing successes or
+failures from any vendor, until Broadcom's report in late
+December, three months after [1] appeared in a kernel release
+candidate.
+
+This may sound like sour grapes, but this is a review and
+testing gap, and I think the community should have the ability
+to address it.
+
+HCA vendors, especially, have to focus on kernel release
+candidate testing if functional ULPs are a critical release
+criterion for them.
+
+
+> If I'm not mistaken, this issue affects nes and
+> cxgb3/4 drivers, and perhaps others.
+
+ocrdma and Oracle's HCA.
+
+
+> E.g., for cxgb4:
+> 
+>        #define T4_MAX_RECV_SGE 4
+
+Yet, without hard-coded max_sge values in kernel drivers, it's
+difficult to say whether 4 is truly the lower bound.
+
+
+>        static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+>                                     struct ib_udata *uhw)
+>        {
+>                ...
+>                props->max_sge = T4_MAX_RECV_SGE;
+> 
+> ***
+> [1] https://patchwork.kernel.org/patch/9333951/
+> 
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
