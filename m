@@ -1,308 +1,221 @@
-From: Tadeusz Struk <tadeusz.struk@intel.com>
-Subject: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport device
-Date: Tue, 10 Jan 2017 15:57:52 -0800
-Message-ID: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 4/9] IB/hf1: Remove DMA mapping code
+Date: Tue, 10 Jan 2017 16:56:43 -0800
+Message-ID: <20170111005648.14988-5-bart.vanassche@sandisk.com>
+References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com, tadeusz.struk@intel.com
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170111005648.14988-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some hardware have multiple HFIs within the same ASIC. In some devices the
-numbers labeled on the faceplate of the device don't match the PCI bus
-order, and the result is that the devices (ports) are probed in the opposite
-order of their port numbers. The result is IB device unit numbers are in
-reverse order from the faceplate numbering. This leads to confusion, and
-errors.
-We can fix this by enforcing the correct port order at module load time.
-To reorder the ports to match the numbering labels on the back of the
-device we need to delay registering devices with the ib_core until we
-receive a probe for the affected devices, reorder them and start
-initialization in the correct order later. We use a timer with 1 second
-timeout. On hfi1 probes devices are ordered and stored in a list.
-Each hfi1 probe updates the timer. When the timer timeouts all devices are
-initialized and registered with ib_core in the right order.
-When there will more than one second time gap between hfi1 probes,
-the timer will be update in each call so there is no danger that a device
-will be "missed".
+The hfi1 DMA mapping code has never been built in any upstream kernel.
+Hence remove it.
 
-A new module param called port_reorder is introduced to cover users, who
-already prewired their clusters in the 'invalid' order. The default
-behavior does not change and results in devices ordered in the PCI bus
-order. Port_reorder=1 is used to apply special reordering to these devices.
-
-Signed-off-by: Tadeusz Struk <tadeusz.struk@intel.com>
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    3 -
- drivers/infiniband/hw/hfi1/chip.h |    4 +
- drivers/infiniband/hw/hfi1/init.c |  170 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 173 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hfi1/dma.c | 183 ---------------------------------------
+ 1 file changed, 183 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/hfi1/dma.c
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index ef72bc2..d9aadac 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -129,9 +129,6 @@ struct flag_table {
- #define NUM_MAP_ENTRIES		256
- #define NUM_MAP_REGS             32
- 
--/* Bit offset into the GUID which carries HFI id information */
--#define GUID_HFI_INDEX_SHIFT     39
+diff --git a/drivers/infiniband/hw/hfi1/dma.c b/drivers/infiniband/hw/hfi1/dma.c
+deleted file mode 100644
+index 7e8dab892848..000000000000
+--- a/drivers/infiniband/hw/hfi1/dma.c
++++ /dev/null
+@@ -1,183 +0,0 @@
+-/*
+- * Copyright(c) 2015, 2016 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-#include <linux/types.h>
+-#include <linux/scatterlist.h>
 -
- /* extract the emulation revision */
- #define emulator_rev(dd) ((dd)->irev >> 8)
- /* parallel and serial emulation versions are 3 and 4 respectively */
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 043fd21..aa322b0 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -575,6 +575,10 @@ enum {
- #define LOOPBACK_LCB	2
- #define LOOPBACK_CABLE	3	/* external cable */
- 
-+/* Bit offset into the GUID which carries HFI id information */
-+#define GUID_HFI_INDEX_SHIFT     39
-+#define HFI_ASIC_GUID(guid) ((guid) & ~(1ULL << GUID_HFI_INDEX_SHIFT))
-+
- /* read and write hardware registers */
- u64 read_csr(const struct hfi1_devdata *dd, u32 offset);
- void write_csr(const struct hfi1_devdata *dd, u32 offset, u64 value);
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index e3b5bc9..93436bd 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -116,12 +116,29 @@ unsigned int user_credit_return_threshold = 33;	/* default is 33% */
- module_param(user_credit_return_threshold, uint, S_IRUGO);
- MODULE_PARM_DESC(user_credit_return_threshold, "Credit return threshold for user send contexts, return when unreturned credits passes this many blocks (in percent of allocated blocks, 0 is off)");
- 
-+static bool port_reorder;
-+module_param(port_reorder, bool, S_IRUGO);
-+MODULE_PARM_DESC(port_reorder, "Device port reorder: 1 - order HFIs on the same ASIC in increasing port order, or 0 - order exactly as the kernel enumerates (default)");
-+
- static inline u64 encode_rcv_header_entry_size(u16);
- 
- static struct idr hfi1_unit_table;
- u32 hfi1_cpulist_count;
- unsigned long *hfi1_cpulist;
- 
-+struct hfi1_init_dev {
-+	struct list_head list;
-+	struct pci_dev *pdev;
-+	const struct pci_device_id *ent;
-+	u64 guid;
-+};
-+
-+static struct timer_list init_timer;
-+static LIST_HEAD(init_list);
-+static DEFINE_MUTEX(init_mutex); /* protects init_list */
-+static struct workqueue_struct *hfi1_init_wq;
-+static void hfi1_deferred_init(struct work_struct *work);
-+
- /*
-  * Common code for creating the receive context array.
-  */
-@@ -1165,6 +1182,7 @@ void hfi1_disable_after_error(struct hfi1_devdata *dd)
- 
- static void remove_one(struct pci_dev *);
- static int init_one(struct pci_dev *, const struct pci_device_id *);
-+static void hfi1_probe_done(unsigned long data);
- 
- #define DRIVER_LOAD_MSG "Intel " DRIVER_NAME " loaded: "
- #define PFX DRIVER_NAME ": "
-@@ -1209,6 +1227,16 @@ static int __init hfi1_mod_init(void)
- 	if (ret)
- 		goto bail;
- 
-+	if (port_reorder) {
-+		hfi1_init_wq = alloc_workqueue("hfi1_init_wq", WQ_MEM_RECLAIM,
-+					       0);
-+		if (!hfi1_init_wq) {
-+			pr_err("Failed to create deffered dev init wq\n");
-+			ret = -ENOMEM;
-+			goto bail;
-+		}
-+	}
-+
- 	/* validate max MTU before any devices start */
- 	if (!valid_opa_max_mtu(hfi1_max_mtu)) {
- 		pr_err("Invalid max_mtu 0x%x, using 0x%x instead\n",
-@@ -1264,6 +1292,9 @@ static int __init hfi1_mod_init(void)
- 	ret = hfi1_wss_init();
- 	if (ret < 0)
- 		goto bail_wss;
-+
-+	setup_timer(&init_timer, hfi1_probe_done, 0);
-+
- 	ret = pci_register_driver(&hfi1_pci_driver);
- 	if (ret < 0) {
- 		pr_err("Unable to register driver: error %d\n", -ret);
-@@ -1288,6 +1319,8 @@ module_init(hfi1_mod_init);
-  */
- static void __exit hfi1_mod_cleanup(void)
- {
-+	struct hfi1_init_dev *pos, *tmp;
-+
- 	pci_unregister_driver(&hfi1_pci_driver);
- 	node_affinity_destroy();
- 	hfi1_wss_exit();
-@@ -1298,6 +1331,18 @@ static void __exit hfi1_mod_cleanup(void)
- 	idr_destroy(&hfi1_unit_table);
- 	dispose_firmware();	/* asymmetric with obtain_firmware() */
- 	dev_cleanup();
-+
-+	mutex_lock(&init_mutex);
-+	list_for_each_entry_safe(pos, tmp, &init_list, list) {
-+		list_del(&pos->list);
-+		kfree(pos);
-+	}
-+	mutex_unlock(&init_mutex);
-+	del_timer(&init_timer);
-+	if (hfi1_init_wq) {
-+		destroy_workqueue(hfi1_init_wq);
-+		hfi1_init_wq = NULL;
-+	}
- }
- 
- module_exit(hfi1_mod_cleanup);
-@@ -1415,7 +1460,7 @@ static int init_validate_rcvhdrcnt(struct device *dev, uint thecnt)
- 	return 0;
- }
- 
--static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
-+static int do_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- {
- 	int ret = 0, j, pidx, initfail;
- 	struct hfi1_devdata *dd;
-@@ -1545,6 +1590,129 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	return ret;
- }
- 
-+static void hfi1_deferred_init(struct work_struct *work)
-+{
-+	struct hfi1_init_dev *pos, *tmp;
-+	int ret;
-+
-+	mutex_lock(&init_mutex);
-+	list_for_each_entry_safe(pos, tmp, &init_list, list) {
-+		ret = do_init_one(pos->pdev, pos->ent);
-+		if (ret)
-+			hfi1_early_err(&pos->pdev->dev, "%s: dev init failed, err %d\n",
-+				       __func__, ret);
-+
-+		list_del(&pos->list);
-+		kfree(pos);
-+	}
-+	mutex_unlock(&init_mutex);
-+	kfree(work);
-+}
-+
-+static void hfi1_probe_done(unsigned long data)
-+{
-+	struct work_struct *work;
-+
-+	if (!hfi1_init_wq)
-+		return;
-+
-+	/* Got probe for all devices. Now invoke hfi1_deferred_init */
-+	work = kzalloc(sizeof(*work), GFP_ATOMIC);
-+	if (!work)
-+		return;
-+
-+	INIT_WORK(work, hfi1_deferred_init);
-+	queue_work(hfi1_init_wq, work);
-+}
-+
-+static int get_guid(struct pci_dev *pdev, u64 *guid)
-+{
-+	void __iomem *bar;
-+
-+	bar = ioremap_nocache(pci_resource_start(pdev, 0),
-+			      DC_DC8051_CFG_LOCAL_GUID + 8);
-+	if (!bar) {
-+		hfi1_early_err(&pdev->dev, "%s: unable to ioremap bar\n",
-+			       __func__);
-+		return -ENOMEM;
-+	}
-+	/* make sure the DC is not in reset so the GUID is readable */
-+	writeq(0ull, bar + CCE_DC_CTRL);
-+	(void)readq(bar + CCE_DC_CTRL); /* force the write */
-+
-+	/* read device guid */
-+	*guid = readq(bar + DC_DC8051_CFG_LOCAL_GUID);
-+	iounmap(bar);
-+	return 0;
-+}
-+
-+static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
-+{
-+	struct hfi1_init_dev *probed_pdev;
-+	struct hfi1_init_dev *pos;
-+	u64 guid;
-+	int ret;
-+
-+	if (!port_reorder)
-+		return do_init_one(pdev, ent);
-+
-+	probed_pdev = kzalloc(sizeof(*probed_pdev), GFP_KERNEL);
-+	if (!probed_pdev)
-+		return -ENOMEM;
-+
-+	ret = pci_enable_device(pdev);
-+	if (ret) {
-+		hfi1_early_err(&pdev->dev, "%s: cannot enable device, err %d\n",
-+			       __func__, ret);
-+		goto fail;
-+	}
-+
-+	ret = get_guid(pdev, &guid);
-+	if (ret)
-+		goto fail_get_guid;
-+
-+	probed_pdev->pdev = pdev;
-+	probed_pdev->ent = ent;
-+	probed_pdev->guid = guid;
-+
-+	mutex_lock(&init_mutex);
-+	if (list_empty(&init_list)) {
-+		list_add_tail(&probed_pdev->list, &init_list);
-+	} else {
-+		list_for_each_entry(pos, &init_list, list)
-+			if (HFI_ASIC_GUID(pos->guid) == HFI_ASIC_GUID(guid))
-+				break;
-+
-+		/* Match found, pos and entry are valid */
-+		if (pos->guid == probed_pdev->guid) {
-+			/* Something wrong - same hardware id */
-+			hfi1_early_err(&pdev->dev, "%s: duplicate guid 0x%llx\n",
-+				       __func__, guid);
-+			mutex_unlock(&init_mutex);
-+			goto fail_get_guid;
-+		}
-+
-+		/*
-+		 * Order around the first of the pair that was enumerated.
-+		 * Insert before or after the one already in the list.
-+		 */
-+		if ((pos->guid >> GUID_HFI_INDEX_SHIFT) & 1)
-+			list_add_tail(&probed_pdev->list, &pos->list);
-+		else
-+			list_add(&probed_pdev->list, &pos->list);
-+	}
-+	mutex_unlock(&init_mutex);
-+	mod_timer(&init_timer, jiffies + msecs_to_jiffies(1000));
-+	pci_disable_device(pdev);
-+	return 0;
-+
-+fail_get_guid:
-+	pci_disable_device(pdev);
-+fail:
-+	kfree(probed_pdev);
-+	return ret;
-+}
-+
- static void wait_for_clients(struct hfi1_devdata *dd)
- {
- 	/*
+-#include "verbs.h"
+-
+-#define BAD_DMA_ADDRESS ((u64)0)
+-
+-/*
+- * The following functions implement driver specific replacements
+- * for the ib_dma_*() functions.
+- *
+- * These functions return kernel virtual addresses instead of
+- * device bus addresses since the driver uses the CPU to copy
+- * data instead of using hardware DMA.
+- */
+-
+-static int hfi1_mapping_error(struct ib_device *dev, u64 dma_addr)
+-{
+-	return dma_addr == BAD_DMA_ADDRESS;
+-}
+-
+-static u64 hfi1_dma_map_single(struct ib_device *dev, void *cpu_addr,
+-			       size_t size, enum dma_data_direction direction)
+-{
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
+-
+-	return (u64)cpu_addr;
+-}
+-
+-static void hfi1_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
+-				  enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static u64 hfi1_dma_map_page(struct ib_device *dev, struct page *page,
+-			     unsigned long offset, size_t size,
+-			    enum dma_data_direction direction)
+-{
+-	u64 addr;
+-
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
+-
+-	if (offset + size > PAGE_SIZE)
+-		return BAD_DMA_ADDRESS;
+-
+-	addr = (u64)page_address(page);
+-	if (addr)
+-		addr += offset;
+-
+-	return addr;
+-}
+-
+-static void hfi1_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
+-				enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static int hfi1_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+-		       int nents, enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	u64 addr;
+-	int i;
+-	int ret = nents;
+-
+-	if (WARN_ON(!valid_dma_direction(direction)))
+-		return BAD_DMA_ADDRESS;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		addr = (u64)page_address(sg_page(sg));
+-		if (!addr) {
+-			ret = 0;
+-			break;
+-		}
+-		sg->dma_address = addr + sg->offset;
+-#ifdef CONFIG_NEED_SG_DMA_LENGTH
+-		sg->dma_length = sg->length;
+-#endif
+-	}
+-	return ret;
+-}
+-
+-static void hfi1_unmap_sg(struct ib_device *dev,
+-			  struct scatterlist *sg, int nents,
+-			 enum dma_data_direction direction)
+-{
+-	/* This is a stub, nothing to be done here */
+-}
+-
+-static void hfi1_sync_single_for_cpu(struct ib_device *dev, u64 addr,
+-				     size_t size, enum dma_data_direction dir)
+-{
+-}
+-
+-static void hfi1_sync_single_for_device(struct ib_device *dev, u64 addr,
+-					size_t size,
+-					enum dma_data_direction dir)
+-{
+-}
+-
+-static void *hfi1_dma_alloc_coherent(struct ib_device *dev, size_t size,
+-				     u64 *dma_handle, gfp_t flag)
+-{
+-	struct page *p;
+-	void *addr = NULL;
+-
+-	p = alloc_pages(flag, get_order(size));
+-	if (p)
+-		addr = page_address(p);
+-	if (dma_handle)
+-		*dma_handle = (u64)addr;
+-	return addr;
+-}
+-
+-static void hfi1_dma_free_coherent(struct ib_device *dev, size_t size,
+-				   void *cpu_addr, u64 dma_handle)
+-{
+-	free_pages((unsigned long)cpu_addr, get_order(size));
+-}
+-
+-struct ib_dma_mapping_ops hfi1_dma_mapping_ops = {
+-	.mapping_error = hfi1_mapping_error,
+-	.map_single = hfi1_dma_map_single,
+-	.unmap_single = hfi1_dma_unmap_single,
+-	.map_page = hfi1_dma_map_page,
+-	.unmap_page = hfi1_dma_unmap_page,
+-	.map_sg = hfi1_map_sg,
+-	.unmap_sg = hfi1_unmap_sg,
+-	.sync_single_for_cpu = hfi1_sync_single_for_cpu,
+-	.sync_single_for_device = hfi1_sync_single_for_device,
+-	.alloc_coherent = hfi1_dma_alloc_coherent,
+-	.free_coherent = hfi1_dma_free_coherent
+-};
+-- 
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
