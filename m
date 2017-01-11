@@ -1,250 +1,87 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device until vmxnet3
- link is up
-Date: Wed, 11 Jan 2017 10:31:32 +0200
-Message-ID: <20170111083131.GA17240@yuval-lap>
-References: <cover.1484075557.git.aditr@vmware.com>
- <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr@vmware.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2] net/mlx4_core: VF probe fail when HW support 64-bit
+ coherent DMA
+Date: Wed, 11 Jan 2017 10:53:58 +0200
+Message-ID: <20170111085358.GX7218@mtr-leonro.local>
+References: <1483954699-17826-1-git-send-email-shamir.rabinovitch@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="v9g2r9e2kvGs7M7R"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1483954699-17826-1-git-send-email-shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 10, 2017 at 11:15:39AM -0800, Adit Ranadive wrote:
-> From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> 
-> Currently on bootup, ethernet drivers seem to load before RDMA ones
-> in Linux. So while the vmxnet3 module is loaded before vmw_pvrdma,
-> the vmxnet3 link state may not necessarily be enabled by the stack
-> before pvrdma is loaded. This is a problem because if the pvrdma
-> module is loaded on bootup (by installing it in /lib/modules/*),
-> the pvrdma device comes up in a port down state.
-> 
-> Since this is the most common use case scenario, defer the activation
-> of the device till the paired vmxnet3 link actually comes up. One
-> downside of doing this is, if a user doesn't have the vmxnet3 link
-> up when the pvrdma driver is loaded, they may not see any output
-> for ibv_devinfo until the paired vmxnet3 link is enabled too. The
-> users somehow need to be aware of this.
-> 
-> This only changes how the device is activated the first time. Once
-> enabled if the link goes down, a pvrdma driver reload is still required
-> after link up.
-> 
-> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-> Signed-off-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+
+--v9g2r9e2kvGs7M7R
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 09, 2017 at 04:38:19AM -0500, Shamir Rabinovitch wrote:
+> If IOMMU support 64-bit coherent DMA mlx4_core driver will try to use it
+> and VF probe will fail due to firmware error.
+>
+> Force all mlx4_core VFs coherent DMA to 32-bit only!
+>
+> Kernel log when issue occur:
+>
+> [1383654.766249] mlx4_core 0006:01:00.1: Sending reset
+> [1383654.775971] mlx4_core 0006:01:00.0: Received reset from slave:1
+> [1383654.788087] mlx4_core 0006:01:00.1: Sending vhcr0
+> [1383664.318338] mlx4_core 0006:01:00.0: command 0x2e failed: fw status = 0x1
+> [1383664.318342] mlx4_core 0006:01:00.0: mlx4_master_process_vhcr: Failed
+> reading vhcr ret: 0xfffffffb
+> [1383664.318345] mlx4_core 0006:01:00.0: Failed processing vhcr for slave:1,
+> resetting slave
+> [1383664.318352] mlx4_core 0006:01:00.0: Turn on internal error to force
+> reset, slave=1, cmd=0x5
+> [1383664.318415] mlx4_core 0006:01:00.0: slave:1 is out of sync, cmd=0x5,
+> last command=0x0, reset is needed
+> [1383664.318418] mlx4_core 0006:01:00.0: Turn on internal error to force
+> reset, slave=1, cmd=0x5
+> [1383664.318501] mlx4_core 0006:01:00.0: slave:1 is out of sync, cmd=0x5,
+> last command=0x0, reset is needed
+> [1383664.318504] mlx4_core 0006:01:00.0: Turn on internal error to force
+> reset, slave=1, cmd=0x5
+> [1383664.318513] mlx4_core 0006:01:00.1: HCA minimum page size:1
+> [1383664.318515] mlx4_core 0006:01:00.1: UAR size:4096 != kernel PAGE_SIZE of
+> 8192
+> [1383664.318517] mlx4_core 0006:01:00.1: Failed to obtain slave caps
+>
+> Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>
 > ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  1 +
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 99 +++++++++++++++++---------
->  2 files changed, 65 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> index 71e1d55..540a54b 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> @@ -221,6 +221,7 @@ struct pvrdma_dev {
->  	u32 port_cap_mask;
->  	struct mutex port_mutex; /* Port modification mutex. */
->  	bool ib_active;
-> +	bool enabled;
->  	atomic_t num_qps;
->  	atomic_t num_cqs;
->  	atomic_t num_pds;
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> index 231a1ce..b57132f 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> @@ -74,6 +74,8 @@ static int pvrdma_del_gid(struct ib_device *ibdev,
->  			  void **context);
->  
->  
-> +static int pvrdma_enable_dev(struct pvrdma_dev *dev);
-> +
->  static ssize_t show_hca(struct device *device, struct device_attribute *attr,
->  			char *buf)
->  {
-> @@ -755,6 +757,10 @@ static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
->  		pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ERR);
->  		break;
->  	case NETDEV_UP:
-> +		if (!dev->enabled && pvrdma_enable_dev(dev)) {
-> +			dev_err(&dev->pdev->dev, "failed to enable device\n");
-> +			break;
-> +		}
->  		pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
->  		break;
->  	default:
-> @@ -801,6 +807,48 @@ static int pvrdma_netdevice_event(struct notifier_block *this,
->  	return NOTIFY_DONE;
->  }
->  
-> +static void pvrdma_disable_dev(struct pvrdma_dev *dev)
-> +{
-> +	if (dev->enabled) {
-> +		ib_unregister_device(&dev->ib_dev);
-> +		dev->enabled = false;
-> +	}
-> +}
-> +
-> +static int pvrdma_enable_dev(struct pvrdma_dev *dev)
-> +{
-> +	int ret;
-> +	pvrdma_enable_intrs(dev);
-> +
-> +	/* Activate pvrdma device */
-> +	pvrdma_write_reg(dev, PVRDMA_REG_CTL, PVRDMA_DEVICE_CTL_ACTIVATE);
-> +
-> +	/* Make sure the write is complete before reading status. */
-> +	mb();
-> +
-> +	/* Check if device was successfully activated */
-> +	ret = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-> +	if (ret) {
-> +		dev_err(&dev->pdev->dev, "failed to activate device\n");
-> +		ret = -EFAULT;
-> +		goto err_disable_intrs;
-> +	}
-> +
-> +	/* Register IB device */
-> +	ret = pvrdma_register_device(dev);
-> +	if (ret) {
-> +		dev_err(&dev->pdev->dev, "failed to register IB device\n");
-> +		goto err_disable_intrs;
-> +	}
-> +
-> +	dev->enabled = true;
-> +	return 0;
-> +
-> +err_disable_intrs:
-> +	pvrdma_disable_intrs(dev);
-> +	return ret;
-> +}
-> +
->  static int pvrdma_pci_probe(struct pci_dev *pdev,
->  			    const struct pci_device_id *id)
->  {
-> @@ -867,14 +915,14 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	/* Enable 64-Bit DMA */
->  	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) == 0) {
->  		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
-> -		if (ret != 0) {
-> +		if (ret) {
->  			dev_err(&pdev->dev,
->  				"pci_set_consistent_dma_mask failed\n");
->  			goto err_free_resource;
->  		}
->  	} else {
->  		ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-> -		if (ret != 0) {
-> +		if (ret) {
->  			dev_err(&pdev->dev,
->  				"pci_set_dma_mask failed\n");
->  			goto err_free_resource;
-> @@ -1029,7 +1077,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	if (ret) {
->  		dev_err(&pdev->dev, "failed to allocate interrupts\n");
->  		ret = -ENOMEM;
-> -		goto err_netdevice;
-> +		goto err_free_cq_ring;
 
-This fix seems to be true regardless of $subject, right?
+Doug,
+To be clear, NAK.
+It is custom kernel with out-of-tree patches and very specific FW.
 
->  	}
->  
->  	/* Allocate UAR table. */
-> @@ -1049,51 +1097,35 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	}
->  	dev_dbg(&pdev->dev, "gid table len %d\n", dev->dsr->caps.gid_tbl_len);
->  
-> -	pvrdma_enable_intrs(dev);
-> -
-> -	/* Activate pvrdma device */
-> -	pvrdma_write_reg(dev, PVRDMA_REG_CTL, PVRDMA_DEVICE_CTL_ACTIVATE);
-> -
-> -	/* Make sure the write is complete before reading status. */
-> -	mb();
-> -
-> -	/* Check if device was successfully activated */
-> -	ret = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-> -	if (ret != 0) {
-> -		dev_err(&pdev->dev, "failed to activate device\n");
-> -		ret = -EFAULT;
-> -		goto err_disable_intr;
-> -	}
-> -
-> -	/* Register IB device */
-> -	ret = pvrdma_register_device(dev);
-> -	if (ret) {
-> -		dev_err(&pdev->dev, "failed to register IB device\n");
-> -		goto err_disable_intr;
-> +	if (netif_running(dev->netdev) && netif_carrier_ok(dev->netdev)) {
-> +		ret = pvrdma_enable_dev(dev);
-> +		if (ret) {
-> +			dev_err(&pdev->dev, "failed to enable device\n");
-> +			goto err_free_sgid_tbl;
-> +		}
-> +	} else {
-> +		dev_info(&pdev->dev, "pvrdma netdev link is down\n");
->  	}
->  
->  	dev->nb_netdev.notifier_call = pvrdma_netdevice_event;
->  	ret = register_netdevice_notifier(&dev->nb_netdev);
->  	if (ret) {
->  		dev_err(&pdev->dev, "failed to register netdevice events\n");
-> -		goto err_unreg_ibdev;
-> +		goto err_disable_dev;
->  	}
->  
->  	dev_info(&pdev->dev, "attached to device\n");
->  	return 0;
->  
-> -err_unreg_ibdev:
-> -	ib_unregister_device(&dev->ib_dev);
-> -err_disable_intr:
-> -	pvrdma_disable_intrs(dev);
-> +err_disable_dev:
-> +	pvrdma_disable_dev(dev);
-> +err_free_sgid_tbl:
->  	kfree(dev->sgid_tbl);
->  err_free_uar_table:
->  	pvrdma_uar_table_cleanup(dev);
->  err_free_intrs:
->  	pvrdma_free_irq(dev);
->  	pvrdma_disable_msi_all(dev);
-> -err_netdevice:
-> -	unregister_netdevice_notifier(&dev->nb_netdev);
->  err_free_cq_ring:
->  	pvrdma_page_dir_cleanup(dev, &dev->cq_pdir);
->  err_free_async_ring:
-> @@ -1132,10 +1164,7 @@ static void pvrdma_pci_remove(struct pci_dev *pdev)
->  	unregister_netdevice_notifier(&dev->nb_netdev);
->  	dev->nb_netdev.notifier_call = NULL;
->  
-> -	flush_workqueue(event_wq);
-> -
-> -	/* Unregister ib device */
-> -	ib_unregister_device(&dev->ib_dev);
-> +	pvrdma_disable_dev(dev);
->  
->  	mutex_lock(&pvrdma_device_list_lock);
->  	list_del(&dev->device_link);
+Thanks
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--v9g2r9e2kvGs7M7R
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh18qYACgkQ5GN7iDZy
+WKefexAAhxMXnoKalUZwMN/XKINfTKhxsU35doHdH5NqGl1XLKGVpiyMGNOI39G2
+i+FSAKwlaUT+tCSOP1SNClwk+KZ/B2YrtdG9KkxNKb+maEeDTIf7sLOazOIT0q5Q
+3hi0WConUq7Jktw0xtHBdHMbn+Os6svhM8CYIEgIgr/Cv3e7ATikNYCOCHvCMKy4
+y8yAItQi828nKQBqCZYu6BRpnU+wGrVO1cfe1AfwQ9zk2FeUw/f8Z8gljPMHBEPt
+1ZlOfRNmyonzikUM0+OWYYnROPs+8KLAqXZg5WJD1v+qIBuGDfk1vPxBBYCUUCNp
+cDATz4p2LtiMtN+awrUXnRa1MwiyktgrBSC4gREQy3yEl82b2vmdcmHIVKzrufh8
+YdwchHDhNicNhbYB5dOo0XwxQxj6XRvEM8dboNdVrMmLZSulEl5XVWo2Te9OZUcI
+E/W26gBR5A4JcQxD/oI3dhXmPwnsDgCDEQROLCvtg7fel961SHap2OvZ/SVuN/C9
+Y7o7TTax5DQJ+TI4uTS52f2+cpIMcI3ZmQ15J0l4Nt1wEEtKE00qwicvzhi8vcXd
+RtzVpB928cT/NyTZncT0abod8LDUxu4qtdVGEXIHSW/gCczeBqZgiCyYRkEs5cAM
+3WouOQ3/BUnDLB+DQ4FmyVn56EpbBgEdEuJE/v0UmRUc8/CMDVc=
+=rndo
+-----END PGP SIGNATURE-----
+
+--v9g2r9e2kvGs7M7R--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
