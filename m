@@ -1,86 +1,47 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 6/7] IB/core: Declare all common IB types
-Date: Thu, 12 Jan 2017 08:48:41 +0200
-Message-ID: <CAAKD3BDf6oQfFZ--_GEkAGU=78B1rqELxouwzXEm8gr+fa=Ckg@mail.gmail.com>
-References: <1484132033-3346-1-git-send-email-matanb@mellanox.com>
- <1484132033-3346-7-git-send-email-matanb@mellanox.com> <20170112001955.GF31682@obsidianresearch.com>
+From: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH 2/9] Move dma_ops from archdata into struct device
+Date: Thu, 12 Jan 2017 08:35:11 +0100
+Message-ID: <20170112073511.GA23347@kroah.com>
+References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
+	<20170111005648.14988-3-bart.vanassche@sandisk.com>
+	<20170111064803.GB26893@kroah.com>
+	<1484158589.2619.14.camel@sandisk.com>
+	<20170111203100.GB17895@kroah.com>
+	<1484173670.2619.28.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170112001955.GF31682-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1484173670.2619.28.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org" <linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, "dalias-8zAoT0mYgF4@public.gmane.org" <dalias-8zAoT0mYgF4@public.gmane.org>, "linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "a-jacquiot-l0cyMroinI0@public.gmane.org" <a-jacquiot-l0cyMroinI0@public.gmane.org>, "catalin.marinas-5wv7dgnIgG8@public.gmane.org" <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org" <mulix-BzGcCpaT2IbYtjvyW6yDsg@public.gmane.org>, "dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org" <egtvedt-BrfabpQBY5qlHtIdYg32fQ@public.gmane.org>, "jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org" <jonas-A9uVI2HLR7kOP4wsBPIw7w@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jesper.nilsson-VrBV9hrLPhE@public.gmane.org" <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, "linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>"linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <l>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 12, 2017 at 2:19 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Jan 11, 2017 at 12:53:52PM +0200, Matan Barak wrote:
->
->> diff --git a/drivers/infiniband/core/uverbs_ioctl_cmd.c b/drivers/infiniband/core/uverbs_ioctl_cmd.c
->> new file mode 100644
->
-> This is not really an appropriate file name for this point in the
-> series...
->
->> +DECLARE_UVERBS_TYPE(uverbs_type_comp_channel,
->> +                 &UVERBS_TYPE_ALLOC_FD(0, sizeof(struct ib_uobject) + sizeof(struct ib_uverbs_event_file),
->> +                                       uverbs_free_event_file,
->> +                                       &uverbs_event_fops,
->> +                                       "[infinibandevent]",
->> O_RDONLY));
->
-> Really hate these macros.
->
-> const struct ib_uobject_type uverbs_type_comp_channel = {
->        .size = sizeof(struct ib_uverbs_event_file,
->        .destroy = uverbs_destroy_event_file, // destroy = release device resources!!
->        .fd = {
->           .fops = &uverbs_event_fops,
->           .name = "[infinibandevent]"
->        },
-> };
->
-> If you can't do it without macros something else is wrong.
->
->> +DECLARE_UVERBS_TYPES(uverbs_common_types,
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_PD, uverbs_type_pd),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_MR, uverbs_type_mr),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_COMP_CHANNEL, uverbs_type_comp_channel),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_CQ, uverbs_type_cq),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_QP, uverbs_type_qp),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_AH, uverbs_type_ah),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_MW, uverbs_type_mw),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_SRQ, uverbs_type_srq),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_FLOW, uverbs_type_flow),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_WQ, uverbs_type_wq),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_RWQ_IND_TBL,
->> +                                  uverbs_type_rwq_ind_table),
->> +                  ADD_UVERBS_TYPE(UVERBS_TYPE_XRCD, uverbs_type_xrcd),
->> +);
->> +EXPORT_SYMBOL(uverbs_common_types);
->
-> No purpose at this point in the series.
->
-> I didn't look carefully at patch 7 due to to convoluted it is, split
-> it please..
->
-> Everything else looks broadly reasonable to me and is a good overall
-> improvement I think.
+On Wed, Jan 11, 2017 at 10:28:05PM +0000, Bart Van Assche wrote:
+> On Wed, 2017-01-11 at 21:31 +0100, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org wrote:
+> > That's a big sign that your patch series needs work.  Break it up into
+> > smaller pieces, it should be possible, which will make merges easier
+> > (well, different in a way.)
+> 
+> Hello Greg,
+> 
+> Can you have a look at the attached patches? These three patches are a
+> splitup of the single patch at the start of this e-mail thread.
 
-Thanks for the review Jason :)
-I'll read it thoroughly and answer/ask for clarifications early next week.
+Please send them in the proper format (i.e. one patch per email), and I
+will be glad to review them.  Otherwise it's really hard to do so, would
+you want to review attachments?
 
->
-> Jason
+thanks,
 
-Matan
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
