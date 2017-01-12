@@ -1,59 +1,97 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 12 Jan 2017 15:35:07 -0700
-Message-ID: <8bda88d4-1e7c-7889-7d20-1a0eb43de31a@deltatee.com>
-References: <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
- <20170106182625.GB5724@obsidianresearch.com>
- <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
- <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <d5a72e1e5f6d606697dc0027f073fd87.squirrel-2RFepEojUI2m/tTznewQxVaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
- Paul" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, qiang.yu-5C7GfCeVMHo@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Suthikulpanit,
- Suravee" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Koenig, Christian" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data structures
+Date: Thu, 12 Jan 2017 16:42:28 -0600
+Message-ID: <1484260948-3227-1-git-send-email-parav@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch performs dma sync operations on nvme_commmand,
+inline page(s) and nvme_completion.
 
+nvme_command and write cmd inline data is synced
+(a) on receiving of the recv queue completion for cpu access.
+(b) before posting recv wqe back to rdma adapter for device access.
 
-On 11/01/17 09:54 PM, Stephen Bates wrote:
-> The iopmem patchset addressed all the use cases above and while it is not
-> an in kernel API it could have been modified to be one reasonably easily.
-> As Logan states the driver can then choose to pass the VMAs to user-space
-> in a manner that makes sense.
+nvme_completion is synced
+(a) on receiving send completion for nvme_completion for cpu access.
+(b) before posting send wqe to rdma adapter for device access.
 
-Just to clarify: the iopmem patchset had one patch that allowed for
-slightly more flexible zone device mappings which ought to be useful for
-everyone.
+Pushing this patch through linux-rdma git tree as its more relavant with
+Bart's changes for dma_map_ops of[1].
 
-The other patch (which was iopmem proper) was more of an example of how
-the zone_device memory _could_ be exposed to userspace with "iopmem"
-hardware that looks similar to nvdimm hardware. Iopmem was not really
-useful, in itself, for NVMe devices and it was never expected to be
-useful for GPUs.
+[1] https://patchwork.kernel.org/patch/9514085/
 
-Logan
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/nvme/target/rdma.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 8c3760a..c6468b3 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -438,6 +438,14 @@ static int nvmet_rdma_post_recv(struct nvmet_rdma_device *ndev,
+ {
+ 	struct ib_recv_wr *bad_wr;
+ 
++	dma_sync_single_for_device(ndev->device->dma_device,
++			cmd->sge[0].addr, sizeof(*cmd->nvme_cmd),
++			DMA_FROM_DEVICE);
++
++	if (cmd->sge[1].addr)
++		dma_sync_single_for_device(ndev->device->dma_device,
++				cmd->sge[1].addr, NVMET_RDMA_INLINE_DATA_SIZE,
++				DMA_FROM_DEVICE);
+ 	if (ndev->srq)
+ 		return ib_post_srq_recv(ndev->srq, &cmd->wr, &bad_wr);
+ 	return ib_post_recv(cmd->queue->cm_id->qp, &cmd->wr, &bad_wr);
+@@ -507,6 +515,10 @@ static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct nvmet_rdma_rsp *rsp =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, send_cqe);
+ 
++	dma_sync_single_for_cpu(rsp->queue->dev->device->dma_device,
++			rsp->send_sge.addr, sizeof(*rsp->req.rsp),
++			DMA_TO_DEVICE);
++
+ 	nvmet_rdma_release_rsp(rsp);
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS &&
+@@ -538,6 +550,11 @@ static void nvmet_rdma_queue_response(struct nvmet_req *req)
+ 		first_wr = &rsp->send_wr;
+ 
+ 	nvmet_rdma_post_recv(rsp->queue->dev, rsp->cmd);
++
++	dma_sync_single_for_device(rsp->queue->dev->device->dma_device,
++			rsp->send_sge.addr, sizeof(*rsp->req.rsp),
++			DMA_TO_DEVICE);
++
+ 	if (ib_post_send(cm_id->qp, first_wr, &bad_wr)) {
+ 		pr_err("sending cmd response failed\n");
+ 		nvmet_rdma_release_rsp(rsp);
+@@ -698,6 +715,16 @@ static void nvmet_rdma_handle_command(struct nvmet_rdma_queue *queue,
+ 	cmd->n_rdma = 0;
+ 	cmd->req.port = queue->port;
+ 
++	dma_sync_single_for_cpu(queue->dev->device->dma_device,
++			cmd->cmd->sge[0].addr, sizeof(*cmd->cmd->nvme_cmd),
++			DMA_FROM_DEVICE);
++
++	if (cmd->cmd->sge[1].addr)
++		dma_sync_single_for_cpu(queue->dev->device->dma_device,
++				cmd->cmd->sge[1].addr,
++				NVMET_RDMA_INLINE_DATA_SIZE,
++				DMA_FROM_DEVICE);
++
+ 	if (!nvmet_req_init(&cmd->req, &queue->nvme_cq,
+ 			&queue->nvme_sq, &nvmet_rdma_ops))
+ 		return;
+-- 
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
