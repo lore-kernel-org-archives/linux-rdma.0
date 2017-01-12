@@ -1,87 +1,52 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] infiniband: hw: cxgb4: Use AF_INET for sin_family field
-Date: Thu, 12 Jan 2017 12:11:37 -0500
-Message-ID: <1484241097.123135.12.camel@redhat.com>
-References: <1482543875-17141-1-git-send-email-mayhs11saini@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 12 Jan 2017 10:17:20 -0700
+Message-ID: <20170112171720.GA12257@obsidianresearch.com>
+References: <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
+ <20170106182625.GB5724@obsidianresearch.com>
+ <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
+ <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
+ <20170112151129.GA10942@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-YtfNsvY/qkspbwqQVtva"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1482543875-17141-1-git-send-email-mayhs11saini-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shyam Saini <mayhs11saini-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170112151129.GA10942-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, qiang.yu-5C7GfCeVMHo@public.gmane.org, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Koenig, Christian" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 12, 2017 at 10:11:29AM -0500, Jerome Glisse wrote:
+> On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
+> > > What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
+> > > (ie. at least those backed with ZONE_DEVICE memory). Then
+> > > GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
+> > > (using whatever interface is most appropriate) and userspace can do what
+> > > it pleases with them. This makes _so_ much sense and actually largely
+> > > already works today (as demonstrated by iopmem).
 
---=-YtfNsvY/qkspbwqQVtva
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> So i say let solve the IOMMU issue first and let everyone use it in their
+> own way with their device. I do not think we can share much more than
+> that.
 
-On Sat, 2016-12-24 at 07:14 +0530, Shyam Saini wrote:
-> Elsewhere the sin_family field holds a value with a name of the form
-> AF_..., so it seems reasonable to do so here as well.=C2=A0 Also the
-> values
-> of PF_INET and AF_INET are the same.
->=20
-> The semantic patch that makes this change is as follows:
->=20
-> //</smpl>
-> @@
-> struct sockaddr_in sip;
-> @@
->=20
-> (
-> sip.sin_family =3D=3D
-> - PF_INET
-> + AF_INET
-> |
-> sip.sin_family !=3D
-> - PF_INET
-> + AF_INET
-> |
-> sip.sin_family =3D
-> - PF_INET
-> + AF_INET
-> )
-> //</smpl>
->=20
-> Signed-off-by: Shyam Saini <mayhs11saini-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Solve it for the easy ZONE_DIRECT/etc case then.
 
-Thanks, applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-YtfNsvY/qkspbwqQVtva
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYd7jJAAoJELgmozMOVy/dUcoP/3vzUrHOezkR+fKYL56wi37A
-5qE0CwPdXpn+sYLop3pOtSLgGYEdnwj6rNzHP95z3kEs0H9hyZp+N8lSKM0fa/8s
-yfABg1jOmpIEZYO1/xqWPBIlgRW5LTG7Q6mo9wsUmjCHI/2kLXiBIdMwmMmMy8yx
-QNgc9YUlLQhI8fhkJ1CZ1AmpxkZpnY9wgWPu+QENRlZjhcPSZRq+FqCFhaZiEu4L
-GpRQHNYPgolKyr1Hvqg6chtd2T18iJBT4gG6gBtrKSB7bdFDgJexc+m7orU2jDYj
-jnEu8eit3TsU3Q/Mpbqyahj9jIaASHSyfM4PRXgs6nIShWfR/7lRzpLsXZbpAPpA
-PBvslx7ppmvM4xHz68xL0f2MbS4f+sR/C5rKl74CispmN9tzIOP4snWt+4PxJM3R
-PulsqCMfvkZbTEMbLySiW9hghV3FYpJljG7n/x0Ouh2BbmA6W7cZZh2PaK0odOH7
-PZBe6BDUyCsaGoOhWcDzDTdzDwbmcvG7i5b/1+u9DD+0zb/hYRZJCxM++phLI7ou
-qPlpWgQjEnjsrNC4s1cD1ErIZzbtAAnuszlRrXBjQIWr9Xp0DozkLLlY9uSx39gi
-bQGeOTjhQD6NSFWVSzRfyRk1xyciIBs3XQuJ/U4mkvvRsRBIfaERvyEc/jox/WvW
-zzj0kGz3OnO142/zFBMb
-=8QZL
------END PGP SIGNATURE-----
-
---=-YtfNsvY/qkspbwqQVtva--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
