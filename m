@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH v2 18/26] IB/isert: Inline ib_dma_map_*() functions
-Date: Thu, 12 Jan 2017 11:07:10 -0800
-Message-ID: <20170112190718.6728-19-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 26/26] IB/core: Remove ib_dma_map_*() functions
+Date: Thu, 12 Jan 2017 11:07:18 -0800
+Message-ID: <20170112190718.6728-27-bart.vanassche@sandisk.com>
 References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,281 +12,244 @@ To: Doug Ledford <dledford@redhat.com>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Remove the ib_dma_map_*() functions because due to previous patches
+these are no longer used.
+
 Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 120 +++++++++++++++++---------------
- 1 file changed, 63 insertions(+), 57 deletions(-)
+ include/rdma/ib_verbs.h | 218 ------------------------------------------------
+ 1 file changed, 218 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 314e95516068..ca919d472bd5 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -189,9 +189,10 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
- 	rx_desc = isert_conn->rx_descs;
- 
- 	for (i = 0; i < ISERT_QP_MAX_RECV_DTOS; i++, rx_desc++)  {
--		dma_addr = ib_dma_map_single(ib_dev, (void *)rx_desc,
--					ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
--		if (ib_dma_mapping_error(ib_dev, dma_addr))
-+		dma_addr = dma_map_single(ib_dev->dma_device, rx_desc,
-+					  ISER_RX_PAYLOAD_SIZE,
-+					  DMA_FROM_DEVICE);
-+		if (dma_mapping_error(ib_dev->dma_device, dma_addr))
- 			goto dma_map_fail;
- 
- 		rx_desc->dma_addr = dma_addr;
-@@ -208,8 +209,8 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
- dma_map_fail:
- 	rx_desc = isert_conn->rx_descs;
- 	for (j = 0; j < i; j++, rx_desc++) {
--		ib_dma_unmap_single(ib_dev, rx_desc->dma_addr,
--				    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+		dma_unmap_single(ib_dev->dma_device, rx_desc->dma_addr,
-+				 ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- 	}
- 	kfree(isert_conn->rx_descs);
- 	isert_conn->rx_descs = NULL;
-@@ -229,8 +230,8 @@ isert_free_rx_descriptors(struct isert_conn *isert_conn)
- 
- 	rx_desc = isert_conn->rx_descs;
- 	for (i = 0; i < ISERT_QP_MAX_RECV_DTOS; i++, rx_desc++)  {
--		ib_dma_unmap_single(ib_dev, rx_desc->dma_addr,
--				    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+		dma_unmap_single(ib_dev->dma_device, rx_desc->dma_addr,
-+				 ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- 	}
- 
- 	kfree(isert_conn->rx_descs);
-@@ -410,13 +411,12 @@ isert_free_login_buf(struct isert_conn *isert_conn)
- {
- 	struct ib_device *ib_dev = isert_conn->device->ib_device;
- 
--	ib_dma_unmap_single(ib_dev, isert_conn->login_rsp_dma,
--			    ISER_RX_PAYLOAD_SIZE, DMA_TO_DEVICE);
-+	dma_unmap_single(ib_dev->dma_device, isert_conn->login_rsp_dma,
-+			 ISER_RX_PAYLOAD_SIZE, DMA_TO_DEVICE);
- 	kfree(isert_conn->login_rsp_buf);
- 
--	ib_dma_unmap_single(ib_dev, isert_conn->login_req_dma,
--			    ISER_RX_PAYLOAD_SIZE,
--			    DMA_FROM_DEVICE);
-+	dma_unmap_single(ib_dev->dma_device, isert_conn->login_req_dma,
-+			 ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- 	kfree(isert_conn->login_req_buf);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index de8dfb61d2b6..b4b83603b5df 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2912,224 +2912,6 @@ static inline int ib_req_ncomp_notif(struct ib_cq *cq, int wc_cnt)
  }
  
-@@ -431,10 +431,11 @@ isert_alloc_login_buf(struct isert_conn *isert_conn,
- 	if (!isert_conn->login_req_buf)
- 		return -ENOMEM;
- 
--	isert_conn->login_req_dma = ib_dma_map_single(ib_dev,
--				isert_conn->login_req_buf,
--				ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
--	ret = ib_dma_mapping_error(ib_dev, isert_conn->login_req_dma);
-+	isert_conn->login_req_dma = dma_map_single(ib_dev->dma_device,
-+						   isert_conn->login_req_buf,
-+						   ISER_RX_PAYLOAD_SIZE,
-+						   DMA_FROM_DEVICE);
-+	ret = dma_mapping_error(ib_dev->dma_device, isert_conn->login_req_dma);
- 	if (ret) {
- 		isert_err("login_req_dma mapping error: %d\n", ret);
- 		isert_conn->login_req_dma = 0;
-@@ -447,10 +448,11 @@ isert_alloc_login_buf(struct isert_conn *isert_conn,
- 		goto out_unmap_login_req_buf;
- 	}
- 
--	isert_conn->login_rsp_dma = ib_dma_map_single(ib_dev,
--					isert_conn->login_rsp_buf,
--					ISER_RX_PAYLOAD_SIZE, DMA_TO_DEVICE);
--	ret = ib_dma_mapping_error(ib_dev, isert_conn->login_rsp_dma);
-+	isert_conn->login_rsp_dma = dma_map_single(ib_dev->dma_device,
-+						   isert_conn->login_rsp_buf,
-+						   ISER_RX_PAYLOAD_SIZE,
-+						   DMA_TO_DEVICE);
-+	ret = dma_mapping_error(ib_dev->dma_device, isert_conn->login_rsp_dma);
- 	if (ret) {
- 		isert_err("login_rsp_dma mapping error: %d\n", ret);
- 		isert_conn->login_rsp_dma = 0;
-@@ -462,8 +464,8 @@ isert_alloc_login_buf(struct isert_conn *isert_conn,
- out_free_login_rsp_buf:
- 	kfree(isert_conn->login_rsp_buf);
- out_unmap_login_req_buf:
--	ib_dma_unmap_single(ib_dev, isert_conn->login_req_dma,
--			    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+	dma_unmap_single(ib_dev->dma_device, isert_conn->login_req_dma,
-+			 ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- out_free_login_req_buf:
- 	kfree(isert_conn->login_req_buf);
- 	return ret;
-@@ -854,8 +856,8 @@ isert_login_post_send(struct isert_conn *isert_conn, struct iser_tx_desc *tx_des
- 	struct ib_send_wr send_wr, *send_wr_failed;
- 	int ret;
- 
--	ib_dma_sync_single_for_device(ib_dev, tx_desc->dma_addr,
--				      ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+	dma_sync_single_for_device(ib_dev->dma_device, tx_desc->dma_addr,
-+				   ISER_HEADERS_LEN, DMA_TO_DEVICE);
- 
- 	tx_desc->tx_cqe.done = isert_login_send_done;
- 
-@@ -881,8 +883,8 @@ isert_create_send_desc(struct isert_conn *isert_conn,
- 	struct isert_device *device = isert_conn->device;
- 	struct ib_device *ib_dev = device->ib_device;
- 
--	ib_dma_sync_single_for_cpu(ib_dev, tx_desc->dma_addr,
--				   ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+	dma_sync_single_for_cpu(ib_dev->dma_device, tx_desc->dma_addr,
-+				ISER_HEADERS_LEN, DMA_TO_DEVICE);
- 
- 	memset(&tx_desc->iser_header, 0, sizeof(struct iser_ctrl));
- 	tx_desc->iser_header.flags = ISCSI_CTRL;
-@@ -903,10 +905,10 @@ isert_init_tx_hdrs(struct isert_conn *isert_conn,
- 	struct ib_device *ib_dev = device->ib_device;
- 	u64 dma_addr;
- 
--	dma_addr = ib_dma_map_single(ib_dev, (void *)tx_desc,
--			ISER_HEADERS_LEN, DMA_TO_DEVICE);
--	if (ib_dma_mapping_error(ib_dev, dma_addr)) {
--		isert_err("ib_dma_mapping_error() failed\n");
-+	dma_addr = dma_map_single(ib_dev->dma_device, (void *)tx_desc,
-+				  ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+	if (dma_mapping_error(ib_dev->dma_device, dma_addr)) {
-+		isert_err("dma_mapping_error() failed\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -992,13 +994,15 @@ isert_put_login_tx(struct iscsi_conn *conn, struct iscsi_login *login,
- 	if (length > 0) {
- 		struct ib_sge *tx_dsg = &tx_desc->tx_sg[1];
- 
--		ib_dma_sync_single_for_cpu(ib_dev, isert_conn->login_rsp_dma,
--					   length, DMA_TO_DEVICE);
-+		dma_sync_single_for_cpu(ib_dev->dma_device,
-+					isert_conn->login_rsp_dma,
-+					length, DMA_TO_DEVICE);
- 
- 		memcpy(isert_conn->login_rsp_buf, login->rsp_buf, length);
- 
--		ib_dma_sync_single_for_device(ib_dev, isert_conn->login_rsp_dma,
--					      length, DMA_TO_DEVICE);
-+		dma_sync_single_for_device(ib_dev->dma_device,
-+					   isert_conn->login_rsp_dma,
-+					   length, DMA_TO_DEVICE);
- 
- 		tx_dsg->addr	= isert_conn->login_rsp_dma;
- 		tx_dsg->length	= length;
-@@ -1397,8 +1401,8 @@ isert_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 		return;
- 	}
- 
--	ib_dma_sync_single_for_cpu(ib_dev, rx_desc->dma_addr,
--			ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+	dma_sync_single_for_cpu(ib_dev->dma_device, rx_desc->dma_addr,
-+				ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- 
- 	isert_dbg("DMA: 0x%llx, iSCSI opcode: 0x%02x, ITT: 0x%08x, flags: 0x%02x dlen: %d\n",
- 		 rx_desc->dma_addr, hdr->opcode, hdr->itt, hdr->flags,
-@@ -1432,8 +1436,8 @@ isert_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 	isert_rx_opcode(isert_conn, rx_desc,
- 			read_stag, read_va, write_stag, write_va);
- 
--	ib_dma_sync_single_for_device(ib_dev, rx_desc->dma_addr,
--			ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+	dma_sync_single_for_device(ib_dev->dma_device, rx_desc->dma_addr,
-+				   ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- }
- 
- static void
-@@ -1447,8 +1451,8 @@ isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 		return;
- 	}
- 
--	ib_dma_sync_single_for_cpu(ib_dev, isert_conn->login_req_dma,
--			ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+	dma_sync_single_for_cpu(ib_dev->dma_device, isert_conn->login_req_dma,
-+				ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- 
- 	isert_conn->login_req_len = wc->byte_len - ISER_HEADERS_LEN;
- 
-@@ -1463,8 +1467,9 @@ isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 	complete(&isert_conn->login_req_comp);
- 	mutex_unlock(&isert_conn->mutex);
- 
--	ib_dma_sync_single_for_device(ib_dev, isert_conn->login_req_dma,
--				ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-+	dma_sync_single_for_device(ib_dev->dma_device,
-+				   isert_conn->login_req_dma,
-+				   ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
- }
- 
- static void
-@@ -1571,8 +1576,8 @@ isert_unmap_tx_desc(struct iser_tx_desc *tx_desc, struct ib_device *ib_dev)
- {
- 	if (tx_desc->dma_addr != 0) {
- 		isert_dbg("unmap single for tx_desc->dma_addr\n");
--		ib_dma_unmap_single(ib_dev, tx_desc->dma_addr,
--				    ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+		dma_unmap_single(ib_dev->dma_device, tx_desc->dma_addr,
-+				 ISER_HEADERS_LEN, DMA_TO_DEVICE);
- 		tx_desc->dma_addr = 0;
- 	}
- }
-@@ -1583,8 +1588,8 @@ isert_completion_put(struct iser_tx_desc *tx_desc, struct isert_cmd *isert_cmd,
- {
- 	if (isert_cmd->pdu_buf_dma != 0) {
- 		isert_dbg("unmap single for isert_cmd->pdu_buf_dma\n");
--		ib_dma_unmap_single(ib_dev, isert_cmd->pdu_buf_dma,
--				    isert_cmd->pdu_buf_len, DMA_TO_DEVICE);
-+		dma_unmap_single(ib_dev->dma_device, isert_cmd->pdu_buf_dma,
-+				 isert_cmd->pdu_buf_len, DMA_TO_DEVICE);
- 		isert_cmd->pdu_buf_dma = 0;
- 	}
- 
-@@ -1841,10 +1846,10 @@ isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- 		hton24(hdr->dlength, (u32)cmd->se_cmd.scsi_sense_length);
- 		pdu_len = cmd->se_cmd.scsi_sense_length + padding;
- 
--		isert_cmd->pdu_buf_dma = ib_dma_map_single(ib_dev,
--				(void *)cmd->sense_buffer, pdu_len,
--				DMA_TO_DEVICE);
--		if (ib_dma_mapping_error(ib_dev, isert_cmd->pdu_buf_dma))
-+		isert_cmd->pdu_buf_dma = dma_map_single(ib_dev->dma_device,
-+							cmd->sense_buffer,
-+							pdu_len, DMA_TO_DEVICE);
-+		if (dma_mapping_error(ib_dev->dma_device, isert_cmd->pdu_buf_dma))
- 			return -ENOMEM;
- 
- 		isert_cmd->pdu_buf_len = pdu_len;
-@@ -1970,10 +1975,10 @@ isert_put_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- 	isert_init_tx_hdrs(isert_conn, &isert_cmd->tx_desc);
- 
- 	hton24(hdr->dlength, ISCSI_HDR_LEN);
--	isert_cmd->pdu_buf_dma = ib_dma_map_single(ib_dev,
--			(void *)cmd->buf_ptr, ISCSI_HDR_LEN,
--			DMA_TO_DEVICE);
--	if (ib_dma_mapping_error(ib_dev, isert_cmd->pdu_buf_dma))
-+	isert_cmd->pdu_buf_dma = dma_map_single(ib_dev->dma_device,
-+						cmd->buf_ptr, ISCSI_HDR_LEN,
-+						DMA_TO_DEVICE);
-+	if (dma_mapping_error(ib_dev->dma_device, isert_cmd->pdu_buf_dma))
- 		return -ENOMEM;
- 	isert_cmd->pdu_buf_len = ISCSI_HDR_LEN;
- 	tx_dsg->addr	= isert_cmd->pdu_buf_dma;
-@@ -2013,9 +2018,10 @@ isert_put_text_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- 		struct ib_sge *tx_dsg = &isert_cmd->tx_desc.tx_sg[1];
- 		void *txt_rsp_buf = cmd->buf_ptr;
- 
--		isert_cmd->pdu_buf_dma = ib_dma_map_single(ib_dev,
--				txt_rsp_buf, txt_rsp_len, DMA_TO_DEVICE);
--		if (ib_dma_mapping_error(ib_dev, isert_cmd->pdu_buf_dma))
-+		isert_cmd->pdu_buf_dma =
-+			dma_map_single(ib_dev->dma_device, txt_rsp_buf,
-+				       txt_rsp_len, DMA_TO_DEVICE);
-+		if (dma_mapping_error(ib_dev->dma_device, isert_cmd->pdu_buf_dma))
- 			return -ENOMEM;
- 
- 		isert_cmd->pdu_buf_len = txt_rsp_len;
+ /**
+- * ib_dma_mapping_error - check a DMA addr for error
+- * @dev: The device for which the dma_addr was created
+- * @dma_addr: The DMA address to check
+- */
+-static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
+-{
+-	return dma_mapping_error(dev->dma_device, dma_addr);
+-}
+-
+-/**
+- * ib_dma_map_single - Map a kernel virtual address to DMA address
+- * @dev: The device for which the dma_addr is to be created
+- * @cpu_addr: The kernel virtual address
+- * @size: The size of the region in bytes
+- * @direction: The direction of the DMA
+- */
+-static inline u64 ib_dma_map_single(struct ib_device *dev,
+-				    void *cpu_addr, size_t size,
+-				    enum dma_data_direction direction)
+-{
+-	return dma_map_single(dev->dma_device, cpu_addr, size, direction);
+-}
+-
+-/**
+- * ib_dma_unmap_single - Destroy a mapping created by ib_dma_map_single()
+- * @dev: The device for which the DMA address was created
+- * @addr: The DMA address
+- * @size: The size of the region in bytes
+- * @direction: The direction of the DMA
+- */
+-static inline void ib_dma_unmap_single(struct ib_device *dev,
+-				       u64 addr, size_t size,
+-				       enum dma_data_direction direction)
+-{
+-	dma_unmap_single(dev->dma_device, addr, size, direction);
+-}
+-
+-static inline u64 ib_dma_map_single_attrs(struct ib_device *dev,
+-					  void *cpu_addr, size_t size,
+-					  enum dma_data_direction direction,
+-					  unsigned long dma_attrs)
+-{
+-	return dma_map_single_attrs(dev->dma_device, cpu_addr, size,
+-				    direction, dma_attrs);
+-}
+-
+-static inline void ib_dma_unmap_single_attrs(struct ib_device *dev,
+-					     u64 addr, size_t size,
+-					     enum dma_data_direction direction,
+-					     unsigned long dma_attrs)
+-{
+-	return dma_unmap_single_attrs(dev->dma_device, addr, size,
+-				      direction, dma_attrs);
+-}
+-
+-/**
+- * ib_dma_map_page - Map a physical page to DMA address
+- * @dev: The device for which the dma_addr is to be created
+- * @page: The page to be mapped
+- * @offset: The offset within the page
+- * @size: The size of the region in bytes
+- * @direction: The direction of the DMA
+- */
+-static inline u64 ib_dma_map_page(struct ib_device *dev,
+-				  struct page *page,
+-				  unsigned long offset,
+-				  size_t size,
+-					 enum dma_data_direction direction)
+-{
+-	return dma_map_page(dev->dma_device, page, offset, size, direction);
+-}
+-
+-/**
+- * ib_dma_unmap_page - Destroy a mapping created by ib_dma_map_page()
+- * @dev: The device for which the DMA address was created
+- * @addr: The DMA address
+- * @size: The size of the region in bytes
+- * @direction: The direction of the DMA
+- */
+-static inline void ib_dma_unmap_page(struct ib_device *dev,
+-				     u64 addr, size_t size,
+-				     enum dma_data_direction direction)
+-{
+-	dma_unmap_page(dev->dma_device, addr, size, direction);
+-}
+-
+-/**
+- * ib_dma_map_sg - Map a scatter/gather list to DMA addresses
+- * @dev: The device for which the DMA addresses are to be created
+- * @sg: The array of scatter/gather entries
+- * @nents: The number of scatter/gather entries
+- * @direction: The direction of the DMA
+- */
+-static inline int ib_dma_map_sg(struct ib_device *dev,
+-				struct scatterlist *sg, int nents,
+-				enum dma_data_direction direction)
+-{
+-	return dma_map_sg(dev->dma_device, sg, nents, direction);
+-}
+-
+-/**
+- * ib_dma_unmap_sg - Unmap a scatter/gather list of DMA addresses
+- * @dev: The device for which the DMA addresses were created
+- * @sg: The array of scatter/gather entries
+- * @nents: The number of scatter/gather entries
+- * @direction: The direction of the DMA
+- */
+-static inline void ib_dma_unmap_sg(struct ib_device *dev,
+-				   struct scatterlist *sg, int nents,
+-				   enum dma_data_direction direction)
+-{
+-	dma_unmap_sg(dev->dma_device, sg, nents, direction);
+-}
+-
+-static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
+-				      struct scatterlist *sg, int nents,
+-				      enum dma_data_direction direction,
+-				      unsigned long dma_attrs)
+-{
+-	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
+-				dma_attrs);
+-}
+-
+-static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
+-					 struct scatterlist *sg, int nents,
+-					 enum dma_data_direction direction,
+-					 unsigned long dma_attrs)
+-{
+-	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction, dma_attrs);
+-}
+-/**
+- * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
+- * @dev: The device for which the DMA addresses were created
+- * @sg: The scatter/gather entry
+- *
+- * Note: this function is obsolete. To do: change all occurrences of
+- * ib_sg_dma_address() into sg_dma_address().
+- */
+-static inline u64 ib_sg_dma_address(struct ib_device *dev,
+-				    struct scatterlist *sg)
+-{
+-	return sg_dma_address(sg);
+-}
+-
+-/**
+- * ib_sg_dma_len - Return the DMA length from a scatter/gather entry
+- * @dev: The device for which the DMA addresses were created
+- * @sg: The scatter/gather entry
+- *
+- * Note: this function is obsolete. To do: change all occurrences of
+- * ib_sg_dma_len() into sg_dma_len().
+- */
+-static inline unsigned int ib_sg_dma_len(struct ib_device *dev,
+-					 struct scatterlist *sg)
+-{
+-	return sg_dma_len(sg);
+-}
+-
+-/**
+- * ib_dma_sync_single_for_cpu - Prepare DMA region to be accessed by CPU
+- * @dev: The device for which the DMA address was created
+- * @addr: The DMA address
+- * @size: The size of the region in bytes
+- * @dir: The direction of the DMA
+- */
+-static inline void ib_dma_sync_single_for_cpu(struct ib_device *dev,
+-					      u64 addr,
+-					      size_t size,
+-					      enum dma_data_direction dir)
+-{
+-	dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
+-}
+-
+-/**
+- * ib_dma_sync_single_for_device - Prepare DMA region to be accessed by device
+- * @dev: The device for which the DMA address was created
+- * @addr: The DMA address
+- * @size: The size of the region in bytes
+- * @dir: The direction of the DMA
+- */
+-static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+-						 u64 addr,
+-						 size_t size,
+-						 enum dma_data_direction dir)
+-{
+-	dma_sync_single_for_device(dev->dma_device, addr, size, dir);
+-}
+-
+-/**
+- * ib_dma_alloc_coherent - Allocate memory and map it for DMA
+- * @dev: The device for which the DMA address is requested
+- * @size: The size of the region to allocate in bytes
+- * @dma_handle: A pointer for returning the DMA address of the region
+- * @flag: memory allocator flags
+- */
+-static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+-					   size_t size,
+-					   dma_addr_t *dma_handle,
+-					   gfp_t flag)
+-{
+-	return dma_alloc_coherent(dev->dma_device, size, dma_handle, flag);
+-}
+-
+-/**
+- * ib_dma_free_coherent - Free memory allocated by ib_dma_alloc_coherent()
+- * @dev: The device for which the DMA addresses were allocated
+- * @size: The size of the region
+- * @cpu_addr: the address returned by ib_dma_alloc_coherent()
+- * @dma_handle: the DMA address returned by ib_dma_alloc_coherent()
+- */
+-static inline void ib_dma_free_coherent(struct ib_device *dev,
+-					size_t size, void *cpu_addr,
+-					dma_addr_t dma_handle)
+-{
+-	dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
+-}
+-
+-/**
+  * ib_dereg_mr - Deregisters a memory region and removes it from the
+  *   HCA translation table.
+  * @mr: The memory region to deregister.
 -- 
 2.11.0
