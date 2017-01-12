@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH v2 26/26] IB/core: Remove ib_dma_map_*() functions
-Date: Thu, 12 Jan 2017 11:07:18 -0800
-Message-ID: <20170112190718.6728-27-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 22/26] nvme-rdma: Inline ib_dma_map_*() functions
+Date: Thu, 12 Jan 2017 11:07:14 -0800
+Message-ID: <20170112190718.6728-23-bart.vanassche@sandisk.com>
 References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,247 +9,209 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-rdma@vger.kernel.org
-
-Remove the ib_dma_map_*() functions because due to previous patches
-these are no longer used.
 
 Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Cc: Keith Busch <keith.busch@intel.com>
 ---
- include/rdma/ib_verbs.h | 218 ------------------------------------------------
- 1 file changed, 218 deletions(-)
+ drivers/nvme/host/rdma.c   | 35 +++++++++++++++++++----------------
+ drivers/nvme/target/rdma.c | 32 ++++++++++++++++----------------
+ 2 files changed, 35 insertions(+), 32 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index de8dfb61d2b6..b4b83603b5df 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2912,224 +2912,6 @@ static inline int ib_req_ncomp_notif(struct ib_cq *cq, int wc_cnt)
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 208b6a08781c..877ff1982f38 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -207,7 +207,7 @@ static inline size_t nvme_rdma_inline_data_size(struct nvme_rdma_queue *queue)
+ static void nvme_rdma_free_qe(struct ib_device *ibdev, struct nvme_rdma_qe *qe,
+ 		size_t capsule_size, enum dma_data_direction dir)
+ {
+-	ib_dma_unmap_single(ibdev, qe->dma, capsule_size, dir);
++	dma_unmap_single(ibdev->dma_device, qe->dma, capsule_size, dir);
+ 	kfree(qe->data);
  }
  
- /**
-- * ib_dma_mapping_error - check a DMA addr for error
-- * @dev: The device for which the dma_addr was created
-- * @dma_addr: The DMA address to check
-- */
--static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
--{
--	return dma_mapping_error(dev->dma_device, dma_addr);
--}
--
--/**
-- * ib_dma_map_single - Map a kernel virtual address to DMA address
-- * @dev: The device for which the dma_addr is to be created
-- * @cpu_addr: The kernel virtual address
-- * @size: The size of the region in bytes
-- * @direction: The direction of the DMA
-- */
--static inline u64 ib_dma_map_single(struct ib_device *dev,
--				    void *cpu_addr, size_t size,
--				    enum dma_data_direction direction)
--{
--	return dma_map_single(dev->dma_device, cpu_addr, size, direction);
--}
--
--/**
-- * ib_dma_unmap_single - Destroy a mapping created by ib_dma_map_single()
-- * @dev: The device for which the DMA address was created
-- * @addr: The DMA address
-- * @size: The size of the region in bytes
-- * @direction: The direction of the DMA
-- */
--static inline void ib_dma_unmap_single(struct ib_device *dev,
--				       u64 addr, size_t size,
--				       enum dma_data_direction direction)
--{
--	dma_unmap_single(dev->dma_device, addr, size, direction);
--}
--
--static inline u64 ib_dma_map_single_attrs(struct ib_device *dev,
--					  void *cpu_addr, size_t size,
--					  enum dma_data_direction direction,
--					  unsigned long dma_attrs)
--{
--	return dma_map_single_attrs(dev->dma_device, cpu_addr, size,
--				    direction, dma_attrs);
--}
--
--static inline void ib_dma_unmap_single_attrs(struct ib_device *dev,
--					     u64 addr, size_t size,
--					     enum dma_data_direction direction,
--					     unsigned long dma_attrs)
--{
--	return dma_unmap_single_attrs(dev->dma_device, addr, size,
--				      direction, dma_attrs);
--}
--
--/**
-- * ib_dma_map_page - Map a physical page to DMA address
-- * @dev: The device for which the dma_addr is to be created
-- * @page: The page to be mapped
-- * @offset: The offset within the page
-- * @size: The size of the region in bytes
-- * @direction: The direction of the DMA
-- */
--static inline u64 ib_dma_map_page(struct ib_device *dev,
--				  struct page *page,
--				  unsigned long offset,
--				  size_t size,
--					 enum dma_data_direction direction)
--{
--	return dma_map_page(dev->dma_device, page, offset, size, direction);
--}
--
--/**
-- * ib_dma_unmap_page - Destroy a mapping created by ib_dma_map_page()
-- * @dev: The device for which the DMA address was created
-- * @addr: The DMA address
-- * @size: The size of the region in bytes
-- * @direction: The direction of the DMA
-- */
--static inline void ib_dma_unmap_page(struct ib_device *dev,
--				     u64 addr, size_t size,
--				     enum dma_data_direction direction)
--{
--	dma_unmap_page(dev->dma_device, addr, size, direction);
--}
--
--/**
-- * ib_dma_map_sg - Map a scatter/gather list to DMA addresses
-- * @dev: The device for which the DMA addresses are to be created
-- * @sg: The array of scatter/gather entries
-- * @nents: The number of scatter/gather entries
-- * @direction: The direction of the DMA
-- */
--static inline int ib_dma_map_sg(struct ib_device *dev,
--				struct scatterlist *sg, int nents,
--				enum dma_data_direction direction)
--{
--	return dma_map_sg(dev->dma_device, sg, nents, direction);
--}
--
--/**
-- * ib_dma_unmap_sg - Unmap a scatter/gather list of DMA addresses
-- * @dev: The device for which the DMA addresses were created
-- * @sg: The array of scatter/gather entries
-- * @nents: The number of scatter/gather entries
-- * @direction: The direction of the DMA
-- */
--static inline void ib_dma_unmap_sg(struct ib_device *dev,
--				   struct scatterlist *sg, int nents,
--				   enum dma_data_direction direction)
--{
--	dma_unmap_sg(dev->dma_device, sg, nents, direction);
--}
--
--static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
--				      struct scatterlist *sg, int nents,
--				      enum dma_data_direction direction,
--				      unsigned long dma_attrs)
--{
--	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
--				dma_attrs);
--}
--
--static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
--					 struct scatterlist *sg, int nents,
--					 enum dma_data_direction direction,
--					 unsigned long dma_attrs)
--{
--	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction, dma_attrs);
--}
--/**
-- * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
-- * @dev: The device for which the DMA addresses were created
-- * @sg: The scatter/gather entry
-- *
-- * Note: this function is obsolete. To do: change all occurrences of
-- * ib_sg_dma_address() into sg_dma_address().
-- */
--static inline u64 ib_sg_dma_address(struct ib_device *dev,
--				    struct scatterlist *sg)
--{
--	return sg_dma_address(sg);
--}
--
--/**
-- * ib_sg_dma_len - Return the DMA length from a scatter/gather entry
-- * @dev: The device for which the DMA addresses were created
-- * @sg: The scatter/gather entry
-- *
-- * Note: this function is obsolete. To do: change all occurrences of
-- * ib_sg_dma_len() into sg_dma_len().
-- */
--static inline unsigned int ib_sg_dma_len(struct ib_device *dev,
--					 struct scatterlist *sg)
--{
--	return sg_dma_len(sg);
--}
--
--/**
-- * ib_dma_sync_single_for_cpu - Prepare DMA region to be accessed by CPU
-- * @dev: The device for which the DMA address was created
-- * @addr: The DMA address
-- * @size: The size of the region in bytes
-- * @dir: The direction of the DMA
-- */
--static inline void ib_dma_sync_single_for_cpu(struct ib_device *dev,
--					      u64 addr,
--					      size_t size,
--					      enum dma_data_direction dir)
--{
--	dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
--}
--
--/**
-- * ib_dma_sync_single_for_device - Prepare DMA region to be accessed by device
-- * @dev: The device for which the DMA address was created
-- * @addr: The DMA address
-- * @size: The size of the region in bytes
-- * @dir: The direction of the DMA
-- */
--static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
--						 u64 addr,
--						 size_t size,
--						 enum dma_data_direction dir)
--{
--	dma_sync_single_for_device(dev->dma_device, addr, size, dir);
--}
--
--/**
-- * ib_dma_alloc_coherent - Allocate memory and map it for DMA
-- * @dev: The device for which the DMA address is requested
-- * @size: The size of the region to allocate in bytes
-- * @dma_handle: A pointer for returning the DMA address of the region
-- * @flag: memory allocator flags
-- */
--static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
--					   size_t size,
--					   dma_addr_t *dma_handle,
--					   gfp_t flag)
--{
--	return dma_alloc_coherent(dev->dma_device, size, dma_handle, flag);
--}
--
--/**
-- * ib_dma_free_coherent - Free memory allocated by ib_dma_alloc_coherent()
-- * @dev: The device for which the DMA addresses were allocated
-- * @size: The size of the region
-- * @cpu_addr: the address returned by ib_dma_alloc_coherent()
-- * @dma_handle: the DMA address returned by ib_dma_alloc_coherent()
-- */
--static inline void ib_dma_free_coherent(struct ib_device *dev,
--					size_t size, void *cpu_addr,
--					dma_addr_t dma_handle)
--{
--	dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
--}
--
--/**
-  * ib_dereg_mr - Deregisters a memory region and removes it from the
-  *   HCA translation table.
-  * @mr: The memory region to deregister.
+@@ -218,8 +218,9 @@ static int nvme_rdma_alloc_qe(struct ib_device *ibdev, struct nvme_rdma_qe *qe,
+ 	if (!qe->data)
+ 		return -ENOMEM;
+ 
+-	qe->dma = ib_dma_map_single(ibdev, qe->data, capsule_size, dir);
+-	if (ib_dma_mapping_error(ibdev, qe->dma)) {
++	qe->dma = dma_map_single(ibdev->dma_device, qe->data, capsule_size,
++				 dir);
++	if (dma_mapping_error(ibdev->dma_device, qe->dma)) {
+ 		kfree(qe->data);
+ 		return -ENOMEM;
+ 	}
+@@ -895,9 +896,8 @@ static void nvme_rdma_unmap_data(struct nvme_rdma_queue *queue,
+ 		}
+ 	}
+ 
+-	ib_dma_unmap_sg(ibdev, req->sg_table.sgl,
+-			req->nents, rq_data_dir(rq) ==
+-				    WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++	dma_unmap_sg(ibdev->dma_device, req->sg_table.sgl, req->nents,
++		rq_data_dir(rq) == WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+ 
+ 	nvme_cleanup_cmd(rq);
+ 	sg_free_table_chained(&req->sg_table, true);
+@@ -1008,7 +1008,7 @@ static int nvme_rdma_map_data(struct nvme_rdma_queue *queue,
+ 
+ 	req->nents = blk_rq_map_sg(rq->q, rq, req->sg_table.sgl);
+ 
+-	count = ib_dma_map_sg(ibdev, req->sg_table.sgl, req->nents,
++	count = dma_map_sg(ibdev->dma_device, req->sg_table.sgl, req->nents,
+ 		    rq_data_dir(rq) == WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+ 	if (unlikely(count <= 0)) {
+ 		sg_free_table_chained(&req->sg_table, true);
+@@ -1135,7 +1135,8 @@ static void nvme_rdma_submit_async_event(struct nvme_ctrl *arg, int aer_idx)
+ 	if (WARN_ON_ONCE(aer_idx != 0))
+ 		return;
+ 
+-	ib_dma_sync_single_for_cpu(dev, sqe->dma, sizeof(*cmd), DMA_TO_DEVICE);
++	dma_sync_single_for_cpu(dev->dma_device, sqe->dma, sizeof(*cmd),
++				DMA_TO_DEVICE);
+ 
+ 	memset(cmd, 0, sizeof(*cmd));
+ 	cmd->common.opcode = nvme_admin_async_event;
+@@ -1143,8 +1144,8 @@ static void nvme_rdma_submit_async_event(struct nvme_ctrl *arg, int aer_idx)
+ 	cmd->common.flags |= NVME_CMD_SGL_METABUF;
+ 	nvme_rdma_set_sg_null(cmd);
+ 
+-	ib_dma_sync_single_for_device(dev, sqe->dma, sizeof(*cmd),
+-			DMA_TO_DEVICE);
++	dma_sync_single_for_device(dev->dma_device, sqe->dma, sizeof(*cmd),
++				   DMA_TO_DEVICE);
+ 
+ 	ret = nvme_rdma_post_send(queue, sqe, &sge, 1, NULL, false);
+ 	WARN_ON_ONCE(ret);
+@@ -1194,7 +1195,8 @@ static int __nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc, int tag)
+ 		return 0;
+ 	}
+ 
+-	ib_dma_sync_single_for_cpu(ibdev, qe->dma, len, DMA_FROM_DEVICE);
++	dma_sync_single_for_cpu(ibdev->dma_device, qe->dma, len,
++				DMA_FROM_DEVICE);
+ 	/*
+ 	 * AEN requests are special as they don't time out and can
+ 	 * survive any kind of queue freeze and often don't respond to
+@@ -1207,7 +1209,8 @@ static int __nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc, int tag)
+ 				&cqe->result);
+ 	else
+ 		ret = nvme_rdma_process_nvme_rsp(queue, cqe, wc, tag);
+-	ib_dma_sync_single_for_device(ibdev, qe->dma, len, DMA_FROM_DEVICE);
++	dma_sync_single_for_device(ibdev->dma_device, qe->dma, len,
++				   DMA_FROM_DEVICE);
+ 
+ 	nvme_rdma_post_recv(queue, qe);
+ 	return ret;
+@@ -1455,8 +1458,8 @@ static int nvme_rdma_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 		return BLK_MQ_RQ_QUEUE_BUSY;
+ 
+ 	dev = queue->device->dev;
+-	ib_dma_sync_single_for_cpu(dev, sqe->dma,
+-			sizeof(struct nvme_command), DMA_TO_DEVICE);
++	dma_sync_single_for_cpu(dev->dma_device, sqe->dma,
++				sizeof(struct nvme_command), DMA_TO_DEVICE);
+ 
+ 	ret = nvme_setup_cmd(ns, rq, c);
+ 	if (ret != BLK_MQ_RQ_QUEUE_OK)
+@@ -1473,8 +1476,8 @@ static int nvme_rdma_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 		goto err;
+ 	}
+ 
+-	ib_dma_sync_single_for_device(dev, sqe->dma,
+-			sizeof(struct nvme_command), DMA_TO_DEVICE);
++	dma_sync_single_for_device(dev->dma_device, sqe->dma,
++				   sizeof(struct nvme_command), DMA_TO_DEVICE);
+ 
+ 	if (rq->cmd_type == REQ_TYPE_FS && req_op(rq) == REQ_OP_FLUSH)
+ 		flush = true;
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 8c3760a78ac0..f8be76f9fb5c 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -246,9 +246,9 @@ static int nvmet_rdma_alloc_cmd(struct nvmet_rdma_device *ndev,
+ 	if (!c->nvme_cmd)
+ 		goto out;
+ 
+-	c->sge[0].addr = ib_dma_map_single(ndev->device, c->nvme_cmd,
+-			sizeof(*c->nvme_cmd), DMA_FROM_DEVICE);
+-	if (ib_dma_mapping_error(ndev->device, c->sge[0].addr))
++	c->sge[0].addr = dma_map_single(ndev->device->dma_device, c->nvme_cmd,
++					sizeof(*c->nvme_cmd), DMA_FROM_DEVICE);
++	if (dma_mapping_error(ndev->device->dma_device, c->sge[0].addr))
+ 		goto out_free_cmd;
+ 
+ 	c->sge[0].length = sizeof(*c->nvme_cmd);
+@@ -259,10 +259,10 @@ static int nvmet_rdma_alloc_cmd(struct nvmet_rdma_device *ndev,
+ 				get_order(NVMET_RDMA_INLINE_DATA_SIZE));
+ 		if (!c->inline_page)
+ 			goto out_unmap_cmd;
+-		c->sge[1].addr = ib_dma_map_page(ndev->device,
++		c->sge[1].addr = dma_map_page(ndev->device->dma_device,
+ 				c->inline_page, 0, NVMET_RDMA_INLINE_DATA_SIZE,
+ 				DMA_FROM_DEVICE);
+-		if (ib_dma_mapping_error(ndev->device, c->sge[1].addr))
++		if (dma_mapping_error(ndev->device->dma_device, c->sge[1].addr))
+ 			goto out_free_inline_page;
+ 		c->sge[1].length = NVMET_RDMA_INLINE_DATA_SIZE;
+ 		c->sge[1].lkey = ndev->pd->local_dma_lkey;
+@@ -282,8 +282,8 @@ static int nvmet_rdma_alloc_cmd(struct nvmet_rdma_device *ndev,
+ 				get_order(NVMET_RDMA_INLINE_DATA_SIZE));
+ 	}
+ out_unmap_cmd:
+-	ib_dma_unmap_single(ndev->device, c->sge[0].addr,
+-			sizeof(*c->nvme_cmd), DMA_FROM_DEVICE);
++	dma_unmap_single(ndev->device->dma_device, c->sge[0].addr,
++			 sizeof(*c->nvme_cmd), DMA_FROM_DEVICE);
+ out_free_cmd:
+ 	kfree(c->nvme_cmd);
+ 
+@@ -295,13 +295,13 @@ static void nvmet_rdma_free_cmd(struct nvmet_rdma_device *ndev,
+ 		struct nvmet_rdma_cmd *c, bool admin)
+ {
+ 	if (!admin) {
+-		ib_dma_unmap_page(ndev->device, c->sge[1].addr,
+-				NVMET_RDMA_INLINE_DATA_SIZE, DMA_FROM_DEVICE);
++		dma_unmap_page(ndev->device->dma_device, c->sge[1].addr,
++			       NVMET_RDMA_INLINE_DATA_SIZE, DMA_FROM_DEVICE);
+ 		__free_pages(c->inline_page,
+ 				get_order(NVMET_RDMA_INLINE_DATA_SIZE));
+ 	}
+-	ib_dma_unmap_single(ndev->device, c->sge[0].addr,
+-				sizeof(*c->nvme_cmd), DMA_FROM_DEVICE);
++	dma_unmap_single(ndev->device->dma_device, c->sge[0].addr,
++			 sizeof(*c->nvme_cmd), DMA_FROM_DEVICE);
+ 	kfree(c->nvme_cmd);
+ }
+ 
+@@ -350,9 +350,9 @@ static int nvmet_rdma_alloc_rsp(struct nvmet_rdma_device *ndev,
+ 	if (!r->req.rsp)
+ 		goto out;
+ 
+-	r->send_sge.addr = ib_dma_map_single(ndev->device, r->req.rsp,
+-			sizeof(*r->req.rsp), DMA_TO_DEVICE);
+-	if (ib_dma_mapping_error(ndev->device, r->send_sge.addr))
++	r->send_sge.addr = dma_map_single(ndev->device->dma_device, r->req.rsp,
++					  sizeof(*r->req.rsp), DMA_TO_DEVICE);
++	if (dma_mapping_error(ndev->device->dma_device, r->send_sge.addr))
+ 		goto out_free_rsp;
+ 
+ 	r->send_sge.length = sizeof(*r->req.rsp);
+@@ -378,8 +378,8 @@ static int nvmet_rdma_alloc_rsp(struct nvmet_rdma_device *ndev,
+ static void nvmet_rdma_free_rsp(struct nvmet_rdma_device *ndev,
+ 		struct nvmet_rdma_rsp *r)
+ {
+-	ib_dma_unmap_single(ndev->device, r->send_sge.addr,
+-				sizeof(*r->req.rsp), DMA_TO_DEVICE);
++	dma_unmap_single(ndev->device->dma_device, r->send_sge.addr,
++			 sizeof(*r->req.rsp), DMA_TO_DEVICE);
+ 	kfree(r->req.rsp);
+ }
+ 
 -- 
 2.11.0
