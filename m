@@ -1,63 +1,76 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 2/9] IB/ipoib: Set device connection mode
- only when needed
-Date: Thu, 12 Jan 2017 13:47:06 -0500
-Message-ID: <1484246826.123135.20.camel@redhat.com>
+Subject: Re: [PATCH rdma-next V1 0/9] IPoIB fixes for 4.11
+Date: Thu, 12 Jan 2017 14:02:17 -0500
+Message-ID: <1484247737.123135.21.camel@redhat.com>
 References: <20161228124728.26619-1-leon@kernel.org>
-         <20161228124728.26619-3-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-w0xfDkU33xzuiP3vCPQb"
+        protocol="application/pgp-signature"; boundary="=-tnC0/4Ot94WoeNcAWtD2"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161228124728.26619-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20161228124728.26619-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-w0xfDkU33xzuiP3vCPQb
+--=-tnC0/4Ot94WoeNcAWtD2
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Wed, 2016-12-28 at 14:47 +0200, Leon Romanovsky wrote:
-> From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Hi Doug,
 >=20
-> When changing the connection mode, the ipoib_set_mode function
-> did not check if the previous connection mode equals to the
-> new one. This commit adds the required check and return 0 if the new
-> mode equals to the previous one.
+> This is secnd version of 8 patches from Feras for IPoIB.
 >=20
-> Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
-> Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
-> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++++++
-> =C2=A01 file changed, 8 insertions(+)
+> The patchset was generated against v4.10-rc1 and targeted for 4.11.
 >=20
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index a550cc6..1787f6b 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -474,6 +474,14 @@ int ipoib_set_mode(struct net_device *dev, const
-> char *buf)
-> =C2=A0{
-> =C2=A0	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+> The patch "IB/ipoib: Fix deadlock between rmmod and set_mode" which
+> fix kernel panic
+> is marked as candidate for stable tree inclusion.
 >=20
-> +	if ((test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags) &&
-> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0!strcmp(buf, "connected\n")) ||
-> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(!test_bit(IPOIB_FLAG_ADMIN_CM, &priv->fl=
-ags) &&
-> +	=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0!strcmp(buf, "datagram\n"))) {
-> +		ipoib_dbg(priv, "already in that mode, goes
-> out.\n");
+> Available in the "topic/ipoib-fixes-4.11" topic branch of this git
+> repo:
+> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+>=20
+> Or for browsing:
+> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/
+> ?h=3Dtopic/ipoib-fixes-4.11
+>=20
+> Thanks
+>=20
+> Changelog v0 -> v1:
+> =C2=A0* Patch 2,5,6 - add Yuval Shaia's ROB tags
+> =C2=A0* Patch 7 - remove __func__ prints
+>=20
+> Feras Daoud (9):
+> =C2=A0 IB/ipoib: Add warning message when changing the MTU in UD over the
+> max
+> =C2=A0=C2=A0=C2=A0=C2=A0range
+> =C2=A0 IB/ipoib: Set device connection mode only when needed
 
-There is no need for any message here. =C2=A0Nothing unexpected is
-happening.
+I fixed up both of these patches according to my comments.
+
+> =C2=A0 IB/ipoib: Fix deadlock over vlan_mutex
+> =C2=A0 IB/ipoib: Fix deadlock between rmmod and set_mode
+> =C2=A0 IB/ipoib: rtnl_unlock can not come after free_netdev
+> =C2=A0 IB/ipoib: Add detailed error message to dev_queue_xmit call
+> =C2=A0 IB/ipoib: Use debug prints instead of warnings in RNR WC status
+> =C2=A0 IB/ipoib: Replace list_del of the neigh->list with list_del_init
+> =C2=A0 IB/ipoib: Change list_del to list_del_init in the tx object
+>=20
+> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_cm.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0| 30 ++++++++++++++
+> ---------
+> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_main.c=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0| 34
+> +++++++++++++++++---------
+> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_multicast.c |=C2=A0=C2=A06 +++--
+> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_vlan.c=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0| 10 +++++---
+> =C2=A04 files changed, 52 insertions(+), 28 deletions(-)
+
+Thanks, series (after modifications) applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -65,7 +78,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-w0xfDkU33xzuiP3vCPQb
+--=-tnC0/4Ot94WoeNcAWtD2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -73,22 +86,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYd88rAAoJELgmozMOVy/dc+0QAKpE/u1AUE5hbg69fcShGkPh
-k91HMPwYINb4fkUniO+wXiJ4XqC/R5c0qXv+Vhc0+3LO21/GS1l2Pyizgjp2bf1v
-HBREhLQadU2jIFjyoHBP2yd3nj+OVHHKnJJgnKaXCH8AkRRQZqTLXRBiWjOzJI3E
-NWImtPpNk0s3AmuX+ezFuT97lFmgyqFTmTdRahtbWh9y88IRfhVvDjnvG+OxEwiY
-eRLHtC1E1Yui0dLTXCrb6A1x+tbK7T6Lp4jGiDuNOngKzccmlWAt1s/R46GXmWHT
-vH/RvbpT/cctX64YlVdsrhzszTz7+aQTEiMbWYVysAT7gdG+BAbd5oAVU1b0N0Gv
-J5TUn3BfieD2up/w9qxJhtaOoN8UbfaLQ19o0C/4EAY9UQVhubfARlxxjoa2KbUF
-HTP8hWOzOVOdzqDrje1qgF3V78urTDe9wmrbNbyLjQ+9GpYilC5rgj28g8Dss7RM
-rp08zqkB/RFk0+Ro8RwnZal4YBeIJUd3EHwsG6XOMI/pPeS81QYcdQdtvWq9lvRt
-UyqI6c7lGfyqFLJn2ZaVgBesBFxOlE3C4eommTnhNdhXqaAHjJie+dHMAiTP4Xtw
-mkO2LGrmckyTvQVHucpJN7DXwRKfnW1VyXXAA7ujxtkU3ZzvXdVLrv4xQk8XhAN4
-pXCyxoGdFxH06B52HGRJ
-=WZKV
+iQIcBAABCAAGBQJYd9K5AAoJELgmozMOVy/dpyYP/1dkOjGwd7zVdHAY/dCfxXMH
+fwxrh0lL5/vZTMXet2aPwl2H2zk9Ly+Uy9KrSFf4N8ACGJVuW6xby/ZshqIv/090
+xHs5m9mCW4WXp4qK6UyTZW1QzeGPFeybHPa5fnsZ6++fdjUXMIOzlqTYsZ+GSLAW
+FyXm39ZKo6axLb/K22TYthe1g3fQE5M4d5qIPWMd1S3/qycMymqb7F4d/QyfkxB6
+bueZ1j4z5SWNTSkCkcyo0jQwlF+GY48GkyWDpiYd7hKm6Tbtg1XoPwubsAWnLJp5
+ly2batZajDQTU83RL+ZmbWauuOVoQlybus4fBRWDCZLScpx5JpoUI4SVAeJbmgrM
+vH4kgQLnRGzoO4osRfZI+KQaJpv2ooDQPgqL/a+JnujaAo2vYVK4k1Y2OeV0u22B
+eBt+JpzXi+Lj00i03A08Ic6/oxuPRnuJGZp3tiPJ+UnuWrCld7eLDKdQf2awJjvF
+YJlYJjAaMbnkM5VU+ld0MGy3LwDbLoNFTZBRMDDkDmC3e105ZIRVv5Zze3jfKThK
+TgGVzAtGMR9OFg/h55Ml57WLCVcSL5uqgdL9v4SzctJcPDJggPwMQdYGNbygyMw/
+t4TM0MpP/XFP/x1ExNdM4y02DLr+kAjHOb6EHqw1i7GmvqShdXHgzYvQVojsVedt
+IoAzJoK0nsiCd4J/Svm+
+=RwHt
 -----END PGP SIGNATURE-----
 
---=-w0xfDkU33xzuiP3vCPQb--
+--=-tnC0/4Ot94WoeNcAWtD2--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
