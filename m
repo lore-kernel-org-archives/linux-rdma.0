@@ -1,78 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] redhat/spec: can't build ibumad on 32-bit arm
-Date: Thu, 12 Jan 2017 15:06:40 +0200
-Message-ID: <20170112130640.GG20392@mtr-leonro.local>
-References: <20170109213944.31970-1-jarod@redhat.com>
- <20170109223108.GA10850@obsidianresearch.com>
- <0e01bfc8-333d-99dd-f7d1-024422923021@redhat.com>
- <20170110161031.GB15493@obsidianresearch.com>
- <SN1PR07MB220756D06EA23CE46DEC11A2F8790@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH 5/9] IB/qib: Remove DMA mapping code
+Date: Thu, 12 Jan 2017 15:15:11 +0200
+Message-ID: <20170112131511.GJ20392@mtr-leonro.local>
+References: <20170111005648.14988-1-bart.vanassche@sandisk.com>
+ <20170111005648.14988-6-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="s5/bjXLgkIwAv6Hi"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="ZY5CS28jBCfb727c"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <SN1PR07MB220756D06EA23CE46DEC11A2F8790-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170111005648.14988-6-bart.vanassche@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---s5/bjXLgkIwAv6Hi
+--ZY5CS28jBCfb727c
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jan 12, 2017 at 12:32:37PM +0000, Amrani, Ram wrote:
-> > RDMA hardware doesn't work in ARM so that is OK. Cross compiling is fine,
-> > ideal would be to test RXE on an arbitary ARM system, but I wouldn't call
-> > that critical.
-> >
-> > I just don't want to setup a cross compiler for this :\
-> >
-> > Jason
-> > --
+On Tue, Jan 10, 2017 at 04:56:44PM -0800, Bart Van Assche wrote:
+> The qib DMA mapping code is no longer built since commit eb636ac0e49e
+> ("IB/qib: Remove dma.c and use rdmavt version of dma functions"). Hence
+> remove it.
 >
-> Hi Jason, Doug, All,
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> ---
+>  drivers/infiniband/hw/qib/qib_dma.c  | 169 -----------------------------------
+>  drivers/infiniband/hw/qib/qib_keys.c |   5 +-
+>  2 files changed, 1 insertion(+), 173 deletions(-)
+>  delete mode 100644 drivers/infiniband/hw/qib/qib_dma.c
 >
-> I wanted to bring to your attention that our RDMA solution *is* working in an ARM based environment:
-> the Cavium ThunderX platform. This is a 64bit ARMv8 *with* cache coherency. Please keep that in mind
-> when considering RDMA-relevant platforms.
 
-They are referring to 32bit ARM in their discussion. AFAIK all devices in RDMA
-are working and supported in 64bit ARM environment.
+Nice diff stat.
 
->
-> Thanks,
-> Ram
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---s5/bjXLgkIwAv6Hi
+--ZY5CS28jBCfb727c
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh3f18ACgkQ5GN7iDZy
-WKeDrA/+OnQ+KofSn+D9ZxUWVnxSfoNb6ZWAJfcsyXdaCYz0PZudyO07zD6hAbuF
-nIk0JAR36bVjkEFBjJCWmMJSHYXP+pdTQ1VVxzwq59M5+YxPs1iJTc3DsdzpvY8W
-87D0g+7MxelYrWMCLq15Kovo80zpaYjNzewxNc3cA67oKpvwl4SfG7Kc9ULX1eux
-njdA6OW9YJlgOg/r/JORf5myMIwjCJ9Yqu3wKNUKPaYNYMkkY2SkN5hDF0eKu975
-6WVYZiMAHC0rGO0qwSxRX62sRBcm0WO4zjudhFvJwYD7nT/g6dURZkeZfolqDzTI
-uRSfcM5vTg76kylU+i1KMPwZELxwmNsXkabGW57iJYbZhvAWkJcPOAA/sVf+hhVl
-O5L606kChGigZThcpzxnyRUz6j+8gPauBIbKWZ696VrnNOVQR8J+dLJ+Nm4XKYam
-2tVkQKaHAXl3XFiINi/EMsMYVSaFhg+LmtgE/BGU8/NGg69H0htTwgcZPIEDAELk
-Zpm/LqRZOZ2WScVhx+Ga81029NrJSlECZqTV4+SEhrm8GG58E2u/W93TtoDz4u4T
-PaYQ2Lb3MHKwLEpn0lC0PJ+yiUC5LJsVD90e+XYZSotHbkVqL1fFZfGl57qlLKOw
-uDF+UZdG0ix2m3HWCNEYExMjfrQAlWDppCDdznjCeIK9S5tXs7Q=
-=AeSH
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh3gV8ACgkQ5GN7iDZy
+WKeONQ/9GsvHPywVYjx2U0IyXp/3NIJCDsgkuXzYS4uePescgBH3kCAMafcjx14q
+B+W/r05qvE3itM8kWEFnHqTwkPraP8UaB5IMIciY2Pu1v4aqRZApBI8Bmo5LKPoy
+34qo/1VCLb25ssYsF8WfFqv6vAODQvhr2Yt34p7svB4/jYunlGqzb+ZVCp1p67Gd
+W+7Wz/btMP6tJHnmhPPVBbgRdfMMbtpOQh5kDaQaNMREVGpQRUBuFthIaQeHJlz6
+Io9KyyIbIQs2jZTGcH0CsIT8KhBqYHro4t4vCIOIZ4hv/vY4sa/2yIoxqaro91ZA
+PeuRT5kCP/fPVSG9/Xonc3u3IHvWSKp9vYgfRVTafaJrZmZmsbXWBgouL/el9CWM
+iP8+kIPXE2Zwj3mk785833kz9eU2euX7eZWwv/BDhGvN1wp5DTQuiYyOvDJ5aSTh
+q8t9DddxZN3XrDSSsr4TVvahoMpA/8nABTo3nsibk1dJ5knzhxsOMXZT9mGOg/8P
+qIgAG1fgNdVEhl7+EdaGIB3N1aAbJkKlIFS9/Cw9CgEBRejegqLxhM8HLbEbH8KL
+12cqzfmVx33Z5oqZrXsFGbHB3wjkM9QExjrrwOAB9D8CK3O/ovlgMgBhGPVzVtW9
+/K2GX94NfrKHqQve0xHTr8/NC0kf4LZK+U6yGcQ3mKXO4UF9BKc=
+=Tkyb
 -----END PGP SIGNATURE-----
 
---s5/bjXLgkIwAv6Hi--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--ZY5CS28jBCfb727c--
