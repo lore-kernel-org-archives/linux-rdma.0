@@ -1,221 +1,91 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 08/26] IB/hf1: Remove DMA mapping code
-Date: Thu, 12 Jan 2017 11:07:00 -0800
-Message-ID: <20170112190718.6728-9-bart.vanassche@sandisk.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH v2 12/26] IB: Convert ib_dma_*_coherent() argument type from u64 into dma_addr_t
+Date: Thu, 12 Jan 2017 11:07:04 -0800
+Message-ID: <20170112190718.6728-13-bart.vanassche@sandisk.com>
 References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170112190718.6728-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-The hfi1 DMA mapping code has never been built in any upstream kernel.
-Hence remove it.
+This patch does not change any functionality.
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: linux-rdma@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: rds-devel@oss.oracle.com
 ---
- drivers/infiniband/hw/hfi1/dma.c | 183 ---------------------------------------
- 1 file changed, 183 deletions(-)
- delete mode 100644 drivers/infiniband/hw/hfi1/dma.c
+ include/rdma/ib_verbs.h | 11 +++--------
+ net/rds/ib.h            |  6 +++---
+ 2 files changed, 6 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/dma.c b/drivers/infiniband/hw/hfi1/dma.c
-deleted file mode 100644
-index 7e8dab892848..000000000000
---- a/drivers/infiniband/hw/hfi1/dma.c
-+++ /dev/null
-@@ -1,183 +0,0 @@
--/*
-- * Copyright(c) 2015, 2016 Intel Corporation.
-- *
-- * This file is provided under a dual BSD/GPLv2 license.  When using or
-- * redistributing this file, you may do so under either license.
-- *
-- * GPL LICENSE SUMMARY
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * BSD LICENSE
-- *
-- * Redistribution and use in source and binary forms, with or without
-- * modification, are permitted provided that the following conditions
-- * are met:
-- *
-- *  - Redistributions of source code must retain the above copyright
-- *    notice, this list of conditions and the following disclaimer.
-- *  - Redistributions in binary form must reproduce the above copyright
-- *    notice, this list of conditions and the following disclaimer in
-- *    the documentation and/or other materials provided with the
-- *    distribution.
-- *  - Neither the name of Intel Corporation nor the names of its
-- *    contributors may be used to endorse or promote products derived
-- *    from this software without specific prior written permission.
-- *
-- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- */
--#include <linux/types.h>
--#include <linux/scatterlist.h>
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 89e80eb77e06..de8dfb61d2b6 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3109,15 +3109,10 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+  */
+ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+ 					   size_t size,
+-					   u64 *dma_handle,
++					   dma_addr_t *dma_handle,
+ 					   gfp_t flag)
+ {
+-	dma_addr_t handle;
+-	void *ret;
 -
--#include "verbs.h"
--
--#define BAD_DMA_ADDRESS ((u64)0)
--
--/*
-- * The following functions implement driver specific replacements
-- * for the ib_dma_*() functions.
-- *
-- * These functions return kernel virtual addresses instead of
-- * device bus addresses since the driver uses the CPU to copy
-- * data instead of using hardware DMA.
-- */
--
--static int hfi1_mapping_error(struct ib_device *dev, u64 dma_addr)
--{
--	return dma_addr == BAD_DMA_ADDRESS;
--}
--
--static u64 hfi1_dma_map_single(struct ib_device *dev, void *cpu_addr,
--			       size_t size, enum dma_data_direction direction)
--{
--	if (WARN_ON(!valid_dma_direction(direction)))
--		return BAD_DMA_ADDRESS;
--
--	return (u64)cpu_addr;
--}
--
--static void hfi1_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
--				  enum dma_data_direction direction)
--{
--	/* This is a stub, nothing to be done here */
--}
--
--static u64 hfi1_dma_map_page(struct ib_device *dev, struct page *page,
--			     unsigned long offset, size_t size,
--			    enum dma_data_direction direction)
--{
--	u64 addr;
--
--	if (WARN_ON(!valid_dma_direction(direction)))
--		return BAD_DMA_ADDRESS;
--
--	if (offset + size > PAGE_SIZE)
--		return BAD_DMA_ADDRESS;
--
--	addr = (u64)page_address(page);
--	if (addr)
--		addr += offset;
--
--	return addr;
--}
--
--static void hfi1_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
--				enum dma_data_direction direction)
--{
--	/* This is a stub, nothing to be done here */
--}
--
--static int hfi1_map_sg(struct ib_device *dev, struct scatterlist *sgl,
--		       int nents, enum dma_data_direction direction)
--{
--	struct scatterlist *sg;
--	u64 addr;
--	int i;
--	int ret = nents;
--
--	if (WARN_ON(!valid_dma_direction(direction)))
--		return BAD_DMA_ADDRESS;
--
--	for_each_sg(sgl, sg, nents, i) {
--		addr = (u64)page_address(sg_page(sg));
--		if (!addr) {
--			ret = 0;
--			break;
--		}
--		sg->dma_address = addr + sg->offset;
--#ifdef CONFIG_NEED_SG_DMA_LENGTH
--		sg->dma_length = sg->length;
--#endif
--	}
+-	ret = dma_alloc_coherent(dev->dma_device, size, &handle, flag);
+-	*dma_handle = handle;
 -	return ret;
--}
--
--static void hfi1_unmap_sg(struct ib_device *dev,
--			  struct scatterlist *sg, int nents,
--			 enum dma_data_direction direction)
--{
--	/* This is a stub, nothing to be done here */
--}
--
--static void hfi1_sync_single_for_cpu(struct ib_device *dev, u64 addr,
--				     size_t size, enum dma_data_direction dir)
--{
--}
--
--static void hfi1_sync_single_for_device(struct ib_device *dev, u64 addr,
--					size_t size,
--					enum dma_data_direction dir)
--{
--}
--
--static void *hfi1_dma_alloc_coherent(struct ib_device *dev, size_t size,
--				     u64 *dma_handle, gfp_t flag)
--{
--	struct page *p;
--	void *addr = NULL;
--
--	p = alloc_pages(flag, get_order(size));
--	if (p)
--		addr = page_address(p);
--	if (dma_handle)
--		*dma_handle = (u64)addr;
--	return addr;
--}
--
--static void hfi1_dma_free_coherent(struct ib_device *dev, size_t size,
--				   void *cpu_addr, u64 dma_handle)
--{
--	free_pages((unsigned long)cpu_addr, get_order(size));
--}
--
--struct ib_dma_mapping_ops hfi1_dma_mapping_ops = {
--	.mapping_error = hfi1_mapping_error,
--	.map_single = hfi1_dma_map_single,
--	.unmap_single = hfi1_dma_unmap_single,
--	.map_page = hfi1_dma_map_page,
--	.unmap_page = hfi1_dma_unmap_page,
--	.map_sg = hfi1_map_sg,
--	.unmap_sg = hfi1_unmap_sg,
--	.sync_single_for_cpu = hfi1_sync_single_for_cpu,
--	.sync_single_for_device = hfi1_sync_single_for_device,
--	.alloc_coherent = hfi1_dma_alloc_coherent,
--	.free_coherent = hfi1_dma_free_coherent
--};
++	return dma_alloc_coherent(dev->dma_device, size, dma_handle, flag);
+ }
+ 
+ /**
+@@ -3129,7 +3124,7 @@ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+  */
+ static inline void ib_dma_free_coherent(struct ib_device *dev,
+ 					size_t size, void *cpu_addr,
+-					u64 dma_handle)
++					dma_addr_t dma_handle)
+ {
+ 	dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
+ }
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 45ac8e8e58f4..d21ca88ab628 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -134,7 +134,7 @@ struct rds_ib_connection {
+ 	struct rds_ib_work_ring	i_send_ring;
+ 	struct rm_data_op	*i_data_op;
+ 	struct rds_header	*i_send_hdrs;
+-	u64			i_send_hdrs_dma;
++	dma_addr_t		i_send_hdrs_dma;
+ 	struct rds_ib_send_work *i_sends;
+ 	atomic_t		i_signaled_sends;
+ 
+@@ -144,7 +144,7 @@ struct rds_ib_connection {
+ 	struct rds_ib_incoming	*i_ibinc;
+ 	u32			i_recv_data_rem;
+ 	struct rds_header	*i_recv_hdrs;
+-	u64			i_recv_hdrs_dma;
++	dma_addr_t		i_recv_hdrs_dma;
+ 	struct rds_ib_recv_work *i_recvs;
+ 	u64			i_ack_recv;	/* last ACK received */
+ 	struct rds_ib_refill_cache i_cache_incs;
+@@ -161,7 +161,7 @@ struct rds_ib_connection {
+ 	struct rds_header	*i_ack;
+ 	struct ib_send_wr	i_ack_wr;
+ 	struct ib_sge		i_ack_sge;
+-	u64			i_ack_dma;
++	dma_addr_t		i_ack_dma;
+ 	unsigned long		i_ack_queued;
+ 
+ 	/* Flow control related information
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
