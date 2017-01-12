@@ -1,95 +1,52 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 12 Jan 2017 10:11:29 -0500
-Message-ID: <20170112151129.GA10942@redhat.com>
-References: <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
- <20170106182625.GB5724@obsidianresearch.com>
- <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
- <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
+Date: Thu, 12 Jan 2017 16:52:57 +0100
+Message-ID: <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+ <20170109125638.GA15506@infradead.org>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Stephen Bates <sbates@raithlin.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, david1.zhou@amd.com, qiang.yu@amd.com, "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>, "Kuehling, Felix" <felix.kuehling@amd.com>, Serguei Sagalovitch <serguei.sagalovitch@amd.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>, "Koenig, Christian" <christian.koenig@amd.com>, hch@infradead.org, "Deucher, Alexander" <alexander.deucher@amd.com>, "Sander, Ben" <ben.sander@amd.com>, "Suthikulpanit, Suravee" <suravee.suthikulpanit@amd.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, Jerome Glisse <j.glisse@gmail.com>
+Return-path: <linux-alpha-owner@vger.kernel.org>
+In-Reply-To: <20170109125638.GA15506@infradead.org>
+Sender: linux-alpha-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-am33-list@redhat.com, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.orglinux-ar
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
-> On Fri, January 6, 2017 4:10 pm, Logan Gunthorpe wrote:
-> >
-> >
-> > On 06/01/17 11:26 AM, Jason Gunthorpe wrote:
-> >
-> >
-> >> Make a generic API for all of this and you'd have my vote..
-> >>
-> >>
-> >> IMHO, you must support basic pinning semantics - that is necessary to
-> >> support generic short lived DMA (eg filesystem, etc). That hardware can
-> >> clearly do that if it can support ODP.
-> >
-> > I agree completely.
-> >
-> >
-> > What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
-> > (ie. at least those backed with ZONE_DEVICE memory). Then
-> > GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
-> > (using whatever interface is most appropriate) and userspace can do what
-> > it pleases with them. This makes _so_ much sense and actually largely
-> > already works today (as demonstrated by iopmem).
+Le 09/01/2017 à 13:56, Christoph Hellwig a écrit :
+> On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
+>> Regularly, when a new header is created in include/uapi/, the developer
+>> forgets to add it in the corresponding Kbuild file. This error is usually
+>> detected after the release is out.
+>>
+>> In fact, all headers under uapi directories should be exported, thus it's
+>> useless to have an exhaustive list.
+>>
+>> After this patch, the following files, which were not exported, are now
+>> exported (with make headers_install_all):
 > 
-> +1 for iopmem ;-)
+> ... snip ...
 > 
-> I feel like we are going around and around on this topic. I would like to
-> see something that is upstream that enables P2P even if it is only the
-> minimum viable useful functionality to begin. I think aiming for the moon
-> (which is what HMM and things like it are) are simply going to take more
-> time if they ever get there.
+>> linux/genwqe/.install
+>> linux/genwqe/..install.cmd
+>> linux/cifs/.install
+>> linux/cifs/..install.cmd
 > 
-> There is a use case for in-kernel P2P PCIe transfers between two NVMe
-> devices and between an NVMe device and an RDMA NIC (using NVMe CMBs or
-> BARs on the NIC). I am even seeing users who now want to move data P2P
-> between FPGAs and NVMe SSDs and the upstream kernel should be able to
-> support these users or they will look elsewhere.
+> I'm pretty sure these should not be exported!
 > 
-> The iopmem patchset addressed all the use cases above and while it is not
-> an in kernel API it could have been modified to be one reasonably easily.
-> As Logan states the driver can then choose to pass the VMAs to user-space
-> in a manner that makes sense.
-> 
-> Earlier in the thread someone mentioned LSF/MM. There is already a
-> proposal to discuss this topic so if you are interested please respond to
-> the email letting the committee know this topic is of interest to you [1].
-> 
-> Also earlier in the thread someone discussed the issues around the IOMMU.
-> Given the known issues around P2P transfers in certain CPU root complexes
-> [2] it might just be a case of only allowing P2P when a PCIe switch
-> connects the two EPs. Another option is just to use CONFIG_EXPERT and make
-> sure people are aware of the pitfalls if they invoke the P2P option.
+Those files are created in every directory:
+$ find usr/include/ -name '\.\.install.cmd' | wc -l
+71
+$ find usr/include/ -name '\.install' | wc -l
+71
+
+See also
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/scripts/Makefile.headersinst#n32
 
 
-iopmem is not applicable to GPU what i propose is to split the issue in 2
-so that everyone can reuse the part that needs to be common namely the DMA
-API part where you have to create IOMMU mapping for one device to point
-to the other device memory.
-
-We can have a DMA API that is agnostic to how the device memory is manage
-(so does not matter if device memory have struct page or not). This what
-i have been arguing in this thread. To make progress on this issue we need
-to stop conflicting different use case.
-
-So i say let solve the IOMMU issue first and let everyone use it in their
-own way with their device. I do not think we can share much more than
-that.
-
-Cheers,
-Jérôme
+Thank you,
+Nicolas
