@@ -1,157 +1,86 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 07/26] lib/dma-virt: Add dma_virt_ops
-Date: Thu, 12 Jan 2017 11:06:59 -0800
-Message-ID: <20170112190718.6728-8-bart.vanassche@sandisk.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH v2 21/26] staging/lustre: Inline ib_dma_map_*() functions
+Date: Thu, 12 Jan 2017 11:07:13 -0800
+Message-ID: <20170112190718.6728-22-bart.vanassche@sandisk.com>
 References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170112190718.6728-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christian Borntraeger <borntraeger-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Michael S . Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, James Simmons <jsimmons@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Several RDMA drivers need to provide a DMA mapping API but use the
-CPU to transfer data. Provide DMA mapping operations that are
-suitable for these drivers.
-
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christian Borntraeger <borntraeger-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Cc: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
-Cc: Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Cc: Oleg Drokin <oleg.drokin@intel.com>
+Cc: Andreas Dilger <andreas.dilger@intel.com>
+Cc: James Simmons <jsimmons@infradead.org>
 ---
- include/linux/dma-mapping.h |  1 +
- lib/Kconfig                 |  5 ++++
- lib/Makefile                |  1 +
- lib/dma-virt.c              | 73 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 80 insertions(+)
- create mode 100644 lib/dma-virt.c
+ drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index ab8710888ddf..426c43d4fdbf 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -128,6 +128,7 @@ struct dma_map_ops {
- };
+diff --git a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
+index 14576977200f..f2c0c60eee1d 100644
+--- a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
++++ b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
+@@ -925,21 +925,21 @@ kiblnd_rd_msg_size(struct kib_rdma_desc *rd, int msgtype, int n)
+ static inline __u64
+ kiblnd_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
+ {
+-	return ib_dma_mapping_error(dev, dma_addr);
++	return dma_mapping_error(dev->dma_device, dma_addr);
+ }
  
- extern const struct dma_map_ops dma_noop_ops;
-+extern const struct dma_map_ops dma_virt_ops;
+ static inline __u64 kiblnd_dma_map_single(struct ib_device *dev,
+ 					  void *msg, size_t size,
+ 					  enum dma_data_direction direction)
+ {
+-	return ib_dma_map_single(dev, msg, size, direction);
++	return dma_map_single(dev->dma_device, msg, size, direction);
+ }
  
- #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
+ static inline void kiblnd_dma_unmap_single(struct ib_device *dev,
+ 					   __u64 addr, size_t size,
+ 					  enum dma_data_direction direction)
+ {
+-	ib_dma_unmap_single(dev, addr, size, direction);
++	dma_unmap_single(dev->dma_device, addr, size, direction);
+ }
  
-diff --git a/lib/Kconfig b/lib/Kconfig
-index b6baf0609e8b..97af23b26f33 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -400,6 +400,11 @@ config DMA_NOOP_OPS
- 	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
- 	default n
+ #define KIBLND_UNMAP_ADDR_SET(p, m, a)  do {} while (0)
+@@ -949,26 +949,26 @@ static inline int kiblnd_dma_map_sg(struct ib_device *dev,
+ 				    struct scatterlist *sg, int nents,
+ 				    enum dma_data_direction direction)
+ {
+-	return ib_dma_map_sg(dev, sg, nents, direction);
++	return dma_map_sg(dev->dma_device, sg, nents, direction);
+ }
  
-+config DMA_VIRT_OPS
-+	bool
-+	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
-+	default n
-+
- config CHECK_SIGNATURE
- 	bool
+ static inline void kiblnd_dma_unmap_sg(struct ib_device *dev,
+ 				       struct scatterlist *sg, int nents,
+ 				       enum dma_data_direction direction)
+ {
+-	ib_dma_unmap_sg(dev, sg, nents, direction);
++	dma_unmap_sg(dev->dma_device, sg, nents, direction);
+ }
  
-diff --git a/lib/Makefile b/lib/Makefile
-index ada06d5652e8..b97e9a814854 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -27,6 +27,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
- lib-$(CONFIG_DMA_NOOP_OPS) += dma-noop.o
-+lib-$(CONFIG_DMA_VIRT_OPS) += dma-virt.o
+ static inline __u64 kiblnd_sg_dma_address(struct ib_device *dev,
+ 					  struct scatterlist *sg)
+ {
+-	return ib_sg_dma_address(dev, sg);
++	return sg_dma_address(sg);
+ }
  
- lib-y	+= kobject.o klist.o
- obj-y	+= lockref.o
-diff --git a/lib/dma-virt.c b/lib/dma-virt.c
-new file mode 100644
-index 000000000000..b3573b6ad5b1
---- /dev/null
-+++ b/lib/dma-virt.c
-@@ -0,0 +1,73 @@
-+/*
-+ *	lib/dma-virt.c
-+ *
-+ * DMA operations that map to virtual addresses without flushing memory.
-+ */
-+#include <linux/export.h>
-+#include <linux/mm.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/scatterlist.h>
-+
-+static void *dma_virt_alloc(struct device *dev, size_t size,
-+			    dma_addr_t *dma_handle, gfp_t gfp,
-+			    unsigned long attrs)
-+{
-+	void *ret;
-+
-+	ret = (void *)__get_free_pages(gfp, get_order(size));
-+	if (ret)
-+		*dma_handle = (uintptr_t)ret;
-+	return ret;
-+}
-+
-+static void dma_virt_free(struct device *dev, size_t size,
-+			  void *cpu_addr, dma_addr_t dma_addr,
-+			  unsigned long attrs)
-+{
-+	free_pages((unsigned long)cpu_addr, get_order(size));
-+}
-+
-+static dma_addr_t dma_virt_map_page(struct device *dev, struct page *page,
-+				      unsigned long offset, size_t size,
-+				      enum dma_data_direction dir,
-+				      unsigned long attrs)
-+{
-+	return (uintptr_t)(page_address(page) + offset);
-+}
-+
-+static int dma_virt_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
-+			     enum dma_data_direction dir,
-+			     unsigned long attrs)
-+{
-+	int i;
-+	struct scatterlist *sg;
-+
-+	for_each_sg(sgl, sg, nents, i) {
-+		BUG_ON(!sg_page(sg));
-+		sg_dma_address(sg) = (uintptr_t)sg_virt(sg);
-+		sg_dma_len(sg) = sg->length;
-+	}
-+
-+	return nents;
-+}
-+
-+static int dma_virt_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	return false;
-+}
-+
-+static int dma_virt_supported(struct device *dev, u64 mask)
-+{
-+	return true;
-+}
-+
-+const struct dma_map_ops dma_virt_ops = {
-+	.alloc			= dma_virt_alloc,
-+	.free			= dma_virt_free,
-+	.map_page		= dma_virt_map_page,
-+	.map_sg			= dma_virt_map_sg,
-+	.mapping_error		= dma_virt_mapping_error,
-+	.dma_supported		= dma_virt_supported,
-+};
-+
-+EXPORT_SYMBOL(dma_virt_ops);
+ static inline unsigned int kiblnd_sg_dma_len(struct ib_device *dev,
+ 					     struct scatterlist *sg)
+ {
+-	return ib_sg_dma_len(dev, sg);
++	return sg_dma_len(sg);
+ }
+ 
+ /* XXX We use KIBLND_CONN_PARAM(e) as writable buffer, it's not strictly */
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
