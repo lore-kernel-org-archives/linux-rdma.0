@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH v2 24/26] net/rds: Inline ib_dma_map_*() functions
-Date: Thu, 12 Jan 2017 11:07:16 -0800
-Message-ID: <20170112190718.6728-25-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 25/26] xprtrdma: Inline ib_dma_map_*() functions
+Date: Thu, 12 Jan 2017 11:07:17 -0800
+Message-ID: <20170112190718.6728-26-bart.vanassche@sandisk.com>
 References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,447 +9,378 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170112190718.6728-1-bart.vanassche@sandisk.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bart.vanassche@sandisk.com>, Trond Myklebust <trond.myklebust@primarydata.com>, Anna Schumaker <anna.schumaker@netapp.com>
 List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
 ---
- net/rds/ib.h      | 39 ---------------------------------------
- net/rds/ib_cm.c   | 42 ++++++++++++++++++++++--------------------
- net/rds/ib_fmr.c  | 10 +++++-----
- net/rds/ib_frmr.c | 12 ++++++------
- net/rds/ib_rdma.c | 13 ++++++-------
- net/rds/ib_recv.c | 19 +++++++++----------
- net/rds/ib_send.c | 50 +++++++++++++++++++++++++-------------------------
- 7 files changed, 73 insertions(+), 112 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c              | 12 ++++++------
+ net/sunrpc/xprtrdma/frwr_ops.c             | 12 ++++++------
+ net/sunrpc/xprtrdma/rpc_rdma.c             | 28 ++++++++++++++--------------
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  7 ++++---
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    | 20 +++++++++-----------
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      | 26 ++++++++++++++------------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   | 17 +++++++----------
+ net/sunrpc/xprtrdma/verbs.c                | 18 ++++++++----------
+ 8 files changed, 68 insertions(+), 72 deletions(-)
 
-diff --git a/net/rds/ib.h b/net/rds/ib.h
-index d21ca88ab628..02e5fe8d6af8 100644
---- a/net/rds/ib.h
-+++ b/net/rds/ib.h
-@@ -275,45 +275,6 @@ struct rds_ib_statistics {
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 1ebb09e1ac4f..debc838e3a6a 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -136,8 +136,8 @@ fmr_op_recover_mr(struct rpcrdma_mw *mw)
+ 	rc = __fmr_unmap(mw);
  
- extern struct workqueue_struct *rds_ib_wq;
+ 	/* ORDER: then DMA unmap */
+-	ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
+-			mw->mw_sg, mw->mw_nents, mw->mw_dir);
++	dma_unmap_sg(r_xprt->rx_ia.ri_device->dma_device, mw->mw_sg,
++		     mw->mw_nents, mw->mw_dir);
+ 	if (rc)
+ 		goto out_release;
  
--/*
-- * Fake ib_dma_sync_sg_for_{cpu,device} as long as ib_verbs.h
-- * doesn't define it.
-- */
--static inline void rds_ib_dma_sync_sg_for_cpu(struct ib_device *dev,
--					      struct scatterlist *sglist,
--					      unsigned int sg_dma_len,
--					      int direction)
--{
--	struct scatterlist *sg;
--	unsigned int i;
--
--	for_each_sg(sglist, sg, sg_dma_len, i) {
--		ib_dma_sync_single_for_cpu(dev,
--				ib_sg_dma_address(dev, sg),
--				ib_sg_dma_len(dev, sg),
--				direction);
--	}
--}
--#define ib_dma_sync_sg_for_cpu	rds_ib_dma_sync_sg_for_cpu
--
--static inline void rds_ib_dma_sync_sg_for_device(struct ib_device *dev,
--						 struct scatterlist *sglist,
--						 unsigned int sg_dma_len,
--						 int direction)
--{
--	struct scatterlist *sg;
--	unsigned int i;
--
--	for_each_sg(sglist, sg, sg_dma_len, i) {
--		ib_dma_sync_single_for_device(dev,
--				ib_sg_dma_address(dev, sg),
--				ib_sg_dma_len(dev, sg),
--				direction);
--	}
--}
--#define ib_dma_sync_sg_for_device	rds_ib_dma_sync_sg_for_device
--
--
- /* ib.c */
- extern struct rds_transport rds_ib_transport;
- struct rds_ib_device *rds_ib_get_client_data(struct ib_device *device);
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 5b2ab95afa07..a6d3726ea27d 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -456,31 +456,32 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
- 		goto out;
+@@ -218,8 +218,8 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	if (i == 0)
+ 		goto out_dmamap_err;
+ 
+-	if (!ib_dma_map_sg(r_xprt->rx_ia.ri_device,
+-			   mw->mw_sg, mw->mw_nents, mw->mw_dir))
++	if (!dma_map_sg(r_xprt->rx_ia.ri_device->dma_device, mw->mw_sg,
++			mw->mw_nents, mw->mw_dir))
+ 		goto out_dmamap_err;
+ 
+ 	for (i = 0, dma_pages = mw->fmr.fm_physaddrs; i < mw->mw_nents; i++)
+@@ -284,8 +284,8 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 	list_for_each_entry_safe(mw, tmp, &req->rl_registered, mw_list) {
+ 		list_del_init(&mw->mw_list);
+ 		list_del_init(&mw->fmr.fm_mr->list);
+-		ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
+-				mw->mw_sg, mw->mw_nents, mw->mw_dir);
++		dma_unmap_sg(r_xprt->rx_ia.ri_device->dma_device,
++			     mw->mw_sg, mw->mw_nents, mw->mw_dir);
+ 		rpcrdma_put_mw(r_xprt, mw);
  	}
  
--	ic->i_send_hdrs = ib_dma_alloc_coherent(dev,
--					   ic->i_send_ring.w_nr *
-+	ic->i_send_hdrs = dma_alloc_coherent(dev->dma_device,
-+					     ic->i_send_ring.w_nr *
- 						sizeof(struct rds_header),
--					   &ic->i_send_hdrs_dma, GFP_KERNEL);
-+					     &ic->i_send_hdrs_dma, GFP_KERNEL);
- 	if (!ic->i_send_hdrs) {
- 		ret = -ENOMEM;
--		rdsdebug("ib_dma_alloc_coherent send failed\n");
-+		rdsdebug("dma_alloc_coherent send failed\n");
- 		goto out;
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 47bed5333c7f..9b7c604669f9 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -182,8 +182,8 @@ frwr_op_recover_mr(struct rpcrdma_mw *mw)
+ 
+ 	rc = __frwr_reset_mr(ia, mw);
+ 	if (state != FRMR_FLUSHED_LI)
+-		ib_dma_unmap_sg(ia->ri_device,
+-				mw->mw_sg, mw->mw_nents, mw->mw_dir);
++		dma_unmap_sg(ia->ri_device->dma_device, mw->mw_sg, mw->mw_nents,
++			     mw->mw_dir);
+ 	if (rc)
+ 		goto out_release;
+ 
+@@ -396,8 +396,8 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	if (i == 0)
+ 		goto out_dmamap_err;
+ 
+-	dma_nents = ib_dma_map_sg(ia->ri_device,
+-				  mw->mw_sg, mw->mw_nents, mw->mw_dir);
++	dma_nents = dma_map_sg(ia->ri_device->dma_device, mw->mw_sg,
++			       mw->mw_nents, mw->mw_dir);
+ 	if (!dma_nents)
+ 		goto out_dmamap_err;
+ 
+@@ -538,8 +538,8 @@ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 		dprintk("RPC:       %s: DMA unmapping frmr %p\n",
+ 			__func__, &mw->frmr);
+ 		list_del_init(&mw->mw_list);
+-		ib_dma_unmap_sg(ia->ri_device,
+-				mw->mw_sg, mw->mw_nents, mw->mw_dir);
++		dma_unmap_sg(ia->ri_device->dma_device, mw->mw_sg, mw->mw_nents,
++			     mw->mw_dir);
+ 		rpcrdma_put_mw(r_xprt, mw);
  	}
- 
--	ic->i_recv_hdrs = ib_dma_alloc_coherent(dev,
--					   ic->i_recv_ring.w_nr *
-+	ic->i_recv_hdrs = dma_alloc_coherent(dev->dma_device,
-+					     ic->i_recv_ring.w_nr *
- 						sizeof(struct rds_header),
--					   &ic->i_recv_hdrs_dma, GFP_KERNEL);
-+					     &ic->i_recv_hdrs_dma, GFP_KERNEL);
- 	if (!ic->i_recv_hdrs) {
- 		ret = -ENOMEM;
--		rdsdebug("ib_dma_alloc_coherent recv failed\n");
-+		rdsdebug("dma_alloc_coherent recv failed\n");
- 		goto out;
+ 	return;
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index c52e0f2ffe52..6b6e700a5a68 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -476,8 +476,8 @@ rpcrdma_prepare_hdr_sge(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
  	}
+ 	sge->length = len;
  
--	ic->i_ack = ib_dma_alloc_coherent(dev, sizeof(struct rds_header),
-+	ic->i_ack = dma_alloc_coherent(dev->dma_device,
-+				       sizeof(struct rds_header),
- 				       &ic->i_ack_dma, GFP_KERNEL);
- 	if (!ic->i_ack) {
- 		ret = -ENOMEM;
--		rdsdebug("ib_dma_alloc_coherent ack failed\n");
-+		rdsdebug("dma_alloc_coherent ack failed\n");
- 		goto out;
+-	ib_dma_sync_single_for_device(ia->ri_device, sge->addr,
+-				      sge->length, DMA_TO_DEVICE);
++	dma_sync_single_for_device(ia->ri_device->dma_device, sge->addr,
++				   sge->length, DMA_TO_DEVICE);
+ 	req->rl_send_wr.num_sge++;
+ 	return true;
+ }
+@@ -505,8 +505,8 @@ rpcrdma_prepare_msg_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
+ 	sge[sge_no].addr = rdmab_addr(rb);
+ 	sge[sge_no].length = xdr->head[0].iov_len;
+ 	sge[sge_no].lkey = rdmab_lkey(rb);
+-	ib_dma_sync_single_for_device(device, sge[sge_no].addr,
+-				      sge[sge_no].length, DMA_TO_DEVICE);
++	dma_sync_single_for_device(device->dma_device, sge[sge_no].addr,
++				   sge[sge_no].length, DMA_TO_DEVICE);
+ 
+ 	/* If there is a Read chunk, the page list is being handled
+ 	 * via explicit RDMA, and thus is skipped here. However, the
+@@ -547,10 +547,11 @@ rpcrdma_prepare_msg_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
+ 				goto out_mapping_overflow;
+ 
+ 			len = min_t(u32, PAGE_SIZE - page_base, remaining);
+-			sge[sge_no].addr = ib_dma_map_page(device, *ppages,
+-							   page_base, len,
+-							   DMA_TO_DEVICE);
+-			if (ib_dma_mapping_error(device, sge[sge_no].addr))
++			sge[sge_no].addr = dma_map_page(device->dma_device,
++							*ppages, page_base, len,
++							DMA_TO_DEVICE);
++			if (dma_mapping_error(device->dma_device,
++					      sge[sge_no].addr))
+ 				goto out_mapping_err;
+ 			sge[sge_no].length = len;
+ 			sge[sge_no].lkey = lkey;
+@@ -574,10 +575,9 @@ rpcrdma_prepare_msg_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
+ 
+ map_tail:
+ 		sge_no++;
+-		sge[sge_no].addr = ib_dma_map_page(device, page,
+-						   page_base, len,
+-						   DMA_TO_DEVICE);
+-		if (ib_dma_mapping_error(device, sge[sge_no].addr))
++		sge[sge_no].addr = dma_map_page(device->dma_device, page,
++						page_base, len, DMA_TO_DEVICE);
++		if (dma_mapping_error(device->dma_device, sge[sge_no].addr))
+ 			goto out_mapping_err;
+ 		sge[sge_no].length = len;
+ 		sge[sge_no].lkey = lkey;
+@@ -628,8 +628,8 @@ rpcrdma_unmap_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req)
+ 
+ 	sge = &req->rl_send_sge[2];
+ 	for (count = req->rl_mapped_sges; count--; sge++)
+-		ib_dma_unmap_page(device, sge->addr, sge->length,
+-				  DMA_TO_DEVICE);
++		dma_unmap_page(device->dma_device, sge->addr, sge->length,
++			       DMA_TO_DEVICE);
+ 	req->rl_mapped_sges = 0;
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index 288e35c2d8f4..d65abb351f5b 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -123,9 +123,10 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
+ 	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
+ 	ctxt->sge[0].length = sndbuf->len;
+ 	ctxt->sge[0].addr =
+-	    ib_dma_map_page(rdma->sc_cm_id->device, ctxt->pages[0], 0,
+-			    sndbuf->len, DMA_TO_DEVICE);
+-	if (ib_dma_mapping_error(rdma->sc_cm_id->device, ctxt->sge[0].addr)) {
++	    dma_map_page(rdma->sc_cm_id->device->dma_device, ctxt->pages[0], 0,
++			 sndbuf->len, DMA_TO_DEVICE);
++	if (dma_mapping_error(rdma->sc_cm_id->device->dma_device,
++			      ctxt->sge[0].addr)) {
+ 		ret = -EIO;
+ 		goto out_unmap;
  	}
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 57d35fbb1c28..6ca1786c3493 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -151,12 +151,11 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+ 		rqstp->rq_respages = &rqstp->rq_arg.pages[pg_no+1];
+ 		rqstp->rq_next_page = rqstp->rq_respages + 1;
+ 		ctxt->sge[pno].addr =
+-			ib_dma_map_page(xprt->sc_cm_id->device,
+-					head->arg.pages[pg_no], pg_off,
+-					PAGE_SIZE - pg_off,
+-					DMA_FROM_DEVICE);
+-		ret = ib_dma_mapping_error(xprt->sc_cm_id->device,
+-					   ctxt->sge[pno].addr);
++			dma_map_page(xprt->sc_cm_id->device->dma_device,
++				     head->arg.pages[pg_no], pg_off,
++				     PAGE_SIZE - pg_off, DMA_FROM_DEVICE);
++		ret = dma_mapping_error(xprt->sc_cm_id->device->dma_device,
++					ctxt->sge[pno].addr);
+ 		if (ret)
+ 			goto err;
+ 		svc_rdma_count_mappings(xprt, ctxt);
+@@ -271,9 +270,8 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+ 	else
+ 		clear_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
  
-@@ -781,22 +782,23 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
- 
- 		/* then free the resources that ib callbacks use */
- 		if (ic->i_send_hdrs)
--			ib_dma_free_coherent(dev,
--					   ic->i_send_ring.w_nr *
-+			dma_free_coherent(dev->dma_device,
-+					  ic->i_send_ring.w_nr *
- 						sizeof(struct rds_header),
--					   ic->i_send_hdrs,
--					   ic->i_send_hdrs_dma);
-+					  ic->i_send_hdrs,
-+					  ic->i_send_hdrs_dma);
- 
- 		if (ic->i_recv_hdrs)
--			ib_dma_free_coherent(dev,
--					   ic->i_recv_ring.w_nr *
-+			dma_free_coherent(dev->dma_device,
-+					  ic->i_recv_ring.w_nr *
- 						sizeof(struct rds_header),
--					   ic->i_recv_hdrs,
--					   ic->i_recv_hdrs_dma);
-+					  ic->i_recv_hdrs,
-+					  ic->i_recv_hdrs_dma);
- 
- 		if (ic->i_ack)
--			ib_dma_free_coherent(dev, sizeof(struct rds_header),
--					     ic->i_ack, ic->i_ack_dma);
-+			dma_free_coherent(dev->dma_device,
-+					  sizeof(struct rds_header),
-+					  ic->i_ack, ic->i_ack_dma);
- 
- 		if (ic->i_sends)
- 			rds_ib_send_clear_ring(ic);
-diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-index 4fe8f4fec4ee..150e8f756bd9 100644
---- a/net/rds/ib_fmr.c
-+++ b/net/rds/ib_fmr.c
-@@ -100,7 +100,7 @@ int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev, struct rds_ib_mr *ibmr,
- 	int i, j;
- 	int ret;
- 
--	sg_dma_len = ib_dma_map_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
-+	sg_dma_len = dma_map_sg(dev->dma_device, sg, nents, DMA_BIDIRECTIONAL);
- 	if (unlikely(!sg_dma_len)) {
- 		pr_warn("RDS/IB: %s failed!\n", __func__);
- 		return -EBUSY;
-@@ -110,8 +110,8 @@ int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev, struct rds_ib_mr *ibmr,
- 	page_cnt = 0;
- 
- 	for (i = 0; i < sg_dma_len; ++i) {
--		unsigned int dma_len = ib_sg_dma_len(dev, &scat[i]);
--		u64 dma_addr = ib_sg_dma_address(dev, &scat[i]);
-+		unsigned int dma_len = sg_dma_len(&scat[i]);
-+		u64 dma_addr = sg_dma_address(&scat[i]);
- 
- 		if (dma_addr & ~PAGE_MASK) {
- 			if (i > 0)
-@@ -140,8 +140,8 @@ int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev, struct rds_ib_mr *ibmr,
- 
- 	page_cnt = 0;
- 	for (i = 0; i < sg_dma_len; ++i) {
--		unsigned int dma_len = ib_sg_dma_len(dev, &scat[i]);
--		u64 dma_addr = ib_sg_dma_address(dev, &scat[i]);
-+		unsigned int dma_len = sg_dma_len(&scat[i]);
-+		u64 dma_addr = sg_dma_address(&scat[i]);
- 
- 		for (j = 0; j < dma_len; j += PAGE_SIZE)
- 			dma_pages[page_cnt++] =
-diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
-index d921adc62765..2d44bf11d97f 100644
---- a/net/rds/ib_frmr.c
-+++ b/net/rds/ib_frmr.c
-@@ -169,8 +169,8 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
- 	ibmr->sg_dma_len = 0;
- 	frmr->sg_byte_len = 0;
- 	WARN_ON(ibmr->sg_dma_len);
--	ibmr->sg_dma_len = ib_dma_map_sg(dev, ibmr->sg, ibmr->sg_len,
--					 DMA_BIDIRECTIONAL);
-+	ibmr->sg_dma_len = dma_map_sg(dev->dma_device, ibmr->sg, ibmr->sg_len,
-+				      DMA_BIDIRECTIONAL);
- 	if (unlikely(!ibmr->sg_dma_len)) {
- 		pr_warn("RDS/IB: %s failed!\n", __func__);
- 		return -EBUSY;
-@@ -182,8 +182,8 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
- 
- 	ret = -EINVAL;
- 	for (i = 0; i < ibmr->sg_dma_len; ++i) {
--		unsigned int dma_len = ib_sg_dma_len(dev, &ibmr->sg[i]);
--		u64 dma_addr = ib_sg_dma_address(dev, &ibmr->sg[i]);
-+		unsigned int dma_len = sg_dma_len(&ibmr->sg[i]);
-+		u64 dma_addr = sg_dma_address(&ibmr->sg[i]);
- 
- 		frmr->sg_byte_len += dma_len;
- 		if (dma_addr & ~PAGE_MASK) {
-@@ -221,8 +221,8 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
+-	dma_nents = ib_dma_map_sg(xprt->sc_cm_id->device,
+-				  frmr->sg, frmr->sg_nents,
+-				  frmr->direction);
++	dma_nents = dma_map_sg(xprt->sc_cm_id->device->dma_device,
++			       frmr->sg, frmr->sg_nents, frmr->direction);
+ 	if (!dma_nents) {
+ 		pr_err("svcrdma: failed to dma map sg %p\n",
+ 		       frmr->sg);
+@@ -347,8 +345,8 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+ 	atomic_inc(&rdma_stat_read);
  	return ret;
- 
- out_unmap:
--	ib_dma_unmap_sg(rds_ibdev->dev, ibmr->sg, ibmr->sg_len,
--			DMA_BIDIRECTIONAL);
-+	dma_unmap_sg(rds_ibdev->dev->dma_device, ibmr->sg, ibmr->sg_len,
-+		     DMA_BIDIRECTIONAL);
- 	ibmr->sg_dma_len = 0;
+  err:
+-	ib_dma_unmap_sg(xprt->sc_cm_id->device,
+-			frmr->sg, frmr->sg_nents, frmr->direction);
++	dma_unmap_sg(xprt->sc_cm_id->device->dma_device, frmr->sg,
++		     frmr->sg_nents, frmr->direction);
+ 	svc_rdma_put_context(ctxt, 0);
+ 	svc_rdma_put_frmr(xprt, frmr);
  	return ret;
- }
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index 977f69886c00..9f5acba71a05 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -221,12 +221,12 @@ void rds_ib_sync_mr(void *trans_private, int direction)
- 
- 	switch (direction) {
- 	case DMA_FROM_DEVICE:
--		ib_dma_sync_sg_for_cpu(rds_ibdev->dev, ibmr->sg,
--			ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
-+		dma_sync_sg_for_cpu(rds_ibdev->dev->dma_device, ibmr->sg,
-+				    ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
- 		break;
- 	case DMA_TO_DEVICE:
--		ib_dma_sync_sg_for_device(rds_ibdev->dev, ibmr->sg,
--			ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
-+		dma_sync_sg_for_device(rds_ibdev->dev->dma_device, ibmr->sg,
-+				       ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
- 		break;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index ad4d286a83c5..5fa33ad92484 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -148,8 +148,8 @@ static dma_addr_t dma_map_xdr(struct svcxprt_rdma *xprt,
+ 			page = virt_to_page(xdr->tail[0].iov_base);
+ 		}
  	}
- }
-@@ -236,9 +236,8 @@ void __rds_ib_teardown_mr(struct rds_ib_mr *ibmr)
- 	struct rds_ib_device *rds_ibdev = ibmr->device;
- 
- 	if (ibmr->sg_dma_len) {
--		ib_dma_unmap_sg(rds_ibdev->dev,
--				ibmr->sg, ibmr->sg_len,
--				DMA_BIDIRECTIONAL);
-+		dma_unmap_sg(rds_ibdev->dev->dma_device, ibmr->sg, ibmr->sg_len,
-+			     DMA_BIDIRECTIONAL);
- 		ibmr->sg_dma_len = 0;
- 	}
- 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index 606a11f681d2..32bc2df27e5a 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -225,7 +225,8 @@ static void rds_ib_recv_clear_one(struct rds_ib_connection *ic,
- 		recv->r_ibinc = NULL;
- 	}
- 	if (recv->r_frag) {
--		ib_dma_unmap_sg(ic->i_cm_id->device, &recv->r_frag->f_sg, 1, DMA_FROM_DEVICE);
-+		dma_unmap_sg(ic->i_cm_id->device->dma_device,
-+			     &recv->r_frag->f_sg, 1, DMA_FROM_DEVICE);
- 		rds_ib_frag_free(ic, recv->r_frag);
- 		recv->r_frag = NULL;
- 	}
-@@ -331,8 +332,8 @@ static int rds_ib_recv_refill_one(struct rds_connection *conn,
- 	if (!recv->r_frag)
- 		goto out;
- 
--	ret = ib_dma_map_sg(ic->i_cm_id->device, &recv->r_frag->f_sg,
--			    1, DMA_FROM_DEVICE);
-+	ret = dma_map_sg(ic->i_cm_id->device->dma_device, &recv->r_frag->f_sg,
-+			 1, DMA_FROM_DEVICE);
- 	WARN_ON(ret != 1);
- 
- 	sge = &recv->r_sge[0];
-@@ -340,8 +341,8 @@ static int rds_ib_recv_refill_one(struct rds_connection *conn,
- 	sge->length = sizeof(struct rds_header);
- 
- 	sge = &recv->r_sge[1];
--	sge->addr = ib_sg_dma_address(ic->i_cm_id->device, &recv->r_frag->f_sg);
--	sge->length = ib_sg_dma_len(ic->i_cm_id->device, &recv->r_frag->f_sg);
-+	sge->addr = sg_dma_address(&recv->r_frag->f_sg);
-+	sge->length = sg_dma_len(&recv->r_frag->f_sg);
- 
- 	ret = 0;
- out:
-@@ -408,9 +409,7 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
- 		ret = ib_post_recv(ic->i_cm_id->qp, &recv->r_wr, &failed_wr);
- 		rdsdebug("recv %p ibinc %p page %p addr %lu ret %d\n", recv,
- 			 recv->r_ibinc, sg_page(&recv->r_frag->f_sg),
--			 (long) ib_sg_dma_address(
--				ic->i_cm_id->device,
--				&recv->r_frag->f_sg),
-+			 (long)sg_dma_address(&recv->r_frag->f_sg),
- 			ret);
- 		if (ret) {
- 			rds_ib_conn_error(conn, "recv post on "
-@@ -968,8 +967,8 @@ void rds_ib_recv_cqe_handler(struct rds_ib_connection *ic,
- 
- 	rds_ib_stats_inc(s_ib_rx_cq_event);
- 	recv = &ic->i_recvs[rds_ib_ring_oldest(&ic->i_recv_ring)];
--	ib_dma_unmap_sg(ic->i_cm_id->device, &recv->r_frag->f_sg, 1,
--			DMA_FROM_DEVICE);
-+	dma_unmap_sg(ic->i_cm_id->device->dma_device, &recv->r_frag->f_sg, 1,
-+		     DMA_FROM_DEVICE);
- 
- 	/* Also process recvs in connecting state because it is possible
- 	 * to get a recv completion _before_ the rdmacm ESTABLISHED
-diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-index 84d90c97332f..aa79b6aa488e 100644
---- a/net/rds/ib_send.c
-+++ b/net/rds/ib_send.c
-@@ -74,9 +74,8 @@ static void rds_ib_send_unmap_data(struct rds_ib_connection *ic,
- 				   int wc_status)
- {
- 	if (op->op_nents)
--		ib_dma_unmap_sg(ic->i_cm_id->device,
--				op->op_sg, op->op_nents,
--				DMA_TO_DEVICE);
-+		dma_unmap_sg(ic->i_cm_id->device->dma_device, op->op_sg,
-+			     op->op_nents, DMA_TO_DEVICE);
+-	dma_addr = ib_dma_map_page(xprt->sc_cm_id->device, page, xdr_off,
+-				   min_t(size_t, PAGE_SIZE, len), dir);
++	dma_addr = dma_map_page(xprt->sc_cm_id->device->dma_device, page,
++				xdr_off, min_t(size_t, PAGE_SIZE, len), dir);
+ 	return dma_addr;
  }
  
- static void rds_ib_send_unmap_rdma(struct rds_ib_connection *ic,
-@@ -84,9 +83,9 @@ static void rds_ib_send_unmap_rdma(struct rds_ib_connection *ic,
- 				   int wc_status)
+@@ -269,8 +269,8 @@ static int send_write(struct svcxprt_rdma *xprt, struct svc_rqst *rqstp,
+ 			dma_map_xdr(xprt, &rqstp->rq_res, xdr_off,
+ 				    sge_bytes, DMA_TO_DEVICE);
+ 		xdr_off += sge_bytes;
+-		if (ib_dma_mapping_error(xprt->sc_cm_id->device,
+-					 sge[sge_no].addr))
++		if (dma_mapping_error(xprt->sc_cm_id->device->dma_device,
++				      sge[sge_no].addr))
+ 			goto err;
+ 		svc_rdma_count_mappings(xprt, ctxt);
+ 		sge[sge_no].lkey = xprt->sc_pd->local_dma_lkey;
+@@ -478,9 +478,10 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
+ 	ctxt->sge[0].length = svc_rdma_xdr_get_reply_hdr_len(rdma_resp);
+ 	ctxt->sge[0].addr =
+-	    ib_dma_map_page(rdma->sc_cm_id->device, page, 0,
+-			    ctxt->sge[0].length, DMA_TO_DEVICE);
+-	if (ib_dma_mapping_error(rdma->sc_cm_id->device, ctxt->sge[0].addr))
++	    dma_map_page(rdma->sc_cm_id->device->dma_device, page, 0,
++			 ctxt->sge[0].length, DMA_TO_DEVICE);
++	if (dma_mapping_error(rdma->sc_cm_id->device->dma_device,
++			      ctxt->sge[0].addr))
+ 		goto err;
+ 	svc_rdma_count_mappings(rdma, ctxt);
+ 
+@@ -495,8 +496,8 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 			dma_map_xdr(rdma, &rqstp->rq_res, xdr_off,
+ 				    sge_bytes, DMA_TO_DEVICE);
+ 		xdr_off += sge_bytes;
+-		if (ib_dma_mapping_error(rdma->sc_cm_id->device,
+-					 ctxt->sge[sge_no].addr))
++		if (dma_mapping_error(rdma->sc_cm_id->device->dma_device,
++				      ctxt->sge[sge_no].addr))
+ 			goto err;
+ 		svc_rdma_count_mappings(rdma, ctxt);
+ 		ctxt->sge[sge_no].lkey = rdma->sc_pd->local_dma_lkey;
+@@ -677,9 +678,10 @@ void svc_rdma_send_error(struct svcxprt_rdma *xprt, struct rpcrdma_msg *rmsgp,
+ 	/* Prepare SGE for local address */
+ 	ctxt->sge[0].lkey = xprt->sc_pd->local_dma_lkey;
+ 	ctxt->sge[0].length = length;
+-	ctxt->sge[0].addr = ib_dma_map_page(xprt->sc_cm_id->device,
+-					    p, 0, length, DMA_TO_DEVICE);
+-	if (ib_dma_mapping_error(xprt->sc_cm_id->device, ctxt->sge[0].addr)) {
++	ctxt->sge[0].addr = dma_map_page(xprt->sc_cm_id->device->dma_device,
++					 p, 0, length, DMA_TO_DEVICE);
++	if (dma_mapping_error(xprt->sc_cm_id->device->dma_device,
++			      ctxt->sge[0].addr)) {
+ 		dprintk("svcrdma: Error mapping buffer for protocol error\n");
+ 		svc_rdma_put_context(ctxt, 1);
+ 		return;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index ca2799af05a6..ed19de5c9a34 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -237,10 +237,8 @@ void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt)
+ 		 * last WR that uses it completes.
+ 		 */
+ 		if (ctxt->sge[i].lkey == lkey)
+-			ib_dma_unmap_page(device,
+-					    ctxt->sge[i].addr,
+-					    ctxt->sge[i].length,
+-					    ctxt->direction);
++			dma_unmap_page(device->dma_device, ctxt->sge[i].addr,
++				       ctxt->sge[i].length, ctxt->direction);
+ 	}
+ 	ctxt->mapped_sges = 0;
+ }
+@@ -600,10 +598,9 @@ int svc_rdma_post_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+ 		if (!page)
+ 			goto err_put_ctxt;
+ 		ctxt->pages[sge_no] = page;
+-		pa = ib_dma_map_page(xprt->sc_cm_id->device,
+-				     page, 0, PAGE_SIZE,
+-				     DMA_FROM_DEVICE);
+-		if (ib_dma_mapping_error(xprt->sc_cm_id->device, pa))
++		pa = dma_map_page(xprt->sc_cm_id->device->dma_device,
++				  page, 0, PAGE_SIZE, DMA_FROM_DEVICE);
++		if (dma_mapping_error(xprt->sc_cm_id->device->dma_device, pa))
+ 			goto err_put_ctxt;
+ 		svc_rdma_count_mappings(xprt, ctxt);
+ 		ctxt->sge[sge_no].addr = pa;
+@@ -941,8 +938,8 @@ void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
+ 		       struct svc_rdma_fastreg_mr *frmr)
  {
- 	if (op->op_mapped) {
--		ib_dma_unmap_sg(ic->i_cm_id->device,
--				op->op_sg, op->op_nents,
--				op->op_write ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-+		dma_unmap_sg(ic->i_cm_id->device->dma_device, op->op_sg,
-+			     op->op_nents, op->op_write ? DMA_TO_DEVICE :
-+			     DMA_FROM_DEVICE);
- 		op->op_mapped = 0;
- 	}
+ 	if (frmr) {
+-		ib_dma_unmap_sg(rdma->sc_cm_id->device,
+-				frmr->sg, frmr->sg_nents, frmr->direction);
++		dma_unmap_sg(rdma->sc_cm_id->device->dma_device, frmr->sg,
++			     frmr->sg_nents, frmr->direction);
+ 		spin_lock_bh(&rdma->sc_frmr_q_lock);
+ 		WARN_ON_ONCE(!list_empty(&frmr->frmr_list));
+ 		list_add(&frmr->frmr_list, &rdma->sc_frmr_q);
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 11d07748f699..ba15926173e5 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -179,9 +179,9 @@ rpcrdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ 	rep->rr_wc_flags = wc->wc_flags;
+ 	rep->rr_inv_rkey = wc->ex.invalidate_rkey;
  
-@@ -106,7 +105,7 @@ static void rds_ib_send_unmap_rdma(struct rds_ib_connection *ic,
- 	 * handling in the ACK processing code.
- 	 *
- 	 * Note: There's no need to explicitly sync any RDMA buffers using
--	 * ib_dma_sync_sg_for_cpu - the completion for the RDMA
-+	 * dma_sync_sg_for_cpu - the completion for the RDMA
- 	 * operation itself unmapped the RDMA buffers, which takes care
- 	 * of synching.
- 	 */
-@@ -125,8 +124,8 @@ static void rds_ib_send_unmap_atomic(struct rds_ib_connection *ic,
- {
- 	/* unmap atomic recvbuf */
- 	if (op->op_mapped) {
--		ib_dma_unmap_sg(ic->i_cm_id->device, op->op_sg, 1,
--				DMA_FROM_DEVICE);
-+		dma_unmap_sg(ic->i_cm_id->device->dma_device, op->op_sg, 1,
-+			     DMA_FROM_DEVICE);
- 		op->op_mapped = 0;
- 	}
+-	ib_dma_sync_single_for_cpu(rep->rr_device,
+-				   rdmab_addr(rep->rr_rdmabuf),
+-				   rep->rr_len, DMA_FROM_DEVICE);
++	dma_sync_single_for_cpu(rep->rr_device->dma_device,
++				rdmab_addr(rep->rr_rdmabuf),
++				rep->rr_len, DMA_FROM_DEVICE);
  
-@@ -546,10 +545,10 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
- 	/* map the message the first time we see it */
- 	if (!ic->i_data_op) {
- 		if (rm->data.op_nents) {
--			rm->data.op_count = ib_dma_map_sg(dev,
--							  rm->data.op_sg,
--							  rm->data.op_nents,
--							  DMA_TO_DEVICE);
-+			rm->data.op_count = dma_map_sg(dev->dma_device,
-+						       rm->data.op_sg,
-+						       rm->data.op_nents,
-+						       DMA_TO_DEVICE);
- 			rdsdebug("ic %p mapping rm %p: %d\n", ic, rm, rm->data.op_count);
- 			if (rm->data.op_count == 0) {
- 				rds_ib_stats_inc(s_ib_tx_sg_mapping_failure);
-@@ -640,16 +639,16 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
- 		if (i < work_alloc
- 		    && scat != &rm->data.op_sg[rm->data.op_count]) {
- 			len = min(RDS_FRAG_SIZE,
--				ib_sg_dma_len(dev, scat) - rm->data.op_dmaoff);
-+				sg_dma_len(scat) - rm->data.op_dmaoff);
- 			send->s_wr.num_sge = 2;
+ 	rpcrdma_update_granted_credits(rep);
  
--			send->s_sge[1].addr = ib_sg_dma_address(dev, scat);
-+			send->s_sge[1].addr = sg_dma_address(scat);
- 			send->s_sge[1].addr += rm->data.op_dmaoff;
- 			send->s_sge[1].length = len;
+@@ -1259,11 +1259,9 @@ __rpcrdma_dma_map_regbuf(struct rpcrdma_ia *ia, struct rpcrdma_regbuf *rb)
+ 	if (rb->rg_direction == DMA_NONE)
+ 		return false;
  
- 			bytes_sent += len;
- 			rm->data.op_dmaoff += len;
--			if (rm->data.op_dmaoff == ib_sg_dma_len(dev, scat)) {
-+			if (rm->data.op_dmaoff == sg_dma_len(scat)) {
- 				scat++;
- 				rm->data.op_dmasg++;
- 				rm->data.op_dmaoff = 0;
-@@ -797,7 +796,8 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
- 	rds_message_addref(container_of(send->s_op, struct rds_message, atomic));
+-	rb->rg_iov.addr = ib_dma_map_single(ia->ri_device,
+-					    (void *)rb->rg_base,
+-					    rdmab_length(rb),
+-					    rb->rg_direction);
+-	if (ib_dma_mapping_error(ia->ri_device, rdmab_addr(rb)))
++	rb->rg_iov.addr = dma_map_single(ia->ri_device->dma_device, rb->rg_base,
++					 rdmab_length(rb), rb->rg_direction);
++	if (dma_mapping_error(ia->ri_device->dma_device, rdmab_addr(rb)))
+ 		return false;
  
- 	/* map 8 byte retval buffer to the device */
--	ret = ib_dma_map_sg(ic->i_cm_id->device, op->op_sg, 1, DMA_FROM_DEVICE);
-+	ret = dma_map_sg(ic->i_cm_id->device->dma_device, op->op_sg, 1,
-+			 DMA_FROM_DEVICE);
- 	rdsdebug("ic %p mapping atomic op %p. mapped %d pg\n", ic, op, ret);
- 	if (ret != 1) {
- 		rds_ib_ring_unalloc(&ic->i_send_ring, work_alloc);
-@@ -807,8 +807,8 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
- 	}
+ 	rb->rg_device = ia->ri_device;
+@@ -1277,8 +1275,8 @@ rpcrdma_dma_unmap_regbuf(struct rpcrdma_regbuf *rb)
+ 	if (!rpcrdma_regbuf_is_mapped(rb))
+ 		return;
  
- 	/* Convert our struct scatterlist to struct ib_sge */
--	send->s_sge[0].addr = ib_sg_dma_address(ic->i_cm_id->device, op->op_sg);
--	send->s_sge[0].length = ib_sg_dma_len(ic->i_cm_id->device, op->op_sg);
-+	send->s_sge[0].addr = sg_dma_address(op->op_sg);
-+	send->s_sge[0].length = sg_dma_len(op->op_sg);
- 	send->s_sge[0].lkey = ic->i_pd->local_dma_lkey;
- 
- 	rdsdebug("rva %Lx rpa %Lx len %u\n", op->op_remote_addr,
-@@ -861,9 +861,10 @@ int rds_ib_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- 
- 	/* map the op the first time we see it */
- 	if (!op->op_mapped) {
--		op->op_count = ib_dma_map_sg(ic->i_cm_id->device,
--					     op->op_sg, op->op_nents, (op->op_write) ?
--					     DMA_TO_DEVICE : DMA_FROM_DEVICE);
-+		op->op_count = dma_map_sg(ic->i_cm_id->device->dma_device,
-+					  op->op_sg, op->op_nents,
-+					  op->op_write ? DMA_TO_DEVICE :
-+					  DMA_FROM_DEVICE);
- 		rdsdebug("ic %p mapping op %p: %d\n", ic, op, op->op_count);
- 		if (op->op_count == 0) {
- 			rds_ib_stats_inc(s_ib_tx_sg_mapping_failure);
-@@ -920,9 +921,8 @@ int rds_ib_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- 
- 		for (j = 0; j < send->s_rdma_wr.wr.num_sge &&
- 		     scat != &op->op_sg[op->op_count]; j++) {
--			len = ib_sg_dma_len(ic->i_cm_id->device, scat);
--			send->s_sge[j].addr =
--				 ib_sg_dma_address(ic->i_cm_id->device, scat);
-+			len = sg_dma_len(scat);
-+			send->s_sge[j].addr = sg_dma_address(scat);
- 			send->s_sge[j].length = len;
- 			send->s_sge[j].lkey = ic->i_pd->local_dma_lkey;
+-	ib_dma_unmap_single(rb->rg_device, rdmab_addr(rb),
+-			    rdmab_length(rb), rb->rg_direction);
++	dma_unmap_single(rb->rg_device->dma_device, rdmab_addr(rb),
++			 rdmab_length(rb), rb->rg_direction);
+ 	rb->rg_device = NULL;
+ }
  
 -- 
 2.11.0
