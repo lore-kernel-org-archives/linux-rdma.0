@@ -1,114 +1,59 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Thu, 12 Jan 2017 16:58:28 -0500
-Message-ID: <1484258308.123135.41.camel@redhat.com>
-References: <20161228124728.26619-1-leon@kernel.org>
-         <20161228124728.26619-2-leon@kernel.org>
-         <1484246776.123135.19.camel@redhat.com>
-         <20170112193508.GO20392@mtr-leonro.local>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 12 Jan 2017 15:35:07 -0700
+Message-ID: <8bda88d4-1e7c-7889-7d20-1a0eb43de31a@deltatee.com>
+References: <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
+ <20170106182625.GB5724@obsidianresearch.com>
+ <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
+ <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-G/ksafZydDOux4F7le34"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170112193508.GO20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <d5a72e1e5f6d606697dc0027f073fd87.squirrel-2RFepEojUI2m/tTznewQxVaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, qiang.yu-5C7GfCeVMHo@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Suthikulpanit,
+ Suravee" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Koenig, Christian" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-G/ksafZydDOux4F7le34
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2017-01-12 at 21:35 +0200, Leon Romanovsky wrote:
->=C2=A0
-> First of all, thank you for fixing wording, for me it is the hardest
-> part of every commit.
+On 11/01/17 09:54 PM, Stephen Bates wrote:
+> The iopmem patchset addressed all the use cases above and while it is not
+> an in kernel API it could have been modified to be one reasonably easily.
+> As Logan states the driver can then choose to pass the VMAs to user-space
+> in a manner that makes sense.
 
-No worries.
+Just to clarify: the iopmem patchset had one patch that allowed for
+slightly more flexible zone device mappings which ought to be useful for
+everyone.
 
-> Second, I have a different view from you on the issue. User
-> configured
-> some value, which is not correct for IPoIB. In ideal world (without
-> legacy),
-> we were supposed to return error to him with proper message,
+The other patch (which was iopmem proper) was more of an example of how
+the zone_device memory _could_ be exposed to userspace with "iopmem"
+hardware that looks similar to nvdimm hardware. Iopmem was not really
+useful, in itself, for NVMe devices and it was never expected to be
+useful for GPUs.
 
-If you set an impossible MTU on an ethernet adapter, you get a return
-of EINVAL. =C2=A0But it doesn't mess with the kernel log at all, it's *just=
-*
-EINVAL to the calling program.
-
->  but in our
-> case (legacy applications) we can't (we tried and it broke some
-> legacy
-> ifcongfig, if I remember well).
-
-ifconfig is what I used to test what Ethernet does, so it should be
-well and truly used to EINVAL as a return.
-
->  So it leaves us with one available
-> option is to warn user about improper value.
-
-Even if you want to alert the user, there is no need to warn. =C2=A0Warn is
-reserved for something that is a serious error or condition, this is an
-EINVAL of something that is, at best, a performance issue. =C2=A0Unless pat=
-h
-MTU support is broken, failing to set a larger MTU will not ever hinder
-actual operation. =C2=A0So we should never be dumping out KERN_WARN message=
-s
-into the kernel log that will ping up on any root login session as well
-as clutter the kernel dmesg output.
-
-> User should know that he supplied wrong parameter.
-
-User can still find out, they just won't get proactive pings on all
-root sessions, instead they will have to look in the dmesg output
-because they are trying to figure out why their command didn't work.
-
-> >=20
-> >=20
-> > --
-> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-> > =C2=A0 =C2=A0
-> > Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57
-> > 2FDD
->=20
->=20
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-G/ksafZydDOux4F7le34
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYd/wEAAoJELgmozMOVy/drOwP+wdIf5mZULxEsrOKSJTsKAoL
-JGwR5lLTPxa5J93sCn1OtY/WUwnFVkwngLjhua0sv0ceiIaOz4+tESkFWvIMRJ0k
-H/KaIWQFOVPJPR91X2ruqfTCnQbR18saPZuXnw+qj/1RRz7x8kgYgWkvUAKHWGue
-549X7uwUToqEtyejjVvQnVZEW3xIBzNuKTqzlKCiES7OWNoFcMQqbwboCyMKsBoz
-C3+BXNSTpN/3vM2n4TLDKK0OJoq82tXLCABVW1JEbsN9ndvpvAkipmczVbjrbh8x
-8XE4juI51vpRteZXeeNWMWYay7oNjTnGznnUm5kvqUg51NsO5bQrMWl/4jEAgLaG
-sSADxzefOJ1eQdP942sWtlzQaGmujgusOKjPBm3ZkBXR2EcFc/WYuWvDVKwPKC/s
-Jn9NmxySC/suzpQ5T3AdoFYRdqY9nVPYBHDGEBFYMlN+8s3hvqU2dvm8/9J016aH
-7/hZmMcDnEbe7QwhShopEC83Drx77HOpIxdufpzbJGyhOjefLTlj58vYOsgQtRZK
-INHf2vqnUmUZWMN9M8Vbj+y6L2IHipoxNGvef007dgwDujUC5+sdH8iSI3xlWNv7
-KrTs8M2gVsaSUfXSaradKRUXvRAR7hHF74nFeZ8QzZQee+J3aexNjxr/cX4XGlL4
-jzzIdjtICpCzx9CigzLd
-=tc4x
------END PGP SIGNATURE-----
-
---=-G/ksafZydDOux4F7le34--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Logan
