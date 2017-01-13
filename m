@@ -1,28 +1,89 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v1 00/22] convert NFS server to new rdma_rw API
-Date: Sat, 14 Jan 2017 00:04:52 +0200
-Message-ID: <768367c2-77b5-edfb-a787-658dd7d5084f@grimberg.me>
-References: <20170107170258.14126.8503.stgit@klimt.1015granger.net>
+From: Tom Herbert <tom@herbertland.com>
+Subject: Re: [pull request][for-next] Mellanox mlx5 Reorganize core driver
+ directory layout
+Date: Fri, 13 Jan 2017 14:06:56 -0800
+Message-ID: <CALx6S37hb78RJ8tCtsCsX2fg6e-D+naNpSQo6T2AyWMd0U74sQ@mail.gmail.com>
+References: <1484241755-17603-1-git-send-email-saeedm@mellanox.com>
+ <20170113.121407.448230751444957957.davem@davemloft.net> <20170113202932.GS20392@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170107170258.14126.8503.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170113202932.GS20392@mtr-leonro.local>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: David Miller <davem@davemloft.net>, Saeed Mahameed <saeedm@mellanox.com>, dledford@redhat.com, Linux Kernel Network Developers <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Chuck,
+On Fri, Jan 13, 2017 at 12:29 PM, Leon Romanovsky <leon@kernel.org> wrote:
+> On Fri, Jan 13, 2017 at 12:14:07PM -0500, David Miller wrote:
+>> From: Saeed Mahameed <saeedm@mellanox.com>
+>> Date: Thu, 12 Jan 2017 19:22:34 +0200
+>>
+>> > This pull request includes one patch from Leon, this patch as described
+>> > below will change the driver directory structure and layout for better,
+>> > logical and modular driver files separation.
+>> >
+>> > This change is important to both rdma and net maintainers in order to
+>> > have smoother management of driver patches for different mlx5 sub modules
+>> > and smoother rdma-next vs. net-next features submissions.
+>> >
+>> > Please find more info below -in the tag commit message-,
+>> > review and let us know if there's any problem.
+>> >
+>> > This change doesn't introduce any conflicts with the current mlx5
+>> > fixes and cleanups posted on 2017-01-10 to net branch, and merge tests
+>> > worked flawlessly with no issues.
+>> >
+>> > This is the last pull request meant for both rdma-next and net-next.
+>> > Once pulled, this will be the base shared code for both trees.
+>>
+>> This is pretty crazy, it will make all bug fix backporting to -stable
+>> a complete nightmare for myself, Doug, various distribution maintainers
+>> and many other people who quietly have to maintain their own trees and
+>> do backporting.
+>
+> Hi Dave,
+>
+> I understand your worries, but our case is similar to various other
+> drivers, for example hfi1 which was in staging for years while
+> supported in RedHat and moved from there to IB. The Chelsio drivers did
+> similar reorg in 2016 (drivers/net/ethernet/chelsio/libcxgb) while their
+> drivers were in the tree for long time before.
+>
+> Additionally, Doug doesn't need to maintain -stable queue and it is done
+> by relevant submaintainers who are adding stable tags by themselves. In
+> the IB case, the burden will continue to be on me and not on Doug.
+>
+Recently I had to backport the mlx5 driver from 4.9 to 4.6 in order to
+get support for XDP. The biggest issue I faced was the lack of
+modularity in the many driver features that are now supported. The
+problem with backporting these new features is the spider web of
+dependencies that they bring in from the rest of the kernel. I ended
+up taking out en_rep, vxlan, en_tc, eswitch, and dcbnl. The result was
+~340 patches which is still a lot but at least this was constrained to
+patches in the mlx5 directories and are relevant to what we want to
+do.
 
-> This series converts the Linux NFS server RPC-over-RDMA
-> implementation to use the new core rdma_rw API and to poll its CQs
-> in workqueue mode.
+In lieu of restructuring the directories, I would much rather see more
+config options so that we can build drivers that don't unnecessarily
+complicate our lives with features we don't use. This is not just true
+for Mellanox, but I would say it would be true of any driver that
+someone is trying to deploy and maintain at large scale.
 
-Great to see this happening!
+Btw, we did hit one issue in the backport. We started to get rx csum
+faults (checksum complete value indicates TCP checksum is bad, but
+host computation says checksum is good). I ran against 4.9 upstream
+kernel and do see these, however don't see them in 4.10. I haven't
+bisected yet. Is this a known issue?
 
-I'll try and have a look early next week.
-Hope to see a simpler code with the new API.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Tom
+
+>>
+>> I really don't think you can justify this rearrangement based upon the
+>> consequences and how much activity happens in this driver.
+>>
+>> You should have thought long and hard about the layout a long time ago
+>> rather than after the driver has been in the tree for many years.
+>>
+>> Sorry.
