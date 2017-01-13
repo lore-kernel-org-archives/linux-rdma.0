@@ -1,38 +1,58 @@
-From: Rick Jones <rick.jones2-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [pull request][for-next] Mellanox mlx5 Reorganize core driver
- directory layout
-Date: Fri, 13 Jan 2017 14:59:46 -0800
-Message-ID: <10e998b7-0008-2f26-2874-57ec61c8cacb@hpe.com>
-References: <1484241755-17603-1-git-send-email-saeedm@mellanox.com>
- <20170113.121407.448230751444957957.davem@davemloft.net>
- <20170113202932.GS20392@mtr-leonro.local>
- <CALx6S37hb78RJ8tCtsCsX2fg6e-D+naNpSQo6T2AyWMd0U74sQ@mail.gmail.com>
- <CALzJLG_RsvgszVxGZ7+VgYjET9w=XTjq36Z72diOQFNJWz9tQw@mail.gmail.com>
- <CALx6S35cSnMoBtxi+Eb_mH=LCLy9yY6U5sxofndce9r0eCs8+w@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: NFSoRDMA Fails for max_sge Less Than 18
+Date: Fri, 13 Jan 2017 16:42:10 -0600
+Message-ID: <062101d26dee$46e78df0$d4b6a9d0$@opengridcomputing.com>
+References: <SN1PR07MB2207F28F05DC6E22B03CC516F8660@SN1PR07MB2207.namprd07.prod.outlook.com> <FE817A76-28A7-4AEC-AF1E-01DE15790E43@oracle.com> <027101d26c2c$c94467f0$5bcd37d0$@opengridcomputing.com> <28B0D906-7BDB-4B87-94E9-6BE263BFBFF7@oracle.com> <038901d26c44$67d6c4f0$37844ed0$@opengridcomputing.com> <383D1FFB-346B-40E9-A174-606F13AFF849@oracle.com> <03b301d26c47$f154a5a0$d3fdf0e0$@opengridcomputing.com> <A7A39994-66C6-4467-837B-288348C0CC53@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALx6S35cSnMoBtxi+Eb_mH=LCLy9yY6U5sxofndce9r0eCs8+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <A7A39994-66C6-4467-837B-288348C0CC53-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Herbert <tom-BjP2VixgY4xUbtYUoyoikg@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "'Amrani, Ram'" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Elior, Ariel'" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Kalderon, Michal'" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'List Linux RDMA Mailing' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Hariprasad S' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/13/2017 02:56 PM, Tom Herbert wrote:
-> On Fri, Jan 13, 2017 at 2:45 PM, Saeed Mahameed
->> what configuration are you running ? what traffic ?
->>
-> Nothing fancy. 8 queues and 20 concurrent netperf TCP_STREAMs trips
-> it. Not a lot of them, but I don't think we really should ever see
-> these errors.
+> >>
+> >>> (haven't looked in detail at your patches...sorry).  Our QA ran
+testing on
+> > 4.9
+> >>> and didn't see this issue, so that's why I'm asking.    They have not
+yet
+> > run
+> >>> NFS/RDMA testing on 4.9-rc.  I've asked them to do a quick regression
+> test
+> > asap.
+> >>
+> >
+> > Correction: I meant 4.10-rc above.
+> >
+> > But still, I believe Chelsio tested 4.9, so perhaps it isn't the "mount"
+that
+> > causes a failure but trying to send something with an SGE > 4 that
+happens
+> > immediately after the mount?  And since cxgb4 supports up to 17, the
+> failure
+> > wouldn't be seen until some inline message was attempted that required
+> 18
+> > sges...
+> 
+> The original check for 18 or 19 was too aggressive (that's the
+> bug here). With the default inline threshold settings, RPC-over-RDMA
+> won't ever use more than 4 (or at most 5) SGEs for RDMA Send.
+> 
+> So if somehow the mount was allowed, and no changes were made to the
+> default settings, everything should still work fine for cxgb4.
+> 
 
-Straight-up defaults with netperf, or do you use specific -s/S or -m/M 
-options?
+Hey Chuck, Chelsio confirmed mounts fail with 4.10-rc.  So can you get a fix
+in 4.10-rc (and back to 4.9 if the regression is there) to ensure at least a
+max_sge of 4 is supported? 
 
-happy benchmarking,
+Steveo
 
-rick jones
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
