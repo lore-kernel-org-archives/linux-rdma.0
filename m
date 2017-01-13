@@ -1,38 +1,101 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: NFSoRDMA Fails for max_sge Less Than 18
-Date: Fri, 13 Jan 2017 16:45:57 -0600
-Message-ID: <063801d26dee$ce257110$6a705330$@opengridcomputing.com>
-References: <SN1PR07MB2207F28F05DC6E22B03CC516F8660@SN1PR07MB2207.namprd07.prod.outlook.com> <FE817A76-28A7-4AEC-AF1E-01DE15790E43@oracle.com> <027101d26c2c$c94467f0$5bcd37d0$@opengridcomputing.com> <28B0D906-7BDB-4B87-94E9-6BE263BFBFF7@oracle.com> <038901d26c44$67d6c4f0$37844ed0$@opengridcomputing.com> <383D1FFB-346B-40E9-A174-606F13AFF849@oracle.com> <03b301d26c47$f154a5a0$d3fdf0e0$@opengridcomputing.com> <A7A39994-66C6-4467-837B-288348C0CC53@oracle.com> <062101d26dee$46e78df0$d4b6a9d0$@opengridcomputing.com> <906A1B75-67E9-4D10-AD87-18F694F54818@oracle.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: iscsi_trx going into D state
+Date: Fri, 13 Jan 2017 16:38:33 -0700
+Message-ID: <CAANLjFrFxasp6e=jWq4FwPFjRLgX-nwHc5n+eYRTz9EjTCAQ5g@mail.gmail.com>
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
+ <CAANLjFrZrTPUuzP_NjkgG5h_YwwYKEWT-KzVjTvuXZ1d04z6Fg@mail.gmail.com>
+ <CAANLjFpSnQ7ApOK5HDRHXQQeQNGWLUv4e+2N=_e-zBeziYm5tw@mail.gmail.com>
+ <CAANLjForEkO6RXw7KJYrTJD=f0S8FE73vvwNQcL_ARFdFoDQqg@mail.gmail.com>
+ <1030906614.13148012.1483722413675.JavaMail.zimbra@redhat.com>
+ <CAANLjFocE2fbO_oWRiEVCt0=mfmgrLy9qWqqg=TH_jZS3PXn0g@mail.gmail.com>
+ <CAANLjFpRCwGSh=HV12dc_OtFKgcjQqERSPirqxWD1w0N-G_mCg@mail.gmail.com>
+ <CAANLjFotqoC8TKGypD2uqoADRq5NxDmXgz-B7THKy_HH_7u9hg@mail.gmail.com> <1449740553.15880491.1484320214006.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <906A1B75-67E9-4D10-AD87-18F694F54818-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1449740553.15880491.1484320214006.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "'Amrani, Ram'" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Elior, Ariel'" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "'Kalderon, Michal'" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'List Linux RDMA Mailing' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Hariprasad S' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Hey Chuck, Chelsio confirmed mounts fail with 4.10-rc.  So can you get a
-fix
-> > in 4.10-rc (and back to 4.9 if the regression is there) to ensure at
-least a
-> > max_sge of 4 is supported?
-> 
-> Posted earlier today:
-> 
-> Available in the "nfs-rdma-for-4.10-rc" topic branch of this git repo:
-> 
-> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+Laurance,
 
-Great!  I'll ask Chelsio to verify it.
+I'm really starting to think that the stars aligned with the phase of
+the moon or something when I reproduced this in my lab before because
+I've been unable to reproduce it on Infiniband the last two days. The
+problem with this issue is that it is so hard to trigger, but causes a
+lot of problems when it does happen. I really hate wasting people's
+time when I can't reproduce it myself reliably. Please don't waste too
+much time if you can't get it reproduced on Infiniband, I'll have to
+wait until someone with the ConnectX-4-LX cards can replicate it.
 
-Thanks,
+Hmmm.... you do have ConnectX-4 cards which may have the same bug it
+Ethernet mode. I don't see the RoCE bug on my ConnectX-3 cards, but
+your ConnectX-4 cards may work. Try putting the cards into Ethernet
+mode, set the speed and advertised speed to something lower than the
+max speed and verify that the link speed is that (ethtool). On the
+ConnectX-4-LX cards, I just had to set both interfaces down and then
+back up at the same time, on the ConnectX-3 I had to pull the cable
+(shutting down the client might have worked). Then set up target and
+client with iSER, format and run the test and it should trigger
+automatically.
 
-Steve.
+Looking at release notes on the ConnectX-4-LX cards, the latest
+firmware may fix the bug that so easily exposes the problem with that
+card. My cards are SuperMicro branded cards and don't have the new
+firmware available yet.
 
+Good luck.
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+
+
+On Fri, Jan 13, 2017 at 8:10 AM, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+>
+> ----- Original Message -----
+>> From: "Robert LeBlanc" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+>> To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> Cc: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "Zhu Lingshan"
+>> <lszhu-IBi9RG/b67k@public.gmane.org>, "linux-rdma" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Sagi Grimberg"
+>> <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>
+>> Sent: Thursday, January 12, 2017 4:26:05 PM
+>> Subject: Re: iscsi_trx going into D state
+>>
+>> Sorry sent prematurely...
+>>
+>> On Thu, Jan 12, 2017 at 2:22 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>> > I'm having trouble replicating the D state issue on Infiniband (I was
+>> > able to trigger it reliably a couple weeks back, I don't know if OFED
+>> > to verify the same results happen there as well.
+>>
+>> I'm having trouble replicating the D state issue on Infiniband (I was
+>> able to trigger it reliably a couple weeks back, I don't know if OFED
+>> being installed is altering things but it only installed for 3.10. The
+>> ConnectX-4-LX exposes the issue easily if you have those cards.) to
+>> verify the same results happen there as well.
+>>
+>> ----------------
+>> Robert LeBlanc
+>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> I am only back in the office next Wednesday.
+> I have this all setup using ConnectX-4 with IB/ISER but have no way of remotely creating the disconnect as I currently have it back-to-back.
+> Have run multiple tests with IB and ISER hard resting the client to break the IB connection but have not been able to reproduce as yet.
+> So it will have to wait until I can pull cables next week as that seemed to be the way you have been reproducing this.
+>
+> This is in a code area I also don't have a lot of knowledge of the flow but have started trying to understand it better.
+>
+> Thanks
+> Laurence
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
