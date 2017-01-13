@@ -1,56 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Fri, 13 Jan 2017 14:27:21 -0700
-Message-ID: <20170113212721.GB1463@obsidianresearch.com>
-References: <20161228124728.26619-1-leon@kernel.org>
- <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
- <20170113171234.GA30551@obsidianresearch.com>
- <20170113203127.GT20392@mtr-leonro.local>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 00/26] IB: Optimize DMA mapping
+Date: Fri, 13 Jan 2017 21:59:32 +0000
+Message-ID: <1484344759.2679.26.camel@sandisk.com>
+References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
+         <1484338667.2679.15.camel@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF78@CRSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170113203127.GT20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <F3529576D8E232409F431C309E29399336C5FF78-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <56DC636F747D06429F28B24E3D411541-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 13, 2017 at 10:31:27PM +0200, Leon Romanovsky wrote:
+On Fri, 2017-01-13 at 21:08 +0000, Estrin, Alex wrote:
+> It didn't fix the failure... Apparently there is an issue with generic
+> mapping itself.=20
 
-> > This is about what happens if the multicast MTU < unicast MTU - which
-> > is *exactly* the same case on RC and UD.
-> >
-> > IPoIB cannot send a 64k multicast MTU on RC either.
-> 
-> Multicast is sent in datagram despite being in connected mode and for
-> datagram the MTU is limited by IB
+Hello Alex,
 
-I am aware of that. Read you patch again:
+The generic mapping code in lib/dma-virt.c works fine with at least the rxe
+driver. Additionally, as far as I can see the mapping code in lib/dma-virt.=
+c
+is identical to the mapping in drivers/infiniband/sw/rdmavt/dma.c. What is
+not clear to me however is how my patches can have caused the SDMA engine
+error messages? As far as I can see the code in
+drivers/infiniband/hw/hfi1/sdma.c uses PCI DMA mapping operations instead o=
+f
+the generic dma_virt_ops. Is that correct?
 
-> +	if (priv->mcast_mtu < priv->admin_mtu)
-> +		ipoib_warn(priv, "MTU must be smaller than mcast_mtu (%u)\n",
+Thanks,
 
-This check is fails in RC mode as well.
-
-And we already check if the requested MTU is beyond the port
-capability:
-
-+        if (new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
-+                return -EINVAL;
-
-So I have *no idea* why you'd want to check it against the multicast
-group too..
-
-It is OK for the multicast group to have a smaller MTU than the
-unicast side. This is how RC operates after all.
-
-Jason
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
