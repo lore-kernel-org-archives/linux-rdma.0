@@ -1,79 +1,78 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Fri, 13 Jan 2017 22:31:27 +0200
-Message-ID: <20170113203127.GT20392@mtr-leonro.local>
-References: <20161228124728.26619-1-leon@kernel.org>
- <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
- <20170113171234.GA30551@obsidianresearch.com>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: [PATCH v2 00/26] IB: Optimize DMA mapping
+Date: Fri, 13 Jan 2017 20:18:06 +0000
+Message-ID: <1484338667.2679.15.camel@sandisk.com>
+References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+d/sD+4Memv8CeGA"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170113171234.GA30551-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <8D695168DFD75A4C9B819DD78D4E0F9F@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "alex.estrin@intel.com" <alex.estrin@intel.com>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 2017-01-13 at 18:27 +0000, Estrin, Alex wrote:
+> This series applied to 4.10-rc3 breaks hfi1 sdma engines.
+> [=A0=A0=A034.712343] hfi1 0000:82:00.0: hfi1_0: SDMA (0) engine error: 0x=
+21
+> state s50_HwHaltWait
+> [=A0=A0=A034.722752] hfi1 0000:82:00.0: hfi1_0: SDMA (0) descq_head: 0
+> descq_tail: 3 freecnt: 2044 FLE 0
+> [=A0=A0=A034.733933] hfi1 0000:82:00.0: hfi1_0: SDMA sdmadesc[0]: flags:-=
+-F-
+> addr:0x00008808248c8000 gen:0 len:36 bytes
+> [=A0=A0=A034.746595] hfi1 0000:82:00.0: hfi1_0:=A0=A0=A0=A0=A0=A0=A0desc0=
+:0x80248808248c8000
+> desc1 0x0000000000000000
+> [=A0=A0=A034.757218] hfi1 0000:82:00.0: hfi1_0:=A0=A0=A0=A0=A0=A0=A0aidx:=
+ 0 amode: 0 alen: 0
+> [=A0=A0=A034.765448] hfi1 0000:82:00.0: hfi1_0: SDMA sdmadesc[1]: flags:-=
+---
+> addr:0x0000880829fd5000 gen:0 len:24 bytes
+> [=A0=A0=A034.778184] hfi1 0000:82:00.0: hfi1_0:=A0=A0=A0=A0=A0=A0=A0desc0=
+:0x0018880829fd5000
+> desc1 0x0000000000000000
+> [=A0=A0=A034.788941] hfi1 0000:82:00.0: hfi1_0: SDMA sdmadesc[2]: flags:-=
+H-L
+> addr:0x0000880829fd5018 gen:0 len:440 bytes
+> [=A0=A0=A034.801849] hfi1 0000:82:00.0: hfi1_0:=A0=A0=A0=A0=A0=A0=A0desc0=
+:0x41b8880829fd5018
+> desc1 0x0000000000000001
+> ...etc
+>=20
+> BTW, what was the base for this series, as 19/26 did not apply cleanly to
+> 4.10-rc3?
 
---+d/sD+4Memv8CeGA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hello Alex,
 
-On Fri, Jan 13, 2017 at 10:12:34AM -0700, Jason Gunthorpe wrote:
-> On Fri, Jan 13, 2017 at 05:08:24PM +0200, Leon Romanovsky wrote:
-> > On Thu, Jan 12, 2017 at 01:16:22PM -0700, Jason Gunthorpe wrote:
-> > > On Thu, Jan 12, 2017 at 09:35:08PM +0200, Leon Romanovsky wrote:
-> > >
-> > > > > > In datagram mode, the IB UD (Unreliable Datagram) transport is used
-> > > > > > so the MTU of the interface is equal to the IB L2 MTU minus the
-> > > > > > IPoIB encapsulation header. Any request to change the MTU value
-> > > > > > above the maximum range will change the MTU to the max allowed, but
-> > > > > > will not show any warning message. An ipoib_warn is issued in such
-> > > > > > cases, letting the user know that even though the value is legal,
-> > > > > > it can't be currently applied.
-> > >
-> > > How does RC mode work then?
-> >
-> > RC mode doesn't have limitation on MTU size and it allows messages
-> > larger than IB link-layer MTU.
->
-> This is about what happens if the multicast MTU < unicast MTU - which
-> is *exactly* the same case on RC and UD.
->
-> IPoIB cannot send a 64k multicast MTU on RC either.
+Sorry for this. Can you check whether the patch below fixes this regression=
+?
 
-Multicast is sent in datagram despite being in connected mode and for
-datagram the MTU is limited by IB
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c
+b/drivers/infiniband/sw/rdmavt/vt.c
+index 6a81b179f631..f7fcd015ec09 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -778,8 +778,7 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+=A0	}
+=A0
+=A0	/* DMA Operations */
+-	if (rdi->ibdev.dma_device->dma_ops =3D=3D NULL)
+-		set_dma_ops(rdi->ibdev.dma_device, &dma_virt_ops);
++	set_dma_ops(rdi->ibdev.dma_device, &dma_virt_ops);
+=A0
+=A0	/* Protection Domain */
+=A0	spin_lock_init(&rdi->n_pds_lock);
+--=A0
+2.11.0
 
---+d/sD+4Memv8CeGA
-Content-Type: application/pgp-signature; name="signature.asc"
+I will make sure that this series applies cleanly on top of v4.10-rc3 when =
+I
+repost it.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh5OR8ACgkQ5GN7iDZy
-WKdB5A/9HKM+0OJG499WUSqKZswe0aDTd3cGe1xXTQd+WNJwMfiaNjDY3RxOnps4
-J4I/p9pjtt6SsVQY5j9+VCO9eDFgTUskoMe4nxanh39NqGBM8oEKWYZcIjjPyv+N
-tkiE8V58kxoodS36OZW+ToIsdGYzhXhgx1TXr7h/uZLfV8VoSfCx2mxkxwUz3JIL
-dgLoBVDHvCjs5Wj0xF0ii+InfVZDNZGxSw0ENCtythyTt6ReoAzqmlQF/36uNA/Z
-/FxhMXickVQAnvjLq0w7ZgPKxohRgzJDPnrgeHsCMGHND+oATOR7LcIuTWVF1Wbx
-qXEflc/FZiHGOVf//vwvelLqGLIXFIfxLROl5yUz/+hZSDpSWgoXn/ur2/7t2S9c
-H5l/Od4w3Jn7SbLlW3h/4HvgJ6R7cS2aJp/qZMLEXttstBwcvO/JYQBaUz1rBpzB
-nU4BhoJ3dGerzN4SkbbR5b+YdbXC5QFSZAevzFRUN0uVVklZYrS20+1in4uMpxG1
-boPzvJnGFBU+lf38DGhTcT9+od/hHAD6EQKgERzT5cTLxAylzqQOGOR01Bdnupm9
-nhucKtLfeW92rj/Te2TBYqzz3GmaU9vgK/MPu+RQm6rCLep8Sh+UwUujVaBrwH4W
-Nr8HFyD7Ctovoxii5ikbrMSN/XYom7YdhD84GLelTbyNpwd3KPY=
-=i6fy
------END PGP SIGNATURE-----
-
---+d/sD+4Memv8CeGA--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.=
