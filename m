@@ -1,52 +1,43 @@
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/core: create struct ib_port_cache
-Date: Fri, 13 Jan 2017 16:35:54 +0100
-Message-ID: <2617abae-686e-c8c6-799a-8742156fcd08@profitbricks.com>
-References: <CAMGffEn-fOOe7s2rniqwcaocoV+jxkeJDHZ6WYJkkXi+CBQbEA@mail.gmail.com>
- <b1fdf011-dc25-ad63-b223-0700f6e90bc6@profitbricks.com>
- <20170113150103.GP20392@mtr-leonro.local>
+From: David Howells <dhowells@redhat.com>
+Subject: (unknown)
+Date: Fri, 13 Jan 2017 15:36:43 +0000
+Message-ID: <25063.1484321803@warthog.procyon.org.uk>
+References: <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com> <3131144.4Ej3KFWRbz@wuerfel> <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170113150103.GP20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
+Content-ID: <25062.1484321803.1@warthog.procyon.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: dhowells@redhat.com, arnd@arndb.de, linux-mips@linux-mips.org, linux-m68k@vger.kernel.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, linux@armlinux.org.uk, coreteam@netfilter.org, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.netlinux-
 List-Id: linux-rdma@vger.kernel.org
 
+Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
 
+> This header file is exported, thus move it to uapi.
 
-On 13.01.2017 16:01, Leon Romanovsky wrote:
-> On Fri, Jan 13, 2017 at 02:12:19PM +0100, Jack Wang wrote:
->> Hi Doug, hi Jason and others,
->>
->> As Doug already merged the first 4 patches to his tree, so I rebased this patch also
->> on his latest for-4.11 branch (commit 102c5ce082), minor tweak on commit message.
->> I also configured my thunderbirds to keep the patch format as expected :), so here we go!
-> 
-> Hi Jack,
-> I don't know what did you configure, but git send-email is a preferred
-> way to send linux kernel patches.
-> 
-> Your attached patches are appearing wrongly (wrong subject and mbox garbage) in
-> the patchworks https://patchwork.kernel.org/patch/9515651/
-> 
-> Thanks
-> 
-Hi Leon,
+Exported how?
 
-Thanks, I understand I changed subject in the patch because I notice Doug is using such naming.
-But I don't follow "mbox garbage", what do you mean here?
+> +#ifdef __INT32_TYPE__
+> +#undef __INT32_TYPE__
+> +#define __INT32_TYPE__		int
+> +#endif
+> +
+> +#ifdef __UINT32_TYPE__
+> +#undef __UINT32_TYPE__
+> +#define __UINT32_TYPE__	unsigned int
+> +#endif
+> +
+> +#ifdef __UINTPTR_TYPE__
+> +#undef __UINTPTR_TYPE__
+> +#define __UINTPTR_TYPE__	unsigned long
+> +#endif
 
-About git send-email, I used to successfully sent patch with the tool, but somehow it's now always get reject 
-by gmail. 
+These weren't defined by the kernel before, so why do we need to define them
+now?
 
-I'm not familiar with patchwork, will reply to same thread with proper subject fix the problem or I have to do it in a new thread?
+Will defining __UINTPTR_TYPE__ cause problems in compiling libboost by
+changing the signature on C++ functions that use uintptr_t?
 
-Thanks,
-Jack
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+David
