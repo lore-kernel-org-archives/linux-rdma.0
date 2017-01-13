@@ -1,90 +1,58 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Fri, 13 Jan 2017 17:08:24 +0200
-Message-ID: <20170113150824.GQ20392@mtr-leonro.local>
-References: <20161228124728.26619-1-leon@kernel.org>
- <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
+From: Laurence Oberman <loberman@redhat.com>
+Subject: Re: iscsi_trx going into D state
+Date: Fri, 13 Jan 2017 10:10:14 -0500 (EST)
+Message-ID: <1449740553.15880491.1484320214006.JavaMail.zimbra@redhat.com>
+References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com> <CAANLjFrZrTPUuzP_NjkgG5h_YwwYKEWT-KzVjTvuXZ1d04z6Fg@mail.gmail.com> <CAANLjFpSnQ7ApOK5HDRHXQQeQNGWLUv4e+2N=_e-zBeziYm5tw@mail.gmail.com> <CAANLjForEkO6RXw7KJYrTJD=f0S8FE73vvwNQcL_ARFdFoDQqg@mail.gmail.com> <1030906614.13148012.1483722413675.JavaMail.zimbra@redhat.com> <CAANLjFocE2fbO_oWRiEVCt0=mfmgrLy9qWqqg=TH_jZS3PXn0g@mail.gmail.com> <CAANLjFpRCwGSh=HV12dc_OtFKgcjQqERSPirqxWD1w0N-G_mCg@mail.gmail.com> <CAANLjFotqoC8TKGypD2uqoADRq5NxDmXgz-B7THKy_HH_7u9hg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="dT+85zccSFkyJC53"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170112201622.GA14584-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAANLjFotqoC8TKGypD2uqoADRq5NxDmXgz-B7THKy_HH_7u9hg@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Robert LeBlanc <robert@leblancnet.us>
+Cc: Doug Ledford <dledford@redhat.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Zhu Lingshan <lszhu@suse.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
 
---dT+85zccSFkyJC53
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Thu, Jan 12, 2017 at 01:16:22PM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 12, 2017 at 09:35:08PM +0200, Leon Romanovsky wrote:
->
-> > > > In datagram mode, the IB UD (Unreliable Datagram) transport is used
-> > > > so the MTU of the interface is equal to the IB L2 MTU minus the
-> > > > IPoIB encapsulation header. Any request to change the MTU value
-> > > > above the maximum range will change the MTU to the max allowed, but
-> > > > will not show any warning message. An ipoib_warn is issued in such
-> > > > cases, letting the user know that even though the value is legal,
-> > > > it can't be currently applied.
->
-> How does RC mode work then?
+----- Original Message -----
+> From: "Robert LeBlanc" <robert@leblancnet.us>
+> To: "Laurence Oberman" <loberman@redhat.com>
+> Cc: "Doug Ledford" <dledford@redhat.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, "Zhu Lingshan"
+> <lszhu@suse.com>, "linux-rdma" <linux-rdma@vger.kernel.org>, linux-scsi@vger.kernel.org, "Sagi Grimberg"
+> <sagi@grimberg.me>, "Christoph Hellwig" <hch@lst.de>
+> Sent: Thursday, January 12, 2017 4:26:05 PM
+> Subject: Re: iscsi_trx going into D state
+> 
+> Sorry sent prematurely...
+> 
+> On Thu, Jan 12, 2017 at 2:22 PM, Robert LeBlanc <robert@leblancnet.us> wrote:
+> > I'm having trouble replicating the D state issue on Infiniband (I was
+> > able to trigger it reliably a couple weeks back, I don't know if OFED
+> > to verify the same results happen there as well.
+> 
+> I'm having trouble replicating the D state issue on Infiniband (I was
+> able to trigger it reliably a couple weeks back, I don't know if OFED
+> being installed is altering things but it only installed for 3.10. The
+> ConnectX-4-LX exposes the issue easily if you have those cards.) to
+> verify the same results happen there as well.
+> 
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-RC mode doesn't have limitation on MTU size and it allows messages
-larger than IB link-layer MTU.
+I am only back in the office next Wednesday.
+I have this all setup using ConnectX-4 with IB/ISER but have no way of remotely creating the disconnect as I currently have it back-to-back.
+Have run multiple tests with IB and ISER hard resting the client to break the IB connection but have not been able to reproduce as yet.
+So it will have to wait until I can pull cables next week as that seemed to be the way you have been reproducing this.
 
->
-> > Second, I have a different view from you on the issue. User configured
-> > some value, which is not correct for IPoIB. In ideal world (without legacy),
-> > we were supposed to return error to him with proper message, but in our
-> > case (legacy applications) we can't (we tried and it broke some legacy
-> > ifcongfig, if I remember well). So it leaves us with one available
-> > option is to warn user about improper value.
->
-> This is a legitimate configuration though, the user could have a mixed
-> MTU fabric and rely on path MTU discovery, so sets the MTU to the
-> largest.
->
-> AFAIK the way to handle such configurations is with a multicast route that
-> has a reduced mtu.
+This is in a code area I also don't have a lot of knowledge of the flow but have started trying to understand it better.
 
-Multicast traffic is sent in datagram mode hence the limit will imply.
-
-Maybe, I went too far by calling it error, but IMHO absence of indication to
-user of decreased MTU is not good either.
-
->
-> Jason
-
---dT+85zccSFkyJC53
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh47WgACgkQ5GN7iDZy
-WKeXJw//WxN7xdEIlRqkfo7DNVbVvWZPV7qWBhhu1Ei03NTChJM/zw0KdhBFD5Id
-LI4Uhot2+ddUigC4TsuUI+YgFM92lEXw98XrmWY5nnhzRDR5yM4b/Qy0r7F/duMU
-l9gV5J9nP5or1DT8Zs0EfHiDAcS0u5TEbDSjo67SXXbTnAnQVxPny3rPfduAH05l
-FuEznTnhjzoW8Sz0qdD39ge7AkpRy6BDe6+IOQf27BvynrMZsKEddsZ2o9mq/6K4
-e9ST6rrOD8jPy6VzOLtoSL08hQalL6cKtbaGODRdMHeZ8A6OB09ECcXJsfduZNKD
-QqgwV3WS6fqzKXoMTtG1rbGyoioJ/UI/4EMif/5LLLbXtNhRlPhBeIaAXGd3PdXa
-Ez1zAhRqlMNXyQCNWdmkjhm7h/a15XSy0YD0/NBtcVIyXHbe8WcaidjPmoUIjc9v
-Vwr5oQsP3KB1qrX01VcZlSgDcVKmKLO7xg/XUQArtYpABkbhRHNNaOCZQKS7Ekpu
-LKAEHMNuxyKIhk2ZLqvLCi3Unp6h/HybE6TRzytdfJhdJR5BdGLRopFtCRN5SDgX
-vld3aP/cdKGoWEt4hupUy/8vBv2CdbUsD1qhkYHTZYsmUmL+KlTbj2b6+K3HswHy
-bYixunTSEoG4x0QxbZG/FgJ8GcjfMERXzXGevZUDPwi3UhN35jY=
-=FMpW
------END PGP SIGNATURE-----
-
---dT+85zccSFkyJC53--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Laurence
+ 
