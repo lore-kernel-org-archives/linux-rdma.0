@@ -1,134 +1,152 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 00/22] convert NFS server to new rdma_rw API
-Date: Fri, 13 Jan 2017 11:54:01 -0500
-Message-ID: <33FF9D08-075A-4153-ADDA-C460C1A4D93B@oracle.com>
-References: <20170107170258.14126.8503.stgit@klimt.1015granger.net> <20170113164208.GD24709@fieldses.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170113164208.GD24709-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH v3 1/8] arm: put types.h in uapi
+Date: Fri, 13 Jan 2017 17:06:10 +0000
+Message-ID: <20170113170610.GV14217@n2100.armlinux.org.uk>
+References: <3131144.4Ej3KFWRbz@wuerfel>
+ <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
+List-Post: <mailto:linux-snps-arc@lists.infradead.org>
+List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
+Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie, daniel.vetter@ffwll.ch, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, hch@infradead.org, coreteam@netfilter.org, msalter@redhat.com, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, arnd@arndb.de, linux-kbuild@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openri
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bruce-
+On Fri, Jan 13, 2017 at 11:46:39AM +0100, Nicolas Dichtel wrote:
+> This header file is exported, thus move it to uapi.
 
+I'm taking this patch, but with the following commit log:
 
-> On Jan 13, 2017, at 11:42 AM, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org wrote:
+  Due to the way kbuild works, this header was unintentionally exported
+  back in 2013 when it was created, despite it not being in a uapi/
+  directory.  This is very non-intuitive behaviour by Kbuild.
+
+  However, we've had this include exported to userland for almost four
+  years, and searching google for "ARM types.h __UINTPTR_TYPE__" gives
+  no hint that anyone has complained about it.  So, let's make it
+  officially exported in this state.
+
+If anyone has any objections, they better shout sooner rather than
+later.
+
 > 
-> Can you summarize the motivation for the change, for someone (like me)
-> that doesn't know much about RDMA?  Or does "significant cleanups" cover
-> it?
-
-Last year, Sagi and Christoph introduced a new set of APIs to the
-RDMA core that enable ULPs like iSER and NFS/RDMA to leave the details
-of certain aspects of operation to the core, instead of all the ULPs
-having to implement the details themselves. Kind of a code refactoring /
-de-duplication.
-
-Then, going forward, fixes and improvements made to the logic behind
-this new API will be available to all ULPs that use the new API.
-
-This series converts the server-side RPC-over-RDMA implementation
-to use the new API.
-
-
-> Are there any regressions?  For example, will it still support all the
-> same hardware?  Is there any change that will be noticeable to NFS/RDMA
-> users?
-
-All the same hardware is supported. The standing policy for ULPs is
-that they must work with all in-tree HCA drivers and devices.
-
-The goal of this work is that there is no user-visible change in
-functionality or performance.
-
-I know it's a lot to consider, and I'm happy to split up the series
-or individual patches to help review.
-
-
-> --b.
+> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> ---
+>  arch/arm/include/asm/types.h      | 40 ---------------------------------------
+>  arch/arm/include/uapi/asm/types.h | 40 +++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 40 insertions(+), 40 deletions(-)
+>  delete mode 100644 arch/arm/include/asm/types.h
+>  create mode 100644 arch/arm/include/uapi/asm/types.h
 > 
-> On Sat, Jan 07, 2017 at 12:15:15PM -0500, Chuck Lever wrote:
->> This series converts the Linux NFS server RPC-over-RDMA
->> implementation to use the new core rdma_rw API and to poll its CQs
->> in workqueue mode.
->> 
->> Previously published work prototyped only the path that sends RPC
->> replies. This series converts both send and receive sides, and
->> includes significant clean ups that result from using the new API.
->> 
->> This series has been successfully tested with NFSv3, 4.0, and 4.1;
->> with clients that use FRWR and FMR; and with sec=sys, krb5, krb5i,
->> and krb5p.
->> 
->> Available in the "nfsd-rdma-rw-api" topic branch of this git repo:
->> 
->> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->> 
->> And for online review:
->> 
->> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=shortlog;h=refs/heads/nfsd-rdma-rw-api
->> 
->> ---
->> 
->> Chuck Lever (22):
->>      svcrdma: Another sendto chunk list parsing update
->>      svcrdma: Replace RPCRDMA_SQ_DEPTH_MULT
->>      svcrdma: Remove unused sc_dto_q field
->>      svcrdma: Combine list fields in struct svc_rdma_op_ctxt
->>      svcrdma: Poll CQs in "workqueue" mode
->>      svcrdma: Clean up RPC-over-RDMA Reply header encoder
->>      svcrdma: Clean up RPC-over-RDMA Call header decoder
->>      svcrdma: Introduce local rdma_rw API helpers
->>      svcrdma: Use rdma_rw API in RPC reply path
->>      svcrdma: Backchannel sendto clean up
->>      svcrdma: Clean up RDMA_ERROR path
->>      svcrdma: Reduce size of sge array in struct svc_rdma_op_ctxt
->>      svcrdma: Remove old RDMA Write completion handlers
->>      svcrdma: Remove the req_map cache
->>      svcrdma: Clean up RPC-over-RDMA backchannel reply processing
->>      svcrdma: Use generic RDMA R/W API in RPC Call path
->>      svcrdma: Remove unused Read completion handlers
->>      svcrdma: Remove frmr cache
->>      svcrdma: Clean up after converting svc_rdma_recvfrom to rdma_rw API
->>      svcrdma: Clean-up in svc_rdma_post_recv
->>      svcrdma: Clean-up svc_rdma_unmap_dma
->>      svcrdma: Re-order fields in svc_rdma_op_ctxt
->> 
->> 
->> include/linux/sunrpc/rpc_rdma.h            |   12 
->> include/linux/sunrpc/svc_rdma.h            |  147 ++---
->> net/sunrpc/xprtrdma/Makefile               |    2 
->> net/sunrpc/xprtrdma/svc_rdma.c             |    8 
->> net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   73 +--
->> net/sunrpc/xprtrdma/svc_rdma_marshal.c     |  478 +++++++++--------
->> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |  518 +++---------------
->> net/sunrpc/xprtrdma/svc_rdma_rw.c          |  731 ++++++++++++++++++++++++++
->> net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  802 +++++++++++-----------------
->> net/sunrpc/xprtrdma/svc_rdma_transport.c   |  506 +++++-------------
->> 10 files changed, 1621 insertions(+), 1656 deletions(-)
->> create mode 100644 net/sunrpc/xprtrdma/svc_rdma_rw.c
->> 
->> --
->> Chuck Lever
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/include/asm/types.h b/arch/arm/include/asm/types.h
+> deleted file mode 100644
+> index a53cdb8f068c..000000000000
+> --- a/arch/arm/include/asm/types.h
+> +++ /dev/null
+> @@ -1,40 +0,0 @@
+> -#ifndef _ASM_TYPES_H
+> -#define _ASM_TYPES_H
+> -
+> -#include <asm-generic/int-ll64.h>
+> -
+> -/*
+> - * The C99 types uintXX_t that are usually defined in 'stdint.h' are not as
+> - * unambiguous on ARM as you would expect. For the types below, there is a
+> - * difference on ARM between GCC built for bare metal ARM, GCC built for glibc
+> - * and the kernel itself, which results in build errors if you try to build with
+> - * -ffreestanding and include 'stdint.h' (such as when you include 'arm_neon.h'
+> - * in order to use NEON intrinsics)
+> - *
+> - * As the typedefs for these types in 'stdint.h' are based on builtin defines
+> - * supplied by GCC, we can tweak these to align with the kernel's idea of those
+> - * types, so 'linux/types.h' and 'stdint.h' can be safely included from the same
+> - * source file (provided that -ffreestanding is used).
+> - *
+> - *                    int32_t         uint32_t               uintptr_t
+> - * bare metal GCC     long            unsigned long          unsigned int
+> - * glibc GCC          int             unsigned int           unsigned int
+> - * kernel             int             unsigned int           unsigned long
+> - */
+> -
+> -#ifdef __INT32_TYPE__
+> -#undef __INT32_TYPE__
+> -#define __INT32_TYPE__		int
+> -#endif
+> -
+> -#ifdef __UINT32_TYPE__
+> -#undef __UINT32_TYPE__
+> -#define __UINT32_TYPE__	unsigned int
+> -#endif
+> -
+> -#ifdef __UINTPTR_TYPE__
+> -#undef __UINTPTR_TYPE__
+> -#define __UINTPTR_TYPE__	unsigned long
+> -#endif
+> -
+> -#endif /* _ASM_TYPES_H */
+> diff --git a/arch/arm/include/uapi/asm/types.h b/arch/arm/include/uapi/asm/types.h
+> new file mode 100644
+> index 000000000000..9435a42f575e
+> --- /dev/null
+> +++ b/arch/arm/include/uapi/asm/types.h
+> @@ -0,0 +1,40 @@
+> +#ifndef _UAPI_ASM_TYPES_H
+> +#define _UAPI_ASM_TYPES_H
+> +
+> +#include <asm-generic/int-ll64.h>
+> +
+> +/*
+> + * The C99 types uintXX_t that are usually defined in 'stdint.h' are not as
+> + * unambiguous on ARM as you would expect. For the types below, there is a
+> + * difference on ARM between GCC built for bare metal ARM, GCC built for glibc
+> + * and the kernel itself, which results in build errors if you try to build with
+> + * -ffreestanding and include 'stdint.h' (such as when you include 'arm_neon.h'
+> + * in order to use NEON intrinsics)
+> + *
+> + * As the typedefs for these types in 'stdint.h' are based on builtin defines
+> + * supplied by GCC, we can tweak these to align with the kernel's idea of those
+> + * types, so 'linux/types.h' and 'stdint.h' can be safely included from the same
+> + * source file (provided that -ffreestanding is used).
+> + *
+> + *                    int32_t         uint32_t               uintptr_t
+> + * bare metal GCC     long            unsigned long          unsigned int
+> + * glibc GCC          int             unsigned int           unsigned int
+> + * kernel             int             unsigned int           unsigned long
+> + */
+> +
+> +#ifdef __INT32_TYPE__
+> +#undef __INT32_TYPE__
+> +#define __INT32_TYPE__		int
+> +#endif
+> +
+> +#ifdef __UINT32_TYPE__
+> +#undef __UINT32_TYPE__
+> +#define __UINT32_TYPE__	unsigned int
+> +#endif
+> +
+> +#ifdef __UINTPTR_TYPE__
+> +#undef __UINTPTR_TYPE__
+> +#define __UINTPTR_TYPE__	unsigned long
+> +#endif
+> +
+> +#endif /* _UAPI_ASM_TYPES_H */
+> -- 
+> 2.8.1
+> 
 
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
