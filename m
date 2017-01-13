@@ -1,60 +1,59 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v1 00/22] convert NFS server to new rdma_rw API
-Date: Fri, 13 Jan 2017 12:08:49 -0500
-Message-ID: <20170113170849.GF24709@fieldses.org>
-References: <20170107170258.14126.8503.stgit@klimt.1015granger.net>
- <20170113164208.GD24709@fieldses.org>
- <33FF9D08-075A-4153-ADDA-C460C1A4D93B@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Fri, 13 Jan 2017 10:12:34 -0700
+Message-ID: <20170113171234.GA30551@obsidianresearch.com>
+References: <20161228124728.26619-1-leon@kernel.org>
+ <20161228124728.26619-2-leon@kernel.org>
+ <1484246776.123135.19.camel@redhat.com>
+ <20170112193508.GO20392@mtr-leonro.local>
+ <20170112201622.GA14584@obsidianresearch.com>
+ <20170113150824.GQ20392@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <33FF9D08-075A-4153-ADDA-C460C1A4D93B-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170113150824.GQ20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 13, 2017 at 11:54:01AM -0500, Chuck Lever wrote:
-> Hi Bruce-
+On Fri, Jan 13, 2017 at 05:08:24PM +0200, Leon Romanovsky wrote:
+> On Thu, Jan 12, 2017 at 01:16:22PM -0700, Jason Gunthorpe wrote:
+> > On Thu, Jan 12, 2017 at 09:35:08PM +0200, Leon Romanovsky wrote:
+> >
+> > > > > In datagram mode, the IB UD (Unreliable Datagram) transport is used
+> > > > > so the MTU of the interface is equal to the IB L2 MTU minus the
+> > > > > IPoIB encapsulation header. Any request to change the MTU value
+> > > > > above the maximum range will change the MTU to the max allowed, but
+> > > > > will not show any warning message. An ipoib_warn is issued in such
+> > > > > cases, letting the user know that even though the value is legal,
+> > > > > it can't be currently applied.
+> >
+> > How does RC mode work then?
 > 
-> 
-> > On Jan 13, 2017, at 11:42 AM, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org wrote:
-> > 
-> > Can you summarize the motivation for the change, for someone (like me)
-> > that doesn't know much about RDMA?  Or does "significant cleanups" cover
-> > it?
-> 
-> Last year, Sagi and Christoph introduced a new set of APIs to the
-> RDMA core that enable ULPs like iSER and NFS/RDMA to leave the details
-> of certain aspects of operation to the core, instead of all the ULPs
-> having to implement the details themselves. Kind of a code refactoring /
-> de-duplication.
-> 
-> Then, going forward, fixes and improvements made to the logic behind
-> this new API will be available to all ULPs that use the new API.
-> 
-> This series converts the server-side RPC-over-RDMA implementation
-> to use the new API.
-> 
-> 
-> > Are there any regressions?  For example, will it still support all the
-> > same hardware?  Is there any change that will be noticeable to NFS/RDMA
-> > users?
-> 
-> All the same hardware is supported. The standing policy for ULPs is
-> that they must work with all in-tree HCA drivers and devices.
-> 
-> The goal of this work is that there is no user-visible change in
-> functionality or performance.
-> 
-> I know it's a lot to consider, and I'm happy to split up the series
-> or individual patches to help review.
+> RC mode doesn't have limitation on MTU size and it allows messages
+> larger than IB link-layer MTU.
 
-Eh, I'll try to do a little, but realistically I'm mainly trusting you
-and Christoph, so it's more important that the process work for you.
+This is about what happens if the multicast MTU < unicast MTU - which
+is *exactly* the same case on RC and UD.
 
---b.
+IPoIB cannot send a 64k multicast MTU on RC either.
+
+> Maybe, I went too far by calling it error, but IMHO absence of indication to
+> user of decreased MTU is not good either.
+
+I don't see why we should 'solve' this for UD and ignore the same
+problem in RC.
+
+IMHO, the correct fix is to figure out how to limit multicast - there
+is something called multicast path MTU discovery - so maybe we are
+doing something wrong and breaking that (are we erroring too large
+packets inside ipoib properly?), or it is not working in the kernel or
+it isn't supported by the kernel ...
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
