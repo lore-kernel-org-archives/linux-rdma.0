@@ -1,59 +1,52 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Fri, 13 Jan 2017 10:12:34 -0700
-Message-ID: <20170113171234.GA30551@obsidianresearch.com>
-References: <20161228124728.26619-1-leon@kernel.org>
- <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [pull request][for-next] Mellanox mlx5 Reorganize core driver
+ directory layout
+Date: Fri, 13 Jan 2017 12:14:07 -0500 (EST)
+Message-ID: <20170113.121407.448230751444957957.davem@davemloft.net>
+References: <1484241755-17603-1-git-send-email-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170113150824.GQ20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1484241755-17603-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 13, 2017 at 05:08:24PM +0200, Leon Romanovsky wrote:
-> On Thu, Jan 12, 2017 at 01:16:22PM -0700, Jason Gunthorpe wrote:
-> > On Thu, Jan 12, 2017 at 09:35:08PM +0200, Leon Romanovsky wrote:
-> >
-> > > > > In datagram mode, the IB UD (Unreliable Datagram) transport is used
-> > > > > so the MTU of the interface is equal to the IB L2 MTU minus the
-> > > > > IPoIB encapsulation header. Any request to change the MTU value
-> > > > > above the maximum range will change the MTU to the max allowed, but
-> > > > > will not show any warning message. An ipoib_warn is issued in such
-> > > > > cases, letting the user know that even though the value is legal,
-> > > > > it can't be currently applied.
-> >
-> > How does RC mode work then?
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 12 Jan 2017 19:22:34 +0200
+
+> This pull request includes one patch from Leon, this patch as described 
+> below will change the driver directory structure and layout for better,
+> logical and modular driver files separation.
 > 
-> RC mode doesn't have limitation on MTU size and it allows messages
-> larger than IB link-layer MTU.
+> This change is important to both rdma and net maintainers in order to 
+> have smoother management of driver patches for different mlx5 sub modules
+> and smoother rdma-next vs. net-next features submissions.
+> 
+> Please find more info below -in the tag commit message-,
+> review and let us know if there's any problem.
+> 
+> This change doesn't introduce any conflicts with the current mlx5
+> fixes and cleanups posted on 2017-01-10 to net branch, and merge tests
+> worked flawlessly with no issues.
+> 
+> This is the last pull request meant for both rdma-next and net-next.
+> Once pulled, this will be the base shared code for both trees.
 
-This is about what happens if the multicast MTU < unicast MTU - which
-is *exactly* the same case on RC and UD.
+This is pretty crazy, it will make all bug fix backporting to -stable
+a complete nightmare for myself, Doug, various distribution maintainers
+and many other people who quietly have to maintain their own trees and
+do backporting.
 
-IPoIB cannot send a 64k multicast MTU on RC either.
+I really don't think you can justify this rearrangement based upon the
+consequences and how much activity happens in this driver.
 
-> Maybe, I went too far by calling it error, but IMHO absence of indication to
-> user of decreased MTU is not good either.
+You should have thought long and hard about the layout a long time ago
+rather than after the driver has been in the tree for many years.
 
-I don't see why we should 'solve' this for UD and ignore the same
-problem in RC.
-
-IMHO, the correct fix is to figure out how to limit multicast - there
-is something called multicast path MTU discovery - so maybe we are
-doing something wrong and breaking that (are we erroring too large
-packets inside ipoib properly?), or it is not working in the kernel or
-it isn't supported by the kernel ...
-
-Jason
+Sorry.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
