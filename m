@@ -1,139 +1,78 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/4] IB/core: add port state cache
-Date: Thu, 12 Jan 2017 22:16:38 -0500
-Message-ID: <1484277398.123135.49.camel@redhat.com>
-References: <CAMGffE=gytHRs+SVOmNPCkWX6tZ9hkeFznqeQQs-TFJMMJi97g@mail.gmail.com>
+Subject: Re: [PATCHv2 0/4] IB cache port state, use it when resolve address
+Date: Thu, 12 Jan 2017 23:02:03 -0500
+Message-ID: <1484280123.123135.55.camel@redhat.com>
+References: <CAMGffE=-dN6jpJUHyNEHra1P=SLYiO47pMbMoKSNf6Njy=znKA@mail.gmail.com>
+         <CAMGffE=xA9GMMWAKPMzAtWxHBSbBVft04LjB+fhc0mLRjmEXfQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-U9G1qfcCKGr+M+SiquGJ"
+        protocol="application/pgp-signature"; boundary="=-Wup9S5IuGaTCfpSqxlyz"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMGffE=gytHRs+SVOmNPCkWX6tZ9hkeFznqeQQs-TFJMMJi97g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAMGffE=xA9GMMWAKPMzAtWxHBSbBVft04LjB+fhc0mLRjmEXfQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-U9G1qfcCKGr+M+SiquGJ
+--=-Wup9S5IuGaTCfpSqxlyz
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2016-12-12 at 12:43 +0100, Jinpu Wang wrote:
-> From fc80c1730d94a38934c5c60f9b9561745723dfd9 Mon Sep 17 00:00:00
-> 2001
-> From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Date: Mon, 12 Dec 2016 09:52:42 +0100
-> Subject: [PATCH 1/4] IB/core: add port state cache
->=20
-> We need a port state cache in ib_core, later we will use in rdma_cm.
+On Wed, 2017-01-11 at 13:26 +0100, Jinpu Wang wrote:
+> On Mon, Jan 2, 2017 at 1:15 PM, Jinpu Wang <jinpu.wang@profitbricks.c
+> om> wrote:
+> >=20
+> > Hi Folks,
+> >=20
+> > This is my forth attempt to fix rdma_revolve_addr may resolve to
+> > first
+> > port even it's down[1].
+> >=20
+> > As Jason and Hefty suggested, I now cache port_state in ib_core,
+> > and
+> > update cma_resolve_ib_dev and cma_bind_loopback to use it.
+> >=20
+> > 0001-IB-core-add-port-state-cache.patch
+> > 0002-IB-core-export-ib_get_cached_port_state.patch
+> > 0003-cma-resolve-to-first-active-ib-port.patch
+> > 0004-cma-use-cached-port-state-when-bind-loopback.patch
+> >=20
+> > [1]http://marc.info/?l=3Dlinux-rdma&m=3D148102306632521&w=3D2
+> >=20
+> > Changes from v1:
+> > - Add Hefty's Acked-by.
+> > - rebase on Doug's rdma/k.o/for-4.10 (commit
+> > 5cc8fabc5e4c588c75a5ec21423e7c3425f69f48)
+> > - fix a mem leak in ib_cache_setup_one in error case in first
+> > patch.
+> >=20
+> > --
+> Ping Doug?
 
-All of these patches were mangled. =C2=A0Their tabs were converted to
-spaces, they had line wraps where they shouldn't, etc.
+Sorry, I didn't see this before I wrote my last email. =C2=A0You've already
+captured Sean's acks, that's good. =C2=A0You modified the first patch in a
+way that negates the comment request I made, so that's fine. =C2=A0But the
+patches are still coming through mangled. =C2=A0If you look at them in
+patchworks, you can see telltale signs, such as seeing part of the
+patch in the patchwork comments and then the full patch later on in the
+patch section. =C2=A0When I download those patches, they are mangled. =C2=
+=A0You
+can *not* both send the patch inline and as an attachment. =C2=A0The
+prefered way to send patches, if your mailer is messing with your
+submissions, is to use "git send-email" and let it send the patches
+directly for you.
 
-Please don't send them using an email program, it obviously isn't
-working in your case. =C2=A0I strongly recommend using "git send-email" to
-send the series.
+However, this time I have fixed the patches up and applied them, but
+please don't send mangled patches like this in the future.
 
-Before resending, add a comment to the first about the memory being
-freed during the release operation, that will forestall any more
-questions about memory leaks. =C2=A0Also capture Sean Hefty's ack on all of
-your patches.
-
-I'm ready to take them, I just need you to rework them. =C2=A0Thanks.
-
-> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> ---
-> =C2=A0drivers/infiniband/core/cache.c | 9 ++++++++-
-> =C2=A0include/rdma/ib_verbs.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0| 1 +
-> =C2=A02 files changed, 9 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/core/cache.c
-> b/drivers/infiniband/core/cache.c
-> index 1a2984c..025db27 100644
-> --- a/drivers/infiniband/core/cache.c
-> +++ b/drivers/infiniband/core/cache.c
-> @@ -1109,6 +1109,8 @@ static void ib_cache_update(struct ib_device
-> *device,
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0device->cache.lmc_cache[port - rdma_start_p=
-ort(device)] =3D
-> tprops->lmc;
-> +=C2=A0=C2=A0=C2=A0=C2=A0device->cache.port_state_cache[port - rdma_start=
-_port(device)] =3D
-> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0tprops->state;
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0write_unlock_irq(&device->cache.lock);
->=20
-> @@ -1168,7 +1170,11 @@ int ib_cache_setup_one(struct ib_device
-> *device)
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(rdma_end=
-_port(device) -
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0rdm=
-a_start_port(device) + 1),
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0GFP_KERNE=
-L);
-> -=C2=A0=C2=A0=C2=A0=C2=A0if (!device->cache.pkey_cache ||
-> +=C2=A0=C2=A0=C2=A0=C2=A0device->cache.port_state_cache =3D kmalloc(sizeo=
-f
-> *device->cache.port_state_cache *
-> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(rdma_end_port(=
-device) -
-> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0rdma_star=
-t_port(device) + 1),
-> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0GFP_KERNEL);
-> +=C2=A0=C2=A0=C2=A0=C2=A0if (!device->cache.pkey_cache || !device->cache.=
-port_state_cache=20
-> ||
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0!device->cache.lmc_=
-cache) {
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0pr_warn("Couldn't a=
-llocate cache for %s\n", device->name);
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return -ENOMEM;
-> @@ -1213,6 +1219,7 @@ void ib_cache_release_one(struct ib_device
-> *device)
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0gid_table_release_one(device);
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0kfree(device->cache.pkey_cache);
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0kfree(device->cache.lmc_cache);
-> +=C2=A0=C2=A0=C2=A0=C2=A0kfree(device->cache.port_state_cache);
-> =C2=A0}
->=20
-> =C2=A0void ib_cache_cleanup_one(struct ib_device *device)
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 5ad43a4..a167ae0 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1761,6 +1761,7 @@ struct ib_cache {
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ib_pkey_cache=C2=A0=C2=A0**pkey_cach=
-e;
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ib_gid_table=C2=A0=C2=A0=C2=A0**gid_=
-cache;
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0u8=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0*lmc_cache;
-> +=C2=A0=C2=A0=C2=A0=C2=A0enum ib_port_state=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-*port_state_cache;
-> =C2=A0};
->=20
-> =C2=A0struct ib_dma_mapping_ops {
-> --=C2=A0
-> 2.7.4
->=20
->=20
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-U9G1qfcCKGr+M+SiquGJ
+--=-Wup9S5IuGaTCfpSqxlyz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -141,22 +80,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYeEaWAAoJELgmozMOVy/dn6cP/jWKy/sTr/W2Nmemh4u+W9k8
-YK6/vPDe83X3+NR6FKabnE5eADMtca+UBUBTiEgAygVkx0dVEIdUSM21jIkveYXp
-5sMvuN4RwInqREbT03ElqRU/lkhHuYQ8NXvkgn/B0IwqBowrFzdOfrajIJkhrjLA
-n8VwZerx5sJdDEYBNHxyRyLpnD3fJ7tRXeXgh2w2q+vuDOm1NyG8c4BucEQFpnxc
-90qvwUGcMrLp0bRMOGY1jsofURGVefVMXY+6MHpsvAyf5R0MLt1zBkso3TARcS/w
-Wa8p45HqJRlmw2ke3nxm+nFBfgzgUFj8jb8t1q4jM3KdmwozYjMK+0O7QhrQ1wbD
-mcLNv/aJfdljYtuV4ZHMHiFxwdyemzrkWWGJggP79MzVGki1TGQ8Tao/407sahFS
-AkOO68/c7KN4E/eNiE+wvmPX6mD0J88aMjN9JzM1Y/+uiwtXlDv2w/cDOHo8etRp
-JV3LaGFuoKNjFIQ2pN81MekRdZrqI0dn7azDdQqsH5rVvK2lcu4bU2S1KkwJi8rq
-AihYclIOHr5cEYzH6ZUAtkx5IVAPyLMCjDkCGoOKQKjq1glzsiDH45SIYp36R67Y
-Irx2NEkgc6ZBNWsqgIdWJhS8UAxepdBfF21OnY12889snY3zuwQcgT+uSKWQ4nm+
-DQG/ZpqPQ82N/MybwBho
-=C6I7
+iQIcBAABCAAGBQJYeFE7AAoJELgmozMOVy/d9/IP/A9d9LMTGe9M9grkdW01QFQU
+LtmxEgDBKm6TQ71hKYmJlm/bdpw0vtdf7p0BSW8buC8TgmcFNcpb0SDgdvT6pSh3
+6BJP8pTVoycODx1bp9zCUu6AmU8soRr8v6DNq5Jtl/oL7v6aLnwzbsLy6Vm0jekH
+wAbOqms81DU+po51cIchakzrLVGW1kVCxO1YHxo3CsxdyPNqdA+sEpEn/RD6k8VR
+Aj9glp7oBXADpHtpA5EG4tejWxTzujl8bUj9JGXpsWWKTnGa/lqEfq5+uJSAQtcq
+TYMTKvWAyBHvPTl6E0GyNHX4aCbpFk7PuMKIftpuKG8RA624TIIPZ1vTtZ1ZBhOO
+AFiK/6TgLTDlz5ipGZQ8Wd/Dx+U2hsbeF8sN3ssvtDTyAjn2GMQ2eifWveceJqGj
+UYNn/bFJZJrzxe/Jo7Chz6pqf5wOitJMdvPpD3+bsSu2KIu/xlC4bFomAQNfV4H4
+EX203QYPd9PptRyF/7+TXYeN0Ze+bi/Xg+S4nNrOziTvYCUGg/r+bo+s6ozzNWJ9
+QJ1rDTVdqPqxPVinUjrCwVaXS757f71R3AFyBQMnjwpsdpkhvQx6RnF5OP+4J2fC
+71lZSCGcsugBnzxF2OMspembJBBTRdj8JQfnssynrISVQ3rs29YCsDq2uwU6jBqx
+pi5WOgD6GB94qQKm9WP6
+=7ua2
 -----END PGP SIGNATURE-----
 
---=-U9G1qfcCKGr+M+SiquGJ--
+--=-Wup9S5IuGaTCfpSqxlyz--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
