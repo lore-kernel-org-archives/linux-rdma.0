@@ -1,127 +1,460 @@
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 13 Jan 2017 14:04:30 +0100
-Message-ID: <0733efde-1a6e-5237-0868-e9fb31f237c7@amd.com>
-References: <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
- <20170106182625.GB5724@obsidianresearch.com>
- <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
- <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
- <20170112151129.GA10942@redhat.com>
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCHv2 1/1] IB/core: create struct ib_port_cache
+Date: Fri, 13 Jan 2017 14:12:19 +0100
+Message-ID: <b1fdf011-dc25-ad63-b223-0700f6e90bc6@profitbricks.com>
+References: <CAMGffEn-fOOe7s2rniqwcaocoV+jxkeJDHZ6WYJkkXi+CBQbEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; Format="flowed"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170112151129.GA10942-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
- Felix" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Blinzer,
- Paul" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, qiang.yu-5C7GfCeVMHo@public.gmane.org, "Suthikulpanit, Suravee" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
- Alexander" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMGffEn-fOOe7s2rniqwcaocoV+jxkeJDHZ6WYJkkXi+CBQbEA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Am 12.01.2017 um 16:11 schrieb Jerome Glisse:
-> On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
->> On Fri, January 6, 2017 4:10 pm, Logan Gunthorpe wrote:
->>>
->>> On 06/01/17 11:26 AM, Jason Gunthorpe wrote:
->>>
->>>
->>>> Make a generic API for all of this and you'd have my vote..
->>>>
->>>>
->>>> IMHO, you must support basic pinning semantics - that is necessary to
->>>> support generic short lived DMA (eg filesystem, etc). That hardware can
->>>> clearly do that if it can support ODP.
->>> I agree completely.
->>>
->>>
->>> What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
->>> (ie. at least those backed with ZONE_DEVICE memory). Then
->>> GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
->>> (using whatever interface is most appropriate) and userspace can do what
->>> it pleases with them. This makes _so_ much sense and actually largely
->>> already works today (as demonstrated by iopmem).
->> +1 for iopmem ;-)
->>
->> I feel like we are going around and around on this topic. I would like to
->> see something that is upstream that enables P2P even if it is only the
->> minimum viable useful functionality to begin. I think aiming for the moon
->> (which is what HMM and things like it are) are simply going to take more
->> time if they ever get there.
->>
->> There is a use case for in-kernel P2P PCIe transfers between two NVMe
->> devices and between an NVMe device and an RDMA NIC (using NVMe CMBs or
->> BARs on the NIC). I am even seeing users who now want to move data P2P
->> between FPGAs and NVMe SSDs and the upstream kernel should be able to
->> support these users or they will look elsewhere.
->>
->> The iopmem patchset addressed all the use cases above and while it is not
->> an in kernel API it could have been modified to be one reasonably easily.
->> As Logan states the driver can then choose to pass the VMAs to user-space
->> in a manner that makes sense.
->>
->> Earlier in the thread someone mentioned LSF/MM. There is already a
->> proposal to discuss this topic so if you are interested please respond to
->> the email letting the committee know this topic is of interest to you [1=
-].
->>
->> Also earlier in the thread someone discussed the issues around the IOMMU.
->> Given the known issues around P2P transfers in certain CPU root complexes
->> [2] it might just be a case of only allowing P2P when a PCIe switch
->> connects the two EPs. Another option is just to use CONFIG_EXPERT and ma=
-ke
->> sure people are aware of the pitfalls if they invoke the P2P option.
->
-> iopmem is not applicable to GPU what i propose is to split the issue in 2
-> so that everyone can reuse the part that needs to be common namely the DMA
-> API part where you have to create IOMMU mapping for one device to point
-> to the other device memory.
->
-> We can have a DMA API that is agnostic to how the device memory is manage
-> (so does not matter if device memory have struct page or not). This what
-> i have been arguing in this thread. To make progress on this issue we need
-> to stop conflicting different use case.
->
-> So i say let solve the IOMMU issue first and let everyone use it in their
-> own way with their device. I do not think we can share much more than
-> that.
+Hi Doug, hi Jason and others,
 
-Yeah, exactly what I said from the very beginning as well. Just hacking =
+As Doug already merged the first 4 patches to his tree, so I rebased this patch also
+on his latest for-4.11 branch (commit 102c5ce082), minor tweak on commit message.
+I also configured my thunderbirds to keep the patch format as expected :), so here we go!
 
-together quick solutions doesn't really solve the problem in the long term.
+Cheers,
+Jack
 
-What we need is proper adjusting of the DMA API towards handling of P2P =
+>From dc199e8a8afedc3ece9e6f03a5b085e41c391983 Mon Sep 17 00:00:00 2001
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Wed, 4 Jan 2017 14:09:05 +0100
+Subject: [PATCH] RDMA/core: create struct ib_port_cache
 
-and then build solutions for the different use cases on top of that.
+As Jason suggested, we have 4 elements for per port arrays,
+it's better to have a separate structure to represent them.
 
-We should also avoid falling into the trap of trying to just handle the =
+It simplifies code a bit, ~ 30 lines of code less :)
 
-existing get_user_pages and co interfaces so that the existing code =
+Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ drivers/infiniband/core/cache.c | 134 +++++++++++++++-------------------------
+ include/rdma/ib_verbs.h         |  12 ++--
+ 2 files changed, 59 insertions(+), 87 deletions(-)
 
-doesn't need to change. P2P needs to be validated for each use case =
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index f91886b..2e52021 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -314,14 +314,13 @@ static void make_default_gid(struct  net_device *dev, union ib_gid *gid)
+ int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
+ 		     union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 	int ix;
+ 	int ret = 0;
+ 	struct net_device *idev;
+ 	int empty;
+ 
+-	table = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	if (!memcmp(gid, &zgid, sizeof(*gid)))
+ 		return -EINVAL;
+@@ -369,11 +368,10 @@ int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
+ int ib_cache_gid_del(struct ib_device *ib_dev, u8 port,
+ 		     union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 	int ix;
+ 
+-	table = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	mutex_lock(&table->lock);
+ 	write_lock_irq(&table->rwlock);
+@@ -399,12 +397,11 @@ int ib_cache_gid_del(struct ib_device *ib_dev, u8 port,
+ int ib_cache_gid_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
+ 				     struct net_device *ndev)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 	int ix;
+ 	bool deleted = false;
+ 
+-	table  = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	mutex_lock(&table->lock);
+ 	write_lock_irq(&table->rwlock);
+@@ -428,10 +425,9 @@ int ib_cache_gid_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
+ static int __ib_cache_gid_get(struct ib_device *ib_dev, u8 port, int index,
+ 			      union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 
+-	table = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	if (index < 0 || index >= table->sz)
+ 		return -EINVAL;
+@@ -455,14 +451,13 @@ static int _ib_cache_gid_table_find(struct ib_device *ib_dev,
+ 				    unsigned long mask,
+ 				    u8 *port, u16 *index)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 	u8 p;
+ 	int local_index;
+ 	unsigned long flags;
+ 
+ 	for (p = 0; p < ib_dev->phys_port_cnt; p++) {
+-		table = ports_table[p];
++		table = ib_dev->cache.ports[p].gid;
+ 		read_lock_irqsave(&table->rwlock, flags);
+ 		local_index = find_gid(table, gid, val, false, mask, NULL);
+ 		if (local_index >= 0) {
+@@ -503,7 +498,6 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+ 			       u16 *index)
+ {
+ 	int local_index;
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 	unsigned long mask = GID_ATTR_FIND_MASK_GID |
+ 			     GID_ATTR_FIND_MASK_GID_TYPE;
+@@ -514,7 +508,7 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+ 	    port > rdma_end_port(ib_dev))
+ 		return -ENOENT;
+ 
+-	table = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	if (ndev)
+ 		mask |= GID_ATTR_FIND_MASK_NETDEV;
+@@ -562,21 +556,18 @@ static int ib_cache_gid_find_by_filter(struct ib_device *ib_dev,
+ 				       void *context,
+ 				       u16 *index)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	struct ib_gid_table *table;
+ 	unsigned int i;
+ 	unsigned long flags;
+ 	bool found = false;
+ 
+-	if (!ports_table)
+-		return -EOPNOTSUPP;
+ 
+ 	if (port < rdma_start_port(ib_dev) ||
+ 	    port > rdma_end_port(ib_dev) ||
+ 	    !rdma_protocol_roce(ib_dev, port))
+ 		return -EPROTONOSUPPORT;
+ 
+-	table = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	read_lock_irqsave(&table->rwlock, flags);
+ 	for (i = 0; i < table->sz; i++) {
+@@ -668,14 +659,13 @@ void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 port,
+ 				  unsigned long gid_type_mask,
+ 				  enum ib_cache_gid_default_mode mode)
+ {
+-	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+ 	union ib_gid gid;
+ 	struct ib_gid_attr gid_attr;
+ 	struct ib_gid_attr zattr_type = zattr;
+ 	struct ib_gid_table *table;
+ 	unsigned int gid_type;
+ 
+-	table  = ports_table[port - rdma_start_port(ib_dev)];
++	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+ 
+ 	make_default_gid(ndev, &gid);
+ 	memset(&gid_attr, 0, sizeof(gid_attr));
+@@ -766,71 +756,64 @@ static int gid_table_reserve_default(struct ib_device *ib_dev, u8 port,
+ static int _gid_table_setup_one(struct ib_device *ib_dev)
+ {
+ 	u8 port;
+-	struct ib_gid_table **table;
++	struct ib_gid_table *table;
+ 	int err = 0;
+ 
+-	table = kcalloc(ib_dev->phys_port_cnt, sizeof(*table), GFP_KERNEL);
+-	if (!table)
+-		return -ENOMEM;
+-
+ 	for (port = 0; port < ib_dev->phys_port_cnt; port++) {
+ 		u8 rdma_port = port + rdma_start_port(ib_dev);
+ 
+-		table[port] =
++		table =
+ 			alloc_gid_table(
+ 				ib_dev->port_immutable[rdma_port].gid_tbl_len);
+-		if (!table[port]) {
++		if (!table) {
+ 			err = -ENOMEM;
+ 			goto rollback_table_setup;
+ 		}
+ 
+ 		err = gid_table_reserve_default(ib_dev,
+ 						port + rdma_start_port(ib_dev),
+-						table[port]);
++						table);
+ 		if (err)
+ 			goto rollback_table_setup;
++		ib_dev->cache.ports[port].gid = table;
+ 	}
+ 
+-	ib_dev->cache.gid_cache = table;
+ 	return 0;
+ 
+ rollback_table_setup:
+ 	for (port = 0; port < ib_dev->phys_port_cnt; port++) {
++		table = ib_dev->cache.ports[port].gid;
++
+ 		cleanup_gid_table_port(ib_dev, port + rdma_start_port(ib_dev),
+-				       table[port]);
+-		release_gid_table(table[port]);
++				       table);
++		release_gid_table(table);
+ 	}
+ 
+-	kfree(table);
+ 	return err;
+ }
+ 
+ static void gid_table_release_one(struct ib_device *ib_dev)
+ {
+-	struct ib_gid_table **table = ib_dev->cache.gid_cache;
++	struct ib_gid_table *table;
+ 	u8 port;
+ 
+-	if (!table)
+-		return;
+-
+-	for (port = 0; port < ib_dev->phys_port_cnt; port++)
+-		release_gid_table(table[port]);
+-
+-	kfree(table);
+-	ib_dev->cache.gid_cache = NULL;
++	for (port = 0; port < ib_dev->phys_port_cnt; port++) {
++		table = ib_dev->cache.ports[port].gid;
++		release_gid_table(table);
++		ib_dev->cache.ports[port].gid = NULL;
++	}
+ }
+ 
+ static void gid_table_cleanup_one(struct ib_device *ib_dev)
+ {
+-	struct ib_gid_table **table = ib_dev->cache.gid_cache;
++	struct ib_gid_table *table;
+ 	u8 port;
+ 
+-	if (!table)
+-		return;
+-
+-	for (port = 0; port < ib_dev->phys_port_cnt; port++)
++	for (port = 0; port < ib_dev->phys_port_cnt; port++) {
++		table = ib_dev->cache.ports[port].gid;
+ 		cleanup_gid_table_port(ib_dev, port + rdma_start_port(ib_dev),
+-				       table[port]);
++				       table);
++	}
+ }
+ 
+ static int gid_table_setup_one(struct ib_device *ib_dev)
+@@ -860,12 +843,12 @@ int ib_get_cached_gid(struct ib_device *device,
+ {
+ 	int res;
+ 	unsigned long flags;
+-	struct ib_gid_table **ports_table = device->cache.gid_cache;
+-	struct ib_gid_table *table = ports_table[port_num - rdma_start_port(device)];
++	struct ib_gid_table *table;
+ 
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
+ 
++	table = device->cache.ports[port_num - rdma_start_port(device)].gid;
+ 	read_lock_irqsave(&table->rwlock, flags);
+ 	res = __ib_cache_gid_get(device, port_num, index, gid, gid_attr);
+ 	read_unlock_irqrestore(&table->rwlock, flags);
+@@ -917,7 +900,7 @@ int ib_get_cached_pkey(struct ib_device *device,
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+-	cache = device->cache.pkey_cache[port_num - rdma_start_port(device)];
++	cache = device->cache.ports[port_num - rdma_start_port(device)].pkey;
+ 
+ 	if (index < 0 || index >= cache->table_len)
+ 		ret = -EINVAL;
+@@ -946,7 +929,7 @@ int ib_find_cached_pkey(struct ib_device *device,
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+-	cache = device->cache.pkey_cache[port_num - rdma_start_port(device)];
++	cache = device->cache.ports[port_num - rdma_start_port(device)].pkey;
+ 
+ 	*index = -1;
+ 
+@@ -986,7 +969,7 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+-	cache = device->cache.pkey_cache[port_num - rdma_start_port(device)];
++	cache = device->cache.ports[port_num - rdma_start_port(device)].pkey;
+ 
+ 	*index = -1;
+ 
+@@ -1014,7 +997,7 @@ int ib_get_cached_lmc(struct ib_device *device,
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+-	*lmc = device->cache.lmc_cache[port_num - rdma_start_port(device)];
++	*lmc = device->cache.ports[port_num - rdma_start_port(device)].lmc;
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+ 
+ 	return ret;
+@@ -1032,7 +1015,8 @@ int ib_get_cached_port_state(struct ib_device   *device,
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+-	*port_state = device->cache.port_state_cache[port_num - rdma_start_port(device)];
++	*port_state = device->cache.ports[port_num
++		- rdma_start_port(device)].port_state;
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+ 
+ 	return ret;
+@@ -1051,14 +1035,13 @@ static void ib_cache_update(struct ib_device *device,
+ 	int                        i;
+ 	int                        ret;
+ 	struct ib_gid_table	  *table;
+-	struct ib_gid_table	 **ports_table = device->cache.gid_cache;
+ 	bool			   use_roce_gid_table =
+ 					rdma_cap_roce_gid_table(device, port);
+ 
+ 	if (port < rdma_start_port(device) || port > rdma_end_port(device))
+ 		return;
+ 
+-	table = ports_table[port - rdma_start_port(device)];
++	table = device->cache.ports[port - rdma_start_port(device)].gid;
+ 
+ 	tprops = kmalloc(sizeof *tprops, GFP_KERNEL);
+ 	if (!tprops)
+@@ -1110,9 +1093,10 @@ static void ib_cache_update(struct ib_device *device,
+ 
+ 	write_lock_irq(&device->cache.lock);
+ 
+-	old_pkey_cache = device->cache.pkey_cache[port - rdma_start_port(device)];
++	old_pkey_cache = device->cache.ports[port -
++		rdma_start_port(device)].pkey;
+ 
+-	device->cache.pkey_cache[port - rdma_start_port(device)] = pkey_cache;
++	device->cache.ports[port - rdma_start_port(device)].pkey = pkey_cache;
+ 	if (!use_roce_gid_table) {
+ 		write_lock(&table->rwlock);
+ 		for (i = 0; i < gid_cache->table_len; i++) {
+@@ -1122,8 +1106,8 @@ static void ib_cache_update(struct ib_device *device,
+ 		write_unlock(&table->rwlock);
+ 	}
+ 
+-	device->cache.lmc_cache[port - rdma_start_port(device)] = tprops->lmc;
+-	device->cache.port_state_cache[port - rdma_start_port(device)] =
++	device->cache.ports[port - rdma_start_port(device)].lmc = tprops->lmc;
++	device->cache.ports[port - rdma_start_port(device)].port_state =
+ 		tprops->state;
+ 
+ 	write_unlock_irq(&device->cache.lock);
+@@ -1177,26 +1161,17 @@ int ib_cache_setup_one(struct ib_device *device)
+ 
+ 	rwlock_init(&device->cache.lock);
+ 
+-	device->cache.pkey_cache =
+-		kzalloc(sizeof *device->cache.pkey_cache *
++	device->cache.ports =
++		kzalloc(sizeof(*device->cache.ports) *
+ 			(rdma_end_port(device) - rdma_start_port(device) + 1), GFP_KERNEL);
+-	device->cache.lmc_cache = kmalloc(sizeof *device->cache.lmc_cache *
+-					  (rdma_end_port(device) -
+-					   rdma_start_port(device) + 1),
+-					  GFP_KERNEL);
+-	device->cache.port_state_cache = kmalloc(sizeof *device->cache.port_state_cache *
+-					  (rdma_end_port(device) -
+-					   rdma_start_port(device) + 1),
+-					  GFP_KERNEL);
+-	if (!device->cache.pkey_cache || !device->cache.port_state_cache ||
+-	    !device->cache.lmc_cache) {
++	if (!device->cache.ports) {
+ 		err = -ENOMEM;
+-		goto free;
++		goto out;
+ 	}
+ 
+ 	err = gid_table_setup_one(device);
+ 	if (err)
+-		goto free;
++		goto out;
+ 
+ 	for (p = 0; p <= rdma_end_port(device) - rdma_start_port(device); ++p)
+ 		ib_cache_update(device, p + rdma_start_port(device));
+@@ -1211,10 +1186,7 @@ int ib_cache_setup_one(struct ib_device *device)
+ 
+ err:
+ 	gid_table_cleanup_one(device);
+-free:
+-	kfree(device->cache.pkey_cache);
+-	kfree(device->cache.lmc_cache);
+-	kfree(device->cache.port_state_cache);
++out:
+ 	return err;
+ }
+ 
+@@ -1228,15 +1200,11 @@ void ib_cache_release_one(struct ib_device *device)
+ 	 * all the device's resources when the cache could no
+ 	 * longer be accessed.
+ 	 */
+-	if (device->cache.pkey_cache)
+-		for (p = 0;
+-		     p <= rdma_end_port(device) - rdma_start_port(device); ++p)
+-			kfree(device->cache.pkey_cache[p]);
++	for (p = 0; p <= rdma_end_port(device) - rdma_start_port(device); ++p)
++		kfree(device->cache.ports[p].pkey);
+ 
+ 	gid_table_release_one(device);
+-	kfree(device->cache.pkey_cache);
+-	kfree(device->cache.lmc_cache);
+-	kfree(device->cache.port_state_cache);
++	kfree(device->cache.ports);
+ }
+ 
+ void ib_cache_cleanup_one(struct ib_device *device)
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index fafa988..e55afec 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1775,13 +1775,17 @@ enum ib_mad_result {
+ 
+ #define IB_DEVICE_NAME_MAX 64
+ 
++struct ib_port_cache {
++	struct ib_pkey_cache  *pkey;
++	struct ib_gid_table   *gid;
++	u8                     lmc;
++	enum ib_port_state     port_state;
++};
++
+ struct ib_cache {
+ 	rwlock_t                lock;
+ 	struct ib_event_handler event_handler;
+-	struct ib_pkey_cache  **pkey_cache;
+-	struct ib_gid_table   **gid_cache;
+-	u8                     *lmc_cache;
+-	enum ib_port_state     *port_state_cache;
++	struct ib_port_cache   *ports;
+ };
+ 
+ struct ib_dma_mapping_ops {
+-- 
+2.7.4
 
-individually and not implemented in workarounds with fingers crossed and =
-
-hoped for the best.
-
-Regards,
-Christian.
-
->
-> Cheers,
-> J=E9r=F4me
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
