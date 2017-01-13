@@ -1,35 +1,78 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data structures
-Date: Fri, 13 Jan 2017 22:01:23 +0200
-Message-ID: <45c8815c-d9a1-4a74-8a70-0a0ea11d8201@grimberg.me>
-References: <1484261109-3316-1-git-send-email-parav@mellanox.com>
- <20170113074420.GA25814@lst.de>
- <VI1PR0502MB30086F641A07262801C02A28D1780@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <1f8d3db6-03b7-6c8f-8010-4ab964a87f3c@grimberg.me>
- <CAG53R5XGW-up2JtB_X29nPwbEGW14mvRBjnao8yOHczYUvvPgg@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Fri, 13 Jan 2017 22:31:27 +0200
+Message-ID: <20170113203127.GT20392@mtr-leonro.local>
+References: <20161228124728.26619-1-leon@kernel.org>
+ <20161228124728.26619-2-leon@kernel.org>
+ <1484246776.123135.19.camel@redhat.com>
+ <20170112193508.GO20392@mtr-leonro.local>
+ <20170112201622.GA14584@obsidianresearch.com>
+ <20170113150824.GQ20392@mtr-leonro.local>
+ <20170113171234.GA30551@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="+d/sD+4Memv8CeGA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5XGW-up2JtB_X29nPwbEGW14mvRBjnao8yOHczYUvvPgg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170113171234.GA30551-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi Sagi,
 
-> If we keep the patch as it is in 4.10-rc, than I think IB/rxe will
-> break with plays with virtual addresses.
+--+d/sD+4Memv8CeGA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I've been seeing reports that nvme-rdma is not
-useable with rxe as it crashes pretty consistently.
+On Fri, Jan 13, 2017 at 10:12:34AM -0700, Jason Gunthorpe wrote:
+> On Fri, Jan 13, 2017 at 05:08:24PM +0200, Leon Romanovsky wrote:
+> > On Thu, Jan 12, 2017 at 01:16:22PM -0700, Jason Gunthorpe wrote:
+> > > On Thu, Jan 12, 2017 at 09:35:08PM +0200, Leon Romanovsky wrote:
+> > >
+> > > > > > In datagram mode, the IB UD (Unreliable Datagram) transport is used
+> > > > > > so the MTU of the interface is equal to the IB L2 MTU minus the
+> > > > > > IPoIB encapsulation header. Any request to change the MTU value
+> > > > > > above the maximum range will change the MTU to the max allowed, but
+> > > > > > will not show any warning message. An ipoib_warn is issued in such
+> > > > > > cases, letting the user know that even though the value is legal,
+> > > > > > it can't be currently applied.
+> > >
+> > > How does RC mode work then?
+> >
+> > RC mode doesn't have limitation on MTU size and it allows messages
+> > larger than IB link-layer MTU.
+>
+> This is about what happens if the multicast MTU < unicast MTU - which
+> is *exactly* the same case on RC and UD.
+>
+> IPoIB cannot send a 64k multicast MTU on RC either.
 
-In any event, we can either add this with 'ib_' prefix
-into 4.10-rc and add a patch to Bart's series or
-we can send a dedicated patch for stable.
+Multicast is sent in datagram despite being in connected mode and for
+datagram the MTU is limited by IB
 
-Christoph, whats your preference?
+--+d/sD+4Memv8CeGA
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh5OR8ACgkQ5GN7iDZy
+WKdB5A/9HKM+0OJG499WUSqKZswe0aDTd3cGe1xXTQd+WNJwMfiaNjDY3RxOnps4
+J4I/p9pjtt6SsVQY5j9+VCO9eDFgTUskoMe4nxanh39NqGBM8oEKWYZcIjjPyv+N
+tkiE8V58kxoodS36OZW+ToIsdGYzhXhgx1TXr7h/uZLfV8VoSfCx2mxkxwUz3JIL
+dgLoBVDHvCjs5Wj0xF0ii+InfVZDNZGxSw0ENCtythyTt6ReoAzqmlQF/36uNA/Z
+/FxhMXickVQAnvjLq0w7ZgPKxohRgzJDPnrgeHsCMGHND+oATOR7LcIuTWVF1Wbx
+qXEflc/FZiHGOVf//vwvelLqGLIXFIfxLROl5yUz/+hZSDpSWgoXn/ur2/7t2S9c
+H5l/Od4w3Jn7SbLlW3h/4HvgJ6R7cS2aJp/qZMLEXttstBwcvO/JYQBaUz1rBpzB
+nU4BhoJ3dGerzN4SkbbR5b+YdbXC5QFSZAevzFRUN0uVVklZYrS20+1in4uMpxG1
+boPzvJnGFBU+lf38DGhTcT9+od/hHAD6EQKgERzT5cTLxAylzqQOGOR01Bdnupm9
+nhucKtLfeW92rj/Te2TBYqzz3GmaU9vgK/MPu+RQm6rCLep8Sh+UwUujVaBrwH4W
+Nr8HFyD7Ctovoxii5ikbrMSN/XYom7YdhD84GLelTbyNpwd3KPY=
+=i6fy
+-----END PGP SIGNATURE-----
+
+--+d/sD+4Memv8CeGA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
