@@ -1,71 +1,89 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data      structures
-Date: Fri, 13 Jan 2017 15:08:07 +0000
-Message-ID: <VI1PR0502MB30086F641A07262801C02A28D1780@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <1484261109-3316-1-git-send-email-parav@mellanox.com>
- <20170113074420.GA25814@lst.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Fri, 13 Jan 2017 17:08:24 +0200
+Message-ID: <20170113150824.GQ20392@mtr-leonro.local>
+References: <20161228124728.26619-1-leon@kernel.org>
+ <20161228124728.26619-2-leon@kernel.org>
+ <1484246776.123135.19.camel@redhat.com>
+ <20170112193508.GO20392@mtr-leonro.local>
+ <20170112201622.GA14584@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="dT+85zccSFkyJC53"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170113074420.GA25814-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170112201622.GA14584-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph,
 
-> -----Original Message-----
-> From: Christoph Hellwig [mailto:hch-jcswGhMUV9g@public.gmane.org]
-> Sent: Friday, January 13, 2017 1:44 AM
-> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: hch-jcswGhMUV9g@public.gmane.org; sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org; linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Subject: Re: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data
-> structures
->=20
-> On Thu, Jan 12, 2017 at 04:45:09PM -0600, Parav Pandit wrote:
-> > This patch performs dma sync operations on nvme_commmand, inline
-> > page(s) and nvme_completion.
-> >
-> > nvme_command and write cmd inline data is synced
-> > (a) on receiving of the recv queue completion for cpu access.
-> > (b) before posting recv wqe back to rdma adapter for device access.
-> >
-> > nvme_completion is synced
-> > (a) on receiving send completion for nvme_completion for cpu access.
-> > (b) before posting send wqe to rdma adapter for device access.
-> >
-> > Pushing this patch through linux-rdma tree as its more relavant with
-> > Bart's changes for dma_map_ops of[1].
-> >
-> > [1] https://patchwork.kernel.org/patch/9514085/
->=20
-> This seems like a fix for 4.10-rc as the old code is buggy on not DMA coh=
-erent
-> architectures, so I suspect it should go in without being based on Barts
-> cleanup.
->=20
-I first found and tested on git://git.infradead.org/nvme-fabrics.git in nvm=
-f-4.10 branch.
-If it has to go to 4.10-rc in above git repo,
+--dT+85zccSFkyJC53
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Doug needs to rebase to above git tree.
-Followed by Bart's patches, followed by my changes in his tree.
-Without that, Linux-next will get compile error because ib_dma_xx won't be =
-defined.
-Let me know, I have 4.10-rc patch also tested.
+On Thu, Jan 12, 2017 at 01:16:22PM -0700, Jason Gunthorpe wrote:
+> On Thu, Jan 12, 2017 at 09:35:08PM +0200, Leon Romanovsky wrote:
+>
+> > > > In datagram mode, the IB UD (Unreliable Datagram) transport is used
+> > > > so the MTU of the interface is equal to the IB L2 MTU minus the
+> > > > IPoIB encapsulation header. Any request to change the MTU value
+> > > > above the maximum range will change the MTU to the max allowed, but
+> > > > will not show any warning message. An ipoib_warn is issued in such
+> > > > cases, letting the user know that even though the value is legal,
+> > > > it can't be currently applied.
+>
+> How does RC mode work then?
 
-> Btw, what architecture did you test this with?  One of the not coherent A=
-RM
-> SOCs?
-On x86_64.
-Currently testing on ARM.
-While doing some performance improvement using inline sge mode, I encounter=
- this bug in review.
+RC mode doesn't have limitation on MTU size and it allows messages
+larger than IB link-layer MTU.
 
+>
+> > Second, I have a different view from you on the issue. User configured
+> > some value, which is not correct for IPoIB. In ideal world (without legacy),
+> > we were supposed to return error to him with proper message, but in our
+> > case (legacy applications) we can't (we tried and it broke some legacy
+> > ifcongfig, if I remember well). So it leaves us with one available
+> > option is to warn user about improper value.
+>
+> This is a legitimate configuration though, the user could have a mixed
+> MTU fabric and rely on path MTU discovery, so sets the MTU to the
+> largest.
+>
+> AFAIK the way to handle such configurations is with a multicast route that
+> has a reduced mtu.
+
+Multicast traffic is sent in datagram mode hence the limit will imply.
+
+Maybe, I went too far by calling it error, but IMHO absence of indication to
+user of decreased MTU is not good either.
+
+>
+> Jason
+
+--dT+85zccSFkyJC53
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh47WgACgkQ5GN7iDZy
+WKeXJw//WxN7xdEIlRqkfo7DNVbVvWZPV7qWBhhu1Ei03NTChJM/zw0KdhBFD5Id
+LI4Uhot2+ddUigC4TsuUI+YgFM92lEXw98XrmWY5nnhzRDR5yM4b/Qy0r7F/duMU
+l9gV5J9nP5or1DT8Zs0EfHiDAcS0u5TEbDSjo67SXXbTnAnQVxPny3rPfduAH05l
+FuEznTnhjzoW8Sz0qdD39ge7AkpRy6BDe6+IOQf27BvynrMZsKEddsZ2o9mq/6K4
+e9ST6rrOD8jPy6VzOLtoSL08hQalL6cKtbaGODRdMHeZ8A6OB09ECcXJsfduZNKD
+QqgwV3WS6fqzKXoMTtG1rbGyoioJ/UI/4EMif/5LLLbXtNhRlPhBeIaAXGd3PdXa
+Ez1zAhRqlMNXyQCNWdmkjhm7h/a15XSy0YD0/NBtcVIyXHbe8WcaidjPmoUIjc9v
+Vwr5oQsP3KB1qrX01VcZlSgDcVKmKLO7xg/XUQArtYpABkbhRHNNaOCZQKS7Ekpu
+LKAEHMNuxyKIhk2ZLqvLCi3Unp6h/HybE6TRzytdfJhdJR5BdGLRopFtCRN5SDgX
+vld3aP/cdKGoWEt4hupUy/8vBv2CdbUsD1qhkYHTZYsmUmL+KlTbj2b6+K3HswHy
+bYixunTSEoG4x0QxbZG/FgJ8GcjfMERXzXGevZUDPwi3UhN35jY=
+=FMpW
+-----END PGP SIGNATURE-----
+
+--dT+85zccSFkyJC53--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
