@@ -1,215 +1,127 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 16/26] IB/IPoIB: Inline ib_dma_map_*() functions
-Date: Fri, 13 Jan 2017 13:33:57 +0200
-Message-ID: <20170113113356.GA4460@yuval-lap.uk.oracle.com>
-References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
- <20170112190718.6728-17-bart.vanassche@sandisk.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Fri, 13 Jan 2017 14:04:30 +0100
+Message-ID: <0733efde-1a6e-5237-0868-e9fb31f237c7@amd.com>
+References: <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
+ <20170106182625.GB5724@obsidianresearch.com>
+ <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
+ <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
+ <20170112151129.GA10942@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170112190718.6728-17-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170112151129.GA10942-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Cc: david1.zhou-5C7GfCeVMHo@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Kuehling,
+ Felix" <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <serguei.sagalovitch-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Blinzer,
+ Paul" <paul.blinzer-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, qiang.yu-5C7GfCeVMHo@public.gmane.org, "Suthikulpanit, Suravee" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Deucher,
+ Alexander" <alexander.deucher-5C7GfCeVMHo@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 12, 2017 at 11:07:08AM -0800, Bart Van Assche wrote:
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_cm.c | 34 +++++++++++++++-----------
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c | 42 +++++++++++++++++----------------
->  2 files changed, 42 insertions(+), 34 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> index 096c4f6fbd65..6d91593852e9 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -83,10 +83,12 @@ static void ipoib_cm_dma_unmap_rx(struct ipoib_dev_priv *priv, int frags,
->  {
->  	int i;
->  
-> -	ib_dma_unmap_single(priv->ca, mapping[0], IPOIB_CM_HEAD_SIZE, DMA_FROM_DEVICE);
-> +	dma_unmap_single(priv->ca->dma_device, mapping[0], IPOIB_CM_HEAD_SIZE,
-> +			 DMA_FROM_DEVICE);
->  
->  	for (i = 0; i < frags; ++i)
-> -		ib_dma_unmap_page(priv->ca, mapping[i + 1], PAGE_SIZE, DMA_FROM_DEVICE);
-> +		dma_unmap_page(priv->ca->dma_device, mapping[i + 1], PAGE_SIZE,
-> +			       DMA_FROM_DEVICE);
->  }
->  
->  static int ipoib_cm_post_receive_srq(struct net_device *dev, int id)
-> @@ -158,9 +160,9 @@ static struct sk_buff *ipoib_cm_alloc_rx_skb(struct net_device *dev,
->  	 */
->  	skb_reserve(skb, IPOIB_CM_RX_RESERVE);
->  
-> -	mapping[0] = ib_dma_map_single(priv->ca, skb->data, IPOIB_CM_HEAD_SIZE,
-> -				       DMA_FROM_DEVICE);
-> -	if (unlikely(ib_dma_mapping_error(priv->ca, mapping[0]))) {
-> +	mapping[0] = dma_map_single(priv->ca->dma_device, skb->data,
-> +				    IPOIB_CM_HEAD_SIZE, DMA_FROM_DEVICE);
-> +	if (unlikely(dma_mapping_error(priv->ca->dma_device, mapping[0]))) {
->  		dev_kfree_skb_any(skb);
->  		return NULL;
->  	}
-> @@ -172,9 +174,9 @@ static struct sk_buff *ipoib_cm_alloc_rx_skb(struct net_device *dev,
->  			goto partial_error;
->  		skb_fill_page_desc(skb, i, page, 0, PAGE_SIZE);
->  
-> -		mapping[i + 1] = ib_dma_map_page(priv->ca, page,
-> -						 0, PAGE_SIZE, DMA_FROM_DEVICE);
-> -		if (unlikely(ib_dma_mapping_error(priv->ca, mapping[i + 1])))
-> +		mapping[i + 1] = dma_map_page(priv->ca->dma_device, page,
-> +					      0, PAGE_SIZE, DMA_FROM_DEVICE);
-> +		if (unlikely(dma_mapping_error(priv->ca->dma_device, mapping[i + 1])))
->  			goto partial_error;
->  	}
->  
-> @@ -183,10 +185,12 @@ static struct sk_buff *ipoib_cm_alloc_rx_skb(struct net_device *dev,
->  
->  partial_error:
->  
-> -	ib_dma_unmap_single(priv->ca, mapping[0], IPOIB_CM_HEAD_SIZE, DMA_FROM_DEVICE);
-> +	dma_unmap_single(priv->ca->dma_device, mapping[0], IPOIB_CM_HEAD_SIZE,
-> +			 DMA_FROM_DEVICE);
->  
->  	for (; i > 0; --i)
-> -		ib_dma_unmap_page(priv->ca, mapping[i], PAGE_SIZE, DMA_FROM_DEVICE);
-> +		dma_unmap_page(priv->ca->dma_device, mapping[i], PAGE_SIZE,
-> +			       DMA_FROM_DEVICE);
->  
->  	dev_kfree_skb_any(skb);
->  	return NULL;
-> @@ -626,11 +630,13 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
->  		small_skb = dev_alloc_skb(dlen + IPOIB_CM_RX_RESERVE);
->  		if (small_skb) {
->  			skb_reserve(small_skb, IPOIB_CM_RX_RESERVE);
-> -			ib_dma_sync_single_for_cpu(priv->ca, rx_ring[wr_id].mapping[0],
-> -						   dlen, DMA_FROM_DEVICE);
-> +			dma_sync_single_for_cpu(priv->ca->dma_device,
-> +						rx_ring[wr_id].mapping[0],
-> +						dlen, DMA_FROM_DEVICE);
->  			skb_copy_from_linear_data(skb, small_skb->data, dlen);
-> -			ib_dma_sync_single_for_device(priv->ca, rx_ring[wr_id].mapping[0],
-> -						      dlen, DMA_FROM_DEVICE);
-> +			dma_sync_single_for_device(priv->ca->dma_device,
-> +						   rx_ring[wr_id].mapping[0],
-> +						   dlen, DMA_FROM_DEVICE);
->  			skb_put(small_skb, dlen);
->  			skb = small_skb;
->  			goto copied;
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> index 5038f9d2d753..79204bd966bd 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> @@ -92,9 +92,8 @@ void ipoib_free_ah(struct kref *kref)
->  static void ipoib_ud_dma_unmap_rx(struct ipoib_dev_priv *priv,
->  				  u64 mapping[IPOIB_UD_RX_SG])
->  {
-> -	ib_dma_unmap_single(priv->ca, mapping[0],
-> -			    IPOIB_UD_BUF_SIZE(priv->max_ib_mtu),
-> -			    DMA_FROM_DEVICE);
-> +	dma_unmap_single(priv->ca->dma_device, mapping[0],
-> +			 IPOIB_UD_BUF_SIZE(priv->max_ib_mtu), DMA_FROM_DEVICE);
->  }
->  
->  static int ipoib_ib_post_receive(struct net_device *dev, int id)
-> @@ -139,9 +138,9 @@ static struct sk_buff *ipoib_alloc_rx_skb(struct net_device *dev, int id)
->  	skb_reserve(skb, sizeof(struct ipoib_pseudo_header));
->  
->  	mapping = priv->rx_ring[id].mapping;
-> -	mapping[0] = ib_dma_map_single(priv->ca, skb->data, buf_size,
-> -				       DMA_FROM_DEVICE);
-> -	if (unlikely(ib_dma_mapping_error(priv->ca, mapping[0])))
-> +	mapping[0] = dma_map_single(priv->ca->dma_device, skb->data, buf_size,
-> +				    DMA_FROM_DEVICE);
-> +	if (unlikely(dma_mapping_error(priv->ca->dma_device, mapping[0])))
->  		goto error;
->  
->  	priv->rx_ring[id].skb = skb;
-> @@ -278,9 +277,9 @@ int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req)
->  	int off;
->  
->  	if (skb_headlen(skb)) {
-> -		mapping[0] = ib_dma_map_single(ca, skb->data, skb_headlen(skb),
-> -					       DMA_TO_DEVICE);
-> -		if (unlikely(ib_dma_mapping_error(ca, mapping[0])))
-> +		mapping[0] = dma_map_single(ca->dma_device, skb->data,
-> +					    skb_headlen(skb), DMA_TO_DEVICE);
-> +		if (unlikely(dma_mapping_error(ca->dma_device, mapping[0])))
->  			return -EIO;
->  
->  		off = 1;
-> @@ -289,11 +288,12 @@ int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req)
->  
->  	for (i = 0; i < skb_shinfo(skb)->nr_frags; ++i) {
->  		const skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
-> -		mapping[i + off] = ib_dma_map_page(ca,
-> -						 skb_frag_page(frag),
-> -						 frag->page_offset, skb_frag_size(frag),
-> -						 DMA_TO_DEVICE);
-> -		if (unlikely(ib_dma_mapping_error(ca, mapping[i + off])))
-> +		mapping[i + off] = dma_map_page(ca->dma_device,
-> +						skb_frag_page(frag),
-> +						frag->page_offset,
-> +						skb_frag_size(frag),
-> +						DMA_TO_DEVICE);
-> +		if (unlikely(dma_mapping_error(ca->dma_device, mapping[i + off])))
->  			goto partial_error;
->  	}
->  	return 0;
-> @@ -302,11 +302,13 @@ int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req)
->  	for (; i > 0; --i) {
->  		const skb_frag_t *frag = &skb_shinfo(skb)->frags[i - 1];
->  
-> -		ib_dma_unmap_page(ca, mapping[i - !off], skb_frag_size(frag), DMA_TO_DEVICE);
-> +		dma_unmap_page(ca->dma_device, mapping[i - !off],
-> +			       skb_frag_size(frag), DMA_TO_DEVICE);
->  	}
->  
->  	if (off)
-> -		ib_dma_unmap_single(ca, mapping[0], skb_headlen(skb), DMA_TO_DEVICE);
-> +		dma_unmap_single(ca->dma_device, mapping[0], skb_headlen(skb),
-> +				 DMA_TO_DEVICE);
->  
->  	return -EIO;
->  }
-> @@ -320,8 +322,8 @@ void ipoib_dma_unmap_tx(struct ipoib_dev_priv *priv,
->  	int off;
->  
->  	if (skb_headlen(skb)) {
-> -		ib_dma_unmap_single(priv->ca, mapping[0], skb_headlen(skb),
-> -				    DMA_TO_DEVICE);
-> +		dma_unmap_single(priv->ca->dma_device, mapping[0],
-> +				 skb_headlen(skb), DMA_TO_DEVICE);
->  		off = 1;
->  	} else
->  		off = 0;
-> @@ -329,8 +331,8 @@ void ipoib_dma_unmap_tx(struct ipoib_dev_priv *priv,
->  	for (i = 0; i < skb_shinfo(skb)->nr_frags; ++i) {
->  		const skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
->  
-> -		ib_dma_unmap_page(priv->ca, mapping[i + off],
-> -				  skb_frag_size(frag), DMA_TO_DEVICE);
-> +		dma_unmap_page(priv->ca->dma_device, mapping[i + off],
-> +			       skb_frag_size(frag), DMA_TO_DEVICE);
->  	}
->  }
->  
+Am 12.01.2017 um 16:11 schrieb Jerome Glisse:
+> On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
+>> On Fri, January 6, 2017 4:10 pm, Logan Gunthorpe wrote:
+>>>
+>>> On 06/01/17 11:26 AM, Jason Gunthorpe wrote:
+>>>
+>>>
+>>>> Make a generic API for all of this and you'd have my vote..
+>>>>
+>>>>
+>>>> IMHO, you must support basic pinning semantics - that is necessary to
+>>>> support generic short lived DMA (eg filesystem, etc). That hardware can
+>>>> clearly do that if it can support ODP.
+>>> I agree completely.
+>>>
+>>>
+>>> What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
+>>> (ie. at least those backed with ZONE_DEVICE memory). Then
+>>> GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
+>>> (using whatever interface is most appropriate) and userspace can do what
+>>> it pleases with them. This makes _so_ much sense and actually largely
+>>> already works today (as demonstrated by iopmem).
+>> +1 for iopmem ;-)
+>>
+>> I feel like we are going around and around on this topic. I would like to
+>> see something that is upstream that enables P2P even if it is only the
+>> minimum viable useful functionality to begin. I think aiming for the moon
+>> (which is what HMM and things like it are) are simply going to take more
+>> time if they ever get there.
+>>
+>> There is a use case for in-kernel P2P PCIe transfers between two NVMe
+>> devices and between an NVMe device and an RDMA NIC (using NVMe CMBs or
+>> BARs on the NIC). I am even seeing users who now want to move data P2P
+>> between FPGAs and NVMe SSDs and the upstream kernel should be able to
+>> support these users or they will look elsewhere.
+>>
+>> The iopmem patchset addressed all the use cases above and while it is not
+>> an in kernel API it could have been modified to be one reasonably easily.
+>> As Logan states the driver can then choose to pass the VMAs to user-space
+>> in a manner that makes sense.
+>>
+>> Earlier in the thread someone mentioned LSF/MM. There is already a
+>> proposal to discuss this topic so if you are interested please respond to
+>> the email letting the committee know this topic is of interest to you [1=
+].
+>>
+>> Also earlier in the thread someone discussed the issues around the IOMMU.
+>> Given the known issues around P2P transfers in certain CPU root complexes
+>> [2] it might just be a case of only allowing P2P when a PCIe switch
+>> connects the two EPs. Another option is just to use CONFIG_EXPERT and ma=
+ke
+>> sure people are aware of the pitfalls if they invoke the P2P option.
+>
+> iopmem is not applicable to GPU what i propose is to split the issue in 2
+> so that everyone can reuse the part that needs to be common namely the DMA
+> API part where you have to create IOMMU mapping for one device to point
+> to the other device memory.
+>
+> We can have a DMA API that is agnostic to how the device memory is manage
+> (so does not matter if device memory have struct page or not). This what
+> i have been arguing in this thread. To make progress on this issue we need
+> to stop conflicting different use case.
+>
+> So i say let solve the IOMMU issue first and let everyone use it in their
+> own way with their device. I do not think we can share much more than
+> that.
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Yeah, exactly what I said from the very beginning as well. Just hacking =
 
-> -- 
-> 2.11.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+together quick solutions doesn't really solve the problem in the long term.
+
+What we need is proper adjusting of the DMA API towards handling of P2P =
+
+and then build solutions for the different use cases on top of that.
+
+We should also avoid falling into the trap of trying to just handle the =
+
+existing get_user_pages and co interfaces so that the existing code =
+
+doesn't need to change. P2P needs to be validated for each use case =
+
+individually and not implemented in workarounds with fingers crossed and =
+
+hoped for the best.
+
+Regards,
+Christian.
+
+>
+> Cheers,
+> J=E9r=F4me
