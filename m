@@ -1,30 +1,91 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data
-        structures
-Date: Sat, 14 Jan 2017 17:18:00 +0100
-Message-ID: <20170114161800.GA635@lst.de>
-References: <1484261109-3316-1-git-send-email-parav@mellanox.com> <20170113074420.GA25814@lst.de> <VI1PR0502MB30086F641A07262801C02A28D1780@VI1PR0502MB3008.eurprd05.prod.outlook.com> <1f8d3db6-03b7-6c8f-8010-4ab964a87f3c@grimberg.me> <CAG53R5XGW-up2JtB_X29nPwbEGW14mvRBjnao8yOHczYUvvPgg@mail.gmail.com> <45c8815c-d9a1-4a74-8a70-0a0ea11d8201@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data structures
+Date: Sat, 14 Jan 2017 10:45:37 -0600
+Message-ID: <1484412337-10860-1-git-send-email-parav@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <45c8815c-d9a1-4a74-8a70-0a0ea11d8201-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 13, 2017 at 10:01:23PM +0200, Sagi Grimberg wrote:
-> I've been seeing reports that nvme-rdma is not
-> useable with rxe as it crashes pretty consistently.
->
-> In any event, we can either add this with 'ib_' prefix
-> into 4.10-rc and add a patch to Bart's series or
-> we can send a dedicated patch for stable.
->
-> Christoph, whats your preference?
+This patch performs dma sync operations on nvme_command,
+inline page(s) and nvme_completion.
 
-Get the ib_dma_* version of Parave's patch in for 4.10-rc.
+nvme_command and write cmd inline data is synced
+(a) on receiving of the recv queue completion for cpu access.
+(b) before posting recv wqe back to rdma adapter for device access.
+
+nvme_completion is synced
+(a) on receiving send completion for nvme_completion for cpu access.
+(b) before posting send wqe to rdma adapter for device access.
+
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/nvme/target/rdma.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 6c1c368..da3d553 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -438,6 +438,14 @@ static int nvmet_rdma_post_recv(struct nvmet_rdma_device *ndev,
+ {
+ 	struct ib_recv_wr *bad_wr;
+ 
++	ib_dma_sync_single_for_device(ndev->device,
++			cmd->sge[0].addr, sizeof(*cmd->nvme_cmd),
++			DMA_FROM_DEVICE);
++
++	if (cmd->sge[1].addr)
++		ib_dma_sync_single_for_device(ndev->device,
++				cmd->sge[1].addr, NVMET_RDMA_INLINE_DATA_SIZE,
++				DMA_FROM_DEVICE);
+ 	if (ndev->srq)
+ 		return ib_post_srq_recv(ndev->srq, &cmd->wr, &bad_wr);
+ 	return ib_post_recv(cmd->queue->cm_id->qp, &cmd->wr, &bad_wr);
+@@ -507,6 +515,10 @@ static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct nvmet_rdma_rsp *rsp =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, send_cqe);
+ 
++	ib_dma_sync_single_for_cpu(rsp->queue->dev->device,
++			rsp->send_sge.addr, sizeof(*rsp->req.rsp),
++			DMA_TO_DEVICE);
++
+ 	nvmet_rdma_release_rsp(rsp);
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS &&
+@@ -538,6 +550,11 @@ static void nvmet_rdma_queue_response(struct nvmet_req *req)
+ 		first_wr = &rsp->send_wr;
+ 
+ 	nvmet_rdma_post_recv(rsp->queue->dev, rsp->cmd);
++
++	ib_dma_sync_single_for_device(rsp->queue->dev->device,
++			rsp->send_sge.addr, sizeof(*rsp->req.rsp),
++			DMA_TO_DEVICE);
++
+ 	if (ib_post_send(cm_id->qp, first_wr, &bad_wr)) {
+ 		pr_err("sending cmd response failed\n");
+ 		nvmet_rdma_release_rsp(rsp);
+@@ -698,6 +715,15 @@ static void nvmet_rdma_handle_command(struct nvmet_rdma_queue *queue,
+ 	cmd->n_rdma = 0;
+ 	cmd->req.port = queue->port;
+ 
++	ib_dma_sync_single_for_cpu(queue->dev->device, cmd->cmd->sge[0].addr,
++			sizeof(*cmd->cmd->nvme_cmd), DMA_FROM_DEVICE);
++
++	if (cmd->cmd->sge[1].addr)
++		ib_dma_sync_single_for_cpu(queue->dev->device,
++				cmd->cmd->sge[1].addr,
++				NVMET_RDMA_INLINE_DATA_SIZE,
++				DMA_FROM_DEVICE);
++
+ 	if (!nvmet_req_init(&cmd->req, &queue->nvme_cq,
+ 			&queue->nvme_sq, &nvmet_rdma_ops))
+ 		return;
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
