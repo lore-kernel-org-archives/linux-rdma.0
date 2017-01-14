@@ -1,47 +1,30 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data structures
-Date: Sat, 14 Jan 2017 16:12:37 +0000
-Message-ID: <VI1PR0502MB3008E00F1FC094A35496C6DBD17B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <1484261109-3316-1-git-send-email-parav@mellanox.com>
- <20170113074420.GA25814@lst.de>
- <VI1PR0502MB30086F641A07262801C02A28D1780@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <1f8d3db6-03b7-6c8f-8010-4ab964a87f3c@grimberg.me>
- <CAG53R5XGW-up2JtB_X29nPwbEGW14mvRBjnao8yOHczYUvvPgg@mail.gmail.com>
- <45c8815c-d9a1-4a74-8a70-0a0ea11d8201@grimberg.me>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH] nvmet-rdma: Fix missing dma sync to nvme data
+        structures
+Date: Sat, 14 Jan 2017 17:18:00 +0100
+Message-ID: <20170114161800.GA635@lst.de>
+References: <1484261109-3316-1-git-send-email-parav@mellanox.com> <20170113074420.GA25814@lst.de> <VI1PR0502MB30086F641A07262801C02A28D1780@VI1PR0502MB3008.eurprd05.prod.outlook.com> <1f8d3db6-03b7-6c8f-8010-4ab964a87f3c@grimberg.me> <CAG53R5XGW-up2JtB_X29nPwbEGW14mvRBjnao8yOHczYUvvPgg@mail.gmail.com> <45c8815c-d9a1-4a74-8a70-0a0ea11d8201@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <45c8815c-d9a1-4a74-8a70-0a0ea11d8201-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgU2FnaSwgQ2hyaXN0b3BoLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
-b206IFNhZ2kgR3JpbWJlcmcgW21haWx0bzpzYWdpQGdyaW1iZXJnLm1lXQ0KPiBTZW50OiBGcmlk
-YXksIEphbnVhcnkgMTMsIDIwMTcgMjowMSBQTQ0KPiBUbzogUGFyYXYgUGFuZGl0IDxwYW5kaXQu
-cGFyYXZAZ21haWwuY29tPg0KPiBDYzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+
-OyBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT47DQo+IGxpbnV4LW52bWVAbGlzdHMuaW5m
-cmFkZWFkLm9yZzsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGRsZWRmb3JkQHJlZGhh
-dC5jb20NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gbnZtZXQtcmRtYTogRml4IG1pc3NpbmcgZG1h
-IHN5bmMgdG8gbnZtZSBkYXRhDQo+IHN0cnVjdHVyZXMNCj4gDQo+ID4gSGkgU2FnaSwNCj4gDQo+
-ID4gSWYgd2Uga2VlcCB0aGUgcGF0Y2ggYXMgaXQgaXMgaW4gNC4xMC1yYywgdGhhbiBJIHRoaW5r
-IElCL3J4ZSB3aWxsDQo+ID4gYnJlYWsgd2l0aCBwbGF5cyB3aXRoIHZpcnR1YWwgYWRkcmVzc2Vz
-Lg0KPiANCj4gSSd2ZSBiZWVuIHNlZWluZyByZXBvcnRzIHRoYXQgbnZtZS1yZG1hIGlzIG5vdCB1
-c2VhYmxlIHdpdGggcnhlIGFzIGl0IGNyYXNoZXMNCj4gcHJldHR5IGNvbnNpc3RlbnRseS4NCj4g
-DQo+IEluIGFueSBldmVudCwgd2UgY2FuIGVpdGhlciBhZGQgdGhpcyB3aXRoICdpYl8nIHByZWZp
-eCBpbnRvIDQuMTAtcmMgYW5kIGFkZCBhDQo+IHBhdGNoIHRvIEJhcnQncyBzZXJpZXMgb3Igd2Ug
-Y2FuIHNlbmQgYSBkZWRpY2F0ZWQgcGF0Y2ggZm9yIHN0YWJsZS4NCj4gDQo+IENocmlzdG9waCwg
-d2hhdHMgeW91ciBwcmVmZXJlbmNlPw0KDQpJIHNlZSB0aGVyZSBpcyBzb21lIGRpc2N1c3Npb24g
-d2l0aCBCYXJ0J3MgcGF0Y2ggd2l0aCByZXNwZWN0IHRvIFNETUEuDQpTbyBJIGd1ZXNzIGl0IG1p
-Z2h0IHRha2UgYSB3aGlsZSB0byBtZXJnZSBoaXMgcGF0Y2hzZXQuDQoNCkhvdyBhYm91dCBkb2lu
-ZyB0aGlzPw0KLSBhZGQgdGhpcyB3aXRoICdpYl8nIHByZWZpeCBpbnRvIDQuMTAtcmMuDQotIGZv
-bGxvd2VkIGJ5IGNoZXJyeSBwaWNrIHRoaXMgY29tbWl0IGluIGxpbnV4LXJkbWEgdHJlZS4NCg0K
-V2hlbiBCYXJ0IHJlYmFzZSBpdCwgY2hhbmdlcyBvZiB0aGlzIGZpeCB3aWxsIGF1dG9tYXRpY2Fs
-bHkgZ2V0IGNvbnZlcnRlZCBmcm9tIGliXyB0byBkbWFfLg0KU28gc2hhbGwgSSBzZW5kIHBhdGNo
-IGZvciA0LjEwLXJjIHdpdGggJ2liXycgcHJlZml4Pw0KDQo=
+On Fri, Jan 13, 2017 at 10:01:23PM +0200, Sagi Grimberg wrote:
+> I've been seeing reports that nvme-rdma is not
+> useable with rxe as it crashes pretty consistently.
+>
+> In any event, we can either add this with 'ib_' prefix
+> into 4.10-rc and add a patch to Bart's series or
+> we can send a dedicated patch for stable.
+>
+> Christoph, whats your preference?
+
+Get the ib_dma_* version of Parave's patch in for 4.10-rc.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
