@@ -1,101 +1,63 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: iscsi_trx going into D state
-Date: Fri, 13 Jan 2017 16:38:33 -0700
-Message-ID: <CAANLjFrFxasp6e=jWq4FwPFjRLgX-nwHc5n+eYRTz9EjTCAQ5g@mail.gmail.com>
-References: <CAANLjFoj9-qscJOSf2jtKYt2+4cQxMHNJ9q2QTey4wyG5OTSAA@mail.gmail.com>
- <CAANLjFrZrTPUuzP_NjkgG5h_YwwYKEWT-KzVjTvuXZ1d04z6Fg@mail.gmail.com>
- <CAANLjFpSnQ7ApOK5HDRHXQQeQNGWLUv4e+2N=_e-zBeziYm5tw@mail.gmail.com>
- <CAANLjForEkO6RXw7KJYrTJD=f0S8FE73vvwNQcL_ARFdFoDQqg@mail.gmail.com>
- <1030906614.13148012.1483722413675.JavaMail.zimbra@redhat.com>
- <CAANLjFocE2fbO_oWRiEVCt0=mfmgrLy9qWqqg=TH_jZS3PXn0g@mail.gmail.com>
- <CAANLjFpRCwGSh=HV12dc_OtFKgcjQqERSPirqxWD1w0N-G_mCg@mail.gmail.com>
- <CAANLjFotqoC8TKGypD2uqoADRq5NxDmXgz-B7THKy_HH_7u9hg@mail.gmail.com> <1449740553.15880491.1484320214006.JavaMail.zimbra@redhat.com>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 00/26] IB: Optimize DMA mapping
+Date: Sat, 14 Jan 2017 02:05:14 +0000
+Message-ID: <F3529576D8E232409F431C309E29399336C6006C@CRSMSX102.amr.corp.intel.com>
+References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
+         <1484338667.2679.15.camel@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF78@CRSMSX102.amr.corp.intel.com>
+ <1484344759.2679.26.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449740553.15880491.1484320214006.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1484344759.2679.26.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Zhu Lingshan <lszhu-IBi9RG/b67k@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Laurance,
-
-I'm really starting to think that the stars aligned with the phase of
-the moon or something when I reproduced this in my lab before because
-I've been unable to reproduce it on Infiniband the last two days. The
-problem with this issue is that it is so hard to trigger, but causes a
-lot of problems when it does happen. I really hate wasting people's
-time when I can't reproduce it myself reliably. Please don't waste too
-much time if you can't get it reproduced on Infiniband, I'll have to
-wait until someone with the ConnectX-4-LX cards can replicate it.
-
-Hmmm.... you do have ConnectX-4 cards which may have the same bug it
-Ethernet mode. I don't see the RoCE bug on my ConnectX-3 cards, but
-your ConnectX-4 cards may work. Try putting the cards into Ethernet
-mode, set the speed and advertised speed to something lower than the
-max speed and verify that the link speed is that (ethtool). On the
-ConnectX-4-LX cards, I just had to set both interfaces down and then
-back up at the same time, on the ConnectX-3 I had to pull the cable
-(shutting down the client might have worked). Then set up target and
-client with iSER, format and run the test and it should trigger
-automatically.
-
-Looking at release notes on the ConnectX-4-LX cards, the latest
-firmware may fix the bug that so easily exposes the problem with that
-card. My cards are SuperMicro branded cards and don't have the new
-firmware available yet.
-
-Good luck.
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
 
-On Fri, Jan 13, 2017 at 8:10 AM, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->
->
-> ----- Original Message -----
->> From: "Robert LeBlanc" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
->> To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "Zhu Lingshan"
->> <lszhu-IBi9RG/b67k@public.gmane.org>, "linux-rdma" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Sagi Grimberg"
->> <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>
->> Sent: Thursday, January 12, 2017 4:26:05 PM
->> Subject: Re: iscsi_trx going into D state
->>
->> Sorry sent prematurely...
->>
->> On Thu, Jan 12, 2017 at 2:22 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
->> > I'm having trouble replicating the D state issue on Infiniband (I was
->> > able to trigger it reliably a couple weeks back, I don't know if OFED
->> > to verify the same results happen there as well.
->>
->> I'm having trouble replicating the D state issue on Infiniband (I was
->> able to trigger it reliably a couple weeks back, I don't know if OFED
->> being installed is altering things but it only installed for 3.10. The
->> ConnectX-4-LX exposes the issue easily if you have those cards.) to
->> verify the same results happen there as well.
->>
->> ----------------
->> Robert LeBlanc
->> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> I am only back in the office next Wednesday.
-> I have this all setup using ConnectX-4 with IB/ISER but have no way of remotely creating the disconnect as I currently have it back-to-back.
-> Have run multiple tests with IB and ISER hard resting the client to break the IB connection but have not been able to reproduce as yet.
-> So it will have to wait until I can pull cables next week as that seemed to be the way you have been reproducing this.
->
-> This is in a code area I also don't have a lot of knowledge of the flow but have started trying to understand it better.
->
-> Thanks
-> Laurence
->
+> -----Original Message-----
+> From: Bart Van Assche [mailto:Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org]
+> Sent: Friday, January 13, 2017 5:00 PM
+> To: Estrin, Alex <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+> Subject: Re: [PATCH v2 00/26] IB: Optimize DMA mapping
+> 
+> On Fri, 2017-01-13 at 21:08 +0000, Estrin, Alex wrote:
+> > It didn't fix the failure... Apparently there is an issue with generic
+> > mapping itself.
+> 
+> Hello Alex,
+> 
+> The generic mapping code in lib/dma-virt.c works fine with at least the rxe
+> driver. Additionally, as far as I can see the mapping code in lib/dma-virt.c
+> is identical to the mapping in drivers/infiniband/sw/rdmavt/dma.c. What is
+> not clear to me however is how my patches can have caused the SDMA engine
+> error messages? As far as I can see the code in
+> drivers/infiniband/hw/hfi1/sdma.c uses PCI DMA mapping operations instead of
+> the generic dma_virt_ops. Is that correct?
+
+Hi Bart,
+If you refer to code like this 
+from sdma.c: 
+/* dma map the coalesce buffer */
+                addr = dma_map_single(&dd->pcidev->dev,
+..... 
+please see hfi1/verbs.c @ hfi1_register_ib_device()  
+
+'dma_device' field is initialized here
+->	ibdev->dma_device = &dd->pcidev->dev;
+	followed by 
+	ret = rvt_register_device(&dd->verbs_dev.rdi);
+	->	set_dma_ops(rdi->ibdev.dma_device, &dma_virt_ops);
+ 
+Thanks,
+Alex.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
