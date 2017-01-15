@@ -1,93 +1,103 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Sun, 15 Jan 2017 10:35:43 +0200
-Message-ID: <20170115083543.GA20392@mtr-leonro.local>
-References: <20161228124728.26619-1-leon@kernel.org>
- <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
- <20170113171234.GA30551@obsidianresearch.com>
- <20170113203127.GT20392@mtr-leonro.local>
- <20170113212721.GB1463@obsidianresearch.com>
+Subject: Re: [PATCHv2 1/1] IB/core: create struct ib_port_cache
+Date: Sun, 15 Jan 2017 10:50:14 +0200
+Message-ID: <20170115085014.GB20392@mtr-leonro.local>
+References: <CAMGffEn-fOOe7s2rniqwcaocoV+jxkeJDHZ6WYJkkXi+CBQbEA@mail.gmail.com>
+ <b1fdf011-dc25-ad63-b223-0700f6e90bc6@profitbricks.com>
+ <20170113150103.GP20392@mtr-leonro.local>
+ <2617abae-686e-c8c6-799a-8742156fcd08@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+mSjbC2tVdWE/Wop"
+        protocol="application/pgp-signature"; boundary="pDtNmxPr5KTxcQ6Z"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170113212721.GB1463-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <2617abae-686e-c8c6-799a-8742156fcd08-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---+mSjbC2tVdWE/Wop
+--pDtNmxPr5KTxcQ6Z
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jan 13, 2017 at 02:27:21PM -0700, Jason Gunthorpe wrote:
-> On Fri, Jan 13, 2017 at 10:31:27PM +0200, Leon Romanovsky wrote:
+On Fri, Jan 13, 2017 at 04:35:54PM +0100, Jack Wang wrote:
 >
-> > > This is about what happens if the multicast MTU < unicast MTU - which
-> > > is *exactly* the same case on RC and UD.
-> > >
-> > > IPoIB cannot send a 64k multicast MTU on RC either.
+>
+> On 13.01.2017 16:01, Leon Romanovsky wrote:
+> > On Fri, Jan 13, 2017 at 02:12:19PM +0100, Jack Wang wrote:
+> >> Hi Doug, hi Jason and others,
+> >>
+> >> As Doug already merged the first 4 patches to his tree, so I rebased this patch also
+> >> on his latest for-4.11 branch (commit 102c5ce082), minor tweak on commit message.
+> >> I also configured my thunderbirds to keep the patch format as expected :), so here we go!
 > >
-> > Multicast is sent in datagram despite being in connected mode and for
-> > datagram the MTU is limited by IB
+> > Hi Jack,
+> > I don't know what did you configure, but git send-email is a preferred
+> > way to send linux kernel patches.
+> >
+> > Your attached patches are appearing wrongly (wrong subject and mbox garbage) in
+> > the patchworks https://patchwork.kernel.org/patch/9515651/
+> >
+> > Thanks
+> >
+> Hi Leon,
 >
-> I am aware of that. Read you patch again:
->
-> > +	if (priv->mcast_mtu < priv->admin_mtu)
-> > +		ipoib_warn(priv, "MTU must be smaller than mcast_mtu (%u)\n",
->
-> This check is fails in RC mode as well.
->
-> And we already check if the requested MTU is beyond the port
-> capability:
->
-> +        if (new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
-> +                return -EINVAL;
->
-> So I have *no idea* why you'd want to check it against the multicast
-> group too..
->
+> Thanks, I understand I changed subject in the patch because I notice Doug is using such naming.
 
-Port MTU capability can be higher than link MTU. In this flow, the user
-can try to set manually MTU which will be higher than SM provided.
+You changed the name of the patch which is fine, but you used the old thread
+and it was registered under that name in the system.
 
-Immediately after that print, we have a following piece of code:
- 236         dev->mtu = min(priv->mcast_mtu, priv->admin_mtu);
+Take a look on the subject of your patch:
+"[PATCH] RDMA/core: create struct ib_port_cache"
+and the name of in the system:
+"[PATCHv2,1/1] IB/core: create struct ib_port_cache"
 
-> It is OK for the multicast group to have a smaller MTU than the
-> unicast side. This is how RC operates after all.
+https://patchwork.kernel.org/patch/9515651/
+
+> But I don't follow "mbox garbage", what do you mean here?
+
+Your patches contain all the wording at the beginning.
+Please download yours https://patchwork.kernel.org/patch/9515651/mbox/
+and compare with the one in proper format https://patchwork.kernel.org/patch/9514391/mbox/
+
 >
-> Jason
+> About git send-email, I used to successfully sent patch with the tool, but somehow it's now always get reject
+> by gmail.
 
---+mSjbC2tVdWE/Wop
+According to the email headers, gmail and git send-email works fine for the most participants here.
+>
+> I'm not familiar with patchwork, will reply to same thread with proper subject fix the problem or I have to do it in a new thread?
+
+No, please fix the setup before and submit it properly.
+Thanks.
+
+>
+> Thanks,
+> Jack
+
+--pDtNmxPr5KTxcQ6Z
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh7NF8ACgkQ5GN7iDZy
-WKfVAQ//VG7YsAjKSXz0kZHVe2ekktOotWamPU1A49H7NThGA6HB05W4ci8kuYwO
-/hRxnMoXJczrPJrgZr6sJXALr1E63sJzaTFpG0o+O2d3HaYAS/dh9WhGV/amfBj+
-ExI/O0071e5sybYXpQ/876h/F7vsWC65WxVPhIc0GoUsPTHduVaY+onGEgEokqYP
-vNhDjl0XiI8AMoyr/33iIQ9IMJO4+ZnGkvkJqR8jwf77XJM5gubx/OxkG1OS/N36
-FxXyKzjLSDGWobO1viVtQpVlYD9u83ZR0UGU0MU+i65QOf6ZpxuwIVk/s1dpUiss
-D4ZM/uJKk9rfcJFD4ImplEVPZJB0pO3p0DLGqJRT5n5GbBp/BF63ydoQl9CUc5tl
-x4gfXe2gBL9LAv124qrXOzqLWJUxaedmpoAVtTkqN2bFAf3fmhfY7O0DC43c7O0S
-p0u7hFm6RYXAu7pD3AC1+KofaoRpR/gZGK6VXh9EoxgzYp7vqGCFaEJCtN8EjI9T
-DlZq39X39DtqHvTUpLUi7GpF3Iep6+F13sckk4BoQ+foO1s3uktI2On2XWnAkbkp
-mtd4yd+NOXdpqTcQXVBU9qN87KSXxhKqM/xBmVjybqq6oRQ1Ru0+cLQWnPfgOs7i
-UdhcZuyMjErbQ+HVnCCXjmaA+O3z7KpJdqMNEdzlrAPrmAdfEuA=
-=x6Ey
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh7N8YACgkQ5GN7iDZy
+WKeXkhAAtbUxdl6IZHn/tZxgo99jmfh0tQcGlfcKG3U6Wp7nZoyhD+cgMASi/mSl
+3izFzCG83i3Y09GcKVy1+vPgliDgWWhPDIuV9wgKFLJGoY9sAJxF640EOQPQZKNk
+TCWOaEjCntgw0L/SeEnB1O8sIPeydgieWOSoCxiEccEkfylARAy++QQF1YPSh3hw
+w5VnGgqYf4pgPEtp0JKxVr9B+pzLjVF23DgYjA1S5DhohSWVbe69DD5lEvCmrN8X
++ZxoC0hmB5K61Hdw6MNmMlBnBW8fbftzC7iiLZWziv/nylZG9k0JWFNmCAG/8qcx
+jFQLIzeAB0wx4qaC76FSeRdoTUs3xcNDo695TTALQnkruBxAS+xUJSJwvkW541OO
+P/2rchAvB7jb4Towjg+hAyhx4uZtv8r4NREdssWd0z8QhFtWydeEjYLLpVCeBcwY
+z53SvIlQO3jDPGxHpF3loHsQrFCWNa0+KQOA54+X0fmEmlLv99G/BiwKUfss8iaR
+7rF089v44v8nQVe8gMIydjHfIMhEZfuGMf1RGFX+GGxjLKjtt8CHqO0ZHUGyLS1Y
+aqnY8uXY1R4HwrDHug+d53pfhtZbKKVtYJBKUC0VuBl8Rk+9PyvrTo14jgixhUuj
+7VEWR6NeB2r6WTxYiOHCoXIO13IVyi+c/SZdADgdVo3NZP2eu28=
+=a1ke
 -----END PGP SIGNATURE-----
 
---+mSjbC2tVdWE/Wop--
+--pDtNmxPr5KTxcQ6Z--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
