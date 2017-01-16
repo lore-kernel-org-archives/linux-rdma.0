@@ -1,67 +1,52 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Mon, 16 Jan 2017 13:12:18 -0700
-Message-ID: <20170116201218.GA7890@obsidianresearch.com>
-References: <20161228124728.26619-1-leon@kernel.org>
- <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
- <20170113171234.GA30551@obsidianresearch.com>
- <20170113203127.GT20392@mtr-leonro.local>
- <20170113212721.GB1463@obsidianresearch.com>
- <20170115083543.GA20392@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCHv1 1/1] IB/iser: Fix sg_tablesize calculation
+Date: Mon, 16 Jan 2017 23:03:34 +0200
+Message-ID: <cd6691fd-11b4-dbf3-3ec4-12ff97bc515a@grimberg.me>
+References: <1484588681-12987-1-git-send-email-maxg@mellanox.com>
+ <1484588681-12987-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170115083543.GA20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1484588681-12987-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 15, 2017 at 10:35:43AM +0200, Leon Romanovsky wrote:
-> On Fri, Jan 13, 2017 at 02:27:21PM -0700, Jason Gunthorpe wrote:
-> > On Fri, Jan 13, 2017 at 10:31:27PM +0200, Leon Romanovsky wrote:
-> >
-> > > > This is about what happens if the multicast MTU < unicast MTU - which
-> > > > is *exactly* the same case on RC and UD.
-> > > >
-> > > > IPoIB cannot send a 64k multicast MTU on RC either.
-> > >
-> > > Multicast is sent in datagram despite being in connected mode and for
-> > > datagram the MTU is limited by IB
-> >
-> > I am aware of that. Read you patch again:
-> >
-> > > +	if (priv->mcast_mtu < priv->admin_mtu)
-> > > +		ipoib_warn(priv, "MTU must be smaller than mcast_mtu (%u)\n",
-> >
-> > This check is fails in RC mode as well.
-> >
-> > And we already check if the requested MTU is beyond the port
-> > capability:
-> >
-> > +        if (new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
-> > +                return -EINVAL;
-> >
-> > So I have *no idea* why you'd want to check it against the multicast
-> > group too..
-> >
-> 
-> Port MTU capability can be higher than link MTU. In this flow, the user
-> can try to set manually MTU which will be higher than SM provided.
-> 
-> Immediately after that print, we have a following piece of code:
->  236         dev->mtu = min(priv->mcast_mtu, priv->admin_mtu);
 
-Maybe the better fix is to take that min out than generate a
-warning.
+> For devices that can register page list that is bigger than
+> USHRT_MAX, we actually take the wrong value for sg_tablesize.
+> E.g: for CX4 max_fast_reg_page_list_len is 65536 (bigger than USHRT_MAX)
+> so we set sg_tablesize to 0 by mistake. Therefore, each IO that is
+> bigger than 4k splitted to "< 4k" chunks that cause performance degredation.
+>
+> Fixes: 7854550ae6d8 ("RDMA/iser: Limit sgs to the device fastreg depth")
+> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/iser/iscsi_iser.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> index 9104e6b..ff37f19 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> @@ -656,7 +656,8 @@ static void iscsi_iser_cleanup_task(struct iscsi_task *task)
+>  		 * max fastreg page list length.
+>  		 */
 
-Jason
+Hi Max,
+
+>  		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
+> -			ib_conn->device->ib_device->attrs.max_fast_reg_page_list_len);
+> +				      min_t(unsigned int, USHRT_MAX,
+> +			ib_conn->device->ib_device->attrs.max_fast_reg_page_list_len));
+
+Hmm, This looks broken since I fixed up mlx5 capability at:
+911f4331bc87 ("IB/mlx5: Expose correct max_fast_reg_page_list_len")
+
+However, I suspect this assignment should be removed altogether because
+we already take that into account in the address resolution handler,
+there the min statement is for unsigned and casted back to ushrt.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
