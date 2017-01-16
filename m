@@ -1,81 +1,67 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCHv1] nvmet-rdma: Fix missing dma sync to nvme data
- structures
-Date: Mon, 16 Jan 2017 20:51:02 +0000
-Message-ID: <VI1PR0502MB30084319E1D41697F27C593AD17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <1484597945-31143-1-git-send-email-parav@mellanox.com>
- <20170116203132.GB7384@yuval-lap>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Mon, 16 Jan 2017 13:12:18 -0700
+Message-ID: <20170116201218.GA7890@obsidianresearch.com>
+References: <20161228124728.26619-1-leon@kernel.org>
+ <20161228124728.26619-2-leon@kernel.org>
+ <1484246776.123135.19.camel@redhat.com>
+ <20170112193508.GO20392@mtr-leonro.local>
+ <20170112201622.GA14584@obsidianresearch.com>
+ <20170113150824.GQ20392@mtr-leonro.local>
+ <20170113171234.GA30551@obsidianresearch.com>
+ <20170113203127.GT20392@mtr-leonro.local>
+ <20170113212721.GB1463@obsidianresearch.com>
+ <20170115083543.GA20392@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170116203132.GB7384@yuval-lap>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170115083543.GA20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yuval,
+On Sun, Jan 15, 2017 at 10:35:43AM +0200, Leon Romanovsky wrote:
+> On Fri, Jan 13, 2017 at 02:27:21PM -0700, Jason Gunthorpe wrote:
+> > On Fri, Jan 13, 2017 at 10:31:27PM +0200, Leon Romanovsky wrote:
+> >
+> > > > This is about what happens if the multicast MTU < unicast MTU - which
+> > > > is *exactly* the same case on RC and UD.
+> > > >
+> > > > IPoIB cannot send a 64k multicast MTU on RC either.
+> > >
+> > > Multicast is sent in datagram despite being in connected mode and for
+> > > datagram the MTU is limited by IB
+> >
+> > I am aware of that. Read you patch again:
+> >
+> > > +	if (priv->mcast_mtu < priv->admin_mtu)
+> > > +		ipoib_warn(priv, "MTU must be smaller than mcast_mtu (%u)\n",
+> >
+> > This check is fails in RC mode as well.
+> >
+> > And we already check if the requested MTU is beyond the port
+> > capability:
+> >
+> > +        if (new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
+> > +                return -EINVAL;
+> >
+> > So I have *no idea* why you'd want to check it against the multicast
+> > group too..
+> >
+> 
+> Port MTU capability can be higher than link MTU. In this flow, the user
+> can try to set manually MTU which will be higher than SM provided.
+> 
+> Immediately after that print, we have a following piece of code:
+>  236         dev->mtu = min(priv->mcast_mtu, priv->admin_mtu);
 
-> -----Original Message-----
-> From: Yuval Shaia [mailto:yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> Sent: Monday, January 16, 2017 2:32 PM
-> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: hch-jcswGhMUV9g@public.gmane.org; sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org; linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Subject: Re: [PATCHv1] nvmet-rdma: Fix missing dma sync to nvme data
-> structures
->=20
-> On Mon, Jan 16, 2017 at 02:19:05PM -0600, Parav Pandit wrote:
-> > This patch performs dma sync operations on nvme_command, inline
-> > page(s) and nvme_completion.
-> >
-> > nvme_command and write cmd inline data is synced
-> > (a) on receiving of the recv queue completion for cpu access.
-> > (b) before posting recv wqe back to rdma adapter for device access.
-> >
-> > nvme_completion is synced
-> > (a) on receiving send completion for nvme_completion for cpu access.
-> > (b) before posting send wqe to rdma adapter for device access.
-> >
-> > This patch is generated for git://git.infradead.org/nvme-fabrics.git
-> > Branch: nvmf-4.10
-> >
-> > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/nvme/target/rdma.c | 25 +++++++++++++++++++++++++
-> >  1 file changed, 25 insertions(+)
-> >
-> > diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-> > index 6c1c368..fe7e257 100644
-> > --- a/drivers/nvme/target/rdma.c
-> > +++ b/drivers/nvme/target/rdma.c
-> > @@ -437,6 +437,14 @@ static int nvmet_rdma_post_recv(struct
-> nvmet_rdma_device *ndev,
-> >  		struct nvmet_rdma_cmd *cmd)
-> >  {
-> >  	struct ib_recv_wr *bad_wr;
-> > +	int i;
-> > +
-> > +	for (i =3D 0; i < 2; i++) {
-> > +		if (cmd->sge[i].length)
-> > +			ib_dma_sync_single_for_device(ndev->device,
->=20
-> Aren't we trying to get rid of all these ib_dma_* wrappers?
+Maybe the better fix is to take that min out than generate a
+warning.
 
-Yes. We are. Bart patch is still not merged. Lastly there was some issue wi=
-th SDMA or hfi changes.
-I have sent out patch on top of Bart's patch for inux-rdma tree using regul=
-ar dma_xx APIs.
-However Sagi and Christoph acknowledged that this fix needs to go to 4.8-st=
-able and 4.10-rc as bug fix.
-So this patch is generated from the nvme-fabrics tree as mentioned in comme=
-nt.
-When this gets to linux-rdma tree, Bart's new patch will translate this add=
-itional calls to regular dma_xx APIs.
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
