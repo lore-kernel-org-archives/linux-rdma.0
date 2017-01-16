@@ -1,99 +1,121 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCHv1] nvmet-rdma: Fix missing dma sync to nvme data structures
-Date: Mon, 16 Jan 2017 14:19:05 -0600
-Message-ID: <1484597945-31143-1-git-send-email-parav@mellanox.com>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [pull request][for-next] Mellanox mlx5 Reorganize core driver
+ directory layout
+Date: Mon, 16 Jan 2017 22:30:29 +0200
+Message-ID: <CALzJLG--ZRVk0Zy+6UaGCWbOhki+PZnkmrh9rjojU1ZDm_5Y6w@mail.gmail.com>
+References: <1484241755-17603-1-git-send-email-saeedm@mellanox.com>
+ <20170113.121407.448230751444957957.davem@davemloft.net> <CALzJLG_fjiGyuB_buZqOSMU7SaCnuqFiZ0UyW+hPDq+3yx7TWg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CALzJLG_fjiGyuB_buZqOSMU7SaCnuqFiZ0UyW+hPDq+3yx7TWg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch performs dma sync operations on nvme_command,
-inline page(s) and nvme_completion.
+On Sat, Jan 14, 2017 at 12:07 AM, Saeed Mahameed
+<saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Fri, Jan 13, 2017 at 7:14 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
+>> From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Date: Thu, 12 Jan 2017 19:22:34 +0200
+>>
+>>> This pull request includes one patch from Leon, this patch as described
+>>> below will change the driver directory structure and layout for better,
+>>> logical and modular driver files separation.
+>>>
+>>> This change is important to both rdma and net maintainers in order to
+>>> have smoother management of driver patches for different mlx5 sub modules
+>>> and smoother rdma-next vs. net-next features submissions.
+>>>
+>>> Please find more info below -in the tag commit message-,
+>>> review and let us know if there's any problem.
+>>>
+>>> This change doesn't introduce any conflicts with the current mlx5
+>>> fixes and cleanups posted on 2017-01-10 to net branch, and merge tests
+>>> worked flawlessly with no issues.
+>>>
+>>> This is the last pull request meant for both rdma-next and net-next.
+>>> Once pulled, this will be the base shared code for both trees.
+>>
+>> This is pretty crazy, it will make all bug fix backporting to -stable
+>> a complete nightmare for myself, Doug, various distribution maintainers
+>> and many other people who quietly have to maintain their own trees and
+>> do backporting.
+>>
+>
+> I hear you,
+> But please bear with me here, what if we queue this patch up to -stable ? and we
+> (Mellanox) and specifically our dedicated inbox team, will make sure
+> that this patch
+> will land on the various distributions and for those maintaining their
+> own trees.
+> This patch is really straight forward (rename files) and I already
+> tried to cherry-pick it
+> on older kernels, I only got a couple of conflicts on some of the
+> "#inlcude" lines we've
+> changed, and they are pretty straightforward to fix, we can even avoid
+> this if we decide to
+> not move mlx5 header files in this phase.
+>
+> If this is possible then all trees will be aligned and it will be a
+> win win situation.
+>
 
-nvme_command and write cmd inline data is synced
-(a) on receiving of the recv queue completion for cpu access.
-(b) before posting recv wqe back to rdma adapter for device access.
+Hi Dave,
 
-nvme_completion is synced
-(a) on receiving send completion for nvme_completion for cpu access.
-(b) before posting send wqe to rdma adapter for device access.
+Any chance you saw my -stable suggestion above ?
+I think it would really close the backporting gap.
 
-This patch is generated for git://git.infradead.org/nvme-fabrics.git
-Branch: nvmf-4.10
+Sorry i am bothering you with this topic, but we really desire the new
+structure and
+I never got your feedback on this suggestion, so i would like to hear
+your thoughts.
 
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/nvme/target/rdma.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+Thanks,
+Saeed.
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 6c1c368..fe7e257 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -437,6 +437,14 @@ static int nvmet_rdma_post_recv(struct nvmet_rdma_device *ndev,
- 		struct nvmet_rdma_cmd *cmd)
- {
- 	struct ib_recv_wr *bad_wr;
-+	int i;
-+
-+	for (i = 0; i < 2; i++) {
-+		if (cmd->sge[i].length)
-+			ib_dma_sync_single_for_device(ndev->device,
-+				cmd->sge[0].addr, cmd->sge[0].length,
-+				DMA_FROM_DEVICE);
-+	}
- 
- 	if (ndev->srq)
- 		return ib_post_srq_recv(ndev->srq, &cmd->wr, &bad_wr);
-@@ -507,6 +515,10 @@ static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
- 	struct nvmet_rdma_rsp *rsp =
- 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, send_cqe);
- 
-+	ib_dma_sync_single_for_cpu(rsp->queue->dev->device,
-+			rsp->send_sge.addr, rsp->send_sge.length,
-+			DMA_TO_DEVICE);
-+
- 	nvmet_rdma_release_rsp(rsp);
- 
- 	if (unlikely(wc->status != IB_WC_SUCCESS &&
-@@ -538,6 +550,11 @@ static void nvmet_rdma_queue_response(struct nvmet_req *req)
- 		first_wr = &rsp->send_wr;
- 
- 	nvmet_rdma_post_recv(rsp->queue->dev, rsp->cmd);
-+
-+	ib_dma_sync_single_for_device(rsp->queue->dev->device,
-+			rsp->send_sge.addr, rsp->send_sge.length,
-+			DMA_TO_DEVICE);
-+
- 	if (ib_post_send(cm_id->qp, first_wr, &bad_wr)) {
- 		pr_err("sending cmd response failed\n");
- 		nvmet_rdma_release_rsp(rsp);
-@@ -692,12 +709,20 @@ static bool nvmet_rdma_execute_command(struct nvmet_rdma_rsp *rsp)
- static void nvmet_rdma_handle_command(struct nvmet_rdma_queue *queue,
- 		struct nvmet_rdma_rsp *cmd)
- {
-+	int i;
- 	u16 status;
- 
- 	cmd->queue = queue;
- 	cmd->n_rdma = 0;
- 	cmd->req.port = queue->port;
- 
-+	for (i = 0; i < 2; i++) {
-+		if (cmd->cmd->sge[i].length)
-+			ib_dma_sync_single_for_cpu(queue->dev->device,
-+				cmd->cmd->sge[i].addr, cmd->cmd->sge[i].length,
-+				DMA_FROM_DEVICE);
-+	}
-+
- 	if (!nvmet_req_init(&cmd->req, &queue->nvme_cq,
- 			&queue->nvme_sq, &nvmet_rdma_ops))
- 		return;
--- 
-1.8.3.1
-
+>> I really don't think you can justify this rearrangement based upon the
+>> consequences and how much activity happens in this driver.
+>>
+>
+> Right, but this is not the only justification, I can sum it up to that
+> we would like
+> to lay out the foundation for many years to come for a well designed
+> driver with a modular
+> sub modules break down and scalable infrastructure. We already plan to
+> submit more mlx5
+> independent  sub modules - just like mlx5e (en_*) files and mlx5_ib
+> driver- so this was also
+> a reason for us to consider this re-engagement at this stage.
+>
+>> You should have thought long and hard about the layout a long time ago
+>> rather than after the driver has been in the tree for many years.
+>>
+>
+> I had this Idea for the separation before the mlx5 Ethernet
+> submission, but I wasn't the maintainer
+> back then, and i have been itching to submit such patch for long as
+> well, still i don't think
+> it is too late, We (Me and Leon) will keep maintaining this driver for
+> only god knows how many years to come,
+> and the mlx5 drivers are meant to serve at least 3-4 more future HW generations.
+>
+> Long story short, We would like to re-arrange the driver in a way that
+> would serve us (the maintainers) and serve those
+> who are going do develop the future Stack features and the future HW
+> generations over the well designed (Hopefully)
+> mlx5 infrastructure.
+> Keeping it as it is today, will only make the situation worst in the
+> future and it will be really hard to avoid having a spaghetti code
+> in the mlx5 driver. All i want to point out here is that maintaining
+> such a flat subtree is also nightmare.
+>
+> So i am only asking you to reconsider this change and give my -stable
+> suggestion a thought.
+>
+> Thank you.
+> Saeed.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
