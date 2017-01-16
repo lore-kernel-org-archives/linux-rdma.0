@@ -1,211 +1,279 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for bnxt_re V3 03/21] bnxt_re: register with the NIC
- driver
-Date: Sun, 15 Jan 2017 21:41:43 +0200
-Message-ID: <20170115194143.GE20392@mtr-leonro.local>
-References: <1482225211-22423-1-git-send-email-selvin.xavier@broadcom.com>
- <1482225211-22423-4-git-send-email-selvin.xavier@broadcom.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device until vmxnet3
+ link is up
+Date: Mon, 16 Jan 2017 09:38:58 +0200
+Message-ID: <20170116073858.GA25853@mtr-leonro.local>
+References: <cover.1484075557.git.aditr@vmware.com>
+ <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="sTC4Ri5uc2u6z9Yo"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1482225211-22423-4-git-send-email-selvin.xavier@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@broadcom.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, michael.chan@broadcom.com, Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+In-Reply-To: <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---sTC4Ri5uc2u6z9Yo
+--2oS5YaxWCcQjTEyO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Dec 20, 2016 at 01:13:13AM -0800, Selvin Xavier wrote:
-> This patch handles the registration with the bnxt_en driver.
-> The bnxt_re driver first registers with netdev notifier chain and upon
-> receiving the NETDEV_REGISTER event, it registers with bnxt_en driver.
+On Tue, Jan 10, 2017 at 11:15:39AM -0800, Adit Ranadive wrote:
+> From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 >
-> 	1. bnxt_en's ulp_probe function returns a structure that contains
-> 	   information 	about the device and additional entry points.
-> 	2. bnxt_en driver returns 'struct bnxt_eth_dev' that contains set
-> 	   of operation  vectors that bnxt_re driver invokes later.
-> 	3. bnxt_request_msix() allows the bnxt_re driver to specify the
-> 	   number of MSI-X vectors that are needed.
-> 	4. bnxt_send_fw_msg () is used to send messages to the FW
-> 	5. bnxt_register_async_events() is used to register for async
-> 	   event callbacks.
+> Currently on bootup, ethernet drivers seem to load before RDMA ones
+> in Linux. So while the vmxnet3 module is loaded before vmw_pvrdma,
+> the vmxnet3 link state may not necessarily be enabled by the stack
+> before pvrdma is loaded. This is a problem because if the pvrdma
+> module is loaded on bootup (by installing it in /lib/modules/*),
+> the pvrdma device comes up in a port down state.
 >
-> v2: Remove some sparse warning. Also, remove some unused code from unreg
->     path.
-> v3: Removed condition checks for rdev reported during static code analysis.
->     Check the return value of try_module_get while getting bnxt_en
->     reference.
+> Since this is the most common use case scenario, defer the activation
+> of the device till the paired vmxnet3 link actually comes up. One
+> downside of doing this is, if a user doesn't have the vmxnet3 link
+> up when the pvrdma driver is loaded, they may not see any output
+> for ibv_devinfo until the paired vmxnet3 link is enabled too. The
+> users somehow need to be aware of this.
 >
-> Signed-off-by: Eddie Wai <eddie.wai@broadcom.com>
-> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
-> Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+
+I wouldn't call it "fix", the more appropriate name is "hack".
+It doesn't look right that users should be aware of such non-intuitive
+driver behavior.
+
+
+> This only changes how the device is activated the first time. Once
+> enabled if the link goes down, a pvrdma driver reload is still required
+> after link up.
+>
+> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+> Signed-off-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/hw/bnxtre/bnxt_re.h      |  51 ++++
->  drivers/infiniband/hw/bnxtre/bnxt_re_main.c | 448 ++++++++++++++++++++++++++++
->  2 files changed, 499 insertions(+)
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  1 +
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 99 +++++++++++++++++---------
+>  2 files changed, 65 insertions(+), 35 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re.h b/drivers/infiniband/hw/bnxtre/bnxt_re.h
-> index f9b8542..8b73e3d 100644
-> --- a/drivers/infiniband/hw/bnxtre/bnxt_re.h
-> +++ b/drivers/infiniband/hw/bnxtre/bnxt_re.h
-> @@ -42,5 +42,56 @@
->  #define ROCE_DRV_MODULE_NAME		"bnxt_re"
->  #define ROCE_DRV_MODULE_VERSION		"1.0.0"
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> index 71e1d55..540a54b 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> @@ -221,6 +221,7 @@ struct pvrdma_dev {
+>  	u32 port_cap_mask;
+>  	struct mutex port_mutex; /* Port modification mutex. */
+>  	bool ib_active;
+> +	bool enabled;
+>  	atomic_t num_qps;
+>  	atomic_t num_cqs;
+>  	atomic_t num_pds;
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> index 231a1ce..b57132f 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> @@ -74,6 +74,8 @@ static int pvrdma_del_gid(struct ib_device *ibdev,
+>  			  void **context);
 >
-> +#define BNXT_RE_REF_WAIT_COUNT		10
->  #define BNXT_RE_DESC	"Broadcom NetXtreme-C/E RoCE Driver"
-> +
-> +struct bnxt_re_work {
-> +	struct work_struct	work;
-> +	unsigned long		event;
-> +	struct bnxt_re_dev      *rdev;
-> +	struct net_device	*vlan_dev;
-> +};
-> +
-> +#define BNXT_RE_MIN_MSIX		2
-> +#define BNXT_RE_MAX_MSIX		16
-> +struct bnxt_re_dev {
-> +	struct ib_device		ibdev;
-> +	struct list_head		list;
-> +	atomic_t			ref_count;
-> +	unsigned long			flags;
-> +#define BNXT_RE_FLAG_NETDEV_REGISTERED	0
-> +#define BNXT_RE_FLAG_IBDEV_REGISTERED	1
-> +#define BNXT_RE_FLAG_GOT_MSIX		2
-> +#define BNXT_RE_FLAG_RCFW_CHANNEL_EN	8
-> +#define BNXT_RE_FLAG_QOS_WORK_REG	16
-> +	struct net_device		*netdev;
-> +	unsigned int			version, major, minor;
-> +	struct bnxt_en_dev		*en_dev;
-> +	struct bnxt_msix_entry		msix_entries[BNXT_RE_MAX_MSIX];
-> +	int				num_msix;
-> +
-> +	int				id;
-> +
-> +	atomic_t			qp_count;
-> +	struct mutex			qp_lock;	/* protect qp list */
-> +	struct list_head		qp_list;
-> +
-> +	atomic_t			cq_count;
-> +	atomic_t			srq_count;
-> +	atomic_t			mr_count;
-> +	atomic_t			mw_count;
-> +	/* Max of 2 lossless traffic class supported per port */
-> +	u16				cosq[2];
-> +};
-> +
-> +#define to_bnxt_re_dev(ptr, member)	\
-> +	container_of((ptr), struct bnxt_re_dev, member)
-> +
-> +static inline struct device *rdev_to_dev(struct bnxt_re_dev *rdev)
-> +{
-> +	if (rdev)
-> +		return  &rdev->ibdev.dev;
-> +	return NULL;
-> +}
-> +
->  #endif
-> diff --git a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-> index 6c22d51..fbd2ad3 100644
-> --- a/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-> +++ b/drivers/infiniband/hw/bnxtre/bnxt_re_main.c
-> @@ -38,10 +38,24 @@
 >
->  #include <linux/module.h>
->  #include <linux/netdevice.h>
-> +#include <linux/ethtool.h>
->  #include <linux/mutex.h>
->  #include <linux/list.h>
->  #include <linux/rculist.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/pci.h>
-> +#include <net/ipv6.h>
-> +#include <net/addrconf.h>
+> +static int pvrdma_enable_dev(struct pvrdma_dev *dev);
 > +
-> +#include <rdma/ib_verbs.h>
-> +#include <rdma/ib_user_verbs.h>
-> +#include <rdma/ib_umem.h>
-> +#include <rdma/ib_addr.h>
-> +
-> +#include "bnxt_ulp.h"
-> +#include "bnxt_re_hsi.h"
->  #include "bnxt_re.h"
-> +#include "bnxt.h"
->  static char version[] =
->  		BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
+>  static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+>  			char *buf)
+>  {
+> @@ -755,6 +757,10 @@ static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
+>  		pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ERR);
+>  		break;
+>  	case NETDEV_UP:
+> +		if (!dev->enabled && pvrdma_enable_dev(dev)) {
+> +			dev_err(&dev->pdev->dev, "failed to enable device\n");
+> +			break;
+> +		}
+>  		pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
+>  		break;
+>  	default:
+> @@ -801,6 +807,48 @@ static int pvrdma_netdevice_event(struct notifier_block *this,
+>  	return NOTIFY_DONE;
+>  }
 >
-> @@ -55,6 +69,384 @@ static struct list_head bnxt_re_dev_list = LIST_HEAD_INIT(bnxt_re_dev_list);
->  /* Mutex to protect the list of bnxt_re devices added */
->  static DEFINE_MUTEX(bnxt_re_dev_lock);
->  static struct workqueue_struct *bnxt_re_wq;
-> +
-> +/* for handling bnxt_en callbacks later */
-> +static void bnxt_re_stop(void *p)
+> +static void pvrdma_disable_dev(struct pvrdma_dev *dev)
 > +{
+> +	if (dev->enabled) {
+> +		ib_unregister_device(&dev->ib_dev);
+> +		dev->enabled = false;
+> +	}
 > +}
 > +
-> +static void bnxt_re_start(void *p)
+> +static int pvrdma_enable_dev(struct pvrdma_dev *dev)
 > +{
+> +	int ret;
+> +	pvrdma_enable_intrs(dev);
+> +
+> +	/* Activate pvrdma device */
+> +	pvrdma_write_reg(dev, PVRDMA_REG_CTL, PVRDMA_DEVICE_CTL_ACTIVATE);
+> +
+> +	/* Make sure the write is complete before reading status. */
+> +	mb();
+> +
+> +	/* Check if device was successfully activated */
+> +	ret = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
+> +	if (ret) {
+> +		dev_err(&dev->pdev->dev, "failed to activate device\n");
+> +		ret = -EFAULT;
+> +		goto err_disable_intrs;
+> +	}
+> +
+> +	/* Register IB device */
+> +	ret = pvrdma_register_device(dev);
+> +	if (ret) {
+> +		dev_err(&dev->pdev->dev, "failed to register IB device\n");
+> +		goto err_disable_intrs;
+> +	}
+> +
+> +	dev->enabled = true;
+> +	return 0;
+> +
+> +err_disable_intrs:
+> +	pvrdma_disable_intrs(dev);
+> +	return ret;
 > +}
 > +
-> +static void bnxt_re_sriov_config(void *p, int num_vfs)
-> +{
-> +}
-> +
-> +static struct bnxt_ulp_ops bnxt_re_ulp_ops = {
-> +	.ulp_async_notifier = NULL,
-> +	.ulp_stop = bnxt_re_stop,
-> +	.ulp_start = bnxt_re_start,
-> +	.ulp_sriov_config = bnxt_re_sriov_config
-> +};
-> +
-> +/* The rdev ref_count is to protect immature removal of the device */
-> +static inline void bnxt_re_hold(struct bnxt_re_dev *rdev)
-> +{
-> +	atomic_inc(&rdev->ref_count);
-> +}
-> +
-> +static inline void bnxt_re_put(struct bnxt_re_dev *rdev)
-> +{
-> +	atomic_dec(&rdev->ref_count);
-> +}
+>  static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  			    const struct pci_device_id *id)
+>  {
+> @@ -867,14 +915,14 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	/* Enable 64-Bit DMA */
+>  	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) == 0) {
+>  		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+> -		if (ret != 0) {
+> +		if (ret) {
+>  			dev_err(&pdev->dev,
+>  				"pci_set_consistent_dma_mask failed\n");
+>  			goto err_free_resource;
+>  		}
+>  	} else {
+>  		ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+> -		if (ret != 0) {
+> +		if (ret) {
+>  			dev_err(&pdev->dev,
+>  				"pci_set_dma_mask failed\n");
+>  			goto err_free_resource;
+> @@ -1029,7 +1077,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "failed to allocate interrupts\n");
+>  		ret = -ENOMEM;
+> -		goto err_netdevice;
+> +		goto err_free_cq_ring;
+>  	}
+>
+>  	/* Allocate UAR table. */
+> @@ -1049,51 +1097,35 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	}
+>  	dev_dbg(&pdev->dev, "gid table len %d\n", dev->dsr->caps.gid_tbl_len);
+>
+> -	pvrdma_enable_intrs(dev);
+> -
+> -	/* Activate pvrdma device */
+> -	pvrdma_write_reg(dev, PVRDMA_REG_CTL, PVRDMA_DEVICE_CTL_ACTIVATE);
+> -
+> -	/* Make sure the write is complete before reading status. */
+> -	mb();
+> -
+> -	/* Check if device was successfully activated */
+> -	ret = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
+> -	if (ret != 0) {
+> -		dev_err(&pdev->dev, "failed to activate device\n");
+> -		ret = -EFAULT;
+> -		goto err_disable_intr;
+> -	}
+> -
+> -	/* Register IB device */
+> -	ret = pvrdma_register_device(dev);
+> -	if (ret) {
+> -		dev_err(&pdev->dev, "failed to register IB device\n");
+> -		goto err_disable_intr;
+> +	if (netif_running(dev->netdev) && netif_carrier_ok(dev->netdev)) {
+> +		ret = pvrdma_enable_dev(dev);
+> +		if (ret) {
+> +			dev_err(&pdev->dev, "failed to enable device\n");
+> +			goto err_free_sgid_tbl;
+> +		}
+> +	} else {
+> +		dev_info(&pdev->dev, "pvrdma netdev link is down\n");
+>  	}
+>
+>  	dev->nb_netdev.notifier_call = pvrdma_netdevice_event;
+>  	ret = register_netdevice_notifier(&dev->nb_netdev);
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "failed to register netdevice events\n");
+> -		goto err_unreg_ibdev;
+> +		goto err_disable_dev;
+>  	}
+>
+>  	dev_info(&pdev->dev, "attached to device\n");
+>  	return 0;
+>
+> -err_unreg_ibdev:
+> -	ib_unregister_device(&dev->ib_dev);
+> -err_disable_intr:
+> -	pvrdma_disable_intrs(dev);
+> +err_disable_dev:
+> +	pvrdma_disable_dev(dev);
+> +err_free_sgid_tbl:
+>  	kfree(dev->sgid_tbl);
+>  err_free_uar_table:
+>  	pvrdma_uar_table_cleanup(dev);
+>  err_free_intrs:
+>  	pvrdma_free_irq(dev);
+>  	pvrdma_disable_msi_all(dev);
+> -err_netdevice:
+> -	unregister_netdevice_notifier(&dev->nb_netdev);
+>  err_free_cq_ring:
+>  	pvrdma_page_dir_cleanup(dev, &dev->cq_pdir);
+>  err_free_async_ring:
+> @@ -1132,10 +1164,7 @@ static void pvrdma_pci_remove(struct pci_dev *pdev)
+>  	unregister_netdevice_notifier(&dev->nb_netdev);
+>  	dev->nb_netdev.notifier_call = NULL;
+>
+> -	flush_workqueue(event_wq);
+> -
+> -	/* Unregister ib device */
+> -	ib_unregister_device(&dev->ib_dev);
+> +	pvrdma_disable_dev(dev);
+>
+>  	mutex_lock(&pvrdma_device_list_lock);
+>  	list_del(&dev->device_link);
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Recently, in one of our submission to netdev and rdma, we got
-a reminder that inline functions shouldn't be in *.c. Let for
-the compiler to decide.
-
-IMHO, it should be open-coded without wrappers and honestly I failed to
-understand why do you need so many wrappers for one line standard kernel
-functions.
-
-Thanks
-
---sTC4Ri5uc2u6z9Yo
+--2oS5YaxWCcQjTEyO
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh70HcACgkQ5GN7iDZy
-WKfnjRAAicPgZUHGJVToaYEjAy9cW76o1UH3UOidDSvgDZykTJIIn3DYeiGX3AZH
-UGdn9ZtBPBkFAwBdtiIfpiPA2AiybUZMXNODr4EilQfRTbf7vO//lDEYBPBLDEyb
-NI+CeUMceaLTcJDpycrrpSemEkkWWzti8pAtVACL6uR8YQxSucIE+ktkos6j1i0s
-tWUpK9PrdzVrvIWTMYi2idw+K7FKhUlwGlsYyvbyXuoyVtT1WYMl2njaPriivFLR
-ip0sTOo+jNB2ERMGLO766s2jswQjRiRdQgSTU21gcDuga2eu7RPmxD12kqNgLtsz
-Seso+0yNDM1PAXS6HeiEWUfVNjQpSH4sxO/gU/WTDPUdTm0zqPNs4zHRimnr0zaN
-F/z/IDVtG8ZxBWRbeComhf12XKe6nS0kdu7gdpRRePSdxCK7InENpcQAraxpo4Du
-CCQHjZk9m3+2rnXETTBpyP3mbHx/twdODAG1lSOILJlmxXBN/4Dzm7fB+SG+lWVm
-6SGOW5WQVG2aWh/9BxQOoG7hEkyoDcUNQRtI9uJtgfk2LVwDazDXR1pPJG4AR6KZ
-Jxpio0u6tYg11xA04v5qVtyAqmi9GidKTk1G6DMYJFz5n4xKUbt798JysJ3r4A6z
-GF5DHTODfBRy5h6vtQ6zVft71JED7BVusdtxubjGDPyOJVDWkfM=
-=0hmv
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh8eJIACgkQ5GN7iDZy
+WKeQ7w//aHe4/18MrdN8BpXlCPIghb4FB99F2MF7T4fNsXoOqu80TUFQ+cvkoJMw
+024YuPHZz7QSpmBIwVjnxDqia7Ak3Na6nwipf8fjef1Uj7WSxuE4Aiiku4Z2b8Lb
+51O29S+oDntVaA0pBieFqxd5JJWziHhpFTHV85gLtHPSVlDjvPukbqUatXh9+EA4
+UKKwJNv7RsZC88vy+fiibNk4wO6Lj8SqiCo8mV5lNCLGgC0ysdgT/NUDnRBt04k9
+/kK+SIPHu2Gn5THCs5Mk0klOGirrtABZs2NBfpChW/jv7dur3THkI3X+KD3yt7NZ
+c/j2OCiK8EEIWQlvtpzEyGIUCJNuPOhnO0aJccB4LNVQW5ErkqinamKpBfZI81E8
+5lp6twq/caSC0vA9fY01wey3DxEIgl2wrZv4W4pVsB22Sav4JwAjM7IVVHmCJ7Vf
+M4wIbjUiD91IHtWxxFODkd31fFQdIVYyI95rGIo5J5Pkie5EJU2atdhuwc+WLE12
+V87uWJp+guJyS/8VbC6DaJqqPpPuKDZ46GlV87S6LYAaq8TVwpnpa/4HUEtwuPQa
+4PDAKN3D6X8Y5HooQkwXUXMPcbWwsgvz/KVCc7Z9ilHMU7hIVM0cD9UlRqnXLD1f
+DYiAZg2xQJkYSEFzhLRK1G9TKnkuJxvYQxYRn7sNn47YcMxzJag=
+=W5bE
 -----END PGP SIGNATURE-----
 
---sTC4Ri5uc2u6z9Yo--
+--2oS5YaxWCcQjTEyO--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
