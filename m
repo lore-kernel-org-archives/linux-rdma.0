@@ -1,53 +1,136 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCHv1 1/1] IB/iser: Fix sg_tablesize calculation
-Date: Mon, 16 Jan 2017 23:03:34 +0200
-Message-ID: <cd6691fd-11b4-dbf3-3ec4-12ff97bc515a@grimberg.me>
-References: <1484588681-12987-1-git-send-email-maxg@mellanox.com>
- <1484588681-12987-2-git-send-email-maxg@mellanox.com>
+From: Tom Herbert <tom@herbertland.com>
+Subject: Re: [pull request][for-next] Mellanox mlx5 Reorganize core driver
+ directory layout
+Date: Mon, 16 Jan 2017 13:06:55 -0800
+Message-ID: <CALx6S377hzH8_DbUSKafkbCzMEunr0H7vrfcb2WfEWFHFnfUpw@mail.gmail.com>
+References: <1484241755-17603-1-git-send-email-saeedm@mellanox.com>
+ <20170113.121407.448230751444957957.davem@davemloft.net> <CALzJLG_fjiGyuB_buZqOSMU7SaCnuqFiZ0UyW+hPDq+3yx7TWg@mail.gmail.com>
+ <CALzJLG--ZRVk0Zy+6UaGCWbOhki+PZnkmrh9rjojU1ZDm_5Y6w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484588681-12987-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CALzJLG--ZRVk0Zy+6UaGCWbOhki+PZnkmrh9rjojU1ZDm_5Y6w@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Cc: David Miller <davem@davemloft.net>, Saeed Mahameed <saeedm@mellanox.com>, Doug Ledford <dledford@redhat.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Leon Romanovsky <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> For devices that can register page list that is bigger than
-> USHRT_MAX, we actually take the wrong value for sg_tablesize.
-> E.g: for CX4 max_fast_reg_page_list_len is 65536 (bigger than USHRT_MAX)
-> so we set sg_tablesize to 0 by mistake. Therefore, each IO that is
-> bigger than 4k splitted to "< 4k" chunks that cause performance degredation.
+On Mon, Jan 16, 2017 at 12:30 PM, Saeed Mahameed
+<saeedm@dev.mellanox.co.il> wrote:
+> On Sat, Jan 14, 2017 at 12:07 AM, Saeed Mahameed
+> <saeedm@dev.mellanox.co.il> wrote:
+>> On Fri, Jan 13, 2017 at 7:14 PM, David Miller <davem@davemloft.net> wrote:
+>>> From: Saeed Mahameed <saeedm@mellanox.com>
+>>> Date: Thu, 12 Jan 2017 19:22:34 +0200
+>>>
+>>>> This pull request includes one patch from Leon, this patch as described
+>>>> below will change the driver directory structure and layout for better,
+>>>> logical and modular driver files separation.
+>>>>
+>>>> This change is important to both rdma and net maintainers in order to
+>>>> have smoother management of driver patches for different mlx5 sub modules
+>>>> and smoother rdma-next vs. net-next features submissions.
+>>>>
+>>>> Please find more info below -in the tag commit message-,
+>>>> review and let us know if there's any problem.
+>>>>
+>>>> This change doesn't introduce any conflicts with the current mlx5
+>>>> fixes and cleanups posted on 2017-01-10 to net branch, and merge tests
+>>>> worked flawlessly with no issues.
+>>>>
+>>>> This is the last pull request meant for both rdma-next and net-next.
+>>>> Once pulled, this will be the base shared code for both trees.
+>>>
+>>> This is pretty crazy, it will make all bug fix backporting to -stable
+>>> a complete nightmare for myself, Doug, various distribution maintainers
+>>> and many other people who quietly have to maintain their own trees and
+>>> do backporting.
+>>>
+>>
+>> I hear you,
+>> But please bear with me here, what if we queue this patch up to -stable ? and we
+>> (Mellanox) and specifically our dedicated inbox team, will make sure
+>> that this patch
+>> will land on the various distributions and for those maintaining their
+>> own trees.
+>> This patch is really straight forward (rename files) and I already
+>> tried to cherry-pick it
+>> on older kernels, I only got a couple of conflicts on some of the
+>> "#inlcude" lines we've
+>> changed, and they are pretty straightforward to fix, we can even avoid
+>> this if we decide to
+>> not move mlx5 header files in this phase.
+>>
+>> If this is possible then all trees will be aligned and it will be a
+>> win win situation.
+>>
 >
-> Fixes: 7854550ae6d8 ("RDMA/iser: Limit sgs to the device fastreg depth")
-> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/iser/iscsi_iser.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+> Hi Dave,
 >
-> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> index 9104e6b..ff37f19 100644
-> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> @@ -656,7 +656,8 @@ static void iscsi_iser_cleanup_task(struct iscsi_task *task)
->  		 * max fastreg page list length.
->  		 */
+> Any chance you saw my -stable suggestion above ?
+> I think it would really close the backporting gap.
+>
+> Sorry i am bothering you with this topic, but we really desire the new
+> structure and
+> I never got your feedback on this suggestion, so i would like to hear
+> your thoughts.
+>
+Saeed,
 
-Hi Max,
+I've already you specific suggestions on your new structure, please
+consider your reviewers feedback more carefully. Again, the starting
+point for your restructuring should be to separate out the minimum set
+of files required to build reasonable driver and then cleanly
+compartmentalize the rest of the features to make it easy for your
+users to include or not include those in their build. Unless you've
+done this I'm not seeing much benefit for this restructuring. Also, I
+would rather see this done in one shot then expecting some sort of
+evolution over time to the right solution-- as Dave said the
+complexity of this driver is to far down the road to do that.
 
->  		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
-> -			ib_conn->device->ib_device->attrs.max_fast_reg_page_list_len);
-> +				      min_t(unsigned int, USHRT_MAX,
-> +			ib_conn->device->ib_device->attrs.max_fast_reg_page_list_len));
+Tom
 
-Hmm, This looks broken since I fixed up mlx5 capability at:
-911f4331bc87 ("IB/mlx5: Expose correct max_fast_reg_page_list_len")
-
-However, I suspect this assignment should be removed altogether because
-we already take that into account in the address resolution handler,
-there the min statement is for unsigned and casted back to ushrt.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks,
+> Saeed.
+>
+>>> I really don't think you can justify this rearrangement based upon the
+>>> consequences and how much activity happens in this driver.
+>>>
+>>
+>> Right, but this is not the only justification, I can sum it up to that
+>> we would like
+>> to lay out the foundation for many years to come for a well designed
+>> driver with a modular
+>> sub modules break down and scalable infrastructure. We already plan to
+>> submit more mlx5
+>> independent  sub modules - just like mlx5e (en_*) files and mlx5_ib
+>> driver- so this was also
+>> a reason for us to consider this re-engagement at this stage.
+>>
+>>> You should have thought long and hard about the layout a long time ago
+>>> rather than after the driver has been in the tree for many years.
+>>>
+>>
+>> I had this Idea for the separation before the mlx5 Ethernet
+>> submission, but I wasn't the maintainer
+>> back then, and i have been itching to submit such patch for long as
+>> well, still i don't think
+>> it is too late, We (Me and Leon) will keep maintaining this driver for
+>> only god knows how many years to come,
+>> and the mlx5 drivers are meant to serve at least 3-4 more future HW generations.
+>>
+>> Long story short, We would like to re-arrange the driver in a way that
+>> would serve us (the maintainers) and serve those
+>> who are going do develop the future Stack features and the future HW
+>> generations over the well designed (Hopefully)
+>> mlx5 infrastructure.
+>> Keeping it as it is today, will only make the situation worst in the
+>> future and it will be really hard to avoid having a spaghetti code
+>> in the mlx5 driver. All i want to point out here is that maintaining
+>> such a flat subtree is also nightmare.
+>>
+>> So i am only asking you to reconsider this change and give my -stable
+>> suggestion a thought.
+>>
+>> Thank you.
+>> Saeed.
