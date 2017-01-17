@@ -1,127 +1,128 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
-Date: Tue, 17 Jan 2017 11:27:20 -0800
-Message-ID: <20170117192720.GA2833@knc-06.sc.intel.com>
-References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <20161215091226.GC811@mtr-leonro.local>
- <20161215145212.GA29116@phlsvsds.ph.intel.com>
- <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
- <20161215170713.GD3264@obsidianresearch.com>
- <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com>
- <20161215184837.GA16552@obsidianresearch.com>
- <20161216012404.GD3785@phlsvsds.ph.intel.com>
- <20161216041727.GA3797@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Tue, 17 Jan 2017 21:34:08 +0200
+Message-ID: <20170117193408.GP32481@mtr-leonro.local>
+References: <20161228124728.26619-1-leon@kernel.org>
+ <20161228124728.26619-2-leon@kernel.org>
+ <1484246776.123135.19.camel@redhat.com>
+ <20170112193508.GO20392@mtr-leonro.local>
+ <1484258308.123135.41.camel@redhat.com>
+ <20170113151507.GR20392@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hD6P3ib1XCFtz2ni"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20161216041727.GA3797@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com
+In-Reply-To: <20170113151507.GR20392-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Jason for the valuable inputs.
 
-Here is the new generic interface.
+--hD6P3ib1XCFtz2ni
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Overview:
-Bottom driver defines net_device_ops. The upper driver can override it.
-For example, upper driver can implement ndo_open() which calls bottom driver's 
-ndo_open() and also do some book keeping.
+On Fri, Jan 13, 2017 at 05:15:07PM +0200, Leon Romanovsky wrote:
+> On Thu, Jan 12, 2017 at 04:58:28PM -0500, Doug Ledford wrote:
+> > On Thu, 2017-01-12 at 21:35 +0200, Leon Romanovsky wrote:
+> > >=A0
+> > > First of all, thank you for fixing wording, for me it is the hardest
+> > > part of every commit.
+> >
+> > No worries.
+> >
+> > > Second, I have a different view from you on the issue. User
+> > > configured
+> > > some value, which is not correct for IPoIB. In ideal world (without
+> > > legacy),
+> > > we were supposed to return error to him with proper message,
+> >
+> > If you set an impossible MTU on an ethernet adapter, you get a return
+> > of EINVAL. =A0But it doesn't mess with the kernel log at all, it's *jus=
+t*
+> > EINVAL to the calling program.
+> >
+> > >  but in our
+> > > case (legacy applications) we can't (we tried and it broke some
+> > > legacy
+> > > ifcongfig, if I remember well).
+> >
+> > ifconfig is what I used to test what Ethernet does, so it should be
+> > well and truly used to EINVAL as a return.
+>
+> I'll recheck with Feras next week which legacy tool
+> didn't work and will post it.
+
+At the end, it was ethtool and according to Jason's comments it was
+correct thing do not to put return value, so we are fine.
+
+>
+> >
+> > >  So it leaves us with one available
+> > > option is to warn user about improper value.
+> >
+> > Even if you want to alert the user, there is no need to warn. =A0Warn is
+> > reserved for something that is a serious error or condition, this is an
+> > EINVAL of something that is, at best, a performance issue. =A0Unless pa=
+th
+> > MTU support is broken, failing to set a larger MTU will not ever hinder
+> > actual operation. =A0So we should never be dumping out KERN_WARN messag=
+es
+> > into the kernel log that will ping up on any root login session as well
+> > as clutter the kernel dmesg output.
+> >
+> > > User should know that he supplied wrong parameter.
+> >
+> > User can still find out, they just won't get proactive pings on all
+> > root sessions, instead they will have to look in the dmesg output
+> > because they are trying to figure out why their command didn't work.
+> >
+> > > >
+> > > >
+> > > > --
+> > > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > > > =A0 =A0 GPG KeyID: B826A3330E572FDD
+> > > > =A0 =A0
+> > > > Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57
+> > > > 2FDD
+> > >
+> > >
+> > --
+> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > =A0 =A0 GPG KeyID: B826A3330E572FDD
+> > =A0 =A0
+> > Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
+>
+>
 
 
-include/rdma/ib_verbs.h:
 
-/* rdma netdev type - specifies protocol type */
-enum rdma_netdev_t {
-	RDMA_NETDEV_HFI_VNIC,
-};
+--hD6P3ib1XCFtz2ni
+Content-Type: application/pgp-signature; name="signature.asc"
 
-/* rdma netdev
-  * For usecases where netstack interfacing is required.
-  */
-struct rdma_netdev {
-	struct net_device *netdev;
-	u8 port_num;
+-----BEGIN PGP SIGNATURE-----
 
-	/* client private data structure */
-	void *clnt_priv;
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh+cbAACgkQ5GN7iDZy
+WKdPfw/+KQ7HQ6gGfvYf2e8QDOMXx9AMzZan/KrqmrmDBC0XAVFYIr3mO6Cv62Zs
+UotRms9hS7oAP6pn7lq0QNSUCxbxJxJf1TbdMQu50HxOlVdZ4DIE3ogvZR3+8Li/
++/6fJINx0/cQf7nckINyinX1Qw7iHVRy9VZlCdDkSJS0H25CDBrsQhpwHb6MVmWe
+Nm8HrGKATZ0mdyMnaAhcPYzE1Rv53hibJUxYx/E6hao2lfHCglAuGTA8hHfTejC6
+2oXmaF8ZKRd/fGwmfGjtY8WNOzv+gvoaFCXx18+c6HJgurEIjqfnRLg3vMJDmnTr
+Z6Jg9JS6hweF3A3WgpXzNXXJ5Q84a11SWX3xh8C46G+zdYO0Rc/hWYlfg+NrpDT7
+f93tKqiLnlRhQ8i0fb/gWz54GK3MPvzo1KzqeBrIxcvS0UAIDWif3ADdY94ia0os
+mVOYJ2HSS5K6HWtSDMnWmyJkUJcLwzsQ2qdulO9VogT5loYCrOZPVYaWUQDxqkAg
+8EoAbdTrscBD6WmTioxt2316+Thz+cra7Z0P1QV4Cz4E+cjGhdgXhSlGnARowask
+k6P4Ig5eKaLBDZIu8pGeS00fWdXnZzoNytBUErVjchD8yidDfNISdsksZBYMpfW5
+BOKULx+LsNYQDjlmdjXcdsTTBBKlEDtB9zJmVuFgK7KZMDdvabM=
+=kteG
+-----END PGP SIGNATURE-----
 
-	/* control functions */
-	void (*set_id)(struct rdma_netdev *rn, int id);
-	void (*set_state)(struct rdma_netdev *rn, int state);
-};
-
-struct ib_device {
-	...
-	...
-	/* rdma netdev operations */
-	struct net_device *(*alloc_rdma_netdev)(struct ib_device *device,
-					u8 port_num,
-					enum rdma_netdev_t type,
-					const char *name,
-					unsigned char name_assign_type,
-					void (*setup)(struct net_device *));
-	void (*free_rdma_netdev)(struct net_device *netdev);
-};
-
-
-hfi1 driver:
-
-/* rdma netdev's private data structure */
-struct hfi1_rdma_netdev {
-	struct rdma_netdev  rn;		/* keep this first */
-	/* hfi1's vnic private data follows */
-};
-
-
-include/rdma/opa_hfi.h:
-
-/* Client's ndo operations use below function instead of netdev_priv() */
-static inline void *hfi_vnic_priv(const struct net_device *dev)
-{
-	struct rdma_netdev *rn = netdev_priv(dev);
-
-	return rn->clnt_priv;
-}
-
-/* Overrides rtnl_link_stats64 to include hfi_vnic stats.
-  * ndo_get_stats64() can be used to get the stats
-  */
-struct hfi_vnic_stats {
-	/* standard netdev statistics */
-	struct rtnl_link_stats64  netstat;
-
-	/* HFI VNIC statistics */
-	u64  tx_mcastbcast;
-	u64  tx_untagged;
-	u64  tx_vlan;
-	u64  tx_64_size;
-	u64  tx_65_127;
-	u64  tx_128_255;
-	u64  tx_256_511;
-	u64  tx_512_1023;
-	u64  tx_1024_1518;
-	u64  tx_1519_max;
-
-	u64  rx_untagged;
-	u64  rx_vlan;
-	u64  rx_64_size;
-	u64  rx_65_127;
-	u64  rx_128_255;
-	u64  rx_256_511;
-	u64  rx_512_1023;
-	u64  rx_1024_1518;
-	u64  rx_1519_max;
-
-	u64  rx_runt;
-	u64  rx_oversize;
-};
-
-I have started working on porting hfi_vnic as per this new interface.
-I will post RFC v3 later.
-Posting the interface definition early for comments.
-
-Thanks,
-Niranjana
+--hD6P3ib1XCFtz2ni--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
