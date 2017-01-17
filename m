@@ -1,54 +1,86 @@
 From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCHv3 1/2] IB/iser: Fix sg_tablesize calculation
-Date: Wed, 18 Jan 2017 00:40:39 +0200
-Message-ID: <1484692840-12400-1-git-send-email-maxg@mellanox.com>
+Subject: [PATCHv3 2/2] IB/iser: remove unused variable from iser_conn struct
+Date: Wed, 18 Jan 2017 00:40:40 +0200
+Message-ID: <1484692840-12400-2-git-send-email-maxg@mellanox.com>
+References: <1484692840-12400-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1484692840-12400-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For devices that can register page list that is bigger than
-USHRT_MAX, we actually take the wrong value for sg_tablesize.
-E.g: for CX4 max_fast_reg_page_list_len is 65536 (bigger than USHRT_MAX)
-so we set sg_tablesize to 0 by mistake. Therefore, each IO that is
-bigger than 4k splitted to "< 4k" chunks that cause performance degredation.
-Remove wrong sg_tablesize assignment, and use the value that was set during
-address resolution handler with the needed casting.
+max_sectors calculation was fixed in commit:
+9c674815d346 ("IB/iser: Fix max_sectors calculation").
+Thus, iser_conn variable scsi_max_sectors is not needed anymore.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.5+
 Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
-Changes since v2:
- - remove "Fixes" statement
-
-Changes since v1:
- - update "Fixes" statement
- - use sg_tablesize assignment from iser_calc_scsi_params()
- - add patch 2/2 to remove unneeded variable
----
- drivers/infiniband/ulp/iser/iscsi_iser.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c |    4 ++++
+ drivers/infiniband/ulp/iser/iscsi_iser.h |    2 --
+ drivers/infiniband/ulp/iser/iser_verbs.c |   13 +------------
+ 3 files changed, 5 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 9104e6b..1c91187 100644
+index 1c91187..e71af71 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -651,13 +651,6 @@ static void iscsi_iser_cleanup_task(struct iscsi_task *task)
- 						   SHOST_DIX_GUARD_CRC);
- 		}
+@@ -672,6 +672,10 @@ static void iscsi_iser_cleanup_task(struct iscsi_task *task)
+ 	max_fr_sectors = ((shost->sg_tablesize - 1) * PAGE_SIZE) >> 9;
+ 	shost->max_sectors = min(iser_max_sectors, max_fr_sectors);
  
--		/*
--		 * Limit the sg_tablesize and max_sectors based on the device
--		 * max fastreg page list length.
--		 */
--		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
--			ib_conn->device->ib_device->attrs.max_fast_reg_page_list_len);
++	iser_dbg("iser_conn %p, sg_tablesize %u, max_sectors %u\n",
++		 iser_conn, shost->sg_tablesize,
++		 shost->max_sectors);
++
+ 	if (cmds_max > max_cmds) {
+ 		iser_info("cmds_max changed from %u to %u\n",
+ 			  cmds_max, max_cmds);
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 0be6a7c..9d0b22a 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -496,7 +496,6 @@ struct ib_conn {
+  * @rx_descs:         rx buffers array (cyclic buffer)
+  * @num_rx_descs:     number of rx descriptors
+  * @scsi_sg_tablesize: scsi host sg_tablesize
+- * @scsi_max_sectors: scsi host max sectors
+  */
+ struct iser_conn {
+ 	struct ib_conn		     ib_conn;
+@@ -519,7 +518,6 @@ struct iser_conn {
+ 	struct iser_rx_desc	     *rx_descs;
+ 	u32                          num_rx_descs;
+ 	unsigned short               scsi_sg_tablesize;
+-	unsigned int                 scsi_max_sectors;
+ 	bool			     snd_w_inv;
+ };
+ 
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 8ae7a3b..6a9d1cb 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -707,18 +707,7 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
+ 	sup_sg_tablesize = min_t(unsigned, ISCSI_ISER_MAX_SG_TABLESIZE,
+ 				 device->ib_device->attrs.max_fast_reg_page_list_len);
+ 
+-	if (sg_tablesize > sup_sg_tablesize) {
+-		sg_tablesize = sup_sg_tablesize;
+-		iser_conn->scsi_max_sectors = sg_tablesize * SIZE_4K / 512;
+-	} else {
+-		iser_conn->scsi_max_sectors = max_sectors;
+-	}
 -
- 		if (iscsi_host_add(shost,
- 				   ib_conn->device->ib_device->dma_device)) {
- 			mutex_unlock(&iser_conn->state_mutex);
+-	iser_conn->scsi_sg_tablesize = sg_tablesize;
+-
+-	iser_dbg("iser_conn %p, sg_tablesize %u, max_sectors %u\n",
+-		 iser_conn, iser_conn->scsi_sg_tablesize,
+-		 iser_conn->scsi_max_sectors);
++	iser_conn->scsi_sg_tablesize = min(sg_tablesize, sup_sg_tablesize);
+ }
+ 
+ /**
 -- 
 1.7.1
 
