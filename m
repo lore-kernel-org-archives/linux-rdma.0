@@ -1,56 +1,127 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 5/7] IB/core: Add macros for declaring types and
- type groups
-Date: Tue, 17 Jan 2017 12:13:07 -0700
-Message-ID: <20170117191307.GD27528@obsidianresearch.com>
-References: <1484132033-3346-1-git-send-email-matanb@mellanox.com>
- <1484132033-3346-6-git-send-email-matanb@mellanox.com>
- <20170112001029.GE31682@obsidianresearch.com>
- <CAAKD3BCvEP4MdvSy6dD0DDjfyd+PO8Y=7O+qFwPO5rjGDW_nfA@mail.gmail.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
+Date: Tue, 17 Jan 2017 11:27:20 -0800
+Message-ID: <20170117192720.GA2833@knc-06.sc.intel.com>
+References: <1481788782-89964-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <20161215091226.GC811@mtr-leonro.local>
+ <20161215145212.GA29116@phlsvsds.ph.intel.com>
+ <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
+ <20161215170713.GD3264@obsidianresearch.com>
+ <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com>
+ <20161215184837.GA16552@obsidianresearch.com>
+ <20161216012404.GD3785@phlsvsds.ph.intel.com>
+ <20161216041727.GA3797@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAKD3BCvEP4MdvSy6dD0DDjfyd+PO8Y=7O+qFwPO5rjGDW_nfA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161216041727.GA3797@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: "ira.weiny" <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 07:25:22PM +0200, Matan Barak wrote:
-> On Thu, Jan 12, 2017 at 2:10 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Wed, Jan 11, 2017 at 12:53:51PM +0200, Matan Barak wrote:
-> >> In order to initialize and destroy types in a generic way, we need to
-> >> provide information about the allocation size, release function and
-> >> order. This is done through a macro based DSL (domain specific
-> >> language). This patch adds macros to initialize a type and a type
-> >> group.
-> >>
-> >> When we transform the write based commands to use this new locking and
-> >> allocation schema, we use these types declarations.
-> >>
-> >> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>  include/rdma/uverbs_ioctl.h | 50 +++++++++++++++++++++++++++++++++++++++++++--
-> >>  1 file changed, 48 insertions(+), 2 deletions(-)
-> >
-> > None of this makes any sense to me at this point in the series.
-> >
-> > Just use a sane meta-class type and the 'usual' linux static const
-> > initializer scheme.
-> 
-> I could of course drop this patch and use static
-> initializes. However, this mean we'll re-write the next patch using
-> macro language in the next patch (as we introduce actions there).  I
-> also think the declarations themselves look pretty tidy this way.
+Thanks Jason for the valuable inputs.
 
-Why would it be rewritten? The per-object static initializer should be
-basically good indefinately? The next series will introduce macros to
-add per-type functions but that shouldn't disturb the initializer.
+Here is the new generic interface.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Overview:
+Bottom driver defines net_device_ops. The upper driver can override it.
+For example, upper driver can implement ndo_open() which calls bottom driver's 
+ndo_open() and also do some book keeping.
+
+
+include/rdma/ib_verbs.h:
+
+/* rdma netdev type - specifies protocol type */
+enum rdma_netdev_t {
+	RDMA_NETDEV_HFI_VNIC,
+};
+
+/* rdma netdev
+  * For usecases where netstack interfacing is required.
+  */
+struct rdma_netdev {
+	struct net_device *netdev;
+	u8 port_num;
+
+	/* client private data structure */
+	void *clnt_priv;
+
+	/* control functions */
+	void (*set_id)(struct rdma_netdev *rn, int id);
+	void (*set_state)(struct rdma_netdev *rn, int state);
+};
+
+struct ib_device {
+	...
+	...
+	/* rdma netdev operations */
+	struct net_device *(*alloc_rdma_netdev)(struct ib_device *device,
+					u8 port_num,
+					enum rdma_netdev_t type,
+					const char *name,
+					unsigned char name_assign_type,
+					void (*setup)(struct net_device *));
+	void (*free_rdma_netdev)(struct net_device *netdev);
+};
+
+
+hfi1 driver:
+
+/* rdma netdev's private data structure */
+struct hfi1_rdma_netdev {
+	struct rdma_netdev  rn;		/* keep this first */
+	/* hfi1's vnic private data follows */
+};
+
+
+include/rdma/opa_hfi.h:
+
+/* Client's ndo operations use below function instead of netdev_priv() */
+static inline void *hfi_vnic_priv(const struct net_device *dev)
+{
+	struct rdma_netdev *rn = netdev_priv(dev);
+
+	return rn->clnt_priv;
+}
+
+/* Overrides rtnl_link_stats64 to include hfi_vnic stats.
+  * ndo_get_stats64() can be used to get the stats
+  */
+struct hfi_vnic_stats {
+	/* standard netdev statistics */
+	struct rtnl_link_stats64  netstat;
+
+	/* HFI VNIC statistics */
+	u64  tx_mcastbcast;
+	u64  tx_untagged;
+	u64  tx_vlan;
+	u64  tx_64_size;
+	u64  tx_65_127;
+	u64  tx_128_255;
+	u64  tx_256_511;
+	u64  tx_512_1023;
+	u64  tx_1024_1518;
+	u64  tx_1519_max;
+
+	u64  rx_untagged;
+	u64  rx_vlan;
+	u64  rx_64_size;
+	u64  rx_65_127;
+	u64  rx_128_255;
+	u64  rx_256_511;
+	u64  rx_512_1023;
+	u64  rx_1024_1518;
+	u64  rx_1519_max;
+
+	u64  rx_runt;
+	u64  rx_oversize;
+};
+
+I have started working on porting hfi_vnic as per this new interface.
+I will post RFC v3 later.
+Posting the interface definition early for comments.
+
+Thanks,
+Niranjana
