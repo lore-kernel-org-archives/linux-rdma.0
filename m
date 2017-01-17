@@ -1,133 +1,45 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH v2 00/26] IB: Optimize DMA mapping
-Date: Tue, 17 Jan 2017 22:00:00 +0000
-Message-ID: <1484690386.2729.8.camel@sandisk.com>
+Date: Tue, 17 Jan 2017 15:27:47 -0700
+Message-ID: <20170117222747.GA11409@obsidianresearch.com>
 References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
-         <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
-         <1484338667.2679.15.camel@sandisk.com>
-         <F3529576D8E232409F431C309E29399336C5FF78@CRSMSX102.amr.corp.intel.com>
-         <1484344759.2679.26.camel@sandisk.com>
-         <F3529576D8E232409F431C309E29399336C6006C@CRSMSX102.amr.corp.intel.com>
-         <1484689709.2729.6.camel@sandisk.com>
+ <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
+ <1484338667.2679.15.camel@sandisk.com>
+ <F3529576D8E232409F431C309E29399336C5FF78@CRSMSX102.amr.corp.intel.com>
+ <1484344759.2679.26.camel@sandisk.com>
+ <F3529576D8E232409F431C309E29399336C6006C@CRSMSX102.amr.corp.intel.com>
+ <1484689709.2729.6.camel@sandisk.com>
+ <1484690386.2729.8.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="_002_148469038627298camelsandiskcom_"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1484689709.2729.6.camel@sandisk.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "alex.estrin@intel.com" <alex.estrin@intel.com>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1484690386.2729.8.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---_002_148469038627298camelsandiskcom_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-ID: <F08BE15F20EACA4B856CE3F2FBF5F719@sandisk.com>
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jan 17, 2017 at 10:00:00PM +0000, Bart Van Assche wrote:
+> +	/*
+> +	 * qib and hfi1 use two sets of DMA operations:
+> +	 * - The DMA operations of the PCIe device for SDMA.
+> +	 * - dma_virt_ops for users of the qib and hfi1 drivers.
+> +	 * The only purpose of @dma_device is to provide a struct device that
+> +	 * provides dma_virt_ops.
+> +	 */
+> +	struct device dma_device;
 
-On Tue, 2017-01-17 at 13:48 -0800, Bart Van Assche wrote:
-> On Sat, 2017-01-14 at 02:05 +0000, Estrin, Alex wrote:
-> > [ ... ]
-> > please see hfi1/verbs.c @ hfi1_register_ib_device() =20
-> > [ ... ]
->=20
-> Hello Alex,
->=20
-> I think I figured out what I did wrong: both the hfi1 and the qib drivers=
- need two
-> sets of DMA mapping operations. ULPs have to use &dma_virt_ops and the SD=
-MA code
-> has to use the PCIe DMA mapping operations. My patch series made the SDMA=
- code use
-> dma_virt_ops and that's wrong. The attached patch should fix this. Unfort=
-unately I
-> do not have access to a hfi1 or qib test setup. Can you help me by testin=
-g the
-> attached patch on top of the already posted patches?
+Creating a struct device, not calling device_initialize() and then
+passing it around it other places is pretty ugly and potentially
+dangerous.
 
-Hello Alex,
+Is there some other way?
 
-The wrong version of my patch was attached to previous e-mail. Sorry for th=
-is. Please
-use the patch attached to this e-mail.
+Can you setup ibdev to be the 'dma device' for the user side?
 
-Thanks,
-
-Bart.=
-
---_002_148469038627298camelsandiskcom_
-Content-Type: text/x-patch;
-	name="0001-hfi1-qib-rdmavt-v2-Use-proper-DMA-mapping-operations.patch"
-Content-Description: 0001-hfi1-qib-rdmavt-v2-Use-proper-DMA-mapping-operations.patch
-Content-Disposition: attachment;
-	filename="0001-hfi1-qib-rdmavt-v2-Use-proper-DMA-mapping-operations.patch";
-	size=3587; creation-date="Tue, 17 Jan 2017 22:00:00 GMT";
-	modification-date="Tue, 17 Jan 2017 22:00:00 GMT"
-Content-ID: <68F78FA8234FB0489970F1AEBCD3A9A7@sandisk.com>
-Content-Transfer-Encoding: base64
-
-RnJvbSBhNDYyOTkxZmFkZmQxYzM1MGVjYjQxNjM1ZjExNTdlMjI3ZTEzM2VmIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hlQHNhbmRp
-c2suY29tPgpEYXRlOiBUdWUsIDE3IEphbiAyMDE3IDEzOjIyOjM1IC0wODAwClN1YmplY3Q6IFtQ
-QVRDSF0gaGZpMSwgcWliLCByZG1hdnQgW3YyXTogVXNlIHByb3BlciBETUEgbWFwcGluZyBvcGVy
-YXRpb25zCgpNYWtlIHVzZXJzIG9mIHRoZSBoZmkxIGFuZCBxaWIgZHJpdmVycyB1c2UgZG1hX3Zp
-cnRfb3BzLiBVc2UgdGhlIFBDSWUKbWFwcGluZyBvcGVyYXRpb25zIGZvciBTRE1BLiBNYWtlIHN1
-cmUgdGhhdCB0aGUgcmRtYXZ0IGNvZGUgZG9lcyBub3QKY2hhbmdlIHRoZSBQQ0llIERNQSBtYXBw
-aW5nIG9wZXJhdGlvbnMgcG9pbnRlciBpbnRvICZkbWFfdmlydF9vcHMuCi0tLQogZHJpdmVycy9p
-bmZpbmliYW5kL2h3L2hmaTEvbWFkLmMgICAgICB8IDIgKy0KIGRyaXZlcnMvaW5maW5pYmFuZC9o
-dy9oZmkxL3ZlcmJzLmMgICAgfCAxIC0KIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX3Zl
-cmJzLmMgfCAxIC0KIGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yZG1hdnQvdnQuYyAgICAgfCAyICsr
-CiBpbmNsdWRlL3JkbWEvcmRtYV92dC5oICAgICAgICAgICAgICAgIHwgOCArKysrKysrKwogNSBm
-aWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL21hZC5jIGIvZHJpdmVycy9pbmZpbmliYW5k
-L2h3L2hmaTEvbWFkLmMKaW5kZXggNmU1OTVhZmNhMjRjLi4wNDFkNTAzYzM5OWIgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL21hZC5jCisrKyBiL2RyaXZlcnMvaW5maW5p
-YmFuZC9ody9oZmkxL21hZC5jCkBAIC00NDA2LDcgKzQ0MDYsNyBAQCBpbnQgaGZpMV9wcm9jZXNz
-X21hZChzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwgaW50IG1hZF9mbGFncywgdTggcG9ydCwKIAlz
-d2l0Y2ggKGluX21hZC0+YmFzZV92ZXJzaW9uKSB7CiAJY2FzZSBPUEFfTUdNVF9CQVNFX1ZFUlNJ
-T046CiAJCWlmICh1bmxpa2VseShpbl9tYWRfc2l6ZSAhPSBzaXplb2Yoc3RydWN0IG9wYV9tYWQp
-KSkgewotCQkJZGV2X2VycihpYmRldi0+ZG1hX2RldmljZSwgImludmFsaWQgaW5fbWFkX3NpemVc
-biIpOworCQkJZGV2X2VycigmaWJkZXYtPmRldiwgImludmFsaWQgaW5fbWFkX3NpemVcbiIpOwog
-CQkJcmV0dXJuIElCX01BRF9SRVNVTFRfRkFJTFVSRTsKIAkJfQogCQlyZXR1cm4gaGZpMV9wcm9j
-ZXNzX29wYV9tYWQoaWJkZXYsIG1hZF9mbGFncywgcG9ydCwKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-aW5maW5pYmFuZC9ody9oZmkxL3ZlcmJzLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS92
-ZXJicy5jCmluZGV4IDk1ZWQ0ZDZkYTUxMC4uZmEwZmYzZTExNTk3IDEwMDY0NAotLS0gYS9kcml2
-ZXJzL2luZmluaWJhbmQvaHcvaGZpMS92ZXJicy5jCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9o
-dy9oZmkxL3ZlcmJzLmMKQEAgLTE3ODQsNyArMTc4NCw2IEBAIGludCBoZmkxX3JlZ2lzdGVyX2li
-X2RldmljZShzdHJ1Y3QgaGZpMV9kZXZkYXRhICpkZCkKIAlzdHJsY3B5KGliZGV2LT5uYW1lICsg
-bGNweXN6LCAiXyVkIiwgSUJfREVWSUNFX05BTUVfTUFYIC0gbGNweXN6KTsKIAlpYmRldi0+b3du
-ZXIgPSBUSElTX01PRFVMRTsKIAlpYmRldi0+cGh5c19wb3J0X2NudCA9IGRkLT5udW1fcHBvcnRz
-OwotCWliZGV2LT5kbWFfZGV2aWNlID0gJmRkLT5wY2lkZXYtPmRldjsKIAlpYmRldi0+bW9kaWZ5
-X2RldmljZSA9IG1vZGlmeV9kZXZpY2U7CiAJaWJkZXYtPmFsbG9jX2h3X3N0YXRzID0gYWxsb2Nf
-aHdfc3RhdHM7CiAJaWJkZXYtPmdldF9od19zdGF0cyA9IGdldF9od19zdGF0czsKZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX3ZlcmJzLmMgYi9kcml2ZXJzL2luZmlu
-aWJhbmQvaHcvcWliL3FpYl92ZXJicy5jCmluZGV4IDRiNTRjMGRkZDA4YS4uZGFhMjhhN2I3NTc0
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl92ZXJicy5jCisrKyBi
-L2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX3ZlcmJzLmMKQEAgLTE2MzIsNyArMTYzMiw2
-IEBAIGludCBxaWJfcmVnaXN0ZXJfaWJfZGV2aWNlKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQpCiAJ
-aWJkZXYtPm93bmVyID0gVEhJU19NT0RVTEU7CiAJaWJkZXYtPm5vZGVfZ3VpZCA9IHBwZC0+Z3Vp
-ZDsKIAlpYmRldi0+cGh5c19wb3J0X2NudCA9IGRkLT5udW1fcHBvcnRzOwotCWliZGV2LT5kbWFf
-ZGV2aWNlID0gJmRkLT5wY2lkZXYtPmRldjsKIAlpYmRldi0+bW9kaWZ5X2RldmljZSA9IHFpYl9t
-b2RpZnlfZGV2aWNlOwogCWliZGV2LT5wcm9jZXNzX21hZCA9IHFpYl9wcm9jZXNzX21hZDsKIApk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC92dC5jIGIvZHJpdmVycy9p
-bmZpbmliYW5kL3N3L3JkbWF2dC92dC5jCmluZGV4IDZhODFiMTc5ZjYzMS4uOTliM2NiMzllZDY3
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvc3cvcmRtYXZ0L3Z0LmMKKysrIGIvZHJp
-dmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC92dC5jCkBAIC0xMDMsNiArMTAzLDggQEAgc3RydWN0
-IHJ2dF9kZXZfaW5mbyAqcnZ0X2FsbG9jX2RldmljZShzaXplX3Qgc2l6ZSwgaW50IG5wb3J0cykK
-IAlpZiAoIXJkaS0+cG9ydHMpCiAJCWliX2RlYWxsb2NfZGV2aWNlKCZyZGktPmliZGV2KTsKIAor
-CXJkaS0+aWJkZXYuZG1hX2RldmljZSA9ICZyZGktPmRtYV9kZXZpY2U7CisKIAlyZXR1cm4gcmRp
-OwogfQogRVhQT1JUX1NZTUJPTChydnRfYWxsb2NfZGV2aWNlKTsKZGlmZiAtLWdpdCBhL2luY2x1
-ZGUvcmRtYS9yZG1hX3Z0LmggYi9pbmNsdWRlL3JkbWEvcmRtYV92dC5oCmluZGV4IDg2MWUyM2Vh
-ZWJkYS4uYjcyNTljOWIwNTZlIDEwMDY0NAotLS0gYS9pbmNsdWRlL3JkbWEvcmRtYV92dC5oCisr
-KyBiL2luY2x1ZGUvcmRtYS9yZG1hX3Z0LmgKQEAgLTMzOSw2ICszMzksMTQgQEAgc3RydWN0IHJ2
-dF9kcml2ZXJfcHJvdmlkZWQgewogCiBzdHJ1Y3QgcnZ0X2Rldl9pbmZvIHsKIAlzdHJ1Y3QgaWJf
-ZGV2aWNlIGliZGV2OyAvKiBLZWVwIHRoaXMgZmlyc3QuIE5vdGhpbmcgYWJvdmUgaGVyZSAqLwor
-CS8qCisJICogcWliIGFuZCBoZmkxIHVzZSB0d28gc2V0cyBvZiBETUEgb3BlcmF0aW9uczoKKwkg
-KiAtIFRoZSBETUEgb3BlcmF0aW9ucyBvZiB0aGUgUENJZSBkZXZpY2UgZm9yIFNETUEuCisJICog
-LSBkbWFfdmlydF9vcHMgZm9yIHVzZXJzIG9mIHRoZSBxaWIgYW5kIGhmaTEgZHJpdmVycy4KKwkg
-KiBUaGUgb25seSBwdXJwb3NlIG9mIEBkbWFfZGV2aWNlIGlzIHRvIHByb3ZpZGUgYSBzdHJ1Y3Qg
-ZGV2aWNlIHRoYXQKKwkgKiBwcm92aWRlcyBkbWFfdmlydF9vcHMuCisJICovCisJc3RydWN0IGRl
-dmljZSBkbWFfZGV2aWNlOwogCiAJLyoKIAkgKiBQcmlvciB0byBjYWxsaW5nIGZvciByZWdpc3Ry
-YXRpb24gdGhlIGRyaXZlciB3aWxsIGJlIHJlc3BvbnNpYmxlIGZvcgotLSAKMi4xMS4wCgo=
-
---_002_148469038627298camelsandiskcom_--
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
