@@ -1,99 +1,128 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 1/3] util: Add common code for provider
- debug
-Date: Tue, 17 Jan 2017 13:47:41 -0700
-Message-ID: <20170117204741.GG27528@obsidianresearch.com>
-References: <1484682413-56580-1-git-send-email-tatyana.e.nikolova@intel.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 00/26] IB: Optimize DMA mapping
+Date: Tue, 17 Jan 2017 21:48:44 +0000
+Message-ID: <1484689709.2729.6.camel@sandisk.com>
+References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF0F@CRSMSX102.amr.corp.intel.com>
+         <1484338667.2679.15.camel@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C5FF78@CRSMSX102.amr.corp.intel.com>
+         <1484344759.2679.26.camel@sandisk.com>
+         <F3529576D8E232409F431C309E29399336C6006C@CRSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+        boundary="_002_148468970927296camelsandiskcom_"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1484682413-56580-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <F3529576D8E232409F431C309E29399336C6006C-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> +++ b/buildlib/rdma_functions.cmake
-> @@ -6,7 +6,7 @@
->  # Global list of pairs of (SHARED STATIC) libary target names
->  set(RDMA_STATIC_LIBS "" CACHE INTERNAL "Doc" FORCE)
->  
-> -set(COMMON_LIBS_PIC ccan_pic)
-> +set(COMMON_LIBS_PIC ccan_pic util_pic)
->  set(COMMON_LIBS ccan)
+--_002_148468970927296camelsandiskcom_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-ID: <DB61FF68AE643A43A69371EB67F27799-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Transfer-Encoding: quoted-printable
 
-Also change COMMON_LIBS to have util
+On Sat, 2017-01-14 at 02:05 +0000, Estrin, Alex wrote:
+> [ ... ]
+> please see hfi1/verbs.c @ hfi1_register_ib_device() =20
+> [ ... ]
 
->  # Install a symlink during 'make install'
-> diff --git a/util/CMakeLists.txt b/util/CMakeLists.txt
-> index 1cda890..fb36103 100644
-> +++ b/util/CMakeLists.txt
-> @@ -1,3 +1,11 @@
->  publish_internal_headers(util
->    compiler.h
-> +  dbg.h
->    )
-> +
-> +set(C_FILES
-> +  dbg.c
-> +  )
-> +
-> +add_library(util_pic ${C_FILES})
+Hello Alex,
 
-Use these two lines instead:
+I think I figured out what I did wrong: both the hfi1 and the qib drivers n=
+eed two
+sets of DMA mapping operations. ULPs have to use &dma_virt_ops and the SDMA=
+ code
+has to use the PCIe DMA mapping operations. My patch series made the SDMA c=
+ode use
+dma_virt_ops and that's wrong. The attached patch should fix this. Unfortun=
+ately I
+do not have access to a hfi1 or qib test setup. Can you help me by testing =
+the
+attached patch on top of the already posted patches?
 
-add_library(util STATIC ${C_FILES})
-add_library(util_pic STATIC ${C_FILES})
+Thanks,
 
-> +#define VERBS_PROVIDER_DBG_MASK  "VERBS_PROVIDER_DBG_MASK"
-> +#define VERBS_PROVIDER_DBG_LEVEL "VERBS_PROVIDER_DBG_LEVEL"
-> +#define VERBS_PROVIDER_DBG_FILE  "VERBS_PROVIDER_DBG_FILE"
+Bart.=
 
-Probably don't need these as #defines
+--_002_148468970927296camelsandiskcom_
+Content-Type: text/x-patch;
+	name="0001-hfi1-qib-rdmavt-Use-proper-DMA-mapping-operations.patch"
+Content-Description: 0001-hfi1-qib-rdmavt-Use-proper-DMA-mapping-operations.patch
+Content-Disposition: attachment;
+	filename="0001-hfi1-qib-rdmavt-Use-proper-DMA-mapping-operations.patch";
+	size=3583; creation-date="Tue, 17 Jan 2017 21:48:43 GMT";
+	modification-date="Tue, 17 Jan 2017 21:48:43 GMT"
+Content-ID: <513DFC813F1CB64CAA63ADE1D3462390-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Transfer-Encoding: base64
 
-> +#define PRINT_ERR(fmt, ...)								\
-> +do {											\
-> +	fprintf(stderr, "[%s:%d]" fmt, __func__, __LINE__, ##__VA_ARGS__);		\
-> +} while (0)
-> +
-> +#define PRINT_DBG(dbg_mask, dbg_level, fmt, ...)					\
-> +do {											\
-> +	if ((rdma_dbg_mask & dbg_mask) && (rdma_dbg_level >= dbg_level))		\
-> +		fprintf(stderr, "[%s:%d]" fmt, __func__, __LINE__, ##__VA_ARGS__);	\
-> +} while (0)
+RnJvbSAyMWVkNDY4MGExNmIyMjgxZWE2M2NhYTlhM2VmOWU0YzY4MmExZDhiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hlQHNhbmRp
+c2suY29tPgpEYXRlOiBUdWUsIDE3IEphbiAyMDE3IDEzOjIyOjM1IC0wODAwClN1YmplY3Q6IFtQ
+QVRDSF0gaGZpMSwgcWliLCByZG1hdnQ6IFVzZSBwcm9wZXIgRE1BIG1hcHBpbmcgb3BlcmF0aW9u
+cwoKTWFrZSB1c2VycyBvZiB0aGUgaGZpMSBhbmQgcWliIGRyaXZlcnMgdXNlIGRtYV92aXJ0X29w
+cy4gVXNlIHRoZSBQQ0llCm1hcHBpbmcgb3BlcmF0aW9ucyBmb3IgU0RNQS4gTWFrZSBzdXJlIHRo
+YXQgdGhlIHJkbWF2dCBjb2RlIGRvZXMgbm90CmNoYW5nZSB0aGUgUENJZSBETUEgbWFwcGluZyBv
+cGVyYXRpb25zIHBvaW50ZXIgaW50byAmZG1hX3ZpcnRfb3BzLgotLS0KIGRyaXZlcnMvaW5maW5p
+YmFuZC9ody9oZmkxL21hZC5jICAgICAgfCAyICstCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvaGZp
+MS92ZXJicy5jICAgIHwgMSAtCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl92ZXJicy5j
+IHwgMSAtCiBkcml2ZXJzL2luZmluaWJhbmQvc3cvcmRtYXZ0L3Z0LmMgICAgIHwgMiArKwogaW5j
+bHVkZS9yZG1hL3JkbWFfdnQuaCAgICAgICAgICAgICAgICB8IDggKysrKysrKysKIDUgZmlsZXMg
+Y2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9k
+cml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9tYWQuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9o
+ZmkxL21hZC5jCmluZGV4IDZlNTk1YWZjYTI0Yy4uMDQxZDUwM2MzOTliIDEwMDY0NAotLS0gYS9k
+cml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9tYWQuYworKysgYi9kcml2ZXJzL2luZmluaWJhbmQv
+aHcvaGZpMS9tYWQuYwpAQCAtNDQwNiw3ICs0NDA2LDcgQEAgaW50IGhmaTFfcHJvY2Vzc19tYWQo
+c3RydWN0IGliX2RldmljZSAqaWJkZXYsIGludCBtYWRfZmxhZ3MsIHU4IHBvcnQsCiAJc3dpdGNo
+IChpbl9tYWQtPmJhc2VfdmVyc2lvbikgewogCWNhc2UgT1BBX01HTVRfQkFTRV9WRVJTSU9OOgog
+CQlpZiAodW5saWtlbHkoaW5fbWFkX3NpemUgIT0gc2l6ZW9mKHN0cnVjdCBvcGFfbWFkKSkpIHsK
+LQkJCWRldl9lcnIoaWJkZXYtPmRtYV9kZXZpY2UsICJpbnZhbGlkIGluX21hZF9zaXplXG4iKTsK
+KwkJCWRldl9lcnIoJmliZGV2LT5kZXYsICJpbnZhbGlkIGluX21hZF9zaXplXG4iKTsKIAkJCXJl
+dHVybiBJQl9NQURfUkVTVUxUX0ZBSUxVUkU7CiAJCX0KIAkJcmV0dXJuIGhmaTFfcHJvY2Vzc19v
+cGFfbWFkKGliZGV2LCBtYWRfZmxhZ3MsIHBvcnQsCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmlu
+aWJhbmQvaHcvaGZpMS92ZXJicy5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdmVyYnMu
+YwppbmRleCA5NWVkNGQ2ZGE1MTAuLmZhMGZmM2UxMTU5NyAxMDA2NDQKLS0tIGEvZHJpdmVycy9p
+bmZpbmliYW5kL2h3L2hmaTEvdmVyYnMuYworKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZp
+MS92ZXJicy5jCkBAIC0xNzg0LDcgKzE3ODQsNiBAQCBpbnQgaGZpMV9yZWdpc3Rlcl9pYl9kZXZp
+Y2Uoc3RydWN0IGhmaTFfZGV2ZGF0YSAqZGQpCiAJc3RybGNweShpYmRldi0+bmFtZSArIGxjcHlz
+eiwgIl8lZCIsIElCX0RFVklDRV9OQU1FX01BWCAtIGxjcHlzeik7CiAJaWJkZXYtPm93bmVyID0g
+VEhJU19NT0RVTEU7CiAJaWJkZXYtPnBoeXNfcG9ydF9jbnQgPSBkZC0+bnVtX3Bwb3J0czsKLQlp
+YmRldi0+ZG1hX2RldmljZSA9ICZkZC0+cGNpZGV2LT5kZXY7CiAJaWJkZXYtPm1vZGlmeV9kZXZp
+Y2UgPSBtb2RpZnlfZGV2aWNlOwogCWliZGV2LT5hbGxvY19od19zdGF0cyA9IGFsbG9jX2h3X3N0
+YXRzOwogCWliZGV2LT5nZXRfaHdfc3RhdHMgPSBnZXRfaHdfc3RhdHM7CmRpZmYgLS1naXQgYS9k
+cml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl92ZXJicy5jIGIvZHJpdmVycy9pbmZpbmliYW5k
+L2h3L3FpYi9xaWJfdmVyYnMuYwppbmRleCA0YjU0YzBkZGQwOGEuLmRhYTI4YTdiNzU3NCAxMDA2
+NDQKLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfdmVyYnMuYworKysgYi9kcml2
+ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl92ZXJicy5jCkBAIC0xNjMyLDcgKzE2MzIsNiBAQCBp
+bnQgcWliX3JlZ2lzdGVyX2liX2RldmljZShzdHJ1Y3QgcWliX2RldmRhdGEgKmRkKQogCWliZGV2
+LT5vd25lciA9IFRISVNfTU9EVUxFOwogCWliZGV2LT5ub2RlX2d1aWQgPSBwcGQtPmd1aWQ7CiAJ
+aWJkZXYtPnBoeXNfcG9ydF9jbnQgPSBkZC0+bnVtX3Bwb3J0czsKLQlpYmRldi0+ZG1hX2Rldmlj
+ZSA9ICZkZC0+cGNpZGV2LT5kZXY7CiAJaWJkZXYtPm1vZGlmeV9kZXZpY2UgPSBxaWJfbW9kaWZ5
+X2RldmljZTsKIAlpYmRldi0+cHJvY2Vzc19tYWQgPSBxaWJfcHJvY2Vzc19tYWQ7CiAKZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yZG1hdnQvdnQuYyBiL2RyaXZlcnMvaW5maW5p
+YmFuZC9zdy9yZG1hdnQvdnQuYwppbmRleCA2YTgxYjE3OWY2MzEuLmFmOWRjZDQ3ZGFjZSAxMDA2
+NDQKLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC92dC5jCisrKyBiL2RyaXZlcnMv
+aW5maW5pYmFuZC9zdy9yZG1hdnQvdnQuYwpAQCAtMTAzLDYgKzEwMyw4IEBAIHN0cnVjdCBydnRf
+ZGV2X2luZm8gKnJ2dF9hbGxvY19kZXZpY2Uoc2l6ZV90IHNpemUsIGludCBucG9ydHMpCiAJaWYg
+KCFyZGktPnBvcnRzKQogCQlpYl9kZWFsbG9jX2RldmljZSgmcmRpLT5pYmRldik7CiAKKwlyZGkt
+PmliX2Rldi5kbWFfZGV2aWNlID0gJnJkaS0+ZG1hX2RldmljZTsKKwogCXJldHVybiByZGk7CiB9
+CiBFWFBPUlRfU1lNQk9MKHJ2dF9hbGxvY19kZXZpY2UpOwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9y
+ZG1hL3JkbWFfdnQuaCBiL2luY2x1ZGUvcmRtYS9yZG1hX3Z0LmgKaW5kZXggODYxZTIzZWFlYmRh
+Li5iNzI1OWM5YjA1NmUgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvcmRtYS9yZG1hX3Z0LmgKKysrIGIv
+aW5jbHVkZS9yZG1hL3JkbWFfdnQuaApAQCAtMzM5LDYgKzMzOSwxNCBAQCBzdHJ1Y3QgcnZ0X2Ry
+aXZlcl9wcm92aWRlZCB7CiAKIHN0cnVjdCBydnRfZGV2X2luZm8gewogCXN0cnVjdCBpYl9kZXZp
+Y2UgaWJkZXY7IC8qIEtlZXAgdGhpcyBmaXJzdC4gTm90aGluZyBhYm92ZSBoZXJlICovCisJLyoK
+KwkgKiBxaWIgYW5kIGhmaTEgdXNlIHR3byBzZXRzIG9mIERNQSBvcGVyYXRpb25zOgorCSAqIC0g
+VGhlIERNQSBvcGVyYXRpb25zIG9mIHRoZSBQQ0llIGRldmljZSBmb3IgU0RNQS4KKwkgKiAtIGRt
+YV92aXJ0X29wcyBmb3IgdXNlcnMgb2YgdGhlIHFpYiBhbmQgaGZpMSBkcml2ZXJzLgorCSAqIFRo
+ZSBvbmx5IHB1cnBvc2Ugb2YgQGRtYV9kZXZpY2UgaXMgdG8gcHJvdmlkZSBhIHN0cnVjdCBkZXZp
+Y2UgdGhhdAorCSAqIHByb3ZpZGVzIGRtYV92aXJ0X29wcy4KKwkgKi8KKwlzdHJ1Y3QgZGV2aWNl
+IGRtYV9kZXZpY2U7CiAKIAkvKgogCSAqIFByaW9yIHRvIGNhbGxpbmcgZm9yIHJlZ2lzdHJhdGlv
+biB0aGUgZHJpdmVyIHdpbGwgYmUgcmVzcG9uc2libGUgZm9yCi0tIAoyLjExLjAKCg==
 
-This could just be LOG_DBG(stderr, ....)
-
-> +
-> +#define LOG_DBG(dbg_fp, dbg_mask, dbg_level, fmt, ...)					\
-> +do {											\
-> +	if ((rdma_dbg_mask & dbg_mask) && (rdma_dbg_level >= dbg_level))		\
-> +		fprintf(dbg_fp, "[%s:%d]" fmt, __func__, __LINE__, ##__VA_ARGS__);	\
-> +} while (0)
-> +
-> +#define LOG_DBG_FLUSH(dbg_fp, dbg_mask, dbg_level, fmt, ...)				\
-> +do {											\
-> +		LOG_DBG(dbg_fp, dbg_mask, dbg_level, fmt, ##__VA_ARGS__);		\
-> +		if (dbg_fp != stderr)							\
-> +			fflush(dbg_fp);							\
-> +} while (0)
-
-Hum, wondering if it is worth retaining this FLUSH behavior or if we
-should just have a way to open the log file with line buffering?
-
-This patch should also include man page content please.
-
-I think people will ask for the 'MLX5_DEBUG' style total compile out.
-Should we have a --with-debug-log cmake option and disable it by
-default?
-
-'setup_debug' should probably happen someplace in verbs, not be in
-every driver.
-
-Otherwise looks essentially reasonable to me.
-
-Jason
+--_002_148468970927296camelsandiskcom_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
