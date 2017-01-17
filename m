@@ -1,22 +1,18 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCHv2 2/2] IB/iser: remove unused variable from iser_conn
- struct
-Date: Tue, 17 Jan 2017 17:55:51 +0200
-Message-ID: <f53c4dff-17eb-d9ab-aa5b-6bb91af65aba@grimberg.me>
-References: <1484664446-15535-1-git-send-email-maxg@mellanox.com>
- <1484664446-15535-2-git-send-email-maxg@mellanox.com>
+From: "reply388-sh/6fXdz2Rs@public.gmane.org" <reply388-sh/6fXdz2Rs@public.gmane.org>
+Subject: Peace Of The Lord Be With You And Your Family
+Date: Tue, 17 Jan 2017 17:23:09 +0100 (CET)
+Message-ID: <7254821.304461484670189416.JavaMail.defaultUser__42331.6745357171$1484670811$gmane$org@defaultHost>
+Reply-To: reply388-sh/6fXdz2Rs@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484664446-15535-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Looks good,
-
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Dear friend, I am Mrs Alice Banneth from Burkina Faso are you online? I 
+have important issue to discus with you.
+Reply to my private email address : (mrsalicebanneth1-/E1597aS9LQAvxtiuMwx3w@public.gmane.org)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
