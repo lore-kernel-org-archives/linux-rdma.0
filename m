@@ -1,67 +1,68 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
-Date: Wed, 18 Jan 2017 19:50:26 +0200
-Message-ID: <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
-References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
- <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com> <20170118173327.GF32481@mtr-leonro.local>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-core] i40iw: Set 128B as the only supported RQ WQE
+ size
+Date: Wed, 18 Jan 2017 18:30:00 +0200
+Message-ID: <20170118163000.GE32481@mtr-leonro.local>
+References: <1482179477-100780-1-git-send-email-tatyana.e.nikolova@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170118173327.GF32481@mtr-leonro.local>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Ariel Almog <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3CF/MBslHFRhO8r/"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1482179477-100780-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 7:33 PM, Leon Romanovsky wrote:
-> On Wed, Jan 18, 2017 at 06:48:21PM +0200, Or Gerlitz wrote:
->> On Wed, Jan 18, 2017 at 5:19 PM, Ariel Almog
->> <arielalmogworkemails@gmail.com> wrote:
+--3CF/MBslHFRhO8r/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->>> As of today, there is no single, simple, tool that allows monitoring
->>> and configuration of RDMA stack.
-
->> Before tool, what kernel UAPI you thought to use?
-
-> I'm aware of the following options:
-> 1) netlink
-> 2) RDMA ABI https://www.spinics.net/lists/linux-rdma/msg43960.html
-> 3) ioctl
-> 4) write/read
+On Mon, Dec 19, 2016 at 02:31:17PM -0600, Tatyana Nikolova wrote:
+> RQ WQE size other than 128B is not supported.
+> Correct RQ size calculation to use 128B only.
 >
-> The items 1 and 2 are preferred options and one of the main goals
-> for this RFC is to chose between them.
+> Since this breaks ABI, add code to provide
+> compatibility with V4 kernel driver, i40iw.
 >
-> For example, RDMA ABI has native support of querying and discovering
-> device capabilities via merge tree feature.
+> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  providers/i40iw/i40iw-abi.h    |  3 +--
+>  providers/i40iw/i40iw_uk.c     | 18 +++++++++++++-----
+>  providers/i40iw/i40iw_umain.c  | 15 +++++++++++----
+>  providers/i40iw/i40iw_umain.h  |  1 +
+>  providers/i40iw/i40iw_user.h   |  4 +++-
+>  providers/i40iw/i40iw_uverbs.c | 20 +++++++++++++++-----
+>  6 files changed, 44 insertions(+), 17 deletions(-)
+>
 
-To make it clear, when you wrote ABI in your initial email, I tend to
-think it was sort of unclear to the netdev crowd that you are talking
-on new UAPI which is now under the works for the IB subsystem, so with
-my netdev community member hat, I got confused... anyway
+Thanks,
+https://github.com/linux-rdma/rdma-core/commit/1919a5d436712c58bac8480a0aae6ee2b2f92f17
+I applied it again.
 
+--3CF/MBslHFRhO8r/
+Content-Type: application/pgp-signature; name="signature.asc"
 
->> > It is a good point to highlight the similarity to ethtool. It manages
->> > net_device, while rdmatool will manage RDMA stack.
+-----BEGIN PGP SIGNATURE-----
 
-ethtool is likely to be ported to use netlink somewhere in the 21st century BTW
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/mAgACgkQ5GN7iDZy
+WKc7DhAAyyv28h+Z5jXrl6hLFeV86T8ldXehZcMTxq7d55oAPKU6FO8ANUr1KFt8
+49myeK0kQYjGeeZ20ewYp5zoMsvhlt5GroL7a/5e/o7WUO71oH1dhV4KfRftEthV
+b7g1y3c6w7aLFYWz2jVTIxWnV7/N6mu2orOGmZQTm3WnnnObqARUyNii+BURUUF2
+biJLF3yAP9FFofl6TXExphCyRBkeDuKTlKCjqv54XWcLEJxNcwM0ZfhfebJzHchF
+MnJ1QlNlEiDak0FdUXnNHN4imREGaRX8D7Tg48iaRmoISiAyguFbuIade0QFDnpD
+cOHQthZEuKXep5kuUquAPcTTbpYz/ROS/DJwmzx1YdwogB78swWC7SOwxv+/l7li
+jOFfbqW0NgRadNM+MVZbDLfGwC230mRMZFPsLL2CZE8vD4p+4nUfnKmsESv2So5u
+k+cxumSWjCJiMFJwpuPk02kiT7Jszfj8NexUeybKzDqYoCiZfpKhhZ61lXsI4jzo
+eKpv8LbydiOrEAmShDBBlIn4Cw/S4JT7GiZNoYWs/kDGkAiNz8gItB8gBc/ZmlLc
+vVAxiIK8tj4Fg5KncXU5IC22AEuYe+8UuMlu1pFCkYjLbj55ZIuut42f31r8bX56
+/vIwAFsGRLzLFqlA7dbIetVcyXW6VD2uqSj4fHGPGUSq+xdaRKk=
+=Eehe
+-----END PGP SIGNATURE-----
 
-
->> What's wrong with the RDMA netlink infrastructure?! it's there for
->> years and used
->> for various cases by MLNX, did you look on the code?
-
-> Nothing wrong, it is one of the valuable options and will be used if
-> community decides to put this tool under iproute2/ethtool umbrella.
-
-yeah, using netlink sounds good to me, and where you package/maintain
-the tool is of 2nd order, 1st decide what UAPI you wonna use. So far
-netlink was good for what bunch of use-cases needed.
-
-Or.
-
->> cea05ea IB/core: Add flow control to the portmapper netlink calls
->> ae43f82 IB/core: Add IP to GID netlink offload
->> 2ca546b IB/sa: Route SA pathrecord query through netlink
->> 753f618 RDMA/cma: Add support for netlink statistics export
->> b2cbae2 RDMA: Add netlink infrastructure
+--3CF/MBslHFRhO8r/--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
