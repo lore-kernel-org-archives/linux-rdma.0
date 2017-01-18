@@ -1,14 +1,16 @@
-From: Ariel Almog <arielalmogworkemails-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] rdmatool - tool for RDMA users
-Date: Wed, 18 Jan 2017 17:07:10 +0200
-Message-ID: <CABvr3-GFAUrVz7-PWT44tVU9x-q=_1jn9ni-k1EWZHafuoih9g@mail.gmail.com>
+From: Ariel Almog <arielalmogworkemails@gmail.com>
+Subject: [RFC] RESEND - rdmatool - tool for RDMA users
+Date: Wed, 18 Jan 2017 17:19:19 +0200
+Message-ID: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: leon@kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
+
+sorry for resending.
 
 General
 *******
@@ -155,7 +157,3 @@ Reference
 
 Thanks for feedback.
 Ariel and Leon
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
