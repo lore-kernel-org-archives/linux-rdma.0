@@ -1,618 +1,632 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 2/3] mlx5: Use common provider debug macros
-Date: Wed, 18 Jan 2017 12:03:08 +0200
-Message-ID: <20170118100308.GY32481@mtr-leonro.local>
-References: <1484682449-95832-1-git-send-email-tatyana.e.nikolova@intel.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for bnxt_re V4 03/21] RDMA/bnxt_re: register with the NIC
+ driver
+Date: Wed, 18 Jan 2017 12:11:40 +0200
+Message-ID: <20170118101140.GZ32481@mtr-leonro.local>
+References: <1482320530-5344-1-git-send-email-selvin.xavier@broadcom.com>
+ <1482320530-5344-4-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+epxrXWOh++2HLjY"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="ubBGeysJ7fFOU9Y9"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1484682449-95832-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <1482320530-5344-4-git-send-email-selvin.xavier@broadcom.com>
+Sender: netdev-owner@vger.kernel.org
+To: Selvin Xavier <selvin.xavier@broadcom.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, michael.chan@broadcom.com, Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 List-Id: linux-rdma@vger.kernel.org
 
---+epxrXWOh++2HLjY
+
+--ubBGeysJ7fFOU9Y9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Jan 17, 2017 at 01:47:29PM -0600, Tatyana Nikolova wrote:
-> Replace mlx5 specific debug macros with
-> common provider macros.
+On Wed, Dec 21, 2016 at 03:41:52AM -0800, Selvin Xavier wrote:
+> This patch handles the registration with the bnxt_en driver.
+> The bnxt_re driver first registers with netdev notifier chain and upon
+> receiving the NETDEV_REGISTER event, it registers with bnxt_en driver.
 >
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 	1. bnxt_en's ulp_probe function returns a structure that contains
+> 	   information 	about the device and additional entry points.
+> 	2. bnxt_en driver returns 'struct bnxt_eth_dev' that contains set
+> 	   of operation  vectors that bnxt_re driver invokes later.
+> 	3. bnxt_request_msix() allows the bnxt_re driver to specify the
+> 	   number of MSI-X vectors that are needed.
+> 	4. bnxt_send_fw_msg () is used to send messages to the FW
+> 	5. bnxt_register_async_events() is used to register for async
+> 	   event callbacks.
+>
+> v2: Remove some sparse warning. Also, remove some unused code from unreg
+>     path.
+> v3: Removed condition checks for rdev reported during static code analysis.
+>     Check the return value of try_module_get while getting bnxt_en
+>     reference.
+>
+> Signed-off-by: Eddie Wai <eddie.wai@broadcom.com>
+> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+> Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 > ---
->  providers/mlx5/buf.c   | 18 +++++++++---------
->  providers/mlx5/cq.c    |  6 +++---
->  providers/mlx5/mlx5.c  | 51 +++++++++++++-------------------------------------
->  providers/mlx5/mlx5.h  | 27 ++------------------------
->  providers/mlx5/qp.c    | 24 +++++++++++++-----------
->  providers/mlx5/verbs.c | 48 +++++++++++++++++++++++------------------------
->  6 files changed, 64 insertions(+), 110 deletions(-)
+>  drivers/infiniband/hw/bnxt_re/bnxt_re.h |  51 ++++
+>  drivers/infiniband/hw/bnxt_re/main.c    | 448 ++++++++++++++++++++++++++++++++
+>  2 files changed, 499 insertions(+)
 >
-> diff --git a/providers/mlx5/buf.c b/providers/mlx5/buf.c
-> index 853450a..f70c474 100644
-> --- a/providers/mlx5/buf.c
-> +++ b/providers/mlx5/buf.c
-> @@ -92,7 +92,7 @@ static void free_huge_mem(struct mlx5_hugetlb_mem *hmem)
->  {
->  	mlx5_bitmap_cleanup(&hmem->bitmap);
->  	if (shmdt(hmem->shmaddr) == -1)
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG, "%s\n", strerror(errno));
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "%s\n", strerror(errno));
->  	shmctl(hmem->shmid, IPC_RMID, NULL);
->  	free(hmem);
->  }
-> @@ -199,19 +199,19 @@ static struct mlx5_hugetlb_mem *alloc_huge_mem(size_t size)
->  	shm_len = align(size, MLX5_SHM_LENGTH);
->  	hmem->shmid = shmget(IPC_PRIVATE, shm_len, SHM_HUGETLB | SHM_R | SHM_W);
->  	if (hmem->shmid == -1) {
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG, "%s\n", strerror(errno));
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "%s\n", strerror(errno));
->  		goto out_free;
->  	}
+> diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> index f9b8542..8b73e3d 100644
+> --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> @@ -42,5 +42,56 @@
+>  #define ROCE_DRV_MODULE_NAME		"bnxt_re"
+>  #define ROCE_DRV_MODULE_VERSION		"1.0.0"
 >
->  	hmem->shmaddr = shmat(hmem->shmid, MLX5_SHM_ADDR, MLX5_SHMAT_FLAGS);
->  	if (hmem->shmaddr == (void *)-1) {
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG, "%s\n", strerror(errno));
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "%s\n", strerror(errno));
->  		goto out_rmid;
->  	}
->
->  	if (mlx5_bitmap_init(&hmem->bitmap, shm_len / MLX5_Q_CHUNK_SIZE,
->  			     shm_len / MLX5_Q_CHUNK_SIZE - 1)) {
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG, "%s\n", strerror(errno));
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "%s\n", strerror(errno));
->  		goto out_shmdt;
->  	}
->
-> @@ -224,7 +224,7 @@ static struct mlx5_hugetlb_mem *alloc_huge_mem(size_t size)
->
->  out_shmdt:
->  	if (shmdt(hmem->shmaddr) == -1)
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG, "%s\n", strerror(errno));
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "%s\n", strerror(errno));
->
->  out_rmid:
->  	shmctl(hmem->shmid, IPC_RMID, NULL);
-> @@ -285,7 +285,7 @@ static int alloc_huge_buf(struct mlx5_context *mctx, struct mlx5_buf *buf,
->
->  	ret = ibv_dontfork_range(buf->buf, buf->length);
->  	if (ret) {
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG, "\n");
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "\n");
->  		goto out_fork;
->  	}
->  	buf->type = MLX5_ALLOC_TYPE_HUGE;
-> @@ -344,7 +344,7 @@ int mlx5_alloc_prefered_buf(struct mlx5_context *mctx,
->  		if (type == MLX5_ALLOC_TYPE_HUGE)
->  			return -1;
->
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG,
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level,
->  			 "Huge mode allocation failed, fallback to %s mode\n",
->  			 MLX5_ALLOC_TYPE_ALL ? "contig" : "default");
->  	}
-> @@ -358,7 +358,7 @@ int mlx5_alloc_prefered_buf(struct mlx5_context *mctx,
->
->  		if (type == MLX5_ALLOC_TYPE_CONTIG)
->  			return -1;
-> -		mlx5_dbg(stderr, MLX5_DBG_CONTIG,
-> +		PRINT_DBG(VERBS_DBG_MASK_CONTIG, mlx5_dbg_level,
->  			 "Contig allocation failed, fallback to default mode\n");
->  	}
->
-> @@ -518,7 +518,7 @@ int mlx5_alloc_buf_contig(struct mlx5_context *mctx,
->
->  		block_size_exp -= 1;
->  	} while (block_size_exp >= min_block_log);
-> -	mlx5_dbg(mctx->dbg_fp, MLX5_DBG_CONTIG, "block order %d, addr %p\n",
-> +	LOG_DBG(mctx->dbg_fp, VERBS_DBG_MASK_CONTIG, mlx5_dbg_level, "block order %d, addr %p\n",
->  		 block_size_exp, addr);
->
->  	if (addr == MAP_FAILED)
-> diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-> index 7ad27a9..dd5045d 100644
-> --- a/providers/mlx5/cq.c
-> +++ b/providers/mlx5/cq.c
-> @@ -572,10 +572,10 @@ static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
->  	{
->  		struct mlx5_context *mctx = to_mctx(cq->ibv_cq.context);
->
-> -		if (mlx5_debug_mask & MLX5_DBG_CQ_CQE) {
-> +		if (rdma_dbg_mask & VERBS_DBG_MASK_CQ) {
->  			FILE *fp = mctx->dbg_fp;
->
-> -			mlx5_dbg(fp, MLX5_DBG_CQ_CQE, "dump cqe for cqn 0x%x:\n", cq->cqn);
-> +			LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "dump cqe for cqn 0x%x:\n", cq->cqn);
->  			dump_cqe(fp, cqe64);
->  		}
->  	}
-> @@ -1166,7 +1166,7 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
->  {
->  	struct mlx5_context *ctx = to_mctx(ibcq->context);
->
-> -	mlx5_dbg(ctx->dbg_fp, MLX5_DBG_CQ_CQE, "un-expected opcode in cqe\n");
-> +	LOG_DBG(ctx->dbg_fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "un-expected opcode in cqe\n");
->  }
->  #endif
->  	return 0;
-> diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-> index 747e242..25a4dab 100644
-> --- a/providers/mlx5/mlx5.c
-> +++ b/providers/mlx5/mlx5.c
-> @@ -77,9 +77,14 @@ static struct {
->  	HCA(MELLANOX, 4121),    /* ConnectX-5, PCIe 4.0 */
->  };
->
-> -uint32_t mlx5_debug_mask = 0;
->  int mlx5_freeze_on_error_cqe;
->
-> +#ifdef MLX5_DEBUG
-> +uint32_t mlx5_dbg_level = VERBS_DBG_LEVEL_VERBOSE;
-> +#else
-> +uint32_t mlx5_dbg_level;
-> +#endif
+> +#define BNXT_RE_REF_WAIT_COUNT		10
+>  #define BNXT_RE_DESC	"Broadcom NetXtreme-C/E RoCE Driver"
 > +
->  static struct ibv_context_ops mlx5_ctx_ops = {
->  	.query_device  = mlx5_query_device,
->  	.query_port    = mlx5_query_port,
-> @@ -430,39 +435,6 @@ static int get_total_uuars(void)
->  	return size;
->  }
->
-> -static void open_debug_file(struct mlx5_context *ctx)
-> -{
-> -	char *env;
-> -
-> -	env = getenv("MLX5_DEBUG_FILE");
-> -	if (!env) {
-> -		ctx->dbg_fp = stderr;
-> -		return;
-> -	}
-> -
-> -	ctx->dbg_fp = fopen(env, "aw+");
-> -	if (!ctx->dbg_fp) {
-> -		fprintf(stderr, "Failed opening debug file %s, using stderr\n", env);
-> -		ctx->dbg_fp = stderr;
-> -		return;
-> -	}
-> -}
-> -
-> -static void close_debug_file(struct mlx5_context *ctx)
-> -{
-> -	if (ctx->dbg_fp && ctx->dbg_fp != stderr)
-> -		fclose(ctx->dbg_fp);
-> -}
-> -
-> -static void set_debug_mask(void)
-> -{
-> -	char *env;
-> -
-> -	env = getenv("MLX5_DEBUG_MASK");
-> -	if (env)
-> -		mlx5_debug_mask = strtol(env, NULL, 0);
-> -}
-> -
->  static void set_freeze_on_error(void)
->  {
->  	char *env;
-> @@ -604,8 +576,11 @@ static int mlx5_init_context(struct verbs_device *vdev,
->  	context = to_mctx(ctx);
->  	context->ibv_ctx.cmd_fd = cmd_fd;
->
-> -	open_debug_file(context);
-> -	set_debug_mask();
-> +	setup_debug();
-> +	context->dbg_fp = open_debug_file();
-> +	if (!context->dbg_fp)
-> +		context->dbg_fp = stderr;
+> +struct bnxt_re_work {
+> +	struct work_struct	work;
+> +	unsigned long		event;
+> +	struct bnxt_re_dev      *rdev;
+> +	struct net_device	*vlan_dev;
+> +};
 > +
->  	set_freeze_on_error();
->  	if (gethostname(context->hostname, sizeof(context->hostname)))
->  		strcpy(context->hostname, "host_unknown");
-> @@ -769,7 +744,7 @@ err_free:
->  		if (context->uar[i])
->  			munmap(context->uar[i], page_size);
->  	}
-> -	close_debug_file(context);
-> +	close_debug_file(context->dbg_fp);
->  	return errno;
->  }
->
-> @@ -788,7 +763,7 @@ static void mlx5_cleanup_context(struct verbs_device *device,
->  	if (context->hca_core_clock)
->  		munmap(context->hca_core_clock - context->core_clock.offset,
->  		       page_size);
-> -	close_debug_file(context);
-> +	close_debug_file(context->dbg_fp);
->  }
->
->  static struct verbs_device *mlx5_driver_init(const char *uverbs_sys_path,
-> diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-> index cb65429..b99451c 100644
-> --- a/providers/mlx5/mlx5.h
-> +++ b/providers/mlx5/mlx5.h
-> @@ -42,6 +42,7 @@
->  #include <ccan/list.h>
->  #include "bitmap.h"
->  #include <ccan/minmax.h>
-> +#include <util/dbg.h>
->
->  #ifdef __GNUC__
->  #define likely(x)	__builtin_expect((x), 1)
-> @@ -82,32 +83,8 @@ enum {
->  #define MLX5_MAX_LOG2_CONTIG_BLOCK_SIZE 23
->  #define MLX5_MIN_LOG2_CONTIG_BLOCK_SIZE 12
->
-> -enum {
-> -	MLX5_DBG_QP		= 1 << 0,
-> -	MLX5_DBG_CQ		= 1 << 1,
-> -	MLX5_DBG_QP_SEND	= 1 << 2,
-> -	MLX5_DBG_QP_SEND_ERR	= 1 << 3,
-> -	MLX5_DBG_CQ_CQE		= 1 << 4,
-> -	MLX5_DBG_CONTIG		= 1 << 5,
-> -};
-> -
-> -extern uint32_t mlx5_debug_mask;
->  extern int mlx5_freeze_on_error_cqe;
-> -
-> -#ifdef MLX5_DEBUG
-> -#define mlx5_dbg(fp, mask, format, arg...)				\
-> -do {									\
-> -	if (mask & mlx5_debug_mask)					\
-> -		fprintf(fp, "%s:%d: " format, __func__, __LINE__, ##arg);	\
-> -} while (0)
-> -
-> -#else
-> -static inline void mlx5_dbg(FILE *fp, uint32_t mask, const char *fmt, ...)
-> -	__attribute__((format(printf, 3, 4)));
-> -static inline void mlx5_dbg(FILE *fp, uint32_t mask, const char *fmt, ...)
-> -{
-> -}
-> -#endif
-> +extern uint32_t mlx5_dbg_level;
-
-If mlx5 is complied without MLX5_DEBUG all debug prints will be empty.
-In your proposal, it is not the case, which is bad for data-path prints.
-
->
->  enum {
->  	MLX5_RCV_DBR	= 0,
-> diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-> index e82b1a0..4c0c004 100644
-> --- a/providers/mlx5/qp.c
-> +++ b/providers/mlx5/qp.c
-> @@ -368,8 +368,8 @@ static inline int copy_eth_inline_headers(struct ibv_qp *ibqp,
->  	FILE *fp = to_mctx(ibqp->context)->dbg_fp;
->
->  	if (unlikely(wr->num_sge < 1)) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP_SEND, "illegal num_sge: %d, minimum is 1\n",
-> -			 wr->num_sge);
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level,
-> +			"illegal num_sge: %d, minimum is 1\n", wr->num_sge);
->  		return EINVAL;
->  	}
->
-> @@ -389,7 +389,8 @@ static inline int copy_eth_inline_headers(struct ibv_qp *ibqp,
->  			inl_hdr_size -= inl_hdr_copy_size;
->  		}
->  		if (unlikely(inl_hdr_size)) {
-> -			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "Ethernet headers < 16 bytes\n");
-> +			LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level,
-> +				"Ethernet headers < 16 bytes\n");
->  			return EINVAL;
->  		}
->  		--j;
-> @@ -571,7 +572,7 @@ static inline int set_tso_eth_seg(void **seg, struct ibv_send_wr *wr,
->
->  	if (unlikely(wr->tso.hdr_sz < MLX5_ETH_L2_MIN_HEADER_SIZE ||
->  		     wr->tso.hdr_sz > qp->max_tso_header)) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP_SEND,
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level,
->  			 "TSO header size should be at least %d and at most %d\n",
->  			 MLX5_ETH_L2_MIN_HEADER_SIZE,
->  			 qp->max_tso_header);
-> @@ -643,7 +644,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  	for (nreq = 0; wr; ++nreq, wr = wr->next) {
->  		if (unlikely(wr->opcode < 0 ||
->  		    wr->opcode >= sizeof mlx5_ib_opcode / sizeof mlx5_ib_opcode[0])) {
-> -			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "bad opcode %d\n", wr->opcode);
-> +			LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level, "bad opcode %d\n", wr->opcode);
->  			err = EINVAL;
->  			*bad_wr = wr;
->  			goto out;
-> @@ -651,14 +652,14 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->
->  		if (unlikely(mlx5_wq_overflow(&qp->sq, nreq,
->  					      to_mcq(qp->ibv_qp->send_cq)))) {
-> -			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "work queue overflow\n");
-> +			LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level, "work queue overflow\n");
->  			err = ENOMEM;
->  			*bad_wr = wr;
->  			goto out;
->  		}
->
->  		if (unlikely(wr->num_sge > qp->sq.max_gs)) {
-> -			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "max gs exceeded %d (max = %d)\n",
-> +			LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level, "max gs exceeded %d (max = %d)\n",
->  				 wr->num_sge, qp->sq.max_gs);
->  			err = ENOMEM;
->  			*bad_wr = wr;
-> @@ -707,7 +708,8 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  			case IBV_WR_ATOMIC_CMP_AND_SWP:
->  			case IBV_WR_ATOMIC_FETCH_AND_ADD:
->  				if (unlikely(!qp->atomics_enabled)) {
-> -					mlx5_dbg(fp, MLX5_DBG_QP_SEND, "atomic operations are not supported\n");
-> +					LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level,
-> +						"atomic operations are not supported\n");
->  					err = ENOSYS;
->  					*bad_wr = wr;
->  					goto out;
-> @@ -839,7 +841,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  				err = copy_eth_inline_headers(ibqp, wr, seg, &sg_copy_ptr);
->  				if (unlikely(err)) {
->  					*bad_wr = wr;
-> -					mlx5_dbg(fp, MLX5_DBG_QP_SEND,
-> +					LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level,
->  						 "copy_eth_inline_headers failed, err: %d\n",
->  						 err);
->  					goto out;
-> @@ -860,7 +862,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  			err = set_data_inl_seg(qp, wr, seg, &sz, &sg_copy_ptr);
->  			if (unlikely(err)) {
->  				*bad_wr = wr;
-> -				mlx5_dbg(fp, MLX5_DBG_QP_SEND,
-> +				LOG_DBG(fp, VERBS_DBG_MASK_QP_SEND, mlx5_dbg_level,
->  					 "inline layout failed, err %d\n", err);
->  				goto out;
->  			}
-> @@ -912,7 +914,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  		qp->sq.cur_post += DIV_ROUND_UP(size * 16, MLX5_SEND_WQE_BB);
->
->  #ifdef MLX5_DEBUG
-> -		if (mlx5_debug_mask & MLX5_DBG_QP_SEND)
-> +		if (rdma_dbg_mask & VERBS_DBG_MASK_QP_SEND)
->  			dump_wqe(to_mctx(ibqp->context)->dbg_fp, idx, size, qp);
+> +#define BNXT_RE_MIN_MSIX		2
+> +#define BNXT_RE_MAX_MSIX		16
+> +struct bnxt_re_dev {
+> +	struct ib_device		ibdev;
+> +	struct list_head		list;
+> +	atomic_t			ref_count;
+> +	unsigned long			flags;
+> +#define BNXT_RE_FLAG_NETDEV_REGISTERED	0
+> +#define BNXT_RE_FLAG_IBDEV_REGISTERED	1
+> +#define BNXT_RE_FLAG_GOT_MSIX		2
+> +#define BNXT_RE_FLAG_RCFW_CHANNEL_EN	8
+> +#define BNXT_RE_FLAG_QOS_WORK_REG	16
+> +	struct net_device		*netdev;
+> +	unsigned int			version, major, minor;
+> +	struct bnxt_en_dev		*en_dev;
+> +	struct bnxt_msix_entry		msix_entries[BNXT_RE_MAX_MSIX];
+> +	int				num_msix;
+> +
+> +	int				id;
+> +
+> +	atomic_t			qp_count;
+> +	struct mutex			qp_lock;	/* protect qp list */
+> +	struct list_head		qp_list;
+> +
+> +	atomic_t			cq_count;
+> +	atomic_t			srq_count;
+> +	atomic_t			mr_count;
+> +	atomic_t			mw_count;
+> +	/* Max of 2 lossless traffic class supported per port */
+> +	u16				cosq[2];
+> +};
+> +
+> +#define to_bnxt_re_dev(ptr, member)	\
+> +	container_of((ptr), struct bnxt_re_dev, member)
+> +
+> +static inline struct device *rdev_to_dev(struct bnxt_re_dev *rdev)
+> +{
+> +	if (rdev)
+> +		return  &rdev->ibdev.dev;
+> +	return NULL;
+> +}
+> +
 >  #endif
->  	}
-> diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-> index e288ebf..753b550 100644
-> --- a/providers/mlx5/verbs.c
-> +++ b/providers/mlx5/verbs.c
-> @@ -351,13 +351,13 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
->  	FILE *fp = to_mctx(context)->dbg_fp;
+> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+> index 6c22d51..71d7501 100644
+> --- a/drivers/infiniband/hw/bnxt_re/main.c
+> +++ b/drivers/infiniband/hw/bnxt_re/main.c
+> @@ -38,10 +38,24 @@
 >
->  	if (!cq_attr->cqe) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "CQE invalid\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "CQE invalid\n");
->  		errno = EINVAL;
->  		return NULL;
->  	}
+>  #include <linux/module.h>
+>  #include <linux/netdevice.h>
+> +#include <linux/ethtool.h>
+>  #include <linux/mutex.h>
+>  #include <linux/list.h>
+>  #include <linux/rculist.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/pci.h>
+> +#include <net/ipv6.h>
+> +#include <net/addrconf.h>
+> +
+> +#include <rdma/ib_verbs.h>
+> +#include <rdma/ib_user_verbs.h>
+> +#include <rdma/ib_umem.h>
+> +#include <rdma/ib_addr.h>
+> +
+> +#include "bnxt_ulp.h"
+> +#include "roce_hsi.h"
+>  #include "bnxt_re.h"
+> +#include "bnxt.h"
+>  static char version[] =
+>  		BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
 >
->  	if (cq_attr->comp_mask & ~CREATE_CQ_SUPPORTED_COMP_MASK) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ,
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level,
->  			 "Unsupported comp_mask for create_cq\n");
->  		errno = EINVAL;
->  		return NULL;
-> @@ -365,21 +365,21 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
->
->  	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
->  	    cq_attr->flags & ~CREATE_CQ_SUPPORTED_FLAGS) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ,
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level,
->  			 "Unsupported creation flags requested for create_cq\n");
->  		errno = EINVAL;
->  		return NULL;
->  	}
->
->  	if (cq_attr->wc_flags & ~CREATE_CQ_SUPPORTED_WC_FLAGS) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "\n");
->  		errno = ENOTSUP;
->  		return NULL;
->  	}
->
->  	cq =  calloc(1, sizeof *cq);
->  	if (!cq) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "\n");
->  		return NULL;
->  	}
->
-> @@ -391,26 +391,26 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
->
->  	ncqe = align_queue_size(cq_attr->cqe + 1);
->  	if ((ncqe > (1 << 24)) || (ncqe < (cq_attr->cqe + 1))) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "ncqe %d\n", ncqe);
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "ncqe %d\n", ncqe);
->  		errno = EINVAL;
->  		goto err_spl;
->  	}
->
->  	cqe_sz = get_cqe_size();
->  	if (cqe_sz < 0) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "\n");
->  		errno = -cqe_sz;
->  		goto err_spl;
->  	}
->
->  	if (mlx5_alloc_cq_buf(to_mctx(context), cq, &cq->buf_a, ncqe, cqe_sz)) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "\n");
->  		goto err_spl;
->  	}
->
->  	cq->dbrec  = mlx5_alloc_dbrec(to_mctx(context));
->  	if (!cq->dbrec) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "\n");
->  		goto err_buf;
->  	}
->
-> @@ -432,7 +432,7 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
->  				ibv_cq_ex_to_cq(&cq->ibv_cq), &cmd.ibv_cmd,
->  				sizeof(cmd), &resp.ibv_resp, sizeof(resp));
->  	if (ret) {
-> -		mlx5_dbg(fp, MLX5_DBG_CQ, "ret %d\n", ret);
-> +		LOG_DBG(fp, VERBS_DBG_MASK_CQ, mlx5_dbg_level, "ret %d\n", ret);
->  		goto err_db;
->  	}
->
-> @@ -834,12 +834,12 @@ static int mlx5_calc_sq_size(struct mlx5_context *ctx,
->
->  	wqe_size = mlx5_calc_send_wqe(ctx, attr, qp);
->  	if (wqe_size < 0) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return wqe_size;
->  	}
->
->  	if (wqe_size > ctx->max_sq_desc_sz) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return -EINVAL;
->  	}
->
-> @@ -852,14 +852,14 @@ static int mlx5_calc_sq_size(struct mlx5_context *ctx,
->  	 * that the multiplication will fit in int
->  	 */
->  	if (attr->cap.max_send_wr > 0x7fffffff / ctx->max_sq_desc_sz) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return -EINVAL;
->  	}
->
->  	wq_size = mlx5_round_up_power_of_two(attr->cap.max_send_wr * wqe_size);
->  	qp->sq.wqe_cnt = wq_size / MLX5_SEND_WQE_BB;
->  	if (qp->sq.wqe_cnt > ctx->max_send_wqebb) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return -EINVAL;
->  	}
->
-> @@ -917,13 +917,13 @@ static int mlx5_calc_rq_size(struct mlx5_context *ctx,
->  		return 0;
->
->  	if (attr->cap.max_recv_wr > ctx->max_recv_wr) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return -EINVAL;
->  	}
->
->  	wqe_size = mlx5_calc_rcv_wqe(ctx, attr, qp);
->  	if (wqe_size < 0 || wqe_size > ctx->max_rq_desc_sz) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return -EINVAL;
->  	}
->
-> @@ -1207,7 +1207,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
->
->  	qp = calloc(1, sizeof(*qp));
->  	if (!qp) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		return NULL;
->  	}
->  	ibqp = (struct ibv_qp *)&qp->verbs_qp;
-> @@ -1248,7 +1248,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
->  	}
->
->  	if (mlx5_alloc_qp_buf(context, attr, qp, ret)) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		goto err;
->  	}
->
-> @@ -1270,7 +1270,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
->
->  	qp->db = mlx5_alloc_dbrec(ctx);
->  	if (!qp->db) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "\n");
->  		goto err_free_qp_buf;
->  	}
->
-> @@ -1294,7 +1294,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
->  	} else if (!is_xrc_tgt(attr->qp_type)) {
->  		usr_idx = mlx5_store_uidx(ctx, qp);
->  		if (usr_idx < 0) {
-> -			mlx5_dbg(fp, MLX5_DBG_QP, "Couldn't find free user index\n");
-> +			LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "Couldn't find free user index\n");
->  			goto err_rq_db;
->  		}
->
-> @@ -1308,7 +1308,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
->  					   attr, &cmd.ibv_cmd, sizeof(cmd),
->  					   &resp.ibv_resp, sizeof(resp));
->  	if (ret) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "ret %d\n", ret);
->  		goto err_free_uidx;
->  	}
->
-> @@ -1318,7 +1318,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
->  		if (qp->sq.wqe_cnt || qp->rq.wqe_cnt) {
->  			ret = mlx5_store_qp(ctx, ibqp->qp_num, qp);
->  			if (ret) {
-> -				mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
-> +				LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "ret %d\n", ret);
->  				goto err_destroy;
->  			}
->  		}
-> @@ -1793,7 +1793,7 @@ mlx5_create_xrc_srq(struct ibv_context *context,
->  	if (ctx->cqe_version) {
->  		uidx = mlx5_store_uidx(ctx, msrq);
->  		if (uidx < 0) {
-> -			mlx5_dbg(fp, MLX5_DBG_QP, "Couldn't find free user index\n");
-> +			LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "Couldn't find free user index\n");
->  			goto err_free_db;
->  		}
->  		cmd.uidx = uidx;
-> @@ -2000,7 +2000,7 @@ struct ibv_wq *mlx5_create_wq(struct ibv_context *context,
->  	cmd.drv.rq_wqe_shift = rwq->rq.wqe_shift;
->  	usr_idx = mlx5_store_uidx(ctx, rwq);
->  	if (usr_idx < 0) {
-> -		mlx5_dbg(fp, MLX5_DBG_QP, "Couldn't find free user index\n");
-> +		LOG_DBG(fp, VERBS_DBG_MASK_QP, mlx5_dbg_level, "Couldn't find free user index\n");
->  		goto err_free_db_rec;
->  	}
+> @@ -55,6 +69,384 @@ static struct list_head bnxt_re_dev_list = LIST_HEAD_INIT(bnxt_re_dev_list);
+>  /* Mutex to protect the list of bnxt_re devices added */
+>  static DEFINE_MUTEX(bnxt_re_dev_lock);
+>  static struct workqueue_struct *bnxt_re_wq;
+> +
+> +/* for handling bnxt_en callbacks later */
+> +static void bnxt_re_stop(void *p)
+> +{
+> +}
+> +
+> +static void bnxt_re_start(void *p)
+> +{
+> +}
+> +
+> +static void bnxt_re_sriov_config(void *p, int num_vfs)
+> +{
+> +}
+> +
+> +static struct bnxt_ulp_ops bnxt_re_ulp_ops = {
+> +	.ulp_async_notifier = NULL,
+> +	.ulp_stop = bnxt_re_stop,
+> +	.ulp_start = bnxt_re_start,
+> +	.ulp_sriov_config = bnxt_re_sriov_config
+> +};
+> +
+> +/* The rdev ref_count is to protect immature removal of the device */
+> +static inline void bnxt_re_hold(struct bnxt_re_dev *rdev)
+> +{
+> +	atomic_inc(&rdev->ref_count);
+> +}
+> +
+> +static inline void bnxt_re_put(struct bnxt_re_dev *rdev)
+> +{
+> +	atomic_dec(&rdev->ref_count);
+> +}
+> +
+> +/* RoCE -> Net driver */
+> +
+> +/* Driver registration routines used to let the networking driver (bnxt_en)
+> + * to know that the RoCE driver is now installed
+> + */
+> +static int bnxt_re_unregister_netdev(struct bnxt_re_dev *rdev, bool lock_wait)
+> +{
+> +	struct bnxt_en_dev *en_dev;
+> +	int rc;
+> +
+> +	if (!rdev)
+> +		return -EINVAL;
+> +
+> +	en_dev = rdev->en_dev;
+> +	/* Acquire rtnl lock if it is not invokded from netdev event */
+> +	if (lock_wait)
+> +		rtnl_lock();
+> +
+> +	rc = en_dev->en_ops->bnxt_unregister_device(rdev->en_dev,
+> +						    BNXT_ROCE_ULP);
+> +	if (lock_wait)
+> +		rtnl_unlock();
+> +	return rc;
+> +}
+> +
+> +static int bnxt_re_register_netdev(struct bnxt_re_dev *rdev)
+> +{
+> +	struct bnxt_en_dev *en_dev;
+> +	int rc = 0;
+> +
+> +	if (!rdev)
+> +		return -EINVAL;
+> +
+> +	en_dev = rdev->en_dev;
+> +
+> +	rtnl_lock();
+> +	rc = en_dev->en_ops->bnxt_register_device(en_dev, BNXT_ROCE_ULP,
+> +						  &bnxt_re_ulp_ops, rdev);
+> +	rtnl_unlock();
+> +	return rc;
+> +}
+> +
+> +static int bnxt_re_free_msix(struct bnxt_re_dev *rdev, bool lock_wait)
+> +{
+> +	struct bnxt_en_dev *en_dev;
+> +	int rc;
+> +
+> +	if (!rdev)
+> +		return -EINVAL;
+> +
+> +	en_dev = rdev->en_dev;
+> +
+> +	if (lock_wait)
+> +		rtnl_lock();
+> +
+> +	rc = en_dev->en_ops->bnxt_free_msix(rdev->en_dev, BNXT_ROCE_ULP);
+> +
+> +	if (lock_wait)
+> +		rtnl_unlock();
+> +	return rc;
+> +}
+> +
+> +static int bnxt_re_request_msix(struct bnxt_re_dev *rdev)
+> +{
+> +	int rc = 0, num_msix_want = BNXT_RE_MIN_MSIX, num_msix_got;
+> +	struct bnxt_en_dev *en_dev;
+> +
+> +	if (!rdev)
+> +		return -EINVAL;
+> +
+> +	en_dev = rdev->en_dev;
+> +
+> +	rtnl_lock();
+> +	num_msix_got = en_dev->en_ops->bnxt_request_msix(en_dev, BNXT_ROCE_ULP,
+> +							 rdev->msix_entries,
+> +							 num_msix_want);
+> +	if (num_msix_got < BNXT_RE_MIN_MSIX) {
+> +		rc = -EINVAL;
+> +		goto done;
+> +	}
+> +	if (num_msix_got != num_msix_want) {
+> +		dev_warn(rdev_to_dev(rdev),
+> +			 "Requested %d MSI-X vectors, got %d\n",
+> +			 num_msix_want, num_msix_got);
+> +	}
+> +	rdev->num_msix = num_msix_got;
+> +done:
+> +	rtnl_unlock();
+> +	return rc;
+> +}
+> +
+> +/* Device */
+> +
+> +static bool is_bnxt_re_dev(struct net_device *netdev)
+> +{
+> +	struct ethtool_drvinfo drvinfo;
+> +
+> +	if (netdev->ethtool_ops && netdev->ethtool_ops->get_drvinfo) {
+> +		memset(&drvinfo, 0, sizeof(drvinfo));
+> +		netdev->ethtool_ops->get_drvinfo(netdev, &drvinfo);
+> +
+> +		if (strcmp(drvinfo.driver, "bnxt_en"))
+> +			return false;
+> +		return true;
+> +	}
+> +	return false;
+> +}
+> +
+> +static struct bnxt_re_dev *bnxt_re_from_netdev(struct net_device *netdev)
+> +{
+> +	struct bnxt_re_dev *rdev;
+> +
+> +	rcu_read_lock();
+> +	list_for_each_entry_rcu(rdev, &bnxt_re_dev_list, list) {
+> +		if (rdev->netdev == netdev) {
+> +			rcu_read_unlock();
+> +			return rdev;
+> +		}
+> +	}
+> +	rcu_read_unlock();
+> +	return NULL;
+> +}
+> +
+> +static void bnxt_re_dev_unprobe(struct net_device *netdev,
+> +				struct bnxt_en_dev *en_dev)
+> +{
+> +	dev_put(netdev);
+> +	module_put(en_dev->pdev->driver->driver.owner);
+> +}
+> +
+> +static struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
+> +{
+> +	struct bnxt *bp = netdev_priv(netdev);
+> +	struct bnxt_en_dev *en_dev;
+> +	struct pci_dev *pdev;
+> +
+> +	/* Call bnxt_en's RoCE probe via indirect API */
+> +	if (!bp->ulp_probe)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	en_dev = bp->ulp_probe(netdev);
+> +	if (IS_ERR(en_dev))
+> +		return en_dev;
+> +
+> +	pdev = en_dev->pdev;
+> +	if (!pdev)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	/* Bump net device reference count */
+> +	if (!try_module_get(pdev->driver->driver.owner))
+> +		return ERR_PTR(-ENODEV);
+> +
+> +	dev_hold(netdev);
+> +
+> +	return en_dev;
+> +}
+> +
+> +static void bnxt_re_dev_remove(struct bnxt_re_dev *rdev)
+> +{
+> +	int i = BNXT_RE_REF_WAIT_COUNT;
+> +
+> +	/* Wait for rdev refcount to come down */
+> +	while ((atomic_read(&rdev->ref_count) > 1) && i--)
+> +		msleep(100);
+> +
+> +	if (atomic_read(&rdev->ref_count) > 1)
+> +		dev_err(rdev_to_dev(rdev),
+> +			"Failed waiting for ref count to deplete %d",
+> +			atomic_read(&rdev->ref_count));
+> +
+> +	atomic_set(&rdev->ref_count, 0);
+> +	dev_put(rdev->netdev);
+> +	rdev->netdev = NULL;
+> +
+> +	mutex_lock(&bnxt_re_dev_lock);
+> +	list_del_rcu(&rdev->list);
+> +	mutex_unlock(&bnxt_re_dev_lock);
+> +
+> +	synchronize_rcu();
+> +	flush_workqueue(bnxt_re_wq);
+> +
+> +	ib_dealloc_device(&rdev->ibdev);
+> +	/* rdev is gone */
+> +}
+> +
+> +static struct bnxt_re_dev *bnxt_re_dev_add(struct net_device *netdev,
+> +					   struct bnxt_en_dev *en_dev)
+> +{
+> +	struct bnxt_re_dev *rdev;
+> +
+> +	/* Allocate bnxt_re_dev instance here */
+> +	rdev = (struct bnxt_re_dev *)ib_alloc_device(sizeof(*rdev));
+> +	if (!rdev) {
+> +		dev_err(NULL, "%s: bnxt_re_dev allocation failure!",
+> +			ROCE_DRV_MODULE_NAME);
+> +		return NULL;
+> +	}
+> +	/* Default values */
+> +	atomic_set(&rdev->ref_count, 0);
+> +	rdev->netdev = netdev;
+> +	dev_hold(rdev->netdev);
+> +	rdev->en_dev = en_dev;
+> +	rdev->id = rdev->en_dev->pdev->devfn;
+> +	INIT_LIST_HEAD(&rdev->qp_list);
+> +	mutex_init(&rdev->qp_lock);
+> +	atomic_set(&rdev->qp_count, 0);
+> +	atomic_set(&rdev->cq_count, 0);
+> +	atomic_set(&rdev->srq_count, 0);
+> +	atomic_set(&rdev->mr_count, 0);
+> +	atomic_set(&rdev->mw_count, 0);
+> +	rdev->cosq[0] = 0xFFFF;
+> +	rdev->cosq[1] = 0xFFFF;
+> +
+> +	mutex_lock(&bnxt_re_dev_lock);
+> +	list_add_tail_rcu(&rdev->list, &bnxt_re_dev_list);
+> +	mutex_unlock(&bnxt_re_dev_lock);
+> +	return rdev;
+> +}
+> +
+> +static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait)
+> +{
+> +	int rc;
+> +
+> +	if (test_and_clear_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags)) {
+> +		rc = bnxt_re_free_msix(rdev, lock_wait);
+> +		if (rc)
+> +			dev_warn(rdev_to_dev(rdev),
+> +				 "Failed to free MSI-X vectors: %#x", rc);
+> +	}
+> +	if (test_and_clear_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags)) {
+> +		rc = bnxt_re_unregister_netdev(rdev, lock_wait);
+> +		if (rc)
+> +			dev_warn(rdev_to_dev(rdev),
+> +				 "Failed to unregister with netdev: %#x", rc);
+> +	}
+> +}
+> +
+> +static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+> +{
+> +	int i, j, rc;
+> +
+> +	/* Registered a new RoCE device instance to netdev */
+> +	rc = bnxt_re_register_netdev(rdev);
+> +	if (rc) {
+> +		pr_err("Failed to register with netedev: %#x\n", rc);
+> +		return -EINVAL;
+> +	}
+> +	set_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+> +
+> +	rc = bnxt_re_request_msix(rdev);
+> +	if (rc) {
+> +		pr_err("Failed to get MSI-X vectors: %#x\n", rc);
+> +		rc = -EINVAL;
+> +		goto fail;
+> +	}
+> +	set_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags);
+> +
+> +	return 0;
+> +fail:
+> +	bnxt_re_ib_unreg(rdev, true);
+> +	return rc;
+> +}
+> +
+> +static void bnxt_re_dev_unreg(struct bnxt_re_dev *rdev)
+> +{
+> +	struct bnxt_en_dev *en_dev = rdev->en_dev;
+> +	struct net_device *netdev = rdev->netdev;
+> +
+> +	bnxt_re_dev_remove(rdev);
+> +
+> +	if (netdev)
+> +		bnxt_re_dev_unprobe(netdev, en_dev);
+> +}
+> +
+> +static int bnxt_re_dev_reg(struct bnxt_re_dev **rdev, struct net_device *netdev)
+> +{
+> +	struct bnxt_en_dev *en_dev;
+> +	int rc = 0;
+> +
+> +	if (!is_bnxt_re_dev(netdev))
+> +		return -ENODEV;
+> +
+> +	en_dev = bnxt_re_dev_probe(netdev);
+> +	if (IS_ERR(en_dev)) {
+> +		pr_err("%s: Failed to probe\n", ROCE_DRV_MODULE_NAME);
+> +		rc = PTR_ERR(en_dev);
+> +		goto exit;
+> +	}
+> +	*rdev = bnxt_re_dev_add(netdev, en_dev);
+> +	if (!*rdev) {
+> +		rc = -ENOMEM;
+> +		bnxt_re_dev_unprobe(netdev, en_dev);
+> +		goto exit;
+> +	}
+> +	bnxt_re_hold(*rdev);
+> +exit:
+> +	return rc;
+> +}
+> +
+> +static void bnxt_re_remove_one(struct bnxt_re_dev *rdev)
+> +{
+> +	pci_dev_put(rdev->en_dev->pdev);
+> +}
+> +
+> +/* Handle all deferred netevents tasks */
+> +static void bnxt_re_task(struct work_struct *work)
+> +{
+> +	struct bnxt_re_work *re_work;
+> +	struct bnxt_re_dev *rdev;
+> +	int rc = 0;
+> +
+> +	re_work = container_of(work, struct bnxt_re_work, work);
+> +	rdev = re_work->rdev;
+> +
+> +	if (re_work->event != NETDEV_REGISTER &&
+> +	    !test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+> +		return;
+> +
+> +	switch (re_work->event) {
+> +	case NETDEV_REGISTER:
+> +		rc = bnxt_re_ib_reg(rdev);
+> +		if (rc)
+> +			dev_err(rdev_to_dev(rdev),
+> +				"Failed to register with IB: %#x", rc);
+> +		break;
+> +	case NETDEV_UP:
+> +
+> +		break;
+> +	case NETDEV_DOWN:
+> +
+> +		break;
+> +
+> +	case NETDEV_CHANGE:
+> +
+> +		break;
+> +	default:
+> +		break;
+> +	}
+
+Why do you need empty lines and "break"s between cases?
+It can be written as a fallback
+case ..:
+case ..:
+   break;
+
+> +	kfree(re_work);
+> +}
+> +
+> +static void bnxt_re_init_one(struct bnxt_re_dev *rdev)
+> +{
+> +	pci_dev_get(rdev->en_dev->pdev);
+> +}
+> +
+>  /*
+>   * "Notifier chain callback can be invoked for the same chain from
+>   * different CPUs at the same time".
+> @@ -72,6 +464,62 @@ static struct workqueue_struct *bnxt_re_wq;
+>  static int bnxt_re_netdev_event(struct notifier_block *notifier,
+>  				unsigned long event, void *ptr)
+>  {
+> +	struct net_device *real_dev, *netdev = netdev_notifier_info_to_dev(ptr);
+> +	struct bnxt_re_work *re_work;
+> +	struct bnxt_re_dev *rdev;
+> +	int rc = 0;
+> +
+> +	real_dev = rdma_vlan_dev_real_dev(netdev);
+> +	if (!real_dev)
+> +		real_dev = netdev;
+> +
+> +	rdev = bnxt_re_from_netdev(real_dev);
+> +	if (!rdev && event != NETDEV_REGISTER)
+> +		goto exit;
+> +	if (real_dev != netdev)
+> +		goto exit;
+> +
+> +	if (rdev)
+> +		bnxt_re_hold(rdev);
+> +
+> +	switch (event) {
+> +	case NETDEV_REGISTER:
+> +		if (rdev)
+> +			break;
+> +		rc = bnxt_re_dev_reg(&rdev, real_dev);
+> +		if (rc == -ENODEV)
+> +			break;
+> +		if (rc) {
+> +			pr_err("Failed to register with the device %s: %#x\n",
+> +			       real_dev->name, rc);
+> +			break;
+> +		}
+> +		bnxt_re_init_one(rdev);
+> +		goto sch_work;
+> +
+> +	case NETDEV_UNREGISTER:
+> +		bnxt_re_ib_unreg(rdev, false);
+> +		bnxt_re_remove_one(rdev);
+> +		bnxt_re_dev_unreg(rdev);
+> +		break;
+> +
+> +	default:
+> +sch_work:
+
+It is very awkward goto label at the middle of switch construction.
+Please consider to rewrite it.
+
+> +		/* Allocate for the deferred task */
+> +		re_work = kzalloc(sizeof(*re_work), GFP_ATOMIC);
+> +		if (!re_work)
+> +			break;
+> +
+> +		re_work->rdev = rdev;
+> +		re_work->event = event;
+> +		re_work->vlan_dev = (real_dev == netdev ? NULL : netdev);
+> +		INIT_WORK(&re_work->work, bnxt_re_task);
+> +		queue_work(bnxt_re_wq, &re_work->work);
+> +		break;
+> +	}
+> +	if (rdev)
+> +		bnxt_re_put(rdev);
+> +exit:
+>  	return NOTIFY_DONE;
+>  }
 >
 > --
-> 1.8.5.2
+> 2.5.5
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---+epxrXWOh++2HLjY
+--ubBGeysJ7fFOU9Y9
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/PVwACgkQ5GN7iDZy
-WKdYqBAAiPi89XK/yyM8p0YWglzPKzvG6XEtQZUF+XevQlc/ceyrFWPpvyfAUTJr
-TP5K6BiUchjENPJNcaumHvioNRuKvSlUnTpaFc8C75lGlc5DWPe5KkTdmHJzpPAz
-65M/Ifi+VggFMmeuwTlwhAlA6ryZb5i/MdKCMRp4AXqX6VQJd+HM5dRdhHsO/ql4
-p6XBrbed8WjDFxpibX67IleV25Ei987+9qigT/2iB67l++X27J/018f+D2OT/J+K
-PwAPhCmJbI0Lt34cNN+KRReLKF/xktoIBVqWL7DLArZen2u6r7W92hu6/fWzM5BY
-PbuqgzYk1JIvRYxj74nT614kekklI2Ocw8S1CwCPwAdxAeHKwr3lJHxAbCyxLf64
-ke8Vo65p0A8CRH0EYGIzVsv0u6a7WlvgDOBi31OWRfPOrhIzmBmGhznXu8hKoqKk
-RhQZ7jJlhy4FojK+OiFFqEBhk0ojh6tA8Q+ysazTNC4aVIYOaAxXHW9QNQBnLBnU
-ltJ2ixR5okEKwVXF6zyfoXsxTtmVNmcp9Uwb/gMori1YHdl/M1tW9BdTqdgeMO+f
-34gJPJjiogyO+kyukzEBOvDyQWTKR58uN4cn46+uH8H015bkZi07zyT/c4CBWzKj
-IpQIY2ff+IGgH8h8hNUbu5N6HQ2BnLQhUx0ss4eES0qnAM3SDVY=
-=cjNo
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/P1wACgkQ5GN7iDZy
+WKc3IA/9ETPoBzbRS6RHiUxfd6pwo2hzvxjy8VFj70lxztnsFuwgd0oYCMH9WJRd
++EbPs/QPIFpdUcZNqata0ZlxCDyJ0uLAhFdLq3tI4ZviXoig7OgNsnopM9I02g62
+mMXyGl5GJhgiJDJQREVKzJoLAjxKbOyone3/oE4yxUcC+0xO8Ey0zI2n5nlmTrw4
+kEn51GWpELGH4RmCDCVTGXx4RnFpbEFACv82vjRqeWV2rZNtrXGmxBlcOdH/Qu6S
+rjZ2AIMiQamA+h3w1NMxrzS52XpG3OAQzmtPzb7BGQQXx/jN/fYK2mFKdinU9VcM
+t3UN2xZbwN5TCwdhBF3ghU6d5yr/S6Kr9W6dh5wFT2NaJtxlvTsbspN/2iwfvQCj
+Npi6R7tf+4T0eai8tVbJlSUuWLxJwpWBeBePlZO8xhj5LyT61A4pK1Fz5YQ8neyJ
+wSv/j2FnSFdtU5NiNV+GmfiMP4Mq8GDAheck9+pWhnPbhNtHVkAiPD0iYSREO4tk
+B3SZo1fxrAkn++3CY59EqqTa00MAr8KBydqCl5o8nNHtVQg7lvV6vpRgL3msMfRs
+RtJ1t5CEkVZWYQGogGU1XUkQPAIuvEWSnDHzfPbd+d4CJ53YcCaOvDJPkoZJtDPC
+FUIWIrOp2IwZPjDIQrBgSF3WJS52saZKhATdBBDanMElM/QXlEc=
+=C28s
 -----END PGP SIGNATURE-----
 
---+epxrXWOh++2HLjY--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--ubBGeysJ7fFOU9Y9--
