@@ -1,110 +1,56 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/5] Add flow tag support to flow specification
-Date: Wed, 18 Jan 2017 14:59:46 +0200
-Message-ID: <20170118125951.3469-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-core] libqedr: remove fast-path debug prints
+Date: Wed, 18 Jan 2017 14:40:17 +0200
+Message-ID: <20170118124017.GC32481@mtr-leonro.local>
+References: <1484742398-6927-1-git-send-email-Ram.Amrani@cavium.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="0ywUhQCikZ2Y3PNw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1484742398-6927-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
 
-The flow tag feature allows an application to request to add an action
-to tag all the packets that matches this rule.
+--0ywUhQCikZ2Y3PNw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The tag is a number that will came as a metadata with every packet in
-the CQE.
+On Wed, Jan 18, 2017 at 02:26:38PM +0200, Ram Amrani wrote:
+> Remove the invocations of the macro FP_DP_VERBOSE().
+> They are not useful as enabling them causes a flood of prints.
+>
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  providers/qedr/qelr_verbs.c | 38 --------------------------------------
+>  1 file changed, 38 deletions(-)
 
-The tag rule == 0 is chosen as the default tag and application can use
-it in order to avoid the need to classify the packets that came with a
-tag while continuing to benefit from this tag mechanism.
+Thanks, applied.
 
-struct definition:
+--0ywUhQCikZ2Y3PNw
+Content-Type: application/pgp-signature; name="signature.asc"
 
-struct ib_uverbs_flow_spec_action_tag {
-     union {
-          struct ib_uverbs_flow_spec_hdr hdr;
-          struct {
-              __u32 type;
-              __u16 size;
-              __u16 reserved;
-          };
-     };
-     __be32                   tag_id;
-     __u32                    reserved1;
-};
+-----BEGIN PGP SIGNATURE-----
 
-struct ib_uverbs_flow_spec {
-     union {
-          union {
-              struct ib_uverbs_flow_spec_hdr hdr;
-              struct {
-                   __u32 type;
-                   __u16 size;
-                   __u16 reserved;
-              };
-          };
-          struct ib_uverbs_flow_spec_eth     eth;
-          struct ib_uverbs_flow_spec_ipv4    ipv4;
-          struct ib_uverbs_flow_spec_tcp_udp tcp_udp;
-          struct ib_uverbs_flow_spec_ipv6    ipv6;
-          struct ib_uverbs_flow_spec_action_tag flow_tag;
-     };
-};
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/YjEACgkQ5GN7iDZy
+WKdnfA/8D7VIhdA/1AubdHqbeCMlJrzSgAakhEQ3Z9NqX9blvNQXAqKFPTbfeeEy
+sWGweYf2o5Y43haUQRxaPIky9ebFFK6S7EPQe7lfsbLXPaVZI0XiqvChVahQcgr0
+aJ20y0ieO41tIUYd8tUt9hAl4CQV035uu6VnmwCKoSfdE0Y22HxQ8n7QvVStXDEd
+Ed5bU68+U4ZjevlBc70sA2IX77fC5lvY/Of7X14TMyuqR+LT3rmb2tpNZ0L0BDdp
+51mqf++DoE9SrIXG19/1SDjdBq5baZSELbo6PhCg0nHtqWvtnunEeTSa74rcE8Fw
+XldErgW9MjAOuUjo/1M1n5SxGxH/Hlofq5XHrstJ3FRVdIsiJh4bVsxc3mBZFw01
++Lz+44PZ4B4CVZ9h8OOtDPz4njGi4/ciLTVccPQ0pOm24S63dK50v5BkFwutVtgz
+oCrkgDMz/SCXTxB/C5CAtHp4nvEWk5rkVyxH1i3O6JdmdVzc68A82M8F5qfcnw5x
+qfS0IygqIZquJgCCsFBXP1MHlS6PyBa4FwhA3ZoqT6hqqn5OmoFT+W+5/uREXKfy
+Pw+bBlQM3g+b4/rwl25lnUGmivwk1lI5KDi4P0w927fmDw5cWGPgm0eD9qF+lzV/
+Q+SJz/IaEi38FrU+IxPzGistrzn3vkAwZ7oYY39I+czqR4B5fRs=
+=knz3
+-----END PGP SIGNATURE-----
 
-Where:
-
-* type, size, reserved fields are identical to the rest of the
-* protocols,
-   and are used to identify the spec.
-* flow_tag is a spec of type 'action'
-* the ib_uverbs_flow_spec_hdr is identical to the rest of the specs.
-* tag_id - is the value of the stream defined by the specs.
-
-Thanks,
-	Moses
-
-CC: Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-----
-
-Doug,
-I used this opportunity and fixed parse_flow_attr(..) return values.
-Adjusting this fix to this series minimizes chances of possible merge
-conflicts between different series.
-
-This patchset was generated against commit
-f502d834950a ("net/mlx5: Activate support for 4K UARs") and it applies
-cleanly on k.o/for-4.11 branch.
-
-Available in the "topic/flow-tag" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/flow-tag
-
-Leon Romanovsky (1):
-  IB/mlx5: Replace ENOTSUPP usage with EOPNOTSUPP
-
-Maor Gottlieb (1):
-  net/mlx5: Consolidate flow rules regardless their flow tag
-
-Moses Reuben (3):
-  IB/core: Introduce flow tag specification
-  IB/uverbs: Add support for flow tag
-  IB/mlx5: Add flow tag support
-
- drivers/infiniband/core/uverbs.h                  |  1 +
- drivers/infiniband/core/uverbs_cmd.c              | 35 +++++++++++++++++++--
- drivers/infiniband/hw/mlx5/main.c                 | 38 +++++++++++++++++------
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 12 +++++--
- include/rdma/ib_verbs.h                           |  9 ++++++
- include/uapi/rdma/ib_user_verbs.h                 | 13 ++++++++
- 6 files changed, 95 insertions(+), 13 deletions(-)
-
---
-2.10.2
-
+--0ywUhQCikZ2Y3PNw--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
