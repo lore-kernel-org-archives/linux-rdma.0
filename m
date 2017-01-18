@@ -1,73 +1,69 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/7] IB/mlx5: Fix out-of-bound access
-Date: Wed, 18 Jan 2017 14:10:30 +0200
-Message-ID: <20170118121036.32642-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/7] IB/mlx5: Verify that Q counters are supported
+Date: Wed, 18 Jan 2017 14:10:32 +0200
+Message-ID: <20170118121036.32642-4-leon@kernel.org>
 References: <20170118121036.32642-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170118121036.32642-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When we initialize buffer to create SRQ in kernel,
-the number of pages was less than actually used in
-following mlx5_fill_page_array().
+Make sure that the Q counters are supported by the FW before trying
+to allocate/deallocte them, this will avoid driver load failure when
+they aren't supported by the FW.
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.10+
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 0837e86a7a34 ('IB/mlx5: Add per port counters')
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.7+
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/srq.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 6f4397e..7cb145f 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -165,8 +165,6 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 	int err;
- 	int i;
- 	struct mlx5_wqe_srq_next_seg *next;
--	int page_shift;
--	int npages;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index a191b93..0187f1d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3313,9 +3313,11 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	if (err)
+ 		goto err_rsrc;
 
- 	err = mlx5_db_alloc(dev->mdev, &srq->db);
- 	if (err) {
-@@ -179,7 +177,6 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 		err = -ENOMEM;
- 		goto err_db;
- 	}
--	page_shift = srq->buf.page_shift;
+-	err = mlx5_ib_alloc_q_counters(dev);
+-	if (err)
+-		goto err_odp;
++	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
++		err = mlx5_ib_alloc_q_counters(dev);
++		if (err)
++			goto err_odp;
++	}
 
- 	srq->head    = 0;
- 	srq->tail    = srq->msrq.max - 1;
-@@ -191,10 +188,8 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 			cpu_to_be16((i + 1) & (srq->msrq.max - 1));
- 	}
+ 	dev->mdev->priv.uar = mlx5_get_uars_page(dev->mdev);
+ 	if (!dev->mdev->priv.uar)
+@@ -3364,7 +3366,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	mlx5_put_uars_page(dev->mdev, dev->mdev->priv.uar);
 
--	npages = DIV_ROUND_UP(srq->buf.npages, 1 << (page_shift - PAGE_SHIFT));
--	mlx5_ib_dbg(dev, "buf_size %d, page_shift %d, npages %d, calc npages %d\n",
--		    buf_size, page_shift, srq->buf.npages, npages);
--	in->pas = mlx5_vzalloc(sizeof(*in->pas) * npages);
-+	mlx5_ib_dbg(dev, "srq->buf.page_shift = %d\n", srq->buf.page_shift);
-+	in->pas = mlx5_vzalloc(sizeof(*in->pas) * srq->buf.npages);
- 	if (!in->pas) {
- 		err = -ENOMEM;
- 		goto err_buf;
-@@ -208,7 +203,7 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 	}
- 	srq->wq_sig = !!srq_signature;
+ err_q_cnt:
+-	mlx5_ib_dealloc_q_counters(dev);
++	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
++		mlx5_ib_dealloc_q_counters(dev);
 
--	in->log_page_size = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
-+	in->log_page_size = srq->buf.page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
- 	    in->type == IB_SRQT_XRC)
- 		in->user_index = MLX5_IB_DEFAULT_UIDX;
+ err_odp:
+ 	mlx5_ib_odp_remove_one(dev);
+@@ -3397,7 +3400,8 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
+ 	mlx5_free_bfreg(dev->mdev, &dev->fp_bfreg);
+ 	mlx5_free_bfreg(dev->mdev, &dev->bfreg);
+ 	mlx5_put_uars_page(dev->mdev, mdev->priv.uar);
+-	mlx5_ib_dealloc_q_counters(dev);
++	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
++		mlx5_ib_dealloc_q_counters(dev);
+ 	destroy_umrc_res(dev);
+ 	mlx5_ib_odp_remove_one(dev);
+ 	destroy_dev_resources(&dev->devr);
 --
 2.10.2
 
