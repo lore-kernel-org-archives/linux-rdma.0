@@ -1,32 +1,31 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for bnxt_re V4 13/21] RDMA/bnxt_re: Support QP verbs
-Date: Wed, 18 Jan 2017 11:16:41 +0200
-Message-ID: <20170118091641.GV32481@mtr-leonro.local>
+Subject: Re: [PATCH for bnxt_re V4 09/21] RDMA/bnxt_re: Support for GID
+ related verbs
+Date: Wed, 18 Jan 2017 11:50:06 +0200
+Message-ID: <20170118095006.GX32481@mtr-leonro.local>
 References: <1482320530-5344-1-git-send-email-selvin.xavier@broadcom.com>
- <1482320530-5344-14-git-send-email-selvin.xavier@broadcom.com>
+ <1482320530-5344-10-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="iskw6J4cuOvZ6IVF"
+        protocol="application/pgp-signature"; boundary="xbjSOCWVZ1q9zj4g"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1482320530-5344-14-git-send-email-selvin.xavier@broadcom.com>
+In-Reply-To: <1482320530-5344-10-git-send-email-selvin.xavier@broadcom.com>
 Sender: netdev-owner@vger.kernel.org
 To: Selvin Xavier <selvin.xavier@broadcom.com>
 Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, michael.chan@broadcom.com, Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---iskw6J4cuOvZ6IVF
+--xbjSOCWVZ1q9zj4g
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 21, 2016 at 03:42:02AM -0800, Selvin Xavier wrote:
-> This patch implements create_qp, destroy_qp, query_qp and modify_qp verbs.
+On Wed, Dec 21, 2016 at 03:41:58AM -0800, Selvin Xavier wrote:
+> Implements add GID, del GID,  get_netdev and pkey related verbs.
 >
-> v2: Fixed sparse warnings
-> v3: Splits __filter_modify_flags function to avoid nested switch cases.
->     Removes unwanted macros. Also, fix the endianness related issues
->     reported by sparse.
+> v3: Fixes some sparse warning related to endianness check. Removes
+>     macros which are just wrapper for standard defines.
 >
 > Signed-off-by: Eddie Wai <eddie.wai@broadcom.com>
 > Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
@@ -34,130 +33,60 @@ On Wed, Dec 21, 2016 at 03:42:02AM -0800, Selvin Xavier wrote:
 > Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 > ---
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 123 +++++++++++++++++
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.h  |  18 +++
+>  drivers/infiniband/hw/bnxt_re/main.c      |   7 +
+>  drivers/infiniband/hw/bnxt_re/qplib_res.c |   5 +
+>  drivers/infiniband/hw/bnxt_re/qplib_res.h |   3 +
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 218 ++++++++++++++++++++++++++++++
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  11 ++
+>  7 files changed, 385 insertions(+)
+>
 
 <snip>
 
 > +
-> +static u8 __from_ib_qp_type(enum ib_qp_type type)
+> +int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> +			struct bnxt_qplib_gid *gid, bool update)
 > +{
-> +	switch (type) {
-> +	case IB_QPT_GSI:
-> +		return CMDQ_CREATE_QP1_TYPE_GSI;
-> +	case IB_QPT_RC:
-> +		return CMDQ_CREATE_QP_TYPE_RC;
-> +	case IB_QPT_UD:
-> +		return CMDQ_CREATE_QP_TYPE_UD;
-> +	case IB_QPT_RAW_ETHERTYPE:
-> +		return CMDQ_CREATE_QP_TYPE_RAW_ETHERTYPE;
-> +	default:
-> +		return IB_QPT_MAX;
-> +	}
-> +}
+> +	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
+> +						   struct bnxt_qplib_res,
+> +						   sgid_tbl);
+> +	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+> +	int index;
 > +
-
-<snip>
-
-> +static u8 __from_ib_qp_state(enum ib_qp_state state)
-> +{
-> +	switch (state) {
-> +	case IB_QPS_RESET:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_RESET;
-> +	case IB_QPS_INIT:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_INIT;
-> +	case IB_QPS_RTR:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_RTR;
-> +	case IB_QPS_RTS:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_RTS;
-> +	case IB_QPS_SQD:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_SQD;
-> +	case IB_QPS_SQE:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_SQE;
-> +	case IB_QPS_ERR:
-> +	default:
-> +		return CMDQ_MODIFY_QP_NEW_STATE_ERR;
+> +	if (!sgid_tbl) {
+> +		dev_err(&res->pdev->dev, "QPLIB: SGID table not allocated");
+> +		return -EINVAL;
 > +	}
-> +}
-> +
-> +static enum ib_qp_state __to_ib_qp_state(u8 state)
-> +{
-> +	switch (state) {
-> +	case CMDQ_MODIFY_QP_NEW_STATE_RESET:
-> +		return IB_QPS_RESET;
-> +	case CMDQ_MODIFY_QP_NEW_STATE_INIT:
-> +		return IB_QPS_INIT;
-> +	case CMDQ_MODIFY_QP_NEW_STATE_RTR:
-> +		return IB_QPS_RTR;
-> +	case CMDQ_MODIFY_QP_NEW_STATE_RTS:
-> +		return IB_QPS_RTS;
-> +	case CMDQ_MODIFY_QP_NEW_STATE_SQD:
-> +		return IB_QPS_SQD;
-> +	case CMDQ_MODIFY_QP_NEW_STATE_SQE:
-> +		return IB_QPS_SQE;
-> +	case CMDQ_MODIFY_QP_NEW_STATE_ERR:
-> +	default:
-> +		return IB_QPS_ERR;
-> +	}
-> +}
-> +
-> +static u32 __from_ib_mtu(enum ib_mtu mtu)
-> +{
-> +	switch (mtu) {
-> +	case IB_MTU_256:
-> +		return CMDQ_MODIFY_QP_PATH_MTU_MTU_256;
-> +	case IB_MTU_512:
-> +		return CMDQ_MODIFY_QP_PATH_MTU_MTU_512;
-> +	case IB_MTU_1024:
-> +		return CMDQ_MODIFY_QP_PATH_MTU_MTU_1024;
-> +	case IB_MTU_2048:
-> +		return CMDQ_MODIFY_QP_PATH_MTU_MTU_2048;
-> +	case IB_MTU_4096:
-> +		return CMDQ_MODIFY_QP_PATH_MTU_MTU_4096;
-> +	default:
-> +		return CMDQ_MODIFY_QP_PATH_MTU_MTU_2048;
-> +	}
-> +}
-> +
-> +static enum ib_mtu __to_ib_mtu(u32 mtu)
-> +{
-> +	switch (mtu & CREQ_QUERY_QP_RESP_SB_PATH_MTU_MASK) {
-> +	case CMDQ_MODIFY_QP_PATH_MTU_MTU_256:
-> +		return IB_MTU_256;
-> +	case CMDQ_MODIFY_QP_PATH_MTU_MTU_512:
-> +		return IB_MTU_512;
-> +	case CMDQ_MODIFY_QP_PATH_MTU_MTU_1024:
-> +		return IB_MTU_1024;
-> +	case CMDQ_MODIFY_QP_PATH_MTU_MTU_2048:
-> +		return IB_MTU_2048;
-> +	case CMDQ_MODIFY_QP_PATH_MTU_MTU_4096:
-> +		return IB_MTU_4096;
-> +	default:
-> +		return IB_MTU_2048;
-> +	}
-> +}
+> +	/* Do we need a sgid_lock here? */
 
-Why do you you need these functions? These translations to<->from look
-redundant.
+It is better to answer on this question before acceptance.
 
-Thanks
+> +	if (!sgid_tbl->active) {
+> +		dev_err(&res->pdev->dev,
+> +			"QPLIB: SGID table has no active entries");
+> +		return -ENOMEM;
+> +	}
 
---iskw6J4cuOvZ6IVF
+--xbjSOCWVZ1q9zj4g
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/MnkACgkQ5GN7iDZy
-WKd/XQ/+OLPXXZmsDdpvvceyl64iL2S+GtR4aD4RRirBtY3++lYEMiDOLUVaZrlj
-wPSkdII9oUGps3nvK6nS16M2EW5Ya+ZtuAPNFYv3zu/qtqgl/To5ZkY85xNzjb4v
-VuD4kUcfqLbPh/GdrmkHo4CM6PZGdIsl08QeeV/vSbxX9eKiiae7Ouw+/WUzf6+1
-rINP+jnizikk3LxLrQUVckqpozu0aroZnZlc1L536jDVFECiMnTNSS2Huyh0WvDZ
-DAQ7NW2uRESPMCj4JyNlPUKwg6nQDDy2vIFtG+6R4uYuNl7lp138scEpRaEnLGd3
-HwKdo5wtpqnfAPPZwp53D39aUrAdCJdgh2lpPBU+hRJcCS3HOQ37GGTuwazoSCzP
-cWBJyf33wVmNEPpnCGohm1UPY4pB0y2fUdcg48ZoMBprismCvInGbwelj5Q8mutD
-l6iwZ+9Nz/TcYd56b/dbefLEpyqQymMlgZO7o9VuGCAaPZtBxnVh1fE8HXOErpK8
-2d4S+PZy8LG7z46Y6XNrF/L1Dka49Q4J/JxHvtpwzeoPAq91Nm0zG/3thckmIrmo
-f3rUg+w/veSPIl3C36tAzO7rjBWuCW6cQITkoIh6t9ndFBrRlcOdgeG0rpjw+SzG
-41TLi+zmeyT3xni0qkSJ+YJ041vaq+FpO1hFzsS6+cR+WQhFEkw=
-=DOU9
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/Ok4ACgkQ5GN7iDZy
+WKeI6xAAjH8jSeR/jYvqMfI3MGuobn1VD+m/y4KTy3wXXHB8YVElvdvjuLlEEYmS
+S/mRVNz9sFEB88pBvD61v8hAadSs29uRoqZePAAmb4r48hFza2XUm2kfB2q6QpCn
+GeRh0QKxmG8o5mFhXA05niDWyXK9u2BgABHCBjsuAVavBWPgNPv7bo66+nugaoA1
+eB4xm6uTE4EHbFsSwq6F59mKmaKoHK5n+ndTocJTnG7aHudPcLVenP50yiU93QkT
+r/pKdGIKwAmMgkDR6kG8vXTC7EQFtdZljcx8TUhWNkYaYoOq13ZO7innkh7YMcfS
+w4zuuoot+ADtFu7PgeHLeTmsSr8duAOlgoQpyZWFhyBgXDonB7gHCC2I1V/sl2VZ
+gJLAMzB8XY094cP8F4rYiLXpPZ/NNsu5LkF5OLbAkuitwzQvBGGHRNpxHk8sl29G
+Xtviowbp9YY+N6aJvkP4qu/L6VlZAzoiF8hs380mrPLqjPG4vVl47DfOOEDZBQRR
+ZjjaGItoGMGAew2fK7/VeN7u9id/e94UHUnvZWxwt3MuApPkteNxhISFhO3cbSZN
+IFTUcYjwPEgnM34bbAd1smKwNhs0htVwsESOo5V3cGXkyFk4jntX7g1DhL0exT7s
+UgXF6zJwIunZjtYa2iSXpYLc5pp5+6dTNv5ZWeJXfgwiVAnnNIk=
+=ck5U
 -----END PGP SIGNATURE-----
 
---iskw6J4cuOvZ6IVF--
+--xbjSOCWVZ1q9zj4g--
