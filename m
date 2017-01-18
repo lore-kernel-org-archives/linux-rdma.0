@@ -1,68 +1,60 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core] i40iw: Set 128B as the only supported RQ WQE
- size
-Date: Wed, 18 Jan 2017 18:30:00 +0200
-Message-ID: <20170118163000.GE32481@mtr-leonro.local>
-References: <1482179477-100780-1-git-send-email-tatyana.e.nikolova@intel.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
+Date: Wed, 18 Jan 2017 11:31:27 -0700
+Message-ID: <20170118183127.GC14198@obsidianresearch.com>
+References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
+ <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
+ <20170118173327.GF32481@mtr-leonro.local>
+ <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3CF/MBslHFRhO8r/"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1482179477-100780-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Ariel Almog <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
---3CF/MBslHFRhO8r/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wed, Jan 18, 2017 at 07:50:26PM +0200, Or Gerlitz wrote:
+> On Wed, Jan 18, 2017 at 7:33 PM, Leon Romanovsky wrote:
+> > On Wed, Jan 18, 2017 at 06:48:21PM +0200, Or Gerlitz wrote:
+> >> On Wed, Jan 18, 2017 at 5:19 PM, Ariel Almog
+> >> <arielalmogworkemails@gmail.com> wrote:
+> 
+> >>> As of today, there is no single, simple, tool that allows monitoring
+> >>> and configuration of RDMA stack.
+> 
+> >> Before tool, what kernel UAPI you thought to use?
+> 
+> > I'm aware of the following options:
+> > 1) netlink
+> > 2) RDMA ABI https://www.spinics.net/lists/linux-rdma/msg43960.html
+> > 3) ioctl
+> > 4) write/read
+> >
+> > The items 1 and 2 are preferred options and one of the main goals
+> > for this RFC is to chose between them.
+> >
+> > For example, RDMA ABI has native support of querying and discovering
+> > device capabilities via merge tree feature.
+> 
+> To make it clear, when you wrote ABI in your initial email, I tend to
+> think it was sort of unclear to the netdev crowd that you are talking
+> on new UAPI which is now under the works for the IB subsystem, so with
+> my netdev community member hat, I got confused... anyway
 
-On Mon, Dec 19, 2016 at 02:31:17PM -0600, Tatyana Nikolova wrote:
-> RQ WQE size other than 128B is not supported.
-> Correct RQ size calculation to use 128B only.
->
-> Since this breaks ABI, add code to provide
-> compatibility with V4 kernel driver, i40iw.
->
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  providers/i40iw/i40iw-abi.h    |  3 +--
->  providers/i40iw/i40iw_uk.c     | 18 +++++++++++++-----
->  providers/i40iw/i40iw_umain.c  | 15 +++++++++++----
->  providers/i40iw/i40iw_umain.h  |  1 +
->  providers/i40iw/i40iw_user.h   |  4 +++-
->  providers/i40iw/i40iw_uverbs.c | 20 +++++++++++++++-----
->  6 files changed, 44 insertions(+), 17 deletions(-)
->
+I think it depends on what this tool is supposed to cover, but based
+on the description, I would start with netlink-only.
 
-Thanks,
-https://github.com/linux-rdma/rdma-core/commit/1919a5d436712c58bac8480a0aae6ee2b2f92f17
-I applied it again.
+The only place verbs covers a similar ground is in 'device
+capabilities' - for some of that you might want to open a new-uAPI
+verbs fd, but even the capability data from that would not be
+totally offensive to be accessed over netlink.
 
---3CF/MBslHFRhO8r/
-Content-Type: application/pgp-signature; name="signature.asc"
+IMHO netlink should cover almost everything found in sysfs today.
 
------BEGIN PGP SIGNATURE-----
+I'm also deeply skeptical about driver-specific stuff at this layer,
+that sounds like a way to make a big mess.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/mAgACgkQ5GN7iDZy
-WKc7DhAAyyv28h+Z5jXrl6hLFeV86T8ldXehZcMTxq7d55oAPKU6FO8ANUr1KFt8
-49myeK0kQYjGeeZ20ewYp5zoMsvhlt5GroL7a/5e/o7WUO71oH1dhV4KfRftEthV
-b7g1y3c6w7aLFYWz2jVTIxWnV7/N6mu2orOGmZQTm3WnnnObqARUyNii+BURUUF2
-biJLF3yAP9FFofl6TXExphCyRBkeDuKTlKCjqv54XWcLEJxNcwM0ZfhfebJzHchF
-MnJ1QlNlEiDak0FdUXnNHN4imREGaRX8D7Tg48iaRmoISiAyguFbuIade0QFDnpD
-cOHQthZEuKXep5kuUquAPcTTbpYz/ROS/DJwmzx1YdwogB78swWC7SOwxv+/l7li
-jOFfbqW0NgRadNM+MVZbDLfGwC230mRMZFPsLL2CZE8vD4p+4nUfnKmsESv2So5u
-k+cxumSWjCJiMFJwpuPk02kiT7Jszfj8NexUeybKzDqYoCiZfpKhhZ61lXsI4jzo
-eKpv8LbydiOrEAmShDBBlIn4Cw/S4JT7GiZNoYWs/kDGkAiNz8gItB8gBc/ZmlLc
-vVAxiIK8tj4Fg5KncXU5IC22AEuYe+8UuMlu1pFCkYjLbj55ZIuut42f31r8bX56
-/vIwAFsGRLzLFqlA7dbIetVcyXW6VD2uqSj4fHGPGUSq+xdaRKk=
-=Eehe
------END PGP SIGNATURE-----
-
---3CF/MBslHFRhO8r/--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
