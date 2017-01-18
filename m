@@ -1,74 +1,28 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 7/7] IB/mlx5: Remove deprecated module parameter
-Date: Wed, 18 Jan 2017 22:26:39 +0200
-Message-ID: <20170118202638.GD17688@yuval-lap>
-References: <20170118121036.32642-1-leon@kernel.org>
- <20170118121036.32642-8-leon@kernel.org>
+From: Tadeusz Struk <tadeusz.struk@intel.com>
+Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
+ device
+Date: Wed, 18 Jan 2017 14:03:57 -0800
+Message-ID: <934eb6c4-fbba-28d0-d6bb-f036cc9ced5c@intel.com>
+References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
+ <20170111181042.GC22783@obsidianresearch.com>
+ <1484773260.2406.58.camel@redhat.com>
+ <20170118210831.GA7590@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170118121036.32642-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170118210831.GA7590@obsidianresearch.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 02:10:36PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Commit 9603b61de1ee ("mlx5: Move pci device handling from mlx5_ib
-> to mlx5_core") moved prof_sel module parameter from mlx5_ib to mlx5_core
-> and marked it as deprecated in 2014.
-> 
-> Three years after deprecation, it is time to remove the deprecated
-> module parameter.
-> 
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 7 -------
->  1 file changed, 7 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 6a81f027..fc02f5f 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -64,10 +64,6 @@ MODULE_DESCRIPTION("Mellanox Connect-IB HCA IB driver");
->  MODULE_LICENSE("Dual BSD/GPL");
->  MODULE_VERSION(DRIVER_VERSION);
->  
-> -static int deprecated_prof_sel = 2;
-> -module_param_named(prof_sel, deprecated_prof_sel, int, 0444);
-> -MODULE_PARM_DESC(prof_sel, "profile selector. Deprecated here. Moved to module mlx5_core");
-> -
+On 01/18/2017 01:08 PM, Jason Gunthorpe wrote:
+> EPROBE_DEFER is intended when waiting on other components the driver
+> may need, not for setting stable names.
 
-An example for why module parameters should not be used :)
-
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
->  static char mlx5_version[] =
->  	DRIVER_NAME ": Mellanox Connect-IB Infiniband driver v"
->  	DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
-> @@ -3479,9 +3475,6 @@ static int __init mlx5_ib_init(void)
->  {
->  	int err;
->  
-> -	if (deprecated_prof_sel != 2)
-> -		pr_warn("prof_sel is deprecated for mlx5_ib, set it for mlx5_core\n");
-> -
->  	err = mlx5_register_interface(&mlx5_ib_interface);
->  
->  	return err;
-> -- 
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also EPROBE_DEFER only works during boot time.
+After boot when a module gets rmmod/insmod EPROBE_DEFER has no effect.
+Thanks,
+-- 
+Tadeusz
