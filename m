@@ -1,44 +1,77 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
- device
-Date: Wed, 18 Jan 2017 14:08:31 -0700
-Message-ID: <20170118210831.GA7590@obsidianresearch.com>
-References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
- <20170111181042.GC22783@obsidianresearch.com>
- <1484773260.2406.58.camel@redhat.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
+Date: Wed, 18 Jan 2017 20:28:57 +0200
+Message-ID: <20170118182857.GG32481@mtr-leonro.local>
+References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
+ <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
+ <20170118173327.GF32481@mtr-leonro.local>
+ <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="sxUMTo9WXJrtNoGr"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1484773260.2406.58.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Ariel Almog <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 04:01:00PM -0500, Doug Ledford wrote:
+--sxUMTo9WXJrtNoGr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> OK, sure, as far as the reordering stuff is concerned, all you need to
-> do is to make use of the EPROBE_DEFER return option to your PCI probe
-> routine.  That way, when you get the probe for the out of order
-> port,
+On Wed, Jan 18, 2017 at 07:50:26PM +0200, Or Gerlitz wrote:
+> On Wed, Jan 18, 2017 at 7:33 PM, Leon Romanovsky wrote:
+> > On Wed, Jan 18, 2017 at 06:48:21PM +0200, Or Gerlitz wrote:
+> >> On Wed, Jan 18, 2017 at 5:19 PM, Ariel Almog
+> >> <arielalmogworkemails@gmail.com> wrote:
+>
+> >>> As of today, there is no single, simple, tool that allows monitoring
+> >>> and configuration of RDMA stack.
+>
+> >> Before tool, what kernel UAPI you thought to use?
+>
+> > I'm aware of the following options:
+> > 1) netlink
+> > 2) RDMA ABI https://www.spinics.net/lists/linux-rdma/msg43960.html
+> > 3) ioctl
+> > 4) write/read
+> >
+> > The items 1 and 2 are preferred options and one of the main goals
+> > for this RFC is to chose between them.
+> >
+> > For example, RDMA ABI has native support of querying and discovering
+> > device capabilities via merge tree feature.
+>
+> To make it clear, when you wrote ABI in your initial email, I tend to
+> think it was sort of unclear to the netdev crowd that you are talking
+> on new UAPI which is now under the works for the IB subsystem, so with
+> my netdev community member hat, I got confused... anyway
 
-EPROBE_DEFER is intended when waiting on other components the driver
-may need, not for setting stable names.
+You are right, I missed it in my review for Ariel who wrote this RFC
+and sent this RFC.
 
-This is a 'stable device naming' problem, which we have never tried to
-solve in RDMA.
+Thanks
 
-udev is the expected kernel way to solve this. Trying to hack stable
-names by forcing device bind order is horrible.
+--sxUMTo9WXJrtNoGr
+Content-Type: application/pgp-signature; name="signature.asc"
 
-hfi runs smack into this because it is the first scheme to actually
-typically operate in a multi-struct ib_device world, which means they
-get to solve it properly :\
+-----BEGIN PGP SIGNATURE-----
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/s+kACgkQ5GN7iDZy
+WKdR3A/7B36EKXRrPUYlAE6WDN8HbmhO5prXWvd/GJaCXarJMDi6jjm263v5hS1R
+5WJpg1ZZYlmliaFZ32Pdq3EtWnORctfBiN0rv8FHczf/W5aYpF7L8WOGNERbN6Ev
+3gRcznqBNwwOkDY+lk0I4VZU2hfdbcd1r3fZVcxv6vLVkh/H8zvZNzA5TJzrOOW1
+Jyujv7j/6XZ9aKT/UqKqiB2n4fdzCXMrOePzebYQatFQ36iU7ZJSH/VfG/s8WDNz
+LznmIYZDSDn6spF9nWqcrC2/QqK7WOvBvCnSua+4cC6rgbC5fLH6cEcihDITa6Ob
+GoDELaF4ffngCm6pdkw+XKvEGKBGs2ZWYdG1IdBIsedA+qt6JSCy/K/LEl+A2ItE
+c7yFnOpGUnULLjCJNaQxBIlCOtj5nS1uFe21VfAqwJRvJstLzyl8Oh1E5MRcL9Tl
+fSg5vjT2FYicT0lqeTAqYBO+psCGRru5PWZ2UgCgFw5wD+V5ZKdMEnp4VZzbDmAm
+sFaz2b5+yCuDJjVyEAm7sEwnMlpPwGsmBA/tn6+Lq3BbCz2MOGzMPSMfzl2n4WdD
+mM/taKKE6kZKGTs9dfI2gw+2vZpRTCB8J77j9g55+vvTlhmR+dytUeOUkxsO2oZl
+kMGPPL2n2vQgki7vf5UpkHtznF+XWvHzmmqGGrKE0BKDV7wwo2U=
+=amsX
+-----END PGP SIGNATURE-----
+
+--sxUMTo9WXJrtNoGr--
