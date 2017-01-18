@@ -1,128 +1,177 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 6/7] IB/mlx5: Assign DSCP for R-RoCE QPs
- Address Path
-Date: Wed, 18 Jan 2017 22:23:44 +0200
-Message-ID: <20170118202343.GC17688@yuval-lap>
-References: <20170118121036.32642-1-leon@kernel.org>
- <20170118121036.32642-7-leon@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: [PATCH] pci: drop link_reset
+Date: Wed, 18 Jan 2017 23:39:11 +0200
+Message-ID: <1484775540-8405-1-git-send-email-mst@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170118121036.32642-7-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Linas Vepstas <linasvepstas@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Jonathan Corbet <corbet@lwn.net>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 02:10:35PM +0200, Leon Romanovsky wrote:
-> From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> For Routable RoCE QPs, the DSCP should be set in the QP's
-> address path.
-> 
-> The DSCP's value is derived from the traffic class.
-> 
-> Fixes: 2811ba51b049 ("IB/mlx5: Add RoCE fields to Address Vector")
-> Cc: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c    | 21 +++++++++++++++++++++
->  drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 ++
->  drivers/infiniband/hw/mlx5/qp.c      |  7 +++++++
->  3 files changed, 30 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 1dea407..6a81f027 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -325,6 +325,27 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
->  	return cpu_to_be16(MLX5_CAP_ROCE(dev->mdev, r_roce_min_src_udp_port));
->  }
->  
-> +int mlx5_get_roce_gid_type(struct mlx5_ib_dev *dev, u8 port_num,
-> +			   int index, enum ib_gid_type *gid_type)
-> +{
-> +	struct ib_gid_attr attr;
-> +	union ib_gid gid;
-> +	int ret;
-> +
-> +	ret = ib_get_cached_gid(&dev->ib_dev, port_num, index, &gid, &attr);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (!attr.ndev)
-> +		return -ENODEV;
+No hardware seems to actually call link_reset, and
+no driver implements it as more than a nop stub.
 
-Two questions:
-First for my understanding :) I see that this check is already done in
-__ib_cache_gid_get so why it is not enough?
-Second: Since this is light test, can we have it before the call to
-ib_get_cached_gid?
+This drops the mentions of the callback from everywhere.
+It's dropped from the documentation as well, but
+the doc really needs to be updated to reflect
+reality better (e.g. on pcie slot reset is the link reset).
 
-> +
-> +	dev_put(attr.ndev);
-> +
-> +	*gid_type = attr.gid_type;
-> +
-> +	return 0;
-> +}
-> +
->  static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
->  {
->  	if (MLX5_CAP_GEN(dev->mdev, port_type) == MLX5_CAP_PORT_TYPE_IB)
-> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> index e1a4b93d..dda01d7 100644
-> --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> @@ -872,6 +872,8 @@ int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
->  
->  __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
->  			       int index);
-> +int mlx5_get_roce_gid_type(struct mlx5_ib_dev *dev, u8 port_num,
-> +			   int index, enum ib_gid_type *gid_type);
->  
->  /* GSI QP helper functions */
->  struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index 9af9b95..e22d957 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -2198,6 +2198,7 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
->  {
->  	enum rdma_link_layer ll = rdma_port_get_link_layer(&dev->ib_dev, port);
->  	int err;
-> +	enum ib_gid_type gid_type;
->  
->  	if (attr_mask & IB_QP_PKEY_INDEX)
->  		path->pkey_index = cpu_to_be16(alt ? attr->alt_pkey_index :
-> @@ -2216,10 +2217,16 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
->  	if (ll == IB_LINK_LAYER_ETHERNET) {
->  		if (!(ah->ah_flags & IB_AH_GRH))
->  			return -EINVAL;
-> +		err = mlx5_get_roce_gid_type(dev, port, ah->grh.sgid_index,
-> +					     &gid_type);
-> +		if (err)
-> +			return err;
->  		memcpy(path->rmac, ah->dmac, sizeof(ah->dmac));
->  		path->udp_sport = mlx5_get_roce_udp_sport(dev, port,
->  							  ah->grh.sgid_index);
->  		path->dci_cfi_prio_sl = (ah->sl & 0x7) << 4;
-> +		if (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-> +			path->ecn_dscp = (ah->grh.traffic_class >> 2) & 0x3f;
->  	} else {
->  		path->fl_free_ar = (path_flags & MLX5_PATH_FLAG_FL) ? 0x80 : 0;
->  		path->fl_free_ar |=
-> -- 
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This will be done in a later patch.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ Documentation/PCI/pci-error-recovery.txt | 24 +++---------------------
+ drivers/infiniband/hw/hfi1/pcie.c        | 10 ----------
+ drivers/infiniband/hw/qib/qib_pcie.c     |  8 --------
+ drivers/media/pci/ngene/ngene-cards.c    |  7 -------
+ include/linux/pci.h                      |  3 ---
+ 5 files changed, 3 insertions(+), 49 deletions(-)
+
+diff --git a/Documentation/PCI/pci-error-recovery.txt b/Documentation/PCI/pci-error-recovery.txt
+index ac26869..da3b217 100644
+--- a/Documentation/PCI/pci-error-recovery.txt
++++ b/Documentation/PCI/pci-error-recovery.txt
+@@ -78,7 +78,6 @@ struct pci_error_handlers
+ {
+ 	int (*error_detected)(struct pci_dev *dev, enum pci_channel_state);
+ 	int (*mmio_enabled)(struct pci_dev *dev);
+-	int (*link_reset)(struct pci_dev *dev);
+ 	int (*slot_reset)(struct pci_dev *dev);
+ 	void (*resume)(struct pci_dev *dev);
+ };
+@@ -104,8 +103,7 @@ if it implements any, it must implement error_detected(). If a callback
+ is not implemented, the corresponding feature is considered unsupported.
+ For example, if mmio_enabled() and resume() aren't there, then it
+ is assumed that the driver is not doing any direct recovery and requires
+-a slot reset. If link_reset() is not implemented, the card is assumed to
+-not care about link resets. Typically a driver will want to know about
++a slot reset.  Typically a driver will want to know about
+ a slot_reset().
+ 
+ The actual steps taken by a platform to recover from a PCI error
+@@ -232,25 +230,9 @@ proceeds to STEP 4 (Slot Reset)
+ 
+ STEP 3: Link Reset
+ ------------------
+-The platform resets the link, and then calls the link_reset() callback
+-on all affected device drivers.  This is a PCI-Express specific state
++The platform resets the link.  This is a PCI-Express specific step
+ and is done whenever a non-fatal error has been detected that can be
+-"solved" by resetting the link. This call informs the driver of the
+-reset and the driver should check to see if the device appears to be
+-in working condition.
+-
+-The driver is not supposed to restart normal driver I/O operations
+-at this point.  It should limit itself to "probing" the device to
+-check its recoverability status. If all is right, then the platform
+-will call resume() once all drivers have ack'd link_reset().
+-
+-	Result codes:
+-		(identical to STEP 3 (MMIO Enabled)
+-
+-The platform then proceeds to either STEP 4 (Slot Reset) or STEP 5
+-(Resume Operations).
+-
+->>> The current powerpc implementation does not implement this callback.
++"solved" by resetting the link.
+ 
+ STEP 4: Slot Reset
+ ------------------
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 4ac8f33..ebd941f 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -598,15 +598,6 @@ pci_slot_reset(struct pci_dev *pdev)
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-static pci_ers_result_t
+-pci_link_reset(struct pci_dev *pdev)
+-{
+-	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
+-
+-	dd_dev_info(dd, "HFI1 link_reset function called, ignored\n");
+-	return PCI_ERS_RESULT_CAN_RECOVER;
+-}
+-
+ static void
+ pci_resume(struct pci_dev *pdev)
+ {
+@@ -625,7 +616,6 @@ pci_resume(struct pci_dev *pdev)
+ const struct pci_error_handlers hfi1_pci_err_handler = {
+ 	.error_detected = pci_error_detected,
+ 	.mmio_enabled = pci_mmio_enabled,
+-	.link_reset = pci_link_reset,
+ 	.slot_reset = pci_slot_reset,
+ 	.resume = pci_resume,
+ };
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 6abe1c6..c379b83 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -682,13 +682,6 @@ qib_pci_slot_reset(struct pci_dev *pdev)
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-static pci_ers_result_t
+-qib_pci_link_reset(struct pci_dev *pdev)
+-{
+-	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
+-	return PCI_ERS_RESULT_CAN_RECOVER;
+-}
+-
+ static void
+ qib_pci_resume(struct pci_dev *pdev)
+ {
+@@ -707,7 +700,6 @@ qib_pci_resume(struct pci_dev *pdev)
+ const struct pci_error_handlers qib_pci_err_handler = {
+ 	.error_detected = qib_pci_error_detected,
+ 	.mmio_enabled = qib_pci_mmio_enabled,
+-	.link_reset = qib_pci_link_reset,
+ 	.slot_reset = qib_pci_slot_reset,
+ 	.resume = qib_pci_resume,
+ };
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 423e8c8..8438c1c 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -781,12 +781,6 @@ static pci_ers_result_t ngene_error_detected(struct pci_dev *dev,
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-static pci_ers_result_t ngene_link_reset(struct pci_dev *dev)
+-{
+-	printk(KERN_INFO DEVICE_NAME ": link reset\n");
+-	return 0;
+-}
+-
+ static pci_ers_result_t ngene_slot_reset(struct pci_dev *dev)
+ {
+ 	printk(KERN_INFO DEVICE_NAME ": slot reset\n");
+@@ -800,7 +794,6 @@ static void ngene_resume(struct pci_dev *dev)
+ 
+ static const struct pci_error_handlers ngene_errors = {
+ 	.error_detected = ngene_error_detected,
+-	.link_reset = ngene_link_reset,
+ 	.slot_reset = ngene_slot_reset,
+ 	.resume = ngene_resume,
+ };
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 30d6c16..316379c 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -661,9 +661,6 @@ struct pci_error_handlers {
+ 	/* MMIO has been re-enabled, but not DMA */
+ 	pci_ers_result_t (*mmio_enabled)(struct pci_dev *dev);
+ 
+-	/* PCI Express link has been reset */
+-	pci_ers_result_t (*link_reset)(struct pci_dev *dev);
+-
+ 	/* PCI slot has been reset */
+ 	pci_ers_result_t (*slot_reset)(struct pci_dev *dev);
+ 
+-- 
+MST
