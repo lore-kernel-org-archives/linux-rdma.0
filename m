@@ -1,83 +1,22 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/qib: Remove empty function
-Date: Wed, 18 Jan 2017 08:22:46 +0200
-Message-ID: <20170118062245.GA3500@yuval-lap>
-References: <20170118055758.27237-1-leon@kernel.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCHv3 2/2] IB/iser: remove unused variable from iser_conn
+ struct
+Date: Wed, 18 Jan 2017 08:51:19 +0200
+Message-ID: <91c76eee-bead-16e2-1642-a8e4cf89ee73@grimberg.me>
+References: <1484692840-12400-1-git-send-email-maxg@mellanox.com>
+ <1484692840-12400-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170118055758.27237-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1484692840-12400-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 07:57:58AM +0200, Leon Romanovsky wrote:
-> Commit f06267104dd9 ("RDMA: Update workqueue usage") removed
-> content of qib_qsfp_deinit(...) and left it empty.
-> 
-> This patch deletes all leftovers of that function.
-> 
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/hw/qib/qib_iba7322.c |  1 -
->  drivers/infiniband/hw/qib/qib_qsfp.c    | 10 ----------
->  drivers/infiniband/hw/qib/qib_qsfp.h    |  1 -
->  3 files changed, 12 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-> index c4a36160..9cc97bd 100644
-> --- a/drivers/infiniband/hw/qib/qib_iba7322.c
-> +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-> @@ -2893,7 +2893,6 @@ static void qib_setup_7322_cleanup(struct qib_devdata *dd)
->  			dd->cspec->gpio_mask &= ~mask;
->  			qib_write_kreg(dd, kr_gpio_mask, dd->cspec->gpio_mask);
->  			spin_unlock_irqrestore(&dd->cspec->gpio_lock, flags);
-> -			qib_qsfp_deinit(&dd->pport[i].cpspec->qsfp_data);
->  		}
->  	}
->  }
-> diff --git a/drivers/infiniband/hw/qib/qib_qsfp.c b/drivers/infiniband/hw/qib/qib_qsfp.c
-> index 4c7c3c8..295d40a 100644
-> --- a/drivers/infiniband/hw/qib/qib_qsfp.c
-> +++ b/drivers/infiniband/hw/qib/qib_qsfp.c
-> @@ -485,16 +485,6 @@ void qib_qsfp_init(struct qib_qsfp_data *qd,
->  	dd->f_gpio_mod(dd, mask, mask, mask);
->  }
->  
-> -void qib_qsfp_deinit(struct qib_qsfp_data *qd)
-> -{
-> -	/*
-> -	 * There is nothing to do here for now.  our work is scheduled
-> -	 * with queue_work(), and flush_workqueue() from remove_one
-> -	 * will block until all work setup with queue_work()
-> -	 * completes.
-> -	 */
-> -}
-> -
->  int qib_qsfp_dump(struct qib_pportdata *ppd, char *buf, int len)
->  {
->  	struct qib_qsfp_cache cd;
-> diff --git a/drivers/infiniband/hw/qib/qib_qsfp.h b/drivers/infiniband/hw/qib/qib_qsfp.h
-> index 91908f5..ad8dbd6 100644
-> --- a/drivers/infiniband/hw/qib/qib_qsfp.h
-> +++ b/drivers/infiniband/hw/qib/qib_qsfp.h
-> @@ -186,4 +186,3 @@ extern int qib_refresh_qsfp_cache(struct qib_pportdata *ppd,
->  extern int qib_qsfp_mod_present(struct qib_pportdata *ppd);
->  extern void qib_qsfp_init(struct qib_qsfp_data *qd,
->  			  void (*fevent)(struct work_struct *));
-> -extern void qib_qsfp_deinit(struct qib_qsfp_data *qd);
-> -- 
+This looks good,
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lets wait for Steve to give his Tested-by tag.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
