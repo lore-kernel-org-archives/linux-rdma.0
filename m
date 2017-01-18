@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 05/11] IB/uverbs: Expose vlan offloads capabilities
-Date: Wed, 18 Jan 2017 15:39:58 +0200
-Message-ID: <20170118134004.5380-6-leon@kernel.org>
+Subject: [PATCH rdma-next 02/11] IB/core: Enable WQ creation and modification with cvlan offload
+Date: Wed, 18 Jan 2017 15:39:55 +0200
+Message-ID: <20170118134004.5380-3-leon@kernel.org>
 References: <20170118134004.5380-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170118134004.5380-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,47 +12,58 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Expose raw packet capabilities to user space as part of query device.
+Enable WQ creation and modification with cvlan stripping offload.
+This includes:
+- Adding WQ creation flags.
+- Extending modify WQ to get flags and flags mask to enable turning
+  it on and off.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 6 ++++++
- include/uapi/rdma/ib_user_verbs.h    | 2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/rdma/ib_verbs.h | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7007822..48c7852 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -4323,6 +4323,12 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
- 
- 	resp.max_wq_type_rq = attr.max_wq_type_rq;
- 	resp.response_length += sizeof(resp.max_wq_type_rq);
-+
-+	if (ucore->outlen < resp.response_length + sizeof(resp.raw_packet_caps))
-+		goto end;
-+
-+	resp.raw_packet_caps = attr.raw_packet_caps;
-+	resp.response_length += sizeof(resp.raw_packet_caps);
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index dfdfe4e..4811b6a 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -247,7 +247,7 @@ struct ib_uverbs_ex_query_device_resp {
- 	__u64 device_cap_flags_ex;
- 	struct ib_uverbs_rss_caps rss_caps;
- 	__u32  max_wq_type_rq;
--	__u32 reserved;
-+	__u32 raw_packet_caps;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index edb9ff0..d5cdf36 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1494,6 +1494,10 @@ struct ib_wq {
+ 	atomic_t		usecnt;
  };
  
- struct ib_uverbs_query_port {
++enum ib_wq_flags {
++	IB_WQ_FLAGS_CVLAN_STRIPPING	= 1 << 0,
++};
++
+ struct ib_wq_init_attr {
+ 	void		       *wq_context;
+ 	enum ib_wq_type	wq_type;
+@@ -1501,16 +1505,20 @@ struct ib_wq_init_attr {
+ 	u32		max_sge;
+ 	struct	ib_cq	       *cq;
+ 	void		    (*event_handler)(struct ib_event *, void *);
++	u32		create_flags; /* Use enum ib_wq_flags */
+ };
+ 
+ enum ib_wq_attr_mask {
+-	IB_WQ_STATE	= 1 << 0,
+-	IB_WQ_CUR_STATE	= 1 << 1,
++	IB_WQ_STATE		= 1 << 0,
++	IB_WQ_CUR_STATE		= 1 << 1,
++	IB_WQ_FLAGS		= 1 << 2,
+ };
+ 
+ struct ib_wq_attr {
+ 	enum	ib_wq_state	wq_state;
+ 	enum	ib_wq_state	curr_wq_state;
++	u32			flags; /* Use enum ib_wq_flags */
++	u32			flags_mask; /* Use enum ib_wq_flags */
+ };
+ 
+ struct ib_rwq_ind_table {
 -- 
 2.10.2
 
