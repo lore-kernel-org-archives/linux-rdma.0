@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 07/11] IB/uverbs: Enable QP creation with cvlan offload
-Date: Wed, 18 Jan 2017 15:40:00 +0200
-Message-ID: <20170118134004.5380-8-leon@kernel.org>
+Subject: [PATCH rdma-next 08/11] IB/mlx5: Expose vlan offloads capabilities
+Date: Wed, 18 Jan 2017 15:40:01 +0200
+Message-ID: <20170118134004.5380-9-leon@kernel.org>
 References: <20170118134004.5380-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170118134004.5380-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,30 +12,51 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Enable user applications to create a QP with cvlan stripping offload.
+Check device's capabilities and report which raw packet capabilities
+are supported.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 014143a..85132ae 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1891,7 +1891,8 @@ static int create_qp(struct ib_uverbs_file *file,
- 				IB_QP_CREATE_CROSS_CHANNEL |
- 				IB_QP_CREATE_MANAGED_SEND |
- 				IB_QP_CREATE_MANAGED_RECV |
--				IB_QP_CREATE_SCATTER_FCS)) {
-+				IB_QP_CREATE_SCATTER_FCS |
-+				IB_QP_CREATE_CVLAN_STRIPPING)) {
- 		ret = -EINVAL;
- 		goto err_put;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index a191b93..753635b 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -564,8 +564,15 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+ 
+ 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
+-		if (MLX5_CAP_ETH(mdev, csum_cap))
++		if (MLX5_CAP_ETH(mdev, csum_cap)) {
++			/* Legacy bit to support old userspace libraries */
+ 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
++			props->raw_packet_caps |= IB_RAW_PACKET_CAP_IP_CSUM;
++		}
++
++		if (MLX5_CAP_ETH(dev->mdev, vlan_cap))
++			props->raw_packet_caps |=
++				IB_RAW_PACKET_CAP_CVLAN_STRIPPING;
+ 
+ 		if (field_avail(typeof(resp), tso_caps, uhw->outlen)) {
+ 			max_tso = MLX5_CAP_ETH(mdev, max_lso_cap);
+@@ -604,8 +611,11 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
  	}
+ 
+ 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-	    MLX5_CAP_ETH(dev->mdev, scatter_fcs))
++	    MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
++		/* Legacy bit to support old userspace libraries */
+ 		props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
++		props->raw_packet_caps |= IB_RAW_PACKET_CAP_SCATTER_FCS;
++	}
+ 
+ 	if (mlx5_get_flow_namespace(dev->mdev, MLX5_FLOW_NAMESPACE_BYPASS))
+ 		props->device_cap_flags |= IB_DEVICE_MANAGED_FLOW_STEERING;
 -- 
 2.10.2
 
