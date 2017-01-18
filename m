@@ -1,93 +1,83 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 0/3] Common Provider Debug Printing
-Date: Wed, 18 Jan 2017 07:26:36 +0200
-Message-ID: <20170118052636.GR32481@mtr-leonro.local>
-References: <1484682331-111172-1-git-send-email-tatyana.e.nikolova@intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: Remove empty function
+Date: Wed, 18 Jan 2017 08:22:46 +0200
+Message-ID: <20170118062245.GA3500@yuval-lap>
+References: <20170118055758.27237-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="oCBD0SPT9UHZkBMO"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1484682331-111172-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170118055758.27237-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---oCBD0SPT9UHZkBMO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wed, Jan 18, 2017 at 07:57:58AM +0200, Leon Romanovsky wrote:
+> Commit f06267104dd9 ("RDMA: Update workqueue usage") removed
+> content of qib_qsfp_deinit(...) and left it empty.
+> 
+> This patch deletes all leftovers of that function.
+> 
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qib/qib_iba7322.c |  1 -
+>  drivers/infiniband/hw/qib/qib_qsfp.c    | 10 ----------
+>  drivers/infiniband/hw/qib/qib_qsfp.h    |  1 -
+>  3 files changed, 12 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+> index c4a36160..9cc97bd 100644
+> --- a/drivers/infiniband/hw/qib/qib_iba7322.c
+> +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+> @@ -2893,7 +2893,6 @@ static void qib_setup_7322_cleanup(struct qib_devdata *dd)
+>  			dd->cspec->gpio_mask &= ~mask;
+>  			qib_write_kreg(dd, kr_gpio_mask, dd->cspec->gpio_mask);
+>  			spin_unlock_irqrestore(&dd->cspec->gpio_lock, flags);
+> -			qib_qsfp_deinit(&dd->pport[i].cpspec->qsfp_data);
+>  		}
+>  	}
+>  }
+> diff --git a/drivers/infiniband/hw/qib/qib_qsfp.c b/drivers/infiniband/hw/qib/qib_qsfp.c
+> index 4c7c3c8..295d40a 100644
+> --- a/drivers/infiniband/hw/qib/qib_qsfp.c
+> +++ b/drivers/infiniband/hw/qib/qib_qsfp.c
+> @@ -485,16 +485,6 @@ void qib_qsfp_init(struct qib_qsfp_data *qd,
+>  	dd->f_gpio_mod(dd, mask, mask, mask);
+>  }
+>  
+> -void qib_qsfp_deinit(struct qib_qsfp_data *qd)
+> -{
+> -	/*
+> -	 * There is nothing to do here for now.  our work is scheduled
+> -	 * with queue_work(), and flush_workqueue() from remove_one
+> -	 * will block until all work setup with queue_work()
+> -	 * completes.
+> -	 */
+> -}
+> -
+>  int qib_qsfp_dump(struct qib_pportdata *ppd, char *buf, int len)
+>  {
+>  	struct qib_qsfp_cache cd;
+> diff --git a/drivers/infiniband/hw/qib/qib_qsfp.h b/drivers/infiniband/hw/qib/qib_qsfp.h
+> index 91908f5..ad8dbd6 100644
+> --- a/drivers/infiniband/hw/qib/qib_qsfp.h
+> +++ b/drivers/infiniband/hw/qib/qib_qsfp.h
+> @@ -186,4 +186,3 @@ extern int qib_refresh_qsfp_cache(struct qib_pportdata *ppd,
+>  extern int qib_qsfp_mod_present(struct qib_pportdata *ppd);
+>  extern void qib_qsfp_init(struct qib_qsfp_data *qd,
+>  			  void (*fevent)(struct work_struct *));
+> -extern void qib_qsfp_deinit(struct qib_qsfp_data *qd);
+> -- 
 
-On Tue, Jan 17, 2017 at 01:45:31PM -0600, Tatyana Nikolova wrote:
-> Similar debug printing functionality is
-> refactored to reduce code duplication in two
-> rdma-core providers. Please review and comment
-> whether the proposed debug printing approach
-> should be adopted by the rdma-core providers.
->
-> For more information about the issue this patch
-> series addresses, see the email thread titled
-> "[PATCH V2 08/10] i40iw: Control debug error prints using env variable"
->
-> Tatyana Nikolova (3):
->   util: Add common code for provider debug
->   mlx5: Use common provider debug macros
->   qedr: Use common provider debug macros
->
->  buildlib/rdma_functions.cmake |   2 +-
->  providers/mlx5/buf.c          |  18 ++---
->  providers/mlx5/cq.c           |   6 +-
->  providers/mlx5/mlx5.c         |  51 ++++---------
->  providers/mlx5/mlx5.h         |  27 +------
->  providers/mlx5/qp.c           |  24 +++---
->  providers/mlx5/verbs.c        |  48 ++++++------
->  providers/qedr/qelr.h         |  57 +-------------
->  providers/qedr/qelr_main.c    |  68 +++--------------
->  providers/qedr/qelr_verbs.c   | 168 ++++++++++++++++++++++++------------------
->  util/CMakeLists.txt           |   8 ++
->  util/dbg.c                    |  83 +++++++++++++++++++++
->  util/dbg.h                    |  95 ++++++++++++++++++++++++
->  13 files changed, 358 insertions(+), 297 deletions(-)
->  create mode 100644 util/dbg.c
->  create mode 100644 util/dbg.h
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Thanks Tatyana,
-
-There is need to add new file to Documentation/ with description of
-these common environmental variables.
-
-And can you please add patch for i40iw debug prints to the final version too?
-
->
-> --
-> 1.8.5.2
->
+> 2.10.2
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---oCBD0SPT9UHZkBMO
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh+/IwACgkQ5GN7iDZy
-WKcJIRAAjE3x2uB+MB3961thNjkdVsLJL/Quw8tzV0dgvKB7qw6Y6rSnrMRVI3//
-I5cpPd860tR+mMEp0WGvEwwrrYc3+FcyV6IoJW4uvMhjYYJH2zeo6Io3gJzfvgjf
-YldSPUGVSUy+eRhQKih009Ctp3a4jE0gsn7/WZ/tzJK1z/PYqTkXREUbgfcf3pNj
-iuh/At7ANe3M8ptSxspMxQzVhZCE+WJqTOY+G2WrJP/CS1pONNao/OHdcJvc6hnT
-Wf5ZglXqLenYSG0XjyY2EOZfO4OR/x9nFdiOffinquDWGEAI9aDiviO/zlVsTNOu
-QyV9RzDqndj7QJJExVBczwg2xKRTAUhk40bkEiLHq/+NblfjpCt+YDNCfDZDeAxN
-qX2WuxTiIB63A1WgX6QGarFsEaIu6Jyx4dZVTTFF/y9fgZ474NOsRihzGQ/PObeu
-Ujwr87WDyMw+HYpsgKIvozCNWdC4ziTAbJkw6eOu6dZTRJL7UEc7lhYam3RUs18f
-bldHn8Lv0lru1eRsZQO6fv59cUGsB3gUMZg8fdFfK/itqtXLcJ2xILgq424+H/ll
-CXR+/lFOdBaa3EW9psvWXH77JosDbpSjRbYsm1+4FRar52uXcyZTjTNuc2rtALy2
-FcHkWpu8cguSwbRWzk8kcIPyQXQipNAuxWzMY4HK1TSIUqCyRLg=
-=k6TG
------END PGP SIGNATURE-----
-
---oCBD0SPT9UHZkBMO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
