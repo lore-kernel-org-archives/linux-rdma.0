@@ -1,77 +1,38 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
-Date: Wed, 18 Jan 2017 20:28:57 +0200
-Message-ID: <20170118182857.GG32481@mtr-leonro.local>
-References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
- <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
- <20170118173327.GF32481@mtr-leonro.local>
- <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device until vmxnet3
+ link is up
+Date: Wed, 18 Jan 2017 13:41:30 -0700
+Message-ID: <20170118204130.GA6422@obsidianresearch.com>
+References: <cover.1484075557.git.aditr@vmware.com>
+ <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr@vmware.com>
+ <20170116073858.GA25853@mtr-leonro.local>
+ <35f6cce2-00c8-16b6-e3e0-481f234bd9c9@vmware.com>
+ <VI1PR0502MB30081629AE674E7F24337835D17F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <ad2f92cd-f120-b04a-0e94-b49915cadf02@vmware.com>
+ <20170118184236.GA4864@obsidianresearch.com>
+ <c44cf5cf-6096-f2df-df79-e1c8da924e84@vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="sxUMTo9WXJrtNoGr"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Ariel Almog <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>
+In-Reply-To: <c44cf5cf-6096-f2df-df79-e1c8da924e84-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---sxUMTo9WXJrtNoGr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wed, Jan 18, 2017 at 12:30:07PM -0800, Adit Ranadive wrote:
 
-On Wed, Jan 18, 2017 at 07:50:26PM +0200, Or Gerlitz wrote:
-> On Wed, Jan 18, 2017 at 7:33 PM, Leon Romanovsky wrote:
-> > On Wed, Jan 18, 2017 at 06:48:21PM +0200, Or Gerlitz wrote:
-> >> On Wed, Jan 18, 2017 at 5:19 PM, Ariel Almog
-> >> <arielalmogworkemails@gmail.com> wrote:
->
-> >>> As of today, there is no single, simple, tool that allows monitoring
-> >>> and configuration of RDMA stack.
->
-> >> Before tool, what kernel UAPI you thought to use?
->
-> > I'm aware of the following options:
-> > 1) netlink
-> > 2) RDMA ABI https://www.spinics.net/lists/linux-rdma/msg43960.html
-> > 3) ioctl
-> > 4) write/read
-> >
-> > The items 1 and 2 are preferred options and one of the main goals
-> > for this RFC is to chose between them.
-> >
-> > For example, RDMA ABI has native support of querying and discovering
-> > device capabilities via merge tree feature.
->
-> To make it clear, when you wrote ABI in your initial email, I tend to
-> think it was sort of unclear to the netdev crowd that you are talking
-> on new UAPI which is now under the works for the IB subsystem, so with
-> my netdev community member hat, I got confused... anyway
+> In order to recover QP1 correctly after a link transition we had to go through a
+> register/unregister since it is placed in error state when the port is down.
+> In this case can the MAD layer re-initialize QP1 if link transitions are performed?
 
-You are right, I missed it in my review for Ariel who wrote this RFC
-and sent this RFC.
+Your driver needs to deal with this. Do whatever it takes to recover
+your QP1 without re-registring and do not bother the rest of the
+system with it.
 
-Thanks
-
---sxUMTo9WXJrtNoGr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlh/s+kACgkQ5GN7iDZy
-WKdR3A/7B36EKXRrPUYlAE6WDN8HbmhO5prXWvd/GJaCXarJMDi6jjm263v5hS1R
-5WJpg1ZZYlmliaFZ32Pdq3EtWnORctfBiN0rv8FHczf/W5aYpF7L8WOGNERbN6Ev
-3gRcznqBNwwOkDY+lk0I4VZU2hfdbcd1r3fZVcxv6vLVkh/H8zvZNzA5TJzrOOW1
-Jyujv7j/6XZ9aKT/UqKqiB2n4fdzCXMrOePzebYQatFQ36iU7ZJSH/VfG/s8WDNz
-LznmIYZDSDn6spF9nWqcrC2/QqK7WOvBvCnSua+4cC6rgbC5fLH6cEcihDITa6Ob
-GoDELaF4ffngCm6pdkw+XKvEGKBGs2ZWYdG1IdBIsedA+qt6JSCy/K/LEl+A2ItE
-c7yFnOpGUnULLjCJNaQxBIlCOtj5nS1uFe21VfAqwJRvJstLzyl8Oh1E5MRcL9Tl
-fSg5vjT2FYicT0lqeTAqYBO+psCGRru5PWZ2UgCgFw5wD+V5ZKdMEnp4VZzbDmAm
-sFaz2b5+yCuDJjVyEAm7sEwnMlpPwGsmBA/tn6+Lq3BbCz2MOGzMPSMfzl2n4WdD
-mM/taKKE6kZKGTs9dfI2gw+2vZpRTCB8J77j9g55+vvTlhmR+dytUeOUkxsO2oZl
-kMGPPL2n2vQgki7vf5UpkHtznF+XWvHzmmqGGrKE0BKDV7wwo2U=
-=amsX
------END PGP SIGNATURE-----
-
---sxUMTo9WXJrtNoGr--
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
