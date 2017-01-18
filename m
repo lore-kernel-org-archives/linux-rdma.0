@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 03/11] IB/core: Enable QP creation with cvlan offload
-Date: Wed, 18 Jan 2017 15:39:56 +0200
-Message-ID: <20170118134004.5380-4-leon@kernel.org>
+Subject: [PATCH rdma-next 04/11] IB/core: Add scatter FCS flag to use in WQ creation
+Date: Wed, 18 Jan 2017 15:39:57 +0200
+Message-ID: <20170118134004.5380-5-leon@kernel.org>
 References: <20170118134004.5380-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170118134004.5380-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,11 +12,10 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add a QP creation flag to support cvlan stripping, it's applicable
-for RAW Ethernet QP.
+Add a new creation flag to set the scatter FCS capability of a WQ.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
@@ -24,17 +23,17 @@ Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index d5cdf36..a5fd7ca 100644
+index a5fd7ca..1ee8602 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1008,6 +1008,7 @@ enum ib_qp_create_flags {
- 	IB_QP_CREATE_SIGNATURE_EN		= 1 << 6,
- 	IB_QP_CREATE_USE_GFP_NOIO		= 1 << 7,
- 	IB_QP_CREATE_SCATTER_FCS		= 1 << 8,
-+	IB_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
- 	/* reserve bits 26-31 for low level drivers' internal use */
- 	IB_QP_CREATE_RESERVED_START		= 1 << 26,
- 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
+@@ -1497,6 +1497,7 @@ struct ib_wq {
+ 
+ enum ib_wq_flags {
+ 	IB_WQ_FLAGS_CVLAN_STRIPPING	= 1 << 0,
++	IB_WQ_FLAGS_SCATTER_FCS		= 1 << 1,
+ };
+ 
+ struct ib_wq_init_attr {
 -- 
 2.10.2
 
