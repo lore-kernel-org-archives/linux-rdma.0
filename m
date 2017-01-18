@@ -1,75 +1,37 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
-Date: Wed, 18 Jan 2017 18:48:21 +0200
-Message-ID: <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
-References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC v2 00/10] HFI Virtual Network Interface Controller (VNIC)
+Date: Wed, 18 Jan 2017 09:46:43 -0700
+Message-ID: <20170118164643.GB14198@obsidianresearch.com>
+References: <20161215091226.GC811@mtr-leonro.local>
+ <20161215145212.GA29116@phlsvsds.ph.intel.com>
+ <380b05bf-a18e-1f20-7e8e-10b61f77dec7@redhat.com>
+ <20161215170713.GD3264@obsidianresearch.com>
+ <4e22bf29-2260-0768-ab17-9a8df6306f37@redhat.com>
+ <20161215184837.GA16552@obsidianresearch.com>
+ <20161216012404.GD3785@phlsvsds.ph.intel.com>
+ <20161216041727.GA3797@obsidianresearch.com>
+ <20170117192720.GA2833@knc-06.sc.intel.com>
+ <20170118054354.GT32481@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ariel Almog <arielalmogworkemails-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170118054354.GT32481@mtr-leonro.local>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "ira.weiny" <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 5:19 PM, Ariel Almog
-<arielalmogworkemails-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> General
-> *******
-> As of today, there is no single, simple, tool that allows monitoring
-> and configuration of RDMA stack.
+On Wed, Jan 18, 2017 at 07:43:54AM +0200, Leon Romanovsky wrote:
+> > I have started working on porting hfi_vnic as per this new interface.
+> > I will post RFC v3 later.
+> > Posting the interface definition early for comments.
+> 
+> I wonder how many people will comment it without seeing usage example.
 
-Before tool, what kernel UAPI you thought to use?
+It is my hope that Mellanox will contribute to this and use it for
+ipoib - we've have had conversations along these lines in the
+past... Apparently mlx4/5 could run quite a bit faster if used like
+this.
 
-
-> rdmatool will provide standard, provider agnostic, user interface.
-> RDMA user can use this interface to
-> * Query RDMA device capabilities
-> * Query RDMA device status and current open resources
-> * Fetching RDMA statistics
-> * Configure RDMA device
->
-> The rdmatool will have the ability to control RDMA stack which
-> includes the ib_device and RDMA protocol params.
->
-> It is a good point to highlight the similarity to ethtool. It manages
-> net_device, while rdmatool will manage RDMA stack.
->
-> As a proposal, it is appealing to have a similar design to ethtool for
-> rdmatool too. As ethtool, it should contain user space part, kernel
-> handler and vendor specific handler(s).
->
-> Another tool which allows similar functionality is iproute2. Iproute2
-> allows user space tools to configure and query transport, network and
-> link layer. The advantages of using iproute2 is the reuse of existing
-> tool and familiar interface in addition to the wide spreading of this too=
-l.
->
-> As start point of the discussion, we would like to propose two
-> implementation options for the rdmatool:
-> (1) Build a tool using ABI interface. This will be a RDMA tool
->     which will be distributed as part of RDMA package
-> (2) Enhancing iproute2 to include rdmatool functionality
->
-> Our opinion is that the new ABI interface provides vast functionality and
-> it will be a waste to use other interface for the same functionality.
-> Each of the proposed implementation above have their advantages, and we
-> would like to hear your opinion regarding this direction.
-
-> I=E2=80=99m posting this RFC in both netdev and linux-rdma communities in
-> order to get feedback on this topic.
-
-What's wrong with the RDMA netlink infrastructure?! it's there for
-years and used
-for various cases by MLNX, did you look on the code?
-
-cea05ea IB/core: Add flow control to the portmapper netlink calls
-ae43f82 IB/core: Add IP to GID netlink offload
-2ca546b IB/sa: Route SA pathrecord query through netlink
-753f618 RDMA/cma: Add support for netlink statistics export
-b2cbae2 RDMA: Add netlink infrastructure
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
