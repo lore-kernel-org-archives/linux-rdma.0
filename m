@@ -1,75 +1,55 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
- device
-Date: Thu, 19 Jan 2017 10:58:02 -0700
-Message-ID: <20170119175802.GB8109@obsidianresearch.com>
-References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
- <20170111181042.GC22783@obsidianresearch.com>
- <1484773260.2406.58.camel@redhat.com>
- <20170118210831.GA7590@obsidianresearch.com>
- <1484784989.2406.67.camel@redhat.com>
+Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
+Date: Thu, 19 Jan 2017 11:03:08 -0700
+Message-ID: <20170119180308.GD8109@obsidianresearch.com>
+References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
+ <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
+ <20170118173327.GF32481@mtr-leonro.local>
+ <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
+ <20170118183127.GC14198@obsidianresearch.com>
+ <5f90fd26-e7bf-bb2a-01f2-6b166f2265e9@sandisk.com>
+ <20170119063326.GJ32481@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1484784989.2406.67.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170119063326.GJ32481-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ariel Almog <arielalmogworkemails-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 07:16:29PM -0500, Doug Ledford wrote:
-
-> > This is a 'stable device naming' problem, which we have never
-> > tried to solve in RDMA.
+On Thu, Jan 19, 2017 at 08:33:26AM +0200, Leon Romanovsky wrote:
+> On Wed, Jan 18, 2017 at 01:45:14PM -0800, Bart Van Assche wrote:
+> > On 01/18/2017 10:31 AM, Jason Gunthorpe wrote:
+> > > I think it depends on what this tool is supposed to cover, but based
+> > > on the description, I would start with netlink-only.
+> > >
+> > > The only place verbs covers a similar ground is in 'device
+> > > capabilities' - for some of that you might want to open a new-uAPI
+> > > verbs fd, but even the capability data from that would not be
+> > > totally offensive to be accessed over netlink.
+> > >
+> > > IMHO netlink should cover almost everything found in sysfs today.
+> >
+> > We would need a very strong argument to introduce a netlink API that
+> > duplicates existing sysfs API functionality. Since the sysfs API is
+> > extensible, why not extend that API further? E.g. the SCST sysfs API
+> > shows that more is possible with sysfs than what most kernel drivers
+> > realize.
 > 
-> No, that would imply they must be hfi1_0 and hfi1_1, when this is not
-> the case.  If you had two cards in this system, both dual port, then
-> you may be wanting to rename hfi_3 to hfi1_2 and vice versa.  It is a
-> relative name problem, not a stable name problem.  We need only reverse
-> the order that the ports are probed in, their names are whatever they
-> end up being once reversed.
+> We didn't look deeply on sysfs mainly because it is unpopular
+> in netdev community. Maybe we were misled and it is simply not true.
 
-Eh? If *users* expect RDMA names to be meaningful/stable then it *IS*
-the stable naming problem. We have never guarenteed stable device
-names in RDMA, but it does happen to work out by luck in many cases.
+sysfs is unpopular because the 'one value per file' dogma is laregly
+unsuitable for complex mulit-value atomic changes which are common in
+netdev. You can force it to work, but it is pretty horrible..
 
-Linux does have a guarentee of PCI driver bind order. For instance
-the parallel probe patch series randomizes driver bind order, so any
-driver relying on this for 'stable names' is broken.
+It is also very expensive if you want to shuttle a lot of data, eg I
+could not see doing something like 'netstat' for IB through sysfs
 
-> > udev is the expected kernel way to solve this. Trying to hack stable
-> > names by forcing device bind order is horrible.
-> 
-> This is a manufacturing defect.  Something I'm sure Intel wants to
-> resolve without requiring users to go in and manually name their ports.
->  I have no doubt that they would prefer that the user remain blissfully
-> unaware of the issue, all except for the ones that probably reported it
-> and already have their system cabled up wrong as a result.
-
-Modern udev models do not require manual naming by users, look at what
-netdev is doing to solve this problem these days.
-
-hif_slot#_port# can be generated automatically by udev based on
-information from the driver and the BIOS. This is what is being done
-for netdev.
-
-That is where we really need to go as well.
-
-As you say, this is a oops on Intels part, so that may be too long
-term - so they should solve this temporarily and imperfectly *in their
-driver* by assinging RDMA device names manually, eg make it so that
-hfiX has X be even for port 0 and X be odd for port 1.
-
-Never any need for any kind of defered binding approach.
-
-> No, mlx5 could have easily hit this too as their ports are separate
-> PCI functions.
-
-Sound like intel and mellanox should collaborate on getting udev
-stable naming working right for RDMA... They are eventually going to
-get burned.
+Maybe you should start by showing some examples of command out you
+wish to have in a rdmatool ..
 
 Jason
 --
