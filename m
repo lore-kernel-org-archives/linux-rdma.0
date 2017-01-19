@@ -1,52 +1,39 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/2] IB/vmw_pvrdma: Fix incorrect cleanup on pvrdma_pci_probe error path
-Date: Thu, 19 Jan 2017 13:20:40 -0800
-Message-ID: <cd1027c125c3c098c59fa3c612e6bf617aa77dc9.1484859556.git.aditr@vmware.com>
-References: <cover.1484859556.git.aditr@vmware.com>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
+Date: Thu, 19 Jan 2017 22:06:12 +0000
+Message-ID: <1484863558.2634.7.camel@sandisk.com>
+References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
+         <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
+         <20170118173327.GF32481@mtr-leonro.local>
+         <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
+         <20170118183127.GC14198@obsidianresearch.com>
+         <5f90fd26-e7bf-bb2a-01f2-6b166f2265e9@sandisk.com>
+         <20170119063326.GJ32481@mtr-leonro.local>
+         <20170119180308.GD8109@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1484859556.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170119180308.GD8109@obsidianresearch.com>
+Content-Language: en-US
+Content-ID: <0506C7541F6E1E4483349F1E4A69D2B0@sandisk.com>
+Sender: netdev-owner@vger.kernel.org
+To: "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "leon@kernel.org" <leon@kernel.org>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "arielalmogworkemails@gmail.com" <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gerlitz.or@gmail.com" <gerlitz.or@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-If the interrupt allocation failed we should start freeing the CQ rings
-rather than unregistering the netdev notifier.
+On Thu, 2017-01-19 at 11:03 -0700, Jason Gunthorpe wrote:
+> sysfs is unpopular because the 'one value per file' dogma is laregly
+> unsuitable for complex mulit-value atomic changes which are common in
+> netdev. You can force it to work, but it is pretty horrible..
+>=20
+> It is also very expensive if you want to shuttle a lot of data, eg I
+> could not see doing something like 'netstat' for IB through sysfs
 
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Since the RDMA sysfs ABI defines a user space ABI and since user space
+ABIs must be backwards compatible removing the existing sysfs ABI is
+not an option. We will need to evaluate on a case-by-case basis whether
+new functionality should use sysfs or whether another mechanism should
+be used.
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 231a1ce..bd8fbd3 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -1029,7 +1029,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to allocate interrupts\n");
- 		ret = -ENOMEM;
--		goto err_netdevice;
-+		goto err_free_cq_ring;
- 	}
- 
- 	/* Allocate UAR table. */
-@@ -1092,8 +1092,6 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
- err_free_intrs:
- 	pvrdma_free_irq(dev);
- 	pvrdma_disable_msi_all(dev);
--err_netdevice:
--	unregister_netdevice_notifier(&dev->nb_netdev);
- err_free_cq_ring:
- 	pvrdma_page_dir_cleanup(dev, &dev->cq_pdir);
- err_free_async_ring:
--- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.=
