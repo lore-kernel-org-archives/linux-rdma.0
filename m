@@ -1,50 +1,83 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v1] IB/mad: Add port_num to error message
-Date: Thu, 19 Jan 2017 17:05:42 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3C637198@CRSMSX101.amr.corp.intel.com>
-References: <1484837311-13206-1-git-send-email-yuval.shaia@oracle.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] vmw_pvrdma: Check vendor and device ID on driver init
+Date: Thu, 19 Jan 2017 08:51:36 -0800
+Message-ID: <1484844696-11983-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484837311-13206-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Print the invalid port number to ease troubleshooting.
-> 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Whenever a new RDMA device appears, the RDMA stack tries to attach each
+driver to the new device to see which is the correct driver. We need to
+check the vendor ID and device ID to make sure we don't accidentally
+attach to another device.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+ providers/vmw_pvrdma/pvrdma_main.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
-> ---
-> v0 -> v1:
-> 	* Fix typo in commit header
-> ---
->  drivers/infiniband/core/mad.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c index
-> a009f71..57f231f 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -316,7 +316,9 @@ struct ib_mad_agent *ib_register_mad_agent(struct
-> ib_device *device,
->  	/* Validate device and port */
->  	port_priv = ib_get_mad_port(device, port_num);
->  	if (!port_priv) {
-> -		dev_notice(&device->dev, "ib_register_mad_agent: Invalid
-> port\n");
-> +		dev_notice(&device->dev,
-> +			   "ib_register_mad_agent: Invalid port %d\n",
-> +			   port_num);
->  		ret = ERR_PTR(-ENODEV);
->  		goto error1;
->  	}
-> --
-> 1.8.3.1
+diff --git a/providers/vmw_pvrdma/pvrdma_main.c b/providers/vmw_pvrdma/pvrdma_main.c
+index 9a7e07b..7190efa 100644
+--- a/providers/vmw_pvrdma/pvrdma_main.c
++++ b/providers/vmw_pvrdma/pvrdma_main.c
+@@ -45,6 +45,12 @@
+ 
+ #include "pvrdma.h"
+ 
++/*
++ * VMware PVRDMA vendor id and PCI device id.
++ */
++#define PCI_VENDOR_ID_VMWARE		0x15AD
++#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
++
+ static struct ibv_context_ops pvrdma_ctx_ops = {
+ 	.query_device = pvrdma_query_device,
+ 	.query_port = pvrdma_query_port,
+@@ -166,7 +172,22 @@ static struct pvrdma_device *pvrdma_driver_init_shared(
+ 						int abi_version)
+ {
+ 	struct pvrdma_device *dev;
+-	char name[16];
++	char value[8];
++	unsigned int vendor_id, device_id;
++
++	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
++				value, sizeof(value)) < 0)
++		return NULL;
++	vendor_id = strtol(value, NULL, 16);
++
++	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
++				value, sizeof(value)) < 0)
++		return NULL;
++	device_id = strtol(value, NULL, 16);
++
++	if (vendor_id != PCI_VENDOR_ID_VMWARE ||
++	    device_id != PCI_DEVICE_ID_VMWARE_PVRDMA)
++		return NULL;
+ 
+ 	/* We support only a single ABI version for now. */
+ 	if (abi_version != PVRDMA_UVERBS_ABI_VERSION) {
+@@ -177,12 +198,6 @@ static struct pvrdma_device *pvrdma_driver_init_shared(
+ 		return NULL;
+ 	}
+ 
+-	if (ibv_read_sysfs_file(uverbs_sys_path,
+-				"ibdev", name, sizeof(name)) < 0) {
+-		fprintf(stderr, PFX "not ib device\n");
+-		return NULL;
+-	}
+-
+ 	dev = malloc(sizeof(*dev));
+ 	if (!dev) {
+ 		fprintf(stderr, PFX "couldn't allocate device for %s\n",
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
