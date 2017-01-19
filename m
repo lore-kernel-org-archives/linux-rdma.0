@@ -1,43 +1,52 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma-core: pvrdma init issue
-Date: Thu, 19 Jan 2017 08:27:45 -0800
-Message-ID: <963cb92f-97fd-86bb-cb0c-d31bba4001b2@vmware.com>
-References: <b13a0a91-f93a-1072-0e5a-e9841660cf00@dev.mellanox.co.il>
+From: "Raju  Rangoju" <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3 2/2] IB/iser: remove unused variable from iser_conn
+ struct
+Date: Thu, 19 Jan 2017 16:38:45 +0000
+Message-ID: <CY1PR12MB07749D43502D9F051DA5AFA1BC7E0@CY1PR12MB0774.namprd12.prod.outlook.com>
+References: <1484692840-12400-1-git-send-email-maxg@mellanox.com>
+ <1484692840-12400-2-git-send-email-maxg@mellanox.com>
+ <91c76eee-bead-16e2-1642-a8e4cf89ee73@grimberg.me>,<033901d271ae$29e494a0$7dadbde0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b13a0a91-f93a-1072-0e5a-e9841660cf00-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <033901d271ae$29e494a0$7dadbde0$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yishai,
 
-On Thu, Jan 19, 2017 at 4:05:36PM +0200, Yishai Hadas wrote:
-> Hi Adit,
-> 
-> Working with latest rdma-core stuff that includes the pvrdma provider, 
-> encountered below issue, would appreciate your input on.
-> 
-> While libibverbs loads the drivers there are few "annoying" warnings 
-> that are printed from pvrdma per uverbs sysfs entry coming from 
-> 'pvrdma_driver_init_shared'.
-> 
-> "pvrdma: ABI version 4 of /sys/class/infiniband_verbs/uverbs0 is not 
-> supported (supported 3)
-> pvrdma: ABI version 1 of /sys/class/infiniband_verbs/uverbs1 is not 
-> supported (supported 3)
-> ...
-> "
+Looks good.
 
-We have a fix that addresses this internally. We will have to check for
-the device and vendor id before the ABI check. I will send that out shortly.
+Tested-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 
 Thanks,
-Adit
+Raju
 
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sent: Wednesday, January 18, 2017 10:43 PM
+To: 'Sagi Grimberg'; 'Max Gurtovoy'; hch-jcswGhMUV9g@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux=
+-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Raju Rangoju
+Subject: RE: [PATCHv3 2/2] IB/iser: remove unused variable from iser_conn s=
+truct
+=A0   =20
++raju
+
+> This looks good,
+>=20
+> Lets wait for Steve to give his Tested-by tag.
+
+Raju should have this tested by EOB tomorrow India time.=A0=20
+
+Raju, when done, please reply with your Tested-by: tag.
+
+Thanks,
+
+Steve.
+
+    =
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
