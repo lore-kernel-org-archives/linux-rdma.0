@@ -1,106 +1,60 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Thu, 19 Jan 2017 15:12:58 +0200
-Message-ID: <20170119131258.GT32481@mtr-leonro.local>
-References: <20161228124728.26619-2-leon@kernel.org>
- <1484246776.123135.19.camel@redhat.com>
- <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
- <20170113171234.GA30551@obsidianresearch.com>
- <20170113203127.GT20392@mtr-leonro.local>
- <20170113212721.GB1463@obsidianresearch.com>
- <20170115083543.GA20392@mtr-leonro.local>
- <20170116201218.GA7890@obsidianresearch.com>
+Subject: Re: [PATCH v1] IB/mad: Add port_num to error message
+Date: Thu, 19 Jan 2017 17:10:38 +0200
+Message-ID: <20170119151038.GV32481@mtr-leonro.local>
+References: <1484837311-13206-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6t10AX3Id0Ai6Vje"
+        protocol="application/pgp-signature"; boundary="IJ3xY7yfhADm8R0x"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170116201218.GA7890-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1484837311-13206-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---6t10AX3Id0Ai6Vje
+--IJ3xY7yfhADm8R0x
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jan 16, 2017 at 01:12:18PM -0700, Jason Gunthorpe wrote:
-> On Sun, Jan 15, 2017 at 10:35:43AM +0200, Leon Romanovsky wrote:
-> > On Fri, Jan 13, 2017 at 02:27:21PM -0700, Jason Gunthorpe wrote:
-> > > On Fri, Jan 13, 2017 at 10:31:27PM +0200, Leon Romanovsky wrote:
-> > >
-> > > > > This is about what happens if the multicast MTU < unicast MTU - which
-> > > > > is *exactly* the same case on RC and UD.
-> > > > >
-> > > > > IPoIB cannot send a 64k multicast MTU on RC either.
-> > > >
-> > > > Multicast is sent in datagram despite being in connected mode and for
-> > > > datagram the MTU is limited by IB
-> > >
-> > > I am aware of that. Read you patch again:
-> > >
-> > > > +	if (priv->mcast_mtu < priv->admin_mtu)
-> > > > +		ipoib_warn(priv, "MTU must be smaller than mcast_mtu (%u)\n",
-> > >
-> > > This check is fails in RC mode as well.
-> > >
-> > > And we already check if the requested MTU is beyond the port
-> > > capability:
-> > >
-> > > +        if (new_mtu > IPOIB_UD_MTU(priv->max_ib_mtu))
-> > > +                return -EINVAL;
-> > >
-> > > So I have *no idea* why you'd want to check it against the multicast
-> > > group too..
-> > >
-> >
-> > Port MTU capability can be higher than link MTU. In this flow, the user
-> > can try to set manually MTU which will be higher than SM provided.
-> >
-> > Immediately after that print, we have a following piece of code:
-> >  236         dev->mtu = min(priv->mcast_mtu, priv->admin_mtu);
+On Thu, Jan 19, 2017 at 04:48:31PM +0200, Yuval Shaia wrote:
+> Print the invalid port number to ease troubleshooting.
 >
-> Maybe the better fix is to take that min out than generate a
-> warning.
-
-I agree with you, in theory it should work.
-
-Let's hope that we will find such brave man who will
-remove this line. The removal of this one line will
-require from him to do extensive testing and reviewing
-different code paths.
-
-Thanks
-
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v0 -> v1:
+> 	* Fix typo in commit header
+> ---
+>  drivers/infiniband/core/mad.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 >
-> Jason
 
---6t10AX3Id0Ai6Vje
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--IJ3xY7yfhADm8R0x
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliAu1oACgkQ5GN7iDZy
-WKcvxA//QCX91+UiNTDJBajGd7FyGQnrelaLDuG1eVFmuRNx3+dH5XB33ZcANmNA
-cmPbpnNIJXFX/SvorHD+enyAsfsxdaWecYaeuSiWwjbyGnwzu4+q5hfzItUFqBqx
-qCuhP+D3KsUxu8PMnJ2fF0GngbLxk1uLRrNrPtPuNsxU8YJnEsCjQhTki8PNmjkS
-mWcw1hT+eZP7tMv73U27H/hHZMpKNoGXbPQGnOBfS+ddx8yGcWhwbD/yzDfz4hXT
-PA/wdWjk33VgIOPiGyJsWarLzihCZxQUpColhALg4ZlhR4SNSmM7jqS42AZs3aON
-1xLoLJccXn/7C9epIYfKJQs/J6mBleEZsbO9tphkJkXWUCP+MwI1xhaVkHxv+7/A
-XflxKNro6RWHoSakat1IhgH87OuCzjfT8OLUPKdSeTW9819kiaLUC2vQl8+Dx8Y0
-o76g4fTIxlgIgTPjOS4ScGC0bztvGlaoOE+0S1Yd6Q6pJ0eVLLAhlOhVrQcggeU7
-w+mz8hwrac1NGSrBeFePcTvQsTt+yp18T7rnOXxQISTKKBmqcxo4Z/6b+jHWh2dF
-DInGrzk/bz3psQiLlZTA7Vamj0IPjrv667e6us+wvx0YZ+R+8yKjz8ATzIdc4o/S
-AtqNOizbsR/OZ4vbbJ7u3RT/XulziUKcH7JNbTpDvzOq2fJFSvI=
-=zrKW
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliA1u4ACgkQ5GN7iDZy
+WKcuJA//UD25ft6cBtiWKKo87cJHKvxXu6G3pJRUTCgpAbDQC7RwTDA1iJZbw7L1
+tp17lAA8BbNoi3DXO/fOakVzfE8UfTh6NqSQyA+vCD7Q+bbpL/xTEVMO/eDVEa6l
+PSXrPyUKemlq7jxpbbTXOkdMPuRyPeCzOrLjjTPNDXPuLPfEiOJZh0Z87csMZTIR
+YINZ2aKNLLbCp+vUX3+ELAFU7QHGj9w/VOheTldm4/na0vhJrc0xv9RipWsZ6CMa
++xh+ithguyopep9u4jGupGqV6T3vqP3kALWHFL46+sb2w1Rsaf1PZvG/Np7Dy0/l
+z6Ilra0jUE8Quzs6tk9pxBH6f/J47Xw8aic/KUvwu0e+qeuMl0lCJQQ+npt2MI0B
+CCUG+jhNVjbQiJqBZEqNciLgjP93WdIw4DDAVktk7xeEU5j68qorVp7ULPTxShmY
+OcTlUiyYnbVXMec5Y+hiPWmEbHUX9XaFOmCEHHqCTFmuA32HsWq6oTKa+pOEU+BP
+UnEAw/mflF2TfbgHjo1+lA0nbYJvAoqYXIgq4xOw6Y2KDpABhqmFxbXfkri/QSvb
+LO3EKxgwLZhqKKtP/0XJNOmBo7/c0QX09Kv/ctOf3J8JEYjoeH7/tqwEJxe0EYtQ
+YTqIf5gfO+sjlPWtCZFManl+4snztJ1kUgcTCBhjGw889U68Bzc=
+=UMQZ
 -----END PGP SIGNATURE-----
 
---6t10AX3Id0Ai6Vje--
+--IJ3xY7yfhADm8R0x--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
