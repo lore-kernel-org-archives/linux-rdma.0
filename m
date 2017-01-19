@@ -1,32 +1,43 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net/mlx5e: Remove unused variable
-Date: Thu, 19 Jan 2017 11:15:14 -0500 (EST)
-Message-ID: <20170119.111514.839390581860301846.davem@davemloft.net>
-References: <20170119093401.2582672-1-arnd@arndb.de>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: rdma-core: pvrdma init issue
+Date: Thu, 19 Jan 2017 08:27:45 -0800
+Message-ID: <963cb92f-97fd-86bb-cb0c-d31bba4001b2@vmware.com>
+References: <b13a0a91-f93a-1072-0e5a-e9841660cf00@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170119093401.2582672-1-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <b13a0a91-f93a-1072-0e5a-e9841660cf00-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arnd-r2nGTMty4D4@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, galp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Date: Thu, 19 Jan 2017 10:33:29 +0100
+Hi Yishai,
 
-> A cleanup removed the only user of this variable
+On Thu, Jan 19, 2017 at 4:05:36PM +0200, Yishai Hadas wrote:
+> Hi Adit,
 > 
-> mlx5/core/en_ethtool.c: In function 'mlx5e_set_channels':
-> mlx5/core/en_ethtool.c:546:6: error: unused variable 'ncv' [-Werror=unused-variable]
+> Working with latest rdma-core stuff that includes the pvrdma provider, 
+> encountered below issue, would appreciate your input on.
 > 
-> Let's remove the declaration as well.
+> While libibverbs loads the drivers there are few "annoying" warnings 
+> that are printed from pvrdma per uverbs sysfs entry coming from 
+> 'pvrdma_driver_init_shared'.
 > 
-> Fixes: 639e9e94160e ("net/mlx5e: Remove unnecessary checks when setting num channels")
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> "pvrdma: ABI version 4 of /sys/class/infiniband_verbs/uverbs0 is not 
+> supported (supported 3)
+> pvrdma: ABI version 1 of /sys/class/infiniband_verbs/uverbs1 is not 
+> supported (supported 3)
+> ...
+> "
 
-Applied.
+We have a fix that addresses this internally. We will have to check for
+the device and vendor id before the ABI check. I will send that out shortly.
+
+Thanks,
+Adit
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
