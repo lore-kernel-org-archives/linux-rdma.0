@@ -1,45 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
-Date: Thu, 19 Jan 2017 15:16:51 -0700
-Message-ID: <20170119221651.GA1656@obsidianresearch.com>
-References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
- <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
- <20170118173327.GF32481@mtr-leonro.local>
- <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
- <20170118183127.GC14198@obsidianresearch.com>
- <5f90fd26-e7bf-bb2a-01f2-6b166f2265e9@sandisk.com>
- <20170119063326.GJ32481@mtr-leonro.local>
- <20170119180308.GD8109@obsidianresearch.com>
- <1484863558.2634.7.camel@sandisk.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] Fixes for vmw_pvrdma
+Date: Thu, 19 Jan 2017 13:20:38 -0800
+Message-ID: <cover.1484859556.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1484863558.2634.7.camel@sandisk.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Cc: "leon@kernel.org" <leon@kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "arielalmogworkemails@gmail.com" <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gerlitz.or@gmail.com" <gerlitz.or@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 10:06:12PM +0000, Bart Van Assche wrote:
-> On Thu, 2017-01-19 at 11:03 -0700, Jason Gunthorpe wrote:
-> > sysfs is unpopular because the 'one value per file' dogma is laregly
-> > unsuitable for complex mulit-value atomic changes which are common in
-> > netdev. You can force it to work, but it is pretty horrible..
-> > 
-> > It is also very expensive if you want to shuttle a lot of data, eg I
-> > could not see doing something like 'netstat' for IB through sysfs
-> 
-> Since the RDMA sysfs ABI defines a user space ABI and since user space
-> ABIs must be backwards compatible removing the existing sysfs ABI is
-> not an option. We will need to evaluate on a case-by-case basis whether
-> new functionality should use sysfs or whether another mechanism should
-> be used.
+Hi Doug,
 
-Not talking about getting rid of it.
+Here are the fixes for vmw_pvrdma for this round of rc. These apply
+cleanly to your k.o/for-4.10-rc branch.
 
-But if it makes sense to use netlink for the new stuff we should make
-netlink self-consistent so a netlink user does not have to fall back
-to sysfs for certain things.
+Thanks,
+Adit
 
-Jason
+Adit Ranadive (2):
+  IB/vmw_pvrdma: Don't leak info from alloc_ucontext
+  IB/vmw_pvrdma: Fix incorrect cleanup on pvrdma_pci_probe error path
+
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c  | 4 +---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
