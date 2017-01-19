@@ -1,108 +1,105 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
-Date: Thu, 19 Jan 2017 21:12:57 +0200
-Message-ID: <20170119191257.GA28570@mtr-leonro.local>
-References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
- <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
- <20170118173327.GF32481@mtr-leonro.local>
- <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
- <20170118183127.GC14198@obsidianresearch.com>
- <5f90fd26-e7bf-bb2a-01f2-6b166f2265e9@sandisk.com>
- <20170119063326.GJ32481@mtr-leonro.local>
- <20170119180308.GD8109@obsidianresearch.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device until vmxnet3
+ link is up
+Date: Thu, 19 Jan 2017 12:09:29 -0800
+Message-ID: <391528af-5964-f65a-84a8-a66df0212917@vmware.com>
+References: <cover.1484075557.git.aditr@vmware.com>
+ <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr@vmware.com>
+ <20170116073858.GA25853@mtr-leonro.local>
+ <35f6cce2-00c8-16b6-e3e0-481f234bd9c9@vmware.com>
+ <VI1PR0502MB30081629AE674E7F24337835D17F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <ad2f92cd-f120-b04a-0e94-b49915cadf02@vmware.com>
+ <20170118184236.GA4864@obsidianresearch.com>
+ <c44cf5cf-6096-f2df-df79-e1c8da924e84@vmware.com>
+ <20170118204130.GA6422@obsidianresearch.com>
+ <caee0761-e791-a56b-e8ed-609c15bdc37a@vmware.com>
+ <VI1PR0502MB3008DAF4097F78DB313AE73CD17F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <7b3e522d-b70c-b09b-19c7-358bb5efcc91@vmware.com>
+ <1484808317.2406.89.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170119180308.GD8109@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <gerlitz.or@gmail.com>, Ariel Almog <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1484808317.2406.89.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 19, 2017 at 01:45:17AM -0500, Doug Ledford wrote:
+> On Wed, 2017-01-18 at 16:31 -0800, Adit Ranadive wrote:
+> > On Wed, Jan 18, 2017 at 10:50:54PM +0000, Parav Pandit wrote:
+> > > 
+> > > Hi Adit,
+> > > 
+> > > > 
+> > > > -----Original Message-----
+> > > > From: Adit Ranadive [mailto:aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org]
+> > > > Sent: Wednesday, January 18, 2017 2:53 PM
+> > > > To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > > > Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Leon Romanovsky
+> > > > <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TaqPxH82wqD4g@public.gmane.org
+> > > > g; pv-
+> > > > drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org; Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device
+> > > > until
+> > > > vmxnet3 link is up
+> > > > 
+> > > > On Wed, Jan 18, 2017 at 1:41:30PM -0700, Jason Gunthorpe wrote:
+> > > > > 
+> > > > > On Wed, Jan 18, 2017 at 12:30:07PM -0800, Adit Ranadive wrote:
+> > > > > 
+> > > > > > 
+> > > > > > In order to recover QP1 correctly after a link transition we
+> > > > > > had to
+> > > > > > go through a register/unregister since it is placed in error
+> > > > > > state when the
+> > > > port is down.
+> > > > > 
+> > > > > > 
+> > > > > > In this case can the MAD layer re-initialize QP1 if link
+> > > > > > transitions are
+> > > > performed?
+> > > > > 
+> > > > > 
+> > > > > Your driver needs to deal with this. Do whatever it takes to
+> > > > > recover
+> > > > > your QP1 without re-registring and do not bother the rest of
+> > > > > the
+> > > > > system with it.
+> > > > 
+> > > > Ok. We'll investigate internally on for a better recovery process
+> > > > for QP1.
+> > > 
+> > > By the time I reply, most others requested same.
+> > > Thanks for addressing it.
+> > 
+> > Hi Doug,
+> > 
+> > Please consider taking the other two patches in this series if
+> > possible
+> > for your next set of rc fixes.
+> 
+> If you want me to take these for the -rc cycle, then they need to be
+> presented appropriately.  This patch (1/3) is gone just because it was
+> the wrong solution (but it at least sounded like a fix).  Patch 2/3
+> starts its subject with "Cleanup unused...", that doesn't sound
+> remotely like a fix.  Patch 3/3 starts with "Don't hardcode...", which
+> also doesn't sound remotely like a fix.  If you want these in the -rc
+> cycle, then please repost the two other patches with suitable subjects
+> and commit logs that make it clear these are real fixes needed in an
+> -rc and not simple patches that should get applied in the for-next
+> area.
 
---huq684BweRXVnRxX
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ah ok. Sorry for my misunderstanding. In that case there are two oneline
+fixes - info leaked to user and an incorrect cleanup on the pci probe error
+path. I'll separate them out from these patches and post separately.
+Please, drop this series and I'll repost the patches 2,3 separately meant
+for for-next.
 
-On Thu, Jan 19, 2017 at 11:03:08AM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 19, 2017 at 08:33:26AM +0200, Leon Romanovsky wrote:
-> > On Wed, Jan 18, 2017 at 01:45:14PM -0800, Bart Van Assche wrote:
-> > > On 01/18/2017 10:31 AM, Jason Gunthorpe wrote:
-> > > > I think it depends on what this tool is supposed to cover, but based
-> > > > on the description, I would start with netlink-only.
-> > > >
-> > > > The only place verbs covers a similar ground is in 'device
-> > > > capabilities' - for some of that you might want to open a new-uAPI
-> > > > verbs fd, but even the capability data from that would not be
-> > > > totally offensive to be accessed over netlink.
-> > > >
-> > > > IMHO netlink should cover almost everything found in sysfs today.
-> > >
-> > > We would need a very strong argument to introduce a netlink API that
-> > > duplicates existing sysfs API functionality. Since the sysfs API is
-> > > extensible, why not extend that API further? E.g. the SCST sysfs API
-> > > shows that more is possible with sysfs than what most kernel drivers
-> > > realize.
-> >
-> > We didn't look deeply on sysfs mainly because it is unpopular
-> > in netdev community. Maybe we were misled and it is simply not true.
->
-> sysfs is unpopular because the 'one value per file' dogma is laregly
-> unsuitable for complex mulit-value atomic changes which are common in
-> netdev. You can force it to work, but it is pretty horrible..
->
-> It is also very expensive if you want to shuttle a lot of data, eg I
-> could not see doing something like 'netstat' for IB through sysfs
->
-> Maybe you should start by showing some examples of command out you
-> wish to have in a rdmatool ..
-
-Ariel wrote very simplified version in his proposal:
-Functionality
-*************
-The rdmatool will provide a platform which can grow as needed. The
-initial functionality might include:
-* help =E2=80=93 man page
-* version =E2=80=93 version number
-* statistics =E2=80=93 RDMA statistics =E2=80=93 such as port and QP statis=
-tics
-  	       To allow easy reading of statistics, we offer to use a filter
-  	       functionality, allowing reading of statistics families, such
-	       as link layer, error counters, etc.
-* protocol =E2=80=93 RoCE/iWARP/InfiniBand related configuration, such as R=
-DMA
-	     congestion configuration and statistics
-* query =E2=80=93 RDMA objects (qp, cq, srq, ..) information such as owner,
-	  status, type
-* debug =E2=80=93 an interface to allow read and write from user space
-	  to the provider RDMA driver, exposing debug information.
-
-Commands similar to "ip" program.
-
->
-> Jason
-
---huq684BweRXVnRxX
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliBD7kACgkQ5GN7iDZy
-WKcfQBAAhOJ8J2E3EOxI1nq16VQ9c4lr7fDHrqeMtSbwe5VdCvd7LdrwG5rX295r
-i1u29Xo2x3er2kHXNkE9GSx/KElmUQFIyTcpiQZxSAF9YS9vmvjwnQ0FZYLrlgsW
-TQPeR8eX69ZDzSeg6honq90EHqKFlmxjws0Z+7BEVpx5r47HdyQxzD3m4Le65EYt
-xs8uIsz3wcwWgkLhGb1XlFCNp0nw6/2JMgaR++qcIQfQwy4uDs+2hIqZHV8557T5
-CbiszIM4Jp15aMQPb0osK5Os4bimj8qL5S9BWPswgn7tL/mLhNfrWV1dfXvSUpsN
-leUF17mlc4TGnKCameaz6SKSGJcUajjlntx/Y0PyPDKiugE/pivzcJUgks06ycaA
-5NgwbfCXGQOHofKMG2wEIrMwL1wJoNTOnep21I09w/p/T7GhcmXh7aN6Anb3fn75
-ZY+1hbioeKvpTmxCNC1I9btwUejrzaARQYSho/H38ELf1ve7BviYGK1eEtusQUsB
-GGk/SG+3JycKUXkKW5lkfn71upJb2xN8xqi1bBXBCDEzTTHqQaWHISMlQCPSFGHV
-5RDnnP/p+olgBIRFU1YKRBcn3d8O8oq7S+GZwDi01+ScmuU/FwfghcCeFq+Dv0UA
-fzfSNU1DXjK2zuSJ9A/tqjUwcEQFvU7eW59wXPtDYoYOwh9xUv4=
-=jqZR
------END PGP SIGNATURE-----
-
---huq684BweRXVnRxX--
+Thanks,
+Adit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
