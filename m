@@ -1,63 +1,39 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/ipoib: Remove the unnecessary error check
-Date: Thu, 19 Jan 2017 10:35:07 +0200
-Message-ID: <20170119083507.GO32481@mtr-leonro.local>
-References: <1484799366-3463-1-git-send-email-yanjun.zhu@oracle.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v2 02/26] treewide: Move dma_ops from struct dev_archdata
+ into struct device
+Date: Thu, 19 Jan 2017 10:10:12 +0100
+Message-ID: <20170119091012.GC29554@kroah.com>
+References: <20170112190718.6728-1-bart.vanassche@sandisk.com>
+ <20170112190718.6728-3-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5nbaS3kz4OSBzmjj"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1484799366-3463-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170112190718.6728-3-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, "H . Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 12, 2017 at 11:06:54AM -0800, Bart Van Assche wrote:
+> Some but not all architectures provide set_dma_ops(). Move dma_ops
+> from struct dev_archdata into struct device such that it becomes
+> possible on all architectures to configure dma_ops per device.
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+> Cc: Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+> Cc: Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>
+> Cc: H. Peter Anvin <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+> Cc: Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+> Cc: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 
---5nbaS3kz4OSBzmjj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Wed, Jan 18, 2017 at 11:16:06PM -0500, Zhu Yanjun wrote:
-> The function ipoib_mcast_start_thread/ipoib_ib_dev_up always return zero.
-> As such, in the function ipoib_open, err_stop will never be reached.
-> So remove this err_stop and change the return type of the function
-> ipoib_mcast_start_thread/ipoib_ib_dev_up to void.
->
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib.h           | 4 ++--
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c        | 6 +++---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c      | 6 +-----
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 4 +---
->  4 files changed, 7 insertions(+), 13 deletions(-)
->
-
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---5nbaS3kz4OSBzmjj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliAejsACgkQ5GN7iDZy
-WKeCLRAAvneEGOUu8js6+8/SJcc1QXvmLG/QMmojAlFP1qzmXBXJ6C5/8O4KVEjt
-MxybburcOG/OfYxi/HTMc8ymriCPtws3EjI+v5ZgtPXHBpczxNtivpJuL1R547D1
-6W+fIKEdbgSSYYfrjl5k09GiznKl+397s0ptZO4Wtva71r1c3ac+V4HO672yXiFj
-P1fDcugteoNjP/kUzmRr04QEIMreQCEa+hiPBQzjR3qaNF7s/mb2Etk+gjRrzTb2
-GcGbs2w1F3YDPxJIFatYmAxxBaIKfjHeDcymsdeOceQ8FF6fgRTTXrhfklh0+Uk1
-DiLAp4cPi44gXCzYJPFkTiYfIo7RQyzSQYeaf0dzqETPbpec87v1hJT474np7Tto
-rV7EoCBseaIr1zkIelYuropY6apQCtuU4nLJo9nWBX8N4oS1LsI8p0Qza6Pn+f5t
-BAtfyFwZyWZCx1d1oH+FAyeA8g2IpKiIcBhrU5vhGXuVKBiv9NgAW8sSo71cY+Er
-AkINqMjANOxHUBHU00uBY8wI3oq64quK9H09EDgep9ZHxRgp2ea3Hmd1gUL9MvZZ
-x38D/vXQ2Zk2Tvo/uHcc7VJwU9gcagRAci/ac01LnVdKrzR6x1uP/5XNDq1hUwxQ
-+lbWxpUEoOh3xtRAMx346dD/F4sHYPyoI6hT32SYQdcyHtTErbE=
-=Zeo7
------END PGP SIGNATURE-----
-
---5nbaS3kz4OSBzmjj--
+Acked-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
