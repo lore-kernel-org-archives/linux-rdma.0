@@ -1,67 +1,123 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device until vmxnet3
- link is up
-Date: Wed, 18 Jan 2017 16:31:23 -0800
-Message-ID: <7b3e522d-b70c-b09b-19c7-358bb5efcc91@vmware.com>
-References: <cover.1484075557.git.aditr@vmware.com>
- <4b515ded56300f12cedc67253d42ab8fbc52134e.1484075557.git.aditr@vmware.com>
- <20170116073858.GA25853@mtr-leonro.local>
- <35f6cce2-00c8-16b6-e3e0-481f234bd9c9@vmware.com>
- <VI1PR0502MB30081629AE674E7F24337835D17F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <ad2f92cd-f120-b04a-0e94-b49915cadf02@vmware.com>
- <20170118184236.GA4864@obsidianresearch.com>
- <c44cf5cf-6096-f2df-df79-e1c8da924e84@vmware.com>
- <20170118204130.GA6422@obsidianresearch.com>
- <caee0761-e791-a56b-e8ed-609c15bdc37a@vmware.com>
- <VI1PR0502MB3008DAF4097F78DB313AE73CD17F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/1] IB/ipoib: Remove the unnecessary error check
+Date: Wed, 18 Jan 2017 23:16:06 -0500
+Message-ID: <1484799366-3463-1-git-send-email-yanjun.zhu@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008DAF4097F78DB313AE73CD17F0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 10:50:54PM +0000, Parav Pandit wrote:
-> Hi Adit,
-> 
->> -----Original Message-----
->> From: Adit Ranadive [mailto:aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org]
->> Sent: Wednesday, January 18, 2017 2:53 PM
->> To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Leon Romanovsky
->> <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; pv-
->> drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org; Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
->> Subject: Re: [PATCH 1/3] IB/vmw_pvrdma: Defer activating device until
->> vmxnet3 link is up
->> 
->> On Wed, Jan 18, 2017 at 1:41:30PM -0700, Jason Gunthorpe wrote:
->> > On Wed, Jan 18, 2017 at 12:30:07PM -0800, Adit Ranadive wrote:
->> >
->> >> In order to recover QP1 correctly after a link transition we had to
->> >> go through a register/unregister since it is placed in error state when the
->> port is down.
->> >> In this case can the MAD layer re-initialize QP1 if link transitions are
->> performed?
->> >
->> > Your driver needs to deal with this. Do whatever it takes to recover
->> > your QP1 without re-registring and do not bother the rest of the
->> > system with it.
->> 
->> Ok. We'll investigate internally on for a better recovery process for QP1.
-> 
-> By the time I reply, most others requested same.
-> Thanks for addressing it.
+The function ipoib_mcast_start_thread/ipoib_ib_dev_up always return zero.
+As such, in the function ipoib_open, err_stop will never be reached.
+So remove this err_stop and change the return type of the function
+ipoib_mcast_start_thread/ipoib_ib_dev_up to void.
 
-Hi Doug,
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h           | 4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c        | 6 +++---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 6 +-----
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 4 +---
+ 4 files changed, 7 insertions(+), 13 deletions(-)
 
-Please consider taking the other two patches in this series if possible
-for your next set of rc fixes.
-
-Thanks,
-Adit
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index da12717..1783695 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -500,7 +500,7 @@ void ipoib_pkey_event(struct work_struct *work);
+ void ipoib_ib_dev_cleanup(struct net_device *dev);
+ 
+ int ipoib_ib_dev_open(struct net_device *dev);
+-int ipoib_ib_dev_up(struct net_device *dev);
++void ipoib_ib_dev_up(struct net_device *dev);
+ int ipoib_ib_dev_down(struct net_device *dev);
+ int ipoib_ib_dev_stop(struct net_device *dev);
+ void ipoib_pkey_dev_check_presence(struct net_device *dev);
+@@ -513,7 +513,7 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work);
+ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
+ 
+ void ipoib_mcast_restart_task(struct work_struct *work);
+-int ipoib_mcast_start_thread(struct net_device *dev);
++void ipoib_mcast_start_thread(struct net_device *dev);
+ int ipoib_mcast_stop_thread(struct net_device *dev);
+ 
+ void ipoib_mcast_dev_down(struct net_device *dev);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 5038f9d..910228b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -755,7 +755,7 @@ void ipoib_pkey_dev_check_presence(struct net_device *dev)
+ 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+ }
+ 
+-int ipoib_ib_dev_up(struct net_device *dev)
++void ipoib_ib_dev_up(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 
+@@ -763,12 +763,12 @@ int ipoib_ib_dev_up(struct net_device *dev)
+ 
+ 	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
+ 		ipoib_dbg(priv, "PKEY is not assigned.\n");
+-		return 0;
++		return;
+ 	}
+ 
+ 	set_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 
+-	return ipoib_mcast_start_thread(dev);
++	ipoib_mcast_start_thread(dev);
+ }
+ 
+ int ipoib_ib_dev_down(struct net_device *dev)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 3ce0765..d68056f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -126,8 +126,7 @@ int ipoib_open(struct net_device *dev)
+ 		goto err_disable;
+ 	}
+ 
+-	if (ipoib_ib_dev_up(dev))
+-		goto err_stop;
++	ipoib_ib_dev_up(dev);
+ 
+ 	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
+ 		struct ipoib_dev_priv *cpriv;
+@@ -150,9 +149,6 @@ int ipoib_open(struct net_device *dev)
+ 
+ 	return 0;
+ 
+-err_stop:
+-	ipoib_ib_dev_stop(dev);
+-
+ err_disable:
+ 	clear_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index fddff40..8d42d54 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -674,7 +674,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+-int ipoib_mcast_start_thread(struct net_device *dev)
++void ipoib_mcast_start_thread(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	unsigned long flags;
+@@ -684,8 +684,6 @@ int ipoib_mcast_start_thread(struct net_device *dev)
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 	__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+-
+-	return 0;
+ }
+ 
+ int ipoib_mcast_stop_thread(struct net_device *dev)
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
