@@ -1,84 +1,38 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] vmw_pvrdma: Check vendor and device ID on driver init
-Date: Thu, 19 Jan 2017 08:51:36 -0800
-Message-ID: <1484844696-11983-1-git-send-email-aditr@vmware.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Thu, 19 Jan 2017 10:33:52 -0700
+Message-ID: <20170119173352.GA8109@obsidianresearch.com>
+References: <1484246776.123135.19.camel@redhat.com>
+ <20170112193508.GO20392@mtr-leonro.local>
+ <20170112201622.GA14584@obsidianresearch.com>
+ <20170113150824.GQ20392@mtr-leonro.local>
+ <20170113171234.GA30551@obsidianresearch.com>
+ <20170113203127.GT20392@mtr-leonro.local>
+ <20170113212721.GB1463@obsidianresearch.com>
+ <20170115083543.GA20392@mtr-leonro.local>
+ <20170116201218.GA7890@obsidianresearch.com>
+ <20170119131258.GT32481@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170119131258.GT32481-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Whenever a new RDMA device appears, the RDMA stack tries to attach each
-driver to the new device to see which is the correct driver. We need to
-check the vendor ID and device ID to make sure we don't accidentally
-attach to another device.
+On Thu, Jan 19, 2017 at 03:12:58PM +0200, Leon Romanovsky wrote:
 
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
----
- providers/vmw_pvrdma/pvrdma_main.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+> Let's hope that we will find such brave man who will
+> remove this line. The removal of this one line will
+> require from him to do extensive testing and reviewing
+> different code paths.
 
-diff --git a/providers/vmw_pvrdma/pvrdma_main.c b/providers/vmw_pvrdma/pvrdma_main.c
-index 9a7e07b..7190efa 100644
---- a/providers/vmw_pvrdma/pvrdma_main.c
-+++ b/providers/vmw_pvrdma/pvrdma_main.c
-@@ -45,6 +45,12 @@
- 
- #include "pvrdma.h"
- 
-+/*
-+ * VMware PVRDMA vendor id and PCI device id.
-+ */
-+#define PCI_VENDOR_ID_VMWARE		0x15AD
-+#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
-+
- static struct ibv_context_ops pvrdma_ctx_ops = {
- 	.query_device = pvrdma_query_device,
- 	.query_port = pvrdma_query_port,
-@@ -166,7 +172,22 @@ static struct pvrdma_device *pvrdma_driver_init_shared(
- 						int abi_version)
- {
- 	struct pvrdma_device *dev;
--	char name[16];
-+	char value[8];
-+	unsigned int vendor_id, device_id;
-+
-+	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
-+				value, sizeof(value)) < 0)
-+		return NULL;
-+	vendor_id = strtol(value, NULL, 16);
-+
-+	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
-+				value, sizeof(value)) < 0)
-+		return NULL;
-+	device_id = strtol(value, NULL, 16);
-+
-+	if (vendor_id != PCI_VENDOR_ID_VMWARE ||
-+	    device_id != PCI_DEVICE_ID_VMWARE_PVRDMA)
-+		return NULL;
- 
- 	/* We support only a single ABI version for now. */
- 	if (abi_version != PVRDMA_UVERBS_ABI_VERSION) {
-@@ -177,12 +198,6 @@ static struct pvrdma_device *pvrdma_driver_init_shared(
- 		return NULL;
- 	}
- 
--	if (ibv_read_sysfs_file(uverbs_sys_path,
--				"ibdev", name, sizeof(name)) < 0) {
--		fprintf(stderr, PFX "not ib device\n");
--		return NULL;
--	}
--
- 	dev = malloc(sizeof(*dev));
- 	if (!dev) {
- 		fprintf(stderr, PFX "couldn't allocate device for %s\n",
--- 
-2.7.4
+Why? We already fully support this configuration for RC
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
