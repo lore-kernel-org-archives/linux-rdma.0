@@ -1,34 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [pull request][for-next] Mellanox mlx5 Reorganize core driver
- directory layout
-Date: Thu, 19 Jan 2017 00:38:32 -0500 (EST)
-Message-ID: <20170119.003832.1262212358977773325.davem@davemloft.net>
-References: <CALzJLG--ZRVk0Zy+6UaGCWbOhki+PZnkmrh9rjojU1ZDm_5Y6w@mail.gmail.com>
-        <20170118.123207.53777509111948450.davem@davemloft.net>
-        <CALx6S36p2g8EP48R+nWQu9tHtS5h8eKo7bj7rskmSMxCU36KXA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALx6S36p2g8EP48R+nWQu9tHtS5h8eKo7bj7rskmSMxCU36KXA@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: tom@herbertland.com
-Cc: saeedm@dev.mellanox.co.il, saeedm@mellanox.com, dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leon@kernel.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 1/5] IB/core: Add raw packet protocol
+Date: Thu, 19 Jan 2017 07:40:58 +0200
+Message-ID: <20170119054102.20135-2-leon@kernel.org>
+References: <20170119054102.20135-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170119054102.20135-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tom Herbert <tom@herbertland.com>
-Date: Wed, 18 Jan 2017 21:22:53 -0800
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> In principle I  agree, but as I previously wrote backporting this
-> driver is already a bear. We need to do something here as this is
-> quickly approaching being infeasible to backport. Even if we don't
-> restructure the directories I'd still like to see some effort towards
-> feature modularization and isolation.
+Define raw packet protocol which comes to denote this port supports
+working with raw ethernet frames, e.g as done with RAW_PACKET QPs.
 
-There simply is a lot changing all the time, no restructuring is going
-to reduce that.  The driver simply gets a lot of churn.
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Backporting such things through a bunch of file and/or directory
-renames is seriously nothing but asking for more punishment.
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 958a24d..68fff34 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -485,6 +485,7 @@ static inline struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
+ #define RDMA_CORE_CAP_PROT_ROCE         0x00200000
+ #define RDMA_CORE_CAP_PROT_IWARP        0x00400000
+ #define RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP 0x00800000
++#define RDMA_CORE_CAP_PROT_RAW_PACKET   0x01000000
+ 
+ #define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
+ 					| RDMA_CORE_CAP_IB_MAD \
+@@ -508,6 +509,8 @@ static inline struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
+ #define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
+ 					| RDMA_CORE_CAP_OPA_MAD)
+ 
++#define RDMA_CORE_PORT_RAW_PACKET	(RDMA_CORE_CAP_PROT_RAW_PACKET)
++
+ struct ib_port_attr {
+ 	u64			subnet_prefix;
+ 	enum ib_port_state	state;
+@@ -2307,6 +2310,11 @@ static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
+ 		rdma_protocol_roce(device, port_num);
+ }
+ 
++static inline bool rdma_protocol_raw_packet(const struct ib_device *device, u8 port_num)
++{
++	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_RAW_PACKET;
++}
++
+ /**
+  * rdma_cap_ib_mad - Check if the port of a device supports Infiniband
+  * Management Datagrams.
+-- 
+2.10.2
 
-That's why I am against it.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
