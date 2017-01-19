@@ -1,39 +1,45 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Subject: Re: [RFC] RESEND - rdmatool - tool for RDMA users
-Date: Thu, 19 Jan 2017 22:06:12 +0000
-Message-ID: <1484863558.2634.7.camel@sandisk.com>
+Date: Thu, 19 Jan 2017 15:16:51 -0700
+Message-ID: <20170119221651.GA1656@obsidianresearch.com>
 References: <CABvr3-GZQs51Sn3XagTsepsy3CHvx6P=GVJzefajbNt9jxz9Kg@mail.gmail.com>
-         <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
-         <20170118173327.GF32481@mtr-leonro.local>
-         <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
-         <20170118183127.GC14198@obsidianresearch.com>
-         <5f90fd26-e7bf-bb2a-01f2-6b166f2265e9@sandisk.com>
-         <20170119063326.GJ32481@mtr-leonro.local>
-         <20170119180308.GD8109@obsidianresearch.com>
+ <CAJ3xEMgO496ctgCUp1sW=-pCUyniy7LZb8hSkyNeYsJ1V4aVwg@mail.gmail.com>
+ <20170118173327.GF32481@mtr-leonro.local>
+ <CAJ3xEMiR1+NGghUZJ6aGq+=xTdOHU5Ph-BcPii5OUB8dT4Vq-A@mail.gmail.com>
+ <20170118183127.GC14198@obsidianresearch.com>
+ <5f90fd26-e7bf-bb2a-01f2-6b166f2265e9@sandisk.com>
+ <20170119063326.GJ32481@mtr-leonro.local>
+ <20170119180308.GD8109@obsidianresearch.com>
+ <1484863558.2634.7.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170119180308.GD8109@obsidianresearch.com>
-Content-Language: en-US
-Content-ID: <0506C7541F6E1E4483349F1E4A69D2B0@sandisk.com>
+Content-Disposition: inline
+In-Reply-To: <1484863558.2634.7.camel@sandisk.com>
 Sender: netdev-owner@vger.kernel.org
-To: "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "leon@kernel.org" <leon@kernel.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "arielalmogworkemails@gmail.com" <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gerlitz.or@gmail.com" <gerlitz.or@gmail.com>
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: "leon@kernel.org" <leon@kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "arielalmogworkemails@gmail.com" <arielalmogworkemails@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gerlitz.or@gmail.com" <gerlitz.or@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-01-19 at 11:03 -0700, Jason Gunthorpe wrote:
-> sysfs is unpopular because the 'one value per file' dogma is laregly
-> unsuitable for complex mulit-value atomic changes which are common in
-> netdev. You can force it to work, but it is pretty horrible..
->=20
-> It is also very expensive if you want to shuttle a lot of data, eg I
-> could not see doing something like 'netstat' for IB through sysfs
+On Thu, Jan 19, 2017 at 10:06:12PM +0000, Bart Van Assche wrote:
+> On Thu, 2017-01-19 at 11:03 -0700, Jason Gunthorpe wrote:
+> > sysfs is unpopular because the 'one value per file' dogma is laregly
+> > unsuitable for complex mulit-value atomic changes which are common in
+> > netdev. You can force it to work, but it is pretty horrible..
+> > 
+> > It is also very expensive if you want to shuttle a lot of data, eg I
+> > could not see doing something like 'netstat' for IB through sysfs
+> 
+> Since the RDMA sysfs ABI defines a user space ABI and since user space
+> ABIs must be backwards compatible removing the existing sysfs ABI is
+> not an option. We will need to evaluate on a case-by-case basis whether
+> new functionality should use sysfs or whether another mechanism should
+> be used.
 
-Since the RDMA sysfs ABI defines a user space ABI and since user space
-ABIs must be backwards compatible removing the existing sysfs ABI is
-not an option. We will need to evaluate on a case-by-case basis whether
-new functionality should use sysfs or whether another mechanism should
-be used.
+Not talking about getting rid of it.
 
-Bart.=
+But if it makes sense to use netlink for the new stuff we should make
+netlink self-consistent so a netlink user does not have to fall back
+to sysfs for certain things.
+
+Jason
