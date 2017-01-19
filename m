@@ -1,40 +1,25 @@
-From: Tadeusz Struk <tadeusz.struk@intel.com>
-Subject: Re: [PATCH] [RFC] IB/hfi1: Fix port ordering issue in a multiport
- device
-Date: Thu, 19 Jan 2017 08:51:22 -0800
-Message-ID: <7f728991-3bc6-b3ce-ebee-094a6439c369@intel.com>
-References: <148409267200.13402.16060755922068447437.stgit@tstruk-mobl1.ra.intel.com>
- <20170111181042.GC22783@obsidianresearch.com>
- <1484773260.2406.58.camel@redhat.com>
- <20170118210831.GA7590@obsidianresearch.com>
- <934eb6c4-fbba-28d0-d6bb-f036cc9ced5c@intel.com>
- <1484785071.2406.69.camel@redhat.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCHv3] nvmet-rdma: Fix missing dma sync to nvme data
+        structures
+Date: Thu, 19 Jan 2017 16:46:01 +0100
+Message-ID: <20170119154601.GA597@lst.de>
+References: <1484785346-2991-1-git-send-email-parav@mellanox.com> <20170119152240.GA32400@lst.de> <VI1PR0502MB300864C57897C37D4397A76AD17E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1484785071.2406.69.camel@redhat.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <VI1PR0502MB300864C57897C37D4397A76AD17E0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/18/2017 04:17 PM, Doug Ledford wrote:
->>> EPROBE_DEFER is intended when waiting on other components the
->>> driver
->>> may need, not for setting stable names.
->> Also EPROBE_DEFER only works during boot time.
->> After boot when a module gets rmmod/insmod EPROBE_DEFER has no
->> effect.
-> Are you positive about this?  And even if you are, my answer is to fix
-> the core to honor EPROBE_DEFER post boot.
+On Thu, Jan 19, 2017 at 03:45:30PM +0000, Parav Pandit wrote:
+> I agree. I should have taken care of that.
+> Shall I resend patch with same indentation at all places or this can be taken care during commit?
 
-Yes, the driver_deferred_probe_trigger() function is called from
-late_initcall(). After boot there is nothing to call it again.
-I'm investigating the udev path now as Jason suggested, but
-udev has its own limitations.
-I will see what it would take to extend the EPROBE_DEFER
-functionality after boot.
-Thanks,
--- 
-Tadeusz
+I think Sagi or I can just take care of it on commit.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
