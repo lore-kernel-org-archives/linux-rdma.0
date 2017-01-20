@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 21/37] IB/mlx5: Switch from dma_device to dev.parent
-Date: Fri, 20 Jan 2017 13:04:21 -0800
-Message-ID: <20170120210437.26389-22-bart.vanassche@sandisk.com>
+Subject: [PATCH v3 36/37] IB/core: Remove ib_device.dma_device
+Date: Fri, 20 Jan 2017 13:04:36 -0800
+Message-ID: <20170120210437.26389-37-bart.vanassche@sandisk.com>
 References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,91 +9,181 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170120210437.26389-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c |  2 +-
- drivers/infiniband/hw/mlx5/mr.c   | 14 +++++++-------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+Add code in ib_register_device() for copying the DMA masks. Use
+&ib_device.dev in DMA mapping operations instead of dma_device.
+Remove ib_device.dma_device because due to this and previous patches
+it is no longer used.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d566f6738833..da3bf6c081de 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3075,7 +3075,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.phys_port_cnt     = dev->num_ports;
- 	dev->ib_dev.num_comp_vectors    =
- 		dev->mdev->priv.eq_table.num_comp_vectors;
--	dev->ib_dev.dma_device	= &mdev->pdev->dev;
-+	dev->ib_dev.dev.parent		= &mdev->pdev->dev;
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/core/device.c | 17 +++++++++--------
+ include/rdma/ib_verbs.h          | 31 +++++++++++++------------------
+ 2 files changed, 22 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index d543c4390447..cac1518de36e 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -333,14 +333,15 @@ int ib_register_device(struct ib_device *device,
+ 	int ret;
+ 	struct ib_client *client;
+ 	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
+-
+-	WARN_ON_ONCE(!device->dev.parent && !device->dma_device);
+-	WARN_ON_ONCE(device->dev.parent && device->dma_device
+-		     && device->dev.parent != device->dma_device);
+-	if (!device->dev.parent)
+-		device->dev.parent = device->dma_device;
+-	if (!device->dma_device)
+-		device->dma_device = device->dev.parent;
++	struct device *parent = device->dev.parent;
++
++	WARN_ON_ONCE(!parent);
++	if (!device->dev.dma_ops)
++		device->dev.dma_ops = parent->dma_ops;
++	if (!device->dev.dma_mask)
++		device->dev.dma_mask = parent->dma_mask;
++	if (!device->dev.coherent_dma_mask)
++		device->dev.coherent_dma_mask = parent->coherent_dma_mask;
  
- 	dev->ib_dev.uverbs_abi_ver	= MLX5_IB_UVERBS_ABI_VERSION;
- 	dev->ib_dev.uverbs_cmd_mask	=
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 8f608debe141..87ca81b85fd0 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -767,7 +767,7 @@ static int dma_map_mr_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
- 			  __be64 **mr_pas, dma_addr_t *dma)
- {
- 	__be64 *pas;
--	struct device *ddev = dev->ib_dev.dma_device;
-+	struct device *ddev = dev->ib_dev.dev.parent;
+ 	mutex_lock(&device_mutex);
  
- 	/*
- 	 * UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes.
-@@ -896,7 +896,7 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 				  int page_shift, int order, int access_flags)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	struct device *ddev = dev->ib_dev.dma_device;
-+	struct device *ddev = dev->ib_dev.dev.parent;
- 	struct umr_common *umrc = &dev->umrc;
- 	struct mlx5_ib_umr_context umr_context;
- 	struct mlx5_umr_wr umrwr = {};
-@@ -974,7 +974,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
- 		       int zap)
- {
- 	struct mlx5_ib_dev *dev = mr->dev;
--	struct device *ddev = dev->ib_dev.dma_device;
-+	struct device *ddev = dev->ib_dev.dev.parent;
- 	struct umr_common *umrc = &dev->umrc;
- 	struct mlx5_ib_umr_context umr_context;
- 	struct ib_umem *umem = mr->umem;
-@@ -1288,7 +1288,7 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
- 		     int access_flags, int flags)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	struct device *ddev = dev->ib_dev.dma_device;
-+	struct device *ddev = dev->ib_dev.dev.parent;
- 	struct mlx5_ib_umr_context umr_context;
- 	struct ib_send_wr *bad;
- 	struct mlx5_umr_wr umrwr = {};
-@@ -1461,9 +1461,9 @@ mlx5_alloc_priv_descs(struct ib_device *device,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index fd4e42dd1efc..f09ed2f81c91 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1840,8 +1840,6 @@ struct ib_port_immutable {
+ };
  
- 	mr->descs = PTR_ALIGN(mr->descs_alloc, MLX5_UMR_ALIGN);
+ struct ib_device {
+-	struct device                *dma_device;
+-
+ 	char                          name[IB_DEVICE_NAME_MAX];
  
--	mr->desc_map = dma_map_single(device->dma_device, mr->descs,
-+	mr->desc_map = dma_map_single(device->dev.parent, mr->descs,
- 				      size, DMA_TO_DEVICE);
--	if (dma_mapping_error(device->dma_device, mr->desc_map)) {
-+	if (dma_mapping_error(device->dev.parent, mr->desc_map)) {
- 		ret = -ENOMEM;
- 		goto err;
+ 	struct list_head              event_handler_list;
+@@ -2968,7 +2966,7 @@ static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
+ {
+ 	if (dev->dma_ops)
+ 		return dev->dma_ops->mapping_error(dev, dma_addr);
+-	return dma_mapping_error(dev->dma_device, dma_addr);
++	return dma_mapping_error(&dev->dev, dma_addr);
+ }
+ 
+ /**
+@@ -2984,7 +2982,7 @@ static inline u64 ib_dma_map_single(struct ib_device *dev,
+ {
+ 	if (dev->dma_ops)
+ 		return dev->dma_ops->map_single(dev, cpu_addr, size, direction);
+-	return dma_map_single(dev->dma_device, cpu_addr, size, direction);
++	return dma_map_single(&dev->dev, cpu_addr, size, direction);
+ }
+ 
+ /**
+@@ -3001,7 +2999,7 @@ static inline void ib_dma_unmap_single(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->unmap_single(dev, addr, size, direction);
+ 	else
+-		dma_unmap_single(dev->dma_device, addr, size, direction);
++		dma_unmap_single(&dev->dev, addr, size, direction);
+ }
+ 
+ /**
+@@ -3020,7 +3018,7 @@ static inline u64 ib_dma_map_page(struct ib_device *dev,
+ {
+ 	if (dev->dma_ops)
+ 		return dev->dma_ops->map_page(dev, page, offset, size, direction);
+-	return dma_map_page(dev->dma_device, page, offset, size, direction);
++	return dma_map_page(&dev->dev, page, offset, size, direction);
+ }
+ 
+ /**
+@@ -3037,7 +3035,7 @@ static inline void ib_dma_unmap_page(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->unmap_page(dev, addr, size, direction);
+ 	else
+-		dma_unmap_page(dev->dma_device, addr, size, direction);
++		dma_unmap_page(&dev->dev, addr, size, direction);
+ }
+ 
+ /**
+@@ -3053,7 +3051,7 @@ static inline int ib_dma_map_sg(struct ib_device *dev,
+ {
+ 	if (dev->dma_ops)
+ 		return dev->dma_ops->map_sg(dev, sg, nents, direction);
+-	return dma_map_sg(dev->dma_device, sg, nents, direction);
++	return dma_map_sg(&dev->dev, sg, nents, direction);
+ }
+ 
+ /**
+@@ -3070,7 +3068,7 @@ static inline void ib_dma_unmap_sg(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->unmap_sg(dev, sg, nents, direction);
+ 	else
+-		dma_unmap_sg(dev->dma_device, sg, nents, direction);
++		dma_unmap_sg(&dev->dev, sg, nents, direction);
+ }
+ 
+ static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
+@@ -3081,9 +3079,7 @@ static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		return dev->dma_ops->map_sg_attrs(dev, sg, nents, direction,
+ 						  dma_attrs);
+-	else
+-		return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
+-					dma_attrs);
++	return dma_map_sg_attrs(&dev->dev, sg, nents, direction, dma_attrs);
+ }
+ 
+ static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
+@@ -3095,8 +3091,7 @@ static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
+ 		return dev->dma_ops->unmap_sg_attrs(dev, sg, nents, direction,
+ 						  dma_attrs);
+ 	else
+-		dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction,
+-				   dma_attrs);
++		dma_unmap_sg_attrs(&dev->dev, sg, nents, direction, dma_attrs);
+ }
+ /**
+  * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
+@@ -3141,7 +3136,7 @@ static inline void ib_dma_sync_single_for_cpu(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->sync_single_for_cpu(dev, addr, size, dir);
+ 	else
+-		dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
++		dma_sync_single_for_cpu(&dev->dev, addr, size, dir);
+ }
+ 
+ /**
+@@ -3159,7 +3154,7 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->sync_single_for_device(dev, addr, size, dir);
+ 	else
+-		dma_sync_single_for_device(dev->dma_device, addr, size, dir);
++		dma_sync_single_for_device(&dev->dev, addr, size, dir);
+ }
+ 
+ /**
+@@ -3182,7 +3177,7 @@ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+ 		*dma_handle = handle;
+ 		return ret;
  	}
-@@ -1482,7 +1482,7 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
- 		struct ib_device *device = mr->ibmr.device;
- 		int size = mr->max_descs * mr->desc_size;
+-	return dma_alloc_coherent(dev->dma_device, size, dma_handle, flag);
++	return dma_alloc_coherent(&dev->dev, size, dma_handle, flag);
+ }
  
--		dma_unmap_single(device->dma_device, mr->desc_map,
-+		dma_unmap_single(device->dev.parent, mr->desc_map,
- 				 size, DMA_TO_DEVICE);
- 		kfree(mr->descs_alloc);
- 		mr->descs = NULL;
+ /**
+@@ -3199,7 +3194,7 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
+ 	else
+-		dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
++		dma_free_coherent(&dev->dev, size, cpu_addr, dma_handle);
+ }
+ 
+ /**
 -- 
 2.11.0
 
