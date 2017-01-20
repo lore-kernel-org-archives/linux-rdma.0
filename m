@@ -1,49 +1,48 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 28/37] IB/vmw_pvrdma: Switch from dma_device to
- dev.parent
-Date: Fri, 20 Jan 2017 13:54:08 -0800
-Message-ID: <439a8a3f-c3bf-485c-a870-53b5a02653e3@vmware.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 00/37] IB: Optimize DMA mapping
+Date: Fri, 20 Jan 2017 22:18:59 +0000
+Message-ID: <1484950725.2665.10.camel@sandisk.com>
 References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
- <20170120210437.26389-29-bart.vanassche@sandisk.com>
+         <1671405275.19009584.1484949453215.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170120210437.26389-29-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1671405275.19009584.1484949453215.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <D2A5A3D166E6E94DAA1F5105AB616A8F-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 20, 2017 at 1:04:28PM -0800, Bart Van Assche wrote:
-> Prepare for removal of ib_device.dma_device.
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Cc: VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> index 231a1ce1f4be..214793d51409 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> @@ -172,7 +172,7 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
->  	dev->flags = 0;
->  	dev->ib_dev.owner = THIS_MODULE;
->  	dev->ib_dev.num_comp_vectors = 1;
-> -	dev->ib_dev.dma_device = &dev->pdev->dev;
-> +	dev->ib_dev.dev.parent = &dev->pdev->dev;
->  	dev->ib_dev.uverbs_abi_ver = PVRDMA_UVERBS_ABI_VERSION;
->  	dev->ib_dev.uverbs_cmd_mask =
->  		(1ull << IB_USER_VERBS_CMD_GET_CONTEXT)		|
+On Fri, 2017-01-20 at 16:57 -0500, Laurence Oberman wrote:
+> Hello Bart, if this the match to what you shared with me earlier I have
+> tested the IB/SRP part of this series.
+>=20
+> This is the IB/RDMA/SRP stack, testing both ib_srp and ib_srpt.
+>=20
+> 1. Tested direct and buffered read I/O with 4MB I/O and smaller I/O sizes
+>    direct to mpath devices
+> 2. Tested read and write I/O with 4MB and smaller I/O to XFS file systems=
+.
+> 3. Removed a SRP paths one by one and let then reconnect with no issues
+>=20
+> All my tests were SRP using connectX-4 (mlx5) at EDR (100G)
+>=20
+> For: Optimize DMA mapping tree, branch for next from latest copy on:
+> https://github.com/bvanassche/linux
+> Tested-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Hello Laurence,
 
-Thanks,
-Adit
+The code I posted is identical to the code I asked you to test. Thanks for
+the help with testing!
 
+I tested the following ULP and HBA drivers myself with this patch series:
+ib_srp, ib_srpt, ib_mlx4 and rxe.
+
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
