@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 29/37] IB/rxe: Switch from dma_device to dev.parent
-Date: Fri, 20 Jan 2017 13:04:29 -0800
-Message-ID: <20170120210437.26389-30-bart.vanassche@sandisk.com>
+Subject: [PATCH v3 08/37] IB/core: Remove ib_dma_*map_single_attrs()
+Date: Fri, 20 Jan 2017 13:04:08 -0800
+Message-ID: <20170120210437.26389-9-bart.vanassche@sandisk.com>
 References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,48 +9,47 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170120210437.26389-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Prepare for removal of ib_device.dma_device.
+Remove these functions because these are not used. Additionally, the
+implementation of these functions is not correct for the hfi1, qib and
+rxe drivers because dma_device is used instead of dma_ops.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/rdma/ib_verbs.h | 18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index beb7021ff18a..b707fc3bca2a 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -168,7 +168,7 @@ static int rxe_query_pkey(struct ib_device *device,
- 	struct rxe_port *port;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 958a24d8fae7..8b9a3767f695 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3004,24 +3004,6 @@ static inline void ib_dma_unmap_single(struct ib_device *dev,
+ 		dma_unmap_single(dev->dma_device, addr, size, direction);
+ }
  
- 	if (unlikely(port_num != 1)) {
--		dev_warn(device->dma_device, "invalid port_num = %d\n",
-+		dev_warn(device->dev.parent, "invalid port_num = %d\n",
- 			 port_num);
- 		goto err1;
- 	}
-@@ -176,7 +176,7 @@ static int rxe_query_pkey(struct ib_device *device,
- 	port = &rxe->port;
- 
- 	if (unlikely(index >= port->attr.pkey_tbl_len)) {
--		dev_warn(device->dma_device, "invalid index = %d\n",
-+		dev_warn(device->dev.parent, "invalid index = %d\n",
- 			 index);
- 		goto err1;
- 	}
-@@ -1234,7 +1234,7 @@ int rxe_register_device(struct rxe_dev *rxe)
- 	dev->node_type = RDMA_NODE_IB_CA;
- 	dev->phys_port_cnt = 1;
- 	dev->num_comp_vectors = RXE_NUM_COMP_VECTORS;
--	dev->dma_device = rxe->ifc_ops->dma_device(rxe);
-+	dev->dev.parent = rxe->ifc_ops->dma_device(rxe);
- 	dev->local_dma_lkey = 0;
- 	dev->node_guid = rxe->ifc_ops->node_guid(rxe);
- 	dev->dma_ops = &rxe_dma_mapping_ops;
+-static inline u64 ib_dma_map_single_attrs(struct ib_device *dev,
+-					  void *cpu_addr, size_t size,
+-					  enum dma_data_direction direction,
+-					  unsigned long dma_attrs)
+-{
+-	return dma_map_single_attrs(dev->dma_device, cpu_addr, size,
+-				    direction, dma_attrs);
+-}
+-
+-static inline void ib_dma_unmap_single_attrs(struct ib_device *dev,
+-					     u64 addr, size_t size,
+-					     enum dma_data_direction direction,
+-					     unsigned long dma_attrs)
+-{
+-	return dma_unmap_single_attrs(dev->dma_device, addr, size,
+-				      direction, dma_attrs);
+-}
+-
+ /**
+  * ib_dma_map_page - Map a physical page to DMA address
+  * @dev: The device for which the dma_addr is to be created
 -- 
 2.11.0
 
