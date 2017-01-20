@@ -1,74 +1,111 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: release tarball top-level dir
-Date: Fri, 20 Jan 2017 15:17:54 -0500
-Message-ID: <1484943474.43764.4.camel@redhat.com>
-References: <01b101d2733b$f0179df0$d046d9d0$@opengridcomputing.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH v3 03/37] treewide: Consolidate set_dma_ops() implementations
+Date: Fri, 20 Jan 2017 13:04:03 -0800
+Message-ID: <20170120210437.26389-4-bart.vanassche@sandisk.com>
+References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-uQpiH7Bsfzs+BwhqYzsh"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <01b101d2733b$f0179df0$d046d9d0$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170120210437.26389-1-bart.vanassche@sandisk.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-arch@vger.kernel.org, Chris Metcalf <cmetcalf@mellanox.com>, linux-rdma@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Paul Mackerras <paulus@samba.org>, Bart Van Assche <bart.vanassche@sandisk.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
+Now that all set_dma_ops() implementations are identical (ignoring
+BUG_ON() statements), remove the architecture specific definitions
+and add a definition in <linux/dma-mapping.h>.
 
---=-uQpiH7Bsfzs+BwhqYzsh
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: linux-arch@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Russell King <linux@armlinux.org.uk>
+---
+ arch/arm/include/asm/dma-mapping.h     | 6 ------
+ arch/powerpc/include/asm/dma-mapping.h | 5 -----
+ arch/tile/include/asm/dma-mapping.h    | 5 -----
+ include/linux/dma-mapping.h            | 5 +++++
+ 4 files changed, 5 insertions(+), 16 deletions(-)
 
-On Fri, 2017-01-20 at 10:40 -0600, Steve Wise wrote:
-> Hey all,
->=20
-> Is this the intended top level dir?
->=20
-> [root@stevo3 tmp]# tar tzf rdma-core-12.tar.gz
-> rdma-core-rdma-core-12/
-> rdma-core-rdma-core-12/.gitignore
-> rdma-core-rdma-core-12/.travis.yml
->=20
-
-No, but I don't know how to fix it just yet. =C2=A0The problem is that I
-have to put rdma-core in the version tag or else the tarball is just
-called v12.tar.gz, which really is not suitable. =C2=A0But I don't know how
-to configure the git archive that github does on the back end to not
-put the name in front of the tag when creating the tarball. =C2=A0I should
-probably queue up a ticket with github's tech support to see what can
-be done.
-
---=C2=A0
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-uQpiH7Bsfzs+BwhqYzsh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYgnByAAoJELgmozMOVy/dW6UP+weLo8wu2GYPJ8V7G9FG2wQN
-85LEPoZbOsdhui8o7XofoN4fWSA5XcvdT51GcgCJVtNLhfXDZK+zTSqh2h7cRsY9
-D+xZZaIKx9IKFhMSWAcxzWVbI9Mdrxb/9MQvUWwqpqEfACPVLvZrioaSsp+za6Ft
-3TmCVV3H/EzPx+4Mwt7dgSbhICDVo+jSMBD52dQSDY2HqZDkggo3i1TRMNmEyBkr
-QtPYdr1k24PhhfbL65224VbiViIStHDRVYHAGdZ1N95/ixRvm5OTy7WDVqbsAJUC
-M7GEFotI2XbvAINMU/2U0Hu4j7lTyqIxqRE48vUUUFw2jtK+hgM+GOSM0JHZdSWw
-GT9wJK1Vx6VMtm+xl62XZ1vw1eXSxiOg4Ip0H+HfYVkLGu2vErGSdVrpZbpThASh
-n378Yu/3H0rnpYYEi6NdPw4x2SqyZcFpC30+XJ7b1Xo7hU9ErdJbXLl6rJhpo8DS
-hC2hqaZfo6kY+L1WlhJv+HWRsvryMN7cpuSPAQhdp1eGBTT3gAHPGwui6RHM2nVO
-HbNrKa6ofNsy5lQOTw5MXXai8AluBBkTwoeeWqWUsLwHO85Ki91aiud9VQyiRReJ
-feOmgzyi5Ssc4Xy0vqAqnCwbEZAM37bUdNWcR5DQZ0cEJHhhtNQvafF37+ngo7O8
-5WIQezrN2SOHSHM3wy7g
-=PrGn
------END PGP SIGNATURE-----
-
---=-uQpiH7Bsfzs+BwhqYzsh--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
+index 312f4d0564d6..c7432d647e53 100644
+--- a/arch/arm/include/asm/dma-mapping.h
++++ b/arch/arm/include/asm/dma-mapping.h
+@@ -31,12 +31,6 @@ static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
+ 		return __generic_dma_ops(dev);
+ }
+ 
+-static inline void set_dma_ops(struct device *dev, const struct dma_map_ops *ops)
+-{
+-	BUG_ON(!dev);
+-	dev->dma_ops = ops;
+-}
+-
+ #define HAVE_ARCH_DMA_SUPPORTED 1
+ extern int dma_supported(struct device *dev, u64 mask);
+ 
+diff --git a/arch/powerpc/include/asm/dma-mapping.h b/arch/powerpc/include/asm/dma-mapping.h
+index 59fbd4abcbf8..8275603ba4d5 100644
+--- a/arch/powerpc/include/asm/dma-mapping.h
++++ b/arch/powerpc/include/asm/dma-mapping.h
+@@ -91,11 +91,6 @@ static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
+ 	return dev->dma_ops;
+ }
+ 
+-static inline void set_dma_ops(struct device *dev, const struct dma_map_ops *ops)
+-{
+-	dev->dma_ops = ops;
+-}
+-
+ /*
+  * get_dma_offset()
+  *
+diff --git a/arch/tile/include/asm/dma-mapping.h b/arch/tile/include/asm/dma-mapping.h
+index c0620697eaad..2562995a6ac9 100644
+--- a/arch/tile/include/asm/dma-mapping.h
++++ b/arch/tile/include/asm/dma-mapping.h
+@@ -59,11 +59,6 @@ static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
+ 
+ static inline void dma_mark_clean(void *addr, size_t size) {}
+ 
+-static inline void set_dma_ops(struct device *dev, const struct dma_map_ops *ops)
+-{
+-	dev->dma_ops = ops;
+-}
+-
+ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ {
+ 	if (!dev->dma_mask)
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index f1da68b82c63..e97f23e8b2d9 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -164,6 +164,11 @@ int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
+ 
+ #ifdef CONFIG_HAS_DMA
+ #include <asm/dma-mapping.h>
++static inline void set_dma_ops(struct device *dev,
++			       const struct dma_map_ops *dma_ops)
++{
++	dev->dma_ops = dma_ops;
++}
+ #else
+ /*
+  * Define the dma api to allow compilation but not linking of
+-- 
+2.11.0
