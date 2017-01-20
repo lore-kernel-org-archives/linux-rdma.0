@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 14/37] IB/core: Use dev.parent instead of dma_device
-Date: Fri, 20 Jan 2017 13:04:14 -0800
-Message-ID: <20170120210437.26389-15-bart.vanassche@sandisk.com>
+Subject: [PATCH v3 10/37] IB/core: Change the type of an ib_dma_alloc_coherent() argument
+Date: Fri, 20 Jan 2017 13:04:10 -0800
+Message-ID: <20170120210437.26389-11-bart.vanassche@sandisk.com>
 References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,63 +12,84 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Prepare for removal of ib_device.dma_device.
+Change the type of the dma_handle argument from u64 * to dma_addr_t *.
+This patch does not change any functionality.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/core/ucm.c         | 2 +-
- drivers/infiniband/core/user_mad.c    | 4 ++--
- drivers/infiniband/core/uverbs_main.c | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/rdma/ib_verbs.h | 13 ++++++-------
+ net/rds/ib.h            |  6 +++---
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index e0a995b85a2d..cc0d51fb06e3 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1290,7 +1290,7 @@ static void ib_ucm_add_one(struct ib_device *device)
- 		goto err;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8b9a3767f695..fd4e42dd1efc 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3171,19 +3171,18 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+  */
+ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+ 					   size_t size,
+-					   u64 *dma_handle,
++					   dma_addr_t *dma_handle,
+ 					   gfp_t flag)
+ {
+-	if (dev->dma_ops)
+-		return dev->dma_ops->alloc_coherent(dev, size, dma_handle, flag);
+-	else {
+-		dma_addr_t handle;
++	if (dev->dma_ops) {
++		u64 handle;
+ 		void *ret;
  
- 	ucm_dev->dev.class = &cm_class;
--	ucm_dev->dev.parent = device->dma_device;
-+	ucm_dev->dev.parent = device->dev.parent;
- 	ucm_dev->dev.devt = ucm_dev->cdev.dev;
- 	ucm_dev->dev.release = ib_ucm_release_dev;
- 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 249b403b43a4..aca7ff7abedc 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1188,7 +1188,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
- 	if (cdev_add(&port->cdev, base, 1))
- 		goto err_cdev;
+-		ret = dma_alloc_coherent(dev->dma_device, size, &handle, flag);
++		ret = dev->dma_ops->alloc_coherent(dev, size, &handle, flag);
+ 		*dma_handle = handle;
+ 		return ret;
+ 	}
++	return dma_alloc_coherent(dev->dma_device, size, dma_handle, flag);
+ }
  
--	port->dev = device_create(umad_class, device->dma_device,
-+	port->dev = device_create(umad_class, device->dev.parent,
- 				  port->cdev.dev, port,
- 				  "umad%d", port->dev_num);
- 	if (IS_ERR(port->dev))
-@@ -1207,7 +1207,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
- 	if (cdev_add(&port->sm_cdev, base, 1))
- 		goto err_sm_cdev;
+ /**
+@@ -3195,7 +3194,7 @@ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+  */
+ static inline void ib_dma_free_coherent(struct ib_device *dev,
+ 					size_t size, void *cpu_addr,
+-					u64 dma_handle)
++					dma_addr_t dma_handle)
+ {
+ 	if (dev->dma_ops)
+ 		dev->dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 45ac8e8e58f4..d21ca88ab628 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -134,7 +134,7 @@ struct rds_ib_connection {
+ 	struct rds_ib_work_ring	i_send_ring;
+ 	struct rm_data_op	*i_data_op;
+ 	struct rds_header	*i_send_hdrs;
+-	u64			i_send_hdrs_dma;
++	dma_addr_t		i_send_hdrs_dma;
+ 	struct rds_ib_send_work *i_sends;
+ 	atomic_t		i_signaled_sends;
  
--	port->sm_dev = device_create(umad_class, device->dma_device,
-+	port->sm_dev = device_create(umad_class, device->dev.parent,
- 				     port->sm_cdev.dev, port,
- 				     "issm%d", port->dev_num);
- 	if (IS_ERR(port->sm_dev))
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index b3f95d453fba..e3fb4b1af1ad 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -1174,7 +1174,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	if (cdev_add(&uverbs_dev->cdev, base, 1))
- 		goto err_cdev;
+@@ -144,7 +144,7 @@ struct rds_ib_connection {
+ 	struct rds_ib_incoming	*i_ibinc;
+ 	u32			i_recv_data_rem;
+ 	struct rds_header	*i_recv_hdrs;
+-	u64			i_recv_hdrs_dma;
++	dma_addr_t		i_recv_hdrs_dma;
+ 	struct rds_ib_recv_work *i_recvs;
+ 	u64			i_ack_recv;	/* last ACK received */
+ 	struct rds_ib_refill_cache i_cache_incs;
+@@ -161,7 +161,7 @@ struct rds_ib_connection {
+ 	struct rds_header	*i_ack;
+ 	struct ib_send_wr	i_ack_wr;
+ 	struct ib_sge		i_ack_sge;
+-	u64			i_ack_dma;
++	dma_addr_t		i_ack_dma;
+ 	unsigned long		i_ack_queued;
  
--	uverbs_dev->dev = device_create(uverbs_class, device->dma_device,
-+	uverbs_dev->dev = device_create(uverbs_class, device->dev.parent,
- 					uverbs_dev->cdev.dev, uverbs_dev,
- 					"uverbs%d", uverbs_dev->devnum);
- 	if (IS_ERR(uverbs_dev->dev))
+ 	/* Flow control related information
 -- 
 2.11.0
 
