@@ -1,257 +1,48 @@
-From: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: Guard against null cm_id in dump_ep/qp
-Date: Fri, 20 Jan 2017 12:32:01 +0530
-Message-ID: <1484895721-10839-1-git-send-email-ganeshgr@chelsio.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: [PATCH] net/mlx4: use rb_entry()
+Date: Fri, 20 Jan 2017 22:36:57 +0800
+Message-ID: <6c1c772de8f70113580dade04f89a377174d8c88.1484817025.git.geliangtang@gmail.com>
+References: <c6a809ea5820242a4ae126b03cdcd910a36e5cae.1484817152.git.geliangtang@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <c6a809ea5820242a4ae126b03cdcd910a36e5cae.1484817152.git.geliangtang@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@mellanox.com>
+Cc: Geliang Tang <geliangtang@gmail.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Endpoints that are aborting can have already dereferenced the
-cm_id and set ep->com.cm_id to NULL.  So guard against that in
-dump_ep() and dump_qp().
+To make the code clearer, use rb_entry() instead of container_of() to
+deal with rbtree.
 
-Also create a common function for setting up ip address pointers
-since the same logic is needed in several places.
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
-v2: Print mapped tcp ports instead of actual tcp ports.
----
----
- drivers/infiniband/hw/cxgb4/device.c | 133 ++++++++++++++++++++++-------------
- 1 file changed, 84 insertions(+), 49 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 516b0ae..c4b344e 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -214,6 +214,52 @@ static const struct file_operations wr_log_debugfs_fops = {
- 	.write   = wr_log_clear,
- };
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 1822382..6da6e01 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -236,8 +236,8 @@ static void *res_tracker_lookup(struct rb_root *root, u64 res_id)
+ 	struct rb_node *node = root->rb_node;
  
-+static struct sockaddr_in zero_sin = {
-+	.sin_family = AF_INET,
-+};
-+
-+static struct sockaddr_in6 zero_sin6 = {
-+	.sin6_family = AF_INET6,
-+};
-+
-+static void set_ep_sin_addrs(struct c4iw_ep *ep,
-+			     struct sockaddr_in **lsin,
-+			     struct sockaddr_in **rsin,
-+			     struct sockaddr_in **m_lsin,
-+			     struct sockaddr_in **m_rsin)
-+{
-+	struct iw_cm_id *id = ep->com.cm_id;
-+
-+	*lsin = (struct sockaddr_in *)&ep->com.local_addr;
-+	*rsin = (struct sockaddr_in *)&ep->com.remote_addr;
-+	if (id) {
-+		*m_lsin = (struct sockaddr_in *)&id->m_local_addr;
-+		*m_rsin = (struct sockaddr_in *)&id->m_remote_addr;
-+	} else {
-+		*m_lsin = &zero_sin;
-+		*m_rsin = &zero_sin;
-+	}
-+}
-+
-+static void set_ep_sin6_addrs(struct c4iw_ep *ep,
-+			      struct sockaddr_in6 **lsin6,
-+			      struct sockaddr_in6 **rsin6,
-+			      struct sockaddr_in6 **m_lsin6,
-+			      struct sockaddr_in6 **m_rsin6)
-+{
-+	struct iw_cm_id *id = ep->com.cm_id;
-+
-+	*lsin6 = (struct sockaddr_in6 *)&ep->com.local_addr;
-+	*rsin6 = (struct sockaddr_in6 *)&ep->com.remote_addr;
-+	if (id) {
-+		*m_lsin6 = (struct sockaddr_in6 *)&id->m_local_addr;
-+		*m_rsin6 = (struct sockaddr_in6 *)&id->m_remote_addr;
-+	} else {
-+		*m_lsin6 = &zero_sin6;
-+		*m_rsin6 = &zero_sin6;
-+	}
-+}
-+
- static int dump_qp(int id, void *p, void *data)
- {
- 	struct c4iw_qp *qp = p;
-@@ -229,16 +275,15 @@ static int dump_qp(int id, void *p, void *data)
- 		return 1;
+ 	while (node) {
+-		struct res_common *res = container_of(node, struct res_common,
+-						      node);
++		struct res_common *res = rb_entry(node, struct res_common,
++						  node);
  
- 	if (qp->ep) {
--		if (qp->ep->com.local_addr.ss_family == AF_INET) {
--			struct sockaddr_in *lsin = (struct sockaddr_in *)
--				&qp->ep->com.cm_id->local_addr;
--			struct sockaddr_in *rsin = (struct sockaddr_in *)
--				&qp->ep->com.cm_id->remote_addr;
--			struct sockaddr_in *mapped_lsin = (struct sockaddr_in *)
--				&qp->ep->com.cm_id->m_local_addr;
--			struct sockaddr_in *mapped_rsin = (struct sockaddr_in *)
--				&qp->ep->com.cm_id->m_remote_addr;
-+		struct c4iw_ep *ep = qp->ep;
-+
-+		if (ep->com.local_addr.ss_family == AF_INET) {
-+			struct sockaddr_in *lsin;
-+			struct sockaddr_in *rsin;
-+			struct sockaddr_in *m_lsin;
-+			struct sockaddr_in *m_rsin;
+ 		if (res_id < res->res_id)
+ 			node = node->rb_left;
+@@ -255,8 +255,8 @@ static int res_tracker_insert(struct rb_root *root, struct res_common *res)
  
-+			set_ep_sin_addrs(ep, &lsin, &rsin, &m_lsin, &m_rsin);
- 			cc = snprintf(qpd->buf + qpd->pos, space,
- 				      "rc qp sq id %u rq id %u state %u "
- 				      "onchip %u ep tid %u state %u "
-@@ -246,23 +291,19 @@ static int dump_qp(int id, void *p, void *data)
- 				      qp->wq.sq.qid, qp->wq.rq.qid,
- 				      (int)qp->attr.state,
- 				      qp->wq.sq.flags & T4_SQ_ONCHIP,
--				      qp->ep->hwtid, (int)qp->ep->com.state,
-+				      ep->hwtid, (int)ep->com.state,
- 				      &lsin->sin_addr, ntohs(lsin->sin_port),
--				      ntohs(mapped_lsin->sin_port),
-+				      ntohs(m_lsin->sin_port),
- 				      &rsin->sin_addr, ntohs(rsin->sin_port),
--				      ntohs(mapped_rsin->sin_port));
-+				      ntohs(m_rsin->sin_port));
- 		} else {
--			struct sockaddr_in6 *lsin6 = (struct sockaddr_in6 *)
--				&qp->ep->com.cm_id->local_addr;
--			struct sockaddr_in6 *rsin6 = (struct sockaddr_in6 *)
--				&qp->ep->com.cm_id->remote_addr;
--			struct sockaddr_in6 *mapped_lsin6 =
--				(struct sockaddr_in6 *)
--				&qp->ep->com.cm_id->m_local_addr;
--			struct sockaddr_in6 *mapped_rsin6 =
--				(struct sockaddr_in6 *)
--				&qp->ep->com.cm_id->m_remote_addr;
-+			struct sockaddr_in6 *lsin6;
-+			struct sockaddr_in6 *rsin6;
-+			struct sockaddr_in6 *m_lsin6;
-+			struct sockaddr_in6 *m_rsin6;
+ 	/* Figure out where to put new node */
+ 	while (*new) {
+-		struct res_common *this = container_of(*new, struct res_common,
+-						       node);
++		struct res_common *this = rb_entry(*new, struct res_common,
++						   node);
  
-+			set_ep_sin6_addrs(ep, &lsin6, &rsin6, &m_lsin6,
-+					  &m_rsin6);
- 			cc = snprintf(qpd->buf + qpd->pos, space,
- 				      "rc qp sq id %u rq id %u state %u "
- 				      "onchip %u ep tid %u state %u "
-@@ -270,13 +311,13 @@ static int dump_qp(int id, void *p, void *data)
- 				      qp->wq.sq.qid, qp->wq.rq.qid,
- 				      (int)qp->attr.state,
- 				      qp->wq.sq.flags & T4_SQ_ONCHIP,
--				      qp->ep->hwtid, (int)qp->ep->com.state,
-+				      ep->hwtid, (int)ep->com.state,
- 				      &lsin6->sin6_addr,
- 				      ntohs(lsin6->sin6_port),
--				      ntohs(mapped_lsin6->sin6_port),
-+				      ntohs(m_lsin6->sin6_port),
- 				      &rsin6->sin6_addr,
- 				      ntohs(rsin6->sin6_port),
--				      ntohs(mapped_rsin6->sin6_port));
-+				      ntohs(m_rsin6->sin6_port));
- 		}
- 	} else
- 		cc = snprintf(qpd->buf + qpd->pos, space,
-@@ -533,15 +574,12 @@ static int dump_ep(int id, void *p, void *data)
- 		return 1;
- 
- 	if (ep->com.local_addr.ss_family == AF_INET) {
--		struct sockaddr_in *lsin = (struct sockaddr_in *)
--			&ep->com.cm_id->local_addr;
--		struct sockaddr_in *rsin = (struct sockaddr_in *)
--			&ep->com.cm_id->remote_addr;
--		struct sockaddr_in *mapped_lsin = (struct sockaddr_in *)
--			&ep->com.cm_id->m_local_addr;
--		struct sockaddr_in *mapped_rsin = (struct sockaddr_in *)
--			&ep->com.cm_id->m_remote_addr;
-+		struct sockaddr_in *lsin;
-+		struct sockaddr_in *rsin;
-+		struct sockaddr_in *m_lsin;
-+		struct sockaddr_in *m_rsin;
- 
-+		set_ep_sin_addrs(ep, &lsin, &rsin, &m_lsin, &m_rsin);
- 		cc = snprintf(epd->buf + epd->pos, space,
- 			      "ep %p cm_id %p qp %p state %d flags 0x%lx "
- 			      "history 0x%lx hwtid %d atid %d "
-@@ -553,19 +591,16 @@ static int dump_ep(int id, void *p, void *data)
- 			      ep->stats.connect_neg_adv,
- 			      ep->stats.abort_neg_adv,
- 			      &lsin->sin_addr, ntohs(lsin->sin_port),
--			      ntohs(mapped_lsin->sin_port),
-+			      ntohs(m_lsin->sin_port),
- 			      &rsin->sin_addr, ntohs(rsin->sin_port),
--			      ntohs(mapped_rsin->sin_port));
-+			      ntohs(m_rsin->sin_port));
- 	} else {
--		struct sockaddr_in6 *lsin6 = (struct sockaddr_in6 *)
--			&ep->com.cm_id->local_addr;
--		struct sockaddr_in6 *rsin6 = (struct sockaddr_in6 *)
--			&ep->com.cm_id->remote_addr;
--		struct sockaddr_in6 *mapped_lsin6 = (struct sockaddr_in6 *)
--			&ep->com.cm_id->m_local_addr;
--		struct sockaddr_in6 *mapped_rsin6 = (struct sockaddr_in6 *)
--			&ep->com.cm_id->m_remote_addr;
-+		struct sockaddr_in6 *lsin6;
-+		struct sockaddr_in6 *rsin6;
-+		struct sockaddr_in6 *m_lsin6;
-+		struct sockaddr_in6 *m_rsin6;
- 
-+		set_ep_sin6_addrs(ep, &lsin6, &rsin6, &m_lsin6, &m_rsin6);
- 		cc = snprintf(epd->buf + epd->pos, space,
- 			      "ep %p cm_id %p qp %p state %d flags 0x%lx "
- 			      "history 0x%lx hwtid %d atid %d "
-@@ -577,9 +612,9 @@ static int dump_ep(int id, void *p, void *data)
- 			      ep->stats.connect_neg_adv,
- 			      ep->stats.abort_neg_adv,
- 			      &lsin6->sin6_addr, ntohs(lsin6->sin6_port),
--			      ntohs(mapped_lsin6->sin6_port),
-+			      ntohs(m_lsin6->sin6_port),
- 			      &rsin6->sin6_addr, ntohs(rsin6->sin6_port),
--			      ntohs(mapped_rsin6->sin6_port));
-+			      ntohs(m_rsin6->sin6_port));
- 	}
- 	if (cc < space)
- 		epd->pos += cc;
-@@ -600,7 +635,7 @@ static int dump_listen_ep(int id, void *p, void *data)
- 	if (ep->com.local_addr.ss_family == AF_INET) {
- 		struct sockaddr_in *lsin = (struct sockaddr_in *)
- 			&ep->com.cm_id->local_addr;
--		struct sockaddr_in *mapped_lsin = (struct sockaddr_in *)
-+		struct sockaddr_in *m_lsin = (struct sockaddr_in *)
- 			&ep->com.cm_id->m_local_addr;
- 
- 		cc = snprintf(epd->buf + epd->pos, space,
-@@ -609,11 +644,11 @@ static int dump_listen_ep(int id, void *p, void *data)
- 			      ep, ep->com.cm_id, (int)ep->com.state,
- 			      ep->com.flags, ep->stid, ep->backlog,
- 			      &lsin->sin_addr, ntohs(lsin->sin_port),
--			      ntohs(mapped_lsin->sin_port));
-+			      ntohs(m_lsin->sin_port));
- 	} else {
- 		struct sockaddr_in6 *lsin6 = (struct sockaddr_in6 *)
- 			&ep->com.cm_id->local_addr;
--		struct sockaddr_in6 *mapped_lsin6 = (struct sockaddr_in6 *)
-+		struct sockaddr_in6 *m_lsin6 = (struct sockaddr_in6 *)
- 			&ep->com.cm_id->m_local_addr;
- 
- 		cc = snprintf(epd->buf + epd->pos, space,
-@@ -622,7 +657,7 @@ static int dump_listen_ep(int id, void *p, void *data)
- 			      ep, ep->com.cm_id, (int)ep->com.state,
- 			      ep->com.flags, ep->stid, ep->backlog,
- 			      &lsin6->sin6_addr, ntohs(lsin6->sin6_port),
--			      ntohs(mapped_lsin6->sin6_port));
-+			      ntohs(m_lsin6->sin6_port));
- 	}
- 	if (cc < space)
- 		epd->pos += cc;
+ 		parent = *new;
+ 		if (res->res_id < this->res_id)
 -- 
-2.1.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.9.3
