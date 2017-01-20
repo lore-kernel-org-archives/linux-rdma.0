@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 15/37] IB/cxgb3: Set dev.parent instead of dma_device
-Date: Fri, 20 Jan 2017 13:04:15 -0800
-Message-ID: <20170120210437.26389-16-bart.vanassche@sandisk.com>
+Subject: [PATCH v3 28/37] IB/vmw_pvrdma: Switch from dma_device to dev.parent
+Date: Fri, 20 Jan 2017 13:04:28 -0800
+Message-ID: <20170120210437.26389-29-bart.vanassche@sandisk.com>
 References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,30 +9,31 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170120210437.26389-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Prepare for removal of ib_device.dma_device.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 9d5fe1853da4..8db71dcb4599 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1401,7 +1401,7 @@ int iwch_register_device(struct iwch_dev *dev)
- 	memcpy(dev->ibdev.node_desc, IWCH_NODE_DESC, sizeof(IWCH_NODE_DESC));
- 	dev->ibdev.phys_port_cnt = dev->rdev.port_info.nports;
- 	dev->ibdev.num_comp_vectors = 1;
--	dev->ibdev.dma_device = &(dev->rdev.rnic_info.pdev->dev);
-+	dev->ibdev.dev.parent = &dev->rdev.rnic_info.pdev->dev;
- 	dev->ibdev.query_device = iwch_query_device;
- 	dev->ibdev.query_port = iwch_query_port;
- 	dev->ibdev.query_pkey = iwch_query_pkey;
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index 231a1ce1f4be..214793d51409 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -172,7 +172,7 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+ 	dev->flags = 0;
+ 	dev->ib_dev.owner = THIS_MODULE;
+ 	dev->ib_dev.num_comp_vectors = 1;
+-	dev->ib_dev.dma_device = &dev->pdev->dev;
++	dev->ib_dev.dev.parent = &dev->pdev->dev;
+ 	dev->ib_dev.uverbs_abi_ver = PVRDMA_UVERBS_ABI_VERSION;
+ 	dev->ib_dev.uverbs_cmd_mask =
+ 		(1ull << IB_USER_VERBS_CMD_GET_CONTEXT)		|
 -- 
 2.11.0
 
