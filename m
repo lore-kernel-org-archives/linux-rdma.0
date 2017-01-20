@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 32/37] IB/srp: Switch from dma_device to dev.parent
-Date: Fri, 20 Jan 2017 13:04:32 -0800
-Message-ID: <20170120210437.26389-33-bart.vanassche@sandisk.com>
+Subject: [PATCH v3 33/37] IB/srpt: Modify a debug statement
+Date: Fri, 20 Jan 2017 13:04:33 -0800
+Message-ID: <20170120210437.26389-34-bart.vanassche@sandisk.com>
 References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,39 +9,32 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170120210437.26389-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Prepare for removal of ib_device.dma_device.
+Since a later patch will remove ib_device.dma_device and since knowing
+the value of that pointer is not too important, remove dma_device from
+the debug output.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 8ddc07123193..64b33d69b874 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2904,7 +2904,7 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
- 	sprintf(target->target_name, "SRP.T10:%016llX",
- 		be64_to_cpu(target->id_ext));
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index dfc24f19178b..147beadd6815 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2464,8 +2464,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	struct ib_srq_init_attr srq_attr;
+ 	int i;
  
--	if (scsi_add_host(target->scsi_host, host->srp_dev->dev->dma_device))
-+	if (scsi_add_host(target->scsi_host, host->srp_dev->dev->dev.parent))
- 		return -ENODEV;
+-	pr_debug("device = %p, device->dma_ops = %p\n", device,
+-		 device->dma_device->dma_ops);
++	pr_debug("device = %p\n", device);
  
- 	memcpy(ids.port_id, &target->id_ext, 8);
-@@ -3515,7 +3515,7 @@ static struct srp_host *srp_add_port(struct srp_device *device, u8 port)
- 	host->port = port;
- 
- 	host->dev.class = &srp_class;
--	host->dev.parent = device->dev->dma_device;
-+	host->dev.parent = device->dev->dev.parent;
- 	dev_set_name(&host->dev, "srp-%s-%d", device->dev->name, port);
- 
- 	if (device_register(&host->dev))
+ 	sdev = kzalloc(sizeof(*sdev), GFP_KERNEL);
+ 	if (!sdev)
 -- 
 2.11.0
 
