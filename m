@@ -1,90 +1,80 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] net/mlx4: use rb_entry()
-Date: Sun, 22 Jan 2017 09:48:39 +0200
-Message-ID: <20170122074839.GD28570@mtr-leonro.local>
-References: <c6a809ea5820242a4ae126b03cdcd910a36e5cae.1484817152.git.geliangtang@gmail.com>
- <6c1c772de8f70113580dade04f89a377174d8c88.1484817025.git.geliangtang@gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
+ changing the MTU in UD over the max range
+Date: Sun, 22 Jan 2017 10:05:08 +0200
+Message-ID: <20170122080508.GE28570@mtr-leonro.local>
+References: <20170112193508.GO20392@mtr-leonro.local>
+ <20170112201622.GA14584@obsidianresearch.com>
+ <20170113150824.GQ20392@mtr-leonro.local>
+ <20170113171234.GA30551@obsidianresearch.com>
+ <20170113203127.GT20392@mtr-leonro.local>
+ <20170113212721.GB1463@obsidianresearch.com>
+ <20170115083543.GA20392@mtr-leonro.local>
+ <20170116201218.GA7890@obsidianresearch.com>
+ <20170119131258.GT32481@mtr-leonro.local>
+ <20170119173352.GA8109@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uxuisgdDHaNETlh8"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="9crTWz/Z+Zyzu20v"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6c1c772de8f70113580dade04f89a377174d8c88.1484817025.git.geliangtang@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Geliang Tang <geliangtang@gmail.com>
-Cc: Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170119173352.GA8109-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---uxuisgdDHaNETlh8
+--9crTWz/Z+Zyzu20v
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jan 20, 2017 at 10:36:57PM +0800, Geliang Tang wrote:
-> To make the code clearer, use rb_entry() instead of container_of() to
-> deal with rbtree.
+On Thu, Jan 19, 2017 at 10:33:52AM -0700, Jason Gunthorpe wrote:
+> On Thu, Jan 19, 2017 at 03:12:58PM +0200, Leon Romanovsky wrote:
 >
-> Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> > Let's hope that we will find such brave man who will
+> > remove this line. The removal of this one line will
+> > require from him to do extensive testing and reviewing
+> > different code paths.
+>
+> Why? We already fully support this configuration for RC
 
-I don't understand completely the rationale behind this conversion.
-rb_entry == container_of, why do we need another name for it?
+At minimum, i see here one new path which should be tested.
+Configure small MTU -> Join multicast group -> Configure large MTU
+
+Before removing min(..), in third step, we ensured that MTU won't exceed
+multicast MTU in all flows.
+
+After removing min(..), you will have a chance of flows there MTU limit
+won't work.
+
+And I just saying that it needs to be tested.
 
 >
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> index 1822382..6da6e01 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> @@ -236,8 +236,8 @@ static void *res_tracker_lookup(struct rb_root *root, u64 res_id)
->  	struct rb_node *node = root->rb_node;
->
->  	while (node) {
-> -		struct res_common *res = container_of(node, struct res_common,
-> -						      node);
-> +		struct res_common *res = rb_entry(node, struct res_common,
-> +						  node);
->
->  		if (res_id < res->res_id)
->  			node = node->rb_left;
-> @@ -255,8 +255,8 @@ static int res_tracker_insert(struct rb_root *root, struct res_common *res)
->
->  	/* Figure out where to put new node */
->  	while (*new) {
-> -		struct res_common *this = container_of(*new, struct res_common,
-> -						       node);
-> +		struct res_common *this = rb_entry(*new, struct res_common,
-> +						   node);
->
->  		parent = *new;
->  		if (res->res_id < this->res_id)
-> --
-> 2.9.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Jason
 
---uxuisgdDHaNETlh8
+--9crTWz/Z+Zyzu20v
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliEY9cACgkQ5GN7iDZy
-WKeDTw/+J9x8ygvxpRu+slKFFqZXXPARllOV3nH6hmGHi/QkAeQcvTj0R6/p1AjS
-4viEM5OC3ai6XOWrgt2dniJU2v3pUMHwH6+U1zi3IkFgvb0wFzZhv1mOnj5Xsu0I
-IUT9380PZip2ChFpP/S7FUIN5zsm8VejU9dlhkgW+TFlbdEo4djr4+brdXBcLigP
-kAalbPOiNkOmwJEnZPq3AQPtrkyM3ASkhUON1iOEdxpr0SzXt5H7A0qMRJWubOVR
-tqZEsQQKYdRMLW+Am22L3Bi9D0vQgMvOEbClVtZKQXTkiUazLZcx6Qv87CZBoJY2
-tXXTX1evRSXqTomcPt3kmRUM9tyec91EpJpqj+F9ZvHU+cJMk0acePPTY+QqmMQd
-kDNNkT7f0LZSsy4DcgzMaDuYl3LfrIknPcJmSnHiOpdvmE+KlVQb1ys9R7sKUBd6
-n+5YSdyhlxzrWAZKjC3TITj72os9xCP8nkSyP18kb5aq15wL2mjB7BDOWT9nUz1W
-/VvfG7WQReG4PUG+wPuVu2AbgWeFq0o7th9eZXSAVT4OAeN52IP7Ywd0djTgj4w6
-XBQVifFsovqHJFrI+CaDdhplpDj85IHRv67SUq8AkWjv75dEE4TJo2u9WqXKvk/8
-mcU+tiZr+DLdZDY5t8J0AgudxECB7mPk4jUzlbCIBhsUi7KYHxM=
-=PYQU
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliEZ7QACgkQ5GN7iDZy
+WKediw/9EOO+Y9iepPAbAhq0ZVKfEIM6HwUVz6tF2Tj/qe+pobrbSoogX14IDQFe
+nQacVE2Je0G8L0iaVErkoCkRC4qpxrjUvAY5IrJO24c9eelCrs2mW3ybfA1YmNwM
+yEiaBN6kbh11SLrTKiQtW0gb/3tvOmy4uf/yAkmQdnLO7P89B1hKhzMZX44v3kXm
+REsHowxrYmEbkLQPJ4hb/+SZsJB1+hK5lw3e+IOXeQlYKZroSywXx7ftBkXy5e9c
+SWv/R6NSD3wTe1bbcgydf9BjWP4ubY7sHN5PraloaYIdzQIsLAuDFUT/eoZHNeK2
+o+1td2nOGA5mSjq/60+brAzdCc1KQ4ai3cNlfZsnB13oYH+d4GspeSuLpJiKEYUs
+TkKTh0k9Av4cIjI5jPK33hprbLPKGnlEpMM6cUnaKWAW9TcTf1J+GiJWizeBUvgZ
+lCqF7ehs/o+RaTlPrrQMjidT1gwFdAhEqlTEZMs0YSH2N9QyA/y8kYLgwo+jbaG1
+CerVUuibzoTImnkSF0PddHsbr236q0D157LNxHftQrz3ePJi/YlfRxyXOZONscoL
+qu96fBMvN4r4FGtHrmJwPOjpm3IFE4+ajnXU1Pg7iLtEtm8Ta+TnFL34uFJeIIB1
+rUSBkgCEPFVI2UbpP9nbXx8Tl+lrbmcL2ltXWPLMNwiTTZ6RiAM=
+=D13A
 -----END PGP SIGNATURE-----
 
---uxuisgdDHaNETlh8--
+--9crTWz/Z+Zyzu20v--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
