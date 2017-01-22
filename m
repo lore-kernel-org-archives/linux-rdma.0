@@ -1,79 +1,112 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 1/9] IB/ipoib: Add warning message when
- changing the MTU in UD over the max range
-Date: Sun, 22 Jan 2017 10:05:08 +0200
-Message-ID: <20170122080508.GE28570@mtr-leonro.local>
-References: <20170112193508.GO20392@mtr-leonro.local>
- <20170112201622.GA14584@obsidianresearch.com>
- <20170113150824.GQ20392@mtr-leonro.local>
- <20170113171234.GA30551@obsidianresearch.com>
- <20170113203127.GT20392@mtr-leonro.local>
- <20170113212721.GB1463@obsidianresearch.com>
- <20170115083543.GA20392@mtr-leonro.local>
- <20170116201218.GA7890@obsidianresearch.com>
- <20170119131258.GT32481@mtr-leonro.local>
- <20170119173352.GA8109@obsidianresearch.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 1/3] util: Add common code for provider
+ debug
+Date: Sun, 22 Jan 2017 10:11:18 +0200
+Message-ID: <20170122081118.GF28570@mtr-leonro.local>
+References: <1484682413-56580-1-git-send-email-tatyana.e.nikolova@intel.com>
+ <20170118053130.GS32481@mtr-leonro.local>
+ <20170118164444.GA14198@obsidianresearch.com>
+ <20170118183104.GH32481@mtr-leonro.local>
+ <20170118184411.GA5020@obsidianresearch.com>
+ <20170119080924.GM32481@mtr-leonro.local>
+ <20170119175838.GC8109@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="9crTWz/Z+Zyzu20v"
+        protocol="application/pgp-signature"; boundary="hUH5gZbnpyIv7Mn4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170119173352.GA8109-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170119175838.GC8109-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---9crTWz/Z+Zyzu20v
+--hUH5gZbnpyIv7Mn4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jan 19, 2017 at 10:33:52AM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 19, 2017 at 03:12:58PM +0200, Leon Romanovsky wrote:
+On Thu, Jan 19, 2017 at 10:58:38AM -0700, Jason Gunthorpe wrote:
+> On Thu, Jan 19, 2017 at 10:09:24AM +0200, Leon Romanovsky wrote:
+> > On Wed, Jan 18, 2017 at 11:44:11AM -0700, Jason Gunthorpe wrote:
+> > > On Wed, Jan 18, 2017 at 08:31:04PM +0200, Leon Romanovsky wrote:
+> > > > On Wed, Jan 18, 2017 at 09:44:44AM -0700, Jason Gunthorpe wrote:
+> > > > > On Wed, Jan 18, 2017 at 07:31:30AM +0200, Leon Romanovsky wrote:
+> > > > > > > +#define PRINT_ERR(fmt, ...)								\
+> > > > > > > +do {											\
+> > > > > > > +	fprintf(stderr, "[%s:%d]" fmt, __func__, __LINE__, ##__VA_ARGS__);		\
+> > > > > > > +} while (0)
+> > > > > > > +
+> > > > > > > +#define PRINT_DBG(dbg_mask, dbg_level, fmt, ...)					\
+> > > > > > > +do {											\
+> > > > > > > +	if ((rdma_dbg_mask & dbg_mask) && (rdma_dbg_level >= dbg_level))		\
+> > > > > > > +		fprintf(stderr, "[%s:%d]" fmt, __func__, __LINE__, ##__VA_ARGS__);	\
+> > > > > > > +} while (0)
+> > > > > > > +
+> > > > > > > +#define LOG_DBG(dbg_fp, dbg_mask, dbg_level, fmt, ...)					\
+> > > > > > > +do {											\
+> > > > > > > +	if ((rdma_dbg_mask & dbg_mask) && (rdma_dbg_level >= dbg_level))		\
+> > > > > > > +		fprintf(dbg_fp, "[%s:%d]" fmt, __func__, __LINE__, ##__VA_ARGS__);	\
+> > > > > > > +} while (0)
+> > > > > > > +
+> > > > > > > +#define LOG_DBG_FLUSH(dbg_fp, dbg_mask, dbg_level, fmt, ...)				\
+> > > > > > > +do {											\
+> > > > > > > +		LOG_DBG(dbg_fp, dbg_mask, dbg_level, fmt, ##__VA_ARGS__);		\
+> > > > > > > +		if (dbg_fp != stderr)							\
+> > > > > > > +			fflush(dbg_fp);							\
+> > > > > > > +} while (0)
+> > > > > >
+> > > > > > IMHO, these macros should be inline functions, and better to avoid global variables.
+> > > > >
+> > > > > It is more expensive at the call site to inline something that calls
+> > > > > via va_args than via ..., so these should remain as macros.
+> > > >
+> > > > These macros/functions need to be compiled in for DEBUG mode only, in
+> > > > such case you can pay extra CPU cycles.
+> > >
+> > > One of the reasonable ways to use this is to always compile in *error
+> > > case* debug prints, as these are intrinsically on the slow error path
+> > > already - however for that use we certainly want to minimize icache
+> > > consumption at the call site.
+> >
+> > There are debug prints in data path too.
+> > https://patchwork.kernel.org/patch/9521817/
+> > See mlx5_get_next_cqe and mlx5_cq_read_wc_opcode functions.
 >
-> > Let's hope that we will find such brave man who will
-> > remove this line. The removal of this one line will
-> > require from him to do extensive testing and reviewing
-> > different code paths.
->
-> Why? We already fully support this configuration for RC
+> I was suggesting two debug entry points, one that is compiled out and the
+> other that is not.
 
-At minimum, i see here one new path which should be tested.
-Configure small MTU -> Join multicast group -> Configure large MTU
+Exactly, I just didn't understand it from your previous responses.
 
-Before removing min(..), in third step, we ensured that MTU won't exceed
-multicast MTU in all flows.
-
-After removing min(..), you will have a chance of flows there MTU limit
-won't work.
-
-And I just saying that it needs to be tested.
+Thanks
 
 >
 > Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---9crTWz/Z+Zyzu20v
+--hUH5gZbnpyIv7Mn4
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliEZ7QACgkQ5GN7iDZy
-WKediw/9EOO+Y9iepPAbAhq0ZVKfEIM6HwUVz6tF2Tj/qe+pobrbSoogX14IDQFe
-nQacVE2Je0G8L0iaVErkoCkRC4qpxrjUvAY5IrJO24c9eelCrs2mW3ybfA1YmNwM
-yEiaBN6kbh11SLrTKiQtW0gb/3tvOmy4uf/yAkmQdnLO7P89B1hKhzMZX44v3kXm
-REsHowxrYmEbkLQPJ4hb/+SZsJB1+hK5lw3e+IOXeQlYKZroSywXx7ftBkXy5e9c
-SWv/R6NSD3wTe1bbcgydf9BjWP4ubY7sHN5PraloaYIdzQIsLAuDFUT/eoZHNeK2
-o+1td2nOGA5mSjq/60+brAzdCc1KQ4ai3cNlfZsnB13oYH+d4GspeSuLpJiKEYUs
-TkKTh0k9Av4cIjI5jPK33hprbLPKGnlEpMM6cUnaKWAW9TcTf1J+GiJWizeBUvgZ
-lCqF7ehs/o+RaTlPrrQMjidT1gwFdAhEqlTEZMs0YSH2N9QyA/y8kYLgwo+jbaG1
-CerVUuibzoTImnkSF0PddHsbr236q0D157LNxHftQrz3ePJi/YlfRxyXOZONscoL
-qu96fBMvN4r4FGtHrmJwPOjpm3IFE4+ajnXU1Pg7iLtEtm8Ta+TnFL34uFJeIIB1
-rUSBkgCEPFVI2UbpP9nbXx8Tl+lrbmcL2ltXWPLMNwiTTZ6RiAM=
-=D13A
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliEaSYACgkQ5GN7iDZy
+WKe3Tg/8Dsx61GMS0iWVuM+wpZDJ9K3JCk/oAi6k8Be4iDeJwE5eLk2v0ic2XtBl
+C57LcuvzLgEQwyiZityGEoXActYpsgGJMFONbO2ql0GiOs/xdmw3N2FG4HwqLhkD
+uTTHM9H/Si9vqWyE8YI7xoHoNjf3p+LH4tnKHgvECJVtIVIUBCq/igK5zix7UEyK
+dVVTqF98JYfvZja9H8hzQuf/5EURR1sJVAQtExTcdn+2y95ehW1retgYjamf4oq9
+pgV/rjCFNEDwh2P1hKfZ6d5qvCHNTdv6/uM9EBCRbyR5gQUWoqMI7Zfr5xtgb4ns
+zvGXvUtpKpP9/hAJL5wnhNRvS4fd1s+TMfbWOSLFlBlkx/2I5iCdeqbl6ydA03v9
+KkHP0jqxLzN6zXXhDlYo6r7tLKF2BGroeiRwJpB/2sElWVcEoV+AEoObrNTXscpo
+e6Ui0ZmbV90plc/goYk1LOg35ZZxi7yJxMveqNAyMuZ8/WbG5k5cyNf2QqcYaxIs
+F2pdhaabcUpWqlINhuI7VUeBTbjFKwJDME3NCU3Ck2+vs6MKOp16h6XrSLBhSCW8
+GzOmj0jeS/soDOzWy98jzHZukMp/jSUgJCjiHKlmiuYkp48D/5nBYeJ1rqGN7Hz1
+YFrsShZq38JQKquA15AXpvoAOKnLyiR9+f8cJ/EVebtOLo3z/L8=
+=eBV/
 -----END PGP SIGNATURE-----
 
---9crTWz/Z+Zyzu20v--
+--hUH5gZbnpyIv7Mn4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
