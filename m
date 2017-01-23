@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 5/5] qedr: dispatch port active event from qedr_add
-Date: Mon, 23 Jan 2017 17:28:39 +0200
-Message-ID: <1485185319-18771-6-git-send-email-Ram.Amrani@qlogic.com>
+Subject: [PATCH 1/5] qedr: mark three functions as static
+Date: Mon, 23 Jan 2017 17:28:35 +0200
+Message-ID: <1485185319-18771-2-git-send-email-Ram.Amrani@qlogic.com>
 References: <1485185319-18771-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,108 +14,75 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-Relying on qede to trigger qedr on startup is problematic. When probing
-both if qedr loads slowly then qede can assume qedr is missing and not
-trigger it. This patch adds a triggering from qedr and protects against
-a race via an atomic bit.
+mark qedr_get_state_from_ibqp(), __qedr_alloc_mr() and __qedr_post_send()
+as static since they are only used in the same file.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/main.c | 20 ++++++++++++++------
- drivers/infiniband/hw/qedr/qedr.h |  5 +++++
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/qedr/verbs.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index eac0bfc..3ac8aa5 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -791,6 +791,9 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
- 		if (device_create_file(&dev->ibdev.dev, qedr_attributes[i]))
- 			goto sysfs_err;
- 
-+	if (!test_and_set_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
-+		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ACTIVE);
-+
- 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr driver loaded successfully\n");
- 	return dev;
- 
-@@ -823,11 +826,10 @@ static void qedr_remove(struct qedr_dev *dev)
- 	ib_dealloc_device(&dev->ibdev);
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 189f9bd..2d55597 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -1600,7 +1600,7 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
+ 	return ERR_PTR(-EFAULT);
  }
  
--static int qedr_close(struct qedr_dev *dev)
-+static void qedr_close(struct qedr_dev *dev)
+-enum ib_qp_state qedr_get_ibqp_state(enum qed_roce_qp_state qp_state)
++static enum ib_qp_state qedr_get_ibqp_state(enum qed_roce_qp_state qp_state)
  {
--	qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ERR);
--
--	return 0;
-+	if (test_and_clear_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
-+		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ERR);
+ 	switch (qp_state) {
+ 	case QED_ROCE_QP_STATE_RESET:
+@@ -1621,7 +1621,8 @@ enum ib_qp_state qedr_get_ibqp_state(enum qed_roce_qp_state qp_state)
+ 	return IB_QPS_ERR;
  }
  
- static void qedr_shutdown(struct qedr_dev *dev)
-@@ -836,6 +838,12 @@ static void qedr_shutdown(struct qedr_dev *dev)
- 	qedr_remove(dev);
+-enum qed_roce_qp_state qedr_get_state_from_ibqp(enum ib_qp_state qp_state)
++static enum qed_roce_qp_state qedr_get_state_from_ibqp(
++					enum ib_qp_state qp_state)
+ {
+ 	switch (qp_state) {
+ 	case IB_QPS_RESET:
+@@ -2310,7 +2311,8 @@ int qedr_dereg_mr(struct ib_mr *ib_mr)
+ 	return rc;
  }
  
-+static void qedr_open(struct qedr_dev *dev)
-+{
-+	if (!test_and_set_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
-+		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ACTIVE);
-+}
-+
- static void qedr_mac_address_change(struct qedr_dev *dev)
+-struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd, int max_page_list_len)
++static struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd,
++				       int max_page_list_len)
  {
- 	union ib_gid *sgid = &dev->sgid_tbl[0];
-@@ -862,7 +870,7 @@ static void qedr_mac_address_change(struct qedr_dev *dev)
+ 	struct qedr_pd *pd = get_qedr_pd(ibpd);
+ 	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
+@@ -2712,7 +2714,7 @@ static int qedr_prepare_reg(struct qedr_qp *qp,
+ 	return 0;
+ }
  
- 	ether_addr_copy(dev->gsi_ll2_mac_address, dev->ndev->dev_addr);
- 
--	qedr_ib_dispatch_event(dev, 1, IB_EVENT_GID_CHANGE);
-+	qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_GID_CHANGE);
- 
- 	if (rc)
- 		DP_ERR(dev, "Error updating mac filter\n");
-@@ -876,7 +884,7 @@ static void qedr_notify(struct qedr_dev *dev, enum qede_roce_event event)
+-enum ib_wc_opcode qedr_ib_to_wc_opcode(enum ib_wr_opcode opcode)
++static enum ib_wc_opcode qedr_ib_to_wc_opcode(enum ib_wr_opcode opcode)
  {
- 	switch (event) {
- 	case QEDE_UP:
--		qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
-+		qedr_open(dev);
- 		break;
- 	case QEDE_DOWN:
- 		qedr_close(dev);
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index 620badd..f669d0b 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -113,6 +113,8 @@ struct qedr_device_attr {
- 	struct qed_rdma_events events;
- };
+ 	switch (opcode) {
+ 	case IB_WR_RDMA_WRITE:
+@@ -2737,7 +2739,7 @@ enum ib_wc_opcode qedr_ib_to_wc_opcode(enum ib_wr_opcode opcode)
+ 	}
+ }
  
-+#define QEDR_ENET_STATE_BIT	(0)
-+
- struct qedr_dev {
- 	struct ib_device	ibdev;
- 	struct qed_dev		*cdev;
-@@ -153,6 +155,8 @@ struct qedr_dev {
- 	struct qedr_cq		*gsi_sqcq;
- 	struct qedr_cq		*gsi_rqcq;
- 	struct qedr_qp		*gsi_qp;
-+
-+	unsigned long enet_state;
- };
+-inline bool qedr_can_post_send(struct qedr_qp *qp, struct ib_send_wr *wr)
++static inline bool qedr_can_post_send(struct qedr_qp *qp, struct ib_send_wr *wr)
+ {
+ 	int wq_is_full, err_wr, pbl_is_full;
+ 	struct qedr_dev *dev = qp->dev;
+@@ -2774,7 +2776,7 @@ inline bool qedr_can_post_send(struct qedr_qp *qp, struct ib_send_wr *wr)
+ 	return true;
+ }
  
- #define QEDR_MAX_SQ_PBL			(0x8000)
-@@ -188,6 +192,7 @@ struct qedr_dev {
- #define QEDR_ROCE_MAX_CNQ_SIZE		(0x4000)
- 
- #define QEDR_MAX_PORT			(1)
-+#define QEDR_PORT			(1)
- 
- #define QEDR_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
- 
+-int __qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
++static int __qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		     struct ib_send_wr **bad_wr)
+ {
+ 	struct qedr_dev *dev = get_qedr_dev(ibqp->device);
 -- 
 1.8.3.1
 
