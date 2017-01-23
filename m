@@ -1,23 +1,35 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH 1/1] IB/cxgb3: fix misspelling in header guard
-Date: Mon, 23 Jan 2017 10:28:30 -0600
-Message-ID: <002601d27595$bb64ad80$322e0880$@opengridcomputing.com>
-References: <20170122134122.10352-1-nicolas.iooss_linux@m4x.org>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: include/uapi/rdma/Kbuild file doesn't include "qedr-abi.h"
+Date: Mon, 23 Jan 2017 16:46:19 +0000
+Message-ID: <SN1PR07MB22071BC77DEE906AAD853F24F8720@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <alpine.LFD.2.20.1701230633430.5922@uk63952.mitel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170122134122.10352-1-nicolas.iooss_linux@m4x.org>
-Content-Language: en-us
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Nicolas Iooss' <nicolas.iooss_linux@m4x.org>, 'Steve Wise' <swise@chelsio.com>, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LFD.2.20.1701230633430.5922-znbnsbi9Yjij2xbMDHtV/wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Robert P. J. Day" <rpjday-L09J2beyid0N/H6P543EQg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Use CXGB3_... instead of CXBG3_...
-> 
-> Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+>   just an observation -- that Kbuild does not include the header file
+> "qedr-abi.h" sitting in that directory. should it? it's definitely
+> included by a few kernel files:
+>=20
+> $ grep -r "qedr-abi.h" *
+> drivers/infiniband/hw/qedr/main.c:#include <rdma/qedr-abi.h>
+> drivers/infiniband/hw/qedr/qedr_cm.c:#include <rdma/qedr-abi.h>
+> drivers/infiniband/hw/qedr/verbs.c:#include <rdma/qedr-abi.h>
+> $
+>=20
+> rday
 
-Acked-by: Steve Wise <swise@chelsio.com>
+Thanks Robert, I've just sent a fix.
+
+Ram
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
