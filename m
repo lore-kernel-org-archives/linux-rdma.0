@@ -1,47 +1,108 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: libibverbs changes broke usnic libfabric provider
-Date: Mon, 23 Jan 2017 22:24:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0DF06C@ORSMSX109.amr.corp.intel.com>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: Target core task management function handling rework
+Date: Mon, 23 Jan 2017 22:32:39 +0000
+Message-ID: <1485210745.2825.15.camel@sandisk.com>
+References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
+         <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "Ben Turrubiates (bturrubi)" <bturrubi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "'David Goodell (dgoodell)' (dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-ID: <66359AB2AC621740AE8D0D02E6744A95@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "robert@leblancnet.us" <robert@leblancnet.us>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagi@grimberg.me" <sagi@grimberg.me>
+Cc: "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SSB3YXMgbm90aWZpZWQgb2YgdGhlIGZvbGxvd2luZyBidWcsIHdoaWNoIGlzIGEgYnJlYWsgaW4g
-dGhlIGxpYmZhYnJpYyBidWlsZDoNCg0KDQpodHRwOi8vYnVncy5vcGVuZmFicmljcy5vcmcvc2hv
-d19idWcuY2dpP2lkPTI2MTQNCg0KICAgICAgICAgICBTdW1tYXJ5OiBCdWlsZCBicmVhayB3aGVu
-IGJ1aWxkaW5nICJsaWJmYWJyaWMiIHBhY2thZ2UgdXNpbmcNCiAgICAgICAgICAgICAgICAgICAg
-T0ZFRC00LjgtMjAxNzAxMjMtMDQ1OCAgb24gUkhFTCA3LjMgTEUgb24gUG93ZXI4IGJveA0KICAg
-ICAgICAgICBQcm9kdWN0OiBPcGVuRmFicmljcyBMaW51eA0KICAgICAgICAgICBWZXJzaW9uOiA0
-LjgNCiAgICAgICAgICBQbGF0Zm9ybTogUFBDNjQNCiAgICAgICAgT1MvVmVyc2lvbjogUkhFTDcu
-Mw0KICAgICAgICAgICAgU3RhdHVzOiBORVcNCiAgICAgICAgICBTZXZlcml0eTogbm9ybWFsDQog
-ICAgICAgICAgUHJpb3JpdHk6IFA1DQogICAgICAgICBDb21wb25lbnQ6IGxpYmZhYnJpYw0KDQou
-Li4NCg0KVGhlIC90bXAvT0ZFRC4zNzI1LmxvZ3MvbGliZmFicmljLnJwbWJ1aWxkLmxvZyBoYXMg
-dGhpcyBlcnJvcjoNCnByb3YvdXNuaWMvc3JjL3VzbmljX2RpcmVjdC91c2RfaWJfY21kLmM6IElu
-IGZ1bmN0aW9uICd1c2RfaWJfY21kX21vZGlmeV9xcCc6DQpwcm92L3VzbmljL3NyYy91c25pY19k
-aXJlY3QvdXNkX2liX2NtZC5jOjczOTo4OiBlcnJvcjogJ3N0cnVjdCBpYnZfbW9kaWZ5X3FwJw0K
-aGFzIG5vIG1lbWJlciBuYW1lZCAncXBfaGFuZGxlJw0KICAgICBpY3AtPnFwX2hhbmRsZSA9IHFw
-LT51cV9xcF9oYW5kbGU7DQogICAgICAgIF4NCnByb3YvdXNuaWMvc3JjL3VzbmljX2RpcmVjdC91
-c2RfaWJfY21kLmM6NzQwOjg6IGVycm9yOiAnc3RydWN0IGlidl9tb2RpZnlfcXAnDQpoYXMgbm8g
-bWVtYmVyIG5hbWVkICdhdHRyX21hc2snDQogICAgIGljcC0+YXR0cl9tYXNrID0gSUJWX1FQX1NU
-QVRFOw0KICAgICAgICBeDQpwcm92L3VzbmljL3NyYy91c25pY19kaXJlY3QvdXNkX2liX2NtZC5j
-Ojc0MTo4OiBlcnJvcjogJ3N0cnVjdCBpYnZfbW9kaWZ5X3FwJw0KaGFzIG5vIG1lbWJlciBuYW1l
-ZCAncXBfc3RhdGUnDQogICAgIGljcC0+cXBfc3RhdGUgPSBzdGF0ZTsNCiAgICAgICAgXg0KbWFr
-ZVsxXTogKioqIFtwcm92L3VzbmljL3NyYy91c25pY19kaXJlY3Qvc3JjX2xpYmZhYnJpY19sYS11
-c2RfaWJfY21kLmxvXSBFcnJvciANCjENCm1ha2VbMV06ICoqKiBXYWl0aW5nIGZvciB1bmZpbmlz
-aGVkIGpvYnMuLi4uDQptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Zhci90bXAvT0ZFRF90
-b3BkaXIvQlVJTEQvbGliZmFicmljLTEuMy4wJw0KDQoNClRoaXMgcmVzdWx0cyBmcm9tIHJlY2Vu
-dCBjaGFuZ2VzIHRvIGtlcm4tYWJpLmguICA6Lw0KDQpKZWZmLCBJJ20gbm90IHN1cmUgaG93IHlv
-dSB3YW50IHRvIGZpeCB0aGlzLiAgRG8geW91IG5lZWQgbGliaWJ2ZXJicyBpbnN0YWxsZWQsIG9y
-IGp1c3QgdGhlIGhlYWRlciBmaWxlcz8gIElmIGp1c3QgdGhlIGxhdHRlciwgeW91IG1heSB3YW50
-IHRvIHVzZSBhIHByaXZhdGUgY29weSwgc2luY2UgY29tcGF0aWJpbGl0eSB3b24ndCBiZSBndWFy
-YW50ZWVkIGFueW1vcmUuDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, 2017-01-24 at 00:20 +0200, Sagi Grimberg wrote:
+> Bart, I recall you had a patch at some point to periodically print
+> out the hanging session commands in target_wait_for_sess_cmds(), do we
+> want to get it in? I think we can all benefit from it.
+
+(+target-devel)
+
+Hello Sagi,
+
+I have pushed the current state of these patches to the
+scsi-target-for-v4.11 branch of
+https://git.kernel.org/cgit/linux/kernel/git/bvanassche/linux.git/
+
+So far these patches have been tested with iSCSI/TCP, ib_srpt and
+qla2xxx drivers. The patches that are present on this branch are:
+
+Bart Van Assche (36):
+=A0=A0=A0=A0=A0=A0qla2xxx: Avoid using variable-length arrays
+=A0=A0=A0=A0=A0=A0target/iscsi: Fix indentation in iscsi_target_start_negot=
+iation()
+=A0=A0=A0=A0=A0=A0target/iscsi: Fix spelling of "perform"
+=A0=A0=A0=A0=A0=A0target/iscsi: Fix spelling of "reallegiance"
+=A0=A0=A0=A0=A0=A0target/iscsi: Introduce a helper function for TMF transla=
+tion
+=A0=A0=A0=A0=A0=A0target/iscsi: Fix iSCSI task reassignment handling
+=A0=A0=A0=A0=A0=A0target/iscsi: Fix solicited data sequence offset calculat=
+ions
+=A0=A0=A0=A0=A0=A0cxgbit: Fix endianness annotations
+=A0=A0=A0=A0=A0=A0target/tcm_fc: Remove a set-but-not-used variable
+=A0=A0=A0=A0=A0=A0target: Remove se_tmr_req.tmr_lun
+=A0=A0=A0=A0=A0=A0target: Make core_tmr_abort_task() consider all commands
+=A0=A0=A0=A0=A0=A0target: Make it possible to specify I_T nexus for SCSI ab=
+ort
+=A0=A0=A0=A0=A0=A0tcm_qla2xxx: Let the target core look up the LUN of the a=
+borted cmd
+=A0=A0=A0=A0=A0=A0target: Fix transport_wait_for_tasks() documentation
+=A0=A0=A0=A0=A0=A0target: Remove an overly chatty debug message
+=A0=A0=A0=A0=A0=A0target: Add a missing target_put_nacl() call
+=A0=A0=A0=A0=A0=A0target: Stop execution if CMD_T_STOP has been set
+=A0=A0=A0=A0=A0=A0target: Fix a reference leak in transport_cmd_check_stop_=
+to_fabric()
+=A0=A0=A0=A0=A0=A0target: Inline transport_cmd_check_stop()
+=A0=A0=A0=A0=A0=A0target: Make ABORT and LUN RESET handling synchronous
+=A0=A0=A0=A0=A0=A0target: Simplify session shutdown code
+=A0=A0=A0=A0=A0=A0target: Remove the SCF_SEND_DELAYED_TAS command flag
+=A0=A0=A0=A0=A0=A0target: Inline transport_check_aborted_status()
+=A0=A0=A0=A0=A0=A0target: Remove the write_pending_status() callback functi=
+on
+=A0=A0=A0=A0=A0=A0target: Remove several state tests from TMF code
+=A0=A0=A0=A0=A0=A0target: Remove command flag CMD_T_BUSY
+=A0=A0=A0=A0=A0=A0target: Simplify LUN RESET implementation
+=A0=A0=A0=A0=A0=A0target: Remove command flag CMD_T_DEV_ACTIVE
+=A0=A0=A0=A0=A0=A0target: Reduce number of __transport_wait_for_tasks() arg=
+uments
+=A0=A0=A0=A0=A0=A0target: Remove command flag CMD_T_TAS
+=A0=A0=A0=A0=A0=A0target: Remove unused arguments from __target_check_io_st=
+ate()
+=A0=A0=A0=A0=A0=A0target: Change return type of transport_wait_for_tasks() =
+into void
+=A0=A0=A0=A0=A0=A0target: Inline transport_put_cmd()
+=A0=A0=A0=A0=A0=A0target: Reduce the number of transport_lun_remove_cmd() c=
+allers
+=A0=A0=A0=A0=A0=A0target: Move target_remove_from_state_list() into target_=
+release_cmd_kref()
+=A0=A0=A0=A0=A0=A0target: Avoid that XCOPY commands trigger a deadlock
+
+Himanshu Madhani (2):
+=A0=A0=A0=A0=A0=A0qla2xxx: Remove SRR code
+=A0=A0=A0=A0=A0=A0qla2xxx: Remove unused reverse_ini_mode
+
+Joe Carnuccio (1):
+=A0=A0=A0=A0=A0=A0qla2xxx: Simplify usage of SRB structure in driver
+
+Quinn Tran (9):
+=A0=A0=A0=A0=A0=A0qla2xxx: Remove direct access of scsi_status field in se_=
+cmd
+=A0=A0=A0=A0=A0=A0qla2xxx: Cleanup TMF code translation from qla_target
+=A0=A0=A0=A0=A0=A0qla2xxx: Make trace flags more readable
+=A0=A0=A0=A0=A0=A0qla2xxx: Fix wrong argument in sp done callback
+=A0=A0=A0=A0=A0=A0qla2xxx: Use d_id instead of s_id for more clarity
+=A0=A0=A0=A0=A0=A0qla2xxx: Track I-T nexus as single fc_port struct
+=A0=A0=A0=A0=A0=A0qla2xxx: Add framework for Async fabric discovery
+=A0=A0=A0=A0=A0=A0qla2xxx: Add Dual mode support in the driver
+=A0=A0=A0=A0=A0=A0qla2xxx: Improve RSCN handling in driver
+
+Varun Prakash (1):
+=A0=A0=A0=A0=A0=A0target/iscsi: Fix unsolicited data seq_end_offset calcula=
+tion
+
+Bart.=
