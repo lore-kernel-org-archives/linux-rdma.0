@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/5] qedr: mark three functions as static
-Date: Mon, 23 Jan 2017 17:28:35 +0200
-Message-ID: <1485185319-18771-2-git-send-email-Ram.Amrani@qlogic.com>
+Subject: [PATCH 3/5] qedr: fix RDMA CM loopback
+Date: Mon, 23 Jan 2017 17:28:37 +0200
+Message-ID: <1485185319-18771-4-git-send-email-Ram.Amrani@qlogic.com>
 References: <1485185319-18771-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,75 +14,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-mark qedr_get_state_from_ibqp(), __qedr_alloc_mr() and __qedr_post_send()
-as static since they are only used in the same file.
+The loopback logic in RDMA CM packets compares Ethernet addresses and
+was accidently inverse.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/qedr/qedr_cm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 189f9bd..2d55597 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1600,7 +1600,7 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
- 	return ERR_PTR(-EFAULT);
- }
- 
--enum ib_qp_state qedr_get_ibqp_state(enum qed_roce_qp_state qp_state)
-+static enum ib_qp_state qedr_get_ibqp_state(enum qed_roce_qp_state qp_state)
- {
- 	switch (qp_state) {
- 	case QED_ROCE_QP_STATE_RESET:
-@@ -1621,7 +1621,8 @@ enum ib_qp_state qedr_get_ibqp_state(enum qed_roce_qp_state qp_state)
- 	return IB_QPS_ERR;
- }
- 
--enum qed_roce_qp_state qedr_get_state_from_ibqp(enum ib_qp_state qp_state)
-+static enum qed_roce_qp_state qedr_get_state_from_ibqp(
-+					enum ib_qp_state qp_state)
- {
- 	switch (qp_state) {
- 	case IB_QPS_RESET:
-@@ -2310,7 +2311,8 @@ int qedr_dereg_mr(struct ib_mr *ib_mr)
- 	return rc;
- }
- 
--struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd, int max_page_list_len)
-+static struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd,
-+				       int max_page_list_len)
- {
- 	struct qedr_pd *pd = get_qedr_pd(ibpd);
- 	struct qedr_dev *dev = get_qedr_dev(ibpd->device);
-@@ -2712,7 +2714,7 @@ static int qedr_prepare_reg(struct qedr_qp *qp,
- 	return 0;
- }
- 
--enum ib_wc_opcode qedr_ib_to_wc_opcode(enum ib_wr_opcode opcode)
-+static enum ib_wc_opcode qedr_ib_to_wc_opcode(enum ib_wr_opcode opcode)
- {
- 	switch (opcode) {
- 	case IB_WR_RDMA_WRITE:
-@@ -2737,7 +2739,7 @@ enum ib_wc_opcode qedr_ib_to_wc_opcode(enum ib_wr_opcode opcode)
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
+index 00361f3..a9a8d87 100644
+--- a/drivers/infiniband/hw/qedr/qedr_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_cm.c
+@@ -398,9 +398,9 @@ static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
  	}
- }
  
--inline bool qedr_can_post_send(struct qedr_qp *qp, struct ib_send_wr *wr)
-+static inline bool qedr_can_post_send(struct qedr_qp *qp, struct ib_send_wr *wr)
- {
- 	int wq_is_full, err_wr, pbl_is_full;
- 	struct qedr_dev *dev = qp->dev;
-@@ -2774,7 +2776,7 @@ inline bool qedr_can_post_send(struct qedr_qp *qp, struct ib_send_wr *wr)
- 	return true;
- }
+ 	if (ether_addr_equal(udh.eth.smac_h, udh.eth.dmac_h))
+-		packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
+-	else
+ 		packet->tx_dest = QED_ROCE_LL2_TX_DEST_LB;
++	else
++		packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
  
--int __qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
-+static int __qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		     struct ib_send_wr **bad_wr)
- {
- 	struct qedr_dev *dev = get_qedr_dev(ibqp->device);
+ 	packet->roce_mode = roce_mode;
+ 	memcpy(packet->header.vaddr, ud_header_buffer, header_size);
 -- 
 1.8.3.1
 
