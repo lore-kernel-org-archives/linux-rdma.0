@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/5] qedr: return maximum inline data capability on QP query
-Date: Mon, 23 Jan 2017 17:26:24 +0200
-Message-ID: <1485185187-18689-3-git-send-email-Ram.Amrani@qlogic.com>
+Subject: [PATCH 1/5] qedr: return success when changing from QP state X to X
+Date: Mon, 23 Jan 2017 17:26:23 +0200
+Message-ID: <1485185187-18689-2-git-send-email-Ram.Amrani@qlogic.com>
 References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -20,18 +20,18 @@ Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index af6074d..e843501 100644
+index 57c8de2..af6074d 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -2028,7 +2028,7 @@ int qedr_query_qp(struct ib_qp *ibqp,
- 	qp_attr->cap.max_recv_wr = qp->rq.max_wr;
- 	qp_attr->cap.max_send_sge = qp->sq.max_sges;
- 	qp_attr->cap.max_recv_sge = qp->rq.max_sges;
--	qp_attr->cap.max_inline_data = qp->max_inline_data;
-+	qp_attr->cap.max_inline_data = ROCE_REQ_MAX_INLINE_DATA_SIZE;
- 	qp_init_attr->cap = qp_attr->cap;
+@@ -1657,7 +1657,7 @@ static int qedr_update_qp_state(struct qedr_dev *dev,
+ 	int status = 0;
  
- 	memcpy(&qp_attr->ah_attr.grh.dgid.raw[0], &params.dgid.bytes[0],
+ 	if (new_state == qp->state)
+-		return 1;
++		return 0;
+ 
+ 	switch (qp->state) {
+ 	case QED_ROCE_QP_STATE_RESET:
 -- 
 1.8.3.1
 
