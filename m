@@ -1,83 +1,35 @@
-From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/5] qedr: fix memory leak in PD allocation and simplify it
-Date: Mon, 23 Jan 2017 17:28:38 +0200
-Message-ID: <1485185319-18771-5-git-send-email-Ram.Amrani@qlogic.com>
-References: <1485185319-18771-1-git-send-email-Ram.Amrani@qlogic.com>
+From: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH v3 07/37] lib/dma-virt: Add dma_virt_ops
+Date: Mon, 23 Jan 2017 17:03:41 +0100
+Message-ID: <20170123160341.GM9529@suse.de>
+References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
+ <20170120210437.26389-8-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485185319-18771-1-git-send-email-Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170120210437.26389-8-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Borntraeger <borntraeger-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Michael S . Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+On Fri, Jan 20, 2017 at 01:04:07PM -0800, Bart Van Assche wrote:
+> +static void *dma_virt_alloc(struct device *dev, size_t size,
+> +			    dma_addr_t *dma_handle, gfp_t gfp,
+> +			    unsigned long attrs)
+> +{
+> +	void *ret;
+> +
+> +	ret = (void *)__get_free_pages(gfp, get_order(size));
+> +	if (ret)
+> +		*dma_handle = (uintptr_t)ret;
 
-Free the PD if no internal resource were availbale.
-Move userspace code to under the relevant 'if'.
+Why do you cast to uintptr_t everywhere in this patch before assigning
+to a dma_addr_t when you can cast directly to dma_addr_t?
 
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qedr/verbs.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 25fb75d..66bd297 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -471,8 +471,6 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
- 			    struct ib_ucontext *context, struct ib_udata *udata)
- {
- 	struct qedr_dev *dev = get_qedr_dev(ibdev);
--	struct qedr_ucontext *uctx = NULL;
--	struct qedr_alloc_pd_uresp uresp;
- 	struct qedr_pd *pd;
- 	u16 pd_id;
- 	int rc;
-@@ -489,21 +487,33 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
- 	if (!pd)
- 		return ERR_PTR(-ENOMEM);
- 
--	dev->ops->rdma_alloc_pd(dev->rdma_ctx, &pd_id);
-+	rc = dev->ops->rdma_alloc_pd(dev->rdma_ctx, &pd_id);
-+	if (rc)
-+		goto err;
- 
--	uresp.pd_id = pd_id;
- 	pd->pd_id = pd_id;
- 
- 	if (udata && context) {
-+		struct qedr_alloc_pd_uresp uresp;
-+
-+		uresp.pd_id = pd_id;
-+
- 		rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
--		if (rc)
-+		if (rc) {
- 			DP_ERR(dev, "copy error pd_id=0x%x.\n", pd_id);
--		uctx = get_qedr_ucontext(context);
--		uctx->pd = pd;
--		pd->uctx = uctx;
-+			dev->ops->rdma_dealloc_pd(dev->rdma_ctx, pd_id);
-+			goto err;
-+		}
-+
-+		pd->uctx = get_qedr_ucontext(context);
-+		pd->uctx->pd = pd;
- 	}
- 
- 	return &pd->ibpd;
-+
-+err:
-+	kfree(pd);
-+	return ERR_PTR(rc);
- }
- 
- int qedr_dealloc_pd(struct ib_pd *ibpd)
--- 
-1.8.3.1
+	Joerg
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
