@@ -1,83 +1,101 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC] Clear out stuck ops to prevent iSER from going init D
- state
-Date: Mon, 23 Jan 2017 19:10:27 +0000
-Message-ID: <1485198613.2825.4.camel@sandisk.com>
-References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/5] qedr: remove CQ spinlock from RDMA CM completion
+ handlers
+Date: Mon, 23 Jan 2017 21:13:13 +0200
+Message-ID: <20170123191313.GB6005@mtr-leonro.local>
+References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1485185187-18689-4-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <9D7BEE95EB7D684FBEC79E379E7C16E5-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1485185187-18689-4-git-send-email-Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-01-23 at 12:01 -0700, Robert LeBlanc wrote:
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/ve=
-rbs.c
-> index 8368764..ed36748 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -2089,3 +2089,19 @@ void ib_drain_qp(struct ib_qp *qp)
->                ib_drain_rq(qp);
-> }
-> EXPORT_SYMBOL(ib_drain_qp);
-> +
-> +void ib_reset_sq(struct ib_qp *qp)
-> +{
-> +       struct ib_qp_attr attr =3D { .qp_state =3D IB_QPS_RESET};
-> +       int ret;
-> +
-> +       ret =3D ib_modify_qp(qp, &attr, IB_QP_STATE);
-> +}
-> +EXPORT_SYMBOL(ib_reset_sq);
-> +
-> +void ib_reset_qp(struct ib_qp *qp)
-> +{
-> +       printk("ib_reset_qp calling ib_reset_sq.\n");
-> +       ib_reset_sq(qp);
-> +}
-> +EXPORT_SYMBOL(ib_reset_qp);
 
-These are one liners. Is it really worth to add one-line functions to the
-IB core?
+--ZfOjI3PrQbgiZnxM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c
-> b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 6dd43f6..619dbc7 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -2595,10 +2595,9 @@ static void isert_wait_conn(struct iscsi_conn *con=
-n)
->        isert_conn_terminate(isert_conn);
->        mutex_unlock(&isert_conn->mutex);
->=20
-> -       ib_drain_qp(isert_conn->qp);
-> +       ib_reset_qp(isert_conn->qp);
->        isert_put_unsol_pending_cmds(conn);
-> -       isert_wait4cmds(conn);
-> -       isert_wait4logout(isert_conn);
-> +       cancel_work_sync(&isert_conn->release_work);
->=20
->        queue_work(isert_release_wq, &isert_conn->release_work);
-> }
+On Mon, Jan 23, 2017 at 05:26:25PM +0200, Ram Amrani wrote:
+> From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>
+> There is only a single event queue that triggers the completion
+> events for the RDMA CM and it is being processed serially. This means
+> that inherently there can no parallelism of CQ completion handler.
+> Hence the lock is redundant.
+>
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qedr/qedr_cm.c | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
 
-Sorry but leaving out the ib_drain_qp() and isert_wait*() calls seems wrong
-to me. Additionally, resetting the send queue should not be needed since th=
-e
-iSER target driver should guarantee that no new WRs will be queued on the
-send queue after isert_wait_conn() is called.
+Don't you need to remove this lock from struct qedr_cq too?
 
-Seeing this patch makes me wonder whether this behavior can be reproduced
-with any other HBA than ConnectX-4 Lx? Is this a software or a firmware bug=
-?
+>
+> diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
+> index 63890eb..00361f3 100644
+> --- a/drivers/infiniband/hw/qedr/qedr_cm.c
+> +++ b/drivers/infiniband/hw/qedr/qedr_cm.c
+> @@ -87,11 +87,8 @@ void qedr_ll2_tx_cb(void *_qdev, struct qed_roce_ll2_packet *pkt)
+>  	qedr_inc_sw_gsi_cons(&qp->sq);
+>  	spin_unlock_irqrestore(&qp->q_lock, flags);
+>
+> -	if (cq->ibcq.comp_handler) {
+> -		spin_lock_irqsave(&cq->comp_handler_lock, flags);
+> +	if (cq->ibcq.comp_handler)
+>  		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
+> -		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
+> -	}
+>  }
+>
+>  void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
+> @@ -113,11 +110,8 @@ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
+>
+>  	spin_unlock_irqrestore(&qp->q_lock, flags);
+>
+> -	if (cq->ibcq.comp_handler) {
+> -		spin_lock_irqsave(&cq->comp_handler_lock, flags);
+> +	if (cq->ibcq.comp_handler)
+>  		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
+> -		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
+> -	}
+>  }
+>
+>  static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks,
+--ZfOjI3PrQbgiZnxM
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Bart.=
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliGVckACgkQ5GN7iDZy
+WKf6YQ//f8XZlcjvtdaYF2XpN9CRVqqbcZphA2iYj7GEZNPRa/bxlOy/SalJGnFS
+vPRc/hLRDSQb5Q0xd497dxMduzPRzo4Lho1E89FXz22oyPPDo0s6kDcP3prhj4m1
+LGpSaX10c2K56ySy4LPKoSCYhJBgZHjX6zIJRVWGle6foNu/YSJTyw3DvyYu9t8U
+cnPrEY+cJ8OaXbDes0eRCNGVcaK+8XAy99+OaXD/N84kvxCcBveq8ZGIlIc3ua3k
+Sjlaq5+WtGX/F7UyfWDCQ7HL1ZwwORXCuOk2J7zmJ8b1Nm1vjHt4AEPfqO0pmyBt
+sjzT/JwjHi0aZjSdKsdaXnVjXYg63+8cW4ARuROfLQIOeGq2aGJenDatvqDQRpVZ
+eq0mswNBvVRUKJk1n3B9/1ievJ7GlDJ7rvkXnTWqqBf9p1oHJlqMhTffIiIRFzxH
+HAcupnKA1VoiIs9/fs7czumOCOTB8ayZAKjyM6U3EhyqolhCj0BtUtIAk1bBaTUf
+7tHKiOVFyKExAP1BdDt7BIzkdPaZkLLySylPYSj+m2ZuzcKNo9BEj2bTYGgT7tPU
+aK9PvjheyCXnnoFNPGXEinKtIu0YDiE5fTC9MVk8qzZNEZgZ8livHVJNX3OotB/e
+yyhxNX/NLDTipze4wpn2bkSyl3eXiy66PmBJ3cjShbraky6onQs=
+=ad+v
+-----END PGP SIGNATURE-----
+
+--ZfOjI3PrQbgiZnxM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
