@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/5] qedr: remove CQ spinlock from RDMA CM completion handlers
-Date: Mon, 23 Jan 2017 17:26:25 +0200
-Message-ID: <1485185187-18689-4-git-send-email-Ram.Amrani@qlogic.com>
+Subject: [PATCH 4/5] qedr: avoid printing error messages for flushed CQEs if QP in error state
+Date: Mon, 23 Jan 2017 17:26:26 +0200
+Message-ID: <1485185187-18689-5-git-send-email-Ram.Amrani@qlogic.com>
 References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,46 +14,32 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-There is only a single event queue that triggers the completion
-events for the RDMA CM and it is being processed serially. This means
-that inherently there can no parallelism of CQ completion handler.
-Hence the lock is redundant.
+It is normal to flush CQEs if the QP is in error state. Hence there's no
+use in printing a message per CQE to dmesg.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/qedr_cm.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/qedr/verbs.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
-index 63890eb..00361f3 100644
---- a/drivers/infiniband/hw/qedr/qedr_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_cm.c
-@@ -87,11 +87,8 @@ void qedr_ll2_tx_cb(void *_qdev, struct qed_roce_ll2_packet *pkt)
- 	qedr_inc_sw_gsi_cons(&qp->sq);
- 	spin_unlock_irqrestore(&qp->q_lock, flags);
- 
--	if (cq->ibcq.comp_handler) {
--		spin_lock_irqsave(&cq->comp_handler_lock, flags);
-+	if (cq->ibcq.comp_handler)
- 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
--		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
--	}
- }
- 
- void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
-@@ -113,11 +110,8 @@ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
- 
- 	spin_unlock_irqrestore(&qp->q_lock, flags);
- 
--	if (cq->ibcq.comp_handler) {
--		spin_lock_irqsave(&cq->comp_handler_lock, flags);
-+	if (cq->ibcq.comp_handler)
- 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
--		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
--	}
- }
- 
- static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index e843501..564080a 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -3234,9 +3234,10 @@ static int qedr_poll_cq_req(struct qedr_dev *dev,
+ 				  IB_WC_SUCCESS, 0);
+ 		break;
+ 	case RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR:
+-		DP_ERR(dev,
+-		       "Error: POLL CQ with RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR. CQ icid=0x%x, QP icid=0x%x\n",
+-		       cq->icid, qp->icid);
++		if (qp->state != QED_ROCE_QP_STATE_ERR)
++			DP_ERR(dev,
++			       "Error: POLL CQ with RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR. CQ icid=0x%x, QP icid=0x%x\n",
++			       cq->icid, qp->icid);
+ 		cnt = process_req(dev, qp, cq, num_entries, wc, req->sq_cons,
+ 				  IB_WC_WR_FLUSH_ERR, 1);
+ 		break;
 -- 
 1.8.3.1
 
