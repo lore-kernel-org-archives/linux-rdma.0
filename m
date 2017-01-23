@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 5/5] qedr: fail QP state transition from error to reset if SQ/RQ are not empty
-Date: Mon, 23 Jan 2017 17:26:27 +0200
-Message-ID: <1485185187-18689-6-git-send-email-Ram.Amrani@qlogic.com>
+Subject: [PATCH 3/5] qedr: remove CQ spinlock from RDMA CM completion handlers
+Date: Mon, 23 Jan 2017 17:26:25 +0200
+Message-ID: <1485185187-18689-4-git-send-email-Ram.Amrani@qlogic.com>
 References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,30 +14,46 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
+There is only a single event queue that triggers the completion
+events for the RDMA CM and it is being processed serially. This means
+that inherently there can no parallelism of CQ completion handler.
+Hence the lock is redundant.
+
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/infiniband/hw/qedr/qedr_cm.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 564080a..189f9bd 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1733,6 +1733,14 @@ static int qedr_update_qp_state(struct qedr_dev *dev,
- 		/* ERR->XXX */
- 		switch (new_state) {
- 		case QED_ROCE_QP_STATE_RESET:
-+			if ((qp->rq.prod != qp->rq.cons) ||
-+			    (qp->sq.prod != qp->sq.cons)) {
-+				DP_NOTICE(dev,
-+					  "Error->Reset with rq/sq not empty rq.prod=%x rq.cons=%x sq.prod=%x sq.cons=%x\n",
-+					  qp->rq.prod, qp->rq.cons, qp->sq.prod,
-+					  qp->sq.cons);
-+				status = -EINVAL;
-+			}
- 			break;
- 		default:
- 			status = -EINVAL;
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
+index 63890eb..00361f3 100644
+--- a/drivers/infiniband/hw/qedr/qedr_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_cm.c
+@@ -87,11 +87,8 @@ void qedr_ll2_tx_cb(void *_qdev, struct qed_roce_ll2_packet *pkt)
+ 	qedr_inc_sw_gsi_cons(&qp->sq);
+ 	spin_unlock_irqrestore(&qp->q_lock, flags);
+ 
+-	if (cq->ibcq.comp_handler) {
+-		spin_lock_irqsave(&cq->comp_handler_lock, flags);
++	if (cq->ibcq.comp_handler)
+ 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
+-		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
+-	}
+ }
+ 
+ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
+@@ -113,11 +110,8 @@ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
+ 
+ 	spin_unlock_irqrestore(&qp->q_lock, flags);
+ 
+-	if (cq->ibcq.comp_handler) {
+-		spin_lock_irqsave(&cq->comp_handler_lock, flags);
++	if (cq->ibcq.comp_handler)
+ 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
+-		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
+-	}
+ }
+ 
+ static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
 -- 
 1.8.3.1
 
