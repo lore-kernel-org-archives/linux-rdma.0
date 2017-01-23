@@ -1,82 +1,46 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFC] Clear out stuck ops to prevent iSER from going init D state
-Date: Tue, 24 Jan 2017 00:20:26 +0200
-Message-ID: <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me>
-References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: libibverbs changes broke usnic libfabric provider
+Date: Mon, 23 Jan 2017 22:24:52 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0DF06C@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "Ben Turrubiates (bturrubi)" <bturrubi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "'David Goodell (dgoodell)' (dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Robert,
-
-Seeing this, makes me realize that the entire "iscsi_trx going
-into D state" thread which I did not bother to read is actually an
-iser-target related bug. I'm really sorry for not addressing this
-sooner (much sooner).
-
-The patch looks wrong to me, but lets try and talk about
-the hang you are trying to solve.
-
-> In certain circumstances the RDMA connection can be abruptly
-> terminated,
-
-Does it make a difference which port is causing the abruption?
-Is it the target switch port? or the initiator switch port?
-
-> but something is getting stuck preventing the iSCSI clean
-> up commands from being completed.
-
-I think this means, that at least one command was missing
-a final kref_put and causing target_wait_for_sess_cmds() to
-block forever.
-
-> Just removing the isert_wait4*
-> commands isn't enough.
-
-Yes, because all the inflight IO needs to be properly cleaned up
-for the session to terminate gracefully.
-
-> Just resetting the queue pair isn't enough
-> either.
-
-This is true as well. Before tearing down the RDMA queue pair we
-need to make sure we will never see a completion for it on its
-corresponding completion queue. This is why ib_drain_qp exists.
-
-> some help getting this patch fixed right as resetting the queue pair
-> is probably not the right approach and overkill to solving the
-> problem. I think it at least shows where the problem is occurring and
-> how I can get around it.
-
-As said, I have a feeling that we have a flow we are missing the last
-kref_put on (at least) one of the session commands. The fact that this
-involves port toggling, probably boils down to error completions.
-
-Bart, I recall you had a patch at some point to periodically print
-out the hanging session commands in target_wait_for_sess_cmds(), do we
-want to get it in? I think we can all benefit from it.
-
-Would it be possible to turn on isert debug_level=4 and send us the log?
-$ echo 4 > /sys/module/ib_isert/parameters/debug_level
-
-> The problem easily shows up with two ConnectX-4-LX card connected to a
-> 10 Gb switch. The target is a RAM disk and the initiator just mounts
-> it as ext4 and runs fio.
-
-Can you please share the fio workload? Does this happen when for example
-you run 100% read workload? or 100% write workload?
-
-And, can you try and disable the unsolicited-data-out in the target
-(IIRC its InitialR2T=Yes)? unsol dataout has been known to trigger
-cause similar hangs before (which were supposed to be solved).
-
-Also, can you please summarize what kernel versions do you see this
-with? The previous thread is a bit hard to follow at once.
+SSB3YXMgbm90aWZpZWQgb2YgdGhlIGZvbGxvd2luZyBidWcsIHdoaWNoIGlzIGEgYnJlYWsgaW4g
+dGhlIGxpYmZhYnJpYyBidWlsZDoNCg0KDQpodHRwOi8vYnVncy5vcGVuZmFicmljcy5vcmcvc2hv
+d19idWcuY2dpP2lkPTI2MTQNCg0KICAgICAgICAgICBTdW1tYXJ5OiBCdWlsZCBicmVhayB3aGVu
+IGJ1aWxkaW5nICJsaWJmYWJyaWMiIHBhY2thZ2UgdXNpbmcNCiAgICAgICAgICAgICAgICAgICAg
+T0ZFRC00LjgtMjAxNzAxMjMtMDQ1OCAgb24gUkhFTCA3LjMgTEUgb24gUG93ZXI4IGJveA0KICAg
+ICAgICAgICBQcm9kdWN0OiBPcGVuRmFicmljcyBMaW51eA0KICAgICAgICAgICBWZXJzaW9uOiA0
+LjgNCiAgICAgICAgICBQbGF0Zm9ybTogUFBDNjQNCiAgICAgICAgT1MvVmVyc2lvbjogUkhFTDcu
+Mw0KICAgICAgICAgICAgU3RhdHVzOiBORVcNCiAgICAgICAgICBTZXZlcml0eTogbm9ybWFsDQog
+ICAgICAgICAgUHJpb3JpdHk6IFA1DQogICAgICAgICBDb21wb25lbnQ6IGxpYmZhYnJpYw0KDQou
+Li4NCg0KVGhlIC90bXAvT0ZFRC4zNzI1LmxvZ3MvbGliZmFicmljLnJwbWJ1aWxkLmxvZyBoYXMg
+dGhpcyBlcnJvcjoNCnByb3YvdXNuaWMvc3JjL3VzbmljX2RpcmVjdC91c2RfaWJfY21kLmM6IElu
+IGZ1bmN0aW9uICd1c2RfaWJfY21kX21vZGlmeV9xcCc6DQpwcm92L3VzbmljL3NyYy91c25pY19k
+aXJlY3QvdXNkX2liX2NtZC5jOjczOTo4OiBlcnJvcjogJ3N0cnVjdCBpYnZfbW9kaWZ5X3FwJw0K
+aGFzIG5vIG1lbWJlciBuYW1lZCAncXBfaGFuZGxlJw0KICAgICBpY3AtPnFwX2hhbmRsZSA9IHFw
+LT51cV9xcF9oYW5kbGU7DQogICAgICAgIF4NCnByb3YvdXNuaWMvc3JjL3VzbmljX2RpcmVjdC91
+c2RfaWJfY21kLmM6NzQwOjg6IGVycm9yOiAnc3RydWN0IGlidl9tb2RpZnlfcXAnDQpoYXMgbm8g
+bWVtYmVyIG5hbWVkICdhdHRyX21hc2snDQogICAgIGljcC0+YXR0cl9tYXNrID0gSUJWX1FQX1NU
+QVRFOw0KICAgICAgICBeDQpwcm92L3VzbmljL3NyYy91c25pY19kaXJlY3QvdXNkX2liX2NtZC5j
+Ojc0MTo4OiBlcnJvcjogJ3N0cnVjdCBpYnZfbW9kaWZ5X3FwJw0KaGFzIG5vIG1lbWJlciBuYW1l
+ZCAncXBfc3RhdGUnDQogICAgIGljcC0+cXBfc3RhdGUgPSBzdGF0ZTsNCiAgICAgICAgXg0KbWFr
+ZVsxXTogKioqIFtwcm92L3VzbmljL3NyYy91c25pY19kaXJlY3Qvc3JjX2xpYmZhYnJpY19sYS11
+c2RfaWJfY21kLmxvXSBFcnJvciANCjENCm1ha2VbMV06ICoqKiBXYWl0aW5nIGZvciB1bmZpbmlz
+aGVkIGpvYnMuLi4uDQptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Zhci90bXAvT0ZFRF90
+b3BkaXIvQlVJTEQvbGliZmFicmljLTEuMy4wJw0KDQoNClRoaXMgcmVzdWx0cyBmcm9tIHJlY2Vu
+dCBjaGFuZ2VzIHRvIGtlcm4tYWJpLmguICA6Lw0KDQpKZWZmLCBJJ20gbm90IHN1cmUgaG93IHlv
+dSB3YW50IHRvIGZpeCB0aGlzLiAgRG8geW91IG5lZWQgbGliaWJ2ZXJicyBpbnN0YWxsZWQsIG9y
+IGp1c3QgdGhlIGhlYWRlciBmaWxlcz8gIElmIGp1c3QgdGhlIGxhdHRlciwgeW91IG1heSB3YW50
+IHRvIHVzZSBhIHByaXZhdGUgY29weSwgc2luY2UgY29tcGF0aWJpbGl0eSB3b24ndCBiZSBndWFy
+YW50ZWVkIGFueW1vcmUuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
