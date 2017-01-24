@@ -1,43 +1,58 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] qedr: add qedr-abi.h to Kbuild
-Date: Tue, 24 Jan 2017 15:47:48 -0500
-Message-ID: <1485290868.43764.62.camel@redhat.com>
-References: <1485252091-9370-1-git-send-email-Ram.Amrani@cavium.com>
+Subject: Re: [PATCH 0/5 v2] qedr: batch of fixes for 4.10
+Date: Tue, 24 Jan 2017 15:50:05 -0500
+Message-ID: <1485291005.43764.67.camel@redhat.com>
+References: <1485258703-11949-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-zdeWWbQeFbjl2ZjHE80D"
+        protocol="application/pgp-signature"; boundary="=-jLPF+ZNsm5szqxirPjyi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485252091-9370-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1485258703-11949-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-zdeWWbQeFbjl2ZjHE80D
+--=-jLPF+ZNsm5szqxirPjyi
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2017-01-24 at 12:01 +0200, Ram Amrani wrote:
-> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
-> =C2=A0include/uapi/rdma/Kbuild | 1 +
-> =C2=A01 file changed, 1 insertion(+)
+On Tue, 2017-01-24 at 13:51 +0200, Ram Amrani wrote:
+> From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 >=20
-> diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-> index 82bdf56..bb68cb1 100644
-> --- a/include/uapi/rdma/Kbuild
-> +++ b/include/uapi/rdma/Kbuild
-> @@ -16,3 +16,4 @@ header-y +=3D nes-abi.h
-> =C2=A0header-y +=3D ocrdma-abi.h
-> =C2=A0header-y +=3D hns-abi.h
-> =C2=A0header-y +=3D vmw_pvrdma-abi.h
-> +header-y +=3D qedr-abi.h
+> This series contains a batch of fixes for 4.10.
+>=20
+> Based on origin/k.o/for-4.10, over
+> "[PATCH 0/5 v2] qedr: QP and CQ fixes for 4.10",
+> on top of 5cc8fab.
+>=20
+> Changes from v1:
+> =C2=A0- exactly the same, except that it is built on top of
+> =C2=A0=C2=A0=C2=A0"[PATCH 0/5 v2] qedr: QP and CQ fixes for 4.10"
+>=20
+> Ram Amrani (5):
+> =C2=A0 qedr: mark three functions as static
+> =C2=A0 qedr: fix formatting
+> =C2=A0 qedr: fix RDMA CM loopback
+> =C2=A0 qedr: fix memory leak in PD allocation and simplify it
+> =C2=A0 qedr: dispatch port active event from qedr_add
+>=20
+> =C2=A0drivers/infiniband/hw/qedr/main.c=C2=A0=C2=A0=C2=A0=C2=A0| 23 +++++=
+++++++++-------
+> =C2=A0drivers/infiniband/hw/qedr/qedr.h=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=
+=A05 +++++
+> =C2=A0drivers/infiniband/hw/qedr/qedr_cm.c |=C2=A0=C2=A04 ++--
+> =C2=A0drivers/infiniband/hw/qedr/verbs.c=C2=A0=C2=A0=C2=A0| 41 ++++++++++=
++++++++++++++---
+> ----------
+> =C2=A04 files changed, 48 insertions(+), 25 deletions(-)
 
-So, there is work progressing that should render this obsolete.
-=C2=A0However, I suspect that won't land until 4.11, so this is still neede=
-d
-for 4.10-rc. =C2=A0Applied.
+I took these, but I would like to point out a couple things. =C2=A0First,
+the commit messages could use some work. =C2=A0I fixed a number of them up.
+=C2=A0Also, a fix to formatting isn't really an -rc fix. =C2=A0I took it, b=
+ut
+next time let's be more selective on our submission please.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -45,7 +60,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-zdeWWbQeFbjl2ZjHE80D
+--=-jLPF+ZNsm5szqxirPjyi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -53,22 +68,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh710AAoJELgmozMOVy/daGYQAJwQw8QP606RpMeVMbmaIyg3
-dI84ffmftN66xJgNNaxc+zghNHU8vA6FbBG/aB93s8HwruWwI3vo1B4IzRGqzefx
-gZX4VjdWQOjKxSB9TvLcWS86W5NcZ1iQSWFxFhlbg03REpKw1jALSvV93/arm9fr
-1OJs3exnoHBgSLqa59HSuwZy6WrNXTlbFuXwSALtAIXzqPeP3J+OVpk9WJ57hw80
-mStidX2rsyjLVx+2HS5k66X3JDDAlx+oxHRgbpmY1idxMx2e9IH/wUc7WsMuzsfN
-2xJki9oMOC44QfA7pHrYoq5JIL3bT5LNv1ocJGLGETp1mefCfEBTRMTyURaX4GgI
-4VOlZFKtNPc7gFqBnjNith2XWbmWpJPS52ipy/i/wwfcNaPyfFCIIeZxPN+qUfun
-c/YqI7RK+BVGLMAfjUhBFhA02maDoAEMaamuvam2go5dCuYrYGFDMAXIqFVoWubl
-vTIbyI3p/Mvdc0v89CZDza3MZuCU1PcrWBeNXtMAGPA+HuAuErNWNUiCDQ0idgPe
-AzQCzMHxAVquXWP8ixsyQp07SbRxx6kBTXLb7zKRE1Cbyk0FmpVY65U4lGGHJREb
-gyFJ0IRCsuEAhL72Uh+iqKODTUiIfo6W2+3vdlFFbG9bljPo5rrbCbl8CMWqzRFo
-ftTIZZo9wQFvY7r1sdz8
-=yXJL
+iQIcBAABCAAGBQJYh739AAoJELgmozMOVy/dAiIP/RbS8jTF/hzgvFh9Z2s2Fe7s
+4VszsTqFNCmYNbbadj1jk1KzbOCP2DORh5OEv40suwmh2XmFlOYCZjZ2p2GTsYM7
+HnkuSMeAEDrEeOQAuWkb7Z5H8z8sIq1CWACm6OnmNoV9rTQzPkf5lzJqMWeAR37h
+Y1woLTiDP3NwNt/MSPvW/iMWj+Xl3Wqgqr8q5sjxBb6pFW2Cm6aN6O+W83Z9Pe28
+5MYOd142uesEbv+bMOMth0tz2zrRwNEMA2cH7N8eT7OQ6gnc+UNomfbH0oy2+rUh
+DM8HAqjedmyVc5gd6kgmvb1Ucs2i96jI7R0iUqYuK3AoE0nQkklNZA2o/fxsVNtZ
+x0CJRLHt1dyVu4fkgiAPt3l41dxu/5gKBXAvtXwhCVeXVVzLRf47stD2jdAHDka6
+qRwwWvPcWAFfLfcEnpnxkOxCfP9ed+DYyVSJfj02teQ6uLMn0wzE1OGG3duAoR8f
+2X/sSbhLUz6cZ4Ire8VHt8eYXInlpKCO/A21JnPvBfuAv0uRYuXnYA6j9XOMrND8
+iTA1yrQPukR1zXgt5STaXXSl69GvQGgigvdjw69CnbEhScFi89STeCcTNlaqRiN5
+G5cYUb+gVkcHe/ev42CAjEtCNx3ZCVXgJuxdWvX7HbjkVTCugUBN7sURgaFeDUm1
+dYh/r+xeypksImK3WJCP
+=BeIO
 -----END PGP SIGNATURE-----
 
---=-zdeWWbQeFbjl2ZjHE80D--
+--=-jLPF+ZNsm5szqxirPjyi--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
