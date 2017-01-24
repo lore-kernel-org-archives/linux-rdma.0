@@ -1,41 +1,37 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] Fixes for vmw_pvrdma
-Date: Tue, 24 Jan 2017 14:16:51 -0500
-Message-ID: <1485285411.43764.40.camel@redhat.com>
-References: <cover.1484859556.git.aditr@vmware.com>
+Subject: Re: [PATCH] IB/core: Fix typo in comment
+Date: Tue, 24 Jan 2017 14:19:35 -0500
+Message-ID: <1485285575.43764.41.camel@redhat.com>
+References: <1483561034-28299-1-git-send-email-yuval.shaia@oracle.com>
+         <20170105130025.GC15685@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-cYXY+j723Nsrq0bONUPp"
+        protocol="application/pgp-signature"; boundary="=-5euh2xY+e+tU0UCPw89p"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1484859556.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170105130025.GC15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-cYXY+j723Nsrq0bONUPp
+--=-5euh2xY+e+tU0UCPw89p
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2017-01-19 at 13:20 -0800, Adit Ranadive wrote:
-> Hi Doug,
->=20
-> Here are the fixes for vmw_pvrdma for this round of rc. These apply
-> cleanly to your k.o/for-4.10-rc branch.
+On Thu, 2017-01-05 at 15:00 +0200, Leon Romanovsky wrote:
+> On Wed, Jan 04, 2017 at 10:17:14PM +0200, Yuval Shaia wrote:
+> >=20
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > =C2=A0drivers/infiniband/core/cq.c | 2 +-
+> > =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
 >=20
 > Thanks,
-> Adit
->=20
-> Adit Ranadive (2):
-> =C2=A0 IB/vmw_pvrdma: Don't leak info from alloc_ucontext
-> =C2=A0 IB/vmw_pvrdma: Fix incorrect cleanup on pvrdma_pci_probe error pat=
-h
->=20
-> =C2=A0drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c=C2=A0=C2=A0| 4 +---
-> =C2=A0drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 2 +-
-> =C2=A02 files changed, 2 insertions(+), 4 deletions(-)
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks, series applied.
+Applied to for-next, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -43,7 +39,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-cYXY+j723Nsrq0bONUPp
+--=-5euh2xY+e+tU0UCPw89p
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -51,22 +47,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh6gjAAoJELgmozMOVy/d01wP/3FsrpBATBhiK9WnbV0LTc9W
-fl/d0DYEC5F4M1nI3U5FAcKO3oMQd1F7KcCrvKLxuCpT7YIULcvYAPy5tnf9Mitp
-a1w8MNI0DxW4E4D0Dmj4kDSHiGWAclBLf+aAegQT9WNOgjJW2CDv1PSxTDcD1Xrd
-c0Ne3SZe+JqrlvQcu/VERizflAtcG1zRY8FZrq00bFYMFAaPSBDsPL1QXWp/oPnj
-mjPhPCbMA0FAi1nuqgw3jz3GnG7c0mNhHSZXn8t88by4VwVq78eTpSCZjFM8i9YD
-tudwGk6Wnfs+ybLTrLG3QUopHn7g0kFm7WZmuApfPTpbraIzXuD5A7mSbd9qzSqv
-GjhxJbk9dzEFgnw84QmAedNRVIiVmGBOgzm8AjwMkTNQ4cLPwg9AlYt4r56RTfn8
-3bhhHuEhjl9/MPtxbBN7FSCU7ZY7kwBL+ENHzR9kUruPwJdb0qSOjKWMEfpyxUD7
-Z1GrhOxwDEONTpTG9RA5mgOIkfB2kiSWVU6TuJROvVn2pb7sIUsynrLi32kkhgHA
-G8ciTXSyMLvWPEYW7XIJzMMx4+3uATZRcFXOk0Qes2PbooBh+sFGoAkzMQodP3hn
-RYkG81VrkzJjMY7TfYbxBDJXn/Qxu4wtnDC+iiuGSSaZb0blUk4sqVuxHsGBV3kL
-/WIo5ZFbv6546X0yMY/H
-=2dUZ
+iQIcBAABCAAGBQJYh6jHAAoJELgmozMOVy/dSSkP/1e7sRCLwWhwyhlBtFG0dj0s
+u+Kak9+yEFRKDFTbyzcmsZu0cYNsfkNs5Lt3tihOZIejoUK+9hp13hCVNQGdDYnJ
+/7iD8Rp3XG1n+iXbuePIa2QnW34B4aS9bR5w7iRHQFRy0jr0MDGVNcsypzVIiPq1
+UCBzFKw7L/iQVZbHPqkxK7XuCY9/sM7wlXpaQqaKggtuguEoi/lt63aEWMuIS5Rt
+rZXzgy9HCwHJ/8wZ5dfUDCRpQkDOwnfg04j+imfANLOgD4NKKhOXQ36fmDfcCIUA
+hvCmCzJnPEUWvEWVPsGCE/5D4i4maTkk1zZcttcDA2pn96lUKrCnUS8Vy90L4Un3
+eGUrRYjr6xCNNtJ9KC34X/3lWpDPArqyfNDdj0RBHljbxnc4YC8USRI32gkkjf0Y
+Fsy2J7uqNn227l3g5LSnzbbJjaq9q2XMuS4zlpx2/wwuE1HRi68Mry1frv9CR+2k
+zWC71H/7j3BhgmBwv/RP1Gu3O75oOms9/YJS7xAD6i2Ys0OoZrx5agrEh5XVl+J2
+99Bshk+jn8BaOlH72isEyV9tpv9TMmu1LP6A9r+aoN2gPqxsfwHT0iFYmxdCZoYX
+cKqbtTPIdVg2zEhA9XAQqmm/koxM7ZD1SUiwrW5vpIfWsZKC/Pp311ACI/kJBlp4
+OGK2Y2jRN3k76uijuvcX
+=CJOw
 -----END PGP SIGNATURE-----
 
---=-cYXY+j723Nsrq0bONUPp--
+--=-5euh2xY+e+tU0UCPw89p--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
