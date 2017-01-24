@@ -1,44 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] net/mlx4_core: VF probe fail when HW support 64-bit
- coherent DMA
-Date: Tue, 24 Jan 2017 16:34:34 -0500
-Message-ID: <1485293674.43764.86.camel@redhat.com>
-References: <1483954699-17826-1-git-send-email-shamir.rabinovitch@oracle.com>
-         <20170111085358.GX7218@mtr-leonro.local>
+Subject: Re: [PATCHv2 1/1] IB/ipoib: Remove unnecessary returned value check
+Date: Tue, 24 Jan 2017 16:35:07 -0500
+Message-ID: <1485293707.43764.88.camel@redhat.com>
+References: <20170105061236.GV12077@mtr-leonro.local>
+         <1483606568-17232-1-git-send-email-yanjun.zhu@oracle.com>
+         <20170105125022.GA15685@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-OXmXcZSswO39S8rnPe7H"
+        protocol="application/pgp-signature"; boundary="=-2csvCU91MlZfblYlsL9/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170111085358.GX7218-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170105125022.GA15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-OXmXcZSswO39S8rnPe7H
+--=-2csvCU91MlZfblYlsL9/
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2017-01-11 at 10:53 +0200, Leon Romanovsky wrote:
-> On Mon, Jan 09, 2017 at 04:38:19AM -0500, Shamir Rabinovitch wrote:
-> >=C2=A0
-> > [1383664.318513] mlx4_core 0006:01:00.1: HCA minimum page size:1
-> > [1383664.318515] mlx4_core 0006:01:00.1: UAR size:4096 !=3D kernel
-> > PAGE_SIZE of
-> > 8192
-> > [1383664.318517] mlx4_core 0006:01:00.1: Failed to obtain slave
-> > caps
+On Thu, 2017-01-05 at 14:50 +0200, Leon Romanovsky wrote:
+> On Thu, Jan 05, 2017 at 03:56:08AM -0500, Zhu Yanjun wrote:
 > >=20
-> > Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > In the function ipoib_set_dev_features, the returned value is
+> > always 0.
+> > As such, it is not necessary to check the returned value.
+> > This is not a bug. It is a trivial problem.
 > >=20
+> > Reviewed-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > > ---
 >=20
-> Doug,
-> To be clear, NAK.
-> It is custom kernel with out-of-tree patches and very specific FW.
+> Thanks,
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-As you wish.
+Thanks, applied to -next area.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -46,7 +43,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-OXmXcZSswO39S8rnPe7H
+--=-2csvCU91MlZfblYlsL9/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -54,22 +51,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh8hqAAoJELgmozMOVy/d1BAP/RFzLqLc1yIu0uK6MWZ0BfFk
-vFqLIZQMol7FhXHTODQuTkPkqL/bS7Z/GfnsfMrs9UbfL/Xyq7hkWp5f9KxJF22r
-hB8pubjmHggV+yJxMY/QwK3PxdcXDO4nq4BPilEOQhZ5NA25TXLY1auOUqyQCHBE
-CeQFbrl4Uw56gxoTjawiJRGUB58vNoT1WgAhAa5ztuTR2b37hj8MjDdFIc8coNEf
-iKWTFTVme1pJ2sgdgOUobpXWVgvQEX9w7EDsvoHBD1zpnjpo5N4yMLT51rE/ZtU3
-M2J8ahZsf1PkqbfGUkblrmn5szPGSy/N7h6QvDtmPFOuWrBrKFKdf0nuWKdj871M
-Gv6EFTHhElonb+0DQ6gVEbtYGigkKkBBPPoVtI306OhYYZTErSKf98lioi+hFSs3
-5FIM76+SPUdDIGKIuHxfHwd64YTA698CMLhqwoNiO5ZSyqWlZsUCiOK0nesS2dzP
-EQuvqM7aMhnaSM4VQK9ZCSAU8cq7/cM9kdrQKyPoWzLHlxoyLH+KyC4bRA12922K
-VV1OF/Gftju1NdbISdrc8LmzQ3lntkLLpiyXZ0O4zs340L+Ouumua9TzdbrVeEye
-xPR0X0qo+0RR7arS3S6izwEq/OkgEIkga0IYyUpObeNzWpkvHTJWWicxqTX0sNv9
-YuJtS1L29xlOCjsXcLdM
-=+YYR
+iQIcBAABCAAGBQJYh8iLAAoJELgmozMOVy/dYgEP/2gysSUjxjfK11RmFuKqbbWH
+3mh+/Pgd1IlolcNkVX6gOyKn2qb7MlrQikJsnKBF5Ycy+inKUYxqlPmXFVNsva8h
+r1BWOJMgTcS+tmhC9Yb45qaAw0K0tmFHMHBbqXAHlPi3D1kFNHgULWNpvWYxnx8p
+C0Fv9epFDa4FZbaqFJ4kHJjdigtqTLZ/B3PsEnxZG3aHkGGkIflO+0LGJsplwW2j
+csoqshBkbf8KzPlO3TivJTqTmlxYsQm1FNA/ik/Sf5DI37oajRuwcJIL23oEKKrz
+svdJmrQJpYWt5xqWiEI/Pxx2nbLWaZGe9ye4dsUyjtqvbSWOPU5n71vSaS0igaeO
+JH4tzP5BZMFB3gLNkPxT3Z+G+TQDbSUxeUawCeGftE4gyB7oTrLaKpa9Sjn1nxyY
+TYaQYAo6v3A/IJPe3QXzTCaiVGktRVjXEIn4AjLnluuMCwDP0vD5NBTQU9DEHGtR
+bHK8W7nP1w5Le4YcP94aIIjd5RcQEyXRqKL/p+IhJZVy59Ef/ozW2PpXXjgMFgEs
+pkVX3wsHnndYEH3UYTGoWSW0FzKJO5aOgGzUMdhoZddDoJNTh1qQOr1zuN2NZfAX
+nqT2vmXqxCSMlkfM9L4VA270HYq9NaBK/dct0JZt2143Wd0RZbldH3piSHuplkmd
+o6DjD7H7xRQ7GgawRPNg
+=I+wi
 -----END PGP SIGNATURE-----
 
---=-OXmXcZSswO39S8rnPe7H--
+--=-2csvCU91MlZfblYlsL9/--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
