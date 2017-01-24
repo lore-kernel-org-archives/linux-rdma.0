@@ -1,49 +1,32 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] i40iw: silence an uninitialized variable warning
-Date: Tue, 24 Jan 2017 16:24:49 -0500
-Message-ID: <1485293089.43764.76.camel@redhat.com>
-References: <20170118103452.GA12778@mwanda>
+Subject: Re: [PATCH] IB/qib: Remove empty function
+Date: Tue, 24 Jan 2017 16:25:42 -0500
+Message-ID: <1485293142.43764.77.camel@redhat.com>
+References: <20170118055758.27237-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-X8yYiUXImVwfTsLxOagP"
+        protocol="application/pgp-signature"; boundary="=-RHdli1UEwS5InXeSc/v9"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118103452.GA12778@mwanda>
+In-Reply-To: <20170118055758.27237-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-X8yYiUXImVwfTsLxOagP
+--=-RHdli1UEwS5InXeSc/v9
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2017-01-18 at 13:34 +0300, Dan Carpenter wrote:
-> These can be used without being uninitialized but it's only a
-> printk()
-> so it's not the end of the world.
+On Wed, 2017-01-18 at 07:57 +0200, Leon Romanovsky wrote:
+> Commit f06267104dd9 ("RDMA: Update workqueue usage") removed
+> content of qib_qsfp_deinit(...) and left it empty.
 >=20
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> This patch deletes all leftovers of that function.
 >=20
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c
-> b/drivers/infiniband/hw/i40iw/i40iw_main.c
-> index 2728af3..7b78a17 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-> @@ -561,7 +561,7 @@ static enum i40iw_status_code
-> i40iw_create_cqp(struct i40iw_device *iwdev)
-> =C2=A0	struct i40iw_sc_dev *dev =3D &iwdev->sc_dev;
-> =C2=A0	struct i40iw_cqp_init_info cqp_init_info;
-> =C2=A0	struct i40iw_cqp *cqp =3D &iwdev->cqp;
-> -	u16 maj_err, min_err;
-> +	u16 maj_err =3D 0, min_err =3D 0;
-> =C2=A0	int i;
-> =C2=A0
-> =C2=A0	cqp->cqp_requests =3D kcalloc(sqsize, sizeof(*cqp-
-> >cqp_requests), GFP_KERNEL);
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Thanks for the patch, but I dropped this in in lieu of the patch to
-make cqp_create always set both error codes.
+Thanks, applied to -next area.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -51,7 +34,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-X8yYiUXImVwfTsLxOagP
+--=-RHdli1UEwS5InXeSc/v9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -59,22 +42,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh8YhAAoJELgmozMOVy/dqIoP/1DGurmMHgdAJusfLX82MzfV
-ItqSqiXtE7C5n0QQz87pKrQWZPIotVgE5sJvnmLfUD7FOPCdgqZmHMDeI755FM+B
-gnD/rPt2y8brLaMg1H7hVirlAb7h+Jv+KLWImb/cbARAeKnEhtohQB6NqbIygFUi
-1U+UAvWeOkA+VZcXt/yxltjcAKiZZsZg00gO1fRmYDsR2uWglJOEEeKZpJlOaFhc
-5bcK2dJ1gu9/mNbMzRT3xMRR0fFdOJ+ftnMwq8sAamr/tvEh6SGkvzJPzQjenlfb
-PSg9JyMzEhpZrY9lRjuy/nIkQV2QUKEqbLjOj2O4fP1otyaTeIhPZL/e+e0jIBeH
-lBVfzMzN8DooQq2jIrlnSrSo7ei2UbhkioCIK1b30YV5lyYluj8uyPwmjg2iocj1
-Kzb9l/E3K2jq/Fgvv+Xzinr9OgZH2om2bG6BAuwARC1h4Qyx/Kx87m2Ipw6+zwNc
-eY556+dSkBvO8mBj446+n1O/KDClN0Xls+T87Qcqc0nDQiywkF1daLcIuvok27JS
-/AK4esbaMOwUbAfbx2mgyfdvuHO2fi3Ig4u5/A4U5bVTc7c4N1ykVNYWUsZ1jWDz
-2hs8J5duri5+ILbNukbivyFmMCtVTk7iawpDvjd3xuvWawNKIkTeghO8KGs1i/VV
-VKBeh9Rx1LLaOoO3fFpj
-=C/9s
+iQIcBAABCAAGBQJYh8ZWAAoJELgmozMOVy/dkrcP/ApBupJDSOCxRtbllAp2r6LF
+Bph2GfokFopO0/WDHrRaX4ECbULP5vQAEEFyUkcb89Bg4+JTcCkXJNTwBIdkfyeN
+5mrGdoQRzLYNF9xnsJ1kE8nEbFvoWomYpaCOW5H2F0frsMhEpLbNqlAaUdvJa3V2
+TgmksdvdzQ4q4x938Rzj4+fdgUrSeyp1jV1zgCjoc289E9XQnapCA5iaPUB/yede
+O5dTZO3Z04MxV82sHBwYAX7o97agWC6wUDjfK4mO0z0nGIzbWKuxVM6zYH4pn1Qh
+MkeUMX3JBw/sNduu5D4MkHSslySDWvVQao2KtHOoV3Y5T3ELlTbzn18WkyxSuUbX
+jzSWixcCxn8B51e2rUBrfQoKMKlyb9sCgWKdjV0/hjdGhD6sv4uAE6WpCZEyDeNb
+Orvyydq0LnQj0aowW9cHbPisLYDRn/C9lwREOO64TBdvPVbYeIf760d7192P3iV/
+jVUxR2nepiUl81a14f130owsAgFDnyr8ZFluOyHQgWDAJe6iN1KMNpIxwl+o/mYG
+//ry1zUIpH/jyZ/f9Y7bfGnndFBbEOUr+peNxgkwqmtNmch7k4oFAdxBp2zgWyIp
+taqADP/ZLfzxkRuTQfLnl2WoajMclH4mBWMxf3K9/jYx7C6MiqxfcTjmnjgGazZQ
+JuLVngV8JxpFyUtJg+Hx
+=VdyJ
 -----END PGP SIGNATURE-----
 
---=-X8yYiUXImVwfTsLxOagP--
+--=-RHdli1UEwS5InXeSc/v9--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
