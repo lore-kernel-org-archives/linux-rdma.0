@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/5 v2] qedr: fix RDMA CM loopback
-Date: Tue, 24 Jan 2017 13:51:41 +0200
-Message-ID: <1485258703-11949-4-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 4/5 v2] qedr: fix memory leak in PD allocation and simplify it
+Date: Tue, 24 Jan 2017 13:51:42 +0200
+Message-ID: <1485258703-11949-5-git-send-email-Ram.Amrani@cavium.com>
 References: <1485258703-11949-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,31 +14,68 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 
-The loopback logic in RDMA CM packets compares Ethernet addresses and
-was accidently inverse.
+Free the PD if no internal resource were availbale.
+Move userspace code to under the relevant 'if'.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/qedr_cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/qedr/verbs.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
-index 00361f3..a9a8d87 100644
---- a/drivers/infiniband/hw/qedr/qedr_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_cm.c
-@@ -398,9 +398,9 @@ static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 25fb75d..66bd297 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -471,8 +471,6 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
+ 			    struct ib_ucontext *context, struct ib_udata *udata)
+ {
+ 	struct qedr_dev *dev = get_qedr_dev(ibdev);
+-	struct qedr_ucontext *uctx = NULL;
+-	struct qedr_alloc_pd_uresp uresp;
+ 	struct qedr_pd *pd;
+ 	u16 pd_id;
+ 	int rc;
+@@ -489,21 +487,33 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
+ 	if (!pd)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	dev->ops->rdma_alloc_pd(dev->rdma_ctx, &pd_id);
++	rc = dev->ops->rdma_alloc_pd(dev->rdma_ctx, &pd_id);
++	if (rc)
++		goto err;
+ 
+-	uresp.pd_id = pd_id;
+ 	pd->pd_id = pd_id;
+ 
+ 	if (udata && context) {
++		struct qedr_alloc_pd_uresp uresp;
++
++		uresp.pd_id = pd_id;
++
+ 		rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
+-		if (rc)
++		if (rc) {
+ 			DP_ERR(dev, "copy error pd_id=0x%x.\n", pd_id);
+-		uctx = get_qedr_ucontext(context);
+-		uctx->pd = pd;
+-		pd->uctx = uctx;
++			dev->ops->rdma_dealloc_pd(dev->rdma_ctx, pd_id);
++			goto err;
++		}
++
++		pd->uctx = get_qedr_ucontext(context);
++		pd->uctx->pd = pd;
  	}
  
- 	if (ether_addr_equal(udh.eth.smac_h, udh.eth.dmac_h))
--		packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
--	else
- 		packet->tx_dest = QED_ROCE_LL2_TX_DEST_LB;
-+	else
-+		packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
+ 	return &pd->ibpd;
++
++err:
++	kfree(pd);
++	return ERR_PTR(rc);
+ }
  
- 	packet->roce_mode = roce_mode;
- 	memcpy(packet->header.vaddr, ud_header_buffer, header_size);
+ int qedr_dealloc_pd(struct ib_pd *ibpd)
 -- 
 1.8.3.1
 
