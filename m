@@ -1,166 +1,173 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for bnxt_re V4 15/21] RDMA/bnxt_re: Support post_recv
-Date: Tue, 24 Jan 2017 13:59:43 +0200
-Message-ID: <20170124115943.GF6005@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for bnxt_re V4 17/21] RDMA/bnxt_re: Handling dispatching
+ of events to IB stack
+Date: Tue, 24 Jan 2017 14:18:01 +0200
+Message-ID: <20170124121801.GG6005@mtr-leonro.local>
 References: <1482320530-5344-1-git-send-email-selvin.xavier@broadcom.com>
- <1482320530-5344-16-git-send-email-selvin.xavier@broadcom.com>
+ <1482320530-5344-18-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jkO+KyKz7TfD21mV"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="jt0yj30bxbg11sci"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1482320530-5344-16-git-send-email-selvin.xavier@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@broadcom.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, michael.chan@broadcom.com, Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+In-Reply-To: <1482320530-5344-18-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.chan-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---jkO+KyKz7TfD21mV
+--jt0yj30bxbg11sci
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 21, 2016 at 03:42:04AM -0800, Selvin Xavier wrote:
-> Enables the fastpath verb ib_post_recv.
+On Wed, Dec 21, 2016 at 03:42:06AM -0800, Selvin Xavier wrote:
+> This patch implements events dispatching to the IB stack
+> based on NETDEV events received.
 >
-> v3: Fixes sparse warnings
+> v2: Removed cleanup of the resources during driver unload since
+>     we are calling unregister_netdevice_notifier first in the exit.
 >
-> Signed-off-by: Eddie Wai <eddie.wai@broadcom.com>
-> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
-> Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> v3: Fixes cocci warnings and some sparse warnings
+>
+> Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 123 +++++++++++++++++++++++++++++++
->  drivers/infiniband/hw/bnxt_re/ib_verbs.h |   2 +
->  drivers/infiniband/hw/bnxt_re/main.c     |   2 +
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 100 +++++++++++++++++++++++++
->  drivers/infiniband/hw/bnxt_re/qplib_fp.h |   8 ++
->  5 files changed, 235 insertions(+)
+>  drivers/infiniband/hw/bnxt_re/main.c | 65 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 65 insertions(+)
 >
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index e659490..7476994c 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -1637,6 +1637,51 @@ static int bnxt_re_build_qp1_send_v2(struct bnxt_re_qp *qp,
+> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+> index ab0b35a..bd13414 100644
+> --- a/drivers/infiniband/hw/bnxt_re/main.c
+> +++ b/drivers/infiniband/hw/bnxt_re/main.c
+> @@ -729,6 +729,60 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
 >  	return rc;
 >  }
 >
-> +/* For the MAD layer, it only provides the recv SGE the size of
-> + * ib_grh + MAD datagram.  No Ethernet headers, Ethertype, BTH, DETH,
-> + * nor RoCE iCRC.  The Cu+ solution must provide buffer for the entire
-> + * receive packet (334 bytes) with no VLAN and then copy the GRH
-> + * and the MAD datagram out to the provided SGE.
-> + */
-> +static int bnxt_re_build_qp1_shadow_qp_recv(struct bnxt_re_qp *qp,
-> +					    struct ib_recv_wr *wr,
-> +					    struct bnxt_qplib_swqe *wqe,
-> +					    int payload_size)
+> +static void bnxt_re_dispatch_event(struct ib_device *ibdev, struct ib_qp *qp,
+> +				   u8 port_num, enum ib_event_type event)
 > +{
-> +	struct bnxt_qplib_sge ref, sge;
-> +	u32 rq_prod_index;
-> +	struct bnxt_re_sqp_entries *sqp_entry;
+> +	struct ib_event ib_event;
 > +
-> +	rq_prod_index = bnxt_qplib_get_rq_prod_index(&qp->qplib_qp);
-> +
-> +	if (bnxt_qplib_get_qp1_rq_buf(&qp->qplib_qp, &sge)) {
-> +		/* Create 1 SGE to receive the entire
-> +		 * ethernet packet
-> +		 */
-> +		/* Save the reference from ULP */
-> +		ref.addr = wqe->sg_list[0].addr;
-> +		ref.lkey = wqe->sg_list[0].lkey;
-> +		ref.size = wqe->sg_list[0].size;
-> +
-> +		sqp_entry = &qp->rdev->sqp_tbl[rq_prod_index];
-> +
-> +		/* SGE 1 */
-> +		wqe->sg_list[0].addr = sge.addr;
-> +		wqe->sg_list[0].lkey = sge.lkey;
-> +		wqe->sg_list[0].size = BNXT_QPLIB_MAX_QP1_RQ_HDR_SIZE_V2;
-> +		sge.size -= wqe->sg_list[0].size;
-> +
-> +		sqp_entry->sge.addr = ref.addr;
-> +		sqp_entry->sge.lkey = ref.lkey;
-> +		sqp_entry->sge.size = ref.size;
-> +		/* Store the wrid for reporting completion */
-> +		sqp_entry->wrid = wqe->wr_id;
-> +		/* change the wqe->wrid to table index */
-> +		wqe->wr_id = rq_prod_index;
-> +	}
-> +	return 0;
+> +	ib_event.device = ibdev;
+> +	if (qp)
+> +		ib_event.element.qp = qp;
+> +	else
+> +		ib_event.element.port_num = port_num;
+> +	ib_event.event = event;
+> +	ib_dispatch_event(&ib_event);
 > +}
 > +
->  static int is_ud_qp(struct bnxt_re_qp *qp)
->  {
->  	return qp->qplib_qp.type == CMDQ_CREATE_QP_TYPE_UD;
-> @@ -1983,6 +2028,84 @@ int bnxt_re_post_send(struct ib_qp *ib_qp, struct ib_send_wr *wr,
->  	return rc;
->  }
->
-> +static int bnxt_re_post_recv_shadow_qp(struct bnxt_re_dev *rdev,
-> +				       struct bnxt_re_qp *qp,
-> +				       struct ib_recv_wr *wr)
+> +static bool bnxt_re_is_qp1_or_shadow_qp(struct bnxt_re_dev *rdev,
+> +					struct bnxt_re_qp *qp)
 > +{
-> +	struct bnxt_qplib_swqe wqe;
-> +	int rc = 0, payload_sz = 0;
+> +	return (qp->ib_qp.qp_type == IB_QPT_GSI) || (qp == rdev->qp1_sqp);
+> +}
 > +
-> +	memset(&wqe, 0, sizeof(wqe));
-> +	while (wr) {
-> +		/* House keeping */
-> +		memset(&wqe, 0, sizeof(wqe));
+> +static void bnxt_re_dev_stop(struct bnxt_re_dev *rdev, bool qp_wait)
+> +{
+> +	int mask = IB_QP_STATE, qp_count, count = 1;
+> +	struct ib_qp_attr qp_attr;
+> +	struct bnxt_re_qp *qp;
 > +
-> +		/* Common */
-> +		wqe.num_sge = wr->num_sge;
-> +		if (wr->num_sge > qp->qplib_qp.rq.max_sge) {
-> +			dev_err(rdev_to_dev(rdev),
-> +				"Limit exceeded for Receive SGEs");
-> +			rc = -EINVAL;
-> +			goto bad;
-
-"goto bad" directly to other place in while() to call the "break".
-It will be more convenient to call "break" here.
-
-
+> +	qp_attr.qp_state = IB_QPS_ERR;
+> +	mutex_lock(&rdev->qp_lock);
+> +	list_for_each_entry(qp, &rdev->qp_list, list) {
+> +		/* Modify the state of all QPs except QP1/Shadow QP */
+> +		if (!bnxt_re_is_qp1_or_shadow_qp(rdev, qp)) {
+> +			if (qp->qplib_qp.state !=
+> +			    CMDQ_MODIFY_QP_NEW_STATE_RESET &&
+> +			    qp->qplib_qp.state !=
+> +			    CMDQ_MODIFY_QP_NEW_STATE_ERR) {
+> +				bnxt_re_dispatch_event(&rdev->ibdev, &qp->ib_qp,
+> +						       1, IB_EVENT_QP_FATAL);
+> +				bnxt_re_modify_qp(&qp->ib_qp, &qp_attr, mask,
+> +						  NULL);
+> +			}
 > +		}
-> +		payload_sz = bnxt_re_build_sgl(wr->sg_list, wqe.sg_list,
-> +					       wr->num_sge);
-> +		wqe.wr_id = wr->wr_id;
-> +		wqe.type = BNXT_QPLIB_SWQE_TYPE_RECV;
-> +
-> +		if (!rc)
-
-If we are here, we will always have rc == 0.
-
-> +			rc = bnxt_qplib_post_recv(&qp->qplib_qp, &wqe);
-> +bad:
-> +		if (rc)
-> +			break;
-> +
-> +		wr = wr->next;
 > +	}
-> +	bnxt_qplib_post_recv_db(&qp->qplib_qp);
-> +	return rc;
-> +}
+> +
+> +	mutex_unlock(&rdev->qp_lock);
+> +	if (qp_wait) {
 
---jkO+KyKz7TfD21mV
+All callers to this function in this patch set qp_wait to be false.
+Do you have in following patches qp_wait == true?
+I'm curious because of your msleep below.
+
+> +		/* Give the application some time to clean up */
+> +		do {
+> +			qp_count = atomic_read(&rdev->qp_count);
+> +			msleep(100);
+> +		} while ((qp_count != atomic_read(&rdev->qp_count)) &&
+> +			  count--);
+> +	}
+> +}
+> +
+>  static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait)
+>  {
+>  	int i, rc;
+> @@ -888,6 +942,9 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+>  		}
+>  	}
+>  	set_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags);
+> +	bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1, IB_EVENT_PORT_ACTIVE);
+> +	bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1, IB_EVENT_GID_CHANGE);
+> +
+>  	return 0;
+>  free_sctx:
+>  	bnxt_re_net_stats_ctx_free(rdev, rdev->qplib_ctx.stats.fw_id, true);
+> @@ -967,10 +1024,18 @@ static void bnxt_re_task(struct work_struct *work)
+>  				"Failed to register with IB: %#x", rc);
+>  		break;
+>  	case NETDEV_UP:
+> +		bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1,
+> +				       IB_EVENT_PORT_ACTIVE);
+>  		break;
+>  	case NETDEV_DOWN:
+> +		bnxt_re_dev_stop(rdev, false);
+>  		break;
+>  	case NETDEV_CHANGE:
+> +		if (!netif_carrier_ok(rdev->netdev))
+> +			bnxt_re_dev_stop(rdev, false);
+> +		else if (netif_carrier_ok(rdev->netdev))
+> +			bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1,
+> +					       IB_EVENT_PORT_ACTIVE);
+>  		break;
+>  	default:
+>  		break;
+> --
+> 2.5.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--jt0yj30bxbg11sci
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliHQa8ACgkQ5GN7iDZy
-WKcRCw/6AyuTlh4uy/V+0ByWlRrbhn+8ITgjCPkIPNASWD5k9gRGwFu0o5s1Hl4Q
-JijCRuL1rCNbgi0DBoe6oPkK0UPWj/RN10TxHeFErKRpWosxrtvSm7PJdmUVp1rd
-Hmos4nz8I/0tOHUp2NTUmYVMQk1StQLSbcu8hizk/hRF2DKQfqBFXtmj7Ww8OmuG
-CT1i5Uhsa3I1n65zbk5rpn94Dqs206I83/ejeOSEeqvGIIwTzyuZhlxM886S6Kg1
-eT7p/eZlNgd7BWhSQPoqxvt12mXkZjQ1PFNUHBUDdL55FkLStm3VT/aRxvqRONqi
-MZ4nlango1gyjrHDdnH88QPXg4e42l/Nzrp8ZWDzKDigAhn8mSzKBxN3LFcXxJzE
-iOWHuXzRRvQdf9TM1kVhA1oRIPzv5JpYXWVKNK5UkfEof0VUQJ+jOaSXU8rEa13x
-1CMb3hwSyXfGpWc2Ic7m+iwRdCvOygzfbk0IrFahI/ORTTaqHmNRGAsg9OCO1+mZ
-kwFjFCNRM7DSjX1qNTcBrj762bZeXcFxXHBxB2eW81I+V0WItn/ieA1OfHrcGLlt
-TuB61BPK9vRlVIoCL8FqwF16d8NkA1Hm5rt/clE8TUkeznYHwV3UFKPq42jbqvSA
-xwq+lItzCU3sGS29OLeoG/v2Mc3iDmk7hgtttfHedC1CFVoi9Z8=
-=v03l
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliHRfkACgkQ5GN7iDZy
+WKe49BAArYTvlTECIckVgG3G6wOVFErLpATThjSmD1+GpDuDf02ovDFV5tIyS+jy
+SCZc4VnM2hYgzAdwDAnSh2onV9IiKLe28otC3gP093esvRodGL+PeAvTgnjh0R5m
+soG8jpmlJNa5nn2DfkoaEsVR9hGHcf6AMQxd73ZVfKCNSZu4dHFaRRVLOIwzDZZZ
+SnL7pVtnK2nAdjxEKnNRLtMUNB1i60cFhWTvt/O4JxtZaSphHxWdGW7uhQEhsOcz
+vYiPt5/ix5i7hXiDxZx0NCunbM8zTDLwBVbnn1KyOAV+Sn3jHXtCwrWeELSBFMAt
+O1KZo1okOZWxML/HTSLexCFfO9+XqxGLRGIdA/gz3hiUCZdaHgCmvhvsMH4ESM9Y
+AaiAiUZVj52PzSoS5YhoxYEk5crXkvovgQcTnImDc8LMT/tlAYDEqHpYoMKZb8tQ
++whob/rxZZmtyHAWs5S/bHXcnO3hDjbN28sQ50JEFJL/z8N6oxQkWIEtFC/87B/z
+das8QLdyAQTysnZusxvaTtqv/cvMo4QS26JuDkB7mbbFVSORAPDhwKXS3w7koekJ
+Z6GjJhTBzUtyBo8xEt5DyPeL3GAsOJ+qgzoGFpC4LewINdePoApMz6dNbYIyf49y
+8X7vzJdplmxJrpt4tLd2Th5SRPF440NL7YmjDgk+U6Eai2xpusw=
+=AXP1
 -----END PGP SIGNATURE-----
 
---jkO+KyKz7TfD21mV--
+--jt0yj30bxbg11sci--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
