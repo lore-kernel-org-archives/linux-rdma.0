@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/5 v2] qedr: fix memory leak in PD allocation and simplify it
-Date: Tue, 24 Jan 2017 13:51:42 +0200
-Message-ID: <1485258703-11949-5-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 5/5 v2] qedr: dispatch port active event from qedr_add
+Date: Tue, 24 Jan 2017 13:51:43 +0200
+Message-ID: <1485258703-11949-6-git-send-email-Ram.Amrani@cavium.com>
 References: <1485258703-11949-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,68 +14,108 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 
-Free the PD if no internal resource were availbale.
-Move userspace code to under the relevant 'if'.
+Relying on qede to trigger qedr on startup is problematic. When probing
+both if qedr loads slowly then qede can assume qedr is missing and not
+trigger it. This patch adds a triggering from qedr and protects against
+a race via an atomic bit.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/qedr/main.c | 20 ++++++++++++++------
+ drivers/infiniband/hw/qedr/qedr.h |  5 +++++
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 25fb75d..66bd297 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -471,8 +471,6 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
- 			    struct ib_ucontext *context, struct ib_udata *udata)
- {
- 	struct qedr_dev *dev = get_qedr_dev(ibdev);
--	struct qedr_ucontext *uctx = NULL;
--	struct qedr_alloc_pd_uresp uresp;
- 	struct qedr_pd *pd;
- 	u16 pd_id;
- 	int rc;
-@@ -489,21 +487,33 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
- 	if (!pd)
- 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+index eac0bfc..3ac8aa5 100644
+--- a/drivers/infiniband/hw/qedr/main.c
++++ b/drivers/infiniband/hw/qedr/main.c
+@@ -791,6 +791,9 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
+ 		if (device_create_file(&dev->ibdev.dev, qedr_attributes[i]))
+ 			goto sysfs_err;
  
--	dev->ops->rdma_alloc_pd(dev->rdma_ctx, &pd_id);
-+	rc = dev->ops->rdma_alloc_pd(dev->rdma_ctx, &pd_id);
-+	if (rc)
-+		goto err;
++	if (!test_and_set_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
++		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ACTIVE);
++
+ 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr driver loaded successfully\n");
+ 	return dev;
  
--	uresp.pd_id = pd_id;
- 	pd->pd_id = pd_id;
- 
- 	if (udata && context) {
-+		struct qedr_alloc_pd_uresp uresp;
-+
-+		uresp.pd_id = pd_id;
-+
- 		rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
--		if (rc)
-+		if (rc) {
- 			DP_ERR(dev, "copy error pd_id=0x%x.\n", pd_id);
--		uctx = get_qedr_ucontext(context);
--		uctx->pd = pd;
--		pd->uctx = uctx;
-+			dev->ops->rdma_dealloc_pd(dev->rdma_ctx, pd_id);
-+			goto err;
-+		}
-+
-+		pd->uctx = get_qedr_ucontext(context);
-+		pd->uctx->pd = pd;
- 	}
- 
- 	return &pd->ibpd;
-+
-+err:
-+	kfree(pd);
-+	return ERR_PTR(rc);
+@@ -823,11 +826,10 @@ static void qedr_remove(struct qedr_dev *dev)
+ 	ib_dealloc_device(&dev->ibdev);
  }
  
- int qedr_dealloc_pd(struct ib_pd *ibpd)
+-static int qedr_close(struct qedr_dev *dev)
++static void qedr_close(struct qedr_dev *dev)
+ {
+-	qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ERR);
+-
+-	return 0;
++	if (test_and_clear_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
++		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ERR);
+ }
+ 
+ static void qedr_shutdown(struct qedr_dev *dev)
+@@ -836,6 +838,12 @@ static void qedr_shutdown(struct qedr_dev *dev)
+ 	qedr_remove(dev);
+ }
+ 
++static void qedr_open(struct qedr_dev *dev)
++{
++	if (!test_and_set_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
++		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ACTIVE);
++}
++
+ static void qedr_mac_address_change(struct qedr_dev *dev)
+ {
+ 	union ib_gid *sgid = &dev->sgid_tbl[0];
+@@ -862,7 +870,7 @@ static void qedr_mac_address_change(struct qedr_dev *dev)
+ 
+ 	ether_addr_copy(dev->gsi_ll2_mac_address, dev->ndev->dev_addr);
+ 
+-	qedr_ib_dispatch_event(dev, 1, IB_EVENT_GID_CHANGE);
++	qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_GID_CHANGE);
+ 
+ 	if (rc)
+ 		DP_ERR(dev, "Error updating mac filter\n");
+@@ -876,7 +884,7 @@ static void qedr_notify(struct qedr_dev *dev, enum qede_roce_event event)
+ {
+ 	switch (event) {
+ 	case QEDE_UP:
+-		qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
++		qedr_open(dev);
+ 		break;
+ 	case QEDE_DOWN:
+ 		qedr_close(dev);
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index 94319ab..bb32e47 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -113,6 +113,8 @@ struct qedr_device_attr {
+ 	struct qed_rdma_events events;
+ };
+ 
++#define QEDR_ENET_STATE_BIT	(0)
++
+ struct qedr_dev {
+ 	struct ib_device	ibdev;
+ 	struct qed_dev		*cdev;
+@@ -153,6 +155,8 @@ struct qedr_dev {
+ 	struct qedr_cq		*gsi_sqcq;
+ 	struct qedr_cq		*gsi_rqcq;
+ 	struct qedr_qp		*gsi_qp;
++
++	unsigned long enet_state;
+ };
+ 
+ #define QEDR_MAX_SQ_PBL			(0x8000)
+@@ -188,6 +192,7 @@ struct qedr_dev {
+ #define QEDR_ROCE_MAX_CNQ_SIZE		(0x4000)
+ 
+ #define QEDR_MAX_PORT			(1)
++#define QEDR_PORT			(1)
+ 
+ #define QEDR_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
+ 
 -- 
 1.8.3.1
 
