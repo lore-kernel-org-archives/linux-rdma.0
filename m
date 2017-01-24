@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/5 v2] qedr: return maximum inline data capability on QP query
-Date: Tue, 24 Jan 2017 13:50:35 +0200
-Message-ID: <1485258638-11884-3-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 3/5 v2] qedr: remove CQ spinlock from RDMA CM completion  handlers
+Date: Tue, 24 Jan 2017 13:50:36 +0200
+Message-ID: <1485258638-11884-4-git-send-email-Ram.Amrani@cavium.com>
 References: <1485258638-11884-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,25 +14,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 
+There is only a single event queue that triggers the completion
+events for the RDMA CM and it is being processed serially. This means
+that inherently there can no parallelism of CQ completion handler.
+Hence the lock is redundant.
+
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/qedr/qedr.h    |  3 ---
+ drivers/infiniband/hw/qedr/qedr_cm.c | 10 ++--------
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index af6074d..e843501 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -2028,7 +2028,7 @@ int qedr_query_qp(struct ib_qp *ibqp,
- 	qp_attr->cap.max_recv_wr = qp->rq.max_wr;
- 	qp_attr->cap.max_send_sge = qp->sq.max_sges;
- 	qp_attr->cap.max_recv_sge = qp->rq.max_sges;
--	qp_attr->cap.max_inline_data = qp->max_inline_data;
-+	qp_attr->cap.max_inline_data = ROCE_REQ_MAX_INLINE_DATA_SIZE;
- 	qp_init_attr->cap = qp_attr->cap;
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index 620badd..94319ab 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -251,9 +251,6 @@ struct qedr_cq {
  
- 	memcpy(&qp_attr->ah_attr.grh.dgid.raw[0], &params.dgid.bytes[0],
+ 	u16 icid;
+ 
+-	/* Lock to protect completion handler */
+-	spinlock_t comp_handler_lock;
+-
+ 	/* Lock to protect multiplem CQ's */
+ 	spinlock_t cq_lock;
+ 	u8 arm_flags;
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
+index 63890eb..00361f3 100644
+--- a/drivers/infiniband/hw/qedr/qedr_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_cm.c
+@@ -87,11 +87,8 @@ void qedr_ll2_tx_cb(void *_qdev, struct qed_roce_ll2_packet *pkt)
+ 	qedr_inc_sw_gsi_cons(&qp->sq);
+ 	spin_unlock_irqrestore(&qp->q_lock, flags);
+ 
+-	if (cq->ibcq.comp_handler) {
+-		spin_lock_irqsave(&cq->comp_handler_lock, flags);
++	if (cq->ibcq.comp_handler)
+ 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
+-		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
+-	}
+ }
+ 
+ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
+@@ -113,11 +110,8 @@ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
+ 
+ 	spin_unlock_irqrestore(&qp->q_lock, flags);
+ 
+-	if (cq->ibcq.comp_handler) {
+-		spin_lock_irqsave(&cq->comp_handler_lock, flags);
++	if (cq->ibcq.comp_handler)
+ 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
+-		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
+-	}
+ }
+ 
+ static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
 -- 
 1.8.3.1
 
