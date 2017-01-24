@@ -1,44 +1,71 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 00/37] IB: Optimize DMA mapping
-Date: Tue, 24 Jan 2017 17:43:26 +0000
-Message-ID: <1485279791.2715.3.camel@sandisk.com>
-References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
-         <1485279487.43764.38.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: Guard against null cm_id in dump_ep/qp
+Date: Tue, 24 Jan 2017 14:45:13 -0500
+Message-ID: <1485287113.43764.50.camel@redhat.com>
+References: <1484895721-10839-1-git-send-email-ganeshgr@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-FRCm6Bbdf74XrdAER0Pg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485279487.43764.38.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <E2DAB64D234FEB4295FD7D2AD1531D5A-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1484895721-10839-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-01-24 at 12:38 -0500, Doug Ledford wrote:
-> I think this has enough Acks to move foward (especially from the larger
-> kernel community on the core kernel bits, such as GKH's ack on the core
-> bits). =A0I've pulled it into a branch (there were a few fixups I had to
-> do, compile testing that now). =A0However, I'm going to wait until the
-> very end to merge this branch right before my pull request. =A0That way
-> if Linus has any objections, he can just pop the top 37 patches off of
-> my pull request and effectively remove this patchset, at which point we
-> can fix up whatever he objected to and resubmit. =A0And I'm only doing
-> that because of the number of patches that are either outside of
-> drivers/infiniband or treewide in this series.
 
-Hello Doug,
+--=-FRCm6Bbdf74XrdAER0Pg
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Waiting with a big patch series until the end of the merge window is the
-traditional approach. A quote from https://lwn.net/Articles/585782/:
-"Shortly after the -rc1 release is a good time for this, though it is best
-to agree on this timing ahead of time." This makes me wonder whether we
-should contact Linus before the next merge window opens?
+On Fri, 2017-01-20 at 12:32 +0530, Ganesh Goudar wrote:
+> Endpoints that are aborting can have already dereferenced the
+> cm_id and set ep->com.cm_id to NULL.=C2=A0=C2=A0So guard against that in
+> dump_ep() and dump_qp().
+>=20
+> Also create a common function for setting up ip address pointers
+> since the same logic is needed in several places.
+>=20
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> ---
+> v2: Print mapped tcp ports instead of actual tcp ports.
 
-Thanks,
+This patch is kinda large for a late -rc cycle, so since this only
+effects your dump functions, I've opted to put it into the -next area
+instead of -rc area. =C2=A0Thanks.
 
-Bart.=
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+
+--=-FRCm6Bbdf74XrdAER0Pg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYh67JAAoJELgmozMOVy/dVoUP/28VGLt/Ld2A7j49enUMCVwx
+qQweLMU9OIl1hjKzPBGz6VpkWwgjYiYbxdNmsh18JxgO2D7f7wM1msLpumDoRTyb
+CVrdZVriknma0LNVbNnr53jOuZjCm090KpumzADFSkxzcpWEcp0PAwmIlCUWQKLl
+LXi6JfLs60H/kZ+IrnOfU88Rjd3p8lrllkyWNVMLryIi8VjUjFzxC9tBX/fV5A3G
+vkuID6xjx0+7qyGLuGMKJMnWz8fH2ZimCT0qBztzbtHjnyGnxKTK9o/ieGOsq9Pc
+xw5gEXd4XzPRudtzeM66NcECEMCuW7CeiVhMlJ8dKFuH5Ntg9FXD9EmK/fyluDNT
+3CgKygBNrfq2tDNWqn9vZELYhhhfISxgiwzLPO3MnwP6kBLNyDY9mkRWfzdShUIh
+dwGVSs70l4Lym4vOi6RyziCjMpeCo22BmQCZO0XY87YBdovMJHXmJAdBcZ1u2FOw
+62vEti8Hya4FSXUJQii0AwkP1CdhHRQ15dEYcR8MQ78Mu9BpK3BWetZu7fRsU5E9
+LdxIBIWfhuzkAupZ7zgJ8oNGI7/m4lRR1crMqL8UVQkXRIj+82I0eDjRRqin6sQY
+PamKoOSG4/w3BCShvxZJ2Fd1FYZ/8etzv68PkpXP2crXKfoBntth21WQbSrYJ/rx
+cQsFnu/2MYpZojXs/9AV
+=YllX
+-----END PGP SIGNATURE-----
+
+--=-FRCm6Bbdf74XrdAER0Pg--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
