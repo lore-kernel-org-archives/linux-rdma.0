@@ -1,60 +1,29 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: libibverbs changes broke usnic libfabric provider
-Date: Mon, 23 Jan 2017 16:18:32 -0700
-Message-ID: <20170123231832.GD21744@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB0DF06C@ORSMSX109.amr.corp.intel.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 3/5] qedr: remove CQ spinlock from RDMA CM completion
+ handlers
+Date: Tue, 24 Jan 2017 09:02:55 +0000
+Message-ID: <SN1PR07MB2207B69B469AC2113C757E6CF8750@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
+ <1485185187-18689-4-git-send-email-Ram.Amrani@qlogic.com>
+ <20170123191313.GB6005@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0DF06C-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20170123191313.GB6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Ben Turrubiates (bturrubi)" <bturrubi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "'David Goodell (dgoodell)' (dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 23, 2017 at 10:24:52PM +0000, Hefty, Sean wrote:
+> Don't you need to remove this lock from struct qedr_cq too?
 
-> prov/usnic/src/usnic_direct/usd_ib_cmd.c: In function 'usd_ib_cmd_modify_qp':
-> prov/usnic/src/usnic_direct/usd_ib_cmd.c:739:8: error: 'struct ibv_modify_qp'
-> has no member named 'qp_handle'
->      icp->qp_handle = qp->uq_qp_handle;
->         ^
-> prov/usnic/src/usnic_direct/usd_ib_cmd.c:740:8: error: 'struct ibv_modify_qp'
-> has no member named 'attr_mask'
->      icp->attr_mask = IBV_QP_STATE;
->         ^
-> prov/usnic/src/usnic_direct/usd_ib_cmd.c:741:8: error: 'struct ibv_modify_qp'
-> has no member named 'qp_state'
->      icp->qp_state = state;
->         ^
-> make[1]: *** [prov/usnic/src/usnic_direct/src_libfabric_la-usd_ib_cmd.lo] Error 
-> 1
-> make[1]: *** Waiting for unfinished jobs....
-> make[1]: Leaving directory `/var/tmp/OFED_topdir/BUILD/libfabric-1.3.0'
-> 
-> 
-> This results from recent changes to kern-abi.h.  :/
+The CQ lock has other uses so it cannot be deleted.
 
-FWIW, there was a decision to stop supporting out of tree drivers and
-so ther drive API and ABI is now considered internal to
-rdma-core. Plan for kern-abi.h and related to go away someday.
+Thanks,
+Ram
 
-It doesn't look like usd_ib_cmd.c is using the libibverbs driver API
-so it should use the kernel header /usr/include/rdma/ib_user_verbs.h,
-not the libibverbs header.
-
-> Jeff, I'm not sure how you want to fix this.  Do you need libibverbs
-> installed, or just the header files?  If just the latter, you may
-> want to use a private copy, since compatibility won't be guaranteed
-> anymore.
-
-If you copy libibverbs headers then do not link to libibverbs. We
-certainly will not support that.
-
-A private copy of the kernel uapi header is OK..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
