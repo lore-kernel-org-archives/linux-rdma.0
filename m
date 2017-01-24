@@ -1,95 +1,73 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/srp: fix invalid indirect_sg_entries parameter
- value
-Date: Tue, 24 Jan 2017 18:50:32 +0200
-Message-ID: <9743e758-2ba9-c6f6-f0fc-72112de72a4a@mellanox.com>
-References: <1483538377-19379-1-git-send-email-maxg@mellanox.com>
- <1483538377-19379-2-git-send-email-maxg@mellanox.com>
- <1483542561.3048.13.camel@sandisk.com> <1485275572.43764.27.camel@redhat.com>
+From: Eli Cohen <eli@mellanox.com>
+Subject: RE: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
+ mlx5_ib
+Date: Tue, 24 Jan 2017 17:16:19 +0000
+Message-ID: <AM4PR0501MB2787B803D95B7575065CC497C5750@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+References: <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA@mail.gmail.com>
+         <20170105.150731.2097384465565543422.davem@davemloft.net>
+         <20170106060608.GG15685@mtr-leonro.local>
+         <20170106.111131.1775665484264248231.davem@redhat.com>
+         <20170108062257.GH15685@mtr-leonro.local>
+ <1485276271.43764.31.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485275572.43764.27.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1485276271.43764.31.camel@redhat.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, David Miller <davem@redhat.com>
+Cc: "eli@dev.mellanox.co.il" <eli@dev.mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 1/24/2017 6:32 PM, Doug Ledford wrote:
-> On Wed, 2017-01-04 at 15:09 +0000, Bart Van Assche wrote:
->> On Wed, 2017-01-04 at 15:59 +0200, Max Gurtovoy wrote:
->>>
->>> From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>
->>> After setting indirect_sg_entries module_param to huge value (e.g
->>> 500,000),
->>> srp_alloc_req_data() fails to allocate indirect descriptors for the
->>> request
->>> ring (kmalloc fails). This commit enforces the maximum value of
->>> indirect_sg_entries
->>> to be SG_MAX_SEGMENTS as signified in module param description.
->>>
->>> Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> ---
->>>  drivers/infiniband/ulp/srp/ib_srp.c | 6 ++++++
->>>  1 file changed, 6 insertions(+)
->>>
->>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
->>> b/drivers/infiniband/ulp/srp/ib_srp.c
->>> index 0f67cf9..79bf484 100644
->>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->>> @@ -3699,6 +3699,12 @@ static int __init srp_init_module(void)
->>>  		indirect_sg_entries = cmd_sg_entries;
->>>  	}
->>>
->>> +	if (indirect_sg_entries > SG_MAX_SEGMENTS) {
->>> +		pr_warn("Clamping indirect_sg_entries to %u\n",
->>> +			SG_MAX_SEGMENTS);
->>> +		indirect_sg_entries = SG_MAX_SEGMENTS;
->>> +	}
->>> +
->>>  	srp_remove_wq = create_workqueue("srp_remove");
->>>  	if (!srp_remove_wq) {
->>>  		ret = -ENOMEM;
->>
->> Thanks!
->>
->> Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
->
-> This patch is a fix patch and should have been tagged as such.
->  However, the proper tagging is complicated by the fact that the
-> SG_MAX_SEGMENTS was originally named SCSI_MAX_SG_CHAIN_SEGMENTS.  The
-> fix applies all the way back to the first patch to enable SG segments
-> in the srp driver, but you will need a different patch for the kernels
-> prior to the rename.  For this patch, I've added the following tags and
-> applied the patch:
->
-> Fixes: 65e8617fba17 (scsi: rename SCSI_MAX_{SG, SG_CHAIN}_SEGMENTS)
-> Fixes: c07d424d6118 (IB/srp: add support for indirect tables that don't
-> fit in SRP_CMD)
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 4.7+
->
-> Someone should write a patch for the earlier kernels and submit it
-> directly to stable@ with the patch flagged for application on kernels
-> from 2.6.39 to 4.6.  The upstream hash for the fix to mainline is:
->
-> commit 0a475ef4226e305bdcffe12b401ca1eab06c4913
-> Author: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date:   Wed Jan 4 15:59:37 2017 +0200
->
->     IB/srp: fix invalid indirect_sg_entries parameter value
->
-
-Israel,
-please take it for earlier kernels as well.
-
-Max.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SXQgaXMgaW4gRGF2ZSdzIHRyZWU6DQoNCmNvbW1pdCA1ZmU5ZGVjMGQwNDU0MzdlNDhmMTEyYjhm
+YTcwNTE5N2JkN2JjM2MwDQpBdXRob3I6IEVsaSBDb2hlbiA8ZWxpQG1lbGxhbm94LmNvbT4NCkRh
+dGU6ICAgVHVlIEphbiAzIDIzOjU1OjI1IDIwMTcgKzAyMDANCg0KICAgIElCL21seDU6IFVzZSBi
+bHVlIGZsYW1lIHJlZ2lzdGVyIGFsbG9jYXRvciBpbiBtbHg1X2liDQogICAgDQogICAgTWFrZSB1
+c2Ugb2YgdGhlIGJsdWUgZmxhbWUgcmVnaXN0ZXJzIGFsbG9jYXRvciBhdCBtbHg1X2liLiBTaW5j
+ZSBibHVlDQogICAgZmxhbWUgd2FzIG5vdCByZWFsbHkgc3VwcG9ydGVkIHdlIHJlbW92ZSBhbGwg
+dGhlIGNvZGUgdGhhdCBpcyByZWxhdGVkIHRvDQogICAgYmx1ZSBmbGFtZSBhbmQgd2UgbGV0IGFs
+bCBjb25zdW1lcnMgdG8gdXNlIHRoZSBzYW1lIGJsdWUgZmxhbWUgcmVnaXN0ZXIuDQogICAgT25j
+ZSBibHVlIGZsYW1lIGlzIHN1cHBvcnRlZCB3ZSB3aWxsIGFkZCB0aGUgY29kZS4gQXMgcGFydCBv
+ZiB0aGlzIHBhdGNoDQogICAgd2UgYWxzbyBtb3ZlIHRoZSBkZWZpbml0aW9uIG9mIHN0cnVjdCBt
+bHg1X2JmIHRvIG1seDVfaWIuaCBhcyBpdCBpcyBvbmx5DQogICAgdXNlZCBieSBtbHg1X2liLg0K
+ICAgIA0KICAgIFNpZ25lZC1vZmYtYnk6IEVsaSBDb2hlbiA8ZWxpQG1lbGxhbm94LmNvbT4NCiAg
+ICBSZXZpZXdlZC1ieTogTWF0YW4gQmFyYWsgPG1hdGFuYkBtZWxsYW5veC5jb20+DQogICAgU2ln
+bmVkLW9mZi1ieTogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+DQogICAgU2lnbmVk
+LW9mZi1ieTogU2FlZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQoNCi0tLS0tT3Jp
+Z2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEBy
+ZWRoYXQuY29tXSANClNlbnQ6IFR1ZXNkYXksIEphbnVhcnkgMjQsIDIwMTcgMTA6NDUgQU0NClRv
+OiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+OyBEYXZpZCBNaWxsZXIgPGRh
+dmVtQHJlZGhhdC5jb20+DQpDYzogZWxpQGRldi5tZWxsYW5veC5jby5pbDsgU2FlZWQgTWFoYW1l
+ZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+OyBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1y
+ZG1hQHZnZXIua2VybmVsLm9yZzsgRWxpIENvaGVuIDxlbGlAbWVsbGFub3guY29tPjsgTWF0YW4g
+QmFyYWsgPG1hdGFuYkBtZWxsYW5veC5jb20+DQpTdWJqZWN0OiBSZTogW2Zvci1uZXh0IDA3LzEw
+XSBJQi9tbHg1OiBVc2UgYmx1ZSBmbGFtZSByZWdpc3RlciBhbGxvY2F0b3IgaW4gbWx4NV9pYg0K
+DQpPbiBTdW4sIDIwMTctMDEtMDggYXQgMDg6MjIgKzAyMDAsIExlb24gUm9tYW5vdnNreSB3cm90
+ZToNCj4gT24gRnJpLCBKYW4gMDYsIDIwMTcgYXQgMTE6MTE6MzFBTSAtMDUwMCwgRGF2aWQgTWls
+bGVyIHdyb3RlOg0KPiA+IA0KPiA+IEZyb206IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxh
+bm94LmNvbT4NCj4gPiBEYXRlOiBGcmksIDYgSmFuIDIwMTcgMDg6MDY6MDkgKzAyMDANCj4gPiAN
+Cj4gPiA+IA0KPiA+ID4gT24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMDM6MDc6MzFQTSAtMDUwMCwg
+RGF2aWQgTWlsbGVyIHdyb3RlOg0KPiA+ID4gPiANCj4gPiA+ID4gRnJvbTogRWxpIENvaGVuIDxl
+bGlAZGV2Lm1lbGxhbm94LmNvLmlsPg0KPiA+ID4gPiBEYXRlOiBUaHUsIDUgSmFuIDIwMTcgMTQ6
+MDM6MTggLTA2MDANCj4gPiA+ID4gDQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gSWYgbmVjZXNzYXJ5
+IEkgY2FuIG1ha2Ugc3VyZSBpdCBidWlsZHMgb24gMzIgYml0cyBhcyB3ZWxsLg0KPiA+ID4gPiAN
+Cj4gPiA+ID4gUGxlYXNlIGRvLg0KPiA+ID4gDQo+ID4gPiBEYXZlLA0KPiA+ID4gDQo+ID4gPiBJ
+J20gZmFpbGluZyB0byB1bmRlcnN0YW5kIHRoZSBiZW5lZml0cyBvZiBidWlsZGluZyBtbHg1IG9u
+IDMyIA0KPiA+ID4gYml0cywgYW5kIHNlZSBvbmx5IGRpc2FkdmFudGFnZXM6DQo+ID4gPiDCoCog
+SXQgaXMgYWN0dWFsIGRlYWQgY29kZSB3aXRob3V0IHRlc3QgY292ZXJhZ2UuDQo+ID4gPiDCoCog
+SXQgbWlzbGVhZHMgcmV2aWV3ZXJzL2N1c3RvbWVycyBieSBzZWVpbmcgY29kZSBmb3IgMzIgYml0
+cy4NCj4gPiA+IMKgKiBJdCBhZGRzIGNvbXBpbGF0aW9uIHRpbWUgZm9yIDMyIGJpdHMgcGxhdGZv
+cm1zIGFuZCAicHVuaXNoZXMiDQo+ID4gPiB0aGVtDQo+ID4gPiDCoMKgwqBmb3Igbm90IHJlbGV2
+YW50IGZvciB0aGVtIGRyaXZlci4NCj4gPiA+IA0KPiA+ID4gV2h5IGRvIHlvdSBjYWxsIHJlbW92
+aW5nIGFsbCB0aGF0IGFzIGEgInJlZ3Jlc3Npb24iPw0KPiA+IA0KPiA+IFdlIGhhdmUgdGhpcyB0
+aGluZyBjYWxsZWQgIkNPTkZJR19DT01QSUxFX1RFU1QiLCBpdCBoYXMgdG9ucyBvZiANCj4gPiB2
+YWx1ZSwgcGVyaGFwcyB5b3UndmUgc2VlbiBpdCBiZWZvcmU/DQo+IA0KPiBUaGFua3MgRGF2aWQs
+DQo+IEkgc2VlIHlvdXIgcG9pbnQuDQoNCldoYXQncyB0aGUgc3RhdHVzIHVwZGF0ZSBvbiB0aGlz
+LiDCoFVubGVzcyBJJ20gbWlzc2luZyBpdCBpbiBteSByZG1hIG1haWxpbmcgbGlzdCAod2hpY2gg
+aXMgYWx3YXlzIHBvc3NpYmxlIGlmIEkgc2NhbiBzdWJqZWN0cyB0b28gZmFzdCksIEkgZG9uJ3Qg
+c2VlIGEgdjIgb2YgdGhpcyBwdWxsIHJlcXVlc3QsIGJ1dCBJIGFsc28gZG9uJ3Qgc2VlIHRoYXQg
+RGF2aWQncyBjb25jZXJucyBoYXZlIGJlZW4gYWRkcmVzc2VkLCBub3IgdGhhdCBoZSBoYXMgcHVs
+bGVkIHRoaXMuDQoNCi0tDQpEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQrCoCDC
+oCBHUEcgS2V5SUQ6IEI4MjZBMzMzMEU1NzJGREQNCsKgIMKgDQpLZXkgZmluZ2VycHJpbnQgPSBB
+RTZCIDFCREEgMTIyQiAyM0I0IDI2NUIgwqAxMjc0IEI4MjYgQTMzMyAwRTU3IDJGREQNCg==
