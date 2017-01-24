@@ -1,29 +1,43 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v3 00/37] IB: Optimize DMA mapping
-Date: Tue, 24 Jan 2017 09:49:27 -0800
-Message-ID: <20170124174927.GA22799@infradead.org>
-References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
- <1485279487.43764.38.camel@redhat.com>
- <1485279791.2715.3.camel@sandisk.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 5/5] IB: Query port through the core instead
+ of directly calling the driver handler
+Date: Tue, 24 Jan 2017 09:52:56 -0800
+Message-ID: <419a6c69-8756-7a1b-2d18-4c8195158fc2@vmware.com>
+References: <20170124110239.31555-1-leon@kernel.org>
+ <20170124110239.31555-6-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1485279791.2715.3.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170124110239.31555-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 05:43:26PM +0000, Bart Van Assche wrote:
-> Waiting with a big patch series until the end of the merge window is the
-> traditional approach. A quote from https://lwn.net/Articles/585782/:
-> "Shortly after the -rc1 release is a good time for this, though it is best
-> to agree on this timing ahead of time." This makes me wonder whether we
-> should contact Linus before the next merge window opens?
+On Tue, Jan 24, 2017 at 1:02:39PM +0200, Leon Romanovsky wrote:
+> From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Change the drivers to call ib_query_port in their get port
+> immutable handler instead of their own query port handler.
+> 
+> Doing this required to set the core cap flags of this device
+> before the ib_query_port call is made, since the IB core might
+> need these caps to serve the port query.
+> 
+> Drivers are ensured by the IB core that the port attributes passed
+> to the port query verb implementation are zero, and hence we
+> removed the zeroing from the drivers.
+> 
+> This patch doesn't add any new functionality.
+> 
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Yes.  Keep it in a separate branch that still goes into linux-next,
-send him a headsup with the first pull request.
+vmw_pvrdma changes look fine.
+
+Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
