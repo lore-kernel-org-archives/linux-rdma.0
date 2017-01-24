@@ -1,134 +1,215 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for bnxt_re V4 20/21] RDMA/bnxt_re: Add QP event handling
-Date: Tue, 24 Jan 2017 14:20:08 +0200
-Message-ID: <20170124122008.GH6005@mtr-leonro.local>
-References: <1482320530-5344-1-git-send-email-selvin.xavier@broadcom.com>
- <1482320530-5344-21-git-send-email-selvin.xavier@broadcom.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [PATCH] pci: drop link_reset
+Date: Tue, 24 Jan 2017 17:00:34 +0200
+Message-ID: <20170124165945-mutt-send-email-mst@kernel.org>
+References: <1484775540-8405-1-git-send-email-mst@redhat.com>
+ <1484785188.2406.73.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="lrvsYIebpInmECXG"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1482320530-5344-21-git-send-email-selvin.xavier@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@broadcom.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, michael.chan@broadcom.com, Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+In-Reply-To: <1484785188.2406.73.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Linas Vepstas <linasvepstas@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Jonathan Corbet <corbet@lwn.net>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jan 18, 2017 at 07:19:48PM -0500, Doug Ledford wrote:
+> On Wed, 2017-01-18 at 23:39 +0200, Michael S. Tsirkin wrote:
+> > No hardware seems to actually call link_reset, and
+> > no driver implements it as more than a nop stub.
+> > 
+> > This drops the mentions of the callback from everywhere.
+> > It's dropped from the documentation as well, but
+> > the doc really needs to be updated to reflect
+> > reality better (e.g. on pcie slot reset is the link reset).
+> > 
+> > This will be done in a later patch.
+> > 
+> > Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> 
+> This is going to conflict with the two patches I have in my for-next
+> branch related to this same thing (it drops the stubs from qib and
+> hfi1).  It would be easiest if I just added this to my for-next and
+> fixed up the conflicts prior to submission.
+> 
+> > ---
+> >  Documentation/PCI/pci-error-recovery.txt | 24 +++-------------------
+> > --
+> >  drivers/infiniband/hw/hfi1/pcie.c        | 10 ----------
+> >  drivers/infiniband/hw/qib/qib_pcie.c     |  8 --------
+> >  drivers/media/pci/ngene/ngene-cards.c    |  7 -------
+> >  include/linux/pci.h                      |  3 ---
+> >  5 files changed, 3 insertions(+), 49 deletions(-)
+> > 
+> > diff --git a/Documentation/PCI/pci-error-recovery.txt
+> > b/Documentation/PCI/pci-error-recovery.txt
+> > index ac26869..da3b217 100644
+> > --- a/Documentation/PCI/pci-error-recovery.txt
+> > +++ b/Documentation/PCI/pci-error-recovery.txt
+> > @@ -78,7 +78,6 @@ struct pci_error_handlers
+> >  {
+> >  	int (*error_detected)(struct pci_dev *dev, enum
+> > pci_channel_state);
+> >  	int (*mmio_enabled)(struct pci_dev *dev);
+> > -	int (*link_reset)(struct pci_dev *dev);
+> >  	int (*slot_reset)(struct pci_dev *dev);
+> >  	void (*resume)(struct pci_dev *dev);
+> >  };
+> > @@ -104,8 +103,7 @@ if it implements any, it must implement
+> > error_detected(). If a callback
+> >  is not implemented, the corresponding feature is considered
+> > unsupported.
+> >  For example, if mmio_enabled() and resume() aren't there, then it
+> >  is assumed that the driver is not doing any direct recovery and
+> > requires
+> > -a slot reset. If link_reset() is not implemented, the card is
+> > assumed to
+> > -not care about link resets. Typically a driver will want to know
+> > about
+> > +a slot reset.  Typically a driver will want to know about
+> >  a slot_reset().
+> >  
+> >  The actual steps taken by a platform to recover from a PCI error
+> > @@ -232,25 +230,9 @@ proceeds to STEP 4 (Slot Reset)
+> >  
+> >  STEP 3: Link Reset
+> >  ------------------
+> > -The platform resets the link, and then calls the link_reset()
+> > callback
+> > -on all affected device drivers.  This is a PCI-Express specific
+> > state
+> > +The platform resets the link.  This is a PCI-Express specific step
+> >  and is done whenever a non-fatal error has been detected that can be
+> > -"solved" by resetting the link. This call informs the driver of the
+> > -reset and the driver should check to see if the device appears to be
+> > -in working condition.
+> > -
+> > -The driver is not supposed to restart normal driver I/O operations
+> > -at this point.  It should limit itself to "probing" the device to
+> > -check its recoverability status. If all is right, then the platform
+> > -will call resume() once all drivers have ack'd link_reset().
+> > -
+> > -	Result codes:
+> > -		(identical to STEP 3 (MMIO Enabled)
+> > -
+> > -The platform then proceeds to either STEP 4 (Slot Reset) or STEP 5
+> > -(Resume Operations).
+> > -
+> > ->>> The current powerpc implementation does not implement this
+> > callback.
+> > +"solved" by resetting the link.
+> >  
+> >  STEP 4: Slot Reset
+> >  ------------------
+> > diff --git a/drivers/infiniband/hw/hfi1/pcie.c
+> > b/drivers/infiniband/hw/hfi1/pcie.c
+> > index 4ac8f33..ebd941f 100644
+> > --- a/drivers/infiniband/hw/hfi1/pcie.c
+> > +++ b/drivers/infiniband/hw/hfi1/pcie.c
+> > @@ -598,15 +598,6 @@ pci_slot_reset(struct pci_dev *pdev)
+> >  	return PCI_ERS_RESULT_CAN_RECOVER;
+> >  }
+> >  
+> > -static pci_ers_result_t
+> > -pci_link_reset(struct pci_dev *pdev)
+> > -{
+> > -	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
+> > -
+> > -	dd_dev_info(dd, "HFI1 link_reset function called,
+> > ignored\n");
+> > -	return PCI_ERS_RESULT_CAN_RECOVER;
+> > -}
+> > -
+> >  static void
+> >  pci_resume(struct pci_dev *pdev)
+> >  {
+> > @@ -625,7 +616,6 @@ pci_resume(struct pci_dev *pdev)
+> >  const struct pci_error_handlers hfi1_pci_err_handler = {
+> >  	.error_detected = pci_error_detected,
+> >  	.mmio_enabled = pci_mmio_enabled,
+> > -	.link_reset = pci_link_reset,
+> >  	.slot_reset = pci_slot_reset,
+> >  	.resume = pci_resume,
+> >  };
+> > diff --git a/drivers/infiniband/hw/qib/qib_pcie.c
+> > b/drivers/infiniband/hw/qib/qib_pcie.c
+> > index 6abe1c6..c379b83 100644
+> > --- a/drivers/infiniband/hw/qib/qib_pcie.c
+> > +++ b/drivers/infiniband/hw/qib/qib_pcie.c
+> > @@ -682,13 +682,6 @@ qib_pci_slot_reset(struct pci_dev *pdev)
+> >  	return PCI_ERS_RESULT_CAN_RECOVER;
+> >  }
+> >  
+> > -static pci_ers_result_t
+> > -qib_pci_link_reset(struct pci_dev *pdev)
+> > -{
+> > -	qib_devinfo(pdev, "QIB link_reset function called,
+> > ignored\n");
+> > -	return PCI_ERS_RESULT_CAN_RECOVER;
+> > -}
+> > -
+> >  static void
+> >  qib_pci_resume(struct pci_dev *pdev)
+> >  {
+> > @@ -707,7 +700,6 @@ qib_pci_resume(struct pci_dev *pdev)
+> >  const struct pci_error_handlers qib_pci_err_handler = {
+> >  	.error_detected = qib_pci_error_detected,
+> >  	.mmio_enabled = qib_pci_mmio_enabled,
+> > -	.link_reset = qib_pci_link_reset,
+> >  	.slot_reset = qib_pci_slot_reset,
+> >  	.resume = qib_pci_resume,
+> >  };
+> > diff --git a/drivers/media/pci/ngene/ngene-cards.c
+> > b/drivers/media/pci/ngene/ngene-cards.c
+> > index 423e8c8..8438c1c 100644
+> > --- a/drivers/media/pci/ngene/ngene-cards.c
+> > +++ b/drivers/media/pci/ngene/ngene-cards.c
+> > @@ -781,12 +781,6 @@ static pci_ers_result_t
+> > ngene_error_detected(struct pci_dev *dev,
+> >  	return PCI_ERS_RESULT_CAN_RECOVER;
+> >  }
+> >  
+> > -static pci_ers_result_t ngene_link_reset(struct pci_dev *dev)
+> > -{
+> > -	printk(KERN_INFO DEVICE_NAME ": link reset\n");
+> > -	return 0;
+> > -}
+> > -
+> >  static pci_ers_result_t ngene_slot_reset(struct pci_dev *dev)
+> >  {
+> >  	printk(KERN_INFO DEVICE_NAME ": slot reset\n");
+> > @@ -800,7 +794,6 @@ static void ngene_resume(struct pci_dev *dev)
+> >  
+> >  static const struct pci_error_handlers ngene_errors = {
+> >  	.error_detected = ngene_error_detected,
+> > -	.link_reset = ngene_link_reset,
+> >  	.slot_reset = ngene_slot_reset,
+> >  	.resume = ngene_resume,
+> >  };
+> > diff --git a/include/linux/pci.h b/include/linux/pci.h
+> > index 30d6c16..316379c 100644
+> > --- a/include/linux/pci.h
+> > +++ b/include/linux/pci.h
+> > @@ -661,9 +661,6 @@ struct pci_error_handlers {
+> >  	/* MMIO has been re-enabled, but not DMA */
+> >  	pci_ers_result_t (*mmio_enabled)(struct pci_dev *dev);
+> >  
+> > -	/* PCI Express link has been reset */
+> > -	pci_ers_result_t (*link_reset)(struct pci_dev *dev);
+> > -
+> >  	/* PCI slot has been reset */
+> >  	pci_ers_result_t (*slot_reset)(struct pci_dev *dev);
+> >  
+> -- 
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>    
+> Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
---lrvsYIebpInmECXG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Linus resolves such conflicts easily, but if Bjorn acks,
+that's fine with me too.
 
-On Wed, Dec 21, 2016 at 03:42:09AM -0800, Selvin Xavier wrote:
-> Implements callback handler for processing Async events related to a QP.
-> This patch also implements the control path command completion handling.
->
-> v3: Removes unwanted braces
->
-> Signed-off-by: Eddie Wai <eddie.wai@broadcom.com>
-> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
-> Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> ---
->  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 47 ++++++++++++++++++++++++++++++
->  1 file changed, 47 insertions(+)
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-> index 9144b5a..a000397 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-> @@ -257,6 +257,44 @@ static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
->  	return 0;
->  }
->
-> +static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
-> +				       struct creq_qp_event *qp_event)
-> +{
-> +	struct bnxt_qplib_crsq *crsq = &rcfw->crsq;
-> +	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
-> +	struct bnxt_qplib_crsqe *crsqe;
-> +	u16 cbit, cookie, blocked = 0;
-> +	unsigned long flags;
-> +	u32 sw_cons;
-> +
-> +	switch (qp_event->event) {
-> +	case CREQ_QP_EVENT_EVENT_QP_ERROR_NOTIFICATION:
-> +		break;
-
-it looks like if( ... ) return 0;
-
-> +	default:
-> +		/* Command Response */
-> +		spin_lock_irqsave(&cmdq->lock, flags);
-> +		sw_cons = HWQ_CMP(crsq->cons, crsq);
-> +		crsqe = &crsq->crsq[sw_cons];
-> +		crsq->cons++;
-> +		memcpy(&crsqe->qp_event, qp_event, sizeof(crsqe->qp_event));
-> +
-> +		cookie = le16_to_cpu(crsqe->qp_event.cookie);
-> +		blocked = cookie & RCFW_CMD_IS_BLOCKING;
-> +		cookie &= RCFW_MAX_COOKIE_VALUE;
-> +		cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
-> +		if (!test_and_clear_bit(cbit, rcfw->cmdq_bitmap))
-> +			dev_warn(&rcfw->pdev->dev,
-> +				 "QPLIB: CMD bit %d was not requested", cbit);
-> +
-> +		cmdq->cons += crsqe->req_size;
-> +		spin_unlock_irqrestore(&cmdq->lock, flags);
-> +		if (!blocked)
-> +			wake_up(&rcfw->waitq);
-> +		break;
-> +	}
-> +	return 0;
-> +}
-> +
->  /* SP - CREQ Completion handlers */
->  static void bnxt_qplib_service_creq(unsigned long data)
->  {
-> @@ -280,6 +318,15 @@ static void bnxt_qplib_service_creq(unsigned long data)
->  		type = creqe->type & CREQ_BASE_TYPE_MASK;
->  		switch (type) {
->  		case CREQ_BASE_TYPE_QP_EVENT:
-> +			if (!bnxt_qplib_process_qp_event
-> +			    (rcfw, (struct creq_qp_event *)creqe))
-> +				rcfw->creq_qp_event_processed++;
-> +			else {
-> +				dev_warn(&rcfw->pdev->dev, "QPLIB: crsqe with");
-> +				dev_warn(&rcfw->pdev->dev,
-> +					 "QPLIB: type = 0x%x not handled",
-> +					 type);
-> +			}
->  			break;
->  		case CREQ_BASE_TYPE_FUNC_EVENT:
->  			if (!bnxt_qplib_process_func_event
-> --
-> 2.5.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---lrvsYIebpInmECXG
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliHRngACgkQ5GN7iDZy
-WKeung//bHske13aUv0nAQzEuYiobnPFFn+xcCuukKe1JBUujqVVnR3tI5lJeYAr
-oqcaPGzBs+jzNu55lxfjS9arsSBufqG5De/pxVsSnZA9oBztOFWAqPA4/F3E0Ruo
-W1rv9YWH27RizDyd//YZfI+Ej4iYEdcM8mskeHunn9xCOe7yBGTee2e2befSNERL
-LpapZRcbGntjXd7IUGijiOCd2PzHX5NXB6coc2T7VyP0xj+LyhtTY7bpcU0YxZrM
-YXwXWHgaCVjOHzZjK4acXx1CeDzb4YKRT8n3tDHs205Ihq59CS0mRWplG568KMZV
-nJDvFR7DxQgt0CVz8YIF+pcTJHJYJLXhSg49c/k36cKDPg8R6OefMxzmq9cFvoG+
-Nu+SmOFymy8GzJIngXXef9O+hEyCnmqe9v6M5ohJCHQNShYyQ6u5DmRaJ2CSS/Sk
-RZzCZcG5MRP4+4HgIgkQ7amAfbL0Gn62YkXHhGjQDu8oMQ3Pljfoztk//e+gsQtG
-FOlrYYiWvGxg1thHXhilMdh5JdCK2T6nz8v8BA6Wcbl5OVOnAKQP46fQKqyScPIL
-6l543Fv4axGj2GkJDaxvgGj5S1XXZIZ5yEXUixpAXaoL34rVfVpstIuq+5VlFPgG
-tj1eZMm+RL1kBe7hqrAxQMcCmZGgr1qxGYmzGTnmzLg0PucKuIY=
-=zY8F
------END PGP SIGNATURE-----
-
---lrvsYIebpInmECXG--
+-- 
+MST
