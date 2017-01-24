@@ -1,28 +1,31 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 3/5] qedr: remove CQ spinlock from RDMA CM completion
- handlers
-Date: Tue, 24 Jan 2017 09:02:55 +0000
-Message-ID: <SN1PR07MB2207B69B469AC2113C757E6CF8750@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
- <1485185187-18689-4-git-send-email-Ram.Amrani@qlogic.com>
- <20170123191313.GB6005@mtr-leonro.local>
+From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2] qedr: add qedr-abi.h to Kbuild
+Date: Tue, 24 Jan 2017 12:01:31 +0200
+Message-ID: <1485252091-9370-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170123191313.GB6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Don't you need to remove this lock from struct qedr_cq too?
+Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+---
+ include/uapi/rdma/Kbuild | 1 +
+ 1 file changed, 1 insertion(+)
 
-The CQ lock has other uses so it cannot be deleted.
-
-Thanks,
-Ram
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index 82bdf56..bb68cb1 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -16,3 +16,4 @@ header-y += nes-abi.h
+ header-y += ocrdma-abi.h
+ header-y += hns-abi.h
+ header-y += vmw_pvrdma-abi.h
++header-y += qedr-abi.h
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
