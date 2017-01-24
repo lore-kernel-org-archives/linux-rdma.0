@@ -1,58 +1,64 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/ipoib: Remove the unnecessary error check
-Date: Tue, 24 Jan 2017 16:22:51 -0500
-Message-ID: <1485292971.43764.73.camel@redhat.com>
-References: <1484799366-3463-1-git-send-email-yanjun.zhu@oracle.com>
-         <20170119083507.GO32481@mtr-leonro.local>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] i40iw: Set maj_err and min_err in i40iw_sc_cqp_create
+Date: Tue, 24 Jan 2017 16:23:54 -0500
+Message-ID: <1485293034.43764.75.camel@redhat.com>
+References: <1484761709-6072-1-git-send-email-shiraz.saleem@intel.com>
+         <20170118195433.GA17688@yuval-lap>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-8Sn9TpptISBiOn5mCyJE"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170119083507.GO32481-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+        protocol="application/pgp-signature"; boundary="=-KzEf+S68Z1Smj0dgO6qS"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170118195433.GA17688@yuval-lap>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>, Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, dan.carpenter@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-8Sn9TpptISBiOn5mCyJE
+--=-KzEf+S68Z1Smj0dgO6qS
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2017-01-19 at 10:35 +0200, Leon Romanovsky wrote:
-> On Wed, Jan 18, 2017 at 11:16:06PM -0500, Zhu Yanjun wrote:
+On Wed, 2017-01-18 at 21:54 +0200, Yuval Shaia wrote:
+> On Wed, Jan 18, 2017 at 11:48:29AM -0600, Shiraz Saleem wrote:
 > >=20
-> > The function ipoib_mcast_start_thread/ipoib_ib_dev_up always return
-> > zero.
-> > As such, in the function ipoib_open, err_stop will never be
-> > reached.
-> > So remove this err_stop and change the return type of the function
-> > ipoib_mcast_start_thread/ipoib_ib_dev_up to void.
+> > Set maj_err and min_err in i40iw_sc_cqp_create so that it
+> > returns correct values for all return cases. This also
+> > addresses an uninitialized variable warning for maj_err and
+> > min_err in i40iw_create_cqp.
 > >=20
-> > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > Reported-by: Yuval Shaia <yuval.shaia@oracle.com>
+> > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 > > ---
-> > =C2=A0drivers/infiniband/ulp/ipoib/ipoib.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 4 ++--
-> > =C2=A0drivers/infiniband/ulp/ipoib/ipoib_ib.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0| 6 +++---
-> > =C2=A0drivers/infiniband/ulp/ipoib/ipoib_main.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0| 6 +-----
-> > =C2=A0drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 4 +---
-> > =C2=A04 files changed, 7 insertions(+), 13 deletions(-)
+> > =C2=A0drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 3 +++
+> > =C2=A01 file changed, 3 insertions(+)
 > >=20
+> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> > b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> > index 2c4b4d0..47a2529 100644
+> > --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> > +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+> > @@ -315,6 +315,9 @@ static enum i40iw_status_code
+> > i40iw_sc_cqp_create(struct i40iw_sc_cqp *cqp,
+> > =C2=A0	u32 cnt =3D 0, p1, p2, val =3D 0, err_code;
+> > =C2=A0	enum i40iw_status_code ret_code;
+> > =C2=A0
+> > +	*maj_err =3D 0;
+> > +	*min_err =3D 0;
+> > +
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
 
-Thanks, added to -next.
+Thanks, applied to -next.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
 =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-8Sn9TpptISBiOn5mCyJE
+--=-KzEf+S68Z1Smj0dgO6qS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -60,24 +66,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh8WrAAoJELgmozMOVy/dxtoQAJbWZcTnB3clzvGk0TsBL9c+
-8yRSHEiqKiMuj7p6TLHxgKbpBgM6A9fPffLd4s812lbm+U9vYXNHnRZOYEFox3O3
-12gsOqTz+Wdfe1bVkg0F42q3D3oVj1zFiXKR1FjcaFy9d/IwngN+4blYzw1KoYMV
-nMdlCnmbR0gxUUbBGJCWpz5SgqyyHdARJChRrFqz3TfEw7KR20Zg//HRasVrzkTH
-x20VeSHG5sh8KmU25NhuBFMXnuLDt5Uc/x3x8/Aun7sMng4TcRXM1XBvEzS2X2gy
-R0liOTozb8rcxs2LJwPZG7g7VntafEKbrYrrbCqN0XJ9uVVgs9T6YJBUiAV0N5kT
-YuAM7clPVOmWrRGgt+1cNCRTeUUvDg9x9V2WoHvRQbMar4jcQhH8uCLhfuLDzm0C
-2LeZfdGpCYP7Tjzlwup2HJLJEd8SP/eFSGXMwu8SnCoD22ObJT6GteYzcdb9r4+/
-b3femaNEm9aTh5oNkgBcid0JQfXEKOn4sFFyFFh5wHCahPjD5xvW3uEugzNxc/N4
-Mv7AQgPu5fRYjUwD0DRQZ9H32f6sS7oau+Pn6MZSEP8LTfpazg04TWBq99IrpR6+
-PbAww9k1+TnubHsQKCp/qj87HhMDqH2XFzANulUW5NTafYUZ+iiBO5Wp0d0m86X9
-WT9NMS+sqKTQdyzP+6ie
-=B+L0
+iQIcBAABCAAGBQJYh8XqAAoJELgmozMOVy/dUCoP+gL/yw8qLoy1zjTKcldszHk5
+ddmYEZYgYSO+fuGp6/NbuRNhH2epsCCIsqeqopffK+H0x2HuEXaicM8BjS1VDFdJ
+ixm/mAvvzsoRlWT8bz8ZlilpVZVeytEY2fBVJKJTnfoU34FmBNFyAgdyz0wsM1C7
+7Ce4iy2/ZKakX/lt96slarkof2Cl1brjQj2fSIHblWl/WCMDSu2Jfj9Yz90emMCY
+ZC0i6J0ifBideS6ctgaM9k2hqlfK9tkg554mavAGQcrvCwaFS87g4c4D0P7+i+Lr
+/MH4wX3iXJKU/iOauYWM0PHeznq56MVZr2HRHA0j1L0vc/M8Kyf5hf3KSMn44oxd
+64mK7z5UN+LhCfNITC4PcKt1HwtEmfoVtO9gWkB7UaVi6wyWDz6xNd3BH2REm5PU
+bV925wO0YJqBpp8oGCwBi1GoI3kNrL8nNRIsmov0ykmztD3TuurdRCoUWEziChhG
+jZBQXSqPXxU8qHtpU6ArsouLu2nsy6a4AOcAfjZpPZje+GN4tyrUHW8sFAXENJER
+avGJOfKTp2KBB72WIDfkaZdMaE3gu+zWIZdf1ovr3g2WO4WLtEfUiawh/1UOwebj
+z29TGdW86MnN1x6BySTSVDPChKbxBEz1eaGPZp8e5PWA9qkX8t2JRDPrkwGdjDLW
+65FrTEOKx8mopy99i5fb
+=SaX2
 -----END PGP SIGNATURE-----
 
---=-8Sn9TpptISBiOn5mCyJE--
+--=-KzEf+S68Z1Smj0dgO6qS--
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
