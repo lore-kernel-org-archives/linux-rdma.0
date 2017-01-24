@@ -1,40 +1,38 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch v2] i40iw: fix some indenting in i40iw_sc_vsi_init()
-Date: Tue, 24 Jan 2017 16:29:59 -0500
-Message-ID: <1485293399.43764.81.camel@redhat.com>
-References: <20170109194127.GA42156@ssaleem-MOBL4.amr.corp.intel.com>
-         <20170109201216.GA3055@mwanda>
-         <20170109203112.GA42952@ssaleem-MOBL4.amr.corp.intel.com>
+Subject: Re: [PATCHv3 1/1] RDMA/core: create struct ib_port_cache
+Date: Tue, 24 Jan 2017 16:32:01 -0500
+Message-ID: <1485293521.43764.83.camel@redhat.com>
+References: <CAMGffEn-fOOe7s2rniqwcaocoV+jxkeJDHZ6WYJkkXi+CBQbEA@mail.gmail.com>
+         <b1fdf011-dc25-ad63-b223-0700f6e90bc6@profitbricks.com>
+         <20170113150103.GP20392@mtr-leonro.local>
+         <2617abae-686e-c8c6-799a-8742156fcd08@profitbricks.com>
+         <20170115085014.GB20392@mtr-leonro.local>
+         <f08926e7-54c1-fa48-2105-308f82ddcc23@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-WNqUor+1v3nd6x5ep6DU"
+        protocol="application/pgp-signature"; boundary="=-MCrl+xaGDc+ohC81X0jw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170109203112.GA42952-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <f08926e7-54c1-fa48-2105-308f82ddcc23-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-WNqUor+1v3nd6x5ep6DU
+--=-MCrl+xaGDc+ohC81X0jw
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2017-01-09 at 14:31 -0600, Shiraz Saleem wrote:
-> On Mon, Jan 09, 2017 at 11:12:16PM +0300, Dan Carpenter wrote:
-> >=20
-> > The debug printk was indented more than it should have been and we
-> > can remove an unnecessary line break.
-> >=20
-> > Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > v2: I accidentally had a tab instead of a space.
+On Tue, 2017-01-17 at 10:11 +0100, Jack Wang wrote:
+> As Jason suggested, we have 4 elements for per port arrays,
+> it's better to have a separate structure to represent them.
 >=20
-> Thank you for the patch Dan.
+> It simplifies code a bit, ~ 30 lines of code less :)
 >=20
-> Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Reviewed-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
-Applied v2 of the patch, thanks.
+v3 of your patch was applied, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -42,7 +40,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-WNqUor+1v3nd6x5ep6DU
+--=-MCrl+xaGDc+ohC81X0jw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -50,22 +48,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh8dXAAoJELgmozMOVy/d4vUP/2r9MLV9hMt5maB9XC0/QjhM
-0Raer7mRBlyGm9tc5HYmLH9sF1aVH7T1wXVHGH87JeW57CweeEVKBOQ9sBXYAuam
-t2aBDbF/lZptBvk419vHGW40q3ys2ndKEoEYwpStpDIW4+6uK83v51KgJ4dH9JFX
-eEv0TVARJtfIUGoxUtnuKLGUK/0U61CTFiH52LLv+NS6babFi3U45hnnQPeuMIJr
-37z7XJhNVE8MYmKR+3hCnP3zS1x79e/wx7UJ2yLrt8VkK+FShYzSUdFEWWThhaME
-MXuGXwhFtzer7KBtZhVIzcfdBMXXTBI4g0LcEhgkWkDyT6567vwgVMjF93NPjVaV
-IJoHBjSoLJiAjKKyVz7b8Tx3SBcU5gzEkqqQ2oKe+sq3SYG0Nz7W+5z8fCBZ3Gtp
-UCBD593OuTRKmvYd8CvnUSXILoXQjr35d+IO53JtuFzLX9BQfrNBuLrK4bnxR+3j
-zT3b4/FkrhmUoyB/EWsBIbj7cjwFzvmZvBjyN/TkAYjOMOC3Mdn0UvBZ/k6ppwfw
-QgA1WY0oJC8870h8QzdfbuDTTqBbYsf7kuVeLIziWW/snjrHjmKXySKlZaQE0duV
-bHOcsI24Pol27sf77s2StaVsMViaiev5A+hcE60hWrxfJr09Fl+sWaF0wGjGiz4f
-I02wmOHxGi3LemdoPihf
-=Ch9G
+iQIcBAABCAAGBQJYh8fRAAoJELgmozMOVy/dgJcP/06pQtVnS8zN0DRYhjimC0OG
+XseDe96itwYCSzv8RN/dfduHzTSetZ9uiJwuxMRmvrsael50qKmJ4P8cXhYyVEbl
+Ex5JUbVY6RS6QNNW1McwEwhvksw78onqpdhzUn2DApaN/wyfpnx7pHvyW85+d1vH
+nRiVdxJ0GAgnJt5V+61zirglaM0b/Juux8DJ8Brs5DmOBS6SSM0ZO3dT6mY6D4HR
+6Env16WcGAQAduq/7oyZLOlwVZfPGMjKXhM1EL6BM+7bc5jPfiRHLnWTCyBXeGZa
+Q9N3ks2uEpNjpDjNftCVO8oTY+A2STnp+tTmMf7mb/9HxQ5Cn6S7oA3HWP1CSmRP
+RaiX/6wvFwskuMANwsCQa0bN8kEyp+vGmdkCVgV1a1KBNcPCLhOptwf/0wv6eEZg
+yd5B88dTxkA2bovT/rWihZHDTefdLXH/AVgO1KZYLSVMneG+W7pU/hYkBsgWwboH
+QWNAtXeGS2Ueq6/WxpyH7vENW7xOj34Yv3CgqkJhM6vqNQ+FAM2BkWMcG6Lg4yVn
+4t8vJ3ws/Dh70MepnFsfGG/IT7SqyxJ2C/CAFXpblzlZZw+57w6Mbb/3a8url8SW
+GD+iBJG8EMpno02YMtDKtHIz2Y4kAei+SgKTpbEnnWOw1bT5EmzCFhCk5+WiQeta
+mWngXkktpCF7I1JdvGuZ
+=Dyut
 -----END PGP SIGNATURE-----
 
---=-WNqUor+1v3nd6x5ep6DU--
+--=-MCrl+xaGDc+ohC81X0jw--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
