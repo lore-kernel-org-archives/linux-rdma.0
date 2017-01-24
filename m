@@ -1,48 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/core: add the function ib_mtu_int_to_enum
-Date: Tue, 24 Jan 2017 15:09:20 -0500
-Message-ID: <1485288560.43764.59.camel@redhat.com>
+Subject: Re: [PATCH 0/2] IB/core: introduce ib_mtu_int_to_enum
+Date: Tue, 24 Jan 2017 15:10:17 -0500
+Message-ID: <1485288617.43764.61.camel@redhat.com>
 References: <1482734458-32131-1-git-send-email-Ram.Amrani@cavium.com>
-         <1482734458-32131-2-git-send-email-Ram.Amrani@cavium.com>
-         <1828884A29C6694DAF28B7E6B8A82373AB0CE4E4@ORSMSX109.amr.corp.intel.com>
-         <SN1PR07MB2207C1F332D441FECD65C3F8F8610@SN1PR07MB2207.namprd07.prod.outlook.com>
-         <1828884A29C6694DAF28B7E6B8A82373AB0CE998@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-etIEfmvLo27GM3SCNbxJ"
+        protocol="application/pgp-signature"; boundary="=-JqQUV6XW3HYn1Ry66DOY"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0CE998-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1482734458-32131-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-etIEfmvLo27GM3SCNbxJ
+--=-JqQUV6XW3HYn1Ry66DOY
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2017-01-04 at 17:40 +0000, Hefty, Sean wrote:
-> >=20
-> > You'll still be required to convert it to/from enum when
-> > building/parsing CM messages, for example.
-> > Also, why should it be an int if only specific values are allowed?
+On Mon, 2016-12-26 at 08:40 +0200, Ram Amrani wrote:
+> As the functionality to convert the MTU from a number to enum_ib_mtu
+> is ubiquitous, define a dedicated function and remove the duplicated
+> code (first patch).
+> Note that the patch doesn't include ocrdma, qib and hfi1 that check
+> for an exact match of the int mtu and return a different default
+> value
+> (or error). I leave it to them to adapt to the new function, if at
+> all.
 >=20
-> The enum values are IB specification specific, and are incomplete
-> (note the lack of Ethernet mtu sizes).=C2=A0=C2=A0Let the IB centric code=
- deal
-> with the conversion, and let the rest of the API be reasonable.=C2=A0=C2=
-=A0The
-> IB CM uses the mtu value in the path record, which is fine.=C2=A0=C2=A0Th=
-en
-> maybe someday userspace can get access to the real mtu sizes as
-> well...
+> The second patch fixes a qedr bug using the newly introduced
+> function.
+>=20
+> Ram Amrani (2):
+> =C2=A0 IB/core: add the function ib_mtu_int_to_enum
+> =C2=A0 qedr: fix MTU returned from QP query
+>=20
+> =C2=A0drivers/infiniband/hw/cxgb3/iwch_provider.c | 11 +----------
+> =C2=A0drivers/infiniband/hw/cxgb4/provider.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0| 11 +----------
+> =C2=A0drivers/infiniband/hw/i40iw/i40iw_verbs.c=C2=A0=C2=A0=C2=A0| 11 +--=
+--------
+> =C2=A0drivers/infiniband/hw/nes/nes_verbs.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0| 12 +-----------
+> =C2=A0drivers/infiniband/hw/qedr/verbs.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 +-
+> =C2=A0include/rdma/ib_verbs.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0| 15 +++++++++++++++
+> =C2=A06 files changed, 20 insertions(+), 42 deletions(-)
 
-Hi Sean,
-
-While I don't disagree with your thoughts on the API change, the
-original patch as it stands is a reasonable cleanup patch. =C2=A0I'm not
-going to condition one on the other as a result.
+Thanks, series applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -50,7 +57,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-etIEfmvLo27GM3SCNbxJ
+--=-JqQUV6XW3HYn1Ry66DOY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -58,22 +65,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh7RwAAoJELgmozMOVy/dbbsP/iph8mf+i4h35dRZKvMtinFz
-C3NHwHP1H75mGv8UIEdHNbqeI6OoalmKpccTtCxyGsVdyglBdFtTV1rdKzRcBqPZ
-EHa/k8c44aD2QEEWvTx3msTwbFiTuB2X+el9+OVrmK6mP152u4GXgD5ZfJ1CDBUc
-T29955WRRlZEnbM+sg0+tdkKCbvNZhlD1vDOJcy98fi6CYMQ5laSdk27mDG3i8r7
-DmCbpighNZnbLISwwJid5Hxpbqs03g1WfZ48GtidkKZlMEq7Qtseyit6Oto+9g8t
-vuLUvo1ecZDFfYoC3VaZcx8XOjM95QO3UP6ctf/ObLbUGtKsCUFh5eEKaOrwSYn7
-URgWru9Aa8uXHKUdL+Cze+zW+y6Og57W7whJ1SFjhs1De2Ie0km5vS9Lu2d2Riuh
-aH0fwMgucdQ1wqfQu0inkCzUN722xHmZw06ctaKgLemUr+xwfc6WV4i+618NoBLF
-B7nqOUQ+da/GJTJfBqBY3/e2ClXSO2uOmt9X1xPrvUzK02wNSHWis0G5V0T4+i5I
-Yl2kaGTMld1F3pj4uzLL9IYq48mntErsGHw5z/i59vAaNtEIf/BnuPkfDCZ1M5ZM
-H5rNRtH2GgqyqMOfyWEeyac6lU20ZFPNGdkexE8XiZXVyGu1AZPJIqNiRPnJ9MMu
-BTE2fcdHzkinuCHlA7+1
-=/fq+
+iQIcBAABCAAGBQJYh7SpAAoJELgmozMOVy/dJlsQAIjwtB2sZVge0+BSc1695/M3
+yTBkn55Ki3uB67s8aX05692yDtNjhRVzns6Qz1YwKwIfF6WL7NipIRuq+44spb7V
+HBBvxMOOBpcKt9eZ5r4IrWdB4YWt9AbiBFSCU/NZFix0rBkEgMjYtvnqZGQecxJe
+1lhrP2cjdooXYALQOmmMAoBiKEVwn9womwmUEMY/0jkGvaAaCwVxhLMqmW8RPLI5
+jvot30UIKm/Vxd9dXqkzjnDRd2LDgOH/Gd3tjZaBQzp+KZ6e8vLkrknvzuJwwUaT
+JCUotnMZJrBAwUqhGzJlZOTzKpfXUqfeMF1cGPxN7RDqYBwWODOdcM3D9unyB5Yp
+O9UueMYRJ9kkUz1WOntx/QsMZX8HNk1hSC5+LkEkQu8lJFbuOuq2TIx8hdNldpLU
+RBKUNIFav+2b7BhgzOKlbiM5+zK6iYIwT4Twe6k2sq1udfZps/ck8OzDFGRYX0IE
+BD/ZbzR7m1l8zUWqra9e/8XdUgc6zT6NYJoZbVZsO7sKYjAxPnS4c64wuArIs1SM
+IyvCygVn0baWr8oAajPIUeFNjez6HzjQIYFwcOWfHsf+sDFVuX5e5vUfv9kK7zL2
+vUdRje8AxsRbdOLAmKHdehc0Ccj+mGOiKWUYEyy8b4QMU0jG4zkvGRSa/TpynBdl
+mokOtIayIR2IMV3FBVgx
+=14p4
 -----END PGP SIGNATURE-----
 
---=-etIEfmvLo27GM3SCNbxJ--
+--=-JqQUV6XW3HYn1Ry66DOY--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
