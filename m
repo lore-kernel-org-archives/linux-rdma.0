@@ -1,101 +1,94 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
- mlx5_ib
-Date: Tue, 24 Jan 2017 11:44:31 -0500
-Message-ID: <1485276271.43764.31.camel@redhat.com>
-References: <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA@mail.gmail.com>
-         <20170105.150731.2097384465565543422.davem@davemloft.net>
-         <20170106060608.GG15685@mtr-leonro.local>
-         <20170106.111131.1775665484264248231.davem@redhat.com>
-         <20170108062257.GH15685@mtr-leonro.local>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv2 1/1] IB/srp: fix invalid indirect_sg_entries parameter
+ value
+Date: Tue, 24 Jan 2017 18:50:32 +0200
+Message-ID: <9743e758-2ba9-c6f6-f0fc-72112de72a4a@mellanox.com>
+References: <1483538377-19379-1-git-send-email-maxg@mellanox.com>
+ <1483538377-19379-2-git-send-email-maxg@mellanox.com>
+ <1483542561.3048.13.camel@sandisk.com> <1485275572.43764.27.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-XQskfkDTWhQ+vYH6koF1"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170108062257.GH15685-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1485275572.43764.27.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Miller <davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-XQskfkDTWhQ+vYH6koF1
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2017-01-08 at 08:22 +0200, Leon Romanovsky wrote:
-> On Fri, Jan 06, 2017 at 11:11:31AM -0500, David Miller wrote:
-> >=20
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Date: Fri, 6 Jan 2017 08:06:09 +0200
-> >=20
-> > >=20
-> > > On Thu, Jan 05, 2017 at 03:07:31PM -0500, David Miller wrote:
-> > > >=20
-> > > > From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> > > > Date: Thu, 5 Jan 2017 14:03:18 -0600
-> > > >=20
-> > > > >=20
-> > > > > If necessary I can make sure it builds on 32 bits as well.
-> > > >=20
-> > > > Please do.
-> > >=20
-> > > Dave,
-> > >=20
-> > > I'm failing to understand the benefits of building mlx5 on 32
-> > > bits, and
-> > > see only disadvantages:
-> > > =C2=A0* It is actual dead code without test coverage.
-> > > =C2=A0* It misleads reviewers/customers by seeing code for 32 bits.
-> > > =C2=A0* It adds compilation time for 32 bits platforms and "punishes"
-> > > them
-> > > =C2=A0=C2=A0=C2=A0for not relevant for them driver.
-> > >=20
-> > > Why do you call removing all that as a "regression"?
-> >=20
-> > We have this thing called "CONFIG_COMPILE_TEST", it has tons of
-> > value,
-> > perhaps you've seen it before?
->=20
-> Thanks David,
-> I see your point.
+On 1/24/2017 6:32 PM, Doug Ledford wrote:
+> On Wed, 2017-01-04 at 15:09 +0000, Bart Van Assche wrote:
+>> On Wed, 2017-01-04 at 15:59 +0200, Max Gurtovoy wrote:
+>>>
+>>> From: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>
+>>> After setting indirect_sg_entries module_param to huge value (e.g
+>>> 500,000),
+>>> srp_alloc_req_data() fails to allocate indirect descriptors for the
+>>> request
+>>> ring (kmalloc fails). This commit enforces the maximum value of
+>>> indirect_sg_entries
+>>> to be SG_MAX_SEGMENTS as signified in module param description.
+>>>
+>>> Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/ulp/srp/ib_srp.c | 6 ++++++
+>>>  1 file changed, 6 insertions(+)
+>>>
+>>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+>>> b/drivers/infiniband/ulp/srp/ib_srp.c
+>>> index 0f67cf9..79bf484 100644
+>>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+>>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>>> @@ -3699,6 +3699,12 @@ static int __init srp_init_module(void)
+>>>  		indirect_sg_entries = cmd_sg_entries;
+>>>  	}
+>>>
+>>> +	if (indirect_sg_entries > SG_MAX_SEGMENTS) {
+>>> +		pr_warn("Clamping indirect_sg_entries to %u\n",
+>>> +			SG_MAX_SEGMENTS);
+>>> +		indirect_sg_entries = SG_MAX_SEGMENTS;
+>>> +	}
+>>> +
+>>>  	srp_remove_wq = create_workqueue("srp_remove");
+>>>  	if (!srp_remove_wq) {
+>>>  		ret = -ENOMEM;
+>>
+>> Thanks!
+>>
+>> Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+>
+> This patch is a fix patch and should have been tagged as such.
+>  However, the proper tagging is complicated by the fact that the
+> SG_MAX_SEGMENTS was originally named SCSI_MAX_SG_CHAIN_SEGMENTS.  The
+> fix applies all the way back to the first patch to enable SG segments
+> in the srp driver, but you will need a different patch for the kernels
+> prior to the rename.  For this patch, I've added the following tags and
+> applied the patch:
+>
+> Fixes: 65e8617fba17 (scsi: rename SCSI_MAX_{SG, SG_CHAIN}_SEGMENTS)
+> Fixes: c07d424d6118 (IB/srp: add support for indirect tables that don't
+> fit in SRP_CMD)
+> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 4.7+
+>
+> Someone should write a patch for the earlier kernels and submit it
+> directly to stable@ with the patch flagged for application on kernels
+> from 2.6.39 to 4.6.  The upstream hash for the fix to mainline is:
+>
+> commit 0a475ef4226e305bdcffe12b401ca1eab06c4913
+> Author: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Wed Jan 4 15:59:37 2017 +0200
+>
+>     IB/srp: fix invalid indirect_sg_entries parameter value
+>
 
-What's the status update on this. =C2=A0Unless I'm missing it in my rdma
-mailing list (which is always possible if I scan subjects too fast), I
-don't see a v2 of this pull request, but I also don't see that David's
-concerns have been addressed, nor that he has pulled this.
+Israel,
+please take it for earlier kernels as well.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-XQskfkDTWhQ+vYH6koF1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYh4RvAAoJELgmozMOVy/d3/sP/00NcMsP8sGm7YL/NfMFqr83
-I9PRC+iz2zbYrJ6ijvtU78Z7RxGiV0t5WfV+ag1P+8U3WUPUm/kpaYECUUX1/ws2
-AgNeeijvjF8fjd2SQp0d9zL58WDokKo/wwSbnedIWX55YFVLa9HZbp/hzHBCpiNz
-AzgbL/Co9+9Q4yeh04372esSMCOw1qayL1F9rG9ACZQjLZNtl6M8OcOoAkJExtPm
-TQUir3bGUmevPY/07+3humzrfBZShuO+mHwHamMIcldhRjzOopAbifxomhQERlEq
-H80+EuxWazjjIKn+zANr1qa+kDm8Zg1Lm6Zd75nvyLACytudNT1eyEK5YaCOykcw
-c8fB0oEPBkz/pdJfCVJICqmgKBDSogZjB3/bvIt0eTsapBdxNQiAfFWp3uPGoaPl
-42pZEGfC4S8O8AMkgj3A5rVhFseB19/XQo54+dC/QtHFZulrn4Z6xnoUsIB+Sv+1
-3l0QmafYgZE6TlRnNsDK5g4C60P7gRocHfYXIjrpAmL3uIyB2doOheScHjaMiCGe
-A0+cG0Y5JMILwROzpDTM6+yuF5C0iBZ7k0qOx9m7BjzzlM3TMS3awwdxy85ah3OD
-S3KovwWbGauH0GjmIf3SKymJnKhDkPN4r8euNsPsBR1tHc90+UHBsfvZd9N2qzUu
-tfWp4pKuexAMlJjmr9wL
-=YxHf
------END PGP SIGNATURE-----
-
---=-XQskfkDTWhQ+vYH6koF1--
-
+Max.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
