@@ -1,73 +1,74 @@
-From: Eli Cohen <eli@mellanox.com>
-Subject: RE: [for-next 07/10] IB/mlx5: Use blue flame register allocator in
- mlx5_ib
-Date: Tue, 24 Jan 2017 17:16:19 +0000
-Message-ID: <AM4PR0501MB2787B803D95B7575065CC497C5750@AM4PR0501MB2787.eurprd05.prod.outlook.com>
-References: <CAL3tnx4H2HsGMH=caiobivvvs0AU9yrzCmVONOdUQ_j_JMfufA@mail.gmail.com>
-         <20170105.150731.2097384465565543422.davem@davemloft.net>
-         <20170106060608.GG15685@mtr-leonro.local>
-         <20170106.111131.1775665484264248231.davem@redhat.com>
-         <20170108062257.GH15685@mtr-leonro.local>
- <1485276271.43764.31.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/cxgb3: fix misspelling in header guard
+Date: Tue, 24 Jan 2017 12:20:51 -0500
+Message-ID: <1485278451.43764.34.camel@redhat.com>
+References: <20170122134122.10352-1-nicolas.iooss_linux@m4x.org>
+         <20170122135534.GH28570@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1485276271.43764.31.camel@redhat.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, David Miller <davem@redhat.com>
-Cc: "eli@dev.mellanox.co.il" <eli@dev.mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-LF5Amm+Fmi6EVfCWGj7i"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170122135534.GH28570-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Iooss <nicolas.iooss_linux-oWGTIYur0i8@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SXQgaXMgaW4gRGF2ZSdzIHRyZWU6DQoNCmNvbW1pdCA1ZmU5ZGVjMGQwNDU0MzdlNDhmMTEyYjhm
-YTcwNTE5N2JkN2JjM2MwDQpBdXRob3I6IEVsaSBDb2hlbiA8ZWxpQG1lbGxhbm94LmNvbT4NCkRh
-dGU6ICAgVHVlIEphbiAzIDIzOjU1OjI1IDIwMTcgKzAyMDANCg0KICAgIElCL21seDU6IFVzZSBi
-bHVlIGZsYW1lIHJlZ2lzdGVyIGFsbG9jYXRvciBpbiBtbHg1X2liDQogICAgDQogICAgTWFrZSB1
-c2Ugb2YgdGhlIGJsdWUgZmxhbWUgcmVnaXN0ZXJzIGFsbG9jYXRvciBhdCBtbHg1X2liLiBTaW5j
-ZSBibHVlDQogICAgZmxhbWUgd2FzIG5vdCByZWFsbHkgc3VwcG9ydGVkIHdlIHJlbW92ZSBhbGwg
-dGhlIGNvZGUgdGhhdCBpcyByZWxhdGVkIHRvDQogICAgYmx1ZSBmbGFtZSBhbmQgd2UgbGV0IGFs
-bCBjb25zdW1lcnMgdG8gdXNlIHRoZSBzYW1lIGJsdWUgZmxhbWUgcmVnaXN0ZXIuDQogICAgT25j
-ZSBibHVlIGZsYW1lIGlzIHN1cHBvcnRlZCB3ZSB3aWxsIGFkZCB0aGUgY29kZS4gQXMgcGFydCBv
-ZiB0aGlzIHBhdGNoDQogICAgd2UgYWxzbyBtb3ZlIHRoZSBkZWZpbml0aW9uIG9mIHN0cnVjdCBt
-bHg1X2JmIHRvIG1seDVfaWIuaCBhcyBpdCBpcyBvbmx5DQogICAgdXNlZCBieSBtbHg1X2liLg0K
-ICAgIA0KICAgIFNpZ25lZC1vZmYtYnk6IEVsaSBDb2hlbiA8ZWxpQG1lbGxhbm94LmNvbT4NCiAg
-ICBSZXZpZXdlZC1ieTogTWF0YW4gQmFyYWsgPG1hdGFuYkBtZWxsYW5veC5jb20+DQogICAgU2ln
-bmVkLW9mZi1ieTogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+DQogICAgU2lnbmVk
-LW9mZi1ieTogU2FlZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQoNCi0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEBy
-ZWRoYXQuY29tXSANClNlbnQ6IFR1ZXNkYXksIEphbnVhcnkgMjQsIDIwMTcgMTA6NDUgQU0NClRv
-OiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+OyBEYXZpZCBNaWxsZXIgPGRh
-dmVtQHJlZGhhdC5jb20+DQpDYzogZWxpQGRldi5tZWxsYW5veC5jby5pbDsgU2FlZWQgTWFoYW1l
-ZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+OyBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1y
-ZG1hQHZnZXIua2VybmVsLm9yZzsgRWxpIENvaGVuIDxlbGlAbWVsbGFub3guY29tPjsgTWF0YW4g
-QmFyYWsgPG1hdGFuYkBtZWxsYW5veC5jb20+DQpTdWJqZWN0OiBSZTogW2Zvci1uZXh0IDA3LzEw
-XSBJQi9tbHg1OiBVc2UgYmx1ZSBmbGFtZSByZWdpc3RlciBhbGxvY2F0b3IgaW4gbWx4NV9pYg0K
-DQpPbiBTdW4sIDIwMTctMDEtMDggYXQgMDg6MjIgKzAyMDAsIExlb24gUm9tYW5vdnNreSB3cm90
-ZToNCj4gT24gRnJpLCBKYW4gMDYsIDIwMTcgYXQgMTE6MTE6MzFBTSAtMDUwMCwgRGF2aWQgTWls
-bGVyIHdyb3RlOg0KPiA+IA0KPiA+IEZyb206IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxh
-bm94LmNvbT4NCj4gPiBEYXRlOiBGcmksIDYgSmFuIDIwMTcgMDg6MDY6MDkgKzAyMDANCj4gPiAN
-Cj4gPiA+IA0KPiA+ID4gT24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMDM6MDc6MzFQTSAtMDUwMCwg
-RGF2aWQgTWlsbGVyIHdyb3RlOg0KPiA+ID4gPiANCj4gPiA+ID4gRnJvbTogRWxpIENvaGVuIDxl
-bGlAZGV2Lm1lbGxhbm94LmNvLmlsPg0KPiA+ID4gPiBEYXRlOiBUaHUsIDUgSmFuIDIwMTcgMTQ6
-MDM6MTggLTA2MDANCj4gPiA+ID4gDQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gSWYgbmVjZXNzYXJ5
-IEkgY2FuIG1ha2Ugc3VyZSBpdCBidWlsZHMgb24gMzIgYml0cyBhcyB3ZWxsLg0KPiA+ID4gPiAN
-Cj4gPiA+ID4gUGxlYXNlIGRvLg0KPiA+ID4gDQo+ID4gPiBEYXZlLA0KPiA+ID4gDQo+ID4gPiBJ
-J20gZmFpbGluZyB0byB1bmRlcnN0YW5kIHRoZSBiZW5lZml0cyBvZiBidWlsZGluZyBtbHg1IG9u
-IDMyIA0KPiA+ID4gYml0cywgYW5kIHNlZSBvbmx5IGRpc2FkdmFudGFnZXM6DQo+ID4gPiDCoCog
-SXQgaXMgYWN0dWFsIGRlYWQgY29kZSB3aXRob3V0IHRlc3QgY292ZXJhZ2UuDQo+ID4gPiDCoCog
-SXQgbWlzbGVhZHMgcmV2aWV3ZXJzL2N1c3RvbWVycyBieSBzZWVpbmcgY29kZSBmb3IgMzIgYml0
-cy4NCj4gPiA+IMKgKiBJdCBhZGRzIGNvbXBpbGF0aW9uIHRpbWUgZm9yIDMyIGJpdHMgcGxhdGZv
-cm1zIGFuZCAicHVuaXNoZXMiDQo+ID4gPiB0aGVtDQo+ID4gPiDCoMKgwqBmb3Igbm90IHJlbGV2
-YW50IGZvciB0aGVtIGRyaXZlci4NCj4gPiA+IA0KPiA+ID4gV2h5IGRvIHlvdSBjYWxsIHJlbW92
-aW5nIGFsbCB0aGF0IGFzIGEgInJlZ3Jlc3Npb24iPw0KPiA+IA0KPiA+IFdlIGhhdmUgdGhpcyB0
-aGluZyBjYWxsZWQgIkNPTkZJR19DT01QSUxFX1RFU1QiLCBpdCBoYXMgdG9ucyBvZiANCj4gPiB2
-YWx1ZSwgcGVyaGFwcyB5b3UndmUgc2VlbiBpdCBiZWZvcmU/DQo+IA0KPiBUaGFua3MgRGF2aWQs
-DQo+IEkgc2VlIHlvdXIgcG9pbnQuDQoNCldoYXQncyB0aGUgc3RhdHVzIHVwZGF0ZSBvbiB0aGlz
-LiDCoFVubGVzcyBJJ20gbWlzc2luZyBpdCBpbiBteSByZG1hIG1haWxpbmcgbGlzdCAod2hpY2gg
-aXMgYWx3YXlzIHBvc3NpYmxlIGlmIEkgc2NhbiBzdWJqZWN0cyB0b28gZmFzdCksIEkgZG9uJ3Qg
-c2VlIGEgdjIgb2YgdGhpcyBwdWxsIHJlcXVlc3QsIGJ1dCBJIGFsc28gZG9uJ3Qgc2VlIHRoYXQg
-RGF2aWQncyBjb25jZXJucyBoYXZlIGJlZW4gYWRkcmVzc2VkLCBub3IgdGhhdCBoZSBoYXMgcHVs
-bGVkIHRoaXMuDQoNCi0tDQpEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQrCoCDC
-oCBHUEcgS2V5SUQ6IEI4MjZBMzMzMEU1NzJGREQNCsKgIMKgDQpLZXkgZmluZ2VycHJpbnQgPSBB
-RTZCIDFCREEgMTIyQiAyM0I0IDI2NUIgwqAxMjc0IEI4MjYgQTMzMyAwRTU3IDJGREQNCg==
+
+--=-LF5Amm+Fmi6EVfCWGj7i
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, 2017-01-22 at 15:55 +0200, Leon Romanovsky wrote:
+> On Sun, Jan 22, 2017 at 02:41:22PM +0100, Nicolas Iooss wrote:
+> >=20
+> > Use CXGB3_... instead of CXBG3_...
+> >=20
+> > Signed-off-by: Nicolas Iooss <nicolas.iooss_linux-oWGTIYur0i8@public.gmane.org>
+> > ---
+> > =C2=A0include/uapi/rdma/cxgb3-abi.h | 2 +-
+> > =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+>=20
+> Thanks,
+> Fixes: a85fb3383340 ("IB/cxgb3: Move user vendor structures")
+>=20
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks, tags updated, patch applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+
+--=-LF5Amm+Fmi6EVfCWGj7i
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYh4zzAAoJELgmozMOVy/dt9MQAJjoCS6F9JCRpvmKjObg86jJ
+JIhxMXbUeaqDEFUwofZas51783wL5SN2UA1oW0B46WK0YyuTC4+XR4P1x7dH2oE4
+dNCMnoSrsUSwPmfs5cE1gJGuA2I7Km5rLoCJk25bf1e1edFAFMoHfSaD5/41dDRY
+F2UsV90Yf1hDYYA8mpRlGrzM7oZ43EZZIF/hVqQj247Lx38EYGlAPHBfU0mMu/Fq
+4xuAZ5Pp1bsUAkZe6dvetkF1INaphlC3DXVmnEovn6iINkW/Gd7UnKAvOUDCN224
+phUm+A4P5xf1uXl7fe0zQJk+27PefxG/AC2W3E3hUkyWwQHVJwQMg/lpi/l/iDRJ
+Ng38FGq3ikw1qYcLZRpDrc//GzeXQ6TxN4L0DlNFHQPO1dgWPLfnsbJV5MuMlBoB
+bpOaW1PsMNvU7EoZt8aOITMTE69ixIG9EPlqAbNCpJ7QjqEAn8D9FeNAU7BXgO/c
+6wIX2ZSqHC3qdxshSu//tt07XYbv6WQ2dlw1o91LUSxNKzfNonhaFKWJ+KcdF4He
+FiatQctLuRoZHEOdS/g9Kf90OeFyIGcD46BL+dNG9w9+BCG7eSxtaDeT8fdXBqKP
+w++tQ5yO/iMqe3Lkcdb5L45giltxY1KEccPPThYtausyDilHiPNzyEEaU3QvtgqC
+tSAllfvzmhAhXRAkI3+k
+=rz5I
+-----END PGP SIGNATURE-----
+
+--=-LF5Amm+Fmi6EVfCWGj7i--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
