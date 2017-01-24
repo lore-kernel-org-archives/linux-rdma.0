@@ -1,136 +1,80 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next V2 00/11] Mellanox mlx5 core and ODP updates
- 2017-01-01
-Date: Tue, 24 Jan 2017 21:58:20 +0200
-Message-ID: <20170124195820.GL6005@mtr-leonro.local>
-References: <1483349868-11716-1-git-send-email-saeedm@mellanox.com>
- <20170102.155341.1496970446718890403.davem@davemloft.net>
- <CALzJLG9ZBRMOVqFsTypCLV6Rrek8a9g43z0spvVKeku6WdWCTA@mail.gmail.com>
- <20170103072344.GF12077@mtr-leonro.local>
- <1485286799.43764.49.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/core: add the function ib_mtu_int_to_enum
+Date: Tue, 24 Jan 2017 15:09:20 -0500
+Message-ID: <1485288560.43764.59.camel@redhat.com>
+References: <1482734458-32131-1-git-send-email-Ram.Amrani@cavium.com>
+         <1482734458-32131-2-git-send-email-Ram.Amrani@cavium.com>
+         <1828884A29C6694DAF28B7E6B8A82373AB0CE4E4@ORSMSX109.amr.corp.intel.com>
+         <SN1PR07MB2207C1F332D441FECD65C3F8F8610@SN1PR07MB2207.namprd07.prod.outlook.com>
+         <1828884A29C6694DAF28B7E6B8A82373AB0CE998@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aziWXe2aaRGlkyg3"
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-etIEfmvLo27GM3SCNbxJ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1485286799.43764.49.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0CE998-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---aziWXe2aaRGlkyg3
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--=-etIEfmvLo27GM3SCNbxJ
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 24, 2017 at 02:39:59PM -0500, Doug Ledford wrote:
-> On Tue, 2017-01-03 at 09:23 +0200, Leon Romanovsky wrote:
-> > On Tue, Jan 03, 2017 at 01:30:16AM +0200, Saeed Mahameed wrote:
-> > >
-> > > On Mon, Jan 2, 2017 at 10:53 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-> > > wrote:
-> > > >
-> > > > From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > Date: Mon,=A0=A02 Jan 2017 11:37:37 +0200
-> > > >
-> > > > >
-> > > > > The following eleven patches mainly come from Artemy Kovalyov
-> > > > > who expanded mlx5 on-demand-paging (ODP) support. In addition
-> > > > > there are three cleanup patches which don't change any
-> > > > > functionality,
-> > > > > but are needed to align codebase prior accepting other patches.
-> > > >
-> > > > Series applied to net-next, thanks.
-> > >
-> > > Whoops,
-> > >
-> > > This series was meant as a pull request, you can blame it on me I
-> > > kinda messed up the V2 title.
-> > > Doug will have to pull same patches later, will this produce a
-> > > conflict on merge window ?
-> >
-> > Yes, but it can be easily avoided.
-> >
-> > Doug,
-> >
-> > We have another pull request to send and we will base its code on the
-> > Dave's tree instead of Linus's rc tag. In such way, you will have the
-> > same commits as Dave and won't have merge failures.
-> >
-> > Please don't apply manually this specific patchset.
-> >
-> > Sorry for the inconvenience.
->
-> Hi Leon and Saeed,
->
-> As I understand it, Dave took this series, but I have not. =A0You were
-> going to base another pull request on top of this so I could get both.
+On Wed, 2017-01-04 at 17:40 +0000, Hefty, Sean wrote:
+> >=20
+> > You'll still be required to convert it to/from enum when
+> > building/parsing CM messages, for example.
+> > Also, why should it be an int if only specific values are allowed?
+>=20
+> The enum values are IB specification specific, and are incomplete
+> (note the lack of Ethernet mtu sizes).=C2=A0=C2=A0Let the IB centric code=
+ deal
+> with the conversion, and let the rest of the API be reasonable.=C2=A0=C2=
+=A0The
+> IB CM uses the mtu value in the path record, which is fine.=C2=A0=C2=A0Th=
+en
+> maybe someday userspace can get access to the real mtu sizes as
+> well...
 
-We did it, ODP was our first pull request and 4K UAR was second one.
-http://marc.info/?l=3Dlinux-rdma&m=3D148398855416090&w=3D2
-Dave pulled this tag:
-https://git.kernel.org/cgit/linux/kernel/git/mellanox/linux.git/tag/?h=3Dml=
-x5-4kuar-for-4.11
+Hi Sean,
 
-Since 4K UAR tag was based on ODP, by pulling mlx5-4kuar-for-4.11 tag you
-will get ODP too.
+While I don't disagree with your thoughts on the API change, the
+original patch as it stands is a reasonable cleanup patch. =C2=A0I'm not
+going to condition one on the other as a result.
 
-> =A0However, I believe that was the attempt to reorg the driver pull
-> request, which David NAKed. =A0
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
-It was our third pull request
-http://marc.info/?l=3Dlinux-rdma&m=3D148424983101796&w=3D2
-https://git.kernel.org/cgit/linux/kernel/git/mellanox/linux.git/tag/?h=3Dml=
-x5-dir-layout-reorg
-
-> That means I have not picked this up. =A0Are
-> all of the other for-next patches you posted against the RDMA list
-> going to go in cleanly without this series, or should I expect
-> conflicts between Dave's tree and my own?
-
-All patches sent by me are based on mlx5-4kuar-for-4.11 tag which
-exists in Dave's tree and everything will apply cleanly on your
-k.o/for-4.11 branch and won't have merge conflicts between your tree and
-Dave's net-next tree.
-
-For you convenience, my submission queue can be found at:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=3Dr=
-dma-next
-
-Thanks
-
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> =A0 =A0 GPG KeyID: B826A3330E572FDD
-> =A0 =A0
-> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
-
-
-
---aziWXe2aaRGlkyg3
+--=-etIEfmvLo27GM3SCNbxJ
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliHsdwACgkQ5GN7iDZy
-WKeWvQ//Rjou2Ya7olZ9ng7dgv2nNdYKYORUBnYrrMJlqI4PQaEAIoJSW+M2MY5L
-m5mYHONpsDljx30lBk6E8dEp4blM7CZ7k6rqR8ayK9+iOiDWqaKn93osLLvV3x19
-D5Owpp1inju5JyXDfcKLEAeYbIhVx9+IMBMKugrBcQXLoeebImZhAN6S7pWSnvgV
-UpoHMcYHcIE6aTzd7iDP6mI94zGjylb55sXTN95OgnRJh7z//I8UP3eFluPCpq66
-Wz69tr5WZ6hBhrm2PuysA6pGnY32pMB3QKKnx005vb8uyfxrNzka18LIzW8+QHPT
-7wvxtYWwf7ujG5S8Zfe7HXfIc1nDf9d7bOR4eugn+d31qgvEvaeAFNA8fSw7weZ1
-EBDZoX9NhD9embCWyf7b/2al1tI9orn4yNlHm/4O3kLXpe7q73XR2ZwVcsc+Zv/Z
-wgkEiOBREKja+PIkOktgHRx3WCSLnUEoscdoOboOptfm6pahVsQq00Or0OJeZUaa
-wlwktpCaXAgoheZhwGsxy9YV8h6iaFWq6BH6CEwEW4J74qagCrfF6dde/FZDoON/
-IIR0qmyTlM0YdMwh5y+ID4gxslshEPyHXYSrXA1HVrU9/E/fRWtm0s6TjpFpgHPi
-yWjJbbqFD6iAoDBK4QjgkQVViUlsRKcXT5OUjPsLcYZRutJKXS4=
-=Hh7+
+iQIcBAABCAAGBQJYh7RwAAoJELgmozMOVy/dbbsP/iph8mf+i4h35dRZKvMtinFz
+C3NHwHP1H75mGv8UIEdHNbqeI6OoalmKpccTtCxyGsVdyglBdFtTV1rdKzRcBqPZ
+EHa/k8c44aD2QEEWvTx3msTwbFiTuB2X+el9+OVrmK6mP152u4GXgD5ZfJ1CDBUc
+T29955WRRlZEnbM+sg0+tdkKCbvNZhlD1vDOJcy98fi6CYMQ5laSdk27mDG3i8r7
+DmCbpighNZnbLISwwJid5Hxpbqs03g1WfZ48GtidkKZlMEq7Qtseyit6Oto+9g8t
+vuLUvo1ecZDFfYoC3VaZcx8XOjM95QO3UP6ctf/ObLbUGtKsCUFh5eEKaOrwSYn7
+URgWru9Aa8uXHKUdL+Cze+zW+y6Og57W7whJ1SFjhs1De2Ie0km5vS9Lu2d2Riuh
+aH0fwMgucdQ1wqfQu0inkCzUN722xHmZw06ctaKgLemUr+xwfc6WV4i+618NoBLF
+B7nqOUQ+da/GJTJfBqBY3/e2ClXSO2uOmt9X1xPrvUzK02wNSHWis0G5V0T4+i5I
+Yl2kaGTMld1F3pj4uzLL9IYq48mntErsGHw5z/i59vAaNtEIf/BnuPkfDCZ1M5ZM
+H5rNRtH2GgqyqMOfyWEeyac6lU20ZFPNGdkexE8XiZXVyGu1AZPJIqNiRPnJ9MMu
+BTE2fcdHzkinuCHlA7+1
+=/fq+
 -----END PGP SIGNATURE-----
 
---aziWXe2aaRGlkyg3--
+--=-etIEfmvLo27GM3SCNbxJ--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
