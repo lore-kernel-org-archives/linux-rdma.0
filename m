@@ -1,43 +1,152 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 5/5] IB: Query port through the core instead
- of directly calling the driver handler
-Date: Tue, 24 Jan 2017 09:52:56 -0800
-Message-ID: <419a6c69-8756-7a1b-2d18-4c8195158fc2@vmware.com>
-References: <20170124110239.31555-1-leon@kernel.org>
- <20170124110239.31555-6-leon@kernel.org>
+From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 2/5] xprtrdma: Per-connection pad optimization
+Date: Tue, 24 Jan 2017 14:12:57 -0500
+Message-ID: <19a00a6f-9502-161a-d37b-7371b07662ed@Netapp.com>
+References: <20170123205159.21699.47373.stgit@manet.1015granger.net>
+ <20170123205254.21699.44329.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170124110239.31555-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170123205254.21699.44329.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 1:02:39PM +0200, Leon Romanovsky wrote:
-> From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Change the drivers to call ib_query_port in their get port
-> immutable handler instead of their own query port handler.
-> 
-> Doing this required to set the core cap flags of this device
-> before the ib_query_port call is made, since the IB core might
-> need these caps to serve the port query.
-> 
-> Drivers are ensured by the IB core that the port attributes passed
-> to the port query verb implementation are zero, and hence we
-> removed the zeroing from the drivers.
-> 
-> This patch doesn't add any new functionality.
-> 
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Hi Chuck,
 
-vmw_pvrdma changes look fine.
+On 01/23/2017 03:52 PM, Chuck Lever wrote:
+> Pad optimization is changed by echoing into
+> /proc/sys/sunrpc/rdma_pad_optimize. This is a global setting,
+> affecting all RPC-over-RDMA connections to all servers.
+> 
+> The marshaling code picks up that value and uses it for decisions
+> about how to construct each RPC-over-RDMA frame. Having it change
+> suddenly in mid-operation can result in unexpected failures. And
+> some servers a client mounts might need chunk round-up, while
+> others don't.
+> 
+> So instead, copy the pad_optimize setting into each connection's
+> rpcrdma_ia when the transport is created, and use the copy, which
+> can't change during the life of the connection, instead.
 
-Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Does the rdma_pad_optimize option have documentation somewhere that needs to be updated to describe the new behavior?
+
+Anna
+
+> 
+> This also removes a hack: rpcrdma_convert_iovs was using
+> the remote-invalidation-expected flag to predict when it could leave
+> out Write chunk padding. This is because the Linux server handles
+> implicit XDR padding on Write chunks correctly, and only Linux
+> servers can set the connection's remote-invalidation-expected flag.
+> 
+> It's more sensible to use the pad optimization setting instead.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/rpc_rdma.c  |   28 ++++++++++++++--------------
+>  net/sunrpc/xprtrdma/verbs.c     |    1 +
+>  net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
+>  3 files changed, 16 insertions(+), 14 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+> index a524d3c..c634f0f 100644
+> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+> @@ -186,9 +186,9 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+>   */
+>  
+>  static int
+> -rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+> -	enum rpcrdma_chunktype type, struct rpcrdma_mr_seg *seg,
+> -	bool reminv_expected)
+> +rpcrdma_convert_iovs(struct rpcrdma_xprt *r_xprt, struct xdr_buf *xdrbuf,
+> +		     unsigned int pos, enum rpcrdma_chunktype type,
+> +		     struct rpcrdma_mr_seg *seg)
+>  {
+>  	int len, n, p, page_base;
+>  	struct page **ppages;
+> @@ -229,14 +229,15 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+>  	/* When encoding a Read chunk, the tail iovec contains an
+>  	 * XDR pad and may be omitted.
+>  	 */
+> -	if (type == rpcrdma_readch && xprt_rdma_pad_optimize)
+> +	if (type == rpcrdma_readch && r_xprt->rx_ia.ri_implicit_roundup)
+>  		return n;
+>  
+> -	/* When encoding the Write list, some servers need to see an extra
+> -	 * segment for odd-length Write chunks. The upper layer provides
+> -	 * space in the tail iovec for this purpose.
+> +	/* When encoding a Write chunk, some servers need to see an
+> +	 * extra segment for non-XDR-aligned Write chunks. The upper
+> +	 * layer provides space in the tail iovec that may be used
+> +	 * for this purpose.
+>  	 */
+> -	if (type == rpcrdma_writech && reminv_expected)
+> +	if (type == rpcrdma_writech && r_xprt->rx_ia.ri_implicit_roundup)
+>  		return n;
+>  
+>  	if (xdrbuf->tail[0].iov_len) {
+> @@ -291,7 +292,8 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+>  	if (rtype == rpcrdma_areadch)
+>  		pos = 0;
+>  	seg = req->rl_segments;
+> -	nsegs = rpcrdma_convert_iovs(&rqst->rq_snd_buf, pos, rtype, seg, false);
+> +	nsegs = rpcrdma_convert_iovs(r_xprt, &rqst->rq_snd_buf, pos,
+> +				     rtype, seg);
+>  	if (nsegs < 0)
+>  		return ERR_PTR(nsegs);
+>  
+> @@ -353,10 +355,9 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+>  	}
+>  
+>  	seg = req->rl_segments;
+> -	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf,
+> +	nsegs = rpcrdma_convert_iovs(r_xprt, &rqst->rq_rcv_buf,
+>  				     rqst->rq_rcv_buf.head[0].iov_len,
+> -				     wtype, seg,
+> -				     r_xprt->rx_ia.ri_reminv_expected);
+> +				     wtype, seg);
+>  	if (nsegs < 0)
+>  		return ERR_PTR(nsegs);
+>  
+> @@ -421,8 +422,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+>  	}
+>  
+>  	seg = req->rl_segments;
+> -	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf, 0, wtype, seg,
+> -				     r_xprt->rx_ia.ri_reminv_expected);
+> +	nsegs = rpcrdma_convert_iovs(r_xprt, &rqst->rq_rcv_buf, 0, wtype, seg);
+>  	if (nsegs < 0)
+>  		return ERR_PTR(nsegs);
+>  
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 11d0774..2a6a367 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -208,6 +208,7 @@
+>  
+>  	/* Default settings for RPC-over-RDMA Version One */
+>  	r_xprt->rx_ia.ri_reminv_expected = false;
+> +	r_xprt->rx_ia.ri_implicit_roundup = xprt_rdma_pad_optimize;
+>  	rsize = RPCRDMA_V1_DEF_INLINE_SIZE;
+>  	wsize = RPCRDMA_V1_DEF_INLINE_SIZE;
+>  
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index e35efd4..c137154 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -75,6 +75,7 @@ struct rpcrdma_ia {
+>  	unsigned int		ri_max_inline_write;
+>  	unsigned int		ri_max_inline_read;
+>  	bool			ri_reminv_expected;
+> +	bool			ri_implicit_roundup;
+>  	enum ib_mr_type		ri_mrtype;
+>  	struct ib_qp_attr	ri_qp_attr;
+>  	struct ib_qp_init_attr	ri_qp_init_attr;
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
