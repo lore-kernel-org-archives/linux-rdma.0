@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/5 v2] qedr: avoid printing error messages for flushed CQEs if QP in error state
-Date: Tue, 24 Jan 2017 13:50:37 +0200
-Message-ID: <1485258638-11884-5-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH 2/5 v2] qedr: return maximum inline data capability on QP query
+Date: Tue, 24 Jan 2017 13:50:35 +0200
+Message-ID: <1485258638-11884-3-git-send-email-Ram.Amrani@cavium.com>
 References: <1485258638-11884-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,33 +14,25 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 
-It is normal to flush CQEs if the QP is in error state. Hence there's no
-use in printing a message per CQE to dmesg.
-
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/qedr/verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index e843501..564080a 100644
+index af6074d..e843501 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -3234,9 +3234,10 @@ static int qedr_poll_cq_req(struct qedr_dev *dev,
- 				  IB_WC_SUCCESS, 0);
- 		break;
- 	case RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR:
--		DP_ERR(dev,
--		       "Error: POLL CQ with RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR. CQ icid=0x%x, QP icid=0x%x\n",
--		       cq->icid, qp->icid);
-+		if (qp->state != QED_ROCE_QP_STATE_ERR)
-+			DP_ERR(dev,
-+			       "Error: POLL CQ with RDMA_CQE_REQ_STS_WORK_REQUEST_FLUSHED_ERR. CQ icid=0x%x, QP icid=0x%x\n",
-+			       cq->icid, qp->icid);
- 		cnt = process_req(dev, qp, cq, num_entries, wc, req->sq_cons,
- 				  IB_WC_WR_FLUSH_ERR, 1);
- 		break;
+@@ -2028,7 +2028,7 @@ int qedr_query_qp(struct ib_qp *ibqp,
+ 	qp_attr->cap.max_recv_wr = qp->rq.max_wr;
+ 	qp_attr->cap.max_send_sge = qp->sq.max_sges;
+ 	qp_attr->cap.max_recv_sge = qp->rq.max_sges;
+-	qp_attr->cap.max_inline_data = qp->max_inline_data;
++	qp_attr->cap.max_inline_data = ROCE_REQ_MAX_INLINE_DATA_SIZE;
+ 	qp_init_attr->cap = qp_attr->cap;
+ 
+ 	memcpy(&qp_attr->ah_attr.grh.dgid.raw[0], &params.dgid.bytes[0],
 -- 
 1.8.3.1
 
