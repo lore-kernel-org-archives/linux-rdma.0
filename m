@@ -1,81 +1,145 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/5] qedr: remove CQ spinlock from RDMA CM completion
- handlers
-Date: Tue, 24 Jan 2017 12:16:16 +0200
-Message-ID: <20170124101616.GC6005@mtr-leonro.local>
-References: <1485185187-18689-1-git-send-email-Ram.Amrani@qlogic.com>
- <1485185187-18689-4-git-send-email-Ram.Amrani@qlogic.com>
- <20170123191313.GB6005@mtr-leonro.local>
- <SN1PR07MB2207B69B469AC2113C757E6CF8750@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC] Clear out stuck ops to prevent iSER from going init D state
+Date: Tue, 24 Jan 2017 12:37:32 +0200
+Message-ID: <c7f1af87-a846-ed8a-a46e-ab5888ea9b92@mellanox.com>
+References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
+ <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me>
+ <CAANLjFp3Zo_QpR7WCmVOfO0AEDxCXabbenac3KNR-RosCgGx+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <SN1PR07MB2207B69B469AC2113C757E6CF8750-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <CAANLjFp3Zo_QpR7WCmVOfO0AEDxCXabbenac3KNR-RosCgGx+A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Robert,
+can you please try replacing the ib_drain_qp with ib_drain_rq ? or make 
+sure ib_drain_qp don't stuck.
+in the past (before v4.6) we sent "recv_beacon" on the isert disconnect 
+flow.
+I suspect that area.
 
---R+My9LyyhiUvIEro
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Max.
 
-On Tue, Jan 24, 2017 at 09:02:55AM +0000, Amrani, Ram wrote:
-> > Don't you need to remove this lock from struct qedr_cq too?
+On 1/24/2017 1:12 AM, Robert LeBlanc wrote:
+> On Mon, Jan 23, 2017 at 3:20 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>> Hi Robert,
+>>
+>> Seeing this, makes me realize that the entire "iscsi_trx going
+>> into D state" thread which I did not bother to read is actually an
+>> iser-target related bug. I'm really sorry for not addressing this
+>> sooner (much sooner).
 >
-> The CQ lock has other uses so it cannot be deleted.
-
-What do I miss here?
-
-Your patch removed all usages of this lock.
-
-=E2=9E=9C  linux-rdma git:(master) grep -rI comp_handler_lock drivers/infin=
-iband/hw/qedr/*
-drivers/infiniband/hw/qedr/qedr_cm.c: spin_lock_irqsave(&cq->comp_handler_l=
-ock, flags);
-drivers/infiniband/hw/qedr/qedr_cm.c: spin_unlock_irqrestore(&cq->comp_hand=
-ler_lock, flags);
-drivers/infiniband/hw/qedr/qedr_cm.c: spin_lock_irqsave(&cq->comp_handler_l=
-ock, flags);
-drivers/infiniband/hw/qedr/qedr_cm.c: spin_unlock_irqrestore(&cq->comp_hand=
-ler_lock, flags);
-drivers/infiniband/hw/qedr/qedr.h:	spinlock_t comp_handler_lock;
-
-
+> I was hesitant to start a new thread and fragment the discussion and
+> cause confusion. I thought by presenting my findings as an RFC with
+> some code, I might get some new ideas.
 >
-> Thanks,
-> Ram
+>> The patch looks wrong to me, but lets try and talk about
+>> the hang you are trying to solve.
+>>
+>>> In certain circumstances the RDMA connection can be abruptly
+>>> terminated,
+>>
+>>
+>> Does it make a difference which port is causing the abruption?
+>> Is it the target switch port? or the initiator switch port?
 >
+> It seems more tied to initiator port, but previously with our target
+> export scripts it also seems that a target crash and re-export
+> (generally out of order) could also cause the issue. My theory is that
+> the session didn't mach enough and because of that would not get torn
+> down completely. It is more of speculation from observations and
+> thought than anything concrete.
+>
+>>> but something is getting stuck preventing the iSCSI clean
+>>> up commands from being completed.
+>>
+>>
+>> I think this means, that at least one command was missing
+>> a final kref_put and causing target_wait_for_sess_cmds() to
+>> block forever.
+>>
+>>> Just removing the isert_wait4*
+>>> commands isn't enough.
+>>
+>>
+>> Yes, because all the inflight IO needs to be properly cleaned up
+>> for the session to terminate gracefully.
+>>
+>>> Just resetting the queue pair isn't enough
+>>> either.
+>>
+>>
+>> This is true as well. Before tearing down the RDMA queue pair we
+>> need to make sure we will never see a completion for it on its
+>> corresponding completion queue. This is why ib_drain_qp exists.
+>>
+>>> some help getting this patch fixed right as resetting the queue pair
+>>> is probably not the right approach and overkill to solving the
+>>> problem. I think it at least shows where the problem is occurring and
+>>> how I can get around it.
+>>
+>>
+>> As said, I have a feeling that we have a flow we are missing the last
+>> kref_put on (at least) one of the session commands. The fact that this
+>> involves port toggling, probably boils down to error completions.
+>>
+>> Bart, I recall you had a patch at some point to periodically print
+>> out the hanging session commands in target_wait_for_sess_cmds(), do we
+>> want to get it in? I think we can all benefit from it.
+>
+> Do you have a link to the path and I can add it in?
+>
+>> Would it be possible to turn on isert debug_level=4 and send us the log?
+>> $ echo 4 > /sys/module/ib_isert/parameters/debug_level
+>
+> I'll get that to you tomorrow.
+>
+>>> The problem easily shows up with two ConnectX-4-LX card connected to a
+>>> 10 Gb switch. The target is a RAM disk and the initiator just mounts
+>>> it as ext4 and runs fio.
+>>
+>>
+>> Can you please share the fio workload? Does this happen when for example
+>> you run 100% read workload? or 100% write workload?
+>
+> echo "3" > /proc/sys/vm/drop_caches; fio --rw=read --bs=4K --size=1G
+> --numjobs=40 --name=worker.matt --group_reporting
+>
+> With the ConnectX-4-LX cards, it will usually cause the issue while
+> laying out the first four files, usually on the first one or two. When
+> I was able to replicate it on IB, I believe I was able to replicate by
+> pulling the cable on lay out or during the read portion of the test.
+> So I don't think it matters what the workload is, but I think it needs
+> a workload of some sort.
+>
+>> And, can you try and disable the unsolicited-data-out in the target
+>> (IIRC its InitialR2T=Yes)? unsol dataout has been known to trigger
+>> cause similar hangs before (which were supposed to be solved).
+>
+> I'll figure out how to do this and test it tomorrow and let you know
+> the results.
+>
+>> Also, can you please summarize what kernel versions do you see this
+>> with? The previous thread is a bit hard to follow at once.
+>
+> 4.9, 4.4.x, 4.1.x (we believe we saw it here, but it has been a long
+> time since we have run this version.)
+>
+> Thanks for the response Sagi, I'm happy to have new things to try, I
+> was really lost at where to go next.
+>
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---R+My9LyyhiUvIEro
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliHKXAACgkQ5GN7iDZy
-WKcESA//f54iwGstD7DrhKRXF9Blq4CX+wURE5ojbgsC/zHFKdlzjNxHcVSMDLvF
-Tql1Hz+/RTXT+lUOMHaFu/dAOJqcOTti9zgjFgu2s7gxY8Rzn4tZKhZDrwgkt6V4
-PGdxGCWdQNm6RTLws7aT33fJLQjaLn0BS6MiF0C7vwikRZ3ApfASrpoDRdqWXOvC
-TF3slJOQbmTSE6g0fP4kin9NO4uanJu3T2q1EAmuyONCfA618mHVFSYFhyvD750n
-I30dbRQlWK81CUIfjUkM2Dg1kyqiN7XNUEj68nRRGotfonZWwxFtJgLMBUFosNPZ
-ZK9uW1DmazoRh0Rzub124vYDfF0jSo4eZqNkANNAnZolCC6WHJGh3PigmadOnS+O
-i4HzQapazxKdH5Z3wCyIUWyVGHp4N7gaXT1yZfyW6J1zcRR0rdC7CLkgwqIcUrYS
-iwXWMP/GQuPlFpLYKmg7bPHGvt/QbqYwXX3mErmOVYMS8vbeqP/SmbPKklVDDBNs
-4Jm5wNvLlIlHPUbGrgMZu12ikofT4OYKoRrxvhme4Q50+vamfvgDYkdxD1QcqTrf
-gKjnuDZqEqCYI+2HAnxoPOvHV+NiKPLrARqwdZizzw5iFJRkwzKxQinVwQAgpA6o
-qOWKFCLdb9rvnsPeCMQkTf+MwfMFw2X9xro3XX4B2YMfIY5tM1g=
-=i1Es
------END PGP SIGNATURE-----
-
---R+My9LyyhiUvIEro--
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
