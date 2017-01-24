@@ -1,142 +1,318 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 1/7] svcrdma: Another sendto chunk list parsing update
-Date: Tue, 24 Jan 2017 15:34:38 -0500
-Message-ID: <20170124203438.11807.51092.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 3/7] svcrdma: Clean up RPC-over-RDMA Call header decoder
+Date: Tue, 24 Jan 2017 15:34:55 -0500
+Message-ID: <20170124203455.11807.53072.stgit@klimt.1015granger.net>
 References: <20170124193242.11807.91861.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170124193242.11807.91861.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 5fdca6531434 ("svcrdma: Renovate sendto chunk list parsing")
-missed a spot. svc_rdma_xdr_get_reply_hdr_len() also assumes the
-Write list has only Write chunk. There's no harm in making this code
-more general.
+Replace C structure-based XDR decoding with pointer arithmetic.
+Pointer arithmetic is considered more portable.
+
+Rename the "decode" functions. Nothing is decoded here, they
+perform only transport header sanity checking. Use existing XDR
+naming conventions to help readability.
+
+Straight-line the hot path:
+ - relocate the dprintk call sites out of line
+ - remove unnecessary byte-swapping
+ - reduce count of conditional branches
+
+Deprecate RDMA_MSGP. It's not properly spec'd by RFC5666, and
+therefore never used by any V1 client.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/rpc_rdma.h        |    9 ++++++
- include/linux/sunrpc/svc_rdma.h        |    2 +
- net/sunrpc/xprtrdma/svc_rdma_marshal.c |   49 +++++++++++++++++---------------
- net/sunrpc/xprtrdma/svc_rdma_sendto.c  |    3 +-
- 4 files changed, 38 insertions(+), 25 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c |  232 +++++++++++---------------------
+ 1 file changed, 79 insertions(+), 153 deletions(-)
 
-diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index cfda6ad..245fc59 100644
---- a/include/linux/sunrpc/rpc_rdma.h
-+++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -110,6 +110,15 @@ struct rpcrdma_msg {
- };
- 
- /*
-+ * XDR sizes, in quads
-+ */
-+enum {
-+	rpcrdma_fixed_maxsz	= 4,
-+	rpcrdma_segment_maxsz	= 4,
-+	rpcrdma_readchunk_maxsz	= 2 + rpcrdma_segment_maxsz,
-+};
-+
-+/*
-  * Smallest RPC/RDMA header: rm_xid through rm_type, then rm_nochunks
-  */
- #define RPCRDMA_HDRLEN_MIN	(sizeof(__be32) * 7)
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 757fb96..551c518 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -218,7 +218,7 @@ extern void svc_rdma_xdr_encode_reply_header(struct svcxprt_rdma *,
- 					     struct rpcrdma_msg *,
- 					     struct rpcrdma_msg *,
- 					     enum rpcrdma_proc);
--extern int svc_rdma_xdr_get_reply_hdr_len(struct rpcrdma_msg *);
-+extern unsigned int svc_rdma_xdr_get_reply_hdr_len(__be32 *rdma_resp);
- 
- /* svc_rdma_recvfrom.c */
- extern int svc_rdma_recvfrom(struct svc_rqst *);
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_marshal.c b/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-index 0ba9887..4e72034 100644
+index 5efa019..7c8d60f 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_marshal.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-@@ -260,32 +260,35 @@ int svc_rdma_xdr_encode_error(struct svcxprt_rdma *xprt,
- 	return (int)((unsigned long)va - (unsigned long)startp);
- }
+@@ -1,4 +1,5 @@
+ /*
++ * Copyright (c) 2016 Oracle. All rights reserved.
+  * Copyright (c) 2005-2006 Network Appliance, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -47,102 +48,43 @@
  
--int svc_rdma_xdr_get_reply_hdr_len(struct rpcrdma_msg *rmsgp)
-+/**
-+ * svc_rdma_xdr_get_reply_hdr_length - Get length of Reply transport header
-+ * @rdma_resp: buffer containing Reply transport header
-+ *
-+ * Returns length of transport header, in bytes.
-+ */
-+unsigned int svc_rdma_xdr_get_reply_hdr_len(__be32 *rdma_resp)
+ #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
+ 
+-/*
+- * Decodes a read chunk list. The expected format is as follows:
+- *    descrim  : xdr_one
+- *    position : __be32 offset into XDR stream
+- *    handle   : __be32 RKEY
+- *    . . .
+- *  end-of-list: xdr_zero
+- */
+-static __be32 *decode_read_list(__be32 *va, __be32 *vaend)
++static __be32 *xdr_check_read_list(__be32 *p, __be32 *end)
  {
--	struct rpcrdma_write_array *wr_ary;
-+	unsigned int nsegs;
-+	__be32 *p;
+-	struct rpcrdma_read_chunk *ch = (struct rpcrdma_read_chunk *)va;
++	__be32 *next;
  
--	/* There is no read-list in a reply */
-+	p = rdma_resp;
- 
--	/* skip write list */
--	wr_ary = (struct rpcrdma_write_array *)
--		&rmsgp->rm_body.rm_chunks[1];
--	if (wr_ary->wc_discrim)
--		wr_ary = (struct rpcrdma_write_array *)
--			&wr_ary->wc_array[be32_to_cpu(wr_ary->wc_nchunks)].
--			wc_target.rs_length;
--	else
--		wr_ary = (struct rpcrdma_write_array *)
--			&wr_ary->wc_nchunks;
--
--	/* skip reply array */
--	if (wr_ary->wc_discrim)
--		wr_ary = (struct rpcrdma_write_array *)
--			&wr_ary->wc_array[be32_to_cpu(wr_ary->wc_nchunks)];
--	else
--		wr_ary = (struct rpcrdma_write_array *)
--			&wr_ary->wc_nchunks;
--
--	return (unsigned long) wr_ary - (unsigned long) rmsgp;
-+	/* RPC-over-RDMA V1 replies never have a Read list. */
-+	p += rpcrdma_fixed_maxsz + 1;
-+
-+	/* Skip Write list. */
+-	while (ch->rc_discrim != xdr_zero) {
+-		if (((unsigned long)ch + sizeof(struct rpcrdma_read_chunk)) >
+-		    (unsigned long)vaend) {
+-			dprintk("svcrdma: vaend=%p, ch=%p\n", vaend, ch);
 +	while (*p++ != xdr_zero) {
-+		nsegs = be32_to_cpup(p++);
-+		p += nsegs * rpcrdma_segment_maxsz;
-+	}
-+
-+	/* Skip Reply chunk. */
-+	if (*p++ != xdr_zero) {
-+		nsegs = be32_to_cpup(p++);
-+		p += nsegs * rpcrdma_segment_maxsz;
-+	}
-+
-+	return (unsigned long)p - (unsigned long)rdma_resp;
++		next = p + rpcrdma_readchunk_maxsz - 1;
++		if (next > end)
+ 			return NULL;
+-		}
+-		ch++;
++		p = next;
+ 	}
+-	return &ch->rc_position;
++	return p;
  }
  
- void svc_rdma_xdr_encode_write_list(struct rpcrdma_msg *rmsgp, int chunks)
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index ad4d286..ba76f1617 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -476,7 +476,8 @@ static int send_reply(struct svcxprt_rdma *rdma,
+-/*
+- * Decodes a write chunk list. The expected format is as follows:
+- *    descrim  : xdr_one
+- *    nchunks  : <count>
+- *       handle   : __be32 RKEY           ---+
+- *       length   : __be32 <len of segment>  |
+- *       offset   : remove va                + <count>
+- *       . . .                               |
+- *                                        ---+
+- */
+-static __be32 *decode_write_list(__be32 *va, __be32 *vaend)
++static __be32 *xdr_check_write_list(__be32 *p, __be32 *end)
+ {
+-	unsigned long start, end;
+-	int nchunks;
+-
+-	struct rpcrdma_write_array *ary =
+-		(struct rpcrdma_write_array *)va;
+-
+-	/* Check for not write-array */
+-	if (ary->wc_discrim == xdr_zero)
+-		return &ary->wc_nchunks;
++	__be32 *next;
  
- 	/* Prepare the SGE for the RPCRDMA Header */
- 	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
--	ctxt->sge[0].length = svc_rdma_xdr_get_reply_hdr_len(rdma_resp);
-+	ctxt->sge[0].length =
-+	    svc_rdma_xdr_get_reply_hdr_len((__be32 *)rdma_resp);
- 	ctxt->sge[0].addr =
- 	    ib_dma_map_page(rdma->sc_cm_id->device, page, 0,
- 			    ctxt->sge[0].length, DMA_TO_DEVICE);
+-	if ((unsigned long)ary + sizeof(struct rpcrdma_write_array) >
+-	    (unsigned long)vaend) {
+-		dprintk("svcrdma: ary=%p, vaend=%p\n", ary, vaend);
+-		return NULL;
+-	}
+-	nchunks = be32_to_cpu(ary->wc_nchunks);
+-
+-	start = (unsigned long)&ary->wc_array[0];
+-	end = (unsigned long)vaend;
+-	if (nchunks < 0 ||
+-	    nchunks > (SIZE_MAX - start) / sizeof(struct rpcrdma_write_chunk) ||
+-	    (start + (sizeof(struct rpcrdma_write_chunk) * nchunks)) > end) {
+-		dprintk("svcrdma: ary=%p, wc_nchunks=%d, vaend=%p\n",
+-			ary, nchunks, vaend);
+-		return NULL;
++	while (*p++ != xdr_zero) {
++		next = p + 1 + be32_to_cpup(p) * rpcrdma_segment_maxsz;
++		if (next > end)
++			return NULL;
++		p = next;
+ 	}
+-	/*
+-	 * rs_length is the 2nd 4B field in wc_target and taking its
+-	 * address skips the list terminator
+-	 */
+-	return &ary->wc_array[nchunks].wc_target.rs_length;
++	return p;
+ }
+ 
+-static __be32 *decode_reply_array(__be32 *va, __be32 *vaend)
++static __be32 *xdr_check_reply_chunk(__be32 *p, __be32 *end)
+ {
+-	unsigned long start, end;
+-	int nchunks;
+-	struct rpcrdma_write_array *ary =
+-		(struct rpcrdma_write_array *)va;
+-
+-	/* Check for no reply-array */
+-	if (ary->wc_discrim == xdr_zero)
+-		return &ary->wc_nchunks;
+-
+-	if ((unsigned long)ary + sizeof(struct rpcrdma_write_array) >
+-	    (unsigned long)vaend) {
+-		dprintk("svcrdma: ary=%p, vaend=%p\n", ary, vaend);
+-		return NULL;
+-	}
+-	nchunks = be32_to_cpu(ary->wc_nchunks);
+-
+-	start = (unsigned long)&ary->wc_array[0];
+-	end = (unsigned long)vaend;
+-	if (nchunks < 0 ||
+-	    nchunks > (SIZE_MAX - start) / sizeof(struct rpcrdma_write_chunk) ||
+-	    (start + (sizeof(struct rpcrdma_write_chunk) * nchunks)) > end) {
+-		dprintk("svcrdma: ary=%p, wc_nchunks=%d, vaend=%p\n",
+-			ary, nchunks, vaend);
+-		return NULL;
++	__be32 *next;
++
++	if (*p++ != xdr_zero) {
++		next = p + 1 + be32_to_cpup(p) * rpcrdma_segment_maxsz;
++		if (next > end)
++			return NULL;
++		p = next;
+ 	}
+-	return (__be32 *)&ary->wc_array[nchunks];
++	return p;
+ }
+ 
+ /**
+@@ -158,87 +100,71 @@ static __be32 *decode_reply_array(__be32 *va, __be32 *vaend)
+  */
+ int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg)
+ {
+-	struct rpcrdma_msg *rmsgp;
+-	__be32 *va, *vaend;
+-	unsigned int len;
+-	u32 hdr_len;
++	__be32 *p, *end, *rdma_argp;
++	unsigned int hdr_len;
+ 
+ 	/* Verify that there's enough bytes for header + something */
+-	if (rq_arg->len <= RPCRDMA_HDRLEN_ERR) {
+-		dprintk("svcrdma: header too short = %d\n",
+-			rq_arg->len);
+-		return -EINVAL;
+-	}
++	if (rq_arg->len <= RPCRDMA_HDRLEN_ERR)
++		goto out_short;
+ 
+-	rmsgp = (struct rpcrdma_msg *)rq_arg->head[0].iov_base;
+-	if (rmsgp->rm_vers != rpcrdma_version) {
+-		dprintk("%s: bad version %u\n", __func__,
+-			be32_to_cpu(rmsgp->rm_vers));
+-		return -EPROTONOSUPPORT;
+-	}
++	rdma_argp = rq_arg->head[0].iov_base;
++	if (*(rdma_argp + 1) != rpcrdma_version)
++		goto out_version;
+ 
+-	switch (be32_to_cpu(rmsgp->rm_type)) {
+-	case RDMA_MSG:
+-	case RDMA_NOMSG:
++	switch (*(rdma_argp + 3)) {
++	case rdma_msg:
++	case rdma_nomsg:
+ 		break;
+ 
+-	case RDMA_DONE:
+-		/* Just drop it */
+-		dprintk("svcrdma: dropping RDMA_DONE message\n");
+-		return 0;
+-
+-	case RDMA_ERROR:
+-		/* Possible if this is a backchannel reply.
+-		 * XXX: We should cancel this XID, though.
+-		 */
+-		dprintk("svcrdma: dropping RDMA_ERROR message\n");
+-		return 0;
+-
+-	case RDMA_MSGP:
+-		/* Pull in the extra for the padded case, bump our pointer */
+-		rmsgp->rm_body.rm_padded.rm_align =
+-			be32_to_cpu(rmsgp->rm_body.rm_padded.rm_align);
+-		rmsgp->rm_body.rm_padded.rm_thresh =
+-			be32_to_cpu(rmsgp->rm_body.rm_padded.rm_thresh);
+-
+-		va = &rmsgp->rm_body.rm_padded.rm_pempty[4];
+-		rq_arg->head[0].iov_base = va;
+-		len = (u32)((unsigned long)va - (unsigned long)rmsgp);
+-		rq_arg->head[0].iov_len -= len;
+-		if (len > rq_arg->len)
+-			return -EINVAL;
+-		return len;
+-	default:
+-		dprintk("svcrdma: bad rdma procedure (%u)\n",
+-			be32_to_cpu(rmsgp->rm_type));
+-		return -EINVAL;
+-	}
++	case rdma_done:
++		goto out_drop;
+ 
+-	/* The chunk list may contain either a read chunk list or a write
+-	 * chunk list and a reply chunk list.
+-	 */
+-	va = &rmsgp->rm_body.rm_chunks[0];
+-	vaend = (__be32 *)((unsigned long)rmsgp + rq_arg->len);
+-	va = decode_read_list(va, vaend);
+-	if (!va) {
+-		dprintk("svcrdma: failed to decode read list\n");
+-		return -EINVAL;
+-	}
+-	va = decode_write_list(va, vaend);
+-	if (!va) {
+-		dprintk("svcrdma: failed to decode write list\n");
+-		return -EINVAL;
+-	}
+-	va = decode_reply_array(va, vaend);
+-	if (!va) {
+-		dprintk("svcrdma: failed to decode reply chunk\n");
+-		return -EINVAL;
++	case rdma_error:
++		goto out_drop;
++
++	default:
++		goto out_proc;
+ 	}
+ 
+-	rq_arg->head[0].iov_base = va;
+-	hdr_len = (unsigned long)va - (unsigned long)rmsgp;
++	end = (__be32 *)((unsigned long)rdma_argp + rq_arg->len);
++	p = xdr_check_read_list(rdma_argp + 4, end);
++	if (!p)
++		goto out_inval;
++	p = xdr_check_write_list(p, end);
++	if (!p)
++		goto out_inval;
++	p = xdr_check_reply_chunk(p, end);
++	if (!p)
++		goto out_inval;
++	if (p > end)
++		goto out_inval;
++
++	rq_arg->head[0].iov_base = p;
++	hdr_len = (unsigned long)p - (unsigned long)rdma_argp;
+ 	rq_arg->head[0].iov_len -= hdr_len;
+ 	return hdr_len;
++
++out_short:
++	dprintk("svcrdma: header too short = %d\n", rq_arg->len);
++	return -EINVAL;
++
++out_version:
++	dprintk("svcrdma: bad xprt version: %u\n",
++		be32_to_cpup(rdma_argp + 1));
++	return -EPROTONOSUPPORT;
++
++out_drop:
++	dprintk("svcrdma: dropping RDMA_DONE/ERROR message\n");
++	return 0;
++
++out_proc:
++	dprintk("svcrdma: bad rdma procedure (%u)\n",
++		be32_to_cpup(rdma_argp + 3));
++	return -EINVAL;
++
++out_inval:
++	dprintk("svcrdma: failed to parse transport header\n");
++	return -EINVAL;
+ }
+ 
+ int svc_rdma_xdr_encode_error(struct svcxprt_rdma *xprt,
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
