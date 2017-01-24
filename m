@@ -1,163 +1,74 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 7/7] svcrdma: Poll CQs in "workqueue" mode
-Date: Tue, 24 Jan 2017 15:35:27 -0500
-Message-ID: <20170124203527.11807.38184.stgit@klimt.1015granger.net>
-References: <20170124193242.11807.91861.stgit@klimt.1015granger.net>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] qedr: add qedr-abi.h to Kbuild
+Date: Tue, 24 Jan 2017 15:47:48 -0500
+Message-ID: <1485290868.43764.62.camel@redhat.com>
+References: <1485252091-9370-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-zdeWWbQeFbjl2ZjHE80D"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170124193242.11807.91861.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <1485252091-9370-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-svcrdma calls svc_xprt_put() in its completion handlers, which
-currently run in IRQ context.
 
-However, svc_xprt_put() is meant to be invoked in process context,
-not in IRQ context. After the last transport reference is gone, it
-directly calls a transport release function that expects to run in
-process context.
+--=-zdeWWbQeFbjl2ZjHE80D
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Change the CQ polling modes to IB_POLL_WORKQUEUE so that svcrdma
-invokes svc_xprt_put() only in process context. As an added benefit,
-bottom half-disabled spin locking can be eliminated from I/O paths.
+On Tue, 2017-01-24 at 12:01 +0200, Ram Amrani wrote:
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+> =C2=A0include/uapi/rdma/Kbuild | 1 +
+> =C2=A01 file changed, 1 insertion(+)
+>=20
+> diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+> index 82bdf56..bb68cb1 100644
+> --- a/include/uapi/rdma/Kbuild
+> +++ b/include/uapi/rdma/Kbuild
+> @@ -16,3 +16,4 @@ header-y +=3D nes-abi.h
+> =C2=A0header-y +=3D ocrdma-abi.h
+> =C2=A0header-y +=3D hns-abi.h
+> =C2=A0header-y +=3D vmw_pvrdma-abi.h
+> +header-y +=3D qedr-abi.h
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |    6 +++---
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   26 +++++++++++++-------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+So, there is work progressing that should render this obsolete.
+=C2=A0However, I suspect that won't land until 4.11, so this is still neede=
+d
+for 4.10-rc. =C2=A0Applied.
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index b9ccd73..f7b2daf 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -606,12 +606,12 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 
- 	dprintk("svcrdma: rqstp=%p\n", rqstp);
- 
--	spin_lock_bh(&rdma_xprt->sc_rq_dto_lock);
-+	spin_lock(&rdma_xprt->sc_rq_dto_lock);
- 	if (!list_empty(&rdma_xprt->sc_read_complete_q)) {
- 		ctxt = list_first_entry(&rdma_xprt->sc_read_complete_q,
- 					struct svc_rdma_op_ctxt, list);
- 		list_del(&ctxt->list);
--		spin_unlock_bh(&rdma_xprt->sc_rq_dto_lock);
-+		spin_unlock(&rdma_xprt->sc_rq_dto_lock);
- 		rdma_read_complete(rqstp, ctxt);
- 		goto complete;
- 	} else if (!list_empty(&rdma_xprt->sc_rq_dto_q)) {
-@@ -623,7 +623,7 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		clear_bit(XPT_DATA, &xprt->xpt_flags);
- 		ctxt = NULL;
- 	}
--	spin_unlock_bh(&rdma_xprt->sc_rq_dto_lock);
-+	spin_unlock(&rdma_xprt->sc_rq_dto_lock);
- 	if (!ctxt) {
- 		/* This is the EAGAIN path. The svc_recv routine will
- 		 * return -EAGAIN, the nfsd thread will go to call into
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 87b8b5a..ab2fd53 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -188,7 +188,7 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
- {
- 	struct svc_rdma_op_ctxt *ctxt = NULL;
- 
--	spin_lock_bh(&xprt->sc_ctxt_lock);
-+	spin_lock(&xprt->sc_ctxt_lock);
- 	xprt->sc_ctxt_used++;
- 	if (list_empty(&xprt->sc_ctxts))
- 		goto out_empty;
-@@ -196,7 +196,7 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
- 	ctxt = list_first_entry(&xprt->sc_ctxts,
- 				struct svc_rdma_op_ctxt, list);
- 	list_del(&ctxt->list);
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- 
- out:
- 	ctxt->count = 0;
-@@ -208,15 +208,15 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
- 	/* Either pre-allocation missed the mark, or send
- 	 * queue accounting is broken.
- 	 */
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- 
- 	ctxt = alloc_ctxt(xprt, GFP_NOIO);
- 	if (ctxt)
- 		goto out;
- 
--	spin_lock_bh(&xprt->sc_ctxt_lock);
-+	spin_lock(&xprt->sc_ctxt_lock);
- 	xprt->sc_ctxt_used--;
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- 	WARN_ONCE(1, "svcrdma: empty RDMA ctxt list?\n");
- 	return NULL;
- }
-@@ -253,10 +253,10 @@ void svc_rdma_put_context(struct svc_rdma_op_ctxt *ctxt, int free_pages)
- 		for (i = 0; i < ctxt->count; i++)
- 			put_page(ctxt->pages[i]);
- 
--	spin_lock_bh(&xprt->sc_ctxt_lock);
-+	spin_lock(&xprt->sc_ctxt_lock);
- 	xprt->sc_ctxt_used--;
- 	list_add(&ctxt->list, &xprt->sc_ctxts);
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- }
- 
- static void svc_rdma_destroy_ctxts(struct svcxprt_rdma *xprt)
-@@ -921,14 +921,14 @@ struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
- {
- 	struct svc_rdma_fastreg_mr *frmr = NULL;
- 
--	spin_lock_bh(&rdma->sc_frmr_q_lock);
-+	spin_lock(&rdma->sc_frmr_q_lock);
- 	if (!list_empty(&rdma->sc_frmr_q)) {
- 		frmr = list_entry(rdma->sc_frmr_q.next,
- 				  struct svc_rdma_fastreg_mr, frmr_list);
- 		list_del_init(&frmr->frmr_list);
- 		frmr->sg_nents = 0;
- 	}
--	spin_unlock_bh(&rdma->sc_frmr_q_lock);
-+	spin_unlock(&rdma->sc_frmr_q_lock);
- 	if (frmr)
- 		return frmr;
- 
-@@ -941,10 +941,10 @@ void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
- 	if (frmr) {
- 		ib_dma_unmap_sg(rdma->sc_cm_id->device,
- 				frmr->sg, frmr->sg_nents, frmr->direction);
--		spin_lock_bh(&rdma->sc_frmr_q_lock);
-+		spin_lock(&rdma->sc_frmr_q_lock);
- 		WARN_ON_ONCE(!list_empty(&frmr->frmr_list));
- 		list_add(&frmr->frmr_list, &rdma->sc_frmr_q);
--		spin_unlock_bh(&rdma->sc_frmr_q_lock);
-+		spin_unlock(&rdma->sc_frmr_q_lock);
- 	}
- }
- 
-@@ -1026,13 +1026,13 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 		goto errout;
- 	}
- 	newxprt->sc_sq_cq = ib_alloc_cq(dev, newxprt, newxprt->sc_sq_depth,
--					0, IB_POLL_SOFTIRQ);
-+					0, IB_POLL_WORKQUEUE);
- 	if (IS_ERR(newxprt->sc_sq_cq)) {
- 		dprintk("svcrdma: error creating SQ CQ for connect request\n");
- 		goto errout;
- 	}
- 	newxprt->sc_rq_cq = ib_alloc_cq(dev, newxprt, newxprt->sc_rq_depth,
--					0, IB_POLL_SOFTIRQ);
-+					0, IB_POLL_WORKQUEUE);
- 	if (IS_ERR(newxprt->sc_rq_cq)) {
- 		dprintk("svcrdma: error creating RQ CQ for connect request\n");
- 		goto errout;
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+
+--=-zdeWWbQeFbjl2ZjHE80D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYh710AAoJELgmozMOVy/daGYQAJwQw8QP606RpMeVMbmaIyg3
+dI84ffmftN66xJgNNaxc+zghNHU8vA6FbBG/aB93s8HwruWwI3vo1B4IzRGqzefx
+gZX4VjdWQOjKxSB9TvLcWS86W5NcZ1iQSWFxFhlbg03REpKw1jALSvV93/arm9fr
+1OJs3exnoHBgSLqa59HSuwZy6WrNXTlbFuXwSALtAIXzqPeP3J+OVpk9WJ57hw80
+mStidX2rsyjLVx+2HS5k66X3JDDAlx+oxHRgbpmY1idxMx2e9IH/wUc7WsMuzsfN
+2xJki9oMOC44QfA7pHrYoq5JIL3bT5LNv1ocJGLGETp1mefCfEBTRMTyURaX4GgI
+4VOlZFKtNPc7gFqBnjNith2XWbmWpJPS52ipy/i/wwfcNaPyfFCIIeZxPN+qUfun
+c/YqI7RK+BVGLMAfjUhBFhA02maDoAEMaamuvam2go5dCuYrYGFDMAXIqFVoWubl
+vTIbyI3p/Mvdc0v89CZDza3MZuCU1PcrWBeNXtMAGPA+HuAuErNWNUiCDQ0idgPe
+AzQCzMHxAVquXWP8ixsyQp07SbRxx6kBTXLb7zKRE1Cbyk0FmpVY65U4lGGHJREb
+gyFJ0IRCsuEAhL72Uh+iqKODTUiIfo6W2+3vdlFFbG9bljPo5rrbCbl8CMWqzRFo
+ftTIZZo9wQFvY7r1sdz8
+=yXJL
+-----END PGP SIGNATURE-----
+
+--=-zdeWWbQeFbjl2ZjHE80D--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
