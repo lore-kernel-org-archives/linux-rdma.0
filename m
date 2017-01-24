@@ -1,180 +1,107 @@
-From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 2/5] xprtrdma: Per-connection pad optimization
-Date: Tue, 24 Jan 2017 14:23:05 -0500
-Message-ID: <65f628a4-055c-2ce5-9dfc-2f8a17a5435c@Netapp.com>
-References: <20170123205159.21699.47373.stgit@manet.1015granger.net>
- <20170123205254.21699.44329.stgit@manet.1015granger.net>
- <19a00a6f-9502-161a-d37b-7371b07662ed@Netapp.com>
- <575D5F73-2D4B-4FDA-B196-0D683B459F9D@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next V2 00/11] Mellanox mlx5 core and ODP updates
+ 2017-01-01
+Date: Tue, 24 Jan 2017 14:39:59 -0500
+Message-ID: <1485286799.43764.49.camel@redhat.com>
+References: <1483349868-11716-1-git-send-email-saeedm@mellanox.com>
+         <20170102.155341.1496970446718890403.davem@davemloft.net>
+         <CALzJLG9ZBRMOVqFsTypCLV6Rrek8a9g43z0spvVKeku6WdWCTA@mail.gmail.com>
+         <20170103072344.GF12077@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <575D5F73-2D4B-4FDA-B196-0D683B459F9D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-kv+qCPI1IaLuc2KUAjdX"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170103072344.GF12077-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--=-kv+qCPI1IaLuc2KUAjdX
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 01/24/2017 02:16 PM, Chuck Lever wrote:
-> 
->> On Jan 24, 2017, at 2:12 PM, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> Hi Chuck,
->>
->> On 01/23/2017 03:52 PM, Chuck Lever wrote:
->>> Pad optimization is changed by echoing into
->>> /proc/sys/sunrpc/rdma_pad_optimize. This is a global setting,
->>> affecting all RPC-over-RDMA connections to all servers.
->>>
->>> The marshaling code picks up that value and uses it for decisions
->>> about how to construct each RPC-over-RDMA frame. Having it change
->>> suddenly in mid-operation can result in unexpected failures. And
->>> some servers a client mounts might need chunk round-up, while
->>> others don't.
->>>
->>> So instead, copy the pad_optimize setting into each connection's
->>> rpcrdma_ia when the transport is created, and use the copy, which
->>> can't change during the life of the connection, instead.
->>
->> Does the rdma_pad_optimize option have documentation somewhere that needs to be updated to describe the new behavior?
-> 
-> I'm not aware of any. No documentation was changed by d5440e27d3e5.
+On Tue, 2017-01-03 at 09:23 +0200, Leon Romanovsky wrote:
+> On Tue, Jan 03, 2017 at 01:30:16AM +0200, Saeed Mahameed wrote:
+> >=20
+> > On Mon, Jan 2, 2017 at 10:53 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+> > wrote:
+> > >=20
+> > > From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > Date: Mon,=C2=A0=C2=A02 Jan 2017 11:37:37 +0200
+> > >=20
+> > > >=20
+> > > > The following eleven patches mainly come from Artemy Kovalyov
+> > > > who expanded mlx5 on-demand-paging (ODP) support. In addition
+> > > > there are three cleanup patches which don't change any
+> > > > functionality,
+> > > > but are needed to align codebase prior accepting other patches.
+> > >=20
+> > > Series applied to net-next, thanks.
+> >=20
+> > Whoops,
+> >=20
+> > This series was meant as a pull request, you can blame it on me I
+> > kinda messed up the V2 title.
+> > Doug will have to pull same patches later, will this produce a
+> > conflict on merge window ?
+>=20
+> Yes, but it can be easily avoided.
+>=20
+> Doug,
+>=20
+> We have another pull request to send and we will base its code on the
+> Dave's tree instead of Linus's rc tag. In such way, you will have the
+> same commits as Dave and won't have merge failures.
+>=20
+> Please don't apply manually this specific patchset.
+>=20
+> Sorry for the inconvenience.
 
-Okay, I just wanted to make sure everything was covered :)
+Hi Leon and Saeed,
 
-Thanks,
-Anna
+As I understand it, Dave took this series, but I have not. =C2=A0You were
+going to base another pull request on top of this so I could get both.
+=C2=A0However, I believe that was the attempt to reorg the driver pull
+request, which David NAKed. =C2=A0That means I have not picked this up. =C2=
+=A0Are
+all of the other for-next patches you posted against the RDMA list
+going to go in cleanly without this series, or should I expect
+conflicts between Dave's tree and my own?
 
-> 
-> 
->> Anna
->>
->>>
->>> This also removes a hack: rpcrdma_convert_iovs was using
->>> the remote-invalidation-expected flag to predict when it could leave
->>> out Write chunk padding. This is because the Linux server handles
->>> implicit XDR padding on Write chunks correctly, and only Linux
->>> servers can set the connection's remote-invalidation-expected flag.
->>>
->>> It's more sensible to use the pad optimization setting instead.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> net/sunrpc/xprtrdma/rpc_rdma.c  |   28 ++++++++++++++--------------
->>> net/sunrpc/xprtrdma/verbs.c     |    1 +
->>> net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
->>> 3 files changed, 16 insertions(+), 14 deletions(-)
->>>
->>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
->>> index a524d3c..c634f0f 100644
->>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
->>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
->>> @@ -186,9 +186,9 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
->>>  */
->>>
->>> static int
->>> -rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
->>> -	enum rpcrdma_chunktype type, struct rpcrdma_mr_seg *seg,
->>> -	bool reminv_expected)
->>> +rpcrdma_convert_iovs(struct rpcrdma_xprt *r_xprt, struct xdr_buf *xdrbuf,
->>> +		     unsigned int pos, enum rpcrdma_chunktype type,
->>> +		     struct rpcrdma_mr_seg *seg)
->>> {
->>> 	int len, n, p, page_base;
->>> 	struct page **ppages;
->>> @@ -229,14 +229,15 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
->>> 	/* When encoding a Read chunk, the tail iovec contains an
->>> 	 * XDR pad and may be omitted.
->>> 	 */
->>> -	if (type == rpcrdma_readch && xprt_rdma_pad_optimize)
->>> +	if (type == rpcrdma_readch && r_xprt->rx_ia.ri_implicit_roundup)
->>> 		return n;
->>>
->>> -	/* When encoding the Write list, some servers need to see an extra
->>> -	 * segment for odd-length Write chunks. The upper layer provides
->>> -	 * space in the tail iovec for this purpose.
->>> +	/* When encoding a Write chunk, some servers need to see an
->>> +	 * extra segment for non-XDR-aligned Write chunks. The upper
->>> +	 * layer provides space in the tail iovec that may be used
->>> +	 * for this purpose.
->>> 	 */
->>> -	if (type == rpcrdma_writech && reminv_expected)
->>> +	if (type == rpcrdma_writech && r_xprt->rx_ia.ri_implicit_roundup)
->>> 		return n;
->>>
->>> 	if (xdrbuf->tail[0].iov_len) {
->>> @@ -291,7 +292,8 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
->>> 	if (rtype == rpcrdma_areadch)
->>> 		pos = 0;
->>> 	seg = req->rl_segments;
->>> -	nsegs = rpcrdma_convert_iovs(&rqst->rq_snd_buf, pos, rtype, seg, false);
->>> +	nsegs = rpcrdma_convert_iovs(r_xprt, &rqst->rq_snd_buf, pos,
->>> +				     rtype, seg);
->>> 	if (nsegs < 0)
->>> 		return ERR_PTR(nsegs);
->>>
->>> @@ -353,10 +355,9 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
->>> 	}
->>>
->>> 	seg = req->rl_segments;
->>> -	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf,
->>> +	nsegs = rpcrdma_convert_iovs(r_xprt, &rqst->rq_rcv_buf,
->>> 				     rqst->rq_rcv_buf.head[0].iov_len,
->>> -				     wtype, seg,
->>> -				     r_xprt->rx_ia.ri_reminv_expected);
->>> +				     wtype, seg);
->>> 	if (nsegs < 0)
->>> 		return ERR_PTR(nsegs);
->>>
->>> @@ -421,8 +422,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
->>> 	}
->>>
->>> 	seg = req->rl_segments;
->>> -	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf, 0, wtype, seg,
->>> -				     r_xprt->rx_ia.ri_reminv_expected);
->>> +	nsegs = rpcrdma_convert_iovs(r_xprt, &rqst->rq_rcv_buf, 0, wtype, seg);
->>> 	if (nsegs < 0)
->>> 		return ERR_PTR(nsegs);
->>>
->>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
->>> index 11d0774..2a6a367 100644
->>> --- a/net/sunrpc/xprtrdma/verbs.c
->>> +++ b/net/sunrpc/xprtrdma/verbs.c
->>> @@ -208,6 +208,7 @@
->>>
->>> 	/* Default settings for RPC-over-RDMA Version One */
->>> 	r_xprt->rx_ia.ri_reminv_expected = false;
->>> +	r_xprt->rx_ia.ri_implicit_roundup = xprt_rdma_pad_optimize;
->>> 	rsize = RPCRDMA_V1_DEF_INLINE_SIZE;
->>> 	wsize = RPCRDMA_V1_DEF_INLINE_SIZE;
->>>
->>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
->>> index e35efd4..c137154 100644
->>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->>> @@ -75,6 +75,7 @@ struct rpcrdma_ia {
->>> 	unsigned int		ri_max_inline_write;
->>> 	unsigned int		ri_max_inline_read;
->>> 	bool			ri_reminv_expected;
->>> +	bool			ri_implicit_roundup;
->>> 	enum ib_mr_type		ri_mrtype;
->>> 	struct ib_qp_attr	ri_qp_attr;
->>> 	struct ib_qp_init_attr	ri_qp_init_attr;
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+
+--=-kv+qCPI1IaLuc2KUAjdX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYh62PAAoJELgmozMOVy/doZcP/jCu3J47eISfA0nt26GEE6wZ
+HW33PpRB2hOg8h2IYy1XGmk810yzfaxEYJt/yKs9G0iB54IEvAKiBdmhhsxHNgfv
+2EXUuVwt3XzjxPKWOHsH8VZpX7f28f/IZqZ/0LVpnldWAvSfZ1lqyJF+TFhsGON7
+OS/wFYK3IFMARgbcBwtrKe1h7Z7GIk22RSsOaoTFvQEXXR+UEWXHAflFqfVz2kDg
+s5qLuQcbsDCy0QeUvPu6m1ukOZ0gtozHZ9jp57bFr8lGQ+/RzfpiQiNoXThz4/BI
+sXnrRpL25k+Ek0ySW96hs+CmcUru5w/HZ0tmSJ+4IQMZ+M2ectS1RTtuvq91Qvdb
+E5UMgJetxNjn5kVhSJ9688vmIM2lAySGJwrmqCFyZiVmLryx1PZFAaSGIQoCfOKS
+2WEMS19yK2nCzV+VB2P9NMiebLnQtWoBvkOZiax0gBPM+YN0J7Om0QoQM4bhd6AZ
+OZQL8JN2yfr9Ceu+j99hKm2/2qrYPnCVh7P4TpaRWePPKvJLc8COlnzAiYCiuWii
+ua6cNzWaig0GJHHdV8cSnYfO1jMh4ZeEY9FWs42hv+Aab/2Xd8dgHThibOcookgm
+o6ME3HwegZuX7UkiV8pse3vhmamcbmIV39/DMvpXAP2ls6Grz4pgVOkDP3oE/D59
+IJJRdslHr8ZSf/D8iste
+=ryka
+-----END PGP SIGNATURE-----
+
+--=-kv+qCPI1IaLuc2KUAjdX--
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
