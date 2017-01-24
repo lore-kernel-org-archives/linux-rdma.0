@@ -1,125 +1,166 @@
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 5/5 v2] qedr: dispatch port active event from qedr_add
-Date: Tue, 24 Jan 2017 13:51:43 +0200
-Message-ID: <1485258703-11949-6-git-send-email-Ram.Amrani@cavium.com>
-References: <1485258703-11949-1-git-send-email-Ram.Amrani@cavium.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for bnxt_re V4 15/21] RDMA/bnxt_re: Support post_recv
+Date: Tue, 24 Jan 2017 13:59:43 +0200
+Message-ID: <20170124115943.GF6005@mtr-leonro.local>
+References: <1482320530-5344-1-git-send-email-selvin.xavier@broadcom.com>
+ <1482320530-5344-16-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485258703-11949-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="jkO+KyKz7TfD21mV"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1482320530-5344-16-git-send-email-selvin.xavier@broadcom.com>
+Sender: netdev-owner@vger.kernel.org
+To: Selvin Xavier <selvin.xavier@broadcom.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, michael.chan@broadcom.com, Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 
-Relying on qede to trigger qedr on startup is problematic. When probing
-both if qedr loads slowly then qede can assume qedr is missing and not
-trigger it. This patch adds a triggering from qedr and protects against
-a race via an atomic bit.
+--jkO+KyKz7TfD21mV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qedr/main.c | 20 ++++++++++++++------
- drivers/infiniband/hw/qedr/qedr.h |  5 +++++
- 2 files changed, 19 insertions(+), 6 deletions(-)
+On Wed, Dec 21, 2016 at 03:42:04AM -0800, Selvin Xavier wrote:
+> Enables the fastpath verb ib_post_recv.
+>
+> v3: Fixes sparse warnings
+>
+> Signed-off-by: Eddie Wai <eddie.wai@broadcom.com>
+> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+> Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> ---
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 123 +++++++++++++++++++++++++++++++
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.h |   2 +
+>  drivers/infiniband/hw/bnxt_re/main.c     |   2 +
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 100 +++++++++++++++++++++++++
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.h |   8 ++
+>  5 files changed, 235 insertions(+)
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> index e659490..7476994c 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> @@ -1637,6 +1637,51 @@ static int bnxt_re_build_qp1_send_v2(struct bnxt_re_qp *qp,
+>  	return rc;
+>  }
+>
+> +/* For the MAD layer, it only provides the recv SGE the size of
+> + * ib_grh + MAD datagram.  No Ethernet headers, Ethertype, BTH, DETH,
+> + * nor RoCE iCRC.  The Cu+ solution must provide buffer for the entire
+> + * receive packet (334 bytes) with no VLAN and then copy the GRH
+> + * and the MAD datagram out to the provided SGE.
+> + */
+> +static int bnxt_re_build_qp1_shadow_qp_recv(struct bnxt_re_qp *qp,
+> +					    struct ib_recv_wr *wr,
+> +					    struct bnxt_qplib_swqe *wqe,
+> +					    int payload_size)
+> +{
+> +	struct bnxt_qplib_sge ref, sge;
+> +	u32 rq_prod_index;
+> +	struct bnxt_re_sqp_entries *sqp_entry;
+> +
+> +	rq_prod_index = bnxt_qplib_get_rq_prod_index(&qp->qplib_qp);
+> +
+> +	if (bnxt_qplib_get_qp1_rq_buf(&qp->qplib_qp, &sge)) {
+> +		/* Create 1 SGE to receive the entire
+> +		 * ethernet packet
+> +		 */
+> +		/* Save the reference from ULP */
+> +		ref.addr = wqe->sg_list[0].addr;
+> +		ref.lkey = wqe->sg_list[0].lkey;
+> +		ref.size = wqe->sg_list[0].size;
+> +
+> +		sqp_entry = &qp->rdev->sqp_tbl[rq_prod_index];
+> +
+> +		/* SGE 1 */
+> +		wqe->sg_list[0].addr = sge.addr;
+> +		wqe->sg_list[0].lkey = sge.lkey;
+> +		wqe->sg_list[0].size = BNXT_QPLIB_MAX_QP1_RQ_HDR_SIZE_V2;
+> +		sge.size -= wqe->sg_list[0].size;
+> +
+> +		sqp_entry->sge.addr = ref.addr;
+> +		sqp_entry->sge.lkey = ref.lkey;
+> +		sqp_entry->sge.size = ref.size;
+> +		/* Store the wrid for reporting completion */
+> +		sqp_entry->wrid = wqe->wr_id;
+> +		/* change the wqe->wrid to table index */
+> +		wqe->wr_id = rq_prod_index;
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int is_ud_qp(struct bnxt_re_qp *qp)
+>  {
+>  	return qp->qplib_qp.type == CMDQ_CREATE_QP_TYPE_UD;
+> @@ -1983,6 +2028,84 @@ int bnxt_re_post_send(struct ib_qp *ib_qp, struct ib_send_wr *wr,
+>  	return rc;
+>  }
+>
+> +static int bnxt_re_post_recv_shadow_qp(struct bnxt_re_dev *rdev,
+> +				       struct bnxt_re_qp *qp,
+> +				       struct ib_recv_wr *wr)
+> +{
+> +	struct bnxt_qplib_swqe wqe;
+> +	int rc = 0, payload_sz = 0;
+> +
+> +	memset(&wqe, 0, sizeof(wqe));
+> +	while (wr) {
+> +		/* House keeping */
+> +		memset(&wqe, 0, sizeof(wqe));
+> +
+> +		/* Common */
+> +		wqe.num_sge = wr->num_sge;
+> +		if (wr->num_sge > qp->qplib_qp.rq.max_sge) {
+> +			dev_err(rdev_to_dev(rdev),
+> +				"Limit exceeded for Receive SGEs");
+> +			rc = -EINVAL;
+> +			goto bad;
 
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index eac0bfc..3ac8aa5 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -791,6 +791,9 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
- 		if (device_create_file(&dev->ibdev.dev, qedr_attributes[i]))
- 			goto sysfs_err;
- 
-+	if (!test_and_set_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
-+		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ACTIVE);
-+
- 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr driver loaded successfully\n");
- 	return dev;
- 
-@@ -823,11 +826,10 @@ static void qedr_remove(struct qedr_dev *dev)
- 	ib_dealloc_device(&dev->ibdev);
- }
- 
--static int qedr_close(struct qedr_dev *dev)
-+static void qedr_close(struct qedr_dev *dev)
- {
--	qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ERR);
--
--	return 0;
-+	if (test_and_clear_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
-+		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ERR);
- }
- 
- static void qedr_shutdown(struct qedr_dev *dev)
-@@ -836,6 +838,12 @@ static void qedr_shutdown(struct qedr_dev *dev)
- 	qedr_remove(dev);
- }
- 
-+static void qedr_open(struct qedr_dev *dev)
-+{
-+	if (!test_and_set_bit(QEDR_ENET_STATE_BIT, &dev->enet_state))
-+		qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_PORT_ACTIVE);
-+}
-+
- static void qedr_mac_address_change(struct qedr_dev *dev)
- {
- 	union ib_gid *sgid = &dev->sgid_tbl[0];
-@@ -862,7 +870,7 @@ static void qedr_mac_address_change(struct qedr_dev *dev)
- 
- 	ether_addr_copy(dev->gsi_ll2_mac_address, dev->ndev->dev_addr);
- 
--	qedr_ib_dispatch_event(dev, 1, IB_EVENT_GID_CHANGE);
-+	qedr_ib_dispatch_event(dev, QEDR_PORT, IB_EVENT_GID_CHANGE);
- 
- 	if (rc)
- 		DP_ERR(dev, "Error updating mac filter\n");
-@@ -876,7 +884,7 @@ static void qedr_notify(struct qedr_dev *dev, enum qede_roce_event event)
- {
- 	switch (event) {
- 	case QEDE_UP:
--		qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
-+		qedr_open(dev);
- 		break;
- 	case QEDE_DOWN:
- 		qedr_close(dev);
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index 94319ab..bb32e47 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -113,6 +113,8 @@ struct qedr_device_attr {
- 	struct qed_rdma_events events;
- };
- 
-+#define QEDR_ENET_STATE_BIT	(0)
-+
- struct qedr_dev {
- 	struct ib_device	ibdev;
- 	struct qed_dev		*cdev;
-@@ -153,6 +155,8 @@ struct qedr_dev {
- 	struct qedr_cq		*gsi_sqcq;
- 	struct qedr_cq		*gsi_rqcq;
- 	struct qedr_qp		*gsi_qp;
-+
-+	unsigned long enet_state;
- };
- 
- #define QEDR_MAX_SQ_PBL			(0x8000)
-@@ -188,6 +192,7 @@ struct qedr_dev {
- #define QEDR_ROCE_MAX_CNQ_SIZE		(0x4000)
- 
- #define QEDR_MAX_PORT			(1)
-+#define QEDR_PORT			(1)
- 
- #define QEDR_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
- 
--- 
-1.8.3.1
+"goto bad" directly to other place in while() to call the "break".
+It will be more convenient to call "break" here.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> +		}
+> +		payload_sz = bnxt_re_build_sgl(wr->sg_list, wqe.sg_list,
+> +					       wr->num_sge);
+> +		wqe.wr_id = wr->wr_id;
+> +		wqe.type = BNXT_QPLIB_SWQE_TYPE_RECV;
+> +
+> +		if (!rc)
+
+If we are here, we will always have rc == 0.
+
+> +			rc = bnxt_qplib_post_recv(&qp->qplib_qp, &wqe);
+> +bad:
+> +		if (rc)
+> +			break;
+> +
+> +		wr = wr->next;
+> +	}
+> +	bnxt_qplib_post_recv_db(&qp->qplib_qp);
+> +	return rc;
+> +}
+
+--jkO+KyKz7TfD21mV
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliHQa8ACgkQ5GN7iDZy
+WKcRCw/6AyuTlh4uy/V+0ByWlRrbhn+8ITgjCPkIPNASWD5k9gRGwFu0o5s1Hl4Q
+JijCRuL1rCNbgi0DBoe6oPkK0UPWj/RN10TxHeFErKRpWosxrtvSm7PJdmUVp1rd
+Hmos4nz8I/0tOHUp2NTUmYVMQk1StQLSbcu8hizk/hRF2DKQfqBFXtmj7Ww8OmuG
+CT1i5Uhsa3I1n65zbk5rpn94Dqs206I83/ejeOSEeqvGIIwTzyuZhlxM886S6Kg1
+eT7p/eZlNgd7BWhSQPoqxvt12mXkZjQ1PFNUHBUDdL55FkLStm3VT/aRxvqRONqi
+MZ4nlango1gyjrHDdnH88QPXg4e42l/Nzrp8ZWDzKDigAhn8mSzKBxN3LFcXxJzE
+iOWHuXzRRvQdf9TM1kVhA1oRIPzv5JpYXWVKNK5UkfEof0VUQJ+jOaSXU8rEa13x
+1CMb3hwSyXfGpWc2Ic7m+iwRdCvOygzfbk0IrFahI/ORTTaqHmNRGAsg9OCO1+mZ
+kwFjFCNRM7DSjX1qNTcBrj762bZeXcFxXHBxB2eW81I+V0WItn/ieA1OfHrcGLlt
+TuB61BPK9vRlVIoCL8FqwF16d8NkA1Hm5rt/clE8TUkeznYHwV3UFKPq42jbqvSA
+xwq+lItzCU3sGS29OLeoG/v2Mc3iDmk7hgtttfHedC1CFVoi9Z8=
+=v03l
+-----END PGP SIGNATURE-----
+
+--jkO+KyKz7TfD21mV--
