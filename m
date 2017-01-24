@@ -1,26 +1,31 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/vmw_pvrdma: Remove unused qp_type
-Date: Tue, 24 Jan 2017 14:21:42 -0500
-Message-ID: <1485285702.43764.42.camel@redhat.com>
-References: <1484642040-10668-1-git-send-email-yuval.shaia@oracle.com>
+Subject: Re: [PATCH v1] IB/mad: Add port_num to error message
+Date: Tue, 24 Jan 2017 14:22:57 -0500
+Message-ID: <1485285777.43764.46.camel@redhat.com>
+References: <1484837311-13206-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-oiax/0FKCs8eyknwL6JK"
+        protocol="application/pgp-signature"; boundary="=-1oi/n6CeYVLgQDS+uPpP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484642040-10668-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1484837311-13206-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-oiax/0FKCs8eyknwL6JK
+--=-1oi/n6CeYVLgQDS+uPpP
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2017-01-17 at 10:34 +0200, Yuval Shaia wrote:
-> Remove the unused qp_type parameter from function's args
+On Thu, 2017-01-19 at 16:48 +0200, Yuval Shaia wrote:
+> Print the invalid port number to ease troubleshooting.
 >=20
 > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v0 -> v1:
+> 	* Fix typo in commit header
+
+I chuckled ;-)
 
 Applied to -next area, thanks.
 
@@ -30,7 +35,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-oiax/0FKCs8eyknwL6JK
+--=-1oi/n6CeYVLgQDS+uPpP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -38,22 +43,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYh6lGAAoJELgmozMOVy/dEmsP/3z+SXyz39rlp8XO4yxY3Gky
-LAOF2jB95M6LJWI3+064iMvVZ2dSptSNaqvh1HjxKVmAWvZtNx3VozO+qHqxO8BX
-/zpAFqCvzOFCypFevZ6XZWA37CbdOa1b60x2PflhEb7j0GhvNqHnjZrI96HJsBQs
-mcldtlZ0yawvJpXZ5QDyzdckz8MbZdTtLvqk3prkcMt6EpobjL5J5WK6PlzdT2oa
-5r3l+0uonN3UPd2y5AWkhUBW5y4reGsqJQcpKCZpE03vm2kRSuTOxhLtHUSXelSM
-QKGYefeDC0huCsRQiQURKeQiMk6PXIoXpcb3yCwFhJQpFnMsNjYEv51SI5Q3NuU4
-InS+UbFxkE7Dk8DqlWViNLrNXI8oLDOxNwHK+2jr7wbVEzzUGylbRe6GLR9LHHhv
-gLCI5QnqlnkVc6gJxNCKZoFw4WynLJOSCX6TboiReF70F6U/In+m4Ioqo8DJQUkD
-D/HC/lzFIKlwEjpCxHjcas+E2LtmAW2z5FhfTVnx/M4lrsicH5CDERMre2X8zrvu
-YoIje2ticR83MFLkfApLMY8w6UUKBY8RIqewsSaXjm4gLjMmGaqsmMCRgbAOhjXe
-7wmskQR+AO/16lEPwJ9cOwazfdBbi74XlziNTDCfSL40k9GL+vPxga5eiqK5MocE
-xVFoYrbBlaLZgIiqS6M7
-=LD4d
+iQIcBAABCAAGBQJYh6mRAAoJELgmozMOVy/d4/4QAJhlCfA42C00+V3omcOIWDT/
+01gS9WU+Q3HhZfo3rtvg9AXSlLlAfCb8YnYD0Fy1qvT/esv1cLEIZh1h+Y9m1kUy
+Pp+nE+QA6moNWsfiOijuEZGeqUk8t7C5CnpjM88Uh4ICH7HoQHoB7iYadpyyXw7q
+nS5BP4RIyZ42eUw+ErlRbvMh4SQdvtTB6PZ+0zPLJfnoJG3FZwACwkP5lCL5FznZ
+c1tKvpvXwqjbSE/ypbKrGl00fnbi9gFx7XMcDHpnZfBI/eWM7gmfI6AG+95j1sio
+TRlArKNtnMTaXdgyUtSNIxkPxmMIS3w2cf+vjYFALzrbr5ppSv4BJjto3TSHOO4A
+2gRx3IZ/vcIspEjswlXvo6dId109ySU2tE6KK0r4sKhK6wnDcUiG3v4yYh0jc8/6
+zhtq4T7rfJmC+bXZNlX5uuYy+NS7wjeza/4Qkaj7e75rO6bDJ4UvqR/T8ayQiIUv
+Ffo54hFooRPxV0TX7UbUlsIs29/5fApYgvpG6TS0UrnPANw9ro6vtOv2zHBRDdvE
+5fbBSVqjAJAnOhQ2QYvMRJdBoazRr6OGmVsAHHR2W3KuaXzxsUHv+J9AR1qzJoEE
+78xU1ogGA23byw1kxIyGExDpNNbLyLsgyfevCq5omB3pQKbyqOKKfBqWJSQUg+EO
+B0EougxnKHs9GMse5zg/
+=xFba
 -----END PGP SIGNATURE-----
 
---=-oiax/0FKCs8eyknwL6JK--
+--=-1oi/n6CeYVLgQDS+uPpP--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
