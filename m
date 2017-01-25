@@ -1,74 +1,221 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] IB/cxgb3: header should be defining CXGB3_ABI_USER_H
-Date: Wed, 25 Jan 2017 18:42:40 +0200
-Message-ID: <20170125164240.GP6005@mtr-leonro.local>
-References: <20170125144849.10894-1-colin.king@canonical.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Add inline function to validate port
+Date: Wed, 25 Jan 2017 18:50:22 +0200
+Message-ID: <20170125165022.GQ6005@mtr-leonro.local>
+References: <1485362497-18723-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Vy1A5eXR7jld12ZH"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="U+NfgObvpQT1Q9Yq"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170125144849.10894-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1485362497-18723-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Vy1A5eXR7jld12ZH
+--U+NfgObvpQT1Q9Yq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Jan 25, 2017 at 02:48:49PM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> Fix typo in header guard macro, is currently CXBG3_ABI_USER_H and
-> should be CXGB3_ABI_USER_H (B and G are swapped).
->
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-
-Doug had similar fix already in his tree queued for 4.10.
-https://git.kernel.org/cgit/linux/kernel/git/dledford/rdma.git/commit/?h=k.o/for-4.10-rc&id=b1a27eac7fefff33ccf6acc919fc0725bf9815fb
-
+On Wed, Jan 25, 2017 at 06:41:37PM +0200, Yuval Shaia wrote:
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->  include/uapi/rdma/cxgb3-abi.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/infiniband/core/cache.c  | 18 ++++++++----------
+>  drivers/infiniband/core/cma.c    |  6 ++----
+>  drivers/infiniband/core/device.c |  4 ++--
+>  drivers/infiniband/core/verbs.c  |  3 +--
+>  include/rdma/ib_verbs.h          |  7 +++++++
+>  5 files changed, 20 insertions(+), 18 deletions(-)
+
+Nice change, however all places are pretended with "!".
+Can we change the name of function to something like
+"rdma_is_port_invalid"?
+
 >
-> diff --git a/include/uapi/rdma/cxgb3-abi.h b/include/uapi/rdma/cxgb3-abi.h
-> index 48a19bd..d24eee1 100644
-> --- a/include/uapi/rdma/cxgb3-abi.h
-> +++ b/include/uapi/rdma/cxgb3-abi.h
-> @@ -30,7 +30,7 @@
->   * SOFTWARE.
->   */
->  #ifndef CXGB3_ABI_USER_H
-> -#define CXBG3_ABI_USER_H
-> +#define CXGB3_ABI_USER_H
+> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+> index ae04826..0718b21 100644
+> --- a/drivers/infiniband/core/cache.c
+> +++ b/drivers/infiniband/core/cache.c
+> @@ -510,8 +510,7 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+>  	struct ib_gid_attr val = {.ndev = ndev, .gid_type = gid_type};
+>  	unsigned long flags;
 >
->  #include <linux/types.h>
+> -	if (port < rdma_start_port(ib_dev) ||
+> -	    port > rdma_end_port(ib_dev))
+> +	if (!rdma_is_port_valid(ib_dev, port))
+>  		return -ENOENT;
 >
+>  	table = ports_table[port - rdma_start_port(ib_dev)];
+> @@ -571,8 +570,7 @@ static int ib_cache_gid_find_by_filter(struct ib_device *ib_dev,
+>  	if (!ports_table)
+>  		return -EOPNOTSUPP;
+>
+> -	if (port < rdma_start_port(ib_dev) ||
+> -	    port > rdma_end_port(ib_dev) ||
+> +	if (!rdma_is_port_valid(ib_dev, port) ||
+>  	    !rdma_protocol_roce(ib_dev, port))
+>  		return -EPROTONOSUPPORT;
+>
+> @@ -863,7 +861,7 @@ int ib_get_cached_gid(struct ib_device *device,
+>  	struct ib_gid_table **ports_table = device->cache.gid_cache;
+>  	struct ib_gid_table *table = ports_table[port_num - rdma_start_port(device)];
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	read_lock_irqsave(&table->rwlock, flags);
+> @@ -912,7 +910,7 @@ int ib_get_cached_pkey(struct ib_device *device,
+>  	unsigned long flags;
+>  	int ret = 0;
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	read_lock_irqsave(&device->cache.lock, flags);
+> @@ -941,7 +939,7 @@ int ib_find_cached_pkey(struct ib_device *device,
+>  	int ret = -ENOENT;
+>  	int partial_ix = -1;
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	read_lock_irqsave(&device->cache.lock, flags);
+> @@ -981,7 +979,7 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
+>  	int i;
+>  	int ret = -ENOENT;
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	read_lock_irqsave(&device->cache.lock, flags);
+> @@ -1010,7 +1008,7 @@ int ib_get_cached_lmc(struct ib_device *device,
+>  	unsigned long flags;
+>  	int ret = 0;
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	read_lock_irqsave(&device->cache.lock, flags);
+> @@ -1037,7 +1035,7 @@ static void ib_cache_update(struct ib_device *device,
+>  	bool			   use_roce_gid_table =
+>  					rdma_cap_roce_gid_table(device, port);
+>
+> -	if (port < rdma_start_port(device) || port > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port))
+>  		return;
+>
+>  	table = ports_table[port - rdma_start_port(device)];
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index e7dcfac..69f37b1 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -269,8 +269,7 @@ struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
+>  int cma_get_default_gid_type(struct cma_device *cma_dev,
+>  			     unsigned int port)
+>  {
+> -	if (port < rdma_start_port(cma_dev->device) ||
+> -	    port > rdma_end_port(cma_dev->device))
+> +	if (!rdma_is_port_valid(cma_dev->device, port))
+>  		return -EINVAL;
+>
+>  	return cma_dev->default_gid_type[port - rdma_start_port(cma_dev->device)];
+> @@ -282,8 +281,7 @@ int cma_set_default_gid_type(struct cma_device *cma_dev,
+>  {
+>  	unsigned long supported_gids;
+>
+> -	if (port < rdma_start_port(cma_dev->device) ||
+> -	    port > rdma_end_port(cma_dev->device))
+> +	if (!rdma_is_port_valid(cma_dev->device, port))
+>  		return -EINVAL;
+>
+>  	supported_gids = roce_gid_type_mask_support(cma_dev->device, port);
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index 571974c..f2e4865 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -659,7 +659,7 @@ int ib_query_port(struct ib_device *device,
+>  	union ib_gid gid;
+>  	int err;
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	memset(port_attr, 0, sizeof(*port_attr));
+> @@ -825,7 +825,7 @@ int ib_modify_port(struct ib_device *device,
+>  	if (!device->modify_port)
+>  		return -ENOSYS;
+>
+> -	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, port_num))
+>  		return -EINVAL;
+>
+>  	return device->modify_port(device, port_num, port_modify_mask,
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 71580cc..9b77fbc 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -1205,8 +1205,7 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+>  {
+>  	int           ret = 0;
+>
+> -	if (ah_attr->port_num < rdma_start_port(device) ||
+> -	    ah_attr->port_num > rdma_end_port(device))
+> +	if (!rdma_is_port_valid(device, ah_attr->port_num))
+>  		return -EINVAL;
+>
+>  	if (!rdma_cap_eth_ah(device, ah_attr->port_num))
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 958a24d..81c68e9 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -2275,6 +2275,13 @@ static inline u8 rdma_end_port(const struct ib_device *device)
+>  	return rdma_cap_ib_switch(device) ? 0 : device->phys_port_cnt;
+>  }
+>
+> +static inline int rdma_is_port_valid(const struct ib_device *device,
+> +				     unsigned int port)
+> +{
+> +	return (port >= rdma_start_port(device) &&
+> +		port <= rdma_end_port(device));
+> +}
+> +
+>  static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
+>  {
+>  	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IB;
 > --
-> 2.10.2
+> 1.8.3.1
 >
 
---Vy1A5eXR7jld12ZH
+--U+NfgObvpQT1Q9Yq
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliI1YAACgkQ5GN7iDZy
-WKeKIA/6Auc9anGVbskn5A7n8vWLnm5fPB3j6bcoDqcC85fFiyRL1m7sNn1+0+aa
-0Aun/SmeM+W+1RvfeOi1fit512guRJv1nep5OcqRVJOBUhiQGVnTywBuH6XdZjOy
-4gcstwukTo1u3MXOEMQOdB62PqAN19/InPJvft+pFpnPblrpLGmQI19CreBcAoJ9
-cVo6M9+GAczK9Z1/gUZBSAYnl/BSIAXZJYIWsJXGlabrmmIIcnvfGs0ZdjS01We/
-jHvgRT8CmHEJUfudLX8JantA9FEnWT8FKHF2tZkveVI8qAaCyURX6eL0JIY3N+7Q
-OgfLhyBmLrxe8MPoZE14R3ixX1zQfpMXBf8HcnizAckBAZ68WtBY4TvHAVrbxCpx
-FSGxD3nN3LUbIUY5n5iCcaexzMECj+uPpH7mgMTtnqmcZDx33B7Q4bd7OCmw4Yf8
-Go1qwf9pm4kEhGvigqAowEdHpy30QvCktj6EWr/4od6jYCwpHZWPu//uzYMt1gNp
-GCbyvnCMbgTydFspTkQod3Asq0UJRxIYeoDFkd3yv8TC4PFGaZZU3EJQCXODBQtv
-phlfiNshzOpMLJT75NAti25Q8RHbaY0/BjJEEZXo46+zOR++mE4qifSu1XtzEqPp
-IJOzyy+UpUpCmpSXoc0abiEb8HMmdiCe6o4Dy7DzIfcROZdu+l8=
-=tq1a
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliI104ACgkQ5GN7iDZy
+WKeeYQ/9GW+TMdxXT/2kESzo+ktEpSwQZZp58Q4W734WvjPl8jAzlVqTuzDu4YH9
+G0DAMcitLn0ToTQOl2xCcO+670Gp8baV8FpNAGUkeRUh2SuddK7KmOreDJ0VDEWR
+alvbTe2oPVFjH3cZCrLDVUCbI7ft8b1b4PZ/wpZ1/BuNoDNGt1O2+AVgC+/HmXFr
+UvERzJ9I0nkktZtAdEOShfs5SVApbvGKj77UjYiBR4C4lTBKK3poaSjUdLDOZup9
+ojsVEQ2i+/+8PYI1jjowQSOakLJMbQkQ/GbvIfevRgfL1cyaC+DeSL9hA2uojrfR
+IjTeY9KfThHRdkfYZSJdUt3wQMIfvxdFNr8bcaStUC/NEqL/v8vDsIx9CCRxwt0Z
+o6zwqpXB2PKCJbUsQtSyHU1vezSNFmX3xLg2GN+VwQH+m6gjqZXMxhB7STVaq/Mb
+ISpQ2InZRyffCVIRRusGwy/Hm2XkNrjhcScEkblXYCPaIWtyHy5mMLOY6HH4JZ7f
+C0hV7Z4qTHx9/Q7x/uvW5vAfluvBa3wLxXvo+dvFUz+gmVKEIt2WIfCLoDyGgGBt
+OYGrSJGgrZ4p3IXQtQ7FUZLeOdMnUW/MAgaLeVJzy5O7zWOX8uxG+OfnpZUM+0WM
+3punirKTEblbPFYdf2ONEJUMZ6+8ETPO0hu2mxBUAZrisXLNuSw=
+=WUqC
 -----END PGP SIGNATURE-----
 
---Vy1A5eXR7jld12ZH--
+--U+NfgObvpQT1Q9Yq--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
