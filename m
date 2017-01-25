@@ -1,70 +1,141 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: Guard against null cm_id in dump_ep/qp
-Date: Tue, 24 Jan 2017 14:45:13 -0500
-Message-ID: <1485287113.43764.50.camel@redhat.com>
-References: <1484895721-10839-1-git-send-email-ganeshgr@chelsio.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-FRCm6Bbdf74XrdAER0Pg"
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 7/8] mlx4: Add ibv_query_device_ex support
+Date: Wed, 25 Jan 2017 16:49:50 +0200
+Message-ID: <1485355791-27646-8-git-send-email-yishaih@mellanox.com>
+References: <1485355791-27646-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484895721-10839-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1485355791-27646-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---=-FRCm6Bbdf74XrdAER0Pg
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The extended query_device verb allows the user to get
+additional vendor specific device parameters.
+With this commit ibv_query_device_ex can be used to
+retrieve the HCA's core clock offset.
 
-On Fri, 2017-01-20 at 12:32 +0530, Ganesh Goudar wrote:
-> Endpoints that are aborting can have already dereferenced the
-> cm_id and set ep->com.cm_id to NULL.=C2=A0=C2=A0So guard against that in
-> dump_ep() and dump_qp().
->=20
-> Also create a common function for setting up ip address pointers
-> since the same logic is needed in several places.
->=20
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> ---
-> v2: Print mapped tcp ports instead of actual tcp ports.
+Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx4/mlx4-abi.h | 15 +++++++++++++++
+ providers/mlx4/mlx4.c     |  1 +
+ providers/mlx4/mlx4.h     |  4 ++++
+ providers/mlx4/verbs.c    | 37 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 57 insertions(+)
 
-This patch is kinda large for a late -rc cycle, so since this only
-effects your dump functions, I've opted to put it into the -next area
-instead of -rc area. =C2=A0Thanks.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-FRCm6Bbdf74XrdAER0Pg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYh67JAAoJELgmozMOVy/dVoUP/28VGLt/Ld2A7j49enUMCVwx
-qQweLMU9OIl1hjKzPBGz6VpkWwgjYiYbxdNmsh18JxgO2D7f7wM1msLpumDoRTyb
-CVrdZVriknma0LNVbNnr53jOuZjCm090KpumzADFSkxzcpWEcp0PAwmIlCUWQKLl
-LXi6JfLs60H/kZ+IrnOfU88Rjd3p8lrllkyWNVMLryIi8VjUjFzxC9tBX/fV5A3G
-vkuID6xjx0+7qyGLuGMKJMnWz8fH2ZimCT0qBztzbtHjnyGnxKTK9o/ieGOsq9Pc
-xw5gEXd4XzPRudtzeM66NcECEMCuW7CeiVhMlJ8dKFuH5Ntg9FXD9EmK/fyluDNT
-3CgKygBNrfq2tDNWqn9vZELYhhhfISxgiwzLPO3MnwP6kBLNyDY9mkRWfzdShUIh
-dwGVSs70l4Lym4vOi6RyziCjMpeCo22BmQCZO0XY87YBdovMJHXmJAdBcZ1u2FOw
-62vEti8Hya4FSXUJQii0AwkP1CdhHRQ15dEYcR8MQ78Mu9BpK3BWetZu7fRsU5E9
-LdxIBIWfhuzkAupZ7zgJ8oNGI7/m4lRR1crMqL8UVQkXRIj+82I0eDjRRqin6sQY
-PamKoOSG4/w3BCShvxZJ2Fd1FYZ/8etzv68PkpXP2crXKfoBntth21WQbSrYJ/rx
-cQsFnu/2MYpZojXs/9AV
-=YllX
------END PGP SIGNATURE-----
-
---=-FRCm6Bbdf74XrdAER0Pg--
+diff --git a/providers/mlx4/mlx4-abi.h b/providers/mlx4/mlx4-abi.h
+index 3b8bac5..7d89505 100644
+--- a/providers/mlx4/mlx4-abi.h
++++ b/providers/mlx4/mlx4-abi.h
+@@ -51,6 +51,10 @@ struct mlx4_alloc_ucontext_resp_v3 {
+ 	__u16				bf_regs_per_page;
+ };
+ 
++enum mlx4_query_dev_ex_resp_mask {
++	MLX4_QUERY_DEV_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
++};
++
+ struct mlx4_alloc_ucontext_resp {
+ 	struct ibv_get_context_resp	ibv_resp;
+ 	__u32				dev_caps;
+@@ -95,6 +99,17 @@ struct mlx4_resize_cq {
+ 	__u64				buf_addr;
+ };
+ 
++struct mlx4_query_device_ex_resp {
++	struct ibv_query_device_resp_ex ibv_resp;
++	__u32				comp_mask;
++	__u32				response_length;
++	__u64				hca_core_clock_offset;
++};
++
++struct mlx4_query_device_ex {
++	struct ibv_query_device_ex	ibv_cmd;
++};
++
+ struct mlx4_create_srq {
+ 	struct ibv_create_srq		ibv_cmd;
+ 	__u64				buf_addr;
+diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
+index 3f29d1a..755768e 100644
+--- a/providers/mlx4/mlx4.c
++++ b/providers/mlx4/mlx4.c
+@@ -217,6 +217,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
+ 	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
+ 	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
+ 	verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
++	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
+ 
+ 	return 0;
+ 
+diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
+index 9d43b63..8c01ec1 100644
+--- a/providers/mlx4/mlx4.h
++++ b/providers/mlx4/mlx4.h
+@@ -375,6 +375,10 @@ void mlx4_free_db(struct mlx4_context *context, enum mlx4_db_type type, uint32_t
+ 
+ int mlx4_query_device(struct ibv_context *context,
+ 		       struct ibv_device_attr *attr);
++int mlx4_query_device_ex(struct ibv_context *context,
++			 const struct ibv_query_device_ex_input *input,
++			 struct ibv_device_attr_ex *attr,
++			 size_t attr_size);
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr);
+ 
+diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
+index 4b00550..c523c41 100644
+--- a/providers/mlx4/verbs.c
++++ b/providers/mlx4/verbs.c
+@@ -64,6 +64,43 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ 	return 0;
+ }
+ 
++int mlx4_query_device_ex(struct ibv_context *context,
++			 const struct ibv_query_device_ex_input *input,
++			 struct ibv_device_attr_ex *attr,
++			 size_t attr_size)
++{
++	struct mlx4_context *mctx = to_mctx(context);
++	struct mlx4_query_device_ex_resp resp = {};
++	struct mlx4_query_device_ex cmd = {};
++	uint64_t raw_fw_ver;
++	unsigned sub_minor;
++	unsigned major;
++	unsigned minor;
++	int err;
++
++	err = ibv_cmd_query_device_ex(context, input, attr, attr_size,
++				      &raw_fw_ver,
++				      &cmd.ibv_cmd, sizeof(cmd.ibv_cmd), sizeof(cmd),
++				      &resp.ibv_resp, sizeof(resp.ibv_resp),
++				      sizeof(resp));
++	if (err)
++		return err;
++
++	if (resp.comp_mask & MLX4_QUERY_DEV_RESP_MASK_CORE_CLOCK_OFFSET) {
++		mctx->core_clock.offset = resp.hca_core_clock_offset;
++		mctx->core_clock.offset_valid = 1;
++	}
++
++	major     = (raw_fw_ver >> 32) & 0xffff;
++	minor     = (raw_fw_ver >> 16) & 0xffff;
++	sub_minor = raw_fw_ver & 0xffff;
++
++	snprintf(attr->orig_attr.fw_ver, sizeof attr->orig_attr.fw_ver,
++		 "%d.%d.%03d", major, minor, sub_minor);
++
++	return 0;
++}
++
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr)
+ {
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
