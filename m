@@ -1,195 +1,177 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 8/8] mlx4: Add ibv_query_rt_values
-Date: Wed, 25 Jan 2017 16:49:51 +0200
-Message-ID: <1485355791-27646-9-git-send-email-yishaih@mellanox.com>
-References: <1485355791-27646-1-git-send-email-yishaih@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/core: Add inline function to validate port
+Date: Wed, 25 Jan 2017 18:41:37 +0200
+Message-ID: <1485362497-18723-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485355791-27646-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-In order to query the current HCA's core clock, libmlx4 should
-support ibv_query_rt_values verb. Querying the hardware's cycles
-register is done by mmaping this register to user-space.
-Therefore, when libmlx4 initializes we mmap the cycles register.
-This assumes the machine's architecture places the PCI and memory in
-the same address space.
-The page offset is retrieved by calling ibv_query_device_ex.
-
-Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- providers/mlx4/mlx4.c  | 39 ++++++++++++++++++++++++++++++++++-----
- providers/mlx4/mlx4.h  |  8 +++++++-
- providers/mlx4/verbs.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 87 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cache.c  | 18 ++++++++----------
+ drivers/infiniband/core/cma.c    |  6 ++----
+ drivers/infiniband/core/device.c |  4 ++--
+ drivers/infiniband/core/verbs.c  |  3 +--
+ include/rdma/ib_verbs.h          |  7 +++++++
+ 5 files changed, 20 insertions(+), 18 deletions(-)
 
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index 755768e..8e1a0dd 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -118,6 +118,28 @@ static struct ibv_context_ops mlx4_ctx_ops = {
- 	.detach_mcast  = ibv_cmd_detach_mcast
- };
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index ae04826..0718b21 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -510,8 +510,7 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+ 	struct ib_gid_attr val = {.ndev = ndev, .gid_type = gid_type};
+ 	unsigned long flags;
  
-+static int mlx4_map_internal_clock(struct mlx4_device *mdev,
-+				   struct ibv_context *ibv_ctx)
-+{
-+	struct mlx4_context *context = to_mctx(ibv_ctx);
-+	void *hca_clock_page;
-+
-+	hca_clock_page = mmap(NULL, mdev->page_size,
-+			      PROT_READ, MAP_SHARED, ibv_ctx->cmd_fd,
-+			      mdev->page_size * 3);
-+
-+	if (hca_clock_page == MAP_FAILED) {
-+		fprintf(stderr, PFX
-+			"Warning: Timestamp available,\n"
-+			"but failed to mmap() hca core clock page.\n");
-+		return -1;
-+	}
-+
-+	context->hca_core_clock = hca_clock_page +
-+		(context->core_clock.offset & (mdev->page_size - 1));
-+	return 0;
-+}
-+
- static int mlx4_init_context(struct verbs_device *v_device,
- 				struct ibv_context *ibv_ctx, int cmd_fd)
+-	if (port < rdma_start_port(ib_dev) ||
+-	    port > rdma_end_port(ib_dev))
++	if (!rdma_is_port_valid(ib_dev, port))
+ 		return -ENOENT;
+ 
+ 	table = ports_table[port - rdma_start_port(ib_dev)];
+@@ -571,8 +570,7 @@ static int ib_cache_gid_find_by_filter(struct ib_device *ib_dev,
+ 	if (!ports_table)
+ 		return -EOPNOTSUPP;
+ 
+-	if (port < rdma_start_port(ib_dev) ||
+-	    port > rdma_end_port(ib_dev) ||
++	if (!rdma_is_port_valid(ib_dev, port) ||
+ 	    !rdma_protocol_roce(ib_dev, port))
+ 		return -EPROTONOSUPPORT;
+ 
+@@ -863,7 +861,7 @@ int ib_get_cached_gid(struct ib_device *device,
+ 	struct ib_gid_table **ports_table = device->cache.gid_cache;
+ 	struct ib_gid_table *table = ports_table[port_num - rdma_start_port(device)];
+ 
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&table->rwlock, flags);
+@@ -912,7 +910,7 @@ int ib_get_cached_pkey(struct ib_device *device,
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+@@ -941,7 +939,7 @@ int ib_find_cached_pkey(struct ib_device *device,
+ 	int ret = -ENOENT;
+ 	int partial_ix = -1;
+ 
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+@@ -981,7 +979,7 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
+ 	int i;
+ 	int ret = -ENOENT;
+ 
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+@@ -1010,7 +1008,7 @@ int ib_get_cached_lmc(struct ib_device *device,
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+@@ -1037,7 +1035,7 @@ static void ib_cache_update(struct ib_device *device,
+ 	bool			   use_roce_gid_table =
+ 					rdma_cap_roce_gid_table(device, port);
+ 
+-	if (port < rdma_start_port(device) || port > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port))
+ 		return;
+ 
+ 	table = ports_table[port - rdma_start_port(device)];
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index e7dcfac..69f37b1 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -269,8 +269,7 @@ struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
+ int cma_get_default_gid_type(struct cma_device *cma_dev,
+ 			     unsigned int port)
  {
-@@ -129,7 +151,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	__u16				bf_reg_size;
- 	struct mlx4_device              *dev = to_mdev(&v_device->device);
- 	struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
--	struct ibv_device_attr		dev_attrs;
-+	struct ibv_device_attr_ex	dev_attrs;
+-	if (port < rdma_start_port(cma_dev->device) ||
+-	    port > rdma_end_port(cma_dev->device))
++	if (!rdma_is_port_valid(cma_dev->device, port))
+ 		return -EINVAL;
  
- 	/* memory footprint of mlx4_context and verbs_context share
- 	* struct ibv_context.
-@@ -200,10 +222,14 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
- 	ibv_ctx->ops = mlx4_ctx_ops;
+ 	return cma_dev->default_gid_type[port - rdma_start_port(cma_dev->device)];
+@@ -282,8 +281,7 @@ int cma_set_default_gid_type(struct cma_device *cma_dev,
+ {
+ 	unsigned long supported_gids;
  
-+	context->hca_core_clock = NULL;
- 	memset(&dev_attrs, 0, sizeof(dev_attrs));
--	if (!mlx4_query_device(ibv_ctx, &dev_attrs)) {
--		context->max_qp_wr = dev_attrs.max_qp_wr;
--		context->max_sge = dev_attrs.max_sge;
-+	if (!mlx4_query_device_ex(ibv_ctx, NULL, &dev_attrs,
-+				  sizeof(struct ibv_device_attr_ex))) {
-+		context->max_qp_wr = dev_attrs.orig_attr.max_qp_wr;
-+		context->max_sge = dev_attrs.orig_attr.max_sge;
-+		if (context->core_clock.offset_valid)
-+			mlx4_map_internal_clock(dev, ibv_ctx);
- 	}
+-	if (port < rdma_start_port(cma_dev->device) ||
+-	    port > rdma_end_port(cma_dev->device))
++	if (!rdma_is_port_valid(cma_dev->device, port))
+ 		return -EINVAL;
  
- 	verbs_ctx->has_comp_mask = VERBS_CONTEXT_XRCD | VERBS_CONTEXT_SRQ |
-@@ -218,6 +244,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
- 	verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
- 	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
-+	verbs_set_ctx_op(verbs_ctx, query_rt_values, mlx4_query_rt_values);
+ 	supported_gids = roce_gid_type_mask_support(cma_dev->device, port);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 571974c..f2e4865 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -659,7 +659,7 @@ int ib_query_port(struct ib_device *device,
+ 	union ib_gid gid;
+ 	int err;
  
- 	return 0;
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
  
-@@ -231,7 +258,9 @@ static void mlx4_uninit_context(struct verbs_device *v_device,
- 	munmap(context->uar, to_mdev(&v_device->device)->page_size);
- 	if (context->bf_page)
- 		munmap(context->bf_page, to_mdev(&v_device->device)->page_size);
--
-+	if (context->hca_core_clock)
-+		munmap(context->hca_core_clock - context->core_clock.offset,
-+		       to_mdev(&v_device->device)->page_size);
+ 	memset(port_attr, 0, sizeof(*port_attr));
+@@ -825,7 +825,7 @@ int ib_modify_port(struct ib_device *device,
+ 	if (!device->modify_port)
+ 		return -ENOSYS;
+ 
+-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, port_num))
+ 		return -EINVAL;
+ 
+ 	return device->modify_port(device, port_num, port_modify_mask,
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 71580cc..9b77fbc 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1205,8 +1205,7 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+ {
+ 	int           ret = 0;
+ 
+-	if (ah_attr->port_num < rdma_start_port(device) ||
+-	    ah_attr->port_num > rdma_end_port(device))
++	if (!rdma_is_port_valid(device, ah_attr->port_num))
+ 		return -EINVAL;
+ 
+ 	if (!rdma_cap_eth_ah(device, ah_attr->port_num))
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 958a24d..81c68e9 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2275,6 +2275,13 @@ static inline u8 rdma_end_port(const struct ib_device *device)
+ 	return rdma_cap_ib_switch(device) ? 0 : device->phys_port_cnt;
  }
  
- static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 8c01ec1..2bcfc7f 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -175,6 +175,11 @@ struct mlx4_context {
- 		uint8_t                 link_layer;
- 		enum ibv_port_cap_flags caps;
- 	} port_query_cache[MLX4_PORTS_NUM];
-+	struct {
-+		uint64_t                offset;
-+		uint8_t                 offset_valid;
-+	} core_clock;
-+	void			       *hca_core_clock;
- };
- 
- struct mlx4_buf {
-@@ -381,7 +386,8 @@ int mlx4_query_device_ex(struct ibv_context *context,
- 			 size_t attr_size);
- int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr);
--
-+int mlx4_query_rt_values(struct ibv_context *context,
-+			 struct ibv_values_ex *values);
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context);
- int mlx4_free_pd(struct ibv_pd *pd);
- struct ibv_xrcd *mlx4_open_xrcd(struct ibv_context *context,
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index c523c41..e2f798f 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -101,6 +101,52 @@ int mlx4_query_device_ex(struct ibv_context *context,
- 	return 0;
- }
- 
-+#define READL(ptr) (*((uint32_t *)(ptr)))
-+static int mlx4_read_clock(struct ibv_context *context, uint64_t *cycles)
++static inline int rdma_is_port_valid(const struct ib_device *device,
++				     unsigned int port)
 +{
-+	unsigned int clockhi, clocklo, clockhi1;
-+	int i;
-+	struct mlx4_context *ctx = to_mctx(context);
-+
-+	if (!ctx->hca_core_clock)
-+		return -EOPNOTSUPP;
-+
-+	/* Handle wraparound */
-+	for (i = 0; i < 2; i++) {
-+		clockhi = ntohl(READL(ctx->hca_core_clock));
-+		clocklo = ntohl(READL(ctx->hca_core_clock + 4));
-+		clockhi1 = ntohl(READL(ctx->hca_core_clock));
-+		if (clockhi == clockhi1)
-+			break;
-+	}
-+
-+	*cycles = (uint64_t)clockhi << 32 | (uint64_t)clocklo;
-+
-+	return 0;
++	return (port >= rdma_start_port(device) &&
++		port <= rdma_end_port(device));
 +}
 +
-+int mlx4_query_rt_values(struct ibv_context *context,
-+			 struct ibv_values_ex *values)
-+{
-+	uint32_t comp_mask = 0;
-+	int err = 0;
-+
-+	if (values->comp_mask & IBV_VALUES_MASK_RAW_CLOCK) {
-+		uint64_t cycles;
-+
-+		err = mlx4_read_clock(context, &cycles);
-+		if (!err) {
-+			values->raw_clock.tv_sec = 0;
-+			values->raw_clock.tv_nsec = cycles;
-+			comp_mask |= IBV_VALUES_MASK_RAW_CLOCK;
-+		}
-+	}
-+
-+	values->comp_mask = comp_mask;
-+
-+	return err;
-+}
-+
- int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr)
+ static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
  {
+ 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IB;
 -- 
 1.8.3.1
 
