@@ -1,56 +1,52 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 5/5] IB: Query port through the core instead of
- directly calling the driver handler
-Date: Wed, 25 Jan 2017 12:05:51 -0600
-Message-ID: <20170125180551.GA8964@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20170119054102.20135-1-leon@kernel.org>
- <20170119054102.20135-6-leon@kernel.org>
- <20170124205938.GA5524@ssaleem-MOBL4.amr.corp.intel.com>
- <20170125123920.GO6005@mtr-leonro.local>
- <CAJ3xEMjfxPs85OQP2v2MvYzU9ajUELs7_3r0nA-=TTa-tp-hSQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/mlx4: Remove unused variable from function declaration
+Date: Wed, 25 Jan 2017 20:26:18 +0200
+Message-ID: <20170125182618.24899-1-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjfxPs85OQP2v2MvYzU9ajUELs7_3r0nA-=TTa-tp-hSQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 25, 2017 at 04:29:55PM +0200, Or Gerlitz wrote:
-> On Wed, Jan 25, 2017 at 2:39 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> >
-> > On Tue, Jan 24, 2017 at 02:59:38PM -0600, Shiraz Saleem wrote:
-> >
-> >
-> > > > --- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-> > > > +++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-> > > > @@ -499,6 +499,7 @@ static int set_guid_rec(struct ib_device *ibdev,
-> > > >     struct list_head *head =
-> > > >             &dev->sriov.alias_guid.ports_guid[port - 1].cb_list;
-> > > >
-> > > > +   memset(&attr, 0, sizeof(struct ib_port_attr));
-> > > >     err = __mlx4_ib_query_port(ibdev, port, &attr, 1);
-> > >
-> > > So why not call ib_query_port here as opposed to driver handler? As stated in your subject line.
-> >
-> > This is call to mlx4 internal implementation of ib_query_port. This
-> > implementation takes an additional parameter. In this case it is "1",
-> > while call to ib_query_port will call to this function with "0".
-> 
-> The mlx4 IB driver is used all of native, SRIOV PF and SRIOV VF instances.
-> 
-> Under SRIOV, the port has network view and host view. This internal query port
-> call (and the other one you commented on) is done in a network view by the PF.
-> 
-> The calls that come from the IB core are done with host view.
-> 
-> As such I had to retain these two internal calls.
+Remove unused netw_view parameter from eth_link_query_port() function.
 
-Ok. Understand it better now. BTW this parameter 'netw_view' doesnt appear to
-be used in one of the functions eth_link_query_port called from mlx4 query port
-implementation.  
+Reported-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Hi Doug,
+
+This patch was generated on top of Or's patch series.
+
+Thanks
+---
+ drivers/infiniband/hw/mlx4/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index ba6af84cc236..211cbbe9ccd1 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -678,7 +678,7 @@ static u8 state_to_phys_state(enum ib_port_state state)
+ }
+
+ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+-			       struct ib_port_attr *props, int netw_view)
++			       struct ib_port_attr *props)
+ {
+
+ 	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
+@@ -745,7 +745,7 @@ int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
+
+ 	err = mlx4_ib_port_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND ?
+ 		ib_link_query_port(ibdev, port, props, netw_view) :
+-				eth_link_query_port(ibdev, port, props, netw_view);
++				eth_link_query_port(ibdev, port, props);
+
+ 	return err;
+ }
+--
+2.11.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
