@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/8] mlx4: Refactor mlx4_poll_one
-Date: Wed, 25 Jan 2017 16:49:45 +0200
-Message-ID: <1485355791-27646-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 1/8] mlx4: sl_vid field in struct mlx4_cqe should be 16 bit
+Date: Wed, 25 Jan 2017 16:49:44 +0200
+Message-ID: <1485355791-27646-2-git-send-email-yishaih@mellanox.com>
 References: <1485355791-27646-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485355791-27646-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,176 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since downstream patches aim to provide lazy CQE polling, which
-let the user poll the CQE's attributes via inline functions, we
-refactor poll_one:
-* Return status instead of writing directly to the WC as part of
-  handle_error_cqe.
-* Introduce mlx4_get_next_cqe which will be used to advance the
-  CQE iterator.
+This fix adjusts the sl_vid fields size in struct mlx4_cqe
+to be 16 bit.
 
+Fixes: 9a90176880 ("Add support for 64B CQEs")
 Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx4/cq.c   | 88 +++++++++++++++++++++++++++------------------------
- providers/mlx4/mlx4.h |  6 ++++
- 2 files changed, 52 insertions(+), 42 deletions(-)
+ providers/mlx4/mlx4.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-index 23cc3ed..8f67c90 100644
---- a/providers/mlx4/cq.c
-+++ b/providers/mlx4/cq.c
-@@ -114,7 +114,7 @@ static struct mlx4_cqe *next_cqe_sw(struct mlx4_cq *cq)
- 	return get_sw_cqe(cq, cq->cons_index);
- }
- 
--static void mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe, struct ibv_wc *wc)
-+static enum ibv_wc_status mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe)
- {
- 	if (cqe->syndrome == MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR)
- 		printf(PFX "local QP operation err "
-@@ -126,64 +126,43 @@ static void mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe, struct ibv_wc *wc)
- 
- 	switch (cqe->syndrome) {
- 	case MLX4_CQE_SYNDROME_LOCAL_LENGTH_ERR:
--		wc->status = IBV_WC_LOC_LEN_ERR;
--		break;
-+		return IBV_WC_LOC_LEN_ERR;
- 	case MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR:
--		wc->status = IBV_WC_LOC_QP_OP_ERR;
--		break;
-+		return IBV_WC_LOC_QP_OP_ERR;
- 	case MLX4_CQE_SYNDROME_LOCAL_PROT_ERR:
--		wc->status = IBV_WC_LOC_PROT_ERR;
--		break;
-+		return IBV_WC_LOC_PROT_ERR;
- 	case MLX4_CQE_SYNDROME_WR_FLUSH_ERR:
--		wc->status = IBV_WC_WR_FLUSH_ERR;
--		break;
-+		return IBV_WC_WR_FLUSH_ERR;
- 	case MLX4_CQE_SYNDROME_MW_BIND_ERR:
--		wc->status = IBV_WC_MW_BIND_ERR;
--		break;
-+		return IBV_WC_MW_BIND_ERR;
- 	case MLX4_CQE_SYNDROME_BAD_RESP_ERR:
--		wc->status = IBV_WC_BAD_RESP_ERR;
--		break;
-+		return IBV_WC_BAD_RESP_ERR;
- 	case MLX4_CQE_SYNDROME_LOCAL_ACCESS_ERR:
--		wc->status = IBV_WC_LOC_ACCESS_ERR;
--		break;
-+		return IBV_WC_LOC_ACCESS_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR:
--		wc->status = IBV_WC_REM_INV_REQ_ERR;
--		break;
-+		return IBV_WC_REM_INV_REQ_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_ACCESS_ERR:
--		wc->status = IBV_WC_REM_ACCESS_ERR;
--		break;
-+		return IBV_WC_REM_ACCESS_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_OP_ERR:
--		wc->status = IBV_WC_REM_OP_ERR;
--		break;
-+		return IBV_WC_REM_OP_ERR;
- 	case MLX4_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR:
--		wc->status = IBV_WC_RETRY_EXC_ERR;
--		break;
-+		return IBV_WC_RETRY_EXC_ERR;
- 	case MLX4_CQE_SYNDROME_RNR_RETRY_EXC_ERR:
--		wc->status = IBV_WC_RNR_RETRY_EXC_ERR;
--		break;
-+		return IBV_WC_RNR_RETRY_EXC_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_ABORTED_ERR:
--		wc->status = IBV_WC_REM_ABORT_ERR;
--		break;
-+		return IBV_WC_REM_ABORT_ERR;
- 	default:
--		wc->status = IBV_WC_GENERAL_ERR;
--		break;
-+		return IBV_WC_GENERAL_ERR;
- 	}
--
--	wc->vendor_err = cqe->vendor_err;
- }
- 
--static int mlx4_poll_one(struct mlx4_cq *cq,
--			 struct mlx4_qp **cur_qp,
--			 struct ibv_wc *wc)
-+static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
-+				    struct mlx4_cqe **pcqe)
-+				    ALWAYS_INLINE;
-+static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
-+				    struct mlx4_cqe **pcqe)
- {
--	struct mlx4_wq *wq;
- 	struct mlx4_cqe *cqe;
--	struct mlx4_srq *srq;
--	uint32_t qpn;
--	uint32_t g_mlpath_rqpn;
--	uint16_t wqe_index;
--	int is_error;
--	int is_send;
- 
- 	cqe = next_cqe_sw(cq);
- 	if (!cqe)
-@@ -202,6 +181,28 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
- 	 */
- 	rmb();
- 
-+	*pcqe = cqe;
-+
-+	return CQ_OK;
-+}
-+
-+static int mlx4_poll_one(struct mlx4_cq *cq,
-+			 struct mlx4_qp **cur_qp,
-+			 struct ibv_wc *wc)
-+{
-+	struct mlx4_wq *wq;
-+	struct mlx4_cqe *cqe;
-+	struct mlx4_srq *srq;
-+	uint32_t qpn;
-+	uint32_t g_mlpath_rqpn;
-+	uint16_t wqe_index;
-+	struct mlx4_err_cqe *ecqe;
-+	int is_error;
-+	int is_send;
-+
-+	if  (mlx4_get_next_cqe(cq, &cqe) == CQ_EMPTY)
-+		return CQ_EMPTY;
-+
- 	qpn = ntohl(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK;
- 	wc->qp_num = qpn;
- 
-@@ -250,7 +251,10 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
- 	}
- 
- 	if (is_error) {
--		mlx4_handle_error_cqe((struct mlx4_err_cqe *) cqe, wc);
-+		ecqe = (struct mlx4_err_cqe *)cqe;
-+		wc->status = mlx4_handle_error_cqe(ecqe);
-+		wc->vendor_err = ecqe->vendor_err;
-+
- 		return CQ_OK;
- 	}
- 
 diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 5a73ed6..af21eeb 100644
+index b851e95..5a73ed6 100644
 --- a/providers/mlx4/mlx4.h
 +++ b/providers/mlx4/mlx4.h
-@@ -45,6 +45,12 @@
- 
- #include <valgrind/memcheck.h>
- 
-+#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
-+#define ALWAYS_INLINE __attribute__((always_inline))
-+#else
-+#define ALWAYS_INLINE
-+#endif
-+
- #define PFX		"mlx4: "
- 
- enum {
+@@ -272,8 +272,7 @@ struct mlx4_cqe {
+ 	uint32_t	vlan_my_qpn;
+ 	uint32_t	immed_rss_invalid;
+ 	uint32_t	g_mlpath_rqpn;
+-	uint8_t		sl_vid;
+-	uint8_t		reserved1;
++	uint16_t	sl_vid;
+ 	uint16_t	rlid;
+ 	uint32_t	status;
+ 	uint32_t	byte_cnt;
 -- 
 1.8.3.1
 
