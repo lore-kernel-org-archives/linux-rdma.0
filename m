@@ -1,88 +1,108 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ANNOUNCE - New release of rdma-core
-Date: Wed, 25 Jan 2017 14:00:20 -0500
-Message-ID: <ea483074-9898-3c89-9d0f-b45ce71d7ed4@redhat.com>
-References: <1484683744.2406.29.camel@redhat.com>
- <20170125090506.GA746@infradead.org> <1485365269.2432.8.camel@redhat.com>
- <20170125173011.GA14356@infradead.org>
+From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Subject: Re: [PATCH v6 0/9] SELinux support for Infiniband RDMA
+Date: Wed, 25 Jan 2017 17:14:05 -0500
+Message-ID: <CAHC9VhQTwwQmg-2fR4-UiEAGvkx_F8z7mUs7zHz4KK=+34mW4Q@mail.gmail.com>
+References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
+ <a56c4be8-f908-4774-dd1c-c6bbab5c1b03@tycho.nsa.gov> <DB6PR0501MB2422DCC01A577CDA280C2C82C49B0@DB6PR0501MB2422.eurprd05.prod.outlook.com>
+ <CAHC9VhTdntem1hK0arEo4p1MWPH5sjzDN0yG_=1S7ui=C4i8Yg@mail.gmail.com>
+ <1485294015.43764.91.camel@redhat.com> <CAHC9VhTfuftm1oyiBOa4Fx4L-12eX8MCySiS1H98yroCuuoieA@mail.gmail.com>
+ <1485365121.2432.6.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="NawB56TSMPA9hShhcEbHKiDvik9BH2c6w"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170125173011.GA14356-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1485365121.2432.6.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org" <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---NawB56TSMPA9hShhcEbHKiDvik9BH2c6w
-Content-Type: multipart/mixed; boundary="H01jkREjvtSbfMIpluv6GJvSjhO2p5otF";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <ea483074-9898-3c89-9d0f-b45ce71d7ed4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ANNOUNCE - New release of rdma-core
-References: <1484683744.2406.29.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170125090506.GA746-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> <1485365269.2432.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170125173011.GA14356-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-In-Reply-To: <20170125173011.GA14356-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+On Wed, Jan 25, 2017 at 12:25 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Wed, 2017-01-25 at 02:58 -0500, Paul Moore wrote:
+>> On Tue, Jan 24, 2017 at 4:40 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> wrote:
+>> >
+>> > On Tue, 2016-12-13 at 17:17 -0500, Paul Moore wrote:
+>> > >
+>> > > On Tue, Dec 13, 2016 at 11:25 AM, Daniel Jurgens <danielj@mellano
+>> > > x.co
+>> > > m> wrote:
+>> > > >
+>> > > >
+>> > > > On 12/13/2016 9:01 AM, Stephen Smalley wrote:
+>> > > > >
+>> > > > >
+>> > > > > For the LSM/SELinux bits,
+>> > > > > Acked-by: Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+>> > > > >
+>> > > > > Note that there will be a merge conflict on classmap.h due to
+>> > > > > commits in
+>> > > > > the selinux next branch, but that should be easy to resolve.
+>> > > > >
+>> > > > > We'll need the patches for the selinux userspace and
+>> > > > > refpolicy.
+>> > > >
+>> > > > Thanks Stephen, I need to rebase the user space and do some
+>> > > > patch
+>> > > > breakup.  I'll start on that soon.
+>> > >
+>> > > Sorry, I haven't had a chance to look at v6, but considering all
+>> > > our
+>> > > discussions on the previous versions I don't expect any issues
+>> > > from
+>> > > me.  I was hoping for some more generic hooks/controls, but that
+>> > > doesn't look to be possible given the nature of RDMA.  I also
+>> > > want to
+>> > > mention again the need for tests; we've talked about this in the
+>> > > past
+>> > > and while it isn't possible to run the tests without IB hardware,
+>> > > I
+>> > > would like to see us merge tests into the selinux-testsuite so
+>> > > that
+>> > > those who do have the required h/w available could run the tests.
+>> > >
+>> > > Assuming we can sort out the SELinux userspace and and tests by
+>> > > the
+>> > > end of January, I see no reason why this couldn't go in for
+>> > > v4.11.
+>> >
+>> > Daniel, can you work with people on the userspace and tests?  I'll
+>> > pull
+>> > this into a branch (I assume by Paul's and Stephen's comments that
+>> > they
+>> > expect it to go through my tree) ready to go, but hold actually
+>> > submitting it in the merge window until I've heard more from you
+>> > all
+>> > that userspace is ready.
+>>
+>> I don't have a problem pulling this in via the SELinux tree, assuming
+>> you are okay with that Doug.  I'm just waiting to see tests for the
+>> selinux-testsuite first.
+>
+> When I tried to apply the patchset, the conflicts started on the very
+> first file of the very first patch.  It can go through your tree, but I
+> suspect there will be lots of conflicts that way as this upcoming
+> release has been touching the cache area of the IB stack and so does
+> this code.  There might be significant SELinux conflicts too, I don't
+> know, but we know there are IB ones so far.
 
---H01jkREjvtSbfMIpluv6GJvSjhO2p5otF
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+My apologies, I should have been more clear.  What I meant to say is
+that I have no objection to merging this patchset via the SELinux
+tree, in principle.  If there are significant merge conflicts they
+will need to be resolved first; I have no problem dealing with small
+fixups as part of the merge process, but any substantial changes would
+need a respin.  Also, while I haven't looked at this latest patchset,
+I would still want to review it for obvious reasons, although having
+discussed previous drafts in detail I don't expect to see anything
+objectionable.
 
-On 1/25/2017 12:30 PM, Christoph Hellwig wrote:
-> On Wed, Jan 25, 2017 at 12:27:49PM -0500, Doug Ledford wrote:
->> It's on github.  When viewing the repo, click on the "Releases" tab
->> above the code listing, there you will find the list of releases, and
->> under each one there is a link to either a zip or tgz download.  As ha=
-s
->> been pointed out, the internal directory structure of the release
->> tarball is wonky on this one.  Still working that out...
->=20
-> I would be nice to include a link to it next time a release is cut.
->=20
+However, my biggest concern remains the lack of working tests; without
+those this patchset doesn't get my ACK.  We need to have some basic
+method of regression testing this, even if it does require IB
+hardware, to have any hope of maintaining this long term.
 
-Sure, I'll add that to my list of things to get working better with the
-release process on github ;-)
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---H01jkREjvtSbfMIpluv6GJvSjhO2p5otF--
-
---NawB56TSMPA9hShhcEbHKiDvik9BH2c6w
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYiPXPAAoJELgmozMOVy/dguAP/Riq56a3CCQusJAJ+k/YzA/8
-JbPtHZNAcgawz0ALg06kQFyvcaL4Tp4WmIUpMSijn7SNvxaeSwRhKTgNR1g55+4A
-hVoSqJQjE0ZkgqJim3JiQYl1atSKcdvy2IX85H2P9idMAaPWXvp09PklIaqcna40
-UUNOYbPvXaqdpWwIJpWGMlHoJw4CxrmLAqc+VzGX/tQ0fHLC9LX+Sx5Okq5h0fqI
-69knt/RQ6TW1Ez0pU2BW/NiLBwjLFMosLo8KiNFnvx7YR23aXbEnONckO6JXAWxb
-4KGz2rH0rZzzMfU+v+Cyr2qDbTk7o+d3dznNMZtDPBMm8HvU/KoYeeJCU0MLFgr2
-2MyCljrNUyx2kaRjrE/4WqKvwIT7Pw56cBBulInPW7dWogvIZjgP7CMoBDKBMlQ6
-W6lprOsbB9eRMwextNK8OUeCHRjyDh3DoXqxwBV+oktV2sKF7L/vntAbjIQ6a/nj
-1+ue0dhJrixSHBMzocepcYakKUwSx19WYVu1SL9NZdK3qQf7xefT30BTj8rtYBmp
-AdZkGhfSA4rzjikBtdUYH4kD23q7/T+i16BQW8JekK2rRve7j1bJvqHGPtOC1I4K
-Jmq8dO8TFH3fdzbqpen6JGf5ei2rFmkRktWOy5R2uThOINkv1YFWZmlkiVx0Oi1f
-qKXDsTjKtOKJFZceQspK
-=y1Tc
------END PGP SIGNATURE-----
-
---NawB56TSMPA9hShhcEbHKiDvik9BH2c6w--
+-- 
+paul moore
+www.paul-moore.com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
