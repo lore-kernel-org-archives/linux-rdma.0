@@ -1,29 +1,56 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: ANNOUNCE - New release of rdma-core
-Date: Wed, 25 Jan 2017 09:30:11 -0800
-Message-ID: <20170125173011.GA14356@infradead.org>
-References: <1484683744.2406.29.camel@redhat.com>
- <20170125090506.GA746@infradead.org>
- <1485365269.2432.8.camel@redhat.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 5/5] IB: Query port through the core instead of
+ directly calling the driver handler
+Date: Wed, 25 Jan 2017 12:05:51 -0600
+Message-ID: <20170125180551.GA8964@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20170119054102.20135-1-leon@kernel.org>
+ <20170119054102.20135-6-leon@kernel.org>
+ <20170124205938.GA5524@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170125123920.GO6005@mtr-leonro.local>
+ <CAJ3xEMjfxPs85OQP2v2MvYzU9ajUELs7_3r0nA-=TTa-tp-hSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1485365269.2432.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAJ3xEMjfxPs85OQP2v2MvYzU9ajUELs7_3r0nA-=TTa-tp-hSQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 25, 2017 at 12:27:49PM -0500, Doug Ledford wrote:
-> It's on github.  When viewing the repo, click on the "Releases" tab
-> above the code listing, there you will find the list of releases, and
-> under each one there is a link to either a zip or tgz download.  As has
-> been pointed out, the internal directory structure of the release
-> tarball is wonky on this one.  Still working that out...
+On Wed, Jan 25, 2017 at 04:29:55PM +0200, Or Gerlitz wrote:
+> On Wed, Jan 25, 2017 at 2:39 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >
+> > On Tue, Jan 24, 2017 at 02:59:38PM -0600, Shiraz Saleem wrote:
+> >
+> >
+> > > > --- a/drivers/infiniband/hw/mlx4/alias_GUID.c
+> > > > +++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+> > > > @@ -499,6 +499,7 @@ static int set_guid_rec(struct ib_device *ibdev,
+> > > >     struct list_head *head =
+> > > >             &dev->sriov.alias_guid.ports_guid[port - 1].cb_list;
+> > > >
+> > > > +   memset(&attr, 0, sizeof(struct ib_port_attr));
+> > > >     err = __mlx4_ib_query_port(ibdev, port, &attr, 1);
+> > >
+> > > So why not call ib_query_port here as opposed to driver handler? As stated in your subject line.
+> >
+> > This is call to mlx4 internal implementation of ib_query_port. This
+> > implementation takes an additional parameter. In this case it is "1",
+> > while call to ib_query_port will call to this function with "0".
+> 
+> The mlx4 IB driver is used all of native, SRIOV PF and SRIOV VF instances.
+> 
+> Under SRIOV, the port has network view and host view. This internal query port
+> call (and the other one you commented on) is done in a network view by the PF.
+> 
+> The calls that come from the IB core are done with host view.
+> 
+> As such I had to retain these two internal calls.
 
-I would be nice to include a link to it next time a release is cut.
+Ok. Understand it better now. BTW this parameter 'netw_view' doesnt appear to
+be used in one of the functions eth_link_query_port called from mlx4 query port
+implementation.  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
