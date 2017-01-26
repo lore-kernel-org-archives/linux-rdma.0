@@ -1,60 +1,63 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core 12 breaks libibverbs ABI
-Date: Thu, 26 Jan 2017 14:49:00 -0700
-Message-ID: <20170126214900.GA31937@obsidianresearch.com>
-References: <1485446147.4194.4.camel@profitbricks.com>
- <20170126171325.GA16562@obsidianresearch.com>
- <20170126173548.GA15006@infradead.org>
- <20170126180926.GB20330@obsidianresearch.com>
- <20170126181113.GA8679@infradead.org>
- <20170126182753.GA5056@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0E132B@ORSMSX109.amr.corp.intel.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/7] Add mlx5 direct verbs
+Date: Thu, 26 Jan 2017 23:54:53 +0200
+Message-ID: <ac21fe37-d617-e5a8-cd67-e8fdfbd69d55@dev.mellanox.co.il>
+References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
+ <20170126172511.GB16562@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0E132B-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20170126172511.GB16562-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 26, 2017 at 08:38:40PM +0000, Hefty, Sean wrote:
-> > > There should not be any compat - it's just going to drag down
-> > > development and everyone is free to submit their provider to rdma-
-> > core,
-> > > same as kernel drivers.
-> > 
-> > Yep, that was the argument that won the day so far.
-> 
-> I don't disagree with the direction, but I agree with Benjamin.  The
-> intent behind a public symbol/structure and their actual usage by
-> applications may differ.  Why wasn't the soname updated?
+On 1/26/2017 7:25 PM, Jason Gunthorpe wrote:
+> On Thu, Jan 26, 2017 at 05:56:15PM +0200, Yishai Hadas wrote:
+>> This patchset from Leon adds direct access to mlx5 devices.
+>>
+>> The libibverbs API is an abstract API. It is agnostic to any underlying
+>> provider specific implementation. While this abstraction has the advantage of
+>> user applications portability it has a performance penalty. For some
+>> applications optimizing performance is more important than portability.
+>>
+>> The mlx5 direct verbs API introduced in this patchset is intended for such
+>> applications. It exposes mlx5 specific low level data path
+>> (send/receive/completion) operations, allowing the application to bypass the
+>> libibverbs data path API.
+>
+> Applications need to link directly to the libraries that provide the
+> symbols they use - this approach you have where linking happens
+> implicitly at runtime is not OK.
 
-Well, no it cannot differ. If apps use private symbols they get
-burned. Glibc and gcc have established that precedent decades ago.
+Correct, the link will be explicitly by the application at compile time 
+so that the exported symbols will be resolved.
 
-The soname is not bumped because libibverbs is a symver based library,
-which means we can manage our private ABI safely without ever
-requiring soname changes. If something does manage to link to it then
-it gets a runtime dynamic linking failure, not a random crash.
+The below note from the cover letter planned to point on that:
+"The direct include of dv.h together with linkage to mlx5 library will 
+allow usage of this new interface"
 
-Remember, libibverbs fundamentally does not support two copies of the
-library in the same address space, so one of the major motivations to
-use a soname to manage version is invalid. Even worse, because of
-this, if we did bump the soname, it would be very painful and
-dangerous.
+> Somehow libmlx needs to be in the standard ld.so search path, and
+> available for linking via gcc, as well as continuing to be a plugin..
+> The best choice might be to put it in /usr/lib/../libmlx5.so.1 and
+> symlink that file to /usr/lib/../libibverbs/libmlx5-rdmav2.so
 
-So that leaves us with only one point to argue on: Should libibverbs
-have a private ABI or not? If yes, then we are doing it properly.
+You are pointing on same usage as done for libibverbs which has the 
+symlink, correct ? Alternatively, application can use the linker flags 
+as part of its Makefile to find the shared library location, isn't it ?
 
-The issue is muddied a bit because the private ABI has not been as
-absolutely private as I'd like, so we could add compat for the two
-symbols and defer the incompat transition till a later release.. This
-argument would be best supported if someone knows of something that
-actually breaks out in the wild...
+> This series also needs patches to the included packaging files to
+> bundle the new files. (buildlib/cbuild exists for a reason, be sure to
+> test the packaging)
 
-Jason
+Thanks for pointing on, we'll add and test the packaging.
+
+> These probably need a man page as well. It wasn't instantly obvious to
+> me how these were supposed to work.
+
+Sure, we can add some man page here.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
