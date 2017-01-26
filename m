@@ -1,76 +1,69 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ANNOUNCE - New release of rdma-core
-Date: Wed, 25 Jan 2017 12:27:49 -0500
-Message-ID: <1485365269.2432.8.camel@redhat.com>
-References: <1484683744.2406.29.camel@redhat.com>
-         <20170125090506.GA746@infradead.org>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] RDS/IB: Disallow connections less than RDS 3.1
+Date: Thu, 26 Jan 2017 12:30:11 +0300
+Message-ID: <20170126093011.GA13945@mwanda>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-s9T5ixyyl+9uG1k3geIe"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170125090506.GA746-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: agrover-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Andy Grover,
 
---=-s9T5ixyyl+9uG1k3geIe
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The patch f147dd9ecabf: "RDS/IB: Disallow connections less than RDS
+3.1" from Jan 13, 2010, leads to the following static checker warning:
 
-On Wed, 2017-01-25 at 01:05 -0800, Christoph Hellwig wrote:
-> On Tue, Jan 17, 2017 at 03:09:04PM -0500, Doug Ledford wrote:
-> >=20
-> > The final upstream release of version 12 of the rdma-core package
-> > has
-> > been tagged and pushed to github.
-> >=20
-> > This marks the first official release of the rdma-core package, and
-> > also the first release of libibverbs not to be hosted on kernel.org
-> > and
-> > openfabrics.org.
->=20
-> So where is it hosted?=C2=A0=C2=A0I don't see any link to a tarball.
+	net/rds/rdma_transport.c:140 rds_rdma_cm_event_handler()
+	warn: 'conn' was already freed.
 
-It's on github. =C2=A0When viewing the repo, click on the "Releases" tab
-above the code listing, there you will find the list of releases, and
-under each one there is a link to either a zip or tgz download. =C2=A0As ha=
-s
-been pointed out, the internal directory structure of the release
-tarball is wonky on this one. =C2=A0Still working that out...
+net/rds/ib_cm.c
+    96  void rds_ib_cm_connect_complete(struct rds_connection *conn, struct rdma_cm_event *event)
+    97  {
+    98          const struct rds_ib_connect_private *dp = NULL;
+    99          struct rds_ib_connection *ic = conn->c_transport_data;
+   100          struct ib_qp_attr qp_attr;
+   101          int err;
+   102  
+   103          if (event->param.conn.private_data_len >= sizeof(*dp)) {
+   104                  dp = event->param.conn.private_data;
+   105  
+   106                  /* make sure it isn't empty data */
+   107                  if (dp->dp_protocol_major) {
+   108                          rds_ib_set_protocol(conn,
+   109                                  RDS_PROTOCOL(dp->dp_protocol_major,
+   110                                  dp->dp_protocol_minor));
+   111                          rds_ib_set_flow_control(conn, be32_to_cpu(dp->dp_credit));
+   112                  }
+   113          }
+   114  
+   115          if (conn->c_version < RDS_PROTOCOL(3, 1)) {
+   116                  pr_notice("RDS/IB: Connection <%pI4,%pI4> version %u.%u no longer supported\n",
+   117                            &conn->c_laddr, &conn->c_faddr,
+   118                            RDS_PROTOCOL_MAJOR(conn->c_version),
+   119                            RDS_PROTOCOL_MINOR(conn->c_version));
+   120                  rds_conn_destroy(conn);
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+We free "conn" here.  There is only one caller rds_rdma_cm_event_handler()
+which is not expecting it to be freed so it will oops when it tries to
+mutex_unlock(&conn->c_cm_lock).  Or potentially it won't oops if you
+don't have poisoning or kasan enabled?  It feels like there should be
+some way to test this.
 
---=-s9T5ixyyl+9uG1k3geIe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+   121                  return;
+   122          } else {
+   123                  pr_notice("RDS/IB: %s conn connected <%pI4,%pI4> version %u.%u%s\n",
+   124                            ic->i_active_side ? "Active" : "Passive",
+   125                            &conn->c_laddr, &conn->c_faddr,
+   126                            RDS_PROTOCOL_MAJOR(conn->c_version),
+   127                            RDS_PROTOCOL_MINOR(conn->c_version),
+   128                            ic->i_flowctl ? ", flow control" : "");
+   129          }
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYiOAVAAoJELgmozMOVy/dl/EQAIaK84Ee0JumOtYiokzR6HVp
-9SUla68LS9MbO4elC8PBv4msdIozmH4L+Ig5br4/z/4j/zXFUmrGmPS8/sRCmfEa
-pHqs95oF3ENKTta6vXF0DAwhfkCkss7+N7eSdSfdsU0SxeMtvxmcAks6BcCTOgtk
-lCxw7c3oj9bLHI/8Aj7OG0yHbKRwH8DtaCqhinr+IwvcXdN8omaebJawzNnLwSWl
-iR5aXH2XQkTxMlLiZ72DXtU/Is05QEJbXN/ryyfRFphXD57R3+w6YdeD2zwhn62B
-db6N7LFHnYf+VJshWYEsu8JdZiYSaDkghW8Lv28rAT3lGNqg2VPsaunyb/PxKrxi
-IWdTqmRnGoKAKD+aGkYHQRvZX+KIEEQqk1lyXje/umnjbv+F4iETJdIU/IaYRIRg
-ioudjH9AqwhdO9/DYILqLRCbuJVndtrwoiB70ENVGVKaLvha5hYgee2h9mc1jFQn
-nVgb0mqUgW15jk1EaVCA4GYXiRWigwc+PYdmHNitvOqvzRxodyCfrUMgavEvzlkX
-kPInN+d+80475Zp3Xc/SI+ZyPrXkHZ2wOolld9PyyuQlDByk59oLILcw6J7D8ZK7
-+ch0VciHG6tKyyobnQeMtDKwwVqsamfzDYulw17AYqhC0HSNbAsRJNrOwRwcW4MR
-O+hntNo+RrI9xKWUDfU4
-=GAM9
------END PGP SIGNATURE-----
-
---=-s9T5ixyyl+9uG1k3geIe--
-
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
