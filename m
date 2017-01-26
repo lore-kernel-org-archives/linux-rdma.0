@@ -1,49 +1,60 @@
-From: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
-Subject: Re: [PATCH v3 29/37] IB/rxe: Switch from dma_device to dev.parent
-Date: Thu, 26 Jan 2017 21:06:07 +0000
-Message-ID: <D4AFCE43.A031%Andrew.Boyer@emc.com>
-References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
- <20170120210437.26389-30-bart.vanassche@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core 12 breaks libibverbs ABI
+Date: Thu, 26 Jan 2017 14:49:00 -0700
+Message-ID: <20170126214900.GA31937@obsidianresearch.com>
+References: <1485446147.4194.4.camel@profitbricks.com>
+ <20170126171325.GA16562@obsidianresearch.com>
+ <20170126173548.GA15006@infradead.org>
+ <20170126180926.GB20330@obsidianresearch.com>
+ <20170126181113.GA8679@infradead.org>
+ <20170126182753.GA5056@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0E132B@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170120210437.26389-30-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C0CF7EB314877F4A8F41EB32AE23ECFB-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0E132B-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 26, 2017 at 08:38:40PM +0000, Hefty, Sean wrote:
+> > > There should not be any compat - it's just going to drag down
+> > > development and everyone is free to submit their provider to rdma-
+> > core,
+> > > same as kernel drivers.
+> > 
+> > Yep, that was the argument that won the day so far.
+> 
+> I don't disagree with the direction, but I agree with Benjamin.  The
+> intent behind a public symbol/structure and their actual usage by
+> applications may differ.  Why wasn't the soname updated?
 
+Well, no it cannot differ. If apps use private symbols they get
+burned. Glibc and gcc have established that precedent decades ago.
 
-On 1/20/17, 4:04 PM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Bart
-Van Assche" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+The soname is not bumped because libibverbs is a symver based library,
+which means we can manage our private ABI safely without ever
+requiring soname changes. If something does manage to link to it then
+it gets a runtime dynamic linking failure, not a random crash.
 
->Prepare for removal of ib_device.dma_device.
->
->Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
->Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->---
-> drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++---
-> 1 file changed, 3 insertions(+), 3 deletions(-)
->
->@@ -1234,7 +1234,7 @@ int rxe_register_device(struct rxe_dev *rxe)
-> 	dev->node_type =3D RDMA_NODE_IB_CA;
-> 	dev->phys_port_cnt =3D 1;
-> 	dev->num_comp_vectors =3D RXE_NUM_COMP_VECTORS;
->-	dev->dma_device =3D rxe->ifc_ops->dma_device(rxe);
->+	dev->dev.parent =3D rxe->ifc_ops->dma_device(rxe);
-> 	dev->local_dma_lkey =3D 0;
-> 	dev->node_guid =3D rxe->ifc_ops->node_guid(rxe);
-> 	dev->dma_ops =3D &rxe_dma_mapping_ops;
+Remember, libibverbs fundamentally does not support two copies of the
+library in the same address space, so one of the major motivations to
+use a soname to manage version is invalid. Even worse, because of
+this, if we did bump the soname, it would be very painful and
+dangerous.
 
-ifc_ops was recently removed, so this will be a minor merge conflict.
+So that leaves us with only one point to argue on: Should libibverbs
+have a private ABI or not? If yes, then we are doing it properly.
 
-Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+The issue is muddied a bit because the private ABI has not been as
+absolutely private as I'd like, so we could add compat for the two
+symbols and defer the incompat transition till a later release.. This
+argument would be best supported if someone knows of something that
+actually breaks out in the wild...
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
