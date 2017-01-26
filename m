@@ -1,39 +1,68 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core 12 breaks libibverbs ABI
-Date: Thu, 26 Jan 2017 10:13:25 -0700
-Message-ID: <20170126171325.GA16562@obsidianresearch.com>
-References: <1485446147.4194.4.camel@profitbricks.com>
+Subject: Re: [PATCH rdma-core 7/7] mlx5: Export mlx5 direct verbs interface
+Date: Thu, 26 Jan 2017 10:30:05 -0700
+Message-ID: <20170126173005.GD16562@obsidianresearch.com>
+References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
+ <1485446182-5109-8-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1485446147.4194.4.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1485446182-5109-8-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 26, 2017 at 04:55:47PM +0100, Benjamin Drung wrote:
-> the rmda-core commit 683e55aa5d291c8fda338dae565fbdae0c0000b5 "ibverbs:
-> Allow vendor data response in create_ah command" breaks the ABI of the
-> libibverbs library: The symbol ibv_cmd_create_ah@IBVERBS_1.0 is replaced
-> by ibv_cmd_create_ah@IBVERBS_1.4. Please bring back ibv_cmd_create_ah@IB
-> VERBS_1.0 to restore the ABI. Otherwise the version of the soname needs
-> to be bumped from 1 to 2.
+On Thu, Jan 26, 2017 at 05:56:22PM +0200, Yishai Hadas wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Install direct verbs related files into
+> /usr/include/infiniband/mlx5 folder and allow
+> for possible users to explicitly include them
+> into their applications.
+> 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  buildlib/provider.map                 | 13 +++++++++----
+>  providers/mlx5/include/CMakeLists.txt |  6 +++++-
+>  2 files changed, 14 insertions(+), 5 deletions(-)
+> 
+> diff --git a/buildlib/provider.map b/buildlib/provider.map
+> index e985a6f..8c7875f 100644
+> +++ b/buildlib/provider.map
+> @@ -1,6 +1,11 @@
+> -/* The providers do not export any symbols at all. Instead they rely on
+> -   attribute(constructor) to cause their init function to run at dlopen
+> -   time. */
+> -{
+> +/* The providers usually do not export any symbols at all. Instead
+> +   they rely on attribute(constructor) to cause their init function to
+> +   run at dlopen time.
+> +   Providers that wish to export symbols should add them below according to
+> +   Documentation/versioning.md document. */
+> +MLX5_1.0 {
+> +	global:
+> +		mlx5dv_query_device;
+> +		mlx5dv_init_obj;
+>  	local: *;
 
-The ibv_cmd_* family of symbols are now considered private internal
-symbols only for use between libibverbs and the included plugin libraries.
+No, this is no longer just a provider so it doesn't get to use
+provider.map
 
-The decision was made to stop supporting providers outside of
-rdma-core, so the library SONAME only reflects the public facing ABI.
+mlx5 will need its own map file and the various magic I described to
+become a proper library and a plugin at once.
 
-I missed asking for this when the ibv_cmd_create_ah@IBVERBS_1.4 patch
-was merged, but before we release 13 we need to drop all the ibv_cmd_*
-entry points from the public headers so that nothing outside rdma-core
-can link to these symbols.
+> +publish_headers(infiniband/mlx5
+> +	dv.h
+> +	dv-wqe.h
+> +	dv-cqe.h
+> +)
 
-AFAIK this is an accepted way to build a library that works with
-private loadable plugins.
+not ever dir needs a cmakefile, this is fine in the providers/mlx5
+even with the include/ dir. It is easier to understand if things are
+not spread out so much.
 
 Jason
 --
