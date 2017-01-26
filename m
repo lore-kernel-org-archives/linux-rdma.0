@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 3/7] mlx5: Add WQE segments implementation
-Date: Thu, 26 Jan 2017 17:56:18 +0200
-Message-ID: <1485446182-5109-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 2/7] mlx5: Add CQE fields
+Date: Thu, 26 Jan 2017 17:56:17 +0200
+Message-ID: <1485446182-5109-3-git-send-email-yishaih@mellanox.com>
 References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485446182-5109-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,208 +12,56 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add generic and x86 SSE3 versions of WQE
-segments implementations.
+Introduce inline calls to get/set for most
+commonly used CQE data path fields.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/include/dv-wqe.h | 175 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 175 insertions(+)
+ providers/mlx5/include/dv-cqe.h | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/providers/mlx5/include/dv-wqe.h b/providers/mlx5/include/dv-wqe.h
-index ce9bd86..a819a6f 100644
---- a/providers/mlx5/include/dv-wqe.h
-+++ b/providers/mlx5/include/dv-wqe.h
-@@ -34,6 +34,10 @@
- #define _MLX5DV_WQE_H_
- 
- #include <arpa/inet.h>
-+#if defined(__SSE3__)
-+#include <emmintrin.h>
-+#include <tmmintrin.h>
-+#endif /* defined(__SSE3__) */
- 
- enum {
- 	MLX5_INVALID_LKEY	= 0x100,
-@@ -136,5 +140,176 @@ struct mlx5_wqe_eth_seg {
- 	uint8_t		inline_hdr[16];
+diff --git a/providers/mlx5/include/dv-cqe.h b/providers/mlx5/include/dv-cqe.h
+index 1ad33ad..c36b7e0 100644
+--- a/providers/mlx5/include/dv-cqe.h
++++ b/providers/mlx5/include/dv-cqe.h
+@@ -122,4 +122,35 @@ struct mlx5_cqe64 {
+ 	uint8_t		signature;
+ 	uint8_t		op_own;
  };
- 
-+/*
-+ * Control segment - contains some control information for the current WQE.
-+ *
-+ * Output:
-+ *	seg	  - control segment to be filled
-+ * Input:
-+ *	pi	  - WQEBB number of the first block of this WQE.
-+ *		    This number should wrap at 0xffff, regardless of
-+ *		    size of the WQ.
-+ *	opcode	  - Opcode of this WQE. Encodes the type of operation
-+ *		    to be executed on the QP.
-+ *	opmod	  - Opcode modifier.
-+ *	qp_num	  - QP/SQ number this WQE is posted to.
-+ *	fm_ce_se  - FM (fence mode), CE (completion and event mode)
-+ *		    and SE (solicited event).
-+ *	ds	  - WQE size in octowords (16-byte units). DS accounts for all
-+ *		    the segments in the WQE as summarized in WQE construction.
-+ *	signature - WQE signature.
-+ *	imm	  - Immediate data/Invalidation key/UMR mkey.
-+ */
++
 +static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_ctrl_seg(struct mlx5_wqe_ctrl_seg *seg, uint16_t pi,
-+			 uint8_t opcode, uint8_t opmod, uint32_t qp_num,
-+			 uint8_t fm_ce_se, uint8_t ds,
-+			 uint8_t signature, uint32_t imm)
++uint8_t mlx5dv_get_cqe_owner(struct mlx5_cqe64 *cqe)
 +{
-+	seg->opmod_idx_opcode	= htonl(((uint32_t)opmod << 24) | ((uint32_t)pi << 8) | opcode);
-+	seg->qpn_ds		= htonl((qp_num << 8) | ds);
-+	seg->fm_ce_se		= fm_ce_se;
-+	seg->signature		= signature;
-+	/*
-+	 * The caller should prepare "imm" in advance based on WR opcode.
-+	 * For IBV_WR_SEND_WITH_IMM and IBV_WR_RDMA_WRITE_WITH_IMM,
-+	 * the "imm" should be assigned as is.
-+	 * For the IBV_WR_SEND_WITH_INV, it should be htonl(imm).
-+	 */
-+	seg->imm		= imm;
++	return cqe->op_own & 0x1;
 +}
 +
-+/* x86 optimized version of mlx5dv_set_ctrl_seg()
-+ *
-+ * This is useful when doing calculations on large data sets
-+ * for parallel calculations.
-+ *
-+ * It doesn't suit for serialized algorithms.
-+ */
-+#if defined(__SSE3__)
 +static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_x86_set_ctrl_seg(struct mlx5_wqe_ctrl_seg *seg, uint16_t pi,
-+			     uint8_t opcode, uint8_t opmod, uint32_t qp_num,
-+			     uint8_t fm_ce_se, uint8_t ds,
-+			     uint8_t signature, uint32_t imm)
++void mlx5dv_set_cqe_owner(struct mlx5_cqe64 *cqe, uint8_t val)
 +{
-+	__m128i val  = _mm_set_epi32(imm, qp_num, (ds << 16) | pi,
-+				     (signature << 24) | (opcode << 16) | (opmod << 8) | fm_ce_se);
-+	__m128i mask = _mm_set_epi8(12, 13, 14, 15,	/* immediate */
-+				     0,			/* signal/fence_mode */
-+				     0x80, 0x80,	/* reserved */
-+				     3,			/* signature */
-+				     6,			/* data size */
-+				     8, 9, 10,		/* QP num */
-+				     2,			/* opcode */
-+				     4, 5,		/* sw_pi in BE */
-+				     1			/* opmod */
-+				     );
-+	*(__m128i *) seg = _mm_shuffle_epi8(val, mask);
-+}
-+#endif /* defined(__SSE3__) */
-+
-+/*
-+ * Datagram Segment - contains address information required in order
-+ * to form a datagram message.
-+ *
-+ * Output:
-+ *	seg		- datagram segment to be filled.
-+ * Input:
-+ *	key		- Q_key/access key.
-+ *	dqp_dct		- Destination QP number for UD and DCT for DC.
-+ *	ext		- Address vector extension.
-+ *	stat_rate_sl	- Maximum static rate control, SL/ethernet priority.
-+ *	fl_mlid		- Force loopback and source LID for IB.
-+ *	rlid		- Remote LID
-+ *	rmac		- Remote MAC
-+ *	tclass		- GRH tclass/IPv6 tclass/IPv4 ToS
-+ *	hop_limit	- GRH hop limit/IPv6 hop limit/IPv4 TTL
-+ *	grh_gid_fi	- GRH, source GID address and IPv6 flow label.
-+ *	rgid		- Remote GID/IP address.
-+ */
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_dgram_seg(struct mlx5_wqe_datagram_seg *seg,
-+			  uint64_t key, uint32_t dqp_dct,
-+			  uint8_t ext, uint8_t stat_rate_sl,
-+			  uint8_t fl_mlid, uint16_t rlid,
-+			  uint8_t *rmac, uint8_t tclass,
-+			  uint8_t hop_limit, uint32_t grh_gid_fi,
-+			  uint8_t *rgid)
-+{
- 
-+	/* Always put 64 bits, in q_key, the reserved part will be 0 */
-+	seg->av.key.dc_key	= htonll(key);
-+	seg->av.dqp_dct		= htonl(((uint32_t)ext << 31) | dqp_dct);
-+	seg->av.stat_rate_sl	= stat_rate_sl;
-+	seg->av.fl_mlid		= fl_mlid;
-+	seg->av.rlid		= htons(rlid);
-+	memcpy(seg->av.rmac, rmac, 6);
-+	seg->av.tclass		= tclass;
-+	seg->av.hop_limit	= hop_limit;
-+	seg->av.grh_gid_fl	= htonl(grh_gid_fi);
-+	memcpy(seg->av.rgid, rgid, 16);
++	cqe->op_own = (val & 0x1) | (cqe->op_own & ~0x1);
 +}
 +
-+/*
-+ * Data Segments - contain pointers and a byte count for the scatter/gather list.
-+ * They can optionally contain data, which will save a memory read access for
-+ * gather Work Requests.
-+ */
++/* Solicited event */
 +static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_data_seg(struct mlx5_wqe_data_seg *seg,
-+			 uint32_t length, uint32_t lkey,
-+			 uintptr_t address)
++uint8_t mlx5dv_get_cqe_se(struct mlx5_cqe64 *cqe)
 +{
-+	seg->byte_count = htonl(length);
-+	seg->lkey       = htonl(lkey);
-+	seg->addr       = htonll(address);
++	return (cqe->op_own >> 1) & 0x1;
 +}
-+/*
-+ * x86 optimized version of mlx5dv_set_data_seg()
-+ *
-+ * This is useful when doing calculations on large data sets
-+ * for parallel calculations.
-+ *
-+ * It doesn't suit for serialized algorithms.
-+ */
-+#if defined(__SSE3__)
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_x86_set_data_seg(struct mlx5_wqe_data_seg *seg,
-+			     uint32_t length, uint32_t lkey,
-+			     uintptr_t address)
-+{
-+	__m128i val  = _mm_set_epi32((uint32_t)address, (uint32_t)(address >> 32), lkey, length);
-+	__m128i mask = _mm_set_epi8(12, 13, 14, 15,	/* local address low */
-+				     8, 9, 10, 11,	/* local address high */
-+				     4, 5, 6, 7,	/* l_key */
-+				     0, 1, 2, 3		/* byte count */
-+				     );
-+	*(__m128i *) seg = _mm_shuffle_epi8(val, mask);
-+}
-+#endif /* defined(__SSE3__) */
 +
-+/*
-+ * Eth Segment - contains packet headers and information for stateless L2, L3, L4 offloading.
-+ *
-+ * Output:
-+ *	 seg		 - Eth segment to be filled.
-+ * Input:
-+ *	cs_flags	 - l3cs/l3cs_inner/l4cs/l4cs_inner.
-+ *	mss		 - Maximum segment size. For TSO WQEs, the number of bytes
-+ *			   in the TCP payload to be transmitted in each packet. Must
-+ *			   be 0 on non TSO WQEs.
-+ *	inline_hdr_sz	 - Length of the inlined packet headers.
-+ *	inline_hdr_start - Inlined packet header.
-+ */
 +static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_eth_seg(struct mlx5_wqe_eth_seg *seg, uint8_t cs_flags,
-+			uint16_t mss, uint16_t inline_hdr_sz,
-+			uint8_t *inline_hdr_start)
++uint8_t mlx5dv_get_cqe_format(struct mlx5_cqe64 *cqe)
 +{
-+	seg->cs_flags		= cs_flags;
-+	seg->mss		= htons(mss);
-+	seg->inline_hdr_sz	= htons(inline_hdr_sz);
-+	memcpy(seg->inline_hdr_start, inline_hdr_start, inline_hdr_sz);
++	return (cqe->op_own >> 2) & 0x3;
 +}
- #endif /* _MLX5DV_WQE_H_ */
++
++static MLX5DV_ALWAYS_INLINE
++uint8_t mlx5dv_get_cqe_opcode(struct mlx5_cqe64 *cqe)
++{
++	return cqe->op_own >> 4;
++}
+ #endif /* _MLX5DV_CQE_H_ */
 -- 
 1.8.3.1
 
