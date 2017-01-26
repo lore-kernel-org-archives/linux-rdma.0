@@ -1,1037 +1,135 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/7] mlx5: Add mlx5 direct verbs files
-Date: Thu, 26 Jan 2017 17:56:16 +0200
-Message-ID: <1485446182-5109-2-git-send-email-yishaih@mellanox.com>
-References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] RDMA/cma: Fix unknown symbol when CONFIG_IPV6 is not
+ enabled
+Date: Thu, 26 Jan 2017 11:14:54 -0500
+Message-ID: <5c9d8930-d832-d4dc-ddab-43501d57eeaa@redhat.com>
+References: <20170115181500.4465-1-leon@kernel.org>
+ <1485293330.43764.80.camel@redhat.com>
+ <20170125065115.GM6005@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="RnJWSsEG0HHFI9lnb2lgmDcxtKa6bP5GR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485446182-5109-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170125065115.GM6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Spencer Baugh <sbaugh-n2IX9UM++eDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--RnJWSsEG0HHFI9lnb2lgmDcxtKa6bP5GR
+Content-Type: multipart/mixed; boundary="l5TqQhd9NedFoAt6Lsj0hDgDu3OaWPqeV";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
+ Spencer Baugh <sbaugh-n2IX9UM++eDQT0dZR+AlfA@public.gmane.org>
+Message-ID: <5c9d8930-d832-d4dc-ddab-43501d57eeaa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] RDMA/cma: Fix unknown symbol when CONFIG_IPV6 is not
+ enabled
+References: <20170115181500.4465-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <1485293330.43764.80.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170125065115.GM6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170125065115.GM6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 
-Direct verbs feature provides fast data path execution by
-implementing verbs directly over hardware specification.
+--l5TqQhd9NedFoAt6Lsj0hDgDu3OaWPqeV
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-It consists from the two parts:
- * Exported functions to translate internal mlx5 structures to be
-   accessible by user applications.
- * Inline functions, enums and defines to simplify programmer's life.
+On 1/25/2017 1:51 AM, Leon Romanovsky wrote:
+> On Tue, Jan 24, 2017 at 04:28:50PM -0500, Doug Ledford wrote:
+>> On Sun, 2017-01-15 at 20:15 +0200, Leon Romanovsky wrote:
+>>> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>>>
+>>> If IPV6 has not been enabled in the underlying kernel, we must avoid
+>>> calling IPV6 procedures in rdma_cm.ko.
+>>>
+>>> This requires using "IS_ENABLED(CONFIG_IPV6)" in "if" statements
+>>> surrounding any code which calls external IPV6 procedures.
+>>
+>> This seems strange....
+>>
+>>> In the instance fixed here, procedure cma_bind_addr() called
+>>> ipv6_addr_type() -- which resulted in calling external procedure
+>>> __ipv6_addr_type().
+>>>
+>>> Fixes: 6c26a77124ff ("RDMA/cma: fix IPv6 address resolution")
+>>> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.2+
+>>> Cc: Spencer Baugh <sbaugh-n2IX9UM++eDQT0dZR+AlfA@public.gmane.org>
+>>> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>>> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/core/cma.c | 3 ++-
+>>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/infiniband/core/cma.c
+>>> b/drivers/infiniband/core/cma.c
+>>> index bd8d051..e19f19c 100644
+>>> --- a/drivers/infiniband/core/cma.c
+>>> +++ b/drivers/infiniband/core/cma.c
+>>> @@ -2822,7 +2822,8 @@ static int cma_bind_addr(struct rdma_cm_id *id,=
 
-This patch adds following files:
-  * mlx5/dv.h        	- shared code
-  * mlx5/dv-cqe.h    	- CQE related functions (general implementation)
-  * mlx5/dv-wqe.h    	- WQE related functions (general implementation)
+>>> struct sockaddr *src_addr,
+>>>  	if (!src_addr || !src_addr->sa_family) {
+>>>  		src_addr =3D (struct sockaddr *) &id-
+>>>> route.addr.src_addr;
+>>>  		src_addr->sa_family =3D dst_addr->sa_family;
+>>> -		if (dst_addr->sa_family =3D=3D AF_INET6) {
+>>
+>> Why this construct?  Isn't the norm to simply surround the entire if
+>> statement with
+>> #if IS_ENABLED(CONFIG_IPV6)
+>> ...
+>> #endif
+>=20
+> It is common way to add dependency on specific config option directly t=
+o
+> the flow if other "if" already exists. It gives clear view on the flow,=
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/CMakeLists.txt         |   2 +
- providers/mlx5/cq.c                   |  84 +---------------
- providers/mlx5/include/CMakeLists.txt |   1 +
- providers/mlx5/include/dv-cqe.h       | 125 +++++++++++++++++++++++
- providers/mlx5/include/dv-wqe.h       | 140 ++++++++++++++++++++++++++
- providers/mlx5/include/dv.h           | 181 ++++++++++++++++++++++++++++++++++
- providers/mlx5/mlx5.c                 | 109 ++++++++++++++++++++
- providers/mlx5/mlx5.h                 |  62 +-----------
- providers/mlx5/qp.c                   |   2 +-
- providers/mlx5/wqe.h                  |  97 +-----------------
- 10 files changed, 568 insertions(+), 235 deletions(-)
- create mode 100644 providers/mlx5/include/CMakeLists.txt
- create mode 100644 providers/mlx5/include/dv-cqe.h
- create mode 100644 providers/mlx5/include/dv-wqe.h
- create mode 100644 providers/mlx5/include/dv.h
+> eliminates the need to find corresponding #endif and put all constraint=
+s
+> in one place.
 
-diff --git a/providers/mlx5/CMakeLists.txt b/providers/mlx5/CMakeLists.txt
-index 44df83b..252243c 100644
---- a/providers/mlx5/CMakeLists.txt
-+++ b/providers/mlx5/CMakeLists.txt
-@@ -19,3 +19,5 @@ rdma_provider(mlx5
-   srq.c
-   verbs.c
- )
-+
-+add_subdirectory(include)
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index 7ad27a9..e5b50a3 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -47,97 +47,17 @@
- #include "doorbell.h"
- 
- enum {
--	MLX5_CQ_DOORBELL			= 0x20
--};
--
--enum {
- 	CQ_OK					=  0,
- 	CQ_EMPTY				= -1,
- 	CQ_POLL_ERR				= -2
- };
- 
--#define MLX5_CQ_DB_REQ_NOT_SOL			(1 << 24)
--#define MLX5_CQ_DB_REQ_NOT			(0 << 24)
--
--enum {
--	MLX5_CQE_SYNDROME_LOCAL_LENGTH_ERR		= 0x01,
--	MLX5_CQE_SYNDROME_LOCAL_QP_OP_ERR		= 0x02,
--	MLX5_CQE_SYNDROME_LOCAL_PROT_ERR		= 0x04,
--	MLX5_CQE_SYNDROME_WR_FLUSH_ERR			= 0x05,
--	MLX5_CQE_SYNDROME_MW_BIND_ERR			= 0x06,
--	MLX5_CQE_SYNDROME_BAD_RESP_ERR			= 0x10,
--	MLX5_CQE_SYNDROME_LOCAL_ACCESS_ERR		= 0x11,
--	MLX5_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR		= 0x12,
--	MLX5_CQE_SYNDROME_REMOTE_ACCESS_ERR		= 0x13,
--	MLX5_CQE_SYNDROME_REMOTE_OP_ERR			= 0x14,
--	MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR	= 0x15,
--	MLX5_CQE_SYNDROME_RNR_RETRY_EXC_ERR		= 0x16,
--	MLX5_CQE_SYNDROME_REMOTE_ABORTED_ERR		= 0x22,
--};
--
--enum {
--	MLX5_CQE_OWNER_MASK	= 1,
--	MLX5_CQE_REQ		= 0,
--	MLX5_CQE_RESP_WR_IMM	= 1,
--	MLX5_CQE_RESP_SEND	= 2,
--	MLX5_CQE_RESP_SEND_IMM	= 3,
--	MLX5_CQE_RESP_SEND_INV	= 4,
--	MLX5_CQE_RESIZE_CQ	= 5,
--	MLX5_CQE_REQ_ERR	= 13,
--	MLX5_CQE_RESP_ERR	= 14,
--	MLX5_CQE_INVALID	= 15,
--};
--
- enum {
- 	MLX5_CQ_MODIFY_RESEIZE = 0,
- 	MLX5_CQ_MODIFY_MODER = 1,
- 	MLX5_CQ_MODIFY_MAPPING = 2,
- };
- 
--enum {
--	MLX5_CQE_L2_OK = 1 << 0,
--	MLX5_CQE_L3_OK = 1 << 1,
--	MLX5_CQE_L4_OK = 1 << 2,
--};
--
--enum {
--	MLX5_CQE_L3_HDR_TYPE_NONE = 0x0,
--	MLX5_CQE_L3_HDR_TYPE_IPV6 = 0x1,
--	MLX5_CQE_L3_HDR_TYPE_IPV4 = 0x2,
--};
--
--struct mlx5_err_cqe {
--	uint8_t		rsvd0[32];
--	uint32_t	srqn;
--	uint8_t		rsvd1[18];
--	uint8_t		vendor_err_synd;
--	uint8_t		syndrome;
--	uint32_t	s_wqe_opcode_qpn;
--	uint16_t	wqe_counter;
--	uint8_t		signature;
--	uint8_t		op_own;
--};
--
--struct mlx5_cqe64 {
--	uint8_t		rsvd0[17];
--	uint8_t		ml_path;
--	uint8_t		rsvd20[4];
--	uint16_t	slid;
--	uint32_t	flags_rqpn;
--	uint8_t		hds_ip_ext;
--	uint8_t		l4_hdr_type_etc;
--	uint16_t	vlan_info;
--	uint32_t	srqn_uidx;
--	uint32_t	imm_inval_pkey;
--	uint8_t		rsvd40[4];
--	uint32_t	byte_cnt;
--	__be64		timestamp;
--	uint32_t	sop_drop_qpn;
--	uint16_t	wqe_counter;
--	uint8_t		signature;
--	uint8_t		op_own;
--};
--
- int mlx5_stall_num_loop = 60;
- int mlx5_stall_cq_poll_min = 60;
- int mlx5_stall_cq_poll_max = 100000;
-@@ -255,7 +175,7 @@ static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *c
- 		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
- 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe - 1,
- 						    ntohl(cqe->byte_cnt));
--	}
-+}
- 
- 	return err;
- }
-@@ -1432,7 +1352,7 @@ void __mlx5_cq_clean(struct mlx5_cq *cq, uint32_t rsn, struct mlx5_srq *srq)
- 	uint8_t owner_bit;
- 	int cqe_version;
- 
--	if (!cq)
-+	if (!cq || cq->flags & MLX5_CQ_FLAGS_DV_OWNED)
- 		return;
- 
- 	/*
-diff --git a/providers/mlx5/include/CMakeLists.txt b/providers/mlx5/include/CMakeLists.txt
-new file mode 100644
-index 0000000..11a2839
---- /dev/null
-+++ b/providers/mlx5/include/CMakeLists.txt
-@@ -0,0 +1 @@
-+# Empty CMakelists.txt to avoid compilation error
-diff --git a/providers/mlx5/include/dv-cqe.h b/providers/mlx5/include/dv-cqe.h
-new file mode 100644
-index 0000000..1ad33ad
---- /dev/null
-+++ b/providers/mlx5/include/dv-cqe.h
-@@ -0,0 +1,125 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies, Inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _MLX5DV_CQE_H_
-+#define _MLX5DV_CQE_H_
-+
-+/* For __be64 type */
-+#include <linux/types.h>
-+
-+enum {
-+	MLX5_INLINE_SCATTER_32	= 0x4,
-+	MLX5_INLINE_SCATTER_64	= 0x8,
-+};
-+
-+enum {
-+	MLX5_CQE_SYNDROME_LOCAL_LENGTH_ERR		= 0x01,
-+	MLX5_CQE_SYNDROME_LOCAL_QP_OP_ERR		= 0x02,
-+	MLX5_CQE_SYNDROME_LOCAL_PROT_ERR		= 0x04,
-+	MLX5_CQE_SYNDROME_WR_FLUSH_ERR			= 0x05,
-+	MLX5_CQE_SYNDROME_MW_BIND_ERR			= 0x06,
-+	MLX5_CQE_SYNDROME_BAD_RESP_ERR			= 0x10,
-+	MLX5_CQE_SYNDROME_LOCAL_ACCESS_ERR		= 0x11,
-+	MLX5_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR		= 0x12,
-+	MLX5_CQE_SYNDROME_REMOTE_ACCESS_ERR		= 0x13,
-+	MLX5_CQE_SYNDROME_REMOTE_OP_ERR			= 0x14,
-+	MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR	= 0x15,
-+	MLX5_CQE_SYNDROME_RNR_RETRY_EXC_ERR		= 0x16,
-+	MLX5_CQE_SYNDROME_REMOTE_ABORTED_ERR		= 0x22,
-+};
-+
-+enum {
-+	MLX5_CQE_L2_OK = 1 << 0,
-+	MLX5_CQE_L3_OK = 1 << 1,
-+	MLX5_CQE_L4_OK = 1 << 2,
-+};
-+
-+enum {
-+	MLX5_CQE_L3_HDR_TYPE_NONE = 0x0,
-+	MLX5_CQE_L3_HDR_TYPE_IPV6 = 0x1,
-+	MLX5_CQE_L3_HDR_TYPE_IPV4 = 0x2,
-+};
-+
-+enum {
-+	MLX5_CQE_OWNER_MASK	= 1,
-+	MLX5_CQE_REQ		= 0,
-+	MLX5_CQE_RESP_WR_IMM	= 1,
-+	MLX5_CQE_RESP_SEND	= 2,
-+	MLX5_CQE_RESP_SEND_IMM	= 3,
-+	MLX5_CQE_RESP_SEND_INV	= 4,
-+	MLX5_CQE_RESIZE_CQ	= 5,
-+	MLX5_CQE_REQ_ERR	= 13,
-+	MLX5_CQE_RESP_ERR	= 14,
-+	MLX5_CQE_INVALID	= 15,
-+};
-+
-+enum {
-+	MLX5_CQ_DOORBELL			= 0x20
-+};
-+
-+enum {
-+	MLX5_CQ_DB_REQ_NOT_SOL	= 1 << 24,
-+	MLX5_CQ_DB_REQ_NOT	= 0 << 24,
-+};
-+
-+struct mlx5_err_cqe {
-+	uint8_t		rsvd0[32];
-+	uint32_t	srqn;
-+	uint8_t		rsvd1[18];
-+	uint8_t		vendor_err_synd;
-+	uint8_t		syndrome;
-+	uint32_t	s_wqe_opcode_qpn;
-+	uint16_t	wqe_counter;
-+	uint8_t		signature;
-+	uint8_t		op_own;
-+};
-+
-+struct mlx5_cqe64 {
-+	uint8_t		rsvd0[17];
-+	uint8_t		ml_path;
-+	uint8_t		rsvd20[4];
-+	uint16_t	slid;
-+	uint32_t	flags_rqpn;
-+	uint8_t		hds_ip_ext;
-+	uint8_t		l4_hdr_type_etc;
-+	uint16_t	vlan_info;
-+	uint32_t	srqn_uidx;
-+	uint32_t	imm_inval_pkey;
-+	uint8_t		rsvd40[4];
-+	uint32_t	byte_cnt;
-+	__be64		timestamp;
-+	uint32_t	sop_drop_qpn;
-+	uint16_t	wqe_counter;
-+	uint8_t		signature;
-+	uint8_t		op_own;
-+};
-+#endif /* _MLX5DV_CQE_H_ */
-diff --git a/providers/mlx5/include/dv-wqe.h b/providers/mlx5/include/dv-wqe.h
-new file mode 100644
-index 0000000..ce9bd86
---- /dev/null
-+++ b/providers/mlx5/include/dv-wqe.h
-@@ -0,0 +1,140 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies, Inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _MLX5DV_WQE_H_
-+#define _MLX5DV_WQE_H_
-+
-+#include <arpa/inet.h>
-+
-+enum {
-+	MLX5_INVALID_LKEY	= 0x100,
-+};
-+
-+enum {
-+	MLX5_EXTENDED_UD_AV	= 0x80000000,
-+};
-+
-+enum {
-+	MLX5_WQE_CTRL_CQ_UPDATE	= 2 << 2,
-+	MLX5_WQE_CTRL_SOLICITED	= 1 << 1,
-+	MLX5_WQE_CTRL_FENCE	= 4 << 5,
-+	MLX5_WQE_CTRL_INITIATOR_SMALL_FENCE = 1 << 5,
-+};
-+
-+enum {
-+	MLX5_SEND_WQE_BB	= 64,
-+	MLX5_SEND_WQE_SHIFT	= 6,
-+};
-+
-+enum {
-+	MLX5_INLINE_SEG	= 0x80000000,
-+};
-+
-+enum {
-+	MLX5_ETH_WQE_L3_CSUM = (1 << 6),
-+	MLX5_ETH_WQE_L4_CSUM = (1 << 7),
-+};
-+
-+struct mlx5_wqe_srq_next_seg {
-+	uint8_t			rsvd0[2];
-+	uint16_t		next_wqe_index;
-+	uint8_t			signature;
-+	uint8_t			rsvd1[11];
-+};
-+
-+struct mlx5_wqe_data_seg {
-+	uint32_t		byte_count;
-+	uint32_t		lkey;
-+	uint64_t		addr;
-+};
-+
-+struct mlx5_wqe_ctrl_seg {
-+	uint32_t	opmod_idx_opcode;
-+	uint32_t	qpn_ds;
-+	uint8_t		signature;
-+	uint8_t		rsvd[2];
-+	uint8_t		fm_ce_se;
-+	uint32_t	imm;
-+};
-+
-+struct mlx5_wqe_av {
-+	union {
-+		struct {
-+			uint32_t	qkey;
-+			uint32_t	reserved;
-+		} qkey;
-+		uint64_t	dc_key;
-+	} key;
-+	uint32_t	dqp_dct;
-+	uint8_t		stat_rate_sl;
-+	uint8_t		fl_mlid;
-+	uint16_t	rlid;
-+	uint8_t		reserved0[4];
-+	uint8_t		rmac[6];
-+	uint8_t		tclass;
-+	uint8_t		hop_limit;
-+	uint32_t	grh_gid_fl;
-+	uint8_t		rgid[16];
-+};
-+
-+struct mlx5_wqe_datagram_seg {
-+	struct mlx5_wqe_av	av;
-+};
-+
-+struct mlx5_wqe_raddr_seg {
-+	uint64_t	raddr;
-+	uint32_t	rkey;
-+	uint32_t	reserved;
-+};
-+
-+struct mlx5_wqe_atomic_seg {
-+	uint64_t	swap_add;
-+	uint64_t	compare;
-+};
-+
-+struct mlx5_wqe_inl_data_seg {
-+	uint32_t	byte_count;
-+};
-+
-+struct mlx5_wqe_eth_seg {
-+	uint32_t	rsvd0;
-+	uint8_t		cs_flags;
-+	uint8_t		rsvd1;
-+	uint16_t	mss;
-+	uint32_t	rsvd2;
-+	uint16_t	inline_hdr_sz;
-+	uint8_t		inline_hdr_start[2];
-+	uint8_t		inline_hdr[16];
-+};
-+
-+
-+#endif /* _MLX5DV_WQE_H_ */
-diff --git a/providers/mlx5/include/dv.h b/providers/mlx5/include/dv.h
-new file mode 100644
-index 0000000..ce4af76
---- /dev/null
-+++ b/providers/mlx5/include/dv.h
-@@ -0,0 +1,181 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies, Inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _MLX5DV_H_
-+#define _MLX5DV_H_
-+
-+/* Always inline the function */
-+#ifdef __GNUC__
-+#define MLX5DV_ALWAYS_INLINE inline __attribute__((always_inline))
-+#else
-+#define MLX5DV_ALWAYS_INLINE inline
-+#endif
-+
-+#include "dv-cqe.h"
-+#include "dv-wqe.h"
-+
-+enum {
-+	MLX5_RCV_DBR	= 0,
-+	MLX5_SND_DBR	= 1,
-+};
-+
-+/*
-+ * Direct verbs device-specific attributes
-+ */
-+struct mlx5dv_context {
-+	uint8_t		version;
-+	uint64_t	flags;
-+	uint64_t	comp_mask;
-+};
-+
-+enum mlx5dv_context_flags {
-+	/*
-+	 * This flag indicates if CQE version 0 or 1 is needed.
-+	 */
-+	MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
-+};
-+
-+/*
-+ * Most device capabilities are exported by ibv_query_device(...),
-+ * but there is HW device-specific information which is important
-+ * for data-path, but isn't provided.
-+ *
-+ * Return 0 on success.
-+ */
-+int mlx5dv_query_device(struct ibv_context *ctx_in,
-+			struct mlx5dv_context *attrs_out);
-+
-+struct mlx5dv_qp {
-+	uint32_t		*dbrec;
-+	struct {
-+		void		*buf;
-+		uint32_t	wqe_cnt;
-+		uint32_t	stride;
-+	} sq;
-+	struct {
-+		void		*buf;
-+		uint32_t	wqe_cnt;
-+		uint32_t	stride;
-+	} rq;
-+	struct {
-+		void		*reg;
-+		uint32_t	size;
-+	} bf;
-+	uint64_t		comp_mask;
-+};
-+
-+struct mlx5dv_cq {
-+	void			*buf;
-+	uint32_t		*dbrec;
-+	uint32_t		cqe_cnt;
-+	uint32_t		cqe_size;
-+	void			*uar;
-+	uint32_t		cqn;
-+	uint64_t		comp_mask;
-+};
-+
-+struct mlx5dv_srq {
-+	void			*buf;
-+	uint32_t		*dbrec;
-+	uint32_t		stride;
-+	uint32_t		head;
-+	uint32_t		tail;
-+	uint64_t		comp_mask;
-+};
-+
-+struct mlx5dv_rwq {
-+	void		*buf;
-+	uint32_t	*dbrec;
-+	uint32_t	wqe_cnt;
-+	uint32_t	stride;
-+	uint64_t	comp_mask;
-+};
-+
-+struct mlx5dv_obj {
-+	struct {
-+		struct ibv_qp		*in;
-+		struct mlx5dv_qp	*out;
-+	} qp;
-+	struct {
-+		struct ibv_cq		*in;
-+		struct mlx5dv_cq	*out;
-+	} cq;
-+	struct {
-+		struct ibv_srq		*in;
-+		struct mlx5dv_srq	*out;
-+	} srq;
-+	struct {
-+		struct ibv_wq		*in;
-+		struct mlx5dv_rwq	*out;
-+	} rwq;
-+};
-+
-+enum mlx5dv_obj_type {
-+	MLX5DV_OBJ_QP	= 1 << 0,
-+	MLX5DV_OBJ_CQ	= 1 << 1,
-+	MLX5DV_OBJ_SRQ	= 1 << 2,
-+	MLX5DV_OBJ_RWQ	= 1 << 3,
-+};
-+
-+/*
-+ * This function will initialize mlx5dv_xxx structs based on supplied type.
-+ * The information for initialization is taken from ibv_xx structs supplied
-+ * as part of input.
-+ *
-+ * Request information of CQ marks its owned by DV for all consumer index
-+ * related actions.
-+ *
-+ * The initialization type can be combination of several types together.
-+ *
-+ * Return: 0 in case of success.
-+ */
-+int mlx5dv_init_obj(struct mlx5dv_obj *obj, uint64_t obj_type);
-+
-+enum {
-+	MLX5_OPCODE_NOP			= 0x00,
-+	MLX5_OPCODE_SEND_INVAL		= 0x01,
-+	MLX5_OPCODE_RDMA_WRITE		= 0x08,
-+	MLX5_OPCODE_RDMA_WRITE_IMM	= 0x09,
-+	MLX5_OPCODE_SEND		= 0x0a,
-+	MLX5_OPCODE_SEND_IMM		= 0x0b,
-+	MLX5_OPCODE_TSO			= 0x0e,
-+	MLX5_OPCODE_RDMA_READ		= 0x10,
-+	MLX5_OPCODE_ATOMIC_CS		= 0x11,
-+	MLX5_OPCODE_ATOMIC_FA		= 0x12,
-+	MLX5_OPCODE_ATOMIC_MASKED_CS	= 0x14,
-+	MLX5_OPCODE_ATOMIC_MASKED_FA	= 0x15,
-+	MLX5_OPCODE_FMR			= 0x19,
-+	MLX5_OPCODE_LOCAL_INVAL		= 0x1b,
-+	MLX5_OPCODE_CONFIG_CMD		= 0x1f,
-+	MLX5_OPCODE_UMR			= 0x25,
-+};
-+#endif /* _MLX5DV_H_ */
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 747e242..1cf5a5f 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -578,6 +578,115 @@ static int mlx5_map_internal_clock(struct mlx5_device *mdev,
- 	return 0;
- }
- 
-+int mlx5dv_query_device(struct ibv_context *ctx_in,
-+			 struct mlx5dv_context *attrs_out)
-+{
-+	attrs_out->comp_mask = 0;
-+	attrs_out->version   = 0;
-+	attrs_out->flags     = 0;
-+
-+	if (to_mctx(ctx_in)->cqe_version == MLX5_CQE_VERSION_V1)
-+		attrs_out->flags |= MLX5DV_CONTEXT_FLAGS_CQE_V1;
-+
-+	return 0;
-+}
-+
-+static int mlx5dv_get_qp(struct ibv_qp *qp_in,
-+			 struct mlx5dv_qp *qp_out)
-+{
-+	struct mlx5_qp *mqp = to_mqp(qp_in);
-+
-+	qp_out->comp_mask = 0;
-+	qp_out->dbrec     = mqp->db;
-+
-+	if (mqp->sq_buf_size)
-+		/* IBV_QPT_RAW_PACKET */
-+		qp_out->sq.buf = (void *)((uintptr_t)mqp->sq_buf.buf);
-+	else
-+		qp_out->sq.buf = (void *)((uintptr_t)mqp->buf.buf + mqp->sq.offset);
-+	qp_out->sq.wqe_cnt = mqp->sq.wqe_cnt;
-+	qp_out->sq.stride  = 1 << mqp->sq.wqe_shift;
-+
-+	qp_out->rq.buf     = (void *)((uintptr_t)mqp->buf.buf + mqp->rq.offset);
-+	qp_out->rq.wqe_cnt = mqp->rq.wqe_cnt;
-+	qp_out->rq.stride  = 1 << mqp->rq.wqe_shift;
-+
-+	qp_out->bf.reg    = mqp->bf->reg;
-+
-+	if (mqp->bf->uuarn > 0)
-+		qp_out->bf.size = mqp->bf->buf_size;
-+	else
-+		qp_out->bf.size = 0;
-+
-+	return 0;
-+}
-+
-+static int mlx5dv_get_cq(struct ibv_cq *cq_in,
-+			 struct mlx5dv_cq *cq_out)
-+{
-+	struct mlx5_cq *mcq = to_mcq(cq_in);
-+	struct mlx5_context *mctx = to_mctx(cq_in->context);
-+
-+	cq_out->comp_mask = 0;
-+	cq_out->cqn       = mcq->cqn;
-+	cq_out->cqe_cnt   = mcq->ibv_cq.cqe + 1;
-+	cq_out->cqe_size  = mcq->cqe_sz;
-+	cq_out->buf       = mcq->active_buf->buf;
-+	cq_out->dbrec     = mcq->dbrec;
-+	cq_out->uar	  = mctx->uar;
-+
-+	mcq->flags	 |= MLX5_CQ_FLAGS_DV_OWNED;
-+
-+	return 0;
-+}
-+
-+static int mlx5dv_get_rwq(struct ibv_wq *wq_in,
-+			  struct mlx5dv_rwq *rwq_out)
-+{
-+	struct mlx5_rwq *mrwq = to_mrwq(wq_in);
-+
-+	rwq_out->comp_mask = 0;
-+	rwq_out->buf       = mrwq->pbuff;
-+	rwq_out->dbrec     = mrwq->recv_db;
-+	rwq_out->wqe_cnt   = mrwq->rq.wqe_cnt;
-+	rwq_out->stride    = 1 << mrwq->rq.wqe_shift;
-+
-+	return 0;
-+}
-+
-+static int mlx5dv_get_srq(struct ibv_srq *srq_in,
-+			  struct mlx5dv_srq *srq_out)
-+{
-+	struct mlx5_srq *msrq;
-+
-+	msrq = container_of(srq_in, struct mlx5_srq, vsrq.srq);
-+
-+	srq_out->comp_mask = 0;
-+	srq_out->buf       = msrq->buf.buf;
-+	srq_out->dbrec     = msrq->db;
-+	srq_out->stride    = 1 << msrq->wqe_shift;
-+	srq_out->head      = msrq->head;
-+	srq_out->tail      = msrq->tail;
-+
-+	return 0;
-+}
-+
-+int mlx5dv_init_obj(struct mlx5dv_obj *obj, uint64_t obj_type)
-+{
-+	int ret = 0;
-+
-+	if (obj_type & MLX5DV_OBJ_QP)
-+		ret = mlx5dv_get_qp(obj->qp.in, obj->qp.out);
-+	if (!ret && (obj_type & MLX5DV_OBJ_CQ))
-+		ret = mlx5dv_get_cq(obj->cq.in, obj->cq.out);
-+	if (!ret && (obj_type & MLX5DV_OBJ_SRQ))
-+		ret = mlx5dv_get_srq(obj->srq.in, obj->srq.out);
-+	if (!ret && (obj_type & MLX5DV_OBJ_RWQ))
-+		ret = mlx5dv_get_rwq(obj->rwq.in, obj->rwq.out);
-+
-+	return ret;
-+}
-+
- static int mlx5_init_context(struct verbs_device *vdev,
- 			     struct ibv_context *ctx, int cmd_fd)
- {
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index cf314fc..49ddc1d 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -42,6 +42,7 @@
- #include <ccan/list.h>
- #include "bitmap.h"
- #include <ccan/minmax.h>
-+#include "include/dv.h"
- 
- #ifdef __GNUC__
- #define likely(x)	__builtin_expect((x), 1)
-@@ -110,11 +111,6 @@ static inline void mlx5_dbg(FILE *fp, uint32_t mask, const char *fmt, ...)
- #endif
- 
- enum {
--	MLX5_RCV_DBR	= 0,
--	MLX5_SND_DBR	= 1,
--};
--
--enum {
- 	MLX5_STAT_RATE_OFFSET		= 5
- };
- 
-@@ -137,36 +133,10 @@ enum {
- };
- 
- enum {
--	MLX5_SEND_WQE_BB	= 64,
--	MLX5_SEND_WQE_SHIFT	= 6,
--};
--
--enum {
- 	MLX5_BF_OFFSET	= 0x800
- };
- 
- enum {
--	MLX5_INLINE_SCATTER_32	= 0x4,
--	MLX5_INLINE_SCATTER_64	= 0x8,
--};
--
--enum {
--	MLX5_OPCODE_NOP			= 0x00,
--	MLX5_OPCODE_SEND_INVAL		= 0x01,
--	MLX5_OPCODE_RDMA_WRITE		= 0x08,
--	MLX5_OPCODE_RDMA_WRITE_IMM	= 0x09,
--	MLX5_OPCODE_SEND		= 0x0a,
--	MLX5_OPCODE_SEND_IMM		= 0x0b,
--	MLX5_OPCODE_TSO			= 0x0e,
--	MLX5_OPCODE_RDMA_READ		= 0x10,
--	MLX5_OPCODE_ATOMIC_CS		= 0x11,
--	MLX5_OPCODE_ATOMIC_FA		= 0x12,
--	MLX5_OPCODE_ATOMIC_MASKED_CS	= 0x14,
--	MLX5_OPCODE_ATOMIC_MASKED_FA	= 0x15,
--	MLX5_OPCODE_FMR			= 0x19,
--	MLX5_OPCODE_LOCAL_INVAL		= 0x1b,
--	MLX5_OPCODE_CONFIG_CMD		= 0x1f,
--
- 	MLX5_RECV_OPCODE_RDMA_WRITE_IMM	= 0x00,
- 	MLX5_RECV_OPCODE_SEND		= 0x01,
- 	MLX5_RECV_OPCODE_SEND_IMM	= 0x02,
-@@ -174,7 +144,6 @@ enum {
- 
- 	MLX5_CQE_OPCODE_ERROR		= 0x1e,
- 	MLX5_CQE_OPCODE_RESIZE		= 0x16,
--	MLX5_OPCODE_UMR			= 0x25,
- };
- 
- enum {
-@@ -182,10 +151,6 @@ enum {
- };
- 
- enum {
--	MLX5_INLINE_SEG	= 0x80000000,
--};
--
--enum {
- 	MLX5_MAX_PORTS_NUM = 2,
- };
- 
-@@ -249,7 +214,7 @@ struct mlx5_context {
- 	int				prefer_bf;
- 	int				shut_up_bf;
- 	struct {
--		struct mlx5_qp	      **table;
-+		struct mlx5_qp        **table;
- 		int			refcnt;
- 	}				qp_table[MLX5_QP_TABLE_SIZE];
- 	pthread_mutex_t			qp_table_mutex;
-@@ -338,6 +303,7 @@ enum {
- 	MLX5_CQ_FLAGS_FOUND_CQES = 1 << 2,
- 	MLX5_CQ_FLAGS_EXTENDED = 1 << 3,
- 	MLX5_CQ_FLAGS_SINGLE_THREADED = 1 << 4,
-+	MLX5_CQ_FLAGS_DV_OWNED = 1 << 5,
- };
- 
- struct mlx5_cq {
-@@ -448,29 +414,9 @@ struct mlx5_qp {
- 	int                             rss_qp;
- };
- 
--struct mlx5_av {
--	union {
--		struct {
--			uint32_t	qkey;
--			uint32_t	reserved;
--		} qkey;
--		uint64_t	dc_key;
--	} key;
--	uint32_t	dqp_dct;
--	uint8_t		stat_rate_sl;
--	uint8_t		fl_mlid;
--	uint16_t	rlid;
--	uint8_t		reserved0[4];
--	uint8_t		rmac[6];
--	uint8_t		tclass;
--	uint8_t		hop_limit;
--	uint32_t	grh_gid_fl;
--	uint8_t		rgid[16];
--};
--
- struct mlx5_ah {
- 	struct ibv_ah			ibv_ah;
--	struct mlx5_av			av;
-+	struct mlx5_wqe_av		av;
- 	bool				kern_ah;
- };
- 
-diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-index e82b1a0..177b9ae 100644
---- a/providers/mlx5/qp.c
-+++ b/providers/mlx5/qp.c
-@@ -212,7 +212,7 @@ static void set_datagram_seg(struct mlx5_wqe_datagram_seg *dseg,
- 			     struct ibv_send_wr *wr)
- {
- 	memcpy(&dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof dseg->av);
--	dseg->av.dqp_dct = htonl(wr->wr.ud.remote_qpn | MLX5_EXTENED_UD_AV);
-+	dseg->av.dqp_dct = htonl(wr->wr.ud.remote_qpn | MLX5_EXTENDED_UD_AV);
- 	dseg->av.key.qkey.qkey = htonl(wr->wr.ud.remote_qkey);
- }
- 
-diff --git a/providers/mlx5/wqe.h b/providers/mlx5/wqe.h
-index f097b77..13597bc 100644
---- a/providers/mlx5/wqe.h
-+++ b/providers/mlx5/wqe.h
-@@ -33,34 +33,6 @@
- #ifndef WQE_H
- #define WQE_H
- 
--enum {
--	MLX5_WQE_CTRL_CQ_UPDATE	= 2 << 2,
--	MLX5_WQE_CTRL_SOLICITED	= 1 << 1,
--	MLX5_WQE_CTRL_FENCE	= 4 << 5,
--	MLX5_WQE_CTRL_INITIATOR_SMALL_FENCE = 1 << 5,
--};
--
--enum {
--	MLX5_INVALID_LKEY	= 0x100,
--};
--
--enum {
--	MLX5_EXTENED_UD_AV	= 0x80000000,
--};
--
--struct mlx5_wqe_srq_next_seg {
--	uint8_t			rsvd0[2];
--	uint16_t		next_wqe_index;
--	uint8_t			signature;
--	uint8_t			rsvd1[11];
--};
--
--struct mlx5_wqe_data_seg {
--	uint32_t		byte_count;
--	uint32_t		lkey;
--	uint64_t		addr;
--};
--
- struct mlx5_sg_copy_ptr {
- 	int	index;
- 	int	offset;
-@@ -76,36 +48,6 @@ struct mlx5_eqe_qp_srq {
- 	uint32_t	qp_srq_n;
- };
- 
--enum {
--	MLX5_ETH_L2_INLINE_HEADER_SIZE	= 18,
--	MLX5_ETH_L2_MIN_HEADER_SIZE	= 14,
--};
--
--enum {
--	MLX5_ETH_WQE_L3_CSUM = (1 << 6),
--	MLX5_ETH_WQE_L4_CSUM = (1 << 7),
--};
--
--struct mlx5_wqe_eth_seg {
--	uint32_t	rsvd0;
--	uint8_t		cs_flags;
--	uint8_t		rsvd1;
--	uint16_t	mss;
--	uint32_t	rsvd2;
--	uint16_t	inline_hdr_sz;
--	uint8_t		inline_hdr_start[2];
--	uint8_t		inline_hdr[16];
--};
--
--struct mlx5_wqe_ctrl_seg {
--	uint32_t	opmod_idx_opcode;
--	uint32_t	qpn_ds;
--	uint8_t		signature;
--	uint8_t		rsvd[2];
--	uint8_t		fm_ce_se;
--	uint32_t	imm;
--};
--
- struct mlx5_wqe_xrc_seg {
- 	uint32_t	xrc_srqn;
- 	uint8_t		rsvd[12];
-@@ -118,42 +60,9 @@ struct mlx5_wqe_masked_atomic_seg {
- 	uint64_t	compare_mask;
- };
- 
--struct mlx5_wqe_av {
--	union {
--		struct {
--			uint32_t	qkey;
--			uint32_t	reserved;
--		} qkey;
--		uint64_t	dc_key;
--	} key;
--	uint32_t	dqp_dct;
--	uint8_t		stat_rate_sl;
--	uint8_t		fl_mlid;
--	uint16_t	rlid;
--	uint8_t		reserved0[10];
--	uint8_t		tclass;
--	uint8_t		hop_limit;
--	uint32_t	grh_gid_fl;
--	uint8_t		rgid[16];
--};
--
--struct mlx5_wqe_datagram_seg {
--	struct mlx5_wqe_av	av;
--};
--
--struct mlx5_wqe_raddr_seg {
--	uint64_t	raddr;
--	uint32_t	rkey;
--	uint32_t	reserved;
--};
--
--struct mlx5_wqe_atomic_seg {
--	uint64_t	swap_add;
--	uint64_t	compare;
--};
--
--struct mlx5_wqe_inl_data_seg {
--	uint32_t	byte_count;
-+enum {
-+	MLX5_ETH_L2_INLINE_HEADER_SIZE	= 18,
-+	MLX5_ETH_L2_MIN_HEADER_SIZE	= 14,
- };
- 
- enum {
--- 
-1.8.3.1
+OK, that makes sense, I just hadn't seen it that way.  I'll add this to
+the -rc queue.
 
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--l5TqQhd9NedFoAt6Lsj0hDgDu3OaWPqeV--
+
+--RnJWSsEG0HHFI9lnb2lgmDcxtKa6bP5GR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJYiiB+AAoJELgmozMOVy/dV6sP/07BHuE2GR6mDXdqiDi1+COx
+ngzM5nDv3CNKYq3fU5UaoiXoG+WZ/u2RyfF2ZjhI2c/DTcWwFfsNrD9l/RMtUFYB
+gix5Ipquh7t69n1UD/q9g+M4LhSQJ6XmSdO7HBGyKvP7WkCG5xb2TERgk2jiaTLY
+cgZCRaYKV/xOnwxpKUrjPXBgv9MP9Kcf+Yy92m9W1FVLL6VqwfSSTEv+XccVBeEu
+iFq+qFu6xU2uqYSnVEkdsWGtgNWFrFm3lvwewXH10mNqE0+oWpLIDv+Bc4NAG8YV
+Trh+r58wFyL94AIXVkWrzZ69/G2YEXU1YKB5U+n6ubI58vpdQeZWv28y83jHCHGx
+DpKGyHu/8z2CUvlwIU/o0ayJHBvpvPuZVK4O7C7AZIpTCgoTMONoPUUHw1gy5u3Q
+F+rNj+9nAFYYc/T7dNOUxySH0tt5Jg6Hhk+8KcjPRiBRN7/nCDAMkJ60W1IP/Ate
+3CdYFUYgUc+Y95NXZlCyH3UGZekWIPuNA8OSD7Fu5OMGySJ6bgz7EYRuMcAdRn7/
+4iZ2z7SwMT+rZ8IgLL+FukJZ52Kiu3xvtNsS1VuzE3bFUn+kJh81CXEQ6BkU9zZj
+PcE3loaghmP5ll7xhBOpxyw/LNYZBxOgWce/YqW887t7N/VEPDXbN+2VuJ2zlSsd
+mdc6zss3pKpPEs/qLiEa
+=DLsA
+-----END PGP SIGNATURE-----
+
+--RnJWSsEG0HHFI9lnb2lgmDcxtKa6bP5GR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
