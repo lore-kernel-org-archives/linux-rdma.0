@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 5/7] mlx5: Convert to use predefined get CQE opcodes
-Date: Thu, 26 Jan 2017 17:56:20 +0200
-Message-ID: <1485446182-5109-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 6/7] mlx5: Unify exported and internal CQE format
+Date: Thu, 26 Jan 2017 17:56:21 +0200
+Message-ID: <1485446182-5109-7-git-send-email-yishaih@mellanox.com>
 References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485446182-5109-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,71 +12,117 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Direct verbs are exporting CQE format, which is mapped
+to enum MLX5_INLINE_SCATTER_*.
+
+The proposed change brings in sync the internal code,
+exported enum and returned CQE format.
+
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/cq.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ providers/mlx5/cq.c             | 24 ++++++++++++------------
+ providers/mlx5/include/dv-cqe.h |  4 ++--
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
 diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index e5b50a3..fe7379c 100644
+index fe7379c..0ae6a19 100644
 --- a/providers/mlx5/cq.c
 +++ b/providers/mlx5/cq.c
-@@ -86,7 +86,7 @@ static void *get_sw_cqe(struct mlx5_cq *cq, int n)
- 
- 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
- 
--	if (likely((cqe64->op_own) >> 4 != MLX5_CQE_INVALID) &&
-+	if (likely(mlx5dv_get_cqe_opcode(cqe64) != MLX5_CQE_INVALID) &&
- 	    !((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^ !!(n & (cq->ibv_cq.cqe + 1)))) {
- 		return cqe;
+@@ -151,10 +151,10 @@ static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *c
+ 		wqe_ctr = ntohs(cqe->wqe_counter);
+ 		cq->ibv_cq.wr_id = srq->wrid[wqe_ctr];
+ 		mlx5_free_srq_wqe(srq, wqe_ctr);
+-		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
++		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
+ 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe,
+ 						    ntohl(cqe->byte_cnt));
+-		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
++		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
+ 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe - 1,
+ 						    ntohl(cqe->byte_cnt));
  	} else {
-@@ -544,7 +544,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 		wc->qp_num = qpn;
+@@ -169,10 +169,10 @@ static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *c
+ 		wqe_ctr = wq->tail & (wq->wqe_cnt - 1);
+ 		cq->ibv_cq.wr_id = wq->wrid[wqe_ctr];
+ 		++wq->tail;
+-		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
++		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
+ 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe,
+ 						    ntohl(cqe->byte_cnt));
+-		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
++		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
+ 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe - 1,
+ 						    ntohl(cqe->byte_cnt));
+ }
+@@ -194,10 +194,10 @@ static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
+ 		wqe_ctr = ntohs(cqe->wqe_counter);
+ 		wc->wr_id = srq->wrid[wqe_ctr];
+ 		mlx5_free_srq_wqe(srq, wqe_ctr);
+-		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
++		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
+ 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe,
+ 						    wc->byte_len);
+-		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
++		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
+ 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe - 1,
+ 						    wc->byte_len);
+ 	} else {
+@@ -216,10 +216,10 @@ static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
+ 		wqe_ctr = wq->tail & (wq->wqe_cnt - 1);
+ 		wc->wr_id = wq->wrid[wqe_ctr];
+ 		++wq->tail;
+-		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
++		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
+ 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe,
+ 						    wc->byte_len);
+-		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
++		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
+ 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe - 1,
+ 						    wc->byte_len);
  	}
+@@ -572,10 +572,10 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
+ 				wc_byte_len = 8;
  
--	opcode = cqe64->op_own >> 4;
-+	opcode = mlx5dv_get_cqe_opcode(cqe64);
- 	switch (opcode) {
- 	case MLX5_CQE_REQ:
- 	{
-@@ -1053,7 +1053,7 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ 			scatter_out:
+-				if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
++				if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_32)
+ 					err = mlx5_copy_to_send_wqe(
+ 					    mqp, wqe_ctr, cqe, wc_byte_len);
+-				else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
++				else if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_64)
+ 					err = mlx5_copy_to_send_wqe(
+ 					    mqp, wqe_ctr, cqe - 1, wc_byte_len);
+ 				break;
+@@ -586,10 +586,10 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
+ 		} else {
+ 			handle_good_req(wc, cqe64, wq, idx);
  
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
- 		return IBV_WC_RECV_RDMA_WITH_IMM;
- 	case MLX5_CQE_RESP_SEND:
-@@ -1111,7 +1111,7 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
- 				  MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
- 				IBV_WC_IP_CSUM_OK_SHIFT;
+-			if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
++			if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_32)
+ 				err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe,
+ 							    wc->byte_len);
+-			else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
++			else if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_64)
+ 				err = mlx5_copy_to_send_wqe(
+ 				    mqp, wqe_ctr, cqe - 1, wc->byte_len);
  
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
- 	case MLX5_CQE_RESP_SEND_IMM:
- 		wc_flags	|= IBV_WC_WITH_IMM;
-@@ -1144,7 +1144,7 @@ static inline uint32_t mlx5_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+diff --git a/providers/mlx5/include/dv-cqe.h b/providers/mlx5/include/dv-cqe.h
+index c36b7e0..d7d3dba 100644
+--- a/providers/mlx5/include/dv-cqe.h
++++ b/providers/mlx5/include/dv-cqe.h
+@@ -37,8 +37,8 @@
+ #include <linux/types.h>
  
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_SEND_INV:
- 		return ntohl(cq->cqe64->imm_inval_pkey);
- 	default:
-@@ -1326,7 +1326,7 @@ static inline int free_res_cqe(struct mlx5_cqe64 *cqe64, uint32_t rsn,
- {
- 	if (cqe_version) {
- 		if (is_equal_uidx(cqe64, rsn)) {
--			if (srq && is_responder(cqe64->op_own >> 4))
-+			if (srq && is_responder(mlx5dv_get_cqe_opcode(cqe64)))
- 				mlx5_free_srq_wqe(srq,
- 						  ntohs(cqe64->wqe_counter));
- 			return 1;
+ enum {
+-	MLX5_INLINE_SCATTER_32	= 0x4,
+-	MLX5_INLINE_SCATTER_64	= 0x8,
++	MLX5_INLINE_SCATTER_32	= 0x1,
++	MLX5_INLINE_SCATTER_64	= 0x2,
+ };
+ 
+ enum {
 -- 
 1.8.3.1
 
