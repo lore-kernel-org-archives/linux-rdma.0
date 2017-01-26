@@ -1,39 +1,48 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: rdma-core 12 breaks libibverbs ABI
-Date: Thu, 26 Jan 2017 16:55:47 +0100
-Message-ID: <1485446147.4194.4.camel@profitbricks.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 0/5 v2] qedr: batch of fixes for 4.10
+Date: Thu, 26 Jan 2017 15:54:21 +0000
+Message-ID: <SN1PR07MB22076CB87EDE902FF8F8DE47F8770@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1485258703-11949-1-git-send-email-Ram.Amrani@cavium.com>
+ <1485291005.43764.67.camel@redhat.com>
+ <SN1PR07MB22072B698D0B19AD7FE7865EF8770@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <e64f4dad-c880-57ec-4cee-096d6e6e34d7@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <e64f4dad-c880-57ec-4cee-096d6e6e34d7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-
-the rmda-core commit 683e55aa5d291c8fda338dae565fbdae0c0000b5 "ibverbs:
-Allow vendor data response in create_ah command" breaks the ABI of the
-libibverbs library: The symbol ibv_cmd_create_ah@IBVERBS_1.0 is replaced
-by ibv_cmd_create_ah@IBVERBS_1.4. Please bring back ibv_cmd_create_ah@IB
-VERBS_1.0 to restore the ABI. Otherwise the version of the soname needs
-to be bumped from 1 to 2.
-
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:  http://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Andreas Gauger, Achim Weiss.
+PiBPbiAxLzI2LzIwMTcgODo0NCBBTSwgQW1yYW5pLCBSYW0gd3JvdGU6DQo+ID4+IEkgdG9vayB0
+aGVzZSwgYnV0IEkgd291bGQgbGlrZSB0byBwb2ludCBvdXQgYSBjb3VwbGUgdGhpbmdzLiAgRmly
+c3QsDQo+ID4+IHRoZSBjb21taXQgbWVzc2FnZXMgY291bGQgdXNlIHNvbWUgd29yay4gIEkgZml4
+ZWQgYSBudW1iZXIgb2YgdGhlbSB1cC4NCj4gPj4gIEFsc28sIGEgZml4IHRvIGZvcm1hdHRpbmcg
+aXNuJ3QgcmVhbGx5IGFuIC1yYyBmaXguICBJIHRvb2sgaXQsIGJ1dA0KPiA+PiBuZXh0IHRpbWUg
+bGV0J3MgYmUgbW9yZSBzZWxlY3RpdmUgb24gb3VyIHN1Ym1pc3Npb24gcGxlYXNlLg0KPiA+Pg0K
+PiA+DQo+ID4gVGhhbmtzLg0KPiA+IEkgaGF2ZSByZXZpZXdlZCB5b3VyIGNoYW5nZXMgZm9yIG5l
+eHQgdGltZS4gSSB1bmRlcnN0b29kIGFsbCBidXQgdGhlc2U6DQo+ID4NCj4gPiBJIHRob3VnaHQg
+dGhhdCBpbnRyb2R1Y2luZyBmb3JtYXR0aW5nIGZpeGVzIGFuZCBtYWtpbmcgZnVuY3Rpb25zIHN0
+YXRpYyBhcmUNCj4gPiBzaW1wbGlmeWluZyBhbmQgcmlzayBmcmVlIG9wZXJhdGlvbnMgdGhhdCBh
+cmUgYWNjZXB0YWJsZS4NCj4gDQo+IFllcyBhbmQgbm8uICBUaGV5IGFyZSByaXNrIGZyZWUsIGJ1
+dCB0aGV5IGFsc28gcHJvdmlkZSAwIGJlbmVmaXQgdG8gdGhlDQo+IGFjdHVhbCBydW5uaW5nIG9m
+IHRoZSBrZXJuZWwuICBUaGVyZWZvcmUsIHRvIHJlZHVjZSBjaHVybiBkdXJpbmcgLXJjDQo+IGN5
+Y2xlIGtlcm5lbHMsIHlvdSB3b3VsZCBub3JtYWxseSBub3Qgc3VibWl0IHRoZW0uICBZb3Ugd291
+bGQgaG9sZCBvbiB0bw0KPiB0aGVtIHVudGlsIHRoZSBuZXh0IG1lcmdlIHdpbmRvdy4NCj4gDQo+
+ID4gSSBub3cgdW5kZXJzdGFuZCwNCj4gPiBhbmQgY29ycmVjdCBtZSBpZiBJJ20gd3JvbmcsIHRo
+YXQgb25seSBpZiBpdCdzIGltcG9ydGFudCBmaXggaXQgc2hvdWxkIGJlIGludHJvZHVjZWQuDQo+
+IA0KPiBDb3JyZWN0Lg0KPiANCj4gPiBTb21ldGltZXMgSSBzZWUgSUIvdmVuZG9yIGFuZCBzb21l
+dGltZXMgUkRNQS92ZW5kb3IuIFdoZW4gdG8gdXNlIGVhY2g/DQo+IA0KPiBJJ20gdHJ5aW5nIHRv
+IHRyYW5zaXRpb24gcGVvcGxlIG92ZXIgdG8gdXNpbmcgUkRNQS8qIGFzIG11Y2ggYXMgcG9zc2li
+bGUNCj4gYmVjYXVzZSB0aGUgc3RhY2sgaXMgbXVjaCBtb3JlIHRoYW4ganVzdCBJQiB0aGVzZSBk
+YXlzLiAgQnV0IGlmIHNvbWVvbmUNCj4gc2VuZHMgbWUgcGF0Y2hlcyB0aGF0IGhhdmUgSUIvIGFz
+IHRoZSBwcmVmaXgsIEkgZG9uJ3QgZ28gaW4gYW5kIG1vZGlmeQ0KPiBldmVyeSBzdWJqZWN0IGxp
+bmUuICBTbywgd2hlbiBJIG1vZGlmaWVkIHlvdXIgc3ViamVjdCBsaW5lcywgSSB1c2VkDQo+IFJE
+TUEsIHRoZSBJQiBzdWJqZWN0IGxpbmVzIHlvdSBzZWUgaW4gbXkgY3VycmVudCBxdWV1ZSBhcmUg
+ZnJvbSBvdGhlcg0KPiBwZW9wbGUuDQo+IA0KDQpPSw0KDQpSYW0NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
