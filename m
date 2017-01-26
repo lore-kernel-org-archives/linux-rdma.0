@@ -1,112 +1,85 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/5 v2] qedr: batch of fixes for 4.10
-Date: Thu, 26 Jan 2017 10:29:32 -0500
-Message-ID: <e64f4dad-c880-57ec-4cee-096d6e6e34d7@redhat.com>
-References: <1485258703-11949-1-git-send-email-Ram.Amrani@cavium.com>
- <1485291005.43764.67.camel@redhat.com>
- <SN1PR07MB22072B698D0B19AD7FE7865EF8770@SN1PR07MB2207.namprd07.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="HflshG4USx01RGJuU0AdF4Li5Sc4rg2KD"
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 5/7] mlx5: Convert to use predefined get CQE opcodes
+Date: Thu, 26 Jan 2017 17:56:20 +0200
+Message-ID: <1485446182-5109-6-git-send-email-yishaih@mellanox.com>
+References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <SN1PR07MB22072B698D0B19AD7FE7865EF8770-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <1485446182-5109-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---HflshG4USx01RGJuU0AdF4Li5Sc4rg2KD
-Content-Type: multipart/mixed; boundary="vwFIBvvil1QVUD7lrRexsIU2GIBdIC78p";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <e64f4dad-c880-57ec-4cee-096d6e6e34d7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/5 v2] qedr: batch of fixes for 4.10
-References: <1485258703-11949-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
- <1485291005.43764.67.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <SN1PR07MB22072B698D0B19AD7FE7865EF8770-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-In-Reply-To: <SN1PR07MB22072B698D0B19AD7FE7865EF8770-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---vwFIBvvil1QVUD7lrRexsIU2GIBdIC78p
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx5/cq.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-On 1/26/2017 8:44 AM, Amrani, Ram wrote:
->> I took these, but I would like to point out a couple things.  First,
->> the commit messages could use some work.  I fixed a number of them up.=
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index e5b50a3..fe7379c 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -86,7 +86,7 @@ static void *get_sw_cqe(struct mlx5_cq *cq, int n)
+ 
+ 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
+ 
+-	if (likely((cqe64->op_own) >> 4 != MLX5_CQE_INVALID) &&
++	if (likely(mlx5dv_get_cqe_opcode(cqe64) != MLX5_CQE_INVALID) &&
+ 	    !((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^ !!(n & (cq->ibv_cq.cqe + 1)))) {
+ 		return cqe;
+ 	} else {
+@@ -544,7 +544,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
+ 		wc->qp_num = qpn;
+ 	}
+ 
+-	opcode = cqe64->op_own >> 4;
++	opcode = mlx5dv_get_cqe_opcode(cqe64);
+ 	switch (opcode) {
+ 	case MLX5_CQE_REQ:
+ 	{
+@@ -1053,7 +1053,7 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ 
+-	switch (cq->cqe64->op_own >> 4) {
++	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
+ 	case MLX5_CQE_RESP_WR_IMM:
+ 		return IBV_WC_RECV_RDMA_WITH_IMM;
+ 	case MLX5_CQE_RESP_SEND:
+@@ -1111,7 +1111,7 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
+ 				  MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
+ 				IBV_WC_IP_CSUM_OK_SHIFT;
+ 
+-	switch (cq->cqe64->op_own >> 4) {
++	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
+ 	case MLX5_CQE_RESP_WR_IMM:
+ 	case MLX5_CQE_RESP_SEND_IMM:
+ 		wc_flags	|= IBV_WC_WITH_IMM;
+@@ -1144,7 +1144,7 @@ static inline uint32_t mlx5_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ 
+-	switch (cq->cqe64->op_own >> 4) {
++	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
+ 	case MLX5_CQE_RESP_SEND_INV:
+ 		return ntohl(cq->cqe64->imm_inval_pkey);
+ 	default:
+@@ -1326,7 +1326,7 @@ static inline int free_res_cqe(struct mlx5_cqe64 *cqe64, uint32_t rsn,
+ {
+ 	if (cqe_version) {
+ 		if (is_equal_uidx(cqe64, rsn)) {
+-			if (srq && is_responder(cqe64->op_own >> 4))
++			if (srq && is_responder(mlx5dv_get_cqe_opcode(cqe64)))
+ 				mlx5_free_srq_wqe(srq,
+ 						  ntohs(cqe64->wqe_counter));
+ 			return 1;
+-- 
+1.8.3.1
 
->>  Also, a fix to formatting isn't really an -rc fix.  I took it, but
->> next time let's be more selective on our submission please.
->>
->=20
-> Thanks.
-> I have reviewed your changes for next time. I understood all but these:=
-
->=20
-> I thought that introducing formatting fixes and making functions static=
- are
-> simplifying and risk free operations that are acceptable.
-
-Yes and no.  They are risk free, but they also provide 0 benefit to the
-actual running of the kernel.  Therefore, to reduce churn during -rc
-cycle kernels, you would normally not submit them.  You would hold on to
-them until the next merge window.
-
-> I now understand,
-> and correct me if I'm wrong, that only if it's important fix it should =
-be introduced.
-
-Correct.
-
-> Sometimes I see IB/vendor and sometimes RDMA/vendor. When to use each?
-
-I'm trying to transition people over to using RDMA/* as much as possible
-because the stack is much more than just IB these days.  But if someone
-sends me patches that have IB/ as the prefix, I don't go in and modify
-every subject line.  So, when I modified your subject lines, I used
-RDMA, the IB subject lines you see in my current queue are from other
-people.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---vwFIBvvil1QVUD7lrRexsIU2GIBdIC78p--
-
---HflshG4USx01RGJuU0AdF4Li5Sc4rg2KD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYihXcAAoJELgmozMOVy/du5YQAKqKG0cXnctSVmK7FTLVzWOY
-wqk4q0uk8oQl2PRS8jt7JgChnurWurctl+YgipuTf9XIrsCdiDEAhFhJO5rZGsMW
-QSI2+RUHDH1zX2zWYnPtPTiXYqKhy2dyV5XJ2bNbdGFrpIBnW+E+ql3ERnnzvXMF
-coCfQzzmlZ7Y8CN/Fb1FlH8ok6SgK/VNfMOIfpkQxJUBSSg3IzVUSiANpps62R2t
-frm7YSuiVAwH3Catho0yCZrawKnll034ajp5ZmmsytosdcjNhJCCxDifu+CbVzm3
-31eB5HQBszWt8ZYUpBtsvBE9CJwAcLYMw/kqHY6DLWGwiutzNF37f7KfjkMb/BHJ
-MpP7in1Qc9oAy0eeUA1u19HsGSW0LjXIl1Lw0JaJKDq357kRVUmo8GbdKOJVS3m7
-bKrYdMfRJ0lGNIbTeq5gRPe82hBb15JfGKsE+WrY5U93D4AU3s9NkUJNfY6o3FIC
-iMyyTVn3bDBYoT5NBd+9eMfZcjEL9FKJaX2IeVSHphCrT8M0pMwA8t8uTbMCgBvW
-sPnCoqvyJzJnLrj3qZaYMQlRPUsUfmb3m7AE+uE9O7lSTV17TpBkgUW1BPDrKusr
-o3odNT3bjBEPGXkSTiwiPMIQJ5JlHAZZrJanHIf1oj7+pFpBCfXkdkRPw6UOisQR
-7RN3fhczN/jIiLrrm+/f
-=Qxyw
------END PGP SIGNATURE-----
-
---HflshG4USx01RGJuU0AdF4Li5Sc4rg2KD--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
