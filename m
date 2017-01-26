@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 6/7] mlx5: Unify exported and internal CQE format
-Date: Thu, 26 Jan 2017 17:56:21 +0200
-Message-ID: <1485446182-5109-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 3/7] mlx5: Add WQE segments implementation
+Date: Thu, 26 Jan 2017 17:56:18 +0200
+Message-ID: <1485446182-5109-4-git-send-email-yishaih@mellanox.com>
 References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485446182-5109-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,117 +12,208 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Direct verbs are exporting CQE format, which is mapped
-to enum MLX5_INLINE_SCATTER_*.
-
-The proposed change brings in sync the internal code,
-exported enum and returned CQE format.
+Add generic and x86 SSE3 versions of WQE
+segments implementations.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/cq.c             | 24 ++++++++++++------------
- providers/mlx5/include/dv-cqe.h |  4 ++--
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ providers/mlx5/include/dv-wqe.h | 175 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 175 insertions(+)
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index fe7379c..0ae6a19 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -151,10 +151,10 @@ static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *c
- 		wqe_ctr = ntohs(cqe->wqe_counter);
- 		cq->ibv_cq.wr_id = srq->wrid[wqe_ctr];
- 		mlx5_free_srq_wqe(srq, wqe_ctr);
--		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
-+		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
- 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe,
- 						    ntohl(cqe->byte_cnt));
--		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
-+		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
- 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe - 1,
- 						    ntohl(cqe->byte_cnt));
- 	} else {
-@@ -169,10 +169,10 @@ static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *c
- 		wqe_ctr = wq->tail & (wq->wqe_cnt - 1);
- 		cq->ibv_cq.wr_id = wq->wrid[wqe_ctr];
- 		++wq->tail;
--		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
-+		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
- 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe,
- 						    ntohl(cqe->byte_cnt));
--		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
-+		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
- 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe - 1,
- 						    ntohl(cqe->byte_cnt));
- }
-@@ -194,10 +194,10 @@ static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
- 		wqe_ctr = ntohs(cqe->wqe_counter);
- 		wc->wr_id = srq->wrid[wqe_ctr];
- 		mlx5_free_srq_wqe(srq, wqe_ctr);
--		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
-+		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
- 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe,
- 						    wc->byte_len);
--		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
-+		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
- 			err = mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe - 1,
- 						    wc->byte_len);
- 	} else {
-@@ -216,10 +216,10 @@ static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
- 		wqe_ctr = wq->tail & (wq->wqe_cnt - 1);
- 		wc->wr_id = wq->wrid[wqe_ctr];
- 		++wq->tail;
--		if (cqe->op_own & MLX5_INLINE_SCATTER_32)
-+		if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_32)
- 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe,
- 						    wc->byte_len);
--		else if (cqe->op_own & MLX5_INLINE_SCATTER_64)
-+		else if (mlx5dv_get_cqe_format(cqe) == MLX5_INLINE_SCATTER_64)
- 			err = mlx5_copy_to_recv_wqe(qp, wqe_ctr, cqe - 1,
- 						    wc->byte_len);
- 	}
-@@ -572,10 +572,10 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 				wc_byte_len = 8;
+diff --git a/providers/mlx5/include/dv-wqe.h b/providers/mlx5/include/dv-wqe.h
+index ce9bd86..a819a6f 100644
+--- a/providers/mlx5/include/dv-wqe.h
++++ b/providers/mlx5/include/dv-wqe.h
+@@ -34,6 +34,10 @@
+ #define _MLX5DV_WQE_H_
  
- 			scatter_out:
--				if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
-+				if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_32)
- 					err = mlx5_copy_to_send_wqe(
- 					    mqp, wqe_ctr, cqe, wc_byte_len);
--				else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
-+				else if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_64)
- 					err = mlx5_copy_to_send_wqe(
- 					    mqp, wqe_ctr, cqe - 1, wc_byte_len);
- 				break;
-@@ -586,10 +586,10 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 		} else {
- 			handle_good_req(wc, cqe64, wq, idx);
- 
--			if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
-+			if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_32)
- 				err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe,
- 							    wc->byte_len);
--			else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
-+			else if (mlx5dv_get_cqe_format(cqe64) == MLX5_INLINE_SCATTER_64)
- 				err = mlx5_copy_to_send_wqe(
- 				    mqp, wqe_ctr, cqe - 1, wc->byte_len);
- 
-diff --git a/providers/mlx5/include/dv-cqe.h b/providers/mlx5/include/dv-cqe.h
-index c36b7e0..d7d3dba 100644
---- a/providers/mlx5/include/dv-cqe.h
-+++ b/providers/mlx5/include/dv-cqe.h
-@@ -37,8 +37,8 @@
- #include <linux/types.h>
+ #include <arpa/inet.h>
++#if defined(__SSE3__)
++#include <emmintrin.h>
++#include <tmmintrin.h>
++#endif /* defined(__SSE3__) */
  
  enum {
--	MLX5_INLINE_SCATTER_32	= 0x4,
--	MLX5_INLINE_SCATTER_64	= 0x8,
-+	MLX5_INLINE_SCATTER_32	= 0x1,
-+	MLX5_INLINE_SCATTER_64	= 0x2,
+ 	MLX5_INVALID_LKEY	= 0x100,
+@@ -136,5 +140,176 @@ struct mlx5_wqe_eth_seg {
+ 	uint8_t		inline_hdr[16];
  };
  
- enum {
++/*
++ * Control segment - contains some control information for the current WQE.
++ *
++ * Output:
++ *	seg	  - control segment to be filled
++ * Input:
++ *	pi	  - WQEBB number of the first block of this WQE.
++ *		    This number should wrap at 0xffff, regardless of
++ *		    size of the WQ.
++ *	opcode	  - Opcode of this WQE. Encodes the type of operation
++ *		    to be executed on the QP.
++ *	opmod	  - Opcode modifier.
++ *	qp_num	  - QP/SQ number this WQE is posted to.
++ *	fm_ce_se  - FM (fence mode), CE (completion and event mode)
++ *		    and SE (solicited event).
++ *	ds	  - WQE size in octowords (16-byte units). DS accounts for all
++ *		    the segments in the WQE as summarized in WQE construction.
++ *	signature - WQE signature.
++ *	imm	  - Immediate data/Invalidation key/UMR mkey.
++ */
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_set_ctrl_seg(struct mlx5_wqe_ctrl_seg *seg, uint16_t pi,
++			 uint8_t opcode, uint8_t opmod, uint32_t qp_num,
++			 uint8_t fm_ce_se, uint8_t ds,
++			 uint8_t signature, uint32_t imm)
++{
++	seg->opmod_idx_opcode	= htonl(((uint32_t)opmod << 24) | ((uint32_t)pi << 8) | opcode);
++	seg->qpn_ds		= htonl((qp_num << 8) | ds);
++	seg->fm_ce_se		= fm_ce_se;
++	seg->signature		= signature;
++	/*
++	 * The caller should prepare "imm" in advance based on WR opcode.
++	 * For IBV_WR_SEND_WITH_IMM and IBV_WR_RDMA_WRITE_WITH_IMM,
++	 * the "imm" should be assigned as is.
++	 * For the IBV_WR_SEND_WITH_INV, it should be htonl(imm).
++	 */
++	seg->imm		= imm;
++}
++
++/* x86 optimized version of mlx5dv_set_ctrl_seg()
++ *
++ * This is useful when doing calculations on large data sets
++ * for parallel calculations.
++ *
++ * It doesn't suit for serialized algorithms.
++ */
++#if defined(__SSE3__)
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_x86_set_ctrl_seg(struct mlx5_wqe_ctrl_seg *seg, uint16_t pi,
++			     uint8_t opcode, uint8_t opmod, uint32_t qp_num,
++			     uint8_t fm_ce_se, uint8_t ds,
++			     uint8_t signature, uint32_t imm)
++{
++	__m128i val  = _mm_set_epi32(imm, qp_num, (ds << 16) | pi,
++				     (signature << 24) | (opcode << 16) | (opmod << 8) | fm_ce_se);
++	__m128i mask = _mm_set_epi8(12, 13, 14, 15,	/* immediate */
++				     0,			/* signal/fence_mode */
++				     0x80, 0x80,	/* reserved */
++				     3,			/* signature */
++				     6,			/* data size */
++				     8, 9, 10,		/* QP num */
++				     2,			/* opcode */
++				     4, 5,		/* sw_pi in BE */
++				     1			/* opmod */
++				     );
++	*(__m128i *) seg = _mm_shuffle_epi8(val, mask);
++}
++#endif /* defined(__SSE3__) */
++
++/*
++ * Datagram Segment - contains address information required in order
++ * to form a datagram message.
++ *
++ * Output:
++ *	seg		- datagram segment to be filled.
++ * Input:
++ *	key		- Q_key/access key.
++ *	dqp_dct		- Destination QP number for UD and DCT for DC.
++ *	ext		- Address vector extension.
++ *	stat_rate_sl	- Maximum static rate control, SL/ethernet priority.
++ *	fl_mlid		- Force loopback and source LID for IB.
++ *	rlid		- Remote LID
++ *	rmac		- Remote MAC
++ *	tclass		- GRH tclass/IPv6 tclass/IPv4 ToS
++ *	hop_limit	- GRH hop limit/IPv6 hop limit/IPv4 TTL
++ *	grh_gid_fi	- GRH, source GID address and IPv6 flow label.
++ *	rgid		- Remote GID/IP address.
++ */
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_set_dgram_seg(struct mlx5_wqe_datagram_seg *seg,
++			  uint64_t key, uint32_t dqp_dct,
++			  uint8_t ext, uint8_t stat_rate_sl,
++			  uint8_t fl_mlid, uint16_t rlid,
++			  uint8_t *rmac, uint8_t tclass,
++			  uint8_t hop_limit, uint32_t grh_gid_fi,
++			  uint8_t *rgid)
++{
+ 
++	/* Always put 64 bits, in q_key, the reserved part will be 0 */
++	seg->av.key.dc_key	= htonll(key);
++	seg->av.dqp_dct		= htonl(((uint32_t)ext << 31) | dqp_dct);
++	seg->av.stat_rate_sl	= stat_rate_sl;
++	seg->av.fl_mlid		= fl_mlid;
++	seg->av.rlid		= htons(rlid);
++	memcpy(seg->av.rmac, rmac, 6);
++	seg->av.tclass		= tclass;
++	seg->av.hop_limit	= hop_limit;
++	seg->av.grh_gid_fl	= htonl(grh_gid_fi);
++	memcpy(seg->av.rgid, rgid, 16);
++}
++
++/*
++ * Data Segments - contain pointers and a byte count for the scatter/gather list.
++ * They can optionally contain data, which will save a memory read access for
++ * gather Work Requests.
++ */
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_set_data_seg(struct mlx5_wqe_data_seg *seg,
++			 uint32_t length, uint32_t lkey,
++			 uintptr_t address)
++{
++	seg->byte_count = htonl(length);
++	seg->lkey       = htonl(lkey);
++	seg->addr       = htonll(address);
++}
++/*
++ * x86 optimized version of mlx5dv_set_data_seg()
++ *
++ * This is useful when doing calculations on large data sets
++ * for parallel calculations.
++ *
++ * It doesn't suit for serialized algorithms.
++ */
++#if defined(__SSE3__)
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_x86_set_data_seg(struct mlx5_wqe_data_seg *seg,
++			     uint32_t length, uint32_t lkey,
++			     uintptr_t address)
++{
++	__m128i val  = _mm_set_epi32((uint32_t)address, (uint32_t)(address >> 32), lkey, length);
++	__m128i mask = _mm_set_epi8(12, 13, 14, 15,	/* local address low */
++				     8, 9, 10, 11,	/* local address high */
++				     4, 5, 6, 7,	/* l_key */
++				     0, 1, 2, 3		/* byte count */
++				     );
++	*(__m128i *) seg = _mm_shuffle_epi8(val, mask);
++}
++#endif /* defined(__SSE3__) */
++
++/*
++ * Eth Segment - contains packet headers and information for stateless L2, L3, L4 offloading.
++ *
++ * Output:
++ *	 seg		 - Eth segment to be filled.
++ * Input:
++ *	cs_flags	 - l3cs/l3cs_inner/l4cs/l4cs_inner.
++ *	mss		 - Maximum segment size. For TSO WQEs, the number of bytes
++ *			   in the TCP payload to be transmitted in each packet. Must
++ *			   be 0 on non TSO WQEs.
++ *	inline_hdr_sz	 - Length of the inlined packet headers.
++ *	inline_hdr_start - Inlined packet header.
++ */
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_set_eth_seg(struct mlx5_wqe_eth_seg *seg, uint8_t cs_flags,
++			uint16_t mss, uint16_t inline_hdr_sz,
++			uint8_t *inline_hdr_start)
++{
++	seg->cs_flags		= cs_flags;
++	seg->mss		= htons(mss);
++	seg->inline_hdr_sz	= htons(inline_hdr_sz);
++	memcpy(seg->inline_hdr_start, inline_hdr_start, inline_hdr_sz);
++}
+ #endif /* _MLX5DV_WQE_H_ */
 -- 
 1.8.3.1
 
