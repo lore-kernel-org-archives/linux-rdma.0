@@ -1,152 +1,59 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 5/7] sunrpc: Enable calls to rpc_call_null_helper() from other modules
-Date: Fri, 27 Jan 2017 17:10:58 -0500
-Message-ID: <4EF329BC-0F1F-4046-81F5-21B496801D22@oracle.com>
-References: <20170126174806.5794.14678.stgit@manet.1015granger.net> <20170126175611.5794.20844.stgit@manet.1015granger.net> <edab4aee-158d-0d5d-6ef2-9a44e63a929c@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 29/37] IB/rxe: Switch from dma_device to dev.parent
+Date: Fri, 27 Jan 2017 22:14:51 +0000
+Message-ID: <1485555269.13218.10.camel@sandisk.com>
+References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
+         <20170120210437.26389-30-bart.vanassche@sandisk.com>
+         <D4AFCE43.A031%Andrew.Boyer@emc.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <edab4aee-158d-0d5d-6ef2-9a44e63a929c-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <D4AFCE43.A031%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
+Content-Language: en-US
+Content-ID: <B61838521E343F48B5774D3D28C8B35A-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Andrew.Boyer-8PEkshWhKlo@public.gmane.org" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 2017-01-26 at 21:06 +0000, Boyer, Andrew wrote:
+> On 1/20/17, 4:04 PM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Bart
+> Van Assche" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
+> bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+>=20
+> > Prepare for removal of ib_device.dma_device.
+> >=20
+> > Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > ---
+> > drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++---
+> > 1 file changed, 3 insertions(+), 3 deletions(-)
+> >=20
+> > @@ -1234,7 +1234,7 @@ int rxe_register_device(struct rxe_dev *rxe)
+> > 	dev->node_type =3D RDMA_NODE_IB_CA;
+> > 	dev->phys_port_cnt =3D 1;
+> > 	dev->num_comp_vectors =3D RXE_NUM_COMP_VECTORS;
+> > -	dev->dma_device =3D rxe->ifc_ops->dma_device(rxe);
+> > +	dev->dev.parent =3D rxe->ifc_ops->dma_device(rxe);
+> > 	dev->local_dma_lkey =3D 0;
+> > 	dev->node_guid =3D rxe->ifc_ops->node_guid(rxe);
+> > 	dev->dma_ops =3D &rxe_dma_mapping_ops;
+>=20
+> ifc_ops was recently removed, so this will be a minor merge conflict.
 
-> On Jan 27, 2017, at 5:07 PM, Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> Hi Chuck,
-> 
-> On 01/26/2017 12:56 PM, Chuck Lever wrote:
->> I'd like to emit an RPC ping from rpcrdma.ko.
-> 
-> The patch itself looks fine, but I was wondering if you could add a few extra words to this sentence to say that it'll be for keepalive pings?
+Hello Andrew,
 
-Check out:
+Thanks for the review.
 
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=commit;h=c07f835228bfbe0388a4d109899377bd48dd7eff
+Doug, do you expect me to resolve this merge conflict by rebasing this
+patch series (something Linus doesn't like) once Linus has pulled your
+v4.11 pull request or are you going to explain to Linus how he should
+resolve this merge conflict himself?
 
-And feel free to suggest alternate text.
+Thanks,
 
-
-> Thanks,
-> Anna
->> 
->> authnull_ops is not visible outside the sunrpc.ko module, so fold
->> the common case into rpc_call_null_helper, and export it.
->> 
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> include/linux/sunrpc/clnt.h |    5 +++++
->> net/sunrpc/clnt.c           |   21 +++++++++++----------
->> 2 files changed, 16 insertions(+), 10 deletions(-)
->> 
->> diff --git a/include/linux/sunrpc/clnt.h b/include/linux/sunrpc/clnt.h
->> index 85cc819..a79237d 100644
->> --- a/include/linux/sunrpc/clnt.h
->> +++ b/include/linux/sunrpc/clnt.h
->> @@ -173,6 +173,11 @@ int		rpc_call_async(struct rpc_clnt *clnt,
->> 			       void *calldata);
->> int		rpc_call_sync(struct rpc_clnt *clnt,
->> 			      const struct rpc_message *msg, int flags);
->> +struct rpc_task *rpc_call_null_helper(struct rpc_clnt *clnt,
->> +				      struct rpc_xprt *xprt,
->> +				      struct rpc_cred *cred, int flags,
->> +				      const struct rpc_call_ops *ops,
->> +				      void *data);
->> struct rpc_task *rpc_call_null(struct rpc_clnt *clnt, struct rpc_cred *cred,
->> 			       int flags);
->> int		rpc_restart_call_prepare(struct rpc_task *);
->> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
->> index 1efbe48..decaf97 100644
->> --- a/net/sunrpc/clnt.c
->> +++ b/net/sunrpc/clnt.c
->> @@ -2520,7 +2520,6 @@ static int rpc_ping(struct rpc_clnt *clnt)
->> 	return err;
->> }
->> 
->> -static
->> struct rpc_task *rpc_call_null_helper(struct rpc_clnt *clnt,
->> 		struct rpc_xprt *xprt, struct rpc_cred *cred, int flags,
->> 		const struct rpc_call_ops *ops, void *data)
->> @@ -2537,9 +2536,17 @@ struct rpc_task *rpc_call_null_helper(struct rpc_clnt *clnt,
->> 		.callback_data = data,
->> 		.flags = flags,
->> 	};
->> +	struct rpc_task *task;
->> 
->> -	return rpc_run_task(&task_setup_data);
->> +	if (!cred)
->> +		msg.rpc_cred = authnull_ops.lookup_cred(NULL, NULL, 0);
->> +	task = rpc_run_task(&task_setup_data);
->> +	if (!cred)
->> +		put_rpccred(msg.rpc_cred);
->> +
->> +	return task;
->> }
->> +EXPORT_SYMBOL_GPL(rpc_call_null_helper);
->> 
->> struct rpc_task *rpc_call_null(struct rpc_clnt *clnt, struct rpc_cred *cred, int flags)
->> {
->> @@ -2586,7 +2593,6 @@ int rpc_clnt_test_and_add_xprt(struct rpc_clnt *clnt,
->> 		void *dummy)
->> {
->> 	struct rpc_cb_add_xprt_calldata *data;
->> -	struct rpc_cred *cred;
->> 	struct rpc_task *task;
->> 
->> 	data = kmalloc(sizeof(*data), GFP_NOFS);
->> @@ -2595,11 +2601,9 @@ int rpc_clnt_test_and_add_xprt(struct rpc_clnt *clnt,
->> 	data->xps = xprt_switch_get(xps);
->> 	data->xprt = xprt_get(xprt);
->> 
->> -	cred = authnull_ops.lookup_cred(NULL, NULL, 0);
->> -	task = rpc_call_null_helper(clnt, xprt, cred,
->> +	task = rpc_call_null_helper(clnt, xprt, NULL,
->> 			RPC_TASK_SOFT|RPC_TASK_SOFTCONN|RPC_TASK_ASYNC,
->> 			&rpc_cb_add_xprt_call_ops, data);
->> -	put_rpccred(cred);
->> 	if (IS_ERR(task))
->> 		return PTR_ERR(task);
->> 	rpc_put_task(task);
->> @@ -2630,7 +2634,6 @@ int rpc_clnt_setup_test_and_add_xprt(struct rpc_clnt *clnt,
->> 				     struct rpc_xprt *xprt,
->> 				     void *data)
->> {
->> -	struct rpc_cred *cred;
->> 	struct rpc_task *task;
->> 	struct rpc_add_xprt_test *xtest = (struct rpc_add_xprt_test *)data;
->> 	int status = -EADDRINUSE;
->> @@ -2642,11 +2645,9 @@ int rpc_clnt_setup_test_and_add_xprt(struct rpc_clnt *clnt,
->> 		goto out_err;
->> 
->> 	/* Test the connection */
->> -	cred = authnull_ops.lookup_cred(NULL, NULL, 0);
->> -	task = rpc_call_null_helper(clnt, xprt, cred,
->> +	task = rpc_call_null_helper(clnt, xprt, NULL,
->> 				    RPC_TASK_SOFT | RPC_TASK_SOFTCONN,
->> 				    NULL, NULL);
->> -	put_rpccred(cred);
->> 	if (IS_ERR(task)) {
->> 		status = PTR_ERR(task);
->> 		goto out_err;
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
-
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
