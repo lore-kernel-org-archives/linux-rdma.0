@@ -1,69 +1,39 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] RDS/IB: Disallow connections less than RDS 3.1
-Date: Thu, 26 Jan 2017 12:30:11 +0300
-Message-ID: <20170126093011.GA13945@mwanda>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma-core 12 breaks libibverbs ABI
+Date: Fri, 27 Jan 2017 21:16:35 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3C63C48C@CRSMSX101.amr.corp.intel.com>
+References: <1485446147.4194.4.camel@profitbricks.com>
+ <20170126171325.GA16562@obsidianresearch.com>
+ <20170126173548.GA15006@infradead.org>
+ <20170126180926.GB20330@obsidianresearch.com>
+ <20170126181113.GA8679@infradead.org>
+ <20170126202330.GX6005@mtr-leonro.local>
+ <1828884A29C6694DAF28B7E6B8A82373AB0E15AD@ORSMSX109.amr.corp.intel.com>
+ <20170127010452.GA7826@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20170127010452.GA7826-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: agrover-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Andy Grover,
+> 
+> It isn't really any different from the problem a vendor would face getting the
+> kernel driver updated..
+> 
 
-The patch f147dd9ecabf: "RDS/IB: Disallow connections less than RDS
-3.1" from Jan 13, 2010, leads to the following static checker warning:
+My concern is that OFA (and the vendors) have not exactly had a good track record of kernel updates in the past.  So I'm not sure that this statement give me a lot of comfort.
 
-	net/rds/rdma_transport.c:140 rds_rdma_cm_event_handler()
-	warn: 'conn' was already freed.
+That said, I know that most vendors seem to be making a good effort at integrating upstream.  And there is still a mechanism which allows for an external provider.
 
-net/rds/ib_cm.c
-    96  void rds_ib_cm_connect_complete(struct rds_connection *conn, struct rdma_cm_event *event)
-    97  {
-    98          const struct rds_ib_connect_private *dp = NULL;
-    99          struct rds_ib_connection *ic = conn->c_transport_data;
-   100          struct ib_qp_attr qp_attr;
-   101          int err;
-   102  
-   103          if (event->param.conn.private_data_len >= sizeof(*dp)) {
-   104                  dp = event->param.conn.private_data;
-   105  
-   106                  /* make sure it isn't empty data */
-   107                  if (dp->dp_protocol_major) {
-   108                          rds_ib_set_protocol(conn,
-   109                                  RDS_PROTOCOL(dp->dp_protocol_major,
-   110                                  dp->dp_protocol_minor));
-   111                          rds_ib_set_flow_control(conn, be32_to_cpu(dp->dp_credit));
-   112                  }
-   113          }
-   114  
-   115          if (conn->c_version < RDS_PROTOCOL(3, 1)) {
-   116                  pr_notice("RDS/IB: Connection <%pI4,%pI4> version %u.%u no longer supported\n",
-   117                            &conn->c_laddr, &conn->c_faddr,
-   118                            RDS_PROTOCOL_MAJOR(conn->c_version),
-   119                            RDS_PROTOCOL_MINOR(conn->c_version));
-   120                  rds_conn_destroy(conn);
+So I'm not opposed to this.
 
-We free "conn" here.  There is only one caller rds_rdma_cm_event_handler()
-which is not expecting it to be freed so it will oops when it tries to
-mutex_unlock(&conn->c_cm_lock).  Or potentially it won't oops if you
-don't have poisoning or kasan enabled?  It feels like there should be
-some way to test this.
+Ira
 
-   121                  return;
-   122          } else {
-   123                  pr_notice("RDS/IB: %s conn connected <%pI4,%pI4> version %u.%u%s\n",
-   124                            ic->i_active_side ? "Active" : "Passive",
-   125                            &conn->c_laddr, &conn->c_faddr,
-   126                            RDS_PROTOCOL_MAJOR(conn->c_version),
-   127                            RDS_PROTOCOL_MINOR(conn->c_version),
-   128                            ic->i_flowctl ? ", flow control" : "");
-   129          }
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
