@@ -1,58 +1,42 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/srpt: Accept GUIDs as port names
-Date: Fri, 27 Jan 2017 14:32:36 -0500
-Message-ID: <1485545556.2432.10.camel@redhat.com>
-References: <1b20f44a-0378-7b53-65bd-e079e9fa87ff@sandisk.com>
-         <1485293831.43764.89.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Add inline function to validate port
+Date: Fri, 27 Jan 2017 14:34:32 -0500
+Message-ID: <1485545672.2432.11.camel@redhat.com>
+References: <1485362497-18723-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-KJp03IiEDhiioV0gUWLy"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1485293831.43764.89.camel@redhat.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christoph Hellwig <hch@lst.de>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="=-1XsGkyzEa0dmcUiamgnA"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1485362497-18723-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-KJp03IiEDhiioV0gUWLy
+--=-1XsGkyzEa0dmcUiamgnA
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2017-01-24 at 16:37 -0500, Doug Ledford wrote:
-> On Fri, 2016-12-09 at 11:00 -0800, Bart Van Assche wrote:
-> >=20
-> > Port and ACL information must be configured before an initiator
-> > logs in.=C2=A0=C2=A0Make it possible to configure this information befo=
-re
-> > a subnet prefix has been assigned to a port by not only accepting
-> > GIDs as target port and initiator port names but by also accepting
-> > port GUIDs.
-> >=20
-> > Add a 'priv' member to struct se_wwn to allow target drivers to
-> > associate their own data with struct se_wwn.
-> >=20
-> > Reported-by: Doug Ledford <dledford@redhat.com>
-> > References: http://www.spinics.net/lists/linux-rdma/msg39505.html
-> > Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> > Cc: Christoph Hellwig <hch@lst.de>
-> > Cc: Nicholas Bellinger <nab@linux-iscsi.org>
->=20
-> Ping? =C2=A0Do the target folks have any input on this patch? =C2=A0I'd l=
-ike to
-> take it for 4.11 as it should resolve an issue we see regularly in
-> our
-> test lab...
+On Wed, 2017-01-25 at 18:41 +0200, Yuval Shaia wrote:
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> =C2=A0drivers/infiniband/core/cache.c=C2=A0 | 18 ++++++++----------
+> =C2=A0drivers/infiniband/core/cma.c=C2=A0=C2=A0=C2=A0 |=C2=A0 6 ++----
+> =C2=A0drivers/infiniband/core/device.c |=C2=A0 4 ++--
+> =C2=A0drivers/infiniband/core/verbs.c=C2=A0 |=C2=A0 3 +--
+> =C2=A0include/rdma/ib_verbs.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0 |=C2=A0 7 +++++++
+> =C2=A05 files changed, 20 insertions(+), 18 deletions(-)
 
-I've pulled this into my for-next area. =C2=A0Thanks Bart.
+Thanks, applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-KJp03IiEDhiioV0gUWLy
+--=-1XsGkyzEa0dmcUiamgnA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -60,19 +44,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYi6BUAAoJELgmozMOVy/dVlIP/i14soDhd3y0SyBpPMMr6T6P
-kKvY12PTXRCujCwKC4C86/YIxgZkGHagmR6vZwVWhX3U2cd8Jzpy4pF2w1qCKGgI
-LWesa23lRjb9BOrnqvdzqxSW8+LiDUQMwUrBmCGtSlfedXCDpA5IGlY0sx+xhCip
-cGCf1mFkZPBeKfbrjb3ogqR0H8DQ0XwA1pdW+VCLlOXThlbLmZyOmEktk3OQ+zrO
-1rwolSBJBVZUzyCAK4wJImp6I7gMZ4H6/I62TODRbdWtoIP8x5ZzsDZOUHSfNKAK
-Vc4xwTBJ1D13o9AOo4f4LzXJ4bA1Qj0ij5VZCYD3u1bM2qBEs6ClJMqb5dhQF64Q
-y5u2KB/ak/pwY6lO9DZeYjzJafQoJ+XiuQKrelJUwM4IZEAJC9reaXrPZ0Xe+Cp6
-oEVQkZQKqTMGQsfrBIT8tA3QnVcg5B5dIwXpBv+nE/Mg7MSFdz8WEeGa2rM6txmu
-WYj5eSj1dQok4o3etOnsAPDmGrRPulR4flfkEfYwcetVAsXTHOqTXWYAGmen39ny
-0J1437Kparl+WLoW2NK8lNmsphW8oQ67m3IxUMVCpyv66jgUfVVujnTTfSh8dQkU
-Sujym49krRzjT3oGgZraWrIzglq3gjJL+18XVR6lnXjtmF4Ucfuz32UE53fjsrfc
-t5m4zr4aa/FkDefe0tzt
-=mRV+
+iQIcBAABCAAGBQJYi6DIAAoJELgmozMOVy/dmXQP/1D3nIDhSZfyWgSaPnfcOdaL
+3LkEdnJlXCVDQf05piKbe27mw+ucqDwb0oc9rutrIbrGdRjgj1hCVHj2SC0ko4Y0
+neOVEC4cfOXPcfK/8CMcFKyxLNZ6pNWgLjLCMneIkomexW5eXIHZjzTxlcZTlwMF
+QLbbNYKkfhjEmraHsGgNpjgD9doypYBKj5LfjIcSEARNTJb3FmCNYvXG2JANBav+
+8vaPMlabv9fi3kI4DAis/ir2ocuIANK8IZfG0L4Uo+vzViYbqVemrsokypRPYwz4
+HDUJImsYpJ/qoKjUPR5ui5mxBNW7Co8ycs7atbhVaJBh8a9WW16JP69WXj8/rQzt
+FU9jOwj8OXtRrltukx7YvoRzxZvHgv/vNBMeVG/hC826n9hFndBYk4HORxACVa7g
+3r5aLTCEYccGxmRn6KTnKPrNck4TmFOKd5HkY+6HO8ow0nY9leLNeyKenfZqx6l2
+ki4C8ssXb19ieS2piBgloDIB3mX2YUYFcx1hCZ0un0xoFqohlo0knfKbwrlBRuQ9
+d8HXpc4zxLDOY2cLfhhgvB3qcEGmFKp0b3UMhGQingXqyEX0qZu+QKdGY65vPD47
+xwawLgy3cXS++v56KRCCzREdGSUNFSZoSWcexWC3LDW1e+Bp7P6q2cQnacvNF1Lh
+/agRVipMoKO3L4iDCehe
+=xRWU
 -----END PGP SIGNATURE-----
 
---=-KJp03IiEDhiioV0gUWLy--
+--=-1XsGkyzEa0dmcUiamgnA--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
