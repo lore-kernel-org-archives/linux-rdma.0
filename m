@@ -1,50 +1,134 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: [PATCH] IB/cma: Fix reversed test
-Date: Fri, 27 Jan 2017 21:31:55 +0000
-Message-ID: <1485552696.13218.0.camel@sandisk.com>
-References: <20170127131535.19918-1-christophe.jaillet@wanadoo.fr>
+From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 5/7] sunrpc: Enable calls to rpc_call_null_helper()
+ from other modules
+Date: Fri, 27 Jan 2017 17:07:27 -0500
+Message-ID: <edab4aee-158d-0d5d-6ef2-9a44e63a929c@gmail.com>
+References: <20170126174806.5794.14678.stgit@manet.1015granger.net>
+ <20170126175611.5794.20844.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170127131535.19918-1-christophe.jaillet@wanadoo.fr>
-Content-Language: en-US
-Content-ID: <465F2579B5B9E74495C91E6DD310C9C8@sandisk.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: "christophe.jaillet@wanadoo.fr" <christophe.jaillet@wanadoo.fr>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170126175611.5794.20844.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-01-27 at 14:15 +0100, Christophe JAILLET wrote:
-> This test looks reverted.
-> We should log an error message only if 'ib_attach_mcast()' fails.
->=20
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> ---
->  drivers/infiniband/core/cma.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.=
-c
-> index cfefb941d729..175f62e5841e 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -3838,7 +3838,7 @@ static int cma_ib_mc_handler(int status, struct ib_=
-sa_multicast *multicast)
->  	if (!status && id_priv->id.qp) {
->  		status =3D ib_attach_mcast(id_priv->id.qp, &multicast->rec.mgid,
->  					 be16_to_cpu(multicast->rec.mlid));
-> -		if (!status)
-> +		if (status)
->  			pr_debug_ratelimited("RDMA CM: MULTICAST_ERROR: failed to attach QP. =
-status %d\n",
->  					     status);
->  	}
+Hi Chuck,
 
-Hello Christophe,
+On 01/26/2017 12:56 PM, Chuck Lever wrote:
+> I'd like to emit an RPC ping from rpcrdma.ko.
 
-Do you think this patch needs "Fixes:" and "Cc: stable" tags?
+The patch itself looks fine, but I was wondering if you could add a few extra words to this sentence to say that it'll be for keepalive pings?
 
 Thanks,
-
-Bart.=
+Anna
+> 
+> authnull_ops is not visible outside the sunrpc.ko module, so fold
+> the common case into rpc_call_null_helper, and export it.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/clnt.h |    5 +++++
+>  net/sunrpc/clnt.c           |   21 +++++++++++----------
+>  2 files changed, 16 insertions(+), 10 deletions(-)
+> 
+> diff --git a/include/linux/sunrpc/clnt.h b/include/linux/sunrpc/clnt.h
+> index 85cc819..a79237d 100644
+> --- a/include/linux/sunrpc/clnt.h
+> +++ b/include/linux/sunrpc/clnt.h
+> @@ -173,6 +173,11 @@ int		rpc_call_async(struct rpc_clnt *clnt,
+>  			       void *calldata);
+>  int		rpc_call_sync(struct rpc_clnt *clnt,
+>  			      const struct rpc_message *msg, int flags);
+> +struct rpc_task *rpc_call_null_helper(struct rpc_clnt *clnt,
+> +				      struct rpc_xprt *xprt,
+> +				      struct rpc_cred *cred, int flags,
+> +				      const struct rpc_call_ops *ops,
+> +				      void *data);
+>  struct rpc_task *rpc_call_null(struct rpc_clnt *clnt, struct rpc_cred *cred,
+>  			       int flags);
+>  int		rpc_restart_call_prepare(struct rpc_task *);
+> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> index 1efbe48..decaf97 100644
+> --- a/net/sunrpc/clnt.c
+> +++ b/net/sunrpc/clnt.c
+> @@ -2520,7 +2520,6 @@ static int rpc_ping(struct rpc_clnt *clnt)
+>  	return err;
+>  }
+>  
+> -static
+>  struct rpc_task *rpc_call_null_helper(struct rpc_clnt *clnt,
+>  		struct rpc_xprt *xprt, struct rpc_cred *cred, int flags,
+>  		const struct rpc_call_ops *ops, void *data)
+> @@ -2537,9 +2536,17 @@ struct rpc_task *rpc_call_null_helper(struct rpc_clnt *clnt,
+>  		.callback_data = data,
+>  		.flags = flags,
+>  	};
+> +	struct rpc_task *task;
+>  
+> -	return rpc_run_task(&task_setup_data);
+> +	if (!cred)
+> +		msg.rpc_cred = authnull_ops.lookup_cred(NULL, NULL, 0);
+> +	task = rpc_run_task(&task_setup_data);
+> +	if (!cred)
+> +		put_rpccred(msg.rpc_cred);
+> +
+> +	return task;
+>  }
+> +EXPORT_SYMBOL_GPL(rpc_call_null_helper);
+>  
+>  struct rpc_task *rpc_call_null(struct rpc_clnt *clnt, struct rpc_cred *cred, int flags)
+>  {
+> @@ -2586,7 +2593,6 @@ int rpc_clnt_test_and_add_xprt(struct rpc_clnt *clnt,
+>  		void *dummy)
+>  {
+>  	struct rpc_cb_add_xprt_calldata *data;
+> -	struct rpc_cred *cred;
+>  	struct rpc_task *task;
+>  
+>  	data = kmalloc(sizeof(*data), GFP_NOFS);
+> @@ -2595,11 +2601,9 @@ int rpc_clnt_test_and_add_xprt(struct rpc_clnt *clnt,
+>  	data->xps = xprt_switch_get(xps);
+>  	data->xprt = xprt_get(xprt);
+>  
+> -	cred = authnull_ops.lookup_cred(NULL, NULL, 0);
+> -	task = rpc_call_null_helper(clnt, xprt, cred,
+> +	task = rpc_call_null_helper(clnt, xprt, NULL,
+>  			RPC_TASK_SOFT|RPC_TASK_SOFTCONN|RPC_TASK_ASYNC,
+>  			&rpc_cb_add_xprt_call_ops, data);
+> -	put_rpccred(cred);
+>  	if (IS_ERR(task))
+>  		return PTR_ERR(task);
+>  	rpc_put_task(task);
+> @@ -2630,7 +2634,6 @@ int rpc_clnt_setup_test_and_add_xprt(struct rpc_clnt *clnt,
+>  				     struct rpc_xprt *xprt,
+>  				     void *data)
+>  {
+> -	struct rpc_cred *cred;
+>  	struct rpc_task *task;
+>  	struct rpc_add_xprt_test *xtest = (struct rpc_add_xprt_test *)data;
+>  	int status = -EADDRINUSE;
+> @@ -2642,11 +2645,9 @@ int rpc_clnt_setup_test_and_add_xprt(struct rpc_clnt *clnt,
+>  		goto out_err;
+>  
+>  	/* Test the connection */
+> -	cred = authnull_ops.lookup_cred(NULL, NULL, 0);
+> -	task = rpc_call_null_helper(clnt, xprt, cred,
+> +	task = rpc_call_null_helper(clnt, xprt, NULL,
+>  				    RPC_TASK_SOFT | RPC_TASK_SOFTCONN,
+>  				    NULL, NULL);
+> -	put_rpccred(cred);
+>  	if (IS_ERR(task)) {
+>  		status = PTR_ERR(task);
+>  		goto out_err;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
