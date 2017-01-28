@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 03/11] libbnxtre: Add support for CQ and QP management
-Date: Sat, 28 Jan 2017 17:13:34 -0500
-Message-ID: <1485641622-30015-4-git-send-email-devesh.sharma@broadcom.com>
+Subject: [PATCH rdma-core 01/11] libbnxtre: introduce bnxtre user space RDMA provider
+Date: Sat, 28 Jan 2017 17:13:32 -0500
+Message-ID: <1485641622-30015-2-git-send-email-devesh.sharma@broadcom.com>
 References: <1485641622-30015-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485641622-30015-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,232 +10,424 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds support for completion queue creation and
-destruction following are the changes:
+libnxtre is a user-space driver which provides RDMA
+capability to user applications. The current framework
+has following parts working:
 
- - Added User/Kernel ABI to communicate CQ specific parameters.
- - Added a function in a new file to allocate Page-Aligned address
-   space.
- - Added a function to free page-aligned address space.
- - Added function to create and destroy completion queue.
- - Add ABI to for QP creation and WQE/RQE format.
- - Add functions to allocate SQ, RQ and Search PSN address
-   space.
- - Add functions to store/clean qp-handles in the form of
-   a linear table. There is table maintained in every instance
-   of ucontext.
- - CQ and QP contexts now hold a pointer to the DPI mapped
-   during PD allocation.
- - Removed hard-coding of page size during mapping DB page.
- - Renamed a variable in PD code.
- - Add support for create-qp.
- - Add support for destroy-qp.
- - Add support for modify-qp.
- - Add support for query-qp.
+ -Basic Cmake framework to build and install the library.
+ -Register and unregister user-space driver with uverbs
+  interface.
+ -List all available bnxt_re devices using "ibv_devinfo"
+  admin command.
+ -List all the device and port attributes using
+  "ibv_devinfo" admin command.
+ -Support allocate/free of protection domains.
+ -Check ABI version between library and kernel module.
+ -Update MAINTAINERS file
 
 Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- providers/bnxtre/CMakeLists.txt |   1 +
- providers/bnxtre/abi.h          | 127 +++++++++++++++++++++
- providers/bnxtre/main.c         |   5 +
- providers/bnxtre/main.h         |  61 +++++++++--
- providers/bnxtre/memory.c       |  73 +++++++++++++
- providers/bnxtre/memory.h       |  76 +++++++++++++
- providers/bnxtre/verbs.c        | 236 +++++++++++++++++++++++++++++++++++++++-
- 7 files changed, 561 insertions(+), 18 deletions(-)
- create mode 100644 providers/bnxtre/memory.c
- create mode 100644 providers/bnxtre/memory.h
+ CMakeLists.txt                  |   1 +
+ MAINTAINERS                     |   5 +
+ providers/bnxtre/CMakeLists.txt |   4 +
+ providers/bnxtre/abi.h          |  59 ++++++++++
+ providers/bnxtre/bnxtre.driver  |   1 +
+ providers/bnxtre/main.c         | 192 +++++++++++++++++++++++++++++++
+ providers/bnxtre/main.h         | 108 ++++++++++++++++++
+ providers/bnxtre/verbs.c        | 247 ++++++++++++++++++++++++++++++++++++++++
+ providers/bnxtre/verbs.h        | 106 +++++++++++++++++
+ 9 files changed, 723 insertions(+)
+ create mode 100644 providers/bnxtre/CMakeLists.txt
+ create mode 100644 providers/bnxtre/abi.h
+ create mode 100644 providers/bnxtre/bnxtre.driver
+ create mode 100644 providers/bnxtre/main.c
+ create mode 100644 providers/bnxtre/main.h
+ create mode 100644 providers/bnxtre/verbs.c
+ create mode 100644 providers/bnxtre/verbs.h
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8f7a475..b6f96c0 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -382,6 +382,7 @@ add_subdirectory(providers/nes)
+ add_subdirectory(providers/ocrdma)
+ add_subdirectory(providers/qedr)
+ add_subdirectory(providers/vmw_pvrdma)
++add_subdirectory(providers/bnxtre)
+ endif()
+ 
+ add_subdirectory(providers/hfi1verbs)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2ae504c..f52da1c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -166,3 +166,8 @@ M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+ L:	pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+ S:	Supported
+ F:	providers/vmw_pvrdma/
++
++BNXTRE USERSPACE PROVIDER (for bnxtre.ko)
++M:	Devesh Sharma  <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
++S:	Supported
++F:	providers/bnxtre
 diff --git a/providers/bnxtre/CMakeLists.txt b/providers/bnxtre/CMakeLists.txt
-index 4c61355..93bdf1a 100644
---- a/providers/bnxtre/CMakeLists.txt
+new file mode 100644
+index 0000000..4c61355
+--- /dev/null
 +++ b/providers/bnxtre/CMakeLists.txt
-@@ -1,4 +1,5 @@
- rdma_provider(bnxtre
-+	memory.c
- 	main.c
- 	verbs.c
- )
+@@ -0,0 +1,4 @@
++rdma_provider(bnxtre
++	main.c
++	verbs.c
++)
 diff --git a/providers/bnxtre/abi.h b/providers/bnxtre/abi.h
-index 0568d67..81d7585 100644
---- a/providers/bnxtre/abi.h
+new file mode 100644
+index 0000000..653ac71
+--- /dev/null
 +++ b/providers/bnxtre/abi.h
-@@ -47,6 +47,10 @@ struct bnxt_re_cntx_resp {
- 	struct ibv_get_context_resp resp;
- 	__u32 dev_id;
- 	__u32 max_qp; /* To allocate qp-table */
-+	__u32 pg_size;
-+	__u32 cqe_size;
-+	__u32 max_cqd;
-+	__u32 rsvd;
- };
- 
- struct bnxt_re_pd_resp {
-@@ -60,4 +64,127 @@ struct bnxt_re_mr_resp {
- 	struct ibv_reg_mr_resp resp;
- };
- 
-+struct bnxt_re_cq_req {
-+	struct ibv_create_cq cmd;
-+	__u64 cq_va;
-+	__u64 cq_handle;
+@@ -0,0 +1,59 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: ABI data structure definition
++ */
++
++#ifndef __BNXT_RE_ABI_H__
++#define __BNXT_RE_ABI_H__
++
++#include <infiniband/kern-abi.h>
++
++#define BNXT_RE_ABI_VERSION 1
++
++struct bnxt_re_cntx_resp {
++	struct ibv_get_context_resp resp;
++	__u32 dev_id;
++	__u32 max_qp; /* To allocate qp-table */
 +};
 +
-+struct bnxt_re_cq_resp {
-+	struct ibv_create_cq_resp resp;
-+	__u32 cqid;
-+	__u32 tail;
-+	__u32 phase;
-+	__u32 rsvd;
++struct bnxt_re_pd_resp {
++	struct ibv_alloc_pd_resp resp;
++	__u32 pdid;
++	__u32 dpi;
++	__u64 dbr;
 +};
 +
-+struct bnxt_re_qp_req {
-+	struct ibv_create_qp cmd;
-+	__u64 qpsva;
-+	__u64 qprva;
-+	__u64 qp_handle;
-+};
-+
-+struct bnxt_re_qp_resp {
-+	struct ibv_create_qp_resp resp;
-+	__u32 qpid;
-+	__u32 rsvd;
-+};
-+
-+struct bnxt_re_bsqe {
-+	__u32 rsv_ws_fl_wt;
-+	__u32 key_immd;
-+};
-+
-+struct bnxt_re_psns {
-+	__u32 opc_spsn;
-+	__u32 flg_npsn;
-+};
-+
-+struct bnxt_re_sge {
-+	__u32 pa_lo;
-+	__u32 pa_hi;
-+	__u32 lkey;
-+	__u32 length;
-+};
-+
-+/*  Cu+ max inline data */
-+#define BNXT_RE_MAX_INLINE_SIZE		0x60
-+
-+struct bnxt_re_send {
-+	__u32 length;
-+	__u32 qkey;
-+	__u32 dst_qp;
-+	__u32 avid;
-+	__u64 rsvd;
-+};
-+
-+struct bnxt_re_raw {
-+	__u32 length;
-+	__u32 rsvd1;
-+	__u32 cfa_meta;
-+	__u32 rsvd2;
-+	__u64 rsvd3;
-+};
-+
-+struct bnxt_re_rdma {
-+	__u32 length;
-+	__u32 rsvd1;
-+	__u32 rva_lo;
-+	__u32 rva_hi;
-+	__u32 rkey;
-+	__u32 rsvd2;
-+};
-+
-+struct bnxt_re_atomic {
-+	__u32 rva_lo;
-+	__u32 rva_hi;
-+	__u32 swp_dt_lo;
-+	__u32 swp_dt_hi;
-+	__u32 cmp_dt_lo;
-+	__u32 cmp_dt_hi;
-+};
-+
-+struct bnxt_re_inval {
-+	__u64 rsvd[3];
-+};
-+
-+struct bnxt_re_bind {
-+	__u32 plkey;
-+	__u32 lkey;
-+	__u32 va_lo;
-+	__u32 va_hi;
-+	__u32 len_lo;
-+	__u32 len_hi; /* only 40 bits are valid */
-+};
-+
-+struct bnxt_re_brqe {
-+	__u32 rsv_ws_fl_wt;
-+	__u32 rsvd;
-+};
-+
-+struct bnxt_re_rqe {
-+	__u64 rsvd[3];
-+};
-+
-+struct bnxt_re_srqe {
-+	__u32 srq_tag; /* 20 bits are valid */
-+	__u32 rsvd1;
-+	__u64 rsvd[2];
-+};
-+
-+static inline uint32_t bnxt_re_get_sqe_sz(void)
-+{
-+	return sizeof(struct bnxt_re_bsqe) +
-+	       sizeof(struct bnxt_re_send) +
-+	       BNXT_RE_MAX_INLINE_SIZE;
-+}
-+
-+static inline uint32_t bnxt_re_get_rqe_sz(void)
-+{
-+	return sizeof(struct bnxt_re_brqe) +
-+	       sizeof(struct bnxt_re_rqe) +
-+	       BNXT_RE_MAX_INLINE_SIZE;
-+}
-+
- #endif
++#endif
+diff --git a/providers/bnxtre/bnxtre.driver b/providers/bnxtre/bnxtre.driver
+new file mode 100644
+index 0000000..5ce796f
+--- /dev/null
++++ b/providers/bnxtre/bnxtre.driver
+@@ -0,0 +1 @@
++driver	bnxtre
 diff --git a/providers/bnxtre/main.c b/providers/bnxtre/main.c
-index 0c26c8b..3cb3827 100644
---- a/providers/bnxtre/main.c
+new file mode 100644
+index 0000000..0c26c8b
+--- /dev/null
 +++ b/providers/bnxtre/main.c
-@@ -115,8 +115,10 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
- {
- 	struct ibv_get_context cmd;
- 	struct bnxt_re_cntx_resp resp;
+@@ -0,0 +1,192 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: Device detection and initializatoin
++ */
++
++#if HAVE_CONFIG_H
++#include <config.h>
++#endif                          /* HAVE_CONFIG_H */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <errno.h>
++#include <sys/mman.h>
++#include <pthread.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++
++#include "main.h"
++#include "abi.h"
++#include "verbs.h"
++
++#define PCI_VENDOR_ID_BROADCOM		0x14E4
++
++#define CNA(v, d)					\
++	{	.vendor = PCI_VENDOR_ID_##v,		\
++		.device = d }
++
++struct {
++	unsigned int vendor;
++	unsigned int device;
++} cna_table[] = {
++	CNA(BROADCOM, 0x16C0),  /* BCM57417 NPAR */
++	CNA(BROADCOM, 0x16CE),  /* BMC57311 */
++	CNA(BROADCOM, 0x16CF),  /* BMC57312 */
++	CNA(BROADCOM, 0x16DF),  /* BMC57314 */
++	CNA(BROADCOM, 0x16E5),  /* BMC57314 VF */
++	CNA(BROADCOM, 0x16E2),  /* BMC57417 */
++	CNA(BROADCOM, 0x16E3),  /* BMC57416 */
++	CNA(BROADCOM, 0x16D6),  /* BMC57412*/
++	CNA(BROADCOM, 0x16D7),  /* BMC57414 */
++	CNA(BROADCOM, 0x16D8),  /* BMC57416 Cu */
++	CNA(BROADCOM, 0x16D9),  /* BMC57417 Cu */
++	CNA(BROADCOM, 0x16C1),  /* BMC57414 VF */
++	CNA(BROADCOM, 0x16EF),  /* BCM57416 NPAR */
++	CNA(BROADCOM, 0x16ED),  /* BCM57414 NPAR */
++	CNA(BROADCOM, 0x16EB)   /* BCM57412 NPAR */
++};
++
++static struct ibv_context_ops bnxt_re_cntx_ops = {
++	.query_device  = bnxt_re_query_device,
++	.query_port    = bnxt_re_query_port,
++	.alloc_pd      = bnxt_re_alloc_pd,
++	.dealloc_pd    = bnxt_re_free_pd,
++	.reg_mr        = bnxt_re_reg_mr,
++	.dereg_mr      = bnxt_re_dereg_mr,
++	.create_cq     = bnxt_re_create_cq,
++	.poll_cq       = bnxt_re_poll_cq,
++	.req_notify_cq = bnxt_re_arm_cq,
++	.cq_event      = bnxt_re_cq_event,
++	.resize_cq     = bnxt_re_resize_cq,
++	.destroy_cq    = bnxt_re_destroy_cq,
++	.create_srq    = bnxt_re_create_srq,
++	.modify_srq    = bnxt_re_modify_srq,
++	.query_srq     = bnxt_re_query_srq,
++	.destroy_srq   = bnxt_re_destroy_srq,
++	.post_srq_recv = bnxt_re_post_srq_recv,
++	.create_qp     = bnxt_re_create_qp,
++	.query_qp      = bnxt_re_query_qp,
++	.modify_qp     = bnxt_re_modify_qp,
++	.destroy_qp    = bnxt_re_destroy_qp,
++	.post_send     = bnxt_re_post_send,
++	.post_recv     = bnxt_re_post_recv,
++	.create_ah     = bnxt_re_create_ah,
++	.destroy_ah    = bnxt_re_destroy_ah
++};
++
++static int bnxt_re_init_context(struct verbs_device *vdev,
++				struct ibv_context *ibvctx, int cmd_fd)
++{
++	struct ibv_get_context cmd;
++	struct bnxt_re_cntx_resp resp;
++	struct bnxt_re_context *cntx;
++
++	cntx = to_bnxt_re_context(ibvctx);
++
++	memset(&resp, 0, sizeof(resp));
++	ibvctx->cmd_fd = cmd_fd;
++	if (ibv_cmd_get_context(ibvctx, &cmd, sizeof(cmd),
++				&resp.resp, sizeof(resp)))
++		return errno;
++
++	cntx->dev_id = resp.dev_id;
++	cntx->max_qp = resp.max_qp;
++	ibvctx->ops = bnxt_re_cntx_ops;
++
++	return 0;
++}
++
++static void bnxt_re_uninit_context(struct verbs_device *vdev,
++				   struct ibv_context *ibvctx)
++{
++	/* Unmap if anything device specific was mapped in init_context. */
++}
++
++static struct verbs_device *bnxt_re_driver_init(const char *uverbs_sys_path,
++						int abi_version)
++{
++	char value[10];
 +	struct bnxt_re_dev *dev;
- 	struct bnxt_re_context *cntx;
- 
-+	dev = to_bnxt_re_dev(&vdev->device);
- 	cntx = to_bnxt_re_context(ibvctx);
- 
- 	memset(&resp, 0, sizeof(resp));
-@@ -127,6 +129,9 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
- 
- 	cntx->dev_id = resp.dev_id;
- 	cntx->max_qp = resp.max_qp;
-+	dev->pg_size = resp.pg_size;
-+	dev->cqe_size = resp.cqe_size;
-+	dev->max_cq_depth = resp.max_cqd;
- 	ibvctx->ops = bnxt_re_cntx_ops;
- 
- 	return 0;
++	unsigned int vendor, device;
++	int i;
++
++	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
++				value, sizeof(value)) < 0)
++		return NULL;
++	vendor = strtol(value, NULL, 16);
++
++	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
++				value, sizeof(value)) < 0)
++		return NULL;
++	device = strtol(value, NULL, 16);
++
++	for (i = 0; i < sizeof(cna_table) / sizeof(cna_table[0]); ++i)
++		if (vendor == cna_table[i].vendor &&
++		    device == cna_table[i].device)
++			goto found;
++	return NULL;
++found:
++	if (abi_version != BNXT_RE_ABI_VERSION) {
++		fprintf(stderr, DEV "FATAL: Max supported ABI of %s is %d "
++			"check for the latest version of kernel driver and"
++			"user library\n", uverbs_sys_path, abi_version);
++		return NULL;
++	}
++
++	dev = calloc(1, sizeof(*dev));
++	if (!dev) {
++		fprintf(stderr, DEV "Failed to allocate device for %s\n",
++			uverbs_sys_path);
++		return NULL;
++	}
++
++	dev->vdev.sz = sizeof(*dev);
++	dev->vdev.size_of_context =
++		sizeof(struct bnxt_re_context) - sizeof(struct ibv_context);
++
++	dev->vdev.init_context = bnxt_re_init_context;
++	dev->vdev.uninit_context = bnxt_re_uninit_context;
++
++	return &dev->vdev;
++}
++
++static __attribute__((constructor)) void bnxt_re_register_driver(void)
++{
++	verbs_register_driver("bnxtre", bnxt_re_driver_init);
++}
 diff --git a/providers/bnxtre/main.h b/providers/bnxtre/main.h
-index 700dcb8..954ac47 100644
---- a/providers/bnxtre/main.h
+new file mode 100644
+index 0000000..700dcb8
+--- /dev/null
 +++ b/providers/bnxtre/main.h
-@@ -47,6 +47,16 @@
- #include <infiniband/driver.h>
- #include <infiniband/arch.h>
- 
-+#include "memory.h"
+@@ -0,0 +1,108 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: Basic device data structures needed for book-keeping
++ */
++
++#ifndef __BNXT_RE_MAIN_H__
++#define __BNXT_RE_MAIN_H__
++
++#include <inttypes.h>
++#include <stddef.h>
++#include <endian.h>
++#include <pthread.h>
++
++#include <infiniband/driver.h>
++#include <infiniband/arch.h>
++
++struct bnxt_re_pd {
++	struct ibv_pd ibvpd;
++	uint32_t pdid;
++};
++
++struct bnxt_re_cq {
++	struct ibv_cq ibvcq;
++};
++
++struct bnxt_re_qp {
++	struct ibv_qp ibvqp;
++};
++
++struct bnxt_re_srq {
++	struct ibv_srq ibvsrq;
++};
++
++struct bnxt_re_mr {
++	struct ibv_mr ibvmr;
++};
 +
 +#define DEV	"bnxtre : "
 +
@@ -245,553 +437,401 @@ index 700dcb8..954ac47 100644
 +	pthread_spinlock_t db_lock;
 +};
 +
- struct bnxt_re_pd {
- 	struct ibv_pd ibvpd;
- 	uint32_t pdid;
-@@ -54,31 +64,48 @@ struct bnxt_re_pd {
- 
- struct bnxt_re_cq {
- 	struct ibv_cq ibvcq;
--};
--
--struct bnxt_re_qp {
--	struct ibv_qp ibvqp;
-+	uint32_t cqid;
-+	struct bnxt_re_queue cqq;
-+	struct bnxt_re_dpi *udpi;
-+	uint32_t cqe_size;
-+	uint8_t  phase;
- };
- 
- struct bnxt_re_srq {
- 	struct ibv_srq ibvsrq;
- };
- 
--struct bnxt_re_mr {
--	struct ibv_mr ibvmr;
-+struct bnxt_re_qp {
-+	struct ibv_qp ibvqp;
-+	struct bnxt_re_queue *sqq;
-+	struct bnxt_re_psns *psns; /* start ptr. */
-+	struct bnxt_re_queue *rqq;
-+	struct bnxt_re_srq *srq;
-+	struct bnxt_re_cq *scq;
-+	struct bnxt_re_cq *rcq;
-+	struct bnxt_re_dpi *udpi;
-+	uint64_t *swrid;
-+	uint64_t *rwrid;
-+	uint32_t qpid;
-+	uint32_t tbl_indx;
-+	uint16_t mtu;
-+	uint16_t qpst;
-+	uint8_t qptyp;
-+	/* wrid? */
-+	/* irdord? */
- };
- 
--#define DEV	"bnxtre : "
--
--struct bnxt_re_dpi {
--	__u32 dpindx;
--	__u64 *dbpage;
--	pthread_spinlock_t db_lock;
-+struct bnxt_re_mr {
-+	struct ibv_mr ibvmr;
- };
- 
- struct bnxt_re_dev {
- 	struct verbs_device vdev;
- 	uint8_t abi_version;
-+	uint32_t pg_size;
-+
-+	uint32_t cqe_size;
-+	uint32_t max_cq_depth;
- };
- 
- struct bnxt_re_context {
-@@ -105,4 +132,14 @@ static inline struct bnxt_re_pd *to_bnxt_re_pd(struct ibv_pd *ibvpd)
- 	return container_of(ibvpd, struct bnxt_re_pd, ibvpd);
- }
- 
-+static inline struct bnxt_re_cq *to_bnxt_re_cq(struct ibv_cq *ibvcq)
-+{
-+	return container_of(ibvcq, struct bnxt_re_cq, ibvcq);
-+}
-+
-+static inline struct bnxt_re_qp *to_bnxt_re_qp(struct ibv_qp *ibvqp)
-+{
-+	return container_of(ibvqp, struct bnxt_re_qp, ibvqp);
-+}
-+
- #endif
-diff --git a/providers/bnxtre/memory.c b/providers/bnxtre/memory.c
-new file mode 100644
-index 0000000..c96641e
---- /dev/null
-+++ b/providers/bnxtre/memory.c
-@@ -0,0 +1,73 @@
-+/*
-+ * Broadcom NetXtreme-E User Space RoCE driver
-+ *
-+ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
-+ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
-+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Description: Implements method to allocate page-aligned memory
-+ *              buffers.
-+ */
-+
-+#include <sys/mman.h>
-+
-+#include "main.h"
-+
-+int bnxt_re_alloc_aligned(struct bnxt_re_queue *que, uint32_t pg_size)
-+{
-+	int ret, bytes;
-+
-+	bytes = (que->depth * que->stride);
-+	que->bytes = get_aligned(bytes, pg_size);
-+	que->va = mmap(NULL, que->bytes, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (que->va == MAP_FAILED) {
-+		que->bytes = 0;
-+		return errno;
-+	}
-+
-+	ret = ibv_dontfork_range(que->va, que->bytes);
-+	if (ret) {
-+		munmap(que->va, que->bytes);
-+		que->bytes = 0;
-+	}
-+
-+	return ret;
-+}
-+
-+void bnxt_re_free_aligned(struct bnxt_re_queue *que)
-+{
-+	if (que->bytes) {
-+		ibv_dofork_range(que->va, que->bytes);
-+		munmap(que->va, que->bytes);
-+		que->bytes = 0;
-+	}
-+}
-diff --git a/providers/bnxtre/memory.h b/providers/bnxtre/memory.h
-new file mode 100644
-index 0000000..6c4ebaa
---- /dev/null
-+++ b/providers/bnxtre/memory.h
-@@ -0,0 +1,76 @@
-+/*
-+ * Broadcom NetXtreme-E User Space RoCE driver
-+ *
-+ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
-+ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
-+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Description: Implements data-struture to allocate page-aligned
-+ *              memory buffer.
-+ */
-+
-+#ifndef __BNXT_RE_MEMORY_H__
-+#define __BNXT_RE_MEMORY_H__
-+
-+#include <pthread.h>
-+
-+struct bnxt_re_queue {
-+	void *va;
-+	uint32_t bytes; /* for munmap */
-+	uint32_t depth; /* no. of entries */
-+	uint32_t head;
-+	uint32_t tail;
-+	uint32_t stride;
-+	pthread_spinlock_t qlock;
++struct bnxt_re_dev {
++	struct verbs_device vdev;
++	uint8_t abi_version;
 +};
 +
-+static inline unsigned long get_aligned(uint32_t size, uint32_t al_size)
++struct bnxt_re_context {
++	struct ibv_context ibvctx;
++	uint32_t dev_id;
++	uint32_t max_qp;
++	uint32_t max_srq;
++	struct bnxt_re_dpi udpi;
++};
++
++static inline struct bnxt_re_dev *to_bnxt_re_dev(struct ibv_device *ibvdev)
 +{
-+	return (unsigned long)(size + al_size - 1) & ~(al_size - 1);
++	return container_of(ibvdev, struct bnxt_re_dev, vdev);
 +}
 +
-+static inline unsigned long roundup_pow_of_two(unsigned long val)
++static inline struct bnxt_re_context *to_bnxt_re_context(
++		struct ibv_context *ibvctx)
 +{
-+	unsigned long roundup = 1;
-+
-+	if (val == 1)
-+		return (roundup << 1);
-+
-+	while (roundup < val)
-+		roundup <<= 1;
-+
-+	return roundup;
++	return container_of(ibvctx, struct bnxt_re_context, ibvctx);
 +}
 +
-+int bnxt_re_alloc_aligned(struct bnxt_re_queue *que, uint32_t pg_size);
-+void bnxt_re_free_aligned(struct bnxt_re_queue *que);
++static inline struct bnxt_re_pd *to_bnxt_re_pd(struct ibv_pd *ibvpd)
++{
++	return container_of(ibvpd, struct bnxt_re_pd, ibvpd);
++}
 +
 +#endif
 diff --git a/providers/bnxtre/verbs.c b/providers/bnxtre/verbs.c
-index 9813db8..3cad358 100644
---- a/providers/bnxtre/verbs.c
+new file mode 100644
+index 0000000..ab1a453
+--- /dev/null
 +++ b/providers/bnxtre/verbs.c
-@@ -84,6 +84,7 @@ struct ibv_pd *bnxt_re_alloc_pd(struct ibv_context *ibvctx)
- 	struct ibv_alloc_pd cmd;
- 	struct bnxt_re_pd_resp resp;
- 	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvctx);
-+	struct bnxt_re_dev *dev = to_bnxt_re_dev(ibvctx->device);
- 	struct bnxt_re_pd *pd;
- 
- 	pd = calloc(1, sizeof(*pd));
-@@ -99,7 +100,7 @@ struct ibv_pd *bnxt_re_alloc_pd(struct ibv_context *ibvctx)
- 
- 	/* Map DB page now. */
- 	cntx->udpi.dpindx = resp.dpi;
--	cntx->udpi.dbpage = mmap(NULL, 4096, PROT_WRITE, MAP_SHARED,
-+	cntx->udpi.dbpage = mmap(NULL, dev->pg_size, PROT_WRITE, MAP_SHARED,
- 				 ibvctx->cmd_fd, resp.dbr);
- 	if (cntx->udpi.dbpage == MAP_FAILED) {
- 		(void)ibv_cmd_dealloc_pd(&pd->ibvpd);
-@@ -117,6 +118,7 @@ int bnxt_re_free_pd(struct ibv_pd *ibvpd)
- {
- 	struct bnxt_re_pd *pd = to_bnxt_re_pd(ibvpd);
- 	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvpd->context);
-+	struct bnxt_re_dev *dev = to_bnxt_re_dev(cntx->ibvctx.device);
- 	int status;
- 
- 	status = ibv_cmd_dealloc_pd(ibvpd);
-@@ -125,7 +127,8 @@ int bnxt_re_free_pd(struct ibv_pd *ibvpd)
- 
- 	pthread_spin_destroy(&cntx->udpi.db_lock);
- 	if (cntx->udpi.dbpage && (cntx->udpi.dbpage != MAP_FAILED))
--		munmap(cntx->udpi.dbpage, 4096);
-+		munmap(cntx->udpi.dbpage, dev->pg_size);
+@@ -0,0 +1,247 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: User IB-Verbs implementation
++ */
 +
- 	free(pd);
- 
- 	return 0;
-@@ -167,6 +170,48 @@ int bnxt_re_dereg_mr(struct ibv_mr *ibvmr)
- struct ibv_cq *bnxt_re_create_cq(struct ibv_context *ibvctx, int ncqe,
- 				 struct ibv_comp_channel *channel, int vec)
- {
-+	struct bnxt_re_cq *cq;
-+	struct bnxt_re_cq_req cmd;
-+	struct bnxt_re_cq_resp resp;
++#if HAVE_CONFIG_H
++#include <config.h>
++#endif                          /* HAVE_CONFIG_H */
 +
++#include <assert.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <unistd.h>
++#include <signal.h>
++#include <errno.h>
++#include <pthread.h>
++#include <malloc.h>
++#include <sys/mman.h>
++#include <netinet/in.h>
++#include <unistd.h>
++
++#include "main.h"
++#include "abi.h"
++#include "verbs.h"
++
++int bnxt_re_query_device(struct ibv_context *ibvctx,
++			 struct ibv_device_attr *dev_attr)
++{
++	struct ibv_query_device cmd;
++	uint64_t fw_ver;
++	int status;
++
++	memset(dev_attr, 0, sizeof(struct ibv_device_attr));
++	status = ibv_cmd_query_device(ibvctx, dev_attr, &fw_ver,
++				      &cmd, sizeof(cmd));
++	return status;
++}
++
++int bnxt_re_query_port(struct ibv_context *ibvctx, uint8_t port,
++		       struct ibv_port_attr *port_attr)
++{
++	struct ibv_query_port cmd;
++
++	memset(port_attr, 0, sizeof(struct ibv_port_attr));
++	return ibv_cmd_query_port(ibvctx, port, port_attr, &cmd, sizeof(cmd));
++}
++
++struct ibv_pd *bnxt_re_alloc_pd(struct ibv_context *ibvctx)
++{
++	struct ibv_alloc_pd cmd;
++	struct bnxt_re_pd_resp resp;
 +	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvctx);
-+	struct bnxt_re_dev *dev = to_bnxt_re_dev(ibvctx->device);
++	struct bnxt_re_pd *pd;
 +
-+	if (ncqe > dev->max_cq_depth)
++	pd = calloc(1, sizeof(*pd));
++	if (!pd)
 +		return NULL;
-+
-+	cq = calloc(1, sizeof(*cq));
-+	if (!cq)
-+		return NULL;
-+
-+	cq->cqq.depth = roundup_pow_of_two(ncqe + 1);
-+	if (cq->cqq.depth > dev->max_cq_depth + 1)
-+		cq->cqq.depth = dev->max_cq_depth + 1;
-+	cq->cqq.stride = dev->cqe_size;
-+	if (bnxt_re_alloc_aligned(&cq->cqq, dev->pg_size))
-+		goto fail;
-+
-+	pthread_spin_init(&cq->cqq.qlock, PTHREAD_PROCESS_PRIVATE);
-+
-+	cmd.cq_va = (uint64_t)cq->cqq.va;
-+	cmd.cq_handle = (uint64_t)cq;
 +
 +	memset(&resp, 0, sizeof(resp));
-+	if (ibv_cmd_create_cq(ibvctx, ncqe, channel, vec,
-+			      &cq->ibvcq, &cmd.cmd, sizeof(cmd),
-+			      &resp.resp, sizeof(resp)))
-+		goto cmdfail;
++	if (ibv_cmd_alloc_pd(ibvctx, &pd->ibvpd, &cmd, sizeof(cmd),
++			     &resp.resp, sizeof(resp)))
++		goto out;
 +
-+	cq->cqid = resp.cqid;
-+	cq->phase = resp.phase;
-+	cq->cqq.tail = resp.tail;
-+	cq->udpi = &cntx->udpi;
++	pd->pdid = resp.pdid;
 +
-+	return &cq->ibvcq;
-+cmdfail:
-+	bnxt_re_free_aligned(&cq->cqq);
-+fail:
-+	free(cq);
- 	return NULL;
- }
- 
-@@ -177,7 +222,17 @@ int bnxt_re_resize_cq(struct ibv_cq *ibvcq, int ncqe)
- 
- int bnxt_re_destroy_cq(struct ibv_cq *ibvcq)
- {
--	return -ENOSYS;
-+	int status;
-+	struct bnxt_re_cq *cq = to_bnxt_re_cq(ibvcq);
-+
-+	status = ibv_cmd_destroy_cq(ibvcq);
-+	if (status)
-+		return status;
-+
-+	bnxt_re_free_aligned(&cq->cqq);
-+	free(cq);
-+
-+	return 0;
- }
- 
- int bnxt_re_poll_cq(struct ibv_cq *ibvcq, int nwc, struct ibv_wc *wc)
-@@ -195,27 +250,196 @@ int bnxt_re_arm_cq(struct ibv_cq *ibvcq, int flags)
- 	return -ENOSYS;
- }
- 
-+static int bnxt_re_check_qp_limits(struct ibv_qp_init_attr *attr)
-+{
-+	return 0;
-+}
-+
-+static void bnxt_re_free_queue_ptr(struct bnxt_re_qp *qp)
-+{
-+	if (qp->rqq)
-+		free(qp->rqq);
-+	if (qp->sqq)
-+		free(qp->sqq);
-+}
-+
-+static int bnxt_re_alloc_queue_ptr(struct bnxt_re_qp *qp,
-+				   struct ibv_qp_init_attr *attr)
-+{
-+	qp->sqq = calloc(1, sizeof(struct bnxt_re_queue));
-+	if (!qp->sqq)
-+		return -ENOMEM;
-+	if (attr->srq)
-+		qp->srq = NULL;/*TODO: to_bnxt_re_srq(attr->srq);*/
-+	else {
-+		qp->rqq = calloc(1, sizeof(struct bnxt_re_queue));
-+		if (!qp->rqq) {
-+			free(qp->sqq);
-+			return -ENOMEM;
-+		}
++	/* Map DB page now. */
++	cntx->udpi.dpindx = resp.dpi;
++	cntx->udpi.dbpage = mmap(NULL, 4096, PROT_WRITE, MAP_SHARED,
++				 ibvctx->cmd_fd, resp.dbr);
++	if (cntx->udpi.dbpage == MAP_FAILED) {
++		(void)ibv_cmd_dealloc_pd(&pd->ibvpd);
++		goto out;
 +	}
++	pthread_spin_init(&cntx->udpi.db_lock, PTHREAD_PROCESS_PRIVATE);
 +
-+	return 0;
++	return &pd->ibvpd;
++out:
++	free(pd);
++	return NULL;
 +}
 +
-+static void bnxt_re_free_queues(struct bnxt_re_qp *qp)
++int bnxt_re_free_pd(struct ibv_pd *ibvpd)
 +{
-+	if (qp->rwrid)
-+		free(qp->rwrid);
-+	pthread_spin_destroy(&qp->rqq->qlock);
-+	bnxt_re_free_aligned(qp->rqq);
-+
-+	if (qp->swrid)
-+		free(qp->swrid);
-+	pthread_spin_destroy(&qp->sqq->qlock);
-+	bnxt_re_free_aligned(qp->sqq);
-+}
-+
-+static int bnxt_re_alloc_queues(struct bnxt_re_qp *qp,
-+				struct ibv_qp_init_attr *attr,
-+				uint32_t pg_size) {
-+	struct bnxt_re_queue *que;
-+	uint32_t psn_depth;
-+	int ret;
-+
-+	if (attr->cap.max_send_wr) {
-+		que = qp->sqq;
-+		que->stride = bnxt_re_get_sqe_sz();
-+		que->depth = roundup_pow_of_two(attr->cap.max_send_wr);
-+		/* psn_depth extra entries of size que->stride */
-+		psn_depth = (que->depth * sizeof(struct bnxt_re_psns)) /
-+			     que->stride;
-+		que->depth += psn_depth;
-+		ret = bnxt_re_alloc_aligned(qp->sqq, pg_size);
-+		if (ret)
-+			return ret;
-+		/* exclude psns depth*/
-+		que->depth -= psn_depth;
-+		/* start of spsn space sizeof(struct bnxt_re_psns) each. */
-+		qp->psns = (que->va + que->stride * que->depth);
-+		pthread_spin_init(&que->qlock, PTHREAD_PROCESS_PRIVATE);
-+		qp->swrid = calloc(que->depth, sizeof(uint64_t));
-+		if (!qp->swrid) {
-+			ret = -ENOMEM;
-+			goto fail;
-+		}
-+	}
-+
-+	if (attr->cap.max_recv_wr && qp->rqq) {
-+		que = qp->rqq;
-+		que->stride = bnxt_re_get_rqe_sz();
-+		que->depth = roundup_pow_of_two(attr->cap.max_recv_wr);
-+		ret = bnxt_re_alloc_aligned(qp->rqq, pg_size);
-+		if (ret)
-+			goto fail;
-+		pthread_spin_init(&que->qlock, PTHREAD_PROCESS_PRIVATE);
-+		qp->rwrid = calloc(que->depth, sizeof(uint64_t));
-+		if (!qp->rwrid) {
-+			ret = -ENOMEM;
-+			goto fail;
-+		}
-+	}
-+
-+	return 0;
-+
-+fail:
-+	bnxt_re_free_queues(qp);
-+	return ret;
-+}
-+
- struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
- 				 struct ibv_qp_init_attr *attr)
- {
-+	struct bnxt_re_qp *qp;
-+	struct bnxt_re_qp_req req;
-+	struct bnxt_re_qp_resp resp;
-+
++	struct bnxt_re_pd *pd = to_bnxt_re_pd(ibvpd);
 +	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvpd->context);
-+	struct bnxt_re_dev *dev = to_bnxt_re_dev(cntx->ibvctx.device);
-+
-+	if (bnxt_re_check_qp_limits(attr))
-+		return NULL;
-+
-+	qp = calloc(1, sizeof(*qp));
-+	if (!qp)
-+		return NULL;
-+	/* alloc queue pointers */
-+	if (bnxt_re_alloc_queue_ptr(qp, attr))
-+		goto fail;
-+	/* alloc queues */
-+	if (bnxt_re_alloc_queues(qp, attr, dev->pg_size))
-+		goto failq;
-+	/* Fill ibv_cmd */
-+	req.qpsva = (uint64_t)qp->sqq->va;
-+	req.qprva = qp->rqq ? (uint64_t)qp->rqq->va : 0;
-+	req.qp_handle = (uint64_t)qp;
-+
-+	if (ibv_cmd_create_qp(ibvpd, &qp->ibvqp, attr, &req.cmd, sizeof(req),
-+			      &resp.resp, sizeof(resp))) {
-+		goto failcmd;
-+	}
-+
-+	qp->qpid = resp.qpid;
-+	qp->qptyp = attr->qp_type;
-+	qp->qpst = IBV_QPS_RESET;
-+	qp->scq = to_bnxt_re_cq(attr->send_cq);
-+	qp->rcq = to_bnxt_re_cq(attr->recv_cq);
-+	qp->udpi = &cntx->udpi;
-+
-+	return &qp->ibvqp;
-+failcmd:
-+	bnxt_re_free_queues(qp);
-+failq:
-+	bnxt_re_free_queue_ptr(qp);
-+fail:
-+	free(qp);
-+
- 	return NULL;
- }
- 
- int bnxt_re_modify_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
- 		      int attr_mask)
- {
--	return -ENOSYS;
-+	struct ibv_modify_qp cmd = {};
-+	struct bnxt_re_qp *qp = to_bnxt_re_qp(ibvqp);
-+	int rc;
-+
-+	rc = ibv_cmd_modify_qp(ibvqp, attr, attr_mask, &cmd, sizeof(cmd));
-+	if (!rc)
-+		qp->qpst = ibvqp->state;
-+
-+	return rc;
- }
- 
- int bnxt_re_query_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
- 		     int attr_mask, struct ibv_qp_init_attr *init_attr)
- {
--	return -ENOSYS;
-+	struct ibv_query_qp cmd;
-+	struct bnxt_re_qp *qp = to_bnxt_re_qp(ibvqp);
-+	int rc;
-+
-+	rc = ibv_cmd_query_qp(ibvqp, attr, attr_mask, init_attr,
-+			      &cmd, sizeof(cmd));
-+	if (!rc)
-+		qp->qpst = ibvqp->state;
-+
-+	return rc;
- }
- 
- int bnxt_re_destroy_qp(struct ibv_qp *ibvqp)
- {
--	return -ENOSYS;
-+	struct bnxt_re_qp *qp = to_bnxt_re_qp(ibvqp);
 +	int status;
 +
-+	status = ibv_cmd_destroy_qp(ibvqp);
++	status = ibv_cmd_dealloc_pd(ibvpd);
 +	if (status)
 +		return status;
 +
-+	bnxt_re_free_queues(qp);
-+	bnxt_re_free_queue_ptr(qp);
-+	free(qp);
++	pthread_spin_destroy(&cntx->udpi.db_lock);
++	if (cntx->udpi.dbpage && (cntx->udpi.dbpage != MAP_FAILED))
++		munmap(cntx->udpi.dbpage, 4096);
++	free(pd);
 +
 +	return 0;
- }
- 
- int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
++}
++
++struct ibv_mr *bnxt_re_reg_mr(struct ibv_pd *ibvpd, void *sva, size_t len,
++			      int access)
++{
++	return NULL;
++}
++
++int bnxt_re_dereg_mr(struct ibv_mr *ibvmr)
++{
++	return -ENOSYS;
++}
++
++struct ibv_cq *bnxt_re_create_cq(struct ibv_context *ibvctx, int ncqe,
++				 struct ibv_comp_channel *channel, int vec)
++{
++	return NULL;
++}
++
++int bnxt_re_resize_cq(struct ibv_cq *ibvcq, int ncqe)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_destroy_cq(struct ibv_cq *ibvcq)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_poll_cq(struct ibv_cq *ibvcq, int nwc, struct ibv_wc *wc)
++{
++	return -ENOSYS;
++}
++
++void bnxt_re_cq_event(struct ibv_cq *ibvcq)
++{
++
++}
++
++int bnxt_re_arm_cq(struct ibv_cq *ibvcq, int flags)
++{
++	return -ENOSYS;
++}
++
++struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
++				 struct ibv_qp_init_attr *attr)
++{
++	return NULL;
++}
++
++int bnxt_re_modify_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
++		      int attr_mask)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_query_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
++		     int attr_mask, struct ibv_qp_init_attr *init_attr)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_destroy_qp(struct ibv_qp *ibvqp)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
++		      struct ibv_send_wr **bad)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
++		      struct ibv_recv_wr **bad)
++{
++	return -ENOSYS;
++}
++
++struct ibv_srq *bnxt_re_create_srq(struct ibv_pd *ibvpd,
++				   struct ibv_srq_init_attr *attr)
++{
++	return NULL;
++}
++
++int bnxt_re_modify_srq(struct ibv_srq *ibvsrq, struct ibv_srq_attr *attr,
++		       int init_attr)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_destroy_srq(struct ibv_srq *ibvsrq)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_query_srq(struct ibv_srq *ibvsrq, struct ibv_srq_attr *attr)
++{
++	return -ENOSYS;
++}
++
++int bnxt_re_post_srq_recv(struct ibv_srq *ibvsrq, struct ibv_recv_wr *wr,
++			  struct ibv_recv_wr **bad)
++{
++	return -ENOSYS;
++}
++
++struct ibv_ah *bnxt_re_create_ah(struct ibv_pd *ibvpd, struct ibv_ah_attr *attr)
++{
++	return NULL;
++}
++
++int bnxt_re_destroy_ah(struct ibv_ah *ibvah)
++{
++	return -ENOSYS;
++}
+diff --git a/providers/bnxtre/verbs.h b/providers/bnxtre/verbs.h
+new file mode 100644
+index 0000000..89a8522
+--- /dev/null
++++ b/providers/bnxtre/verbs.h
+@@ -0,0 +1,106 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: Internal IB-verbs function declaration
++ */
++
++#ifndef __BNXT_RE_VERBS_H__
++#define __BNXT_RE_VERBS_H__
++
++#if HAVE_CONFIG_H
++#include <config.h>
++#endif                          /* HAVE_CONFIG_H */
++
++#include <assert.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <unistd.h>
++#include <signal.h>
++#include <errno.h>
++#include <pthread.h>
++#include <malloc.h>
++#include <sys/mman.h>
++#include <netinet/in.h>
++#include <unistd.h>
++
++#include <infiniband/driver.h>
++#include <infiniband/arch.h>
++#include <infiniband/verbs.h>
++
++int bnxt_re_query_device(struct ibv_context *uctx,
++			 struct ibv_device_attr *attr);
++int bnxt_re_query_port(struct ibv_context *uctx, uint8_t port,
++		       struct ibv_port_attr *attr);
++struct ibv_pd *bnxt_re_alloc_pd(struct ibv_context *uctx);
++int bnxt_re_free_pd(struct ibv_pd *ibvpd);
++struct ibv_mr *bnxt_re_reg_mr(struct ibv_pd *ibvpd, void *buf, size_t len,
++			      int ibv_access_flags);
++int bnxt_re_dereg_mr(struct ibv_mr *ibvmr);
++
++struct ibv_cq *bnxt_re_create_cq(struct ibv_context *uctx, int ncqe,
++				 struct ibv_comp_channel *ch, int vec);
++int bnxt_re_resize_cq(struct ibv_cq *ibvcq, int ncqe);
++int bnxt_re_destroy_cq(struct ibv_cq *ibvcq);
++int bnxt_re_poll_cq(struct ibv_cq *ibvcq, int nwc, struct ibv_wc *wc);
++void bnxt_re_cq_event(struct ibv_cq *ibvcq);
++int bnxt_re_arm_cq(struct ibv_cq *ibvcq, int flags);
++
++struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
++				 struct ibv_qp_init_attr *attr);
++int bnxt_re_modify_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
++		      int ibv_qp_attr_mask);
++int bnxt_re_query_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
++		     int attr_mask, struct ibv_qp_init_attr *init_attr);
++int bnxt_re_destroy_qp(struct ibv_qp *ibvqp);
++int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
++		      struct ibv_send_wr **bad);
++int bnxt_re_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
++		      struct ibv_recv_wr **bad);
++
++struct ibv_srq *bnxt_re_create_srq(struct ibv_pd *ibvpd,
++				   struct ibv_srq_init_attr *attr);
++int bnxt_re_modify_srq(struct ibv_srq *ibvsrq,
++		       struct ibv_srq_attr *attr, int mask);
++int bnxt_re_destroy_srq(struct ibv_srq *ibvsrq);
++int bnxt_re_query_srq(struct ibv_srq *ibvsrq, struct ibv_srq_attr *attr);
++int bnxt_re_post_srq_recv(struct ibv_srq *ibvsrq, struct ibv_recv_wr *wr,
++			  struct ibv_recv_wr **bad);
++
++struct ibv_ah *bnxt_re_create_ah(struct ibv_pd *ibvpd,
++				 struct ibv_ah_attr *attr);
++int bnxt_re_destroy_ah(struct ibv_ah *ibvah);
++
++#endif /* __BNXT_RE_VERBS_H__ */
 -- 
 1.8.3.1
 
