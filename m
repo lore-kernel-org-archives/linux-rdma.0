@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 06/11] libbnxtre: convert cpu to le all over the place
-Date: Sat, 28 Jan 2017 17:13:37 -0500
-Message-ID: <1485641622-30015-7-git-send-email-devesh.sharma@broadcom.com>
+Subject: [PATCH rdma-core 07/11] libbnxtre: Enable UD control path and wqe posting
+Date: Sat, 28 Jan 2017 17:13:38 -0500
+Message-ID: <1485641622-30015-8-git-send-email-devesh.sharma@broadcom.com>
 References: <1485641622-30015-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485641622-30015-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,176 +10,275 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-User library should take care of endian-ness when reading
-or writing data to the device.
-This patch also adds a warning message and fails the call if
-access to any unsupported object is attempted.
+This patch adds infrastructure needed to enable unreliable
+datagram control path. It also adds support to allow posting
+Send WQEs to UD QPs. Following are the major changes:
+
+ - Mmap the shared page exported from kernel driver to
+   read AH-ID from kernel space.
+ - Adds support to create-AH and destroy-AH.
+ - Add support to allow posting UD WQEs.
+ - Do not use search-psn memory for UD QPs.
 
 Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- providers/bnxtre/db.c     |  2 +-
- providers/bnxtre/memory.h | 45 +++++++++++++++++++++++++++++++++++++++++++++
- providers/bnxtre/verbs.c  | 24 ++++++++++++++++--------
- 3 files changed, 62 insertions(+), 9 deletions(-)
+ providers/bnxtre/abi.h   |  7 ++++
+ providers/bnxtre/main.c  | 17 +++++++++
+ providers/bnxtre/main.h  | 13 +++++++
+ providers/bnxtre/verbs.c | 98 +++++++++++++++++++++++++++++++++++++++---------
+ 4 files changed, 117 insertions(+), 18 deletions(-)
 
-diff --git a/providers/bnxtre/db.c b/providers/bnxtre/db.c
-index b705c8b..fc22e0d 100644
---- a/providers/bnxtre/db.c
-+++ b/providers/bnxtre/db.c
-@@ -43,8 +43,8 @@ static void bnxt_re_ring_db(struct bnxt_re_dpi *dpi,
- {
- 	uint64_t *dbval = (uint64_t *)&hdr->indx;
+diff --git a/providers/bnxtre/abi.h b/providers/bnxtre/abi.h
+index f660d13..d77bb38 100644
+--- a/providers/bnxtre/abi.h
++++ b/providers/bnxtre/abi.h
+@@ -176,6 +176,13 @@ enum bnxt_re_ud_flags_mask {
+ 	BNXT_RE_UD_FLAGS_ROCE_IPV6	= 0x03
+ };
  
--	/*TODO: cpu_to_le64 */
- 	pthread_spin_lock(&dpi->db_lock);
-+	*dbval = htole64(*dbval);
- 	iowrite64(dpi->dbpage, dbval);
- 	/* write barrier */
- 	wmb();
-diff --git a/providers/bnxtre/memory.h b/providers/bnxtre/memory.h
-index a7a7d90..4360914 100644
---- a/providers/bnxtre/memory.h
-+++ b/providers/bnxtre/memory.h
-@@ -109,4 +109,49 @@ static inline void bnxt_re_incr_head(struct bnxt_re_queue *que)
- 	que->head = bnxt_re_incr(que->head, que->depth);
++enum bnxt_re_shpg_offt {
++	BNXT_RE_SHPG_BEG_RESV_OFFT	= 0x00,
++	BNXT_RE_SHPG_AVID_OFFT		= 0x10,
++	BNXT_RE_SHPG_AVID_SIZE		= 0x04,
++	BNXT_RE_SHPG_END_RESV_OFFT	= 0xFF0
++};
++
+ struct bnxt_re_db_hdr {
+ 	__u32 indx;
+ 	__u32 typ_qid; /* typ: 4, qid:20*/
+diff --git a/providers/bnxtre/main.c b/providers/bnxtre/main.c
+index effb3b6..c362e72 100644
+--- a/providers/bnxtre/main.c
++++ b/providers/bnxtre/main.c
+@@ -134,18 +134,35 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
+ 	dev->cqe_size = resp.cqe_size;
+ 	dev->max_cq_depth = resp.max_cqd;
+ 	pthread_spin_init(&cntx->fqlock, PTHREAD_PROCESS_PRIVATE);
++	/* mmap shared page. */
++	cntx->shpg = mmap(NULL, dev->pg_size, PROT_READ | PROT_WRITE,
++			  MAP_SHARED, cmd_fd, 0);
++	if (cntx->shpg == MAP_FAILED) {
++		cntx->shpg = NULL;
++		goto failed;
++	}
++	pthread_mutex_init(&cntx->shlock, NULL);
++
+ 	ibvctx->ops = bnxt_re_cntx_ops;
+ 
+ 	return 0;
++failed:
++	fprintf(stderr, DEV "Failed to allocate context for device\n");
++	return errno;
  }
  
-+/* Memory byte order conversion functions. */
-+#if __BYTE_ORDER == __BIG_ENDIAN
-+static inline int bnxt_re_host_to_le64(uint64_t *src, int bytes)
+ static void bnxt_re_uninit_context(struct verbs_device *vdev,
+ 				   struct ibv_context *ibvctx)
+ {
++	struct bnxt_re_dev *dev;
+ 	struct bnxt_re_context *cntx;
+ 
++	dev = to_bnxt_re_dev(&vdev->device);
+ 	cntx = to_bnxt_re_context(ibvctx);
+ 	/* Unmap if anything device specific was mapped in init_context. */
++	pthread_mutex_destroy(&cntx->shlock);
++	if (cntx->shpg)
++		munmap(cntx->shpg, dev->pg_size);
+ 	pthread_spin_destroy(&cntx->fqlock);
+ }
+ 
+diff --git a/providers/bnxtre/main.h b/providers/bnxtre/main.h
+index 5526bc6..c3689a5 100644
+--- a/providers/bnxtre/main.h
++++ b/providers/bnxtre/main.h
+@@ -122,6 +122,12 @@ struct bnxt_re_mr {
+ 	struct ibv_mr ibvmr;
+ };
+ 
++struct bnxt_re_ah {
++	struct ibv_ah ibvah;
++	struct bnxt_re_pd *pd;
++	uint32_t avid;
++};
++
+ struct bnxt_re_dev {
+ 	struct verbs_device vdev;
+ 	uint8_t abi_version;
+@@ -137,6 +143,8 @@ struct bnxt_re_context {
+ 	uint32_t max_qp;
+ 	uint32_t max_srq;
+ 	struct bnxt_re_dpi udpi;
++	void *shpg;
++	pthread_mutex_t shlock;
+ 	pthread_spinlock_t fqlock;
+ };
+ 
+@@ -174,6 +182,11 @@ static inline struct bnxt_re_qp *to_bnxt_re_qp(struct ibv_qp *ibvqp)
+ 	return container_of(ibvqp, struct bnxt_re_qp, ibvqp);
+ }
+ 
++static inline struct bnxt_re_ah *to_bnxt_re_ah(struct ibv_ah *ibvah)
 +{
-+	int qwords, indx;
-+
-+	if (!bytes || bytes < 8)
-+		return -EINVAL;
-+
-+	qwords = bytes / sizeof(uint64_t);
-+	for (indx = 0; indx < qwords; indx++) {
-+		if (*(src + indx))
-+			*(src + indx) = htole64(*(src + indx));
-+	}
-+
-+	return qwords;
++	return container_of(ibvah, struct bnxt_re_ah, ibvah);
 +}
 +
-+static inline int bnxt_re_le64_to_host(uint64_t *src, int bytes)
-+{
-+	int qwords, indx;
-+
-+	if (!bytes || bytes < 8)
-+		return -EINVAL;
-+
-+	qwords = bytes / sizeof(uint64_t);
-+	for (indx = 0; indx < qwords; indx++) {
-+		if (*(src + indx))
-+			*(src + indx) = le64toh(*(src + indx));
-+	}
-+
-+	return qwords;
-+}
-+#else
-+static inline int bnxt_re_host_to_le64(uint64_t *src, int bytes)
-+{
-+	return 0;
-+}
-+
-+static inline int bnxt_re_le64_to_host(uint64_t *src, int bytes)
-+{
-+	return 0;
-+}
-+#endif
-+
- #endif
+ static inline uint8_t bnxt_re_ibv_to_bnxt_wr_opcd(uint8_t ibv_opcd)
+ {
+ 	uint8_t bnxt_opcd;
 diff --git a/providers/bnxtre/verbs.c b/providers/bnxtre/verbs.c
-index c2340af..adb9b23 100644
+index adb9b23..de9bec8 100644
 --- a/providers/bnxtre/verbs.c
 +++ b/providers/bnxtre/verbs.c
-@@ -262,8 +262,9 @@ static uint8_t bnxt_re_poll_err_scqe(struct bnxt_re_qp *qp,
- 	ibvwc->wc_flags = 0;
- 	ibvwc->wr_id = swrid->wrid;
- 	ibvwc->qp_num = qp->qpid;
--	ibvwc->opcode = (spsn->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
--			 BNXT_RE_PSNS_OPCD_MASK;
-+	ibvwc->opcode = (le32toh(spsn->opc_spsn) >>
-+			BNXT_RE_PSNS_OPCD_SHIFT) &
-+			BNXT_RE_PSNS_OPCD_MASK;
- 	ibvwc->byte_len = 0;
- 
- 	bnxt_re_incr_head(qp->sqq);
-@@ -301,8 +302,9 @@ static uint8_t bnxt_re_poll_success_scqe(struct bnxt_re_qp *qp,
- 		ibvwc->wc_flags = 0;
- 		ibvwc->qp_num = qp->qpid;
- 		ibvwc->wr_id = swrid->wrid;
--		ibvwc->opcode = (spsn->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
--				 BNXT_RE_PSNS_OPCD_MASK;
-+		ibvwc->opcode = (le32toh(spsn->opc_spsn) >>
-+				BNXT_RE_PSNS_OPCD_SHIFT) &
-+				BNXT_RE_PSNS_OPCD_MASK;
- 		if (ibvwc->opcode == IBV_WC_RDMA_READ ||
- 		    ibvwc->opcode == IBV_WC_COMP_SWAP ||
- 		    ibvwc->opcode == IBV_WC_FETCH_ADD)
-@@ -473,8 +475,8 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
- 
- 	while (nwc) {
- 		cqe = cqq->va + cqq->head * bnxt_re_get_cqe_sz();
-+		bnxt_re_le64_to_host((uint64_t *)cqe, cqq->stride);
- 		hdr = cqe + sizeof(struct bnxt_re_req_cqe);
--		/* TODO: LE to CPU cqe & hdr */
- 		if (!bnxt_re_is_cqe_valid(cq, hdr))
- 			break;
- 		type = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_TYPE_SHIFT) &
-@@ -708,6 +710,9 @@ static int bnxt_re_check_qp_limits(struct bnxt_re_context *cntx,
+@@ -710,9 +710,6 @@ static int bnxt_re_check_qp_limits(struct bnxt_re_context *cntx,
  	struct ibv_device_attr devattr;
  	int ret;
  
-+	if (attr->qp_type == IBV_QPT_UD)
-+		return -ENOSYS;
-+
+-	if (attr->qp_type == IBV_QPT_UD)
+-		return -ENOSYS;
+-
  	ret = bnxt_re_query_device(&cntx->ibvctx, &devattr);
  	if (ret)
  		return ret;
-@@ -1019,7 +1024,8 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
- 	nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
- 	psns->flg_npsn = nxt_psn;
- 	qp->sq_psn = nxt_psn;
--	/* TODO: cpu_to_le64(psns) */
-+
-+	*(uint64_t *)psns = htole64(*(uint64_t *)psns);
+@@ -788,6 +785,11 @@ static int bnxt_re_alloc_queues(struct bnxt_re_qp *qp,
+ 		psn_depth++;
+ 
+ 	que->depth += psn_depth;
++	/* PSN-search memory is allocated without checking for
++	 * QP-Type. Kenrel driver do not map this memory if it
++	 * is UD-qp. UD-qp use this memory to maintain WC-opcode.
++	 * See definition of bnxt_re_fill_psns() for the use case.
++	 */
+ 	ret = bnxt_re_alloc_aligned(qp->sqq, pg_size);
+ 	if (ret)
+ 		return ret;
+@@ -1013,18 +1015,18 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
+ 	uint32_t pkt_cnt = 0, nxt_psn;
+ 
+ 	memset(psns, 0, sizeof(*psns));
+-	psns->opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
++	if (qp->qptyp == IBV_QPT_RC) {
++		psns->opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
++		pkt_cnt = (len / qp->mtu);
++		if (len % qp->mtu)
++			pkt_cnt++;
++		nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
++		psns->flg_npsn = nxt_psn;
++		qp->sq_psn = nxt_psn;
++	}
+ 	opcode = bnxt_re_ibv_wr_to_wc_opcd(opcode);
+ 	psns->opc_spsn |= ((opcode & BNXT_RE_PSNS_OPCD_MASK) <<
+ 			    BNXT_RE_PSNS_OPCD_SHIFT);
+-
+-	pkt_cnt = (len / qp->mtu);
+-	if (len % qp->mtu)
+-		pkt_cnt++;
+-	nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
+-	psns->flg_npsn = nxt_psn;
+-	qp->sq_psn = nxt_psn;
+-
+ 	*(uint64_t *)psns = htole64(*(uint64_t *)psns);
  }
  
- static void bnxt_re_fill_wrid(struct bnxt_re_wrid *wrid, struct ibv_send_wr *wr,
-@@ -1154,9 +1160,9 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			break;
- 		}
- 
--		/* TODO: cpu_to_le64(wqe) */
- 		bnxt_re_fill_wrid(wrid, wr, bytes, qp->cap.sqsig);
- 		bnxt_re_fill_psns(qp, psns, wr->opcode, bytes);
-+		bnxt_re_host_to_le64((uint64_t *)sqe, sq->stride);
- 		bnxt_re_incr_tail(sq);
- 		wr = wr->next;
- 		wmb(); /* write barrier */
-@@ -1188,6 +1194,7 @@ static int bnxt_re_build_rqe(struct bnxt_re_qp *qp, struct ibv_recv_wr *wr,
- 			       BNXT_RE_HDR_WS_SHIFT);
- 	rwr->wrid = qp->rqq->tail;
- 
-+	/* Fill wrid */
- 	wrid->wrid = wr->wr_id;
- 	wrid->bytes = len; /* N.A. for RQE */
- 	wrid->sig = 0; /* N.A. for RQE */
-@@ -1227,7 +1234,8 @@ int bnxt_re_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
- 			*bad = wr;
- 			return ENOMEM;
- 		}
--		/* TODO: cpu_to_le64(rqe)*/
+@@ -1066,10 +1068,26 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
+ 	qesize += (bnxt_re_get_sqe_hdr_sz() >> 4);
+ 	hdr->rsv_ws_fl_wt |= (qesize & BNXT_RE_HDR_WS_MASK) <<
+ 			      BNXT_RE_HDR_WS_SHIFT;
+-#if 0
+-	if (qp_typ == IBV_QPT_UD) {
++	return len;
++}
 +
-+		bnxt_re_host_to_le64((uint64_t *)rqe, rq->stride);
- 		bnxt_re_incr_tail(rq);
- 		wr = wr->next;
++static int bnxt_re_build_ud_sqe(struct bnxt_re_qp *qp, void *wqe,
++				struct ibv_send_wr *wr, uint8_t is_inline)
++{
++	struct bnxt_re_send *sqe = ((void *)wqe + sizeof(struct bnxt_re_bsqe));
++	struct bnxt_re_ah *ah;
++	uint32_t len;
++
++	len = bnxt_re_build_send_sqe(qp, wqe, wr, is_inline);
++	sqe->qkey = wr->wr.ud.remote_qkey;
++	sqe->dst_qp = wr->wr.ud.remote_qpn;
++	if (!wr->wr.ud.ah) {
++		len = -EINVAL;
++		goto bail;
+ 	}
+-#endif
++	ah = to_bnxt_re_ah(wr->wr.ud.ah);
++	sqe->avid = ah->avid & 0xFFFFF;
++bail:
+ 	return len;
+ }
  
+@@ -1134,9 +1152,14 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 		case IBV_WR_SEND_WITH_IMM:
+ 			hdr->key_immd = wr->imm_data;
+ 		case IBV_WR_SEND:
+-			bytes = bnxt_re_build_send_sqe(qp, sqe, wr, is_inline);
++			if (qp->qptyp == IBV_QPT_UD)
++				bytes = bnxt_re_build_ud_sqe(qp, sqe, wr,
++							     is_inline);
++			else
++				bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
++							       is_inline);
+ 			if (bytes < 0)
+-				ret = ENOMEM;
++				ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
+ 			break;
+ 		case IBV_WR_RDMA_WRITE_WITH_IMM:
+ 			hdr->key_immd = wr->imm_data;
+@@ -1277,10 +1300,49 @@ int bnxt_re_post_srq_recv(struct ibv_srq *ibvsrq, struct ibv_recv_wr *wr,
+ 
+ struct ibv_ah *bnxt_re_create_ah(struct ibv_pd *ibvpd, struct ibv_ah_attr *attr)
+ {
++	struct bnxt_re_pd *pd;
++	struct bnxt_re_context *uctx;
++	struct bnxt_re_ah *ah;
++	struct ibv_create_ah_resp resp;
++	int status;
++
++	pd = to_bnxt_re_pd(ibvpd);
++	uctx = to_bnxt_re_context(ibvpd->context);
++
++	ah = calloc(1, sizeof(struct bnxt_re_ah));
++	if (!ah)
++		goto failed;
++
++	ah->pd = pd;
++	pthread_mutex_lock(&uctx->shlock);
++	memset(&resp, 0, sizeof(resp));
++	status = ibv_cmd_create_ah(ibvpd, &ah->ibvah, attr,
++				   &resp, sizeof(resp));
++	if (status) {
++		pthread_mutex_unlock(&uctx->shlock);
++		free(ah);
++		goto failed;
++	}
++	/* read AV ID now. */
++	rmb();
++	ah->avid = *(uint32_t *)(uctx->shpg + BNXT_RE_SHPG_AVID_OFFT);
++	pthread_mutex_unlock(&uctx->shlock);
++
++	return &ah->ibvah;
++failed:
+ 	return NULL;
+ }
+ 
+ int bnxt_re_destroy_ah(struct ibv_ah *ibvah)
+ {
+-	return -ENOSYS;
++	struct bnxt_re_ah *ah;
++	int status;
++
++	ah = to_bnxt_re_ah(ibvah);
++	status = ibv_cmd_destroy_ah(ibvah);
++	if (status)
++		return status;
++	free(ah);
++
++	return 0;
+ }
 -- 
 1.8.3.1
 
