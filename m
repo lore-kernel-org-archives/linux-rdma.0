@@ -1,36 +1,227 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 0/2] Create semi-automatic release process
-Date: Sun, 29 Jan 2017 16:35:57 +0200
-Message-ID: <20170129143559.7654-1-leon@kernel.org>
+Subject: [PATCH rdma-core 2/2] travis: Upload assets to github release
+Date: Sun, 29 Jan 2017 16:35:59 +0200
+Message-ID: <20170129143559.7654-3-leon@kernel.org>
+References: <20170129143559.7654-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170129143559.7654-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug and Jason,
+Create and upload library source code to the corresponding release.
 
-This patchset simplifies the github release process for the rdma-core library.
-Once properly installed, it will allow simply issue "git release" command to create
-release notes from annotated and signed tags.
+The upload is triggered for pushed tags which are expected to be
+in semantic version format, e.g. v12.7.0.
 
-Such release notes will be formatted according to the tag context
-and will have rdma-core-vX.X.X.tar.gz attached to it with properly
-created top-level directory.
-
-Leon Romanovsky (2):
-  travis: Simplify travis config
-  travis: Upload assets to github release
-
- .travis.yml              |  86 +++++++++++++++-------------------------
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+Sorry for the churn, it was created by "travis setup release" command.
+---
+ .travis.yml              |  63 ++++++++++++++---------------
  Documentation/release.md | 100 +++++++++++++++++++++++++++++++++++++++++++++++
  buildlib/github-release  |   8 ++++
- buildlib/travis-build    |  29 ++++++++++++++
- 4 files changed, 169 insertions(+), 54 deletions(-)
+ 3 files changed, 140 insertions(+), 31 deletions(-)
  create mode 100644 Documentation/release.md
  create mode 100755 buildlib/github-release
- create mode 100755 buildlib/travis-build
 
+diff --git a/.travis.yml b/.travis.yml
+index c4fa1985..e4d1b983 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -1,39 +1,40 @@
+ language: c
+-# We need at least cmake 2.12, this means we need to use trusty.
+-# Precise's glibc, etc predates what we are willing to support.
+-# sudo is required to get the trusty image, and at present to enable llvm 3.9
+ sudo: required
+ dist: trusty
+ addons:
+-  # We run our builds sequentially in one VM rather than try and use the
+-  # matrix feature. This is because Travis is unreasonably inefficient
+-  # doing this APT setup pass.
+   apt:
+     sources:
+-      # sourceline because travis won't white list trusty builds, and hasn't
+-      # whitelisted 3.9
+-      - sourceline: "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main"
+-        key_url: "http://apt.llvm.org/llvm-snapshot.gpg.key"
+-      - ubuntu-toolchain-r-test
++    - sourceline: deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main
++      key_url: http://apt.llvm.org/llvm-snapshot.gpg.key
++    - ubuntu-toolchain-r-test
+     packages:
+-      - build-essential
+-      - clang-3.9
+-      - cmake
+-      - debhelper
+-      - gcc
+-      - gcc-6
+-      - libnl-3-dev
+-      - libnl-route-3-dev
+-      - libudev-dev
+-      - make
+-      - ninja-build
+-      - pkg-config
+-      - python
+-      - valgrind
+-
+-      # 32 bit support packages
+-      - gcc-multilib
+-      - lib32gcc-6-dev
+-
++    - build-essential
++    - clang-3.9
++    - cmake
++    - debhelper
++    - gcc
++    - gcc-6
++    - libnl-3-dev
++    - libnl-route-3-dev
++    - libudev-dev
++    - make
++    - ninja-build
++    - pkg-config
++    - python
++    - valgrind
++    - gcc-multilib
++    - lib32gcc-6-dev
+ script:
+-  - buildlib/travis-build
++- buildlib/travis-build
++before_deploy:
++- buildlib/github-release
++deploy:
++  provider: releases
++  api_key:
++    secure: G9sQd578nctgaety6f27P4p5nyrEgXdvMs1g+K2Hj7GPWxBpQ1Jm7kUlahcwfnYXpYqXen9b2dzyGzaLxjLL5rv6rbtOYp9SVrvybQrnJwkB0HCERKVMwEPsLPOB2lMouBDfk4+iUGdxtcw8Y5UU/xqKcAjkHkM5YpF5HauEX1Jj+Ep/XpX5DEcsVmFwkDgPKJOZv/eUgz1eVtXNFIvmSwJ+QuuUz64JpEpKMY4u7bFu0+2qWqACj19P/Rnufxpr+o5yoCuVNVptoRHMIWJiWZsrd2IhmL3knBoPoxNXSOWqQCK6DCW1KYOOVVAfFoD4YWhWrt6MuB3hh7lgLkS0rsdG9+iMlosl4SOkWZF8ZTkmrmtt6yx+s18tFdNI46QKzaA4wS/1hktweIFizYvmEwUCU8sNK5y9PMfDoGJGwiF1FzWrnLItKMiib0sTGO4Umgc0DKTazVRlIJYooOOOnBGubRudNx3elBTy4C/txSmqR39/6GYlvcyUDJMqB/oQJj2erQ5Gu8VykW5zjko6+3miX3C7GFVQ781BLxAdyNl4WRjZ9ibzjMbK3MC7f0ho1hST6cvBBmy2UnIdvB6zMayHZ/gtXKsDqE386k5FwSuTLT2V7942uFRVJiEwhVmgmBzbZND7PTj4s9GPrL2HLlJOgZooRZdx/ZcT/YNPFbA=
++  file: rdma-core-*.tar.gz
++  file_glob: true
++  skip_cleanup: true
++  on:
++    repo: linux-rdma/rdma-core
++    tags: true
+diff --git a/Documentation/release.md b/Documentation/release.md
+new file mode 100644
+index 00000000..e0f0e814
+--- /dev/null
++++ b/Documentation/release.md
+@@ -0,0 +1,100 @@
++# Release Process
++
++Release process of rdma-core library consists from three stages
++
++1. Change library version, according to [Overall Pacakge Version](versioning.md) guide.
++2. Push the change above to master branch and ensure that Travis CI reports successful build.
++3. Create local annotated signed tag vX.X.X (`git tag vX.X.X -a -s`).
++4. Issue `git release` command which will push tag, trigger Travis CI to upload
++   release tar.gz file and create release notes based on tag context with release notes in it.
++
++## git release
++
++There are many implmentations of different `git release` commands. We recommend you to use
++the command from [this](https://github.com/mpalmer/github-release) repository due to its simplicity.
++
++---
++Copy&Paste from relevant [README](https://github.com/mpalmer/github-release/blob/master/README.md)
++
++---
++
++This very simple gem provides a `git release` command, which will
++automatically fill out any and all "release tags" into fully-blown "Github
++Releases", complete with release notes, a heading, and all the other good
++things in life.
++
++Using this gem, you can turn the following tag annotation:
++
++    First Release
++
++    It is with much fanfare and blowing of horns that I bequeath the
++    awesomeness of `git release` upon the world.
++
++    Features in this release include:
++
++     * Ability to create a release from a tag annotation or commit message;
++     * Automatically generates an OAuth token if needed;
++     * Feeds your cat while you're hacking(*)
++
++    You should install it now!  `gem install github-release`
++
++Into [this](https://github.com/mpalmer/github-release/releases/tag/v0.1.0)
++simply by running
++
++    git release
++
++
++### Installation
++
++Simply install the gem:
++
++    gem install github-release
++
++
++### Usage
++
++Using `git release` is very simple.  Just make sure that your `origin`
++remote points to your Github repo, and then run `git release`.  All tags
++that look like a "version tag" (see "Configuration", below) will be created
++as Github releases (if they don't already exist) and the message from the
++tag will be used as the release notes.
++
++The format of the release notes is quite straightforward -- the first line
++of the message associated with the commit will be used as the "name" of the
++release, with the rest of the message used as the "body" of the release.
++The body will be interpreted as Github-flavoured markdown, so if you'd like
++to get fancy, go for your life.
++
++The message associated with the "release tag" is either the tag's annotation
++message (if it is an annotated tag) or else the commit log of the commit on
++which the tag is placed.  I *strongly* recommend annotated tags (but then
++again, [I'm biased...](http://theshed.hezmatt.org/git-version-bump))
++
++The first time you use `git release`, it will ask you for your Github
++username and password.  This is used to request an OAuth token to talk to
++the Github API, which is then stored in your global git config.  Hence you
++*shouldn't* be asked for your credentials every time you use `git release`.
++If you need to use multiple github accounts for different repos, you can
++override the `release.api-token` config parameter in your repo configuration
++(but you'll have to get your own OAuth token).
++
++
++### Configuration
++
++There are a few things you can configure to make `git release` work slightly
++differently.  None of them should be required for normal, sane use.
++
++ * `release.remote` (default `origin`) -- The name of the remote which is
++   used to determine what github repository to send release notes to.
++
++ * `release.api-token` (default is runtime generated) -- The OAuth token
++   to use to authenticate access to the Github API.  When you first run `git
++   release`, you'll be prompted for a username and password to use to
++   generate an initial token; if you need to override it on a per-repo
++   basis, this is the key you'll use.
++
++ * `release.tag-regex` (default `v\d+\.\d+(\.\d+)?$`) -- The regular
++   expression to filter which tags denote releases, as opposed to other tags
++   you might have decided to make.  Only tags which match this regular
++   expression will be pushed up by `git release`, and only those tags will
++   be marked as releases.
+diff --git a/buildlib/github-release b/buildlib/github-release
+new file mode 100755
+index 00000000..4c0ffda2
+--- /dev/null
++++ b/buildlib/github-release
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++set -e
++
++if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
++	# Let's create release for vX tags only.
++	git archive --prefix rdma-core/ --output rdma-core-$TRAVIS_TAG.tar.gz HEAD
++fi
 --
 2.11.0
 
