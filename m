@@ -1,235 +1,249 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 06/11] libbnxtre: convert cpu to le all over
- the place
-Date: Sun, 29 Jan 2017 09:09:52 +0200
-Message-ID: <20170129070952.GB6005@mtr-leonro.local>
+Subject: Re: [PATCH rdma-core 01/11] libbnxtre: introduce bnxtre user space
+ RDMA provider
+Date: Sun, 29 Jan 2017 09:25:15 +0200
+Message-ID: <20170129072515.GD6005@mtr-leonro.local>
 References: <1485641622-30015-1-git-send-email-devesh.sharma@broadcom.com>
- <1485641622-30015-7-git-send-email-devesh.sharma@broadcom.com>
+ <1485641622-30015-2-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jwJ6bIT+r2BZUD+c"
+        protocol="application/pgp-signature"; boundary="obAtV4On+KRLREo5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1485641622-30015-7-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1485641622-30015-2-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---jwJ6bIT+r2BZUD+c
+--obAtV4On+KRLREo5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sat, Jan 28, 2017 at 05:13:37PM -0500, Devesh Sharma wrote:
-> User library should take care of endian-ness when reading
-> or writing data to the device.
-> This patch also adds a warning message and fails the call if
-> access to any unsupported object is attempted.
+On Sat, Jan 28, 2017 at 05:13:32PM -0500, Devesh Sharma wrote:
+> libnxtre is a user-space driver which provides RDMA
+> capability to user applications. The current framework
+> has following parts working:
+>
+>  -Basic Cmake framework to build and install the library.
+>  -Register and unregister user-space driver with uverbs
+>   interface.
+>  -List all available bnxt_re devices using "ibv_devinfo"
+>   admin command.
+>  -List all the device and port attributes using
+>   "ibv_devinfo" admin command.
+>  -Support allocate/free of protection domains.
+>  -Check ABI version between library and kernel module.
+>  -Update MAINTAINERS file
 >
 > Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > ---
->  providers/bnxtre/db.c     |  2 +-
->  providers/bnxtre/memory.h | 45 +++++++++++++++++++++++++++++++++++++++++++++
->  providers/bnxtre/verbs.c  | 24 ++++++++++++++++--------
->  3 files changed, 62 insertions(+), 9 deletions(-)
-
-I have two questions regarding this patch.
-1. Why don't you introduce the proper ordering immediately and don't
-defer such conversion to patch #6?
-2. Why does bnxt_re_le64_to_host return values while you are not checking it
-anywhere?
-
-Thanks
-
+>  CMakeLists.txt                  |   1 +
+>  MAINTAINERS                     |   5 +
+>  providers/bnxtre/CMakeLists.txt |   4 +
+>  providers/bnxtre/abi.h          |  59 ++++++++++
+>  providers/bnxtre/bnxtre.driver  |   1 +
+>  providers/bnxtre/main.c         | 192 +++++++++++++++++++++++++++++++
+>  providers/bnxtre/main.h         | 108 ++++++++++++++++++
+>  providers/bnxtre/verbs.c        | 247 ++++++++++++++++++++++++++++++++++++++++
+>  providers/bnxtre/verbs.h        | 106 +++++++++++++++++
+>  9 files changed, 723 insertions(+)
+>  create mode 100644 providers/bnxtre/CMakeLists.txt
+>  create mode 100644 providers/bnxtre/abi.h
+>  create mode 100644 providers/bnxtre/bnxtre.driver
+>  create mode 100644 providers/bnxtre/main.c
+>  create mode 100644 providers/bnxtre/main.h
+>  create mode 100644 providers/bnxtre/verbs.c
+>  create mode 100644 providers/bnxtre/verbs.h
 >
-> diff --git a/providers/bnxtre/db.c b/providers/bnxtre/db.c
-> index b705c8b..fc22e0d 100644
-> --- a/providers/bnxtre/db.c
-> +++ b/providers/bnxtre/db.c
-> @@ -43,8 +43,8 @@ static void bnxt_re_ring_db(struct bnxt_re_dpi *dpi,
->  {
->  	uint64_t *dbval = (uint64_t *)&hdr->indx;
+> diff --git a/CMakeLists.txt b/CMakeLists.txt
+> index 8f7a475..b6f96c0 100644
+> --- a/CMakeLists.txt
+> +++ b/CMakeLists.txt
+> @@ -382,6 +382,7 @@ add_subdirectory(providers/nes)
+>  add_subdirectory(providers/ocrdma)
+>  add_subdirectory(providers/qedr)
+>  add_subdirectory(providers/vmw_pvrdma)
+> +add_subdirectory(providers/bnxtre)
+>  endif()
 >
-> -	/*TODO: cpu_to_le64 */
->  	pthread_spin_lock(&dpi->db_lock);
-> +	*dbval = htole64(*dbval);
->  	iowrite64(dpi->dbpage, dbval);
->  	/* write barrier */
->  	wmb();
-> diff --git a/providers/bnxtre/memory.h b/providers/bnxtre/memory.h
-> index a7a7d90..4360914 100644
-> --- a/providers/bnxtre/memory.h
-> +++ b/providers/bnxtre/memory.h
-> @@ -109,4 +109,49 @@ static inline void bnxt_re_incr_head(struct bnxt_re_queue *que)
->  	que->head = bnxt_re_incr(que->head, que->depth);
->  }
->
-> +/* Memory byte order conversion functions. */
-> +#if __BYTE_ORDER == __BIG_ENDIAN
-> +static inline int bnxt_re_host_to_le64(uint64_t *src, int bytes)
-> +{
-> +	int qwords, indx;
+>  add_subdirectory(providers/hfi1verbs)
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 2ae504c..f52da1c 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -166,3 +166,8 @@ M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>  L:	pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+>  S:	Supported
+>  F:	providers/vmw_pvrdma/
 > +
-> +	if (!bytes || bytes < 8)
-> +		return -EINVAL;
+> +BNXTRE USERSPACE PROVIDER (for bnxtre.ko)
+> +M:	Devesh Sharma  <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> +S:	Supported
+> +F:	providers/bnxtre
+
+It should have "/" at the end of line.
+
+> diff --git a/providers/bnxtre/CMakeLists.txt b/providers/bnxtre/CMakeLists.txt
+> new file mode 100644
+> index 0000000..4c61355
+> --- /dev/null
+> +++ b/providers/bnxtre/CMakeLists.txt
+> @@ -0,0 +1,4 @@
+> +rdma_provider(bnxtre
+> +	main.c
+> +	verbs.c
+> +)
+> diff --git a/providers/bnxtre/abi.h b/providers/bnxtre/abi.h
+> new file mode 100644
+> index 0000000..653ac71
+> --- /dev/null
+> +++ b/providers/bnxtre/abi.h
+> @@ -0,0 +1,59 @@
+> +/*
+> + * Broadcom NetXtreme-E User Space RoCE driver
+> + *
+> + * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
+> + * Broadcom refers to Broadcom Limited and/or its subsidiaries.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * BSD license below:
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + * 2. Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+> + * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+> + * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
+> + * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+> + * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+> + * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * Description: ABI data structure definition
+> + */
 > +
-> +	qwords = bytes / sizeof(uint64_t);
-> +	for (indx = 0; indx < qwords; indx++) {
-> +		if (*(src + indx))
-> +			*(src + indx) = htole64(*(src + indx));
-> +	}
+> +#ifndef __BNXT_RE_ABI_H__
+> +#define __BNXT_RE_ABI_H__
 > +
-> +	return qwords;
-> +}
+> +#include <infiniband/kern-abi.h>
 > +
-> +static inline int bnxt_re_le64_to_host(uint64_t *src, int bytes)
-> +{
-> +	int qwords, indx;
+> +#define BNXT_RE_ABI_VERSION 1
 > +
-> +	if (!bytes || bytes < 8)
-> +		return -EINVAL;
+> +struct bnxt_re_cntx_resp {
+> +	struct ibv_get_context_resp resp;
+> +	__u32 dev_id;
+> +	__u32 max_qp; /* To allocate qp-table */
+> +};
 > +
-> +	qwords = bytes / sizeof(uint64_t);
-> +	for (indx = 0; indx < qwords; indx++) {
-> +		if (*(src + indx))
-> +			*(src + indx) = le64toh(*(src + indx));
-> +	}
+> +struct bnxt_re_pd_resp {
+> +	struct ibv_alloc_pd_resp resp;
+> +	__u32 pdid;
+> +	__u32 dpi;
+> +	__u64 dbr;
+> +};
 > +
-> +	return qwords;
-> +}
-> +#else
-> +static inline int bnxt_re_host_to_le64(uint64_t *src, int bytes)
-> +{
-> +	return 0;
-> +}
-> +
-> +static inline int bnxt_re_le64_to_host(uint64_t *src, int bytes)
-> +{
-> +	return 0;
-> +}
 > +#endif
+> diff --git a/providers/bnxtre/bnxtre.driver b/providers/bnxtre/bnxtre.driver
+> new file mode 100644
+> index 0000000..5ce796f
+> --- /dev/null
+> +++ b/providers/bnxtre/bnxtre.driver
+> @@ -0,0 +1 @@
+> +driver	bnxtre
+> diff --git a/providers/bnxtre/main.c b/providers/bnxtre/main.c
+> new file mode 100644
+> index 0000000..0c26c8b
+> --- /dev/null
+> +++ b/providers/bnxtre/main.c
+> @@ -0,0 +1,192 @@
+> +/*
+> + * Broadcom NetXtreme-E User Space RoCE driver
+> + *
+> + * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
+> + * Broadcom refers to Broadcom Limited and/or its subsidiaries.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * BSD license below:
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + * 2. Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+> + * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+> + * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
+> + * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+> + * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+> + * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * Description: Device detection and initializatoin
+> + */
 > +
->  #endif
-> diff --git a/providers/bnxtre/verbs.c b/providers/bnxtre/verbs.c
-> index c2340af..adb9b23 100644
-> --- a/providers/bnxtre/verbs.c
-> +++ b/providers/bnxtre/verbs.c
-> @@ -262,8 +262,9 @@ static uint8_t bnxt_re_poll_err_scqe(struct bnxt_re_qp *qp,
->  	ibvwc->wc_flags = 0;
->  	ibvwc->wr_id = swrid->wrid;
->  	ibvwc->qp_num = qp->qpid;
-> -	ibvwc->opcode = (spsn->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
-> -			 BNXT_RE_PSNS_OPCD_MASK;
-> +	ibvwc->opcode = (le32toh(spsn->opc_spsn) >>
-> +			BNXT_RE_PSNS_OPCD_SHIFT) &
-> +			BNXT_RE_PSNS_OPCD_MASK;
->  	ibvwc->byte_len = 0;
->
->  	bnxt_re_incr_head(qp->sqq);
-> @@ -301,8 +302,9 @@ static uint8_t bnxt_re_poll_success_scqe(struct bnxt_re_qp *qp,
->  		ibvwc->wc_flags = 0;
->  		ibvwc->qp_num = qp->qpid;
->  		ibvwc->wr_id = swrid->wrid;
-> -		ibvwc->opcode = (spsn->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
-> -				 BNXT_RE_PSNS_OPCD_MASK;
-> +		ibvwc->opcode = (le32toh(spsn->opc_spsn) >>
-> +				BNXT_RE_PSNS_OPCD_SHIFT) &
-> +				BNXT_RE_PSNS_OPCD_MASK;
->  		if (ibvwc->opcode == IBV_WC_RDMA_READ ||
->  		    ibvwc->opcode == IBV_WC_COMP_SWAP ||
->  		    ibvwc->opcode == IBV_WC_FETCH_ADD)
-> @@ -473,8 +475,8 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
->
->  	while (nwc) {
->  		cqe = cqq->va + cqq->head * bnxt_re_get_cqe_sz();
-> +		bnxt_re_le64_to_host((uint64_t *)cqe, cqq->stride);
->  		hdr = cqe + sizeof(struct bnxt_re_req_cqe);
-> -		/* TODO: LE to CPU cqe & hdr */
->  		if (!bnxt_re_is_cqe_valid(cq, hdr))
->  			break;
->  		type = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_TYPE_SHIFT) &
-> @@ -708,6 +710,9 @@ static int bnxt_re_check_qp_limits(struct bnxt_re_context *cntx,
->  	struct ibv_device_attr devattr;
->  	int ret;
->
-> +	if (attr->qp_type == IBV_QPT_UD)
-> +		return -ENOSYS;
+> +#if HAVE_CONFIG_H
+> +#include <config.h>
+> +#endif                          /* HAVE_CONFIG_H */
 > +
->  	ret = bnxt_re_query_device(&cntx->ibvctx, &devattr);
->  	if (ret)
->  		return ret;
-> @@ -1019,7 +1024,8 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
->  	nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
->  	psns->flg_npsn = nxt_psn;
->  	qp->sq_psn = nxt_psn;
-> -	/* TODO: cpu_to_le64(psns) */
-> +
-> +	*(uint64_t *)psns = htole64(*(uint64_t *)psns);
->  }
->
->  static void bnxt_re_fill_wrid(struct bnxt_re_wrid *wrid, struct ibv_send_wr *wr,
-> @@ -1154,9 +1160,9 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
->  			break;
->  		}
->
-> -		/* TODO: cpu_to_le64(wqe) */
->  		bnxt_re_fill_wrid(wrid, wr, bytes, qp->cap.sqsig);
->  		bnxt_re_fill_psns(qp, psns, wr->opcode, bytes);
-> +		bnxt_re_host_to_le64((uint64_t *)sqe, sq->stride);
->  		bnxt_re_incr_tail(sq);
->  		wr = wr->next;
->  		wmb(); /* write barrier */
-> @@ -1188,6 +1194,7 @@ static int bnxt_re_build_rqe(struct bnxt_re_qp *qp, struct ibv_recv_wr *wr,
->  			       BNXT_RE_HDR_WS_SHIFT);
->  	rwr->wrid = qp->rqq->tail;
->
-> +	/* Fill wrid */
->  	wrid->wrid = wr->wr_id;
->  	wrid->bytes = len; /* N.A. for RQE */
->  	wrid->sig = 0; /* N.A. for RQE */
-> @@ -1227,7 +1234,8 @@ int bnxt_re_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
->  			*bad = wr;
->  			return ENOMEM;
->  		}
-> -		/* TODO: cpu_to_le64(rqe)*/
-> +
-> +		bnxt_re_host_to_le64((uint64_t *)rqe, rq->stride);
->  		bnxt_re_incr_tail(rq);
->  		wr = wr->next;
->
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---jwJ6bIT+r2BZUD+c
+There is no need to guard config.h
+
+> +#include <stdio.h>
+
+--obAtV4On+KRLREo5
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliNlUAACgkQ5GN7iDZy
-WKfgWRAA0YocrL+ySDSR4oGHx7Qdl2I3bdp2bP+FpYMDbLwyZ1igBgXU+F5D2yOn
-qPuH/kbp90cBiKGfcpjkGN7/yizo3CTQFRHWsaiXEEAKyWYRJTzk87kN+Yff0xmV
-8hKc6vKzb2t8oBuOeZ8IpxSg9LesW1F1994oOSeE5Gud0x+sniEGsV+rBlRfQHBW
-dLvUWrpttJbnaKE77c3mjaSpPcy+wvu1fSEGCE3Hn3M1q7Hc933OxFUhp62KHPZa
-L1p0TG3Pur1KgK1z4eCjXkzd/b/ZJT1L/CuIsNKRRNJZAEhvZZc14oJpK/aP7A/l
-3eXUrgGUcspo4NvGCUr1rxUamxvIG7a3dssJ/1uNB7lAJdzdbCRTwhBM0+U6yPEt
-e+UYr2eubVWCstzQAqYVk3/H7arAlyLB5fC9IrfmkxJwipxmeXGez7U1FjKfI5Dw
-3pmv8xQqjotkPOkToHijHfQXWUAT/PDYyRQ5WPHD5uvSojgk09dLZ/vfl4/mxVqA
-dRRE/3Vfuz0/2DvmrgTcDqHFIsYS7nAeSrq9iLTP4D/cbU/wdDVHi/9f5R78RPu2
-15ejICP851L0to+EskbV0cRMrVebo6nm9Iw5cgBZ5mLHUOqbhnPaIgEiXXWxKV9S
-beYOGewCc7+w/+cG3/ZgALKLLDKNOlUoumDEeAOidehmtSlKySM=
-=g/zm
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliNmNoACgkQ5GN7iDZy
+WKeithAAvN54h/8UtzwNFBcexMDZ8FnnuWm/Ex/M4wzlD0EJY6aPptw11tQ+euGM
+LHt0DvWEd7+St2TLRoJjqQ4bgudsWZ3mOUQcmFcZeYYXbQSf4jI/JVGzSqxpAvpc
+K58pT6zceGoJyPI1uIFPOZrHT26N35aLQROtDiosCrSnHgtkWDOFEjhWW1V+458W
+yoeKwbyC1i5CfxlNi9EIa2cp2gyzDIdjUdvL4VtrhXV7dotH5EA00t9spzs/k/QG
+D4C/zJVINDIlMS9D1AV0x42Q6vV8WT86wKs1XKI0LvLvX/8sjg88C0AxcVmYc3Mv
+SzsgCnwBeZRO8aOIhixJ8ZBD1P1z73RD+WNAsENrdio69BU+YOHOzkJTBF38XCkj
+7zmh/rR0WtrBM3IGzCD1IqwE6VJkMpnBMHuXXmsa6gEba7q6d1WIgmzCMj+xTskV
+AxsDL7z0BkM9lH6mDXL6LfflrFbm8W519fjvdjkub232L+EOk8dVdK/oepaIjQP/
+vR2j4kZV/QQcFYqROtsqhpyxLVIs6Gj78T7qy/7D6+Fh3cGLlFN7cTmxQvBFgEXC
+yDRBt0fLlokxFFG0Q35NzELBqd8xYrSUf8+dldWOYcm3alBus2zkutY51kNwqAy8
+ElcbzGr4ZcAPPVDGHWQ2OIvhhs4r47DtZlIGw4UilCG1TNcaO2U=
+=zrgc
 -----END PGP SIGNATURE-----
 
---jwJ6bIT+r2BZUD+c--
+--obAtV4On+KRLREo5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
