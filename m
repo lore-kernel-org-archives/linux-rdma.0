@@ -1,35 +1,68 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 00/11] Broadcom User Space RoCE Driver
-Date: Sun, 29 Jan 2017 15:56:25 -0700
-Message-ID: <20170129225625.GA24051@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core 01/11] libbnxtre: introduce bnxtre user space
+ RDMA provider
+Date: Sun, 29 Jan 2017 16:05:46 -0700
+Message-ID: <20170129230546.GB24051@obsidianresearch.com>
 References: <1485641622-30015-1-git-send-email-devesh.sharma@broadcom.com>
+ <1485641622-30015-2-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1485641622-30015-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1485641622-30015-2-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 28, 2017 at 05:13:31PM -0500, Devesh Sharma wrote:
-> This series introduces the user space RoCE driver for the Broadcom
-> NetXtreme-E 10/25/40/50 RDMA Ethernet Controller. This driver
-> is dependent on the bnxt_re driver posted earlier to linux-rdma
-> community and is under reveiw.
-> 
-> This patch series is based on the latest master of rdma-core
-> repository hosted at https://github.com/linux-rdma/rdma-core.git
-> 
-> The GIT for this library is hosted at following URL on github
-> https://github.com/dsharma283/bnxtre-rdma-core.git
-> branch: bnxtre-v0
+On Sat, Jan 28, 2017 at 05:13:32PM -0500, Devesh Sharma wrote:
+>  add_subdirectory(providers/ocrdma)
+>  add_subdirectory(providers/qedr)
+>  add_subdirectory(providers/vmw_pvrdma)
+> +add_subdirectory(providers/bnxtre)
+>  endif()
 
-Please make a github pull request for this so we can see that travis
-succeeds in building it.
+Keep list sorted
 
-You can keep it up to date with feedback using force-push to your branch.
+>
+>  add_subdirectory(providers/hfi1verbs)
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 2ae504c..f52da1c 100644
+> +++ b/MAINTAINERS
+> @@ -166,3 +166,8 @@ M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>  L:	pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+>  S:	Supported
+>  F:	providers/vmw_pvrdma/
+> +
+> +BNXTRE USERSPACE PROVIDER (for bnxtre.ko)
+> +M:	Devesh Sharma  <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> +S:	Supported
+> +F:	providers/bnxtre
+
+Keep list sorted
+
+> diff --git a/providers/bnxtre/bnxtre.driver b/providers/bnxtre/bnxtre.driver
+> new file mode 100644
+> index 0000000..5ce796f
+> +++ b/providers/bnxtre/bnxtre.driver
+> @@ -0,0 +1 @@
+> +driver	bnxtre
+
+No, delete this file
+
+> +#if HAVE_CONFIG_H
+> +#include <config.h>
+> +#endif                          /* HAVE_CONFIG_H */
+
+HAVE_CONFIG_H is not defined in our builds, do not use config.h if we
+don't need it. Ditto everywhere
+
+> +struct {
+> +	unsigned int vendor;
+> +	unsigned int device;
+> +} cna_table[] = {
+
+static const?
 
 Jason
 --
