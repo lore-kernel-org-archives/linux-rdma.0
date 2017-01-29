@@ -1,230 +1,51 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 2/2] travis: Upload assets to github release
-Date: Sun, 29 Jan 2017 16:35:59 +0200
-Message-ID: <20170129143559.7654-3-leon@kernel.org>
-References: <20170129143559.7654-1-leon@kernel.org>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: [RFC] Clear out stuck ops to prevent iSER from going init D state
+Date: Sun, 29 Jan 2017 12:13:03 -0700
+Message-ID: <CAANLjFoFocDMFFCSvYsGzYHOoRT-5DD3UDVpf51j9mU--LVL+A@mail.gmail.com>
+References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
+ <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me> <CAANLjFp3Zo_QpR7WCmVOfO0AEDxCXabbenac3KNR-RosCgGx+A@mail.gmail.com>
+ <c7f1af87-a846-ed8a-a46e-ab5888ea9b92@mellanox.com> <CAANLjFo1N=1BqY8Vur8jheDP4h9_9Q7Ns7MsgbRJX+TDhJbcOw@mail.gmail.com>
+ <21bfa6a7-9199-9341-1193-7d186fd36326@grimberg.me> <CAANLjFpVMMp9kaqmugT0yxoR=0f0gmvxGzhBnW-djXyZgMN-CA@mail.gmail.com>
+ <b5beb647-31f1-30d2-1162-2398f654c63d@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170129143559.7654-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <b5beb647-31f1-30d2-1162-2398f654c63d-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Create and upload library source code to the corresponding release.
+On Sun, Jan 29, 2017 at 12:42 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>> OK, I'm using commit bb3d5f95f46dfe19554820dbce620d31504dafb2 from the
+>> bvanassche/scsi-target-for-v4.11 tree. I've exported the target with
+>> InitialR2T=No
+>
+>
+> Hey Robert, InitialR2T=No means that you are using UnsolicitedDataOut, I
+> recommend to not use it.
 
-The upload is triggered for pushed tags which are expected to be
-in semantic version format, e.g. v12.7.0.
+This doesn't seem to make a difference in regards to hitting the bug,
+but I'll set it back to on for all other tests.
 
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
-Sorry for the churn, it was created by "travis setup release" command.
----
- .travis.yml              |  63 ++++++++++++++---------------
- Documentation/release.md | 100 +++++++++++++++++++++++++++++++++++++++++++++++
- buildlib/github-release  |   8 ++++
- 3 files changed, 140 insertions(+), 31 deletions(-)
- create mode 100644 Documentation/release.md
- create mode 100755 buildlib/github-release
+>  then I ran
+>>
+>> echo 4 > /sys/module/ib_isert/parameters/debug_level
+>> echo "file target_core_transport.c +p" >
+>> /sys/kernel/debug/dynamic_debug/control
+>>
+>> but it seems there is no new information during the period of the hang.
+>
+>
+> IIRC, pr_debug are not directed to the journal by default, can you
+> please check dmesg output?
 
-diff --git a/.travis.yml b/.travis.yml
-index c4fa1985..e4d1b983 100644
---- a/.travis.yml
-+++ b/.travis.yml
-@@ -1,39 +1,40 @@
- language: c
--# We need at least cmake 2.12, this means we need to use trusty.
--# Precise's glibc, etc predates what we are willing to support.
--# sudo is required to get the trusty image, and at present to enable llvm 3.9
- sudo: required
- dist: trusty
- addons:
--  # We run our builds sequentially in one VM rather than try and use the
--  # matrix feature. This is because Travis is unreasonably inefficient
--  # doing this APT setup pass.
-   apt:
-     sources:
--      # sourceline because travis won't white list trusty builds, and hasn't
--      # whitelisted 3.9
--      - sourceline: "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main"
--        key_url: "http://apt.llvm.org/llvm-snapshot.gpg.key"
--      - ubuntu-toolchain-r-test
-+    - sourceline: deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main
-+      key_url: http://apt.llvm.org/llvm-snapshot.gpg.key
-+    - ubuntu-toolchain-r-test
-     packages:
--      - build-essential
--      - clang-3.9
--      - cmake
--      - debhelper
--      - gcc
--      - gcc-6
--      - libnl-3-dev
--      - libnl-route-3-dev
--      - libudev-dev
--      - make
--      - ninja-build
--      - pkg-config
--      - python
--      - valgrind
--
--      # 32 bit support packages
--      - gcc-multilib
--      - lib32gcc-6-dev
--
-+    - build-essential
-+    - clang-3.9
-+    - cmake
-+    - debhelper
-+    - gcc
-+    - gcc-6
-+    - libnl-3-dev
-+    - libnl-route-3-dev
-+    - libudev-dev
-+    - make
-+    - ninja-build
-+    - pkg-config
-+    - python
-+    - valgrind
-+    - gcc-multilib
-+    - lib32gcc-6-dev
- script:
--  - buildlib/travis-build
-+- buildlib/travis-build
-+before_deploy:
-+- buildlib/github-release
-+deploy:
-+  provider: releases
-+  api_key:
-+    secure: G9sQd578nctgaety6f27P4p5nyrEgXdvMs1g+K2Hj7GPWxBpQ1Jm7kUlahcwfnYXpYqXen9b2dzyGzaLxjLL5rv6rbtOYp9SVrvybQrnJwkB0HCERKVMwEPsLPOB2lMouBDfk4+iUGdxtcw8Y5UU/xqKcAjkHkM5YpF5HauEX1Jj+Ep/XpX5DEcsVmFwkDgPKJOZv/eUgz1eVtXNFIvmSwJ+QuuUz64JpEpKMY4u7bFu0+2qWqACj19P/Rnufxpr+o5yoCuVNVptoRHMIWJiWZsrd2IhmL3knBoPoxNXSOWqQCK6DCW1KYOOVVAfFoD4YWhWrt6MuB3hh7lgLkS0rsdG9+iMlosl4SOkWZF8ZTkmrmtt6yx+s18tFdNI46QKzaA4wS/1hktweIFizYvmEwUCU8sNK5y9PMfDoGJGwiF1FzWrnLItKMiib0sTGO4Umgc0DKTazVRlIJYooOOOnBGubRudNx3elBTy4C/txSmqR39/6GYlvcyUDJMqB/oQJj2erQ5Gu8VykW5zjko6+3miX3C7GFVQ781BLxAdyNl4WRjZ9ibzjMbK3MC7f0ho1hST6cvBBmy2UnIdvB6zMayHZ/gtXKsDqE386k5FwSuTLT2V7942uFRVJiEwhVmgmBzbZND7PTj4s9GPrL2HLlJOgZooRZdx/ZcT/YNPFbA=
-+  file: rdma-core-*.tar.gz
-+  file_glob: true
-+  skip_cleanup: true
-+  on:
-+    repo: linux-rdma/rdma-core
-+    tags: true
-diff --git a/Documentation/release.md b/Documentation/release.md
-new file mode 100644
-index 00000000..e0f0e814
---- /dev/null
-+++ b/Documentation/release.md
-@@ -0,0 +1,100 @@
-+# Release Process
-+
-+Release process of rdma-core library consists from three stages
-+
-+1. Change library version, according to [Overall Pacakge Version](versioning.md) guide.
-+2. Push the change above to master branch and ensure that Travis CI reports successful build.
-+3. Create local annotated signed tag vX.X.X (`git tag vX.X.X -a -s`).
-+4. Issue `git release` command which will push tag, trigger Travis CI to upload
-+   release tar.gz file and create release notes based on tag context with release notes in it.
-+
-+## git release
-+
-+There are many implmentations of different `git release` commands. We recommend you to use
-+the command from [this](https://github.com/mpalmer/github-release) repository due to its simplicity.
-+
-+---
-+Copy&Paste from relevant [README](https://github.com/mpalmer/github-release/blob/master/README.md)
-+
-+---
-+
-+This very simple gem provides a `git release` command, which will
-+automatically fill out any and all "release tags" into fully-blown "Github
-+Releases", complete with release notes, a heading, and all the other good
-+things in life.
-+
-+Using this gem, you can turn the following tag annotation:
-+
-+    First Release
-+
-+    It is with much fanfare and blowing of horns that I bequeath the
-+    awesomeness of `git release` upon the world.
-+
-+    Features in this release include:
-+
-+     * Ability to create a release from a tag annotation or commit message;
-+     * Automatically generates an OAuth token if needed;
-+     * Feeds your cat while you're hacking(*)
-+
-+    You should install it now!  `gem install github-release`
-+
-+Into [this](https://github.com/mpalmer/github-release/releases/tag/v0.1.0)
-+simply by running
-+
-+    git release
-+
-+
-+### Installation
-+
-+Simply install the gem:
-+
-+    gem install github-release
-+
-+
-+### Usage
-+
-+Using `git release` is very simple.  Just make sure that your `origin`
-+remote points to your Github repo, and then run `git release`.  All tags
-+that look like a "version tag" (see "Configuration", below) will be created
-+as Github releases (if they don't already exist) and the message from the
-+tag will be used as the release notes.
-+
-+The format of the release notes is quite straightforward -- the first line
-+of the message associated with the commit will be used as the "name" of the
-+release, with the rest of the message used as the "body" of the release.
-+The body will be interpreted as Github-flavoured markdown, so if you'd like
-+to get fancy, go for your life.
-+
-+The message associated with the "release tag" is either the tag's annotation
-+message (if it is an annotated tag) or else the commit log of the commit on
-+which the tag is placed.  I *strongly* recommend annotated tags (but then
-+again, [I'm biased...](http://theshed.hezmatt.org/git-version-bump))
-+
-+The first time you use `git release`, it will ask you for your Github
-+username and password.  This is used to request an OAuth token to talk to
-+the Github API, which is then stored in your global git config.  Hence you
-+*shouldn't* be asked for your credentials every time you use `git release`.
-+If you need to use multiple github accounts for different repos, you can
-+override the `release.api-token` config parameter in your repo configuration
-+(but you'll have to get your own OAuth token).
-+
-+
-+### Configuration
-+
-+There are a few things you can configure to make `git release` work slightly
-+differently.  None of them should be required for normal, sane use.
-+
-+ * `release.remote` (default `origin`) -- The name of the remote which is
-+   used to determine what github repository to send release notes to.
-+
-+ * `release.api-token` (default is runtime generated) -- The OAuth token
-+   to use to authenticate access to the Github API.  When you first run `git
-+   release`, you'll be prompted for a username and password to use to
-+   generate an initial token; if you need to override it on a per-repo
-+   basis, this is the key you'll use.
-+
-+ * `release.tag-regex` (default `v\d+\.\d+(\.\d+)?$`) -- The regular
-+   expression to filter which tags denote releases, as opposed to other tags
-+   you might have decided to make.  Only tags which match this regular
-+   expression will be pushed up by `git release`, and only those tags will
-+   be marked as releases.
-diff --git a/buildlib/github-release b/buildlib/github-release
-new file mode 100755
-index 00000000..4c0ffda2
---- /dev/null
-+++ b/buildlib/github-release
-@@ -0,0 +1,8 @@
-+#!/bin/bash
-+
-+set -e
-+
-+if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
-+	# Let's create release for vX tags only.
-+	git archive --prefix rdma-core/ --output rdma-core-$TRAVIS_TAG.tar.gz HEAD
-+fi
---
-2.11.0
+The first output (without the dates) is from dmesg, the second output
+is from journal.
 
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
