@@ -1,129 +1,138 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 00/11] Broadcom User Space RoCE Driver
-Date: Sat, 28 Jan 2017 21:24:19 -0500
-Message-ID: <1485656659.2432.33.camel@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 11/11] libbnxtre: Add versioning support
+Date: Sun, 29 Jan 2017 09:17:28 +0200
+Message-ID: <20170129071728.GC6005@mtr-leonro.local>
 References: <1485641622-30015-1-git-send-email-devesh.sharma@broadcom.com>
+ <1485641622-30015-12-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-c2vnEq86Q0q2LifxtmCp"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="j+Rb494BzBd9643b"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485641622-30015-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1485641622-30015-12-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-c2vnEq86Q0q2LifxtmCp
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--j+Rb494BzBd9643b
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Sat, 2017-01-28 at 17:13 -0500, Devesh Sharma wrote:
-> This series introduces the user space RoCE driver for the Broadcom
-> NetXtreme-E 10/25/40/50 RDMA Ethernet Controller. This driver
-> is dependent on the bnxt_re driver posted earlier to linux-rdma
-> community and is under reveiw.
->=20
-> This patch series is based on the latest master of rdma-core
-> repository hosted at https://github.com/linux-rdma/rdma-core.git
->=20
-> The GIT for this library is hosted at following URL on github
-> https://github.com/dsharma283/bnxtre-rdma-core.git
-> branch: bnxtre-v0
->=20
-> Please review and give your feedback.
+On Sat, Jan 28, 2017 at 05:13:42PM -0500, Devesh Sharma wrote:
+> This patch adds a new header file to maintain
+> the version of library code. Each time a new
+> patch series is applied, this file would be
+> updated.
 
-Not a complete review, just noting that you did the same thing about
-not being consistent with your name. =C2=A0It should be libbnxt_re to match
-the kernel module name.
+No way, please preserve compatibility between different versions.
 
-> Devesh Sharma (11):
-> =C2=A0 libbnxtre: introduce bnxtre user space RDMA provider
-> =C2=A0 libbnxtre: Add support for user memory regions
-> =C2=A0 libbnxtre: Add support for CQ and QP management
-> =C2=A0 libbnxtre: Add support for posting and polling
-> =C2=A0 libbnxtre: Allow apps to poll for flushed completions
-> =C2=A0 libbnxtre: convert cpu to le all over the place
-> =C2=A0 libbnxtre: Enable UD control path and wqe posting
-> =C2=A0 libbnxtre: Enable polling for UD completions
-> =C2=A0 libbnxtre: Add support for atomic operations
-> =C2=A0 libbnxtre: Add support for SRQ in user lib
-> =C2=A0 libbnxtre: Add versioning support
->=20
-> =C2=A0CMakeLists.txt=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A0=C2=
-=A0=C2=A01 +
-> =C2=A0MAINTAINERS=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=
-=C2=A0=C2=A0=C2=A0=C2=A05 +
-> =C2=A0providers/bnxtre/CMakeLists.txt |=C2=A0=C2=A0=C2=A0=C2=A06 +
-> =C2=A0providers/bnxtre/abi.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0|=C2=A0=C2=A0418 ++++++++++
-> =C2=A0providers/bnxtre/bnxtre.driver=C2=A0=C2=A0|=C2=A0=C2=A0=C2=A0=C2=A0=
-1 +
-> =C2=A0providers/bnxtre/db.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A0110 +++
-> =C2=A0providers/bnxtre/list.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0|=C2=A0=C2=A0135 ++++
-> =C2=A0providers/bnxtre/main.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0|=C2=A0=C2=A0220 ++++++
-> =C2=A0providers/bnxtre/main.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0|=C2=A0=C2=A0358 +++++++++
-> =C2=A0providers/bnxtre/memory.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-|=C2=A0=C2=A0=C2=A077 ++
-> =C2=A0providers/bnxtre/memory.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-|=C2=A0=C2=A0160 ++++
-> =C2=A0providers/bnxtre/verbs.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0| 1597
-> +++++++++++++++++++++++++++++++++++++++
-> =C2=A0providers/bnxtre/verbs.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0|=C2=A0=C2=A0106 +++
-> =C2=A0providers/bnxtre/version.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=
-=A0=C2=A0=C2=A053 ++
-> =C2=A014 files changed, 3247 insertions(+)
-> =C2=A0create mode 100644 providers/bnxtre/CMakeLists.txt
-> =C2=A0create mode 100644 providers/bnxtre/abi.h
-> =C2=A0create mode 100644 providers/bnxtre/bnxtre.driver
-> =C2=A0create mode 100644 providers/bnxtre/db.c
-> =C2=A0create mode 100644 providers/bnxtre/list.h
-> =C2=A0create mode 100644 providers/bnxtre/main.c
-> =C2=A0create mode 100644 providers/bnxtre/main.h
-> =C2=A0create mode 100644 providers/bnxtre/memory.c
-> =C2=A0create mode 100644 providers/bnxtre/memory.h
-> =C2=A0create mode 100644 providers/bnxtre/verbs.c
-> =C2=A0create mode 100644 providers/bnxtre/verbs.h
-> =C2=A0create mode 100644 providers/bnxtre/version.h
->=20
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+> Currently, the macros declared in this
+> header are not referred anywhere in the code. however,
+> those can be used during RPM file generation.
+>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  providers/bnxtre/version.h | 53 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 53 insertions(+)
+>  create mode 100644 providers/bnxtre/version.h
 
---=-c2vnEq86Q0q2LifxtmCp
+Any reason why should your driver have different ABI compatibility and
+RPM generation scheme?
+
+>
+> diff --git a/providers/bnxtre/version.h b/providers/bnxtre/version.h
+> new file mode 100644
+> index 0000000..415ef41
+> --- /dev/null
+> +++ b/providers/bnxtre/version.h
+> @@ -0,0 +1,53 @@
+> +/*
+> + * Broadcom NetXtreme-E User Space RoCE driver
+> + *
+> + * Copyright (c) 2015-2016, Broadcom. All rights reserved.  The term
+> + * Broadcom refers to Broadcom Limited and/or its subsidiaries.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * BSD license below:
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + * 2. Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+> + * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+> + * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
+> + * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+> + * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+> + * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * Description: current release version information
+> + */
+> +
+> +#ifndef __BNXT_RE_VERSION_H__
+> +#define __BNXT_RE_VERSION_H__
+> +
+> +#define	MAJOR_VERSION		"1"
+> +#define	MINOR_VERSION		"0"
+> +#define	SUB_MINOR_VERSION	"0"
+> +
+> +#define	LIBBNXT_RE_VERSION(a, b, c)	a"."b"."c
+> +
+> +#define LIBBNXT_RE_REL_VERSION	LIBBNXT_RE_VERSION(MAJOR_VERSION,\
+> +						   MINOR_VERSION,\
+> +						   SUB_MINOR_VERSION)
+> +#define LIBBNXT_RE_BUILD_VERSION	1.0.0
+> +
+> +#endif	/* __BNXT_RE_VERSION_H__ */
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--j+Rb494BzBd9643b
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
 
-iQIcBAABCAAGBQJYjVJTAAoJELgmozMOVy/dyL4P/i6Eh5yFXJkw1iwSd9iTFcki
-JRVeCnnQ9btdHjzJqcQ2Uwg1dd89J+D6Iv2QYM3GNJPVP9SbmyNPxn99FJdH0man
-XwwI0MU2dUu2YaWfXLyS/gWGLS3uTvN72EYojLDmJ6iDzlFK9JmNxe7LCZNyKQZI
-+JCOn0xG3IXBB2A+2MmSxf6icwbI5zBwjFHp/Q2M+1B5LXI9+J4e4d6Rme7Aq3tc
-gkeNY/pMjWqPMvvFRMsXtBxK2bsrHPdWpStevPLisL4Fu6UqQrI3NJ1VYVm8v50h
-6hKvqbUbWlYiQCVz0omXVz64mlmWw2sKi7QKAk5m/B6ytb3gyd2RgUQN3S1zIMr/
-QrxnSNu0AbzB7892h3A3JEtfv4BC2JbD3L9fJsif4TtrWOjWBfFklAjIJJ8R/ijV
-nv3+GWDmwDHCZDGVwmbLmKETjhAhEtIqDbQbzjSqjq8XxS49WtNM5GBz2Q6oYObF
-Ii/XwJ7zVeqfEjZIQIzzYZgMEDepiMd2nqfe4LT76pYdZHaHFH6Rw8kyi4tcYSgx
-JNIrNIJsowSX2hpRIBbyX/zUoCVGt7QjdlGeT+KodrR1d54nNa/kK9zYnz6Tk+tE
-825sSY1dMojA57pXx84ECVhE0tDuAc3abqcFuUkMO+akzPD8x6VEPdlFIWF4qfrD
-RTU2Z7/BT1ikoecTGnzL
-=5W2U
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliNlwgACgkQ5GN7iDZy
+WKe7lRAAkc0yUJvC5whSahnc3HPNqCU/ZT04lIQEGShrt7G4UHa0T3B+LzSLUbZ3
+Q4wPNPtekMND8R0864WkiGwUUZtIQLE1Jg3eRsSKmymbORCcKPD8tFsCbmNd1BR9
+rI1HNGhCsX19dbOyCZt13MBpuhILkwNK0nQZ7HI1W9Cndx4LvTqGgG92rJ+eSon1
+sM0re10l2Zh0MzSVBTWI0pczH9+vSiY54LTLRsly/HckyAGWn6spChpgm0zZhtRc
+Vu2g9DlSYbUfYOwEiR6858kh5oZhoiw4pa4GRB59LLetiMW5k9UsWn90qEa01upz
+tDh18vgAbfgw4LoRO90ty6BS8usQm/I644UASwsh8A1Vx9EFZqPxmo1n8j6jEtB+
+wO9lEvB9Em3HHyYDUInb84QQN5QlYy6VePGpVzNxhgdQX55iIEmUDt7AdkwYqqON
+ZFRU9d28QOwbf6uANDjrikcq+NcwRbxTjWdiHyvk0Klbg7e05IOpep70HTv+edjc
+r1sX7kWYTR+wspEqtAlQMwagUW9yLC6BZSccSv+xMdYLhnp9prStxeo040PrlrmP
+E8X8UwEtrp/1AHpKf+fXeDV9BswV3Xru9SPXthc2C5kwGNB479gTE7uU5zAY6Jjo
+qj9b1A4OTClcU1lrRlDDUpK6K79zNR56rRZX7iUUtsS9HrRmuJU=
+=5iOp
 -----END PGP SIGNATURE-----
 
---=-c2vnEq86Q0q2LifxtmCp--
-
+--j+Rb494BzBd9643b--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
