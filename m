@@ -1,160 +1,155 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: clean up send_connect()
-Date: Mon, 30 Jan 2017 22:32:20 +0200
-Message-ID: <20170130203220.GO6005@mtr-leonro.local>
-References: <1485790962-15147-1-git-send-email-ganeshgr@chelsio.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6T2vOV0TokPza8xG"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 7/7] sunrpc: Allow keepalive ping on a credit-full transport
+Date: Mon, 30 Jan 2017 15:32:18 -0500
+Message-ID: <7694B03F-328F-472A-8A41-F3D6DCF0125E@oracle.com>
+References: <20170126174806.5794.14678.stgit@manet.1015granger.net> <20170126175628.5794.56813.stgit@manet.1015granger.net> <5268b237-2c33-2058-d4b2-798afe021243@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1485790962-15147-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <5268b237-2c33-2058-d4b2-798afe021243-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---6T2vOV0TokPza8xG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Jan 30, 2017, at 3:29 PM, Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+> Hi Chuck,
+> 
+> On 01/26/2017 12:56 PM, Chuck Lever wrote:
+>> Allow RPC-over-RDMA to send NULL pings even when the transport has
+>> hit its credit limit.
+>> 
+>> One credit is reserved. It may be used only to send a keepalive
+>> ping.
+>> 
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> include/linux/sunrpc/sched.h    |    2 ++
+>> net/sunrpc/xprt.c               |    4 ++++
+>> net/sunrpc/xprtrdma/transport.c |    4 +++-
+>> net/sunrpc/xprtrdma/verbs.c     |   13 ++++++++-----
+>> 4 files changed, 17 insertions(+), 6 deletions(-)
+>> 
+>> diff --git a/include/linux/sunrpc/sched.h b/include/linux/sunrpc/sched.h
+>> index 7ba040c..a65278e 100644
+>> --- a/include/linux/sunrpc/sched.h
+>> +++ b/include/linux/sunrpc/sched.h
+>> @@ -127,6 +127,7 @@ struct rpc_task_setup {
+>> #define RPC_TASK_TIMEOUT	0x1000		/* fail with ETIMEDOUT on timeout */
+>> #define RPC_TASK_NOCONNECT	0x2000		/* return ENOTCONN if not connected */
+>> #define RPC_TASK_NO_RETRANS_TIMEOUT	0x4000		/* wait forever for a reply */
+>> +#define RPC_TASK_PRIORITY	0x8000		/* skip congestion control */
+> 
+> This file also defines various RPC_PRIORITY_<whatever> values that get used for the task->tk_priority field.  I wonder if there is a better name for this flag that would help keep people from confusing the two later down the line, but I'm also struggling to come up with anything better.
 
-On Mon, Jan 30, 2017 at 09:12:42PM +0530, Ganesh Goudar wrote:
-> Clean up send_connect() and make use of t6 specific
-> active open request struct.
->
-> Acked-by: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+PRIORITY was a (lead) trial balloon, and also a sign of weak imagination.
 
-Please add full Steve's name.
-Thanks
+The point of the flag is to bypass congestion control. RPC_TASK_SKIPCONG ?
+Meh.
 
-> Signed-off-by: Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/hw/cxgb4/cm.c | 56 ++++++++++++++++++++++++++--------------
->  1 file changed, 36 insertions(+), 20 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-> index f1510cc..b9c2163 100644
-> --- a/drivers/infiniband/hw/cxgb4/cm.c
-> +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> @@ -692,6 +692,10 @@ static int send_connect(struct c4iw_ep *ep)
->  	int ret;
->  	enum chip_type adapter_type = ep->com.dev->rdev.lldi.adapter_type;
->  	u32 isn = (prandom_u32() & ~7UL) - 1;
-> +	struct net_device *netdev;
-> +	u64 params;
-> +
-> +	netdev = ep->com.dev->rdev.lldi.ports[0];
->
->  	switch (CHELSIO_CHIP_VERSION(adapter_type)) {
->  	case CHELSIO_T4:
-> @@ -768,6 +772,8 @@ static int send_connect(struct c4iw_ep *ep)
->  		opt2 |= T5_ISS_F;
->  	}
->
-> +	params = cxgb4_select_ntuple(netdev, ep->l2t);
-> +
->  	if (ep->com.remote_addr.ss_family == AF_INET6)
->  		cxgb4_clip_get(ep->com.dev->rdev.lldi.ports[0],
->  			       (const u32 *)&la6->sin6_addr.s6_addr, 1);
-> @@ -809,18 +815,22 @@ static int send_connect(struct c4iw_ep *ep)
->  		req->opt0 = cpu_to_be64(opt0);
->
->  		if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
-> -			req->params = cpu_to_be32(cxgb4_select_ntuple(
-> -						ep->com.dev->rdev.lldi.ports[0],
-> -						ep->l2t));
-> +			req->params = cpu_to_be32(params);
->  			req->opt2 = cpu_to_be32(opt2);
->  		} else {
-> -			t5req->params = cpu_to_be64(FILTER_TUPLE_V(
-> -						cxgb4_select_ntuple(
-> -						ep->com.dev->rdev.lldi.ports[0],
-> -						ep->l2t)));
-> -			t5req->rsvd = cpu_to_be32(isn);
-> -			PDBG("%s snd_isn %u\n", __func__, t5req->rsvd);
-> -			t5req->opt2 = cpu_to_be32(opt2);
-> +			if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
-> +				t5req->params =
-> +					  cpu_to_be64(FILTER_TUPLE_V(params));
-> +				t5req->rsvd = cpu_to_be32(isn);
-> +				PDBG("%s snd_isn %u\n", __func__, t5req->rsvd);
-> +				t5req->opt2 = cpu_to_be32(opt2);
-> +			} else {
-> +				t6req->params =
-> +					  cpu_to_be64(FILTER_TUPLE_V(params));
-> +				t6req->rsvd = cpu_to_be32(isn);
-> +				PDBG("%s snd_isn %u\n", __func__, t6req->rsvd);
-> +				t6req->opt2 = cpu_to_be32(opt2);
-> +			}
->  		}
->  	} else {
->  		switch (CHELSIO_CHIP_VERSION(adapter_type)) {
-> @@ -859,18 +869,24 @@ static int send_connect(struct c4iw_ep *ep)
->  		req6->opt0 = cpu_to_be64(opt0);
->
->  		if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
-> -			req6->params = cpu_to_be32(cxgb4_select_ntuple(
-> -						ep->com.dev->rdev.lldi.ports[0],
-> -						ep->l2t));
-> +			req6->params = cpu_to_be32(cxgb4_select_ntuple(netdev,
-> +								      ep->l2t));
->  			req6->opt2 = cpu_to_be32(opt2);
->  		} else {
-> -			t5req6->params = cpu_to_be64(FILTER_TUPLE_V(
-> -						cxgb4_select_ntuple(
-> -						ep->com.dev->rdev.lldi.ports[0],
-> -						ep->l2t)));
-> -			t5req6->rsvd = cpu_to_be32(isn);
-> -			PDBG("%s snd_isn %u\n", __func__, t5req6->rsvd);
-> -			t5req6->opt2 = cpu_to_be32(opt2);
-> +			if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
-> +				t5req6->params =
-> +					    cpu_to_be64(FILTER_TUPLE_V(params));
-> +				t5req6->rsvd = cpu_to_be32(isn);
-> +				PDBG("%s snd_isn %u\n", __func__, t5req6->rsvd);
-> +				t5req6->opt2 = cpu_to_be32(opt2);
-> +			} else {
-> +				t6req6->params =
-> +					    cpu_to_be64(FILTER_TUPLE_V(params));
-> +				t6req6->rsvd = cpu_to_be32(isn);
-> +				PDBG("%s snd_isn %u\n", __func__, t6req6->rsvd);
-> +				t6req6->opt2 = cpu_to_be32(opt2);
-> +			}
-> +
->  		}
->  	}
->
-> --
-> 2.1.0
->
+
+> Thoughts?
+> Anna
+> 
+>> 
+>> #define RPC_IS_ASYNC(t)		((t)->tk_flags & RPC_TASK_ASYNC)
+>> #define RPC_IS_SWAPPER(t)	((t)->tk_flags & RPC_TASK_SWAPPER)
+>> @@ -135,6 +136,7 @@ struct rpc_task_setup {
+>> #define RPC_IS_SOFT(t)		((t)->tk_flags & (RPC_TASK_SOFT|RPC_TASK_TIMEOUT))
+>> #define RPC_IS_SOFTCONN(t)	((t)->tk_flags & RPC_TASK_SOFTCONN)
+>> #define RPC_WAS_SENT(t)		((t)->tk_flags & RPC_TASK_SENT)
+>> +#define RPC_HAS_PRIORITY(t)	((t)->tk_flags & RPC_TASK_PRIORITY)
+>> 
+>> #define RPC_TASK_RUNNING	0
+>> #define RPC_TASK_QUEUED		1
+>> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+>> index b530a28..e8b7b9f 100644
+>> --- a/net/sunrpc/xprt.c
+>> +++ b/net/sunrpc/xprt.c
+>> @@ -392,6 +392,10 @@ static inline void xprt_release_write(struct rpc_xprt *xprt, struct rpc_task *ta
+>> {
+>> 	struct rpc_rqst *req = task->tk_rqstp;
+>> 
+>> +	if (RPC_HAS_PRIORITY(task)) {
+>> +		req->rq_cong = 0;
+>> +		return 1;
+>> +	}
+>> 	if (req->rq_cong)
+>> 		return 1;
+>> 	dprintk("RPC: %5u xprt_cwnd_limited cong = %lu cwnd = %lu\n",
+>> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+>> index f97c851..e43cc85 100644
+>> --- a/net/sunrpc/xprtrdma/transport.c
+>> +++ b/net/sunrpc/xprtrdma/transport.c
+>> @@ -538,7 +538,9 @@ static void rpcrdma_keepalive_release(void *calldata)
+>> 
+>> 	data = xprt_get(xprt);
+>> 	null_task = rpc_call_null_helper(task->tk_client, xprt, NULL,
+>> -					 RPC_TASK_SOFT | RPC_TASK_ASYNC,
+>> +					 RPC_TASK_SOFT |
+>> +					 RPC_TASK_ASYNC |
+>> +					 RPC_TASK_PRIORITY,
+>> 					 &rpcrdma_keepalive_call_ops, data);
+>> 	if (!IS_ERR(null_task))
+>> 		rpc_put_task(null_task);
+>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+>> index 7e14b73..3e218dd 100644
+>> --- a/net/sunrpc/xprtrdma/verbs.c
+>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>> @@ -136,19 +136,20 @@
+>> static void
+>> rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
+>> {
+>> -	struct rpcrdma_msg *rmsgp = rdmab_to_msg(rep->rr_rdmabuf);
+>> 	struct rpcrdma_buffer *buffer = &rep->rr_rxprt->rx_buf;
+>> +	__be32 *p = rep->rr_rdmabuf->rg_base;
+>> 	u32 credits;
+>> 
+>> 	if (rep->rr_len < RPCRDMA_HDRLEN_ERR)
+>> 		return;
+>> 
+>> -	credits = be32_to_cpu(rmsgp->rm_credit);
+>> +	credits = be32_to_cpup(p + 2);
+>> +	if (credits > buffer->rb_max_requests)
+>> +		credits = buffer->rb_max_requests;
+>> +	/* Reserve one credit for keepalive ping */
+>> +	credits--;
+>> 	if (credits == 0)
+>> 		credits = 1;	/* don't deadlock */
+>> -	else if (credits > buffer->rb_max_requests)
+>> -		credits = buffer->rb_max_requests;
+>> -
+>> 	atomic_set(&buffer->rb_credits, credits);
+>> }
+>> 
+>> @@ -914,6 +915,8 @@ struct rpcrdma_rep *
+>> 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+>> 	int i, rc;
+>> 
+>> +	if (r_xprt->rx_data.max_requests < 2)
+>> +		return -EINVAL;
+>> 	buf->rb_max_requests = r_xprt->rx_data.max_requests;
+>> 	buf->rb_bc_srv_max_requests = 0;
+>> 	atomic_set(&buf->rb_credits, 1);
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---6T2vOV0TokPza8xG
-Content-Type: application/pgp-signature; name="signature.asc"
+--
+Chuck Lever
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliPotQACgkQ5GN7iDZy
-WKdE2Q//YoziFho8vCxjtJZjmjhUzRsIWgyCpombzCly9GL+48hN43XuR6qfr4+W
-ojRV9LbKoShwY4ChjQTLZNi1ekcZntV21f5SYxfgk21vG91iy6RZffVhELCTqKgl
-fjtwitpKDNTPQCdcq+DouABlU+f2t9wg5BwxACSWnnam7fqQqtodAZ65nPwbu9Be
-h5bRrLUYCLOGMWmYyy4zwBDD9fgdjMDIengw6OIWi3j/xcs4oU0/I5yQwzhBCTpS
-3t+CKNKWkAeEqmR5CYQc9gcwpBM3TG/7XdE0R+zQbDLu+joXkWhTwoS1hHFooXNt
-G/9RyFKaKCXIr1wm7ZGb8DCwBLaLBtV8NjQ+UbIB6ricWsSVnGdR+VIjBcwIKhLo
-55q7yiuv30UXd+zPdKRBFIdMVsxgvQiwVA7oXbwSllbSBU0JYSqmSJaHzJfx/8GK
-XO8KmsChHUTU+VKtJPMvM5BzZUit36w8svPpUDH47QqKMdfbgNf3cnfJ01FoWmQg
-XG0G8xaItm2Sg2nM/36aScotAJcUewY2gSbSwMba4NssS//l9bIq/hd5SGX+EOls
-auyv6Ej1zd5zRy2rGbu6GS7s4gMVhf0djoaj17JjIyEMSKt6ClwCJh9fXdKDPGvt
-ib87F/DX5sTKMQ4PgvcwaxvE6yXZqPWxKAfBCePGDNDg14dnjWE=
-=oNN5
------END PGP SIGNATURE-----
 
---6T2vOV0TokPza8xG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
