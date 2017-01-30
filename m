@@ -1,43 +1,90 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 04/11] libbnxtre: Add support for posting and
- polling
-Date: Sun, 29 Jan 2017 16:43:38 -0700
-Message-ID: <20170129234338.GG24051@obsidianresearch.com>
-References: <1485641622-30015-1-git-send-email-devesh.sharma@broadcom.com>
- <1485641622-30015-5-git-send-email-devesh.sharma@broadcom.com>
+From: feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: any suggested configuration for rxe?
+Date: Mon, 30 Jan 2017 01:05:24 +0000
+Message-ID: <CAJ-uSQZcnQ+Mqj1XGuMSzP54WQi6KofDyp11dCog+bqGmL3MWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1485641622-30015-5-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 28, 2017 at 05:13:35PM -0500, Devesh Sharma wrote:
+Hi guys,
 
-> +#define true           1
-> +#define false          0
+Is there any configuration (distro/kernel/rdma-core branch) you can
+suggest to try out software rdma (rxe)?
 
-Nope, delete.
+I'm trying to get software rdma working to enable local testing on the
+vm (vmware) without going proper hardware and so far can't get
+pingpong tool working.
+I've tried CentOS 7.2 first by building vanilla 4.9.5 with rxe enabled
+Now I've tried Ubuntu 16.04.1, using built ubuntu 4.9.5 build with
+rxe. I've noticed that rxe is actually enabled by default as module so
+now tried just released 4.9.6 as well.
+I've tried linux-rdma/rdma-core master and rdma-core-12 tag and lately
+rleon/rdma-core debian-fixes-last
 
-> +
-> +static void bnxt_re_ring_db(struct bnxt_re_dpi *dpi,
-> +			    struct bnxt_re_db_hdr *hdr)
-> +{
-> +	uint64_t *dbval = (uint64_t *)&hdr->indx;
-> +
-> +	/*TODO: cpu_to_le64 */
-> +	pthread_spin_lock(&dpi->db_lock);
-> +	iowrite64(dpi->dbpage, dbval);
-> +	/* write barrier */
-> +	wmb();
-> +	pthread_spin_unlock(&dpi->db_lock);
+What I get is (in all the cases I've tried) that module is loaded and
+looks ok, however serverside ibv_rc_pingpong fails when client
+connects with:
 
-That wmb sure looks like it is in the wrong place. Better check them all..
+root@xdev:~/rdma-core-rleon# ibv_rc_pingpong -d rxe0 -g 0 -i 1
+  local address:  LID 0x0000, QPN 0x000012, PSN 0xaa7393, GID
+fe80::20c:29ff:fe87:5082
+  remote address: LID 0x0000, QPN 0x000013, PSN 0xf70e00, GID
+fe80::20c:29ff:fe87:5082
+Completion for unknown wr_id 0
+parse WC failed 2
 
-Jason
+Below is output of other checks, all looks good as far as I understand.
+
+If you can suggest anything, please let me know.
+
+Thanks!
+
+Fedor
+
+root@xdev:~# uname -a
+Linux xdev 4.9.6-040906-generic #201701260330 SMP Thu Jan 26 08:32:10
+UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+
+root@xdev:~# lsmod | grep rxe
+rdma_rxe              114688  1
+ip6_udp_tunnel         16384  1 rdma_rxe
+udp_tunnel             16384  1 rdma_rxe
+ib_core               204800  6 rdma_rxe,ib_cm,rdma_cm,ib_uverbs,iw_cm,rdma_ucm
+
+root@xdev:~# lsmod | grep ib_uverbs
+ib_uverbs              65536  4 rdma_ucm
+ib_core               204800  6 rdma_rxe,ib_cm,rdma_cm,ib_uverbs,iw_cm,rdma_ucm
+
+root@xdev:~# rxe_cfg status
+  Name   Link  Driver  Speed  NMTU  IPv4_addr        RDEV  RMTU
+  ens33  yes   e1000          1500  192.168.237.132  rxe0  1024  (3)
+
+root@xdev:~# ibv_devices
+    device                 node GUID
+    ------              ----------------
+    rxe0                020c29fffe875082
+
+root@xdev:~# ibv_devinfo -d rxe0
+hca_id: rxe0
+        transport:                      InfiniBand (0)
+        fw_ver:                         0.0.0
+        node_guid:                      020c:29ff:fe87:5082
+        sys_image_guid:                 0000:0000:0000:0000
+        vendor_id:                      0x0000
+        vendor_part_id:                 0
+        hw_ver:                         0x0
+        phys_port_cnt:                  1
+                port:   1
+                        state:                  PORT_ACTIVE (4)
+                        max_mtu:                4096 (5)
+                        active_mtu:             1024 (3)
+                        sm_lid:                 0
+                        port_lid:               0
+                        port_lmc:               0x00
+                        link_layer:             Ethernet
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
