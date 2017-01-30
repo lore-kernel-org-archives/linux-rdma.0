@@ -1,118 +1,67 @@
-From: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: clean up send_connect()
-Date: Mon, 30 Jan 2017 21:12:42 +0530
-Message-ID: <1485790962-15147-1-git-send-email-ganeshgr@chelsio.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Make the provider facing libibverbs interface
+ private
+Date: Mon, 30 Jan 2017 10:03:41 -0700
+Message-ID: <20170130170341.GB29502@obsidianresearch.com>
+References: <20170126230813.GA7149@obsidianresearch.com>
+ <20170130135959.GL6005@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170130135959.GL6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up send_connect() and make use of t6 specific
-active open request struct.
+On Mon, Jan 30, 2017 at 03:59:59PM +0200, Leon Romanovsky wrote:
+> On Thu, Jan 26, 2017 at 04:08:13PM -0700, Jason Gunthorpe wrote:
+> > The first part is to remove the header files that define the
+> > prototypes for these symbols from the set of packaged headers.
+> > This ensures that nothing can compile and use these symbols.
+> >
+> > Next we move the symbols into a new symbol version stanza only
+> > for the private ABI. This breaks every existing out of-tree provider,
+> > but the earlier change to ibv_cmd_create_ah already did that.
+> >
+> > There are a few symbols that are still private by virtue of not being
+> > in public headers, but these are used internally by the other libraries.
+> > For distribution sanity continue to treat them as public ABI.
+> >
+> > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> >  Documentation/versioning.md   |  22 ++++++++
+> >  debian/control                |   2 +-
+> >  debian/libibverbs-dev.install |   3 --
+> >  debian/libibverbs1.symbols    |  44 +--------------
+> >  libibverbs/CMakeLists.txt     |   9 ++--
+> >  libibverbs/libibverbs.map     | 122 +++++++++++++++++++++---------------------
+> >  6 files changed, 93 insertions(+), 109 deletions(-)
+> 
+> How is it connected to ABI soname versioning?
+> https://github.com/linux-rdma/rdma-core/blob/master/Documentation/versioning.md
 
-Acked-by: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
-Signed-off-by: Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 56 ++++++++++++++++++++++++++--------------
- 1 file changed, 36 insertions(+), 20 deletions(-)
+Not sure I follow..
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index f1510cc..b9c2163 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -692,6 +692,10 @@ static int send_connect(struct c4iw_ep *ep)
- 	int ret;
- 	enum chip_type adapter_type = ep->com.dev->rdev.lldi.adapter_type;
- 	u32 isn = (prandom_u32() & ~7UL) - 1;
-+	struct net_device *netdev;
-+	u64 params;
-+
-+	netdev = ep->com.dev->rdev.lldi.ports[0];
- 
- 	switch (CHELSIO_CHIP_VERSION(adapter_type)) {
- 	case CHELSIO_T4:
-@@ -768,6 +772,8 @@ static int send_connect(struct c4iw_ep *ep)
- 		opt2 |= T5_ISS_F;
- 	}
- 
-+	params = cxgb4_select_ntuple(netdev, ep->l2t);
-+
- 	if (ep->com.remote_addr.ss_family == AF_INET6)
- 		cxgb4_clip_get(ep->com.dev->rdev.lldi.ports[0],
- 			       (const u32 *)&la6->sin6_addr.s6_addr, 1);
-@@ -809,18 +815,22 @@ static int send_connect(struct c4iw_ep *ep)
- 		req->opt0 = cpu_to_be64(opt0);
- 
- 		if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
--			req->params = cpu_to_be32(cxgb4_select_ntuple(
--						ep->com.dev->rdev.lldi.ports[0],
--						ep->l2t));
-+			req->params = cpu_to_be32(params);
- 			req->opt2 = cpu_to_be32(opt2);
- 		} else {
--			t5req->params = cpu_to_be64(FILTER_TUPLE_V(
--						cxgb4_select_ntuple(
--						ep->com.dev->rdev.lldi.ports[0],
--						ep->l2t)));
--			t5req->rsvd = cpu_to_be32(isn);
--			PDBG("%s snd_isn %u\n", __func__, t5req->rsvd);
--			t5req->opt2 = cpu_to_be32(opt2);
-+			if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
-+				t5req->params =
-+					  cpu_to_be64(FILTER_TUPLE_V(params));
-+				t5req->rsvd = cpu_to_be32(isn);
-+				PDBG("%s snd_isn %u\n", __func__, t5req->rsvd);
-+				t5req->opt2 = cpu_to_be32(opt2);
-+			} else {
-+				t6req->params =
-+					  cpu_to_be64(FILTER_TUPLE_V(params));
-+				t6req->rsvd = cpu_to_be32(isn);
-+				PDBG("%s snd_isn %u\n", __func__, t6req->rsvd);
-+				t6req->opt2 = cpu_to_be32(opt2);
-+			}
- 		}
- 	} else {
- 		switch (CHELSIO_CHIP_VERSION(adapter_type)) {
-@@ -859,18 +869,24 @@ static int send_connect(struct c4iw_ep *ep)
- 		req6->opt0 = cpu_to_be64(opt0);
- 
- 		if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
--			req6->params = cpu_to_be32(cxgb4_select_ntuple(
--						ep->com.dev->rdev.lldi.ports[0],
--						ep->l2t));
-+			req6->params = cpu_to_be32(cxgb4_select_ntuple(netdev,
-+								      ep->l2t));
- 			req6->opt2 = cpu_to_be32(opt2);
- 		} else {
--			t5req6->params = cpu_to_be64(FILTER_TUPLE_V(
--						cxgb4_select_ntuple(
--						ep->com.dev->rdev.lldi.ports[0],
--						ep->l2t)));
--			t5req6->rsvd = cpu_to_be32(isn);
--			PDBG("%s snd_isn %u\n", __func__, t5req6->rsvd);
--			t5req6->opt2 = cpu_to_be32(opt2);
-+			if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
-+				t5req6->params =
-+					    cpu_to_be64(FILTER_TUPLE_V(params));
-+				t5req6->rsvd = cpu_to_be32(isn);
-+				PDBG("%s snd_isn %u\n", __func__, t5req6->rsvd);
-+				t5req6->opt2 = cpu_to_be32(opt2);
-+			} else {
-+				t6req6->params =
-+					    cpu_to_be64(FILTER_TUPLE_V(params));
-+				t6req6->rsvd = cpu_to_be32(isn);
-+				PDBG("%s snd_isn %u\n", __func__, t6req6->rsvd);
-+				t6req6->opt2 = cpu_to_be32(opt2);
-+			}
-+
- 		}
- 	}
- 
--- 
-2.1.0
+Those guidelines continue to apply to the public symbols.
 
+> libibverbs.map's ABI version was 1.4 before and it was synced with
+> CmakeList, but now, it won't.
+
+The map file will have two sections now, one for public symbols that
+will continue to use the 1.3/1.4/etc system
+(Ah, Yishai forgot to update CMakeLists when he added the 1.4 symbols,
+oops, we need a travis check for this I guess..)
+
+The other is the private symbol section that basically just tracks the
+release number. There will only ever be one PRIVATE section since we
+don't provide compat. We do not attempt to reflect the PRIVATE symbols
+in the filename.
+
+The file name will continue to be 1.3.${PACKAGE_VERSION} but it is
+largely irrelevant..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
