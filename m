@@ -1,53 +1,120 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
-Date: Mon, 30 Jan 2017 18:49:41 -0700
-Message-ID: <20170131014941.GA15387@obsidianresearch.com>
-References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
- <20170130195412.GE24466@obsidianresearch.com>
- <VI1PR0502MB30081EBFBEE5994B77D58BB9D14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170130211420.GB27111@obsidianresearch.com>
- <VI1PR0502MB30081EC9B35269636B4C2FBCD14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170130221437.GA28117@obsidianresearch.com>
- <VI1PR0502MB3008B16A0F103D729209EA16D14A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170131005340.GA30809@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: clean up send_connect()
+Date: Tue, 31 Jan 2017 12:00:09 +0530
+Message-ID: <1485844209-15727-1-git-send-email-ganeshgr@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170131005340.GA30809-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 30, 2017 at 05:53:40PM -0700, Jason Gunthorpe wrote:
+Clean up send_connect() and make use of t6 specific
+active open request struct.
 
-> In IB the matching GID table entry is placed in wc.sgid_index.
-> 
-> I argued that rocee should do the same, but since mlx didn't implement
-> this in hardware they didn't want to take the performance cost when
-> building the WC.
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+v2: Added full Steve's name in Acked-by 
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 56 ++++++++++++++++++++++++++--------------
+ 1 file changed, 36 insertions(+), 20 deletions(-)
 
-Sorry, I realized this reads confusingly after the fact - the argument
-was about adding a wc.gid_index - IB unambigously open-codes computing
-wc.gid_index ..
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index f1510cc..b9c2163 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -692,6 +692,10 @@ static int send_connect(struct c4iw_ep *ep)
+ 	int ret;
+ 	enum chip_type adapter_type = ep->com.dev->rdev.lldi.adapter_type;
+ 	u32 isn = (prandom_u32() & ~7UL) - 1;
++	struct net_device *netdev;
++	u64 params;
++
++	netdev = ep->com.dev->rdev.lldi.ports[0];
+ 
+ 	switch (CHELSIO_CHIP_VERSION(adapter_type)) {
+ 	case CHELSIO_T4:
+@@ -768,6 +772,8 @@ static int send_connect(struct c4iw_ep *ep)
+ 		opt2 |= T5_ISS_F;
+ 	}
+ 
++	params = cxgb4_select_ntuple(netdev, ep->l2t);
++
+ 	if (ep->com.remote_addr.ss_family == AF_INET6)
+ 		cxgb4_clip_get(ep->com.dev->rdev.lldi.ports[0],
+ 			       (const u32 *)&la6->sin6_addr.s6_addr, 1);
+@@ -809,18 +815,22 @@ static int send_connect(struct c4iw_ep *ep)
+ 		req->opt0 = cpu_to_be64(opt0);
+ 
+ 		if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
+-			req->params = cpu_to_be32(cxgb4_select_ntuple(
+-						ep->com.dev->rdev.lldi.ports[0],
+-						ep->l2t));
++			req->params = cpu_to_be32(params);
+ 			req->opt2 = cpu_to_be32(opt2);
+ 		} else {
+-			t5req->params = cpu_to_be64(FILTER_TUPLE_V(
+-						cxgb4_select_ntuple(
+-						ep->com.dev->rdev.lldi.ports[0],
+-						ep->l2t)));
+-			t5req->rsvd = cpu_to_be32(isn);
+-			PDBG("%s snd_isn %u\n", __func__, t5req->rsvd);
+-			t5req->opt2 = cpu_to_be32(opt2);
++			if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
++				t5req->params =
++					  cpu_to_be64(FILTER_TUPLE_V(params));
++				t5req->rsvd = cpu_to_be32(isn);
++				PDBG("%s snd_isn %u\n", __func__, t5req->rsvd);
++				t5req->opt2 = cpu_to_be32(opt2);
++			} else {
++				t6req->params =
++					  cpu_to_be64(FILTER_TUPLE_V(params));
++				t6req->rsvd = cpu_to_be32(isn);
++				PDBG("%s snd_isn %u\n", __func__, t6req->rsvd);
++				t6req->opt2 = cpu_to_be32(opt2);
++			}
+ 		}
+ 	} else {
+ 		switch (CHELSIO_CHIP_VERSION(adapter_type)) {
+@@ -859,18 +869,24 @@ static int send_connect(struct c4iw_ep *ep)
+ 		req6->opt0 = cpu_to_be64(opt0);
+ 
+ 		if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
+-			req6->params = cpu_to_be32(cxgb4_select_ntuple(
+-						ep->com.dev->rdev.lldi.ports[0],
+-						ep->l2t));
++			req6->params = cpu_to_be32(cxgb4_select_ntuple(netdev,
++								      ep->l2t));
+ 			req6->opt2 = cpu_to_be32(opt2);
+ 		} else {
+-			t5req6->params = cpu_to_be64(FILTER_TUPLE_V(
+-						cxgb4_select_ntuple(
+-						ep->com.dev->rdev.lldi.ports[0],
+-						ep->l2t)));
+-			t5req6->rsvd = cpu_to_be32(isn);
+-			PDBG("%s snd_isn %u\n", __func__, t5req6->rsvd);
+-			t5req6->opt2 = cpu_to_be32(opt2);
++			if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
++				t5req6->params =
++					    cpu_to_be64(FILTER_TUPLE_V(params));
++				t5req6->rsvd = cpu_to_be32(isn);
++				PDBG("%s snd_isn %u\n", __func__, t5req6->rsvd);
++				t5req6->opt2 = cpu_to_be32(opt2);
++			} else {
++				t6req6->params =
++					    cpu_to_be64(FILTER_TUPLE_V(params));
++				t6req6->rsvd = cpu_to_be32(isn);
++				PDBG("%s snd_isn %u\n", __func__, t6req6->rsvd);
++				t6req6->opt2 = cpu_to_be32(opt2);
++			}
++
+ 		}
+ 	}
+ 
+-- 
+2.1.0
 
-I think you should review the thread starting here:
-
-http://www.spinics.net/lists/linux-rdma/msg30976.html
-
-Which is what caused this broken route lookup to be implemented in the
-first place.
-
-And here is my first suggestion on how to fix it up:
-
-http://www.spinics.net/lists/linux-rdma/msg31118.html
-
-The fact the fundamental problems I raised during the review were not
-properly addressed is what is causing these problems and confusion
-now.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
