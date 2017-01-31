@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 5/7] svcrdma: Remove unused sc_dto_q field
-Date: Tue, 31 Jan 2017 13:53:27 -0500
-Message-ID: <20170131185326.14185.48454.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 4/7] svcrdma: Clean up backchannel send header encoding
+Date: Tue, 31 Jan 2017 13:53:18 -0500
+Message-ID: <20170131185318.14185.90053.stgit@klimt.1015granger.net>
 References: <20170131184623.14185.35480.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,41 +13,47 @@ To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up. Commit be99bb11400c ("svcrdma: Use new CQ API for
-RPC-over-RDMA server send CQs") removed code that used the sc_dto_q
-field, but neglected to remove sc_dto_q at the same time.
+Replace C structure-based XDR decoding with pointer arithmetic.
+Pointer arithmetic is considered more portable.
 
-Fixes: be99bb11400c ("svcrdma: Use new CQ API for RPC-over- ...")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h          |    1 -
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    1 -
- 2 files changed, 2 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 5549bdb..aaa2477 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -172,7 +172,6 @@ struct svcxprt_rdma {
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index 288e35c..abfce04 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -200,19 +200,20 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
+ {
+ 	struct rpc_xprt *xprt = rqst->rq_xprt;
+ 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+-	struct rpcrdma_msg *headerp = (struct rpcrdma_msg *)rqst->rq_buffer;
++	__be32 *p;
+ 	int rc;
  
- 	wait_queue_head_t    sc_send_wait;	/* SQ exhaustion waitlist */
- 	unsigned long	     sc_flags;
--	struct list_head     sc_dto_q;		/* DTO tasklet I/O pending Q */
- 	struct list_head     sc_read_complete_q;
- 	struct work_struct   sc_work;
- };
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 174928f..023eaa0 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -557,7 +557,6 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
- 		return NULL;
- 	svc_xprt_init(&init_net, &svc_rdma_class, &cma_xprt->sc_xprt, serv);
- 	INIT_LIST_HEAD(&cma_xprt->sc_accept_q);
--	INIT_LIST_HEAD(&cma_xprt->sc_dto_q);
- 	INIT_LIST_HEAD(&cma_xprt->sc_rq_dto_q);
- 	INIT_LIST_HEAD(&cma_xprt->sc_read_complete_q);
- 	INIT_LIST_HEAD(&cma_xprt->sc_frmr_q);
+ 	/* Space in the send buffer for an RPC/RDMA header is reserved
+ 	 * via xprt->tsh_size.
+ 	 */
+-	headerp->rm_xid = rqst->rq_xid;
+-	headerp->rm_vers = rpcrdma_version;
+-	headerp->rm_credit = cpu_to_be32(r_xprt->rx_buf.rb_bc_max_requests);
+-	headerp->rm_type = rdma_msg;
+-	headerp->rm_body.rm_chunks[0] = xdr_zero;
+-	headerp->rm_body.rm_chunks[1] = xdr_zero;
+-	headerp->rm_body.rm_chunks[2] = xdr_zero;
++	p = (__be32 *)rqst->rq_buffer;
++	*p++ = rqst->rq_xid;
++	*p++ = rpcrdma_version;
++	*p++ = cpu_to_be32(r_xprt->rx_buf.rb_bc_max_requests);
++	*p++ = rdma_msg;
++	*p++ = xdr_zero;
++	*p++ = xdr_zero;
++	*p = xdr_zero;
+ 
+ #ifdef SVCRDMA_BACKCHANNEL_DEBUG
+ 	pr_info("%s: %*ph\n", __func__, 64, rqst->rq_buffer);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
