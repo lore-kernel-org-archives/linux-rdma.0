@@ -1,62 +1,125 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 00/10] Completion timestamping support in mlx4
-Date: Tue, 31 Jan 2017 17:46:27 +0200
-Message-ID: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 07/10] mlx4: Add ability to poll CQs through iterator's style API
+Date: Tue, 31 Jan 2017 17:46:34 +0200
+Message-ID: <1485877597-23845-8-git-send-email-yishaih@mellanox.com>
+References: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1485877597-23845-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sending V1 to address few notes from Jason, details below.
+From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This series from Ariel implements the libibverbs 'Completion timestamping' API
-in the mlx4 provider.
+The new poll CQ API is based on an iterator's style API.
+The user calls start_poll_cq and next_poll_cq, query whatever valid
+and initialized (initialized attributes are attributes which were
+stated when the CQ was created) attributes and call end_poll_cq at
+the end.
 
-It implements the new iterator style CQ polling API with support of querying
-specific CQ fields, among them the completion timestamp.
+This patch implements this methodology in mlx4 user space vendor
+driver. In order to make start and end efficient, we use specialized
+functions for every case - locked and single threaded(unlocked).
 
-Benchmarks we ran in our test lab found that this new approach generally equals
-to the legacy API but *not* worse than. As the new API enables extending the
-polled fields we can overall say that it's a better API than the legacy one.
+Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx4/cq.c | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/61
-
-Yishai
-
-Changes from V0:
-- Add an extra two pre patches so that likely/unlikely and ALWAYS_INLINE will
-  be defined in one place and make the relevant cleanup.
-- Drop redundant 'inline' from mlx4_cq_read_xxx functions as they are called
-  directly outside of mlx4 by their function pointer.
-
-
-Ariel Levkovich (10):
-  Handle likely/unlikely in a single place
-  Handle always_inline attribute in util/compiler.h
-  mlx4: sl_vid field in struct mlx4_cqe should be 16 bit
-  mlx4: Refactor mlx4_poll_one
-  mlx4: Add lazy CQ polling
-  mlx4: Add inline functions to read completion's attributes
-  mlx4: Add ability to poll CQs through iterator's style API
-  mlx4: Add support for creating an extended CQ
-  mlx4: Add ibv_query_device_ex support
-  mlx4: Add ibv_query_rt_values
-
- providers/cxgb4/t4.h          |   2 +-
- providers/hns/hns_roce_u.h    |   5 +-
- providers/i40iw/i40iw_umain.h |   8 +-
- providers/mlx4/cq.c           | 490 ++++++++++++++++++++++++++++++++++--------
- providers/mlx4/mlx4-abi.h     |  27 +++
- providers/mlx4/mlx4.c         |  41 +++-
- providers/mlx4/mlx4.h         |  49 +++--
- providers/mlx4/verbs.c        | 238 ++++++++++++++++++--
- providers/mlx5/mlx5.h         |  12 +-
- providers/nes/nes_umain.h     |   8 +-
- util/compiler.h               |  22 ++
- 11 files changed, 746 insertions(+), 156 deletions(-)
-
+diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
+index dc5e8b6..045a1c2 100644
+--- a/providers/mlx4/cq.c
++++ b/providers/mlx4/cq.c
+@@ -416,6 +416,87 @@ int mlx4_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
+ 	return err == CQ_POLL_ERR ? err : npolled;
+ }
+ 
++static inline void _mlx4_end_poll(struct ibv_cq_ex *ibcq, int lock)
++				  ALWAYS_INLINE;
++static inline void _mlx4_end_poll(struct ibv_cq_ex *ibcq, int lock)
++{
++	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++
++	mlx4_update_cons_index(cq);
++
++	if (lock)
++		pthread_spin_unlock(&cq->lock);
++}
++
++static inline int _mlx4_start_poll(struct ibv_cq_ex *ibcq,
++				   struct ibv_poll_cq_attr *attr,
++				   int lock)
++				   ALWAYS_INLINE;
++static inline int _mlx4_start_poll(struct ibv_cq_ex *ibcq,
++				   struct ibv_poll_cq_attr *attr,
++				   int lock)
++{
++	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++	struct mlx4_cqe *cqe;
++	int err;
++
++	if (unlikely(attr->comp_mask))
++		return EINVAL;
++
++	if (lock)
++		pthread_spin_lock(&cq->lock);
++
++	cq->cur_qp = NULL;
++
++	err = mlx4_get_next_cqe(cq, &cqe);
++	if (err == CQ_EMPTY) {
++		if (lock)
++			pthread_spin_unlock(&cq->lock);
++		return ENOENT;
++	}
++
++	err = mlx4_parse_lazy_cqe(cq, cqe);
++	if (lock && err)
++		pthread_spin_unlock(&cq->lock);
++
++	return err;
++}
++
++static int mlx4_next_poll(struct ibv_cq_ex *ibcq)
++{
++	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++	struct mlx4_cqe *cqe;
++	int err;
++
++	err = mlx4_get_next_cqe(cq, &cqe);
++	if (err == CQ_EMPTY)
++		return ENOENT;
++
++	return mlx4_parse_lazy_cqe(cq, cqe);
++}
++
++static void mlx4_end_poll(struct ibv_cq_ex *ibcq)
++{
++	_mlx4_end_poll(ibcq, 0);
++}
++
++static void mlx4_end_poll_lock(struct ibv_cq_ex *ibcq)
++{
++	_mlx4_end_poll(ibcq, 1);
++}
++
++static int mlx4_start_poll(struct ibv_cq_ex *ibcq,
++		    struct ibv_poll_cq_attr *attr)
++{
++	return _mlx4_start_poll(ibcq, attr, 0);
++}
++
++static int mlx4_start_poll_lock(struct ibv_cq_ex *ibcq,
++			 struct ibv_poll_cq_attr *attr)
++{
++	return _mlx4_start_poll(ibcq, attr, 1);
++}
++
+ static enum ibv_wc_opcode mlx4_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
+ {
+ 	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
 -- 
 1.8.3.1
 
