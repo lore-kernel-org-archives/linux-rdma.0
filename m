@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 02/10] Handle always_inline attribute in util/compiler.h
-Date: Tue, 31 Jan 2017 17:46:29 +0200
-Message-ID: <1485877597-23845-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 04/10] mlx4: Refactor mlx4_poll_one
+Date: Tue, 31 Jan 2017 17:46:31 +0200
+Message-ID: <1485877597-23845-5-git-send-email-yishaih@mellanox.com>
 References: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485877597-23845-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,48 +12,158 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Define always_inline function attribute under ALWAYS_INLINE
-macro in util/compiler.h and clean it up from any provider code.
+Since downstream patches aim to provide lazy CQE polling, which
+let the user poll the CQE's attributes via inline functions, we
+refactor poll_one:
+* Return status instead of writing directly to the WC as part of
+  handle_error_cqe.
+* Introduce mlx4_get_next_cqe which will be used to advance the
+  CQE iterator.
 
 Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5.h | 6 ------
- util/compiler.h       | 6 ++++++
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ providers/mlx4/cq.c | 88 ++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 46 insertions(+), 42 deletions(-)
 
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index 1d28ccf..3f89f4b 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -46,12 +46,6 @@
+diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
+index 23cc3ed..8f67c90 100644
+--- a/providers/mlx4/cq.c
++++ b/providers/mlx4/cq.c
+@@ -114,7 +114,7 @@ static struct mlx4_cqe *next_cqe_sw(struct mlx4_cq *cq)
+ 	return get_sw_cqe(cq, cq->cons_index);
+ }
  
- #include <valgrind/memcheck.h>
+-static void mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe, struct ibv_wc *wc)
++static enum ibv_wc_status mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe)
+ {
+ 	if (cqe->syndrome == MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR)
+ 		printf(PFX "local QP operation err "
+@@ -126,64 +126,43 @@ static void mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe, struct ibv_wc *wc)
  
--#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
--#define ALWAYS_INLINE __attribute__((always_inline))
--#else
--#define ALWAYS_INLINE
--#endif
+ 	switch (cqe->syndrome) {
+ 	case MLX4_CQE_SYNDROME_LOCAL_LENGTH_ERR:
+-		wc->status = IBV_WC_LOC_LEN_ERR;
+-		break;
++		return IBV_WC_LOC_LEN_ERR;
+ 	case MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR:
+-		wc->status = IBV_WC_LOC_QP_OP_ERR;
+-		break;
++		return IBV_WC_LOC_QP_OP_ERR;
+ 	case MLX4_CQE_SYNDROME_LOCAL_PROT_ERR:
+-		wc->status = IBV_WC_LOC_PROT_ERR;
+-		break;
++		return IBV_WC_LOC_PROT_ERR;
+ 	case MLX4_CQE_SYNDROME_WR_FLUSH_ERR:
+-		wc->status = IBV_WC_WR_FLUSH_ERR;
+-		break;
++		return IBV_WC_WR_FLUSH_ERR;
+ 	case MLX4_CQE_SYNDROME_MW_BIND_ERR:
+-		wc->status = IBV_WC_MW_BIND_ERR;
+-		break;
++		return IBV_WC_MW_BIND_ERR;
+ 	case MLX4_CQE_SYNDROME_BAD_RESP_ERR:
+-		wc->status = IBV_WC_BAD_RESP_ERR;
+-		break;
++		return IBV_WC_BAD_RESP_ERR;
+ 	case MLX4_CQE_SYNDROME_LOCAL_ACCESS_ERR:
+-		wc->status = IBV_WC_LOC_ACCESS_ERR;
+-		break;
++		return IBV_WC_LOC_ACCESS_ERR;
+ 	case MLX4_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR:
+-		wc->status = IBV_WC_REM_INV_REQ_ERR;
+-		break;
++		return IBV_WC_REM_INV_REQ_ERR;
+ 	case MLX4_CQE_SYNDROME_REMOTE_ACCESS_ERR:
+-		wc->status = IBV_WC_REM_ACCESS_ERR;
+-		break;
++		return IBV_WC_REM_ACCESS_ERR;
+ 	case MLX4_CQE_SYNDROME_REMOTE_OP_ERR:
+-		wc->status = IBV_WC_REM_OP_ERR;
+-		break;
++		return IBV_WC_REM_OP_ERR;
+ 	case MLX4_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR:
+-		wc->status = IBV_WC_RETRY_EXC_ERR;
+-		break;
++		return IBV_WC_RETRY_EXC_ERR;
+ 	case MLX4_CQE_SYNDROME_RNR_RETRY_EXC_ERR:
+-		wc->status = IBV_WC_RNR_RETRY_EXC_ERR;
+-		break;
++		return IBV_WC_RNR_RETRY_EXC_ERR;
+ 	case MLX4_CQE_SYNDROME_REMOTE_ABORTED_ERR:
+-		wc->status = IBV_WC_REM_ABORT_ERR;
+-		break;
++		return IBV_WC_REM_ABORT_ERR;
+ 	default:
+-		wc->status = IBV_WC_GENERAL_ERR;
+-		break;
++		return IBV_WC_GENERAL_ERR;
+ 	}
 -
- #define PFX		"mlx5: "
+-	wc->vendor_err = cqe->vendor_err;
+ }
  
+-static int mlx4_poll_one(struct mlx4_cq *cq,
+-			 struct mlx4_qp **cur_qp,
+-			 struct ibv_wc *wc)
++static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
++				    struct mlx4_cqe **pcqe)
++				    ALWAYS_INLINE;
++static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
++				    struct mlx4_cqe **pcqe)
+ {
+-	struct mlx4_wq *wq;
+ 	struct mlx4_cqe *cqe;
+-	struct mlx4_srq *srq;
+-	uint32_t qpn;
+-	uint32_t g_mlpath_rqpn;
+-	uint16_t wqe_index;
+-	int is_error;
+-	int is_send;
  
-diff --git a/util/compiler.h b/util/compiler.h
-index fa2c0e7..e262540 100644
---- a/util/compiler.h
-+++ b/util/compiler.h
-@@ -31,4 +31,10 @@
- #endif
- #endif
+ 	cqe = next_cqe_sw(cq);
+ 	if (!cqe)
+@@ -202,6 +181,28 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 	 */
+ 	rmb();
  
-+#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
-+#define ALWAYS_INLINE __attribute__((always_inline))
-+#else
-+#define ALWAYS_INLINE
-+#endif
++	*pcqe = cqe;
 +
- #endif
++	return CQ_OK;
++}
++
++static int mlx4_poll_one(struct mlx4_cq *cq,
++			 struct mlx4_qp **cur_qp,
++			 struct ibv_wc *wc)
++{
++	struct mlx4_wq *wq;
++	struct mlx4_cqe *cqe;
++	struct mlx4_srq *srq;
++	uint32_t qpn;
++	uint32_t g_mlpath_rqpn;
++	uint16_t wqe_index;
++	struct mlx4_err_cqe *ecqe;
++	int is_error;
++	int is_send;
++
++	if  (mlx4_get_next_cqe(cq, &cqe) == CQ_EMPTY)
++		return CQ_EMPTY;
++
+ 	qpn = ntohl(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK;
+ 	wc->qp_num = qpn;
+ 
+@@ -250,7 +251,10 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 	}
+ 
+ 	if (is_error) {
+-		mlx4_handle_error_cqe((struct mlx4_err_cqe *) cqe, wc);
++		ecqe = (struct mlx4_err_cqe *)cqe;
++		wc->status = mlx4_handle_error_cqe(ecqe);
++		wc->vendor_err = ecqe->vendor_err;
++
+ 		return CQ_OK;
+ 	}
+ 
 -- 
 1.8.3.1
 
