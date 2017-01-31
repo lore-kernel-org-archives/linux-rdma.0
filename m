@@ -1,165 +1,38 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 7/7] svcrdma: Poll CQs in "workqueue" mode
-Date: Tue, 31 Jan 2017 13:53:43 -0500
-Message-ID: <20170131185343.14185.76984.stgit@klimt.1015granger.net>
-References: <20170131184623.14185.35480.stgit@klimt.1015granger.net>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: rdma-core 12 breaks libibverbs ABI
+Date: Tue, 31 Jan 2017 12:37:58 -0800
+Message-ID: <20170131203758.GB32458@infradead.org>
+References: <20170126171325.GA16562@obsidianresearch.com>
+ <20170126173548.GA15006@infradead.org>
+ <20170126180926.GB20330@obsidianresearch.com>
+ <20170126181113.GA8679@infradead.org>
+ <20170126202330.GX6005@mtr-leonro.local>
+ <1828884A29C6694DAF28B7E6B8A82373AB0E15AD@ORSMSX109.amr.corp.intel.com>
+ <20170127010452.GA7826@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0E1609@ORSMSX109.amr.corp.intel.com>
+ <41e74ed7-fd8d-89cf-2c79-b99a8d786fac@redhat.com>
+ <A4803088-726E-4B88-B421-CE1969B6E25B@ccn-mail.lanl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170131184623.14185.35480.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <A4803088-726E-4B88-B421-CE1969B6E25B-K3XgeB3KlJxL3NSqSJqx7PIbXMQ5te18@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-svcrdma calls svc_xprt_put() in its completion handlers, which
-currently run in IRQ context.
+On Tue, Jan 31, 2017 at 06:37:58PM +0000, Coulter, Susan K wrote:
+> This is happening now - not in the future.
+> LANL and other DOE labs already have OPA and IB/mlnx on the same host.
 
-However, svc_xprt_put() is meant to be invoked in process context,
-not in IRQ context. After the last transport reference is gone, it
-directly calls a transport release function that expects to run in
-process context.
+And have setups with up to three different providers :)
 
-Change the CQ polling modes to IB_POLL_WORKQUEUE so that svcrdma
-invokes svc_xprt_put() only in process context. As an added benefit,
-bottom half-disabled spin locking can be eliminated from I/O paths.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |    6 +++---
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   26 +++++++++++++-------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index b9ccd73..f7b2daf 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -606,12 +606,12 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 
- 	dprintk("svcrdma: rqstp=%p\n", rqstp);
- 
--	spin_lock_bh(&rdma_xprt->sc_rq_dto_lock);
-+	spin_lock(&rdma_xprt->sc_rq_dto_lock);
- 	if (!list_empty(&rdma_xprt->sc_read_complete_q)) {
- 		ctxt = list_first_entry(&rdma_xprt->sc_read_complete_q,
- 					struct svc_rdma_op_ctxt, list);
- 		list_del(&ctxt->list);
--		spin_unlock_bh(&rdma_xprt->sc_rq_dto_lock);
-+		spin_unlock(&rdma_xprt->sc_rq_dto_lock);
- 		rdma_read_complete(rqstp, ctxt);
- 		goto complete;
- 	} else if (!list_empty(&rdma_xprt->sc_rq_dto_q)) {
-@@ -623,7 +623,7 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		clear_bit(XPT_DATA, &xprt->xpt_flags);
- 		ctxt = NULL;
- 	}
--	spin_unlock_bh(&rdma_xprt->sc_rq_dto_lock);
-+	spin_unlock(&rdma_xprt->sc_rq_dto_lock);
- 	if (!ctxt) {
- 		/* This is the EAGAIN path. The svc_recv routine will
- 		 * return -EAGAIN, the nfsd thread will go to call into
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 87b8b5a..ab2fd53 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -188,7 +188,7 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
- {
- 	struct svc_rdma_op_ctxt *ctxt = NULL;
- 
--	spin_lock_bh(&xprt->sc_ctxt_lock);
-+	spin_lock(&xprt->sc_ctxt_lock);
- 	xprt->sc_ctxt_used++;
- 	if (list_empty(&xprt->sc_ctxts))
- 		goto out_empty;
-@@ -196,7 +196,7 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
- 	ctxt = list_first_entry(&xprt->sc_ctxts,
- 				struct svc_rdma_op_ctxt, list);
- 	list_del(&ctxt->list);
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- 
- out:
- 	ctxt->count = 0;
-@@ -208,15 +208,15 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
- 	/* Either pre-allocation missed the mark, or send
- 	 * queue accounting is broken.
- 	 */
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- 
- 	ctxt = alloc_ctxt(xprt, GFP_NOIO);
- 	if (ctxt)
- 		goto out;
- 
--	spin_lock_bh(&xprt->sc_ctxt_lock);
-+	spin_lock(&xprt->sc_ctxt_lock);
- 	xprt->sc_ctxt_used--;
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- 	WARN_ONCE(1, "svcrdma: empty RDMA ctxt list?\n");
- 	return NULL;
- }
-@@ -253,10 +253,10 @@ void svc_rdma_put_context(struct svc_rdma_op_ctxt *ctxt, int free_pages)
- 		for (i = 0; i < ctxt->count; i++)
- 			put_page(ctxt->pages[i]);
- 
--	spin_lock_bh(&xprt->sc_ctxt_lock);
-+	spin_lock(&xprt->sc_ctxt_lock);
- 	xprt->sc_ctxt_used--;
- 	list_add(&ctxt->list, &xprt->sc_ctxts);
--	spin_unlock_bh(&xprt->sc_ctxt_lock);
-+	spin_unlock(&xprt->sc_ctxt_lock);
- }
- 
- static void svc_rdma_destroy_ctxts(struct svcxprt_rdma *xprt)
-@@ -921,14 +921,14 @@ struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
- {
- 	struct svc_rdma_fastreg_mr *frmr = NULL;
- 
--	spin_lock_bh(&rdma->sc_frmr_q_lock);
-+	spin_lock(&rdma->sc_frmr_q_lock);
- 	if (!list_empty(&rdma->sc_frmr_q)) {
- 		frmr = list_entry(rdma->sc_frmr_q.next,
- 				  struct svc_rdma_fastreg_mr, frmr_list);
- 		list_del_init(&frmr->frmr_list);
- 		frmr->sg_nents = 0;
- 	}
--	spin_unlock_bh(&rdma->sc_frmr_q_lock);
-+	spin_unlock(&rdma->sc_frmr_q_lock);
- 	if (frmr)
- 		return frmr;
- 
-@@ -941,10 +941,10 @@ void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
- 	if (frmr) {
- 		ib_dma_unmap_sg(rdma->sc_cm_id->device,
- 				frmr->sg, frmr->sg_nents, frmr->direction);
--		spin_lock_bh(&rdma->sc_frmr_q_lock);
-+		spin_lock(&rdma->sc_frmr_q_lock);
- 		WARN_ON_ONCE(!list_empty(&frmr->frmr_list));
- 		list_add(&frmr->frmr_list, &rdma->sc_frmr_q);
--		spin_unlock_bh(&rdma->sc_frmr_q_lock);
-+		spin_unlock(&rdma->sc_frmr_q_lock);
- 	}
- }
- 
-@@ -1026,13 +1026,13 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 		goto errout;
- 	}
- 	newxprt->sc_sq_cq = ib_alloc_cq(dev, newxprt, newxprt->sc_sq_depth,
--					0, IB_POLL_SOFTIRQ);
-+					0, IB_POLL_WORKQUEUE);
- 	if (IS_ERR(newxprt->sc_sq_cq)) {
- 		dprintk("svcrdma: error creating SQ CQ for connect request\n");
- 		goto errout;
- 	}
- 	newxprt->sc_rq_cq = ib_alloc_cq(dev, newxprt, newxprt->sc_rq_depth,
--					0, IB_POLL_SOFTIRQ);
-+					0, IB_POLL_WORKQUEUE);
- 	if (IS_ERR(newxprt->sc_rq_cq)) {
- 		dprintk("svcrdma: error creating RQ CQ for connect request\n");
- 		goto errout;
-
+But the whole point is that the new rdma-core setup gives us a sane
+way to handle this:  patch your rdma-core tree with whatever vendor
+updates you need, same as the kernel.  The current model where vendors
+supply a new libibverbs that has all kinds of incompatible hacks is
+simply not sustainable.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
