@@ -1,75 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core 12 breaks libibverbs ABI
-Date: Tue, 31 Jan 2017 10:35:00 -0700
-Message-ID: <20170131173500.GA11210@obsidianresearch.com>
-References: <1485446147.4194.4.camel@profitbricks.com>
- <20170126171325.GA16562@obsidianresearch.com>
- <20170126173548.GA15006@infradead.org>
- <1485865383.4257.10.camel@profitbricks.com>
- <1485875171.4257.18.camel@profitbricks.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 0/7] NFS/RDMA client-side patches for 4.11
+Date: Tue, 31 Jan 2017 13:38:08 -0500
+Message-ID: <20170131183345.5325.47072.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1485875171.4257.18.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 31, 2017 at 04:06:11PM +0100, Benjamin Drung wrote:
+These are bug fixes based on v4.10-rc6 + my for-4.10-rc fixes.
 
-> One private feedback was that removing symbols without bumping the
-> soname is a really bad idea (even if they are private symbols). So one
-> option would be to bump the soname once and remove all private symbols
-> in that run.
+The keepalive patches are still waiting for internal testing
+resources.
 
-Bumping the soname is also a really bad idea - we need to pick which
-one is less bad :)
+Available in the "nfs-rdma-for-4.11" topic branch of this git repo:
 
-> I searched for "ibv_cmd_" in Debian's source code:
-> https://codesearch.debian.net/search?q=ibv_cmd_
-> It boils down to these source packages:
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-Neat. I also looked at the removed headerfiles which will cause FTBS.
 
-dmtcp seems to include an old wrong copy of
-libibverbs/examples/devinfo.c - I have no idea why.
+Or for browsing:
 
-usr/include/infiniband/arch.h
- dpdk 
- dmtcp
- fio
- qlvnictools
-These seem to be using htonll/etc (replace with glibc's htobe64)
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.11
 
-usr/include/infiniband/driver.h
- openmpi
- dmtcp
- libfabric
-Most of these are probably unnecessary..
 
-infiniband/marshall.h has none
+Changes since v1:
+- Rebased on v4.10-rc6
+- Tested-by and additional clean-up in 1/7
+- Patch description clarifications
+- Renamed some constants and variables
 
-> openmpi uses ibv_cmd_open_xrcd in config/opal_check_openfabrics.m4:
-> 
->    # We have to check functions both exits *and* are declared
->    # since some distro ship broken ibverbs devel headers
->    # IBV_DEVICE_XRC is common to all OFED versions
->    # ibv_create_xrc_rcv_qp was added in OFED 1.3
->    # ibv_cmd_open_xrcd (aka XRC Domains) was added in  OFED 3.12
-> 
-> So I recommend to contact openmpi to let them change their configure
-> check to not check for ibv_cmd_open_xrcd any more.
 
-Yes, they will need to make a few small changes
+---
 
-This is a very small amount of usage and other than the htonll stuff,
-none of it looks at all right to me.
+Chuck Lever (7):
+      xprtrdma: Properly recover FRWRs with in-flight FASTREG WRs
+      xprtrdma: Handle stale connection rejection
+      xprtrdma: Refactor management of mw_list field
+      sunrpc: Allow xprt->ops->timer method to sleep
+      sunrpc: Enable calls to rpc_call_null_helper() from other modules
+      xprtrdma: Detect unreachable NFS/RDMA servers more reliably
+      sunrpc: Allow keepalive ping on a credit-full transport
 
-Jason
+
+ fs/nfs/nfs4proc.c               |    3 -
+ fs/nfsd/nfs4callback.c          |    2 -
+ include/linux/sunrpc/clnt.h     |    5 ++
+ include/linux/sunrpc/sched.h    |    4 ++
+ net/sunrpc/clnt.c               |   28 ++++++------
+ net/sunrpc/xprt.c               |    6 ++
+ net/sunrpc/xprtrdma/fmr_ops.c   |    5 --
+ net/sunrpc/xprtrdma/frwr_ops.c  |   11 ++---
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   20 +++++---
+ net/sunrpc/xprtrdma/transport.c |   74 +++++++++++++++++++++++++++++--
+ net/sunrpc/xprtrdma/verbs.c     |   94 ++++++++++++++-------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   23 ++++++++++
+ net/sunrpc/xprtsock.c           |    2 +
+ 13 files changed, 174 insertions(+), 103 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
