@@ -1,62 +1,53 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] IB/cma: Add default RoCE TOS to CMA configfs
-Date: Tue, 31 Jan 2017 18:02:02 +0200
-Message-ID: <20170131160201.GA20528@yuval-lap.uk.oracle.com>
-References: <20170131105929.GA6788@mwanda>
- <01D1013C-F14B-467D-A21E-9EA6214A38F5@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core 12 breaks libibverbs ABI
+Date: Tue, 31 Jan 2017 09:38:02 -0700
+Message-ID: <20170131163802.GA32222@obsidianresearch.com>
+References: <1485446147.4194.4.camel@profitbricks.com>
+ <20170126171325.GA16562@obsidianresearch.com>
+ <20170126173548.GA15006@infradead.org>
+ <1485865383.4257.10.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <01D1013C-F14B-467D-A21E-9EA6214A38F5-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1485865383.4257.10.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 31, 2017 at 03:32:48PM +0000, Majd Dibbiny wrote:
-> 
-> > On Jan 31, 2017, at 12:59 PM, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+On Tue, Jan 31, 2017 at 01:23:03PM +0100, Benjamin Drung wrote:
+> Am Donnerstag, den 26.01.2017, 09:35 -0800 schrieb Christoph Hellwig:
+> > On Thu, Jan 26, 2017 at 10:13:25AM -0700, Jason Gunthorpe wrote:
+> > > I missed asking for this when the ibv_cmd_create_ah@IBVERBS_1.4
+> > > patch
+> > > was merged, but before we release 13 we need to drop all the
+> > > ibv_cmd_*
+> > > entry points from the public headers so that nothing outside rdma-
+> > > core
+> > > can link to these symbols.
 > > 
-> > Hello Majd Dibbiny,
-> Hello Daniel,
+> > A good thing would be to move all these symbols into a
+> > @IBVERBS_PRIVATE
+> > namespace, similar to what glibc does for it's internal library only
+> > exports.
 > 
-> Thanks for the report.
-> I'll fix and send a new revision soon..
+> I am fine with moving the private symbols into a IBVERBS_PRIVATE_XX
+> namespace as long as all consumers of the private symbols are build
+> from the rdma-core source package. I need to check if there is a
+> package in Debian that uses the private symbols.
 
-Can you re-base it on top of for-next and use the new inline function
-rdma_is_port_valid?
+> So either go forward (extra namespace for private symbols) or revert
+> the ABI breakage (for the time being). The discussion on this list seem
+> to prefer the first option.
 
-> 
-> > 
-> > The patch eeec11e5c404: "IB/cma: Add default RoCE TOS to CMA
-> > configfs" from Dec 19, 2016, leads to the following static checker
-> > warning:
-> > 
-> >    drivers/infiniband/core/cma.c:303 cma_get_default_roce_tos()
-> >    warn: signedness bug returning '(-22)'
-> > 
-> > drivers/infiniband/core/cma.c
-> >   298  
-> >   299  u8 cma_get_default_roce_tos(struct cma_device *cma_dev, unsigned int port)
-> >   300  {
-> >   301          if (port < rdma_start_port(cma_dev->device) ||
-> >   302              port > rdma_end_port(cma_dev->device))
-> >   303                  return -EINVAL;
-> > 
-> > This is a u8 function so you can't return negative error codes.
-> > 
-> >   304  
-> >   305          return cma_dev->default_roce_tos[port - rdma_start_port(cma_dev->device)];
-> >   306  }
-> >   307  
-> > 
-> > regards,
-> > dan carpenter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes.
+
+We must implement one of the two options before releasing '13'
+
+I have sent patches on github to do the first..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
