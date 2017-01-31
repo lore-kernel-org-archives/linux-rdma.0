@@ -1,169 +1,62 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 04/10] mlx4: Refactor mlx4_poll_one
-Date: Tue, 31 Jan 2017 17:46:31 +0200
-Message-ID: <1485877597-23845-5-git-send-email-yishaih@mellanox.com>
-References: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 00/10] Completion timestamping support in mlx4
+Date: Tue, 31 Jan 2017 17:46:27 +0200
+Message-ID: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485877597-23845-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sending V1 to address few notes from Jason, details below.
 
-Since downstream patches aim to provide lazy CQE polling, which
-let the user poll the CQE's attributes via inline functions, we
-refactor poll_one:
-* Return status instead of writing directly to the WC as part of
-  handle_error_cqe.
-* Introduce mlx4_get_next_cqe which will be used to advance the
-  CQE iterator.
+This series from Ariel implements the libibverbs 'Completion timestamping' API
+in the mlx4 provider.
 
-Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx4/cq.c | 88 ++++++++++++++++++++++++++++-------------------------
- 1 file changed, 46 insertions(+), 42 deletions(-)
+It implements the new iterator style CQ polling API with support of querying
+specific CQ fields, among them the completion timestamp.
 
-diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-index 23cc3ed..8f67c90 100644
---- a/providers/mlx4/cq.c
-+++ b/providers/mlx4/cq.c
-@@ -114,7 +114,7 @@ static struct mlx4_cqe *next_cqe_sw(struct mlx4_cq *cq)
- 	return get_sw_cqe(cq, cq->cons_index);
- }
- 
--static void mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe, struct ibv_wc *wc)
-+static enum ibv_wc_status mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe)
- {
- 	if (cqe->syndrome == MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR)
- 		printf(PFX "local QP operation err "
-@@ -126,64 +126,43 @@ static void mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe, struct ibv_wc *wc)
- 
- 	switch (cqe->syndrome) {
- 	case MLX4_CQE_SYNDROME_LOCAL_LENGTH_ERR:
--		wc->status = IBV_WC_LOC_LEN_ERR;
--		break;
-+		return IBV_WC_LOC_LEN_ERR;
- 	case MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR:
--		wc->status = IBV_WC_LOC_QP_OP_ERR;
--		break;
-+		return IBV_WC_LOC_QP_OP_ERR;
- 	case MLX4_CQE_SYNDROME_LOCAL_PROT_ERR:
--		wc->status = IBV_WC_LOC_PROT_ERR;
--		break;
-+		return IBV_WC_LOC_PROT_ERR;
- 	case MLX4_CQE_SYNDROME_WR_FLUSH_ERR:
--		wc->status = IBV_WC_WR_FLUSH_ERR;
--		break;
-+		return IBV_WC_WR_FLUSH_ERR;
- 	case MLX4_CQE_SYNDROME_MW_BIND_ERR:
--		wc->status = IBV_WC_MW_BIND_ERR;
--		break;
-+		return IBV_WC_MW_BIND_ERR;
- 	case MLX4_CQE_SYNDROME_BAD_RESP_ERR:
--		wc->status = IBV_WC_BAD_RESP_ERR;
--		break;
-+		return IBV_WC_BAD_RESP_ERR;
- 	case MLX4_CQE_SYNDROME_LOCAL_ACCESS_ERR:
--		wc->status = IBV_WC_LOC_ACCESS_ERR;
--		break;
-+		return IBV_WC_LOC_ACCESS_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR:
--		wc->status = IBV_WC_REM_INV_REQ_ERR;
--		break;
-+		return IBV_WC_REM_INV_REQ_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_ACCESS_ERR:
--		wc->status = IBV_WC_REM_ACCESS_ERR;
--		break;
-+		return IBV_WC_REM_ACCESS_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_OP_ERR:
--		wc->status = IBV_WC_REM_OP_ERR;
--		break;
-+		return IBV_WC_REM_OP_ERR;
- 	case MLX4_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR:
--		wc->status = IBV_WC_RETRY_EXC_ERR;
--		break;
-+		return IBV_WC_RETRY_EXC_ERR;
- 	case MLX4_CQE_SYNDROME_RNR_RETRY_EXC_ERR:
--		wc->status = IBV_WC_RNR_RETRY_EXC_ERR;
--		break;
-+		return IBV_WC_RNR_RETRY_EXC_ERR;
- 	case MLX4_CQE_SYNDROME_REMOTE_ABORTED_ERR:
--		wc->status = IBV_WC_REM_ABORT_ERR;
--		break;
-+		return IBV_WC_REM_ABORT_ERR;
- 	default:
--		wc->status = IBV_WC_GENERAL_ERR;
--		break;
-+		return IBV_WC_GENERAL_ERR;
- 	}
--
--	wc->vendor_err = cqe->vendor_err;
- }
- 
--static int mlx4_poll_one(struct mlx4_cq *cq,
--			 struct mlx4_qp **cur_qp,
--			 struct ibv_wc *wc)
-+static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
-+				    struct mlx4_cqe **pcqe)
-+				    ALWAYS_INLINE;
-+static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
-+				    struct mlx4_cqe **pcqe)
- {
--	struct mlx4_wq *wq;
- 	struct mlx4_cqe *cqe;
--	struct mlx4_srq *srq;
--	uint32_t qpn;
--	uint32_t g_mlpath_rqpn;
--	uint16_t wqe_index;
--	int is_error;
--	int is_send;
- 
- 	cqe = next_cqe_sw(cq);
- 	if (!cqe)
-@@ -202,6 +181,28 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
- 	 */
- 	rmb();
- 
-+	*pcqe = cqe;
-+
-+	return CQ_OK;
-+}
-+
-+static int mlx4_poll_one(struct mlx4_cq *cq,
-+			 struct mlx4_qp **cur_qp,
-+			 struct ibv_wc *wc)
-+{
-+	struct mlx4_wq *wq;
-+	struct mlx4_cqe *cqe;
-+	struct mlx4_srq *srq;
-+	uint32_t qpn;
-+	uint32_t g_mlpath_rqpn;
-+	uint16_t wqe_index;
-+	struct mlx4_err_cqe *ecqe;
-+	int is_error;
-+	int is_send;
-+
-+	if  (mlx4_get_next_cqe(cq, &cqe) == CQ_EMPTY)
-+		return CQ_EMPTY;
-+
- 	qpn = ntohl(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK;
- 	wc->qp_num = qpn;
- 
-@@ -250,7 +251,10 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
- 	}
- 
- 	if (is_error) {
--		mlx4_handle_error_cqe((struct mlx4_err_cqe *) cqe, wc);
-+		ecqe = (struct mlx4_err_cqe *)cqe;
-+		wc->status = mlx4_handle_error_cqe(ecqe);
-+		wc->vendor_err = ecqe->vendor_err;
-+
- 		return CQ_OK;
- 	}
- 
+Benchmarks we ran in our test lab found that this new approach generally equals
+to the legacy API but *not* worse than. As the new API enables extending the
+polled fields we can overall say that it's a better API than the legacy one.
+
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/61
+
+Yishai
+
+Changes from V0:
+- Add an extra two pre patches so that likely/unlikely and ALWAYS_INLINE will
+  be defined in one place and make the relevant cleanup.
+- Drop redundant 'inline' from mlx4_cq_read_xxx functions as they are called
+  directly outside of mlx4 by their function pointer.
+
+
+Ariel Levkovich (10):
+  Handle likely/unlikely in a single place
+  Handle always_inline attribute in util/compiler.h
+  mlx4: sl_vid field in struct mlx4_cqe should be 16 bit
+  mlx4: Refactor mlx4_poll_one
+  mlx4: Add lazy CQ polling
+  mlx4: Add inline functions to read completion's attributes
+  mlx4: Add ability to poll CQs through iterator's style API
+  mlx4: Add support for creating an extended CQ
+  mlx4: Add ibv_query_device_ex support
+  mlx4: Add ibv_query_rt_values
+
+ providers/cxgb4/t4.h          |   2 +-
+ providers/hns/hns_roce_u.h    |   5 +-
+ providers/i40iw/i40iw_umain.h |   8 +-
+ providers/mlx4/cq.c           | 490 ++++++++++++++++++++++++++++++++++--------
+ providers/mlx4/mlx4-abi.h     |  27 +++
+ providers/mlx4/mlx4.c         |  41 +++-
+ providers/mlx4/mlx4.h         |  49 +++--
+ providers/mlx4/verbs.c        | 238 ++++++++++++++++++--
+ providers/mlx5/mlx5.h         |  12 +-
+ providers/nes/nes_umain.h     |   8 +-
+ util/compiler.h               |  22 ++
+ 11 files changed, 746 insertions(+), 156 deletions(-)
+
 -- 
 1.8.3.1
 
