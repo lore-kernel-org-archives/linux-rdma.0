@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 08/10] mlx4: Add support for creating an extended CQ
-Date: Tue, 31 Jan 2017 17:46:35 +0200
-Message-ID: <1485877597-23845-9-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 10/10] mlx4: Add ibv_query_rt_values
+Date: Tue, 31 Jan 2017 17:46:37 +0200
+Message-ID: <1485877597-23845-11-git-send-email-yishaih@mellanox.com>
 References: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485877597-23845-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,324 +12,184 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds the support for creating an extended CQ.
-This means we support:
-- The new polling mechanism.
-- A CQ which is single threaded and by thus doesn't waste CPU cycles on locking.
-- Getting completion timestamp from the CQ.
+In order to query the current HCA's core clock, libmlx4 should
+support ibv_query_rt_values verb. Querying the hardware's cycles
+register is done by mmaping this register to user-space.
+Therefore, when libmlx4 initializes we mmap the cycles register.
+This assumes the machine's architecture places the PCI and memory in
+the same address space.
+The page offset is retrieved by calling ibv_query_device_ex.
 
 Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx4/cq.c       |  33 ++++++++++
- providers/mlx4/mlx4-abi.h |  12 ++++
- providers/mlx4/mlx4.c     |   1 +
- providers/mlx4/mlx4.h     |   5 ++
- providers/mlx4/verbs.c    | 157 ++++++++++++++++++++++++++++++++++++++++------
- 5 files changed, 190 insertions(+), 18 deletions(-)
+ providers/mlx4/mlx4.c  | 39 ++++++++++++++++++++++++++++++++++-----
+ providers/mlx4/mlx4.h  |  8 +++++++-
+ providers/mlx4/verbs.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 87 insertions(+), 6 deletions(-)
 
-diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-index 045a1c2..769c702 100644
---- a/providers/mlx4/cq.c
-+++ b/providers/mlx4/cq.c
-@@ -644,6 +644,39 @@ static uint64_t mlx4_cq_read_wc_completion_ts(struct ibv_cq_ex *ibcq)
- 			       (cq->cqe->ts_7_0);
- }
- 
-+void mlx4_cq_fill_pfns(struct mlx4_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr)
-+{
-+
-+	if (cq->flags & MLX4_CQ_FLAGS_SINGLE_THREADED) {
-+		cq->ibv_cq.start_poll = mlx4_start_poll;
-+		cq->ibv_cq.end_poll = mlx4_end_poll;
-+	} else {
-+		cq->ibv_cq.start_poll = mlx4_start_poll_lock;
-+		cq->ibv_cq.end_poll = mlx4_end_poll_lock;
-+	}
-+	cq->ibv_cq.next_poll = mlx4_next_poll;
-+
-+	cq->ibv_cq.read_opcode = mlx4_cq_read_wc_opcode;
-+	cq->ibv_cq.read_vendor_err = mlx4_cq_read_wc_vendor_err;
-+	cq->ibv_cq.read_wc_flags = mlx4_cq_read_wc_flags;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
-+		cq->ibv_cq.read_byte_len = mlx4_cq_read_wc_byte_len;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_IMM)
-+		cq->ibv_cq.read_imm_data = mlx4_cq_read_wc_imm_data;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_QP_NUM)
-+		cq->ibv_cq.read_qp_num = mlx4_cq_read_wc_qp_num;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SRC_QP)
-+		cq->ibv_cq.read_src_qp = mlx4_cq_read_wc_src_qp;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SLID)
-+		cq->ibv_cq.read_slid = mlx4_cq_read_wc_slid;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SL)
-+		cq->ibv_cq.read_sl = mlx4_cq_read_wc_sl;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_DLID_PATH_BITS)
-+		cq->ibv_cq.read_dlid_path_bits = mlx4_cq_read_wc_dlid_path_bits;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
-+		cq->ibv_cq.read_completion_ts = mlx4_cq_read_wc_completion_ts;
-+}
-+
- int mlx4_arm_cq(struct ibv_cq *ibvcq, int solicited)
- {
- 	struct mlx4_cq *cq = to_mcq(ibvcq);
-diff --git a/providers/mlx4/mlx4-abi.h b/providers/mlx4/mlx4-abi.h
-index ac21fa8..3b8bac5 100644
---- a/providers/mlx4/mlx4-abi.h
-+++ b/providers/mlx4/mlx4-abi.h
-@@ -78,6 +78,18 @@ struct mlx4_create_cq_resp {
- 	__u32				reserved;
- };
- 
-+struct mlx4_create_cq_ex {
-+	struct ibv_create_cq_ex		ibv_cmd;
-+	__u64				buf_addr;
-+	__u64				db_addr;
-+};
-+
-+struct mlx4_create_cq_resp_ex {
-+	struct ibv_create_cq_resp_ex	ibv_resp;
-+	__u32				cqn;
-+	__u32				reserved;
-+};
-+
- struct mlx4_resize_cq {
- 	struct ibv_resize_cq		ibv_cmd;
- 	__u64				buf_addr;
 diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index b59c202..3f29d1a 100644
+index 755768e..8e1a0dd 100644
 --- a/providers/mlx4/mlx4.c
 +++ b/providers/mlx4/mlx4.c
-@@ -216,6 +216,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
- 	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
+@@ -118,6 +118,28 @@ static struct ibv_context_ops mlx4_ctx_ops = {
+ 	.detach_mcast  = ibv_cmd_detach_mcast
+ };
+ 
++static int mlx4_map_internal_clock(struct mlx4_device *mdev,
++				   struct ibv_context *ibv_ctx)
++{
++	struct mlx4_context *context = to_mctx(ibv_ctx);
++	void *hca_clock_page;
++
++	hca_clock_page = mmap(NULL, mdev->page_size,
++			      PROT_READ, MAP_SHARED, ibv_ctx->cmd_fd,
++			      mdev->page_size * 3);
++
++	if (hca_clock_page == MAP_FAILED) {
++		fprintf(stderr, PFX
++			"Warning: Timestamp available,\n"
++			"but failed to mmap() hca core clock page.\n");
++		return -1;
++	}
++
++	context->hca_core_clock = hca_clock_page +
++		(context->core_clock.offset & (mdev->page_size - 1));
++	return 0;
++}
++
+ static int mlx4_init_context(struct verbs_device *v_device,
+ 				struct ibv_context *ibv_ctx, int cmd_fd)
+ {
+@@ -129,7 +151,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
+ 	__u16				bf_reg_size;
+ 	struct mlx4_device              *dev = to_mdev(&v_device->device);
+ 	struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
+-	struct ibv_device_attr		dev_attrs;
++	struct ibv_device_attr_ex	dev_attrs;
+ 
+ 	/* memory footprint of mlx4_context and verbs_context share
+ 	* struct ibv_context.
+@@ -200,10 +222,14 @@ static int mlx4_init_context(struct verbs_device *v_device,
+ 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
+ 	ibv_ctx->ops = mlx4_ctx_ops;
+ 
++	context->hca_core_clock = NULL;
+ 	memset(&dev_attrs, 0, sizeof(dev_attrs));
+-	if (!mlx4_query_device(ibv_ctx, &dev_attrs)) {
+-		context->max_qp_wr = dev_attrs.max_qp_wr;
+-		context->max_sge = dev_attrs.max_sge;
++	if (!mlx4_query_device_ex(ibv_ctx, NULL, &dev_attrs,
++				  sizeof(struct ibv_device_attr_ex))) {
++		context->max_qp_wr = dev_attrs.orig_attr.max_qp_wr;
++		context->max_sge = dev_attrs.orig_attr.max_sge;
++		if (context->core_clock.offset_valid)
++			mlx4_map_internal_clock(dev, ibv_ctx);
+ 	}
+ 
+ 	verbs_ctx->has_comp_mask = VERBS_CONTEXT_XRCD | VERBS_CONTEXT_SRQ |
+@@ -218,6 +244,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
  	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
-+	verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
+ 	verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
+ 	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
++	verbs_set_ctx_op(verbs_ctx, query_rt_values, mlx4_query_rt_values);
  
  	return 0;
  
+@@ -231,7 +258,9 @@ static void mlx4_uninit_context(struct verbs_device *v_device,
+ 	munmap(context->uar, to_mdev(&v_device->device)->page_size);
+ 	if (context->bf_page)
+ 		munmap(context->bf_page, to_mdev(&v_device->device)->page_size);
+-
++	if (context->hca_core_clock)
++		munmap(context->hca_core_clock - context->core_clock.offset,
++		       to_mdev(&v_device->device)->page_size);
+ }
+ 
+ static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
 diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 25b009b..8f5fd14 100644
+index cd38538..bde1b33 100644
 --- a/providers/mlx4/mlx4.h
 +++ b/providers/mlx4/mlx4.h
-@@ -168,6 +168,8 @@ struct mlx4_pd {
- 
- enum {
- 	MLX4_CQ_FLAGS_RX_CSUM_VALID = 1 << 0,
-+	MLX4_CQ_FLAGS_EXTENDED = 1 << 1,
-+	MLX4_CQ_FLAGS_SINGLE_THREADED = 1 << 2,
+@@ -154,6 +154,11 @@ struct mlx4_context {
+ 		uint8_t                 link_layer;
+ 		enum ibv_port_cap_flags caps;
+ 	} port_query_cache[MLX4_PORTS_NUM];
++	struct {
++		uint64_t                offset;
++		uint8_t                 offset_valid;
++	} core_clock;
++	void			       *hca_core_clock;
  };
  
- struct mlx4_cq {
-@@ -375,6 +377,9 @@ int mlx4_bind_mw(struct ibv_qp *qp, struct ibv_mw *mw,
- struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
- 			       struct ibv_comp_channel *channel,
- 			       int comp_vector);
-+struct ibv_cq_ex *mlx4_create_cq_ex(struct ibv_context *context,
-+				    struct ibv_cq_init_attr_ex *cq_attr);
-+void mlx4_cq_fill_pfns(struct mlx4_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr);
- int mlx4_alloc_cq_buf(struct mlx4_device *dev, struct mlx4_buf *buf, int nent,
- 		      int entry_size);
- int mlx4_resize_cq(struct ibv_cq *cq, int cqe);
+ struct mlx4_buf {
+@@ -360,7 +365,8 @@ int mlx4_query_device_ex(struct ibv_context *context,
+ 			 size_t attr_size);
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr);
+-
++int mlx4_query_rt_values(struct ibv_context *context,
++			 struct ibv_values_ex *values);
+ struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context);
+ int mlx4_free_pd(struct ibv_pd *pd);
+ struct ibv_xrcd *mlx4_open_xrcd(struct ibv_context *context,
 diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 83c971d..4b00550 100644
+index c523c41..e2f798f 100644
 --- a/providers/mlx4/verbs.c
 +++ b/providers/mlx4/verbs.c
-@@ -304,19 +304,103 @@ int align_queue_size(int req)
- 	return nent;
+@@ -101,6 +101,52 @@ int mlx4_query_device_ex(struct ibv_context *context,
+ 	return 0;
  }
  
--struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
--			       struct ibv_comp_channel *channel,
--			       int comp_vector)
-+enum {
-+	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
-+				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
-+};
-+
-+enum {
-+	CREATE_CQ_SUPPORTED_COMP_MASK = IBV_CQ_INIT_ATTR_MASK_FLAGS
-+};
-+
-+enum {
-+	CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_SINGLE_THREADED
-+};
-+
-+
-+static int mlx4_cmd_create_cq(struct ibv_context *context,
-+			      struct ibv_cq_init_attr_ex *cq_attr,
-+			      struct mlx4_cq *cq)
++#define READL(ptr) (*((uint32_t *)(ptr)))
++static int mlx4_read_clock(struct ibv_context *context, uint64_t *cycles)
 +{
-+	struct mlx4_create_cq      cmd = {};
-+	struct mlx4_create_cq_resp resp = {};
-+	int ret;
++	unsigned int clockhi, clocklo, clockhi1;
++	int i;
++	struct mlx4_context *ctx = to_mctx(context);
 +
-+	cmd.buf_addr = (uintptr_t) cq->buf.buf;
-+	cmd.db_addr  = (uintptr_t) cq->set_ci_db;
++	if (!ctx->hca_core_clock)
++		return -EOPNOTSUPP;
 +
-+	ret = ibv_cmd_create_cq(context, cq_attr->cqe, cq_attr->channel,
-+				cq_attr->comp_vector,
-+				ibv_cq_ex_to_cq(&cq->ibv_cq),
-+				&cmd.ibv_cmd, sizeof(cmd),
-+				&resp.ibv_resp, sizeof(resp));
-+	if (!ret)
-+		cq->cqn = resp.cqn;
++	/* Handle wraparound */
++	for (i = 0; i < 2; i++) {
++		clockhi = ntohl(READL(ctx->hca_core_clock));
++		clocklo = ntohl(READL(ctx->hca_core_clock + 4));
++		clockhi1 = ntohl(READL(ctx->hca_core_clock));
++		if (clockhi == clockhi1)
++			break;
++	}
 +
-+	return ret;
++	*cycles = (uint64_t)clockhi << 32 | (uint64_t)clocklo;
 +
++	return 0;
 +}
 +
-+static int mlx4_cmd_create_cq_ex(struct ibv_context *context,
-+				 struct ibv_cq_init_attr_ex *cq_attr,
-+				 struct mlx4_cq *cq)
++int mlx4_query_rt_values(struct ibv_context *context,
++			 struct ibv_values_ex *values)
 +{
-+	struct mlx4_create_cq_ex      cmd = {};
-+	struct mlx4_create_cq_resp_ex resp = {};
-+	int ret;
++	uint32_t comp_mask = 0;
++	int err = 0;
 +
-+	cmd.buf_addr = (uintptr_t) cq->buf.buf;
-+	cmd.db_addr  = (uintptr_t) cq->set_ci_db;
++	if (values->comp_mask & IBV_VALUES_MASK_RAW_CLOCK) {
++		uint64_t cycles;
 +
-+	ret = ibv_cmd_create_cq_ex(context, cq_attr,
-+				   &cq->ibv_cq, &cmd.ibv_cmd,
-+				   sizeof(cmd.ibv_cmd),
-+				   sizeof(cmd),
-+				   &resp.ibv_resp,
-+				   sizeof(resp.ibv_resp),
-+				   sizeof(resp));
-+	if (!ret)
-+		cq->cqn = resp.cqn;
++		err = mlx4_read_clock(context, &cycles);
++		if (!err) {
++			values->raw_clock.tv_sec = 0;
++			values->raw_clock.tv_nsec = cycles;
++			comp_mask |= IBV_VALUES_MASK_RAW_CLOCK;
++		}
++	}
 +
-+	return ret;
++	values->comp_mask = comp_mask;
++
++	return err;
 +}
 +
-+static struct ibv_cq_ex *create_cq(struct ibv_context *context,
-+				   struct ibv_cq_init_attr_ex *cq_attr,
-+				   int cq_alloc_flags)
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr)
  {
--	struct mlx4_create_cq      cmd;
--	struct mlx4_create_cq_resp resp;
--	struct mlx4_cq		  *cq;
--	int			   ret;
--	struct mlx4_context       *mctx = to_mctx(context);
-+	struct mlx4_cq      *cq;
-+	int                  ret;
-+	struct mlx4_context *mctx = to_mctx(context);
- 
- 	/* Sanity check CQ size before proceeding */
--	if (cqe > 0x3fffff)
-+	if (cq_attr->cqe > 0x3fffff) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & ~CREATE_CQ_SUPPORTED_COMP_MASK) {
-+		errno = ENOTSUP;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
-+	    cq_attr->flags & ~CREATE_CQ_SUPPORTED_FLAGS) {
-+		errno = ENOTSUP;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->wc_flags & ~CREATE_CQ_SUPPORTED_WC_FLAGS)
-+		return NULL;
-+
-+	/* mlx4 devices don't support slid and sl in cqe when completion
-+	 * timestamp is enabled in the CQ
-+	*/
-+	if ((cq_attr->wc_flags & (IBV_WC_EX_WITH_SLID | IBV_WC_EX_WITH_SL)) &&
-+	    (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)) {
-+		errno = ENOTSUP;
- 		return NULL;
-+	}
- 
- 	cq = malloc(sizeof *cq);
- 	if (!cq)
-@@ -327,9 +411,9 @@ struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
- 	if (pthread_spin_init(&cq->lock, PTHREAD_PROCESS_PRIVATE))
- 		goto err;
- 
--	cqe = align_queue_size(cqe + 1);
-+	cq_attr->cqe = align_queue_size(cq_attr->cqe + 1);
- 
--	if (mlx4_alloc_cq_buf(to_mdev(context->device), &cq->buf, cqe, mctx->cqe_size))
-+	if (mlx4_alloc_cq_buf(to_mdev(context->device), &cq->buf, cq_attr->cqe, mctx->cqe_size))
- 		goto err;
- 
- 	cq->cqe_size = mctx->cqe_size;
-@@ -341,19 +425,26 @@ struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
- 	*cq->arm_db    = 0;
- 	cq->arm_sn     = 1;
- 	*cq->set_ci_db = 0;
-+	cq->flags = cq_alloc_flags;
- 
--	cmd.buf_addr = (uintptr_t) cq->buf.buf;
--	cmd.db_addr  = (uintptr_t) cq->set_ci_db;
-+	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
-+	    cq_attr->flags & IBV_CREATE_CQ_ATTR_SINGLE_THREADED)
-+		cq->flags |= MLX4_CQ_FLAGS_SINGLE_THREADED;
-+
-+	--cq_attr->cqe;
-+	if (cq_alloc_flags & MLX4_CQ_FLAGS_EXTENDED)
-+		ret = mlx4_cmd_create_cq_ex(context, cq_attr, cq);
-+	else
-+		ret = mlx4_cmd_create_cq(context, cq_attr, cq);
- 
--	ret = ibv_cmd_create_cq(context, cqe - 1, channel, comp_vector,
--				ibv_cq_ex_to_cq(&cq->ibv_cq), &cmd.ibv_cmd, sizeof(cmd),
--				&resp.ibv_resp, sizeof(resp));
- 	if (ret)
- 		goto err_db;
- 
--	cq->cqn = resp.cqn;
- 
--	return ibv_cq_ex_to_cq(&cq->ibv_cq);
-+	if (cq_alloc_flags & MLX4_CQ_FLAGS_EXTENDED)
-+		mlx4_cq_fill_pfns(cq, cq_attr);
-+
-+	return &cq->ibv_cq;
- 
- err_db:
- 	mlx4_free_db(to_mctx(context), MLX4_DB_TYPE_CQ, cq->set_ci_db);
-@@ -367,6 +458,36 @@ err:
- 	return NULL;
- }
- 
-+struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
-+			      struct ibv_comp_channel *channel,
-+			      int comp_vector)
-+{
-+	struct ibv_cq_ex *cq;
-+	struct ibv_cq_init_attr_ex cq_attr = {.cqe = cqe, .channel = channel,
-+					      .comp_vector = comp_vector,
-+					      .wc_flags = IBV_WC_STANDARD_FLAGS};
-+
-+	cq = create_cq(context, &cq_attr, 0);
-+	return cq ? ibv_cq_ex_to_cq(cq) : NULL;
-+}
-+
-+struct ibv_cq_ex *mlx4_create_cq_ex(struct ibv_context *context,
-+				    struct ibv_cq_init_attr_ex *cq_attr)
-+{
-+	/*
-+	 * Make local copy since some attributes might be adjusted
-+	 * for internal use.
-+	 */
-+	struct ibv_cq_init_attr_ex cq_attr_c = {.cqe = cq_attr->cqe,
-+						.channel = cq_attr->channel,
-+						.comp_vector = cq_attr->comp_vector,
-+						.wc_flags = cq_attr->wc_flags,
-+						.comp_mask = cq_attr->comp_mask,
-+						.flags = cq_attr->flags};
-+
-+	return create_cq(context, &cq_attr_c, MLX4_CQ_FLAGS_EXTENDED);
-+}
-+
- int mlx4_resize_cq(struct ibv_cq *ibcq, int cqe)
- {
- 	struct mlx4_cq *cq = to_mcq(ibcq);
 -- 
 1.8.3.1
 
