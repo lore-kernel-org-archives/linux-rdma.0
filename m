@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 03/10] mlx4: sl_vid field in struct mlx4_cqe should be 16 bit
-Date: Tue, 31 Jan 2017 17:46:30 +0200
-Message-ID: <1485877597-23845-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 02/10] Handle always_inline attribute in util/compiler.h
+Date: Tue, 31 Jan 2017 17:46:29 +0200
+Message-ID: <1485877597-23845-3-git-send-email-yishaih@mellanox.com>
 References: <1485877597-23845-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485877597-23845-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,30 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This fix adjusts the sl_vid fields size in struct mlx4_cqe
-to be 16 bit.
+Define always_inline function attribute under ALWAYS_INLINE
+macro in util/compiler.h and clean it up from any provider code.
 
-Fixes: 9a90176880 ("Add support for 64B CQEs")
 Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx4/mlx4.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ providers/mlx5/mlx5.h | 6 ------
+ util/compiler.h       | 6 ++++++
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 788e9fe..28ed197 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -265,8 +265,7 @@ struct mlx4_cqe {
- 	uint32_t	vlan_my_qpn;
- 	uint32_t	immed_rss_invalid;
- 	uint32_t	g_mlpath_rqpn;
--	uint8_t		sl_vid;
--	uint8_t		reserved1;
-+	uint16_t	sl_vid;
- 	uint16_t	rlid;
- 	uint32_t	status;
- 	uint32_t	byte_cnt;
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 1d28ccf..3f89f4b 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -46,12 +46,6 @@
+ 
+ #include <valgrind/memcheck.h>
+ 
+-#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
+-#define ALWAYS_INLINE __attribute__((always_inline))
+-#else
+-#define ALWAYS_INLINE
+-#endif
+-
+ #define PFX		"mlx5: "
+ 
+ 
+diff --git a/util/compiler.h b/util/compiler.h
+index fa2c0e7..e262540 100644
+--- a/util/compiler.h
++++ b/util/compiler.h
+@@ -31,4 +31,10 @@
+ #endif
+ #endif
+ 
++#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
++#define ALWAYS_INLINE __attribute__((always_inline))
++#else
++#define ALWAYS_INLINE
++#endif
++
+ #endif
 -- 
 1.8.3.1
 
