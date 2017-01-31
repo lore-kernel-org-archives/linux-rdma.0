@@ -1,38 +1,49 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 3/6] mlx5: Fix missing break statement in sq_overhead
-Date: Tue, 31 Jan 2017 14:08:03 -0700
-Message-ID: <1485896886-23517-4-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 1/6] Add Debian experimental gcc-7 to cbuild
+Date: Tue, 31 Jan 2017 14:08:01 -0700
+Message-ID: <1485896886-23517-2-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1485896886-23517-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485896886-23517-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-gcc 7.0.1 observes:
-
-providers/mlx5/verbs.c:745:8: warning: this statement may fall through [-Wimplicit-fallthrough=]
-   size = sizeof(struct mlx5_wqe_ctrl_seg) + mw_bind_size;
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/mlx5/verbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+ buildlib/cbuild | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 04a5462ce41d03..60854402fec2d4 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -743,6 +743,8 @@ static int sq_overhead(enum ibv_qp_type	qp_type)
+diff --git a/buildlib/cbuild b/buildlib/cbuild
+index 98f69dbfba3d9d..31535cb4a8473a 100755
+--- a/buildlib/cbuild
++++ b/buildlib/cbuild
+@@ -181,6 +181,17 @@ class jessie(APTEnvironment):
+     name = "debian-8";
+     aliases = {"jessie"};
  
- 	case IBV_QPT_XRC_SEND:
- 		size = sizeof(struct mlx5_wqe_ctrl_seg) + mw_bind_size;
-+		break;
++class debian_experimental(APTEnvironment):
++    docker_parent = "debian:experimental"
++    pkgs = (trusty.pkgs ^ {"gcc"}) | {"gcc-7"};
++    name = "debian-experimental";
 +
- 	case IBV_QPT_XRC_RECV:
- 		size = max(size, sizeof(struct mlx5_wqe_ctrl_seg) +
- 			   sizeof(struct mlx5_wqe_xrc_seg) +
++    def get_docker_file(self):
++        res = DockerFile(self.docker_parent);
++        res.lines.append("RUN apt-get update && apt-get -t experimental install -y --no-install-recommends %s && apt-get clean"%(
++            " ".join(sorted(self.pkgs))));
++        return res;
++
+ class travis(APTEnvironment):
+     """This parses the .travis.yml "apt" add on and converts it to a dockerfile,
+     basically creating a container that is similar to what travis would
+@@ -301,6 +312,7 @@ environments = [centos6(),
+                 harlequin(),
+                 malachite(),
+                 tumbleweed(),
++                debian_experimental(),
+ ];
+ 
+ class ToEnvAction(argparse.Action):
 -- 
 2.7.4
 
