@@ -1,70 +1,42 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core V1 2/2] travis: Upload assets to github release
-Date: Tue, 31 Jan 2017 10:57:41 +0200
-Message-ID: <20170131085741.GP6005@mtr-leonro.local>
-References: <20170130062316.16268-1-leon@kernel.org>
- <20170130062316.16268-3-leon@kernel.org>
- <20170130170956.GC29502@obsidianresearch.com>
- <20170130201953.GM6005@mtr-leonro.local>
- <20170130211658.GC27111@obsidianresearch.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] IB/cma: Add default RoCE TOS to CMA configfs
+Date: Tue, 31 Jan 2017 13:59:29 +0300
+Message-ID: <20170131105929.GA6788@mwanda>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bEAlbH1hodbw2omC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170130211658.GC27111-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Majd Dibbiny,
 
---bEAlbH1hodbw2omC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The patch eeec11e5c404: "IB/cma: Add default RoCE TOS to CMA
+configfs" from Dec 19, 2016, leads to the following static checker
+warning:
 
-On Mon, Jan 30, 2017 at 02:16:58PM -0700, Jason Gunthorpe wrote:
-> On Mon, Jan 30, 2017 at 10:19:53PM +0200, Leon Romanovsky wrote:
->
-> > > > +if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
-> > > > +	# Let's create release for vX tags only.
-> > > > +	git archive --prefix rdma-core/ --output rdma-core-$TRAVIS_TAG.tar.gz HEAD
-> > >
-> > > Should be
-> > >
-> > >
-> > > I think..
-> >
-> > I have no opinion about that, because I'm not going to use this tar.gz file.
->
-> Including the version in the directory is standard practice.
+	drivers/infiniband/core/cma.c:303 cma_get_default_roce_tos()
+	warn: signedness bug returning '(-22)'
 
-No problem, I pushed updated version.
+drivers/infiniband/core/cma.c
+   298  
+   299  u8 cma_get_default_roce_tos(struct cma_device *cma_dev, unsigned int port)
+   300  {
+   301          if (port < rdma_start_port(cma_dev->device) ||
+   302              port > rdma_end_port(cma_dev->device))
+   303                  return -EINVAL;
 
->
-> Jason
+This is a u8 function so you can't return negative error codes.
 
---bEAlbH1hodbw2omC
-Content-Type: application/pgp-signature; name="signature.asc"
+   304  
+   305          return cma_dev->default_roce_tos[port - rdma_start_port(cma_dev->device)];
+   306  }
+   307  
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliQUYUACgkQ5GN7iDZy
-WKcJoRAAxGgc733QUmReoHvtbvqKO7+MRGPIGVYTxafzgFbedgu9RokQk3JuJxYx
-9DSC0Y6cScM1ikOQ9rstFao5R1Tr5C/MReDk3qrRAhj2gmJyGCiuy2e2325NSPfu
-XB8VIGpQbSu6y4y7Lzhg9auOIDqTZXkYHUBIrG9K4OcF/1jVSAiMNZ9kcj1HFKpF
-rSx1NZ4ypDXLRFz8B+d08qjjNNnrAm72a+AXdH2fr7pHO0GhE6XG0jFWSomRQS79
-Pq2y0sJtfRMxjmoQwGQYbkrwLEy+kPSDwnQzlHaU7RfpNvT07sRRBwuz7sPq6feU
-YrrlH5zTBGQsSH3LIsf2kCNnBLDiNyu/Yw5liGHBfggTSUsYdRgZowDhR7SfrBvu
-H+d4QN7L8K+Cr1mOTr+rAFFe4DNhXNZIOgJARV80hN2t9HRgluVGovsa3LTCl6i/
-W+dJMSToc+Alu+uGDdzKXpNLk49qN5WS6ZaQg8Jzg/wrUq7SLShLTLkUTBXSH2gR
-d/GNI3qG70wpJsG8ZoaHDVtE4yZvTlQCqyYTED8WjRlnQ8YASIO/UG/Zk3j3Znom
-sm42loG2zZgsMeikl8dafPsgLPVpKC+thdMrJVfIDrISYyoOLwoXLjimCzYF+ryD
-jH1nr9kzBuJQEmE5Z3vnMZ6ZLQhHjK+GeniLgrhd4QnqJOPmQQs=
-=2Y8k
------END PGP SIGNATURE-----
-
---bEAlbH1hodbw2omC--
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
