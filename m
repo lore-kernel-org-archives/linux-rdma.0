@@ -1,15 +1,16 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 5/7] svcrdma: Remove unused sc_dto_q field
-Date: Wed, 1 Feb 2017 10:30:12 -0800
-Message-ID: <20170201183012.GD32532@infradead.org>
+Subject: Re: [PATCH v2 6/7] svcrdma: Combine list fields in struct
+ svc_rdma_op_ctxt
+Date: Wed, 1 Feb 2017 10:30:38 -0800
+Message-ID: <20170201183038.GE32532@infradead.org>
 References: <20170131184623.14185.35480.stgit@klimt.1015granger.net>
- <20170131185326.14185.48454.stgit@klimt.1015granger.net>
+ <20170131185335.14185.80060.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170131185326.14185.48454.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170131185335.14185.80060.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
@@ -18,6 +19,6 @@ Looks fine,
 
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
