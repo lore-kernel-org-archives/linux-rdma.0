@@ -1,35 +1,41 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: any suggested configuration for rxe?
-Date: Wed, 1 Feb 2017 11:35:20 +0200
-Message-ID: <CAG9sBKMVVtUdffzH8DbS7vRzYiyAPDBn+n2MMBYvpe6SQXYHjA@mail.gmail.com>
-References: <CAJ-uSQZcnQ+Mqj1XGuMSzP54WQi6KofDyp11dCog+bqGmL3MWA@mail.gmail.com>
- <CAG9sBKPj9wJhwZOFDXoOwH0=tBZR1pWdS6chYn_VK6SLdDQ7Xg@mail.gmail.com>
- <CAJ-uSQY50gRrQe7TAoJq3rd_MFqX8o=y_CZ=hqFJ1=WFZSg+tw@mail.gmail.com> <CAG9sBKPGWNrR_ejm-LxNzy5iqXKwvxUD2-mLYsGJnVw7FkxKHg@mail.gmail.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V1 rdma-core 00/10] Completion timestamping support in
+ mlx4
+Date: Wed, 1 Feb 2017 13:08:30 +0200
+Message-ID: <c8409158-c33b-17df-9ad6-a5ddaec882ae@dev.mellanox.co.il>
+References: <1485934776-715-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPGWNrR_ejm-LxNzy5iqXKwvxUD2-mLYsGJnVw7FkxKHg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1485934776-715-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/1/2017 9:39 AM, Yishai Hadas wrote:
+> Sending V1 to address few notes from Jason, details below.
 >
-> Hi
-> 1. Can you ping from 192.168.237.132 to 192.168.237.133?
-> 2. Which Ethernet NICs are you using (vendor)?
-> 3. Can you please run the test with tracing on the server side (the
-> side you sent the log for) and attach the results
-> (/sys/kernel/debug/tracing/trace)
+> This series from Ariel implements the libibverbs 'Completion timestamping' API
+> in the mlx4 provider.
 >
-> thanks
+> It implements the new iterator style CQ polling API with support of querying
+> specific CQ fields, among them the completion timestamp.
+>
+> Benchmarks we ran in our test lab found that this new approach generally equals
+> to the legacy API but *not* worse than. As the new API enables extending the
+> polled fields we can overall say that it's a better API than the legacy one.
+>
+> Pull request was sent:
+> https://github.com/linux-rdma/rdma-core/pull/61
+>
+> Yishai
+>
 
-I forgot to mention that in the trace filter I'd like to see functions
-from ib_core, rdma_cm, ib_cm, ib_rxe
+Please ignore, no change from previous V1,
+was re-sent by mistake,
 
-Also, please check if you have a firewall (iptables) that block UDP/4791
-
-thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
