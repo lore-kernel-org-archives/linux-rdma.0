@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 3/7] IB/core: Add idr based standard types
-Date: Wed,  1 Feb 2017 14:39:01 +0200
-Message-ID: <1485952745-58476-4-git-send-email-matanb@mellanox.com>
+Subject: [PATCH V1 for-next 2/7] IB/core: Add support for idr types
+Date: Wed,  1 Feb 2017 14:39:00 +0200
+Message-ID: <1485952745-58476-3-git-send-email-matanb@mellanox.com>
 References: <1485952745-58476-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485952745-58476-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,73 +10,63 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the standard idr based types. These types are
-used in downstream patches in order to initialize, destroy and
-lookup IB standard objects which are based on idr objects.
+The new ioctl infrastructure supports driver specific objects.
+Each such object type has a hot unplug function, allocation size and
+an order of destruction.
 
-An idr object requires filling out several parameters. Its op pointer
-should point to uverbs_idr_ops and its size should be at least the
-size of ib_uobject. We add a macro to make the type declaration easier.
+When a ucontext is created, a new list is created in this ib_ucontext.
+This list contains all objects created under this ib_ucontext.
+When a ib_ucontext is destroyed, we traverse this list several time
+destroying the various objects by the order mentioned in the object
+type description. If few object types have the same destruction order,
+they are destroyed in an order opposite to their creation.
+
+Adding an object is done in two parts.
+First, an object is allocated and added to idr tree. Then, the
+command's handlers (in downstream patches) could work on this object
+and fill in its required details.
+After a successful command, the commit part is called and the user
+objects become ucontext visible. If the handler failed, alloc_abort
+should be called.
+
+Removing an uboject is done by calling lookup_get with the write flag
+and finalizing it with destroy_commit.
+
+We should make sure idr (per-uverbs-file) and list (per-ucontext) could
+be accessed concurrently without corrupting them.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile           |   2 +-
- drivers/infiniband/core/uverbs.h           |   2 +
- drivers/infiniband/core/uverbs_main.c      |   4 +-
- drivers/infiniband/core/uverbs_std_types.c | 165 +++++++++++++++++++++++++++++
- include/rdma/uverbs_std_types.h            |  50 +++++++++
- include/rdma/uverbs_types.h                |  16 +++
- 6 files changed, 236 insertions(+), 3 deletions(-)
- create mode 100644 drivers/infiniband/core/uverbs_std_types.c
- create mode 100644 include/rdma/uverbs_std_types.h
+ drivers/infiniband/core/Makefile    |   3 +-
+ drivers/infiniband/core/rdma_core.c | 277 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/rdma_core.h |  55 +++++++
+ include/rdma/ib_verbs.h             |   7 +
+ include/rdma/uverbs_types.h         | 104 ++++++++++++++
+ 5 files changed, 445 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/core/rdma_core.c
+ create mode 100644 drivers/infiniband/core/rdma_core.h
+ create mode 100644 include/rdma/uverbs_types.h
 
 diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 1819623..c336d9c 100644
+index edaae9f..1819623 100644
 --- a/drivers/infiniband/core/Makefile
 +++ b/drivers/infiniband/core/Makefile
-@@ -29,4 +29,4 @@ ib_umad-y :=			user_mad.o
+@@ -28,4 +28,5 @@ ib_umad-y :=			user_mad.o
+ 
  ib_ucm-y :=			ucm.o
  
- ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
--				rdma_core.o
-+				rdma_core.o uverbs_std_types.o
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 662a592..dd8048f 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -204,6 +204,8 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
- void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev, struct ib_xrcd *xrcd);
- 
- int uverbs_dealloc_mw(struct ib_mw *mw);
-+void ib_uverbs_detach_umcast(struct ib_qp *qp,
-+			     struct ib_uqp_object *uobj);
- 
- struct ib_uverbs_flow_spec {
- 	union {
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 8344afd..ba8b1eb 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -200,8 +200,8 @@ void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
- 	spin_unlock_irq(&file->async_file->lock);
- }
- 
--static void ib_uverbs_detach_umcast(struct ib_qp *qp,
--				    struct ib_uqp_object *uobj)
-+void ib_uverbs_detach_umcast(struct ib_qp *qp,
-+			     struct ib_uqp_object *uobj)
- {
- 	struct ib_uverbs_mcast_entry *mcast, *tmp;
- 
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+-ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o
++ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
++				rdma_core.o
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
 new file mode 100644
-index 0000000..9bbc4eb
+index 0000000..7ce4d67
 --- /dev/null
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -0,0 +1,165 @@
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -0,0 +1,277 @@
 +/*
-+ * Copyright (c) 2017, Mellanox Technologies inc.  All rights reserved.
++ * Copyright (c) 2016, Mellanox Technologies inc.  All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -107,147 +97,263 @@ index 0000000..9bbc4eb
 + * SOFTWARE.
 + */
 +
-+#include <rdma/uverbs_std_types.h>
-+#include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_verbs.h>
-+#include <linux/bug.h>
 +#include <linux/file.h>
-+#include "rdma_core.h"
++#include <linux/anon_inodes.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/uverbs_types.h>
 +#include "uverbs.h"
++#include "rdma_core.h"
 +
-+void uverbs_free_ah(struct ib_uobject *uobject)
++static void uverbs_uobject_put_ref(struct kref *ref)
 +{
-+	ib_destroy_ah((struct ib_ah *)uobject->object);
++	struct ib_uobject *uobj =
++		container_of(ref, struct ib_uobject, ref);
++
++	uobj->type->ops->release(uobj);
 +}
 +
-+void uverbs_free_flow(struct ib_uobject *uobject)
++void uverbs_uobject_put(struct ib_uobject *uobj)
 +{
-+	ib_destroy_flow((struct ib_flow *)uobject->object);
++	kref_put(&uobj->ref, uverbs_uobject_put_ref);
 +}
 +
-+void uverbs_free_mw(struct ib_uobject *uobject)
++static int uverbs_lock_object(struct ib_uobject *uobj, bool write)
 +{
-+	uverbs_dealloc_mw((struct ib_mw *)uobject->object);
++	if (!write)
++		return down_read_trylock(&uobj->currently_used) == 1 ? 0 :
++			-EBUSY;
++
++	/* lock is either WRITE or DESTROY - should be exclusive */
++	return down_write_trylock(&uobj->currently_used) == 1 ? 0 : -EBUSY;
 +}
 +
-+void uverbs_free_qp(struct ib_uobject *uobject)
++static void init_uobj(struct ib_uobject *uobj, struct ib_ucontext *context,
++		      const struct uverbs_obj_type *type)
 +{
-+	struct ib_qp *qp = uobject->object;
-+	struct ib_uqp_object *uqp =
-+		container_of(uobject, struct ib_uqp_object, uevent.uobject);
-+
-+	if (qp == qp->real_qp)
-+		ib_uverbs_detach_umcast(qp, uqp);
-+	ib_destroy_qp(qp);
-+	ib_uverbs_release_uevent(uobject->context->ufile, &uqp->uevent);
++	/*
++	 * user_handle should be filled by the handler,
++	 * The object is added to the list in the commit stage.
++	 */
++	init_rwsem(&uobj->currently_used);
++	uobj->context     = context;
++	uobj->type	  = type;
++	kref_init(&uobj->ref);
 +}
 +
-+void uverbs_free_rwq_ind_tbl(struct ib_uobject *uobject)
++static int idr_add_uobj(struct ib_uobject *uobj)
 +{
-+	struct ib_rwq_ind_table *rwq_ind_tbl = uobject->object;
-+	struct ib_wq **ind_tbl = rwq_ind_tbl->ind_tbl;
++	int ret;
 +
-+	ib_destroy_rwq_ind_table(rwq_ind_tbl);
-+	kfree(ind_tbl);
++	idr_preload(GFP_KERNEL);
++	spin_lock(&uobj->context->ufile->idr_lock);
++
++	/*
++	 * We start with allocating an idr pointing to NULL. This represents an
++	 * object which isn't initialized yet. We'll replace it later on with
++	 * the real object once we commit.
++	 */
++	ret = idr_alloc(&uobj->context->ufile->idr, NULL, 0,
++			min_t(unsigned long, U32_MAX - 1, INT_MAX), GFP_NOWAIT);
++	if (ret >= 0)
++		uobj->id = ret;
++
++	spin_unlock(&uobj->context->ufile->idr_lock);
++	idr_preload_end();
++
++	return ret < 0 ? ret : 0;
 +}
 +
-+void uverbs_free_wq(struct ib_uobject *uobject)
++static void uverbs_idr_remove_uobj(struct ib_uobject *uobj)
 +{
-+	struct ib_wq *wq = uobject->object;
-+	struct ib_uwq_object *uwq =
-+		container_of(uobject, struct ib_uwq_object, uevent.uobject);
-+
-+	ib_destroy_wq(wq);
-+	ib_uverbs_release_uevent(uobject->context->ufile, &uwq->uevent);
++	spin_lock(&uobj->context->ufile->idr_lock);
++	idr_remove(&uobj->context->ufile->idr, uobj->id);
++	spin_unlock(&uobj->context->ufile->idr_lock);
 +}
 +
-+void uverbs_free_srq(struct ib_uobject *uobject)
++/* Returns the ib_uobject or an error. The caller should check for IS_ERR. */
++static struct ib_uobject *lookup_get_idr_uobject(const struct uverbs_obj_type *type,
++						 struct ib_ucontext *ucontext,
++						 int id, bool write)
 +{
-+	struct ib_srq *srq = uobject->object;
-+	struct ib_uevent_object *uevent =
-+		container_of(uobject, struct ib_uevent_object, uobject);
++	struct ib_uobject *uobj;
++	int ret;
 +
-+	ib_destroy_srq(srq);
-+	ib_uverbs_release_uevent(uobject->context->ufile, uevent);
++	rcu_read_lock();
++	/* object won't be released as we're protected in rcu */
++	uobj = idr_find(&ucontext->ufile->idr, id);
++	if (!uobj) {
++		uobj = ERR_PTR(-ENOENT);
++		goto free;
++	}
++
++	if (uobj->type != type) {
++		uobj = ERR_PTR(-EINVAL);
++		goto free;
++	}
++
++	ret = uverbs_lock_object(uobj, write);
++	if (ret)
++		uobj = ERR_PTR(ret);
++free:
++	rcu_read_unlock();
++	return uobj;
 +}
 +
-+void uverbs_free_cq(struct ib_uobject *uobject)
++static struct ib_uobject *alloc_begin_idr_uobject(const struct uverbs_obj_type *type,
++						  struct ib_ucontext *ucontext)
 +{
-+	struct ib_cq *cq = uobject->object;
-+	struct ib_uverbs_event_file *ev_file = cq->cq_context;
-+	struct ib_ucq_object *ucq =
-+		container_of(uobject, struct ib_ucq_object, uobject);
++	int ret;
++	const struct uverbs_obj_idr_type *idr_type =
++		container_of(type, struct uverbs_obj_idr_type, type);
++	struct ib_uobject *uobj = kmalloc(idr_type->obj_size, GFP_KERNEL);
 +
-+	ib_destroy_cq(cq);
-+	ib_uverbs_release_ucq(uobject->context->ufile, ev_file, ucq);
++	if (!uobj)
++		return ERR_PTR(-ENOMEM);
++
++	init_uobj(uobj, ucontext, type);
++	ret = idr_add_uobj(uobj);
++	if (ret) {
++		kfree(uobj);
++		return ERR_PTR(ret);
++	}
++
++	return uobj;
 +}
 +
-+void uverbs_free_mr(struct ib_uobject *uobject)
++static void uverbs_uobject_add(struct ib_uobject *uobject)
 +{
-+	ib_dereg_mr((struct ib_mr *)uobject->object);
++	mutex_lock(&uobject->context->lock);
++	list_add(&uobject->list, &uobject->context->uobjects);
++	mutex_unlock(&uobject->context->lock);
 +}
 +
-+void uverbs_free_xrcd(struct ib_uobject *uobject)
++static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
 +{
-+	struct ib_xrcd *xrcd = uobject->object;
-+
-+	mutex_lock(&uobject->context->ufile->device->xrcd_tree_mutex);
-+	ib_uverbs_dealloc_xrcd(uobject->context->ufile->device, xrcd);
-+	mutex_unlock(&uobject->context->ufile->device->xrcd_tree_mutex);
++	uverbs_uobject_add(uobj);
++	spin_lock(&uobj->context->ufile->idr_lock);
++	/*
++	 * We already allocated this IDR with a NULL object, so
++	 * this shouldn't fail.
++	 */
++	WARN_ON(idr_replace(&uobj->context->ufile->idr,
++			    uobj, uobj->id));
++	spin_unlock(&uobj->context->ufile->idr_lock);
 +}
 +
-+void uverbs_free_pd(struct ib_uobject *uobject)
++static void _put_uobj_ref(struct kref *ref)
 +{
-+	ib_dealloc_pd((struct ib_pd *)uobject->object);
++	kfree(container_of(ref, struct ib_uobject, ref));
 +}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_cq =
-+	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_ucq_object), 0,
-+				 uverbs_free_cq);
++static void alloc_abort_idr_uobject(struct ib_uobject *uobj)
++{
++	uverbs_idr_remove_uobj(uobj);
++	/*
++	 * we don't need kfree_rcu here, as the uobject wasn't exposed to any
++	 * other verb.
++	 */
++	kref_put(&uobj->ref, _put_uobj_ref);
++}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_qp =
-+	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_uqp_object), 0,
-+				 uverbs_free_qp);
++static void lookup_put_idr_uobject(struct ib_uobject *uobj, bool write)
++{
++	if (write)
++		up_write(&uobj->currently_used);
++	else
++		up_read(&uobj->currently_used);
++}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_mw =
-+	UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_mw);
++static void destroy_commit_idr_uobject(struct ib_uobject *uobj)
++{
++	uverbs_idr_remove_uobj(uobj);
++	mutex_lock(&uobj->context->lock);
++	list_del(&uobj->list);
++	mutex_unlock(&uobj->context->lock);
++	uverbs_uobject_put(uobj);
++}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_mr =
-+	/* 1 is used in order to free the MR after all the MWs */
-+	UVERBS_TYPE_ALLOC_IDR(1, uverbs_free_mr);
++static void hot_unplug_idr_uobject(struct ib_uobject *uobj, bool device_removed)
++{
++	const struct uverbs_obj_idr_type *idr_type =
++		container_of(uobj->type, struct uverbs_obj_idr_type, type);
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_srq =
-+	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_usrq_object), 0,
-+				 uverbs_free_srq);
++	idr_type->hot_unplug(uobj);
++	uverbs_idr_remove_uobj(uobj);
++	uverbs_uobject_put(uobj);
++}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_ah =
-+	UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_ah);
++static void release_idr_uobject(struct ib_uobject *uobj)
++{
++	/*
++	 * When we destroy an object, we first just lock it for WRITE and
++	 * actually DESTROY it in the finalize stage. So, the problematic
++	 * scenario is when we just started the finalize stage of the
++	 * destruction (nothing was executed yet). Now, the other thread
++	 * fetched the object for READ access, but it didn't lock it yet.
++	 * The DESTROY thread continues and starts destroying the object.
++	 * When the other thread continue - without the RCU, it would
++	 * access freed memory. However, the rcu_read_lock delays the free
++	 * until the rcu_read_lock of the READ operation quits. Since the
++	 * write lock of the object is still taken by the DESTROY flow, the
++	 * READ operation will get -EBUSY and it'll just bail out.
++	 */
++	kfree_rcu(uobj, rcu);
++}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_flow =
-+	UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_flow);
++const struct uverbs_obj_type_ops uverbs_idr_ops = {
++	.alloc_begin = alloc_begin_idr_uobject,
++	.lookup_get = lookup_get_idr_uobject,
++	.alloc_commit = alloc_commit_idr_uobject,
++	.alloc_abort = alloc_abort_idr_uobject,
++	.lookup_put = lookup_put_idr_uobject,
++	.destroy_commit = destroy_commit_idr_uobject,
++	.hot_unplug = hot_unplug_idr_uobject,
++	.release = release_idr_uobject,
++};
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_wq =
-+	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_uwq_object), 0,
-+				 uverbs_free_wq);
++void uverbs_cleanup_ucontext(struct ib_ucontext *ucontext, bool device_removed)
++{
++	unsigned int cur_order = 0;
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_rwq_ind_table =
-+	UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_rwq_ind_tbl);
++	while (!list_empty(&ucontext->uobjects)) {
++		struct ib_uobject *obj, *next_obj;
++		unsigned int next_order = UINT_MAX;
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_xrcd =
-+	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_uxrcd_object), 0,
-+				 uverbs_free_xrcd);
++		/*
++		 * This shouldn't run while executing other commands on this
++		 * context, thus no lock is required.
++		 */
++		list_for_each_entry_safe(obj, next_obj, &ucontext->uobjects,
++					 list)
++			if (obj->type->destroy_order == cur_order) {
++				list_del(&obj->list);
++				obj->type->ops->hot_unplug(obj, device_removed);
++			} else {
++				next_order = min(next_order,
++						 obj->type->destroy_order);
++			}
++		cur_order = next_order;
++	}
++}
 +
-+const struct uverbs_obj_idr_type uverbs_type_attrs_pd =
-+	/* 2 is used in order to free the PD after MRs */
-+	UVERBS_TYPE_ALLOC_IDR(2, uverbs_free_pd);
-diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
++void uverbs_initialize_ucontext(struct ib_ucontext *ucontext)
++{
++	mutex_init(&ucontext->lock);
++	INIT_LIST_HEAD(&ucontext->uobjects);
++}
++
+diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
 new file mode 100644
-index 0000000..2edb776
+index 0000000..ab665a6
 --- /dev/null
-+++ b/include/rdma/uverbs_std_types.h
-@@ -0,0 +1,50 @@
++++ b/drivers/infiniband/core/rdma_core.h
+@@ -0,0 +1,55 @@
 +/*
-+ * Copyright (c) 2017, Mellanox Technologies inc.  All rights reserved.
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
++ * Copyright (c) 2005-2017 Mellanox Technologies. All rights reserved.
++ * Copyright (c) 2005 Voltaire, Inc. All rights reserved.
++ * Copyright (c) 2005 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -278,49 +384,162 @@ index 0000000..2edb776
 + * SOFTWARE.
 + */
 +
-+#ifndef _UVERBS_STD_TYPES__
-+#define _UVERBS_STD_TYPES__
++#ifndef RDMA_CORE_H
++#define RDMA_CORE_H
 +
++#include <linux/idr.h>
 +#include <rdma/uverbs_types.h>
++#include <rdma/ib_verbs.h>
++#include <linux/mutex.h>
 +
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_cq;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_qp;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_rwq_ind_table;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_wq;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_srq;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_ah;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_flow;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_mr;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_mw;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_pd;
-+extern const struct uverbs_obj_idr_type uverbs_type_attrs_xrcd;
-+#endif
++/*
++ * These functions initialize the context and cleanups its uobjects.
++ * The context has a list of objects which is protected by a mutex
++ * on the context. initialize_ucontext should be called when we create
++ * a context.
++ * cleanup_ucontext removes all uobjects from the context and puts them.
++ */
++void uverbs_cleanup_ucontext(struct ib_ucontext *ucontext, bool device_removed);
++void uverbs_initialize_ucontext(struct ib_ucontext *ucontext);
 +
-diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
-index bb263f0..cdbf352 100644
---- a/include/rdma/uverbs_types.h
-+++ b/include/rdma/uverbs_types.h
-@@ -101,4 +101,20 @@ struct uverbs_obj_idr_type {
- 	void (*hot_unplug)(struct ib_uobject *uobj);
++#endif /* RDMA_CORE_H */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ab3cae4..4a2a0fc 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1347,6 +1347,10 @@ struct ib_ucontext {
+ 	struct list_head	rwq_ind_tbl_list;
+ 	int			closing;
+ 
++	/* locking the uobjects_list */
++	struct mutex		lock;
++	struct list_head	uobjects;
++
+ 	struct pid             *tgid;
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	struct rb_root      umem_tree;
+@@ -1374,8 +1378,11 @@ struct ib_uobject {
+ 	int			id;		/* index into kernel idr */
+ 	struct kref		ref;
+ 	struct rw_semaphore	mutex;		/* protects .live */
++	struct rw_semaphore	currently_used;	/* protects exclusive access */
+ 	struct rcu_head		rcu;		/* kfree_rcu() overhead */
+ 	int			live;
++
++	const struct uverbs_obj_type *type;
  };
  
-+extern const struct uverbs_obj_type_ops uverbs_idr_ops;
+ struct ib_udata {
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+new file mode 100644
+index 0000000..bb263f0
+--- /dev/null
++++ b/include/rdma/uverbs_types.h
+@@ -0,0 +1,104 @@
++/*
++ * Copyright (c) 2017, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
-+#define UVERBS_BUILD_BUG_ON(cond) (sizeof(char[1 - 2 * !!(cond)]) -	\
-+				   sizeof(char))
-+#define UVERBS_TYPE_ALLOC_IDR_SZ(_size, _order, _hot_unplug)		\
-+	 {.type = {							\
-+		.destroy_order = _order,				\
-+		.ops = &uverbs_idr_ops,					\
-+	 },								\
-+	 .hot_unplug = _hot_unplug,					\
-+	 .obj_size = (_size) +						\
-+		UVERBS_BUILD_BUG_ON((_size) < sizeof(struct		\
-+						     ib_uobject))}
-+#define UVERBS_TYPE_ALLOC_IDR(_order, _hot_unplug)			\
-+	 UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_uobject), _order,	\
-+				  _hot_unplug)
- #endif
++#ifndef _UVERBS_TYPES_
++#define _UVERBS_TYPES_
++
++#include <linux/kernel.h>
++#include <rdma/ib_verbs.h>
++
++struct uverbs_obj_type;
++
++struct uverbs_obj_type_ops {
++	/*
++	 * Get an ib_uobject that corresponds to the given id from ucontext,
++	 * These functions could create or destroy objects if required.
++	 * The action will be finalized only when commit, abort or put fops are
++	 * called.
++	 * The flow of the different actions is:
++	 * [alloc]:	 Starts with alloc_begin. The handlers logic is than
++	 *		 executed. If the handler is successful, alloc_commit
++	 *		 is called and the object is inserted to the repository.
++	 *		 Otherwise, alloc_abort is called and the object is
++	 *		 destroyed.
++	 * [lookup]:	 Starts with lookup_get which fetches and locks the
++	 *		 object. After the handler finished using the object, it
++	 *		 needs to call lookup_put to unlock it. The write flag
++	 *		 indicates if the object is locked for exclusive access.
++	 * [destroy]:	 Starts with lookup_get with write flag set. This locks
++	 *		 the object for exclusive access. If the handler code
++	 *		 completed successfully, destroy_commit is called and
++	 *		 the ib_uobject is removed from the context's uobjects
++	 *		 repository and put. Otherwise, lookup_put should be
++	 *		 called.
++	 * [hot_unplug]: Used when the context is destroyed (process
++	 *		 termination, reset flow).
++	 * [release]:    Releases the memory of the ib_uobject. This is called
++	 *		 when the last reference is put. We favored a callback
++	 *		 here as this might require tricks like kfree_rcu.
++	 *		 This shouldn't be called explicitly by the user as it's
++	 *		 used by uverbs_uobject_put.
++	 */
++	struct ib_uobject *(*alloc_begin)(const struct uverbs_obj_type *type,
++					  struct ib_ucontext *ucontext);
++	void (*alloc_commit)(struct ib_uobject *uobj);
++	void (*alloc_abort)(struct ib_uobject *uobj);
++
++	struct ib_uobject *(*lookup_get)(const struct uverbs_obj_type *type,
++					 struct ib_ucontext *ucontext, int id,
++					 bool write);
++	void (*lookup_put)(struct ib_uobject *uobj, bool write);
++	void (*destroy_commit)(struct ib_uobject *uobj);
++
++	void (*hot_unplug)(struct ib_uobject *uobj, bool device_removed);
++
++	void (*release)(struct ib_uobject *uobj);
++};
++
++struct uverbs_obj_type {
++	const struct uverbs_obj_type_ops * const ops;
++	unsigned int destroy_order;
++};
++
++struct uverbs_obj_idr_type {
++	/*
++	 * In idr based objects, uverbs_obj_type_ops points to a generic
++	 * idr operations. In order to specialize the underlying types (e.g. CQ,
++	 * QPs, etc.), we add obj_size and hot_unplug specific callbacks here.
++	 */
++	struct uverbs_obj_type  type;
++	size_t			obj_size;
++	/* The hot_unplug in ops initialized by idr, calls this callback */
++	void (*hot_unplug)(struct ib_uobject *uobj);
++};
++
++#endif
 -- 
 1.8.3.1
 
