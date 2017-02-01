@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 07/10] mlx4: Add ability to poll CQs through iterator's style API
-Date: Wed,  1 Feb 2017 09:39:33 +0200
-Message-ID: <1485934776-715-8-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 02/10] Handle always_inline attribute in util/compiler.h
+Date: Wed,  1 Feb 2017 09:39:28 +0200
+Message-ID: <1485934776-715-3-git-send-email-yishaih@mellanox.com>
 References: <1485934776-715-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1485934776-715-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,114 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The new poll CQ API is based on an iterator's style API.
-The user calls start_poll_cq and next_poll_cq, query whatever valid
-and initialized (initialized attributes are attributes which were
-stated when the CQ was created) attributes and call end_poll_cq at
-the end.
-
-This patch implements this methodology in mlx4 user space vendor
-driver. In order to make start and end efficient, we use specialized
-functions for every case - locked and single threaded(unlocked).
+Define always_inline function attribute under ALWAYS_INLINE
+macro in util/compiler.h and clean it up from any provider code.
 
 Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx4/cq.c | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ providers/mlx5/mlx5.h | 6 ------
+ util/compiler.h       | 6 ++++++
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-index dc5e8b6..045a1c2 100644
---- a/providers/mlx4/cq.c
-+++ b/providers/mlx4/cq.c
-@@ -416,6 +416,87 @@ int mlx4_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
- 	return err == CQ_POLL_ERR ? err : npolled;
- }
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 1d28ccf..3f89f4b 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -46,12 +46,6 @@
  
-+static inline void _mlx4_end_poll(struct ibv_cq_ex *ibcq, int lock)
-+				  ALWAYS_INLINE;
-+static inline void _mlx4_end_poll(struct ibv_cq_ex *ibcq, int lock)
-+{
-+	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ #include <valgrind/memcheck.h>
+ 
+-#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
+-#define ALWAYS_INLINE __attribute__((always_inline))
+-#else
+-#define ALWAYS_INLINE
+-#endif
+-
+ #define PFX		"mlx5: "
+ 
+ 
+diff --git a/util/compiler.h b/util/compiler.h
+index fa2c0e7..e262540 100644
+--- a/util/compiler.h
++++ b/util/compiler.h
+@@ -31,4 +31,10 @@
+ #endif
+ #endif
+ 
++#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
++#define ALWAYS_INLINE __attribute__((always_inline))
++#else
++#define ALWAYS_INLINE
++#endif
 +
-+	mlx4_update_cons_index(cq);
-+
-+	if (lock)
-+		pthread_spin_unlock(&cq->lock);
-+}
-+
-+static inline int _mlx4_start_poll(struct ibv_cq_ex *ibcq,
-+				   struct ibv_poll_cq_attr *attr,
-+				   int lock)
-+				   ALWAYS_INLINE;
-+static inline int _mlx4_start_poll(struct ibv_cq_ex *ibcq,
-+				   struct ibv_poll_cq_attr *attr,
-+				   int lock)
-+{
-+	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
-+	struct mlx4_cqe *cqe;
-+	int err;
-+
-+	if (unlikely(attr->comp_mask))
-+		return EINVAL;
-+
-+	if (lock)
-+		pthread_spin_lock(&cq->lock);
-+
-+	cq->cur_qp = NULL;
-+
-+	err = mlx4_get_next_cqe(cq, &cqe);
-+	if (err == CQ_EMPTY) {
-+		if (lock)
-+			pthread_spin_unlock(&cq->lock);
-+		return ENOENT;
-+	}
-+
-+	err = mlx4_parse_lazy_cqe(cq, cqe);
-+	if (lock && err)
-+		pthread_spin_unlock(&cq->lock);
-+
-+	return err;
-+}
-+
-+static int mlx4_next_poll(struct ibv_cq_ex *ibcq)
-+{
-+	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
-+	struct mlx4_cqe *cqe;
-+	int err;
-+
-+	err = mlx4_get_next_cqe(cq, &cqe);
-+	if (err == CQ_EMPTY)
-+		return ENOENT;
-+
-+	return mlx4_parse_lazy_cqe(cq, cqe);
-+}
-+
-+static void mlx4_end_poll(struct ibv_cq_ex *ibcq)
-+{
-+	_mlx4_end_poll(ibcq, 0);
-+}
-+
-+static void mlx4_end_poll_lock(struct ibv_cq_ex *ibcq)
-+{
-+	_mlx4_end_poll(ibcq, 1);
-+}
-+
-+static int mlx4_start_poll(struct ibv_cq_ex *ibcq,
-+		    struct ibv_poll_cq_attr *attr)
-+{
-+	return _mlx4_start_poll(ibcq, attr, 0);
-+}
-+
-+static int mlx4_start_poll_lock(struct ibv_cq_ex *ibcq,
-+			 struct ibv_poll_cq_attr *attr)
-+{
-+	return _mlx4_start_poll(ibcq, attr, 1);
-+}
-+
- static enum ibv_wc_opcode mlx4_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ #endif
 -- 
 1.8.3.1
 
