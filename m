@@ -1,48 +1,85 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PING][PATCH] IBcore/CM: Issue DREQ when receiving REQ/REP for
- stale QP
-Date: Wed, 1 Feb 2017 13:44:50 +0200
-Message-ID: <20170201114450.GU6005@mtr-leonro.local>
-References: <1477653269-27359-1-git-send-email-hans.westgaard.ry@oracle.com>
- <a24f2cb5-1a4d-8d23-d729-70a3014d20d7@oracle.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="0FDNE3+7N8PCoNAN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a24f2cb5-1a4d-8d23-d729-70a3014d20d7@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Ira Weiny <ira.weiny@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Hakon Bugge <haakon.bugge@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next] IB/core: Remove pointer casting from void to net_device
+Date: Wed,  1 Feb 2017 13:51:26 +0200
+Message-ID: <20170201115126.7313-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---0FDNE3+7N8PCoNAN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch avoids unnecessary type casting from void to net_device.
 
-It was applied, see commit 9315bc9a133011fdb084f2626b86db3ebb64661f
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/roce_gid_mgmt.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Thanks
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 0621f4455732..8c1f99f830d4 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -144,7 +144,7 @@ static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_de
+ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+ 				 struct net_device *rdma_ndev, void *cookie)
+ {
+-	struct net_device *event_ndev = (struct net_device *)cookie;
++	struct net_device *event_ndev = cookie;
+ 	struct net_device *real_dev;
+ 	int res;
 
---0FDNE3+7N8PCoNAN
-Content-Type: application/pgp-signature; name="signature.asc"
+@@ -192,7 +192,7 @@ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
+ static int upper_device_filter(struct ib_device *ib_dev, u8 port,
+ 			       struct net_device *rdma_ndev, void *cookie)
+ {
+-	struct net_device *event_ndev = (struct net_device *)cookie;
++	struct net_device *event_ndev = cookie;
+ 	int res;
 
------BEGIN PGP SIGNATURE-----
+ 	if (!rdma_ndev)
+@@ -379,7 +379,7 @@ static void _add_netdev_ips(struct ib_device *ib_dev, u8 port,
+ static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
+ 			   struct net_device *rdma_ndev, void *cookie)
+ {
+-	struct net_device *event_ndev = (struct net_device *)cookie;
++	struct net_device *event_ndev = cookie;
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliRyjIACgkQ5GN7iDZy
-WKf6+g//ZdhRh6ca0iyndmiryCqAYK2v1tZjE8P4TiOmWHSM6mQYKgXLN5j1giEW
-8baF8PVNlw18u9FbaUw5rWrT/b0oipVFMtBzd4ienC0aiI/UFkPZxn58cOeO3BtW
-GTuSunXYgL0sl+kph7isQW/yYHmRHsdWde3Xgcvyyix1c7bgl6Wd52Y5pAdey4jk
-ZTQnBax8Na7+VAvjfQSwvi7kOXH7MWqEaP5yTzonn8TS7QsifFYqovC0Xr2tYSaP
-PRe+Q1Dh6fZhI1JK13YsNg4MiL8NJbiXx0F0D6vxuqCXnuALPt057GYZsYNUJZLS
-MlMlIlqobqk+bSH+P71OfcHSEcNHIQNjB/Xdt7ckCUaGMVHhdOXZj51lS9UjhEeC
-mCzzHH2+tTNrZNcIlGv6J6am1TyjCp/fc8jotUNtRco6dzu5/6h8nL58mjxmNY5l
-G75p60uP39epqY8MvJODu0iAzxPKa2prZT/yaRLQNvj9LEYmounCjgj4/PiO6rNv
-E1kQ2cvp1nKmdKOnA4yw/THTKmmF87RbE/ihdRV7eKUEddfIPe8Cidvyy0LLupVQ
-9m5qON6zuaX49Dp962FhIT3XKx/df+p8dqezp6SHPnmg27rSEsmZLrnieC9ClnoF
-YJzr9nXYPQdZxF6yBjA24yJqdXNaLZcv91oc/CuSTjsJMcbm9iw=
-=S8G7
------END PGP SIGNATURE-----
+ 	enum_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
+ 	_add_netdev_ips(ib_dev, port, event_ndev);
+@@ -388,7 +388,7 @@ static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
+ static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
+ 			   struct net_device *rdma_ndev, void *cookie)
+ {
+-	struct net_device *event_ndev = (struct net_device *)cookie;
++	struct net_device *event_ndev = cookie;
 
---0FDNE3+7N8PCoNAN--
+ 	ib_cache_gid_del_all_netdev_gids(ib_dev, port, event_ndev);
+ }
+@@ -460,7 +460,7 @@ static void handle_netdev_upper(struct ib_device *ib_dev, u8 port,
+ 						      u8 port,
+ 						      struct net_device *ndev))
+ {
+-	struct net_device *ndev = (struct net_device *)cookie;
++	struct net_device *ndev = cookie;
+ 	struct upper_list *upper_iter;
+ 	struct upper_list *upper_temp;
+ 	LIST_HEAD(upper_list);
+@@ -519,7 +519,7 @@ static void del_netdev_default_ips_join(struct ib_device *ib_dev, u8 port,
+ static void del_netdev_default_ips(struct ib_device *ib_dev, u8 port,
+ 				   struct net_device *rdma_ndev, void *cookie)
+ {
+-	struct net_device *event_ndev = (struct net_device *)cookie;
++	struct net_device *event_ndev = cookie;
+
+ 	bond_delete_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
+ }
+--
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
