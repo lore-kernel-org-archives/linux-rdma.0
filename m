@@ -1,156 +1,148 @@
-From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 7/7] sunrpc: Allow keepalive ping on a credit-full
- transport
-Date: Wed, 1 Feb 2017 09:50:17 -0500
-Message-ID: <6b94f05b-8601-9d31-bbe5-915e0bb015e1@gmail.com>
-References: <20170131183345.5325.47072.stgit@manet.1015granger.net>
- <20170131183906.5325.79683.stgit@manet.1015granger.net>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: iSER fails to release rdma resources (WRs) if iw_cxgb4 is
+ unloaded while IO is in progress
+Date: Wed, 1 Feb 2017 17:17:39 +0200
+Message-ID: <49223bb6-e2a1-eee7-cf4e-701957e6727f@mellanox.com>
+References: <CY1PR12MB077405C1FA5279D200AD3089BC4D0@CY1PR12MB0774.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170131183906.5325.79683.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed;
+        boundary="------------837C7D55C691C7053700761A"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CY1PR12MB077405C1FA5279D200AD3089BC4D0-1s8aH8ViOEdztePUUsNjzQdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Chuck,
+--------------837C7D55C691C7053700761A
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 01/31/2017 01:39 PM, Chuck Lever wrote:
-> Allow RPC-over-RDMA to send NULL pings even when the transport has
-> hit its credit limit. One RPC-over-RDMA credit is reserved for
-> operations like keepalive.
-> 
-> For transports that convey NFSv4, it seems like lease renewal would
-> also be a candidate for using a priority transport slot. I'd like to
-> see a mechanism better than RPCRDMA_PRIORITY that can ensure only
-> one priority operation is in use at a time.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  include/linux/sunrpc/sched.h    |    2 ++
->  net/sunrpc/xprt.c               |    4 ++++
->  net/sunrpc/xprtrdma/transport.c |    3 ++-
->  net/sunrpc/xprtrdma/verbs.c     |   13 ++++++++-----
->  net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
->  5 files changed, 17 insertions(+), 7 deletions(-)
-> 
-> diff --git a/include/linux/sunrpc/sched.h b/include/linux/sunrpc/sched.h
-> index 13822e6..fcea158 100644
-> --- a/include/linux/sunrpc/sched.h
-> +++ b/include/linux/sunrpc/sched.h
-> @@ -127,6 +127,7 @@ struct rpc_task_setup {
->  #define RPC_TASK_TIMEOUT	0x1000		/* fail with ETIMEDOUT on timeout */
->  #define RPC_TASK_NOCONNECT	0x2000		/* return ENOTCONN if not connected */
->  #define RPC_TASK_NO_RETRANS_TIMEOUT	0x4000		/* wait forever for a reply */
-> +#define RPC_TASK_NO_CONG	0x8000		/* skip congestion control */
->  
->  #define RPC_TASK_SOFTPING	(RPC_TASK_SOFT | RPC_TASK_SOFTCONN)
->  
-> @@ -137,6 +138,7 @@ struct rpc_task_setup {
->  #define RPC_IS_SOFT(t)		((t)->tk_flags & (RPC_TASK_SOFT|RPC_TASK_TIMEOUT))
->  #define RPC_IS_SOFTCONN(t)	((t)->tk_flags & RPC_TASK_SOFTCONN)
->  #define RPC_WAS_SENT(t)		((t)->tk_flags & RPC_TASK_SENT)
-> +#define RPC_SKIP_CONG(t)	((t)->tk_flags & RPC_TASK_NO_CONG)
->  
->  #define RPC_TASK_RUNNING	0
->  #define RPC_TASK_QUEUED		1
-> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
-> index b530a28..a477ee6 100644
-> --- a/net/sunrpc/xprt.c
-> +++ b/net/sunrpc/xprt.c
-> @@ -392,6 +392,10 @@ static inline void xprt_release_write(struct rpc_xprt *xprt, struct rpc_task *ta
->  {
->  	struct rpc_rqst *req = task->tk_rqstp;
->  
-> +	if (RPC_SKIP_CONG(task)) {
-> +		req->rq_cong = 0;
-> +		return 1;
-> +	}
->  	if (req->rq_cong)
->  		return 1;
->  	dprintk("RPC: %5u xprt_cwnd_limited cong = %lu cwnd = %lu\n",
-> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-> index 3a5a805..073fecd 100644
-> --- a/net/sunrpc/xprtrdma/transport.c
-> +++ b/net/sunrpc/xprtrdma/transport.c
-> @@ -546,7 +546,8 @@ static void rpcrdma_keepalive_release(void *calldata)
->  
->  	data = xprt_get(xprt);
->  	null_task = rpc_call_null_helper(task->tk_client, xprt, NULL,
-> -					 RPC_TASK_SOFTPING | RPC_TASK_ASYNC,
-> +					 RPC_TASK_SOFTPING | RPC_TASK_ASYNC |
-> +					 RPC_TASK_NO_CONG,
->  					 &rpcrdma_keepalive_call_ops, data);
->  	if (!IS_ERR(null_task))
->  		rpc_put_task(null_task);
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 81cd31a..d9b5fa7 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -136,19 +136,20 @@
->  static void
->  rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
->  {
-> -	struct rpcrdma_msg *rmsgp = rdmab_to_msg(rep->rr_rdmabuf);
->  	struct rpcrdma_buffer *buffer = &rep->rr_rxprt->rx_buf;
-> +	__be32 *p = rep->rr_rdmabuf->rg_base;
->  	u32 credits;
->  
->  	if (rep->rr_len < RPCRDMA_HDRLEN_ERR)
->  		return;
->  
-> -	credits = be32_to_cpu(rmsgp->rm_credit);
-> +	credits = be32_to_cpup(p + 2);
-> +	if (credits > buffer->rb_max_requests)
-> +		credits = buffer->rb_max_requests;
-> +	/* Reserve one credit for keepalive ping */
-> +	credits--;
->  	if (credits == 0)
->  		credits = 1;	/* don't deadlock */
-> -	else if (credits > buffer->rb_max_requests)
-> -		credits = buffer->rb_max_requests;
-> -
->  	atomic_set(&buffer->rb_credits, credits);
->  }
->  
-> @@ -915,6 +916,8 @@ struct rpcrdma_rep *
->  	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
->  	int i, rc;
->  
-> +	if (r_xprt->rx_data.max_requests < 2)
-> +		return -EINVAL;
->  	buf->rb_max_requests = r_xprt->rx_data.max_requests;
->  	buf->rb_bc_srv_max_requests = 0;
->  	atomic_set(&buf->rb_credits, 1);
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index 95c1e3d..dd1340f 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -77,8 +77,8 @@ struct rpcrdma_ia {
->  	unsigned int		ri_max_send_sges;
->  	bool			ri_reminv_expected;
->  	bool			ri_implicit_roundup;
-> -	unsigned long		ri_flags;
->  	enum ib_mr_type		ri_mrtype;
-> +	unsigned long		ri_flags;
+hi Raju,
+please apply the attached patch I want to push soon (still haven't find 
+the chance to test it).
+I'm not sure it will solve your problem but let's try it.
 
-Any reason for the reordering here?
+thanks,
+Max.
 
-Thanks,
-Anna
-
->  	struct ib_qp_attr	ri_qp_attr;
->  	struct ib_qp_init_attr	ri_qp_init_attr;
->  };
-> 
+On 2/1/2017 11:08 AM, Raju  Rangoju wrote:
+>
+> Hello Sagi,
+>
+> I intermittently see an issue with iser when unloading the iw_cxgb4 module while traffic is running. Apparently the rdma resources are not getting released when the iser receives RDMA_CM_EVENT_DEVICE_REMOVAL event while the IO in progress. iser_cma_handler() upon receiving the DEVICE_REMOVAL event, destroys the device by calling iser_cleanup_handler(). iser_free_ib_conn_res() destroys the qp and calls iser_free_fastreg_pool() to free the Memory Regions in the fastreg_pool list, and then it calls ib_dealloc_pd.
+>
+> Issue:
+>
+> iSCSI uses its .xmit_task and .cleanup_task callbacks to get/put MRs from iser fr_pool(fastreg_pool) during the normal IO, at this point if the DEVICE_REMOVAL event is received, iser_cma_handler()->iser_cleanup_handler() it simply releases the available MRs in the fr_pool list (some MRs may have been moved to running task list) and eventually calls ib_dealloc_pd, which ends up hitting kernel panic as some registered MRs are not freed up.
+>
+> iser_free_fastreg_pool() complains about the registered regions; "pool still has %d regions registered"
+>
+> Trace:
+>
+> iser: iser_free_fastreg_pool: pool still has 1 regions registered
+> iser: iser_device_try_release: device ffff880508660080 refcount 0
+> iw_cxgb4:c4iw_destroy_cq ib_cq ffff8803f3addc00
+> iw_cxgb4:c4iw_wait_for_reply add wr_waitp ffffc9000dd83a28
+> ------------[ cut here ]------------
+> WARNING: CPU: 7 PID: 14790 at drivers/infiniband/core/verbs.c:305 ib_dealloc_pd+0x87/0xd0 [ib_core]
+> Modules linked in: rdma_ucm ib_uverbs iw_cxgb4(OE-) autofs4 target_core_iblock target_core_file target_core_pscsi target_core_mod bnx2fc fcoe libfcoe 8021q libfc garp stp llc scsi_transport_fc cpufreq_ondemand be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb3i libcxgbi iw_cxgb3 cxgb3 mdio libcxgb ib_iser rdma_cm ib_cm iw_cm ib_core configfs ipv6 crc_ccitt iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi uinput ppdev iTCO_wdt iTCO_vendor_support serio_raw pcspkr parport_pc parport tpm_infineon sg i2c_i801 i2c_core lpc_ich mfd_core e1000e acpi_cpufreq i7core_edac edac_core ioatdma dca ext4(E) mbcache(E) jbd2(E) sd_mod(E) pata_acpi(E) ata_generic(E) ata_piix(E) floppy(E) cxgb4(OE) ptp(E) pps_core(E) dm_mirror(E) dm_region_hash(E) dm_log(E) dm_mod(E)
+> CPU: 7 PID: 14790 Comm: rmmod Tainted: G           OE   4.10.0-rc4+ #22
+> Hardware name: Supermicro X8ST3/X8ST3, BIOS 2.0        07/29/10
+> Call Trace:
+> dump_stack+0x51/0x78
+> __warn+0xfd/0x120
+> warn_slowpath_null+0x1d/0x20
+> ib_dealloc_pd+0x87/0xd0 [ib_core]
+> ? ib_unregister_event_handler+0x6d/0x80 [ib_core]
+> ? mutex_lock+0x16/0x40
+> iser_device_try_release+0x81/0x120 [ib_iser]
+> ? iser_free_rx_descriptors+0xd3/0xf0 [ib_iser]
+> iser_free_ib_conn_res+0x75/0xb0 [ib_iser]
+> iser_cleanup_handler+0x41/0x70 [ib_iser]
+> iser_cma_handler+0x1c9/0x220 [ib_iser]
+> cma_remove_id_dev+0x8f/0xa0 [rdma_cm]
+> cma_process_remove+0x127/0x170 [rdma_cm]
+> ? kobject_cleanup+0x82/0x1b0
+> ? kobject_release+0xd/0x10
+> cma_remove_one+0x6f/0x90 [rdma_cm]
+> ib_unregister_device+0xe7/0x190 [ib_core]
+> c4iw_unregister_device+0x79/0x90 [iw_cxgb4]
+> c4iw_remove+0x45/0x6c [iw_cxgb4]
+> c4iw_exit_module+0x31/0x75 [iw_cxgb4]
+> SyS_delete_module+0x183/0x1d0
+> ? syscall_trace_enter+0x154/0x1f0
+> ? SyS_munmap+0x6e/0x90
+> do_syscall_64+0x6c/0x160
+> entry_SYSCALL64_slow_path+0x25/0x25
+> RIP: 0033:0x37d22e8ee7
+> RSP: 002b:00007ffedd1877b8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
+> RAX: ffffffffffffffda RBX: 00007ffedd1877c0 RCX: 00000037d22e8ee7
+> RDX: 00007ffedd1877af RSI: 0000000000000880 RDI: 00007ffedd1877c0
+> RBP: 00007ffedd187810 R08: 00007f0120b48700 R09: 0000000000000100
+> R10: 0000000000000011 R11: 0000000000000206 R12: 0000000000000880
+> R13: 00007ffedd188735 R14: 0000000000000000 R15: 0000000000000001
+> ---[ end trace 9bdbdddd5759d7e6 ]---
+>
+>
+> Steps to reproduce:
+> 1. Bring up the iser target setup
+> 2. Bring up the iser initiator setup
+> 3. From DUT(initiator) login to all the Targets and start IOzone traffic on all the mounted luns.
+> 4. Now unload iw_cxgb4 module on the iser initiator setup.
+>
+>
+> This is a generic issue, seen with other vendors also.
+>
+> Could you give me a few pointers on how to debug it further to address this issue?
+> I am happy to provide any details further.
+>
+> Thank you for any help you can provide,
+> -Raju
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+
+--------------837C7D55C691C7053700761A
+Content-Type: text/plain; charset="UTF-8";
+	name="0001-IB-iser-access-active_qps-atomically.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="0001-IB-iser-access-active_qps-atomically.patch"
+
+>From c1ec2dc3660fbd3e99dfc4aa3d766a526205aa6d Mon Sep 17 00:00:00 2001
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Wed, 1 Feb 2017 13:09:48 +0200
+Subject: [PATCH 1/1] IB/iser: access active_qps field atomically
+
+Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iser_verbs.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 6a9d1cb..30b622f 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -597,7 +597,9 @@ static void iser_free_ib_conn_res(struct iser_conn *iser_conn,
+ 		  iser_conn, ib_conn->cma_id, ib_conn->qp);
+ 
+ 	if (ib_conn->qp != NULL) {
++		mutex_lock(&ig.connlist_mutex);
+ 		ib_conn->comp->active_qps--;
++		mutex_unlock(&ig.connlist_mutex);
+ 		rdma_destroy_qp(ib_conn->cma_id);
+ 		ib_conn->qp = NULL;
+ 	}
+-- 
+1.7.1
+
+
+--------------837C7D55C691C7053700761A--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
