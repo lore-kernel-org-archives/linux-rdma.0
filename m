@@ -1,30 +1,56 @@
 From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: iSER fails to release rdma resources (WRs) if iw_cxgb4 is
- unloaded while IO is in progress
-Date: Wed, 1 Feb 2017 10:47:34 -0700
-Message-ID: <CAANLjFpB8AgF_LdYMa5kqz2_RwjfSKMptQuBrb5TmOHBMXqDtA@mail.gmail.com>
-References: <CY1PR12MB077405C1FA5279D200AD3089BC4D0@CY1PR12MB0774.namprd12.prod.outlook.com>
- <49223bb6-e2a1-eee7-cf4e-701957e6727f@mellanox.com>
+Subject: Re: [RFC] Clear out stuck ops to prevent iSER from going init D state
+Date: Wed, 1 Feb 2017 10:56:49 -0700
+Message-ID: <CAANLjFpjKyKqNgV_X0E+=jmgbMQu=uqwW-1WSJCq8MpyjFHpbQ@mail.gmail.com>
+References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
+ <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me> <CAANLjFp3Zo_QpR7WCmVOfO0AEDxCXabbenac3KNR-RosCgGx+A@mail.gmail.com>
+ <c7f1af87-a846-ed8a-a46e-ab5888ea9b92@mellanox.com> <CAANLjFo1N=1BqY8Vur8jheDP4h9_9Q7Ns7MsgbRJX+TDhJbcOw@mail.gmail.com>
+ <21bfa6a7-9199-9341-1193-7d186fd36326@grimberg.me> <CAANLjFpVMMp9kaqmugT0yxoR=0f0gmvxGzhBnW-djXyZgMN-CA@mail.gmail.com>
+ <b5beb647-31f1-30d2-1162-2398f654c63d@grimberg.me> <CAANLjFoFocDMFFCSvYsGzYHOoRT-5DD3UDVpf51j9mU--LVL+A@mail.gmail.com>
+ <4be8cfd7-c50c-18a2-347a-745e4a70113a@grimberg.me> <CAANLjFqNu2EjkWJGtRx=kjcgSq5SmyJJ2xnvMsgrJEu7Un0CzA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <49223bb6-e2a1-eee7-cf4e-701957e6727f-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAANLjFqNu2EjkWJGtRx=kjcgSq5SmyJJ2xnvMsgrJEu7Un0CzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 1, 2017 at 8:17 AM, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> hi Raju,
-> please apply the attached patch I want to push soon (still haven't find the
-> chance to test it).
-> I'm not sure it will solve your problem but let's try it.
+On Mon, Jan 30, 2017 at 12:36 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> On Mon, Jan 30, 2017 at 12:39 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>>> The first output (without the dates) is from dmesg, the second output
+>>> is from journal.
+>>
+>>
+>> Hey Robert,
+>>
+>> I'm still having a hard time understanding the traces.
+>> How about you reproduce the error and attach a full dmesg
+>> output? I suggest to reproduce once with debug_level=2 (to
+>> cleanup some noise) and once with debug_level=4 and hopefully
+>> we can understand what is getting lost.
+>>
+>> Also, please wait for the hang timeout watchdog traces, they
+>> can give us confirmation that we are stuck waiting for a final
+>> reference on some command.
 >
-> thanks,
-> Max.
+> I left the capture of dmesg run for ~20 minutes after iSER failed.
+> 2017-01-30_11:37:28_dmesg.log is level 2 and
+> 2017-01-30_12:04:47_dmesg.log is level 4. The log files can be found
+> at [1].
+>
+> [1] http://mirrors.betterservers.com/trace/dmesg_logs.txz
 
-I tried this to see if it would help with my iser D state problem, but no luck.
 
+I saw a patch from Max [1] about a related issue so I gave it a try
+and it didn't help. I'm linking to the logs in case you want to look
+at them as well. [2]
+
+[1] "iSER fails to release rdma resources (WRs) if iw_cxgb4 is
+unloaded while IO is in progress
+https://www.spinics.net/lists/linux-rdma/msg45799.html
+[2] http://mirrors.betterservers.com/trace/2017_02_01_dmesg.txz
 ----------------
 Robert LeBlanc
 PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
