@@ -1,59 +1,106 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: [RFC] Clear out stuck ops to prevent iSER from going init D state
-Date: Wed, 1 Feb 2017 10:56:49 -0700
-Message-ID: <CAANLjFpjKyKqNgV_X0E+=jmgbMQu=uqwW-1WSJCq8MpyjFHpbQ@mail.gmail.com>
-References: <CAANLjFpi2E-2UxS3YSgjN=GzyZdLBhqJa4LN++52HTw6_3DKJA@mail.gmail.com>
- <07f540b9-f57b-6110-d94c-9ab0e9766b1b@grimberg.me> <CAANLjFp3Zo_QpR7WCmVOfO0AEDxCXabbenac3KNR-RosCgGx+A@mail.gmail.com>
- <c7f1af87-a846-ed8a-a46e-ab5888ea9b92@mellanox.com> <CAANLjFo1N=1BqY8Vur8jheDP4h9_9Q7Ns7MsgbRJX+TDhJbcOw@mail.gmail.com>
- <21bfa6a7-9199-9341-1193-7d186fd36326@grimberg.me> <CAANLjFpVMMp9kaqmugT0yxoR=0f0gmvxGzhBnW-djXyZgMN-CA@mail.gmail.com>
- <b5beb647-31f1-30d2-1162-2398f654c63d@grimberg.me> <CAANLjFoFocDMFFCSvYsGzYHOoRT-5DD3UDVpf51j9mU--LVL+A@mail.gmail.com>
- <4be8cfd7-c50c-18a2-347a-745e4a70113a@grimberg.me> <CAANLjFqNu2EjkWJGtRx=kjcgSq5SmyJJ2xnvMsgrJEu7Un0CzA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] Fix "support large inline thresholds"
+Date: Wed, 1 Feb 2017 13:15:56 -0500
+Message-ID: <68619BE7-CBFD-41DE-8227-ABCD797E81F7@oracle.com>
+References: <20170123205159.21699.47373.stgit@manet.1015granger.net> <353a72a5-549d-535b-28b7-411ba81483a1@Netapp.com> <82302622-9524-4020-869E-81F57629EC86@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFqNu2EjkWJGtRx=kjcgSq5SmyJJ2xnvMsgrJEu7Un0CzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <82302622-9524-4020-869E-81F57629EC86-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 30, 2017 at 12:36 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
-> On Mon, Jan 30, 2017 at 12:39 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
->>> The first output (without the dates) is from dmesg, the second output
->>> is from journal.
->>
->>
->> Hey Robert,
->>
->> I'm still having a hard time understanding the traces.
->> How about you reproduce the error and attach a full dmesg
->> output? I suggest to reproduce once with debug_level=2 (to
->> cleanup some noise) and once with debug_level=4 and hopefully
->> we can understand what is getting lost.
->>
->> Also, please wait for the hang timeout watchdog traces, they
->> can give us confirmation that we are stuck waiting for a final
->> reference on some command.
->
-> I left the capture of dmesg run for ~20 minutes after iSER failed.
-> 2017-01-30_11:37:28_dmesg.log is level 2 and
-> 2017-01-30_12:04:47_dmesg.log is level 4. The log files can be found
-> at [1].
->
-> [1] http://mirrors.betterservers.com/trace/dmesg_logs.txz
+
+> On Jan 24, 2017, at 4:46 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> 
+>> On Jan 24, 2017, at 4:35 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+>> 
+>> Hi Chuck,
+>> 
+>> On 01/23/2017 03:52 PM, Chuck Lever wrote:
+>>> Hi Anna-
+>>> 
+>>> I've received a number of reports that v4.9 commit 655fec6987be
+>>> ("xprtrdma: Use gathered Send for large inline messages") causes
+>>> NFS/RDMA mounts to fail for devices that have a small max_sge.
+>>> 
+>>> This series addresses that problem. Would you consider this series
+>>> of bug fixes for v4.10-rc?
+>> 
+>> I noticed that patches one and four are the only ones with a "Fixes:" tag.  Do you need all five patches to fix the problem, or can the rest be deferred to 4.11?
+> 
+> 5/5 can be deferred if you want. The others are all required to
+> fix the problem. However, these were tested as a series. I'm
+> reticent to split them at this point.
+> 
+> Should 1 - 4 have a "Fixes: 655fec6987be ("xprtrdma: Use
+> gathered Send for large ...")" ?
+
+Hi Anna, is there anything more you need from me? As above,
+I was hoping these could be included in v4.10-rc, which is
+likely to be closed in just a week or two.
 
 
-I saw a patch from Max [1] about a related issue so I gave it a try
-and it didn't help. I'm linking to the logs in case you want to look
-at them as well. [2]
+> 
+>> Thanks,
+>> Anna
+>> 
+>>> 
+>>> 
+>>> Available in the "nfs-rdma-for-4.10-rc" topic branch of this git repo:
+>>> 
+>>> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+>>> 
+>>> And for online review:
+>>> 
+>>> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=shortlog;h=refs/heads/nfs-rdma-for-4.10-rc
+>>> 
+>>> 
+>>> Changes since v1:
+>>> - Rebased on v4.10-rc5
+>>> - Renamed some variables for clarity
+>>> - Clarified patch descriptions
+>>> - Added Tested-by and Reviewed-by tags
+>>> 
+>>> ---
+>>> 
+>>> Chuck Lever (5):
+>>>     xprtrdma: Fix Read chunk padding
+>>>     xprtrdma: Per-connection pad optimization
+>>>     xprtrdma: Disable pad optimization by default
+>>>     xprtrdma: Reduce required number of send SGEs
+>>>     xprtrdma: Shrink send SGEs array
+>>> 
+>>> 
+>>> net/sunrpc/xprtrdma/rpc_rdma.c  |   62 +++++++++++++++++++++++++--------------
+>>> net/sunrpc/xprtrdma/transport.c |    2 +
+>>> net/sunrpc/xprtrdma/verbs.c     |   15 ++++++---
+>>> net/sunrpc/xprtrdma/xprt_rdma.h |   14 ++++++---
+>>> 4 files changed, 60 insertions(+), 33 deletions(-)
+>>> 
+>>> --
+>>> Chuck Lever
+>>> 
+> 
+> --
+> Chuck Lever
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-[1] "iSER fails to release rdma resources (WRs) if iw_cxgb4 is
-unloaded while IO is in progress
-https://www.spinics.net/lists/linux-rdma/msg45799.html
-[2] http://mirrors.betterservers.com/trace/2017_02_01_dmesg.txz
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
