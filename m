@@ -1,100 +1,156 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/core: Remove pointer casting from void to
- net_device
-Date: Wed, 1 Feb 2017 15:18:46 +0200
-Message-ID: <20170201131845.GA9782@yuval-lap>
-References: <20170201115126.7313-1-leon@kernel.org>
+From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 7/7] sunrpc: Allow keepalive ping on a credit-full
+ transport
+Date: Wed, 1 Feb 2017 09:50:17 -0500
+Message-ID: <6b94f05b-8601-9d31-bbe5-915e0bb015e1@gmail.com>
+References: <20170131183345.5325.47072.stgit@manet.1015granger.net>
+ <20170131183906.5325.79683.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170201115126.7313-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170131183906.5325.79683.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 01, 2017 at 01:51:26PM +0200, Leon Romanovsky wrote:
-> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> This patch avoids unnecessary type casting from void to net_device.
+Hi Chuck,
 
-How about going one step further and get rid of this temporary event_ndev
-variable?
-
+On 01/31/2017 01:39 PM, Chuck Lever wrote:
+> Allow RPC-over-RDMA to send NULL pings even when the transport has
+> hit its credit limit. One RPC-over-RDMA credit is reserved for
+> operations like keepalive.
 > 
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> For transports that convey NFSv4, it seems like lease renewal would
+> also be a candidate for using a priority transport slot. I'd like to
+> see a mechanism better than RPCRDMA_PRIORITY that can ensure only
+> one priority operation is in use at a time.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/core/roce_gid_mgmt.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
+>  include/linux/sunrpc/sched.h    |    2 ++
+>  net/sunrpc/xprt.c               |    4 ++++
+>  net/sunrpc/xprtrdma/transport.c |    3 ++-
+>  net/sunrpc/xprtrdma/verbs.c     |   13 ++++++++-----
+>  net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
+>  5 files changed, 17 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-> index 0621f4455732..8c1f99f830d4 100644
-> --- a/drivers/infiniband/core/roce_gid_mgmt.c
-> +++ b/drivers/infiniband/core/roce_gid_mgmt.c
-> @@ -144,7 +144,7 @@ static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_de
->  static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
->  				 struct net_device *rdma_ndev, void *cookie)
+> diff --git a/include/linux/sunrpc/sched.h b/include/linux/sunrpc/sched.h
+> index 13822e6..fcea158 100644
+> --- a/include/linux/sunrpc/sched.h
+> +++ b/include/linux/sunrpc/sched.h
+> @@ -127,6 +127,7 @@ struct rpc_task_setup {
+>  #define RPC_TASK_TIMEOUT	0x1000		/* fail with ETIMEDOUT on timeout */
+>  #define RPC_TASK_NOCONNECT	0x2000		/* return ENOTCONN if not connected */
+>  #define RPC_TASK_NO_RETRANS_TIMEOUT	0x4000		/* wait forever for a reply */
+> +#define RPC_TASK_NO_CONG	0x8000		/* skip congestion control */
+>  
+>  #define RPC_TASK_SOFTPING	(RPC_TASK_SOFT | RPC_TASK_SOFTCONN)
+>  
+> @@ -137,6 +138,7 @@ struct rpc_task_setup {
+>  #define RPC_IS_SOFT(t)		((t)->tk_flags & (RPC_TASK_SOFT|RPC_TASK_TIMEOUT))
+>  #define RPC_IS_SOFTCONN(t)	((t)->tk_flags & RPC_TASK_SOFTCONN)
+>  #define RPC_WAS_SENT(t)		((t)->tk_flags & RPC_TASK_SENT)
+> +#define RPC_SKIP_CONG(t)	((t)->tk_flags & RPC_TASK_NO_CONG)
+>  
+>  #define RPC_TASK_RUNNING	0
+>  #define RPC_TASK_QUEUED		1
+> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+> index b530a28..a477ee6 100644
+> --- a/net/sunrpc/xprt.c
+> +++ b/net/sunrpc/xprt.c
+> @@ -392,6 +392,10 @@ static inline void xprt_release_write(struct rpc_xprt *xprt, struct rpc_task *ta
 >  {
-> -	struct net_device *event_ndev = (struct net_device *)cookie;
-> +	struct net_device *event_ndev = cookie;
->  	struct net_device *real_dev;
->  	int res;
-> 
-> @@ -192,7 +192,7 @@ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
->  static int upper_device_filter(struct ib_device *ib_dev, u8 port,
->  			       struct net_device *rdma_ndev, void *cookie)
+>  	struct rpc_rqst *req = task->tk_rqstp;
+>  
+> +	if (RPC_SKIP_CONG(task)) {
+> +		req->rq_cong = 0;
+> +		return 1;
+> +	}
+>  	if (req->rq_cong)
+>  		return 1;
+>  	dprintk("RPC: %5u xprt_cwnd_limited cong = %lu cwnd = %lu\n",
+> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> index 3a5a805..073fecd 100644
+> --- a/net/sunrpc/xprtrdma/transport.c
+> +++ b/net/sunrpc/xprtrdma/transport.c
+> @@ -546,7 +546,8 @@ static void rpcrdma_keepalive_release(void *calldata)
+>  
+>  	data = xprt_get(xprt);
+>  	null_task = rpc_call_null_helper(task->tk_client, xprt, NULL,
+> -					 RPC_TASK_SOFTPING | RPC_TASK_ASYNC,
+> +					 RPC_TASK_SOFTPING | RPC_TASK_ASYNC |
+> +					 RPC_TASK_NO_CONG,
+>  					 &rpcrdma_keepalive_call_ops, data);
+>  	if (!IS_ERR(null_task))
+>  		rpc_put_task(null_task);
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 81cd31a..d9b5fa7 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -136,19 +136,20 @@
+>  static void
+>  rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
 >  {
-> -	struct net_device *event_ndev = (struct net_device *)cookie;
-> +	struct net_device *event_ndev = cookie;
->  	int res;
-> 
->  	if (!rdma_ndev)
-> @@ -379,7 +379,7 @@ static void _add_netdev_ips(struct ib_device *ib_dev, u8 port,
->  static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
->  			   struct net_device *rdma_ndev, void *cookie)
->  {
-> -	struct net_device *event_ndev = (struct net_device *)cookie;
-> +	struct net_device *event_ndev = cookie;
-> 
->  	enum_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
->  	_add_netdev_ips(ib_dev, port, event_ndev);
-> @@ -388,7 +388,7 @@ static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
->  static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
->  			   struct net_device *rdma_ndev, void *cookie)
->  {
-> -	struct net_device *event_ndev = (struct net_device *)cookie;
-> +	struct net_device *event_ndev = cookie;
-> 
->  	ib_cache_gid_del_all_netdev_gids(ib_dev, port, event_ndev);
+> -	struct rpcrdma_msg *rmsgp = rdmab_to_msg(rep->rr_rdmabuf);
+>  	struct rpcrdma_buffer *buffer = &rep->rr_rxprt->rx_buf;
+> +	__be32 *p = rep->rr_rdmabuf->rg_base;
+>  	u32 credits;
+>  
+>  	if (rep->rr_len < RPCRDMA_HDRLEN_ERR)
+>  		return;
+>  
+> -	credits = be32_to_cpu(rmsgp->rm_credit);
+> +	credits = be32_to_cpup(p + 2);
+> +	if (credits > buffer->rb_max_requests)
+> +		credits = buffer->rb_max_requests;
+> +	/* Reserve one credit for keepalive ping */
+> +	credits--;
+>  	if (credits == 0)
+>  		credits = 1;	/* don't deadlock */
+> -	else if (credits > buffer->rb_max_requests)
+> -		credits = buffer->rb_max_requests;
+> -
+>  	atomic_set(&buffer->rb_credits, credits);
 >  }
-> @@ -460,7 +460,7 @@ static void handle_netdev_upper(struct ib_device *ib_dev, u8 port,
->  						      u8 port,
->  						      struct net_device *ndev))
->  {
-> -	struct net_device *ndev = (struct net_device *)cookie;
-> +	struct net_device *ndev = cookie;
->  	struct upper_list *upper_iter;
->  	struct upper_list *upper_temp;
->  	LIST_HEAD(upper_list);
-> @@ -519,7 +519,7 @@ static void del_netdev_default_ips_join(struct ib_device *ib_dev, u8 port,
->  static void del_netdev_default_ips(struct ib_device *ib_dev, u8 port,
->  				   struct net_device *rdma_ndev, void *cookie)
->  {
-> -	struct net_device *event_ndev = (struct net_device *)cookie;
-> +	struct net_device *event_ndev = cookie;
+>  
+> @@ -915,6 +916,8 @@ struct rpcrdma_rep *
+>  	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+>  	int i, rc;
+>  
+> +	if (r_xprt->rx_data.max_requests < 2)
+> +		return -EINVAL;
+>  	buf->rb_max_requests = r_xprt->rx_data.max_requests;
+>  	buf->rb_bc_srv_max_requests = 0;
+>  	atomic_set(&buf->rb_credits, 1);
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index 95c1e3d..dd1340f 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -77,8 +77,8 @@ struct rpcrdma_ia {
+>  	unsigned int		ri_max_send_sges;
+>  	bool			ri_reminv_expected;
+>  	bool			ri_implicit_roundup;
+> -	unsigned long		ri_flags;
+>  	enum ib_mr_type		ri_mrtype;
+> +	unsigned long		ri_flags;
+
+Any reason for the reordering here?
+
+Thanks,
+Anna
+
+>  	struct ib_qp_attr	ri_qp_attr;
+>  	struct ib_qp_init_attr	ri_qp_init_attr;
+>  };
 > 
->  	bond_delete_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
->  }
 > --
-> 2.11.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
