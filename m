@@ -1,35 +1,52 @@
-From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Is qperf Alive?
-Date: Thu, 2 Feb 2017 14:35:25 +0000
-Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A3580BE7074C@FMSMSX103.amr.corp.intel.com>
-References: <SN1PR07MB22072971F5939C1D069DE952F84B0@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: qedr and vmw_pvrdma are not packaged in rdma-core
+Date: Thu, 2 Feb 2017 09:38:31 -0700
+Message-ID: <20170202163831.GA10782@obsidianresearch.com>
+References: <20170202062628.GZ6005@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <SN1PR07MB22072971F5939C1D069DE952F84B0-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170202062628.GZ6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi All,
-> Is anyone maintaining qperf? Does any of you use it?
-
-qperf is used internally at Intel.
- 
-> The link from OFED's website leads to a github that was last updated in 2012
-> (git://git.openfabrics.org/~deanl/qperf.git master)
+On Thu, Feb 02, 2017 at 08:26:28AM +0200, Leon Romanovsky wrote:
+> Hi Ram and Adit,
 > 
-> I've sent an e-mail to the listed maintainer but got no response yet.
-> Dean Luick (infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org<mailto:infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>)
+> I want to bring to your attention that qedr and vmw_pvrdma drivers are
+> missing from various package files available in rdma-core.
 
-I am no longer the maintainer and am not on that mail alias any more.   The ownership handoff appears to have failed.  This is being worked internal to Intel.
+It is handled automatically, can't be missing:
 
+$ buildlib/cbuild pkg jessie
+$ dpkg-deb -c ../ibverbs-providers_13-1_amd64.deb
+-rw-r--r-- root/root     35024 2017-02-02 09:31 ./usr/lib/x86_64-linux-gnu/libibverbs/libqedr-rdmav2.so
+-rw-r--r-- root/root     18600 2017-02-02 09:31 ./usr/lib/x86_64-linux-gnu/libibverbs/libvmw_pvrdma-rdmav2.so
 
-Dean
+$ buildlib/cbuild pkg fc25
+$ rpm -q -l -p ../libibverbs-13-1.fc25.x86_64.rpm
+/usr/lib64/libibverbs/libqedr-rdmav2.so
+/usr/lib64/libibverbs/libvmw_pvrdma-rdmav2.so
 
+> RedHat has different scheme with explicit declaration, from redhat/rdma-core.spec
+> 98 Provides: librxe = %{version}-%{release}
+> 99 Obsoletes: librxe < %{version}-%{release}
 
+This is only for things that were previously packaged in redhat, qedr
+and vmw_pvrdma have not been, so they should not include those
+stanzas. It is similar to the obsoletes/replaces in debian/control.
+
+> But it is not installation only.  for example debian/copyright
+> doesn't have information about providers/vmw_pvrdma.
+
+Yes, this needs to be fixed..
+
+This is why I was hoping for an automatic script to maintain this file :)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
