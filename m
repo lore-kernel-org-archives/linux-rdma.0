@@ -1,59 +1,54 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/7] Add mlx5 direct verbs
-Date: Thu, 2 Feb 2017 10:52:36 +0200
-Message-ID: <782c31cb-e247-1094-955f-2766f9c66cbd@grimberg.me>
-References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: qedr and vmw_pvrdma are not packaged in rdma-core
+Date: Thu, 02 Feb 2017 10:17:56 +0100
+Message-ID: <1486027076.4257.30.camel@profitbricks.com>
+References: <20170202062628.GZ6005@mtr-leonro.local>
+         <20170202081311.GA10429@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1485446182-5109-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170202081311.GA10429-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Am Donnerstag, den 02.02.2017, 00:13 -0800 schrieb Christoph Hellwig:
+> On Thu, Feb 02, 2017 at 08:26:28AM +0200, Leon Romanovsky wrote:
+> > Hi Ram and Adit,
+> > 
+> > I want to bring to your attention that qedr and vmw_pvrdma drivers
+> > are
+> > missing from various package files available in rdma-core.
+> > 
+> > Can you please send the patches which add your drivers to rdma-core
+> > packages (Redhat and Debian)?
+> 
+> Even better: can we find a way so that providers (old and new) get
+> added automatically?
 
-> This patchset from Leon adds direct access to mlx5 devices.
->
-> The libibverbs API is an abstract API. It is agnostic to any underlying
-> provider specific implementation. While this abstraction has the advantage of
-> user applications portability it has a performance penalty. For some
-> applications optimizing performance is more important than portability.
->
-> The mlx5 direct verbs API introduced in this patchset is intended for such
-> applications. It exposes mlx5 specific low level data path
-> (send/receive/completion) operations, allowing the application to bypass the
-> libibverbs data path API.
+debian/ibverbs-providers.install specifies:
+usr/lib/*/libibverbs/lib*-rdmav2.so
 
-Yishai and Leon this is good stuff !!
+So if CMake installs the provider, the package will automatically pick
+it up.
 
-Couple of comments:
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
 
-- The user of this is pretty intimate with the driver, which makes a
-   somewhat strange combo of having both ibv_ and mlx5dv_ API. I
-   understand that it can inflate the the implementation, but perhaps
-   for completeness we can have also the control plane API as well (even
-   as a trampoline to the generic equivalent where it's useless).
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
 
-   The rational here is that extended features that needs allocation
-   flags can be contained to mlx5 and not pollute/inflate the generic
-   verbs implementation.
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:  http://www.profitbricks.com
 
-- This brings me to the next step of this. What is still missing is
-   how we allow the user to have more control and information about how
-   his db records (namely UARs) are allocated. How does the user
-   know if he needs to protect the DB write? Is it BF? How can the user
-   ask for more UARs than originally allocated to it by the kernel?
-   The user of this can really use an API that allows more control
-   of this area.
-
-   Hopefully we can come up with something that is abstract enough to
-   not expose how exactly UARs are strided on pages and the exact
-   interface with the kernel, but still let the user choose if to use
-   a dedicated db_rec and let the driver manage all the internal details.
-
-Thoughts?
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Andreas Gauger, Achim Weiss.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
