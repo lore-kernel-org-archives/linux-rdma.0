@@ -1,36 +1,129 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: any suggested configuration for rxe?
-Date: Thu, 2 Feb 2017 08:56:30 +0200
-Message-ID: <CAG9sBKPERZ-8f2N-S7B4+HmgrF+1=VGmOXTTM7urQ4+DZSAmFw@mail.gmail.com>
-References: <CAJ-uSQZcnQ+Mqj1XGuMSzP54WQi6KofDyp11dCog+bqGmL3MWA@mail.gmail.com>
- <CAG9sBKPj9wJhwZOFDXoOwH0=tBZR1pWdS6chYn_VK6SLdDQ7Xg@mail.gmail.com>
- <CAJ-uSQY50gRrQe7TAoJq3rd_MFqX8o=y_CZ=hqFJ1=WFZSg+tw@mail.gmail.com>
- <CAG9sBKPGWNrR_ejm-LxNzy5iqXKwvxUD2-mLYsGJnVw7FkxKHg@mail.gmail.com>
- <CAG9sBKMVVtUdffzH8DbS7vRzYiyAPDBn+n2MMBYvpe6SQXYHjA@mail.gmail.com> <CAJ-uSQb0jqewQL095i_+vtzCnPK70AnLE+XAgv_XkjxKW9jLFQ@mail.gmail.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1] IB/core: Remove pointer casting from void
+ to net_device
+Date: Thu, 2 Feb 2017 09:29:45 +0200
+Message-ID: <20170202072945.GA3424@yuval-lap>
+References: <20170202051408.21839-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ-uSQb0jqewQL095i_+vtzCnPK70AnLE+XAgv_XkjxKW9jLFQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170202051408.21839-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 2, 2017 at 1:07 AM, feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> hi Moni, guys,
->
-> Sure yes I could ping, yes, no firewall or anything, in all cases that
-> was clean minimal install of Ubuntu 16.04.1 with updates and 4.9.6
-> kernel.
-> In my previous tests that was all on vmware vms on virtual network,
-> but as you asked I also decided to check on real hardware.
->
-> I've got same results (below) between two machines with dual Intel
-> I350 and I also checked same both directions against a machine with
-> dual Mellanox ConnectX-3 Pro.
->
-I will try to bring up the same setup here and see how it goes.
-thanks for the report
+On Thu, Feb 02, 2017 at 07:14:08AM +0200, Leon Romanovsky wrote:
+> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> This patch avoids unnecessary type casting from void to net_device.
+> 
+> CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+> Changelog v0->v1:
+>  * Removed temporary event_ndev variable as was suggested by Yuval Shaia.
+> ---
+>  drivers/infiniband/core/roce_gid_mgmt.c | 28 ++++++++++------------------
+>  1 file changed, 10 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+> index 0621f4455732..db958d3207ef 100644
+> --- a/drivers/infiniband/core/roce_gid_mgmt.c
+> +++ b/drivers/infiniband/core/roce_gid_mgmt.c
+> @@ -144,7 +144,6 @@ static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_de
+>  static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+>  				 struct net_device *rdma_ndev, void *cookie)
+>  {
+> -	struct net_device *event_ndev = (struct net_device *)cookie;
+>  	struct net_device *real_dev;
+>  	int res;
+> 
+> @@ -152,11 +151,11 @@ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+>  		return 0;
+> 
+>  	rcu_read_lock();
+> -	real_dev = rdma_vlan_dev_real_dev(event_ndev);
+> +	real_dev = rdma_vlan_dev_real_dev(cookie);
+>  	if (!real_dev)
+> -		real_dev = event_ndev;
+> +		real_dev = cookie;
+> 
+> -	res = ((rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
+> +	res = ((rdma_is_upper_dev_rcu(rdma_ndev, cookie) &&
+>  	       (is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) &
+>  		REQUIRED_BOND_STATES)) ||
+>  	       real_dev == rdma_ndev);
+> @@ -192,17 +191,16 @@ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
+>  static int upper_device_filter(struct ib_device *ib_dev, u8 port,
+>  			       struct net_device *rdma_ndev, void *cookie)
+>  {
+> -	struct net_device *event_ndev = (struct net_device *)cookie;
+>  	int res;
+> 
+>  	if (!rdma_ndev)
+>  		return 0;
+> 
+> -	if (rdma_ndev == event_ndev)
+> +	if (rdma_ndev == cookie)
+>  		return 1;
+> 
+>  	rcu_read_lock();
+> -	res = rdma_is_upper_dev_rcu(rdma_ndev, event_ndev);
+> +	res = rdma_is_upper_dev_rcu(rdma_ndev, cookie);
+>  	rcu_read_unlock();
+> 
+>  	return res;
+> @@ -379,18 +377,14 @@ static void _add_netdev_ips(struct ib_device *ib_dev, u8 port,
+>  static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
+>  			   struct net_device *rdma_ndev, void *cookie)
+>  {
+> -	struct net_device *event_ndev = (struct net_device *)cookie;
+> -
+> -	enum_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
+> -	_add_netdev_ips(ib_dev, port, event_ndev);
+> +	enum_netdev_default_gids(ib_dev, port, cookie, rdma_ndev);
+> +	_add_netdev_ips(ib_dev, port, cookie);
+>  }
+> 
+>  static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
+>  			   struct net_device *rdma_ndev, void *cookie)
+>  {
+> -	struct net_device *event_ndev = (struct net_device *)cookie;
+> -
+> -	ib_cache_gid_del_all_netdev_gids(ib_dev, port, event_ndev);
+> +	ib_cache_gid_del_all_netdev_gids(ib_dev, port, cookie);
+>  }
+> 
+>  static void enum_all_gids_of_dev_cb(struct ib_device *ib_dev,
+> @@ -460,7 +454,7 @@ static void handle_netdev_upper(struct ib_device *ib_dev, u8 port,
+>  						      u8 port,
+>  						      struct net_device *ndev))
+>  {
+> -	struct net_device *ndev = (struct net_device *)cookie;
+> +	struct net_device *ndev = cookie;
+>  	struct upper_list *upper_iter;
+>  	struct upper_list *upper_temp;
+>  	LIST_HEAD(upper_list);
+> @@ -519,9 +513,7 @@ static void del_netdev_default_ips_join(struct ib_device *ib_dev, u8 port,
+>  static void del_netdev_default_ips(struct ib_device *ib_dev, u8 port,
+>  				   struct net_device *rdma_ndev, void *cookie)
+>  {
+> -	struct net_device *event_ndev = (struct net_device *)cookie;
+> -
+> -	bond_delete_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
+> +	bond_delete_netdev_default_gids(ib_dev, port, cookie, rdma_ndev);
+
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+>  }
+> 
+>  /* The following functions operate on all IB devices. netdevice_event and
+> --
+> 2.11.0
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
