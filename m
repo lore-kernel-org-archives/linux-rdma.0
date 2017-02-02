@@ -1,53 +1,36 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: qedr and vmw_pvrdma are not packaged in rdma-core
-Date: Thu, 2 Feb 2017 08:26:28 +0200
-Message-ID: <20170202062628.GZ6005@mtr-leonro.local>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: any suggested configuration for rxe?
+Date: Thu, 2 Feb 2017 08:56:30 +0200
+Message-ID: <CAG9sBKPERZ-8f2N-S7B4+HmgrF+1=VGmOXTTM7urQ4+DZSAmFw@mail.gmail.com>
+References: <CAJ-uSQZcnQ+Mqj1XGuMSzP54WQi6KofDyp11dCog+bqGmL3MWA@mail.gmail.com>
+ <CAG9sBKPj9wJhwZOFDXoOwH0=tBZR1pWdS6chYn_VK6SLdDQ7Xg@mail.gmail.com>
+ <CAJ-uSQY50gRrQe7TAoJq3rd_MFqX8o=y_CZ=hqFJ1=WFZSg+tw@mail.gmail.com>
+ <CAG9sBKPGWNrR_ejm-LxNzy5iqXKwvxUD2-mLYsGJnVw7FkxKHg@mail.gmail.com>
+ <CAG9sBKMVVtUdffzH8DbS7vRzYiyAPDBn+n2MMBYvpe6SQXYHjA@mail.gmail.com> <CAJ-uSQb0jqewQL095i_+vtzCnPK70AnLE+XAgv_XkjxKW9jLFQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jiz6jV+gGMQoj4lW"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAJ-uSQb0jqewQL095i_+vtzCnPK70AnLE+XAgv_XkjxKW9jLFQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---jiz6jV+gGMQoj4lW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Ram and Adit,
-
-I want to bring to your attention that qedr and vmw_pvrdma drivers are
-missing from various package files available in rdma-core.
-
-Can you please send the patches which add your drivers to rdma-core
-packages (Redhat and Debian)?
-
-Thanks
-
---jiz6jV+gGMQoj4lW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliS0RQACgkQ5GN7iDZy
-WKcJ8A/9EGGmgQ15iLJNnwVbdg/wnceQybjTR3uzg/ToXajGtvyYDPfF8ilrC0Es
-T2hsxfgGMn1j0LfxmRW5Cw6Z9u3ntVR6MEdgviVokBGK8HIAbdvSYASXC2qoBtMQ
-s4MUKF5O87sxME8kvmCkGpLEt2psThEKOx1PfwALRWJSkPfr2/ku+lAW7x+JJwNQ
-BRUT4Y5j1vNjzDTbInHomKkwTvsAGJ4mq3U9FRJ/J8XJj6xW+YYZXZDmw3S2QB7C
-umlAq+rxmJ6gyaZ4Rx+olXMsB4Sqx+sYKw/tAEAqLrBGB1KKxW42cNLKGmr/D/K+
-rBny9mFpq85CPodcFZm/JkZCifo00qgotJ+kggtFLDWpuryZ7cZPMA6Nrup0X52b
-w1xoPInBqTbfD6Tm5zIFUAQaYDVTCRjv7A9xLcs8SwmxvaFSG4kezeybd/L3STSv
-qx6CG9tV/Mpj3RQyX7PeRZmhmc3ypVPM0VqP6zuqZ1RC0hkoI8DBNfBsVufnKUSK
-/hiW6DptlL8RAohqC/HuH1rq/J1YaV66jiv948KcYGPMbvA4dDAqRnTBxPiHfAeZ
-9awCwQ410FtIMD7Qack4BGEQNJ7mGv0Gyxa9uHIXwi+NgsCYN/Zpu8RN7GoPF96O
-ZEyqcz0Yk1CEG4iaRyhvFFTLTPHW3DPRe74haFJoXqW/HYWTDns=
-=kiYi
------END PGP SIGNATURE-----
-
---jiz6jV+gGMQoj4lW--
+On Thu, Feb 2, 2017 at 1:07 AM, feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> hi Moni, guys,
+>
+> Sure yes I could ping, yes, no firewall or anything, in all cases that
+> was clean minimal install of Ubuntu 16.04.1 with updates and 4.9.6
+> kernel.
+> In my previous tests that was all on vmware vms on virtual network,
+> but as you asked I also decided to check on real hardware.
+>
+> I've got same results (below) between two machines with dual Intel
+> I350 and I also checked same both directions against a machine with
+> dual Mellanox ConnectX-3 Pro.
+>
+I will try to bring up the same setup here and see how it goes.
+thanks for the report
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
