@@ -1,34 +1,41 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: Is qperf Alive?
-Date: Sun, 5 Feb 2017 07:55:57 +0000
-Message-ID: <SN1PR07MB2207AE8E0F2027CC963273F2F8410@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <SN1PR07MB22072971F5939C1D069DE952F84B0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <4AF12E8016D2BF46BCDFCE8FAA77A3580BE7074C@FMSMSX103.amr.corp.intel.com>
+From: Tariq Toukan <ttoukan.linux@gmail.com>
+Subject: Re: [patch net-next] net/mlx4_en: fix a condition
+Date: Sun, 5 Feb 2017 10:26:54 +0200
+Message-ID: <86df2437-317f-aaa3-fd33-406b3db30da3@gmail.com>
+References: <20170203095459.GA5704@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF12E8016D2BF46BCDFCE8FAA77A3580BE7074C-AtyAts71sc9Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170203095459.GA5704@mwanda>
+Sender: netdev-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Yishai Hadas <yishaih@mellanox.com>, Shaker Daibes <shakerd@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> qperf is used internally at Intel.
 
-<snip>=20
-
-> I am no longer the maintainer and am not on that mail alias any more.   T=
-he ownership handoff appears to have failed.
-> This is being worked internal to Intel.
-
-By 'This is being worked internal to intel' do you mean that a new owner is=
- being assigned?
-
-Thanks,
-Ram
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 03/02/2017 11:54 AM, Dan Carpenter wrote:
+> There is a "||" vs "|" typo here so we test 0x1 instead of 0x6.
+>
+> Fixes: 1f8176f7352a ("net/mlx4_en: Check the enabling pptx/pprx flags in SET_PORT wrapper flow")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+> index 5053c949148f..4e36e287d605 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/port.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+> @@ -1395,7 +1395,7 @@ static int mlx4_common_set_port(struct mlx4_dev *dev, int slave, u32 in_mod,
+>   							  gen_context);
+>   
+>   			if (gen_context->flags &
+> -			    (MLX4_FLAG_V_PPRX_MASK || MLX4_FLAG_V_PPTX_MASK))
+> +			    (MLX4_FLAG_V_PPRX_MASK | MLX4_FLAG_V_PPTX_MASK))
+>   				mlx4_en_set_port_global_pause(dev, slave,
+>   							      gen_context);
+>   
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+Thanks Dan.
