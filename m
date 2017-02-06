@@ -1,39 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC 2/2] IB/hfi1: Fix port ordering issue in a multiport
- device
-Date: Mon, 6 Feb 2017 12:26:42 -0700
-Message-ID: <20170206192642.GA22482@obsidianresearch.com>
-References: <148640852878.13713.11121939459524566022.stgit@tstruk-mobl1.ra.intel.com>
- <148640853387.13713.5705865367460168894.stgit@tstruk-mobl1.ra.intel.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting next
+ week - 2/7/2017 at 11:00PST
+Date: Mon, 6 Feb 2017 20:05:13 +0000
+Message-ID: <HE1PR0501MB28124EC11E1FB088EA6A821CB1400@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+References: <HE1PR0501MB2812A57B3A481B29DE090E2AB14C0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <1486074223.2816.16.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <148640853387.13713.5705865367460168894.stgit-mEAvsCHCuLl9qtVHHdszJa2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1486074223.2816.16.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 06, 2017 at 11:15:33AM -0800, Tadeusz Struk wrote:
-> Some hardware has multiple HFIs within the same ASIC, each one on a
-> sepatate bus number. In some devices the numbers labeled on the
-> faceplate of the device don't match the PCI bus order, and the result
-> is that the devices (ports) are probed in the opposite order of their
-> port numbers. The result is IB device unit numbers are in reverse order
-> from the faceplate numbering. This leads to confusion, and errors.
-> Use EPROBE_DEFER error code to enforce correct port order.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  drivers/infiniband/hw/hfi1/chip.c |   95 ++++++++++++++++++++++++++++++++++++-
->  drivers/infiniband/hw/hfi1/chip.h |    2 -
->  drivers/infiniband/hw/hfi1/init.c |    1 
->  3 files changed, 94 insertions(+), 4 deletions(-)
+> From: Bart Van Assche [mailto:Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org]
 
-Still no on this from me, this is a horrible abuse of the device core.
+> Are you aware that Christoph Hellwig's patch series for automatically spr=
+eading
+> IRQs over CPUs has been accepted upstream some time ago? See also
+> pci_alloc_irq_vectors_affinity() in drivers/pci/msi.c. Is the scope of th=
+is meeting
+> to modify that existing functionality or are you perhaps looking for an A=
+PI that
+> allows to query the mapping chosen by pci_alloc_irq_vectors_affinity()?
+>
 
-Jason
+Hi Bart, Christoph,
+
+We want to discuss an extension to user-space Verbs, so I think that this h=
+as no
+direct relation to Christoph's ongoing work.
+
+Obviously, it would impact the ABI, so if the general idea makes sense we w=
+ill
+continue on the list...
+
+ > Thanks,
+>=20
+> Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
