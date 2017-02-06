@@ -1,41 +1,38 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: any suggested configuration for rxe?
-Date: Mon, 6 Feb 2017 14:38:37 +0200
-Message-ID: <f12bd368-7094-70b4-601a-47255a707f9f@mellanox.com>
-References: <CAJ-uSQZcnQ+Mqj1XGuMSzP54WQi6KofDyp11dCog+bqGmL3MWA@mail.gmail.com>
- <CAG9sBKPj9wJhwZOFDXoOwH0=tBZR1pWdS6chYn_VK6SLdDQ7Xg@mail.gmail.com>
- <CAJ-uSQY50gRrQe7TAoJq3rd_MFqX8o=y_CZ=hqFJ1=WFZSg+tw@mail.gmail.com>
- <CAG9sBKPGWNrR_ejm-LxNzy5iqXKwvxUD2-mLYsGJnVw7FkxKHg@mail.gmail.com>
- <CAG9sBKMVVtUdffzH8DbS7vRzYiyAPDBn+n2MMBYvpe6SQXYHjA@mail.gmail.com>
- <CAJ-uSQb0jqewQL095i_+vtzCnPK70AnLE+XAgv_XkjxKW9jLFQ@mail.gmail.com>
- <c50d9d3d-f696-ed0c-f23f-1c5a8e1f0f2d@mellanox.com>
- <CAJ-uSQbrS3MDz0NyWv1ctKQdXG9-e633mKc5cPe5fKOuL8Bj3Q@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibstat.c: If port is 1x SDR, rate is 2.5
+ rather than 2 Gbps
+Date: Mon, 6 Feb 2017 08:03:12 -0500
+Message-ID: <7230ef46-74ff-76cd-4123-f34a75a6d436@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ-uSQbrS3MDz0NyWv1ctKQdXG9-e633mKc5cPe5fKOuL8Bj3Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: feu tche <feutche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/6/2017 11:44 AM, feu tche wrote:
-> hi Yonatan,
->
-> Yes I can try single physical device, just need some time to configure.
-> When initially trying on vmware that was a single device, with all the
-> same results, so I don't think it will make any difference to be
-> honest. As I remember from diagrams, rxe fits just before bonding so
-> should work with it as well?
-yes it should. but we have seen issues with it before.
-we did not investigate yet.
->
-> Thanks!
->
-> Fedor
->
+From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/ibstat.c b/src/ibstat.c
+index 37f2361..2d980c4 100644
+--- a/src/ibstat.c
++++ b/src/ibstat.c
+@@ -182,8 +182,10 @@ static int port_dump(umad_port_t * port, int alone)
+ 	       7 ? port_phy_state_str[port->phys_state] : "???");
+ 	if (is_fdr10(port))
+ 		printf("%sRate: %d (FDR10)\n", pre, port->rate);
+-	else
++	else if (port->rate != 2)	/* 1x SDR */
+ 		printf("%sRate: %d\n", pre, port->rate);
++	else
++		printf("%sRate: 2.5\n", pre);
+ 	printf("%sBase lid: %d\n", pre, port->base_lid);
+ 	printf("%sLMC: %d\n", pre, port->lmc);
+ 	printf("%sSM lid: %d\n", pre, port->sm_lid);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
