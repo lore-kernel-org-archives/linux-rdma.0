@@ -1,53 +1,34 @@
-From: Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [PATCHv1] net-next: treewide use is_vlan_dev() helper function.
-Date: Mon, 6 Feb 2017 21:21:00 +0000
-Message-ID: <BLUPR03MB1412D00046029D435FA40365CA400__31857.4472018101$1486416100$gmane$org@BLUPR03MB1412.namprd03.prod.outlook.com>
-References: <1486227649-12648-1-git-send-email-parav@mellanox.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] [net-next] net/mlx5e: fix another maybe-uninitialized
+ false-positive
+Date: Mon, 06 Feb 2017 16:35:31 -0500 (EST)
+Message-ID: <20170206.163531.1565126009397840765.davem@davemloft.net>
+References: <20170203163716.3501713-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1486227649-12648-1-git-send-email-parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170203163716.3501713-1-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "manish.chopra-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <manish.chopra-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Dept-GELinuxNICDev-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Dept-GELinuxNICDev-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "harish.patil-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <harish.patil-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: arnd-r2nGTMty4D4@public.gmane.org
+Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirva-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Date: Fri,  3 Feb 2017 17:37:03 +0100
 
+> In commit abeffce ("net/mlx5e: Fix a -Wmaybe-uninitialized warning"), I fixed a
+> gcc warning for the ipv4 offload handling. Now we get the same warning for the
+> added ipv6 support:
+> 
+> drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:815:40: warning: 'out_dev' may be used uninitialized in this function [-Wmaybe-uninitialized]
+> 
+> We can apply the same workaround here as well.
+> 
+> Fixes: ce99f6b97fcd ("net/mlx5e: Support SRIOV TC encapsulation offloads for IPv6 tunnels")
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-> -----Original Message-----
-> From: Parav Pandit [mailto:parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Saturday, February 4, 2017 12:01 PM
-> To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>;
-> hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org;
-> ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; manish.chopra-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org; rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org;
-> Dept-GELinuxNICDev-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org; harish.patil-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org; KY Srinivasan
-> <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; Stephen
-> Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org;
-> jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org; martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org; jth-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
-> arvid.brodin-SVm98a2vdck@public.gmane.org; davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
-> sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org;
-> bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org; valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; arnd-r2nGTMty4D4@public.gmane.org;
-> weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; jmaxwell37-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org;
-> jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org; linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; fcoe-
-> devel-s9riP+hp16TNLxjTenLetw@public.gmane.org
-> Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Subject: [PATCHv1] net-next: treewide use is_vlan_dev() helper function.
->=20
-> This patch makes use of is_vlan_dev() function instead of flag
-> comparison which is exactly done by is_vlan_dev() helper function.
->=20
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-
-For drivers/net/hyperv/netvsc_drv.c
-Acked-by: Haiyang Zhang <haiyangz-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-
-
-Thanks.
-
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
