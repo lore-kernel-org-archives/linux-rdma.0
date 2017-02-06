@@ -1,25 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCHv1] net-next: treewide use is_vlan_dev() helper function.
-Date: Mon, 06 Feb 2017 16:35:43 -0500 (EST)
-Message-ID: <20170206.163543.1507099447218540784.davem@davemloft.net>
-References: <1486227649-12648-1-git-send-email-parav@mellanox.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Is qperf Alive?
+Date: Mon, 6 Feb 2017 22:35:16 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3C6439EF@CRSMSX101.amr.corp.intel.com>
+References: <SN1PR07MB22072971F5939C1D069DE952F84B0@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <4AF12E8016D2BF46BCDFCE8FAA77A3580BE7074C@FMSMSX103.amr.corp.intel.com>
+ <SN1PR07MB2207AE8E0F2027CC963273F2F8410@SN1PR07MB2207.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1486227649-12648-1-git-send-email-parav@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: parav@mellanox.com
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, monis@mellanox.com, santosh@chelsio.com, ganeshgr@chelsio.com, manish.chopra@cavium.com, rahul.verma@cavium.com, Dept-GELinuxNICDev@cavium.com, harish.patil@cavium.com, kys@microsoft.com, haiyangz@microsoft.com, sthemmin@microsoft.com, QLogic-Storage-Upstream@qlogic.com, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, jth@kernel.org, arvid.brodin@alten.se, leon@kernel.org, sagi@grimberg.me, swise@opengridcomputing.com, bart.vanassche@sandisk.com, valex@mellanox.com, arnd@arndb.de, weiyj.lk@gmail.com, jmaxwell37@gmail.com, varun@chelsio.com, jbenc@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devel@linuxdriverproject.org, linux-scsi@vger.kernel.org, fcoe-devel@open-fcoe.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <SN1PR07MB2207AE8E0F2027CC963273F2F8410-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
-Date: Sat,  4 Feb 2017 11:00:49 -0600
-
-> This patch makes use of is_vlan_dev() function instead of flag
-> comparison which is exactly done by is_vlan_dev() helper function.
 > 
-> Signed-off-by: Parav Pandit <parav@mellanox.com>
-> Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+> > qperf is used internally at Intel.
+> 
+> <snip>
+> 
+> > I am no longer the maintainer and am not on that mail alias any more.   The
+> ownership handoff appears to have failed.
+> > This is being worked internal to Intel.
+> 
+> By 'This is being worked internal to intel' do you mean that a new owner is being
+> assigned?
 
-Applied.
+Yes.
+
+For the time being I am going to maintain qperf.
+
+Please resend any outstanding patches directly to me:
+
+Ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+And the list because patchworks has been cleaned out and I don't see any pending patches.
+
+I'll be setting up repo locations by the end of the week.
+
+Thanks,
+Ira
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
