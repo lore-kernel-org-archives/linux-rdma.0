@@ -1,47 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] Registering non-contiguous memory
-Date: Sun, 5 Feb 2017 15:44:01 -0700
-Message-ID: <20170205224401.GB26474@obsidianresearch.com>
-References: <VI1PR05MB127817A311C332553E4391AFB9410@VI1PR05MB1278.eurprd05.prod.outlook.com>
+From: Jonathan Maxwell <jmaxwell37@gmail.com>
+Subject: Re: [PATCHv1] net-next: treewide use is_vlan_dev() helper function.
+Date: Mon, 6 Feb 2017 11:28:04 +1100
+Message-ID: <CAGHK07BJvQ9U6MUuObDWJDagJpNU9XfH5=MAE3M-m9CRDO=jpw@mail.gmail.com>
+References: <1486227649-12648-1-git-send-email-parav@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <VI1PR05MB127817A311C332553E4391AFB9410-79XLn2atqDMOK6E67s+DINqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1486227649-12648-1-git-send-email-parav@mellanox.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Parav Pandit <parav@mellanox.com>
+Cc: arvid.brodin@alten.se, swise@opengridcomputing.com, jbenc@redhat.com, sean.hefty@intel.com, sthemmin@microsoft.com, sagi@grimberg.me, leon@kernel.org, Dept-GELinuxNICDev@cavium.com, dledford@redhat.com, ganeshgr@chelsio.com, harish.patil@cavium.com, hal.rosenstock@gmail.com, manish.chopra@cavium.com, santosh@chelsio.com, arnd@arndb.de, haiyangz@microsoft.com, fcoe-devel@open-fcoe.org, bart.vanassche@sandisk.com, jejb@linux.vnet.ibm.com, rahul.verma@cavium.com, linux-scsi@vger.kernel.org, martin.petersen@oracle.com, netdev@vger.kernel.org, devel@linuxdriverproject.org, varun@chelsio.com, linux-rdma@vger.kernel.org, monis@mellanox.com, valex@mellanox.com, QLogic-Storage-Upstream@qlogic.com, jth@kernel.org, David Miller <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 05, 2017 at 04:46:04PM +0000, Alex Margolin wrote:
+On Sun, Feb 5, 2017 at 4:00 AM, Parav Pandit <parav@mellanox.com> wrote:
+> This patch makes use of is_vlan_dev() function instead of flag
+> comparison which is exactly done by is_vlan_dev() helper function.
+>
+> Signed-off-by: Parav Pandit <parav@mellanox.com>
+> Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+> ---
+>  drivers/infiniband/core/cma.c                        |  6 ++----
+>  drivers/infiniband/sw/rxe/rxe_net.c                  |  2 +-
+>  drivers/net/ethernet/broadcom/cnic.c                 |  2 +-
+>  drivers/net/ethernet/chelsio/cxgb3/l2t.c             |  2 +-
+>  drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c      |  4 ++--
+>  drivers/net/ethernet/chelsio/cxgb4/l2t.c             |  2 +-
+>  drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c |  8 ++++----
+>  drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c     |  4 ++--
+>  drivers/net/hyperv/netvsc_drv.c                      |  2 +-
+>  drivers/scsi/bnx2fc/bnx2fc_fcoe.c                    |  6 +++---
+>  drivers/scsi/cxgbi/libcxgbi.c                        |  6 +++---
+>  drivers/scsi/fcoe/fcoe.c                             | 13 ++++++-------
+>  include/rdma/ib_addr.h                               |  6 ++----
+>  net/hsr/hsr_slave.c                                  |  3 ++-
+>  14 files changed, 31 insertions(+), 35 deletions(-)
+>
 
-> +struct verbs_mw {
-> +	struct ibv_mw		mw;
-> +	uint32_t		comp_mask;
-> +	uint32_t		lkey;
-> +	uint32_t		descriptor_num;
-> +};
+Neatens the code up nicely.
 
-Just as a general comment for all future patches - now that the
-provider interface is private I don't want to see 'comp_mask' stuff in
-driver.h
-
-
-> @@ -1411,11 +1478,13 @@ enum verbs_context_mask {
->  	VERBS_CONTEXT_QP	= 1 << 2,
->  	VERBS_CONTEXT_CREATE_FLOW = 1 << 3,
->  	VERBS_CONTEXT_DESTROY_FLOW = 1 << 4,
-> -	VERBS_CONTEXT_RESERVED	= 1 << 5
-> +	VERBS_CONTEXT_ALLOC_MW	= 1 << 5,
-> +	VERBS_CONTEXT_RESERVED	= 1 << 6
->  };
-
-What is this reserved thing?
-
-Don't forget man pages are required.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Jon Maxwell <jmaxwell37@gmail.com>
