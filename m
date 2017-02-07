@@ -1,65 +1,40 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] IB/hns: Fix the bug when destroy qp
-Date: Tue, 7 Feb 2017 18:32:18 +0800
-Message-ID: <5899A232.9040000@huawei.com>
-References: <20170207092650.GA26924@mwanda>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch 1/2] IB/rxe: Fix resid update
+Date: Tue, 7 Feb 2017 16:43:05 +0300
+Message-ID: <20170207134305.GJ11103@mwanda>
+References: <8892e1d1-84ba-489b-d118-3599b9b50b0f@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170207092650.GA26924@mwanda>
+Content-Disposition: inline
+In-Reply-To: <8892e1d1-84ba-489b-d118-3599b9b50b0f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Dan Carpenter
-    Thanks for your comment.
-    We will fix it.
-    Thanks very much!
+From: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Regards
-Wei Hu (Xavier)
+Update the response's resid field when larger than MTU, instead of only
+updating the local resid variable.
 
-On 2017/2/7 17:26, Dan Carpenter wrote:
-> Hello Wei Hu (Xavier),
->
-> The patch d838c481e025: "IB/hns: Fix the bug when destroy qp" from
-> Nov 29, 2016, leads to the following static checker warning:
->
-> 	drivers/infiniband/hw/hns/hns_roce_hw_v1.c:3686 hns_roce_v1_destroy_qp_work_fn()
-> 	error: dereferencing freed memory 'hr_qp'
->
-> drivers/infiniband/hw/hns/hns_roce_hw_v1.c
->    3674          hns_roce_qp_remove(hr_dev, hr_qp);
->    3675          hns_roce_qp_free(hr_dev, hr_qp);
->    3676
->    3677          if (hr_qp->ibqp.qp_type == IB_QPT_RC) {
->    3678                  /* RC QP, release QPN */
->    3679                  hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
->    3680                  kfree(hr_qp);
->                                ^^^^^
-> Free.
->
->    3681          } else
->    3682                  kfree(hr_to_hr_sqp(hr_qp));
->    3683
->    3684          kfree(qp_work_entry);
->    3685
->    3686          dev_dbg(dev, "Accomplished destroy QP(0x%lx) work.\n", hr_qp->qpn);
->                                                                         ^^^^^^^^^^
-> Use after free.
->
->    3687  }
->
->
-> regards,
-> dan carpenter
->
-> .
->
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 7bf20ced2078..d404a8aba7af 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -479,7 +479,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 				goto err;
+ 			}
+ 
+-			resid = mtu;
++			qp->resp.resid = mtu;
+ 		} else {
+ 			if (pktlen != resid) {
+ 				state = RESPST_ERR_LENGTH;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
