@@ -1,47 +1,47 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch 2/2 v2] IB/rxe: Fix mem_check_range integer overflow
-Date: Tue, 7 Feb 2017 16:45:19 +0300
-Message-ID: <20170207134431.GK11103@mwanda>
-References: <8892e1d1-84ba-489b-d118-3599b9b50b0f@redhat.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: OFED-4.8, rdma-core, and library paths
+Date: Tue, 7 Feb 2017 09:07:28 -0600
+Message-ID: <011b01d28153$e5f0adf0$b1d209d0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8892e1d1-84ba-489b-d118-3599b9b50b0f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Hey,
 
-Update the range check to avoid integer-overflow in edge case.
-Resolves CVE 2016-8636.
+I think we have an issue with the new rdma-core packaging and OFED-4.8.  I think
+OFED-4.8 installs provider libraries in a different location than previous
+releases of the provider libs.  The result of this, I think, is that OFED-4.8
+installed over a destro with its own provider libs installed will result in two
+versions of the libs installed, and further, the system might end up using the
+distro provider libs with newer OFED drivers, which could be problematic.  I
+believe the OFED installer uninstalls previous OFED rpms, but not distro rpms.
+>From what I can tell, it uses the ofed_info  command, if it exists, to determine
+which rpms to uninstall.  So if there is no previous OFED installed, then
+ofed_info will not exist so the distro rdma rpms will not be uninstalled.  Prior
+to OFED-4.8, I think this was somewhat benign, because OFED would install the
+provider libs over the currently installed distro libs, and thus nobody noticed.
+But now the rdma-core package puts the provider libs in a different location,
+thus exposing this issue.
 
-Signed-off-by: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v2: I completely misread Eyal's first patch.
+What do folks think about this?  Should OFED-4.8 try and uninstall rdma
+cmds/libs regardless of where they came from?  Perhaps optionally.  Or should
+this just be documented so the admin is required to deal with it?  I think if we
+leave OFED as-is, we'll end up with lots of support issues where old libs are
+being loaded causing problems.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 8cf38b253c37..37eea7441ca4 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -59,9 +59,11 @@ int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length)
- 
- 	case RXE_MEM_TYPE_MR:
- 	case RXE_MEM_TYPE_FMR:
--		return ((iova < mem->iova) ||
--			((iova + length) > (mem->iova + mem->length))) ?
--			-EFAULT : 0;
-+		if (iova < mem->iova ||
-+		    length > mem->length ||
-+		    iova > mem->iova + mem->length - length)
-+			return -EFAULT;
-+		return 0;
- 
- 	default:
- 		return -EFAULT;
+Thoughts?  Am I missing something in the OFED-4.8 installer that avoids this
+issue?
+
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
