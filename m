@@ -1,60 +1,78 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH -next] IB/rxe: use setup_timer to simplify the code
-Date: Tue, 7 Feb 2017 18:29:46 +0200
-Message-ID: <20170207162946.GN6005@mtr-leonro.local>
-References: <20170207151510.12503-1-weiyj.lk@gmail.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 0/7] Server-side NFS/RDMA changes for v4.11
+Date: Tue, 07 Feb 2017 11:58:06 -0500
+Message-ID: <20170207165131.14422.47088.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KwgAcZnBnwoMp5TU"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170207151510.12503-1-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Bruce-
 
---KwgAcZnBnwoMp5TU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+These are largely clean-ups, except for the last patch. Switching
+completion polling from soft IRQ to a worker thread has a few
+benefits:
 
-On Tue, Feb 07, 2017 at 03:15:10PM +0000, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->
-> Use setup_timer function instead of initializing timer with the function
-> and data fields.
->
-> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_qp.c | 9 ++-------
->  1 file changed, 2 insertions(+), 7 deletions(-)
->
+- svcrdma's completion handlers invoke svc_xprt_put(). We discovered
+recently svc_xprt_put() is supposed to be called only in a process
+context. This will become more important when NFS/RDMA becomes
+capable of multi-path operation.
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+- eventually we'd like to allocate pages for RDMA Read in the
+completion handler, and not defer RDMA Read to svc_rdma_recvfrom.
+GFP_KERNEL memory allocation can sleep, which is not allowed in soft
+IRQ context.
 
---KwgAcZnBnwoMp5TU
-Content-Type: application/pgp-signature; name="signature.asc"
+- several places where BH's are disabled can be converted to simple
+spin_locks.
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliZ9fUACgkQ5GN7iDZy
-WKea6xAArRJdlamkBKt6SBp3T0g8msI/dVcLx2RMNH8jLZbjRXFFYpYzXvFc4wNb
-EXOTO9nObsv9QLWlXaf43urHy6JHiu3yDHKk2mcw7zrUh9GWwlFFiq7RU6HArY6G
-pYH6uYuUhJvek9ZEzxJvka0wBDB0ATaL4JUDcuAj3xqmJf7CI77x9kluzm+/zceV
-j/Mup7DATovw/HYryK9rzjtri2JueGWxZcLP8qxpmUscdZnkCIVXcDl2YP2/SnSz
-XEAYzuctsurRw/uP7xqazIEg0gEWTei6D119NOW7GmE6QqWTh2U1HCi8gmFdYjhA
-V/Hm34OsBGEQv71PSoPgWwpnfzMyzmkEt4wQr+ZLPYOK+lGfwsqYrQ+1FYqAFhuC
-vA0B8MRtXLzwk5iW8fL7lPGcm5EDgXomveNvIhFw8se72RyDM6pA1FDHcZXen+OT
-LprtOizRZ5PpWG/Ropg2f3iF9SRKvwy9fPAy55tDbUUS4ecs1va1v3p9sHelKG7E
-GcDaKpTOGv2KLe8lHwVCApuHnx3twJR1mHzlBmumLin1IEk4PYkIrx6PfpflP6xu
-H+JeX9WIxVwLvaad0U5zlBra3ehXDgOqP8KlRomKr2dKIDPitt7TPnCSYupowPuy
-RdAgUBeNtJ/tfBliIvJG35fftNr2LaBkys7g52hTzUa+Kj1aBw4=
-=ZZey
------END PGP SIGNATURE-----
+Available in the "nfsd-rdma-for-4.11" topic branch of this git repo:
 
---KwgAcZnBnwoMp5TU--
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.11
+
+
+Changes since v2:
+- Rebased on v4.10-rc7
+- Addressed Christoph's review comments
+
+
+Changes since v1:
+- Rebased on v4.10-rc6
+
+
+---
+
+Chuck Lever (7):
+      svcrdma: Another sendto chunk list parsing update
+      svcrdma: Clean up RPC-over-RDMA Reply header encoder
+      svcrdma: Clean up RPC-over-RDMA Call header decoder
+      svcrdma: Clean up backchannel send header encoding
+      svcrdma: Remove unused sc_dto_q field
+      svcrdma: Combine list fields in struct svc_rdma_op_ctxt
+      svcrdma: Poll CQs in "workqueue" mode
+
+
+ include/linux/sunrpc/rpc_rdma.h            |    9 +
+ include/linux/sunrpc/svc_rdma.h            |   13 -
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   17 +-
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c     |  299 ++++++++++------------------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   20 +-
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   22 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |   61 +++---
+ 7 files changed, 180 insertions(+), 261 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
