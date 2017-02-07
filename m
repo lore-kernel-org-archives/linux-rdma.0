@@ -1,7 +1,7 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch 1/2] IB/rxe: Fix resid update
-Date: Tue, 7 Feb 2017 16:43:05 +0300
-Message-ID: <20170207134305.GJ11103@mwanda>
+Subject: [patch 2/2 v2] IB/rxe: Fix mem_check_range integer overflow
+Date: Tue, 7 Feb 2017 16:45:19 +0300
+Message-ID: <20170207134431.GK11103@mwanda>
 References: <8892e1d1-84ba-489b-d118-3599b9b50b0f@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -15,26 +15,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Update the response's resid field when larger than MTU, instead of only
-updating the local resid variable.
+Update the range check to avoid integer-overflow in edge case.
+Resolves CVE 2016-8636.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+v2: I completely misread Eyal's first patch.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 7bf20ced2078..d404a8aba7af 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -479,7 +479,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
- 				goto err;
- 			}
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 8cf38b253c37..37eea7441ca4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -59,9 +59,11 @@ int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length)
  
--			resid = mtu;
-+			qp->resp.resid = mtu;
- 		} else {
- 			if (pktlen != resid) {
- 				state = RESPST_ERR_LENGTH;
+ 	case RXE_MEM_TYPE_MR:
+ 	case RXE_MEM_TYPE_FMR:
+-		return ((iova < mem->iova) ||
+-			((iova + length) > (mem->iova + mem->length))) ?
+-			-EFAULT : 0;
++		if (iova < mem->iova ||
++		    length > mem->length ||
++		    iova > mem->iova + mem->length - length)
++			return -EFAULT;
++		return 0;
+ 
+ 	default:
+ 		return -EFAULT;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
