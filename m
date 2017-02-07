@@ -1,53 +1,32 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH net v2] mlx4: Invoke softirqs after napi_reschedule
-Date: Tue, 7 Feb 2017 10:23:09 +0200
-Message-ID: <9515d1ae-cc06-7f70-ed75-aa3ba8005fe3@mellanox.com>
-References: <1486403641.7793.43.camel@edumazet-glaptop3.roam.corp.google.com>
- <20170206181431.9664-1-bpoirier@suse.com>
+From: Steffen Klassert <steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv4 net-next 5/7] net: add confirm_neigh method to dst_ops
+Date: Tue, 7 Feb 2017 10:05:52 +0100
+Message-ID: <20170207090552.GM30338@gauss.secunet.com>
+References: <1486415657-14714-1-git-send-email-ja@ssi.bg>
+ <1486415657-14714-6-git-send-email-ja@ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170206181431.9664-1-bpoirier@suse.com>
-Sender: netdev-owner@vger.kernel.org
-To: Benjamin Poirier <bpoirier@suse.com>, netdev@vger.kernel.org
-Cc: Tariq Toukan <tariqt@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org, Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1486415657-14714-6-git-send-email-ja-FgGsKACvmQM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Julian Anastasov <ja-FgGsKACvmQM@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, YueHaibing <yuehaibing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Feb 06, 2017 at 11:14:15PM +0200, Julian Anastasov wrote:
+> Add confirm_neigh method to dst_ops and use it from IPv4 and IPv6
+> to lookup and confirm the neighbour. Its usage via the new helper
+> dst_confirm_neigh() should be restricted to MSG_PROBE users for
+> performance reasons.
+> 
+> For XFRM prefer the last tunnel address, if present. With help
+> from Steffen Klassert.
+> 
+> Signed-off-by: Julian Anastasov <ja-FgGsKACvmQM@public.gmane.org>
 
-On 06/02/2017 8:14 PM, Benjamin Poirier wrote:
-> mlx4 may schedule napi from a workqueue. Afterwards, softirqs are not run
-> in a deterministic time frame and the following message may be logged:
-> NOHZ: local_softirq_pending 08
->
-> The problem is the same as what was described in commit ec13ee80145c
-> ("virtio_net: invoke softirqs after __napi_schedule") and this patch
-> applies the same fix to mlx4.
->
-> Fixes: 07841f9d94c1 ("net/mlx4_en: Schedule napi when RX buffers allocation fails")
-> Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> Signed-off-by: Benjamin Poirier <bpoirier@suse.com>
-> ---
->   drivers/net/ethernet/mellanox/mlx4/en_rx.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> index eac527e25ec9..cc003fdf0ed9 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> @@ -514,8 +514,11 @@ void mlx4_en_recover_from_oom(struct mlx4_en_priv *priv)
->   		return;
->   
->   	for (ring = 0; ring < priv->rx_ring_num; ring++) {
-> -		if (mlx4_en_is_ring_empty(priv->rx_ring[ring]))
-> +		if (mlx4_en_is_ring_empty(priv->rx_ring[ring])) {
-> +			local_bh_disable();
->   			napi_reschedule(&priv->rx_cq[ring]->napi);
-> +			local_bh_enable();
-> +		}
->   	}
->   }
->   
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
-
-Thanks!
+Acked-by: Steffen Klassert <steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
