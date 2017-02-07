@@ -1,46 +1,48 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: OFED-4.8, rdma-core, and library paths
-Date: Tue, 7 Feb 2017 09:07:28 -0600
-Message-ID: <011b01d28153$e5f0adf0$b1d209d0$@opengridcomputing.com>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH -next] IB/rxe: use setup_timer to simplify the code
+Date: Tue,  7 Feb 2017 15:15:10 +0000
+Message-ID: <20170207151510.12503-1-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey,
+From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-I think we have an issue with the new rdma-core packaging and OFED-4.8.  I think
-OFED-4.8 installs provider libraries in a different location than previous
-releases of the provider libs.  The result of this, I think, is that OFED-4.8
-installed over a destro with its own provider libs installed will result in two
-versions of the libs installed, and further, the system might end up using the
-distro provider libs with newer OFED drivers, which could be problematic.  I
-believe the OFED installer uninstalls previous OFED rpms, but not distro rpms.
->From what I can tell, it uses the ofed_info  command, if it exists, to determine
-which rpms to uninstall.  So if there is no previous OFED installed, then
-ofed_info will not exist so the distro rdma rpms will not be uninstalled.  Prior
-to OFED-4.8, I think this was somewhat benign, because OFED would install the
-provider libs over the currently installed distro libs, and thus nobody noticed.
-But now the rdma-core package puts the provider libs in a different location,
-thus exposing this issue.
+Use setup_timer function instead of initializing timer with the function
+and data fields.
 
-What do folks think about this?  Should OFED-4.8 try and uninstall rdma
-cmds/libs regardless of where they came from?  Perhaps optionally.  Or should
-this just be documented so the admin is required to deal with it?  I think if we
-leave OFED as-is, we'll end up with lots of support issues where old libs are
-being loaded causing problems.
+Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_qp.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-Thoughts?  Am I missing something in the OFED-4.8 installer that avoids this
-issue?
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 5749ff0..f98a19e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -273,13 +273,8 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	rxe_init_task(rxe, &qp->comp.task, qp,
+ 		      rxe_completer, "comp");
+ 
+-	init_timer(&qp->rnr_nak_timer);
+-	qp->rnr_nak_timer.function = rnr_nak_timer;
+-	qp->rnr_nak_timer.data = (unsigned long)qp;
+-
+-	init_timer(&qp->retrans_timer);
+-	qp->retrans_timer.function = retransmit_timer;
+-	qp->retrans_timer.data = (unsigned long)qp;
++	setup_timer(&qp->rnr_nak_timer, rnr_nak_timer, (unsigned long)qp);
++	setup_timer(&qp->retrans_timer, retransmit_timer, (unsigned long)qp);
+ 	qp->qp_timeout_jiffies = 0; /* Can't be set for UD/UC in modify_qp */
+ 
+ 	return 0;
 
 
-Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
