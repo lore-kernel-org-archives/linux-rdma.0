@@ -1,914 +1,145 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Subject: [RFC v3 03/11] IB/hfi-vnic: Virtual Network Interface Controller (VNIC) netdev
-Date: Tue,  7 Feb 2017 12:23:02 -0800
-Message-ID: <1486498990-76562-4-git-send-email-niranjana.vishwanathapura@intel.com>
-References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>, Sadanand Warrier <sadanand.warrier@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Tanya K Jajodia <tanya.k.jajodia@intel.com>, Andrzej Kacprowski <andrzej.kacprowski@intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: OFED-4.8, rdma-core, and library paths
+Date: Tue, 7 Feb 2017 22:14:28 +0200
+Message-ID: <20170207201428.GV6005@mtr-leonro.local>
+References: <011b01d28153$e5f0adf0$b1d209d0$@opengridcomputing.com>
+ <20170207171145.GB1077@obsidianresearch.com>
+ <02c801d28166$693e17d0$3bba4770$@opengridcomputing.com>
+ <20170207172752.GA12315@obsidianresearch.com>
+ <20170207180642.GQ6005@mtr-leonro.local>
+ <20170207181814.GA13368@obsidianresearch.com>
+ <20170207183538.GT6005@mtr-leonro.local>
+ <20170207184206.GA14102@obsidianresearch.com>
+ <20170207194759.GU6005@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hmAoQ2KfXDe4pzCq"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170207194759.GU6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-HFI VNIC netdev function supports Ethernet functionality over Omni-Path
-fabric by encapsulating Ethernet packets inside Omni-Path packet header.
-It allocates a rdma netdev device and interfaces with the network stack to
-provide standard Ethernet network interfaces. It overrides HFI device's
-netdev operations where it is required.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
-Signed-off-by: Sadanand Warrier <sadanand.warrier@intel.com>
-Signed-off-by: Sudeep Dutt <sudeep.dutt@intel.com>
-Signed-off-by: Tanya K Jajodia <tanya.k.jajodia@intel.com>
-Signed-off-by: Andrzej Kacprowski <andrzej.kacprowski@intel.com>
----
- MAINTAINERS                                        |   7 +
- drivers/infiniband/Kconfig                         |   1 +
- drivers/infiniband/ulp/Makefile                    |   1 +
- drivers/infiniband/ulp/hfi_vnic/Kconfig            |   8 +
- drivers/infiniband/ulp/hfi_vnic/Makefile           |   6 +
- drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.c   | 239 +++++++++++++++++++++
- drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.h   |  58 +++++
- drivers/infiniband/ulp/hfi_vnic/hfi_vnic_ethtool.c |  65 ++++++
- .../infiniband/ulp/hfi_vnic/hfi_vnic_internal.h    | 186 ++++++++++++++++
- drivers/infiniband/ulp/hfi_vnic/hfi_vnic_netdev.c  | 224 +++++++++++++++++++
- 10 files changed, 795 insertions(+)
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/Kconfig
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/Makefile
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.c
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.h
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/hfi_vnic_ethtool.c
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/hfi_vnic_internal.h
- create mode 100644 drivers/infiniband/ulp/hfi_vnic/hfi_vnic_netdev.c
+--hmAoQ2KfXDe4pzCq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 5f0420a..83a8cfa 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5764,6 +5764,13 @@ F:	drivers/block/cciss*
- F:	include/linux/cciss_ioctl.h
- F:	include/uapi/linux/cciss_ioctl.h
- 
-+HFI-VNIC DRIVER
-+M:	Dennis Dalessandro <dennis.dalessandro@intel.com>
-+M:	Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
-+L:	linux-rdma@vger.kernel.org
-+S:	Supported
-+F:	drivers/infiniband/ulp/hfi_vnic
-+
- HFI1 DRIVER
- M:	Mike Marciniszyn <mike.marciniszyn@intel.com>
- M:	Dennis Dalessandro <dennis.dalessandro@intel.com>
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 6709173..7d97e58 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -85,6 +85,7 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
- source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
- 
-+source "drivers/infiniband/ulp/hfi_vnic/Kconfig"
- source "drivers/infiniband/sw/rdmavt/Kconfig"
- source "drivers/infiniband/sw/rxe/Kconfig"
- 
-diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
-index f3c7dcf..9d20ac7 100644
---- a/drivers/infiniband/ulp/Makefile
-+++ b/drivers/infiniband/ulp/Makefile
-@@ -3,3 +3,4 @@ obj-$(CONFIG_INFINIBAND_SRP)		+= srp/
- obj-$(CONFIG_INFINIBAND_SRPT)		+= srpt/
- obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
- obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
-+obj-$(CONFIG_INFINIBAND_HFI_VNIC)	+= hfi_vnic/
-diff --git a/drivers/infiniband/ulp/hfi_vnic/Kconfig b/drivers/infiniband/ulp/hfi_vnic/Kconfig
-new file mode 100644
-index 0000000..cca6810
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/Kconfig
-@@ -0,0 +1,8 @@
-+config INFINIBAND_HFI_VNIC
-+	tristate "Intel HFI VNIC support"
-+	depends on X86_64 && INFINIBAND
-+	---help---
-+	This is HFI Virtual Network Interface Controller (VNIC) driver
-+	for Ethernet over HFI feature. It implements the HW independent
-+	VNIC functionality. It interfaces with Linux stack for data path
-+	and IB MAD for the control path.
-diff --git a/drivers/infiniband/ulp/hfi_vnic/Makefile b/drivers/infiniband/ulp/hfi_vnic/Makefile
-new file mode 100644
-index 0000000..ad7db32
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/Makefile
-@@ -0,0 +1,6 @@
-+# Makefile - Intel HFI Virtual Network Controller driver
-+# Copyright(c) 2017, Intel Corporation.
-+#
-+obj-$(CONFIG_INFINIBAND_HFI_VNIC) += hfi_vnic.o
-+
-+hfi_vnic-y := hfi_vnic_netdev.o hfi_vnic_encap.o hfi_vnic_ethtool.o
-diff --git a/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.c b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.c
-new file mode 100644
-index 0000000..159172c
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.c
-@@ -0,0 +1,239 @@
-+/*
-+ * Copyright(c) 2017 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+/*
-+ * This file contains HFI VNIC encapsulation/decapsulation function.
-+ */
-+
-+#include <linux/if_ether.h>
-+#include <linux/if_vlan.h>
-+
-+#include "hfi_vnic_internal.h"
-+
-+/* OPA 16B Header fields */
-+#define OPA_16B_LID_MASK        0xFFFFFull
-+#define OPA_16B_SLID_HIGH_SHFT  8
-+#define OPA_16B_SLID_MASK       0xF00ull
-+#define OPA_16B_DLID_MASK       0xF000ull
-+#define OPA_16B_DLID_HIGH_SHFT  12
-+#define OPA_16B_LEN_SHFT        20
-+#define OPA_16B_SC_SHFT         20
-+#define OPA_16B_RC_SHFT         25
-+#define OPA_16B_PKEY_SHFT       16
-+
-+#define HFI_VNIC_L4_HDR_SHFT    16
-+
-+/* L2+L4 hdr len is 20 bytes (5 quad words) */
-+#define HFI_VNIC_HDR_QW_LEN   5
-+
-+static inline void hfi_vnic_make_header(u8 *hdr, u32 slid, u32 dlid, u16 len,
-+					u16 pkey, u16 entropy, u8 sc, u8 rc,
-+					u8 l4_type, u16 l4_hdr)
-+{
-+	/* h[1]: LT=1, 16B L2=10 */
-+	u32 h[HFI_VNIC_HDR_QW_LEN] = {0, 0xc0000000, 0, 0, 0};
-+
-+	h[2] = l4_type;
-+	h[3] = entropy;
-+	h[4] = l4_hdr << HFI_VNIC_L4_HDR_SHFT;
-+
-+	/* Extract and set 4 upper bits and 20 lower bits of the lids */
-+	h[0] |= (slid & OPA_16B_LID_MASK);
-+	h[2] |= ((slid >> (20 - OPA_16B_SLID_HIGH_SHFT)) & OPA_16B_SLID_MASK);
-+
-+	h[1] |= (dlid & OPA_16B_LID_MASK);
-+	h[2] |= ((dlid >> (20 - OPA_16B_DLID_HIGH_SHFT)) & OPA_16B_DLID_MASK);
-+
-+	h[0] |= (len << OPA_16B_LEN_SHFT);
-+	h[1] |= (rc << OPA_16B_RC_SHFT);
-+	h[1] |= (sc << OPA_16B_SC_SHFT);
-+	h[2] |= ((u32)pkey << OPA_16B_PKEY_SHFT);
-+
-+	memcpy(hdr, h, HFI_VNIC_HDR_LEN);
-+}
-+
-+/* hfi_vnic_get_dlid - find and return the DLID */
-+static uint32_t hfi_vnic_get_dlid(struct hfi_vnic_adapter *adapter,
-+				  struct sk_buff *skb, u8 def_port)
-+{
-+	struct __hfi_veswport_info *info = &adapter->info;
-+	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
-+	u32 dlid;
-+
-+	if (is_multicast_ether_addr(mac_hdr->h_dest)) {
-+		dlid = info->vesw.u_mcast_dlid;
-+	} else {
-+		if (is_local_ether_addr(mac_hdr->h_dest)) {
-+			dlid = ((uint32_t)mac_hdr->h_dest[5] << 16) |
-+				((uint32_t)mac_hdr->h_dest[4] << 8)  |
-+				mac_hdr->h_dest[3];
-+			if (unlikely(!dlid))
-+				v_warn("Null dlid in MAC address\n");
-+		} else if (def_port != HFI_VNIC_INVALID_PORT) {
-+			dlid = info->vesw.u_ucast_dlid[def_port];
-+		}
-+	}
-+
-+	return dlid;
-+}
-+
-+/* hfi_vnic_get_sc - return the service class */
-+static u8 hfi_vnic_get_sc(struct __hfi_veswport_info *info,
-+			  struct sk_buff *skb)
-+{
-+	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
-+	u16 vlan_tci;
-+	u8 sc;
-+
-+	if (!__vlan_get_tag(skb, &vlan_tci)) {
-+		u8 pcp = HFI_VNIC_VLAN_PCP(vlan_tci);
-+
-+		if (is_multicast_ether_addr(mac_hdr->h_dest))
-+			sc = info->vport.pcp_to_sc_mc[pcp];
-+		else
-+			sc = info->vport.pcp_to_sc_uc[pcp];
-+	} else {
-+		if (is_multicast_ether_addr(mac_hdr->h_dest))
-+			sc = info->vport.non_vlan_sc_mc;
-+		else
-+			sc = info->vport.non_vlan_sc_uc;
-+	}
-+
-+	return sc;
-+}
-+
-+u8 hfi_vnic_get_vl(struct hfi_vnic_adapter *adapter, struct sk_buff *skb)
-+{
-+	struct ethhdr *mac_hdr = (struct ethhdr *)skb_mac_header(skb);
-+	struct __hfi_veswport_info *info = &adapter->info;
-+	u8 vl;
-+
-+	if (skb_vlan_tag_present(skb)) {
-+		u8 pcp = skb_vlan_tag_get(skb) >> VLAN_PRIO_SHIFT;
-+
-+		if (is_multicast_ether_addr(mac_hdr->h_dest))
-+			vl = info->vport.pcp_to_vl_mc[pcp];
-+		else
-+			vl = info->vport.pcp_to_vl_uc[pcp];
-+	} else {
-+		if (is_multicast_ether_addr(mac_hdr->h_dest))
-+			vl = info->vport.non_vlan_vl_mc;
-+		else
-+			vl = info->vport.non_vlan_vl_uc;
-+	}
-+
-+	return vl;
-+}
-+
-+/* hfi_vnic_calc_entropy - calculate the packet entropy */
-+u8 hfi_vnic_calc_entropy(struct hfi_vnic_adapter *adapter, struct sk_buff *skb)
-+{
-+	u16 hash16;
-+
-+	/*
-+	 * Get flow based 16-bit hash and then XOR the upper and lower bytes
-+	 * to get the entropy.
-+	 * __skb_tx_hash limits qcount to 16 bits. Hence, get 15-bit hash.
-+	 */
-+	hash16 = __skb_tx_hash(adapter->netdev, skb, BIT(15));
-+	return (u8)((hash16 >> 8) ^ (hash16 & 0xff));
-+}
-+
-+/* hfi_vnic_get_def_port - get default port based on entropy */
-+static inline u8 hfi_vnic_get_def_port(struct hfi_vnic_adapter *adapter,
-+				       u8 entropy)
-+{
-+	u8 flow_id;
-+
-+	/* Add the upper and lower 4-bits of entropy to get the flow id */
-+	flow_id = ((entropy & 0xf) + (entropy >> 4));
-+	return adapter->flow_tbl[flow_id & (HFI_VNIC_FLOW_TBL_SIZE - 1)];
-+}
-+
-+/* Calculate packet length including OPA header, crc and padding */
-+static inline int hfi_vnic_wire_length(struct sk_buff *skb)
-+{
-+	u32 pad_len;
-+
-+	/* padding for 8 bytes size alignment */
-+	pad_len = -(skb->len + HFI_VNIC_ICRC_TAIL_LEN) & 0x7;
-+	pad_len += HFI_VNIC_ICRC_TAIL_LEN;
-+
-+	return (skb->len + pad_len) >> 3;
-+}
-+
-+/* hfi_vnic_encap_skb - encapsulate skb packet with OPA header and meta data */
-+void hfi_vnic_encap_skb(struct hfi_vnic_adapter *adapter, struct sk_buff *skb)
-+{
-+	struct __hfi_veswport_info *info = &adapter->info;
-+	struct hfi_vnic_skb_mdata *mdata;
-+	u8 def_port, sc, entropy, *hdr;
-+	u16 len, l4_hdr;
-+	u32 dlid;
-+
-+	hdr = skb_push(skb, HFI_VNIC_HDR_LEN);
-+
-+	entropy = hfi_vnic_calc_entropy(adapter, skb);
-+	def_port = hfi_vnic_get_def_port(adapter, entropy);
-+	len = hfi_vnic_wire_length(skb);
-+	dlid = hfi_vnic_get_dlid(adapter, skb, def_port);
-+	sc = hfi_vnic_get_sc(info, skb);
-+	l4_hdr = info->vesw.vesw_id;
-+
-+	mdata = (struct hfi_vnic_skb_mdata *)skb_push(skb, sizeof(*mdata));
-+	mdata->vl = hfi_vnic_get_vl(adapter, skb);
-+	mdata->entropy = entropy;
-+	mdata->flags = 0;
-+	if (unlikely(!dlid)) {
-+		mdata->flags = HFI_VNIC_SKB_MDATA_ENCAP_ERR;
-+		return;
-+	}
-+
-+	hfi_vnic_make_header(hdr, info->vport.encap_slid, dlid, len,
-+			     info->vesw.pkey, entropy, sc, 0,
-+			     HFI_VNIC_L4_ETHR, l4_hdr);
-+}
-diff --git a/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.h b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.h
-new file mode 100644
-index 0000000..aa93f62
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_encap.h
-@@ -0,0 +1,58 @@
-+#ifndef _HFI_VNIC_ENCAP_H
-+#define _HFI_VNIC_ENCAP_H
-+/*
-+ * Copyright(c) 2017 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+/*
-+ * This file contains all HFI VNIC declaration required for encapsulation
-+ * and decapsulation of Ethernet packets
-+ */
-+
-+#define HFI_VESW_MAX_NUM_DEF_PORT   16
-+#define HFI_VNIC_MAX_NUM_PCP        8
-+
-+#endif /* _HFI_VNIC_ENCAP_H */
-diff --git a/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_ethtool.c b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_ethtool.c
-new file mode 100644
-index 0000000..ca058a4
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_ethtool.c
-@@ -0,0 +1,65 @@
-+/*
-+ * Copyright(c) 2017 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+/*
-+ * This file contains HFI VNIC ethtool functions
-+ */
-+
-+#include <linux/ethtool.h>
-+
-+#include "hfi_vnic_internal.h"
-+
-+/* ethtool ops */
-+static const struct ethtool_ops hfi_vnic_ethtool_ops = {
-+	.get_link = ethtool_op_get_link,
-+};
-+
-+/* hfi_vnic_set_ethtool_ops - set ethtool ops */
-+void hfi_vnic_set_ethtool_ops(struct net_device *netdev)
-+{
-+	netdev->ethtool_ops = &hfi_vnic_ethtool_ops;
-+}
-diff --git a/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_internal.h b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_internal.h
-new file mode 100644
-index 0000000..106563d
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_internal.h
-@@ -0,0 +1,186 @@
-+#ifndef _HFI_VNIC_INTERNAL_H
-+#define _HFI_VNIC_INTERNAL_H
-+/*
-+ * Copyright(c) 2017 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+/*
-+ * This file contains HFI VNIC driver internal declarations
-+ */
-+
-+#include <linux/bitops.h>
-+#include <linux/etherdevice.h>
-+#include <linux/hashtable.h>
-+#include <linux/sizes.h>
-+#include <rdma/opa_hfi.h>
-+
-+#include "hfi_vnic_encap.h"
-+
-+#define HFI_VNIC_VLAN_PCP(vlan_tci)  \
-+			(((vlan_tci) & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT)
-+
-+/* Flow to default port redirection table size */
-+#define HFI_VNIC_FLOW_TBL_SIZE    32
-+
-+/* Invalid port number */
-+#define HFI_VNIC_INVALID_PORT     0xff
-+
-+struct hfi_vnic_adapter;
-+
-+/**
-+ * struct __hfi_vesw_info - HFI vnic virtual switch info
-+ */
-+struct __hfi_vesw_info {
-+	u16  fabric_id;
-+	u16  vesw_id;
-+
-+	u8   rsvd0[6];
-+	u16  def_port_mask;
-+
-+	u8   rsvd1[2];
-+	u16  pkey;
-+
-+	u8   rsvd2[4];
-+	u32  u_mcast_dlid;
-+	u32  u_ucast_dlid[HFI_VESW_MAX_NUM_DEF_PORT];
-+
-+	u8   rsvd3[44];
-+	u16  eth_mtu[HFI_VNIC_MAX_NUM_PCP];
-+	u16  eth_mtu_non_vlan;
-+	u8   rsvd4[2];
-+} __packed;
-+
-+/**
-+ * struct __hfi_per_veswport_info - HFI vnic per port info
-+ */
-+struct __hfi_per_veswport_info {
-+	u32  port_num;
-+
-+	u8   eth_link_status;
-+	u8   rsvd0[3];
-+
-+	u8   base_mac_addr[ETH_ALEN];
-+	u8   config_state;
-+	u8   oper_state;
-+
-+	u16  max_mac_tbl_ent;
-+	u16  max_smac_ent;
-+	u32  mac_tbl_digest;
-+	u8   rsvd1[4];
-+
-+	u32  encap_slid;
-+
-+	u8   pcp_to_sc_uc[HFI_VNIC_MAX_NUM_PCP];
-+	u8   pcp_to_vl_uc[HFI_VNIC_MAX_NUM_PCP];
-+	u8   pcp_to_sc_mc[HFI_VNIC_MAX_NUM_PCP];
-+	u8   pcp_to_vl_mc[HFI_VNIC_MAX_NUM_PCP];
-+
-+	u8   non_vlan_sc_uc;
-+	u8   non_vlan_vl_uc;
-+	u8   non_vlan_sc_mc;
-+	u8   non_vlan_vl_mc;
-+
-+	u8   rsvd2[48];
-+
-+	u16  uc_macs_gen_count;
-+	u16  mc_macs_gen_count;
-+
-+	u8   rsvd3[8];
-+} __packed;
-+
-+/**
-+ * struct __hfi_veswport_info - HFI vnic port info
-+ */
-+struct __hfi_veswport_info {
-+	struct __hfi_vesw_info            vesw;
-+	struct __hfi_per_veswport_info    vport;
-+};
-+
-+/**
-+ * struct hfi_vnic_adapter - HFI VNIC netdev private data structure
-+ * @netdev: pointer to associated netdev
-+ * @ibdev: ib device
-+ * @rn_ops: rdma netdev's net_device_ops
-+ * @port_num: OPA port number
-+ * @vport_num: vesw port number
-+ * @lock: adapter lock
-+ * @info: virtual ethernet switch port information
-+ * @flow_tbl: flow to default port redirection table
-+ */
-+struct hfi_vnic_adapter {
-+	struct net_device             *netdev;
-+	struct ib_device              *ibdev;
-+	const struct net_device_ops   *rn_ops;
-+
-+	u8 port_num;
-+	u8 vport_num;
-+
-+	/* Lock used around concurrent updates to netdev */
-+	struct mutex lock;
-+
-+	struct __hfi_veswport_info info;
-+
-+	u8 flow_tbl[HFI_VNIC_FLOW_TBL_SIZE];
-+};
-+
-+#define v_dbg(format, arg...) \
-+	netdev_dbg(adapter->netdev, format, ## arg)
-+#define v_err(format, arg...) \
-+	netdev_err(adapter->netdev, format, ## arg)
-+#define v_info(format, arg...) \
-+	netdev_info(adapter->netdev, format, ## arg)
-+#define v_warn(format, arg...) \
-+	netdev_warn(adapter->netdev, format, ## arg)
-+
-+struct hfi_vnic_adapter *hfi_vnic_add_netdev(struct ib_device *ibdev,
-+					     u8 port_num, u8 vport_num);
-+void hfi_vnic_rem_netdev(struct hfi_vnic_adapter *adapter);
-+void hfi_vnic_encap_skb(struct hfi_vnic_adapter *adapter, struct sk_buff *skb);
-+u8 hfi_vnic_get_vl(struct hfi_vnic_adapter *adapter, struct sk_buff *skb);
-+u8 hfi_vnic_calc_entropy(struct hfi_vnic_adapter *adapter, struct sk_buff *skb);
-+void hfi_vnic_set_ethtool_ops(struct net_device *netdev);
-+
-+#endif /* _HFI_VNIC_INTERNAL_H */
-diff --git a/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_netdev.c b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_netdev.c
-new file mode 100644
-index 0000000..f04c8a834
---- /dev/null
-+++ b/drivers/infiniband/ulp/hfi_vnic/hfi_vnic_netdev.c
-@@ -0,0 +1,224 @@
-+/*
-+ * Copyright(c) 2017 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+/*
-+ * This file contains HFI Virtual Network Interface Controller (VNIC) driver
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/if_vlan.h>
-+
-+#include "hfi_vnic_internal.h"
-+
-+#define HFI_TX_TIMEOUT_MS 1000
-+
-+#define HFI_VNIC_SKB_HEADROOM  \
-+			ALIGN((HFI_VNIC_HDR_LEN + HFI_VNIC_SKB_MDATA_LEN), 8)
-+
-+/* hfi_netdev_start_xmit - transmit function */
-+static netdev_tx_t hfi_netdev_start_xmit(struct sk_buff *skb,
-+					 struct net_device *netdev)
-+{
-+	struct hfi_vnic_adapter *adapter = hfi_vnic_priv(netdev);
-+
-+	v_dbg("xmit: queue %d skb len %d\n", skb->queue_mapping, skb->len);
-+	/* pad to ensure mininum ethernet packet length */
-+	if (unlikely(skb->len < ETH_ZLEN)) {
-+		if (skb_padto(skb, ETH_ZLEN))
-+			return NETDEV_TX_OK;
-+
-+		skb_put(skb, ETH_ZLEN - skb->len);
-+	}
-+
-+	hfi_vnic_encap_skb(adapter, skb);
-+	return adapter->rn_ops->ndo_start_xmit(skb, netdev);
-+}
-+
-+static u16 hfi_vnic_select_queue(struct net_device *netdev, struct sk_buff *skb,
-+				 void *accel_priv,
-+				 select_queue_fallback_t fallback)
-+{
-+	struct hfi_vnic_adapter *adapter = hfi_vnic_priv(netdev);
-+	struct hfi_vnic_skb_mdata *mdata;
-+	int rc;
-+
-+	/* pass entropy and vl as metadata in skb */
-+	mdata = (struct hfi_vnic_skb_mdata *)skb_push(skb, sizeof(*mdata));
-+	mdata->entropy =  hfi_vnic_calc_entropy(adapter, skb);
-+	mdata->vl = hfi_vnic_get_vl(adapter, skb);
-+	rc = adapter->rn_ops->ndo_select_queue(netdev, skb,
-+					       accel_priv, fallback);
-+	skb_pull(skb, sizeof(*mdata));
-+	return rc;
-+}
-+
-+/* hfi_vnic_set_mac_addr - change mac address */
-+static int hfi_vnic_set_mac_addr(struct net_device *netdev, void *addr)
-+{
-+	struct hfi_vnic_adapter *adapter = hfi_vnic_priv(netdev);
-+	struct sockaddr *sa = addr;
-+	int rc;
-+
-+	if (!memcmp(netdev->dev_addr, sa->sa_data, ETH_ALEN))
-+		return 0;
-+
-+	mutex_lock(&adapter->lock);
-+	rc = eth_mac_addr(netdev, addr);
-+	mutex_unlock(&adapter->lock);
-+
-+	return rc;
-+}
-+
-+/* hfi_netdev_open - activate network interface */
-+static int hfi_netdev_open(struct net_device *netdev)
-+{
-+	struct hfi_vnic_adapter *adapter = hfi_vnic_priv(netdev);
-+	int rc;
-+
-+	rc = adapter->rn_ops->ndo_open(adapter->netdev);
-+	if (rc) {
-+		v_dbg("open failed %d\n", rc);
-+		return rc;
-+	}
-+
-+	v_info("opened\n");
-+	return 0;
-+}
-+
-+/* hfi_netdev_close - disable network interface */
-+static int hfi_netdev_close(struct net_device *netdev)
-+{
-+	struct hfi_vnic_adapter *adapter = hfi_vnic_priv(netdev);
-+	int rc;
-+
-+	rc = adapter->rn_ops->ndo_stop(adapter->netdev);
-+	if (rc) {
-+		v_dbg("close failed %d\n", rc);
-+		return rc;
-+	}
-+
-+	v_info("closed\n");
-+	return 0;
-+}
-+
-+/* netdev ops */
-+static const struct net_device_ops hfi_netdev_ops = {
-+	.ndo_open = hfi_netdev_open,
-+	.ndo_stop = hfi_netdev_close,
-+	.ndo_start_xmit = hfi_netdev_start_xmit,
-+	.ndo_select_queue = hfi_vnic_select_queue,
-+	.ndo_set_mac_address = hfi_vnic_set_mac_addr,
-+};
-+
-+/* hfi_vnic_add_netdev - create vnic netdev interface */
-+struct hfi_vnic_adapter *hfi_vnic_add_netdev(struct ib_device *ibdev,
-+					     u8 port_num, u8 vport_num)
-+{
-+	struct hfi_vnic_adapter *adapter;
-+	struct net_device *netdev;
-+	struct rdma_netdev *rn;
-+	int rc;
-+
-+	netdev = ibdev->alloc_rdma_netdev(ibdev, port_num,
-+					  RDMA_NETDEV_HFI_VNIC,
-+					  "veth%d", NET_NAME_UNKNOWN,
-+					  ether_setup);
-+	if (!netdev)
-+		return ERR_PTR(-ENOMEM);
-+
-+	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
-+	if (!adapter) {
-+		rc = -ENOMEM;
-+		goto adapter_err;
-+	}
-+
-+	rn = netdev_priv(netdev);
-+	rn->clnt_priv = adapter;
-+	adapter->netdev = netdev;
-+	adapter->ibdev = ibdev;
-+	adapter->port_num = port_num;
-+	adapter->vport_num = vport_num;
-+	adapter->rn_ops = netdev->netdev_ops;
-+
-+	netdev->netdev_ops = &hfi_netdev_ops;
-+	netdev->priv_flags |= IFF_LIVE_ADDR_CHANGE;
-+	netdev->hard_header_len += HFI_VNIC_SKB_HEADROOM;
-+	mutex_init(&adapter->lock);
-+
-+	SET_NETDEV_DEV(netdev, ibdev->dma_device);
-+
-+	hfi_vnic_set_ethtool_ops(netdev);
-+	rc = register_netdev(netdev);
-+	if (rc)
-+		goto netdev_err;
-+
-+	netif_carrier_off(netdev);
-+	netif_dormant_on(netdev);
-+	v_info("initialized\n");
-+
-+	return adapter;
-+netdev_err:
-+	mutex_destroy(&adapter->lock);
-+	kfree(adapter);
-+adapter_err:
-+	ibdev->free_rdma_netdev(netdev);
-+
-+	return ERR_PTR(rc);
-+}
-+
-+/* hfi_vnic_rem_netdev - remove vnic netdev interface */
-+void hfi_vnic_rem_netdev(struct hfi_vnic_adapter *adapter)
-+{
-+	struct net_device *netdev = adapter->netdev;
-+	struct ib_device *ibdev = adapter->ibdev;
-+
-+	v_info("removing\n");
-+	unregister_netdev(netdev);
-+	mutex_destroy(&adapter->lock);
-+	kfree(adapter);
-+	ibdev->free_rdma_netdev(netdev);
-+}
--- 
-1.8.3.1
+On Tue, Feb 07, 2017 at 09:47:59PM +0200, Leon Romanovsky wrote:
+> On Tue, Feb 07, 2017 at 11:42:06AM -0700, Jason Gunthorpe wrote:
+> > On Tue, Feb 07, 2017 at 08:35:38PM +0200, Leon Romanovsky wrote:
+> > > I made it (rdma_shared_provider function), but have a very hard time
+> > > to properly create ".." symlink, because during the build (in place too)
+> > > the output is placed in build/lib in flat structure and symlinks need to
+> > > be without "..". But during installation phase, these symlinks should
+> > > be changed to ".." and it doesn't work for me in automatic way :(
+> >
+> > For symlinks build/ and installed are two different flows, they don't intermix
+> >
+> > Compile the library to build/lib/libibverbs-dv-mlx5.so.1.0.13
+> > and setup a symlink build/lib/libmlx5-rdmav2.so -> libibverbs-dv-mlx5.so.1.0.13
+>
+> Just as a note, I'm calling it libmlx5 and not libibverbs-dv-mlx5.
+>
+> >
+> > For install, use realpath like this:
+> >
+> >  execute_process(COMMAND "realpath --relative-to ${VERBS_PROVIDER_DIR} ${CMAKE_INSTALL_LIBDIR}/libmlx5.so.1.0.13" OUTPUT_VARIBALE LINK_PATH)
+>
+> It doesn't work for me :(
+> -- verbs_provder_dir = /usr/lib64/libibverbs
+> -- install_libdir = /usr/lib64
+> -- link_path =
+>
+> lrwxrwxrwx 1 root root     18 Feb  7 21:43 /lib64/libibverbs/libmlx5-rdmav2.so -> /libmlx5.so.1.0.13
+> lrwxrwxrwx 1 root root     10 Feb  7 21:43 /lib64/libmlx5-rdmav2.so -> libmlx5.so
+> lrwxrwxrwx 1 root root     12 Feb  7 21:43 /lib64/libmlx5.so -> libmlx5.so.1
+> lrwxrwxrwx 1 root root     17 Feb  7 21:43 /lib64/libmlx5.so.1 -> libmlx5.so.1.0.13
+> -rwxr-xr-x 1 root root 666637 Feb  7 21:43 /lib64/libmlx5.so.1.0.13
+> lrwxrwxrwx 1 root root     18 Feb  7 21:43 /usr/lib64/libibverbs/libmlx5-rdmav2.so -> /libmlx5.so.1.0.13
+> lrwxrwxrwx 1 root root     10 Feb  7 21:43 /usr/lib64/libmlx5-rdmav2.so -> libmlx5.so
+> lrwxrwxrwx 1 root root     12 Feb  7 21:43 /usr/lib64/libmlx5.so -> libmlx5.so.1
+> lrwxrwxrwx 1 root root     17 Feb  7 21:43 /usr/lib64/libmlx5.so.1 -> libmlx5.so.1.0.13
+> -rwxr-xr-x 1 root root 666637 Feb  7 21:43 /usr/lib64/libmlx5.so.1.0.13
+>
+>
+> >  rdma_install_symlink("${LINK_PATH}/libibverbs-dv-mlx5.so.1.0.13" "${VERBS_PROVIDER_DIR}/libmlx5-rdmav2.so")
+> >
+> > The rdma_install_symlink helper takes care of the install step.
+> >
+
+At the end, my function looks as follow:
+
+# Create a special provider with exported symbols in it
+function(rdma_shared_provider DEST VERSION_SCRIPT SOVERSION VERSION)
+  # Installed driver file
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" "driver ${DEST}\n")
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" DESTINATION "${CONFIG_DIR}")
+
+  # Uninstalled driver file
+  file(MAKE_DIRECTORY "${BUILD_ETC}/libibverbs.d/")
+  file(WRITE "${BUILD_ETC}/libibverbs.d/${DEST}.driver" "driver ${BUILD_LIB}/lib${DEST}\n")
+
+  # Create a static provider library
+  if (ENABLE_STATIC)
+    add_library(${DEST} STATIC ${ARGN})
+    set_target_properties(${DEST} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
+    install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+
+    list(APPEND RDMA_STATIC_LIBS ${DEST}-rdmav2 ${DEST})
+    set(RDMA_STATIC_LIBS "${RDMA_STATIC_LIBS}" CACHE INTERNAL "")
+  endif()
+
+  # Create the plugin shared library
+  add_library(${DEST} SHARED ${ARGN})
+  # Even though these are modules we still want to use Wl,--no-undefined
+  set_target_properties(${DEST} PROPERTIES LINK_FLAGS ${CMAKE_SHARED_LINKER_FLAGS})
+  rdma_set_library_map(${DEST} ${VERSION_SCRIPT})
+
+  target_link_libraries(${DEST} LINK_PRIVATE ${COMMON_LIBS_PIC})
+  target_link_libraries(${DEST} LINK_PRIVATE ibverbs)
+  target_link_libraries(${DEST} LINK_PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+  set_target_properties(${DEST} PROPERTIES
+  	SOVERSION ${SOVERSION}
+  	VERSION ${VERSION}
+  	LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
+  add_custom_target(share_link ALL DEPENDS "${DEST}"  COMMAND ${CMAKE_COMMAND} -E create_symlink "lib${DEST}.so.${VERSION}"
+	  "${BUILD_LIB}/lib${DEST}-rdmav2.so")
+  add_dependencies(share_link ${DEST})
+
+  install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+  install(FILES "${BUILD_LIB}/lib${DEST}-rdmav2.so" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+  rdma_install_symlink("${CMAKE_INSTALL_LIBDIR}/lib${DEST}.so.${VERSION}" "${VERBS_PROVIDER_DIR}/libmlx5-rdmav2.so")
+endfunction()
+
+> > Jason
+
+
+
+--hmAoQ2KfXDe4pzCq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliaKqMACgkQ5GN7iDZy
+WKdRNw/8CdgDw4zvgszU67fgCArC+mYVlI+YNsRHSESCRgO7GiZJdeChtA2ViwOT
+uj0BvIUSLiHyJm3omadGSHT5N2Q6+ZMWGRizyaR4tWZqdEgjRkiS3zxI90lVoYRa
+kZV0CKsYAV6l9/Jtpa2EAIpTtdX2SL8CsVj52FrT7ZXmYTuOuug1uqCnsyX/OPkR
+vIR4pIjFDr/LMIN3nIYe67ibEfo+ghtpUceEyM7BnyUeGRayK40p+XULURpid+vR
+YL+lcRHJTCGTje5nAi8/Ik10hnHUzE6sTMLpWDoPj8GT1sB+78W+q9Ym/9Ckl17L
+hNr73+cyKLFigPwlNuZx9xCOoTQldn8OiBQVwoVTg3c9bJ3gN85hgdI3rSpy6ktd
+hNtf1/YtzDIYXTSuL7AUBOL7dFTXUGd19gDcYGu+B8/OB/d5qgVZvS+d9rt3EZLS
+gMMW+2jjw6foTrhakEFk14PAAfQ4ao6fUYsR7aEB9rv+IKqrqalnNCkZd1yaoCFy
+2nXY7xOUMOOC6QSQ7JmZKbV5+BujlJVWaokUqIVCqicdC5zP1+EAZzmHBdRJjBaX
+pir6AA4tdPaBjxmklq+F1nr49Z46gRD2dcQVkft3wU15dXOqXaoi0AKbOsaox3Ku
+kwzuOljW/a1VysF8jcRjH4Y2jGVNZX0+h0Wcl+k8u0Sgczt3SOQ=
+=AyzE
+-----END PGP SIGNATURE-----
+
+--hmAoQ2KfXDe4pzCq--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
