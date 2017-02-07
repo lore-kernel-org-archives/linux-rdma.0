@@ -1,41 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [RFC v3 02/11] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) interface
-Date: Tue, 7 Feb 2017 15:19:25 -0700
-Message-ID: <20170207221925.GA30579@obsidianresearch.com>
-References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <1486498990-76562-3-git-send-email-niranjana.vishwanathapura@intel.com>
- <20170207211901.GB28922@obsidianresearch.com>
- <20170207220628.GB76652@knc-06.sc.intel.com>
-Mime-Version: 1.0
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 1/7] svcrdma: Another sendto chunk list parsing update
+Date: Tue, 7 Feb 2017 15:30:58 -0500
+Message-ID: <C65F013C-84A2-456D-A0C0-04444D3C4D58@oracle.com>
+References: <20170207165131.14422.47088.stgit@klimt.1015granger.net> <20170207165815.14422.77348.stgit@klimt.1015granger.net> <20170207194252.GA28088@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170207220628.GB76652@knc-06.sc.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, dennis.dalessandro@intel.com, ira.weiny@intel.com, Liran Liss <liranl@mellanox.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170207194252.GA28088-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 07, 2017 at 02:06:30PM -0800, Vishwanathapura, Niranjana wrote:
 
-> >> 	IB_DEVICE_RAW_SCATTER_FCS		= (1ULL << 34),
-> >>+	IB_DEVICE_RDMA_NETDEV_HFI_VNIC		= (1ULL << 35),
-> >
-> >What is this called HFI_VNIC anyhow? Shouldn't this be OPA_VNIC? There
-> >is nothing really HFI specific, right?
+> On Feb 7, 2017, at 2:42 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
 > 
-> Agreed, OPA_VNIC is more appropriate here. Will change it.
-
-And probably lots of other places too.. :)
-
-
-> >And this should be rn->dev_priv ?
+>> 	/* Prepare the SGE for the RPCRDMA Header */
+>> 	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
+>> -	ctxt->sge[0].length = svc_rdma_xdr_get_reply_hdr_len(rdma_resp);
+>> +	ctxt->sge[0].length =
+>> +	    svc_rdma_xdr_get_reply_hdr_len((__be32 *)rdma_resp);
 > 
-> Yah, both will result in same behavior. But yah, what you are suggesting
-> will remove any confusion. Will change in next PATCH series.
+> That case is pretty ugly, but given that it'll go away soon it's
+> probably fine for now.
 
-Only because the struct has no members, as soon as someone adds
-something it would go booom.
+Yes, the type cast will be replaced.
 
-Jason
+
+> Otherwise this look good:
+> 
+> Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+
+Bruce, I assume you will pick up the extra Reviewed-by tags
+if I don't have to send another version of this series.
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
