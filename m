@@ -1,32 +1,76 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net v2] mlx4: Invoke softirqs after napi_reschedule
-Date: Tue, 07 Feb 2017 12:51:54 -0500 (EST)
-Message-ID: <20170207.125154.1590393488220239361.davem@davemloft.net>
-References: <1486403641.7793.43.camel@edumazet-glaptop3.roam.corp.google.com>
-        <20170206181431.9664-1-bpoirier@suse.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc] RDMA: Remove kernel private defines and reference to header from UAPI
+Date: Tue,  7 Feb 2017 19:46:00 +0200
+Message-ID: <20170207174600.27218-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170206181431.9664-1-bpoirier@suse.com>
-Sender: netdev-owner@vger.kernel.org
-To: bpoirier@suse.com
-Cc: netdev@vger.kernel.org, tariqt@mellanox.com, yishaih@mellanox.com, linux-rdma@vger.kernel.org, eric.dumazet@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Benjamin Poirier <bpoirier@suse.com>
-Date: Mon,  6 Feb 2017 10:14:31 -0800
+Remove references to private kernel header and defines from exported
+ib_user_verb.h file.
 
-> mlx4 may schedule napi from a workqueue. Afterwards, softirqs are not run
-> in a deterministic time frame and the following message may be logged:
-> NOHZ: local_softirq_pending 08
-> 
-> The problem is the same as what was described in commit ec13ee80145c
-> ("virtio_net: invoke softirqs after __napi_schedule") and this patch
-> applies the same fix to mlx4.
-> 
-> Fixes: 07841f9d94c1 ("net/mlx4_en: Schedule napi when RX buffers allocation fails")
-> Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> Signed-off-by: Benjamin Poirier <bpoirier@suse.com>
+The code snippet below is used to reproduce the issue:
 
-Applied and queued up for -stable, thanks!
+ #include <stdio.h>
+ #include <rdma/ib_user_verb.h>
+
+ int main(void)
+ {
+	printf("IB_USER_VERBS_ABI_VERSION = %d\n", IB_USER_VERBS_ABI_VERSION);
+	return 0;
+ }
+
+It fails during compilation phase with an error:
+➜  /tmp gcc main.c
+main.c:2:31: fatal error: rdma/ib_user_verb.h: No such file or directory
+ #include <rdma/ib_user_verb.h>
+                               ^
+compilation terminated.
+
+Fixes: 189aba99e700 ("IB/uverbs: Extend modify_qp and support packet pacing")
+CC: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reported-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ include/uapi/rdma/ib_user_verbs.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index dfdfe4e92d31..c56f525b041d 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -37,7 +37,6 @@
+ #define IB_USER_VERBS_H
+
+ #include <linux/types.h>
+-#include <rdma/ib_verbs.h>
+
+ /*
+  * Increment this value if any changes that break userspace ABI
+@@ -548,11 +547,11 @@ enum {
+ };
+
+ enum {
+-	IB_USER_LEGACY_LAST_QP_ATTR_MASK = IB_QP_DEST_QPN
++	IB_USER_LEGACY_LAST_QP_ATTR_MASK = 1ULL << 20,
+ };
+
+ enum {
+-	IB_USER_LAST_QP_ATTR_MASK = IB_QP_RATE_LIMIT
++	IB_USER_LAST_QP_ATTR_MASK = 1ULL << 25,
+ };
+
+ struct ib_uverbs_ex_create_qp {
+--
+2.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
