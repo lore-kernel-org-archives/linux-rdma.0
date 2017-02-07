@@ -1,61 +1,24 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: OFED-4.8, rdma-core, and library paths
-Date: Tue, 7 Feb 2017 11:19:59 -0600
-Message-ID: <02c801d28166$693e17d0$3bba4770$@opengridcomputing.com>
-References: <011b01d28153$e5f0adf0$b1d209d0$@opengridcomputing.com> <20170207171145.GB1077@obsidianresearch.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v3 2/7] svcrdma: Clean up RPC-over-RDMA Reply header
+ encoder
+Date: Tue, 7 Feb 2017 09:20:15 -0800
+Message-ID: <20170207172014.GA31579@infradead.org>
+References: <20170207165131.14422.47088.stgit@klimt.1015granger.net>
+ <20170207165823.14422.78711.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170207171145.GB1077-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170207165823.14422.78711.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Hm, possibly yes. ibverbs first checks the new location, if the
-> provider is not there then it will fall back to a naked dlopen which
-> could find providers in the system library path if there was a .driver
-> file for it.
-> 
+Looks fine,
 
-Hmm, so it will load the provider libraries directly specifying the full path?
-IE 'ldconfig -p' doesn't matter?
-
-> However, starting in rdma-core 13 the distro providers will not be
-> link compatible with new libibverbs and will silently fail to load.
-> 
-> > What do folks think about this?  Should OFED-4.8 try and uninstall rdma
-> > cmds/libs regardless of where they came from?  Perhaps optionally.  Or
-should
-> > this just be documented so the admin is required to deal with it?  I think
-if we
-> > leave OFED as-is, we'll end up with lots of support issues where old libs
-are
-> > being loaded causing problems.
-> 
-> I'm not sure it is likely someone will hit this. The user would need a
-> distro packaged provider that is not included in rdma-core. AFAIK no
-> such thing exists...
->
-
-Vlad already clarified that the OFED installer uninstalls distro rpms, so I
-think OFED is good.
-
-> 
-> Do you know of another way to trigger wrong loading?
-> 
-
-Actually, I was assuming the load path used by libibverbs would be done based on
-'ldconfig -p'.  If that is not the case, then everything is ok...I think. 
-
-Steve.
-
-
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
