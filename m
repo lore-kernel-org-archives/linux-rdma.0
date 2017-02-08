@@ -1,50 +1,66 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] svcrdma: Another sendto chunk list parsing update
-Date: Wed, 8 Feb 2017 11:57:00 -0500
-Message-ID: <20170208165700.GB16064@fieldses.org>
-References: <20170207165131.14422.47088.stgit@klimt.1015granger.net>
- <20170207165815.14422.77348.stgit@klimt.1015granger.net>
- <20170207194252.GA28088@infradead.org>
- <C65F013C-84A2-456D-A0C0-04444D3C4D58@oracle.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 25/27] IB/hfi1: Add rvt_rnr_tbl_to_usec function
+Date: Wed, 08 Feb 2017 05:28:19 -0800
+Message-ID: <20170208132818.16442.38634.stgit@scvm10.sc.intel.com>
+References: <20170208132142.16442.69329.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C65F013C-84A2-456D-A0C0-04444D3C4D58-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170208132142.16442.69329.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 07, 2017 at 03:30:58PM -0500, Chuck Lever wrote:
-> 
-> > On Feb 7, 2017, at 2:42 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> > 
-> >> 	/* Prepare the SGE for the RPCRDMA Header */
-> >> 	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
-> >> -	ctxt->sge[0].length = svc_rdma_xdr_get_reply_hdr_len(rdma_resp);
-> >> +	ctxt->sge[0].length =
-> >> +	    svc_rdma_xdr_get_reply_hdr_len((__be32 *)rdma_resp);
-> > 
-> > That case is pretty ugly, but given that it'll go away soon it's
-> > probably fine for now.
-> 
-> Yes, the type cast will be replaced.
-> 
-> 
-> > Otherwise this look good:
-> > 
-> > Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> 
-> Bruce, I assume you will pick up the extra Reviewed-by tags
-> if I don't have to send another version of this series.
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Yep, will do.
+Return usec from an index into ib_rvt_rnr_table.
 
-Thanks to you and Christoph.
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/sw/rdmavt/qp.c |   11 +++++++++++
+ include/rdma/rdmavt_qp.h          |    1 +
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
---b.
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index db4315f..0b97598 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1954,6 +1954,17 @@ void rvt_rc_error(struct rvt_qp *qp, enum ib_wc_status err)
+ }
+ EXPORT_SYMBOL(rvt_rc_error);
+ 
++/*
++ *  rvt_rnr_tbl_to_usec - return index into ib_rvt_rnr_table
++ *  @index - the index
++ *  return usec from an index into ib_rvt_rnr_table
++ */
++unsigned long rvt_rnr_tbl_to_usec(u32 index)
++{
++	return ib_rvt_rnr_table[(index & RVT_AETH_CREDIT_MASK)];
++}
++EXPORT_SYMBOL(rvt_rnr_tbl_to_usec);
++
+ static inline unsigned long rvt_aeth_to_usec(u32 aeth)
+ {
+ 	return ib_rvt_rnr_table[(aeth >> RVT_AETH_CREDIT_SHIFT) &
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 2f91fae..9767549 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -653,6 +653,7 @@ static inline u32 rvt_div_mtu(struct rvt_qp *qp, u32 len)
+ void rvt_comm_est(struct rvt_qp *qp);
+ int rvt_error_qp(struct rvt_qp *qp, enum ib_wc_status err);
+ void rvt_rc_error(struct rvt_qp *qp, enum ib_wc_status err);
++unsigned long rvt_rnr_tbl_to_usec(u32 index);
+ enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t);
+ void rvt_add_rnr_timer(struct rvt_qp *qp, u32 aeth);
+ void rvt_del_timers_sync(struct rvt_qp *qp);
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
