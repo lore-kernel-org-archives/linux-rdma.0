@@ -1,9 +1,8 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: OFED-4.8, rdma-core, and library paths
-Date: Wed, 8 Feb 2017 20:01:04 +0200
-Message-ID: <20170208180104.GG6005@mtr-leonro.local>
-References: <20170207172752.GA12315@obsidianresearch.com>
- <20170207180642.GQ6005@mtr-leonro.local>
+Date: Wed, 8 Feb 2017 11:18:20 -0700
+Message-ID: <20170208181820.GA31664@obsidianresearch.com>
+References: <20170207180642.GQ6005@mtr-leonro.local>
  <20170207181814.GA13368@obsidianresearch.com>
  <20170207183538.GT6005@mtr-leonro.local>
  <20170207184206.GA14102@obsidianresearch.com>
@@ -12,198 +11,94 @@ References: <20170207172752.GA12315@obsidianresearch.com>
  <20170207205930.GA28922@obsidianresearch.com>
  <20170208063758.GZ6005@mtr-leonro.local>
  <20170208173335.GB30720@obsidianresearch.com>
+ <20170208180104.GG6005@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="BspSmK1Kkx4+06Ky"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170208173335.GB30720-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170208180104.GG6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---BspSmK1Kkx4+06Ky
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Feb 08, 2017 at 10:33:35AM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 08, 2017 at 08:37:58AM +0200, Leon Romanovsky wrote:
-> > On Tue, Feb 07, 2017 at 01:59:30PM -0700, Jason Gunthorpe wrote:
-> > > On Tue, Feb 07, 2017 at 10:14:28PM +0200, Leon Romanovsky wrote:
-> > >
-> > > > > > Compile the library to build/lib/libibverbs-dv-mlx5.so.1.0.13
-> > > > > > and setup a symlink build/lib/libmlx5-rdmav2.so -> libibverbs-d=
-v-mlx5.so.1.0.13
-> > > > >
-> > > > > Just as a note, I'm calling it libmlx5 and not libibverbs-dv-mlx5.
-> > >
-> > > That will clash with the legacy providers, don't recommend it.
-> >
-> > Is it real scenario? Will these legacy providers co-exists with
-> > rdma-core library? I really don't like libibverbs-dv-mlx5 name, it is
-> > too long and have feature name in the name.
->
-> I'd save having the 'dv' in the name is sort of the point...
->
-> The possible issue would be if an app links to this new library and is
-> run on an old system with the old type of library - then you'd get a
-> really ugly linker error message. It is best to avoid re using library
-> names.
->
-> That said, the old name is libmlx4-rdmav2.so so it should be OK..
->
-> > >     execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
-> > >                  "lib${DEST}.so.${VERSION}"
-> > > 		 "${BUILD_LIB}/lib${DEST}-rdmav2.so")
-> > >
-> > > It creates a dangling link until compilation, which is fine..
-> >
-> > In non-ninja builds, it doesn't create libmlx5-rdmav2.so symlink in
-> > build/lib, because libmlx5.so is not created yet. This is why I ended
-> > with custom target.
->
-> Eh? That doesn't sound right.
->
-> > > >   install(FILES "${BUILD_LIB}/lib${DEST}-rdmav2.so" DESTINATION "${=
-CMAKE_INSTALL_LIBDIR}")
-> > >
-> > > This line isn't needed, it is part of the next function
-> >
-> > Not for build/lib
-> >
->
-> ? Do not install something calleld lib*-rdmav2.so to /usr/lib/
-
-Thanks for the help, my final version which works correctly for build in pl=
-ace, install from
-sources and packages for centos6/centos6 is below:
-
-----
-# Create a special provider with exported symbols in it
-function(rdma_shared_provider DEST VERSION_SCRIPT SOVERSION VERSION)
-  # Installed driver file
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" "driver ${DEST}\n=
-")
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" DESTINATION "$=
-{CONFIG_DIR}")
-
-  # Uninstalled driver file
-  file(MAKE_DIRECTORY "${BUILD_ETC}/libibverbs.d/")
-  file(WRITE "${BUILD_ETC}/libibverbs.d/${DEST}.driver" "driver ${BUILD_LIB=
-}/lib${DEST}\n")
-
-  # Create a static provider library
-  if (ENABLE_STATIC)
-    add_library(${DEST} STATIC ${ARGN})
-    set_target_properties(${DEST} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${BU=
-ILD_LIB}")
-    install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-
-    list(APPEND RDMA_STATIC_LIBS ${DEST}-rdmav2 ${DEST})
-    set(RDMA_STATIC_LIBS "${RDMA_STATIC_LIBS}" CACHE INTERNAL "")
-  endif()
-
-  # Create the plugin shared library
-  add_library(${DEST} SHARED ${ARGN})
-  # Even though these are modules we still want to use Wl,--no-undefined
-  set_target_properties(${DEST} PROPERTIES LINK_FLAGS ${CMAKE_SHARED_LINKER=
-_FLAGS})
-  rdma_set_library_map(${DEST} ${VERSION_SCRIPT})
-
-  target_link_libraries(${DEST} LINK_PRIVATE ${COMMON_LIBS_PIC})
-  target_link_libraries(${DEST} LINK_PRIVATE ibverbs)
-  target_link_libraries(${DEST} LINK_PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-  set_target_properties(${DEST} PROPERTIES
-  	SOVERSION ${SOVERSION}
-  	VERSION ${VERSION}
-  	LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
-  add_custom_target(share_link ALL DEPENDS "${DEST}"  COMMAND ${CMAKE_COMMA=
-ND} -E create_symlink "lib${DEST}.so.${VERSION}"
-	  "${BUILD_LIB}/lib${DEST}-rdmav2.so")
-  add_dependencies(share_link ${DEST})
-
-  install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-  execute_process(COMMAND python ${CMAKE_SOURCE_DIR}/buildlib/relpath
-    ${CMAKE_INSTALL_LIBDIR}/lib${DEST}.so.${VERSION} ${VERBS_PROVIDER_DIR}
-    OUTPUT_VARIABLE DEST_LINK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
-  rdma_install_symlink("${DEST_LINK_PATH}" "${VERBS_PROVIDER_DIR}/lib${DEST=
-}-rdmav2.so")
-endfunction()
-
-----
-and buildlib/relpath
----
-import os
-import sys
-
-print(os.path.relpath(sys.argv[1], sys.argv[2]))
----
-
-But I still have issues with DEB package.
-It creates absolute (and wrong)  symlink instead of relative one.
-
-build/cbuild pkg jessie
-=2E..
-DESTDIR=3D/home/leonro/src/debian/tmp ninja -C build-deb install
-ninja: Entering directory `build-deb'
-[1/2] cd /home/leonro/src/build-deb/providers/mlx5 && /usr/bin/cmake -E cre=
-ate_symlink libmlx5.so.1.0.13 /home/leonro/src/build-deb/lib/libmlx5-rdmav2=
-=2Eso
-[2/2] Install the project...
-=2E...
-
-=E2=9E=9C  ls -l  usr/lib/x86_64-linux-gnu/libibverbs
-total 364K
-drwxr-xr-x 2 leonro leonro 320 Feb  8 17:17 .
-drwxr-xr-x 3 leonro leonro 120 Feb  8 17:17 ..
--rw-r--r-- 1 leonro leonro 22K Feb  8 17:13 libcxgb3-rdmav2.so
--rw-r--r-- 1 leonro leonro 30K Feb  8 17:13 libcxgb4-rdmav2.so
--rw-r--r-- 1 leonro leonro 18K Feb  8 17:13 libhfi1verbs-rdmav2.so
--rw-r--r-- 1 leonro leonro 22K Feb  8 17:13 libhns-rdmav2.so
--rw-r--r-- 1 leonro leonro 30K Feb  8 17:13 libi40iw-rdmav2.so
--rw-r--r-- 1 leonro leonro 18K Feb  8 17:13 libipathverbs-rdmav2.so
--rw-r--r-- 1 leonro leonro 46K Feb  8 17:13 libmlx4-rdmav2.so
-lrwxrwxrwx 1 leonro leonro  65 Feb  8 17:13 libmlx5-rdmav2.so -> /home/leon=
-ro/src/build-deb/lib/x86_64-linux-gnu/libmlx5.so.1.0.13
--rw-r--r-- 1 leonro leonro 34K Feb  8 17:13 libmthca-rdmav2.so
--rw-r--r-- 1 leonro leonro 23K Feb  8 17:13 libnes-rdmav2.so
--rw-r--r-- 1 leonro leonro 26K Feb  8 17:13 libocrdma-rdmav2.so
--rw-r--r-- 1 leonro leonro 34K Feb  8 17:13 libqedr-rdmav2.so
--rw-r--r-- 1 leonro leonro 18K Feb  8 17:13 librxe-rdmav2.so
--rw-r--r-- 1 leonro leonro 18K Feb  8 17:13 libvmw_pvrdma-rdmav2.so
-
-Any pointer what should I need to fix in debian/ to make it work?
-
-Thanks
-
->
-> Jason
-
---BspSmK1Kkx4+06Ky
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlibXN8ACgkQ5GN7iDZy
-WKdqJw/9GLhPo3oG9XpmsjsFHmtpPVos7x1NmF0W9bY202TJG8UJSf15FfuOQ7ID
-Xz41SMwuiztDvfX+BLCahQZOCEGKDaHtVQId1p1euGsQUQEhEsKuVQHoaXwiFMRp
-sbZF+5qJXTqLrpXL49Ny1MgFwkUp4pzRVAmyu8d0QOG9R4BDQosPLRJ6H3uyCcyQ
-XWb5Uqx8LBpTMf2UTMuz6SHVseD7rqTZERp9ljkYdTENB+/CtJJOxsM1BLB+R8tA
-o6fRY/hJWiVOua+DSrDDPAh2BBk9wWU23x+wmfgS5FfwyAdExKIT7FZImOkH/iPY
-biRoGMuh/fJPixBx6ok1TqZXznV7P415AThyqXL7IqEU2YlpOBJXkjbvs0LBks9H
-lDBntzdYBBy6Gc1k4ALzoh3hg7MYpDs9RYToyD47nKu4GFcbuVk9zbr8yB2RzyOX
-PArTEQ93Ej6Qo7ouQcxh7R6dkZTAIHybrHHww2cNwqID32G1ndFJf5hUfWwcopcD
-iQV2SgxdeY0AWCpc1KbBMvd6PBYEcYqkdtHTHvaIxK+sP0nHvXMQAtPAC1bsbyUQ
-WtYE5u+TLhH7UsiOAhu6iuimI0Vnk28O6eIf7/DtQVSvpwzEQrnzdxZOXsNPozps
-S4/QJVPrqllpVukw9SDYgs8Y3oxP+TgkmqGPavQMhi7Ai8HqYs8=
-=Rexp
------END PGP SIGNATURE-----
-
---BspSmK1Kkx4+06Ky--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gV2VkLCBGZWIgMDgsIDIwMTcgYXQgMDg6MDE6MDRQTSArMDIwMCwgTGVvbiBSb21hbm92c2t5
+IHdyb3RlOgo+IE9uIFdlZCwgRmViIDA4LCAyMDE3IGF0IDEwOjMzOjM1QU0gLTA3MDAsIEphc29u
+IEd1bnRob3JwZSB3cm90ZToKCj4gVGhhbmtzIGZvciB0aGUgaGVscCwgbXkgZmluYWwgdmVyc2lv
+biB3aGljaCB3b3JrcyBjb3JyZWN0bHkgZm9yIGJ1aWxkIGluIHBsYWNlLCBpbnN0YWxsIGZyb20K
+PiBzb3VyY2VzIGFuZCBwYWNrYWdlcyBmb3IgY2VudG9zNi9jZW50b3M2IGlzIGJlbG93OgoKTG9v
+a3MgZ29vZAoKPiAjIENyZWF0ZSBhIHNwZWNpYWwgcHJvdmlkZXIgd2l0aCBleHBvcnRlZCBzeW1i
+b2xzIGluIGl0Cj4gZnVuY3Rpb24ocmRtYV9zaGFyZWRfcHJvdmlkZXIgREVTVCBWRVJTSU9OX1ND
+UklQVCBTT1ZFUlNJT04gVkVSU0lPTikKPiAgICMgSW5zdGFsbGVkIGRyaXZlciBmaWxlCj4gICBm
+aWxlKFdSSVRFICIke0NNQUtFX0NVUlJFTlRfQklOQVJZX0RJUn0vJHtERVNUfS5kcml2ZXIiICJk
+cml2ZXIgJHtERVNUfVxuIikKPiAgIGluc3RhbGwoRklMRVMgIiR7Q01BS0VfQ1VSUkVOVF9CSU5B
+UllfRElSfS8ke0RFU1R9LmRyaXZlciIgREVTVElOQVRJT04gIiR7Q09ORklHX0RJUn0iKQo+IAo+
+ICAgIyBVbmluc3RhbGxlZCBkcml2ZXIgZmlsZQo+ICAgZmlsZShNQUtFX0RJUkVDVE9SWSAiJHtC
+VUlMRF9FVEN9L2xpYmlidmVyYnMuZC8iKQo+ICAgZmlsZShXUklURSAiJHtCVUlMRF9FVEN9L2xp
+YmlidmVyYnMuZC8ke0RFU1R9LmRyaXZlciIgImRyaXZlciAke0JVSUxEX0xJQn0vbGliJHtERVNU
+fVxuIikKPiAKPiAgICMgQ3JlYXRlIGEgc3RhdGljIHByb3ZpZGVyIGxpYnJhcnkKPiAgIGlmIChF
+TkFCTEVfU1RBVElDKQo+ICAgICBhZGRfbGlicmFyeSgke0RFU1R9IFNUQVRJQyAke0FSR059KQo+
+ICAgICBzZXRfdGFyZ2V0X3Byb3BlcnRpZXMoJHtERVNUfSBQUk9QRVJUSUVTIExJQlJBUllfT1VU
+UFVUX0RJUkVDVE9SWSAiJHtCVUlMRF9MSUJ9IikKPiAgICAgaW5zdGFsbChUQVJHRVRTICR7REVT
+VH0gREVTVElOQVRJT04gIiR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9IikKPiAKPiAgICAgbGlzdChB
+UFBFTkQgUkRNQV9TVEFUSUNfTElCUyAke0RFU1R9LXJkbWF2MiAke0RFU1R9KQo+ICAgICBzZXQo
+UkRNQV9TVEFUSUNfTElCUyAiJHtSRE1BX1NUQVRJQ19MSUJTfSIgQ0FDSEUgSU5URVJOQUwgIiIp
+Cj4gICBlbmRpZigpCj4gCj4gICAjIENyZWF0ZSB0aGUgcGx1Z2luIHNoYXJlZCBsaWJyYXJ5Cj4g
+ICBhZGRfbGlicmFyeSgke0RFU1R9IFNIQVJFRCAke0FSR059KQo+ICAgIyBFdmVuIHRob3VnaCB0
+aGVzZSBhcmUgbW9kdWxlcyB3ZSBzdGlsbCB3YW50IHRvIHVzZSBXbCwtLW5vLXVuZGVmaW5lZAo+
+ICAgc2V0X3RhcmdldF9wcm9wZXJ0aWVzKCR7REVTVH0gUFJPUEVSVElFUyBMSU5LX0ZMQUdTICR7
+Q01BS0VfU0hBUkVEX0xJTktFUl9GTEFHU30pCj4gICByZG1hX3NldF9saWJyYXJ5X21hcCgke0RF
+U1R9ICR7VkVSU0lPTl9TQ1JJUFR9KQo+IAo+ICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKCR7REVT
+VH0gTElOS19QUklWQVRFICR7Q09NTU9OX0xJQlNfUElDfSkKPiAgIHRhcmdldF9saW5rX2xpYnJh
+cmllcygke0RFU1R9IExJTktfUFJJVkFURSBpYnZlcmJzKQo+ICAgdGFyZ2V0X2xpbmtfbGlicmFy
+aWVzKCR7REVTVH0gTElOS19QUklWQVRFICR7Q01BS0VfVEhSRUFEX0xJQlNfSU5JVH0pCj4gICBz
+ZXRfdGFyZ2V0X3Byb3BlcnRpZXMoJHtERVNUfSBQUk9QRVJUSUVTCj4gICAJU09WRVJTSU9OICR7
+U09WRVJTSU9OfQo+ICAgCVZFUlNJT04gJHtWRVJTSU9OfQo+ICAgCUxJQlJBUllfT1VUUFVUX0RJ
+UkVDVE9SWSAiJHtCVUlMRF9MSUJ9IikKPiAgIGFkZF9jdXN0b21fdGFyZ2V0KHNoYXJlX2xpbmsg
+QUxMIERFUEVORFMgIiR7REVTVH0iICBDT01NQU5EICR7Q01BS0VfQ09NTUFORH0gLUUgY3JlYXRl
+X3N5bWxpbmsgImxpYiR7REVTVH0uc28uJHtWRVJTSU9OfSIKPiAJICAiJHtCVUlMRF9MSUJ9L2xp
+YiR7REVTVH0tcmRtYXYyLnNvIikKPiAgIGFkZF9kZXBlbmRlbmNpZXMoc2hhcmVfbGluayAke0RF
+U1R9KQoKRXhjZXB0IHRoaXMgcmVhbGx5IHNob3VsZG4ndCBiZSBhIHJ1bGUuICBUaGUgbm9uLXJ1
+bGUgbWV0aG9kIGlzIHVzZWQKZXZlcnl3aGVyZSBlbHNlIChlZyBtYW4gcGFnZXMpLCBzbyBpdCBt
+dXN0IHdvcmsgaGVyZSwgaXQgZG9lc24ndCBtYWtlCnNlbnNlIHRoYXQgbmluamEgdnMgbWFrZSB3
+b3VsZCBiZSBhbnkgZGlmZmVyZW50LiBXaGVuIHlvdSBnZXQKZXZlcnl0aGluZyB3b3JraW5nIHB1
+dCBpdCBiYWNrIHRvIGV4ZWN1dGVfcHJvY2Vzcy4uCgo+ICAgaW5zdGFsbChUQVJHRVRTICR7REVT
+VH0gREVTVElOQVRJT04gIiR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9IikKPiAgIGV4ZWN1dGVfcHJv
+Y2VzcyhDT01NQU5EIHB5dGhvbiAke0NNQUtFX1NPVVJDRV9ESVJ9L2J1aWxkbGliL3JlbHBhdGgK
+PiAgICAgJHtDTUFLRV9JTlNUQUxMX0xJQkRJUn0vbGliJHtERVNUfS5zby4ke1ZFUlNJT059ICR7
+VkVSQlNfUFJPVklERVJfRElSfQo+ICAgICBPVVRQVVRfVkFSSUFCTEUgREVTVF9MSU5LX1BBVEgg
+T1VUUFVUX1NUUklQX1RSQUlMSU5HX1dISVRFU1BBQ0UpCj4gICByZG1hX2luc3RhbGxfc3ltbGlu
+aygiJHtERVNUX0xJTktfUEFUSH0iICIke1ZFUkJTX1BST1ZJREVSX0RJUn0vbGliJHtERVNUfS1y
+ZG1hdjIuc28iKQoKPiBhbmQgYnVpbGRsaWIvcmVscGF0aAo+IGltcG9ydCBvcwo+IGltcG9ydCBz
+eXMKPiAKPiBwcmludChvcy5wYXRoLnJlbHBhdGgoc3lzLmFyZ3ZbMV0sIHN5cy5hcmd2WzJdKSkK
+ClN1cmUsIHllcywgZG9pbmcgdGhlIGVzY2FwaW5nIHJpZ2h0IHdvdWxkIHByb2JhYmx5IGJlIHF1
+aXRlIGhhcmQsIHRoYXQgaXMgdGhlCnVzdWFsIG5pZ2h0bWFyZSB3aXRoIHNoZWxsIHN0dWZmIHVu
+Zm9ydHVuYXRlbHkuCgo+IEJ1dCBJIHN0aWxsIGhhdmUgaXNzdWVzIHdpdGggREVCIHBhY2thZ2Uu
+Cj4gSXQgY3JlYXRlcyBhYnNvbHV0ZSAoYW5kIHdyb25nKSAgc3ltbGluayBpbnN0ZWFkIG9mIHJl
+bGF0aXZlIG9uZS4KCkhtbS4gQ2FuIHlvdSB1cGRhdGUgeW91ciBnaXRodWI/IEknbGwgbG9vayBm
+b3IgeW91LgoKPiAtcnctci0tci0tIDEgbGVvbnJvIGxlb25ybyA0NksgRmViICA4IDE3OjEzIGxp
+Ym1seDQtcmRtYXYyLnNvCj4gbHJ3eHJ3eHJ3eCAxIGxlb25ybyBsZW9ucm8gIDY1IEZlYiAgOCAx
+NzoxMyBsaWJtbHg1LXJkbWF2Mi5zbyAtPiAvaG9tZS9sZW9ucm8vc3JjL2J1aWxkLWRlYi9saWIv
+eDg2XzY0LWxpbnV4LWdudS9saWJtbHg1LnNvLjEuMC4xMwoKTW9zdCBsaWtlbHkgdGhpcyBtZWFu
+cyB0aGF0IERFU1RfTElOS19QQVRIIHBhc3NlZCB0bwpyZG1hX2luc3RhbGxfc3ltbGluayBpcyBu
+b3QgY29ycmVjdC4gV2hpY2ggc3VnZ2VzdHMgcHl0aG9uIHJlbHBhdGggaXMKbm90IHdvcmtpbmcu
+LgoKcmVscGF0aCBpbiBweXRob24gaXMgZG9uZSB0ZXh0dWFsbHksIGZyb20gdGhlc2UgYXJnczoK
+Cj4gICAgICR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9L2xpYiR7REVTVH0uc28uJHtWRVJTSU9OfSAk
+e1ZFUkJTX1BST1ZJREVSX0RJUn0KCkJ1dAoKIHNldChWRVJCU19QUk9WSURFUl9ESVIgIiR7Q01B
+S0VfSU5TVEFMTF9GVUxMX0xJQkRJUn0vbGliaWJ2ZXJicyIKClNvIGlmIENNQUtFX0lOU1RBTExf
+RlVMTF9MSUJESVIgIT0gQ01BS0VfSU5TVEFMTF9MSUJESVIgKHdoaWNoIGRlcGVuZHMKb24gaG93
+IHRoZSBkaXN0cm8gYnVpbGQgc2NyaXB0IGNvbmZpZ3VyZXMgY21ha2UpIHRoZW4gaXQgd2lsbCBm
+YWlsLgoKU3dpdGNoIHRvOgoKICAgICAke0NNQUtFX0lOU1RBTExfRlVMTF9MSUJESVJ9L2xpYiR7
+REVTVH0uc28uJHtWRVJTSU9OfSAke1ZFUkJTX1BST1ZJREVSX0RJUn0KCkphc29uCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5nIGxpc3QK
+ZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwOi8vbGlzdHMub3BlbmZhYnJpY3Mub3JnL21h
+aWxtYW4vbGlzdGluZm8vZXdn
