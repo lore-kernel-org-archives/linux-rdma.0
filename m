@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 05/12] xprtrdma: Shrink send SGEs array
-Date: Wed, 08 Feb 2017 17:00:18 -0500
-Message-ID: <20170208220018.7152.94524.stgit@manet.1015granger.net>
+Subject: [PATCH v3 11/12] xprtrdma: Detect unreachable NFS/RDMA servers more
+ reliably
+Date: Wed, 08 Feb 2017 17:01:08 -0500
+Message-ID: <20170208220107.7152.84940.stgit@manet.1015granger.net>
 References: <20170208214854.7152.83331.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,44 +14,154 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We no longer need to accommodate an xdr_buf whose pages start at an
-offset and cross extra page boundaries. If there are more partial or
-whole pages to send than there are available SGEs, the marshaling
-logic is now smart enough to use a Read chunk instead of failing.
+Current NFS clients rely on connection loss to determine when to
+retransmit. In particular, for protocols like NFSv4, clients no
+longer rely on RPC timeouts to drive retransmission: NFSv4 servers
+are required to terminate a connection when they need a client to
+retransmit pending RPCs.
+
+When a server is no longer reachable, either because it has crashed
+or because the network path has broken, the server cannot actively
+terminate a connection. Thus NFS clients depend on transport-level
+keepalive to determine when a connection must be replaced and
+pending RPCs retransmitted.
+
+However, RDMA RC connections do not have a native keepalive
+mechanism. If an NFS/RDMA server crashes after a client has sent
+RPCs successfully (an RC ACK has been received for all OTW RDMA
+requests), there is no way for the client to know the connection is
+moribund.
+
+In addition, new RDMA requests are subject to the RPC-over-RDMA
+credit limit. If the client has consumed all granted credits with
+NFS traffic, it is not allowed to send another RDMA request until
+the server replies. Thus it has no way to send a true keepalive when
+the workload has already consumed all credits with pending RPCs.
+
+To address this, emit an RPC NULL ping when an RPC retransmit
+timeout occurs.
+
+The purpose of this ping is to drive traffic on the connection to
+force the transport layer to disconnect it if it is no longer
+viable. Some RDMA operations are fully offloaded to the HCA, and can
+be successful even if the server O/S has crashed. Thus an operation
+that requires that the server is responsive is used for the ping.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/xprt_rdma.h |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |   69 +++++++++++++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/xprt_rdma.h |    7 ++++
+ 2 files changed, 76 insertions(+)
 
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index c717f54..3a5a805 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -484,6 +484,74 @@
+ 	dprintk("RPC:       %s: %u\n", __func__, port);
+ }
+ 
++static void rpcrdma_keepalive_done(struct rpc_task *task, void *calldata)
++{
++	struct rpc_xprt *xprt = (struct rpc_xprt *)calldata;
++	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
++
++	if (task->tk_status) {
++		struct sockaddr *sap =
++			(struct sockaddr *)&r_xprt->rx_ep.rep_remote_addr;
++
++		pr_err("rpcrdma: keepalive to %pIS:%u failed (%d)\n",
++		       sap, rpc_get_port(sap), task->tk_status);
++		xprt_disconnect_done(xprt);
++	}
++	clear_bit(RPCRDMA_IA_RSVD_CREDIT, &r_xprt->rx_ia.ri_flags);
++}
++
++static void rpcrdma_keepalive_release(void *calldata)
++{
++	struct rpc_xprt *xprt = (struct rpc_xprt *)calldata;
++
++	xprt_put(xprt);
++}
++
++static const struct rpc_call_ops rpcrdma_keepalive_call_ops = {
++	.rpc_call_done	= rpcrdma_keepalive_done,
++	.rpc_release	= rpcrdma_keepalive_release,
++};
++
++/**
++ * xprt_rdma_timer - invoked when an RPC times out
++ * @xprt: controlling RPC transport
++ * @task: RPC task that timed out
++ *
++ * Some RDMA transports do not have any form of connection
++ * keepalive. In some circumstances, unviable connections
++ * can continue to live for a long time.
++ *
++ * Send a NULL RPC to see if the server still responds. On
++ * a moribund connection, this should trigger either an RPC
++ * or transport layer timeout and kill the connection.
++ */
++static void
++xprt_rdma_timer(struct rpc_xprt *xprt, struct rpc_task *task)
++{
++	struct rpcrdma_xprt *r_xprt =
++		container_of(xprt, struct rpcrdma_xprt, rx_xprt);
++#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
++	struct rpcrdma_ep *ep = &r_xprt->rx_ep;
++	struct sockaddr *sap = (struct sockaddr *)&ep->rep_remote_addr;
++#endif
++	struct rpc_task *null_task;
++	void *data;
++
++	/* Ensure only one is sent at a time */
++	if (!test_and_set_bit(RPCRDMA_IA_RSVD_CREDIT, &r_xprt->rx_ia.ri_flags))
++		return;
++
++	dprintk("RPC:       %s: sending keepalive ping to %pIS:%u\n",
++		__func__, sap, rpc_get_port(sap));
++
++	data = xprt_get(xprt);
++	null_task = rpc_call_null_helper(task->tk_client, xprt, NULL,
++					 RPC_TASK_SOFTPING | RPC_TASK_ASYNC,
++					 &rpcrdma_keepalive_call_ops, data);
++	if (!IS_ERR(null_task))
++		rpc_put_task(null_task);
++}
++
+ static void
+ xprt_rdma_connect(struct rpc_xprt *xprt, struct rpc_task *task)
+ {
+@@ -776,6 +844,7 @@ void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
+ 	.alloc_slot		= xprt_alloc_slot,
+ 	.release_request	= xprt_release_rqst_cong,       /* ditto */
+ 	.set_retrans_timeout	= xprt_set_retrans_timeout_def, /* ditto */
++	.timer			= xprt_rdma_timer,
+ 	.rpcbind		= rpcb_getport_async,	/* sunrpc/rpcb_clnt.c */
+ 	.set_port		= xprt_rdma_set_port,
+ 	.connect		= xprt_rdma_connect,
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 3d7e9c9..852dd0a 100644
+index 171a351..dd1340f 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -305,16 +305,19 @@ struct rpcrdma_mr_seg {		/* chunk descriptors */
- 	char		*mr_offset;	/* kva if no page, else offset */
+@@ -78,10 +78,17 @@ struct rpcrdma_ia {
+ 	bool			ri_reminv_expected;
+ 	bool			ri_implicit_roundup;
+ 	enum ib_mr_type		ri_mrtype;
++	unsigned long		ri_flags;
+ 	struct ib_qp_attr	ri_qp_attr;
+ 	struct ib_qp_init_attr	ri_qp_init_attr;
  };
  
--/* Reserve enough Send SGEs to send a maximum size inline request:
-+/* The Send SGE array is provisioned to send a maximum size
-+ * inline request:
-  * - RPC-over-RDMA header
-  * - xdr_buf head iovec
-- * - RPCRDMA_MAX_INLINE bytes, possibly unaligned, in pages
-+ * - RPCRDMA_MAX_INLINE bytes, in pages
-  * - xdr_buf tail iovec
-+ *
-+ * The actual number of array elements consumed by each RPC
-+ * depends on the device's max_sge limit.
++/* ri_flags bits
++ */
++enum {
++	RPCRDMA_IA_RSVD_CREDIT	= 0,
++};
++
+ /*
+  * RDMA Endpoint -- one per transport instance
   */
- enum {
- 	RPCRDMA_MIN_SEND_SGES = 3,
--	RPCRDMA_MAX_SEND_PAGES = PAGE_SIZE + RPCRDMA_MAX_INLINE - 1,
--	RPCRDMA_MAX_PAGE_SGES = (RPCRDMA_MAX_SEND_PAGES >> PAGE_SHIFT) + 1,
-+	RPCRDMA_MAX_PAGE_SGES = RPCRDMA_MAX_INLINE >> PAGE_SHIFT,
- 	RPCRDMA_MAX_SEND_SGES = 1 + 1 + RPCRDMA_MAX_PAGE_SGES + 1,
- };
- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
