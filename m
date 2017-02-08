@@ -1,113 +1,79 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: OFED-4.8, rdma-core, and library paths
-Date: Wed, 8 Feb 2017 21:39:49 +0200
-Message-ID: <20170208193949.GI6005@mtr-leonro.local>
-References: <20170207181814.GA13368@obsidianresearch.com>
- <20170207183538.GT6005@mtr-leonro.local>
- <20170207184206.GA14102@obsidianresearch.com>
- <20170207194759.GU6005@mtr-leonro.local>
- <20170207201428.GV6005@mtr-leonro.local>
- <20170207205930.GA28922@obsidianresearch.com>
- <20170208063758.GZ6005@mtr-leonro.local>
- <20170208173335.GB30720@obsidianresearch.com>
- <20170208180104.GG6005@mtr-leonro.local>
- <20170208181820.GA31664@obsidianresearch.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [RFC 19/19] checkpatch: warn for use of old PCI pool API
+Date: Wed, 08 Feb 2017 11:53:29 -0800
+Message-ID: <1486583609.27834.21.camel@perches.com>
+References: <20170208163457.28853-1-romain.perier@collabora.com>
+         <20170208163457.28853-20-romain.perier@collabora.com>
+         <20170208185550.GS16878@collabora.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="AD38IXAdxoUBh2A8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170208181820.GA31664-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170208185550.GS16878@collabora.com>
+Sender: netdev-owner@vger.kernel.org
+To: Peter Senna Tschudin <peter.senna@collabora.com>, Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, 2017-02-08 at 19:55 +0100, Peter Senna Tschudin wrote:
+> On Wed, Feb 08, 2017 at 05:34:57PM +0100, Romain Perier wrote:
+> > pci_pool_*() functions should be replaced by the corresponding functions
+> > in the DMA pool API. This adds support to check for use of these pci
+> > functions and display a warning when it is the case.
+> 
+> Don't know if relevant, but did not catch the struct. Other than that
+> works fine.
+> 
+> > 
+> > Signed-off-by: Romain Perier <romain.perier@collabora.com>
+> > ---
+> >  scripts/checkpatch.pl | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+> > index 8e96af5..026920e 100755
+> > --- a/scripts/checkpatch.pl
+> > +++ b/scripts/checkpatch.pl
+> > @@ -6058,6 +6058,11 @@ sub process {
+> >  			WARN("USE_DEVICE_INITCALL",
+> >  			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
+> >  		}
+> > +# check for old PCI api pci_pool_*(), use dma_pool_*() instead
+> > +		if ($line =~ /\bpci_pool_.+\(/) {
+> > +			WARN("USE_PCI_POOL",
+> > +			     "please use the dma pool api or more appropriate function instead of the old pci pool api\n" . $herecurr);
+> > +		}
+> >  
+> >  # check for various structs that are normally const (ops, kgdb, device_tree)
+> >  		if ($line !~ /\bconst\b/ &&
+> > -- 
+> > 2.9.3
+> > 
 
---AD38IXAdxoUBh2A8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Did this patch get to lkml?
 
-On Wed, Feb 08, 2017 at 11:18:20AM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 08, 2017 at 08:01:04PM +0200, Leon Romanovsky wrote:
-> > On Wed, Feb 08, 2017 at 10:33:35AM -0700, Jason Gunthorpe wrote:
->
-> > Thanks for the help, my final version which works correctly for build in place, install from
-> > sources and packages for centos6/centos6 is below:
->
-> Looks good
->
-> > # Create a special provider with exported symbols in it
-> > function(rdma_shared_provider DEST VERSION_SCRIPT SOVERSION VERSION)
-> >   # Installed driver file
-> >   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" "driver ${DEST}\n")
-> >   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" DESTINATION "${CONFIG_DIR}")
-> >
-> >   # Uninstalled driver file
-> >   file(MAKE_DIRECTORY "${BUILD_ETC}/libibverbs.d/")
-> >   file(WRITE "${BUILD_ETC}/libibverbs.d/${DEST}.driver" "driver ${BUILD_LIB}/lib${DEST}\n")
-> >
-> >   # Create a static provider library
-> >   if (ENABLE_STATIC)
-> >     add_library(${DEST} STATIC ${ARGN})
-> >     set_target_properties(${DEST} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
-> >     install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-> >
-> >     list(APPEND RDMA_STATIC_LIBS ${DEST}-rdmav2 ${DEST})
-> >     set(RDMA_STATIC_LIBS "${RDMA_STATIC_LIBS}" CACHE INTERNAL "")
-> >   endif()
-> >
-> >   # Create the plugin shared library
-> >   add_library(${DEST} SHARED ${ARGN})
-> >   # Even though these are modules we still want to use Wl,--no-undefined
-> >   set_target_properties(${DEST} PROPERTIES LINK_FLAGS ${CMAKE_SHARED_LINKER_FLAGS})
-> >   rdma_set_library_map(${DEST} ${VERSION_SCRIPT})
-> >
-> >   target_link_libraries(${DEST} LINK_PRIVATE ${COMMON_LIBS_PIC})
-> >   target_link_libraries(${DEST} LINK_PRIVATE ibverbs)
-> >   target_link_libraries(${DEST} LINK_PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-> >   set_target_properties(${DEST} PROPERTIES
-> >   	SOVERSION ${SOVERSION}
-> >   	VERSION ${VERSION}
-> >   	LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
-> >   add_custom_target(share_link ALL DEPENDS "${DEST}"  COMMAND ${CMAKE_COMMAND} -E create_symlink "lib${DEST}.so.${VERSION}"
-> > 	  "${BUILD_LIB}/lib${DEST}-rdmav2.so")
-> >   add_dependencies(share_link ${DEST})
->
-> Except this really shouldn't be a rule.  The non-rule method is used
-> everywhere else (eg man pages), so it must work here, it doesn't make
-> sense that ninja vs make would be any different. When you get
-> everything working put it back to execute_process..
+Perhaps this would be more complete:
 
-I tried it now and with ninja run, I'm getting the following error:
--- Performing Test HAVE_C_WREDUNDANT_DECLS - Success
-failed to create symbolic link '/home/leonro/src/rdma-core/build/lib/libmlx5-rdmav2.so': No such file or directory
--- Missing Optional Items:
+ scripts/checkpatch.pl | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Thanks
-
---AD38IXAdxoUBh2A8
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlibdAQACgkQ5GN7iDZy
-WKfF3w//RC8XDTOk8Nn51f7ObZOuxuCaAYLXyrXZb8Ixu+a2zyknflTyyQ3yvTfj
-qvjmBHCVWeQCdXYLuMFdlylo67ziIUxPLrW7r9S+jqkdB8Vg9Op+CjGPMgxm9xxb
-boEeV0/MXK13H/w8YAgpPNSPbfX8rOtiSqBVj2du0AtHSswyCsZYTRcKHh5CUskw
-QAmCYOLEioz2BVwfEOiAl+Il6un51rh4a88/mPJsgkCidjiiPgyxGnsB9Q20KxmQ
-RMyUELHNtvHk9ROt7P78JcuPDOkCsmbEIBrLu4SQzntCAADonOLRIWow8FDkLTlj
-GYw2ACFO/mJVsxMaPUEMz+JNOZqTEkidl+pg9c7yGNx//lyUq76kAkqFIuCHDMhS
-Qhw/ObifZtInVVFvU0Dj4c9h/oJuJYx/aJaZk5/LVbTZaBTOPb+YK8+iyd6VXscc
-MlDxG9D9rJO2Tk9bz2lNZDPiBENe28vg6yUX/lf5/TodrRAurc+L/Wy//6/azuQX
-aAAXEcYkORXAIyptqCMI2JzT0+4f84vKmvqpAmWOs5VPSDp9F/9q8EXFKQatK6r5
-86I0CC8vvIheHRer6l4A4url9w6KhkztPBH2HG2/35FauhYAvkNDArSHCChS691Q
-+B/WSgIdEgtCRztXeFGqHBiquizZLOp3zsLp9VmQVyfcG8+wirE=
-=37k/
------END PGP SIGNATURE-----
-
---AD38IXAdxoUBh2A8--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 8e96af53611c..600f81cc1ec1 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -6059,6 +6059,15 @@ sub process {
+ 			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
+ 		}
+ 
++# check for old PCI api pci_pool_*(), use dma_pool_*() instead
++		if ($line =~ /\bpci_pool(?:_(?:create|destroy|alloc|zalloc|free)|)\b/) {
++			if (WARN("USE_DMA_POOL",
++				 "please use the dma pool api or more appropriate function instead of the old pci pool api\n" . $herecurr) &&
++			    $fix) {
++				while ($fixed[$fixlinenr] =~ s/\bpci_pool(_(?:create|destroy|alloc|zalloc|free)|)\b/dma_pool$1/) {}
++			}
++		}
++
+ # check for various structs that are normally const (ops, kgdb, device_tree)
+ 		if ($line !~ /\bconst\b/ &&
+ 		    $line =~ /\bstruct\s+($const_structs)\b/) {
