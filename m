@@ -1,77 +1,49 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] ibstat.c: If port is 1x SDR, rate is 2.5
- rather than 2 Gbps
-Date: Wed, 8 Feb 2017 15:47:47 -0500
-Message-ID: <f049512f-2c1a-c19d-ac36-ca5455a6a1d8@dev.mellanox.co.il>
-References: <7230ef46-74ff-76cd-4123-f34a75a6d436@dev.mellanox.co.il>
- <20170208202505.GA26726@phlsvsds.ph.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: OFED-4.8, rdma-core, and library paths
+Date: Wed, 8 Feb 2017 13:56:22 -0700
+Message-ID: <20170208205622.GA32427@obsidianresearch.com>
+References: <20170207183538.GT6005@mtr-leonro.local>
+ <20170207184206.GA14102@obsidianresearch.com>
+ <20170207194759.GU6005@mtr-leonro.local>
+ <20170207201428.GV6005@mtr-leonro.local>
+ <20170207205930.GA28922@obsidianresearch.com>
+ <20170208063758.GZ6005@mtr-leonro.local>
+ <20170208173335.GB30720@obsidianresearch.com>
+ <20170208180104.GG6005@mtr-leonro.local>
+ <20170208181820.GA31664@obsidianresearch.com>
+ <20170208185446.GH6005@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170208202505.GA26726-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170208185446.GH6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/8/2017 3:25 PM, ira.weiny wrote:
-> On Mon, Feb 06, 2017 at 08:03:12AM -0500, Hal Rosenstock wrote:
->> From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Feb 08, 2017 at 08:54:46PM +0200, Leon Romanovsky wrote:
+
+> > Hmm. Can you update your github? I'll look for you.
 > 
-> Shouldn't this be fixed at a lower level?
+> I pushed latest code to m/dv-1 branch, it is not for inclusion yet.
+> https://github.com/rleon/rdma-core/commits/m/dv-v1
+> Updated cover letter with changelog:
+> https://github.com/rleon/rdma-core/commit/a332669511d5bbbd3dcdd977fbf95aa7ee47a69e
+> And all cmake/packages stuff in the patch:
+> https://github.com/rleon/rdma-core/commit/fcc4996c7fa5169fe599c2d568476314c1f65ddc
 
-That requires changing the libibumad ABI as rate is an int rather than
-float in umad_port and I didn't think it was worth it for this trivial
-issue. sysfs uses a * 10 approach and then rate / 10, rate % 10 ? ".5" :
-"" but that can't be used here without changing many more things.
+This should take care of most things
 
-> I think the problem is that libibumad is masking the information.  AFAICT the
-> kernel reports "2.5" in sysfs.
-> 
-> I'm concerned that there are probably lots of other places in the software
-> stack which have this bug because libibumad is masking the rate.
+https://github.com/jgunthorpe/rdma-plumbing/commit/490b7fb184c414ab16b7056f1effa9136e8afe46
 
-I don't think there are any places in open sources.
+The debian packaging still needs some adjusting.
 
-> If the value of "2" was at least documented to be special and meant "2.5" I
-> think this could be an ok patch...
-> 
-> Something like 
-> 
-> else if (port->rate == UMAD_2_5_RATE)
-> 	printf("%sRate: 2.5\n", pre);
-> else
-> 	printf("%sRate: %d\n", pre, port->rate);
+I suspect it is against Debian policy to include libmlx.so in the
+providers package, it probably needs to have its own package and its
+own -dev package.
 
-Is it worth it to tie infiniband-diags to some version of libibumad
-where UMAD_2_5_RATE is defined like this ?
-
--- Hal
-
-> Ira
-> 
->> ---
->> diff --git a/src/ibstat.c b/src/ibstat.c
->> index 37f2361..2d980c4 100644
->> --- a/src/ibstat.c
->> +++ b/src/ibstat.c
->> @@ -182,8 +182,10 @@ static int port_dump(umad_port_t * port, int alone)
->>  	       7 ? port_phy_state_str[port->phys_state] : "???");
->>  	if (is_fdr10(port))
->>  		printf("%sRate: %d (FDR10)\n", pre, port->rate);
->> -	else
->> +	else if (port->rate != 2)	/* 1x SDR */
->>  		printf("%sRate: %d\n", pre, port->rate);
->> +	else
->> +		printf("%sRate: 2.5\n", pre);
->>  	printf("%sBase lid: %d\n", pre, port->base_lid);
->>  	printf("%sLMC: %d\n", pre, port->lmc);
->>  	printf("%sSM lid: %d\n", pre, port->sm_lid);
-> 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
