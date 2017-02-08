@@ -1,126 +1,63 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/5] Fix "support large inline thresholds"
-Date: Wed, 8 Feb 2017 11:47:56 -0500
-Message-ID: <D12FEB95-6948-4E51-84EA-6D138C7F8B12@oracle.com>
-References: <20170123205159.21699.47373.stgit@manet.1015granger.net> <353a72a5-549d-535b-28b7-411ba81483a1@Netapp.com> <82302622-9524-4020-869E-81F57629EC86@oracle.com> <68619BE7-CBFD-41DE-8227-ABCD797E81F7@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC v3 01/11] IB/hfi-vnic: Virtual Network Interface
+ Controller (VNIC) documentation
+Date: Wed, 8 Feb 2017 17:00:45 +0000
+Message-ID: <1486573231.16026.1.camel@sandisk.com>
+References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
+         <1486498990-76562-2-git-send-email-niranjana.vishwanathapura@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <68619BE7-CBFD-41DE-8227-ABCD797E81F7-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1486498990-76562-2-git-send-email-niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <1F8A08B704AB7946A2383CD069275614-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2017-02-07 at 12:23 -0800, Vishwanathapura, Niranjana wrote:
+> diff --git a/Documentation/infiniband/hfi_vnic.txt b/Documentation/infiniband/hfi_vnic.txt
+> new file mode 100644
+> index 0000000..c6c801e
+> --- /dev/null
+> +++ b/Documentation/infiniband/hfi_vnic.txt
+> @@ -0,0 +1,102 @@
+> +Intel Omni-Path Host Fabric Interface (HFI) Virtual Network Interface
+> +Controller (VNIC) feature supports Ethernet functionality over Omni-Path
+> +fabric by encapsulating the Ethernet packets between HFI nodes.
 
-> On Feb 1, 2017, at 1:15 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> 
->> 
->> On Jan 24, 2017, at 4:46 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> 
->>> 
->>> On Jan 24, 2017, at 4:35 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
->>> 
->>> Hi Chuck,
->>> 
->>> On 01/23/2017 03:52 PM, Chuck Lever wrote:
->>>> Hi Anna-
->>>> 
->>>> I've received a number of reports that v4.9 commit 655fec6987be
->>>> ("xprtrdma: Use gathered Send for large inline messages") causes
->>>> NFS/RDMA mounts to fail for devices that have a small max_sge.
->>>> 
->>>> This series addresses that problem. Would you consider this series
->>>> of bug fixes for v4.10-rc?
->>> 
->>> I noticed that patches one and four are the only ones with a "Fixes:" tag.  Do you need all five patches to fix the problem, or can the rest be deferred to 4.11?
->> 
->> 5/5 can be deferred if you want. The others are all required to
->> fix the problem. However, these were tested as a series. I'm
->> reticent to split them at this point.
->> 
->> Should 1 - 4 have a "Fixes: 655fec6987be ("xprtrdma: Use
->> gathered Send for large ...")" ?
-> 
-> Hi Anna, is there anything more you need from me? As above,
-> I was hoping these could be included in v4.10-rc, which is
-> likely to be closed in just a week or two.
+Please add a reference to the document that defines the Ethernet encapsulation
+wire protocol.
 
-Hi Anna-
+> +The patterns of exchanges of Omni-Path encapsulated Ethernet packets
+> +involves one or more virtual Ethernet switches overlaid on the Omni-Path
+> +fabric topology. A subset of HFI nodes on the Omni-Path fabric are
+> +permitted to exchange encapsulated Ethernet packets across a particular
+> +virtual Ethernet switch. The virtual Ethernet switches are logical
+> +abstractions achieved by configuring the HFI nodes on the fabric for
+> +header generation and processing. In the simplest configuration all HFI
+> +nodes across the fabric exchange encapsulated Ethernet packets over a
+> +single virtual Ethernet switch. A virtual Ethernet switch, is effectively
+> +an independent Ethernet network. The configuration is performed by an
+> +Ethernet Manager (EM) which is part of the trusted Fabric Manager (FM)
+> +application. HFI nodes can have multiple VNICs each connected to a
+> +different virtual Ethernet switch. The below diagram presents a case
+> +of two virtual Ethernet switches with two HFI nodes.
 
-Since I haven't heard from you regarding this series, and v4.10
-final is imminent, I will assume these fixes should be folded
-into nfs-rdma-for-4.11. v3 of nfs-rdma-for-4.11 will include
-these patches.
+Please elaborate this section. What is a virtual Ethernet switch? Is it a
+software entity or something that is implemented in hardware? Also, how are
+these independent Ethernet networks identified on the wire? The Linux kernel
+already supports IB partitions and Ethernet VLANs. How do these independent
+Ethernet networks compare to IB partitions and Ethernet VLANs? Which wire-
+level header contains the identity of these Ethernet networks? Is it
+possible to query from user space which Ethernet network a VNIC belongs to?
+If so, with which API and which tools?
 
+Thanks,
 
->>> Thanks,
->>> Anna
->>> 
->>>> 
->>>> 
->>>> Available in the "nfs-rdma-for-4.10-rc" topic branch of this git repo:
->>>> 
->>>> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->>>> 
->>>> And for online review:
->>>> 
->>>> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=shortlog;h=refs/heads/nfs-rdma-for-4.10-rc
->>>> 
->>>> 
->>>> Changes since v1:
->>>> - Rebased on v4.10-rc5
->>>> - Renamed some variables for clarity
->>>> - Clarified patch descriptions
->>>> - Added Tested-by and Reviewed-by tags
->>>> 
->>>> ---
->>>> 
->>>> Chuck Lever (5):
->>>>    xprtrdma: Fix Read chunk padding
->>>>    xprtrdma: Per-connection pad optimization
->>>>    xprtrdma: Disable pad optimization by default
->>>>    xprtrdma: Reduce required number of send SGEs
->>>>    xprtrdma: Shrink send SGEs array
->>>> 
->>>> 
->>>> net/sunrpc/xprtrdma/rpc_rdma.c  |   62 +++++++++++++++++++++++++--------------
->>>> net/sunrpc/xprtrdma/transport.c |    2 +
->>>> net/sunrpc/xprtrdma/verbs.c     |   15 ++++++---
->>>> net/sunrpc/xprtrdma/xprt_rdma.h |   14 ++++++---
->>>> 4 files changed, 60 insertions(+), 33 deletions(-)
->>>> 
->>>> --
->>>> Chuck Lever
->>>> 
->> 
->> --
->> Chuck Lever
->> 
->> 
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+Bart.--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
