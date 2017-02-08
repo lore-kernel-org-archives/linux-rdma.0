@@ -1,99 +1,46 @@
-From: Peter Senna Tschudin <peter.senna@collabora.com>
-Subject: Re: [RFC 09/19] scsi: csiostor: Replace PCI pool old API
-Date: Wed, 8 Feb 2017 19:29:20 +0100
-Message-ID: <20170208182920.GI16878@collabora.com>
-References: <20170208163457.28853-1-romain.perier@collabora.com>
- <20170208163457.28853-10-romain.perier@collabora.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170208163457.28853-10-romain.perier@collabora.com>
-Sender: netdev-owner@vger.kernel.org
-To: Romain Perier <romain.perier@collabora.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next] IB/mlx5: Fix blue flame buffer size calculation
+Date: Wed,  8 Feb 2017 20:23:37 +0200
+Message-ID: <20170208182337.19808-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 05:34:47PM +0100, Romain Perier wrote:
-> The PCI pool API is deprecated. This commits replaces the PCI pool old
-> API by the appropriated function with the DMA pool API.
-> 
-> Signed-off-by: Romain Perier <romain.perier@collabora.com>
-> ---
->  drivers/scsi/csiostor/csio_hw.h   | 2 +-
->  drivers/scsi/csiostor/csio_init.c | 4 ++--
->  drivers/scsi/csiostor/csio_scsi.c | 6 +++---
->  3 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/scsi/csiostor/csio_hw.h b/drivers/scsi/csiostor/csio_hw.h
-> index 029bef8..c35c7bf 100644
-> --- a/drivers/scsi/csiostor/csio_hw.h
-> +++ b/drivers/scsi/csiostor/csio_hw.h
-> @@ -465,7 +465,7 @@ struct csio_hw {
->  	struct csio_pport	pport[CSIO_MAX_PPORTS];	/* Ports (XGMACs) */
->  	struct csio_hw_params	params;			/* Hw parameters */
->  
-> -	struct pci_pool		*scsi_pci_pool;		/* PCI pool for SCSI */
-> +	struct dma_pool		*scsi_pci_pool;		/* PCI pool for SCSI */
->  	mempool_t		*mb_mempool;		/* Mailbox memory pool*/
->  	mempool_t		*rnode_mempool;		/* rnode memory pool */
->  
-> diff --git a/drivers/scsi/csiostor/csio_init.c b/drivers/scsi/csiostor/csio_init.c
-> index dbe416f..6206a72 100644
-> --- a/drivers/scsi/csiostor/csio_init.c
-> +++ b/drivers/scsi/csiostor/csio_init.c
-> @@ -485,7 +485,7 @@ csio_resource_alloc(struct csio_hw *hw)
->  	if (!hw->rnode_mempool)
->  		goto err_free_mb_mempool;
->  
-> -	hw->scsi_pci_pool = pci_pool_create("csio_scsi_pci_pool", hw->pdev,
-> +	hw->scsi_pci_pool = dma_pool_create("csio_scsi_pci_pool", &hw->pdev->dev,
-Introduces line over 80 characters warning. Please fix and resubmit.
-Other than that looks good. Tested by compiling it.
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->  					    CSIO_SCSI_RSP_LEN, 8, 0);
->  	if (!hw->scsi_pci_pool)
->  		goto err_free_rn_pool;
-> @@ -505,7 +505,7 @@ csio_resource_alloc(struct csio_hw *hw)
->  static void
->  csio_resource_free(struct csio_hw *hw)
->  {
-> -	pci_pool_destroy(hw->scsi_pci_pool);
-> +	dma_pool_destroy(hw->scsi_pci_pool);
->  	hw->scsi_pci_pool = NULL;
->  	mempool_destroy(hw->rnode_mempool);
->  	hw->rnode_mempool = NULL;
-> diff --git a/drivers/scsi/csiostor/csio_scsi.c b/drivers/scsi/csiostor/csio_scsi.c
-> index a1ff75f..49b36b0 100644
-> --- a/drivers/scsi/csiostor/csio_scsi.c
-> +++ b/drivers/scsi/csiostor/csio_scsi.c
-> @@ -2445,7 +2445,7 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
->  
->  		/* Allocate Dma buffers for Response Payload */
->  		dma_buf = &ioreq->dma_buf;
-> -		dma_buf->vaddr = pci_pool_alloc(hw->scsi_pci_pool, GFP_KERNEL,
-> +		dma_buf->vaddr = dma_pool_alloc(hw->scsi_pci_pool, GFP_KERNEL,
->  						&dma_buf->paddr);
->  		if (!dma_buf->vaddr) {
->  			csio_err(hw,
-> @@ -2485,7 +2485,7 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
->  		ioreq = (struct csio_ioreq *)tmp;
->  
->  		dma_buf = &ioreq->dma_buf;
-> -		pci_pool_free(hw->scsi_pci_pool, dma_buf->vaddr,
-> +		dma_pool_free(hw->scsi_pci_pool, dma_buf->vaddr,
->  			      dma_buf->paddr);
->  
->  		kfree(ioreq);
-> @@ -2516,7 +2516,7 @@ csio_scsim_exit(struct csio_scsim *scm)
->  		ioreq = (struct csio_ioreq *)tmp;
->  
->  		dma_buf = &ioreq->dma_buf;
-> -		pci_pool_free(scm->hw->scsi_pci_pool, dma_buf->vaddr,
-> +		dma_pool_free(scm->hw->scsi_pci_pool, dma_buf->vaddr,
->  			      dma_buf->paddr);
->  
->  		kfree(ioreq);
-> -- 
-> 2.9.3
-> 
+A blue flame register is comprised of two buffers of equal size.
+
+Fixes: 5fe9dec0d0454 ("IB/mlx5: Use blue flame register allocator in mlx5_ib")
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index e22d9572ae8f..38e3332791f2 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -905,7 +905,10 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 	else
+ 		qp->bf.bfreg = &dev->bfreg;
+
+-	qp->bf.buf_size = 1 << MLX5_CAP_GEN(dev->mdev, log_bf_reg_size);
++	/* We need to divide by two since each register is comprised of
++	 * two buffers of identical size, namely odd and even
++	 */
++	qp->bf.buf_size = 1 << MLX5_CAP_GEN(dev->mdev, log_bf_reg_size) / 2;
+ 	uar_index = qp->bf.bfreg->index;
+
+ 	err = calc_sq_size(dev, init_attr, qp);
+--
+2.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
