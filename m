@@ -1,62 +1,85 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] RDMA: Remove kernel private defines and
- reference to header from UAPI
-Date: Wed, 8 Feb 2017 16:52:48 +0200
-Message-ID: <20170208145248.GE6005@mtr-leonro.local>
-References: <20170207174600.27218-1-leon@kernel.org>
- <20170208082850.GA11087@infradead.org>
- <20170208100043.GC6005@mtr-leonro.local>
- <20170208115349.GA18879@infradead.org>
+Subject: [PATCH rdma-rc v1] RDMA: Remove kernel private defines and reference to header from UAPI
+Date: Wed,  8 Feb 2017 17:04:09 +0200
+Message-ID: <20170208150409.29537-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="8bbyobZNN6im4lYw"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170208115349.GA18879-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Remove references to private kernel header and defines from exported
+ib_user_verb.h file.
 
---8bbyobZNN6im4lYw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The code snippet below is used to reproduce the issue:
 
-On Wed, Feb 08, 2017 at 03:53:49AM -0800, Christoph Hellwig wrote:
-> On Wed, Feb 08, 2017 at 12:00:43PM +0200, Leon Romanovsky wrote:
-> > These constants are part of much larger enum ib_qp_attr_mask. IMHO copy
-> > two values from that enum isn't good, but copy whole enum (mostly not
-> > needed for the users) is bad either. So I decided to open code it as a fix
-> > for -rc7.
->
-> At least add comments mentioning the proper symbolic values then.
+ #include <stdio.h>
+ #include <rdma/ib_user_verb.h>
 
-Sure, I'll send an update.
+ int main(void)
+ {
+	printf("IB_USER_VERBS_ABI_VERSION = %d\n", IB_USER_VERBS_ABI_VERSION);
+	return 0;
+ }
 
-Thanks
+It fails during compilation phase with an error:
+➜  /tmp gcc main.c
+main.c:2:31: fatal error: rdma/ib_user_verb.h: No such file or directory
+ #include <rdma/ib_user_verb.h>
+                               ^
+compilation terminated.
 
---8bbyobZNN6im4lYw
-Content-Type: application/pgp-signature; name="signature.asc"
+Fixes: 189aba99e700 ("IB/uverbs: Extend modify_qp and support packet pacing")
+CC: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+CC: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Tested-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+Changelog v0 -> v1
+ * Document the origin of hard-coded values.
+---
+ include/uapi/rdma/ib_user_verbs.h | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
------BEGIN PGP SIGNATURE-----
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index dfdfe4e92d31..f4f87cff6dc6 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -37,7 +37,6 @@
+ #define IB_USER_VERBS_H
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlibML4ACgkQ5GN7iDZy
-WKcBEg/+LKa5m6nh2bgyzXUEFi885gTj6RDV/r8qwIskdku8/7gH7YDPCDIorVM1
-gzooGrP62M7vDaClPoFyt0JmF+EbPOX9MXfH0g8W037rlBbcNR2QXVI9VieJX3g/
-qPU70QI4WTO16jBEEUPp0f0Jmv+g0KOcyLwUDBG8yyU70MxQ+GV6vbCpkS6n+0l5
-M0MDn5D7rJ8mCzoiBhsCi6E6snjxtnLWGkRq1Z4ZV82gbVTH5MCKpGv226UQp/G6
-mxPmuFJLFqlosPx9dhHyMTQLbKemNFIJ2PbjgX78M3tAviJqPR0qse2RhhP0lBGe
-s+wOfmaQZQHLHiiGpzfPOwOE6kteUkWN61Gl5gZiZWDd5pkPaflWVhdmH+QZVdEV
-5BtPTuD/dAFAwDMI9czzOi62LBNnZBdWollKNbRenmkGIlP94PoBGM3CDLavIjW3
-3+9ExJ/vaqz1hNNW9Vbfk5atii7/TDeR8IAYoeuXqJ0mo5F6hO1TXmmcj1iPOqiG
-FpzukJP4077vdT5/RxbAAjEabU1b2KrFF0WSMC4zmnIq6iL0H0gTeHCf9wZUgUdS
-SNtMhJFE+uKYeWhaoA0awWTrxyYs8GK2Bb24EBh+pAGnJhHr4fv1OlAuWZDP2XBi
-TOwJLGO6bxGDq0vjMa3WGBQTHMOSK/CqW2ZTtsIaCSR0UaqwoM4=
-=wQXv
------END PGP SIGNATURE-----
+ #include <linux/types.h>
+-#include <rdma/ib_verbs.h>
 
---8bbyobZNN6im4lYw--
+ /*
+  * Increment this value if any changes that break userspace ABI
+@@ -548,11 +547,17 @@ enum {
+ };
+
+ enum {
+-	IB_USER_LEGACY_LAST_QP_ATTR_MASK = IB_QP_DEST_QPN
++	/*
++	 * This value is equal to IB_QP_DEST_QPN.
++	 */
++	IB_USER_LEGACY_LAST_QP_ATTR_MASK = 1ULL << 20,
+ };
+
+ enum {
+-	IB_USER_LAST_QP_ATTR_MASK = IB_QP_RATE_LIMIT
++	/*
++	 * This value is equal to IB_QP_RATE_LIMIT.
++	 */
++	IB_USER_LAST_QP_ATTR_MASK = 1ULL << 25,
+ };
+
+ struct ib_uverbs_ex_create_qp {
+--
+2.11.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
