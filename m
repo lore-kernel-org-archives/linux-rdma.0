@@ -1,127 +1,84 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 13/14] RDMA/cxgb4: Rename jump labels in c4iw_create_qp()
-Date: Wed, 8 Feb 2017 22:23:22 +0100
-Message-ID: <8f233488-a0fd-7f64-012d-d0281f02624a@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 06/14] RDMA/cxgb4: Return an error code only as a constant in
+ stag_open()
+Date: Wed, 8 Feb 2017 22:16:46 +0100
+Message-ID: <b636e00c-5a42-cdaa-9286-c4b7e48b497b@users.sourceforge.net>
 References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Wed, 8 Feb 2017 21:12:26 +0100
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 8 Feb 2017 16:50:52 +0100
 
-Adjust jump labels according to the Linux coding style convention.
+* Return an error code without storing it in an intermediate variable.
 
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+* Adjust jump targets according to the Linux coding style convention.
+
+* Delete the local variable "ret" which became unnecessary with
+  this refactoring.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/cxgb4/qp.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c | 22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index ac63b1f70731..c278b1d968b0 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1817,7 +1817,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	ret = create_qp(&rhp->rdev, &qhp->wq, &schp->cq, &rchp->cq,
- 			ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
- 	if (ret)
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 51801a7d4fb3..90fa96abb5bc 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -433,14 +433,12 @@ static int stag_release(struct inode *inode, struct file *file)
+ static int stag_open(struct inode *inode, struct file *file)
+ {
+ 	struct c4iw_debugfs_data *stagd;
+-	int ret = 0;
+ 	int count = 1;
+ 
+ 	stagd = kmalloc(sizeof *stagd, GFP_KERNEL);
+-	if (!stagd) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
++	if (!stagd)
++		goto failure_indication;
++
+ 	stagd->devp = inode->i_private;
+ 	stagd->pos = 0;
+ 
+@@ -450,10 +448,8 @@ static int stag_open(struct inode *inode, struct file *file)
+ 
+ 	stagd->bufsize = count * 256;
+ 	stagd->buf = vmalloc(stagd->bufsize);
+-	if (!stagd->buf) {
+-		ret = -ENOMEM;
 -		goto err1;
-+		goto free_qhp;
+-	}
++	if (!stagd->buf)
++		goto free_stagd;
  
- 	attrs->cap.max_recv_wr = rqsize - 1;
- 	attrs->cap.max_send_wr = sqsize - 1;
-@@ -1848,35 +1848,35 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	spin_lock_irq(&stagd->devp->lock);
+ 	idr_for_each(&stagd->devp->mmidr, dump_stag, stagd);
+@@ -461,11 +457,11 @@ static int stag_open(struct inode *inode, struct file *file)
  
- 	ret = insert_handle(rhp, &rhp->qpidr, qhp, qhp->wq.sq.qid);
- 	if (ret)
--		goto err2;
-+		goto destroy_qp;
- 
- 	if (udata) {
- 		sq_key_mm = kmalloc(sizeof(*sq_key_mm), GFP_KERNEL);
- 		if (!sq_key_mm) {
- 			ret = -ENOMEM;
--			goto err3;
-+			goto remove_handle;
- 		}
- 		rq_key_mm = kmalloc(sizeof(*rq_key_mm), GFP_KERNEL);
- 		if (!rq_key_mm) {
- 			ret = -ENOMEM;
--			goto err4;
-+			goto free_sq_key;
- 		}
- 		sq_db_key_mm = kmalloc(sizeof(*sq_db_key_mm), GFP_KERNEL);
- 		if (!sq_db_key_mm) {
- 			ret = -ENOMEM;
--			goto err5;
-+			goto free_rq_key;
- 		}
- 		rq_db_key_mm = kmalloc(sizeof(*rq_db_key_mm), GFP_KERNEL);
- 		if (!rq_db_key_mm) {
- 			ret = -ENOMEM;
--			goto err6;
-+			goto free_sq_db_key;
- 		}
- 		if (t4_sq_onchip(&qhp->wq.sq)) {
- 			ma_sync_key_mm = kmalloc(sizeof(*ma_sync_key_mm),
- 						 GFP_KERNEL);
- 			if (!ma_sync_key_mm) {
- 				ret = -ENOMEM;
--				goto err7;
-+				goto free_rq_db_key;
- 			}
- 			uresp.flags = C4IW_QPF_ONCHIP;
- 		} else
-@@ -1906,7 +1906,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 		spin_unlock(&ucontext->mmap_lock);
- 		ret = ib_copy_to_udata(udata, &uresp, sizeof uresp);
- 		if (ret)
--			goto err8;
-+			goto free_ma_sync_key;
- 		sq_key_mm->key = uresp.sq_key;
- 		sq_key_mm->addr = qhp->wq.sq.phys_addr;
- 		sq_key_mm->len = PAGE_ALIGN(qhp->wq.sq.memsize);
-@@ -1944,22 +1944,22 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	     attrs->cap.max_send_wr, qhp->wq.rq.qid, qhp->wq.rq.size,
- 	     qhp->wq.rq.memsize, attrs->cap.max_recv_wr);
- 	return &qhp->ibqp;
--err8:
-+free_ma_sync_key:
- 	kfree(ma_sync_key_mm);
--err7:
-+free_rq_db_key:
- 	kfree(rq_db_key_mm);
--err6:
-+free_sq_db_key:
- 	kfree(sq_db_key_mm);
--err5:
-+free_rq_key:
- 	kfree(rq_key_mm);
--err4:
-+free_sq_key:
- 	kfree(sq_key_mm);
--err3:
-+remove_handle:
- 	remove_handle(rhp, &rhp->qpidr, qhp->wq.sq.qid);
--err2:
-+destroy_qp:
- 	destroy_qp(&rhp->rdev, &qhp->wq,
- 		   ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
+ 	stagd->buf[stagd->pos++] = 0;
+ 	file->private_data = stagd;
+-	goto out;
 -err1:
-+free_qhp:
- 	kfree(qhp);
- 	return ERR_PTR(ret);
++	return 0;
++free_stagd:
+ 	kfree(stagd);
+-out:
+-	return ret;
++failure_indication:
++	return -ENOMEM;
  }
+ 
+ static const struct file_operations stag_debugfs_fops = {
 -- 
 2.11.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
