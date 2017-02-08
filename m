@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 14/27] IB/rdmavt: Adding timer logic to rdmavt
-Date: Wed, 08 Feb 2017 05:27:13 -0800
-Message-ID: <20170208132712.16442.57028.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 06/27] IB/hfi1: Access hfi1_ibport through rcd pointer
+Date: Wed, 08 Feb 2017 05:26:25 -0800
+Message-ID: <20170208132625.16442.9.stgit@scvm10.sc.intel.com>
 References: <20170208132142.16442.69329.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,309 +10,166 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170208132142.16442.69329.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-To move common code across target to rdmavt for code reuse.
+Receive code paths use the QP's device and port
+number to access the struct hfi1_ibport. When an
+instance of struct hfi1_ctxtdata is present, it can
+be used to access struct hfi1_ibport through a pointer.
+This makes struct hfi1_ibport lookup time faster as an
+array doesn't have to be indexed and access fields in
+other cache-lines.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |  183 +++++++++++++++++++++++++++++++++++++
- include/rdma/rdma_vt.h            |   19 ++++
- include/rdma/rdmavt_qp.h          |    6 +
- 3 files changed, 206 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c |    4 ++--
+ drivers/infiniband/hw/hfi1/hfi.h    |    5 +++++
+ drivers/infiniband/hw/hfi1/rc.c     |   10 +++++-----
+ drivers/infiniband/hw/hfi1/uc.c     |    2 +-
+ drivers/infiniband/hw/hfi1/ud.c     |    2 +-
+ drivers/infiniband/hw/hfi1/verbs.c  |    4 ++--
+ 6 files changed, 16 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 444b06c..db4315f 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -55,6 +55,46 @@
- #include "vt.h"
- #include "trace.h"
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index 29db673..3881c95 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -284,7 +284,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
+ 	struct ib_header *rhdr = packet->hdr;
+ 	u32 rte = rhf_rcv_type_err(packet->rhf);
+ 	int lnh = be16_to_cpu(rhdr->lrh[0]) & 3;
+-	struct hfi1_ibport *ibp = &ppd->ibport_data;
++	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	struct hfi1_devdata *dd = ppd->dd;
+ 	struct rvt_dev_info *rdi = &dd->verbs_dev.rdi;
  
-+static void rvt_rc_timeout(unsigned long arg);
-+
-+/*
-+ * Convert the AETH RNR timeout code into the number of microseconds.
-+ */
-+static const u32 ib_rvt_rnr_table[32] = {
-+	655360, /* 00: 655.36 */
-+	10,     /* 01:    .01 */
-+	20,     /* 02     .02 */
-+	30,     /* 03:    .03 */
-+	40,     /* 04:    .04 */
-+	60,     /* 05:    .06 */
-+	80,     /* 06:    .08 */
-+	120,    /* 07:    .12 */
-+	160,    /* 08:    .16 */
-+	240,    /* 09:    .24 */
-+	320,    /* 0A:    .32 */
-+	480,    /* 0B:    .48 */
-+	640,    /* 0C:    .64 */
-+	960,    /* 0D:    .96 */
-+	1280,   /* 0E:   1.28 */
-+	1920,   /* 0F:   1.92 */
-+	2560,   /* 10:   2.56 */
-+	3840,   /* 11:   3.84 */
-+	5120,   /* 12:   5.12 */
-+	7680,   /* 13:   7.68 */
-+	10240,  /* 14:  10.24 */
-+	15360,  /* 15:  15.36 */
-+	20480,  /* 16:  20.48 */
-+	30720,  /* 17:  30.72 */
-+	40960,  /* 18:  40.96 */
-+	61440,  /* 19:  61.44 */
-+	81920,  /* 1A:  81.92 */
-+	122880, /* 1B: 122.88 */
-+	163840, /* 1C: 163.84 */
-+	245760, /* 1D: 245.76 */
-+	327680, /* 1E: 327.68 */
-+	491520  /* 1F: 491.52 */
-+};
-+
- /*
-  * Note that it is OK to post send work requests in the SQE and ERR
-  * states; rvt_do_send() will process them and generate error
-@@ -200,7 +240,8 @@ int rvt_driver_qp_init(struct rvt_dev_info *rdi)
- 	if (!rdi->driver_f.free_all_qps ||
- 	    !rdi->driver_f.qp_priv_alloc ||
- 	    !rdi->driver_f.qp_priv_free ||
--	    !rdi->driver_f.notify_qp_reset)
-+	    !rdi->driver_f.notify_qp_reset ||
-+	    !rdi->driver_f.notify_restart_rc)
- 		return -EINVAL;
+@@ -599,7 +599,7 @@ static void __prescan_rxq(struct hfi1_packet *packet)
  
- 	/* allocate parent object */
-@@ -587,6 +628,7 @@ static void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 
- 		/* Let drivers flush their waitlist */
- 		rdi->driver_f.flush_qp_waiters(qp);
-+		rvt_stop_rc_timers(qp);
- 		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_ANY_WAIT);
- 		spin_unlock(&qp->s_lock);
- 		spin_unlock(&qp->s_hlock);
-@@ -594,7 +636,7 @@ static void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 
- 		/* Stop the send queue and the retry timer */
- 		rdi->driver_f.stop_send_queue(qp);
--
-+		rvt_del_timers_sync(qp);
- 		/* Wait for things to stop */
- 		rdi->driver_f.quiesce_qp(qp);
- 
-@@ -730,6 +772,11 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 			if (!qp->s_ack_queue)
- 				goto bail_qp;
- 		}
-+		/* initialize timers needed for rc qp */
-+		setup_timer(&qp->s_timer, rvt_rc_timeout, (unsigned long)qp);
-+		hrtimer_init(&qp->s_rnr_timer, CLOCK_MONOTONIC,
-+			     HRTIMER_MODE_REL);
-+		qp->s_rnr_timer.function = rvt_rc_rnr_retry;
- 
- 		/*
- 		 * Driver needs to set up it's private QP structure and do any
-@@ -1906,3 +1953,135 @@ void rvt_rc_error(struct rvt_qp *qp, enum ib_wc_status err)
- 	}
- }
- EXPORT_SYMBOL(rvt_rc_error);
-+
-+static inline unsigned long rvt_aeth_to_usec(u32 aeth)
-+{
-+	return ib_rvt_rnr_table[(aeth >> RVT_AETH_CREDIT_SHIFT) &
-+				  RVT_AETH_CREDIT_MASK];
-+}
-+
-+/*
-+ *  rvt_add_retry_timer - add/start a retry timer
-+ *  @qp - the QP
-+ *  add a retry timer on the QP
-+ */
-+void rvt_add_retry_timer(struct rvt_qp *qp)
-+{
-+	struct ib_qp *ibqp = &qp->ibqp;
-+	struct rvt_dev_info *rdi = ib_to_rvt(ibqp->device);
-+
-+	lockdep_assert_held(&qp->s_lock);
-+	qp->s_flags |= RVT_S_TIMER;
-+       /* 4.096 usec. * (1 << qp->timeout) */
-+	qp->s_timer.expires = jiffies + qp->timeout_jiffies +
-+			     rdi->busy_jiffies;
-+	add_timer(&qp->s_timer);
-+}
-+EXPORT_SYMBOL(rvt_add_retry_timer);
-+
-+/**
-+ * rvt_add_rnr_timer - add/start an rnr timer
-+ * @qp - the QP
-+ * @aeth - aeth of RNR timeout, simulated aeth for loopback
-+ * add an rnr timer on the QP
-+ */
-+void rvt_add_rnr_timer(struct rvt_qp *qp, u32 aeth)
-+{
-+	u32 to;
-+
-+	lockdep_assert_held(&qp->s_lock);
-+	qp->s_flags |= RVT_S_WAIT_RNR;
-+	to = rvt_aeth_to_usec(aeth);
-+	hrtimer_start(&qp->s_rnr_timer,
-+		      ns_to_ktime(1000 * to), HRTIMER_MODE_REL);
-+}
-+EXPORT_SYMBOL(rvt_add_rnr_timer);
-+
-+/**
-+ * rvt_stop_rc_timers - stop all timers
-+ * @qp - the QP
-+ * stop any pending timers
-+ */
-+void rvt_stop_rc_timers(struct rvt_qp *qp)
-+{
-+	lockdep_assert_held(&qp->s_lock);
-+	/* Remove QP from all timers */
-+	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
-+		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
-+		del_timer(&qp->s_timer);
-+		hrtimer_try_to_cancel(&qp->s_rnr_timer);
-+	}
-+}
-+EXPORT_SYMBOL(rvt_stop_rc_timers);
-+
-+/**
-+ * rvt_stop_rnr_timer - stop an rnr timer
-+ * @qp - the QP
-+ *
-+ * stop an rnr timer and return if the timer
-+ * had been pending.
-+ */
-+static int rvt_stop_rnr_timer(struct rvt_qp *qp)
-+{
-+	int rval = 0;
-+
-+	lockdep_assert_held(&qp->s_lock);
-+	/* Remove QP from rnr timer */
-+	if (qp->s_flags & RVT_S_WAIT_RNR) {
-+		qp->s_flags &= ~RVT_S_WAIT_RNR;
-+		rval = hrtimer_try_to_cancel(&qp->s_rnr_timer);
-+	}
-+	return rval;
-+}
-+
-+/**
-+ * rvt_del_timers_sync - wait for any timeout routines to exit
-+ * @qp - the QP
-+ */
-+void rvt_del_timers_sync(struct rvt_qp *qp)
-+{
-+	del_timer_sync(&qp->s_timer);
-+	hrtimer_cancel(&qp->s_rnr_timer);
-+}
-+EXPORT_SYMBOL(rvt_del_timers_sync);
-+
-+/**
-+ * This is called from s_timer for missing responses.
-+ */
-+static void rvt_rc_timeout(unsigned long arg)
-+{
-+	struct rvt_qp *qp = (struct rvt_qp *)arg;
-+	struct rvt_dev_info *rdi = ib_to_rvt(qp->ibqp.device);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&qp->r_lock, flags);
-+	spin_lock(&qp->s_lock);
-+	if (qp->s_flags & RVT_S_TIMER) {
-+		qp->s_flags &= ~RVT_S_TIMER;
-+		del_timer(&qp->s_timer);
-+		if (rdi->driver_f.notify_restart_rc)
-+			rdi->driver_f.notify_restart_rc(qp,
-+							qp->s_last_psn + 1,
-+							1);
-+		rdi->driver_f.schedule_send(qp);
-+	}
-+	spin_unlock(&qp->s_lock);
-+	spin_unlock_irqrestore(&qp->r_lock, flags);
-+}
-+
-+/*
-+ * This is called from s_timer for RNR timeouts.
-+ */
-+enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t)
-+{
-+	struct rvt_qp *qp = container_of(t, struct rvt_qp, s_rnr_timer);
-+	struct rvt_dev_info *rdi = ib_to_rvt(qp->ibqp.device);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+	rvt_stop_rnr_timer(qp);
-+	rdi->driver_f.schedule_send(qp);
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
-+	return HRTIMER_NORESTART;
-+}
-+EXPORT_SYMBOL(rvt_rc_rnr_retry);
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 861e23e..a69dee3 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -335,6 +335,8 @@ struct rvt_driver_provided {
- 	/* Notify driver a mad agent has been removed */
- 	void (*notify_free_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
- 
-+	/* Notify driver to restart rc */
-+	void (*notify_restart_rc)(struct rvt_qp *qp, u32 psn, int wait);
- };
- 
- struct rvt_dev_info {
-@@ -483,6 +485,23 @@ static inline u16 rvt_get_pkey(struct rvt_dev_info *rdi,
- 	return qp;
+ 	while (1) {
+ 		struct hfi1_devdata *dd = rcd->dd;
+-		struct hfi1_ibport *ibp = &rcd->ppd->ibport_data;
++		struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 		__le32 *rhf_addr = (__le32 *)rcd->rcvhdrq + mdata.ps_head +
+ 					 dd->rhf_offset;
+ 		struct rvt_qp *qp;
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 751a0fb..1d08739 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1584,6 +1584,11 @@ static inline int valid_opa_max_mtu(unsigned int mtu)
+ 	return &dd->pport[pidx].ibport_data;
  }
  
-+/**
-+ * rvt_mod_retry_timer - mod a retry timer
-+ * @qp - the QP
-+ * Modify a potentially already running retry timer
-+ */
-+static inline void rvt_mod_retry_timer(struct rvt_qp *qp)
++static inline struct hfi1_ibport *rcd_to_iport(struct hfi1_ctxtdata *rcd)
 +{
-+	struct ib_qp *ibqp = &qp->ibqp;
-+	struct rvt_dev_info *rdi = ib_to_rvt(ibqp->device);
-+
-+	lockdep_assert_held(&qp->s_lock);
-+	qp->s_flags |= RVT_S_TIMER;
-+	/* 4.096 usec. * (1 << qp->timeout) */
-+	mod_timer(&qp->s_timer, jiffies + qp->timeout_jiffies +
-+		  rdi->busy_jiffies);
++	return &rcd->ppd->ibport_data;
 +}
 +
- struct rvt_dev_info *rvt_alloc_device(size_t size, int nports);
- void rvt_dealloc_device(struct rvt_dev_info *rdi);
- int rvt_register_device(struct rvt_dev_info *rvd);
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index a92e7dc..0b1cbff 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -370,6 +370,7 @@ struct rvt_qp {
+ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
+ 			       bool do_cnp);
+ static inline bool process_ecn(struct rvt_qp *qp, struct hfi1_packet *pkt,
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 6446179..abea4b7 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -841,7 +841,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
+ 		      int is_fecn)
+ {
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	u64 pbc, pbc_flags = 0;
+ 	u16 lrh0;
+@@ -1326,7 +1326,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
+ 	if (aeth >> 29)
+ 		ack_psn--;
+ 	wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
+-	ibp = to_iport(qp->ibqp.device, qp->port_num);
++	ibp = rcd_to_iport(rcd);
  
- 	struct rvt_sge_state s_ack_rdma_sge;
- 	struct timer_list s_timer;
-+	struct hrtimer s_rnr_timer;
+ 	/*
+ 	 * The MSN might be for a later WQE than the PSN indicates so
+@@ -1791,7 +1791,7 @@ static noinline int rc_rcv_error(struct ib_other_headers *ohdr, void *data,
+ 				 struct rvt_qp *qp, u32 opcode, u32 psn,
+ 				 int diff, struct hfi1_ctxtdata *rcd)
+ {
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	struct rvt_ack_entry *e;
+ 	unsigned long flags;
+ 	u8 i, prev;
+@@ -2100,7 +2100,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 	void *data = packet->ebuf;
+ 	u32 tlen = packet->tlen;
+ 	struct rvt_qp *qp = packet->qp;
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	struct ib_other_headers *ohdr = packet->ohdr;
+ 	u32 bth0, opcode;
+ 	u32 hdrsize = packet->hlen;
+@@ -2552,7 +2552,7 @@ void hfi1_rc_hdrerr(
+ {
+ 	int has_grh = rcv_flags & HFI1_HAS_GRH;
+ 	struct ib_other_headers *ohdr;
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	int diff;
+ 	u32 opcode;
+ 	u32 psn, bth0;
+diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
+index b141a78..74b7b2b 100644
+--- a/drivers/infiniband/hw/hfi1/uc.c
++++ b/drivers/infiniband/hw/hfi1/uc.c
+@@ -296,7 +296,7 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+  */
+ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ {
+-	struct hfi1_ibport *ibp = &packet->rcd->ppd->ibport_data;
++	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
+ 	struct ib_header *hdr = packet->hdr;
+ 	u32 rcv_flags = packet->rcv_flags;
+ 	void *data = packet->ebuf;
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index c071955..6d81d79 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -672,7 +672,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	u32 src_qp;
+ 	u16 dlid, pkey;
+ 	int mgmt_pkey_idx = -1;
+-	struct hfi1_ibport *ibp = &packet->rcd->ppd->ibport_data;
++	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct ib_header *hdr = packet->hdr;
+ 	u32 rcv_flags = packet->rcv_flags;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 95ed4d6..b937a23 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -576,7 +576,7 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
+ 	struct ib_header *hdr = packet->hdr;
+ 	u32 tlen = packet->tlen;
+ 	struct hfi1_pportdata *ppd = rcd->ppd;
+-	struct hfi1_ibport *ibp = &ppd->ibport_data;
++	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	struct rvt_dev_info *rdi = &ppd->dd->verbs_dev.rdi;
+ 	opcode_handler packet_handler;
+ 	unsigned long flags;
+@@ -1910,7 +1910,7 @@ void hfi1_unregister_ib_device(struct hfi1_devdata *dd)
  
- 	atomic_t local_ops_pending; /* number of fast_reg/local_inv reqs */
- 
-@@ -641,5 +642,10 @@ static inline u32 rvt_div_mtu(struct rvt_qp *qp, u32 len)
- void rvt_comm_est(struct rvt_qp *qp);
- int rvt_error_qp(struct rvt_qp *qp, enum ib_wc_status err);
- void rvt_rc_error(struct rvt_qp *qp, enum ib_wc_status err);
-+enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t);
-+void rvt_add_rnr_timer(struct rvt_qp *qp, u32 aeth);
-+void rvt_del_timers_sync(struct rvt_qp *qp);
-+void rvt_stop_rc_timers(struct rvt_qp *qp);
-+void rvt_add_retry_timer(struct rvt_qp *qp);
- 
- #endif          /* DEF_RDMAVT_INCQP_H */
+ void hfi1_cnp_rcv(struct hfi1_packet *packet)
+ {
+-	struct hfi1_ibport *ibp = &packet->rcd->ppd->ibport_data;
++	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct ib_header *hdr = packet->hdr;
+ 	struct rvt_qp *qp = packet->qp;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
