@@ -1,59 +1,88 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/7] Add mlx5 direct verbs
-Date: Wed, 8 Feb 2017 20:45:47 +0200
-Message-ID: <efaec776-07dc-629c-0efc-ef395cec2407@grimberg.me>
-References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
- <SN1PR07MB22070381E7566FA819E5F8F8F8400@SN1PR07MB2207.namprd07.prod.outlook.com>
- <20170206114609.GK6005@mtr-leonro.local>
- <20170206163937.GB14714@obsidianresearch.com>
+From: Peter Senna Tschudin <peter.senna@collabora.com>
+Subject: Re: [RFC 15/19] usb: gadget: amd5536udc: Replace PCI pool old API
+Date: Wed, 8 Feb 2017 19:43:02 +0100
+Message-ID: <20170208184302.GO16878@collabora.com>
+References: <20170208163457.28853-1-romain.perier@collabora.com>
+ <20170208163457.28853-16-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170206163937.GB14714-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170208163457.28853-16-romain.perier@collabora.com>
+Sender: netdev-owner@vger.kernel.org
+To: Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Jason,
+On Wed, Feb 08, 2017 at 05:34:53PM +0100, Romain Perier wrote:
+> The PCI pool API is deprecated. This commits replaces the PCI pool old
+> API by the appropriated function with the DMA pool API.
+> 
+Tested by compilation only.
 
-> To expound on that - the trade off we discussed in-person was we
-> either do something like this or continually take endless
-> vendor-specific patches to add 'common' core code for unstandardized
-> chip-specific features.
->
-> This seemed like the least bad trade off, if another vendor wants the
-> same things then they could work together and make an actual
-> multi-chip common API. I was expecting this interface to be used in
-> only a few places, like the next level of middleware libraries
-> (libfabric, mxm, etc) not for many end-users.
-
-I think this is exactly the use-case. Something that looks like a
-user-space driver on the back-side of a common API.
-
-> I'm still not completely sure what this API is intended to do, if it is
-> really just performance then I am less supportive and would rather see
-> an approach like libfabric where a user can build a single provider verbs
-> with the same source API, but optimized....
-
-I'm also not in favor for having this code-path solely for performance
-reasons, if the common stack is not good enough, let's fix it. What I
-think this is trying to solve is the continuous inflation of
-non-standard extensions to the common API.
-
-These features raised constant complaints in code review before, which
-in turn caused the vendors to place their extensions in an internal
-packages (e.g. MLNX_OFED) and also educate their customers to use their
-packaged drivers (which usually broke the rest of the world).
-
-So I can understand Mellanox wanting to expose vendor specific
-capabilities and move away from their in-house distribution of
-user-space packages, and I think we should all encourage it.
-
-And, this is also why I think that another set of a common API is
-a good choice.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Peter Senna Tschudin <peter.senna@collabora.com>
+Tested-by: Peter Senna Tschudin <peter.senna@collabora.com>
+> Signed-off-by: Romain Perier <romain.perier@collabora.com>
+> ---
+>  drivers/usb/gadget/udc/amd5536udc.c | 8 ++++----
+>  drivers/usb/gadget/udc/amd5536udc.h | 4 ++--
+>  2 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/udc/amd5536udc.c b/drivers/usb/gadget/udc/amd5536udc.c
+> index ea03ca7..270876b 100644
+> --- a/drivers/usb/gadget/udc/amd5536udc.c
+> +++ b/drivers/usb/gadget/udc/amd5536udc.c
+> @@ -583,7 +583,7 @@ udc_alloc_request(struct usb_ep *usbep, gfp_t gfp)
+>  
+>  	if (ep->dma) {
+>  		/* ep0 in requests are allocated from data pool here */
+> -		dma_desc = pci_pool_alloc(ep->dev->data_requests, gfp,
+> +		dma_desc = dma_pool_alloc(ep->dev->data_requests, gfp,
+>  						&req->td_phys);
+>  		if (!dma_desc) {
+>  			kfree(req);
+> @@ -622,7 +622,7 @@ static int udc_free_dma_chain(struct udc *dev, struct udc_request *req)
+>  	td = phys_to_virt(td_last->next);
+>  
+>  	for (i = 1; i < req->chain_len; i++) {
+> -		pci_pool_free(dev->data_requests, td,
+> +		dma_pool_free(dev->data_requests, td,
+>  			      (dma_addr_t)td_last->next);
+>  		td_last = td;
+>  		td = phys_to_virt(td_last->next);
+> @@ -652,7 +652,7 @@ udc_free_request(struct usb_ep *usbep, struct usb_request *usbreq)
+>  		if (req->chain_len > 1)
+>  			udc_free_dma_chain(ep->dev, req);
+>  
+> -		pci_pool_free(ep->dev->data_requests, req->td_data,
+> +		dma_pool_free(ep->dev->data_requests, req->td_data,
+>  							req->td_phys);
+>  	}
+>  	kfree(req);
+> @@ -847,7 +847,7 @@ static int udc_create_dma_chain(
+>  	for (i = buf_len; i < bytes; i += buf_len) {
+>  		/* create or determine next desc. */
+>  		if (create_new_chain) {
+> -			td = pci_pool_alloc(ep->dev->data_requests,
+> +			td = dma_pool_alloc(ep->dev->data_requests,
+>  					    gfp_flags, &dma_addr);
+>  			if (!td)
+>  				return -ENOMEM;
+> diff --git a/drivers/usb/gadget/udc/amd5536udc.h b/drivers/usb/gadget/udc/amd5536udc.h
+> index 4638d70..85d5aa5 100644
+> --- a/drivers/usb/gadget/udc/amd5536udc.h
+> +++ b/drivers/usb/gadget/udc/amd5536udc.h
+> @@ -545,8 +545,8 @@ struct udc {
+>  	u32 __iomem			*txfifo;
+>  
+>  	/* DMA desc pools */
+> -	struct pci_pool			*data_requests;
+> -	struct pci_pool			*stp_requests;
+> +	struct dma_pool			*data_requests;
+> +	struct dma_pool			*stp_requests;
+>  
+>  	/* device data */
+>  	unsigned long			phys_addr;
+> -- 
+> 2.9.3
+> 
