@@ -1,82 +1,97 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: OFED-4.8, rdma-core, and library paths
-Date: Wed, 8 Feb 2017 10:09:53 +0200
-Message-ID: <20170208080953.GB6005@mtr-leonro.local>
-References: <02c801d28166$693e17d0$3bba4770$@opengridcomputing.com>
- <20170207172752.GA12315@obsidianresearch.com>
- <20170207180642.GQ6005@mtr-leonro.local>
- <20170207181814.GA13368@obsidianresearch.com>
- <20170207183538.GT6005@mtr-leonro.local>
- <20170207184206.GA14102@obsidianresearch.com>
- <20170207194759.GU6005@mtr-leonro.local>
- <20170207201428.GV6005@mtr-leonro.local>
- <20170207205930.GA28922@obsidianresearch.com>
- <20170208063758.GZ6005@mtr-leonro.local>
+From: Sl Sh <valyushash-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc] RDMA: Remove kernel private defines and reference
+ to header from UAPI
+Date: Wed, 8 Feb 2017 10:26:16 +0200
+Message-ID: <CAA_ACVOr+z+qPh7HS4WZSUxp4xxf0HxsDHt+N7pcekOEZ15ZXA@mail.gmail.com>
+References: <20170207174600.27218-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Jh+yMQSFjqxAHR/M"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170208063758.GZ6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170207174600.27218-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Works for me.
 
---Jh+yMQSFjqxAHR/M
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Tested-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On Wed, Feb 08, 2017 at 08:37:58AM +0200, Leon Romanovsky wrote:
-> On Tue, Feb 07, 2017 at 01:59:30PM -0700, Jason Gunthorpe wrote:
-> > Ah realpath needs the paths to exist.. Sigha
-> >
-> > Another alternative is this:
-> >
-> > python -c "import os; print(os.path.relpath('/usr/lib64/libmlx4.so','/usr/lib64/libibverbs'));"
+On Tue, Feb 7, 2017 at 7:46 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> Remove references to private kernel header and defines from exported
+> ib_user_verb.h file.
 >
-> It prints to the screen, but doesn't update OUTPUT_VARAIBLE :(
-> 115  execute_process(COMMAND python -c "import os; print(os.path.relpath('/usr/lib64/libmlx5.so','/usr/lib64/libibverbs'));"
-> 116                 OUTPUT_VARIBALE LINK_PATH)
-> 117   message(STATUS "link_path = ${LINK_PATH}")
+> The code snippet below is used to reproduce the issue:
 >
-> ..
-> -- Performing Test HAVE_C_WREDUNDANT_DECLS - Failed
-> ../libmlx5.so
-> -- link_path =
-> -- Missing Optional Items:
+>  #include <stdio.h>
+>  #include <rdma/ib_user_verb.h>
+>
+>  int main(void)
+>  {
+>         printf("IB_USER_VERBS_ABI_VERSION =3D %d\n", IB_USER_VERBS_ABI_VE=
+RSION);
+>         return 0;
+>  }
+>
+> It fails during compilation phase with an error:
+> =E2=9E=9C  /tmp gcc main.c
+> main.c:2:31: fatal error: rdma/ib_user_verb.h: No such file or directory
+>  #include <rdma/ib_user_verb.h>
+>                                ^
+> compilation terminated.
+>
+> Fixes: 189aba99e700 ("IB/uverbs: Extend modify_qp and support packet paci=
+ng")
+> CC: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reported-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  include/uapi/rdma/ib_user_verbs.h | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_use=
+r_verbs.h
+> index dfdfe4e92d31..c56f525b041d 100644
+> --- a/include/uapi/rdma/ib_user_verbs.h
+> +++ b/include/uapi/rdma/ib_user_verbs.h
+> @@ -37,7 +37,6 @@
+>  #define IB_USER_VERBS_H
+>
+>  #include <linux/types.h>
+> -#include <rdma/ib_verbs.h>
+>
+>  /*
+>   * Increment this value if any changes that break userspace ABI
+> @@ -548,11 +547,11 @@ enum {
+>  };
+>
+>  enum {
+> -       IB_USER_LEGACY_LAST_QP_ATTR_MASK =3D IB_QP_DEST_QPN
+> +       IB_USER_LEGACY_LAST_QP_ATTR_MASK =3D 1ULL << 20,
+>  };
+>
+>  enum {
+> -       IB_USER_LAST_QP_ATTR_MASK =3D IB_QP_RATE_LIMIT
+> +       IB_USER_LAST_QP_ATTR_MASK =3D 1ULL << 25,
+>  };
+>
+>  struct ib_uverbs_ex_create_qp {
+> --
+> 2.11.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Awesome,
-It was misspelled "OUTPUT_VARIBALE" instead of "OUTPUT_VARIABLE"
-together with beautiful world of cmake.
-https://cmake.org/Wiki/CMake_FAQ#How_can_I_get_quoting_and_escapes_to_work_properly.3F
 
-At the end, I put it into standalone python script to overcome it.
 
-Thanks
+--=20
+Thank you in advance,
 
---Jh+yMQSFjqxAHR/M
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlia0lAACgkQ5GN7iDZy
-WKeBRQ/5ASt6/PDKj9FcnyyzhfvWyf6coX0yI7jW3ciSsKZsTB6a8DYeOZovukhh
-zR2r0ZVLmziqaCkxHt25xSjeEPCQCP9RT+0Jqkkm6w2tCeAWZgU3DlQoDMUma9n2
-eQFEAYeBd1bqhiDnw0vIll/TSTpqHyffYn4C2WP8YI/8PMMiX2PH7757NaK0Soks
-21yZv4ARG6Mh/bu1OJQdLIGHuRopigkqGCZb9UjsaxK0V7reU/jAhEvb3r7w3/99
-t7WUp8vI9y5c8wONAOlpLjY90GwGj27PvjVD6UvgWLFX+u09lHPIPgZGUrpyCiXO
-hFRGh0b6pbfPu5qMgZJs/Hhqd9ooAbge6//UQlS/w3QgdsMsaGnmo3KZ/3WaCeay
-DiH7U2lIR9MBoTPhnVlsR5TvMeGLft97On2szxY42M+aeeEW/hHKEOxQUBrf4Dz4
-XsEsFrGULR2V3nMZfQHYWDjsVuniddo9Bj+9qpLkkQUoLzvzWfDtOUa01wOq6rfB
-cAvAdLC7/vstzaBFTqmsotgRHTt1Lw4zl6dVOdr5r7g9w3TyLOcDPNtUfMYmHEGb
-YcreBbwGVAhVwipAzA3qtqdYyCh6VCRjUUXe+xywUynUrZAHRhyRTuK6VYjp1kJq
-bxARwEdGwW7YqAoLunzi9K0YQ47PdYcpqlBSazkQsdgnmqDc6MY=
-=3wsY
------END PGP SIGNATURE-----
-
---Jh+yMQSFjqxAHR/M--
+Slava Shwartsman
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
