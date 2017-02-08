@@ -1,79 +1,62 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [RFC 19/19] checkpatch: warn for use of old PCI pool API
-Date: Wed, 08 Feb 2017 11:53:29 -0800
-Message-ID: <1486583609.27834.21.camel@perches.com>
-References: <20170208163457.28853-1-romain.perier@collabora.com>
-         <20170208163457.28853-20-romain.perier@collabora.com>
-         <20170208185550.GS16878@collabora.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] ibstat.c: If port is 1x SDR, rate is 2.5 rather than 2 Gbps
+Date: Wed, 8 Feb 2017 15:25:06 -0500
+Message-ID: <20170208202505.GA26726@phlsvsds.ph.intel.com>
+References: <7230ef46-74ff-76cd-4123-f34a75a6d436@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170208185550.GS16878@collabora.com>
-Sender: netdev-owner@vger.kernel.org
-To: Peter Senna Tschudin <peter.senna@collabora.com>, Romain Perier <romain.perier@collabora.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <7230ef46-74ff-76cd-4123-f34a75a6d436-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-02-08 at 19:55 +0100, Peter Senna Tschudin wrote:
-> On Wed, Feb 08, 2017 at 05:34:57PM +0100, Romain Perier wrote:
-> > pci_pool_*() functions should be replaced by the corresponding functions
-> > in the DMA pool API. This adds support to check for use of these pci
-> > functions and display a warning when it is the case.
+On Mon, Feb 06, 2017 at 08:03:12AM -0500, Hal Rosenstock wrote:
+> From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Don't know if relevant, but did not catch the struct. Other than that
-> works fine.
-> 
-> > 
-> > Signed-off-by: Romain Perier <romain.perier@collabora.com>
-> > ---
-> >  scripts/checkpatch.pl | 5 +++++
-> >  1 file changed, 5 insertions(+)
-> > 
-> > diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-> > index 8e96af5..026920e 100755
-> > --- a/scripts/checkpatch.pl
-> > +++ b/scripts/checkpatch.pl
-> > @@ -6058,6 +6058,11 @@ sub process {
-> >  			WARN("USE_DEVICE_INITCALL",
-> >  			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
-> >  		}
-> > +# check for old PCI api pci_pool_*(), use dma_pool_*() instead
-> > +		if ($line =~ /\bpci_pool_.+\(/) {
-> > +			WARN("USE_PCI_POOL",
-> > +			     "please use the dma pool api or more appropriate function instead of the old pci pool api\n" . $herecurr);
-> > +		}
-> >  
-> >  # check for various structs that are normally const (ops, kgdb, device_tree)
-> >  		if ($line !~ /\bconst\b/ &&
-> > -- 
-> > 2.9.3
-> > 
+> Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Did this patch get to lkml?
+Shouldn't this be fixed at a lower level?
 
-Perhaps this would be more complete:
+I think the problem is that libibumad is masking the information.  AFAICT the
+kernel reports "2.5" in sysfs.
 
- scripts/checkpatch.pl | 9 +++++++++
- 1 file changed, 9 insertions(+)
+I'm concerned that there are probably lots of other places in the software
+stack which have this bug because libibumad is masking the rate.
 
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 8e96af53611c..600f81cc1ec1 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -6059,6 +6059,15 @@ sub process {
- 			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
- 		}
- 
-+# check for old PCI api pci_pool_*(), use dma_pool_*() instead
-+		if ($line =~ /\bpci_pool(?:_(?:create|destroy|alloc|zalloc|free)|)\b/) {
-+			if (WARN("USE_DMA_POOL",
-+				 "please use the dma pool api or more appropriate function instead of the old pci pool api\n" . $herecurr) &&
-+			    $fix) {
-+				while ($fixed[$fixlinenr] =~ s/\bpci_pool(_(?:create|destroy|alloc|zalloc|free)|)\b/dma_pool$1/) {}
-+			}
-+		}
-+
- # check for various structs that are normally const (ops, kgdb, device_tree)
- 		if ($line !~ /\bconst\b/ &&
- 		    $line =~ /\bstruct\s+($const_structs)\b/) {
+If the value of "2" was at least documented to be special and meant "2.5" I
+think this could be an ok patch...
+
+Something like 
+
+else if (port->rate == UMAD_2_5_RATE)
+	printf("%sRate: 2.5\n", pre);
+else
+	printf("%sRate: %d\n", pre, port->rate);
+
+Ira
+
+> ---
+> diff --git a/src/ibstat.c b/src/ibstat.c
+> index 37f2361..2d980c4 100644
+> --- a/src/ibstat.c
+> +++ b/src/ibstat.c
+> @@ -182,8 +182,10 @@ static int port_dump(umad_port_t * port, int alone)
+>  	       7 ? port_phy_state_str[port->phys_state] : "???");
+>  	if (is_fdr10(port))
+>  		printf("%sRate: %d (FDR10)\n", pre, port->rate);
+> -	else
+> +	else if (port->rate != 2)	/* 1x SDR */
+>  		printf("%sRate: %d\n", pre, port->rate);
+> +	else
+> +		printf("%sRate: 2.5\n", pre);
+>  	printf("%sBase lid: %d\n", pre, port->base_lid);
+>  	printf("%sLMC: %d\n", pre, port->lmc);
+>  	printf("%sSM lid: %d\n", pre, port->sm_lid);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
