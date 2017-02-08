@@ -1,50 +1,79 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Subject: Re: [RFC v3 09/11] IB/hfi1: HFI_VNIC RDMA netdev support
-Date: Wed, 8 Feb 2017 10:21:25 -0800
-Message-ID: <20170208182125.GA77708@knc-06.sc.intel.com>
-References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <1486498990-76562-10-git-send-email-niranjana.vishwanathapura@intel.com>
- <VI1PR0502MB3008F059241234D3CD1BB587D1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Peter Senna Tschudin <peter.senna@collabora.com>
+Subject: Re: [RFC 07/19] wireless: ipw2200: Replace PCI pool old API
+Date: Wed, 8 Feb 2017 19:27:58 +0100
+Message-ID: <20170208182758.GG16878@collabora.com>
+References: <20170208163457.28853-1-romain.perier@collabora.com>
+ <20170208163457.28853-8-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB3008F059241234D3CD1BB587D1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "ira.weiny@intel.com" <ira.weiny@intel.com>, Andrzej Kacprowski <andrzej.kacprowski@intel.com>
+In-Reply-To: <20170208163457.28853-8-romain.perier@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 04:06:40AM +0000, Parav Pandit wrote:
->Hi,
->
->> -----Original Message-----
->> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
->> owner@vger.kernel.org] On Behalf Of Vishwanathapura, Niranjana
->> Sent: Tuesday, February 7, 2017 2:23 PM
->> To: dledford@redhat.com
->> Cc: linux-rdma@vger.kernel.org; netdev@vger.kernel.org;
->> dennis.dalessandro@intel.com; ira.weiny@intel.com; Niranjana
->> Vishwanathapura <niranjana.vishwanathapura@intel.com>; Andrzej
->> Kacprowski <andrzej.kacprowski@intel.com>
->> Subject: [RFC v3 09/11] IB/hfi1: HFI_VNIC RDMA netdev support
->>
->> Add support to create and free HFI_VNIC rdma netdev devices.
->> Implement netstack interface functionality including xmit_skb, receive side
->> NAPI etc. Also implement rdma netdev control functions.
->>
->
->All code in this particular patch belong to netdev VNIC ULP driver.
->There is nothing much that appears specific to IB/RDMA that makes drivers/infiniband/hw as better place to be.
->It has netdev tx, rx, napi, stats in this patch.
->If VNIC is a ULP than most of the VNIC specific code should reside in the ULP directory or drivers/net/ethernet ?
+On Wed, Feb 08, 2017 at 05:34:45PM +0100, Romain Perier wrote:
+> The PCI pool API is deprecated. This commits replaces the PCI pool old
+> API by the appropriated function with the DMA pool API.
 
-This patch implements HW specific portion of VNIC netdev. As it turnes out HW 
-queue spefific netstack interfacing (like NAPI, xmit_skb, Tx queue throttling 
-etc) are specific to HW implementation of the queues. Netstack APIs are 
-designed for that. Hence they belong in HW driver here and not in ULP.
 
-The HFI_VNIC ULP, implements control plane operatings by tapping into control 
-operations (open, close etc and encapsulation as specified by control plane).
 
-Niranjana
+> 
+> Signed-off-by: Romain Perier <romain.perier@collabora.com>
+> ---
+>  drivers/net/wireless/intel/ipw2x00/ipw2200.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/net/wireless/intel/ipw2x00/ipw2200.c b/drivers/net/wireless/intel/ipw2x00/ipw2200.c
+> index 5ef3c5c..6d77870 100644
+> --- a/drivers/net/wireless/intel/ipw2x00/ipw2200.c
+> +++ b/drivers/net/wireless/intel/ipw2x00/ipw2200.c
+> @@ -3211,7 +3211,7 @@ static int ipw_load_firmware(struct ipw_priv *priv, u8 * data, size_t len)
+>  	struct fw_chunk *chunk;
+>  	int total_nr = 0;
+>  	int i;
+> -	struct pci_pool *pool;
+> +	struct dma_pool *pool;
+>  	void **virts;
+>  	dma_addr_t *phys;
+>  
+> @@ -3228,9 +3228,9 @@ static int ipw_load_firmware(struct ipw_priv *priv, u8 * data, size_t len)
+>  		kfree(virts);
+>  		return -ENOMEM;
+>  	}
+> -	pool = pci_pool_create("ipw2200", priv->pci_dev, CB_MAX_LENGTH, 0, 0);
+> +	pool = dma_pool_create("ipw2200", &priv->pci_dev->dev, CB_MAX_LENGTH, 0, 0);
+Introduces line over 80 characters warning. Please fix and resubmit.
+Other than that looks good. Tested by compiling it.
+>  	if (!pool) {
+> -		IPW_ERROR("pci_pool_create failed\n");
+> +		IPW_ERROR("dma_pool_create failed\n");
+>  		kfree(phys);
+>  		kfree(virts);
+>  		return -ENOMEM;
+> @@ -3255,7 +3255,7 @@ static int ipw_load_firmware(struct ipw_priv *priv, u8 * data, size_t len)
+>  
+>  		nr = (chunk_len + CB_MAX_LENGTH - 1) / CB_MAX_LENGTH;
+>  		for (i = 0; i < nr; i++) {
+> -			virts[total_nr] = pci_pool_alloc(pool, GFP_KERNEL,
+> +			virts[total_nr] = dma_pool_alloc(pool, GFP_KERNEL,
+>  							 &phys[total_nr]);
+>  			if (!virts[total_nr]) {
+>  				ret = -ENOMEM;
+> @@ -3299,9 +3299,9 @@ static int ipw_load_firmware(struct ipw_priv *priv, u8 * data, size_t len)
+>  	}
+>   out:
+>  	for (i = 0; i < total_nr; i++)
+> -		pci_pool_free(pool, virts[i], phys[i]);
+> +		dma_pool_free(pool, virts[i], phys[i]);
+>  
+> -	pci_pool_destroy(pool);
+> +	dma_pool_destroy(pool);
+>  	kfree(phys);
+>  	kfree(virts);
+>  
+> -- 
+> 2.9.3
+> 
