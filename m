@@ -1,60 +1,71 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 07/14] RDMA/cxgb4: Adjust three checks for null pointers
-Date: Wed, 8 Feb 2017 22:17:42 +0100
-Message-ID: <14a380a4-2aa3-b2cc-3207-99e86b5964ea@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 08/14] RDMA/cxgb4: Adjust construction of two error messages
+ in recover_lost_dbs()
+Date: Wed, 8 Feb 2017 22:18:43 +0100
+Message-ID: <ad58d9b8-ce55-3150-e219-1a94f9ca50c9@users.sourceforge.net>
 References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 8 Feb 2017 17:10:14 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Wed, 8 Feb 2017 17:48:04 +0100
 
 The script "checkpatch.pl" pointed information out like the following.
 
-Comparison to NULL could be written !…
+WARNING: quoted string split across lines
 
-Thus fix the affected source code places.
+Thus adjust the error message constructions in this function.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/device.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 90fa96abb5bc..7f30bfd71eb2 100644
+index 7f30bfd71eb2..2931920d7c4c 100644
 --- a/drivers/infiniband/hw/cxgb4/device.c
 +++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -1126,10 +1126,10 @@ static inline int recv_rx_pkt(struct c4iw_dev *dev, const struct pkt_gl *gl,
- 		goto out;
+@@ -1398,10 +1398,10 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
+ 					  t4_sq_host_wq_pidx(&qp->wq),
+ 					  t4_sq_wq_size(&qp->wq));
+ 		if (ret) {
+-			pr_err(MOD "%s: Fatal error - "
+-			       "DB overflow recovery failed - "
+-			       "error syncing SQ qid %u\n",
+-			       pci_name(ctx->lldi.pdev), qp->wq.sq.qid);
++			pr_err(MOD "%s%sSQ qid %u\n",
++			       pci_name(ctx->lldi.pdev),
++			       ": Fatal error - DB overflow recovery failed - error syncing ",
++			       qp->wq.sq.qid);
+ 			spin_unlock(&qp->lock);
+ 			spin_unlock_irq(&qp->rhp->lock);
+ 			return;
+@@ -1414,10 +1414,10 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
+ 					  t4_rq_wq_size(&qp->wq));
  
- 	skb = copy_gl_to_skb_pkt(gl , rsp, dev->rdev.lldi.sge_pktshift);
--	if (skb == NULL)
-+	if (!skb)
- 		goto out;
- 
--	if (c4iw_handlers[opcode] == NULL) {
-+	if (!c4iw_handlers[opcode]) {
- 		pr_info("%s no handler opcode 0x%x...\n", __func__,
- 		       opcode);
- 		kfree_skb(skb);
-@@ -1149,7 +1149,7 @@ static int c4iw_uld_rx_handler(void *handle, const __be64 *rsp,
- 	struct sk_buff *skb;
- 	u8 opcode;
- 
--	if (gl == NULL) {
-+	if (!gl) {
- 		/* omit RSS and rsp_ctrl at end of descriptor */
- 		unsigned int len = 64 - sizeof(struct rsp_ctrl) - 8;
- 
+ 		if (ret) {
+-			pr_err(MOD "%s: Fatal error - "
+-			       "DB overflow recovery failed - "
+-			       "error syncing RQ qid %u\n",
+-			       pci_name(ctx->lldi.pdev), qp->wq.rq.qid);
++			pr_err(MOD "%s%sRQ qid %u\n",
++			       pci_name(ctx->lldi.pdev),
++			       ": Fatal error - DB overflow recovery failed - error syncing ",
++			       qp->wq.rq.qid);
+ 			spin_unlock(&qp->lock);
+ 			spin_unlock_irq(&qp->rhp->lock);
+ 			return;
 -- 
 2.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
