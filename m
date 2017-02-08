@@ -1,52 +1,82 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 09/14] RDMA/cxgb4: Use common error handling code in
- recover_lost_dbs()
-Date: Wed, 8 Feb 2017 22:19:41 +0100
-Message-ID: <3da7cff6-9f94-2ae8-a173-7ad6efdb524b@users.sourceforge.net>
-References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/12] NFS/RDMA client-side patches for 4.11
+Date: Wed, 08 Feb 2017 16:59:37 -0500
+Message-ID: <20170208214854.7152.83331.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 8 Feb 2017 18:08:08 +0100
+Hi Anna-
 
-Add a jump target so that a bit of exception handling can be better reused
-from an in branch in this function.
+These are bug fixes and add support for RPC-over-RDMA connection
+keepalive. The keepalive patches are still waiting for internal
+testing resources to confirm they trigger connection loss in the
+right circumstances, but my own testing shows they are behaving as
+expected and do not introduce instability.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Available in the "nfs-rdma-for-4.11" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.11
+
+
+Changes since v2:
+- Rebased on v4.10-rc7
+- v4.10-rc bugfixes merged into this series
+- Minor improvements to patch descriptions
+- Field moved in 12/12 now done in the correct patch
+
+
+Changes since v1:
+- Rebased on v4.10-rc6
+- Tested-by and additional clean-up in 1/7
+- Patch description clarifications
+- Renamed some constants and variables
+
 ---
- drivers/infiniband/hw/cxgb4/device.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 2931920d7c4c..86cf7026619f 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -1402,9 +1402,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
- 			       pci_name(ctx->lldi.pdev),
- 			       ": Fatal error - DB overflow recovery failed - error syncing ",
- 			       qp->wq.sq.qid);
--			spin_unlock(&qp->lock);
--			spin_unlock_irq(&qp->rhp->lock);
--			return;
-+			goto unlock;
- 		}
- 		qp->wq.sq.wq_pidx_inc = 0;
- 
-@@ -1418,6 +1416,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
- 			       pci_name(ctx->lldi.pdev),
- 			       ": Fatal error - DB overflow recovery failed - error syncing ",
- 			       qp->wq.rq.qid);
-+unlock:
- 			spin_unlock(&qp->lock);
- 			spin_unlock_irq(&qp->rhp->lock);
- 			return;
--- 
-2.11.1
+Chuck Lever (12):
+      xprtrdma: Fix Read chunk padding
+      xprtrdma: Per-connection pad optimization
+      xprtrdma: Disable pad optimization by default
+      xprtrdma: Reduce required number of send SGEs
+      xprtrdma: Shrink send SGEs array
+      xprtrdma: Properly recover FRWRs with in-flight FASTREG WRs
+      xprtrdma: Handle stale connection rejection
+      xprtrdma: Refactor management of mw_list field
+      sunrpc: Allow xprt->ops->timer method to sleep
+      sunrpc: Enable calls to rpc_call_null_helper() from other modules
+      xprtrdma: Detect unreachable NFS/RDMA servers more reliably
+      sunrpc: Allow keepalive ping on a credit-full transport
+
+
+ fs/nfs/nfs4proc.c               |    3 -
+ fs/nfsd/nfs4callback.c          |    2 -
+ include/linux/sunrpc/clnt.h     |    5 ++
+ include/linux/sunrpc/sched.h    |    4 +
+ net/sunrpc/clnt.c               |   28 +++++-----
+ net/sunrpc/xprt.c               |    6 +-
+ net/sunrpc/xprtrdma/fmr_ops.c   |    5 --
+ net/sunrpc/xprtrdma/frwr_ops.c  |   11 +---
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   82 ++++++++++++++++++-----------
+ net/sunrpc/xprtrdma/transport.c |   76 +++++++++++++++++++++++++--
+ net/sunrpc/xprtrdma/verbs.c     |  109 +++++++++++++++------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   37 ++++++++++++-
+ net/sunrpc/xprtsock.c           |    2 +
+ 13 files changed, 234 insertions(+), 136 deletions(-)
+
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
