@@ -1,60 +1,90 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
-Date: Wed, 8 Feb 2017 10:40:40 -0700
-Message-ID: <20170208174040.GC30720@obsidianresearch.com>
-References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
- <20170130195412.GE24466@obsidianresearch.com>
- <VI1PR0502MB30081EBFBEE5994B77D58BB9D14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170130211420.GB27111@obsidianresearch.com>
- <VI1PR0502MB30081EC9B35269636B4C2FBCD14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170130221437.GA28117@obsidianresearch.com>
- <VI1PR0502MB3008B16A0F103D729209EA16D14A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170131005340.GA30809@obsidianresearch.com>
- <CAAKD3BDbkFHbCi+gHyCXCGV2xi5E9FA+KgwKz+6dBJEtsV0ZkQ@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [patch 2/2 v2] IB/rxe: Fix mem_check_range integer overflow
+Date: Wed, 08 Feb 2017 12:40:54 -0500
+Message-ID: <1486575654.86943.16.camel@redhat.com>
+References: <20170207134431.GK11103@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-5IIMw7ujGSJ4oAZqtwqZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BDbkFHbCi+gHyCXCGV2xi5E9FA+KgwKz+6dBJEtsV0ZkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170207134431.GK11103@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 06:02:44PM +0200, Matan Barak wrote:
- 
-> Actually, I think one of the problems here is that we insert GIDs
-> which aren't supported by the hardware.
 
-That certainly sounds like a problem, yes.
+--=-5IIMw7ujGSJ4oAZqtwqZ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> So, assuming we only insert a combination of netdevices which could
-> be actually described by the hardware, we could try to match these
-> attributes in the gid cache table.  Once we have such a match, we
-> could verify that with the ingress route (actually, we could use
-> ingress route starting from get_netdev() as well).
+On Tue, 2017-02-07 at 16:45 +0300, Dan Carpenter wrote:
+> From: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>=20
+> Update the range check to avoid integer-overflow in edge case.
+> Resolves CVE 2016-8636.
+>=20
+> Signed-off-by: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v2: I completely misread Eyal's first patch.
+>=20
+> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c
+> b/drivers/infiniband/sw/rxe/rxe_mr.c
+> index 8cf38b253c37..37eea7441ca4 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+> @@ -59,9 +59,11 @@ int mem_check_range(struct rxe_mem *mem, u64 iova,
+> size_t length)
+> =C2=A0
+> =C2=A0	case RXE_MEM_TYPE_MR:
+> =C2=A0	case RXE_MEM_TYPE_FMR:
+> -		return ((iova < mem->iova) ||
+> -			((iova + length) > (mem->iova + mem-
+> >length))) ?
+> -			-EFAULT : 0;
+> +		if (iova < mem->iova ||
+> +		=C2=A0=C2=A0=C2=A0=C2=A0length > mem->length ||
+> +		=C2=A0=C2=A0=C2=A0=C2=A0iova > mem->iova + mem->length - length)
+> +			return -EFAULT;
+> +		return 0;
+> =C2=A0
+> =C2=A0	default:
+> =C2=A0		return -EFAULT;
 
-Yes, that is the proper thing to do.
+Thanks, applied.
 
-Presumably the hardware does this, it should not be receiving packets
-that do not match the GID table. That would be a huge problem when we
-talk about namespaces/etc.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
-> Since RoCE is symmetrical (you don't know if an AH is for rx/tx in
-> UD and you need to select a single sgid_index for RC connections),
-> we need to verify that it matches an egress route bounded to this
-> netdevice.
+--=-5IIMw7ujGSJ4oAZqtwqZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-?? how is an AH involved in RX?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-> As a quick fix, setting ifindex to get_netdev's ifindex in link local
-> addresses and filter out unsupported
-> netdevices in the GID cache, seems like a reasonable solution to me.
+iQIcBAABCAAGBQJYm1gmAAoJELgmozMOVy/dMgoQALDH8kka8cUIbOcM6NRwqTLg
+3CLdPS+zMIgB8/sFzboIwIY+Lq7QpiB4K8nlBvKuEmWIGGilbKUQANGKJT30tUF6
++K4LzMJZJwSNeNC9sbki90xiq283pCXweYqfA0yyN3o7n/4Eu8yRnlzUxu6vewHR
+xxzpeDIPsvDFANCDPPLc6w1yS8VOy51b6phN1i6oKaj2Jq1RSdxt4xYQcEJ+8p/i
+TF93/i1H5vJP/WgAn5kVAs0QQITW0BjDZBZC6Ye1/Ub7avqV+e534iwUqn9/nRzd
+Y35RFjw4aqZnTYs9JVnSSaDFr0+0mTwT33gkQ+oc4gFSMwzsGEiCeQNblDI72dto
+Kmbl2ZwSzJJJhoTE81w2QCllP1UMi69hAFKrQGs+pliklUAaNqXJQufFSb21PVfd
+eSxrxJt8fU/eQ9LMmtnyMfPROEaYegHowAbufkscuA8UDJuurt6qQC1pZnPzF+Ja
+mUgwXRCgmX9g/ObN8YFrAbKudQegeygJWkeEkt4uG7qi6i2aUSP3RcDRDY0R/9f2
+y7pF4XWjy+ac3Y9xbgyiUAPp8XJWKtSuldJ3z+IJchIiey7wcPL71PujfCINeK3h
+sTkMz2YMjuF4x4NrWszfnWg1DVRw70f8BWc/o71hOh0bQgy/hlAAzAMsmx/5K64U
+5FTq5EmvEDu20+Nupwj6
+=0Nt5
+-----END PGP SIGNATURE-----
 
-That still breaks link local addresses on vlan devices, so it is an
-ugly hack, not a solution.
+--=-5IIMw7ujGSJ4oAZqtwqZ--
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
