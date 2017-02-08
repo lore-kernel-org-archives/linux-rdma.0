@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 02/27] IB/hfi1: Process qp wait list in IRQ thread
- periodically
-Date: Wed, 08 Feb 2017 05:26:02 -0800
-Message-ID: <20170208132601.16442.69915.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 27/27] IB/hfi1: Code reuse with memdup_copy
+Date: Wed, 08 Feb 2017 05:28:31 -0800
+Message-ID: <20170208132830.16442.93943.stgit@scvm10.sc.intel.com>
 References: <20170208132142.16442.69329.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,230 +10,189 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170208132142.16442.69329.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In the event that the IRQ thread is extremely busy, the
-processing of an rcd wait list can be delayed by quite
-a bit until the IRQ thread completes its work.
+Update several usages of kmalloc/user_copy to memdup_copy and
+memdup_copy_nul.
 
-The QP reset reference count wait can then appear to be stuck, thus
-causing up a QP destroy to emit the hung task diagnostic.
-
-Fix by processing the qp wait list periodically from the thread.  The
-interval is a multiple (currently 4) of the MAX_PKT_RECV.
-
-Also, reduce some of the excessive inlining.   The guidelines
-are per packet is ok inline, otherwise the choice is based on
-likelyhood of execution.
-
-Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/driver.c |  121 +++++++++++++++++++----------------
- 1 files changed, 67 insertions(+), 54 deletions(-)
+ drivers/infiniband/hw/hfi1/debugfs.c      |   39 ++++++++---------------------
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |   17 ++++---------
+ drivers/infiniband/hw/hfi1/user_sdma.c    |   17 ++++++-------
+ 3 files changed, 25 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 4fbaee6..29db673 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -100,6 +100,11 @@
-  * MAX_PKT_RCV is the max # if packets processed per receive interrupt.
-  */
- #define MAX_PKT_RECV 64
-+/*
-+ * MAX_PKT_THREAD_RCV is the max # of packets processed before
-+ * the qp_wait_list queue is flushed.
-+ */
-+#define MAX_PKT_RECV_THREAD (MAX_PKT_RECV * 4)
- #define EGR_HEAD_UPDATE_THRESHOLD 16
+diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
+index ed4a217..cd06f1f 100644
+--- a/drivers/infiniband/hw/hfi1/debugfs.c
++++ b/drivers/infiniband/hw/hfi1/debugfs.c
+@@ -53,6 +53,7 @@
+ #include <linux/types.h>
+ #include <linux/ratelimit.h>
+ #include <linux/fault-inject.h>
++#include <linux/string.h>
  
- struct hfi1_ib_stats hfi1_stats;
-@@ -259,7 +264,7 @@ int hfi1_count_units(int *npresentp, int *nupp)
-  * allowed size ranges for the respective type and, optionally,
-  * return the proper encoding.
+ #include "hfi.h"
+ #include "trace.h"
+@@ -507,18 +508,11 @@ static ssize_t asic_flags_write(struct file *file, const char __user *buf,
+ 	ppd = private2ppd(file);
+ 	dd = ppd->dd;
+ 
+-	buff = kmalloc(count + 1, GFP_KERNEL);
+-	if (!buff)
+-		return -ENOMEM;
+-
+-	ret = copy_from_user(buff, buf, count);
+-	if (ret > 0) {
+-		ret = -EFAULT;
+-		goto do_free;
+-	}
+-
+ 	/* zero terminate and read the expected integer */
+-	buff[count] = 0;
++	buff = memdup_user_nul(buf, count);
++	if (IS_ERR(buff))
++		return PTR_ERR(buff);
++
+ 	ret = kstrtoull(buff, 0, &value);
+ 	if (ret)
+ 		goto do_free;
+@@ -696,15 +690,9 @@ static ssize_t __i2c_debugfs_write(struct file *file, const char __user *buf,
+ 	if (i2c_addr == 0)
+ 		return -EINVAL;
+ 
+-	buff = kmalloc(count, GFP_KERNEL);
+-	if (!buff)
+-		return -ENOMEM;
+-
+-	ret = copy_from_user(buff, buf, count);
+-	if (ret > 0) {
+-		ret = -EFAULT;
+-		goto _free;
+-	}
++	buff = memdup_user(buf, count);
++	if (IS_ERR(buff))
++		return PTR_ERR(buff);
+ 
+ 	total_written = i2c_write(ppd, target, i2c_addr, offset, buff, count);
+ 	if (total_written < 0) {
+@@ -809,15 +797,10 @@ static ssize_t __qsfp_debugfs_write(struct file *file, const char __user *buf,
+ 
+ 	ppd = private2ppd(file);
+ 
+-	buff = kmalloc(count, GFP_KERNEL);
+-	if (!buff)
+-		return -ENOMEM;
++	buff = memdup_user(buf, count);
++	if (IS_ERR(buff))
++		return PTR_ERR(buff);
+ 
+-	ret = copy_from_user(buff, buf, count);
+-	if (ret > 0) {
+-		ret = -EFAULT;
+-		goto _free;
+-	}
+ 	total_written = qsfp_write(ppd, target, *ppos, buff, count);
+ 	if (total_written < 0) {
+ 		ret = total_written;
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+index 64d2652..4a82953 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+@@ -45,6 +45,7 @@
+  *
   */
--inline int hfi1_rcvbuf_validate(u32 size, u8 type, u16 *encoded)
-+int hfi1_rcvbuf_validate(u32 size, u8 type, u16 *encoded)
- {
- 	if (unlikely(!PAGE_ALIGNED(size)))
- 		return 0;
-@@ -654,24 +659,68 @@ static void __prescan_rxq(struct hfi1_packet *packet)
- 	}
+ #include <asm/page.h>
++#include <linux/string.h>
+ 
+ #include "user_exp_rcv.h"
+ #include "trace.h"
+@@ -577,16 +578,10 @@ int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
+ 	u32 *tidinfo;
+ 	unsigned tididx;
+ 
+-	tidinfo = kcalloc(tinfo->tidcnt, sizeof(*tidinfo), GFP_KERNEL);
+-	if (!tidinfo)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(tidinfo, (void __user *)(unsigned long)
+-			   tinfo->tidlist, sizeof(tidinfo[0]) *
+-			   tinfo->tidcnt)) {
+-		ret = -EFAULT;
+-		goto done;
+-	}
++	tidinfo = memdup_user((void __user *)(unsigned long)tinfo->tidlist,
++			      sizeof(tidinfo[0]) * tinfo->tidcnt);
++	if (IS_ERR(tidinfo))
++		return PTR_ERR(tidinfo);
+ 
+ 	mutex_lock(&uctxt->exp_lock);
+ 	for (tididx = 0; tididx < tinfo->tidcnt; tididx++) {
+@@ -602,7 +597,7 @@ int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
+ 	spin_unlock(&fd->tid_lock);
+ 	tinfo->tidcnt = tididx;
+ 	mutex_unlock(&uctxt->exp_lock);
+-done:
++
+ 	kfree(tidinfo);
+ 	return ret;
  }
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index 7d22f8e..e6811c4 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -60,6 +60,7 @@
+ #include <linux/mmu_context.h>
+ #include <linux/module.h>
+ #include <linux/vmalloc.h>
++#include <linux/string.h>
  
--static inline int skip_rcv_packet(struct hfi1_packet *packet, int thread)
-+static void process_rcv_qp_work(struct hfi1_ctxtdata *rcd)
-+{
-+	struct rvt_qp *qp, *nqp;
-+
-+	/*
-+	 * Iterate over all QPs waiting to respond.
-+	 * The list won't change since the IRQ is only run on one CPU.
-+	 */
-+	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
-+		list_del_init(&qp->rspwait);
-+		if (qp->r_flags & RVT_R_RSP_NAK) {
-+			qp->r_flags &= ~RVT_R_RSP_NAK;
-+			hfi1_send_rc_ack(rcd, qp, 0);
-+		}
-+		if (qp->r_flags & RVT_R_RSP_SEND) {
-+			unsigned long flags;
-+
-+			qp->r_flags &= ~RVT_R_RSP_SEND;
-+			spin_lock_irqsave(&qp->s_lock, flags);
-+			if (ib_rvt_state_ops[qp->state] &
-+					RVT_PROCESS_OR_FLUSH_SEND)
-+				hfi1_schedule_send(qp);
-+			spin_unlock_irqrestore(&qp->s_lock, flags);
-+		}
-+		rvt_put_qp(qp);
-+	}
-+}
-+
-+static noinline int max_packet_exceeded(struct hfi1_packet *packet, int thread)
-+{
-+	if (thread) {
-+		if ((packet->numpkt & (MAX_PKT_RECV_THREAD - 1)) == 0)
-+			/* allow defered processing */
-+			process_rcv_qp_work(packet->rcd);
-+		cond_resched();
-+		return RCV_PKT_OK;
-+	} else {
-+		this_cpu_inc(*packet->rcd->dd->rcv_limit);
-+		return RCV_PKT_LIMIT;
-+	}
-+}
-+
-+static inline int check_max_packet(struct hfi1_packet *packet, int thread)
- {
- 	int ret = RCV_PKT_OK;
+ #include "hfi.h"
+ #include "sdma.h"
+@@ -725,30 +726,28 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 	 */
+ 	if (req_opcode(req->info.ctrl) == EXPECTED) {
+ 		u16 ntids = iovec[idx].iov_len / sizeof(*req->tids);
++		u32 *tmp;
  
-+	if (unlikely((packet->numpkt & (MAX_PKT_RECV - 1)) == 0))
-+		ret = max_packet_exceeded(packet, thread);
-+	return ret;
-+}
-+
-+static noinline int skip_rcv_packet(struct hfi1_packet *packet, int thread)
-+{
-+	int ret;
-+
- 	/* Set up for the next packet */
- 	packet->rhqoff += packet->rsize;
- 	if (packet->rhqoff >= packet->maxcnt)
- 		packet->rhqoff = 0;
- 
- 	packet->numpkt++;
--	if (unlikely((packet->numpkt & (MAX_PKT_RECV - 1)) == 0)) {
--		if (thread) {
--			cond_resched();
--		} else {
--			ret = RCV_PKT_LIMIT;
--			this_cpu_inc(*packet->rcd->dd->rcv_limit);
+ 		if (!ntids || ntids > MAX_TID_PAIR_ENTRIES) {
+ 			ret = -EINVAL;
+ 			goto free_req;
+ 		}
+-		req->tids = kcalloc(ntids, sizeof(*req->tids), GFP_KERNEL);
+-		if (!req->tids) {
+-			ret = -ENOMEM;
+-			goto free_req;
 -		}
--	}
-+	ret = check_max_packet(packet, thread);
- 
- 	packet->rhf_addr = (__le32 *)packet->rcd->rcvhdrq + packet->rhqoff +
- 				     packet->rcd->dd->rhf_offset;
-@@ -682,7 +731,7 @@ static inline int skip_rcv_packet(struct hfi1_packet *packet, int thread)
- 
- static inline int process_rcv_packet(struct hfi1_packet *packet, int thread)
- {
--	int ret = RCV_PKT_OK;
-+	int ret;
- 
- 	packet->hdr = hfi1_get_msgheader(packet->rcd->dd,
- 					 packet->rhf_addr);
-@@ -723,14 +772,7 @@ static inline int process_rcv_packet(struct hfi1_packet *packet, int thread)
- 	if (packet->rhqoff >= packet->maxcnt)
- 		packet->rhqoff = 0;
- 
--	if (unlikely((packet->numpkt & (MAX_PKT_RECV - 1)) == 0)) {
--		if (thread) {
--			cond_resched();
--		} else {
--			ret = RCV_PKT_LIMIT;
--			this_cpu_inc(*packet->rcd->dd->rcv_limit);
--		}
--	}
-+	ret = check_max_packet(packet, thread);
- 
- 	packet->rhf_addr = (__le32 *)packet->rcd->rcvhdrq + packet->rhqoff +
- 				      packet->rcd->dd->rhf_offset;
-@@ -767,38 +809,6 @@ static inline void finish_packet(struct hfi1_packet *packet)
- 		       packet->etail, rcv_intr_dynamic, packet->numpkt);
- }
- 
--static inline void process_rcv_qp_work(struct hfi1_packet *packet)
--{
--	struct hfi1_ctxtdata *rcd;
--	struct rvt_qp *qp, *nqp;
--
--	rcd = packet->rcd;
--	rcd->head = packet->rhqoff;
--
--	/*
--	 * Iterate over all QPs waiting to respond.
--	 * The list won't change since the IRQ is only run on one CPU.
--	 */
--	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
--		list_del_init(&qp->rspwait);
--		if (qp->r_flags & RVT_R_RSP_NAK) {
--			qp->r_flags &= ~RVT_R_RSP_NAK;
--			hfi1_send_rc_ack(rcd, qp, 0);
--		}
--		if (qp->r_flags & RVT_R_RSP_SEND) {
--			unsigned long flags;
--
--			qp->r_flags &= ~RVT_R_RSP_SEND;
--			spin_lock_irqsave(&qp->s_lock, flags);
--			if (ib_rvt_state_ops[qp->state] &
--					RVT_PROCESS_OR_FLUSH_SEND)
--				hfi1_schedule_send(qp);
--			spin_unlock_irqrestore(&qp->s_lock, flags);
--		}
--		rvt_put_qp(qp);
--	}
--}
--
- /*
-  * Handle receive interrupts when using the no dma rtail option.
-  */
-@@ -826,7 +836,8 @@ int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd, int thread)
- 			last = RCV_PKT_DONE;
- 		process_rcv_update(last, &packet);
++
+ 		/*
+ 		 * We have to copy all of the tids because they may vary
+ 		 * in size and, therefore, the TID count might not be
+ 		 * equal to the pkt count. However, there is no way to
+ 		 * tell at this point.
+ 		 */
+-		ret = copy_from_user(req->tids, iovec[idx].iov_base,
+-				     ntids * sizeof(*req->tids));
+-		if (ret) {
++		tmp = memdup_user(iovec[idx].iov_base,
++				  ntids * sizeof(*req->tids));
++		if (IS_ERR(tmp)) {
++			ret = PTR_ERR(tmp);
+ 			SDMA_DBG(req, "Failed to copy %d TIDs (%d)",
+ 				 ntids, ret);
+-			ret = -EFAULT;
+ 			goto free_req;
+ 		}
++		req->tids = tmp;
+ 		req->n_tids = ntids;
+ 		idx++;
  	}
--	process_rcv_qp_work(&packet);
-+	process_rcv_qp_work(rcd);
-+	rcd->head = packet.rhqoff;
- bail:
- 	finish_packet(&packet);
- 	return last;
-@@ -854,7 +865,8 @@ int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd, int thread)
- 			last = RCV_PKT_DONE;
- 		process_rcv_update(last, &packet);
- 	}
--	process_rcv_qp_work(&packet);
-+	process_rcv_qp_work(rcd);
-+	rcd->head = packet.rhqoff;
- bail:
- 	finish_packet(&packet);
- 	return last;
-@@ -1024,7 +1036,8 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
- 		process_rcv_update(last, &packet);
- 	}
- 
--	process_rcv_qp_work(&packet);
-+	process_rcv_qp_work(rcd);
-+	rcd->head = packet.rhqoff;
- 
- bail:
- 	/*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
