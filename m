@@ -1,50 +1,52 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH qperf] Destroy server's QP in CM mode.
-Date: Wed, 8 Feb 2017 16:44:27 -0500
-Message-ID: <20170208214426.GB26726@phlsvsds.ph.intel.com>
-References: <1486548525-7518-1-git-send-email-Ram.Amrani@cavium.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 09/14] RDMA/cxgb4: Use common error handling code in
+ recover_lost_dbs()
+Date: Wed, 8 Feb 2017 22:19:41 +0100
+Message-ID: <3da7cff6-9f94-2ae8-a173-7ad6efdb524b@users.sourceforge.net>
+References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1486548525-7518-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 12:08:45PM +0200, Ram Amrani wrote:
-> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 8 Feb 2017 18:08:08 +0100
 
-Thanks,
+Add a jump target so that a bit of exception handling can be better reused
+from an in branch in this function.
 
-Applied to my internal tree.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/infiniband/hw/cxgb4/device.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-I'm still setting up a public github tree.  I'll send out to the list where
-that is when it is set up.
-
-Ira
-
-> ---
->  src/rdma.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/src/rdma.c b/src/rdma.c
-> index 0d370bd..117b429 100644
-> --- a/src/rdma.c
-> +++ b/src/rdma.c
-> @@ -1937,6 +1937,7 @@ cm_close(DEVICE *dev)
->              error(SYS, "rdma_disconnect failed");
->      cm_expect_event(dev, RDMA_CM_EVENT_DISCONNECTED);
->      cm_ack_event(dev);
-> +    rdma_destroy_qp(dev->cm.id);
->      rdma_destroy_id(dev->cm.id);
->      rdma_destroy_event_channel(dev->cm.channel);
->  }
-> -- 
-> 1.8.3.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 2931920d7c4c..86cf7026619f 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -1402,9 +1402,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
+ 			       pci_name(ctx->lldi.pdev),
+ 			       ": Fatal error - DB overflow recovery failed - error syncing ",
+ 			       qp->wq.sq.qid);
+-			spin_unlock(&qp->lock);
+-			spin_unlock_irq(&qp->rhp->lock);
+-			return;
++			goto unlock;
+ 		}
+ 		qp->wq.sq.wq_pidx_inc = 0;
+ 
+@@ -1418,6 +1416,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
+ 			       pci_name(ctx->lldi.pdev),
+ 			       ": Fatal error - DB overflow recovery failed - error syncing ",
+ 			       qp->wq.rq.qid);
++unlock:
+ 			spin_unlock(&qp->lock);
+ 			spin_unlock_irq(&qp->rhp->lock);
+ 			return;
+-- 
+2.11.1
