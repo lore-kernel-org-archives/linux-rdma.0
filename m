@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 08/12] xprtrdma: Refactor management of mw_list field
-Date: Wed, 08 Feb 2017 17:00:43 -0500
-Message-ID: <20170208220043.7152.23924.stgit@manet.1015granger.net>
+Subject: [PATCH v3 09/12] sunrpc: Allow xprt->ops->timer method to sleep
+Date: Wed, 08 Feb 2017 17:00:51 -0500
+Message-ID: <20170208220051.7152.67740.stgit@manet.1015granger.net>
 References: <20170208214854.7152.83331.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,177 +13,56 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up some duplicate code.
+The transport lock is needed to protect the xprt_adjust_cwnd() call
+in xs_udp_timer, but it is not necessary for accessing the
+rq_reply_bytes_recvd or tk_status fields. It is correct to sublimate
+the lock into UDP's xs_udp_timer method, where it is required.
 
+The ->timer method has to take the transport lock if needed, but it
+can now sleep safely, or even call back into the RPC scheduler.
+
+This is more a clean-up than a fix, but the "issue" was introduced
+by my transport switch patches back in 2005.
+
+Fixes: 46c0ee8bc4ad ("RPC: separate xprt_timer implementations")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c   |    5 +----
- net/sunrpc/xprtrdma/frwr_ops.c  |   11 ++++-------
- net/sunrpc/xprtrdma/rpc_rdma.c  |    6 +++---
- net/sunrpc/xprtrdma/verbs.c     |   15 +++++----------
- net/sunrpc/xprtrdma/xprt_rdma.h |   16 ++++++++++++++++
- 5 files changed, 29 insertions(+), 24 deletions(-)
+ net/sunrpc/xprt.c     |    2 --
+ net/sunrpc/xprtsock.c |    2 ++
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 1ebb09e..59e6402 100644
---- a/net/sunrpc/xprtrdma/fmr_ops.c
-+++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -310,10 +310,7 @@ enum {
- 	struct rpcrdma_mw *mw;
+diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+index 9a6be03..b530a28 100644
+--- a/net/sunrpc/xprt.c
++++ b/net/sunrpc/xprt.c
+@@ -897,13 +897,11 @@ static void xprt_timer(struct rpc_task *task)
+ 		return;
+ 	dprintk("RPC: %5u xprt_timer\n", task->tk_pid);
  
- 	while (!list_empty(&req->rl_registered)) {
--		mw = list_first_entry(&req->rl_registered,
--				      struct rpcrdma_mw, mw_list);
--		list_del_init(&mw->mw_list);
--
-+		mw = rpcrdma_pop_mw(&req->rl_registered);
- 		if (sync)
- 			fmr_op_recover_mr(mw);
- 		else
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 47bed53..f81dd93 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -466,8 +466,8 @@
- 	struct ib_send_wr *first, **prev, *last, *bad_wr;
- 	struct rpcrdma_rep *rep = req->rl_reply;
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
--	struct rpcrdma_mw *mw, *tmp;
- 	struct rpcrdma_frmr *f;
-+	struct rpcrdma_mw *mw;
- 	int count, rc;
- 
- 	dprintk("RPC:       %s: req %p\n", __func__, req);
-@@ -534,10 +534,10 @@
- 	 * them to the free MW list.
- 	 */
- unmap:
--	list_for_each_entry_safe(mw, tmp, &req->rl_registered, mw_list) {
-+	while (!list_empty(&req->rl_registered)) {
-+		mw = rpcrdma_pop_mw(&req->rl_registered);
- 		dprintk("RPC:       %s: DMA unmapping frmr %p\n",
- 			__func__, &mw->frmr);
--		list_del_init(&mw->mw_list);
- 		ib_dma_unmap_sg(ia->ri_device,
- 				mw->mw_sg, mw->mw_nents, mw->mw_dir);
- 		rpcrdma_put_mw(r_xprt, mw);
-@@ -571,10 +571,7 @@
- 	struct rpcrdma_mw *mw;
- 
- 	while (!list_empty(&req->rl_registered)) {
--		mw = list_first_entry(&req->rl_registered,
--				      struct rpcrdma_mw, mw_list);
--		list_del_init(&mw->mw_list);
--
-+		mw = rpcrdma_pop_mw(&req->rl_registered);
- 		if (sync)
- 			frwr_op_recover_mr(mw);
- 		else
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 72b3ca0..a044be2 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -322,7 +322,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 						 false, &mw);
- 		if (n < 0)
- 			return ERR_PTR(n);
--		list_add(&mw->mw_list, &req->rl_registered);
-+		rpcrdma_push_mw(mw, &req->rl_registered);
- 
- 		*iptr++ = xdr_one;	/* item present */
- 
-@@ -390,7 +390,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 						 true, &mw);
- 		if (n < 0)
- 			return ERR_PTR(n);
--		list_add(&mw->mw_list, &req->rl_registered);
-+		rpcrdma_push_mw(mw, &req->rl_registered);
- 
- 		iptr = xdr_encode_rdma_segment(iptr, mw);
- 
-@@ -455,7 +455,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 						 true, &mw);
- 		if (n < 0)
- 			return ERR_PTR(n);
--		list_add(&mw->mw_list, &req->rl_registered);
-+		rpcrdma_push_mw(mw, &req->rl_registered);
- 
- 		iptr = xdr_encode_rdma_segment(iptr, mw);
- 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index d1ee33f..81cd31a 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -776,9 +776,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 
- 	spin_lock(&buf->rb_recovery_lock);
- 	while (!list_empty(&buf->rb_stale_mrs)) {
--		mw = list_first_entry(&buf->rb_stale_mrs,
--				      struct rpcrdma_mw, mw_list);
--		list_del_init(&mw->mw_list);
-+		mw = rpcrdma_pop_mw(&buf->rb_stale_mrs);
- 		spin_unlock(&buf->rb_recovery_lock);
- 
- 		dprintk("RPC:       %s: recovering MR %p\n", __func__, mw);
-@@ -796,7 +794,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
- 
- 	spin_lock(&buf->rb_recovery_lock);
--	list_add(&mw->mw_list, &buf->rb_stale_mrs);
-+	rpcrdma_push_mw(mw, &buf->rb_stale_mrs);
- 	spin_unlock(&buf->rb_recovery_lock);
- 
- 	schedule_delayed_work(&buf->rb_recovery_worker, 0);
-@@ -1072,11 +1070,8 @@ struct rpcrdma_mw *
- 	struct rpcrdma_mw *mw = NULL;
- 
- 	spin_lock(&buf->rb_mwlock);
--	if (!list_empty(&buf->rb_mws)) {
--		mw = list_first_entry(&buf->rb_mws,
--				      struct rpcrdma_mw, mw_list);
--		list_del_init(&mw->mw_list);
--	}
-+	if (!list_empty(&buf->rb_mws))
-+		mw = rpcrdma_pop_mw(&buf->rb_mws);
- 	spin_unlock(&buf->rb_mwlock);
- 
- 	if (!mw)
-@@ -1099,7 +1094,7 @@ struct rpcrdma_mw *
- 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
- 
- 	spin_lock(&buf->rb_mwlock);
--	list_add_tail(&mw->mw_list, &buf->rb_mws);
-+	rpcrdma_push_mw(mw, &buf->rb_mws);
- 	spin_unlock(&buf->rb_mwlock);
+-	spin_lock_bh(&xprt->transport_lock);
+ 	if (!req->rq_reply_bytes_recvd) {
+ 		if (xprt->ops->timer)
+ 			xprt->ops->timer(xprt, task);
+ 	} else
+ 		task->tk_status = 0;
+-	spin_unlock_bh(&xprt->transport_lock);
  }
  
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 852dd0a..171a351 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -354,6 +354,22 @@ struct rpcrdma_req {
- 	return rqst->rq_xprtdata;
+ /**
+diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
+index af392d9..d9bb644 100644
+--- a/net/sunrpc/xprtsock.c
++++ b/net/sunrpc/xprtsock.c
+@@ -1734,7 +1734,9 @@ static void xs_udp_set_buffer_size(struct rpc_xprt *xprt, size_t sndsize, size_t
+  */
+ static void xs_udp_timer(struct rpc_xprt *xprt, struct rpc_task *task)
+ {
++	spin_lock_bh(&xprt->transport_lock);
+ 	xprt_adjust_cwnd(xprt, task, -ETIMEDOUT);
++	spin_unlock_bh(&xprt->transport_lock);
  }
  
-+static inline void
-+rpcrdma_push_mw(struct rpcrdma_mw *mw, struct list_head *list)
-+{
-+	list_add_tail(&mw->mw_list, list);
-+}
-+
-+static inline struct rpcrdma_mw *
-+rpcrdma_pop_mw(struct list_head *list)
-+{
-+	struct rpcrdma_mw *mw;
-+
-+	mw = list_first_entry(list, struct rpcrdma_mw, mw_list);
-+	list_del(&mw->mw_list);
-+	return mw;
-+}
-+
- /*
-  * struct rpcrdma_buffer -- holds list/queue of pre-registered memory for
-  * inline requests/replies, and client/server credits.
+ static unsigned short xs_get_random_port(void)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
