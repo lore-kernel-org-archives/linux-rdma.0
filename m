@@ -1,83 +1,60 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch 1/2] IB/rxe: Fix resid update
-Date: Wed, 08 Feb 2017 12:39:39 -0500
-Message-ID: <1486575579.86943.15.camel@redhat.com>
-References: <20170207134305.GJ11103@mwanda>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Wed, 8 Feb 2017 10:40:40 -0700
+Message-ID: <20170208174040.GC30720@obsidianresearch.com>
+References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
+ <20170130195412.GE24466@obsidianresearch.com>
+ <VI1PR0502MB30081EBFBEE5994B77D58BB9D14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170130211420.GB27111@obsidianresearch.com>
+ <VI1PR0502MB30081EC9B35269636B4C2FBCD14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170130221437.GA28117@obsidianresearch.com>
+ <VI1PR0502MB3008B16A0F103D729209EA16D14A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170131005340.GA30809@obsidianresearch.com>
+ <CAAKD3BDbkFHbCi+gHyCXCGV2xi5E9FA+KgwKz+6dBJEtsV0ZkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-Y/61MU0P/K2YZSZnUADN"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170207134305.GJ11103@mwanda>
+Content-Disposition: inline
+In-Reply-To: <CAAKD3BDbkFHbCi+gHyCXCGV2xi5E9FA+KgwKz+6dBJEtsV0ZkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Feb 08, 2017 at 06:02:44PM +0200, Matan Barak wrote:
+ 
+> Actually, I think one of the problems here is that we insert GIDs
+> which aren't supported by the hardware.
 
---=-Y/61MU0P/K2YZSZnUADN
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+That certainly sounds like a problem, yes.
 
-On Tue, 2017-02-07 at 16:43 +0300, Dan Carpenter wrote:
-> From: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->=20
-> Update the response's resid field when larger than MTU, instead of
-> only
-> updating the local resid variable.
->=20
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Signed-off-by: Eyal Itkin <eyal.itkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->=20
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c
-> b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index 7bf20ced2078..d404a8aba7af 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -479,7 +479,7 @@ static enum resp_states check_rkey(struct rxe_qp
-> *qp,
-> =C2=A0				goto err;
-> =C2=A0			}
-> =C2=A0
-> -			resid =3D mtu;
-> +			qp->resp.resid =3D mtu;
-> =C2=A0		} else {
-> =C2=A0			if (pktlen !=3D resid) {
-> =C2=A0				state =3D RESPST_ERR_LENGTH;
+> So, assuming we only insert a combination of netdevices which could
+> be actually described by the hardware, we could try to match these
+> attributes in the gid cache table.  Once we have such a match, we
+> could verify that with the ingress route (actually, we could use
+> ingress route starting from get_netdev() as well).
 
-Applied, thanks.
+Yes, that is the proper thing to do.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+Presumably the hardware does this, it should not be receiving packets
+that do not match the GID table. That would be a huge problem when we
+talk about namespaces/etc.
 
---=-Y/61MU0P/K2YZSZnUADN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> Since RoCE is symmetrical (you don't know if an AH is for rx/tx in
+> UD and you need to select a single sgid_index for RC connections),
+> we need to verify that it matches an egress route bounded to this
+> netdevice.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+?? how is an AH involved in RX?
 
-iQIcBAABCAAGBQJYm1fbAAoJELgmozMOVy/dKGIQAJkcStfKkJzHbpiDr8uZAhNE
-1KUoHsy8g4Uxo+mAm3RGti59TigDSGo4siUXO6q8XQPWbuZ/NTlvgnGmPWthghk/
-R8C62dNc09NH48DQWcvQ6Ux2K7D2HLlPdOb/LExtnDDVe2ZFOURUhMPDTw/LhWVH
-yb6/qZT+rsdt/Zs+566eUKJUyF0VSabbZ6TTaWHsa4675HVc0TBtbGQrPi1Dtq4b
-5DwtH2Wn+wvPUmqgTOgOptBe6ZJLNPAhDMUbDzu0iZGMRmNHXLBHeYHOVj8HQCil
-HHLCsFUj+LU4AY59tm/Ylg/osJDPW6rynt/qTNsSiILgeeK2+5o6teAs0D9gSC5O
-QfQhMzT/2GlQynT6eexjn2mDfs6unvGRn+hqJk2udFbmROo59Baw5PhM7ErRygbJ
-21jkNNdNXE4Y3JEBvotTnjeZJVxuhtmjgmurhefBTmdmU/qgdYg2Sz9mkBLK/73i
-ubaxy+PzCImKlLpwXF/6suo7IS3vxmHt/I6Rt9OHG2jFY8AqD3uKjlVrDU3y4DIR
-ye5x0YZ4DhkcGsvhstU/Jz7svU3CvQYSowVjZWtbWPSFfktqhzGjr6MtVxBHNjT3
-9JGUtBbHoo5Sx+uCT8yxzENmBTwdRxjqfJYVa1OvIzW7hsnFi1robjlLTiIxjTj1
-IIfOI+7MUG6QZmZh87SS
-=xNBP
------END PGP SIGNATURE-----
+> As a quick fix, setting ifindex to get_netdev's ifindex in link local
+> addresses and filter out unsupported
+> netdevices in the GID cache, seems like a reasonable solution to me.
 
---=-Y/61MU0P/K2YZSZnUADN--
+That still breaks link local addresses on vlan devices, so it is an
+ugly hack, not a solution.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
