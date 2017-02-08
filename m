@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 07/12] xprtrdma: Handle stale connection rejection
-Date: Wed, 08 Feb 2017 17:00:35 -0500
-Message-ID: <20170208220035.7152.1001.stgit@manet.1015granger.net>
+Subject: [PATCH v3 05/12] xprtrdma: Shrink send SGEs array
+Date: Wed, 08 Feb 2017 17:00:18 -0500
+Message-ID: <20170208220018.7152.94524.stgit@manet.1015granger.net>
 References: <20170208214854.7152.83331.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,137 +13,44 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A server rejects a connection attempt with STALE_CONNECTION when a
-client attempts to connect to a working remote service, but uses a
-QPN and GUID that corresponds to an old connection that was
-abandoned. This might occur after a client crashes and restarts.
-
-Fix rpcrdma_conn_upcall() to distinguish between a normal rejection
-and rejection of stale connection parameters.
-
-As an additional clean-up, remove the code that retries the
-connection attempt with different ORD/IRD values. Code audit of
-other ULP initiators shows no similar special case handling of
-initiator_depth or responder_resources.
+We no longer need to accommodate an xdr_buf whose pages start at an
+offset and cross extra page boundaries. If there are more partial or
+whole pages to send than there are available SGEs, the marshaling
+logic is now smart enough to use a Read chunk instead of failing.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |   66 ++++++++++++++-----------------------------
- 1 file changed, 21 insertions(+), 45 deletions(-)
+ net/sunrpc/xprtrdma/xprt_rdma.h |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 61d16c3..d1ee33f 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -54,6 +54,7 @@
- #include <linux/sunrpc/svc_rdma.h>
- #include <asm/bitops.h>
- #include <linux/module.h> /* try_module_get()/module_put() */
-+#include <rdma/ib_cm.h>
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 3d7e9c9..852dd0a 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -305,16 +305,19 @@ struct rpcrdma_mr_seg {		/* chunk descriptors */
+ 	char		*mr_offset;	/* kva if no page, else offset */
+ };
  
- #include "xprt_rdma.h"
+-/* Reserve enough Send SGEs to send a maximum size inline request:
++/* The Send SGE array is provisioned to send a maximum size
++ * inline request:
+  * - RPC-over-RDMA header
+  * - xdr_buf head iovec
+- * - RPCRDMA_MAX_INLINE bytes, possibly unaligned, in pages
++ * - RPCRDMA_MAX_INLINE bytes, in pages
+  * - xdr_buf tail iovec
++ *
++ * The actual number of array elements consumed by each RPC
++ * depends on the device's max_sge limit.
+  */
+ enum {
+ 	RPCRDMA_MIN_SEND_SGES = 3,
+-	RPCRDMA_MAX_SEND_PAGES = PAGE_SIZE + RPCRDMA_MAX_INLINE - 1,
+-	RPCRDMA_MAX_PAGE_SGES = (RPCRDMA_MAX_SEND_PAGES >> PAGE_SHIFT) + 1,
++	RPCRDMA_MAX_PAGE_SGES = RPCRDMA_MAX_INLINE >> PAGE_SHIFT,
+ 	RPCRDMA_MAX_SEND_SGES = 1 + 1 + RPCRDMA_MAX_PAGE_SGES + 1,
+ };
  
-@@ -279,7 +280,14 @@
- 		connstate = -ENETDOWN;
- 		goto connected;
- 	case RDMA_CM_EVENT_REJECTED:
-+#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-+		pr_info("rpcrdma: connection to %pIS:%u on %s rejected: %s\n",
-+			sap, rpc_get_port(sap), ia->ri_device->name,
-+			rdma_reject_msg(id, event->status));
-+#endif
- 		connstate = -ECONNREFUSED;
-+		if (event->status == IB_CM_REJ_STALE_CONN)
-+			connstate = -EAGAIN;
- 		goto connected;
- 	case RDMA_CM_EVENT_DISCONNECTED:
- 		connstate = -ECONNABORTED;
-@@ -643,20 +651,21 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- int
- rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- {
-+	struct rpcrdma_xprt *r_xprt = container_of(ia, struct rpcrdma_xprt,
-+						   rx_ia);
- 	struct rdma_cm_id *id, *old;
-+	struct sockaddr *sap;
-+	unsigned int extras;
- 	int rc = 0;
--	int retry_count = 0;
- 
- 	if (ep->rep_connected != 0) {
--		struct rpcrdma_xprt *xprt;
- retry:
- 		dprintk("RPC:       %s: reconnecting...\n", __func__);
- 
- 		rpcrdma_ep_disconnect(ep, ia);
- 
--		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
--		id = rpcrdma_create_id(xprt, ia,
--				(struct sockaddr *)&xprt->rx_data.addr);
-+		sap = (struct sockaddr *)&r_xprt->rx_data.addr;
-+		id = rpcrdma_create_id(r_xprt, ia, sap);
- 		if (IS_ERR(id)) {
- 			rc = -EHOSTUNREACH;
- 			goto out;
-@@ -711,51 +720,18 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 	}
- 
- 	wait_event_interruptible(ep->rep_connect_wait, ep->rep_connected != 0);
--
--	/*
--	 * Check state. A non-peer reject indicates no listener
--	 * (ECONNREFUSED), which may be a transient state. All
--	 * others indicate a transport condition which has already
--	 * undergone a best-effort.
--	 */
--	if (ep->rep_connected == -ECONNREFUSED &&
--	    ++retry_count <= RDMA_CONNECT_RETRY_MAX) {
--		dprintk("RPC:       %s: non-peer_reject, retry\n", __func__);
--		goto retry;
--	}
- 	if (ep->rep_connected <= 0) {
--		/* Sometimes, the only way to reliably connect to remote
--		 * CMs is to use same nonzero values for ORD and IRD. */
--		if (retry_count++ <= RDMA_CONNECT_RETRY_MAX + 1 &&
--		    (ep->rep_remote_cma.responder_resources == 0 ||
--		     ep->rep_remote_cma.initiator_depth !=
--				ep->rep_remote_cma.responder_resources)) {
--			if (ep->rep_remote_cma.responder_resources == 0)
--				ep->rep_remote_cma.responder_resources = 1;
--			ep->rep_remote_cma.initiator_depth =
--				ep->rep_remote_cma.responder_resources;
-+		if (ep->rep_connected == -EAGAIN)
- 			goto retry;
--		}
- 		rc = ep->rep_connected;
--	} else {
--		struct rpcrdma_xprt *r_xprt;
--		unsigned int extras;
--
--		dprintk("RPC:       %s: connected\n", __func__);
--
--		r_xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
--		extras = r_xprt->rx_buf.rb_bc_srv_max_requests;
--
--		if (extras) {
--			rc = rpcrdma_ep_post_extra_recv(r_xprt, extras);
--			if (rc) {
--				pr_warn("%s: rpcrdma_ep_post_extra_recv: %i\n",
--					__func__, rc);
--				rc = 0;
--			}
--		}
-+		goto out;
- 	}
- 
-+	dprintk("RPC:       %s: connected\n", __func__);
-+	extras = r_xprt->rx_buf.rb_bc_srv_max_requests;
-+	if (extras)
-+		rpcrdma_ep_post_extra_recv(r_xprt, extras);
-+
- out:
- 	if (rc)
- 		ep->rep_connected = rc;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
