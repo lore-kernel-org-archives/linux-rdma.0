@@ -1,75 +1,61 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC v3 02/11] IB/hfi-vnic: Virtual Network Interface Controller
- (VNIC) interface
-Date: Wed, 8 Feb 2017 08:54:37 +0200
-Message-ID: <20170208065437.GA6005@mtr-leonro.local>
+From: "Weiny, Ira" <ira.weiny@intel.com>
+Subject: RE: [RFC v3 00/11] HFI Virtual Network Interface Controller (VNIC)
+Date: Wed, 8 Feb 2017 07:01:22 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3C644BF1@CRSMSX101.amr.corp.intel.com>
 References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
- <1486498990-76562-3-git-send-email-niranjana.vishwanathapura@intel.com>
- <20170207211901.GB28922@obsidianresearch.com>
+         <1486502926.2581.4.camel@sandisk.com>
+         <1828884A29C6694DAF28B7E6B8A82373AB0E5B6C@ORSMSX109.amr.corp.intel.com>
+         <1486504716.2581.8.camel@sandisk.com>
+         <20170208005416.GA76793@knc-06.sc.intel.com>
+ <1486516168.2581.21.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="N619HKiDy45kBi0v"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170207211901.GB28922-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1486516168.2581.21.camel@sandisk.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+> 
+> On Tue, 2017-02-07 at 16:54 -0800, Vishwanathapura, Niranjana wrote:
+> > On Tue, Feb 07, 2017 at 09:58:50PM +0000, Bart Van Assche wrote:
+> > > On Tue, 2017-02-07 at 21:44 +0000, Hefty, Sean wrote:
+> > > > This is Ethernet - not IP - encapsulation over a non-InfiniBand
+> device/protocol.
+> > >
+> > > That's more than clear from the cover letter. In my opinion the
+> > > cover letter should explain why it is considered useful to have such
+> > > a driver upstream and what the use cases are of encapsulating
+> > > Ethernet frames inside RDMA packets.
+> >
+> > We believe on our HW, HFI VNIC design gives better hardware resource
+> > usage which is also scalable and hence room for better performance.
+> > Also as evident in the cover letter, it gives us better manageability
+> > by defining virtual Ethernet switches overlaid on the fabric and use
+> > standard Ethernet support provided by Linux.
+> 
+> That kind of language is appropriate for a marketing brochure but not for a
+> technical forum.
 
---N619HKiDy45kBi0v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Well.  That is not totally true.  Perhaps more detail on how we get better performance but we thought this has been covered already.
 
-On Tue, Feb 07, 2017 at 02:19:01PM -0700, Jason Gunthorpe wrote:
-> On Tue, Feb 07, 2017 at 12:23:01PM -0800, Vishwanathapura, Niranjana wrote:
-> > Add rdma netdev interface to ib device structure allowing rdma netdev
-> > devices to be allocated by ib clients.
-> > Define HFI VNIC interface between hardware independent VNIC
-> > functionality and the hardware dependent VNIC functionality.
->
-> This commit message could be a bit clearer.
->
-> The alloc_rdma_netdev multiplexer is inteded as a new general
-> interface and this adds a protocol definition for ethernet VNIC on
-> OPA.
->
-> The hope is that ipoib can follow the same example and use the same
-> alloc_rdma_netdev entry point. Hopefully Mellanox will look at this
-> patch as I have talked to them in the past about doing this...
+> Even reading your statement twice did not make me any wiser.
+> You mentioned "better hardware resource usage". Compared to what? Is that
+> perhaps compared to IPoIB?  Since Ethernet frames have an extra header and
+> are larger than IPoIB frames, how can larger frames result in better hardware
+> resource usage? 
 
-Jason,
+Yes, as compared to IPoIB.  The problem with IPoIB is it introduces a significant amount of Verbs overhead which is not needed for Ethernet encapsulation.  Especially on hardware such as ours.  As Jason has mentioned having a more generic "skb_send" or "skb_qp" has been discussed in the past.
 
-We looked on it and it is useless for us, mainly because of the fact
-that most  of the work is done in our net part of the driver.
+As we discussed at the plumbers conference not all send/receive paths are "Queue Pairs".  Yes we have a send queue (multiple send queues actually) and a recv queue (again multiple queues) but there is no pairing of the queues at all.  There are no completion semantics required either.  This reduced overhead results in better performance on our hardware.
 
-So, as it looks for now, this ULP exercise will be for HFI only.
+> And what is a virtual Ethernet switch? Is this perhaps packet
+> forwarding by software? If so, why are virtual Ethernet switches needed since
+> the Linux networking stack already supports packet forwarding?
 
-Thanks
+Virtual Ethernet switches provide packet switching through the native OPA switches via OPA Virtual Fabrics (a tuple of the path information including lid/pkey/sl/mtu).  This is not packet forwarding within the node.  A large advantage here is that the virtual switches are centrally managed by the EM in a very scalable way.  For example, the IPoIB configuration semantics such as multicast group join/create, Path Record queries, etc are all eliminated.  Further reducing overhead.
 
---N619HKiDy45kBi0v
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliawKwACgkQ5GN7iDZy
-WKeTFRAAhcslIXE7u0hZTLiEG+dJBVM94LuAZ9v3sg+xAVMT7Ty688XJqqn6vfhb
-hL9V9wvzCLBf08csVrcERqT3fmwQLznSZ6J4KkB3Kd+j3yzvD9WtHeZMNMPiAlH6
-8zdupZFtVLPGN6NgonD7ryZBoDptq4swFcEqXyRJ7go9gQjHW6m1SPx8O1I0zTmt
-FxX02ikV2TJ/KodojQEkbmwOWb+N+GyTioNDJYIsvZCDS9koLhacX81ktz/7gRK4
-kcZ7yu6lnskzovFiZzfFIGOVdfsc1CC0l81dY/BoZ+fAxIk/t6XT3PMpOuJEWnGA
-GBzYxj1dLV0wKn5HZNkb/vP8R/u68JIEJju4SCaU5QD6ZPSu0vHS7nUjrchUYdAG
-MQXVT8HfRWuqjle+lFK+ikPvTwGNXzxy5njKxTsV3YgAJ0ZL/5kG3GI96fm3BowL
-Sd8Ilq/8YlXRCDhbUjwOeP/ueb3fsXr9H/MqWnaQDs+irDBIcR8P47dlqHOtDHGa
-JI8XxtOtgImt1c/y1/oWkspjw1IPI8SZdRWO6rE7H3HVhONkwbyj0MtasGhcUPTH
-H580g6Ds7E9aAS+D2t2hfFk621IQlMobdlqxLMF7p8lhA2+OM3tczy60Df0ByJ3+
-9t5mFR/odrNPUF1/AG5VXPp8tEADdUPaCSemD8fv0/fCAWmsJYE=
-=mrgt
------END PGP SIGNATURE-----
-
---N619HKiDy45kBi0v--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ira
