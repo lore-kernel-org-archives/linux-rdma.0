@@ -1,104 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: OFED-4.8, rdma-core, and library paths
-Date: Wed, 8 Feb 2017 11:18:20 -0700
-Message-ID: <20170208181820.GA31664@obsidianresearch.com>
-References: <20170207180642.GQ6005@mtr-leonro.local>
- <20170207181814.GA13368@obsidianresearch.com>
- <20170207183538.GT6005@mtr-leonro.local>
- <20170207184206.GA14102@obsidianresearch.com>
- <20170207194759.GU6005@mtr-leonro.local>
- <20170207201428.GV6005@mtr-leonro.local>
- <20170207205930.GA28922@obsidianresearch.com>
- <20170208063758.GZ6005@mtr-leonro.local>
- <20170208173335.GB30720@obsidianresearch.com>
- <20170208180104.GG6005@mtr-leonro.local>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Subject: Re: [RFC v3 09/11] IB/hfi1: HFI_VNIC RDMA netdev support
+Date: Wed, 8 Feb 2017 10:21:25 -0800
+Message-ID: <20170208182125.GA77708@knc-06.sc.intel.com>
+References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <1486498990-76562-10-git-send-email-niranjana.vishwanathapura@intel.com>
+ <VI1PR0502MB3008F059241234D3CD1BB587D1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170208180104.GG6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+In-Reply-To: <VI1PR0502MB3008F059241234D3CD1BB587D1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Parav Pandit <parav@mellanox.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "ira.weiny@intel.com" <ira.weiny@intel.com>, Andrzej Kacprowski <andrzej.kacprowski@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBGZWIgMDgsIDIwMTcgYXQgMDg6MDE6MDRQTSArMDIwMCwgTGVvbiBSb21hbm92c2t5
-IHdyb3RlOgo+IE9uIFdlZCwgRmViIDA4LCAyMDE3IGF0IDEwOjMzOjM1QU0gLTA3MDAsIEphc29u
-IEd1bnRob3JwZSB3cm90ZToKCj4gVGhhbmtzIGZvciB0aGUgaGVscCwgbXkgZmluYWwgdmVyc2lv
-biB3aGljaCB3b3JrcyBjb3JyZWN0bHkgZm9yIGJ1aWxkIGluIHBsYWNlLCBpbnN0YWxsIGZyb20K
-PiBzb3VyY2VzIGFuZCBwYWNrYWdlcyBmb3IgY2VudG9zNi9jZW50b3M2IGlzIGJlbG93OgoKTG9v
-a3MgZ29vZAoKPiAjIENyZWF0ZSBhIHNwZWNpYWwgcHJvdmlkZXIgd2l0aCBleHBvcnRlZCBzeW1i
-b2xzIGluIGl0Cj4gZnVuY3Rpb24ocmRtYV9zaGFyZWRfcHJvdmlkZXIgREVTVCBWRVJTSU9OX1ND
-UklQVCBTT1ZFUlNJT04gVkVSU0lPTikKPiAgICMgSW5zdGFsbGVkIGRyaXZlciBmaWxlCj4gICBm
-aWxlKFdSSVRFICIke0NNQUtFX0NVUlJFTlRfQklOQVJZX0RJUn0vJHtERVNUfS5kcml2ZXIiICJk
-cml2ZXIgJHtERVNUfVxuIikKPiAgIGluc3RhbGwoRklMRVMgIiR7Q01BS0VfQ1VSUkVOVF9CSU5B
-UllfRElSfS8ke0RFU1R9LmRyaXZlciIgREVTVElOQVRJT04gIiR7Q09ORklHX0RJUn0iKQo+IAo+
-ICAgIyBVbmluc3RhbGxlZCBkcml2ZXIgZmlsZQo+ICAgZmlsZShNQUtFX0RJUkVDVE9SWSAiJHtC
-VUlMRF9FVEN9L2xpYmlidmVyYnMuZC8iKQo+ICAgZmlsZShXUklURSAiJHtCVUlMRF9FVEN9L2xp
-YmlidmVyYnMuZC8ke0RFU1R9LmRyaXZlciIgImRyaXZlciAke0JVSUxEX0xJQn0vbGliJHtERVNU
-fVxuIikKPiAKPiAgICMgQ3JlYXRlIGEgc3RhdGljIHByb3ZpZGVyIGxpYnJhcnkKPiAgIGlmIChF
-TkFCTEVfU1RBVElDKQo+ICAgICBhZGRfbGlicmFyeSgke0RFU1R9IFNUQVRJQyAke0FSR059KQo+
-ICAgICBzZXRfdGFyZ2V0X3Byb3BlcnRpZXMoJHtERVNUfSBQUk9QRVJUSUVTIExJQlJBUllfT1VU
-UFVUX0RJUkVDVE9SWSAiJHtCVUlMRF9MSUJ9IikKPiAgICAgaW5zdGFsbChUQVJHRVRTICR7REVT
-VH0gREVTVElOQVRJT04gIiR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9IikKPiAKPiAgICAgbGlzdChB
-UFBFTkQgUkRNQV9TVEFUSUNfTElCUyAke0RFU1R9LXJkbWF2MiAke0RFU1R9KQo+ICAgICBzZXQo
-UkRNQV9TVEFUSUNfTElCUyAiJHtSRE1BX1NUQVRJQ19MSUJTfSIgQ0FDSEUgSU5URVJOQUwgIiIp
-Cj4gICBlbmRpZigpCj4gCj4gICAjIENyZWF0ZSB0aGUgcGx1Z2luIHNoYXJlZCBsaWJyYXJ5Cj4g
-ICBhZGRfbGlicmFyeSgke0RFU1R9IFNIQVJFRCAke0FSR059KQo+ICAgIyBFdmVuIHRob3VnaCB0
-aGVzZSBhcmUgbW9kdWxlcyB3ZSBzdGlsbCB3YW50IHRvIHVzZSBXbCwtLW5vLXVuZGVmaW5lZAo+
-ICAgc2V0X3RhcmdldF9wcm9wZXJ0aWVzKCR7REVTVH0gUFJPUEVSVElFUyBMSU5LX0ZMQUdTICR7
-Q01BS0VfU0hBUkVEX0xJTktFUl9GTEFHU30pCj4gICByZG1hX3NldF9saWJyYXJ5X21hcCgke0RF
-U1R9ICR7VkVSU0lPTl9TQ1JJUFR9KQo+IAo+ICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKCR7REVT
-VH0gTElOS19QUklWQVRFICR7Q09NTU9OX0xJQlNfUElDfSkKPiAgIHRhcmdldF9saW5rX2xpYnJh
-cmllcygke0RFU1R9IExJTktfUFJJVkFURSBpYnZlcmJzKQo+ICAgdGFyZ2V0X2xpbmtfbGlicmFy
-aWVzKCR7REVTVH0gTElOS19QUklWQVRFICR7Q01BS0VfVEhSRUFEX0xJQlNfSU5JVH0pCj4gICBz
-ZXRfdGFyZ2V0X3Byb3BlcnRpZXMoJHtERVNUfSBQUk9QRVJUSUVTCj4gICAJU09WRVJTSU9OICR7
-U09WRVJTSU9OfQo+ICAgCVZFUlNJT04gJHtWRVJTSU9OfQo+ICAgCUxJQlJBUllfT1VUUFVUX0RJ
-UkVDVE9SWSAiJHtCVUlMRF9MSUJ9IikKPiAgIGFkZF9jdXN0b21fdGFyZ2V0KHNoYXJlX2xpbmsg
-QUxMIERFUEVORFMgIiR7REVTVH0iICBDT01NQU5EICR7Q01BS0VfQ09NTUFORH0gLUUgY3JlYXRl
-X3N5bWxpbmsgImxpYiR7REVTVH0uc28uJHtWRVJTSU9OfSIKPiAJICAiJHtCVUlMRF9MSUJ9L2xp
-YiR7REVTVH0tcmRtYXYyLnNvIikKPiAgIGFkZF9kZXBlbmRlbmNpZXMoc2hhcmVfbGluayAke0RF
-U1R9KQoKRXhjZXB0IHRoaXMgcmVhbGx5IHNob3VsZG4ndCBiZSBhIHJ1bGUuICBUaGUgbm9uLXJ1
-bGUgbWV0aG9kIGlzIHVzZWQKZXZlcnl3aGVyZSBlbHNlIChlZyBtYW4gcGFnZXMpLCBzbyBpdCBt
-dXN0IHdvcmsgaGVyZSwgaXQgZG9lc24ndCBtYWtlCnNlbnNlIHRoYXQgbmluamEgdnMgbWFrZSB3
-b3VsZCBiZSBhbnkgZGlmZmVyZW50LiBXaGVuIHlvdSBnZXQKZXZlcnl0aGluZyB3b3JraW5nIHB1
-dCBpdCBiYWNrIHRvIGV4ZWN1dGVfcHJvY2Vzcy4uCgo+ICAgaW5zdGFsbChUQVJHRVRTICR7REVT
-VH0gREVTVElOQVRJT04gIiR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9IikKPiAgIGV4ZWN1dGVfcHJv
-Y2VzcyhDT01NQU5EIHB5dGhvbiAke0NNQUtFX1NPVVJDRV9ESVJ9L2J1aWxkbGliL3JlbHBhdGgK
-PiAgICAgJHtDTUFLRV9JTlNUQUxMX0xJQkRJUn0vbGliJHtERVNUfS5zby4ke1ZFUlNJT059ICR7
-VkVSQlNfUFJPVklERVJfRElSfQo+ICAgICBPVVRQVVRfVkFSSUFCTEUgREVTVF9MSU5LX1BBVEgg
-T1VUUFVUX1NUUklQX1RSQUlMSU5HX1dISVRFU1BBQ0UpCj4gICByZG1hX2luc3RhbGxfc3ltbGlu
-aygiJHtERVNUX0xJTktfUEFUSH0iICIke1ZFUkJTX1BST1ZJREVSX0RJUn0vbGliJHtERVNUfS1y
-ZG1hdjIuc28iKQoKPiBhbmQgYnVpbGRsaWIvcmVscGF0aAo+IGltcG9ydCBvcwo+IGltcG9ydCBz
-eXMKPiAKPiBwcmludChvcy5wYXRoLnJlbHBhdGgoc3lzLmFyZ3ZbMV0sIHN5cy5hcmd2WzJdKSkK
-ClN1cmUsIHllcywgZG9pbmcgdGhlIGVzY2FwaW5nIHJpZ2h0IHdvdWxkIHByb2JhYmx5IGJlIHF1
-aXRlIGhhcmQsIHRoYXQgaXMgdGhlCnVzdWFsIG5pZ2h0bWFyZSB3aXRoIHNoZWxsIHN0dWZmIHVu
-Zm9ydHVuYXRlbHkuCgo+IEJ1dCBJIHN0aWxsIGhhdmUgaXNzdWVzIHdpdGggREVCIHBhY2thZ2Uu
-Cj4gSXQgY3JlYXRlcyBhYnNvbHV0ZSAoYW5kIHdyb25nKSAgc3ltbGluayBpbnN0ZWFkIG9mIHJl
-bGF0aXZlIG9uZS4KCkhtbS4gQ2FuIHlvdSB1cGRhdGUgeW91ciBnaXRodWI/IEknbGwgbG9vayBm
-b3IgeW91LgoKPiAtcnctci0tci0tIDEgbGVvbnJvIGxlb25ybyA0NksgRmViICA4IDE3OjEzIGxp
-Ym1seDQtcmRtYXYyLnNvCj4gbHJ3eHJ3eHJ3eCAxIGxlb25ybyBsZW9ucm8gIDY1IEZlYiAgOCAx
-NzoxMyBsaWJtbHg1LXJkbWF2Mi5zbyAtPiAvaG9tZS9sZW9ucm8vc3JjL2J1aWxkLWRlYi9saWIv
-eDg2XzY0LWxpbnV4LWdudS9saWJtbHg1LnNvLjEuMC4xMwoKTW9zdCBsaWtlbHkgdGhpcyBtZWFu
-cyB0aGF0IERFU1RfTElOS19QQVRIIHBhc3NlZCB0bwpyZG1hX2luc3RhbGxfc3ltbGluayBpcyBu
-b3QgY29ycmVjdC4gV2hpY2ggc3VnZ2VzdHMgcHl0aG9uIHJlbHBhdGggaXMKbm90IHdvcmtpbmcu
-LgoKcmVscGF0aCBpbiBweXRob24gaXMgZG9uZSB0ZXh0dWFsbHksIGZyb20gdGhlc2UgYXJnczoK
-Cj4gICAgICR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9L2xpYiR7REVTVH0uc28uJHtWRVJTSU9OfSAk
-e1ZFUkJTX1BST1ZJREVSX0RJUn0KCkJ1dAoKIHNldChWRVJCU19QUk9WSURFUl9ESVIgIiR7Q01B
-S0VfSU5TVEFMTF9GVUxMX0xJQkRJUn0vbGliaWJ2ZXJicyIKClNvIGlmIENNQUtFX0lOU1RBTExf
-RlVMTF9MSUJESVIgIT0gQ01BS0VfSU5TVEFMTF9MSUJESVIgKHdoaWNoIGRlcGVuZHMKb24gaG93
-IHRoZSBkaXN0cm8gYnVpbGQgc2NyaXB0IGNvbmZpZ3VyZXMgY21ha2UpIHRoZW4gaXQgd2lsbCBm
-YWlsLgoKU3dpdGNoIHRvOgoKICAgICAke0NNQUtFX0lOU1RBTExfRlVMTF9MSUJESVJ9L2xpYiR7
-REVTVH0uc28uJHtWRVJTSU9OfSAke1ZFUkJTX1BST1ZJREVSX0RJUn0KCkphc29uCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5nIGxpc3QK
-ZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwOi8vbGlzdHMub3BlbmZhYnJpY3Mub3JnL21h
-aWxtYW4vbGlzdGluZm8vZXdn
+On Wed, Feb 08, 2017 at 04:06:40AM +0000, Parav Pandit wrote:
+>Hi,
+>
+>> -----Original Message-----
+>> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+>> owner@vger.kernel.org] On Behalf Of Vishwanathapura, Niranjana
+>> Sent: Tuesday, February 7, 2017 2:23 PM
+>> To: dledford@redhat.com
+>> Cc: linux-rdma@vger.kernel.org; netdev@vger.kernel.org;
+>> dennis.dalessandro@intel.com; ira.weiny@intel.com; Niranjana
+>> Vishwanathapura <niranjana.vishwanathapura@intel.com>; Andrzej
+>> Kacprowski <andrzej.kacprowski@intel.com>
+>> Subject: [RFC v3 09/11] IB/hfi1: HFI_VNIC RDMA netdev support
+>>
+>> Add support to create and free HFI_VNIC rdma netdev devices.
+>> Implement netstack interface functionality including xmit_skb, receive side
+>> NAPI etc. Also implement rdma netdev control functions.
+>>
+>
+>All code in this particular patch belong to netdev VNIC ULP driver.
+>There is nothing much that appears specific to IB/RDMA that makes drivers/infiniband/hw as better place to be.
+>It has netdev tx, rx, napi, stats in this patch.
+>If VNIC is a ULP than most of the VNIC specific code should reside in the ULP directory or drivers/net/ethernet ?
+
+This patch implements HW specific portion of VNIC netdev. As it turnes out HW 
+queue spefific netstack interfacing (like NAPI, xmit_skb, Tx queue throttling 
+etc) are specific to HW implementation of the queues. Netstack APIs are 
+designed for that. Hence they belong in HW driver here and not in ULP.
+
+The HFI_VNIC ULP, implements control plane operatings by tapping into control 
+operations (open, close etc and encapsulation as specified by control plane).
+
+Niranjana
