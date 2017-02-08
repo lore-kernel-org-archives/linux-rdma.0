@@ -1,67 +1,140 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: OFED-4.8, rdma-core, and library paths
-Date: Wed, 8 Feb 2017 10:33:35 -0700
-Message-ID: <20170208173335.GB30720@obsidianresearch.com>
-References: <02c801d28166$693e17d0$3bba4770$@opengridcomputing.com>
- <20170207172752.GA12315@obsidianresearch.com>
- <20170207180642.GQ6005@mtr-leonro.local>
- <20170207181814.GA13368@obsidianresearch.com>
- <20170207183538.GT6005@mtr-leonro.local>
- <20170207184206.GA14102@obsidianresearch.com>
- <20170207194759.GU6005@mtr-leonro.local>
- <20170207201428.GV6005@mtr-leonro.local>
- <20170207205930.GA28922@obsidianresearch.com>
- <20170208063758.GZ6005@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-rc v1] RDMA: Remove kernel private defines and
+ reference to header from UAPI
+Date: Wed, 8 Feb 2017 19:25:44 +0200
+Message-ID: <20170208172544.GF6005@mtr-leonro.local>
+References: <20170208150409.29537-1-leon@kernel.org>
+ <8c2f6c58-f622-95cf-e146-ed7a5747fd9a@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3pz5mxW9ZsNVjNmM"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170208063758.GZ6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+In-Reply-To: <8c2f6c58-f622-95cf-e146-ed7a5747fd9a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBGZWIgMDgsIDIwMTcgYXQgMDg6Mzc6NThBTSArMDIwMCwgTGVvbiBSb21hbm92c2t5
-IHdyb3RlOgo+IE9uIFR1ZSwgRmViIDA3LCAyMDE3IGF0IDAxOjU5OjMwUE0gLTA3MDAsIEphc29u
-IEd1bnRob3JwZSB3cm90ZToKPiA+IE9uIFR1ZSwgRmViIDA3LCAyMDE3IGF0IDEwOjE0OjI4UE0g
-KzAyMDAsIExlb24gUm9tYW5vdnNreSB3cm90ZToKPiA+Cj4gPiA+ID4gPiBDb21waWxlIHRoZSBs
-aWJyYXJ5IHRvIGJ1aWxkL2xpYi9saWJpYnZlcmJzLWR2LW1seDUuc28uMS4wLjEzCj4gPiA+ID4g
-PiBhbmQgc2V0dXAgYSBzeW1saW5rIGJ1aWxkL2xpYi9saWJtbHg1LXJkbWF2Mi5zbyAtPiBsaWJp
-YnZlcmJzLWR2LW1seDUuc28uMS4wLjEzCj4gPiA+ID4KPiA+ID4gPiBKdXN0IGFzIGEgbm90ZSwg
-SSdtIGNhbGxpbmcgaXQgbGlibWx4NSBhbmQgbm90IGxpYmlidmVyYnMtZHYtbWx4NS4KPiA+Cj4g
-PiBUaGF0IHdpbGwgY2xhc2ggd2l0aCB0aGUgbGVnYWN5IHByb3ZpZGVycywgZG9uJ3QgcmVjb21t
-ZW5kIGl0Lgo+IAo+IElzIGl0IHJlYWwgc2NlbmFyaW8/IFdpbGwgdGhlc2UgbGVnYWN5IHByb3Zp
-ZGVycyBjby1leGlzdHMgd2l0aAo+IHJkbWEtY29yZSBsaWJyYXJ5PyBJIHJlYWxseSBkb24ndCBs
-aWtlIGxpYmlidmVyYnMtZHYtbWx4NSBuYW1lLCBpdCBpcwo+IHRvbyBsb25nIGFuZCBoYXZlIGZl
-YXR1cmUgbmFtZSBpbiB0aGUgbmFtZS4KCkknZCBzYXZlIGhhdmluZyB0aGUgJ2R2JyBpbiB0aGUg
-bmFtZSBpcyBzb3J0IG9mIHRoZSBwb2ludC4uLgoKVGhlIHBvc3NpYmxlIGlzc3VlIHdvdWxkIGJl
-IGlmIGFuIGFwcCBsaW5rcyB0byB0aGlzIG5ldyBsaWJyYXJ5IGFuZCBpcwpydW4gb24gYW4gb2xk
-IHN5c3RlbSB3aXRoIHRoZSBvbGQgdHlwZSBvZiBsaWJyYXJ5IC0gdGhlbiB5b3UnZCBnZXQgYQpy
-ZWFsbHkgdWdseSBsaW5rZXIgZXJyb3IgbWVzc2FnZS4gSXQgaXMgYmVzdCB0byBhdm9pZCByZSB1
-c2luZyBsaWJyYXJ5Cm5hbWVzLgoKVGhhdCBzYWlkLCB0aGUgb2xkIG5hbWUgaXMgbGlibWx4NC1y
-ZG1hdjIuc28gc28gaXQgc2hvdWxkIGJlIE9LLi4KCj4gPiAgICAgZXhlY3V0ZV9wcm9jZXNzKENP
-TU1BTkQgIiR7Q01BS0VfQ09NTUFORH0iIC1FIGNyZWF0ZV9zeW1saW5rCj4gPiAgICAgICAgICAg
-ICAgICAgICJsaWIke0RFU1R9LnNvLiR7VkVSU0lPTn0iCj4gPiAJCSAiJHtCVUlMRF9MSUJ9L2xp
-YiR7REVTVH0tcmRtYXYyLnNvIikKPiA+Cj4gPiBJdCBjcmVhdGVzIGEgZGFuZ2xpbmcgbGluayB1
-bnRpbCBjb21waWxhdGlvbiwgd2hpY2ggaXMgZmluZS4uCj4gCj4gSW4gbm9uLW5pbmphIGJ1aWxk
-cywgaXQgZG9lc24ndCBjcmVhdGUgbGlibWx4NS1yZG1hdjIuc28gc3ltbGluayBpbgo+IGJ1aWxk
-L2xpYiwgYmVjYXVzZSBsaWJtbHg1LnNvIGlzIG5vdCBjcmVhdGVkIHlldC4gVGhpcyBpcyB3aHkg
-SSBlbmRlZAo+IHdpdGggY3VzdG9tIHRhcmdldC4KCkVoPyBUaGF0IGRvZXNuJ3Qgc291bmQgcmln
-aHQuCgo+ID4gPiAgIGluc3RhbGwoRklMRVMgIiR7QlVJTERfTElCfS9saWIke0RFU1R9LXJkbWF2
-Mi5zbyIgREVTVElOQVRJT04gIiR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9IikKPiA+Cj4gPiBUaGlz
-IGxpbmUgaXNuJ3QgbmVlZGVkLCBpdCBpcyBwYXJ0IG9mIHRoZSBuZXh0IGZ1bmN0aW9uCj4gCj4g
-Tm90IGZvciBidWlsZC9saWIKPiAKCj8gRG8gbm90IGluc3RhbGwgc29tZXRoaW5nIGNhbGxlbGQg
-bGliKi1yZG1hdjIuc28gdG8gL3Vzci9saWIvCgpKYXNvbgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpld2cgbWFpbGluZyBsaXN0CmV3Z0BsaXN0cy5vcGVu
-ZmFicmljcy5vcmcKaHR0cDovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2V3Zw==
+
+--3pz5mxW9ZsNVjNmM
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Feb 08, 2017 at 05:15:49PM +0200, Matan Barak (External) wrote:
+> On 08/02/2017 17:04, Leon Romanovsky wrote:
+> > Remove references to private kernel header and defines from exported
+> > ib_user_verb.h file.
+> >
+> > The code snippet below is used to reproduce the issue:
+> >
+> >  #include <stdio.h>
+> >  #include <rdma/ib_user_verb.h>
+> >
+> >  int main(void)
+> >  {
+> > 	printf("IB_USER_VERBS_ABI_VERSION =3D %d\n", IB_USER_VERBS_ABI_VERSION=
+);
+> > 	return 0;
+> >  }
+> >
+> > It fails during compilation phase with an error:
+> > =E2=9E=9C  /tmp gcc main.c
+> > main.c:2:31: fatal error: rdma/ib_user_verb.h: No such file or directory
+> >  #include <rdma/ib_user_verb.h>
+> >                                ^
+> > compilation terminated.
+> >
+> > Fixes: 189aba99e700 ("IB/uverbs: Extend modify_qp and support packet pa=
+cing")
+> > CC: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > CC: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+> > Tested-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> > Changelog v0 -> v1
+> >  * Document the origin of hard-coded values.
+> > ---
+> >  include/uapi/rdma/ib_user_verbs.h | 11 ++++++++---
+> >  1 file changed, 8 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_u=
+ser_verbs.h
+> > index dfdfe4e92d31..f4f87cff6dc6 100644
+> > --- a/include/uapi/rdma/ib_user_verbs.h
+> > +++ b/include/uapi/rdma/ib_user_verbs.h
+> > @@ -37,7 +37,6 @@
+> >  #define IB_USER_VERBS_H
+> >
+> >  #include <linux/types.h>
+> > -#include <rdma/ib_verbs.h>
+> >
+> >  /*
+> >   * Increment this value if any changes that break userspace ABI
+> > @@ -548,11 +547,17 @@ enum {
+> >  };
+> >
+> >  enum {
+> > -	IB_USER_LEGACY_LAST_QP_ATTR_MASK =3D IB_QP_DEST_QPN
+> > +	/*
+> > +	 * This value is equal to IB_QP_DEST_QPN.
+> > +	 */
+> > +	IB_USER_LEGACY_LAST_QP_ATTR_MASK =3D 1ULL << 20,
+> >  };
+> >
+> >  enum {
+> > -	IB_USER_LAST_QP_ATTR_MASK =3D IB_QP_RATE_LIMIT
+> > +	/*
+> > +	 * This value is equal to IB_QP_RATE_LIMIT.
+> > +	 */
+> > +	IB_USER_LAST_QP_ATTR_MASK =3D 1ULL << 25,
+> >  };
+> >
+> >  struct ib_uverbs_ex_create_qp {
+> > --
+> > 2.11.1
+> >
+>
+> I tried to write this earlier, but for some reason my mailer didn't really
+> send it.
+> IMHO, since these enum values are actually passed between user-space and
+> kernel (attr_mask), it's acceptable to expose all enum values.
+> Otherwise, user-space should define all these symbols by by itself (as do=
+ne
+> today), so why bother introduce only this explicit symbol?
+
+Mainly because it is -rc7 fix and it is MUST be applied as soon
+as possible, currently IB stack is broken.
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--3pz5mxW9ZsNVjNmM
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlibVJcACgkQ5GN7iDZy
+WKfp6xAAkfI3osmencweydFlF6ouS+yzKAwHVqo9xrCTdhh2przbvOpdsaiC378H
+4ciSCvlFM79HlrONrYSY42Z9MHT1Yyb/1VISU/V0GWApzOSjvpuxtCctoWXl/aIu
+jY14Gbjv3+643S8+b4cII44VJzpi5JNYkS8NDVepCS3D8bkgz3fYBt+5ItlYWUPe
+5sQPKbujicPMso6JThe9wvxgYYtMaZmXNiTCC9ypAyruBNUgVx+d44xftp4czT5a
+o1j7gHM6yLGeoWdACfGqeHKV88jZ5WJx6w6QMhOC9QlN2ojNbEtg4FISG4BWWeVU
+vFUDjSUYezejEg1SIHJIApiDAgS+MjGw3binl02mExKM+CM6ZFGkzOhjYMxEUhtt
+dD8cwXkuQfWw8FJiVc0KWIA9DBdz8k8J/wb5JR6T9RVnnTdJih2P21x6U0pDA76r
+V/24xrNRf1bFU7Umlv4pEpjCRbPoo2wBVSFVA46UI0dvUxiRiNzNy0Y2lyUld19q
+0IaXUGHciRMJN+NR+E2Y2TjngMu51srLfVjiufgnoWY0ykK4mc7jIHu77Yn8mg7N
+F05nVEnWjCna/BGqN0WIGGbhreECmrOB/i55XnQTvtbIEl82yEwI4nRJct3U9cM+
+ke5983ba89Vf0PrPkW8SQRVA1Ip53ReiUrTLZQknBPZc2AKh0gE=
+=X3lH
+-----END PGP SIGNATURE-----
+
+--3pz5mxW9ZsNVjNmM--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
