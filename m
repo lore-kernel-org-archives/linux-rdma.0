@@ -1,40 +1,67 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: RE: [RFC v3 00/11] HFI Virtual Network Interface Controller (VNIC)
-Date: Wed, 8 Feb 2017 17:21:29 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0E5F8C@ORSMSX109.amr.corp.intel.com>
-References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
-         <1486502926.2581.4.camel@sandisk.com>
-         <1828884A29C6694DAF28B7E6B8A82373AB0E5B6C@ORSMSX109.amr.corp.intel.com>
-         <1486504716.2581.8.camel@sandisk.com>
-         <20170208005416.GA76793@knc-06.sc.intel.com>
- <1486516168.2581.21.camel@sandisk.com>
- <2807E5FD2F6FDA4886F6618EAC48510E3C644BF1@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: OFED-4.8, rdma-core, and library paths
+Date: Wed, 8 Feb 2017 10:33:35 -0700
+Message-ID: <20170208173335.GB30720@obsidianresearch.com>
+References: <02c801d28166$693e17d0$3bba4770$@opengridcomputing.com>
+ <20170207172752.GA12315@obsidianresearch.com>
+ <20170207180642.GQ6005@mtr-leonro.local>
+ <20170207181814.GA13368@obsidianresearch.com>
+ <20170207183538.GT6005@mtr-leonro.local>
+ <20170207184206.GA14102@obsidianresearch.com>
+ <20170207194759.GU6005@mtr-leonro.local>
+ <20170207201428.GV6005@mtr-leonro.local>
+ <20170207205930.GA28922@obsidianresearch.com>
+ <20170208063758.GZ6005@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E3C644BF1@CRSMSX101.amr.corp.intel.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: "Weiny, Ira" <ira.weiny@intel.com>, Bart Van Assche <Bart.VanAssche@sandisk.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170208063758.GZ6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Even reading your statement twice did not make me any wiser.
-> > You mentioned "better hardware resource usage". Compared to what? Is
-> that
-> > perhaps compared to IPoIB?  Since Ethernet frames have an extra
-> header and
-> > are larger than IPoIB frames, how can larger frames result in better
-> hardware
-> > resource usage?
-> 
-> Yes, as compared to IPoIB.  The problem with IPoIB is it introduces a
-> significant amount of Verbs overhead which is not needed for Ethernet
-> encapsulation.  Especially on hardware such as ours.  As Jason has
-> mentioned having a more generic "skb_send" or "skb_qp" has been
-> discussed in the past.
-
-Let's start discussing whether ipoib should be in the upstream kernel while we're at this nonsense.
-
-The IBTA chose to encapsulate IP over IB transport as their mechanism for supporting traditional socket based applications.  OPA chose Ethernet encapsulated over OPA link layer.  RDMA isn't involved with OPA.  This is a pointless discussion over architecture.
+T24gV2VkLCBGZWIgMDgsIDIwMTcgYXQgMDg6Mzc6NThBTSArMDIwMCwgTGVvbiBSb21hbm92c2t5
+IHdyb3RlOgo+IE9uIFR1ZSwgRmViIDA3LCAyMDE3IGF0IDAxOjU5OjMwUE0gLTA3MDAsIEphc29u
+IEd1bnRob3JwZSB3cm90ZToKPiA+IE9uIFR1ZSwgRmViIDA3LCAyMDE3IGF0IDEwOjE0OjI4UE0g
+KzAyMDAsIExlb24gUm9tYW5vdnNreSB3cm90ZToKPiA+Cj4gPiA+ID4gPiBDb21waWxlIHRoZSBs
+aWJyYXJ5IHRvIGJ1aWxkL2xpYi9saWJpYnZlcmJzLWR2LW1seDUuc28uMS4wLjEzCj4gPiA+ID4g
+PiBhbmQgc2V0dXAgYSBzeW1saW5rIGJ1aWxkL2xpYi9saWJtbHg1LXJkbWF2Mi5zbyAtPiBsaWJp
+YnZlcmJzLWR2LW1seDUuc28uMS4wLjEzCj4gPiA+ID4KPiA+ID4gPiBKdXN0IGFzIGEgbm90ZSwg
+SSdtIGNhbGxpbmcgaXQgbGlibWx4NSBhbmQgbm90IGxpYmlidmVyYnMtZHYtbWx4NS4KPiA+Cj4g
+PiBUaGF0IHdpbGwgY2xhc2ggd2l0aCB0aGUgbGVnYWN5IHByb3ZpZGVycywgZG9uJ3QgcmVjb21t
+ZW5kIGl0Lgo+IAo+IElzIGl0IHJlYWwgc2NlbmFyaW8/IFdpbGwgdGhlc2UgbGVnYWN5IHByb3Zp
+ZGVycyBjby1leGlzdHMgd2l0aAo+IHJkbWEtY29yZSBsaWJyYXJ5PyBJIHJlYWxseSBkb24ndCBs
+aWtlIGxpYmlidmVyYnMtZHYtbWx4NSBuYW1lLCBpdCBpcwo+IHRvbyBsb25nIGFuZCBoYXZlIGZl
+YXR1cmUgbmFtZSBpbiB0aGUgbmFtZS4KCkknZCBzYXZlIGhhdmluZyB0aGUgJ2R2JyBpbiB0aGUg
+bmFtZSBpcyBzb3J0IG9mIHRoZSBwb2ludC4uLgoKVGhlIHBvc3NpYmxlIGlzc3VlIHdvdWxkIGJl
+IGlmIGFuIGFwcCBsaW5rcyB0byB0aGlzIG5ldyBsaWJyYXJ5IGFuZCBpcwpydW4gb24gYW4gb2xk
+IHN5c3RlbSB3aXRoIHRoZSBvbGQgdHlwZSBvZiBsaWJyYXJ5IC0gdGhlbiB5b3UnZCBnZXQgYQpy
+ZWFsbHkgdWdseSBsaW5rZXIgZXJyb3IgbWVzc2FnZS4gSXQgaXMgYmVzdCB0byBhdm9pZCByZSB1
+c2luZyBsaWJyYXJ5Cm5hbWVzLgoKVGhhdCBzYWlkLCB0aGUgb2xkIG5hbWUgaXMgbGlibWx4NC1y
+ZG1hdjIuc28gc28gaXQgc2hvdWxkIGJlIE9LLi4KCj4gPiAgICAgZXhlY3V0ZV9wcm9jZXNzKENP
+TU1BTkQgIiR7Q01BS0VfQ09NTUFORH0iIC1FIGNyZWF0ZV9zeW1saW5rCj4gPiAgICAgICAgICAg
+ICAgICAgICJsaWIke0RFU1R9LnNvLiR7VkVSU0lPTn0iCj4gPiAJCSAiJHtCVUlMRF9MSUJ9L2xp
+YiR7REVTVH0tcmRtYXYyLnNvIikKPiA+Cj4gPiBJdCBjcmVhdGVzIGEgZGFuZ2xpbmcgbGluayB1
+bnRpbCBjb21waWxhdGlvbiwgd2hpY2ggaXMgZmluZS4uCj4gCj4gSW4gbm9uLW5pbmphIGJ1aWxk
+cywgaXQgZG9lc24ndCBjcmVhdGUgbGlibWx4NS1yZG1hdjIuc28gc3ltbGluayBpbgo+IGJ1aWxk
+L2xpYiwgYmVjYXVzZSBsaWJtbHg1LnNvIGlzIG5vdCBjcmVhdGVkIHlldC4gVGhpcyBpcyB3aHkg
+SSBlbmRlZAo+IHdpdGggY3VzdG9tIHRhcmdldC4KCkVoPyBUaGF0IGRvZXNuJ3Qgc291bmQgcmln
+aHQuCgo+ID4gPiAgIGluc3RhbGwoRklMRVMgIiR7QlVJTERfTElCfS9saWIke0RFU1R9LXJkbWF2
+Mi5zbyIgREVTVElOQVRJT04gIiR7Q01BS0VfSU5TVEFMTF9MSUJESVJ9IikKPiA+Cj4gPiBUaGlz
+IGxpbmUgaXNuJ3QgbmVlZGVkLCBpdCBpcyBwYXJ0IG9mIHRoZSBuZXh0IGZ1bmN0aW9uCj4gCj4g
+Tm90IGZvciBidWlsZC9saWIKPiAKCj8gRG8gbm90IGluc3RhbGwgc29tZXRoaW5nIGNhbGxlbGQg
+bGliKi1yZG1hdjIuc28gdG8gL3Vzci9saWIvCgpKYXNvbgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpld2cgbWFpbGluZyBsaXN0CmV3Z0BsaXN0cy5vcGVu
+ZmFicmljcy5vcmcKaHR0cDovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2V3Zw==
