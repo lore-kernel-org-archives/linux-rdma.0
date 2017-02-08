@@ -1,82 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
 Subject: Re: [RFC v3 00/11] HFI Virtual Network Interface Controller (VNIC)
-Date: Wed, 8 Feb 2017 07:18:22 +0200
-Message-ID: <20170208051822.GX6005@mtr-leonro.local>
+Date: Wed, 8 Feb 2017 07:30:11 +0200
+Message-ID: <20170208053011.GY6005@mtr-leonro.local>
 References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
  <20170207203649.GW6005@mtr-leonro.local>
  <1828884A29C6694DAF28B7E6B8A82373AB0E5B0B@ORSMSX109.amr.corp.intel.com>
- <20170207214303.GA76652@knc-06.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5KHo5BF8+9nsmMl/"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="7jzg8fevGm/yfsZp"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170207214303.GA76652-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0E5B0B@ORSMSX109.amr.corp.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>
+Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---5KHo5BF8+9nsmMl/
+--7jzg8fevGm/yfsZp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 07, 2017 at 01:43:03PM -0800, Vishwanathapura, Niranjana wrote:
-> On Tue, Feb 07, 2017 at 01:00:05PM -0800, Hefty, Sean wrote:
-> > > I didn't read patches yet, and prefer to ask it in advance. Does this
-> > > new ULP work with all
-> > > drivers/infiniband/hw/* devices as it is expected from ULP?
-> >
-> > Like the way ipoib or srp work with all hw devices?  What is the real p=
-oint of this question?
+On Tue, Feb 07, 2017 at 09:00:05PM +0000, Hefty, Sean wrote:
+> > I didn't read patches yet, and prefer to ask it in advance. Does this
+> > new ULP work with all
+> > drivers/infiniband/hw/* devices as it is expected from ULP?
 >
-> Leon,
-> It was already discussed in below threads.
->
-> https://www.spinics.net/lists/linux-rdma/msg44128.html
-> https://www.spinics.net/lists/linux-rdma/msg44131.html
-> https://www.spinics.net/lists/linux-rdma/msg44155.html
+> Like the way ipoib or srp work with all hw devices?  What is the real point of this question?
 
-Yes, but you still didn't answer on my question.
-=46rom the first link:
-------
-  If that is your position then this should be a straight up IB ULP that
-  works with any IB hardware.
+Sorry, but I don't understand your response. Both IPoIB and SRP were standardized
+and implemented years before hfi was brought into the RDMA stack, so on
+time of introduction they clearly supported all the devices.
 
-Yes, see my comments in point #3 of my previous email...
-------
+Does this VNIC interface have standard? Where can I see HFI wire
+protocol to implement HFI VNIC support in our HW?
 
-Can I grab these patches and run on one of 14 drivers available in
-drivers/inifiniband/hw/* ?
+Thanks.
 
->
-> Niranjana
->
-
---5KHo5BF8+9nsmMl/
+--7jzg8fevGm/yfsZp
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliaqh0ACgkQ5GN7iDZy
-WKdTexAAxS8f8kQae0el7C7LpPkNndYA043WgDSNQzxrFL6w4DVX4FWqRqNB3kSA
-3D0uABT1sSx86TPAgg+njUUPMisCm0THvsriDMgLLuL5teagJsdHKZxjlIAp15M4
-QU9GDX2XL71Z7B0+yAOlEVOLWMwZe8tObQr0Fc1jtzNlEcp1hNzFLMRV81Wmz6cM
-uhY+TysMZzvu8lbw7laGsXLOAqpPsY/UQn7HQsXOz1WkpRsBGN4GUjJpx4lkZuma
-yqVFr5EabHSmEr22iOiJ2W8T/gmDeOhtc6x9a9wdd43Y3FBBj4VGI+ZSPN+biCT+
-RLVu0AQR4zXhsVln3wUQWsKN44ADUU1tR6EuBD805SLvSrqG3GaCXVwv2maiGzgn
-gYEb0LsdkyJepUl6lj9sJyym+m1mL3DCPJbVx++E2Vl751/ryC13VeogGKnznEsB
-+f5eQGT6SLtq1eJsLqKhMk7nItcDz5kzy3oQX5jUhb2fhyCIeNujkYdpauSAs6RM
-odpqbNIPiH9b18ZNm78AkYlNIveD7LsNyR6ZlJgwYiueywB3N631MhSI35sEkkXK
-DQCfRCZaHTaLABvHSOR2FE/kseWyeDzhwf1I0f7RAnte4s5Y2hfpZUVfnIv6IQ8Z
-LozbfKpo3QJuKrqLZshEc2vrXT2FTXBcD9OrTdWtqg51EHdOYgQ=
-=mH5X
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliarOIACgkQ5GN7iDZy
+WKdpZQ/9Hkzj3UxmKiOh34L8VKAb5KAgt7zYvLiZVWlUKPYhGk+C+eYjC2IbuJvR
+6TkSB5DI2FyRREnXVOG4iSqJjarTMOUxysNvldcfGn32ofIvCS1VECqgb8ALoDEb
+hSUURyb9KhghFdVviSJFT5RYMaKoy9HMXbLe1/zEupp4wMefW+Z9GfJhJSak1wjm
+KT/eOLEf4TrjdOqQvz+VFBUhz7/V4nJr+R2WYxu9D2QoNkqLJMHJK4TCSLYMh2rO
+cu6vUdiKzeWEm9bcTcA2BlS2d30aVAqbJu+pG83b52HCYXNtUsb9T9oxfWo65hrq
+UbWQR+JSrAlVR/OERptPwZaomaI4wJl+pLe4++/n+2RYCd0Cw6fxBlMLMbM0AVEG
+tl7biavDohR68pTkPo6VM6EdxBSMnpcPkKekXItPn1paeAne6QlWkumNQ5T1Pl5F
+Ors8/kx+IbFy4v1DfI5fEktFE3wsXXlMYVCu1RBfLgMWGU+DgR2uRbyk1lEFam29
+jufFBtY7yFc3OmuYJAE35ueuunWGEwPwNn9RlUHe/7FYoqCV/OJ1TT3iE+kK8zio
+LKDlMYClHb2hTjxPAGXr1ujMxlF7phjB+aLwb1HjbmPzH2PoMTMc90rCuIKFJotA
+LwxILY3kF4G2g9UPshcOAN481I4UqNV0bO4JPq/ck5fPTvMPA08=
+=VDC5
 -----END PGP SIGNATURE-----
 
---5KHo5BF8+9nsmMl/--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--7jzg8fevGm/yfsZp--
