@@ -1,49 +1,56 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: OFED-4.8, rdma-core, and library paths
-Date: Wed, 8 Feb 2017 13:56:22 -0700
-Message-ID: <20170208205622.GA32427@obsidianresearch.com>
-References: <20170207183538.GT6005@mtr-leonro.local>
- <20170207184206.GA14102@obsidianresearch.com>
- <20170207194759.GU6005@mtr-leonro.local>
- <20170207201428.GV6005@mtr-leonro.local>
- <20170207205930.GA28922@obsidianresearch.com>
- <20170208063758.GZ6005@mtr-leonro.local>
- <20170208173335.GB30720@obsidianresearch.com>
- <20170208180104.GG6005@mtr-leonro.local>
- <20170208181820.GA31664@obsidianresearch.com>
- <20170208185446.GH6005@mtr-leonro.local>
+From: Julian Anastasov <ja-FgGsKACvmQM@public.gmane.org>
+Subject: Re: [PATCHv4 net-next 0/7] net: dst_confirm replacement
+Date: Wed, 8 Feb 2017 23:05:36 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1702082245270.2608@ja.home.ssi.bg>
+References: <1486415657-14714-1-git-send-email-ja@ssi.bg> <20170207.131134.567606043153504044.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170208185446.GH6005-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170207.131134.567606043153504044.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuehaibing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 08:54:46PM +0200, Leon Romanovsky wrote:
 
-> > Hmm. Can you update your github? I'll look for you.
+	Hello,
+
+On Tue, 7 Feb 2017, David Miller wrote:
+
+> From: Julian Anastasov <ja-FgGsKACvmQM@public.gmane.org>
+> Date: Mon,  6 Feb 2017 23:14:10 +0200
 > 
-> I pushed latest code to m/dv-1 branch, it is not for inclusion yet.
-> https://github.com/rleon/rdma-core/commits/m/dv-v1
-> Updated cover letter with changelog:
-> https://github.com/rleon/rdma-core/commit/a332669511d5bbbd3dcdd977fbf95aa7ee47a69e
-> And all cmake/packages stuff in the patch:
-> https://github.com/rleon/rdma-core/commit/fcc4996c7fa5169fe599c2d568476314c1f65ddc
+> > - I failed to understand the CXGB* code, I see dst_confirm()
+> > calls but I'm not sure dst_neigh_output() was called. For now
+> > I just removed the dst->pending_confirm flag and left all
+> > dst_confirm() calls there. Any better idea?
+> 
+> As I said, it is trying to confirm neighbours based upon traffic
+> occurring in the chips TCP offload stack.  The 'cm' in "iwch_cm.c"
+> means "connection manager".
+> 
+> We can probably get to the neigh that will end up being used
+> since there should be a flow key somewhere that we can use to
+> determine the nexthop address for neigh lookup.
 
-This should take care of most things
+	I was reluctant to add slow neigh lookup there,
+I was not sure if there is a saved address somewhere, for
+the all places that call dst_confirm.
 
-https://github.com/jgunthorpe/rdma-plumbing/commit/490b7fb184c414ab16b7056f1effa9136e8afe46
+> > - Now may be old function neigh_output() should be restored
+> > instead of dst_neigh_output?
+> 
+> Please elaborate.
 
-The debian packaging still needs some adjusting.
+	As dst_neigh_output does not use the dst arg anymore,
+my idea was to rename dst_neigh_output to neigh_output, i.e.
+just like it was before commit 5110effee8fd ("net: Do delayed neigh 
+confirmation."
 
-I suspect it is against Debian policy to include libmlx.so in the
-providers package, it probably needs to have its own package and its
-own -dev package.
+Regards
 
-Jason
+--
+Julian Anastasov <ja-FgGsKACvmQM@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
