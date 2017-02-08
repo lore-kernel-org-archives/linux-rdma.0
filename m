@@ -1,47 +1,77 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] svcrdma: Another sendto chunk list parsing update
-Date: Tue, 7 Feb 2017 15:30:58 -0500
-Message-ID: <C65F013C-84A2-456D-A0C0-04444D3C4D58@oracle.com>
-References: <20170207165131.14422.47088.stgit@klimt.1015granger.net> <20170207165815.14422.77348.stgit@klimt.1015granger.net> <20170207194252.GA28088@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170207194252.GA28088-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [RFC v3 02/11] IB/hfi-vnic: Virtual Network Interface Controller
+ (VNIC) interface
+Date: Wed, 8 Feb 2017 00:43:40 +0000
+Message-ID: <VI1PR0502MB3008911E9587F4C004BFEF13D1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
+ <1486498990-76562-3-git-send-email-niranjana.vishwanathapura@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1486498990-76562-3-git-send-email-niranjana.vishwanathapura@intel.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "ira.weiny@intel.com" <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi=20
 
-> On Feb 7, 2017, at 2:42 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> 
->> 	/* Prepare the SGE for the RPCRDMA Header */
->> 	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
->> -	ctxt->sge[0].length = svc_rdma_xdr_get_reply_hdr_len(rdma_resp);
->> +	ctxt->sge[0].length =
->> +	    svc_rdma_xdr_get_reply_hdr_len((__be32 *)rdma_resp);
-> 
-> That case is pretty ugly, but given that it'll go away soon it's
-> probably fine for now.
+> -----Original Message-----
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> owner@vger.kernel.org] On Behalf Of Vishwanathapura, Niranjana
+> Sent: Tuesday, February 7, 2017 2:23 PM
+> To: dledford@redhat.com
+> Cc: linux-rdma@vger.kernel.org; netdev@vger.kernel.org;
+> dennis.dalessandro@intel.com; ira.weiny@intel.com; Niranjana
+> Vishwanathapura <niranjana.vishwanathapura@intel.com>
+> Subject: [RFC v3 02/11] IB/hfi-vnic: Virtual Network Interface Controller
+> (VNIC) interface
+>=20
+> Add rdma netdev interface to ib device structure allowing rdma netdev
+> devices to be allocated by ib clients.
+> Define HFI VNIC interface between hardware independent VNIC
+> functionality and the hardware dependent VNIC functionality.
+>=20
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Niranjana Vishwanathapura
+> <niranjana.vishwanathapura@intel.com>
+> ---
+>  struct ib_device {
+>  	struct device                *dma_device;
+>=20
+> @@ -2096,6 +2114,15 @@ struct ib_device {
+>  							   struct
+> ib_rwq_ind_table_init_attr *init_attr,
+>  							   struct ib_udata
+> *udata);
+>  	int                        (*destroy_rwq_ind_table)(struct ib_rwq_ind_t=
+able
+> *wq_ind_table);
+> +	/* rdma netdev operations */
+> +	struct net_device *(*alloc_rdma_netdev)(
+> +					struct ib_device *device,
+> +					u8 port_num,
+> +					enum rdma_netdev_t type,
+> +					const char *name,
+> +					unsigned char name_assign_type,
+> +					void (*setup)(struct net_device *));
+> +	void (*free_rdma_netdev)(struct net_device *netdev);
+>  	struct ib_dma_mapping_ops   *dma_ops;
+>=20
+>  	struct module               *owner;
 
-Yes, the type cast will be replaced.
-
-
-> Otherwise this look good:
-> 
-> Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-
-Bruce, I assume you will pick up the extra Reviewed-by tags
-if I don't have to send another version of this series.
-
-
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As its clear from the cover letter and from the request to place this in dr=
+ivers/infiniband/ulp,
+Instead of increasing the ib_dev structure further,
+Can you change the code to make use of ib_register_client() and friend func=
+tions to register vnic as ULP.
+(similar to other ULP such as uverbs, srp, ipoib).
+This will also allow you get to get notified for removing the vnic device w=
+hen underlying rdma device gets removed.
+Based on the property that gets exposed by the ibdev, vnic driver filters w=
+hether it needs to load its vnic to specific device or not.
+This way modules are isolated between core and ULP little better.
+Would it work for you?
