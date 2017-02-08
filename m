@@ -1,86 +1,59 @@
-From: Peter Senna Tschudin <peter.senna@collabora.com>
-Subject: Re: [RFC 14/19] scsi: pmcraid: Replace PCI pool old API
-Date: Wed, 8 Feb 2017 19:42:35 +0100
-Message-ID: <20170208184235.GN16878@collabora.com>
-References: <20170208163457.28853-1-romain.perier@collabora.com>
- <20170208163457.28853-15-romain.perier@collabora.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/7] Add mlx5 direct verbs
+Date: Wed, 8 Feb 2017 20:45:47 +0200
+Message-ID: <efaec776-07dc-629c-0efc-ef395cec2407@grimberg.me>
+References: <1485446182-5109-1-git-send-email-yishaih@mellanox.com>
+ <SN1PR07MB22070381E7566FA819E5F8F8F8400@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <20170206114609.GK6005@mtr-leonro.local>
+ <20170206163937.GB14714@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170208163457.28853-15-romain.perier@collabora.com>
-Sender: netdev-owner@vger.kernel.org
-To: Romain Perier <romain.perier@collabora.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170206163937.GB14714-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 05:34:52PM +0100, Romain Perier wrote:
-> The PCI pool API is deprecated. This commits replaces the PCI pool old
-> API by the appropriated function with the DMA pool API.
-> 
-Tested by compilation only.
+Hey Jason,
 
-Acked-by: Peter Senna Tschudin <peter.senna@collabora.com>
-Tested-by: Peter Senna Tschudin <peter.senna@collabora.com>
-> Signed-off-by: Romain Perier <romain.perier@collabora.com>
-> ---
->  drivers/scsi/pmcraid.c | 10 +++++-----
->  drivers/scsi/pmcraid.h |  2 +-
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/scsi/pmcraid.c b/drivers/scsi/pmcraid.c
-> index 49e70a3..0f893c4 100644
-> --- a/drivers/scsi/pmcraid.c
-> +++ b/drivers/scsi/pmcraid.c
-> @@ -4699,13 +4699,13 @@ pmcraid_release_control_blocks(
->  		return;
->  
->  	for (i = 0; i < max_index; i++) {
-> -		pci_pool_free(pinstance->control_pool,
-> +		dma_pool_free(pinstance->control_pool,
->  			      pinstance->cmd_list[i]->ioa_cb,
->  			      pinstance->cmd_list[i]->ioa_cb_bus_addr);
->  		pinstance->cmd_list[i]->ioa_cb = NULL;
->  		pinstance->cmd_list[i]->ioa_cb_bus_addr = 0;
->  	}
-> -	pci_pool_destroy(pinstance->control_pool);
-> +	dma_pool_destroy(pinstance->control_pool);
->  	pinstance->control_pool = NULL;
->  }
->  
-> @@ -4762,8 +4762,8 @@ static int pmcraid_allocate_control_blocks(struct pmcraid_instance *pinstance)
->  		pinstance->host->unique_id);
->  
->  	pinstance->control_pool =
-> -		pci_pool_create(pinstance->ctl_pool_name,
-> -				pinstance->pdev,
-> +		dma_pool_create(pinstance->ctl_pool_name,
-> +				&pinstance->pdev->dev,
->  				sizeof(struct pmcraid_control_block),
->  				PMCRAID_IOARCB_ALIGNMENT, 0);
->  
-> @@ -4772,7 +4772,7 @@ static int pmcraid_allocate_control_blocks(struct pmcraid_instance *pinstance)
->  
->  	for (i = 0; i < PMCRAID_MAX_CMD; i++) {
->  		pinstance->cmd_list[i]->ioa_cb =
-> -			pci_pool_alloc(
-> +			dma_pool_alloc(
->  				pinstance->control_pool,
->  				GFP_KERNEL,
->  				&(pinstance->cmd_list[i]->ioa_cb_bus_addr));
-> diff --git a/drivers/scsi/pmcraid.h b/drivers/scsi/pmcraid.h
-> index 568b18a..acf5a7b 100644
-> --- a/drivers/scsi/pmcraid.h
-> +++ b/drivers/scsi/pmcraid.h
-> @@ -755,7 +755,7 @@ struct pmcraid_instance {
->  
->  	/* structures related to command blocks */
->  	struct kmem_cache *cmd_cachep;		/* cache for cmd blocks */
-> -	struct pci_pool *control_pool;		/* pool for control blocks */
-> +	struct dma_pool *control_pool;		/* pool for control blocks */
->  	char   cmd_pool_name[64];		/* name of cmd cache */
->  	char   ctl_pool_name[64];		/* name of control cache */
->  
-> -- 
-> 2.9.3
-> 
+> To expound on that - the trade off we discussed in-person was we
+> either do something like this or continually take endless
+> vendor-specific patches to add 'common' core code for unstandardized
+> chip-specific features.
+>
+> This seemed like the least bad trade off, if another vendor wants the
+> same things then they could work together and make an actual
+> multi-chip common API. I was expecting this interface to be used in
+> only a few places, like the next level of middleware libraries
+> (libfabric, mxm, etc) not for many end-users.
+
+I think this is exactly the use-case. Something that looks like a
+user-space driver on the back-side of a common API.
+
+> I'm still not completely sure what this API is intended to do, if it is
+> really just performance then I am less supportive and would rather see
+> an approach like libfabric where a user can build a single provider verbs
+> with the same source API, but optimized....
+
+I'm also not in favor for having this code-path solely for performance
+reasons, if the common stack is not good enough, let's fix it. What I
+think this is trying to solve is the continuous inflation of
+non-standard extensions to the common API.
+
+These features raised constant complaints in code review before, which
+in turn caused the vendors to place their extensions in an internal
+packages (e.g. MLNX_OFED) and also educate their customers to use their
+packaged drivers (which usually broke the rest of the world).
+
+So I can understand Mellanox wanting to expose vendor specific
+capabilities and move away from their in-house distribution of
+user-space packages, and I think we should all encourage it.
+
+And, this is also why I think that another set of a common API is
+a good choice.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
