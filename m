@@ -1,51 +1,40 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 4/4] cxgb4: Convert PDBG to pr_debug
-Date: Thu, 9 Feb 2017 16:37:05 -0600
-Message-ID: <04ce01d28325$0a3dda20$1eb98e60$@opengridcomputing.com>
-References: <cover.1486678686.git.joe@perches.com> <747edc68212781296de30dd2b4e63711240da7a9.1486678686.git.joe@perches.com>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/4] cxgb3: Use more common logging style
+Date: Thu, 09 Feb 2017 14:39:43 -0800
+Message-ID: <1486679983.2162.4.camel@perches.com>
+References: <cover.1486678686.git.joe@perches.com>
+         <15772862930dfd2f2e10574b86c063d781976a89.1486678686.git.joe@perches.com>
+         <04c801d28324$a8459740$f8d0c5c0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <747edc68212781296de30dd2b4e63711240da7a9.1486678686.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <04c801d28324$a8459740$f8d0c5c0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Joe Perches' <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH 4/4] cxgb4: Convert PDBG to pr_debug
+On Thu, 2017-02-09 at 16:34 -0600, Steve Wise wrote:
+> > Subject: [PATCH 1/4] cxgb3: Use more common logging style
+[]
+> > -#define MOD "iw_cxgb3: "
+> > -#define PDBG(fmt, args...) pr_debug(MOD fmt, ## args)
+> > +#ifdef pr_fmt
+> > +#undef pr_fmt
+> > +#endif
 > 
-> Use a more typical logging style.
-> 
-> Miscellanea:
-> 
-> o Obsolete the c4iw_debug module parameter
-> o Coalesce formats
-> o Realign arguments
-> 
-> Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/hw/cxgb4/cm.c       | 303
-+++++++++++++++++----------------
->  drivers/infiniband/hw/cxgb4/cq.c       |  71 ++++----
->  drivers/infiniband/hw/cxgb4/device.c   |  58 +++----
->  drivers/infiniband/hw/cxgb4/ev.c       |  29 ++--
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  44 +++--
->  drivers/infiniband/hw/cxgb4/mem.c      |  28 +--
->  drivers/infiniband/hw/cxgb4/provider.c |  38 ++---
->  drivers/infiniband/hw/cxgb4/qp.c       |  91 +++++-----
->  drivers/infiniband/hw/cxgb4/resource.c |  46 ++---
->  drivers/infiniband/hw/cxgb4/t4.h       |  22 +--
->  10 files changed, 368 insertions(+), 362 deletions(-)
+> Is the ifdef/undef needed?  I see other modules just define pr_fmt() regardless.
 
+Yes.
 
-Looks good (and thanks).
+Because kernel.h may be included before this file,
+kernel.h creates a define for pr_fmt, so this must
+be undef'd before redefining it.
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
+The other option, done in most files, is to add
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+before any #include
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
