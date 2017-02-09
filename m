@@ -1,88 +1,299 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH 09/14] RDMA/cxgb4: Use common error handling code in
- recover_lost_dbs()
-Date: Thu, 9 Feb 2017 20:57:14 +0200
-Message-ID: <20170209185714.GQ6005@mtr-leonro.local>
-References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
- <3da7cff6-9f94-2ae8-a173-7ad6efdb524b@users.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="XAvhOFWJb7CBzhKn"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3da7cff6-9f94-2ae8-a173-7ad6efdb524b@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 12/12] sunrpc: Allow keepalive ping on a credit-full transport
+Date: Thu, 9 Feb 2017 14:42:42 -0500
+Message-ID: <4E4245D4-8F9C-4CF3-8B2D-E4528B9E791F@oracle.com>
+References: <20170208214854.7152.83331.stgit@manet.1015granger.net> <20170208220116.7152.87626.stgit@manet.1015granger.net> <1486598713.11028.3.camel@primarydata.com> <9D6B8B44-9C23-427C-9E06-7C92302EB04D@oracle.com> <1486601331.11028.5.camel@primarydata.com> <2AFD96A3-8D49-4E2E-B1F1-9F5C46D0C9C8@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2AFD96A3-8D49-4E2E-B1F1-9F5C46D0C9C8-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---XAvhOFWJb7CBzhKn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Feb 9, 2017, at 10:37 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> 
+>> On Feb 8, 2017, at 7:48 PM, Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
+>> 
+>> On Wed, 2017-02-08 at 19:19 -0500, Chuck Lever wrote:
+>>>> On Feb 8, 2017, at 7:05 PM, Trond Myklebust <trondmy-7I+n7zu2hfthDmVcRT8U2w@public.gmane.org
+>>>> m> wrote:
+>>>> 
+>>>> On Wed, 2017-02-08 at 17:01 -0500, Chuck Lever wrote:
+>>>>> Allow RPC-over-RDMA to send NULL pings even when the transport
+>>>>> has
+>>>>> hit its credit limit. One RPC-over-RDMA credit is reserved for
+>>>>> operations like keepalive.
+>>>>> 
+>>>>> For transports that convey NFSv4, it seems like lease renewal
+>>>>> would
+>>>>> also be a candidate for using a priority transport slot. I'd like
+>>>>> to
+>>>>> see a mechanism better than RPCRDMA_PRIORITY that can ensure only
+>>>>> one priority operation is in use at a time.
+>>>>> 
+>>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>> ---
+>>>>> include/linux/sunrpc/sched.h    |    2 ++
+>>>>> net/sunrpc/xprt.c               |    4 ++++
+>>>>> net/sunrpc/xprtrdma/transport.c |    3 ++-
+>>>>> net/sunrpc/xprtrdma/verbs.c     |   13 ++++++++-----
+>>>>> 4 files changed, 16 insertions(+), 6 deletions(-)
+>>>>> 
+>>>>> diff --git a/include/linux/sunrpc/sched.h
+>>>>> b/include/linux/sunrpc/sched.h
+>>>>> index 13822e6..fcea158 100644
+>>>>> --- a/include/linux/sunrpc/sched.h
+>>>>> +++ b/include/linux/sunrpc/sched.h
+>>>>> @@ -127,6 +127,7 @@ struct rpc_task_setup {
+>>>>> #define RPC_TASK_TIMEOUT	0x1000		/* fail
+>>>>> with
+>>>>> ETIMEDOUT on timeout */
+>>>>> #define RPC_TASK_NOCONNECT	0x2000		/*
+>>>>> return
+>>>>> ENOTCONN if not connected */
+>>>>> #define RPC_TASK_NO_RETRANS_TIMEOUT	0x4000		
+>>>>> /*
+>>>>> wait forever for a reply */
+>>>>> +#define RPC_TASK_NO_CONG	0x8000		/* skip
+>>>>> congestion control */
+>>>>> 
+>>>>> #define RPC_TASK_SOFTPING	(RPC_TASK_SOFT |
+>>>>> RPC_TASK_SOFTCONN)
+>>>>> 
+>>>>> @@ -137,6 +138,7 @@ struct rpc_task_setup {
+>>>>> #define RPC_IS_SOFT(t)		((t)->tk_flags &
+>>>>> (RPC_TASK_SOFT|RPC_TASK_TIMEOUT))
+>>>>> #define RPC_IS_SOFTCONN(t)	((t)->tk_flags &
+>>>>> RPC_TASK_SOFTCONN)
+>>>>> #define RPC_WAS_SENT(t)		((t)->tk_flags &
+>>>>> RPC_TASK_SENT)
+>>>>> +#define RPC_SKIP_CONG(t)	((t)->tk_flags &
+>>>>> RPC_TASK_NO_CONG)
+>>>>> 
+>>>>> #define RPC_TASK_RUNNING	0
+>>>>> #define RPC_TASK_QUEUED		1
+>>>>> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+>>>>> index b530a28..a477ee6 100644
+>>>>> --- a/net/sunrpc/xprt.c
+>>>>> +++ b/net/sunrpc/xprt.c
+>>>>> @@ -392,6 +392,10 @@ static inline void xprt_release_write(struct
+>>>>> rpc_xprt *xprt, struct rpc_task *ta
+>>>>> {
+>>>>> 	struct rpc_rqst *req = task->tk_rqstp;
+>>>>> 
+>>>>> +	if (RPC_SKIP_CONG(task)) {
+>>>>> +		req->rq_cong = 0;
+>>>>> +		return 1;
+>>>>> +	}
+>>>> 
+>>>> Why not just have the RDMA layer call xprt_reserve_xprt() (and
+>>>> xprt_release_xprt()) if this flag is set? It seems to me that you
+>>>> will
+>>>> need some kind of extra congestion control in the RDMA layer anyway
+>>>> since you only have one reserved credit for these privileged tasks
+>>>> (or
+>>>> did I miss where that is being gated?).
+>>> 
+>>> Thanks for the review.
+>>> 
+>>> See RPCRDMA_IA_RSVD_CREDIT in 11/12. It's a hack I'm not
+>>> terribly happy with.
+>>> 
+>>> So, I think you are suggesting replacing xprtrdma's
+>>> ->reserve_xprt with something like:
+>>> 
+>>> int xprt_rdma_reserve_xprt(xprt, task)
+>>> {
+>>>      if (RPC_SKIP_CONG(task))
+>>>           return xprt_reserve_xprt(xprt, task);
+>>>      return xprt_reserve_xprt_cong(xprt, task);
+>>> }
+>>> 
+>>> and likewise for ->release_xprt ?
+>> 
+>> Right.
 
-On Wed, Feb 08, 2017 at 10:19:41PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 8 Feb 2017 18:08:08 +0100
->
-> Add a jump target so that a bit of exception handling can be better reused
-> from an in branch in this function.
->
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/infiniband/hw/cxgb4/device.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index 2931920d7c4c..86cf7026619f 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -1402,9 +1402,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
->  			       pci_name(ctx->lldi.pdev),
->  			       ": Fatal error - DB overflow recovery failed - error syncing ",
->  			       qp->wq.sq.qid);
-> -			spin_unlock(&qp->lock);
-> -			spin_unlock_irq(&qp->rhp->lock);
-> -			return;
-> +			goto unlock;
->  		}
->  		qp->wq.sq.wq_pidx_inc = 0;
->
-> @@ -1418,6 +1416,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
->  			       pci_name(ctx->lldi.pdev),
->  			       ": Fatal error - DB overflow recovery failed - error syncing ",
->  			       qp->wq.rq.qid);
-> +unlock:
->  			spin_unlock(&qp->lock);
->  			spin_unlock_irq(&qp->rhp->lock);
->  			return;
+This seems to work fine for the normal cases.
+
+I'm confused about how to construct xprt_rdma_release_xprt()
+so it never releases a normal RPC task when a SKIP_CONG
+task completes and the credit limit is still full.
+
+If it should send a normal task using the reserved credit
+and that task hangs too, we're in exactly the position
+we wanted to avoid.
+
+My original solution might have had a similar problem,
+come to think of it.
 
 
-These patches are completely insane.
-Goto label in the middle of the loop, just to exit from it.
-
+>>> What I'd really like to do is have the RPC layer
+>>> prevent more than one RPC at a time from using the
+>>> extra credit, and somehow ensure that those RPCs
+>>> are going to be short-lived (SOFT | SOFTCONN,
+>>> maybe).
+>> 
+>> Credits are a transport layer thing, though. There is no equivalent in
+>> the non-RDMA world. TCP and UDP should normally both be fine with
+>> transmitting an extra RPC call.
+> 
+> xprtrdma maps credits to the xprt->cwnd, which UDP also uses.
+> Agree though, there probably isn't a need for temporarily
+> superceding the UDP connection window.
+> 
+> 
+>> Even timeouts are a transport layer issue; see the patches I put out
+>> this morning in order to reduce the TCP connection timeouts and put
+>> them more in line with the lease period. Something like that makes no
+>> sense in the UDP world (no connections), or even in AF_LOCAL (no
+>> routing), which is why I added the set_connection_timeout() callback.
+> 
+> I browsed those a couple times, wondering if connection-oriented
+> RPC-over-RDMA also needs a set_connection_timeout method. Still
+> studying.
+> 
+> 
+>>>>> 	if (req->rq_cong)
+>>>>> 		return 1;
+>>>>> 	dprintk("RPC: %5u xprt_cwnd_limited cong = %lu cwnd =
+>>>>> %lu\n",
+>>>>> diff --git a/net/sunrpc/xprtrdma/transport.c
+>>>>> b/net/sunrpc/xprtrdma/transport.c
+>>>>> index 3a5a805..073fecd 100644
+>>>>> --- a/net/sunrpc/xprtrdma/transport.c
+>>>>> +++ b/net/sunrpc/xprtrdma/transport.c
+>>>>> @@ -546,7 +546,8 @@ static void rpcrdma_keepalive_release(void
+>>>>> *calldata)
+>>>>> 
+>>>>> 	data = xprt_get(xprt);
+>>>>> 	null_task = rpc_call_null_helper(task->tk_client, xprt,
+>>>>> NULL,
+>>>>> -					 RPC_TASK_SOFTPING |
+>>>>> RPC_TASK_ASYNC,
+>>>>> +					 RPC_TASK_SOFTPING |
+>>>>> RPC_TASK_ASYNC |
+>>>>> +					 RPC_TASK_NO_CONG,
+>>>>> 					 &rpcrdma_keepalive_call
+>>>>> _ops
+>>>>> , data);
+>>>>> 	if (!IS_ERR(null_task))
+>>>>> 		rpc_put_task(null_task);
+>>>>> diff --git a/net/sunrpc/xprtrdma/verbs.c
+>>>>> b/net/sunrpc/xprtrdma/verbs.c
+>>>>> index 81cd31a..d9b5fa7 100644
+>>>>> --- a/net/sunrpc/xprtrdma/verbs.c
+>>>>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>>>>> @@ -136,19 +136,20 @@
+>>>>> static void
+>>>>> rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
+>>>>> {
+>>>>> -	struct rpcrdma_msg *rmsgp = rdmab_to_msg(rep-
+>>>>>> rr_rdmabuf);
+>>>>> 	struct rpcrdma_buffer *buffer = &rep->rr_rxprt->rx_buf;
+>>>>> +	__be32 *p = rep->rr_rdmabuf->rg_base;
+>>>>> 	u32 credits;
+>>>>> 
+>>>>> 	if (rep->rr_len < RPCRDMA_HDRLEN_ERR)
+>>>>> 		return;
+>>>>> 
+>>>>> -	credits = be32_to_cpu(rmsgp->rm_credit);
+>>>>> +	credits = be32_to_cpup(p + 2);
+>>>>> +	if (credits > buffer->rb_max_requests)
+>>>>> +		credits = buffer->rb_max_requests;
+>>>>> +	/* Reserve one credit for keepalive ping */
+>>>>> +	credits--;
+>>>>> 	if (credits == 0)
+>>>>> 		credits = 1;	/* don't deadlock */
+>>>>> -	else if (credits > buffer->rb_max_requests)
+>>>>> -		credits = buffer->rb_max_requests;
+>>>>> -
+>>>>> 	atomic_set(&buffer->rb_credits, credits);
+>>>>> }
+>>>>> 
+>>>>> @@ -915,6 +916,8 @@ struct rpcrdma_rep *
+>>>>> 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+>>>>> 	int i, rc;
+>>>>> 
+>>>>> +	if (r_xprt->rx_data.max_requests < 2)
+>>>>> +		return -EINVAL;
+>>>>> 	buf->rb_max_requests = r_xprt->rx_data.max_requests;
+>>>>> 	buf->rb_bc_srv_max_requests = 0;
+>>>>> 	atomic_set(&buf->rb_credits, 1);
+>>>>> 
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>>>>> nfs"
+>>>>> in
+>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.htm
+>>>>> l
+>>>>> 
+>>>> 
+>>>> -- 
+>>>> 
+>>>> 
+>>>> 	
+>>>> 	
+>>>> 
+>>>> 
+>>>> Trond Myklebust
+>>>> Principal System Architect
+>>>> 4300 El Camino Real | Suite 100
+>>>> Los Altos, CA  94022
+>>>> W: 650-422-3800
+>>>> C: 801-921-4583 
+>>>> www.primarydata.com
+>>> 
+>>> --
+>>> Chuck Lever
+>>> 
+>>> 
+>>> 
+>> -- 
+>> 
+>> 
+>> 
+>> 	
+>> 	
+>> 
+>> 
+>> Trond Myklebust
+>> Principal System Architect
+>> 4300 El Camino Real | Suite 100
+>> Los Altos, CA  94022
+>> W: 650-422-3800
+>> C: 801-921-4583 
+>> www.primarydata.com
+>> 
+>> 
+>> 
+>> 
+>> N���r�y���b�X�ǧv�^�)޺{.n�+�{#<^_NSEDR_^#<ٚ�{ay�
+ʇڙ�,j�f�h��z�
+�w�
+�j:+v�w�j�m����zZ+��ݢj"�!
+> 
 > --
-> 2.11.1
->
+> Chuck Lever
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---XAvhOFWJb7CBzhKn
-Content-Type: application/pgp-signature; name="signature.asc"
+--
+Chuck Lever
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlicu4kACgkQ5GN7iDZy
-WKciXQ/+JtIK4lP9GgLQQEZmOuJ8Zrwl6NLsI/bSFdYhz+BYQLpVxk+ClKBancOc
-0np/euRMo3nW5ykttMfehIw25rKXUIaXlW3Wb6kN5x4vrh+4EZCnOoEaG5zXw5E7
-D4wyb93XWBgHHQh8xOmLWuA7b/LXEH1x6rvRCowllgrmDrpWL8+kgn2xHQFHMlbT
-bq5EcQ6YMWczYTrR2VUuB30PoWmVgCcjKiu8boKT3O3YkSiMMrO4w9XAt4cCdKB9
-xN1boVjGW5gv3U9FYxv1fBWK9R2mfX3AUx1/enZF20gQLBZhtvZ1wAMw3zX8aNx/
-uX5FqzbbuCETbwwqMID4PVAU4k92mRiJEDVsoFvSqgTOMaAxqFMLBA0qTEvg3G7c
-gRRot1sptRg57+MhVJqWHAd5/PivGwLiUcgTn0t3B1mQ5FMIL4fnHpDGu9yzTV2h
-YzVsxDxrz+pHdxnxC6Jkgs+Kyl0lYotdJzbYDZ3i6uTp4MA0LnNWCB4TFuOceRWi
-VB7oXmJoK2UUDU9uTMvXXCeu7J5o8kJG2oAQsNqDZ4Glg8DMkDT2lOa7kPyz435m
-/GqOYprbSTcqTfIwnH0JcQMK7irOF66G6Pg4ThFPTJ8vzJMcFeoKqZ0vYfCT+xOS
-iD5n+8NUuRaVSsOah1ZN8U3N9LJt17+L0MnuqhnEKXd6p2YcnOM=
-=hTIp
------END PGP SIGNATURE-----
 
---XAvhOFWJb7CBzhKn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
