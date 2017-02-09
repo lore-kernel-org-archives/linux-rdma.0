@@ -1,70 +1,73 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH 04/14] RDMA/cxgb4: Use common error handling code in
- recover_queues()
-Date: Thu, 9 Feb 2017 10:30:08 +0100
-Message-ID: <af80d74d-fee5-6917-d92d-bd85a4cb92c2@suse.de>
-References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
- <e8abf0d7-1f4d-d218-194c-4c831dbf72d5@users.sourceforge.net>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: OFED-4.8, rdma-core, and library paths
+Date: Thu, 09 Feb 2017 10:53:26 +0100
+Message-ID: <1486634006.3632.5.camel@profitbricks.com>
+References: <20170207183538.GT6005@mtr-leonro.local>
+         <20170207184206.GA14102@obsidianresearch.com>
+         <20170207194759.GU6005@mtr-leonro.local>
+         <20170207201428.GV6005@mtr-leonro.local>
+         <20170207205930.GA28922@obsidianresearch.com>
+         <20170208063758.GZ6005@mtr-leonro.local>
+         <20170208173335.GB30720@obsidianresearch.com>
+         <20170208180104.GG6005@mtr-leonro.local>
+         <20170208181820.GA31664@obsidianresearch.com>
+         <20170208185446.GH6005@mtr-leonro.local>
+         <20170208205622.GA32427@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <e8abf0d7-1f4d-d218-194c-4c831dbf72d5@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170208205622.GA32427-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/08/2017 10:14 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 8 Feb 2017 15:51:58 +0100
+Am Mittwoch, den 08.02.2017, 13:56 -0700 schrieb Jason Gunthorpe:
+> On Wed, Feb 08, 2017 at 08:54:46PM +0200, Leon Romanovsky wrote:
 > 
-> Add a jump target so that a bit of exception handling can be better reused
-> at the end of this function.
+> > > Hmm. Can you update your github? I'll look for you.
+> > 
+> > I pushed latest code to m/dv-1 branch, it is not for inclusion yet.
+> > https://github.com/rleon/rdma-core/commits/m/dv-v1
+> > Updated cover letter with changelog:
+> > https://github.com/rleon/rdma-core/commit/a332669511d5bbbd3dcdd977f
+> > bf95aa7ee47a69e
+> > And all cmake/packages stuff in the patch:
+> > https://github.com/rleon/rdma-core/commit/fcc4996c7fa5169fe599c2d56
+> > 8476314c1f65ddc
 > 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/infiniband/hw/cxgb4/device.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> This should take care of most things
 > 
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index 444c28206dae..46410c4a9afb 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -1467,10 +1467,9 @@ static void recover_queues(struct uld_ctx *ctx)
->  	idr_for_each(&ctx->dev->qpidr, count_qps, &count);
->  
->  	qp_list.qps = kcalloc(count, sizeof(*qp_list.qps), GFP_ATOMIC);
-> -	if (!qp_list.qps) {
-> -		spin_unlock_irq(&ctx->dev->lock);
-> -		return;
-> -	}
-> +	if (!qp_list.qps)
-> +		goto unlock;
-> +
->  	qp_list.idx = 0;
->  
->  	/* add and ref each qp so it doesn't get freed */
-> @@ -1488,6 +1487,7 @@ static void recover_queues(struct uld_ctx *ctx)
->  	spin_lock_irq(&ctx->dev->lock);
->  	WARN_ON(ctx->dev->db_state != RECOVERY);
->  	ctx->dev->db_state = STOPPED;
-> +unlock:
->  	spin_unlock_irq(&ctx->dev->lock);
->  }
->  
+> https://github.com/jgunthorpe/rdma-plumbing/commit/490b7fb184c414ab16
+> b7056f1effa9136e8afe46
 > 
+> The debian packaging still needs some adjusting.
+> 
+> I suspect it is against Debian policy to include libmlx.so in the
+> providers package, it probably needs to have its own package and its
+> own -dev package.
 
-This patch is rather pointless IMHO. Using goto labels only brings
-benefits if you have more than one code path jumping to them this one
-just confuses the readers.
+When other packages should be able to link against libmlx.so and need
+header files for that, it is better to have separate binary packages
+(libmlx and libmlx-dev) for it.
 
-Byte,
-	Johannes
 -- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL:  http://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Andreas Gauger, Achim Weiss.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
