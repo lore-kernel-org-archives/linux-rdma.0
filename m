@@ -1,94 +1,59 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 10/10] verbs: Add a compatibility arch.h
-Date: Thu,  9 Feb 2017 14:53:32 -0700
-Message-ID: <1486677212-3188-11-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-core 09/10] Move the now private infiniband/arch.h to util/udma_barrier.h
+Date: Thu, 9 Feb 2017 16:25:57 -0600
+Message-ID: <049e01d28323$7bc1fb10$7345f130$@opengridcomputing.com>
+References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com> <1486677212-3188-10-git-send-email-jgunthorpe@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1486677212-3188-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1486677212-3188-10-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is a bit of software out there that includes arch.h to get the
-swap macros. Continue to provider a header that serves that purpose
-but emit warnings when it is used.
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH rdma-core 09/10] Move the now private infiniband/arch.h to
+> util/udma_barrier.h
+> 
+> This header now only contains the DMA barrier macros.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  CMakeLists.txt                 |   2 +-
+>  buildlib/travis-build          |   2 +-
+>  libibverbs/CMakeLists.txt      |   1 -
+>  libibverbs/arch.h              | 135
+-----------------------------------------
+>  providers/cxgb3/iwch.h         |   2 +-
+>  providers/cxgb4/libcxgb4.h     |   2 +-
+>  providers/hns/hns_roce_u.h     |   2 +-
+>  providers/i40iw/i40iw_osdep.h  |   2 +-
+>  providers/i40iw/i40iw_uk.c     |   2 +
+>  providers/i40iw/i40iw_umain.h  |   2 +-
+>  providers/mlx4/mlx4.h          |   2 +-
+>  providers/mlx5/mlx5.h          |   2 +-
+>  providers/mthca/mthca.h        |   2 +-
+>  providers/nes/nes_umain.h      |   2 +-
+>  providers/ocrdma/ocrdma_main.h |   2 +-
+>  providers/qedr/qelr.h          |   2 +-
+>  providers/qedr/qelr_main.h     |   2 +-
+>  providers/qedr/qelr_verbs.h    |   2 +-
+>  providers/vmw_pvrdma/cq.c      |   2 +-
+>  providers/vmw_pvrdma/qp.c      |   2 +-
+>  util/CMakeLists.txt            |   1 +
+>  util/udma_barrier.h            | 125 ++++++++++++++++++++++++++++++++++++++
+>  22 files changed, 145 insertions(+), 153 deletions(-)
+>  delete mode 100644 libibverbs/arch.h
+>  create mode 100644 util/udma_barrier.h
+> 
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- libibverbs/CMakeLists.txt |  1 +
- libibverbs/arch.h         | 51 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
- create mode 100644 libibverbs/arch.h
+cxgb* parts look fine.
 
-diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
-index 7e18a1e3e71d5e..7a52eddc810911 100644
---- a/libibverbs/CMakeLists.txt
-+++ b/libibverbs/CMakeLists.txt
-@@ -1,4 +1,5 @@
- publish_headers(infiniband
-+  arch.h
-   kern-abi.h
-   opcode.h
-   sa-kern-abi.h
-diff --git a/libibverbs/arch.h b/libibverbs/arch.h
-new file mode 100644
-index 00000000000000..bcbece8f2c521c
---- /dev/null
-+++ b/libibverbs/arch.h
-@@ -0,0 +1,51 @@
-+/*
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef INFINIBAND_ARCH_H
-+#define INFINIBAND_ARCH_H
-+
-+#include <stdint.h>
-+#include <endian.h>
-+
-+#warning "This header is obsolete."
-+
-+#ifndef ntohll
-+#undef htonll
-+#undef ntohll
-+/* Users should use the glibc functions directly, not these wrappers */
-+static inline __attribute__((deprecated)) uint64_t htonll(uint64_t x) { return htobe64(x); }
-+static inline __attribute__((deprecated)) uint64_t ntohll(uint64_t x) { return be64toh(x); }
-+#define htonll htonll
-+#define ntohll ntohll
-+#endif
-+
-+/* Barrier macros are no longer provided by libibverbs */
-+
-+#endif /* INFINIBAND_ARCH_H */
--- 
-2.7.4
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
