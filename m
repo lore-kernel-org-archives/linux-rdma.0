@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 01/10] Have check-build confirm that every public header is standalone
-Date: Thu,  9 Feb 2017 14:53:23 -0700
-Message-ID: <1486677212-3188-2-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 09/10] Move the now private infiniband/arch.h to util/udma_barrier.h
+Date: Thu,  9 Feb 2017 14:53:31 -0700
+Message-ID: <1486677212-3188-10-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1486677212-3188-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,131 +9,564 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Public library headers should be includable without requiring other
-headers to be included first. We confirm this by compiling each header
-in a stand alone compilation unit.
-
-Add a few minor missing headers to make the check pass.
+This header now only contains the DMA barrier macros.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- buildlib/check-build     | 55 +++++++++++++++++++++++++++++++++++++++++++++++-
- librdmacm/ib.h           |  1 +
- librdmacm/rdma_cma_abi.h |  1 +
- 3 files changed, 56 insertions(+), 1 deletion(-)
+ CMakeLists.txt                 |   2 +-
+ buildlib/travis-build          |   2 +-
+ libibverbs/CMakeLists.txt      |   1 -
+ libibverbs/arch.h              | 135 -----------------------------------------
+ providers/cxgb3/iwch.h         |   2 +-
+ providers/cxgb4/libcxgb4.h     |   2 +-
+ providers/hns/hns_roce_u.h     |   2 +-
+ providers/i40iw/i40iw_osdep.h  |   2 +-
+ providers/i40iw/i40iw_uk.c     |   2 +
+ providers/i40iw/i40iw_umain.h  |   2 +-
+ providers/mlx4/mlx4.h          |   2 +-
+ providers/mlx5/mlx5.h          |   2 +-
+ providers/mthca/mthca.h        |   2 +-
+ providers/nes/nes_umain.h      |   2 +-
+ providers/ocrdma/ocrdma_main.h |   2 +-
+ providers/qedr/qelr.h          |   2 +-
+ providers/qedr/qelr_main.h     |   2 +-
+ providers/qedr/qelr_verbs.h    |   2 +-
+ providers/vmw_pvrdma/cq.c      |   2 +-
+ providers/vmw_pvrdma/qp.c      |   2 +-
+ util/CMakeLists.txt            |   1 +
+ util/udma_barrier.h            | 125 ++++++++++++++++++++++++++++++++++++++
+ 22 files changed, 145 insertions(+), 153 deletions(-)
+ delete mode 100644 libibverbs/arch.h
+ create mode 100644 util/udma_barrier.h
 
-diff --git a/buildlib/check-build b/buildlib/check-build
-index 45e7cb41c83f39..ddb3383e6a5514 100755
---- a/buildlib/check-build
-+++ b/buildlib/check-build
-@@ -5,7 +5,9 @@ import argparse
- import inspect
- import os
- import re
-+import shutil
- import subprocess
-+import tempfile
- from contextlib import contextmanager;
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 45cbc4e018b296..009d133cf661a9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -286,7 +286,7 @@ include(RDMA_LinuxHeaders)
+ # arch specific property, but for our purposes arches that do not support it
+ # also do not define wmb/etc which breaks our compile.
+ CHECK_C_SOURCE_COMPILES("
+-#include \"${CMAKE_CURRENT_SOURCE_DIR}/libibverbs/arch.h\"
++#include \"${CMAKE_CURRENT_SOURCE_DIR}/util/udma_barrier.h\"
+  int main(int argc,const char *argv[]) {return 0;}"
+   HAVE_COHERENT_DMA)
  
- def get_src_dir():
-@@ -34,6 +36,15 @@ def inDirectory(dir):
-     finally:
-         os.chdir(cdir);
+diff --git a/buildlib/travis-build b/buildlib/travis-build
+index 4fb84e4e70690d..3fe5ff5876df46 100755
+--- a/buildlib/travis-build
++++ b/buildlib/travis-build
+@@ -26,7 +26,7 @@ ninja
  
-+@contextmanager
-+def private_tmp():
-+    """Simple version of Python 3's tempfile.TemporaryDirectory"""
-+    dfn = tempfile.mkdtemp();
-+    try:
-+        yield dfn;
-+    finally:
-+        shutil.rmtree(dfn);
-+
- # -------------------------------------------------------------------------
+ # Test with coherent DMA mode disabled (ie as would be on ARM32, etc)
+ cd ../build-clang
+-echo "#error Fail" >> ../libibverbs/arch.h
++echo "#error Fail" >> ../util/udma_barrier.h
+ rm CMakeCache.txt
+ CC=clang-3.9 CFLAGS=-Werror cmake -GNinja ..
+ ninja
+diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
+index 0c2eb87e2adbe1..7e18a1e3e71d5e 100644
+--- a/libibverbs/CMakeLists.txt
++++ b/libibverbs/CMakeLists.txt
+@@ -7,7 +7,6 @@ publish_headers(infiniband
+   )
  
- def get_symbol_vers(fn):
-@@ -80,7 +91,6 @@ def check_lib_symver(args,fn):
-         raise ValueError("Too many private symbol versions in ELF %r (%r)"%(fn,private));
-     if private:
-         private_rel = list(private)[0].split('_')[-1];
--        print repr(private_rel)
-         if private_rel > args.PACKAGE_VERSION:
-             raise ValueError("Private Symbol Version %r is newer than the package version %r"%(
-                 private,args.PACKAGE_VERSION));
-@@ -106,6 +116,49 @@ def test_lib_names(args):
+ publish_internal_headers(infiniband
+-  arch.h
+   driver.h
+   marshall.h
+   )
+diff --git a/libibverbs/arch.h b/libibverbs/arch.h
+deleted file mode 100644
+index 1c90c26d6f721d..00000000000000
+--- a/libibverbs/arch.h
++++ /dev/null
+@@ -1,135 +0,0 @@
+-/*
+- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#ifndef INFINIBAND_ARCH_H
+-#define INFINIBAND_ARCH_H
+-
+-#include <stdint.h>
+-#include <endian.h>
+-
+-#undef htonll
+-#undef ntohll
+-static inline uint64_t htonll(uint64_t x) { return htobe64(x); }
+-static inline uint64_t ntohll(uint64_t x) { return be64toh(x); }
+-#define htonll htonll
+-#define ntohll ntohll
+-
+-/*
+- * Architecture-specific defines.  Currently, an architecture is
+- * required to implement the following operations:
+- *
+- * mb() - memory barrier.  No loads or stores may be reordered across
+- *     this macro by either the compiler or the CPU.
+- * rmb() - read memory barrier.  No loads may be reordered across this
+- *     macro by either the compiler or the CPU.
+- * wmb() - write memory barrier.  No stores may be reordered across
+- *     this macro by either the compiler or the CPU.
+- * wc_wmb() - flush write combine buffers.  No write-combined writes
+- *     will be reordered across this macro by either the compiler or
+- *     the CPU.
+- */
+-
+-#if defined(__i386__)
+-
+-#define mb()	 asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 asm volatile("" ::: "memory")
+-#define wc_wmb() mb()
+-
+-#elif defined(__x86_64__)
+-
+-/*
+- * Only use lfence for mb() and rmb() because we don't care about
+- * ordering against non-temporal stores (for now at least).
+- */
+-#define mb()	 asm volatile("lfence" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 asm volatile("" ::: "memory")
+-#define wc_wmb() asm volatile("sfence" ::: "memory")
+-
+-#elif defined(__PPC64__)
+-
+-#define mb()	 asm volatile("sync" ::: "memory")
+-#define rmb()	 asm volatile("lwsync" ::: "memory")
+-#define wmb()	 mb()
+-#define wc_wmb() wmb()
+-
+-#elif defined(__ia64__)
+-
+-#define mb()	 asm volatile("mf" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 mb()
+-#define wc_wmb() asm volatile("fwb" ::: "memory")
+-
+-#elif defined(__PPC__)
+-
+-#define mb()	 asm volatile("sync" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 mb()
+-#define wc_wmb() wmb()
+-
+-#elif defined(__sparc_v9__)
+-
+-#define mb()	 asm volatile("membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad" ::: "memory")
+-#define rmb()	 asm volatile("membar #LoadLoad" ::: "memory")
+-#define wmb()	 asm volatile("membar #StoreStore" ::: "memory")
+-#define wc_wmb() wmb()
+-
+-#elif defined(__sparc__)
+-
+-#define mb()	 asm volatile("" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 mb()
+-#define wc_wmb() wmb()
+-
+-#elif defined(__s390x__)
+-
+-#define mb()	{ asm volatile("" : : : "memory"); }	/* for s390x */
+-#define rmb()	mb()					/* for s390x */
+-#define wmb()	mb()					/* for s390x */
+-#define wc_wmb() wmb()					/* for s390x */
+-
+-#elif defined(__aarch64__)
+-
+-/* Perhaps dmb would be sufficient? Let us be conservative for now. */
+-#define mb()	{ asm volatile("dsb sy" ::: "memory"); }
+-#define rmb()	{ asm volatile("dsb ld" ::: "memory"); }
+-#define wmb()	{ asm volatile("dsb st" ::: "memory"); }
+-#define wc_wmb() wmb()
+-
+-#else
+-
+-#error No architecture specific memory barrier defines found!
+-
+-#endif
+-
+-#endif /* INFINIBAND_ARCH_H */
+diff --git a/providers/cxgb3/iwch.h b/providers/cxgb3/iwch.h
+index a27c5f884a1a92..9ea58b73036f43 100644
+--- a/providers/cxgb3/iwch.h
++++ b/providers/cxgb3/iwch.h
+@@ -37,7 +37,7 @@
+ #include <stddef.h>
  
- # -------------------------------------------------------------------------
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
  
-+def is_obsolete(fn):
-+    """True if the header is obsolete and should not be compiled anyhow."""
-+    with open(fn) as F:
-+        for ln in F.readlines():
-+            if re.search(r"#warning.*This header is obsolete",ln):
-+                return True;
-+    return False;
-+
-+def is_fixup(fn):
-+    """True if this is a fixup header, fixup headers are exempted because they
-+    required includes are not the same for kernel headers (eg netinet/in.h)"""
-+    if os.path.islink(fn):
-+        return "buildlib/fixup-include/" in os.readlink(fn);
-+    return False;
-+
-+def test_public_headers(args):
-+    """Test that every header file can be included on its own, and has no obvious
-+    implicit dependencies. This is mainly intended to check the public
-+    headers, but this sweeps in published internal headers too."""
-+    incdir = os.path.abspath(os.path.join(args.BUILD,"include"));
-+    includes = set();
-+    for root,dirs,files in os.walk(incdir):
-+        for I in files:
-+            if I.endswith(".h"):
-+                includes.add(os.path.join(root,I));
-+
-+    # Make a little ninja file to compile each header
-+    with private_tmp() as tmpd:
-+        with open(os.path.join(tmpd,"build.ninja"),"wt") as F:
-+            print >> F,"rule comp";
-+            print >> F," command = cc -c -I %s $in -o $out"%(incdir);
-+            print >> F," description=Header check for $in";
-+            count = 0;
-+            for I in sorted(includes):
-+                if is_obsolete(I) or is_fixup(I):
-+                    continue;
-+                print >> F,"build %s : comp %s"%("out%d.o"%(count),I);
-+                print >> F,"default %s"%("out%d.o"%(count));
-+                count = count + 1;
-+        subprocess.check_call(["ninja"],cwd=tmpd);
-+
-+# -------------------------------------------------------------------------
-+
- parser = argparse.ArgumentParser(description='Run build time tests')
- parser.add_argument("--build",default=os.getcwd(),dest="BUILD",
-                     help="Build directory to inpsect");
-diff --git a/librdmacm/ib.h b/librdmacm/ib.h
-index 2e5029ac29b2dc..eb6cd871dbc7a7 100644
---- a/librdmacm/ib.h
-+++ b/librdmacm/ib.h
-@@ -34,6 +34,7 @@
- #define _RDMA_IB_H
+ #include "cxio_wr.h"
  
- #include <linux/types.h>
-+#include <arpa/inet.h>
+diff --git a/providers/cxgb4/libcxgb4.h b/providers/cxgb4/libcxgb4.h
+index 3b756616f9b903..b64b33564c76e5 100644
+--- a/providers/cxgb4/libcxgb4.h
++++ b/providers/cxgb4/libcxgb4.h
+@@ -40,7 +40,7 @@
+ #include <sys/errno.h>
+ #include <sys/time.h>
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ #include <ccan/list.h>
+ #include "t4.h"
+ 
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index 8483d349e4281b..cb2f26060711dd 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -37,7 +37,7 @@
+ #include <util/compiler.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ #include <infiniband/verbs.h>
+ #include <ccan/container_of.h>
+ 
+diff --git a/providers/i40iw/i40iw_osdep.h b/providers/i40iw/i40iw_osdep.h
+index e4e84e950c14bc..fddedf40dd8ae2 100644
+--- a/providers/i40iw/i40iw_osdep.h
++++ b/providers/i40iw/i40iw_osdep.h
+@@ -38,7 +38,7 @@
+ #include <stdbool.h>
+ #include <stdio.h>
  #include <string.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ #include <linux/types.h>
+ typedef unsigned char u8;
+ typedef unsigned long long u64;
+diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
+index ea3255f753e59d..d3e4fec7d8515b 100644
+--- a/providers/i40iw/i40iw_uk.c
++++ b/providers/i40iw/i40iw_uk.c
+@@ -32,6 +32,8 @@
+ *
+ *******************************************************************************/
  
- #ifndef AF_IB
-diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
-index 71b93f888cc861..92fb63d9b6f0eb 100644
---- a/librdmacm/rdma_cma_abi.h
-+++ b/librdmacm/rdma_cma_abi.h
-@@ -36,6 +36,7 @@
- #include <infiniband/kern-abi.h>
- #include <rdma/ib_user_sa.h>
- #include <infiniband/sa.h>
-+#include <netinet/in.h>
++#include <stdint.h>
++
+ #include "i40iw_osdep.h"
+ #include "i40iw_status.h"
+ #include "i40iw_d.h"
+diff --git a/providers/i40iw/i40iw_umain.h b/providers/i40iw/i40iw_umain.h
+index 4ca605797a9c04..1f86c8f90b10d9 100644
+--- a/providers/i40iw/i40iw_umain.h
++++ b/providers/i40iw/i40iw_umain.h
+@@ -41,7 +41,7 @@
+ #include <util/compiler.h>
  
- /*
-  * This file must be kept in sync with the kernel's version of rdma_user_cm.h
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #include "i40iw_osdep.h"
+ #include "i40iw_d.h"
+diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
+index bde1b33db176bb..aae50a80926f95 100644
+--- a/providers/mlx4/mlx4.h
++++ b/providers/mlx4/mlx4.h
+@@ -39,7 +39,7 @@
+ #include <util/compiler.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ #include <infiniband/verbs.h>
+ 
+ #define MLX4_PORTS_NUM 2
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 3f89f4be91c5f5..58d622620a1f7b 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -38,7 +38,7 @@
+ #include <util/compiler.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ #include "mlx5-abi.h"
+ #include <ccan/list.h>
+ #include "bitmap.h"
+diff --git a/providers/mthca/mthca.h b/providers/mthca/mthca.h
+index b4b0b6a8a9d4ee..61ee92807fcb86 100644
+--- a/providers/mthca/mthca.h
++++ b/providers/mthca/mthca.h
+@@ -37,7 +37,7 @@
+ #include <stddef.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #include <valgrind/memcheck.h>
+ 
+diff --git a/providers/nes/nes_umain.h b/providers/nes/nes_umain.h
+index c10c4fe0b3eb3d..6a4366802db209 100644
+--- a/providers/nes/nes_umain.h
++++ b/providers/nes/nes_umain.h
+@@ -40,7 +40,7 @@
+ #include <util/compiler.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #define PFX	"libnes: "
+ 
+diff --git a/providers/ocrdma/ocrdma_main.h b/providers/ocrdma/ocrdma_main.h
+index b8be6e514c72c7..6c74545d08df2d 100644
+--- a/providers/ocrdma/ocrdma_main.h
++++ b/providers/ocrdma/ocrdma_main.h
+@@ -40,7 +40,7 @@
+ #include <endian.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #include <ccan/list.h>
+ 
+diff --git a/providers/qedr/qelr.h b/providers/qedr/qelr.h
+index e2a92489d2c147..e887d9f8e4713a 100644
+--- a/providers/qedr/qelr.h
++++ b/providers/qedr/qelr.h
+@@ -39,7 +39,7 @@
+ #include <ccan/minmax.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #define writel(b, p) (*(uint32_t *)(p) = (b))
+ #define writeq(b, p) (*(uint64_t *)(p) = (b))
+diff --git a/providers/qedr/qelr_main.h b/providers/qedr/qelr_main.h
+index 1f65be6156db7c..88d52b7aed2b66 100644
+--- a/providers/qedr/qelr_main.h
++++ b/providers/qedr/qelr_main.h
+@@ -38,7 +38,7 @@
+ #include <endian.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ struct ibv_device *qelr_driver_init(const char *, int);
+ 
+diff --git a/providers/qedr/qelr_verbs.h b/providers/qedr/qelr_verbs.h
+index b73ae9e0adac34..28ad18c8885e46 100644
+--- a/providers/qedr/qelr_verbs.h
++++ b/providers/qedr/qelr_verbs.h
+@@ -38,7 +38,7 @@
+ #include <endian.h>
+ 
+ #include <infiniband/driver.h>
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ int qelr_query_device(struct ibv_context *context,
+ 		      struct ibv_device_attr *attr);
+diff --git a/providers/vmw_pvrdma/cq.c b/providers/vmw_pvrdma/cq.c
+index 0c7dcf67b54d30..f24d80742678bd 100644
+--- a/providers/vmw_pvrdma/cq.c
++++ b/providers/vmw_pvrdma/cq.c
+@@ -43,7 +43,7 @@
+  * OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #include "pvrdma.h"
+ 
+diff --git a/providers/vmw_pvrdma/qp.c b/providers/vmw_pvrdma/qp.c
+index 1b013592304d01..d2e2189fda6de4 100644
+--- a/providers/vmw_pvrdma/qp.c
++++ b/providers/vmw_pvrdma/qp.c
+@@ -43,7 +43,7 @@
+  * OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
+-#include <infiniband/arch.h>
++#include <util/udma_barrier.h>
+ 
+ #include "pvrdma.h"
+ 
+diff --git a/util/CMakeLists.txt b/util/CMakeLists.txt
+index c0ad5861d189ee..71e33ac3baaa9b 100644
+--- a/util/CMakeLists.txt
++++ b/util/CMakeLists.txt
+@@ -1,4 +1,5 @@
+ publish_internal_headers(util
+   compiler.h
++  udma_barrier.h
+   util.h
+   )
+diff --git a/util/udma_barrier.h b/util/udma_barrier.h
+new file mode 100644
+index 00000000000000..57ab0f76cbe33e
+--- /dev/null
++++ b/util/udma_barrier.h
+@@ -0,0 +1,125 @@
++/*
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef __UTIL_UDMA_BARRIER_H
++#define __UTIL_UDMA_BARRIER_H
++
++/*
++ * Architecture-specific defines.  Currently, an architecture is
++ * required to implement the following operations:
++ *
++ * mb() - memory barrier.  No loads or stores may be reordered across
++ *     this macro by either the compiler or the CPU.
++ * rmb() - read memory barrier.  No loads may be reordered across this
++ *     macro by either the compiler or the CPU.
++ * wmb() - write memory barrier.  No stores may be reordered across
++ *     this macro by either the compiler or the CPU.
++ * wc_wmb() - flush write combine buffers.  No write-combined writes
++ *     will be reordered across this macro by either the compiler or
++ *     the CPU.
++ */
++
++#if defined(__i386__)
++
++#define mb()	 asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
++#define rmb()	 mb()
++#define wmb()	 asm volatile("" ::: "memory")
++#define wc_wmb() mb()
++
++#elif defined(__x86_64__)
++
++/*
++ * Only use lfence for mb() and rmb() because we don't care about
++ * ordering against non-temporal stores (for now at least).
++ */
++#define mb()	 asm volatile("lfence" ::: "memory")
++#define rmb()	 mb()
++#define wmb()	 asm volatile("" ::: "memory")
++#define wc_wmb() asm volatile("sfence" ::: "memory")
++
++#elif defined(__PPC64__)
++
++#define mb()	 asm volatile("sync" ::: "memory")
++#define rmb()	 asm volatile("lwsync" ::: "memory")
++#define wmb()	 mb()
++#define wc_wmb() wmb()
++
++#elif defined(__ia64__)
++
++#define mb()	 asm volatile("mf" ::: "memory")
++#define rmb()	 mb()
++#define wmb()	 mb()
++#define wc_wmb() asm volatile("fwb" ::: "memory")
++
++#elif defined(__PPC__)
++
++#define mb()	 asm volatile("sync" ::: "memory")
++#define rmb()	 mb()
++#define wmb()	 mb()
++#define wc_wmb() wmb()
++
++#elif defined(__sparc_v9__)
++
++#define mb()	 asm volatile("membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad" ::: "memory")
++#define rmb()	 asm volatile("membar #LoadLoad" ::: "memory")
++#define wmb()	 asm volatile("membar #StoreStore" ::: "memory")
++#define wc_wmb() wmb()
++
++#elif defined(__sparc__)
++
++#define mb()	 asm volatile("" ::: "memory")
++#define rmb()	 mb()
++#define wmb()	 mb()
++#define wc_wmb() wmb()
++
++#elif defined(__s390x__)
++
++#define mb()	{ asm volatile("" : : : "memory"); }	/* for s390x */
++#define rmb()	mb()					/* for s390x */
++#define wmb()	mb()					/* for s390x */
++#define wc_wmb() wmb()					/* for s390x */
++
++#elif defined(__aarch64__)
++
++/* Perhaps dmb would be sufficient? Let us be conservative for now. */
++#define mb()	{ asm volatile("dsb sy" ::: "memory"); }
++#define rmb()	{ asm volatile("dsb ld" ::: "memory"); }
++#define wmb()	{ asm volatile("dsb st" ::: "memory"); }
++#define wc_wmb() wmb()
++
++#else
++
++#error No architecture specific memory barrier defines found!
++
++#endif
++
++#endif
 -- 
 2.7.4
 
