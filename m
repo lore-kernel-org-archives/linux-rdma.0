@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 04/10] Do not use kernel byteswap macros
-Date: Thu,  9 Feb 2017 14:53:26 -0700
-Message-ID: <1486677212-3188-5-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 01/10] Have check-build confirm that every public header is standalone
+Date: Thu,  9 Feb 2017 14:53:23 -0700
+Message-ID: <1486677212-3188-2-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1486677212-3188-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,110 +9,131 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-These days the version in glibc's endian.h is just as good, since
-gcc 4.3 (we support no earlier compiler) this just boils down to
-__builtin_bswap which is a constant expression if the input is constant.
+Public library headers should be includable without requiring other
+headers to be included first. We confirm this by compiling each header
+in a stand alone compilation unit.
 
-Done via
-
-$ git ls-files | xargs sed -i -e 's/__constant_cpu_to_be64/htobe64/g'
-$ git ls-files | xargs sed -i -e 's/__cpu_to_be64/htobe64/g'
-$ git ls-files | xargs sed -i -e 's/__be64_to_cpu/be64toh/g'
+Add a few minor missing headers to make the check pass.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- iwpmd/iwarp_pm_common.c   | 5 +++--
- libibcm/cm.h              | 6 +++---
- libibcm/examples/cmpost.c | 7 +++----
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ buildlib/check-build     | 55 +++++++++++++++++++++++++++++++++++++++++++++++-
+ librdmacm/ib.h           |  1 +
+ librdmacm/rdma_cma_abi.h |  1 +
+ 3 files changed, 56 insertions(+), 1 deletion(-)
 
-diff --git a/iwpmd/iwarp_pm_common.c b/iwpmd/iwarp_pm_common.c
-index 941e0406ade787..569d53531652aa 100644
---- a/iwpmd/iwarp_pm_common.c
-+++ b/iwpmd/iwarp_pm_common.c
-@@ -32,6 +32,7 @@
-  */
+diff --git a/buildlib/check-build b/buildlib/check-build
+index 45e7cb41c83f39..ddb3383e6a5514 100755
+--- a/buildlib/check-build
++++ b/buildlib/check-build
+@@ -5,7 +5,9 @@ import argparse
+ import inspect
+ import os
+ import re
++import shutil
+ import subprocess
++import tempfile
+ from contextlib import contextmanager;
  
- #include "iwarp_pm.h"
-+#include <endian.h>
+ def get_src_dir():
+@@ -34,6 +36,15 @@ def inDirectory(dir):
+     finally:
+         os.chdir(cdir);
  
- /* iwpm config params */
- static const char * iwpm_param_names[IWPM_PARAM_NUM] =
-@@ -380,7 +381,7 @@ int parse_iwpm_msg(iwpm_wire_msg *pm_msg, iwpm_msg_parms *msg_parms)
- 	int ret_value = 0;
++@contextmanager
++def private_tmp():
++    """Simple version of Python 3's tempfile.TemporaryDirectory"""
++    dfn = tempfile.mkdtemp();
++    try:
++        yield dfn;
++    finally:
++        shutil.rmtree(dfn);
++
+ # -------------------------------------------------------------------------
  
- 	msg_parms->pmtime = pm_msg->pmtime;
--	msg_parms->assochandle = __be64_to_cpu(pm_msg->assochandle);
-+	msg_parms->assochandle = be64toh(pm_msg->assochandle);
- 	msg_parms->ip_ver = (pm_msg->magic & IWARP_PM_IPVER_MASK) >> IWARP_PM_IPVER_SHIFT;
- 	switch (msg_parms->ip_ver) {
- 	case 4:
-@@ -420,7 +421,7 @@ static void form_iwpm_msg(iwpm_wire_msg *pm_msg, iwpm_msg_parms *msg_parms)
- {
- 	memset(pm_msg, 0, sizeof(struct iwpm_wire_msg));
- 	pm_msg->pmtime = msg_parms->pmtime;
--	pm_msg->assochandle = __cpu_to_be64(msg_parms->assochandle);
-+	pm_msg->assochandle = htobe64(msg_parms->assochandle);
- 	/* record IP version, port mapper version, message type */
- 	pm_msg->magic = (msg_parms->ip_ver << IWARP_PM_IPVER_SHIFT) & IWARP_PM_IPVER_MASK;
- 	pm_msg->magic |= (msg_parms->ver << IWARP_PM_VER_SHIFT) & IWARP_PM_VER_MASK;
-diff --git a/libibcm/cm.h b/libibcm/cm.h
-index e5e2b5e78c5032..6305e8236a3903 100644
---- a/libibcm/cm.h
-+++ b/libibcm/cm.h
-@@ -38,7 +38,7 @@
+ def get_symbol_vers(fn):
+@@ -80,7 +91,6 @@ def check_lib_symver(args,fn):
+         raise ValueError("Too many private symbol versions in ELF %r (%r)"%(fn,private));
+     if private:
+         private_rel = list(private)[0].split('_')[-1];
+-        print repr(private_rel)
+         if private_rel > args.PACKAGE_VERSION:
+             raise ValueError("Private Symbol Version %r is newer than the package version %r"%(
+                 private,args.PACKAGE_VERSION));
+@@ -106,6 +116,49 @@ def test_lib_names(args):
  
- #include <infiniband/verbs.h>
+ # -------------------------------------------------------------------------
+ 
++def is_obsolete(fn):
++    """True if the header is obsolete and should not be compiled anyhow."""
++    with open(fn) as F:
++        for ln in F.readlines():
++            if re.search(r"#warning.*This header is obsolete",ln):
++                return True;
++    return False;
++
++def is_fixup(fn):
++    """True if this is a fixup header, fixup headers are exempted because they
++    required includes are not the same for kernel headers (eg netinet/in.h)"""
++    if os.path.islink(fn):
++        return "buildlib/fixup-include/" in os.readlink(fn);
++    return False;
++
++def test_public_headers(args):
++    """Test that every header file can be included on its own, and has no obvious
++    implicit dependencies. This is mainly intended to check the public
++    headers, but this sweeps in published internal headers too."""
++    incdir = os.path.abspath(os.path.join(args.BUILD,"include"));
++    includes = set();
++    for root,dirs,files in os.walk(incdir):
++        for I in files:
++            if I.endswith(".h"):
++                includes.add(os.path.join(root,I));
++
++    # Make a little ninja file to compile each header
++    with private_tmp() as tmpd:
++        with open(os.path.join(tmpd,"build.ninja"),"wt") as F:
++            print >> F,"rule comp";
++            print >> F," command = cc -c -I %s $in -o $out"%(incdir);
++            print >> F," description=Header check for $in";
++            count = 0;
++            for I in sorted(includes):
++                if is_obsolete(I) or is_fixup(I):
++                    continue;
++                print >> F,"build %s : comp %s"%("out%d.o"%(count),I);
++                print >> F,"default %s"%("out%d.o"%(count));
++                count = count + 1;
++        subprocess.check_call(["ninja"],cwd=tmpd);
++
++# -------------------------------------------------------------------------
++
+ parser = argparse.ArgumentParser(description='Run build time tests')
+ parser.add_argument("--build",default=os.getcwd(),dest="BUILD",
+                     help="Build directory to inpsect");
+diff --git a/librdmacm/ib.h b/librdmacm/ib.h
+index 2e5029ac29b2dc..eb6cd871dbc7a7 100644
+--- a/librdmacm/ib.h
++++ b/librdmacm/ib.h
+@@ -34,6 +34,7 @@
+ #define _RDMA_IB_H
+ 
+ #include <linux/types.h>
++#include <arpa/inet.h>
+ #include <string.h>
+ 
+ #ifndef AF_IB
+diff --git a/librdmacm/rdma_cma_abi.h b/librdmacm/rdma_cma_abi.h
+index 71b93f888cc861..92fb63d9b6f0eb 100644
+--- a/librdmacm/rdma_cma_abi.h
++++ b/librdmacm/rdma_cma_abi.h
+@@ -36,6 +36,7 @@
+ #include <infiniband/kern-abi.h>
+ #include <rdma/ib_user_sa.h>
  #include <infiniband/sa.h>
--#include <asm/byteorder.h>
-+#include <endian.h>
++#include <netinet/in.h>
  
- #ifdef __cplusplus
- extern "C" {
-@@ -325,8 +325,8 @@ struct ib_cm_attr_param {
- int ib_cm_attr_id(struct ib_cm_id *cm_id,
- 		  struct ib_cm_attr_param *param);
- 
--#define IB_CM_ASSIGN_SERVICE_ID_MASK __constant_cpu_to_be64(0xFF00000000000000ULL)
--#define IB_CM_ASSIGN_SERVICE_ID      __constant_cpu_to_be64(0x0200000000000000ULL)
-+#define IB_CM_ASSIGN_SERVICE_ID_MASK htobe64(0xFF00000000000000ULL)
-+#define IB_CM_ASSIGN_SERVICE_ID      htobe64(0x0200000000000000ULL)
- 
- /**
-  * ib_cm_listen - Initiates listening on the specified service ID for
-diff --git a/libibcm/examples/cmpost.c b/libibcm/examples/cmpost.c
-index f7833f5223185b..d27bdc9c1bf9f3 100644
---- a/libibcm/examples/cmpost.c
-+++ b/libibcm/examples/cmpost.c
-@@ -37,9 +37,8 @@
- #include <sys/types.h>
- #include <sys/socket.h>
- #include <netdb.h>
--#include <byteswap.h>
-+#include <endian.h>
- 
--#include <asm/byteorder.h>
- #include <netinet/in.h>
- 
- #include <infiniband/cm.h>
-@@ -585,7 +584,7 @@ static void run_server(void)
- 		printf("listen request failed\n");
- 		return;
- 	}
--	ret = ib_cm_listen(listen_id, __cpu_to_be64(0x1000), 0);
-+	ret = ib_cm_listen(listen_id, htobe64(0x1000), 0);
- 	if (ret) {
- 		printf("failure trying to listen: %d\n", ret);
- 		goto out;
-@@ -702,7 +701,7 @@ static void run_client(char *dst)
- 
- 	memset(&req, 0, sizeof req);
- 	req.primary_path = &test.path_rec;
--	req.service_id = __cpu_to_be64(0x1000);
-+	req.service_id = htobe64(0x1000);
- 
- 	/*
- 	 * When choosing the responder resources for a ULP, it is usually
+ /*
+  * This file must be kept in sync with the kernel's version of rdma_user_cm.h
 -- 
 2.7.4
 
