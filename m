@@ -1,84 +1,87 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 12/14] RDMA/cxgb4: Delete an unnecessary variable
- initialisation in create_qp()
-Date: Thu, 9 Feb 2017 11:02:23 +0200
-Message-ID: <20170209090223.GM6005@mtr-leonro.local>
-References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
- <b319a50e-9e2a-61c0-5707-b4549b077d6a@users.sourceforge.net>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Thu, 9 Feb 2017 11:24:17 +0200
+Message-ID: <CAAKD3BBunKCb6Z-FObOD0covTt3gCXDn3oic4LNbU3J5JHiQJw@mail.gmail.com>
+References: <20170130195412.GE24466@obsidianresearch.com> <VI1PR0502MB30081EBFBEE5994B77D58BB9D14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170130211420.GB27111@obsidianresearch.com> <VI1PR0502MB30081EC9B35269636B4C2FBCD14B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170130221437.GA28117@obsidianresearch.com> <VI1PR0502MB3008B16A0F103D729209EA16D14A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170131005340.GA30809@obsidianresearch.com> <CAAKD3BDbkFHbCi+gHyCXCGV2xi5E9FA+KgwKz+6dBJEtsV0ZkQ@mail.gmail.com>
+ <20170208174040.GC30720@obsidianresearch.com> <VI1PR0502MB3008417F3E388B617291147CD1450@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170209000157.GA14556@obsidianresearch.com> <VI1PR0502MB3008153CDFD7F9C7CCAB022CD1450@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mUkVHLrPAbedpyr7"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <b319a50e-9e2a-61c0-5707-b4549b077d6a-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <VI1PR0502MB3008153CDFD7F9C7CCAB022CD1450-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---mUkVHLrPAbedpyr7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Feb 08, 2017 at 10:22:28PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> Date: Wed, 8 Feb 2017 21:07:07 +0100
+On Thu, Feb 9, 2017 at 2:15 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 >
-> The local variable "ret" will be set to an appropriate value a bit later.
-> Thus omit the explicit initialisation at the beginning in this function.
+>> -----Original Message-----
+>> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+>> Sent: Wednesday, February 8, 2017 6:02 PM
+>> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>; Roland Dreier
+>> <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak
+>> <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+>>
+>> On Thu, Feb 09, 2017 at 12:00:09AM +0000, Parav Pandit wrote:
+>>
+>> > > That still breaks link local addresses on vlan devices, so it is an
+>> > > ugly hack, not a solution.
+>> >
+>> > In presence of vlan, shouldn't we be passing the ifindex of the vlan
+>> netdev?
+>>
+>> yes, that is exactly my point...
 >
-> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> ---
->  drivers/infiniband/hw/cxgb4/qp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Oh ok. I get it. I am on right path to fix it than.
 >
-> diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-> index 373d66a511a8..ac63b1f70731 100644
-> --- a/drivers/infiniband/hw/cxgb4/qp.c
-> +++ b/drivers/infiniband/hw/cxgb4/qp.c
-> @@ -202,7 +202,7 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
->  	int wr_len;
->  	struct c4iw_wr_wait wr_wait;
->  	struct sk_buff *skb;
-> -	int ret = 0;
-> +	int ret;
-
-The more clean approach will be to initialize this variable to -ENOMEM
-and remove rest "ret = -ENOMEM" from the function.
-
->  	int eqsize;
+> Additionally,
+> when there is macvlan based slave device present on this vlan device, I will pass the ifindex of that particular netdev.
+> Now since we don't have MAC address coming in ib_wc nor in IB/RoCEv2 Annex spec, code needs to refer to the
+> (a) ifaddr of the vlan netdev
+> and
+> (b) ifaddr of the slave netdevs
+> Compare the DGID of the grh with ifaddr and use that netdev's ifindex for the first matching entry.
 >
->  	wq->sq.qid = c4iw_get_qpid(rdev, uctx);
-> --
-> 2.11.1
+> Sounds reasonable now?
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---mUkVHLrPAbedpyr7
-Content-Type: application/pgp-signature; name="signature.asc"
+Since we don't get the DMAC address, I think the GID cache shouldn't
+carry entries which the hardware
+can't differentiate upon. It might be ok for some cases in the
+transmit side (as you choose the smac
+based on the netdev attached to the GID entry, but if you add a vxlan
+based interface, you won't
+be able to add the appropriate headers). We can leave this as is or
+making it symmetrical.
 
------BEGIN PGP SIGNATURE-----
+So, when adding a GID, we need to consult the hardware capabilities
+regarding the metadata
+it can provide in the completion. If the hardware isn't capable of
+creating/stripping one of the headers
+of this netdev, there's no reason to add it.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlicMB0ACgkQ5GN7iDZy
-WKdC2w//TkD7Y7i9Zwj31zNfkyBr6PUPd61P2/QTaXGzPtIyIP/VplgjUqQ0yX2s
-g2hZkQt5aJL0Sm4hM7DPXjg0I3srbRpJVAKQLW3UFIoGNbv/cchGr42as6iJTTWa
-386URqZqDiybHJI+vFFEPjiDmdpTX8LIsV7qauuNulHCHep5zC2AsoEbQkhb1NBy
-/a1M9IjSZXbOMLgZsyd2dwwcrL+UMb3gcSa0Zns35hMWnH6MsVJbGsp1nDrQdqQQ
-m4spCVqvZMaCQzT04eOAk67G8phdLL3C0XB7LPE7Do6Sacr/bHRyMbHjw8iD1GC0
-7eIYRBqUm5r3gLxpBTCdQFF010ivYRU8rZmynW5mm3yC++HLw81LCjja0tF4Z3Mn
-s9lwuEVIGe3IjL4aq0KQ5A3AN9hCg5F2+V/OCW6JleO1DXo0XWk2KX7xM4LJ2nIe
-yiYBCOkwm6stIg/zLR9MEXoS5YwuojlwIhDd4hCF5bvIf2Ou/ONBKvRvn2dnz6pq
-cVPPyBLT6QLP7wWj43F2MAfnP3zIHPag4NuU28JxrTeko87NZ/NaimDAFehhCFt5
-TLvVjNRv71DytejOqsnn8OURHzZ0qjz313L0VpJ5a6tJB+ZzJbgpYgrGpHCPGn5z
-65kBk+/aPZ2eqxuabwWLMPxW7dkfB+q4jhfx/muTUuO+d9zKe/Q=
-=cArn
------END PGP SIGNATURE-----
+If the hardware supports creating/stripping the required headers but
+it doesn't support reporting
+them in the completion or all fields are supported but there are
+conflicting entries, you could
+either consult the ingress route before adding these GIDs or add them
+both and consult the
+ingress route when creating an AH from the completion entry and GRH data.
+I think adding them both, selecting the first one and validating with
+the ingress route is the way
+to go.
 
---mUkVHLrPAbedpyr7--
+The link local address falls into this case as well.
+
+>
+>>
+>> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
