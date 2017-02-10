@@ -1,144 +1,36 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 4/7] IB/core: Change idr objects to use the
- new schema
-Date: Fri, 10 Feb 2017 13:30:48 -0700
-Message-ID: <20170210203048.GD4335@obsidianresearch.com>
-References: <1485952745-58476-1-git-send-email-matanb@mellanox.com>
- <1485952745-58476-5-git-send-email-matanb@mellanox.com>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 0/5] IB/hfi1: Fine-tuning for three function implementations
+Date: Fri, 10 Feb 2017 22:00:09 +0100
+Message-ID: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1485952745-58476-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 01, 2017 at 02:39:02PM +0200, Matan Barak wrote:
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 10 Feb 2017 21:53:21 +0100
 
-> +#define idr_get_xxxx(_type, _write, _handle, _context) ({		\
-> +	const struct uverbs_obj_idr_type * const type =			\
-> +			&uverbs_type_attrs_##_type;			\
-> +	struct ib_uobject *uobj = type->type.ops->lookup_get(&type->type, \
-> +					_context, _handle, _write);	\
-> +									\
-> +	IS_ERR(uobj) ? NULL : uobj->object; })
+A few update suggestions were taken into account
+from static source code analysis.
 
-I think you should follow the usual convention and have a full
-suite of accessor helpers in a header. This header could even be in
-patch #2
+Markus Elfring (5):
+  Use kcalloc() in hfi1_user_exp_rcv_init()
+  Use kcalloc() in hfi1_user_sdma_alloc_queues()
+  Adjust another size determination in hfi1_user_sdma_alloc_queues()
+  Use memdup_user() rather than duplicating its implementation in hfi1_user_sdma_process_request()
+  Improve another size determination in hfi1_user_sdma_process_request()
 
-static struct ib_uobject *__uobj_get(const struct uverbs_obj_type *type, bool write, struct ib_ucontext *ucontext, int id)
-{
-  [..]
-}
-#define uobj_get_read(_type,...) ((struct ib_##_type *)_uobj_get(&uverbs_type_attrs_##_type, false, __VA_ARGS__))
-#define uobj_get_write(_type,...) ((struct ib_##_type *)_uobj_get(&uverbs_type_attrs_##_type, false, __VA_ARGS__))
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |  5 +++--
+ drivers/infiniband/hw/hfi1/user_sdma.c    | 35 +++++++++++++++----------------
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
-static inline void uobj_put_write(struct ib_uobject *uobj)
-{
-    uobj->type->ops->lookup_put(uobj, true);
-}
+-- 
+2.11.1
 
-static inline void uobj_put_read(struct ib_uobject *uobj)
-{
-    uobj->type->ops->lookup_put(uobj, false);
-}
-
-static inline struct ib_uobject *__uobj_alloc(const struct uverbs_obj_type *type,struct ib_ucontext *ucontext)
-{
-   return type->alloc_begin(type, ucontext);
-}
-
-#define uobj_alloc_begin(_type, ...) ((struct ib_##_type *)_uobj_alloc(&uverbs_type_attrs_##_type, __VA_ARGS__))
-
-and so on
-
->  static struct ib_pd *idr_read_pd(int pd_handle, struct ib_ucontext *context)
->  {
-> -	return idr_read_obj(pd_handle, context, 0);
-> +	return idr_get_xxxx(pd, false, pd_handle, context);
->  }
-
-And you can just totally drop all of these inlines and use
-
-  uobj_get_read(pd, pd_handle, context);
-
-At the call site.
-
->  static struct ib_xrcd *idr_read_xrcd(int xrcd_handle, struct ib_ucontext *context,
->  				     struct ib_uobject **uobj)
->  {
-> -	*uobj = idr_read_uobj(xrcd_handle, context, 0);
-> -	return *uobj ? (*uobj)->object : NULL;
-> +	*uobj = uverbs_type_attrs_xrcd.type.ops->lookup_get(&uverbs_type_attrs_xrcd.type,
-> +							context, xrcd_handle,
-> +							false);
-> +	return IS_ERR(*uobj) ? NULL : (*uobj)->object;
-
-Why didn't this use idr_get_xxx ? Why is it so weird?
-
->  
-> @@ -621,9 +439,11 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->  	if (copy_from_user(&cmd, buf, sizeof cmd))
->  		return -EFAULT;
->  
-> -	uobj = idr_write_uobj(cmd.pd_handle, file->ucontext);
-> -	if (!uobj)
-> -		return -EINVAL;
-> +	uobj = uverbs_type_attrs_pd.type.ops->lookup_get(&uverbs_type_attrs_pd.type,
-> +						     file->ucontext,
-> +						     cmd.pd_handle, true);
-> +	if (IS_ERR(uobj))
-> +		return PTR_ERR(uobj);
->  	pd = uobj->object;
->  
->  	if (atomic_read(&pd->usecnt)) {
-> @@ -636,21 +456,12 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->  	if (ret)
->  		goto err_put;
->  
-> -	uobj->live = 0;
-> -	put_uobj_write(uobj);
-> -
-> -	idr_remove_uobj(uobj);
-> -
-> -	mutex_lock(&file->mutex);
-> -	list_del(&uobj->list);
-> -	mutex_unlock(&file->mutex);
-> -
-> -	put_uobj(uobj);
-> +	uobj->type->ops->destroy_commit(uobj);
-
-And here I think you should move the pd->device_dealloc_pd into
-destroy_commit by having it call what you called hot_plug, and turn
-this simply into:
-
-	return uobj_remove_or_put(uobj, RDMA_REMOVE_DESTROY);
-
-static inline int uobj_remove_or_put(struct ib_uobject *uobj, enum rdma_remove_reason why)
-{
-    int rc = uobj->type->ops->remove(uobj, why);
-    if (!rc)
-        uverbs_uobject_put(uobj);
-
-    /* If we are using a forced destruction mode then the driver is
-        not permitted to fail. */
-    WARN_ON(!rc && why != RDMA_REMOVE_DESTROY);
-    return rc;
-}
-
-And generally use this pattern for all the destroy verbs.
-
-I didn't study this patch closely since it will change a lot, but I
-think this:
-
- 4 files changed, 260 insertions(+), 788 deletions(-)
-
-Pretty much confirms this is the right overall approach.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
