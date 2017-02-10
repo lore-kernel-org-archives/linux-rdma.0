@@ -1,77 +1,142 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 3/7] IB/core: Add idr based standard types
-Date: Fri, 10 Feb 2017 13:08:49 -0700
-Message-ID: <20170210200849.GC4335@obsidianresearch.com>
+Subject: Re: [PATCH V1 for-next 4/7] IB/core: Change idr objects to use the
+ new schema
+Date: Fri, 10 Feb 2017 13:30:48 -0700
+Message-ID: <20170210203048.GD4335@obsidianresearch.com>
 References: <1485952745-58476-1-git-send-email-matanb@mellanox.com>
- <1485952745-58476-4-git-send-email-matanb@mellanox.com>
+ <1485952745-58476-5-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1485952745-58476-4-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1485952745-58476-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 01, 2017 at 02:39:01PM +0200, Matan Barak wrote:
+On Wed, Feb 01, 2017 at 02:39:02PM +0200, Matan Barak wrote:
 
-> +void uverbs_free_qp(struct ib_uobject *uobject)
+> +#define idr_get_xxxx(_type, _write, _handle, _context) ({		\
+> +	const struct uverbs_obj_idr_type * const type =			\
+> +			&uverbs_type_attrs_##_type;			\
+> +	struct ib_uobject *uobj = type->type.ops->lookup_get(&type->type, \
+> +					_context, _handle, _write);	\
+> +									\
+> +	IS_ERR(uobj) ? NULL : uobj->object; })
 
-This should be static...
+I think you should follow the usual convention and have a full
+suite of accessor helpers in a header. This header could even be in
+patch #2
 
-Based on the last email I expect this to be
+static struct ib_uobject *__uobj_get(const struct uverbs_obj_type *type, bool write, struct ib_ucontext *ucontext, int id)
+{
+  [..]
+}
+#define uobj_get_read(_type,...) ((struct ib_##_type *)_uobj_get(&uverbs_type_attrs_##_type, false, __VA_ARGS__))
+#define uobj_get_write(_type,...) ((struct ib_##_type *)_uobj_get(&uverbs_type_attrs_##_type, false, __VA_ARGS__))
 
-static int uverbs_destroy_qp(struct ib_uobject *uobject, enum rdma_remove_reason why)
+static inline void uobj_put_write(struct ib_uobject *uobj)
+{
+    uobj->type->ops->lookup_put(uobj, true);
+}
 
-> +{
-> +	struct ib_qp *qp = uobject->object;
-> +	struct ib_uqp_object *uqp =
-> +		container_of(uobject, struct ib_uqp_object, uevent.uobject);
-> +
-> +	if (qp == qp->real_qp)
-> +		ib_uverbs_detach_umcast(qp, uqp);
-> +	ib_destroy_qp(qp);
+static inline void uobj_put_read(struct ib_uobject *uobj)
+{
+    uobj->type->ops->lookup_put(uobj, false);
+}
 
-This silently eats the error code from ib_destroy_qp, not OK. See
-discussion in prior email. Lots of cases of this.
+static inline struct ib_uobject *__uobj_alloc(const struct uverbs_obj_type *type,struct ib_ucontext *ucontext)
+{
+   return type->alloc_begin(type, ucontext);
+}
 
-> +const struct uverbs_obj_idr_type uverbs_type_attrs_cq =
-> +	UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_ucq_object), 0,
-> +				 uverbs_free_cq);
->
+#define uobj_alloc_begin(_type, ...) ((struct ib_##_type *)_uobj_alloc(&uverbs_type_attrs_##_type, __VA_ARGS__))
 
-It would be more readable if the struct decl was near the functions in
-blocks.
+and so on
 
-Still don't like these macros. The open coded version would look like this:
+>  static struct ib_pd *idr_read_pd(int pd_handle, struct ib_ucontext *context)
+>  {
+> -	return idr_read_obj(pd_handle, context, 0);
+> +	return idr_get_xxxx(pd, false, pd_handle, context);
+>  }
 
-const struct uverbs_obj_idr_type uverbs_type_attrs_cq = {
-      .type = {
-      	    .obj_size = sizeof(struct ib_ucq_object),
-      	    .ops = &uverbs_idr_ops,
-      },
-      .destroy = uverbs_destroy_cq,
-};
+And you can just totally drop all of these inlines and use
 
-Whichs is more understandable and typical of the kernel style. If we
-wish to add a new callback function for instance we don't need a new
-macro or big churn.
+  uobj_get_read(pd, pd_handle, context);
 
-You could do this I guess:
+At the call site.
 
-const struct uverbs_obj_idr_type uverbs_type_attrs_cq = {
-      .type = UVERBS_IDR_TYPE(cq, 0),
-      .destroy = uverbs_destroy_cq,
-};
+>  static struct ib_xrcd *idr_read_xrcd(int xrcd_handle, struct ib_ucontext *context,
+>  				     struct ib_uobject **uobj)
+>  {
+> -	*uobj = idr_read_uobj(xrcd_handle, context, 0);
+> -	return *uobj ? (*uobj)->object : NULL;
+> +	*uobj = uverbs_type_attrs_xrcd.type.ops->lookup_get(&uverbs_type_attrs_xrcd.type,
+> +							context, xrcd_handle,
+> +							false);
+> +	return IS_ERR(*uobj) ? NULL : (*uobj)->object;
 
-> +extern const struct uverbs_obj_type_ops uverbs_idr_ops;
-> +
-> +#define UVERBS_BUILD_BUG_ON(cond) (sizeof(char[1 - 2 * !!(cond)]) -	\
-> +				   sizeof(char))
+Why didn't this use idr_get_xxx ? Why is it so weird?
 
-This probably doesn't add value, but you could make this a WARN_ON in
-alloc_uobj().
+>  
+> @@ -621,9 +439,11 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
+>  	if (copy_from_user(&cmd, buf, sizeof cmd))
+>  		return -EFAULT;
+>  
+> -	uobj = idr_write_uobj(cmd.pd_handle, file->ucontext);
+> -	if (!uobj)
+> -		return -EINVAL;
+> +	uobj = uverbs_type_attrs_pd.type.ops->lookup_get(&uverbs_type_attrs_pd.type,
+> +						     file->ucontext,
+> +						     cmd.pd_handle, true);
+> +	if (IS_ERR(uobj))
+> +		return PTR_ERR(uobj);
+>  	pd = uobj->object;
+>  
+>  	if (atomic_read(&pd->usecnt)) {
+> @@ -636,21 +456,12 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
+>  	if (ret)
+>  		goto err_put;
+>  
+> -	uobj->live = 0;
+> -	put_uobj_write(uobj);
+> -
+> -	idr_remove_uobj(uobj);
+> -
+> -	mutex_lock(&file->mutex);
+> -	list_del(&uobj->list);
+> -	mutex_unlock(&file->mutex);
+> -
+> -	put_uobj(uobj);
+> +	uobj->type->ops->destroy_commit(uobj);
+
+And here I think you should move the pd->device_dealloc_pd into
+destroy_commit by having it call what you called hot_plug, and turn
+this simply into:
+
+	return uobj_remove_or_put(uobj, RDMA_REMOVE_DESTROY);
+
+static inline int uobj_remove_or_put(struct ib_uobject *uobj, enum rdma_remove_reason why)
+{
+    int rc = uobj->type->ops->remove(uobj, why);
+    if (!rc)
+        uverbs_uobject_put(uobj);
+
+    /* If we are using a forced destruction mode then the driver is
+        not permitted to fail. */
+    WARN_ON(!rc && why != RDMA_REMOVE_DESTROY);
+    return rc;
+}
+
+And generally use this pattern for all the destroy verbs.
+
+I didn't study this patch closely since it will change a lot, but I
+think this:
+
+ 4 files changed, 260 insertions(+), 788 deletions(-)
+
+Pretty much confirms this is the right overall approach.
 
 Jason
 --
