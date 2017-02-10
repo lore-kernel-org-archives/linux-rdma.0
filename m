@@ -1,180 +1,54 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 2/8] IB/srp: Fix race conditions related to task management
-Date: Fri, 10 Feb 2017 15:56:05 -0800
-Message-ID: <20170210235611.3243-3-bart.vanassche@sandisk.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 5/8] IB/srp: Improve an error path
+Date: Fri, 10 Feb 2017 15:56:08 -0800
+Message-ID: <20170210235611.3243-6-bart.vanassche@sandisk.com>
 References: <20170210235611.3243-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170210235611.3243-1-bart.vanassche@sandisk.com>
-Sender: stable-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, Israel Rukshin <israelr@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, Steve Feeley <Steve.Feeley@sandisk.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170210235611.3243-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that srp_process_rsp() overwrites the status information
-in ch if the SRP target response timed out and processing of
-another task management function has already started. Avoid that
-issuing multiple task management functions concurrently triggers
-list corruption. This patch prevents that the following stack
-trace appears in the system log:
+Avoid that the following message is printed if login fails:
 
-WARNING: CPU: 8 PID: 9269 at lib/list_debug.c:52 __list_del_entry_valid+0xbc/0xc0
-list_del corruption. prev->next should be ffffc90004bb7b00, but was ffff8804052ecc68
-CPU: 8 PID: 9269 Comm: sg_reset Tainted: G        W       4.10.0-rc7-dbg+ #3
-Call Trace:
- dump_stack+0x68/0x93
- __warn+0xc6/0xe0
- warn_slowpath_fmt+0x4a/0x50
- __list_del_entry_valid+0xbc/0xc0
- wait_for_completion_timeout+0x12e/0x170
- srp_send_tsk_mgmt+0x1ef/0x2d0 [ib_srp]
- srp_reset_device+0x5b/0x110 [ib_srp]
- scsi_ioctl_reset+0x1c7/0x290
- scsi_ioctl+0x12a/0x420
- sd_ioctl+0x9d/0x100
- blkdev_ioctl+0x51e/0x9f0
- block_ioctl+0x38/0x40
- do_vfs_ioctl+0x8f/0x700
- SyS_ioctl+0x3c/0x70
- entry_SYSCALL_64_fastpath+0x18/0xad
+scsi host0: ib_srp: Sending CM DREQ failed
 
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Israel Rukshin <israelr@mellanox.com>
-Cc: Max Gurtovoy <maxg@mellanox.com>
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: Steve Feeley <Steve.Feeley@sandisk.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 45 ++++++++++++++++++++++++-------------
- drivers/infiniband/ulp/srp/ib_srp.h |  1 +
- 2 files changed, 30 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 4068d34f5427..511eb4b2e6e0 100644
+index d21611a4e90f..87efb702b1c6 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1889,12 +1889,17 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
- 	if (unlikely(rsp->tag & SRP_TAG_TSK_MGMT)) {
- 		spin_lock_irqsave(&ch->lock, flags);
- 		ch->req_lim += be32_to_cpu(rsp->req_lim_delta);
-+		if (rsp->tag == ch->tsk_mgmt_tag) {
-+			ch->tsk_mgmt_status = -1;
-+			if (be32_to_cpu(rsp->resp_data_len) >= 4)
-+				ch->tsk_mgmt_status = rsp->data[3];
-+			complete(&ch->tsk_mgmt_done);
-+		} else {
-+			shost_printk(KERN_ERR, target->scsi_host,
-+				     "Received tsk mgmt response too late for tag %#llx\n",
-+				     rsp->tag);
-+		}
- 		spin_unlock_irqrestore(&ch->lock, flags);
--
--		ch->tsk_mgmt_status = -1;
--		if (be32_to_cpu(rsp->resp_data_len) >= 4)
--			ch->tsk_mgmt_status = rsp->data[3];
--		complete(&ch->tsk_mgmt_done);
- 	} else {
- 		scmnd = scsi_host_find_tag(target->scsi_host, rsp->tag);
- 		if (scmnd) {
-@@ -2538,19 +2543,18 @@ srp_change_queue_depth(struct scsi_device *sdev, int qdepth)
- }
+@@ -3451,7 +3451,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 					     target->ch_count,
+ 					     ch->target->orig_dgid.raw);
+ 				if (node_idx == 0 && cpu_idx == 0) {
+-					goto err_disconnect;
++					goto free_ch;
+ 				} else {
+ 					srp_free_ch_ib(target, ch);
+ 					srp_free_req_data(target, ch);
+@@ -3498,6 +3498,7 @@ static ssize_t srp_create_target(struct device *dev,
+ err_disconnect:
+ 	srp_disconnect_target(target);
  
- static int srp_send_tsk_mgmt(struct srp_rdma_ch *ch, u64 req_tag, u64 lun,
--			     u8 func)
-+			     u8 func, u8 *status)
- {
- 	struct srp_target_port *target = ch->target;
- 	struct srp_rport *rport = target->rport;
- 	struct ib_device *dev = target->srp_host->srp_dev->dev;
- 	struct srp_iu *iu;
- 	struct srp_tsk_mgmt *tsk_mgmt;
-+	int res;
- 
- 	if (!ch->connected || target->qp_in_error)
- 		return -1;
- 
--	init_completion(&ch->tsk_mgmt_done);
--
- 	/*
- 	 * Lock the rport mutex to avoid that srp_create_ch_ib() is
- 	 * invoked while a task management function is being sent.
-@@ -2573,10 +2577,16 @@ static int srp_send_tsk_mgmt(struct srp_rdma_ch *ch, u64 req_tag, u64 lun,
- 
- 	tsk_mgmt->opcode 	= SRP_TSK_MGMT;
- 	int_to_scsilun(lun, &tsk_mgmt->lun);
--	tsk_mgmt->tag		= req_tag | SRP_TAG_TSK_MGMT;
- 	tsk_mgmt->tsk_mgmt_func = func;
- 	tsk_mgmt->task_tag	= req_tag;
- 
-+	spin_lock_irq(&ch->lock);
-+	ch->tsk_mgmt_tag = (ch->tsk_mgmt_tag + 1) | SRP_TAG_TSK_MGMT;
-+	tsk_mgmt->tag = ch->tsk_mgmt_tag;
-+	spin_unlock_irq(&ch->lock);
-+
-+	init_completion(&ch->tsk_mgmt_done);
-+
- 	ib_dma_sync_single_for_device(dev, iu->dma, sizeof *tsk_mgmt,
- 				      DMA_TO_DEVICE);
- 	if (srp_post_send(ch, iu, sizeof(*tsk_mgmt))) {
-@@ -2585,13 +2595,15 @@ static int srp_send_tsk_mgmt(struct srp_rdma_ch *ch, u64 req_tag, u64 lun,
- 
- 		return -1;
- 	}
-+	res = wait_for_completion_timeout(&ch->tsk_mgmt_done,
-+					msecs_to_jiffies(SRP_ABORT_TIMEOUT_MS));
-+	if (res > 0 && status)
-+		*status = ch->tsk_mgmt_status;
- 	mutex_unlock(&rport->mutex);
- 
--	if (!wait_for_completion_timeout(&ch->tsk_mgmt_done,
--					 msecs_to_jiffies(SRP_ABORT_TIMEOUT_MS)))
--		return -1;
-+	WARN_ON_ONCE(res < 0);
- 
--	return 0;
-+	return res > 0 ? 0 : -1;
- }
- 
- static int srp_abort(struct scsi_cmnd *scmnd)
-@@ -2617,7 +2629,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
- 	shost_printk(KERN_ERR, target->scsi_host,
- 		     "Sending SRP abort for tag %#x\n", tag);
- 	if (srp_send_tsk_mgmt(ch, tag, scmnd->device->lun,
--			      SRP_TSK_ABORT_TASK) == 0)
-+			      SRP_TSK_ABORT_TASK, NULL) == 0)
- 		ret = SUCCESS;
- 	else if (target->rport->state == SRP_RPORT_LOST)
- 		ret = FAST_IO_FAIL;
-@@ -2635,14 +2647,15 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
- 	struct srp_target_port *target = host_to_target(scmnd->device->host);
- 	struct srp_rdma_ch *ch;
- 	int i;
-+	u8 status;
- 
- 	shost_printk(KERN_ERR, target->scsi_host, "SRP reset_device called\n");
- 
- 	ch = &target->ch[0];
- 	if (srp_send_tsk_mgmt(ch, SRP_TAG_NO_REQ, scmnd->device->lun,
--			      SRP_TSK_LUN_RESET))
-+			      SRP_TSK_LUN_RESET, &status))
- 		return FAILED;
--	if (ch->tsk_mgmt_status)
-+	if (status)
- 		return FAILED;
- 
++free_ch:
  	for (i = 0; i < target->ch_count; i++) {
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 21c69695f9d4..32ed40db3ca2 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -163,6 +163,7 @@ struct srp_rdma_ch {
- 	int			max_ti_iu_len;
- 	int			comp_vector;
- 
-+	u64			tsk_mgmt_tag;
- 	struct completion	tsk_mgmt_done;
- 	u8			tsk_mgmt_status;
- 	bool			connected;
+ 		ch = &target->ch[i];
+ 		srp_free_ch_ib(target, ch);
 -- 
 2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
