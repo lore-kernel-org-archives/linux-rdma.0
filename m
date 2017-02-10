@@ -1,44 +1,74 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 0/8] IB/srp bug fixes
-Date: Fri, 10 Feb 2017 15:56:03 -0800
-Message-ID: <20170210235611.3243-1-bart.vanassche@sandisk.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH 1/8] IB/srp: Avoid that duplicate responses trigger a kernel bug
+Date: Fri, 10 Feb 2017 15:56:04 -0800
+Message-ID: <20170210235611.3243-2-bart.vanassche@sandisk.com>
+References: <20170210235611.3243-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170210235611.3243-1-bart.vanassche@sandisk.com>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, Israel Rukshin <israelr@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, Steve Feeley <Steve.Feeley@sandisk.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Doug,
+After srp_process_rsp() returns there is a short time during which
+the scsi_host_find_tag() call will return a pointer to the SCSI
+command that is being completed. If during that time a duplicate
+response is received, avoid that the following call stack appears:
 
-The patches in this series are the initiator patches I came up with while
-testing the SRP initiator and target drivers. Please consider these patches
-for inclusion in the upstream kernel.
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: srp_recv_done+0x450/0x6b0 [ib_srp]
+Oops: 0000 [#1] SMP
+CPU: 10 PID: 0 Comm: swapper/10 Not tainted 4.10.0-rc7-dbg+ #1
+Call Trace:
+ <IRQ>
+ __ib_process_cq+0x4b/0xd0 [ib_core]
+ ib_poll_handler+0x1d/0x70 [ib_core]
+ irq_poll_softirq+0xba/0x120
+ __do_softirq+0xba/0x4c0
+ irq_exit+0xbe/0xd0
+ smp_apic_timer_interrupt+0x38/0x50
+ apic_timer_interrupt+0x90/0xa0
+ </IRQ>
+ cpuidle_enter_state+0xf2/0x370
+ cpuidle_enter+0x12/0x20
+ call_cpuidle+0x1e/0x40
+ do_idle+0xe3/0x1c0
+ cpu_startup_entry+0x18/0x20
+ start_secondary+0x103/0x130
+ start_cpu+0x14/0x14
+RIP: srp_recv_done+0x450/0x6b0 [ib_srp] RSP: ffff88046f483e20
 
-Sorry for sending these patches so close to the merge window. If this means
-that it's too late to include these patches in the first kernel v4.11 pull
-request that's fine with me.
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Israel Rukshin <israelr@mellanox.com>
+Cc: Max Gurtovoy <maxg@mellanox.com>
+Cc: Laurence Oberman <loberman@redhat.com>
+Cc: Steve Feeley <Steve.Feeley@sandisk.com>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Bart Van Assche (8):
-  IB/srp: Avoid that duplicate responses trigger a kernel bug
-  IB/srp: Fix race conditions related to task management
-  IB/srp: Document locking conventions
-  IB/srp: Make a diagnostic message more informative
-  IB/srp: Improve an error path
-  IB/srp: Use the IB_DEVICE_SG_GAPS_REG HCA feature if supported
-  IB/core: Add support for draining IB_POLL_DIRECT completion queues
-  IB/srp: Drain the send queue before destroying a QP
-
- drivers/infiniband/core/verbs.c     |  35 +++++-----
- drivers/infiniband/ulp/srp/ib_srp.c | 129 ++++++++++++++++++++++++------------
- drivers/infiniband/ulp/srp/ib_srp.h |   1 +
- 3 files changed, 103 insertions(+), 62 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 79bf48477ddb..4068d34f5427 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1899,7 +1899,14 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
+ 		scmnd = scsi_host_find_tag(target->scsi_host, rsp->tag);
+ 		if (scmnd) {
+ 			req = (void *)scmnd->host_scribble;
+-			scmnd = srp_claim_req(ch, req, NULL, scmnd);
++			if (req) {
++				scmnd = srp_claim_req(ch, req, NULL, scmnd);
++			} else {
++				shost_printk(KERN_ERR, target->scsi_host,
++					     "NULL host_scribble for response with tag %#llx\n",
++					     rsp->tag);
++				scmnd = NULL;
++			}
+ 		}
+ 		if (!scmnd) {
+ 			shost_printk(KERN_ERR, target->scsi_host,
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
