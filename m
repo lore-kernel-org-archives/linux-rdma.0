@@ -1,71 +1,51 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 4/5] IB/hfi1: Use memdup_user() rather than duplicating its
- implementation in hfi1_user_sdma_process_request()
-Date: Fri, 10 Feb 2017 22:04:38 +0100
-Message-ID: <b19e44b3-601f-c642-b8d3-12c000511ce2@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 5/5] IB/hfi1: Improve another size determination in
+ hfi1_user_sdma_process_request()
+Date: Fri, 10 Feb 2017 22:05:40 +0100
+Message-ID: <ee953516-99a1-133c-9c6b-45838698a235@users.sourceforge.net>
 References: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8a997282-09c7-0f9f-645e-d7c6e8c79e67-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 10 Feb 2017 21:01:55 +0100
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 10 Feb 2017 21:45:38 +0100
 
-Reuse existing functionality from memdup_user() instead of keeping
-duplicate source code.
+Replace the specification of a data structure by a reference to
+the desired member as the parameter for the operator "sizeof" to make
+the corresponding size determination a bit safer according to
+the Linux coding style convention.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 991e7f3d8e18..5a73d738f2ba 100644
+index 5a73d738f2ba..da131a530b88 100644
 --- a/drivers/infiniband/hw/hfi1/user_sdma.c
 +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -731,23 +731,18 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
- 			ret = -EINVAL;
- 			goto free_req;
- 		}
--		req->tids = kcalloc(ntids, sizeof(*req->tids), GFP_KERNEL);
--		if (!req->tids) {
--			ret = -ENOMEM;
--			goto free_req;
--		}
- 		/*
- 		 * We have to copy all of the tids because they may vary
- 		 * in size and, therefore, the TID count might not be
- 		 * equal to the pkt count. However, there is no way to
- 		 * tell at this point.
- 		 */
--		ret = copy_from_user(req->tids, iovec[idx].iov_base,
--				     ntids * sizeof(*req->tids));
--		if (ret) {
-+		req->tids = memdup_user(iovec[idx].iov_base,
-+					sizeof(*req->tids) * ntids);
-+		if (IS_ERR(req->tids)) {
-+			ret = PTR_ERR(req->tids);
- 			SDMA_DBG(req, "Failed to copy %d TIDs (%d)",
- 				 ntids, ret);
--			ret = -EFAULT;
- 			goto free_req;
- 		}
- 		req->n_tids = ntids;
-@@ -1606,7 +1601,8 @@ static void user_sdma_free_request(struct user_sdma_request *req, bool unpin)
- 				atomic_dec(&node->refcount);
- 		}
- 	}
--	kfree(req->tids);
-+	if (!IS_ERR(req->tids))
-+		kfree(req->tids);
- 	clear_bit(req->info.comp_idx, req->pq->req_in_use);
- }
- 
+@@ -704,7 +704,9 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 	/* Save all the IO vector structures */
+ 	for (i = 0; i < req->data_iovs; i++) {
+ 		INIT_LIST_HEAD(&req->iovs[i].list);
+-		memcpy(&req->iovs[i].iov, iovec + idx++, sizeof(struct iovec));
++		memcpy(&req->iovs[i].iov,
++		       iovec + idx++,
++		       sizeof(req->iovs[i].iov));
+ 		ret = pin_vector_pages(req, &req->iovs[i]);
+ 		if (ret) {
+ 			req->status = ret;
 -- 
 2.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
