@@ -1,31 +1,38 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 8/8] IB/srp: Drain the send queue before destroying a QP
-Date: Sat, 11 Feb 2017 00:13:49 +0000
-Message-ID: <1486772015.2744.2.camel@sandisk.com>
-References: <20170210235611.3243-1-bart.vanassche@sandisk.com>
-         <20170210235611.3243-9-bart.vanassche@sandisk.com>
-         <CAANLjFr+Jd3ctmhpBnjYGKZ4ZQPtYLAB7EWZxL59vHpgekP=Jg@mail.gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 4/5] IB/hfi1: Use memdup_user() rather than duplicating
+ its implementation in hfi1_user_sdma_process_request()
+Date: Sat, 11 Feb 2017 10:32:59 -0500
+Message-ID: <477c8499-93ad-253d-aa2b-8f209ecfad62@intel.com>
+References: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
+ <b19e44b3-601f-c642-b8d3-12c000511ce2@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFr+Jd3ctmhpBnjYGKZ4ZQPtYLAB7EWZxL59vHpgekP=Jg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <36834603A875B744ADF887003C3C18CD-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <b19e44b3-601f-c642-b8d3-12c000511ce2-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-02-10 at 17:07 -0700, Robert LeBlanc wrote:
-> > +/*
-> > + * Note: if this function is called from inside ib_drain_sq() then it will
-> 
-> Don't you mean outside of ib_drain_sq?
+On 02/10/2017 04:04 PM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Fri, 10 Feb 2017 21:01:55 +0100
+>
+> Reuse existing functionality from memdup_user() instead of keeping
+> duplicate source code.
+>
+> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
-I meant inside.
+Thanks for the patch, but this one is already taken care of along with 
+other similar uses of kmalloc/copy:
 
-Bart.--
+http://marc.info/?l=linux-rdma&m=148656088729538&w=2
+
+Will review the rest of the patch series soon.
+
+-Denny
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
