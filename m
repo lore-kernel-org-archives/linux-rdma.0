@@ -1,122 +1,31 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 8/8] IB/srp: Drain the send queue before destroying a QP
-Date: Fri, 10 Feb 2017 17:07:43 -0700
-Message-ID: <CAANLjFr+Jd3ctmhpBnjYGKZ4ZQPtYLAB7EWZxL59vHpgekP=Jg@mail.gmail.com>
-References: <20170210235611.3243-1-bart.vanassche@sandisk.com> <20170210235611.3243-9-bart.vanassche@sandisk.com>
+Date: Sat, 11 Feb 2017 00:13:49 +0000
+Message-ID: <1486772015.2744.2.camel@sandisk.com>
+References: <20170210235611.3243-1-bart.vanassche@sandisk.com>
+         <20170210235611.3243-9-bart.vanassche@sandisk.com>
+         <CAANLjFr+Jd3ctmhpBnjYGKZ4ZQPtYLAB7EWZxL59vHpgekP=Jg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170210235611.3243-9-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CAANLjFr+Jd3ctmhpBnjYGKZ4ZQPtYLAB7EWZxL59vHpgekP=Jg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <36834603A875B744ADF887003C3C18CD-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 10, 2017 at 4:56 PM, Bart Van Assche
-<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> A quote from the IB spec:
->
-> However, if the Consumer does not wait for the Affiliated Asynchronous
-> Last WQE Reached Event, then WQE and Data Segment leakage may occur.
-> Therefore, it is good programming practice to tear down a QP that is
-> associated with an SRQ by using the following process:
-> * Put the QP in the Error State;
-> * wait for the Affiliated Asynchronous Last WQE Reached Event;
-> * either:
->   * drain the CQ by invoking the Poll CQ verb and either wait for CQ
->     to be empty or the number of Poll CQ operations has exceeded CQ
->     capacity size; or
->   * post another WR that completes on the same CQ and wait for this WR to return as a WC;
-> * and then invoke a Destroy QP or Reset QP.
->
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/srp/ib_srp.c | 19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 2f85255d2aca..b50733910f7e 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -471,9 +471,13 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
->   * completion handler can access the queue pair while it is
->   * being destroyed.
->   */
-> -static void srp_destroy_qp(struct ib_qp *qp)
-> +static void srp_destroy_qp(struct srp_rdma_ch *ch, struct ib_qp *qp)
->  {
-> -       ib_drain_rq(qp);
-> +       spin_lock_irq(&ch->lock);
-> +       ib_process_cq_direct(ch->send_cq, -1);
-> +       spin_unlock_irq(&ch->lock);
-> +
-> +       ib_drain_qp(qp);
->         ib_destroy_qp(qp);
->  }
->
-> @@ -547,7 +551,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->         }
->
->         if (ch->qp)
-> -               srp_destroy_qp(ch->qp);
-> +               srp_destroy_qp(ch, ch->qp);
->         if (ch->recv_cq)
->                 ib_free_cq(ch->recv_cq);
->         if (ch->send_cq)
-> @@ -571,7 +575,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->         return 0;
->
->  err_qp:
-> -       srp_destroy_qp(qp);
-> +       srp_destroy_qp(ch, qp);
->
->  err_send_cq:
->         ib_free_cq(send_cq);
-> @@ -614,7 +618,7 @@ static void srp_free_ch_ib(struct srp_target_port *target,
->                         ib_destroy_fmr_pool(ch->fmr_pool);
->         }
->
-> -       srp_destroy_qp(ch->qp);
-> +       srp_destroy_qp(ch, ch->qp);
->         ib_free_cq(ch->send_cq);
->         ib_free_cq(ch->recv_cq);
->
-> @@ -1827,6 +1831,11 @@ static struct srp_iu *__srp_get_tx_iu(struct srp_rdma_ch *ch,
->         return iu;
->  }
->
-> +/*
-> + * Note: if this function is called from inside ib_drain_sq() then it will
+On Fri, 2017-02-10 at 17:07 -0700, Robert LeBlanc wrote:
+> > +/*
+> > + * Note: if this function is called from inside ib_drain_sq() then it will
+> 
+> Don't you mean outside of ib_drain_sq?
 
-Don't you mean outside of ib_drain_sq?
+I meant inside.
 
-> + * be called without ch->lock being held. If ib_drain_sq() dequeues a WQE
-> + * with status IB_WC_SUCCESS then that's a bug.
-> + */
->  static void srp_send_done(struct ib_cq *cq, struct ib_wc *wc)
->  {
->         struct srp_iu *iu = container_of(wc->wr_cqe, struct srp_iu, cqe);
-> --
-> 2.11.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Sagi,
-
-Does something like this need to happen for iSER as well? Maybe it
-could help with the D state problem?
-
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
---
+Bart.--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
