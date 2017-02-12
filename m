@@ -1,82 +1,98 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 5/7] mlx5: Convert to use predefined get CQE opcodes
-Date: Sun, 12 Feb 2017 16:16:50 +0200
-Message-ID: <1486909012-15064-6-git-send-email-yishaih@mellanox.com>
-References: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 0/7] Add mlx5 direct verbs
+Date: Sun, 12 Feb 2017 16:16:45 +0200
+Message-ID: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1486909012-15064-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patchset from Leon adds direct access to mlx5 devices.
+Sending V1 to mainly handle Jason's comments, details below.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/cq.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+The libibverbs API is an abstract API. It is agnostic to any underlying
+provider specific implementation. While this abstraction has the advantage of
+user applications portability it has a performance penalty. For some
+applications optimizing performance is more important than portability.
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index 88bca75..d14d956 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -87,7 +87,7 @@ static void *get_sw_cqe(struct mlx5_cq *cq, int n)
- 
- 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
- 
--	if (likely((cqe64->op_own) >> 4 != MLX5_CQE_INVALID) &&
-+	if (likely(mlx5dv_get_cqe_opcode(cqe64) != MLX5_CQE_INVALID) &&
- 	    !((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^ !!(n & (cq->ibv_cq.cqe + 1)))) {
- 		return cqe;
- 	} else {
-@@ -547,7 +547,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 		wc->qp_num = qpn;
- 	}
- 
--	opcode = cqe64->op_own >> 4;
-+	opcode = mlx5dv_get_cqe_opcode(cqe64);
- 	switch (opcode) {
- 	case MLX5_CQE_REQ:
- 	{
-@@ -1056,7 +1056,7 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
- 
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
- 		return IBV_WC_RECV_RDMA_WITH_IMM;
- 	case MLX5_CQE_RESP_SEND:
-@@ -1114,7 +1114,7 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
- 				  MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
- 				IBV_WC_IP_CSUM_OK_SHIFT;
- 
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
- 	case MLX5_CQE_RESP_SEND_IMM:
- 		wc_flags	|= IBV_WC_WITH_IMM;
-@@ -1147,7 +1147,7 @@ static inline uint32_t mlx5_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
- 
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_SEND_INV:
- 		return ntohl(cq->cqe64->imm_inval_pkey);
- 	default:
-@@ -1329,7 +1329,7 @@ static inline int free_res_cqe(struct mlx5_cqe64 *cqe64, uint32_t rsn,
- {
- 	if (cqe_version) {
- 		if (is_equal_uidx(cqe64, rsn)) {
--			if (srq && is_responder(cqe64->op_own >> 4))
-+			if (srq && is_responder(mlx5dv_get_cqe_opcode(cqe64)))
- 				mlx5_free_srq_wqe(srq,
- 						  ntohs(cqe64->wqe_counter));
- 			return 1;
+The mlx5 direct verbs API introduced in this patchset is intended for such
+applications. It exposes mlx5 specific low level data path
+(send/receive/completion) operations, allowing the application to bypass the
+libibverbs data path API.
+
+The proposed interface consists from one hardware specific header with relevant
+inline functions and conversion logic from ibverbs structures to mlx5 related
+structures.
+
+New header is going to be installed in below path location:
+/usr/inlcude/infiniband/mlx5dv.h
+
+The direct include of mlx5dv.h together with linkage to mlx5 library will
+allow usage of this new interface.
+
+Note: all Mellanox NIC devices starting from Connect-IB (Connect-IB,
+ConnectX-4, ConnectX-4Lx, ConnectX-5 and more to come in the future) implement
+the mlx5 API, thus using the mlx5 direct verbs does not limit the applications
+to a single NIC HW device thus keeping some level of portability.
+
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/63
+
+Yishai
+
+Changes from V0:
+     * Removed mlx5 and include sub-directories from installed
+       path and source code.
+     * Put all DV code into one header file.
+     * Renamed mlx5/dv.h to be mlx5dv.h file.
+     * Added providers/mlx5/libmlx5.map file with exported functions.
+     * Allowed mlx5 provider to be shared library.
+     * Added manual pages for direct verbs.
+     * Rebased to latest rdma-core.
+     * Create symlink for libmlx5-rdmav2.so to point to libmlx5.so.
+     * Dropped patch which changed INLINE_SCATTER defines.
+     * Replaced ntohll functions to be64toh, followup of
+       https://github.com/linux-rdma/rdma-core/commit/b21ff60e0e111e295a18cc8e3397347893c524bc
+     * Added Jason's SOB tag for his debian/redhat/Cmake work.
+
+Leon Romanovsky (7):
+  mlx5: Add mlx5 direct verbs
+  mlx5: Add CQE fields
+  mlx5: Add WQE segments implementation
+  mlx5: Use macro for CQE version 1
+  mlx5: Convert to use predefined get CQE opcodes
+  mlx5: Add direct verbs man pages
+  mlx5: Export mlx5 direct verbs interface
+
+ CMakeLists.txt                           |   1 +
+ buildlib/rdma_functions.cmake            |  51 +++
+ buildlib/relpath                         |   7 +
+ debian/ibverbs-providers.install         |   4 +
+ debian/ibverbs-providers.symbols         |   4 +
+ providers/mlx5/CMakeLists.txt            |   7 +-
+ providers/mlx5/cq.c                      |  96 +----
+ providers/mlx5/libmlx5.map               |   8 +
+ providers/mlx5/man/CMakeLists.txt        |   5 +
+ providers/mlx5/man/mlx5dv.7              |  44 +++
+ providers/mlx5/man/mlx5dv_init_obj.3     | 129 +++++++
+ providers/mlx5/man/mlx5dv_query_device.3 |  48 +++
+ providers/mlx5/mlx5.c                    | 111 +++++-
+ providers/mlx5/mlx5.h                    |  62 +---
+ providers/mlx5/mlx5dv.h                  | 588 +++++++++++++++++++++++++++++++
+ providers/mlx5/qp.c                      |   2 +-
+ providers/mlx5/wqe.h                     |  97 +----
+ redhat/rdma-core.spec                    |   3 +
+ 18 files changed, 1024 insertions(+), 243 deletions(-)
+ create mode 100644 buildlib/relpath
+ create mode 100644 debian/ibverbs-providers.symbols
+ create mode 100644 providers/mlx5/libmlx5.map
+ create mode 100644 providers/mlx5/man/CMakeLists.txt
+ create mode 100644 providers/mlx5/man/mlx5dv.7
+ create mode 100644 providers/mlx5/man/mlx5dv_init_obj.3
+ create mode 100644 providers/mlx5/man/mlx5dv_query_device.3
+ create mode 100644 providers/mlx5/mlx5dv.h
+
 -- 
 1.8.3.1
 
