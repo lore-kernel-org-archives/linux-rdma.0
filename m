@@ -1,71 +1,136 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 01/10] Have check-build confirm that every
- public header is standalone
-Date: Sun, 12 Feb 2017 10:48:48 +0200
-Message-ID: <20170212084848.GB14015@mtr-leonro.local>
+Subject: Re: [PATCH rdma-core 10/10] verbs: Add a compatibility arch.h
+Date: Sun, 12 Feb 2017 11:05:31 +0200
+Message-ID: <20170212090531.GC14015@mtr-leonro.local>
 References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1486677212-3188-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1486677212-3188-11-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="cvVnyQ+4j833TQvp"
+        protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1486677212-3188-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1486677212-3188-11-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Feb 09, 2017 at 02:53:23PM -0700, Jason Gunthorpe wrote:
-> Public library headers should be includable without requiring other
-> headers to be included first. We confirm this by compiling each header
-> in a stand alone compilation unit.
->
-> Add a few minor missing headers to make the check pass.
+On Thu, Feb 09, 2017 at 02:53:32PM -0700, Jason Gunthorpe wrote:
+> There is a bit of software out there that includes arch.h to get the
+> swap macros. Continue to provider a header that serves that purpose
+> but emit warnings when it is used.
 >
 > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > ---
->  buildlib/check-build     | 55 +++++++++++++++++++++++++++++++++++++++++++++++-
->  librdmacm/ib.h           |  1 +
->  librdmacm/rdma_cma_abi.h |  1 +
->  3 files changed, 56 insertions(+), 1 deletion(-)
+>  libibverbs/CMakeLists.txt |  1 +
+>  libibverbs/arch.h         | 51 +++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 52 insertions(+)
+>  create mode 100644 libibverbs/arch.h
 >
-> diff --git a/buildlib/check-build b/buildlib/check-build
-> index 45e7cb41c83f39..ddb3383e6a5514 100755
-> --- a/buildlib/check-build
-> +++ b/buildlib/check-build
+> diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
+> index 7e18a1e3e71d5e..7a52eddc810911 100644
+> --- a/libibverbs/CMakeLists.txt
+> +++ b/libibverbs/CMakeLists.txt
+> @@ -1,4 +1,5 @@
+>  publish_headers(infiniband
+> +  arch.h
+>    kern-abi.h
+>    opcode.h
+>    sa-kern-abi.h
+> diff --git a/libibverbs/arch.h b/libibverbs/arch.h
+> new file mode 100644
+> index 00000000000000..bcbece8f2c521c
+> --- /dev/null
+> +++ b/libibverbs/arch.h
+> @@ -0,0 +1,51 @@
+> +/*
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef INFINIBAND_ARCH_H
+> +#define INFINIBAND_ARCH_H
+> +
+> +#include <stdint.h>
+> +#include <endian.h>
+> +
+> +#warning "This header is obsolete."
+> +
+> +#ifndef ntohll
+> +#undef htonll
+> +#undef ntohll
+> +/* Users should use the glibc functions directly, not these wrappers */
+> +static inline __attribute__((deprecated)) uint64_t htonll(uint64_t x) { return htobe64(x); }
+> +static inline __attribute__((deprecated)) uint64_t ntohll(uint64_t x) { return be64toh(x); }
+> +#define htonll htonll
+> +#define ntohll ntohll
+> +#endif
+> +
+> +/* Barrier macros are no longer provided by libibverbs */
+> +
+> +#endif /* INFINIBAND_ARCH_H */
 
-It is going to be beast :)
+Is it possible to drop this file anyway?
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAligIXAACgkQ5GN7iDZy
-WKdTJg/+NepnUP2f8Y2fUucxxbQRexr8bN9wuGkdLwihypX5pek4ZJKLMNG+wUVq
-l+ZJxLY5z8mZvbQIcsFnYwS79QrrwTgMpO600AsoOC+Vpud+QsgDd/tJB/4M96y7
-28vUMg7icoZy2K+b7qJiZZ2g1iloQVJS4LPci+UAB2EHwA5ZmWfSn/REwqBHgCnf
-0NkZHVKejyQFw+2vjyr3tfsw7RdZhp3MFY4uBHohnygjkYdFw9A/OdJvi/pPvFI/
-uNc2QppYMUTXNx0ERpIs78o6eOq6e7fbW7LDrv8GwiKtutRiF+RRJjrKdLuf7baw
-yMw3ZuyZqpI111ur/waKy2tncdt7AAkklHQRSA1Gk6gzprnRvDzxNSgObcjqM5HK
-KK/nZlZtQgCFCUX2y+z2qoz1bPL52LVAmAN5sy9clfEWRBN3GSaTEUIX4Wv/OOmY
-naetGe3OqndGmqpYfB2btiVNU4+jBphp9P82ikHQrQCl2jhRnEBBXQdZ01HvkHX5
-UMbiziwl66a1a/xVaiUYq/MqJvDzIVA40qGEOWi7AMlIRnEcOnte7AUqOMjgGKuF
-eMV10ChtOODTFDkpPcoKOtwKS7ausdbmIjdOmF22IMKF0t6EP4UsA8AaU6vimDAY
-MzFpczXLoOPaibl48/kjdjftLvl6veMiRvSEIsl9EKrHMsg8L4Q=
-=8Jlf
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAligJVsACgkQ5GN7iDZy
+WKdPHg//X2H1vUUMXkChV6SuyAccVG7RZVXhfoWtTtxUJD5yEwuAyJFFEiSvizcE
+/jph4Ex+bRank1K51Uu8JLEwZ4PoCyBeNI8RSAQeJRFPJ27PxTzuc18jj1c/tXu7
+FFJ6jiSAqzOe5s9G+/TyROE8H3UL9PJOuh2KlEyBPqwjFY8ufmVMi6DxRDWjjitI
+eIfekGKdwpf51KhN9AcNdmnjnuJAa7wEJAJxPHzrKFubSynqWERDFqbYu1GSPdim
+ZF3ieW0+45yMlDF8k5QsQSdyOb2VFRUYML59q/oAcEpcRDd2evosG0FwaujmizLI
+7XSDZHkJe/dpIyJfCQ4OxIdbdm/Pp2BU0o1BhwcCcFiofv5sSTbzcw6w/EEf1Qvk
+dZUyoC5llHnJzeUwxnFoDbnz3g95M8Uu+R1VebLLvbRO9VerOatwui4c+CygDGFc
+zzJoPkqa1bTiqALsPd7vdNLmm7gpfQoLxqdcmaRBM/dH3p5VHyvNoYa69Fs/MspV
+/8TlABzReqpvatO30ur1X9mXtUTxzfA3errntwLisgDxDQ/WOTQT9dRyNUhkBsUy
+LHDY/Xnfk5LnDJaRJftPwFiQcqPYGyrJf+HMuDyLHhpkq47T6120aznDJzqdbfG4
+4vNX2z3ePGfaFvz+q7B1STFbhFzhciOLupATrmUqKYAmqNyU50s=
+=6ETX
 -----END PGP SIGNATURE-----
 
---cvVnyQ+4j833TQvp--
+--0vzXIDBeUiKkjNJl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
