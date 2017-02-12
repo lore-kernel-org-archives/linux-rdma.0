@@ -1,35 +1,85 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC v3 00/11] HFI Virtual Network Interface Controller (VNIC)
-Date: Sun, 12 Feb 2017 13:26:35 +0000
-Message-ID: <HE1PR0501MB2812C133C408A8092A745F82B1460@HE1PR0501MB2812.eurprd05.prod.outlook.com>
-References: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 rdma-core 2/7] mlx5: Add CQE fields
+Date: Sun, 12 Feb 2017 16:16:47 +0200
+Message-ID: <1486909012-15064-3-git-send-email-yishaih@mellanox.com>
+References: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1486498990-76562-1-git-send-email-niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1486909012-15064-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Vishwanathapura, Niranjana
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->=20
-> ChangeLog:
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D
-> v2 =3D> v3:
-> a) Introduce and adopt generic RDMA netdev interface including,
->      - having bottom hfi1 driver directly interfacing with netstack.
->      - optimizing interface between hfi_vnic and hfi1 driver.
-> b) Remove bitfield usage.
-> c) Move hfi_vnic driver to drivers/infiniband/ulp folder.
+Introduce inline calls to get/set for most
+commonly used CQE data path fields.
 
-The vnic driver should be placed under drivers/infiniband/hw/hfi1/* since i=
-t is HFI-specific.
---Liran
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx5/mlx5dv.h | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index 34502a8..5709039 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -37,6 +37,13 @@
+ #include <linux/types.h>
+ #include <arpa/inet.h>
+ 
++/* Always inline the functions */
++#ifdef __GNUC__
++#define MLX5DV_ALWAYS_INLINE inline __attribute__((always_inline))
++#else
++#define MLX5DV_ALWAYS_INLINE inline
++#endif
++
+ enum {
+ 	MLX5_RCV_DBR	= 0,
+ 	MLX5_SND_DBR	= 1,
+@@ -264,6 +271,37 @@ struct mlx5_cqe64 {
+ 	uint8_t		op_own;
+ };
+ 
++static MLX5DV_ALWAYS_INLINE
++uint8_t mlx5dv_get_cqe_owner(struct mlx5_cqe64 *cqe)
++{
++	return cqe->op_own & 0x1;
++}
++
++static MLX5DV_ALWAYS_INLINE
++void mlx5dv_set_cqe_owner(struct mlx5_cqe64 *cqe, uint8_t val)
++{
++	cqe->op_own = (val & 0x1) | (cqe->op_own & ~0x1);
++}
++
++/* Solicited event */
++static MLX5DV_ALWAYS_INLINE
++uint8_t mlx5dv_get_cqe_se(struct mlx5_cqe64 *cqe)
++{
++	return (cqe->op_own >> 1) & 0x1;
++}
++
++static MLX5DV_ALWAYS_INLINE
++uint8_t mlx5dv_get_cqe_format(struct mlx5_cqe64 *cqe)
++{
++	return (cqe->op_own >> 2) & 0x3;
++}
++
++static MLX5DV_ALWAYS_INLINE
++uint8_t mlx5dv_get_cqe_opcode(struct mlx5_cqe64 *cqe)
++{
++	return cqe->op_own >> 4;
++}
++
+ /*
+  * WQE related part
+  */
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
