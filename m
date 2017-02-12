@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 3/7] mlx5: Add WQE segments implementation
-Date: Sun, 12 Feb 2017 16:16:48 +0200
-Message-ID: <1486909012-15064-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 6/7] mlx5: Add direct verbs man pages
+Date: Sun, 12 Feb 2017 16:16:51 +0200
+Message-ID: <1486909012-15064-7-git-send-email-yishaih@mellanox.com>
 References: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1486909012-15064-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,212 +12,284 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add generic and x86 SSE3 versions of WQE
-segments implementations.
+Document mlx5 direct verbs feature and exposed related functions.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5dv.h | 179 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 179 insertions(+)
+ CMakeLists.txt                           |   1 +
+ providers/mlx5/man/CMakeLists.txt        |   5 ++
+ providers/mlx5/man/mlx5dv.7              |  44 +++++++++++
+ providers/mlx5/man/mlx5dv_init_obj.3     | 129 +++++++++++++++++++++++++++++++
+ providers/mlx5/man/mlx5dv_query_device.3 |  48 ++++++++++++
+ 5 files changed, 227 insertions(+)
+ create mode 100644 providers/mlx5/man/CMakeLists.txt
+ create mode 100644 providers/mlx5/man/mlx5dv.7
+ create mode 100644 providers/mlx5/man/mlx5dv_init_obj.3
+ create mode 100644 providers/mlx5/man/mlx5dv_query_device.3
 
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index 5709039..4fae71b 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -35,7 +35,14 @@
- 
- /* For __be64 type */
- #include <linux/types.h>
-+/* For htonl/htons */
- #include <arpa/inet.h>
-+/* Some system requires this file instead of arpa/inet.h */
-+#include <netinet/in.h>
-+#if defined(__SSE3__)
-+#include <emmintrin.h>
-+#include <tmmintrin.h>
-+#endif /* defined(__SSE3__) */
- 
- /* Always inline the functions */
- #ifdef __GNUC__
-@@ -406,4 +413,176 @@ struct mlx5_wqe_eth_seg {
- 	uint8_t		inline_hdr[16];
- };
- 
-+/*
-+ * Control segment - contains some control information for the current WQE.
-+ *
-+ * Output:
-+ *	seg	  - control segment to be filled
-+ * Input:
-+ *	pi	  - WQEBB number of the first block of this WQE.
-+ *		    This number should wrap at 0xffff, regardless of
-+ *		    size of the WQ.
-+ *	opcode	  - Opcode of this WQE. Encodes the type of operation
-+ *		    to be executed on the QP.
-+ *	opmod	  - Opcode modifier.
-+ *	qp_num	  - QP/SQ number this WQE is posted to.
-+ *	fm_ce_se  - FM (fence mode), CE (completion and event mode)
-+ *		    and SE (solicited event).
-+ *	ds	  - WQE size in octowords (16-byte units). DS accounts for all
-+ *		    the segments in the WQE as summarized in WQE construction.
-+ *	signature - WQE signature.
-+ *	imm	  - Immediate data/Invalidation key/UMR mkey.
-+ */
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_ctrl_seg(struct mlx5_wqe_ctrl_seg *seg, uint16_t pi,
-+			 uint8_t opcode, uint8_t opmod, uint32_t qp_num,
-+			 uint8_t fm_ce_se, uint8_t ds,
-+			 uint8_t signature, uint32_t imm)
-+{
-+	seg->opmod_idx_opcode	= htonl(((uint32_t)opmod << 24) | ((uint32_t)pi << 8) | opcode);
-+	seg->qpn_ds		= htonl((qp_num << 8) | ds);
-+	seg->fm_ce_se		= fm_ce_se;
-+	seg->signature		= signature;
-+	/*
-+	 * The caller should prepare "imm" in advance based on WR opcode.
-+	 * For IBV_WR_SEND_WITH_IMM and IBV_WR_RDMA_WRITE_WITH_IMM,
-+	 * the "imm" should be assigned as is.
-+	 * For the IBV_WR_SEND_WITH_INV, it should be htonl(imm).
-+	 */
-+	seg->imm		= imm;
-+}
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 45cbc4e..529c0cd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -377,6 +377,7 @@ add_subdirectory(providers/hns)
+ add_subdirectory(providers/i40iw)
+ add_subdirectory(providers/mlx4)
+ add_subdirectory(providers/mlx5)
++add_subdirectory(providers/mlx5/man)
+ add_subdirectory(providers/mthca)
+ add_subdirectory(providers/nes)
+ add_subdirectory(providers/ocrdma)
+diff --git a/providers/mlx5/man/CMakeLists.txt b/providers/mlx5/man/CMakeLists.txt
+new file mode 100644
+index 0000000..bb1610b
+--- /dev/null
++++ b/providers/mlx5/man/CMakeLists.txt
+@@ -0,0 +1,5 @@
++rdma_man_pages(
++  mlx5dv_init_obj.3
++  mlx5dv_query_device.3
++  mlx5dv.7
++)
+diff --git a/providers/mlx5/man/mlx5dv.7 b/providers/mlx5/man/mlx5dv.7
+new file mode 100644
+index 0000000..48b21b9
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv.7
+@@ -0,0 +1,44 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
++.\"
++.TH MLX5DV 7 2017-02-02 1.0.0
++.SH "NAME"
++mlx5dv \- Direct verbs for mlx5 devices
++.br
++This is low level access to mlx5 devices to perform data path operations,
++without general branching performed by \fBibv_post_send\fR(3).
 +
-+/* x86 optimized version of mlx5dv_set_ctrl_seg()
-+ *
-+ * This is useful when doing calculations on large data sets
-+ * for parallel calculations.
-+ *
-+ * It doesn't suit for serialized algorithms.
-+ */
-+#if defined(__SSE3__)
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_x86_set_ctrl_seg(struct mlx5_wqe_ctrl_seg *seg, uint16_t pi,
-+			     uint8_t opcode, uint8_t opmod, uint32_t qp_num,
-+			     uint8_t fm_ce_se, uint8_t ds,
-+			     uint8_t signature, uint32_t imm)
-+{
-+	__m128i val  = _mm_set_epi32(imm, qp_num, (ds << 16) | pi,
-+				     (signature << 24) | (opcode << 16) | (opmod << 8) | fm_ce_se);
-+	__m128i mask = _mm_set_epi8(15, 14, 13, 12,	/* immediate */
-+				     0,			/* signal/fence_mode */
-+				     0x80, 0x80,	/* reserved */
-+				     3,			/* signature */
-+				     6,			/* data size */
-+				     8, 9, 10,		/* QP num */
-+				     2,			/* opcode */
-+				     4, 5,		/* sw_pi in BE */
-+				     1			/* opmod */
-+				     );
-+	*(__m128i *) seg = _mm_shuffle_epi8(val, mask);
-+}
-+#endif /* defined(__SSE3__) */
++.SH "DESCRIPTION"
++The libibverbs API is an abstract one. It is agnostic to any underlying
++provider specific implementation. While this abstraction has the advantage
++of user applications portability it has a performance penalty. For some
++applications optimizing performance is more important than portability.
 +
-+/*
-+ * Datagram Segment - contains address information required in order
-+ * to form a datagram message.
-+ *
-+ * Output:
-+ *	seg		- datagram segment to be filled.
-+ * Input:
-+ *	key		- Q_key/access key.
-+ *	dqp_dct		- Destination QP number for UD and DCT for DC.
-+ *	ext		- Address vector extension.
-+ *	stat_rate_sl	- Maximum static rate control, SL/ethernet priority.
-+ *	fl_mlid		- Force loopback and source LID for IB.
-+ *	rlid		- Remote LID
-+ *	rmac		- Remote MAC
-+ *	tclass		- GRH tclass/IPv6 tclass/IPv4 ToS
-+ *	hop_limit	- GRH hop limit/IPv6 hop limit/IPv4 TTL
-+ *	grh_gid_fi	- GRH, source GID address and IPv6 flow label.
-+ *	rgid		- Remote GID/IP address.
-+ */
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_dgram_seg(struct mlx5_wqe_datagram_seg *seg,
-+			  uint64_t key, uint32_t dqp_dct,
-+			  uint8_t ext, uint8_t stat_rate_sl,
-+			  uint8_t fl_mlid, uint16_t rlid,
-+			  uint8_t *rmac, uint8_t tclass,
-+			  uint8_t hop_limit, uint32_t grh_gid_fi,
-+			  uint8_t *rgid)
-+{
++The mlx5 direct verbs API is intended for such applications.
++It exposes mlx5 specific low level data path (send/receive/completion)
++operations, allowing the application to bypass the libibverbs data path API.
 +
-+	/* Always put 64 bits, in q_key, the reserved part will be 0 */
-+	seg->av.key.dc_key	= htobe64(key);
-+	seg->av.dqp_dct		= htonl(((uint32_t)ext << 31) | dqp_dct);
-+	seg->av.stat_rate_sl	= stat_rate_sl;
-+	seg->av.fl_mlid		= fl_mlid;
-+	seg->av.rlid		= htons(rlid);
-+	memcpy(seg->av.rmac, rmac, 6);
-+	seg->av.tclass		= tclass;
-+	seg->av.hop_limit	= hop_limit;
-+	seg->av.grh_gid_fl	= htonl(grh_gid_fi);
-+	memcpy(seg->av.rgid, rgid, 16);
-+}
++This interface consists from one hardware specific header file
++with relevant inline functions and conversion logic from ibverbs structures
++to mlx5 specific structures.
 +
-+/*
-+ * Data Segments - contain pointers and a byte count for the scatter/gather list.
-+ * They can optionally contain data, which will save a memory read access for
-+ * gather Work Requests.
-+ */
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_data_seg(struct mlx5_wqe_data_seg *seg,
-+			 uint32_t length, uint32_t lkey,
-+			 uintptr_t address)
-+{
-+	seg->byte_count = htonl(length);
-+	seg->lkey       = htonl(lkey);
-+	seg->addr       = htobe64(address);
-+}
-+/*
-+ * x86 optimized version of mlx5dv_set_data_seg()
-+ *
-+ * This is useful when doing calculations on large data sets
-+ * for parallel calculations.
-+ *
-+ * It doesn't suit for serialized algorithms.
-+ */
-+#if defined(__SSE3__)
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_x86_set_data_seg(struct mlx5_wqe_data_seg *seg,
-+			     uint32_t length, uint32_t lkey,
-+			     uintptr_t address)
-+{
-+	__m128i val  = _mm_set_epi32((uint32_t)address, (uint32_t)(address >> 32), lkey, length);
-+	__m128i mask = _mm_set_epi8(12, 13, 14, 15,	/* local address low */
-+				     8, 9, 10, 11,	/* local address high */
-+				     4, 5, 6, 7,	/* l_key */
-+				     0, 1, 2, 3		/* byte count */
-+				     );
-+	*(__m128i *) seg = _mm_shuffle_epi8(val, mask);
-+}
-+#endif /* defined(__SSE3__) */
++The direct include of mlx5dv.h together with linkage to mlx5 library will
++allow usage of this new interface.
 +
++Once an application uses the direct flow the locking scheme is fully managed
++by itself. There is an expectation that no mixed flows in the data path for both
++direct/non-direct access will be by same application.
++
++.SH "NOTES"
++All Mellanox NIC devices starting from Connect-IB (Connect-IB,
++ConnectX-4, ConnectX-4Lx, ConnectX-5, ...) implement the mlx5 API,
++thus using the mlx5 direct verbs does not limit the applications
++to a single NIC HW device thus keeping some level of portability.
++
++.SH "SEE ALSO"
++.BR ibv_post_send (3),
++.BR verbs (7)
++
++.SH "AUTHORS"
++.TP
++Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/providers/mlx5/man/mlx5dv_init_obj.3 b/providers/mlx5/man/mlx5dv_init_obj.3
+new file mode 100644
+index 0000000..41b0790
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv_init_obj.3
+@@ -0,0 +1,129 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
++.\"
++.TH MLX5DV_INIT_OBJ 3 2017-02-02 1.0.0
++.SH "NAME"
++mlx5dv_init_obj \- Initialize mlx5 direct verbs object from ibv_xxx structures
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/mlx5dv.h>
++.sp
++.BI "int mlx5dv_init_obj(struct mlx5dv_obj *obj, uint64_t obj_type);
++.fi
++.SH "DESCRIPTION"
++.B mlx5dv_init_obj()
++This function will initialize mlx5dv_xxx structs based on supplied type. The information
++for initialization is taken from ibv_xx structs supplied as part of input.
++
++Request information of CQ marks its owned by direct verbs for all consumer index
++related actions. The initialization type can be combination of several types together.
++.PP
++.nf
++struct mlx5dv_qp {
++.in +8
++uint32_t                *dbrec;
++struct {
++.in +8
++void            *buf;
++uint32_t        wqe_cnt;
++uint32_t        stride;
++.in -8
++} sq;
++struct {
++.in +8
++void            *buf;
++uint32_t        wqe_cnt;
++uint32_t        stride;
++.in -8
++} rq;
++struct {
++.in +8
++void            *reg;
++uint32_t        size;
++.in -8
++} bf;
++uint64_t                comp_mask;
++.in -8
++};
++
++struct mlx5dv_cq {
++.in +8
++void                    *buf;
++uint32_t                *dbrec;
++uint32_t                cqe_cnt;
++uint32_t                cqe_size;
++void                    *uar;
++uint32_t                cqn;
++uint64_t                comp_mask;
++.in -8
++};
++
++struct mlx5dv_srq {
++.in +8
++void                    *buf;
++uint32_t                *dbrec;
++uint32_t                stride;
++uint32_t                head;
++uint32_t                tail;
++uint64_t                comp_mask;
++.in -8
++};
++
++struct mlx5dv_rwq {
++.in +8
++void            *buf;
++uint32_t        *dbrec;
++uint32_t        wqe_cnt;
++uint32_t        stride;
++uint64_t        comp_mask;
++.in -8
++};
++
++struct mlx5dv_obj {
++.in +8
++struct {
++.in +8
++struct ibv_qp           *in;
++struct mlx5dv_qp        *out;
++.in -8
++} qp;
++struct {
++.in +8
++struct ibv_cq           *in;
++struct mlx5dv_cq        *out;
++.in -8
++} cq;
++struct {
++.in +8
++struct ibv_srq          *in;
++struct mlx5dv_srq       *out;
++.in -8
++} srq;
++struct {
++.in +8
++struct ibv_wq           *in;
++struct mlx5dv_rwq       *out;
++.in -8
++} rwq;
++.in -8
++};
++
++enum mlx5dv_obj_type {
++.in +8
++MLX5DV_OBJ_QP   = 1 << 0,
++MLX5DV_OBJ_CQ   = 1 << 1,
++MLX5DV_OBJ_SRQ  = 1 << 2,
++MLX5DV_OBJ_RWQ  = 1 << 3,
++.in -8
++};
++.fi
++.SH "RETURN VALUE"
++0 on success.
++.SH "NOTES"
++The information if doorbell is blueflame is based on mlx5dv_qp->bf->size,
++in case of 0 it's not a BF.
++.SH "SEE ALSO"
++.BR mlx5dv (7)
++.SH "AUTHORS"
++.TP
++Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/providers/mlx5/man/mlx5dv_query_device.3 b/providers/mlx5/man/mlx5dv_query_device.3
+new file mode 100644
+index 0000000..1aeba3d
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv_query_device.3
+@@ -0,0 +1,48 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
++.\"
++.TH MLX5DV_QUERY_DEVICE 3 2017-02-02 1.0.0
++.SH "NAME"
++mlx5dv_query_device \- Query device capabilities specific to mlx5
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/mlx5dv.h>
++.sp
++.BI "int mlx5dv_query_device(struct ibv_context *ctx_in,
++.BI "                        struct mlx5dv_context *attrs_out);
++.fi
++.SH "DESCRIPTION"
++.B mlx5dv_query_device()
++Query HW device-specific information which is important for data-path, but isn't provided by
++\fBibv_query_device\fR(3).
++.PP
++This function returns version, flags and compatibility mask. The version represents the format
++of the internal hardware structures that mlx5dv.h represents. Additions of new fields to the existed
++structures are handled by comp_mask field.
++.PP
++.nf
++struct mlx5dv_context {
++.in +8
++uint8_t         version;
++uint64_t        flags;
++uint64_t        comp_mask;
++.in -8
++};
++
++enum mlx5dv_context_flags {
++.in +8
 +/*
-+ * Eth Segment - contains packet headers and information for stateless L2, L3, L4 offloading.
-+ *
-+ * Output:
-+ *	 seg		 - Eth segment to be filled.
-+ * Input:
-+ *	cs_flags	 - l3cs/l3cs_inner/l4cs/l4cs_inner.
-+ *	mss		 - Maximum segment size. For TSO WQEs, the number of bytes
-+ *			   in the TCP payload to be transmitted in each packet. Must
-+ *			   be 0 on non TSO WQEs.
-+ *	inline_hdr_sz	 - Length of the inlined packet headers.
-+ *	inline_hdr_start - Inlined packet header.
++ * This flag indicates if CQE version 0 or 1 is needed.
 + */
-+static MLX5DV_ALWAYS_INLINE
-+void mlx5dv_set_eth_seg(struct mlx5_wqe_eth_seg *seg, uint8_t cs_flags,
-+			uint16_t mss, uint16_t inline_hdr_sz,
-+			uint8_t *inline_hdr_start)
-+{
-+	seg->cs_flags		= cs_flags;
-+	seg->mss		= htons(mss);
-+	seg->inline_hdr_sz	= htons(inline_hdr_sz);
-+	memcpy(seg->inline_hdr_start, inline_hdr_start, inline_hdr_sz);
-+}
- #endif /* _MLX5DV_H_ */
++ MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
++.in -8
++};
++.fi
++.SH "RETURN VALUE"
++0 on success.
++.SH "SEE ALSO"
++.BR mlx5dv (7),
++.BR ibv_query_device (3)
++.SH "AUTHORS"
++.TP
++Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 -- 
 1.8.3.1
 
