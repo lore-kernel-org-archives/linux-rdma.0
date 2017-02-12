@@ -1,38 +1,95 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] IB/hfi1: Use memdup_user() rather than duplicating
- its implementation in hfi1_user_sdma_process_request()
-Date: Sat, 11 Feb 2017 10:32:59 -0500
-Message-ID: <477c8499-93ad-253d-aa2b-8f209ecfad62@intel.com>
-References: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
- <b19e44b3-601f-c642-b8d3-12c000511ce2@users.sourceforge.net>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH V5 for-next 21/21] RDMA/bnxt_re: Add bnxt_re driver build
+ support
+Date: Sun, 12 Feb 2017 09:54:49 +0200
+Message-ID: <20170212075449.GA14015@mtr-leonro.local>
+References: <1486725593-9872-1-git-send-email-selvin.xavier@broadcom.com>
+ <1486725593-9872-22-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b19e44b3-601f-c642-b8d3-12c000511ce2-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1486725593-9872-22-git-send-email-selvin.xavier@broadcom.com>
+Sender: netdev-owner@vger.kernel.org
+To: Selvin Xavier <selvin.xavier@broadcom.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/10/2017 04:04 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> Date: Fri, 10 Feb 2017 21:01:55 +0100
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Feb 10, 2017 at 03:19:53AM -0800, Selvin Xavier wrote:
+> Makefile and Kconfig changes for enabling bnxt_re compilation
 >
-> Reuse existing functionality from memdup_user() instead of keeping
-> duplicate source code.
+> v3: Adds list of MAINTAINERS of bnxt_re driver. Removes bnxt_re_debugfs.c
+>     from Makefile as this file is no longer present
 >
-> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+> Signed-off-by: Somnath Kotur <somnath.kotur@broadcom.com>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> ---
+>  MAINTAINERS                            | 11 +++++++++++
+>  drivers/infiniband/Kconfig             |  2 ++
+>  drivers/infiniband/hw/Makefile         |  1 +
+>  drivers/infiniband/hw/bnxt_re/Kconfig  |  9 +++++++++
+>  drivers/infiniband/hw/bnxt_re/Makefile |  6 ++++++
+>  5 files changed, 29 insertions(+)
+>  create mode 100644 drivers/infiniband/hw/bnxt_re/Kconfig
+>  create mode 100644 drivers/infiniband/hw/bnxt_re/Makefile
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 5f0420a..468d2e8 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -2808,6 +2808,17 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+>  S:	Maintained
+>  F:	arch/arm64/boot/dts/broadcom/vulcan*
+>
+> +BROADCOM NETXTREME-E ROCE DRIVER
+> +M:	Selvin Xavier <selvin.xavier@broadcom.com>
+> +M:	Devesh Sharma <devesh.sharma@broadcom.com>
+> +M:	Somnath Kotur <somnath.kotur@broadcom.com>
+> +M:	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+> +L:	linux-rdma@vger.kernel.org
+> +W:	http://www.broadcom.com
+> +S:	Supported
+> +F:	drivers/infiniband/hw/bnxt_re/
+> +F:	include/uapi/rdma/bnxt_re-abi.h
+> +
 
-Thanks for the patch, but this one is already taken care of along with 
-other similar uses of kmalloc/copy:
+Please take a look on the note which I gave to Faisal a long time ago [1].
+Our experience shows that the more people you add here, the less chances
+to be CCed on the relevant patches.
 
-http://marc.info/?l=linux-rdma&m=148656088729538&w=2
+It is definitely up to you.
 
-Will review the rest of the patch series soon.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
--Denny
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] https://www.spinics.net/lists/linux-rdma/msg41457.html
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAligFMkACgkQ5GN7iDZy
+WKdEeBAAmG98PiNXIjvBTNyK1OA7CalYPcWIHCJrBRu/0F5+c9TynITQ3BSBcz0x
+6YP2cYepgTyNbMTvYH8Qz/mCWvI7smEQZFwgRJxlW+fG6zjNYSFt0t+LYrOUQKDn
+JDDkPKUbSnHlz0b18Nh6tknTbY4GHFnEHbYly0KCwytwMd6zHidTHkw/Fu05v9YG
+5Z600Mq/GfkawfsSqXG1skrkdrPOuSC1AmigFkpc6mUHh8f2u6rUZTQjZAFaKJSk
+Ejt5Y08ZEtncJ+8kbspvtjhLRjgSasn4B4H6WlV79L2Wa5580Ushnl9J8uF4FhQe
+w9QrxvYS+FQkvGfchzH0YiXLV2kZ+xXnmGZrtjSS0e/uTRFc62J/OfdK+WnKpnag
+NuqvUwNx7YWfSpQ/t8F0YJ2H44JhsSo6VuIxqE0l5sVEUn6VBcdMN05pOyz4jjKx
+tZBeWC/kUSbdPxhkBawnZJeOkKVcf4Y01S2JYYIZWW8wuuJ4PtYHDaKphILRdQaf
+My7iw9kOT1Zp43F2T8n23HFipVrqg8p1+SsXdkYuemnkQB4wwJ9KxY3urvaXwO4s
++HIA2iT1vl4Lr6btgTn03OMKhMO5G0oJE8F4SLrejlAgF9HJ5Edk9H55i3z9W6jp
+ysHfqTBCcTOQrrf31gEWCOTxzAwXdQIH8wVaDyCUQ0dIyYd8VCY=
+=ETDW
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
