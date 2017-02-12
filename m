@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 6/7] mlx5: Add direct verbs man pages
-Date: Sun, 12 Feb 2017 16:16:51 +0200
-Message-ID: <1486909012-15064-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 7/7] mlx5: Export mlx5 direct verbs interface
+Date: Sun, 12 Feb 2017 16:16:52 +0200
+Message-ID: <1486909012-15064-8-git-send-email-yishaih@mellanox.com>
 References: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1486909012-15064-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,284 +12,184 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Document mlx5 direct verbs feature and exposed related functions.
+Install direct verbs header file into /usr/include/infiniband/
+folder and allow for possible users to explicitly include it
+into their applications.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- CMakeLists.txt                           |   1 +
- providers/mlx5/man/CMakeLists.txt        |   5 ++
- providers/mlx5/man/mlx5dv.7              |  44 +++++++++++
- providers/mlx5/man/mlx5dv_init_obj.3     | 129 +++++++++++++++++++++++++++++++
- providers/mlx5/man/mlx5dv_query_device.3 |  48 ++++++++++++
- 5 files changed, 227 insertions(+)
- create mode 100644 providers/mlx5/man/CMakeLists.txt
- create mode 100644 providers/mlx5/man/mlx5dv.7
- create mode 100644 providers/mlx5/man/mlx5dv_init_obj.3
- create mode 100644 providers/mlx5/man/mlx5dv_query_device.3
+ buildlib/rdma_functions.cmake    | 51 ++++++++++++++++++++++++++++++++++++++++
+ buildlib/relpath                 |  7 ++++++
+ debian/ibverbs-providers.install |  4 ++++
+ debian/ibverbs-providers.symbols |  4 ++++
+ providers/mlx5/CMakeLists.txt    |  7 +++++-
+ providers/mlx5/libmlx5.map       |  8 +++++++
+ redhat/rdma-core.spec            |  3 +++
+ 7 files changed, 83 insertions(+), 1 deletion(-)
+ create mode 100644 buildlib/relpath
+ create mode 100644 debian/ibverbs-providers.symbols
+ create mode 100644 providers/mlx5/libmlx5.map
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 45cbc4e..529c0cd 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -377,6 +377,7 @@ add_subdirectory(providers/hns)
- add_subdirectory(providers/i40iw)
- add_subdirectory(providers/mlx4)
- add_subdirectory(providers/mlx5)
-+add_subdirectory(providers/mlx5/man)
- add_subdirectory(providers/mthca)
- add_subdirectory(providers/nes)
- add_subdirectory(providers/ocrdma)
-diff --git a/providers/mlx5/man/CMakeLists.txt b/providers/mlx5/man/CMakeLists.txt
+diff --git a/buildlib/rdma_functions.cmake b/buildlib/rdma_functions.cmake
+index 5256ad9..5012e22 100644
+--- a/buildlib/rdma_functions.cmake
++++ b/buildlib/rdma_functions.cmake
+@@ -72,6 +72,57 @@ function(rdma_library DEST VERSION_SCRIPT SOVERSION VERSION)
+   install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+ endfunction()
+ 
++# Create a special provider with exported symbols in it The shared provider
++# exists as a normal system library with the normal shared library SONAME and
++# other convections. The system library is symlinked into the
++# VERBS_PROVIDER_DIR so it can be dlopened as a provider as well.
++function(rdma_shared_provider DEST VERSION_SCRIPT SOVERSION VERSION)
++  # Installed driver file
++  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" "driver ${DEST}\n")
++  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${DEST}.driver" DESTINATION "${CONFIG_DIR}")
++
++  # Uninstalled driver file
++  file(MAKE_DIRECTORY "${BUILD_ETC}/libibverbs.d/")
++  file(WRITE "${BUILD_ETC}/libibverbs.d/${DEST}.driver" "driver ${BUILD_LIB}/lib${DEST}\n")
++
++  # Create a static provider library
++  if (ENABLE_STATIC)
++    add_library(${DEST} STATIC ${ARGN})
++    set_target_properties(${DEST} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
++    install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
++
++    list(APPEND RDMA_STATIC_LIBS ${DEST}-rdmav2 ${DEST})
++    set(RDMA_STATIC_LIBS "${RDMA_STATIC_LIBS}" CACHE INTERNAL "")
++  endif()
++
++  # Create the plugin shared library
++  add_library(${DEST} SHARED ${ARGN})
++  rdma_set_library_map(${DEST} ${VERSION_SCRIPT})
++
++  target_link_libraries(${DEST} LINK_PRIVATE ${COMMON_LIBS_PIC})
++  target_link_libraries(${DEST} LINK_PRIVATE ibverbs)
++  target_link_libraries(${DEST} LINK_PRIVATE ${CMAKE_THREAD_LIBS_INIT})
++  set_target_properties(${DEST} PROPERTIES
++    SOVERSION ${SOVERSION}
++    VERSION ${VERSION}
++    LIBRARY_OUTPUT_DIRECTORY "${BUILD_LIB}")
++  install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
++
++  # Compute a relative symlink from VERBS_PROVIDER_DIR to LIBDIR
++  execute_process(COMMAND python ${CMAKE_SOURCE_DIR}/buildlib/relpath
++    "${CMAKE_INSTALL_FULL_LIBDIR}/lib${DEST}.so.${VERSION}"
++    "${VERBS_PROVIDER_DIR}"
++    OUTPUT_VARIABLE DEST_LINK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
++  rdma_install_symlink("${DEST_LINK_PATH}" "${VERBS_PROVIDER_DIR}/lib${DEST}-rdmav2.so")
++
++  # cmake doesn't create target DESTINATION directories until everything is
++  # finished, do it manually here so we can create the in-tree symlink.
++  execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "${BUILD_LIB}")
++  execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
++    "lib${DEST}.so.${VERSION}"
++    "${BUILD_LIB}/lib${DEST}-rdmav2.so")
++endfunction()
++
+ # Create a provider shared library for libibverbs
+ function(rdma_provider DEST)
+   # Installed driver file
+diff --git a/buildlib/relpath b/buildlib/relpath
 new file mode 100644
-index 0000000..bb1610b
+index 0000000..b80cf63
 --- /dev/null
-+++ b/providers/mlx5/man/CMakeLists.txt
-@@ -0,0 +1,5 @@
-+rdma_man_pages(
-+  mlx5dv_init_obj.3
-+  mlx5dv_query_device.3
-+  mlx5dv.7
++++ b/buildlib/relpath
+@@ -0,0 +1,7 @@
++#!/usr/bin/env python
++# Copyright 2017 Mellanox Technologies, Inc. See COPYING.
++
++import os
++import sys
++
++print(os.path.relpath(sys.argv[1], sys.argv[2]))
+diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
+index 70244ee..7bacc2e 100644
+--- a/debian/ibverbs-providers.install
++++ b/debian/ibverbs-providers.install
+@@ -1,8 +1,12 @@
++usr/include/infiniband/mlx5dv.h
+ etc/libibverbs.d/
+ etc/modprobe.d/truescale.conf
+ usr/bin/rxe_cfg
+ usr/lib/*/libibverbs/lib*-rdmav2.so
++usr/lib/*/libmlx5.*
+ usr/lib/truescale-serdes.cmds
+ usr/share/doc/rdma-core/rxe.md usr/share/doc/ibverbs-providers/
++usr/share/man/man3/mlx5dv_*.3
++usr/share/man/man7/mlx5dv.7
+ usr/share/man/man7/rxe.7
+ usr/share/man/man8/rxe_cfg.8
+diff --git a/debian/ibverbs-providers.symbols b/debian/ibverbs-providers.symbols
+new file mode 100644
+index 0000000..b114deb
+--- /dev/null
++++ b/debian/ibverbs-providers.symbols
+@@ -0,0 +1,4 @@
++libmlx5.so.1 ibverbs-providers #MINVER#
++ MLX5_1.0@MLX5_1.0 13-1
++ mlx5dv_init_obj@MLX5_1.0 13-1
++ mlx5dv_query_device@MLX5_1.0 13-1
+diff --git a/providers/mlx5/CMakeLists.txt b/providers/mlx5/CMakeLists.txt
+index 44df83b..25e10af 100644
+--- a/providers/mlx5/CMakeLists.txt
++++ b/providers/mlx5/CMakeLists.txt
+@@ -10,7 +10,8 @@ if (MLX5_MW_DEBUG)
+   add_definitions("-DMW_DEBUG")
+ endif()
+ 
+-rdma_provider(mlx5
++rdma_shared_provider(mlx5 libmlx5.map
++  1 1.0.${PACKAGE_VERSION}
+   buf.c
+   cq.c
+   dbrec.c
+@@ -19,3 +20,7 @@ rdma_provider(mlx5
+   srq.c
+   verbs.c
+ )
++
++publish_headers(infiniband
++  mlx5dv.h
 +)
-diff --git a/providers/mlx5/man/mlx5dv.7 b/providers/mlx5/man/mlx5dv.7
+diff --git a/providers/mlx5/libmlx5.map b/providers/mlx5/libmlx5.map
 new file mode 100644
-index 0000000..48b21b9
+index 0000000..7ce3eb1
 --- /dev/null
-+++ b/providers/mlx5/man/mlx5dv.7
-@@ -0,0 +1,44 @@
-+.\" -*- nroff -*-
-+.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
-+.\"
-+.TH MLX5DV 7 2017-02-02 1.0.0
-+.SH "NAME"
-+mlx5dv \- Direct verbs for mlx5 devices
-+.br
-+This is low level access to mlx5 devices to perform data path operations,
-+without general branching performed by \fBibv_post_send\fR(3).
-+
-+.SH "DESCRIPTION"
-+The libibverbs API is an abstract one. It is agnostic to any underlying
-+provider specific implementation. While this abstraction has the advantage
-+of user applications portability it has a performance penalty. For some
-+applications optimizing performance is more important than portability.
-+
-+The mlx5 direct verbs API is intended for such applications.
-+It exposes mlx5 specific low level data path (send/receive/completion)
-+operations, allowing the application to bypass the libibverbs data path API.
-+
-+This interface consists from one hardware specific header file
-+with relevant inline functions and conversion logic from ibverbs structures
-+to mlx5 specific structures.
-+
-+The direct include of mlx5dv.h together with linkage to mlx5 library will
-+allow usage of this new interface.
-+
-+Once an application uses the direct flow the locking scheme is fully managed
-+by itself. There is an expectation that no mixed flows in the data path for both
-+direct/non-direct access will be by same application.
-+
-+.SH "NOTES"
-+All Mellanox NIC devices starting from Connect-IB (Connect-IB,
-+ConnectX-4, ConnectX-4Lx, ConnectX-5, ...) implement the mlx5 API,
-+thus using the mlx5 direct verbs does not limit the applications
-+to a single NIC HW device thus keeping some level of portability.
-+
-+.SH "SEE ALSO"
-+.BR ibv_post_send (3),
-+.BR verbs (7)
-+
-+.SH "AUTHORS"
-+.TP
-+Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/providers/mlx5/man/mlx5dv_init_obj.3 b/providers/mlx5/man/mlx5dv_init_obj.3
-new file mode 100644
-index 0000000..41b0790
---- /dev/null
-+++ b/providers/mlx5/man/mlx5dv_init_obj.3
-@@ -0,0 +1,129 @@
-+.\" -*- nroff -*-
-+.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
-+.\"
-+.TH MLX5DV_INIT_OBJ 3 2017-02-02 1.0.0
-+.SH "NAME"
-+mlx5dv_init_obj \- Initialize mlx5 direct verbs object from ibv_xxx structures
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/mlx5dv.h>
-+.sp
-+.BI "int mlx5dv_init_obj(struct mlx5dv_obj *obj, uint64_t obj_type);
-+.fi
-+.SH "DESCRIPTION"
-+.B mlx5dv_init_obj()
-+This function will initialize mlx5dv_xxx structs based on supplied type. The information
-+for initialization is taken from ibv_xx structs supplied as part of input.
-+
-+Request information of CQ marks its owned by direct verbs for all consumer index
-+related actions. The initialization type can be combination of several types together.
-+.PP
-+.nf
-+struct mlx5dv_qp {
-+.in +8
-+uint32_t                *dbrec;
-+struct {
-+.in +8
-+void            *buf;
-+uint32_t        wqe_cnt;
-+uint32_t        stride;
-+.in -8
-+} sq;
-+struct {
-+.in +8
-+void            *buf;
-+uint32_t        wqe_cnt;
-+uint32_t        stride;
-+.in -8
-+} rq;
-+struct {
-+.in +8
-+void            *reg;
-+uint32_t        size;
-+.in -8
-+} bf;
-+uint64_t                comp_mask;
-+.in -8
++++ b/providers/mlx5/libmlx5.map
+@@ -0,0 +1,8 @@
++/* Export symbols should be added below according to
++   Documentation/versioning.md document. */
++MLX5_1.0 {
++	global:
++		mlx5dv_query_device;
++		mlx5dv_init_obj;
++	local: *;
 +};
-+
-+struct mlx5dv_cq {
-+.in +8
-+void                    *buf;
-+uint32_t                *dbrec;
-+uint32_t                cqe_cnt;
-+uint32_t                cqe_size;
-+void                    *uar;
-+uint32_t                cqn;
-+uint64_t                comp_mask;
-+.in -8
-+};
-+
-+struct mlx5dv_srq {
-+.in +8
-+void                    *buf;
-+uint32_t                *dbrec;
-+uint32_t                stride;
-+uint32_t                head;
-+uint32_t                tail;
-+uint64_t                comp_mask;
-+.in -8
-+};
-+
-+struct mlx5dv_rwq {
-+.in +8
-+void            *buf;
-+uint32_t        *dbrec;
-+uint32_t        wqe_cnt;
-+uint32_t        stride;
-+uint64_t        comp_mask;
-+.in -8
-+};
-+
-+struct mlx5dv_obj {
-+.in +8
-+struct {
-+.in +8
-+struct ibv_qp           *in;
-+struct mlx5dv_qp        *out;
-+.in -8
-+} qp;
-+struct {
-+.in +8
-+struct ibv_cq           *in;
-+struct mlx5dv_cq        *out;
-+.in -8
-+} cq;
-+struct {
-+.in +8
-+struct ibv_srq          *in;
-+struct mlx5dv_srq       *out;
-+.in -8
-+} srq;
-+struct {
-+.in +8
-+struct ibv_wq           *in;
-+struct mlx5dv_rwq       *out;
-+.in -8
-+} rwq;
-+.in -8
-+};
-+
-+enum mlx5dv_obj_type {
-+.in +8
-+MLX5DV_OBJ_QP   = 1 << 0,
-+MLX5DV_OBJ_CQ   = 1 << 1,
-+MLX5DV_OBJ_SRQ  = 1 << 2,
-+MLX5DV_OBJ_RWQ  = 1 << 3,
-+.in -8
-+};
-+.fi
-+.SH "RETURN VALUE"
-+0 on success.
-+.SH "NOTES"
-+The information if doorbell is blueflame is based on mlx5dv_qp->bf->size,
-+in case of 0 it's not a BF.
-+.SH "SEE ALSO"
-+.BR mlx5dv (7)
-+.SH "AUTHORS"
-+.TP
-+Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/providers/mlx5/man/mlx5dv_query_device.3 b/providers/mlx5/man/mlx5dv_query_device.3
-new file mode 100644
-index 0000000..1aeba3d
---- /dev/null
-+++ b/providers/mlx5/man/mlx5dv_query_device.3
-@@ -0,0 +1,48 @@
-+.\" -*- nroff -*-
-+.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
-+.\"
-+.TH MLX5DV_QUERY_DEVICE 3 2017-02-02 1.0.0
-+.SH "NAME"
-+mlx5dv_query_device \- Query device capabilities specific to mlx5
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/mlx5dv.h>
-+.sp
-+.BI "int mlx5dv_query_device(struct ibv_context *ctx_in,
-+.BI "                        struct mlx5dv_context *attrs_out);
-+.fi
-+.SH "DESCRIPTION"
-+.B mlx5dv_query_device()
-+Query HW device-specific information which is important for data-path, but isn't provided by
-+\fBibv_query_device\fR(3).
-+.PP
-+This function returns version, flags and compatibility mask. The version represents the format
-+of the internal hardware structures that mlx5dv.h represents. Additions of new fields to the existed
-+structures are handled by comp_mask field.
-+.PP
-+.nf
-+struct mlx5dv_context {
-+.in +8
-+uint8_t         version;
-+uint64_t        flags;
-+uint64_t        comp_mask;
-+.in -8
-+};
-+
-+enum mlx5dv_context_flags {
-+.in +8
-+/*
-+ * This flag indicates if CQE version 0 or 1 is needed.
-+ */
-+ MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
-+.in -8
-+};
-+.fi
-+.SH "RETURN VALUE"
-+0 on success.
-+.SH "SEE ALSO"
-+.BR mlx5dv (7),
-+.BR ibv_query_device (3)
-+.SH "AUTHORS"
-+.TP
-+Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 9bdfdff..ade4b4a 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -359,12 +359,15 @@ rm -rf %{buildroot}/%{_initrddir}/
+ %dir %{_libdir}/libibverbs
+ %{_libdir}/libibverbs*.so.*
+ %{_libdir}/libibverbs/*.so
++%{_libdir}/libmlx5.so*
+ %config(noreplace) %{_sysconfdir}/libibverbs.d/*.driver
+ %doc %{_docdir}/%{name}-%{version}/libibverbs.md
+ %doc %{_docdir}/%{name}-%{version}/rxe.md
+ %{_bindir}/rxe_cfg
+ %{_mandir}/man7/rxe*
+ %{_mandir}/man8/rxe*
++%{_mandir}/man3/mlx5dv*
++%{_mandir}/man7/mlx5dv*
+ 
+ %files -n libibverbs-utils
+ %{_bindir}/ibv_*
 -- 
 1.8.3.1
 
