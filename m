@@ -1,299 +1,79 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] vmw_pvrdma: switch to pci_alloc_irq_vectors
-Date: Sun, 12 Feb 2017 22:47:25 -0800
-Message-ID: <e8931e40-2187-f67b-7571-79f4744fe3bf@vmware.com>
-References: <20170209151143.15684-1-hch@lst.de>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH 3/5] IB/hfi1: Adjust another size determination in
+ hfi1_user_sdma_alloc_queues()
+Date: Mon, 13 Feb 2017 10:10:37 +0100
+Message-ID: <fc714096-8534-2231-17fd-8e3ca3f7a87b@suse.de>
+References: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
+ <0fdf4d81-58d7-c6fc-b37f-41d47675dd83@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170209151143.15684-1-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0fdf4d81-58d7-c6fc-b37f-41d47675dd83@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sean Hefty <sean.hefty@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb  9, 2017 at 4:11:43PM +0100, Christoph Hellwig wrote:
-> .. and greatly clean up the irq handling boilerplate code.
-
-Thanks for the cleanup! Few comments below..
-
+On 02/10/2017 10:03 PM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Fri, 10 Feb 2017 08:50:45 +0100
 > 
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> * Pass a product for a call of the function "vmalloc_user" without storing
+>   it in an intermediate variable.
+> 
+> * Delete the local variable "memsize" which became unnecessary with
+>   this refactoring.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |   7 -
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h |   6 -
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 166 +++++-----------------
->  3 files changed, 35 insertions(+), 144 deletions(-)
+>  drivers/infiniband/hw/hfi1/user_sdma.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> index 71e1d55d69d6..afe0a85fe3c0 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> @@ -196,13 +196,6 @@ struct pvrdma_dev {
->  	spinlock_t cmd_lock; /* Command lock. */
->  	struct semaphore cmd_sema;
->  	struct completion cmd_done;
-> -	struct {
-> -		enum pvrdma_intr_type type; /* Intr type */
-> -		struct msix_entry msix_entry[PVRDMA_MAX_INTERRUPTS];
-> -		irq_handler_t handler[PVRDMA_MAX_INTERRUPTS];
-> -		u8 enabled[PVRDMA_MAX_INTERRUPTS];
-> -		u8 size;
-> -	} intr;
->  
->  	/* RDMA-related device information. */
->  	union ib_gid *sgid_tbl;
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> index c06768635d65..e69d6f3cae32 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> @@ -149,12 +149,6 @@ enum pvrdma_intr_cause {
->  	PVRDMA_INTR_CAUSE_CQ		= (1 << PVRDMA_INTR_VECTOR_CQ),
->  };
->  
-> -enum pvrdma_intr_type {
-> -	PVRDMA_INTR_TYPE_INTX,		/* Legacy. */
-> -	PVRDMA_INTR_TYPE_MSI,		/* MSI. */
-> -	PVRDMA_INTR_TYPE_MSIX,		/* MSI-X. */
-> -};
-> -
->  enum pvrdma_gos_bits {
->  	PVRDMA_GOS_BITS_UNK,		/* Unknown. */
->  	PVRDMA_GOS_BITS_32,		/* 32-bit. */
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> index 231a1ce1f4be..dccda92f090d 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> @@ -282,7 +282,7 @@ static irqreturn_t pvrdma_intr0_handler(int irq, void *dev_id)
->  
->  	dev_dbg(&dev->pdev->dev, "interrupt 0 (response) handler\n");
->  
-> -	if (dev->intr.type != PVRDMA_INTR_TYPE_MSIX) {
-> +	if (!dev->pdev->msix_enabled) {
->  		/* Legacy intr */
->  		icr = pvrdma_read_reg(dev, PVRDMA_REG_ICR);
->  		if (icr == 0)
-> @@ -489,31 +489,14 @@ static irqreturn_t pvrdma_intrx_handler(int irq, void *dev_id)
->  	return IRQ_HANDLED;
->  }
->  
-> -static void pvrdma_disable_msi_all(struct pvrdma_dev *dev)
-> -{
-> -	if (dev->intr.type == PVRDMA_INTR_TYPE_MSIX)
-> -		pci_disable_msix(dev->pdev);
-> -	else if (dev->intr.type == PVRDMA_INTR_TYPE_MSI)
-> -		pci_disable_msi(dev->pdev);
-> -}
-> -
->  static void pvrdma_free_irq(struct pvrdma_dev *dev)
+> diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+> index 15194554a92b..991e7f3d8e18 100644
+> --- a/drivers/infiniband/hw/hfi1/user_sdma.c
+> +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+> @@ -375,7 +375,6 @@ int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt, struct file *fp)
 >  {
-> -	int i;
-> -
->  	dev_dbg(&dev->pdev->dev, "freeing interrupts\n");
-> -
-> -	if (dev->intr.type == PVRDMA_INTR_TYPE_MSIX) {
-> -		for (i = 0; i < dev->intr.size; i++) {
-> -			if (dev->intr.enabled[i]) {
-> -				free_irq(dev->intr.msix_entry[i].vector, dev);
-> -				dev->intr.enabled[i] = 0;
-> -			}
-> -		}
-> -	} else if (dev->intr.type == PVRDMA_INTR_TYPE_INTX ||
-> -		   dev->intr.type == PVRDMA_INTR_TYPE_MSI) {
-> -		free_irq(dev->pdev->irq, dev);
-> +	if (dev->pdev->msix_enabled) {
-> +		free_irq(pci_irq_vector(dev->pdev, 2), dev);
-> +		free_irq(pci_irq_vector(dev->pdev, 1), dev);
->  	}
-> +	free_irq(pci_irq_vector(dev->pdev, 0), dev);
->  }
+>  	struct hfi1_filedata *fd;
+>  	int ret = 0;
+> -	unsigned memsize;
+>  	char buf[64];
+>  	struct hfi1_devdata *dd;
+>  	struct hfi1_user_sdma_comp_q *cq;
+> @@ -443,8 +442,8 @@ int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt, struct file *fp)
+>  	if (!cq)
+>  		goto cq_nomem;
 >  
->  static void pvrdma_enable_intrs(struct pvrdma_dev *dev)
-> @@ -528,126 +511,47 @@ static void pvrdma_disable_intrs(struct pvrdma_dev *dev)
->  	pvrdma_write_reg(dev, PVRDMA_REG_IMR, ~0);
->  }
+> -	memsize = PAGE_ALIGN(sizeof(*cq->comps) * hfi1_sdma_comp_ring_size);
+> -	cq->comps = vmalloc_user(memsize);
+> +	cq->comps = vmalloc_user(PAGE_ALIGN(sizeof(*cq->comps)
+> +				 * hfi1_sdma_comp_ring_size));
+>  	if (!cq->comps)
+>  		goto cq_comps_nomem;
 >  
-> -static int pvrdma_enable_msix(struct pci_dev *pdev, struct pvrdma_dev *dev)
-> -{
-> -	int i;
-> -	int ret;
-> -
-> -	for (i = 0; i < PVRDMA_MAX_INTERRUPTS; i++) {
-> -		dev->intr.msix_entry[i].entry = i;
-> -		dev->intr.msix_entry[i].vector = i;
-> -
-> -		switch (i) {
-> -		case 0:
-> -			/* CMD ring handler */
-> -			dev->intr.handler[i] = pvrdma_intr0_handler;
-> -			break;
-> -		case 1:
-> -			/* Async event ring handler */
-> -			dev->intr.handler[i] = pvrdma_intr1_handler;
-> -			break;
-> -		default:
-> -			/* Completion queue handler */
-> -			dev->intr.handler[i] = pvrdma_intrx_handler;
-> -			break;
-> -		}
-> -	}
-> -
-> -	ret = pci_enable_msix(pdev, dev->intr.msix_entry,
-> -			      PVRDMA_MAX_INTERRUPTS);
-> -	if (!ret) {
-> -		dev->intr.type = PVRDMA_INTR_TYPE_MSIX;
-> -		dev->intr.size = PVRDMA_MAX_INTERRUPTS;
-> -	} else if (ret > 0) {
-> -		ret = pci_enable_msix(pdev, dev->intr.msix_entry, ret);
-> -		if (!ret) {
-> -			dev->intr.type = PVRDMA_INTR_TYPE_MSIX;
-> -			dev->intr.size = ret;
-> -		} else {
-> -			dev->intr.size = 0;
-> -		}
-> -	}
-> -
-> -	dev_dbg(&pdev->dev, "using interrupt type %d, size %d\n",
-> -		dev->intr.type, dev->intr.size);
-> -
-> -	return ret;
-> -}
-> -
->  static int pvrdma_alloc_intrs(struct pvrdma_dev *dev)
->  {
-> -	int ret = 0;
-> -	int i;
-> -
-> -	if (pci_find_capability(dev->pdev, PCI_CAP_ID_MSIX) &&
-> -	    pvrdma_enable_msix(dev->pdev, dev)) {
-> -		/* Try MSI */
-> -		ret = pci_enable_msi(dev->pdev);
-> -		if (!ret) {
-> -			dev->intr.type = PVRDMA_INTR_TYPE_MSI;
-> -		} else {
-> -			/* Legacy INTR */
-> -			dev->intr.type = PVRDMA_INTR_TYPE_INTX;
-> -		}
-> +	struct pci_dev *pdev = dev->pdev;
-> +	int ret = 0, nr_vectors, i = 0;
-> +
-> +	nr_vectors = pci_alloc_irq_vectors(pdev, 1, PVRDMA_MAX_INTERRUPTS,
-> +			PCI_IRQ_MSIX);
-> +	if (nr_vectors < 0) {
-> +		ret = pci_alloc_irq_vectors(pdev, 1, 1,
-> +				PCI_IRQ_MSI | PCI_IRQ_LEGACY);
-> +		if (nr_vectors < 0)
-> +			return nr_vectors;
->  	}
->  
-> -	/* Request First IRQ */
-> -	switch (dev->intr.type) {
-> -	case PVRDMA_INTR_TYPE_INTX:
-> -	case PVRDMA_INTR_TYPE_MSI:
-> -		ret = request_irq(dev->pdev->irq, pvrdma_intr0_handler,
-> -				  IRQF_SHARED, DRV_NAME, dev);
-> -		if (ret) {
-> -			dev_err(&dev->pdev->dev,
-> -				"failed to request interrupt\n");
-> -			goto disable_msi;
-> -		}
-> -		break;
-> -	case PVRDMA_INTR_TYPE_MSIX:
-> -		ret = request_irq(dev->intr.msix_entry[0].vector,
-> -				  pvrdma_intr0_handler, 0, DRV_NAME, dev);
-> -		if (ret) {
-> -			dev_err(&dev->pdev->dev,
-> -				"failed to request interrupt 0\n");
-> -			goto disable_msi;
-> -		}
-> -		dev->intr.enabled[0] = 1;
-> -		break;
-> -	default:
-> -		/* Not reached */
-> -		break;
-> +	ret = request_irq(pci_irq_vector(dev->pdev, 0), pvrdma_intr0_handler,
-> +			pdev->msix_enabled ? 0 : IRQF_SHARED, DRV_NAME, dev);
-> +	if (ret) {
-> +		dev_err(&dev->pdev->dev,
-> +			"failed to request interrupt 0\n");
-> +		goto out_free_vectors;
->  	}
->  
-> -	/* For MSIX: request intr for each vector */
-> -	if (dev->intr.size > 1) {
-> -		ret = request_irq(dev->intr.msix_entry[1].vector,
-> -				  pvrdma_intr1_handler, 0, DRV_NAME, dev);
-> +	for (i = i; i < nr_vectors; i++) {
-
-This should be i = 1. Looks like IRQ vector 0 was requested above.
-
-> +		ret = request_irq(pci_irq_vector(dev->pdev, 0),
-
-This should pci_irq_vector(dev->pdev, i)
-
-> +				i == 1 ? pvrdma_intr1_handler :
-> +					 pvrdma_intrx_handler,
-> +				0, DRV_NAME, dev);
->  		if (ret) {
->  			dev_err(&dev->pdev->dev,
-> -				"failed to request interrupt 1\n");
-> -			goto free_irq;
-> -		}
-> -		dev->intr.enabled[1] = 1;
-> -
-> -		for (i = 2; i < dev->intr.size; i++) {
-> -			ret = request_irq(dev->intr.msix_entry[i].vector,
-> -					  pvrdma_intrx_handler, 0,
-> -					  DRV_NAME, dev);
-> -			if (ret) {
-> -				dev_err(&dev->pdev->dev,
-> -					"failed to request interrupt %d\n", i);
-> -				goto free_irq;
-> -			}
-> -			dev->intr.enabled[i] = 1;
-> +				"failed to request interrupt %d\n", i);
-> +			goto free_irqs;
->  		}
->  	}
->  
->  	return 0;
->  
-> -free_irq:
-> -	pvrdma_free_irq(dev);
-> -disable_msi:
-> -	pvrdma_disable_msi_all(dev);
-> +free_irqs:
-> +	while (--i >= 0)
-> +		free_irq(pci_irq_vector(dev->pdev, i), dev);
-> +out_free_vectors:
-> +	pci_free_irq_vectors(pdev);
->  	return ret;
->  }
->  
-> @@ -1091,7 +995,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	pvrdma_uar_table_cleanup(dev);
->  err_free_intrs:
->  	pvrdma_free_irq(dev);
-> -	pvrdma_disable_msi_all(dev);
-> +	pci_free_irq_vectors(pdev);
->  err_netdevice:
->  	unregister_netdevice_notifier(&dev->nb_netdev);
->  err_free_cq_ring:
-> @@ -1143,7 +1047,7 @@ static void pvrdma_pci_remove(struct pci_dev *pdev)
->  
->  	pvrdma_disable_intrs(dev);
->  	pvrdma_free_irq(dev);
-> -	pvrdma_disable_msi_all(dev);
-> +	pci_free_irq_vectors(pdev);
-
-There might be a conflict here. We had a fix in commit ff89b070b7c9.
-
->  
->  	/* Deactivate pvrdma device */
->  	pvrdma_write_reg(dev, PVRDMA_REG_CTL, PVRDMA_DEVICE_CTL_RESET);
 > 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IMHO this makes readability worse. What's the intention behind this
+patch? Is there any difference in binary size or something in the likes?
+I doubt so as the compiler should take care of this anyways.
+
+I'm just a casual reader of the RDMA list not an active reviewer, but if
+you did this in e.g. SCSI I'd NACK it. Code has to be readable for
+humans and that means the less that's done in one line of code the
+better. Let the compiler do the optimizations and get rid of local
+variables.
+
+Just my 2c.
+
+Byte,
+	Johannes
+
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
