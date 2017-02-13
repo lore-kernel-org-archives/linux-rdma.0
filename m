@@ -1,122 +1,56 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 8/8] IB/srp: Drain the send queue before destroying a QP
-Date: Sun, 12 Feb 2017 22:14:53 -0500 (EST)
-Message-ID: <1630482470.30208948.1486955693106.JavaMail.zimbra@redhat.com>
-References: <20170210235611.3243-1-bart.vanassche@sandisk.com> <20170210235611.3243-9-bart.vanassche@sandisk.com> <20170212171928.GF14015@mtr-leonro.local> <1041506550.30101266.1486922573298.JavaMail.zimbra@redhat.com> <1486929901.2918.1.camel@sandisk.com> <655392767.30136125.1486951636415.JavaMail.zimbra@redhat.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V5 for-next 16/21] RDMA/bnxt_re: Support poll_cq verb
+Date: Mon, 13 Feb 2017 10:47:10 +0530
+Message-ID: <CA+sbYW36txPueFBWFOWigHu_XmnTPY+-Vdu5MmGeOQ7uFjrWag@mail.gmail.com>
+References: <1486725593-9872-1-git-send-email-selvin.xavier@broadcom.com>
+ <1486725593-9872-17-git-send-email-selvin.xavier@broadcom.com> <20170212143051.GD14015@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <655392767.30136125.1486951636415.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170212143051.GD14015-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Feb 12, 2017 at 8:00 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> +static u8 __rc_to_ib_wc_status(u8 qstatus)
+>> +{
+>> +     switch (qstatus) {
+>> +     case CQ_RES_RC_STATUS_OK:
+>> +             return IB_WC_SUCCESS;
+>> +     case CQ_RES_RC_STATUS_LOCAL_ACCESS_ERROR:
+>> +             return IB_WC_LOC_ACCESS_ERR;
+>> +     case CQ_RES_RC_STATUS_LOCAL_LENGTH_ERR:
+>> +             return IB_WC_LOC_LEN_ERR;
+>> +     case CQ_RES_RC_STATUS_LOCAL_PROTECTION_ERR:
+>> +             return IB_WC_LOC_PROT_ERR;
+>> +     case CQ_RES_RC_STATUS_LOCAL_QP_OPERATION_ERR:
+>> +             return IB_WC_LOC_QP_OP_ERR;
+>> +     case CQ_RES_RC_STATUS_MEMORY_MGT_OPERATION_ERR:
+>> +             return IB_WC_GENERAL_ERR;
+>> +     case CQ_RES_RC_STATUS_REMOTE_INVALID_REQUEST_ERR:
+>> +             return IB_WC_REM_INV_REQ_ERR;
+>> +     case CQ_RES_RC_STATUS_WORK_REQUEST_FLUSHED_ERR:
+>> +             return IB_WC_WR_FLUSH_ERR;
+>> +     case CQ_RES_RC_STATUS_HW_FLUSH_ERR:
+>> +             return IB_WC_WR_FLUSH_ERR;
+>> +     default:
+>> +             return IB_WC_GENERAL_ERR;
+>> +     }
+>> +}
+>> +
+>
+> Why don't you use these defines directly?
 
+CQ_RES* values are returned by the HW and these values are
+different from the corresponding IB_WC status values.   say,
+CQ_RES_RC_STATUS_HW_FLUSH_ERR is 8 where as
+IB_WC_WR_FLUSH_ERR is 5.
+So we thought it is better to map these values in a function rather
+than having a switch/case in the calling function.
 
------ Original Message -----
-> From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> To: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Sent: Sunday, February 12, 2017 9:07:16 PM
-> Subject: Re: [PATCH 8/8] IB/srp: Drain the send queue before destroying a QP
-> 
-> 
-> 
-> ----- Original Message -----
-> > From: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> > To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> > Cc: hch-jcswGhMUV9g@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
-> > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> > Sent: Sunday, February 12, 2017 3:05:16 PM
-> > Subject: Re: [PATCH 8/8] IB/srp: Drain the send queue before destroying a
-> > QP
-> > 
-> > On Sun, 2017-02-12 at 13:02 -0500, Laurence Oberman wrote:
-> > > [  861.143141] WARNING: CPU: 27 PID: 1103 at
-> > > drivers/infiniband/core/verbs.c:1959 __ib_drain_sq+0x1bb/0x1c0 [ib_core]
-> > > [  861.202208] IB_POLL_DIRECT poll_ctx not supported for drain
-> > 
-> > Hello Laurence,
-> > 
-> > That warning has been removed by patch 7/8 of this series. Please double
-> > check
-> > whether all eight patches have been applied properly.
-> > 
-> > Bart.N�����r��y���b�X��ǧv�^�)޺{.n�+����{��ٚ�{ay�ʇڙ�,j��f���h���z��w������j:+v���w�j�m��������zZ+��ݢj"��
-> 
-> Hello
-> Just a heads up, working with Bart on this patch series.
-> We have stability issues with my tests in my MLX5 EDR-100 test bed.
-> Thanks
-> Laurence
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-I went back to Linus' latest tree for a baseline and we fail the same way.
-This has none of the latest 8 patches applied so we will
-have to figure out what broke this.
-
-Dont forget that I tested all this recently with Bart's dma patch series
-and its solid.
-
-Will come back to this tomorrow and see what recently made it into Linus's tree by
-checking back with Doug.
-
-[  183.779175] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff880bd4270eb0
-[  183.853047] 00000000 00000000 00000000 00000000
-[  183.878425] 00000000 00000000 00000000 00000000
-[  183.903243] 00000000 00000000 00000000 00000000
-[  183.928518] 00000000 0f007806 2500002a ad9fafd1
-[  198.538593] scsi host1: ib_srp: reconnect succeeded
-[  198.573141] mlx5_0:dump_cqe:262:(pid 7369): dump error cqe
-[  198.603037] 00000000 00000000 00000000 00000000
-[  198.628884] 00000000 00000000 00000000 00000000
-[  198.653961] 00000000 00000000 00000000 00000000
-[  198.680021] 00000000 0f007806 25000032 00105dd0
-[  198.705985] scsi host1: ib_srp: failed FAST REG status memory management operation error (6) for CQE ffff880b92860138
-[  213.532848] scsi host1: ib_srp: reconnect succeeded
-[  213.568828] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  227.579684] scsi host1: ib_srp: reconnect succeeded
-[  227.616175] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  242.633925] scsi host1: ib_srp: reconnect succeeded
-[  242.668160] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  257.127715] scsi host1: ib_srp: reconnect succeeded
-[  257.165623] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  272.225762] scsi host1: ib_srp: reconnect succeeded
-[  272.262570] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  286.350226] scsi host1: ib_srp: reconnect succeeded
-[  286.386160] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  301.109365] scsi host1: ib_srp: reconnect succeeded
-[  301.144930] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  315.910860] scsi host1: ib_srp: reconnect succeeded
-[  315.944594] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  330.551052] scsi host1: ib_srp: reconnect succeeded
-[  330.584552] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  344.998448] scsi host1: ib_srp: reconnect succeeded
-[  345.032115] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  359.866731] scsi host1: ib_srp: reconnect succeeded
-[  359.902114] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-..
-..
-[  373.113045] scsi host1: ib_srp: reconnect succeeded
-[  373.149511] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  388.401469] fast_io_fail_tmo expired for SRP port-1:1 / host1.
-[  388.589517] scsi host1: ib_srp: reconnect succeeded
-[  388.623462] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  403.086893] scsi host1: ib_srp: reconnect succeeded
-[  403.120876] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f2234c30
-[  403.140401] mlx5_0:dump_cqe:262:(pid 749): dump error cqe
-[  403.140402] 00000000 00000000 00000000 00000000
-[  403.140402] 00000000 00000000 00000000 00000000
-[  403.140403] 00000000 00000000 00000000 00000000
-[  403.140403] 00
-
+Let me know if you meant something different in your query.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
