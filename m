@@ -1,42 +1,32 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: [PATCH 3/5] IB/hfi1: Adjust another size determination in
- hfi1_user_sdma_alloc_queues()
-Date: Mon, 13 Feb 2017 10:32:13 +0100
-Message-ID: <4dca91c1-488d-120d-bd25-74f400242bd2@users.sourceforge.net>
+Subject: Re: [PATCH 27/27] IB/hfi1: Code reuse with memdup_copy
+Date: Mon, 13 Feb 2017 10:50:53 +0100
+Message-ID: <e6ce8bb1-dad3-a88c-89e6-f3d0c5ced1f7@users.sourceforge.net>
 References: <8a997282-09c7-0f9f-645e-d7c6e8c79e67@users.sourceforge.net>
- <0fdf4d81-58d7-c6fc-b37f-41d47675dd83@users.sourceforge.net>
- <fc714096-8534-2231-17fd-8e3ca3f7a87b@suse.de>
+ <b19e44b3-601f-c642-b8d3-12c000511ce2@users.sourceforge.net>
+ <477c8499-93ad-253d-aa2b-8f209ecfad62@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fc714096-8534-2231-17fd-8e3ca3f7a87b-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <477c8499-93ad-253d-aa2b-8f209ecfad62-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->> @@ -443,8 +442,8 @@ int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt, struct file *fp)
->>  	if (!cq)
->>  		goto cq_nomem;
->>  
->> -	memsize = PAGE_ALIGN(sizeof(*cq->comps) * hfi1_sdma_comp_ring_size);
->> -	cq->comps = vmalloc_user(memsize);
->> +	cq->comps = vmalloc_user(PAGE_ALIGN(sizeof(*cq->comps)
->> +				 * hfi1_sdma_comp_ring_size));
->>  	if (!cq->comps)
->>  		goto cq_comps_nomem;
->>  
->>
-> 
-> IMHO this makes readability worse.
+> Thanks for the patch, but this one is already taken care of along with other similar uses of kmalloc/copy:
+> http://marc.info/?l=linux-rdma&m=148656088729538&w=2
 
-How often does it really make sense to keep such a product in this local variable?
+Thanks for your information.
 
+The shown source code is reasonable in the update step “[PATCH 27/27] IB/hfi1:
+Code reuse with memdup_copy”.
+https://patchwork.kernel.org/patch/9562565/
+https://lkml.kernel.org/r/<20170208132830.16442.93943.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 
-> What's the intention behind this patch?
-
-I suggested just another simple omission of an extra variable.
+I find the commit subject and message partly inappropriate.
+How do you think about to mention other function names there?
 
 Regards,
 Markus
