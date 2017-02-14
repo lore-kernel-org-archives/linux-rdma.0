@@ -1,92 +1,74 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-Date: Tue, 14 Feb 2017 10:56:29 -0800
-Message-ID: <20170214185636.29250-2-bart.vanassche@sandisk.com>
-References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Is SRP over RoCE possible?
+Date: Tue, 14 Feb 2017 12:07:30 -0700
+Message-ID: <CAANLjFqe-O4qfhRe3AWdYpo1EtkfB9FYG6HN2Nt-0wWjH1f1YQ@mail.gmail.com>
+References: <CAANLjFoJEnRERRNm34u8yonJCDqAe1d68BYb_GBTmmxVpFxpZQ@mail.gmail.com>
+ <1487097898.2466.8.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170214185636.29250-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1487097898.2466.8.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "# 4 . 7+" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tests have shown that the following error message is reported when
-using SG-GAPS registration with an mlx5 adapter:
+Thanks, I'll give it a whirl.
 
-scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff880bd4270eb0
-00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000
-00000000 0f007806 2500002a ad9fafd1
-scsi host1: ib_srp: reconnect succeeded
-mlx5_0:dump_cqe:262:(pid 7369): dump error cqe
-00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000
-00000000 0f007806 25000032 00105dd0
-scsi host1: ib_srp: failed FAST REG status memory management operation error (6) for CQE ffff880b92860138
+Robert LeBlanc
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
-Hence avoid using SG-GAPS memory registrations. Additionally,
-always configure the blk_queue_virt_boundary() to avoid to trigger
-a mapping failure when using adapters that support SG-GAPS (e.g.
-mlx5).
 
-Fixes: commit ad8e66b4a801 ("IB/srp: fix mr allocation when the device supports sg gaps")
-Fixes: commit 509c5f33f4f6 ("IB/srp: Prevent mapping failures")
-Reported-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.7+
----
- drivers/infiniband/ulp/srp/ib_srp.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 79bf48477ddb..07e3613e4798 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -371,7 +371,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
- 	struct srp_fr_desc *d;
- 	struct ib_mr *mr;
- 	int i, ret = -EINVAL;
--	enum ib_mr_type mr_type;
- 
- 	if (pool_size <= 0)
- 		goto err;
-@@ -385,13 +384,9 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
- 	spin_lock_init(&pool->lock);
- 	INIT_LIST_HEAD(&pool->free_list);
- 
--	if (device->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
--		mr_type = IB_MR_TYPE_SG_GAPS;
--	else
--		mr_type = IB_MR_TYPE_MEM_REG;
--
- 	for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
--		mr = ib_alloc_mr(pd, mr_type, max_page_list_len);
-+		mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
-+				 max_page_list_len);
- 		if (IS_ERR(mr)) {
- 			ret = PTR_ERR(mr);
- 			if (ret == -ENOMEM)
-@@ -2666,7 +2661,7 @@ static int srp_slave_alloc(struct scsi_device *sdev)
- 	struct srp_device *srp_dev = target->srp_host->srp_dev;
- 	struct ib_device *ibdev = srp_dev->dev;
- 
--	if (!(ibdev->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG))
-+	if (true)
- 		blk_queue_virt_boundary(sdev->request_queue,
- 					~srp_dev->mr_page_mask);
- 
--- 
-2.11.0
-
+On Tue, Feb 14, 2017 at 11:45 AM, Bart Van Assche
+<Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> On Tue, 2017-02-14 at 11:24 -0700, Robert LeBlanc wrote:
+>> I'm trying to get SRP working on my ConnectX-4-LX cards to see if it
+>> has the same problem as iSER does. When I try to connect the initiator
+>> to the target I get that opensm is not running. I tried all the umad
+>> devices without any luck. I found that someone had to modify the
+>> source to get it to work with RDMACM [0] and then another thread that
+>> specified that an option had to be passed to the ib_srpt module, but I
+>> don't see that option in modinfo and the Readme mentioned in the
+>> thread is not there[1]. If SRP should work, can someone help me figure
+>> out what I'm doing wrong here.
+>
+> Hello Robert,
+>
+> This is not yet possible with the upstream SRP drivers. I'm waiting for
+> the standardization of SRP over RoCE to add such support to the upstream
+> SRP drivers. But this is already possible today with the following
+> drivers:
+> - At the initiator side: https://github.com/bvanassche/ib_srp-backport
+> - At the target side: the SCST core + the SCST ib_srpt target driver and
+>   something like the following in /etc/modprobe.d/ib_srpt.conf:
+>   options ib_srpt rdma_cm_port=3D5000
+> - Since neither ibsrpdm nor srp_daemon support SRP over RoCE, login has
+>   to be performed by writing a login string into
+>   /sys/class/infiniband_srp/*/add_target. The format of that login string
+>   is id_ext=3D$ioc_guid,ioc_guid=3D$ioc_guid,dest=3D$dest where ioc_guid =
+is the
+>   following parameter from the target system:
+>   /sys/module/ib_srpt/parameters/srpt_service_guid
+>   and where dest is [<IPv4 address>|<IPv6 address>]:<SRP RDMA/CM port num=
+ber>
+>
+> BTW, I have used these drivers to test and improve the SoftRoCE driver.
+>
+> Bart.
+> Western Digital Corporation (and its subsidiaries) E-mail Confidentiality=
+ Notice & Disclaimer:
+>
+> This e-mail and any files transmitted with it may contain confidential or=
+ legally privileged information of WDC and/or its affiliates, and are inten=
+ded solely for the use of the individual or entity to which they are addres=
+sed. If you are not the intended recipient, any disclosure, copying, distri=
+bution or any action taken or omitted to be taken in reliance on it, is pro=
+hibited. If you have received this e-mail in error, please notify the sende=
+r immediately and delete the e-mail in its entirety from your system.
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
