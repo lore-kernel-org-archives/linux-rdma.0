@@ -1,62 +1,39 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mlx4: Take source GID by index from HW GID
- table
-Date: Tue, 14 Feb 2017 13:41:20 -0500
-Message-ID: <1487097680.86943.84.camel@redhat.com>
-References: <20170214052453.16488-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next] IB/mlx5: Fix configuration of port
+ capabilities
+Date: Tue, 14 Feb 2017 13:41:56 -0500
+Message-ID: <1487097716.86943.85.camel@redhat.com>
+References: <20170214052538.16562-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-yweVWMm7dVzOH6d2Mc9e"
+        protocol="application/pgp-signature"; boundary="=-GW6mYLb4e1t1fofVOJF3"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170214052453.16488-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170214052538.16562-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-yweVWMm7dVzOH6d2Mc9e
+--=-GW6mYLb4e1t1fofVOJF3
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2017-02-14 at 07:24 +0200, Leon Romanovsky wrote:
-> From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Tue, 2017-02-14 at 07:25 +0200, Leon Romanovsky wrote:
+> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> Previously, we used the HW GID index in order to search the source
-> GID
-> in the software GID cached table. In some cases, for example when
-> the MAC Address of the network interface is changed, the GID cached
-> table
-> saves the old-IPv6-link-local GID at the end of the table.
+> When the "ib_virt" cap it set, configuration of port capabilities
+> need
+> to be done through mlx5_core_modify_hca_vport_context.
+> Since modify_hca_vport_context accepts mask and value, there is no
+> need
+> to read the port capabilities and calculate the new cap values so we
+> avoid the mutex when ib_virt is set.
 >=20
-> When returning the old MAC address, the software GID cached table
-> tries
-> to add the new IPv6-link-local GID, and when it identifies that the
-> GID
-> already exists, the software GID cached does not add it. Thus a
-> mismatch
-> occurs between the HW and the SW GID tables.
->=20
-> It resulted with sending traffic with the wrong source GID.
->=20
-> This commit fixes the issue by taking both from the HW table.
->=20
-> The problem can be reproduced with the following scenario:
-> Client:
-> =C2=A0=C2=A0=C2=A0 # ifconfig ens6 2.2.2.5
-> =C2=A0=C2=A0=C2=A0 # ifconfig ens6 inet6 add 2001:0db8:0:f101::5/64
-> =C2=A0=C2=A0=C2=A0 # ifconfig ens6 hw ether f4:52:14:61:a0:71
-> =C2=A0=C2=A0=C2=A0 # ifconfig ens6 inet6 del 2001:0db8:0:f101::5/64
-> =C2=A0=C2=A0=C2=A0 # ifconfig ens6 inet6 add 2001:0db8:0:f101::5/64
-> =C2=A0=C2=A0=C2=A0 # ucmatose -f ipv6 -b 2001:0db8:0:f101::5 -s 2001:0db8=
-:0:f101::6
-> -p 20156
-> Server:
-> =C2=A0=C2=A0=C2=A0 # ucmatose -f ipv6 -b 2001:0db8:0:f101::6 -p 20156
->=20
-> Fixes: 4c3eb3ca1396 ('IB/mlx4: Add VLAN support for IBoE')
-> Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Fixes: e126ba97dba9edeb ('mlx5: Add driver for Mellanox Connect-IB
+> adapters')
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 Thanks, applied.
@@ -67,7 +44,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-yweVWMm7dVzOH6d2Mc9e
+--=-GW6mYLb4e1t1fofVOJF3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -75,22 +52,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYo09QAAoJELgmozMOVy/dYpMP/iUnp9yvNCBveiABDU87Dy7o
-f7WSo9cajvh6OuhLRRbFiuG5tF3Y+rmKjb5q6XEtJLzY8lqlXpFteIkogfPjYuMM
-pFVWm3iFYIDXm6FEuhq2D1z8ER+a6WKq9/IW4GmnzEqVpNy9ys3Ny38hERKwqD4+
-uefLmMaNiT9jidgXilaa0373YqoaTVqTMRvZoXlZ8p+v9G2VkOaqlHk7OCkuOv2E
-ey2yPKQfg0PZDPPX4Gj+65nC651dcTG+z7KDuqHgIHSODYe/KTQFfEdeCpP/mk3E
-SCX/ziBWGbmrdu75oxmLLqkr5TTbfYr5QrMJ8NYwfoVM94cQQgopKfk++wmCmPtU
-8HWrLKUVSx/9Yf0RvLcWLr5fZ9AQNB53+guBUoFer8R3ixh3J7UP9m8N3pMTOuQC
-oYo9OsjPflFhdxedxpZphVmSLyIt//NuC/EF9kg3+O9rEp2mdTGcB7FgeWX1qTWo
-eEJn5O/6sNSdVI40THrJYNsDf/LRHNrEcCEagyzKPHBGDC3q2Ag+llwxUdYQzEW7
-uS75SfpLzRjiAOx7OhSWhQBshmlrEmaVbp6mbjPQL7RVa1to1gFiAg3YSNPBXaYA
-HNNARkqKf2so48H2cD70v5WMkisFmc8gD5bDF/ypSoII449Og+1dkHFMKABbtqW3
-nGJzi3wX5JLaO6J/AyFG
-=5oHq
+iQIcBAABCAAGBQJYo090AAoJELgmozMOVy/docYQAImHZNhKdv8L4SXjkaJ+zK6O
+VJ+GY6zesfZ7QSaFs2cWE0dgvSkY7ZA902OyiBjtu7NtyYUyHZnt15vQJ8QQOihr
+INwr6m2Y6EleMPcIqviQfnMXzmvRvX/tkmuuD85xsNGssJgwTnf4/iZxosxgZOHF
+f1OAoYNneC3Gj9KGjulVeI9nF1Ovk157xWTKD509SnNMvVTqrp3D1g4b2RKNokk+
+7g/+8YgW/tm4wzvT+37DGnyKQN6+YvIs3Q/uEfEmmkYrw2oBTiN+4ol9snXJv2Tj
+tio9bWxrTnukB0aDIkkvhaE1mF4JU4IYj9HpVTg+S8KhKmAOoMs3DUh0X5U+gNvl
+KeNnOStmAIfNJpVOaUT9sUfYtbQQdkV7rrCrTc3a2DsSHegHpi8Vq26JCcz2yOao
+OiTpTUm9Al+68/Yx2tU0PuAFQxtD0v1fQ4TdqCctDSfGel8RuPXlI1TKut9zcSr2
+NpbDlDaMZgrs7uJ7GHykE2La2tRTUPcRreEXmj7D4nkzV1hCb/bLxEr6jQ44PA6W
+QWqcATEoNX5S4cEqdyl5+YwMuDJfpAdvA6CT8ASS8cp+RuIIooNN47+KU360YSjI
+DoTUBqtQOxQOUzHjGKbxPlbTTfq5xE1OCA+TMdE0hEe4FxmkQAN3+9EGq+4qJh8I
+nVxdese1RBzm17L+fHI5
+=0hSB
 -----END PGP SIGNATURE-----
 
---=-yweVWMm7dVzOH6d2Mc9e--
+--=-GW6mYLb4e1t1fofVOJF3--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
