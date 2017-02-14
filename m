@@ -1,47 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/6] Expand ODP MR to support implicit
- registration
-Date: Tue, 14 Feb 2017 11:45:02 -0500
-Message-ID: <1487090702.86943.79.camel@redhat.com>
-References: <20170118145811.9136-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next V1 0/5] USNIC and RAW enhancements series
+Date: Tue, 14 Feb 2017 11:45:34 -0500
+Message-ID: <1487090734.86943.80.camel@redhat.com>
+References: <20170124110239.31555-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-HDex1bsK5VwoKtFIZdSA"
+        protocol="application/pgp-signature"; boundary="=-MxOxLGZ7jsR33BO2Ncnr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118145811.9136-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170124110239.31555-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-HDex1bsK5VwoKtFIZdSA
+--=-MxOxLGZ7jsR33BO2Ncnr
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2017-01-18 at 16:58 +0200, Leon Romanovsky wrote:
+On Tue, 2017-01-24 at 13:02 +0200, Leon Romanovsky wrote:
 > Hi Doug,
 >=20
-> This patchset comes from Artemy Kovalyov who proposed to expand
-> current ODP feature to register memory with simplified and enhanced
-> semantics.
+> Please find below second version og USNIC and RAW protocols
+> enhancements from Or.
 >=20
-> In existing ODP implementation applications still register memory
-> buffers for communication, though registered memory regions
-> need not have valid mappings at registration time.
+> from: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> This patchset adds implicit ODP sematics, where applications are
-> provided
-> with a special memory key that represents their complete address
-> space.
+> This series adds the USNIC and RAW protocols to the core and relevant
+> devices
+> (usnic, and mlx5/mlx4 over Eth ports) such that now the protocol part
+> of the
+> caps covers all in-tree HW/SW devices.
 >=20
-> Thus all IO accesses referencing this key (subject to the access
-> rights
-> associated with the key) won't need register any virtual address
-> range.
+> It also contains a cleanup patch to the HW/SW drivers such that they
+> use
+> ib_query_port when needed to query their own ports and not apply
+> their
+> internal callback. The patch doesn't add new functionality but makes
+> the different drivers to be behave the same in that respect and makes
+> the IB stack code a little bit more robust and clear.
 >=20
-> Thanks,
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Artemy, Ilya and Leon
+> Thanks
 
 Thanks, series applied.
 
@@ -51,7 +50,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-HDex1bsK5VwoKtFIZdSA
+--=-MxOxLGZ7jsR33BO2Ncnr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -59,22 +58,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYozQOAAoJELgmozMOVy/dLqcQALaoVcoqiUC5CDJpfDq+vTbf
-RFbbwanKV6ztDVNoPasRnxu81DdLmtgY75IxX25CzcSjLCDaZ+i96V+ocIyf7dpW
-QoTK/PAPQ8vWq8eFfhg52qx8DXBvf4yR2Mp12lCdbSxQCEN/HUzpzeI/D6Kxw+pv
-eeh0XOZ6AnsNfSvpIDVykQQjuxJCg+bwScWf7HcREe3OhSlvlxkEuQKJXH8ygWaU
-MiDkZGm2mpEC0xAdDcpKLreLgvA4IEGH6tHhd2j8yw0A/leq1EYTFH0PMxJ0NmiG
-QpljKmiXf4wFQ+8I46o04vONO+C75NrwJbFUdKBayaxt5Bj4GgGyxxsg9GldXNzY
-/Iw2B9oQED83JzS5hjXcFDnMIC+KuBO5QgaqZsR8mTycPVEprDAvl+t3UIa15Tqg
-IIS7FhTZ6GjYmJXnDRQivMfzzSr68gKfi5v/d0i1e5BezoasSkUZ1FQW9lFmviro
-g4S4Gf+XlRCZu59END2Nru2TT7Px3rk2BW9h3fJfClnpSSWVG0RwK/r7T4/TfHLk
-BdtqmK5DeJziVthUjD+kwjAAt3vsPG8MFx6MHyEspcA7gsGw02tWkHRCnB2hMWpG
-hlD8d7+6/9GiUxV1/nDgjO0fhSgOGy5FH/OC5SxIKpLOWYK8hXjA8tjG8Ck3Gj4O
-Y+HcWEvHqN2TbHcseET3
-=Cc+x
+iQIcBAABCAAGBQJYozQuAAoJELgmozMOVy/dPx8P/Ri0EG05xpRLujwEaydlrVy4
+ATi1oeIzug8dyjvjfO7Gqtgq/dap9N1FwInDgGxDjWIircu4juHpgWmTh8kmDF1b
+dl91if4Je8iNVAt6Y3cR3AhduXvn01iBhuFKVyx+cO0aMdRHxh2meJTizleBmsPE
+ea26RmQWAC/1QOlcmYv62KZ7ng6EKKHHA1iqdy+H1TtwPThHqBmpcDT2w/IltVMq
+vciwHB8WVoniCCgbklArMm5tn/wAX90QyiQqSdzBI4NpcsHUxkWDEt5iaJdsDE9Q
+1jzP+Moe8B7odW4pP3QEPaoIH0sAMzPxmEnw4vtPfuy7KVIa4wtugUsLMeoX4E8D
+UPWBc7RnOT6Z7HEt31mPNWs4BRA7q6b0Qf7JOa9jiHGFxR8GYhVGsZlzJ/jN5LJC
+L9hQoTjPfHceSklGGH7Bd7UXTaVsC5QEIwl02l11MKEgFWxa70FS8ZysPumGMSff
+whlrAHkxT91ugdfMf4YXnlW5s/Mc3pRPDWvxMeFko1ytcMoy2R/1PagzaW6Z3s+g
+p5IrHXEmT0cj0P7awzPWWY+pUSprp+p6S4q68n5LXQJ0t6N1ZpeKOQOyi3r7smYi
+f/6lWxnU0TXejDhco1OROdI8t8Nng/zxf/CGo/26/uNqcvKawsQTDMQaOnfs+dCc
+iDTHsjt6TS5H4Im4Bcs4
+=pvht
 -----END PGP SIGNATURE-----
 
---=-HDex1bsK5VwoKtFIZdSA--
+--=-MxOxLGZ7jsR33BO2Ncnr--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
