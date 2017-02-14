@@ -1,34 +1,40 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/8] IB/srp bug fixes
-Date: Tue, 14 Feb 2017 18:49:27 +0000
-Message-ID: <1487098154.2466.9.camel@sandisk.com>
-References: <20170210235611.3243-1-bart.vanassche@sandisk.com>
-         <20170210235611.3243-9-bart.vanassche@sandisk.com>
-         <20170212171928.GF14015@mtr-leonro.local>
-         <1041506550.30101266.1486922573298.JavaMail.zimbra@redhat.com>
-         <1051975432.30101289.1486922792858.JavaMail.zimbra@redhat.com>
-         <1465409120.30916025.1487041332560.JavaMail.zimbra@redhat.com>
-         <1487092678.2466.6.camel@sandisk.com>
-         <1364431877.31401761.1487098067033.JavaMail.zimbra@redhat.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v2 7/8] IB/core: Add support for draining IB_POLL_DIRECT completion queues
+Date: Tue, 14 Feb 2017 13:00:23 -0600
+Message-ID: <0ead01d286f4$98c9f440$ca5ddcc0$@opengridcomputing.com>
+References: <20170214185636.29250-1-bart.vanassche@sandisk.com> <20170214185636.29250-8-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1364431877.31401761.1487098067033.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <9BA3B0FF17052C4CB647BDBF74203EC7-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170214185636.29250-8-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-02-14 at 13:47 -0500, Laurence Oberman wrote:
-> For branch srp-initiator-for-next, all tests are passing.
-> Tested-by:     Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Subject: [PATCH v2 7/8] IB/core: Add support for draining IB_POLL_DIRECT
+> completion queues
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cq.c    |  4 ++--
+>  drivers/infiniband/core/verbs.c | 35 +++++++++++++++--------------------
+>  2 files changed, 17 insertions(+), 22 deletions(-)
+> 
 
-Thank you! I will post these patches as a v2 of this series.
+Looks ok to me.
 
-Bart.--
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
