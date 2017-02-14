@@ -1,7 +1,7 @@
 From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
 Subject: Re: Is SRP over RoCE possible?
-Date: Tue, 14 Feb 2017 12:07:30 -0700
-Message-ID: <CAANLjFqe-O4qfhRe3AWdYpo1EtkfB9FYG6HN2Nt-0wWjH1f1YQ@mail.gmail.com>
+Date: Tue, 14 Feb 2017 13:34:25 -0700
+Message-ID: <CAANLjFqEk8MJ9+BQrqq7VFfuzbhrL=X_ht4r=qnRHLt8MOTdXw@mail.gmail.com>
 References: <CAANLjFoJEnRERRNm34u8yonJCDqAe1d68BYb_GBTmmxVpFxpZQ@mail.gmail.com>
  <1487097898.2466.8.camel@sandisk.com>
 Mime-Version: 1.0
@@ -14,9 +14,11 @@ To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks, I'll give it a whirl.
+Trying to add "options ib_srpt rdma_cm_port=3D5000" gives me this error.
 
-Robert LeBlanc
+[   25.318411] ib_srpt: unknown parameter 'rdma_cm_port' ignored
+
+This is on 4.10-rc4.
 ----------------
 Robert LeBlanc
 PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
