@@ -1,299 +1,300 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: v4.10-rc SRP + mlx5 regression
-Date: Tue, 14 Feb 2017 08:31:02 -0500 (EST)
-Message-ID: <656778124.31118982.1487079062235.JavaMail.zimbra@redhat.com>
-References: <20170210235611.3243-1-bart.vanassche@sandisk.com> <21338434.30712464.1487004451595.JavaMail.zimbra@redhat.com> <1301607843.30852658.1487021644535.JavaMail.zimbra@redhat.com> <898197116.30855343.1487022400065.JavaMail.zimbra@redhat.com> <1487022735.2719.7.camel@sandisk.com> <568916592.30910570.1487038794766.JavaMail.zimbra@redhat.com> <20170214063953.GF6989@mtr-leonro.local> <bfca98d3-3f74-c370-7455-71e2ebd583e9@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 rdma-core 6/7] mlx5: Add direct verbs man pages
+Date: Tue, 14 Feb 2017 15:48:23 +0200
+Message-ID: <1487080104-28991-7-git-send-email-yishaih@mellanox.com>
+References: <1487080104-28991-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bfca98d3-3f74-c370-7455-71e2ebd583e9-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1487080104-28991-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Document mlx5 direct verbs feature and exposed related functions.
 
------ Original Message -----
-> From: "Max Gurtovoy" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> To: "Leon Romanovsky" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Sent: Tuesday, February 14, 2017 5:00:04 AM
-> Subject: Re: v4.10-rc SRP + mlx5 regression
-> 
-> Hi Laurence,
-> can you specify the test that repro these failures ?
-> have you tried running with CX5 HCA or only CX4 ?
-> I think this commit is right and we have issues in other places.
-> 
-> 
-> On 2/14/2017 8:39 AM, Leon Romanovsky wrote:
-> > On Mon, Feb 13, 2017 at 09:19:54PM -0500, Laurence Oberman wrote:
-> >>
-> >>
-> >> ----- Original Message -----
-> >>> From: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> >>> To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> >>> Cc: hch-jcswGhMUV9g@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
-> >>> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> >>> Sent: Monday, February 13, 2017 4:52:28 PM
-> >>> Subject: Re: v4.10-rc SRP + mlx5 regression
-> >>>
-> >>> On Mon, 2017-02-13 at 16:46 -0500, Laurence Oberman wrote:
-> >>>> I will have to run through this again and see where the bisect went
-> >>>> wrong.
-> >>>
-> >>> Hello Laurence,
-> >>>
-> >>> If you would be considering to repeat the bisect, did you know that a
-> >>> bisect
-> >>> can be sped up by specifying the names of the files and/or directories
-> >>> that
-> >>> are suspected? An example:
-> >>>
-> >>> git bisect start */infiniband */net
-> >>>
-> >>> Bart.--
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >>
-> >> Hello Bart,
-> >>
-> >> Much better news this time :), worked late on this but got it figured out.
-> >>
-> >> OK, so we got to this one, which makes a lot more sense and is right in
-> >> the area where we are having issues.
-> >> I must have answered wrong to one of the steps the first time I did the
-> >> bisect.
-> >>
-> >> Reverted this in the master tree of rc8 and rebuilt the kernel
-> >> Now all tests pass on Linus's tree - 4.10.0_rc8+
-> >>
-> >> The interesting point here is that this commit is in rc5 but rc5 was not
-> >> failing so we have an interoperability issue with this commit
-> >>
-> >>
-> >> [loberman@ibclient linux]$ git bisect good
-> >> Bisecting: 0 revisions left to test after this (roughly 1 step)
-> >> [ad8e66b4a80182174f73487ed25fd2140cf43361] IB/srp: fix mr allocation when
-> >> the device supports sg gaps
-> >>
-> >> [loberman@ibclient linux]$ git show
-> >> ad8e66b4a80182174f73487ed25fd2140cf43361
-> >> commit ad8e66b4a80182174f73487ed25fd2140cf43361
-> >> Author: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> Date:   Wed Dec 28 12:48:28 2016 +0200
-> >>
-> >>     IB/srp: fix mr allocation when the device supports sg gaps
-> >>
-> >>     If the device support arbitrary sg list mapping (device cap
-> >>     IB_DEVICE_SG_GAPS_REG set) we allocate the memory regions with
-> >>     IB_MR_TYPE_SG_GAPS.
-> >>
-> >>     Fixes: 509c5f33f4f6 ("IB/srp: Prevent mapping failures")
-> >>     Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.7+
-> >>     Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>     Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>     Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>     Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>     Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >>     Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> >>     Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>
-> >> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-> >> b/drivers/infiniband/ulp/srp/ib_srp.c
-> >> index 8ddc071..0f67cf9 100644
-> >> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> >> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> >> @@ -371,6 +371,7 @@ static struct srp_fr_pool *srp_create_fr_pool(struct
-> >> ib_device *device,
-> >>         struct srp_fr_desc *d;
-> >>         struct ib_mr *mr;
-> >>         int i, ret = -EINVAL;
-> >> +       enum ib_mr_type mr_type;
-> >>
-> >>         if (pool_size <= 0)
-> >>                 goto err;
-> >> @@ -384,9 +385,13 @@ static struct srp_fr_pool *srp_create_fr_pool(struct
-> >> ib_device *device,
-> >>         spin_lock_init(&pool->lock);
-> >>         INIT_LIST_HEAD(&pool->free_list);
-> >>
-> >> +       if (device->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
-> >> +               mr_type = IB_MR_TYPE_SG_GAPS;
-> >> +       else
-> >> +               mr_type = IB_MR_TYPE_MEM_REG;
-> >> +
-> >>         for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
-> >> -               mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
-> >> -                                max_page_list_len);
-> >> +               mr = ib_alloc_mr(pd, mr_type, max_page_list_len);
-> >
-> > First, ib_alloc_mr receives u32 as a third parameter, but int was
-> > supplied. Second (I can be wrong here), shouldn't max_page_list_len be
-> > replaced with max_fast_reg_page_list_len?
-> >
-> > Thanks
-> 
-> there is a statement that:
-> 
-> 	if (srp_dev->use_fast_reg) {
->                  srp_dev->max_pages_per_mr =
->                          min_t(u32, srp_dev->max_pages_per_mr,
->                                attr->max_fast_reg_page_list_len);
->          }
-> 
-> so we take the max_fast_reg_page_list_len in this case.
-> 
-> >
-> >>                 if (IS_ERR(mr)) {
-> >>                         ret = PTR_ERR(mr);
-> >>                         if (ret == -ENOMEM)
-> >> (END)
-> >>
-> >>
-> >> So here is the revert patch, but you need to decide how you want to deal
-> >> with this.
-> >>
-> >>     Revert "IB/srp: fix mr allocation when the device supports sg gaps"
-> >>     Laurence Oberman
-> >>     Traced after bisection to a cause for this failure
-> >>
-> >> Tested-by:     Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >> Signed-off-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>
-> >> commit 90d169d312a173d5350c1bb36d6daab04c592127
-> >> Author: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >> Date:   Mon Feb 13 20:33:32 2017 -0500
-> >>
-> >>     Revert "IB/srp: fix mr allocation when the device supports sg gaps"
-> >>     Laurence Oberman
-> >>     Traced after bisection to a cause for this failure
-> >>
-> >>     [  130.437603] mlx5_0:dump_cqe:262:(pid 3812): dump error cqe
-> >>     [  130.437682] scsi host1: ib_srp: failed RECV status WR flushed (5)
-> >>     for CQE ffff8817f0edbfb0
-> >>     [  130.510899] 00000000 00000000 00000000 00000000
-> >>     [  130.536455] 00000000 00000000 00000000 00000000
-> >>     [  130.561878] 00000000 00000000 00000000 00000000
-> >>     [  130.585904] 00000000 0f007806 2500002a db0ec4d0
-> >>     [  145.842925] fast_io_fail_tmo expired for SRP port-1:1 / host1.
-> >>     [  146.530439] scsi host1: ib_srp: reconnect succeeded
-> >>     [  146.566629] mlx5_0:dump_cqe:262:(pid 3293): dump error cqe
-> >>     [  146.597635] 00000000 00000000 00000000 00000000
-> >>     [  146.623545] 00000000 00000000 00000000 00000000
-> >>     [  146.649599] 00000000 00000000 00000000 00000000
-> >>     [  146.673938] 00000000 0f007806 25000032 000c46d0
-> >>     [  146.697969] scsi host1: ib_srp: failed FAST REG status memory
-> >>     management operation error (6) for CQE ffff88
-> >>     [  162.225247] fast_io_fail_tmo expired for SRP port-1:1 / host1.
-> >>     [  162.256337] scsi host1: ib_srp: reconnect succeeded
-> >>     [  162.293396] scsi host1: ib_srp: failed RECV status WR flushed (5)
-> >>     for CQE ffff8817f0412ef0`
-> >>
-> >>     This reverts commit ad8e66b4a80182174f73487ed25fd2140cf43361.
-> >>
-> >> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-> >> b/drivers/infiniband/ulp/srp/ib_srp.c
-> >> index 79bf484..01338c8 100644
-> >> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> >> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> >> @@ -371,7 +371,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct
-> >> ib_device *device,
-> >>         struct srp_fr_desc *d;
-> >>         struct ib_mr *mr;
-> >>         int i, ret = -EINVAL;
-> >> -       enum ib_mr_type mr_type;
-> >>
-> >>         if (pool_size <= 0)
-> >>                 goto err;
-> >> @@ -385,13 +384,9 @@ static struct srp_fr_pool *srp_create_fr_pool(struct
-> >> ib_device *device,
-> >>         spin_lock_init(&pool->lock);
-> >>         INIT_LIST_HEAD(&pool->free_list);
-> >>
-> >> -       if (device->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
-> >> -               mr_type = IB_MR_TYPE_SG_GAPS;
-> >> -       else
-> >> -               mr_type = IB_MR_TYPE_MEM_REG;
-> >> -
-> >>         for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
-> >> -               mr = ib_alloc_mr(pd, mr_type, max_page_list_len);
-> >> +               mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
-> >> +                                max_page_list_len);
-> >>                 if (IS_ERR(mr)) {
-> >>                         ret = PTR_ERR(mr);
-> >>                         if (ret == -ENOMEM)
-> >>
-> >>
-> >>
-> >> Now moving on to what got me here in the first place.
-> >> Bart, let me know if the 7 of the 8 patches in your most recent series are
-> >> all still valid after this revert
-> >> Otherwise let me know which ones you want me to apply.
-> >>
-> >> patch 6 - I am thinking i sno longer valid.
-> >> "
-> >> If a HCA supports the SG_GAPS_REG feature then a single memory
-> >> region of type IB_MR_TYPE_SG_GAPS is sufficient. This patch
-> >> reduces the number of memory regions that is allocated per SRP
-> >> session.
-> >> "
-> >>
-> >> Thanks
-> >> Laurence
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-Hello Max,
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ CMakeLists.txt                           |   1 +
+ providers/mlx5/man/CMakeLists.txt        |   5 ++
+ providers/mlx5/man/mlx5dv.7              |  44 +++++++++++
+ providers/mlx5/man/mlx5dv_init_obj.3     | 130 +++++++++++++++++++++++++++++++
+ providers/mlx5/man/mlx5dv_query_device.3 |  50 ++++++++++++
+ 5 files changed, 230 insertions(+)
+ create mode 100644 providers/mlx5/man/CMakeLists.txt
+ create mode 100644 providers/mlx5/man/mlx5dv.7
+ create mode 100644 providers/mlx5/man/mlx5dv_init_obj.3
+ create mode 100644 providers/mlx5/man/mlx5dv_query_device.3
 
-I only have CX4 and CX3 in my lab, this test bed only has CX4.
-
-CA 'mlx5_0'
-	CA type: MT4115
-	Number of ports: 1
-	Firmware version: 12.14.2036
-	Hardware version: 0
-	Node GUID: 0x7cfe900300726ed2
-	System image GUID: 0x7cfe900300726ed2
-	Port 1:
-		State: Active
-		Physical state: LinkUp
-		Rate: 100
-		Base lid: 3
-		LMC: 0
-		SM lid: 3
-		Capability mask: 0x2651e84a
-		Port GUID: 0x7cfe900300726ed2
-		Link layer: InfiniBand
-
-The test is simple, it's the same one I start with every time because it always
-brings out issues with mapping for large I/O sizes and mem registration if such issues exist.
-
-I have a server running LIO with memory backed LUNS.
-These are served via a dual port mlx5 (CX4) over ib_srpt
-
-The client mounts these LUNS via ib_srp (mlx5) and device-mapper-multipath 
-and I run a simple dd on the XFS file system.
-
-#!/bin/bash
-while true
-do
-	dd if=/dev/zero of=/data-$1/bigfile bs=4096k count=900 
-	sync;
-	rm -rf /data-$1/bigfile
-done
-
-Once this passes I run a suite of other tests read/write, direct and buffered.
-
-Thanks
-Laurence
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 45cbc4e..529c0cd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -377,6 +377,7 @@ add_subdirectory(providers/hns)
+ add_subdirectory(providers/i40iw)
+ add_subdirectory(providers/mlx4)
+ add_subdirectory(providers/mlx5)
++add_subdirectory(providers/mlx5/man)
+ add_subdirectory(providers/mthca)
+ add_subdirectory(providers/nes)
+ add_subdirectory(providers/ocrdma)
+diff --git a/providers/mlx5/man/CMakeLists.txt b/providers/mlx5/man/CMakeLists.txt
+new file mode 100644
+index 0000000..bb1610b
+--- /dev/null
++++ b/providers/mlx5/man/CMakeLists.txt
+@@ -0,0 +1,5 @@
++rdma_man_pages(
++  mlx5dv_init_obj.3
++  mlx5dv_query_device.3
++  mlx5dv.7
++)
+diff --git a/providers/mlx5/man/mlx5dv.7 b/providers/mlx5/man/mlx5dv.7
+new file mode 100644
+index 0000000..c02c967
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv.7
+@@ -0,0 +1,44 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org (MIT) - See COPYING.md
++.\"
++.TH MLX5DV 7 2017-02-02 1.0.0
++.SH "NAME"
++mlx5dv \- Direct verbs for mlx5 devices
++.br
++This is low level access to mlx5 devices to perform data path operations,
++without general branching performed by \fBibv_post_send\fR(3).
++
++.SH "DESCRIPTION"
++The libibverbs API is an abstract one. It is agnostic to any underlying
++provider specific implementation. While this abstraction has the advantage
++of user applications portability it has a performance penalty. For some
++applications optimizing performance is more important than portability.
++
++The mlx5 direct verbs API is intended for such applications.
++It exposes mlx5 specific low level data path (send/receive/completion)
++operations, allowing the application to bypass the libibverbs data path API.
++
++This interface consists from one hardware specific header file
++with relevant inline functions and conversion logic from ibverbs structures
++to mlx5 specific structures.
++
++The direct include of mlx5dv.h together with linkage to mlx5 library will
++allow usage of this new interface.
++
++Once an application uses the direct flow the locking scheme is fully managed
++by itself. There is an expectation that no mixed flows in the data path for both
++direct/non-direct access will be by same application.
++
++.SH "NOTES"
++All Mellanox NIC devices starting from Connect-IB (Connect-IB,
++ConnectX-4, ConnectX-4Lx, ConnectX-5, ...) implement the mlx5 API,
++thus using the mlx5 direct verbs does not limit the applications
++to a single NIC HW device thus keeping some level of portability.
++
++.SH "SEE ALSO"
++.BR ibv_post_send (3),
++.BR verbs (7)
++
++.SH "AUTHORS"
++.TP
++Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/providers/mlx5/man/mlx5dv_init_obj.3 b/providers/mlx5/man/mlx5dv_init_obj.3
+new file mode 100644
+index 0000000..2468407
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv_init_obj.3
+@@ -0,0 +1,130 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org (MIT) - See COPYING.md
++.\"
++.TH MLX5DV_INIT_OBJ 3 2017-02-02 1.0.0
++.SH "NAME"
++mlx5dv_init_obj \- Initialize mlx5 direct verbs object from ibv_xxx structures
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/mlx5dv.h>
++.sp
++.BI "int mlx5dv_init_obj(struct mlx5dv_obj *obj, uint64_t obj_type);
++.fi
++.SH "DESCRIPTION"
++.B mlx5dv_init_obj()
++This function will initialize mlx5dv_xxx structs based on supplied type. The information
++for initialization is taken from ibv_xx structs supplied as part of input.
++
++Request information of CQ marks its owned by direct verbs for all consumer index
++related actions. The initialization type can be combination of several types together.
++.PP
++.nf
++struct mlx5dv_qp {
++.in +8
++uint32_t                *dbrec;
++struct {
++.in +8
++void            *buf;
++uint32_t        wqe_cnt;
++uint32_t        stride;
++.in -8
++} sq;
++struct {
++.in +8
++void            *buf;
++uint32_t        wqe_cnt;
++uint32_t        stride;
++.in -8
++} rq;
++struct {
++.in +8
++void            *reg;
++uint32_t        size;
++.in -8
++} bf;
++uint64_t                comp_mask;
++.in -8
++};
++
++struct mlx5dv_cq {
++.in +8
++void                    *buf;
++uint32_t                *dbrec;
++uint32_t                cqe_cnt;
++uint32_t                cqe_size;
++void                    *uar;
++uint32_t                cqn;
++uint64_t                comp_mask;
++.in -8
++};
++
++struct mlx5dv_srq {
++.in +8
++void                    *buf;
++uint32_t                *dbrec;
++uint32_t                stride;
++uint32_t                head;
++uint32_t                tail;
++uint64_t                comp_mask;
++.in -8
++};
++
++struct mlx5dv_rwq {
++.in +8
++void            *buf;
++uint32_t        *dbrec;
++uint32_t        wqe_cnt;
++uint32_t        stride;
++uint64_t        comp_mask;
++.in -8
++};
++
++struct mlx5dv_obj {
++.in +8
++struct {
++.in +8
++struct ibv_qp           *in;
++struct mlx5dv_qp        *out;
++.in -8
++} qp;
++struct {
++.in +8
++struct ibv_cq           *in;
++struct mlx5dv_cq        *out;
++.in -8
++} cq;
++struct {
++.in +8
++struct ibv_srq          *in;
++struct mlx5dv_srq       *out;
++.in -8
++} srq;
++struct {
++.in +8
++struct ibv_wq           *in;
++struct mlx5dv_rwq       *out;
++.in -8
++} rwq;
++.in -8
++};
++
++enum mlx5dv_obj_type {
++.in +8
++MLX5DV_OBJ_QP   = 1 << 0,
++MLX5DV_OBJ_CQ   = 1 << 1,
++MLX5DV_OBJ_SRQ  = 1 << 2,
++MLX5DV_OBJ_RWQ  = 1 << 3,
++.in -8
++};
++.fi
++.SH "RETURN VALUE"
++0 on success or the value of errno on failure (which indicates the failure reason).
++.SH "NOTES"
++ * The information if doorbell is blueflame is based on mlx5dv_qp->bf->size,
++in case of 0 it's not a BF.
++ * Compatibility masks (comp_mask) are in/out fields.
++.SH "SEE ALSO"
++.BR mlx5dv (7)
++.SH "AUTHORS"
++.TP
++Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/providers/mlx5/man/mlx5dv_query_device.3 b/providers/mlx5/man/mlx5dv_query_device.3
+new file mode 100644
+index 0000000..1954714
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv_query_device.3
+@@ -0,0 +1,50 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org (MIT) - See COPYING.md
++.\"
++.TH MLX5DV_QUERY_DEVICE 3 2017-02-02 1.0.0
++.SH "NAME"
++mlx5dv_query_device \- Query device capabilities specific to mlx5
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/mlx5dv.h>
++.sp
++.BI "int mlx5dv_query_device(struct ibv_context *ctx_in,
++.BI "                        struct mlx5dv_context *attrs_out);
++.fi
++.SH "DESCRIPTION"
++.B mlx5dv_query_device()
++Query HW device-specific information which is important for data-path, but isn't provided by
++\fBibv_query_device\fR(3).
++.PP
++This function returns version, flags and compatibility mask. The version represents the format
++of the internal hardware structures that mlx5dv.h represents. Additions of new fields to the existed
++structures are handled by comp_mask field.
++.PP
++.nf
++struct mlx5dv_context {
++.in +8
++uint8_t         version;
++uint64_t        flags;
++uint64_t        comp_mask;
++.in -8
++};
++
++enum mlx5dv_context_flags {
++.in +8
++/*
++ * This flag indicates if CQE version 0 or 1 is needed.
++ */
++ MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
++.in -8
++};
++.fi
++.SH "RETURN VALUE"
++0 on success or the value of errno on failure (which indicates the failure reason).
++.SH "NOTES"
++ * Compatibility mask (comp_mask) is in/out field.
++.SH "SEE ALSO"
++.BR mlx5dv (7),
++.BR ibv_query_device (3)
++.SH "AUTHORS"
++.TP
++Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
