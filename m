@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 8/8] IB/srp: Drain the send queue before destroying a QP
-Date: Tue, 14 Feb 2017 10:56:36 -0800
-Message-ID: <20170214185636.29250-9-bart.vanassche@sandisk.com>
+Subject: [PATCH v2 2/8] IB/srp: Avoid that duplicate responses trigger a kernel bug
+Date: Tue, 14 Feb 2017 10:56:30 -0800
+Message-ID: <20170214185636.29250-3-bart.vanassche@sandisk.com>
 References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,92 +9,57 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170214185636.29250-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Feeley <Steve.Feeley-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A quote from the IB spec:
+After srp_process_rsp() returns there is a short time during which
+the scsi_host_find_tag() call will return a pointer to the SCSI
+command that is being completed. If during that time a duplicate
+response is received, avoid that the following call stack appears:
 
-However, if the Consumer does not wait for the Affiliated Asynchronous
-Last WQE Reached Event, then WQE and Data Segment leakage may occur.
-Therefore, it is good programming practice to tear down a QP that is
-associated with an SRQ by using the following process:
-* Put the QP in the Error State;
-* wait for the Affiliated Asynchronous Last WQE Reached Event;
-* either:
-  * drain the CQ by invoking the Poll CQ verb and either wait for CQ
-    to be empty or the number of Poll CQ operations has exceeded CQ
-    capacity size; or
-  * post another WR that completes on the same CQ and wait for this WR to return as a WC;
-* and then invoke a Destroy QP or Reset QP.
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: srp_recv_done+0x450/0x6b0 [ib_srp]
+Oops: 0000 [#1] SMP
+CPU: 10 PID: 0 Comm: swapper/10 Not tainted 4.10.0-rc7-dbg+ #1
+Call Trace:
+ <IRQ>
+ __ib_process_cq+0x4b/0xd0 [ib_core]
+ ib_poll_handler+0x1d/0x70 [ib_core]
+ irq_poll_softirq+0xba/0x120
+ __do_softirq+0xba/0x4c0
+ irq_exit+0xbe/0xd0
+ smp_apic_timer_interrupt+0x38/0x50
+ apic_timer_interrupt+0x90/0xa0
+ </IRQ>
+RIP: srp_recv_done+0x450/0x6b0 [ib_srp] RSP: ffff88046f483e20
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Feeley <Steve.Feeley-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b303b4331e98..39bc0f4e1303 100644
+index 07e3613e4798..12027e3a4dec 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -466,9 +466,13 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
-  * completion handler can access the queue pair while it is
-  * being destroyed.
-  */
--static void srp_destroy_qp(struct ib_qp *qp)
-+static void srp_destroy_qp(struct srp_rdma_ch *ch, struct ib_qp *qp)
- {
--	ib_drain_rq(qp);
-+	spin_lock_irq(&ch->lock);
-+	ib_process_cq_direct(ch->send_cq, -1);
-+	spin_unlock_irq(&ch->lock);
-+
-+	ib_drain_qp(qp);
- 	ib_destroy_qp(qp);
- }
- 
-@@ -542,7 +546,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	}
- 
- 	if (ch->qp)
--		srp_destroy_qp(ch->qp);
-+		srp_destroy_qp(ch, ch->qp);
- 	if (ch->recv_cq)
- 		ib_free_cq(ch->recv_cq);
- 	if (ch->send_cq)
-@@ -566,7 +570,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	return 0;
- 
- err_qp:
--	srp_destroy_qp(qp);
-+	srp_destroy_qp(ch, qp);
- 
- err_send_cq:
- 	ib_free_cq(send_cq);
-@@ -609,7 +613,7 @@ static void srp_free_ch_ib(struct srp_target_port *target,
- 			ib_destroy_fmr_pool(ch->fmr_pool);
- 	}
- 
--	srp_destroy_qp(ch->qp);
-+	srp_destroy_qp(ch, ch->qp);
- 	ib_free_cq(ch->send_cq);
- 	ib_free_cq(ch->recv_cq);
- 
-@@ -1822,6 +1826,11 @@ static struct srp_iu *__srp_get_tx_iu(struct srp_rdma_ch *ch,
- 	return iu;
- }
- 
-+/*
-+ * Note: if this function is called from inside ib_drain_sq() then it will
-+ * be called without ch->lock being held. If ib_drain_sq() dequeues a WQE
-+ * with status IB_WC_SUCCESS then that's a bug.
-+ */
- static void srp_send_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct srp_iu *iu = container_of(wc->wr_cqe, struct srp_iu, cqe);
+@@ -1892,9 +1892,11 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
+ 		complete(&ch->tsk_mgmt_done);
+ 	} else {
+ 		scmnd = scsi_host_find_tag(target->scsi_host, rsp->tag);
+-		if (scmnd) {
++		if (scmnd && scmnd->host_scribble) {
+ 			req = (void *)scmnd->host_scribble;
+ 			scmnd = srp_claim_req(ch, req, NULL, scmnd);
++		} else {
++			scmnd = NULL;
+ 		}
+ 		if (!scmnd) {
+ 			shost_printk(KERN_ERR, target->scsi_host,
 -- 
 2.11.0
 
