@@ -1,53 +1,42 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH V5 for-next 00/21] Broadcom RoCE Driver (bnxt_re)
-Date: Tue, 14 Feb 2017 09:59:31 -0500
-Message-ID: <1487084371.86943.68.camel@redhat.com>
-References: <1486725593-9872-1-git-send-email-selvin.xavier@broadcom.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/7] mlx5 fixes for 4.11
+Date: Tue, 14 Feb 2017 10:15:14 -0500
+Message-ID: <1487085314.86943.69.camel@redhat.com>
+References: <20170118121036.32642-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-/acA9NqDkbT3Va4wfR51"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1486725593-9872-1-git-send-email-selvin.xavier@broadcom.com>
-Sender: netdev-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@broadcom.com>, linux-rdma@vger.kernel.org
-Cc: netdev@vger.kernel.org
+        protocol="application/pgp-signature"; boundary="=-ZlI4c/zM9ruGyrcgYunO"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170118121036.32642-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-/acA9NqDkbT3Va4wfR51
+--=-ZlI4c/zM9ruGyrcgYunO
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2017-02-10 at 03:19 -0800, Selvin Xavier wrote:
-> This series introduces the RoCE driver for the Broadcom
-> NetXtreme-E 10/25/40/50G RoCE HCAs.
-> This driver is dependent on the bnxt_en NIC driver and is
-> based on the for-4.11 branch in linux-rdma repository.
-> bnxt_en changes required for this patch series are already
-> available afore mentioned branch.
+On Wed, 2017-01-18 at 14:10 +0200, Leon Romanovsky wrote:
+> Hi Doug,
 >=20
-> These changes are available for your reference in
-> the bnxt_re_v5 branch of following repository.
-> https://github.com/Broadcom/linux-rdma-nxt/
+> Please find below seven fixes to mlx5 driver.
 >=20
-> Doug,
-> This patchset addresses review comments from you and Leon.
-> This series also includes some changes required for the latest FW.
-> Please consider applying this to linux-rdma tree.
+> This patchset was generated against commit
+> f502d834950a ("net/mlx5: Activate support for 4K UARs") and it
+> applies
+> cleanly on k.o/for-4.11 branch.
 
-Thanks, v5 applied. =C2=A0I squashed it down to just two commits: 1 to add
-the driver itself, and 1 that only adds the build makefiles. =C2=A0I've
-pushed it to github so far, I'll push it to k.o once I get 0day build
-tests back on it. =C2=A0Feel free to look it over on github if you want to
-see how it came out after the squashing and such.
+Thanks, series applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-/acA9NqDkbT3Va4wfR51
+--=-ZlI4c/zM9ruGyrcgYunO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -55,19 +44,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYoxtTAAoJELgmozMOVy/df/UQAMS5VtKC3vbH4pHUl5OiZ4QD
-W7EDwhOdfMOtZ3lb1xc2W2hgOScwGOqDpbvUQkmerK4Hfke4ZZZmgnHFQhVkdbxl
-isqsFA7oNdn64B/Xm1GyroBWNYJvYwtoGh74s9oHyqOatlrz80q/7JMq9+gMXn+7
-gxpzhgLwGuLKfIrpkvMPg8+AcKLaWHBwVtYlJwjgr3ImMqhBEFr6zPKD4pyMv9u3
-t1SsTI3+MIYgWpCI02UFCzDVSIgKKZYNDLhyBAFnvQwwuJyG89wqojnfeL58BiZw
-jGuJs7bB6Q8V2fMPMjgwOtdtgUr+5VpN9BfTOniwoXFcidlCr51QCTu1BLQC8V/O
-J07/RbxinIRB0pYxphAceF8mBZ48tc47J1emnfCpTXfMMhJqRZGR9b7EYyJfZQE2
-fZG1HSHkU7kRx5CrMEDh7mhxvSqXBV0fZhtsWbdP0I7YUwkkJi3EFGx70qBH6Lmw
-rY2ivH0T6fAjQ6a4WP4+S97hJRKVDv0q6XyV6NzS967EwN3mTgsqAhnjkq/mKSCp
-3TBSrjd1YprohPZxnIrDwH9YuhTkJmaL5Pv56BYXWSryZQdBp/YHNJiGn89ZLdb9
-Ac0Ge1JJ2IVnFsOfkuBeSzvyiB5jYQWRiFs3RnZFWk6WldCt5nnfl2szdmm/p6qr
-uZWV4j7PPUJo60udh5Rw
-=nera
+iQIcBAABCAAGBQJYox8CAAoJELgmozMOVy/d1UQP/3UeiIZacuee6SQl3hkGQ5Zm
+Y1BueVmcoXmD1b0kOyo8yQNT4Abipj/FC044POrRLfwPo4Hib5pUsyaxDpx5ZL1Q
+OD90xpGov/2tvJSYg6NOxQp8/8WYix2D88IXkciKb2bCUi9uN17rlfIwA9hdWM2t
+TKmr2Uwxb33XoglTIyJiJOcbMer7nScv87sVQIJC9DAxzsIhk9cGi2FnwxL2Od2G
+7SuYIrJ5QBo2xOzQGR9yEZWMfyLY9+pmwmfVA+SkkY9u8mB5Kr1EznSyKtP3o/ai
+sdWVMD+5r7vGQ2CNMaRS2ZYCXbadvVcm+fUAYocRSMpKgYSP6H/MtjXheu75diKu
+EKeR7cVXIFiKOZKog/0Pd4z/LUNvTDdVBLPbr+CojU5aI2O48VNUoQKk5hnMeWuT
+IBNQPhRbK3HtbxO5pi9gX2Z3vEKubwJBaJBrzeIzYTjp0/ExpC7bHJD9ysphhbUX
+hfU2zHrtFCw/ASg3XSDYvqqff/ZrT7OJmrTkSM3GiGI6snhfvEvmRapDaKqV3Kn2
+hmjjbX8Y/ghUGWkfK6PloNMIkRaQGbupNSqORDELOMvQvTmLqbSrCbuQ6SssJs5/
+v0JfYRktASG2BoFd1YLR+jf5kaP1Sie76TKTsB5UKozddkJpDxwRpRJJdA5w/h1R
+rHbPat2P81uRgYOcUbwR
+=2Jls
 -----END PGP SIGNATURE-----
 
---=-/acA9NqDkbT3Va4wfR51--
+--=-ZlI4c/zM9ruGyrcgYunO--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
