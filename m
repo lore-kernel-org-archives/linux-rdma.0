@@ -1,52 +1,107 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core 7/7] mlx5: Export mlx5 direct verbs interface
-Date: Tue, 14 Feb 2017 11:05:49 -0700
-Message-ID: <20170214180549.GB3060@obsidianresearch.com>
-References: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
- <1486909012-15064-8-git-send-email-yishaih@mellanox.com>
- <20170213164944.GB25430@obsidianresearch.com>
- <20170213182121.GD6989@mtr-leonro.local>
- <20170213184250.GA12224@obsidianresearch.com>
- <20170214055219.GE6989@mtr-leonro.local>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Is SRP over RoCE possible?
+Date: Tue, 14 Feb 2017 11:24:59 -0700
+Message-ID: <CAANLjFoJEnRERRNm34u8yonJCDqAe1d68BYb_GBTmmxVpFxpZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170214055219.GE6989-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 14, 2017 at 07:52:19AM +0200, Leon Romanovsky wrote:
+I'm trying to get SRP working on my ConnectX-4-LX cards to see if it
+has the same problem as iSER does. When I try to connect the initiator
+to the target I get that opensm is not running. I tried all the umad
+devices without any luck. I found that someone had to modify the
+source to get it to work with RDMACM [0] and then another thread that
+specified that an option had to be passed to the ib_srpt module, but I
+don't see that option in modinfo and the Readme mentioned in the
+thread is not there[1]. If SRP should work, can someone help me figure
+out what I'm doing wrong here.
 
-> Sorry, but I'm still missing how mlx5 installation will be handled.
-> 
-> The ibverbs-provider installs different *-rdmav2.so files and it should
-> install libmlx5-rdmav2.so among them.
+Thank you,
+Robert LeBlanc
 
-No, the symlink from -rdmav2.so needs to go to a real file not another
-symlink.
+# targetcli ls
+o- / .........................................................................................................................
+[...]
+ o- backstores ..............................................................................................................
+[...]
+ | o- block ..................................................................................................
+[Storage Objects: 0]
+ | o- fileio .................................................................................................
+[Storage Objects: 0]
+ | o- pscsi ..................................................................................................
+[Storage Objects: 0]
+ | o- ramdisk ................................................................................................
+[Storage Objects: 1]
+ |   o- test1 ..............................................................................................
+[(100.0GiB) activated]
+ o- iscsi ............................................................................................................
+[Targets: 1]
+ | o- iqn.2016-12.com.betterservers
+.....................................................................................
+[TPGs: 1]
+ |   o- tpg1 ..................................................................................................
+[gen-acls, no-auth]
+ |     o- acls ..........................................................................................................
+[ACLs: 0]
+ |     o- luns ..........................................................................................................
+[LUNs: 1]
+ |     | o- lun0
+..................................................................................................
+[ramdisk/test1]
+ |     o- portals
+....................................................................................................
+[Portals: 1]
+ |       o- 0.0.0.0:3260
+...................................................................................................
+[iser]
+ o- loopback .........................................................................................................
+[Targets: 0]
+ o- srpt .............................................................................................................
+[Targets: 1]
+   o- ib.fe800000000000000ec47afffe89f719
+...........................................................................
+[no-gen-acls]
+     o- acls ............................................................................................................
+[ACLs: 1]
+     | o- ib.fe800000000000000ec47afffe880731
+....................................................................
+[Mapped LUNs: 1]
+     |   o- mapped_lun0
+.................................................................................
+[lun0 ramdisk/test1 (rw)]
+     o- luns ............................................................................................................
+[LUNs: 1]
+       o- lun0 ....................................................................................................
+[ramdisk/test1]
 
-> If we move libmlx5.so to libibverbs-dev, how will symlink be
-> created?
+# ibsrpdm -c
+SM LID is 0, maybe no opensm is running
+Querying SRP targets failed
 
-libmlx5.so is the 'devel' symlink, it is only used by the compiler
-during linking which is why it must be placed in the -dev package.
+# modinfo ib_srpt
+filename:
+/lib/modules/4.10.0-rc4+/kernel/drivers/infiniband/ulp/srpt/ib_srpt.ko
+license:        Dual BSD/GPL
+description:    InfiniBand SCSI RDMA Protocol target v2.0.0 (2011-02-14)
+author:         Vu Pham and Bart Van Assche
+depends:        ib_core,ib_cm
+intree:         Y
+vermagic:       4.10.0-rc4+ SMP mod_unload
+parm:           srp_max_req_size:Maximum size of SRP request messages
+in bytes. (int)
+parm:           srpt_srq_size:Shared receive queue (SRQ) size. (int)
+parm:           srpt_service_guid:Using this value for ioc_guid,
+id_ext, and cm_listen_id instead of using the node_guid of the first
+HCA.
 
-> What will user see after installing libibverbs + ibverbs-provider?
-
-libmlx5-rdmav2.so should be ../libmlx5.so.1.0.13
-
-> And what will be in case of libibverbs-dev + ibverbs-provider?
-
-Then you get libmlx5.so -> libmlx5.so.1.0.13 and the man pages and
-header files. libibverbs-dev will need to depend on the
-ibverbs-provider package also.
-
-This is all also true for RPM systems.
-
-Jason
+[0] http://www.spinics.net/lists/linux-rdma/msg09083.html
+[1] https://sourceforge.net/p/scst/mailman/message/34316586/
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
