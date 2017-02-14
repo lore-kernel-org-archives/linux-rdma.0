@@ -1,99 +1,50 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/5] Add flow tag support to flow specification
-Date: Tue, 14 Feb 2017 10:27:48 -0500
-Message-ID: <1487086068.86943.72.camel@redhat.com>
-References: <20170118125951.3469-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 2/2] IB/mlx5: Add port counter support for
+ Receive WQs
+Date: Tue, 14 Feb 2017 10:30:14 -0500
+Message-ID: <1487086214.86943.74.camel@redhat.com>
+References: <20170118132510.4586-1-leon@kernel.org>
+         <20170118132510.4586-2-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-a3GTXvJrMSypWvXJ2aAw"
+        protocol="application/pgp-signature"; boundary="=-a/1Yb/8oUBPah8cYKGF2"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118125951.3469-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170118132510.4586-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-a3GTXvJrMSypWvXJ2aAw
+--=-a/1Yb/8oUBPah8cYKGF2
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 
-T24gV2VkLCAyMDE3LTAxLTE4IGF0IDE0OjU5ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-Cj4gSGkgRG91ZywKPiAKPiBUaGUgZmxvdyB0YWcgZmVhdHVyZSBhbGxvd3MgYW4gYXBwbGljYXRp
-b24gdG8gcmVxdWVzdCB0byBhZGQgYW4KPiBhY3Rpb24KPiB0byB0YWcgYWxsIHRoZSBwYWNrZXRz
-IHRoYXQgbWF0Y2hlcyB0aGlzIHJ1bGUuCj4gCj4gVGhlIHRhZyBpcyBhIG51bWJlciB0aGF0IHdp
-bGwgY2FtZSBhcyBhIG1ldGFkYXRhIHdpdGggZXZlcnkgcGFja2V0IGluCj4gdGhlIENRRS4KPiAK
-PiBUaGUgdGFnIHJ1bGUgPT0gMCBpcyBjaG9zZW4gYXMgdGhlIGRlZmF1bHQgdGFnIGFuZCBhcHBs
-aWNhdGlvbiBjYW4KPiB1c2UKPiBpdCBpbiBvcmRlciB0byBhdm9pZCB0aGUgbmVlZCB0byBjbGFz
-c2lmeSB0aGUgcGFja2V0cyB0aGF0IGNhbWUgd2l0aAo+IGEKPiB0YWcgd2hpbGUgY29udGludWlu
-ZyB0byBiZW5lZml0IGZyb20gdGhpcyB0YWcgbWVjaGFuaXNtLgo+IAo+IHN0cnVjdCBkZWZpbml0
-aW9uOgo+IAo+IHN0cnVjdCBpYl91dmVyYnNfZmxvd19zcGVjX2FjdGlvbl90YWcgewo+IMKgwqDC
-oMKgwqB1bmlvbiB7Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgaWJfdXZlcmJzX2Zsb3df
-c3BlY19oZHIgaGRyOwo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IHsKPiDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgX191MzIgdHlwZTsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgX191MTYgc2l6ZTsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgX191MTYgcmVzZXJ2
-ZWQ7Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqB9Owo+IMKgwqDCoMKgwqB9Owo+IMKgwqDCoMKgwqBf
-X2JlMzLCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHRhZ19pZDsKPiDCoMKg
-wqDCoMKgX191MzLCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmVzZXJ2
-ZWQxOwo+IH07Cj4gCj4gc3RydWN0IGliX3V2ZXJic19mbG93X3NwZWMgewo+IMKgwqDCoMKgwqB1
-bmlvbiB7Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqB1bmlvbiB7Cj4gwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoHN0cnVjdCBpYl91dmVyYnNfZmxvd19zcGVjX2hkciBoZHI7Cj4gwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCB7Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqBfX3UzMiB0eXBlOwo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgX191MTYgc2l6ZTsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oF9fdTE2IHJlc2VydmVkOwo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB9Owo+IMKgwqDC
-oMKgwqDCoMKgwqDCoMKgfTsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBpYl91dmVyYnNf
-Zmxvd19zcGVjX2V0aMKgwqDCoMKgwqBldGg7Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qg
-aWJfdXZlcmJzX2Zsb3dfc3BlY19pcHY0wqDCoMKgwqBpcHY0Owo+IMKgwqDCoMKgwqDCoMKgwqDC
-oMKgc3RydWN0IGliX3V2ZXJic19mbG93X3NwZWNfdGNwX3VkcCB0Y3BfdWRwOwo+IMKgwqDCoMKg
-wqDCoMKgwqDCoMKgc3RydWN0IGliX3V2ZXJic19mbG93X3NwZWNfaXB2NsKgwqDCoMKgaXB2NjsK
-PiDCoMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBpYl91dmVyYnNfZmxvd19zcGVjX2FjdGlvbl90
-YWcgZmxvd190YWc7Cj4gwqDCoMKgwqDCoH07Cj4gfTsKPiAKPiBXaGVyZToKPiAKPiAqIHR5cGUs
-IHNpemUsIHJlc2VydmVkIGZpZWxkcyBhcmUgaWRlbnRpY2FsIHRvIHRoZSByZXN0IG9mIHRoZQo+
-ICogcHJvdG9jb2xzLAo+IMKgwqDCoGFuZCBhcmUgdXNlZCB0byBpZGVudGlmeSB0aGUgc3BlYy4K
-PiAqIGZsb3dfdGFnIGlzIGEgc3BlYyBvZiB0eXBlICdhY3Rpb24nCj4gKiB0aGUgaWJfdXZlcmJz
-X2Zsb3dfc3BlY19oZHIgaXMgaWRlbnRpY2FsIHRvIHRoZSByZXN0IG9mIHRoZSBzcGVjcy4KPiAq
-IHRhZ19pZCAtIGlzIHRoZSB2YWx1ZSBvZiB0aGUgc3RyZWFtIGRlZmluZWQgYnkgdGhlIHNwZWNz
-Lgo+IAo+IFRoYW5rcywKPiAJTW9zZXMKPiAKPiBDQzogUm9ueSBFZnJhaW0gPHJvbnllQG1lbGxh
-bm94LmNvbT4KPiAtLS0tCj4gCj4gRG91ZywKPiBJIHVzZWQgdGhpcyBvcHBvcnR1bml0eSBhbmQg
-Zml4ZWQgcGFyc2VfZmxvd19hdHRyKC4uKSByZXR1cm4gdmFsdWVzLgo+IEFkanVzdGluZyB0aGlz
-IGZpeCB0byB0aGlzIHNlcmllcyBtaW5pbWl6ZXMgY2hhbmNlcyBvZiBwb3NzaWJsZSBtZXJnZQo+
-IGNvbmZsaWN0cyBiZXR3ZWVuIGRpZmZlcmVudCBzZXJpZXMuCj4gCj4gVGhpcyBwYXRjaHNldCB3
-YXMgZ2VuZXJhdGVkIGFnYWluc3QgY29tbWl0Cj4gZjUwMmQ4MzQ5NTBhICgibmV0L21seDU6IEFj
-dGl2YXRlIHN1cHBvcnQgZm9yIDRLIFVBUnMiKSBhbmQgaXQKPiBhcHBsaWVzCj4gY2xlYW5seSBv
-biBrLm8vZm9yLTQuMTEgYnJhbmNoLgo+IAo+IEF2YWlsYWJsZSBpbiB0aGUgInRvcGljL2Zsb3ct
-dGFnIiB0b3BpYyBicmFuY2ggb2YgdGhpcyBnaXQgcmVwbzoKPiBnaXQ6Ly9naXQua2VybmVsLm9y
-Zy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbGVvbi9saW51eC1yZG1hLmdpdAo+IAo+IE9yIGZv
-ciBicm93c2luZzoKPiBodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dp
-dC9sZW9uL2xpbnV4LXJkbWEuZ2l0L2xvZy8KPiA/aD10b3BpYy9mbG93LXRhZwo+IAo+IExlb24g
-Um9tYW5vdnNreSAoMSk6Cj4gwqAgSUIvbWx4NTogUmVwbGFjZSBFTk9UU1VQUCB1c2FnZSB3aXRo
-IEVPUE5PVFNVUFAKPiAKPiBNYW9yIEdvdHRsaWViICgxKToKPiDCoCBuZXQvbWx4NTogQ29uc29s
-aWRhdGUgZmxvdyBydWxlcyByZWdhcmRsZXNzIHRoZWlyIGZsb3cgdGFnCj4gCj4gTW9zZXMgUmV1
-YmVuICgzKToKPiDCoCBJQi9jb3JlOiBJbnRyb2R1Y2UgZmxvdyB0YWcgc3BlY2lmaWNhdGlvbgo+
-IMKgIElCL3V2ZXJiczogQWRkIHN1cHBvcnQgZm9yIGZsb3cgdGFnCj4gwqAgSUIvbWx4NTogQWRk
-IGZsb3cgdGFnIHN1cHBvcnQKPiAKPiDCoGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJicy5o
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqAxICsKPiDCoGRyaXZlcnMv
-aW5maW5pYmFuZC9jb3JlL3V2ZXJic19jbWQuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8
-IDM1Cj4gKysrKysrKysrKysrKysrKysrKy0tCj4gwqBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4
-NS9tYWluLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfCAzOAo+ICsrKysrKysr
-KysrKysrKysrLS0tLS0tCj4gwqBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
-cmUvZnNfY29yZS5jIHwgMTIgKysrKystLQo+IMKgaW5jbHVkZS9yZG1hL2liX3ZlcmJzLmjCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDkg
-KysrKysrCj4gwqBpbmNsdWRlL3VhcGkvcmRtYS9pYl91c2VyX3ZlcmJzLmjCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgfCAxMyArKysrKysrKwo+IMKgNiBmaWxlcyBjaGFuZ2VkLCA5
-NSBpbnNlcnRpb25zKCspLCAxMyBkZWxldGlvbnMoLSkKCkkgbG9va2VkIHRocm91Z2ggdGhlIEFQ
-SSBhZGRpdGlvbnMgYW5kIHRoZXkgbG9vayByZWFzb25hYmxlIHRvIG1lCihtZWFuaW5nIHRoYXQg
-aWYgYW55b25lIGVsc2Ugd2FudHMgdG8gaW1wbGVtZW50IHRhZ3Mgb24gc3BlY2lmaWMgZmxvd3Ms
-CnRoaXMgQVBJIGlzIGFwcHJvcHJpYXRlIGZvciB0aGF0LCBhbmQgaWYgdGhleSB3YW50IHRvIGRv
-IG90aGVyIHRoaW5ncywKdGhlbiB0aGlzIGlzIG5vdCBhcHByb3ByaWF0ZSwgYnV0IHRoZXJlIGlz
-IG5vIHJlc3RyaWN0aW9uIGFnYWluc3Qgb3RoZXIKYWN0aW9uIHR5cGVzIGluIHRoZSBlbnVtLCBz
-byBleHRlbnNpYmlsaXR5IGlzIHByZXNlcnZlZCkuIMKgU2VyaWVzCmFwcGxpZWQsIHRoYW5rcy4K
-Ci0tIApEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+CsKgIMKgIEdQRyBLZXlJRDog
-QjgyNkEzMzMwRTU3MkZERArCoCDCoApLZXkgZmluZ2VycHJpbnQgPSBBRTZCIDFCREEgMTIyQiAy
-M0I0IDI2NUIgwqAxMjc0IEI4MjYgQTMzMyAwRTU3IDJGREQK
+On Wed, 2017-01-18 at 15:25 +0200, Leon Romanovsky wrote:
+> From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Counters weren't updated due to Receive WQs' traffic since the
+> counter-id was not associated with the RQ.
+>=20
+> Added support for associating the q-counter-id with the Receive WQ.
+> The attachment is done only when changing WQ's state from RESET to
+> READY in modify-WQ command.
+>=20
+> FW support is required for the above, without this support
+> Receive WQ counters will not count.
+>=20
+> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
+Thanks, applied.
 
---=-a3GTXvJrMSypWvXJ2aAw
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
+
+--=-a/1Yb/8oUBPah8cYKGF2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -101,22 +52,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYoyH1AAoJELgmozMOVy/dX6cQAMO0TDeZ8tEfyV00m+qAasHe
-oChSvCmh/ap57RcIzgm8z8kRCaw05Wczhuid2ig/JE99YWtyG8UQEbOVQkaFo/jC
-dPgsGVjkLt1KBxHkTTzr1kAKEkL07Qri027BceNZ0UWgo+cKZ2G8mZ7pw9feHZQX
-jQuZg1143AO+jYqRHdVMQKJAINVaLDi+Lb3Wf5sFHDFQDnGCxr1YFPrtSRuGjKsy
-2WeUMN0e5Wuuxk4w1d5LOpEgElTbhqdqP2wan0Pq/pXhMRjY6osUdQQK/yRuWLRm
-/onYuEoH1yxooZUvFMh+WJFT1PXwE1g53YPnVTf/tET2PO2RnKChLMBns1w7ekEu
-q3P8KsN0hUVanHxqjJXc4HeGlQkPNHVAkde7GkSzNkDMuC5pLCg2OyVN/e0QA0U9
-b0CVixdCfdGfhr05OL/PHhgfSpbEprhwuw8Kouv0in1pibFFnFfhOU6gflmJxZrY
-aeQmtsFaxRVnZuxLPRC4RRqo08N5iSHFmcLFP82YltN80SKnpelrjlOy00zYLHjU
-Mt4wo4/5iRj4cNFNxxz0UhXGshUjz6ziqlxKK2nkJ4/Fqn1fj/6SH/jjLG2gnlMp
-t76gx6eJhwRdR++k8gfnc9z55STyGvMsSaXiAd4oGOLgWLit5bhqoPM1VYR7UqZY
-i4tOVBwWKi7F8FJlgK6u
-=leF1
+iQIcBAABCAAGBQJYoyKGAAoJELgmozMOVy/dfDUP/3Oo1KRzw27PCuaeur1/ATBp
++Mvo30IV8D5/D8N9Jz4JBUaIGnFAAS6rrdEP9CHEZFtqzc4K48YJEDwgScvr3Uw/
+Ngx5TL1HFFqBL1FkePiZzaxjSJiXP00q9SeZKylm0XJajhlUJYOoxknQt8PbpmYd
+ywEvHF7oM/RO6wwL2AaTI1w25kFMoDIKeej+kD77FkMFI/5uhxLsiZTmaHGHAyMg
+iWU/8FFSlCgwgROgqZ3lIQeoPUKkqW6jJcjxA/GksoDie8VTM/N/6HIJoDIE32jC
+okdqY91m6UjE/XIuQuFrXLyrcffKckfuQq9RsGCnR00jE+kKgkrheyxafRlKZBBg
+3Q/LBPo4O6HePh8grq+wsIHQYQx5QZ2zb9pR8HLsN5LntZjRD32SLq3/sMNgb5rN
+0lXlHdMAXYNUZtx9ip5r/xjWBfbRVVi5XWAdgtKe1TuxtMOt1NDj2vcTMB05H4ed
+XlmJw0KJixANGGSH1ExqKBArQ61wlwfQShk7yIi8PFsrQXZrbb4PjTk0iHMKr0xW
+PjICZkpvvh1HGzXj4N2CCoQP73NrFq9CHdZLWU8qqvBoxnym7xd1Ue/S/+Kf/iBm
+bLp1uFTrciKtGZjLpmd/gWmD8zcx3n1ikOZ3H11Jp6Nwrc+9ZTw2OkX1L5n9F6Se
+W6s8iZBtfMwo+Bh5Mqof
+=vKQj
 -----END PGP SIGNATURE-----
 
---=-a3GTXvJrMSypWvXJ2aAw--
+--=-a/1Yb/8oUBPah8cYKGF2--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
