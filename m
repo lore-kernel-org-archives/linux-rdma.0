@@ -1,92 +1,239 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core 7/7] mlx5: Export mlx5 direct verbs interface
-Date: Tue, 14 Feb 2017 07:52:19 +0200
-Message-ID: <20170214055219.GE6989@mtr-leonro.local>
-References: <1486909012-15064-1-git-send-email-yishaih@mellanox.com>
- <1486909012-15064-8-git-send-email-yishaih@mellanox.com>
- <20170213164944.GB25430@obsidianresearch.com>
- <20170213182121.GD6989@mtr-leonro.local>
- <20170213184250.GA12224@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: v4.10-rc SRP + mlx5 regression
+Date: Tue, 14 Feb 2017 08:39:54 +0200
+Message-ID: <20170214063953.GF6989@mtr-leonro.local>
+References: <20170210235611.3243-1-bart.vanassche@sandisk.com>
+ <20170213141724.GQ14015@mtr-leonro.local>
+ <225897984.30545262.1486995841880.JavaMail.zimbra@redhat.com>
+ <1971987443.30613645.1487002375580.JavaMail.zimbra@redhat.com>
+ <21338434.30712464.1487004451595.JavaMail.zimbra@redhat.com>
+ <1301607843.30852658.1487021644535.JavaMail.zimbra@redhat.com>
+ <898197116.30855343.1487022400065.JavaMail.zimbra@redhat.com>
+ <1487022735.2719.7.camel@sandisk.com>
+ <568916592.30910570.1487038794766.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jL2BoiuKMElzg3CS"
+        protocol="application/pgp-signature"; boundary="SWTRyWv/ijrBap1m"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170213184250.GA12224-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <568916592.30910570.1487038794766.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---jL2BoiuKMElzg3CS
+
+--SWTRyWv/ijrBap1m
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Feb 13, 2017 at 11:42:50AM -0700, Jason Gunthorpe wrote:
-> On Mon, Feb 13, 2017 at 08:21:21PM +0200, Leon Romanovsky wrote:
-> > On Mon, Feb 13, 2017 at 09:49:44AM -0700, Jason Gunthorpe wrote:
-> > > On Sun, Feb 12, 2017 at 04:16:52PM +0200, Yishai Hadas wrote:
-> > > > diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
-> > > > index 70244ee..7bacc2e 100644
-> > > > +++ b/debian/ibverbs-providers.install
-> > > > @@ -1,8 +1,12 @@
-> > > > +usr/include/infiniband/mlx5dv.h
-> > > >  etc/libibverbs.d/
-> > > >  etc/modprobe.d/truescale.conf
-> > > >  usr/bin/rxe_cfg
-> > > >  usr/lib/*/libibverbs/lib*-rdmav2.so
-> > > > +usr/lib/*/libmlx5.*
-> > > >  usr/lib/truescale-serdes.cmds
-> > > >  usr/share/doc/rdma-core/rxe.md usr/share/doc/ibverbs-providers/
-> > > > +usr/share/man/man3/mlx5dv_*.3
-> > > > +usr/share/man/man7/mlx5dv.7
-> > >
-> > > These need to go in libibverbs-dev, as does the libmlx5*.so.
-> >
-> > I'm not sure, at the end libmlx5 is a provider.
+On Mon, Feb 13, 2017 at 09:19:54PM -0500, Laurence Oberman wrote:
 >
-> Devel items need to go in dev pacakges. That means headers, devel man
-> pages and the main .so symlink.
+>
+> ----- Original Message -----
+> > From: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> > Cc: hch-jcswGhMUV9g@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> > Sent: Monday, February 13, 2017 4:52:28 PM
+> > Subject: Re: v4.10-rc SRP + mlx5 regression
+> >
+> > On Mon, 2017-02-13 at 16:46 -0500, Laurence Oberman wrote:
+> > > I will have to run through this again and see where the bisect went wrong.
+> >
+> > Hello Laurence,
+> >
+> > If you would be considering to repeat the bisect, did you know that a bisect
+> > can be sped up by specifying the names of the files and/or directories that
+> > are suspected? An example:
+> >
+> > git bisect start */infiniband */net
+> >
+> > Bart.--
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+>
+> Hello Bart,
+>
+> Much better news this time :), worked late on this but got it figured out.
+>
+> OK, so we got to this one, which makes a lot more sense and is right in the area where we are having issues.
+> I must have answered wrong to one of the steps the first time I did the bisect.
+>
+> Reverted this in the master tree of rc8 and rebuilt the kernel
+> Now all tests pass on Linus's tree - 4.10.0_rc8+
+>
+> The interesting point here is that this commit is in rc5 but rc5 was not failing so we have an interoperability issue with this commit
+>
+>
+> [loberman@ibclient linux]$ git bisect good
+> Bisecting: 0 revisions left to test after this (roughly 1 step)
+> [ad8e66b4a80182174f73487ed25fd2140cf43361] IB/srp: fix mr allocation when the device supports sg gaps
+>
+> [loberman@ibclient linux]$ git show ad8e66b4a80182174f73487ed25fd2140cf43361
+> commit ad8e66b4a80182174f73487ed25fd2140cf43361
+> Author: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Wed Dec 28 12:48:28 2016 +0200
+>
+>     IB/srp: fix mr allocation when the device supports sg gaps
+>
+>     If the device support arbitrary sg list mapping (device cap
+>     IB_DEVICE_SG_GAPS_REG set) we allocate the memory regions with
+>     IB_MR_TYPE_SG_GAPS.
+>
+>     Fixes: 509c5f33f4f6 ("IB/srp: Prevent mapping failures")
+>     Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.7+
+>     Signed-off-by: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>     Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+>     Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 8ddc071..0f67cf9 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -371,6 +371,7 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+>         struct srp_fr_desc *d;
+>         struct ib_mr *mr;
+>         int i, ret = -EINVAL;
+> +       enum ib_mr_type mr_type;
+>
+>         if (pool_size <= 0)
+>                 goto err;
+> @@ -384,9 +385,13 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+>         spin_lock_init(&pool->lock);
+>         INIT_LIST_HEAD(&pool->free_list);
+>
+> +       if (device->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
+> +               mr_type = IB_MR_TYPE_SG_GAPS;
+> +       else
+> +               mr_type = IB_MR_TYPE_MEM_REG;
+> +
+>         for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
+> -               mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
+> -                                max_page_list_len);
+> +               mr = ib_alloc_mr(pd, mr_type, max_page_list_len);
 
-Sorry, but I'm still missing how mlx5 installation will be handled.
-
-The ibverbs-provider installs different *-rdmav2.so files and it should
-install libmlx5-rdmav2.so among them.
-
-If we move libmlx5.so to libibverbs-dev, how will symlink be created?
-What will user see after installing libibverbs + ibverbs-provider?
-And what will be in case of libibverbs-dev + ibverbs-provider?
+First, ib_alloc_mr receives u32 as a third parameter, but int was
+supplied. Second (I can be wrong here), shouldn't max_page_list_len be
+replaced with max_fast_reg_page_list_len?
 
 Thanks
 
+>                 if (IS_ERR(mr)) {
+>                         ret = PTR_ERR(mr);
+>                         if (ret == -ENOMEM)
+> (END)
 >
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> So here is the revert patch, but you need to decide how you want to deal with this.
+>
+>     Revert "IB/srp: fix mr allocation when the device supports sg gaps"
+>     Laurence Oberman
+>     Traced after bisection to a cause for this failure
+>
+> Tested-by:     Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>
+> commit 90d169d312a173d5350c1bb36d6daab04c592127
+> Author: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Date:   Mon Feb 13 20:33:32 2017 -0500
+>
+>     Revert "IB/srp: fix mr allocation when the device supports sg gaps"
+>     Laurence Oberman
+>     Traced after bisection to a cause for this failure
+>
+>     [  130.437603] mlx5_0:dump_cqe:262:(pid 3812): dump error cqe
+>     [  130.437682] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f0edbfb0
+>     [  130.510899] 00000000 00000000 00000000 00000000
+>     [  130.536455] 00000000 00000000 00000000 00000000
+>     [  130.561878] 00000000 00000000 00000000 00000000
+>     [  130.585904] 00000000 0f007806 2500002a db0ec4d0
+>     [  145.842925] fast_io_fail_tmo expired for SRP port-1:1 / host1.
+>     [  146.530439] scsi host1: ib_srp: reconnect succeeded
+>     [  146.566629] mlx5_0:dump_cqe:262:(pid 3293): dump error cqe
+>     [  146.597635] 00000000 00000000 00000000 00000000
+>     [  146.623545] 00000000 00000000 00000000 00000000
+>     [  146.649599] 00000000 00000000 00000000 00000000
+>     [  146.673938] 00000000 0f007806 25000032 000c46d0
+>     [  146.697969] scsi host1: ib_srp: failed FAST REG status memory management operation error (6) for CQE ffff88
+>     [  162.225247] fast_io_fail_tmo expired for SRP port-1:1 / host1.
+>     [  162.256337] scsi host1: ib_srp: reconnect succeeded
+>     [  162.293396] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817f0412ef0`
+>
+>     This reverts commit ad8e66b4a80182174f73487ed25fd2140cf43361.
+>
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 79bf484..01338c8 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -371,7 +371,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+>         struct srp_fr_desc *d;
+>         struct ib_mr *mr;
+>         int i, ret = -EINVAL;
+> -       enum ib_mr_type mr_type;
+>
+>         if (pool_size <= 0)
+>                 goto err;
+> @@ -385,13 +384,9 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+>         spin_lock_init(&pool->lock);
+>         INIT_LIST_HEAD(&pool->free_list);
+>
+> -       if (device->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
+> -               mr_type = IB_MR_TYPE_SG_GAPS;
+> -       else
+> -               mr_type = IB_MR_TYPE_MEM_REG;
+> -
+>         for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
+> -               mr = ib_alloc_mr(pd, mr_type, max_page_list_len);
+> +               mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
+> +                                max_page_list_len);
+>                 if (IS_ERR(mr)) {
+>                         ret = PTR_ERR(mr);
+>                         if (ret == -ENOMEM)
+>
+>
+>
+> Now moving on to what got me here in the first place.
+> Bart, let me know if the 7 of the 8 patches in your most recent series are all still valid after this revert
+> Otherwise let me know which ones you want me to apply.
+>
+> patch 6 - I am thinking i sno longer valid.
+> "
+> If a HCA supports the SG_GAPS_REG feature then a single memory
+> region of type IB_MR_TYPE_SG_GAPS is sufficient. This patch
+> reduces the number of memory regions that is allocated per SRP
+> session.
+> "
+>
+> Thanks
+> Laurence
 
---jL2BoiuKMElzg3CS
+--SWTRyWv/ijrBap1m
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliimxMACgkQ5GN7iDZy
-WKfuXw//UZjYKStv8ChhsMhMHixKmY/xTzuOcciRT1EFon6tKmt5gg8xaL615RRp
-MmNdni2qkLFTk+IzUdDyp5e/5eUdeK2JOgIdObDX6chMaWN1qKxd7Aqu+QVdFiiw
-jENEknfVN8Z4+ri3HjlS5EZSQHXNhTenxYqGt3Gp5ARyLOcGInlpqDX9BCh2gK9B
-ff9guW1es5wVfDBIp5boS1YaFOg7ifadxOpNcNEGqI05wT3k8PlmJZZY92GLNwY3
-Heqw4s+OEKn20zKtt2EY6lez0UPFwmpTDatYRf/KZAw9t0plkJ5ak6UQO0eCvavc
-VYcgTFaDku7mgqrDCwpK4o/ohDFYTU2OBj72SCgWYj6dS6OGWxqdaVf4t5NdOWJD
-BmB5bro4q6vVkH8GvIVQVEtkCVQnwAaIZVfSXDy/AbH03OYX5xU7wUYzlAiuJ4wR
-57HPZ6V7GBz+DqVIbybaoX3FsH//+uBQrvW/3NSjWEt+hAO2GBwN370486OQCleo
-+JuqxHwqp55XuZkwG+km4VfVQctueaOi0EHiYSj9FWcdViuSvJZC37FSbUkcztef
-GJ/rzuom7aMv5tx/arbUbKqwQ3TsAkTS8GiULU99gGiiABB+ZXtZdROdppBxq2T4
-nKum8KxjOB6n/jkII/BKQMfDuVi95CtdC/YC52LNXRl+7n38TPQ=
-=8C4W
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAliipjkACgkQ5GN7iDZy
+WKd1xA//SjsEYKpkUqy3NJeL8KhsNT67z5KgwJ2XdhPOMt8N0EdPA3ezPEQ+pSgr
+tJbsP62uweQ2jm/TPJ6hM/6No8s5baPe7cUYNhSeje7XVc8ap/eYmIeG1h8Mv1vC
+rO1pdbBmYOVVMdwv2GjuEQfY6BByFcI7UdU7qvIUs7/lt37wG6loM82OqN8HsPg6
+skT6DZpH3mmQN1cyyhQekZdGMdYc4KrKL9Le+FEBtjmdxZE+C02fxbF77B713cka
+LoSy5BhCvl8kb+GzIdggQF+Mnud7T+PddP/dSn7/aPh04nHTuoDzI4lu7GP65PxW
+tds8w0DqayVGNMDAwv6gwN5mdODI+sDOMuChlbpogs+EQPxFa/E2McK/pMuRFbG9
+JFv7fylW/s/oWrECAN8La1Sw3bQn7oNqQbdc1G+JaYeLpvRdU5L6pX6XeW+WoafC
+zyAIzhEFx0A+pGevud+IUQm9H+5fIvE1ucpDZlxkqkAN2JQgkr6VoHt5mM9YbG7Y
+nm2SudMncGRts+9izEO88GR9rek2bg3oXoY/73xUmfLD+WsOCIVOKe13dTP7gH8K
+k5S04jKEYddxmBN3aISmlpjsp356Il+i2XClp/41Re8X87Phf7w4ez4oRKvSwe5R
+zMFySEHfs2E8OQuz8M/+BPAqmY72qHQr2XZACBcnkOWuc6fp00c=
+=nl7t
 -----END PGP SIGNATURE-----
 
---jL2BoiuKMElzg3CS--
+--SWTRyWv/ijrBap1m--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
