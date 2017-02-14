@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 rdma-core 5/7] mlx5: Convert to use predefined get CQE opcodes
-Date: Tue, 14 Feb 2017 15:48:22 +0200
-Message-ID: <1487080104-28991-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 rdma-core 4/7] mlx5: Use macro for CQE version 1
+Date: Tue, 14 Feb 2017 15:48:21 +0200
+Message-ID: <1487080104-28991-5-git-send-email-yishaih@mellanox.com>
 References: <1487080104-28991-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487080104-28991-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,71 +12,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+There is macro defined to mark CQE version 1, so let's use it.
+
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/cq.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ providers/mlx5/mlx5.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index 88bca75..d14d956 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -87,7 +87,7 @@ static void *get_sw_cqe(struct mlx5_cq *cq, int n)
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index 1cf5a5f..980e4df 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -771,7 +771,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
  
- 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
- 
--	if (likely((cqe64->op_own) >> 4 != MLX5_CQE_INVALID) &&
-+	if (likely(mlx5dv_get_cqe_opcode(cqe64) != MLX5_CQE_INVALID) &&
- 	    !((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^ !!(n & (cq->ibv_cq.cqe + 1)))) {
- 		return cqe;
- 	} else {
-@@ -547,7 +547,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 		wc->qp_num = qpn;
- 	}
- 
--	opcode = cqe64->op_own >> 4;
-+	opcode = mlx5dv_get_cqe_opcode(cqe64);
- 	switch (opcode) {
- 	case MLX5_CQE_REQ:
- 	{
-@@ -1056,7 +1056,7 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
- 
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
- 		return IBV_WC_RECV_RDMA_WITH_IMM;
- 	case MLX5_CQE_RESP_SEND:
-@@ -1114,7 +1114,7 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
- 				  MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
- 				IBV_WC_IP_CSUM_OK_SHIFT;
- 
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
- 	case MLX5_CQE_RESP_SEND_IMM:
- 		wc_flags	|= IBV_WC_WITH_IMM;
-@@ -1147,7 +1147,7 @@ static inline uint32_t mlx5_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
- {
- 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
- 
--	switch (cq->cqe64->op_own >> 4) {
-+	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_SEND_INV:
- 		return ntohl(cq->cqe64->imm_inval_pkey);
- 	default:
-@@ -1329,7 +1329,7 @@ static inline int free_res_cqe(struct mlx5_cqe64 *cqe64, uint32_t rsn,
- {
- 	if (cqe_version) {
- 		if (is_equal_uidx(cqe64, rsn)) {
--			if (srq && is_responder(cqe64->op_own >> 4))
-+			if (srq && is_responder(mlx5dv_get_cqe_opcode(cqe64)))
- 				mlx5_free_srq_wqe(srq,
- 						  ntohs(cqe64->wqe_counter));
- 			return 1;
+ 	context->cqe_version = resp.cqe_version;
+ 	if (context->cqe_version) {
+-		if (context->cqe_version == 1)
++		if (context->cqe_version == MLX5_CQE_VERSION_V1)
+ 			mlx5_ctx_ops.poll_cq = mlx5_poll_cq_v1;
+ 		else
+ 			 goto err_free_bf;
 -- 
 1.8.3.1
 
