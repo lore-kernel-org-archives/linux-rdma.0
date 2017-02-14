@@ -1,87 +1,31 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: Is SRP over RoCE possible?
-Date: Tue, 14 Feb 2017 13:43:27 -0700
-Message-ID: <CAANLjFpjyHGRou352cmLGH3otKwVFquAtMfTsubb_oUhVw4QPQ@mail.gmail.com>
+Date: Tue, 14 Feb 2017 20:36:57 +0000
+Message-ID: <1487104602.2466.17.camel@sandisk.com>
 References: <CAANLjFoJEnRERRNm34u8yonJCDqAe1d68BYb_GBTmmxVpFxpZQ@mail.gmail.com>
- <1487097898.2466.8.camel@sandisk.com> <CAANLjFqEk8MJ9+BQrqq7VFfuzbhrL=X_ht4r=qnRHLt8MOTdXw@mail.gmail.com>
+         <1487097898.2466.8.camel@sandisk.com>
+         <CAANLjFqEk8MJ9+BQrqq7VFfuzbhrL=X_ht4r=qnRHLt8MOTdXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <CAANLjFqEk8MJ9+BQrqq7VFfuzbhrL=X_ht4r=qnRHLt8MOTdXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <8D25E8433733C946A92742BFD3E0AB56-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: "robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Oh, I think you are saying that SCST (I was reading SCSI) has it's own
-ib_srp kernel driver. I've been using LIO, let me look into that.
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
-
-
-On Tue, Feb 14, 2017 at 1:34 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrot=
-e:
-> Trying to add "options ib_srpt rdma_cm_port=3D5000" gives me this error.
->
+On Tue, 2017-02-14 at 13:34 -0700, Robert LeBlanc wrote:
+> Trying to add "options ib_srpt rdma_cm_port=5000" gives me this error.
+> 
 > [   25.318411] ib_srpt: unknown parameter 'rdma_cm_port' ignored
->
-> This is on 4.10-rc4.
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
->
->
-> On Tue, Feb 14, 2017 at 11:45 AM, Bart Van Assche
-> <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
->> On Tue, 2017-02-14 at 11:24 -0700, Robert LeBlanc wrote:
->>> I'm trying to get SRP working on my ConnectX-4-LX cards to see if it
->>> has the same problem as iSER does. When I try to connect the initiator
->>> to the target I get that opensm is not running. I tried all the umad
->>> devices without any luck. I found that someone had to modify the
->>> source to get it to work with RDMACM [0] and then another thread that
->>> specified that an option had to be passed to the ib_srpt module, but I
->>> don't see that option in modinfo and the Readme mentioned in the
->>> thread is not there[1]. If SRP should work, can someone help me figure
->>> out what I'm doing wrong here.
->>
->> Hello Robert,
->>
->> This is not yet possible with the upstream SRP drivers. I'm waiting for
->> the standardization of SRP over RoCE to add such support to the upstream
->> SRP drivers. But this is already possible today with the following
->> drivers:
->> - At the initiator side: https://github.com/bvanassche/ib_srp-backport
->> - At the target side: the SCST core + the SCST ib_srpt target driver and
->>   something like the following in /etc/modprobe.d/ib_srpt.conf:
->>   options ib_srpt rdma_cm_port=3D5000
->> - Since neither ibsrpdm nor srp_daemon support SRP over RoCE, login has
->>   to be performed by writing a login string into
->>   /sys/class/infiniband_srp/*/add_target. The format of that login strin=
-g
->>   is id_ext=3D$ioc_guid,ioc_guid=3D$ioc_guid,dest=3D$dest where ioc_guid=
- is the
->>   following parameter from the target system:
->>   /sys/module/ib_srpt/parameters/srpt_service_guid
->>   and where dest is [<IPv4 address>|<IPv6 address>]:<SRP RDMA/CM port nu=
-mber>
->>
->> BTW, I have used these drivers to test and improve the SoftRoCE driver.
->>
->> Bart.
->> Western Digital Corporation (and its subsidiaries) E-mail Confidentialit=
-y Notice & Disclaimer:
->>
->> This e-mail and any files transmitted with it may contain confidential o=
-r legally privileged information of WDC and/or its affiliates, and are inte=
-nded solely for the use of the individual or entity to which they are addre=
-ssed. If you are not the intended recipient, any disclosure, copying, distr=
-ibution or any action taken or omitted to be taken in reliance on it, is pr=
-ohibited. If you have received this e-mail in error, please notify the send=
-er immediately and delete the e-mail in its entirety from your system.
->>
---
+
+Does this mean that you are not familiar with SCST? I referred explicitly
+to the SCST ib_srpt kernel module in my e-mail.
+
+Bart.--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
