@@ -1,48 +1,70 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/5] USNIC and RAW enhancements series
-Date: Tue, 14 Feb 2017 11:45:34 -0500
-Message-ID: <1487090734.86943.80.camel@redhat.com>
-References: <20170124110239.31555-1-leon@kernel.org>
+Subject: Re: [PATCH v3 29/37] IB/rxe: Switch from dma_device to dev.parent
+Date: Tue, 14 Feb 2017 11:47:28 -0500
+Message-ID: <1487090848.86943.81.camel@redhat.com>
+References: <20170120210437.26389-1-bart.vanassche@sandisk.com>
+         <20170120210437.26389-30-bart.vanassche@sandisk.com>
+         <D4AFCE43.A031%Andrew.Boyer@emc.com>
+         <1485555269.13218.10.camel@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-MxOxLGZ7jsR33BO2Ncnr"
+        protocol="application/pgp-signature"; boundary="=-HeZcCbvzg6KGjb2HlNGP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170124110239.31555-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1485555269.13218.10.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Rajesh Borundia <rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Andrew.Boyer-8PEkshWhKlo@public.gmane.org" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
+Cc: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-MxOxLGZ7jsR33BO2Ncnr
+--=-HeZcCbvzg6KGjb2HlNGP
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2017-01-24 at 13:02 +0200, Leon Romanovsky wrote:
-> Hi Doug,
+On Fri, 2017-01-27 at 22:14 +0000, Bart Van Assche wrote:
+> On Thu, 2017-01-26 at 21:06 +0000, Boyer, Andrew wrote:
+> >=20
+> > On 1/20/17, 4:04 PM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
+> > Bart
+> > Van Assche" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
+> > bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> >=20
+> > >=20
+> > > Prepare for removal of ib_device.dma_device.
+> > >=20
+> > > Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > > Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > ---
+> > > drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++---
+> > > 1 file changed, 3 insertions(+), 3 deletions(-)
+> > >=20
+> > > @@ -1234,7 +1234,7 @@ int rxe_register_device(struct rxe_dev
+> > > *rxe)
+> > > 	dev->node_type =3D RDMA_NODE_IB_CA;
+> > > 	dev->phys_port_cnt =3D 1;
+> > > 	dev->num_comp_vectors =3D RXE_NUM_COMP_VECTORS;
+> > > -	dev->dma_device =3D rxe->ifc_ops->dma_device(rxe);
+> > > +	dev->dev.parent =3D rxe->ifc_ops->dma_device(rxe);
+> > > 	dev->local_dma_lkey =3D 0;
+> > > 	dev->node_guid =3D rxe->ifc_ops->node_guid(rxe);
+> > > 	dev->dma_ops =3D &rxe_dma_mapping_ops;
+> >=20
+> > ifc_ops was recently removed, so this will be a minor merge
+> > conflict.
 >=20
-> Please find below second version og USNIC and RAW protocols
-> enhancements from Or.
+> Hello Andrew,
 >=20
-> from: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Thanks for the review.
 >=20
-> This series adds the USNIC and RAW protocols to the core and relevant
-> devices
-> (usnic, and mlx5/mlx4 over Eth ports) such that now the protocol part
-> of the
-> caps covers all in-tree HW/SW devices.
->=20
-> It also contains a cleanup patch to the HW/SW drivers such that they
-> use
-> ib_query_port when needed to query their own ports and not apply
-> their
-> internal callback. The patch doesn't add new functionality but makes
-> the different drivers to be behave the same in that respect and makes
-> the IB stack code a little bit more robust and clear.
->=20
-> Thanks
+> Doug, do you expect me to resolve this merge conflict by rebasing
+> this
+> patch series (something Linus doesn't like) once Linus has pulled
+> your
+> v4.11 pull request or are you going to explain to Linus how he should
+> resolve this merge conflict himself?
 
-Thanks, series applied.
+I'm going to do a local merge fixup run before I send it and will
+notify Linus of any fixes needed.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -50,7 +72,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-MxOxLGZ7jsR33BO2Ncnr
+--=-HeZcCbvzg6KGjb2HlNGP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -58,22 +80,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYozQuAAoJELgmozMOVy/dPx8P/Ri0EG05xpRLujwEaydlrVy4
-ATi1oeIzug8dyjvjfO7Gqtgq/dap9N1FwInDgGxDjWIircu4juHpgWmTh8kmDF1b
-dl91if4Je8iNVAt6Y3cR3AhduXvn01iBhuFKVyx+cO0aMdRHxh2meJTizleBmsPE
-ea26RmQWAC/1QOlcmYv62KZ7ng6EKKHHA1iqdy+H1TtwPThHqBmpcDT2w/IltVMq
-vciwHB8WVoniCCgbklArMm5tn/wAX90QyiQqSdzBI4NpcsHUxkWDEt5iaJdsDE9Q
-1jzP+Moe8B7odW4pP3QEPaoIH0sAMzPxmEnw4vtPfuy7KVIa4wtugUsLMeoX4E8D
-UPWBc7RnOT6Z7HEt31mPNWs4BRA7q6b0Qf7JOa9jiHGFxR8GYhVGsZlzJ/jN5LJC
-L9hQoTjPfHceSklGGH7Bd7UXTaVsC5QEIwl02l11MKEgFWxa70FS8ZysPumGMSff
-whlrAHkxT91ugdfMf4YXnlW5s/Mc3pRPDWvxMeFko1ytcMoy2R/1PagzaW6Z3s+g
-p5IrHXEmT0cj0P7awzPWWY+pUSprp+p6S4q68n5LXQJ0t6N1ZpeKOQOyi3r7smYi
-f/6lWxnU0TXejDhco1OROdI8t8Nng/zxf/CGo/26/uNqcvKawsQTDMQaOnfs+dCc
-iDTHsjt6TS5H4Im4Bcs4
-=pvht
+iQIcBAABCAAGBQJYozSgAAoJELgmozMOVy/duagP/ihOaqq+gYCshcXYzazhPfOe
+6ROeJLi6QKCGO4192SoSEuFhLaaItYoMsR17VPesU44k/evH6YBXaq5S8yX3Xo5s
+XKkdatfJ2O/La9YDiH1KQcyAfZgIYfpLWHS741TEZFvy9PgC7NyNkJprYPxVRMWn
++hkIdy3tV8ReBMB4Z3+9ZwDCzr8gUnKtKVgKMgAeZXJYdeIOtCAWK9DWvAL6Kw1H
+TvrBizub3OpTbINY267wC+IQV9epJlbn5cJE2h2iOny4mUY1QaKMKvy0lNlmG0xh
+XcmpatRJ34jXW05gAfzo5pYTrwfTdn6JswXtXvgquVS7QXtVmGWKZ05nJVuOCL5D
+PurT4Pim5ddfaN3C/fdghocb4zFk14dtGBDxYJ6y0R112dW+wG3db18CMj3x54Rx
+vgF8tcptoKMz/1U5rwyKBF7+PVano6sBHrjiNBd14HAMUlGQdHFsMxilVkx3MU0J
+njhUT3POnFs0pezt+x40D087YJFwXGLm78Q/3Dg7XSdqthUeSMWev2aeXTwoJ7xF
+EzpkgbJK2vYOQhyxW4/x7RbCJml7bMsg9VhFwbFFqa/aBwtZvPApaLFKssEB/xiB
+K/4r97auS2+LHzoi0ZxuqqdUrzA80Sekq288x0NFIkVTfcT49wNwqXz9tq1ZQ9Mx
+NibEjs5aPV5F0obPCiv4
+=j4zn
 -----END PGP SIGNATURE-----
 
---=-MxOxLGZ7jsR33BO2Ncnr--
+--=-HeZcCbvzg6KGjb2HlNGP--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
