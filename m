@@ -1,40 +1,50 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-Date: Wed, 15 Feb 2017 00:22:20 +0000
-Message-ID: <1487118126.2466.31.camel@sandisk.com>
-References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
-         <20170214185636.29250-2-bart.vanassche@sandisk.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Is SRP over RoCE possible?
+Date: Tue, 14 Feb 2017 18:10:41 -0700
+Message-ID: <CAANLjFp8ybkAwqHdoBXVtdCgnLXnqjxE-gewB4MMR-s3zj168g@mail.gmail.com>
+References: <CAANLjFoJEnRERRNm34u8yonJCDqAe1d68BYb_GBTmmxVpFxpZQ@mail.gmail.com>
+ <1487097898.2466.8.camel@sandisk.com> <CAANLjFqEk8MJ9+BQrqq7VFfuzbhrL=X_ht4r=qnRHLt8MOTdXw@mail.gmail.com>
+ <1487104602.2466.17.camel@sandisk.com> <CAANLjFonC2UJpCSgkuRXXGdUVEa7sg0Lb9tzHpxp0zM0vit+hg@mail.gmail.com>
+ <CAANLjFqrKYdAyj-c0avvnjFEmiMuQ5zc5wYzuPmNjAHgZOUo4w@mail.gmail.com> <1487116271.2466.29.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170214185636.29250-2-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <735EAB98627AC64999DB1DF7D53A9D95-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1487116271.2466.29.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-02-14 at 10:56 -0800, Bart Van Assche wrote:
-> @@ -2666,7 +2661,7 @@ static int srp_slave_alloc(struct scsi_device *sdev)
->  	struct srp_device *srp_dev = target->srp_host->srp_dev;
->  	struct ib_device *ibdev = srp_dev->dev;
->  
-> -	if (!(ibdev->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG))
-> +	if (true)
->  		blk_queue_virt_boundary(sdev->request_queue,
->  					~srp_dev->mr_page_mask);
+On Tue, Feb 14, 2017 at 4:51 PM, Bart Van Assche
+<Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> On Tue, 2017-02-14 at 16:43 -0700, Robert LeBlanc wrote:
+>> I got things running with SRP and SCST and I could not get the hang
+>> with SRP. Thanks for your help.
+>
+> Hello Robert,
+>
+> Thank you for the testing and for the feedback to the linux-rdma mailing
+> list. If switching to the NVMe-over-Fabrics protocol is not a valid
+> alternative on your setup I think this means that it would be valuable
+> to have SRP-over-RoCE support upstream ...
 
-Hello Doug,
+I certainly like to have as many options as possible, so I'd sure like
+to see it.
 
-This patch introduces a new warning when building with W=1, namely that
-variable ibdev is not used. The build bot figured this out. Do you want me
-to address this?
+I was under the impression that the backing device for
+NVMe-over-Fabrics had to be an NVMe device. We are using ZFS for our
+backing stores, if it could work with that I need to really
+investigate that option. I'll have to do some more research on the
+subject and get myself more familiar with it instead of just assuming
+things based on the name.
 
-Thanks,
+Thank you,
+Robert LeBlanc
 
-Bart.--
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
