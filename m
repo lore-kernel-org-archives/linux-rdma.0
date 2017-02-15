@@ -1,61 +1,42 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH rdma-next 1/1] IB/IPoIB: Add destination address when
- re-queue packet
-Date: Wed, 15 Feb 2017 09:54:05 -0500
-Message-ID: <1487170445.86943.90.camel@redhat.com>
-References: <20170201171005.15587-1-leon@kernel.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1] IB/core: Remove pointer casting from void
+ to net_device
+Date: Wed, 15 Feb 2017 09:54:30 -0500
+Message-ID: <1487170470.86943.91.camel@redhat.com>
+References: <20170202051408.21839-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-98F2F3DE/6a8QQcfESmR"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170201171005.15587-1-leon@kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, Erez Shitrit <erezsh@mellanox.com>, "# v4 . 8+" <stable@vger.kernel.org>, Noa Osherovich <noaos@mellanox.com>
+        protocol="application/pgp-signature"; boundary="=-Jyey4jwnlEtVn6QB/sUP"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170202051408.21839-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-98F2F3DE/6a8QQcfESmR
+--=-Jyey4jwnlEtVn6QB/sUP
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2017-02-01 at 19:10 +0200, Leon Romanovsky wrote:
-> From: Erez Shitrit <erezsh@mellanox.com>
+On Thu, 2017-02-02 at 07:14 +0200, Leon Romanovsky wrote:
+> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> When sending packet to destination that was not resolved yet
-> via path query, the driver keeps the skb and tries to re-send it
-> again when the path is resolved.
+> This patch avoids unnecessary type casting from void to net_device.
 >=20
-> But when re-sending via dev_queue_xmit the kernel doesn't call
-> to dev_hard_header, so IPoIB needs to keep 20 bytes in the skb
-> and to put the destination address inside them.
->=20
-> In that way the dev_start_xmit will have the correct destination,
-> and the driver won't take the destination from the skb->data, while
-> nothing exists there, which causes to packet be be dropped.
->=20
-> The test flow is:
-> 1. Run the SM on remote node,
-> 2. Restart the driver.
-> 4. Ping some destination,
-> 3. Observe that first ICMP request will be dropped.
->=20
-> Fixes: fc791b633515 ("IB/ipoib: move back IB LL address into the hard
-> header")
-> Cc: <stable@vger.kernel.org> # v4.8+
-> Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
-> Signed-off-by: Noa Osherovich <noaos@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leon@kernel.org>
+> CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 Thanks, applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-98F2F3DE/6a8QQcfESmR
+--=-Jyey4jwnlEtVn6QB/sUP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -63,19 +44,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYpGuNAAoJELgmozMOVy/dkzUP+wWay2VTvPigtRQP2jHsKSrl
-Fh15YLKALOI9dRM4tkTfE3BXgEi2CkhC068hmRN9SaFxZaRfKacV8CArbjj9ZcPG
-OsnF75VkuNKiZvXQxHB6GYTQGrZ/lDt4qGiAXpMqeDzmPqS76bPVHUZ64jaC9hiv
-u7lWxjt2RLGzEWK5iPNCXVZRcvWP6/JTtrNUUdnbLW9/UR70jzq8kKnTpmVzJATh
-xnXLB5a1JRmHfHrxhvknDj1EFhq/2Bb8GXY2zPLCfxq0PeGD64EpOk2NMQ+SdTvX
-dRRsRODV/cUO9akPF3xwwieozodY2h1SjGPN+6cGyBA3iKbEXDLsL3H37zF+ErIB
-pwNZRs/XNgIomKWMVbxNiLel1+ljzBVfVMvxfHkHHO62Xc0aIp+fMAIaSkU91AH2
-Druk6QGzIOdkuCLojYaEib7a4ST6N8GOsYWNXmaMGFHo+CINEjZYeevm1gAppspF
-HB053XfVq7sD3giA4B9yI9/Am4OzYvSx6PJtP67AsunV+7xxqHsNd3KzkgExv5e/
-igUc4WQvWaNe42bnAisLfCRIcH7NhAbeYnkhJaCJ3jZ4+U1ggv0eoTQSAiND8TDt
-RWqntj6bKptmvshRQ65S/wHwaWULfIlWX1dNRnsxhaWTGdA4fap4t2AksCALFrKf
-ZI9cPNCZfCHXbTXjSmsH
-=Jp7E
+iQIcBAABCAAGBQJYpGumAAoJELgmozMOVy/dn8sP/jR+EfL5vu04lHd7mesauf7R
+I0buAn6y5RkZf+1o7/RWJg8En7XWGo9hPT6YNVVqiHmNXMF1TiZjNxGOyjPXhG2Y
+YBuLdv2DEJERZFREV2uwpgxltfgvlraCnsJubUEQ2CKKQVC0STJrzq+VGO60RO4d
+38qfpadUX9B4eU5tmCJi4mOBX7F7vTX0KUN7KfMHgiKo98L4MHuHPEFesD7Pet2B
+v8jmg7KFuo9GkRvCyVaBMtk81fsrLz18BRXP5xbQMy5gca5+pZ9JDhSX7rnEjTjt
+JBdE0p+n3ijYV5pI25AoR5drEPA0szxtKDrkxyMQXdao9nEOS5J3habjkrkdEd1t
+GZoiT2LYhd4nRhzjls3tPP4FSLrBMnAAdFadkLznbmrI//Hr0rySLIdKmpIyQ/7w
+lzlG5YHF3RoQ4u0VoTs2OH42R+CitTV56qPXAuEHm4sWnr8h69jxMUZr5r1Hp4VI
+YGDTuCI4G5OHD3+Pm7nwxmN2iBq1cK2cQsvfRRAZjUlxNWks6i6jxomdssZfpI4c
+Gry0oDgfpduRJ2MT9Eth2TdUl7KAv+/8vJNDmU9sy5FBlQRK/20XztCKF9stvKZh
+a15eZ3Aax8dSU+KLolbxbaQ8DxCBBuDxPbhXrNjva6V1nItPdkBCYnMCgAMjOOtY
+4+M+P27avM4/ud6++VV/
+=KPib
 -----END PGP SIGNATURE-----
 
---=-98F2F3DE/6a8QQcfESmR--
+--=-Jyey4jwnlEtVn6QB/sUP--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
