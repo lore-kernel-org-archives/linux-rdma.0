@@ -1,125 +1,108 @@
-From: Laurence Oberman <loberman@redhat.com>
-Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-Date: Wed, 15 Feb 2017 08:43:38 -0500 (EST)
-Message-ID: <152629651.31673945.1487166218360.JavaMail.zimbra@redhat.com>
-References: <20170214185636.29250-1-bart.vanassche@sandisk.com> <20170214185636.29250-2-bart.vanassche@sandisk.com> <20170215071449.GM6989@mtr-leonro.local> <20170215081945.GP6989@mtr-leonro.local> <90797260.31671071.1487165615598.JavaMail.zimbra@redhat.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 3/7] IB/core: Add idr based standard types
+Date: Wed, 15 Feb 2017 15:44:22 +0200
+Message-ID: <CAAKD3BDyg04Y0c9Pn1YbxZyxR8PpRFYbpF8UokFcgi7CdUcj3A@mail.gmail.com>
+References: <1485952745-58476-1-git-send-email-matanb@mellanox.com>
+ <1485952745-58476-4-git-send-email-matanb@mellanox.com> <20170210200849.GC4335@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <90797260.31671071.1487165615598.JavaMail.zimbra@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Max Gurtovoy <maxg@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Israel Rukshin <israelr@mellanox.com>, Mark Bloch <markb@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, Artemy Kovalyov <artemyko@mellanox.com>, "# 4 . 7+" <stable@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170210200849.GC4335-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Feb 10, 2017 at 10:08 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Feb 01, 2017 at 02:39:01PM +0200, Matan Barak wrote:
+>
+>> +void uverbs_free_qp(struct ib_uobject *uobject)
+>
+> This should be static...
+>
 
+Yeah
 
------ Original Message -----
-> From: "Laurence Oberman" <loberman@redhat.com>
-> To: "Leon Romanovsky" <leonro@mellanox.com>
-> Cc: "Bart Van Assche" <bart.vanassche@sandisk.com>, "Max Gurtovoy" <maxg@mellanox.com>, "Doug Ledford"
-> <dledford@redhat.com>, linux-rdma@vger.kernel.org, "Israel Rukshin" <israelr@mellanox.com>, "Mark Bloch"
-> <markb@mellanox.com>, "Yuval Shaia" <yuval.shaia@oracle.com>, "Artemy Kovalyov" <artemyko@mellanox.com>, "# 4 . 7+"
-> <stable@vger.kernel.org>
-> Sent: Wednesday, February 15, 2017 8:33:35 AM
-> Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-> 
-> 
-> 
-> ----- Original Message -----
-> > From: "Leon Romanovsky" <leonro@mellanox.com>
-> > To: "Bart Van Assche" <bart.vanassche@sandisk.com>, "Max Gurtovoy"
-> > <maxg@mellanox.com>
-> > Cc: "Doug Ledford" <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-> > "Israel Rukshin" <israelr@mellanox.com>, "Mark
-> > Bloch" <markb@mellanox.com>, "Yuval Shaia" <yuval.shaia@oracle.com>,
-> > "Artemy Kovalyov" <artemyko@mellanox.com>, "# 4
-> > . 7+" <stable@vger.kernel.org>
-> > Sent: Wednesday, February 15, 2017 3:19:45 AM
-> > Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-> > 
-> > On Wed, Feb 15, 2017 at 09:14:49AM +0200, Leon Romanovsky wrote:
-> > > On Tue, Feb 14, 2017 at 10:56:29AM -0800, Bart Van Assche wrote:
-> > > > Tests have shown that the following error message is reported when
-> > > > using SG-GAPS registration with an mlx5 adapter:
-> > > >
-> > > > scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE
-> > > > ffff880bd4270eb0
-> > > > 00000000 00000000 00000000 00000000
-> > > > 00000000 00000000 00000000 00000000
-> > > > 00000000 00000000 00000000 00000000
-> > > > 00000000 0f007806 2500002a ad9fafd1
-> > > > scsi host1: ib_srp: reconnect succeeded
-> > > > mlx5_0:dump_cqe:262:(pid 7369): dump error cqe
-> > > > 00000000 00000000 00000000 00000000
-> > > > 00000000 00000000 00000000 00000000
-> > > > 00000000 00000000 00000000 00000000
-> > > > 00000000 0f007806 25000032 00105dd0
-> > > > scsi host1: ib_srp: failed FAST REG status memory management operation
-> > > > error (6) for CQE ffff880b92860138
-> > > >
-> > > > Hence avoid using SG-GAPS memory registrations. Additionally,
-> > > > always configure the blk_queue_virt_boundary() to avoid to trigger
-> > > > a mapping failure when using adapters that support SG-GAPS (e.g.
-> > > > mlx5).
-> > >
-> > > According to the error dump, we have an issue with max_page_list_len
-> > > supplied and/or
-> > > internal calculations from that value to the UMR byte count.
-> > 
-> > Hi Bart,
-> > 
-> > Do you mind to try your test on my branch rdma-next [1] with the following
-> > fixup?
-> > 
-> > diff --git a/drivers/infiniband/hw/mlx5/mr.c
-> > b/drivers/infiniband/hw/mlx5/mr.c
-> > index 3c1f483d003f..3e59dce10d5e 100644
-> > --- a/drivers/infiniband/hw/mlx5/mr.c
-> > +++ b/drivers/infiniband/hw/mlx5/mr.c
-> > @@ -1045,8 +1045,9 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64
-> > idx,
-> > int npages,
-> >  	for (pages_mapped = 0;
-> >  	     pages_mapped < pages_to_map && !err;
-> >  	     pages_mapped += pages_iter, idx += pages_iter) {
-> > +		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
-> >  		dma_sync_single_for_cpu(ddev, dma, size, DMA_TO_DEVICE);
-> > -		npages = populate_xlt(mr, idx, pages_iter, xlt,
-> > +		npages = populate_xlt(mr, idx, npages, xlt,
-> >  				      page_shift, size, flags);
-> > 
-> >  		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
-> > 
-> > [1]
-> > https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=rdma-next
-> > 
-> > Thanks
-> > 
-> 
-> Hello Leon
-> Replied earlier but I dont know if my reply made it.
-> I will have to test this.
-> 
-> is this repo
-> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=rdma-next
-> already patched with the change you want.
-> If not can I just take the patch and apply to my earlier tree based just on
-> Linus's tree where I reverted the patch.
-> 
-> Thanks
-> Laurence
+> Based on the last email I expect this to be
+>
+> static int uverbs_destroy_qp(struct ib_uobject *uobject, enum rdma_remove_reason why)
+>
+
+Since we don't care about the reason here and it's called from the
+destroy callback,
+we could leave the deceleration as is.
+
+>> +{
+>> +     struct ib_qp *qp = uobject->object;
+>> +     struct ib_uqp_object *uqp =
+>> +             container_of(uobject, struct ib_uqp_object, uevent.uobject);
+>> +
+>> +     if (qp == qp->real_qp)
+>> +             ib_uverbs_detach_umcast(qp, uqp);
+>> +     ib_destroy_qp(qp);
+>
+> This silently eats the error code from ib_destroy_qp, not OK. See
+> discussion in prior email. Lots of cases of this.
+>
+
+I can add a WARN_ON, but this is essentially the same as ib_destroy_qp
+fails when a context is destroyed (either because of hot unplug or process
+termination). You won't get here because of regular destroy handler.
+This is the current behavior as well.
+
+>> +const struct uverbs_obj_idr_type uverbs_type_attrs_cq =
+>> +     UVERBS_TYPE_ALLOC_IDR_SZ(sizeof(struct ib_ucq_object), 0,
+>> +                              uverbs_free_cq);
+>>
+>
+> It would be more readable if the struct decl was near the functions in
+> blocks.
+>
+
+But then it can't be used by the hardware drivers to declare new types.
+
+> Still don't like these macros. The open coded version would look like this:
+>
+> const struct uverbs_obj_idr_type uverbs_type_attrs_cq = {
+>       .type = {
+>             .obj_size = sizeof(struct ib_ucq_object),
+>             .ops = &uverbs_idr_ops,
+>       },
+>       .destroy = uverbs_destroy_cq,
+> };
+>
+> Whichs is more understandable and typical of the kernel style. If we
+> wish to add a new callback function for instance we don't need a new
+> macro or big churn.
+>
+> You could do this I guess:
+>
+> const struct uverbs_obj_idr_type uverbs_type_attrs_cq = {
+>       .type = UVERBS_IDR_TYPE(cq, 0),
+>       .destroy = uverbs_destroy_cq,
+> };
+>
+
+Yeah, seems reasonable - a good trade off.
+
+>> +extern const struct uverbs_obj_type_ops uverbs_idr_ops;
+>> +
+>> +#define UVERBS_BUILD_BUG_ON(cond) (sizeof(char[1 - 2 * !!(cond)]) -  \
+>> +                                sizeof(char))
+>
+> This probably doesn't add value, but you could make this a WARN_ON in
+> alloc_uobj().
+>
+
+Why should we calculate this on runtime if we could know this in compile time?
+
+> Jason
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-I guess not, I looked at applying this patch to Linus's tree but the function 
-mlx5_ib_update_xlt() is not in there yet.
-
-I will see if I can get your tree staged and test this for you.
-
-Thanks
-Laurence
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
