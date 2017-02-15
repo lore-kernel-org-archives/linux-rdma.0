@@ -1,43 +1,61 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Sagi Grimberg <sagi@grimberg.me>
 Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-Date: Wed, 15 Feb 2017 10:34:23 -0500 (EST)
-Message-ID: <1974729476.31796940.1487172863053.JavaMail.zimbra@redhat.com>
-References: <017955b3-8fd5-40da-8bd5-023bc2f23fb4@email.android.com> <1487172663.2990.5.camel@sandisk.com>
+Date: Wed, 15 Feb 2017 17:38:06 +0200
+Message-ID: <cebcaeae-94a6-de82-cfc8-ce055b273836@grimberg.me>
+References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
+ <20170214185636.29250-2-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487172663.2990.5.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170214185636.29250-2-bart.vanassche@sandisk.com>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Israel Rukshin <israelr@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Mark Bloch <markb@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, "# 4 . 7+" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+> Tests have shown that the following error message is reported when
+> using SG-GAPS registration with an mlx5 adapter:
+>
+> scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff880bd4270eb0
+> 00000000 00000000 00000000 00000000
+> 00000000 00000000 00000000 00000000
+> 00000000 00000000 00000000 00000000
+> 00000000 0f007806 2500002a ad9fafd1
+> scsi host1: ib_srp: reconnect succeeded
+> mlx5_0:dump_cqe:262:(pid 7369): dump error cqe
+> 00000000 00000000 00000000 00000000
+> 00000000 00000000 00000000 00000000
+> 00000000 00000000 00000000 00000000
+> 00000000 0f007806 25000032 00105dd0
+> scsi host1: ib_srp: failed FAST REG status memory management operation error (6) for CQE ffff880b92860138
+>
+> Hence avoid using SG-GAPS memory registrations. Additionally,
+> always configure the blk_queue_virt_boundary() to avoid to trigger
+> a mapping failure when using adapters that support SG-GAPS (e.g.
+> mlx5).
 
------ Original Message -----
-> From: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> To: leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "yuval shaia" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>,
-> stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Sent: Wednesday, February 15, 2017 10:31:20 AM
-> Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-> 
-> On Wed, 2017-02-15 at 05:50 -0500, Laurence Oberman wrote:
-> > Bart only has mlx4.
-> 
-> I'll try to find an mlx5 setup.
-> 
-> Bart.
+Hi Guys,
 
-Hello Bart
+Sorry for addressing this late, but has this failure been investigated?
 
-Its fine, I tested it already. See later email from me.
-I am good to do the mlx5 tests, I have this test bed in place permanently.
+Max, Israel, what does this error syndrome map to?
 
-Thanks
-Laurence
+Looking at mlx5_ib_sg_to_klms, I think the mr->length is incorrectly
+incremented. Does the following change fix the problem?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx5/mr.c 
+b/drivers/infiniband/hw/mlx5/mr.c
+index 8f608debe141..c21c9eee37f6 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1832,7 +1832,7 @@ mlx5_ib_sg_to_klms(struct mlx5_ib_mr *mr,
+                 klms[i].va = cpu_to_be64(sg_dma_address(sg) + sg_offset);
+                 klms[i].bcount = cpu_to_be32(sg_dma_len(sg) - sg_offset);
+                 klms[i].key = cpu_to_be32(lkey);
+-               mr->ibmr.length += sg_dma_len(sg);
++               mr->ibmr.length += sg_dma_len(sg) - sg_offset;
+
+                 sg_offset = 0;
+         }
