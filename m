@@ -1,179 +1,169 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 4/7] IB/core: Change idr objects to use the
- new schema
-Date: Wed, 15 Feb 2017 15:45:00 +0200
-Message-ID: <CAAKD3BAUZpf5pr4G3Uv=ikD3WGgOgmbcz2WnrPm3FCJiSFCVJg@mail.gmail.com>
-References: <1485952745-58476-1-git-send-email-matanb@mellanox.com>
- <1485952745-58476-5-git-send-email-matanb@mellanox.com> <20170210203048.GD4335@obsidianresearch.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
+Date: Wed, 15 Feb 2017 15:47:07 +0200
+Message-ID: <20170215134707.GQ6989@mtr-leonro.local>
+References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
+ <20170214185636.29250-2-bart.vanassche@sandisk.com>
+ <20170215071449.GM6989@mtr-leonro.local>
+ <20170215081945.GP6989@mtr-leonro.local>
+ <90797260.31671071.1487165615598.JavaMail.zimbra@redhat.com>
+ <152629651.31673945.1487166218360.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170210203048.GD4335-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="H83aLI5Lttn3Hg7B"
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <152629651.31673945.1487166218360.JavaMail.zimbra@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Laurence Oberman <loberman@redhat.com>
+Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Max Gurtovoy <maxg@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Israel Rukshin <israelr@mellanox.com>, Mark Bloch <markb@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, Artemy Kovalyov <artemyko@mellanox.com>, "# 4 . 7+" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 10, 2017 at 10:30 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Feb 01, 2017 at 02:39:02PM +0200, Matan Barak wrote:
->
->> +#define idr_get_xxxx(_type, _write, _handle, _context) ({            \
->> +     const struct uverbs_obj_idr_type * const type =                 \
->> +                     &uverbs_type_attrs_##_type;                     \
->> +     struct ib_uobject *uobj = type->type.ops->lookup_get(&type->type, \
->> +                                     _context, _handle, _write);     \
->> +                                                                     \
->> +     IS_ERR(uobj) ? NULL : uobj->object; })
->
-> I think you should follow the usual convention and have a full
-> suite of accessor helpers in a header. This header could even be in
-> patch #2
->
+--H83aLI5Lttn3Hg7B
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I prefer to put it in this patch, but I'll introduce them in
-uverbs_std_types.h as you suggested.
+On Wed, Feb 15, 2017 at 08:43:38AM -0500, Laurence Oberman wrote:
+>
+>
+> ----- Original Message -----
+> > From: "Laurence Oberman" <loberman@redhat.com>
+> > To: "Leon Romanovsky" <leonro@mellanox.com>
+> > Cc: "Bart Van Assche" <bart.vanassche@sandisk.com>, "Max Gurtovoy" <maxg@mellanox.com>, "Doug Ledford"
+> > <dledford@redhat.com>, linux-rdma@vger.kernel.org, "Israel Rukshin" <israelr@mellanox.com>, "Mark Bloch"
+> > <markb@mellanox.com>, "Yuval Shaia" <yuval.shaia@oracle.com>, "Artemy Kovalyov" <artemyko@mellanox.com>, "# 4 . 7+"
+> > <stable@vger.kernel.org>
+> > Sent: Wednesday, February 15, 2017 8:33:35 AM
+> > Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
+> >
+> >
+> >
+> > ----- Original Message -----
+> > > From: "Leon Romanovsky" <leonro@mellanox.com>
+> > > To: "Bart Van Assche" <bart.vanassche@sandisk.com>, "Max Gurtovoy"
+> > > <maxg@mellanox.com>
+> > > Cc: "Doug Ledford" <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+> > > "Israel Rukshin" <israelr@mellanox.com>, "Mark
+> > > Bloch" <markb@mellanox.com>, "Yuval Shaia" <yuval.shaia@oracle.com>,
+> > > "Artemy Kovalyov" <artemyko@mellanox.com>, "# 4
+> > > . 7+" <stable@vger.kernel.org>
+> > > Sent: Wednesday, February 15, 2017 3:19:45 AM
+> > > Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
+> > >
+> > > On Wed, Feb 15, 2017 at 09:14:49AM +0200, Leon Romanovsky wrote:
+> > > > On Tue, Feb 14, 2017 at 10:56:29AM -0800, Bart Van Assche wrote:
+> > > > > Tests have shown that the following error message is reported when
+> > > > > using SG-GAPS registration with an mlx5 adapter:
+> > > > >
+> > > > > scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE
+> > > > > ffff880bd4270eb0
+> > > > > 00000000 00000000 00000000 00000000
+> > > > > 00000000 00000000 00000000 00000000
+> > > > > 00000000 00000000 00000000 00000000
+> > > > > 00000000 0f007806 2500002a ad9fafd1
+> > > > > scsi host1: ib_srp: reconnect succeeded
+> > > > > mlx5_0:dump_cqe:262:(pid 7369): dump error cqe
+> > > > > 00000000 00000000 00000000 00000000
+> > > > > 00000000 00000000 00000000 00000000
+> > > > > 00000000 00000000 00000000 00000000
+> > > > > 00000000 0f007806 25000032 00105dd0
+> > > > > scsi host1: ib_srp: failed FAST REG status memory management operation
+> > > > > error (6) for CQE ffff880b92860138
+> > > > >
+> > > > > Hence avoid using SG-GAPS memory registrations. Additionally,
+> > > > > always configure the blk_queue_virt_boundary() to avoid to trigger
+> > > > > a mapping failure when using adapters that support SG-GAPS (e.g.
+> > > > > mlx5).
+> > > >
+> > > > According to the error dump, we have an issue with max_page_list_len
+> > > > supplied and/or
+> > > > internal calculations from that value to the UMR byte count.
+> > >
+> > > Hi Bart,
+> > >
+> > > Do you mind to try your test on my branch rdma-next [1] with the following
+> > > fixup?
+> > >
+> > > diff --git a/drivers/infiniband/hw/mlx5/mr.c
+> > > b/drivers/infiniband/hw/mlx5/mr.c
+> > > index 3c1f483d003f..3e59dce10d5e 100644
+> > > --- a/drivers/infiniband/hw/mlx5/mr.c
+> > > +++ b/drivers/infiniband/hw/mlx5/mr.c
+> > > @@ -1045,8 +1045,9 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64
+> > > idx,
+> > > int npages,
+> > >  	for (pages_mapped = 0;
+> > >  	     pages_mapped < pages_to_map && !err;
+> > >  	     pages_mapped += pages_iter, idx += pages_iter) {
+> > > +		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
+> > >  		dma_sync_single_for_cpu(ddev, dma, size, DMA_TO_DEVICE);
+> > > -		npages = populate_xlt(mr, idx, pages_iter, xlt,
+> > > +		npages = populate_xlt(mr, idx, npages, xlt,
+> > >  				      page_shift, size, flags);
+> > >
+> > >  		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
+> > >
+> > > [1]
+> > > https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=rdma-next
+> > >
+> > > Thanks
+> > >
+> >
+> > Hello Leon
+> > Replied earlier but I dont know if my reply made it.
+> > I will have to test this.
+> >
+> > is this repo
+> > https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=rdma-next
+> > already patched with the change you want.
+> > If not can I just take the patch and apply to my earlier tree based just on
+> > Linus's tree where I reverted the patch.
+> >
+> > Thanks
+> > Laurence
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+>
+> I guess not, I looked at applying this patch to Linus's tree but the function
+> mlx5_ib_update_xlt() is not in there yet.
 
-> static struct ib_uobject *__uobj_get(const struct uverbs_obj_type *type, bool write, struct ib_ucontext *ucontext, int id)
-> {
->   [..]
-> }
-> #define uobj_get_read(_type,...) ((struct ib_##_type *)_uobj_get(&uverbs_type_attrs_##_type, false, __VA_ARGS__))
-> #define uobj_get_write(_type,...) ((struct ib_##_type *)_uobj_get(&uverbs_type_attrs_##_type, false, __VA_ARGS__))
->
-> static inline void uobj_put_write(struct ib_uobject *uobj)
-> {
->     uobj->type->ops->lookup_put(uobj, true);
-> }
->
-> static inline void uobj_put_read(struct ib_uobject *uobj)
-> {
->     uobj->type->ops->lookup_put(uobj, false);
-> }
->
-> static inline struct ib_uobject *__uobj_alloc(const struct uverbs_obj_type *type,struct ib_ucontext *ucontext)
-> {
->    return type->alloc_begin(type, ucontext);
-> }
->
-> #define uobj_alloc_begin(_type, ...) ((struct ib_##_type *)_uobj_alloc(&uverbs_type_attrs_##_type, __VA_ARGS__))
->
-> and so on
->
+This is why I asked to use my tree, there is a chance that wrong
+calculation was before we introduced mlx5_ib_update_xlt() function.
 
-I'll add something similar.
+>
+> I will see if I can get your tree staged and test this for you.
 
->>  static struct ib_pd *idr_read_pd(int pd_handle, struct ib_ucontext *context)
->>  {
->> -     return idr_read_obj(pd_handle, context, 0);
->> +     return idr_get_xxxx(pd, false, pd_handle, context);
->>  }
->
-> And you can just totally drop all of these inlines and use
->
->   uobj_get_read(pd, pd_handle, context);
->
-> At the call site.
->
+Thanks a lot.
 
-Sure
-
->>  static struct ib_xrcd *idr_read_xrcd(int xrcd_handle, struct ib_ucontext *context,
->>                                    struct ib_uobject **uobj)
->>  {
->> -     *uobj = idr_read_uobj(xrcd_handle, context, 0);
->> -     return *uobj ? (*uobj)->object : NULL;
->> +     *uobj = uverbs_type_attrs_xrcd.type.ops->lookup_get(&uverbs_type_attrs_xrcd.type,
->> +                                                     context, xrcd_handle,
->> +                                                     false);
->> +     return IS_ERR(*uobj) ? NULL : (*uobj)->object;
 >
-> Why didn't this use idr_get_xxx ? Why is it so weird?
->
-
-This was the original code as well and I wanted to refactor as closely as I can.
-However, this might be a good time to cleanup this as well.
-
->>
->> @@ -621,9 +439,11 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->>       if (copy_from_user(&cmd, buf, sizeof cmd))
->>               return -EFAULT;
->>
->> -     uobj = idr_write_uobj(cmd.pd_handle, file->ucontext);
->> -     if (!uobj)
->> -             return -EINVAL;
->> +     uobj = uverbs_type_attrs_pd.type.ops->lookup_get(&uverbs_type_attrs_pd.type,
->> +                                                  file->ucontext,
->> +                                                  cmd.pd_handle, true);
->> +     if (IS_ERR(uobj))
->> +             return PTR_ERR(uobj);
->>       pd = uobj->object;
->>
->>       if (atomic_read(&pd->usecnt)) {
->> @@ -636,21 +456,12 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->>       if (ret)
->>               goto err_put;
->>
->> -     uobj->live = 0;
->> -     put_uobj_write(uobj);
->> -
->> -     idr_remove_uobj(uobj);
->> -
->> -     mutex_lock(&file->mutex);
->> -     list_del(&uobj->list);
->> -     mutex_unlock(&file->mutex);
->> -
->> -     put_uobj(uobj);
->> +     uobj->type->ops->destroy_commit(uobj);
->
-> And here I think you should move the pd->device_dealloc_pd into
-> destroy_commit by having it call what you called hot_plug, and turn
-> this simply into:
->
->         return uobj_remove_or_put(uobj, RDMA_REMOVE_DESTROY);
->
-> static inline int uobj_remove_or_put(struct ib_uobject *uobj, enum rdma_remove_reason why)
-> {
->     int rc = uobj->type->ops->remove(uobj, why);
->     if (!rc)
->         uverbs_uobject_put(uobj);
->
->     /* If we are using a forced destruction mode then the driver is
->         not permitted to fail. */
->     WARN_ON(!rc && why != RDMA_REMOVE_DESTROY);
->     return rc;
-> }
->
-> And generally use this pattern for all the destroy verbs.
->
-
-I prefer to keep this separation. In handlers code, the handler is
-responsible to destroy
-the actual object and to just call remove_commit or lookup_put (via
-the accessor functions of course).
-There's a clear separation here between the uobjects management and
-the objects themselves.
-It's also more symmetrical - the user created this pd and [s]he shall
-destroy it.
-
-> I didn't study this patch closely since it will change a lot, but I
-> think this:
->
->  4 files changed, 260 insertions(+), 788 deletions(-)
->
-> Pretty much confirms this is the right overall approach.
->
-> Jason
-
-Thanks for the review.
-
-Matan
-
+> Thanks
+> Laurence
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--H83aLI5Lttn3Hg7B
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlikW9sACgkQ5GN7iDZy
+WKcufhAAlcpvv5Il8tHyvnP42jj126+pGrUYeHzwdXKOOzIjKKxB61xr/cq5shRr
+FNCmj/IJAS8K40rXlhLpj2bTGUbRmcAO5uEwY81hLhHgzW8CP+I33lmUWGYtY8x+
++p4Y8LOKCJ6Hk5BBPaZPEXuvZUnEw1iUpBXBHaRnt31YucVLfl5bWyowAizwVqNd
+TLnynKQN3L5RHVDQ7kZcY6zl74adnli+mikwaKbpa2+1C3ZXfxexhr7CBDcGlqWE
+SKxjb/DCVPSb0YfIhzua6P9fDpuvTY0hRKtoGC7T0RFtPQEFxsSGt0NHKz0g3IFR
+ucld5gyVzz6NILHNdPslFepNBuVNWDVw4yShQSsGBxKxXB6fIEI2PBVHaDfjN20P
+rGmGC/WgvhuKbzLceiqwrGLMmF44OvXANVxo0HzLVxEvKQNBtauU7yVgiIEQ+A/T
+CJcJbdfEBC33KQBm11OPbWuglxbNh75BP1ZjWsWSgspR2dG0EDIuIIbBFrZE9OLf
+GZi9rgnAM7IX5yCiZtAt30cXGHyQa/DwyD7YYTaEeiQ4eyzzIQrHx1L8SI6TCD1n
+gp/qJeLH/8nPqO/m1U4Nw60KBnQ6fjs89X0TPzIVtu6jsiQPBL4/JAA/7lcLxtQ5
+OP0/axWFiUUr4mHgJbgpCMaS2Uy03ffDWYJfin2uTPltTqSdGR8=
+=TEXA
+-----END PGP SIGNATURE-----
+
+--H83aLI5Lttn3Hg7B--
