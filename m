@@ -1,73 +1,66 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 00/10] Provide a compat infiniband/arch.h
-Date: Wed, 15 Feb 2017 07:15:11 +0200
-Message-ID: <20170215051511.GK6989@mtr-leonro.local>
-References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/hfi1: use size_t for passing array length
+Date: Wed, 15 Feb 2017 07:24:51 +0200
+Message-ID: <20170215052451.GL6989@mtr-leonro.local>
+References: <20170214212358.2730288-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="CNK/L7dwKXQ4Ub8J"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="cDtQGJ/EJIRf/Cpq"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1486677212-3188-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170214212358.2730288-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, Jubin John <jubin.john@intel.com>, Jianxin Xiong <jianxin.xiong@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---CNK/L7dwKXQ4Ub8J
+--cDtQGJ/EJIRf/Cpq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Feb 09, 2017 at 02:53:22PM -0700, Jason Gunthorpe wrote:
-> Prior commits made arch.h into a private header, but there are several places
-> out there that include it to get htonll. Provide a dummy compat header that
-> will let such places continue to compile, but with warnings.
+On Tue, Feb 14, 2017 at 10:23:07PM +0100, Arnd Bergmann wrote:
+> gcc-7 produces a mysterious warning about the size argument being potentially out
+> of range:
 >
-> To do this we need to move the internal tree to use util/udma_barrier.h for
-> the barrier macros to free up the header file name and in the process replace
-> more of the crazy mix of byteswapping macros with endian.h equivalents.
+> drivers/infiniband/hw/hfi1/verbs.c: In function 'init_cntr_names':
+> drivers/infiniband/hw/hfi1/verbs.c:1644:2: error: 'memcpy': specified size between 18446744071562067968 and 18446744073709551615 exceeds maximum object size 9223372036854775807 [-Werror=stringop-overflow=]
 >
-> To make sure that everything remains working travis also learns to
-> compile-test all the header files.
+> This seems to refer to a the case where an 64-bit size_t gets truncated
+> into a negative 'int' and subsequently turned into a high 64-bit number
+> again.
 >
-> Jason Gunthorpe (10):
->   Have check-build confirm that every public header is standalone
->   Remove uses of htonll
->   Remove uses of ntohll
->   Do not use kernel byteswap macros
->   Remove extraneous byteswap.h include
->   mlx4: Remove include of asm/unistd.h
->   rdmacm: Remove dangling cpu_to_be64 definitions
->   umad: Replace htonll macros with proper inlines and mark deprecated
->   Move the now private infiniband/arch.h to util/udma_barrier.h
->   verbs: Add a compatibility arch.h
+> The fix is clearly to use size_t here, which matches the type that gets
+> used for this value elsewhere.
+>
+> Fixes: b7481944b06e ("IB/hfi1: Show statistics counters under IB stats interface")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/infiniband/hw/hfi1/verbs.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 
-Thanks, applied.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---CNK/L7dwKXQ4Ub8J
+--cDtQGJ/EJIRf/Cpq
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlij498ACgkQ5GN7iDZy
-WKfisQ/9EeYY62X9yMKOKHWSIv1eZVBNsHCjprep6qUU4waHLWsq0zipb6cFlDAt
-cEzGtH+oN50gor1+NuvtSFuJXOZwID7aeHgG+QVcMuogrhqKXPmiKKLaESJPpDMn
-YMJ6OemXjHYQh105OqBc0OFrZWSpqZY5XHWgxIiIeg4aRbyJ+k4wkuZFMpd4VOFH
-5V0XD+zuSaA/+Zmtu23WecUzUMzO1GgmWKUhNyvt30vYt2CLZDKuNbfJv20tP0cA
-IglWL7QqppMdAgQz4e1R3I4qPx163ruh7Z6cGDFjCGuiDIFem6BxkISnd3YMIUyT
-n3TqjjkmoF29SiD4zdI+2rAyPQpOzwakHE0aJwUv2kef6OnwP2dDkQKmHGM9gUag
-rR8wDMMV+ylVtyfLjYDiQYqfOH4oMntu1BBp4HMQsGsYkJhOgZlMlztxu1HDdiYz
-9wzdXsELDgIPoaDVtnrKALKMv+YPWgSo6ppbUYdjoQxi3jq0QFmEImFzcw/agL++
-rtvvB8QhD/DPIfbDA9HUNdacYypwCMqnpkqd2WWqURI6BkohH0arLDbMWXwGt1Y0
-1cCjxoKo7uGQSJFlvE5GnK7e678fhUpUjjwGaXEJZF57vVW7SFWA4qFg6SCHCKwy
-+UN3v7iA65djrCBU2L24QWuTd2lO2+Tz4ocl+deSKGNyp1zN2/k=
-=R+fz
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlij5iMACgkQ5GN7iDZy
+WKcInhAAuf/K+z5uJkqDPp47gnCdPjdPpcmVEw9psBqq4hB5XQqLxSE2BA3VtpYJ
+UZkPk2Q0VyVp5j8m2AFdFA4vwXjo0a2JjrcoajXG0kCdn97s5Lmh+0UZQaCbiPto
+MXvbZDa+vWn5YDd5gXezf5gfRlAccW+7LuD+f2IMz0GiEjS17inDeABD34qFiYyy
+4qymoy4JA7mAG84UdsOuiQZmZKaWGx7bJv/lbq0uss+s2Gjtd97hArTKkdXOCnTV
+k4fIMds7OQtUd8wY2gZb/gmE+xphpcwoI6ydpodFQAtLusoOTwX5rhKmIgy6JjPz
+OB+BXCTIJ3wTc5EGqx/HzUZpqrv6VMCgphMzG0NCjFAeXOPz+WXRc7CJ8Gt8b+KZ
+Z8bauXwC4cWmpdyKFrLFUaD2ilvRLVXDDa1Zq3eirGgiLV3qop4lH6eWsF96olp0
+Rqa+JelgC/yJsgFmtRGI9jvN1iEDO1g0w7Q8Fpe+OMFamlz4hPQpisgQB7kcMdA3
+IkACB52h8W2ETjH5r7NLFbq9aP/OvWk7opA6EiPTqS9CsrgoJqiM9C3+EhfG4B+W
+Wm1iLwRoM8idRSrAOP7Sf+ITM4ZCZ83Sr2zIG9oks6jBJHl4BrdFm/3+xvquTDgQ
+wTiMHofLUIBigDZxDj83q3U1PJWEYPTa7OdwE928ShNnnOxEJOM=
+=K69E
 -----END PGP SIGNATURE-----
 
---CNK/L7dwKXQ4Ub8J--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--cDtQGJ/EJIRf/Cpq--
