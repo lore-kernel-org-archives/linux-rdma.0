@@ -1,36 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 00/10] Provide a compat infiniband/arch.h
-Date: Wed, 15 Feb 2017 11:55:41 -0700
-Message-ID: <20170215185541.GF19162@obsidianresearch.com>
-References: <1486677212-3188-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170215051511.GK6989@mtr-leonro.local>
- <CAB1oGZeJNvwwcii+z7VYQzZK3LJcToZ4uRF=_waA6WAboJueCg@mail.gmail.com>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
+Date: Wed, 15 Feb 2017 23:49:23 +0000
+Message-ID: <1487202550.2666.10.camel@sandisk.com>
+References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
+         <20170214185636.29250-2-bart.vanassche@sandisk.com>
+         <cebcaeae-94a6-de82-cfc8-ce055b273836@grimberg.me>
+         <1557361565.31861655.1487176647067.JavaMail.zimbra@redhat.com>
+         <bd732aec-36d9-b53c-1bee-1793fc807a2a@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAB1oGZeJNvwwcii+z7VYQzZK3LJcToZ4uRF=_waA6WAboJueCg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Talat mellanox <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat mellanox <talat.mellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <bd732aec-36d9-b53c-1bee-1793fc807a2a@grimberg.me>
+Content-Language: en-US
+Content-ID: <C7C79950173AE94F938EBF9D014BABF7@sandisk.com>
+Sender: stable-owner@vger.kernel.org
+To: "sagi@grimberg.me" <sagi@grimberg.me>, "loberman@redhat.com" <loberman@redhat.com>
+Cc: "leonro@mellanox.com" <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "israelr@mellanox.com" <israelr@mellanox.com>, "yuval.shaia@oracle.com" <yuval.shaia@oracle.com>, "markb@mellanox.com" <markb@mellanox.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "maxg@mellanox.com" <maxg@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 15, 2017 at 03:51:05PM +0200, Talat mellanox wrote:
-> Hi Jason,
-> 
-> Building a debian package failed with [1].
-> 
-> We should add arch.h to debian/libibverbs-dev.install .
-> i'll generate a patch and send it.
-> 
-> [1]
-> dh_install: usr/include/infiniband/arch.h exists in debian/tmp but is
-> not installed to anywhere.
+On Wed, 2017-02-15 at 18:55 +0200, Sagi Grimberg wrote:
+> Bart, I think the change I suggested is still needed regardless,
+> do you agree?
 
-Yes, my mistake, sorry.
+I'm not sure. I have not yet had a close look at that part of the mlx5 driver.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
