@@ -1,37 +1,89 @@
-From: Sagi Grimberg <sagi@grimberg.me>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-Date: Wed, 15 Feb 2017 17:42:13 +0200
-Message-ID: <ae4630ba-8a3e-8f30-0ea9-a8a177da0bd1@grimberg.me>
-References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
- <20170214185636.29250-2-bart.vanassche@sandisk.com>
- <20170215071449.GM6989@mtr-leonro.local>
- <20170215081945.GP6989@mtr-leonro.local>
- <90797260.31671071.1487165615598.JavaMail.zimbra@redhat.com>
- <152629651.31673945.1487166218360.JavaMail.zimbra@redhat.com>
- <20170215134707.GQ6989@mtr-leonro.local>
- <242820990.31706010.1487170436012.JavaMail.zimbra@redhat.com>
+Date: Wed, 15 Feb 2017 10:42:48 -0500 (EST)
+Message-ID: <1818467272.31835786.1487173368305.JavaMail.zimbra@redhat.com>
+References: <20170214185636.29250-1-bart.vanassche@sandisk.com> <20170214185636.29250-2-bart.vanassche@sandisk.com> <cebcaeae-94a6-de82-cfc8-ce055b273836@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <242820990.31706010.1487170436012.JavaMail.zimbra@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Laurence Oberman <loberman@redhat.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Max Gurtovoy <maxg@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Israel Rukshin <israelr@mellanox.com>, Mark Bloch <markb@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, Artemy Kovalyov <artemyko@mellanox.com>, "# 4 . 7+" <stable@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cebcaeae-94a6-de82-cfc8-ce055b273836-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "# 4 . 7+" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Hello Leon
-> I pulled your tree, ran git checkout rdma-next
-> I applied the patch manually, built the kernel and started the tests.
->
-> Pretty soon I ran into
->
-> ibclient login: [  132.640142] mlx5_1:dump_cqe:262:(pid 11417): dump error cqe
-> [  132.640185] scsi host2: ib_srp: failed RECV status WR flushed (5) for CQE ffff880bd86a97b0
-> [  132.718106] 00000000 00000000 00000000 00000000
-> [  132.743616] 00000000 00000000 00000000 00000000
-> [  132.767790] 00000000 00000000 00000000 00000000
-> [  132.793626] 00000000 0f007806 2500002a 8ad015d1
 
-Not surprising given that the ib_map_mr_sg code never visits there...
+----- Original Message -----
+> From: "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> To: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Israel Rukshin" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Max Gurtovoy" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Leon
+> Romanovsky" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Mark Bloch" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Yuval Shaia" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "# 4 .
+> 7+" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Sent: Wednesday, February 15, 2017 10:38:06 AM
+> Subject: Re: [PATCH v2 1/8] IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
+> 
+> 
+> > Tests have shown that the following error message is reported when
+> > using SG-GAPS registration with an mlx5 adapter:
+> >
+> > scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE
+> > ffff880bd4270eb0
+> > 00000000 00000000 00000000 00000000
+> > 00000000 00000000 00000000 00000000
+> > 00000000 00000000 00000000 00000000
+> > 00000000 0f007806 2500002a ad9fafd1
+> > scsi host1: ib_srp: reconnect succeeded
+> > mlx5_0:dump_cqe:262:(pid 7369): dump error cqe
+> > 00000000 00000000 00000000 00000000
+> > 00000000 00000000 00000000 00000000
+> > 00000000 00000000 00000000 00000000
+> > 00000000 0f007806 25000032 00105dd0
+> > scsi host1: ib_srp: failed FAST REG status memory management operation
+> > error (6) for CQE ffff880b92860138
+> >
+> > Hence avoid using SG-GAPS memory registrations. Additionally,
+> > always configure the blk_queue_virt_boundary() to avoid to trigger
+> > a mapping failure when using adapters that support SG-GAPS (e.g.
+> > mlx5).
+> 
+> Hi Guys,
+> 
+> Sorry for addressing this late, but has this failure been investigated?
+> 
+> Max, Israel, what does this error syndrome map to?
+> 
+> Looking at mlx5_ib_sg_to_klms, I think the mr->length is incorrectly
+> incremented. Does the following change fix the problem?
+> --
+> diff --git a/drivers/infiniband/hw/mlx5/mr.c
+> b/drivers/infiniband/hw/mlx5/mr.c
+> index 8f608debe141..c21c9eee37f6 100644
+> --- a/drivers/infiniband/hw/mlx5/mr.c
+> +++ b/drivers/infiniband/hw/mlx5/mr.c
+> @@ -1832,7 +1832,7 @@ mlx5_ib_sg_to_klms(struct mlx5_ib_mr *mr,
+>                  klms[i].va = cpu_to_be64(sg_dma_address(sg) + sg_offset);
+>                  klms[i].bcount = cpu_to_be32(sg_dma_len(sg) - sg_offset);
+>                  klms[i].key = cpu_to_be32(lkey);
+> -               mr->ibmr.length += sg_dma_len(sg);
+> +               mr->ibmr.length += sg_dma_len(sg) - sg_offset;
+> 
+>                  sg_offset = 0;
+>          }
+> --
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+Hello Sagi,
+
+I will get this tested.
+Thanks
+Laurence
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
