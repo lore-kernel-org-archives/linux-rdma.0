@@ -1,31 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1] IB/core: Remove pointer casting from void
- to net_device
-Date: Wed, 15 Feb 2017 09:54:30 -0500
-Message-ID: <1487170470.86943.91.camel@redhat.com>
-References: <20170202051408.21839-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next V1] IB/cma: Add default RoCE TOS to CMA
+ configfs
+Date: Wed, 15 Feb 2017 10:11:32 -0500
+Message-ID: <1487171492.86943.92.camel@redhat.com>
+References: <20170214052152.16137-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-Jyey4jwnlEtVn6QB/sUP"
+        protocol="application/pgp-signature"; boundary="=-0svOl24bhVtUAQShP90n"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170202051408.21839-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170214052152.16137-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-Jyey4jwnlEtVn6QB/sUP
+--=-0svOl24bhVtUAQShP90n
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2017-02-02 at 07:14 +0200, Leon Romanovsky wrote:
-> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Tue, 2017-02-14 at 07:21 +0200, Leon Romanovsky wrote:
+> From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> This patch avoids unnecessary type casting from void to net_device.
+> Add new entry to the RDMA-CM configfs that allows users
+> to select default TOS for RDMA-CM QPs.
 >=20
-> CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> This is useful for users that want to control the TOS for legacy
+> applications without changing their code.
+>=20
+> Application that sets the TOS explicitly using the rdma_set_option
+> API will continue to work as expected, meaning overriding the
+> configfs
+> value.
+>=20
+> CC: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 Thanks, applied.
@@ -36,7 +46,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-Jyey4jwnlEtVn6QB/sUP
+--=-0svOl24bhVtUAQShP90n
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -44,22 +54,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYpGumAAoJELgmozMOVy/dn8sP/jR+EfL5vu04lHd7mesauf7R
-I0buAn6y5RkZf+1o7/RWJg8En7XWGo9hPT6YNVVqiHmNXMF1TiZjNxGOyjPXhG2Y
-YBuLdv2DEJERZFREV2uwpgxltfgvlraCnsJubUEQ2CKKQVC0STJrzq+VGO60RO4d
-38qfpadUX9B4eU5tmCJi4mOBX7F7vTX0KUN7KfMHgiKo98L4MHuHPEFesD7Pet2B
-v8jmg7KFuo9GkRvCyVaBMtk81fsrLz18BRXP5xbQMy5gca5+pZ9JDhSX7rnEjTjt
-JBdE0p+n3ijYV5pI25AoR5drEPA0szxtKDrkxyMQXdao9nEOS5J3habjkrkdEd1t
-GZoiT2LYhd4nRhzjls3tPP4FSLrBMnAAdFadkLznbmrI//Hr0rySLIdKmpIyQ/7w
-lzlG5YHF3RoQ4u0VoTs2OH42R+CitTV56qPXAuEHm4sWnr8h69jxMUZr5r1Hp4VI
-YGDTuCI4G5OHD3+Pm7nwxmN2iBq1cK2cQsvfRRAZjUlxNWks6i6jxomdssZfpI4c
-Gry0oDgfpduRJ2MT9Eth2TdUl7KAv+/8vJNDmU9sy5FBlQRK/20XztCKF9stvKZh
-a15eZ3Aax8dSU+KLolbxbaQ8DxCBBuDxPbhXrNjva6V1nItPdkBCYnMCgAMjOOtY
-4+M+P27avM4/ud6++VV/
-=KPib
+iQIcBAABCAAGBQJYpG+kAAoJELgmozMOVy/dHecP/iBG8IIzuF2d7zmrdG7v4JxP
+9HPMXL4QqMXty/Wk1Jc3xW26V8TdZZnTR1gM11EzpVbkBZflyigm7MGCUr6kiqlo
+9qkSrYxyt1qDiv3tbRCM3xq0SvNrlMzdLrn+i+LbLI/DlSwC9avItxfWneUbRxs6
+SwJISwjr8XZUsC9+eV/B4VkuHvxZomE5T5dwEdfTZaBV+FCWkbIfC4shdR1Ck4YM
+uFXAE3M3pQ+98a5uRuS+iKxvhIfsE5fes7D0ZKMDM9rKOYyxV3wCZDmyR8X61Q3u
+daYTjtz/XL8PlR1cXNOcdDdWg0hE+GZ2sirqkLwxzOO8lU+6n6PEWv+8I80pkVkk
+1MmzGdHLsYfZ6MuKo/zlnbc1XNk+XdfB9LDoP+FNTfEvQWAjIgoOC1kHdqmVRTb7
+ziGVSINn+3BDosSOUSDrmSgMPvrsHGJhcpAa7kOqAwJaCEG8ekazCjU+jooDyN1t
+LHBHFYjcL3jC4ydBj2Us+zgZbIywYqzix2bo8fb0qm40+mTws1WbLu+oehB8/qcK
+Y45YyvfbRLq4i+e7b2hRw85IED2cNre4rydm+dH/X/3tPK4wMmJtoXxx1Cxtt6yE
+qdEuuCgxCkWX4ftWw6SQA5oRT4YEbh3zkWIxcSshwuWjIgSp1xM+4+uEgBPd6+Z2
+KSlzLOVp0wZ4pe4JfMRi
+=3YKE
 -----END PGP SIGNATURE-----
 
---=-Jyey4jwnlEtVn6QB/sUP--
+--=-0svOl24bhVtUAQShP90n--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
