@@ -1,222 +1,264 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 10/14] mthca: Update to use new mmio write barriers
-Date: Thu, 16 Feb 2017 12:23:05 -0700
-Message-ID: <1487272989-8215-11-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 14/14] Remove the old barrier macros
+Date: Thu, 16 Feb 2017 12:23:09 -0700
+Message-ID: <1487272989-8215-15-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-- The barrier after set_ci_db is upgraded to wc_wmb()
-- The barrier in mthca_write_db_rec is switched to wc_wmb()
-
-I am guessing that these two locations are trying to strongly order
-writes, but I suspect barriers are missing in this driver it doesn't
-really make too much sense..
+Inline the required assembly directly into the new names. No change to
+the asm.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/mthca/cq.c       | 10 +++++-----
- providers/mthca/doorbell.h |  2 +-
- providers/mthca/qp.c       | 20 +++++++++++---------
- providers/mthca/srq.c      |  6 +++---
- 4 files changed, 20 insertions(+), 18 deletions(-)
+ util/udma_barrier.h | 195 +++++++++++++++++++++++++---------------------------
+ 1 file changed, 94 insertions(+), 101 deletions(-)
 
-diff --git a/providers/mthca/cq.c b/providers/mthca/cq.c
-index aa08e065f2757b..f41b3750f37746 100644
---- a/providers/mthca/cq.c
-+++ b/providers/mthca/cq.c
-@@ -152,7 +152,7 @@ static inline void update_cons_index(struct mthca_cq *cq, int incr)
+diff --git a/util/udma_barrier.h b/util/udma_barrier.h
+index f9b8291db20210..cc2718f33fc3a2 100644
+--- a/util/udma_barrier.h
++++ b/util/udma_barrier.h
+@@ -33,95 +33,6 @@
+ #ifndef __UTIL_UDMA_BARRIER_H
+ #define __UTIL_UDMA_BARRIER_H
  
- 	if (mthca_is_memfree(cq->ibv_cq.context)) {
- 		*cq->set_ci_db = htonl(cq->cons_index);
--		wmb();
-+		mmio_ordered_writes_hack();
- 	} else {
- 		doorbell[0] = htonl(MTHCA_TAVOR_CQ_DB_INC_CI | cq->cqn);
- 		doorbell[1] = htonl(incr - 1);
-@@ -310,7 +310,7 @@ static inline int mthca_poll_one(struct mthca_cq *cq,
- 	 * Make sure we read CQ entry contents after we've checked the
- 	 * ownership bit.
- 	 */
--	rmb();
-+	udma_from_device_barrier();
+-/*
+- * Architecture-specific defines.  Currently, an architecture is
+- * required to implement the following operations:
+- *
+- * mb() - memory barrier.  No loads or stores may be reordered across
+- *     this macro by either the compiler or the CPU.
+- * rmb() - read memory barrier.  No loads may be reordered across this
+- *     macro by either the compiler or the CPU.
+- * wmb() - write memory barrier.  No stores may be reordered across
+- *     this macro by either the compiler or the CPU.
+- * wc_wmb() - flush write combine buffers.  No write-combined writes
+- *     will be reordered across this macro by either the compiler or
+- *     the CPU.
+- */
+-
+-#if defined(__i386__)
+-
+-#define mb()	 asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 asm volatile("" ::: "memory")
+-#define wc_wmb() mb()
+-
+-#elif defined(__x86_64__)
+-
+-/*
+- * Only use lfence for mb() and rmb() because we don't care about
+- * ordering against non-temporal stores (for now at least).
+- */
+-#define mb()	 asm volatile("lfence" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 asm volatile("" ::: "memory")
+-#define wc_wmb() asm volatile("sfence" ::: "memory")
+-
+-#elif defined(__PPC64__)
+-
+-#define mb()	 asm volatile("sync" ::: "memory")
+-#define rmb()	 asm volatile("lwsync" ::: "memory")
+-#define wmb()	 mb()
+-#define wc_wmb() wmb()
+-
+-#elif defined(__ia64__)
+-
+-#define mb()	 asm volatile("mf" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 mb()
+-#define wc_wmb() asm volatile("fwb" ::: "memory")
+-
+-#elif defined(__PPC__)
+-
+-#define mb()	 asm volatile("sync" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 mb()
+-#define wc_wmb() wmb()
+-
+-#elif defined(__sparc_v9__)
+-
+-#define mb()	 asm volatile("membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad" ::: "memory")
+-#define rmb()	 asm volatile("membar #LoadLoad" ::: "memory")
+-#define wmb()	 asm volatile("membar #StoreStore" ::: "memory")
+-#define wc_wmb() wmb()
+-
+-#elif defined(__sparc__)
+-
+-#define mb()	 asm volatile("" ::: "memory")
+-#define rmb()	 mb()
+-#define wmb()	 mb()
+-#define wc_wmb() wmb()
+-
+-#elif defined(__s390x__)
+-
+-#define mb()	{ asm volatile("" : : : "memory"); }	/* for s390x */
+-#define rmb()	mb()					/* for s390x */
+-#define wmb()	mb()					/* for s390x */
+-#define wc_wmb() wmb()					/* for s390x */
+-
+-#elif defined(__aarch64__)
+-
+-/* Perhaps dmb would be sufficient? Let us be conservative for now. */
+-#define mb()	{ asm volatile("dsb sy" ::: "memory"); }
+-#define rmb()	{ asm volatile("dsb ld" ::: "memory"); }
+-#define wmb()	{ asm volatile("dsb st" ::: "memory"); }
+-#define wc_wmb() wmb()
+-
+-#else
+-
+-#error No architecture specific memory barrier defines found!
+-
+-#endif
+-
+ /* Barriers for DMA.
  
- 	qpn = ntohl(cqe->my_qpn);
+    These barriers are expliclty only for use with user DMA operations. If you
+@@ -143,6 +54,10 @@
+    The ordering guarentee is always stated between those two streams. Eg what
+    happens if a MemRd TLP is sent in via PCI-E relative to a CPU WRITE to the
+    same memory location.
++
++   The providers have a very regular and predictable use of these barriers,
++   to make things very clear each narrow use is given a name and the proper
++   name should be used in the provider as a form of documentation.
+ */
  
-@@ -472,7 +472,7 @@ int mthca_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
- 	}
+ /* Ensure that the device's view of memory matches the CPU's view of memory.
+@@ -163,7 +78,25 @@
+    memory types or non-temporal stores are required to use SFENCE in their own
+    code prior to calling verbs to start a DMA.
+ */
+-#define udma_to_device_barrier() wmb()
++#if defined(__i386__)
++#define udma_to_device_barrier() asm volatile("" ::: "memory")
++#elif defined(__x86_64__)
++#define udma_to_device_barrier() asm volatile("" ::: "memory")
++#elif defined(__PPC64__)
++#define udma_to_device_barrier() asm volatile("sync" ::: "memory")
++#elif defined(__PPC__)
++#define udma_to_device_barrier() asm volatile("sync" ::: "memory")
++#elif defined(__ia64__)
++#define udma_to_device_barrier() asm volatile("mf" ::: "memory")
++#elif defined(__sparc_v9__)
++#define udma_to_device_barrier() asm volatile("membar #StoreStore" ::: "memory")
++#elif defined(__aarch64__)
++#define wmb() asm volatile("dsb st" ::: "memory");
++#elif defined(__sparc__) || defined(__s390x__)
++#define udma_to_device_barrier() asm volatile("" ::: "memory")
++#else
++#error No architecture specific memory barrier defines found!
++#endif
  
- 	if (freed) {
--		wmb();
-+		udma_to_device_barrier();
- 		update_cons_index(cq, freed);
- 	}
+ /* Ensure that all ordered stores from the device are observable from the
+    CPU. This only makes sense after something that observes an ordered store
+@@ -177,7 +110,25 @@
+    that is a DMA target, to ensure that the following reads see the
+    data written before the MemWr TLP that set the valid bit.
+ */
+-#define udma_from_device_barrier() rmb()
++#if defined(__i386__)
++#define udma_from_device_barrier() asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
++#elif defined(__x86_64__)
++#define udma_from_device_barrier() asm volatile("lfence" ::: "memory")
++#elif defined(__PPC64__)
++#define udma_from_device_barrier() asm volatile("lwsync" ::: "memory")
++#elif defined(__PPC__)
++#define udma_from_device_barrier() asm volatile("sync" ::: "memory")
++#elif defined(__ia64__)
++#define udma_from_device_barrier() asm volatile("mf" ::: "memory")
++#elif defined(__sparc_v9__)
++#define udma_from_device_barrier() asm volatile("membar #LoadLoad" ::: "memory")
++#elif defined(__aarch64__)
++#define udma_from_device_barrier() asm volatile("dsb ld" ::: "memory");
++#elif defined(__sparc__) || defined(__s390x__)
++#define udma_from_device_barrier() asm volatile("" ::: "memory")
++#else
++#error No architecture specific memory barrier defines found!
++#endif
  
-@@ -516,7 +516,7 @@ int mthca_arbel_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 	 * Make sure that the doorbell record in host memory is
- 	 * written before ringing the doorbell via PCI MMIO.
- 	 */
--	wmb();
-+	udma_to_device_barrier();
+ /* Order writes to CPU memory so that a DMA device cannot view writes after
+    the barrier without also seeing all writes before the barrier. This does
+@@ -198,24 +149,66 @@
+       udma_ordering_write_barrier();  // Guarantee WQE written in order
+       wqe->valid = 1;
+ */
+-#define udma_ordering_write_barrier() wmb()
++#define udma_ordering_write_barrier() udma_to_device_barrier()
  
- 	doorbell[0] = htonl((sn << 28)                       |
- 			    (solicited ?
-@@ -582,7 +582,7 @@ void __mthca_cq_clean(struct mthca_cq *cq, uint32_t qpn, struct mthca_srq *srq)
- 	if (nfreed) {
- 		for (i = 0; i < nfreed; ++i)
- 			set_cqe_hw(get_cqe(cq, (cq->cons_index + i) & cq->ibv_cq.cqe));
--		wmb();
-+		udma_to_device_barrier();
- 		cq->cons_index += nfreed;
- 		update_cons_index(cq, nfreed);
- 	}
-diff --git a/providers/mthca/doorbell.h b/providers/mthca/doorbell.h
-index a3aa42a9c8ba27..0f5a67e0ac7a63 100644
---- a/providers/mthca/doorbell.h
-+++ b/providers/mthca/doorbell.h
-@@ -98,7 +98,7 @@ static inline void mthca_write64(uint32_t val[2], struct mthca_context *ctx, int
- static inline void mthca_write_db_rec(uint32_t val[2], uint32_t *db)
- {
- 	*(volatile uint32_t *) db       = val[0];
--	mb();
-+	mmio_ordered_writes_hack();
- 	*(volatile uint32_t *) (db + 1) = val[1];
- }
+-/* Promptly flush writes, possibly in a write buffer, to MMIO backed memory.
+-   This is not required to have any effect on CPU memory. If done while
+-   holding a lock then the ordering of MMIO writes across CPUs must be
+-   guarenteed to follow the natural ordering implied by the lock.
++/* Promptly flush writes to MMIO Write Cominbing memory.
++   This should be used after a write to WC memory. This is both a barrier
++   and a hint to the CPU to flush any buffers to reduce latency to TLP
++   generation.
++
++   This is not required to have any effect on CPU memory.
++
++   If done while holding a lock then the ordering of MMIO writes across CPUs
++   must be guarenteed to follow the natural ordering implied by the lock.
  
-diff --git a/providers/mthca/qp.c b/providers/mthca/qp.c
-index d221bb19bfa67c..c6a22372c7d809 100644
---- a/providers/mthca/qp.c
-+++ b/providers/mthca/qp.c
-@@ -112,6 +112,7 @@ int mthca_tavor_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 	uint32_t uninitialized_var(op0);
+    This must also act as a barrier that prevents write combining, eg
+      *wc_mem = 1;
+      mmio_flush_writes();
+      *wc_mem = 2;
+-   Must always produce two MemWr TLPs, the '2' cannot be combined with and
+-   supress the '1'.
++   Must always produce two MemWr TLPs, '1' and '2'. Without the barrier
++   the CPU is allowed to produce a single TLP '2'.
++
++   Note that there is no order guarentee for writes to WC memory without
++   barriers.
++
++   This is intended to be used in conjunction with WC memory to generate large
++   PCI-E MemWr TLPs from the CPU.
++*/
++#if defined(__i386__)
++#define mmio_flush_writes() asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
++#elif defined(__x86_64__)
++#define mmio_flush_writes() asm volatile("sfence" ::: "memory")
++#elif defined(__PPC64__)
++#define mmio_flush_writes() asm volatile("sync" ::: "memory")
++#elif defined(__PPC__)
++#define mmio_flush_writes() asm volatile("sync" ::: "memory")
++#elif defined(__ia64__)
++#define mmio_flush_writes() asm volatile("fwb" ::: "memory")
++#elif defined(__sparc_v9__)
++#define mmio_flush_writes() asm volatile("membar #StoreStore" ::: "memory")
++#elif defined(__aarch64__)
++#define mmio_flush_writes() asm volatile("dsb st" ::: "memory");
++#elif defined(__sparc__) || defined(__s390x__)
++#define mmio_flush_writes() asm volatile("" ::: "memory")
++#error No architecture specific memory barrier defines found!
++#endif
++
++/* Prevent WC writes from being re-ordered relative to other MMIO
++   writes. This should be used before a write to WC memory.
++
++   This must act as a barrier to prevent write re-ordering from different
++   memory types:
++     *mmio_mem = 1;
++     mmio_flush_writes();
++     *wc_mem = 2;
++   Must always produce a TLP '1' followed by '2'.
++
++   This barrier implies udma_to_device_barrier()
  
- 	pthread_spin_lock(&qp->sq.lock);
-+	udma_to_device_barrier();
+-   This is intended to be used in conjunction with write combining memory
+-   to generate large PCI-E MemWr TLPs from the CPU.
++   This is intended to be used in conjunction with WC memory to generate large
++   PCI-E MemWr TLPs from the CPU.
+ */
+-#define mmio_flush_writes() wc_wmb()
++#define mmio_wc_start() mmio_flush_writes()
  
- 	ind = qp->sq.next_ind;
- 
-@@ -287,7 +288,7 @@ int mthca_tavor_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 		/*
- 		 * Make sure that nda_op is written before setting ee_nds.
- 		 */
--		wmb();
-+		udma_ordering_write_barrier();
- 		((struct mthca_next_seg *) prev_wqe)->ee_nds =
- 			htonl((size0 ? 0 : MTHCA_NEXT_DBD) | size |
- 			((wr->send_flags & IBV_SEND_FENCE) ?
-@@ -313,6 +314,7 @@ out:
- 				     qp->send_wqe_offset) | f0 | op0);
- 		doorbell[1] = htonl((ibqp->qp_num << 8) | size0);
- 
-+		udma_to_device_barrier();
- 		mthca_write64(doorbell, to_mctx(ibqp->context), MTHCA_SEND_DOORBELL);
- 	}
- 
-@@ -400,7 +402,7 @@ int mthca_tavor_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 			 * Make sure that descriptors are written
- 			 * before doorbell is rung.
- 			 */
--			wmb();
-+			udma_to_device_barrier();
- 
- 			mthca_write64(doorbell, to_mctx(ibqp->context), MTHCA_RECV_DOORBELL);
- 
-@@ -419,7 +421,7 @@ out:
- 		 * Make sure that descriptors are written before
- 		 * doorbell is rung.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 
- 		mthca_write64(doorbell, to_mctx(ibqp->context), MTHCA_RECV_DOORBELL);
- 	}
-@@ -466,14 +468,14 @@ int mthca_arbel_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			 * Make sure that descriptors are written before
- 			 * doorbell record.
- 			 */
--			wmb();
-+			udma_to_device_barrier();
- 			*qp->sq.db = htonl(qp->sq.head & 0xffff);
- 
- 			/*
- 			 * Make sure doorbell record is written before we
- 			 * write MMIO send doorbell.
- 			 */
--			wmb();
-+			mmio_ordered_writes_hack();
- 			mthca_write64(doorbell, to_mctx(ibqp->context), MTHCA_SEND_DOORBELL);
- 
- 			size0 = 0;
-@@ -643,7 +645,7 @@ int mthca_arbel_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			htonl(((ind << qp->sq.wqe_shift) +
- 			       qp->send_wqe_offset) |
- 			      mthca_opcode[wr->opcode]);
--		wmb();
-+		udma_ordering_write_barrier();
- 		((struct mthca_next_seg *) prev_wqe)->ee_nds =
- 			htonl(MTHCA_NEXT_DBD | size |
- 			      ((wr->send_flags & IBV_SEND_FENCE) ?
-@@ -674,14 +676,14 @@ out:
- 		 * Make sure that descriptors are written before
- 		 * doorbell record.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 		*qp->sq.db = htonl(qp->sq.head & 0xffff);
- 
- 		/*
- 		 * Make sure doorbell record is written before we
- 		 * write MMIO send doorbell.
- 		 */
--		wmb();
-+		mmio_ordered_writes_hack();
- 		mthca_write64(doorbell, to_mctx(ibqp->context), MTHCA_SEND_DOORBELL);
- 	}
- 
-@@ -754,7 +756,7 @@ out:
- 		 * Make sure that descriptors are written before
- 		 * doorbell record.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 		*qp->rq.db = htonl(qp->rq.head & 0xffff);
- 	}
- 
-diff --git a/providers/mthca/srq.c b/providers/mthca/srq.c
-index 66ac924a720c84..95b79020fc6a62 100644
---- a/providers/mthca/srq.c
-+++ b/providers/mthca/srq.c
-@@ -152,7 +152,7 @@ int mthca_tavor_post_srq_recv(struct ibv_srq *ibsrq,
- 			 * Make sure that descriptors are written
- 			 * before doorbell is rung.
- 			 */
--			wmb();
-+			udma_to_device_barrier();
- 
- 			mthca_write64(doorbell, to_mctx(ibsrq->context), MTHCA_RECV_DOORBELL);
- 
-@@ -168,7 +168,7 @@ int mthca_tavor_post_srq_recv(struct ibv_srq *ibsrq,
- 		 * Make sure that descriptors are written before
- 		 * doorbell is rung.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 
- 		mthca_write64(doorbell, to_mctx(ibsrq->context), MTHCA_RECV_DOORBELL);
- 	}
-@@ -240,7 +240,7 @@ int mthca_arbel_post_srq_recv(struct ibv_srq *ibsrq,
- 		 * Make sure that descriptors are written before
- 		 * we write doorbell record.
- 		 */
--		wmb();
-+		udma_ordering_write_barrier();
- 		*srq->db = htonl(srq->counter);
- 	}
- 
+ /* Keep MMIO writes in order.
+    Currently we lack writel macros that universally guarentee MMIO
 -- 
 2.7.4
 
