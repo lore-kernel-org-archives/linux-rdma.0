@@ -1,160 +1,137 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 02/14] Provide new names for the CPU barriers related to DMA
-Date: Thu, 16 Feb 2017 12:22:57 -0700
-Message-ID: <1487272989-8215-3-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 08/14] mlx5: Update to use new udma write barriers
+Date: Thu, 16 Feb 2017 12:23:03 -0700
+Message-ID: <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Broadly speaking, providers are not using the existing macros
-consistently and the existing macros are very poorly defined.
+The mlx5 comments are good so these translate fairly directly.
 
-Due to this poor definition we struggled to implement a sensible
-barrier for ARM64 and just went with the strongest barriers instead.
-
-Split wmb/wmb_wc into several cases:
- udma_to_device_barrier - Think dma_map(TO_DEVICE) in kernel terms
- udma_ordering_write_barrier - Weaker than wmb() in the kernel
- mmio_flush_writes - Special to help work with WC memory
- mmio_wc_start - Special to help work with WC memory
- mmio_ordered_writes_hack - Stand in for lack an ordered writel()
-
-rmb becomes:
- udma_from_device_barrier - Think dmap_unamp(FROM_DEVICE) in kernel terms
-
-The split forces provider authors to think about what they are doing more
-carefully and the comments provide a solid explanation for when the barrier
-is actually supposed to be used and when to use it with the common idioms
-all drivers seem to have.
-
-NOTE: do not assume that the existing asm optimally implements the defined
-semantics. The required semantics were derived primarily from what the
-existing providers do.
+There is one barrier in mlx5_arm_cq that I could not explain, it became
+mmio_ordered_writes_hack()
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- util/udma_barrier.h | 107 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 107 insertions(+)
+ providers/mlx5/cq.c  |  8 ++++----
+ providers/mlx5/qp.c  | 18 +++++++++++-------
+ providers/mlx5/srq.c |  2 +-
+ 3 files changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/util/udma_barrier.h b/util/udma_barrier.h
-index 57ab0f76cbe33e..f9b8291db20210 100644
---- a/util/udma_barrier.h
-+++ b/util/udma_barrier.h
-@@ -122,4 +122,111 @@
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index 372e40bc2b6589..cc0af920c703d9 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -489,7 +489,7 @@ static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
+ 	 * Make sure we read CQ entry contents after we've checked the
+ 	 * ownership bit.
+ 	 */
+-	rmb();
++	udma_from_device_barrier();
  
- #endif
+ #ifdef MLX5_DEBUG
+ 	{
+@@ -1283,14 +1283,14 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+ 	 * Make sure that the doorbell record in host memory is
+ 	 * written before ringing the doorbell via PCI MMIO.
+ 	 */
+-	wmb();
++	udma_to_device_barrier();
  
-+/* Barriers for DMA.
+ 	doorbell[0] = htonl(sn << 28 | cmd | ci);
+ 	doorbell[1] = htonl(cq->cqn);
+ 
+ 	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
+ 
+-	wc_wmb();
++	mmio_ordered_writes_hack();
+ 
+ 	return 0;
+ }
+@@ -1395,7 +1395,7 @@ void __mlx5_cq_clean(struct mlx5_cq *cq, uint32_t rsn, struct mlx5_srq *srq)
+ 		 * Make sure update of buffer contents is done before
+ 		 * updating consumer index.
+ 		 */
+-		wmb();
++		udma_to_device_barrier();
+ 		update_cons_index(cq);
+ 	}
+ }
+diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
+index b9ae72c9827c8c..d7087d986ce79f 100644
+--- a/providers/mlx5/qp.c
++++ b/providers/mlx5/qp.c
+@@ -926,10 +926,13 @@ out:
+ 		 * Make sure that descriptors are written before
+ 		 * updating doorbell record and ringing the doorbell
+ 		 */
+-		wmb();
++		udma_to_device_barrier();
+ 		qp->db[MLX5_SND_DBR] = htonl(qp->sq.cur_post & 0xffff);
+ 
+-		wc_wmb();
++		/* Make sure that the doorbell write happens before the memcpy
++		 * to WC memory below */
++		mmio_wc_start();
 +
-+   These barriers are expliclty only for use with user DMA operations. If you
-+   are looking for barriers to use with cache-coherent multi-threaded
-+   consitency then look in stdatomic.h. If you need both kinds of synchronicity
-+   for the same address then use an atomic operation followed by one
-+   of these barriers.
+ 		ctx = to_mctx(ibqp->context);
+ 		if (bf->need_lock)
+ 			mlx5_spin_lock(&bf->lock);
+@@ -944,15 +947,15 @@ out:
+ 				     &ctx->lock32);
+ 
+ 		/*
+-		 * use wc_wmb() to ensure write combining buffers are flushed out
++		 * use mmio_flush_writes() to ensure write combining buffers are flushed out
+ 		 * of the running CPU. This must be carried inside the spinlock.
+ 		 * Otherwise, there is a potential race. In the race, CPU A
+ 		 * writes doorbell 1, which is waiting in the WC buffer. CPU B
+ 		 * writes doorbell 2, and it's write is flushed earlier. Since
+-		 * the wc_wmb is CPU local, this will result in the HCA seeing
++		 * the mmio_flush_writes is CPU local, this will result in the HCA seeing
+ 		 * doorbell 2, followed by doorbell 1.
+ 		 */
+-		wc_wmb();
++		mmio_flush_writes();
+ 		bf->offset ^= bf->buf_size;
+ 		if (bf->need_lock)
+ 			mlx5_spin_unlock(&bf->lock);
+@@ -1119,7 +1122,7 @@ out:
+ 		 * Make sure that descriptors are written before
+ 		 * doorbell record.
+ 		 */
+-		wmb();
++		udma_to_device_barrier();
+ 		*(rwq->recv_db) = htonl(rwq->rq.head & 0xffff);
+ 	}
+ 
+@@ -1193,7 +1196,8 @@ out:
+ 		 * Make sure that descriptors are written before
+ 		 * doorbell record.
+ 		 */
+-		wmb();
++		udma_to_device_barrier();
 +
-+   When reasoning about these barriers there are two objects:
-+     - CPU attached address space (the CPU memory could be a range of things:
-+       cached/uncached/non-temporal CPU DRAM, uncached MMIO space in another
-+       device, pMEM). Generally speaking the ordering is only relative
-+       to the local CPU's view of the system. Eg if the local CPU
-+       is not guarenteed to see a write from another CPU then it is also
-+       OK for the DMA device to also not see the write after the barrier.
-+     - A DMA initiator on a bus. For instance a PCI-E device issuing
-+       MemRd/MemWr TLPs.
-+
-+   The ordering guarentee is always stated between those two streams. Eg what
-+   happens if a MemRd TLP is sent in via PCI-E relative to a CPU WRITE to the
-+   same memory location.
-+*/
-+
-+/* Ensure that the device's view of memory matches the CPU's view of memory.
-+   This should be placed before any MMIO store that could trigger the device
-+   to begin doing DMA, such as a device doorbell ring.
-+
-+   eg
-+    *dma_buf = 1;
-+    udma_to_device_barrier();
-+    mmio_write(DO_DMA_REG, dma_buf);
-+   Must ensure that the device sees the '1'.
-+
-+   This is required to fence writes created by the libibverbs user. Those
-+   writes could be to any CPU mapped memory object with any cachability mode.
-+
-+   NOTE: x86 has historically used a weaker semantic for this barrier, and
-+   only fenced normal stores to normal memory. libibverbs users using other
-+   memory types or non-temporal stores are required to use SFENCE in their own
-+   code prior to calling verbs to start a DMA.
-+*/
-+#define udma_to_device_barrier() wmb()
-+
-+/* Ensure that all ordered stores from the device are observable from the
-+   CPU. This only makes sense after something that observes an ordered store
-+   from the device - eg by reading a MMIO register or seeing that CPU memory is
-+   updated.
-+
-+   This guarentees that all reads that follow the barrier see the ordered
-+   stores that preceded the observation.
-+
-+   For instance, this would be used after testing a valid bit in a memory
-+   that is a DMA target, to ensure that the following reads see the
-+   data written before the MemWr TLP that set the valid bit.
-+*/
-+#define udma_from_device_barrier() rmb()
-+
-+/* Order writes to CPU memory so that a DMA device cannot view writes after
-+   the barrier without also seeing all writes before the barrier. This does
-+   not guarentee any writes are visible to DMA.
-+
-+   This would be used in cases where a DMA buffer might have a valid bit and
-+   data, this barrier is placed after writing the data but before writing the
-+   valid bit to ensure the DMA device cannot observe a set valid bit with
-+   unwritten data.
-+
-+   Compared to udma_to_device_barrier() this barrier is not required to fence
-+   anything but normal stores to normal malloc memory. Usage should be:
-+
-+   write_wqe
-+      udma_to_device_barrier();    // Get user memory ready for DMA
-+      wqe->addr = ...;
-+      wqe->flags = ...;
-+      udma_ordering_write_barrier();  // Guarantee WQE written in order
-+      wqe->valid = 1;
-+*/
-+#define udma_ordering_write_barrier() wmb()
-+
-+/* Promptly flush writes, possibly in a write buffer, to MMIO backed memory.
-+   This is not required to have any effect on CPU memory. If done while
-+   holding a lock then the ordering of MMIO writes across CPUs must be
-+   guarenteed to follow the natural ordering implied by the lock.
-+
-+   This must also act as a barrier that prevents write combining, eg
-+     *wc_mem = 1;
-+     mmio_flush_writes();
-+     *wc_mem = 2;
-+   Must always produce two MemWr TLPs, the '2' cannot be combined with and
-+   supress the '1'.
-+
-+   This is intended to be used in conjunction with write combining memory
-+   to generate large PCI-E MemWr TLPs from the CPU.
-+*/
-+#define mmio_flush_writes() wc_wmb()
-+
-+/* Keep MMIO writes in order.
-+   Currently we lack writel macros that universally guarentee MMIO
-+   writes happen in order, like the kernel does. Even worse many
-+   providers haphazardly open code writes to MMIO memory omitting even
-+   volatile.
-+
-+   Until this can be fixed with a proper writel macro, this barrier
-+   is a stand in to indicate places where MMIO writes should be switched
-+   to some future writel.
-+*/
-+#define mmio_ordered_writes_hack() mmio_flush_writes()
-+
- #endif
+ 		/*
+ 		 * For Raw Packet QP, avoid updating the doorbell record
+ 		 * as long as the QP isn't in RTR state, to avoid receiving
+diff --git a/providers/mlx5/srq.c b/providers/mlx5/srq.c
+index b6e1eaf26bbd0c..2c71730a40f875 100644
+--- a/providers/mlx5/srq.c
++++ b/providers/mlx5/srq.c
+@@ -137,7 +137,7 @@ int mlx5_post_srq_recv(struct ibv_srq *ibsrq,
+ 		 * Make sure that descriptors are written before
+ 		 * we write doorbell record.
+ 		 */
+-		wmb();
++		udma_to_device_barrier();
+ 
+ 		*srq->db = htonl(srq->counter);
+ 	}
 -- 
 2.7.4
 
