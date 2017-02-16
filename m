@@ -1,41 +1,32 @@
-From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] debian: Add arch.h to libibverbs-dev install
-Date: Thu, 16 Feb 2017 10:49:11 +0200
-Message-ID: <1487234951-58846-1-git-send-email-talatb@mellanox.com>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 0/2] IB/hns: Fine-tuning for two function implementations
+Date: Thu, 16 Feb 2017 10:00:42 +0100
+Message-ID: <4863af1d-ca80-1818-213e-7eadda35e8a1@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Building a debian package failed with [1], this commit
-fixes the issue by adding arch.h to libibverbs-dev.install.
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Thu, 16 Feb 2017 09:55:43 +0100
 
-[1]
-dh_install: usr/include/infiniband/arch.h exists in debian/tmp but is
-not installed to anywhere.
+A few update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- debian/libibverbs-dev.install | 1 +
- 1 file changed, 1 insertion(+)
+Markus Elfring (2):
+  Use kmalloc_array() in hns_roce_cmd_use_events()
+  Use kcalloc() in hns_roce_buddy_init()
 
-diff --git a/debian/libibverbs-dev.install b/debian/libibverbs-dev.install
-index 0ddb0a8..d010ef2 100644
---- a/debian/libibverbs-dev.install
-+++ b/debian/libibverbs-dev.install
-@@ -3,6 +3,7 @@ usr/include/infiniband/opcode.h
- usr/include/infiniband/sa-kern-abi.h
- usr/include/infiniband/sa.h
- usr/include/infiniband/verbs.h
-+usr/include/infiniband/arch.h
- usr/lib/*/libibverbs*.so
- usr/share/man/man3/ibv_*
- usr/share/man/man3/mbps_to_ibv_rate.3
+ drivers/infiniband/hw/hns/hns_roce_cmd.c |  6 +++---
+ drivers/infiniband/hw/hns/hns_roce_mr.c  | 11 ++++++-----
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
 -- 
-2.9.3
+2.11.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
