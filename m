@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core 2/3] libqedr: Remove redundant memset
-Date: Thu, 16 Feb 2017 07:56:10 +0200
-Message-ID: <1487224571-18627-3-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH rdma-core 3/3] libqedr: Remove duplication of RQ configuration
+Date: Thu, 16 Feb 2017 07:56:11 +0200
+Message-ID: <1487224571-18627-4-git-send-email-Ram.Amrani@cavium.com>
 References: <1487224571-18627-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,28 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The memset was invoked with a size of zero. But anyway, zeroing of the
-CQ/RQ/SQ is not required since mmap is used with MAP_ANONYNMOUS that
-zeros the queue anyway.
+The max_wr and max_sges are configured twice in the same function.
+Remove the redundant configuration.
 
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- providers/qedr/qelr_chain.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ providers/qedr/qelr_verbs.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/providers/qedr/qelr_chain.c b/providers/qedr/qelr_chain.c
-index d9ccc0b..26d0d0a 100644
---- a/providers/qedr/qelr_chain.c
-+++ b/providers/qedr/qelr_chain.c
-@@ -87,7 +87,6 @@ int qelr_chain_alloc(struct qelr_chain *chain, int chain_size, int page_size,
+diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
+index 932115c..95cd429 100644
+--- a/providers/qedr/qelr_verbs.c
++++ b/providers/qedr/qelr_verbs.c
+@@ -366,8 +366,6 @@ static inline int qelr_create_qp_buffers_rq(struct qelr_devctx *cxt,
+ 	max_recv_wr = min_t(uint32_t, max_recv_wr, cxt->max_recv_wr);
+ 	max_recv_sges = max_recv_wr * cxt->sges_per_recv_wr;
+ 	max_recv_buf = max_recv_sges * QELR_RQE_ELEMENT_SIZE;
+-	qp->rq.max_wr = max_recv_wr;
+-	qp->rq.max_sges = RDMA_MAX_SGE_PER_RQ_WQE;
  
- 	/* init chain */
- 	memset(chain, 0, sizeof(*chain));
--	memset(chain->first_addr, 0, chain->size);
- 	chain->first_addr = addr;
- 	chain->size = a_chain_size;
- 	chain->p_cons_elem = chain->first_addr;
-@@ -97,6 +96,8 @@ int qelr_chain_alloc(struct qelr_chain *chain, int chain_size, int page_size,
- 	chain->last_addr = (void *)
- 			((uint8_t *)addr + (elem_size * (chain->n_elems -1)));
- 
-+	/* Note: since we are using MAP_ANONYMOUS the chain is zeroed for us */
-+
- 	return 0;
- }
- 
+ 	chain_size = max_recv_buf;
+ 	rc = qelr_chain_alloc(&qp->rq.chain, chain_size, cxt->kernel_page_size,
 -- 
 1.8.3.1
 
