@@ -1,125 +1,107 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 12/14] qedr: Update to use new udma write barriers
-Date: Thu, 16 Feb 2017 12:23:07 -0700
-Message-ID: <1487272989-8215-13-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 11/14] ocrdma: Update to use new udma write barriers
+Date: Thu, 16 Feb 2017 12:23:06 -0700
+Message-ID: <1487272989-8215-12-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-qedr uses WC memory for its '.db' mmap, so all writes to it have
-to be wrapped in the WC barriers. This upgrades the leading
-wmb to a wc_wmb() for consistency with other drivers.
+Move the barriers closer to the actual action being protected eg
+put udma_to_device_barrier in ocrdma_ring_*.
+
+Add a wc_wmb() barrier before starting WC writes for consistency
+with other drivers.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/qedr/qelr_verbs.c | 32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ providers/ocrdma/ocrdma_verbs.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
-index 95cd429e1b9b47..c8a0db2c9c1cfd 100644
---- a/providers/qedr/qelr_verbs.c
-+++ b/providers/qedr/qelr_verbs.c
-@@ -672,9 +672,9 @@ static int qelr_update_qp_state(struct qelr_qp *qp,
- 			/* Update doorbell (in case post_recv was done before
- 			 * move to RTR)
- 			 */
--			wmb();
-+			mmio_wc_start();
- 			writel(qp->rq.db_data.raw, qp->rq.db);
--			wc_wmb();
-+			mmio_flush_writes();
- 			break;
- 		case QELR_QPS_ERR:
- 			break;
-@@ -1096,7 +1096,7 @@ static void doorbell_edpm_qp(struct qelr_qp *qp)
- 	if (!qp->edpm.is_edpm)
- 		return;
- 
--	wmb();
-+	mmio_wc_start();
- 
- 	qp->edpm.msg.data.icid = qp->sq.db_data.data.icid;
- 	qp->edpm.msg.data.prod_val = qp->sq.db_data.data.value;
-@@ -1116,15 +1116,16 @@ static void doorbell_edpm_qp(struct qelr_qp *qp)
- 		       sizeof(uint64_t));
- 
- 		bytes += sizeof(uint64_t);
--		/* Need to place a barrier after every 64 bytes */
-+		/* Since we rewrite the buffer every 64 bytes we need to flush
-+		   it here, otherwise the CPU could optimize alway the
-+		   duplicate stores. */
- 		if (bytes == 64) {
--			wc_wmb();
-+			mmio_flush_writes();
- 			bytes = 0;
- 		}
- 		offset++;
- 	}
--
--	wc_wmb();
-+	mmio_flush_writes();
- }
- 
- int qelr_post_send(struct ibv_qp *ib_qp, struct ibv_send_wr *wr,
-@@ -1363,11 +1364,9 @@ int qelr_post_send(struct ibv_qp *ib_qp, struct ibv_send_wr *wr,
- 	}
- 
- 	if (!qp->edpm.is_edpm) {
--		wmb();
--
-+		mmio_wc_start();
- 		writel(qp->sq.db_data.raw, qp->sq.db);
--
--		wc_wmb();
-+		mmio_flush_writes();
- 	}
- 
- 	pthread_spin_unlock(&qp->q_lock);
-@@ -1446,14 +1445,13 @@ int qelr_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 
- 		qelr_inc_sw_prod_u16(&qp->rq);
- 
--		wmb();
-+		mmio_wc_start();
- 
- 		db_val = le16toh(qp->rq.db_data.data.value) + 1;
- 		qp->rq.db_data.data.value = htole16(db_val);
- 
- 		writel(qp->rq.db_data.raw, qp->rq.db);
--
--		wc_wmb();
-+		mmio_flush_writes();
- 
- 		wr = wr->next;
- 	}
-@@ -1795,12 +1793,12 @@ static int qelr_poll_cq_resp(struct qelr_qp *qp, struct qelr_cq *cq,
- 
- static void doorbell_cq(struct qelr_cq *cq, uint32_t cons, uint8_t flags)
+diff --git a/providers/ocrdma/ocrdma_verbs.c b/providers/ocrdma/ocrdma_verbs.c
+index 7fc841a194127d..3725d63a9b88f3 100644
+--- a/providers/ocrdma/ocrdma_verbs.c
++++ b/providers/ocrdma/ocrdma_verbs.c
+@@ -1111,18 +1111,24 @@ int ocrdma_destroy_qp(struct ibv_qp *ibqp)
+ static void ocrdma_ring_sq_db(struct ocrdma_qp *qp)
  {
--	wmb();
-+	mmio_wc_start();
- 	cq->db.data.agg_flags = flags;
- 	cq->db.data.value = htole32(cons);
+ 	uint32_t db_val = ocrdma_cpu_to_le((qp->sq.dbid | (1 << 16)));
++
++	udma_to_device_barrier();
+ 	*(uint32_t *) (((uint8_t *) qp->db_sq_va)) = db_val;
+ }
  
- 	writeq(cq->db.raw, cq->db_addr);
+ static void ocrdma_ring_rq_db(struct ocrdma_qp *qp)
+ {
+ 	uint32_t db_val = ocrdma_cpu_to_le((qp->rq.dbid | (1 << qp->db_shift)));
++
++	udma_to_device_barrier();
+ 	*(uint32_t *) ((uint8_t *) qp->db_rq_va) = db_val;
+ }
+ 
+ static void ocrdma_ring_srq_db(struct ocrdma_srq *srq)
+ {
+ 	uint32_t db_val = ocrdma_cpu_to_le(srq->rq.dbid | (1 << srq->db_shift));
++
++	udma_to_device_barrier();
+ 	*(uint32_t *) (srq->db_va) = db_val;
+ }
+ 
+@@ -1141,6 +1147,7 @@ static void ocrdma_ring_cq_db(struct ocrdma_cq *cq, uint32_t armed,
+ 		val |= (1 << OCRDMA_DB_CQ_SOLICIT_SHIFT);
+ 	val |= (num_cqe << OCRDMA_DB_CQ_NUM_POPPED_SHIFT);
+ 
++	udma_to_device_barrier();
+ 	*(uint32_t *) ((uint8_t *) (cq->db_va) + OCRDMA_DB_CQ_OFFSET) =
+ 	    ocrdma_cpu_to_le(val);
+ }
+@@ -1322,6 +1329,9 @@ static void ocrdma_build_dpp_wqe(void *va, struct ocrdma_hdr_wqe *wqe,
+ {
+ 	uint32_t pyld_len = (wqe->cw >> OCRDMA_WQE_SIZE_SHIFT) * 2;
+ 	uint32_t i = 0;
++
++	mmio_wc_start();
++
+ 	/* convert WQE header to LE format */
+ 	for (; i < hdr_len; i++)
+ 		*((uint32_t *) va + i) =
+@@ -1329,7 +1339,8 @@ static void ocrdma_build_dpp_wqe(void *va, struct ocrdma_hdr_wqe *wqe,
+ 	/* Convertion of data is done in HW */
+ 	for (; i < pyld_len; i++)
+ 		*((uint32_t *) va + i) = (*((uint32_t *) wqe + i));
 -	wc_wmb();
++
 +	mmio_flush_writes();
  }
  
- int qelr_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
-@@ -1816,7 +1814,7 @@ int qelr_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
- 		struct qelr_qp *qp;
+ static void ocrdma_post_dpp_wqe(struct ocrdma_qp *qp,
+@@ -1439,7 +1450,6 @@ int ocrdma_post_send(struct ibv_qp *ib_qp, struct ibv_send_wr *wr,
+ 				      OCRDMA_WQE_SIZE_MASK) *
+ 				      OCRDMA_WQE_STRIDE);
  
- 		/* prevent speculative reads of any field of CQE */
--		rmb();
-+		udma_from_device_barrier();
+-		wmb();
+ 		ocrdma_ring_sq_db(qp);
  
- 		qp = cqe_get_qp(cqe);
- 		if (!qp) {
+ 		/* update pointer, counter for next wr */
+@@ -1501,7 +1511,6 @@ int ocrdma_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
+ 		rqe = ocrdma_hwq_head(&qp->rq);
+ 		ocrdma_build_rqe(rqe, wr, 0);
+ 		qp->rqe_wr_id_tbl[qp->rq.head] = wr->wr_id;
+-		wmb();
+ 		ocrdma_ring_rq_db(qp);
+ 
+ 		/* update pointer, counter for next wr */
+@@ -2082,7 +2091,6 @@ int ocrdma_post_srq_recv(struct ibv_srq *ibsrq, struct ibv_recv_wr *wr,
+ 		ocrdma_build_rqe(rqe, wr, tag);
+ 		srq->rqe_wr_id_tbl[tag] = wr->wr_id;
+ 
+-		wmb();
+ 		ocrdma_ring_srq_db(srq);
+ 
+ 		/* update pointer, counter for next wr */
 -- 
 2.7.4
 
