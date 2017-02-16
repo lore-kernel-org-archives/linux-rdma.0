@@ -1,137 +1,175 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 08/14] mlx5: Update to use new udma write barriers
-Date: Thu, 16 Feb 2017 12:23:03 -0700
-Message-ID: <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 06/14] i40iw: Get rid of unique barrier macros
+Date: Thu, 16 Feb 2017 12:23:01 -0700
+Message-ID: <1487272989-8215-7-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The mlx5 comments are good so these translate fairly directly.
+Use our standard versions from util instead. There doesn't seem
+to be anything tricky here, but the inlined versions were like our
+wc_wmb() barriers, not the wmb().
 
-There is one barrier in mlx5_arm_cq that I could not explain, it became
-mmio_ordered_writes_hack()
+There appears to be no WC memory in this driver, so despite the comments,
+these barriers are also making sure that user DMA data is flushed out. Make
+them all wmb()
+
+Guess at where the missing rmb() should be.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/mlx5/cq.c  |  8 ++++----
- providers/mlx5/qp.c  | 18 +++++++++++-------
- providers/mlx5/srq.c |  2 +-
- 3 files changed, 16 insertions(+), 12 deletions(-)
+ providers/i40iw/i40iw_osdep.h | 14 --------------
+ providers/i40iw/i40iw_uk.c    | 26 ++++++++++++++------------
+ 2 files changed, 14 insertions(+), 26 deletions(-)
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index 372e40bc2b6589..cc0af920c703d9 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -489,7 +489,7 @@ static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
- 	 * Make sure we read CQ entry contents after we've checked the
- 	 * ownership bit.
- 	 */
--	rmb();
-+	udma_from_device_barrier();
+diff --git a/providers/i40iw/i40iw_osdep.h b/providers/i40iw/i40iw_osdep.h
+index fddedf40dd8ae2..92bedd31633eb5 100644
+--- a/providers/i40iw/i40iw_osdep.h
++++ b/providers/i40iw/i40iw_osdep.h
+@@ -105,18 +105,4 @@ static inline void db_wr32(u32 value, u32 *wqe_word)
+ #define ACQUIRE_LOCK()
+ #define RELEASE_LOCK()
  
- #ifdef MLX5_DEBUG
- 	{
-@@ -1283,14 +1283,14 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 	 * Make sure that the doorbell record in host memory is
- 	 * written before ringing the doorbell via PCI MMIO.
- 	 */
--	wmb();
-+	udma_to_device_barrier();
+-#if defined(__i386__)
+-#define i40iw_mb() mb()		/* full memory barrier */
+-#define i40iw_wmb() mb()	/* write memory barrier */
+-#elif defined(__x86_64__)
+-#define i40iw_mb() asm volatile("mfence" ::: "memory")	 /* full memory barrier */
+-#define i40iw_wmb() asm volatile("sfence" ::: "memory")	 /* write memory barrier */
+-#else
+-#define i40iw_mb() mb()		/* full memory barrier */
+-#define i40iw_wmb() wmb()	/* write memory barrier */
+-#endif
+-#define i40iw_rmb() rmb()	/* read memory barrier */
+-#define i40iw_smp_mb() smp_mb()		/* memory barrier */
+-#define i40iw_smp_wmb() smp_wmb()	/* write memory barrier */
+-#define i40iw_smp_rmb() smp_rmb()	/* read memory barrier */
+ #endif				/* _I40IW_OSDEP_H_ */
+diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
+index d3e4fec7d8515b..b20748e9f09199 100644
+--- a/providers/i40iw/i40iw_uk.c
++++ b/providers/i40iw/i40iw_uk.c
+@@ -75,7 +75,7 @@ static enum i40iw_status_code i40iw_nop_1(struct i40iw_qp_uk *qp)
+ 	    LS_64(signaled, I40IWQPSQ_SIGCOMPL) |
+ 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID) | nop_signature++;
  
- 	doorbell[0] = htonl(sn << 28 | cmd | ci);
- 	doorbell[1] = htonl(cq->cqn);
+-	i40iw_wmb();	/* Memory barrier to ensure data is written before valid bit is set */
++	udma_to_device_barrier();	/* Memory barrier to ensure data is written before valid bit is set */
  
- 	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
- 
--	wc_wmb();
-+	mmio_ordered_writes_hack();
- 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
  	return 0;
+@@ -91,7 +91,7 @@ void i40iw_qp_post_wr(struct i40iw_qp_uk *qp)
+ 	u32 hw_sq_tail;
+ 	u32 sw_sq_head;
+ 
+-	i40iw_mb(); /* valid bit is written and loads completed before reading shadow */
++	udma_to_device_barrier(); /* valid bit is written and loads completed before reading shadow */
+ 
+ 	/* read the doorbell shadow area */
+ 	get_64bit_val(qp->shadow_area, I40IW_BYTE_0, &temp);
+@@ -297,7 +297,7 @@ static enum i40iw_status_code i40iw_rdma_write(struct i40iw_qp_uk *qp,
+ 		byte_off += 16;
+ 	}
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 
+@@ -347,7 +347,7 @@ static enum i40iw_status_code i40iw_rdma_read(struct i40iw_qp_uk *qp,
+ 
+ 	i40iw_set_fragment(wqe, I40IW_BYTE_0, &op_info->lo_addr);
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 	if (post_sq)
+@@ -410,7 +410,7 @@ static enum i40iw_status_code i40iw_send(struct i40iw_qp_uk *qp,
+ 		byte_off += 16;
+ 	}
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 	if (post_sq)
+@@ -478,7 +478,7 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
+ 		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
+ 	}
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 
+@@ -552,7 +552,7 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
+ 		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
+ 	}
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 
+@@ -601,7 +601,7 @@ static enum i40iw_status_code i40iw_stag_local_invalidate(struct i40iw_qp_uk *qp
+ 	    LS_64(info->signaled, I40IWQPSQ_SIGCOMPL) |
+ 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID);
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 
+@@ -650,7 +650,7 @@ static enum i40iw_status_code i40iw_mw_bind(struct i40iw_qp_uk *qp,
+ 	    LS_64(info->signaled, I40IWQPSQ_SIGCOMPL) |
+ 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID);
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 
+@@ -694,7 +694,7 @@ static enum i40iw_status_code i40iw_post_receive(struct i40iw_qp_uk *qp,
+ 		byte_off += 16;
+ 	}
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 
+@@ -731,7 +731,7 @@ static void i40iw_cq_request_notification(struct i40iw_cq_uk *cq,
+ 
+ 	set_64bit_val(cq->shadow_area, I40IW_BYTE_32, temp_val);
+ 
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+ 
+ 	db_wr32(cq->cq_id, cq->cqe_alloc_reg);
  }
-@@ -1395,7 +1395,7 @@ void __mlx5_cq_clean(struct mlx5_cq *cq, uint32_t rsn, struct mlx5_srq *srq)
- 		 * Make sure update of buffer contents is done before
- 		 * updating consumer index.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 		update_cons_index(cq);
- 	}
- }
-diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-index b9ae72c9827c8c..d7087d986ce79f 100644
---- a/providers/mlx5/qp.c
-+++ b/providers/mlx5/qp.c
-@@ -926,10 +926,13 @@ out:
- 		 * Make sure that descriptors are written before
- 		 * updating doorbell record and ringing the doorbell
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 		qp->db[MLX5_SND_DBR] = htonl(qp->sq.cur_post & 0xffff);
+@@ -780,6 +780,8 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
+ 	if (polarity != cq->polarity)
+ 		return I40IW_ERR_QUEUE_EMPTY;
  
--		wc_wmb();
-+		/* Make sure that the doorbell write happens before the memcpy
-+		 * to WC memory below */
-+		mmio_wc_start();
++	udma_from_device_barrier();
 +
- 		ctx = to_mctx(ibqp->context);
- 		if (bf->need_lock)
- 			mlx5_spin_lock(&bf->lock);
-@@ -944,15 +947,15 @@ out:
- 				     &ctx->lock32);
+ 	q_type = (u8)RS_64(qword3, I40IW_CQ_SQ);
+ 	info->error = (bool)RS_64(qword3, I40IW_CQ_ERROR);
+ 	info->push_dropped = (bool)RS_64(qword3, I40IWCQ_PSHDROP);
+@@ -1121,7 +1123,7 @@ enum i40iw_status_code i40iw_nop(struct i40iw_qp_uk *qp,
+ 	    LS_64(signaled, I40IWQPSQ_SIGCOMPL) |
+ 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID);
  
- 		/*
--		 * use wc_wmb() to ensure write combining buffers are flushed out
-+		 * use mmio_flush_writes() to ensure write combining buffers are flushed out
- 		 * of the running CPU. This must be carried inside the spinlock.
- 		 * Otherwise, there is a potential race. In the race, CPU A
- 		 * writes doorbell 1, which is waiting in the WC buffer. CPU B
- 		 * writes doorbell 2, and it's write is flushed earlier. Since
--		 * the wc_wmb is CPU local, this will result in the HCA seeing
-+		 * the mmio_flush_writes is CPU local, this will result in the HCA seeing
- 		 * doorbell 2, followed by doorbell 1.
- 		 */
--		wc_wmb();
-+		mmio_flush_writes();
- 		bf->offset ^= bf->buf_size;
- 		if (bf->need_lock)
- 			mlx5_spin_unlock(&bf->lock);
-@@ -1119,7 +1122,7 @@ out:
- 		 * Make sure that descriptors are written before
- 		 * doorbell record.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 		*(rwq->recv_db) = htonl(rwq->rq.head & 0xffff);
- 	}
+-	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
++	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
  
-@@ -1193,7 +1196,8 @@ out:
- 		 * Make sure that descriptors are written before
- 		 * doorbell record.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
-+
- 		/*
- 		 * For Raw Packet QP, avoid updating the doorbell record
- 		 * as long as the QP isn't in RTR state, to avoid receiving
-diff --git a/providers/mlx5/srq.c b/providers/mlx5/srq.c
-index b6e1eaf26bbd0c..2c71730a40f875 100644
---- a/providers/mlx5/srq.c
-+++ b/providers/mlx5/srq.c
-@@ -137,7 +137,7 @@ int mlx5_post_srq_recv(struct ibv_srq *ibsrq,
- 		 * Make sure that descriptors are written before
- 		 * we write doorbell record.
- 		 */
--		wmb();
-+		udma_to_device_barrier();
- 
- 		*srq->db = htonl(srq->counter);
- 	}
+ 	set_64bit_val(wqe, I40IW_BYTE_24, header);
+ 	if (post_sq)
 -- 
 2.7.4
 
