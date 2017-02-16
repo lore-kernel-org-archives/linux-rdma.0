@@ -1,102 +1,151 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 0/7] Add mlx5 direct verbs
-Date: Thu, 16 Feb 2017 09:51:58 -0500
-Message-ID: <abceb7f1-ac72-3f48-1903-46d5c868a5b5@redhat.com>
-References: <1487080104-28991-1-git-send-email-yishaih@mellanox.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="3spAwaFXRPpuxCwGKHIIItcw9lkG7abwX"
+From: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ipoib: clean ib tx ring periodically
+Date: Thu, 16 Feb 2017 16:35:31 +0100
+Message-ID: <589591340739f0ceeea9ca449b6de3df01caadc4.1487259121.git.pabeni@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487080104-28991-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---3spAwaFXRPpuxCwGKHIIItcw9lkG7abwX
-Content-Type: multipart/mixed; boundary="U8nj4dKdrSXtC9qwWF8t0jD6GXULvVwCV";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
- jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Message-ID: <abceb7f1-ac72-3f48-1903-46d5c868a5b5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 0/7] Add mlx5 direct verbs
-References: <1487080104-28991-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1487080104-28991-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The skbs transmitted via ipoib_send() are freed only if there are
+16 or more outstanding work requests or if the send queue is full.
 
---U8nj4dKdrSXtC9qwWF8t0jD6GXULvVwCV
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+If there is very little networking activity, the transmitted skbs
+can be held by the device driver for an unlimited amount of time,
+starving other subsystems.
 
-On 2/14/2017 8:48 AM, Yishai Hadas wrote:
-> This patchset from Leon adds direct access to mlx5 devices.
-> Sending V2 to handle few notes around packaging and man pages, details =
-below.
->=20
-> The libibverbs API is an abstract API. It is agnostic to any underlying=
+E.g. assuming the ipv6 is enabled, with the following sequence:
 
-> provider specific implementation. While this abstraction has the advant=
-age of
-> user applications portability it has a performance penalty. For some
-> applications optimizing performance is more important than portability.=
+systemctl start firewalld
+modprobe ib_ipoib
+ip addr add dev ib0 fc00::1/64
+systemctl stop firewalld
 
->=20
-> The mlx5 direct verbs API introduced in this patchset is intended for s=
-uch
-> applications. It exposes mlx5 specific low level data path
-> (send/receive/completion) operations, allowing the application to bypas=
-s the
-> libibverbs data path API.
->=20
-> The proposed interface consists from one hardware specific header with =
-relevant
-> inline functions and conversion logic from ibverbs structures to mlx5 r=
-elated
-> structures.
->=20
-> New header is going to be installed in below path location:
-> /usr/inlcude/infiniband/mlx5dv.h
+a cpu will hang: rmmod conntrack will keep a core busy
+spinning for nf_conntrack_untracked going to 0, since some ICMP6
+ND packets are generated and transmitted when the ipv6 address
+is attached to the device, and such packets get a notrack ct
+entry.
 
-This series is entirely self contained and the API is owned solely by
-mlx5, so series applied.
+This change address the issue introducing a periodic timer performing
+"garbage collection" on the send ring at low frequency (once every
+second).
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
+This new timer runs independently from the currently used poll_timer,
+so that no additional delay is introduced to clean the ring after
+errors or ring full event.
 
+Reported-by: Thomas Cameron <tcameron-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Fixes: f56bcd801356 ("IPoIB: Use separate CQ for UD send completions")
+Signed-off-by: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h    |  2 ++
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 35 +++++++++++++++++++++++++++------
+ 2 files changed, 31 insertions(+), 6 deletions(-)
 
---U8nj4dKdrSXtC9qwWF8t0jD6GXULvVwCV--
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index da12717..3b5039b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -402,6 +402,8 @@ struct ipoib_dev_priv {
+ 	u64	hca_caps;
+ 	struct ipoib_ethtool_st ethtool;
+ 	struct timer_list poll_timer;
++	struct timer_list tx_gc_timer;
++	unsigned long drain_tx_cq_stamp;
+ 	unsigned max_send_sge;
+ 	bool sm_fullmember_sendonly_support;
+ };
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 5038f9d..e565848 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -490,13 +490,20 @@ void ipoib_ib_completion(struct ib_cq *cq, void *dev_ptr)
+ 	napi_schedule(&priv->napi);
+ }
+ 
++static void __drain_tx_cq(struct ipoib_dev_priv *priv)
++{
++	while (poll_tx(priv))
++		; /* nothing */
++
++	priv->drain_tx_cq_stamp = jiffies;
++}
++
+ static void drain_tx_cq(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 
+ 	netif_tx_lock(dev);
+-	while (poll_tx(priv))
+-		; /* nothing */
++	__drain_tx_cq(priv);
+ 
+ 	if (netif_queue_stopped(dev))
+ 		mod_timer(&priv->poll_timer, jiffies + 1);
+@@ -637,8 +644,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ 	}
+ 
+ 	if (unlikely(priv->tx_outstanding > MAX_SEND_CQE))
+-		while (poll_tx(priv))
+-			; /* nothing */
++		__drain_tx_cq(priv);
+ }
+ 
+ static void __ipoib_reap_ah(struct net_device *dev)
+@@ -697,6 +703,19 @@ static void ipoib_ib_tx_timer_func(unsigned long ctx)
+ 	drain_tx_cq((struct net_device *)ctx);
+ }
+ 
++static void ipoib_tx_gc_timer_func(unsigned long ctx)
++{
++	struct net_device *dev = (struct net_device *)ctx;
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	netif_tx_lock(dev);
++	if (time_after(jiffies, priv->drain_tx_cq_stamp + HZ))
++		__drain_tx_cq(priv);
++	netif_tx_unlock(dev);
++
++	mod_timer(&priv->tx_gc_timer, jiffies + HZ);
++}
++
+ int ipoib_ib_dev_open(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -834,8 +853,7 @@ void ipoib_drain_cq(struct net_device *dev)
+ 		}
+ 	} while (n == IPOIB_NUM_WC);
+ 
+-	while (poll_tx(priv))
+-		; /* nothing */
++	__drain_tx_cq(priv);
+ 
+ 	local_bh_enable();
+ }
+@@ -906,6 +924,7 @@ int ipoib_ib_dev_stop(struct net_device *dev)
+ 
+ timeout:
+ 	del_timer_sync(&priv->poll_timer);
++	del_timer_sync(&priv->tx_gc_timer);
+ 	qp_attr.qp_state = IB_QPS_RESET;
+ 	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
+ 		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
+@@ -932,6 +951,10 @@ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 
+ 	setup_timer(&priv->poll_timer, ipoib_ib_tx_timer_func,
+ 		    (unsigned long) dev);
++	setup_timer(&priv->tx_gc_timer, ipoib_tx_gc_timer_func,
++		    (unsigned long) dev);
++	mod_timer(&priv->tx_gc_timer, jiffies + HZ);
++	priv->drain_tx_cq_stamp = jiffies;
+ 
+ 	if (dev->flags & IFF_UP) {
+ 		if (ipoib_ib_dev_open(dev)) {
+-- 
+2.9.3
 
---3spAwaFXRPpuxCwGKHIIItcw9lkG7abwX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYpbyOAAoJELgmozMOVy/doe4P/RsLKAZegQ9Zp7hObN/eofHz
-MhBlqDHoj5SzShoATLxcQP3+WK5VcC2rfTM7PwAz0EzoyBk5rGJx4RI2cl+9g85e
-KzDDwIjuAwpbmBrCXrPSKLEUudAZrPxgoRC1F/MvrYIsM5HlSx+RYuczadw5NRwu
-CDHdCBmosuvNtU8+TCiKXY/NzviuCmTWg9nIsgDQPEqAJlT1Gog184oxYadN5RrS
-1FCe+zm/kbnvbKNxgicsca+uvZtvBlUQy7TjviHKftULNstU9cL2G+h0hyjnw82B
-dfqG1kd7tmfyR+eGGSgZSRxdtFZu3CFR1a3Kc0HTMjjRYUwP7HC3xRFgnlagd+yf
-W/vu4rx/dD6ZqDtUbGGweseKKHztg52lYV7jFqP9JnesU6kIpQG1q0hZYSmhYZj+
-Jk6rePnVbU6IPgap8L8xSuiWJxHY/iPeYa6qzzYAhTc6hXdT7KjQ9cJDHW96Xl8A
-deNgNrQtIXxqsxJbS3VBuaSfvf8MbFycbz+zPuydOzuxHin2iSzFzzPERbzxe37R
-qEhzWxED7x0jW3jRVwCbeoms679i1Y23qUXtuWnPARwULgPD+hdwgB1rX71zPxHQ
-HDbZfIUfLsqi1jsl8em3N/q4QqXKOvHoiIg6K/sM6eAugTcBIR3YEpCUbJ6pPzmL
-xTDLV8GitV9dbj6RYYO7
-=Chr/
------END PGP SIGNATURE-----
-
---3spAwaFXRPpuxCwGKHIIItcw9lkG7abwX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
