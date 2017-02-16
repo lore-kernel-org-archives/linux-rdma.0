@@ -1,106 +1,89 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 09/14] nes: Update to use new udma write barriers
-Date: Thu, 16 Feb 2017 12:23:04 -0700
-Message-ID: <1487272989-8215-10-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 05/14] hns: Update to use new udma write barriers
+Date: Thu, 16 Feb 2017 12:23:00 -0700
+Message-ID: <1487272989-8215-6-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This driver inexplicably uses mb() for all sorts of things, translate it to
-rmb() or wmb() as appropriate based on context and comments.
+Move the barriers to directly before the doorbell MMIO write for
+clarity.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/nes/nes_uverbs.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ providers/hns/hns_roce_u_hw_v1.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/providers/nes/nes_uverbs.c b/providers/nes/nes_uverbs.c
-index 867c39e1167884..80532abdb45d75 100644
---- a/providers/nes/nes_uverbs.c
-+++ b/providers/nes/nes_uverbs.c
-@@ -473,7 +473,7 @@ int nes_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
- 			break;
+diff --git a/providers/hns/hns_roce_u_hw_v1.c b/providers/hns/hns_roce_u_hw_v1.c
+index 263502d4a85610..0de94e1fabd3d9 100644
+--- a/providers/hns/hns_roce_u_hw_v1.c
++++ b/providers/hns/hns_roce_u_hw_v1.c
+@@ -67,6 +67,8 @@ static void hns_roce_update_rq_head(struct hns_roce_context *ctx,
+ 	roce_set_field(rq_db.u32_8, RQ_DB_U32_8_CMD_M, RQ_DB_U32_8_CMD_S, 1);
+ 	roce_set_bit(rq_db.u32_8, RQ_DB_U32_8_HW_SYNC_S, 1);
  
- 		/* Make sure we read CQ entry contents *after* we've checked the valid bit. */
--		mb();
-+		udma_from_device_barrier();
- 
- 		cqe = (volatile struct nes_hw_cqe)nesucq->cqes[head];
- 
-@@ -638,7 +638,7 @@ int nes_upoll_cq_no_db_read(struct ibv_cq *cq, int num_entries, struct ibv_wc *e
- 			break;
- 
- 		/* Make sure we read CQ entry contents *after* we've checked the valid bit. */
--		mb();
-+		udma_from_device_barrier();
- 
- 		cqe = (volatile struct nes_hw_cqe)nesucq->cqes[head];
- 
-@@ -1125,7 +1125,7 @@ static void nes_clean_cq(struct nes_uqp *nesuqp, struct nes_ucq *nesucq)
- 
- 	cq_head = nesucq->head;
- 	while (le32_to_cpu(nesucq->cqes[cq_head].cqe_words[NES_CQE_OPCODE_IDX]) & NES_CQE_VALID) {
--		rmb();
-+		udma_from_device_barrier();
- 		lo = le32_to_cpu(nesucq->cqes[cq_head].cqe_words[NES_CQE_COMP_COMP_CTX_LOW_IDX]);
- 		hi = le32_to_cpu(nesucq->cqes[cq_head].cqe_words[NES_CQE_COMP_COMP_CTX_HIGH_IDX]);
- 		u64temp = (((uint64_t)hi) << 32) | ((uint64_t)lo);
-@@ -1205,6 +1205,7 @@ int nes_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
- 	int sge_index;
- 
- 	pthread_spin_lock(&nesuqp->lock);
 +	udma_to_device_barrier();
++
+ 	hns_roce_write64((uint32_t *)&rq_db, ctx, ROCEE_DB_OTHERS_L_0_REG);
+ }
  
- 	head = nesuqp->sq_head;
- 	while (ib_wr) {
-@@ -1234,7 +1235,7 @@ int nes_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
- 		u64temp = (uint64_t)((uintptr_t)nesuqp);
- 		wqe->wqe_words[NES_IWARP_SQ_WQE_COMP_CTX_LOW_IDX] = cpu_to_le32((uint32_t)u64temp);
- 		wqe->wqe_words[NES_IWARP_SQ_WQE_COMP_CTX_HIGH_IDX] = cpu_to_le32((uint32_t)(u64temp>>32));
--		mb();
-+		udma_ordering_write_barrier();
- 		wqe->wqe_words[NES_IWARP_SQ_WQE_COMP_CTX_LOW_IDX] |= cpu_to_le32(head);
+@@ -87,6 +89,8 @@ static void hns_roce_update_sq_head(struct hns_roce_context *ctx,
+ 	roce_set_field(sq_db.u32_8, SQ_DB_U32_8_QPN_M, SQ_DB_U32_8_QPN_S, qpn);
+ 	roce_set_bit(sq_db.u32_8, SQ_DB_U32_8_HW_SYNC, 1);
  
- 		switch (ib_wr->opcode) {
-@@ -1360,7 +1361,7 @@ int nes_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
++	udma_to_device_barrier();
++
+ 	hns_roce_write64((uint32_t *)&sq_db, ctx, ROCEE_DB_SQ_L_0_REG);
+ }
+ 
+@@ -261,7 +265,7 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *cq,
+ 	/* Get the next cqe, CI will be added gradually */
+ 	++cq->cons_index;
+ 
+-	rmb();
++	udma_from_device_barrier();
+ 
+ 	qpn = roce_get_field(cqe->cqe_byte_16, CQE_BYTE_16_LOCAL_QPN_M,
+ 			     CQE_BYTE_16_LOCAL_QPN_S);
+@@ -408,7 +412,7 @@ static int hns_roce_u_v1_poll_cq(struct ibv_cq *ibvcq, int ne,
+ 		if (dev->hw_version == HNS_ROCE_HW_VER1) {
+ 			*cq->set_ci_db = (unsigned short)(cq->cons_index &
+ 					 ((cq->cq_depth << 1) - 1));
+-			mb();
++			mmio_ordered_writes_hack();
+ 		}
+ 
+ 		hns_roce_update_cq_cons_index(ctx, cq);
+@@ -581,7 +585,6 @@ out:
+ 	/* Set DB return */
+ 	if (likely(nreq)) {
+ 		qp->sq.head += nreq;
+-		wmb();
+ 
+ 		hns_roce_update_sq_head(ctx, qp->ibv_qp.qp_num,
+ 				qp->port_num - 1, qp->sl,
+@@ -625,7 +628,7 @@ static void __hns_roce_v1_cq_clean(struct hns_roce_cq *cq, uint32_t qpn,
+ 
+ 	if (nfreed) {
+ 		cq->cons_index += nfreed;
+-		wmb();
++		udma_to_device_barrier();
+ 		hns_roce_update_cq_cons_index(ctx, cq);
  	}
+ }
+@@ -816,8 +819,6 @@ out:
+ 	if (nreq) {
+ 		qp->rq.head += nreq;
  
- 	nesuqp->sq_head = head;
--	mb();
-+	udma_to_device_barrier();
- 	while (wqe_count) {
- 		counter = (wqe_count<(uint32_t)255) ? wqe_count : 255;
- 		wqe_count -= counter;
-@@ -1400,6 +1401,7 @@ int nes_upost_recv(struct ibv_qp *ib_qp, struct ibv_recv_wr *ib_wr,
+-		wmb();
+-
+ 		hns_roce_update_rq_head(ctx, qp->ibv_qp.qp_num,
+ 				    qp->rq.head & ((qp->rq.wqe_cnt << 1) - 1));
  	}
- 
- 	pthread_spin_lock(&nesuqp->lock);
-+	udma_to_device_barrier();
- 
- 	head = nesuqp->rq_head;
- 	while (ib_wr) {
-@@ -1427,7 +1429,7 @@ int nes_upost_recv(struct ibv_qp *ib_qp, struct ibv_recv_wr *ib_wr,
- 				cpu_to_le32((uint32_t)u64temp);
- 		wqe->wqe_words[NES_IWARP_RQ_WQE_COMP_CTX_HIGH_IDX] =
- 				cpu_to_le32((uint32_t)(u64temp >> 32));
--		mb();
-+		udma_ordering_write_barrier();
- 		wqe->wqe_words[NES_IWARP_RQ_WQE_COMP_CTX_LOW_IDX] |= cpu_to_le32(head);
- 
- 		total_payload_length = 0;
-@@ -1452,7 +1454,7 @@ int nes_upost_recv(struct ibv_qp *ib_qp, struct ibv_recv_wr *ib_wr,
- 	}
- 
- 	nesuqp->rq_head = head;
--	mb();
-+	udma_to_device_barrier();
- 	while (wqe_count) {
- 		counter = (wqe_count<(uint32_t)255) ? wqe_count : 255;
- 		wqe_count -= counter;
 -- 
 2.7.4
 
