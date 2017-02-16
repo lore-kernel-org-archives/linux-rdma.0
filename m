@@ -1,33 +1,50 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH rfc 1/4] net/utils: generic inet_pton_with_scope helper
-Date: Fri, 17 Feb 2017 05:34:00 +0800
-Message-ID: <201702170514.zqhVrek9%fengguang.wu@intel.com>
-References: <1487267017-29904-2-git-send-email-sagi@grimberg.me>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 03/14] cxgb3: Update to use new udma write
+ barriers
+Date: Thu, 16 Feb 2017 14:45:27 -0700
+Message-ID: <20170216214527.GA13616@obsidianresearch.com>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-4-git-send-email-jgunthorpe@obsidianresearch.com>
+ <062e01d2889a$8ff847c0$afe8d740$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1487267017-29904-2-git-send-email-sagi@grimberg.me>
-Sender: netdev-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: kbuild-all@01.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, netdev@vger.kernel.org
+In-Reply-To: <062e01d2889a$8ff847c0$afe8d740$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sagi,
+On Thu, Feb 16, 2017 at 03:20:56PM -0600, Steve Wise wrote:
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on v4.10-rc8 next-20170216]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> Hey Jason, is it possible the omission on these was never detected because the
+> memory for cq (and sq and rq) queues is allocated in the kernel by
+> dma_alloc_coherent(), and mapped to the process's address space?
 
-url:    https://github.com/0day-ci/linux/commits/Sagi-Grimberg/Introduce-a-new-helper-for-parsing-ipv-4-6-port-to-socket-address/20170217-015537
+If the pgprot in userspace is UC then the odds of having a problem are
+much lower (but IIRC dma_alloc_coherent does not do that on
+x86?).
 
+But DMA coherent memory explicitly doesn't save you from requiring
+barriers and it is still playing with fire as the compiler doesn't
+know the memory is UC and can re-order loads improperly.
 
-coccinelle warnings: (new ones prefixed by >>)
+AFAIK, any arch that requires something special for dma_coherent
+mappings is already broken for libibverbs in user space - as we do not
+have any cache flushing support. So it sort of makes sense to use it
+in the kernel, but if it produces anything other than cached memory
+things will go terribly wrong for that arch when using libibverbs.
 
->> net/core/utils.c:388:2-3: Unneeded semicolon
+I suspect the primary reason is cxgb3 simply got lucky and the
+compiler (that was tested) did not do anything bad, or place any
+dependent loads too closely to the valid bit load.
 
-Please review and possibly fold the followup patch.
+x86 is fairly forgiving.. And quite possibly if you test today with
+gcc 6 on ARM64 it might be broken?
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
