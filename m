@@ -1,175 +1,77 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 06/14] i40iw: Get rid of unique barrier macros
-Date: Thu, 16 Feb 2017 12:23:01 -0700
-Message-ID: <1487272989-8215-7-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 00/14] Revise the DMA barrier macros in ibverbs
+Date: Thu, 16 Feb 2017 12:22:55 -0700
+Message-ID: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use our standard versions from util instead. There doesn't seem
-to be anything tricky here, but the inlined versions were like our
-wc_wmb() barriers, not the wmb().
+Now that the header is private to the library we can change it.
 
-There appears to be no WC memory in this driver, so despite the comments,
-these barriers are also making sure that user DMA data is flushed out. Make
-them all wmb()
+We have never had a clear definition for what our wmb() or wc_wmb() even do,
+and they don't match the same macros in the kernel. This causes problems for
+non x86 arches as they have no idea what to put in their versions of the macros
+and often just put the strongest thing.
 
-Guess at where the missing rmb() should be.
+This also causes problems for the driver authors who have no idea how to use
+these barriers properly, there are several instances of that :(
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- providers/i40iw/i40iw_osdep.h | 14 --------------
- providers/i40iw/i40iw_uk.c    | 26 ++++++++++++++------------
- 2 files changed, 14 insertions(+), 26 deletions(-)
+My approach here is to introduce a selection of macros that have narrow and
+clearly defined purposes. The selection is based on things the set of drivers
+actually do, which turns out to be fairly narrowly defined.
 
-diff --git a/providers/i40iw/i40iw_osdep.h b/providers/i40iw/i40iw_osdep.h
-index fddedf40dd8ae2..92bedd31633eb5 100644
---- a/providers/i40iw/i40iw_osdep.h
-+++ b/providers/i40iw/i40iw_osdep.h
-@@ -105,18 +105,4 @@ static inline void db_wr32(u32 value, u32 *wqe_word)
- #define ACQUIRE_LOCK()
- #define RELEASE_LOCK()
- 
--#if defined(__i386__)
--#define i40iw_mb() mb()		/* full memory barrier */
--#define i40iw_wmb() mb()	/* write memory barrier */
--#elif defined(__x86_64__)
--#define i40iw_mb() asm volatile("mfence" ::: "memory")	 /* full memory barrier */
--#define i40iw_wmb() asm volatile("sfence" ::: "memory")	 /* write memory barrier */
--#else
--#define i40iw_mb() mb()		/* full memory barrier */
--#define i40iw_wmb() wmb()	/* write memory barrier */
--#endif
--#define i40iw_rmb() rmb()	/* read memory barrier */
--#define i40iw_smp_mb() smp_mb()		/* memory barrier */
--#define i40iw_smp_wmb() smp_wmb()	/* write memory barrier */
--#define i40iw_smp_rmb() smp_rmb()	/* read memory barrier */
- #endif				/* _I40IW_OSDEP_H_ */
-diff --git a/providers/i40iw/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
-index d3e4fec7d8515b..b20748e9f09199 100644
---- a/providers/i40iw/i40iw_uk.c
-+++ b/providers/i40iw/i40iw_uk.c
-@@ -75,7 +75,7 @@ static enum i40iw_status_code i40iw_nop_1(struct i40iw_qp_uk *qp)
- 	    LS_64(signaled, I40IWQPSQ_SIGCOMPL) |
- 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID) | nop_signature++;
- 
--	i40iw_wmb();	/* Memory barrier to ensure data is written before valid bit is set */
-+	udma_to_device_barrier();	/* Memory barrier to ensure data is written before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 	return 0;
-@@ -91,7 +91,7 @@ void i40iw_qp_post_wr(struct i40iw_qp_uk *qp)
- 	u32 hw_sq_tail;
- 	u32 sw_sq_head;
- 
--	i40iw_mb(); /* valid bit is written and loads completed before reading shadow */
-+	udma_to_device_barrier(); /* valid bit is written and loads completed before reading shadow */
- 
- 	/* read the doorbell shadow area */
- 	get_64bit_val(qp->shadow_area, I40IW_BYTE_0, &temp);
-@@ -297,7 +297,7 @@ static enum i40iw_status_code i40iw_rdma_write(struct i40iw_qp_uk *qp,
- 		byte_off += 16;
- 	}
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 
-@@ -347,7 +347,7 @@ static enum i40iw_status_code i40iw_rdma_read(struct i40iw_qp_uk *qp,
- 
- 	i40iw_set_fragment(wqe, I40IW_BYTE_0, &op_info->lo_addr);
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 	if (post_sq)
-@@ -410,7 +410,7 @@ static enum i40iw_status_code i40iw_send(struct i40iw_qp_uk *qp,
- 		byte_off += 16;
- 	}
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 	if (post_sq)
-@@ -478,7 +478,7 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
- 		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
- 	}
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 
-@@ -552,7 +552,7 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
- 		memcpy(dest, src, op_info->len - I40IW_BYTE_16);
- 	}
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 
-@@ -601,7 +601,7 @@ static enum i40iw_status_code i40iw_stag_local_invalidate(struct i40iw_qp_uk *qp
- 	    LS_64(info->signaled, I40IWQPSQ_SIGCOMPL) |
- 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID);
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 
-@@ -650,7 +650,7 @@ static enum i40iw_status_code i40iw_mw_bind(struct i40iw_qp_uk *qp,
- 	    LS_64(info->signaled, I40IWQPSQ_SIGCOMPL) |
- 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID);
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 
-@@ -694,7 +694,7 @@ static enum i40iw_status_code i40iw_post_receive(struct i40iw_qp_uk *qp,
- 		byte_off += 16;
- 	}
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 
-@@ -731,7 +731,7 @@ static void i40iw_cq_request_notification(struct i40iw_cq_uk *cq,
- 
- 	set_64bit_val(cq->shadow_area, I40IW_BYTE_32, temp_val);
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	db_wr32(cq->cq_id, cq->cqe_alloc_reg);
- }
-@@ -780,6 +780,8 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
- 	if (polarity != cq->polarity)
- 		return I40IW_ERR_QUEUE_EMPTY;
- 
-+	udma_from_device_barrier();
-+
- 	q_type = (u8)RS_64(qword3, I40IW_CQ_SQ);
- 	info->error = (bool)RS_64(qword3, I40IW_CQ_ERROR);
- 	info->push_dropped = (bool)RS_64(qword3, I40IWCQ_PSHDROP);
-@@ -1121,7 +1123,7 @@ enum i40iw_status_code i40iw_nop(struct i40iw_qp_uk *qp,
- 	    LS_64(signaled, I40IWQPSQ_SIGCOMPL) |
- 	    LS_64(qp->swqe_polarity, I40IWQPSQ_VALID);
- 
--	i40iw_wmb(); /* make sure WQE is populated before valid bit is set */
-+	udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
- 
- 	set_64bit_val(wqe, I40IW_BYTE_24, header);
- 	if (post_sq)
+Then I went through all the drivers and adjusted them to various degrees to
+use the new macro names. In a few drivers I added more/stronger barriers.
+Overall this tries hard not to break anything by weaking existing barriers.
+
+A future project for someone would be to see if the CPU ASM makes sense..
+
+https://github.com/linux-rdma/rdma-core/pull/79
+
+Jason Gunthorpe (14):
+  mlx5: Use stdatomic for the in_use barrier
+  Provide new names for the CPU barriers related to DMA
+  cxgb3: Update to use new udma write barriers
+  cxgb4: Update to use new udma write barriers
+  hns: Update to use new udma write barriers
+  i40iw: Get rid of unique barrier macros
+  mlx4: Update to use new udma write barriers
+  mlx5: Update to use new udma write barriers
+  nes: Update to use new udma write barriers
+  mthca: Update to use new mmio write barriers
+  ocrdma: Update to use new udma write barriers
+  qedr: Update to use new udma write barriers
+  vmw_pvrdma: Update to use new udma write barriers
+  Remove the old barrier macros
+
+ providers/cxgb3/cq.c             |   2 +
+ providers/cxgb3/cxio_wr.h        |   2 +-
+ providers/cxgb4/qp.c             |  20 +++-
+ providers/cxgb4/t4.h             |  48 ++++++--
+ providers/cxgb4/verbs.c          |   2 +
+ providers/hns/hns_roce_u_hw_v1.c |  13 +-
+ providers/i40iw/i40iw_osdep.h    |  14 ---
+ providers/i40iw/i40iw_uk.c       |  26 ++--
+ providers/mlx4/cq.c              |   6 +-
+ providers/mlx4/qp.c              |  19 +--
+ providers/mlx4/srq.c             |   2 +-
+ providers/mlx5/cq.c              |   8 +-
+ providers/mlx5/mlx5.h            |   7 +-
+ providers/mlx5/qp.c              |  18 +--
+ providers/mlx5/srq.c             |   2 +-
+ providers/mthca/cq.c             |  10 +-
+ providers/mthca/doorbell.h       |   2 +-
+ providers/mthca/qp.c             |  20 ++--
+ providers/mthca/srq.c            |   6 +-
+ providers/nes/nes_uverbs.c       |  16 +--
+ providers/ocrdma/ocrdma_verbs.c  |  16 ++-
+ providers/qedr/qelr_verbs.c      |  32 +++--
+ providers/vmw_pvrdma/cq.c        |   6 +-
+ providers/vmw_pvrdma/qp.c        |   8 +-
+ util/udma_barrier.h              | 250 +++++++++++++++++++++++++++------------
+ 25 files changed, 354 insertions(+), 201 deletions(-)
+
 -- 
 2.7.4
 
