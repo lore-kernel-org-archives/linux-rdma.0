@@ -1,44 +1,32 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH net 1/3] qed: Release CQ resource under lock on failure
-Date: Thu, 16 Feb 2017 09:19:42 +0000
-Message-ID: <SN1PR07MB220798D8643CAE11E17E791CF85A0@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <1485292523-8821-1-git-send-email-Yuval.Mintz@cavium.com>
- <1485292523-8821-2-git-send-email-Yuval.Mintz@cavium.com>
- <20170125072426.GA4973@yuval-lap>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/vmw_pvrdma: Expose vendor error to ULPs
+Date: Thu, 16 Feb 2017 14:05:05 +0200
+Message-ID: <1487246705-11297-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> The bitmap functions are being used by various bitmaps one of which is th=
-e cid.
-> The cid code must allocate two consecutive cids. So here the lock is over=
- two calls
-> to the bit allocating call.
->=20
-> I am planning to recode the cid to use one bit instead of two, this is fu=
-rther
-> down the list.
->=20
-> Thanks for the suggestion,
-> Ram
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-Hi Dave,
-The patches should be taken as is.
-The improvement suggestion about the (widely used) mechanism is still under=
- consideration
-and will surely not be part of 4.10.
-
-Shall I resend V1?
-
-Thanks,
-Ram
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+index e429ca5..69bda61 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+@@ -373,7 +373,7 @@ static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp **cur_qp,
+ 	wc->sl = cqe->sl;
+ 	wc->dlid_path_bits = cqe->dlid_path_bits;
+ 	wc->port_num = cqe->port_num;
+-	wc->vendor_err = 0;
++	wc->vendor_err = cqe->vendor_err;
+ 
+ 	/* Update shared ring state */
+ 	pvrdma_idx_ring_inc(&cq->ring_state->rx.cons_head, cq->ibcq.cqe);
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
