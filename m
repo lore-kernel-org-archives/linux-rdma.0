@@ -1,60 +1,51 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 03/14] cxgb3: Update to use new udma write barriers
-Date: Thu, 16 Feb 2017 12:22:58 -0700
-Message-ID: <1487272989-8215-4-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 01/14] mlx5: Use stdatomic for the in_use barrier
+Date: Thu, 16 Feb 2017 12:22:56 -0700
+Message-ID: <1487272989-8215-2-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Steve says the chip reads until a EOP marked WR is found, so the only
-write barrier is to make sure DMA is ready before setting the WR in
-that way.
+Since this is not a DMA barrier we do not want to use wmb() here.
 
-Add missing rmb()s in the obvious spot.
+Replace it with a weak atomic fence.
+
+For x86-64 this has no change to the assembly output.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/cxgb3/cq.c      | 2 ++
- providers/cxgb3/cxio_wr.h | 2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ providers/mlx5/mlx5.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/providers/cxgb3/cq.c b/providers/cxgb3/cq.c
-index a6158ce771f89f..eddcd43dc3bd8e 100644
---- a/providers/cxgb3/cq.c
-+++ b/providers/cxgb3/cq.c
-@@ -121,6 +121,7 @@ static inline int cxio_poll_cq(struct t3_wq *wq, struct t3_cq *cq,
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index be52a0a75dded0..e63164c2caea7b 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -35,6 +35,7 @@
  
- 	*cqe_flushed = 0;
- 	hw_cqe = cxio_next_cqe(cq);
-+	udma_from_device_barrier();
+ #include <stddef.h>
+ #include <stdio.h>
++#include <stdatomic.h>
+ #include <util/compiler.h>
  
- 	/* 
- 	 * Skip cqes not affiliated with a QP.
-@@ -266,6 +267,7 @@ static int iwch_poll_cq_one(struct iwch_device *rhp, struct iwch_cq *chp,
- 	int ret = 1;
+ #include <infiniband/driver.h>
+@@ -683,7 +684,11 @@ static inline int mlx5_spin_lock(struct mlx5_spinlock *lock)
+ 		abort();
+ 	} else {
+ 		lock->in_use = 1;
+-		wmb();
++		/*
++		 * This fence is not at all correct, but it increases the
++		 * chance that in_use is detected by another thread without
++		 * much runtime cost. */
++		atomic_thread_fence(memory_order_acq_rel);
+ 	}
  
- 	hw_cqe = cxio_next_cqe(&chp->cq);
-+	udma_from_device_barrier();
- 
- 	if (!hw_cqe)
- 		return 0;
-diff --git a/providers/cxgb3/cxio_wr.h b/providers/cxgb3/cxio_wr.h
-index 735b64918a15c8..057f61ac3c7d2f 100644
---- a/providers/cxgb3/cxio_wr.h
-+++ b/providers/cxgb3/cxio_wr.h
-@@ -347,7 +347,7 @@ static inline void build_fw_riwrh(struct fw_riwrh *wqe, enum t3_wr_opcode op,
- 	wqe->op_seop_flags = htonl(V_FW_RIWR_OP(op) |
- 				   V_FW_RIWR_SOPEOP(M_FW_RIWR_SOPEOP) |
- 				   V_FW_RIWR_FLAGS(flags));
--	mb();
-+	udma_to_device_barrier();
- 	wqe->gen_tid_len = htonl(V_FW_RIWR_GEN(genbit) | V_FW_RIWR_TID(tid) |
- 				 V_FW_RIWR_LEN(len));
- 	/* 2nd gen bit... */
+ 	return 0;
 -- 
 2.7.4
 
