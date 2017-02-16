@@ -1,264 +1,125 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 14/14] Remove the old barrier macros
-Date: Thu, 16 Feb 2017 12:23:09 -0700
-Message-ID: <1487272989-8215-15-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 12/14] qedr: Update to use new udma write barriers
+Date: Thu, 16 Feb 2017 12:23:07 -0700
+Message-ID: <1487272989-8215-13-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Inline the required assembly directly into the new names. No change to
-the asm.
+qedr uses WC memory for its '.db' mmap, so all writes to it have
+to be wrapped in the WC barriers. This upgrades the leading
+wmb to a wc_wmb() for consistency with other drivers.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- util/udma_barrier.h | 195 +++++++++++++++++++++++++---------------------------
- 1 file changed, 94 insertions(+), 101 deletions(-)
+ providers/qedr/qelr_verbs.c | 32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff --git a/util/udma_barrier.h b/util/udma_barrier.h
-index f9b8291db20210..cc2718f33fc3a2 100644
---- a/util/udma_barrier.h
-+++ b/util/udma_barrier.h
-@@ -33,95 +33,6 @@
- #ifndef __UTIL_UDMA_BARRIER_H
- #define __UTIL_UDMA_BARRIER_H
+diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
+index 95cd429e1b9b47..c8a0db2c9c1cfd 100644
+--- a/providers/qedr/qelr_verbs.c
++++ b/providers/qedr/qelr_verbs.c
+@@ -672,9 +672,9 @@ static int qelr_update_qp_state(struct qelr_qp *qp,
+ 			/* Update doorbell (in case post_recv was done before
+ 			 * move to RTR)
+ 			 */
+-			wmb();
++			mmio_wc_start();
+ 			writel(qp->rq.db_data.raw, qp->rq.db);
+-			wc_wmb();
++			mmio_flush_writes();
+ 			break;
+ 		case QELR_QPS_ERR:
+ 			break;
+@@ -1096,7 +1096,7 @@ static void doorbell_edpm_qp(struct qelr_qp *qp)
+ 	if (!qp->edpm.is_edpm)
+ 		return;
  
--/*
-- * Architecture-specific defines.  Currently, an architecture is
-- * required to implement the following operations:
-- *
-- * mb() - memory barrier.  No loads or stores may be reordered across
-- *     this macro by either the compiler or the CPU.
-- * rmb() - read memory barrier.  No loads may be reordered across this
-- *     macro by either the compiler or the CPU.
-- * wmb() - write memory barrier.  No stores may be reordered across
-- *     this macro by either the compiler or the CPU.
-- * wc_wmb() - flush write combine buffers.  No write-combined writes
-- *     will be reordered across this macro by either the compiler or
-- *     the CPU.
-- */
--
--#if defined(__i386__)
--
--#define mb()	 asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
--#define rmb()	 mb()
--#define wmb()	 asm volatile("" ::: "memory")
--#define wc_wmb() mb()
--
--#elif defined(__x86_64__)
--
--/*
-- * Only use lfence for mb() and rmb() because we don't care about
-- * ordering against non-temporal stores (for now at least).
-- */
--#define mb()	 asm volatile("lfence" ::: "memory")
--#define rmb()	 mb()
--#define wmb()	 asm volatile("" ::: "memory")
--#define wc_wmb() asm volatile("sfence" ::: "memory")
--
--#elif defined(__PPC64__)
--
--#define mb()	 asm volatile("sync" ::: "memory")
--#define rmb()	 asm volatile("lwsync" ::: "memory")
--#define wmb()	 mb()
--#define wc_wmb() wmb()
--
--#elif defined(__ia64__)
--
--#define mb()	 asm volatile("mf" ::: "memory")
--#define rmb()	 mb()
--#define wmb()	 mb()
--#define wc_wmb() asm volatile("fwb" ::: "memory")
--
--#elif defined(__PPC__)
--
--#define mb()	 asm volatile("sync" ::: "memory")
--#define rmb()	 mb()
--#define wmb()	 mb()
--#define wc_wmb() wmb()
--
--#elif defined(__sparc_v9__)
--
--#define mb()	 asm volatile("membar #LoadLoad | #LoadStore | #StoreStore | #StoreLoad" ::: "memory")
--#define rmb()	 asm volatile("membar #LoadLoad" ::: "memory")
--#define wmb()	 asm volatile("membar #StoreStore" ::: "memory")
--#define wc_wmb() wmb()
--
--#elif defined(__sparc__)
--
--#define mb()	 asm volatile("" ::: "memory")
--#define rmb()	 mb()
--#define wmb()	 mb()
--#define wc_wmb() wmb()
--
--#elif defined(__s390x__)
--
--#define mb()	{ asm volatile("" : : : "memory"); }	/* for s390x */
--#define rmb()	mb()					/* for s390x */
--#define wmb()	mb()					/* for s390x */
--#define wc_wmb() wmb()					/* for s390x */
--
--#elif defined(__aarch64__)
--
--/* Perhaps dmb would be sufficient? Let us be conservative for now. */
--#define mb()	{ asm volatile("dsb sy" ::: "memory"); }
--#define rmb()	{ asm volatile("dsb ld" ::: "memory"); }
--#define wmb()	{ asm volatile("dsb st" ::: "memory"); }
--#define wc_wmb() wmb()
--
--#else
--
--#error No architecture specific memory barrier defines found!
--
--#endif
--
- /* Barriers for DMA.
+-	wmb();
++	mmio_wc_start();
  
-    These barriers are expliclty only for use with user DMA operations. If you
-@@ -143,6 +54,10 @@
-    The ordering guarentee is always stated between those two streams. Eg what
-    happens if a MemRd TLP is sent in via PCI-E relative to a CPU WRITE to the
-    same memory location.
-+
-+   The providers have a very regular and predictable use of these barriers,
-+   to make things very clear each narrow use is given a name and the proper
-+   name should be used in the provider as a form of documentation.
- */
+ 	qp->edpm.msg.data.icid = qp->sq.db_data.data.icid;
+ 	qp->edpm.msg.data.prod_val = qp->sq.db_data.data.value;
+@@ -1116,15 +1116,16 @@ static void doorbell_edpm_qp(struct qelr_qp *qp)
+ 		       sizeof(uint64_t));
  
- /* Ensure that the device's view of memory matches the CPU's view of memory.
-@@ -163,7 +78,25 @@
-    memory types or non-temporal stores are required to use SFENCE in their own
-    code prior to calling verbs to start a DMA.
- */
--#define udma_to_device_barrier() wmb()
-+#if defined(__i386__)
-+#define udma_to_device_barrier() asm volatile("" ::: "memory")
-+#elif defined(__x86_64__)
-+#define udma_to_device_barrier() asm volatile("" ::: "memory")
-+#elif defined(__PPC64__)
-+#define udma_to_device_barrier() asm volatile("sync" ::: "memory")
-+#elif defined(__PPC__)
-+#define udma_to_device_barrier() asm volatile("sync" ::: "memory")
-+#elif defined(__ia64__)
-+#define udma_to_device_barrier() asm volatile("mf" ::: "memory")
-+#elif defined(__sparc_v9__)
-+#define udma_to_device_barrier() asm volatile("membar #StoreStore" ::: "memory")
-+#elif defined(__aarch64__)
-+#define wmb() asm volatile("dsb st" ::: "memory");
-+#elif defined(__sparc__) || defined(__s390x__)
-+#define udma_to_device_barrier() asm volatile("" ::: "memory")
-+#else
-+#error No architecture specific memory barrier defines found!
-+#endif
+ 		bytes += sizeof(uint64_t);
+-		/* Need to place a barrier after every 64 bytes */
++		/* Since we rewrite the buffer every 64 bytes we need to flush
++		   it here, otherwise the CPU could optimize alway the
++		   duplicate stores. */
+ 		if (bytes == 64) {
+-			wc_wmb();
++			mmio_flush_writes();
+ 			bytes = 0;
+ 		}
+ 		offset++;
+ 	}
+-
+-	wc_wmb();
++	mmio_flush_writes();
+ }
  
- /* Ensure that all ordered stores from the device are observable from the
-    CPU. This only makes sense after something that observes an ordered store
-@@ -177,7 +110,25 @@
-    that is a DMA target, to ensure that the following reads see the
-    data written before the MemWr TLP that set the valid bit.
- */
--#define udma_from_device_barrier() rmb()
-+#if defined(__i386__)
-+#define udma_from_device_barrier() asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
-+#elif defined(__x86_64__)
-+#define udma_from_device_barrier() asm volatile("lfence" ::: "memory")
-+#elif defined(__PPC64__)
-+#define udma_from_device_barrier() asm volatile("lwsync" ::: "memory")
-+#elif defined(__PPC__)
-+#define udma_from_device_barrier() asm volatile("sync" ::: "memory")
-+#elif defined(__ia64__)
-+#define udma_from_device_barrier() asm volatile("mf" ::: "memory")
-+#elif defined(__sparc_v9__)
-+#define udma_from_device_barrier() asm volatile("membar #LoadLoad" ::: "memory")
-+#elif defined(__aarch64__)
-+#define udma_from_device_barrier() asm volatile("dsb ld" ::: "memory");
-+#elif defined(__sparc__) || defined(__s390x__)
-+#define udma_from_device_barrier() asm volatile("" ::: "memory")
-+#else
-+#error No architecture specific memory barrier defines found!
-+#endif
+ int qelr_post_send(struct ibv_qp *ib_qp, struct ibv_send_wr *wr,
+@@ -1363,11 +1364,9 @@ int qelr_post_send(struct ibv_qp *ib_qp, struct ibv_send_wr *wr,
+ 	}
  
- /* Order writes to CPU memory so that a DMA device cannot view writes after
-    the barrier without also seeing all writes before the barrier. This does
-@@ -198,24 +149,66 @@
-       udma_ordering_write_barrier();  // Guarantee WQE written in order
-       wqe->valid = 1;
- */
--#define udma_ordering_write_barrier() wmb()
-+#define udma_ordering_write_barrier() udma_to_device_barrier()
+ 	if (!qp->edpm.is_edpm) {
+-		wmb();
+-
++		mmio_wc_start();
+ 		writel(qp->sq.db_data.raw, qp->sq.db);
+-
+-		wc_wmb();
++		mmio_flush_writes();
+ 	}
  
--/* Promptly flush writes, possibly in a write buffer, to MMIO backed memory.
--   This is not required to have any effect on CPU memory. If done while
--   holding a lock then the ordering of MMIO writes across CPUs must be
--   guarenteed to follow the natural ordering implied by the lock.
-+/* Promptly flush writes to MMIO Write Cominbing memory.
-+   This should be used after a write to WC memory. This is both a barrier
-+   and a hint to the CPU to flush any buffers to reduce latency to TLP
-+   generation.
-+
-+   This is not required to have any effect on CPU memory.
-+
-+   If done while holding a lock then the ordering of MMIO writes across CPUs
-+   must be guarenteed to follow the natural ordering implied by the lock.
+ 	pthread_spin_unlock(&qp->q_lock);
+@@ -1446,14 +1445,13 @@ int qelr_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
  
-    This must also act as a barrier that prevents write combining, eg
-      *wc_mem = 1;
-      mmio_flush_writes();
-      *wc_mem = 2;
--   Must always produce two MemWr TLPs, the '2' cannot be combined with and
--   supress the '1'.
-+   Must always produce two MemWr TLPs, '1' and '2'. Without the barrier
-+   the CPU is allowed to produce a single TLP '2'.
-+
-+   Note that there is no order guarentee for writes to WC memory without
-+   barriers.
-+
-+   This is intended to be used in conjunction with WC memory to generate large
-+   PCI-E MemWr TLPs from the CPU.
-+*/
-+#if defined(__i386__)
-+#define mmio_flush_writes() asm volatile("lock; addl $0,0(%%esp) " ::: "memory")
-+#elif defined(__x86_64__)
-+#define mmio_flush_writes() asm volatile("sfence" ::: "memory")
-+#elif defined(__PPC64__)
-+#define mmio_flush_writes() asm volatile("sync" ::: "memory")
-+#elif defined(__PPC__)
-+#define mmio_flush_writes() asm volatile("sync" ::: "memory")
-+#elif defined(__ia64__)
-+#define mmio_flush_writes() asm volatile("fwb" ::: "memory")
-+#elif defined(__sparc_v9__)
-+#define mmio_flush_writes() asm volatile("membar #StoreStore" ::: "memory")
-+#elif defined(__aarch64__)
-+#define mmio_flush_writes() asm volatile("dsb st" ::: "memory");
-+#elif defined(__sparc__) || defined(__s390x__)
-+#define mmio_flush_writes() asm volatile("" ::: "memory")
-+#error No architecture specific memory barrier defines found!
-+#endif
-+
-+/* Prevent WC writes from being re-ordered relative to other MMIO
-+   writes. This should be used before a write to WC memory.
-+
-+   This must act as a barrier to prevent write re-ordering from different
-+   memory types:
-+     *mmio_mem = 1;
-+     mmio_flush_writes();
-+     *wc_mem = 2;
-+   Must always produce a TLP '1' followed by '2'.
-+
-+   This barrier implies udma_to_device_barrier()
+ 		qelr_inc_sw_prod_u16(&qp->rq);
  
--   This is intended to be used in conjunction with write combining memory
--   to generate large PCI-E MemWr TLPs from the CPU.
-+   This is intended to be used in conjunction with WC memory to generate large
-+   PCI-E MemWr TLPs from the CPU.
- */
--#define mmio_flush_writes() wc_wmb()
-+#define mmio_wc_start() mmio_flush_writes()
+-		wmb();
++		mmio_wc_start();
  
- /* Keep MMIO writes in order.
-    Currently we lack writel macros that universally guarentee MMIO
+ 		db_val = le16toh(qp->rq.db_data.data.value) + 1;
+ 		qp->rq.db_data.data.value = htole16(db_val);
+ 
+ 		writel(qp->rq.db_data.raw, qp->rq.db);
+-
+-		wc_wmb();
++		mmio_flush_writes();
+ 
+ 		wr = wr->next;
+ 	}
+@@ -1795,12 +1793,12 @@ static int qelr_poll_cq_resp(struct qelr_qp *qp, struct qelr_cq *cq,
+ 
+ static void doorbell_cq(struct qelr_cq *cq, uint32_t cons, uint8_t flags)
+ {
+-	wmb();
++	mmio_wc_start();
+ 	cq->db.data.agg_flags = flags;
+ 	cq->db.data.value = htole32(cons);
+ 
+ 	writeq(cq->db.raw, cq->db_addr);
+-	wc_wmb();
++	mmio_flush_writes();
+ }
+ 
+ int qelr_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
+@@ -1816,7 +1814,7 @@ int qelr_poll_cq(struct ibv_cq *ibcq, int num_entries, struct ibv_wc *wc)
+ 		struct qelr_qp *qp;
+ 
+ 		/* prevent speculative reads of any field of CQE */
+-		rmb();
++		udma_from_device_barrier();
+ 
+ 		qp = cqe_get_qp(cqe);
+ 		if (!qp) {
 -- 
 2.7.4
 
