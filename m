@@ -1,39 +1,44 @@
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv2 1/1] rds:Remove unnecessary ib_ring unalloc
-Date: Fri, 17 Feb 2017 04:16:22 -0500
-Message-ID: <1487322982-29215-1-git-send-email-yanjun.zhu@oracle.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] IB/hns: include linux/module.h
+Date: Fri, 17 Feb 2017 15:38:26 +0100
+Message-ID: <20170217143945.2217431-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Salil <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In the function rds_ib_xmit_atomic, ib_ring is not allocated
-successfully. As such, it is not necessary to unalloc it.
+I ran into a build error on arm64 randconfig testing:
 
-Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+infiniband/hw/hns/hns_roce_main.c:539:1: error: data definition has no type or storage class [-Werror]
+infiniband/hw/hns/hns_roce_main.c:539:1: error: type defaults to 'int' in declaration of 'MODULE_DEVICE_TABLE' [-Werror=implicit-int]
+infiniband/hw/hns/hns_roce_main.c:539:1: error: parameter names (without types) in function declaration [-Werror]
+infiniband/hw/hns/hns_roce_main.c:979:226: error: data definition has no type or storage class [-Werror]
+infiniband/hw/hns/hns_roce_main.c:979:226: error: type defaults to 'int' in declaration of 'module_init' [-Werror=implicit-int]
+infiniband/hw/hns/hns_roce_main.c:979:1: error: parameter names (without types) in function declaration [-Werror]
+
+Including the module.h makes it build again.
+
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 ---
-Change from v1 to v2:
-  fix the word errors in the short log.
+ drivers/infiniband/hw/hns/hns_roce_main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- net/rds/ib_send.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-index 84d90c9..84b34cc 100644
---- a/net/rds/ib_send.c
-+++ b/net/rds/ib_send.c
-@@ -765,7 +765,6 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
- 
- 	work_alloc = rds_ib_ring_alloc(&ic->i_send_ring, 1, &pos);
- 	if (work_alloc != 1) {
--		rds_ib_ring_unalloc(&ic->i_send_ring, work_alloc);
- 		rds_ib_stats_inc(s_ib_tx_ring_full);
- 		ret = -ENOMEM;
- 		goto out;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 4953d9cb83a7..cf14679664ca 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -32,6 +32,7 @@
+  */
+ #include <linux/acpi.h>
+ #include <linux/of_platform.h>
++#include <linux/module.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_user_verbs.h>
 -- 
-2.7.4
+2.9.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
