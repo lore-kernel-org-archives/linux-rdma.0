@@ -1,36 +1,32 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 04/14] cxgb4: Update to use new udma write barriers
-Date: Fri, 17 Feb 2017 14:16:56 -0600
-Message-ID: <04e201d2895a$c92c47b0$5b84d710$@opengridcomputing.com>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com> <1487272989-8215-5-git-send-email-jgunthorpe@obsidianresearch.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCHv2 1/1] rds:Remove unnecessary ib_ring unalloc
+Date: Fri, 17 Feb 2017 15:20:11 -0500 (EST)
+Message-ID: <20170217.152011.932401507668040649.davem@davemloft.net>
+References: <1487322982-29215-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487272989-8215-5-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1487322982-29215-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Based on help from Steve the barriers here are change to consistently
-> bracket WC memory writes with wc_wmb() like other drivers do.
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Fri, 17 Feb 2017 04:16:22 -0500
+
+> In the function rds_ib_xmit_atomic, ib_ring is not allocated
+> successfully. As such, it is not necessary to unalloc it.
 > 
-> This allows some of the wc_wmb() calls that were not related to WC
-> memory be downgraded to wmb().
-> 
-> The driver was probably correct (at least for x86-64) but did not
-> follow the idiom established by the other drivers for working with
-> WC memry.
-> 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> Change from v1 to v2:
+>   fix the word errors in the short log.
 
-I'm not going to address any of the FIXME issues yet, but:
-
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
-
+Applied to net-next.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
