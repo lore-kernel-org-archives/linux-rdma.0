@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 07/29] IB/mlx4: Split a condition check in
- handle_slaves_guid_change()
-Date: Sat, 18 Feb 2017 21:55:08 +0100
-Message-ID: <951c0746-b88e-8ee7-78e8-5be2a53a2e43@users.sourceforge.net>
+Subject: [PATCH 09/29] IB/mlx4: Move an assignment out of a check in
+ forward_trap()
+Date: Sat, 18 Feb 2017 21:57:16 +0100
+Message-ID: <ac39ba0d-8738-2532-9eec-a82c76fc9ff4@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,64 +15,33 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Fri, 17 Feb 2017 21:41:25 +0100
+Date: Fri, 17 Feb 2017 22:22:53 +0100
 
-The kfree() function was called in up to two cases by the
-handle_slaves_guid_change() function during error handling even if
-the passed variable contained a null pointer.
+The script "checkpatch.pl" pointed information out like the following.
 
-* Split a condition check for memory allocation failures.
+ERROR: do not use assignment in if condition
 
-* Adjust jump targets according to the Linux coding style convention.
-
-* Delete an initialisation for these variables at the beginning
-  which became unnecessary with this refactoring.
+Thus fix the affected source code place.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index cf33efce69d2..75b6522b3a8f 100644
+index 9518b7244269..860fec8b9601 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1128,17 +1128,20 @@ static void propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
- static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
- 				      u32 guid_tbl_blk_num, u32 change_bitmap)
- {
--	struct ib_smp *in_mad  = NULL;
--	struct ib_smp *out_mad  = NULL;
-+	struct ib_smp *in_mad;
-+	struct ib_smp *out_mad;
- 	u16 i;
- 
- 	if (!mlx4_is_mfunc(dev->dev) || !mlx4_is_master(dev->dev))
- 		return;
- 
- 	in_mad  = kmalloc(sizeof *in_mad, GFP_KERNEL);
-+	if (!in_mad)
-+		return;
-+
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
--	if (!in_mad || !out_mad)
--		goto out;
-+	if (!out_mad)
-+		goto free_in_mad;
- 
- 	guid_tbl_blk_num  *= 4;
- 
-@@ -1171,8 +1174,9 @@ static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
- 	}
- 
- out:
--	kfree(in_mad);
- 	kfree(out_mad);
-+free_in_mad:
-+	kfree(in_mad);
- }
- 
- void handle_port_mgmt_change_event(struct work_struct *work)
+@@ -401,7 +401,8 @@ static void forward_trap(struct mlx4_ib_dev *dev, u8 port_num, const struct ib_m
+ 		 */
+ 		spin_lock_irqsave(&dev->sm_lock, flags);
+ 		memcpy(send_buf->mad, mad, sizeof *mad);
+-		if ((send_buf->ah = dev->sm_ah[port_num - 1]))
++		send_buf->ah = dev->sm_ah[port_num - 1];
++		if (send_buf->ah)
+ 			ret = ib_post_send_mad(send_buf, NULL);
+ 		else
+ 			ret = -EINVAL;
 -- 
 2.11.1
 
