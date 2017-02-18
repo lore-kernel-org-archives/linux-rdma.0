@@ -1,8 +1,7 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 08/29] IB/mlx4: Delete an unnecessary check before the
- function call "kfree" in free_pv_object()
-Date: Sat, 18 Feb 2017 21:56:17 +0100
-Message-ID: <1070bd22-757a-e0c9-551d-44c31f5c11cc@users.sourceforge.net>
+Subject: [PATCH 25/29] IB/mlx4: Add spaces for better code readability
+Date: Sat, 18 Feb 2017 22:15:03 +0100
+Message-ID: <92a1836f-8244-7b52-1e45-f791dc3ceec4@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,36 +14,38 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Fri, 17 Feb 2017 22:06:24 +0100
+Date: Sat, 18 Feb 2017 18:52:11 +0100
 
-The script "checkpatch.pl" pointed information out like the following.
-
-WARNING: kfree(NULL) is safe and this check is probably not required
-
-Thus fix the affected source code place.
+Use space characters at some source code places according to
+the Linux coding style convention.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 75b6522b3a8f..9518b7244269 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1966,10 +1966,8 @@ static int alloc_pv_object(struct mlx4_ib_dev *dev, int slave, int port,
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 47a647c1d94f..16164ff09a86 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1063,7 +1063,7 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
+ 	list_del(&qp->cq_recv_list);
+ 	if (!is_user) {
+ 		__mlx4_ib_cq_clean(recv_cq, qp->mqp.qpn,
+-				 qp->ibqp.srq ? to_msrq(qp->ibqp.srq): NULL);
++				   qp->ibqp.srq ? to_msrq(qp->ibqp.srq) : NULL);
+ 		if (send_cq != recv_cq)
+ 			__mlx4_ib_cq_clean(send_cq, qp->mqp.qpn, NULL);
+ 	}
+@@ -2585,7 +2585,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_ud_wr *wr,
+ 		u16 ether_type;
+ 		u16 pcp = (be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 29) << 13;
  
- static void free_pv_object(struct mlx4_ib_dev *dev, int slave, int port)
- {
--	if (dev->sriov.demux[port - 1].tun[slave]) {
--		kfree(dev->sriov.demux[port - 1].tun[slave]);
--		dev->sriov.demux[port - 1].tun[slave] = NULL;
--	}
-+	kfree(dev->sriov.demux[port - 1].tun[slave]);
-+	dev->sriov.demux[port - 1].tun[slave] = NULL;
- }
+-		ether_type = (!is_udp) ? ETH_P_IBOE:
++		ether_type = (!is_udp) ? ETH_P_IBOE :
+ 			(ip_version == 4 ? ETH_P_IP : ETH_P_IPV6);
  
- static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
+ 		mlx->sched_prio = cpu_to_be16(pcp);
 -- 
 2.11.1
 
