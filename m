@@ -1,155 +1,54 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 26/29] IB/mlx4: Enclose 14 expressions for the sizeof operator
- by parentheses
-Date: Sat, 18 Feb 2017 22:16:11 +0100
-Message-ID: <e309bc85-395b-3b81-15cf-dc2a5f8bf0ea@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 08/29] IB/mlx4: Delete an unnecessary check before the
+ function call "kfree" in free_pv_object()
+Date: Sat, 18 Feb 2017 21:56:17 +0100
+Message-ID: <1070bd22-757a-e0c9-551d-44c31f5c11cc@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1935365a-bd7c-461e-6a84-0c5d3a501fff-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 18 Feb 2017 19:30:41 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 17 Feb 2017 22:06:24 +0100
 
 The script "checkpatch.pl" pointed information out like the following.
 
-WARNING: sizeof … should be sizeof(…)
+WARNING: kfree(NULL) is safe and this check is probably not required
 
-Thus fix the affected source code places.
+Thus fix the affected source code place.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 16164ff09a86..3ffba8ebba7f 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -247,9 +247,10 @@ static void post_nop_wqe(struct mlx4_ib_qp *qp, int n, int size)
- 	s = sizeof(struct mlx4_wqe_ctrl_seg);
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 75b6522b3a8f..9518b7244269 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1966,10 +1966,8 @@ static int alloc_pv_object(struct mlx4_ib_dev *dev, int slave, int port,
  
- 	if (qp->ibqp.qp_type == IB_QPT_UD) {
--		struct mlx4_wqe_datagram_seg *dgram = wqe + sizeof *ctrl;
-+		struct mlx4_wqe_datagram_seg *dgram = wqe + sizeof(*ctrl);
- 		struct mlx4_av *av = (struct mlx4_av *)dgram->av;
--		memset(dgram, 0, sizeof *dgram);
-+
-+		memset(dgram, 0, sizeof(*dgram));
- 		av->port_pd = cpu_to_be32((qp->port << 24) | to_mpd(qp->ibqp.pd)->pdn);
- 		s += sizeof(struct mlx4_wqe_datagram_seg);
- 	}
-@@ -257,7 +258,8 @@ static void post_nop_wqe(struct mlx4_ib_qp *qp, int n, int size)
- 	/* Pad the remainder of the WQE with an inline data segment. */
- 	if (size > s) {
- 		inl = wqe + s;
--		inl->byte_count = cpu_to_be32(1 << 31 | (size - s - sizeof *inl));
-+		inl->byte_count = cpu_to_be32(1 << 31
-+					      | (size - s - sizeof(*inl)));
- 	}
- 	ctrl->srcrb_flags = 0;
- 	ctrl->qpn_vlan.fence_size = size / 16;
-@@ -727,7 +729,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	if (pd->uobject) {
- 		struct mlx4_ib_create_qp ucmd;
- 
--		if (ib_copy_from_udata(&ucmd, udata, sizeof ucmd)) {
-+		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
- 			err = -EFAULT;
- 			goto err;
- 		}
-@@ -1180,7 +1182,7 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
- 	case IB_QPT_RC:
- 	case IB_QPT_UC:
- 	case IB_QPT_RAW_PACKET:
--		qp = kzalloc(sizeof *qp, gfp);
-+		qp = kzalloc(sizeof(*qp), gfp);
- 		if (!qp)
- 			return ERR_PTR(-ENOMEM);
- 		qp->pri.vid = 0xFFFF;
-@@ -1635,7 +1637,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	    IB_LINK_LAYER_ETHERNET)
- 		return -ENOTSUPP;
- 
--	context = kzalloc(sizeof *context, GFP_KERNEL);
-+	context = kzalloc(sizeof(*context), GFP_KERNEL);
- 	if (!context)
- 		return -ENOMEM;
- 
-@@ -2299,7 +2301,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
- 	struct mlx4_ib_dev *mdev = to_mdev(sqp->qp.ibqp.device);
- 	struct ib_device *ib_dev = &mdev->ib_dev;
- 	struct mlx4_wqe_mlx_seg *mlx = wqe;
--	struct mlx4_wqe_inline_seg *inl = wqe + sizeof *mlx;
-+	struct mlx4_wqe_inline_seg *inl = wqe + sizeof(*mlx);
- 	struct mlx4_ib_ah *ah = to_mah(wr->ah);
- 	u16 pkey;
- 	u32 qkey;
-@@ -2428,7 +2430,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_ud_wr *wr,
- 	struct ib_device *ib_dev = sqp->qp.ibqp.device;
- 	struct mlx4_wqe_mlx_seg *mlx = wqe;
- 	struct mlx4_wqe_ctrl_seg *ctrl = wqe;
--	struct mlx4_wqe_inline_seg *inl = wqe + sizeof *mlx;
-+	struct mlx4_wqe_inline_seg *inl = wqe + sizeof(*mlx);
- 	struct mlx4_ib_ah *ah = to_mah(wr->ah);
- 	union ib_gid sgid;
- 	u16 pkey;
-@@ -2809,7 +2811,7 @@ static void build_tunnel_header(struct ib_ud_wr *wr, void *wqe, unsigned *mlx_se
- 	int spc;
- 	int i;
- 
--	memcpy(&hdr.av, &ah->av, sizeof hdr.av);
-+	memcpy(&hdr.av, &ah->av, sizeof(hdr.av));
- 	hdr.remote_qpn = cpu_to_be32(wr->remote_qpn);
- 	hdr.pkey_index = cpu_to_be16(wr->pkey_index);
- 	hdr.qkey = cpu_to_be32(wr->remote_qkey);
-@@ -2888,7 +2890,7 @@ static int build_lso_seg(struct mlx4_wqe_lso_seg *wqe, struct ib_ud_wr *wr,
- 			 struct mlx4_ib_qp *qp, unsigned *lso_seg_len,
- 			 __be32 *lso_hdr_sz, __be32 *blh)
+ static void free_pv_object(struct mlx4_ib_dev *dev, int slave, int port)
  {
--	unsigned halign = ALIGN(sizeof *wqe + wr->hlen, 16);
-+	unsigned int halign = ALIGN(sizeof(*wqe) + wr->hlen, 16);
- 
- 	if (unlikely(halign > MLX4_IB_CACHE_LINE_SIZE))
- 		*blh = cpu_to_be32(1 << 6);
-@@ -3010,9 +3012,8 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			qp->sq_signal_bits;
- 
- 		ctrl->imm = send_ieth(wr);
--
--		wqe += sizeof *ctrl;
--		size = sizeof *ctrl / 16;
-+		wqe += sizeof(*ctrl);
-+		size = sizeof(*ctrl) / 16;
- 
- 		switch (qp->mlx4_ib_qp_type) {
- 		case MLX4_IB_QPT_RC:
-@@ -3390,7 +3391,7 @@ static void to_ib_ah_attr(struct mlx4_ib_dev *ibdev, struct ib_ah_attr *ib_ah_at
- 	struct mlx4_dev *dev = ibdev->dev;
- 	int is_eth;
- 
--	memset(ib_ah_attr, 0, sizeof *ib_ah_attr);
-+	memset(ib_ah_attr, 0, sizeof(*ib_ah_attr));
- 	ib_ah_attr->port_num	  = path->sched_queue & 0x40 ? 2 : 1;
- 
- 	if (ib_ah_attr->port_num == 0 || ib_ah_attr->port_num > dev->caps.num_ports)
-@@ -3416,7 +3417,7 @@ static void to_ib_ah_attr(struct mlx4_ib_dev *ibdev, struct ib_ah_attr *ib_ah_at
- 		ib_ah_attr->grh.flow_label =
- 			be32_to_cpu(path->tclass_flowlabel) & 0xfffff;
- 		memcpy(ib_ah_attr->grh.dgid.raw,
--			path->rgid, sizeof ib_ah_attr->grh.dgid.raw);
-+			path->rgid, sizeof(ib_ah_attr->grh.dgid.raw));
- 	}
+-	if (dev->sriov.demux[port - 1].tun[slave]) {
+-		kfree(dev->sriov.demux[port - 1].tun[slave]);
+-		dev->sriov.demux[port - 1].tun[slave] = NULL;
+-	}
++	kfree(dev->sriov.demux[port - 1].tun[slave]);
++	dev->sriov.demux[port - 1].tun[slave] = NULL;
  }
  
+ static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
 -- 
 2.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
