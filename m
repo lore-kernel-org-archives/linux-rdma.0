@@ -1,7 +1,7 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 06/29] IB/mlx4: Delete three unnecessary return statements
-Date: Sat, 18 Feb 2017 21:54:06 +0100
-Message-ID: <7edfe4d6-156d-23c9-acef-a6606680a5eb@users.sourceforge.net>
+Subject: [PATCH 01/29] IB/mlx4: Use kcalloc() in mlx4_ib_alloc_pv_bufs()
+Date: Sat, 18 Feb 2017 21:47:53 +0100
+Message-ID: <e2a30e40-a7ad-585b-a694-ab1e9bd532c2@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,47 +14,38 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Fri, 17 Feb 2017 21:34:27 +0100
+Date: Fri, 17 Feb 2017 20:00:34 +0100
 
-The script "checkpatch.pl" pointed information out like the following.
+* A multiplication for the size determination of a memory allocation
+  indicated that an array data structure should be processed.
+  Thus use the corresponding function "kcalloc".
 
-WARNING: void function return statements are not generally useful
+  This issue was detected by using the Coccinelle software.
 
-Thus remove such a statement in the affected functions.
+* Replace the specification of a data structure by a pointer dereference
+  to make the corresponding size determination a bit safer according to
+  the Linux coding style convention.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index d8c27e3ed69a..cf33efce69d2 100644
+index db564ccc0f92..61bd81baeb29 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1173,7 +1173,6 @@ static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
- out:
- 	kfree(in_mad);
- 	kfree(out_mad);
--	return;
- }
+@@ -1600,8 +1600,8 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+ 		return -EINVAL;
  
- void handle_port_mgmt_change_event(struct work_struct *work)
-@@ -2140,7 +2139,6 @@ void mlx4_ib_tunnels_update_work(struct work_struct *work)
- 	mlx4_ib_tunnels_update(dmxw->dev, dmxw->slave, (int) dmxw->port,
- 			       dmxw->do_init);
- 	kfree(dmxw);
--	return;
- }
- 
- static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
-@@ -2268,7 +2266,6 @@ static void mlx4_ib_master_tunnels(struct mlx4_ib_dev *dev, int do_init)
- 	/* initialize or tear down tunnel QPs for the master */
- 	for (i = 0; i < dev->dev->caps.num_ports; i++)
- 		mlx4_ib_tunnels_update(dev, mlx4_master_func_num(dev->dev), i + 1, do_init);
--	return;
- }
- 
- int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ 	tun_qp = &ctx->qp[qp_type];
+-
+-	tun_qp->ring = kzalloc(sizeof (struct mlx4_ib_buf) * MLX4_NUM_TUNNEL_BUFS,
++	tun_qp->ring = kcalloc(MLX4_NUM_TUNNEL_BUFS,
++			       sizeof(*tun_qp->ring),
+ 			       GFP_KERNEL);
+ 	if (!tun_qp->ring)
+ 		return -ENOMEM;
 -- 
 2.11.1
 
