@@ -1,21 +1,21 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 10/29] IB/mlx4: Enclose 15 expressions for the sizeof operator
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 12/29] IB/mlx4: Enclose 17 expressions for the sizeof operator
  by parentheses
-Date: Sat, 18 Feb 2017 21:58:39 +0100
-Message-ID: <c535767b-0cbd-e8e6-e7b0-f2b05cfd05e5@users.sourceforge.net>
+Date: Sat, 18 Feb 2017 22:00:45 +0100
+Message-ID: <9ba34d2d-1d54-4f65-4c01-152c72b624b4@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1935365a-bd7c-461e-6a84-0c5d3a501fff-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 18 Feb 2017 09:54:15 +0100
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 18 Feb 2017 11:28:41 +0100
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -26,136 +26,130 @@ WARNING: sizeof … should be sizeof(…)
 
 Thus fix the affected source code places.
 
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/mlx4/mad.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 35 +++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 860fec8b9601..b26817f0669f 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -195,7 +195,7 @@ static void update_sm_ah(struct mlx4_ib_dev *dev, u8 port_num, u16 lid, u8 sl)
- 	if (!dev->send_agent[port_num - 1][0])
- 		return;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 350c9148340e..b3b5ded85166 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -457,8 +457,8 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
  
--	memset(&ah_attr, 0, sizeof ah_attr);
-+	memset(&ah_attr, 0, sizeof(ah_attr));
- 	ah_attr.dlid     = lid;
- 	ah_attr.sl       = sl;
- 	ah_attr.port_num = port_num;
-@@ -400,7 +400,7 @@ static void forward_trap(struct mlx4_ib_dev *dev, u8 port_num, const struct ib_m
- 		 * it's OK for our devices).
- 		 */
- 		spin_lock_irqsave(&dev->sm_lock, flags);
--		memcpy(send_buf->mad, mad, sizeof *mad);
-+		memcpy(send_buf->mad, mad, sizeof(*mad));
- 		send_buf->ah = dev->sm_ah[port_num - 1];
- 		if (send_buf->ah)
- 			ret = ib_post_send_mad(send_buf, NULL);
-@@ -555,7 +555,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
- 
- 	/* create ah. Just need an empty one with the port num for the post send.
- 	 * The driver will set the force loopback bit in post_send */
--	memset(&attr, 0, sizeof attr);
-+	memset(&attr, 0, sizeof(attr));
- 	attr.port_num = port;
- 	if (is_eth) {
- 		union ib_gid sgid;
-@@ -590,8 +590,8 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
- 
- 	/* copy over to tunnel buffer */
- 	if (grh)
--		memcpy(&tun_mad->grh, grh, sizeof *grh);
--	memcpy(&tun_mad->mad, mad, sizeof *mad);
-+		memcpy(&tun_mad->grh, grh, sizeof(*grh));
-+	memcpy(&tun_mad->mad, mad, sizeof(*mad));
- 
- 	/* adjust tunnel data */
- 	tun_mad->hdr.pkey_index = cpu_to_be16(tun_pkey_ix);
-@@ -961,7 +961,7 @@ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	}
- 	mutex_unlock(&dev->counters_table[port_num - 1].mutex);
- 	if (stats_avail) {
--		memset(out_mad->data, 0, sizeof out_mad->data);
-+		memset(out_mad->data, 0, sizeof(out_mad->data));
- 		switch (counter_stats.counter_mode & 0xf) {
- 		case 0:
- 			edit_counter(&counter_stats,
-@@ -1136,11 +1136,11 @@ static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
- 	if (!mlx4_is_mfunc(dev->dev) || !mlx4_is_master(dev->dev))
- 		return;
- 
--	in_mad  = kmalloc(sizeof *in_mad, GFP_KERNEL);
-+	in_mad  = kmalloc(sizeof(*in_mad), GFP_KERNEL);
- 	if (!in_mad)
- 		return;
- 
+ 	resp.response_length = offsetof(typeof(resp), response_length) +
+ 		sizeof(resp.response_length);
+-	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
 -	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
++	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
 +	out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
- 	if (!out_mad)
- 		goto free_in_mad;
+ 	err = -ENOMEM;
+ 	if (!in_mad || !out_mad)
+ 		goto out;
+@@ -471,8 +471,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 	if (err)
+ 		goto out;
  
-@@ -1149,8 +1149,8 @@ static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
- 	for (i = 0; i < 4; i++) {
- 		if (change_bitmap && (!((change_bitmap >> (8 * i)) & 0xff)))
- 			continue;
--		memset(in_mad, 0, sizeof *in_mad);
--		memset(out_mad, 0, sizeof *out_mad);
-+		memset(in_mad, 0, sizeof(*in_mad));
-+		memset(out_mad, 0, sizeof(*out_mad));
+-	memset(props, 0, sizeof *props);
+-
++	memset(props, 0, sizeof(*props));
+ 	have_ib_ports = num_ib_ports(dev->dev);
  
- 		in_mad->base_version  = 1;
- 		in_mad->mgmt_class    = IB_MGMT_CLASS_SUBN_LID_ROUTED;
-@@ -1421,7 +1421,7 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
- 				   sizeof (struct mlx4_mad_snd_buf),
- 				   DMA_TO_DEVICE);
+ 	props->fw_ver = dev->dev->caps.fw_ver;
+@@ -595,8 +594,8 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+ 	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
  
--	memcpy(&sqp_mad->payload, mad, sizeof *mad);
-+	memcpy(&sqp_mad->payload, mad, sizeof(*mad));
+-	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+-	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
++	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
++	out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+ 		goto out;
  
- 	ib_dma_sync_single_for_device(&dev->ib_dev,
- 				      sqp->tx_ring[wire_tx_ix].buf.map,
-@@ -1804,7 +1804,7 @@ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
+@@ -771,8 +770,8 @@ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	int clear = 0;
+ 	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
  
- 	tun_qp = &ctx->qp[qp_type];
+-	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+-	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
++	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
++	out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+ 		goto out;
  
--	memset(&qp_init_attr, 0, sizeof qp_init_attr);
-+	memset(&qp_init_attr, 0, sizeof(qp_init_attr));
- 	qp_init_attr.init_attr.send_cq = ctx->cq;
- 	qp_init_attr.init_attr.recv_cq = ctx->cq;
- 	qp_init_attr.init_attr.sq_sig_type = IB_SIGNAL_ALL_WR;
-@@ -1837,7 +1837,7 @@ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
- 		return ret;
- 	}
+@@ -908,8 +907,8 @@ int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+ 	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
  
--	memset(&attr, 0, sizeof attr);
-+	memset(&attr, 0, sizeof(attr));
- 	attr.qp_state = IB_QPS_INIT;
- 	ret = 0;
- 	if (create_tun)
-@@ -2184,7 +2184,7 @@ static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
- 		goto err_mcg;
- 	}
+-	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+-	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
++	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
++	out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+ 		goto out;
  
--	snprintf(name, sizeof name, "mlx4_ibt%d", port);
-+	snprintf(name, sizeof(name), "mlx4_ibt%d", port);
- 	ctx->wq = alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
- 	if (!ctx->wq) {
- 		pr_err("Failed to create tunnelling WQ for port %d\n", port);
-@@ -2192,7 +2192,7 @@ static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
- 		goto err_wq;
- 	}
+@@ -1280,7 +1279,7 @@ static struct ib_pd *mlx4_ib_alloc_pd(struct ib_device *ibdev,
+ 	struct mlx4_ib_pd *pd;
+ 	int err;
  
--	snprintf(name, sizeof name, "mlx4_ibud%d", port);
-+	snprintf(name, sizeof(name), "mlx4_ibud%d", port);
- 	ctx->ud_wq = alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
- 	if (!ctx->ud_wq) {
- 		pr_err("Failed to create up/down WQ for port %d\n", port);
+-	pd = kmalloc(sizeof *pd, GFP_KERNEL);
++	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
+ 	if (!pd)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -1319,7 +1318,7 @@ static struct ib_xrcd *mlx4_ib_alloc_xrcd(struct ib_device *ibdev,
+ 	if (!(to_mdev(ibdev)->dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC))
+ 		return ERR_PTR(-ENOSYS);
+ 
+-	xrcd = kmalloc(sizeof *xrcd, GFP_KERNEL);
++	xrcd = kmalloc(sizeof(*xrcd), GFP_KERNEL);
+ 	if (!xrcd)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -1367,7 +1366,7 @@ static int add_gid_entry(struct ib_qp *ibqp, union ib_gid *gid)
+ 	struct mlx4_ib_dev *mdev = to_mdev(ibqp->device);
+ 	struct mlx4_ib_gid_entry *ge;
+ 
+-	ge = kzalloc(sizeof *ge, GFP_KERNEL);
++	ge = kzalloc(sizeof(*ge), GFP_KERNEL);
+ 	if (!ge)
+ 		return -ENOMEM;
+ 
+@@ -2089,8 +2088,8 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ 	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
+ 
+-	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+-	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
++	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
++	out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+ 		goto out;
+ 
+@@ -2600,7 +2599,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (num_ports == 0)
+ 		return NULL;
+ 
+-	ibdev = (struct mlx4_ib_dev *) ib_alloc_device(sizeof *ibdev);
++	ibdev = (struct mlx4_ib_dev *) ib_alloc_device(sizeof(*ibdev));
+ 	if (!ibdev) {
+ 		dev_err(&dev->persist->pdev->dev,
+ 			"Device struct alloc failed\n");
+@@ -3301,12 +3300,12 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 		break;
+ 
+ 	case MLX4_DEV_EVENT_PORT_MGMT_CHANGE:
+-		ew = kmalloc(sizeof *ew, GFP_ATOMIC);
++		ew = kmalloc(sizeof(*ew), GFP_ATOMIC);
+ 		if (!ew)
+ 			break;
+ 
+ 		INIT_WORK(&ew->work, handle_port_mgmt_change_event);
+-		memcpy(&ew->ib_eqe, eqe, sizeof *eqe);
++		memcpy(&ew->ib_eqe, eqe, sizeof(*eqe));
+ 		ew->ib_dev = ibdev;
+ 		/* need to queue only for port owner, which uses GEN_EQE */
+ 		if (mlx4_is_master(dev))
 -- 
 2.11.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
