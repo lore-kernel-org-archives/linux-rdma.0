@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [rdma-core v2 7/9] libbnxt_re: Enable polling for UD completions
-Date: Sat, 18 Feb 2017 10:43:56 -0500
-Message-ID: <1487432638-19607-8-git-send-email-devesh.sharma@broadcom.com>
+Subject: [rdma-core v2 8/9] libbnxt_re: Add support for atomic operations
+Date: Sat, 18 Feb 2017 10:43:57 -0500
+Message-ID: <1487432638-19607-9-git-send-email-devesh.sharma@broadcom.com>
 References: <1487432638-19607-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1487432638-19607-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -9,148 +9,176 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds support to allow polling of send
-and recv completions for a UD qp.
+This patch adds support for compare-and-swap and fetch-and-add
+atomic operations in user library.
+
+v1->v2
+ -- Fixed the missing "break"
+ -- Changed macros to inline function
 
 Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- providers/bnxt_re/bnxt_re-abi.h |  6 ++++++
- providers/bnxt_re/verbs.c       | 43 +++++++++++++++++++++++++++--------------
- 2 files changed, 35 insertions(+), 14 deletions(-)
+ providers/bnxt_re/bnxt_re-abi.h |  3 ++-
+ providers/bnxt_re/main.h        |  8 +++++-
+ providers/bnxt_re/memory.h      | 10 +++++++
+ providers/bnxt_re/verbs.c       | 58 +++++++++++++++++++++++++++++++++++------
+ 4 files changed, 69 insertions(+), 10 deletions(-)
 
 diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-index 3082d76..581e1b7 100644
+index 581e1b7..557221b 100644
 --- a/providers/bnxt_re/bnxt_re-abi.h
 +++ b/providers/bnxt_re/bnxt_re-abi.h
-@@ -174,6 +174,12 @@ enum bnxt_re_ud_flags_mask {
- 	BNXT_RE_UD_FLAGS_ROCE_IPV6	= 0x03
+@@ -54,7 +54,8 @@ enum bnxt_re_wr_opcode {
+ 	BNXT_RE_WR_OPCD_ATOMIC_FA	= 0x0B,
+ 	BNXT_RE_WR_OPCD_LOC_INVAL	= 0x0C,
+ 	BNXT_RE_WR_OPCD_BIND		= 0x0E,
+-	BNXT_RE_WR_OPCD_RECV		= 0x80
++	BNXT_RE_WR_OPCD_RECV		= 0x80,
++	BNXT_RE_WR_OPCD_INVAL		= 0xFF
  };
  
-+enum bnxt_re_ud_cqe_mask {
-+	BNXT_RE_UD_CQE_MAC_MASK		= 0xFFFFFFFFFFFFULL,
-+	BNXT_RE_UD_CQE_SRCQPLO_MASK	= 0xFFFF,
-+	BNXT_RE_UD_CQE_SRCQPLO_SHIFT	= 0x30
-+};
-+
- enum bnxt_re_shpg_offt {
- 	BNXT_RE_SHPG_BEG_RESV_OFFT	= 0x00,
- 	BNXT_RE_SHPG_AVID_OFFT		= 0x10,
-diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index 19c30a0..36a1a6e 100644
---- a/providers/bnxt_re/verbs.c
-+++ b/providers/bnxt_re/verbs.c
-@@ -336,10 +336,8 @@ static uint8_t bnxt_re_poll_scqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
- 	return pcqe;
+ enum bnxt_re_wr_flags {
+diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
+index 9d99c64..a417328 100644
+--- a/providers/bnxt_re/main.h
++++ b/providers/bnxt_re/main.h
+@@ -236,9 +236,15 @@ static inline uint8_t bnxt_re_ibv_to_bnxt_wr_opcd(uint8_t ibv_opcd)
+ 	case IBV_WR_RDMA_READ:
+ 		bnxt_opcd = BNXT_RE_WR_OPCD_RDMA_READ;
+ 		break;
++	case IBV_WR_ATOMIC_CMP_AND_SWP:
++		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_CS;
++		break;
++	case IBV_WR_ATOMIC_FETCH_AND_ADD:
++		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_FA;
++		break;
+ 		/* TODO: Add other opcodes */
+ 	default:
+-		bnxt_opcd = 0xFF;
++		bnxt_opcd = BNXT_RE_WR_OPCD_INVAL;
+ 		break;
+ 	};
+ 
+diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
+index debb31a..d7e6a92 100644
+--- a/providers/bnxt_re/memory.h
++++ b/providers/bnxt_re/memory.h
+@@ -83,6 +83,16 @@ static inline void iowrite32(__u32 *dst, uint32_t *src)
+ 	*(volatile __u32 *)dst = *src;
  }
  
--static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
--				 struct ibv_wc *ibvwc,
--				 struct bnxt_re_bcqe *hdr,
--				 struct bnxt_re_rc_cqe *rcqe)
-+static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
-+				 struct bnxt_re_bcqe *hdr, void *cqe)
- {
- 	struct bnxt_re_queue *rq = qp->rqq;
- 	struct bnxt_re_wrid *rwrid;
-@@ -364,6 +362,10 @@ static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
- 		ibvwc->qp_num = qp->qpid;
- 		ibvwc->opcode = IBV_WC_RECV;
- 		ibvwc->byte_len = 0;
-+		ibvwc->wc_flags = 0;
-+		if (qp->qptyp == IBV_QPT_UD)
-+			ibvwc->src_qp = 0;
-+
- 		bnxt_re_incr_head(qp->rqq);
- 		if (qp->qpst != IBV_QPS_ERR)
- 			qp->qpst = IBV_QPS_ERR;
-@@ -375,16 +377,32 @@ static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
- 	return 1;
- }
- 
-+static void bnxt_re_fill_ud_cqe(struct ibv_wc *ibvwc,
-+				struct bnxt_re_bcqe *hdr, void *cqe)
++static inline __u32 upper_32_bits(uint64_t n)
 +{
-+	struct bnxt_re_ud_cqe *ucqe = cqe;
-+	uint32_t qpid;
-+
-+	qpid = ((hdr->qphi_rwrid >> BNXT_RE_BCQE_SRCQP_SHIFT) &
-+		BNXT_RE_BCQE_SRCQP_SHIFT) << 0x10; /* higher 8 bits of 24 */
-+	qpid |= (ucqe->qplo_mac >> BNXT_RE_UD_CQE_SRCQPLO_SHIFT) &
-+		BNXT_RE_UD_CQE_SRCQPLO_MASK; /*lower 16 of 24 */
-+	ibvwc->src_qp = qpid;
-+	ibvwc->wc_flags |= IBV_WC_GRH;
-+	/*IB-stack ABI in user do not ask for MAC to be reported. */
++	return (__u32)((n >> 16) >> 16);
 +}
 +
- static void bnxt_re_poll_success_rcqe(struct bnxt_re_qp *qp,
- 				      struct ibv_wc *ibvwc,
--				      struct bnxt_re_bcqe *hdr,
--				      struct bnxt_re_rc_cqe *rcqe)
-+				      struct bnxt_re_bcqe *hdr, void *cqe)
- {
- 	struct bnxt_re_queue *rq = qp->rqq;
- 	struct bnxt_re_wrid *rwrid;
-+	struct bnxt_re_rc_cqe *rcqe;
- 	uint32_t head = rq->head;
- 	uint8_t flags, is_imm, is_rdma;
- 
-+	rcqe = cqe;
- 	rwrid = &qp->rwrid[head];
- 
- 	ibvwc->status = IBV_WC_SUCCESS;
-@@ -407,6 +425,9 @@ static void bnxt_re_poll_success_rcqe(struct bnxt_re_qp *qp,
- 			ibvwc->opcode = IBV_WC_RECV_RDMA_WITH_IMM;
- 	}
- 
-+	if (qp->qptyp == IBV_QPT_UD)
-+		bnxt_re_fill_ud_cqe(ibvwc, hdr, cqe);
++static inline __u32 lower_32_bits(uint64_t n)
++{
++	return (__u32)(n & 0xFFFFFFFFUL);
++}
 +
- 	bnxt_re_incr_head(rq);
- }
- 
-@@ -414,19 +435,17 @@ static uint8_t bnxt_re_poll_rcqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
- 				 void *cqe, int *cnt)
+ /* Basic queue operation */
+ static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
  {
- 	struct bnxt_re_bcqe *hdr;
--	struct bnxt_re_rc_cqe *rcqe;
- 	uint8_t status, pcqe = false;
+diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+index 36a1a6e..bc06386 100644
+--- a/providers/bnxt_re/verbs.c
++++ b/providers/bnxt_re/verbs.c
+@@ -1068,6 +1068,9 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
  
--	rcqe = cqe;
- 	hdr = cqe + sizeof(struct bnxt_re_rc_cqe);
+ 	/* Fill Header */
+ 	opcode = bnxt_re_ibv_to_bnxt_wr_opcd(wr->opcode);
++	if (opcode == BNXT_RE_WR_OPCD_INVAL)
++		return -EINVAL;
++
+ 	hdr->rsv_ws_fl_wt |= (opcode & BNXT_RE_HDR_WT_MASK);
  
- 	status = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_STATUS_SHIFT) &
- 		  BNXT_RE_BCQE_STATUS_MASK;
- 	*cnt = 1;
- 	if (status == BNXT_RE_RSP_ST_OK)
--		bnxt_re_poll_success_rcqe(qp, ibvwc, hdr, rcqe);
-+		bnxt_re_poll_success_rcqe(qp, ibvwc, hdr, cqe);
- 	else
--		*cnt = bnxt_re_poll_err_rcqe(qp, ibvwc, hdr, rcqe);
-+		*cnt = bnxt_re_poll_err_rcqe(qp, ibvwc, hdr, cqe);
- 
- 	return pcqe;
+ 	if (is_inline) {
+@@ -1116,6 +1119,44 @@ static int bnxt_re_build_rdma_sqe(struct bnxt_re_qp *qp, void *wqe,
+ 	return len;
  }
-@@ -484,9 +503,6 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
- 			qp = (struct bnxt_re_qp *)scqe->qp_handle;
- 			if (!qp)
- 				break; /*stale cqe. should be rung.*/
--			if (qp->qptyp == IBV_QPT_UD)
--				goto bail; /* TODO: Add UD poll */
--
- 			pcqe = bnxt_re_poll_scqe(qp, wc, cqe, &cnt);
- 			break;
- 		case BNXT_RE_WC_TYPE_RECV_RC:
-@@ -500,7 +516,6 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
- 				goto bail; /*TODO: Add SRQ poll */
  
- 			pcqe = bnxt_re_poll_rcqe(qp, wc, cqe, &cnt);
--			/* TODO: Process UD rcqe */
++static int bnxt_re_build_cns_sqe(struct bnxt_re_qp *qp, void *wqe,
++				 struct ibv_send_wr *wr)
++{
++	struct bnxt_re_bsqe *hdr = wqe;
++	struct bnxt_re_atomic *sqe = ((void *)wqe +
++				      sizeof(struct bnxt_re_bsqe));
++	int len;
++
++	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
++	hdr->key_immd = wr->wr.atomic.rkey;
++	sqe->rva_lo = lower_32_bits(wr->wr.atomic.remote_addr);
++	sqe->rva_hi = upper_32_bits(wr->wr.atomic.remote_addr);
++	sqe->cmp_dt_lo = lower_32_bits(wr->wr.atomic.compare_add);
++	sqe->cmp_dt_hi = upper_32_bits(wr->wr.atomic.compare_add);
++	sqe->swp_dt_lo = lower_32_bits(wr->wr.atomic.swap);
++	sqe->swp_dt_hi = upper_32_bits(wr->wr.atomic.swap);
++
++	return len;
++}
++
++static int bnxt_re_build_fna_sqe(struct bnxt_re_qp *qp, void *wqe,
++				 struct ibv_send_wr *wr)
++{
++	struct bnxt_re_bsqe *hdr = wqe;
++	struct bnxt_re_atomic *sqe = ((void *)wqe +
++				      sizeof(struct bnxt_re_bsqe));
++	int len;
++
++	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
++	hdr->key_immd = wr->wr.atomic.rkey;
++	sqe->rva_lo = lower_32_bits(wr->wr.atomic.remote_addr);
++	sqe->rva_hi = upper_32_bits(wr->wr.atomic.remote_addr);
++	sqe->cmp_dt_lo = lower_32_bits(wr->wr.atomic.compare_add);
++	sqe->cmp_dt_hi = upper_32_bits(wr->wr.atomic.compare_add);
++
++	return len;
++}
++
+ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 		      struct ibv_send_wr **bad)
+ {
+@@ -1169,27 +1210,28 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			else
+ 				bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
+ 							       is_inline);
+-			if (bytes < 0)
+-				ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
  			break;
- 		case BNXT_RE_WC_TYPE_RECV_RAW:
+ 		case IBV_WR_RDMA_WRITE_WITH_IMM:
+ 			hdr->key_immd = wr->imm_data;
+ 		case IBV_WR_RDMA_WRITE:
+ 			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, is_inline);
+-			if (bytes < 0)
+-				ret = ENOMEM;
  			break;
+ 		case IBV_WR_RDMA_READ:
+ 			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, false);
+-			if (bytes < 0)
+-				ret = ENOMEM;
++			break;
++		case IBV_WR_ATOMIC_CMP_AND_SWP:
++			bytes = bnxt_re_build_cns_sqe(qp, sqe, wr);
++			break;
++		case IBV_WR_ATOMIC_FETCH_AND_ADD:
++			bytes = bnxt_re_build_fna_sqe(qp, sqe, wr);
+ 			break;
+ 		default:
+-			ret = EINVAL;
++			bytes = -EINVAL;
+ 			break;
+ 		}
+ 
+-		if (ret) {
++		if (bytes < 0) {
++			ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
+ 			*bad = wr;
+ 			break;
+ 		}
 -- 
 1.8.3.1
 
