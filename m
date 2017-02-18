@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 19/29] IB/mlx4: Delete an unnecessary variable assignment in
- mlx4_ib_add()
-Date: Sat, 18 Feb 2017 22:08:52 +0100
-Message-ID: <3f4e69c8-a030-fb75-26bb-e14208c141c5@users.sourceforge.net>
+Subject: [PATCH 14/29] IB/mlx4: Delete an unnecessary variable in
+ __mlx4_ib_query_gid()
+Date: Sat, 18 Feb 2017 22:02:58 +0100
+Message-ID: <cfca8f30-bb68-4ed8-3161-36d4808b06f1@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,29 +15,50 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 18 Feb 2017 16:00:28 +0100
+Date: Sat, 18 Feb 2017 15:04:50 +0100
 
-Delete an assignment for the local variable "num_ports" at the beginning
-because it was initialised with the same value.
+* Call the function "memset" directly in an if branch without using
+  an intermediate variable.
+
+* Delete the local variable "clear" which became unnecessary with
+  this refactoring.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 4e08e4d57181..21b88d5ceda4 100644
+index c0c299ffa0f6..89bbb61d62f5 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2615,8 +2615,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	struct counter_index *new_counter_index;
+@@ -777,7 +777,6 @@ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	struct ib_smp *out_mad;
+ 	int err;
+ 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+-	int clear = 0;
+ 	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
  
- 	pr_info_once("%s", mlx4_ib_version);
--
--	num_ports = 0;
- 	mlx4_foreach_ib_transport_port(i, dev)
- 		num_ports++;
+ 	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
+@@ -806,8 +805,8 @@ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	if (mlx4_is_mfunc(dev->dev) && !netw_view) {
+ 		if (index) {
+ 			/* For any index > 0, return the null guid */
++			memset(gid->raw + 8, 0, 8);
+ 			err = 0;
+-			clear = 1;
+ 			goto out;
+ 		}
+ 	}
+@@ -824,8 +823,6 @@ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	memcpy(gid->raw + 8, out_mad->data + (index % 8) * 8, 8);
  
+ out:
+-	if (clear)
+-		memset(gid->raw + 8, 0, 8);
+ 	kfree(out_mad);
+ free_in_mad:
+ 	kfree(in_mad);
 -- 
 2.11.1
 
