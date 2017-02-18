@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 27/29] IB/mlx5: Use kmalloc_array() in create_kernel_qp()
-Date: Sat, 18 Feb 2017 22:17:03 +0100
-Message-ID: <afd15d0b-cc4f-4d59-14ab-bd59f3536c39@users.sourceforge.net>
+Subject: [PATCH 28/29] IB/mlx5: Less function calls in create_kernel_qp()
+ after error detection
+Date: Sat, 18 Feb 2017 22:18:16 +0100
+Message-ID: <01c34ad6-5a61-84dd-8749-ea2b69eb2381@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,51 +15,111 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 18 Feb 2017 20:12:44 +0100
+Date: Sat, 18 Feb 2017 21:00:50 +0100
 
-Multiplications for the size determination of memory allocations
-indicated that array data structures should be processed.
-Thus use the corresponding function "kmalloc_array".
+The kfree() function was called in up to five cases
+by the create_kernel_qp() function during error handling
+even if the passed data structure member contained a null pointer.
 
-This issue was detected by using the Coccinelle software.
+* Adjust jump targets according to the Linux coding style convention.
+
+* Split a condition check for memory allocation failures so that
+  each pointer from these function calls will be checked immediately.
+
+  See also background information:
+  Topic "CWE-754: Improper check for unusual or exceptional conditions"
+  Link: https://cwe.mitre.org/data/definitions/754.html
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 43 ++++++++++++++++++++++++++---------------
+ 1 file changed, 27 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5ed5208d0ddd..e6e9b468b206 100644
+index e6e9b468b206..c47afce5fc6a 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -955,12 +955,21 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
- 		goto err_free;
+@@ -930,7 +930,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 	*in = mlx5_vzalloc(*inlen);
+ 	if (!*in) {
+ 		err = -ENOMEM;
+-		goto err_buf;
++		goto free_buffer;
  	}
  
--	qp->sq.wrid = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wrid), GFP_KERNEL);
--	qp->sq.wr_data = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wr_data), GFP_KERNEL);
--	qp->rq.wrid = kmalloc(qp->rq.wqe_cnt * sizeof(*qp->rq.wrid), GFP_KERNEL);
--	qp->sq.w_list = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.w_list), GFP_KERNEL);
--	qp->sq.wqe_head = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wqe_head), GFP_KERNEL);
+ 	qpc = MLX5_ADDR_OF(create_qp_in, *in, qpc);
+@@ -952,45 +952,56 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 	err = mlx5_db_alloc(dev->mdev, &qp->db);
+ 	if (err) {
+ 		mlx5_ib_dbg(dev, "err %d\n", err);
+-		goto err_free;
++		goto vfree_in;
+ 	}
+ 
+ 	qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt,
+ 				    sizeof(*qp->sq.wrid),
+ 				    GFP_KERNEL);
++	if (!qp->sq.wrid)
++		goto free_db;
++
+ 	qp->sq.wr_data = kmalloc_array(qp->sq.wqe_cnt,
+ 				       sizeof(*qp->sq.wr_data),
+ 				       GFP_KERNEL);
++	if (!qp->sq.wr_data)
++		goto free_sq_wrid;
++
+ 	qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt,
+ 				    sizeof(*qp->rq.wrid),
+ 				    GFP_KERNEL);
++	if (!qp->rq.wrid)
++		goto free_sq_wr_data;
++
+ 	qp->sq.w_list = kmalloc_array(qp->sq.wqe_cnt,
+ 				      sizeof(*qp->sq.w_list),
+ 				      GFP_KERNEL);
++	if (!qp->sq.w_list)
++		goto free_rq_wrid;
++
+ 	qp->sq.wqe_head = kmalloc_array(qp->sq.wqe_cnt,
+ 					sizeof(*qp->sq.wqe_head),
+ 					GFP_KERNEL);
+-	if (!qp->sq.wrid || !qp->sq.wr_data || !qp->rq.wrid ||
+-	    !qp->sq.w_list || !qp->sq.wqe_head) {
+-		err = -ENOMEM;
+-		goto err_wrid;
+-	}
++	if (!qp->sq.wqe_head)
++		goto free_sq_w_list;
++
+ 	qp->create_type = MLX5_QP_KERNEL;
+ 
+ 	return 0;
 -
-+	qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt,
-+				    sizeof(*qp->sq.wrid),
-+				    GFP_KERNEL);
-+	qp->sq.wr_data = kmalloc_array(qp->sq.wqe_cnt,
-+				       sizeof(*qp->sq.wr_data),
-+				       GFP_KERNEL);
-+	qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt,
-+				    sizeof(*qp->rq.wrid),
-+				    GFP_KERNEL);
-+	qp->sq.w_list = kmalloc_array(qp->sq.wqe_cnt,
-+				      sizeof(*qp->sq.w_list),
-+				      GFP_KERNEL);
-+	qp->sq.wqe_head = kmalloc_array(qp->sq.wqe_cnt,
-+					sizeof(*qp->sq.wqe_head),
-+					GFP_KERNEL);
- 	if (!qp->sq.wrid || !qp->sq.wr_data || !qp->rq.wrid ||
- 	    !qp->sq.w_list || !qp->sq.wqe_head) {
- 		err = -ENOMEM;
+-err_wrid:
+-	kfree(qp->sq.wqe_head);
++free_sq_w_list:
+ 	kfree(qp->sq.w_list);
+-	kfree(qp->sq.wrid);
+-	kfree(qp->sq.wr_data);
++free_rq_wrid:
+ 	kfree(qp->rq.wrid);
++free_sq_wr_data:
++	kfree(qp->sq.wr_data);
++free_sq_wrid:
++	kfree(qp->sq.wrid);
++free_db:
+ 	mlx5_db_free(dev->mdev, &qp->db);
+-
+-err_free:
++	err = -ENOMEM;
++vfree_in:
+ 	kvfree(*in);
+-
+-err_buf:
++free_buffer:
+ 	mlx5_buf_free(dev->mdev, &qp->buf);
+ 	return err;
+ }
 -- 
 2.11.1
 
