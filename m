@@ -1,8 +1,7 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 17/29] IB/mlx4: Improve another size determination in
- mlx4_ib_add()
-Date: Sat, 18 Feb 2017 22:05:43 +0100
-Message-ID: <2269d63f-433d-b62b-06f2-38a4d9d466f4@users.sourceforge.net>
+Subject: [PATCH 11/29] IB/mlx4: Use kmalloc_array() in three functions
+Date: Sat, 18 Feb 2017 21:59:51 +0100
+Message-ID: <3002f281-292a-c53e-0b37-d23a3be0d5d7@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,33 +14,58 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 18 Feb 2017 15:43:54 +0100
+Date: Sat, 18 Feb 2017 10:32:32 +0100
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Multiplications for the size determination of memory allocations
+indicated that array data structures should be processed.
+Thus use the corresponding function "kmalloc_array".
+
+This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index b78f17623121..f3194f2a6e62 100644
+index ba6af84cc236..350c9148340e 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2825,9 +2825,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+@@ -304,7 +304,9 @@ static int mlx4_ib_add_gid(struct ib_device *device,
+ 		ctx->refcount++;
  	}
- 	if (mlx4_is_bonded(dev))
- 		for (i = 1; i < ibdev->num_ports ; ++i) {
--			new_counter_index =
--					kmalloc(sizeof(struct counter_index),
--						GFP_KERNEL);
-+			new_counter_index = kmalloc(sizeof(*new_counter_index),
-+						    GFP_KERNEL);
- 			if (!new_counter_index)
- 				goto err_counter;
- 			new_counter_index->index = counter_index;
+ 	if (!ret && hw_update) {
+-		gids = kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_ATOMIC);
++		gids = kmalloc_array(MLX4_MAX_PORT_GIDS,
++				     sizeof(*gids),
++				     GFP_ATOMIC);
+ 		if (!gids) {
+ 			ret = -ENOMEM;
+ 		} else {
+@@ -359,7 +361,9 @@ static int mlx4_ib_del_gid(struct ib_device *device,
+ 	if (!ret && hw_update) {
+ 		int i;
+ 
+-		gids = kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_ATOMIC);
++		gids = kmalloc_array(MLX4_MAX_PORT_GIDS,
++				     sizeof(*gids),
++				     GFP_ATOMIC);
+ 		if (!gids) {
+ 			ret = -ENOMEM;
+ 		} else {
+@@ -2828,9 +2832,9 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			goto err_counter;
+ 
+ 		ibdev->ib_uc_qpns_bitmap =
+-			kmalloc(BITS_TO_LONGS(ibdev->steer_qpn_count) *
+-				sizeof(long),
+-				GFP_KERNEL);
++			kmalloc_array(BITS_TO_LONGS(ibdev->steer_qpn_count),
++				      sizeof(long),
++				      GFP_KERNEL);
+ 		if (!ibdev->ib_uc_qpns_bitmap)
+ 			goto err_steer_qp_release;
+ 
 -- 
 2.11.1
 
