@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 02/29] IB/mlx4: Improve another size determination in
- mlx4_ib_alloc_pv_bufs()
-Date: Sat, 18 Feb 2017 21:49:01 +0100
-Message-ID: <14b2089f-f52c-0b18-90d5-810abc9f9fd6@users.sourceforge.net>
+Subject: [PATCH 03/29] IB/mlx4: Improve another size determination in
+ mlx4_ib_alloc_demux_ctx()
+Date: Sat, 18 Feb 2017 21:50:20 +0100
+Message-ID: <73833337-ea01-edcb-d9a7-85ac8a03c0c7@users.sourceforge.net>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,9 +15,9 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Fri, 17 Feb 2017 20:05:38 +0100
+Date: Fri, 17 Feb 2017 20:15:02 +0100
 
-Replace the specification of a data structure by a pointer dereference
+Replace the specification of a data type by a pointer dereference
 as the parameter for the operator "sizeof" to make the corresponding size
 determination a bit safer according to the Linux coding style convention.
 
@@ -27,18 +27,18 @@ Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.g
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 61bd81baeb29..858da8746d49 100644
+index 858da8746d49..284634d36b1c 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1607,7 +1607,7 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+@@ -2150,7 +2150,7 @@ static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
+ 	int i;
+ 
+ 	ctx->tun = kcalloc(dev->dev->caps.sqp_demux,
+-			   sizeof (struct mlx4_ib_demux_pv_ctx *), GFP_KERNEL);
++			   sizeof(*ctx->tun), GFP_KERNEL);
+ 	if (!ctx->tun)
  		return -ENOMEM;
  
- 	tun_qp->tx_ring = kcalloc(MLX4_NUM_TUNNEL_BUFS,
--				  sizeof (struct mlx4_ib_tun_tx_buf),
-+				  sizeof(*tun_qp->tx_ring),
- 				  GFP_KERNEL);
- 	if (!tun_qp->tx_ring) {
- 		kfree(tun_qp->ring);
 -- 
 2.11.1
 
