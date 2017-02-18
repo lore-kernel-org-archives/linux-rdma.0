@@ -1,60 +1,48 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 00/29] IB/mlx: Fine-tuning for several function
- implementations
-Date: Sat, 18 Feb 2017 21:45:51 +0100
-Message-ID: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 02/29] IB/mlx4: Improve another size determination in
+ mlx4_ib_alloc_pv_bufs()
+Date: Sat, 18 Feb 2017 21:49:01 +0100
+Message-ID: <14b2089f-f52c-0b18-90d5-810abc9f9fd6@users.sourceforge.net>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1935365a-bd7c-461e-6a84-0c5d3a501fff-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 18 Feb 2017 21:34:32 +0100
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 17 Feb 2017 20:05:38 +0100
 
-Several update suggestions were taken into account
-from static source code analysis.
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-Markus Elfring (29):
-  Use kcalloc() in mlx4_ib_alloc_pv_bufs()
-  Improve another size determination in mlx4_ib_alloc_pv_bufs()
-  Improve another size determination in mlx4_ib_alloc_demux_ctx()
-  Improve another size determination in alloc_pv_object()
-  Fix a typo in a comment line
-  Delete three unnecessary return statements
-  Split a condition check in handle_slaves_guid_change()
-  Delete an unnecessary check before the function call "kfree" in free_pv_object()
-  Move an assignment out of a check in forward_trap()
-  Enclose 15 expressions for the sizeof operator by parentheses
-  Use kmalloc_array() in three functions
-  Enclose 17 expressions for the sizeof operator by parentheses
-  Split a condition check in five functions
-  Delete an unnecessary variable in __mlx4_ib_query_gid()
-  Delete an unnecessary return statement in do_slave_init()
-  Improve another size determination in do_slave_init()
-  Improve another size determination in mlx4_ib_add()
-  Delete an unnecessary variable initialisation in mlx4_ib_add()
-  Delete an unnecessary variable assignment in mlx4_ib_add()
-  Delete an error message for a failed memory allocation in mlx4_ib_add()
-  Delete unnecessary braces in mlx4_ib_add()
-  Use kmalloc_array() in alloc_proxy_bufs()
-  Improve size determinations in create_qp_common()
-  Delete unwanted spaces behind usages of the sizeof operator
-  Add spaces for better code readability
-  Enclose 14 expressions for the sizeof operator by parentheses
-  Use kmalloc_array() in create_kernel_qp()
-  Less function calls in create_kernel_qp() after error detection
-  Use kmalloc_array() in create_srq_kernel()
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/mad.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/hw/mlx4/mad.c  |  72 ++++++++--------
- drivers/infiniband/hw/mlx4/main.c | 164 ++++++++++++++++++++----------------
- drivers/infiniband/hw/mlx4/qp.c   | 173 +++++++++++++++++++-------------------
- drivers/infiniband/hw/mlx5/qp.c   |  66 ++++++++++-----
- drivers/infiniband/hw/mlx5/srq.c  |   5 +-
- 5 files changed, 261 insertions(+), 219 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 61bd81baeb29..858da8746d49 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1607,7 +1607,7 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
+ 		return -ENOMEM;
+ 
+ 	tun_qp->tx_ring = kcalloc(MLX4_NUM_TUNNEL_BUFS,
+-				  sizeof (struct mlx4_ib_tun_tx_buf),
++				  sizeof(*tun_qp->tx_ring),
+ 				  GFP_KERNEL);
+ 	if (!tun_qp->tx_ring) {
+ 		kfree(tun_qp->ring);
 -- 
 2.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
