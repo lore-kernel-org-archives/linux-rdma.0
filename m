@@ -1,117 +1,139 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH rfc 4/4] iscsi-target: use generic inet_pton_with_scope
-Date: Sat, 18 Feb 2017 21:54:02 -0800
-Message-ID: <1487483642.2958.43.camel@haakon3.risingtidesystems.com>
-References: <1487267017-29904-1-git-send-email-sagi@grimberg.me>
-         <1487267017-29904-5-git-send-email-sagi@grimberg.me>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: iSER fails to release rdma resources (WRs) if iw_cxgb4 is
+ unloaded while IO is in progress
+Date: Sun, 19 Feb 2017 11:23:29 +0200
+Message-ID: <c0a53feb-8c15-54af-c443-fbc4f3d5ec0e@mellanox.com>
+References: <CY1PR12MB077405C1FA5279D200AD3089BC4D0@CY1PR12MB0774.namprd12.prod.outlook.com>
+ <49223bb6-e2a1-eee7-cf4e-701957e6727f@mellanox.com>
+ <CY1PR12MB07749731AC32F7BE065CC51DBC4C0@CY1PR12MB0774.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1487267017-29904-5-git-send-email-sagi@grimberg.me>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CY1PR12MB07749731AC32F7BE065CC51DBC4C0-1s8aH8ViOEdztePUUsNjzQdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-02-16 at 19:43 +0200, Sagi Grimberg wrote:
-> Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
-> ---
->  drivers/target/iscsi/iscsi_target_configfs.c | 46 ++++++++--------------------
->  1 file changed, 12 insertions(+), 34 deletions(-)
-> 
-> diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configfs.c
-> index bf40f03755dd..f30c27b83c5e 100644
-> --- a/drivers/target/iscsi/iscsi_target_configfs.c
-> +++ b/drivers/target/iscsi/iscsi_target_configfs.c
-> @@ -167,10 +167,7 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
->  	struct iscsi_portal_group *tpg;
->  	struct iscsi_tpg_np *tpg_np;
->  	char *str, *str2, *ip_str, *port_str;
-> -	struct sockaddr_storage sockaddr;
-> -	struct sockaddr_in *sock_in;
-> -	struct sockaddr_in6 *sock_in6;
-> -	unsigned long port;
-> +	struct sockaddr_storage sockaddr = { };
->  	int ret;
->  	char buf[MAX_PORTAL_LEN + 1];
->  
-> @@ -182,21 +179,19 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
->  	memset(buf, 0, MAX_PORTAL_LEN + 1);
->  	snprintf(buf, MAX_PORTAL_LEN + 1, "%s", name);
->  
-> -	memset(&sockaddr, 0, sizeof(struct sockaddr_storage));
-> -
->  	str = strstr(buf, "[");
->  	if (str) {
-> -		const char *end;
-> -
->  		str2 = strstr(str, "]");
->  		if (!str2) {
->  			pr_err("Unable to locate trailing \"]\""
->  				" in IPv6 iSCSI network portal address\n");
->  			return ERR_PTR(-EINVAL);
->  		}
-> -		str++; /* Skip over leading "[" */
-> +
-> +		ip_str = str + 1; /* Skip over leading "[" */
->  		*str2 = '\0'; /* Terminate the unbracketed IPv6 address */
->  		str2++; /* Skip over the \0 */
-> +
->  		port_str = strstr(str2, ":");
->  		if (!port_str) {
->  			pr_err("Unable to locate \":port\""
-> @@ -205,23 +200,8 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
->  		}
->  		*port_str = '\0'; /* Terminate string for IP */
->  		port_str++; /* Skip over ":" */
-> -
-> -		ret = kstrtoul(port_str, 0, &port);
-> -		if (ret < 0) {
-> -			pr_err("kstrtoul() failed for port_str: %d\n", ret);
-> -			return ERR_PTR(ret);
-> -		}
-> -		sock_in6 = (struct sockaddr_in6 *)&sockaddr;
-> -		sock_in6->sin6_family = AF_INET6;
-> -		sock_in6->sin6_port = htons((unsigned short)port);
-> -		ret = in6_pton(str, -1,
-> -				(void *)&sock_in6->sin6_addr.in6_u, -1, &end);
-> -		if (ret <= 0) {
-> -			pr_err("in6_pton returned: %d\n", ret);
-> -			return ERR_PTR(-EINVAL);
-> -		}
->  	} else {
-> -		str = ip_str = &buf[0];
-> +		ip_str = &buf[0];
->  		port_str = strstr(ip_str, ":");
->  		if (!port_str) {
->  			pr_err("Unable to locate \":port\""
-> @@ -230,17 +210,15 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
->  		}
->  		*port_str = '\0'; /* Terminate string for IP */
->  		port_str++; /* Skip over ":" */
-> +	}
->  
-> -		ret = kstrtoul(port_str, 0, &port);
-> -		if (ret < 0) {
-> -			pr_err("kstrtoul() failed for port_str: %d\n", ret);
-> -			return ERR_PTR(ret);
-> -		}
-> -		sock_in = (struct sockaddr_in *)&sockaddr;
-> -		sock_in->sin_family = AF_INET;
-> -		sock_in->sin_port = htons((unsigned short)port);
-> -		sock_in->sin_addr.s_addr = in_aton(ip_str);
-> +	ret = inet_pton_with_scope(&init_net, AF_UNSPEC, ip_str,
-> +			port_str, &sockaddr);
-> +	if (ret) {
-> +		pr_err("malformed ip/port passed: %s\n", name);
-> +		return ERR_PTR(ret);
->  	}
-> +
->  	tpg = container_of(se_tpg, struct iscsi_portal_group, tpg_se_tpg);
->  	ret = iscsit_get_tpg(tpg);
->  	if (ret < 0)
+Adding Vladimir that was debugging this issue.
 
-A nice cleanup.
+Sagi,
+there is a comment that was added in commit 3a940daf6fa1 "IB/iser: 
+Protect tasks cleanup in case IB device was already released"
+that "DEVICE_REMOVAL event might have already released the device"
+but it is possible and this is the case now, that not all the tasks 
+where cleaned up. We actually destroy the low level structures but the 
+upper layer (iscsi) still has some tasks that should be cleaned.
+Also we need to think about the case of the absence of the iscsid and 
+this makes the situation more difficult.
 
-Acked-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Vladimir,
+please add your patch for Raju to check and let's start thinking of 
+pushing this fix to main code.
+
+Max.
+
+
+On 2/2/2017 7:09 AM, Raju  Rangoju wrote:
+> Hi Max,
+>
+> I have tried the patch, but no luck. Issue is still seen.
+>
+> -Raju
+>
+> -----Original Message-----
+> From: Max Gurtovoy [mailto:maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> Sent: 01 February 2017 20:48
+> To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>; Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>; Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Subject: Re: iSER fails to release rdma resources (WRs) if iw_cxgb4 is unloaded while IO is in progress
+>
+> hi Raju,
+> please apply the attached patch I want to push soon (still haven't find the chance to test it).
+> I'm not sure it will solve your problem but let's try it.
+>
+> thanks,
+> Max.
+>
+> On 2/1/2017 11:08 AM, Raju  Rangoju wrote:
+>>
+>> Hello Sagi,
+>>
+>> I intermittently see an issue with iser when unloading the iw_cxgb4 module while traffic is running. Apparently the rdma resources are not getting released when the iser receives RDMA_CM_EVENT_DEVICE_REMOVAL event while the IO in progress. iser_cma_handler() upon receiving the DEVICE_REMOVAL event, destroys the device by calling iser_cleanup_handler(). iser_free_ib_conn_res() destroys the qp and calls iser_free_fastreg_pool() to free the Memory Regions in the fastreg_pool list, and then it calls ib_dealloc_pd.
+>>
+>> Issue:
+>>
+>> iSCSI uses its .xmit_task and .cleanup_task callbacks to get/put MRs from iser fr_pool(fastreg_pool) during the normal IO, at this point if the DEVICE_REMOVAL event is received, iser_cma_handler()->iser_cleanup_handler() it simply releases the available MRs in the fr_pool list (some MRs may have been moved to running task list) and eventually calls ib_dealloc_pd, which ends up hitting kernel panic as some registered MRs are not freed up.
+>>
+>> iser_free_fastreg_pool() complains about the registered regions; "pool still has %d regions registered"
+>>
+>> Trace:
+>>
+>> iser: iser_free_fastreg_pool: pool still has 1 regions registered
+>> iser: iser_device_try_release: device ffff880508660080 refcount 0
+>> iw_cxgb4:c4iw_destroy_cq ib_cq ffff8803f3addc00
+>> iw_cxgb4:c4iw_wait_for_reply add wr_waitp ffffc9000dd83a28
+>> ------------[ cut here ]------------
+>> WARNING: CPU: 7 PID: 14790 at drivers/infiniband/core/verbs.c:305
+>> ib_dealloc_pd+0x87/0xd0 [ib_core] Modules linked in: rdma_ucm ib_uverbs iw_cxgb4(OE-) autofs4 target_core_iblock target_core_file target_core_pscsi target_core_mod bnx2fc fcoe libfcoe 8021q libfc garp stp llc scsi_transport_fc cpufreq_ondemand be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb3i libcxgbi iw_cxgb3 cxgb3 mdio libcxgb ib_iser rdma_cm ib_cm iw_cm ib_core configfs ipv6 crc_ccitt iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi uinput ppdev iTCO_wdt iTCO_vendor_support serio_raw pcspkr parport_pc parport tpm_infineon sg i2c_i801 i2c_core lpc_ich mfd_core e1000e acpi_cpufreq i7core_edac edac_core ioatdma dca ext4(E) mbcache(E) jbd2(E) sd_mod(E) pata_acpi(E) ata_generic(E) ata_piix(E) floppy(E) cxgb4(OE) ptp(E) pps_core(E) dm_mirror(E) dm_region_hash(E) dm_log(E) dm_mod(E)
+>> CPU: 7 PID: 14790 Comm: rmmod Tainted: G           OE   4.10.0-rc4+ #22
+>> Hardware name: Supermicro X8ST3/X8ST3, BIOS 2.0        07/29/10
+>> Call Trace:
+>> dump_stack+0x51/0x78
+>> __warn+0xfd/0x120
+>> warn_slowpath_null+0x1d/0x20
+>> ib_dealloc_pd+0x87/0xd0 [ib_core]
+>> ? ib_unregister_event_handler+0x6d/0x80 [ib_core] ?
+>> mutex_lock+0x16/0x40
+>> iser_device_try_release+0x81/0x120 [ib_iser] ?
+>> iser_free_rx_descriptors+0xd3/0xf0 [ib_iser]
+>> iser_free_ib_conn_res+0x75/0xb0 [ib_iser]
+>> iser_cleanup_handler+0x41/0x70 [ib_iser]
+>> iser_cma_handler+0x1c9/0x220 [ib_iser]
+>> cma_remove_id_dev+0x8f/0xa0 [rdma_cm]
+>> cma_process_remove+0x127/0x170 [rdma_cm] ? kobject_cleanup+0x82/0x1b0
+>> ? kobject_release+0xd/0x10
+>> cma_remove_one+0x6f/0x90 [rdma_cm]
+>> ib_unregister_device+0xe7/0x190 [ib_core]
+>> c4iw_unregister_device+0x79/0x90 [iw_cxgb4] c4iw_remove+0x45/0x6c
+>> [iw_cxgb4]
+>> c4iw_exit_module+0x31/0x75 [iw_cxgb4]
+>> SyS_delete_module+0x183/0x1d0
+>> ? syscall_trace_enter+0x154/0x1f0
+>> ? SyS_munmap+0x6e/0x90
+>> do_syscall_64+0x6c/0x160
+>> entry_SYSCALL64_slow_path+0x25/0x25
+>> RIP: 0033:0x37d22e8ee7
+>> RSP: 002b:00007ffedd1877b8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
+>> RAX: ffffffffffffffda RBX: 00007ffedd1877c0 RCX: 00000037d22e8ee7
+>> RDX: 00007ffedd1877af RSI: 0000000000000880 RDI: 00007ffedd1877c0
+>> RBP: 00007ffedd187810 R08: 00007f0120b48700 R09: 0000000000000100
+>> R10: 0000000000000011 R11: 0000000000000206 R12: 0000000000000880
+>> R13: 00007ffedd188735 R14: 0000000000000000 R15: 0000000000000001 ---[
+>> end trace 9bdbdddd5759d7e6 ]---
+>>
+>>
+>> Steps to reproduce:
+>> 1. Bring up the iser target setup
+>> 2. Bring up the iser initiator setup
+>> 3. From DUT(initiator) login to all the Targets and start IOzone traffic on all the mounted luns.
+>> 4. Now unload iw_cxgb4 module on the iser initiator setup.
+>>
+>>
+>> This is a generic issue, seen with other vendors also.
+>>
+>> Could you give me a few pointers on how to debug it further to address this issue?
+>> I am happy to provide any details further.
+>>
+>> Thank you for any help you can provide, -Raju
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
+>> info at  http://vger.kernel.org/majordomo-info.html
+>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
