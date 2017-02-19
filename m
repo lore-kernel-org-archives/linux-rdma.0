@@ -1,76 +1,193 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 6/7] IB/core: Add support for fd objects
-Date: Sun, 19 Feb 2017 14:47:02 +0200
-Message-ID: <CAAKD3BD-Uyg9bN=EaB3GbqhaKsKUszKXD6YaVAUxBp8cQcJgbQ@mail.gmail.com>
-References: <1485952745-58476-1-git-send-email-matanb@mellanox.com>
- <1485952745-58476-7-git-send-email-matanb@mellanox.com> <20170210210350.GE4335@obsidianresearch.com>
- <CAAKD3BDbQVfC06Kzud=j=+a32YFxwcxrqm41SyhL0uWXm0O0Hw@mail.gmail.com> <20170215185448.GE19162@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: clean up send_connect()
+Date: Sun, 19 Feb 2017 08:12:48 -0500
+Message-ID: <1487509968.86943.101.camel@redhat.com>
+References: <1485844209-15727-1-git-send-email-ganeshgr@chelsio.com>
+         <CY4PR12MB1432FF43E0F4801D72230171C15B0@CY4PR12MB1432.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-rBMMbIvna4XBgtZy4QTC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170215185448.GE19162-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CY4PR12MB1432FF43E0F4801D72230171C15B0-rpdhrqHFk04JlWDAAl3wnwdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Ganesh GR <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 15, 2017 at 8:54 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Feb 15, 2017 at 03:48:40PM +0200, Matan Barak wrote:
->> >> +static struct ib_uobject *lookup_get_fd_uobject(const struct uverbs_obj_type *type,
->> >> +                                             struct ib_ucontext *ucontext,
->> >> +                                             int id, bool write)
->> >> +{
->> >> +     struct file *f;
->> >> +     struct ib_uobject *uobject;
->> >> +     const struct uverbs_obj_fd_type *fd_type =
->> >> +             container_of(type, struct uverbs_obj_fd_type, type);
->> >> +
->> >> +     if (write)
->> >> +             return ERR_PTR(-EOPNOTSUPP);
->> >> +
->> >> +     f = fget(id);
->> >> +     if (!f)
->> >> +             return ERR_PTR(-EBADF);
->> >> +
->> >> +     uobject = f->private_data;
->> >> +     if (f->f_op != fd_type->fops ||
->> >> +         !uobject->context) {
->> >> +             fput(f);
->> >> +             return ERR_PTR(-EBADF);
->> >> +     }
->> >
->> > The read of uobject->context needs locking
->> >
->>
->> All these callbacks are assumed to run when the context is alive.
->
-> 'uboject->context' is touched outside the SRCU, eg in
-> uverbs_close_fd() - so it absolutely needs locking.
->
 
-uobject->context isn't protected by SRCU as intended.
-lookup_get_fd_uobject can't be
-executed concurrently with uverbs_close_fd, as uverbs_close_fd is
-called when the
-last reference of the fd is put and in that case fget called by
-lookup_get_fd_uobject
-would simply fail. Since fput and fget are atomically safe, this should be safe.
+--=-rBMMbIvna4XBgtZy4QTC
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
 
->> The only call we allow the user to execute while this is in process
->> is uverbs_close_fd and that's why this is the only call which is
->> protected by the cleanup_mutex.
->
-> So cleanup_mutex would need to be held during lookup
->
+T24gV2VkLCAyMDE3LTAyLTE1IGF0IDE4OjE3ICswMDAwLCBHYW5lc2ggR1Igd3JvdGU6Cj4gSGV5
+IERvdWcsCj4gCj4gSSB0aGluayB5b3UgbWlzc2VkIHRoaXMgcGF0Y2guCgpObywgaXQgd2FzIHRv
+byBiaWcgZm9yIHRoZSByYyBjeWNsZSBsYXN0IHRpbWUsIGJ1dCBJIGRpZG4ndCBmb3JnZXQgaXQu
+CsKgSXQncyBhcHBsaWVkIG5vdywgdGhhbmtzLgoKPiBUaGFua3MKPiBHYW5lc2gKPiBGcm9tOiBH
+YW5lc2ggR291ZGFyIDxnYW5lc2hnckBjaGVsc2lvLmNvbT4KPiBTZW50OiBUdWVzZGF5LCBKYW51
+YXJ5IDMxLCAyMDE3IDEyOjAwOjA5IFBNCj4gVG86IGRsZWRmb3JkQHJlZGhhdC5jb20KPiBDYzog
+bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IFNXaXNlIE9HQzsgR2FuZXNoIEdSOyBQb3RudXJp
+IEJoYXJhdAo+IFRlamEKPiBTdWJqZWN0OiBbUEFUQ0hdIGl3X2N4Z2I0OiBjbGVhbiB1cCBzZW5k
+X2Nvbm5lY3QoKQo+IMKgCj4gQ2xlYW4gdXAgc2VuZF9jb25uZWN0KCkgYW5kIG1ha2UgdXNlIG9m
+IHQ2IHNwZWNpZmljCj4gYWN0aXZlIG9wZW4gcmVxdWVzdCBzdHJ1Y3QuCj4gCj4gQWNrZWQtYnk6
+IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbT4KPiBTaWduZWQtb2ZmLWJ5
+OiBCaGFyYXQgVGVqYSA8YmhhcmF0QGNoZWxzaW8uY29tPgo+IFNpZ25lZC1vZmYtYnk6IEdhbmVz
+aCBHb3VkYXIgPGdhbmVzaGdyQGNoZWxzaW8uY29tPgo+IC0tLQo+IHYyOiBBZGRlZCBmdWxsIFN0
+ZXZlJ3MgbmFtZSBpbiBBY2tlZC1iecKgCj4gLS0tCj4gwqBkcml2ZXJzL2luZmluaWJhbmQvaHcv
+Y3hnYjQvY20uYyB8IDU2ICsrKysrKysrKysrKysrKysrKysrKysrKysrLS0KPiAtLS0tLS0tLS0t
+LS0KPiDCoDEgZmlsZSBjaGFuZ2VkLCAzNiBpbnNlcnRpb25zKCspLCAyMCBkZWxldGlvbnMoLSkK
+PiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L2N4Z2I0L2NtLmMKPiBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9jeGdiNC9jbS5jCj4gaW5kZXggZjE1MTBjYy4uYjljMjE2MyAx
+MDA2NDQKPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvY3hnYjQvY20uYwo+ICsrKyBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9jeGdiNC9jbS5jCj4gQEAgLTY5Miw2ICs2OTIsMTAgQEAgc3Rh
+dGljIGludCBzZW5kX2Nvbm5lY3Qoc3RydWN0IGM0aXdfZXAgKmVwKQo+IMKgwqDCoMKgwqDCoMKg
+wqAgaW50IHJldDsKPiDCoMKgwqDCoMKgwqDCoMKgIGVudW0gY2hpcF90eXBlIGFkYXB0ZXJfdHlw
+ZSA9IGVwLT5jb20uZGV2LQo+ID5yZGV2LmxsZGkuYWRhcHRlcl90eXBlOwo+IMKgwqDCoMKgwqDC
+oMKgwqAgdTMyIGlzbiA9IChwcmFuZG9tX3UzMigpICYgfjdVTCkgLSAxOwo+ICvCoMKgwqDCoMKg
+wqAgc3RydWN0IG5ldF9kZXZpY2UgKm5ldGRldjsKPiArwqDCoMKgwqDCoMKgIHU2NCBwYXJhbXM7
+Cj4gKwo+ICvCoMKgwqDCoMKgwqAgbmV0ZGV2ID0gZXAtPmNvbS5kZXYtPnJkZXYubGxkaS5wb3J0
+c1swXTsKPiDCoAo+IMKgwqDCoMKgwqDCoMKgwqAgc3dpdGNoIChDSEVMU0lPX0NISVBfVkVSU0lP
+TihhZGFwdGVyX3R5cGUpKSB7Cj4gwqDCoMKgwqDCoMKgwqDCoCBjYXNlIENIRUxTSU9fVDQ6Cj4g
+QEAgLTc2OCw2ICs3NzIsOCBAQCBzdGF0aWMgaW50IHNlbmRfY29ubmVjdChzdHJ1Y3QgYzRpd19l
+cCAqZXApCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgb3B0MiB8PSBUNV9JU1Nf
+RjsKPiDCoMKgwqDCoMKgwqDCoMKgIH0KPiDCoAo+ICvCoMKgwqDCoMKgwqAgcGFyYW1zID0gY3hn
+YjRfc2VsZWN0X250dXBsZShuZXRkZXYsIGVwLT5sMnQpOwo+ICsKPiDCoMKgwqDCoMKgwqDCoMKg
+IGlmIChlcC0+Y29tLnJlbW90ZV9hZGRyLnNzX2ZhbWlseSA9PSBBRl9JTkVUNikKPiDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjeGdiNF9jbGlwX2dldChlcC0+Y29tLmRldi0+cmRl
+di5sbGRpLnBvcnRzWzBdLAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIChjb25zdCB1MzIgKikmbGE2LT5zaW42X2FkZHIuczZf
+YWRkciwgCj4gMSk7Cj4gQEAgLTgwOSwxOCArODE1LDIyIEBAIHN0YXRpYyBpbnQgc2VuZF9jb25u
+ZWN0KHN0cnVjdCBjNGl3X2VwICplcCkKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCByZXEtPm9wdDAgPSBjcHVfdG9fYmU2NChvcHQwKTsKPiDCoAo+IMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIGlmIChpc190NChlcC0+Y29tLmRldi0+cmRldi5sbGRpLmFkYXB0ZXJf
+dHlwZSkpIHsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+cmVxLT5wYXJhbXMgPQo+IGNwdV90b19iZTMyKGN4Z2I0X3NlbGVjdF9udHVwbGUoCj4gLcKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGVwLT5jb20uZGV2LQo+ID5yZGV2LmxsZGku
+cG9ydHNbMF0sCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGVwLT5sMnQp
+KTsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmVxLT5w
+YXJhbXMgPSBjcHVfdG9fYmUzMihwYXJhbXMpOwo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXEtPm9wdDIgPSBjcHVfdG9fYmUzMihvcHQyKTsKPiDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9IGVsc2Ugewo+IC3CoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0NXJlcS0+cGFyYW1zID0gY3B1X3RvX2Jl
+NjQoRklMVEVSX1RVUExFX1YoCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+IGN4Z2I0X3NlbGVjdF9udHVwbGUoCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgIGVwLT5jb20uZGV2LQo+ID5yZGV2LmxsZGkucG9ydHNbMF0sCj4gLcKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgIGVwLT5sMnQpKSk7Cj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHQ1cmVxLT5yc3ZkID0gY3B1X3RvX2JlMzIoaXNuKTsK
+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgUERCRygiJXMg
+c25kX2lzbiAldVxuIiwgX19mdW5jX18sIHQ1cmVxLQo+ID5yc3ZkKTsKPiAtwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdDVyZXEtPm9wdDIgPSBjcHVfdG9fYmUz
+MihvcHQyKTsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+aWYgKGlzX3Q1KGVwLT5jb20uZGV2LQo+ID5yZGV2LmxsZGkuYWRhcHRlcl90eXBlKSkgewo+ICvC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqAgdDVyZXEtPnBhcmFtcyA9Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgCj4gY3B1X3RvX2Jl
+NjQoRklMVEVSX1RVUExFX1YocGFyYW1zKSk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0NXJlcS0+cnN2ZCA9IGNwdV90b19i
+ZTMyKGlzbik7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBQREJHKCIlcyBzbmRfaXNuICV1XG4iLCBfX2Z1bmNfXywKPiB0NXJl
+cS0+cnN2ZCk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCB0NXJlcS0+b3B0MiA9IGNwdV90b19iZTMyKG9wdDIpOwo+ICvCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9IGVsc2Ugewo+ICvCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+dDZyZXEtPnBhcmFtcyA9Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgCj4gY3B1X3RvX2JlNjQo
+RklMVEVSX1RVUExFX1YocGFyYW1zKSk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0NnJlcS0+cnN2ZCA9IGNwdV90b19iZTMy
+KGlzbik7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoCBQREJHKCIlcyBzbmRfaXNuICV1XG4iLCBfX2Z1bmNfXywKPiB0NnJlcS0+
+cnN2ZCk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoCB0NnJlcS0+b3B0MiA9IGNwdV90b19iZTMyKG9wdDIpOwo+ICvCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9Cj4gwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqAgfQo+IMKgwqDCoMKgwqDCoMKgwqAgfSBlbHNlIHsKPiDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzd2l0Y2ggKENIRUxTSU9fQ0hJUF9WRVJTSU9OKGFk
+YXB0ZXJfdHlwZSkpIHsKPiBAQCAtODU5LDE4ICs4NjksMjQgQEAgc3RhdGljIGludCBzZW5kX2Nv
+bm5lY3Qoc3RydWN0IGM0aXdfZXAgKmVwKQo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgIHJlcTYtPm9wdDAgPSBjcHVfdG9fYmU2NChvcHQwKTsKPiDCoAo+IMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgIGlmIChpc190NChlcC0+Y29tLmRldi0+cmRldi5sbGRpLmFkYXB0
+ZXJfdHlwZSkpIHsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqAgcmVxNi0+cGFyYW1zID0KPiBjcHVfdG9fYmUzMihjeGdiNF9zZWxlY3RfbnR1cGxlKAo+IC3C
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBlcC0+Y29tLmRldi0KPiA+cmRldi5s
+bGRpLnBvcnRzWzBdLAo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBlcC0+
+bDJ0KSk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJl
+cTYtPnBhcmFtcyA9Cj4gY3B1X3RvX2JlMzIoY3hnYjRfc2VsZWN0X250dXBsZShuZXRkZXYsCj4g
+K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAKPiBlcC0+bDJ0KSk7Cj4gwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJlcTYtPm9wdDIgPSBjcHVfdG9fYmUzMihv
+cHQyKTsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9IGVsc2Ugewo+IC3CoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0NXJlcTYtPnBhcmFtcyA9
+IGNwdV90b19iZTY0KEZJTFRFUl9UVVBMRV9WKAo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoCBjeGdiNF9zZWxlY3RfbnR1cGxlKAo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoCBlcC0+Y29tLmRldi0KPiA+cmRldi5sbGRpLnBvcnRzWzBdLAo+IC3CoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBlcC0+bDJ0KSkpOwo+IC3CoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0NXJlcTYtPnJzdmQgPSBjcHVfdG9f
+YmUzMihpc24pOwo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBQREJHKCIlcyBzbmRfaXNuICV1XG4iLCBfX2Z1bmNfXywgdDVyZXE2LQo+ID5yc3ZkKTsKPiAt
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdDVyZXE2LT5vcHQy
+ID0gY3B1X3RvX2JlMzIob3B0Mik7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgIGlmIChpc190NShlcC0+Y29tLmRldi0KPiA+cmRldi5sbGRpLmFkYXB0ZXJf
+dHlwZSkpIHsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIHQ1cmVxNi0+cGFyYW1zID0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgCj4gY3B1X3RvX2JlNjQoRklMVEVSX1RVUExFX1YocGFyYW1zKSk7Cj4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0NXJl
+cTYtPnJzdmQgPSBjcHVfdG9fYmUzMihpc24pOwo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgUERCRygiJXMgc25kX2lzbiAldVxu
+IiwgX19mdW5jX18sCj4gdDVyZXE2LT5yc3ZkKTsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHQ1cmVxNi0+b3B0MiA9IGNwdV90
+b19iZTMyKG9wdDIpOwo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCB9IGVsc2Ugewo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqAgdDZyZXE2LT5wYXJhbXMgPQo+ICvCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAKPiBjcHVfdG9fYmU2NChGSUxURVJfVFVQTEVfVihwYXJhbXMpKTsKPiArwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+IHQ2cmVxNi0+cnN2ZCA9IGNwdV90b19iZTMyKGlzbik7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBQREJHKCIlcyBzbmRfaXNu
+ICV1XG4iLCBfX2Z1bmNfXywKPiB0NnJlcTYtPnJzdmQpOwo+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdDZyZXE2LT5vcHQyID0g
+Y3B1X3RvX2JlMzIob3B0Mik7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgIH0KPiArCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfQo+IMKg
+wqDCoMKgwqDCoMKgwqAgfQo+IMKgCi0tIApEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5j
+b20+CsKgIMKgIEdQRyBLZXlJRDogQjgyNkEzMzMwRTU3MkZERArCoCDCoApLZXkgZmluZ2VycHJp
+bnQgPSBBRTZCIDFCREEgMTIyQiAyM0I0IDI2NUIgwqAxMjc0IEI4MjYgQTMzMyAwRTU3IDJGREQK
 
-You can't run lookup_get and uverbs_close_fd concurrently as stated above.
 
-Regarding the locking, assuming uverbs_close_fd is called from the
-release file operation and SRCU
-protects us (as currently implemented), we don't see locking issues here.
 
-Yishai and Matan.
+--=-rBMMbIvna4XBgtZy4QTC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYqZnQAAoJELgmozMOVy/dsp4P/Aqv1d3vstNzbwGLUIPmHSvG
+AFpQURlKxG3P1wPdRHOpJ1nMj2tzdPHJGvmkcaZMTxDYsItQg1zV3T2AnTzU7k8n
+J4KUSMD0JquS0GMBVilakGEzFz7/T4y7btyoQlgc2EaUPa3NnST465Z1ODE88ynD
+1D+JaGqDXLHhdvRhz7Z1pW9FiPkd6ufQNUDtNEbxC/Iae7NzDzU6OJvJhYMC1etA
+ByvdRx3vKqMUDnDu7AtENQZBONIgXgCOPEAT0rkeV1B8ajNvHtTdWApjEn5726ye
+r84uZ2a0Mdp/GyKgXX0Bgr2eDlgGD2XGYL6SnhEEZckbMEeeWBRtOQJqLRAoCfLD
+dQ1mzs3pIgFfNrOknL4ifRIS4rm2clDEXDVXWE8yGaE9VoxgMumfsYOSefCd/MsH
+E6rDpDQkdu/+RnB4Tt6cW5qW5X0vY6Ku28pBVBziDFEP07XO+355Cq6c7nQ9JHSI
+2GFRIYQq+hd6EHvaTleZFh4HK4YiAiLI4gJtdZh+DcVKs+kjSSrtl8Nw+bKnWOMu
+6PqzwX4rw6IxEDaaDDEu94DMt8OUQ82oB7/LVgaXRIoF0XtclGLcYoXSrGeBBDxu
+bqS8en+dLEupqk2bVTjpCdYqv/EcDdWYm57n9JMzI5caRj9my9asElviIdSBRMp4
+hD+zhDHNkT4Dk+GLwH1i
+=u9kq
+-----END PGP SIGNATURE-----
+
+--=-rBMMbIvna4XBgtZy4QTC--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
