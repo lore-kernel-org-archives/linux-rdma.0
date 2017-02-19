@@ -1,61 +1,61 @@
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 21/29] IB/mlx4: Delete unnecessary braces in mlx4_ib_add()
-Date: Sun, 19 Feb 2017 19:51:21 +0000
-Message-ID: <25F68725-1784-4994-9EEB-5FE9E43CE44B@mellanox.com>
-References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>,<6abe0f08-b308-08ac-9f84-868887c0218c@users.sourceforge.net>
+From: Majd Dibbiny <majd@mellanox.com>
+Subject: Re: [PATCH 15/29] IB/mlx4: Delete an unnecessary return statement in
+ do_slave_init()
+Date: Sun, 19 Feb 2017 17:36:47 +0000
+Message-ID: <3AE7A897-1158-44EB-8B64-F5B762BF9505@mellanox.com>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+ <50e213dd-b3b0-5028-a463-b9fbdf6e25cf@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6abe0f08-b308-08ac-9f84-868887c0218c-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <50e213dd-b3b0-5028-a463-b9fbdf6e25cf@users.sourceforge.net>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-ID: <7CE8205C6948FC468148BDF325F08129@Mellanox365.onmicrosoft.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Feb 18, 2017, at 11:12 PM, SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5ug@public.gmane.org=
+
+> On Feb 18, 2017, at 11:04 PM, SF Markus Elfring <elfring@users.sourceforg=
 e.net> wrote:
 >=20
-> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> Date: Sat, 18 Feb 2017 16:32:41 +0100
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 18 Feb 2017 15:16:54 +0100
 >=20
-> Do not use curly brackets at one source code place
-> where a single statement should be sufficient.
+> The script "checkpatch.pl" pointed information out like the following.
 >=20
-> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> WARNING: void function return statements are not generally useful
+>=20
+> Thus remove such a statement here.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
-> drivers/infiniband/hw/mlx4/main.c | 3 +--
-> 1 file changed, 1 insertion(+), 2 deletions(-)
+> drivers/infiniband/hw/mlx4/main.c | 1 -
+> 1 file changed, 1 deletion(-)
 >=20
 > diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/ml=
 x4/main.c
-> index 33b46c463ffa..b950538e036e 100644
+> index 89bbb61d62f5..b2b472977a39 100644
 > --- a/drivers/infiniband/hw/mlx4/main.c
 > +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -2898,9 +2898,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
->        }
->        if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
->            err =3D mlx4_config_roce_v2_port(dev, ROCE_V2_UDP_DPORT);
-> -            if (err) {
-> +            if (err)
->                goto err_notif;
-> -            }
->        }
+> @@ -3131,7 +3131,6 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev=
+, int slave, int do_init)
 >    }
+> out:
+>    kfree(dm);
+> -    return;
+> }
 >=20
+> static void mlx4_ib_handle_catas_error(struct mlx4_ib_dev *ibdev)
 > --=20
 > 2.11.1
 >=20
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 Thanks,
 Reviewed-by: Majd Dibbiny
-<majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<majd@mellanox.com>=
