@@ -1,121 +1,117 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH rfc 1/4] net/utils: generic inet_pton_with_scope helper
-Date: Sun, 19 Feb 2017 09:15:23 -0800
-Message-ID: <20170219171523.GC10310@infradead.org>
-References: <1487267017-29904-1-git-send-email-sagi@grimberg.me>
- <1487267017-29904-2-git-send-email-sagi@grimberg.me>
+From: Majd Dibbiny <majd@mellanox.com>
+Subject: Re: [PATCH 12/29] IB/mlx4: Enclose 17 expressions for the sizeof
+ operator by parentheses
+Date: Sun, 19 Feb 2017 17:21:53 +0000
+Message-ID: <15CAFA80-3F81-4FF3-90A6-F215FF69FD33@mellanox.com>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>,<9ba34d2d-1d54-4f65-4c01-152c72b624b4@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1487267017-29904-2-git-send-email-sagi@grimberg.me>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9ba34d2d-1d54-4f65-4c01-152c72b624b4@users.sourceforge.net>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 16, 2017 at 07:43:34PM +0200, Sagi Grimberg wrote:
-> Several locations in the stack need to handle ipv4/ipv6
-> (with scope) and port strings conversion to sockaddr.
-> Add a helper that takes either AF_INET, AF_INET6 or
-> AF_UNSPEC (for wildcard) to centralize this handling.
-> 
-> Suggested-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
-> ---
->  include/linux/inet.h |  6 ++++
->  net/core/utils.c     | 91 ++++++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 97 insertions(+)
-> 
-> diff --git a/include/linux/inet.h b/include/linux/inet.h
-> index 4cca05c9678e..636ebe87e6f8 100644
-> --- a/include/linux/inet.h
-> +++ b/include/linux/inet.h
-> @@ -43,6 +43,8 @@
->  #define _LINUX_INET_H
->  
->  #include <linux/types.h>
-> +#include <net/net_namespace.h>
-> +#include <linux/socket.h>
->  
->  /*
->   * These mimic similar macros defined in user-space for inet_ntop(3).
-> @@ -54,4 +56,8 @@
->  extern __be32 in_aton(const char *str);
->  extern int in4_pton(const char *src, int srclen, u8 *dst, int delim, const char **end);
->  extern int in6_pton(const char *src, int srclen, u8 *dst, int delim, const char **end);
-> +
-> +extern int inet_pton_with_scope(struct net *net, unsigned short af,
-> +		const char *src, const char *port, struct sockaddr_storage *addr);
-> +
->  #endif	/* _LINUX_INET_H */
-> diff --git a/net/core/utils.c b/net/core/utils.c
-> index 6592d7bbed39..8f15d016c64a 100644
-> --- a/net/core/utils.c
-> +++ b/net/core/utils.c
-> @@ -26,9 +26,11 @@
->  #include <linux/percpu.h>
->  #include <linux/init.h>
->  #include <linux/ratelimit.h>
-> +#include <linux/socket.h>
->  
->  #include <net/sock.h>
->  #include <net/net_ratelimit.h>
-> +#include <net/ipv6.h>
->  
->  #include <asm/byteorder.h>
->  #include <linux/uaccess.h>
-> @@ -300,6 +302,95 @@ int in6_pton(const char *src, int srclen,
->  }
->  EXPORT_SYMBOL(in6_pton);
->  
-> +/**
-> + * inet_pton_with_scope - convert an IPv4/IPv6 and port to socket address
-> + * @net: net namespace (used for scope handling)
-> + * @af: address family, AF_INET, AF_INET6 or AF_UNSPEC for either
-> + * @src: the start of the address string
-> + * @port: the start of the port string (or NULL for none)
-> + * @addr: output socket address
-> + *
-> + * Return zero on success, return errno when any error occurs.
-> + */
-> +int inet_pton_with_scope(struct net *net, __kernel_sa_family_t af,
-> +		const char *src, const char *port, struct sockaddr_storage *addr)
-> +{
-> +	struct sockaddr_in *addr4;
-> +	struct sockaddr_in6 *addr6;
-> +	const char *scope_delim;
-> +	bool unspec = false;
-> +	int srclen = strlen(src);
-> +	u16 port_num;
-> +
-> +	if (port) {
-> +		if (kstrtou16(port, 0, &port_num)) {
-> +			pr_err("failed port_num %s\n", port);
-> +			return -EINVAL;
-> +		}
-> +	} else {
-> +		port_num = 0;
-> +	}
-> +
-> +	switch (af) {
-> +	case AF_UNSPEC:
-> +		unspec = true;
-> +		/* FALLTHRU */
-> +	case AF_INET:
-> +		if (srclen <= INET_ADDRSTRLEN) {
-> +			addr4 = (struct sockaddr_in *)addr;
-> +			if (in4_pton(src, srclen, (u8 *) &addr4->sin_addr.s_addr,
-> +				     '\n', NULL) > 0) {
-> +				addr4->sin_family = AF_INET;
-> +				addr4->sin_port = htons(port_num);
-> +				return 0;
-> +			}
-> +			pr_err("failed in4_pton %s\n", src);
-> +		}
-
-I would probably factor this and the IPv6 equivalent below into helpers
-to keep the code a little more self-contained so that we could avoid the
-fallthrough magic.
-
-Except for that and the semicolon warnings this looks fine to me.
+DQo+IE9uIEZlYiAxOCwgMjAxNywgYXQgMTE6MDIgUE0sIFNGIE1hcmt1cyBFbGZyaW5nIDxlbGZy
+aW5nQHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4gd3JvdGU6DQo+IA0KPiBGcm9tOiBNYXJrdXMgRWxm
+cmluZyA8ZWxmcmluZ0B1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+IERhdGU6IFNhdCwgMTggRmVi
+IDIwMTcgMTE6Mjg6NDEgKzAxMDANCj4gTUlNRS1WZXJzaW9uOiAxLjANCj4gQ29udGVudC1UeXBl
+OiB0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04DQo+IENvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6
+IDhiaXQNCj4gDQo+IFRoZSBzY3JpcHQgImNoZWNrcGF0Y2gucGwiIHBvaW50ZWQgaW5mb3JtYXRp
+b24gb3V0IGxpa2UgdGhlIGZvbGxvd2luZy4NCj4gDQo+IFdBUk5JTkc6IHNpemVvZiDigKYgc2hv
+dWxkIGJlIHNpemVvZijigKYpDQo+IA0KPiBUaHVzIGZpeCB0aGUgYWZmZWN0ZWQgc291cmNlIGNv
+ZGUgcGxhY2VzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFya3VzIEVsZnJpbmcgPGVsZnJpbmdA
+dXNlcnMuc291cmNlZm9yZ2UubmV0Pg0KPiAtLS0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21s
+eDQvbWFpbi5jIHwgMzUgKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0NCj4gMSBm
+aWxlIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKyksIDE4IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21haW4uYyBiL2RyaXZlcnMvaW5m
+aW5pYmFuZC9ody9tbHg0L21haW4uYw0KPiBpbmRleCAzNTBjOTE0ODM0MGUuLmIzYjVkZWQ4NTE2
+NiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvbWFpbi5jDQo+ICsr
+KyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21haW4uYw0KPiBAQCAtNDU3LDggKzQ1Nyw4
+IEBAIHN0YXRpYyBpbnQgbWx4NF9pYl9xdWVyeV9kZXZpY2Uoc3RydWN0IGliX2RldmljZSAqaWJk
+ZXYsDQo+IA0KPiAgICByZXNwLnJlc3BvbnNlX2xlbmd0aCA9IG9mZnNldG9mKHR5cGVvZihyZXNw
+KSwgcmVzcG9uc2VfbGVuZ3RoKSArDQo+ICAgICAgICBzaXplb2YocmVzcC5yZXNwb25zZV9sZW5n
+dGgpOw0KPiAtICAgIGluX21hZCAgPSBremFsbG9jKHNpemVvZiAqaW5fbWFkLCBHRlBfS0VSTkVM
+KTsNCj4gLSAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YgKm91dF9tYWQsIEdGUF9LRVJORUwp
+Ow0KPiArICAgIGluX21hZCAgPSBremFsbG9jKHNpemVvZigqaW5fbWFkKSwgR0ZQX0tFUk5FTCk7
+DQo+ICsgICAgb3V0X21hZCA9IGttYWxsb2Moc2l6ZW9mKCpvdXRfbWFkKSwgR0ZQX0tFUk5FTCk7
+DQo+ICAgIGVyciA9IC1FTk9NRU07DQo+ICAgIGlmICghaW5fbWFkIHx8ICFvdXRfbWFkKQ0KPiAg
+ICAgICAgZ290byBvdXQ7DQo+IEBAIC00NzEsOCArNDcxLDcgQEAgc3RhdGljIGludCBtbHg0X2li
+X3F1ZXJ5X2RldmljZShzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwNCj4gICAgaWYgKGVycikNCj4g
+ICAgICAgIGdvdG8gb3V0Ow0KPiANCj4gLSAgICBtZW1zZXQocHJvcHMsIDAsIHNpemVvZiAqcHJv
+cHMpOw0KPiAtDQo+ICsgICAgbWVtc2V0KHByb3BzLCAwLCBzaXplb2YoKnByb3BzKSk7DQo+ICAg
+IGhhdmVfaWJfcG9ydHMgPSBudW1faWJfcG9ydHMoZGV2LT5kZXYpOw0KPiANCj4gICAgcHJvcHMt
+PmZ3X3ZlciA9IGRldi0+ZGV2LT5jYXBzLmZ3X3ZlcjsNCj4gQEAgLTU5NSw4ICs1OTQsOCBAQCBz
+dGF0aWMgaW50IGliX2xpbmtfcXVlcnlfcG9ydChzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwgdTgg
+cG9ydCwNCj4gICAgaW50IG1hZF9pZmNfZmxhZ3MgPSBNTFg0X01BRF9JRkNfSUdOT1JFX0tFWVM7
+DQo+ICAgIGludCBlcnIgPSAtRU5PTUVNOw0KPiANCj4gLSAgICBpbl9tYWQgID0ga3phbGxvYyhz
+aXplb2YgKmluX21hZCwgR0ZQX0tFUk5FTCk7DQo+IC0gICAgb3V0X21hZCA9IGttYWxsb2Moc2l6
+ZW9mICpvdXRfbWFkLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBpbl9tYWQgID0ga3phbGxvYyhzaXpl
+b2YoKmluX21hZCksIEdGUF9LRVJORUwpOw0KPiArICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVv
+Zigqb3V0X21hZCksIEdGUF9LRVJORUwpOw0KPiAgICBpZiAoIWluX21hZCB8fCAhb3V0X21hZCkN
+Cj4gICAgICAgIGdvdG8gb3V0Ow0KPiANCj4gQEAgLTc3MSw4ICs3NzAsOCBAQCBpbnQgX19tbHg0
+X2liX3F1ZXJ5X2dpZChzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwgdTggcG9ydCwgaW50IGluZGV4
+LA0KPiAgICBpbnQgY2xlYXIgPSAwOw0KPiAgICBpbnQgbWFkX2lmY19mbGFncyA9IE1MWDRfTUFE
+X0lGQ19JR05PUkVfS0VZUzsNCj4gDQo+IC0gICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mICpp
+bl9tYWQsIEdGUF9LRVJORUwpOw0KPiAtICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVvZiAqb3V0
+X21hZCwgR0ZQX0tFUk5FTCk7DQo+ICsgICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mKCppbl9t
+YWQpLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YoKm91dF9t
+YWQpLCBHRlBfS0VSTkVMKTsNCj4gICAgaWYgKCFpbl9tYWQgfHwgIW91dF9tYWQpDQo+ICAgICAg
+ICBnb3RvIG91dDsNCj4gDQo+IEBAIC05MDgsOCArOTA3LDggQEAgaW50IF9fbWx4NF9pYl9xdWVy
+eV9wa2V5KHN0cnVjdCBpYl9kZXZpY2UgKmliZGV2LCB1OCBwb3J0LCB1MTYgaW5kZXgsDQo+ICAg
+IGludCBtYWRfaWZjX2ZsYWdzID0gTUxYNF9NQURfSUZDX0lHTk9SRV9LRVlTOw0KPiAgICBpbnQg
+ZXJyID0gLUVOT01FTTsNCj4gDQo+IC0gICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mICppbl9t
+YWQsIEdGUF9LRVJORUwpOw0KPiAtICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVvZiAqb3V0X21h
+ZCwgR0ZQX0tFUk5FTCk7DQo+ICsgICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mKCppbl9tYWQp
+LCBHRlBfS0VSTkVMKTsNCj4gKyAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YoKm91dF9tYWQp
+LCBHRlBfS0VSTkVMKTsNCj4gICAgaWYgKCFpbl9tYWQgfHwgIW91dF9tYWQpDQo+ICAgICAgICBn
+b3RvIG91dDsNCj4gDQo+IEBAIC0xMjgwLDcgKzEyNzksNyBAQCBzdGF0aWMgc3RydWN0IGliX3Bk
+ICptbHg0X2liX2FsbG9jX3BkKHN0cnVjdCBpYl9kZXZpY2UgKmliZGV2LA0KPiAgICBzdHJ1Y3Qg
+bWx4NF9pYl9wZCAqcGQ7DQo+ICAgIGludCBlcnI7DQo+IA0KPiAtICAgIHBkID0ga21hbGxvYyhz
+aXplb2YgKnBkLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBwZCA9IGttYWxsb2Moc2l6ZW9mKCpwZCks
+IEdGUF9LRVJORUwpOw0KPiAgICBpZiAoIXBkKQ0KPiAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVO
+T01FTSk7DQo+IA0KPiBAQCAtMTMxOSw3ICsxMzE4LDcgQEAgc3RhdGljIHN0cnVjdCBpYl94cmNk
+ICptbHg0X2liX2FsbG9jX3hyY2Qoc3RydWN0IGliX2RldmljZSAqaWJkZXYsDQo+ICAgIGlmICgh
+KHRvX21kZXYoaWJkZXYpLT5kZXYtPmNhcHMuZmxhZ3MgJiBNTFg0X0RFVl9DQVBfRkxBR19YUkMp
+KQ0KPiAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVOT1NZUyk7DQo+IA0KPiAtICAgIHhyY2QgPSBr
+bWFsbG9jKHNpemVvZiAqeHJjZCwgR0ZQX0tFUk5FTCk7DQo+ICsgICAgeHJjZCA9IGttYWxsb2Mo
+c2l6ZW9mKCp4cmNkKSwgR0ZQX0tFUk5FTCk7DQo+ICAgIGlmICgheHJjZCkNCj4gICAgICAgIHJl
+dHVybiBFUlJfUFRSKC1FTk9NRU0pOw0KPiANCj4gQEAgLTEzNjcsNyArMTM2Niw3IEBAIHN0YXRp
+YyBpbnQgYWRkX2dpZF9lbnRyeShzdHJ1Y3QgaWJfcXAgKmlicXAsIHVuaW9uIGliX2dpZCAqZ2lk
+KQ0KPiAgICBzdHJ1Y3QgbWx4NF9pYl9kZXYgKm1kZXYgPSB0b19tZGV2KGlicXAtPmRldmljZSk7
+DQo+ICAgIHN0cnVjdCBtbHg0X2liX2dpZF9lbnRyeSAqZ2U7DQo+IA0KPiAtICAgIGdlID0ga3ph
+bGxvYyhzaXplb2YgKmdlLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBnZSA9IGt6YWxsb2Moc2l6ZW9m
+KCpnZSksIEdGUF9LRVJORUwpOw0KPiAgICBpZiAoIWdlKQ0KPiAgICAgICAgcmV0dXJuIC1FTk9N
+RU07DQo+IA0KPiBAQCAtMjA4OSw4ICsyMDg4LDggQEAgc3RhdGljIGludCBpbml0X25vZGVfZGF0
+YShzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldikNCj4gICAgaW50IG1hZF9pZmNfZmxhZ3MgPSBNTFg0
+X01BRF9JRkNfSUdOT1JFX0tFWVM7DQo+ICAgIGludCBlcnIgPSAtRU5PTUVNOw0KPiANCj4gLSAg
+ICBpbl9tYWQgID0ga3phbGxvYyhzaXplb2YgKmluX21hZCwgR0ZQX0tFUk5FTCk7DQo+IC0gICAg
+b3V0X21hZCA9IGttYWxsb2Moc2l6ZW9mICpvdXRfbWFkLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBp
+bl9tYWQgID0ga3phbGxvYyhzaXplb2YoKmluX21hZCksIEdGUF9LRVJORUwpOw0KPiArICAgIG91
+dF9tYWQgPSBrbWFsbG9jKHNpemVvZigqb3V0X21hZCksIEdGUF9LRVJORUwpOw0KPiAgICBpZiAo
+IWluX21hZCB8fCAhb3V0X21hZCkNCj4gICAgICAgIGdvdG8gb3V0Ow0KPiANCj4gQEAgLTI2MDAs
+NyArMjU5OSw3IEBAIHN0YXRpYyB2b2lkICptbHg0X2liX2FkZChzdHJ1Y3QgbWx4NF9kZXYgKmRl
+dikNCj4gICAgaWYgKG51bV9wb3J0cyA9PSAwKQ0KPiAgICAgICAgcmV0dXJuIE5VTEw7DQo+IA0K
+PiAtICAgIGliZGV2ID0gKHN0cnVjdCBtbHg0X2liX2RldiAqKSBpYl9hbGxvY19kZXZpY2Uoc2l6
+ZW9mICppYmRldik7DQo+ICsgICAgaWJkZXYgPSAoc3RydWN0IG1seDRfaWJfZGV2ICopIGliX2Fs
+bG9jX2RldmljZShzaXplb2YoKmliZGV2KSk7DQo+ICAgIGlmICghaWJkZXYpIHsNCj4gICAgICAg
+IGRldl9lcnIoJmRldi0+cGVyc2lzdC0+cGRldi0+ZGV2LA0KPiAgICAgICAgICAgICJEZXZpY2Ug
+c3RydWN0IGFsbG9jIGZhaWxlZFxuIik7DQo+IEBAIC0zMzAxLDEyICszMzAwLDEyIEBAIHN0YXRp
+YyB2b2lkIG1seDRfaWJfZXZlbnQoc3RydWN0IG1seDRfZGV2ICpkZXYsIHZvaWQgKmliZGV2X3B0
+ciwNCj4gICAgICAgIGJyZWFrOw0KPiANCj4gICAgY2FzZSBNTFg0X0RFVl9FVkVOVF9QT1JUX01H
+TVRfQ0hBTkdFOg0KPiAtICAgICAgICBldyA9IGttYWxsb2Moc2l6ZW9mICpldywgR0ZQX0FUT01J
+Qyk7DQo+ICsgICAgICAgIGV3ID0ga21hbGxvYyhzaXplb2YoKmV3KSwgR0ZQX0FUT01JQyk7DQo+
+ICAgICAgICBpZiAoIWV3KQ0KPiAgICAgICAgICAgIGJyZWFrOw0KPiANCj4gICAgICAgIElOSVRf
+V09SSygmZXctPndvcmssIGhhbmRsZV9wb3J0X21nbXRfY2hhbmdlX2V2ZW50KTsNCj4gLSAgICAg
+ICAgbWVtY3B5KCZldy0+aWJfZXFlLCBlcWUsIHNpemVvZiAqZXFlKTsNCj4gKyAgICAgICAgbWVt
+Y3B5KCZldy0+aWJfZXFlLCBlcWUsIHNpemVvZigqZXFlKSk7DQo+ICAgICAgICBldy0+aWJfZGV2
+ID0gaWJkZXY7DQo+ICAgICAgICAvKiBuZWVkIHRvIHF1ZXVlIG9ubHkgZm9yIHBvcnQgb3duZXIs
+IHdoaWNoIHVzZXMgR0VOX0VRRSAqLw0KPiAgICAgICAgaWYgKG1seDRfaXNfbWFzdGVyKGRldikp
+DQo+IC0tIA0KPiAyLjExLjENCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9k
+eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9y
+ZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwN
+ClRoYW5rcywNClJldmlld2VkLWJ5OiBNYWpkIERpYmJpbnkNCjxtYWpkQG1lbGxhbm94LmNvbT4=
