@@ -1,26 +1,29 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mthca: switch to pci_alloc_irq_vectors
-Date: Sun, 19 Feb 2017 08:55:06 -0500
-Message-ID: <1487512506.86943.107.camel@redhat.com>
-References: <20170209151058.15632-1-hch@lst.de>
+Subject: Re: [PATCH 1/1] IB/ipoib: remove the unnecessary memory free
+Date: Sun, 19 Feb 2017 08:55:35 -0500
+Message-ID: <1487512535.86943.109.camel@redhat.com>
+References: <1486709322-19362-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-WUOQC5FE6EyXtaQ1bHs3"
+        protocol="application/pgp-signature"; boundary="=-NlfoyHiYxtcsM7IG4NoI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170209151058.15632-1-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1486709322-19362-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-WUOQC5FE6EyXtaQ1bHs3
+--=-NlfoyHiYxtcsM7IG4NoI
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2017-02-09 at 16:10 +0100, Christoph Hellwig wrote:
-> Trivial switch to the new API for this driver.
+On Fri, 2017-02-10 at 01:48 -0500, Zhu Yanjun wrote:
+> In the function ipoib_cm_nonsrq_init_rx, the memory is not
+> allocated successfully. It is not necessary to free it.
 >=20
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 Thanks, applied.
 
@@ -30,7 +33,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-WUOQC5FE6EyXtaQ1bHs3
+--=-NlfoyHiYxtcsM7IG4NoI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -38,22 +41,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYqaO6AAoJELgmozMOVy/dQW8QAMOTLcOJ8t2Ewr5t1UtOn659
-iVlRk2Dc1HnsJkXX4T4Mhy9QakRjs3jHRY4hw7M6SyyUlizeimK1Qi5aZZyhL8L7
-D5jWNI+PnWIdmSjDoDGmwpsB5yDqHPLRUb0zEW2DiwDqSYulr7TVyO1vagMBN9+o
-C7Q8nDUH9GpDQzLTYdIWokYhRF7zXvrJ/Xe9ToFLKufOUGn9a1H2bEtyXGadwZVY
-q511od/NQk4j32msew/dWPr0e3UIAYp1j46WJtmPrYOf/Digeoh1hwtKOjjSjCNs
-z+h1amvkheH/AJ18VhPId126/8BP9s90Qa6sjNfF74EBtfZ2AZT1EHyP3noSvPfn
-z7pErsKW0uT40GZhpCuV4/uaGbd6gyuwcHUHSf7f4mFW09dMXpRcj1c8WLOTJFby
-33+zvdz93GHa7/SL9FTQFUNa81uyiUSkr40fHNitBLJWJ3+f5eNAiQbsHdfuaYu6
-xDKWBAAZiSl9MqXOmdrgFRjOfTS9o4RyobrawPqUCehaelGSK1HmJykfu67KA+s2
-RVERp6XDJ8VF60meHWEmyjl/ZabcwZGs4iiaaqNLSSeSbc4Klfgs3mCHFoNlLNRV
-xYBCsmKNtv3SoxkneLy4UQATp0zGGMHmFj+tpOktSsd9sj/nMyRLPwRVWaBmLm6u
-5j206rwPTnyh94E/hqWH
-=T1jt
+iQIcBAABCAAGBQJYqaPXAAoJELgmozMOVy/dB/8P/iyOUU/k+vCXFH5rab4DCxPh
+F0hYKCxtju5TAS1RlN9W9zeBlWHfw+maMoXsokC9boa3g2/WnoOkceNRDWo6Q2X3
+UYaDtVdplX/9Qj0g3A1iSczml+t3MV6HG/Do/6f8ldaR9WQLYgMnvA+A1czbDAVk
+fsviNTUtPudYPkzbbhMNjiXOdTEPbrmirUwOd4k70mPufBHIOtMwkeDkhMeRfXhU
+034v8lUvv44/4EGp1hw96FUkdwtEoMN8/zTu1d+4aGYcP2g/Pm9s4L/urt27A+r/
++54DXo0yHc9QKMuOkAfZXwKBOWReNGqOFpEM2XNB1ec0FPV1Rla4dZ9oO2HKShLP
+DcKdi8rGuRwnPJeEl9OO57X0z6OpaxvmpB6/vY+6EcGfDGIYnOqwweRKxw9155V2
+QNn/ld1p/Z5mB5iL+vLmqbE2pY6AKAm1ORGLiSIeET+diis7vCADCvhf9z5EpC4w
+/nTv25WXt8gRIT6vx6ygBoiX9PO8KLS9P3oJnwcyGsc4QIau17QsZPCxlceXuePe
+s6fJHmXqfrjepUuzdALkGSYFXStGAO+F66ftMmYf8/rNSOHVjYpLSaC3JA0LjQig
+ow+QkGGEL2oSjeLeFmNd6BTfzvSMwuoKlQUsdrnkIYs3r+hmLq/kVS+BpNFqdIqJ
+lgb+vvszaRUY7vy/LgK4
+=IMFz
 -----END PGP SIGNATURE-----
 
---=-WUOQC5FE6EyXtaQ1bHs3--
+--=-NlfoyHiYxtcsM7IG4NoI--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
