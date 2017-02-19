@@ -1,55 +1,117 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 25/29] IB/mlx4: Add spaces for better code readability
-Date: Sat, 18 Feb 2017 22:15:03 +0100
-Message-ID: <92a1836f-8244-7b52-1e45-f791dc3ceec4@users.sourceforge.net>
-References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH rfc 4/4] iscsi-target: use generic inet_pton_with_scope
+Date: Sat, 18 Feb 2017 21:54:02 -0800
+Message-ID: <1487483642.2958.43.camel@haakon3.risingtidesystems.com>
+References: <1487267017-29904-1-git-send-email-sagi@grimberg.me>
+         <1487267017-29904-5-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1935365a-bd7c-461e-6a84-0c5d3a501fff-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1487267017-29904-5-git-send-email-sagi@grimberg.me>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 18 Feb 2017 18:52:11 +0100
+On Thu, 2017-02-16 at 19:43 +0200, Sagi Grimberg wrote:
+> Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
+> ---
+>  drivers/target/iscsi/iscsi_target_configfs.c | 46 ++++++++--------------------
+>  1 file changed, 12 insertions(+), 34 deletions(-)
+> 
+> diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configfs.c
+> index bf40f03755dd..f30c27b83c5e 100644
+> --- a/drivers/target/iscsi/iscsi_target_configfs.c
+> +++ b/drivers/target/iscsi/iscsi_target_configfs.c
+> @@ -167,10 +167,7 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
+>  	struct iscsi_portal_group *tpg;
+>  	struct iscsi_tpg_np *tpg_np;
+>  	char *str, *str2, *ip_str, *port_str;
+> -	struct sockaddr_storage sockaddr;
+> -	struct sockaddr_in *sock_in;
+> -	struct sockaddr_in6 *sock_in6;
+> -	unsigned long port;
+> +	struct sockaddr_storage sockaddr = { };
+>  	int ret;
+>  	char buf[MAX_PORTAL_LEN + 1];
+>  
+> @@ -182,21 +179,19 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
+>  	memset(buf, 0, MAX_PORTAL_LEN + 1);
+>  	snprintf(buf, MAX_PORTAL_LEN + 1, "%s", name);
+>  
+> -	memset(&sockaddr, 0, sizeof(struct sockaddr_storage));
+> -
+>  	str = strstr(buf, "[");
+>  	if (str) {
+> -		const char *end;
+> -
+>  		str2 = strstr(str, "]");
+>  		if (!str2) {
+>  			pr_err("Unable to locate trailing \"]\""
+>  				" in IPv6 iSCSI network portal address\n");
+>  			return ERR_PTR(-EINVAL);
+>  		}
+> -		str++; /* Skip over leading "[" */
+> +
+> +		ip_str = str + 1; /* Skip over leading "[" */
+>  		*str2 = '\0'; /* Terminate the unbracketed IPv6 address */
+>  		str2++; /* Skip over the \0 */
+> +
+>  		port_str = strstr(str2, ":");
+>  		if (!port_str) {
+>  			pr_err("Unable to locate \":port\""
+> @@ -205,23 +200,8 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
+>  		}
+>  		*port_str = '\0'; /* Terminate string for IP */
+>  		port_str++; /* Skip over ":" */
+> -
+> -		ret = kstrtoul(port_str, 0, &port);
+> -		if (ret < 0) {
+> -			pr_err("kstrtoul() failed for port_str: %d\n", ret);
+> -			return ERR_PTR(ret);
+> -		}
+> -		sock_in6 = (struct sockaddr_in6 *)&sockaddr;
+> -		sock_in6->sin6_family = AF_INET6;
+> -		sock_in6->sin6_port = htons((unsigned short)port);
+> -		ret = in6_pton(str, -1,
+> -				(void *)&sock_in6->sin6_addr.in6_u, -1, &end);
+> -		if (ret <= 0) {
+> -			pr_err("in6_pton returned: %d\n", ret);
+> -			return ERR_PTR(-EINVAL);
+> -		}
+>  	} else {
+> -		str = ip_str = &buf[0];
+> +		ip_str = &buf[0];
+>  		port_str = strstr(ip_str, ":");
+>  		if (!port_str) {
+>  			pr_err("Unable to locate \":port\""
+> @@ -230,17 +210,15 @@ static struct se_tpg_np *lio_target_call_addnptotpg(
+>  		}
+>  		*port_str = '\0'; /* Terminate string for IP */
+>  		port_str++; /* Skip over ":" */
+> +	}
+>  
+> -		ret = kstrtoul(port_str, 0, &port);
+> -		if (ret < 0) {
+> -			pr_err("kstrtoul() failed for port_str: %d\n", ret);
+> -			return ERR_PTR(ret);
+> -		}
+> -		sock_in = (struct sockaddr_in *)&sockaddr;
+> -		sock_in->sin_family = AF_INET;
+> -		sock_in->sin_port = htons((unsigned short)port);
+> -		sock_in->sin_addr.s_addr = in_aton(ip_str);
+> +	ret = inet_pton_with_scope(&init_net, AF_UNSPEC, ip_str,
+> +			port_str, &sockaddr);
+> +	if (ret) {
+> +		pr_err("malformed ip/port passed: %s\n", name);
+> +		return ERR_PTR(ret);
+>  	}
+> +
+>  	tpg = container_of(se_tpg, struct iscsi_portal_group, tpg_se_tpg);
+>  	ret = iscsit_get_tpg(tpg);
+>  	if (ret < 0)
 
-Use space characters at some source code places according to
-the Linux coding style convention.
+A nice cleanup.
 
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 47a647c1d94f..16164ff09a86 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1063,7 +1063,7 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
- 	list_del(&qp->cq_recv_list);
- 	if (!is_user) {
- 		__mlx4_ib_cq_clean(recv_cq, qp->mqp.qpn,
--				 qp->ibqp.srq ? to_msrq(qp->ibqp.srq): NULL);
-+				   qp->ibqp.srq ? to_msrq(qp->ibqp.srq) : NULL);
- 		if (send_cq != recv_cq)
- 			__mlx4_ib_cq_clean(send_cq, qp->mqp.qpn, NULL);
- 	}
-@@ -2585,7 +2585,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_ud_wr *wr,
- 		u16 ether_type;
- 		u16 pcp = (be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 29) << 13;
- 
--		ether_type = (!is_udp) ? ETH_P_IBOE:
-+		ether_type = (!is_udp) ? ETH_P_IBOE :
- 			(ip_version == 4 ? ETH_P_IP : ETH_P_IPV6);
- 
- 		mlx->sched_prio = cpu_to_be16(pcp);
--- 
-2.11.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Nicholas Bellinger <nab@linux-iscsi.org>
