@@ -1,31 +1,28 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH -next] IB/rxe: use setup_timer to simplify the code
-Date: Sun, 19 Feb 2017 08:21:31 -0500
-Message-ID: <1487510491.86943.104.camel@redhat.com>
-References: <20170207151510.12503-1-weiyj.lk@gmail.com>
+Subject: Re: [PATCH 1/1] IB/iser: Protect completion context active_qps
+ update
+Date: Sun, 19 Feb 2017 08:19:22 -0500
+Message-ID: <1487510362.86943.102.camel@redhat.com>
+References: <1485993318-21372-1-git-send-email-maxg@mellanox.com>
+         <c049dea5-fe23-1e26-f8a6-3d4093f70e22@grimberg.me>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-fSOvca6bP8TzRcNk9GKf"
+        protocol="application/pgp-signature"; boundary="=-7tH57YZX2zORVcutbnIL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170207151510.12503-1-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <c049dea5-fe23-1e26-f8a6-3d4093f70e22-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-fSOvca6bP8TzRcNk9GKf
+--=-7tH57YZX2zORVcutbnIL
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2017-02-07 at 15:15 +0000, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+On Wed, 2017-02-08 at 12:18 +0200, Sagi Grimberg wrote:
+> Looks good,
 >=20
-> Use setup_timer function instead of initializing timer with the
-> function
-> and data fields.
->=20
-> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
 Thanks, applied.
 
@@ -35,7 +32,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-fSOvca6bP8TzRcNk9GKf
+--=-7tH57YZX2zORVcutbnIL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -43,22 +40,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYqZvbAAoJELgmozMOVy/d0+UQAIGc48z8HGsia/rv/fv9/vHv
-wJPDBxQsJDhLGfaVojkWOygTR84D413+rwAkfgGRg7SdcUrGWQY/FWEz0XJ/phYk
-xFr267QVGCbjmHP4XFyQYnSwDMLrxVbAxJ4Jr1xYI5npv3xqtE3r4+EWnaQCaOn6
-jx3t88uYEdFBVYVN+nHr1qWvsLh1/pmCAoXlgsI4lsKYise5HlmI8WGkmNE12gge
-wvN24sr6HuskqUZfwwiB3w9LE0L+H1e+JbugjU+llvXMDRw+39od94YBvijfnCBm
-ZCpBMZLIyoiC7v+ONpQ1I6hSxfH1r6HoW5NMS26uda4OFBsco5Vpr7Ble9cXkbI/
-58eI+Z2jfkfDYtuHKhAaOxk1tFbuW1HHftJJ5P1SOsRcwrpglQHWO5aEPdLDYuxg
-l2PRIwhfE2g7uUV5ijqx9Fx7GR9tVhSAaoN1iq9pmCF1QwxKGjA1dVSH7z7RBHph
-q+GQZdPZdPJOp+j9NCJaq9aVbxJnK2kCyeJjoNi8mi1XHWx9shgXL19WirpsS7+W
-BEPHIDkgBlemWlIDM5tq5XFwNGHe9BwgLMUPP3b+olzItPXoz9hBuX4KsbsdFIl/
-PIf+mK+y2ymptFaCB2cEOim1DQ9HQNT64zbVbD8z1uSHAJlXKL4E69gnjGRtoe0G
-YNfYlGhulfHBHpRtPw17
-=atXR
+iQIcBAABCAAGBQJYqZtaAAoJELgmozMOVy/dwZ4P/jIhXnfIbXKY8XB8Nh9qUj7z
+NRW/U4HHRwZH5noAZCVC3iK4lcz8Afj3o+k/AdvFn0g69SjlAwZv9TnqTZ32q+y1
+AZwPm6q2SgTC6FBj5QfoJcy9rkgCU18iDhwfKRPGM9g7Yi5IVf/ZtD4wZy/uDlQP
+oX5TFzvILWdhPFFs4TF/ji5M7YkJZCIIgRfM2slHyd+5cWJYUrTsfMQUxHXz3sD2
+VPi345Acvh5Hh/DWDlvV7AztIsbVdsYHaLd/WAAUNG+qkeBUHmphDr1xOX+K/5E/
+zVrSTswoFfDLS6be1NW+mh6Wl78UGF8hFayfdkRy4zLKyfqyqqfbUl8OYC+gvx4J
+9e8pusCvwt3v6oeYR5XzN19dxVHUSj1ZzDq7GS5Xy3VO2I6o5pzk/ERQc7Bpd3wC
+lwHU9FtG1HERNSmZ9F5h0N1qMsNNThIbFWFgRk+SLtJPTYpYG+o/+porRNl8g+D3
+f8svBxPcG+NuI3zZJ1HqytA8LSa/EvRXFo/Kw8yO4zRyj8PwzG2ZXNi5ynT3ByUr
+oMfxnn0ULaJAzrSqujKbAG0tJFVtsNBsAUbrJwN9HhG/onIk+QmNqyF/iFIRHKg9
+zcbCY22OKDqBNmtqZJQcCwI4AcZUq2b/VLBrKUtHvgOXyDKXIvZdBPxb029TM3f7
+s0Op6g5y5LdfD7igInSb
+=XOs7
 -----END PGP SIGNATURE-----
 
---=-fSOvca6bP8TzRcNk9GKf--
+--=-7tH57YZX2zORVcutbnIL--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
