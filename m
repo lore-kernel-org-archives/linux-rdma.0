@@ -1,26 +1,24 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] vmw_pvrdma: switch to pci_alloc_irq_vectors
-Date: Sun, 19 Feb 2017 08:56:53 -0500
-Message-ID: <1487512613.86943.113.camel@redhat.com>
-References: <20170215074704.2599-1-hch@lst.de>
+Subject: Re: [PATCH] IB/vmw_pvrdma: Expose vendor error to ULPs
+Date: Sun, 19 Feb 2017 08:57:40 -0500
+Message-ID: <1487512660.86943.114.camel@redhat.com>
+References: <1487246705-11297-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-MRmV4/r65mNwfLiAfe+Q"
+        protocol="application/pgp-signature"; boundary="=-WpAU7/ot6a5tkN1EYEZn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170215074704.2599-1-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1487246705-11297-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-MRmV4/r65mNwfLiAfe+Q
+--=-WpAU7/ot6a5tkN1EYEZn
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2017-02-15 at 08:47 +0100, Christoph Hellwig wrote:
-> .. and greatly clean up the irq handling boilerplate code.
->=20
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+On Thu, 2017-02-16 at 14:05 +0200, Yuval Shaia wrote:
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 Thanks, applied.
 
@@ -30,7 +28,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 =C2=A0 =C2=A0
 Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-MRmV4/r65mNwfLiAfe+Q
+--=-WpAU7/ot6a5tkN1EYEZn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -38,22 +36,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJYqaQlAAoJELgmozMOVy/dze0QAKvyKmrm3ok1S6W0rktc1KkT
-P0WM7V50DgaGlEWogJ1Yx48DypG997Ki0yj9qskcagzdXTYJl+iKC2hQTtsPDBx4
-8KDzg7pjoU23qjZWFOgOURrQLnVpi6gecpWKMPG0O0+zWc82tGqqI70+Yxmdc4d6
-rw7wsERgjON2yVKg5OSK/ZpYXyVFq7izDeKoawxxPqWxO6FvawWIODRCBMjxxjYb
-oQD+2iNvoYRtX8gvaeihArIaMVAFgpHh6mp1N5F69cD34V38cBHWdybKgiAMZNFn
-oexwDyLNqO13DceWOIz6eSyP+nt0DzYJN4MEvsxHe3wgc78OvTLo/pxwc/5wGCIq
-H3Ge/SRyiJ6euE4KJyWvNrb0e2A6m60+GeSh/UJb90FsSKIO1sR/CpXZEFC/D2GA
-BRKpdT0MCASjqgTam0bADTGBxH8qX6ZaE4dPeb8EkxGeiZxBz1iJJe0b4rFwG4dX
-LkfyozmHCk8EdE6QS9tK112yxAL0CWkBBpEMIrz7yuL4RQ8Z1c5+6ZCPxD6KoWqp
-ORKhAJuh2D2zXDncEY3RGqtsGwtkEhHlbFMikMq2JqPYq4fMuN8G6kca4nvySIgj
-quo5k3cVl4Y8+KPVnJPiFJzxjZTqhLzAjzzLhezenzyOiNHVCIqnMBwLb1LxZeVs
-QsrihVfsTqup/VRk6uzR
-=tAyx
+iQIcBAABCAAGBQJYqaRUAAoJELgmozMOVy/dah4P/Rllknu+OKU9UZkPtUSaVTXv
+u1ljWWFEdJsLaihn7iVlrW7tsb+m3J5/4edd5X9HAGdI4E/CB1qCNb4WB8VgqVGd
+xqsMUA9FpG8bKUhQj5TAgHb+Oi7mMFHCEYaOnwTXnLsESjNLWqNxeZ1opDRTN6pr
+q2/wPdzspbAAj68i9gW+1fZMfJfntkZflplmr3x1lYi2gRXX6Q5PZi/8ohHBvnii
+owDeoE/sxJSsMfFAxCTYNWzH2anuAQhkC5s8Yke8waQUMGse3B1MJuMV9kL2PxMU
+zAJoxY2sBuDeuUoKdm5vH2/cmOAl2kunkXU9LKpiaPOIcFn2qmt+KaANpejPUWxN
+M8yH5Vq9yQKI4qAwp7h3g6JVgaOwmRcG6nhs1C08rYKuFUt0gx+ZjJBQKEZHzqWU
+BydKPzbqMHi2UL00A9C9HrKNb4/0NDu4ohOSTN13yU3fM/Uuucmx2UtLp7f4KFZk
+Qhu9TsE0VFBa6JsTiutEayZ4EQRMkqhR9JWB0g9KGmsrUQuz2HOvgdvF+/965sqv
+2KATE53P6BF1y/yaiVMJ8/ZPOcUzpkEp2bJBNEtE5qsnlxHwHCzAr7BtNdoanJMF
+2aDc6JQaV8VzzQkbDxtU6KdUaAO6YX55PvTbnCxnL/OnRpfV31d7zg/0Uvl4Aq/L
+1xxvb3QhvrYFZpuYChfm
+=OpTX
 -----END PGP SIGNATURE-----
 
---=-MRmV4/r65mNwfLiAfe+Q--
+--=-WpAU7/ot6a5tkN1EYEZn--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
