@@ -1,127 +1,88 @@
 From: Majd Dibbiny <majd@mellanox.com>
-Subject: Re: [PATCH 10/29] IB/mlx4: Enclose 15 expressions for the sizeof
- operator by parentheses
-Date: Sun, 19 Feb 2017 17:21:58 +0000
-Message-ID: <DC6B3471-8721-49CA-B2E3-CA883E60D341@mellanox.com>
+Subject: Re: [PATCH 11/29] IB/mlx4: Use kmalloc_array() in three functions
+Date: Sun, 19 Feb 2017 17:21:57 +0000
+Message-ID: <69F665D3-8CA0-4229-999B-DE2020ECA09E@mellanox.com>
 References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
- <c535767b-0cbd-e8e6-e7b0-f2b05cfd05e5@users.sourceforge.net>
+ <3002f281-292a-c53e-0b37-d23a3be0d5d7@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <c535767b-0cbd-e8e6-e7b0-f2b05cfd05e5@users.sourceforge.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3002f281-292a-c53e-0b37-d23a3be0d5d7@users.sourceforge.net>
 Content-Language: en-US
-Content-ID: <F59FE4B1201A6841A5066D2DE04270DA@Mellanox365.onmicrosoft.com>
-Sender: kernel-janitors-owner@vger.kernel.org
+Content-ID: <B96071430A1AC444A47F68BCEDB7DA42@Mellanox365.onmicrosoft.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: SF Markus Elfring <elfring@users.sourceforge.net>
 Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IE9uIEZlYiAxOCwgMjAxNywgYXQgMTA6NTkgUE0sIFNGIE1hcmt1cyBFbGZyaW5nIDxlbGZy
-aW5nQHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4gd3JvdGU6DQo+IA0KPiBGcm9tOiBNYXJrdXMgRWxm
-cmluZyA8ZWxmcmluZ0B1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+IERhdGU6IFNhdCwgMTggRmVi
-IDIwMTcgMDk6NTQ6MTUgKzAxMDANCj4gTUlNRS1WZXJzaW9uOiAxLjANCj4gQ29udGVudC1UeXBl
-OiB0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04DQo+IENvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6
-IDhiaXQNCj4gDQo+IFRoZSBzY3JpcHQgImNoZWNrcGF0Y2gucGwiIHBvaW50ZWQgaW5mb3JtYXRp
-b24gb3V0IGxpa2UgdGhlIGZvbGxvd2luZy4NCj4gDQo+IFdBUk5JTkc6IHNpemVvZiDigKYgc2hv
-dWxkIGJlIHNpemVvZijigKYpDQo+IA0KPiBUaHVzIGZpeCB0aGUgYWZmZWN0ZWQgc291cmNlIGNv
-ZGUgcGxhY2VzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFya3VzIEVsZnJpbmcgPGVsZnJpbmdA
-dXNlcnMuc291cmNlZm9yZ2UubmV0Pg0KPiAtLS0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21s
-eDQvbWFkLmMgfCAzMCArKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0NCj4gMSBmaWxlIGNo
-YW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDE1IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5jIGIvZHJpdmVycy9pbmZpbmliYW5k
-L2h3L21seDQvbWFkLmMNCj4gaW5kZXggODYwZmVjOGI5NjAxLi5iMjY4MTdmMDY2OWYgMTAwNjQ0
-DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5jDQo+ICsrKyBiL2RyaXZl
-cnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5jDQo+IEBAIC0xOTUsNyArMTk1LDcgQEAgc3RhdGlj
-IHZvaWQgdXBkYXRlX3NtX2FoKHN0cnVjdCBtbHg0X2liX2RldiAqZGV2LCB1OCBwb3J0X251bSwg
-dTE2IGxpZCwgdTggc2wpDQo+ICAgIGlmICghZGV2LT5zZW5kX2FnZW50W3BvcnRfbnVtIC0gMV1b
-MF0pDQo+ICAgICAgICByZXR1cm47DQo+IA0KPiAtICAgIG1lbXNldCgmYWhfYXR0ciwgMCwgc2l6
-ZW9mIGFoX2F0dHIpOw0KPiArICAgIG1lbXNldCgmYWhfYXR0ciwgMCwgc2l6ZW9mKGFoX2F0dHIp
-KTsNCj4gICAgYWhfYXR0ci5kbGlkICAgICA9IGxpZDsNCj4gICAgYWhfYXR0ci5zbCAgICAgICA9
-IHNsOw0KPiAgICBhaF9hdHRyLnBvcnRfbnVtID0gcG9ydF9udW07DQo+IEBAIC00MDAsNyArNDAw
-LDcgQEAgc3RhdGljIHZvaWQgZm9yd2FyZF90cmFwKHN0cnVjdCBtbHg0X2liX2RldiAqZGV2LCB1
-OCBwb3J0X251bSwgY29uc3Qgc3RydWN0IGliX20NCj4gICAgICAgICAqIGl0J3MgT0sgZm9yIG91
-ciBkZXZpY2VzKS4NCj4gICAgICAgICAqLw0KPiAgICAgICAgc3Bpbl9sb2NrX2lycXNhdmUoJmRl
-di0+c21fbG9jaywgZmxhZ3MpOw0KPiAtICAgICAgICBtZW1jcHkoc2VuZF9idWYtPm1hZCwgbWFk
-LCBzaXplb2YgKm1hZCk7DQo+ICsgICAgICAgIG1lbWNweShzZW5kX2J1Zi0+bWFkLCBtYWQsIHNp
-emVvZigqbWFkKSk7DQo+ICAgICAgICBzZW5kX2J1Zi0+YWggPSBkZXYtPnNtX2FoW3BvcnRfbnVt
-IC0gMV07DQo+ICAgICAgICBpZiAoc2VuZF9idWYtPmFoKQ0KPiAgICAgICAgICAgIHJldCA9IGli
-X3Bvc3Rfc2VuZF9tYWQoc2VuZF9idWYsIE5VTEwpOw0KPiBAQCAtNTU1LDcgKzU1NSw3IEBAIGlu
-dCBtbHg0X2liX3NlbmRfdG9fc2xhdmUoc3RydWN0IG1seDRfaWJfZGV2ICpkZXYsIGludCBzbGF2
-ZSwgdTggcG9ydCwNCj4gDQo+ICAgIC8qIGNyZWF0ZSBhaC4gSnVzdCBuZWVkIGFuIGVtcHR5IG9u
-ZSB3aXRoIHRoZSBwb3J0IG51bSBmb3IgdGhlIHBvc3Qgc2VuZC4NCj4gICAgICogVGhlIGRyaXZl
-ciB3aWxsIHNldCB0aGUgZm9yY2UgbG9vcGJhY2sgYml0IGluIHBvc3Rfc2VuZCAqLw0KPiAtICAg
-IG1lbXNldCgmYXR0ciwgMCwgc2l6ZW9mIGF0dHIpOw0KPiArICAgIG1lbXNldCgmYXR0ciwgMCwg
-c2l6ZW9mKGF0dHIpKTsNCj4gICAgYXR0ci5wb3J0X251bSA9IHBvcnQ7DQo+ICAgIGlmIChpc19l
-dGgpIHsNCj4gICAgICAgIHVuaW9uIGliX2dpZCBzZ2lkOw0KPiBAQCAtNTkwLDggKzU5MCw4IEBA
-IGludCBtbHg0X2liX3NlbmRfdG9fc2xhdmUoc3RydWN0IG1seDRfaWJfZGV2ICpkZXYsIGludCBz
-bGF2ZSwgdTggcG9ydCwNCj4gDQo+ICAgIC8qIGNvcHkgb3ZlciB0byB0dW5uZWwgYnVmZmVyICov
-DQo+ICAgIGlmIChncmgpDQo+IC0gICAgICAgIG1lbWNweSgmdHVuX21hZC0+Z3JoLCBncmgsIHNp
-emVvZiAqZ3JoKTsNCj4gLSAgICBtZW1jcHkoJnR1bl9tYWQtPm1hZCwgbWFkLCBzaXplb2YgKm1h
-ZCk7DQo+ICsgICAgICAgIG1lbWNweSgmdHVuX21hZC0+Z3JoLCBncmgsIHNpemVvZigqZ3JoKSk7
-DQo+ICsgICAgbWVtY3B5KCZ0dW5fbWFkLT5tYWQsIG1hZCwgc2l6ZW9mKCptYWQpKTsNCj4gDQo+
-ICAgIC8qIGFkanVzdCB0dW5uZWwgZGF0YSAqLw0KPiAgICB0dW5fbWFkLT5oZHIucGtleV9pbmRl
-eCA9IGNwdV90b19iZTE2KHR1bl9wa2V5X2l4KTsNCj4gQEAgLTk2MSw3ICs5NjEsNyBAQCBzdGF0
-aWMgaW50IGlib2VfcHJvY2Vzc19tYWQoc3RydWN0IGliX2RldmljZSAqaWJkZXYsIGludCBtYWRf
-ZmxhZ3MsIHU4IHBvcnRfbnVtLA0KPiAgICB9DQo+ICAgIG11dGV4X3VubG9jaygmZGV2LT5jb3Vu
-dGVyc190YWJsZVtwb3J0X251bSAtIDFdLm11dGV4KTsNCj4gICAgaWYgKHN0YXRzX2F2YWlsKSB7
-DQo+IC0gICAgICAgIG1lbXNldChvdXRfbWFkLT5kYXRhLCAwLCBzaXplb2Ygb3V0X21hZC0+ZGF0
-YSk7DQo+ICsgICAgICAgIG1lbXNldChvdXRfbWFkLT5kYXRhLCAwLCBzaXplb2Yob3V0X21hZC0+
-ZGF0YSkpOw0KPiAgICAgICAgc3dpdGNoIChjb3VudGVyX3N0YXRzLmNvdW50ZXJfbW9kZSAmIDB4
-Zikgew0KPiAgICAgICAgY2FzZSAwOg0KPiAgICAgICAgICAgIGVkaXRfY291bnRlcigmY291bnRl
-cl9zdGF0cywNCj4gQEAgLTExMzYsMTEgKzExMzYsMTEgQEAgc3RhdGljIHZvaWQgaGFuZGxlX3Ns
-YXZlc19ndWlkX2NoYW5nZShzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwgdTggcG9ydF9udW0sDQo+
-ICAgIGlmICghbWx4NF9pc19tZnVuYyhkZXYtPmRldikgfHwgIW1seDRfaXNfbWFzdGVyKGRldi0+
-ZGV2KSkNCj4gICAgICAgIHJldHVybjsNCj4gDQo+IC0gICAgaW5fbWFkICA9IGttYWxsb2Moc2l6
-ZW9mICppbl9tYWQsIEdGUF9LRVJORUwpOw0KPiArICAgIGluX21hZCAgPSBrbWFsbG9jKHNpemVv
-ZigqaW5fbWFkKSwgR0ZQX0tFUk5FTCk7DQo+ICAgIGlmICghaW5fbWFkKQ0KPiAgICAgICAgcmV0
-dXJuOw0KPiANCj4gLSAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YgKm91dF9tYWQsIEdGUF9L
-RVJORUwpOw0KPiArICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVvZigqb3V0X21hZCksIEdGUF9L
-RVJORUwpOw0KPiAgICBpZiAoIW91dF9tYWQpDQo+ICAgICAgICBnb3RvIGZyZWVfaW5fbWFkOw0K
-PiANCj4gQEAgLTExNDksOCArMTE0OSw4IEBAIHN0YXRpYyB2b2lkIGhhbmRsZV9zbGF2ZXNfZ3Vp
-ZF9jaGFuZ2Uoc3RydWN0IG1seDRfaWJfZGV2ICpkZXYsIHU4IHBvcnRfbnVtLA0KPiAgICBmb3Ig
-KGkgPSAwOyBpIDwgNDsgaSsrKSB7DQo+ICAgICAgICBpZiAoY2hhbmdlX2JpdG1hcCAmJiAoISgo
-Y2hhbmdlX2JpdG1hcCA+PiAoOCAqIGkpKSAmIDB4ZmYpKSkNCj4gICAgICAgICAgICBjb250aW51
-ZTsNCj4gLSAgICAgICAgbWVtc2V0KGluX21hZCwgMCwgc2l6ZW9mICppbl9tYWQpOw0KPiAtICAg
-ICAgICBtZW1zZXQob3V0X21hZCwgMCwgc2l6ZW9mICpvdXRfbWFkKTsNCj4gKyAgICAgICAgbWVt
-c2V0KGluX21hZCwgMCwgc2l6ZW9mKCppbl9tYWQpKTsNCj4gKyAgICAgICAgbWVtc2V0KG91dF9t
-YWQsIDAsIHNpemVvZigqb3V0X21hZCkpOw0KPiANCj4gICAgICAgIGluX21hZC0+YmFzZV92ZXJz
-aW9uICA9IDE7DQo+ICAgICAgICBpbl9tYWQtPm1nbXRfY2xhc3MgICAgPSBJQl9NR01UX0NMQVNT
-X1NVQk5fTElEX1JPVVRFRDsNCj4gQEAgLTE0MjEsNyArMTQyMSw3IEBAIGludCBtbHg0X2liX3Nl
-bmRfdG9fd2lyZShzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwgaW50IHNsYXZlLCB1OCBwb3J0LA0K
-PiAgICAgICAgICAgICAgICAgICBzaXplb2YgKHN0cnVjdCBtbHg0X21hZF9zbmRfYnVmKSwNCj4g
-ICAgICAgICAgICAgICAgICAgRE1BX1RPX0RFVklDRSk7DQo+IA0KPiAtICAgIG1lbWNweSgmc3Fw
-X21hZC0+cGF5bG9hZCwgbWFkLCBzaXplb2YgKm1hZCk7DQo+ICsgICAgbWVtY3B5KCZzcXBfbWFk
-LT5wYXlsb2FkLCBtYWQsIHNpemVvZigqbWFkKSk7DQo+IA0KPiAgICBpYl9kbWFfc3luY19zaW5n
-bGVfZm9yX2RldmljZSgmZGV2LT5pYl9kZXYsDQo+ICAgICAgICAgICAgICAgICAgICAgIHNxcC0+
-dHhfcmluZ1t3aXJlX3R4X2l4XS5idWYubWFwLA0KPiBAQCAtMTgwNCw3ICsxODA0LDcgQEAgc3Rh
-dGljIGludCBjcmVhdGVfcHZfc3FwKHN0cnVjdCBtbHg0X2liX2RlbXV4X3B2X2N0eCAqY3R4LA0K
-PiANCj4gICAgdHVuX3FwID0gJmN0eC0+cXBbcXBfdHlwZV07DQo+IA0KPiAtICAgIG1lbXNldCgm
-cXBfaW5pdF9hdHRyLCAwLCBzaXplb2YgcXBfaW5pdF9hdHRyKTsNCj4gKyAgICBtZW1zZXQoJnFw
-X2luaXRfYXR0ciwgMCwgc2l6ZW9mKHFwX2luaXRfYXR0cikpOw0KPiAgICBxcF9pbml0X2F0dHIu
-aW5pdF9hdHRyLnNlbmRfY3EgPSBjdHgtPmNxOw0KPiAgICBxcF9pbml0X2F0dHIuaW5pdF9hdHRy
-LnJlY3ZfY3EgPSBjdHgtPmNxOw0KPiAgICBxcF9pbml0X2F0dHIuaW5pdF9hdHRyLnNxX3NpZ190
-eXBlID0gSUJfU0lHTkFMX0FMTF9XUjsNCj4gQEAgLTE4MzcsNyArMTgzNyw3IEBAIHN0YXRpYyBp
-bnQgY3JlYXRlX3B2X3NxcChzdHJ1Y3QgbWx4NF9pYl9kZW11eF9wdl9jdHggKmN0eCwNCj4gICAg
-ICAgIHJldHVybiByZXQ7DQo+ICAgIH0NCj4gDQo+IC0gICAgbWVtc2V0KCZhdHRyLCAwLCBzaXpl
-b2YgYXR0cik7DQo+ICsgICAgbWVtc2V0KCZhdHRyLCAwLCBzaXplb2YoYXR0cikpOw0KPiAgICBh
-dHRyLnFwX3N0YXRlID0gSUJfUVBTX0lOSVQ7DQo+ICAgIHJldCA9IDA7DQo+ICAgIGlmIChjcmVh
-dGVfdHVuKQ0KPiBAQCAtMjE4NCw3ICsyMTg0LDcgQEAgc3RhdGljIGludCBtbHg0X2liX2FsbG9j
-X2RlbXV4X2N0eChzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwNCj4gICAgICAgIGdvdG8gZXJyX21j
-ZzsNCj4gICAgfQ0KPiANCj4gLSAgICBzbnByaW50ZihuYW1lLCBzaXplb2YgbmFtZSwgIm1seDRf
-aWJ0JWQiLCBwb3J0KTsNCj4gKyAgICBzbnByaW50ZihuYW1lLCBzaXplb2YobmFtZSksICJtbHg0
-X2lidCVkIiwgcG9ydCk7DQo+ICAgIGN0eC0+d3EgPSBhbGxvY19vcmRlcmVkX3dvcmtxdWV1ZShu
-YW1lLCBXUV9NRU1fUkVDTEFJTSk7DQo+ICAgIGlmICghY3R4LT53cSkgew0KPiAgICAgICAgcHJf
-ZXJyKCJGYWlsZWQgdG8gY3JlYXRlIHR1bm5lbGxpbmcgV1EgZm9yIHBvcnQgJWRcbiIsIHBvcnQp
-Ow0KPiBAQCAtMjE5Miw3ICsyMTkyLDcgQEAgc3RhdGljIGludCBtbHg0X2liX2FsbG9jX2RlbXV4
-X2N0eChzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwNCj4gICAgICAgIGdvdG8gZXJyX3dxOw0KPiAg
-ICB9DQo+IA0KPiAtICAgIHNucHJpbnRmKG5hbWUsIHNpemVvZiBuYW1lLCAibWx4NF9pYnVkJWQi
-LCBwb3J0KTsNCj4gKyAgICBzbnByaW50ZihuYW1lLCBzaXplb2YobmFtZSksICJtbHg0X2lidWQl
-ZCIsIHBvcnQpOw0KPiAgICBjdHgtPnVkX3dxID0gYWxsb2Nfb3JkZXJlZF93b3JrcXVldWUobmFt
-ZSwgV1FfTUVNX1JFQ0xBSU0pOw0KPiAgICBpZiAoIWN0eC0+dWRfd3EpIHsNCj4gICAgICAgIHBy
-X2VycigiRmFpbGVkIHRvIGNyZWF0ZSB1cC9kb3duIFdRIGZvciBwb3J0ICVkXG4iLCBwb3J0KTsN
-Cj4gLS0gDQo+IDIuMTEuMQ0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
-c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5
-IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jk
-b21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
-VGhhbmtzLA0KUmV2aWV3ZWQtYnk6IE1hamQgRGliYmlueQ0KPG1hamRAbWVsbGFub3guY29tPg==
+
+> On Feb 18, 2017, at 11:07 PM, SF Markus Elfring <elfring@users.sourceforg=
+e.net> wrote:
+>=20
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 18 Feb 2017 10:32:32 +0100
+>=20
+> Multiplications for the size determination of memory allocations
+> indicated that array data structures should be processed.
+> Thus use the corresponding function "kmalloc_array".
+>=20
+> This issue was detected by using the Coccinelle software.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+> drivers/infiniband/hw/mlx4/main.c | 14 +++++++++-----
+> 1 file changed, 9 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/ml=
+x4/main.c
+> index ba6af84cc236..350c9148340e 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -304,7 +304,9 @@ static int mlx4_ib_add_gid(struct ib_device *device,
+>        ctx->refcount++;
+>    }
+>    if (!ret && hw_update) {
+> -        gids =3D kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_ATOMIC)=
+;
+> +        gids =3D kmalloc_array(MLX4_MAX_PORT_GIDS,
+> +                     sizeof(*gids),
+> +                     GFP_ATOMIC);
+>        if (!gids) {
+>            ret =3D -ENOMEM;
+>        } else {
+> @@ -359,7 +361,9 @@ static int mlx4_ib_del_gid(struct ib_device *device,
+>    if (!ret && hw_update) {
+>        int i;
+>=20
+> -        gids =3D kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_ATOMIC)=
+;
+> +        gids =3D kmalloc_array(MLX4_MAX_PORT_GIDS,
+> +                     sizeof(*gids),
+> +                     GFP_ATOMIC);
+>        if (!gids) {
+>            ret =3D -ENOMEM;
+>        } else {
+> @@ -2828,9 +2832,9 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+>            goto err_counter;
+>=20
+>        ibdev->ib_uc_qpns_bitmap =3D
+> -            kmalloc(BITS_TO_LONGS(ibdev->steer_qpn_count) *
+> -                sizeof(long),
+> -                GFP_KERNEL);
+> +            kmalloc_array(BITS_TO_LONGS(ibdev->steer_qpn_count),
+> +                      sizeof(long),
+> +                      GFP_KERNEL);
+>        if (!ibdev->ib_uc_qpns_bitmap)
+>            goto err_steer_qp_release;
+>=20
+> --=20
+> 2.11.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Reviewed-by: Majd Dibbiny
+<majd@mellanox.com>=
