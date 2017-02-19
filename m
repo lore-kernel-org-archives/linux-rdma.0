@@ -1,117 +1,256 @@
 From: Majd Dibbiny <majd@mellanox.com>
-Subject: Re: [PATCH 12/29] IB/mlx4: Enclose 17 expressions for the sizeof
- operator by parentheses
+Subject: Re: [PATCH 13/29] IB/mlx4: Split a condition check in five functions
 Date: Sun, 19 Feb 2017 17:21:53 +0000
-Message-ID: <15CAFA80-3F81-4FF3-90A6-F215FF69FD33@mellanox.com>
-References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>,<9ba34d2d-1d54-4f65-4c01-152c72b624b4@users.sourceforge.net>
+Message-ID: <B3B45072-167B-4013-92B8-A06AC5EFEDEE@mellanox.com>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>,<c2594ee3-ce5f-f86b-980c-098adf3e4609@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9ba34d2d-1d54-4f65-4c01-152c72b624b4@users.sourceforge.net>
+In-Reply-To: <c2594ee3-ce5f-f86b-980c-098adf3e4609@users.sourceforge.net>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: SF Markus Elfring <elfring@users.sourceforge.net>
 Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IE9uIEZlYiAxOCwgMjAxNywgYXQgMTE6MDIgUE0sIFNGIE1hcmt1cyBFbGZyaW5nIDxlbGZy
-aW5nQHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4gd3JvdGU6DQo+IA0KPiBGcm9tOiBNYXJrdXMgRWxm
-cmluZyA8ZWxmcmluZ0B1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+IERhdGU6IFNhdCwgMTggRmVi
-IDIwMTcgMTE6Mjg6NDEgKzAxMDANCj4gTUlNRS1WZXJzaW9uOiAxLjANCj4gQ29udGVudC1UeXBl
-OiB0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04DQo+IENvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6
-IDhiaXQNCj4gDQo+IFRoZSBzY3JpcHQgImNoZWNrcGF0Y2gucGwiIHBvaW50ZWQgaW5mb3JtYXRp
-b24gb3V0IGxpa2UgdGhlIGZvbGxvd2luZy4NCj4gDQo+IFdBUk5JTkc6IHNpemVvZiDigKYgc2hv
-dWxkIGJlIHNpemVvZijigKYpDQo+IA0KPiBUaHVzIGZpeCB0aGUgYWZmZWN0ZWQgc291cmNlIGNv
-ZGUgcGxhY2VzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFya3VzIEVsZnJpbmcgPGVsZnJpbmdA
-dXNlcnMuc291cmNlZm9yZ2UubmV0Pg0KPiAtLS0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21s
-eDQvbWFpbi5jIHwgMzUgKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0NCj4gMSBm
-aWxlIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKyksIDE4IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21haW4uYyBiL2RyaXZlcnMvaW5m
-aW5pYmFuZC9ody9tbHg0L21haW4uYw0KPiBpbmRleCAzNTBjOTE0ODM0MGUuLmIzYjVkZWQ4NTE2
-NiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvbWFpbi5jDQo+ICsr
-KyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21haW4uYw0KPiBAQCAtNDU3LDggKzQ1Nyw4
-IEBAIHN0YXRpYyBpbnQgbWx4NF9pYl9xdWVyeV9kZXZpY2Uoc3RydWN0IGliX2RldmljZSAqaWJk
-ZXYsDQo+IA0KPiAgICByZXNwLnJlc3BvbnNlX2xlbmd0aCA9IG9mZnNldG9mKHR5cGVvZihyZXNw
-KSwgcmVzcG9uc2VfbGVuZ3RoKSArDQo+ICAgICAgICBzaXplb2YocmVzcC5yZXNwb25zZV9sZW5n
-dGgpOw0KPiAtICAgIGluX21hZCAgPSBremFsbG9jKHNpemVvZiAqaW5fbWFkLCBHRlBfS0VSTkVM
-KTsNCj4gLSAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YgKm91dF9tYWQsIEdGUF9LRVJORUwp
-Ow0KPiArICAgIGluX21hZCAgPSBremFsbG9jKHNpemVvZigqaW5fbWFkKSwgR0ZQX0tFUk5FTCk7
-DQo+ICsgICAgb3V0X21hZCA9IGttYWxsb2Moc2l6ZW9mKCpvdXRfbWFkKSwgR0ZQX0tFUk5FTCk7
-DQo+ICAgIGVyciA9IC1FTk9NRU07DQo+ICAgIGlmICghaW5fbWFkIHx8ICFvdXRfbWFkKQ0KPiAg
-ICAgICAgZ290byBvdXQ7DQo+IEBAIC00NzEsOCArNDcxLDcgQEAgc3RhdGljIGludCBtbHg0X2li
-X3F1ZXJ5X2RldmljZShzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwNCj4gICAgaWYgKGVycikNCj4g
-ICAgICAgIGdvdG8gb3V0Ow0KPiANCj4gLSAgICBtZW1zZXQocHJvcHMsIDAsIHNpemVvZiAqcHJv
-cHMpOw0KPiAtDQo+ICsgICAgbWVtc2V0KHByb3BzLCAwLCBzaXplb2YoKnByb3BzKSk7DQo+ICAg
-IGhhdmVfaWJfcG9ydHMgPSBudW1faWJfcG9ydHMoZGV2LT5kZXYpOw0KPiANCj4gICAgcHJvcHMt
-PmZ3X3ZlciA9IGRldi0+ZGV2LT5jYXBzLmZ3X3ZlcjsNCj4gQEAgLTU5NSw4ICs1OTQsOCBAQCBz
-dGF0aWMgaW50IGliX2xpbmtfcXVlcnlfcG9ydChzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwgdTgg
-cG9ydCwNCj4gICAgaW50IG1hZF9pZmNfZmxhZ3MgPSBNTFg0X01BRF9JRkNfSUdOT1JFX0tFWVM7
-DQo+ICAgIGludCBlcnIgPSAtRU5PTUVNOw0KPiANCj4gLSAgICBpbl9tYWQgID0ga3phbGxvYyhz
-aXplb2YgKmluX21hZCwgR0ZQX0tFUk5FTCk7DQo+IC0gICAgb3V0X21hZCA9IGttYWxsb2Moc2l6
-ZW9mICpvdXRfbWFkLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBpbl9tYWQgID0ga3phbGxvYyhzaXpl
-b2YoKmluX21hZCksIEdGUF9LRVJORUwpOw0KPiArICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVv
-Zigqb3V0X21hZCksIEdGUF9LRVJORUwpOw0KPiAgICBpZiAoIWluX21hZCB8fCAhb3V0X21hZCkN
-Cj4gICAgICAgIGdvdG8gb3V0Ow0KPiANCj4gQEAgLTc3MSw4ICs3NzAsOCBAQCBpbnQgX19tbHg0
-X2liX3F1ZXJ5X2dpZChzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwgdTggcG9ydCwgaW50IGluZGV4
-LA0KPiAgICBpbnQgY2xlYXIgPSAwOw0KPiAgICBpbnQgbWFkX2lmY19mbGFncyA9IE1MWDRfTUFE
-X0lGQ19JR05PUkVfS0VZUzsNCj4gDQo+IC0gICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mICpp
-bl9tYWQsIEdGUF9LRVJORUwpOw0KPiAtICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVvZiAqb3V0
-X21hZCwgR0ZQX0tFUk5FTCk7DQo+ICsgICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mKCppbl9t
-YWQpLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YoKm91dF9t
-YWQpLCBHRlBfS0VSTkVMKTsNCj4gICAgaWYgKCFpbl9tYWQgfHwgIW91dF9tYWQpDQo+ICAgICAg
-ICBnb3RvIG91dDsNCj4gDQo+IEBAIC05MDgsOCArOTA3LDggQEAgaW50IF9fbWx4NF9pYl9xdWVy
-eV9wa2V5KHN0cnVjdCBpYl9kZXZpY2UgKmliZGV2LCB1OCBwb3J0LCB1MTYgaW5kZXgsDQo+ICAg
-IGludCBtYWRfaWZjX2ZsYWdzID0gTUxYNF9NQURfSUZDX0lHTk9SRV9LRVlTOw0KPiAgICBpbnQg
-ZXJyID0gLUVOT01FTTsNCj4gDQo+IC0gICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mICppbl9t
-YWQsIEdGUF9LRVJORUwpOw0KPiAtICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVvZiAqb3V0X21h
-ZCwgR0ZQX0tFUk5FTCk7DQo+ICsgICAgaW5fbWFkICA9IGt6YWxsb2Moc2l6ZW9mKCppbl9tYWQp
-LCBHRlBfS0VSTkVMKTsNCj4gKyAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YoKm91dF9tYWQp
-LCBHRlBfS0VSTkVMKTsNCj4gICAgaWYgKCFpbl9tYWQgfHwgIW91dF9tYWQpDQo+ICAgICAgICBn
-b3RvIG91dDsNCj4gDQo+IEBAIC0xMjgwLDcgKzEyNzksNyBAQCBzdGF0aWMgc3RydWN0IGliX3Bk
-ICptbHg0X2liX2FsbG9jX3BkKHN0cnVjdCBpYl9kZXZpY2UgKmliZGV2LA0KPiAgICBzdHJ1Y3Qg
-bWx4NF9pYl9wZCAqcGQ7DQo+ICAgIGludCBlcnI7DQo+IA0KPiAtICAgIHBkID0ga21hbGxvYyhz
-aXplb2YgKnBkLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBwZCA9IGttYWxsb2Moc2l6ZW9mKCpwZCks
-IEdGUF9LRVJORUwpOw0KPiAgICBpZiAoIXBkKQ0KPiAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVO
-T01FTSk7DQo+IA0KPiBAQCAtMTMxOSw3ICsxMzE4LDcgQEAgc3RhdGljIHN0cnVjdCBpYl94cmNk
-ICptbHg0X2liX2FsbG9jX3hyY2Qoc3RydWN0IGliX2RldmljZSAqaWJkZXYsDQo+ICAgIGlmICgh
-KHRvX21kZXYoaWJkZXYpLT5kZXYtPmNhcHMuZmxhZ3MgJiBNTFg0X0RFVl9DQVBfRkxBR19YUkMp
-KQ0KPiAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVOT1NZUyk7DQo+IA0KPiAtICAgIHhyY2QgPSBr
-bWFsbG9jKHNpemVvZiAqeHJjZCwgR0ZQX0tFUk5FTCk7DQo+ICsgICAgeHJjZCA9IGttYWxsb2Mo
-c2l6ZW9mKCp4cmNkKSwgR0ZQX0tFUk5FTCk7DQo+ICAgIGlmICgheHJjZCkNCj4gICAgICAgIHJl
-dHVybiBFUlJfUFRSKC1FTk9NRU0pOw0KPiANCj4gQEAgLTEzNjcsNyArMTM2Niw3IEBAIHN0YXRp
-YyBpbnQgYWRkX2dpZF9lbnRyeShzdHJ1Y3QgaWJfcXAgKmlicXAsIHVuaW9uIGliX2dpZCAqZ2lk
-KQ0KPiAgICBzdHJ1Y3QgbWx4NF9pYl9kZXYgKm1kZXYgPSB0b19tZGV2KGlicXAtPmRldmljZSk7
-DQo+ICAgIHN0cnVjdCBtbHg0X2liX2dpZF9lbnRyeSAqZ2U7DQo+IA0KPiAtICAgIGdlID0ga3ph
-bGxvYyhzaXplb2YgKmdlLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBnZSA9IGt6YWxsb2Moc2l6ZW9m
-KCpnZSksIEdGUF9LRVJORUwpOw0KPiAgICBpZiAoIWdlKQ0KPiAgICAgICAgcmV0dXJuIC1FTk9N
-RU07DQo+IA0KPiBAQCAtMjA4OSw4ICsyMDg4LDggQEAgc3RhdGljIGludCBpbml0X25vZGVfZGF0
-YShzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldikNCj4gICAgaW50IG1hZF9pZmNfZmxhZ3MgPSBNTFg0
-X01BRF9JRkNfSUdOT1JFX0tFWVM7DQo+ICAgIGludCBlcnIgPSAtRU5PTUVNOw0KPiANCj4gLSAg
-ICBpbl9tYWQgID0ga3phbGxvYyhzaXplb2YgKmluX21hZCwgR0ZQX0tFUk5FTCk7DQo+IC0gICAg
-b3V0X21hZCA9IGttYWxsb2Moc2l6ZW9mICpvdXRfbWFkLCBHRlBfS0VSTkVMKTsNCj4gKyAgICBp
-bl9tYWQgID0ga3phbGxvYyhzaXplb2YoKmluX21hZCksIEdGUF9LRVJORUwpOw0KPiArICAgIG91
-dF9tYWQgPSBrbWFsbG9jKHNpemVvZigqb3V0X21hZCksIEdGUF9LRVJORUwpOw0KPiAgICBpZiAo
-IWluX21hZCB8fCAhb3V0X21hZCkNCj4gICAgICAgIGdvdG8gb3V0Ow0KPiANCj4gQEAgLTI2MDAs
-NyArMjU5OSw3IEBAIHN0YXRpYyB2b2lkICptbHg0X2liX2FkZChzdHJ1Y3QgbWx4NF9kZXYgKmRl
-dikNCj4gICAgaWYgKG51bV9wb3J0cyA9PSAwKQ0KPiAgICAgICAgcmV0dXJuIE5VTEw7DQo+IA0K
-PiAtICAgIGliZGV2ID0gKHN0cnVjdCBtbHg0X2liX2RldiAqKSBpYl9hbGxvY19kZXZpY2Uoc2l6
-ZW9mICppYmRldik7DQo+ICsgICAgaWJkZXYgPSAoc3RydWN0IG1seDRfaWJfZGV2ICopIGliX2Fs
-bG9jX2RldmljZShzaXplb2YoKmliZGV2KSk7DQo+ICAgIGlmICghaWJkZXYpIHsNCj4gICAgICAg
-IGRldl9lcnIoJmRldi0+cGVyc2lzdC0+cGRldi0+ZGV2LA0KPiAgICAgICAgICAgICJEZXZpY2Ug
-c3RydWN0IGFsbG9jIGZhaWxlZFxuIik7DQo+IEBAIC0zMzAxLDEyICszMzAwLDEyIEBAIHN0YXRp
-YyB2b2lkIG1seDRfaWJfZXZlbnQoc3RydWN0IG1seDRfZGV2ICpkZXYsIHZvaWQgKmliZGV2X3B0
-ciwNCj4gICAgICAgIGJyZWFrOw0KPiANCj4gICAgY2FzZSBNTFg0X0RFVl9FVkVOVF9QT1JUX01H
-TVRfQ0hBTkdFOg0KPiAtICAgICAgICBldyA9IGttYWxsb2Moc2l6ZW9mICpldywgR0ZQX0FUT01J
-Qyk7DQo+ICsgICAgICAgIGV3ID0ga21hbGxvYyhzaXplb2YoKmV3KSwgR0ZQX0FUT01JQyk7DQo+
-ICAgICAgICBpZiAoIWV3KQ0KPiAgICAgICAgICAgIGJyZWFrOw0KPiANCj4gICAgICAgIElOSVRf
-V09SSygmZXctPndvcmssIGhhbmRsZV9wb3J0X21nbXRfY2hhbmdlX2V2ZW50KTsNCj4gLSAgICAg
-ICAgbWVtY3B5KCZldy0+aWJfZXFlLCBlcWUsIHNpemVvZiAqZXFlKTsNCj4gKyAgICAgICAgbWVt
-Y3B5KCZldy0+aWJfZXFlLCBlcWUsIHNpemVvZigqZXFlKSk7DQo+ICAgICAgICBldy0+aWJfZGV2
-ID0gaWJkZXY7DQo+ICAgICAgICAvKiBuZWVkIHRvIHF1ZXVlIG9ubHkgZm9yIHBvcnQgb3duZXIs
-IHdoaWNoIHVzZXMgR0VOX0VRRSAqLw0KPiAgICAgICAgaWYgKG1seDRfaXNfbWFzdGVyKGRldikp
-DQo+IC0tIA0KPiAyLjExLjENCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
-aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9k
-eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9y
-ZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwN
-ClRoYW5rcywNClJldmlld2VkLWJ5OiBNYWpkIERpYmJpbnkNCjxtYWpkQG1lbGxhbm94LmNvbT4=
+
+> On Feb 18, 2017, at 11:08 PM, SF Markus Elfring <elfring@users.sourceforg=
+e.net> wrote:
+>=20
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 18 Feb 2017 14:43:34 +0100
+>=20
+> The kfree() function was called in up to two cases during error handling
+> even if the passed variable contained a null pointer.
+>=20
+> * Split a condition check for memory allocation failures.
+>=20
+> * Adjust jump targets according to the Linux coding style convention.
+>=20
+> * Delete initialisations for variables at the beginning
+>  which became unnecessary with this refactoring.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+> drivers/infiniband/hw/mlx4/main.c | 90 +++++++++++++++++++++++++---------=
+-----
+> 1 file changed, 59 insertions(+), 31 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/ml=
+x4/main.c
+> index b3b5ded85166..c0c299ffa0f6 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -432,8 +432,8 @@ static int mlx4_ib_query_device(struct ib_device *ibd=
+ev,
+>                struct ib_udata *uhw)
+> {
+>    struct mlx4_ib_dev *dev =3D to_mdev(ibdev);
+> -    struct ib_smp *in_mad  =3D NULL;
+> -    struct ib_smp *out_mad =3D NULL;
+> +    struct ib_smp *in_mad;
+> +    struct ib_smp *out_mad;
+>    int err;
+>    int have_ib_ports;
+>    struct mlx4_uverbs_ex_query_device cmd;
+> @@ -458,10 +458,14 @@ static int mlx4_ib_query_device(struct ib_device *i=
+bdev,
+>    resp.response_length =3D offsetof(typeof(resp), response_length) +
+>        sizeof(resp.response_length);
+>    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
+> +    if (!in_mad)
+> +        return -ENOMEM;
+> +
+>    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
+> -    err =3D -ENOMEM;
+> -    if (!in_mad || !out_mad)
+> -        goto out;
+> +    if (!out_mad) {
+> +        err =3D -ENOMEM;
+> +        goto free_in_mad;
+> +    }
+>=20
+>    init_query_mad(in_mad);
+>    in_mad->attr_id =3D IB_SMP_ATTR_NODE_INFO;
+> @@ -570,9 +574,9 @@ static int mlx4_ib_query_device(struct ib_device *ibd=
+ev,
+>            goto out;
+>    }
+> out:
+> -    kfree(in_mad);
+>    kfree(out_mad);
+> -
+> +free_in_mad:
+> +    kfree(in_mad);
+>    return err;
+> }
+>=20
+> @@ -588,16 +592,21 @@ mlx4_ib_port_link_layer(struct ib_device *device, u=
+8 port_num)
+> static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+>                  struct ib_port_attr *props, int netw_view)
+> {
+> -    struct ib_smp *in_mad  =3D NULL;
+> -    struct ib_smp *out_mad =3D NULL;
+> +    struct ib_smp *in_mad;
+> +    struct ib_smp *out_mad;
+>    int ext_active_speed;
+>    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
+> -    int err =3D -ENOMEM;
+> +    int err;
+>=20
+>    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
+> +    if (!in_mad)
+> +        return -ENOMEM;
+> +
+>    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
+> -    if (!in_mad || !out_mad)
+> -        goto out;
+> +    if (!out_mad) {
+> +        err =3D -ENOMEM;
+> +        goto free_in_mad;
+> +    }
+>=20
+>    init_query_mad(in_mad);
+>    in_mad->attr_id  =3D IB_SMP_ATTR_PORT_INFO;
+> @@ -670,8 +679,9 @@ static int ib_link_query_port(struct ib_device *ibdev=
+, u8 port,
+>         props->active_speed =3D IB_SPEED_SDR;
+>=20
+> out:
+> -    kfree(in_mad);
+>    kfree(out_mad);
+> +free_in_mad:
+> +    kfree(in_mad);
+>    return err;
+> }
+>=20
+> @@ -763,17 +773,22 @@ static int mlx4_ib_query_port(struct ib_device *ibd=
+ev, u8 port,
+> int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+>            union ib_gid *gid, int netw_view)
+> {
+> -    struct ib_smp *in_mad  =3D NULL;
+> -    struct ib_smp *out_mad =3D NULL;
+> -    int err =3D -ENOMEM;
+> +    struct ib_smp *in_mad;
+> +    struct ib_smp *out_mad;
+> +    int err;
+>    struct mlx4_ib_dev *dev =3D to_mdev(ibdev);
+>    int clear =3D 0;
+>    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
+>=20
+>    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
+> +    if (!in_mad)
+> +        return -ENOMEM;
+> +
+>    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
+> -    if (!in_mad || !out_mad)
+> -        goto out;
+> +    if (!out_mad) {
+> +        err =3D -ENOMEM;
+> +        goto free_in_mad;
+> +    }
+>=20
+>    init_query_mad(in_mad);
+>    in_mad->attr_id  =3D IB_SMP_ATTR_PORT_INFO;
+> @@ -811,8 +826,9 @@ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 p=
+ort, int index,
+> out:
+>    if (clear)
+>        memset(gid->raw + 8, 0, 8);
+> -    kfree(in_mad);
+>    kfree(out_mad);
+> +free_in_mad:
+> +    kfree(in_mad);
+>    return err;
+> }
+>=20
+> @@ -902,15 +918,20 @@ static void mlx4_init_sl2vl_tbl(struct mlx4_ib_dev =
+*mdev)
+> int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+>             u16 *pkey, int netw_view)
+> {
+> -    struct ib_smp *in_mad  =3D NULL;
+> -    struct ib_smp *out_mad =3D NULL;
+> +    struct ib_smp *in_mad;
+> +    struct ib_smp *out_mad;
+>    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
+> -    int err =3D -ENOMEM;
+> +    int err;
+>=20
+>    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
+> +    if (!in_mad)
+> +        return -ENOMEM;
+> +
+>    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
+> -    if (!in_mad || !out_mad)
+> -        goto out;
+> +    if (!out_mad) {
+> +        err =3D -ENOMEM;
+> +        goto free_in_mad;
+> +    }
+>=20
+>    init_query_mad(in_mad);
+>    in_mad->attr_id  =3D IB_SMP_ATTR_PKEY_TABLE;
+> @@ -927,8 +948,9 @@ int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 =
+port, u16 index,
+>    *pkey =3D be16_to_cpu(((__be16 *) out_mad->data)[index % 32]);
+>=20
+> out:
+> -    kfree(in_mad);
+>    kfree(out_mad);
+> +free_in_mad:
+> +    kfree(in_mad);
+>    return err;
+> }
+>=20
+> @@ -2083,15 +2105,20 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp,=
+ union ib_gid *gid, u16 lid)
+>=20
+> static int init_node_data(struct mlx4_ib_dev *dev)
+> {
+> -    struct ib_smp *in_mad  =3D NULL;
+> -    struct ib_smp *out_mad =3D NULL;
+> +    struct ib_smp *in_mad;
+> +    struct ib_smp *out_mad;
+>    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
+> -    int err =3D -ENOMEM;
+> +    int err;
+>=20
+>    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
+> +    if (!in_mad)
+> +        return -ENOMEM;
+> +
+>    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
+> -    if (!in_mad || !out_mad)
+> -        goto out;
+> +    if (!out_mad) {
+> +        err =3D -ENOMEM;
+> +        goto free_in_mad;
+> +    }
+>=20
+>    init_query_mad(in_mad);
+>    in_mad->attr_id =3D IB_SMP_ATTR_NODE_DESC;
+> @@ -2114,8 +2141,9 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+>    memcpy(&dev->ib_dev.node_guid, out_mad->data + 12, 8);
+>=20
+> out:
+> -    kfree(in_mad);
+>    kfree(out_mad);
+> +free_in_mad:
+> +    kfree(in_mad);
+>    return err;
+> }
+>=20
+> --=20
+> 2.11.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Reviewed-by: Majd Dibbiny
+<majd@mellanox.com>=
