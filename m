@@ -1,256 +1,127 @@
 From: Majd Dibbiny <majd@mellanox.com>
-Subject: Re: [PATCH 13/29] IB/mlx4: Split a condition check in five functions
-Date: Sun, 19 Feb 2017 17:21:53 +0000
-Message-ID: <B3B45072-167B-4013-92B8-A06AC5EFEDEE@mellanox.com>
-References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>,<c2594ee3-ce5f-f86b-980c-098adf3e4609@users.sourceforge.net>
+Subject: Re: [PATCH 10/29] IB/mlx4: Enclose 15 expressions for the sizeof
+ operator by parentheses
+Date: Sun, 19 Feb 2017 17:21:58 +0000
+Message-ID: <DC6B3471-8721-49CA-B2E3-CA883E60D341@mellanox.com>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+ <c535767b-0cbd-e8e6-e7b0-f2b05cfd05e5@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c2594ee3-ce5f-f86b-980c-098adf3e4609@users.sourceforge.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <c535767b-0cbd-e8e6-e7b0-f2b05cfd05e5@users.sourceforge.net>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
+Content-ID: <F59FE4B1201A6841A5066D2DE04270DA@Mellanox365.onmicrosoft.com>
+Sender: kernel-janitors-owner@vger.kernel.org
 To: SF Markus Elfring <elfring@users.sourceforge.net>
 Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> On Feb 18, 2017, at 11:08 PM, SF Markus Elfring <elfring@users.sourceforg=
-e.net> wrote:
->=20
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 18 Feb 2017 14:43:34 +0100
->=20
-> The kfree() function was called in up to two cases during error handling
-> even if the passed variable contained a null pointer.
->=20
-> * Split a condition check for memory allocation failures.
->=20
-> * Adjust jump targets according to the Linux coding style convention.
->=20
-> * Delete initialisations for variables at the beginning
->  which became unnecessary with this refactoring.
->=20
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
-> drivers/infiniband/hw/mlx4/main.c | 90 +++++++++++++++++++++++++---------=
------
-> 1 file changed, 59 insertions(+), 31 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/ml=
-x4/main.c
-> index b3b5ded85166..c0c299ffa0f6 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -432,8 +432,8 @@ static int mlx4_ib_query_device(struct ib_device *ibd=
-ev,
->                struct ib_udata *uhw)
-> {
->    struct mlx4_ib_dev *dev =3D to_mdev(ibdev);
-> -    struct ib_smp *in_mad  =3D NULL;
-> -    struct ib_smp *out_mad =3D NULL;
-> +    struct ib_smp *in_mad;
-> +    struct ib_smp *out_mad;
->    int err;
->    int have_ib_ports;
->    struct mlx4_uverbs_ex_query_device cmd;
-> @@ -458,10 +458,14 @@ static int mlx4_ib_query_device(struct ib_device *i=
-bdev,
->    resp.response_length =3D offsetof(typeof(resp), response_length) +
->        sizeof(resp.response_length);
->    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
-> +    if (!in_mad)
-> +        return -ENOMEM;
-> +
->    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
-> -    err =3D -ENOMEM;
-> -    if (!in_mad || !out_mad)
-> -        goto out;
-> +    if (!out_mad) {
-> +        err =3D -ENOMEM;
-> +        goto free_in_mad;
-> +    }
->=20
->    init_query_mad(in_mad);
->    in_mad->attr_id =3D IB_SMP_ATTR_NODE_INFO;
-> @@ -570,9 +574,9 @@ static int mlx4_ib_query_device(struct ib_device *ibd=
-ev,
->            goto out;
->    }
-> out:
-> -    kfree(in_mad);
->    kfree(out_mad);
-> -
-> +free_in_mad:
-> +    kfree(in_mad);
->    return err;
-> }
->=20
-> @@ -588,16 +592,21 @@ mlx4_ib_port_link_layer(struct ib_device *device, u=
-8 port_num)
-> static int ib_link_query_port(struct ib_device *ibdev, u8 port,
->                  struct ib_port_attr *props, int netw_view)
-> {
-> -    struct ib_smp *in_mad  =3D NULL;
-> -    struct ib_smp *out_mad =3D NULL;
-> +    struct ib_smp *in_mad;
-> +    struct ib_smp *out_mad;
->    int ext_active_speed;
->    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
-> -    int err =3D -ENOMEM;
-> +    int err;
->=20
->    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
-> +    if (!in_mad)
-> +        return -ENOMEM;
-> +
->    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
-> -    if (!in_mad || !out_mad)
-> -        goto out;
-> +    if (!out_mad) {
-> +        err =3D -ENOMEM;
-> +        goto free_in_mad;
-> +    }
->=20
->    init_query_mad(in_mad);
->    in_mad->attr_id  =3D IB_SMP_ATTR_PORT_INFO;
-> @@ -670,8 +679,9 @@ static int ib_link_query_port(struct ib_device *ibdev=
-, u8 port,
->         props->active_speed =3D IB_SPEED_SDR;
->=20
-> out:
-> -    kfree(in_mad);
->    kfree(out_mad);
-> +free_in_mad:
-> +    kfree(in_mad);
->    return err;
-> }
->=20
-> @@ -763,17 +773,22 @@ static int mlx4_ib_query_port(struct ib_device *ibd=
-ev, u8 port,
-> int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
->            union ib_gid *gid, int netw_view)
-> {
-> -    struct ib_smp *in_mad  =3D NULL;
-> -    struct ib_smp *out_mad =3D NULL;
-> -    int err =3D -ENOMEM;
-> +    struct ib_smp *in_mad;
-> +    struct ib_smp *out_mad;
-> +    int err;
->    struct mlx4_ib_dev *dev =3D to_mdev(ibdev);
->    int clear =3D 0;
->    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
->=20
->    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
-> +    if (!in_mad)
-> +        return -ENOMEM;
-> +
->    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
-> -    if (!in_mad || !out_mad)
-> -        goto out;
-> +    if (!out_mad) {
-> +        err =3D -ENOMEM;
-> +        goto free_in_mad;
-> +    }
->=20
->    init_query_mad(in_mad);
->    in_mad->attr_id  =3D IB_SMP_ATTR_PORT_INFO;
-> @@ -811,8 +826,9 @@ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 p=
-ort, int index,
-> out:
->    if (clear)
->        memset(gid->raw + 8, 0, 8);
-> -    kfree(in_mad);
->    kfree(out_mad);
-> +free_in_mad:
-> +    kfree(in_mad);
->    return err;
-> }
->=20
-> @@ -902,15 +918,20 @@ static void mlx4_init_sl2vl_tbl(struct mlx4_ib_dev =
-*mdev)
-> int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
->             u16 *pkey, int netw_view)
-> {
-> -    struct ib_smp *in_mad  =3D NULL;
-> -    struct ib_smp *out_mad =3D NULL;
-> +    struct ib_smp *in_mad;
-> +    struct ib_smp *out_mad;
->    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
-> -    int err =3D -ENOMEM;
-> +    int err;
->=20
->    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
-> +    if (!in_mad)
-> +        return -ENOMEM;
-> +
->    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
-> -    if (!in_mad || !out_mad)
-> -        goto out;
-> +    if (!out_mad) {
-> +        err =3D -ENOMEM;
-> +        goto free_in_mad;
-> +    }
->=20
->    init_query_mad(in_mad);
->    in_mad->attr_id  =3D IB_SMP_ATTR_PKEY_TABLE;
-> @@ -927,8 +948,9 @@ int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 =
-port, u16 index,
->    *pkey =3D be16_to_cpu(((__be16 *) out_mad->data)[index % 32]);
->=20
-> out:
-> -    kfree(in_mad);
->    kfree(out_mad);
-> +free_in_mad:
-> +    kfree(in_mad);
->    return err;
-> }
->=20
-> @@ -2083,15 +2105,20 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp,=
- union ib_gid *gid, u16 lid)
->=20
-> static int init_node_data(struct mlx4_ib_dev *dev)
-> {
-> -    struct ib_smp *in_mad  =3D NULL;
-> -    struct ib_smp *out_mad =3D NULL;
-> +    struct ib_smp *in_mad;
-> +    struct ib_smp *out_mad;
->    int mad_ifc_flags =3D MLX4_MAD_IFC_IGNORE_KEYS;
-> -    int err =3D -ENOMEM;
-> +    int err;
->=20
->    in_mad  =3D kzalloc(sizeof(*in_mad), GFP_KERNEL);
-> +    if (!in_mad)
-> +        return -ENOMEM;
-> +
->    out_mad =3D kmalloc(sizeof(*out_mad), GFP_KERNEL);
-> -    if (!in_mad || !out_mad)
-> -        goto out;
-> +    if (!out_mad) {
-> +        err =3D -ENOMEM;
-> +        goto free_in_mad;
-> +    }
->=20
->    init_query_mad(in_mad);
->    in_mad->attr_id =3D IB_SMP_ATTR_NODE_DESC;
-> @@ -2114,8 +2141,9 @@ static int init_node_data(struct mlx4_ib_dev *dev)
->    memcpy(&dev->ib_dev.node_guid, out_mad->data + 12, 8);
->=20
-> out:
-> -    kfree(in_mad);
->    kfree(out_mad);
-> +free_in_mad:
-> +    kfree(in_mad);
->    return err;
-> }
->=20
-> --=20
-> 2.11.1
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Thanks,
-Reviewed-by: Majd Dibbiny
-<majd@mellanox.com>=
+DQo+IE9uIEZlYiAxOCwgMjAxNywgYXQgMTA6NTkgUE0sIFNGIE1hcmt1cyBFbGZyaW5nIDxlbGZy
+aW5nQHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4gd3JvdGU6DQo+IA0KPiBGcm9tOiBNYXJrdXMgRWxm
+cmluZyA8ZWxmcmluZ0B1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+IERhdGU6IFNhdCwgMTggRmVi
+IDIwMTcgMDk6NTQ6MTUgKzAxMDANCj4gTUlNRS1WZXJzaW9uOiAxLjANCj4gQ29udGVudC1UeXBl
+OiB0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04DQo+IENvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6
+IDhiaXQNCj4gDQo+IFRoZSBzY3JpcHQgImNoZWNrcGF0Y2gucGwiIHBvaW50ZWQgaW5mb3JtYXRp
+b24gb3V0IGxpa2UgdGhlIGZvbGxvd2luZy4NCj4gDQo+IFdBUk5JTkc6IHNpemVvZiDigKYgc2hv
+dWxkIGJlIHNpemVvZijigKYpDQo+IA0KPiBUaHVzIGZpeCB0aGUgYWZmZWN0ZWQgc291cmNlIGNv
+ZGUgcGxhY2VzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFya3VzIEVsZnJpbmcgPGVsZnJpbmdA
+dXNlcnMuc291cmNlZm9yZ2UubmV0Pg0KPiAtLS0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21s
+eDQvbWFkLmMgfCAzMCArKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0NCj4gMSBmaWxlIGNo
+YW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDE1IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5jIGIvZHJpdmVycy9pbmZpbmliYW5k
+L2h3L21seDQvbWFkLmMNCj4gaW5kZXggODYwZmVjOGI5NjAxLi5iMjY4MTdmMDY2OWYgMTAwNjQ0
+DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5jDQo+ICsrKyBiL2RyaXZl
+cnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5jDQo+IEBAIC0xOTUsNyArMTk1LDcgQEAgc3RhdGlj
+IHZvaWQgdXBkYXRlX3NtX2FoKHN0cnVjdCBtbHg0X2liX2RldiAqZGV2LCB1OCBwb3J0X251bSwg
+dTE2IGxpZCwgdTggc2wpDQo+ICAgIGlmICghZGV2LT5zZW5kX2FnZW50W3BvcnRfbnVtIC0gMV1b
+MF0pDQo+ICAgICAgICByZXR1cm47DQo+IA0KPiAtICAgIG1lbXNldCgmYWhfYXR0ciwgMCwgc2l6
+ZW9mIGFoX2F0dHIpOw0KPiArICAgIG1lbXNldCgmYWhfYXR0ciwgMCwgc2l6ZW9mKGFoX2F0dHIp
+KTsNCj4gICAgYWhfYXR0ci5kbGlkICAgICA9IGxpZDsNCj4gICAgYWhfYXR0ci5zbCAgICAgICA9
+IHNsOw0KPiAgICBhaF9hdHRyLnBvcnRfbnVtID0gcG9ydF9udW07DQo+IEBAIC00MDAsNyArNDAw
+LDcgQEAgc3RhdGljIHZvaWQgZm9yd2FyZF90cmFwKHN0cnVjdCBtbHg0X2liX2RldiAqZGV2LCB1
+OCBwb3J0X251bSwgY29uc3Qgc3RydWN0IGliX20NCj4gICAgICAgICAqIGl0J3MgT0sgZm9yIG91
+ciBkZXZpY2VzKS4NCj4gICAgICAgICAqLw0KPiAgICAgICAgc3Bpbl9sb2NrX2lycXNhdmUoJmRl
+di0+c21fbG9jaywgZmxhZ3MpOw0KPiAtICAgICAgICBtZW1jcHkoc2VuZF9idWYtPm1hZCwgbWFk
+LCBzaXplb2YgKm1hZCk7DQo+ICsgICAgICAgIG1lbWNweShzZW5kX2J1Zi0+bWFkLCBtYWQsIHNp
+emVvZigqbWFkKSk7DQo+ICAgICAgICBzZW5kX2J1Zi0+YWggPSBkZXYtPnNtX2FoW3BvcnRfbnVt
+IC0gMV07DQo+ICAgICAgICBpZiAoc2VuZF9idWYtPmFoKQ0KPiAgICAgICAgICAgIHJldCA9IGli
+X3Bvc3Rfc2VuZF9tYWQoc2VuZF9idWYsIE5VTEwpOw0KPiBAQCAtNTU1LDcgKzU1NSw3IEBAIGlu
+dCBtbHg0X2liX3NlbmRfdG9fc2xhdmUoc3RydWN0IG1seDRfaWJfZGV2ICpkZXYsIGludCBzbGF2
+ZSwgdTggcG9ydCwNCj4gDQo+ICAgIC8qIGNyZWF0ZSBhaC4gSnVzdCBuZWVkIGFuIGVtcHR5IG9u
+ZSB3aXRoIHRoZSBwb3J0IG51bSBmb3IgdGhlIHBvc3Qgc2VuZC4NCj4gICAgICogVGhlIGRyaXZl
+ciB3aWxsIHNldCB0aGUgZm9yY2UgbG9vcGJhY2sgYml0IGluIHBvc3Rfc2VuZCAqLw0KPiAtICAg
+IG1lbXNldCgmYXR0ciwgMCwgc2l6ZW9mIGF0dHIpOw0KPiArICAgIG1lbXNldCgmYXR0ciwgMCwg
+c2l6ZW9mKGF0dHIpKTsNCj4gICAgYXR0ci5wb3J0X251bSA9IHBvcnQ7DQo+ICAgIGlmIChpc19l
+dGgpIHsNCj4gICAgICAgIHVuaW9uIGliX2dpZCBzZ2lkOw0KPiBAQCAtNTkwLDggKzU5MCw4IEBA
+IGludCBtbHg0X2liX3NlbmRfdG9fc2xhdmUoc3RydWN0IG1seDRfaWJfZGV2ICpkZXYsIGludCBz
+bGF2ZSwgdTggcG9ydCwNCj4gDQo+ICAgIC8qIGNvcHkgb3ZlciB0byB0dW5uZWwgYnVmZmVyICov
+DQo+ICAgIGlmIChncmgpDQo+IC0gICAgICAgIG1lbWNweSgmdHVuX21hZC0+Z3JoLCBncmgsIHNp
+emVvZiAqZ3JoKTsNCj4gLSAgICBtZW1jcHkoJnR1bl9tYWQtPm1hZCwgbWFkLCBzaXplb2YgKm1h
+ZCk7DQo+ICsgICAgICAgIG1lbWNweSgmdHVuX21hZC0+Z3JoLCBncmgsIHNpemVvZigqZ3JoKSk7
+DQo+ICsgICAgbWVtY3B5KCZ0dW5fbWFkLT5tYWQsIG1hZCwgc2l6ZW9mKCptYWQpKTsNCj4gDQo+
+ICAgIC8qIGFkanVzdCB0dW5uZWwgZGF0YSAqLw0KPiAgICB0dW5fbWFkLT5oZHIucGtleV9pbmRl
+eCA9IGNwdV90b19iZTE2KHR1bl9wa2V5X2l4KTsNCj4gQEAgLTk2MSw3ICs5NjEsNyBAQCBzdGF0
+aWMgaW50IGlib2VfcHJvY2Vzc19tYWQoc3RydWN0IGliX2RldmljZSAqaWJkZXYsIGludCBtYWRf
+ZmxhZ3MsIHU4IHBvcnRfbnVtLA0KPiAgICB9DQo+ICAgIG11dGV4X3VubG9jaygmZGV2LT5jb3Vu
+dGVyc190YWJsZVtwb3J0X251bSAtIDFdLm11dGV4KTsNCj4gICAgaWYgKHN0YXRzX2F2YWlsKSB7
+DQo+IC0gICAgICAgIG1lbXNldChvdXRfbWFkLT5kYXRhLCAwLCBzaXplb2Ygb3V0X21hZC0+ZGF0
+YSk7DQo+ICsgICAgICAgIG1lbXNldChvdXRfbWFkLT5kYXRhLCAwLCBzaXplb2Yob3V0X21hZC0+
+ZGF0YSkpOw0KPiAgICAgICAgc3dpdGNoIChjb3VudGVyX3N0YXRzLmNvdW50ZXJfbW9kZSAmIDB4
+Zikgew0KPiAgICAgICAgY2FzZSAwOg0KPiAgICAgICAgICAgIGVkaXRfY291bnRlcigmY291bnRl
+cl9zdGF0cywNCj4gQEAgLTExMzYsMTEgKzExMzYsMTEgQEAgc3RhdGljIHZvaWQgaGFuZGxlX3Ns
+YXZlc19ndWlkX2NoYW5nZShzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwgdTggcG9ydF9udW0sDQo+
+ICAgIGlmICghbWx4NF9pc19tZnVuYyhkZXYtPmRldikgfHwgIW1seDRfaXNfbWFzdGVyKGRldi0+
+ZGV2KSkNCj4gICAgICAgIHJldHVybjsNCj4gDQo+IC0gICAgaW5fbWFkICA9IGttYWxsb2Moc2l6
+ZW9mICppbl9tYWQsIEdGUF9LRVJORUwpOw0KPiArICAgIGluX21hZCAgPSBrbWFsbG9jKHNpemVv
+ZigqaW5fbWFkKSwgR0ZQX0tFUk5FTCk7DQo+ICAgIGlmICghaW5fbWFkKQ0KPiAgICAgICAgcmV0
+dXJuOw0KPiANCj4gLSAgICBvdXRfbWFkID0ga21hbGxvYyhzaXplb2YgKm91dF9tYWQsIEdGUF9L
+RVJORUwpOw0KPiArICAgIG91dF9tYWQgPSBrbWFsbG9jKHNpemVvZigqb3V0X21hZCksIEdGUF9L
+RVJORUwpOw0KPiAgICBpZiAoIW91dF9tYWQpDQo+ICAgICAgICBnb3RvIGZyZWVfaW5fbWFkOw0K
+PiANCj4gQEAgLTExNDksOCArMTE0OSw4IEBAIHN0YXRpYyB2b2lkIGhhbmRsZV9zbGF2ZXNfZ3Vp
+ZF9jaGFuZ2Uoc3RydWN0IG1seDRfaWJfZGV2ICpkZXYsIHU4IHBvcnRfbnVtLA0KPiAgICBmb3Ig
+KGkgPSAwOyBpIDwgNDsgaSsrKSB7DQo+ICAgICAgICBpZiAoY2hhbmdlX2JpdG1hcCAmJiAoISgo
+Y2hhbmdlX2JpdG1hcCA+PiAoOCAqIGkpKSAmIDB4ZmYpKSkNCj4gICAgICAgICAgICBjb250aW51
+ZTsNCj4gLSAgICAgICAgbWVtc2V0KGluX21hZCwgMCwgc2l6ZW9mICppbl9tYWQpOw0KPiAtICAg
+ICAgICBtZW1zZXQob3V0X21hZCwgMCwgc2l6ZW9mICpvdXRfbWFkKTsNCj4gKyAgICAgICAgbWVt
+c2V0KGluX21hZCwgMCwgc2l6ZW9mKCppbl9tYWQpKTsNCj4gKyAgICAgICAgbWVtc2V0KG91dF9t
+YWQsIDAsIHNpemVvZigqb3V0X21hZCkpOw0KPiANCj4gICAgICAgIGluX21hZC0+YmFzZV92ZXJz
+aW9uICA9IDE7DQo+ICAgICAgICBpbl9tYWQtPm1nbXRfY2xhc3MgICAgPSBJQl9NR01UX0NMQVNT
+X1NVQk5fTElEX1JPVVRFRDsNCj4gQEAgLTE0MjEsNyArMTQyMSw3IEBAIGludCBtbHg0X2liX3Nl
+bmRfdG9fd2lyZShzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwgaW50IHNsYXZlLCB1OCBwb3J0LA0K
+PiAgICAgICAgICAgICAgICAgICBzaXplb2YgKHN0cnVjdCBtbHg0X21hZF9zbmRfYnVmKSwNCj4g
+ICAgICAgICAgICAgICAgICAgRE1BX1RPX0RFVklDRSk7DQo+IA0KPiAtICAgIG1lbWNweSgmc3Fw
+X21hZC0+cGF5bG9hZCwgbWFkLCBzaXplb2YgKm1hZCk7DQo+ICsgICAgbWVtY3B5KCZzcXBfbWFk
+LT5wYXlsb2FkLCBtYWQsIHNpemVvZigqbWFkKSk7DQo+IA0KPiAgICBpYl9kbWFfc3luY19zaW5n
+bGVfZm9yX2RldmljZSgmZGV2LT5pYl9kZXYsDQo+ICAgICAgICAgICAgICAgICAgICAgIHNxcC0+
+dHhfcmluZ1t3aXJlX3R4X2l4XS5idWYubWFwLA0KPiBAQCAtMTgwNCw3ICsxODA0LDcgQEAgc3Rh
+dGljIGludCBjcmVhdGVfcHZfc3FwKHN0cnVjdCBtbHg0X2liX2RlbXV4X3B2X2N0eCAqY3R4LA0K
+PiANCj4gICAgdHVuX3FwID0gJmN0eC0+cXBbcXBfdHlwZV07DQo+IA0KPiAtICAgIG1lbXNldCgm
+cXBfaW5pdF9hdHRyLCAwLCBzaXplb2YgcXBfaW5pdF9hdHRyKTsNCj4gKyAgICBtZW1zZXQoJnFw
+X2luaXRfYXR0ciwgMCwgc2l6ZW9mKHFwX2luaXRfYXR0cikpOw0KPiAgICBxcF9pbml0X2F0dHIu
+aW5pdF9hdHRyLnNlbmRfY3EgPSBjdHgtPmNxOw0KPiAgICBxcF9pbml0X2F0dHIuaW5pdF9hdHRy
+LnJlY3ZfY3EgPSBjdHgtPmNxOw0KPiAgICBxcF9pbml0X2F0dHIuaW5pdF9hdHRyLnNxX3NpZ190
+eXBlID0gSUJfU0lHTkFMX0FMTF9XUjsNCj4gQEAgLTE4MzcsNyArMTgzNyw3IEBAIHN0YXRpYyBp
+bnQgY3JlYXRlX3B2X3NxcChzdHJ1Y3QgbWx4NF9pYl9kZW11eF9wdl9jdHggKmN0eCwNCj4gICAg
+ICAgIHJldHVybiByZXQ7DQo+ICAgIH0NCj4gDQo+IC0gICAgbWVtc2V0KCZhdHRyLCAwLCBzaXpl
+b2YgYXR0cik7DQo+ICsgICAgbWVtc2V0KCZhdHRyLCAwLCBzaXplb2YoYXR0cikpOw0KPiAgICBh
+dHRyLnFwX3N0YXRlID0gSUJfUVBTX0lOSVQ7DQo+ICAgIHJldCA9IDA7DQo+ICAgIGlmIChjcmVh
+dGVfdHVuKQ0KPiBAQCAtMjE4NCw3ICsyMTg0LDcgQEAgc3RhdGljIGludCBtbHg0X2liX2FsbG9j
+X2RlbXV4X2N0eChzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwNCj4gICAgICAgIGdvdG8gZXJyX21j
+ZzsNCj4gICAgfQ0KPiANCj4gLSAgICBzbnByaW50ZihuYW1lLCBzaXplb2YgbmFtZSwgIm1seDRf
+aWJ0JWQiLCBwb3J0KTsNCj4gKyAgICBzbnByaW50ZihuYW1lLCBzaXplb2YobmFtZSksICJtbHg0
+X2lidCVkIiwgcG9ydCk7DQo+ICAgIGN0eC0+d3EgPSBhbGxvY19vcmRlcmVkX3dvcmtxdWV1ZShu
+YW1lLCBXUV9NRU1fUkVDTEFJTSk7DQo+ICAgIGlmICghY3R4LT53cSkgew0KPiAgICAgICAgcHJf
+ZXJyKCJGYWlsZWQgdG8gY3JlYXRlIHR1bm5lbGxpbmcgV1EgZm9yIHBvcnQgJWRcbiIsIHBvcnQp
+Ow0KPiBAQCAtMjE5Miw3ICsyMTkyLDcgQEAgc3RhdGljIGludCBtbHg0X2liX2FsbG9jX2RlbXV4
+X2N0eChzdHJ1Y3QgbWx4NF9pYl9kZXYgKmRldiwNCj4gICAgICAgIGdvdG8gZXJyX3dxOw0KPiAg
+ICB9DQo+IA0KPiAtICAgIHNucHJpbnRmKG5hbWUsIHNpemVvZiBuYW1lLCAibWx4NF9pYnVkJWQi
+LCBwb3J0KTsNCj4gKyAgICBzbnByaW50ZihuYW1lLCBzaXplb2YobmFtZSksICJtbHg0X2lidWQl
+ZCIsIHBvcnQpOw0KPiAgICBjdHgtPnVkX3dxID0gYWxsb2Nfb3JkZXJlZF93b3JrcXVldWUobmFt
+ZSwgV1FfTUVNX1JFQ0xBSU0pOw0KPiAgICBpZiAoIWN0eC0+dWRfd3EpIHsNCj4gICAgICAgIHBy
+X2VycigiRmFpbGVkIHRvIGNyZWF0ZSB1cC9kb3duIFdRIGZvciBwb3J0ICVkXG4iLCBwb3J0KTsN
+Cj4gLS0gDQo+IDIuMTEuMQ0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
+c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5
+IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jk
+b21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+VGhhbmtzLA0KUmV2aWV3ZWQtYnk6IE1hamQgRGliYmlueQ0KPG1hamRAbWVsbGFub3guY29tPg==
