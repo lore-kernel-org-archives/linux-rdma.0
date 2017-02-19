@@ -1,104 +1,61 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/8] IB/srp bug fixes
-Date: Sun, 19 Feb 2017 09:21:23 -0500
-Message-ID: <1487514083.86943.119.camel@redhat.com>
-References: <20170214185636.29250-1-bart.vanassche@sandisk.com>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 02/29] IB/mlx4: Improve another size determination in
+ mlx4_ib_alloc_pv_bufs()
+Date: Sun, 19 Feb 2017 17:06:19 +0000
+Message-ID: <8E9E49BD-6A4E-4F89-9111-1711C50E790C@mellanox.com>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>,<14b2089f-f52c-0b18-90d5-810abc9f9fd6@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-FTd1wxfFg3c4MNCtKZcC"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170214185636.29250-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <14b2089f-f52c-0b18-90d5-810abc9f9fd6-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-FTd1wxfFg3c4MNCtKZcC
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2017-02-14 at 10:56 -0800, Bart Van Assche wrote:
-> Hello Doug,
+> On Feb 18, 2017, at 10:49 PM, SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5ug@public.gmane.org=
+e.net> wrote:
 >=20
-> The patches in this series are the initiator patches I came up with
-> while
-> testing the SRP initiator and target drivers. Please consider these
-> patches
-> for inclusion in the upstream kernel.
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Fri, 17 Feb 2017 20:05:38 +0100
 >=20
-> The changes compared to the previous version of this series are:
-> - Left out the "Use the IB_DEVICE_SG_GAPS_REG HCA feature if
-> supported" patch.
-> - Added a patch to stop using memory regions with gaps since Laurence
-> ran
-> =C2=A0 into an issue with these memory regions that cannot be explained b=
-y
-> =C2=A0 analzying the SRP initiator code only.
-> - Addressed Leon's comments about patch "Avoid that duplicate
-> responses
-> =C2=A0 trigger a kernel bug" and "Add support for draining IB_POLL_DIRECT
-> =C2=A0 completion queues".
+> Replace the specification of a data structure by a pointer dereference
+> as the parameter for the operator "sizeof" to make the corresponding size
+> determination a bit safer according to the Linux coding style convention.
 >=20
-> The patches in this series are:
+> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> ---
+> drivers/infiniband/hw/mlx4/mad.c | 2 +-
+> 1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> Bart Van Assche (8):
-> =C2=A0 IB/SRP: Avoid using IB_MR_TYPE_SG_GAPS
-> =C2=A0 IB/srp: Avoid that duplicate responses trigger a kernel bug
-> =C2=A0 IB/srp: Fix race conditions related to task management
-> =C2=A0 IB/srp: Document locking conventions
-> =C2=A0 IB/srp: Make a diagnostic message more informative
-> =C2=A0 IB/srp: Improve an error path
-> =C2=A0 IB/core: Add support for draining IB_POLL_DIRECT completion queues
-> =C2=A0 IB/srp: Drain the send queue before destroying a QP
+> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx=
+4/mad.c
+> index 61bd81baeb29..858da8746d49 100644
+> --- a/drivers/infiniband/hw/mlx4/mad.c
+> +++ b/drivers/infiniband/hw/mlx4/mad.c
+> @@ -1607,7 +1607,7 @@ static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_dem=
+ux_pv_ctx *ctx,
+>        return -ENOMEM;
 >=20
-> =C2=A0drivers/infiniband/core/cq.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0|=C2=A0=C2=A04 +-
-> =C2=A0drivers/infiniband/core/verbs.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 35 +=
-+++++--------
-> =C2=A0drivers/infiniband/ulp/srp/ib_srp.c | 92 ++++++++++++++++++++++++--=
--
-> ----------
-> =C2=A0drivers/infiniband/ulp/srp/ib_srp.h |=C2=A0=C2=A01 +
-> =C2=A04 files changed, 77 insertions(+), 55 deletions(-)
+>    tun_qp->tx_ring =3D kcalloc(MLX4_NUM_TUNNEL_BUFS,
+> -                  sizeof (struct mlx4_ib_tun_tx_buf),
+> +                  sizeof(*tun_qp->tx_ring),
+>                  GFP_KERNEL);
+>    if (!tun_qp->tx_ring) {
+>        kfree(tun_qp->ring);
+> --=20
+> 2.11.1
 >=20
-> Thanks,
->=20
-> Bart.
-
-Thanks Bart, series applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
-
---=-FTd1wxfFg3c4MNCtKZcC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYqanjAAoJELgmozMOVy/dVYsQAMHmLmr2AiR0GPxfGQVdukKx
-bFprULhk4IpF9QJq3INJ8OA8TUAshl2M0XXPfv4Oez7dl+GHGPxBBOWdENR4hWXo
-dP3/cV27XyfXyA/RXAjPmZI05NwTCOyj+ga+OGk0d10UgzgyYUtizy/YD3XkOCFq
-m6LeJtIhQYfRmigMhfzBeOahgoxa2HnvqqO19CbEmBGZIUQhNBw7WKh9Sx27TRE1
-zJZLeORUqg7oeBgxh4yloLRsrgbmVR2omMiAMYbCiPf0NkOYrz2fwXIEb1UoGAmk
-LQFADEorwbU8/mVr3nYolUKss27qs+T4BkSG0olyLUaxo1HxHjVyf4ZhDRKIx7jU
-ageEHYpotncPeV7lZKQoD+YCUOG12uXzNeoOmH+lrr+0xOMxMhEShMpIkjBY9HSU
-ucPM8zKM5jNMPmSTOyv8n4MwIvDz+rARwrS+3FPLoQHyTgNn98u9t0xeKHnzkWSw
-wR3xdxzzagsGm8KpRAK8yLhLzvVlwfX/EzjPJMW1rqIJWnfuotzzy2vt/HccxABu
-h+EsgWo43Rmg4gTe5p0C5RfN4YIU/4IzeLUUWPfFrx8kn6/RNU8opB9IdxXYTX35
-iMpC7N2tflEN8Qf5fsGetWJPhVueOWPDqhmbD2OLzjHpo+8nuZLMoWINXtoclmju
-a5Kkz6XBlUmYzlknHwhp
-=UiRw
------END PGP SIGNATURE-----
-
---=-FTd1wxfFg3c4MNCtKZcC--
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Reviewed-by: Majd Dibbiny
+<majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
