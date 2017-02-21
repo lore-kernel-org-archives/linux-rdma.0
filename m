@@ -1,80 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 07/14] mlx4: Update to use new udma write
- barriers
-Date: Tue, 21 Feb 2017 11:14:07 -0700
-Message-ID: <20170221181407.GA13138@obsidianresearch.com>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-8-git-send-email-jgunthorpe@obsidianresearch.com>
- <206559e5-0488-f6d5-c4ec-bf560e0c3ba6@dev.mellanox.co.il>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 01/14] chardev: add helper function to register char devs
+ with a struct device
+Date: Tue, 21 Feb 2017 10:18:04 -0800
+Message-ID: <CAPcyv4jOWDxjQoBdZ8GQ+yhcAcL2gOBoEEHE-02beopXKFmGQA@mail.gmail.com>
+References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
+ <1487653253-11497-2-git-send-email-logang@deltatee.com>
+ <20170221053522.GA1466@dtor-ws>
+ <17f32963-1d0e-5d17-64c9-742b05415722@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <206559e5-0488-f6d5-c4ec-bf560e0c3ba6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <17f32963-1d0e-5d17-64c9-742b05415722-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexandre Bounine <alexandre.bounine-49Rm3DX9dRQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Marek
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 20, 2017 at 07:46:02PM +0200, Yishai Hadas wrote:
+On Mon, Feb 20, 2017 at 10:35 PM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
+>
+>
+> On 20/02/17 10:35 PM, Dmitry Torokhov wrote:
+>> My only objection is to this statement. There is absolutely nothing that
+>> prevents from calling device_unregister() first and cdev_del() later.
+>> Refcounting will sort it all out.
+>
+> Yeah, I was really trying to warn people against calling cdev_del within
+> the release function of the device. If you do that, then the cdev
+> reference will block the device from ever getting released.
+>
+> Certainly, you could call device_unregister followed by cdev_del. I
+> could reword this if you feel it necessary.
 
-> > 	pthread_spin_lock(&qp->sq.lock);
-> >
-> >+	/* Get all user DMA buffers ready to go */
-> >+	udma_to_device_barrier();
-> >+
-> > 	/* XXX check that state is OK to post send */
-> 
-> Not clear why do we need here an extra barrier ? what is the future
-> optimization that you pointed on ?
+I agree with Dmitry, just delete the statement in parenthesis and the
+rest is fine. If you're modifying this patch it might be good to take
+the opportunity to add a WARN_ON(!parent->kobj.state_initialized) to
+catch attempts to call device_add_cdev() with an uninitialized device.
 
-Writes to different memory types are not guarenteed to be strongly
-ordered. This is narrowly true on x86-64 too apparently.
+You can also add:
 
-The purpose of udma_to_device_barrier is to serialize all memory
-types.
-
-This allows the follow on code to use the weaker
-'udma_ordering_write_barrier' when it knows it is working exclusively
-with cached memory.
-
-Eg in an ideal world on x86 udma_to_device_barrier should be SFENCE
-and 'udma_ordering_write_barrier' should be compiler_barrier()
-
-Since the barriers have been so ill defined and wonky on x86 other
-arches use much stronger barriers than they actually need for each
-cases. Eg ARM64 can switch to much weaker barriers.
-
-Since there is no cost on x86-64 to this barrier I would like to leave
-it here as it lets us actually optimize the ARM and other barriers. If
-you take it out then 'udma_ordering_write_barrier' is forced to be the
-strongest barrier on all arches.
-
-> >@@ -478,7 +481,7 @@ out:
-> > 		 * Make sure that descriptor is written to memory
-> > 		 * before writing to BlueFlame page.
-> > 		 */
-> >-		wmb();
-> >+		mmio_wc_start();
-> 
-> Why to make this change which affects at least X86_64 ? the data was
-> previously written to the host memory so we expect that wmb is
-> enough here.
-
-Same as above, writes to different memory types are not strongly
-ordered and wmb() is not the right barrier to serialize writes to
-DMA'able ctrl with the WC memcpy.
-
-If this is left wrong then again other arches are again required to
-adopt the strongest barrier for everything which hurts them.
-
-Even on x86, it is very questionable to not have the SFENCE in that
-spot. AFAIK it is not defined to be strongly ordered.
-
-mlx5 has the SFENCE here, for instance.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
