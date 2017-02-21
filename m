@@ -1,179 +1,74 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 07/14] mlx4: Update to use new udma write
- barriers
-Date: Mon, 20 Feb 2017 19:46:02 +0200
-Message-ID: <206559e5-0488-f6d5-c4ec-bf560e0c3ba6@dev.mellanox.co.il>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-8-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 03/14] input: utilize new device_add_cdev helper function
+Date: Mon, 20 Feb 2017 22:00:42 -0700
+Message-ID: <1487653253-11497-4-git-send-email-logang@deltatee.com>
+References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487272989-8215-8-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1487653253-11497-1-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/16/2017 9:23 PM, Jason Gunthorpe wrote:
-> The mlx4 comments are good so these translate fairly directly.
->
-> - Added barrier at the top of mlx4_post_send, this makes the driver
->   ready for a change to a stronger udma_to_device_barrier /
->   weaker udma_order_write_barrier() which  would make the post loop a bit
->   faster. No change on x86-64
-> - The wmb() directly before the BF copy is upgraded to a wc_wmb(),
->   this is consistent with what mlx5 does and makes sense.
->
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  providers/mlx4/cq.c  |  6 +++---
->  providers/mlx4/qp.c  | 19 +++++++++++--------
->  providers/mlx4/srq.c |  2 +-
->  3 files changed, 15 insertions(+), 12 deletions(-)
->
-> diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-> index 6a5cf8be218892..14f8cbce6d75ed 100644
-> --- a/providers/mlx4/cq.c
-> +++ b/providers/mlx4/cq.c
-> @@ -222,7 +222,7 @@ static inline int mlx4_get_next_cqe(struct mlx4_cq *cq,
->  	 * Make sure we read CQ entry contents after we've checked the
->  	 * ownership bit.
->  	 */
-> -	rmb();
-> +	udma_from_device_barrier();
->
->  	*pcqe = cqe;
->
-> @@ -698,7 +698,7 @@ int mlx4_arm_cq(struct ibv_cq *ibvcq, int solicited)
->  	 * Make sure that the doorbell record in host memory is
->  	 * written before ringing the doorbell via PCI MMIO.
->  	 */
-> -	wmb();
-> +	udma_to_device_barrier();
->
->  	doorbell[0] = htonl(sn << 28 | cmd | cq->cqn);
->  	doorbell[1] = htonl(ci);
-> @@ -764,7 +764,7 @@ void __mlx4_cq_clean(struct mlx4_cq *cq, uint32_t qpn, struct mlx4_srq *srq)
->  		 * Make sure update of buffer contents is done before
->  		 * updating consumer index.
->  		 */
-> -		wmb();
-> +		udma_to_device_barrier();
->  		mlx4_update_cons_index(cq);
->  	}
->  }
-> diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
-> index a607326c7c452c..77a4a34576cb69 100644
-> --- a/providers/mlx4/qp.c
-> +++ b/providers/mlx4/qp.c
-> @@ -204,7 +204,7 @@ static void set_data_seg(struct mlx4_wqe_data_seg *dseg, struct ibv_sge *sg)
->  	 * chunk and get a valid (!= * 0xffffffff) byte count but
->  	 * stale data, and end up sending the wrong data.
->  	 */
-> -	wmb();
-> +	udma_ordering_write_barrier();
->
->  	if (likely(sg->length))
->  		dseg->byte_count = htonl(sg->length);
-> @@ -228,6 +228,9 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->
->  	pthread_spin_lock(&qp->sq.lock);
->
-> +	/* Get all user DMA buffers ready to go */
-> +	udma_to_device_barrier();
-> +
->  	/* XXX check that state is OK to post send */
+Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+---
+ drivers/input/evdev.c    | 3 +--
+ drivers/input/joydev.c   | 3 +--
+ drivers/input/mousedev.c | 3 +--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-Not clear why do we need here an extra barrier ? what is the future 
-optimization that you pointed on ?
-We prefer not adding any new instructions at least on some ARCHs without 
-a clear justification.
-
->  	ind = qp->sq.head;
-> @@ -400,7 +403,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  					wqe += to_copy;
->  					addr += to_copy;
->  					seg_len += to_copy;
-> -					wmb(); /* see comment below */
-> +					udma_ordering_write_barrier(); /* see comment below */
->  					seg->byte_count = htonl(MLX4_INLINE_SEG | seg_len);
->  					seg_len = 0;
->  					seg = wqe;
-> @@ -428,7 +431,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  				 * data, and end up sending the wrong
->  				 * data.
->  				 */
-> -				wmb();
-> +				udma_ordering_write_barrier();
->  				seg->byte_count = htonl(MLX4_INLINE_SEG | seg_len);
->  			}
->
-> @@ -450,7 +453,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
->  		 * setting ownership bit (because HW can start
->  		 * executing as soon as we do).
->  		 */
-> -		wmb();
-> +		udma_ordering_write_barrier();
->
->  		ctrl->owner_opcode = htonl(mlx4_ib_opcode[wr->opcode]) |
->  			(ind & qp->sq.wqe_cnt ? htonl(1 << 31) : 0);
-> @@ -478,7 +481,7 @@ out:
->  		 * Make sure that descriptor is written to memory
->  		 * before writing to BlueFlame page.
->  		 */
-> -		wmb();
-> +		mmio_wc_start();
-
-Why to make this change which affects at least X86_64 ? the data was 
-previously written to the host memory so we expect that wmb is enough 
-here. See above comment which explicitly points on.
->
->  		++qp->sq.head;
->
-> @@ -486,7 +489,7 @@ out:
->
->  		mlx4_bf_copy(ctx->bf_page + ctx->bf_offset, (unsigned long *) ctrl,
->  			     align(size * 16, 64));
-> -		wc_wmb();
-> +		mmio_flush_writes();
->
->  		ctx->bf_offset ^= ctx->bf_buf_size;
->
-> @@ -498,7 +501,7 @@ out:
->  		 * Make sure that descriptors are written before
->  		 * doorbell record.
->  		 */
-> -		wmb();
-> +		udma_to_device_barrier();
->
->  		mmio_writel((unsigned long)(ctx->uar + MLX4_SEND_DOORBELL),
->  			    qp->doorbell_qpn);
-> @@ -566,7 +569,7 @@ out:
->  		 * Make sure that descriptors are written before
->  		 * doorbell record.
->  		 */
-> -		wmb();
-> +		udma_to_device_barrier();
->
->  		*qp->db = htonl(qp->rq.head & 0xffff);
->  	}
-> diff --git a/providers/mlx4/srq.c b/providers/mlx4/srq.c
-> index 4f90efdf927209..6e4ff5663d019b 100644
-> --- a/providers/mlx4/srq.c
-> +++ b/providers/mlx4/srq.c
-> @@ -113,7 +113,7 @@ int mlx4_post_srq_recv(struct ibv_srq *ibsrq,
->  		 * Make sure that descriptors are written before
->  		 * we write doorbell record.
->  		 */
-> -		wmb();
-> +		udma_to_device_barrier();
->
->  		*srq->db = htonl(srq->counter);
->  	}
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
+index e9ae3d5..a3407ea 100644
+--- a/drivers/input/evdev.c
++++ b/drivers/input/evdev.c
+@@ -1416,8 +1416,7 @@ static int evdev_connect(struct input_handler *handler, struct input_dev *dev,
+ 		goto err_free_evdev;
+ 
+ 	cdev_init(&evdev->cdev, &evdev_fops);
+-	evdev->cdev.kobj.parent = &evdev->dev.kobj;
+-	error = cdev_add(&evdev->cdev, evdev->dev.devt, 1);
++	error = device_add_cdev(&evdev->dev, &evdev->cdev);
+ 	if (error)
+ 		goto err_unregister_handle;
+ 
+diff --git a/drivers/input/joydev.c b/drivers/input/joydev.c
+index abd18f3..012e06f 100644
+--- a/drivers/input/joydev.c
++++ b/drivers/input/joydev.c
+@@ -905,8 +905,7 @@ static int joydev_connect(struct input_handler *handler, struct input_dev *dev,
+ 		goto err_free_joydev;
+ 
+ 	cdev_init(&joydev->cdev, &joydev_fops);
+-	joydev->cdev.kobj.parent = &joydev->dev.kobj;
+-	error = cdev_add(&joydev->cdev, joydev->dev.devt, 1);
++	error = device_add_cdev(&joydev->dev, &joydev->cdev);
+ 	if (error)
+ 		goto err_unregister_handle;
+ 
+diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
+index b604564..efd8666 100644
+--- a/drivers/input/mousedev.c
++++ b/drivers/input/mousedev.c
+@@ -901,8 +901,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
+ 	}
+ 
+ 	cdev_init(&mousedev->cdev, &mousedev_fops);
+-	mousedev->cdev.kobj.parent = &mousedev->dev.kobj;
+-	error = cdev_add(&mousedev->cdev, mousedev->dev.devt, 1);
++	error = device_add_cdev(&mousedev->dev, &mousedev->cdev);
+ 	if (error)
+ 		goto err_unregister_handle;
+ 
+-- 
+2.1.4
