@@ -1,111 +1,149 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 07/14] infiniband: utilize new device_add_cdev
- helper function
-Date: Tue, 21 Feb 2017 17:48:23 -0700
-Message-ID: <20170222004823.GB11487@obsidianresearch.com>
-References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
- <1487653253-11497-8-git-send-email-logang@deltatee.com>
- <20170221190905.GD13138@obsidianresearch.com>
- <c7d34394-a9e8-fc9f-92f5-42c56a73ad1f@deltatee.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [rdma-core v2 0/9] Broadcom User Space RoCE Driver
+Date: Wed, 22 Feb 2017 08:52:17 +0530
+Message-ID: <CANjDDBi7bvYMvnjgsdSXzj6ot2wJS+w1nRCp-26TgEEpE38vfg@mail.gmail.com>
+References: <1487432638-19607-1-git-send-email-devesh.sharma@broadcom.com> <20170221195053.GG13138@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBCWOL4E62AORBR6AWPCQKGQETH77R4A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Content-Disposition: inline
-In-Reply-To: <c7d34394-a9e8-fc9f-92f5-42c56a73ad1f-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h@gm>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170221195053.GG13138-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 21, 2017 at 04:54:05PM -0700, Logan Gunthorpe wrote:
+On Wed, Feb 22, 2017 at 1:20 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>
+> On Sat, Feb 18, 2017 at 10:43:49AM -0500, Devesh Sharma wrote:
+> > This series introduces the user space RoCE driver for the Broadcom
+> > NetXtreme-E 10/25/40/50 RDMA Ethernet Controller. This driver
+> > is dependent on the bnxt_re driver posted earlier to linux-rdma
+> > community and is under reveiw.
+> >
+> > This patch series is based on the latest master of rdma-core
+> > repository hosted at https://github.com/linux-rdma/rdma-core.git
+> >
+> > The GIT for this library is hosted at following URL on github
+> > https://github.com/dsharma283/bnxtre-rdma-core.git
+> > branch: bnxtre-v2
+> >
+> > Please review and give your valuable feedback for the betterment.
+> >
+> > v1->v2
+>
+> It still doesn't compile, please make sure everything is travis clean
+> before submitting..
 
-> Is that true? Once device_register or device_add is called then you need
-> to use put_device.
+I could not find travis package, thus could not gave it try before
+submitting v2. I will give it a shot again.
 
-General rule is once kref_init has been called then you should use
-kref_put and not kfree.
+>
+> $ buildlib/cbuild pkg travis
+> [59/172] Building C object providers/hns/CMakeFiles/hns-rdmav2.dir/hns_ro=
+ce_u_hw_v1.c.o
+> FAILED: /usr/bin/gcc-6  -Dbnxt_re_rdmav2_EXPORTS -Werror -m32  -std=3Dgnu=
+11 -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wmissing-prototyp=
+es -Wmissing-declarations -Wwrite-strings -Wformat=3D2 -Wshadow -Wstrict-pr=
+ototypes -Wold-style-definition -Wredundant-decls -O2 -g  -fPIC -Iinclude -=
+MMD -MT providers/bnxt_re/CMakeFiles/bnxt_re-rdmav2.dir/verbs.c.o -MF "prov=
+iders/bnxt_re/CMakeFiles/bnxt_re-rdmav2.dir/verbs.c.o.d" -o providers/bnxt_=
+re/CMakeFiles/bnxt_re-rdmav2.dir/verbs.c.o   -c ../providers/bnxt_re/verbs.=
+c
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_reg_mr':
+> ../providers/bnxt_re/verbs.c:143:38: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>   if (ibv_cmd_reg_mr(ibvpd, sva, len, (uint64_t)sva, access, &mr->ibvmr,
+>                                       ^
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_create_cq':
+> ../providers/bnxt_re/verbs.c:191:14: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>   cmd.cq_va =3D (uint64_t)cq->cqq.va;
+>               ^
+> ../providers/bnxt_re/verbs.c:192:18: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>   cmd.cq_handle =3D (uint64_t)cq;
+>                   ^
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_poll_one':
+> ../providers/bnxt_re/verbs.c:512:9: error: cast to pointer from integer o=
+f different size [-Werror=3Dint-to-pointer-cast]
+>     qp =3D (struct bnxt_re_qp *)scqe->qp_handle;
+>          ^
+> ../providers/bnxt_re/verbs.c:521:9: error: cast to pointer from integer o=
+f different size [-Werror=3Dint-to-pointer-cast]
+>     qp =3D (struct bnxt_re_qp *)rcqe->qp_handle;
+>          ^
+> ../providers/bnxt_re/verbs.c:531:9: error: cast to pointer from integer o=
+f different size [-Werror=3Dint-to-pointer-cast]
+>     qp =3D (struct bnxt_re_qp *)scqe->qp_handle;
+>          ^
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_cleanup_cq':
+> ../providers/bnxt_re/verbs.c:689:27: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>     if (scqe->qp_handle =3D=3D (uint64_t)qp)
+>                            ^
+> ../providers/bnxt_re/verbs.c:693:27: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>     if (rcqe->qp_handle =3D=3D (uint64_t)qp)
+>                            ^
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_create_qp':
+> ../providers/bnxt_re/verbs.c:876:14: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>   req.qpsva =3D (uint64_t)qp->sqq->va;
+>               ^
+> ../providers/bnxt_re/verbs.c:877:24: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>   req.qprva =3D qp->rqq ? (uint64_t)qp->rqq->va : 0;
+>                         ^
+> ../providers/bnxt_re/verbs.c:878:18: error: cast from pointer to integer =
+of different size [-Werror=3Dpointer-to-int-cast]
+>   req.qp_handle =3D (uint64_t)qp;
+>                   ^
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_build_sge':
+> ../providers/bnxt_re/verbs.c:1014:16: error: cast to pointer from integer=
+ of different size [-Werror=3Dint-to-pointer-cast]
+>     memcpy(dst, (void *)sg_list[indx].addr,
+>                 ^
+> ../providers/bnxt_re/verbs.c: In function 'bnxt_re_create_srq':
+> ../providers/bnxt_re/verbs.c:1412:14: error: cast from pointer to integer=
+ of different size [-Werror=3Dpointer-to-int-cast]
+>   cmd.srqva =3D (uint64_t)srq->srqq->va;
+>               ^
+> ../providers/bnxt_re/verbs.c:1413:19: error: cast from pointer to integer=
+ of different size [-Werror=3Dpointer-to-int-cast]
+>   cmd.srq_handle =3D (uint64_t)srq;
+>                    ^
+>
+>
+> Hum, you might want to put the wmb() ino bnxt_re_ring_db:
+>
+>                 bnxt_re_incr_tail(sq);
+>                 wr =3D wr->next;
+>                 wmb(); /* write barrier */
 
-device_initialize ultimately calls kref_init..
+[DS]: That is correct, I was probably waiting for this comment before
+I move it..will fold in v3
 
-Reasoning that you don't 'need' to use put_device until device_add is
-just too hard.
+>
+>                 bnxt_re_ring_sq_db(qp);
+>
+> More likely to be universally correct that way.
+>
+> There is only one rmb() in this driver and it seems in a wonky
+> place. There is no reason to have a barrier after a kernel syscall, if
+> a barrier is needed there it belongs in there kernel code.
+>
+[DS}: Will remove it.
 
-For instance, there is still another bug in ib_ucm_add_one:
+> The rmb() is missing after calls to bnxt_re_is_cqe_valid() it looks
+> like?
 
-	if (device_add(&ucm_dev->dev))
-		goto err_cdev;
+[DS]: true, its missing. I will correct it.
 
-	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
-		goto err_dev;
-[....]
-err_dev:
-	device_unregister(&ucm_dev->dev);
-err_cdev:
-	ib_ucm_cdev_del(ucm_dev);
-err:
-	kfree(ucm_dev);
-	return;
-}
-
-If we go down the err_dev path then device_unregister will probably
-kfree ucm_dev - the argument is not guarenteed valid after
-device_unregister returns - this is what makes it different from
-device_del.
-
-The simplest fix is to change the unwind into:
-
-err_dev:
-	device_del(&ucm_dev->dev);
-err_cdev:
-	ib_ucm_cdev_del(ucm_dev);
-err:
-	put_device(&ucm_dev->dev);
-	return;
-}
-
-And the only way to keep our idiomatic goto unwind working is if all
-'goto errs' can call put_device - which requires the device_initialize
-be done before any errors are possible.
-
-> In fact device_add is what does the first get_device so this doesn't
-> add up to me.
-
-Not quite, kref_init creates a kref with a count of 1 - eg the caller
-owns the ref, and that ref must be put to trigger kref release.
-
-Thus good kref usage should always pair a kref_put with the kref_init.
-
-The get_device at the start of device_add pairs with the put_device at
-the end of device_del and the kref_init pairs with the put_device at
-the end of device_unregister. (notice that device_unregister ends up
-calling put_device twice in a row..)
-
-I'll send you a clean patch for your v2.
-
-> I know the DAX code only uses put_device after device_add.
-
-Looks to me like that code fails to call cdev_del if device_add fails?
-
-This approach is problematic because it is trying do the ida removals
-in the release function. That is not necessary and has the side effect
-of making the release function uncallable until too late in the
-process.
-
-Jason
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+>
+> Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
