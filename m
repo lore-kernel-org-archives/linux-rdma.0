@@ -1,77 +1,86 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 12/14] qedr: Update to use new udma write
- barriers
-Date: Thu, 23 Feb 2017 10:30:47 -0700
-Message-ID: <20170223173047.GC6688@obsidianresearch.com>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-13-git-send-email-jgunthorpe@obsidianresearch.com>
- <SN1PR07MB2207DE206738E6DD8511CEA1F8530@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 23 Feb 2017 12:43:29 -0500
+Message-ID: <1487871809.86943.136.camel@redhat.com>
+References: <1487796701.86943.126.camel@redhat.com>
+         <CA+55aFz6mZUHonfz3qtq17MJNcO+m4m4qspuZzhBG8wPi8Azjg@mail.gmail.com>
+         <CA+55aFyS3P70r4y53gYYr7OPf1rwaR0EJOpvMDZ3LQ=3XHCbqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-mdwXQNcwwfn5k18rNp3q"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <SN1PR07MB2207DE206738E6DD8511CEA1F8530-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <CA+55aFyS3P70r4y53gYYr7OPf1rwaR0EJOpvMDZ3LQ=3XHCbqQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 23, 2017 at 01:49:47PM +0000, Amrani, Ram wrote:
-> Thanks, Jason, for this work.
-> 
-> Per this change, I don't see any need in using mmio_wc_start() in
-> qedr.
 
-The required pattern when dealing with WC memory is this:
+--=-mdwXQNcwwfn5k18rNp3q
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
- mmio_wc_start();
- writel_to_wc(..);
- mmio_flush_writes();
+On Thu, 2017-02-23 at 08:39 -0800, Linus Torvalds wrote:
+> On Thu, Feb 23, 2017 at 8:33 AM, Linus Torvalds
+> <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
+> >=20
+> >=20
+> > Do you have pointers to the actual diff?
+>=20
+> Ok, I found them.
 
-On x86-64 this translates to
+Not sure which you found, mailing list archive or other. =C2=A0But they are
+also in my git repo on the k.o/for-4.11-dma_ops branch.
 
- sfence
- mov ..
- sfence
+> >=20
+> > That doesn't sound very
+> > tree-wide, it sounds limited to just rdma, and as such shouldn't
+> > impact anybody else.
+>=20
+> Ok, it's somewhat tree-wide, but doesn't look all that conflicting to
+> me. I'd rather have those patches early than late.
 
-As far as I know, on x86-64 both sfences are required to ensure that
-all stores are visible to the device in strictly program order. x86-64
-does not strongly order accesses to WC relative to other memory types
-without SFENCE.
+I'll get those to you tomorrow then. =C2=A0I pulled these patches on Jan 20=
+,
+and as a result of being in their own branch and not in my for-next
+area (as per some guidance I received on how to handle these since they
+are at least lightly tree-wide), they have developed some merge
+conflicts. =C2=A0It will be cleaner if I send the Mellanox pull request nex=
+t
+so you can process it while I fix up those 3 issues tonight (I have to
+run to an appt soon).
 
-mmio_wc_start() is defined to be a superset of the functionality of
-udma_to_device_barrier() - and it is given a unique name to make it
-very clear where to use it: directly before writing to WC memory.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
-> wmb() is invoked to make sure that the CPU doesn't issue the
-> doorbell before the data was flushed (that's why I expected its
-> implementation to be as the kernel's i.e. sfence. See e-mail
+--=-mdwXQNcwwfn5k18rNp3q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Exactly. mmio_wc_start() is defined as the barrier to do that.  It
-specifically guarentees that all writes to C and UC memory are ordered
-before upcoming writes to WC memory.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-It is SFENCE on x86-64, which as you say, is what you expected in the
-first place, so this fixes a bug :\..
+iQIcBAABCAAGBQJYrx9BAAoJELgmozMOVy/dqkUP/iY78qrJK7dUZhI8BkVa0BpG
+uE4BJ/vyTRTC2p2ZPXbTxBAzdvhcEwiwpnd4t6/YyuAmyJIJxUPFFJGDlfeYZiIb
+nykdAvOnJPapDbZ9q+nanSVwu/7qN0fswFk09bGP5+inoAz5YIcf1P+CPne+9dx5
+kOzfe3HduwuxSoWPFm+ZfjOtT9wtj3vkC7Z0oAQxj32bteHZHw6OM7ccwi9Y0fGc
+qfj393Vs3M6c+9xs2vzb6kus4wRNypLm1eXb5fnF7tiE53jADOb4x3lQ0Boftg1i
+FuY0MKThN2tEazCHca3ogrY+7xMUrL/dDknlrMlTbqJ5k+ajOscVffstd96SKoUS
+MDcRjHGxiKa5TdbN4PDAWSAmerD0w5gKNDgmoJI4Bk+cNfEI/QeYP6PWW8sMHjdL
+Ions4ueaqYV1eC55SszvI62zda0C4CrpHXfOLqPdTI5SIo1vVXytcKL1nDUZl+XE
+fc/E26zZSHrsNUDAFaXPNZug5SlCabvf3r3BdSqI4s76N3ancdHk2cKnWfGNsRtj
+8sCDcY/wLoPnOGXuoa61DL5UnEU86N5pJwxTQeHS9+KILF7U7qiuTCWGl1W0FEIj
+7ayX3TURDZtp2QwJIND+YSI4NE/te11bFhiURyRzf4KhOvk6VyVdhHdhjZzXF0U+
+ZimJMwRLnFOOGDjuT+p0
+=klf4
+-----END PGP SIGNATURE-----
 
-FWIW the
+--=-mdwXQNcwwfn5k18rNp3q--
 
-#define mmio_wc_start() mmio_flush_writes()
-
-Is just a stand in that happens to get a safe instruction on every
-arch.
-
-If required each of the macros could have a unique implementation if
-the arch requires it, however in most cases I would expect that
-udma_to_device_barrier(), mmio_flush_writes() and mmio_wc_start() are
-the same instruction.
-
-The use of different names is a purely descriptive to aid in
-understanding what the barriers do and when to use them.
-
-Does that address your concern?
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
