@@ -1,87 +1,85 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] ibstat.c: If port is 1x SDR, rate is 2.5 rather than 2 Gbps
-Date: Thu, 23 Feb 2017 18:03:51 -0500
-Message-ID: <20170223230350.GB546@phlsvsds.ph.intel.com>
-References: <7230ef46-74ff-76cd-4123-f34a75a6d436@dev.mellanox.co.il> <20170208202505.GA26726@phlsvsds.ph.intel.com> <f049512f-2c1a-c19d-ac36-ca5455a6a1d8@dev.mellanox.co.il>
+Subject: rdma-core make install failing
+Date: Thu, 23 Feb 2017 18:00:09 -0500
+Message-ID: <20170223230008.GA546@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f049512f-2c1a-c19d-ac36-ca5455a6a1d8-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 08, 2017 at 03:47:47PM -0500, Hal Rosenstock wrote:
-> On 2/8/2017 3:25 PM, ira.weiny wrote:
-> > On Mon, Feb 06, 2017 at 08:03:12AM -0500, Hal Rosenstock wrote:
-> >> From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>
-> >> Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > 
-> > Shouldn't this be fixed at a lower level?
-> 
-> That requires changing the libibumad ABI as rate is an int rather than
-> float in umad_port and I didn't think it was worth it for this trivial
-> issue. sysfs uses a * 10 approach and then rate / 10, rate % 10 ? ".5" :
-> "" but that can't be used here without changing many more things.
-> 
-> > I think the problem is that libibumad is masking the information.  AFAICT the
-> > kernel reports "2.5" in sysfs.
-> > 
-> > I'm concerned that there are probably lots of other places in the software
-> > stack which have this bug because libibumad is masking the rate.
-> 
-> I don't think there are any places in open sources.
-> 
-> > If the value of "2" was at least documented to be special and meant "2.5" I
-> > think this could be an ok patch...
-> > 
-> > Something like 
-> > 
-> > else if (port->rate == UMAD_2_5_RATE)
-> > 	printf("%sRate: 2.5\n", pre);
-> > else
-> > 	printf("%sRate: %d\n", pre, port->rate);
-> 
-> Is it worth it to tie infiniband-diags to some version of libibumad
-> where UMAD_2_5_RATE is defined like this ?
+I'm not sure what I'm doing wrong but make install seems to be deleting a
+library and then complaining that it can't find it for installation...  :-/
 
-Fair enough...  And who uses SDR anymore anyway...  ;-)
+After running build.sh I ran make install and get this error:
 
-But if we ever do get a fractional rate again I'd like to see this handled
-better.
+-- Up-to-date:
+/nfs/site/home/iweiny/rdma-core/build/etc/libibverbs.d/cxgb3.driver
+CMake Error at providers/cxgb3/cmake_install.cmake:62 (FILE):
+  file INSTALL cannot find
+    "/nfs/site/home/iweiny/rdma-core/build/lib/libcxgb3-rdmav2.so".
+Call Stack (most recent call first):
+  cmake_install.cmake:47 (INCLUDE)
 
-So I've taken the patch as we are unlikely to get a fractional rate at this
-point.
+make: *** [install] Error 1
+
+
+While trying to figure out why cxgb3 was not building I noticed that actually
+build.sh _is_ building the library.  And more importantly rebuilds it after
+running make install as per below...
+
+
+17:51:49 > ./build.sh 
+-- Missing Optional Items:
+--  C11 stdatomic.h NOT available (old compiler)
+--  netlink/route/link.h and net/if.h NOT co-includable (old headers)
+--  rdma/rdma_netlink.h NOT found (old system kernel headers)
+--  rdma/rdma_user_cm.h NOT found (old system kernel headers)
+--  rdma/rdma_user_rxe.h NOT found (old system kernel headers)
+--  rdma/vmw_pvrdma-abi.h NOT found (old system kernel headers)
+--  -Wmissing-field-initializers does NOT work
+--  -Wredundant-decls does NOT work
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /nfs/site/home/iweiny/rdma-core/build
+[  1%] Built target ccan
+[  3%] Built target ccan_pic
+[  6%] Built target ibumad
+[ 14%] Built target ibverbs
+[ 18%] Built target rdmacm
+[ 20%] Built target rspreload
+[ 21%] Built target ibcm
+Linking C shared module ../../lib/libcxgb3-rdmav2.so
+[ 24%] Built target cxgb3-rdmav2
+[ 27%] Built target cxgb4-rdmav2
+...
+
+
+
+So checking for it...  yea there it is...
+
+17:51:54 > ll build/lib/*cx*
+-rwxr-x--- 1 iweiny intelall 138157 Feb 23 17:51 build/lib/libcxgb3-rdmav2.so*
+-rwxr-x--- 1 iweiny intelall 184172 Feb 23 16:22 build/lib/libcxgb4-rdmav2.so*
+
+
+Then I run make install again...
+
+It fails as above and I look for the library and it is gone...
+
+17:54:19 > ll lib/*cx*
+-rwxr-x--- 1 iweiny intelall 184172 Feb 23 16:22 lib/libcxgb4-rdmav2.so*
+
+
+What is going on here?
+
+I'm really not familiar enough with cmake to see what majic softlink vs real
+library installation is supposed to be going on here.
 
 Ira
 
-> 
-> -- Hal
-> 
-> > Ira
-> > 
-> >> ---
-> >> diff --git a/src/ibstat.c b/src/ibstat.c
-> >> index 37f2361..2d980c4 100644
-> >> --- a/src/ibstat.c
-> >> +++ b/src/ibstat.c
-> >> @@ -182,8 +182,10 @@ static int port_dump(umad_port_t * port, int alone)
-> >>  	       7 ? port_phy_state_str[port->phys_state] : "???");
-> >>  	if (is_fdr10(port))
-> >>  		printf("%sRate: %d (FDR10)\n", pre, port->rate);
-> >> -	else
-> >> +	else if (port->rate != 2)	/* 1x SDR */
-> >>  		printf("%sRate: %d\n", pre, port->rate);
-> >> +	else
-> >> +		printf("%sRate: 2.5\n", pre);
-> >>  	printf("%sBase lid: %d\n", pre, port->base_lid);
-> >>  	printf("%sLMC: %d\n", pre, port->lmc);
-> >>  	printf("%sSM lid: %d\n", pre, port->sm_lid);
-> > 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
