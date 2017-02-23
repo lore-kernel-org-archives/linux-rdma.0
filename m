@@ -1,57 +1,35 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] RDMA/iw_cxgb4: Handle return value of c4iw_ofld_send()
- in abort_arp_failure()
-Date: Thu, 23 Feb 2017 18:58:09 +0300
-Message-ID: <20170223155809.GA16463@mwanda>
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 23 Feb 2017 08:33:56 -0800
+Message-ID: <CA+55aFz6mZUHonfz3qtq17MJNcO+m4m4qspuZzhBG8wPi8Azjg@mail.gmail.com>
+References: <1487796701.86943.126.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1487796701.86943.126.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Hariprasad S,
+On Wed, Feb 22, 2017 at 12:51 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> the third is a tree-wide change and per typical policy I was going to
+> wait until the end of the merge window and submit it them...
 
-The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
-c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to
-the following static checker warning:
+Well, "typical policy" for tree-wide ones is definitely not that some
+random crazy driver subsystem does them.
 
-	drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
-	warn: passing freed memory 'skb'
+What are these tree-wide ones?
 
-drivers/infiniband/hw/cxgb4/cm.c
-   559  /*
-   560   * Handle an ARP failure for a CPL_ABORT_REQ.  Change it into a no RST variant
-   561   * and send it along.
-   562   */
-   563  static void abort_arp_failure(void *handle, struct sk_buff *skb)
-   564  {
-   565          int ret;
-   566          struct c4iw_ep *ep = handle;
-   567          struct c4iw_rdev *rdev = &ep->com.dev->rdev;
-   568          struct cpl_abort_req *req = cplhdr(skb);
-   569  
-   570          PDBG("%s rdev %p\n", __func__, rdev);
-   571          req->cmd = CPL_ABORT_NO_RST;
-   572          ret = c4iw_ofld_send(rdev, skb);
-   573          if (ret) {
+> it's the patch series posted by Bart Van Assche to remove the IB DMA
+> ops structs and use the core DMA ops instead
 
-If c4iw_ofld_send() fails then it frees skb.
+Do you have pointers to the actual diff? That doesn't sound very
+tree-wide, it sounds limited to just rdma, and as such shouldn't
+impact anybody else.
 
-   574                  __state_set(&ep->com, DEAD);
-   575                  queue_arp_failure_cpl(ep, skb, FAKE_CPL_PUT_EP_SAFE);
-                                                  ^^^
-Used after free here.  These are ref counted data so it might actually
-be that I have misread it and miscounted the references so perhaps it's
-OK, but it looks might suspect at a glance.
-
-   576          }
-   577  }
-
-regards,
-dan carpenter
+                Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
