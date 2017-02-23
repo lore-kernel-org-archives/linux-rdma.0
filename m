@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/3] RDMA/vmw_pvrdma: Dont hardcode QP header page
-Date: Wed, 22 Feb 2017 17:22:57 -0800
-Message-ID: <cc8a5acd38cd34668540135aea616c4217e30ecf.1487812849.git.aditr@vmware.com>
+Subject: [PATCH 3/3] RDMA/vmw_pvrdma: Activate device on ethernet link up
+Date: Wed, 22 Feb 2017 17:22:58 -0800
+Message-ID: <c5994bdac8a3c2757269e49f17c70628f2d96c44.1487812849.git.aditr@vmware.com>
 References: <cover.1487812849.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,65 +9,67 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1487812849.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Cc: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Moved the header page count to a macro.
+From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
-Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Restore device state when ethernet link changes to active.
+
+Acked-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Acked-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Acked-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    | 1 +
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 9 +++++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h |  2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 13 +++++++++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-index dbf61c3..9fbe22d 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-@@ -70,6 +70,7 @@
- #define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+index e69d6f3..09078cc 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+@@ -132,7 +132,7 @@ enum pvrdma_pci_resource {
  
- #define PVRDMA_NUM_RING_PAGES		4
-+#define PVRDMA_QP_NUM_HEADER_PAGES	1
+ enum pvrdma_device_ctl {
+ 	PVRDMA_DEVICE_CTL_ACTIVATE,	/* Activate device. */
+-	PVRDMA_DEVICE_CTL_QUIESCE,	/* Quiesce device. */
++	PVRDMA_DEVICE_CTL_UNQUIESCE,	/* Unquiesce device. */
+ 	PVRDMA_DEVICE_CTL_RESET,	/* Reset device. */
+ };
  
- struct pvrdma_dev;
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index 4380d3d..bc4ec3a 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -56,7 +56,7 @@
+ #include "pvrdma.h"
  
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-index 3ffbb2d..30062aa 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-@@ -170,8 +170,9 @@ static int pvrdma_set_sq_size(struct pvrdma_dev *dev, struct ib_qp_cap *req_cap,
- 					     sizeof(struct pvrdma_sge) *
- 					     qp->sq.max_sg);
- 	/* Note: one extra page for the header. */
--	qp->npages_send = 1 + (qp->sq.wqe_cnt * qp->sq.wqe_size +
--			       PAGE_SIZE - 1) / PAGE_SIZE;
-+	qp->npages_send = PVRDMA_QP_NUM_HEADER_PAGES +
-+			  (qp->sq.wqe_cnt * qp->sq.wqe_size + PAGE_SIZE - 1) /
-+								PAGE_SIZE;
+ #define DRV_NAME	"vmw_pvrdma"
+-#define DRV_VERSION	"1.0.0.0-k"
++#define DRV_VERSION	"1.0.1.0-k"
  
- 	return 0;
- }
-@@ -288,7 +289,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
- 			qp->npages = qp->npages_send + qp->npages_recv;
- 
- 			/* Skip header page. */
--			qp->sq.offset = PAGE_SIZE;
-+			qp->sq.offset = PVRDMA_QP_NUM_HEADER_PAGES * PAGE_SIZE;
- 
- 			/* Recv queue pages are after send pages. */
- 			qp->rq.offset = qp->npages_send * PAGE_SIZE;
-@@ -341,7 +342,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
- 	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
- 	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
- 	cmd->total_chunks = qp->npages;
--	cmd->send_chunks = qp->npages_send - 1;
-+	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
- 	cmd->pdir_dma = qp->pdir.dir_dma;
- 
- 	dev_dbg(&dev->pdev->dev, "create queuepair with %d, %d, %d, %d\n",
+ static DEFINE_MUTEX(pvrdma_device_list_lock);
+ static LIST_HEAD(pvrdma_device_list);
+@@ -659,7 +659,16 @@ static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
+ 		pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ERR);
+ 		break;
+ 	case NETDEV_UP:
+-		pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
++		pvrdma_write_reg(dev, PVRDMA_REG_CTL,
++				 PVRDMA_DEVICE_CTL_UNQUIESCE);
++
++		mb();
++
++		if (pvrdma_read_reg(dev, PVRDMA_REG_ERR))
++			dev_err(&dev->pdev->dev,
++				"failed to activate device during link up\n");
++		else
++			pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
+ 		break;
+ 	default:
+ 		dev_dbg(&dev->pdev->dev, "ignore netdevice event %ld on %s\n",
 -- 
 2.7.4
 
