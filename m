@@ -1,78 +1,99 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Thu, 23 Feb 2017 12:57:56 -0500
-Message-ID: <1487872676.86943.141.camel@redhat.com>
-References: <1487796701.86943.126.camel@redhat.com>
-         <CA+55aFz6mZUHonfz3qtq17MJNcO+m4m4qspuZzhBG8wPi8Azjg@mail.gmail.com>
-         <CA+55aFyS3P70r4y53gYYr7OPf1rwaR0EJOpvMDZ3LQ=3XHCbqQ@mail.gmail.com>
-         <1487871809.86943.136.camel@redhat.com>
-         <CA+55aFzzLKu2SVQ0NG0ixpVftbD_SaK0h9MTrAyHFiaERS524A@mail.gmail.com>
+From: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/4] sunrpc: flag transports as using IETF approved
+ congestion control protocols
+Date: Thu, 23 Feb 2017 15:00:34 -0500
+Message-ID: <1487880034.3448.8.camel@redhat.com>
+References: <20170223170337.10686-1-jlayton@redhat.com>
+         <20170223170337.10686-2-jlayton@redhat.com>
+         <2152dfdf-f847-2511-1600-6499b6ea9708@talpey.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-x8M2T2f84gpWFcJcg0ap"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFzzLKu2SVQ0NG0ixpVftbD_SaK0h9MTrAyHFiaERS524A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <2152dfdf-f847-2511-1600-6499b6ea9708-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
+Cc: schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 2017-02-23 at 14:42 -0500, Tom Talpey wrote:
+> On 2/23/2017 12:03 PM, Jeff Layton wrote:
+> > Signed-off-by: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  include/linux/sunrpc/svc_xprt.h          | 1 +
+> >  net/sunrpc/svcsock.c                     | 1 +
+> >  net/sunrpc/xprtrdma/svc_rdma_transport.c | 2 ++
+> 
+> There's a possibly-important detail here. Not all RDMA transports have
+> "IETF-approved congestion control", for example, RoCEv1. However, iWARP
+> and (arguably) RoCEv2 do. On the other hand, as a nonroutable protocol,
+> RoCEv1 may not fall under this restriction.
+> 
+> Net-net, inspecting only the RDMA attribute of the transport may be
+> insufficient here.
+> 
+> It could be argued however that the xprtrdma layer, with its rpcrdma
+> crediting, provides such congestion. But that needs to be made
+> explicit, and perhaps, discussed in IETF. Initially, I think it would
+> be important to flag this as a point for the future. For now, it may
+> be best to flag RoCEv1 as not supporting congestion.
+> 
+> Tom.
+> 
 
---=-x8M2T2f84gpWFcJcg0ap
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+(cc'ing Chuck and the linux-rdma list)
 
-On Thu, 2017-02-23 at 09:53 -0800, Linus Torvalds wrote:
-> On Thu, Feb 23, 2017 at 9:43 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> wrote:
-> >=20
-> > On Thu, 2017-02-23 at 08:39 -0800, Linus Torvalds wrote:
-> > >=20
-> > >=20
-> > > Ok, I found them.
-> >=20
-> > Not sure which you found, mailing list archive or other.=C2=A0=C2=A0But=
- they
-> > are
-> > also in my git repo on the k.o/for-4.11-dma_ops branch.
->=20
-> I found the latest 26-patch series on lkml from Bart. I'm assuming
-> that's at least close to what you have.
+Thanks Tom, that's very interesting.
 
-That's close. =C2=A0As a result of review comments, it was split even
-further and what's in my tree is a total of 37 patches.
+Not being well versed in the xprtrdma layer, what condition should we
+use here to set the flag? git grep shows that the string "ROCEV1" only
+shows up in the bxnt_en driver. Is there some way to determine this
+generically for any given RDMA driver?
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
-=C2=A0 =C2=A0
-Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
---=-x8M2T2f84gpWFcJcg0ap
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> >  3 files changed, 4 insertions(+)
+> > 
+> > diff --git a/include/linux/sunrpc/svc_xprt.h b/include/linux/sunrpc/svc_xprt.h
+> > index 7440290f64ac..f8aa9452b63c 100644
+> > --- a/include/linux/sunrpc/svc_xprt.h
+> > +++ b/include/linux/sunrpc/svc_xprt.h
+> > @@ -67,6 +67,7 @@ struct svc_xprt {
+> >  #define XPT_CACHE_AUTH	11		/* cache auth info */
+> >  #define XPT_LOCAL	12		/* connection from loopback interface */
+> >  #define XPT_KILL_TEMP   13		/* call xpo_kill_temp_xprt before closing */
+> > +#define XPT_CONG_CTRL	14		/* IETF approved congestion control protocol */
+> > 
+> >  	struct svc_serv		*xpt_server;	/* service for transport */
+> >  	atomic_t    	    	xpt_reserved;	/* space on outq that is rsvd */
+> > diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+> > index de066acdb34e..1956b8b96b2d 100644
+> > --- a/net/sunrpc/svcsock.c
+> > +++ b/net/sunrpc/svcsock.c
+> > @@ -1306,6 +1306,7 @@ static void svc_tcp_init(struct svc_sock *svsk, struct svc_serv *serv)
+> >  	svc_xprt_init(sock_net(svsk->sk_sock->sk), &svc_tcp_class,
+> >  		      &svsk->sk_xprt, serv);
+> >  	set_bit(XPT_CACHE_AUTH, &svsk->sk_xprt.xpt_flags);
+> > +	set_bit(XPT_CONG_CTRL, &svsk->sk_xprt.xpt_flags);
+> >  	if (sk->sk_state == TCP_LISTEN) {
+> >  		dprintk("setting up TCP socket for listening\n");
+> >  		set_bit(XPT_LISTENER, &svsk->sk_xprt.xpt_flags);
+> > diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> > index 39652d390a9c..96b4797c2c54 100644
+> > --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> > +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> > @@ -571,6 +571,8 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
+> >  	spin_lock_init(&cma_xprt->sc_ctxt_lock);
+> >  	spin_lock_init(&cma_xprt->sc_map_lock);
+> > 
+> > +	set_bit(XPT_CONG_CTRL, &cma_xprt->sc_xprt.xpt_flags);
+> > +
+> >  	if (listener)
+> >  		set_bit(XPT_LISTENER, &cma_xprt->sc_xprt.xpt_flags);
+> > 
+> > 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYryKkAAoJELgmozMOVy/der8QAIFfyRfoF3hCbqO1rIXZkhut
-NW+siJj1zaywTivwtQSoYjyksDWpsjgfRrsQbO1Qrc/RcKP/fY0/uvTps8g0jE09
-JufmTLswDAyf3e8jloJTixu8JbtWEGre3kI19gtR/WBAp20FzzxOlQ3Tp48TqFw5
-49tfD8xOcCXXZ7huUPF7/Uc6t8u9pHNpW6VdadXn1AskVQt5VcFfWufVYbY8P7MT
-fziUVN5bAj56V6/21wdHpWk1rHKrpsKyd1ht3+p9eQxE6/au9VMWPyILR9aB7f34
-+kuibU4XlRMuHmi34zAZTQWxu+0KiBaiRogXADkyFZMqNs7uldRBzXg7FSO7OVyA
-bH7naEiUjMIHipRpvYqrVUzj5XqJJ7BdJ/uDk0BhO4o7VETVDQBkq0pFQRD+NIrW
-igRrLMiUe3rCDUKTEtbeDGygVQermN4/FtKT7+y3cUPZ0iyDurQRwcCE+AxO/5jI
-YL2nvKAUWQn49w81ae2+wguy32BEM2nkPgkc5CzyB0IFGd0X7QFwjHLIR7vWibMD
-7AYdcKRSvx5pbbig4jGNzBEIKtBbddg26C0jALhjXZLO154JejvJFXiBDQukJeLz
-oRfpwLEqUsSA3rHk2AoV+CIBDizd9Jlvyjky9Z+JDOW7hvnEfGHAXJNYS2EbKV+W
-rsr0bK0yYTzgJw5oDo3G
-=X8jy
------END PGP SIGNATURE-----
-
---=-x8M2T2f84gpWFcJcg0ap--
-
+-- 
+Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
