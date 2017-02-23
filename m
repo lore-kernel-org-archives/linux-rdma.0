@@ -1,96 +1,52 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 03/14] input: utilize new device_add_cdev
- helper function
-Date: Thu, 23 Feb 2017 00:37:03 -0800
-Message-ID: <20170223083703.GF18639@dtor-ws>
-References: <1487653253-11497-1-git-send-email-logang@deltatee.com>
- <1487653253-11497-4-git-send-email-logang@deltatee.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: iSER fails to release rdma resources (WRs) if iw_cxgb4 is
+ unloaded while IO is in progress
+Date: Thu, 23 Feb 2017 12:05:01 +0200
+Message-ID: <acc82d4f-e7d2-42d6-2b46-c1347dc65160@mellanox.com>
+References: <CY1PR12MB077405C1FA5279D200AD3089BC4D0@CY1PR12MB0774.namprd12.prod.outlook.com>
+ <49223bb6-e2a1-eee7-cf4e-701957e6727f@mellanox.com>
+ <CY1PR12MB07749731AC32F7BE065CC51DBC4C0@CY1PR12MB0774.namprd12.prod.outlook.com>
+ <c0a53feb-8c15-54af-c443-fbc4f3d5ec0e@mellanox.com>
+ <AM4PR0501MB27867EED1435EE19BDE2CEC7CB5E0@AM4PR0501MB2786.eurprd05.prod.outlook.com>
+ <c51ef366-39a9-b8bc-f8ec-353c953397d1@grimberg.me>
+ <AM4PR0501MB2786F74877EC0391E3865EA9CB530@AM4PR0501MB2786.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBDP6N55ZUYDRBM56XLCQKGQEX7KWXQY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Content-Disposition: inline
-In-Reply-To: <1487653253-11497-4-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaac>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AM4PR0501MB2786F74877EC0391E3865EA9CB530-dp/nxUn679hhbxXPg6FtWcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 20, 2017 at 10:00:42PM -0700, Logan Gunthorpe wrote:
-> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-> ---
-
-Please add some more verbage, otherwise
-
-Acked-by: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 
->  drivers/input/evdev.c    | 3 +--
->  drivers/input/joydev.c   | 3 +--
->  drivers/input/mousedev.c | 3 +--
->  3 files changed, 3 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
-> index e9ae3d5..a3407ea 100644
-> --- a/drivers/input/evdev.c
-> +++ b/drivers/input/evdev.c
-> @@ -1416,8 +1416,7 @@ static int evdev_connect(struct input_handler *handler, struct input_dev *dev,
->  		goto err_free_evdev;
->  
->  	cdev_init(&evdev->cdev, &evdev_fops);
-> -	evdev->cdev.kobj.parent = &evdev->dev.kobj;
-> -	error = cdev_add(&evdev->cdev, evdev->dev.devt, 1);
-> +	error = device_add_cdev(&evdev->dev, &evdev->cdev);
->  	if (error)
->  		goto err_unregister_handle;
->  
-> diff --git a/drivers/input/joydev.c b/drivers/input/joydev.c
-> index abd18f3..012e06f 100644
-> --- a/drivers/input/joydev.c
-> +++ b/drivers/input/joydev.c
-> @@ -905,8 +905,7 @@ static int joydev_connect(struct input_handler *handler, struct input_dev *dev,
->  		goto err_free_joydev;
->  
->  	cdev_init(&joydev->cdev, &joydev_fops);
-> -	joydev->cdev.kobj.parent = &joydev->dev.kobj;
-> -	error = cdev_add(&joydev->cdev, joydev->dev.devt, 1);
-> +	error = device_add_cdev(&joydev->dev, &joydev->cdev);
->  	if (error)
->  		goto err_unregister_handle;
->  
-> diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
-> index b604564..efd8666 100644
-> --- a/drivers/input/mousedev.c
-> +++ b/drivers/input/mousedev.c
-> @@ -901,8 +901,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
->  	}
->  
->  	cdev_init(&mousedev->cdev, &mousedev_fops);
-> -	mousedev->cdev.kobj.parent = &mousedev->dev.kobj;
-> -	error = cdev_add(&mousedev->cdev, mousedev->dev.devt, 1);
-> +	error = device_add_cdev(&mousedev->dev, &mousedev->cdev);
->  	if (error)
->  		goto err_unregister_handle;
->  
-> -- 
-> 2.1.4
-> 
+On 2/23/2017 10:27 AM, Vladimir Neyelov wrote:
+> Hi,
+> I didn't see your patch. But if it's similar patch it's very good that two people think about same solution.
+> Vladimir.
+>
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org]
+> Sent: Wednesday, February 22, 2017 9:59 PM
+> To: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>; Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Subject: Re: iSER fails to release rdma resources (WRs) if iw_cxgb4 is unloaded while IO is in progress
+>
+>> Hi Raju,
+>> Try this patch that solve this problem, it checked with our tests.
+>
+> I might be missing something, but how is this patch any different then what I sent (other than duplicating some code)?
+>
 
--- 
-Dmitry
+Sagi,
+can you send your patch again ?
+I missed it too.
 
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+thanks,
+Max.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
