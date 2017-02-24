@@ -1,30 +1,44 @@
-From: sowmini <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] rds: fix memory leak error
-Date: Fri, 24 Feb 2017 12:21:49 -0500
-Message-ID: <216848bc-48ce-d250-97d0-783d78c3141f@oracle.com>
-References: <1487928481-1022-1-git-send-email-yanjun.zhu@oracle.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [rdma-core v2 0/9] Broadcom User Space RoCE Driver
+Date: Fri, 24 Feb 2017 23:10:53 +0530
+Message-ID: <CANjDDBgBYAswrEdUb8YCDRiruhRHUAmXezN7CB-gtLxrQj9UPg@mail.gmail.com>
+References: <1487432638-19607-1-git-send-email-devesh.sharma@broadcom.com>
+ <20170221195053.GG13138@obsidianresearch.com> <CANjDDBi7bvYMvnjgsdSXzj6ot2wJS+w1nRCp-26TgEEpE38vfg@mail.gmail.com>
+ <20170222050804.GA29755@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487928481-1022-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170222050804.GA29755-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 02/24/2017 04:28 AM, Zhu Yanjun wrote:
-> When the function register_netdevice_notifier fails, the memory
-> allocated by kmem_cache_create should be freed by the function
-> kmem_cache_destroy.
+On Wed, Feb 22, 2017 at 10:38 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Feb 22, 2017 at 08:52:17AM +0530, Devesh Sharma wrote:
+>> > It still doesn't compile, please make sure everything is travis clean
+>> > before submitting..
+>>
+>> I could not find travis package, thus could not gave it try before
+>> submitting v2. I will give it a shot again.
 >
-> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> To run travis you need to install docker and run
+>
+> $ buildlib/cbuild build-images travis
+>
+> Then you can run:
+>
+>> > $ buildlib/cbuild pkg travis
+>
+> Which emulates travis locally.
+>
+> Real travis only runs once you create a PR in github.
+>
 
-Acked-by: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Thanks Jason, I will try it out and submit v3 of this series.
 
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
