@@ -1,30 +1,32 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: [PATCH] ib_srp: Let compiler ignore the useless debug code
-Date: Fri, 24 Feb 2017 16:16:31 +0000
-Message-ID: <1487952911.2575.1.camel@sandisk.com>
-References: <20170224084451.42117-1-mnghuan@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] rds: fix memory leak error
+Date: Fri, 24 Feb 2017 08:49:19 -0800
+Message-ID: <79081f83-c9ed-5e45-ecbb-754fe1c9a96a@oracle.com>
+References: <1487928481-1022-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170224084451.42117-1-mnghuan@gmail.com>
-Content-Language: en-US
-Content-ID: <19F6D91DE058AF44A730D92D2F228086@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "mnghuan@gmail.com" <mnghuan@gmail.com>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1487928481-1022-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-02-24 at 16:44 +0800, Minfei Huang wrote:
-> "if (0)" is used to make this block of debug code not be executed. There
-> is a more elegant way to let compiler ignore this code, using
-> "#if 0 .. #endif" instead.
->=20
-> Although it may be optimised by some compilers with specified parameter,
-> just for readable.
+On 2/24/2017 1:28 AM, Zhu Yanjun wrote:
+> When the function register_netdevice_notifier fails, the memory
+> allocated by kmem_cache_create should be freed by the function
+> kmem_cache_destroy.
+>
+> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+Minor nit with subject.
+s/rds/RDS: TCP:
 
-#if 0 / #endif prevents the compiler from checking the syntax of the code.
-Such code tends to grow syntax errors. So I'm not sure this patch is an
-improvement.
-
-Bart.=
+patch looks fine to me.
+Acked:by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
