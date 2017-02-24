@@ -1,47 +1,42 @@
-From: Minfei Huang <mnghuan@gmail.com>
-Subject: [PATCH] ib_srp: Let compiler ignore the useless debug code
-Date: Fri, 24 Feb 2017 16:44:51 +0800
-Message-ID: <20170224084451.42117-1-mnghuan@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bart.vanassche@sandisk.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Minfei Huang <mnghuan@gmail.com>
+From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [Query] iSER-Target: QP errors observed on increasing
+ MaxXmitDataSegmentLength to 16384 (default = 8192)
+Date: Fri, 24 Feb 2017 14:44:56 +0530
+Message-ID: <20170224091455.GA11766@chelsio.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-"if (0)" is used to make this block of debug code not be executed. There
-is a more elegant way to let compiler ignore this code, using
-"#if 0 .. #endif" instead.
+Hi Sagi/Nicholas,
 
-Although it may be optimised by some compilers with specified parameter,
-just for readable.
+When tried changing the MaxXmitDataSegmentLength to 16384 (default = 8192), by changing it from targetcli on target and iscsd.conf on initiator, I observe the following errors.
 
-Signed-off-by: Minfei Huang <mnghuan@gmail.com>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+cxgb4 0000:06:00.4: AE qpid 1024 opcode 3 status 0x6 type 0 len 0x5c wrid.hi 0x0 wrid.lo 0x136
+isert: isert_qp_event_callback: QP access error (3): conn ffff8807da7b6000
+Aligning ISER MaxRecvDataSegmentLength: 4096 down to PAGE_SIZE
+cxgb4 0000:06:00.4: AE qpid 1026 opcode 3 status 0x6 type 0 len 0x5c wrid.hi 0x0 wrid.lo 0x2
+isert: isert_qp_event_callback: QP access error (3): conn ffff88053a2ee000
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 36529e3..f2d7821 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2023,12 +2023,12 @@ static void srp_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 
- 	opcode = *(u8 *) iu->buf;
- 
--	if (0) {
--		shost_printk(KERN_ERR, target->scsi_host,
--			     PFX "recv completion, opcode 0x%02x\n", opcode);
--		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 8, 1,
--			       iu->buf, wc->byte_len, true);
--	}
-+#if 0
-+	shost_printk(KERN_ERR, target->scsi_host,
-+			PFX "recv completion, opcode 0x%02x\n", opcode);
-+	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 8, 1,
-+			iu->buf, wc->byte_len, true);
-+#endif
- 
- 	switch (opcode) {
- 	case SRP_RSP:
--- 
-2.10.1 (Apple Git-78)
+>From the error status of iw_cxgb4 the receive buffers posted by target are unsufficient for the
+incoming data to be placed/DMAed by the HW/adapter.
+Apparently, from the iSER-target code the rx buffers are acclocated for a fixed size of 8192. from isert_alloc_rx_descriptors() in drivers/infiniband/ulp/isert/ib_isert.c 
+		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
+
+I confirmed the same by increasing the ISER_RX_PAYLOAD_SIZE to 16384 and the errors arent seen.
+
+As far as i could see, from the iSER target code, MaxXmitDataSegmentLength should not be changed according to the targetcli/openiscsi parameters and should countinue based on iSER specific Initiator/targetrecvdatasegmentlength and so does the MaxrecvDatasegmentLength.
+
+Please let me know if my observations are right and what could be done to fix this.
+
+Thanks for your time.
+
+Bharat.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
