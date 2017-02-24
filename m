@@ -1,55 +1,57 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Subject: [PATCH] uapi: fix rdma/mlx5-abi.h userspace compilation errors
-Date: Fri, 24 Feb 2017 03:28:13 +0300
-Message-ID: <20170224002813.GB31010@altlinux.org>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma-core make install failing
+Date: Fri, 24 Feb 2017 02:41:22 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E3C6513E7@CRSMSX101.amr.corp.intel.com>
+References: <20170223230008.GA546@phlsvsds.ph.intel.com>
+ <20170223231247.GB18086@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170223231247.GB18086-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Consistently use types from linux/types.h to fix the following
-rdma/mlx5-abi.h userspace compilation errors:
+Ok I see...
 
-/usr/include/rdma/mlx5-abi.h:69:25: error: 'u64' undeclared here (not in a function)
-  MLX5_LIB_CAP_4K_UAR = (u64)1 << 0,
-/usr/include/rdma/mlx5-abi.h:69:29: error: expected ',' or '}' before numeric constant
-  MLX5_LIB_CAP_4K_UAR = (u64)1 << 0,
+The issue is that there is a bug in libibmad/infiniband-diags when building against the changes you made to the libibumad headers and using "make install" seemed easier than trying to set up building against my home dir...
 
-Include <linux/if_ether.h> to fix the following rdma/mlx5-abi.h
-userspace compilation error:
+I'll try to build against the headers in build.
 
-/usr/include/rdma/mlx5-abi.h:286:12: error: 'ETH_ALEN' undeclared here (not in a function)
-  __u8 dmac[ETH_ALEN];
+Ira
 
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
----
- include/uapi/rdma/mlx5-abi.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index da7cd62..0b3d308 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -34,6 +34,7 @@
- #define MLX5_ABI_USER_H
- 
- #include <linux/types.h>
-+#include <linux/if_ether.h>	/* For ETH_ALEN. */
- 
- enum {
- 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
-@@ -66,7 +67,7 @@ struct mlx5_ib_alloc_ucontext_req {
- };
- 
- enum mlx5_lib_caps {
--	MLX5_LIB_CAP_4K_UAR	= (u64)1 << 0,
-+	MLX5_LIB_CAP_4K_UAR	= (__u64)1 << 0,
- };
- 
- struct mlx5_ib_alloc_ucontext_req_v2 {
--- 
-ldv
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Thursday, February 23, 2017 3:13 PM
+> To: Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: rdma-core make install failing
+> 
+> On Thu, Feb 23, 2017 at 06:00:09PM -0500, ira.weiny wrote:
+> > I'm not sure what I'm doing wrong but make install seems to be
+> > deleting a library and then complaining that it can't find it for
+> > installation...  :-/
+> >
+> > After running build.sh I ran make install and get this error:
+> 
+> Oh.. you can't 'make install' when using build.sh. I guess we should have a more
+> explicit error message for this case.
+> 
+> build.sh now uses -DIN_PLACE=1 which arranges for everything to run smoothly
+> without being installed. Just run build/bin/blat or do
+> LD_LIBRARY_PATH=`pwd`/build/bin to use the new library with something out
+> of tree. There is no longer a big reason for developers to 'make install' anymore.
+> 
+> Part of the trick that happens to make IN_PLACE work is that the install path is
+> set to /nfs/site/home/iweiny/rdma-core/build/lib/
+> which means 'make install' tries to overwrite the built output and just generally
+> makes a mess.
+> 
+> Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
