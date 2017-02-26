@@ -1,46 +1,44 @@
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH perftest] Avoid configuring the MRs with 1's
-Date: Sun, 26 Feb 2017 14:21:31 +0200
-Message-ID: <1488111691-23620-1-git-send-email-Ram.Amrani@cavium.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [patch] RDMA/ocrdma: fix a type issue in ocrdma_put_pd_num()
+Date: Sun, 26 Feb 2017 16:26:59 +0200
+Message-ID: <20170226142657.GA4053@yuval-lap>
+References: <20170223104016.GA27526@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170223104016.GA27526@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid setting the value '1' in the MR. If this happens in a write latency
-test then the server will send two consecutive packets, regardless of the
-client's state. This can cause the application to hang - If the client
-reaches the busy-wait loop after the second write then it'll keep waiting
-for the value of the first write forever.
+On Thu, Feb 23, 2017 at 01:40:16PM +0300, Dan Carpenter wrote:
+> We want to return zero on success or negative error codes.  The type
+> should be int and not u8.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> index e06ad7250963..b1b075763eaa 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -371,7 +371,7 @@ static int _ocrdma_pd_mgr_put_bitmap(struct ocrdma_dev *dev, u16 pd_id,
+>  	return 0;
+>  }
+>  
+> -static u8 ocrdma_put_pd_num(struct ocrdma_dev *dev, u16 pd_id,
+> +static int ocrdma_put_pd_num(struct ocrdma_dev *dev, u16 pd_id,
+>  				   bool dpp_pool)
+>  {
+>  	int status;
+> --
 
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- src/perftest_resources.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/src/perftest_resources.c b/src/perftest_resources.c
-index afae5f2..dc768c4 100755
---- a/src/perftest_resources.c
-+++ b/src/perftest_resources.c
-@@ -1252,7 +1252,11 @@ int create_single_mr(struct pingpong_context *ctx, struct perftest_parameters *u
- 	/* Initialize buffer with random numbers */
- 	srand(time(NULL));
- 	for (i = 0; i < ctx->buff_size; i++) {
--		((char*)ctx->buf[qp_index])[i] = (char)rand();
-+		/* prevent the value 1 from being written into the buffer so in,
-+		 * e.g., write latency test, the server won't send two packets
-+		 * consecutively without receiving a packet from the client first.
-+		 */ 
-+		((char*)ctx->buf[qp_index])[i] = 2 + ((char)rand() % 255);
- 	}
- 
- 	return 0;
--- 
-1.8.3.1
-
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
