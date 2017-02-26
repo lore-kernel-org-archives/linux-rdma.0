@@ -1,104 +1,162 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: ibv_rc_pingpong, rping, and other tools hang with Linux 4.10.0
- and rdma-core 13
-Date: Sun, 26 Feb 2017 18:09:34 +0200
-Message-ID: <4e077022-5e5f-6ba8-530c-b86d2f09313e@mellanox.com>
-References: <CABQspYbv7j58pdLLbPegE8Bc3qhwb-3+4E8SQ2U9jObkeTbrzw@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 01/16] chardev: add helper function to register char
+ devs with a struct device
+Date: Sun, 26 Feb 2017 10:21:25 -0800
+Message-ID: <CAPcyv4i91_esBtBxbnDH3ZDd8Mnz4HoJEW2yeEvQ4QikFBjapA@mail.gmail.com>
+References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+ <1488091097-12328-2-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABQspYbv7j58pdLLbPegE8Bc3qhwb-3+4E8SQ2U9jObkeTbrzw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: GAFBlizzard <gtschemer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Youngjae Lee <dhrkaeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1488091097-12328-2-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexandre Bounine <alexandre.bounine-49Rm3DX9dRQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Marek
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/25/2017 5:27 AM, GAFBlizzard wrote:
-> Hello,
+On Sat, Feb 25, 2017 at 10:38 PM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
+> Credit for this patch goes is shared with Dan Williams [1]. I've
+> taken things one step further to make the helper function more
+> useful and clean up calling code.
 >
-> I have Linux 4.10.0 stable running on two at91 ARM machines.  I have
-> rdma-core 13 installed on both.
+> There's a common pattern in the kernel whereby a struct cdev is placed
+> in a structure along side a struct device which manages the life-cycle
+> of both. In the naive approach, the reference counting is broken and
+> the struct device can free everything before the chardev code
+> is entirely released.
 >
-> "rxe_cfg status" shows normal information, e.g.:
->   Name  Link  Driver  Speed  NMTU  IPv4_addr     RDEV  RMTU
->   eth0  yes   macb           1500  192.168.0.12  rxe0  1024  (3)
+> Many developers have solved this problem by linking the internal kobjs
+> in this fashion:
 >
-> "ibv_devinfo" likewise shows normal information, e.g.:
-> hca_id: rxe0
->  transport:   InfiniBand (0)
->  fw_ver:    0.0.0
->  node_guid:   1034:56ff:fe84:1952
->  sys_image_guid:   0000:0000:0000:0000
->  vendor_id:   0x0000
->  vendor_part_id:   0
->  hw_ver:    0x0
->  phys_port_cnt:   1
->   port: 1
->    state:   PORT_ACTIVE (4)
->    max_mtu:  4096 (5)
->    active_mtu:  1024 (3)
->    sm_lid:   0
->    port_lid:  0
->    port_lmc:  0x00
->    link_layer:  Ethernet
+> cdev.kobj.parent = &parent_dev.kobj;
 >
+> The cdev code explicitly gets and puts a reference to it's kobj parent.
+> So this seems like it was intended to be used this way. Dmitrty Torokhov
+> first put this in place in 2012 with this commit:
 >
-> Every communication tool I have tried hangs after printing remote
-> address information.  No errors are printed or logged in dmesg.
-> Example:
+> 2f0157f char_dev: pin parent kobject
 >
-> ## This is system A
-> # ibv_rc_pingpong -d rxe0 -g 1 -i 1 192.168.0.12
->   local address:  LID 0x0000, QPN 0x000011, PSN 0xd1d8a8, GID
-> ::ffff:192.168.0.11
->   remote address: LID 0x0000, QPN 0x000011, PSN 0xc55eed, GID
-> ::ffff:192.168.0.12
+> and the first instance of the fix was then done in the input subsystem
+> in the following commit:
 >
-> ## This is system B
-> # ibv_rc_pingpong -d rxe0 -g 1 -i 1
->   local address:  LID 0x0000, QPN 0x000011, PSN 0xc55eed, GID
-> ::ffff:192.168.0.12
->   remote address: LID 0x0000, QPN 0x000011, PSN 0xd1d8a8, GID
-> ::ffff:192.168.0.11
+> 4a215aa Input: fix use-after-free introduced with dynamic minor changes
 >
+> Subsequently over the years, however, this issue seems to have tripped
+> up multiple developers independently. For example, see these commits:
 >
+> 0d5b7da iio: Prevent race between IIO chardev opening and IIO device
+> (by Lars-Peter Clausen in 2013)
 >
-> If it makes a difference, I have a 10/100 switch connected at the
-> moment.  I am merely trying to verify functionality, not reach high
-> speeds.
+> ba0ef85 tpm: Fix initialization of the cdev
+> (by Jason Gunthorpe in 2015)
 >
-> I have found previous message(s) with similar problems on mailing
-> lists and online but no resolution to date.  Is there any
-> configuration option I might have missed?  I have no iptables
-> firewall, and have even tried directly connecting the two systems
-> instead of using the Ethernet switch.
+> 5b28dde [media] media: fix use-after-free in cdev_put() when app exits
+> after driver unbind
+> (by Shauh Khan in 2016)
 >
-Hi all,
+> This technique is similarly done in at least 15 places within the kernel
+> and probably should have been done so in another, at least, 5 places.
+> The kobj line also looks very suspect in that one would not expect
+> drivers to have to mess with kobject internals in this way.
+> Even highly experienced kernel developers can be surprised by this
+> code, as seen in [2].
 
-I succeeded to reproduce the issue on my x86 setup.
-The last time my user-space libraries weren't up to date and thus it passed.
+Nice history!
 
-I bisected the rdma-core library and figured out that the following 
-commit introduced this regression:
-6b26a9e24739 Use C11 atomics instead of wmb/rmb macros for CPU-only atomics
-
-I haven't debugged this yet and would appreciate Jason's input.
-
-Can you confirm that reverting the previous commit solves the issues on 
-ARM as well?
-
-Thanks
-
-> Thanks,
-> G
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
+> To help alleviate this situation, and hopefully prevent future
+> wasted effort on this problem, this patch introduces a helper function
+> to register a char device along with its parent struct device.
+> This creates a more regular API for tying a char device to its parent
+> without the developer having to set members in the underlying kobject.
+>
+> This patch introduce cdev_device_add and cdev_device_del which
+> replaces a common pattern including setting the kobj parent, calling
+> cdev_add and then calling device_add. It also introduces cdev_set_parent
+> for the few cases that set the kobject parent without using device_add.
+>
+> [1] https://lkml.org/lkml/2017/2/13/700
+> [2] https://lkml.org/lkml/2017/2/10/370
+>
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  fs/char_dev.c        | 67 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/cdev.h |  4 ++++
+>  2 files changed, 71 insertions(+)
+>
+> diff --git a/fs/char_dev.c b/fs/char_dev.c
+> index 44a240c..471d480 100644
+> --- a/fs/char_dev.c
+> +++ b/fs/char_dev.c
+> @@ -471,6 +471,70 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
+>         return 0;
+>  }
+>
+> +/**
+> + * cdev_set_parent() - set the parent kobject for a char device
+> + * @p: the cdev structure
+> + * @kobj: the kobject to take a reference to
+> + *
+> + * cdev_set_parent() sets a parent kobject which will be referenced
+> + * appropriately so the parent is not freed before the cdev. This
+> + * should be called before cdev_add.
+> + */
+> +void cdev_set_parent(struct cdev *p, struct kobject *kobj)
+> +{
+> +       WARN_ON(!kobj->state_initialized);
+> +       p->kobj.parent = kobj;
+> +}
+> +
+> +/**
+> + * cdev_device_add() - add a char device and it's corresponding
+> + *     struct device, linkink
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+"add a cdev and it's corresponding struct device"
+
+> + * @dev: the device structure
+> + * @cdev: the cdev structure
+> + *
+> + * cdev_device_add() adds the char device represented by @cdev to the system,
+> + * just as cdev_add does. It then adds @dev to the system using device_add
+> + * The dev_t for the char device will be taken from the struct device which
+> + * needs to be initialized first. This helper function correctly takes a
+> + * reference to the parent device so the parent will not get released until
+> + * all references to the cdev are released.
+> + *
+> + * This function should be used whenever the struct cdev and the
+> + * struct device are members of the same structure whose lifetime is
+> + * managed by the struct device.
+> + */
+
+Perhaps add a note here that userspace may have invoked file
+operations between cdev_add() and a failing device_add(), so
+additional cleanup beyond put_device() (like mmap invalidation) might
+be needed. That can be a later follow-on patch.
+
+> +int cdev_device_add(struct cdev *cdev, struct device *dev)
+> +{
+> +       int rc = 0;
+> +
+> +       cdev_set_parent(cdev, &dev->kobj);
+> +
+> +       rc = cdev_add(cdev, dev->devt, 1);
+> +       if (rc)
+> +               return rc;
+> +
+> +       rc = device_add(dev);
+> +       if (rc)
+> +               cdev_del(cdev);
+> +
+> +       return rc;
+> +}
+> +
