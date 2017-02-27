@@ -1,104 +1,92 @@
-From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 01/16] chardev: add helper function to
- register char devs with a struct device
-Date: Mon, 27 Feb 2017 10:47:29 +0100
-Message-ID: <20170227094729.pvhy5oicqngcq4rn@piout.net>
-References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
- <1488091097-12328-2-git-send-email-logang@deltatee.com>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Peter Senna Tschudin <peter.senna@collabora.com>
+Subject: Re: [PATCH v3 06/20] mlx5: Replace PCI pool old API
+Date: Mon, 27 Feb 2017 12:08:36 +0100
+Message-ID: <20170227110836.GA26544@collabora.com>
+References: <20170226192425.13098-1-romain.perier@collabora.com>
+ <20170226192425.13098-7-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <rtc-linux+bncBCKYNX7Y3IMBBN7LZ7CQKGQERLXIQLY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1488091097-12328-2-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut
+In-Reply-To: <20170226192425.13098-7-romain.perier@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-On 25/02/2017 at 23:38:02 -0700, Logan Gunthorpe wrote:
-> Credit for this patch goes is shared with Dan Williams [1]. I've
-> taken things one step further to make the helper function more
-> useful and clean up calling code.
+On Sun, Feb 26, 2017 at 08:24:11PM +0100, Romain Perier wrote:
+> The PCI pool API is deprecated. This commits replaces the PCI pool old
+> API by the appropriated function with the DMA pool API.
 > 
-> There's a common pattern in the kernel whereby a struct cdev is placed
-> in a structure along side a struct device which manages the life-cycle
-> of both. In the naive approach, the reference counting is broken and
-> the struct device can free everything before the chardev code
-> is entirely released.
+Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
+> Signed-off-by: Romain Perier <romain.perier@collabora.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 11 ++++++-----
+>  include/linux/mlx5/driver.h                   |  2 +-
+>  2 files changed, 7 insertions(+), 6 deletions(-)
 > 
-> Many developers have solved this problem by linking the internal kobjs
-> in this fashion:
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+> index caa837e..6eef344 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+> @@ -1061,7 +1061,7 @@ static struct mlx5_cmd_mailbox *alloc_cmd_box(struct mlx5_core_dev *dev,
+>  	if (!mailbox)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> -	mailbox->buf = pci_pool_zalloc(dev->cmd.pool, flags,
+> +	mailbox->buf = dma_pool_zalloc(dev->cmd.pool, flags,
+>  				       &mailbox->dma);
+>  	if (!mailbox->buf) {
+>  		mlx5_core_dbg(dev, "failed allocation\n");
+> @@ -1076,7 +1076,7 @@ static struct mlx5_cmd_mailbox *alloc_cmd_box(struct mlx5_core_dev *dev,
+>  static void free_cmd_box(struct mlx5_core_dev *dev,
+>  			 struct mlx5_cmd_mailbox *mailbox)
+>  {
+> -	pci_pool_free(dev->cmd.pool, mailbox->buf, mailbox->dma);
+> +	dma_pool_free(dev->cmd.pool, mailbox->buf, mailbox->dma);
+>  	kfree(mailbox);
+>  }
+>  
+> @@ -1696,7 +1696,8 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
+>  		return -EINVAL;
+>  	}
+>  
+> -	cmd->pool = pci_pool_create("mlx5_cmd", dev->pdev, size, align, 0);
+> +	cmd->pool = dma_pool_create("mlx5_cmd", &dev->pdev->dev, size, align,
+> +				    0);
+>  	if (!cmd->pool)
+>  		return -ENOMEM;
+>  
+> @@ -1786,7 +1787,7 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
+>  	free_cmd_page(dev, cmd);
+>  
+>  err_free_pool:
+> -	pci_pool_destroy(cmd->pool);
+> +	dma_pool_destroy(cmd->pool);
+>  
+>  	return err;
+>  }
+> @@ -1800,6 +1801,6 @@ void mlx5_cmd_cleanup(struct mlx5_core_dev *dev)
+>  	destroy_workqueue(cmd->wq);
+>  	destroy_msg_cache(dev);
+>  	free_cmd_page(dev, cmd);
+> -	pci_pool_destroy(cmd->pool);
+> +	dma_pool_destroy(cmd->pool);
+>  }
+>  EXPORT_SYMBOL(mlx5_cmd_cleanup);
+> diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+> index 2fcff6b..13a267c 100644
+> --- a/include/linux/mlx5/driver.h
+> +++ b/include/linux/mlx5/driver.h
+> @@ -284,7 +284,7 @@ struct mlx5_cmd {
+>  	struct semaphore pages_sem;
+>  	int	mode;
+>  	struct mlx5_cmd_work_ent *ent_arr[MLX5_MAX_COMMANDS];
+> -	struct pci_pool *pool;
+> +	struct dma_pool *pool;
+>  	struct mlx5_cmd_debug dbg;
+>  	struct cmd_msg_cache cache[MLX5_NUM_COMMAND_CACHES];
+>  	int checksum_disabled;
+> -- 
+> 2.9.3
 > 
-> cdev.kobj.parent = &parent_dev.kobj;
-> 
-> The cdev code explicitly gets and puts a reference to it's kobj parent.
-> So this seems like it was intended to be used this way. Dmitrty Torokhov
-> first put this in place in 2012 with this commit:
-> 
-> 2f0157f char_dev: pin parent kobject
-> 
-> and the first instance of the fix was then done in the input subsystem
-> in the following commit:
-> 
-> 4a215aa Input: fix use-after-free introduced with dynamic minor changes
-> 
-> Subsequently over the years, however, this issue seems to have tripped
-> up multiple developers independently. For example, see these commits:
-> 
-> 0d5b7da iio: Prevent race between IIO chardev opening and IIO device
-> (by Lars-Peter Clausen in 2013)
-> 
-> ba0ef85 tpm: Fix initialization of the cdev
-> (by Jason Gunthorpe in 2015)
-> 
-> 5b28dde [media] media: fix use-after-free in cdev_put() when app exits
-> after driver unbind
-> (by Shauh Khan in 2016)
-> 
-> This technique is similarly done in at least 15 places within the kernel
-> and probably should have been done so in another, at least, 5 places.
-> The kobj line also looks very suspect in that one would not expect
-> drivers to have to mess with kobject internals in this way.
-> Even highly experienced kernel developers can be surprised by this
-> code, as seen in [2].
-> 
-> To help alleviate this situation, and hopefully prevent future
-> wasted effort on this problem, this patch introduces a helper function
-> to register a char device along with its parent struct device.
-> This creates a more regular API for tying a char device to its parent
-> without the developer having to set members in the underlying kobject.
-> 
-> This patch introduce cdev_device_add and cdev_device_del which
-> replaces a common pattern including setting the kobj parent, calling
-> cdev_add and then calling device_add. It also introduces cdev_set_parent
-> for the few cases that set the kobject parent without using device_add.
-> 
-> [1] https://lkml.org/lkml/2017/2/13/700
-> [2] https://lkml.org/lkml/2017/2/10/370
-> 
-> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-
-
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
--- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
