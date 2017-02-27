@@ -1,59 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 01/16] chardev: add helper function to register char
- devs with a struct device
-Date: Mon, 27 Feb 2017 09:56:18 -0700
-Message-ID: <20170227165618.GE5891@obsidianresearch.com>
-References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
- <1488091097-12328-2-git-send-email-logang@deltatee.com>
- <CAPcyv4i91_esBtBxbnDH3ZDd8Mnz4HoJEW2yeEvQ4QikFBjapA@mail.gmail.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
+ - 2/28/2017 at 11:00PST - on user-space hotplug
+Date: Mon, 27 Feb 2017 17:07:13 +0000
+Message-ID: <HE1PR0501MB28121E7A1FF6DF03930C1469B1570@HE1PR0501MB2812.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4i91_esBtBxbnDH3ZDd8Mnz4HoJEW2yeEvQ4QikFBjapA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexandre Bounine <alexandre.bounine-49Rm3DX9dRQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Matt
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 26, 2017 at 10:21:25AM -0800, Dan Williams wrote:
-> > + * cdev_device_add() adds the char device represented by @cdev to the system,
-> > + * just as cdev_add does. It then adds @dev to the system using device_add
-> > + * The dev_t for the char device will be taken from the struct device which
-> > + * needs to be initialized first. This helper function correctly takes a
-> > + * reference to the parent device so the parent will not get released until
-> > + * all references to the cdev are released.
-> > + *
-> > + * This function should be used whenever the struct cdev and the
-> > + * struct device are members of the same structure whose lifetime is
-> > + * managed by the struct device.
-> > + */
-> 
-> Perhaps add a note here that userspace may have invoked file
-> operations between cdev_add() and a failing device_add(), so
-> additional cleanup beyond put_device() (like mmap invalidation) might
-> be needed. That can be a later follow-on patch.
+Agenda: discuss user-space hot-plug/unplug support as described in: http://=
+marc.info/?l=3Dlinux-rdma&m=3D148821172608014&w=3D2
 
-Yes please, that is way too subtle. Suggest:
+Regards,
+--Liran
 
-NOTE: Callers must assume that userspace was able to open the cdev and
-can call cdev fops callbacks at any time, even if this function fails.
 
-I would also add a note to cdev_device_del:
+Concall details
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+JOIN WEBEX MEETING
+https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
 
-NOTE: This guarantees that associated sysfs callbacks are not running
-or runnable, however any open cdevs will remain and their fops remain
-callable even after this returns.
+JOIN BY PHONE
+1-80-9453550 Israel toll free
+1-855-299-5224 USA/Canada toll free
+Access code: 702 830 424
 
-Since I have seen a lot of confusion on that point as well..
+Global call-in numbers:
+https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=
+=3DMC&ED=3D457637257&tollFree=3D1
 
-Jason
+Toll-free calling restrictions:
+http://www.webex.com/pdf/tollfree_restrictions.pdf
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
