@@ -1,54 +1,152 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 08/14] mlx5: Update to use new udma write
- barriers
-Date: Mon, 27 Feb 2017 12:56:33 +0200
-Message-ID: <d5921636-1911-5588-8c59-620066bca01a@dev.mellanox.co.il>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Peter Senna Tschudin <peter.senna@collabora.com>
+Subject: Re: [PATCH v3 17/20] usb: gadget: pch_udc: Replace PCI pool old API
+Date: Mon, 27 Feb 2017 12:19:16 +0100
+Message-ID: <20170227111916.GH26544@collabora.com>
+References: <20170226192425.13098-1-romain.perier@collabora.com>
+ <20170226192425.13098-18-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487272989-8215-9-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170226192425.13098-18-romain.perier@collabora.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/16/2017 9:23 PM, Jason Gunthorpe wrote:
-> The mlx5 comments are good so these translate fairly directly.
->
-> There is one barrier in mlx5_arm_cq that I could not explain, it became
-> mmio_ordered_writes_hack()
->
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On Sun, Feb 26, 2017 at 08:24:22PM +0100, Romain Perier wrote:
+> The PCI pool API is deprecated. This commits replaces the PCI pool old
+> API by the appropriated function with the DMA pool API.
+> 
+Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
+> Signed-off-by: Romain Perier <romain.perier@collabora.com>
 > ---
-
->  #ifdef MLX5_DEBUG
->  	{
-> @@ -1283,14 +1283,14 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
->  	 * Make sure that the doorbell record in host memory is
->  	 * written before ringing the doorbell via PCI MMIO.
->  	 */
-> -	wmb();
-> +	udma_to_device_barrier();
->
->  	doorbell[0] = htonl(sn << 28 | cmd | ci);
->  	doorbell[1] = htonl(cq->cqn);
->
->  	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
->
-> -	wc_wmb();
-> +	mmio_ordered_writes_hack();
-
-We expect to use here the "mmio_flush_writes()" new macro, instead of 
-the above "hack" one. This barrier enforces the data to be flushed 
-immediately to the device so that the CQ will be armed with no delay.
-
->  	return 0;
->  }
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/usb/gadget/udc/pch_udc.c | 31 +++++++++++++++----------------
+>  1 file changed, 15 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/udc/pch_udc.c b/drivers/usb/gadget/udc/pch_udc.c
+> index a97da64..84dcbcd 100644
+> --- a/drivers/usb/gadget/udc/pch_udc.c
+> +++ b/drivers/usb/gadget/udc/pch_udc.c
+> @@ -355,8 +355,8 @@ struct pch_udc_dev {
+>  			vbus_session:1,
+>  			set_cfg_not_acked:1,
+>  			waiting_zlp_ack:1;
+> -	struct pci_pool		*data_requests;
+> -	struct pci_pool		*stp_requests;
+> +	struct dma_pool		*data_requests;
+> +	struct dma_pool		*stp_requests;
+>  	dma_addr_t			dma_addr;
+>  	struct usb_ctrlrequest		setup_data;
+>  	void __iomem			*base_addr;
+> @@ -1522,7 +1522,7 @@ static void pch_udc_free_dma_chain(struct pch_udc_dev *dev,
+>  		/* do not free first desc., will be done by free for request */
+>  		td = phys_to_virt(addr);
+>  		addr2 = (dma_addr_t)td->next;
+> -		pci_pool_free(dev->data_requests, td, addr);
+> +		dma_pool_free(dev->data_requests, td, addr);
+>  		td->next = 0x00;
+>  		addr = addr2;
+>  	}
+> @@ -1539,7 +1539,7 @@ static void pch_udc_free_dma_chain(struct pch_udc_dev *dev,
+>   *
+>   * Return codes:
+>   *	0:		success,
+> - *	-ENOMEM:	pci_pool_alloc invocation fails
+> + *	-ENOMEM:	dma_pool_alloc invocation fails
+>   */
+>  static int pch_udc_create_dma_chain(struct pch_udc_ep *ep,
+>  				    struct pch_udc_request *req,
+> @@ -1565,7 +1565,7 @@ static int pch_udc_create_dma_chain(struct pch_udc_ep *ep,
+>  		if (bytes <= buf_len)
+>  			break;
+>  		last = td;
+> -		td = pci_pool_alloc(ep->dev->data_requests, gfp_flags,
+> +		td = dma_pool_alloc(ep->dev->data_requests, gfp_flags,
+>  				    &dma_addr);
+>  		if (!td)
+>  			goto nomem;
+> @@ -1770,7 +1770,7 @@ static struct usb_request *pch_udc_alloc_request(struct usb_ep *usbep,
+>  	if (!ep->dev->dma_addr)
+>  		return &req->req;
+>  	/* ep0 in requests are allocated from data pool here */
+> -	dma_desc = pci_pool_alloc(ep->dev->data_requests, gfp,
+> +	dma_desc = dma_pool_alloc(ep->dev->data_requests, gfp,
+>  				  &req->td_data_phys);
+>  	if (NULL == dma_desc) {
+>  		kfree(req);
+> @@ -1809,7 +1809,7 @@ static void pch_udc_free_request(struct usb_ep *usbep,
+>  	if (req->td_data != NULL) {
+>  		if (req->chain_len > 1)
+>  			pch_udc_free_dma_chain(ep->dev, req);
+> -		pci_pool_free(ep->dev->data_requests, req->td_data,
+> +		dma_pool_free(ep->dev->data_requests, req->td_data,
+>  			      req->td_data_phys);
+>  	}
+>  	kfree(req);
+> @@ -2914,7 +2914,7 @@ static int init_dma_pools(struct pch_udc_dev *dev)
+>  	void				*ep0out_buf;
+>  
+>  	/* DMA setup */
+> -	dev->data_requests = pci_pool_create("data_requests", dev->pdev,
+> +	dev->data_requests = dma_pool_create("data_requests", &dev->pdev->dev,
+>  		sizeof(struct pch_udc_data_dma_desc), 0, 0);
+>  	if (!dev->data_requests) {
+>  		dev_err(&dev->pdev->dev, "%s: can't get request data pool\n",
+> @@ -2923,7 +2923,7 @@ static int init_dma_pools(struct pch_udc_dev *dev)
+>  	}
+>  
+>  	/* dma desc for setup data */
+> -	dev->stp_requests = pci_pool_create("setup requests", dev->pdev,
+> +	dev->stp_requests = dma_pool_create("setup requests", &dev->pdev->dev,
+>  		sizeof(struct pch_udc_stp_dma_desc), 0, 0);
+>  	if (!dev->stp_requests) {
+>  		dev_err(&dev->pdev->dev, "%s: can't get setup request pool\n",
+> @@ -2931,7 +2931,7 @@ static int init_dma_pools(struct pch_udc_dev *dev)
+>  		return -ENOMEM;
+>  	}
+>  	/* setup */
+> -	td_stp = pci_pool_alloc(dev->stp_requests, GFP_KERNEL,
+> +	td_stp = dma_pool_alloc(dev->stp_requests, GFP_KERNEL,
+>  				&dev->ep[UDC_EP0OUT_IDX].td_stp_phys);
+>  	if (!td_stp) {
+>  		dev_err(&dev->pdev->dev,
+> @@ -2941,7 +2941,7 @@ static int init_dma_pools(struct pch_udc_dev *dev)
+>  	dev->ep[UDC_EP0OUT_IDX].td_stp = td_stp;
+>  
+>  	/* data: 0 packets !? */
+> -	td_data = pci_pool_alloc(dev->data_requests, GFP_KERNEL,
+> +	td_data = dma_pool_alloc(dev->data_requests, GFP_KERNEL,
+>  				&dev->ep[UDC_EP0OUT_IDX].td_data_phys);
+>  	if (!td_data) {
+>  		dev_err(&dev->pdev->dev,
+> @@ -3021,22 +3021,21 @@ static void pch_udc_remove(struct pci_dev *pdev)
+>  		dev_err(&pdev->dev,
+>  			"%s: gadget driver still bound!!!\n", __func__);
+>  	/* dma pool cleanup */
+> -	if (dev->data_requests)
+> -		pci_pool_destroy(dev->data_requests);
+> +	dma_pool_destroy(dev->data_requests);
+>  
+>  	if (dev->stp_requests) {
+>  		/* cleanup DMA desc's for ep0in */
+>  		if (dev->ep[UDC_EP0OUT_IDX].td_stp) {
+> -			pci_pool_free(dev->stp_requests,
+> +			dma_pool_free(dev->stp_requests,
+>  				dev->ep[UDC_EP0OUT_IDX].td_stp,
+>  				dev->ep[UDC_EP0OUT_IDX].td_stp_phys);
+>  		}
+>  		if (dev->ep[UDC_EP0OUT_IDX].td_data) {
+> -			pci_pool_free(dev->stp_requests,
+> +			dma_pool_free(dev->stp_requests,
+>  				dev->ep[UDC_EP0OUT_IDX].td_data,
+>  				dev->ep[UDC_EP0OUT_IDX].td_data_phys);
+>  		}
+> -		pci_pool_destroy(dev->stp_requests);
+> +		dma_pool_destroy(dev->stp_requests);
+>  	}
+>  
+>  	if (dev->dma_addr)
+> -- 
+> 2.9.3
+> 
