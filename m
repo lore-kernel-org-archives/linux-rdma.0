@@ -1,58 +1,54 @@
-From: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: Re: [PATCH v3 20/20] checkpatch: warn for use of old PCI pool API
-Date: Mon, 27 Feb 2017 12:22:33 +0100
-Message-ID: <20170227112233.GK26544@collabora.com>
-References: <20170226192425.13098-1-romain.perier@collabora.com>
- <20170226192425.13098-21-romain.perier@collabora.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 08/14] mlx5: Update to use new udma write
+ barriers
+Date: Mon, 27 Feb 2017 12:56:33 +0200
+Message-ID: <d5921636-1911-5588-8c59-620066bca01a@dev.mellanox.co.il>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170226192425.13098-21-romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, stas.yakovlev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Senna Tschudin <peter.senna-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1487272989-8215-9-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 26, 2017 at 08:24:25PM +0100, Romain Perier wrote:
-> pci_pool_*() functions should be replaced by the corresponding functions
-> in the DMA pool API. This adds support to check for use of these pci
-> functions and display a warning when it is the case.
+On 2/16/2017 9:23 PM, Jason Gunthorpe wrote:
+> The mlx5 comments are good so these translate fairly directly.
 >
-
-I guess Joe Perches did sent some comments for this one, did you address
-them?
-
-Reviewed-by: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-> Signed-off-by: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> There is one barrier in mlx5_arm_cq that I could not explain, it became
+> mmio_ordered_writes_hack()
+>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > ---
->  scripts/checkpatch.pl | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-> index baa3c7b..f2c775c 100755
-> --- a/scripts/checkpatch.pl
-> +++ b/scripts/checkpatch.pl
-> @@ -6064,7 +6064,14 @@ sub process {
->  			WARN("USE_DEVICE_INITCALL",
->  			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
->  		}
-> -
-> +# check for old PCI api pci_pool_*(), use dma_pool_*() instead
-> +		if ($line =~ /\bpci_pool(?:_(?:create|destroy|alloc|zalloc|free)|)\b/) {
-> +			if (WARN("USE_DMA_POOL",
-> +				 "please use the dma pool api or more appropriate function instead of the old pci pool api\n" . $herecurr) &&
-> +			    $fix) {
-> +				while ($fixed[$fixlinenr] =~ s/\bpci_pool(_(?:create|destroy|alloc|zalloc|free)|)\b/dma_pool$1/) {}
-> +			}
-> +		}
->  # check for various structs that are normally const (ops, kgdb, device_tree)
->  		if ($line !~ /\bconst\b/ &&
->  		    $line =~ /\bstruct\s+($const_structs)\b/) {
-> -- 
-> 2.9.3
-> 
+
+>  #ifdef MLX5_DEBUG
+>  	{
+> @@ -1283,14 +1283,14 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+>  	 * Make sure that the doorbell record in host memory is
+>  	 * written before ringing the doorbell via PCI MMIO.
+>  	 */
+> -	wmb();
+> +	udma_to_device_barrier();
+>
+>  	doorbell[0] = htonl(sn << 28 | cmd | ci);
+>  	doorbell[1] = htonl(cq->cqn);
+>
+>  	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
+>
+> -	wc_wmb();
+> +	mmio_ordered_writes_hack();
+
+We expect to use here the "mmio_flush_writes()" new macro, instead of 
+the above "hack" one. This barrier enforces the data to be flushed 
+immediately to the device so that the CQ will be armed with no delay.
+
+>  	return 0;
+>  }
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
