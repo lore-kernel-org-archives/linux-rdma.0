@@ -1,31 +1,44 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Mon, 27 Feb 2017 22:13:46 +0200
-Message-ID: <7267b601-e436-570a-a103-65ffeb6e7a97@grimberg.me>
-References: <08131a05-1f56-ef61-990a-7fff04eea095@gmail.com>
- <de1a559a-bf24-0d73-5fc7-148d6cd4d4e0@grimberg.me>
- <1848296658.37025722.1487782361271.JavaMail.zimbra@redhat.com>
- <1554c1d1-6bf4-9ca2-12d4-a0125d8c5715@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] IB/qib: fix false-postive maybe-uninitialized warning
+Date: Mon, 27 Feb 2017 21:43:30 +0100
+Message-ID: <20170227204343.3575126-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1554c1d1-6bf4-9ca2-12d4-a0125d8c5715-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+aarch64-linux-gcc-7 complains about code it doesn't fully understand:
 
-> Hi,
->
-> I will try with kernel 4.10 when I get my hands on the machine.
->
-> In addition, I found that the machine did not have the kernel-firmware
-> package installed. Could this cause the "strange" CX4 behavior? I will
-> obviously re-test with the kernel-firmware package.
+drivers/infiniband/hw/qib/qib_iba7322.c: In function 'qib_7322_txchk_change':
+include/asm-generic/bitops/non-atomic.h:105:35: error: 'shadow' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-Not really, Mellanox FW is obtained by mellanox provided tools.
+The code is right, and despite trying hard, I could not come up with a version
+that I liked better than just adding a fake initialization here to shut up the
+warning.
+
+Fixes: f931551bafe1 ("IB/qib: Add new qib driver for QLogic PCIe InfiniBand adapters")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_iba7322.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 12c4208fd701..af9f596bb68b 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -7068,7 +7068,7 @@ static void qib_7322_txchk_change(struct qib_devdata *dd, u32 start,
+ 	unsigned long flags;
+ 
+ 	while (wait) {
+-		unsigned long shadow;
++		unsigned long shadow = 0;
+ 		int cstart, previ = -1;
+ 
+ 		/*
+-- 
+2.9.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
