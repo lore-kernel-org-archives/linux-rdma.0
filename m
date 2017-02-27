@@ -1,44 +1,69 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] IB/qib: fix false-postive maybe-uninitialized warning
-Date: Mon, 27 Feb 2017 21:43:30 +0100
-Message-ID: <20170227204343.3575126-1-arnd@arndb.de>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: ibv_rc_pingpong, rping, and other tools hang with Linux 4.10.0
+ and rdma-core 13
+Date: Mon, 27 Feb 2017 20:38:32 +0000
+Message-ID: <CC495762-698F-47FE-B977-35DE3CD04CDE@mellanox.com>
+References: <CABQspYbv7j58pdLLbPegE8Bc3qhwb-3+4E8SQ2U9jObkeTbrzw@mail.gmail.com>
+ <4e077022-5e5f-6ba8-530c-b86d2f09313e@mellanox.com>,<20170227162916.GC5891@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170227162916.GC5891-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, GAFBlizzard <gtschemer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Youngjae Lee <dhrkaeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-aarch64-linux-gcc-7 complains about code it doesn't fully understand:
 
-drivers/infiniband/hw/qib/qib_iba7322.c: In function 'qib_7322_txchk_change':
-include/asm-generic/bitops/non-atomic.h:105:35: error: 'shadow' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-
-The code is right, and despite trying hard, I could not come up with a version
-that I liked better than just adding a fake initialization here to shut up the
-warning.
-
-Fixes: f931551bafe1 ("IB/qib: Add new qib driver for QLogic PCIe InfiniBand adapters")
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 12c4208fd701..af9f596bb68b 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -7068,7 +7068,7 @@ static void qib_7322_txchk_change(struct qib_devdata *dd, u32 start,
- 	unsigned long flags;
- 
- 	while (wait) {
--		unsigned long shadow;
-+		unsigned long shadow = 0;
- 		int cstart, previ = -1;
- 
- 		/*
--- 
-2.9.0
-
+> On Feb 27, 2017, at 7:09 PM, Jason Gunthorpe <jgunthorpe@obsidianresearch=
+.com> wrote:
+>=20
+>> On Sun, Feb 26, 2017 at 06:09:34PM +0200, Yonatan Cohen wrote:
+>>=20
+>> I bisected the rdma-core library and figured out that the following comm=
+it
+>> introduced this regression:
+>> 6b26a9e24739 Use C11 atomics instead of wmb/rmb macros for CPU-only atom=
+ics
+>>=20
+>> I haven't debugged this yet and would appreciate Jason's input.
+>=20
+> Oops, I think I typo'd it here:
+>=20
+> --- a/providers/rxe/rxe_queue.h
+> +++ b/providers/rxe/rxe_queue.h
+> @@ -37,15 +37,16 @@
+> #ifndef H_RXE_PCQ
+> #define H_RXE_PCQ
+>=20
+> +#include <stdatomic.h>
+> +
+> /* MUST MATCH kernel struct rxe_pqc in rxe_queue.h */
+> struct rxe_queue {
+>        uint32_t                log2_elem_size;
+>        uint32_t                index_mask;
+>        uint32_t                pad_1[30];
+> -       volatile uint32_t       producer_index;
+> +       _Atomic(uint32_t)       producer_index;
+>        uint32_t                pad_2[31];
+> -       volatile uint32_t       consumer_index;
+> -       uint32_t                pad_3[31];
+> +       _Atomic(uint32_t)       consumer_index;
+>=20
+>=20
+> Ie deleted pad_3[31] by mistake!
+>=20
+> My bad
+Thanks Jason for looking into it.
+Can you please submit this fix to rdma-core?
+>=20
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
