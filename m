@@ -1,41 +1,56 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
- - 2/28/2017 at 11:00PST - on user-space hotplug
-Date: Mon, 27 Feb 2017 17:07:13 +0000
-Message-ID: <HE1PR0501MB28121E7A1FF6DF03930C1469B1570@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: ibv_rc_pingpong, rping, and other tools hang with Linux 4.10.0
+ and rdma-core 13
+Date: Mon, 27 Feb 2017 09:29:16 -0700
+Message-ID: <20170227162916.GC5891@obsidianresearch.com>
+References: <CABQspYbv7j58pdLLbPegE8Bc3qhwb-3+4E8SQ2U9jObkeTbrzw@mail.gmail.com>
+ <4e077022-5e5f-6ba8-530c-b86d2f09313e@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <4e077022-5e5f-6ba8-530c-b86d2f09313e-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: GAFBlizzard <gtschemer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Youngjae Lee <dhrkaeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Agenda: discuss user-space hot-plug/unplug support as described in: http://=
-marc.info/?l=3Dlinux-rdma&m=3D148821172608014&w=3D2
+On Sun, Feb 26, 2017 at 06:09:34PM +0200, Yonatan Cohen wrote:
 
-Regards,
---Liran
+> I bisected the rdma-core library and figured out that the following commit
+> introduced this regression:
+> 6b26a9e24739 Use C11 atomics instead of wmb/rmb macros for CPU-only atomics
+> 
+> I haven't debugged this yet and would appreciate Jason's input.
+
+Oops, I think I typo'd it here:
+
+--- a/providers/rxe/rxe_queue.h
++++ b/providers/rxe/rxe_queue.h
+@@ -37,15 +37,16 @@
+ #ifndef H_RXE_PCQ
+ #define H_RXE_PCQ
+ 
++#include <stdatomic.h>
++
+ /* MUST MATCH kernel struct rxe_pqc in rxe_queue.h */
+ struct rxe_queue {
+        uint32_t                log2_elem_size;
+        uint32_t                index_mask;
+        uint32_t                pad_1[30];
+-       volatile uint32_t       producer_index;
++       _Atomic(uint32_t)       producer_index;
+        uint32_t                pad_2[31];
+-       volatile uint32_t       consumer_index;
+-       uint32_t                pad_3[31];
++       _Atomic(uint32_t)       consumer_index;
 
 
-Concall details
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-JOIN WEBEX MEETING
-https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+Ie deleted pad_3[31] by mistake!
 
-JOIN BY PHONE
-1-80-9453550 Israel toll free
-1-855-299-5224 USA/Canada toll free
-Access code: 702 830 424
+My bad
 
-Global call-in numbers:
-https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=
-=3DMC&ED=3D457637257&tollFree=3D1
-
-Toll-free calling restrictions:
-http://www.webex.com/pdf/tollfree_restrictions.pdf
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
