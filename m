@@ -1,40 +1,48 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC] Registering non-contiguous memory
-Date: Tue, 28 Feb 2017 07:31:04 -0500
-Message-ID: <f40f326d-e76b-0471-dc7d-e81b7d07db78@talpey.com>
-References: <VI1PR05MB127817A311C332553E4391AFB9410@VI1PR05MB1278.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core] mlx5: Update PCI supported list
+Date: Tue, 28 Feb 2017 12:48:55 +0200
+Message-ID: <1488278935-28386-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR05MB127817A311C332553E4391AFB9410-79XLn2atqDMOK6E67s+DINqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/5/2017 11:46 AM, Alex Margolin wrote:
-> Introduction
-> --------------------------------------------------------------------------------
-> Numerous applications communicate buffers with a non-contiguous memory layout.
-> For example, HPC applications often work on a matrix, and require sending a row or a column. Sending non-contiguous data requires specifying all the buffers being transferred, along with potentially the same amount of memory keys (should the buffers be registered under different memory regions). Extended memory windows are proposed to address complex memory layouts, and allow the user to send and receive them in an efficient manner.
-> This RFC proposes an extension for memory windows for the use of non-contiguous buffers.
->
-...
-> The layout is "switched on" as a bind parameter with an additional access flag, which is somewhat of a misuse, but since struct ibv_mw_bind_info is not easily expandable in the functions using it, the alternative is an additional verb.
->
-> We do propose adding a verb for the allocation of such memory windows, which is required since the original memory window allocation function is not easily extendable, and we require an additional parameter to determine the amount of resources to allocate towards it (descriptors). In addition, this number is available for existing windows, in order to determine how to set this for a composite of two existing windows, or to keep track of resource use for it.
->
-> Finally, we add the option to obtain a local memory key for memory windows, aside from the currently available remote key. This can be specified in an SGE to send data out of a memory layout. This key will only be valid if local access is requested in the access flags.
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-How does the application detect whether the adapter supports this new
-verb? I don't see an attribute or other bit exposing it above the API.
+-Rename the ConnectX-5 PCIe 4.0 to be ConnectX-5 Ex.
+-Add the VF ID of the ConnectX-5 Ex.
+-Add the upcoming ConnectX-6 ID and its VF.
 
-Also, what applications are likely to use it? It is my understanding
-that relatively few applications use Memory Windows-style registration
-today. Roughly what performance benefit do you expect they will achieve
-from the region descriptor format overall, motivating them to change?
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-Tom.
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/86
+
+ providers/mlx5/mlx5.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index 980e4df..95225c2 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -74,7 +74,10 @@ static struct {
+ 	HCA(MELLANOX, 4118),	/* ConnectX-4LX Virtual Function */
+ 	HCA(MELLANOX, 4119),	/* ConnectX-5, PCIe 3.0 */
+ 	HCA(MELLANOX, 4120),	/* ConnectX-5 Virtual Function */
+-	HCA(MELLANOX, 4121),    /* ConnectX-5, PCIe 4.0 */
++	HCA(MELLANOX, 4121),    /* ConnectX-5 Ex */
++	HCA(MELLANOX, 4122),	/* ConnectX-5 Ex VF */
++	HCA(MELLANOX, 4123),    /* ConnectX-6 */
++	HCA(MELLANOX, 4124),	/* ConnectX-6 VF */
+ };
+ 
+ uint32_t mlx5_debug_mask = 0;
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
