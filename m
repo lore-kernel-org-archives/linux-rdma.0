@@ -1,66 +1,46 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [PATCH 1/1] rds: ib: add the static type to the variables
-Date: Tue, 28 Feb 2017 09:20:18 +0200
-Message-ID: <20170228072017.GA3678@yuval-lap.uk.oracle.com>
-References: <1488264340-20044-1-git-send-email-yanjun.zhu@oracle.com>
+From: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Subject: Re: IB on s390 broken with commit 99db94940 "IB/core: Remove
+ ib_device.dma_device"
+Date: Tue, 28 Feb 2017 09:53:47 +0100 (CET)
+Message-ID: <alpine.LFD.2.20.1702280950380.2045@schleppi.fritz.box>
+References: <alpine.LFD.2.20.1702272047120.2997@schleppi.fritz.box> <1488233058.2597.1.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1488264340-20044-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Zhu Yanjun <yanjun.zhu@oracle.com>
-Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, davem@davemloft.net
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1488233058.2597.1.camel@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "gerald.schaefer@de.ibm.com" <gerald.schaefer@de.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 28, 2017 at 01:45:40AM -0500, Zhu Yanjun wrote:
-> The variables rds_ib_mr_1m_pool_size and rds_ib_mr_8k_pool_size
-> are used only in the ib.c file. As such, the static type is
-> added to limit them in this file.
-> 
-> Cc: Joe Jin <joe.jin@oracle.com>
-> Cc: Junxiao Bi <junxiao.bi@oracle.com>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> ---
->  net/rds/ib.c    | 4 ++--
->  net/rds/ib_mr.h | 2 --
->  2 files changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/rds/ib.c b/net/rds/ib.c
-> index 8d70884..ecff01b 100644
-> --- a/net/rds/ib.c
-> +++ b/net/rds/ib.c
-> @@ -45,8 +45,8 @@
->  #include "ib.h"
->  #include "ib_mr.h"
->  
-> -unsigned int rds_ib_mr_1m_pool_size = RDS_MR_1M_POOL_SIZE;
-> -unsigned int rds_ib_mr_8k_pool_size = RDS_MR_8K_POOL_SIZE;
-> +static unsigned int rds_ib_mr_1m_pool_size = RDS_MR_1M_POOL_SIZE;
-> +static unsigned int rds_ib_mr_8k_pool_size = RDS_MR_8K_POOL_SIZE;
->  unsigned int rds_ib_retry_count = RDS_IB_DEFAULT_RETRY_COUNT;
->  
->  module_param(rds_ib_mr_1m_pool_size, int, 0444);
-> diff --git a/net/rds/ib_mr.h b/net/rds/ib_mr.h
-> index 24c086d..5d6e98a 100644
-> --- a/net/rds/ib_mr.h
-> +++ b/net/rds/ib_mr.h
-> @@ -107,8 +107,6 @@ struct rds_ib_mr_pool {
->  };
->  
->  extern struct workqueue_struct *rds_ib_mr_wq;
-> -extern unsigned int rds_ib_mr_1m_pool_size;
-> -extern unsigned int rds_ib_mr_8k_pool_size;
->  extern bool prefer_frmr;
+On Mon, 27 Feb 2017, Bart Van Assche wrote:
 
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-
->  
->  struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_dev,
-> -- 
-> 2.7.4
+> On Mon, 2017-02-27 at 21:17 +0100, Sebastian Ott wrote:
+> > commit 99db94940 "IB/core: Remove ib_device.dma_device"
+> > breaks infiniband on s390 (and I think also other archs that do something
+> > like to_pci_dev(dev) in one of their dma_ops callbacks).
+> > 
+> > With this commit you use the dma_ops of the device that called
+> > ib_register_device but you call e.g. dma_map with ib_device->dev
+> > as an argument.
+> > 
+> > S390's (pci specific) dma_map uses to_pci_dev(dev) to look into the
+> > pci device (and its arch specific data) and oopses.
+> > 
+> > Calling dma_map with ib_device->dev.parent would work but then it
+> > wouldn't make sense to copy dma_ops and mask from ib_device->dev.parent
+> > to ib_device->dev..
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> How about something like the untested patch below?
+
+It works but it doesn't feel right (why should all pci devices have this
+duplicated data).
+
+Frankly I don't get the usecase of infiniband (sometimes) using
+device->dev.dma_ops instead of parent->dma_ops. Also that these values are
+selectively copied from the parent looks weird (opposed to all or nothing).
+
+What about reintroducing dma_device (as an infiniband internal) and set it
+to &ib_device->dev if you have to and to parent in all other cases?
+
+Sebastian
