@@ -1,116 +1,41 @@
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core 00/14] Revise the DMA barrier macros in ibverbs
-Date: Tue, 28 Feb 2017 16:38:09 +0000
-Message-ID: <C6384D48-FC47-4046-8025-462E1CB02A34@mellanox.com>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>,<1488297611.86943.215.camel@redhat.com>
+From: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: net/rds: use-after-free in inet_create
+Date: Tue, 28 Feb 2017 12:33:28 -0500
+Message-ID: <20170228173328.GL31155@oracle.com>
+References: <CACT4Y+bi=rZr9yrajA0o0iUeR4N0q-sXYudBVsOeOiHbuApBeA@mail.gmail.com>
+ <20170228153737.GG31155@oracle.com>
+ <CACT4Y+aobp+g_AYoX6j1eftyyirK4pBxhOXz9hDu+XU+-jxSYw@mail.gmail.com>
+ <20170228161544.GH31155@oracle.com>
+ <CACT4Y+bWWAiMYQN_Fvxs7CKR9hRAA+r0t_YZhja3B5xGcZ4vcQ@mail.gmail.com>
+ <20170228163833.GI31155@oracle.com>
+ <CACT4Y+Y5eM8hKQ7BgA4hEN7ozkhRGgvGJRU6Smrths6noC-PMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488297611.86943.215.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+Y5eM8hKQ7BgA4hEN7ozkhRGgvGJRU6Smrths6noC-PMw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, syzkaller <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On (02/28/17 17:51), Dmitry Vyukov wrote:
+> Searching other crashes for "net/rds" I found 2 more crashes that may
+> be related. They suggest that the delayed works are not properly
+> stopped when the socket is destroyed. That would explain how
+> rds_connect_worker accesses freed net, right?
 
-> On Feb 28, 2017, at 6:00 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->=20
->> On Thu, 2017-02-16 at 12:22 -0700, Jason Gunthorpe wrote:
->> Now that the header is private to the library we can change it.
->>=20
->> We have never had a clear definition for what our wmb() or wc_wmb()
->> even do,
->> and they don't match the same macros in the kernel. This causes
->> problems for
->> non x86 arches as they have no idea what to put in their versions of
->> the macros
->> and often just put the strongest thing.
->>=20
->> This also causes problems for the driver authors who have no idea how
->> to use
->> these barriers properly, there are several instances of that :(
->>=20
->> My approach here is to introduce a selection of macros that have
->> narrow and
->> clearly defined purposes. The selection is based on things the set of
->> drivers
->> actually do, which turns out to be fairly narrowly defined.
->>=20
->> Then I went through all the drivers and adjusted them to various
->> degrees to
->> use the new macro names. In a few drivers I added more/stronger
->> barriers.
->> Overall this tries hard not to break anything by weaking existing
->> barriers.
->>=20
->> A future project for someone would be to see if the CPU ASM makes
->> sense..
->>=20
->> https://github.com/linux-rdma/rdma-core/pull/79
->>=20
->> Jason Gunthorpe (14):
->>   mlx5: Use stdatomic for the in_use barrier
->>   Provide new names for the CPU barriers related to DMA
->>   cxgb3: Update to use new udma write barriers
->>   cxgb4: Update to use new udma write barriers
->>   hns: Update to use new udma write barriers
->>   i40iw: Get rid of unique barrier macros
->>   mlx4: Update to use new udma write barriers
->>   mlx5: Update to use new udma write barriers
->>   nes: Update to use new udma write barriers
->>   mthca: Update to use new mmio write barriers
->>   ocrdma: Update to use new udma write barriers
->>   qedr: Update to use new udma write barriers
->>   vmw_pvrdma: Update to use new udma write barriers
->>   Remove the old barrier macros
->>=20
->>  providers/cxgb3/cq.c             |   2 +
->>  providers/cxgb3/cxio_wr.h        |   2 +-
->>  providers/cxgb4/qp.c             |  20 +++-
->>  providers/cxgb4/t4.h             |  48 ++++++--
->>  providers/cxgb4/verbs.c          |   2 +
->>  providers/hns/hns_roce_u_hw_v1.c |  13 +-
->>  providers/i40iw/i40iw_osdep.h    |  14 ---
->>  providers/i40iw/i40iw_uk.c       |  26 ++--
->>  providers/mlx4/cq.c              |   6 +-
->>  providers/mlx4/qp.c              |  19 +--
->>  providers/mlx4/srq.c             |   2 +-
->>  providers/mlx5/cq.c              |   8 +-
->>  providers/mlx5/mlx5.h            |   7 +-
->>  providers/mlx5/qp.c              |  18 +--
->>  providers/mlx5/srq.c             |   2 +-
->>  providers/mthca/cq.c             |  10 +-
->>  providers/mthca/doorbell.h       |   2 +-
->>  providers/mthca/qp.c             |  20 ++--
->>  providers/mthca/srq.c            |   6 +-
->>  providers/nes/nes_uverbs.c       |  16 +--
->>  providers/ocrdma/ocrdma_verbs.c  |  16 ++-
->>  providers/qedr/qelr_verbs.c      |  32 +++--
->>  providers/vmw_pvrdma/cq.c        |   6 +-
->>  providers/vmw_pvrdma/qp.c        |   8 +-
->>  util/udma_barrier.h              | 250 +++++++++++++++++++++++++++
->> ------------
->>  25 files changed, 354 insertions(+), 201 deletions(-)
->=20
-> Thanks, series merged.
-Hi Doug,
+yes, I think we may want to explicitly cancel this workq.. this
+in rds_conn_destroy().
 
-This is a very sensitive series that we haven't Acked yet.
-It might have performance and functional/correctness implications.
-Also, as you can see we still have open discussions with Jason.
+I'm trying to build/sanity-test (if lucky, reproduce the bug)
+as I send this out.. let me get back to you..
 
-We would really appreciate a heads up before merging topics that have on go=
-ing discussions and give us a chance to Ack.
+If I have a patch against net-next, would you be willing/able to 
+try it out? given that this does not show up on demand, I'm not
+sure how we can check that "the fix worked"..
 
-Thanks
->=20
-> --=20
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->   =20
-> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--Sowmini
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
