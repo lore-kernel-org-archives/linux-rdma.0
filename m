@@ -1,7 +1,7 @@
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v8 09/11] smc_diag.h: fix include from userland
-Date: Tue, 28 Feb 2017 21:47:35 +0100
-Message-ID: <1488314857-28327-10-git-send-email-nicolas.dichtel@6wind.com>
+Subject: [PATCH v8 01/11] h8300: put bitsperlong.h in uapi
+Date: Tue, 28 Feb 2017 21:47:27 +0100
+Message-ID: <1488314857-28327-2-git-send-email-nicolas.dichtel@6wind.com>
 References: <20170228024844.GA28691@altlinux.org>
  <1488314857-28327-1-git-send-email-nicolas.dichtel@6wind.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,62 +11,55 @@ To: arnd@arndb.de, mmarek@suse.com
 Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch prepares the uapi export by fixing the following error:
-
-.../linux/smc_diag.h:6:27: fatal error: rdma/ib_verbs.h: No such file or directory
- #include <rdma/ib_verbs.h>
+This header file is exported, thus move it to uapi.
 
 Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 ---
- include/rdma/ib_verbs.h           | 3 +--
- include/uapi/linux/smc_diag.h     | 2 +-
- include/uapi/rdma/ib_user_verbs.h | 2 ++
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ arch/h8300/include/asm/bitsperlong.h      | 14 --------------
+ arch/h8300/include/uapi/asm/bitsperlong.h | 14 ++++++++++++++
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+ delete mode 100644 arch/h8300/include/asm/bitsperlong.h
+ create mode 100644 arch/h8300/include/uapi/asm/bitsperlong.h
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0f1813c13687..50f276a4afdc 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -61,6 +61,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/uaccess.h>
- #include <linux/cgroup_rdma.h>
-+#include <uapi/rdma/ib_user_verbs.h>
- 
- extern struct workqueue_struct *ib_wq;
- extern struct workqueue_struct *ib_comp_wq;
-@@ -1838,8 +1839,6 @@ enum ib_mad_result {
- 	IB_MAD_RESULT_CONSUMED = 1 << 2  /* Packet consumed: stop processing */
- };
- 
--#define IB_DEVICE_NAME_MAX 64
+diff --git a/arch/h8300/include/asm/bitsperlong.h b/arch/h8300/include/asm/bitsperlong.h
+deleted file mode 100644
+index e140e46729ac..000000000000
+--- a/arch/h8300/include/asm/bitsperlong.h
++++ /dev/null
+@@ -1,14 +0,0 @@
+-#ifndef __ASM_H8300_BITS_PER_LONG
+-#define __ASM_H8300_BITS_PER_LONG
 -
- struct ib_port_cache {
- 	struct ib_pkey_cache  *pkey;
- 	struct ib_gid_table   *gid;
-diff --git a/include/uapi/linux/smc_diag.h b/include/uapi/linux/smc_diag.h
-index 0063919fea34..87712bfaa9dd 100644
---- a/include/uapi/linux/smc_diag.h
-+++ b/include/uapi/linux/smc_diag.h
-@@ -3,7 +3,7 @@
- 
- #include <linux/types.h>
- #include <linux/inet_diag.h>
--#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
- 
- /* Request structure */
- struct smc_diag_req {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 997f904c7692..8edce2b65903 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -1124,4 +1124,6 @@ struct ib_uverbs_ex_destroy_rwq_ind_table  {
- 	__u32 ind_tbl_handle;
- };
- 
-+#define IB_DEVICE_NAME_MAX 64
+-#include <asm-generic/bitsperlong.h>
+-
+-#if !defined(__ASSEMBLY__)
+-/* h8300-unknown-linux required long */
+-#define __kernel_size_t __kernel_size_t
+-typedef unsigned long	__kernel_size_t;
+-typedef long		__kernel_ssize_t;
+-typedef long		__kernel_ptrdiff_t;
+-#endif
+-
+-#endif /* __ASM_H8300_BITS_PER_LONG */
+diff --git a/arch/h8300/include/uapi/asm/bitsperlong.h b/arch/h8300/include/uapi/asm/bitsperlong.h
+new file mode 100644
+index 000000000000..e56cf72369b6
+--- /dev/null
++++ b/arch/h8300/include/uapi/asm/bitsperlong.h
+@@ -0,0 +1,14 @@
++#ifndef _UAPI_ASM_H8300_BITS_PER_LONG
++#define _UAPI_ASM_H8300_BITS_PER_LONG
 +
- #endif /* IB_USER_VERBS_H */
++#include <asm-generic/bitsperlong.h>
++
++#if !defined(__ASSEMBLY__)
++/* h8300-unknown-linux required long */
++#define __kernel_size_t __kernel_size_t
++typedef unsigned long	__kernel_size_t;
++typedef long		__kernel_ssize_t;
++typedef long		__kernel_ptrdiff_t;
++#endif
++
++#endif /* _UAPI_ASM_H8300_BITS_PER_LONG */
 -- 
 2.8.1
