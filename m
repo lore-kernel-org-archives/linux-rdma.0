@@ -1,78 +1,92 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v8 08/11] cryptouser.h: fix include from userland
-Date: Tue, 28 Feb 2017 21:47:34 +0100
-Message-ID: <1488314857-28327-9-git-send-email-nicolas.dichtel@6wind.com>
-References: <20170228024844.GA28691@altlinux.org>
- <1488314857-28327-1-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1488314857-28327-1-git-send-email-nicolas.dichtel@6wind.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: arnd@arndb.de, mmarek@suse.com
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 1/4] ibverbs: Make struct verbs_device and related private
+Date: Tue, 28 Feb 2017 14:31:34 -0700
+Message-ID: <1488317497-538-2-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1488317497-538-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1488317497-538-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch prepares the uapi export by fixing the following error:
+Nothing can be using this publicly, no sense in publishing it.
 
-.../linux/cryptouser.h:58:16: error: ‘CRYPTO_MAX_ALG_NAME’ undeclared here (not in a function)
-  char cru_name[CRYPTO_MAX_ALG_NAME];
-
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- include/linux/crypto.h          | 2 +-
- include/uapi/linux/cryptouser.h | 7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ libibverbs/driver.h | 19 +++++++++++++++++++
+ libibverbs/verbs.h  | 18 ------------------
+ 2 files changed, 19 insertions(+), 18 deletions(-)
 
-diff --git a/include/linux/crypto.h b/include/linux/crypto.h
-index c0b0cf3d2d2f..4cf29a35bb4b 100644
---- a/include/linux/crypto.h
-+++ b/include/linux/crypto.h
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/uaccess.h>
-+#include <uapi/linux/cryptouser.h>
- 
- /*
-  * Autoloaded crypto modules should only use a prefixed name to avoid allowing
-@@ -123,7 +124,6 @@
- /*
-  * Miscellaneous stuff.
-  */
--#define CRYPTO_MAX_ALG_NAME		64
- 
- /*
-  * The macro CRYPTO_MINALIGN_ATTR (along with the void * type in the actual
-diff --git a/include/uapi/linux/cryptouser.h b/include/uapi/linux/cryptouser.h
-index c6a09c5261e7..05fcf1393b4d 100644
---- a/include/uapi/linux/cryptouser.h
-+++ b/include/uapi/linux/cryptouser.h
-@@ -18,6 +18,9 @@
-  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-  */
- 
-+#ifndef _UAPI_CRYPTOUSER_H
-+#define _UAPI_CRYPTOUSER_H
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 5d29b14036635b..96f4903d19670a 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -96,6 +96,25 @@ struct verbs_qp {
+ 	uint32_t		comp_mask;
+ 	struct verbs_xrcd       *xrcd;
+ };
 +
- #include <linux/types.h>
- 
- /* Netlink configuration messages.  */
-@@ -54,6 +57,8 @@ enum crypto_attr_type_t {
- #define CRYPTOCFGA_MAX (__CRYPTOCFGA_MAX - 1)
++/* Must change the PRIVATE IBVERBS_PRIVATE_ symbol if this is changed */
++struct verbs_device {
++	struct ibv_device device; /* Must be first */
++	size_t	sz;
++	size_t	size_of_context;
++	int	(*init_context)(struct verbs_device *device,
++				struct ibv_context *ctx, int cmd_fd);
++	void	(*uninit_context)(struct verbs_device *device,
++				struct ibv_context *ctx);
++};
++
++static inline struct verbs_device *verbs_get_device(
++					const struct ibv_device *dev)
++{
++	return (dev->ops.alloc_context) ?
++		NULL : container_of(dev, struct verbs_device, device);
++}
++
+ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
+ typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 7b8377bbd7bf62..a6c541b8020685 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -1328,17 +1328,6 @@ struct ibv_device {
+ 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
  };
  
-+#define CRYPTO_MAX_ALG_NAME		64
-+
- struct crypto_user_alg {
- 	char cru_name[CRYPTO_MAX_ALG_NAME];
- 	char cru_driver_name[CRYPTO_MAX_ALG_NAME];
-@@ -121,3 +126,5 @@ struct crypto_report_acomp {
+-struct verbs_device {
+-	struct ibv_device device; /* Must be first */
+-	size_t	sz;
+-	size_t	size_of_context;
+-	int	(*init_context)(struct verbs_device *device,
+-				struct ibv_context *ctx, int cmd_fd);
+-	void	(*uninit_context)(struct verbs_device *device,
+-				struct ibv_context *ctx);
+-	/* future fields added here */
+-};
+-
+ struct ibv_context_ops {
+ 	int			(*query_device)(struct ibv_context *context,
+ 					      struct ibv_device_attr *device_attr);
+@@ -1515,13 +1504,6 @@ static inline struct verbs_context *verbs_get_ctx(struct ibv_context *ctx)
+ 	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
+ 		vctx->op = ptr; })
  
- #define CRYPTO_REPORT_MAXSIZE (sizeof(struct crypto_user_alg) + \
- 			       sizeof(struct crypto_report_blkcipher))
-+
-+#endif /* _UAPI_CRYPTOUSER_H */
+-static inline struct verbs_device *verbs_get_device(
+-					const struct ibv_device *dev)
+-{
+-	return (dev->ops.alloc_context) ?
+-		NULL : container_of(dev, struct verbs_device, device);
+-}
+-
+ /**
+  * ibv_get_device_list - Get list of IB devices currently available
+  * @num_devices: optional.  if non-NULL, set to the number of devices
 -- 
-2.8.1
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
