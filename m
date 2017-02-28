@@ -1,88 +1,63 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 1/4] ibverbs: Make struct verbs_device and related private
-Date: Tue, 28 Feb 2017 14:31:34 -0700
-Message-ID: <1488317497-538-2-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1488317497-538-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 0/4] Cleanup ibv_register_driver
+Date: Tue, 28 Feb 2017 14:31:33 -0700
+Message-ID: <1488317497-538-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488317497-538-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Nothing can be using this publicly, no sense in publishing it.
+Now that the provider API is private there is no reason to have two different
+ways to register a driver. Consolidate everything into verbs_register_driver.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- libibverbs/driver.h | 19 +++++++++++++++++++
- libibverbs/verbs.h  | 18 ------------------
- 2 files changed, 19 insertions(+), 18 deletions(-)
+This approach is simplified by not also forcing a change to the new context
+allocation protocol, which is a bit more complex.
 
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 5d29b14036635b..96f4903d19670a 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -96,6 +96,25 @@ struct verbs_qp {
- 	uint32_t		comp_mask;
- 	struct verbs_xrcd       *xrcd;
- };
-+
-+/* Must change the PRIVATE IBVERBS_PRIVATE_ symbol if this is changed */
-+struct verbs_device {
-+	struct ibv_device device; /* Must be first */
-+	size_t	sz;
-+	size_t	size_of_context;
-+	int	(*init_context)(struct verbs_device *device,
-+				struct ibv_context *ctx, int cmd_fd);
-+	void	(*uninit_context)(struct verbs_device *device,
-+				struct ibv_context *ctx);
-+};
-+
-+static inline struct verbs_device *verbs_get_device(
-+					const struct ibv_device *dev)
-+{
-+	return (dev->ops.alloc_context) ?
-+		NULL : container_of(dev, struct verbs_device, device);
-+}
-+
- typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
- 						   int abi_version);
- typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 7b8377bbd7bf62..a6c541b8020685 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -1328,17 +1328,6 @@ struct ibv_device {
- 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
- };
- 
--struct verbs_device {
--	struct ibv_device device; /* Must be first */
--	size_t	sz;
--	size_t	size_of_context;
--	int	(*init_context)(struct verbs_device *device,
--				struct ibv_context *ctx, int cmd_fd);
--	void	(*uninit_context)(struct verbs_device *device,
--				struct ibv_context *ctx);
--	/* future fields added here */
--};
--
- struct ibv_context_ops {
- 	int			(*query_device)(struct ibv_context *context,
- 					      struct ibv_device_attr *device_attr);
-@@ -1515,13 +1504,6 @@ static inline struct verbs_context *verbs_get_ctx(struct ibv_context *ctx)
- 	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
- 		vctx->op = ptr; })
- 
--static inline struct verbs_device *verbs_get_device(
--					const struct ibv_device *dev)
--{
--	return (dev->ops.alloc_context) ?
--		NULL : container_of(dev, struct verbs_device, device);
--}
--
- /**
-  * ibv_get_device_list - Get list of IB devices currently available
-  * @num_devices: optional.  if non-NULL, set to the number of devices
+The changes to providers are very simple and mechanical. A future series could
+eliminate the old context allocation protocol.
+
+https://github.com/linux-rdma/rdma-core/pull/87
+
+Jason Gunthorpe (4):
+  ibverbs: Make struct verbs_device and related private
+  providers: Make every provider allocate a verbs_device
+  providers: Move all verbs_device ops into struct verbs_device_ops
+  verbs: Remove ibv_register_driver
+
+ libibverbs/compat-1_0.c            |  4 ++--
+ libibverbs/device.c                | 12 ++++++------
+ libibverbs/driver.h                | 36 +++++++++++++++++++++++++++++++----
+ libibverbs/init.c                  | 39 +++++++++-----------------------------
+ libibverbs/verbs.h                 | 27 +++++---------------------
+ providers/cxgb3/iwch.c             | 12 ++++++------
+ providers/cxgb3/iwch.h             |  2 +-
+ providers/cxgb4/dev.c              | 10 +++++-----
+ providers/cxgb4/libcxgb4.h         |  2 +-
+ providers/hfi1verbs/hfiverbs.c     | 12 ++++++------
+ providers/hfi1verbs/hfiverbs.h     |  2 +-
+ providers/hns/hns_roce_u.c         | 12 ++++++------
+ providers/hns/hns_roce_u.h         |  2 +-
+ providers/i40iw/i40iw_umain.c      | 11 ++++++-----
+ providers/i40iw/i40iw_umain.h      |  5 +----
+ providers/ipathverbs/ipathverbs.c  | 12 ++++++------
+ providers/ipathverbs/ipathverbs.h  |  2 +-
+ providers/mlx4/mlx4.c              |  9 ++++++---
+ providers/mlx5/mlx5.c              |  9 +++++++--
+ providers/mthca/mthca.c            | 10 +++++-----
+ providers/mthca/mthca.h            |  2 +-
+ providers/nes/nes_umain.c          | 11 ++++++-----
+ providers/nes/nes_umain.h          |  5 +----
+ providers/ocrdma/ocrdma_main.c     | 14 +++++++-------
+ providers/ocrdma/ocrdma_main.h     |  4 +---
+ providers/qedr/qelr.h              |  2 +-
+ providers/qedr/qelr_main.c         | 14 ++++++--------
+ providers/qedr/qelr_main.h         |  2 --
+ providers/rxe/rxe.c                | 12 ++++++------
+ providers/rxe/rxe.h                |  2 +-
+ providers/vmw_pvrdma/pvrdma.h      |  2 +-
+ providers/vmw_pvrdma/pvrdma_main.c | 12 ++++++------
+ 32 files changed, 150 insertions(+), 162 deletions(-)
+
 -- 
 2.7.4
 
