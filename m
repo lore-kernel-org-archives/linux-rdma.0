@@ -1,66 +1,41 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: v4.11 mlx5 regression
-Date: Tue, 28 Feb 2017 20:34:58 +0000
-Message-ID: <VI1PR0502MB30087B8BB5E6733E92E96D62D1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <alpine.LFD.2.20.1702272047120.2997@schleppi.fritz.box>
- <1488233058.2597.1.camel@sandisk.com>
- <alpine.LFD.2.20.1702280950380.2045@schleppi.fritz.box>
- <1488300599.2370.5.camel@sandisk.com>
- <VI1PR0502MB30082C037BEE60367954ED0FD1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <1488312028.2370.12.camel@sandisk.com>
- <742435998.40235677.1488312819300.JavaMail.zimbra@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <742435998.40235677.1488312819300.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH v8 03/11] x86: stop exporting msr-index.h to userland
+Date: Tue, 28 Feb 2017 21:47:29 +0100
+Message-ID: <1488314857-28327-4-git-send-email-nicolas.dichtel@6wind.com>
+References: <20170228024844.GA28691@altlinux.org>
+ <1488314857-28327-1-git-send-email-nicolas.dichtel@6wind.com>
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-Reply-To: <1488314857-28327-1-git-send-email-nicolas.dichtel@6wind.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: arnd@arndb.de, mmarek@suse.com
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgQmFydCwgTGF1cmVuY2UsDQoNCkluIG1pZGRsZSBvZiBkZWJ1Z2dpbmcvdXNpbmcgc2V0dXAg
-cmlnaHQgbm93IGZvciBvdGhlciBpc3N1ZS4NCkkgYW0gYmFzaWNhbGx5IHVzaW5nIG52bWUtcmRt
-YSB0YXJnZXQgbW9kZSBjb2RlIGFuZCBzb21ld2hlcmUgaW4gcGF0aCBvZiBNUiBvciBRUCBzZXR1
-cCBpdCBmYWlscy4NCkkgYW0gc3VzcGVjdGluZyBNUiBiZWNhdXNlIFFQMSBjcmVhdGlvbiBoYXMg
-cGFzc2VkLg0KSSB3aWxsIGdldCB0byB0aGUgYm90dG9tIG9mIHRoaXMgdG8gcHJvdmlkZSB0cmFj
-ZXMgdG9tb3Jyb3cuDQoNClBhcmF2DQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
-PiBGcm9tOiBMYXVyZW5jZSBPYmVybWFuIFttYWlsdG86bG9iZXJtYW5AcmVkaGF0LmNvbV0NCj4g
-U2VudDogVHVlc2RheSwgRmVicnVhcnkgMjgsIDIwMTcgMjoxNCBQTQ0KPiBUbzogQmFydCBWYW4g
-QXNzY2hlIDxCYXJ0LlZhbkFzc2NoZUBzYW5kaXNrLmNvbT4NCj4gQ2M6IFBhcmF2IFBhbmRpdCA8
-cGFyYXZAbWVsbGFub3guY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGRsZWRm
-b3JkQHJlZGhhdC5jb20NCj4gU3ViamVjdDogUmU6IHY0LjExIG1seDUgcmVncmVzc2lvbg0KPiAN
-Cj4gDQo+IA0KPiAtLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tDQo+ID4gRnJvbTogIkJhcnQg
-VmFuIEFzc2NoZSIgPEJhcnQuVmFuQXNzY2hlQHNhbmRpc2suY29tPg0KPiA+IFRvOiBwYXJhdkBt
-ZWxsYW5veC5jb20NCj4gPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcsIGRsZWRmb3Jk
-QHJlZGhhdC5jb20NCj4gPiBTZW50OiBUdWVzZGF5LCBGZWJydWFyeSAyOCwgMjAxNyAzOjAwOjQ0
-IFBNDQo+ID4gU3ViamVjdDogUmU6IHY0LjExIG1seDUgcmVncmVzc2lvbg0KPiA+DQo+ID4gT24g
-VHVlLCAyMDE3LTAyLTI4IGF0IDE5OjUzICswMDAwLCBQYXJhdiBQYW5kaXQgd3JvdGU6DQo+ID4g
-PiBJIGFtIHVzaW5nIExpbnV4LWJsb2NrIHRyZWUgdGVzdGluZyBvbiB4ODZfNjQuDQo+ID4gPiBn
-aXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvYXhib2UvbGludXgt
-YmxvY2suZ2l0DQo+ID4gPg0KPiA+ID4gQ29tbWl0IGFjMTgyMGZiMjg2YjU1MmI2ODg1ZDQwYWIz
-NGYxZTU5YjgxNWYxZjEgaW50cm9kdWNlZA0KPiBkbWFfb3BzDQo+ID4gPiByZWxhdGVkIGNoYW5n
-ZSB0aGF0IHlvdSBtYWRlLg0KPiA+ID4gV2l0aCB0aGlzIGNoYW5nZSBJIGFtIGhpdHRpbmcgYmVs
-b3cgZXJyb3IgaW4gbWx4NV9pYiBkcml2ZXIuDQo+ID4gPiAiRE1BUjogQWxsb2NhdGluZyBkb21h
-aW4gZm9yIG1seDVfMCBmYWlsZWQiDQo+ID4gPg0KPiA+ID4gSSByZXZlcnQgYmFjayB0byBjb21t
-aXQgZWRjY2I1OTQyOTY1N2IwOTgwNjE0NjMzOWUyYjI3NTk0YzFkMWRhMC4NCj4gPiA+IFdpdGgg
-cmV2ZXJ0IEkgZG8gbm90IGhpdCB0aGUgZXJyb3IuDQo+ID4gPg0KPiA+ID4gSSBkbyBub3QgaGF2
-ZSBjeWNsZXMgdG8gZGVidWcvZml4IHRoaXMgY3VycmVudGx5LiBEbyB5b3UgdGhpbmsgdGhpcw0K
-PiA+ID4gbWlnaHQgYmUgcmVsYXRlZCB0byB5b3VyIGNoYW5nZT8NCj4gPg0KPiA+IEhlbGxvIFBh
-cmF2LA0KPiA+DQo+ID4gU2luY2UgSSBkbyBub3QgaGF2ZSBhY2Nlc3MgdG8gYW4gbWx4NSBzZXR1
-cCBJIGhvcGUgdGhhdCB5b3UgcmVhbGl6ZQ0KPiA+IHRoYXQgd2l0aG91dCBhIGJpc2VjdCB5b3Vy
-IHJlcG9ydCBpcyB1c2VsZXNzIHRvIG1lLg0KPiA+DQo+ID4gQmFydC4tLQ0KPiA+IFRvIHVuc3Vi
-c2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1y
-ZG1hIg0KPiA+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJu
-ZWwub3JnIE1vcmUNCj4gbWFqb3Jkb21vDQo+ID4gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVs
-Lm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+ID4NCj4gDQo+IEhlbGxvIFBhcmF2LA0KPiANCj4g
-SSBoYWQgdGVzdGVkIGFsbCBvZiBCYXJ0cyByZWNlbnQgY29tbWl0cyB3aXRoIG1seDUuDQo+IFJl
-YWQvd3JpdGUgZGlyZWN0L2J1ZmZlcmVkIHNtYWxsIGFuZCBsYXJnZSBJL08uDQo+IFRoZXkgYWxs
-IHBhc3NlZCBmb3IgbWUuDQo+IA0KPiBJZiB5b3UgZ2l2ZSBtZSBhIGxpdHRsZSBtb3JlIGRldGFp
-bCBvbiB5b3VyIHRlc3QgSSB3aWxsIHNlZSB3aGF0IEkgZmluZCBpbiBteSB0ZXN0DQo+IGJlZCBo
-ZXJlLg0KPiANCj4gUmVnYXJkcw0KPiBMYXVyZW5jZQ0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Even if this file was not in an uapi directory, it was exported because
+it was listed in the Kbuild file.
+
+Fixes: b72e7464e4cf ("x86/uapi: Do not export <asm/msr-index.h> as part of the user API headers")
+Suggested-by: Borislav Petkov <bp@alien8.de>
+CC: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/include/uapi/asm/Kbuild | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/x86/include/uapi/asm/Kbuild b/arch/x86/include/uapi/asm/Kbuild
+index 3dec769cadf7..1c532b3f18ea 100644
+--- a/arch/x86/include/uapi/asm/Kbuild
++++ b/arch/x86/include/uapi/asm/Kbuild
+@@ -27,7 +27,6 @@ header-y += ldt.h
+ header-y += mce.h
+ header-y += mman.h
+ header-y += msgbuf.h
+-header-y += msr-index.h
+ header-y += msr.h
+ header-y += mtrr.h
+ header-y += param.h
+-- 
+2.8.1
+
