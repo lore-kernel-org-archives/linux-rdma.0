@@ -1,100 +1,67 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: v4.11 mlx5 regression
-Date: Tue, 28 Feb 2017 15:44:26 -0500 (EST)
-Message-ID: <2010225383.40243457.1488314666020.JavaMail.zimbra@redhat.com>
-References: <alpine.LFD.2.20.1702272047120.2997@schleppi.fritz.box> <1488233058.2597.1.camel@sandisk.com> <alpine.LFD.2.20.1702280950380.2045@schleppi.fritz.box> <1488300599.2370.5.camel@sandisk.com> <VI1PR0502MB30082C037BEE60367954ED0FD1560@VI1PR0502MB3008.eurprd05.prod.outlook.com> <1488312028.2370.12.camel@sandisk.com> <742435998.40235677.1488312819300.JavaMail.zimbra@redhat.com> <VI1PR0502MB30087B8BB5E6733E92E96D62D1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: net/rds: use-after-free in inet_create
+Date: Tue, 28 Feb 2017 17:24:10 -0500
+Message-ID: <20170228222410.GA32635@oracle.com>
+References: <CACT4Y+bi=rZr9yrajA0o0iUeR4N0q-sXYudBVsOeOiHbuApBeA@mail.gmail.com>
+ <20170228153737.GG31155@oracle.com>
+ <CACT4Y+aobp+g_AYoX6j1eftyyirK4pBxhOXz9hDu+XU+-jxSYw@mail.gmail.com>
+ <20170228161544.GH31155@oracle.com>
+ <CACT4Y+bWWAiMYQN_Fvxs7CKR9hRAA+r0t_YZhja3B5xGcZ4vcQ@mail.gmail.com>
+ <20170228163833.GI31155@oracle.com>
+ <CACT4Y+Y5eM8hKQ7BgA4hEN7ozkhRGgvGJRU6Smrths6noC-PMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB30087B8BB5E6733E92E96D62D1560-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+Y5eM8hKQ7BgA4hEN7ozkhRGgvGJRU6Smrths6noC-PMw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, syzkaller <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+Actually, I'm not sure if I can assert that these are all manifestations
+of the same bug- was a netns-delete involved in this one as well?
 
------ Original Message -----
-> From: "Parav Pandit" <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Sent: Tuesday, February 28, 2017 3:34:58 PM
-> Subject: RE: v4.11 mlx5 regression
-> 
-> Hi Bart, Laurence,
-> 
-> In middle of debugging/using setup right now for other issue.
-> I am basically using nvme-rdma target mode code and somewhere in path of MR
-> or QP setup it fails.
-> I am suspecting MR because QP1 creation has passed.
-> I will get to the bottom of this to provide traces tomorrow.
-> 
-> Parav
-> 
-> 
-> > -----Original Message-----
-> > From: Laurence Oberman [mailto:loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> > Sent: Tuesday, February 28, 2017 2:14 PM
-> > To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> > Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> > Subject: Re: v4.11 mlx5 regression
-> > 
-> > 
-> > 
-> > ----- Original Message -----
-> > > From: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> > > To: parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> > > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> > > Sent: Tuesday, February 28, 2017 3:00:44 PM
-> > > Subject: Re: v4.11 mlx5 regression
-> > >
-> > > On Tue, 2017-02-28 at 19:53 +0000, Parav Pandit wrote:
-> > > > I am using Linux-block tree testing on x86_64.
-> > > > git://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git
-> > > >
-> > > > Commit ac1820fb286b552b6885d40ab34f1e59b815f1f1 introduced
-> > dma_ops
-> > > > related change that you made.
-> > > > With this change I am hitting below error in mlx5_ib driver.
-> > > > "DMAR: Allocating domain for mlx5_0 failed"
-> > > >
-> > > > I revert back to commit edccb59429657b09806146339e2b27594c1d1da0.
-> > > > With revert I do not hit the error.
-> > > >
-> > > > I do not have cycles to debug/fix this currently. Do you think this
-> > > > might be related to your change?
-> > >
-> > > Hello Parav,
-> > >
-> > > Since I do not have access to an mlx5 setup I hope that you realize
-> > > that without a bisect your report is useless to me.
-> > >
-> > > Bart.--
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
-> > majordomo
-> > > info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> > 
-> > Hello Parav,
-> > 
-> > I had tested all of Barts recent commits with mlx5.
-> > Read/write direct/buffered small and large I/O.
-> > They all passed for me.
-> > 
-> > If you give me a little more detail on your test I will see what I find in
-> > my test
-> > bed here.
-> > 
-> > Regards
-> > Laurence
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{��ٚ�{ay�ʇڙ�,j��f���h���z��w������j:+v���w�j�m��������zZ+��ݢj"��
+I see:
 
-OK, just FYI, all my testing was IB/SRP using EDR-100 mlx5 RDMA, I dont have NVME targets.
-Thanks
-Laurence
+> BUG: KASAN: use-after-free in memcmp+0xe3/0x160 lib/string.c:768 at
+    :
+>  memcmp+0xe3/0x160 lib/string.c:768
+    :
+>  rds_find_bound+0x4fe/0x8a0 net/rds/bind.c:63
+>  rds_recv_incoming+0x5f3/0x12c0 net/rds/recv.c:349
+>  rds_loop_xmit+0x1c5/0x490 net/rds/loop.c:82
+    :
+This appears to be for a looped back packet, and looks like there
+are problems with  some rds_sock that got removed from the bind_hash_table..
+
+According to the report, socket was created at
+> Allocated:
+> PID = 5235
+    :
+>  sk_prot_alloc+0x65/0x2a0 net/core/sock.c:1334
+>  sk_alloc+0x105/0x1010 net/core/sock.c:1396
+>  rds_create+0x11c/0x600 net/rds/af_rds.c:504
+
+and closed at some point:
+> Freed:
+> PID = 5235
+     :
+>  rds_release+0x3a1/0x4d0 net/rds/af_rds.c:89
+>  sock_release+0x8d/0x1e0 net/socket.c:599
+
+This is all uspace created rds sockets, and while there may be an
+unrelated bug here, I'm not sure I see  the netns/kernel-socket
+connection.. can you please clarify if this was also seen in some netns
+context?
+
+--Sowmini
+
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
