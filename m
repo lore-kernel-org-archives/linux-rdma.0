@@ -1,114 +1,43 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 00/14] Revise the DMA barrier macros in ibverbs
-Date: Tue, 28 Feb 2017 11:00:11 -0500
-Message-ID: <1488297611.86943.215.camel@redhat.com>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Subject: Re: net/rds: use-after-free in inet_create
+Date: Tue, 28 Feb 2017 11:15:44 -0500
+Message-ID: <20170228161544.GH31155@oracle.com>
+References: <CACT4Y+bi=rZr9yrajA0o0iUeR4N0q-sXYudBVsOeOiHbuApBeA@mail.gmail.com>
+ <20170228153737.GG31155@oracle.com>
+ <CACT4Y+aobp+g_AYoX6j1eftyyirK4pBxhOXz9hDu+XU+-jxSYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-TBJyFwoJ8YD658R3gefO"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487272989-8215-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+aobp+g_AYoX6j1eftyyirK4pBxhOXz9hDu+XU+-jxSYw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Vyukov <dvyukov@google.com>
+Cc: santosh.shilimkar@oracle.com, David Miller <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, LKML <linux-kernel@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, syzkaller <syzkaller@googlegroups.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On (02/28/17 16:49), Dmitry Vyukov wrote:
+> 
+> Grepping "socket" there, it was doing lots of things with sockets. Are
+> we looking for some particular socket type? If there are few programs
+> that create sockets of that type, then we can narrow down the set:
 
---=-TBJyFwoJ8YD658R3gefO
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Yes, we are looking for PF_RDS/AF_RDS - this should be 
+#define AF_RDS          21      /* RDS sockets                  */
 
-T24gVGh1LCAyMDE3LTAyLTE2IGF0IDEyOjIyIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-Cj4gTm93IHRoYXQgdGhlIGhlYWRlciBpcyBwcml2YXRlIHRvIHRoZSBsaWJyYXJ5IHdlIGNhbiBj
-aGFuZ2UgaXQuCj4gCj4gV2UgaGF2ZSBuZXZlciBoYWQgYSBjbGVhciBkZWZpbml0aW9uIGZvciB3
-aGF0IG91ciB3bWIoKSBvciB3Y193bWIoKQo+IGV2ZW4gZG8sCj4gYW5kIHRoZXkgZG9uJ3QgbWF0
-Y2ggdGhlIHNhbWUgbWFjcm9zIGluIHRoZSBrZXJuZWwuIFRoaXMgY2F1c2VzCj4gcHJvYmxlbXMg
-Zm9yCj4gbm9uIHg4NiBhcmNoZXMgYXMgdGhleSBoYXZlIG5vIGlkZWEgd2hhdCB0byBwdXQgaW4g
-dGhlaXIgdmVyc2lvbnMgb2YKPiB0aGUgbWFjcm9zCj4gYW5kIG9mdGVuIGp1c3QgcHV0IHRoZSBz
-dHJvbmdlc3QgdGhpbmcuCj4gCj4gVGhpcyBhbHNvIGNhdXNlcyBwcm9ibGVtcyBmb3IgdGhlIGRy
-aXZlciBhdXRob3JzIHdobyBoYXZlIG5vIGlkZWEgaG93Cj4gdG8gdXNlCj4gdGhlc2UgYmFycmll
-cnMgcHJvcGVybHksIHRoZXJlIGFyZSBzZXZlcmFsIGluc3RhbmNlcyBvZiB0aGF0IDooCj4gCj4g
-TXkgYXBwcm9hY2ggaGVyZSBpcyB0byBpbnRyb2R1Y2UgYSBzZWxlY3Rpb24gb2YgbWFjcm9zIHRo
-YXQgaGF2ZQo+IG5hcnJvdyBhbmQKPiBjbGVhcmx5IGRlZmluZWQgcHVycG9zZXMuIFRoZSBzZWxl
-Y3Rpb24gaXMgYmFzZWQgb24gdGhpbmdzIHRoZSBzZXQgb2YKPiBkcml2ZXJzCj4gYWN0dWFsbHkg
-ZG8sIHdoaWNoIHR1cm5zIG91dCB0byBiZSBmYWlybHkgbmFycm93bHkgZGVmaW5lZC4KPiAKPiBU
-aGVuIEkgd2VudCB0aHJvdWdoIGFsbCB0aGUgZHJpdmVycyBhbmQgYWRqdXN0ZWQgdGhlbSB0byB2
-YXJpb3VzCj4gZGVncmVlcyB0bwo+IHVzZSB0aGUgbmV3IG1hY3JvIG5hbWVzLiBJbiBhIGZldyBk
-cml2ZXJzIEkgYWRkZWQgbW9yZS9zdHJvbmdlcgo+IGJhcnJpZXJzLgo+IE92ZXJhbGwgdGhpcyB0
-cmllcyBoYXJkIG5vdCB0byBicmVhayBhbnl0aGluZyBieSB3ZWFraW5nIGV4aXN0aW5nCj4gYmFy
-cmllcnMuCj4gCj4gQSBmdXR1cmUgcHJvamVjdCBmb3Igc29tZW9uZSB3b3VsZCBiZSB0byBzZWUg
-aWYgdGhlIENQVSBBU00gbWFrZXMKPiBzZW5zZS4uCj4gCj4gaHR0cHM6Ly9naXRodWIuY29tL2xp
-bnV4LXJkbWEvcmRtYS1jb3JlL3B1bGwvNzkKPiAKPiBKYXNvbiBHdW50aG9ycGUgKDE0KToKPiDC
-oCBtbHg1OiBVc2Ugc3RkYXRvbWljIGZvciB0aGUgaW5fdXNlIGJhcnJpZXIKPiDCoCBQcm92aWRl
-IG5ldyBuYW1lcyBmb3IgdGhlIENQVSBiYXJyaWVycyByZWxhdGVkIHRvIERNQQo+IMKgIGN4Z2Iz
-OiBVcGRhdGUgdG8gdXNlIG5ldyB1ZG1hIHdyaXRlIGJhcnJpZXJzCj4gwqAgY3hnYjQ6IFVwZGF0
-ZSB0byB1c2UgbmV3IHVkbWEgd3JpdGUgYmFycmllcnMKPiDCoCBobnM6IFVwZGF0ZSB0byB1c2Ug
-bmV3IHVkbWEgd3JpdGUgYmFycmllcnMKPiDCoCBpNDBpdzogR2V0IHJpZCBvZiB1bmlxdWUgYmFy
-cmllciBtYWNyb3MKPiDCoCBtbHg0OiBVcGRhdGUgdG8gdXNlIG5ldyB1ZG1hIHdyaXRlIGJhcnJp
-ZXJzCj4gwqAgbWx4NTogVXBkYXRlIHRvIHVzZSBuZXcgdWRtYSB3cml0ZSBiYXJyaWVycwo+IMKg
-IG5lczogVXBkYXRlIHRvIHVzZSBuZXcgdWRtYSB3cml0ZSBiYXJyaWVycwo+IMKgIG10aGNhOiBV
-cGRhdGUgdG8gdXNlIG5ldyBtbWlvIHdyaXRlIGJhcnJpZXJzCj4gwqAgb2NyZG1hOiBVcGRhdGUg
-dG8gdXNlIG5ldyB1ZG1hIHdyaXRlIGJhcnJpZXJzCj4gwqAgcWVkcjogVXBkYXRlIHRvIHVzZSBu
-ZXcgdWRtYSB3cml0ZSBiYXJyaWVycwo+IMKgIHZtd19wdnJkbWE6IFVwZGF0ZSB0byB1c2UgbmV3
-IHVkbWEgd3JpdGUgYmFycmllcnMKPiDCoCBSZW1vdmUgdGhlIG9sZCBiYXJyaWVyIG1hY3Jvcwo+
-IAo+IMKgcHJvdmlkZXJzL2N4Z2IzL2NxLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKg
-wqAyICsKPiDCoHByb3ZpZGVycy9jeGdiMy9jeGlvX3dyLmjCoMKgwqDCoMKgwqDCoMKgfMKgwqDC
-oDIgKy0KPiDCoHByb3ZpZGVycy9jeGdiNC9xcC5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8
-wqDCoDIwICsrKy0KPiDCoHByb3ZpZGVycy9jeGdiNC90NC5owqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqB8wqDCoDQ4ICsrKysrKy0tCj4gwqBwcm92aWRlcnMvY3hnYjQvdmVyYnMuY8KgwqDCoMKg
-wqDCoMKgwqDCoMKgfMKgwqDCoDIgKwo+IMKgcHJvdmlkZXJzL2hucy9obnNfcm9jZV91X2h3X3Yx
-LmMgfMKgwqAxMyArLQo+IMKgcHJvdmlkZXJzL2k0MGl3L2k0MGl3X29zZGVwLmjCoMKgwqDCoHzC
-oMKgMTQgLS0tCj4gwqBwcm92aWRlcnMvaTQwaXcvaTQwaXdfdWsuY8KgwqDCoMKgwqDCoMKgfMKg
-wqAyNiArKy0tCj4gwqBwcm92aWRlcnMvbWx4NC9jcS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoHzCoMKgwqA2ICstCj4gwqBwcm92aWRlcnMvbWx4NC9xcC5jwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoHzCoMKgMTkgKy0tCj4gwqBwcm92aWRlcnMvbWx4NC9zcnEuY8KgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgfMKgwqDCoDIgKy0KPiDCoHByb3ZpZGVycy9tbHg1L2NxLmPCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDggKy0KPiDCoHByb3ZpZGVycy9tbHg1L21seDUu
-aMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA3ICstCj4gwqBwcm92aWRlcnMvbWx4NS9x
-cC5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgMTggKy0tCj4gwqBwcm92aWRlcnMv
-bWx4NS9zcnEuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDIgKy0KPiDCoHByb3Zp
-ZGVycy9tdGhjYS9jcS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDEwICstCj4gwqBw
-cm92aWRlcnMvbXRoY2EvZG9vcmJlbGwuaMKgwqDCoMKgwqDCoMKgfMKgwqDCoDIgKy0KPiDCoHBy
-b3ZpZGVycy9tdGhjYS9xcC5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDIwICsrLS0K
-PiDCoHByb3ZpZGVycy9tdGhjYS9zcnEuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA2
-ICstCj4gwqBwcm92aWRlcnMvbmVzL25lc191dmVyYnMuY8KgwqDCoMKgwqDCoMKgfMKgwqAxNiAr
-LS0KPiDCoHByb3ZpZGVycy9vY3JkbWEvb2NyZG1hX3ZlcmJzLmPCoMKgfMKgwqAxNiArKy0KPiDC
-oHByb3ZpZGVycy9xZWRyL3FlbHJfdmVyYnMuY8KgwqDCoMKgwqDCoHzCoMKgMzIgKysrLS0KPiDC
-oHByb3ZpZGVycy92bXdfcHZyZG1hL2NxLmPCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDYgKy0KPiDC
-oHByb3ZpZGVycy92bXdfcHZyZG1hL3FwLmPCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDggKy0KPiDC
-oHV0aWwvdWRtYV9iYXJyaWVyLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfCAyNTAgKysr
-KysrKysrKysrKysrKysrKysrKysrKysrCj4gLS0tLS0tLS0tLS0tCj4gwqAyNSBmaWxlcyBjaGFu
-Z2VkLCAzNTQgaW5zZXJ0aW9ucygrKSwgMjAxIGRlbGV0aW9ucygtKQoKVGhhbmtzLCBzZXJpZXMg
-bWVyZ2VkLgoKLS0gCkRvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4KwqAgwqAgR1BH
-IEtleUlEOiBCODI2QTMzMzBFNTcyRkRECsKgIMKgCktleSBmaW5nZXJwcmludCA9IEFFNkIgMUJE
-QSAxMjJCIDIzQjQgMjY1QiDCoDEyNzQgQjgyNiBBMzMzIDBFNTcgMkZERAo=
+I see PF_KCM there (value 41) but no instances of 0x15.. how did 
+the rds_connect_worker thread get kicked off at all?
 
+the way this is supposed to work is
+1. someone modprobes rds-tcp
+2. app tries to do rds_sendmsg to some ip address in a netns - this triggers the
+   creation of an rds_connection, and subsequent kernel socket TCP connection
+   threads (i.e., rds_connect_worker) for that netns
+3. if you unload rds-tcp, the module_unload should do all the cleanup
+   needed via rds_tcp_conn_paths_destroy. This is done  
+Its not clear to me that the test is doing any of this... 
 
---=-TBJyFwoJ8YD658R3gefO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+is this reproducible? let me check if there is some race window where
+we can restart a connection attempt when rds_tcp_kill_sock assumes
+that the connect worker has been quiesced..
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJYtZ6LAAoJELgmozMOVy/dl08QAMJ+l6MtlBFCxTQ/EEIrzMBz
-RjMDgmbwu3SIUCcHgW2M2ZvTuxmldbBGCyfausznySBL8Vw2B2PcB2FLbgJZg5UT
-eIFio9DqNIjsL+D8KE/c8/BTa3PDkrMCFmEdv7fBLwI7iyLgx2pspzTj7Lq0WmI7
-IRQXcJUmMMLn7sxBk2ldDWzCCFCUnEbvw5Gc5c0EtpHECiBKVHQtfQt+ytYMiQax
-5JrAlO3EYCl/P/YGf4/siFzAu5XViDFJX0danM/Iuu190Y2di0pDKA1yvxQK6OO/
-SBp5/5nyG6Vq/wT6WstTlcnPOgoBm6s19IFcoMDWPlsaCbI0diDMQV4/xwaeFbd6
-eIFG1jLZ5r08eFrUOhwJhXffU8cOmO5OXYl6+854vpgKI8me0as4Ph/oFieBtJrH
-IadRPe7RQqIscYTa9C+urgXiKc331tu3VUBa9Cf2RAYB6FvUHtarx/wWHp/6dFth
-BL5Hc9RFHhCqGGw1Z++B9IXDpLNoY+qMq01B3CmLFOTHqAlOFszaeXHAUhjvOFdp
-44SQHUcGnVwoTsty274r2AiCWXK21RaLLyy8srp4ondnkAnLufYqc2n4tf698dxj
-SojTZaUiOI+IOZ2gtx6inXA5o4m9GHpG2rgecGMVEYRETKNGIGf8SimVT7+67RUR
-xWQmOBMgG+/gsxfU7K1j
-=8x4I
------END PGP SIGNATURE-----
-
---=-TBJyFwoJ8YD658R3gefO--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Sowmini
