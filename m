@@ -1,62 +1,71 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 08/14] mlx5: Update to use new udma write
- barriers
-Date: Tue, 28 Feb 2017 18:02:51 +0200
-Message-ID: <2969cce4-8b51-8fcf-f099-2b42a6d40a9c@dev.mellanox.co.il>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
- <d5921636-1911-5588-8c59-620066bca01a@dev.mellanox.co.il>
- <20170227180009.GL5891@obsidianresearch.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RFC] libibverbs IB device hotplug support
+Date: Tue, 28 Feb 2017 16:32:26 +0000
+Message-ID: <HE1PR0501MB28123E8F342607E2C2CA4DD9B1560@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
+ <1488296882.86943.214.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170227180009.GL5891-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1488296882.86943.214.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/27/2017 8:00 PM, Jason Gunthorpe wrote:
-> On Mon, Feb 27, 2017 at 12:56:33PM +0200, Yishai Hadas wrote:
->> On 2/16/2017 9:23 PM, Jason Gunthorpe wrote:
->>> The mlx5 comments are good so these translate fairly directly.
->>>
->>> There is one barrier in mlx5_arm_cq that I could not explain, it became
->>> mmio_ordered_writes_hack()
->>>
->>> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->>
->>> #ifdef MLX5_DEBUG
->>> 	{
->>> @@ -1283,14 +1283,14 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
->>> 	 * Make sure that the doorbell record in host memory is
->>> 	 * written before ringing the doorbell via PCI MMIO.
->>> 	 */
->>> -	wmb();
->>> +	udma_to_device_barrier();
->>>
->>> 	doorbell[0] = htonl(sn << 28 | cmd | ci);
->>> 	doorbell[1] = htonl(cq->cqn);
->>>
->>> 	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
->>>
->>> -	wc_wmb();
->>> +	mmio_ordered_writes_hack();
->>
->> We expect to use here the "mmio_flush_writes()" new macro, instead of the
->> above "hack" one. This barrier enforces the data to be flushed immediately
->> to the device so that the CQ will be armed with no delay.
->
-> Hmm.....
->
-> Is it even possible to 'speed up' writes to UC memory? (uar is
-> UC, right?)
->
-
-No, the UAR is mapped write combing, that's why we need here the 
-mmio_flush_writes() to make sure that the device will see the data with 
-no delay.
+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
+bWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERvdWcgTGVkZm9yZA0K
+DQo+ID4gbm90IHBhcnQgb2YgdGhpcyBSRkMuIFVzZXIgc3BhY2UgYXBwbGljYXRpb25zIHNob3Vs
+ZCBtb25pdG9yDQo+ID4gcmVzcGVjdGZ1bCBjaGFuZ2VzDQo+ID4NCj4gPiBpbiB0aGUgc3lzdGVt
+IGFjY29yZGluZyB0byBpdHMgc3BlY2lmaWMgbG9naWMgdG8gZGV0ZWN0IHBsdWdvdXQgb3INCj4g
+PiBwbHVnaW4gb2YNCj4gPg0KPiA+IGhhcmR3YXJlIGRldmljZXMuIFRoaXMgY2FuIGJlIGRvZXMg
+YnkgbWVhbnMgb2Y6IG5ldGxpbmssIHVkZXYgb3Igb3RoZXINCj4gPiBpbnB1dHMuDQo+IA0KPiBP
+biB0aGlzIHBvaW50IEkgZGlzYWdyZWUuIMKgSSBzZWUgbm8gcmVhc29uIHRoYXQgd2Ugc2hvdWxk
+IGltcGxlbWVudCBob3RwbHVnDQo+IGRldGVjdGlvbiBpbiBldmVyeSBhcHBsaWNhdGlvbiB3aGVu
+IHRoZSBsaWJyYXJ5IGNhbiBnZXQgaXQgcmlnaHQganVzdCBvbmNlIGFuZA0KPiBtYWtlIGl0IGF2
+YWlsYWJsZSB0byBldmVyeW9uZS4NCj4gDQoNClRoaXMgaXMgZGVmaW5pdGVseSBzb21ldGhpbmcg
+d2Ugc2hvdWxkIGNvbnNpZGVyIGRvaW5nLCBidXQgb3J0aG9nb25hbCB0bw0Kb2J0YWluaW5nIGFu
+IHVwLXRvLWRhdGUgZGV2aWNlIGxpc3QuDQoNCj4gPiBIZXJlIEkgc3VnZ2VzdCB0byBtb2RpZnkg
+dGhlIGltcGxlbWVudGF0aW9uIG9mIGlidl9nZXRfZGV2aWNlX2xpc3QoKQ0KPiA+IHNvIHRoYXQN
+Cj4gPg0KPiA+IGNvbnNlY3V0aXZlIGNhbGxzIHdpbGwgcmUtc2NhbiB0aGUgc3lzZnMgaW4gdGhl
+IHNhbWUgbWFubmVyIGFzIGRvbmUNCj4gPiB0b2RheSBpbg0KPiA+DQo+ID4gb3JkZXIgdG8gY3Jl
+YXRlIGEgZnJlc2ggaWJ2X2RldmljZSBsaXN0IGVhY2ggdGltZS4gV2Ugd2lsbCByZW1vdmUNCj4g
+PiBjYWNoaW5nIG9mDQo+ID4NCj4gPiBkZXZpY2VzIHRoYXQgc3VwcG9ydCBwbHVnb3V0LCB3aGls
+ZSBrZWVwaW5nIHRoZSBpYnZfZGV2aWNlIGNhY2hlIGZvcg0KPiA+IGRldmljZXMNCj4gPg0KPiA+
+IHdoaWNoIGRvIG5vdCBzdXBwb3J0IHBsdWdvdXQuDQo+IA0KPiBJIHdvdWxkIGFyZ3VlIHRoYXQg
+YSBiZXR0ZXIgc29sdXRpb24gaXMgdG8sIG9uIGZpcnN0IGNhbGwgaW50bw0KPiBpYnZfZ2V0X2Rl
+dmljZV9saXN0KCkgKHdoaWNoIGRvdWJsZXMgYXMgdGhlIGxpYnJhcnkncyBpbml0KCkgZW50cnkp
+LCB3ZSBzY2FuIHRoZQ0KPiBzeXN0ZW0gZm9yIHdoYXRldmVyIGRldmljZXMgdGhlcmUgYXJlLCBi
+dWlsZCBhIHBlcm1hbmVudCBsaXN0IG9mIHRoZXNlIGRldmljZXMsDQo+IHRoZW4gcmVnaXN0ZXIg
+dGhlIG5lY2Vzc2FyeSBob29rcyBvdXJzZWx2ZXMgdG8gZ2V0IHVwZGF0ZXMgb24gYm90aCBwbHVn
+IG91dCBhbmQNCj4gcGx1ZyBpbiwgYW5kIG9uIHRob3NlIGV2ZW50cyB3ZSB1cGRhdGUgdGhlIGxp
+c3QgYXMgYXBwcm9wcmlhdGUgKG9uIHBsdWcgb3V0LA0KPiBub3RpZnkgdGhlIGFwcGxpY2F0aW9u
+IHZpYSBhc3luYyBldmVudCwgYWZ0ZXIgdGhlIGFwcGxpY2F0aW9uIGhhcyBwcm9jZXNzZWQgdGhl
+DQo+IGV2ZW50LCBpZiB0aGUgZGV2aWNlIGlzIHVudXNlZCwgcmVtb3ZlIHRoZSBkZXZpY2UgZW50
+aXJlbHksIGlmIHRoZSBkZXZpY2UgaXMgc3RpbGwgaW4NCj4gdXNlLCB0aGVuIG1vdmUgaXQgdG8g
+YSBkZWZ1bmN0IGxpc3QgYW5kIHdhaXQgZm9yIHRoZSBhcHBsaWNhdGlvbiB0byBiZSBhYmxlIHRv
+DQo+IHJlbGVhc2UgYWxsIG9mIGl0cyByZWZlcmVuY2VzIHRvIGl0LCBhbmQgb25seSB0aGVuIHJl
+bW92ZSBpdDsgb24gcGx1ZyBpbiwgYWRkIGEgbmV3DQo+IGRldmljZSB0byB0aGUgZGV2aWNlIGxp
+c3QgYW5kIG5vdGlmeSB0aGUgYXBwbGljYXRpb24gdmlhIGFzeW5jIGV2ZW50IGF0IHdoaWNoIHBv
+aW50DQo+IHRoZSBhcHBsaWNhdGlvbiBjYW4gZGVjaWRlIGlmIGl0IHdhbnRzIHRvIHVzZSB0aGUg
+ZGV2aWNlKS4gwqBUaGlzIG1pZ2h0IGFjdHVhbGx5DQo+IGludm9sdmUgYSBuZXcgYXN5bmMgbm90
+aWZpZXIgYWRkZWQgdG8gdGhlIGxpYmlidmVyYnMgQVBJIHRoYXQgaXMgbm90IHRpZWQgdG8gYQ0K
+PiBkZXZpY2UgYW5kIHdoaWNoIGFuIGFwcGxpY2F0aW9uIHdvdWxkIG5lZWQgdG8gYmUgbW9kaWZp
+ZWQgdG8gcmVnaXN0ZXIgd2l0aCB0aGUNCj4gbGlicmFyeS4NCj4gwqBCdXQgc2luY2UgYW55IGFw
+cGxpY2FpdG9uIHdhbnRpbmcgdG8gc3VwcG9ydCB0aGlzIGlzIGdvaW5nIHRvIG5lZWQgdG8gYmUg
+bW9kaWZpZWQNCj4gYW55d2F5LCBhIG5ldyBlbnRyeSBwb2ludCBpc24ndCB0aGUgZW5kIG9mIHRo
+ZSB3b3JsZC4NCj4gDQoNCkkgZG9uJ3QgdGhpbmsgdGhhdCB3ZSBzaG91bGQgaW50cm9kdWNlIGFu
+IGFzeWNoIGNvbnRleHQgaW50byBsaWJpYnZlcmJzLg0KQWxzbywgbm90IGFsbCBhcHBzIHdvdWxk
+IGxpa2UgdG8gcHJvY2VzcyBzdWNoIGFzeW5jaCBldmVudHMgLSBzb21lIG1lcmVseSB3YW50IHRv
+DQp1c2UgdGhlIFJETUEgc3Vic3lzdGVtIGF0IHNvbWUgdGltZSBhbmQgZ2V0IGFuIHVwLXRvLWRh
+dGUgZGV2aWNlIGxpc3QuDQoNCkluIHRoZSBmdXR1cmUsIEkgd291bGQgaW50cm9kdWNlIHNvbWUg
+aWJ2X2NyZWF0ZV9ub3RpZmllcl9jaGFubmVsKCksIHdoaWNoDQphcHBzIGNhbiBpYnZfZ2V0X25v
+dGlmaWVyX2V2ZW50KCkgZnJvbSBpdCB0aGF0IGluZm9ybXMgdGhhdCB0aGUgZGV2aWNlIGxpc3Qg
+aGFzIGNoYW5nZWQuLi4NCg0KVGhpcyBpcyBhIHNpbXBsZXIgQVBJIHRoYXQgbWFpbnRhaW5zIGJh
+Y2t3YXJkIGNvbXBhdGliaWxpdHkgd2l0aCBpYnZfZ2V0X2RldmljZV9saXN0KCkuDQotLUxpcmFu
+DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
