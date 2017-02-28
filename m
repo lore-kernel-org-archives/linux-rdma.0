@@ -1,66 +1,32 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [RFC] libibverbs IB device hotplug support
-Date: Tue, 28 Feb 2017 19:10:24 -0500
-Message-ID: <20170301001023.GA3001@phlsvsds.ph.intel.com>
+Date: Tue, 28 Feb 2017 14:26:33 -0700
+Message-ID: <20170228212633.GB27740@obsidianresearch.com>
 References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
+ <20170227185912.GM5891@obsidianresearch.com>
+ <CAFgAxU9XJTXkaeL_VE7zHASPBM+j=TZd2L+McKBcJRThJtUN5w@mail.gmail.com>
+ <20170227223600.GA1526@obsidianresearch.com>
+ <CAFgAxU8KkrOS6aib4ykf8vj1sQFGK_oMW=fX3vZ2X2_r3ryDVA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAFgAxU8KkrOS6aib4ykf8vj1sQFGK_oMW=fX3vZ2X2_r3ryDVA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "M: Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 27, 2017 at 06:08:41PM +0200, Alex Rosenbaum wrote:
-> Introduction
-> 
-> --------------------------------------------------------------------------------
-> 
-> Hotplug [1] is the method in which new hardware becomes available in the system
-> 
-> or is being removed from it. User space applications would like to continue
-> 
-> operation while hardware is being changed in the system, without the need to
-> 
-> restart the process, lose its current state and lose open sessions (at least on
-> 
-> other available hardware).
-> 
-> 
-> 
-> The problem
-> 
-> --------------------------------------------------------------------------------
-> 
-> Today the IB device list is returned by ibv_get_device_list() from libibverbs.
-> 
-> This IB device list is created by scanning of the /sys/class/infiniband_verbs
-> 
-> [2]. The list is cached and never updated, no matter if there were hardware
-> 
-> changes in the system.
+On Tue, Feb 28, 2017 at 09:56:57AM +0200, Alex Rosenbaum wrote:
+> We can definitely portal all providers (some extra work) but as you
+> wrote, i'm also not sure how to proceed with code review and
 
+It turns out this is super simple and quite mechanical as long as you
+don't try and convert to the new context protocol too.
 
-After the call it occurred to me that we may be missing a bigger picture with
-this discussion.  In the past we have discussed in the past what exactly a
-"struct ib_device" is within the context of the kernel.
+https://github.com/linux-rdma/rdma-core/pull/87
 
-Should we also consider "port hotplug"?
-
-For example what happens if a Mellanox port is unplugged from an IB port and
-plugged into an Ethernet port?  Is that considered a "device" hot plug?  What
-happens if this is a dual port device and only one of the 2 IB ports are
-changed?  So many things like AH, Path Records, etc are tied to the "device"
-but really they should be tied to the port.
-
-To be clear I am not opposed to this change at this time.  But I think we
-should consider shifting the model away from devices and toward ports as we
-continue.
-
-Ira
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
