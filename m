@@ -1,132 +1,279 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: net/rds: use-after-free in inet_create
-Date: Tue, 28 Feb 2017 16:49:45 +0100
-Message-ID: <CACT4Y+aobp+g_AYoX6j1eftyyirK4pBxhOXz9hDu+XU+-jxSYw@mail.gmail.com>
-References: <CACT4Y+bi=rZr9yrajA0o0iUeR4N0q-sXYudBVsOeOiHbuApBeA@mail.gmail.com>
- <20170228153737.GG31155@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC] libibverbs IB device hotplug support
+Date: Tue, 28 Feb 2017 10:48:02 -0500
+Message-ID: <1488296882.86943.214.camel@redhat.com>
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170228153737.GG31155@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: santosh.shilimkar@oracle.com, David Miller <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, LKML <linux-kernel@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, syzkaller <syzkaller@googlegroups.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-z66Qnul6Jd97195uoXzH"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 28, 2017 at 4:37 PM, Sowmini Varadhan
-<sowmini.varadhan@oracle.com> wrote:
-> On (02/28/17 15:22), Dmitry Vyukov wrote:
->>
->> Hello,
->>
->> I've got the following report while running syzkaller fuzzer on
->> linux-next/8d01c069486aca75b8f6018a759215b0ed0c91f0. So far it
->> happened only once. net was somehow deleted from underneath
->> inet_create. I've noticed that rds uses sock_create_kern which does
->> not take net reference. What is that that must keep net alive then?
->
-> The rds_connection (which is where the net pointer is being obtained from)
-> should keep the connection alive. Did you have the rds[_tcp] modules
-> loaded at the time of failure? Were there kernel tcp sockets to/from
-> the 16385 port? any hints on what else the test was doing (was it
-> running a userspace RDS application that triggered the kernel TCP
-> connection attempt in the first place)?
+
+--=-z66Qnul6Jd97195uoXzH
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2017-02-27 at 18:08 +0200, Alex Rosenbaum wrote:
+>=C2=A0
+>=20
+> Today the IB device list is returned by ibv_get_device_list() from
+> libibverbs.
+>=20
+> This IB device list is created by scanning of the
+> /sys/class/infiniband_verbs
+>=20
+> [2]. The list is cached and never updated, no matter if there were
+> hardware
+>=20
+> changes in the system.
+
+Correct. =C2=A0This is something I've felt we've needed to update/fix for a
+while now.
+
+> Detection of hotplug events is not part of libibverbs functionality
+> and thus
+>=20
+> not part of this RFC. User space applications should monitor
+> respectful changes
+>=20
+> in the system according to its specific logic to detect plugout or
+> plugin of
+>=20
+> hardware devices. This can be does by means of: netlink, udev or
+> other inputs.
+
+On this point I disagree. =C2=A0I see no reason that we should implement
+hotplug detection in every application when the library can get it
+right just once and make it available to everyone.
+
+> Here I suggest to modify the implementation of ibv_get_device_list()
+> so that
+>=20
+> consecutive calls will re-scan the sysfs in the same manner as done
+> today in
+>=20
+> order to create a fresh ibv_device list each time. We will remove
+> caching of
+>=20
+> devices that support plugout, while keeping the ibv_device cache for
+> devices
+>=20
+> which do not support plugout.
+
+I would argue that a better solution is to, on first call into
+ibv_get_device_list() (which doubles as the library's init() entry), we
+scan the system for whatever devices there are, build a permanent list
+of these devices, then register the necessary hooks ourselves to get
+updates on both plug out and plug in, and on those events we update the
+list as appropriate (on plug out, notify the application via async
+event, after the application has processed the event, if the device is
+unused, remove the device entirely, if the device is still in use, then
+move it to a defunct list and wait for the application to be able to
+release all of its references to it, and only then remove it; on plug
+in, add a new device to the device list and notify the application via
+async event at which point the application can decide if it wants to
+use the device). =C2=A0This might actually involve a new async notifier
+added to the libibverbs API that is not tied to a device and which an
+application would need to be modified to register with the library.
+=C2=A0But since any applicaiton wanting to support this is going to need to
+be modified anyway, a new entry point isn't the end of the world.
+
+>=C2=A0
+> Applications Behavior
+>=20
+> -------------------------------------------------------------------
+> -------------
+>=20
+> Applications use different logic to decide which ibv_device is the
+> relevant
+>=20
+> device they want to use. And each application has its own detection
+> logic to
+>=20
+> track such changes in device availability.
+>=20
+> Few examples: librdmacm logic is based on GUID values. Socket
+> acceleration
+>=20
+> (libvma) maps an IB device to its corresponding net iface based on
+> netlink and
+>=20
+> sysfs. DPDK applications lookup the IB device PCI address. And most
+> MPI
+>=20
+> implementation want human specified IB device name in command line
+> and will
+>=20
+> probably not handle any hotplug (out or in) events.
+>=20
+>=20
+>=20
+> It is the application's responsibility to check which ibv_device
+> returned from
+>=20
+> ibv_get_device_list() has changed from previous scan and which is of
+> interest.
+
+With an async event notifier, and with a static list of devices, it
+would be possible to simply pass the new device in with the notifier.
+=C2=A0Makes things much simpler for the app IMO.
+
+>=20
+>=20
+> Verbs can issue an IBV_EVENT_DEVICE_FATAL async event on an open user
+> space
+>=20
+> ibv_context for device's which support the ib_device-
+> >disassociate_ucontext().
+>=20
+> This event will indicate to the application that the device is no
+> longer
+>=20
+> operational. In addition, user space CQ channel fd=E2=80=99s blocking cal=
+ls
+> on recv(),
+>=20
+> select(), poll() or epoll() will be released with EINTR errno.
+>=20
+>=20
+>=20
+> Typical user space application will monitor hardware changes and/or
+> call for
+>=20
+> ibv_get_device_list() only from control path dedicated thread, and
+> not from the
+>=20
+> fast path threads.
+>=20
+>=20
+>=20
+> Pitfall
+>=20
+> -------------------------------------------------------------------
+> -------------
+>=20
+> If a legacy user space application did not follow the
+> ibv_get_device_list()
+>=20
+> man page definition, and it saved a private copy of an ibv_device
+> pointer and
+>=20
+> used it after releasing the device list (call to
+> ibv_free_device_list()), then
+>=20
+> ibv_open_device() might seg-fault based on this new suggestion.
+>=20
+> We can work around this by moving the IB device re-scan logic to a
+> new API
+>=20
+> 'ibv_refresh_device_list()' so that only new application using this
+> API will
+>=20
+> have correct behavior as needed.
+
+Following what I wrote above, this would no longer be a problem. =C2=A0The
+call to ibv_get_device_list can simply return the existing list (on
+first call we init this list), and we can make ibv_free_device_list a
+no-op. =C2=A0The async events can notify of adds/removes, user can update
+their own list accordingly, but we would also protect ourselves in all
+of the ibv_ calls such that if the user space code calls into our code
+with a defunct device we don't crash. =C2=A0We might want to protect all of
+our calls, even hot path calls, from invalid ibv_context pointers now
+as a result of this support.
 
 
-Here is syzkaller log before the crash:
-https://gist.githubusercontent.com/dvyukov/8bb6a4c6543597c9598d5771258889fe/raw/08bd950bb69071a260046b0bcc5ab85701aea8e7/gistfile1.txt
-Separate tests are separated by "executing program" lines. If a crash
-happens within a user process context, it's possible to figure out
-what exactly program triggered the bug. But this happened in a kernel
-thread context, so I have no glues so far.
+>=20
+>=20
+> Reference
+>=20
+> -------------------------------------------------------------------
+> -------------
+>=20
+> [1] https://www.kernel.org/doc/pending/hotplug.txt
+>=20
+> [2] https://github.com/linux-rdma/rdma-core/blob/master/Documentation
+> /libibverbs.md
+>=20
+>=20
+>=20
+> API changes
+>=20
+> -------------------------------------------------------------------
+> -------------
+>=20
+> Signed-off-by: Alex Rosenbaum <alexr@xxxxxxxxxxxx>
+>=20
+> --- a/libibverbs/verbs.h
+>=20
+> +++ b/libibverbs/verbs.h
+>=20
+> @@ -1336,6 +1336,7 @@ struct verbs_device {
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ibv_context *ctx, int c=
+md_fd);
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0void=C2=A0=C2=A0=C2=A0=C2=
+=A0(*uninit_context)(struct verbs_device *device,
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ibv_context *ctx);
+>=20
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0void=C2=A0=C2=A0=C2=A0=C2=A0(*=
+uninit_device)(struct verbs_device *device);
+>=20
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0atomic_t=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0ref_count;
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0/* future fields added he=
+re */
+>=20
+> };
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=20
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at=C2=A0=C2=A0http://vger.kernel.org/majordomo-info.h=
+tml
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+=C2=A0 =C2=A0 GPG KeyID: B826A3330E572FDD
+=C2=A0 =C2=A0
+Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =C2=A01274 B826 A333 0E57 2FDD
 
-Grepping "socket" there, it was doing lots of things with sockets. Are
-we looking for some particular socket type? If there are few programs
-that create sockets of that type, then we can narrow down the set:
+--=-z66Qnul6Jd97195uoXzH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-r1 = socket(0x11, 0x5, 0xa)
-socket(0x4, 0xffffffffffffffff, 0x0)
-socketpair(0x7, 0x805, 0x6,
-&(0x7f0000fd0000-0x8)={<r0=>0xffffffffffffffff, 0xffffffffffffffff})
-socketpair(0x2, 0x80a, 0x8001,
-&(0x7f0000fd1000-0x8)={0xffffffffffffffff, <r1=>0xffffffffffffffff})
-socket$alg(0x26, 0x5, 0x0)
-socket$sctp6(0xa, 0x8000000001, 0x84)
-r10 = socket(0x10, 0x802, 0x0)
-socketpair(0x10, 0x0, 0x3,
-&(0x7f0000e54000)={<r16=>0xffffffffffffffff, 0xffffffffffffffff})
-socket(0x2002, 0x1, 0x7f)
-r8 = socket$sctp6(0xa, 0x1, 0x84)
-socket(0x0, 0xa, 0x0)
-socket(0x0, 0x0, 0x1)
-socketpair$unix(0x1, 0x1, 0x0,
-&(0x7f0000995000-0x8)={<r14=>0xffffffffffffffff,
-<r15=>0xffffffffffffffff})
-r1 = socket(0x2, 0x2, 0x0)
-r5 = socket$alg(0x26, 0x5, 0x0)
-r6 = socket$kcm(0x29, 0x2, 0x0)
-r7 = socket$netlink(0x10, 0x3, 0x0)
-r10 = socket(0x10, 0x3, 0x0)
-r1 = socket(0x4, 0xffffffffffffffff, 0x0)
-r2 = socket(0xa, 0x6, 0x0)
-r6 = socket(0x2, 0x5, 0x0)
-r11 = socket(0xa, 0x2, 0x0)
-r12 = socket(0xa, 0x2, 0x0)
-socket(0x1, 0x80007, 0xfffffffffffffffd)
-socketpair$sctp(0x2, 0x1, 0x84,
-&(0x7f0000000000)={<r14=>0xffffffffffffffff,
-<r15=>0xffffffffffffffff})
-r16 = socket$bt_hci(0x1f, 0x3, 0x1)
-r18 = socket(0x10000000a, 0x80001, 0x0)
-socket$sctp6(0xa, 0x1, 0x84)
-socket$alg(0x26, 0x5, 0x0)
-socketpair$unix(0x1, 0x4000000000000003, 0x0,
-&(0x7f0000fc1000-0x8)={0xffffffffffffffff, 0xffffffffffffffff})
-socketpair$unix(0x1, 0x4000000000001, 0x0,
-&(0x7f0000194000)={<r22=>0xffffffffffffffff,
-<r23=>0xffffffffffffffff})
-socket$bt_bnep(0x1f, 0x3, 0x4)
-r0 = socket(0x10, 0x7, 0x8)
-r2 = socket$alg(0x26, 0x5, 0x0)
-r1 = socket$tcp(0x2, 0x1, 0x0)
-r1 = socket(0x0, 0x2, 0x0)
-r2 = socket$alg(0x26, 0x5, 0x0)
-r4 = socket(0xa, 0x0, 0x40)
-r8 = socket$bt_sco(0x1f, 0x5, 0x2)
-socketpair$unix(0x1, 0x0, 0x0,
-&(0x7f0000024000-0x8)={<r11=>0xffffffffffffffff, 0xffffffffffffffff})
-socket$nfc_raw(0x27, 0x3, 0x0)
-r15 = socket(0xb, 0x6, 0x0)
-socketpair$unix(0x1, 0x5, 0x0,
-&(0x7f000002f000-0x8)={0xffffffffffffffff, 0xffffffffffffffff})
-r16 = socket(0x10, 0x802, 0x800000010)
-socket$sctp6(0xa, 0x1, 0x84)
-socket$alg(0x26, 0x5, 0x0)
-r3 = socket(0xa, 0x1, 0x0)
-r13 = socket(0x10, 0x802, 0x0)
-r0 = socket$netlink(0x10, 0x3, 0x10)
-socketpair(0x1, 0x80f, 0x7,
-&(0x7f0000b67000)={<r0=>0xffffffffffffffff, 0xffffffffffffffff})
-r2 = socket$alg(0x26, 0x5, 0x0)
-socket$bt_hidp(0x1f, 0x3, 0x6)
-socket$bt_bnep(0x1f, 0x3, 0x4)
-socket$sctp(0x2, 0x1, 0x84)
-r2 = socket(0x2, 0x3, 0x6)
-r4 = socket(0x11, 0x802, 0x300)
-r0 = socket$kcm(0x29, 0x5, 0x0)
-r3 = socket$alg(0x26, 0x5, 0x0)
-socketpair$unix(0x1, 0x5, 0x0,
-&(0x7f0000510000)={<r8=>0xffffffffffffffff, <r9=>0xffffffffffffffff})
-r1 = socket$alg(0x26, 0x5, 0x0)
-r0 = socket$bt_cmtp(0x1f, 0x3, 0x5)
-socket$unix(0x1, 0x80000000000200, 0x0)
-socketpair$unix(0x1, 0x5, 0x0,
-&(0x7f0000b30000)={<r6=>0xffffffffffffffff, <r7=>0xffffffffffffffff})
-r0 = socket(0xa, 0x1, 0x0)
-r7 = socket(0xa, 0x2, 0x41)
-r5 = socket(0xa, 0x2, 0x88)
-r4 = socket(0xa, 0x2, 0x88)
-r0 = socket$icmp6_raw(0xa, 0x3, 0x3a)
-r1 = socket(0xa, 0x5, 0x0)
-socket$icmp6(0xa, 0x2, 0x3a)
-socket$icmp6_raw(0xa, 0x3, 0x3a)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJYtZuyAAoJELgmozMOVy/dT/UP/iEy6NYH+Yu1Y0zdqXc3wxZR
+OFRN5/rFP72u5FdQ65eQk1RQl7Ym0EnLKQGe12+3CCzEGRt8xOXGhJFS9FaiGezi
+9VRizRfqPAzCTN0rW1CZNkTlpfo6393i+v2YrdcwOPvQV420PX0JIbGKEG1sRYO2
+xVPrLVtObBlTVDAydW/AJ/MgJLE4k+s7jDF0fmIgEH4KSa2PNKC42FPzX4/KYLG2
+e2mwo1sgrhev97ONjmjSXfcd09oUZx6BlNtzBMjz/KbguM6tAmVz2K2UGyTZawew
+r4p2xAPHMhkA2G0lIlpTV8HnXh1Gfx7D076HncmYpFIRgNkex+Y2ljDXjK4EXF8P
+l9Pt0bgzTbDJUfVnOTfi5abupVc5dp1t3AnF7KI3MArxGdCb5CzaqxenCF8lz2AT
+cwBnzQvGtgEqS/trDMT2fT9xXSy5lZVkPaU9R/M1irhIbMWYHF4hFBLKR+ZaSGDn
+ApoxGjPZOa6QJeqx78AUtdPVg4ahXHQdtA+7Y6gciPSkiD7G/a/CYxxBQPE2JnUJ
+Qtz1S7sNOXgffnZlAMahfmUfvOLJxhu07tqGAkGJy8SOdcq1MJ3mtt0HR2kRbCc3
+IatHGeyrC/4a4KIaQteAigGCXlmogZrG7WR3AbCp41kAiFPeXjbckqX0+/ActRXz
+Gw6SgfK8JdFKWKdss3bh
+=SPB/
+-----END PGP SIGNATURE-----
+
+--=-z66Qnul6Jd97195uoXzH--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
