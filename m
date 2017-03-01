@@ -1,49 +1,50 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/rxe: Update documentation link
-Date: Tue, 28 Feb 2017 19:11:24 -0500
-Message-ID: <20170301001123.GB3001@phlsvsds.ph.intel.com>
-References: <20170228194253.11759-1-leon@kernel.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] libibverbs IB device hotplug support
+Date: Tue, 28 Feb 2017 17:44:49 -0700
+Message-ID: <20170301004449.GA13114@obsidianresearch.com>
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
+ <1488296882.86943.214.camel@redhat.com>
+ <HE1PR0501MB28123E8F342607E2C2CA4DD9B1560@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <3389d831-c135-b326-4b96-5f2a746de5ac@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170228194253.11759-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <3389d831-c135-b326-4b96-5f2a746de5ac-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 28, 2017 at 09:42:53PM +0200, Leon Romanovsky wrote:
-> All Soft-RoCE (rxe) is handled now in rdma-core user space library,
-> so the documentation. The patch below updates the documentation
-> link to that new location.
-> 
-> Reported-by: Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+On Tue, Feb 28, 2017 at 04:47:05PM -0500, Doug Ledford wrote:
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > I don't think that we should introduce an asych context into libibverbs.
+> 
+> Why not?
 
-> ---
->  drivers/infiniband/sw/rxe/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/Kconfig b/drivers/infiniband/sw/rxe/Kconfig
-> index 1e4e628fe7b0..71971d301638 100644
-> --- a/drivers/infiniband/sw/rxe/Kconfig
-> +++ b/drivers/infiniband/sw/rxe/Kconfig
-> @@ -21,4 +21,4 @@ config RDMA_RXE
->  	To configure and work with soft-RoCE driver please use the
->  	following wiki page under "configure Soft-RoCE (RXE)" section:
-> 
-> -	https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
-> +	https://github.com/linux-rdma/rdma-core/blob/master/Documentation/rxe.md
-> --
-> 2.12.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Generally, I dislike the idea of running threads from libraries,
+particularly libraries like ibverbs. So many apps get no benefit from
+the thread, but it sits there connected to udev..
+
+But aside from that, threads create races, and in this case if the
+hidden thread has to run to get the up to date device list, then the
+application has to synchronize with it to get the up to date
+information.
+
+This is practically problematic because one of the areas we need to
+fix is rdma-cm which is already getting a kind of new-device
+notification from kernel messages that are not synchronized with udev
+or any other thread.
+
+In this case I think the simple solution is the most correct one - run
+readdir on every call to ibv_get_devices and do set-interesection with
+the internal list before returning the result. Easy, simple locking,
+no races to worry about.
+
+We probably also need to add some retries for opening /dev/uverbsXX
+based on sysfs to really solve all the races...
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
