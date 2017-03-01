@@ -1,54 +1,84 @@
-From: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Subject: Re: [PATCH v8 08/11] cryptouser.h: fix include from userland
-Date: Wed, 1 Mar 2017 12:52:41 +0800
-Message-ID: <20170301045241.GB9156@gondor.apana.org.au>
-References: <20170228024844.GA28691@altlinux.org>
- <1488314857-28327-1-git-send-email-nicolas.dichtel@6wind.com>
- <1488314857-28327-9-git-send-email-nicolas.dichtel@6wind.com>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [patch] net/mlx4: && vs & typo
+Date: Wed, 1 Mar 2017 07:52:01 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1703010746230.2079@hadrien>
+References: <20170228120215.GA27947@mwanda> <1488296129.3056.1.camel@sandisk.com> <1488320630.25838.39.camel@perches.com> <1D08B61A9CF0974AA09887BE32D889DA0C193A@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1488314857-28327-9-git-send-email-nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Cc: arnd-r2nGTMty4D4@public.gmane.org, mmarek-IBi9RG/b67k@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org, slash.tmp-GANU6spQydw@public.gmane.org, daniel.vetter-/w4YWyX8dFk@public.gmane.org, rmk+kernel-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jengelh-9+2X+4sQBs8@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, ldv-u2l5PoMzF/Vg9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1D08B61A9CF0974AA09887BE32D889DA0C193A@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: Joe Perches <joe@perches.com>, "eugenia@mellanox.com" <eugenia@mellanox.com>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "yishaih@mellanox.com" <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 28, 2017 at 09:47:34PM +0100, Nicolas Dichtel wrote:
-> This patch prepares the uapi export by fixing the following error:
-> 
-> .../linux/cryptouser.h:58:16: error: ‘CRYPTO_MAX_ALG_NAME’ undeclared here (not in a function)
->   char cru_name[CRYPTO_MAX_ALG_NAME];
-> 
-> Signed-off-by: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-> ---
->  include/linux/crypto.h          | 2 +-
->  include/uapi/linux/cryptouser.h | 7 +++++++
->  2 files changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/linux/crypto.h b/include/linux/crypto.h
-> index c0b0cf3d2d2f..4cf29a35bb4b 100644
-> --- a/include/linux/crypto.h
-> +++ b/include/linux/crypto.h
-> @@ -24,6 +24,7 @@
->  #include <linux/slab.h>
->  #include <linux/string.h>
->  #include <linux/uaccess.h>
-> +#include <uapi/linux/cryptouser.h>
+On Tue, 28 Feb 2017, Bart Van Assche wrote:
 
-Nack.  cryptouser is just one interface in the crypto API.  It
-should not be included by every single crypto user in the kernel.
+> On 02/28/2017 02:23 PM, Joe Perches wrote:
+> > On Tue, 2017-02-28 at 15:35 +0000, Bart Van Assche wrote:
+> >> On Tue, 2017-02-28 at 15:02 +0300, Dan Carpenter wrote:
+> >>> Bitwise & was obviously intended here.
+> > []
+> >>> diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
+> > []
+> >>> @@ -109,7 +109,7 @@ static inline void 	(u8 *addr, u64 mac)
+> >>>  	int i;
+> >>>
+> >>>  	for (i = ETH_ALEN; i > 0; i--) {
+> >>> -		addr[i - 1] = mac && 0xFF;
+> >>> +		addr[i - 1] = mac & 0xFF;
+> >>>  		mac >>= 8;
+> >>>  	}
+> >>>  }
+> >>
+> >> Is this the only place where such a loop occurs?
+> >
+> > Seems to be.
+> >
+> >> Should a put_unaligned_be48()
+> >> function be introduced?
+> >
+> > Why?  This is used exactly once.
+>
+> Really? Here is an example of another open-coded version of
+> put_unaligned_be48() from arch/mips/cavium-octeon/octeon-platform.c:
+>
+> 	new_mac[0] = (mac >> 40) & 0xff;
+> 	new_mac[1] = (mac >> 32) & 0xff;
+> 	new_mac[2] = (mac >> 24) & 0xff;
+> 	new_mac[3] = (mac >> 16) & 0xff;
+> 	new_mac[4] = (mac >> 8) & 0xff;
+> 	new_mac[5] = mac & 0xff;
 
-You could perhaps introduce a new file under uapi just for this.
+drivers/media/radio/radio-shark2.c:
+        for (i = 0; i < 6; i++)
+               shark->transfer_buffer[i + 1] = (reg >> (40 - i * 8)) & 0xff;
 
-Cheers,
--- 
-Email: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+drivers/rtc/rtc-ab3100.c
+       buf[0] = (hw_counter) & 0xFF;
+       buf[1] = (hw_counter >> 8) & 0xFF;
+       buf[2] = (hw_counter >> 16) & 0xFF;
+       buf[3] = (hw_counter >> 24) & 0xFF;
+       buf[4] = (hw_counter >> 32) & 0xFF;
+       buf[5] = (hw_counter >> 40) & 0xFF;
+
+drivers/net/ethernet/sun/ldmvsw.c
+        for (i = 0; i < ETH_ALEN; i++)
+               port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
+
+drivers/net/ethernet/sun/sunvnet.c
+        for (i = 0; i < ETH_ALEN; i++)
+               dev->dev_addr[i] = (*local_mac >> (5 - i) * 8) & 0xff;
+
+        for (i = 0; i < ETH_ALEN; i++)
+               port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
+
+julia
+
+>
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
