@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 24/26] net/mlx5e: Change the function that checks the packet type
-Date: Wed,  1 Mar 2017 16:02:32 +0200
-Message-ID: <1488376954-8346-25-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 20/26] include/linux/mlx5: Add mlx5_wqe_eth_pad and enhanced-ipoib-qp-mode
+Date: Wed,  1 Mar 2017 16:02:28 +0200
+Message-ID: <1488376954-8346-21-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,42 +11,49 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-Now we can use it for non-ethernet type packets (like IB).
-After changing the order of the skb processing the function now can
-check the skb->protocol field to check if it is ETH_P_IP/ETH_P_IPV6
-packet.
+mlx5_wqe_eth_pad will be used for TX flow for IB link type.
+enhanced-ipoib-qp-mode for QP creation.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 4 ----
+ include/linux/mlx5/qp.h         | 8 ++++++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 98546b3395df..071a6ecce720 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -549,9 +549,8 @@ static inline void mlx5e_skb_set_hash(struct mlx5_cqe64 *cqe,
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 41e14d57fec9..d6918e6b6f28 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -71,10 +71,6 @@ enum {
+ 	[MLX5_IB_WR_UMR]			= MLX5_OPCODE_UMR,
+ };
  
- static inline bool is_first_ethertype_ip(struct sk_buff *skb)
- {
--	__be16 ethertype = ((struct ethhdr *)skb->data)->h_proto;
+-struct mlx5_wqe_eth_pad {
+-	u8 rsvd0[16];
+-};
 -
--	return (ethertype == htons(ETH_P_IP) || ethertype == htons(ETH_P_IPV6));
-+	return (skb->protocol == htons(ETH_P_IP) ||
-+		skb->protocol == htons(ETH_P_IPV6));
- }
+ enum raw_qp_set_mask_map {
+ 	MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID		= 1UL << 0,
+ 	MLX5_RAW_QP_RATE_LIMIT			= 1UL << 1,
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index 219c699c17b7..568fffff8ac9 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -221,6 +221,14 @@ enum {
+ 	MLX5_ETH_WQE_L4_CSUM            = 1 << 7,
+ };
  
- static inline void mlx5e_handle_csum(struct net_device *netdev,
-@@ -621,8 +620,8 @@ inline void mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
- 
- 	skb->mark = be32_to_cpu(cqe->sop_drop_qpn) & MLX5E_TC_FLOW_ID_MASK;
- 
--	mlx5e_handle_csum(netdev, cqe, rq, skb, !!lro_num_seg);
- 	skb->protocol = eth_type_trans(skb, netdev);
-+	mlx5e_handle_csum(netdev, cqe, rq, skb, !!lro_num_seg);
- }
- 
- static inline void mlx5e_complete_rx_cqe(struct mlx5e_rq *rq,
++struct mlx5_wqe_eth_pad {
++	u8 rsvd0[16];
++};
++
++enum {
++	MLX5_QP_ENHANCED_ULP_STATELESS_MODE = 2,
++};
++
+ struct mlx5_wqe_eth_seg {
+ 	u8              rsvd0[4];
+ 	u8              cs_flags;
 -- 
 1.8.3.1
 
