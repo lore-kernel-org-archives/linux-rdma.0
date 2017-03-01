@@ -1,52 +1,65 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 22/27] IB/hfi1: Add receive fault injection feature
-Date: Tue, 28 Feb 2017 12:55:30 -0500
-Message-ID: <91e05e83-b225-45ce-a975-00282f15caa2@intel.com>
-References: <20170208132142.16442.69329.stgit@scvm10.sc.intel.com>
- <20170208132800.16442.94549.stgit@scvm10.sc.intel.com>
- <20170212174205.GI14015@mtr-leonro.local>
- <1487109065.86943.86.camel@redhat.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] libibverbs IB device hotplug support
+Date: Tue, 28 Feb 2017 19:10:24 -0500
+Message-ID: <20170301001023.GA3001@phlsvsds.ph.intel.com>
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487109065.86943.86.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/14/2017 04:51 PM, Doug Ledford wrote:
-> On Sun, 2017-02-12 at 19:42 +0200, Leon Romanovsky wrote:
->> On Wed, Feb 08, 2017 at 05:28:01AM -0800, Dennis Dalessandro wrote:
->>
->> First no need to set default to "n", it is already default.
->> Second, we got NAK from Doug while we proposed to add new Kconfig to
->> our
->> driver (mlx5) to improve debug.
->>
->> Doug,
->> I would like to know if your statement do not add new Kconfigs to IB
->> is
->> still relevant.
->
-> As much as is possible, yes.  Kconfig bloat is something I very much
-> want to avoid.  I would be more willing to have a single, global
-> CONFIG_INFINIBAND_DEBUG option that turned on debugging stack wide than
-> I would for individual drivers to each have their own debug configs.
+On Mon, Feb 27, 2017 at 06:08:41PM +0200, Alex Rosenbaum wrote:
+> Introduction
+> 
+> --------------------------------------------------------------------------------
+> 
+> Hotplug [1] is the method in which new hardware becomes available in the system
+> 
+> or is being removed from it. User space applications would like to continue
+> 
+> operation while hardware is being changed in the system, without the need to
+> 
+> restart the process, lose its current state and lose open sessions (at least on
+> 
+> other available hardware).
+> 
+> 
+> 
+> The problem
+> 
+> --------------------------------------------------------------------------------
+> 
+> Today the IB device list is returned by ibv_get_device_list() from libibverbs.
+> 
+> This IB device list is created by scanning of the /sys/class/infiniband_verbs
+> 
+> [2]. The list is cached and never updated, no matter if there were hardware
+> 
+> changes in the system.
 
-Been talking among ourselves here and for this patch and the other one 
-we can just rely on the standard CONFIG_FAULT_INJECTION. I will resubmit 
-those with my next set of patches.
 
-In the future though it may be nice rather than having a single debug 
-variable, but a small set of them that are used stack wide. So no mlx or 
-hfi1, etc specific ones, but just for instance a general reference 
-counting flag for mrs and qps. If we come up with some small sane list 
-that we can all agree on would that be acceptable? Yeah we are growing 
-the kconfig but it's at least controlled and thought out.
+After the call it occurred to me that we may be missing a bigger picture with
+this discussion.  In the past we have discussed in the past what exactly a
+"struct ib_device" is within the context of the kernel.
 
--Denny
+Should we also consider "port hotplug"?
+
+For example what happens if a Mellanox port is unplugged from an IB port and
+plugged into an Ethernet port?  Is that considered a "device" hot plug?  What
+happens if this is a dual port device and only one of the 2 IB ports are
+changed?  So many things like AH, Path Records, etc are tied to the "device"
+but really they should be tied to the port.
+
+To be clear I am not opposed to this change at this time.  But I think we
+should consider shifting the model away from devices and toward ports as we
+continue.
+
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
