@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 14/26] net/mlx5e: Export resource creation function to be used in IB link
-Date: Wed,  1 Mar 2017 16:02:22 +0200
-Message-ID: <1488376954-8346-15-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 10/26] net/mlx5e: Creating and Destroying flow-steering tables for IB link
+Date: Wed,  1 Mar 2017 16:02:18 +0200
+Message-ID: <1488376954-8346-11-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,177 +11,83 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-mlx5i_attach that creates the resources of IB network device.
-mlx5i_detach cleans resources for IB device.
+New function to handle RSS table for IB link type.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 122 +++++++++++++++-------
- 1 file changed, 87 insertions(+), 35 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h    |  2 ++
+ drivers/net/ethernet/mellanox/mlx5/core/en_fs.c | 41 +++++++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index eedbe3947423..726d516b7ea8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -3844,6 +3844,54 @@ static void mlx5e_nic_disable(struct mlx5e_priv *priv)
- 	mlx5_lag_remove(mdev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index 39f8ac849af7..f3337ec4457f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -755,6 +755,8 @@ void mlx5e_page_release(struct mlx5e_rq *rq, struct mlx5e_dma_info *dma_info,
+ 
+ int mlx5e_create_flow_steering(struct mlx5e_priv *priv);
+ void mlx5e_destroy_flow_steering(struct mlx5e_priv *priv);
++int mlx5i_create_flow_steering(struct mlx5e_priv *priv);
++void mlx5i_destroy_flow_steering(struct mlx5e_priv *priv);
+ void mlx5e_init_l2_addr(struct mlx5e_priv *priv);
+ void mlx5e_destroy_flow_table(struct mlx5e_flow_table *ft);
+ int mlx5e_self_test_num(struct mlx5e_priv *priv);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
+index a0e5a69402b3..c6b40003007c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
+@@ -1081,6 +1081,40 @@ static void mlx5e_destroy_vlan_table(struct mlx5e_priv *priv)
+ 	mlx5e_destroy_flow_table(&priv->fs.vlan.ft);
  }
  
-+static int mlx5n_attach_netdev_common(struct mlx5_core_dev *mdev,
-+				      struct mlx5e_priv *priv)
++int mlx5i_create_flow_steering(struct mlx5e_priv *priv)
 +{
-+	const struct mlx5e_profile *profile;
-+	struct net_device *netdev;
 +	int err;
 +
-+	netdev = priv->netdev;
-+	profile = priv->profile;
-+	clear_bit(MLX5E_STATE_DESTROYING, &priv->state);
++	priv->fs.ns = mlx5_get_flow_namespace(priv->mdev,
++					       MLX5_FLOW_NAMESPACE_KERNEL);
 +
-+	err = profile->init_tx(priv);
-+	if (err)
-+		goto out;
++	if (!priv->fs.ns)
++		return -EINVAL;
 +
-+	err = mlx5e_open_drop_rq(priv);
++	err = mlx5e_arfs_create_tables(priv);
 +	if (err) {
-+		mlx5_core_err(mdev, "open drop rq failed, %d\n", err);
-+		goto err_cleanup_tx;
++		netdev_err(priv->netdev, "Failed to create arfs tables, err=%d\n",
++			   err);
++		priv->netdev->hw_features &= ~NETIF_F_NTUPLE;
 +	}
 +
-+	err = profile->init_rx(priv);
-+	if (err)
-+		goto err_close_drop_rq;
++	err = mlx5e_create_ttc_table(priv);
++	if (err) {
++		netdev_err(priv->netdev, "Failed to create ttc table, err=%d\n",
++			   err);
++		goto err_destroy_arfs_tables;
++	}
 +
-+	mlx5e_create_q_counter(priv);
-+
-+	if (profile->enable)
-+		profile->enable(priv);
-+
-+	rtnl_lock();
-+	if (netif_running(netdev))
-+		mlx5e_open(netdev);
-+	netif_device_attach(netdev);
-+	rtnl_unlock();
++	mlx5e_ethtool_init_steering(priv);
 +
 +	return 0;
 +
-+err_close_drop_rq:
-+	mlx5e_close_drop_rq(priv);
++err_destroy_arfs_tables:
++	mlx5e_arfs_destroy_tables(priv);
 +
-+err_cleanup_tx:
-+	profile->cleanup_tx(priv);
-+
-+out:
 +	return err;
 +}
 +
- static void mlx5i_nic_init(struct mlx5_core_dev *mdev,
- 			   struct net_device *netdev,
- 			   const struct mlx5e_profile *profile,
-@@ -3943,6 +3991,42 @@ struct net_device *mlx5i_create_netdev(struct mlx5_core_dev *mdev,
- }
- EXPORT_SYMBOL(mlx5i_create_netdev);
- 
-+int mlx5i_attach(struct mlx5_core_dev *mdev, void *vpriv)
-+{
-+	struct mlx5e_priv *priv = vpriv;
-+	struct net_device *netdev = priv->netdev;
-+	int err;
-+
-+	if (netif_device_present(netdev))
-+		return 0;
-+
-+	err = mlx5e_create_mdev_resources(mdev);
-+	if (err)
-+		return err;
-+
-+	err = mlx5n_attach_netdev_common(mdev, priv);
-+	if (err) {
-+		mlx5e_destroy_mdev_resources(mdev);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(mlx5i_attach);
-+
-+void mlx5i_detach(struct mlx5_core_dev *mdev, void *vpriv)
-+{
-+	struct mlx5e_priv *priv = vpriv;
-+	struct net_device *netdev = priv->netdev;
-+
-+	if (!netif_device_present(netdev))
-+		return;
-+
-+	mlx5e_detach_netdev(mdev, netdev);
-+	mlx5e_destroy_mdev_resources(mdev);
-+}
-+EXPORT_SYMBOL(mlx5i_detach);
-+
- static const struct mlx5e_profile mlx5e_nic_profile = {
- 	.init		   = mlx5e_nic_init,
- 	.cleanup	   = mlx5e_nic_cleanup,
-@@ -3997,31 +4081,17 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
- 
- int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv)
+ int mlx5e_create_flow_steering(struct mlx5e_priv *priv)
  {
--	const struct mlx5e_profile *profile;
- 	struct net_device *netdev;
- 	u16 max_mtu;
  	int err;
- 
- 	netdev = priv->netdev;
--	profile = priv->profile;
--	clear_bit(MLX5E_STATE_DESTROYING, &priv->state);
--
--	err = profile->init_tx(priv);
--	if (err)
--		goto out;
- 
--	err = mlx5e_open_drop_rq(priv);
-+	err = mlx5n_attach_netdev_common(mdev, priv);
- 	if (err) {
--		mlx5_core_err(mdev, "open drop rq failed, %d\n", err);
--		goto err_cleanup_tx;
-+		mlx5_core_err(mdev, "failed attach netdev %d\n", err);
-+		return err;
- 	}
--
--	err = profile->init_rx(priv);
--	if (err)
--		goto err_close_drop_rq;
--
--	mlx5e_create_q_counter(priv);
--	//TBD do i need to change that?
- 	mlx5e_init_l2_addr(priv);
- 
- 	/* MTU range: 68 - hw-specific max */
-@@ -4031,25 +4101,7 @@ int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv)
- 
- 	mlx5e_set_dev_port_mtu(netdev);
- 
--	if (profile->enable)
--		profile->enable(priv);
--
--	rtnl_lock();
--	if (netif_running(netdev))
--		mlx5e_open(netdev);
--	netif_device_attach(netdev);
--	rtnl_unlock();
--
- 	return 0;
--
--err_close_drop_rq:
--	mlx5e_close_drop_rq(priv);
--
--err_cleanup_tx:
--	profile->cleanup_tx(priv);
--
--out:
--	return err;
+@@ -1141,3 +1175,10 @@ void mlx5e_destroy_flow_steering(struct mlx5e_priv *priv)
+ 	mlx5e_arfs_destroy_tables(priv);
+ 	mlx5e_ethtool_cleanup_steering(priv);
  }
- 
- static void mlx5e_register_vport_rep(struct mlx5_core_dev *mdev)
++
++void mlx5i_destroy_flow_steering(struct mlx5e_priv *priv)
++{
++	mlx5e_destroy_ttc_table(priv);
++	mlx5e_arfs_destroy_tables(priv);
++	mlx5e_ethtool_cleanup_steering(priv);
++}
 -- 
 1.8.3.1
 
