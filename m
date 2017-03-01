@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 01/26] IB/ipoib: Separate control and data related initializations
-Date: Wed,  1 Mar 2017 16:02:09 +0200
-Message-ID: <1488376954-8346-2-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 18/26] net/mlx5e: Change mlx5e_open_locked and mlx5e_close_locked api
+Date: Wed,  1 Mar 2017 16:02:26 +0200
+Message-ID: <1488376954-8346-19-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,371 +11,274 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-This patch prepares init and and teardown flows so we can call them
-through ipoib_options function pointers.
-It arranges that area of code as the following:
-All operations which deal with the resource allocation/deletion are done
-in one place.
-All operations that are control oriented, meaning that they are not
-connected to a specific HW beneath, are done in a separate place.
-
-The operations for alloc HW resources are now in the function
-ipoib_dev_init_default, the deletion of all the resources are in
-ipoib_dev_uninit_default The only exception is the creation of the pd
-object which is used both for resource allocation (create QP etc.) and for
-control flows like creating ah.
-
-It also does:
-Move creation of rx_ring and tx_ring to be in the resources allocation
-area.
-Move the function ipoib_ib_dev_open that does the open device to the
-control area instead of the dev_init which creates resources.
+Let the IB link to call it directly with the relevant priv.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h       |   5 +-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c    |  39 +++-------
- drivers/infiniband/ulp/ipoib/ipoib_main.c  | 116 ++++++++++++++++++++++++-----
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c |  40 +---------
- 4 files changed, 110 insertions(+), 90 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h       |  4 +--
+ .../net/ethernet/mellanox/mlx5/core/en_ethtool.c   | 24 ++++++++---------
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c  | 31 +++++++++++-----------
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c    |  4 +--
+ 4 files changed, 31 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index bed233bf45c3..7cd9befd7d54 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -491,14 +491,13 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
- void ipoib_flush_paths(struct net_device *dev);
- int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
- struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
--
--int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-+void ipoib_ib_tx_timer_func(unsigned long ctx);
- void ipoib_ib_dev_flush_light(struct work_struct *work);
- void ipoib_ib_dev_flush_normal(struct work_struct *work);
- void ipoib_ib_dev_flush_heavy(struct work_struct *work);
- void ipoib_pkey_event(struct work_struct *work);
- void ipoib_ib_dev_cleanup(struct net_device *dev);
--
-+void ipoib_dev_uninit_default(struct net_device *dev);
- int ipoib_ib_dev_open(struct net_device *dev);
- void ipoib_ib_dev_up(struct net_device *dev);
- void ipoib_ib_dev_down(struct net_device *dev);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 12c4f84a6639..3c0a35d883e2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -40,6 +40,7 @@
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index a10966df24f6..2f9242ae06f3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -797,8 +797,8 @@ int mlx5e_vlan_rx_kill_vid(struct net_device *dev, __always_unused __be16 proto,
+ void mlx5e_build_indir_tir_ctx_hash(struct mlx5e_priv *priv, void *tirc,
+ 				    enum mlx5e_traffic_types tt);
  
- #include <linux/ip.h>
- #include <linux/tcp.h>
-+#include <linux/vmalloc.h>
+-int mlx5e_open_locked(struct net_device *netdev);
+-int mlx5e_close_locked(struct net_device *netdev);
++int mlx5e_open_locked(struct mlx5e_priv *priv);
++int mlx5e_close_locked(struct mlx5e_priv *priv);
+ void mlx5e_build_default_indir_rqt(struct mlx5_core_dev *mdev,
+ 				   u32 *indirection_rqt, int len,
+ 				   int num_channels);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+index bb67863aa361..0c8773718292 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+@@ -516,14 +516,14 @@ static int mlx5e_set_ringparam(struct net_device *dev,
  
- #include "ipoib.h"
+ 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (was_opened)
+-		mlx5e_close_locked(dev);
++		mlx5e_close_locked(priv);
  
-@@ -692,7 +693,7 @@ static void ipoib_stop_ah(struct net_device *dev)
- 	ipoib_flush_ah(dev);
- }
+ 	priv->params.log_rq_size = log_rq_size;
+ 	priv->params.log_sq_size = log_sq_size;
+ 	priv->params.min_rx_wqes = min_rx_wqes;
  
--static void ipoib_ib_tx_timer_func(unsigned long ctx)
-+void ipoib_ib_tx_timer_func(unsigned long ctx)
- {
- 	drain_tx_cq((struct net_device *)ctx);
- }
-@@ -913,32 +914,6 @@ void ipoib_ib_dev_stop(struct net_device *dev)
- 	ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP);
- }
+ 	if (was_opened)
+-		err = mlx5e_open_locked(dev);
++		err = mlx5e_open_locked(priv);
  
--int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
--{
--	struct ipoib_dev_priv *priv = netdev_priv(dev);
--
--	priv->ca = ca;
--	priv->port = port;
--	priv->qp = NULL;
--
--	if (ipoib_transport_dev_init(dev, ca)) {
--		printk(KERN_WARNING "%s: ipoib_transport_dev_init failed\n", ca->name);
--		return -ENODEV;
--	}
--
--	setup_timer(&priv->poll_timer, ipoib_ib_tx_timer_func,
--		    (unsigned long) dev);
--
--	if (dev->flags & IFF_UP) {
--		if (ipoib_ib_dev_open(dev)) {
--			ipoib_transport_dev_cleanup(dev);
--			return -ENODEV;
--		}
--	}
--
--	return 0;
--}
--
- /*
-  * Takes whatever value which is in pkey index 0 and updates priv->pkey
-  * returns 0 if the pkey value was changed.
-@@ -1236,7 +1211,13 @@ void ipoib_ib_dev_cleanup(struct net_device *dev)
- 	 */
- 	ipoib_stop_ah(dev);
+ 	mutex_unlock(&priv->state_lock);
  
--	ipoib_transport_dev_cleanup(dev);
--}
-+	clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+
-+	ipoib_dev_uninit_default(dev);
+@@ -561,7 +561,7 @@ static int mlx5e_set_channels(struct net_device *dev,
  
-+	if (priv->pd) {
-+		ib_dealloc_pd(priv->pd);
-+		priv->pd = NULL;
-+	}
-+}
+ 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (was_opened)
+-		mlx5e_close_locked(dev);
++		mlx5e_close_locked(priv);
  
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 259c59f67394..8c644bbc2828 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1622,8 +1622,23 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
- 	wait_for_completion(&priv->ntbl.deleted);
- }
+ 	arfs_enabled = dev->features & NETIF_F_NTUPLE;
+ 	if (arfs_enabled)
+@@ -572,7 +572,7 @@ static int mlx5e_set_channels(struct net_device *dev,
+ 				      MLX5E_INDIR_RQT_SIZE, count);
  
-+void ipoib_dev_uninit_default(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	if (was_opened)
+-		err = mlx5e_open_locked(dev);
++		err = mlx5e_open_locked(priv);
+ 	if (err)
+ 		goto out;
  
--int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
-+	ipoib_transport_dev_cleanup(dev);
-+
-+	ipoib_cm_dev_cleanup(dev);
-+
-+	kfree(priv->rx_ring);
-+	vfree(priv->tx_ring);
-+
-+	priv->rx_ring = NULL;
-+	priv->tx_ring = NULL;
-+}
-+
-+static int ipoib_dev_init_default(struct net_device *dev, struct ib_device *ca,
-+				  int port)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -626,7 +626,7 @@ static int mlx5e_set_coalesce(struct net_device *netdev,
  
-@@ -1642,29 +1657,95 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (was_opened && restart) {
+-		mlx5e_close_locked(netdev);
++		mlx5e_close_locked(priv);
+ 		priv->params.rx_am_enabled = !!coal->use_adaptive_rx_coalesce;
+ 	}
  
- 	/* priv->tx_head, tx_tail & tx_outstanding are already 0 */
- 
--	if (ipoib_ib_dev_init(dev, ca, port))
-+	if (ipoib_transport_dev_init(dev, ca)) {
-+		pr_warn("%s: ipoib_transport_dev_init failed\n", ca->name);
- 		goto out_tx_ring_cleanup;
-+	}
-+
-+	setup_timer(&priv->poll_timer, ipoib_ib_tx_timer_func,
-+		    (unsigned long)dev);
-+
-+	return 0;
-+
-+out_tx_ring_cleanup:
-+	vfree(priv->tx_ring);
-+
-+out_rx_ring_cleanup:
-+	kfree(priv->rx_ring);
-+
-+out:
-+	return -ENOMEM;
-+}
-+
-+int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	int ret = -ENOMEM;
-+
-+	priv->ca = ca;
-+	priv->port = port;
-+	priv->qp = NULL;
- 
- 	/*
--	 * Must be after ipoib_ib_dev_init so we can allocate a per
--	 * device wq there and use it here
-+	 * the various IPoIB tasks assume they will never race against
-+	 * themselves, so always use a single thread workqueue
- 	 */
--	if (ipoib_neigh_hash_init(priv) < 0)
-+	priv->wq = alloc_ordered_workqueue("ipoib_wq", WQ_MEM_RECLAIM);
-+	if (!priv->wq) {
-+		pr_warn("%s: failed to allocate device WQ\n", dev->name);
-+		goto out;
-+	}
-+
-+	/* create pd, which used both for control and datapath*/
-+	priv->pd = ib_alloc_pd(priv->ca, 0);
-+	if (IS_ERR(priv->pd)) {
-+		pr_warn("%s: failed to allocate PD\n", ca->name);
-+		goto clean_wq;
-+	}
-+
-+	ret = ipoib_dev_init_default(dev, ca, port);
-+	if (ret) {
-+		pr_warn("%s failed to init HW resource\n", dev->name);
-+		goto out_free_pd;
-+	}
-+
-+	/* after qp created set dev address */
-+	priv->dev->dev_addr[1] = (priv->qp->qp_num >> 16) & 0xff;
-+	priv->dev->dev_addr[2] = (priv->qp->qp_num >>  8) & 0xff;
-+	priv->dev->dev_addr[3] = (priv->qp->qp_num) & 0xff;
-+
-+	if (ipoib_neigh_hash_init(priv) < 0) {
-+		pr_warn("%s failed to init neigh hash\n", dev->name);
- 		goto out_dev_uninit;
-+	}
-+
-+	if (dev->flags & IFF_UP) {
-+		if (ipoib_ib_dev_open(dev)) {
-+			pr_warn("%s failed to open device\n", dev->name);
-+			ret = -ENODEV;
-+			goto out_dev_uninit;
-+		}
-+	}
- 
- 	return 0;
- 
- out_dev_uninit:
- 	ipoib_ib_dev_cleanup(dev);
- 
--out_tx_ring_cleanup:
--	vfree(priv->tx_ring);
-+out_free_pd:
-+	if (priv->pd) {
-+		ib_dealloc_pd(priv->pd);
-+		priv->pd = NULL;
-+	}
- 
--out_rx_ring_cleanup:
--	kfree(priv->rx_ring);
-+clean_wq:
-+	if (priv->wq) {
-+		destroy_workqueue(priv->wq);
-+		priv->wq = NULL;
-+	}
+@@ -655,7 +655,7 @@ static int mlx5e_set_coalesce(struct net_device *netdev,
  
  out:
--	return -ENOMEM;
-+	return ret;
+ 	if (was_opened && restart)
+-		err = mlx5e_open_locked(netdev);
++		err = mlx5e_open_locked(priv);
+ 
+ 	mutex_unlock(&priv->state_lock);
+ 	return err;
+@@ -1112,12 +1112,12 @@ static int mlx5e_set_tunable(struct net_device *dev,
+ 
+ 		was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 		if (was_opened)
+-			mlx5e_close_locked(dev);
++			mlx5e_close_locked(priv);
+ 
+ 		priv->params.tx_max_inline = val;
+ 
+ 		if (was_opened)
+-			err = mlx5e_open_locked(dev);
++			err = mlx5e_open_locked(priv);
+ 
+ 		mutex_unlock(&priv->state_lock);
+ 		break;
+@@ -1444,12 +1444,12 @@ static int set_pflag_rx_cqe_based_moder(struct net_device *netdev, bool enable)
+ 
+ 	reset = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (reset)
+-		mlx5e_close_locked(netdev);
++		mlx5e_close_locked(priv);
+ 
+ 	mlx5e_set_rx_cq_mode_params(&priv->params, rx_cq_period_mode);
+ 
+ 	if (reset)
+-		err = mlx5e_open_locked(netdev);
++		err = mlx5e_open_locked(priv);
+ 
+ 	return err;
+ }
+@@ -1473,13 +1473,13 @@ static int set_pflag_rx_cqe_compress(struct net_device *netdev,
+ 	reset = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 
+ 	if (reset)
+-		mlx5e_close_locked(netdev);
++		mlx5e_close_locked(priv);
+ 
+ 	MLX5E_SET_PFLAG(priv, MLX5E_PFLAG_RX_CQE_COMPRESS, enable);
+ 	priv->params.rx_cqe_compress_def = enable;
+ 
+ 	if (reset)
+-		err = mlx5e_open_locked(netdev);
++		err = mlx5e_open_locked(priv);
+ 	return err;
  }
  
- void ipoib_dev_cleanup(struct net_device *dev)
-@@ -1685,19 +1766,16 @@ void ipoib_dev_cleanup(struct net_device *dev)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 42ac16daa126..8e6d0b3cd835 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -152,8 +152,8 @@ static void mlx5e_tx_timeout_work(struct work_struct *work)
+ 	mutex_lock(&priv->state_lock);
+ 	if (!test_bit(MLX5E_STATE_OPENED, &priv->state))
+ 		goto unlock;
+-	mlx5e_close_locked(priv->netdev);
+-	err = mlx5e_open_locked(priv->netdev);
++	mlx5e_close_locked(priv);
++	err = mlx5e_open_locked(priv);
+ 	if (err)
+ 		netdev_err(priv->netdev, "mlx5e_open_locked failed recovering from a tx_timeout, err(%d).\n",
+ 			   err);
+@@ -2239,9 +2239,9 @@ static void mlx5e_netdev_set_tcs(struct net_device *netdev)
+ 		netdev_set_tc_queue(netdev, tc, nch, 0);
+ }
+ 
+-int mlx5e_open_locked(struct net_device *netdev)
++int mlx5e_open_locked(struct mlx5e_priv *priv)
+ {
+-	struct mlx5e_priv *priv = netdev_priv(netdev);
++	struct net_device *netdev = priv->netdev;
+ 	struct mlx5_core_dev *mdev = priv->mdev;
+ 	int num_txqs;
+ 	int err;
+@@ -2297,15 +2297,14 @@ int mlx5e_open(struct net_device *netdev)
+ 	int err;
+ 
+ 	mutex_lock(&priv->state_lock);
+-	err = mlx5e_open_locked(netdev);
++	err = mlx5e_open_locked(priv);
+ 	mutex_unlock(&priv->state_lock);
+ 
+ 	return err;
+ }
+ 
+-int mlx5e_close_locked(struct net_device *netdev)
++int mlx5e_close_locked(struct mlx5e_priv *priv)
+ {
+-	struct mlx5e_priv *priv = netdev_priv(netdev);
+ 	struct mlx5_core_dev *mdev = priv->mdev;
+ 
+ 	/* May already be CLOSED in case a previous configuration operation
+@@ -2336,7 +2335,7 @@ int mlx5e_close(struct net_device *netdev)
+ 		return -ENODEV;
+ 
+ 	mutex_lock(&priv->state_lock);
+-	err = mlx5e_close_locked(netdev);
++	err = mlx5e_close_locked(priv);
+ 	mutex_unlock(&priv->state_lock);
+ 
+ 	return err;
+@@ -2641,12 +2640,12 @@ static int mlx5e_setup_tc(struct net_device *netdev, u8 tc)
+ 
+ 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (was_opened)
+-		mlx5e_close_locked(priv->netdev);
++		mlx5e_close_locked(priv);
+ 
+ 	priv->params.num_tc = tc ? tc : 1;
+ 
+ 	if (was_opened)
+-		err = mlx5e_open_locked(priv->netdev);
++		err = mlx5e_open_locked(priv);
+ 
+ 	mutex_unlock(&priv->state_lock);
+ 
+@@ -2771,7 +2770,7 @@ static int set_feature_lro(struct net_device *netdev, bool enable)
+ 	mutex_lock(&priv->state_lock);
+ 
+ 	if (was_opened && (priv->params.rq_wq_type == MLX5_WQ_TYPE_LINKED_LIST))
+-		mlx5e_close_locked(priv->netdev);
++		mlx5e_close_locked(priv);
+ 
+ 	priv->params.lro_en = enable;
+ 	err = mlx5e_modify_tirs_lro(priv);
+@@ -2781,7 +2780,7 @@ static int set_feature_lro(struct net_device *netdev, bool enable)
  	}
- 	unregister_netdevice_many(&head);
  
--	/*
--	 * Must be before ipoib_ib_dev_cleanup or we delete an in use
--	 * work queue
--	 */
- 	ipoib_neigh_hash_uninit(dev);
+ 	if (was_opened && (priv->params.rq_wq_type == MLX5_WQ_TYPE_LINKED_LIST))
+-		mlx5e_open_locked(priv->netdev);
++		mlx5e_open_locked(priv);
  
- 	ipoib_ib_dev_cleanup(dev);
+ 	mutex_unlock(&priv->state_lock);
  
--	kfree(priv->rx_ring);
--	vfree(priv->tx_ring);
--
--	priv->rx_ring = NULL;
--	priv->tx_ring = NULL;
-+	/* no more works over the priv->wq */
-+	if (priv->wq) {
-+		flush_workqueue(priv->wq);
-+		destroy_workqueue(priv->wq);
-+		priv->wq = NULL;
-+	}
- }
+@@ -2915,13 +2914,13 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
  
- static int ipoib_set_vf_link_state(struct net_device *dev, int vf, int link_state)
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-index 189dcd1709d2..529b9509a2c4 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-@@ -147,22 +147,6 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 	int ret, size;
- 	int i;
+ 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (was_opened && reset)
+-		mlx5e_close_locked(netdev);
++		mlx5e_close_locked(priv);
  
--	priv->pd = ib_alloc_pd(priv->ca, 0);
--	if (IS_ERR(priv->pd)) {
--		printk(KERN_WARNING "%s: failed to allocate PD\n", ca->name);
--		return -ENODEV;
--	}
--
--	/*
--	 * the various IPoIB tasks assume they will never race against
--	 * themselves, so always use a single thread workqueue
--	 */
--	priv->wq = alloc_ordered_workqueue("ipoib_wq", WQ_MEM_RECLAIM);
--	if (!priv->wq) {
--		printk(KERN_WARNING "ipoib: failed to allocate device WQ\n");
--		goto out_free_pd;
--	}
--
- 	size = ipoib_recvq_size + 1;
- 	ret = ipoib_cm_dev_init(dev);
- 	if (!ret) {
-@@ -173,7 +157,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 			size += ipoib_recvq_size * ipoib_max_conn_qp;
- 	} else
- 		if (ret != -ENOSYS)
--			goto out_free_wq;
-+			return -ENODEV;
+ 	netdev->mtu = new_mtu;
+ 	mlx5e_set_dev_port_mtu(netdev);
  
- 	cq_attr.cqe = size;
- 	priv->recv_cq = ib_create_cq(priv->ca, ipoib_ib_completion, NULL,
-@@ -212,10 +196,6 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 		goto out_free_send_cq;
- 	}
+ 	if (was_opened && reset)
+-		err = mlx5e_open_locked(netdev);
++		err = mlx5e_open_locked(priv);
  
--	priv->dev->dev_addr[1] = (priv->qp->qp_num >> 16) & 0xff;
--	priv->dev->dev_addr[2] = (priv->qp->qp_num >>  8) & 0xff;
--	priv->dev->dev_addr[3] = (priv->qp->qp_num      ) & 0xff;
--
- 	for (i = 0; i < MAX_SKB_FRAGS + 1; ++i)
- 		priv->tx_sge[i].lkey = priv->pd->local_dma_lkey;
+ 	mutex_unlock(&priv->state_lock);
  
-@@ -247,13 +227,6 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- out_cm_dev_cleanup:
- 	ipoib_cm_dev_cleanup(dev);
+@@ -3173,7 +3172,7 @@ static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
+ 	reset = (!priv->xdp_prog || !prog);
  
--out_free_wq:
--	destroy_workqueue(priv->wq);
--	priv->wq = NULL;
--
--out_free_pd:
--	ib_dealloc_pd(priv->pd);
--
- 	return -ENODEV;
- }
+ 	if (was_opened && reset)
+-		mlx5e_close_locked(netdev);
++		mlx5e_close_locked(priv);
+ 	if (was_opened && !reset) {
+ 		/* num_channels is invariant here, so we can take the
+ 		 * batched reference right upfront.
+@@ -3196,7 +3195,7 @@ static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
+ 		mlx5e_set_rq_priv_params(priv);
  
-@@ -266,7 +239,6 @@ void ipoib_transport_dev_cleanup(struct net_device *dev)
- 			ipoib_warn(priv, "ib_qp_destroy failed\n");
+ 	if (was_opened && reset)
+-		mlx5e_open_locked(netdev);
++		mlx5e_open_locked(priv);
  
- 		priv->qp = NULL;
--		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	}
+ 	if (!test_bit(MLX5E_STATE_OPENED, &priv->state) || reset)
+ 		goto unlock;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 06d5e6fecb0a..ad08e64fee1a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -169,12 +169,12 @@ void mlx5e_modify_rx_cqe_compression(struct mlx5e_priv *priv, bool val)
  
- 	if (ib_destroy_cq(priv->send_cq))
-@@ -274,16 +246,6 @@ void ipoib_transport_dev_cleanup(struct net_device *dev)
+ 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+ 	if (was_opened)
+-		mlx5e_close_locked(priv->netdev);
++		mlx5e_close_locked(priv);
  
- 	if (ib_destroy_cq(priv->recv_cq))
- 		ipoib_warn(priv, "ib_cq_destroy (recv) failed\n");
--
--	ipoib_cm_dev_cleanup(dev);
--
--	if (priv->wq) {
--		flush_workqueue(priv->wq);
--		destroy_workqueue(priv->wq);
--		priv->wq = NULL;
--	}
--
--	ib_dealloc_pd(priv->pd);
- }
+ 	MLX5E_SET_PFLAG(priv, MLX5E_PFLAG_RX_CQE_COMPRESS, val);
  
- void ipoib_event(struct ib_event_handler *handler,
+ 	if (was_opened)
+-		mlx5e_open_locked(priv->netdev);
++		mlx5e_open_locked(priv);
+ 
+ unlock:
+ 	mutex_unlock(&priv->state_lock);
 -- 
 1.8.3.1
 
