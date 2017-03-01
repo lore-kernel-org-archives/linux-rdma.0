@@ -1,71 +1,59 @@
-From: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ipoib: clean ib tx ring periodically
-Date: Wed, 01 Mar 2017 10:07:36 +0100
-Message-ID: <1488359256.2607.2.camel@redhat.com>
-References: <589591340739f0ceeea9ca449b6de3df01caadc4.1487259121.git.pabeni@redhat.com>
-         <CAAk-MO_J2JL9YvNEV24LJik8qGKrBHBW+2NtzAOL+QEve1CMJg@mail.gmail.com>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: net/rds: use-after-free in inet_create
+Date: Wed, 1 Mar 2017 10:47:26 +0100
+Message-ID: <CACT4Y+bKrO1XMi=cqEmU-tFeNUHTSMexZQTx7Jvisr1+0uWjQQ@mail.gmail.com>
+References: <CACT4Y+bi=rZr9yrajA0o0iUeR4N0q-sXYudBVsOeOiHbuApBeA@mail.gmail.com>
+ <20170228153737.GG31155@oracle.com> <CACT4Y+aobp+g_AYoX6j1eftyyirK4pBxhOXz9hDu+XU+-jxSYw@mail.gmail.com>
+ <20170228161544.GH31155@oracle.com> <CACT4Y+bWWAiMYQN_Fvxs7CKR9hRAA+r0t_YZhja3B5xGcZ4vcQ@mail.gmail.com>
+ <20170228163833.GI31155@oracle.com> <CACT4Y+Y5eM8hKQ7BgA4hEN7ozkhRGgvGJRU6Smrths6noC-PMw@mail.gmail.com>
+ <20170228222410.GA32635@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAk-MO_J2JL9YvNEV24LJik8qGKrBHBW+2NtzAOL+QEve1CMJg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170228222410.GA32635@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Cc: santosh.shilimkar@oracle.com, David Miller <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, LKML <linux-kernel@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, syzkaller <syzkaller@googlegroups.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-01 at 09:28 +0200, Erez Shitrit wrote:
-> On Thu, Feb 16, 2017 at 5:35 PM, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> > The skbs transmitted via ipoib_send() are freed only if there are
-> > 16 or more outstanding work requests or if the send queue is full.
-> > 
-> > If there is very little networking activity, the transmitted skbs
-> > can be held by the device driver for an unlimited amount of time,
-> > starving other subsystems.
-> > 
-> > E.g. assuming the ipv6 is enabled, with the following sequence:
-> > 
-> > systemctl start firewalld
-> > modprobe ib_ipoib
-> > ip addr add dev ib0 fc00::1/64
-> > systemctl stop firewalld
-> > 
-> > a cpu will hang: rmmod conntrack will keep a core busy
-> > spinning for nf_conntrack_untracked going to 0, since some ICMP6
-> > ND packets are generated and transmitted when the ipv6 address
-> > is attached to the device, and such packets get a notrack ct
-> > entry.
-> > 
-> > This change address the issue introducing a periodic timer performing
-> > "garbage collection" on the send ring at low frequency (once every
-> > second).
-> > 
-> > This new timer runs independently from the currently used poll_timer,
-> > so that no additional delay is introduced to clean the ring after
-> > errors or ring full event.
-> 
-> Hi,
-> 
-> Adding a new timer is not the required solution, it is a w/a over the
-> TX part in the ipoib driver.
-> The real solution, IMHO, is to use the napi mechanism for the TX in a
-> similar way as it done in the RX. (as it done in many network drivers)
-> 
-> We (Mellanox) are planning to send such solution in the next few days.
+On Tue, Feb 28, 2017 at 11:24 PM, Sowmini Varadhan
+<sowmini.varadhan@oracle.com> wrote:
+>
+> Actually, I'm not sure if I can assert that these are all manifestations
+> of the same bug- was a netns-delete involved in this one as well?
+>
+> I see:
+>
+>> BUG: KASAN: use-after-free in memcmp+0xe3/0x160 lib/string.c:768 at
+>     :
+>>  memcmp+0xe3/0x160 lib/string.c:768
+>     :
+>>  rds_find_bound+0x4fe/0x8a0 net/rds/bind.c:63
+>>  rds_recv_incoming+0x5f3/0x12c0 net/rds/recv.c:349
+>>  rds_loop_xmit+0x1c5/0x490 net/rds/loop.c:82
+>     :
+> This appears to be for a looped back packet, and looks like there
+> are problems with  some rds_sock that got removed from the bind_hash_table..
+>
+> According to the report, socket was created at
+>> Allocated:
+>> PID = 5235
+>     :
+>>  sk_prot_alloc+0x65/0x2a0 net/core/sock.c:1334
+>>  sk_alloc+0x105/0x1010 net/core/sock.c:1396
+>>  rds_create+0x11c/0x600 net/rds/af_rds.c:504
+>
+> and closed at some point:
+>> Freed:
+>> PID = 5235
+>      :
+>>  rds_release+0x3a1/0x4d0 net/rds/af_rds.c:89
+>>  sock_release+0x8d/0x1e0 net/socket.c:599
+>
+> This is all uspace created rds sockets, and while there may be an
+> unrelated bug here, I'm not sure I see  the netns/kernel-socket
+> connection.. can you please clarify if this was also seen in some netns
+> context?
 
-Thank you for jumping-in on this.
 
-I think that the tx napi polling implementation for the ipoib driver is
-not so straight-forward because, afaics, the ib completion callback is
-intentionally avoided for tx - unless in exceptional scenarios -
-possibly for performance reason.
-
-Anyway, if you can fix this in a cleaner way, I'll be more than happy. 
-
-Thank you,
-
-Paolo
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, these test processes run in private net namespaces.
