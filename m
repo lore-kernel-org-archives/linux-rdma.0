@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 15/26] net/mlx5: Enable flow-steering for IB link
-Date: Wed,  1 Mar 2017 16:02:23 +0200
-Message-ID: <1488376954-8346-16-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 24/26] net/mlx5e: Change the function that checks the packet type
+Date: Wed,  1 Mar 2017 16:02:32 +0200
+Message-ID: <1488376954-8346-25-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,57 +11,42 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-Get the relevant capabilities if supports ipoib_enhanced_offloads and
-init the flow steering table accordingly.
+Now we can use it for non-ethernet type packets (like IB).
+After changing the order of the skb processing the function now can
+check the skb->protocol field to check if it is ETH_P_IP/ETH_P_IPV6
+packet.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 10 +++++-----
- drivers/net/ethernet/mellanox/mlx5/core/fw.c      |  3 ++-
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index fa4edd88daf1..dd21fc557281 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1991,9 +1991,6 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
- 	struct mlx5_flow_steering *steering;
- 	int err = 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 98546b3395df..071a6ecce720 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -549,9 +549,8 @@ static inline void mlx5e_skb_set_hash(struct mlx5_cqe64 *cqe,
  
--	if (MLX5_CAP_GEN(dev, port_type) != MLX5_CAP_PORT_TYPE_ETH)
--		return 0;
+ static inline bool is_first_ethertype_ip(struct sk_buff *skb)
+ {
+-	__be16 ethertype = ((struct ethhdr *)skb->data)->h_proto;
 -
- 	err = mlx5_init_fc_stats(dev);
- 	if (err)
- 		return err;
-@@ -2004,8 +2001,11 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
- 	steering->dev = dev;
- 	dev->priv.steering = steering;
+-	return (ethertype == htons(ETH_P_IP) || ethertype == htons(ETH_P_IPV6));
++	return (skb->protocol == htons(ETH_P_IP) ||
++		skb->protocol == htons(ETH_P_IPV6));
+ }
  
--	if (MLX5_CAP_GEN(dev, nic_flow_table) &&
--	    MLX5_CAP_FLOWTABLE_NIC_RX(dev, ft_support)) {
-+	if ((((MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
-+	      (MLX5_CAP_GEN(dev, nic_flow_table))) ||
-+	     ((MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_IB) &&
-+	      MLX5_CAP_GEN(dev, ipoib_enhanced_offloads)))
-+	    && MLX5_CAP_FLOWTABLE_NIC_RX(dev, ft_support)) {
- 		err = init_root_ns(steering);
- 		if (err)
- 			goto err;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index 5718aada6605..f95bc78b02f2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -123,7 +123,8 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 			return err;
- 	}
+ static inline void mlx5e_handle_csum(struct net_device *netdev,
+@@ -621,8 +620,8 @@ inline void mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
  
--	if (MLX5_CAP_GEN(dev, nic_flow_table)) {
-+	if (MLX5_CAP_GEN(dev, nic_flow_table) ||
-+	    MLX5_CAP_GEN(dev, ipoib_enhanced_offloads)) {
- 		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE);
- 		if (err)
- 			return err;
+ 	skb->mark = be32_to_cpu(cqe->sop_drop_qpn) & MLX5E_TC_FLOW_ID_MASK;
+ 
+-	mlx5e_handle_csum(netdev, cqe, rq, skb, !!lro_num_seg);
+ 	skb->protocol = eth_type_trans(skb, netdev);
++	mlx5e_handle_csum(netdev, cqe, rq, skb, !!lro_num_seg);
+ }
+ 
+ static inline void mlx5e_complete_rx_cqe(struct mlx5e_rq *rq,
 -- 
 1.8.3.1
 
