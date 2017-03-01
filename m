@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 26/26] mlx5_ib: skeleton for mlx5_ib to support ipoib_ops
-Date: Wed,  1 Mar 2017 16:02:34 +0200
-Message-ID: <1488376954-8346-27-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 09/26] net/mlx5e: Refactor EN code to support IB link
+Date: Wed,  1 Mar 2017 16:02:17 +0200
+Message-ID: <1488376954-8346-10-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,340 +11,243 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
+The idea is to use the same infrastructures for both ETH and IB link
+types, so the first step is to refactor the ETH handling to be able to
+use IB link as well.
+
+1. Check requirments for ETH and for IB
+2. Move code to common functions, where it will be used for both link
+types.
+3. Change init and cleanup flows not to be specific for ETH link.
+
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/Makefile         |   2 +-
- drivers/infiniband/hw/mlx5/main.c           |   3 +
- drivers/infiniband/hw/mlx5/mlx5_ipoib_ops.c | 289 ++++++++++++++++++++++++++++
- 3 files changed, 293 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/hw/mlx5/mlx5_ipoib_ops.c
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 120 ++++++++++++++--------
+ 1 file changed, 80 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
-index 90ad2adc752f..0c4caa339565 100644
---- a/drivers/infiniband/hw/mlx5/Makefile
-+++ b/drivers/infiniband/hw/mlx5/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MLX5_INFINIBAND)	+= mlx5_ib.o
- 
--mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o gsi.o ib_virt.o cmd.o
-+mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o gsi.o ib_virt.o cmd.o mlx5_ipoib_ops.o
- mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4a043cf35b9a..4140c5b2a050 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -72,6 +72,8 @@ enum {
- 	MLX5_ATOMIC_SIZE_QP_8BYTES = 1 << 3,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 041e0ac16096..88541f99d37b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3323,29 +3323,39 @@ static void mlx5e_netpoll(struct net_device *dev)
+ 	.ndo_get_offload_stats	 = mlx5e_get_offload_stats,
  };
  
-+struct ib_ipoib_accel_ops *mlx5_ib_get_ipoib_ops(struct ib_device *device);
+-static int mlx5e_check_required_hca_cap(struct mlx5_core_dev *mdev)
+-{
+-	if (MLX5_CAP_GEN(mdev, port_type) != MLX5_CAP_PORT_TYPE_ETH)
+-		return -EOPNOTSUPP;
+-	if (!MLX5_CAP_GEN(mdev, eth_net_offloads) ||
+-	    !MLX5_CAP_GEN(mdev, nic_flow_table) ||
+-	    !MLX5_CAP_ETH(mdev, csum_cap) ||
+-	    !MLX5_CAP_ETH(mdev, max_lso_cap) ||
+-	    !MLX5_CAP_ETH(mdev, vlan_cap) ||
+-	    !MLX5_CAP_ETH(mdev, rss_ind_tbl_cap) ||
+-	    MLX5_CAP_FLOWTABLE(mdev,
+-			       flow_table_properties_nic_receive.max_ft_level)
+-			       < 3) {
+-		mlx5_core_warn(mdev,
+-			       "Not creating net device, some required device capabilities are missing\n");
+-		return -EOPNOTSUPP;
++static int mlx5e_check_required_hca_cap(struct mlx5_core_dev *mdev,
++					int link_type)
++{
++	if (link_type == MLX5_INTERFACE_PROTOCOL_ETH) {
++		if (!MLX5_CAP_GEN(mdev, eth_net_offloads) ||
++		    !MLX5_CAP_GEN(mdev, nic_flow_table) ||
++		    !MLX5_CAP_ETH(mdev, csum_cap) ||
++		    !MLX5_CAP_ETH(mdev, max_lso_cap) ||
++		    !MLX5_CAP_ETH(mdev, vlan_cap) ||
++		    !MLX5_CAP_ETH(mdev, rss_ind_tbl_cap) ||
++		    MLX5_CAP_FLOWTABLE(mdev,
++				       flow_table_properties_nic_receive.max_ft_level)
++				       < 3) {
++			mlx5_core_warn(mdev,
++				       "Not creating net device, some required device capabilities are missing\n");
++			return -ENOTSUPP;
++		}
++		if (!MLX5_CAP_ETH(mdev, self_lb_en_modifiable))
++			mlx5_core_warn(mdev, "Self loop back prevention is not supported\n");
++		if (!MLX5_CAP_GEN(mdev, cq_moderation))
++			mlx5_core_warn(mdev, "CQ modiration is not supported\n");
 +
- static enum rdma_link_layer
- mlx5_port_type_cap_to_rdma_ll(int port_type_cap)
++		return 0;
++	} else if (link_type == MLX5_INTERFACE_PROTOCOL_IB) {
++		if (!MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads)) {
++			pr_warn("Not creating net device (IB), some required device capabilities are missing\n");
++			return -ENOTSUPP;
++		}
++		return 0;
+ 	}
+-	if (!MLX5_CAP_ETH(mdev, self_lb_en_modifiable))
+-		mlx5_core_warn(mdev, "Self loop back prevention is not supported\n");
+-	if (!MLX5_CAP_GEN(mdev, cq_moderation))
+-		mlx5_core_warn(mdev, "CQ modiration is not supported\n");
+ 
+-	return 0;
++	return -ENOTSUPP;
++
+ }
+ 
+ u16 mlx5e_get_max_inline_cap(struct mlx5_core_dev *mdev)
+@@ -3455,12 +3465,12 @@ u32 mlx5e_choose_lro_timeout(struct mlx5_core_dev *mdev, u32 wanted_timeout)
+ 	return MLX5_CAP_ETH(mdev, lro_timer_supported_periods[i]);
+ }
+ 
+-static void mlx5e_build_nic_netdev_priv(struct mlx5_core_dev *mdev,
++void mlx5n_build_nic_netdev_priv_common(struct mlx5_core_dev *mdev,
+ 					struct net_device *netdev,
++					struct mlx5e_priv *priv,
+ 					const struct mlx5e_profile *profile,
+ 					void *ppriv)
  {
-@@ -3436,6 +3438,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.alloc_mr		= mlx5_ib_alloc_mr;
- 	dev->ib_dev.map_mr_sg		= mlx5_ib_map_mr_sg;
- 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
-+	dev->ib_dev.get_ipoib_accel_ops = mlx5_ib_get_ipoib_ops;
- 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
- 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
- 	if (mlx5_core_is_pf(mdev)) {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ipoib_ops.c b/drivers/infiniband/hw/mlx5/mlx5_ipoib_ops.c
-new file mode 100644
-index 000000000000..b8008aca690b
---- /dev/null
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ipoib_ops.c
-@@ -0,0 +1,289 @@
-+/*
-+ * Copyright (c) 2013-2015, Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <rdma/ib_ipoib_accel_ops.h>
-+#include "mlx5_ib.h"
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/fs.h>
-+/*FIX ME*/
-+#include "../../ulp/ipoib/ipoib.h"
-+
-+#define IB_DEFAULT_Q_KEY   0xb1b
-+
-+static inline void *next_netdev_priv(const struct net_device *dev)
-+{
-+	return (char *)netdev_priv(dev) + sizeof(struct ipoib_dev_priv);
+-	struct mlx5e_priv *priv = netdev_priv(netdev);
+ 	u32 link_speed = 0;
+ 	u32 pci_bw = 0;
+ 	u8 cq_period_mode = MLX5_CAP_GEN(mdev, cq_period_start_from_cqe) ?
+@@ -3524,6 +3534,15 @@ static void mlx5e_build_nic_netdev_priv(struct mlx5_core_dev *mdev,
+ 	MLX5E_SET_PFLAG(priv, MLX5E_PFLAG_RX_CQE_COMPRESS, priv->params.rx_cqe_compress_def);
+ 
+ 	mutex_init(&priv->state_lock);
 +}
 +
-+int mlx5_ib_config_ipoib_qp(struct mlx5_ib_dev *ib_dev, struct mlx5_core_qp *qp)
++static void mlx5e_build_nic_netdev_priv(struct mlx5_core_dev *mdev,
++					struct net_device *netdev,
++					struct mlx5e_priv *priv,
++					const struct mlx5e_profile *profile,
++					void *ppriv)
 +{
-+	u32 *in;
-+	struct mlx5_qp_context *context;
-+	int inlen;
-+	void *addr_path;
-+	void *qpc;
-+	int ret;
-+
-+	inlen = MLX5_ST_SZ_BYTES(create_qp_in);
-+	in = mlx5_vzalloc(inlen);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	qpc = MLX5_ADDR_OF(create_qp_in, in, qpc);
-+	MLX5_SET(qpc, qpc, st, MLX5_QP_ST_UD);
-+	MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_MIGRATED);
-+	MLX5_SET(qpc, qpc, ulp_stateless_offload_mode,
-+		 MLX5_QP_ENHANCED_ULP_STATELESS_MODE);
-+
-+	addr_path = MLX5_ADDR_OF(qpc, qpc, primary_address_path);
-+	MLX5_SET(ads, addr_path, port, 1);
-+	MLX5_SET(ads, addr_path, grh, 1);
-+
-+	ret = mlx5_core_create_qp(ib_dev->mdev, qp, in, inlen);
-+	if (ret) {
-+		pr_err("Failed creating IPoIB QP err : %d\n", ret);
-+		goto clean_inbox;
-+	}
-+
-+	/* QP states */
-+	context = kzalloc(sizeof(*context), GFP_KERNEL);
-+	if (!context)
-+		goto clean_inbox;
-+
-+	context->flags = cpu_to_be32(MLX5_QP_PM_MIGRATED << 11);
-+	context->pri_path.port = 1;
-+	context->qkey = cpu_to_be32(IB_DEFAULT_Q_KEY);
-+
-+	ret = mlx5_core_qp_modify(ib_dev->mdev,
-+				  MLX5_CMD_OP_RST2INIT_QP, 0, context, qp);
-+	if (ret) {
-+		pr_warn("Failed to modify qp RST2INIT, err: %d\n", ret);
-+		goto clean_in_modify;
-+	}
-+	memset(context, 0, sizeof(*context));
-+
-+	ret = mlx5_core_qp_modify(ib_dev->mdev,
-+				  MLX5_CMD_OP_INIT2RTR_QP, 0, context,
-+				  qp);
-+	if (ret) {
-+		pr_warn("Failed to modify qp INIT2RTR, err: %d\n", ret);
-+		goto clean_in_modify;
-+	}
-+
-+	ret = mlx5_core_qp_modify(ib_dev->mdev,
-+				  MLX5_CMD_OP_RTR2RTS_QP, 0, context,
-+				  qp);
-+	if (ret) {
-+		pr_warn("Failed to modify qp RTR2RTS, err: %d\n", ret);
-+		goto clean_in_modify;
-+	}
-+
-+	kvfree(in);
-+	kfree(context);
-+
-+	return 0;
-+
-+clean_in_modify:
-+	kvfree(in);
-+clean_inbox:
-+	kvfree(in);
-+	return ret;
-+}
-+
-+static void mlx5_ib_clean_qp(struct mlx5_ib_dev *ib_dev,
-+			     struct mlx5_core_qp *qp)
++	mlx5n_build_nic_netdev_priv_common(mdev, netdev, priv, profile, ppriv);
+ 
+ 	INIT_WORK(&priv->update_carrier_work, mlx5e_update_carrier_work);
+ 	INIT_WORK(&priv->set_rx_mode_work, mlx5e_set_rx_mode_work);
+@@ -3663,7 +3682,7 @@ static void mlx5e_nic_init(struct mlx5_core_dev *mdev,
+ {
+ 	struct mlx5e_priv *priv = netdev_priv(netdev);
+ 
+-	mlx5e_build_nic_netdev_priv(mdev, netdev, profile, ppriv);
++	mlx5e_build_nic_netdev_priv(mdev, netdev, priv, profile, ppriv);
+ 	mlx5e_build_nic_netdev(netdev);
+ 	mlx5e_vxlan_init(priv);
+ }
+@@ -3676,7 +3695,8 @@ static void mlx5e_nic_cleanup(struct mlx5e_priv *priv)
+ 		bpf_prog_put(priv->xdp_prog);
+ }
+ 
+-static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
++/* used for ETH && IB link layer */
++static int mlx5n_init_nic_rx_common(struct mlx5e_priv *priv)
+ {
+ 	struct mlx5_core_dev *mdev = priv->mdev;
+ 	int err;
+@@ -3706,20 +3726,12 @@ static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
+ 		goto err_destroy_indirect_tirs;
+ 	}
+ 
+-	err = mlx5e_create_flow_steering(priv);
+-	if (err) {
+-		mlx5_core_warn(mdev, "create flow steering failed, %d\n", err);
+-		goto err_destroy_direct_tirs;
+-	}
+-
+ 	err = mlx5e_tc_init(priv);
+ 	if (err)
+-		goto err_destroy_flow_steering;
++		goto err_destroy_direct_tirs;
+ 
+ 	return 0;
+ 
+-err_destroy_flow_steering:
+-	mlx5e_destroy_flow_steering(priv);
+ err_destroy_direct_tirs:
+ 	mlx5e_destroy_direct_tirs(priv);
+ err_destroy_indirect_tirs:
+@@ -3732,12 +3744,31 @@ static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
+ 	return err;
+ }
+ 
+-static void mlx5e_cleanup_nic_rx(struct mlx5e_priv *priv)
++static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
 +{
-+	mlx5_core_destroy_qp(ib_dev->mdev, qp);
-+	kfree(qp);
-+}
++	struct mlx5_core_dev *mdev = priv->mdev;
++	int err;
 +
-+struct net_device *mlx5_ib_create_netdev(struct ib_device *hca,
-+					 const char *name,
-+					 void (*setup)(struct net_device *))
-+{
-+	struct net_device *dev;
-+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
-+	struct mlx5_core_qp *qp;
-+	struct mlx5i_create_ext_param param;
-+	struct ipoib_dev_priv *priv;
-+	int ret;
-+
-+	/* new IPoIB QP */
-+	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-+	if (!qp) {
-+		pr_warn("Failed allocate memroy for QP\n");
-+		return NULL;
++	err = mlx5n_init_nic_rx_common(priv);
++	if (err) {
++		mlx5_core_warn(mdev, "failed create nic rx res, %d\n", err);
++		return err;
 +	}
 +
-+	/* config and move qp to RTS */
-+	ret = mlx5_ib_config_ipoib_qp(ib_dev, qp);
-+	if (ret) {
-+		pr_warn("Failed config IPoIB QP ret: %d\n", ret);
-+		goto clean_qp;
++	err = mlx5e_create_flow_steering(priv);
++	if (err) {
++		mlx5_core_warn(mdev, "create flow steering failed, %d\n", err);
++		return err;
 +	}
-+
-+	param.size_base_priv = sizeof(struct ipoib_dev_priv);
-+	param.qpn = qp->qpn;
-+	dev = mlx5i_create_netdev(ib_dev->mdev, name, setup, &param);
-+	if (dev) {
-+		priv = netdev_priv(dev);
-+		priv->qp_num = qp->qpn;
-+		priv->context = qp;
-+		pr_debug("%s qpn: %d created\n", __func__, qp->qpn);
-+		return dev;
-+	}
-+
-+	pr_err("%s: Failed to create net device\n", __func__);
-+
-+clean_qp:
-+	mlx5_ib_clean_qp(ib_dev, qp);
-+	return NULL;
-+}
-+
-+int mlx5_ib_dev_init(struct net_device *dev, int *qp_num)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	void *next_priv = next_netdev_priv(dev);
-+	struct ib_device *hca = priv->ca;
-+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
-+	int ret;
-+
-+	ret = mlx5i_attach(ib_dev->mdev, next_priv);
-+	if (ret) {
-+		pr_err("Failed resources allocation for device: %s ret: %d\n",
-+		       dev->name, ret);
-+		return ret;
-+	}
-+
-+	*qp_num = priv->qp_num;
-+
-+	pr_debug("resources allocated for device: %s\n", dev->name);
 +
 +	return 0;
 +}
 +
-+void mlx5_ib_dev_cleanup(struct net_device *dev)
++static void mlx5n_cleanup_nic_rx_common(struct mlx5e_priv *priv)
+ {
+ 	int i;
+ 
+ 	mlx5e_tc_cleanup(priv);
+-	mlx5e_destroy_flow_steering(priv);
+ 	mlx5e_destroy_direct_tirs(priv);
+ 	mlx5e_destroy_indirect_tirs(priv);
+ 	for (i = 0; i < priv->profile->max_nch(priv->mdev); i++)
+@@ -3745,6 +3776,12 @@ static void mlx5e_cleanup_nic_rx(struct mlx5e_priv *priv)
+ 	mlx5e_destroy_rqt(priv, &priv->indir_rqt);
+ }
+ 
++static void mlx5e_cleanup_nic_rx(struct mlx5e_priv *priv)
 +{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	void *next_priv = next_netdev_priv(dev);
-+	struct ib_device *hca = priv->ca;
-+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
-+	struct mlx5_qp_context context;
-+	int ret;
-+
-+	/* detach qp from flow-steering by rest it */
-+	ret = mlx5_core_qp_modify(ib_dev->mdev,
-+				  MLX5_CMD_OP_2RST_QP, 0, &context,
-+				  (struct mlx5_core_qp *)priv->context);
-+	if (ret)
-+		pr_err("%s failed (ret: %d) to reset QP\n", __func__, ret);
-+
-+	mlx5i_detach(ib_dev->mdev, next_priv);
-+
-+	mlx5_ib_clean_qp(ib_dev, (struct mlx5_core_qp *)priv->context);
++	mlx5e_destroy_flow_steering(priv);
++	mlx5n_cleanup_nic_rx_common(priv);
 +}
 +
-+int mlx5_ib_dev_open(struct net_device *dev)
-+{
-+	void *next_priv = next_netdev_priv(dev);
+ static int mlx5e_init_nic_tx(struct mlx5e_priv *priv)
+ {
+ 	int err;
+@@ -3836,7 +3873,8 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
+ 		return NULL;
+ 	}
+ 
+-	profile->init(mdev, netdev, profile, ppriv);
++	if (profile->init)
++		profile->init(mdev, netdev, profile, ppriv);
+ 
+ 	netif_carrier_off(netdev);
+ 
+@@ -3849,7 +3887,9 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
+ 	return netdev;
+ 
+ err_cleanup_nic:
+-	profile->cleanup(priv);
++	if (profile->cleanup)
++		profile->cleanup(priv);
 +
-+	return mlx5i_open(next_priv);
-+}
-+
-+int mlx5_ib_dev_stop(struct net_device *dev)
-+{
-+	void *next_priv = next_netdev_priv(dev);
-+
-+	return mlx5i_close(next_priv);
-+}
-+
-+void mlx5_ib_send(struct net_device *dev, struct sk_buff *skb,
-+		  struct ipoib_ah *address, u32 dqpn, u32 dqkey)
-+{
-+	void *next_priv = next_netdev_priv(dev);
-+
-+	mlx5i_xmit(skb, next_priv, &to_mah(address->ah)->av, dqpn, dqkey);
-+}
-+
-+int mlx5_ib_attach_mcast(struct net_device *dev, union ib_gid *gid,
-+			 u16 lid, int set_qkey)
-+{
-+	int err;
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ib_device *hca = priv->ca;
-+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
-+
-+	pr_debug("%s attaching QPN 0x%x, MGID %pI6\n",
-+		 dev->name, priv->qp_num, gid->raw);
-+
-+	err = mlx5_core_attach_mcg(ib_dev->mdev, gid, priv->qp_num);
-+	if (err)
-+		pr_err("%s failed attaching QPN 0x%x, MGID %pI6\n",
-+		       dev->name, priv->qp_num, gid->raw);
-+
-+	return err;
-+}
-+
-+int mlx5_ib_dettach_mcast(struct net_device *dev, union ib_gid *gid, u16 lid)
-+{
-+	int err;
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ib_device *hca = priv->ca;
-+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
-+
-+	pr_debug("%s de-attaching QPN 0x%x, MGID %pI6\n",
-+		 dev->name, priv->qp_num, gid->raw);
-+
-+	err = mlx5_core_detach_mcg(ib_dev->mdev, gid, priv->qp_num);
-+	if (err)
-+		pr_err("%s failed dettaching QPN 0x%x, MGID %pI6\n",
-+		       dev->name, priv->qp_num, gid->raw);
-+
-+	return err;
-+}
-+
-+struct ib_ipoib_accel_ops ipoib_ops = {
-+	.ib_dev_init = mlx5_ib_dev_init,
-+	.ib_dev_cleanup = mlx5_ib_dev_cleanup,
-+	.ib_dev_open = mlx5_ib_dev_open,
-+	.ib_dev_stop = mlx5_ib_dev_stop,
-+	.send = mlx5_ib_send,
-+	.create_netdev = mlx5_ib_create_netdev,
-+	.attach_mcast = mlx5_ib_attach_mcast,
-+	.detach_mcast = mlx5_ib_dettach_mcast
-+
-+};
-+
-+struct ib_ipoib_accel_ops *mlx5_ib_get_ipoib_ops(struct ib_device *device)
-+{
-+	return &ipoib_ops;
-+}
+ 	free_netdev(netdev);
+ 
+ 	return NULL;
+@@ -3881,7 +3921,7 @@ int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct net_device *netdev)
+ 		goto err_close_drop_rq;
+ 
+ 	mlx5e_create_q_counter(priv);
+-
++	//TBD do i need to change that?
+ 	mlx5e_init_l2_addr(priv);
+ 
+ 	/* MTU range: 68 - hw-specific max */
+@@ -4006,7 +4046,7 @@ static void *mlx5e_add(struct mlx5_core_dev *mdev)
+ 	int err;
+ 	struct net_device *netdev;
+ 
+-	err = mlx5e_check_required_hca_cap(mdev);
++	err = mlx5e_check_required_hca_cap(mdev, MLX5_INTERFACE_PROTOCOL_ETH);
+ 	if (err)
+ 		return NULL;
+ 
 -- 
 1.8.3.1
 
