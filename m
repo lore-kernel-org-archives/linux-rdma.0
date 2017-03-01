@@ -1,105 +1,78 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 00/20] IB/hfi1, qib,
- rdmavt: Another round of patches for 4.11
-Date: Wed, 01 Mar 2017 10:21:07 -0800
-Message-ID: <20170301181719.29989.31238.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 20/20] IB/core: If the MGID/MLID pair is not on the list
+ return an error
+Date: Wed, 01 Mar 2017 10:24:32 -0800
+Message-ID: <20170301182426.29989.77369.stgit@scvm10.sc.intel.com>
+References: <20170301181719.29989.31238.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170301181719.29989.31238.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug,
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Here is another round of patches for 4.11. Included with the usual bug fixes
-and general improvements of particular interest are new versions of the two
-patches that you didn't take for the first set. The fault injection stuff.
-We decided to go ahead and use the already existing config variable for those.
-The other interesting thing here is a patch to the IB core for MGID/MLID
-checking.
+A list of MGID/MLID pairs is built when doing a multicast attach.  When
+the multicast detach is called, the list is searched, and regardless of
+the search outcome, the driver detach is called.
 
-Patches apply on top of Linus' master branch which includes your most recent
-pull request so this should apply equally well to your tree. Patches can 
-also be found in my GitHub repo at:
-https://github.com/ddalessa/kernel/tree/for-4.11
+If an MGID/MLID pair is not on the list, driver detach should not be
+called, and an error should be returned.  Failure to do so can leave
+the Multicast list out of sync with what the driver has.
 
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/core/uverbs_cmd.c |   13 +++++++++----
+ 1 files changed, 9 insertions(+), 4 deletions(-)
 
-Dean Luick (1):
-      IB/hfi1: Force logical link down
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 7b7a76e..40cd335 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3186,6 +3186,7 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
+ 	struct ib_qp                 *qp;
+ 	struct ib_uverbs_mcast_entry *mcast;
+ 	int                           ret = -EINVAL;
++	bool                          found = false;
+ 
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+@@ -3194,10 +3195,6 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
+ 	if (!qp)
+ 		return -EINVAL;
+ 
+-	ret = ib_detach_mcast(qp, (union ib_gid *) cmd.gid, cmd.mlid);
+-	if (ret)
+-		goto out_put;
+-
+ 	obj = container_of(qp->uobject, struct ib_uqp_object, uevent.uobject);
+ 
+ 	list_for_each_entry(mcast, &obj->mcast_list, list)
+@@ -3205,9 +3202,17 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
+ 		    !memcmp(cmd.gid, mcast->gid.raw, sizeof mcast->gid.raw)) {
+ 			list_del(&mcast->list);
+ 			kfree(mcast);
++			found = true;
+ 			break;
+ 		}
+ 
++	if (!found) {
++		ret = -EINVAL;
++		goto out_put;
++	}
++
++	ret = ib_detach_mcast(qp, (union ib_gid *)cmd.gid, cmd.mlid);
++
+ out_put:
+ 	put_qp_write(qp);
+ 
 
-Don Hiatt (2):
-      IB/hfi1: Add receive fault injection feature
-      IB/hfi1: Add transmit fault injection feature
-
-Easwar Hariharan (1):
-      IB/hfi1: Check for QSFP presence before attempting reads
-
-Michael J. Ruhl (5):
-      IB/hfi1: Race hazard avoidance in user SDMA driver
-      IB/hfi1: Cache registers during state change
-      IB/hfi1: Add a patch value to the firmware version string
-      IB/hfi1: Ensure VL index is within bounds
-      IB/core: If the MGID/MLID pair is not on the list return an error
-
-Mike Marciniszyn (7):
-      IB/rdmavt,IB/hfi1,IB/qib: Make wc opcode translation driver dependent
-      IB/rdmavt: Add additional fields to post send trace
-      IB/rdmavt: Add tracing for cq entry and poll
-      IB/rdmavt: Add swqe completion trace
-      IB/rdmavt: Avoid reseting wqe send_flags in unreserve
-      IB/hfi1: Eliminate synchronize_rcu() in mr delete
-      IB/rdmavt,IB/qib,IB/hfi1: Make percpu refcount optional for user MRs
-
-Sebastian Sanchez (2):
-      IB/hfi1: NULL pointer dereference when freeing rhashtable
-      IB/rdmavt,IB/hfi1: Fix timer migration regressions
-
-Tadeusz Struk (2):
-      IB/hfi1: Check device id early during init
-      IB/hfi1: Protect the global dev_cntr_names and port_cntr_names
-
-
- drivers/infiniband/core/uverbs_cmd.c    |   13 +-
- drivers/infiniband/hw/hfi1/chip.c       |  178 ++++++++++++++++++++----
- drivers/infiniband/hw/hfi1/chip.h       |   18 +-
- drivers/infiniband/hw/hfi1/debugfs.c    |  230 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/debugfs.h    |   41 ++++++
- drivers/infiniband/hw/hfi1/driver.c     |   19 +++
- drivers/infiniband/hw/hfi1/firmware.c   |   14 +-
- drivers/infiniband/hw/hfi1/hfi.h        |   11 +
- drivers/infiniband/hw/hfi1/init.c       |   19 +--
- drivers/infiniband/hw/hfi1/rc.c         |   12 +-
- drivers/infiniband/hw/hfi1/ruc.c        |    6 +
- drivers/infiniband/hw/hfi1/sdma.c       |   43 ++++--
- drivers/infiniband/hw/hfi1/trace_misc.h |   48 ++++++
- drivers/infiniband/hw/hfi1/trace_rc.h   |    7 -
- drivers/infiniband/hw/hfi1/trace_tx.h   |   43 ++++++
- drivers/infiniband/hw/hfi1/user_sdma.c  |    3 
- drivers/infiniband/hw/hfi1/verbs.c      |  104 ++++++++++++--
- drivers/infiniband/hw/hfi1/verbs.h      |    5 +
- drivers/infiniband/hw/qib/qib_rc.c      |   10 +
- drivers/infiniband/hw/qib/qib_ruc.c     |    5 +
- drivers/infiniband/hw/qib/qib_verbs.c   |   20 +++
- drivers/infiniband/sw/rdmavt/cq.c       |    3 
- drivers/infiniband/sw/rdmavt/mr.c       |   55 +++++--
- drivers/infiniband/sw/rdmavt/qp.c       |   32 +---
- drivers/infiniband/sw/rdmavt/trace.h    |    4 -
- drivers/infiniband/sw/rdmavt/trace_cq.h |  127 +++++++++++++++++
- drivers/infiniband/sw/rdmavt/trace_rc.h |  109 +++++++++++++++
- drivers/infiniband/sw/rdmavt/trace_tx.h |   34 ++++-
- include/rdma/ib_pack.h                  |    2 
- include/rdma/rdma_vt.h                  |    1 
- include/rdma/rdmavt_qp.h                |    7 -
- 31 files changed, 1077 insertions(+), 146 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/trace_cq.h
- create mode 100644 drivers/infiniband/sw/rdmavt/trace_rc.h
-
---
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
