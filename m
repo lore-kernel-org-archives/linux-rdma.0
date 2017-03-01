@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 17/26] net/mlx5e: Change cleanup API in order to enable IB link
-Date: Wed,  1 Mar 2017 16:02:25 +0200
-Message-ID: <1488376954-8346-18-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 11/26] net/mlx5e: Support netdevice creation for IB link type
+Date: Wed,  1 Mar 2017 16:02:19 +0200
+Message-ID: <1488376954-8346-12-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,101 +11,145 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-1. Change the mlx5e_detach_netdev api.
-2. Let that function to be called after the rtnl_lock is already held,
-like done in IB link.
+Implement required interface that will able the IB link to be run on top
+of the ETH data structures.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h      |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 18 +++++++++++-------
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c  |  4 ++--
- 3 files changed, 14 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 99 +++++++++++++++++++++++
+ include/linux/mlx5/driver.h                       | 11 +++
+ 2 files changed, 110 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 84db4761f09c..a10966df24f6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -921,7 +921,7 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
- 				       void *ppriv);
- void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv);
- int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv);
--void mlx5e_detach_netdev(struct mlx5_core_dev *mdev, struct net_device *netdev);
-+void mlx5e_detach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv);
- u32 mlx5e_choose_lro_timeout(struct mlx5_core_dev *mdev, u32 wanted_timeout);
- void mlx5e_add_vxlan_port(struct net_device *netdev,
- 			  struct udp_tunnel_info *ti);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 726d516b7ea8..42ac16daa126 100644
+index 88541f99d37b..dd7d1d123d38 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -4022,7 +4022,7 @@ void mlx5i_detach(struct mlx5_core_dev *mdev, void *vpriv)
- 	if (!netif_device_present(netdev))
- 		return;
- 
--	mlx5e_detach_netdev(mdev, netdev);
-+	mlx5e_detach_netdev(mdev, priv);
- 	mlx5e_destroy_mdev_resources(mdev);
- }
- EXPORT_SYMBOL(mlx5i_detach);
-@@ -4127,18 +4127,22 @@ static void mlx5e_register_vport_rep(struct mlx5_core_dev *mdev)
- 	}
+@@ -3843,6 +3843,105 @@ static void mlx5e_nic_disable(struct mlx5e_priv *priv)
+ 	mlx5_lag_remove(mdev);
  }
  
--void mlx5e_detach_netdev(struct mlx5_core_dev *mdev, struct net_device *netdev)
-+void mlx5e_detach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv)
- {
--	struct mlx5e_priv *priv = netdev_priv(netdev);
-+	struct net_device *netdev = priv->netdev;
- 	const struct mlx5e_profile *profile = priv->profile;
--
-+	bool locked = false;
- 	set_bit(MLX5E_STATE_DESTROYING, &priv->state);
- 
--	rtnl_lock();
-+	if (!rtnl_is_locked()) {
-+		rtnl_lock();
-+		locked = true;
++static void mlx5i_nic_init(struct mlx5_core_dev *mdev,
++			   struct net_device *netdev,
++			   const struct mlx5e_profile *profile,
++			   void *ppriv)
++{
++	int base_size = *(int *)ppriv;
++	struct mlx5e_priv *priv = netdev_priv(netdev) + base_size;
++
++	mlx5n_build_nic_netdev_priv_common(mdev, netdev, priv, profile, ppriv);
++}
++
++static int mlx5i_init_nic_rx(struct mlx5e_priv *priv)
++{
++	struct mlx5_core_dev *mdev = priv->mdev;
++	int err;
++
++	err = mlx5n_init_nic_rx_common(priv);
++	if (err) {
++		mlx5_core_warn(mdev, "failed create nic rx res, %d\n", err);
++		return err;
 +	}
- 	if (netif_running(netdev))
- 		mlx5e_close(netdev);
- 	netif_device_detach(netdev);
--	rtnl_unlock();
-+	if (locked)
-+		rtnl_unlock();
++
++	err = mlx5i_create_flow_steering(priv);
++	if (err) {
++		mlx5_core_warn(mdev, "create flow steering failed, %d\n", err);
++		return err;
++	}
++
++	return 0;
++}
++
++static void mlx5i_cleanup_nic_rx(struct mlx5e_priv *priv)
++{
++	mlx5i_destroy_flow_steering(priv);
++	mlx5n_cleanup_nic_rx_common(priv);
++}
++
++static const struct mlx5e_profile mlx5i_nic_profile = {
++	.init		   = mlx5i_nic_init,
++	.cleanup	   = NULL,
++	.init_rx	   = mlx5i_init_nic_rx,
++	.cleanup_rx	   = mlx5i_cleanup_nic_rx,
++	.init_tx	   = mlx5e_init_nic_tx,
++	.cleanup_tx	   = mlx5e_cleanup_nic_tx,
++	.enable		   = NULL,/*mlx5e_nic_enable,*/
++	.disable	   = NULL,
++	.update_stats	   = NULL,/*mlx5e_update_stats,*/
++	.max_nch	   = mlx5e_get_max_num_channels,
++	.max_tc		   = MLX5E_MAX_NUM_TC,
++};
++
++struct net_device *mlx5i_create_netdev(struct mlx5_core_dev *mdev,
++				       const char *name,
++				       void (*setup)(struct net_device *dev),
++				       struct mlx5i_create_ext_param *param)
++{
++	const struct mlx5e_profile *profile = &mlx5i_nic_profile;
++	int nch = profile->max_nch(mdev);
++	struct net_device *netdev;
++	struct mlx5e_priv *priv;
++
++	if (mlx5e_check_required_hca_cap(mdev, MLX5_INTERFACE_PROTOCOL_IB))
++		return NULL;
++
++	netdev = alloc_netdev_mqs(sizeof(struct mlx5e_priv) + param->size_base_priv,
++				  name, NET_NAME_UNKNOWN,
++				  setup,
++				  nch * MLX5E_MAX_NUM_TC,
++				  nch);
++	if (!netdev) {
++		pr_err("alloc_netdev_mqs failed\n");
++		return NULL;
++	}
++
++	if (profile->init)
++		profile->init(mdev, netdev, profile, &param->size_base_priv);
++
++	netif_carrier_off(netdev);
++
++	priv = netdev_priv(netdev) + param->size_base_priv;
++
++	priv->underlay_qpn = param->qpn;
++
++	priv->wq = create_singlethread_workqueue("mlx5i");
++	if (!priv->wq)
++		goto err_cleanup_nic;
++
++	return netdev;
++
++err_cleanup_nic:
++	if (profile->cleanup)
++		profile->cleanup(priv);
++
++	free_netdev(netdev);
++
++	return NULL;
++}
++EXPORT_SYMBOL(mlx5i_create_netdev);
++
+ static const struct mlx5e_profile mlx5e_nic_profile = {
+ 	.init		   = mlx5e_nic_init,
+ 	.cleanup	   = mlx5e_nic_cleanup,
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 886ff2b00500..0acf099e9d06 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1127,4 +1127,15 @@ enum {
+ 	MLX5_TRIGGERED_CMD_COMP = (u64)1 << 32,
+ };
  
- 	if (profile->disable)
- 		profile->disable(priv);
-@@ -4184,7 +4188,7 @@ static void mlx5e_detach(struct mlx5_core_dev *mdev, void *vpriv)
- 	if (!netif_device_present(netdev))
- 		return;
- 
--	mlx5e_detach_netdev(mdev, netdev);
-+	mlx5e_detach_netdev(mdev, priv);
- 	mlx5e_destroy_mdev_resources(mdev);
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 0aad28da1638..21d3d8e0bab7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -586,7 +586,7 @@ int mlx5e_vport_rep_load(struct mlx5_eswitch *esw,
- 	return 0;
- 
- err_detach_netdev:
--	mlx5e_detach_netdev(esw->dev, netdev);
-+	mlx5e_detach_netdev(esw->dev, priv);
- 
- err_destroy_netdev:
- 	mlx5e_destroy_netdev(esw->dev, netdev_priv(netdev));
-@@ -601,6 +601,6 @@ void mlx5e_vport_rep_unload(struct mlx5_eswitch *esw,
- 	struct net_device *netdev = rep->netdev;
- 
- 	unregister_netdev(netdev);
--	mlx5e_detach_netdev(esw->dev, netdev);
-+	mlx5e_detach_netdev(esw->dev, netdev_priv(netdev));
- 	mlx5e_destroy_netdev(esw->dev, netdev_priv(netdev));
- }
++struct mlx5i_create_ext_param {
++	int	size_base_priv;
++	u32	qpn;
++};
++
++struct net_device *mlx5i_create_netdev(struct mlx5_core_dev *mdev,
++				       const char *name,
++				       void (*setup)(struct net_device *dev),
++				       struct mlx5i_create_ext_param *param);
++int mlx5i_attach(struct mlx5_core_dev *mdev, void *vpriv);
++void mlx5i_detach(struct mlx5_core_dev *mdev, void *vpriv);
+ #endif /* MLX5_DRIVER_H */
 -- 
 1.8.3.1
 
