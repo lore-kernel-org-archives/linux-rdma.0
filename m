@@ -1,65 +1,39 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/usnic: Remove unused functions
-Date: Wed,  1 Mar 2017 22:09:09 +0200
-Message-ID: <1488398949-30263-1-git-send-email-yuval.shaia@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC for accelerated IPoIB 00/27] Enhanced mode for IPoIB driver
+Date: Wed, 1 Mar 2017 11:28:33 -0700
+Message-ID: <20170301182833.GD14791@obsidianresearch.com>
+References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_common_util.h | 29 -------------------------
- 1 file changed, 29 deletions(-)
+On Wed, Mar 01, 2017 at 04:02:08PM +0200, Erez Shitrit wrote:
+>     However, New features are exisiting in common network interfaces that
+>     are very hard to implement in IPoIB interfaces while it uses the RDMA
+>     layer, examples include TSS and RSS, tunneling offloads, and XDP.
+>     Rather than continuously porting IP network interface developments into
+>     the RDMA stack, we propose adding an abstract network data-path interfaces
+>     to RDMA devices.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
-index b54986d..d757b82 100644
---- a/drivers/infiniband/hw/usnic/usnic_common_util.h
-+++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
-@@ -35,22 +35,6 @@
- #define USNIC_CMN_UTIL_H
- 
- static inline void
--usnic_mac_to_gid(const char *const mac, char *raw_gid)
--{
--	raw_gid[0] = 0xfe;
--	raw_gid[1] = 0x80;
--	memset(&raw_gid[2], 0, 6);
--	raw_gid[8] = mac[0]^2;
--	raw_gid[9] = mac[1];
--	raw_gid[10] = mac[2];
--	raw_gid[11] = 0xff;
--	raw_gid[12] = 0xfe;
--	raw_gid[13] = mac[3];
--	raw_gid[14] = mac[4];
--	raw_gid[15] = mac[5];
--}
--
--static inline void
- usnic_mac_ip_to_gid(const char *const mac, const __be32 inaddr, char *raw_gid)
- {
- 	raw_gid[0] = 0xfe;
-@@ -67,17 +51,4 @@
- 	raw_gid[15] = mac[5];
- }
- 
--static inline void
--usnic_write_gid_if_id_from_mac(char *mac, char *raw_gid)
--{
--	raw_gid[8] = mac[0]^2;
--	raw_gid[9] = mac[1];
--	raw_gid[10] = mac[2];
--	raw_gid[11] = 0xff;
--	raw_gid[12] = 0xfe;
--	raw_gid[13] = mac[3];
--	raw_gid[14] = mac[4];
--	raw_gid[15] = mac[5];
--}
--
- #endif /* USNIC_COMMON_UTIL_H */
--- 
-1.8.3.1
+I should also say that we have discussed this for a while and I am
+broadly in favor of this approach of delegating IPoIB skb transmit
+directly to the low level driver.
 
+There are too many optimizations that do not fit sanely into verbs,
+and the entire overhead of building a verbs wr and posting it then
+translating that to a driver wr is unnecessary layering.
+
+Longer term, it might be quite nice if the part verbs specific part of
+ipoib was cleanly split out into the 'default' implementation of your
+get_ipoib_accel_ops.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
