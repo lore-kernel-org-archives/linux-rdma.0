@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 12/26] net/mlx5e: Refactor attach_netdev API
-Date: Wed,  1 Mar 2017 16:02:20 +0200
-Message-ID: <1488376954-8346-13-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 23/26] net/mlx5e: New function pointer for build_rx_skb is
+Date: Wed,  1 Mar 2017 16:02:31 +0200
+Message-ID: <1488376954-8346-24-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,82 +11,92 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use priv object instead of netdev object, will give tha ability to use
-it for IB link.
+In order to have the ability to support IB link with the same base code.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h      | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 8 ++++----
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c  | 4 +++-
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h      |  6 ++++++
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  7 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c   | 10 +++++-----
+ 3 files changed, 18 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index f3337ec4457f..e5c8badc38c7 100644
+index b6758d0b93a5..84de1ca11524 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -918,7 +918,7 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
- 				       const struct mlx5e_profile *profile,
- 				       void *ppriv);
- void mlx5e_destroy_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv);
--int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct net_device *netdev);
-+int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv);
- void mlx5e_detach_netdev(struct mlx5_core_dev *mdev, struct net_device *netdev);
- u32 mlx5e_choose_lro_timeout(struct mlx5_core_dev *mdev, u32 wanted_timeout);
- void mlx5e_add_vxlan_port(struct net_device *netdev,
+@@ -298,6 +298,11 @@ typedef int (*mlx5e_fp_alloc_wqe)(struct mlx5e_rq *rq, struct mlx5e_rx_wqe *wqe,
+ 
+ typedef void (*mlx5e_fp_dealloc_wqe)(struct mlx5e_rq *rq, u16 ix);
+ 
++typedef void (*mlx5e_fp_build_rx_skb)(struct mlx5_cqe64 *cqe,
++				      u32 cqe_bcnt,
++				      struct mlx5e_rq *rq,
++				      struct sk_buff *skb);
++
+ struct mlx5e_dma_info {
+ 	struct page	*page;
+ 	dma_addr_t	addr;
+@@ -367,6 +372,7 @@ struct mlx5e_rq {
+ 	mlx5e_fp_handle_rx_cqe handle_rx_cqe;
+ 	mlx5e_fp_alloc_wqe     alloc_wqe;
+ 	mlx5e_fp_dealloc_wqe   dealloc_wqe;
++	mlx5e_fp_build_rx_skb  build_rx_skb;
+ 
+ 	unsigned long          state;
+ 	int                    ix;
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index dd7d1d123d38..4e9a11b94025 100644
+index 2ca2de9d2578..7fbfdd41c709 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -3994,14 +3994,14 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
- 	return NULL;
+@@ -493,6 +493,12 @@ static int mlx5e_create_rq_umr_mkey(struct mlx5e_rq *rq)
+ 	return mlx5e_create_umr_mkey(priv, num_mtts, PAGE_SHIFT, &rq->umr_mkey);
  }
  
--int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct net_device *netdev)
-+int mlx5e_attach_netdev(struct mlx5_core_dev *mdev, struct mlx5e_priv *priv)
++/* forward declaration */
++inline void mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
++			       u32 cqe_bcnt,
++			       struct mlx5e_rq *rq,
++			       struct sk_buff *skb);
++
+ static int mlx5e_create_rq(struct mlx5e_channel *c,
+ 			   struct mlx5e_rq_param *param,
+ 			   struct mlx5e_rq *rq)
+@@ -538,6 +544,7 @@ static int mlx5e_create_rq(struct mlx5e_channel *c,
+ 	if (rq->xdp_prog)
+ 		rq->buff.map_dir = DMA_BIDIRECTIONAL;
+ 
++	rq->build_rx_skb = mlx5e_build_rx_skb;
+ 	switch (priv->params.rq_wq_type) {
+ 	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
+ 		if (mlx5e_is_vf_vport_rep(priv)) {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index ad08e64fee1a..98546b3395df 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -590,10 +590,10 @@ static inline void mlx5e_handle_csum(struct net_device *netdev,
+ 	rq->stats.csum_none++;
+ }
+ 
+-static inline void mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
+-				      u32 cqe_bcnt,
+-				      struct mlx5e_rq *rq,
+-				      struct sk_buff *skb)
++inline void mlx5e_build_rx_skb(struct mlx5_cqe64 *cqe,
++			       u32 cqe_bcnt,
++			       struct mlx5e_rq *rq,
++			       struct sk_buff *skb)
  {
- 	const struct mlx5e_profile *profile;
--	struct mlx5e_priv *priv;
-+	struct net_device *netdev;
- 	u16 max_mtu;
- 	int err;
- 
--	priv = netdev_priv(netdev);
-+	netdev = priv->netdev;
- 	profile = priv->profile;
- 	clear_bit(MLX5E_STATE_DESTROYING, &priv->state);
- 
-@@ -4114,7 +4114,7 @@ static int mlx5e_attach(struct mlx5_core_dev *mdev, void *vpriv)
- 	if (err)
- 		return err;
- 
--	err = mlx5e_attach_netdev(mdev, netdev);
-+	err = mlx5e_attach_netdev(mdev, priv);
- 	if (err) {
- 		mlx5e_destroy_mdev_resources(mdev);
- 		return err;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 850378893b25..0aad28da1638 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -556,6 +556,7 @@ int mlx5e_vport_rep_load(struct mlx5_eswitch *esw,
- 			 struct mlx5_eswitch_rep *rep)
+ 	struct net_device *netdev = rq->netdev;
+ 	struct mlx5e_tstamp *tstamp = rq->tstamp;
+@@ -632,7 +632,7 @@ static inline void mlx5e_complete_rx_cqe(struct mlx5e_rq *rq,
  {
- 	struct net_device *netdev;
-+	struct mlx5e_priv *priv;
- 	int err;
+ 	rq->stats.packets++;
+ 	rq->stats.bytes += cqe_bcnt;
+-	mlx5e_build_rx_skb(cqe, cqe_bcnt, rq, skb);
++	rq->build_rx_skb(cqe, cqe_bcnt, rq, skb);
+ }
  
- 	netdev = mlx5e_create_netdev(esw->dev, &mlx5e_rep_profile, rep);
-@@ -567,7 +568,8 @@ int mlx5e_vport_rep_load(struct mlx5_eswitch *esw,
- 
- 	rep->netdev = netdev;
- 
--	err = mlx5e_attach_netdev(esw->dev, netdev);
-+	priv = netdev_priv(netdev);
-+	err = mlx5e_attach_netdev(esw->dev, priv);
- 	if (err) {
- 		pr_warn("Failed to attach representor netdev for vport %d\n",
- 			rep->vport);
+ static inline void mlx5e_xmit_xdp_doorbell(struct mlx5e_sq *sq)
 -- 
 1.8.3.1
 
