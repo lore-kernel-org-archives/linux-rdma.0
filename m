@@ -1,54 +1,87 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] libibverbs IB device hotplug support
-Date: Wed, 1 Mar 2017 15:23:20 -0700
-Message-ID: <20170301222320.GA2820@obsidianresearch.com>
-References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
- <1488296882.86943.214.camel@redhat.com>
- <HE1PR0501MB28123E8F342607E2C2CA4DD9B1560@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <3389d831-c135-b326-4b96-5f2a746de5ac@redhat.com>
- <20170301004449.GA13114@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0ECDC6@ORSMSX109.amr.corp.intel.com>
- <cad3d2c6-0c98-9f58-a3bb-81823103bd76@redhat.com>
+Subject: Re: [PATCH rdma-core 06/14] i40iw: Get rid of unique barrier macros
+Date: Wed, 1 Mar 2017 16:05:06 -0700
+Message-ID: <20170301230506.GB2820@obsidianresearch.com>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-7-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170301172920.GA11340@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170301175521.GB14791@obsidianresearch.com>
+ <20170301221420.GA18548@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cad3d2c6-0c98-9f58-a3bb-81823103bd76-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170301221420.GA18548-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 01, 2017 at 04:56:50PM -0500, Doug Ledford wrote:
+On Wed, Mar 01, 2017 at 04:14:20PM -0600, Shiraz Saleem wrote:
+> > Is there DMA occuring to shadow_area?
+> 
+> The shadow area contains status variables which are read by SW and 
+> updated by PCI device.
 
-> isn't a new device in the list already, then great too.  Because the
-> initial implementation proposal left if up to the app to determine
-> how/when to check for a new device, there was never any guarantee that
-> whatever triggered the app to look for the new device meant that it was
-> ready to be used in sysfs
+So the device is DMA'ing to it, and the driver is reading DMA memory..
 
-No, that isn't true. The kernel guarentees that sysfs is fully setup
-before it can deliver any sort of event, by any channel, to an
-app. This includes rdma connection establish, uevents for udev,
-netlink notifications/etc.
+> > What can wrong if it executes like this?
+> > 
+> > get_64bit_val(qp->shadow_area, I40IW_BYTE_0, &temp);
+> > udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+> > set_64bit_val(wqe, I40IW_BYTE_24, header);
+> > udma_to_device_barrier();
+> 
+> We need strict ordering that ensures write of the WQE completes before 
+> read of the shadow area.
 
-> and would be found by the re-reading of the sysfs directory.  So
-> whatever race might be present in my proposed implementation would
-> also be present in the original implementation.
+> This ensures the value read from the shadow can be used to determine
+> if a DB ring is needed. If the shadow area is read first, the
+> algorithm, in certain cases, would not ring the DB when it should
+> and the HW may go idle with work requests posted.
 
-Since the kernel strongly orders things, there is no race in Alex's
-suggestion.
+This still is not making a lot of sense to me.. I really need to see a
+ladder diagram to understand your case.
 
-All apps using rdma-cm have to cope with hot plug transparently. An
-app can 'all device' bind and get an incomming connection from the
-kernel on a newly plugged device. This must work without having the
-app do any new steps or introducing races between the rdma-cm channel
-and some other channel hidden in verbs.
+Here is an example, I think what you are saying is: The HW could have
+fetched valid = 0 and stopped the queue and the driver needs to
+doorbell it to wake it up again. However, the driver optimizes away
+the doorbell rings in certain cases based on reading a DMA result.
 
-> Personally I would use a thread in the library that would block on
-> inotify events from the sysfs directory.
+So here is a possible ladder diagram:
 
-sysfs does not support inotify.
+CPU                         DMA DEVICE
+                            Issue READ#1 of valid bit
+ Respond to READ#1
+ SFENCE
+ set_valid_bit
+ MEFENCE
+ read_tail
+                            Receive READ#1 response with valid bit unset
+			    Issue DMA WRITE to shadow_area indicating STOPPED
+ DMA WRITE arrives
+
+And the version where the DMA is seen:
+
+CPU                         DMA DEVICE
+                            Issue READ#1 of valid bit
+ SFENCE
+ Respond to READ#1
+ set_valid_bit
+ MEFENCE
+                            Receive READ#1 response with valid bit unset
+			    Issue DMA WRITE to shadow_area indicating STOPPED
+ DMA WRITE arrives
+ read_tail
+
+These diagrams attempt to show that the DMA device reads the valid bit
+then DMA's back to the shadow_area depending on what it read.
+
+Given the semantics of MFENCE, both are possible, so I still don't
+understand what the MFENCE is supposed to help with.
+
+I get the feeling this approach requires MFENCE to do something it
+doesn't...
 
 Jason
 --
