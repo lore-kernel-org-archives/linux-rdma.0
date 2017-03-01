@@ -1,27 +1,24 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/1] rds: ib: add the static type to the variables
-Date: Wed, 01 Mar 2017 12:51:55 -0500 (EST)
-Message-ID: <20170301.125155.287193477729242606.davem@davemloft.net>
-References: <1488264340-20044-1-git-send-email-yanjun.zhu@oracle.com>
+Subject: Re: [patch] net/mlx4: && vs & typo
+Date: Wed, 01 Mar 2017 12:52:35 -0500 (EST)
+Message-ID: <20170301.125235.1175480613831613770.davem@davemloft.net>
+References: <20170228120215.GA27947@mwanda>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1488264340-20044-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: yanjun.zhu@oracle.com
-Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170228120215.GA27947@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: dan.carpenter@oracle.com
+Cc: yishaih@mellanox.com, eugenia@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Date: Tue, 28 Feb 2017 01:45:40 -0500
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Tue, 28 Feb 2017 15:02:15 +0300
 
-> The variables rds_ib_mr_1m_pool_size and rds_ib_mr_8k_pool_size
-> are used only in the ib.c file. As such, the static type is
-> added to limit them in this file.
+> Bitwise & was obviously intended here.
 > 
-> Cc: Joe Jin <joe.jin@oracle.com>
-> Cc: Junxiao Bi <junxiao.bi@oracle.com>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> Fixes: 745d8ae4622c ("net/mlx4: Spoofcheck and zero MAC can't coexist")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 Applied.
