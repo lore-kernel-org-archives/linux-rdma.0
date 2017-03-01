@@ -1,84 +1,173 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [patch] net/mlx4: && vs & typo
-Date: Wed, 1 Mar 2017 07:52:01 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1703010746230.2079@hadrien>
-References: <20170228120215.GA27947@mwanda> <1488296129.3056.1.camel@sandisk.com> <1488320630.25838.39.camel@perches.com> <1D08B61A9CF0974AA09887BE32D889DA0C193A@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] ipoib: clean ib tx ring periodically
+Date: Wed, 1 Mar 2017 09:28:33 +0200
+Message-ID: <CAAk-MO_J2JL9YvNEV24LJik8qGKrBHBW+2NtzAOL+QEve1CMJg@mail.gmail.com>
+References: <589591340739f0ceeea9ca449b6de3df01caadc4.1487259121.git.pabeni@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1D08B61A9CF0974AA09887BE32D889DA0C193A@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Cc: Joe Perches <joe@perches.com>, "eugenia@mellanox.com" <eugenia@mellanox.com>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "yishaih@mellanox.com" <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <589591340739f0ceeea9ca449b6de3df01caadc4.1487259121.git.pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 28 Feb 2017, Bart Van Assche wrote:
-
-> On 02/28/2017 02:23 PM, Joe Perches wrote:
-> > On Tue, 2017-02-28 at 15:35 +0000, Bart Van Assche wrote:
-> >> On Tue, 2017-02-28 at 15:02 +0300, Dan Carpenter wrote:
-> >>> Bitwise & was obviously intended here.
-> > []
-> >>> diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-> > []
-> >>> @@ -109,7 +109,7 @@ static inline void 	(u8 *addr, u64 mac)
-> >>>  	int i;
-> >>>
-> >>>  	for (i = ETH_ALEN; i > 0; i--) {
-> >>> -		addr[i - 1] = mac && 0xFF;
-> >>> +		addr[i - 1] = mac & 0xFF;
-> >>>  		mac >>= 8;
-> >>>  	}
-> >>>  }
-> >>
-> >> Is this the only place where such a loop occurs?
-> >
-> > Seems to be.
-> >
-> >> Should a put_unaligned_be48()
-> >> function be introduced?
-> >
-> > Why?  This is used exactly once.
+On Thu, Feb 16, 2017 at 5:35 PM, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> The skbs transmitted via ipoib_send() are freed only if there are
+> 16 or more outstanding work requests or if the send queue is full.
 >
-> Really? Here is an example of another open-coded version of
-> put_unaligned_be48() from arch/mips/cavium-octeon/octeon-platform.c:
+> If there is very little networking activity, the transmitted skbs
+> can be held by the device driver for an unlimited amount of time,
+> starving other subsystems.
 >
-> 	new_mac[0] = (mac >> 40) & 0xff;
-> 	new_mac[1] = (mac >> 32) & 0xff;
-> 	new_mac[2] = (mac >> 24) & 0xff;
-> 	new_mac[3] = (mac >> 16) & 0xff;
-> 	new_mac[4] = (mac >> 8) & 0xff;
-> 	new_mac[5] = mac & 0xff;
+> E.g. assuming the ipv6 is enabled, with the following sequence:
+>
+> systemctl start firewalld
+> modprobe ib_ipoib
+> ip addr add dev ib0 fc00::1/64
+> systemctl stop firewalld
+>
+> a cpu will hang: rmmod conntrack will keep a core busy
+> spinning for nf_conntrack_untracked going to 0, since some ICMP6
+> ND packets are generated and transmitted when the ipv6 address
+> is attached to the device, and such packets get a notrack ct
+> entry.
+>
+> This change address the issue introducing a periodic timer performing
+> "garbage collection" on the send ring at low frequency (once every
+> second).
+>
+> This new timer runs independently from the currently used poll_timer,
+> so that no additional delay is introduced to clean the ring after
+> errors or ring full event.
 
-drivers/media/radio/radio-shark2.c:
-        for (i = 0; i < 6; i++)
-               shark->transfer_buffer[i + 1] = (reg >> (40 - i * 8)) & 0xff;
+Hi,
 
-drivers/rtc/rtc-ab3100.c
-       buf[0] = (hw_counter) & 0xFF;
-       buf[1] = (hw_counter >> 8) & 0xFF;
-       buf[2] = (hw_counter >> 16) & 0xFF;
-       buf[3] = (hw_counter >> 24) & 0xFF;
-       buf[4] = (hw_counter >> 32) & 0xFF;
-       buf[5] = (hw_counter >> 40) & 0xFF;
+Adding a new timer is not the required solution, it is a w/a over the
+TX part in the ipoib driver.
+The real solution, IMHO, is to use the napi mechanism for the TX in a
+similar way as it done in the RX. (as it done in many network drivers)
 
-drivers/net/ethernet/sun/ldmvsw.c
-        for (i = 0; i < ETH_ALEN; i++)
-               port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
+We (Mellanox) are planning to send such solution in the next few days.
 
-drivers/net/ethernet/sun/sunvnet.c
-        for (i = 0; i < ETH_ALEN; i++)
-               dev->dev_addr[i] = (*local_mac >> (5 - i) * 8) & 0xff;
-
-        for (i = 0; i < ETH_ALEN; i++)
-               port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
-
-julia
+Thanks,
 
 >
-> Bart.
+> Reported-by: Thomas Cameron <tcameron-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Fixes: f56bcd801356 ("IPoIB: Use separate CQ for UD send completions")
+> Signed-off-by: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib.h    |  2 ++
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c | 35 +++++++++++++++++++++++++++------
+>  2 files changed, 31 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+> index da12717..3b5039b 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> @@ -402,6 +402,8 @@ struct ipoib_dev_priv {
+>         u64     hca_caps;
+>         struct ipoib_ethtool_st ethtool;
+>         struct timer_list poll_timer;
+> +       struct timer_list tx_gc_timer;
+> +       unsigned long drain_tx_cq_stamp;
+>         unsigned max_send_sge;
+>         bool sm_fullmember_sendonly_support;
+>  };
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> index 5038f9d..e565848 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> @@ -490,13 +490,20 @@ void ipoib_ib_completion(struct ib_cq *cq, void *dev_ptr)
+>         napi_schedule(&priv->napi);
+>  }
+>
+> +static void __drain_tx_cq(struct ipoib_dev_priv *priv)
+> +{
+> +       while (poll_tx(priv))
+> +               ; /* nothing */
+> +
+> +       priv->drain_tx_cq_stamp = jiffies;
+> +}
+> +
+>  static void drain_tx_cq(struct net_device *dev)
+>  {
+>         struct ipoib_dev_priv *priv = netdev_priv(dev);
+>
+>         netif_tx_lock(dev);
+> -       while (poll_tx(priv))
+> -               ; /* nothing */
+> +       __drain_tx_cq(priv);
+>
+>         if (netif_queue_stopped(dev))
+>                 mod_timer(&priv->poll_timer, jiffies + 1);
+> @@ -637,8 +644,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+>         }
+>
+>         if (unlikely(priv->tx_outstanding > MAX_SEND_CQE))
+> -               while (poll_tx(priv))
+> -                       ; /* nothing */
+> +               __drain_tx_cq(priv);
+>  }
+>
+>  static void __ipoib_reap_ah(struct net_device *dev)
+> @@ -697,6 +703,19 @@ static void ipoib_ib_tx_timer_func(unsigned long ctx)
+>         drain_tx_cq((struct net_device *)ctx);
+>  }
+>
+> +static void ipoib_tx_gc_timer_func(unsigned long ctx)
+> +{
+> +       struct net_device *dev = (struct net_device *)ctx;
+> +       struct ipoib_dev_priv *priv = netdev_priv(dev);
+> +
+> +       netif_tx_lock(dev);
+> +       if (time_after(jiffies, priv->drain_tx_cq_stamp + HZ))
+> +               __drain_tx_cq(priv);
+> +       netif_tx_unlock(dev);
+> +
+> +       mod_timer(&priv->tx_gc_timer, jiffies + HZ);
+> +}
+> +
+>  int ipoib_ib_dev_open(struct net_device *dev)
+>  {
+>         struct ipoib_dev_priv *priv = netdev_priv(dev);
+> @@ -834,8 +853,7 @@ void ipoib_drain_cq(struct net_device *dev)
+>                 }
+>         } while (n == IPOIB_NUM_WC);
+>
+> -       while (poll_tx(priv))
+> -               ; /* nothing */
+> +       __drain_tx_cq(priv);
+>
+>         local_bh_enable();
+>  }
+> @@ -906,6 +924,7 @@ int ipoib_ib_dev_stop(struct net_device *dev)
+>
+>  timeout:
+>         del_timer_sync(&priv->poll_timer);
+> +       del_timer_sync(&priv->tx_gc_timer);
+>         qp_attr.qp_state = IB_QPS_RESET;
+>         if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
+>                 ipoib_warn(priv, "Failed to modify QP to RESET state\n");
+> @@ -932,6 +951,10 @@ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+>
+>         setup_timer(&priv->poll_timer, ipoib_ib_tx_timer_func,
+>                     (unsigned long) dev);
+> +       setup_timer(&priv->tx_gc_timer, ipoib_tx_gc_timer_func,
+> +                   (unsigned long) dev);
+> +       mod_timer(&priv->tx_gc_timer, jiffies + HZ);
+> +       priv->drain_tx_cq_stamp = jiffies;
+>
+>         if (dev->flags & IFF_UP) {
+>                 if (ipoib_ib_dev_open(dev)) {
 > --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2.9.3
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
