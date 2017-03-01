@@ -1,103 +1,70 @@
-From: Tariq Toukan <ttoukan.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch] net/mlx4: && vs & typo
-Date: Wed, 1 Mar 2017 10:34:54 +0200
-Message-ID: <bed89872-6741-5411-02dd-5920cd87f430@gmail.com>
-References: <20170228120215.GA27947@mwanda>
- <1488296129.3056.1.camel@sandisk.com> <1488320630.25838.39.camel@perches.com>
- <1D08B61A9CF0974AA09887BE32D889DA0C193A@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
- <alpine.DEB.2.20.1703010746230.2079@hadrien>
+From: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ipoib: clean ib tx ring periodically
+Date: Wed, 01 Mar 2017 10:07:36 +0100
+Message-ID: <1488359256.2607.2.camel@redhat.com>
+References: <589591340739f0ceeea9ca449b6de3df01caadc4.1487259121.git.pabeni@redhat.com>
+         <CAAk-MO_J2JL9YvNEV24LJik8qGKrBHBW+2NtzAOL+QEve1CMJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1703010746230.2079@hadrien>
+In-Reply-To: <CAAk-MO_J2JL9YvNEV24LJik8qGKrBHBW+2NtzAOL+QEve1CMJg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, "eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, 2017-03-01 at 09:28 +0200, Erez Shitrit wrote:
+> On Thu, Feb 16, 2017 at 5:35 PM, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> > The skbs transmitted via ipoib_send() are freed only if there are
+> > 16 or more outstanding work requests or if the send queue is full.
+> > 
+> > If there is very little networking activity, the transmitted skbs
+> > can be held by the device driver for an unlimited amount of time,
+> > starving other subsystems.
+> > 
+> > E.g. assuming the ipv6 is enabled, with the following sequence:
+> > 
+> > systemctl start firewalld
+> > modprobe ib_ipoib
+> > ip addr add dev ib0 fc00::1/64
+> > systemctl stop firewalld
+> > 
+> > a cpu will hang: rmmod conntrack will keep a core busy
+> > spinning for nf_conntrack_untracked going to 0, since some ICMP6
+> > ND packets are generated and transmitted when the ipv6 address
+> > is attached to the device, and such packets get a notrack ct
+> > entry.
+> > 
+> > This change address the issue introducing a periodic timer performing
+> > "garbage collection" on the send ring at low frequency (once every
+> > second).
+> > 
+> > This new timer runs independently from the currently used poll_timer,
+> > so that no additional delay is introduced to clean the ring after
+> > errors or ring full event.
+> 
+> Hi,
+> 
+> Adding a new timer is not the required solution, it is a w/a over the
+> TX part in the ipoib driver.
+> The real solution, IMHO, is to use the napi mechanism for the TX in a
+> similar way as it done in the RX. (as it done in many network drivers)
+> 
+> We (Mellanox) are planning to send such solution in the next few days.
 
+Thank you for jumping-in on this.
 
-On 01/03/2017 8:52 AM, Julia Lawall wrote:
-> On Tue, 28 Feb 2017, Bart Van Assche wrote:
->
->> On 02/28/2017 02:23 PM, Joe Perches wrote:
->>> On Tue, 2017-02-28 at 15:35 +0000, Bart Van Assche wrote:
->>>> On Tue, 2017-02-28 at 15:02 +0300, Dan Carpenter wrote:
->>>>> Bitwise & was obviously intended here.
->>> []
->>>>> diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
->>> []
->>>>> @@ -109,7 +109,7 @@ static inline void 	(u8 *addr, u64 mac)
->>>>>  	int i;
->>>>>
->>>>>  	for (i = ETH_ALEN; i > 0; i--) {
->>>>> -		addr[i - 1] = mac && 0xFF;
->>>>> +		addr[i - 1] = mac & 0xFF;
->>>>>  		mac >>= 8;
->>>>>  	}
->>>>>  }
->>>>
->>>> Is this the only place where such a loop occurs?
->>>
->>> Seems to be.
->>>
->>>> Should a put_unaligned_be48()
->>>> function be introduced?
->>>
->>> Why?  This is used exactly once.
->>
->> Really? Here is an example of another open-coded version of
->> put_unaligned_be48() from arch/mips/cavium-octeon/octeon-platform.c:
->>
->> 	new_mac[0] = (mac >> 40) & 0xff;
->> 	new_mac[1] = (mac >> 32) & 0xff;
->> 	new_mac[2] = (mac >> 24) & 0xff;
->> 	new_mac[3] = (mac >> 16) & 0xff;
->> 	new_mac[4] = (mac >> 8) & 0xff;
->> 	new_mac[5] = mac & 0xff;
->
-> drivers/media/radio/radio-shark2.c:
->         for (i = 0; i < 6; i++)
->                shark->transfer_buffer[i + 1] = (reg >> (40 - i * 8)) & 0xff;
->
-> drivers/rtc/rtc-ab3100.c
->        buf[0] = (hw_counter) & 0xFF;
->        buf[1] = (hw_counter >> 8) & 0xFF;
->        buf[2] = (hw_counter >> 16) & 0xFF;
->        buf[3] = (hw_counter >> 24) & 0xFF;
->        buf[4] = (hw_counter >> 32) & 0xFF;
->        buf[5] = (hw_counter >> 40) & 0xFF;
->
-> drivers/net/ethernet/sun/ldmvsw.c
->         for (i = 0; i < ETH_ALEN; i++)
->                port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
->
-> drivers/net/ethernet/sun/sunvnet.c
->         for (i = 0; i < ETH_ALEN; i++)
->                dev->dev_addr[i] = (*local_mac >> (5 - i) * 8) & 0xff;
->
->         for (i = 0; i < ETH_ALEN; i++)
->                port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
->
-> julia
->
+I think that the tx napi polling implementation for the ipoib driver is
+not so straight-forward because, afaics, the ib completion callback is
+intentionally avoided for tx - unless in exceptional scenarios -
+possibly for performance reason.
 
-With these code replication examples, I agree that a function should be 
-introduced.
+Anyway, if you can fix this in a cleaner way, I'll be more than happy. 
 
->>
->> Bart.
->> --
->> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Thank you,
+
+Paolo
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
