@@ -1,38 +1,155 @@
-From: Noa Osherovich <noaos@mellanox.com>
-Subject: Re: Poll CQ syncing problem
-Date: Wed, 1 Mar 2017 17:28:41 +0200
-Message-ID: <67049755-56c9-d2ba-c7c1-4a1593a5706f@mellanox.com>
-References: <b4355d22-fc79-c860-de8a-5a4d468c884d@mellanox.com>
- <3ba1baab-e2ac-358d-3b3b-ff4a27405c93@mellanox.com>
- <20170301145124.GA12121@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Romain Perier <romain.perier@collabora.com>
+Subject: [PATCH v4 01/19] block: DAC960: Replace PCI pool old API
+Date: Wed,  1 Mar 2017 16:55:03 +0100
+Message-ID: <20170301155521.30281-2-romain.perier@collabora.com>
+References: <20170301155521.30281-1-romain.perier@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170301145124.GA12121@lst.de>
+In-Reply-To: <20170301155521.30281-1-romain.perier@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: sagi@grimberg.me, linux-rdma@vger.kernel.org, Majd Dibbiny <majd@mellanox.com>, tj@kernel.org, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Romain Perier <romain.perier@collabora.com>, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/1/2017 4:51 PM, Christoph Hellwig wrote:
+The PCI pool API is deprecated. This commits replaces the PCI pool old
+API by the appropriated function with the DMA pool API.
 
-> On Wed, Mar 01, 2017 at 04:30:26PM +0200, Noa Osherovich wrote:
->> Analysis:
->> Since ib_comp_wq isn't single threaded, two works can run in parallel for the same CQ,
->> executing __ib_process_cq.
-> They shouldn't.  Each CQ has a single work_struct, and any given work_struct
-> should only be executing at once:
->
-> "Note that the flag ``WQ_NON_REENTRANT`` no longer exists as all
-> workqueues are now non-reentrant - any work item is guaranteed to be
-> executed by at most one worker system-wide at any given time."
->
->> Since this function isn't thread safe and the wc array is shared, it causes a data corruption
->> which eventually crashes in the MAD layer due to a double list_del of the same element.
-> This should not be the case.  What kernel version are you testing and does
-> it contain any patches touching core kernel code?
+Signed-off-by: Romain Perier <romain.perier@collabora.com>
+Acked-by: Peter Senna Tschudin <peter.senna@collabora.com>
+Tested-by: Peter Senna Tschudin <peter.senna@collabora.com>
+---
+ drivers/block/DAC960.c | 36 ++++++++++++++++++------------------
+ drivers/block/DAC960.h |  4 ++--
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
-Thanks Christoph for the quick response.
-
-Currently we see this only in old kernels. I'll investigate this more and update.
+diff --git a/drivers/block/DAC960.c b/drivers/block/DAC960.c
+index 26a51be..2b221cc 100644
+--- a/drivers/block/DAC960.c
++++ b/drivers/block/DAC960.c
+@@ -268,17 +268,17 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
+   void *AllocationPointer = NULL;
+   void *ScatterGatherCPU = NULL;
+   dma_addr_t ScatterGatherDMA;
+-  struct pci_pool *ScatterGatherPool;
++  struct dma_pool *ScatterGatherPool;
+   void *RequestSenseCPU = NULL;
+   dma_addr_t RequestSenseDMA;
+-  struct pci_pool *RequestSensePool = NULL;
++  struct dma_pool *RequestSensePool = NULL;
+ 
+   if (Controller->FirmwareType == DAC960_V1_Controller)
+     {
+       CommandAllocationLength = offsetof(DAC960_Command_T, V1.EndMarker);
+       CommandAllocationGroupSize = DAC960_V1_CommandAllocationGroupSize;
+-      ScatterGatherPool = pci_pool_create("DAC960_V1_ScatterGather",
+-		Controller->PCIDevice,
++      ScatterGatherPool = dma_pool_create("DAC960_V1_ScatterGather",
++		&Controller->PCIDevice->dev,
+ 	DAC960_V1_ScatterGatherLimit * sizeof(DAC960_V1_ScatterGatherSegment_T),
+ 	sizeof(DAC960_V1_ScatterGatherSegment_T), 0);
+       if (ScatterGatherPool == NULL)
+@@ -290,18 +290,18 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
+     {
+       CommandAllocationLength = offsetof(DAC960_Command_T, V2.EndMarker);
+       CommandAllocationGroupSize = DAC960_V2_CommandAllocationGroupSize;
+-      ScatterGatherPool = pci_pool_create("DAC960_V2_ScatterGather",
+-		Controller->PCIDevice,
++      ScatterGatherPool = dma_pool_create("DAC960_V2_ScatterGather",
++		&Controller->PCIDevice->dev,
+ 	DAC960_V2_ScatterGatherLimit * sizeof(DAC960_V2_ScatterGatherSegment_T),
+ 	sizeof(DAC960_V2_ScatterGatherSegment_T), 0);
+       if (ScatterGatherPool == NULL)
+ 	    return DAC960_Failure(Controller,
+ 			"AUXILIARY STRUCTURE CREATION (SG)");
+-      RequestSensePool = pci_pool_create("DAC960_V2_RequestSense",
+-		Controller->PCIDevice, sizeof(DAC960_SCSI_RequestSense_T),
++      RequestSensePool = dma_pool_create("DAC960_V2_RequestSense",
++		&Controller->PCIDevice->dev, sizeof(DAC960_SCSI_RequestSense_T),
+ 		sizeof(int), 0);
+       if (RequestSensePool == NULL) {
+-	    pci_pool_destroy(ScatterGatherPool);
++	    dma_pool_destroy(ScatterGatherPool);
+ 	    return DAC960_Failure(Controller,
+ 			"AUXILIARY STRUCTURE CREATION (SG)");
+       }
+@@ -335,16 +335,16 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
+       Command->Next = Controller->FreeCommands;
+       Controller->FreeCommands = Command;
+       Controller->Commands[CommandIdentifier-1] = Command;
+-      ScatterGatherCPU = pci_pool_alloc(ScatterGatherPool, GFP_ATOMIC,
++      ScatterGatherCPU = dma_pool_alloc(ScatterGatherPool, GFP_ATOMIC,
+ 							&ScatterGatherDMA);
+       if (ScatterGatherCPU == NULL)
+ 	  return DAC960_Failure(Controller, "AUXILIARY STRUCTURE CREATION");
+ 
+       if (RequestSensePool != NULL) {
+-  	  RequestSenseCPU = pci_pool_alloc(RequestSensePool, GFP_ATOMIC,
++  	  RequestSenseCPU = dma_pool_alloc(RequestSensePool, GFP_ATOMIC,
+ 						&RequestSenseDMA);
+   	  if (RequestSenseCPU == NULL) {
+-                pci_pool_free(ScatterGatherPool, ScatterGatherCPU,
++                dma_pool_free(ScatterGatherPool, ScatterGatherCPU,
+                                 ScatterGatherDMA);
+     		return DAC960_Failure(Controller,
+ 					"AUXILIARY STRUCTURE CREATION");
+@@ -379,8 +379,8 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
+ static void DAC960_DestroyAuxiliaryStructures(DAC960_Controller_T *Controller)
+ {
+   int i;
+-  struct pci_pool *ScatterGatherPool = Controller->ScatterGatherPool;
+-  struct pci_pool *RequestSensePool = NULL;
++  struct dma_pool *ScatterGatherPool = Controller->ScatterGatherPool;
++  struct dma_pool *RequestSensePool = NULL;
+   void *ScatterGatherCPU;
+   dma_addr_t ScatterGatherDMA;
+   void *RequestSenseCPU;
+@@ -411,9 +411,9 @@ static void DAC960_DestroyAuxiliaryStructures(DAC960_Controller_T *Controller)
+ 	  RequestSenseDMA = Command->V2.RequestSenseDMA;
+       }
+       if (ScatterGatherCPU != NULL)
+-          pci_pool_free(ScatterGatherPool, ScatterGatherCPU, ScatterGatherDMA);
++          dma_pool_free(ScatterGatherPool, ScatterGatherCPU, ScatterGatherDMA);
+       if (RequestSenseCPU != NULL)
+-          pci_pool_free(RequestSensePool, RequestSenseCPU, RequestSenseDMA);
++          dma_pool_free(RequestSensePool, RequestSenseCPU, RequestSenseDMA);
+ 
+       if ((Command->CommandIdentifier
+ 	   % Controller->CommandAllocationGroupSize) == 1) {
+@@ -438,12 +438,12 @@ static void DAC960_DestroyAuxiliaryStructures(DAC960_Controller_T *Controller)
+     }
+ 
+   if (ScatterGatherPool != NULL)
+-  	pci_pool_destroy(ScatterGatherPool);
++  	dma_pool_destroy(ScatterGatherPool);
+   if (Controller->FirmwareType == DAC960_V1_Controller)
+   	return;
+ 
+   if (RequestSensePool != NULL)
+-	pci_pool_destroy(RequestSensePool);
++	dma_pool_destroy(RequestSensePool);
+ 
+   for (i = 0; i < DAC960_MaxLogicalDrives; i++) {
+ 	kfree(Controller->V2.LogicalDeviceInformation[i]);
+diff --git a/drivers/block/DAC960.h b/drivers/block/DAC960.h
+index 85fa9bb..47d7d69 100644
+--- a/drivers/block/DAC960.h
++++ b/drivers/block/DAC960.h
+@@ -2316,7 +2316,7 @@ typedef struct DAC960_Controller
+   bool SuppressEnclosureMessages;
+   struct timer_list MonitoringTimer;
+   struct gendisk *disks[DAC960_MaxLogicalDrives];
+-  struct pci_pool *ScatterGatherPool;
++  struct dma_pool *ScatterGatherPool;
+   DAC960_Command_T *FreeCommands;
+   unsigned char *CombinedStatusBuffer;
+   unsigned char *CurrentStatusBuffer;
+@@ -2429,7 +2429,7 @@ typedef struct DAC960_Controller
+       bool NeedDeviceSerialNumberInformation;
+       bool StartLogicalDeviceInformationScan;
+       bool StartPhysicalDeviceInformationScan;
+-      struct pci_pool *RequestSensePool;
++      struct dma_pool *RequestSensePool;
+ 
+       dma_addr_t	FirstCommandMailboxDMA;
+       DAC960_V2_CommandMailbox_T *FirstCommandMailbox;
+-- 
+2.9.3
