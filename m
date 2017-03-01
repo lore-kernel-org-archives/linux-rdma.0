@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 09/20] IB/hfi1: Check device id early during init
-Date: Wed, 01 Mar 2017 10:22:38 -0800
-Message-ID: <20170301182234.29989.47549.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 11/20] IB/hfi1: Check for QSFP presence before attempting
+ reads
+Date: Wed, 01 Mar 2017 10:22:58 -0800
+Message-ID: <20170301182253.29989.95160.stgit@scvm10.sc.intel.com>
 References: <20170301181719.29989.31238.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,59 +11,42 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170301181719.29989.31238.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-If there is a wrong device passed to the driver it should fail early,
-without trying to initialize the device only to find out that it has
-an invalid device later during the init.
+Attempting to read the status of a QSFP cable creates noise in the logs
+and misses out on setting an appropriate Offline/Disabled Reason if the
+cable is not plugged in. Check for this prior to attempting the read and
+attendant retries.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: 673b975f1fba ("IB/hfi1: Add QSFP sanity pre-check")
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/init.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index f40864e..9bfb8eb 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1425,6 +1425,16 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	/* First, lock the non-writable module parameters */
- 	HFI1_CAP_LOCK();
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 8b8840a..f9d0d8c 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -9533,8 +9533,11 @@ static int test_qsfp_read(struct hfi1_pportdata *ppd)
+ 	int ret;
+ 	u8 status;
  
-+	/* Validate dev ids */
-+	if (!(ent->device == PCI_DEVICE_ID_INTEL0 ||
-+	      ent->device == PCI_DEVICE_ID_INTEL1)) {
-+		hfi1_early_err(&pdev->dev,
-+			       "Failing on unknown Intel deviceid 0x%x\n",
-+			       ent->device);
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
- 	/* Validate some global module parameters */
- 	ret = init_validate_rcvhdrcnt(&pdev->dev, rcvhdrcnt);
- 	if (ret)
-@@ -1470,15 +1480,6 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	if (ret)
- 		goto bail;
+-	/* report success if not a QSFP */
+-	if (ppd->port_type != PORT_TYPE_QSFP)
++	/*
++	 * Report success if not a QSFP or, if it is a QSFP, but the cable is
++	 * not present
++	 */
++	if (ppd->port_type != PORT_TYPE_QSFP || !qsfp_mod_present(ppd))
+ 		return 0;
  
--	if (!(ent->device == PCI_DEVICE_ID_INTEL0 ||
--	      ent->device == PCI_DEVICE_ID_INTEL1)) {
--		hfi1_early_err(&pdev->dev,
--			       "Failing on unknown Intel deviceid 0x%x\n",
--			       ent->device);
--		ret = -ENODEV;
--		goto clean_bail;
--	}
--
- 	/*
- 	 * Do device-specific initialization, function table setup, dd
- 	 * allocation, etc.
+ 	/* read byte 2, the status byte */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
