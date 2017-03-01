@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 14/20] IB/rdmavt: Avoid reseting wqe send_flags in unreserve
-Date: Wed, 01 Mar 2017 10:23:30 -0800
-Message-ID: <20170301182323.29989.59221.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 10/20] IB/hfi1: Protect the global dev_cntr_names and
+ port_cntr_names
+Date: Wed, 01 Mar 2017 10:22:48 -0800
+Message-ID: <20170301182243.29989.74023.stgit@scvm10.sc.intel.com>
 References: <20170301181719.29989.31238.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,77 +11,82 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170301181719.29989.31238.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The wqe should be read only and in fact the superfluous reset of the
-RVT_SEND_RESERVE_USED flag causes an issue where reserved operations
-elicit a bad completion to the ULP.
+Protect the global dev_cntr_names and port_cntr_names with the global
+mutex as they are allocated and freed in a function called per device.
+Otherwise there is a danger of double free and memory leaks.
 
-The maintenance of the flag is now entirely within rvt_post_one_wr()
-where a reserved operation will set the flag and a non-reserved operation
-will insure the operation that is about to be posted has the flag reset.
-
-Fixes: Commit 856cc4c237ad ("IB/hfi1: Add the capability for reserved operations")
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |    7 +++++--
- include/rdma/rdmavt_qp.h          |    4 +---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hfi1/verbs.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index d7dabdf..728f5f1 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -1772,10 +1772,13 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
- 					0);
- 		qp->s_next_psn = wqe->lpsn + 1;
- 	}
--	if (unlikely(reserved_op))
-+	if (unlikely(reserved_op)) {
-+		wqe->wr.send_flags |= RVT_SEND_RESERVE_USED;
- 		rvt_qp_wqe_reserve(qp, wqe);
--	else
-+	} else {
-+		wqe->wr.send_flags &= ~RVT_SEND_RESERVE_USED;
- 		qp->s_avail--;
-+	}
- 	trace_rvt_post_one_wr(qp, wqe);
- 	smp_wmb(); /* see request builders */
- 	qp->s_head = next;
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index 3cdd9e2..e3bb312 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -2,7 +2,7 @@
- #define DEF_RDMAVT_INCQP_H
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 815cb44..8d71654 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1540,6 +1540,7 @@ static void hfi1_get_dev_fw_str(struct ib_device *ibdev, char *str,
+ 	"DRIVER_EgrHdrFull"
+ };
  
- /*
-- * Copyright(c) 2016 Intel Corporation.
-+ * Copyright(c) 2016, 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -526,7 +526,6 @@ static inline void rvt_qp_wqe_reserve(
- 	struct rvt_qp *qp,
- 	struct rvt_swqe *wqe)
++static DEFINE_MUTEX(cntr_names_lock); /* protects the *_cntr_names bufers */
+ static const char **dev_cntr_names;
+ static const char **port_cntr_names;
+ static int num_driver_cntrs = ARRAY_SIZE(driver_cntr_names);
+@@ -1594,6 +1595,7 @@ static int init_cntr_names(const char *names_in,
  {
--	wqe->wr.send_flags |= RVT_SEND_RESERVE_USED;
- 	atomic_inc(&qp->s_reserved_used);
+ 	int i, err;
+ 
++	mutex_lock(&cntr_names_lock);
+ 	if (!cntr_names_initialized) {
+ 		struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
+ 
+@@ -1602,8 +1604,10 @@ static int init_cntr_names(const char *names_in,
+ 				      num_driver_cntrs,
+ 				      &num_dev_cntrs,
+ 				      &dev_cntr_names);
+-		if (err)
++		if (err) {
++			mutex_unlock(&cntr_names_lock);
+ 			return NULL;
++		}
+ 
+ 		for (i = 0; i < num_driver_cntrs; i++)
+ 			dev_cntr_names[num_dev_cntrs + i] =
+@@ -1617,10 +1621,12 @@ static int init_cntr_names(const char *names_in,
+ 		if (err) {
+ 			kfree(dev_cntr_names);
+ 			dev_cntr_names = NULL;
++			mutex_unlock(&cntr_names_lock);
+ 			return NULL;
+ 		}
+ 		cntr_names_initialized = 1;
+ 	}
++	mutex_unlock(&cntr_names_lock);
+ 
+ 	if (!port_num)
+ 		return rdma_alloc_hw_stats_struct(
+@@ -1839,9 +1845,13 @@ void hfi1_unregister_ib_device(struct hfi1_devdata *dd)
+ 	del_timer_sync(&dev->mem_timer);
+ 	verbs_txreq_exit(dev);
+ 
++	mutex_lock(&cntr_names_lock);
+ 	kfree(dev_cntr_names);
+ 	kfree(port_cntr_names);
++	dev_cntr_names = NULL;
++	port_cntr_names = NULL;
+ 	cntr_names_initialized = 0;
++	mutex_unlock(&cntr_names_lock);
  }
  
-@@ -550,7 +549,6 @@ static inline void rvt_qp_wqe_unreserve(
- 	struct rvt_swqe *wqe)
- {
- 	if (unlikely(wqe->wr.send_flags & RVT_SEND_RESERVE_USED)) {
--		wqe->wr.send_flags &= ~RVT_SEND_RESERVE_USED;
- 		atomic_dec(&qp->s_reserved_used);
- 		/* insure no compiler re-order up to s_last change */
- 		smp_mb__after_atomic();
+ void hfi1_cnp_rcv(struct hfi1_packet *packet)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
