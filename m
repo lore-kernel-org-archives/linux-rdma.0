@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC for accelerated IPoIB 18/26] net/mlx5e: Change mlx5e_open_locked and mlx5e_close_locked api
-Date: Wed,  1 Mar 2017 16:02:26 +0200
-Message-ID: <1488376954-8346-19-git-send-email-erezsh@mellanox.com>
+Subject: [RFC for accelerated IPoIB 02/26] IB/ipoib: separate control from HW operation on ipoib_open/stop ndo
+Date: Wed,  1 Mar 2017 16:02:10 +0200
+Message-ID: <1488376954-8346-3-git-send-email-erezsh@mellanox.com>
 References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488376954-8346-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,274 +11,328 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik
 List-Id: linux-rdma@vger.kernel.org
 
 
-Let the IB link to call it directly with the relevant priv.
+This patch is preparing the netdev part at the ipoib driver to be able
+to use the ipoib_options.
+It deals with the two flows from the .ndo: ipoib_open and ipoib_stop.
+It arranges that area of code as follows:
+All operations which deal with the HW resources, (for example change QP
+state, post-receive etc.) are done in one place.
+All operations that are control oriented (like restart multicast task,
+start the reap_ah etc.) are done in separate place.
+
+The functions that deals with the HW resources now located at
+__ipoib_ib_dev_open for the ipoib_open flow and __ipoib_ib_dev_stop for
+ipoib_stop.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h       |  4 +--
- .../net/ethernet/mellanox/mlx5/core/en_ethtool.c   | 24 ++++++++---------
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c  | 31 +++++++++++-----------
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c    |  4 +--
- 4 files changed, 31 insertions(+), 32 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h      |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c   | 228 +++++++++++++++++-------------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |   2 +-
+ 3 files changed, 129 insertions(+), 103 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index a10966df24f6..2f9242ae06f3 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -797,8 +797,8 @@ int mlx5e_vlan_rx_kill_vid(struct net_device *dev, __always_unused __be16 proto,
- void mlx5e_build_indir_tir_ctx_hash(struct mlx5e_priv *priv, void *tirc,
- 				    enum mlx5e_traffic_types tt);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 7cd9befd7d54..b3900b253ad5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -501,7 +501,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ int ipoib_ib_dev_open(struct net_device *dev);
+ void ipoib_ib_dev_up(struct net_device *dev);
+ void ipoib_ib_dev_down(struct net_device *dev);
+-void ipoib_ib_dev_stop(struct net_device *dev);
++int ipoib_ib_dev_stop_default(struct net_device *dev);
+ void ipoib_pkey_dev_check_presence(struct net_device *dev);
  
--int mlx5e_open_locked(struct net_device *netdev);
--int mlx5e_close_locked(struct net_device *netdev);
-+int mlx5e_open_locked(struct mlx5e_priv *priv);
-+int mlx5e_close_locked(struct mlx5e_priv *priv);
- void mlx5e_build_default_indir_rqt(struct mlx5_core_dev *mdev,
- 				   u32 *indirection_rqt, int len,
- 				   int num_channels);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index bb67863aa361..0c8773718292 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -516,14 +516,14 @@ static int mlx5e_set_ringparam(struct net_device *dev,
+ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 3c0a35d883e2..5d732c5f01ee 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -693,24 +693,113 @@ static void ipoib_stop_ah(struct net_device *dev)
+ 	ipoib_flush_ah(dev);
+ }
  
- 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (was_opened)
--		mlx5e_close_locked(dev);
-+		mlx5e_close_locked(priv);
+-void ipoib_ib_tx_timer_func(unsigned long ctx)
++static int recvs_pending(struct net_device *dev)
+ {
+-	drain_tx_cq((struct net_device *)ctx);
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	int pending = 0;
++	int i;
++
++	for (i = 0; i < ipoib_recvq_size; ++i)
++		if (priv->rx_ring[i].skb)
++			++pending;
++
++	return pending;
+ }
  
- 	priv->params.log_rq_size = log_rq_size;
- 	priv->params.log_sq_size = log_sq_size;
- 	priv->params.min_rx_wqes = min_rx_wqes;
+-int ipoib_ib_dev_open(struct net_device *dev)
++int ipoib_ib_dev_stop_default(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-	int ret;
++	struct ib_qp_attr qp_attr;
++	unsigned long begin;
++	struct ipoib_tx_buf *tx_req;
++	int i;
  
- 	if (was_opened)
--		err = mlx5e_open_locked(dev);
-+		err = mlx5e_open_locked(priv);
+-	ipoib_pkey_dev_check_presence(dev);
++	if (test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
++		napi_disable(&priv->napi);
  
- 	mutex_unlock(&priv->state_lock);
- 
-@@ -561,7 +561,7 @@ static int mlx5e_set_channels(struct net_device *dev,
- 
- 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (was_opened)
--		mlx5e_close_locked(dev);
-+		mlx5e_close_locked(priv);
- 
- 	arfs_enabled = dev->features & NETIF_F_NTUPLE;
- 	if (arfs_enabled)
-@@ -572,7 +572,7 @@ static int mlx5e_set_channels(struct net_device *dev,
- 				      MLX5E_INDIR_RQT_SIZE, count);
- 
- 	if (was_opened)
--		err = mlx5e_open_locked(dev);
-+		err = mlx5e_open_locked(priv);
- 	if (err)
- 		goto out;
- 
-@@ -626,7 +626,7 @@ static int mlx5e_set_coalesce(struct net_device *netdev,
- 
- 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (was_opened && restart) {
--		mlx5e_close_locked(netdev);
-+		mlx5e_close_locked(priv);
- 		priv->params.rx_am_enabled = !!coal->use_adaptive_rx_coalesce;
+-	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
+-		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
+-			   (!(priv->pkey & 0x7fff) ? "Invalid" : "not found"));
+-		return -1;
++	ipoib_cm_dev_stop(dev);
++
++	/*
++	 * Move our QP to the error state and then reinitialize in
++	 * when all work requests have completed or have been flushed.
++	 */
++	qp_attr.qp_state = IB_QPS_ERR;
++	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
++		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
++
++	/* Wait for all sends and receives to complete */
++	begin = jiffies;
++
++	while (priv->tx_head != priv->tx_tail || recvs_pending(dev)) {
++		if (time_after(jiffies, begin + 5 * HZ)) {
++			ipoib_warn(priv, "timing out; %d sends %d receives not completed\n",
++				   priv->tx_head - priv->tx_tail, recvs_pending(dev));
++
++			/*
++			 * assume the HW is wedged and just free up
++			 * all our pending work requests.
++			 */
++			while ((int) priv->tx_tail - (int) priv->tx_head < 0) {
++				tx_req = &priv->tx_ring[priv->tx_tail &
++							(ipoib_sendq_size - 1)];
++				ipoib_dma_unmap_tx(priv, tx_req);
++				dev_kfree_skb_any(tx_req->skb);
++				++priv->tx_tail;
++				--priv->tx_outstanding;
++			}
++
++			for (i = 0; i < ipoib_recvq_size; ++i) {
++				struct ipoib_rx_buf *rx_req;
++
++				rx_req = &priv->rx_ring[i];
++				if (!rx_req->skb)
++					continue;
++				ipoib_ud_dma_unmap_rx(priv,
++						      priv->rx_ring[i].mapping);
++				dev_kfree_skb_any(rx_req->skb);
++				rx_req->skb = NULL;
++			}
++
++			goto timeout;
++		}
++
++		ipoib_drain_cq(dev);
++
++		msleep(1);
  	}
  
-@@ -655,7 +655,7 @@ static int mlx5e_set_coalesce(struct net_device *netdev,
- 
- out:
- 	if (was_opened && restart)
--		err = mlx5e_open_locked(netdev);
-+		err = mlx5e_open_locked(priv);
- 
- 	mutex_unlock(&priv->state_lock);
- 	return err;
-@@ -1112,12 +1112,12 @@ static int mlx5e_set_tunable(struct net_device *dev,
- 
- 		was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 		if (was_opened)
--			mlx5e_close_locked(dev);
-+			mlx5e_close_locked(priv);
- 
- 		priv->params.tx_max_inline = val;
- 
- 		if (was_opened)
--			err = mlx5e_open_locked(dev);
-+			err = mlx5e_open_locked(priv);
- 
- 		mutex_unlock(&priv->state_lock);
- 		break;
-@@ -1444,12 +1444,12 @@ static int set_pflag_rx_cqe_based_moder(struct net_device *netdev, bool enable)
- 
- 	reset = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (reset)
--		mlx5e_close_locked(netdev);
-+		mlx5e_close_locked(priv);
- 
- 	mlx5e_set_rx_cq_mode_params(&priv->params, rx_cq_period_mode);
- 
- 	if (reset)
--		err = mlx5e_open_locked(netdev);
-+		err = mlx5e_open_locked(priv);
- 
- 	return err;
- }
-@@ -1473,13 +1473,13 @@ static int set_pflag_rx_cqe_compress(struct net_device *netdev,
- 	reset = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 
- 	if (reset)
--		mlx5e_close_locked(netdev);
-+		mlx5e_close_locked(priv);
- 
- 	MLX5E_SET_PFLAG(priv, MLX5E_PFLAG_RX_CQE_COMPRESS, enable);
- 	priv->params.rx_cqe_compress_def = enable;
- 
- 	if (reset)
--		err = mlx5e_open_locked(netdev);
-+		err = mlx5e_open_locked(priv);
- 	return err;
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 42ac16daa126..8e6d0b3cd835 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -152,8 +152,8 @@ static void mlx5e_tx_timeout_work(struct work_struct *work)
- 	mutex_lock(&priv->state_lock);
- 	if (!test_bit(MLX5E_STATE_OPENED, &priv->state))
- 		goto unlock;
--	mlx5e_close_locked(priv->netdev);
--	err = mlx5e_open_locked(priv->netdev);
-+	mlx5e_close_locked(priv);
-+	err = mlx5e_open_locked(priv);
- 	if (err)
- 		netdev_err(priv->netdev, "mlx5e_open_locked failed recovering from a tx_timeout, err(%d).\n",
- 			   err);
-@@ -2239,9 +2239,9 @@ static void mlx5e_netdev_set_tcs(struct net_device *netdev)
- 		netdev_set_tc_queue(netdev, tc, nch, 0);
- }
- 
--int mlx5e_open_locked(struct net_device *netdev)
-+int mlx5e_open_locked(struct mlx5e_priv *priv)
- {
--	struct mlx5e_priv *priv = netdev_priv(netdev);
-+	struct net_device *netdev = priv->netdev;
- 	struct mlx5_core_dev *mdev = priv->mdev;
- 	int num_txqs;
- 	int err;
-@@ -2297,15 +2297,14 @@ int mlx5e_open(struct net_device *netdev)
- 	int err;
- 
- 	mutex_lock(&priv->state_lock);
--	err = mlx5e_open_locked(netdev);
-+	err = mlx5e_open_locked(priv);
- 	mutex_unlock(&priv->state_lock);
- 
- 	return err;
- }
- 
--int mlx5e_close_locked(struct net_device *netdev)
-+int mlx5e_close_locked(struct mlx5e_priv *priv)
- {
--	struct mlx5e_priv *priv = netdev_priv(netdev);
- 	struct mlx5_core_dev *mdev = priv->mdev;
- 
- 	/* May already be CLOSED in case a previous configuration operation
-@@ -2336,7 +2335,7 @@ int mlx5e_close(struct net_device *netdev)
- 		return -ENODEV;
- 
- 	mutex_lock(&priv->state_lock);
--	err = mlx5e_close_locked(netdev);
-+	err = mlx5e_close_locked(priv);
- 	mutex_unlock(&priv->state_lock);
- 
- 	return err;
-@@ -2641,12 +2640,12 @@ static int mlx5e_setup_tc(struct net_device *netdev, u8 tc)
- 
- 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (was_opened)
--		mlx5e_close_locked(priv->netdev);
-+		mlx5e_close_locked(priv);
- 
- 	priv->params.num_tc = tc ? tc : 1;
- 
- 	if (was_opened)
--		err = mlx5e_open_locked(priv->netdev);
-+		err = mlx5e_open_locked(priv);
- 
- 	mutex_unlock(&priv->state_lock);
- 
-@@ -2771,7 +2770,7 @@ static int set_feature_lro(struct net_device *netdev, bool enable)
- 	mutex_lock(&priv->state_lock);
- 
- 	if (was_opened && (priv->params.rq_wq_type == MLX5_WQ_TYPE_LINKED_LIST))
--		mlx5e_close_locked(priv->netdev);
-+		mlx5e_close_locked(priv);
- 
- 	priv->params.lro_en = enable;
- 	err = mlx5e_modify_tirs_lro(priv);
-@@ -2781,7 +2780,7 @@ static int set_feature_lro(struct net_device *netdev, bool enable)
++	ipoib_dbg(priv, "All sends and receives done.\n");
++
++timeout:
++	del_timer_sync(&priv->poll_timer);
++	qp_attr.qp_state = IB_QPS_RESET;
++	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
++		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
++
++	ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP);
++
++	return 0;
++}
++
++int ipoib_ib_dev_stop(struct net_device *dev)
++{
++	ipoib_ib_dev_stop_default(dev);
++
++	ipoib_flush_ah(dev);
++
++	return 0;
++}
++
++void ipoib_ib_tx_timer_func(unsigned long ctx)
++{
++	drain_tx_cq((struct net_device *)ctx);
++}
++
++int ipoib_ib_dev_open_default(struct net_device *dev)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	int ret;
++
+ 	ret = ipoib_init_qp(dev);
+ 	if (ret) {
+ 		ipoib_warn(priv, "ipoib_init_qp returned %d\n", ret);
+@@ -729,10 +818,6 @@ int ipoib_ib_dev_open(struct net_device *dev)
+ 		goto dev_stop;
  	}
  
- 	if (was_opened && (priv->params.rq_wq_type == MLX5_WQ_TYPE_LINKED_LIST))
--		mlx5e_open_locked(priv->netdev);
-+		mlx5e_open_locked(priv);
+-	clear_bit(IPOIB_STOP_REAPER, &priv->flags);
+-	queue_delayed_work(priv->wq, &priv->ah_reap_task,
+-			   round_jiffies_relative(HZ));
+-
+ 	if (!test_and_set_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
+ 		napi_enable(&priv->napi);
  
- 	mutex_unlock(&priv->state_lock);
+@@ -744,6 +829,35 @@ int ipoib_ib_dev_open(struct net_device *dev)
+ 	return -1;
+ }
  
-@@ -2915,13 +2914,13 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
++int ipoib_ib_dev_open(struct net_device *dev)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	ipoib_pkey_dev_check_presence(dev);
++
++	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
++		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
++			   (!(priv->pkey & 0x7fff) ? "Invalid" : "not found"));
++		return -1;
++	}
++
++	clear_bit(IPOIB_STOP_REAPER, &priv->flags);
++	queue_delayed_work(priv->wq, &priv->ah_reap_task,
++			   round_jiffies_relative(HZ));
++
++	if (ipoib_ib_dev_open_default(dev)) {
++		pr_warn("%s: Failed to open dev\n", dev->name);
++		goto stop_ah_reap;
++	}
++
++	return 0;
++
++stop_ah_reap:
++	set_bit(IPOIB_STOP_REAPER, &priv->flags);
++	cancel_delayed_work(&priv->ah_reap_task);
++	return -1;
++}
++
+ void ipoib_pkey_dev_check_presence(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -787,19 +901,6 @@ void ipoib_ib_dev_down(struct net_device *dev)
+ 	ipoib_flush_paths(dev);
+ }
  
- 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (was_opened && reset)
--		mlx5e_close_locked(netdev);
-+		mlx5e_close_locked(priv);
+-static int recvs_pending(struct net_device *dev)
+-{
+-	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-	int pending = 0;
+-	int i;
+-
+-	for (i = 0; i < ipoib_recvq_size; ++i)
+-		if (priv->rx_ring[i].skb)
+-			++pending;
+-
+-	return pending;
+-}
+-
+ void ipoib_drain_cq(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -839,81 +940,6 @@ void ipoib_drain_cq(struct net_device *dev)
+ 	local_bh_enable();
+ }
  
- 	netdev->mtu = new_mtu;
- 	mlx5e_set_dev_port_mtu(netdev);
+-void ipoib_ib_dev_stop(struct net_device *dev)
+-{
+-	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-	struct ib_qp_attr qp_attr;
+-	unsigned long begin;
+-	struct ipoib_tx_buf *tx_req;
+-	int i;
+-
+-	if (test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
+-		napi_disable(&priv->napi);
+-
+-	ipoib_cm_dev_stop(dev);
+-
+-	/*
+-	 * Move our QP to the error state and then reinitialize in
+-	 * when all work requests have completed or have been flushed.
+-	 */
+-	qp_attr.qp_state = IB_QPS_ERR;
+-	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
+-		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
+-
+-	/* Wait for all sends and receives to complete */
+-	begin = jiffies;
+-
+-	while (priv->tx_head != priv->tx_tail || recvs_pending(dev)) {
+-		if (time_after(jiffies, begin + 5 * HZ)) {
+-			ipoib_warn(priv, "timing out; %d sends %d receives not completed\n",
+-				   priv->tx_head - priv->tx_tail, recvs_pending(dev));
+-
+-			/*
+-			 * assume the HW is wedged and just free up
+-			 * all our pending work requests.
+-			 */
+-			while ((int) priv->tx_tail - (int) priv->tx_head < 0) {
+-				tx_req = &priv->tx_ring[priv->tx_tail &
+-							(ipoib_sendq_size - 1)];
+-				ipoib_dma_unmap_tx(priv, tx_req);
+-				dev_kfree_skb_any(tx_req->skb);
+-				++priv->tx_tail;
+-				--priv->tx_outstanding;
+-			}
+-
+-			for (i = 0; i < ipoib_recvq_size; ++i) {
+-				struct ipoib_rx_buf *rx_req;
+-
+-				rx_req = &priv->rx_ring[i];
+-				if (!rx_req->skb)
+-					continue;
+-				ipoib_ud_dma_unmap_rx(priv,
+-						      priv->rx_ring[i].mapping);
+-				dev_kfree_skb_any(rx_req->skb);
+-				rx_req->skb = NULL;
+-			}
+-
+-			goto timeout;
+-		}
+-
+-		ipoib_drain_cq(dev);
+-
+-		msleep(1);
+-	}
+-
+-	ipoib_dbg(priv, "All sends and receives done.\n");
+-
+-timeout:
+-	del_timer_sync(&priv->poll_timer);
+-	qp_attr.qp_state = IB_QPS_RESET;
+-	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
+-		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
+-
+-	ipoib_flush_ah(dev);
+-
+-	ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP);
+-}
+-
+ /*
+  * Takes whatever value which is in pkey index 0 and updates priv->pkey
+  * returns 0 if the pkey value was changed.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 8c644bbc2828..be8dcea252f9 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -166,7 +166,7 @@ static int ipoib_stop(struct net_device *dev)
+ 	netif_stop_queue(dev);
  
- 	if (was_opened && reset)
--		err = mlx5e_open_locked(netdev);
-+		err = mlx5e_open_locked(priv);
+ 	ipoib_ib_dev_down(dev);
+-	ipoib_ib_dev_stop(dev);
++	ipoib_ib_dev_stop_default(dev);
  
- 	mutex_unlock(&priv->state_lock);
- 
-@@ -3173,7 +3172,7 @@ static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
- 	reset = (!priv->xdp_prog || !prog);
- 
- 	if (was_opened && reset)
--		mlx5e_close_locked(netdev);
-+		mlx5e_close_locked(priv);
- 	if (was_opened && !reset) {
- 		/* num_channels is invariant here, so we can take the
- 		 * batched reference right upfront.
-@@ -3196,7 +3195,7 @@ static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
- 		mlx5e_set_rq_priv_params(priv);
- 
- 	if (was_opened && reset)
--		mlx5e_open_locked(netdev);
-+		mlx5e_open_locked(priv);
- 
- 	if (!test_bit(MLX5E_STATE_OPENED, &priv->state) || reset)
- 		goto unlock;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 06d5e6fecb0a..ad08e64fee1a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -169,12 +169,12 @@ void mlx5e_modify_rx_cqe_compression(struct mlx5e_priv *priv, bool val)
- 
- 	was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
- 	if (was_opened)
--		mlx5e_close_locked(priv->netdev);
-+		mlx5e_close_locked(priv);
- 
- 	MLX5E_SET_PFLAG(priv, MLX5E_PFLAG_RX_CQE_COMPRESS, val);
- 
- 	if (was_opened)
--		mlx5e_open_locked(priv->netdev);
-+		mlx5e_open_locked(priv);
- 
- unlock:
- 	mutex_unlock(&priv->state_lock);
+ 	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
+ 		struct ipoib_dev_priv *cpriv;
 -- 
 1.8.3.1
 
