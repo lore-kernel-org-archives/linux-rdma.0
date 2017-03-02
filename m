@@ -1,63 +1,130 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 20/20] IB/core: If the MGID/MLID pair is not on the list
- return an error
-Date: Thu, 2 Mar 2017 16:00:28 +0200
-Message-ID: <20170302140028.GE9525@mtr-leonro.local>
-References: <20170301181719.29989.31238.stgit@scvm10.sc.intel.com>
- <20170301182426.29989.77369.stgit@scvm10.sc.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC] libibverbs IB device hotplug support
+Date: Thu, 2 Mar 2017 07:48:55 -0500
+Message-ID: <467c0560-8de7-42e5-14b9-178c367874d2@redhat.com>
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
+ <1488296882.86943.214.camel@redhat.com>
+ <HE1PR0501MB28123E8F342607E2C2CA4DD9B1560@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+ <3389d831-c135-b326-4b96-5f2a746de5ac@redhat.com>
+ <20170301004449.GA13114@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0ECDC6@ORSMSX109.amr.corp.intel.com>
+ <CAFgAxU9vObaW4O+byEJ5pV1Ofou4cd05HHWWPC7iTJshyk+LdA@mail.gmail.com>
+ <d92df6b7-207f-f3a3-8bf5-b12cffe20684@redhat.com>
+ <CAFgAxU_-jbAoOR2XMYfSgbDMn7FnrthudZJLgeNNTzb9GEUXrg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="h56sxpGKRmy85csR"
+ protocol="application/pgp-signature";
+ boundary="kLQOhRNHhkqqXSOBifOe4n10snNIxi6np"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170301182426.29989.77369.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <CAFgAxU_-jbAoOR2XMYfSgbDMn7FnrthudZJLgeNNTzb9GEUXrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--kLQOhRNHhkqqXSOBifOe4n10snNIxi6np
+Content-Type: multipart/mixed; boundary="aeSUsxpqas7ddwSgf7LnBGHFoiucsBgp9";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <467c0560-8de7-42e5-14b9-178c367874d2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC] libibverbs IB device hotplug support
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <1488296882.86943.214.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <HE1PR0501MB28123E8F342607E2C2CA4DD9B1560-692Kmc8YnlIVrnpjwTCbp8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+ <3389d831-c135-b326-4b96-5f2a746de5ac-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170301004449.GA13114-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB0ECDC6-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <CAFgAxU9vObaW4O+byEJ5pV1Ofou4cd05HHWWPC7iTJshyk+LdA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <d92df6b7-207f-f3a3-8bf5-b12cffe20684-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <CAFgAxU_-jbAoOR2XMYfSgbDMn7FnrthudZJLgeNNTzb9GEUXrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAFgAxU_-jbAoOR2XMYfSgbDMn7FnrthudZJLgeNNTzb9GEUXrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
---h56sxpGKRmy85csR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--aeSUsxpqas7ddwSgf7LnBGHFoiucsBgp9
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 01, 2017 at 10:24:32AM -0800, Dennis Dalessandro wrote:
-> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> A list of MGID/MLID pairs is built when doing a multicast attach.  When
-> the multicast detach is called, the list is searched, and regardless of
-> the search outcome, the driver detach is called.
->
-> If an MGID/MLID pair is not on the list, driver detach should not be
-> called, and an error should be returned.  Failure to do so can leave
-> the Multicast list out of sync with what the driver has.
+On 3/1/2017 5:32 PM, Alex Rosenbaum wrote:
+> On Thu, Mar 2, 2017 at 12:07 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
+te:
 
-It took me a while to understand your last sentence.
-Can we add Fixes line and submit it to stable too?
+>> Personally I would use a thread in the library that would block on
+>> inotify events from the sysfs directory.  Any time it got woke up, it
+>> would process the remove/add event, update the device list, create a
+>> notification if the app had registered a notification handler and queu=
+e
+>> that to the app, then go back to sleep on the inotify events in the
+>> sysfs dir.  The processing of the event and the notification would be
+>> totally disjoint.  The app need not process events, even if it
+>> registered and event handler, in order to get the new device list.
+>=20
+> I actually did look at inotify() for this problem and agree that this
+> is can be a good option.
+> There are some issues with it. You get a few more events then you
+> really need (some extra context switches). It does not map all sysfs
+> cleanly, there are some limitation. It will not wakeup on
+> /sys/class/infiniband_verbs/*, but will catch the
+> /dev/infiniband/uverbes% new instances.
+>=20
+> Then there is a question of which context/thread? library vs applicatio=
+ns
 
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On further reflection, I think inotify is out of the question.  The
+problem is that our initial setup is done via systemd on most modern
+systems, and under systemd the rdma.init kernel setup script is a
+oneshot script.  The udev rules for various rdma capable hardware all
+call out for the rdma.init service to be run.  This is fine at bootup.
+However, once we are up and running, I don't think a hotplug of any
+module driver that services only the ethernet portion of a two part
+driver (cxgb*/hns/bnxt) will trigger a load of the corresponding RDMA
+portion of the driver.  I think we need to monitor udev events, we
+specifically need to trap for all add events for class network, then
+need to detect if the device added belongs to one of the known paired
+ethernet/RDMA drivers, and if the RDMA module didn't get loaded, load
+it.  That doesn't work if we just watch /dev/infiniband/uverbs* or
+/sys/class/infiniband_verbs/* as these devices will never show up until
+someone loads the proper module.
 
---h56sxpGKRmy85csR
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--aeSUsxpqas7ddwSgf7LnBGHFoiucsBgp9--
+
+--kLQOhRNHhkqqXSOBifOe4n10snNIxi6np
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAli4JXwACgkQ5GN7iDZy
-WKeRqA/+JQPVGc2b+33WXn5klzzN79YANQaZ6NaUFf1bF49BO4EhNhE3JkvqMjVd
-WzO6zhuH3Uk2JpCtjEYzWLfijWbnJFTENQQgdzxbqyHMc5BHX17qjsIcBT7xlEo9
-/EhZqmrrG0N4CacteWyc7xx6YS/VdyJjx1C7WLmqamh1evbjd21jwDcBl26S75bC
-5hF/9Lb9wS1V2GHZpgXHCeRwoDI8MVwSXwvgjW8rXjGbnZjbUSklohFj86wYIvD0
-8cUVrTtUNfkzC5fee/O9AAWZEAJz8WWGIJ2CnOs6xAo9eVKisuFfBJql/kg0uv2q
-9zg8dGYvhO5m8DHPRIxljwrbmF1LfPbARD8eMdTIheyGeJe/9QV1cLNga45hP89X
-+Mj6p57qaAerhPIqnQjXeAj5ZSQTsTPXzS48avXtEFwyYo7gPAQDKNODN3A3zVHp
-Ysws4ZuJFB1vz/t4zXtL73y2yptI2H4m/Zo5Yq8TT23WS9eTy+xpC2JozlgNvaqV
-VQ6HHV5q44eYXCR6w/+kTrh+Tc6AHpB2sZBJ++dqqrl/91vIJtiaMVFokfQWB3kU
-bYVV+wYnltaVNgfBULuWdzpqYOdruYGwGCK5kRbkWG1F+57RBDcVAHwvuPePIrgD
-ZoRbjwHoJUsxCogrzOeWPuXuqlIbth5dksfkR/c6efCzIxiddyA=
-=PJJc
+iQIcBAEBCAAGBQJYuBS8AAoJELgmozMOVy/dKggP/jx7gcvZ8VfAyHePGSHqIgLf
+IezfRQLDUyrjWDu8y1o0+0HVFMTFyGkovGxSMLW0y/GtaIUoxr8vIstqeSuLwGab
+WWnfur6mXFFfVKz6QgcY2LB0GAQ57qXm7NUas7LqzEFwd9LzMmcfoX/OZ//VRlKo
+5BI3gDnKx0ciU3hKwAp4w1KzpQTI6LJNh3WGhB3oIurS2WBRo6PLt0UlxKXVagzE
+uaz6iuSW7WO6HrzvGkW20wI1XzXyG/zmMHK15URXs6rqaHjJRqcOuZazsaZ3MDAQ
+Rq6k5HHU99iWKUUazQEwV7LnOMVGeiVDMfWdJU2x+IjyumiVgSbv8j8eJ2gsF+2i
+rGuc/csMdPc6NYyY+JKSUczl687fXHqu6xASeS6eQ/7vX9XNcltE8rn4EGwH+1hp
+WdWqMncADBgHXRocZ/NusAxkDmlmiFQVXu0nBPnE4umrsQr1RRm4DKP5YHgg2Q27
+nVjxbwM+vbTTZChkyl2s+cAfDcDh+deXDuncL0AVRwo4mUtyIwGLiWTJttN5T2zp
+UYG+ZOAelUfFw11fjTSxW5swcr8YcWd9EtkNLx6DIwTyNC9klb7HQhXgy1SevekP
+wxYZgVtB3FTNyhkllC2cbldBE3+vZppQaNZnuutuNoyla1z9vtKbg7W9STRvch8H
+24L5fURXJoisUzzQxSYO
+=2kTV
 -----END PGP SIGNATURE-----
 
---h56sxpGKRmy85csR--
+--kLQOhRNHhkqqXSOBifOe4n10snNIxi6np--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
