@@ -1,59 +1,41 @@
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: Poll CQ syncing problem
-Date: Thu, 2 Mar 2017 08:04:38 +0200
-Message-ID: <d2ae5e83-2099-3da6-561c-4f2489ee062b@mellanox.com>
+Date: Thu, 2 Mar 2017 06:06:32 +0000
+Message-ID: <1488434773.3505.12.camel@sandisk.com>
 References: <b4355d22-fc79-c860-de8a-5a4d468c884d@mellanox.com>
- <3ba1baab-e2ac-358d-3b3b-ff4a27405c93@mellanox.com>
- <0786659a-da12-e8f7-329e-3caa8cc8791f@grimberg.me>
+         <3ba1baab-e2ac-358d-3b3b-ff4a27405c93@mellanox.com>
+         <1488387143.2699.6.camel@sandisk.com>
+         <4d8ac8fd-8ef1-6f6b-177c-2c3ab131f99c@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0786659a-da12-e8f7-329e-3caa8cc8791f-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <4d8ac8fd-8ef1-6f6b-177c-2c3ab131f99c-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <CE35D0AF38ED5644B2FC891159297FAC-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sagi,
-
-On 3/1/2017 6:44 PM, Sagi Grimberg wrote:
-
->> Hi Christoph, Sagi
-> Hi Noa,
->> Analysis:
->> Since ib_comp_wq isn't single threaded, two works can run in parallel for the same CQ,
->> executing __ib_process_cq.
->>
-> How is that even possible? AFAICT a given CQ cannot run more than a
-> single work item at a time because we simply queue a work when we get
-> a completion event and rearm it only when we fully drain it. we requeue
-> if we exhausted our budget but still I don't see a mutual exclusion
-> violation...
-> Am I missing anything?
-
-As Christoph and Bart pointed out, we use older kernel versions.
-
->> Since this function isn't thread safe and the wc array is shared, it causes a data corruption
->> which eventually crashes in the MAD layer due to a double list_del of the same element.
-> Hmm. I'm wandering if this is really the root-cause... Can it be the
-> fact that ib_comp_wq is unbound causing the worker to migrate cpu cores
-> in its lifetime?
->
-> I wanted to change that a while ago and sent a patch for it [1].
->
->> We have the following options to solve this:
->> 1. Instead of cq->wc, allocate an ib_wc array in __ib_process_cq per each call.
-> That is bad practice.
->
->> 2. Make ib_comp_wq a single thread workqueue.
-> Not going to happen, it'll kill performance.
->> 3. Change the locking scheme during poll: Currently only the device's poll_cq implementation
->>    is done under lock. Change it to also contan the callbacks.
-> I don't see a need for this at all.
-
-Thanks for your input.
-
+T24gVGh1LCAyMDE3LTAzLTAyIGF0IDA3OjU5ICswMjAwLCBOb2EgT3NoZXJvdmljaCB3cm90ZToN
+Cj4gT24gMy8xLzIwMTcgNjo1MiBQTSwgQmFydCBWYW4gQXNzY2hlIHdyb3RlOg0KPiANCj4gPiBP
+biBXZWQsIDIwMTctMDMtMDEgYXQgMTY6MzAgKzAyMDAsIE5vYSBPc2hlcm92aWNoIHdyb3RlOg0K
+PiA+ID4gUkVHUzogYzAwMDAwMDFjZTcwNzdlMCBUUkFQOiAwMzAwICAgTm90IHRhaW50ZWQgICgy
+LjYuMzItNjQyLmVsNi5wcGM2NCkNCj4gPiANCj4gPiBIZWxsbyBOb2EsDQo+ID4gDQo+ID4gSSBh
+Z3JlZSB3aXRoIENocmlzdG9waCBhbmQgU2FnaSB0aGF0IHlvdXIgYW5hbHlzaXMgZG9lc24ndCBt
+YXRjaCB0aGUgdXBzdHJlYW0NCj4gPiBjb2RlLiBJIHRoaW5rIHRoZSBhYm92ZSBpbmZvcm1hdGlv
+biBtZWFucyB0aGF0IHlvdSBhcmUgdXNpbmcgUkhFTCA2Ljg/DQo+IA0KPiBZZXMsIGFzIHdlbGwg
+YXMgb3RoZXIgb2xkZXIga2VybmVsLCBhcyBJIHdyb3RlIHRvIENocmlzdG9waC4gV2UnbGwgYWRh
+cHQgdGhlIGNvZGUuDQoNCkl0IG1pZ2h0IGJlIGdvb2QgdG8ga25vdyB0aGF0IEkgcmFuIGludG8g
+YSBzaW1pbGFyIGlzc3VlIGVhcmxpZXIgdG9kYXkgd2l0aCBrZXJuZWwNCnY0LjEwIGJ5IHVzaW5n
+IHRoZSBJQi9DTSBhbmQgYnkgZGVzdHJveWluZyB0aGUgUVAgYmVmb3JlIHRoZSBDTSBJRC4gSW4g
+b3RoZXIgd29yZHMsDQp0aGUgYmVoYXZpb3IgeW91IG9ic2VydmVkIGlzIG5vdCBuZWNlc3Nhcmls
+eSBhIGJ1ZyBpbiB0aGUgcG9sbGluZyBjb2RlIGJ1dCBtYXkgYWxzbw0KYmUgYSB1c2UtYWZ0ZXIt
+ZnJlZSBvZiB0aGUgbWVtb3J5IHRoYXQgd2FzIGFsbG9jYXRlZCBmb3IgdGhlIFFQIFdSIGFuZC9v
+ciBXQyBidWZmZXJzLg0KV2l0aCB0aGUgbmV3IHBvbGxpbmcgQVBJIHN1Y2ggZXJyb3JzIGFyZSBt
+dWNoIG1vcmUgc2VyaW91cyB0aGFuIGJlZm9yZSBiZWNhdXNlIHRoZQ0KbmV3IHBvbGxpbmcgQVBJ
+IGp1bXBzIHRvIGFuIGFkZHJlc3MgcmV0cmlldmVkIGZyb20gYSBXQyBlbnRyeS4NCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
