@@ -1,20 +1,87 @@
-From: Philipp Thomas <pth-l3A5Bk7waGM@public.gmane.org>
-Subject: Wrong directory name in Release 12 release tarball
-Date: Thu, 2 Mar 2017 08:13:09 +0100
-Message-ID: <20170302071309.7j2a7ic2oumy7d4l@paradies.suse.de>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [Query] iSER-Target: QP errors observed on increasing
+ MaxXmitDataSegmentLength to 16384 (default = 8192)
+Date: Thu, 02 Mar 2017 00:30:33 -0800
+Message-ID: <1488443433.21712.111.camel@haakon3.risingtidesystems.com>
+References: <20170224091455.GA11766@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20170224091455.GA11766@chelsio.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Potnuri Bharat Teja <bharat@chelsio.com>
+Cc: sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, swise@opengridcomputing.com, rajur@chelsio.com, Jenny Derzhavetz <jennyf@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The Release 12 tarball unpacks into rdma-core-rdma-core-12. This looks like
-a packaging bug.
+Hi Bharat & Co,
 
-Philipp
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Adding Jenny + Or CC', as I believe they are still the main point people
+for iser-target related items at Mellanox.
+
+On Fri, 2017-02-24 at 14:44 +0530, Potnuri Bharat Teja wrote:
+> Hi Sagi/Nicholas,
+> 
+> When tried changing the MaxXmitDataSegmentLength to 16384 (default =
+> 8192), by changing it from targetcli on target and iscsd.conf on
+> initiator, I observe the following errors.
+> 
+> cxgb4 0000:06:00.4: AE qpid 1024 opcode 3 status 0x6 type 0 len 0x5c wrid.hi 0x0 wrid.lo 0x136
+> isert: isert_qp_event_callback: QP access error (3): conn ffff8807da7b6000
+> Aligning ISER MaxRecvDataSegmentLength: 4096 down to PAGE_SIZE
+
+IIRC, this message in iscsi_target_login.c:iscsi_login_zero_tsih_s2()
+indicates the initiator presented MRDSL was either not PAGE_SIZED
+aligned, or less than PAGE_SIZE..
+
+Not sure why this is happening with a MRDSL=16384..? Can you confirm
+what MRDSL came across the wire..?
+
+This would explain the iw_cxgb4 errors about the receive buffers posted
+by target are insufficient for incoming data.
+
+> cxgb4 0000:06:00.4: AE qpid 1026 opcode 3 status 0x6 type 0 len 0x5c wrid.hi 0x0 wrid.lo 0x2
+> isert: isert_qp_event_callback: QP access error (3): conn ffff88053a2ee000
+> 
+> From the error status of iw_cxgb4 the receive buffers posted by target
+> are unsufficient for the
+> incoming data to be placed/DMAed by the HW/adapter.
+> Apparently, from the iSER-target code the rx buffers are acclocated
+> for a fixed size of 8192. from isert_alloc_rx_descriptors() in
+> drivers/infiniband/ulp/isert/ib_isert.c 
+> 		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
+> 
+> I confirmed the same by increasing the ISER_RX_PAYLOAD_SIZE to 16384
+> and the errors arent seen.
+> 
+
+Mmmm.
+
+> As far as i could see, from the iSER target code,
+> MaxXmitDataSegmentLength should not be changed according to the
+> targetcli/openiscsi parameters and should countinue based on iSER
+> specific Initiator/targetrecvdatasegmentlength and so does the
+> MaxrecvDatasegmentLength.
+> 
+> Please let me know if my observations are right and what could be done
+> to fix this.
+> 
+
+OK, it sounds like a reasonable approach to always enforce the default
+MXDSL=8192 from the target side.
+
+The issue of ignoring what the initiator sent for MRDSL, and always
+enforcing MRDSL=8192 would be OK if the initiator is presenting a MRDSL
+larger than 8192, but could be problematic if it is presenting a MRDSL
+smaller than 8192.
+
+So I think the right approach would be:
+
+- Always use MXDSL = 8192 in iser-target, regardless of what's 
+  configured by targetcli via configfs, et al.
+- Always honor MRDSL = 8192 in iser-target, when the initiator presents 
+  a MRDSL >= 8192 during login.
+- If the initiator is attempting to present a MRDSL < 8192, fail
+  the login with ISCSI_LOGIN_STATUS_INIT_ERR
+
+Jenny + Or, WDYT..?
