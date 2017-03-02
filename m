@@ -1,137 +1,119 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC for accelerated IPoIB 00/27] Enhanced mode for IPoIB driver
-Date: Thu, 2 Mar 2017 21:13:33 +0200
-Message-ID: <CAAk-MO9tAHioaSXv8MPu=Kf3QSxjuQhAt6vYRVCzuNriXkm-+A@mail.gmail.com>
-References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com> <20170301182039.GC14791@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32 function
+Date: Thu,  2 Mar 2017 22:23:32 +0200
+Message-ID: <1488486212-22369-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170301182039.GC14791-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 1, 2017 at 8:20 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Mar 01, 2017 at 04:02:08PM +0200, Erez Shitrit wrote:
->>     /* default accelerating functions, same as before */
->>     struct ib_ipoib_accel_ops default_ipoib_accel_ops = {
->>             .ib_dev_init = ipoib_dev_init_default,
->>             .ib_dev_cleanup = ipoib_dev_uninit_default,
->>             .ib_dev_open = ipoib_ib_dev_open_default,
->>             .ib_dev_stop = ipoib_ib_dev_stop_default,
->>             .send = ipoib_send,
->>             .create_netdev = ipoib_create_netdev_default,
->>             .attach_mcast = ipoib_mcast_attach,
->>             .dettach_mcast = ipoib_mcast_dettach,
->>     };
->
-> This is so ridiculously close to what opa_vnic is doing, please try to
-> work with them to figure out some common version of your
-> 'create_netdev':
->
-> +struct ib_ipoib_accel_ops {
-> +
-> +       /*
-> +        * HW provider driver creates the net_device for IPoIB.
-> +        * hca: The current ib device.
-> +        * name: is the format of the new network device (probably ib%d)
-> +        */
-> +       struct net_device * (*create_netdev)(struct ib_device *hca,
-> +                                            const char *name,
-> +                                            void (*setup)(struct net_device *));
->
->
-> vs:
->
-> @@ -2110,6 +2128,15 @@  struct ib_device {
->
-> +       struct net_device *(*alloc_rdma_netdev)(
-> +                                       struct ib_device *device,
-> +                                       u8 port_num,
-> +                                       enum rdma_netdev_t type,
-> +                                       const char *name,
-> +                                       unsigned char name_assign_type,
-> +                                       void (*setup)(struct net_device *));
->
->
-> I've pointed out again and again you two are working on the same
-> thing.
->
-> It is inexplicable to me you couldn't use this opa_vnic patch as a
-> starting point for the ipoib api:
->
-> https://patchwork.kernel.org/patch/9587819/
->
-> I would propose you add a RDMA_NETDEV_IPOIB to their stuff and a
-> rdma_netdev_get_ipoib_ops(struct net_device *) to get your
-> rdma_netdev_ipoib_ops.
->
+This logic seems to be duplicated in (at least) three separate files.
+Move it to one place so code can be re-use.
 
-We agree that both of the implementations look similar in some way,
-and we think that at the end we can give one api that will work for
-both of us.
-but, we need to remember that IPoIB acceleration and VNIC are coming
-to solve different issues.
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_common_util.h | 11 +++--------
+ drivers/infiniband/sw/rxe/rxe_net.c             | 10 +---------
+ include/net/addrconf.h                          | 18 ++++++++++++------
+ 3 files changed, 16 insertions(+), 23 deletions(-)
 
-Anyway, It doesn't right for us to use the api as it is in the VNIC
-code, there are few differences that according to them we started with
-a different set of functions:
+diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
+index b54986d..06e4cda 100644
+--- a/drivers/infiniband/hw/usnic/usnic_common_util.h
++++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
+@@ -34,6 +34,8 @@
+ #ifndef USNIC_CMN_UTIL_H
+ #define USNIC_CMN_UTIL_H
+ 
++#include <net/addrconf.h>
++
+ static inline void
+ usnic_mac_to_gid(const char *const mac, char *raw_gid)
+ {
+@@ -57,14 +59,7 @@
+ 	raw_gid[1] = 0x80;
+ 	memset(&raw_gid[2], 0, 2);
+ 	memcpy(&raw_gid[4], &inaddr, 4);
+-	raw_gid[8] = mac[0]^2;
+-	raw_gid[9] = mac[1];
+-	raw_gid[10] = mac[2];
+-	raw_gid[11] = 0xff;
+-	raw_gid[12] = 0xfe;
+-	raw_gid[13] = mac[3];
+-	raw_gid[14] = mac[4];
+-	raw_gid[15] = mac[5];
++	defaddrconf_ifid_eui48(&raw_gid[8], mac);
+ }
+ 
+ static inline void
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 4abdeb3..656eabe 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -86,18 +86,10 @@ struct rxe_dev *get_rxe_by_name(const char *name)
+ 
+ static __be64 rxe_mac_to_eui64(struct net_device *ndev)
+ {
+-	unsigned char *mac_addr = ndev->dev_addr;
+ 	__be64 eui64;
+ 	unsigned char *dst = (unsigned char *)&eui64;
+ 
+-	dst[0] = mac_addr[0] ^ 2;
+-	dst[1] = mac_addr[1];
+-	dst[2] = mac_addr[2];
+-	dst[3] = 0xff;
+-	dst[4] = 0xfe;
+-	dst[5] = mac_addr[3];
+-	dst[6] = mac_addr[4];
+-	dst[7] = mac_addr[5];
++	defaddrconf_ifid_eui48(dst, ndev->dev_addr);
+ 
+ 	return eui64;
+ }
+diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+index 8f998af..97aed5f 100644
+--- a/include/net/addrconf.h
++++ b/include/net/addrconf.h
+@@ -105,12 +105,21 @@ int addrconf_prefix_rcv_add_addr(struct net *net, struct net_device *dev,
+ 				 u32 addr_flags, bool sllao, bool tokenized,
+ 				 __u32 valid_lft, u32 prefered_lft);
+ 
++static inline void defaddrconf_ifid_eui48(u8 *eui, const char *const addr)
++{
++	memcpy(eui, addr, 3);
++	eui[0] ^= 2;
++	eui[3] = 0xFF;
++	eui[4] = 0xFE;
++	memcpy(eui + 5, addr + 3, 3);
++}
++
+ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+ {
+ 	if (dev->addr_len != ETH_ALEN)
+ 		return -1;
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
++
++	defaddrconf_ifid_eui48(eui, dev->dev_addr);
+ 
+ 	/*
+ 	 * The zSeries OSA network cards can be shared among various
+@@ -128,11 +137,8 @@ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+ 	if (dev->dev_id) {
+ 		eui[3] = (dev->dev_id >> 8) & 0xFF;
+ 		eui[4] = dev->dev_id & 0xFF;
+-	} else {
+-		eui[3] = 0xFF;
+-		eui[4] = 0xFE;
+-		eui[0] ^= 2;
+ 	}
++
+ 	return 0;
+ }
+ 
+-- 
+1.8.3.1
 
-1. We added acceleration to IPoIB driver which is generic network
-device driver and should work over any other HW specific vendor,
-without exposing the way the acceleration is done beneath, so we
-preferred not to  tie the implementation to the term "netdev ndo,
-The VNIC driver is free to do whatever it likes to because it "knows"
-what is going on in the low-level-driver (which is from the same
-vendor)
-also, we tried to keep the IPoIB code as before, the only changes is
-by separating control from data-path, that derived the meaning of the
-functions we exported, only data-path or HW resources handling.
-
-2. we wanted to keep the IPoIB code as clean as we can, so we created
-a "default acceleration" that works the same way as it was before, the
-idea that leads that is to separate the HW specific from the
-control/management area, and that is done better/simpler with the set
-of functions that are exposed.
-
-3. We are using some functions that are not part of the ndo calls or
-are used differently for example:
-We need functions to attach / detach mcast, we are using send function
-that needs to get the ah object We can do some hacking but we think it
-is cleaner that way.
-
-I think that we can change the create_netdev api to be like is in the
-VNIC code, but we would like to keep the rest of the functions in our
-struct and suggest the VNIC driver will use it in order to get the
-pointer of the create_netdev, We think that struct of pointers to
-functions can be flexible to future needs with no need to consider the
-ndo existence.
-
-meaning:
-one verb that expose struct of functions.
-for IPoIB we will use all of them.
-for VNIC it will use the create_netdev only.
-both of the driver are able to use them for their specific needs.
-
-> I also wonder why there are so many ops, for instance the approach of
-> having the driver set .ndo_stop and others seems better.
->
-> ipoib could either 'wrapper' that pointer after calling
-> alloc_rdma_netdev or it could export enough utility functions for the
-> driver to implement the needed behavior. (eg this may be more in line
-> with the "midlayer mistake" thinking of
-> https://lwn.net/Articles/336262/)
->
-> Maybe Niranjana has some suggestions based on learning in vnic, they
-> tried a few different schemes.
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
