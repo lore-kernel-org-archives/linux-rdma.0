@@ -1,82 +1,48 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 20/20] IB/core: If the MGID/MLID pair is not on the list
- return an error
-Date: Thu, 02 Mar 2017 07:18:24 -0800
-Message-ID: <20170302151814.7732.95705.stgit@scvm10.sc.intel.com>
-References: <20170301181719.29989.31238.stgit@scvm10.sc.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] libibverbs IB device hotplug support
+Date: Thu, 2 Mar 2017 16:08:23 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0ED3C6@ORSMSX109.amr.corp.intel.com>
+References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170301181719.29989.31238.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-A list of MGID/MLID pairs is built when doing a multicast attach.  When
-the multicast detach is called, the list is searched, and regardless of
-the search outcome, the driver detach is called.
-
-If an MGID/MLID pair is not on the list, driver detach should not be
-called, and an error should be returned.  Calling the driver without
-removing an MGID/MLID pair from the list can leave the core and driver
-out of sync.
-
-Fixes: f4e401562c11 IB/uverbs: track multicast group membership for userspace QPs
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7b7a76e..40cd335 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3186,6 +3186,7 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
- 	struct ib_qp                 *qp;
- 	struct ib_uverbs_mcast_entry *mcast;
- 	int                           ret = -EINVAL;
-+	bool                          found = false;
- 
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
-@@ -3194,10 +3195,6 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
- 	if (!qp)
- 		return -EINVAL;
- 
--	ret = ib_detach_mcast(qp, (union ib_gid *) cmd.gid, cmd.mlid);
--	if (ret)
--		goto out_put;
--
- 	obj = container_of(qp->uobject, struct ib_uqp_object, uevent.uobject);
- 
- 	list_for_each_entry(mcast, &obj->mcast_list, list)
-@@ -3205,9 +3202,17 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
- 		    !memcmp(cmd.gid, mcast->gid.raw, sizeof mcast->gid.raw)) {
- 			list_del(&mcast->list);
- 			kfree(mcast);
-+			found = true;
- 			break;
- 		}
- 
-+	if (!found) {
-+		ret = -EINVAL;
-+		goto out_put;
-+	}
-+
-+	ret = ib_detach_mcast(qp, (union ib_gid *)cmd.gid, cmd.mlid);
-+
- out_put:
- 	put_qp_write(qp);
- 
-
+PiBIZXJlIEkgc3VnZ2VzdCB0byBtb2RpZnkgdGhlIGltcGxlbWVudGF0aW9uIG9mIGlidl9nZXRf
+ZGV2aWNlX2xpc3QoKSBzbw0KPiB0aGF0DQo+IGNvbnNlY3V0aXZlIGNhbGxzIHdpbGwgcmUtc2Nh
+biB0aGUgc3lzZnMgaW4gdGhlIHNhbWUgbWFubmVyIGFzIGRvbmUNCj4gdG9kYXkgaW4NCj4gb3Jk
+ZXIgdG8gY3JlYXRlIGEgZnJlc2ggaWJ2X2RldmljZSBsaXN0IGVhY2ggdGltZS4gV2Ugd2lsbCBy
+ZW1vdmUNCj4gY2FjaGluZyBvZg0KPiBkZXZpY2VzIHRoYXQgc3VwcG9ydCBwbHVnb3V0LCB3aGls
+ZSBrZWVwaW5nIHRoZSBpYnZfZGV2aWNlIGNhY2hlIGZvcg0KPiBkZXZpY2VzDQo+IHdoaWNoIGRv
+IG5vdCBzdXBwb3J0IHBsdWdvdXQuDQo+IA0KPiBGb3IgdGhpcyBwdXJwb3NlLCB0aGUgaWJ2X2dl
+dF9kZXZpY2VfbGlzdCgpIGRldmljZSBzY2FubmluZyBsb2dpYw0KPiBzaG91bGQgYmUNCj4gc2Vw
+YXJhdGVkIGZyb20gdGhlIGxpYmlidmVyYnMgc2luZ2xldG9uIGluaXRpYWxpemF0aW9uIHN0ZXAu
+DQo+IFVzZXIgY2FuIGNhbGwgaWJ2X29wZW5fZGV2aWNlKCkgd2hpbGUgaG9sZGluZyB0aGlzIGxp
+c3QgKHNlZSBtYW4gcGFnZXMpDQo+IGFuZA0KPiBvbmNlIGlidl9mcmVlX2RldmljZV9saXN0KCkg
+aXMgY2FsbGVkIGxpYmlidmVyYnMgY2FuIHJlbGVhc2UgdGhlIHVudXNlZA0KPiBpYnZfZGV2aWNl
+IG9iamVjdHMuIExhdGVyLCBvbiBjYWxscyB0byBpYnZfY2xvc2VfZGV2aWNlKCksIGFkZGl0aW9u
+YWwNCj4gaWJ2X2RldmljZSBvYmplY3Qgc2hvdWxkIGJlIHJlbGVhc2VkLiBDdXJyZW50bHksIG9u
+DQo+IGlidl9mcmVlX2RldmljZV9saXN0KCksDQo+IG9ubHkgdGhlIGFycmF5IGlzIGZyZWVkLCB3
+aGlsZSB0aGUgaWJ2X2RldmljZSBvYmplY3RzIGFyZSBuZXZlciBmcmVlZC4NCj4gbGliaWJ2ZXJi
+cyB3aWxsIG1haW50YWluIGEgcmVmX2NvdW50IGZvciBlYWNoIHZlcmJzX2RldmljZSBvYmplY3Qu
+DQo+IEluY3JlYXNlDQo+IHZlcmJzX2RldmljZS0+cmVmX2NvdW50IGZvciBldmVyeSBpYnZfZ2V0
+X2RldmljZV9saXN0KCkgb3INCj4gaWJ2X29wZW5fZGV2aWNlKCkuDQo+IERlY3JlYXNlIGl0IGZv
+ciBldmVyeSBpYnZfZnJlZV9kZXZpY2VfbGlzdCgpIG9yIGlidl9jbG9zZV9kZXZpY2UoKS4NCj4g
+T24gZGVjcmVhc2UsIGlmIHJlZl9jb3VudCB0ZXN0ZWQgdG8gYmUgemVybywgbGliaWJ2ZXJicyB3
+aWxsIGNhbGwgdGhlDQo+IHByb3ZpZGVyDQo+IGxpYnJhcnkgdG8gcmVsZWFzZSB0aGUgJ3N0cmN1
+dCB2ZXJic19kZXZpY2UnIHdoaWNoIGl0IGFsbG9jYXRlZC4NCj4gRWFjaCBwcm92aWRlciBsaWJy
+YXJ5IHNob3VsZCBwcm92aWRlIGEgZnVuY3Rpb24gdG8gcmVsZWFzZSB0aGUNCj4gdmVyYnNfZGV2
+aWNlDQo+IA0KPiBvYmplY3Q6ICd1bmluaXRfZGV2aWNlKHN0cnVjdCB2ZXJic19kZXZpY2UqIGRl
+dmljZSknLg0KDQpCYXNlZCBvbiB0aGUgZGlzY3Vzc2lvbiBzbyBmYXIsIGlzIHRoZXJlIGFueSBk
+aXNhZ3JlZW1lbnQgd2l0aCBqdXN0IHRoZSBhYm92ZSBmdW5jdGlvbmFsaXR5PyAgSWdub3Jpbmcg
+dGhlIGV2ZW50IHJlcG9ydGluZyBhc3BlY3QsIHRoZSBhYm92ZSBtYWtlcyBzZW5zZSB0byBtZSBh
+cyBhIHJlYXNvbmFibGUgZmlyc3Qgc3RlcC4NCg0KLSBTZWFuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
