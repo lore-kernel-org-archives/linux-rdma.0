@@ -1,276 +1,137 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [Query] iSER-Target: QP errors observed on increasing
- MaxXmitDataSegmentLength to 16384 (default = 8192)
-Date: Thu, 2 Mar 2017 18:39:59 +0530
-Message-ID: <20170302130957.GA11399@chelsio.com>
-References: <20170224091455.GA11766@chelsio.com>
- <1488443433.21712.111.camel@haakon3.risingtidesystems.com>
- <20170302090101.GA31347@chelsio.com>
- <1488449150.21712.129.camel@haakon3.risingtidesystems.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC for accelerated IPoIB 00/27] Enhanced mode for IPoIB driver
+Date: Thu, 2 Mar 2017 21:13:33 +0200
+Message-ID: <CAAk-MO9tAHioaSXv8MPu=Kf3QSxjuQhAt6vYRVCzuNriXkm-+A@mail.gmail.com>
+References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com> <20170301182039.GC14791@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1488449150.21712.129.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <20170301182039.GC14791-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday, March 03/02/17, 2017 at 15:35:50 +0530, Nicholas A. Bellinger wrote:
->    On Thu, 2017-03-02 at 14:31 +0530, Potnuri Bharat Teja wrote:
->    > On Thursday, March 03/02/17, 2017 at 14:00:33 +0530, Nicholas A.
->    Bellinger wrote:
->    > >    Hi Bharat & Co,
->    > >
->    > >    Adding Jenny + Or CC', as I believe they are still the main point
->    people
->    > >    for iser-target related items at Mellanox.
->    > >
->    > >    On Fri, 2017-02-24 at 14:44 +0530, Potnuri Bharat Teja wrote:
->    > >    > Hi Sagi/Nicholas,
->    > >    >
->    > >    > When tried changing the MaxXmitDataSegmentLength to 16384
->    (default =
->    > >    > 8192), by changing it from targetcli on target and iscsd.conf on
->    > >    > initiator, I observe the following errors.
->    > >    >
->    > >    > cxgb4 0000:06:00.4: AE qpid 1024 opcode 3 status 0x6 type 0 len
->    0x5c
->    > >    wrid.hi 0x0 wrid.lo 0x136
->    > >    > isert: isert_qp_event_callback: QP access error (3): conn
->    > >    ffff8807da7b6000
->    > >    > Aligning ISER MaxRecvDataSegmentLength: 4096 down to PAGE_SIZE
->    > >
->    > >    IIRC, this message in
->    iscsi_target_login.c:iscsi_login_zero_tsih_s2()
->    > >    indicates the initiator presented MRDSL was either not PAGE_SIZED
->    > >    aligned, or less than PAGE_SIZE..
->    > >
->    > >    Not sure why this is happening with a MRDSL=16384..? Can you
->    confirm
->    > >    what MRDSL came across the wire..?
->    > Hi Nicholas,
->    >        Thanks for the reply!
->    >        I saw the same MRDSL=16384 over the wire.
->    > >
->    > >    This would explain the iw_cxgb4 errors about the receive buffers
->    posted
->    > >    by target are insufficient for incoming data.
->    > >
->    > >    > cxgb4 0000:06:00.4: AE qpid 1026 opcode 3 status 0x6 type 0 len
->    0x5c
->    > >    wrid.hi 0x0 wrid.lo 0x2
->    > >    > isert: isert_qp_event_callback: QP access error (3): conn
->    > >    ffff88053a2ee000
->    > >    >
->    > >    > From the error status of iw_cxgb4 the receive buffers posted by
->    target
->    > >    > are unsufficient for the
->    > >    > incoming data to be placed/DMAed by the HW/adapter.
->    > >    > Apparently, from the iSER-target code the rx buffers are
->    acclocated
->    > >    > for a fixed size of 8192. from isert_alloc_rx_descriptors() in
->    > >    > drivers/infiniband/ulp/isert/ib_isert.c
->    > >    >                rx_sg->length = ISER_RX_PAYLOAD_SIZE;
->    > >    >
->    > >    > I confirmed the same by increasing the ISER_RX_PAYLOAD_SIZE to
->    16384
->    > >    > and the errors arent seen.
->    > >    >
->    > >
->    > >    Mmmm.
->    > >
->    > >    > As far as i could see, from the iSER target code,
->    > >    > MaxXmitDataSegmentLength should not be changed according to the
->    > >    > targetcli/openiscsi parameters and should countinue based on iSER
->    > >    > specific Initiator/targetrecvdatasegmentlength and so does the
->    > >    > MaxrecvDatasegmentLength.
->    > >    >
->    > >    > Please let me know if my observations are right and what could be
->    done
->    > >    > to fix this.
->    > >    >
->    > >
->    > >    OK, it sounds like a reasonable approach to always enforce the
->    default
->    > >    MXDSL=8192 from the target side.
->    > >
->    > >    The issue of ignoring what the initiator sent for MRDSL, and always
->    > >    enforcing MRDSL=8192 would be OK if the initiator is presenting a
->    MRDSL
->    > >    larger than 8192, but could be problematic if it is presenting a
->    MRDSL
->    > >    smaller than 8192.
->    > >
->    > >    So I think the right approach would be:
->    > >
->    > >    - Always use MXDSL = 8192 in iser-target, regardless of what's
->    > >      configured by targetcli via configfs, et al.
->    > >    - Always honor MRDSL = 8192 in iser-target, when the initiator
->    presents
->    > >      a MRDSL >= 8192 during login.
->    > >    - If the initiator is attempting to present a MRDSL < 8192, fail
->    > >      the login with ISCSI_LOGIN_STATUS_INIT_ERR
->    > Agreed!
-> 
->    After reading your email again, I may have mistaken one important bit..
-> 
->    If the initiator is proposing MRDSL != 8192, are there still problems
->    with iser-initiator hard-coded limits vs. what iser-target is actually
->    posting for outgoing non RDMA_WRITE transfers of != 8192..?
-> 
->    Or rather, does initiator proposed MRDSL != 8192 work as expected with
->    existing iser-initiator + iser-target code..?
+On Wed, Mar 1, 2017 at 8:20 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Mar 01, 2017 at 04:02:08PM +0200, Erez Shitrit wrote:
+>>     /* default accelerating functions, same as before */
+>>     struct ib_ipoib_accel_ops default_ipoib_accel_ops = {
+>>             .ib_dev_init = ipoib_dev_init_default,
+>>             .ib_dev_cleanup = ipoib_dev_uninit_default,
+>>             .ib_dev_open = ipoib_ib_dev_open_default,
+>>             .ib_dev_stop = ipoib_ib_dev_stop_default,
+>>             .send = ipoib_send,
+>>             .create_netdev = ipoib_create_netdev_default,
+>>             .attach_mcast = ipoib_mcast_attach,
+>>             .dettach_mcast = ipoib_mcast_dettach,
+>>     };
 >
-	Here are my Initiator MRDSL and MXDSL
-		node.conn[0].iscsi.MaxRecvDataSegmentLength = 8192
-		node.conn[0].iscsi.MaxXmitDataSegmentLength = 16384
-	and the Target MRDSL and MXDSL:
-		/> iscsi/iqn.2016-17.org1/tpg1/ get parameter MaxXmitDataSegmentLength
-		MaxXmitDataSegmentLength=16384
-		/> iscsi/iqn.2016-17.org1/tpg1/ get parameter MaxRecvDataSegmentLength
-		MaxRecvDataSegmentLength=8192
-	
-	To my knowledge, MaxXmitDataSegmentLength should be negotiated to min(8192, 16384).
-	But the session info shows 16384: 
-	#iscsiadm -m session -P3
--
-                ************************
-                Negotiated iSCSI params:
-                ************************
-                HeaderDigest: None
-                DataDigest: None
-                MaxRecvDataSegmentLength: 128
-                MaxXmitDataSegmentLength: 16384
-                FirstBurstLength: 65536
-                MaxBurstLength: 262144
-                ImmediateData: Yes
-                InitialR2T: Yes
-                MaxOutstandingR2T: 1
--
-	with default LIO and openiscsi configuration I see:
-		MaxXmitDataSegmentLength: 8192
->    If this is true and it's only a iser-target + MXDSL specific bug vs.
->    hard-coded ISER_RX_PAYLOAD_SIZE definitions mentioned above, then we can
+> This is so ridiculously close to what opa_vnic is doing, please try to
+> work with them to figure out some common version of your
+> 'create_netdev':
+>
+> +struct ib_ipoib_accel_ops {
+> +
+> +       /*
+> +        * HW provider driver creates the net_device for IPoIB.
+> +        * hca: The current ib device.
+> +        * name: is the format of the new network device (probably ib%d)
+> +        */
+> +       struct net_device * (*create_netdev)(struct ib_device *hca,
+> +                                            const char *name,
+> +                                            void (*setup)(struct net_device *));
+>
+>
+> vs:
+>
+> @@ -2110,6 +2128,15 @@  struct ib_device {
+>
+> +       struct net_device *(*alloc_rdma_netdev)(
+> +                                       struct ib_device *device,
+> +                                       u8 port_num,
+> +                                       enum rdma_netdev_t type,
+> +                                       const char *name,
+> +                                       unsigned char name_assign_type,
+> +                                       void (*setup)(struct net_device *));
+>
+>
+> I've pointed out again and again you two are working on the same
+> thing.
+>
+> It is inexplicable to me you couldn't use this opa_vnic patch as a
+> starting point for the ipoib api:
+>
+> https://patchwork.kernel.org/patch/9587819/
+>
+> I would propose you add a RDMA_NETDEV_IPOIB to their stuff and a
+> rdma_netdev_get_ipoib_ops(struct net_device *) to get your
+> rdma_netdev_ipoib_ops.
+>
 
->    avoid messing with the initiator proposed MRDSL.
-> 
-	From the set-up perspective, I was able to alter the negotiated 
-	MaxXmitDataSegmentLength to 16384 only if I set the MaxXmitDataSegmentLength to 
-	16384 on Target. So, There is high chance the target makeing wrong calculation
-	
->    If this is the case, then following (untested) patch should do the
->    trick.
-	Below Patch isnt holding good, I see the issue still and MXDSL set to 16384.
-	# iscsiadm -m session -P3
-	Target: iqn.2016-17.chelsio.org8 (non-flash)
-        Current Portal: 10.0.2.2:3260,1
-        Persistent Portal: 10.0.2.2:3260,1
--
-                ************************
-                Negotiated iSCSI params:
-                ************************
-                HeaderDigest: None
-                DataDigest: None
-                MaxRecvDataSegmentLength: 128
-                MaxXmitDataSegmentLength: 16384
-                FirstBurstLength: 65536
-                MaxBurstLength: 262144
-                ImmediateData: Yes
-                InitialR2T: Yes
-                MaxOutstandingR2T: 1
-                ************************
-                Attached SCSI devices:
-                ************************
-                Host Number: 13 State: running
-                scsi13 Channel 00 Id 0 Lun: 0
-                        Attached scsi disk sdj          State: running
--
-	Shall debug further and let you know.
-	Thanks!
-> 
->    diff --git a/drivers/target/iscsi/iscsi_target_login.c
->    b/drivers/target/iscsi/iscsi_target_login.c
->    index 303cb65..db811a6 100644
->    --- a/drivers/target/iscsi/iscsi_target_login.c
->    +++ b/drivers/target/iscsi/iscsi_target_login.c
->    @@ -427,49 +427,31 @@ static int iscsi_login_zero_tsih_s2(
->              * Set RDMAExtensions=Yes by default for iSER enabled network
->    portals
->              */
->             if (iser) {
->    -               struct iscsi_param *param;
->    -               unsigned long mrdsl, off;
->    +               unsigned long mxdsl;
->                     int rc;
->     
->                     if (iscsi_change_param_sprintf(conn,
->    "RDMAExtensions=Yes"))
->                             return -1;
->    -
->                     /*
->    -                * Make MaxRecvDataSegmentLength PAGE_SIZE aligned for
->    -                * Immediate Data + Unsolicited Data-OUT if necessary..
->    +                * Due to the hardcoded assumptions about MXDSL for
->    iser-target
->    +                * in ISER_RX_PAYLOAD_SIZE, we must always enforce the
->    default
->    +                * INITIAL_TARGETRECVDATASEGMENTLENGTH = 8192, regardless
->    of
->    +                * what this value may have been set to by user via
->    configfs
->    +                * for traditional iscsi-target operation.
->                      */
->    -               param =
->    iscsi_find_param_from_key("MaxRecvDataSegmentLength",
->    -                                                 conn->param_list);
->    -               if (!param) {
->    -                       iscsit_tx_login_rsp(conn,
->    ISCSI_STATUS_CLS_TARGET_ERR,
->    -                               ISCSI_LOGIN_STATUS_NO_RESOURCES);
->    -                       return -1;
->    -               }
->    -               rc = kstrtoul(param->value, 0, &mrdsl);
->    +               rc = kstrtoul(INITIAL_TARGETRECVDATASEGMENTLENGTH, 0,
->    &mxdsl);
->                     if (rc < 0) {
->                             iscsit_tx_login_rsp(conn,
->    ISCSI_STATUS_CLS_TARGET_ERR,
->                                     ISCSI_LOGIN_STATUS_NO_RESOURCES);
->                             return -1;
->                     }
->    -               off = mrdsl % PAGE_SIZE;
->    -               if (!off)
->    -                       goto check_prot;
->    -
->    -               if (mrdsl < PAGE_SIZE)
->    -                       mrdsl = PAGE_SIZE;
->    -               else
->    -                       mrdsl -= off;
->    -
->    -               pr_warn("Aligning ISER MaxRecvDataSegmentLength: %lu down"
->    -                       " to PAGE_SIZE\n", mrdsl);
->    -
->    -               if (iscsi_change_param_sprintf(conn,
->    "MaxRecvDataSegmentLength=%lu\n", mrdsl))
->    +               if (iscsi_change_param_sprintf(conn,
->    "MaxXmitDataSegmentLength=%lu\n", mxdsl))
->                             return -1;
->    +
->                     /*
->                      * ISER currently requires that ImmediateData +
->    Unsolicited
->                      * Data be disabled when protection / signature MRs are
->    enabled.
->                      */
->    -check_prot:
->                     if (sess->se_sess->sup_prot_ops &
->                        (TARGET_PROT_DOUT_STRIP | TARGET_PROT_DOUT_PASS |
->                         TARGET_PROT_DOUT_INSERT)) {
->    --
->    1.9.1
+We agree that both of the implementations look similar in some way,
+and we think that at the end we can give one api that will work for
+both of us.
+but, we need to remember that IPoIB acceleration and VNIC are coming
+to solve different issues.
+
+Anyway, It doesn't right for us to use the api as it is in the VNIC
+code, there are few differences that according to them we started with
+a different set of functions:
+
+1. We added acceleration to IPoIB driver which is generic network
+device driver and should work over any other HW specific vendor,
+without exposing the way the acceleration is done beneath, so we
+preferred not to  tie the implementation to the term "netdev ndo,
+The VNIC driver is free to do whatever it likes to because it "knows"
+what is going on in the low-level-driver (which is from the same
+vendor)
+also, we tried to keep the IPoIB code as before, the only changes is
+by separating control from data-path, that derived the meaning of the
+functions we exported, only data-path or HW resources handling.
+
+2. we wanted to keep the IPoIB code as clean as we can, so we created
+a "default acceleration" that works the same way as it was before, the
+idea that leads that is to separate the HW specific from the
+control/management area, and that is done better/simpler with the set
+of functions that are exposed.
+
+3. We are using some functions that are not part of the ndo calls or
+are used differently for example:
+We need functions to attach / detach mcast, we are using send function
+that needs to get the ah object We can do some hacking but we think it
+is cleaner that way.
+
+I think that we can change the create_netdev api to be like is in the
+VNIC code, but we would like to keep the rest of the functions in our
+struct and suggest the VNIC driver will use it in order to get the
+pointer of the create_netdev, We think that struct of pointers to
+functions can be flexible to future needs with no need to consider the
+ndo existence.
+
+meaning:
+one verb that expose struct of functions.
+for IPoIB we will use all of them.
+for VNIC it will use the create_netdev only.
+both of the driver are able to use them for their specific needs.
+
+> I also wonder why there are so many ops, for instance the approach of
+> having the driver set .ndo_stop and others seems better.
+>
+> ipoib could either 'wrapper' that pointer after calling
+> alloc_rdma_netdev or it could export enough utility functions for the
+> driver to implement the needed behavior. (eg this may be more in line
+> with the "midlayer mistake" thinking of
+> https://lwn.net/Articles/336262/)
+>
+> Maybe Niranjana has some suggestions based on learning in vnic, they
+> tried a few different schemes.
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
