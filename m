@@ -1,7 +1,7 @@
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v9 06/11] uapi: includes linux/types.h before exporting files
-Date: Thu,  2 Mar 2017 17:56:37 +0100
-Message-ID: <1488473802-13354-7-git-send-email-nicolas.dichtel@6wind.com>
+Subject: [PATCH v9 05/11] Makefile.headersinst: remove destination-y option
+Date: Thu,  2 Mar 2017 17:56:36 +0100
+Message-ID: <1488473802-13354-6-git-send-email-nicolas.dichtel@6wind.com>
 References: <20170301045241.GB9156@gondor.apana.org.au>
  <1488473802-13354-1-git-send-email-nicolas.dichtel@6wind.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,102 +11,76 @@ To: arnd@arndb.de, mmarek@suse.com
 Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some files will be exported after the next patch. 0-day tests report the
-following warning/error:
-./usr/include/linux/bcache.h:8: include of <linux/types.h> is preferred over <asm/types.h>
-./usr/include/linux/bcache.h:11: found __[us]{8,16,32,64} type without #include <linux/types.h>
-./usr/include/linux/qrtr.h:8: found __[us]{8,16,32,64} type without #include <linux/types.h>
-./usr/include/linux/cryptouser.h:39: found __[us]{8,16,32,64} type without #include <linux/types.h>
-./usr/include/linux/pr.h:14: found __[us]{8,16,32,64} type without #include <linux/types.h>
-./usr/include/linux/btrfs_tree.h:337: found __[us]{8,16,32,64} type without #include <linux/types.h>
-./usr/include/rdma/bnxt_re-abi.h:45: found __[us]{8,16,32,64} type without #include <linux/types.h>
+This option was added in commit c7bb349e7c25 ("kbuild: introduce destination-y
+for exported headers") but never used in-tree.
 
 Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Acked-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- include/uapi/linux/bcache.h     | 2 +-
- include/uapi/linux/btrfs_tree.h | 2 ++
- include/uapi/linux/cryptouser.h | 2 ++
- include/uapi/linux/pr.h         | 2 ++
- include/uapi/linux/qrtr.h       | 1 +
- include/uapi/rdma/bnxt_re-abi.h | 2 ++
- 6 files changed, 10 insertions(+), 1 deletion(-)
+ Documentation/kbuild/makefiles.txt | 23 ++++-------------------
+ scripts/Makefile.headersinst       |  2 +-
+ 2 files changed, 5 insertions(+), 20 deletions(-)
 
-diff --git a/include/uapi/linux/bcache.h b/include/uapi/linux/bcache.h
-index 22b6ad31c706..e3bb0635e94a 100644
---- a/include/uapi/linux/bcache.h
-+++ b/include/uapi/linux/bcache.h
-@@ -5,7 +5,7 @@
-  * Bcache on disk data structures
-  */
+diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
+index 9b9c4797fc55..37b525d329ae 100644
+--- a/Documentation/kbuild/makefiles.txt
++++ b/Documentation/kbuild/makefiles.txt
+@@ -46,9 +46,8 @@ This document describes the Linux kernel Makefiles.
+ 	=== 7 Kbuild syntax for exported headers
+ 		--- 7.1 header-y
+ 		--- 7.2 genhdr-y
+-		--- 7.3 destination-y
+-		--- 7.4 generic-y
+-		--- 7.5 generated-y
++		--- 7.3 generic-y
++		--- 7.4 generated-y
  
--#include <asm/types.h>
-+#include <linux/types.h>
+ 	=== 8 Kbuild Variables
+ 	=== 9 Makefile language
+@@ -1295,21 +1294,7 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 			#include/linux/Kbuild
+ 			genhdr-y += version.h
  
- #define BITMASK(name, type, field, offset, size)		\
- static inline __u64 name(const type *k)				\
-diff --git a/include/uapi/linux/btrfs_tree.h b/include/uapi/linux/btrfs_tree.h
-index d5ad15a106a7..6a261cb52d95 100644
---- a/include/uapi/linux/btrfs_tree.h
-+++ b/include/uapi/linux/btrfs_tree.h
-@@ -1,6 +1,8 @@
- #ifndef _BTRFS_CTREE_H_
- #define _BTRFS_CTREE_H_
+-	--- 7.3 destination-y
+-
+-	When an architecture has a set of exported headers that needs to be
+-	exported to a different directory destination-y is used.
+-	destination-y specifies the destination directory for all exported
+-	headers in the file where it is present.
+-
+-		Example:
+-			#arch/xtensa/platforms/s6105/include/platform/Kbuild
+-			destination-y := include/linux
+-
+-	In the example above all exported headers in the Kbuild file
+-	will be located in the directory "include/linux" when exported.
+-
+-	--- 7.4 generic-y
++	--- 7.3 generic-y
  
-+#include <linux/types.h>
-+
- /*
-  * This header contains the structure definitions and constants used
-  * by file system objects that can be retrieved using
-diff --git a/include/uapi/linux/cryptouser.h b/include/uapi/linux/cryptouser.h
-index 11d21fce14d6..c6a09c5261e7 100644
---- a/include/uapi/linux/cryptouser.h
-+++ b/include/uapi/linux/cryptouser.h
-@@ -18,6 +18,8 @@
-  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-  */
+ 	If an architecture uses a verbatim copy of a header from
+ 	include/asm-generic then this is listed in the file
+@@ -1336,7 +1321,7 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 		Example: termios.h
+ 			#include <asm-generic/termios.h>
  
-+#include <linux/types.h>
-+
- /* Netlink configuration messages.  */
- enum {
- 	CRYPTO_MSG_BASE = 0x10,
-diff --git a/include/uapi/linux/pr.h b/include/uapi/linux/pr.h
-index 57d7c0f916b6..645ef3cf3dd0 100644
---- a/include/uapi/linux/pr.h
-+++ b/include/uapi/linux/pr.h
-@@ -1,6 +1,8 @@
- #ifndef _UAPI_PR_H
- #define _UAPI_PR_H
+-	--- 7.5 generated-y
++	--- 7.4 generated-y
  
-+#include <linux/types.h>
-+
- enum pr_type {
- 	PR_WRITE_EXCLUSIVE		= 1,
- 	PR_EXCLUSIVE_ACCESS		= 2,
-diff --git a/include/uapi/linux/qrtr.h b/include/uapi/linux/qrtr.h
-index 66c0748d26e2..b14ee91ec387 100644
---- a/include/uapi/linux/qrtr.h
-+++ b/include/uapi/linux/qrtr.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_QRTR_H
- #define _LINUX_QRTR_H
+ 	If an architecture generates other header files alongside generic-y
+ 	wrappers, and not included in genhdr-y, then generated-y specifies
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index 3e20d03432d2..876b42cfede4 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -14,7 +14,7 @@ kbuild-file := $(srctree)/$(obj)/Kbuild
+ include $(kbuild-file)
  
-+#include <linux/types.h>
- #include <linux/socket.h>
+ # called may set destination dir (when installing to asm/)
+-_dst := $(if $(destination-y),$(destination-y),$(if $(dst),$(dst),$(obj)))
++_dst := $(if $(dst),$(dst),$(obj))
  
- struct sockaddr_qrtr {
-diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-index e2c8a3f0ccec..74018bd18d72 100644
---- a/include/uapi/rdma/bnxt_re-abi.h
-+++ b/include/uapi/rdma/bnxt_re-abi.h
-@@ -39,6 +39,8 @@
- #ifndef __BNXT_RE_UVERBS_ABI_H__
- #define __BNXT_RE_UVERBS_ABI_H__
- 
-+#include <linux/types.h>
-+
- #define BNXT_RE_ABI_VERSION	1
- 
- struct bnxt_re_uctx_resp {
+ old-kbuild-file := $(srctree)/$(subst uapi/,,$(obj))/Kbuild
+ ifneq ($(wildcard $(old-kbuild-file)),)
 -- 
 2.8.1
