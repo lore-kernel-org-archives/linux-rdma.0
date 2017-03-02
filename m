@@ -1,35 +1,59 @@
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: Poll CQ syncing problem
-Date: Thu, 2 Mar 2017 07:59:41 +0200
-Message-ID: <4d8ac8fd-8ef1-6f6b-177c-2c3ab131f99c@mellanox.com>
+Date: Thu, 2 Mar 2017 08:04:38 +0200
+Message-ID: <d2ae5e83-2099-3da6-561c-4f2489ee062b@mellanox.com>
 References: <b4355d22-fc79-c860-de8a-5a4d468c884d@mellanox.com>
  <3ba1baab-e2ac-358d-3b3b-ff4a27405c93@mellanox.com>
- <1488387143.2699.6.camel@sandisk.com>
+ <0786659a-da12-e8f7-329e-3caa8cc8791f@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488387143.2699.6.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <0786659a-da12-e8f7-329e-3caa8cc8791f-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/1/2017 6:52 PM, Bart Van Assche wrote:
+Hi Sagi,
 
-> On Wed, 2017-03-01 at 16:30 +0200, Noa Osherovich wrote:
->> REGS: c0000001ce7077e0 TRAP: 0300   Not tainted  (2.6.32-642.el6.ppc64)
-> Hello Noa,
+On 3/1/2017 6:44 PM, Sagi Grimberg wrote:
+
+>> Hi Christoph, Sagi
+> Hi Noa,
+>> Analysis:
+>> Since ib_comp_wq isn't single threaded, two works can run in parallel for the same CQ,
+>> executing __ib_process_cq.
+>>
+> How is that even possible? AFAICT a given CQ cannot run more than a
+> single work item at a time because we simply queue a work when we get
+> a completion event and rearm it only when we fully drain it. we requeue
+> if we exhausted our budget but still I don't see a mutual exclusion
+> violation...
+> Am I missing anything?
+
+As Christoph and Bart pointed out, we use older kernel versions.
+
+>> Since this function isn't thread safe and the wc array is shared, it causes a data corruption
+>> which eventually crashes in the MAD layer due to a double list_del of the same element.
+> Hmm. I'm wandering if this is really the root-cause... Can it be the
+> fact that ib_comp_wq is unbound causing the worker to migrate cpu cores
+> in its lifetime?
 >
-> I agree with Christoph and Sagi that your analysis doesn't match the upstream
-> code. I think the above information means that you are using RHEL 6.8?
-
-Yes, as well as other older kernel, as I wrote to Christoph. We'll adapt the code.
-
-Thanks.
-
-> Bart.
+> I wanted to change that a while ago and sent a patch for it [1].
 >
+>> We have the following options to solve this:
+>> 1. Instead of cq->wc, allocate an ib_wc array in __ib_process_cq per each call.
+> That is bad practice.
+>
+>> 2. Make ib_comp_wq a single thread workqueue.
+> Not going to happen, it'll kill performance.
+>> 3. Change the locking scheme during poll: Currently only the device's poll_cq implementation
+>>    is done under lock. Change it to also contan the callbacks.
+> I don't see a need for this at all.
+
+Thanks for your input.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
