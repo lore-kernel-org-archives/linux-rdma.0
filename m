@@ -1,87 +1,58 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [Query] iSER-Target: QP errors observed on increasing
- MaxXmitDataSegmentLength to 16384 (default = 8192)
-Date: Thu, 02 Mar 2017 00:30:33 -0800
-Message-ID: <1488443433.21712.111.camel@haakon3.risingtidesystems.com>
-References: <20170224091455.GA11766@chelsio.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 08/14] mlx5: Update to use new udma write
+ barriers
+Date: Thu, 2 Mar 2017 11:34:56 +0200
+Message-ID: <24bf0e37-e032-0862-c5b9-b5a40fcfb343@dev.mellanox.co.il>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
+ <d5921636-1911-5588-8c59-620066bca01a@dev.mellanox.co.il>
+ <20170227180009.GL5891@obsidianresearch.com>
+ <2969cce4-8b51-8fcf-f099-2b42a6d40a9c@dev.mellanox.co.il>
+ <20170228170658.GA17995@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20170224091455.GA11766@chelsio.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Potnuri Bharat Teja <bharat@chelsio.com>
-Cc: sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, swise@opengridcomputing.com, rajur@chelsio.com, Jenny Derzhavetz <jennyf@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170228170658.GA17995-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bharat & Co,
+On 2/28/2017 7:06 PM, Jason Gunthorpe wrote:
+> Okay, my mistake, then it must be this, which increases the leading
+> barrier to a wc_wmb().. See the discussion with Ram:
+>
 
-Adding Jenny + Or CC', as I believe they are still the main point people
-for iser-target related items at Mellanox.
+> diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+> index cc0af920c703d9..1ce2cf2dd0bbd4 100644
+> --- a/providers/mlx5/cq.c
+> +++ b/providers/mlx5/cq.c
+> @@ -1281,16 +1281,16 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+>
+>  	/*
+>  	 * Make sure that the doorbell record in host memory is
+> -	 * written before ringing the doorbell via PCI MMIO.
+> +	 * written before ringing the doorbell via PCI WC MMIO.
+>  	 */
+> -	udma_to_device_barrier();
+> +	mmio_wc_start();
+>
+>  	doorbell[0] = htonl(sn << 28 | cmd | ci);
+>  	doorbell[1] = htonl(cq->cqn);
+>
+>  	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
+>
+> -	mmio_ordered_writes_hack();
+> +	mmio_flush_writes();
+>
+>  	return 0;
+>  }
+>
 
-On Fri, 2017-02-24 at 14:44 +0530, Potnuri Bharat Teja wrote:
-> Hi Sagi/Nicholas,
-> 
-> When tried changing the MaxXmitDataSegmentLength to 16384 (default =
-> 8192), by changing it from targetcli on target and iscsd.conf on
-> initiator, I observe the following errors.
-> 
-> cxgb4 0000:06:00.4: AE qpid 1024 opcode 3 status 0x6 type 0 len 0x5c wrid.hi 0x0 wrid.lo 0x136
-> isert: isert_qp_event_callback: QP access error (3): conn ffff8807da7b6000
-> Aligning ISER MaxRecvDataSegmentLength: 4096 down to PAGE_SIZE
-
-IIRC, this message in iscsi_target_login.c:iscsi_login_zero_tsih_s2()
-indicates the initiator presented MRDSL was either not PAGE_SIZED
-aligned, or less than PAGE_SIZE..
-
-Not sure why this is happening with a MRDSL=16384..? Can you confirm
-what MRDSL came across the wire..?
-
-This would explain the iw_cxgb4 errors about the receive buffers posted
-by target are insufficient for incoming data.
-
-> cxgb4 0000:06:00.4: AE qpid 1026 opcode 3 status 0x6 type 0 len 0x5c wrid.hi 0x0 wrid.lo 0x2
-> isert: isert_qp_event_callback: QP access error (3): conn ffff88053a2ee000
-> 
-> From the error status of iw_cxgb4 the receive buffers posted by target
-> are unsufficient for the
-> incoming data to be placed/DMAed by the HW/adapter.
-> Apparently, from the iSER-target code the rx buffers are acclocated
-> for a fixed size of 8192. from isert_alloc_rx_descriptors() in
-> drivers/infiniband/ulp/isert/ib_isert.c 
-> 		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
-> 
-> I confirmed the same by increasing the ISER_RX_PAYLOAD_SIZE to 16384
-> and the errors arent seen.
-> 
-
-Mmmm.
-
-> As far as i could see, from the iSER target code,
-> MaxXmitDataSegmentLength should not be changed according to the
-> targetcli/openiscsi parameters and should countinue based on iSER
-> specific Initiator/targetrecvdatasegmentlength and so does the
-> MaxrecvDatasegmentLength.
-> 
-> Please let me know if my observations are right and what could be done
-> to fix this.
-> 
-
-OK, it sounds like a reasonable approach to always enforce the default
-MXDSL=8192 from the target side.
-
-The issue of ignoring what the initiator sent for MRDSL, and always
-enforcing MRDSL=8192 would be OK if the initiator is presenting a MRDSL
-larger than 8192, but could be problematic if it is presenting a MRDSL
-smaller than 8192.
-
-So I think the right approach would be:
-
-- Always use MXDSL = 8192 in iser-target, regardless of what's 
-  configured by targetcli via configfs, et al.
-- Always honor MRDSL = 8192 in iser-target, when the initiator presents 
-  a MRDSL >= 8192 during login.
-- If the initiator is attempting to present a MRDSL < 8192, fail
-  the login with ISCSI_LOGIN_STATUS_INIT_ERR
-
-Jenny + Or, WDYT..?
+The above seems fine, can you please send a formal patch to fix the 
+original series, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
