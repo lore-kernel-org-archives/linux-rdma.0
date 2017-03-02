@@ -1,48 +1,26 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] libibverbs IB device hotplug support
-Date: Thu, 2 Mar 2017 16:08:23 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0ED3C6@ORSMSX109.amr.corp.intel.com>
-References: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V5 for-next 00/21] Broadcom RoCE Driver (bnxt_re)
+Date: Thu, 2 Mar 2017 17:48:20 +0200
+Message-ID: <CAJ3xEMhXBQbNKBGAceWZGN5411OJ59zNykubjC32X9hrhK4VLA@mail.gmail.com>
+References: <1486725593-9872-1-git-send-email-selvin.xavier@broadcom.com>
+ <CAJ3xEMgJX14wRg2L_VoQ3_XUUrvNT-UBG36Bkp6m=Atre+U9=w@mail.gmail.com> <CANjDDBg_QoSwHMqjUOr2UrobaBHwyfrHzzK8N7VXcmq1eEONSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAFgAxU9eQYwBad2+SJw1x+cQMMqzgkz0fpeumG7Rx=o_eQqo2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CANjDDBg_QoSwHMqjUOr2UrobaBHwyfrHzzK8N7VXcmq1eEONSA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBIZXJlIEkgc3VnZ2VzdCB0byBtb2RpZnkgdGhlIGltcGxlbWVudGF0aW9uIG9mIGlidl9nZXRf
-ZGV2aWNlX2xpc3QoKSBzbw0KPiB0aGF0DQo+IGNvbnNlY3V0aXZlIGNhbGxzIHdpbGwgcmUtc2Nh
-biB0aGUgc3lzZnMgaW4gdGhlIHNhbWUgbWFubmVyIGFzIGRvbmUNCj4gdG9kYXkgaW4NCj4gb3Jk
-ZXIgdG8gY3JlYXRlIGEgZnJlc2ggaWJ2X2RldmljZSBsaXN0IGVhY2ggdGltZS4gV2Ugd2lsbCBy
-ZW1vdmUNCj4gY2FjaGluZyBvZg0KPiBkZXZpY2VzIHRoYXQgc3VwcG9ydCBwbHVnb3V0LCB3aGls
-ZSBrZWVwaW5nIHRoZSBpYnZfZGV2aWNlIGNhY2hlIGZvcg0KPiBkZXZpY2VzDQo+IHdoaWNoIGRv
-IG5vdCBzdXBwb3J0IHBsdWdvdXQuDQo+IA0KPiBGb3IgdGhpcyBwdXJwb3NlLCB0aGUgaWJ2X2dl
-dF9kZXZpY2VfbGlzdCgpIGRldmljZSBzY2FubmluZyBsb2dpYw0KPiBzaG91bGQgYmUNCj4gc2Vw
-YXJhdGVkIGZyb20gdGhlIGxpYmlidmVyYnMgc2luZ2xldG9uIGluaXRpYWxpemF0aW9uIHN0ZXAu
-DQo+IFVzZXIgY2FuIGNhbGwgaWJ2X29wZW5fZGV2aWNlKCkgd2hpbGUgaG9sZGluZyB0aGlzIGxp
-c3QgKHNlZSBtYW4gcGFnZXMpDQo+IGFuZA0KPiBvbmNlIGlidl9mcmVlX2RldmljZV9saXN0KCkg
-aXMgY2FsbGVkIGxpYmlidmVyYnMgY2FuIHJlbGVhc2UgdGhlIHVudXNlZA0KPiBpYnZfZGV2aWNl
-IG9iamVjdHMuIExhdGVyLCBvbiBjYWxscyB0byBpYnZfY2xvc2VfZGV2aWNlKCksIGFkZGl0aW9u
-YWwNCj4gaWJ2X2RldmljZSBvYmplY3Qgc2hvdWxkIGJlIHJlbGVhc2VkLiBDdXJyZW50bHksIG9u
-DQo+IGlidl9mcmVlX2RldmljZV9saXN0KCksDQo+IG9ubHkgdGhlIGFycmF5IGlzIGZyZWVkLCB3
-aGlsZSB0aGUgaWJ2X2RldmljZSBvYmplY3RzIGFyZSBuZXZlciBmcmVlZC4NCj4gbGliaWJ2ZXJi
-cyB3aWxsIG1haW50YWluIGEgcmVmX2NvdW50IGZvciBlYWNoIHZlcmJzX2RldmljZSBvYmplY3Qu
-DQo+IEluY3JlYXNlDQo+IHZlcmJzX2RldmljZS0+cmVmX2NvdW50IGZvciBldmVyeSBpYnZfZ2V0
-X2RldmljZV9saXN0KCkgb3INCj4gaWJ2X29wZW5fZGV2aWNlKCkuDQo+IERlY3JlYXNlIGl0IGZv
-ciBldmVyeSBpYnZfZnJlZV9kZXZpY2VfbGlzdCgpIG9yIGlidl9jbG9zZV9kZXZpY2UoKS4NCj4g
-T24gZGVjcmVhc2UsIGlmIHJlZl9jb3VudCB0ZXN0ZWQgdG8gYmUgemVybywgbGliaWJ2ZXJicyB3
-aWxsIGNhbGwgdGhlDQo+IHByb3ZpZGVyDQo+IGxpYnJhcnkgdG8gcmVsZWFzZSB0aGUgJ3N0cmN1
-dCB2ZXJic19kZXZpY2UnIHdoaWNoIGl0IGFsbG9jYXRlZC4NCj4gRWFjaCBwcm92aWRlciBsaWJy
-YXJ5IHNob3VsZCBwcm92aWRlIGEgZnVuY3Rpb24gdG8gcmVsZWFzZSB0aGUNCj4gdmVyYnNfZGV2
-aWNlDQo+IA0KPiBvYmplY3Q6ICd1bmluaXRfZGV2aWNlKHN0cnVjdCB2ZXJic19kZXZpY2UqIGRl
-dmljZSknLg0KDQpCYXNlZCBvbiB0aGUgZGlzY3Vzc2lvbiBzbyBmYXIsIGlzIHRoZXJlIGFueSBk
-aXNhZ3JlZW1lbnQgd2l0aCBqdXN0IHRoZSBhYm92ZSBmdW5jdGlvbmFsaXR5PyAgSWdub3Jpbmcg
-dGhlIGV2ZW50IHJlcG9ydGluZyBhc3BlY3QsIHRoZSBhYm92ZSBtYWtlcyBzZW5zZSB0byBtZSBh
-cyBhIHJlYXNvbmFibGUgZmlyc3Qgc3RlcC4NCg0KLSBTZWFuDQo=
+On Thu, Mar 2, 2017 at 5:01 PM, Devesh Sharma
+<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+> Yes, Those has been posted and are under review as of now. I am to
+> post V3 for that series, you should expect V3 somewhere early next week.
+
+thank you
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
