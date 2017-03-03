@@ -1,74 +1,121 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RXE, should I use rdma-core or the older stand-alone code
-Date: Thu, 2 Mar 2017 17:44:37 -0700
-Message-ID: <20170303004437.GA32227@obsidianresearch.com>
-References: <CAANLjFru=X5RDEojsjMgzjjhe130raz3QPaPLZmS_W2Jru9Tkg@mail.gmail.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC for accelerated IPoIB 00/27] Enhanced mode for IPoIB driver
+Date: Thu, 2 Mar 2017 16:14:32 -0800
+Message-ID: <20170303001431.GB66720@knc-06.sc.intel.com>
+References: <1488376954-8346-1-git-send-email-erezsh@mellanox.com>
+ <20170301182039.GC14791@obsidianresearch.com>
+ <CAAk-MO9tAHioaSXv8MPu=Kf3QSxjuQhAt6vYRVCzuNriXkm-+A@mail.gmail.com>
+ <20170302200619.GA17530@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAANLjFru=X5RDEojsjMgzjjhe130raz3QPaPLZmS_W2Jru9Tkg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170302200619.GA17530-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 02, 2017 at 04:53:54PM -0700, Robert LeBlanc wrote:
+Hi,
 
-> I cloned rdma-core and built it using the build.sh scipt. I could use
-> the rxe_cfg from providers/rxe/, but I was getting '(?)' for the MTU
+I haven't gone through the patches in detail yet.
+Jason already responded regarding using 'rdma netdev' for this use case.
+I agree with it and adding couple points to that here.
 
-This bug should have been fixed a few days ago.. I suspect when you
-tested you probably didn't have this commit:
+On Thu, Mar 02, 2017 at 01:06:19PM -0700, Jason Gunthorpe wrote:
+>On Thu, Mar 02, 2017 at 09:13:33PM +0200, Erez Shitrit wrote:
+>
+>> 3. We are using some functions that are not part of the ndo calls or
+>> are used differently for example:
+>
+>What these patches do is not consistent with the rest of the stack.
+>
+>Niranjana choose to add control functions directly to 'rdma_netdev', I
+>think that is a reasonable choice and you should do the same:
+>
+>+struct rdma_netdev {
+>+	void *clnt_priv;
+>+
+>+	/* control functions */
+>+	void (*set_id)(struct net_device *netdev, int id);
+>+};
+>
+>Add ipoib_attach_mcast/etc
+>
+>Maybe propose to Niranjana that this should be a struct
+>rdma_netdev_ops pointer.
+>
+>For everything else I would use ndo ops directly and do not involve
+>the rdma side.
+>
 
-commit ebc66e2f29c8dd05331dc07b929f976e204001cb
-Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date:   Mon Feb 27 11:47:22 2017 -0700
+Many of the operations in ib_ipoib_accel_ops can use ndo calls or can be easily 
+be adopted to use them.
 
-    rxe: Fix dropped padding in rxe_queue
-    
-    Dropping it was a typo.
-    
-    Reported-by: Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-    Fixes: 6b26a9e24739 ("Use C11 atomics instead of wmb/rmb macros for CPU-only atomics")
-    Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>> I think that we can change the create_netdev api to be like is in the
+>> VNIC code, but we would like to keep the rest of the functions in
+>> our
+>
+>Of course you can, it is the same function!
+>
+>Both patchsets need to adopt the same scheme for dealing with 'priv'
+>data in the netdev, and the same signature for the create_netdev()
+>driver op. The vnic approach is reasonable here and provides a
+>dedicated priv for the driver and a second priv for the management
+>layer.
+>
+>You should start here:
+>
+>https://patchwork.kernel.org/patch/9587819/
+>
+>And propose any fundamental modifications to Niranjana.
+>
+>For instance, ipoib should define a header like 'opib_vnic.h' that
+>specifies ipoib versions of opa_vnic_rdma_netdev, opa_vnic_priv,
+>opa_vnic_dev_priv, and so on.
+>
+>> struct and suggest the VNIC driver will use it in order to get the
+>> pointer of the create_netdev, We think that struct of pointers to
+>> functions can be flexible to future needs with no need to consider the
+>> ndo existence.
+>
+>I think that misses the point, there many ndo ops that are
+>relavent only to the low level driver (eg ndo_select_queue,
+>ndo_features_check, etc) and those should just be directly hooked by
+>the low level driver without involvement from the ipoib layer.
+>
+>For instance instead of having ipoib ndo_start_xmit call a
+>ops->start(), it is more consistent with netdev for the driver to
+>provide ndo_start_xmit and call ipoib_get_ah() to get the path
+>information.
+>
+>This broadly makes more sense because the driver might want to return
+>NETDEV_TX_BUSY right away and doesn't need to be forced to do a
+>mandatory AH lookup by the ipoib wrapper.
+>
+>In general wrapping the ndo calls in ipoib is probably not a great
+>idea. (same comment applies to vnic)
+>
 
-> ibv_devinfo: ../libibverbs/init.c:376: try_driver: Assertion
-> `dev->_ops._dummy1 == ((void *)0)' failed.
+Having OPA_VNIC call a function out of ib_ipoib_accel_ops is not right design 
+at all.
+'rdma netdev' is a generic netdev interface which can be used for multiple use 
+cases.
+Both OPA_VNIC and this should use 'rdma netdev' interface. OPA_VNIC is already 
+doing it by defining RDMA_NETDEV_OPA_VNIC.
+The control ops should be associated with the 'rdma netdev' and not the other 
+way round.
 
-However, this assertion is only present in an even newer checkin.
+You can put the control ops in the ipoib wrapper around 'rdma_netdev' (opa_vnic 
+defines opa_vnic_rdma_netdev structure, ipoib can define a similar one) or 
+directly under 'rdma_netdev' structure perhaps.
+I am seeing in PATCH#26, mlx5 driver is accessing ipoib ULP's private data 
+structure, which it shouldn't. VNIC using rdma netdev clearly distinguishes 
+between client and device private data structures.
 
-But, it can only trigger if a slightly older, mismatched, provider
-library is present.
+Niranjana
 
-So, I think, your environment is messed up with mismatched
-libaries and providers..
-
-Manually copying files into /usr/ surely contributed to this,
-cmake pre-install output has embedded rpath's and cannot be placed in
-/usr/
-
-> I also went into the build directory and ran cmake3 . -G"Unix
-> Makefiles" and then installed it and had the exact problem.
-
-The trouble with the default 'make install' is that it puts everything
-in /usr/local, so it doesn't actually replace your existing local
-install and unexpected stuff can happen if the two overlap improperly.
-
-You don't need to install it to test it. Just use ./build.sh and run
-the binaries or LD_LIBRARY_PATH the libraries under build/lib/. This
-is designed to work properly without interfering with the system
-install.
-
-When you want to install it I always recommend making packages, the
-redhat/rdma-core.spec will build proper RPMs for el7 that will cleanly
-upgrade your existing ones without leaving conflicting residual stuff
-around.
-
-Most likely at this point you need to wipe out everything you have
-done to /usr and /usr/local and start again.
-
-Jason
+>Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
