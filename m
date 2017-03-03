@@ -1,103 +1,57 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH rdma-core 06/14] i40iw: Get rid of unique barrier macros
-Date: Fri, 3 Mar 2017 15:45:14 -0600
-Message-ID: <20170303214514.GA12996@ssaleem-MOBL4.amr.corp.intel.com>
+Date: Fri, 3 Mar 2017 15:22:44 -0700
+Message-ID: <20170303222244.GA678@obsidianresearch.com>
 References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
  <1487272989-8215-7-git-send-email-jgunthorpe@obsidianresearch.com>
  <20170301172920.GA11340@ssaleem-MOBL4.amr.corp.intel.com>
  <20170301175521.GB14791@obsidianresearch.com>
  <20170301221420.GA18548@ssaleem-MOBL4.amr.corp.intel.com>
  <20170301230506.GB2820@obsidianresearch.com>
+ <20170303214514.GA12996@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170301230506.GB2820-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170303214514.GA12996-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 01, 2017 at 04:05:06PM -0700, Jason Gunthorpe wrote:
-> On Wed, Mar 01, 2017 at 04:14:20PM -0600, Shiraz Saleem wrote:
-> > > Is there DMA occuring to shadow_area?
-> > 
-> > The shadow area contains status variables which are read by SW and 
-> > updated by PCI device.
-> 
-> So the device is DMA'ing to it, and the driver is reading DMA memory..
-> 
-> > > What can wrong if it executes like this?
-> > > 
-> > > get_64bit_val(qp->shadow_area, I40IW_BYTE_0, &temp);
-> > > udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
-> > > set_64bit_val(wqe, I40IW_BYTE_24, header);
-> > > udma_to_device_barrier();
-> > 
-> > We need strict ordering that ensures write of the WQE completes before 
-> > read of the shadow area.
-> 
-> > This ensures the value read from the shadow can be used to determine
-> > if a DB ring is needed. If the shadow area is read first, the
-> > algorithm, in certain cases, would not ring the DB when it should
-> > and the HW may go idle with work requests posted.
-> 
-> This still is not making a lot of sense to me.. I really need to see a
-> ladder diagram to understand your case.
-> 
-> Here is an example, I think what you are saying is: The HW could have
-> fetched valid = 0 and stopped the queue and the driver needs to
-> doorbell it to wake it up again. However, the driver optimizes away
-> the doorbell rings in certain cases based on reading a DMA result.
-> 
-> So here is a possible ladder diagram:
-> 
-> CPU                         DMA DEVICE
->                             Issue READ#1 of valid bit
->  Respond to READ#1
->  SFENCE
->  set_valid_bit
->  MEFENCE
->  read_tail
->                             Receive READ#1 response with valid bit unset
-> 			    Issue DMA WRITE to shadow_area indicating STOPPED
->  DMA WRITE arrives
-> 
-> And the version where the DMA is seen:
-> 
-> CPU                         DMA DEVICE
->                             Issue READ#1 of valid bit
->  SFENCE
->  Respond to READ#1
->  set_valid_bit
->  MEFENCE
->                             Receive READ#1 response with valid bit unset
-> 			    Issue DMA WRITE to shadow_area indicating STOPPED
->  DMA WRITE arrives
->  read_tail
-> 
-> These diagrams attempt to show that the DMA device reads the valid bit
-> then DMA's back to the shadow_area depending on what it read.
+On Fri, Mar 03, 2017 at 03:45:14PM -0600, Shiraz Saleem wrote:
 
+> This is not quite how our DB logic works. There are additional HW
+> steps and nuances in the flow. Unfortunately, to explain this, we
+> need to provide details of our internal HW flow for the DB logic. We
+> are unable to do so at this time.
 
-This is not quite how our DB logic works. There are additional HW steps and nuances 
-in the flow. Unfortunately, to explain this, we need to provide details of our internal 
-HW flow for the DB logic. We are unable to do so at this time.
+Well, it is very problematic to help you define what a cross-arch
+barrier should do if you can't explain what you need to have happen
+relative to PCI-E.
 
-The ordering is a HW requirement. i.e write valid bit of WQE __must__ precede the read 
-tail of the shadow.
-
+> > I get the feeling this approach requires MFENCE to do something it
+> > doesn't...
 > 
-> I get the feeling this approach requires MFENCE to do something it
-> doesn't...
+> Mfence guarantees that load won't be reordered before the store, and
+> thus we are using it.
 
-Mfence guarantees that load won't be reordered before the store, and thus 
-we are using it.
+If that is all then the driver can use LFENCE and the
+udma_from_device_barrier() .. Is that OK?
 
-We understand this is a unique requirement specific to our design but it is necessary.
+But fundamentally, PCI is fairly lax about what it permits the root
+complex to do, and to what degree it requires strong ordering within
+the root complex itself for PCI issued LOAD/STORES.
 
-The rest of the changes look ok.
+It is hard to understand how the order of CPU operations matters when
+the PCI operations to different cache lines can be re-ordered inside
+the root complex.
 
+An approach may work on some x86-64 systems but be unreliable on other
+arches, or even on unusual x86 (eg SGI's x86 NUMA systems have
+conformant, but lax, ordering rules)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
